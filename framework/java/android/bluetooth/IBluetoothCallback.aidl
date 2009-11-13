@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008, The Android Open Source Project
+ * Copyright (C) 2009, The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@
 package android.bluetooth;
 
 /**
+ * System private API for Bluetooth service callbacks.
+ *
  * {@hide}
  */
-oneway interface IBluetoothDeviceCallback
+interface IBluetoothCallback
 {
-    void onGetRemoteServiceChannelResult(in String address, int channel);
+    void onRfcommChannelFound(int channel);
 }

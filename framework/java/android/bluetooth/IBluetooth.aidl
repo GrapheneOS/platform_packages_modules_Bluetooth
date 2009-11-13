@@ -16,14 +16,15 @@
 
 package android.bluetooth;
 
-import android.bluetooth.IBluetoothDeviceCallback;
+import android.bluetooth.IBluetoothCallback;
+import android.os.ParcelUuid;
 
 /**
  * System private API for talking with the Bluetooth service.
  *
  * {@hide}
  */
-interface IBluetoothDevice
+interface IBluetooth
 {
     boolean isEnabled();
     int getBluetoothState();
@@ -33,28 +34,16 @@ interface IBluetoothDevice
     String getAddress();
     String getName();
     boolean setName(in String name);
-    String getVersion();
-    String getRevision();
-    String getManufacturer();
-    String getCompany();
 
     int getScanMode();
-    boolean setScanMode(int mode);
+    boolean setScanMode(int mode, int duration);
 
     int getDiscoverableTimeout();
     boolean setDiscoverableTimeout(int timeout);
 
-    boolean startDiscovery(boolean resolveNames);
+    boolean startDiscovery();
     boolean cancelDiscovery();
     boolean isDiscovering();
-    boolean startPeriodicDiscovery();
-    boolean stopPeriodicDiscovery();
-    boolean isPeriodicDiscovery();
-    String[] listRemoteDevices();
-
-    String[] listAclConnections();
-    boolean isAclConnected(in String address);
-    boolean disconnectRemoteDeviceAcl(in String address);
 
     boolean createBond(in String address);
     boolean cancelBondProcess(in String address);
@@ -63,16 +52,19 @@ interface IBluetoothDevice
     int getBondState(in String address);
 
     String getRemoteName(in String address);
-    String getRemoteVersion(in String address);
-    String getRemoteRevision(in String address);
     int getRemoteClass(in String address);
-    String getRemoteManufacturer(in String address);
-    String getRemoteCompany(in String address);
-    boolean getRemoteServiceChannel(in String address, int uuid16, in IBluetoothDeviceCallback callback);
-    byte[] getRemoteFeatures(in String adddress);
-    String lastSeen(in String address);
-    String lastUsed(in String address);
+    ParcelUuid[] getRemoteUuids(in String address);
+    boolean fetchRemoteUuids(in String address, in ParcelUuid uuid, in IBluetoothCallback callback);
+    int getRemoteServiceChannel(in String address, in ParcelUuid uuid);
 
     boolean setPin(in String address, in byte[] pin);
-    boolean cancelPin(in String address);
+    boolean setPasskey(in String address, int passkey);
+    boolean setPairingConfirmation(in String address, boolean confirm);
+    boolean cancelPairingUserInput(in String address);
+
+    boolean setTrust(in String address, in boolean value);
+    boolean getTrustState(in String address);
+
+    int addRfcommServiceRecord(in String serviceName, in ParcelUuid uuid, int channel, IBinder b);
+    void removeServiceRecord(int handle);
 }

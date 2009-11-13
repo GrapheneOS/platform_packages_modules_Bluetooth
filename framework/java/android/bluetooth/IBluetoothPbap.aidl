@@ -16,27 +16,17 @@
 
 package android.bluetooth;
 
+import android.bluetooth.BluetoothDevice;
+
 /**
- * Bluetooth API error codes.
+ * System private API for Bluetooth pbap service
  *
- * Errors are always negative.
- *
- * @hide
+ * {@hide}
  */
-public class BluetoothError {
-    /** No error */
-    public static final int SUCCESS = 0;
-
-    /** Generic error */
-    public static final int ERROR = -1000;
-
-    /** Bluetooth currently disabled */
-    public static final int ERROR_DISABLED = -1001;
-
-    /** IPC is not ready, for example service is not yet bound */
-    public static final int ERROR_IPC_NOT_READY = -1011;
-
-    /** Some other IPC error, for example a RemoteException */
-    public static final int ERROR_IPC = -1012;
-
+interface IBluetoothPbap {
+    int getState();
+    BluetoothDevice getClient();
+    boolean connect(in BluetoothDevice device);
+    void disconnect();
+    boolean isConnected(in BluetoothDevice device);
 }
