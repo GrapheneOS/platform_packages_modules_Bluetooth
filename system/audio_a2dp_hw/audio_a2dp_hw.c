@@ -348,6 +348,8 @@ static int a2dp_command(struct a2dp_stream_common *common, char cmd)
 
     DEBUG("A2DP COMMAND %s DONE STATUS %d", dump_a2dp_ctrl_event(cmd), ack);
 
+    if (ack == A2DP_CTRL_ACK_INCALL_FAILURE)
+        return ack;
     if (ack != A2DP_CTRL_ACK_SUCCESS)
         return -1;
 
@@ -441,21 +443,27 @@ static void a2dp_stream_common_init(struct a2dp_stream_common *common)
 
 static int start_audio_datapath(struct a2dp_stream_common *common)
 {
-    int oldstate = common->state;
-
     INFO("state %d", common->state);
 
     if (common->ctrl_fd == AUDIO_SKT_DISCONNECTED) {
-        INFO("AUDIO_SKT_DISCONNECTED");
+        INFO("%s AUDIO_SKT_DISCONNECTED", __func__);
         return -1;
     }
 
+    int oldstate = common->state;
     common->state = AUDIO_A2DP_STATE_STARTING;
 
-    if (a2dp_command(common, A2DP_CTRL_CMD_START) < 0)
+    int a2dp_status = a2dp_command(common, A2DP_CTRL_CMD_START);
+    if (a2dp_status < 0)
     {
-        ERROR("audiopath start failed");
+        ERROR("%s Audiopath start failed (status %d)", __func__, a2dp_status);
 
+        common->state = oldstate;
+        return -1;
+    }
+    else if (a2dp_status == A2DP_CTRL_ACK_INCALL_FAILURE)
+    {
+        ERROR("%s Audiopath start failed - in call, move to suspended", __func__);
         common->state = oldstate;
         return -1;
     }
@@ -475,7 +483,6 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
 
     return 0;
 }
-
 
 static int stop_audio_datapath(struct a2dp_stream_common *common)
 {
@@ -666,12 +673,10 @@ static int out_standby(struct audio_stream *stream)
     FNLOG();
 
     pthread_mutex_lock(&out->common.lock);
-
-    if (out->common.state == AUDIO_A2DP_STATE_STARTED)
-        retVal =  suspend_audio_datapath(&out->common, true);
-    else
-        retVal = 0;
-    pthread_mutex_unlock(&out->common.lock);
+    // Do nothing in SUSPENDED state.
+    if (out->common.state != AUDIO_A2DP_STATE_SUSPENDED)
+        retVal = suspend_audio_datapath(&out->common, true);
+    pthread_mutex_unlock (&out->common.lock);
 
     return retVal;
 }
