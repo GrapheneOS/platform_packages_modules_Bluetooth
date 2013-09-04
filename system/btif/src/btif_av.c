@@ -453,6 +453,38 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
             }
         } break;
 
+        case BTIF_AV_CONNECT_REQ_EVT:
+            // Check for device, if same device which moved to opening then ignore callback
+            if (memcmp ((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_DEBUG("%s: Same device moved to Opening state,ignore Connect Req", __func__);
+                btif_queue_advance();
+                break;
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG("%s: Moved from idle by Incoming Connection request", __func__);
+                btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED, (bt_bdaddr_t*)p_data);
+                btif_queue_advance();
+                break;
+            }
+
+        case BTA_AV_PENDING_EVT:
+            // Check for device, if same device which moved to opening then ignore callback
+            if (memcmp (((tBTA_AV*)p_data)->pend.bd_addr, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_DEBUG("%s: Same device moved to Opening state,ignore Pending Req", __func__);
+                break;
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG("%s: Moved from idle by outgoing Connection request", __func__);
+                BTA_AvDisconnect(((tBTA_AV*)p_data)->pend.bd_addr);
+                break;
+            }
+
         CHECK_RC_EVENT(event, p_data);
 
         default:
@@ -666,6 +698,21 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
                btif_av_cb.flags &= ~BTIF_AV_FLAG_PENDING_START;
                btif_a2dp_ack_fail();
             }
+            break;
+
+        case BTIF_AV_CONNECT_REQ_EVT:
+            if (memcmp ((bt_bdaddr_t*)p_data, &(btif_av_cb.peer_bda),
+                sizeof(btif_av_cb.peer_bda)) == 0)
+            {
+                BTIF_TRACE_DEBUG("%s: Ignore BTIF_AV_CONNECT_REQ_EVT for same device", __func__);
+            }
+            else
+            {
+                BTIF_TRACE_DEBUG("%s: Moved to opened by Other Incoming Conn req", __func__);
+                btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
+                        (bt_bdaddr_t*)p_data);
+            }
+            btif_queue_advance();
             break;
 
         CHECK_RC_EVENT(event, p_data);
