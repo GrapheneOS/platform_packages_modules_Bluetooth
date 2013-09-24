@@ -130,7 +130,7 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
     BE_STREAM_TO_UINT16 (trans_num, p_req);
     BE_STREAM_TO_UINT16 (param_len, p_req);
 
-    if ((p_req + param_len) > p_req_end)
+    if ((p_req + param_len) != p_req_end)
     {
         sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_PDU_SIZE, SDP_TEXT_BAD_HEADER);
         return;
@@ -220,7 +220,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     /* Check if this is a continuation request */
     if (*p_req)
     {
-        if (*p_req++ != SDP_CONTINUATION_LEN)
+        if (*p_req++ != SDP_CONTINUATION_LEN || (p_req >= p_req_end))
         {
             sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE,
                                      SDP_TEXT_BAD_CONT_LEN);
