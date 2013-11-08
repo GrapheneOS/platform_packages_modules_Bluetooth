@@ -810,8 +810,10 @@ void btm_sco_conn_req (BD_ADDR bda,  DEV_CLASS dev_class, UINT8 link_type)
          * If the sco state is in the SCO_ST_CONNECTING state, we still need
          * to return accept sco to avoid race conditon for sco creation
          */
-        if (((p->state == SCO_ST_LISTENING && p->rem_bd_known) || p->state == SCO_ST_CONNECTING)
-         && (!memcmp (p->esco.data.bd_addr, bda, BD_ADDR_LEN)))
+        int rem_bd_matches = p->rem_bd_known &&
+          !memcmp (p->esco.data.bd_addr, bda, BD_ADDR_LEN);
+        if (((p->state == SCO_ST_CONNECTING) && rem_bd_matches) ||
+            ((p->state == SCO_ST_LISTENING) && (rem_bd_matches || !p->rem_bd_known)))
         {
             /* If this guy was a wildcard, he is not one any more */
             p->rem_bd_known = TRUE;
