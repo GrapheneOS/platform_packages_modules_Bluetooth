@@ -67,71 +67,38 @@ static const tBTM_ESCO_PARAMS bta_ag_esco_params = {
 
 static int thread_handle;
 
+#define INVALID_SLOT (BTM_MAX_SCO_LINKS+1)
 
-typedef enum {
-    LISTEN,
-    ACCEPT,
-    CONNECT
-} ScoSlotState;
+UINT16 listen_slot = INVALID_SLOT;
+int listen_fds[2] = {-1, -1};
+
 
 static struct {
-    /* the type of the socket */
-    ScoSlotState state;
-    /* is the socket currently used */
-    bool in_use;
     /* fds (ours, theirs) for the data socket */
     int fds[2];
-    /* fds (ours, theirs) for the listen socket */
-    int listen_fds[2];
 } slots[BTM_MAX_SCO_LINKS];
 
-static pthread_mutex_t slot_lock;
+// protect listen_slot, listen_fds & slots
+static pthread_mutex_t lock;
 
 
 /* Initialize a slot for a SCO connection, including local socket pair(s) */
-static bool slot_init(UINT16 sco_inx, ScoSlotState state) {
+static bool slot_init(UINT16 sco_inx) {
     if (sco_inx >= BTM_MAX_SCO_LINKS) {
         ALOGE("%s: invalid sco_inx %d", __func__, sco_inx);
         return false;
     }
 
-    if (slots[sco_inx].in_use) {
+    if (slots[sco_inx].fds[0] != -1) {
         ALOGE("%s: slot for sco_inx %d already in use", __func__, sco_inx);
         return false;
     }
 
-    if (state == ACCEPT) {
-        /* Can't initialize an ACCEPT slot - you get to that state by
-         * accepting a connection on a LISTEN slot.
-         */
-        ALOGE("%s: unexpected ScoSlotState LISTEN", __func__);
+    // create a socketpair in slots[sco_inx].fds
+    if (socketpair(AF_LOCAL, SOCK_STREAM, 0, slots[sco_inx].fds)) {
+        ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
         return false;
     }
-
-    slots[sco_inx].state = state;
-
-    if (state == LISTEN) {
-        // create a socketpair in slots[sco_inx].listen_fds
-        if (socketpair(AF_LOCAL, SOCK_STREAM, 0, slots[sco_inx].listen_fds)) {
-            ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
-            return false;
-        }
-        // mark slots[sco_inx].fds as invalid
-        slots[sco_inx].fds[0] = -1;
-        slots[sco_inx].fds[1] = -1;
-    } else {
-        // state == CONNECT
-        // create a socketpair in slots[sco_inx].fds
-        if (socketpair(AF_LOCAL, SOCK_STREAM, 0, slots[sco_inx].fds)) {
-            ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
-            return false;
-        }
-        // mark slots[sco_inx].listen_fds as invalid
-        slots[sco_inx].listen_fds[0] = -1;
-        slots[sco_inx].listen_fds[1] = -1;
-    }
-
-    slots[sco_inx].in_use = true;
     return true;
 }
 
@@ -140,83 +107,13 @@ static void slot_release(UINT16 sco_inx) {
         ALOGE("%s: invalid sco_inx %d", __func__, sco_inx);
         return;
     }
-    if (slots[sco_inx].in_use) {
-        slots[sco_inx].in_use = false;
-        // if lots[sco_inx].fds is still valid
-        if (slots[sco_inx].fds[0] != -1) {
-            // close our socket
-            close(slots[sco_inx].fds[0]);
-            slots[sco_inx].fds[0] = -1;
-            slots[sco_inx].fds[1] = -1;
-        }
-        // if lots[sco_inx].listen_fds is still valid
-        if (slots[sco_inx].listen_fds[0] != -1) {
-            // close our socket
-            close(slots[sco_inx].listen_fds[0]);
-            slots[sco_inx].listen_fds[0] = -1;
-            slots[sco_inx].listen_fds[1] = -1;
-        }
-        // TODO: close sco connection?
-    }
-}
-
-static void slot_print(const char* context, UINT16 sco_inx) {
-    if (sco_inx >= BTM_MAX_SCO_LINKS) {
-        ALOGE("%s: invalid sco_inx %d", context, sco_inx);
-        return;
-    }
-    const char* state = "INVALID";
-    switch (slots[sco_inx].state) {
-        case LISTEN: state = "LISTEN"; break;
-        case ACCEPT: state = "ACCEPT"; break;
-        case CONNECT: state = "CONNECT"; break;
-    }
-    ALOGI("%s: slots[%d]: in_use:%d state=%s", context, sco_inx,
-            slots[sco_inx].in_use, state);
-}
-
-static void slot_print_all(const char* context, bool in_use_only) {
-    UINT16 sco_inx;
-    for (sco_inx=0; sco_inx < BTM_MAX_SCO_LINKS; sco_inx++) {
-        if (in_use_only && !slots[sco_inx].in_use) {
-            continue;
-        }
-        slot_print(context, sco_inx);
-    }
-}
-
-
-bt_status_t btsock_sco_init(int poll_thread_handle) {
-    UINT16 sco_inx;
-    ALOGI("%s", __func__);
-
-    thread_handle = poll_thread_handle;
-
-    // mark all socket slots as not in use
-    for (sco_inx=0; sco_inx<BTM_MAX_SCO_LINKS; sco_inx++) {
-        slots[sco_inx].in_use = false;
+    // if lots[sco_inx].fds is still valid
+    if (slots[sco_inx].fds[0] != -1) {
+        // close our socket
+        close(slots[sco_inx].fds[0]);
         slots[sco_inx].fds[0] = -1;
         slots[sco_inx].fds[1] = -1;
-        slots[sco_inx].listen_fds[0] = -1;
-        slots[sco_inx].listen_fds[1] = -1;
     }
-
-    // initialize the slot lock
-    init_slot_lock(&slot_lock);
-
-    return BT_STATUS_SUCCESS;
-}
-
-bt_status_t btsock_sco_cleanup() {
-    ALOGI("%s", __func__);
-    lock_slot(&slot_lock);
-    slot_print_all(__func__, true);
-    UINT16 sco_inx;
-    for (sco_inx=0; sco_inx<BTM_MAX_SCO_LINKS; sco_inx++) {
-        slot_release(sco_inx);
-    }
-    unlock_slot(&slot_lock);
-    return BT_STATUS_SUCCESS;
 }
 
 static void listen_connect_cb(UINT16 sco_inx) {
@@ -233,6 +130,89 @@ static void connect_connect_cb(UINT16 sco_inx) {
 
 static void connect_disconnect_cb(UINT16 sco_inx) {
     ALOGI("%s: for sco_inx=%d", __func__, sco_inx);
+}
+
+static void connection_request_cb(tBTM_ESCO_EVT event,
+        tBTM_ESCO_EVT_DATA *data);
+
+static inline void remove_sco(UINT16 sco_inx) {
+    int status = BTM_RemoveSco(sco_inx);
+    if (status == BTM_SUCCESS) {
+        ALOGI("%s: SCO connection removed.", __func__);
+    } else if (status == BTM_CMD_STARTED) {
+        ALOGI("%s: SCO connection removal started.", __func__);
+    } else if (status == BTM_UNKNOWN_ADDR) {
+        ALOGW("%s: got BTM_UNKNOWN_ADDR", __func__);
+    } else {
+        ALOGW("%s: unexpected return from BTM_RemoveSco: %d", __func__,
+                status);
+    }
+}
+
+static inline UINT16 listen_sco() {
+    if (listen_fds[0] == -1) {
+        // No active listen socket to an app, allocate one.
+        if (socketpair(AF_LOCAL, SOCK_STREAM, 0, listen_fds)) {
+            ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
+            return BT_STATUS_FAIL;
+        }
+    }
+
+    UINT16 sco_inx;
+    int status = BTM_CreateSco(0, FALSE, bta_ag_esco_params.packet_types,
+            &sco_inx, listen_connect_cb, listen_disconnect_cb);
+    if (status != BTM_CMD_STARTED) {
+        // something bad happened
+        ALOGE("%s: BTM_CreateSco failed: %d", __func__, status);
+        return INVALID_SLOT;
+    }
+
+    // remember the listen slot
+    listen_slot = sco_inx;
+
+    // register for events
+    BTM_RegForEScoEvts(sco_inx, connection_request_cb);
+
+    // add our fd to the btsock poll loop
+    btsock_thread_add_fd(thread_handle, listen_fds[0], BTSOCK_SCO, SOCK_THREAD_FD_EXCEPTION,
+            sco_inx);
+
+    return sco_inx;
+}
+
+
+bt_status_t btsock_sco_init(int poll_thread_handle) {
+    UINT16 sco_inx;
+    ALOGI("%s", __func__);
+
+    thread_handle = poll_thread_handle;
+
+    // mark all socket slots as not in use
+    for (sco_inx=0; sco_inx<BTM_MAX_SCO_LINKS; sco_inx++) {
+        slots[sco_inx].fds[0] = -1;
+        slots[sco_inx].fds[1] = -1;
+    }
+
+    // mark the listen socket as not in use
+    listen_slot = INVALID_SLOT;
+    listen_fds[0] = -1;
+    listen_fds[1] = -1;
+
+    // initialize the slot lock
+    init_slot_lock(&lock);
+
+    return BT_STATUS_SUCCESS;
+}
+
+bt_status_t btsock_sco_cleanup() {
+    ALOGI("%s", __func__);
+    lock_slot(&lock);
+    UINT16 sco_inx;
+    for (sco_inx=0; sco_inx<BTM_MAX_SCO_LINKS; sco_inx++) {
+        slot_release(sco_inx);
+    }
+    unlock_slot(&lock);
+    return BT_STATUS_SUCCESS;
 }
 
 static void connection_request_cb(tBTM_ESCO_EVT event,
@@ -257,14 +237,18 @@ static void connection_request_cb(tBTM_ESCO_EVT event,
     resp.voice_contfmt = 0x60;
     resp.retrans_effort = BTM_ESCO_RETRANS_POWER;
 
-    lock_slot(&slot_lock);
+    lock_slot(&lock);
 
     ALOGI(" conn_data->link_type == BTM_LINK_TYPE_SCO? %d",
             (conn_data->link_type == BTM_LINK_TYPE_SCO));
-    slot_print(__func__, sco_inx);
 
-    if ((slots[sco_inx].state != LISTEN) || !slots[sco_inx].in_use) {
+    if (sco_inx != listen_slot) {
         ALOGE("%s: not a listening socket", __func__);
+        hci_status = HCI_ERR_PEER_USER;
+    }
+
+    if (slots[sco_inx].fds[0] != -1) {
+        ALOGE("%s: already a connection on this slot", __func__);
         hci_status = HCI_ERR_PEER_USER;
     }
 
@@ -282,16 +266,19 @@ static void connection_request_cb(tBTM_ESCO_EVT event,
                              BTM_SCO_PKT_TYPES_MASK_NO_3_EV5);
     }
 
-    // yes we want this connection, please
+    // respond to the request
     BTM_EScoConnRsp(conn_data->sco_inx, hci_status, &resp);
 
-    // the slot is now an accepted socket
-    slots[sco_inx].state = ACCEPT;
+    // if there was an error, nothing else to do
+    if (hci_status != HCI_SUCCESS) {
+        unlock_slot(&lock);
+        return;
+    }
 
-    // allocate a socket pair for the data socket
-    if (socketpair(AF_LOCAL, SOCK_STREAM, 0, slots[sco_inx].fds)) {
-        ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
-        unlock_slot(&slot_lock);
+    // allocate a slot
+    if (!slot_init(conn_data->sco_inx)) {
+        ALOGE("%s: slot_init failed", __func__);
+        unlock_slot(&lock);
         return;
     }
 
@@ -309,61 +296,50 @@ static void connection_request_cb(tBTM_ESCO_EVT event,
     cs.channel = 0;
     cs.status = 0;
 
-    if(sock_send_fd(slots[sco_inx].listen_fds[0],
+    if(sock_send_fd(listen_fds[0],
                 (const uint8_t*)&cs, sizeof(cs),
                 slots[sco_inx].fds[1]) == sizeof(cs)) {
         ALOGI("%s: sock_send_fd succeess", __func__);
     } else {
         ALOGE("%s: sock_send_fd failed", __func__);
-        unlock_slot(&slot_lock);
+        unlock_slot(&lock);
         return;
     }
 
     btsock_thread_add_fd(thread_handle, slots[sco_inx].fds[0], BTSOCK_SCO,
             SOCK_THREAD_FD_EXCEPTION, sco_inx);
 
-    unlock_slot(&slot_lock);
+    unlock_slot(&lock);
 }
 
 bt_status_t btsock_sco_listen(int* sock_fd, int flags) {
-    int status;
-
     ALOGI("%s", __func__);
 
     if (sock_fd == NULL) {
         return BT_STATUS_PARM_INVALID;
     }
 
-    // create the SCO socket
-    UINT16 sco_inx;
-    status = BTM_CreateSco(0, FALSE, bta_ag_esco_params.packet_types,
-            &sco_inx, listen_connect_cb, listen_disconnect_cb);
-    if (status != BTM_CMD_STARTED) {
-        // something bad happened
-        ALOGE("%s: BTM_CreateSco failed: %d", __func__, status);
-        return BT_STATUS_FAIL;
+    lock_slot(&lock);
+
+    if (listen_slot != INVALID_SLOT) {
+        ALOGE("%s: Already listening.", __func__);
+        unlock_slot(&lock);
+        return BT_STATUS_BUSY;
     }
 
-    lock_slot(&slot_lock);
-
-    // allocate a slot
-    if (!slot_init(sco_inx, LISTEN)) {
-        ALOGE("%s: failed to allocate slot %d.", __func__, sco_inx);
-        unlock_slot(&slot_lock);
+    // create the SCO socket
+    UINT16 sco_inx = listen_sco();
+    if (sco_inx == INVALID_SLOT) {
+        // something bad happened
+        ALOGE("%s: listen_sco failed.", __func__);
+        unlock_slot(&lock);
         return BT_STATUS_FAIL;
     }
 
     // give the app its fd
-    *sock_fd = slots[sco_inx].listen_fds[1];
+    *sock_fd = listen_fds[1];
 
-    // register for events
-    BTM_RegForEScoEvts(sco_inx, connection_request_cb);
-
-    // add our fd to the btsock poll loop
-    btsock_thread_add_fd(thread_handle, slots[sco_inx].listen_fds[0],
-            BTSOCK_SCO, SOCK_THREAD_FD_EXCEPTION, sco_inx);
-
-    unlock_slot(&slot_lock);
+    unlock_slot(&lock);
 
     return BT_STATUS_SUCCESS;
 }
@@ -390,23 +366,23 @@ bt_status_t btsock_sco_connect(const bt_bdaddr_t *bd_addr, int* sock_fd,
         return BT_STATUS_FAIL;
     }
 
-    lock_slot(&slot_lock);
+    lock_slot(&lock);
 
     // allocate a slot
-    if (!slot_init(sco_inx, CONNECT)) {
+    if (!slot_init(sco_inx)) {
         ALOGE("%s: failed to allocate slot %d.", __func__, sco_inx);
-        unlock_slot(&slot_lock);
+        unlock_slot(&lock);
         return BT_STATUS_FAIL;
     }
 
-    // give the app its fd
+    // give the app an fd. apps love fds.
     *sock_fd = slots[sco_inx].fds[1];
 
     // add our fd to the btsock poll loop
     btsock_thread_add_fd(thread_handle, slots[sco_inx].fds[0], BTSOCK_SCO,
             SOCK_THREAD_FD_EXCEPTION, sco_inx);
 
-    unlock_slot(&slot_lock);
+    unlock_slot(&lock);
 
     return BT_STATUS_SUCCESS;
 }
@@ -417,93 +393,39 @@ void btsock_sco_signaled(int fd, int flags, uint32_t sco_inx) {
         ALOGE("%s: invalid fd %d", __func__, fd);
         return;
     }
+
     if (sco_inx >= BTM_MAX_SCO_LINKS) {
         ALOGE("%s: invalid sco_inx %d", __func__, sco_inx);
         return;
     }
-    lock_slot(&slot_lock);
-    if (!slots[sco_inx].in_use) {
-        ALOGE("%s: sco_inx %d not in use", __func__, sco_inx);
-        unlock_slot(&slot_lock);
-        return;
-    }
-    if ((slots[sco_inx].fds[0] != fd) &&
-            (slots[sco_inx].listen_fds[0]) != fd) {
-        ALOGE("%s: fd %d is neither the data fd (%d), nor the listen fd(%d)",
-                __func__, fd, slots[sco_inx].fds[0],
-                slots[sco_inx].listen_fds[0]);
-        unlock_slot(&slot_lock);
+
+    if (!(flags & SOCK_THREAD_FD_EXCEPTION)) {
+        ALOGE("%s: unexpected flags: 0x%X", __func__, flags);
         return;
     }
 
-    slot_print(__func__, sco_inx);
+    lock_slot(&lock);
 
-    if (flags & SOCK_THREAD_FD_EXCEPTION) {
-        // a socket closed
-        if (fd == slots[sco_inx].listen_fds[0]) {
-            // Close our end of the socket pair.
-            close(slots[sco_inx].listen_fds[0]);
-            // Mark the socket pair as closed.
-            slots[sco_inx].listen_fds[0] = -1;
-            slots[sco_inx].listen_fds[1] = -1;
-            if (slots[sco_inx].state == ACCEPT) {
-                // If a listen socket is closed after a connection has been
-                // accepted then don't actually close the SCO connection.
-                // It's still being used.
-                ALOGI("%s: listen fd for an accepted connection closed.",
-                        __func__);
-                unlock_slot(&slot_lock);
-                return;
-            } else if (slots[sco_inx].state == LISTEN) {
-                // The listen socket is closed while it's listening.
-                // Just shut it down.
-                ALOGI("%s: listen fd closed.", __func__);
-                // Continue to remove the SCO connection...
-            } else {
-                ALOGE("%s: listen socket closed unexpectedly", __func__);
-                unlock_slot(&slot_lock);
-                return;
-            }
-        } else {
-            // fd == slots[sco_inx].fds[0]
-            // Close our end of the socket pair.
-            close(slots[sco_inx].fds[0]);
-            // Mark the socket pair as closed.
-            slots[sco_inx].fds[0] = -1;
-            slots[sco_inx].fds[1] = -1;
-            if (slots[sco_inx].state == CONNECT) {
-                ALOGI("%s: connect socket closed", __func__);
-                // Continue to remove the SCO connection...
-            } else if (slots[sco_inx].state == ACCEPT) {
-                ALOGI("%s: accept socket closed", __func__);
-                if (slots[sco_inx].listen_fds[0] != -1) {
-                    // The listen socket isn't closed, return to a listen state.
-                    // TODO: check that the stack actually works this way
-                    slots[sco_inx].state = LISTEN;
-                    ALOGI("%s: returning to the listen state", __func__);
-                    unlock_slot(&slot_lock);
-                    return;
-                } else {
-                    // The listen socket was closed. Clean it up.
-                }
-            }
+    if (fd == slots[sco_inx].fds[0]) {
+        // A data socket closed - close the SCO connection.
+        remove_sco(sco_inx);
+        if (sco_inx == listen_slot) {
+            // This is an accept slot - listen again.
+            listen_sco();
+            unlock_slot(&lock);
         }
-
-        ALOGI("%s: removing SCO connection %d", __func__, sco_inx);
-        int status = BTM_RemoveSco(sco_inx);
-        if (status == BTM_SUCCESS) {
-            ALOGI("%s: SCO connection removed.", __func__);
-        } else if (status == BTM_CMD_STARTED) {
-            ALOGI("%s: SCO connection removal started.", __func__);
-        } else if (status == BTM_UNKNOWN_ADDR) {
-            ALOGW("%s: got BTM_UNKNOWN_ADDR", __func__);
-        } else {
-            ALOGW("%s: unexpected return from BTM_RemoveSco: %d", __func__,
-                    status);
+    } else if (fd == listen_fds[0]) {
+        // The listen socket closed.
+        if (slots[sco_inx].fds[0] == -1) {
+          // There is no data connection, close the SCO.
+          remove_sco(sco_inx);
         }
-
-        slot_release(sco_inx);
-
-        unlock_slot(&slot_lock);
+        // Clean up the listen state - the socket will already be closed.
+        listen_slot = INVALID_SLOT;
+        listen_fds[0] = -1;
+        listen_fds[1] = -1;
+        unlock_slot(&lock);
+    } else {
+        ALOGE("%s: unexpected fd: %d", __func__, fd);
     }
 }
