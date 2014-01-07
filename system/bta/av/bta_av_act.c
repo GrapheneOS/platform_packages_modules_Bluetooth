@@ -1517,23 +1517,26 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
     else
     {
         /* disconnected. */
+        APPL_TRACE_DEBUG("%s: bta_av_cb.conn_lcb is %d", __func__, bta_av_cb.conn_lcb);
+
         p_lcb = bta_av_find_lcb(p_data->str_msg.bd_addr, BTA_AV_LCB_FREE);
-        if (p_lcb && p_lcb->conn_msk)
+        if (p_lcb && (p_lcb->conn_msk || bta_av_cb.conn_lcb))
         {
             APPL_TRACE_DEBUG("conn_msk: 0x%x", p_lcb->conn_msk);
             /* clean up ssm  */
             for(xx=0; xx < BTA_AV_NUM_STRS; xx++)
             {
                 mask = 1 << (xx + 1);
-                if ((mask & p_lcb->conn_msk) && (p_cb->p_scb[xx]) &&
+                if (((mask & p_lcb->conn_msk) || bta_av_cb.conn_lcb) && (p_cb->p_scb[xx]) &&
                     (bdcmp(p_cb->p_scb[xx]->peer_addr, p_data->str_msg.bd_addr) == 0))
                 {
+                    APPL_TRACE_DEBUG("%s: Sending AVDT_DISCONNECT_EVT", __func__);
                     bta_av_ssm_execute(p_cb->p_scb[xx], BTA_AV_AVDT_DISCONNECT_EVT, NULL);
                 }
             }
         }
     }
-    APPL_TRACE_DEBUG("conn_lcb: 0x%x", p_cb->conn_lcb);
+    APPL_TRACE_DEBUG("%s: sig_chg conn_lcb: 0x%x", __func__, p_cb->conn_lcb);
 }
 
 /*******************************************************************************

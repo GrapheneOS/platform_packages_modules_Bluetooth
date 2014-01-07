@@ -602,6 +602,13 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
             BTIF_TRACE_ERROR("BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started OPENING");
             break;
 
+        case BTA_AV_CLOSE_EVT:
+            btif_a2dp_on_stopped(NULL);
+            btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED,
+                    &(btif_av_cb.peer_bda));
+            btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+
         CHECK_RC_EVENT(event, p_data);
 
         default:
