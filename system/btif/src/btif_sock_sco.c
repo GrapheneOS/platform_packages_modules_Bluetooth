@@ -412,7 +412,6 @@ void btsock_sco_signaled(int fd, int flags, uint32_t sco_inx) {
         if (sco_inx == listen_slot) {
             // This is an accept slot - listen again.
             listen_sco();
-            unlock_slot(&lock);
         }
     } else if (fd == listen_fds[0]) {
         // The listen socket closed.
@@ -424,8 +423,8 @@ void btsock_sco_signaled(int fd, int flags, uint32_t sco_inx) {
         listen_slot = INVALID_SLOT;
         listen_fds[0] = -1;
         listen_fds[1] = -1;
-        unlock_slot(&lock);
     } else {
         ALOGE("%s: unexpected fd: %d", __func__, fd);
     }
+    unlock_slot(&lock);
 }
