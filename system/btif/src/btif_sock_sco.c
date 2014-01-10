@@ -409,6 +409,9 @@ void btsock_sco_signaled(int fd, int flags, uint32_t sco_inx) {
     if (fd == slots[sco_inx].fds[0]) {
         // A data socket closed - close the SCO connection.
         remove_sco(sco_inx);
+        // clear out the fds for the data socket
+        slots[sco_inx].fds[0] = -1;
+        slots[sco_inx].fds[1] = -1;
         if (sco_inx == listen_slot) {
             // This is an accept slot - listen again.
             listen_sco();
