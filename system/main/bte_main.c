@@ -29,6 +29,7 @@
 #include <signal.h>
 #include <time.h>
 #include <hardware/bluetooth.h>
+#include <cutils/properties.h>
 
 #include "gki.h"
 #include "bd.h"
@@ -54,11 +55,6 @@
 /* if not specified in .txt file then use this as default  */
 #ifndef HCI_LOGGING_FILENAME
 #define HCI_LOGGING_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
-#endif
-
-/* Stack preload process timeout period  */
-#ifndef PRELOAD_START_TIMEOUT_MS
-#define PRELOAD_START_TIMEOUT_MS 3000  // 3 seconds
 #endif
 
 /* Stack preload process maximum retry attempts  */
@@ -389,7 +385,11 @@ static void preload_start_wait_timer(void)
     int status;
     struct itimerspec ts;
     struct sigevent se;
-    UINT32 timeout_ms = PRELOAD_START_TIMEOUT_MS;
+    UINT32 timeout_ms;
+    char timeout_prop[PROPERTY_VALUE_MAX];
+
+    if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, "3000") || (timeout_ms = atoi(timeout_prop)) < 100)
+        timeout_ms = 3000;
 
     if (preload_retry_cb.timer_created == FALSE)
     {
