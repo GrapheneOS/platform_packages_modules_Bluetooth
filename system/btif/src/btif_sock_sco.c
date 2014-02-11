@@ -76,13 +76,22 @@ int listen_fds[2] = {-1, -1};
 static struct {
     /* fds (ours, theirs) for the data socket */
     int fds[2];
+    bool connected;
+    bool disconnect_immediately;
 } slots[BTM_MAX_SCO_LINKS];
 
 // protect listen_slot, listen_fds & slots
 static pthread_mutex_t lock;
 
 
-/* Initialize a slot for a SCO connection, including local socket pair(s) */
+static inline void remove_sco(UINT16 sco_inx);
+static void connection_request_cb(tBTM_ESCO_EVT event,
+        tBTM_ESCO_EVT_DATA *data);
+
+
+/* Initialize a slot for a SCO connection, including local socket pair(s).
+ * NOTE: the slot lock must be held when calling this function.
+ */
 static bool slot_init(UINT16 sco_inx) {
     if (sco_inx >= BTM_MAX_SCO_LINKS) {
         ALOGE("%s: invalid sco_inx %d", __func__, sco_inx);
@@ -102,40 +111,70 @@ static bool slot_init(UINT16 sco_inx) {
     return true;
 }
 
+/* Release a slot for a SCO connection, closing the socket if needed.
+ * NOTE: the slot lock must be held when calling this function.
+ */
 static void slot_release(UINT16 sco_inx) {
     if (sco_inx >= BTM_MAX_SCO_LINKS) {
         ALOGE("%s: invalid sco_inx %d", __func__, sco_inx);
         return;
     }
-    // if lots[sco_inx].fds is still valid
+    // if slots[sco_inx].fds is still valid
     if (slots[sco_inx].fds[0] != -1) {
         // close our socket
         close(slots[sco_inx].fds[0]);
         slots[sco_inx].fds[0] = -1;
         slots[sco_inx].fds[1] = -1;
     }
+    slots[sco_inx].connected = false;
+    slots[sco_inx].disconnect_immediately = false;
 }
 
 static void listen_connect_cb(UINT16 sco_inx) {
     ALOGI("%s: for sco_inx=%d", __func__, sco_inx);
+    lock_slot(&lock);
+    slots[sco_inx].connected = true;
+    if (slots[sco_inx].disconnect_immediately) {
+        remove_sco(sco_inx);
+        slots[sco_inx].disconnect_immediately = false;
+    }
+    unlock_slot(&lock);
 }
 
 static void listen_disconnect_cb(UINT16 sco_inx) {
     ALOGI("%s: for sco_inx=%d", __func__, sco_inx);
+    lock_slot(&lock);
+    slots[sco_inx].connected = false;
+    unlock_slot(&lock);
 }
 
 static void connect_connect_cb(UINT16 sco_inx) {
     ALOGI("%s: for sco_inx=%d", __func__, sco_inx);
+    lock_slot(&lock);
+    slots[sco_inx].connected = true;
+    if (slots[sco_inx].disconnect_immediately) {
+        remove_sco(sco_inx);
+        slots[sco_inx].disconnect_immediately = false;
+    }
+    unlock_slot(&lock);
 }
 
 static void connect_disconnect_cb(UINT16 sco_inx) {
     ALOGI("%s: for sco_inx=%d", __func__, sco_inx);
+    lock_slot(&lock);
+    slots[sco_inx].connected = false;
+    unlock_slot(&lock);
 }
 
-static void connection_request_cb(tBTM_ESCO_EVT event,
-        tBTM_ESCO_EVT_DATA *data);
-
+/* Ask bluedroid to remove SCO connection.
+ * NOTE: the slot lock must be held when calling this function.
+ */
 static inline void remove_sco(UINT16 sco_inx) {
+    if (!slots[sco_inx].connected) {
+        // Can't actually disconnect until we're connected. Do it later.
+        slots[sco_inx].disconnect_immediately = true;
+        return;
+    }
     int status = BTM_RemoveSco(sco_inx);
     if (status == BTM_SUCCESS) {
         ALOGI("%s: SCO connection removed.", __func__);
@@ -149,6 +188,9 @@ static inline void remove_sco(UINT16 sco_inx) {
     }
 }
 
+/* Create a SCO listen socket.
+ * NOTE: the slot lock must be held when calling this function.
+ */
 static inline UINT16 listen_sco() {
     if (listen_fds[0] == -1) {
         // No active listen socket to an app, allocate one.
@@ -180,7 +222,6 @@ static inline UINT16 listen_sco() {
     return sco_inx;
 }
 
-
 bt_status_t btsock_sco_init(int poll_thread_handle) {
     UINT16 sco_inx;
     ALOGI("%s", __func__);
@@ -191,6 +232,8 @@ bt_status_t btsock_sco_init(int poll_thread_handle) {
     for (sco_inx=0; sco_inx<BTM_MAX_SCO_LINKS; sco_inx++) {
         slots[sco_inx].fds[0] = -1;
         slots[sco_inx].fds[1] = -1;
+        slots[sco_inx].connected = false;
+        slots[sco_inx].disconnect_immediately = false;
     }
 
     // mark the listen socket as not in use
