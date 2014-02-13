@@ -103,6 +103,10 @@ static bool slot_init(UINT16 sco_inx) {
         return false;
     }
 
+    // clear state
+    slots[sco_inx].connected = false;
+    slots[sco_inx].disconnect_immediately = false;
+
     // create a socketpair in slots[sco_inx].fds
     if (socketpair(AF_LOCAL, SOCK_STREAM, 0, slots[sco_inx].fds)) {
         ALOGE("%s: socketpair failed: %s", __func__, strerror(errno));
