@@ -174,11 +174,6 @@ static void connect_disconnect_cb(UINT16 sco_inx) {
  * NOTE: the slot lock must be held when calling this function.
  */
 static inline void remove_sco(UINT16 sco_inx) {
-    if (!slots[sco_inx].connected) {
-        // Can't actually disconnect until we're connected. Do it later.
-        slots[sco_inx].disconnect_immediately = true;
-        return;
-    }
     int status = BTM_RemoveSco(sco_inx);
     if (status == BTM_SUCCESS) {
         ALOGI("%s: SCO connection removed.", __func__);
@@ -455,7 +450,12 @@ void btsock_sco_signaled(int fd, int flags, uint32_t sco_inx) {
 
     if (fd == slots[sco_inx].fds[0]) {
         // A data socket closed - close the SCO connection.
-        remove_sco(sco_inx);
+        if (!slots[sco_inx].connected) {
+            // Can't actually disconnect until we're connected. Do it later.
+            slots[sco_inx].disconnect_immediately = true;
+        } else {
+            remove_sco(sco_inx);
+        }
         // clear out the fds for the data socket
         slots[sco_inx].fds[0] = -1;
         slots[sco_inx].fds[1] = -1;
