@@ -631,6 +631,8 @@ BTU_API UINT32 btu_task (UINT32 param)
             break;
     }
 
+    btu_free_core();
+
     return(0);
 }
 

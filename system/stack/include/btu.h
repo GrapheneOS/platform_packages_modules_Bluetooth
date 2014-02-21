@@ -305,6 +305,7 @@ BTU_API extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
 ************************************
 */
 BTU_API extern void  btu_init_core(void);
+BTU_API extern void  btu_free_core(void);
 BTU_API extern void  BTE_Init(void);
 BTU_API extern UINT16 BTU_AclPktSize(void);
 BTU_API extern UINT16 BTU_BleAclPktSize(void);

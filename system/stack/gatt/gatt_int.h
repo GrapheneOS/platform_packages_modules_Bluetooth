@@ -549,6 +549,7 @@ GATT_API extern void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 e
 
 /* internal functions */
 extern void gatt_init (void);
+extern void gatt_free(void);
 
 /* from gatt_main.c */
 extern BOOLEAN gatt_disconnect (tGATT_TCB *p_tcb);

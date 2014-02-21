@@ -134,6 +134,24 @@ void gatt_init (void)
 }
 
 
+/*******************************************************************************
+**
+** Function         gatt_free
+**
+** Description      This function frees resources used by the GATT profile.
+**
+** Returns          void
+**
+*******************************************************************************/
+void gatt_free(void)
+{
+    int i;
+    GATT_TRACE_DEBUG0("gatt_free()");
+    for (i = 0; i < GATT_MAX_SR_PROFILES; i++)
+    {
+        gatt_free_hdl_buffer(&gatt_cb.hdl_list[i]);
+    }
+}
 
 /*******************************************************************************
 **

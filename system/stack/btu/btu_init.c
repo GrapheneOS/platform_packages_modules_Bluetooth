@@ -77,6 +77,23 @@ void btu_init_core(void)
 #endif
 }
 
+/*****************************************************************************
+**
+** Function         btu_free_core
+**
+** Description      Releases control block memory for each core component.
+**
+**
+** Returns          void
+**
+******************************************************************************/
+void btu_free_core(void)
+{
+      /* Free the mandatory core stack components */
+#if BLE_INCLUDED == TRUE
+      gatt_free();
+#endif
+}
 
 /*****************************************************************************
 **
