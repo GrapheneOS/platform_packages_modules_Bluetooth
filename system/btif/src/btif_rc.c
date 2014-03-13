@@ -420,6 +420,19 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 
     if(p_rc_open->status == BTA_AV_SUCCESS)
     {
+        //check if already some RC is connected
+        if (btif_rc_cb.rc_connected)
+        {
+            BTIF_TRACE_ERROR("Got RC OPEN in connected state, Connected RC: %d \
+                and Current RC: %d", btif_rc_cb.rc_handle,p_rc_open->rc_handle );
+            if ((btif_rc_cb.rc_handle != p_rc_open->rc_handle)
+                && (bdcmp(btif_rc_cb.rc_addr, p_rc_open->peer_addr)))
+            {
+                BTIF_TRACE_DEBUG("Got RC connected for some other handle");
+                BTA_AvCloseRc(p_rc_open->rc_handle);
+                return;
+            }
+        }
         memcpy(btif_rc_cb.rc_addr, p_rc_open->peer_addr, sizeof(BD_ADDR));
         btif_rc_cb.rc_features = p_rc_open->peer_features;
         btif_rc_cb.rc_vol_label=MAX_LABEL;
@@ -468,6 +481,12 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     tBTA_AV_FEAT features;
 #endif
     BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_close->rc_handle);
+    if ((p_rc_close->rc_handle != btif_rc_cb.rc_handle)
+        && (bdcmp(btif_rc_cb.rc_addr, p_rc_close->peer_addr)))
+    {
+        BTIF_TRACE_ERROR("Got disconnect of unknown device");
+        return;
+    }
 
     btif_rc_cb.rc_handle = 0;
     btif_rc_cb.rc_connected = FALSE;
