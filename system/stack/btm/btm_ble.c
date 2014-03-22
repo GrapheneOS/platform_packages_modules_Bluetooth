@@ -1749,6 +1749,11 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                 p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
 
             case SMP_SEC_REQUEST_EVT:
+                if (event == SMP_SEC_REQUEST_EVT && btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+                {
+                    BTM_TRACE_DEBUG("%s: Ignoring SMP Security request", __func__);
+                    break;
+                }
                 memcpy (btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN);
                 p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
@@ -1803,10 +1808,13 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                     BTM_TRACE_DEBUG ("btm_cb.pairing_bda %02x:%02x:%02x:%02x:%02x:%02x",
                                       btm_cb.pairing_bda[0], btm_cb.pairing_bda[1], btm_cb.pairing_bda[2],
                                       btm_cb.pairing_bda[3], btm_cb.pairing_bda[4], btm_cb.pairing_bda[5]);
-
-                    memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
-                    btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
-                    btm_cb.pairing_flags = 0;
+                    /* Reset btm state only if the callback address matches pairing address*/
+                    if(memcmp(bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)
+                    {
+                        memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
+                        btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
+                        btm_cb.pairing_flags = 0;
+                    }
                 }
                 break;
 
