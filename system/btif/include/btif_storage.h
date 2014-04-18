@@ -227,6 +227,40 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t* remote_bd_addr,
 bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t* remote_bd_addr,
                                               uint8_t addr_type);
 
+/*******************************************************************************
+ * Function         btif_storage_load_hidd
+ *
+ * Description      Loads hidd bonded device and "plugs" it into hidd
+ *
+ * Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
+ *
+ ******************************************************************************/
+bt_status_t btif_storage_load_hidd(void);
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_set_hidd
+ *
+ * Description      Stores hidd bonded device info in nvram.
+ *
+ * Returns          BT_STATUS_SUCCESS
+ *
+ ******************************************************************************/
+
+bt_status_t btif_storage_set_hidd(bt_bdaddr_t* remote_bd_addr);
+
+/*******************************************************************************
+ *
+ * Function         btif_storage_remove_hidd
+ *
+ * Description      Removes hidd bonded device info from nvram
+ *
+ * Returns          BT_STATUS_SUCCESS
+ *
+ ******************************************************************************/
+
+bt_status_t btif_storage_remove_hidd(bt_bdaddr_t* remote_bd_addr);
+
 /******************************************************************************
  * Exported for unit tests
  *****************************************************************************/

@@ -114,7 +114,7 @@ bool avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value) {
 
   if (!result) {
     AVRC_TRACE_ERROR(" %s found not matching attrib(x%x)-value(x%x) pair!",
-                     __FUNCTION__, attrib, value);
+                     __func__, attrib, value);
   }
   return result;
 }
