@@ -111,9 +111,9 @@ typedef struct
 */
 typedef struct
 {
-    void    *p_first;
-    void    *p_last;
-    UINT16   count;
+    void    *_p_first;
+    void    *_p_last;
+    UINT16   _count;
 } BUFFER_Q;
 
 #define GKI_IS_QUEUE_EMPTY(p_q) ((p_q)->count == 0)
@@ -176,6 +176,7 @@ GKI_API extern void   *GKI_getfirst (BUFFER_Q *);
 GKI_API extern void   *GKI_getlast (BUFFER_Q *);
 GKI_API extern void   *GKI_getnext (void *);
 GKI_API extern void    GKI_init_q (BUFFER_Q *);
+GKI_API extern UINT16  GKI_queue_length(BUFFER_Q *);
 GKI_API extern BOOLEAN GKI_queue_is_empty(BUFFER_Q *);
 GKI_API extern void   *GKI_remove_from_queue (BUFFER_Q *, void *);
 GKI_API extern UINT16  GKI_get_pool_bufsize (UINT8);

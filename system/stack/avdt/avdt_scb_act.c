@@ -1421,7 +1421,7 @@ void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     BT_HDR          *p_frag;
 
     AVDT_TRACE_WARNING("avdt_scb_snd_stream_close c:%d, off:%d",
-        p_scb->frag_q.count, p_scb->frag_off);
+        GKI_queue_length(&p_scb->frag_q), p_scb->frag_off);
     /* clean fragments queue */
     while((p_frag = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
          GKI_freebuf(p_frag);

@@ -1053,7 +1053,7 @@ BOOLEAN btm_pm_device_in_scan_state(void)
     /* Scan state-paging, inquiry, and trying to connect */
 
     /* Check for paging */
-    if (btm_cb.is_paging || btm_cb.page_queue.count > 0 ||
+    if (btm_cb.is_paging || GKI_queue_length(&btm_cb.page_queue) > 0 ||
        BTM_BL_PAGING_STARTED == btm_cb.busy_level)
     {
        BTM_TRACE_DEBUG("btm_pm_device_in_scan_state- paging");

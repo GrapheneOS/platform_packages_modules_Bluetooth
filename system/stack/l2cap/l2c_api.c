@@ -1484,7 +1484,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested \
             xmit_hold_q.count: %u buff_quota: %u", fixed_cid,
-            p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q.count,
+            GKI_queue_length(&p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q),
             p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->buff_quota);
         GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
@@ -1810,7 +1810,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     if (num_to_flush != L2CAP_FLUSH_CHANS_GET)
     {
         L2CAP_TRACE_API ("L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %u  pFirst: 0x%08x",
-                           lcid, num_to_flush, p_ccb->xmit_hold_q.count, p_ccb->xmit_hold_q.p_first);
+                           lcid, num_to_flush, GKI_queue_length(&p_ccb->xmit_hold_q), GKI_getfirst(&p_ccb->xmit_hold_q));
     }
     else
     {
@@ -1838,7 +1838,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         }
 #endif
 
-        p_buf = (BT_HDR *)p_lcb->link_xmit_data_q.p_first;
+        p_buf = (BT_HDR *)GKI_getfirst(&p_lcb->link_xmit_data_q);
 
         /* First flush the number we are asked to flush */
         while ((p_buf != NULL) && (num_to_flush != 0))
@@ -1860,7 +1860,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     }
 
     /* If needed, flush buffers in the CCB xmit hold queue */
-    while ( (num_to_flush != 0) && (p_ccb->xmit_hold_q.count != 0) )
+    while ( (num_to_flush != 0) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
     {
         p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
         if (p_buf)
@@ -1874,7 +1874,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         (*p_ccb->p_rcb->api.pL2CA_TxComplete_Cb)(p_ccb->local_cid, num_flushed2);
 
     /* Now count how many are left */
-    p_buf = (BT_HDR *)p_lcb->link_xmit_data_q.p_first;
+    p_buf = (BT_HDR *)GKI_getfirst(&p_lcb->link_xmit_data_q);
 
     while (p_buf != NULL)
     {
@@ -1885,7 +1885,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     }
 
     /* Add in the number in the CCB xmit queue */
-    num_left += p_ccb->xmit_hold_q.count;
+    num_left += GKI_queue_length(&p_ccb->xmit_hold_q);
 
     /* Return the local number of buffers left for the CID */
     L2CAP_TRACE_DEBUG ("L2CA_FlushChannel()  flushed: %u + %u,  num_left: %u", num_flushed1, num_flushed2, num_left);

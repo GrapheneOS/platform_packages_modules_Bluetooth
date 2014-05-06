@@ -410,7 +410,7 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 
     if (p_tcb != NULL)
     {
-        while (p_tcb->cache_buffer.p_first)
+        while (!GKI_queue_is_empty(&p_tcb->cache_buffer))
             GKI_freebuf (GKI_dequeue (&p_tcb->cache_buffer));
 
         utl_freebuf((void **)&p_tcb->p_srvc_list);

@@ -171,7 +171,7 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    while (p_srvc_cb->cache_buffer.p_first)
+    while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
         GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
 
     utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
@@ -1495,7 +1495,7 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
     APPL_TRACE_ERROR("bta_gattc_rebuild_cache");
     if (attr_index == 0)
     {
-        while (p_srvc_cb->cache_buffer.p_first)
+        while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
             GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
 
         if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)

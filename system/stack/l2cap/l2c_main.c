@@ -152,11 +152,11 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
                                     handle, p_msg->layer_specific, rcv_cid, cmd_code,
-                                    l2cb.rcv_hold_q.count);
+                                    GKI_queue_length(&l2cb.rcv_hold_q));
                 p_msg->layer_specific = 2;
                 GKI_enqueue (&l2cb.rcv_hold_q, p_msg);
 
-                if (l2cb.rcv_hold_q.count == 1)
+                if (GKI_queue_length(&l2cb.rcv_hold_q) == 1)
                     btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 
                 return;
@@ -164,7 +164,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             else
             {
                 L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
-                                    handle, p_msg->layer_specific, rcv_cid, cmd_code, l2cb.rcv_hold_q.count);
+                                    handle, p_msg->layer_specific, rcv_cid, cmd_code, GKI_queue_length(&l2cb.rcv_hold_q));
             }
             GKI_freebuf (p_msg);
             return;
@@ -816,7 +816,7 @@ void l2c_process_held_packets (BOOLEAN timed_out)
     BT_HDR      *p_buf, *p_buf1;
     BUFFER_Q    *p_rcv_hold_q = &l2cb.rcv_hold_q;
 
-    if (!p_rcv_hold_q->count)
+    if (GKI_queue_is_empty(p_rcv_hold_q))
         return;
 
     if (!timed_out)
@@ -842,7 +842,7 @@ void l2c_process_held_packets (BOOLEAN timed_out)
     }
 
     /* If anyone still in the queue, restart the timeout */
-    if (p_rcv_hold_q->count)
+    if (!GKI_queue_is_empty(p_rcv_hold_q))
         btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 }
 
@@ -984,7 +984,7 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
     if (p_ccb->cong_sent)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested  xmit_hold_q.count: %u  buff_quota: %u",
-                            p_ccb->local_cid, p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
+                            p_ccb->local_cid, GKI_queue_length(&p_ccb->xmit_hold_q), p_ccb->buff_quota);
 
         GKI_freebuf (p_data);
         return (L2CAP_DW_FAILED);

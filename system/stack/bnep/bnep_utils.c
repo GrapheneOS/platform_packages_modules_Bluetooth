@@ -152,7 +152,7 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
     p_bcb->p_pending_data   = NULL;
 
     /* Free transmit queue */
-    while (p_bcb->xmit_q.count)
+    while (!GKI_queue_is_empty(&p_bcb->xmit_q))
     {
         GKI_freebuf (GKI_dequeue (&p_bcb->xmit_q));
     }
@@ -455,7 +455,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
     BNEP_TRACE_EVENT ("BNEP - bnepu_check_send_packet for CID: 0x%x", p_bcb->l2cap_cid);
     if (p_bcb->con_flags & BNEP_FLAGS_L2CAP_CONGESTED)
     {
-        if (p_bcb->xmit_q.count >= BNEP_MAX_XMITQ_DEPTH)
+        if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
         {
             BNEP_TRACE_EVENT ("BNEP - congested, dropping buf, CID: 0x%x", p_bcb->l2cap_cid);
 

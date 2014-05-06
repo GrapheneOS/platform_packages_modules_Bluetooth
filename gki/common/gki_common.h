@@ -58,7 +58,7 @@
 
 typedef struct _buffer_hdr
 {
-    struct _buffer_hdr *p_next;   /* next buffer in the queue */
+	struct _buffer_hdr *p_next;   /* next buffer in the queue */
 	UINT8   q_id;                 /* id of the queue */
 	UINT8   task_id;              /* task which allocated the buffer*/
 	UINT8   status;               /* FREE, UNLINKED or QUEUED */
@@ -67,12 +67,12 @@ typedef struct _buffer_hdr
 
 typedef struct _free_queue
 {
-	BUFFER_HDR_T *p_first;      /* first buffer in the queue */
-	BUFFER_HDR_T *p_last;       /* last buffer in the queue */
-	UINT16		 size;          /* size of the buffers in the pool */
-	UINT16		 total;         /* toatal number of buffers */
-	UINT16		 cur_cnt;       /* number of  buffers currently allocated */
-	UINT16		 max_cnt;       /* maximum number of buffers allocated at any time */
+	BUFFER_HDR_T *_p_first;      /* first buffer in the queue */
+	BUFFER_HDR_T *_p_last;       /* last buffer in the queue */
+	UINT16		 size;             /* size of the buffers in the pool */
+	UINT16		 total;            /* toatal number of buffers */
+	UINT16		 cur_cnt;          /* number of  buffers currently allocated */
+	UINT16		 max_cnt;          /* maximum number of buffers allocated at any time */
 } FREE_QUEUE_T;
 
 

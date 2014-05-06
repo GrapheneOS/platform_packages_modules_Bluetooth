@@ -789,7 +789,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                 p_ccb->fcrb.connect_tick_count = GKI_get_os_tick_count();
 #endif
                 /* See if we can forward anything on the hold queue */
-                if (p_ccb->xmit_hold_q.count)
+                if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                 {
                     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
                 }
@@ -872,7 +872,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #endif
 
         /* See if we can forward anything on the hold queue */
-        if ( (p_ccb->chnl_state == CST_OPEN) && (p_ccb->xmit_hold_q.count) )
+        if ( (p_ccb->chnl_state == CST_OPEN) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
         {
             l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
         }

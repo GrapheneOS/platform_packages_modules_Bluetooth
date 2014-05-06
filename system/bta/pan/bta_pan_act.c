@@ -665,7 +665,7 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
         bta_pan_co_tx_path(p_scb->handle, p_scb->app_id);
 
         /* free data that exceeds queue level */
-        while(p_scb->data_queue.count > bta_pan_cb.q_level)
+        while(GKI_queue_length(&p_scb->data_queue) > bta_pan_cb.q_level)
             GKI_freebuf(GKI_dequeue(&p_scb->data_queue));
         bta_pan_pm_conn_idle(p_scb);
     }
@@ -690,12 +690,12 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
             }
             /* free data that exceeds queue level  */
-            while(p_scb->data_queue.count > bta_pan_cb.q_level)
+            while(GKI_queue_length(&p_scb->data_queue) > bta_pan_cb.q_level)
                 GKI_freebuf(GKI_dequeue(&p_scb->data_queue));
 
             /* if there is more data to be passed to
             upper layer */
-            if(p_scb->data_queue.count)
+            if(!GKI_queue_is_empty(&p_scb->data_queue))
             {
                 if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
                 {

@@ -102,6 +102,8 @@ void gatt_init (void)
 #endif
     gatt_cb.def_mtu_size = GATT_DEF_BLE_MTU_SIZE;
     GKI_init_q (&gatt_cb.sign_op_queue);
+    GKI_init_q (&gatt_cb.srv_chg_clt_q);
+    GKI_init_q (&gatt_cb.pending_new_srv_start_q);
     /* First, register fixed L2CAP channel for ATT over BLE */
     fixed_reg.fixed_chnl_opts.mode         = L2CAP_FCR_BASIC_MODE;
     fixed_reg.fixed_chnl_opts.max_transmit = 0xFF;

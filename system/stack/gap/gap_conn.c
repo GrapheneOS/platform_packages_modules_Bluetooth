@@ -1173,10 +1173,10 @@ static void gap_release_ccb (tGAP_CCB *p_ccb)
     /* Drop any buffers we may be holding */
     p_ccb->rx_queue_size = 0;
 
-    while (p_ccb->rx_queue.p_first)
+    while (!GKI_queue_is_empty(&p_ccb->rx_queue))
         GKI_freebuf (GKI_dequeue (&p_ccb->rx_queue));
 
-    while (p_ccb->tx_queue.p_first)
+    while (!GKI_queue_is_empty(&p_ccb->tx_queue))
         GKI_freebuf (GKI_dequeue (&p_ccb->tx_queue));
 
     p_ccb->con_state = GAP_CCB_STATE_IDLE;

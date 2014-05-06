@@ -618,7 +618,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             pkt_type = AVCT_PKT_TYPE_END;
         }
     }
-    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", p_lcb->tx_q.count);
+    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", GKI_queue_length(&p_lcb->tx_q));
     return;
 }
 

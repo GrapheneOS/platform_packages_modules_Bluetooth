@@ -210,7 +210,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
 #endif
     /* Release any held buffers */
-    while (p_lcb->link_xmit_data_q.p_first)
+    while (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
         GKI_freebuf (GKI_dequeue (&p_lcb->link_xmit_data_q));
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -934,7 +934,7 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
     */
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
     {
-        while (p_ccb->xmit_hold_q.p_first)
+        while (GKI_getfirst(&p_ccb->xmit_hold_q))
         {
             p_buf2 = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
             l2cu_set_acl_hci_header (p_buf2, p_ccb);
@@ -1685,7 +1685,7 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     /* Stop the timer */
     btu_stop_timer (&p_ccb->timer_entry);
 
-    while (p_ccb->xmit_hold_q.p_first)
+    while (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
         GKI_freebuf (GKI_dequeue (&p_ccb->xmit_hold_q));
 
     l2c_fcr_cleanup (p_ccb);
@@ -3108,7 +3108,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
 
             L2CAP_TRACE_DEBUG("RR scan pri=%d, lcid=0x%04x, q_cout=%d",
-                                p_ccb->ccb_priority, p_ccb->local_cid, p_ccb->xmit_hold_q.count );
+                                p_ccb->ccb_priority, p_ccb->local_cid, GKI_queue_length(&p_ccb->xmit_hold_q));
 
             /* store the next serving channel */
             /* this channel is the last channel of its priority group */
@@ -3133,9 +3133,9 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
                 if (p_ccb->fcrb.wait_ack || p_ccb->fcrb.remote_busy)
                     continue;
 
-                if ( p_ccb->fcrb.retrans_q.count == 0 )
+                if ( GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
                 {
-                    if ( p_ccb->xmit_hold_q.count == 0 )
+                    if ( GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                         continue;
 
                     /* If using the common pool, should be at least 10% free. */
@@ -3149,7 +3149,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
             else
             {
-                if (p_ccb->xmit_hold_q.count == 0)
+                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                     continue;
             }
 
@@ -3259,9 +3259,9 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                 continue;
 
             /* No more checks needed if sending from the reatransmit queue */
-            if (p_ccb->fcrb.retrans_q.count == 0)
+            if (GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
             {
-                if (p_ccb->xmit_hold_q.count == 0)
+                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                     continue;
 
                 /* If using the common pool, should be at least 10% free. */
@@ -3282,7 +3282,7 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
         }
         else
         {
-            if (p_ccb->xmit_hold_q.count != 0)
+            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
             {
                 p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
                 if(NULL == p_buf)
@@ -3408,7 +3408,7 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
 *******************************************************************************/
 void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
 {
-    UINT16 q_count = p_ccb->xmit_hold_q.count;
+    UINT16 q_count = GKI_queue_length(&p_ccb->xmit_hold_q);
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )

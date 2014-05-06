@@ -2262,7 +2262,7 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                 else
                 {
                     /* just dequeue it from the q_info.a2d */
-                    if(p_scb->q_info.a2d.count < 3)
+                    if(GKI_queue_length(&p_scb->q_info.a2d) < 3)
                     {
                         /* put it back to the queue */
                         GKI_enqueue_head (&p_scb->q_info.a2d, p_buf);

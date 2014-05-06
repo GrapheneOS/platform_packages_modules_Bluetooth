@@ -803,7 +803,7 @@ void l2c_link_adjust_allocation (void)
             /* this link may have sent anything but some other link sent packets so  */
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
-              && (p_lcb->link_xmit_data_q.count)
+              && (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
               && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
                 btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
         }
@@ -1066,11 +1066,11 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
     /*
      * We only switch park to active only if we have unsent packets
      */
-    if ( p_lcb->link_xmit_data_q.count == 0 )
+    if ( GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
     {
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb)
         {
-            if (p_ccb->xmit_hold_q.count != 0)
+            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
             {
                 need_to_active = TRUE;
                 break;
@@ -1261,7 +1261,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         /* There is a special case where we have readjusted the link quotas and  */
         /* this link may have sent anything but some other link sent packets so  */
         /* so we may need a timer to kick off this link's transmissions.         */
-        if ( (p_lcb->link_xmit_data_q.count) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
+        if ( (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q)) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
             btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
     }
 

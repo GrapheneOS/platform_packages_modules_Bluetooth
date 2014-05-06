@@ -80,6 +80,9 @@ typedef struct
 extern "C" {
 #endif
 
+extern int acquire_wake_lock(int lock, const char* id);
+extern int release_wake_lock(const char* id);
+
 #if GKI_DYNAMIC_MEMORY == FALSE
 GKI_API extern tGKI_CB  gki_cb;
 #else

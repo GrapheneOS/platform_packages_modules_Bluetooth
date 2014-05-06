@@ -921,8 +921,8 @@ void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
 *******************************************************************************/
 void btu_check_bt_sleep (void)
 {
-    if ((btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q.count == 0)
-        &&(btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_xmit_q.count == 0))
+    if ((GKI_queue_is_empty(&btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q)
+        && GKI_queue_is_empty(&btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_xmit_q)))
     {
         if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs)
         {

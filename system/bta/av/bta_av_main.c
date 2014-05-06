@@ -1206,7 +1206,7 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
                     memcpy(p_new, p_buf, copy_size);
                     pq = &p_scbi->q_info.a2d;
                     GKI_enqueue(pq, p_new);
-                    if(pq->count > p_bta_av_cfg->audio_mqs)
+                    if(GKI_queue_length(pq) > p_bta_av_cfg->audio_mqs)
                     {
                         bta_av_co_audio_drop(p_scbi->hndl);
                         GKI_freebuf(GKI_dequeue(pq));

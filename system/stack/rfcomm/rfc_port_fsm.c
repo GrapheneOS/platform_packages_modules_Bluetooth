@@ -431,7 +431,7 @@ void rfc_port_sm_opened (tPORT *p_port, UINT16 event, void *p_data)
     case RFC_EVENT_DISC:
         p_port->rfc.state = RFC_STATE_CLOSED;
         rfc_send_ua (p_port->rfc.p_mcb, p_port->dlci);
-        if(p_port->rx.queue.count)
+        if(!GKI_queue_is_empty(&p_port->rx.queue))
         {
             /* give a chance to upper stack to close port properly */
             RFCOMM_TRACE_DEBUG("port queue is not empty");

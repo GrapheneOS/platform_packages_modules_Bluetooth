@@ -865,7 +865,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 
     /* Check if rx queue exceeds the limit */
     if ((p_port->rx.queue_size + p_buf->len > PORT_RX_CRITICAL_WM)
-     || (p_port->rx.queue.count + 1 > p_port->rx_buf_critical))
+     || (GKI_queue_length(&p_port->rx.queue) + 1 > p_port->rx_buf_critical))
     {
         RFCOMM_TRACE_EVENT ("PORT_DataInd. Buffer over run. Dropping the buffer");
         GKI_freebuf (p_buf);

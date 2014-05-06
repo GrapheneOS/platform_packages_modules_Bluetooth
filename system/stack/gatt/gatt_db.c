@@ -62,6 +62,8 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  BOOLEAN is_pri,
                                UINT16 s_hdl, UINT16 num_handle)
 {
+    GKI_init_q(&p_db->svc_buffer);
+
     if (!allocate_svc_db_buf(p_db))
     {
         GATT_TRACE_ERROR("gatts_init_service_db failed, no resources");

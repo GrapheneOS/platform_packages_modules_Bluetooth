@@ -915,7 +915,7 @@ void l2c_ble_link_adjust_allocation (void)
             /* this link may have sent anything but some other link sent packets so  */
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
-              && (p_lcb->link_xmit_data_q.count)
+              && (GKI_queue_length(&p_lcb->link_xmit_data_q))
               && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
                 btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
         }

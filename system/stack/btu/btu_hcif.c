@@ -460,7 +460,7 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
 #endif
 
     /* If there are already commands in the queue, then enqueue this command */
-    if ((p_buf) && (p_hci_cmd_cb->cmd_xmit_q.count))
+    if ((p_buf) && (!GKI_queue_is_empty(&p_hci_cmd_cb->cmd_xmit_q)))
     {
         GKI_enqueue (&(p_hci_cmd_cb->cmd_xmit_q), p_buf);
         p_buf = NULL;
@@ -471,7 +471,7 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
          && (p_hci_cmd_cb->cmd_window == 0)
          && (btm_cb.devcb.state == BTM_DEV_STATE_WAIT_RESET_CMPLT)) )
     {
-        p_hci_cmd_cb->cmd_window = p_hci_cmd_cb->cmd_xmit_q.count + 1;
+        p_hci_cmd_cb->cmd_window = GKI_queue_length(&p_hci_cmd_cb->cmd_xmit_q) + 1;
     }
 
     /* See if we can send anything */

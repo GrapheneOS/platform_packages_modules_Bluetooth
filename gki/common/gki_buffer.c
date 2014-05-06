@@ -70,7 +70,7 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
     if(p_mem)
     {
         hdr = (BUFFER_HDR_T *)p_mem;
-        p_cb->freeq[id].p_first = hdr;
+        p_cb->freeq[id]._p_first = hdr;
         for (i = 0; i < total; i++)
         {
             hdr->task_id = GKI_INVALID_TASK;
@@ -83,7 +83,7 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
             hdr1->p_next = hdr;
         }
         hdr1->p_next = NULL;
-        p_cb->freeq[id].p_last = hdr1;
+        p_cb->freeq[id]._p_last = hdr1;
     }
 // btla-specific --
     return;
@@ -99,7 +99,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
 
     Q = &p_cb->freeq[p_cb->pool_list[id]];
 
-    if(Q->p_first == 0)
+    if(Q->_p_first == 0)
     {
         void* p_mem = GKI_os_malloc((Q->size + BUFFER_PADDING_SIZE) * Q->total);
         if(p_mem)
@@ -129,8 +129,8 @@ void gki_dealloc_free_queue(void)
 
             p_cb->freeq[i].cur_cnt   = 0;
             p_cb->freeq[i].max_cnt   = 0;
-            p_cb->freeq[i].p_first   = NULL;
-            p_cb->freeq[i].p_last    = NULL;
+            p_cb->freeq[i]._p_first   = NULL;
+            p_cb->freeq[i]._p_last    = NULL;
 
             p_cb->pool_start[i] = NULL;
             p_cb->pool_end[i]   = NULL;
@@ -173,8 +173,8 @@ void gki_buffer_init(void)
         p_cb->pool_end[tt]   = NULL;
         p_cb->pool_size[tt]  = 0;
 
-        p_cb->freeq[tt].p_first = 0;
-        p_cb->freeq[tt].p_last  = 0;
+        p_cb->freeq[tt]._p_first = 0;
+        p_cb->freeq[tt]._p_last  = 0;
         p_cb->freeq[tt].size    = 0;
         p_cb->freeq[tt].total   = 0;
         p_cb->freeq[tt].cur_cnt = 0;
@@ -342,8 +342,8 @@ void gki_buffer_init(void)
 *******************************************************************************/
 void GKI_init_q (BUFFER_Q *p_q)
 {
-    p_q->p_first = p_q->p_last = NULL;
-    p_q->count = 0;
+    p_q->_p_first = p_q->_p_last = NULL;
+    p_q->_count = 0;
 
     return;
 }
@@ -410,18 +410,17 @@ void *GKI_getbuf (UINT16 size)
         {
 // btla-specific ++
         #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
-            if(Q->p_first == 0 && gki_alloc_free_queue(i) != TRUE)
-            {
+            if(Q->_p_first == 0 && gki_alloc_free_queue(i) != TRUE) {
                 GKI_enable();
                 return NULL;
             }
         #endif
 // btla-specific --
-            p_hdr = Q->p_first;
-            Q->p_first = p_hdr->p_next;
+            p_hdr = Q->_p_first;
+            Q->_p_first = p_hdr->p_next;
 
-            if (!Q->p_first)
-                Q->p_last = NULL;
+            if (!Q->_p_first)
+                Q->_p_last = NULL;
 
             if(++Q->cur_cnt > Q->max_cnt)
                 Q->max_cnt = Q->cur_cnt;
@@ -480,18 +479,17 @@ void *GKI_getpoolbuf (UINT8 pool_id)
     {
 // btla-specific ++
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
-        if(Q->p_first == 0 && gki_alloc_free_queue(pool_id) != TRUE)
-        {
+        if(Q->_p_first == 0 && gki_alloc_free_queue(pool_id) != TRUE) {
             GKI_enable();
             return NULL;
         }
 #endif
 // btla-specific --
-        p_hdr = Q->p_first;
-        Q->p_first = p_hdr->p_next;
+        p_hdr = Q->_p_first;
+        Q->_p_first = p_hdr->p_next;
 
-        if (!Q->p_first)
-            Q->p_last = NULL;
+        if (!Q->_p_first)
+            Q->_p_last = NULL;
 
         if(++Q->cur_cnt > Q->max_cnt)
             Q->max_cnt = Q->cur_cnt;
@@ -560,12 +558,12 @@ void GKI_freebuf (void *p_buf)
     ** Release the buffer
     */
     Q  = &gki_cb.com.freeq[p_hdr->q_id];
-    if (Q->p_last)
-        Q->p_last->p_next = p_hdr;
+    if (Q->_p_last)
+        Q->_p_last->p_next = p_hdr;
     else
-        Q->p_first = p_hdr;
+        Q->_p_first = p_hdr;
 
-    Q->p_last      = p_hdr;
+    Q->_p_last      = p_hdr;
     p_hdr->p_next  = NULL;
     p_hdr->status  = BUF_STATUS_FREE;
     p_hdr->task_id = GKI_INVALID_TASK;
@@ -772,16 +770,16 @@ void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
     GKI_disable();
 
     /* Since the queue is exposed (C vs C++), keep the pointers in exposed format */
-    if (p_q->p_last)
+    if (p_q->_p_last)
     {
-        BUFFER_HDR_T *p_last_hdr = (BUFFER_HDR_T *)((UINT8 *)p_q->p_last - BUFFER_HDR_SIZE);
-        p_last_hdr->p_next = p_hdr;
+        BUFFER_HDR_T *_p_last_hdr = (BUFFER_HDR_T *)((UINT8 *)p_q->_p_last - BUFFER_HDR_SIZE);
+        _p_last_hdr->p_next = p_hdr;
     }
     else
-        p_q->p_first = p_buf;
+        p_q->_p_first = p_buf;
 
-    p_q->p_last = p_buf;
-    p_q->count++;
+    p_q->_p_last = p_buf;
+    p_q->_count++;
 
     p_hdr->p_next = NULL;
     p_hdr->status = BUF_STATUS_QUEUED;
@@ -826,18 +824,18 @@ void GKI_enqueue_head (BUFFER_Q *p_q, void *p_buf)
 
     GKI_disable();
 
-    if (p_q->p_first)
+    if (p_q->_p_first)
     {
-        p_hdr->p_next = (BUFFER_HDR_T *)((UINT8 *)p_q->p_first - BUFFER_HDR_SIZE);
-        p_q->p_first = p_buf;
+        p_hdr->p_next = (BUFFER_HDR_T *)((UINT8 *)p_q->_p_first - BUFFER_HDR_SIZE);
+        p_q->_p_first = p_buf;
     }
     else
     {
-        p_q->p_first = p_buf;
-        p_q->p_last  = p_buf;
+        p_q->_p_first = p_buf;
+        p_q->_p_last  = p_buf;
         p_hdr->p_next = NULL;
     }
-    p_q->count++;
+    p_q->_count++;
 
     p_hdr->status = BUF_STATUS_QUEUED;
 
@@ -864,25 +862,25 @@ void *GKI_dequeue (BUFFER_Q *p_q)
 
     GKI_disable();
 
-    if (!p_q || !p_q->count)
+    if (!p_q || !p_q->_count)
     {
         GKI_enable();
         return (NULL);
     }
 
-    p_hdr = (BUFFER_HDR_T *)((UINT8 *)p_q->p_first - BUFFER_HDR_SIZE);
+    p_hdr = (BUFFER_HDR_T *)((UINT8 *)p_q->_p_first - BUFFER_HDR_SIZE);
 
     /* Keep buffers such that GKI header is invisible
     */
     if (p_hdr->p_next)
-        p_q->p_first = ((UINT8 *)p_hdr->p_next + BUFFER_HDR_SIZE);
+        p_q->_p_first = ((UINT8 *)p_hdr->p_next + BUFFER_HDR_SIZE);
     else
     {
-        p_q->p_first = NULL;
-        p_q->p_last  = NULL;
+        p_q->_p_first = NULL;
+        p_q->_p_last  = NULL;
     }
 
-    p_q->count--;
+    p_q->_count--;
 
     p_hdr->p_next = NULL;
     p_hdr->status = BUF_STATUS_UNLINKED;
@@ -912,14 +910,14 @@ void *GKI_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
 
     GKI_disable();
 
-    if (p_buf == p_q->p_first)
+    if (p_buf == p_q->_p_first)
     {
         GKI_enable();
         return (GKI_dequeue (p_q));
     }
 
     p_buf_hdr = (BUFFER_HDR_T *)((UINT8 *)p_buf - BUFFER_HDR_SIZE);
-    p_prev    = (BUFFER_HDR_T *)((UINT8 *)p_q->p_first - BUFFER_HDR_SIZE);
+    p_prev    = (BUFFER_HDR_T *)((UINT8 *)p_q->_p_first - BUFFER_HDR_SIZE);
 
     for ( ; p_prev; p_prev = p_prev->p_next)
     {
@@ -928,12 +926,12 @@ void *GKI_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
         {
             p_prev->p_next = p_buf_hdr->p_next;
 
-            /* If we are removing the last guy in the queue, update p_last */
-            if (p_buf == p_q->p_last)
-                p_q->p_last = p_prev + 1;
+            /* If we are removing the last guy in the queue, update _p_last */
+            if (p_buf == p_q->_p_last)
+                p_q->_p_last = p_prev + 1;
 
             /* One less in the queue */
-            p_q->count--;
+            p_q->_count--;
 
             /* The buffer is now unlinked */
             p_buf_hdr->p_next = NULL;
@@ -961,7 +959,7 @@ void *GKI_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
 *******************************************************************************/
 void *GKI_getfirst (BUFFER_Q *p_q)
 {
-    return (p_q->p_first);
+    return (p_q->_p_first);
 }
 
 
@@ -978,7 +976,7 @@ void *GKI_getfirst (BUFFER_Q *p_q)
 *******************************************************************************/
 void *GKI_getlast (BUFFER_Q *p_q)
 {
-    return (p_q->p_last);
+    return (p_q->_p_last);
 }
 
 /*******************************************************************************
@@ -1019,7 +1017,12 @@ void *GKI_getnext (void *p_buf)
 *******************************************************************************/
 BOOLEAN GKI_queue_is_empty(BUFFER_Q *p_q)
 {
-    return ((BOOLEAN) (p_q->count == 0));
+    return ((BOOLEAN) (p_q->_count == 0));
+}
+
+UINT16 GKI_queue_length(BUFFER_Q *p_q)
+{
+    return p_q->_count;
 }
 
 /*******************************************************************************
@@ -1110,11 +1113,11 @@ void *GKI_igetpoolbuf (UINT8 pool_id)
     Q = &gki_cb.com.freeq[pool_id];
     if(Q->cur_cnt < Q->total)
     {
-        p_hdr = Q->p_first;
-        Q->p_first = p_hdr->p_next;
+        p_hdr = Q->_p_first;
+        Q->_p_first = p_hdr->p_next;
 
-        if (!Q->p_first)
-            Q->p_last = NULL;
+        if (!Q->_p_first)
+            Q->_p_last = NULL;
 
         if(++Q->cur_cnt > Q->max_cnt)
             Q->max_cnt = Q->cur_cnt;
