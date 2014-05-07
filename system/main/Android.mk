@@ -145,6 +145,7 @@ LOCAL_REQUIRED_MODULES := \
     bt_stack.conf \
     libbt-hci \
     libbt-vendor
+
 LOCAL_MULTILIB := 32
 
 include $(BUILD_SHARED_LIBRARY)

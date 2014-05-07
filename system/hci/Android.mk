@@ -41,7 +41,6 @@ LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 include $(BUILD_STATIC_LIBRARY)
 
 #####################################################
-
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
