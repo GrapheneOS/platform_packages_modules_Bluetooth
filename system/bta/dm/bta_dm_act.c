@@ -2274,15 +2274,24 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 
     bdcpy(bta_dm_search_cb.peer_bdaddr, remote_bd_addr);
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x ",
+    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d",
                         bta_dm_search_cb.name_discover_done,
-                        bta_dm_search_cb.p_btm_inq_info
+                        bta_dm_search_cb.p_btm_inq_info,
+                        bta_dm_search_cb.state
                         );
     if ( bta_dm_search_cb.p_btm_inq_info ) {
 
         APPL_TRACE_DEBUG("bta_dm_discover_device appl_knows_rem_name %d",
                             bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name
                             );
+    }
+
+    if((bta_dm_search_cb.p_btm_inq_info)
+       && (bta_dm_search_cb.p_btm_inq_info->results.device_type == BT_DEVICE_TYPE_BLE)
+       && (bta_dm_search_cb.state == BTA_DM_SEARCH_ACTIVE))
+    {
+        /* Do not perform RNR for LE devices at inquiry complete*/
+        bta_dm_search_cb.name_discover_done = TRUE;
     }
 
     /* if name discovery is not done and application needs remote name */
