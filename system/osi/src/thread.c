@@ -132,6 +132,11 @@ void thread_stop(thread_t *thread) {
   reactor_stop(thread->reactor);
 }
 
+reactor_t *thread_get_reactor(const thread_t *thread) {
+  assert(thread != NULL);
+  return thread->reactor;
+}
+
 const char *thread_name(const thread_t *thread) {
   assert(thread != NULL);
   return thread->name;

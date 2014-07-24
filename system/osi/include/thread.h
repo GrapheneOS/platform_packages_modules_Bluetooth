@@ -20,6 +20,7 @@
 
 #define THREAD_NAME_MAX 16
 
+typedef struct reactor_t reactor_t;
 typedef struct thread_t thread_t;
 typedef void (*thread_fn)(void *context);
 
@@ -45,6 +46,10 @@ bool thread_post(thread_t *thread, thread_fn func, void *context);
 // after calling |thread_stop|. This function is guaranteed to not block.
 // |thread| may not be NULL.
 void thread_stop(thread_t *thread);
+
+// Returns a reactor owned by this thread. The reactor must not be freed by the
+// caller. The returned reactor will not be NULL. |thread| may not be NULL.
+reactor_t *thread_get_reactor(const thread_t *thread);
 
 // Returns the name of the given |thread|. |thread| may not be NULL.
 const char *thread_name(const thread_t *thread);
