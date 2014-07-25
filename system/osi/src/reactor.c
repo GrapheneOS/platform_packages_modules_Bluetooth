@@ -39,12 +39,15 @@ struct reactor_t {
 
 static reactor_status_t run_reactor(reactor_t *reactor, int iterations, struct timeval *tv);
 
+static const eventfd_t EVENT_REACTOR_CHANGE_SET = 1;
+static const eventfd_t EVENT_REACTOR_STOP = 0x8000000000000000LL;
+
 reactor_t *reactor_new(void) {
   reactor_t *ret = (reactor_t *)calloc(1, sizeof(reactor_t));
   if (!ret)
     return NULL;
 
-  ret->event_fd = eventfd(0, EFD_SEMAPHORE);
+  ret->event_fd = eventfd(0, 0);
   if (ret->event_fd == -1) {
     ALOGE("%s unable to create eventfd: %s", __func__, strerror(errno));
     goto error;
@@ -94,7 +97,7 @@ reactor_status_t reactor_run_once_timeout(reactor_t *reactor, timeout_t timeout_
 void reactor_stop(reactor_t *reactor) {
   assert(reactor != NULL);
 
-  eventfd_write(reactor->event_fd, 1);
+  eventfd_write(reactor->event_fd, EVENT_REACTOR_STOP);
 }
 
 void reactor_register(reactor_t *reactor, reactor_object_t *obj) {
@@ -102,6 +105,7 @@ void reactor_register(reactor_t *reactor, reactor_object_t *obj) {
   assert(obj != NULL);
 
   list_append(reactor->objects, obj);
+  eventfd_write(reactor->event_fd, EVENT_REACTOR_CHANGE_SET);
 }
 
 void reactor_unregister(reactor_t *reactor, reactor_object_t *obj) {
@@ -109,6 +113,7 @@ void reactor_unregister(reactor_t *reactor, reactor_object_t *obj) {
   assert(obj != NULL);
 
   list_remove(reactor->objects, obj);
+  eventfd_write(reactor->event_fd, EVENT_REACTOR_CHANGE_SET);
 }
 
 // Runs the reactor loop for a maximum of |iterations| with the given timeout, |tv|.
@@ -154,6 +159,8 @@ static reactor_status_t run_reactor(reactor_t *reactor, int iterations, struct t
     if (FD_ISSET(reactor->event_fd, &read_set)) {
       eventfd_t value;
       eventfd_read(reactor->event_fd, &value);
+      if (value < EVENT_REACTOR_STOP)
+        continue;
       return REACTOR_STATUS_STOP;
     }
 
