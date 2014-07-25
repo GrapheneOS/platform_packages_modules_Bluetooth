@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 struct hash_map_t;
 typedef struct hash_map_t hash_map_t;
