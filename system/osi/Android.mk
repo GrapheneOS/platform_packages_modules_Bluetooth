@@ -31,6 +31,7 @@ LOCAL_SRC_FILES := \
     ./src/list.c \
     ./src/reactor.c \
     ./src/semaphore.c \
+    ./src/socket.c \
     ./src/thread.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror
