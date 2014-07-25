@@ -8,6 +8,7 @@ LOCAL_SRC_FILES := \
 	src/bt_hci_bdroid.c \
 	src/btsnoop.c \
 	src/btsnoop_net.c \
+	src/hci_inject.c \
 	src/lpm.c \
 	src/utils.c \
 	src/vendor.c
@@ -34,6 +35,8 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include \
 	$(LOCAL_PATH)/../osi/include \
 	$(LOCAL_PATH)/../utils/include \
+	$(LOCAL_PATH)/../stack/include \
+	$(LOCAL_PATH)/../gki/ulinux \
         $(bdroid_C_INCLUDES)
 
 LOCAL_MODULE := libbt-hci

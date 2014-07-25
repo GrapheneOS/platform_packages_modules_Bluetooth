@@ -35,6 +35,7 @@
 #include "bt_utils.h"
 #include "bt_vendor_lib.h"
 #include "hci.h"
+#include "hci_inject.h"
 #include "osi.h"
 #include "thread.h"
 #include "userial.h"
@@ -368,6 +369,10 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
         return BT_HC_STATUS_FAIL;
     }
 
+    if (!hci_inject_open()) {
+      // TODO(sharvil): gracefully propagate failures from this layer.
+    }
+
     return BT_HC_STATUS_SUCCESS;
 }
 
@@ -462,6 +467,8 @@ static void cleanup(void)
     }
 
     BTHCDBG("cleanup");
+
+    hci_inject_close();
 
     if (hc_cb.worker_thread)
     {
