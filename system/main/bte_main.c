@@ -23,21 +23,26 @@
  *  Description:   Contains BTE core stack initialization and shutdown code
  *
  ******************************************************************************/
-#include <fcntl.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <cutils/properties.h>
+#include <fcntl.h>
+#include <hardware/bluetooth.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <time.h>
 #include <hardware/bluetooth.h>
 #include <cutils/properties.h>
 
-#include "gki.h"
+#include "alarm.h"
 #include "bd.h"
-#include "btu.h"
-#include "bte.h"
 #include "bta_api.h"
-#include "bt_utils.h"
 #include "bt_hci_bdroid.h"
+#include "bte.h"
+#include "btu.h"
+#include "bt_hci_lib.h"
+#include "bt_utils.h"
+#include "gki.h"
+#include "osi.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -69,8 +74,7 @@
 typedef struct
 {
     int     retry_counts;
-    BOOLEAN timer_created;
-    timer_t timer_id;
+    alarm_t *alarm;
 } bt_preload_retry_cb_t;
 
 /******************************************************************************
@@ -94,7 +98,6 @@ static pthread_mutex_t cleanup_lock;
 /*******************************************************************************
 **  Static functions
 *******************************************************************************/
-static void bte_main_in_hw_init(void);
 static void bte_hci_enable(void);
 static void bte_hci_disable(void);
 static void preload_start_wait_timer(void);
@@ -126,26 +129,6 @@ UINT32 bte_btu_stack[(BTE_BTU_STACK_SIZE + 3) / 4];
 
 /******************************************************************************
 **
-** Function         bte_main_in_hw_init
-**
-** Description      Internal helper function for chip hardware init
-**
-** Returns          None
-**
-******************************************************************************/
-static void bte_main_in_hw_init(void)
-{
-    if ( (bt_hc_if = (bt_hc_interface_t *) bt_hc_get_interface()) \
-         == NULL)
-    {
-        APPL_TRACE_ERROR("!!! Failed to get BtHostControllerInterface !!!");
-    }
-
-    memset(&preload_retry_cb, 0, sizeof(bt_preload_retry_cb_t));
-}
-
-/******************************************************************************
-**
 ** Function         bte_main_boot_entry
 **
 ** Description      BTE MAIN API - Entry point for BTE chip/stack initialization
@@ -158,7 +141,11 @@ void bte_main_boot_entry(void)
     /* initialize OS */
     GKI_init();
 
-    bte_main_in_hw_init();
+    if (!(bt_hc_if = (bt_hc_interface_t *)bt_hc_get_interface()))
+        APPL_TRACE_ERROR("!!! Failed to get BtHostControllerInterface !!!");
+
+    memset(&preload_retry_cb, 0, sizeof(bt_preload_retry_cb_t));
+    preload_retry_cb.alarm = alarm_new();
 
     bte_load_conf(BTE_STACK_CONF_FILE);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -186,6 +173,9 @@ void bte_main_boot_entry(void)
 void bte_main_shutdown()
 {
     pthread_mutex_destroy(&cleanup_lock);
+
+    alarm_free(preload_retry_cb.alarm);
+    preload_retry_cb.alarm = NULL;
 
     GKI_shutdown();
 }
@@ -350,10 +340,8 @@ static void bte_hci_disable(void)
 ** Returns         None
 **
 *******************************************************************************/
-static void preload_wait_timeout(union sigval arg)
+static void preload_wait_timeout(UNUSED_ATTR void *context)
 {
-    UNUSED(arg);
-
     APPL_TRACE_ERROR("...preload_wait_timeout (retried:%d/max-retry:%d)...",
                         preload_retry_cb.retry_counts,
                         PRELOAD_MAX_RETRY_ATTEMPTS);
@@ -382,39 +370,12 @@ static void preload_wait_timeout(union sigval arg)
 *******************************************************************************/
 static void preload_start_wait_timer(void)
 {
-    int status;
-    struct itimerspec ts;
-    struct sigevent se;
-    UINT32 timeout_ms;
+    uint32_t timeout_ms;
     char timeout_prop[PROPERTY_VALUE_MAX];
-
     if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, "3000") || (timeout_ms = atoi(timeout_prop)) < 100)
         timeout_ms = 3000;
 
-    if (preload_retry_cb.timer_created == FALSE)
-    {
-        se.sigev_notify = SIGEV_THREAD;
-        se.sigev_value.sival_ptr = &preload_retry_cb.timer_id;
-        se.sigev_notify_function = preload_wait_timeout;
-        se.sigev_notify_attributes = NULL;
-
-        status = timer_create(CLOCK_MONOTONIC, &se, &preload_retry_cb.timer_id);
-
-        if (status == 0)
-            preload_retry_cb.timer_created = TRUE;
-    }
-
-    if (preload_retry_cb.timer_created == TRUE)
-    {
-        ts.it_value.tv_sec = timeout_ms/1000;
-        ts.it_value.tv_nsec = 1000000*(timeout_ms%1000);
-        ts.it_interval.tv_sec = 0;
-        ts.it_interval.tv_nsec = 0;
-
-        status = timer_settime(preload_retry_cb.timer_id, 0, &ts, 0);
-        if (status == -1)
-            APPL_TRACE_ERROR("Failed to fire preload watchdog timer");
-    }
+    alarm_set(preload_retry_cb.alarm, timeout_ms, preload_wait_timeout, NULL);
 }
 
 /*******************************************************************************
@@ -428,11 +389,7 @@ static void preload_start_wait_timer(void)
 *******************************************************************************/
 static void preload_stop_wait_timer(void)
 {
-    if (preload_retry_cb.timer_created == TRUE)
-    {
-        timer_delete(preload_retry_cb.timer_id);
-        preload_retry_cb.timer_created = FALSE;
-    }
+    alarm_cancel(preload_retry_cb.alarm);
 }
 
 /******************************************************************************

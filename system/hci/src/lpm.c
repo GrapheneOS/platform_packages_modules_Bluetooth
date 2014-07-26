@@ -27,11 +27,12 @@
 #define LOG_TAG "bt_lpm"
 
 #include <utils/Log.h>
-#include <signal.h>
-#include <time.h>
+
+#include "alarm.h"
 #include "bt_hci_bdroid.h"
 #include "bt_vendor_lib.h"
 #include "bt_utils.h"
+#include "osi.h"
 #include "vendor.h"
 
 /******************************************************************************
@@ -82,8 +83,7 @@ typedef struct
     uint8_t state;                          /* Low power mode state */
     uint8_t wake_state;                     /* LPM WAKE state */
     uint8_t no_tx_data;
-    uint8_t timer_created;
-    timer_t timer_id;
+    alarm_t *alarm;
     uint32_t timeout_ms;
 } bt_lpm_cb_t;
 
@@ -107,12 +107,11 @@ static bt_lpm_cb_t bt_lpm_cb;
 ** Returns         None
 **
 *******************************************************************************/
-static void lpm_idle_timeout(union sigval arg)
+static void lpm_idle_timeout(UNUSED_ATTR void *context)
 {
-    UNUSED(arg);
     BTLPMDBG("..lpm_idle_timeout..");
 
-    if ((bt_lpm_cb.state == LPM_ENABLED) && \
+    if ((bt_lpm_cb.state == LPM_ENABLED) &&
         (bt_lpm_cb.wake_state == LPM_WAKE_W4_TIMEOUT))
     {
         bthc_idle_timeout();
@@ -130,37 +129,10 @@ static void lpm_idle_timeout(union sigval arg)
 *******************************************************************************/
 static void lpm_start_transport_idle_timer(void)
 {
-    int status;
-    struct itimerspec ts;
-    struct sigevent se;
-
     if (bt_lpm_cb.state != LPM_ENABLED)
         return;
 
-    if (bt_lpm_cb.timer_created == FALSE)
-    {
-        se.sigev_notify = SIGEV_THREAD;
-        se.sigev_value.sival_ptr = &bt_lpm_cb.timer_id;
-        se.sigev_notify_function = lpm_idle_timeout;
-        se.sigev_notify_attributes = NULL;
-
-        status = timer_create(CLOCK_MONOTONIC, &se, &bt_lpm_cb.timer_id);
-
-        if (status == 0)
-            bt_lpm_cb.timer_created = TRUE;
-    }
-
-    if (bt_lpm_cb.timer_created == TRUE)
-    {
-        ts.it_value.tv_sec = bt_lpm_cb.timeout_ms/1000;
-        ts.it_value.tv_nsec = 1000000*(bt_lpm_cb.timeout_ms%1000);
-        ts.it_interval.tv_sec = 0;
-        ts.it_interval.tv_nsec = 0;
-
-        status = timer_settime(bt_lpm_cb.timer_id, 0, &ts, 0);
-        if (status == -1)
-            ALOGE("[START] Failed to set LPM idle timeout");
-    }
+    alarm_set(bt_lpm_cb.alarm, bt_lpm_cb.timeout_ms, lpm_idle_timeout, NULL);
 }
 
 /*******************************************************************************
@@ -174,20 +146,7 @@ static void lpm_start_transport_idle_timer(void)
 *******************************************************************************/
 static void lpm_stop_transport_idle_timer(void)
 {
-    int status;
-    struct itimerspec ts;
-
-    if (bt_lpm_cb.timer_created == TRUE)
-    {
-        ts.it_value.tv_sec = 0;
-        ts.it_value.tv_nsec = 0;
-        ts.it_interval.tv_sec = 0;
-        ts.it_interval.tv_nsec = 0;
-
-        status = timer_settime(bt_lpm_cb.timer_id, 0, &ts, 0);
-        if (status == -1)
-            ALOGE("[STOP] Failed to set LPM idle timeout");
-    }
+    alarm_cancel(bt_lpm_cb.alarm);
 }
 
 /*******************************************************************************
@@ -224,11 +183,7 @@ void lpm_vnd_cback(uint8_t vnd_result)
 
     if (bt_lpm_cb.state == LPM_DISABLED)
     {
-        if (bt_lpm_cb.timer_created == TRUE)
-        {
-            timer_delete(bt_lpm_cb.timer_id);
-        }
-
+        alarm_free(bt_lpm_cb.alarm);
         memset(&bt_lpm_cb, 0, sizeof(bt_lpm_cb_t));
     }
 }
@@ -251,6 +206,7 @@ void lpm_init(void)
 {
     memset(&bt_lpm_cb, 0, sizeof(bt_lpm_cb_t));
     vendor_send_command(BT_VND_OP_GET_LPM_IDLE_TIMEOUT, &bt_lpm_cb.timeout_ms);
+    bt_lpm_cb.alarm = alarm_new();
 }
 
 /*******************************************************************************
@@ -264,10 +220,8 @@ void lpm_init(void)
 *******************************************************************************/
 void lpm_cleanup(void)
 {
-    if (bt_lpm_cb.timer_created == TRUE)
-    {
-        timer_delete(bt_lpm_cb.timer_id);
-    }
+    alarm_free(bt_lpm_cb.alarm);
+    bt_lpm_cb.alarm = NULL;
 }
 
 /*******************************************************************************

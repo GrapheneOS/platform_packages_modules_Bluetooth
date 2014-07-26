@@ -30,6 +30,7 @@
 #include <assert.h>
 #include <utils/Log.h>
 
+#include "alarm.h"
 #include "btsnoop.h"
 #include "bt_hci_bdroid.h"
 #include "bt_utils.h"
@@ -87,8 +88,7 @@ typedef struct
 {
     thread_t        *worker_thread;
     pthread_mutex_t worker_thread_lock;
-    bool            epilog_timer_created;
-    timer_t         epilog_timer_id;
+    alarm_t         *alarm;
 } bt_hc_cb_t;
 
 /******************************************************************************
@@ -255,7 +255,7 @@ void bthc_idle_timeout(void) {
 ** Returns         None
 **
 *******************************************************************************/
-static void epilog_wait_timeout(UNUSED_ATTR union sigval arg)
+static void epilog_wait_timeout(UNUSED_ATTR void *context)
 {
     ALOGI("...epilog_wait_timeout...");
 
@@ -277,35 +277,7 @@ static void epilog_wait_timeout(UNUSED_ATTR union sigval arg)
 *******************************************************************************/
 static void epilog_wait_timer(void)
 {
-    int status;
-    struct itimerspec ts;
-    struct sigevent se;
-    uint32_t timeout_ms = EPILOG_TIMEOUT_MS;
-
-    se.sigev_notify = SIGEV_THREAD;
-    se.sigev_value.sival_ptr = &hc_cb.epilog_timer_id;
-    se.sigev_notify_function = epilog_wait_timeout;
-    se.sigev_notify_attributes = NULL;
-
-    status = timer_create(CLOCK_MONOTONIC, &se, &hc_cb.epilog_timer_id);
-
-    if (status == 0)
-    {
-        hc_cb.epilog_timer_created = true;
-        ts.it_value.tv_sec = timeout_ms/1000;
-        ts.it_value.tv_nsec = 1000000*(timeout_ms%1000);
-        ts.it_interval.tv_sec = 0;
-        ts.it_interval.tv_nsec = 0;
-
-        status = timer_settime(hc_cb.epilog_timer_id, 0, &ts, 0);
-        if (status == -1)
-            ALOGE("Failed to fire epilog watchdog timer");
-    }
-    else
-    {
-        ALOGE("Failed to create epilog watchdog timer");
-        hc_cb.epilog_timer_created = false;
-    }
+    alarm_set(hc_cb.alarm, EPILOG_TIMEOUT_MS, epilog_wait_timeout, NULL);
 }
 
 /*****************************************************************************
@@ -326,11 +298,11 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
         return BT_HC_STATUS_FAIL;
     }
 
-    hc_cb.epilog_timer_created = false;
     fwcfg_acked = false;
     has_cleaned_up = false;
 
     pthread_mutex_init(&hc_cb.worker_thread_lock, NULL);
+    hc_cb.alarm = alarm_new();
 
     /* store reference to user callbacks */
     bt_hc_cbacks = (bt_hc_callbacks_t *) p_cb;
@@ -485,14 +457,11 @@ static void cleanup(void)
         pthread_mutex_lock(&hc_cb.worker_thread_lock);
         hc_cb.worker_thread = NULL;
         pthread_mutex_unlock(&hc_cb.worker_thread_lock);
-
-        if (hc_cb.epilog_timer_created)
-        {
-            timer_delete(hc_cb.epilog_timer_id);
-            hc_cb.epilog_timer_created = false;
-        }
     }
     BTHCDBG("%s Finalizing cleanup\n", __func__);
+
+    alarm_free(hc_cb.alarm);
+    hc_cb.alarm = NULL;
 
     lpm_cleanup();
     userial_close();
