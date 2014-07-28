@@ -24,6 +24,9 @@ struct config_t {
   list_t *sections;
 };
 
+// Empty definition; this type is aliased to list_node_t.
+struct config_section_iter_t {};
+
 static void config_parse(FILE *fp, config_t *config);
 
 static section_t *section_new(const char *name);
@@ -37,25 +40,36 @@ static entry_t *entry_find(const config_t *config, const char *section, const ch
 config_t *config_new(const char *filename) {
   assert(filename != NULL);
 
-  FILE *fp = fopen(filename, "rt");
-  if (!fp) {
-    ALOGE("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
-    return NULL;
-  }
-
   config_t *config = calloc(1, sizeof(config_t));
   if (!config) {
     ALOGE("%s unable to allocate memory for config_t.", __func__);
-    fclose(fp);
-    return NULL;
+    goto error;
   }
 
   config->sections = list_new(section_free);
+  if (!config->sections) {
+    ALOGE("%s unable to allocate list for sections.", __func__);
+    goto error;
+  }
+
+  FILE *fp = fopen(filename, "rt");
+  if (!fp) {
+    ALOGE("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
+    goto error;
+  }
   config_parse(fp, config);
-
   fclose(fp);
-
   return config;
+
+error:;
+  if (config)
+    list_free(config->sections);
+  free(config);
+
+  if (fp)
+    fclose(fp);
+
+  return NULL;
 }
 
 void config_free(config_t *config) {
@@ -160,6 +174,82 @@ void config_set_string(config_t *config, const char *section, const char *key, c
 
   entry_t *entry = entry_new(key, value);
   list_append(sec->entries, entry);
+}
+
+bool config_remove_section(config_t *config, const char *section) {
+  assert(config != NULL);
+  assert(section != NULL);
+
+  section_t *sec = section_find(config, section);
+  if (!sec)
+    return false;
+
+  return list_remove(config->sections, sec);
+}
+
+bool config_remove_key(config_t *config, const char *section, const char *key) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+
+  section_t *sec = section_find(config, section);
+  entry_t *entry = entry_find(config, section, key);
+  if (!sec || !entry)
+    return false;
+
+  return list_remove(sec->entries, entry);
+}
+
+const config_section_node_t *config_section_begin(const config_t *config) {
+  assert(config != NULL);
+  return (const config_section_node_t *)list_begin(config->sections);
+}
+
+const config_section_node_t *config_section_end(const config_t *config) {
+  assert(config != NULL);
+  return (const config_section_node_t *)list_end(config->sections);
+}
+
+const config_section_node_t *config_section_next(const config_section_node_t *node) {
+  assert(node != NULL);
+  return (const config_section_node_t *)list_next((const list_node_t *)node);
+}
+
+const char *config_section_name(const config_section_node_t *node) {
+  assert(node != NULL);
+  const list_node_t *lnode = (const list_node_t *)node;
+  const section_t *section = (const section_t *)list_node(lnode);
+  return section->name;
+}
+
+bool config_save(const config_t *config, const char *filename) {
+  assert(config != NULL);
+  assert(filename != NULL);
+  assert(*filename != '\0');
+
+  FILE *fp = fopen(filename, "wt");
+  if (!fp) {
+    ALOGE("%s unable to write file '%s': %s", __func__, filename, strerror(errno));
+    return false;
+  }
+
+  for (const list_node_t *node = list_begin(config->sections); node != list_end(config->sections); node = list_next(node)) {
+    const section_t *section = (const section_t *)list_node(node);
+    fprintf(fp, "[%s]\n", section->name);
+
+    for (const list_node_t *enode = list_begin(section->entries); enode != list_end(section->entries); enode = list_next(enode)) {
+      const entry_t *entry = (const entry_t *)list_node(enode);
+      fprintf(fp, "%s = %s\n", entry->key, entry->value);
+    }
+
+    // Only add a separating newline if there are more sections.
+    if (list_next(node) != list_end(config->sections))
+      fputc('\n', fp);
+  }
+
+  fflush(fp);
+  fclose(fp);
+  return true;
 }
 
 static char *trim(char *str) {

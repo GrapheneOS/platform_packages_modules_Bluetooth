@@ -111,3 +111,70 @@ TEST_F(ConfigTest, config_get_int_default) {
   EXPECT_EQ(config_get_int(config, "DID", "primaryRecord", 123), 123);
   config_free(config);
 }
+
+TEST_F(ConfigTest, config_remove_section) {
+  config_t *config = config_new(CONFIG_FILE);
+  EXPECT_TRUE(config_remove_section(config, "DID"));
+  EXPECT_FALSE(config_has_section(config, "DID"));
+  EXPECT_FALSE(config_has_key(config, "DID", "productId"));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_remove_section_missing) {
+  config_t *config = config_new(CONFIG_FILE);
+  EXPECT_FALSE(config_remove_section(config, "not a section"));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_remove_key) {
+  config_t *config = config_new(CONFIG_FILE);
+  EXPECT_EQ(config_get_int(config, "DID", "productId", 999), 0x1200);
+  EXPECT_TRUE(config_remove_key(config, "DID", "productId"));
+  EXPECT_FALSE(config_has_key(config, "DID", "productId"));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_remove_key_missing) {
+  config_t *config = config_new(CONFIG_FILE);
+  EXPECT_EQ(config_get_int(config, "DID", "productId", 999), 0x1200);
+  EXPECT_TRUE(config_remove_key(config, "DID", "productId"));
+  EXPECT_EQ(config_get_int(config, "DID", "productId", 999), 999);
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_section_begin) {
+  config_t *config = config_new(CONFIG_FILE);
+  const config_section_node_t *section = config_section_begin(config);
+  EXPECT_TRUE(section != NULL);
+  const char *section_name = config_section_name(section);
+  EXPECT_TRUE(section != NULL);
+  EXPECT_TRUE(!strcmp(section_name, CONFIG_DEFAULT_SECTION));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_section_next) {
+  config_t *config = config_new(CONFIG_FILE);
+  const config_section_node_t *section = config_section_begin(config);
+  EXPECT_TRUE(section != NULL);
+  section = config_section_next(section);
+  EXPECT_TRUE(section != NULL);
+  const char *section_name = config_section_name(section);
+  EXPECT_TRUE(section != NULL);
+  EXPECT_TRUE(!strcmp(section_name, "DID"));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_section_end) {
+  config_t *config = config_new(CONFIG_FILE);
+  const config_section_node_t * section = config_section_begin(config);
+  section = config_section_next(section);
+  section = config_section_next(section);
+  EXPECT_EQ(section, config_section_end(config));
+  config_free(config);
+}
+
+TEST_F(ConfigTest, config_save_basic) {
+  config_t *config = config_new(CONFIG_FILE);
+  EXPECT_TRUE(config_save(config, CONFIG_FILE));
+  config_free(config);
+}
