@@ -732,9 +732,6 @@ L2C_API extern void l2cu_set_info_rsp_mask (UINT32 mask);
 */
 extern void l2c_csm_execute (tL2C_CCB *p_ccb, UINT16 event, void *p_data);
 
-L2C_API extern BT_HDR   *l2cap_link_chk_pkt_start(BT_HDR *);    /* Called at start of rcv to check L2CAP segmentation */
-L2C_API extern BOOLEAN   l2cap_link_chk_pkt_end (void);         /* Called at end   of rcv to check L2CAP segmentation */
-
 L2C_API extern void     l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 
 
