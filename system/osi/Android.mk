@@ -26,6 +26,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
     ./src/alarm.c \
     ./src/config.c \
+    ./src/data_dispatcher.c \
     ./src/fixed_queue.c \
     ./src/hash_map.c \
     ./src/list.c \
@@ -53,6 +54,7 @@ LOCAL_SRC_FILES := \
     ./test/alarm_test.cpp \
     ./test/atomic_test.cpp \
     ./test/config_test.cpp \
+    ./test/data_dispatcher_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/thread_test.cpp
