@@ -35,6 +35,10 @@ fixed_queue_t *fixed_queue_new(size_t capacity);
 // blocked on it) results in undefined behaviour.
 void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb);
 
+// Returns a value indicating whether the given |queue| is empty. |queue| may
+// not be NULL.
+bool fixed_queue_is_empty(fixed_queue_t *queue);
+
 // Enqueues the given |data| into the |queue|. The caller will be blocked
 // if nore more space is available in the queue. Neither |queue| nor |data|
 // may be NULL.

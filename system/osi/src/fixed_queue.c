@@ -81,6 +81,16 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
   free(queue);
 }
 
+bool fixed_queue_is_empty(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  bool is_empty = list_is_empty(queue->list);
+  pthread_mutex_unlock(&queue->lock);
+
+  return is_empty;
+}
+
 void fixed_queue_enqueue(fixed_queue_t *queue, void *data) {
   assert(queue != NULL);
   assert(data != NULL);
