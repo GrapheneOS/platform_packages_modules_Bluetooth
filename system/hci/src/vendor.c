@@ -42,8 +42,8 @@ static void firmware_config_cb(bt_vendor_op_result_t result);
 static void sco_config_cb(bt_vendor_op_result_t result);
 static void low_power_mode_cb(bt_vendor_op_result_t result);
 static void sco_audiostate_cb(bt_vendor_op_result_t result);
-static void *buffer_alloc(int size);
-static void buffer_free(void *buffer);
+static void *buffer_alloc_cb(int size);
+static void buffer_free_cb(void *buffer);
 static uint8_t transmit_cb(uint16_t opcode, void *buffer, tINT_CMD_CBACK callback);
 static void epilog_cb(bt_vendor_op_result_t result);
 
@@ -53,8 +53,8 @@ static const bt_vendor_callbacks_t vendor_callbacks = {
   sco_config_cb,
   low_power_mode_cb,
   sco_audiostate_cb,
-  buffer_alloc,
-  buffer_free,
+  buffer_alloc_cb,
+  buffer_free_cb,
   transmit_cb,
   epilog_cb
 };
@@ -155,14 +155,14 @@ static void sco_audiostate_cb(bt_vendor_op_result_t result)
 }
 
 // Called by vendor library when it needs an HCI buffer.
-static void *buffer_alloc(int size) {
+static void *buffer_alloc_cb(int size) {
   assert(bt_hc_cbacks != NULL);
   return bt_hc_cbacks->alloc(size);
 }
 
 // Called by vendor library when it needs to free a buffer allocated with
-// |buffer_alloc|.
-static void buffer_free(void *buffer) {
+// |buffer_alloc_cb|.
+static void buffer_free_cb(void *buffer) {
   assert(bt_hc_cbacks != NULL);
   bt_hc_cbacks->dealloc(buffer);
 }
