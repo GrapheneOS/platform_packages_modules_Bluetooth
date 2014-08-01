@@ -97,7 +97,7 @@ void *list_back(const list_t *list) {
 
 bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
   assert(list != NULL);
-  assert(node != NULL);
+  assert(prev_node != NULL);
   assert(data != NULL);
 
   list_node_t *node = (list_node_t *)list->allocator->alloc(sizeof(list_node_t));
