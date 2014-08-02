@@ -48,7 +48,7 @@ reactor_t *reactor_new(void) {
     return NULL;
 
   ret->event_fd = eventfd(0, 0);
-  if (ret->event_fd == -1) {
+  if (ret->event_fd == INVALID_FD) {
     ALOGE("%s unable to create eventfd: %s", __func__, strerror(errno));
     goto error;
   }

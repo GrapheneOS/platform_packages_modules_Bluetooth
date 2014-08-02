@@ -39,7 +39,7 @@ semaphore_t *semaphore_new(unsigned int value) {
   semaphore_t *ret = malloc(sizeof(semaphore_t));
   if (ret) {
     ret->fd = eventfd(value, EFD_SEMAPHORE);
-    if (ret->fd == -1) {
+    if (ret->fd == INVALID_FD) {
       ALOGE("%s unable to allocate semaphore: %s", __func__, strerror(errno));
       free(ret);
       ret = NULL;
@@ -49,14 +49,14 @@ semaphore_t *semaphore_new(unsigned int value) {
 }
 
 void semaphore_free(semaphore_t *semaphore) {
-  if (semaphore->fd != -1)
+  if (semaphore->fd != INVALID_FD)
     close(semaphore->fd);
   free(semaphore);
 }
 
 void semaphore_wait(semaphore_t *semaphore) {
   assert(semaphore != NULL);
-  assert(semaphore->fd != -1);
+  assert(semaphore->fd != INVALID_FD);
 
   uint64_t value;
   if (eventfd_read(semaphore->fd, &value) == -1)
@@ -65,7 +65,7 @@ void semaphore_wait(semaphore_t *semaphore) {
 
 bool semaphore_try_wait(semaphore_t *semaphore) {
   assert(semaphore != NULL);
-  assert(semaphore->fd != -1);
+  assert(semaphore->fd != INVALID_FD);
 
   int flags = fcntl(semaphore->fd, F_GETFL);
   if (flags == -1) {
@@ -88,7 +88,7 @@ bool semaphore_try_wait(semaphore_t *semaphore) {
 
 void semaphore_post(semaphore_t *semaphore) {
   assert(semaphore != NULL);
-  assert(semaphore->fd != -1);
+  assert(semaphore->fd != INVALID_FD);
 
   if (eventfd_write(semaphore->fd, 1ULL) == -1)
     ALOGE("%s unable to post to semaphore: %s", __func__, strerror(errno));
@@ -96,6 +96,6 @@ void semaphore_post(semaphore_t *semaphore) {
 
 int semaphore_get_fd(const semaphore_t *semaphore) {
   assert(semaphore != NULL);
-  assert(semaphore->fd != -1);
+  assert(semaphore->fd != INVALID_FD);
   return semaphore->fd;
 }
