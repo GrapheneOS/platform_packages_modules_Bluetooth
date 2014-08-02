@@ -25,6 +25,7 @@
 #include <sys/eventfd.h>
 #include <utils/Log.h>
 
+#include "osi.h"
 #include "semaphore.h"
 
 #if !defined(EFD_SEMAPHORE)
