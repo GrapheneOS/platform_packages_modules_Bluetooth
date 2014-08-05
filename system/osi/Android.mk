@@ -28,6 +28,7 @@ LOCAL_SRC_FILES := \
     ./src/allocator.c \
     ./src/config.c \
     ./src/data_dispatcher.c \
+    ./src/eager_reader.c \
     ./src/fixed_queue.c \
     ./src/hash_map.c \
     ./src/list.c \
@@ -57,6 +58,7 @@ LOCAL_SRC_FILES := \
     ./test/atomic_test.cpp \
     ./test/config_test.cpp \
     ./test/data_dispatcher_test.cpp \
+    ./test/eager_reader_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/thread_test.cpp
