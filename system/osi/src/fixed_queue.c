@@ -91,6 +91,12 @@ bool fixed_queue_is_empty(fixed_queue_t *queue) {
   return is_empty;
 }
 
+size_t fixed_queue_capacity(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  return queue->capacity;
+}
+
 void fixed_queue_enqueue(fixed_queue_t *queue, void *data) {
   assert(queue != NULL);
   assert(data != NULL);

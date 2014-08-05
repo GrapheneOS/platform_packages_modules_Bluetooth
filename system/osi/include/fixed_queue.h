@@ -39,6 +39,10 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb);
 // not be NULL.
 bool fixed_queue_is_empty(fixed_queue_t *queue);
 
+// Returns the maximum number of elements this queue may hold. |queue| may
+// not be NULL.
+size_t fixed_queue_capacity(fixed_queue_t *queue);
+
 // Enqueues the given |data| into the |queue|. The caller will be blocked
 // if nore more space is available in the queue. Neither |queue| nor |data|
 // may be NULL.
