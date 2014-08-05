@@ -66,10 +66,11 @@ static void work_queue_read_cb(void *context);
 static void register_with_reactor_cb(void *context);
 static void unregister_with_reactor_cb(void *context);
 
-static const size_t WORK_QUEUE_CAPACITY = 128;
+static const size_t DEFAULT_WORK_QUEUE_CAPACITY = 128;
 
-thread_t *thread_new(const char *name) {
+thread_t *thread_new_sized(const char *name, size_t work_queue_capacity) {
   assert(name != NULL);
+  assert(work_queue_capacity != 0);
 
   thread_t *ret = calloc(1, sizeof(thread_t));
   if (!ret)
@@ -79,7 +80,7 @@ thread_t *thread_new(const char *name) {
   if (!ret->reactor)
     goto error;
 
-  ret->work_queue = fixed_queue_new(WORK_QUEUE_CAPACITY);
+  ret->work_queue = fixed_queue_new(work_queue_capacity);
   if (!ret->work_queue)
     goto error;
 
@@ -108,6 +109,10 @@ error:;
   }
   free(ret);
   return NULL;
+}
+
+thread_t *thread_new(const char *name) {
+  return thread_new_sized(name, DEFAULT_WORK_QUEUE_CAPACITY);
 }
 
 void thread_free(thread_t *thread) {
@@ -220,14 +225,14 @@ static void *run_thread(void *start_arg) {
   // work item and then joining the thread.
   size_t count = 0;
   work_item_t *item = fixed_queue_try_dequeue(thread->work_queue);
-  while (item && count <= WORK_QUEUE_CAPACITY) {
+  while (item && count <= fixed_queue_capacity(thread->work_queue)) {
     item->func(item->context);
     free(item);
     item = fixed_queue_try_dequeue(thread->work_queue);
     ++count;
   }
 
-  if (count > WORK_QUEUE_CAPACITY)
+  if (count > fixed_queue_capacity(thread->work_queue))
     ALOGD("%s growing event queue on shutdown.", __func__);
 
   return NULL;

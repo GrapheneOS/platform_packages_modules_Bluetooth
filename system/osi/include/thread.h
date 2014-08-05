@@ -32,6 +32,9 @@ typedef void (*thread_fn)(void *context);
 // be NULL.
 thread_t *thread_new(const char *name);
 
+// Similar to |thread_new| but creates with a given queue |size|.
+thread_t *thread_new_sized(const char *name, size_t size);
+
 // Frees the given |thread|. If the thread is still running, it is stopped
 // and the calling thread will block until |thread| terminates. |thread|
 // may be NULL.
