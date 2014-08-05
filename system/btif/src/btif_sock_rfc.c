@@ -315,7 +315,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
 {
 
     APPL_TRACE_DEBUG("btsock_rfc_listen, service_name:%s", service_name);
-    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
+    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > MAX_RFC_CHANNEL)))
     {
         APPL_TRACE_ERROR("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd, service_uuid);
         return BT_STATUS_PARM_INVALID;
@@ -357,7 +357,7 @@ bt_status_t btsock_rfc_listen(const char* service_name, const uint8_t* service_u
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t* service_uuid,
         int channel, int* sock_fd, int flags)
 {
-    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > 30)))
+    if(sock_fd == NULL || (service_uuid == NULL && (channel < 1 || channel > MAX_RFC_CHANNEL)))
     {
         APPL_TRACE_ERROR("invalid rfc channel:%d or sock_fd:%p, uuid:%p", channel, sock_fd,
                           service_uuid);
