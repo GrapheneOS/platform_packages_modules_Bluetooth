@@ -84,6 +84,7 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
                 l2cb.num_links_active++;
                 l2c_link_adjust_allocation();
             }
+            p_lcb->link_xmit_data_q = list_new(NULL);
             return (p_lcb);
         }
     }
@@ -210,8 +211,11 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
 #endif
     /* Release any held buffers */
-    while (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
-        GKI_freebuf (GKI_dequeue (&p_lcb->link_xmit_data_q));
+    while (!list_is_empty(p_lcb->link_xmit_data_q)) {
+        BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
+        list_remove(p_lcb->link_xmit_data_q, p_buf);
+        GKI_freebuf(p_buf);
+    }
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     /* clean up any security pending UCD */

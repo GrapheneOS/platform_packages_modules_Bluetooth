@@ -28,6 +28,7 @@
 #include "l2cdefs.h"
 #include "gki.h"
 #include "btm_api.h"
+#include "list.h"
 
 #define L2CAP_MIN_MTU   48      /* Minimum acceptable MTU is 48 bytes */
 
@@ -312,7 +313,6 @@ typedef struct t_l2c_ccb
     tL2CAP_CFG_INFO     peer_cfg;               /* Peer's saved configuration options */
 
     BUFFER_Q            xmit_hold_q;            /* Transmit data hold queue         */
-
     BOOLEAN             cong_sent;              /* Set when congested status sent   */
     UINT16              buff_quota;             /* Buffer quota before sending congestion   */
 
@@ -409,7 +409,7 @@ typedef struct t_l2c_linkcb
     BOOLEAN             w4_info_rsp;                /* TRUE when info request is active */
     UINT8               info_rx_bits;               /* set 1 if received info type */
     UINT32              peer_ext_fea;               /* Peer's extended features mask    */
-    BUFFER_Q            link_xmit_data_q;           /* Transmit data buffer queue       */
+    list_t              *link_xmit_data_q;          /* Link transmit data buffer queue  */
 
     UINT8               peer_chnl_mask[L2CAP_FIXED_CHNL_ARRAY_SIZE];
 #if (L2CAP_UCD_INCLUDED == TRUE)

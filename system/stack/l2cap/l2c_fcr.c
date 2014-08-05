@@ -1557,23 +1557,19 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
     }
     else
     {
-        /* Retransmitting everything. Flush buffers we already put in the link xmit queue.
-        */
-        p_buf = (BT_HDR *)GKI_getfirst(&p_ccb->p_lcb->link_xmit_data_q);
 
-        while (p_buf != NULL)
-        {
+        // Iterate though list and flush the amount requested from
+        // the transmit data queue that satisfy the layer and event conditions.
+        for (const list_node_t *node = list_begin(p_ccb->p_lcb->link_xmit_data_q);
+            node != list_end(p_ccb->p_lcb->link_xmit_data_q);
+            node = list_next(node)) {
+
+          BT_HDR *p_buf = (BT_HDR *)list_node(node);
             /* Do not flush other CIDs or partial segments */
-            if ( (p_buf->layer_specific == 0) && (p_buf->event == p_ccb->local_cid) )
-            {
-                p_buf2 = p_buf;
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
-
-                GKI_remove_from_queue (&p_ccb->p_lcb->link_xmit_data_q, p_buf2);
-                GKI_freebuf (p_buf2);
-            }
-            else
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
+          if ((p_buf->layer_specific == 0) && (p_buf->event == p_ccb->local_cid)) {
+            list_remove(p_ccb->p_lcb->link_xmit_data_q, p_buf);
+            GKI_freebuf(p_buf);
+          }
         }
 
         /* Also flush our retransmission queue */

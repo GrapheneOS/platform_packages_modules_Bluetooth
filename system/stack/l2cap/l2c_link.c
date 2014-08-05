@@ -800,7 +800,7 @@ void l2c_link_adjust_allocation (void)
             /* this link may have sent anything but some other link sent packets so  */
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
-              && (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
+              && (!list_is_empty(p_lcb->link_xmit_data_q))
               && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
                 btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
         }
@@ -1046,7 +1046,7 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
     /*
      * We only switch park to active only if we have unsent packets
      */
-    if ( GKI_queue_is_empty(&p_lcb->link_xmit_data_q))
+    if (list_is_empty(p_lcb->link_xmit_data_q))
     {
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb)
         {
@@ -1106,7 +1106,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             p_buf->event = 0;
 
         p_buf->layer_specific = 0;
-        GKI_enqueue (&p_lcb->link_xmit_data_q, p_buf);
+        list_append(p_lcb->link_xmit_data_q, p_buf);
 
         if (p_lcb->link_xmit_quota == 0)
         {
@@ -1162,8 +1162,9 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 continue;
 
             /* See if we can send anything from the Link Queue */
-            if ((p_buf = (BT_HDR *)GKI_dequeue (&p_lcb->link_xmit_data_q)) != NULL)
-            {
+            if (!list_is_empty(p_lcb->link_xmit_data_q)) {
+                p_buf = (BT_HDR *)list_front(p_lcb->link_xmit_data_q);
+                list_remove(p_lcb->link_xmit_data_q, p_buf);
                 l2c_link_send_to_lower (p_lcb, p_buf);
             }
             else if (single_write)
@@ -1212,9 +1213,11 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
              && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #endif
         {
-            if ((p_buf = (BT_HDR *)GKI_dequeue (&p_lcb->link_xmit_data_q)) == NULL)
+            if (list_is_empty(p_lcb->link_xmit_data_q))
                 break;
 
+            p_buf = (BT_HDR *)list_front(p_lcb->link_xmit_data_q);
+            list_remove(p_lcb->link_xmit_data_q, p_buf);
             if (!l2c_link_send_to_lower (p_lcb, p_buf))
                 break;
         }
@@ -1241,7 +1244,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         /* There is a special case where we have readjusted the link quotas and  */
         /* this link may have sent anything but some other link sent packets so  */
         /* so we may need a timer to kick off this link's transmissions.         */
-        if ( (!GKI_queue_is_empty(&p_lcb->link_xmit_data_q)) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
+        if ( (!list_is_empty(p_lcb->link_xmit_data_q)) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
             btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
     }
 
@@ -1561,7 +1564,7 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
     {
         /* Enqueue the buffer to the head of the transmit queue, and see */
         /* if we can transmit anything more.                             */
-        GKI_enqueue_head (&p_lcb->link_xmit_data_q, p_msg);
+        list_prepend(p_lcb->link_xmit_data_q, p_msg);
 
         p_lcb->partial_segment_being_sent = FALSE;
 

@@ -1797,7 +1797,6 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     UINT16          num_left = 0,
                     num_flushed1 = 0,
                     num_flushed2 = 0;
-    BT_HDR          *p_buf1, *p_buf;
 
     p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);
 
@@ -1838,31 +1837,28 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         }
 #endif
 
-        p_buf = (BT_HDR *)GKI_getfirst(&p_lcb->link_xmit_data_q);
 
-        /* First flush the number we are asked to flush */
-        while ((p_buf != NULL) && (num_to_flush != 0))
-        {
-            /* Do not flush other CIDs or partial segments */
-            if ( (p_buf->layer_specific == 0) && (p_buf->event == lcid) )
-            {
-                p_buf1 = p_buf;
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
-                num_to_flush--;
-                num_flushed1++;
+        // Iterate though list and flush the amount requested from
+        // the transmit data queue that satisfy the layer and event conditions.
+        for (const list_node_t *node = list_begin(p_lcb->link_xmit_data_q);
+            (num_to_flush > 0) && node != list_end(p_lcb->link_xmit_data_q);
+            node = list_next(node)) {
 
-                GKI_remove_from_queue (&p_lcb->link_xmit_data_q, p_buf1);
-                GKI_freebuf (p_buf1);
-            }
-            else
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
+          BT_HDR *p_buf = (BT_HDR *)list_node(node);
+          if ((p_buf->layer_specific == 0) && (p_buf->event == lcid)) {
+            num_to_flush--;
+            num_flushed1++;
+
+            list_remove(p_lcb->link_xmit_data_q, p_buf);
+            GKI_freebuf(p_buf);
+          }
         }
     }
 
     /* If needed, flush buffers in the CCB xmit hold queue */
     while ( (num_to_flush != 0) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
     {
-        p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+        BT_HDR *p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
         if (p_buf)
             GKI_freebuf (p_buf);
         num_to_flush--;
@@ -1874,14 +1870,13 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         (*p_ccb->p_rcb->api.pL2CA_TxComplete_Cb)(p_ccb->local_cid, num_flushed2);
 
     /* Now count how many are left */
-    p_buf = (BT_HDR *)GKI_getfirst(&p_lcb->link_xmit_data_q);
+    for (const list_node_t *node = list_begin(p_lcb->link_xmit_data_q);
+        node != list_end(p_lcb->link_xmit_data_q);
+        node = list_next(node)) {
 
-    while (p_buf != NULL)
-    {
-        if (p_buf->event == lcid)
-            num_left++;
-
-        p_buf = (BT_HDR *)GKI_getnext (p_buf);
+      BT_HDR *p_buf = (BT_HDR *)list_node(node);
+      if (p_buf->event == lcid)
+        num_left++;
     }
 
     /* Add in the number in the CCB xmit queue */
