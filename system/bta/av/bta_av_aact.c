@@ -2048,11 +2048,13 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         L2CA_SetFlushTimeout(p_scb->peer_addr, L2CAP_DEFAULT_FLUSH_TO);
     }
 
-    /* if q_info.a2d is not empty, drop it now */
-    if(BTA_AV_CHNL_AUDIO == p_scb->chnl)
-    {
-        while((p_buf = (BT_HDR*)GKI_dequeue (&p_scb->q_info.a2d)) != NULL)
+    /* if q_info.a2d_list is not empty, drop it now */
+    if(BTA_AV_CHNL_AUDIO == p_scb->chnl) {
+      while (!list_is_empty(p_scb->q_info.a2d_list)) {
+        p_buf = (BT_HDR*)list_front(p_scb->q_info.a2d_list);
+        list_remove(p_scb->q_info.a2d_list, p_buf);
         GKI_freebuf(p_buf);
+      }
 
     /* drop the audio buffers queued in L2CAP */
         if(p_data && p_data->api_stop.flush)
@@ -2206,16 +2208,16 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         //Always get the current number of bufs que'd up
         p_scb->l2c_bufs = (UINT8)L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_GET);
 
-        p_buf = (BT_HDR *)GKI_dequeue (&p_scb->q_info.a2d);
-        if(p_buf)
-        {
-            /* use q_info.a2d data, read the timestamp */
+       if (!list_is_empty(p_scb->q_info.a2d_list)) {
+            p_buf = (BT_HDR *)list_front(p_scb->q_info.a2d_list);
+            list_remove(p_scb->q_info.a2d_list, p_buf);
+             /* use q_info.a2d data, read the timestamp */
             timestamp = *(UINT32 *)(p_buf + 1);
         }
         else
         {
             new_buf = TRUE;
-            /* q_info.a2d empty, call co_data, dup data to other channels */
+            /* q_info.a2d_list empty, call co_data, dup data to other channels */
             p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->codec_type, &data_len,
                                              &timestamp);
 
@@ -2257,19 +2259,18 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                 {
                     /* just got this buffer from co_data,
                      * put it in queue */
-                    GKI_enqueue(&p_scb->q_info.a2d, p_buf);
+                    list_append(p_scb->q_info.a2d_list, p_buf);
                 }
                 else
                 {
-                    /* just dequeue it from the q_info.a2d */
-                    if(GKI_queue_length(&p_scb->q_info.a2d) < 3)
-                    {
+                    /* just dequeue it from the q_info.a2d_list */
+                    if (list_length(p_scb->q_info.a2d_list) < 3) {
                         /* put it back to the queue */
-                        GKI_enqueue_head (&p_scb->q_info.a2d, p_buf);
+                        list_prepend(p_scb->q_info.a2d_list, p_buf);
                     }
                     else
                     {
-                        /* too many buffers in q_info.a2d, drop it. */
+                        /* too many buffers in q_info.a2d_list, drop it. */
                         bta_av_co_audio_drop(p_scb->hndl);
                         GKI_freebuf(p_buf);
                     }

@@ -103,6 +103,7 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../stack/btm \
                    $(LOCAL_PATH)/../hcis \
                    $(LOCAL_PATH)/../hcis/patchram \
+                   $(LOCAL_PATH)/../osi/include \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../utils/include \

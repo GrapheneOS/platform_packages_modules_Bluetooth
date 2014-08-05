@@ -33,6 +33,7 @@
 #include "bd.h"
 #include "utl.h"
 #include "l2c_api.h"
+#include "list.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
@@ -1981,11 +1982,13 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
             }
             p_cb->conn_audio &= ~mask;
 
-            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM)
-            {
-            /* make sure no buffers are in q_info.a2d */
-            while((p_buf = (BT_HDR*)GKI_dequeue (&p_scb->q_info.a2d)) != NULL)
-                GKI_freebuf(p_buf);
+            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM) {
+                /* make sure no buffers are in q_info.a2d */
+                while (!list_is_empty(p_scb->q_info.a2d_list)) {
+                    p_buf = (BT_HDR*)list_front(p_scb->q_info.a2d_list);
+                    list_remove(p_scb->q_info.a2d_list, p_buf);
+                    GKI_freebuf(p_buf);
+                }
             }
 
             /* remove the A2DP SDP record, if no more audio stream is left */

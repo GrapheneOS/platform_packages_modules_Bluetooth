@@ -1179,7 +1179,6 @@ UINT16 bta_av_chk_mtu(tBTA_AV_SCB *p_scb, UINT16 mtu)
 void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 {
     tBTA_AV_SCB *p_scbi;
-    BUFFER_Q    *pq;
     int     i;
     UINT16  size, copy_size;
     BT_HDR *p_new;
@@ -1204,12 +1203,12 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
                 if(p_new)
                 {
                     memcpy(p_new, p_buf, copy_size);
-                    pq = &p_scbi->q_info.a2d;
-                    GKI_enqueue(pq, p_new);
-                    if(GKI_queue_length(pq) > p_bta_av_cfg->audio_mqs)
-                    {
+                    list_append(p_scbi->q_info.a2d_list, p_new);
+                    if (list_length(p_scbi->q_info.a2d_list) >  p_bta_av_cfg->audio_mqs) {
                         bta_av_co_audio_drop(p_scbi->hndl);
-                        GKI_freebuf(GKI_dequeue(pq));
+                        BT_HDR *p_buf = list_front(p_scbi->q_info.a2d_list);
+                        list_remove(p_scbi->q_info.a2d_list, p_buf);
+                        GKI_freebuf(p_buf);
                     }
                 }
             }

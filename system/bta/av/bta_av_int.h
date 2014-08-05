@@ -29,6 +29,7 @@
 #include "bta_av_api.h"
 #include "avdt_api.h"
 #include "bta_av_co.h"
+#include "list.h"
 
 #define BTA_AV_DEBUG TRUE
 /*****************************************************************************
@@ -437,7 +438,7 @@ typedef struct
 
 typedef union
 {
-    BUFFER_Q            a2d;            /* used for audio channels only */
+    list_t              *a2d_list;       /* used for audio channels only */
     tBTA_AV_VF_INFO     vdp;            /* used for video channels only */
     tBTA_AV_API_OPEN    open;           /* used only before open and role switch
                                            is needed on another AV channel */
