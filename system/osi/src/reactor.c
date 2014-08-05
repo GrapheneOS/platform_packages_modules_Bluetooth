@@ -60,9 +60,7 @@ reactor_t *reactor_new(void) {
   return ret;
 
 error:;
-  list_free(ret->objects);
-  close(ret->event_fd);
-  free(ret);
+  reactor_free(ret);
   return NULL;
 }
 
@@ -104,7 +102,16 @@ void reactor_register(reactor_t *reactor, reactor_object_t *obj) {
   assert(reactor != NULL);
   assert(obj != NULL);
 
-  list_append(reactor->objects, obj);
+  // IMPORTANT
+  // You might be wondering why on earth this is a |list_prepend|.
+  // That is a good question...
+  //
+  // thread_t depends on this behavior.
+  // The first reactor object it registers is its work queue, and prepending
+  // means it will always be at the end of any given reactor iteration.
+  // This is important to ensure we don't execute off dangling reactor objects
+  // or do other bad things.
+  list_prepend(reactor->objects, obj);
   eventfd_write(reactor->event_fd, EVENT_REACTOR_CHANGE_SET);
 }
 
@@ -177,5 +184,6 @@ static reactor_status_t run_reactor(reactor_t *reactor, int iterations, struct t
       }
     }
   }
+
   return REACTOR_STATUS_DONE;
 }

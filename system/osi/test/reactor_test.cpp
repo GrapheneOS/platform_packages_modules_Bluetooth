@@ -61,20 +61,6 @@ TEST(ReactorTest, reactor_repeated_stop_start) {
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_multi_stop_start) {
-  reactor_t *reactor = reactor_new();
-
-  reactor_stop(reactor);
-  reactor_stop(reactor);
-  reactor_stop(reactor);
-
-  reactor_start(reactor);
-  reactor_start(reactor);
-  reactor_start(reactor);
-
-  reactor_free(reactor);
-}
-
 TEST(ReactorTest, reactor_start_wait_stop) {
   reactor_t *reactor = reactor_new();
 
