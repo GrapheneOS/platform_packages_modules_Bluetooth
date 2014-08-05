@@ -335,7 +335,7 @@ static int init(const bt_hc_callbacks_t* p_cb, unsigned char *local_bdaddr)
     // can switch prio
     raise_priority_a2dp(TASK_HIGH_HCI_WORKER);
 
-    hc_cb.worker_thread = thread_new("bt_hc_worker");
+    hc_cb.worker_thread = thread_new_sized("bt_hc_worker", 1024);
     if (!hc_cb.worker_thread) {
         ALOGE("%s unable to create worker thread.", __func__);
         return BT_HC_STATUS_FAIL;
