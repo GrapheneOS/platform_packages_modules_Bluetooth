@@ -50,15 +50,27 @@ typedef struct {
   void *context;
 } work_item_t;
 
+typedef struct {
+  thread_t *thread;
+  reactor_object_t *reactor_object;
+} reactor_register_arg_t;
+
+typedef struct {
+  thread_t *thread;
+  reactor_object_t *reactor_object;
+  semaphore_t *unregistered_sem;
+} reactor_unregister_arg_t;
+
 static void *run_thread(void *start_arg);
 static void work_queue_read_cb(void *context);
+static void register_with_reactor_cb(void *context);
+static void unregister_with_reactor_cb(void *context);
 
 static const size_t WORK_QUEUE_CAPACITY = 128;
 
 thread_t *thread_new(const char *name) {
   assert(name != NULL);
 
-  // Start is on the stack, but we use a semaphore, so it's safe
   thread_t *ret = calloc(1, sizeof(thread_t));
   if (!ret)
     goto error;
@@ -71,6 +83,7 @@ thread_t *thread_new(const char *name) {
   if (!ret->work_queue)
     goto error;
 
+  // Start is on the stack, but we use a semaphore, so it's safe
   struct start_arg start;
   start.start_sem = semaphore_new(0);
   if (!start.start_sem)
@@ -82,8 +95,10 @@ thread_t *thread_new(const char *name) {
   pthread_create(&ret->pthread, NULL, run_thread, &start);
   semaphore_wait(start.start_sem);
   semaphore_free(start.start_sem);
+
   if (start.error)
     goto error;
+
   return ret;
 
 error:;
@@ -142,6 +157,37 @@ const char *thread_name(const thread_t *thread) {
   return thread->name;
 }
 
+void thread_register(thread_t *thread, reactor_object_t *reactor_object) {
+  assert(thread != NULL);
+  assert(reactor_object != NULL);
+
+  reactor_register_arg_t *arg = (reactor_register_arg_t *)malloc(sizeof(reactor_register_arg_t));
+  arg->thread = thread;
+  arg->reactor_object = reactor_object;
+
+  thread_post(thread, register_with_reactor_cb, arg);
+}
+
+void thread_unregister(thread_t *thread, reactor_object_t *reactor_object) {
+  assert(thread != NULL);
+  assert(reactor_object != NULL);
+
+  reactor_unregister_arg_t arg;
+
+  arg.thread = thread;
+  arg.reactor_object = reactor_object;
+  arg.unregistered_sem = semaphore_new(0);
+
+  if (!arg.unregistered_sem) {
+    ALOGE("%s unable to create unregistered semaphore.", __func__);
+    return;
+  }
+
+  thread_post(thread, unregister_with_reactor_cb, &arg);
+  semaphore_wait(arg.unregistered_sem);
+  semaphore_free(arg.unregistered_sem);
+}
+
 static void *run_thread(void *start_arg) {
   assert(start_arg != NULL);
 
@@ -194,4 +240,28 @@ static void work_queue_read_cb(void *context) {
   work_item_t *item = fixed_queue_dequeue(queue);
   item->func(item->context);
   free(item);
+}
+
+static void register_with_reactor_cb(void *context) {
+  assert(context != NULL);
+
+  reactor_register_arg_t *arg = (reactor_register_arg_t *)context;
+  reactor_register(
+    thread_get_reactor(arg->thread),
+    arg->reactor_object
+  );
+
+  free(arg);
+}
+
+static void unregister_with_reactor_cb(void *context) {
+  assert(context != NULL);
+
+  reactor_unregister_arg_t *arg = (reactor_unregister_arg_t *)context;
+  reactor_unregister(
+    thread_get_reactor(arg->thread),
+    arg->reactor_object
+  );
+
+  semaphore_post(arg->unregistered_sem);
 }
