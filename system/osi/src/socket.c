@@ -29,9 +29,10 @@
 
 #include "reactor.h"
 #include "socket.h"
+#include "thread.h"
 
 struct socket_t {
-  reactor_t *reactor;
+  thread_t *thread;
   reactor_object_t socket_object;
   socket_cb read_ready;
   socket_cb write_ready;
@@ -132,7 +133,7 @@ ssize_t socket_write(const socket_t *socket, const void *buf, size_t count) {
   return send(socket->socket_object.fd, buf, count, MSG_DONTWAIT);
 }
 
-void socket_register(socket_t *socket, reactor_t *reactor, socket_cb read_cb, socket_cb write_cb, void *context) {
+void socket_register(socket_t *socket, thread_t *thread, socket_cb read_cb, socket_cb write_cb, void *context) {
   assert(socket != NULL);
   assert(reactor != NULL);
   assert(read_cb || write_cb);
@@ -140,7 +141,7 @@ void socket_register(socket_t *socket, reactor_t *reactor, socket_cb read_cb, so
   // Make sure the socket isn't currently registered.
   socket_unregister(socket);
 
-  socket->reactor = reactor;
+  socket->thread = thread;
   socket->read_ready = read_cb;
   socket->write_ready = write_cb;
   socket->context = context;
@@ -155,14 +156,14 @@ void socket_register(socket_t *socket, reactor_t *reactor, socket_cb read_cb, so
   else if (write_cb)
     socket->socket_object.interest = REACTOR_INTEREST_WRITE;
 
-  reactor_register(reactor, &socket->socket_object);
+  thread_register(thread, &socket->socket_object);
 }
 
 void socket_unregister(socket_t *socket) {
   assert(socket != NULL);
 
-  if (socket->reactor)
-    reactor_unregister(socket->reactor, &socket->socket_object);
+  if (socket->thread)
+    thread_unregister(socket->thread, &socket->socket_object);
 }
 
 static void internal_read_ready(void *context) {

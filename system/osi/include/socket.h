@@ -21,6 +21,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "thread.h"
+
 typedef struct reactor_t reactor_t;
 typedef struct socket_t socket_t;
 typedef uint16_t port_t;
@@ -66,13 +68,13 @@ ssize_t socket_read(const socket_t *socket, void *buf, size_t count);
 // may be NULL.
 ssize_t socket_write(const socket_t *socket, const void *buf, size_t count);
 
-// Registers |socket| with the |reactor|. When the socket becomes readable, |read_cb|
+// Registers |socket| with the |thread|. When the socket becomes readable, |read_cb|
 // will be called. When the socket becomes writeable, |write_cb| will be called. The
 // |context| parameter is passed, untouched, to each of the callback routines. Neither
-// |socket| nor |reactor| may be NULL. |read_cb| or |write_cb|, but not both, may be NULL.
+// |socket| nor |thread| may be NULL. |read_cb| or |write_cb|, but not both, may be NULL.
 // |context| may be NULL.
-void socket_register(socket_t *socket, reactor_t *reactor, socket_cb read_cb, socket_cb write_cb, void *context);
+void socket_register(socket_t *socket, thread_t *thread, socket_cb read_cb, socket_cb write_cb, void *context);
 
-// Unregisters |socket| from whichever reactor it is registered with, if any. This
+// Unregisters |socket| from whichever thread it is registered with, if any. This
 // function is idempotent.
 void socket_unregister(socket_t *socket);

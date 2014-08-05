@@ -77,7 +77,7 @@ bool hci_inject_open(void) {
   if (!socket_listen(listen_socket, LISTEN_PORT))
     goto error;
 
-  socket_register(listen_socket, thread_get_reactor(thread), accept_ready, NULL, NULL);
+  socket_register(listen_socket, thread, accept_ready, NULL, NULL);
   return true;
 
 error:;
@@ -132,7 +132,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
     return;
   }
 
-  socket_register(socket, thread_get_reactor(thread), read_ready, NULL, client);
+  socket_register(socket, thread, read_ready, NULL, client);
 }
 
 static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
