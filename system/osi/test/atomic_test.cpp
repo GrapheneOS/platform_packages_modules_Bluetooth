@@ -174,3 +174,72 @@ TEST(AtomicTest, test_atomic_inc_thread_single) {
   }
   EXPECT_EQ(0, data._val);
 }
+
+TEST(AtomicTest, test_store_load_s64) {
+  atomic_s64_t data;
+
+  atomic_store_s64(&data, -1);
+  EXPECT_EQ(-1, atomic_load_s64(&data));
+
+  atomic_store_s64(&data, 0);
+  EXPECT_EQ(0, atomic_load_s64(&data));
+
+  atomic_store_s64(&data, 1);
+  EXPECT_EQ(1, atomic_load_s64(&data));
+
+  atomic_store_s64(&data, 2);
+  EXPECT_EQ(2, atomic_load_s64(&data));
+}
+
+TEST(AtomicTest, test_inc_dec_s64) {
+  atomic_s64_t data;
+
+  atomic_store_s64(&data, 0);
+  EXPECT_EQ(0, atomic_load_s64(&data));
+
+  int64_t val = atomic_inc_prefix_s64(&data);
+  EXPECT_EQ(1, atomic_load_s64(&data));
+  EXPECT_EQ(1, val);
+
+  val = atomic_inc_prefix_s64(&data);
+  EXPECT_EQ(2, atomic_load_s64(&data));
+  EXPECT_EQ(2, val);
+
+  val = atomic_inc_prefix_s64(&data);
+  EXPECT_EQ(3, atomic_load_s64(&data));
+  EXPECT_EQ(3, val);
+
+  val = atomic_dec_prefix_s64(&data);
+  EXPECT_EQ(2, val);
+
+  val = atomic_dec_prefix_s64(&data);
+  EXPECT_EQ(1, val);
+  val = atomic_dec_prefix_s64(&data);
+  EXPECT_EQ(0, val);
+  val = atomic_dec_prefix_s64(&data);
+  EXPECT_EQ(-1, val);
+
+  // Mutating using postfix.
+  val = atomic_inc_postfix_s64(&data);
+  EXPECT_EQ(0, atomic_load_s64(&data));
+  EXPECT_EQ(-1, val);
+
+  val = atomic_inc_postfix_s64(&data);
+  EXPECT_EQ(1, atomic_load_s64(&data));
+  EXPECT_EQ(0, val);
+
+  val = atomic_inc_postfix_s64(&data);
+  EXPECT_EQ(2, atomic_load_s64(&data));
+  EXPECT_EQ(1, val);
+
+  val = atomic_dec_postfix_s64(&data);
+  EXPECT_EQ(2, val);
+
+  val = atomic_dec_postfix_s64(&data);
+  EXPECT_EQ(1, val);
+  val = atomic_dec_postfix_s64(&data);
+  EXPECT_EQ(0, val);
+  val = atomic_dec_postfix_s64(&data);
+  EXPECT_EQ(-1, val);
+  EXPECT_EQ(-2, atomic_load_s64(&data));
+}

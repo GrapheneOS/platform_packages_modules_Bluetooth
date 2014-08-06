@@ -97,3 +97,5 @@ inline type atomic_dec_postfix_##name(volatile atomic_##name##_t *atomic) { \
 
 ATOMIC_MAKE(s32, int32_t, 4)
 ATOMIC_MAKE(u32, uint32_t, 4)
+ATOMIC_MAKE(s64, int64_t, 8)
+ATOMIC_MAKE(u64, uint64_t, 8)
