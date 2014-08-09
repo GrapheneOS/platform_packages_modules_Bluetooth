@@ -135,7 +135,7 @@ ssize_t socket_write(const socket_t *socket, const void *buf, size_t count) {
 
 void socket_register(socket_t *socket, thread_t *thread, socket_cb read_cb, socket_cb write_cb, void *context) {
   assert(socket != NULL);
-  assert(reactor != NULL);
+  assert(thread != NULL);
   assert(read_cb || write_cb);
 
   // Make sure the socket isn't currently registered.
