@@ -58,6 +58,7 @@
 #include "btif_sock_util.h"
 #include "btif_pan_internal.h"
 #include "gki.h"
+#include "osi.h"
 
 #define FORWARD_IGNORE        1
 #define FORWARD_SUCCESS       0
@@ -760,10 +761,13 @@ static void btif_pan_close_all_conns() {
 }
 
 static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id) {
-    assert(btpan_cb.tap_fd == fd);
+    assert(btpan_cb.tap_fd == INVALID_FD || btpan_cb.tap_fd == fd);
 
-    if (btpan_cb.tap_fd != fd)
+    if (btpan_cb.tap_fd != fd) {
+        BTIF_TRACE_WARNING("%s Signaled on mismatched fds exp:%d act:%d\n",
+                __func__, btpan_cb.tap_fd, fd);
         return;
+    }
 
     if(flags & SOCK_THREAD_FD_EXCEPTION) {
         btpan_cb.tap_fd = -1;
