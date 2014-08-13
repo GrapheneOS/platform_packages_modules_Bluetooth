@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <pthread.h>
+#include <sys/eventfd.h>
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -27,12 +28,6 @@ static void spawn_reactor_thread(reactor_t *reactor) {
 
 static void join_reactor_thread() {
   pthread_join(thread, NULL);
-}
-
-static uint64_t get_timestamp(void) {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 TEST(ReactorTest, reactor_new) {
@@ -75,13 +70,46 @@ TEST(ReactorTest, reactor_start_wait_stop) {
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_run_once_timeout) {
+typedef struct {
+  reactor_t *reactor;
+  reactor_object_t *object;
+} unregister_arg_t;
+
+static void unregister_cb(void *context) {
+  unregister_arg_t *arg = (unregister_arg_t *)context;
+  reactor_unregister(arg->object);
+  reactor_stop(arg->reactor);
+}
+
+TEST(ReactorTest, reactor_unregister_from_callback) {
   reactor_t *reactor = reactor_new();
 
-  uint64_t start = get_timestamp();
-  reactor_status_t status = reactor_run_once_timeout(reactor, 50);
-  EXPECT_GE(get_timestamp() - start, static_cast<uint64_t>(50));
-  EXPECT_EQ(status, REACTOR_STATUS_TIMEOUT);
+  int fd = eventfd(0, 0);
+  unregister_arg_t arg;
+  arg.reactor = reactor;
+  arg.object = reactor_register(reactor, fd, &arg, unregister_cb, NULL);
+  spawn_reactor_thread(reactor);
+  eventfd_write(fd, 1);
 
+  join_reactor_thread();
+
+  close(fd);
+  reactor_free(reactor);
+}
+
+TEST(ReactorTest, reactor_unregister_from_separate_thread) {
+  reactor_t *reactor = reactor_new();
+
+  int fd = eventfd(0, 0);
+
+  reactor_object_t *object = reactor_register(reactor, fd, NULL, NULL, NULL);
+  spawn_reactor_thread(reactor);
+  usleep(50 * 1000);
+  reactor_unregister(object);
+
+  reactor_stop(reactor);
+  join_reactor_thread();
+
+  close(fd);
   reactor_free(reactor);
 }

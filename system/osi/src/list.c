@@ -47,6 +47,18 @@ bool list_is_empty(const list_t *list) {
   return (list->length == 0);
 }
 
+bool list_contains(const list_t *list, const void *data) {
+  assert(list != NULL);
+  assert(data != NULL);
+
+  for (const list_node_t *node = list_begin(list); node != list_end(list); node = list_next(node)) {
+    if (list_node(node) == data)
+      return true;
+  }
+
+  return false;
+}
+
 // Returns the length of the list. This function does not accept a NULL list.
 size_t list_length(const list_t *list) {
   assert(list != NULL);

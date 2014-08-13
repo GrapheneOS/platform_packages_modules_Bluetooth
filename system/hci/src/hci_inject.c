@@ -62,12 +62,12 @@ bool hci_inject_open(void) {
 
   hci = bt_hc_get_interface();
 
-  clients = list_new(client_free);
-  if (!clients)
-    goto error;
-
   thread = thread_new("hci_inject");
   if (!thread)
+    goto error;
+
+  clients = list_new(client_free);
+  if (!clients)
     goto error;
 
   listen_socket = socket_new();
@@ -77,7 +77,7 @@ bool hci_inject_open(void) {
   if (!socket_listen(listen_socket, LISTEN_PORT))
     goto error;
 
-  socket_register(listen_socket, thread, accept_ready, NULL, NULL);
+  socket_register(listen_socket, thread_get_reactor(thread), NULL, accept_ready, NULL);
   return true;
 
 error:;
@@ -87,8 +87,8 @@ error:;
 
 void hci_inject_close(void) {
   socket_free(listen_socket);
-  thread_free(thread);
   list_free(clients);
+  thread_free(thread);
 
   listen_socket = NULL;
   thread = NULL;
@@ -132,7 +132,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
     return;
   }
 
-  socket_register(socket, thread, read_ready, NULL, client);
+  socket_register(socket, thread_get_reactor(thread), client, read_ready, NULL);
 }
 
 static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {

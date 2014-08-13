@@ -27,16 +27,16 @@
 #include <unistd.h>
 #include <utils/Log.h>
 
+#include "osi.h"
 #include "reactor.h"
 #include "socket.h"
-#include "thread.h"
 
 struct socket_t {
-  thread_t *thread;
-  reactor_object_t socket_object;
+  int fd;
+  reactor_object_t *reactor_object;
   socket_cb read_ready;
   socket_cb write_ready;
-  void *context;
+  void *context;                     // Not owned, do not free.
 };
 
 static void internal_read_ready(void *context);
@@ -49,14 +49,14 @@ socket_t *socket_new(void) {
     goto error;
   }
 
-  ret->socket_object.fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  if (ret->socket_object.fd == -1) {
+  ret->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (ret->fd == INVALID_FD) {
     ALOGE("%s unable to create socket: %s", __func__, strerror(errno));
     goto error;
   }
 
   int enable = 1;
-  if (setsockopt(ret->socket_object.fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
+  if (setsockopt(ret->fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
     ALOGE("%s unable to set SO_REUSEADDR: %s", __func__, strerror(errno));
     goto error;
   }
@@ -65,7 +65,7 @@ socket_t *socket_new(void) {
 
 error:;
   if (ret)
-    close(ret->socket_object.fd);
+    close(ret->fd);
   free(ret);
   return NULL;
 }
@@ -75,7 +75,7 @@ void socket_free(socket_t *socket) {
     return;
 
   socket_unregister(socket);
-  close(socket->socket_object.fd);
+  close(socket->fd);
   free(socket);
 }
 
@@ -86,12 +86,12 @@ bool socket_listen(const socket_t *socket, port_t port) {
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = 0;
   addr.sin_port = htons(port);
-  if (bind(socket->socket_object.fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
+  if (bind(socket->fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
     ALOGE("%s unable to bind socket to port %u: %s", __func__, port, strerror(errno));
     return false;
   }
 
-  if (listen(socket->socket_object.fd, 10) == -1) {
+  if (listen(socket->fd, 10) == -1) {
     ALOGE("%s unable to listen on port %u: %s", __func__, port, strerror(errno));
     return false;
   }
@@ -102,8 +102,8 @@ bool socket_listen(const socket_t *socket, port_t port) {
 socket_t *socket_accept(const socket_t *socket) {
   assert(socket != NULL);
 
-  int fd = accept(socket->socket_object.fd, NULL, NULL);
-  if (fd == -1) {
+  int fd = accept(socket->fd, NULL, NULL);
+  if (fd == INVALID_FD) {
     ALOGE("%s unable to accept socket: %s", __func__, strerror(errno));
     return NULL;
   }
@@ -115,7 +115,7 @@ socket_t *socket_accept(const socket_t *socket) {
     return NULL;
   }
 
-  ret->socket_object.fd = fd;
+  ret->fd = fd;
   return ret;
 }
 
@@ -123,47 +123,39 @@ ssize_t socket_read(const socket_t *socket, void *buf, size_t count) {
   assert(socket != NULL);
   assert(buf != NULL);
 
-  return recv(socket->socket_object.fd, buf, count, MSG_DONTWAIT);
+  return recv(socket->fd, buf, count, MSG_DONTWAIT);
 }
 
 ssize_t socket_write(const socket_t *socket, const void *buf, size_t count) {
   assert(socket != NULL);
   assert(buf != NULL);
 
-  return send(socket->socket_object.fd, buf, count, MSG_DONTWAIT);
+  return send(socket->fd, buf, count, MSG_DONTWAIT);
 }
 
-void socket_register(socket_t *socket, thread_t *thread, socket_cb read_cb, socket_cb write_cb, void *context) {
+void socket_register(socket_t *socket, reactor_t *reactor, void *context, socket_cb read_cb, socket_cb write_cb) {
   assert(socket != NULL);
-  assert(thread != NULL);
   assert(read_cb || write_cb);
 
   // Make sure the socket isn't currently registered.
   socket_unregister(socket);
 
-  socket->thread = thread;
   socket->read_ready = read_cb;
   socket->write_ready = write_cb;
   socket->context = context;
 
-  socket->socket_object.read_ready = internal_read_ready;
-  socket->socket_object.write_ready = internal_write_ready;
-  socket->socket_object.context = socket;
-  if (read_cb && write_cb)
-    socket->socket_object.interest = REACTOR_INTEREST_READ_WRITE;
-  else if (read_cb)
-    socket->socket_object.interest = REACTOR_INTEREST_READ;
-  else if (write_cb)
-    socket->socket_object.interest = REACTOR_INTEREST_WRITE;
+  void (*read_fn)(void *) = (read_cb != NULL) ? internal_read_ready : NULL;
+  void (*write_fn)(void *) = (write_cb != NULL) ? internal_write_ready : NULL;
 
-  thread_register(thread, &socket->socket_object);
+  socket->reactor_object = reactor_register(reactor, socket->fd, socket, read_fn, write_fn);
 }
 
 void socket_unregister(socket_t *socket) {
   assert(socket != NULL);
 
-  if (socket->thread)
-    thread_unregister(socket->thread, &socket->socket_object);
+  if (socket->reactor_object)
+    reactor_unregister(socket->reactor_object);
+  socket->reactor_object = NULL;
 }
 
 static void internal_read_ready(void *context) {

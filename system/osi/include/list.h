@@ -18,6 +18,7 @@ void list_free(list_t *list);
 
 // Accessors.
 bool list_is_empty(const list_t *list);
+bool list_contains(const list_t *list, const void *data);
 size_t list_length(const list_t *list);
 void *list_front(const list_t *list);
 void *list_back(const list_t *list);
