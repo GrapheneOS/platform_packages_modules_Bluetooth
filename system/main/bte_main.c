@@ -41,6 +41,7 @@
 #include "btu.h"
 #include "btsnoop.h"
 #include "bt_utils.h"
+#include "counter.h"
 #include "fixed_queue.h"
 #include "future.h"
 #include "gki.h"
@@ -92,6 +93,7 @@ fixed_queue_t *btu_hci_msg_queue;
 void bte_main_boot_entry(void)
 {
     module_init(get_module(GKI_MODULE));
+    module_init(get_module(COUNTER_MODULE));
 
     hci = hci_layer_get_interface();
     if (!hci)
@@ -129,6 +131,7 @@ void bte_main_shutdown()
 
     module_clean_up(get_module(STACK_CONFIG_MODULE));
 
+    module_clean_up(get_module(COUNTER_MODULE));
     module_clean_up(get_module(GKI_MODULE));
 }
 
@@ -305,6 +308,8 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
 
     p_msg->event = event;
 
+    counter_add("main.tx.packets", 1);
+    counter_add("main.tx.bytes", p_msg->len);
 
     if((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) || \
        (sub_event == LOCAL_BLE_CONTROLLER_ID))

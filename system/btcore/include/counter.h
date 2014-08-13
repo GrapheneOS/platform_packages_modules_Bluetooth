@@ -21,23 +21,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define COUNTER_MODULE "counter_module"
+
+typedef int64_t counter_data_t;
+
 // Used to iterate across all counters.
-typedef bool (*counter_iter_cb)(const char *name, uint64_t val, void *context);
-
-// Global lifecycle
-bool counter_init();
-void counter_exit();
-
-// Accessors.
-uint64_t counter_get(const char *name);
+typedef bool (*counter_iter_cb)(const char *name, counter_data_t val, void *context);
 
 // Mutators.
-void counter_set(const char *name, uint64_t val);
-void counter_clear(const char *name);
-void counter_inc(const char *name);
-void counter_dec(const char *name);
-void counter_add(const char *name, uint64_t val);
-void counter_sub(const char *name, uint64_t val);
+void counter_set(const char *name, counter_data_t val);
+void counter_add(const char *name, counter_data_t val);
 
 // Iteration.
 bool counter_foreach(counter_iter_cb, void *context);

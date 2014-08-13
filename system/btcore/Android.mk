@@ -26,6 +26,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
     src/bdaddr.c \
+    src/counter.c \
     src/module.c \
     src/property.c \
     src/uuid.c
