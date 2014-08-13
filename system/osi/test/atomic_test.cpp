@@ -243,3 +243,36 @@ TEST(AtomicTest, test_inc_dec_s64) {
   EXPECT_EQ(-1, val);
   EXPECT_EQ(-2, atomic_load_s64(&data));
 }
+
+TEST(AtomicTest, test_add_sub_u64) {
+  atomic_u64_t data;
+
+  atomic_store_u64(&data, 0);
+  EXPECT_EQ((unsigned)0, atomic_load_u64(&data));
+
+  uint64_t val = atomic_add_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)0xffff, atomic_load_u64(&data));
+  EXPECT_EQ((unsigned)0xffff, val);
+
+  val = atomic_add_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)(2 * 0xffff), atomic_load_u64(&data));
+  EXPECT_EQ((unsigned)(2 * 0xffff), val);
+
+  val = atomic_add_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)(3 * 0xffff), atomic_load_u64(&data));
+  EXPECT_EQ((unsigned)(3 * 0xffff), val);
+  EXPECT_NE((unsigned)(3 * 0xfff0), val);
+
+  val = atomic_sub_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)(2 * 0xffff), val);
+
+  val = atomic_sub_u64(&data, 0);
+  EXPECT_EQ((unsigned)(2 * 0xffff), val);
+  val = atomic_sub_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)(1 * 0xffff), val);
+
+  val = atomic_sub_u64(&data, 0xffff);
+  EXPECT_EQ((unsigned)0, val);
+}
+
+
