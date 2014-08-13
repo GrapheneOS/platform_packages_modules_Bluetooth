@@ -22,12 +22,6 @@
 
 struct hash_map_t;
 
-typedef struct hash_map_entry_t {
-  const void *key;
-  void *data;
-  const hash_map_t *hash_map;
-} hash_map_entry_t;
-
 typedef struct hash_map_bucket_t {
   list_t *list;
 } hash_map_bucket_t;
@@ -202,6 +196,28 @@ void hash_map_clear(hash_map_t *hash_map) {
       continue;
     list_free(hash_map->bucket[i].list);
     hash_map->bucket[i].list = NULL;
+  }
+}
+
+// Iterates through the entire |hash_map| and calls |callback| for each data
+// element and passes through the |context| argument. If the hash_map is
+// empty, |callback| will never be called. It is not safe to mutate the
+// hash_map inside the callback. Neither |hash_map| nor |callback| may be NULL.
+// If |callback| returns false, the iteration loop will immediately exit.
+void hash_map_foreach(hash_map_t *hash_map, hash_map_iter_cb callback, void *context) {
+  assert(hash_map != NULL);
+  assert(callback != NULL);
+
+  for (hash_index_t i = 0; i < hash_map->num_bucket; ++i){
+    if (hash_map->bucket[i].list == NULL)
+      continue;
+    for (const list_node_t *iter = list_begin(hash_map->bucket[i].list);
+        iter != list_end(hash_map->bucket[i].list);
+        iter = list_next(iter)) {
+       hash_map_entry_t *hash_map_entry = (hash_map_entry_t *)list_node(iter);
+       if (!callback(hash_map_entry, context))
+        return;
+    }
   }
 }
 

@@ -29,16 +29,12 @@ hash_index_t hash_map_fn00(const void *key) {
 }
 
 static size_t g_key_free;
-void key_free_fn00(void *data) {
-  if (g_key_free == 0)
-    printf("ok key:%s\n", (char *)data);
+void key_free_fn00(UNUSED_ATTR void *data) {
   g_key_free++;
 }
 
 static size_t g_data_free;
-void data_free_fn00(void *data) {
-  if (g_data_free == 0)
-    printf("ok data:%s\n", (char *)data);
+void data_free_fn00(UNUSED_ATTR void *data) {
   g_data_free++;
 }
 
@@ -143,4 +139,51 @@ TEST(HashMapTest, test_functions) {
     EXPECT_EQ(i + 1, g_data_free);
     EXPECT_EQ(i + 1, g_key_free);
   }
+}
+
+struct hash_test_iter_data_s {
+  const char *key;
+  const char *data;
+} hash_test_iter_data[] = {
+  { "0", "zero" },
+  { "1", "one" },
+  { "2", "two" },
+  { "3", "three" },
+  { "elephant", "big" },
+  { "fox", "medium" },
+  { "gerbil", "small" },
+};
+
+bool hash_test_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context) {
+  const char *key = (const char *)hash_map_entry->key;
+  char *data = (char *)hash_map_entry->data;
+  EXPECT_TRUE(data != NULL);
+
+  size_t hash_test_iter_data_sz = sizeof(hash_test_iter_data)/sizeof(hash_test_iter_data[0]);
+  size_t i;
+  for (i = 0; i < hash_test_iter_data_sz; i++) {
+    if (!strcmp(hash_test_iter_data[i].key, key))
+      break;
+  }
+  EXPECT_NE(hash_test_iter_data_sz, i);
+  EXPECT_EQ(NULL, context);
+  EXPECT_STREQ(hash_test_iter_data[i].data, data);
+  return true;
+}
+
+TEST(HashMapTest, test_iter) {
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00);
+  ASSERT_TRUE(hash_map != NULL);
+  g_data_free = 0;
+  g_key_free = 0;
+
+  size_t hash_test_iter_data_sz = sizeof(hash_test_iter_data)/sizeof(hash_test_iter_data[0]);
+
+  for (size_t i = 0; i < hash_test_iter_data_sz; i++) {
+    EXPECT_EQ(hash_map_size(hash_map), i);
+    hash_map_set(hash_map, hash_test_iter_data[i].key, (void*)hash_test_iter_data[i].data);
+  }
+
+  void *context = NULL;
+  hash_map_foreach(hash_map, hash_test_iter_ro_cb, context);
 }

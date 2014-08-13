@@ -24,10 +24,17 @@
 struct hash_map_t;
 typedef struct hash_map_t hash_map_t;
 
+typedef struct hash_map_entry_t {
+  const void *key;
+  void *data;
+  const hash_map_t *hash_map;
+} hash_map_entry_t;
+
 typedef size_t hash_index_t;
 
 // Takes a key structure and returns a hash value.
 typedef hash_index_t (*hash_index_fn)(const void *key);
+typedef bool (*hash_map_iter_cb)(hash_map_entry_t *hash_entry, void *context);
 
 typedef void (*key_free_fn)(void *data);
 typedef void (*data_free_fn)(void *data);
@@ -48,3 +55,6 @@ size_t hash_map_num_buckets(const hash_map_t *hash_map);
 bool hash_map_set(hash_map_t *hash_map, const void *key, void *data);
 bool hash_map_erase(hash_map_t *hash_map, const void *key);
 void hash_map_clear(hash_map_t *hash_map);
+
+// Iteration.
+void hash_map_foreach(hash_map_t *hash_map, hash_map_iter_cb callback, void *context);
