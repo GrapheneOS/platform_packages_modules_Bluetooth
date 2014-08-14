@@ -152,6 +152,11 @@ void thread_stop(thread_t *thread) {
   reactor_stop(thread->reactor);
 }
 
+bool thread_is_self(const thread_t *thread) {
+  assert(thread != NULL);
+  return !!pthread_equal(pthread_self(), thread->pthread);
+}
+
 reactor_t *thread_get_reactor(const thread_t *thread) {
   assert(thread != NULL);
   return thread->reactor;

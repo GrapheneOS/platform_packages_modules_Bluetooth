@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #define THREAD_NAME_MAX 16
 
 typedef struct reactor_t reactor_t;
@@ -50,6 +52,10 @@ bool thread_post(thread_t *thread, thread_fn func, void *context);
 // after calling |thread_stop|. This function is guaranteed to not block.
 // |thread| may not be NULL.
 void thread_stop(thread_t *thread);
+
+// Returns true if the current thread is the same as the one represented by |thread|.
+// |thread| may not be NULL.
+bool thread_is_self(const thread_t *thread);
 
 // Returns the name of the given |thread|. |thread| may not be NULL.
 const char *thread_name(const thread_t *thread);

@@ -110,3 +110,20 @@ TEST(ThreadTest, test_unregister) {
   ASSERT_FALSE(FD_ISSET(wait_fd, &read_fds));
   thread_free(thread);
 }
+
+static void thread_is_self_fn(void *context) {
+  thread_t *thread = (thread_t *)context;
+  EXPECT_TRUE(thread_is_self(thread));
+}
+
+TEST(ThreadTest, test_thread_is_self) {
+  thread_t *thread = thread_new("test_thread");
+  thread_post(thread, thread_is_self_fn, thread);
+  thread_free(thread);
+}
+
+TEST(ThreadTest, test_thread_is_not_self) {
+  thread_t *thread = thread_new("test_thread");
+  EXPECT_FALSE(thread_is_self(thread));
+  thread_free(thread);
+}
