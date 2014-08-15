@@ -22,8 +22,10 @@
 
 struct fixed_queue_t;
 typedef struct fixed_queue_t fixed_queue_t;
+typedef struct reactor_t reactor_t;
 
 typedef void (*fixed_queue_free_cb)(void *data);
+typedef void (*fixed_queue_cb)(fixed_queue_t *queue, void *context);
 
 // Creates a new fixed queue with the given |capacity|. If more elements than
 // |capacity| are added to the queue, the caller is blocked until space is
@@ -65,6 +67,11 @@ bool fixed_queue_try_enqueue(fixed_queue_t *queue, void *data);
 // NULL.
 void *fixed_queue_try_dequeue(fixed_queue_t *queue);
 
+// Returns the first element from |queue|, if present, without dequeuing it.
+// This function will never block the caller. Returns NULL if there are no elements
+// in the queue. |queue| may not be NULL.
+void *fixed_queue_try_peek(fixed_queue_t *queue);
+
 // This function returns a valid file descriptor. Callers may perform one
 // operation on the fd: select(2). If |select| indicates that the file
 // descriptor is readable, the caller may call |fixed_queue_enqueue| without
@@ -78,3 +85,13 @@ int fixed_queue_get_enqueue_fd(const fixed_queue_t *queue);
 // blocking. The caller must not close the returned file descriptor. |queue|
 // may not be NULL.
 int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue);
+
+// Registers |queue| with |reactor| for dequeue operations. When there is an element
+// in the queue, ready_cb will be called. The |context| parameter is passed, untouched,
+// to the callback routine. Neither |queue|, nor |reactor|, nor |read_cb| may be NULL.
+// |context| may be NULL.
+void fixed_queue_register_dequeue(fixed_queue_t *queue, reactor_t *reactor, fixed_queue_cb ready_cb, void *context);
+
+// Unregisters the dequeue ready callback for |queue| from whichever reactor
+// it is registered with, if any. This function is idempotent.
+void fixed_queue_unregister_dequeue(fixed_queue_t *queue);
