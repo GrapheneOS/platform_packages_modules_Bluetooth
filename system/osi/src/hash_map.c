@@ -108,10 +108,9 @@ size_t hash_map_num_buckets(const hash_map_t *hash_map) {
 }
 
 // Returns true if the hash_map has a valid entry for the presented key.
-// This function does not accept a NULL |key| nor |hash_map|.
+// This function does not accept a NULL |hash_map|.
 bool hash_map_has_key(const hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
-  assert(key != NULL);
 
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
   list_t *hash_bucket_list = hash_map->bucket[hash_key].list;
@@ -120,14 +119,13 @@ bool hash_map_has_key(const hash_map_t *hash_map, const void *key) {
   return (hash_map_entry != NULL);
 }
 
-// Sets the value |data| indexed by |key| into the |hash_map|. |data|, |key| nor
+// Sets the value |data| indexed by |key| into the |hash_map|. Neither |data| nor
 // |hash_map| may be NULL.  This function does not make copies of |data| nor |key|
 // so the pointers must remain valid at least until the element is removed from the
-// hash_map or the hash_map is freed.  Returns true if |data| could be set, false 
+// hash_map or the hash_map is freed.  Returns true if |data| could be set, false
 // otherwise (e.g. out of memory).
 bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   assert(hash_map != NULL);
-  assert(key != NULL);
   assert(data != NULL);
 
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
@@ -159,13 +157,12 @@ bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   return list_append(hash_bucket_list, hash_map_entry);
 }
 
-// Removes data indexed by |key| from the hash_map. Neither |hash_map| nor |key| may
-// be NULL.  If |key_fn| or |data_fn| functions were specified in |hash_map_new|, they
+// Removes data indexed by |key| from the hash_map. |hash_map| may not be NULL.
+// If |key_fn| or |data_fn| functions were specified in |hash_map_new|, they
 // will be called back with |key| or |data| respectively. This function returns true
 // if |key| was found in the hash_map and removed, false otherwise.
 bool hash_map_erase(hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
-  assert(key != NULL);
 
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
   list_t *hash_bucket_list = hash_map->bucket[hash_key].list;
@@ -181,10 +178,9 @@ bool hash_map_erase(hash_map_t *hash_map, const void *key) {
 }
 
 // Returns the element indexed by |key| in the hash_map without removing it. |hash_map|
-// nor |key| may not be NULL.  Returns NULL is no entry indexed by |key|.
+// may not be NULL.  Returns NULL if no entry indexed by |key|.
 void * hash_map_get(const hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
-  assert(key != NULL);
 
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
   list_t *hash_bucket_list = hash_map->bucket[hash_key].list;
@@ -222,7 +218,6 @@ static void bucket_free_(void *data) {
 
 static hash_map_entry_t * find_bucket_entry_(list_t *hash_bucket_list,
     const void *key) {
-  assert(key != NULL);
 
   if (hash_bucket_list == NULL)
     return NULL;
