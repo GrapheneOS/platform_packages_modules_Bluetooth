@@ -25,6 +25,11 @@
 typedef struct config_t config_t;
 typedef struct config_section_node_t config_section_node_t;
 
+// Creates a new config object with no entries (i.e. not backed by a file).
+// This function returns a config object or NULL on error. Clients must call
+// |config_free| on the returned handle when it is no longer required.
+config_t *config_new_empty(void);
+
 // Loads the specified file and returns a handle to the config file. If there
 // was a problem loading the file or allocating memory, this function returns
 // NULL. Clients must call |config_free| on the returned handle when it is no

@@ -37,9 +37,7 @@ static entry_t *entry_new(const char *key, const char *value);
 static void entry_free(void *ptr);
 static entry_t *entry_find(const config_t *config, const char *section, const char *key);
 
-config_t *config_new(const char *filename) {
-  assert(filename != NULL);
-
+config_t *config_new_empty(void) {
   config_t *config = calloc(1, sizeof(config_t));
   if (!config) {
     ALOGE("%s unable to allocate memory for config_t.", __func__);
@@ -52,24 +50,31 @@ config_t *config_new(const char *filename) {
     goto error;
   }
 
-  FILE *fp = fopen(filename, "rt");
-  if (!fp) {
-    ALOGE("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
-    goto error;
-  }
-  config_parse(fp, config);
-  fclose(fp);
   return config;
 
 error:;
   if (config)
     list_free(config->sections);
   free(config);
-
-  if (fp)
-    fclose(fp);
-
   return NULL;
+}
+
+config_t *config_new(const char *filename) {
+  assert(filename != NULL);
+
+  config_t *config = config_new_empty();
+  if (!config)
+    return NULL;
+
+  FILE *fp = fopen(filename, "rt");
+  if (!fp) {
+    ALOGE("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
+    config_free(config);
+    return NULL;
+  }
+  config_parse(fp, config);
+  fclose(fp);
+  return config;
 }
 
 void config_free(config_t *config) {

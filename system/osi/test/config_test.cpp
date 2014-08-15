@@ -55,6 +55,12 @@ class ConfigTest : public ::testing::Test {
     }
 };
 
+TEST_F(ConfigTest, config_new_empty) {
+  config_t *config = config_new_empty();
+  EXPECT_TRUE(config != NULL);
+  config_free(config);
+}
+
 TEST_F(ConfigTest, config_new_no_file) {
   config_t *config = config_new("/meow");
   EXPECT_TRUE(config == NULL);
