@@ -269,6 +269,9 @@ typedef struct
 #define STREAM_TO_ARRAY(a, p, len) {register int ijk; for (ijk = 0; ijk < len; ijk++) ((UINT8 *) a)[ijk] = *p++;}
 #define REVERSE_STREAM_TO_ARRAY(a, p, len) {register int ijk; register UINT8 *_pa = (UINT8 *)a + len - 1; for (ijk = 0; ijk < len; ijk++) *_pa-- = *p++;}
 
+#define STREAM_SKIP_UINT8(p)  do { (p) += 1; } while (0)
+#define STREAM_SKIP_UINT16(p) do { (p) += 2; } while (0)
+
 /********************************************************************************
 ** Macros to get and put bytes to and from a field (Little Endian format).
 ** These are the same as to stream, except the pointer is not incremented.
