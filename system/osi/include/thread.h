@@ -41,6 +41,11 @@ thread_t *thread_new_sized(const char *name, size_t size);
 // may be NULL.
 void thread_free(thread_t *thread);
 
+// Waits for |thread_stop|. Upon returning, the only other operations a caller
+// may perform on |thread| are |thread_free| and |thread_join|. |thread_join|
+// is idempotent and may be called from any thread. |thread| may not be NULL.
+void thread_join(thread_t *thread);
+
 // Call |func| with the argument |context| on |thread|. This function typically
 // does not block unless there are an excessive number of functions posted to
 // |thread| that have not been dispatched yet. Neither |thread| nor |func| may

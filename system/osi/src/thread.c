@@ -32,6 +32,7 @@
 #include "thread.h"
 
 struct thread_t {
+  bool is_joined;
   pthread_t pthread;
   pid_t tid;
   char name[THREAD_NAME_MAX + 1];
@@ -107,10 +108,21 @@ void thread_free(thread_t *thread) {
     return;
 
   thread_stop(thread);
-  pthread_join(thread->pthread, NULL);
+  thread_join(thread);
+
   fixed_queue_free(thread->work_queue, free);
   reactor_free(thread->reactor);
   free(thread);
+}
+
+void thread_join(thread_t *thread) {
+  assert(thread != NULL);
+
+  // TODO(zachoverflow): use a compare and swap when ready
+  if (!thread->is_joined) {
+    thread->is_joined = true;
+    pthread_join(thread->pthread, NULL);
+  }
 }
 
 bool thread_post(thread_t *thread, thread_fn func, void *context) {
