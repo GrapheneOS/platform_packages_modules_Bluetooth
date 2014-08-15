@@ -52,6 +52,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include
 
 LOCAL_SRC_FILES := \
+    ./test/AlarmTestHarness.cpp \
     ./test/alarm_test.cpp \
     ./test/atomic_test.cpp \
     ./test/config_test.cpp \
