@@ -25,6 +25,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
     ./src/alarm.c \
+    ./src/allocator.c \
     ./src/config.c \
     ./src/data_dispatcher.c \
     ./src/fixed_queue.c \
