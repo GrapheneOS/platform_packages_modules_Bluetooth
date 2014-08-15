@@ -81,14 +81,10 @@
 **   Logging helper functions
 *****************************************************************************/
 
-int str2bd(char *str, bt_bdaddr_t *addr)
-{
-    int32_t i = 0;
-    for (i = 0; i < 6; i++) {
-       addr->address[i] = (uint8_t)strtoul(str, &str, 16);
-       str++;
-    }
-    return 0;
+bool str2bd(const char *str, bt_bdaddr_t *addr) {
+  uint8_t *ptr = addr->address;
+  return sscanf(str, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
+      &ptr[0], &ptr[1], &ptr[2], &ptr[3], &ptr[4], &ptr[5]) == 6;
 }
 
 char *bd2str(const bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
