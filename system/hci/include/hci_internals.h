@@ -18,20 +18,14 @@
 
 #pragma once
 
-#include <stdbool.h>
+// 2 bytes for opcode, 1 byte for parameter length (Volume 2, Part E, 5.4.1)
+#define HCI_COMMAND_PREAMBLE_SIZE 3
+// 2 bytes for handle, 2 bytes for data length (Volume 2, Part E, 5.4.2)
+#define HCI_ACL_PREAMBLE_SIZE 4
+// 2 bytes for handle, 1 byte for data length (Volume 2, Part E, 5.4.3)
+#define HCI_SCO_PREAMBLE_SIZE 3
+// 1 byte for event code, 1 byte for parameter length (Volume 2, Part E, 5.4.4)
+#define HCI_EVENT_PREAMBLE_SIZE 2
 
-#include "allocator.h"
+typedef void (*internal_command_cb)(void *response);
 
-typedef struct hci_interface_t hci_interface_t;
-
-typedef struct hci_inject_interface_t {
-  // Starts the HCI injection module, using the provided |buffer_allocator|.
-  // Returns true on success, false on failure. Once started, this module
-  // must be shut down with |hci_inject_close|.
-  bool (*open)(const hci_interface_t *hci_interface, const allocator_t *buffer_allocator);
-
-  // Shuts down the HCI injection module.
-  void (*close)(void);
-} hci_inject_interface_t;
-
-const hci_inject_interface_t *hci_inject_get_interface();

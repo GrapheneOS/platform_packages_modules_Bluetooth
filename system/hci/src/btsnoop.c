@@ -32,9 +32,10 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "bt_hci_bdroid.h"
+#include "btsnoop.h"
+#include "bt_types.h"
 #include "bt_utils.h"
-#include "utils.h"
+#include "hci_layer.h"
 
 typedef enum {
   kCommandPacket = 1,
@@ -105,9 +106,6 @@ static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool
   time_hi = htonl(time_hi);
   time_lo = htonl(time_lo);
 
-  // This function is called from different contexts.
-  utils_lock();
-
   btsnoop_write(&length, 4);
   btsnoop_write(&length, 4);
   btsnoop_write(&flags, 4);
@@ -116,11 +114,9 @@ static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool
   btsnoop_write(&time_lo, 4);
   btsnoop_write(&type, 1);
   btsnoop_write(packet, length_he - 1);
-
-  utils_unlock();
 }
 
-void btsnoop_open(const char *p_path, const bool save_existing) {
+static void btsnoop_open(const char *p_path) {
   assert(p_path != NULL);
   assert(*p_path != '\0');
 
@@ -129,14 +125,6 @@ void btsnoop_open(const char *p_path, const bool save_existing) {
   if (hci_btsnoop_fd != -1) {
     ALOGE("%s btsnoop log file is already open.", __func__);
     return;
-  }
-
-  if (save_existing)
-  {
-    char fname_backup[266] = {0};
-    strncat(fname_backup, p_path, 255);
-    strcat(fname_backup, ".last");
-    rename(p_path, fname_backup);
   }
 
   hci_btsnoop_fd = open(p_path,
@@ -151,7 +139,7 @@ void btsnoop_open(const char *p_path, const bool save_existing) {
   write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
 }
 
-void btsnoop_close(void) {
+static void btsnoop_close(void) {
   if (hci_btsnoop_fd != -1)
     close(hci_btsnoop_fd);
   hci_btsnoop_fd = -1;
@@ -159,26 +147,36 @@ void btsnoop_close(void) {
   btsnoop_net_close();
 }
 
-void btsnoop_capture(const HC_BT_HDR *p_buf, bool is_rcvd) {
-  const uint8_t *p = (const uint8_t *)(p_buf + 1) + p_buf->offset;
+static void btsnoop_capture(const BT_HDR *buffer, bool is_received) {
+  const uint8_t *p = buffer->data + buffer->offset;
 
   if (hci_btsnoop_fd == -1)
     return;
 
-  switch (p_buf->event & MSG_EVT_MASK) {
+  switch (buffer->event & MSG_EVT_MASK) {
     case MSG_HC_TO_STACK_HCI_EVT:
       btsnoop_write_packet(kEventPacket, p, false);
       break;
     case MSG_HC_TO_STACK_HCI_ACL:
     case MSG_STACK_TO_HC_HCI_ACL:
-      btsnoop_write_packet(kAclPacket, p, is_rcvd);
+      btsnoop_write_packet(kAclPacket, p, is_received);
       break;
     case MSG_HC_TO_STACK_HCI_SCO:
     case MSG_STACK_TO_HC_HCI_SCO:
-      btsnoop_write_packet(kScoPacket, p, is_rcvd);
+      btsnoop_write_packet(kScoPacket, p, is_received);
       break;
     case MSG_STACK_TO_HC_HCI_CMD:
       btsnoop_write_packet(kCommandPacket, p, true);
       break;
   }
+}
+
+static const btsnoop_interface_t interface = {
+  btsnoop_open,
+  btsnoop_close,
+  btsnoop_capture
+};
+
+const btsnoop_interface_t *btsnoop_get_interface() {
+  return &interface;
 }

@@ -22,9 +22,9 @@
 #include <errno.h>
 #include <utils/Log.h>
 
-#include "bt_hci_bdroid.h"
 #include "bt_types.h"
 #include "hci_inject.h"
+#include "hci_layer.h"
 #include "list.h"
 #include "osi.h"
 #include "socket.h"
@@ -45,7 +45,9 @@ typedef struct {
 
 static const port_t LISTEN_PORT = 8873;
 
-static const bt_hc_interface_t *hci;
+static const hci_inject_interface_t interface;
+static const hci_interface_t *hci;
+static const allocator_t *allocator;
 static socket_t *listen_socket;
 static thread_t *thread;
 static list_t *clients;
@@ -55,12 +57,15 @@ static void accept_ready(socket_t *socket, void *context);
 static void read_ready(socket_t *socket, void *context);
 static void client_free(void *ptr);
 
-bool hci_inject_open(void) {
+bool hci_inject_open(const hci_interface_t *hci_interface, const allocator_t *buffer_allocator) {
   assert(listen_socket == NULL);
   assert(thread == NULL);
   assert(clients == NULL);
+  assert(hci_interface != NULL);
+  assert(buffer_allocator != NULL);
 
-  hci = bt_hc_get_interface();
+  hci = hci_interface;
+  allocator = buffer_allocator;
 
   thread = thread_new("hci_inject");
   if (!thread)
@@ -81,7 +86,7 @@ bool hci_inject_open(void) {
   return true;
 
 error:;
-  hci_inject_close();
+  interface.close();
   return false;
 }
 
@@ -136,7 +141,6 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
 }
 
 static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
-  assert(bt_hc_cbacks != NULL);
   assert(socket != NULL);
   assert(context != NULL);
 
@@ -162,14 +166,14 @@ static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
     // TODO(sharvil): once we have an HCI parser, we can eliminate
     //   the 2-byte size field since it will be contained in the packet.
 
-    BT_HDR *buf = (BT_HDR *)bt_hc_cbacks->alloc(packet_len);
+    BT_HDR *buf = (BT_HDR *)allocator->alloc(packet_len);
     if (buf) {
       buf->event = hci_packet_to_event(packet_type);
       buf->offset = 0;
       buf->layer_specific = 0;
       buf->len = packet_len;
       memcpy(buf->data, buffer + 3, packet_len);
-      hci->transmit_buf(buf, NULL, 0);
+      hci->transmit_downward(buf->event, buf);
     } else {
       ALOGE("%s dropping injected packet of length %zu", __func__, packet_len);
     }
@@ -186,4 +190,13 @@ static void client_free(void *ptr) {
 
   client_t *client = (client_t *)ptr;
   socket_free(client->socket);
+}
+
+static const hci_inject_interface_t interface = {
+  hci_inject_open,
+  hci_inject_close
+};
+
+const hci_inject_interface_t *hci_inject_get_interface() {
+  return &interface;
 }

@@ -30,8 +30,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <time.h>
-#include <hardware/bluetooth.h>
-#include <cutils/properties.h>
+#include <utils/Log.h>
 
 #include "alarm.h"
 #include "bd.h"
@@ -39,10 +38,12 @@
 #include "bt_hci_bdroid.h"
 #include "bte.h"
 #include "btu.h"
-#include "bt_hci_lib.h"
 #include "bt_utils.h"
+#include "fixed_queue.h"
 #include "gki.h"
+#include "hci_layer.h"
 #include "osi.h"
+#include "thread.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -88,12 +89,17 @@ char hci_logfile[256] = HCI_LOGGING_FILENAME;
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
-static bt_hc_interface_t *bt_hc_if=NULL;
-static const bt_hc_callbacks_t hc_callbacks;
-static BOOLEAN lpm_enabled = FALSE;
+static const hci_interface_t *hci;
+static const hci_callbacks_t hci_callbacks;
+static const allocator_t buffer_allocator;
 static bt_preload_retry_cb_t preload_retry_cb;
 // Lock to serialize cleanup requests from upper layer.
 static pthread_mutex_t cleanup_lock;
+
+// These are temporary so we can run the new HCI code
+// with the old upper stack.
+static fixed_queue_t *upbound_data;
+static thread_t *dispatch_thread;
 
 /*******************************************************************************
 **  Static functions
@@ -102,6 +108,7 @@ static void bte_hci_enable(void);
 static void bte_hci_disable(void);
 static void preload_start_wait_timer(void);
 static void preload_stop_wait_timer(void);
+static void dump_upbound_data_to_btu(fixed_queue_t *queue, void *context);
 
 /*******************************************************************************
 **  Externs
@@ -141,8 +148,21 @@ void bte_main_boot_entry(void)
     /* initialize OS */
     GKI_init();
 
-    if (!(bt_hc_if = (bt_hc_interface_t *)bt_hc_get_interface()))
-        APPL_TRACE_ERROR("!!! Failed to get BtHostControllerInterface !!!");
+    hci = hci_layer_get_interface();
+    if (!hci)
+      ALOGE("%s could not get hci layer interface.", __func__);
+
+    upbound_data = fixed_queue_new(SIZE_MAX);
+    dispatch_thread = thread_new("hci_dispatch");
+
+    fixed_queue_register_dequeue(
+      upbound_data,
+      thread_get_reactor(dispatch_thread),
+      dump_upbound_data_to_btu,
+      NULL
+    );
+
+    data_dispatcher_register_default(hci->upward_dispatcher, upbound_data);
 
     memset(&preload_retry_cb, 0, sizeof(bt_preload_retry_cb_t));
     preload_retry_cb.alarm = alarm_new();
@@ -197,8 +217,6 @@ void bte_main_enable()
     /* Initialize BTE control block */
     BTE_Init();
 
-    lpm_enabled = FALSE;
-
     GKI_create_task((TASKPTR)btu_task, BTU_TASK, BTE_BTU_TASK_STR,
                     (UINT16 *) ((UINT8 *)bte_btu_stack + BTE_BTU_STACK_SIZE),
                     sizeof(bte_btu_stack));
@@ -241,19 +259,18 @@ void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
     int old = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
     int new;
 
-    if (enable) {
-        hci_logging_config = TRUE;
-    } else {
-        hci_logging_config = FALSE;
-    }
+    hci_logging_config = enable;
 
     new = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
 
-    if ((old == new) || bt_disabled || (bt_hc_if == NULL)) {
+    if ((old == new) || bt_disabled) {
         return;
     }
 
-    bt_hc_if->logging(new ? BT_HC_LOGGING_ON : BT_HC_LOGGING_OFF, hci_logfile, hci_save_log);
+    if (new)
+      hci->turn_on_logging(hci_logfile);
+    else
+      hci->turn_off_logging();
 }
 
 /******************************************************************************
@@ -271,38 +288,34 @@ static void bte_hci_enable(void)
 
     preload_start_wait_timer();
 
-    if (bt_hc_if)
-    {
-        int result = bt_hc_if->init(&hc_callbacks, btif_local_bd_addr.address);
-        APPL_TRACE_EVENT("libbt-hci init returns %d", result);
+    bool success = hci->init(btif_local_bd_addr.address, &buffer_allocator, &hci_callbacks);
+    APPL_TRACE_EVENT("libbt-hci init returns %d", success);
 
-        assert(result == BT_HC_STATUS_SUCCESS);
+    assert(success);
 
-        if (hci_logging_enabled == TRUE || hci_logging_config == TRUE)
-            bt_hc_if->logging(BT_HC_LOGGING_ON, hci_logfile, hci_save_log);
+    if (hci_logging_enabled == TRUE || hci_logging_config == TRUE)
+        hci->turn_on_logging(hci_logfile);
 
 #if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
-        APPL_TRACE_DEBUG("%s  Not Turninig Off the BT before Turninig ON", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s not turning off the chip before turning it on", __FUNCTION__);
 
-        /* Do not power off the chip before powering on  if BT_CLEAN_TURN_ON_DISABLED flag
-         is defined and set to TRUE to avoid below mentioned issue.
+    /* Do not power off the chip before powering on  if BT_CLEAN_TURN_ON_DISABLED flag
+     is defined and set to TRUE to avoid below mentioned issue.
 
-         Wingray kernel driver maintains a combined  counter to keep track of
-         BT-Wifi state. Invoking  set_power(BT_HC_CHIP_PWR_OFF) when the BT is already
-         in OFF state causes this counter to be incorrectly decremented and results in undesired
-         behavior of the chip.
+     Wingray kernel driver maintains a combined  counter to keep track of
+     BT-Wifi state. Invoking  set_power(BT_HC_CHIP_PWR_OFF) when the BT is already
+     in OFF state causes this counter to be incorrectly decremented and results in undesired
+     behavior of the chip.
 
-         This is only a workaround and when the issue is fixed in the kernel this work around
-         should be removed. */
+     This is only a workaround and when the issue is fixed in the kernel this work around
+     should be removed. */
 #else
-        /* toggle chip power to ensure we will reset chip in case
-           a previous stack shutdown wasn't completed gracefully */
-        bt_hc_if->set_power(BT_HC_CHIP_PWR_OFF);
+    /* toggle chip power to ensure we will reset chip in case
+       a previous stack shutdown wasn't completed gracefully */
+    hci->set_chip_power_on(false);
 #endif
-        bt_hc_if->set_power(BT_HC_CHIP_PWR_ON);
-
-        bt_hc_if->preload(NULL);
-    }
+    hci->set_chip_power_on(true);
+    hci->do_preload();
 }
 
 /******************************************************************************
@@ -318,15 +331,15 @@ static void bte_hci_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (!bt_hc_if)
+    if (!hci)
         return;
 
     // Cleanup is not thread safe and must be protected.
     pthread_mutex_lock(&cleanup_lock);
 
     if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
-        bt_hc_if->logging(BT_HC_LOGGING_OFF, hci_logfile, hci_save_log);
-    bt_hc_if->cleanup();
+        hci->turn_off_logging();
+    hci->cleanup();
 
     pthread_mutex_unlock(&cleanup_lock);
 }
@@ -403,8 +416,7 @@ static void preload_stop_wait_timer(void)
 ******************************************************************************/
 void bte_main_postload_cfg(void)
 {
-    if (bt_hc_if)
-        bt_hc_if->postload(NULL);
+    hci->do_postload();
 }
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
@@ -419,14 +431,7 @@ void bte_main_postload_cfg(void)
 ******************************************************************************/
 void bte_main_enable_lpm(BOOLEAN enable)
 {
-    int result = -1;
-
-    if (bt_hc_if)
-        result = bt_hc_if->lpm( \
-        (enable == TRUE) ? BT_HC_LPM_ENABLE : BT_HC_LPM_DISABLE \
-        );
-
-    APPL_TRACE_EVENT("HC lib lpm enable=%d return %d", enable, result);
+    hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
 }
 
 /******************************************************************************
@@ -440,12 +445,7 @@ void bte_main_enable_lpm(BOOLEAN enable)
 ******************************************************************************/
 void bte_main_lpm_allow_bt_device_sleep()
 {
-    int result = -1;
-
-    if ((bt_hc_if) && (lpm_enabled == TRUE))
-        result = bt_hc_if->lpm(BT_HC_LPM_WAKE_DEASSERT);
-
-    APPL_TRACE_DEBUG("HC lib lpm deassertion return %d", result);
+    hci->send_low_power_command(LPM_WAKE_DEASSERT);
 }
 
 /******************************************************************************
@@ -459,12 +459,7 @@ void bte_main_lpm_allow_bt_device_sleep()
 ******************************************************************************/
 void bte_main_lpm_wake_bt_device()
 {
-    int result = -1;
-
-    if ((bt_hc_if) && (lpm_enabled == TRUE))
-        result = bt_hc_if->lpm(BT_HC_LPM_WAKE_ASSERT);
-
-    APPL_TRACE_DEBUG("HC lib lpm assertion return %d", result);
+    hci->send_low_power_command(LPM_WAKE_ASSERT);
 }
 #endif  // HCILP_INCLUDED
 
@@ -520,10 +515,7 @@ int set_audio_state(UINT16 handle, UINT16 codec, UINT8 state, void *param)
     /* layer_specific shall contain return path event! for BTA events!
      * 0 means no return message is expected. */
     p_msg->hdr.layer_specific = 0;
-       if (bt_hc_if)
-       {
-        bt_hc_if->tx_cmd((TRANSAC)p_msg, (char *)(&p_msg->audio), sizeof(*p_msg));
-        }
+    hci->transmit_downward(MSG_STACK_TO_HC_HCI_CMD, p_msg);
     return result;
 }
 
@@ -550,12 +542,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     if((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) || \
        (sub_event == LOCAL_BLE_CONTROLLER_ID))
     {
-        if (bt_hc_if)
-            bt_hc_if->transmit_buf((TRANSAC)p_msg, \
-                                       (char *) (p_msg + 1), \
-                                        p_msg->len);
-        else
-            GKI_freebuf(p_msg);
+        hci->transmit_downward(event, p_msg);
     }
     else
     {
@@ -595,67 +582,17 @@ void bte_main_post_reset_init()
 ** Returns          None
 **
 ******************************************************************************/
-static void preload_cb(TRANSAC transac, bt_hc_preload_result_t result)
+static void preload_cb(bool success)
 {
-    UNUSED(transac);
+    APPL_TRACE_EVENT("HC preload_cb %d [1:SUCCESS 0:FAIL]", success);
 
-    APPL_TRACE_EVENT("HC preload_cb %d [0:SUCCESS 1:FAIL]", result);
-
-    if (result == BT_HC_PRELOAD_SUCCESS)
+    if (success)
     {
         preload_stop_wait_timer();
 
         /* notify BTU task that libbt-hci is ready */
         GKI_send_event(BTU_TASK, BT_EVT_PRELOAD_CMPL);
     }
-}
-
-/******************************************************************************
-**
-** Function         postload_cb
-**
-** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
-**                  when the libbt-hci lib completed stack postload process
-**
-** Returns          None
-**
-******************************************************************************/
-static void postload_cb(TRANSAC transac, bt_hc_postload_result_t result)
-{
-    UNUSED(transac);
-
-    APPL_TRACE_EVENT("HC postload_cb %d", result);
-}
-
-/******************************************************************************
-**
-** Function         lpm_cb
-**
-** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
-**                  back from the libbt-hci to indicate the current LPM state
-**
-** Returns          None
-**
-******************************************************************************/
-static void lpm_cb(bt_hc_lpm_request_result_t result)
-{
-    APPL_TRACE_EVENT("HC lpm_result_cb %d", result);
-    lpm_enabled = (result == BT_HC_LPM_ENABLED) ? TRUE : FALSE;
-}
-
-/******************************************************************************
-**
-** Function         hostwake_ind
-**
-** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
-**                  from the libbt-hci to indicate the HostWake event
-**
-** Returns          None
-**
-******************************************************************************/
-static void hostwake_ind(bt_hc_low_power_event_t event)
-{
-    APPL_TRACE_EVENT("HC hostwake_ind %d", event);
 }
 
 /******************************************************************************
@@ -668,14 +605,8 @@ static void hostwake_ind(bt_hc_low_power_event_t event)
 ** Returns          NULL / pointer to allocated buffer
 **
 ******************************************************************************/
-static char *alloc(int size)
+static void *alloc(size_t size)
 {
-    BT_HDR *p_hdr = NULL;
-
-    /*
-    APPL_TRACE_DEBUG("HC alloc size=%d", size);
-    */
-
     /* Requested buffer size cannot exceed GKI_MAX_BUF_SIZE. */
     if (size > GKI_MAX_BUF_SIZE)
     {
@@ -684,14 +615,14 @@ static char *alloc(int size)
          return NULL;
     }
 
-    p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
+    BT_HDR *p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
 
-    if (p_hdr == NULL)
+    if (!p_hdr)
     {
         APPL_TRACE_WARNING("alloc returns NO BUFFER! (sz %d)", size);
     }
 
-    return ((char *) p_hdr);
+    return p_hdr;
 }
 
 /******************************************************************************
@@ -707,43 +638,13 @@ static char *alloc(int size)
 **                  boundary.
 **
 ******************************************************************************/
-static void dealloc(TRANSAC transac)
+static void dealloc(void *buffer)
 {
-    GKI_freebuf(transac);
+    GKI_freebuf(buffer);
 }
 
-/******************************************************************************
-**
-** Function         data_ind
-**
-** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
-**                  from the libbt-hci to pass in the received HCI packets
-**
-**                  The core stack is responsible for releasing the data buffer
-**                  passed in from the libbt-hci once the core stack has done
-**                  with it.
-**
-**                  Bluedroid libbt-hci library uses 'transac' parameter to
-**                  pass data-path buffer/packet across bt_hci_lib interface
-**                  boundary. The 'p_buf' and 'len' parameters are not intended
-**                  to be used here but might point to data portion in data-
-**                  path buffer and length of valid data respectively.
-**
-** Returns          bt_hc_status_t
-**
-******************************************************************************/
-static int data_ind(TRANSAC transac, char *p_buf, int len)
-{
-    BT_HDR *p_msg = (BT_HDR *) transac;
-    UNUSED(p_buf);
-    UNUSED(len);
-
-    /*
-    APPL_TRACE_DEBUG("HC data_ind event=0x%04X (len=%d)", p_msg->event, len);
-    */
-
-    GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
-    return BT_HC_STATUS_SUCCESS;
+static void dump_upbound_data_to_btu(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, fixed_queue_dequeue(queue));
 }
 
 /******************************************************************************
@@ -766,38 +667,28 @@ static int data_ind(TRANSAC transac, char *p_buf, int len)
 ** Returns          bt_hc_status_t
 **
 ******************************************************************************/
-static int tx_result(TRANSAC transac, char *p_buf, bt_hc_transmit_result_t result)
+static void tx_result(void *p_buf, bool all_fragments_sent)
 {
-    UNUSED(p_buf);
-    /*
-    APPL_TRACE_DEBUG("HC tx_result %d (event=%04X)", result, \
-                      ((BT_HDR *)transac)->event);
-    */
-
-    if (result == BT_HC_TX_FRAGMENT)
+    if (!all_fragments_sent)
     {
-        GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, transac);
+        GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, p_buf);
     }
     else
     {
-        GKI_freebuf(transac);
+        GKI_freebuf(p_buf);
     }
-
-    return BT_HC_STATUS_SUCCESS;
 }
 
 /*****************************************************************************
 **   The libbt-hci Callback Functions Table
 *****************************************************************************/
-static const bt_hc_callbacks_t hc_callbacks = {
-    sizeof(bt_hc_callbacks_t),
+static const hci_callbacks_t hci_callbacks = {
     preload_cb,
-    postload_cb,
-    lpm_cb,
-    hostwake_ind,
-    alloc,
-    dealloc,
-    data_ind,
     tx_result
+};
+
+static const allocator_t buffer_allocator = {
+    alloc,
+    dealloc
 };
 
