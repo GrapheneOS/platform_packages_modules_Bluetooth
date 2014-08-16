@@ -66,6 +66,7 @@ const char* dump_rc_event(UINT8 event);
 const char* dump_rc_notification_event_id(UINT8 event_id);
 const char* dump_rc_pdu(UINT8 pdu);
 
+bool str_is_bdaddr(const char *str);
 bool str2bd(const char *str, bt_bdaddr_t *addr);
 char *bd2str(const bt_bdaddr_t *addr, bdstr_t *bdstr);
 
