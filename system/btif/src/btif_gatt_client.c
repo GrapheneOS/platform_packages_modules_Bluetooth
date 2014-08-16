@@ -579,13 +579,9 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             {
                if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
                {
-                  static const char* exclude_filter[] =
-                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
-
                   btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
                   btif_gattc_update_properties(p_btif_cb);
-                  btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
-                  BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
+
                }
 
             }

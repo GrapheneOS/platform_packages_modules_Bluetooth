@@ -19,35 +19,35 @@ LOCAL_SRC_FILES+= \
 
 # BTIF
 LOCAL_SRC_FILES += \
+    ../btif/src/btif_av.c \
+    ../btif/src/btif_config.c \
+    ../btif/src/btif_config_transcode.cpp \
     ../btif/src/btif_core.c \
     ../btif/src/btif_dm.c \
-    ../btif/src/btif_storage.c \
-    ../btif/src/btif_util.c \
-    ../btif/src/btif_sm.c \
-    ../btif/src/btif_hf.c \
-    ../btif/src/btif_av.c \
-    ../btif/src/btif_rc.c \
-    ../btif/src/btif_mce.c \
-    ../btif/src/btif_media_task.c \
-    ../btif/src/btif_hf_client.c \
-    ../btif/src/btif_hh.c \
-    ../btif/src/btif_hl.c \
-    ../btif/src/btif_sock.c \
-    ../btif/src/btif_sock_rfc.c \
-    ../btif/src/btif_sock_sco.c \
-    ../btif/src/btif_sock_thread.c \
-    ../btif/src/btif_sock_sdp.c \
-    ../btif/src/btif_sock_util.c \
-    ../btif/src/btif_pan.c \
     ../btif/src/btif_gatt.c \
     ../btif/src/btif_gatt_client.c \
     ../btif/src/btif_gatt_multi_adv_util.c \
     ../btif/src/btif_gatt_server.c \
-    ../btif/src/btif_gatt_util.c \
     ../btif/src/btif_gatt_test.c \
-    ../btif/src/btif_config.c \
-    ../btif/src/btif_config_util.cpp \
-    ../btif/src/btif_profile_queue.c
+    ../btif/src/btif_gatt_util.c \
+    ../btif/src/btif_hf.c \
+    ../btif/src/btif_hf_client.c \
+    ../btif/src/btif_hh.c \
+    ../btif/src/btif_hl.c \
+    ../btif/src/btif_mce.c \
+    ../btif/src/btif_media_task.c \
+    ../btif/src/btif_pan.c \
+    ../btif/src/btif_profile_queue.c \
+    ../btif/src/btif_rc.c \
+    ../btif/src/btif_sm.c \
+    ../btif/src/btif_sock.c \
+    ../btif/src/btif_sock_rfc.c \
+    ../btif/src/btif_sock_sco.c \
+    ../btif/src/btif_sock_sdp.c \
+    ../btif/src/btif_sock_thread.c \
+    ../btif/src/btif_sock_util.c \
+    ../btif/src/btif_storage.c \
+    ../btif/src/btif_util.c
 
 # callouts
 LOCAL_SRC_FILES+= \

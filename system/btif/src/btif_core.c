@@ -455,7 +455,6 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         }
     }
     btif_config_set_str("Local", "Adapter", "Address", bdstr);
-    btif_config_save();
 }
 
 /*****************************************************************************
