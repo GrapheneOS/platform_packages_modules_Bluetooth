@@ -53,7 +53,7 @@ bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
     char bd_addr_str[18] = {0};
     bd2str(&bda, &bd_addr_str);
 
-    if (!btif_config_get_int("Remote", bd_addr_str, "DevType", p_device_type))
+    if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type))
         return FALSE;
 
     ALOGD("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
@@ -71,7 +71,7 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     char bd_addr_str[18] = {0};
     bd2str(&bda, &bd_addr_str);
 
-    if (!btif_config_get_int("Remote", bd_addr_str, "AddrType", p_addr_type))
+    if (!btif_config_get_int(bd_addr_str, "AddrType", p_addr_type))
         return FALSE;
 
     ALOGD("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
@@ -131,65 +131,65 @@ void btif_config_cleanup(void) {
   config = NULL;
 }
 
-bool btif_config_has_key(UNUSED_ATTR const char *section, const char *key) {
+bool btif_config_has_section(const char *section) {
   assert(config != NULL);
-  assert(key != NULL);
+  assert(section != NULL);
 
   pthread_mutex_lock(&lock);
-  bool ret = config_has_section(config, key);
+  bool ret = config_has_section(config, section);
   pthread_mutex_unlock(&lock);
 
   return ret;
 }
 
-bool btif_config_exist(UNUSED_ATTR const char *section, const char *key, const char *name) {
+bool btif_config_exist(const char *section, const char *key) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
 
   pthread_mutex_lock(&lock);
-  bool ret = config_has_key(config, key, name);
+  bool ret = config_has_key(config, section, key);
   pthread_mutex_unlock(&lock);
 
   return ret;
 }
 
-bool btif_config_get_int(UNUSED_ATTR const char *section, const char *key, const char *name, int *value) {
+bool btif_config_get_int(const char *section, const char *key, int *value) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
   assert(value != NULL);
 
   pthread_mutex_lock(&lock);
-  bool ret = config_has_key(config, key, name);
+  bool ret = config_has_key(config, section, key);
   if (ret)
-    *value = config_get_int(config, key, name, *value);
+    *value = config_get_int(config, section, key, *value);
   pthread_mutex_unlock(&lock);
 
   return ret;
 }
 
-bool btif_config_set_int(UNUSED_ATTR const char *section, const char *key, const char *name, int value) {
+bool btif_config_set_int(const char *section, const char *key, int value) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
 
   pthread_mutex_lock(&lock);
-  config_set_int(config, key, name, value);
+  config_set_int(config, section, key, value);
   pthread_mutex_unlock(&lock);
 
   return true;
 }
 
-bool btif_config_get_str(UNUSED_ATTR const char *section, const char *key, const char *name, char *value, int *length) {
+bool btif_config_get_str(const char *section, const char *key, char *value, int *length) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
   assert(value != NULL);
   assert(length != NULL);
 
   pthread_mutex_lock(&lock);
-  const char *stored_value = config_get_string(config, key, name, NULL);
+  const char *stored_value = config_get_string(config, section, key, NULL);
   pthread_mutex_unlock(&lock);
 
   if (!stored_value)
@@ -201,28 +201,28 @@ bool btif_config_get_str(UNUSED_ATTR const char *section, const char *key, const
   return true;
 }
 
-bool btif_config_set_str(UNUSED_ATTR const char *section, const char *key, const char *name, const char *value) {
+bool btif_config_set_str(const char *section, const char *key, const char *value) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
   assert(value != NULL);
 
   pthread_mutex_lock(&lock);
-  config_set_string(config, key, name, value);
+  config_set_string(config, section, key, value);
   pthread_mutex_unlock(&lock);
 
   return true;
 }
 
-bool btif_config_get_bin(UNUSED_ATTR const char *section, const char *key, const char *name, uint8_t *value, size_t *length) {
+bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, size_t *length) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
   assert(value != NULL);
   assert(length != NULL);
 
   pthread_mutex_lock(&lock);
-  const char *value_str = config_get_string(config, key, name, NULL);
+  const char *value_str = config_get_string(config, section, key, NULL);
   pthread_mutex_unlock(&lock);
 
   if (!value_str)
@@ -242,13 +242,13 @@ bool btif_config_get_bin(UNUSED_ATTR const char *section, const char *key, const
   return true;
 }
 
-size_t btif_config_get_bin_length(UNUSED_ATTR const char *section, const char *key, const char *name) {
+size_t btif_config_get_bin_length(const char *section, const char *key) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
 
   pthread_mutex_lock(&lock);
-  const char *value_str = config_get_string(config, key, name, NULL);
+  const char *value_str = config_get_string(config, section, key, NULL);
   pthread_mutex_unlock(&lock);
 
   if (!value_str)
@@ -258,12 +258,12 @@ size_t btif_config_get_bin_length(UNUSED_ATTR const char *section, const char *k
   return ((value_len % 2) != 0) ? 0 : (value_len / 2);
 }
 
-bool btif_config_set_bin(UNUSED_ATTR const char *section, const char *key, const char *name, const uint8_t *value, size_t length) {
+bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length) {
   static const char *lookup = "0123456789abcdef";
 
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
   assert(value != NULL);
 
   char *str = (char *)calloc(length * 2 + 1, 1);
@@ -276,7 +276,7 @@ bool btif_config_set_bin(UNUSED_ATTR const char *section, const char *key, const
   }
 
   pthread_mutex_lock(&lock);
-  config_set_string(config, key, name, str);
+  config_set_string(config, section, key, str);
   pthread_mutex_unlock(&lock);
 
   free(str);
@@ -305,13 +305,13 @@ const char *btif_config_section_name(const btif_config_section_iter_t *section) 
   return config_section_name((const config_section_node_t *)section);
 }
 
-bool btif_config_remove(UNUSED_ATTR const char *section, const char *key, const char *name) {
+bool btif_config_remove(const char *section, const char *key) {
   assert(config != NULL);
+  assert(section != NULL);
   assert(key != NULL);
-  assert(name != NULL);
 
   pthread_mutex_lock(&lock);
-  bool ret = config_remove_key(config, key, name);
+  bool ret = config_remove_key(config, section, key);
   pthread_mutex_unlock(&lock);
 
   return ret;

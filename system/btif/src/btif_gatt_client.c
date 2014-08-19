@@ -2093,7 +2093,7 @@ static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
     char bd_addr_str[18] = {0};
 
     bd2str(bd_addr, &bd_addr_str);
-    if (btif_config_get_int("Remote", bd_addr_str, "DevType", &device_type))
+    if (btif_config_get_int(bd_addr_str, "DevType", &device_type))
         return device_type;
     return 0;
 }

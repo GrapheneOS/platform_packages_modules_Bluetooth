@@ -28,17 +28,17 @@ typedef struct btif_config_section_iter_t btif_config_section_iter_t;
 bool btif_config_init(void);
 void btif_config_cleanup(void);
 
-bool btif_config_has_key(const char *section, const char *key);
-bool btif_config_exist(const char *section, const char *key, const char *name);
-bool btif_config_get_int(const char *section, const char *key, const char *name, int *value);
-bool btif_config_set_int(const char *section, const char *key, const char *name, int value);
-bool btif_config_get_str(const char *section, const char *key, const char *name, char *value, int *length);
-bool btif_config_set_str(const char *section, const char *key, const char *name, const char *value);
-bool btif_config_get_bin(const char *section, const char *key, const char *name, uint8_t *value, size_t *length);
-bool btif_config_set_bin(const char *section, const char *key, const char *name, const uint8_t *value, size_t length);
-bool btif_config_remove(const char *section, const char *key, const char *name);
+bool btif_config_has_section(const char *section);
+bool btif_config_exist(const char *section, const char *key);
+bool btif_config_get_int(const char *section, const char *key, int *value);
+bool btif_config_set_int(const char *section, const char *key, int value);
+bool btif_config_get_str(const char *section, const char *key, char *value, int *length);
+bool btif_config_set_str(const char *section, const char *key, const char *value);
+bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, size_t *length);
+bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length);
+bool btif_config_remove(const char *section, const char *key);
 
-size_t btif_config_get_bin_length(const char *section, const char *key, const char *name);
+size_t btif_config_get_bin_length(const char *section, const char *key);
 
 const btif_config_section_iter_t *btif_config_section_begin(void);
 const btif_config_section_iter_t *btif_config_section_end(void);

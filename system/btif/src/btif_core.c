@@ -398,7 +398,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     if(!valid_bda)
     {
         val_size = sizeof(val);
-        if(btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
+        if(btif_config_get_str("Adapter", "Address", val, &val_size))
         {
             str2bd(val, local_addr);
             BTIF_TRACE_DEBUG("local bdaddr from bt_config.xml is  %s", val);
@@ -446,7 +446,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     bdstr_t bdstr;
     bd2str(local_addr, &bdstr);
     val_size = sizeof(val);
-    if (btif_config_get_str("Local", "Adapter", "Address", val, &val_size))
+    if (btif_config_get_str("Adapter", "Address", val, &val_size))
     {
         if (strcmp(bdstr, val) ==0)
         {
@@ -454,7 +454,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
             return;
         }
     }
-    btif_config_set_str("Local", "Adapter", "Address", bdstr);
+    btif_config_set_str("Adapter", "Address", bdstr);
 }
 
 /*****************************************************************************
@@ -588,7 +588,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 
         //save the bd address to config file
         bd2str(&btif_local_bd_addr, &buf);
-        btif_config_set_str("Local", "Adapter", "Address", buf);
+        btif_config_set_str("Adapter", "Address", buf);
         btif_config_save();
 
         //fire HAL callback for property change

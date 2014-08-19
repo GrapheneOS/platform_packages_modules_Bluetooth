@@ -410,7 +410,7 @@ BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
         {
             bdstr_t bdstr;
             bd2str(remote_bdaddr, &bdstr);
-            if(btif_config_exist("Remote", bdstr, "HidAppId"))
+            if(btif_config_exist(bdstr, "HidAppId"))
                 return TRUE;
         }
     }
@@ -638,16 +638,16 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transpor
     bd2str(bd_addr, &bdstr);
     if (transport == BT_TRANSPORT_LE)
     {
-        if (!btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type))
+        if (!btif_config_get_int((char const *)&bdstr,"DevType", &device_type))
         {
-            btif_config_set_int("Remote", bdstr, "DevType", BT_DEVICE_TYPE_BLE);
+            btif_config_set_int(bdstr, "DevType", BT_DEVICE_TYPE_BLE);
         }
         if (btif_storage_get_remote_addr_type(bd_addr, &addr_type) != BT_STATUS_SUCCESS)
         {
             btif_storage_set_remote_addr_type(bd_addr, BLE_ADDR_PUBLIC);
         }
     }
-    if((btif_config_get_int("Remote", (char const *)&bdstr,"DevType", &device_type) &&
+    if((btif_config_get_int((char const *)&bdstr,"DevType", &device_type) &&
        (btif_storage_get_remote_addr_type(bd_addr, &addr_type) == BT_STATUS_SUCCESS) &&
        (device_type == BT_DEVICE_TYPE_BLE)) || (transport == BT_TRANSPORT_LE))
     {
