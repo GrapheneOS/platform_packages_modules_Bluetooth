@@ -37,6 +37,7 @@
 #include <cutils/properties.h>
 
 #define LOG_TAG "BTIF_CORE"
+#include "bdaddr.h"
 #include "btif_api.h"
 #include "bt_utils.h"
 #include "bta_api.h"
@@ -381,7 +382,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         {
             memset(val, 0, sizeof(val));
             read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
-            str2bd(val, local_addr);
+            string_to_bdaddr(val, local_addr);
             /* If this is not a reserved/special bda, then use it */
             if (memcmp(local_addr->address, null_bdaddr, BD_ADDR_LEN) != 0)
             {
@@ -400,7 +401,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         val_size = sizeof(val);
         if(btif_config_get_str("Adapter", "Address", val, &val_size))
         {
-            str2bd(val, local_addr);
+            string_to_bdaddr(val, local_addr);
             BTIF_TRACE_DEBUG("local bdaddr from bt_config.xml is  %s", val);
             return;
         }
@@ -410,7 +411,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     if ((!valid_bda) && \
         (property_get(PERSIST_BDADDR_PROPERTY, val, NULL)))
     {
-        str2bd(val, local_addr);
+        string_to_bdaddr(val, local_addr);
         valid_bda = TRUE;
         BTIF_TRACE_DEBUG("Got prior random BDA %02X:%02X:%02X:%02X:%02X:%02X",
             local_addr->address[0], local_addr->address[1], local_addr->address[2],
@@ -433,7 +434,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         local_addr->address[5] = (uint8_t) ((rand() >> 8) & 0xFF);
 
         /* Convert to ascii, and store as a persistent property */
-        bd2str(local_addr, &bdstr);
+        bdaddr_to_string(local_addr, bdstr, sizeof(bdstr));
 
         BTIF_TRACE_DEBUG("No preset BDA. Generating BDA: %s for prop %s",
              (char*)bdstr, PERSIST_BDADDR_PROPERTY);
@@ -444,7 +445,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 
     //save the bd address to config file
     bdstr_t bdstr;
-    bd2str(local_addr, &bdstr);
+    bdaddr_to_string(local_addr, bdstr, sizeof(bdstr));
     val_size = sizeof(val);
     if (btif_config_get_str("Adapter", "Address", val, &val_size))
     {
@@ -561,7 +562,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 
     bdcpy(bd_addr.address, local_bd);
     BTIF_TRACE_DEBUG("%s: status %d, local bd [%s]", __FUNCTION__, status,
-                                                     bd2str(&bd_addr, &bdstr));
+                                                     bdaddr_to_string(&bd_addr, bdstr, sizeof(bdstr)));
 
     if (bdcmp(btif_local_bd_addr.address,local_bd))
     {
@@ -587,7 +588,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         bdcpy(btif_local_bd_addr.address, local_bd);
 
         //save the bd address to config file
-        bd2str(&btif_local_bd_addr, &buf);
+        bdaddr_to_string(&btif_local_bd_addr, buf, sizeof(buf));
         btif_config_set_str("Adapter", "Address", buf);
         btif_config_save();
 

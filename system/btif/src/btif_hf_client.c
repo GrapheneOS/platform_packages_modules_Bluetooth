@@ -37,6 +37,7 @@
 #include "btif_profile_queue.h"
 #include "bt_utils.h"
 #include "bd.h"
+#include "bdaddr.h"
 #include "bta_hf_client_api.h"
 
 /************************************************************************************
@@ -765,7 +766,7 @@ static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
             else
             {
                 BTIF_TRACE_WARNING("%s: HF CLient open failed, but another device connected. status=%d state=%d connected device=%s",
-                        __FUNCTION__, p_data->open.status, btif_hf_client_cb.state, bd2str(&btif_hf_client_cb.connected_bda, &bdstr));
+                        __FUNCTION__, p_data->open.status, btif_hf_client_cb.state, bdaddr_to_string(&btif_hf_client_cb.connected_bda, bdstr, sizeof(bdstr)));
                 break;
             }
 

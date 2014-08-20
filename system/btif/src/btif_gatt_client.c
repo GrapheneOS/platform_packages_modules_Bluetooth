@@ -33,6 +33,7 @@
 
 #define LOG_TAG "BtGatt.btif"
 
+#include "bdaddr.h"
 #include "btif_common.h"
 #include "btif_util.h"
 
@@ -2092,7 +2093,7 @@ static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
     int device_type = 0;
     char bd_addr_str[18] = {0};
 
-    bd2str(bd_addr, &bd_addr_str);
+    bdaddr_to_string(bd_addr, bd_addr_str, sizeof(bd_addr_str));
     if (btif_config_get_int(bd_addr_str, "DevType", &device_type))
         return device_type;
     return 0;

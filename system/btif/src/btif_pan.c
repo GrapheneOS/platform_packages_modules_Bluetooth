@@ -51,6 +51,7 @@
 #include "btif_util.h"
 #include "btm_api.h"
 #include "bd.h"
+#include "bdaddr.h"
 
 #include "bta_api.h"
 #include "bta_pan_api.h"
@@ -595,7 +596,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn;
                 bdstr_t bds;
-                bd2str((bt_bdaddr_t*)p_data->opening.bd_addr, &bds);
+                bdaddr_to_string((bt_bdaddr_t *)p_data->opening.bd_addr, bds, sizeof(bds));
                 BTIF_TRACE_DEBUG("BTA_PAN_OPENING_EVT handle %d, addr: %s", p_data->opening.handle, bds);
                 conn = btpan_find_conn_addr(p_data->opening.bd_addr);
 

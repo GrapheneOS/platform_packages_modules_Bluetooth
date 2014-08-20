@@ -35,6 +35,7 @@
 #include "gki.h"
 #include "btu.h"
 #include "bd.h"
+#include "bdaddr.h"
 #include "bta_api.h"
 #include "btif_api.h"
 #include "btif_util.h"
@@ -409,7 +410,7 @@ BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
         if (remote_dev_type == BT_DEVICE_DEVTYPE_BLE)
         {
             bdstr_t bdstr;
-            bd2str(remote_bdaddr, &bdstr);
+            bdaddr_to_string(remote_bdaddr, bdstr, sizeof(bdstr));
             if(btif_config_exist(bdstr, "HidAppId"))
                 return TRUE;
         }
@@ -512,7 +513,7 @@ static void btif_update_remote_version_property(bt_bdaddr_t *p_bd)
     btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)p_bd, &lmp_ver,
                           &mfct_set, &lmp_subver);
 
-    ALOGD("remote version info [%s]: %x, %x, %x", bd2str(p_bd, &bdstr),
+    ALOGD("remote version info [%s]: %x, %x, %x", bdaddr_to_string(p_bd, bdstr, sizeof(bdstr)),
                lmp_ver, mfct_set, lmp_subver);
 
     if (btm_status == BTM_SUCCESS)
@@ -635,7 +636,7 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transpor
     int device_type;
     int addr_type;
     bdstr_t bdstr;
-    bd2str(bd_addr, &bdstr);
+    bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr));
     if (transport == BT_TRANSPORT_LE)
     {
         if (!btif_config_get_int((char const *)&bdstr,"DevType", &device_type))
@@ -1235,7 +1236,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             p_search_data = (tBTA_DM_SEARCH *)p_param;
             bdcpy(bdaddr.address, p_search_data->inq_res.bd_addr);
 
-            BTIF_TRACE_DEBUG("%s() %s device_type = 0x%x\n", __FUNCTION__, bd2str(&bdaddr, &bdstr),
+            BTIF_TRACE_DEBUG("%s() %s device_type = 0x%x\n", __FUNCTION__, bdaddr_to_string(&bdaddr, bdstr, sizeof(bdstr)),
 #if (BLE_INCLUDED == TRUE)
                     p_search_data->inq_res.device_type);
 #else
@@ -2272,8 +2273,7 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
     bdcpy(create_bond_cb.bdaddr.address, bd_addr->address);
 
     bdstr_t bdstr;
-    BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __FUNCTION__,
-            bd2str((bt_bdaddr_t *) bd_addr, &bdstr), transport);
+    BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)), transport);
     if (pairing_cb.state != BT_BOND_STATE_NONE)
         return BT_STATUS_BUSY;
 
@@ -2297,7 +2297,7 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
 
     /* TODO:
     **  1. Restore scan modes
@@ -2386,7 +2386,7 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bd2str((bt_bdaddr_t *)bd_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_REMOVE_BOND,
                           (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
 
@@ -2544,7 +2544,7 @@ bt_status_t btif_dm_get_remote_services(bt_bdaddr_t *remote_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bd2str(remote_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bdaddr_to_string(remote_addr, bdstr, sizeof(bdstr)));
 
     BTA_DmDiscover(remote_addr->address, BTA_ALL_SERVICE_MASK,
                    bte_dm_search_services_evt, TRUE);
@@ -2567,7 +2567,7 @@ bt_status_t btif_dm_get_remote_service_record(bt_bdaddr_t *remote_addr,
     tSDP_UUID sdp_uuid;
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bd2str(remote_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bdaddr_to_string(remote_addr, bdstr, sizeof(bdstr)));
 
     sdp_uuid.len = MAX_UUID_SIZE;
     memcpy(sdp_uuid.uu.uuid128, uuid->uu, MAX_UUID_SIZE);

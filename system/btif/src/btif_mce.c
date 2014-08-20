@@ -38,6 +38,7 @@
 #include "bta_mce_api.h"
 
 #include "bd.h"
+#include "bdaddr.h"
 
 /*****************************************************************************
 **  Static variables
@@ -133,7 +134,7 @@ static bt_status_t get_remote_mas_instances(bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bd2str(bd_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
 
     BTA_MceGetRemoteMasInstances(bd_addr->address);
 

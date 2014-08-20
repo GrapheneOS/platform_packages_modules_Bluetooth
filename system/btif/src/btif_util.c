@@ -81,39 +81,6 @@
 **   Logging helper functions
 *****************************************************************************/
 
-bool str_is_bdaddr(const char *string) {
-  size_t len = strlen(string);
-  if (len != 17)
-    return false;
-
-  for (size_t i = 0; i < len; ++i) {
-    // Every 3rd char must be ':'.
-    if (((i + 1) % 3) == 0 && string[i] != ':')
-      return false;
-
-    // All other chars must be a hex digit.
-    if (((i + 1) % 3) != 0 && !isxdigit(string[i]))
-      return false;
-  }
-  return true;
-}
-
-bool str2bd(const char *str, bt_bdaddr_t *addr) {
-  uint8_t *ptr = addr->address;
-  return sscanf(str, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx",
-      &ptr[0], &ptr[1], &ptr[2], &ptr[3], &ptr[4], &ptr[5]) == 6;
-}
-
-char *bd2str(const bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
-{
-    const uint8_t *addr = bdaddr->address;
-
-    sprintf(*bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
-             addr[0], addr[1], addr[2],
-             addr[3], addr[4], addr[5]);
-    return *bdstr;
-}
-
 UINT32 devclass2uint(DEV_CLASS dev_class)
 {
     UINT32 cod = 0;

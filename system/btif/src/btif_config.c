@@ -26,6 +26,7 @@
 #include <utils/Log.h>
 
 #include "alarm.h"
+#include "bdaddr.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
@@ -50,8 +51,8 @@ bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
 
-    char bd_addr_str[18] = {0};
-    bd2str(&bda, &bd_addr_str);
+    bdstr_t bd_addr_str;
+    bdaddr_to_string(&bda, bd_addr_str, sizeof(bd_addr_str));
 
     if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type))
         return FALSE;
@@ -68,8 +69,8 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
 
-    char bd_addr_str[18] = {0};
-    bd2str(&bda, &bd_addr_str);
+    bdstr_t bd_addr_str;
+    bdaddr_to_string(&bda, bd_addr_str, sizeof(bd_addr_str));
 
     if (!btif_config_get_int(bd_addr_str, "AddrType", p_addr_type))
         return FALSE;
@@ -353,7 +354,7 @@ static void timer_config_save(UNUSED_ATTR void *data) {
   pthread_mutex_lock(&lock);
   for (const config_section_node_t *snode = config_section_begin(config); snode != config_section_end(config); snode = config_section_next(snode)) {
     const char *section = config_section_name(snode);
-    if (!str_is_bdaddr(section))
+    if (!string_is_bdaddr(section))
       continue;
 
     if (config_has_key(config, section, "LinkKey") ||
