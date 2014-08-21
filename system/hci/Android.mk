@@ -7,6 +7,9 @@ LOCAL_CFLAGS += $(bdroid_CFLAGS)
 LOCAL_SRC_FILES := \
     src/btsnoop.c \
     src/btsnoop_net.c \
+    src/hci_hal.c \
+    src/hci_hal_h4.c \
+    src/hci_hal_mct.c \
     src/hci_inject.c \
     src/hci_layer.c \
     src/low_power_manager.c \
@@ -16,17 +19,7 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS := -Wno-unused-parameter
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
-
 LOCAL_CFLAGS += -DHCI_USE_MCT
-
-LOCAL_SRC_FILES += \
-    src/hci_mct.c \
-    src/userial_mct.c
-
-else
-LOCAL_SRC_FILES += \
-    src/hci_hal_h4.c
-
 endif
 
 LOCAL_CFLAGS += -std=c99
@@ -65,9 +58,11 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
     ../osi/test/AlarmTestHarness.cpp \
     ./test/hci_hal_h4_test.cpp \
+    ./test/hci_hal_mct_test.cpp \
     ./test/hci_layer_test.cpp \
     ./test/low_power_manager_test.cpp \
     ./test/packet_fragmenter_test.cpp
+
 
 LOCAL_CFLAGS := -Wall -Werror
 LOCAL_MODULE := libbt-hcitests

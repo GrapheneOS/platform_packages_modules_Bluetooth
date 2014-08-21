@@ -38,19 +38,20 @@ DECLARE_TEST_MODES(
   close_fn,
   transmit,
   read_synchronous,
-  read_async_reentry,
-  type_byte_only
+  read_async_reentry
 );
 
 static char sample_data1[100] = "A point is that which has no part.";
 static char sample_data2[100] = "A line is breadthless length.";
 static char sample_data3[100] = "The ends of a line are points.";
 static char acl_data[100] =     "A straight line is a line which lies evenly with the points on itself.";
-static char sco_data[100] =     "A surface is that which has length and breadth only.";
 static char event_data[100] =   "The edges of a surface are lines.";
 
 static const hci_hal_interface_t *hal;
-static int dummy_serial_fd;
+static int command_out_fd;
+static int acl_out_fd;
+static int acl_in_fd;
+static int event_in_fd;
 static int reentry_i = 0;
 
 static semaphore_t *done;
@@ -68,9 +69,11 @@ static void expect_packet_synchronous(serial_data_type_t type, char *packet_data
 STUB_FUNCTION(int, vendor_send_command, (vendor_opcode_t opcode, void *param))
   DURING(open) AT_CALL(0) {
     EXPECT_EQ(VENDOR_OPEN_USERIAL, opcode);
-    // Give back the dummy fd and the number 1 to say we opened 1 port
-    ((int *)param)[0] = dummy_serial_fd;
-    return 1;
+    ((int *)param)[CH_CMD] = command_out_fd;
+    ((int *)param)[CH_ACL_OUT] = acl_out_fd;
+    ((int *)param)[CH_ACL_IN] = acl_in_fd;
+    ((int *)param)[CH_EVT] = event_in_fd;
+    return 4;
   }
 
   DURING(close_fn) AT_CALL(0) {
@@ -87,14 +90,10 @@ STUB_FUNCTION(void, data_ready_callback, (serial_data_type_t type))
     AT_CALL(0) {
       EXPECT_EQ(DATA_TYPE_ACL, type);
       expect_packet_synchronous(type, acl_data);
+      semaphore_post(done);
       return;
     }
     AT_CALL(1) {
-      EXPECT_EQ(DATA_TYPE_SCO, type);
-      expect_packet_synchronous(type, sco_data);
-      return;
-    }
-    AT_CALL(2) {
       EXPECT_EQ(DATA_TYPE_EVENT, type);
       expect_packet_synchronous(type, event_data);
       semaphore_post(done);
@@ -127,15 +126,22 @@ static void reset_for(TEST_MODES_T next) {
   CURRENT_TEST_MODE = next;
 }
 
-class HciHalH4Test : public ::testing::Test {
+class HciHalMctTest : public ::testing::Test {
   protected:
     virtual void SetUp() {
-      hal = hci_hal_h4_get_test_interface(&vendor);
+      hal = hci_hal_mct_get_test_interface(&vendor);
       vendor.send_command = vendor_send_command;
       callbacks.data_ready = data_ready_callback;
 
-      socketpair(AF_LOCAL, SOCK_STREAM, 0, sockfd);
-      dummy_serial_fd = sockfd[0];
+      socketpair(AF_LOCAL, SOCK_STREAM, 0, command_sockfd);
+      socketpair(AF_LOCAL, SOCK_STREAM, 0, event_sockfd);
+      socketpair(AF_LOCAL, SOCK_STREAM, 0, acl_in_sockfd);
+      socketpair(AF_LOCAL, SOCK_STREAM, 0, acl_out_sockfd);
+      command_out_fd = command_sockfd[0];
+      acl_out_fd = acl_out_sockfd[0];
+      acl_in_fd = acl_in_sockfd[0];
+      event_in_fd = event_sockfd[0];
+
       done = semaphore_new(0);
       thread = thread_new("hal_test");
 
@@ -156,14 +162,17 @@ class HciHalH4Test : public ::testing::Test {
       thread_free(thread);
     }
 
-    int sockfd[2];
+    int command_sockfd[2];
+    int event_sockfd[2];
+    int acl_in_sockfd[2];
+    int acl_out_sockfd[2];
     vendor_interface_t vendor;
     thread_t *thread;
     hci_hal_callbacks_t callbacks;
 };
 
-static void expect_socket_data(int fd, char first_byte, char *data) {
-  int length = strlen(data) + 1; // + 1 for data type code
+static void expect_socket_data(int fd, char *data) {
+  int length = strlen(data);
   int i;
 
   for (i = 0; i < length; i++) {
@@ -175,18 +184,15 @@ static void expect_socket_data(int fd, char first_byte, char *data) {
     char byte;
     read(fd, &byte, 1);
 
-    EXPECT_EQ(i == 0 ? first_byte : data[i - 1], byte);
+    EXPECT_EQ(data[i], byte);
   }
 }
 
-static void write_packet(int fd, char first_byte, char *data) {
-  write(fd, &first_byte, 1);
+static void write_packet(int fd, char *data) {
   write(fd, data, strlen(data));
 }
 
-static void write_packet_reentry(int fd, char first_byte, char *data) {
-  write(fd, &first_byte, 1);
-
+static void write_packet_reentry(int fd, char *data) {
   int length = strlen(data);
   for (int i = 0; i < length; i++) {
     write(fd, &data[i], 1);
@@ -194,63 +200,38 @@ static void write_packet_reentry(int fd, char first_byte, char *data) {
   }
 }
 
-TEST_F(HciHalH4Test, test_transmit) {
+TEST_F(HciHalMctTest, test_transmit) {
   reset_for(transmit);
 
   // Send a command packet
-  hal->transmit_data(DATA_TYPE_COMMAND, (uint8_t *)(sample_data1 + 1), strlen(sample_data1 + 1));
-  expect_socket_data(sockfd[1], DATA_TYPE_COMMAND, sample_data1 + 1);
+  hal->transmit_data(DATA_TYPE_COMMAND, (uint8_t *)(sample_data1), strlen(sample_data1));
+  expect_socket_data(command_sockfd[1], sample_data1);
 
   // Send an acl packet
-  hal->transmit_data(DATA_TYPE_ACL, (uint8_t *)(sample_data2 + 1), strlen(sample_data2 + 1));
-  expect_socket_data(sockfd[1], DATA_TYPE_ACL, sample_data2 + 1);
-
-  // Send an sco packet
-  hal->transmit_data(DATA_TYPE_SCO, (uint8_t *)(sample_data3 + 1), strlen(sample_data3 + 1));
-  expect_socket_data(sockfd[1], DATA_TYPE_SCO, sample_data3 + 1);
+  hal->transmit_data(DATA_TYPE_ACL, (uint8_t *)(sample_data2), strlen(sample_data2));
+  expect_socket_data(acl_out_sockfd[1], sample_data2);
 }
 
-TEST_F(HciHalH4Test, test_read_synchronous) {
+TEST_F(HciHalMctTest, test_read_synchronous) {
   reset_for(read_synchronous);
 
-  write_packet(sockfd[1], DATA_TYPE_ACL, acl_data);
-  write_packet(sockfd[1], DATA_TYPE_SCO, sco_data);
-  write_packet(sockfd[1], DATA_TYPE_EVENT, event_data);
-
-  // Wait for all data to be received before calling the test good
+  write_packet(acl_in_sockfd[1], acl_data);
   semaphore_wait(done);
-  EXPECT_CALL_COUNT(data_ready_callback, 3);
+
+  write_packet(event_sockfd[1], event_data);
+  semaphore_wait(done);
+
+  EXPECT_CALL_COUNT(data_ready_callback, 2);
 }
 
-TEST_F(HciHalH4Test, test_read_async_reentry) {
+TEST_F(HciHalMctTest, test_read_async_reentry) {
   reset_for(read_async_reentry);
 
   reentry_semaphore = semaphore_new(0);
   reentry_i = 0;
 
-  write_packet_reentry(sockfd[1], DATA_TYPE_ACL, sample_data3);
+  write_packet_reentry(acl_in_sockfd[1], sample_data3);
 
   // write_packet_reentry ensures the data has been received
   semaphore_free(reentry_semaphore);
-}
-
-TEST_F(HciHalH4Test, test_type_byte_only_must_not_signal_data_ready) {
-  reset_for(type_byte_only);
-
-  char byte = DATA_TYPE_ACL;
-  write(sockfd[1], &byte, 1);
-
-  fd_set read_fds;
-
-  // Wait until the byte we wrote was picked up
-  do {
-    FD_ZERO(&read_fds);
-    FD_SET(sockfd[0], &read_fds);
-
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-
-    select(sockfd[0] + 1, &read_fds, NULL, NULL, &timeout);
-  } while(FD_ISSET(sockfd[0], &read_fds));
 }

@@ -55,6 +55,7 @@ static bool hal_init(const hci_hal_callbacks_t *upper_callbacks, thread_t *upper
 }
 
 static bool hal_open() {
+  ALOGI("%s", __func__);
   // TODO(zachoverflow): close if already open / or don't reopen (maybe at the hci layer level)
 
   int fd_array[CH_MAX];
@@ -88,6 +89,8 @@ error:
 }
 
 static void hal_close() {
+  ALOGI("%s", __func__);
+
   eager_reader_free(uart_stream);
   vendor->send_command(VENDOR_CLOSE_USERIAL, NULL);
 }
@@ -213,12 +216,12 @@ static const hci_hal_interface_t interface = {
   transmit_data,
 };
 
-const hci_hal_interface_t *hci_hal_get_interface() {
+const hci_hal_interface_t *hci_hal_h4_get_interface() {
   vendor = vendor_get_interface();
   return &interface;
 }
 
-const hci_hal_interface_t *hci_hal_get_test_interface(vendor_interface_t *vendor_interface) {
+const hci_hal_interface_t *hci_hal_h4_get_test_interface(vendor_interface_t *vendor_interface) {
   vendor = vendor_interface;
   return &interface;
 }

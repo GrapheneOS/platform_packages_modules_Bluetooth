@@ -79,6 +79,11 @@ typedef struct hci_hal_interface_t {
   uint16_t (*transmit_data)(serial_data_type_t type, uint8_t *data, uint16_t length);
 } hci_hal_interface_t;
 
-const hci_hal_interface_t *hci_hal_get_interface();
-const hci_hal_interface_t *hci_hal_get_test_interface(vendor_interface_t *vendor_interface);
+// Gets the correct hal implementation, as compiled for.
+const hci_hal_interface_t *hci_hal_get_interface(void);
 
+const hci_hal_interface_t *hci_hal_h4_get_interface(void);
+const hci_hal_interface_t *hci_hal_h4_get_test_interface(vendor_interface_t *vendor_interface);
+
+const hci_hal_interface_t *hci_hal_mct_get_interface(void);
+const hci_hal_interface_t *hci_hal_mct_get_test_interface(vendor_interface_t *vendor_interface);
