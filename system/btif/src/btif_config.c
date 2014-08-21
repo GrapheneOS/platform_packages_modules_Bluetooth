@@ -271,8 +271,8 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
     return false;
 
   for (size_t i = 0; i < length; ++i) {
-    str[(i * 2) + 0] = lookup[(value[i] >> 0) & 0x0F];
-    str[(i * 2) + 1] = lookup[(value[i] >> 4) & 0x0F];
+    str[(i * 2) + 0] = lookup[(value[i] >> 4) & 0x0F];
+    str[(i * 2) + 1] = lookup[(value[i] >> 0) & 0x0F];
   }
 
   pthread_mutex_lock(&lock);
