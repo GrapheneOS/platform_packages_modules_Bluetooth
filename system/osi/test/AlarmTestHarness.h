@@ -18,11 +18,13 @@
 
 #pragma once
 
-extern int lock_count;
 extern int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS;
 
 class AlarmTestHarness : public ::testing::Test {
   protected:
     virtual void SetUp();
     virtual void TearDown();
+
+  public:
+    int lock_count;
 };

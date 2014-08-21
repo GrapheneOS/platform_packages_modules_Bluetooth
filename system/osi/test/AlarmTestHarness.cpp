@@ -25,13 +25,14 @@
 static timer_t timer;
 static alarm_cb saved_callback;
 static void *saved_data;
-int lock_count;
+static AlarmTestHarness *current_harness;
 
 static void timer_callback(void *) {
   saved_callback(saved_data);
 }
 
 void AlarmTestHarness::SetUp() {
+  current_harness = this;
   TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 100;
   lock_count = 0;
 
@@ -60,14 +61,14 @@ static bool set_wake_alarm(uint64_t delay_millis, bool, alarm_cb cb, void *data)
 }
 
 static int acquire_wake_lock(const char *) {
-  if (!lock_count)
-    lock_count = 1;
+  if (!current_harness->lock_count)
+    current_harness->lock_count = 1;
   return BT_STATUS_SUCCESS;
 }
 
 static int release_wake_lock(const char *) {
-  if (lock_count)
-    lock_count = 0;
+  if (current_harness->lock_count)
+    current_harness->lock_count = 0;
   return BT_STATUS_SUCCESS;
 }
 
