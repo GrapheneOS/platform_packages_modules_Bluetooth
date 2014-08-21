@@ -30,9 +30,7 @@
 struct data_dispatcher_t {
   char *name;
   hash_map_t *dispatch_table;
-  // We don't own these queues, so don't free them
-  fixed_queue_t *zero_queue;
-  fixed_queue_t *default_queue;
+  fixed_queue_t *default_queue; // We don't own this queue
 };
 
 static hash_index_t default_hash_function(const void *key);
@@ -80,13 +78,9 @@ void data_dispatcher_free(data_dispatcher_t *dispatcher) {
 void data_dispatcher_register(data_dispatcher_t *dispatcher, data_dispatcher_type_t type, fixed_queue_t *queue) {
   assert(dispatcher != NULL);
 
-  if (type == 0) {
-    dispatcher->zero_queue = queue;
-  } else {
-    hash_map_erase(dispatcher->dispatch_table, (void *)type);
-    if (queue)
-      hash_map_set(dispatcher->dispatch_table, (void *)type, queue);
-  }
+  hash_map_erase(dispatcher->dispatch_table, (void *)type);
+  if (queue)
+    hash_map_set(dispatcher->dispatch_table, (void *)type, queue);
 }
 
 void data_dispatcher_register_default(data_dispatcher_t *dispatcher, fixed_queue_t *queue) {
@@ -99,7 +93,7 @@ bool data_dispatcher_dispatch(data_dispatcher_t *dispatcher, data_dispatcher_typ
   assert(dispatcher != NULL);
   assert(data != NULL);
 
-  fixed_queue_t *queue = (type == 0) ? dispatcher->zero_queue : hash_map_get(dispatcher->dispatch_table, (void *)type);
+  fixed_queue_t *queue = hash_map_get(dispatcher->dispatch_table, (void *)type);
   if (!queue)
     queue = dispatcher->default_queue;
 
