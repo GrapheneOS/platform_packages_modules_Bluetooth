@@ -67,7 +67,7 @@ static bool hal_open() {
   }
 
   uart_fd = fd_array[0];
-  if (uart_fd == -1) {
+  if (uart_fd == INVALID_FD) {
     ALOGE("%s unable to open the uart serial port.", __func__);
     goto error;
   }
@@ -93,6 +93,7 @@ static void hal_close() {
 
   eager_reader_free(uart_stream);
   vendor->send_command(VENDOR_CLOSE_USERIAL, NULL);
+  uart_fd = INVALID_FD;
 }
 
 static uint8_t read_byte(serial_data_type_t type) {
