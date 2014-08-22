@@ -30,6 +30,7 @@
 #include "btif_sock_thread.h"
 #include "btif_util.h"
 #include "osi.h"
+#include "thread.h"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
 static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags);
@@ -37,6 +38,7 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
 static void btsock_signaled(int fd, int type, int flags, uint32_t user_id);
 
 static int thread_handle = -1;
+static thread_t *thread;
 
 btsock_interface_t *btif_sock_get_interface(void) {
   static btsock_interface_t interface = {
@@ -50,41 +52,58 @@ btsock_interface_t *btif_sock_get_interface(void) {
 
 bt_status_t btif_sock_init(void) {
   assert(thread_handle == -1);
+  assert(thread == NULL);
 
   btsock_thread_init();
   thread_handle = btsock_thread_create(btsock_signaled, NULL);
   if (thread_handle == -1) {
     ALOGE("%s unable to create btsock_thread.", __func__);
-    return BT_STATUS_FAIL;
+    goto error;
   }
 
   bt_status_t status = btsock_rfc_init(thread_handle);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("%s error initializing RFCOMM sockets: %d", __func__, status);
-    btsock_thread_exit(thread_handle);
-    thread_handle = -1;
-    return BT_STATUS_FAIL;
+    goto error;
   }
 
-  status = btsock_sco_init(thread_handle);
-  if (status != BT_STATUS_SUCCESS) {
-    btsock_thread_exit(thread_handle);
-    thread_handle = -1;
+  thread = thread_new("btif_sock");
+  if (!thread) {
+    ALOGE("%s error creating new thread.", __func__);
     btsock_rfc_cleanup();
-    return BT_STATUS_FAIL;
+    goto error;
+  }
+
+  status = btsock_sco_init(thread);
+  if (status != BT_STATUS_SUCCESS) {
+    ALOGE("%s error initializing SCO sockets: %d", __func__, status);
+    btsock_rfc_cleanup();
+    goto error;
   }
 
   return BT_STATUS_SUCCESS;
+
+error:;
+  thread_free(thread);
+  thread = NULL;
+  if (thread_handle != -1)
+    btsock_thread_exit(thread_handle);
+  thread_handle = -1;
+  return BT_STATUS_FAIL;
 }
 
 void btif_sock_cleanup(void) {
   if (thread_handle == -1)
     return;
 
+  thread_stop(thread);
+  thread_join(thread);
   btsock_thread_exit(thread_handle);
   btsock_rfc_cleanup();
   btsock_sco_cleanup();
+  thread_free(thread);
   thread_handle = -1;
+  thread = NULL;
 }
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
@@ -140,10 +159,6 @@ static void btsock_signaled(int fd, int type, int flags, uint32_t user_id) {
   switch (type) {
     case BTSOCK_RFCOMM:
       btsock_rfc_signaled(fd, flags, user_id);
-      break;
-
-    case BTSOCK_SCO:
-      btsock_sco_signaled(fd, flags, user_id);
       break;
 
     default:

@@ -16,21 +16,13 @@
  *
  ******************************************************************************/
 
-/*******************************************************************************
- *
- *  Filename:      btif_sock_sco.h
- *
- *  Description:   Bluetooth SCO socket interface
- *
- *******************************************************************************/
+#pragma once
 
-#ifndef BTIF_SOCK_SCO_H
-#define BTIF_SOCK_SCO_H
+#include <hardware/bluetooth.h>
 
-bt_status_t btsock_sco_init(int handle);
-bt_status_t btsock_sco_cleanup();
-bt_status_t btsock_sco_listen(int* sock_fd, int flags);
-bt_status_t btsock_sco_connect(const bt_bdaddr_t *bd_addr, int* sock_fd, int flags);
-void btsock_sco_signaled(int fd, int flags, uint32_t user_id);
+typedef struct thread_t thread_t;
 
-#endif
+bt_status_t btsock_sco_init(thread_t *thread);
+bt_status_t btsock_sco_cleanup(void);
+bt_status_t btsock_sco_listen(int *sock_fd, int flags);
+bt_status_t btsock_sco_connect(const bt_bdaddr_t *bd_addr, int *sock_fd, int flags);
