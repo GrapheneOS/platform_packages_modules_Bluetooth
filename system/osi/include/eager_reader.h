@@ -55,13 +55,9 @@ void eager_reader_register(eager_reader_t *reader, reactor_t *reactor, eager_rea
 // function is idempotent.
 void eager_reader_unregister(eager_reader_t *reader);
 
-// Returns the next byte in the stream, blocks if not available yet.
-// |reader| may not be NULL.
+// Reads up to |max_size| bytes into |buffer|. If |block| is true, blocks until
+// |max_size| bytes are read. Otherwise only reads from currently available bytes.
 // NOT SAFE FOR READING FROM MULTIPLE THREADS
 // but you should probably only be reading from one thread anyway,
 // otherwise the byte stream probably doesn't make sense.
-uint8_t eager_reader_read_byte(eager_reader_t *reader);
-
-// Returns true if there is at least one byte to read in the stream.
-// |reader| may not be NULL.
-bool eager_reader_has_byte(eager_reader_t *reader);
+size_t eager_reader_read(eager_reader_t *reader, uint8_t *buffer, size_t max_size, bool block);

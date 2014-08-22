@@ -122,26 +122,15 @@ static void hal_close() {
     uart_fds[i] = INVALID_FD;
 }
 
-static uint8_t read_byte(serial_data_type_t type) {
+static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size, bool block) {
   if (type == DATA_TYPE_ACL) {
-    return eager_reader_read_byte(acl_stream);
+    return eager_reader_read(acl_stream, buffer, max_size, block);
   } else if (type == DATA_TYPE_EVENT) {
-    return eager_reader_read_byte(event_stream);
+    return eager_reader_read(event_stream, buffer, max_size, block);
   }
 
   ALOGE("%s invalid data type: %d", __func__, type);
   return 0;
-}
-
-static bool has_byte(serial_data_type_t type) {
-  if (type == DATA_TYPE_ACL) {
-    return eager_reader_has_byte(acl_stream);
-  } else if (type == DATA_TYPE_EVENT) {
-    return eager_reader_has_byte(event_stream);
-  }
-
-  ALOGE("%s invalid data type: %d", __func__, type);
-  return false;
 }
 
 static void packet_finished(UNUSED_ATTR serial_data_type_t type) {
@@ -201,8 +190,7 @@ static const hci_hal_interface_t interface = {
   hal_open,
   hal_close,
 
-  read_byte,
-  has_byte,
+  read_data,
   packet_finished,
   transmit_data,
 };

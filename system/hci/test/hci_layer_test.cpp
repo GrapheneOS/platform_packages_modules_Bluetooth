@@ -172,26 +172,22 @@ STUB_FUNCTION(uint16_t, hal_transmit_data, (serial_data_type_t type, uint8_t *da
   return 0;
 }
 
-STUB_FUNCTION(uint8_t, hal_read_byte, (serial_data_type_t type))
+STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, size_t max_size, UNUSED_ATTR bool block))
   DURING(receive_simple) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
-    if (data_to_receive->offset < data_to_receive->len) {
-      return data_to_receive->data[data_to_receive->offset++];
+    for (size_t i = 0; i < max_size; i++) {
+      if (data_to_receive->offset >= data_to_receive->len)
+        break;
+
+      buffer[i] = data_to_receive->data[data_to_receive->offset++];
+
+      if (i == (max_size - 1))
+        return i + 1; // We return the length, not the index;
     }
   }
 
   UNEXPECTED_CALL;
   return 0;
-}
-
-STUB_FUNCTION(bool, hal_has_byte, (serial_data_type_t type))
-  DURING(receive_simple) {
-    EXPECT_EQ(DATA_TYPE_ACL, type);
-    return data_to_receive->offset < data_to_receive->len;
-  }
-
-  UNEXPECTED_CALL;
-  return false;
 }
 
 STUB_FUNCTION(void, hal_packet_finished, (serial_data_type_t type))
@@ -399,8 +395,7 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(hal_init);
   RESET_CALL_COUNT(hal_open);
   RESET_CALL_COUNT(hal_close);
-  RESET_CALL_COUNT(hal_read_byte);
-  RESET_CALL_COUNT(hal_has_byte);
+  RESET_CALL_COUNT(hal_read_data);
   RESET_CALL_COUNT(hal_packet_finished);
   RESET_CALL_COUNT(hal_transmit_data);
   RESET_CALL_COUNT(btsnoop_open);
@@ -443,8 +438,7 @@ class HciLayerTest : public AlarmTestHarness {
       hal.init = hal_init;
       hal.open = hal_open;
       hal.close = hal_close;
-      hal.read_byte = hal_read_byte;
-      hal.has_byte = hal_has_byte;
+      hal.read_data = hal_read_data;
       hal.packet_finished = hal_packet_finished;
       hal.transmit_data = hal_transmit_data;
       btsnoop.open = btsnoop_open;
@@ -540,7 +534,6 @@ TEST_F(HciLayerTest, test_transmit_simple) {
   free(packet);
 }
 
-// TODO finish test
 TEST_F(HciLayerTest, test_receive_simple) {
   reset_for(receive_simple);
   data_to_receive = manufacture_packet(MSG_STACK_TO_HC_HCI_ACL, small_sample_data);
@@ -566,10 +559,12 @@ TEST_F(HciLayerTest, test_send_internal_command) {
   EXPECT_CALL_COUNT(low_power_wake_assert, 1);
   EXPECT_CALL_COUNT(callback_transmit_finished, 1);
 
-  // TODO send a response and make sure the response ends up at the callback
+  // TODO(zachoverflow): send a response and make sure the response ends up at the callback
 
   free(data_to_receive);
 }
+
+// TODO(zachoverflow): test post-reassembly better, stub out fragmenter instead of using it
 
 TEST_F(HciLayerTest, test_turn_on_logging) {
   reset_for(turn_on_logging);

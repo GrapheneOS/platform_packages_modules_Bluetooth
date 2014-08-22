@@ -96,41 +96,26 @@ static void hal_close() {
   uart_fd = INVALID_FD;
 }
 
-static uint8_t read_byte(serial_data_type_t type) {
+static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size, bool block) {
   if (type < DATA_TYPE_ACL || type > DATA_TYPE_EVENT) {
     ALOGE("%s invalid data type: %d", __func__, type);
     return 0;
   } else if (!stream_has_interpretation) {
-    ALOGE("%s read byte with no valid stream intepretation.", __func__);
+    ALOGE("%s with no valid stream intepretation.", __func__);
     return 0;
   } else if (current_data_type != type) {
-    ALOGE("%s read byte with different type than existing interpretation.", __func__);
+    ALOGE("%s with different type than existing interpretation.", __func__);
     return 0;
   }
 
-  return eager_reader_read_byte(uart_stream);
-}
-
-static bool has_byte(serial_data_type_t type) {
-  if (type < DATA_TYPE_ACL || type > DATA_TYPE_EVENT) {
-    ALOGE("%s invalid data type: %d", __func__, type);
-    return 0;
-  } else if (!stream_has_interpretation) {
-    ALOGE("%s has byte with no valid stream intepretation.", __func__);
-    return 0;
-  } else if (current_data_type != type) {
-    ALOGE("%s has byte with different type than existing interpretation.", __func__);
-    return 0;
-  }
-
-  return eager_reader_has_byte(uart_stream);
+  return eager_reader_read(uart_stream, buffer, max_size, block);
 }
 
 static void packet_finished(serial_data_type_t type) {
   if (!stream_has_interpretation)
-    ALOGE("%s packet finished with no existing stream interpretation.", __func__);
+    ALOGE("%s with no existing stream interpretation.", __func__);
   else if (current_data_type != type)
-    ALOGE("%s packed finished with different type than existing interpretation.", __func__);
+    ALOGE("%s with different type than existing interpretation.", __func__);
 
   stream_has_interpretation = false;
 }
@@ -183,15 +168,11 @@ done:;
 
 // See what data is waiting, and notify the upper layer
 static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *context) {
-  uint8_t type_byte;
-
   if (stream_has_interpretation) {
-    // Reentry in the the case that the upper layer couldn't read the entire
-    // packet the first time around
-    type_byte = current_data_type;
-  }
-  else {
-    type_byte = eager_reader_read_byte(reader);
+    callbacks->data_ready(current_data_type);
+  } else {
+    uint8_t type_byte;
+    eager_reader_read(reader, &type_byte, 1, true);
     if (type_byte < DATA_TYPE_ACL || type_byte > DATA_TYPE_EVENT) {
       ALOGE("[h4] Unknown HCI message type. Dropping this byte 0x%x, min %x, max %x", type_byte, DATA_TYPE_ACL, DATA_TYPE_EVENT);
       return;
@@ -200,9 +181,6 @@ static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *conte
     stream_has_interpretation = true;
     current_data_type = type_byte;
   }
-
-  if (has_byte(current_data_type))
-    callbacks->data_ready(type_byte);
 }
 
 static const hci_hal_interface_t interface = {
@@ -211,8 +189,7 @@ static const hci_hal_interface_t interface = {
   hal_open,
   hal_close,
 
-  read_byte,
-  has_byte,
+  read_data,
   packet_finished,
   transmit_data,
 };

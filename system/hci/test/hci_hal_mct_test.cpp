@@ -60,7 +60,9 @@ static semaphore_t *reentry_semaphore;
 static void expect_packet_synchronous(serial_data_type_t type, char *packet_data) {
   int length = strlen(packet_data);
   for (int i = 0; i < length; i++) {
-    EXPECT_EQ(packet_data[i], hal->read_byte(type));
+    uint8_t byte;
+    EXPECT_EQ((size_t)1, hal->read_data(type, &byte, 1, true));
+    EXPECT_EQ(packet_data[i], byte);
   }
 
   hal->packet_finished(type);
@@ -104,8 +106,10 @@ STUB_FUNCTION(void, data_ready_callback, (serial_data_type_t type))
   DURING(read_async_reentry) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
 
-    while (hal->has_byte(type)) {
-      EXPECT_EQ(sample_data3[reentry_i], hal->read_byte(type));
+    uint8_t byte;
+    size_t bytes_read;
+    while ((bytes_read = hal->read_data(type, &byte, 1, false)) != 0) {
+      EXPECT_EQ(sample_data3[reentry_i], byte);
       semaphore_post(reentry_semaphore);
       reentry_i++;
       if (reentry_i == (int)strlen(sample_data3)) {

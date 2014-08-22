@@ -57,6 +57,7 @@ struct eager_reader_t {
   void *outbound_context;
 };
 
+static bool has_byte(const eager_reader_t *reader);
 static void inbound_data_waiting(void *context);
 static void internal_outbound_read_ready(void *context);
 
@@ -163,29 +164,38 @@ void eager_reader_unregister(eager_reader_t *reader) {
 }
 
 // SEE HEADER FOR THREAD SAFETY NOTE
-uint8_t eager_reader_read_byte(eager_reader_t *reader) {
+size_t eager_reader_read(eager_reader_t *reader, uint8_t *buffer, size_t max_size, bool block) {
   assert(reader != NULL);
+  assert(buffer != NULL);
 
-  eventfd_t value;
-  if (eventfd_read(reader->bytes_available_fd, &value) == -1)
-    ALOGE("%s unable to read semaphore for output data.", __func__);
+  size_t bytes_read = 0;
 
-  if (!reader->current_buffer)
-    reader->current_buffer = fixed_queue_dequeue(reader->buffers);
+  while (bytes_read < max_size) {
+    if (!block && !has_byte(reader))
+      return bytes_read;
 
-  uint8_t byte = reader->current_buffer->data[reader->current_buffer->offset];
-  reader->current_buffer->offset++;
+    eventfd_t value;
+    if (eventfd_read(reader->bytes_available_fd, &value) == -1)
+      ALOGE("%s unable to read semaphore for output data.", __func__);
 
-  // Prep for next byte request
-  if (reader->current_buffer->offset >= reader->current_buffer->length) {
-    reader->allocator->free(reader->current_buffer);
-    reader->current_buffer = NULL;
+    if (!reader->current_buffer)
+      reader->current_buffer = fixed_queue_dequeue(reader->buffers);
+
+    buffer[bytes_read] = reader->current_buffer->data[reader->current_buffer->offset];
+    reader->current_buffer->offset++;
+    bytes_read++;
+
+    // Prep for next byte
+    if (reader->current_buffer->offset >= reader->current_buffer->length) {
+      reader->allocator->free(reader->current_buffer);
+      reader->current_buffer = NULL;
+    }
   }
 
-  return byte;
+  return bytes_read;
 }
 
-bool eager_reader_has_byte(eager_reader_t *reader) {
+static bool has_byte(const eager_reader_t *reader) {
   assert(reader != NULL);
 
   fd_set read_fds;

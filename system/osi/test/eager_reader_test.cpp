@@ -32,7 +32,38 @@ extern "C" {
 
 #define BUFFER_SIZE 32
 
-static char *small_data = (char *)"white chocolate lindor truffles";
+static const char *small_data = "white chocolate lindor truffles";
+static const char *large_data =
+  "Let him make him examine and thoroughly sift everything he reads, and "
+  "lodge nothing in his fancy upon simple authority and upon trust. "
+  "Aristotle's principles will then be no more principles to him, than those "
+  "of Epicurus and the Stoics: let this diversity of opinions be propounded "
+  "to, and laid before him; he will himself choose, if he be able; if not, "
+  "he will remain in doubt. "
+  ""
+  "   \"Che non men the saver, dubbiar m' aggrata.\" "
+  "   [\"I love to doubt, as well as to know.\"--Dante, Inferno, xi. 93] "
+  ""
+  "for, if he embrace the opinions of Xenophon and Plato, by his own reason, "
+  "they will no more be theirs, but become his own.  Who follows another, "
+  "follows nothing, finds nothing, nay, is inquisitive after nothing. "
+  ""
+  "   \"Non sumus sub rege; sibi quisque se vindicet.\" "
+  "   [\"We are under no king; let each vindicate himself.\" --Seneca, Ep.,33] "
+  ""
+  "let him, at least, know that he knows.  it will be necessary that he "
+  "imbibe their knowledge, not that he be corrupted with their precepts; "
+  "and no matter if he forget where he had his learning, provided he know "
+  "how to apply it to his own use.  truth and reason are common to every "
+  "one, and are no more his who spake them first, than his who speaks them "
+  "after: 'tis no more according to plato, than according to me, since both "
+  "he and i equally see and understand them.  bees cull their several sweets "
+  "from this flower and that blossom, here and there where they find them, "
+  "but themselves afterwards make the honey, which is all and purely their "
+  "own, and no more thyme and marjoram: so the several fragments he borrows "
+  "from others, he will transform and shuffle together to compile a work "
+  "that shall be absolutely his own; that is to say, his judgment: "
+  "his instruction, labour and study, tend to nothing else but to form that. ";
 
 static semaphore_t *done;
 
@@ -51,36 +82,65 @@ class EagerReaderTest : public ::testing::Test {
 };
 
 static void expect_data(eager_reader_t *reader, void *context) {
-  EXPECT_TRUE(eager_reader_has_byte(reader)) << "if we got a callback we expect there to be data";
-
   char *data = (char *)context;
   int length = strlen(data);
-  int i;
 
-  for (i = 0; i < length; i++) {
-    EXPECT_EQ(data[i], eager_reader_read_byte(reader));
+  for (int i = 0; i < length; i++) {
+    uint8_t byte;
+    EXPECT_EQ((size_t)1, eager_reader_read(reader, &byte, 1, true));
+    EXPECT_EQ(data[i], byte);
+  }
+
+  semaphore_post(done);
+}
+
+static void expect_data_multibyte(eager_reader_t *reader, void *context) {
+  char *data = (char *)context;
+  int length = strlen(data);
+
+  for (int i = 0; i < length;) {
+    uint8_t buffer[28];
+    int bytes_to_read = (length - i) > 28 ? 28 : (length - i);
+    int bytes_read = eager_reader_read(reader, buffer, bytes_to_read, false);
+    EXPECT_EQ(bytes_to_read, bytes_read);
+    for (int j = 0; j < bytes_read && i < length; j++, i++) {
+      EXPECT_EQ(data[i], buffer[j]);
+    }
   }
 
   semaphore_post(done);
 }
 
 TEST_F(EagerReaderTest, test_new_simple) {
-  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, (char *)"test_thread");
+  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
   ASSERT_TRUE(reader != NULL);
 }
 
 TEST_F(EagerReaderTest, test_free_simple) {
-  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, (char *)"test_thread");
+  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
   eager_reader_free(reader);
 }
 
 TEST_F(EagerReaderTest, test_small_data) {
-  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, (char *)"test_thread");
+  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
 
   thread_t *read_thread = thread_new("read_thread");
-  eager_reader_register(reader, thread_get_reactor(read_thread), expect_data, small_data);
+  eager_reader_register(reader, thread_get_reactor(read_thread), expect_data, (void *)small_data);
 
   write(pipefd[1], small_data, strlen(small_data));
+
+  semaphore_wait(done);
+  eager_reader_free(reader);
+  thread_free(read_thread);
+}
+
+TEST_F(EagerReaderTest, test_large_data_multibyte) {
+  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
+
+  thread_t *read_thread = thread_new("read_thread");
+  eager_reader_register(reader, thread_get_reactor(read_thread), expect_data_multibyte, (void *)large_data);
+
+  write(pipefd[1], large_data, strlen(large_data));
 
   semaphore_wait(done);
   eager_reader_free(reader);
