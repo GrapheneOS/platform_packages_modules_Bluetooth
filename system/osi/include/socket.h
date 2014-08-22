@@ -32,6 +32,12 @@ typedef void (*socket_cb)(socket_t *socket, void *context);
 // |socket_free|. Returns NULL on failure.
 socket_t *socket_new(void);
 
+// Returns a new socket object backed by |fd|. The socket object is in whichever
+// state |fd| is in when it was passed to this function. The returned object must
+// be freed by calling |socket_free|. Returns NULL on failure. If this function
+// is successful, ownership of |fd| is transferred and the caller must not close it.
+socket_t *socket_new_from_fd(int fd);
+
 // Frees a socket object created by |socket_new| or |socket_accept|. |socket| may
 // be NULL. If the socket was connected, it will be disconnected.
 void socket_free(socket_t *socket);
@@ -65,6 +71,12 @@ ssize_t socket_read(const socket_t *socket, void *buf, size_t count);
 // function will return -1 and set errno to EWOULDBLOCK. Neither |socket| nor |buf|
 // may be NULL.
 ssize_t socket_write(const socket_t *socket, const void *buf, size_t count);
+
+// This function performs the same write operation as |socket_write| and also
+// sends the file descriptor |fd| over the socket to a remote process. Ownership
+// of |fd| transfers to this function and the descriptor must not be used any longer.
+// If |fd| is INVALID_FD, this function behaves the same as |socket_write|.
+ssize_t socket_write_and_transfer_fd(const socket_t *socket, const void *buf, size_t count, int fd);
 
 // Registers |socket| with the |reactor|. When the socket becomes readable, |read_cb|
 // will be called. When the socket becomes writeable, |write_cb| will be called. The
