@@ -298,14 +298,6 @@ static void disconnect_completed_cb(uint16_t sco_handle) {
     goto out;
   }
 
-  // TODO: why doesn't close(2) unblock the reader on the other end immediately?
-  // We shouldn't have to write data on the socket as an indication of closure.
-  if (sco_socket->socket) {
-    socket_write(sco_socket->socket, sco_socket->socket, 1);
-    socket_free(sco_socket->socket);
-    sco_socket->socket = NULL;
-  }
-
   list_remove(sco_sockets, sco_socket);
 
 out:;
