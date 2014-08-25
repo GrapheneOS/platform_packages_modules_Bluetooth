@@ -16,22 +16,19 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include <gtest/gtest.h>
 
-#include <stddef.h>
+#include "AllocationTestHarness.h"
 
-typedef void *(*alloc_fn)(size_t size);
-typedef void (*free_fn)(void *ptr);
+extern "C" {
+#include "allocation_tracker.h"
+}
 
-typedef struct {
-  alloc_fn alloc;
-  free_fn  free;
-} allocator_t;
+void AllocationTestHarness::SetUp() {
+  allocation_tracker_init();
+  allocation_tracker_reset();
+}
 
-// allocator_t abstractions for the osi_*alloc and osi_free functions
-extern const allocator_t allocator_malloc;
-extern const allocator_t allocator_calloc;
-
-void *osi_malloc(size_t size);
-void *osi_calloc(size_t size);
-void osi_free(void *ptr);
+void AllocationTestHarness::TearDown() {
+  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations()) << "not all memory freed";
+}

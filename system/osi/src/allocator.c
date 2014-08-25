@@ -19,8 +19,31 @@
 #include <stdlib.h>
 
 #include "allocator.h"
+#include "allocation_tracker.h"
+
+void *osi_malloc(size_t size) {
+  void *ptr = malloc(size);
+  allocation_tracker_notify_alloc(ptr, size);
+  return ptr;
+}
+
+void *osi_calloc(size_t size) {
+  void *ptr = calloc(1, size);
+  allocation_tracker_notify_alloc(ptr, size);
+  return ptr;
+}
+
+void osi_free(void *ptr) {
+  allocation_tracker_notify_free(ptr);
+  free(ptr);
+}
 
 const allocator_t allocator_malloc = {
-  malloc,
-  free
+  osi_malloc,
+  osi_free
+};
+
+const allocator_t allocator_calloc = {
+  osi_calloc,
+  osi_free
 };

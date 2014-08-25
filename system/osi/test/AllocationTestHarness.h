@@ -18,20 +18,8 @@
 
 #pragma once
 
-#include <stddef.h>
-
-typedef void *(*alloc_fn)(size_t size);
-typedef void (*free_fn)(void *ptr);
-
-typedef struct {
-  alloc_fn alloc;
-  free_fn  free;
-} allocator_t;
-
-// allocator_t abstractions for the osi_*alloc and osi_free functions
-extern const allocator_t allocator_malloc;
-extern const allocator_t allocator_calloc;
-
-void *osi_malloc(size_t size);
-void *osi_calloc(size_t size);
-void osi_free(void *ptr);
+class AllocationTestHarness : public ::testing::Test {
+  protected:
+    virtual void SetUp();
+    virtual void TearDown();
+};
