@@ -607,21 +607,6 @@
 **
 ******************************************************************************/
 
-/* Sends ACL data received over HCI to the upper stack. */
-#ifndef HCI_ACL_DATA_TO_UPPER
-#define HCI_ACL_DATA_TO_UPPER(p)    {((BT_HDR *)p)->event = BT_EVT_TO_BTU_HCI_ACL; GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, p);}
-#endif
-
-/* Sends SCO data received over HCI to the upper stack. */
-#ifndef HCI_SCO_DATA_TO_UPPER
-#define HCI_SCO_DATA_TO_UPPER(p)    {((BT_HDR *)p)->event = BT_EVT_TO_BTU_HCI_SCO; GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, p);}
-#endif
-
-/* Sends an HCI event received over HCI to theupper stack. */
-#ifndef HCI_EVT_TO_UPPER
-#define HCI_EVT_TO_UPPER(p)         {((BT_HDR *)p)->event = BT_EVT_TO_BTU_HCI_EVT; GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, p);}
-#endif
-
 /* Macro for allocating buffer for HCI commands */
 #ifndef HCI_GET_CMD_BUF
 #if (!defined(HCI_USE_VARIABLE_SIZE_CMD_BUF) || (HCI_USE_VARIABLE_SIZE_CMD_BUF == FALSE))
