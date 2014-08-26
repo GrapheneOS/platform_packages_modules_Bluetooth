@@ -168,15 +168,6 @@ typedef struct
     tBTA_SYS_DISABLE    *disable;
 } tBTA_SYS_REG;
 
-/* system manager configuration structure */
-typedef struct
-{
-    UINT16          mbox_evt;                       /* GKI mailbox event */
-    UINT8           mbox;                           /* GKI mailbox id */
-    UINT8           timer;                          /* GKI timer id */
-    UINT8           trace_level;                    /* initial trace level */
-} tBTA_SYS_CFG;
-
 /* data type to send events to BTA SYS HW manager */
 typedef struct
 {
@@ -184,7 +175,20 @@ typedef struct
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
 
+/* GKI task mailbox event for BTA. */
+#ifndef BTA_MBOX_EVT
+#define BTA_MBOX_EVT                TASK_MBOX_2_EVT_MASK
+#endif
 
+/* GKI task mailbox for BTA. */
+#ifndef BTA_MBOX
+#define BTA_MBOX                    TASK_MBOX_2
+#endif
+
+/* GKI timer id used for protocol timer for BTA. */
+#ifndef BTA_TIMER
+#define BTA_TIMER                   TIMER_1
+#endif
 
 /*****************************************************************************
 **  Global data

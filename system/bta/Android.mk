@@ -80,7 +80,6 @@ LOCAL_SRC_FILES:= \
     ./sys/bta_sys_main.c \
     ./sys/bta_sys_ci.c \
     ./sys/bta_sys_conn.c \
-    ./sys/bta_sys_cfg.c \
     ./sys/ptim.c \
     ./sys/bd.c \
     ./sys/utl.c \

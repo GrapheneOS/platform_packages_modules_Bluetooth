@@ -83,9 +83,6 @@ typedef struct
 
 } tBTA_SYS_CB;
 
-
-
-
 /*****************************************************************************
 **  Global variables
 *****************************************************************************/
@@ -98,12 +95,6 @@ extern tBTA_SYS_CB *bta_sys_cb_ptr;
 #define bta_sys_cb (*bta_sys_cb_ptr)
 #endif
 
-
-/* system manager configuration structure */
-extern tBTA_SYS_CFG *p_bta_sys_cfg;
-
-
-
 /* functions used for BTA SYS HW state machine */
 void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status );
 void bta_sys_hw_error(tBTA_SYS_HW_MSG *p_sys_hw_msg);
@@ -114,9 +105,5 @@ void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg);
 void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg);
 
 BOOLEAN bta_sys_sm_execute(BT_HDR *p_msg);
-
-
-
-
 
 #endif /* BTA_SYS_INT_H */

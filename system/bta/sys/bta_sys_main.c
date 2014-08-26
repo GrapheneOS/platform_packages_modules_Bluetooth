@@ -172,9 +172,9 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 BTA_API void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
-    ptim_init(&bta_sys_cb.ptim_cb, BTA_SYS_TIMER_PERIOD, p_bta_sys_cfg->timer);
+    ptim_init(&bta_sys_cb.ptim_cb, BTA_SYS_TIMER_PERIOD, BTA_TIMER);
     bta_sys_cb.task_id = GKI_get_taskid();
-    appl_trace_level = p_bta_sys_cfg->trace_level;
+    appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
 
     /* register BTA SYS message handler */
     bta_sys_register( BTA_ID_SYS,  &bta_sys_hw_reg);
@@ -596,7 +596,7 @@ BOOLEAN bta_sys_is_register(UINT8 id)
 *******************************************************************************/
 void bta_sys_sendmsg(void *p_msg)
 {
-    GKI_send_msg(bta_sys_cb.task_id, p_bta_sys_cfg->mbox, p_msg);
+    GKI_send_msg(bta_sys_cb.task_id, BTA_MBOX, p_msg);
 }
 
 /*******************************************************************************
