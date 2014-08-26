@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "osi.h"
 #include "reactor.h"
 #include "socket.h"
@@ -43,7 +44,7 @@ static void internal_read_ready(void *context);
 static void internal_write_ready(void *context);
 
 socket_t *socket_new(void) {
-  socket_t *ret = (socket_t *)calloc(1, sizeof(socket_t));
+  socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
     ALOGE("%s unable to allocate memory for socket.", __func__);
     goto error;
@@ -66,14 +67,14 @@ socket_t *socket_new(void) {
 error:;
   if (ret)
     close(ret->fd);
-  free(ret);
+  osi_free(ret);
   return NULL;
 }
 
 socket_t *socket_new_from_fd(int fd) {
   assert(fd != INVALID_FD);
 
-  socket_t *ret = (socket_t *)calloc(1, sizeof(socket_t));
+  socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
     ALOGE("%s unable to allocate memory for socket.", __func__);
     return NULL;
@@ -89,7 +90,7 @@ void socket_free(socket_t *socket) {
 
   socket_unregister(socket);
   close(socket->fd);
-  free(socket);
+  osi_free(socket);
 }
 
 bool socket_listen(const socket_t *socket, port_t port) {
@@ -121,7 +122,7 @@ socket_t *socket_accept(const socket_t *socket) {
     return NULL;
   }
 
-  socket_t *ret = (socket_t *)calloc(1, sizeof(socket_t));
+  socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
     close(fd);
     ALOGE("%s unable to allocate memory for socket.", __func__);

@@ -25,6 +25,7 @@
 #include <sys/eventfd.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "osi.h"
 #include "semaphore.h"
 
@@ -37,7 +38,7 @@ struct semaphore_t {
 };
 
 semaphore_t *semaphore_new(unsigned int value) {
-  semaphore_t *ret = malloc(sizeof(semaphore_t));
+  semaphore_t *ret = osi_malloc(sizeof(semaphore_t));
   if (ret) {
     ret->fd = eventfd(value, EFD_SEMAPHORE);
     if (ret->fd == INVALID_FD) {
@@ -52,7 +53,7 @@ semaphore_t *semaphore_new(unsigned int value) {
 void semaphore_free(semaphore_t *semaphore) {
   if (semaphore->fd != INVALID_FD)
     close(semaphore->fd);
-  free(semaphore);
+  osi_free(semaphore);
 }
 
 void semaphore_wait(semaphore_t *semaphore) {

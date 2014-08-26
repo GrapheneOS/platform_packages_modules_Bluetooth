@@ -4,9 +4,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include "reactor.h"
 }
+
+class ReactorTest : public AllocationTestHarness {};
 
 static pthread_t thread;
 static volatile bool thread_running;
@@ -30,24 +34,24 @@ static void join_reactor_thread() {
   pthread_join(thread, NULL);
 }
 
-TEST(ReactorTest, reactor_new) {
+TEST_F(ReactorTest, reactor_new) {
   reactor_t *reactor = reactor_new();
   EXPECT_TRUE(reactor != NULL);
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_free_null) {
+TEST_F(ReactorTest, reactor_free_null) {
   reactor_free(NULL);
 }
 
-TEST(ReactorTest, reactor_stop_start) {
+TEST_F(ReactorTest, reactor_stop_start) {
   reactor_t *reactor = reactor_new();
   reactor_stop(reactor);
   reactor_start(reactor);
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_repeated_stop_start) {
+TEST_F(ReactorTest, reactor_repeated_stop_start) {
   reactor_t *reactor = reactor_new();
   for (int i = 0; i < 10; ++i) {
     reactor_stop(reactor);
@@ -56,7 +60,7 @@ TEST(ReactorTest, reactor_repeated_stop_start) {
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_start_wait_stop) {
+TEST_F(ReactorTest, reactor_start_wait_stop) {
   reactor_t *reactor = reactor_new();
 
   spawn_reactor_thread(reactor);
@@ -81,7 +85,7 @@ static void unregister_cb(void *context) {
   reactor_stop(arg->reactor);
 }
 
-TEST(ReactorTest, reactor_unregister_from_callback) {
+TEST_F(ReactorTest, reactor_unregister_from_callback) {
   reactor_t *reactor = reactor_new();
 
   int fd = eventfd(0, 0);
@@ -97,7 +101,7 @@ TEST(ReactorTest, reactor_unregister_from_callback) {
   reactor_free(reactor);
 }
 
-TEST(ReactorTest, reactor_unregister_from_separate_thread) {
+TEST_F(ReactorTest, reactor_unregister_from_separate_thread) {
   reactor_t *reactor = reactor_new();
 
   int fd = eventfd(0, 0);

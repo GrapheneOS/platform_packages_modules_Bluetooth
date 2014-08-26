@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "fixed_queue.h"
 #include "list.h"
 #include "osi.h"
@@ -42,9 +43,12 @@ typedef struct fixed_queue_t {
 static void internal_dequeue_ready(void *context);
 
 fixed_queue_t *fixed_queue_new(size_t capacity) {
-  fixed_queue_t *ret = calloc(1, sizeof(fixed_queue_t));
+  fixed_queue_t *ret = osi_calloc(sizeof(fixed_queue_t));
   if (!ret)
     goto error;
+
+  pthread_mutex_init(&ret->lock, NULL);
+  ret->capacity = capacity;
 
   ret->list = list_new(NULL);
   if (!ret->list)
@@ -58,19 +62,10 @@ fixed_queue_t *fixed_queue_new(size_t capacity) {
   if (!ret->dequeue_sem)
     goto error;
 
-  pthread_mutex_init(&ret->lock, NULL);
-  ret->capacity = capacity;
-
   return ret;
 
 error:;
-  if (ret) {
-    list_free(ret->list);
-    semaphore_free(ret->enqueue_sem);
-    semaphore_free(ret->dequeue_sem);
-  }
-
-  free(ret);
+  fixed_queue_free(ret, NULL);
   return NULL;
 }
 
@@ -88,7 +83,7 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
   semaphore_free(queue->enqueue_sem);
   semaphore_free(queue->dequeue_sem);
   pthread_mutex_destroy(&queue->lock);
-  free(queue);
+  osi_free(queue);
 }
 
 bool fixed_queue_is_empty(fixed_queue_t *queue) {

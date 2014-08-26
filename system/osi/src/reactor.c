@@ -26,6 +26,7 @@
 #include <sys/eventfd.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "list.h"
 #include "reactor.h"
 
@@ -59,7 +60,7 @@ static const size_t MAX_EVENTS = 64;
 static const eventfd_t EVENT_REACTOR_STOP = 1;
 
 reactor_t *reactor_new(void) {
-  reactor_t *ret = (reactor_t *)calloc(1, sizeof(reactor_t));
+  reactor_t *ret = (reactor_t *)osi_calloc(sizeof(reactor_t));
   if (!ret)
     return NULL;
 
@@ -107,7 +108,7 @@ void reactor_free(reactor_t *reactor) {
   list_free(reactor->invalidation_list);
   close(reactor->event_fd);
   close(reactor->epoll_fd);
-  free(reactor);
+  osi_free(reactor);
 }
 
 reactor_status_t reactor_start(reactor_t *reactor) {
@@ -133,7 +134,7 @@ reactor_object_t *reactor_register(reactor_t *reactor,
   assert(reactor != NULL);
   assert(fd != INVALID_FD);
 
-  reactor_object_t *object = (reactor_object_t *)calloc(1, sizeof(reactor_object_t));
+  reactor_object_t *object = (reactor_object_t *)osi_calloc(sizeof(reactor_object_t));
   if (!object) {
     ALOGE("%s unable to allocate reactor object: %s", __func__, strerror(errno));
     return NULL;
@@ -157,7 +158,7 @@ reactor_object_t *reactor_register(reactor_t *reactor,
   if (epoll_ctl(reactor->epoll_fd, EPOLL_CTL_ADD, fd, &event) == -1) {
     ALOGE("%s unable to register fd %d to epoll set: %s", __func__, fd, strerror(errno));
     pthread_mutex_destroy(&object->lock);
-    free(object);
+    osi_free(object);
     return NULL;
   }
 
@@ -218,7 +219,7 @@ void reactor_unregister(reactor_object_t *obj) {
   pthread_mutex_lock(&obj->lock);
   pthread_mutex_unlock(&obj->lock);
   pthread_mutex_destroy(&obj->lock);
-  free(obj);
+  osi_free(obj);
 }
 
 // Runs the reactor loop for a maximum of |iterations|.
@@ -279,7 +280,7 @@ static reactor_status_t run_reactor(reactor_t *reactor, int iterations) {
 
       if (reactor->object_removed) {
         pthread_mutex_destroy(&object->lock);
-        free(object);
+        osi_free(object);
       }
     }
   }

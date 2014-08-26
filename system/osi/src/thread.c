@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "fixed_queue.h"
 #include "reactor.h"
 #include "semaphore.h"
@@ -60,7 +61,7 @@ thread_t *thread_new_sized(const char *name, size_t work_queue_capacity) {
   assert(name != NULL);
   assert(work_queue_capacity != 0);
 
-  thread_t *ret = calloc(1, sizeof(thread_t));
+  thread_t *ret = osi_calloc(sizeof(thread_t));
   if (!ret)
     goto error;
 
@@ -95,7 +96,7 @@ error:;
     fixed_queue_free(ret->work_queue, free);
     reactor_free(ret->reactor);
   }
-  free(ret);
+  osi_free(ret);
   return NULL;
 }
 
@@ -112,7 +113,7 @@ void thread_free(thread_t *thread) {
 
   fixed_queue_free(thread->work_queue, free);
   reactor_free(thread->reactor);
-  free(thread);
+  osi_free(thread);
 }
 
 void thread_join(thread_t *thread) {
@@ -135,7 +136,7 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
 
   // Queue item is freed either when the queue itself is destroyed
   // or when the item is removed from the queue for dispatch.
-  work_item_t *item = (work_item_t *)malloc(sizeof(work_item_t));
+  work_item_t *item = (work_item_t *)osi_malloc(sizeof(work_item_t));
   if (!item) {
     ALOGE("%s unable to allocate memory: %s", __func__, strerror(errno));
     return false;
@@ -198,7 +199,7 @@ static void *run_thread(void *start_arg) {
   work_item_t *item = fixed_queue_try_dequeue(thread->work_queue);
   while (item && count <= fixed_queue_capacity(thread->work_queue)) {
     item->func(item->context);
-    free(item);
+    osi_free(item);
     item = fixed_queue_try_dequeue(thread->work_queue);
     ++count;
   }
@@ -215,5 +216,5 @@ static void work_queue_read_cb(void *context) {
   fixed_queue_t *queue = (fixed_queue_t *)context;
   work_item_t *item = fixed_queue_dequeue(queue);
   item->func(item->context);
-  free(item);
+  osi_free(item);
 }
