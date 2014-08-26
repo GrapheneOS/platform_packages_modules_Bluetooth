@@ -59,6 +59,7 @@ LOCAL_SRC_FILES := \
     ./test/config_test.cpp \
     ./test/data_dispatcher_test.cpp \
     ./test/eager_reader_test.cpp \
+    ./test/hash_map_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/thread_test.cpp
