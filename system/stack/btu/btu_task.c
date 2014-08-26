@@ -169,7 +169,6 @@ BTU_API UINT32 btu_task (UINT32 param)
     BOOLEAN          handled;
     UNUSED(param);
 
-#if (defined(HCISU_H4_INCLUDED) && HCISU_H4_INCLUDED == TRUE)
     /* wait an event that HCISU is ready */
     BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
                 "btu_task pending for preload complete event");
@@ -198,7 +197,6 @@ BTU_API UINT32 btu_task (UINT32 param)
 
     BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
                 "btu_task received preload complete event");
-#endif
 
     /* Initialize the mandatory core stack control blocks
        (BTU, BTM, L2CAP, and SDP)

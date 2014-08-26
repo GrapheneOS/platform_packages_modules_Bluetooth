@@ -646,18 +646,12 @@
 ** HCI Services (H4)
 **
 ******************************************************************************/
-#ifndef HCISU_H4_INCLUDED
-#define HCISU_H4_INCLUDED               TRUE
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 BT_API extern void bte_main_hci_send (BT_HDR *p_msg, UINT16 event);
-#if (HCISU_H4_INCLUDED == TRUE)
 BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
-#endif
 
 #ifdef __cplusplus
 }
