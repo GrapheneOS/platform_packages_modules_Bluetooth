@@ -206,9 +206,6 @@ static void btu_hcif_store_cmd (UINT8 controller_id, BT_HDR *p_buf)
     /* start timer */
     if (BTU_CMD_CMPL_TIMEOUT > 0)
     {
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-        p_hci_cmd_cb->checked_hcisu = FALSE;
-#endif
         btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                          (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                          BTU_CMD_CMPL_TIMEOUT);
@@ -1224,9 +1221,6 @@ static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16
         {
             if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
             {
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-                p_hci_cmd_cb->checked_hcisu = FALSE;
-#endif
                 btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                                  (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                                  BTU_CMD_CMPL_TIMEOUT);
@@ -1483,9 +1477,6 @@ static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p)
         {
             if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
             {
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-                p_hci_cmd_cb->checked_hcisu = FALSE;
-#endif
                 btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                                  (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                                  BTU_CMD_CMPL_TIMEOUT);
@@ -1532,24 +1523,6 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     UINT16  opcode;
     UINT16  event;
 
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-    if (!(p_hci_cmd_cb->checked_hcisu))
-    {
-        HCI_TRACE_WARNING("BTU HCI(id=%d) command timeout - double check HCISU", controller_id);
-
-        /* trigger HCISU to read any pending data in transport buffer */
-        GKI_send_event(HCISU_TASK, HCISU_EVT_MASK);
-
-        btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
-                         (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
-                         2); /* start short timer, if timer is set to 1 then it could expire before HCISU checks. */
-
-        p_hci_cmd_cb->checked_hcisu = TRUE;
-
-        return;
-    }
-#endif
-
     /* set the controller cmd window to 1, as if we received a response, so
     ** the flow of commands from the stack doesn't hang */
     p_hci_cmd_cb->cmd_window = 1;
@@ -1566,9 +1539,6 @@ void btu_hcif_cmd_timeout (UINT8 controller_id)
     {
         if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
         {
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-            p_hci_cmd_cb->checked_hcisu = FALSE;
-#endif
             btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
                              (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
                              BTU_CMD_CMPL_TIMEOUT);

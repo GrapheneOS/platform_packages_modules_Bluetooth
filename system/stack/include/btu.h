@@ -217,9 +217,6 @@ typedef struct
     BUFFER_Q         cmd_cmpl_q;
     UINT16           cmd_window;
     TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-    BOOLEAN          checked_hcisu;
-#endif
 } tHCI_CMD_CB;
 
 /* Define structure holding BTU variables

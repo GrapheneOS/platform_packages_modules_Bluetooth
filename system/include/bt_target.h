@@ -673,11 +673,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTU_CMD_CMPL_TIMEOUT        8
 #endif
 
-/* If TRUE, BTU task will check HCISU again when HCI command timer expires */
-#ifndef BTU_CMD_CMPL_TOUT_DOUBLE_CHECK
-#define BTU_CMD_CMPL_TOUT_DOUBLE_CHECK      FALSE
-#endif
-
 /* Use 2 second for low-resolution systems, override to 1 for high-resolution systems */
 #ifndef BT_1SEC_TIMEOUT
 #define BT_1SEC_TIMEOUT             (2)
