@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <utils/Log.h>
 
+#include "hash_functions.h"
 #include "hash_map.h"
 #include "hci_internals.h"
 #include "hci_layer.h"
@@ -49,8 +50,6 @@ static uint16_t acl_data_size;
 static uint16_t ble_acl_data_size;
 static hash_map_t *partial_packets;
 
-static hash_index_t default_hash_function(const void *key);
-
 static void init(const packet_fragmenter_callbacks_t *result_callbacks, const allocator_t *buffer_allocator) {
   allocator = buffer_allocator;
   callbacks = result_callbacks;
@@ -63,7 +62,7 @@ static void init(const packet_fragmenter_callbacks_t *result_callbacks, const al
   if (partial_packets)
     hash_map_free(partial_packets);
 
-  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, default_hash_function, NULL, NULL);
+  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL);
 }
 
 static void set_acl_data_size(uint16_t size) {
@@ -210,11 +209,6 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
   } else {
     callbacks->reassembled(packet);
   }
-}
-
-static hash_index_t default_hash_function(const void *key) {
-  hash_index_t hash_key = (hash_index_t)key;
-  return hash_key;
 }
 
 static const packet_fragmenter_interface_t interface = {

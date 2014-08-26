@@ -22,6 +22,7 @@
 #include <utils/Log.h>
 
 #include "data_dispatcher.h"
+#include "hash_functions.h"
 #include "hash_map.h"
 #include "osi.h"
 
@@ -33,8 +34,6 @@ struct data_dispatcher_t {
   fixed_queue_t *default_queue; // We don't own this queue
 };
 
-static hash_index_t default_hash_function(const void *key);
-
 data_dispatcher_t *data_dispatcher_new(const char *name) {
   assert(name != NULL);
 
@@ -44,7 +43,7 @@ data_dispatcher_t *data_dispatcher_new(const char *name) {
     goto error;
   }
 
-  ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, default_hash_function, NULL, NULL);
+  ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL);
   if (!ret->dispatch_table) {
     ALOGE("%s unable to create dispatch table.", __func__);
     goto error;
@@ -103,9 +102,4 @@ bool data_dispatcher_dispatch(data_dispatcher_t *dispatcher, data_dispatcher_typ
     ALOGW("%s has no handler for type (%d) in data dispatcher named: %s", __func__, type, dispatcher->name);
 
   return queue != NULL;
-}
-
-static hash_index_t default_hash_function(const void *key) {
-  hash_index_t hash_key = (hash_index_t)key;
-  return hash_key;
 }
