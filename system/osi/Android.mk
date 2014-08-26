@@ -30,6 +30,7 @@ LOCAL_SRC_FILES := \
     ./src/data_dispatcher.c \
     ./src/eager_reader.c \
     ./src/fixed_queue.c \
+    ./src/hash_functions.c \
     ./src/hash_map.c \
     ./src/list.c \
     ./src/reactor.c \
