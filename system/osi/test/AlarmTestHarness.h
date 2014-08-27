@@ -18,9 +18,11 @@
 
 #pragma once
 
+#include "AllocationTestHarness.h"
+
 extern int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS;
 
-class AlarmTestHarness : public ::testing::Test {
+class AlarmTestHarness : public AllocationTestHarness {
   protected:
     virtual void SetUp();
     virtual void TearDown();

@@ -20,10 +20,15 @@
 
 extern "C" {
 #include "allocation_tracker.h"
+
+void allocation_tracker_uninit(void);
 }
 
 TEST(AllocationTrackerTest, test_uninit_no_bad_effects) {
   void *dummy_allocation = malloc(4);
+
+  // Ensure uninitialized state (previous tests may have called init)
+  allocation_tracker_uninit();
 
   allocation_tracker_notify_alloc(dummy_allocation, 4);
   EXPECT_EQ(0U, allocation_tracker_expect_no_allocations()); // should not have registered an allocation

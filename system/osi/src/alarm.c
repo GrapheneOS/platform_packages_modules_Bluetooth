@@ -25,6 +25,7 @@
 #include <time.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "alarm.h"
 #include "list.h"
 #include "osi.h"
@@ -72,7 +73,7 @@ alarm_t *alarm_new(void) {
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
 
-  alarm_t *ret = calloc(1, sizeof(alarm_t));
+  alarm_t *ret = osi_calloc(sizeof(alarm_t));
   if (!ret) {
     ALOGE("%s unable to allocate memory for alarm.", __func__);
     goto error;
@@ -97,7 +98,7 @@ alarm_t *alarm_new(void) {
 
 error:;
   pthread_mutexattr_destroy(&attr);
-  free(ret);
+  osi_free(ret);
   return NULL;
 }
 
@@ -107,7 +108,7 @@ void alarm_free(alarm_t *alarm) {
 
   alarm_cancel(alarm);
   pthread_mutex_destroy(&alarm->callback_lock);
-  free(alarm);
+  osi_free(alarm);
 }
 
 // Runs in exclusion with alarm_cancel and timer_callback.

@@ -22,6 +22,11 @@
 
 #include "AlarmTestHarness.h"
 
+extern "C" {
+#include "alarm.h"
+#include "allocation_tracker.h"
+}
+
 static timer_t timer;
 static alarm_cb saved_callback;
 static void *saved_data;
@@ -32,6 +37,13 @@ static void timer_callback(void *) {
 }
 
 void AlarmTestHarness::SetUp() {
+  AllocationTestHarness::SetUp();
+
+  // Make sure the alarm list is initialized, and the base list
+  // allocation isn't taken into account.
+  alarm_free(alarm_new());
+  allocation_tracker_reset();
+
   current_harness = this;
   TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 100;
   lock_count = 0;
@@ -46,6 +58,7 @@ void AlarmTestHarness::SetUp() {
 
 void AlarmTestHarness::TearDown() {
   timer_delete(timer);
+  AllocationTestHarness::TearDown();
 }
 
 static bool set_wake_alarm(uint64_t delay_millis, bool, alarm_cb cb, void *data) {

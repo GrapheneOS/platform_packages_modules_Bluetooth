@@ -7,6 +7,7 @@
 #include <string.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "config.h"
 #include "list.h"
 
@@ -38,7 +39,7 @@ static void entry_free(void *ptr);
 static entry_t *entry_find(const config_t *config, const char *section, const char *key);
 
 config_t *config_new_empty(void) {
-  config_t *config = calloc(1, sizeof(config_t));
+  config_t *config = osi_calloc(sizeof(config_t));
   if (!config) {
     ALOGE("%s unable to allocate memory for config_t.", __func__);
     goto error;
@@ -53,9 +54,7 @@ config_t *config_new_empty(void) {
   return config;
 
 error:;
-  if (config)
-    list_free(config->sections);
-  free(config);
+  config_free(config);
   return NULL;
 }
 
@@ -82,7 +81,7 @@ void config_free(config_t *config) {
     return;
 
   list_free(config->sections);
-  free(config);
+  osi_free(config);
 }
 
 bool config_has_section(const config_t *config, const char *section) {
@@ -171,8 +170,8 @@ void config_set_string(config_t *config, const char *section, const char *key, c
   for (const list_node_t *node = list_begin(sec->entries); node != list_end(sec->entries); node = list_next(node)) {
     entry_t *entry = list_node(node);
     if (!strcmp(entry->key, key)) {
-      free(entry->value);
-      entry->value = strdup(value);
+      osi_free(entry->value);
+      entry->value = osi_strdup(value);
       return;
     }
   }
@@ -311,11 +310,11 @@ static void config_parse(FILE *fp, config_t *config) {
 }
 
 static section_t *section_new(const char *name) {
-  section_t *section = calloc(1, sizeof(section_t));
+  section_t *section = osi_calloc(sizeof(section_t));
   if (!section)
     return NULL;
 
-  section->name = strdup(name);
+  section->name = osi_strdup(name);
   section->entries = list_new(entry_free);
   return section;
 }
@@ -325,8 +324,9 @@ static void section_free(void *ptr) {
     return;
 
   section_t *section = ptr;
-  free(section->name);
+  osi_free(section->name);
   list_free(section->entries);
+  osi_free(section);
 }
 
 static section_t *section_find(const config_t *config, const char *section) {
@@ -340,12 +340,12 @@ static section_t *section_find(const config_t *config, const char *section) {
 }
 
 static entry_t *entry_new(const char *key, const char *value) {
-  entry_t *entry = calloc(1, sizeof(entry_t));
+  entry_t *entry = osi_calloc(sizeof(entry_t));
   if (!entry)
     return NULL;
 
-  entry->key = strdup(key);
-  entry->value = strdup(value);
+  entry->key = osi_strdup(key);
+  entry->value = osi_strdup(value);
   return entry;
 }
 
@@ -354,8 +354,9 @@ static void entry_free(void *ptr) {
     return;
 
   entry_t *entry = ptr;
-  free(entry->key);
-  free(entry->value);
+  osi_free(entry->key);
+  osi_free(entry->value);
+  osi_free(entry);
 }
 
 static entry_t *entry_find(const config_t *config, const char *section, const char *key) {

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include "config.h"
 }
@@ -46,9 +48,10 @@ version = 0x1111                                                                
 version = 0x1436                                                                     \n\
 ";
 
-class ConfigTest : public ::testing::Test {
+class ConfigTest : public AllocationTestHarness {
   protected:
     virtual void SetUp() {
+      AllocationTestHarness::SetUp();
       FILE *fp = fopen(CONFIG_FILE, "wt");
       fwrite(CONFIG_FILE_CONTENT, 1, sizeof(CONFIG_FILE_CONTENT), fp);
       fclose(fp);
@@ -64,6 +67,7 @@ TEST_F(ConfigTest, config_new_empty) {
 TEST_F(ConfigTest, config_new_no_file) {
   config_t *config = config_new("/meow");
   EXPECT_TRUE(config == NULL);
+  config_free(config);
 }
 
 TEST_F(ConfigTest, config_new) {

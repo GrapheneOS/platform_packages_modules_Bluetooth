@@ -18,10 +18,14 @@
 
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include "hash_map.h"
 #include "osi.h"
 }
+
+class HashMapTest : public AllocationTestHarness {};
 
 hash_index_t hash_map_fn00(const void *key) {
   hash_index_t hash_key = (hash_index_t)key;
@@ -38,12 +42,13 @@ void data_free_fn00(UNUSED_ATTR void *data) {
   g_data_free++;
 }
 
-TEST(HashMapTest, test_new_simple) {
+TEST_F(HashMapTest, test_new_free_simple) {
   hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
+  hash_map_free(hash_map);
 }
 
-TEST(HashMapTest, test_insert_simple) {
+TEST_F(HashMapTest, test_insert_simple) {
   hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
 
@@ -72,9 +77,11 @@ TEST(HashMapTest, test_insert_simple) {
     EXPECT_STREQ(data[i].data, val);
   }
   EXPECT_EQ(data_sz, hash_map_size(hash_map));
+
+  hash_map_free(hash_map);
 }
 
-TEST(HashMapTest, test_insert_same) {
+TEST_F(HashMapTest, test_insert_same) {
   hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
 
@@ -101,9 +108,11 @@ TEST(HashMapTest, test_insert_same) {
     char *val = (char *)hash_map_get(hash_map, data[i].key);
     EXPECT_STREQ(data[data_sz - 1].data, val);
   }
+
+  hash_map_free(hash_map);
 }
 
-TEST(HashMapTest, test_functions) {
+TEST_F(HashMapTest, test_functions) {
   hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00);
   ASSERT_TRUE(hash_map != NULL);
 
@@ -139,6 +148,8 @@ TEST(HashMapTest, test_functions) {
     EXPECT_EQ(i + 1, g_data_free);
     EXPECT_EQ(i + 1, g_key_free);
   }
+
+  hash_map_free(hash_map);
 }
 
 struct hash_test_iter_data_s {
@@ -171,7 +182,7 @@ bool hash_test_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context) {
   return true;
 }
 
-TEST(HashMapTest, test_iter) {
+TEST_F(HashMapTest, test_iter) {
   hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00);
   ASSERT_TRUE(hash_map != NULL);
   g_data_free = 0;
@@ -186,4 +197,6 @@ TEST(HashMapTest, test_iter) {
 
   void *context = NULL;
   hash_map_foreach(hash_map, hash_test_iter_ro_cb, context);
+
+  hash_map_free(hash_map);
 }

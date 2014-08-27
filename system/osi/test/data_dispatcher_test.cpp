@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include "data_dispatcher.h"
 #include "fixed_queue.h"
@@ -13,25 +15,24 @@ extern "C" {
 
 #define DUMMY_QUEUE_SIZE 10
 
+class DataDispatcherTest : public AllocationTestHarness {};
+
 static char dummy_data_0[42] = "please test your code";
 static char dummy_data_1[42] = "testing is good for your sanity";
 
-TEST(DataDispatcherTest, test_new_simple) {
+TEST_F(DataDispatcherTest, test_new_free_simple) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
   ASSERT_TRUE(dispatcher != NULL);
-}
-
-TEST(DataDispatcherTest, test_free_simple) {
-  data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
   data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_nowhere) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_nowhere) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
   EXPECT_FALSE(data_dispatcher_dispatch(dispatcher, DUMMY_TYPE_0, dummy_data_0));
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_single) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_single) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -46,9 +47,12 @@ TEST(DataDispatcherTest, test_dispatch_single_to_single) {
   EXPECT_FALSE(fixed_queue_is_empty(dummy_queue));
   EXPECT_STREQ(dummy_data_0, (char *)fixed_queue_try_dequeue(dummy_queue));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_multiple) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_multiple) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register two queues
@@ -67,9 +71,13 @@ TEST(DataDispatcherTest, test_dispatch_single_to_multiple) {
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue1));
   EXPECT_STREQ(dummy_data_0, (char *)fixed_queue_try_dequeue(dummy_queue0));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue0));
+
+  fixed_queue_free(dummy_queue0, NULL);
+  fixed_queue_free(dummy_queue1, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_default) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_default) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register two queues, a default and a typed one
@@ -88,9 +96,13 @@ TEST(DataDispatcherTest, test_dispatch_single_to_default) {
   EXPECT_FALSE(fixed_queue_is_empty(default_queue));
   EXPECT_STREQ(dummy_data_1, (char *)fixed_queue_try_dequeue(default_queue));
   EXPECT_TRUE(fixed_queue_is_empty(default_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  fixed_queue_free(default_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_multiple_to_single) {
+TEST_F(DataDispatcherTest, test_dispatch_multiple_to_single) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -108,9 +120,12 @@ TEST(DataDispatcherTest, test_dispatch_multiple_to_single) {
   EXPECT_FALSE(fixed_queue_is_empty(dummy_queue));
   EXPECT_STREQ(dummy_data_1, (char *)fixed_queue_try_dequeue(dummy_queue));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_multiple_to_multiple) {
+TEST_F(DataDispatcherTest, test_dispatch_multiple_to_multiple) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register two queues
@@ -132,9 +147,13 @@ TEST(DataDispatcherTest, test_dispatch_multiple_to_multiple) {
   EXPECT_STREQ(dummy_data_1, (char *)fixed_queue_try_dequeue(dummy_queue1));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue0));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue1));
+
+  fixed_queue_free(dummy_queue0, NULL);
+  fixed_queue_free(dummy_queue1, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_single_reregistered) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_single_reregistered) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue, then reregister
@@ -153,9 +172,13 @@ TEST(DataDispatcherTest, test_dispatch_single_to_single_reregistered) {
   EXPECT_FALSE(fixed_queue_is_empty(dummy_queue_reregistered));
   EXPECT_STREQ(dummy_data_0, (char *)fixed_queue_try_dequeue(dummy_queue_reregistered));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue_reregistered));
+
+  fixed_queue_free(dummy_queue, NULL);
+  fixed_queue_free(dummy_queue_reregistered, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_reregistered_null) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_reregistered_null) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -166,9 +189,12 @@ TEST(DataDispatcherTest, test_dispatch_single_to_reregistered_null) {
 
   EXPECT_FALSE(data_dispatcher_dispatch(dispatcher, DUMMY_TYPE_0, dummy_data_0));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_single_to_default_reregistered_null) {
+TEST_F(DataDispatcherTest, test_dispatch_single_to_default_reregistered_null) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -179,9 +205,12 @@ TEST(DataDispatcherTest, test_dispatch_single_to_default_reregistered_null) {
 
   EXPECT_FALSE(data_dispatcher_dispatch(dispatcher, DUMMY_TYPE_0, dummy_data_0));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_edge_zero) {
+TEST_F(DataDispatcherTest, test_dispatch_edge_zero) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -196,9 +225,12 @@ TEST(DataDispatcherTest, test_dispatch_edge_zero) {
   EXPECT_FALSE(fixed_queue_is_empty(dummy_queue));
   EXPECT_STREQ(dummy_data_0, (char *)fixed_queue_try_dequeue(dummy_queue));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }
 
-TEST(DataDispatcherTest, test_dispatch_edge_max) {
+TEST_F(DataDispatcherTest, test_dispatch_edge_max) {
   data_dispatcher_t *dispatcher = data_dispatcher_new("test_dispatcher");
 
   // Register a queue
@@ -213,4 +245,7 @@ TEST(DataDispatcherTest, test_dispatch_edge_max) {
   EXPECT_FALSE(fixed_queue_is_empty(dummy_queue));
   EXPECT_STREQ(dummy_data_0, (char *)fixed_queue_try_dequeue(dummy_queue));
   EXPECT_TRUE(fixed_queue_is_empty(dummy_queue));
+
+  fixed_queue_free(dummy_queue, NULL);
+  data_dispatcher_free(dispatcher);
 }

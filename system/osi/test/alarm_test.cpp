@@ -45,6 +45,7 @@ class AlarmTest : public AlarmTestHarness {
     }
 
     virtual void TearDown() {
+      semaphore_free(semaphore);
       AlarmTestHarness::TearDown();
     }
 };
@@ -54,13 +55,9 @@ static void cb(UNUSED_ATTR void *data) {
   semaphore_post(semaphore);
 }
 
-TEST_F(AlarmTest, test_new_simple) {
+TEST_F(AlarmTest, test_new_free_simple) {
   alarm_t *alarm = alarm_new();
   ASSERT_TRUE(alarm != NULL);
-}
-
-TEST_F(AlarmTest, test_free_simple) {
-  alarm_t *alarm = alarm_new();
   alarm_free(alarm);
 }
 

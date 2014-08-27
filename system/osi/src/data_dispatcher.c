@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "data_dispatcher.h"
 #include "hash_functions.h"
 #include "hash_map.h"
@@ -37,7 +38,7 @@ struct data_dispatcher_t {
 data_dispatcher_t *data_dispatcher_new(const char *name) {
   assert(name != NULL);
 
-  data_dispatcher_t *ret = calloc(1, sizeof(data_dispatcher_t));
+  data_dispatcher_t *ret = osi_calloc(sizeof(data_dispatcher_t));
   if (!ret) {
     ALOGE("%s unable to allocate memory for new data dispatcher.", __func__);
     goto error;
@@ -49,7 +50,7 @@ data_dispatcher_t *data_dispatcher_new(const char *name) {
     goto error;
   }
 
-  ret->name = strdup(name);
+  ret->name = osi_strdup(name);
   if (!ret->name) {
     ALOGE("%s unable to duplicate provided name.", __func__);
     goto error;
@@ -69,9 +70,9 @@ void data_dispatcher_free(data_dispatcher_t *dispatcher) {
   hash_map_free(dispatcher->dispatch_table);
 
   if (dispatcher->name)
-    free(dispatcher->name);
+    osi_free(dispatcher->name);
 
-  free(dispatcher);
+  osi_free(dispatcher);
 }
 
 void data_dispatcher_register(data_dispatcher_t *dispatcher, data_dispatcher_type_t type, fixed_queue_t *queue) {

@@ -56,6 +56,7 @@ LOCAL_C_INCLUDES := \
     $(bdroid_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
+    ../osi/test/AllocationTestHarness.cpp \
     ../osi/test/AlarmTestHarness.cpp \
     ./test/hci_hal_h4_test.cpp \
     ./test/hci_hal_mct_test.cpp \

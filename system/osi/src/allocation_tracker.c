@@ -68,6 +68,12 @@ void allocation_tracker_init(void) {
     &untracked_calloc_allocator);
 }
 
+// Test function only. Do not call in the normal course of operations.
+void allocation_tracker_uninit() {
+  hash_map_free(allocations);
+  allocations = NULL;
+}
+
 void allocation_tracker_reset(void) {
   if (!allocations)
     return;

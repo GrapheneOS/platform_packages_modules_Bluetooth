@@ -24,6 +24,7 @@
 #include <sys/eventfd.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "eager_reader.h"
 #include "fixed_queue.h"
 #include "osi.h"
@@ -74,7 +75,7 @@ eager_reader_t *eager_reader_new(
   assert(max_buffer_count > 0);
   assert(thread_name != NULL && *thread_name != '\0');
 
-  eager_reader_t *ret = calloc(1, sizeof(eager_reader_t));
+  eager_reader_t *ret = osi_calloc(sizeof(eager_reader_t));
   if (!ret) {
     ALOGE("%s unable to allocate memory for new eager_reader.", __func__);
     goto error;
@@ -138,7 +139,7 @@ void eager_reader_free(eager_reader_t *reader) {
 
   fixed_queue_free(reader->buffers, reader->allocator->free);
   thread_free(reader->inbound_read_thread);
-  free(reader);
+  osi_free(reader);
 }
 
 void eager_reader_register(eager_reader_t *reader, reactor_t *reactor, eager_reader_cb read_cb, void *context) {

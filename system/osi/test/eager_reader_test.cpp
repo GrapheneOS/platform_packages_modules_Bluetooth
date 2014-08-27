@@ -18,6 +18,8 @@
 
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include <stdint.h>
 #include <unistd.h>
@@ -67,15 +69,17 @@ static const char *large_data =
 
 static semaphore_t *done;
 
-class EagerReaderTest : public ::testing::Test {
+class EagerReaderTest : public AllocationTestHarness {
   protected:
     virtual void SetUp() {
+      AllocationTestHarness::SetUp();
       pipe(pipefd);
       done = semaphore_new(0);
     }
 
     virtual void TearDown() {
       semaphore_free(done);
+      AllocationTestHarness::TearDown();
     }
 
     int pipefd[2];
@@ -111,13 +115,9 @@ static void expect_data_multibyte(eager_reader_t *reader, void *context) {
   semaphore_post(done);
 }
 
-TEST_F(EagerReaderTest, test_new_simple) {
+TEST_F(EagerReaderTest, test_new_free_simple) {
   eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
   ASSERT_TRUE(reader != NULL);
-}
-
-TEST_F(EagerReaderTest, test_free_simple) {
-  eager_reader_t *reader = eager_reader_new(pipefd[0], &allocator_malloc, BUFFER_SIZE, SIZE_MAX, "test_thread");
   eager_reader_free(reader);
 }
 
