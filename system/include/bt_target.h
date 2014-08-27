@@ -3645,60 +3645,6 @@ The maximum number of payload octets that the local device can receive in a sing
 
 /******************************************************************************
 **
-** RPC
-**
-******************************************************************************/
-
-#ifndef RPC_INCLUDED
-#define RPC_INCLUDED                FALSE
-#endif
-
-/* RPCT task mailbox ID for messages coming from rpcgen code. */
-#ifndef RPCT_MBOX
-#define RPCT_MBOX                   TASK_MBOX_0
-#endif
-
-/* RPCT task event for mailbox. */
-#ifndef RPCT_RPC_MBOX_EVT
-#define RPCT_RPC_MBOX_EVT           TASK_MBOX_0_EVT_MASK
-#endif
-
-/* RPCT task event from driver indicating RX data is ready. */
-#ifndef RPCT_RX_READY_EVT
-#define RPCT_RX_READY_EVT           APPL_EVT_0
-#endif
-
-/* RPCT task event from driver indicating data TX is done. */
-#ifndef RPCT_TX_DONE_EVT
-#define RPCT_TX_DONE_EVT            APPL_EVT_1
-#endif
-
-/* RPCT task event indicating data is in the circular buffer. */
-#ifndef RPCT_UCBUF_EVT
-#define RPCT_UCBUF_EVT              APPL_EVT_2
-#endif
-
-/* Task ID of RPCGEN task. */
-#ifndef RPCGEN_TASK
-#define RPCGEN_TASK                 BTU_TASK
-#endif
-
-/* RPCGEN task event for messages coming from RPCT. */
-#ifndef RPCGEN_MSG_EVT
-#define RPCGEN_MSG_EVT              TASK_MBOX_1_EVT_MASK
-#endif
-
-#ifndef RPCGEN_MSG_MBOX
-#define RPCGEN_MSG_MBOX             TASK_MBOX_1
-#endif
-
-/* Size of circular buffer used to store diagnostic messages. */
-#ifndef RPCT_UCBUF_SIZE
-#define RPCT_UCBUF_SIZE             2000
-#endif
-
-/******************************************************************************
-**
 ** SAP - Sample applications
 **
 ******************************************************************************/

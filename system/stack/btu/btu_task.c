@@ -79,10 +79,6 @@
 #include "bte_appl.h"
 #endif
 
-#if (defined(RPC_INCLUDED) && RPC_INCLUDED == TRUE)
-#include "rpct_main.h"
-#endif
-
 #if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
 #include "bnep_int.h"
 #endif
@@ -550,16 +546,6 @@ BTU_API UINT32 btu_task (UINT32 param)
         if (event & TIMER_2_EVT_MASK)
         {
             btu_process_quick_timer_evt();
-        }
-#endif
-
-
-#if (RPC_INCLUDED == TRUE)
-        /* if RPC message queue event */
-        if (event & RPCGEN_MSG_EVT)
-        {
-            if ((p_msg = (BT_HDR *) GKI_read_mbox(RPCGEN_MSG_MBOX)) != NULL)
-                RPCT_RpcgenMsg(p_msg);  /* handle RPC message queue */
         }
 #endif
 

@@ -103,8 +103,6 @@
 
 
 #if defined(__CYGWIN__) || defined(__linux__)
-#undef RPC_INCLUDED
-#define RPC_INCLUDED TRUE
 
 #include <sys/time.h>
 #include <time.h>
