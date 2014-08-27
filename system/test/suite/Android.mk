@@ -21,20 +21,26 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bdtest
 
+LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH)/../../
+
 LOCAL_SRC_FILES := \
-	cases/adapter.c \
-	cases/cases.c \
-	cases/pan.c \
-	support/adapter.c \
-	support/callbacks.c \
-	support/hal.c \
-	support/pan.c \
-	support/property.c \
-	main.c
+    cases/adapter.c \
+    cases/cases.c \
+    cases/pan.c \
+    support/adapter.c \
+    support/callbacks.c \
+    support/hal.c \
+    support/pan.c \
+    support/property.c \
+    main.c
 
 LOCAL_SHARED_LIBRARIES += \
-	libhardware \
-	libhardware_legacy
+    liblog \
+    libhardware \
+    libhardware_legacy
+
+LOCAL_STATIC_LIBRARIES += libosi
 
 LOCAL_CFLAGS += -std=c99 -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 

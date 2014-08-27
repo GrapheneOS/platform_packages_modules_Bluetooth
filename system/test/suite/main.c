@@ -66,6 +66,8 @@ int main(int argc, char **argv) {
   int fail = 0;
   int case_num = 0;
 
+  printf("Running sanity suite:\n");
+
   // Run through the sanity suite.
   for (size_t i = 0; i < sanity_suite_size; ++i) {
     callbacks_init();
@@ -85,6 +87,8 @@ int main(int argc, char **argv) {
     hal_close();
     return 0;
   }
+
+  printf("Running full test suite:\n");
 
   // Run the full test suite.
   for (size_t i = 0; i < test_suite_size; ++i) {
