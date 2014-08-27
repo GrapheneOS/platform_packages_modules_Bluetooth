@@ -21,6 +21,12 @@
 #include "allocator.h"
 #include "allocation_tracker.h"
 
+char *osi_strdup(const char *str) {
+  char *ret = strdup(str);
+  allocation_tracker_notify_alloc(ret, strlen(ret));
+  return ret;
+}
+
 void *osi_malloc(size_t size) {
   void *ptr = malloc(size);
   allocation_tracker_notify_alloc(ptr, size);

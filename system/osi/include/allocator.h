@@ -32,6 +32,8 @@ typedef struct {
 extern const allocator_t allocator_malloc;
 extern const allocator_t allocator_calloc;
 
+char *osi_strdup(const char *str);
+
 void *osi_malloc(size_t size);
 void *osi_calloc(size_t size);
 void osi_free(void *ptr);
