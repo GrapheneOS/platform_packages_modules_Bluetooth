@@ -234,6 +234,8 @@ static void hci_cleanup() {
   fixed_queue_free(packet_queue, buffer_allocator->free);
   fixed_queue_free(waiting_internal_commands, buffer_allocator->free);
 
+  packet_fragmenter->cleanup();
+
   alarm_free(epilog_alarm);
   epilog_alarm = NULL;
 
@@ -316,7 +318,7 @@ static bool filter_incoming_event(BT_HDR *packet) {
       else
         buffer_allocator->free(packet);
 
-      free(first_waiting);
+      osi_free(first_waiting);
       return true;
     }
 
@@ -331,7 +333,7 @@ static bool filter_incoming_event(BT_HDR *packet) {
 // Send an internal command. Called by the vendor library, and also
 // internally by the HCI layer to fetch controller buffer sizes.
 static bool send_internal_command(uint16_t opcode, BT_HDR *packet, internal_command_cb callback) {
-  waiting_internal_command_t *wait_entry = (waiting_internal_command_t *)calloc(1, sizeof(waiting_internal_command_t));
+  waiting_internal_command_t *wait_entry = osi_calloc(sizeof(waiting_internal_command_t));
   if (!wait_entry) {
     ALOGE("%s couldn't allocate space for wait entry.", __func__);
     return false;
@@ -341,7 +343,7 @@ static bool send_internal_command(uint16_t opcode, BT_HDR *packet, internal_comm
   wait_entry->callback = callback;
 
   if (!fixed_queue_try_enqueue(waiting_internal_commands, wait_entry)) {
-    free(wait_entry);
+    osi_free(wait_entry);
     ALOGE("%s too many waiting internal commands. Rejecting 0x%04X", __func__, opcode);
     return false;
   }

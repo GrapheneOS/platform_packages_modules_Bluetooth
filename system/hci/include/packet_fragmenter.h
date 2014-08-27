@@ -41,6 +41,9 @@ typedef struct packet_fragmenter_interface_t {
   // is used to allocate and free buffers for the reassembled packets.
   void (*init)(const packet_fragmenter_callbacks_t *result_callbacks, const allocator_t *buffer_allocator);
 
+  // Release all resources associated with the fragmenter.
+  void (*cleanup)(void);
+
   // Sets the fragmentation size for normal acl data.
   void (*set_acl_data_size)(uint16_t size);
   // Sets the fragmentation size for bluetooth low energy acl data.

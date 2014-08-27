@@ -59,10 +59,12 @@ static void init(const packet_fragmenter_callbacks_t *result_callbacks, const al
   acl_data_size = 1021;
   ble_acl_data_size = 27;
 
+  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL);
+}
+
+static void cleanup() {
   if (partial_packets)
     hash_map_free(partial_packets);
-
-  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL);
 }
 
 static void set_acl_data_size(uint16_t size) {
@@ -213,6 +215,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
 
 static const packet_fragmenter_interface_t interface = {
   init,
+  cleanup,
 
   set_acl_data_size,
   set_ble_acl_data_size,

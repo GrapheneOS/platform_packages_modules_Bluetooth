@@ -18,11 +18,12 @@
 
 #include <gtest/gtest.h>
 
+#include "AlarmTestHarness.h"
+
 extern "C" {
 #include <stdint.h>
 #include <utils/Log.h>
 
-#include "AlarmTestHarness.h"
 #include "low_power_manager.h"
 #include "osi.h"
 #include "semaphore.h"

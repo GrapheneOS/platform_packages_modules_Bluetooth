@@ -18,11 +18,14 @@
 
 #include <gtest/gtest.h>
 
+#include "AlarmTestHarness.h"
+
 extern "C" {
 #include <stdint.h>
 #include <utils/Log.h>
 
-#include "AlarmTestHarness.h"
+#include "allocation_tracker.h"
+#include "allocator.h"
 #include "btsnoop.h"
 #include "hci_hal.h"
 #include "hci_inject.h"
@@ -76,7 +79,7 @@ static BT_HDR *manufacture_packet(uint16_t event, const char *data) {
     size += 4; // 2 for the handle, 2 for the length;
   }
 
-  BT_HDR *packet = (BT_HDR *)malloc(size + sizeof(BT_HDR));
+  BT_HDR *packet = (BT_HDR *)osi_malloc(size + sizeof(BT_HDR));
   packet->len = size;
   packet->offset = 0;
   packet->event = event;
@@ -370,11 +373,13 @@ STUB_FUNCTION(int, vendor_send_async_command, (UNUSED_ATTR vendor_async_opcode_t
 STUB_FUNCTION(void, callback_transmit_finished, (UNUSED_ATTR void *buffer, bool all_fragments_sent))
   DURING(transmit_simple) AT_CALL(0) {
     EXPECT_TRUE(all_fragments_sent);
+    osi_free(buffer);
     return;
   }
 
   DURING(send_internal_command) AT_CALL(0) {
     EXPECT_TRUE(all_fragments_sent);
+    osi_free(buffer);
     return;
   }
 
@@ -425,6 +430,9 @@ class HciLayerTest : public AlarmTestHarness {
         &vendor,
         &low_power_manager
       );
+
+      // Make sure the data dispatcher allocation isn't tracked
+      allocation_tracker_reset();
 
       packet_index = 0;
       data_size_sum = 0;
@@ -530,8 +538,6 @@ TEST_F(HciLayerTest, test_transmit_simple) {
   EXPECT_CALL_COUNT(low_power_transmit_done, 1);
   EXPECT_CALL_COUNT(low_power_wake_assert, 1);
   EXPECT_CALL_COUNT(callback_transmit_finished, 1);
-
-  free(packet);
 }
 
 TEST_F(HciLayerTest, test_receive_simple) {
@@ -543,7 +549,7 @@ TEST_F(HciLayerTest, test_receive_simple) {
   EXPECT_CALL_COUNT(hal_packet_finished, 1);
   EXPECT_CALL_COUNT(btsnoop_capture, 1);
 
-  free(data_to_receive);
+  osi_free(data_to_receive);
 }
 
 TEST_F(HciLayerTest, test_send_internal_command) {
@@ -560,8 +566,6 @@ TEST_F(HciLayerTest, test_send_internal_command) {
   EXPECT_CALL_COUNT(callback_transmit_finished, 1);
 
   // TODO(zachoverflow): send a response and make sure the response ends up at the callback
-
-  free(data_to_receive);
 }
 
 // TODO(zachoverflow): test post-reassembly better, stub out fragmenter instead of using it

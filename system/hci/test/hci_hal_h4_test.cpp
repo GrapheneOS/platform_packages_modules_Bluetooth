@@ -18,6 +18,8 @@
 
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include <stdint.h>
 #include <sys/types.h>
@@ -131,9 +133,10 @@ static void reset_for(TEST_MODES_T next) {
   CURRENT_TEST_MODE = next;
 }
 
-class HciHalH4Test : public ::testing::Test {
+class HciHalH4Test : public AllocationTestHarness {
   protected:
     virtual void SetUp() {
+      AllocationTestHarness::SetUp();
       hal = hci_hal_h4_get_test_interface(&vendor);
       vendor.send_command = vendor_send_command;
       callbacks.data_ready = data_ready_callback;
@@ -158,6 +161,7 @@ class HciHalH4Test : public ::testing::Test {
 
       semaphore_free(done);
       thread_free(thread);
+      AllocationTestHarness::TearDown();
     }
 
     int sockfd[2];

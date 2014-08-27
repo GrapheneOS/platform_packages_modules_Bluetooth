@@ -18,10 +18,13 @@
 
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include <stdint.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "hci_internals.h"
 #include "packet_fragmenter.h"
 #include "osi.h"
@@ -67,7 +70,7 @@ static BT_HDR *manufacture_packet_for_fragmentation(uint16_t event, const char *
     size += 4; // 2 for the handle, 2 for the length;
   }
 
-  BT_HDR *packet = (BT_HDR *)malloc(size + sizeof(BT_HDR));
+  BT_HDR *packet = (BT_HDR *)osi_malloc(size + sizeof(BT_HDR));
   packet->len = size;
   packet->offset = 0;
   packet->event = event;
@@ -121,6 +124,9 @@ static void expect_packet_fragmented(uint16_t event, int max_acl_data_size, BT_H
 
   if (event == MSG_STACK_TO_HC_HCI_ACL)
     EXPECT_TRUE(send_complete == (data_size_sum == strlen(expected_data)));
+
+  if (send_complete)
+    osi_free(packet);
 }
 
 static void manufacture_packet_and_then_reassemble(uint16_t event, uint16_t acl_size, const char *data) {
@@ -133,7 +139,7 @@ static void manufacture_packet_and_then_reassemble(uint16_t event, uint16_t acl_
 
     do {
       int length_to_send = (length_sent + (acl_size - 4) < total_length) ? (acl_size - 4) : (total_length - length_sent);
-      BT_HDR *packet = (BT_HDR *)malloc(length_to_send + 4 + sizeof(BT_HDR));
+      BT_HDR *packet = (BT_HDR *)osi_malloc(length_to_send + 4 + sizeof(BT_HDR));
       packet->len = length_to_send + 4;
       packet->offset = 0;
       packet->event = event;
@@ -155,7 +161,7 @@ static void manufacture_packet_and_then_reassemble(uint16_t event, uint16_t acl_
       fragmenter->reassemble_and_dispatch(packet);
     } while (length_sent < total_length);
   } else {
-    BT_HDR *packet = (BT_HDR *)malloc(data_length + sizeof(BT_HDR));
+    BT_HDR *packet = (BT_HDR *)osi_malloc(data_length + sizeof(BT_HDR));
     packet->len = data_length;
     packet->offset = 0;
     packet->event = event;
@@ -188,6 +194,8 @@ static void expect_packet_reassembled(uint16_t event, BT_HDR *packet, const char
     EXPECT_EQ(expected_data[i], data[i]);
     data_size_sum++;
   }
+
+  osi_free(packet);
 }
 
 STUB_FUNCTION(void, fragmented_callback, (BT_HDR *packet, bool send_complete))
@@ -249,9 +257,10 @@ static void reset_for(TEST_MODES_T next) {
   CURRENT_TEST_MODE = next;
 }
 
-class PacketFragmenterTest : public ::testing::Test {
+class PacketFragmenterTest : public AllocationTestHarness {
   protected:
     virtual void SetUp() {
+      AllocationTestHarness::SetUp();
       fragmenter = packet_fragmenter_get_interface();
       packet_index = 0;
       data_size_sum = 0;
@@ -265,6 +274,8 @@ class PacketFragmenterTest : public ::testing::Test {
     }
 
     virtual void TearDown() {
+      fragmenter->cleanup();
+      AllocationTestHarness::TearDown();
     }
 
     packet_fragmenter_callbacks_t callbacks;
@@ -282,7 +293,6 @@ TEST_F(PacketFragmenterTest, test_no_fragment_necessary) {
 
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, small_sample_data);
   fragmenter->fragment_and_dispatch(packet);
-  free(packet);
 
   EXPECT_EQ(strlen(small_sample_data), data_size_sum);
   EXPECT_CALL_COUNT(fragmented_callback, 1);
@@ -294,7 +304,6 @@ TEST_F(PacketFragmenterTest, test_fragment_necessary) {
 
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, sample_data);
   fragmenter->fragment_and_dispatch(packet);
-  free(packet);
 
   EXPECT_EQ(strlen(sample_data), data_size_sum);
 }
@@ -307,7 +316,6 @@ TEST_F(PacketFragmenterTest, test_ble_no_fragment_necessary) {
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, small_sample_data);
   packet->event |= LOCAL_BLE_CONTROLLER_ID;
   fragmenter->fragment_and_dispatch(packet);
-  free(packet);
 
   EXPECT_EQ(strlen(small_sample_data), data_size_sum);
   EXPECT_CALL_COUNT(fragmented_callback, 1);
@@ -321,7 +329,6 @@ TEST_F(PacketFragmenterTest, test_ble_fragment_necessary) {
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, sample_data);
   packet->event |= LOCAL_BLE_CONTROLLER_ID;
   fragmenter->fragment_and_dispatch(packet);
-  free(packet);
 
   EXPECT_EQ(strlen(sample_data), data_size_sum);
 }
@@ -333,7 +340,6 @@ TEST_F(PacketFragmenterTest, test_non_acl_passthrough_fragmentation) {
 
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_CMD, sample_data);
   fragmenter->fragment_and_dispatch(packet);
-  free(packet);
 
   EXPECT_EQ(strlen(sample_data), data_size_sum);
   EXPECT_CALL_COUNT(fragmented_callback, 1);

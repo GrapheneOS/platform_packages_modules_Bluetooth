@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <utils/Log.h>
 
+#include "allocator.h"
 #include "bt_types.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
@@ -122,7 +123,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
   if (!socket)
     return;
 
-  client_t *client = (client_t *)calloc(1, sizeof(client_t));
+  client_t *client = (client_t *)osi_calloc(sizeof(client_t));
   if (!client) {
     ALOGE("%s unable to allocate memory for client.", __func__);
     socket_free(socket);
@@ -190,6 +191,7 @@ static void client_free(void *ptr) {
 
   client_t *client = (client_t *)ptr;
   socket_free(client->socket);
+  osi_free(client);
 }
 
 static const hci_inject_interface_t interface = {
