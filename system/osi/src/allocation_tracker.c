@@ -21,6 +21,7 @@
 #include <utils/Log.h>
 
 #include "allocation_tracker.h"
+#include "allocator.h"
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "osi.h"
@@ -33,7 +34,23 @@ typedef struct {
   bool freed;
 } allocation_t;
 
+
+// Hidden constructor for hash map for our use only. Everything else should use the
+// normal interface.
+hash_map_t *hash_map_new_internal(
+    size_t size,
+    hash_index_fn hash_fn,
+    key_free_fn key_fn,
+    data_free_fn,
+    const allocator_t *zeroed_allocator);
+
 static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context);
+static void *untracked_calloc(size_t size);
+
+static const allocator_t untracked_calloc_allocator = {
+  untracked_calloc,
+  free
+};
 
 static hash_map_t *allocations;
 static pthread_mutex_t lock;
@@ -42,8 +59,13 @@ void allocation_tracker_init(void) {
   if (allocations)
     return;
 
-  allocations = hash_map_new(ALLOCATION_HASH_MAP_SIZE, hash_function_knuth, NULL, free);
   pthread_mutex_init(&lock, NULL);
+  allocations = hash_map_new_internal(
+    ALLOCATION_HASH_MAP_SIZE,
+    hash_function_knuth,
+    NULL,
+    free,
+    &untracked_calloc_allocator);
 }
 
 void allocation_tracker_reset(void) {
@@ -110,4 +132,8 @@ static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *contex
   }
 
   return true;
+}
+
+static void *untracked_calloc(size_t size) {
+  return calloc(size, 1);
 }

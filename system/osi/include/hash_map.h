@@ -40,8 +40,11 @@ typedef void (*key_free_fn)(void *data);
 typedef void (*data_free_fn)(void *data);
 
 // Lifecycle.
-hash_map_t *hash_map_new(size_t size, hash_index_fn hash_fn,
-    key_free_fn key_fn, data_free_fn);
+hash_map_t *hash_map_new(
+    size_t size,
+    hash_index_fn hash_fn,
+    key_free_fn key_fn,
+    data_free_fn);
 void hash_map_free(hash_map_t *hash_map);
 
 // Accessors.

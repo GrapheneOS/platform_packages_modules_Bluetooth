@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include "allocator.h"
 #include "list.h"
 #include "osi.h"
 
@@ -13,9 +14,22 @@ typedef struct list_t {
   list_node_t *tail;
   size_t length;
   list_free_cb free_cb;
+  const allocator_t *allocator;
 } list_t;
 
 static list_node_t *list_free_node_(list_t *list, list_node_t *node);
+
+// Hidden constructor, only to be used by the hash map for the allocation tracker.
+// Behaves the same as |list_new|, except you get to specify the allocator.
+list_t *list_new_internal(list_free_cb callback, const allocator_t *zeroed_allocator) {
+  list_t *list = (list_t *)zeroed_allocator->alloc(sizeof(list_t));
+  if (!list)
+    return NULL;
+
+  list->free_cb = callback;
+  list->allocator = zeroed_allocator;
+  return list;
+}
 
 // Returns a new, empty list. Returns NULL if not enough memory could be allocated
 // for the list structure. The returned list must be freed with |list_free|. The
@@ -24,19 +38,17 @@ static list_node_t *list_free_node_(list_t *list, list_node_t *node);
 // memory or file descriptor. |callback| may be NULL if no cleanup is necessary on
 // element removal.
 list_t *list_new(list_free_cb callback) {
-  list_t *list = (list_t *)calloc(sizeof(list_t), 1);
-  if (list)
-    list->free_cb = callback;
-  return list;
+  return list_new_internal(callback, &allocator_calloc);
 }
 
 // Frees the list. This function accepts NULL as an argument, in which case it
 // behaves like a no-op.
 void list_free(list_t *list) {
-  if (list != NULL)
-    list_clear(list);
+  if (!list)
+    return;
 
-  free(list);
+  list_clear(list);
+  list->allocator->free(list);
 }
 
 // Returns true if the list is empty (has no elements), false otherwise.
@@ -88,7 +100,7 @@ bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
   assert(node != NULL);
   assert(data != NULL);
 
-  list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+  list_node_t *node = (list_node_t *)list->allocator->alloc(sizeof(list_node_t));
   if (!node)
     return false;
 
@@ -109,7 +121,7 @@ bool list_prepend(list_t *list, void *data) {
   assert(list != NULL);
   assert(data != NULL);
 
-  list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+  list_node_t *node = (list_node_t *)list->allocator->alloc(sizeof(list_node_t));
   if (!node)
     return false;
   node->next = list->head;
@@ -129,7 +141,7 @@ bool list_append(list_t *list, void *data) {
   assert(list != NULL);
   assert(data != NULL);
 
-  list_node_t *node = (list_node_t *)malloc(sizeof(list_node_t));
+  list_node_t *node = (list_node_t *)list->allocator->alloc(sizeof(list_node_t));
   if (!node)
     return false;
   node->next = NULL;
@@ -244,7 +256,7 @@ static list_node_t *list_free_node_(list_t *list, list_node_t *node) {
 
   if (list->free_cb)
     list->free_cb(node->data);
-  free(node);
+  list->allocator->free(node);
   --list->length;
 
   return next;

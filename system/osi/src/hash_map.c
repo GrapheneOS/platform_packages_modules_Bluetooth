@@ -20,6 +20,8 @@
 #include <list.h>
 #include <hash_map.h>
 
+#include "allocator.h"
+
 struct hash_map_t;
 
 typedef struct hash_map_bucket_t {
@@ -33,11 +35,45 @@ typedef struct hash_map_t {
   hash_index_fn hash_fn;
   key_free_fn key_fn;
   data_free_fn data_fn;
+  const allocator_t *allocator;
 } hash_map_t;
+
+// Hidden constructor for list, only to be used by us.
+list_t *list_new_internal(list_free_cb callback, const allocator_t *zeroed_allocator);
 
 static void bucket_free_(void *data);
 static hash_map_entry_t *find_bucket_entry_(list_t *hash_bucket_list,
     const void *key);
+
+// Hidden constructor, only to be used by the allocation tracker. Behaves the same as
+// |hash_map_new|, except you get to specify the allocator.
+hash_map_t * hash_map_new_internal(
+    size_t num_bucket,
+    hash_index_fn hash_fn,
+    key_free_fn key_fn,
+    data_free_fn data_fn,
+    const allocator_t *zeroed_allocator) {
+  assert(hash_fn != NULL);
+  assert(num_bucket > 0);
+  assert(zeroed_allocator != NULL);
+
+  hash_map_t *hash_map = zeroed_allocator->alloc(sizeof(hash_map_t));
+  if (hash_map == NULL)
+    return NULL;
+
+  hash_map->hash_fn = hash_fn;
+  hash_map->key_fn = key_fn;
+  hash_map->data_fn = data_fn;
+  hash_map->allocator = zeroed_allocator;
+
+  hash_map->num_bucket = num_bucket;
+  hash_map->bucket = zeroed_allocator->alloc(sizeof(hash_map_bucket_t) * num_bucket);
+  if (hash_map->bucket == NULL) {
+    zeroed_allocator->free(hash_map);
+    return NULL;
+  }
+  return hash_map;
+}
 
 // Returns a new, empty hash_map. Returns NULL if not enough memory could be allocated
 // for the hash_map structure. The returned hash_map must be freed with |hash_map_free|.
@@ -47,26 +83,12 @@ static hash_map_entry_t *find_bucket_entry_(list_t *hash_bucket_list,
 // the hash_map. They can be used to release resources held by the hash_map element,
 // e.g.  memory or file descriptor.  |key_fn| and |data_fn| may be NULL if no cleanup
 // is necessary on element removal.
-hash_map_t * hash_map_new(size_t num_bucket, hash_index_fn hash_fn,
-    key_free_fn key_fn, data_free_fn data_fn) {
-  assert(hash_fn != NULL);
-  assert(num_bucket > 0);
-
-  hash_map_t *hash_map = calloc(sizeof(hash_map_t), 1);
-  if (hash_map == NULL)
-    return NULL;
-
-  hash_map->hash_fn = hash_fn;
-  hash_map->key_fn = key_fn;
-  hash_map->data_fn = data_fn;
-
-  hash_map->num_bucket = num_bucket;
-  hash_map->bucket = calloc(sizeof(hash_map_bucket_t), num_bucket);
-  if (hash_map->bucket == NULL) {
-    free(hash_map);
-    return NULL;
-  }
-  return hash_map;
+hash_map_t * hash_map_new(
+    size_t num_bucket,
+    hash_index_fn hash_fn,
+    key_free_fn key_fn,
+    data_free_fn data_fn) {
+  return hash_map_new_internal(num_bucket, hash_fn, key_fn, data_fn, &allocator_calloc);
 }
 
 // Frees the hash_map. This function accepts NULL as an argument, in which case it
@@ -75,8 +97,8 @@ void hash_map_free(hash_map_t *hash_map) {
   if (hash_map == NULL)
     return;
   hash_map_clear(hash_map);
-  free(hash_map->bucket);
-  free(hash_map);
+  hash_map->allocator->free(hash_map->bucket);
+  hash_map->allocator->free(hash_map);
 }
 
 // Returns true if the hash_map is empty (has no elements), false otherwise.
@@ -125,7 +147,7 @@ bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
 
   if (hash_map->bucket[hash_key].list == NULL) {
-    hash_map->bucket[hash_key].list = list_new(bucket_free_);
+    hash_map->bucket[hash_key].list = list_new_internal(bucket_free_, hash_map->allocator);
     if (hash_map->bucket[hash_key].list == NULL)
         return false;
   }
@@ -140,7 +162,7 @@ bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   } else {
     hash_map->hash_size++;
   }
-  hash_map_entry = calloc(sizeof(hash_map_entry_t), 1);
+  hash_map_entry = hash_map->allocator->alloc(sizeof(hash_map_entry_t));
   if (hash_map_entry == NULL)
     return false;
 
@@ -224,12 +246,13 @@ void hash_map_foreach(hash_map_t *hash_map, hash_map_iter_cb callback, void *con
 static void bucket_free_(void *data) {
   assert(data != NULL);
   hash_map_entry_t *hash_map_entry = (hash_map_entry_t *)data;
+  const hash_map_t *hash_map = hash_map_entry->hash_map;
 
-  if (hash_map_entry->hash_map->key_fn)
-    hash_map_entry->hash_map->key_fn((void *)hash_map_entry->key);
-  if (hash_map_entry->hash_map->data_fn)
-    hash_map_entry->hash_map->data_fn(hash_map_entry->data);
-  free(hash_map_entry);
+  if (hash_map->key_fn)
+    hash_map->key_fn((void *)hash_map_entry->key);
+  if (hash_map->data_fn)
+    hash_map->data_fn(hash_map_entry->data);
+  hash_map->allocator->free(hash_map_entry);
 }
 
 static hash_map_entry_t * find_bucket_entry_(list_t *hash_bucket_list,
