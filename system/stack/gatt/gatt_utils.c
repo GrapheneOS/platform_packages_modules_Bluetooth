@@ -1562,15 +1562,20 @@ tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
     UINT8           ii = (UINT8)gatt_if;
     tGATT_REG       *p_reg = NULL;
 
-    if (ii)
-    {
-        ii--; /* convert from one based to zero based */
-        p_reg = &gatt_cb.cl_rcb[ii];
-        if ( (ii < GATT_MAX_APPS)  && (p_reg->in_use) )
-            return(p_reg);
+    if (ii < 1 || ii > GATT_MAX_APPS) {
+        GATT_TRACE_WARNING("gatt_if out of range [ = %d]", ii);
+        return NULL;
     }
 
-    return NULL;
+    // Index for cl_rcb is always 1 less than gatt_if.
+    p_reg = &gatt_cb.cl_rcb[ii - 1];
+
+    if (!p_reg->in_use) {
+        GATT_TRACE_WARNING("gatt_if found but not in use.");
+        return NULL;
+    }
+
+    return p_reg;
 }
 
 

@@ -1323,7 +1323,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
 **
 ** Parameter        gatt_if: applicaiton interface.
 **
-** Returns          0 for error, otherwise the index of the client registered with GATT
+** Returns          None.
 **
 *******************************************************************************/
 void GATT_StartIf (tGATT_IF gatt_if)
@@ -1338,7 +1338,6 @@ void GATT_StartIf (tGATT_IF gatt_if)
     GATT_TRACE_API ("GATT_StartIf gatt_if=%d", gatt_if);
     if ((p_reg = gatt_get_regcb(gatt_if)) != NULL)
     {
-        p_reg = &gatt_cb.cl_rcb[gatt_if - 1];
         start_idx = 0;
         while (gatt_find_the_connected_bda(start_idx, bda, &found_idx, &transport))
         {
