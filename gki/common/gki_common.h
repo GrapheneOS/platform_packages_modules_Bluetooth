@@ -295,13 +295,6 @@ typedef struct
     INT32   OSTaskTmr3R [GKI_MAX_TASKS];
 #endif
 
-
-
-    /* Buffer related variables
-    */
-    BUFFER_HDR_T    *OSTaskQFirst[GKI_MAX_TASKS][NUM_TASK_MBOX]; /* array of pointers to the first event in the task mailbox */
-    BUFFER_HDR_T    *OSTaskQLast [GKI_MAX_TASKS][NUM_TASK_MBOX]; /* array of pointers to the last event in the task mailbox */
-
     /* Define the buffer pool management variables
     */
     FREE_QUEUE_T    freeq[GKI_NUM_TOTAL_BUF_POOLS];

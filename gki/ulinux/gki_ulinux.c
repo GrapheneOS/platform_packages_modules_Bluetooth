@@ -655,15 +655,6 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
            no need to call GKI_disable() here as we know that we will have some events as we've been waking
            up after condition pending or timeout */
 
-        if (gki_cb.com.OSTaskQFirst[rtask][0])
-            gki_cb.com.OSWaitEvt[rtask] |= TASK_MBOX_0_EVT_MASK;
-        if (gki_cb.com.OSTaskQFirst[rtask][1])
-            gki_cb.com.OSWaitEvt[rtask] |= TASK_MBOX_1_EVT_MASK;
-        if (gki_cb.com.OSTaskQFirst[rtask][2])
-            gki_cb.com.OSWaitEvt[rtask] |= TASK_MBOX_2_EVT_MASK;
-        if (gki_cb.com.OSTaskQFirst[rtask][3])
-            gki_cb.com.OSWaitEvt[rtask] |= TASK_MBOX_3_EVT_MASK;
-
         if (gki_cb.com.OSRdyTbl[rtask] == TASK_DEAD)
         {
             gki_cb.com.OSWaitEvt[rtask] = 0;

@@ -151,8 +151,6 @@ GKI_API extern void    GKI_stop(void);
 
 /* To send buffers and events between tasks
 */
-GKI_API extern void   *GKI_read_mbox  (UINT8);
-GKI_API extern void    GKI_send_msg   (UINT8, UINT8, void *);
 GKI_API extern UINT8   GKI_send_event (UINT8, UINT16);
 
 

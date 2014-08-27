@@ -21,12 +21,15 @@
  *  This is the main implementation file for the BTA system manager.
  *
  ******************************************************************************/
+#define LOG_TAG "bta_sys_main"
+#include <cutils/log.h>
 
 #include "btm_api.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
 
+#include "fixed_queue.h"
 #include "gki.h"
 #include "ptim.h"
 #include <string.h>
@@ -44,6 +47,9 @@ tBTA_SYS_CB bta_sys_cb;
 /* TODO Bluedroid - Hard-coded trace levels -  Needs to be configurable */
 UINT8 appl_trace_level = BT_TRACE_LEVEL_WARNING; //APPL_INITIAL_TRACE_LEVEL;
 UINT8 btif_trace_level = BT_TRACE_LEVEL_WARNING;
+
+// Communication queue between btu_task and bta.
+extern fixed_queue_t *btu_bta_msg_queue;
 
 static const tBTA_SYS_REG bta_sys_hw_reg =
 {
@@ -156,6 +162,7 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 BTA_API void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
+
     ptim_init(&bta_sys_cb.ptim_cb, BTA_SYS_TIMER_PERIOD, BTA_TIMER);
     bta_sys_cb.task_id = GKI_get_taskid();
     appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
@@ -579,7 +586,9 @@ BOOLEAN bta_sys_is_register(UINT8 id)
 *******************************************************************************/
 void bta_sys_sendmsg(void *p_msg)
 {
-    GKI_send_msg(bta_sys_cb.task_id, BTA_MBOX, p_msg);
+    fixed_queue_enqueue(btu_bta_msg_queue, p_msg);
+    // Signal the target thread work is ready.
+    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTA_MBOX));
 }
 
 /*******************************************************************************

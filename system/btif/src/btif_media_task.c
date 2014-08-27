@@ -38,6 +38,7 @@
 #include <errno.h>
 
 #include "bt_target.h"
+#include "fixed_queue.h"
 #include "gki.h"
 #include "bta_api.h"
 #include "btu.h"
@@ -301,6 +302,8 @@ static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
 static UINT64 last_frame_us = 0;
 
+fixed_queue_t *btif_media_cmd_msg_queue;
+fixed_queue_t *btif_media_data_msg_queue;
 
 /*****************************************************************************
  **  Local functions
@@ -772,6 +775,9 @@ int btif_a2dp_start_media_task(void)
 
     APPL_TRACE_EVENT("## A2DP START MEDIA TASK ##");
 
+    btif_media_cmd_msg_queue = fixed_queue_new(SIZE_MAX);
+    btif_media_data_msg_queue = fixed_queue_new(SIZE_MAX);
+
     /* start a2dp media task */
     retval = GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK,
                 A2DP_MEDIA_TASK_TASK_STR,
@@ -804,6 +810,9 @@ void btif_a2dp_stop_media_task(void)
 {
     APPL_TRACE_EVENT("## A2DP STOP MEDIA TASK ##");
     GKI_destroy_task(BT_MEDIA_TASK);
+
+    fixed_queue_free(btif_media_cmd_msg_queue, NULL);
+    fixed_queue_free(btif_media_data_msg_queue, NULL);
 }
 
 /*****************************************************************************
@@ -935,7 +944,9 @@ BOOLEAN btif_media_task_clear_track(void)
 
     p_buf->event = BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 /*******************************************************************************
@@ -961,7 +972,9 @@ BOOLEAN btif_media_task_stop_decoding_req(void)
 
     p_buf->event = BTIF_MEDIA_AUDIO_SINK_STOP_DECODING;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -988,7 +1001,9 @@ BOOLEAN btif_media_task_start_decoding_req(void)
 
     p_buf->event = BTIF_MEDIA_AUDIO_SINK_START_DECODING;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -1019,7 +1034,9 @@ void btif_reset_decoder(UINT8 *p_av)
     memcpy(p_buf->codec_info,p_av, AVDT_CODEC_SIZE);
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_SINK_CFG_UPDATE;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
 }
 
 /*****************************************************************************
@@ -1372,23 +1389,14 @@ int btif_media_task(void *p)
 
         VERBOSE("================= MEDIA TASK EVENT %d ===============", event);
 
-        if (event & BTIF_MEDIA_TASK_CMD)
-        {
-            /* Process all messages in the queue */
-            while ((p_msg = (BT_HDR *) GKI_read_mbox(BTIF_MEDIA_TASK_CMD_MBOX)) != NULL)
-            {
-                btif_media_task_handle_cmd(p_msg);
-            }
+        /* Process all messages in the queue */
+        while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btif_media_cmd_msg_queue)) != NULL) {
+            btif_media_task_handle_cmd(p_msg);
         }
 
-        if (event & BTIF_MEDIA_TASK_DATA)
-        {
-            VERBOSE("================= Received Media Packets %d ===============", event);
-            /* Process all messages in the queue */
-            while ((p_msg = (BT_HDR *) GKI_read_mbox(BTIF_MEDIA_TASK_DATA_MBOX)) != NULL)
-            {
-                btif_media_task_handle_media(p_msg);
-            }
+        /* Process all messages in the queue */
+        while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btif_media_data_msg_queue)) != NULL) {
+            btif_media_task_handle_media(p_msg);
         }
 
         if (event & BTIF_MEDIA_AA_TASK_TIMER)
@@ -1449,7 +1457,9 @@ BOOLEAN btif_media_task_send_cmd_evt(UINT16 Evt)
 
     p_buf->event = Evt;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -1625,7 +1635,9 @@ BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO *p_msg)
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_INIT_AUDIO));
     p_buf->hdr.event = BTIF_MEDIA_SBC_ENC_INIT;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -1649,7 +1661,9 @@ BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO *p_msg)
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_UPDATE_AUDIO));
     p_buf->hdr.event = BTIF_MEDIA_SBC_ENC_UPDATE;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -1673,7 +1687,10 @@ BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING));
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_FEEDING_INIT;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
+
     return TRUE;
 }
 
@@ -1697,7 +1714,10 @@ BOOLEAN btif_media_task_start_aa_req(void)
 
     p_buf->event = BTIF_MEDIA_START_AA_TX;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
+
     return TRUE;
 }
 
@@ -1720,8 +1740,11 @@ BOOLEAN btif_media_task_stop_aa_req(void)
 
     p_buf->event = BTIF_MEDIA_STOP_AA_TX;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
-    return TRUE;
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
+
+   return TRUE;
 }
 /*******************************************************************************
  **
@@ -1746,7 +1769,9 @@ BOOLEAN btif_media_task_aa_rx_flush_req(void)
 
     p_buf->event = BTIF_MEDIA_FLUSH_AA_RX;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
     return TRUE;
 }
 
@@ -1769,7 +1794,10 @@ BOOLEAN btif_media_task_aa_tx_flush_req(void)
 
     p_buf->event = BTIF_MEDIA_FLUSH_AA_TX;
 
-    GKI_send_msg(BT_MEDIA_TASK, BTIF_MEDIA_TASK_CMD_MBOX, p_buf);
+    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    // Signal the target thread work is ready.
+    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
+
     return TRUE;
 }
 /*******************************************************************************

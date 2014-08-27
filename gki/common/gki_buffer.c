@@ -159,16 +159,6 @@ void gki_buffer_init(void)
     UINT8   i, tt, mb;
     tGKI_COM_CB *p_cb = &gki_cb.com;
 
-    /* Initialize mailboxes */
-    for (tt = 0; tt < GKI_MAX_TASKS; tt++)
-    {
-        for (mb = 0; mb < NUM_TASK_MBOX; mb++)
-        {
-            p_cb->OSTaskQFirst[tt][mb] = NULL;
-            p_cb->OSTaskQLast [tt][mb] = NULL;
-        }
-    }
-
     for (tt = 0; tt < GKI_NUM_TOTAL_BUF_POOLS; tt++)
     {
         p_cb->pool_start[tt] = NULL;
@@ -558,12 +548,6 @@ void GKI_freebuf (void *p_buf)
 
     p_hdr = (BUFFER_HDR_T *) ((UINT8 *)p_buf - BUFFER_HDR_SIZE);
 
-    if (p_hdr->status != BUF_STATUS_UNLINKED)
-    {
-        GKI_exception(GKI_ERROR_FREEBUF_BUF_LINKED, "Freeing Linked Buf");
-        return;
-    }
-
     if (p_hdr->q_id >= GKI_NUM_TOTAL_BUF_POOLS)
     {
         GKI_exception(GKI_ERROR_FREEBUF_BAD_QID, "Bad Buf QId");
@@ -659,106 +643,6 @@ BOOLEAN gki_chk_buf_damage(void *p_buf)
 
 #endif
 }
-
-/*******************************************************************************
-**
-** Function         GKI_send_msg
-**
-** Description      Called by applications to send a buffer to a task
-**
-** Returns          Nothing
-**
-*******************************************************************************/
-void GKI_send_msg (UINT8 task_id, UINT8 mbox, void *msg)
-{
-    BUFFER_HDR_T    *p_hdr;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-
-    /* If task non-existant or not started, drop buffer */
-    if ((task_id >= GKI_MAX_TASKS) || (mbox >= NUM_TASK_MBOX) || (p_cb->OSRdyTbl[task_id] == TASK_DEAD))
-    {
-        GKI_exception(GKI_ERROR_SEND_MSG_BAD_DEST, "Sending to unknown dest");
-        GKI_freebuf (msg);
-        return;
-    }
-
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
-    if (gki_chk_buf_damage(msg))
-    {
-        GKI_exception(GKI_ERROR_BUF_CORRUPTED, "Send - Buffer corrupted");
-        return;
-    }
-#endif
-
-    p_hdr = (BUFFER_HDR_T *) ((UINT8 *) msg - BUFFER_HDR_SIZE);
-
-    if (p_hdr->status != BUF_STATUS_UNLINKED)
-    {
-        GKI_exception(GKI_ERROR_SEND_MSG_BUF_LINKED, "Send - buffer linked");
-        return;
-    }
-
-    GKI_disable();
-
-    if (p_cb->OSTaskQFirst[task_id][mbox])
-        p_cb->OSTaskQLast[task_id][mbox]->p_next = p_hdr;
-    else
-        p_cb->OSTaskQFirst[task_id][mbox] = p_hdr;
-
-    p_cb->OSTaskQLast[task_id][mbox] = p_hdr;
-
-    p_hdr->p_next = NULL;
-    p_hdr->status = BUF_STATUS_QUEUED;
-    p_hdr->task_id = task_id;
-
-
-    GKI_enable();
-
-    GKI_send_event(task_id, (UINT16)EVENT_MASK(mbox));
-
-    return;
-}
-
-/*******************************************************************************
-**
-** Function         GKI_read_mbox
-**
-** Description      Called by applications to read a buffer from one of
-**                  the task mailboxes.  A task can only read its own mailbox.
-**
-** Parameters:      mbox  - (input) mailbox ID to read (0, 1, 2, or 3)
-**
-** Returns          NULL if the mailbox was empty, else the address of a buffer
-**
-*******************************************************************************/
-void *GKI_read_mbox (UINT8 mbox)
-{
-    UINT8           task_id = GKI_get_taskid();
-    void            *p_buf = NULL;
-    BUFFER_HDR_T    *p_hdr;
-
-    if ((task_id >= GKI_MAX_TASKS) || (mbox >= NUM_TASK_MBOX))
-        return (NULL);
-
-    GKI_disable();
-
-    if (gki_cb.com.OSTaskQFirst[task_id][mbox])
-    {
-        p_hdr = gki_cb.com.OSTaskQFirst[task_id][mbox];
-        gki_cb.com.OSTaskQFirst[task_id][mbox] = p_hdr->p_next;
-
-        p_hdr->p_next = NULL;
-        p_hdr->status = BUF_STATUS_UNLINKED;
-
-        p_buf = (UINT8 *)p_hdr + BUFFER_HDR_SIZE;
-    }
-
-    GKI_enable();
-
-    return (p_buf);
-}
-
-
 
 /*******************************************************************************
 **

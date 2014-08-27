@@ -41,6 +41,7 @@
 #include "btif_api.h"
 #include "bt_utils.h"
 #include "bta_api.h"
+#include "fixed_queue.h"
 #include "gki.h"
 #include "btu.h"
 #include "bte.h"
@@ -127,9 +128,13 @@ static bt_status_t btif_disassociate_evt(void);
 /* sends message to btif task */
 static void btif_sendmsg(void *p_msg);
 
+static fixed_queue_t *btif_msg_queue;
+
 /************************************************************************************
 **  Externs
 ************************************************************************************/
+extern fixed_queue_t *btu_hci_msg_queue;
+
 extern void bte_load_did_conf(const char *p_path);
 
 /** TODO: Move these to _common.h */
@@ -322,24 +327,20 @@ static void btif_task(UINT32 params)
         if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
             break;
 
-        if(event & TASK_MBOX_1_EVT_MASK)
-        {
-            while((p_msg = GKI_read_mbox(BTU_BTIF_MBOX)) != NULL)
+        while ((p_msg = fixed_queue_try_dequeue(btif_msg_queue)) != NULL) {
+            BTIF_TRACE_VERBOSE("btif task fetched event %x", p_msg->event);
+
+            switch (p_msg->event)
             {
-                BTIF_TRACE_VERBOSE("btif task fetched event %x", p_msg->event);
-
-                switch (p_msg->event)
-                {
-                    case BT_EVT_CONTEXT_SWITCH_EVT:
-                        btif_context_switched(p_msg);
-                        break;
-                    default:
-                        BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
-                        break;
-                }
-
-                GKI_freebuf(p_msg);
+                case BT_EVT_CONTEXT_SWITCH_EVT:
+                    btif_context_switched(p_msg);
+                    break;
+                default:
+                    BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
+                    break;
             }
+
+            GKI_freebuf(p_msg);
         }
     }
 
@@ -361,7 +362,9 @@ static void btif_task(UINT32 params)
 
 void btif_sendmsg(void *p_msg)
 {
-    GKI_send_msg(BTIF_TASK, BTU_BTIF_MBOX, p_msg);
+    fixed_queue_enqueue(btif_msg_queue, p_msg);
+    // Signal the target thread work is ready.
+    GKI_send_event(BTIF_TASK, (UINT16)EVENT_MASK(BTU_BTIF_MBOX));
 }
 
 static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
@@ -477,6 +480,9 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 bt_status_t btif_init_bluetooth()
 {
     UINT8 status;
+
+    btif_msg_queue = fixed_queue_new(SIZE_MAX);
+
     btif_config_init();
     bte_main_boot_entry();
 
@@ -782,6 +788,8 @@ bt_status_t btif_shutdown_bluetooth(void)
     btif_dut_mode = 0;
 
     bt_utils_cleanup();
+
+    fixed_queue_free(btif_msg_queue, NULL);
 
     BTIF_TRACE_DEBUG("%s done", __FUNCTION__);
 

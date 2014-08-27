@@ -20,6 +20,7 @@
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "btu.h"
+#include "fixed_queue.h"
 #include "gap_int.h"
 #include "l2cdefs.h"
 #include "l2c_int.h"
@@ -27,6 +28,7 @@
 #if GAP_CONN_INCLUDED == TRUE
 #include "btm_int.h"
 
+extern fixed_queue_t *btu_hci_msg_queue;
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
@@ -1215,7 +1217,10 @@ void gap_send_event (UINT16 gap_handle)
         p_msg->offset = 0;
         p_msg->layer_specific = gap_handle;
 
-        GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
+        fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
+        // Signal the target thread work is ready.
+        GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
+
     }
     else
     {

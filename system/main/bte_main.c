@@ -86,6 +86,12 @@ BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
 BOOLEAN hci_save_log = FALSE; /* save a copy of the log before starting again */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
+// Communication queue between btu_task and bta.
+fixed_queue_t *btu_bta_msg_queue;
+
+// Communication queue between btu_task and hci.
+fixed_queue_t *btu_hci_msg_queue;
+
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
@@ -214,6 +220,9 @@ void bte_main_shutdown()
 void bte_main_enable()
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
+
+    btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
+    btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
 
     /* Initialize BTE control block */
     BTE_StartUp();
@@ -632,7 +641,10 @@ static void dealloc(void *buffer)
 }
 
 static void dump_upbound_data_to_btu(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, fixed_queue_dequeue(queue));
+    fixed_queue_enqueue(btu_hci_msg_queue, fixed_queue_dequeue(queue));
+    // Signal the target thread work is ready.
+    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
+
 }
 
 /******************************************************************************
@@ -659,7 +671,9 @@ static void tx_result(void *p_buf, bool all_fragments_sent)
 {
     if (!all_fragments_sent)
     {
-        GKI_send_msg (BTU_TASK, BTU_HCI_RCV_MBOX, p_buf);
+        fixed_queue_enqueue(btu_hci_msg_queue, p_buf);
+        // Signal the target thread work is ready.
+        GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
     }
     else
     {

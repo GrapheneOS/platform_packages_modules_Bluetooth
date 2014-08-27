@@ -27,6 +27,7 @@
 #include <string.h>
 #include "dyn_mem.h"
 
+#include "fixed_queue.h"
 #include "btu.h"
 #include "btm_int.h"
 #include "sdpint.h"
@@ -39,6 +40,10 @@
 #include "smp_int.h"
 #endif
 #endif
+
+
+extern fixed_queue_t *btu_hci_msg_queue;
+extern fixed_queue_t *btu_bta_msg_queue;
 
 extern void PLATFORM_DisableHciTransport(UINT8 bDisable);
 /*****************************************************************************
@@ -131,6 +136,8 @@ void BTE_ShutDown(void) {
     while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q))
       GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q));
   }
+  fixed_queue_free(btu_bta_msg_queue, NULL);
+  fixed_queue_free(btu_hci_msg_queue, NULL);
 }
 
 
@@ -179,7 +186,7 @@ void btu_uipc_rx_cback(BT_HDR *p_msg)
 {
     BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, "btu_uipc_rx_cback event 0x%x, len %d, offset %d",
 		p_msg->event, p_msg->len, p_msg->offset);
-    GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
-
+    fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
+    // Signal the target thread work is ready.
+    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
 }
-
