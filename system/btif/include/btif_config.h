@@ -32,7 +32,7 @@ bool btif_config_has_section(const char *section);
 bool btif_config_exist(const char *section, const char *key);
 bool btif_config_get_int(const char *section, const char *key, int *value);
 bool btif_config_set_int(const char *section, const char *key, int value);
-bool btif_config_get_str(const char *section, const char *key, char *value, int *length);
+bool btif_config_get_str(const char *section, const char *key, char *value, int *size_bytes);
 bool btif_config_set_str(const char *section, const char *key, const char *value);
 bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, size_t *length);
 bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length);
