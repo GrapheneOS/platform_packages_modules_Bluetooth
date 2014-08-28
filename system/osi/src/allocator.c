@@ -23,7 +23,7 @@
 
 char *osi_strdup(const char *str) {
   char *ret = strdup(str);
-  allocation_tracker_notify_alloc(ret, strlen(ret));
+  allocation_tracker_notify_alloc(ret, strlen(ret) + 1); // + 1 for the null terminator
   return ret;
 }
 
