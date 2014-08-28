@@ -25,7 +25,7 @@ extern "C" {
 }
 
 void AllocationTestHarness::SetUp() {
-  allocation_tracker_init();
+  allocation_tracker_init(true);
   allocation_tracker_reset();
 }
 

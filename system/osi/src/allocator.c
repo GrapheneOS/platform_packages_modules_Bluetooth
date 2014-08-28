@@ -22,26 +22,21 @@
 #include "allocation_tracker.h"
 
 char *osi_strdup(const char *str) {
-  char *ret = strdup(str);
-  allocation_tracker_notify_alloc(ret, strlen(ret) + 1); // + 1 for the null terminator
-  return ret;
+  return allocation_tracker_notify_alloc(strdup(str), strlen(str) + 1, false); // + 1 for the null terminator
 }
 
 void *osi_malloc(size_t size) {
-  void *ptr = malloc(size);
-  allocation_tracker_notify_alloc(ptr, size);
-  return ptr;
+  size_t real_size = allocation_tracker_resize_for_canary(size);
+  return allocation_tracker_notify_alloc(malloc(real_size), size, true);
 }
 
 void *osi_calloc(size_t size) {
-  void *ptr = calloc(1, size);
-  allocation_tracker_notify_alloc(ptr, size);
-  return ptr;
+  size_t real_size = allocation_tracker_resize_for_canary(size);
+  return allocation_tracker_notify_alloc(calloc(1, real_size), size, true);
 }
 
 void osi_free(void *ptr) {
-  allocation_tracker_notify_free(ptr);
-  free(ptr);
+  free(allocation_tracker_notify_free(ptr));
 }
 
 const allocator_t allocator_malloc = {

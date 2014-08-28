@@ -30,7 +30,8 @@ TEST(AllocationTrackerTest, test_uninit_no_bad_effects) {
   // Ensure uninitialized state (previous tests may have called init)
   allocation_tracker_uninit();
 
-  allocation_tracker_notify_alloc(dummy_allocation, 4);
+  EXPECT_EQ(4U, allocation_tracker_resize_for_canary(4));
+  allocation_tracker_notify_alloc(dummy_allocation, 4, false);
   EXPECT_EQ(0U, allocation_tracker_expect_no_allocations()); // should not have registered an allocation
   allocation_tracker_notify_free(dummy_allocation);
   EXPECT_EQ(0U, allocation_tracker_expect_no_allocations());
@@ -38,14 +39,64 @@ TEST(AllocationTrackerTest, test_uninit_no_bad_effects) {
   free(dummy_allocation);
 }
 
-TEST(AllocationTrackerTest, test_inited_basic) {
-  allocation_tracker_init();
+TEST(AllocationTrackerTest, test_canaries_off_no_canary) {
+  allocation_tracker_uninit();
+  allocation_tracker_init(false);
 
   void *dummy_allocation = malloc(4);
 
-  allocation_tracker_notify_alloc(dummy_allocation, 4);
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_alloc(dummy_allocation, 4, false));
   EXPECT_EQ(4U, allocation_tracker_expect_no_allocations()); // should have registered the allocation
-  allocation_tracker_notify_free(dummy_allocation);
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_free(dummy_allocation));
+  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations());
+
+  free(dummy_allocation);
+}
+
+TEST(AllocationTrackerTest, test_canaries_off_with_canary) {
+  allocation_tracker_uninit();
+  allocation_tracker_init(false);
+
+  size_t with_canary_size = allocation_tracker_resize_for_canary(4);
+  EXPECT_EQ(4U, with_canary_size);
+
+  void *dummy_allocation = malloc(with_canary_size);
+
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_alloc(dummy_allocation, 4, true));
+  EXPECT_EQ(4U, allocation_tracker_expect_no_allocations()); // should have registered the allocation
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_free(dummy_allocation));
+  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations());
+
+  free(dummy_allocation);
+}
+
+TEST(AllocationTrackerTest, test_canaries_on_no_canary) {
+  allocation_tracker_uninit();
+  allocation_tracker_init(true);
+
+  void *dummy_allocation = malloc(4);
+
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_alloc(dummy_allocation, 4, false));
+  EXPECT_EQ(4U, allocation_tracker_expect_no_allocations()); // should have registered the allocation
+  EXPECT_EQ(dummy_allocation, allocation_tracker_notify_free(dummy_allocation));
+  EXPECT_EQ(0U, allocation_tracker_expect_no_allocations());
+
+  free(dummy_allocation);
+}
+
+TEST(AllocationTrackerTest, test_canaries_on_with_canary) {
+  allocation_tracker_uninit();
+  allocation_tracker_init(true);
+
+  size_t with_canary_size = allocation_tracker_resize_for_canary(4);
+  EXPECT_TRUE(with_canary_size > 4);
+
+  void *dummy_allocation = malloc(with_canary_size);
+  void *useable_ptr = allocation_tracker_notify_alloc(dummy_allocation, 4, true);
+  EXPECT_TRUE(useable_ptr > dummy_allocation);
+  EXPECT_EQ(4U, allocation_tracker_expect_no_allocations()); // should have registered the allocation
+  void *freeable_ptr = allocation_tracker_notify_free(useable_ptr);
+  EXPECT_EQ(dummy_allocation, freeable_ptr);
   EXPECT_EQ(0U, allocation_tracker_expect_no_allocations());
 
   free(dummy_allocation);
