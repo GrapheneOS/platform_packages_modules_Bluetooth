@@ -29,8 +29,10 @@
 #include <assert.h>
 #include <sys/times.h>
 
-#include "gki_int.h"
+#include "alarm.h"
 #include "bt_utils.h"
+#include "gki_int.h"
+#include "osi.h"
 
 #define LOG_TAG "GKI_LINUX"
 
@@ -51,8 +53,6 @@
 #define USEC_PER_SEC            1000000
 #define NSEC_PER_USEC           1000
 
-#define WAKE_LOCK_ID "bluedroid_timer"
-
 #if GKI_DYNAMIC_MEMORY == FALSE
 tGKI_CB   gki_cb;
 #endif
@@ -72,16 +72,6 @@ typedef struct
     UINT32 params;          /* Extra params to pass to task entry function */
 } gki_pthread_info_t;
 
-// Alarm service structure used to pass up via JNI to the bluetooth
-// app in order to create a wakeable Alarm.
-typedef struct
-{
-    UINT32 ticks_scheduled;
-    UINT64 timer_started_us;
-    UINT64 timer_last_expired_us;
-    bool wakelock;
-} alarm_service_t;
-
 /*****************************************************************************
 **  Static variables
 ******************************************************************************/
@@ -90,165 +80,33 @@ gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
 
 // Only a single alarm is used to wake bluedroid.
 // NOTE: Must be manipulated with the GKI_disable() lock held.
-static alarm_service_t alarm_service;
-
-static timer_t posix_timer;
-static bool timer_created;
+static alarm_t *alarm_timer;
+static int32_t alarm_ticks;
 
 
 /*****************************************************************************
 **  Externs
 ******************************************************************************/
 
-extern bt_os_callouts_t *bt_os_callouts;
-
 /*****************************************************************************
 **  Functions
 ******************************************************************************/
 
-static UINT64 now_us()
-{
-    struct timespec ts_now;
-    clock_gettime(CLOCK_BOOTTIME, &ts_now);
-    return ((UINT64)ts_now.tv_sec * USEC_PER_SEC) + ((UINT64)ts_now.tv_nsec / NSEC_PER_USEC);
+static void bt_alarm_cb(UNUSED_ATTR void *data) {
+    GKI_timer_update(alarm_ticks);
 }
 
-static bool set_nonwake_alarm(UINT64 delay_millis)
-{
-    if (!timer_created)
-    {
-        ALOGE("%s timer is not available, not setting timer for %llums", __func__, delay_millis);
-        return false;
-    }
+// Schedules the next timer with the alarm timer module.
+// NOTE: Must be called with GKI_disable() lock held.
+void alarm_service_reschedule() {
+    alarm_ticks = GKI_ready_to_sleep();
 
-    const UINT64 now = now_us();
-    alarm_service.timer_started_us = now;
+    assert(alarm_ticks >= 0);
 
-    UINT64 prev_timer_delay = 0;
-    if (alarm_service.timer_last_expired_us)
-        prev_timer_delay = now - alarm_service.timer_last_expired_us;
-
-    UINT64 delay_micros = delay_millis * 1000;
-    if (delay_micros > prev_timer_delay)
-        delay_micros -= prev_timer_delay;
+    if (alarm_ticks > 0)
+        alarm_set(alarm_timer, GKI_TICKS_TO_MS(alarm_ticks), bt_alarm_cb, NULL);
     else
-        delay_micros = 1;
-
-    struct itimerspec new_value;
-    memset(&new_value, 0, sizeof(new_value));
-    new_value.it_value.tv_sec = (delay_micros / USEC_PER_SEC);
-    new_value.it_value.tv_nsec = (delay_micros % USEC_PER_SEC) * NSEC_PER_USEC;
-    if (timer_settime(posix_timer, 0, &new_value, NULL) == -1)
-    {
-        ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
-        return false;
-    }
-    return true;
-}
-
-/** Callback from Java thread after alarm from AlarmService fires. */
-static void bt_alarm_cb(void *data)
-{
-    UINT32 ticks_taken = 0;
-
-    alarm_service.timer_last_expired_us = now_us();
-    if (alarm_service.timer_last_expired_us > alarm_service.timer_started_us)
-    {
-        ticks_taken = GKI_MS_TO_TICKS((alarm_service.timer_last_expired_us
-                                       - alarm_service.timer_started_us) / 1000);
-    } else {
-        // this could happen on some platform
-        ALOGE("%s now_us %lld less than %lld", __func__, alarm_service.timer_last_expired_us,
-              alarm_service.timer_started_us);
-    }
-
-    GKI_timer_update(ticks_taken > alarm_service.ticks_scheduled
-                   ? ticks_taken : alarm_service.ticks_scheduled);
-}
-
-/** NOTE: This is only called on init and may be called without the GKI_disable()
-  * lock held.
-  */
-static void alarm_service_init()
-{
-    alarm_service.ticks_scheduled = 0;
-    alarm_service.timer_started_us = 0;
-    alarm_service.timer_last_expired_us = 0;
-    alarm_service.wakelock = FALSE;
-    raise_priority_a2dp(TASK_JAVA_ALARM);
-}
-
-/** Requests an alarm from AlarmService to fire when the next
-  * timer in the timer queue is set to expire. Only takes a wakelock
-  * if the timer tick expiration is a short interval in the future
-  * and releases the wakelock if the timer is a longer interval
-  * or if there are no more timers in the queue.
-  *
-  * NOTE: Must be called with GKI_disable() lock held.
-  */
-void alarm_service_reschedule()
-{
-    int32_t ticks_till_next_exp = GKI_ready_to_sleep();
-
-    assert(ticks_till_next_exp >= 0);
-    alarm_service.ticks_scheduled = ticks_till_next_exp;
-
-    // No more timers remaining. Release wakelock if we're holding one.
-    if (ticks_till_next_exp == 0)
-    {
-        alarm_service.timer_last_expired_us = 0;
-        alarm_service.timer_started_us = 0;
-        if (alarm_service.wakelock)
-        {
-            ALOGV("%s releasing wake lock.", __func__);
-            alarm_service.wakelock = false;
-            int rc = bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
-            if (rc != BT_STATUS_SUCCESS)
-            {
-                ALOGE("%s unable to release wake lock with no timers: %d", __func__, rc);
-            }
-        }
         ALOGV("%s no more alarms.", __func__);
-        return;
-    }
-
-    UINT64 ticks_in_millis = GKI_TICKS_TO_MS(ticks_till_next_exp);
-    if (ticks_in_millis <= GKI_TIMER_INTERVAL_FOR_WAKELOCK)
-    {
-        // The next deadline is close, just take a wakelock and set a regular (non-wake) timer.
-        if (!alarm_service.wakelock)
-        {
-            int rc = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-            if (rc != BT_STATUS_SUCCESS)
-            {
-                ALOGE("%s unable to acquire wake lock: %d", __func__, rc);
-                return;
-            }
-            alarm_service.wakelock = true;
-        }
-        ALOGV("%s acquired wake lock, setting short alarm (%lldms).", __func__, ticks_in_millis);
-
-        if (!set_nonwake_alarm(ticks_in_millis))
-        {
-            ALOGE("%s unable to set short alarm.", __func__);
-        }
-    } else {
-        // The deadline is far away, set a wake alarm and release wakelock if we're holding it.
-        alarm_service.timer_started_us = now_us();
-        alarm_service.timer_last_expired_us = 0;
-        if (!bt_os_callouts->set_wake_alarm(ticks_in_millis, true, bt_alarm_cb, &alarm_service))
-        {
-            ALOGE("%s unable to set long alarm, releasing wake lock anyway.", __func__);
-        } else {
-            ALOGV("%s set long alarm (%lldms), releasing wake lock.", __func__, ticks_in_millis);
-        }
-
-        if (alarm_service.wakelock)
-        {
-            alarm_service.wakelock = false;
-            bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
-        }
-    }
 }
 
 
@@ -300,7 +158,7 @@ void GKI_init(void)
 
     gki_buffer_init();
     gki_timers_init();
-    alarm_service_init();
+    alarm_timer = alarm_new();
 
     gki_cb.com.OSTicks = (UINT32) times(0);
 
@@ -317,18 +175,6 @@ void GKI_init(void)
 #endif
     /* pthread_mutex_init(&thread_delay_mutex, NULL); */  /* used in GKI_delay */
     /* pthread_cond_init (&thread_delay_cond, NULL); */
-
-    struct sigevent sigevent;
-    memset(&sigevent, 0, sizeof(sigevent));
-    sigevent.sigev_notify = SIGEV_THREAD;
-    sigevent.sigev_notify_function = (void (*)(union sigval))bt_alarm_cb;
-    sigevent.sigev_value.sival_ptr = NULL;
-    if (timer_create(CLOCK_REALTIME, &sigevent, &posix_timer) == -1) {
-        ALOGE("%s unable to create POSIX timer: %s", __func__, strerror(errno));
-        timer_created = false;
-    } else {
-        timer_created = true;
-    }
 }
 
 
@@ -603,6 +449,9 @@ void GKI_shutdown(void)
     int result;
 #endif
 
+    alarm_free(alarm_timer);
+    alarm_timer = NULL;
+
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
     gki_dealloc_free_queue();
 #endif
@@ -650,10 +499,6 @@ void GKI_shutdown(void)
     i = 0;
 #endif
 
-    if (timer_created) {
-        timer_delete(posix_timer);
-        timer_created = false;
-    }
 }
 
 /*****************************************************************************
