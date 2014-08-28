@@ -24,7 +24,8 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include
 
 LOCAL_SRC_FILES := \
-    src/bdaddr.c
+    src/bdaddr.c \
+    src/uuid.c
 
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
 LOCAL_MODULE := libbtcore
