@@ -18,10 +18,12 @@
 
 #define LOG_TAG "bt_osi_socket"
 
+#include <asm/ioctls.h>
 #include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -179,9 +181,17 @@ ssize_t socket_write_and_transfer_fd(const socket_t *socket, const void *buf, si
   return ret;
 }
 
+ssize_t socket_bytes_available(const socket_t *socket) {
+  assert(socket != NULL);
+
+  int size = 0;
+  if (ioctl(socket->fd, FIONREAD, &size) == -1)
+    return -1;
+  return size;
+}
+
 void socket_register(socket_t *socket, reactor_t *reactor, void *context, socket_cb read_cb, socket_cb write_cb) {
   assert(socket != NULL);
-  assert(read_cb || write_cb);
 
   // Make sure the socket isn't currently registered.
   socket_unregister(socket);

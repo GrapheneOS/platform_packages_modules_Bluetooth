@@ -18,8 +18,10 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 typedef struct reactor_t reactor_t;
 typedef struct socket_t socket_t;
@@ -78,11 +80,19 @@ ssize_t socket_write(const socket_t *socket, const void *buf, size_t count);
 // If |fd| is INVALID_FD, this function behaves the same as |socket_write|.
 ssize_t socket_write_and_transfer_fd(const socket_t *socket, const void *buf, size_t count, int fd);
 
+// Returns the number of bytes that can be read from |socket| without blocking. On error,
+// this function returns -1. |socket| may not be NULL.
+//
+// Note: this function should not be part of the socket interface. It is only provided as
+//       a stop-gap until we can refactor away code that depends on a priori knowledge of
+//       the byte count. Do not use this function unless you need it while refactoring
+//       legacy bluedroid code.
+ssize_t socket_bytes_available(const socket_t *socket);
+
 // Registers |socket| with the |reactor|. When the socket becomes readable, |read_cb|
 // will be called. When the socket becomes writeable, |write_cb| will be called. The
 // |context| parameter is passed, untouched, to each of the callback routines. Neither
-// |socket| nor |reactor| may be NULL. |read_cb| or |write_cb|, but not both, may be NULL.
-// |context| may be NULL.
+// |socket| nor |reactor| may be NULL. |read_cb|, |write_cb|, and |context| may be NULL.
 void socket_register(socket_t *socket, reactor_t *reactor, void *context, socket_cb read_cb, socket_cb write_cb);
 
 // Unregisters |socket| from whichever reactor it is registered with, if any. This
