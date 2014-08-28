@@ -35,11 +35,6 @@
 #endif
 #include "utl.h"
 
-/* protocol timer update period, in milliseconds */
-#ifndef BTA_SYS_TIMER_PERIOD
-#define BTA_SYS_TIMER_PERIOD            1000
-#endif
-
 /* system manager control block definition */
 #if BTA_DYNAMIC_MEMORY == FALSE
 tBTA_SYS_CB bta_sys_cb;
