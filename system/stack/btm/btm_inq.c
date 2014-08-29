@@ -1093,10 +1093,6 @@ tBTM_STATUS  BTM_ReadRemoteDeviceName (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb
     if ((p_i = btm_inq_db_find (remote_bda)) != NULL)
     {
         p_cur = &p_i->inq_info;
-
-#if (BTM_INQ_GET_REMOTE_NAME == TRUE)
-        p_cur->remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-#endif
     }
     BTM_TRACE_API ("no device found in inquiry db");
 
@@ -1651,10 +1647,6 @@ void btm_clr_inq_db (BD_ADDR p_bda)
                 (!memcmp (p_ent->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN)))
             {
                 p_ent->in_use = FALSE;
-#if (BTM_INQ_GET_REMOTE_NAME == TRUE)
-                p_ent->inq_info.remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-#endif
-
                 if (btm_cb.btm_inq_vars.p_inq_change_cb)
                     (*btm_cb.btm_inq_vars.p_inq_change_cb) (&p_ent->inq_info, FALSE);
             }
@@ -1783,10 +1775,6 @@ tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda)
             memcpy (p_ent->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN);
             p_ent->in_use = TRUE;
 
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-            p_ent->inq_info.remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-#endif
-
             return (p_ent);
         }
 
@@ -1807,10 +1795,6 @@ tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda)
     memset (p_old, 0, sizeof (tINQ_DB_ENT));
     memcpy (p_old->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN);
     p_old->in_use = TRUE;
-
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-    p_old->inq_info.remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-#endif
 
     return (p_old);
 }
@@ -2092,9 +2076,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
     UINT16           clock_offset;
 #if (BTM_EIR_CLIENT_INCLUDED == TRUE)
     UINT8            *p_eir_data = NULL;
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-    UINT8            remote_name_len;
-#endif
 #endif
 
 #if (BTM_INQ_DEBUG == TRUE)
@@ -2281,38 +2262,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 
         if (is_new || update)
         {
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
-            if( inq_res_mode == BTM_INQ_RESULT_EXTENDED )
-            {
-                if((p_eir_data = BTM_CheckEirData( p, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
-                                                   &remote_name_len )) == NULL)
-                {
-                    p_eir_data = BTM_CheckEirData( p, BTM_EIR_SHORTENED_LOCAL_NAME_TYPE,
-                                                   &remote_name_len );
-                }
-
-                if( p_eir_data )
-                {
-                    if( remote_name_len > BTM_MAX_REM_BD_NAME_LEN )
-                        remote_name_len = BTM_MAX_REM_BD_NAME_LEN;
-
-                    p_i->inq_info.remote_name_len = remote_name_len;
-                    memcpy( p_i->inq_info.remote_name, p_eir_data, p_i->inq_info.remote_name_len );
-                    p_i->inq_info.remote_name[p_i->inq_info.remote_name_len] = 0;
-                    p_i->inq_info.remote_name_state = BTM_INQ_RMT_NAME_DONE;
-                }
-                else
-                    p_i->inq_info.remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-            }
-            else
-#endif
-            {
-            /* Clear out the device name so that it can be re-read */
-            p_i->inq_info.remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-            }
-#endif /*(BTM_INQ_GET_REMOTE_NAME==TRUE)*/
-
 #if (BTM_EIR_CLIENT_INCLUDED == TRUE)
             if( inq_res_mode == BTM_INQ_RESULT_EXTENDED )
             {
@@ -2400,10 +2349,6 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
     tBTM_CMPL_CB        *p_inq_cb = btm_cb.btm_inq_vars.p_inq_cmpl_cb;
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
 
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-    tBTM_INQ_INFO  *p_cur;
-    UINT8           tempstate;
-#endif
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
     /* inquiry inactive case happens when inquiry is cancelled.
        Make mode 0 for no further inquiries from the current inquiry process
@@ -2442,27 +2387,6 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
     if (p_inq->inq_active)
     {
         p_inq->inq_cmpl_info.status = (tBTM_STATUS)((status == HCI_SUCCESS) ? BTM_SUCCESS : BTM_ERR_PROCESSING);
-
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-        if (p_inq->inq_cmpl_info.status == BTM_SUCCESS)
-        {
-            for (p_cur = BTM_InqDbFirst(); p_cur; p_cur = BTM_InqDbNext (p_cur))
-            {
-                if (p_cur->remote_name_state == BTM_INQ_RMT_NAME_EMPTY)
-                {
-                    tempstate = p_cur->remote_name_state;
-                    p_cur->remote_name_state = BTM_INQ_RMT_NAME_PENDING;
-
-                    if (btm_initiate_rem_name (p_cur->results.remote_bd_addr,
-                                               p_cur, BTM_RMT_NAME_INQ,
-                                               BTM_INQ_RMT_NAME_TIMEOUT, NULL) != BTM_CMD_STARTED)
-                        p_cur->remote_name_state = tempstate;
-                    else
-                        return;
-                }
-            }
-        }
-#endif
 
         /* Notify caller that the inquiry has completed; (periodic inquiries do not send completion events */
         if (!(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE) && p_inq->inqparms.mode == 0)
@@ -2619,40 +2543,10 @@ tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur,
                 return BTM_NO_RESOURCES;
         }
     }
-    /* If the inquire feature is on */
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-
-    else if (origin == BTM_RMT_NAME_INQ)
-    {
-        /* If the database entry exists for the device, use its clock offset */
-        if (p_cur)
-        {
-            cmd_ok = btsnd_hcic_rmt_name_req (remote_bda,
-                                     p_cur->results.page_scan_rep_mode,
-                                     p_cur->results.page_scan_mode,
-                                     (UINT16)(p_cur->results.clock_offset |
-                                              BTM_CLOCK_OFFSET_VALID));
-        }
-        else
-        {
-            cmd_ok = FALSE
-        }
-
-        if (cmd_ok)
-            return BTM_CMD_STARTED;
-        else
-            return BTM_NO_RESOURCES;
-    }
-#endif
     else
     {
-
         return BTM_ILLEGAL_VALUE;
-
-
     }
-
-
 }
 
 /*******************************************************************************
@@ -2675,14 +2569,6 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
 
     UINT16                 temp_evt_len;
 
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-    /*** These are only used if part of the Inquiry Process ***/
-    tBTM_CMPL_CB           *p_inq_cb;
-    tINQ_DB_ENT            *p_i = NULL;
-    UINT8                  *p_n;
-    tBTM_INQ_INFO          *p_cur;
-#endif
-
     if (bda != NULL)
     {
         BTM_TRACE_EVENT("BDA %02x:%02x:%02x:%02x:%02x:%02x",bda[0], bda[1],
@@ -2690,7 +2576,7 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
                  bda[4], bda[5]);
     }
 
-	BTM_TRACE_EVENT("Inquire BDA %02x:%02x:%02x:%02x:%02x:%02x",p_inq->remname_bda[0], p_inq->remname_bda[1],
+    BTM_TRACE_EVENT("Inquire BDA %02x:%02x:%02x:%02x:%02x:%02x",p_inq->remname_bda[0], p_inq->remname_bda[1],
              p_inq->remname_bda[2], p_inq->remname_bda[3],
              p_inq->remname_bda[4], p_inq->remname_bda[5]);
 
@@ -2701,7 +2587,7 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
         (((bda != NULL) &&
         (memcmp(bda, p_inq->remname_bda,BD_ADDR_LEN)==0)) || bda == NULL))
 
-	{
+    {
 #if BLE_INCLUDED == TRUE
         if (BTM_UseLeLink(p_inq->remname_bda))
         {
@@ -2749,98 +2635,6 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
         if (p_cb)
             (p_cb)((tBTM_REMOTE_DEV_NAME *)&rem_name);
     }
-
-
-#if (BTM_INQ_GET_REMOTE_NAME==TRUE)
-    /* If existing entry, update the name */
-    if ((bda != NULL) && ((p_i = btm_inq_db_find (bda)) != NULL)
-     && (hci_status == HCI_SUCCESS))
-    {
-        p_i->inq_info.remote_name_state = BTM_INQ_RMT_NAME_DONE;
-        p_n = p_i->inq_info.remote_name;
-        memset(p_n, 0, BTM_MAX_REM_BD_NAME_LEN + 1);
-        p_i->inq_info.remote_name_len = (rem_name.length < BTM_MAX_REM_BD_NAME_LEN) ?
-                                         rem_name.length : BTM_MAX_REM_BD_NAME_LEN;
-        evt_len = p_i->inq_info.remote_name_len;
-        p_n1 = (UINT8 *)rem_name.remote_bd_name;
-        while (evt_len > 0)
-        {
-            *p_n++ = *p_n1++;
-            evt_len--;
-        }
-
-        if (btm_cb.btm_inq_vars.p_inq_change_cb)
-            (*btm_cb.btm_inq_vars.p_inq_change_cb) (&p_i->inq_info, TRUE);
-    }
-    else
-    {
-        if (p_i)
-            p_i->inq_info.remote_name_state = BTM_INQ_RMT_NAME_FAILED;
-        else
-        {
-            /* Find the entry which is currently doing name request */
-            for (p_cur = BTM_InqDbFirst(); p_cur; p_cur = BTM_InqDbNext (p_cur))
-            {
-                if (p_cur->remote_name_state == BTM_INQ_RMT_NAME_PENDING)
-                {
-                    /* Should be only one */
-                    p_cur->remote_name_state = BTM_INQ_RMT_NAME_FAILED;
-                    break;
-                }
-            }
-        }
-    }
-
-    /* If an inquiry is in progress then update other entries */
-    if (p_inq->inq_active)
-    {
-        /* Check if there are any more entries inquired but not named */
-        for (p_cur = BTM_InqDbFirst(); p_cur; p_cur = BTM_InqDbNext (p_cur))
-        {
-            if (p_cur->remote_name_state == BTM_INQ_RMT_NAME_EMPTY)
-            {
-                p_cur->remote_name_state = BTM_INQ_RMT_NAME_PENDING;
-#if (BLE_INCLUDED == TRUE)
-                if (BTM_UseLeLink(remote_bda))
-                {
-                    if (btm_ble_read_remote_name(remote_bda, p_cur, p_cb) != BTM_CMD_STARTED)
-                        p_cur->remote_name_state = BTM_INQ_RMT_NAME_FAILED;
-                    else
-                        return;
-                }
-                else
-#endif
-                {
-                    if (btm_initiate_rem_name (p_cur->results.remote_bd_addr,
-                                               p_cur, BTM_RMT_NAME_INQ,
-                                               BTM_INQ_RMT_NAME_TIMEOUT, NULL) != BTM_CMD_STARTED)
-                        p_cur->remote_name_state = BTM_INQ_RMT_NAME_FAILED;
-                    else
-                        return;
-                }
-            }
-        }
-
-        /* The inquiry has finished so call the callback for the inquiry */
-        p_inq_cb = p_inq->p_inq_cmpl_cb;
-        p_inq->state = BTM_INQ_INACTIVE_STATE;
-        p_inq->inq_active = BTM_INQUIRY_INACTIVE;
-        p_inq->p_inq_cmpl_cb = NULL;
-
-        /* If we have a callback registered for inquiry complete, call it */
-        if (p_inq_cb)
-            (p_inq_cb)((tBTM_INQUIRY_CMPL *) &p_inq->inq_cmpl_info);
-
-        /* In some cases we can not get name of the device once but will be */
-        /* able to do it next time.  Until we have better solution we will  */
-        /* try to get name every time */
-        for (p_cur = BTM_InqDbFirst(); p_cur; p_cur = BTM_InqDbNext (p_cur))
-        {
-            if (p_cur->remote_name_state == BTM_INQ_RMT_NAME_FAILED)
-                p_cur->remote_name_state = BTM_INQ_RMT_NAME_EMPTY;
-        }
-    }
-#endif  /* BTM_INQ_GET_REMOTE_NAME == TRUE */
 }
 
 /*******************************************************************************

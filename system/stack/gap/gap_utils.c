@@ -286,32 +286,10 @@ void gap_find_addr_inq_cb (tBTM_INQUIRY_CMPL *p)
 *******************************************************************************/
 UINT16 gap_find_local_addr_by_name (const tBTM_BD_NAME devname, BD_ADDR bd_addr)
 {
-
-/* If the remote name is retrieved automatically during an inquiry search the local db */
-#if (BTM_INQ_GET_REMOTE_NAME == TRUE)
-    tBTM_INQ_INFO   *p_result;
-
-    p_result = BTM_InqDbFirst();
-
-    while (p_result)
-    {
-        /* Check the entry for a device name match */
-        if (!strncmp ((char *)devname, (char *)p_result->remote_name, BTM_MAX_REM_BD_NAME_LEN))
-        {
-            memcpy (bd_addr, p_result->results.remote_bd_addr, BD_ADDR_LEN);
-            return (BT_PASS);
-        }
-        else
-            p_result = BTM_InqDbNext(p_result);
-    };
-
-    return (GAP_EOINQDB);
-#else
     UNUSED(devname);
     UNUSED(bd_addr);
     /* No data available because we are not automatically saving the data */
     return (GAP_NO_DATA_AVAIL);
-#endif
 }
 
 

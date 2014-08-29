@@ -637,7 +637,7 @@ typedef struct
                                                    required to be done. Having the flag here avoid duplicate store of inquiry results */
 
 
-#if (BTM_INQ_GET_REMOTE_NAME == TRUE || BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
     UINT16          remote_name_len;
     tBTM_BD_NAME    remote_name;
     UINT8           remote_name_state;

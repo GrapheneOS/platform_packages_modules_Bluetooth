@@ -779,11 +779,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_INQ_DB_SIZE             40
 #endif
 
-/* This is set to always try to acquire the remote device name. */
-#ifndef BTM_INQ_GET_REMOTE_NAME
-#define BTM_INQ_GET_REMOTE_NAME     FALSE
-#endif
-
 /* The inquiry duration in 1.28 second units when auto inquiry is enabled. */
 #ifndef BTM_DEFAULT_INQ_DUR
 #define BTM_DEFAULT_INQ_DUR         5

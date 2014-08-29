@@ -295,15 +295,6 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
         /* update conn params, use default value for background connection params */
         memset(&p_dev_rec->conn_params, 0xff, sizeof(tBTM_LE_CONN_PRAMS));
 #endif
-
-#if BTM_INQ_GET_REMOTE_NAME == TRUE
-        if (p_inq_info->remote_name_state == BTM_INQ_RMT_NAME_DONE)
-        {
-            BCM_STRNCPY_S ((char *)p_dev_rec->sec_bd_name, sizeof (p_dev_rec->sec_bd_name),
-                     (char *)p_inq_info->remote_name, BTM_MAX_REM_BD_NAME_LEN);
-            p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
-        }
-#endif
     }
     else
     {
