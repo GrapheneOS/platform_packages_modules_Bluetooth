@@ -71,10 +71,6 @@
 #include "goep_util.h"
 #endif /* GOEP included */
 
-#if (defined(FTP_INCLUDED) && FTP_INCLUDED == TRUE)
-#include "ftp_api.h"
-#endif /* FTP */
-
 #if (defined(OPP_INCLUDED) && OPP_INCLUDED == TRUE)
 #include "opp_api.h"
 #endif /* OPP */
@@ -337,9 +333,6 @@ BT_API void BTE_InitStack(void)
 #endif /* GOEP */
 
 
-#if (defined(FTP_INCLUDED) && FTP_INCLUDED == TRUE)
-    FTP_Init();
-#endif
 #if (defined(OPP_INCLUDED) && OPP_INCLUDED == TRUE)
     OPP_Init();
 #endif

@@ -2832,26 +2832,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 /******************************************************************************
 **
-** FTP
-**
-******************************************************************************/
-
-#ifndef FTP_INCLUDED
-#define FTP_INCLUDED                FALSE
-#endif
-
-/* This is set to enable FTP client capabilities. */
-#ifndef FTP_CLIENT_INCLUDED
-#define FTP_CLIENT_INCLUDED         TRUE
-#endif
-
-/* This is set to enable FTP server capabilities. */
-#ifndef FTP_SERVER_INCLUDED
-#define FTP_SERVER_INCLUDED         TRUE
-#endif
-
-/******************************************************************************
-**
 ** XML Parser
 **
 ******************************************************************************/
