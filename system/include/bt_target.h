@@ -844,11 +844,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_ALLOW_CONN_IF_NONDISCOVER   TRUE
 #endif
 
-/* When connectable mode is set to TRUE, the device will respond to paging. */
-#ifndef BTM_IS_CONNECTABLE
-#define BTM_IS_CONNECTABLE          FALSE
-#endif
-
 /* Sets the Page_Scan_Window:  the length of time that the device is performing a page scan. */
 #ifndef BTM_DEFAULT_CONN_WINDOW
 #define BTM_DEFAULT_CONN_WINDOW     0x0012
@@ -857,11 +852,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* Sets the Page_Scan_Activity:  the interval between the start of two consecutive page scans. */
 #ifndef BTM_DEFAULT_CONN_INTERVAL
 #define BTM_DEFAULT_CONN_INTERVAL   0x0800
-#endif
-
-/* This is set to automatically perform inquiry scan on startup. */
-#ifndef BTM_IS_DISCOVERABLE
-#define BTM_IS_DISCOVERABLE         FALSE
 #endif
 
 /* When automatic inquiry scan is enabled, this sets the discovery mode. */

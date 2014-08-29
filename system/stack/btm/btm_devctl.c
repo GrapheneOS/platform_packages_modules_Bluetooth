@@ -675,15 +675,6 @@ void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len)
 #endif
     }
 
-    /* Set the device into connectable and/or discoverable mode (if configured to do so) */
-#if BTM_IS_CONNECTABLE == TRUE
-    (void) BTM_SetConnectability (BTM_CONNECTABLE, BTM_DEFAULT_CONN_WINDOW, BTM_DEFAULT_CONN_INTERVAL);
-#endif
-
-#if BTM_IS_DISCOVERABLE == TRUE
-    (void) BTM_SetDiscoverability (BTM_DEFAULT_DISC_MODE, BTM_DEFAULT_DISC_WINDOW, BTM_DEFAULT_DISC_INTERVAL);
-#endif
-
     btm_get_local_version ();
 }
 
