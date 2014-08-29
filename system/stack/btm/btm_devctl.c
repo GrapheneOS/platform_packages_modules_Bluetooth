@@ -66,24 +66,6 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 
 #define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
 
-/* Internal baseband so the parameters such as local features, version etc. are known
-so there is no need to issue HCI commands and wait for responses at BTM initialization */
-#ifndef BTM_INTERNAL_BB
-#define BTM_INTERNAL_BB FALSE
-#endif
-
-/* The local version information in the format specified in the HCI read local version
-response message */
-#ifndef BTM_INTERNAL_LOCAL_VER
-#define BTM_INTERNAL_LOCAL_VER {0x00, 0x01, 0x05, 0x81, 0x01, 0x30, 0x00, 0x40, 0x8D}
-#endif
-
-/* The local features information in the format specified in the HCI read local features
-response message */
-#ifndef BTM_INTERNAL_LOCAL_FEA
-#define BTM_INTERNAL_LOCAL_FEA {0x00, 0xFF, 0xF9, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00}
-#endif
-
 #ifndef BTM_SET_DEV_NAME_UPON_RESET
 #define BTM_SET_DEV_NAME_UPON_RESET TRUE
 #endif
@@ -636,15 +618,6 @@ void btm_reset_complete (void)
 *******************************************************************************/
 void btm_continue_reset (void)
 {
-
-    /* Reinitialize the default class of device */
-#if BTM_INTERNAL_BB == TRUE
-    btsnd_hcic_read_bd_addr ();
-#if BTM_PWR_MGR_INCLUDED == TRUE
-    btm_pm_reset();
-#endif
-#endif
-
     btm_get_hci_buf_size ();
 
     /* default device class */
@@ -711,14 +684,7 @@ void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len)
     (void) BTM_SetDiscoverability (BTM_DEFAULT_DISC_MODE, BTM_DEFAULT_DISC_WINDOW, BTM_DEFAULT_DISC_INTERVAL);
 #endif
 
-#if BTM_INTERNAL_BB == TRUE
-    {
-        UINT8 buf[9] = BTM_INTERNAL_LOCAL_VER;
-        btm_read_local_version_complete( buf, 9 );
-    }
-#else
     btm_get_local_version ();
-#endif
 }
 
 #if (BLE_INCLUDED == TRUE)
@@ -819,17 +785,7 @@ void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len)
 
     btsnd_hcic_ble_set_evt_mask((UINT8 *)HCI_BLE_EVENT_MASK_DEF);
 
-#if BTM_INTERNAL_BB == TRUE
-    {
-        UINT8 buf[9] = BTM_INTERNAL_LOCAL_FEA;
-        btm_read_local_features_complete( buf, 9 );
-    }
-#else
-
-    /* get local feature if BRCM specific feature is not included  */
     btm_reset_ctrlr_complete();
-#endif
-
 }
 
 /*******************************************************************************
@@ -1207,11 +1163,6 @@ static void btm_issue_host_support_for_lmp_features (void)
             btm_read_ble_wl_size();
         }
         else
-#elif BTM_INTERNAL_BB == TRUE
-        {
-            UINT8 buf[9] = BTM_INTERNAL_LOCAL_FEA;
-            btm_read_local_features_complete( buf, 9 );
-        }
 #endif
         {
             btm_reset_ctrlr_complete();
