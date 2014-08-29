@@ -418,11 +418,6 @@ typedef struct t_l2c_linkcb
     BUFFER_Q            ucd_in_sec_pending_q;       /* Security pending incoming UCD packet  */
 #endif
 
-#if (L2CAP_HOST_FLOW_CTRL == TRUE)
-    UINT16              link_pkts_unacked;          /* Packets received but not acked   */
-    UINT16              link_ack_thresh;            /* Threshold at which to ack pkts   */
-#endif
-
     BT_HDR              *p_hcit_rcv_acl;            /* Current HCIT ACL buf being rcvd  */
     UINT16              idle_timeout_sv;            /* Save current Idle timeout        */
     UINT8               acl_priority;               /* L2C_PRIORITY_NORMAL or L2C_PRIORITY_HIGH */

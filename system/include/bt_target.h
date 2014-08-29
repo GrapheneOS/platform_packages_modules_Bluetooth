@@ -1126,11 +1126,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define L2CAP_MPS_OVER_BR_EDR       1010
 #endif
 
-/* This is set to enable host flow control. */
-#ifndef L2CAP_HOST_FLOW_CTRL
-#define L2CAP_HOST_FLOW_CTRL        FALSE
-#endif
-
 /* If host flow control enabled, this is the number of buffers the controller can have unacknowledged. */
 #ifndef L2CAP_HOST_FC_ACL_BUFS
 #define L2CAP_HOST_FC_ACL_BUFS      20

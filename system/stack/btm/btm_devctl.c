@@ -669,10 +669,6 @@ void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len)
 #endif
         /* Tell the controller what our buffer sizes are. ?? Need SCO info */
         btsnd_hcic_set_host_buf_size (acl_buf_size, BTM_SCO_HOST_BUF_SIZE, L2CAP_HOST_FC_ACL_BUFS, 10);
-
-#if L2CAP_HOST_FLOW_CTRL == TRUE
-        btsnd_hcic_set_host_flow_ctrl (HCI_HOST_FLOW_CTRL_ACL_ON);
-#endif
     }
 
     btm_get_local_version ();

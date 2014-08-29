@@ -181,12 +181,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     STREAM_TO_UINT16 (hci_len, p);
     p_msg->offset += 4;
 
-#if (L2CAP_HOST_FLOW_CTRL == TRUE)
-    /* Send ack if we hit the threshold */
-    if (++p_lcb->link_pkts_unacked >= p_lcb->link_ack_thresh)
-        btu_hcif_send_host_rdy_for_data();
-#endif
-
     /* Extract the length and CID */
     STREAM_TO_UINT16 (l2cap_len, p);
     STREAM_TO_UINT16 (rcv_cid, p);

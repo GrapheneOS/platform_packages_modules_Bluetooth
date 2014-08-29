@@ -790,9 +790,6 @@ void l2c_link_adjust_allocation (void)
                 }
             }
 
-#if L2CAP_HOST_FLOW_CTRL
-            p_lcb->link_ack_thresh = L2CAP_HOST_FC_ACL_BUFS / l2cb.num_links_active;
-#endif
             L2CAP_TRACE_EVENT ("l2c_link_adjust_allocation LCB %d   Priority: %d  XmitQuota: %d",
                                 yy, p_lcb->acl_priority, p_lcb->link_xmit_quota);
 
@@ -960,25 +957,8 @@ UINT8 l2c_link_pkts_rcvd (UINT16 *num_pkts, UINT16 *handles)
 {
     UINT8       num_found = 0;
 
-#if (L2CAP_HOST_FLOW_CTRL == TRUE)
-
-    int         xx;
-    tL2C_LCB    *p_lcb = &l2cb.lcb_pool[0];
-
-    for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++)
-    {
-        if ((p_lcb->in_use) && (p_lcb->link_pkts_unacked))
-        {
-            num_pkts[num_found] = p_lcb->link_pkts_unacked;
-            handles[num_found]  = p_lcb->handle;
-            p_lcb->link_pkts_unacked = 0;
-            num_found++;
-        }
-    }
-#else
     UNUSED(num_pkts);
     UNUSED(handles);
-#endif
 
     return (num_found);
 }

@@ -454,11 +454,6 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
 {
     tHCI_CMD_CB * p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
 
-#if ((L2CAP_HOST_FLOW_CTRL == TRUE)||defined(HCI_TESTER))
-    UINT8 *pp;
-    UINT16 code;
-#endif
-
     /* If there are already commands in the queue, then enqueue this command */
     if ((p_buf) && (!GKI_queue_is_empty(&p_hci_cmd_cb->cmd_xmit_q)))
     {
@@ -483,19 +478,7 @@ void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
         if (p_buf)
         {
             btu_hcif_store_cmd(controller_id, p_buf);
-
-#if ((L2CAP_HOST_FLOW_CTRL == TRUE)||defined(HCI_TESTER))
-            pp = (UINT8 *)(p_buf + 1) + p_buf->offset;
-
-            STREAM_TO_UINT16 (code, pp);
-
-            /*
-             * We do not need to decrease window for host flow control,
-             * host flow control does not receive an event back from controller
-             */
-            if (code != HCI_HOST_NUM_PACKETS_DONE)
-#endif
-                p_hci_cmd_cb->cmd_window--;
+            p_hci_cmd_cb->cmd_window--;
 
             if (controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
             {
