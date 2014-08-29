@@ -3613,16 +3613,6 @@ The maximum number of payload octets that the local device can receive in a sing
 
 /******************************************************************************
 **
-** BTTRC
-**
-******************************************************************************/
-/* Whether to parse and display traces-> Platform specific implementation */
-#ifndef BTTRC_DISP
-#define BTTRC_DISP        BTTRC_DispOnInsight
-#endif
-
-/******************************************************************************
-**
 ** Tracing:  Include trace header file here.
 **
 ******************************************************************************/
