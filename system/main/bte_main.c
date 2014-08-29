@@ -27,6 +27,7 @@
 #include <cutils/properties.h>
 #include <fcntl.h>
 #include <hardware/bluetooth.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <time.h>
@@ -41,6 +42,8 @@
 #include "bt_utils.h"
 #include "fixed_queue.h"
 #include "gki.h"
+#include "hash_functions.h"
+#include "hash_map.h"
 #include "hci_layer.h"
 #include "osi.h"
 #include "thread.h"
@@ -91,6 +94,24 @@ fixed_queue_t *btu_bta_msg_queue;
 
 // Communication queue between btu_task and hci.
 fixed_queue_t *btu_hci_msg_queue;
+
+// General timer queue.
+fixed_queue_t *btu_general_alarm_queue;
+hash_map_t *btu_general_alarm_hash_map;
+pthread_mutex_t btu_general_alarm_lock;
+static const size_t BTU_GENERAL_ALARM_HASH_MAP_SIZE = 17;
+
+// Oneshot timer queue.
+fixed_queue_t *btu_oneshot_alarm_queue;
+hash_map_t *btu_oneshot_alarm_hash_map;
+pthread_mutex_t btu_oneshot_alarm_lock;
+static const size_t BTU_ONESHOT_ALARM_HASH_MAP_SIZE = 17;
+
+// l2cap timer queue.
+fixed_queue_t *btu_l2cap_alarm_queue;
+hash_map_t *btu_l2cap_alarm_hash_map;
+pthread_mutex_t btu_l2cap_alarm_lock;
+static const size_t BTU_L2CAP_ALARM_HASH_MAP_SIZE = 17;
 
 /*******************************************************************************
 **  Static variables
@@ -224,6 +245,21 @@ void bte_main_enable()
     btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
     btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
 
+    btu_general_alarm_hash_map = hash_map_new(BTU_GENERAL_ALARM_HASH_MAP_SIZE,
+            hash_function_knuth, NULL,NULL);
+    pthread_mutex_init(&btu_general_alarm_lock, NULL);
+    btu_general_alarm_queue = fixed_queue_new(SIZE_MAX);
+
+    btu_oneshot_alarm_hash_map = hash_map_new(BTU_ONESHOT_ALARM_HASH_MAP_SIZE,
+            hash_function_knuth, NULL,NULL);
+    pthread_mutex_init(&btu_oneshot_alarm_lock, NULL);
+    btu_oneshot_alarm_queue = fixed_queue_new(SIZE_MAX);
+
+    btu_l2cap_alarm_hash_map = hash_map_new(BTU_L2CAP_ALARM_HASH_MAP_SIZE,
+            hash_function_knuth, NULL,NULL);
+    pthread_mutex_init(&btu_l2cap_alarm_lock, NULL);
+    btu_l2cap_alarm_queue = fixed_queue_new(SIZE_MAX);
+
     /* Initialize BTE control block */
     BTE_StartUp();
 
@@ -253,6 +289,21 @@ void bte_main_disable(void)
     preload_stop_wait_timer();
     bte_hci_disable();
     GKI_destroy_task(BTU_TASK);
+
+    fixed_queue_free(btu_bta_msg_queue, NULL);
+    fixed_queue_free(btu_hci_msg_queue, NULL);
+
+    hash_map_free(btu_general_alarm_hash_map);
+    pthread_mutex_destroy(&btu_general_alarm_lock);
+    fixed_queue_free(btu_general_alarm_queue, NULL);
+
+    hash_map_free(btu_oneshot_alarm_hash_map);
+    pthread_mutex_destroy(&btu_oneshot_alarm_lock);
+    fixed_queue_free(btu_oneshot_alarm_queue, NULL);
+
+    hash_map_free(btu_l2cap_alarm_hash_map);
+    pthread_mutex_destroy(&btu_l2cap_alarm_lock);
+    fixed_queue_free(btu_l2cap_alarm_queue, NULL);
 
     BTE_ShutDown();
 }

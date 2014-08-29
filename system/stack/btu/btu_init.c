@@ -28,6 +28,7 @@
 #include "dyn_mem.h"
 
 #include "fixed_queue.h"
+#include "hash_map.h"
 #include "btu.h"
 #include "btm_int.h"
 #include "sdpint.h"
@@ -41,9 +42,7 @@
 #endif
 #endif
 
-
 extern fixed_queue_t *btu_hci_msg_queue;
-extern fixed_queue_t *btu_bta_msg_queue;
 
 extern void PLATFORM_DisableHciTransport(UINT8 bDisable);
 /*****************************************************************************
@@ -136,10 +135,7 @@ void BTE_ShutDown(void) {
     while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q))
       GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q));
   }
-  fixed_queue_free(btu_bta_msg_queue, NULL);
-  fixed_queue_free(btu_hci_msg_queue, NULL);
 }
-
 
 /*****************************************************************************
 **

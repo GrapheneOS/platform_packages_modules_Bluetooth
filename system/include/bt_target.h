@@ -682,7 +682,7 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* if L2CAP_FCR_INCLUDED is TRUE then it should have 100 millisecond resolution */
 /* if none of them is included then QUICK_TIMER_TICKS_PER_SEC is set to 0 to exclude quick timer */
 #ifndef QUICK_TIMER_TICKS_PER_SEC
-#define QUICK_TIMER_TICKS_PER_SEC   10       /* 10ms timer */
+#define QUICK_TIMER_TICKS_PER_SEC   10       /* 100ms timer */
 #endif
 
 /******************************************************************************

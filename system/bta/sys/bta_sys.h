@@ -233,6 +233,7 @@ extern "C" {
 #endif
 
 BTA_API extern void bta_sys_init(void);
+BTA_API extern void bta_sys_free(void);
 BTA_API extern void bta_sys_event(BT_HDR *p_msg);
 BTA_API extern void bta_sys_timer_update(void);
 BTA_API extern void bta_sys_disable_timers(void);

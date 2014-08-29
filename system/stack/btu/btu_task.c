@@ -28,11 +28,15 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
+
+#define LOG_TAG "btu_task"
 #include <cutils/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
+#include "alarm.h"
 #include "bt_target.h"
 #include "bt_trace.h"
 #include "bt_types.h"
@@ -42,6 +46,7 @@
 #include "btu.h"
 #include "fixed_queue.h"
 #include "gki.h"
+#include "hash_map.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "btu.h"
@@ -148,9 +153,29 @@ extern fixed_queue_t *btu_bta_msg_queue;
 // Communication queue between btu_task and hci.
 extern fixed_queue_t *btu_hci_msg_queue;
 
+// Timer queue between btu_task and bta.
+extern fixed_queue_t *btu_bta_alarm_queue;
+
+// General timer queue.
+extern fixed_queue_t *btu_general_alarm_queue;
+extern hash_map_t *btu_general_alarm_hash_map;
+extern pthread_mutex_t btu_general_alarm_lock;
+
+// Oneshot timer queue.
+extern fixed_queue_t *btu_oneshot_alarm_queue;
+extern hash_map_t *btu_oneshot_alarm_hash_map;
+extern pthread_mutex_t btu_oneshot_alarm_lock;
+
+// l2cap timer queue.
+extern fixed_queue_t *btu_l2cap_alarm_queue;
+extern hash_map_t *btu_l2cap_alarm_hash_map;
+extern pthread_mutex_t btu_l2cap_alarm_lock;
 
 /* Define a function prototype to allow a generic timeout handler */
 typedef void (tUSER_TIMEOUT_FUNC) (TIMER_LIST_ENT *p_tle);
+
+static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle);
+static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle);
 
 static void btu_hci_msg_process(BT_HDR *p_msg) {
     /* Determine the input message type. */
@@ -313,158 +338,17 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
 
 }
 
-static void btu_timer_process() {
-    GKI_update_timer_list (&btu_cb.timer_queue, 1);
-
-    while (!GKI_timer_queue_is_empty(&btu_cb.timer_queue)) {
-        TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue);
-        if (p_tle->ticks != 0)
-            break;
-
-        GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
-
-        switch (p_tle->event)
-        {
-            case BTU_TTYPE_BTM_DEV_CTL:
-                btm_dev_timeout(p_tle);
-                break;
-
-            case BTU_TTYPE_BTM_ACL:
-                btm_acl_timeout(p_tle);
-                break;
-
-            case BTU_TTYPE_L2CAP_LINK:
-            case BTU_TTYPE_L2CAP_CHNL:
-            case BTU_TTYPE_L2CAP_HOLD:
-            case BTU_TTYPE_L2CAP_INFO:
-            case BTU_TTYPE_L2CAP_FCR_ACK:
-
-                l2c_process_timeout (p_tle);
-                break;
-
-            case BTU_TTYPE_SDP:
-                sdp_conn_timeout ((tCONN_CB *)p_tle->param);
-                break;
-
-            case BTU_TTYPE_BTM_RMT_NAME:
-                btm_inq_rmt_name_failed();
-                break;
-
-#if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
-            case BTU_TTYPE_RFCOMM_MFC:
-            case BTU_TTYPE_RFCOMM_PORT:
-                rfcomm_process_timeout (p_tle);
-                break;
-
-#endif /* If defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE */
-
-#if ((defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE))
-            case BTU_TTYPE_BNEP:
-                bnep_process_timeout(p_tle);
-                break;
-#endif
-
-
-#if (defined(AVDT_INCLUDED) && AVDT_INCLUDED == TRUE)
-            case BTU_TTYPE_AVDT_CCB_RET:
-            case BTU_TTYPE_AVDT_CCB_RSP:
-            case BTU_TTYPE_AVDT_CCB_IDLE:
-            case BTU_TTYPE_AVDT_SCB_TC:
-                avdt_process_timeout(p_tle);
-                break;
-#endif
-
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-#if (defined(OBX_CLIENT_INCLUDED) && OBX_CLIENT_INCLUDED == TRUE)
-            case BTU_TTYPE_OBX_CLIENT_TO:
-                obx_cl_timeout(p_tle);
-                break;
-#endif
-#if (defined(OBX_SERVER_INCLUDED) && OBX_SERVER_INCLUDED == TRUE)
-            case BTU_TTYPE_OBX_SERVER_TO:
-                obx_sr_timeout(p_tle);
-                break;
-
-            case BTU_TTYPE_OBX_SVR_SESS_TO:
-                obx_sr_sess_timeout(p_tle);
-                break;
-#endif
-#endif
-
-#if (defined(SAP_SERVER_INCLUDED) && SAP_SERVER_INCLUDED == TRUE)
-            case BTU_TTYPE_SAP_TO:
-                sap_process_timeout(p_tle);
-                break;
-#endif
-
-            case BTU_TTYPE_BTU_CMD_CMPL:
-                btu_hcif_cmd_timeout((UINT8)(p_tle->event - BTU_TTYPE_BTU_CMD_CMPL));
-                break;
-
-#if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
-            case BTU_TTYPE_HID_HOST_REPAGE_TO :
-                hidh_proc_repage_timeout(p_tle);
-                break;
-#endif
-
-#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
-            case BTU_TTYPE_BLE_INQUIRY:
-            case BTU_TTYPE_BLE_GAP_LIM_DISC:
-            case BTU_TTYPE_BLE_RANDOM_ADDR:
-            case BTU_TTYPE_BLE_GAP_FAST_ADV:
-            case BTU_TTYPE_BLE_OBSERVE:
-                btm_ble_timeout(p_tle);
-                break;
-
-            case BTU_TTYPE_ATT_WAIT_FOR_RSP:
-                gatt_rsp_timeout(p_tle);
-                break;
-
-            case BTU_TTYPE_ATT_WAIT_FOR_IND_ACK:
-                gatt_ind_ack_timeout(p_tle);
-                break;
-#if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
-            case BTU_TTYPE_SMP_PAIRING_CMD:
-                smp_rsp_timeout(p_tle);
-                break;
-#endif
-
-#endif
-
-#if (MCA_INCLUDED == TRUE)
-            case BTU_TTYPE_MCA_CCB_RSP:
-                mca_process_timeout(p_tle);
-                break;
-#endif
-            case BTU_TTYPE_USER_FUNC:
-                {
-                    tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
-                    (*p_uf)(p_tle);
-                }
-                break;
-
-            default:;
-                int i = 0;
-                BOOLEAN handled = FALSE;
-
-                for (; !handled && i < BTU_MAX_REG_TIMER; i++)
-                {
-                    if (btu_cb.timer_reg[i].timer_cb == NULL)
-                        continue;
-                    if (btu_cb.timer_reg[i].p_tle == p_tle)
-                    {
-                        btu_cb.timer_reg[i].timer_cb(p_tle);
-                        handled = TRUE;
-                    }
-                }
-                break;
+static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle) {
+    /* call timer callback */
+    if (p_tle->p_cback) {
+        (*p_tle->p_cback)(p_tle);
+    } else if (p_tle->event) {
+        BT_HDR *p_msg;
+        if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL) {
+            p_msg->event = p_tle->event;
+            p_msg->layer_specific = 0;
+            bta_sys_sendmsg(p_msg);
         }
-    }
-
-    /* if timer list is empty stop periodic GKI timer */
-    if (btu_cb.timer_queue.p_first == NULL)
-    {
-        GKI_stop_timer(TIMER_0);
     }
 }
 
@@ -483,6 +367,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 {
     UINT16           event;
     BT_HDR          *p_msg;
+    TIMER_LIST_ENT  *p_tle;
     UINT8            i;
     UINT16           mask;
     BOOLEAN          handled;
@@ -545,75 +430,71 @@ BTU_API UINT32 btu_task (UINT32 param)
     for (;;) {
         event = GKI_wait (0xFFFF, 0);
 
-        while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btu_hci_msg_queue)) != NULL)
+        // HCI message queue.
+        while (!fixed_queue_is_empty(btu_hci_msg_queue)) {
+            p_msg = (BT_HDR *)fixed_queue_dequeue(btu_hci_msg_queue);
             btu_hci_msg_process(p_msg);
+        }
 
-        if (event & TIMER_0_EVT_MASK)
-            btu_timer_process();
+        // General alarm queue.
+        while (!fixed_queue_is_empty(btu_general_alarm_queue)) {
+            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_general_alarm_queue);
+            btu_general_alarm_process(p_tle);
+        }
 
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-        if (event & TIMER_2_EVT_MASK)
-            btu_process_quick_timer_evt();
-#endif
+        // L2CAP alarm queue.
+        while (!fixed_queue_is_empty(btu_l2cap_alarm_queue)) {
+            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_l2cap_alarm_queue);
+            btu_l2cap_alarm_process(p_tle);
+        }
+#endif  // QUICK_TIMER
 
 #if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
-        while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btu_bta_msg_queue)) != NULL)
+        // BTA message queue.
+        while (!fixed_queue_is_empty(btu_bta_msg_queue)) {
+            p_msg = (BT_HDR *)fixed_queue_dequeue(btu_bta_msg_queue);
             bta_sys_event(p_msg);
+        }
 
-        if (event & TIMER_1_EVT_MASK)
-            bta_sys_timer_update();
+        // BTA timer queue.
+        while (!fixed_queue_is_empty(btu_bta_alarm_queue)) {
+            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_bta_alarm_queue);
+            btu_bta_alarm_process(p_tle);
+        }
+#endif  // BTU_BTA_INCLUDED
+
+        while (!fixed_queue_is_empty(btu_oneshot_alarm_queue)) {
+            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_oneshot_alarm_queue);
+            switch (p_tle->event) {
+#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
+                case BTU_TTYPE_BLE_RANDOM_ADDR:
+                    btm_ble_timeout(p_tle);
+                    break;
 #endif
 
-        if (event & TIMER_3_EVT_MASK) {
-            BTM_TRACE_API("Received oneshot timer event complete");
-            if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
-                INT32 ticks_since_last_update = GKI_timer_ticks_getinitial(GKI_timer_getfirst(&btu_cb.timer_queue_oneshot));
-                GKI_update_timer_list(&btu_cb.timer_queue_oneshot, ticks_since_last_update);
-            }
-
-            while (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
-                if (p_tle->ticks != 0)
+                case BTU_TTYPE_USER_FUNC:
+                    {
+                        tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
+                        (*p_uf)(p_tle);
+                    }
                     break;
 
-                GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
-
-                switch (p_tle->event) {
-#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
-                    case BTU_TTYPE_BLE_RANDOM_ADDR:
-                        btm_ble_timeout(p_tle);
-                        break;
-#endif
-
-                    case BTU_TTYPE_USER_FUNC:
-                        {
-                            tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
-                            (*p_uf)(p_tle);
-                        }
-                        break;
-
-                    default:
-                        // FAIL
-                        BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
-                            p_tle->event);
-                        break;
-                }
-            }
-
-            /* Update GKI timer with new tick value from first timer. */
-            if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
-                if (p_tle->ticks > 0)
-                  GKI_start_timer(TIMER_3, p_tle->ticks, FALSE);
-            } else {
-                GKI_stop_timer(TIMER_3);
+                default:
+                    // FAIL
+                    BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
+                        p_tle->event);
+                    break;
             }
         }
 
         if (event & EVENT_MASK(APPL_EVT_7))
             break;
     }
+
+#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
+    bta_sys_free();
+#endif
 
     btu_free_core();
 
@@ -631,40 +512,174 @@ BTU_API UINT32 btu_task (UINT32 param)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
-{
-    BT_HDR *p_msg;
-    GKI_disable();
-    /* if timer list is currently empty, start periodic GKI timer */
-    if (btu_cb.timer_queue.p_first == NULL)
-    {
-        /* if timer starts on other than BTU task */
-        if (GKI_get_taskid() != BTU_TASK)
-        {
-            /* post event to start timer in BTU task */
-            if ((p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE)) != NULL)
+static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
+    assert(p_tle != NULL);
+
+    switch (p_tle->event) {
+        case BTU_TTYPE_BTM_DEV_CTL:
+            btm_dev_timeout(p_tle);
+            break;
+
+        case BTU_TTYPE_BTM_ACL:
+            btm_acl_timeout(p_tle);
+            break;
+
+        case BTU_TTYPE_L2CAP_LINK:
+        case BTU_TTYPE_L2CAP_CHNL:
+        case BTU_TTYPE_L2CAP_HOLD:
+        case BTU_TTYPE_L2CAP_INFO:
+        case BTU_TTYPE_L2CAP_FCR_ACK:
+            l2c_process_timeout (p_tle);
+            break;
+
+        case BTU_TTYPE_SDP:
+            sdp_conn_timeout ((tCONN_CB *)p_tle->param);
+            break;
+
+        case BTU_TTYPE_BTM_RMT_NAME:
+            btm_inq_rmt_name_failed();
+            break;
+
+#if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
+        case BTU_TTYPE_RFCOMM_MFC:
+        case BTU_TTYPE_RFCOMM_PORT:
+            rfcomm_process_timeout (p_tle);
+            break;
+
+#endif /* If defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE */
+
+#if ((defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE))
+        case BTU_TTYPE_BNEP:
+            bnep_process_timeout(p_tle);
+            break;
+#endif
+
+
+#if (defined(AVDT_INCLUDED) && AVDT_INCLUDED == TRUE)
+        case BTU_TTYPE_AVDT_CCB_RET:
+        case BTU_TTYPE_AVDT_CCB_RSP:
+        case BTU_TTYPE_AVDT_CCB_IDLE:
+        case BTU_TTYPE_AVDT_SCB_TC:
+            avdt_process_timeout(p_tle);
+            break;
+#endif
+
+#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
+#if (defined(OBX_CLIENT_INCLUDED) && OBX_CLIENT_INCLUDED == TRUE)
+        case BTU_TTYPE_OBX_CLIENT_TO:
+            obx_cl_timeout(p_tle);
+            break;
+#endif
+#if (defined(OBX_SERVER_INCLUDED) && OBX_SERVER_INCLUDED == TRUE)
+        case BTU_TTYPE_OBX_SERVER_TO:
+            obx_sr_timeout(p_tle);
+            break;
+
+        case BTU_TTYPE_OBX_SVR_SESS_TO:
+            obx_sr_sess_timeout(p_tle);
+            break;
+#endif
+#endif
+
+#if (defined(SAP_SERVER_INCLUDED) && SAP_SERVER_INCLUDED == TRUE)
+        case BTU_TTYPE_SAP_TO:
+            sap_process_timeout(p_tle);
+            break;
+#endif
+
+        case BTU_TTYPE_BTU_CMD_CMPL:
+            btu_hcif_cmd_timeout((UINT8)(p_tle->event - BTU_TTYPE_BTU_CMD_CMPL));
+            break;
+
+#if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
+        case BTU_TTYPE_HID_HOST_REPAGE_TO :
+            hidh_proc_repage_timeout(p_tle);
+            break;
+#endif
+
+#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
+        case BTU_TTYPE_BLE_INQUIRY:
+        case BTU_TTYPE_BLE_GAP_LIM_DISC:
+        case BTU_TTYPE_BLE_RANDOM_ADDR:
+        case BTU_TTYPE_BLE_GAP_FAST_ADV:
+        case BTU_TTYPE_BLE_OBSERVE:
+            btm_ble_timeout(p_tle);
+            break;
+
+        case BTU_TTYPE_ATT_WAIT_FOR_RSP:
+            gatt_rsp_timeout(p_tle);
+            break;
+
+        case BTU_TTYPE_ATT_WAIT_FOR_IND_ACK:
+            gatt_ind_ack_timeout(p_tle);
+            break;
+#if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
+        case BTU_TTYPE_SMP_PAIRING_CMD:
+            smp_rsp_timeout(p_tle);
+            break;
+#endif
+
+#endif
+
+#if (MCA_INCLUDED == TRUE)
+        case BTU_TTYPE_MCA_CCB_RSP:
+            mca_process_timeout(p_tle);
+            break;
+#endif
+        case BTU_TTYPE_USER_FUNC:
             {
-                p_msg->event = BT_EVT_TO_START_TIMER;
-                fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
-                // Signal the target thread work is ready.
-                GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
+                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
+                (*p_uf)(p_tle);
             }
-        }
-        else
-        {
-            /* Start free running 1 second timer for list management */
-            GKI_start_timer (TIMER_0, GKI_SECS_TO_TICKS (1), TRUE);
-        }
+            break;
+
+        default:;
+                int i = 0;
+                BOOLEAN handled = FALSE;
+
+                for (; !handled && i < BTU_MAX_REG_TIMER; i++)
+                {
+                    if (btu_cb.timer_reg[i].timer_cb == NULL)
+                        continue;
+                    if (btu_cb.timer_reg[i].p_tle == p_tle)
+                    {
+                        btu_cb.timer_reg[i].timer_cb(p_tle);
+                        handled = TRUE;
+                    }
+                }
+                break;
     }
+}
 
-    GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
+void btu_general_alarm_cb(void *data) {
+  assert(data != NULL);
+  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
 
-    p_tle->event = type;
-    p_tle->ticks = timeout;
-    p_tle->ticks_initial = timeout;
+  fixed_queue_enqueue(btu_general_alarm_queue, p_tle);
+  GKI_send_event(BTU_TASK, TIMER_0_EVT_MASK);
+}
 
-    GKI_add_to_timer_list (&btu_cb.timer_queue, p_tle);
-    GKI_enable();
+void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
+  assert(p_tle != NULL);
+
+  // Get the alarm for the timer list entry.
+  pthread_mutex_lock(&btu_general_alarm_lock);
+  if (!hash_map_has_key(btu_general_alarm_hash_map, p_tle)) {
+    hash_map_set(btu_general_alarm_hash_map, p_tle, alarm_new());
+  }
+  pthread_mutex_unlock(&btu_general_alarm_lock);
+
+  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to create alarm\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
+
+  p_tle->event = type;
+  // NOTE: This value is in seconds but stored in a ticks field.
+  p_tle->ticks = timeout_sec;
+  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_general_alarm_cb, (void *)p_tle);
 }
 
 /*******************************************************************************
@@ -690,33 +705,16 @@ UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_stop_timer (TIMER_LIST_ENT *p_tle)
-{
-    BT_HDR *p_msg;
-    GKI_disable();
-    GKI_remove_from_timer_list (&btu_cb.timer_queue, p_tle);
+void btu_stop_timer(TIMER_LIST_ENT *p_tle) {
+  assert(p_tle != NULL);
 
-    /* if timer is stopped on other than BTU task */
-    if (GKI_get_taskid() != BTU_TASK)
-    {
-        /* post event to stop timer in BTU task */
-        if ((p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE)) != NULL)
-        {
-            p_msg->event = BT_EVT_TO_STOP_TIMER;
-            fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
-            // Signal the target thread work is ready.
-            GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-        }
-    }
-    else
-    {
-        /* if timer list is empty stop periodic GKI timer */
-        if (btu_cb.timer_queue.p_first == NULL)
-        {
-            GKI_stop_timer(TIMER_0);
-        }
-    }
-    GKI_enable();
+  // Get the alarm for the timer list entry.
+  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
 }
 
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
@@ -724,49 +722,55 @@ void btu_stop_timer (TIMER_LIST_ENT *p_tle)
 **
 ** Function         btu_start_quick_timer
 **
-** Description      Start a timer for the specified amount of time.
-**                  NOTE: The timeout resolution depends on including modules.
-**                  QUICK_TIMER_TICKS_PER_SEC should be used to convert from
-**                  time to ticks.
-**
+** Description      Start a timer for the specified amount of time in ticks.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
-{
-    BT_HDR *p_msg;
+static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle) {
+  assert(p_tle != NULL);
 
-    GKI_disable();
-    /* if timer list is currently empty, start periodic GKI timer */
-    if (btu_cb.quick_timer_queue.p_first == NULL)
-    {
-        /* script test calls stack API without posting event */
-        if (GKI_get_taskid() != BTU_TASK)
-        {
-            /* post event to start timer in BTU task */
-            if ((p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE)) != NULL)
-            {
-                p_msg->event = BT_EVT_TO_START_QUICK_TIMER;
-                fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
-                // Signal the target thread work is ready.
-                GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-            }
-        }
-        else
-            GKI_start_timer(TIMER_2, QUICK_TIMER_TICKS, TRUE);
-    }
+  switch (p_tle->event) {
+    case BTU_TTYPE_L2CAP_CHNL:      /* monitor or retransmission timer */
+    case BTU_TTYPE_L2CAP_FCR_ACK:   /* ack timer */
+      l2c_process_timeout (p_tle);
+      break;
 
-    GKI_remove_from_timer_list (&btu_cb.quick_timer_queue, p_tle);
-
-    p_tle->event = type;
-    p_tle->ticks = timeout;
-    p_tle->ticks_initial = timeout;
-
-    GKI_add_to_timer_list (&btu_cb.quick_timer_queue, p_tle);
-    GKI_enable();
+    default:
+      break;
+  }
 }
 
+static void btu_l2cap_alarm_cb(void *data) {
+  assert(data != NULL);
+  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+
+  fixed_queue_enqueue(btu_l2cap_alarm_queue, p_tle);
+  GKI_send_event(BTU_TASK, TIMER_2_EVT_MASK);
+}
+
+void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ticks) {
+  assert(p_tle != NULL);
+
+  // Get the alarm for the timer list entry.
+  pthread_mutex_lock(&btu_l2cap_alarm_lock);
+  if (!hash_map_has_key(btu_l2cap_alarm_hash_map, p_tle)) {
+    hash_map_set(btu_l2cap_alarm_hash_map, p_tle, alarm_new());
+  }
+  pthread_mutex_unlock(&btu_l2cap_alarm_lock);
+
+  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to create alarm\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
+
+  p_tle->event = type;
+  p_tle->ticks = timeout_ticks;
+  // The quick timer ticks are 100ms long.
+  alarm_set(alarm, (period_ms_t)(timeout_ticks * 100), btu_l2cap_alarm_cb, (void *)p_tle);
+}
 
 /*******************************************************************************
 **
@@ -777,130 +781,65 @@ void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle)
-{
-    GKI_disable();
-    GKI_remove_from_timer_list (&btu_cb.quick_timer_queue, p_tle);
+void btu_stop_quick_timer(TIMER_LIST_ENT *p_tle) {
+  assert(p_tle != NULL);
 
-    /* if timer list is empty stop periodic GKI timer */
-    if (btu_cb.quick_timer_queue.p_first == NULL)
-    {
-        GKI_stop_timer(TIMER_2);
-    }
-    GKI_enable();
-}
-
-/*******************************************************************************
-**
-** Function         btu_process_quick_timer_evt
-**
-** Description      Process quick timer event
-**
-** Returns          void
-**
-*******************************************************************************/
-void btu_process_quick_timer_evt(void)
-{
-    process_quick_timer_evt(&btu_cb.quick_timer_queue);
-
-    /* if timer list is empty stop periodic GKI timer */
-    if (btu_cb.quick_timer_queue.p_first == NULL)
-    {
-        GKI_stop_timer(TIMER_2);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         process_quick_timer_evt
-**
-** Description      Process quick timer event
-**
-** Returns          void
-**
-*******************************************************************************/
-void process_quick_timer_evt(TIMER_LIST_Q *p_tlq)
-{
-    TIMER_LIST_ENT  *p_tle;
-
-    GKI_update_timer_list (p_tlq, 1);
-
-    while ((p_tlq->p_first) && (!p_tlq->p_first->ticks))
-    {
-        p_tle = p_tlq->p_first;
-        GKI_remove_from_timer_list (p_tlq, p_tle);
-
-        switch (p_tle->event)
-        {
-            case BTU_TTYPE_L2CAP_CHNL:      /* monitor or retransmission timer */
-            case BTU_TTYPE_L2CAP_FCR_ACK:   /* ack timer */
-                l2c_process_timeout (p_tle);
-                break;
-
-            default:
-                break;
-        }
-    }
+  // Get the alarm for the timer list entry.
+  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
 }
 #endif /* defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0) */
+
+void btu_oneshot_alarm_cb(void *data) {
+  assert(data != NULL);
+  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+
+  btu_stop_timer_oneshot(p_tle);
+
+  fixed_queue_enqueue(btu_oneshot_alarm_queue, p_tle);
+  GKI_send_event(BTU_TASK, TIMER_3_EVT_MASK);
+}
 
 /*
  * Starts a oneshot timer with a timeout in seconds.
  */
-void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_in_secs) {
-    INT32 timeout_in_ticks = GKI_SECS_TO_TICKS(timeout_in_secs);
-    BTM_TRACE_DEBUG("Starting oneshot timer type:%d timeout:%ds", type, timeout_in_secs);
-    GKI_disable();
-    if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-    }
+void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
+  assert(p_tle != NULL);
 
-    GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+  // Get the alarm for the timer list entry.
+  pthread_mutex_lock(&btu_oneshot_alarm_lock);
+  if (!hash_map_has_key(btu_oneshot_alarm_hash_map, p_tle)) {
+    hash_map_set(btu_oneshot_alarm_hash_map, p_tle, alarm_new());
+  }
+  pthread_mutex_unlock(&btu_oneshot_alarm_lock);
 
-    p_tle->event = type;
-    p_tle->ticks = timeout_in_ticks;
-    p_tle->ticks_initial = timeout_in_ticks;
+  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to create alarm\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
 
-    GKI_add_to_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
-    /* RPC to BTU thread if timer start request from non-BTU task */
-    if (GKI_get_taskid() != BTU_TASK) {
-        /* post event to start timer in BTU task */
-        BTM_TRACE_WARNING("Posting oneshot timer event to btu_task");
-        BT_HDR *p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE);
-        if (p_msg != NULL) {
-            p_msg->event = BT_EVT_TO_START_TIMER_ONESHOT;
-            fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
-            // Signal the target thread work is ready.
-            GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-        }
-    } else {
-        TIMER_LIST_ENT *tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
-        GKI_start_timer(TIMER_3, tle->ticks, FALSE);
-    }
-    GKI_enable();
+  p_tle->event = type;
+  // NOTE: This value is in seconds but stored in a ticks field.
+  p_tle->ticks = timeout_sec;
+  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_oneshot_alarm_cb, (void *)p_tle);
 }
 
 void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
-    GKI_disable();
-    GKI_remove_from_timer_list(&btu_cb.timer_queue_oneshot, p_tle);
+  assert(p_tle != NULL);
 
-    if (GKI_get_taskid() != BTU_TASK) {
-        /* post event to stop timer in BTU task */
-        BT_HDR *p_msg = (BT_HDR *)GKI_getbuf(BT_HDR_SIZE);
-        if (p_msg != NULL) {
-            p_msg->event = BT_EVT_TO_STOP_TIMER_ONESHOT;
-            fixed_queue_enqueue(btu_hci_msg_queue, p_msg);
-            // Signal the target thread work is ready.
-            GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-        }
-    } else {
-        if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-            BTM_TRACE_WARNING("Stopping oneshot timer");
-            GKI_stop_timer(TIMER_3);
-        } else {
-            BTM_TRACE_WARNING("Request to stop oneshot timer with non empty queue");
-        }
-    }
-    GKI_enable();
+  // Get the alarm for the timer list entry.
+  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
 }
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)

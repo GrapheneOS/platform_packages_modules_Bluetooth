@@ -21,9 +21,11 @@
  *  This is the main implementation file for the BTA system manager.
  *
  ******************************************************************************/
+#include <assert.h>
 #define LOG_TAG "bta_sys_main"
 #include <cutils/log.h>
 
+#include "alarm.h"
 #include "btm_api.h"
 #include "bta_api.h"
 #include "bta_sys.h"
@@ -31,6 +33,8 @@
 
 #include "fixed_queue.h"
 #include "gki.h"
+#include "hash_functions.h"
+#include "hash_map.h"
 #include "ptim.h"
 #include <string.h>
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
@@ -42,6 +46,11 @@
 #if BTA_DYNAMIC_MEMORY == FALSE
 tBTA_SYS_CB bta_sys_cb;
 #endif
+
+fixed_queue_t *btu_bta_alarm_queue;
+static hash_map_t *bta_alarm_hash_map;
+static const size_t BTA_ALARM_HASH_MAP_SIZE = 17;
+static pthread_mutex_t bta_alarm_lock;
 
 /* trace level */
 /* TODO Bluedroid - Hard-coded trace levels -  Needs to be configurable */
@@ -164,6 +173,13 @@ BTA_API void bta_sys_init(void)
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
 
     ptim_init(&bta_sys_cb.ptim_cb, BTA_SYS_TIMER_PERIOD, BTA_TIMER);
+
+    pthread_mutex_init(&bta_alarm_lock, NULL);
+
+    bta_alarm_hash_map = hash_map_new(BTA_ALARM_HASH_MAP_SIZE,
+            hash_function_knuth, NULL,NULL);
+    btu_bta_alarm_queue = fixed_queue_new(SIZE_MAX);
+
     bta_sys_cb.task_id = GKI_get_taskid();
     appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
 
@@ -177,6 +193,12 @@ BTA_API void bta_sys_init(void)
     bta_ar_init();
 #endif
 
+}
+
+BTA_API void bta_sys_free(void) {
+    fixed_queue_free(btu_bta_alarm_queue, NULL);
+    hash_map_free(bta_alarm_hash_map);
+    pthread_mutex_destroy(&bta_alarm_lock);
 }
 
 /*******************************************************************************
@@ -601,9 +623,33 @@ void bta_sys_sendmsg(void *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout)
-{
-    ptim_start_timer(&bta_sys_cb.ptim_cb, p_tle, type, timeout);
+void bta_alarm_cb(void *data) {
+  assert(data != NULL);
+  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+
+  fixed_queue_enqueue(btu_bta_alarm_queue, p_tle);
+}
+
+void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout) {
+  assert(p_tle != NULL);
+
+  // Get the alarm for this p_tle.
+  pthread_mutex_lock(&bta_alarm_lock);
+  if (!hash_map_has_key(bta_alarm_hash_map, p_tle)) {
+    hash_map_set(bta_alarm_hash_map, p_tle, alarm_new());
+  }
+  pthread_mutex_unlock(&bta_alarm_lock);
+
+  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Unable to create alarm\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
+
+  p_tle->event = type;
+  p_tle->ticks = timeout;
+  alarm_set(alarm, (period_ms_t)GKI_TICKS_TO_MS(timeout), bta_alarm_cb, (void *)p_tle);
 }
 
 /*******************************************************************************
@@ -615,9 +661,15 @@ void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle)
-{
-    ptim_stop_timer(&bta_sys_cb.ptim_cb, p_tle);
+void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle) {
+  assert(p_tle != NULL);
+
+  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
+  if (alarm == NULL) {
+    ALOGE("%s Expected alarm was not in bta alarm hash map\n", __func__);
+    return;
+  }
+  alarm_cancel(alarm);
 }
 
 /*******************************************************************************
