@@ -774,19 +774,9 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_SCO_DATA_SIZE_MAX       240
 #endif
 
-/* maximum BTM buffering capacity */
-#ifndef BTM_SCO_MAX_BUF_CAP
-#define BTM_SCO_MAX_BUF_CAP     (BTM_SCO_INIT_XMIT_CREDIT * 4)
-#endif
-
 /* The size in bytes of the BTM inquiry database. */
 #ifndef BTM_INQ_DB_SIZE
 #define BTM_INQ_DB_SIZE             40
-#endif
-
-/* This is set to enable automatic periodic inquiry at startup. */
-#ifndef BTM_ENABLE_AUTO_INQUIRY
-#define BTM_ENABLE_AUTO_INQUIRY     FALSE
 #endif
 
 /* This is set to always try to acquire the remote device name. */
@@ -797,31 +787,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* The inquiry duration in 1.28 second units when auto inquiry is enabled. */
 #ifndef BTM_DEFAULT_INQ_DUR
 #define BTM_DEFAULT_INQ_DUR         5
-#endif
-
-/* The inquiry mode when auto inquiry is enabled. */
-#ifndef BTM_DEFAULT_INQ_MODE
-#define BTM_DEFAULT_INQ_MODE        BTM_GENERAL_INQUIRY
-#endif
-
-/* The default periodic inquiry maximum delay when auto inquiry is enabled, in 1.28 second units. */
-#ifndef BTM_DEFAULT_INQ_MAX_DELAY
-#define BTM_DEFAULT_INQ_MAX_DELAY   30
-#endif
-
-/* The default periodic inquiry minimum delay when auto inquiry is enabled, in 1.28 second units. */
-#ifndef BTM_DEFAULT_INQ_MIN_DELAY
-#define BTM_DEFAULT_INQ_MIN_DELAY   20
-#endif
-
-/* The maximum age of entries in inquiry database in seconds ('0' disables feature). */
-#ifndef BTM_INQ_MAX_AGE
-#define BTM_INQ_MAX_AGE             0
-#endif
-
-/* The maximum age of entries in inquiry database based on inquiry response failure ('0' disables feature). */
-#ifndef BTM_INQ_AGE_BY_COUNT
-#define BTM_INQ_AGE_BY_COUNT        0
 #endif
 
 /* TRUE if controller does not support inquiry event filtering. */
@@ -854,11 +819,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_DEFAULT_CONN_INTERVAL   0x0800
 #endif
 
-/* When automatic inquiry scan is enabled, this sets the discovery mode. */
-#ifndef BTM_DEFAULT_DISC_MODE
-#define BTM_DEFAULT_DISC_MODE       BTM_GENERAL_DISCOVERABLE
-#endif
-
 /* When automatic inquiry scan is enabled, this sets the inquiry scan window. */
 #ifndef BTM_DEFAULT_DISC_WINDOW
 #define BTM_DEFAULT_DISC_WINDOW     0x0012
@@ -867,16 +827,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* When automatic inquiry scan is enabled, this sets the inquiry scan interval. */
 #ifndef BTM_DEFAULT_DISC_INTERVAL
 #define BTM_DEFAULT_DISC_INTERVAL   0x0800
-#endif
-
-/* Sets the period, in seconds, to automatically perform service discovery. */
-#ifndef BTM_AUTO_DISCOVERY_PERIOD
-#define BTM_AUTO_DISCOVERY_PERIOD   0
-#endif
-
-/* The size in bytes of the BTM discovery database (if discovery is included). */
-#ifndef BTM_DISCOVERY_DB_SIZE
-#define BTM_DISCOVERY_DB_SIZE       4000
 #endif
 
 /* Number of milliseconds to delay BTU task startup upon device initialization. */
