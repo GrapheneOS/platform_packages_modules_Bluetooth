@@ -66,14 +66,6 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 
 #define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
 
-/* After Reset a timeout can be specified in the target.h for specific targets
- * that may require additional time to reset
- * otherwise no timeout is required
-*/
-#ifndef BTM_AFTER_RESET_TIMEOUT
-#define BTM_AFTER_RESET_TIMEOUT 0
-#endif
-
 /* Internal baseband so the parameters such as local features, version etc. are known
 so there is no need to issue HCI commands and wait for responses at BTM initialization */
 #ifndef BTM_INTERNAL_BB
@@ -629,14 +621,9 @@ void btm_reset_complete (void)
         btm_cb.btm_inq_vars.page_scan_period  = HCI_DEF_PAGESCAN_INTERVAL;
         btm_cb.btm_inq_vars.page_scan_type    = HCI_DEF_SCAN_TYPE;
 
-#if (BTM_AFTER_RESET_TIMEOUT > 0)
-        btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL,
-                         BTM_AFTER_RESET_TIMEOUT);
-#else
         btm_cb.devcb.state = BTM_DEV_STATE_WAIT_AFTER_RESET;
         btu_stop_timer(&btm_cb.devcb.reset_timer);
         btm_continue_reset();
-#endif
 
 #if (BLE_INCLUDED == TRUE)
      btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;

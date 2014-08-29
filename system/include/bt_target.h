@@ -911,11 +911,6 @@ and USER_HW_DISABLE_API macros */
 #define BTM_FIRST_RESET_DELAY       0
 #endif
 
-/* The number of seconds to wait for controller module to reset after issuing an HCI Reset command. */
-#ifndef BTM_AFTER_RESET_TIMEOUT
-#define BTM_AFTER_RESET_TIMEOUT     0
-#endif
-
 /* Default class of device
 * {SERVICE_CLASS, MAJOR_CLASS, MINOR_CLASS}
 *
