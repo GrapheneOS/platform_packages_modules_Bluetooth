@@ -3613,27 +3613,6 @@ The maximum number of payload octets that the local device can receive in a sing
 
 /******************************************************************************
 **
-** BTE
-**
-******************************************************************************/
-#ifndef BTE_PLATFORM_IDLE
-#define BTE_PLATFORM_IDLE
-#endif
-
-#ifndef BTE_IDLE_TASK_INCLUDED
-#define BTE_IDLE_TASK_INCLUDED FALSE
-#endif
-
-#ifndef BTE_PLATFORM_INITHW
-#define BTE_PLATFORM_INITHW
-#endif
-
-#ifndef BTE_BTA_CODE_INCLUDED
-#define BTE_BTA_CODE_INCLUDED FALSE
-#endif
-
-/******************************************************************************
-**
 ** BTTRC
 **
 ******************************************************************************/
