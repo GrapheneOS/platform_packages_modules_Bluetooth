@@ -232,7 +232,7 @@ static void hci_cleanup() {
 
   fixed_queue_free(command_queue, buffer_allocator->free);
   fixed_queue_free(packet_queue, buffer_allocator->free);
-  fixed_queue_free(waiting_internal_commands, buffer_allocator->free);
+  fixed_queue_free(waiting_internal_commands, osi_free);
 
   packet_fragmenter->cleanup();
 
