@@ -45,6 +45,7 @@
 
 #include "btif_api.h"
 #include "bt_utils.h"
+#include "osi.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -479,20 +480,19 @@ static int close_bluetooth_stack(struct hw_device_t* device)
     return 0;
 }
 
-static int open_bluetooth_stack (const struct hw_module_t* module, char const* name,
-                                 struct hw_device_t** abstraction)
-{
-    UNUSED(name);
+static int open_bluetooth_stack(const struct hw_module_t *module, UNUSED_ATTR char const *name, struct hw_device_t **abstraction) {
+  static bluetooth_device_t device = {
+    .common = {
+      .tag = HARDWARE_DEVICE_TAG,
+      .version = 0,
+      .close = close_bluetooth_stack,
+    },
+    .get_bluetooth_interface = bluetooth__get_bluetooth_interface
+  };
 
-    bluetooth_device_t *stack = malloc(sizeof(bluetooth_device_t) );
-    memset(stack, 0, sizeof(bluetooth_device_t) );
-    stack->common.tag = HARDWARE_DEVICE_TAG;
-    stack->common.version = 0;
-    stack->common.module = (struct hw_module_t*)module;
-    stack->common.close = close_bluetooth_stack;
-    stack->get_bluetooth_interface = bluetooth__get_bluetooth_interface;
-    *abstraction = (struct hw_device_t*)stack;
-    return 0;
+  device.common.module = (struct hw_module_t *)module;
+  *abstraction = (struct hw_device_t *)&device;
+  return 0;
 }
 
 
@@ -509,4 +509,3 @@ struct hw_module_t HAL_MODULE_INFO_SYM = {
     .author = "The Android Open Source Project",
     .methods = &bt_stack_module_methods
 };
-
