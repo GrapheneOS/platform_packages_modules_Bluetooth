@@ -148,20 +148,6 @@ void btm_dev_init (void)
 
     btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
     btm_cb.last_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
-
-#if (BTM_AUTOMATIC_HCI_RESET == TRUE)
-
-#if (BTM_FIRST_RESET_DELAY > 0)
-    btm_cb.devcb.state = BTM_DEV_STATE_WAIT_RESET_CMPLT;
-    btu_start_timer (&btm_cb.devcb.reset_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_FIRST_RESET_DELAY);
-#else
-    btm_dev_reset();
-#endif
-
-#else
-   BTM_TRACE_EVENT ("BTM_AUTOMATIC_HCI_RESET is FALSE, so skip btm reset for now");
-#endif
-
 }
 
 

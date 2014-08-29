@@ -411,21 +411,7 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 {
     APPL_TRACE_EVENT("bta_sys_hw_evt_enabled for %i", p_sys_hw_msg->hw_module);
-
-#if ( defined BTM_AUTOMATIC_HCI_RESET && BTM_AUTOMATIC_HCI_RESET == TRUE )
-    /* If device is already up, send a fake "BTM DEVICE UP" using BTA SYS state machine */
-    /* If we are in the middle device initialization, BTM_DEVICE_UP will be issued      */
-    /* by BTM once initialization is done.                                              */
-    if (BTA_DmIsDeviceUp())
-    {
-        bta_sys_hw_btm_cback (BTM_DEV_STATUS_UP);
-    }
-#else
-
-    /* if HCI reset was not sent during stack start-up */
     BTM_DeviceReset( NULL );
-
-#endif
 }
 
 

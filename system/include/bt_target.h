@@ -714,13 +714,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 ** BTM
 **
 ******************************************************************************/
-/* if set to TRUE, stack will automatically send an HCI reset at start-up. To be
-set to FALSE for advanced start-up / shut-down procedures using USER_HW_ENABLE_API
-and USER_HW_DISABLE_API macros */
-#ifndef BTM_AUTOMATIC_HCI_RESET
-#define BTM_AUTOMATIC_HCI_RESET      FALSE
-#endif
-
 /* Include BTM Discovery database and code. */
 #ifndef BTM_DISCOVERY_INCLUDED
 #define BTM_DISCOVERY_INCLUDED      TRUE
@@ -904,11 +897,6 @@ and USER_HW_DISABLE_API macros */
 /* Whether BTA is included in BTU task. */
 #ifndef BTU_BTA_INCLUDED
 #define BTU_BTA_INCLUDED            TRUE
-#endif
-
-/* Number of seconds to wait to send an HCI Reset command upon device initialization. */
-#ifndef BTM_FIRST_RESET_DELAY
-#define BTM_FIRST_RESET_DELAY       0
 #endif
 
 /* Default class of device
