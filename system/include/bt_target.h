@@ -219,10 +219,6 @@
 #define LINUX_OS  TRUE
 #endif
 
-#ifndef BTM_APP_DEV_INIT
-#define BTM_APP_DEV_INIT  bte_main_post_reset_init
-#endif
-
 #ifndef SBC_FOR_EMBEDDED_LINUX
 #define SBC_FOR_EMBEDDED_LINUX TRUE
 #endif
@@ -1013,11 +1009,6 @@ and USER_HW_DISABLE_API macros */
 /* This is set to TRUE if link is to be unparked due to BTM_CreateSCO API. */
 #ifndef BTM_SCO_WAKE_PARKED_LINK
 #define BTM_SCO_WAKE_PARKED_LINK    TRUE
-#endif
-
-/* May be set to the the name of a function used for vendor specific chip initialization */
-#ifndef BTM_APP_DEV_INIT
-/* #define BTM_APP_DEV_INIT         myInitFunction() */
 #endif
 
 /* This is set to TRUE if the busy level change event is desired. (replace ACL change event) */

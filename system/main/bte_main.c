@@ -551,21 +551,6 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     }
 }
 
-/******************************************************************************
-**
-** Function         bte_main_post_reset_init
-**
-** Description      BTE MAIN API - This function is mapped to BTM_APP_DEV_INIT
-**                  and shall be automatically called from BTE after HCI_Reset
-**
-** Returns          None
-**
-******************************************************************************/
-void bte_main_post_reset_init()
-{
-    BTM_ContinueReset();
-}
-
 /*****************************************************************************
 **
 **   libbt-hci Callback Functions

@@ -2209,24 +2209,6 @@ extern "C" {
 
 /*******************************************************************************
 **
-** Function         BTM_ContinueReset
-**
-** Description      Instructs stack to continue its stack initialization after
-**                  an application has completed any vender specific commands
-**                  sent to the controller.
-**
-**                  Note: This function is only called if an application
-**                      initialization function has been inserted in the reset
-**                      sequence.  (BTM_APP_DEV_INIT is defined with a function).
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_ContinueReset (void);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_VendorSpecificCommand
 **
 ** Description      Send a vendor specific HCI command to the controller.

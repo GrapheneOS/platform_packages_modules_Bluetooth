@@ -40,13 +40,6 @@
 
 #endif /* BLE_INCLUDED */
 
-/* BTM_APP_DEV_INIT should be defined if additional controller initialization is
-**      needed by the application to be performed after the HCI reset
-*/
-#ifdef BTM_APP_DEV_INIT
-extern void BTM_APP_DEV_INIT(void);
-#endif
-
 #ifdef BTA_PRM_CHECK_FW_VER
 extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 #endif
@@ -112,7 +105,6 @@ response message */
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
 static void btm_dev_reset (void);
-static void btm_after_reset_hold_complete (void);
 static void btm_continue_reset (void);
 
 static void btm_get_local_ext_features (UINT8 page_number);
@@ -365,25 +357,6 @@ tBTM_STATUS BTM_SetAfhChannelAssessment (BOOLEAN enable_or_disable)
         return (BTM_NO_RESOURCES);
 
     return (BTM_SUCCESS);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_ContinueReset
-**
-** Description      This function is called by the application to continue
-**                  initialization after the application has completed its
-**                  vendor specific sequence.  It is only used when
-**                  BTM_APP_DEV_INIT is defined in target.h.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_ContinueReset (void)
-{
-#ifdef BTM_APP_DEV_INIT
-    btm_continue_reset();
-#endif
 }
 
 /*******************************************************************************
@@ -661,7 +634,8 @@ void btm_reset_complete (void)
                          BTM_AFTER_RESET_TIMEOUT);
 #else
         btm_cb.devcb.state = BTM_DEV_STATE_WAIT_AFTER_RESET;
-        btm_after_reset_hold_complete();
+        btu_stop_timer(&btm_cb.devcb.reset_timer);
+        btm_continue_reset();
 #endif
 
 #if (BLE_INCLUDED == TRUE)
@@ -709,27 +683,6 @@ void btm_continue_reset (void)
 
     BTM_SetPinType (btm_cb.cfg.pin_type, btm_cb.cfg.pin_code, btm_cb.cfg.pin_code_len);
 }
-
-/*******************************************************************************
-**
-** Function         btm_after_reset_hold_complete
-**
-** Description      This function is called when wait period expired after
-**                  device reset.  Continue intitialization
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_after_reset_hold_complete (void)
-{
-#ifdef BTM_APP_DEV_INIT
-    btu_stop_timer(&btm_cb.devcb.reset_timer);
-    BTM_APP_DEV_INIT();
-#else
-    btm_continue_reset();
-#endif
-}
-
 
 /*******************************************************************************
 **
