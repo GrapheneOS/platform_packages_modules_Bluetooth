@@ -97,7 +97,7 @@ void btu_free_core(void)
 
 /*****************************************************************************
 **
-** Function         BTE_Init
+** Function         BTE_StartUp
 **
 ** Description      Initializes the BTU control block.
 **
@@ -107,10 +107,8 @@ void btu_free_core(void)
 ** Returns          void
 **
 ******************************************************************************/
-void BTE_Init(void)
+void BTE_StartUp(void)
 {
-    int i = 0;
-
     memset (&btu_cb, 0, sizeof (tBTU_CB));
     btu_cb.hcit_acl_pkt_size = BTU_DEFAULT_DATA_SIZE + HCI_DATA_PREAMBLE_SIZE;
 #if (BLE_INCLUDED == TRUE)
@@ -118,8 +116,21 @@ void BTE_Init(void)
 #endif
     btu_cb.trace_level = HCI_INITIAL_TRACE_LEVEL;
 
-    for ( i = 0; i < BTU_MAX_LOCAL_CTRLS; i++ ) /* include BR/EDR */
-        btu_cb.hci_cmd_cb[i].cmd_window = 1;
+    for (int i = 0; i < BTU_MAX_LOCAL_CTRLS; ++i) {
+      GKI_init_q(&btu_cb.hci_cmd_cb[i].cmd_xmit_q);
+      GKI_init_q(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q);
+      btu_cb.hci_cmd_cb[i].cmd_window = 1;
+    }
+}
+
+
+void BTE_ShutDown(void) {
+  for (int i = 0; i < BTU_MAX_LOCAL_CTRLS; ++i) {
+    while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_xmit_q))
+      GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_xmit_q));
+    while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q))
+      GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q));
+  }
 }
 
 

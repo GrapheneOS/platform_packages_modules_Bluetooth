@@ -113,14 +113,15 @@ static void dump_upbound_data_to_btu(fixed_queue_t *queue, void *context);
 /*******************************************************************************
 **  Externs
 *******************************************************************************/
-BTU_API extern UINT32 btu_task (UINT32 param);
-BTU_API extern void BTE_Init (void);
-BT_API extern void BTE_LoadStack(void);
-BT_API void BTE_UnloadStack(void);
-extern void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
-extern void bte_load_conf(const char *p_path);
+UINT32 btu_task (UINT32 param);
+void BTE_StartUp(void);
+void BTE_ShutDown(void);
+void BTE_LoadStack(void);
+void BTE_UnloadStack(void);
+void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
+void bte_load_conf(const char *p_path);
 extern void bte_load_ble_conf(const char *p_path);
-extern bt_bdaddr_t btif_local_bd_addr;
+bt_bdaddr_t btif_local_bd_addr;
 
 
 /*******************************************************************************
@@ -215,7 +216,7 @@ void bte_main_enable()
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     /* Initialize BTE control block */
-    BTE_Init();
+    BTE_StartUp();
 
     GKI_create_task((TASKPTR)btu_task, BTU_TASK, BTE_BTU_TASK_STR,
                     (UINT16 *) ((UINT8 *)bte_btu_stack + BTE_BTU_STACK_SIZE),
@@ -243,6 +244,8 @@ void bte_main_disable(void)
     preload_stop_wait_timer();
     bte_hci_disable();
     GKI_destroy_task(BTU_TASK);
+
+    BTE_ShutDown();
 }
 
 /******************************************************************************
