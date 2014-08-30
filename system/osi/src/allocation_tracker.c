@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <utils/Log.h>
 
 #include "allocation_tracker.h"
@@ -29,6 +30,7 @@
 #define ALLOCATION_HASH_MAP_SIZE 1024
 
 typedef struct {
+  uint8_t allocator_id;
   void *ptr;
   size_t size;
   bool freed;
@@ -101,7 +103,7 @@ size_t allocation_tracker_expect_no_allocations() {
   return unfreed_memory_size;
 }
 
-void *allocation_tracker_notify_alloc(void *ptr, size_t requested_size, bool add_canary) {
+void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t requested_size, bool add_canary) {
   if (!allocations || !ptr)
     return ptr;
 
@@ -121,6 +123,7 @@ void *allocation_tracker_notify_alloc(void *ptr, size_t requested_size, bool add
     hash_map_set(allocations, return_ptr, allocation);
   }
 
+  allocation->allocator_id = allocator_id;
   allocation->is_canaried = using_canaries_here;
   allocation->freed = false;
   allocation->size = requested_size;
@@ -137,15 +140,16 @@ void *allocation_tracker_notify_alloc(void *ptr, size_t requested_size, bool add
   return return_ptr;
 }
 
-void *allocation_tracker_notify_free(void *ptr) {
+void *allocation_tracker_notify_free(uint8_t allocator_id, void *ptr) {
   if (!allocations || !ptr)
     return ptr;
 
   pthread_mutex_lock(&lock);
 
   allocation_t *allocation = (allocation_t *)hash_map_get(allocations, ptr);
-  assert(allocation);         // Must have been tracked before
-  assert(!allocation->freed); // Must not be a double free
+  assert(allocation);                               // Must have been tracked before
+  assert(!allocation->freed);                       // Must not be a double free
+  assert(allocation->allocator_id == allocator_id); // Must be from the same allocator
   allocation->freed = true;
 
   if (allocation->is_canaried) {
