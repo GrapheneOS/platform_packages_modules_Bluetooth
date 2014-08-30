@@ -75,15 +75,15 @@ typedef struct {
 } hci_callbacks_t;
 
 typedef struct hci_interface_t {
-  // Initialize the hci layer, with the specified |local_bdaddr|.
-  bool (*init)(
+  // Start up the hci layer, with the specified |local_bdaddr|.
+  bool (*start_up)(
       bdaddr_t local_bdaddr,
       const allocator_t *upward_buffer_allocator,
       const hci_callbacks_t *upper_callbacks
   );
 
   // Tear down and relese all resources
-  void (*cleanup)(void);
+  void (*shut_down)(void);
 
   // Turn the Bluetooth chip on or off, depending on |value|.
   void (*set_chip_power_on)(bool value);

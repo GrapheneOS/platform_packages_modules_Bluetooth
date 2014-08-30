@@ -39,8 +39,8 @@ extern "C" {
 }
 
 DECLARE_TEST_MODES(
-  init,
-  cleanup,
+  start_up,
+  shut_down,
   cycle_power,
   preload,
   postload,
@@ -137,7 +137,7 @@ static void expect_packet(uint16_t event, int max_acl_data_size, const uint8_t *
 }
 
 STUB_FUNCTION(bool, hal_init, (const hci_hal_callbacks_t *callbacks, thread_t *working_thread))
-  DURING(init) AT_CALL(0) {
+  DURING(start_up) AT_CALL(0) {
     hal_callbacks = callbacks;
     internal_thread = working_thread;
     return true;
@@ -154,7 +154,7 @@ STUB_FUNCTION(bool, hal_open, ())
 }
 
 STUB_FUNCTION(void, hal_close, ())
-  DURING(cleanup) AT_CALL(0) return;
+  DURING(shut_down) AT_CALL(0) return;
   UNEXPECTED_CALL;
 }
 
@@ -219,13 +219,13 @@ STUB_FUNCTION(void, btsnoop_close, ())
 STUB_FUNCTION(bool, hci_inject_open, (
     UNUSED_ATTR const hci_interface_t *hci_interface,
     UNUSED_ATTR const allocator_t *buffer_allocator))
-  DURING(init) AT_CALL(0) return true;
+  DURING(start_up) AT_CALL(0) return true;
   UNEXPECTED_CALL;
   return false;
 }
 
 STUB_FUNCTION(void, hci_inject_close, ())
-  DURING(cleanup) AT_CALL(0) return;
+  DURING(shut_down) AT_CALL(0) return;
   UNEXPECTED_CALL;
 }
 
@@ -262,12 +262,12 @@ STUB_FUNCTION(void, btsnoop_capture, (const BT_HDR *buffer, bool is_received))
 }
 
 STUB_FUNCTION(void, low_power_init, (UNUSED_ATTR thread_t *thread))
-  DURING(init) AT_CALL(0) return;
+  DURING(start_up) AT_CALL(0) return;
   UNEXPECTED_CALL;
 }
 
 STUB_FUNCTION(void, low_power_cleanup, ())
-  DURING(cleanup) AT_CALL(0) return;
+  DURING(shut_down) AT_CALL(0) return;
   UNEXPECTED_CALL;
 }
 
@@ -284,7 +284,7 @@ STUB_FUNCTION(void, low_power_transmit_done, ())
 }
 
 STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const allocator_t *allocator))
-  DURING(init) AT_CALL(0) {
+  DURING(start_up) AT_CALL(0) {
     EXPECT_EQ(test_addr, addr);
     EXPECT_EQ(&allocator_malloc, allocator);
     return true;
@@ -295,12 +295,12 @@ STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const allocator_t *alloca
 }
 
 STUB_FUNCTION(void, vendor_close, ())
-  DURING(cleanup) AT_CALL(0) return;
+  DURING(shut_down) AT_CALL(0) return;
   UNEXPECTED_CALL;
 }
 
 STUB_FUNCTION(void, vendor_set_callback, (vendor_async_opcode_t opcode, UNUSED_ATTR vendor_cb callback))
-  DURING(init) {
+  DURING(start_up) {
     AT_CALL(0) {
       EXPECT_EQ(VENDOR_CONFIGURE_FIRMWARE, opcode);
       firmware_config_callback = callback;
@@ -322,7 +322,7 @@ STUB_FUNCTION(void, vendor_set_callback, (vendor_async_opcode_t opcode, UNUSED_A
 }
 
 STUB_FUNCTION(void, vendor_set_send_internal_command_callback, (UNUSED_ATTR send_internal_command_cb callback))
-  DURING(init) AT_CALL (0) {
+  DURING(start_up) AT_CALL (0) {
     EXPECT_TRUE(callback != NULL);
     send_internal_command_callback = callback;
     return;
@@ -332,7 +332,7 @@ STUB_FUNCTION(void, vendor_set_send_internal_command_callback, (UNUSED_ATTR send
 }
 
 STUB_FUNCTION(int, vendor_send_command, (vendor_opcode_t opcode, void *param))
-  DURING(cleanup) AT_CALL(0) {
+  DURING(shut_down) AT_CALL(0) {
     EXPECT_EQ(VENDOR_CHIP_POWER_CONTROL, opcode);
     EXPECT_EQ(BT_VND_PWR_OFF, *(int *)param);
     return 0;
@@ -462,8 +462,8 @@ class HciLayerTest : public AlarmTestHarness {
 
       done = semaphore_new(0);
 
-      reset_for(init);
-      hci->init(test_addr, &allocator_malloc, &callbacks);
+      reset_for(start_up);
+      hci->start_up(test_addr, &allocator_malloc, &callbacks);
 
       EXPECT_CALL_COUNT(vendor_open, 1);
       EXPECT_CALL_COUNT(hal_init, 1);
@@ -473,8 +473,8 @@ class HciLayerTest : public AlarmTestHarness {
     }
 
     virtual void TearDown() {
-      reset_for(cleanup);
-      hci->cleanup();
+      reset_for(shut_down);
+      hci->shut_down();
 
       EXPECT_CALL_COUNT(low_power_cleanup, 1);
       EXPECT_CALL_COUNT(hal_close, 1);

@@ -106,7 +106,7 @@ static const vendor_interface_t *vendor;
 static thread_t *thread; // We own this
 
 static volatile bool firmware_is_configured = false;
-static volatile bool has_cleaned_up = false;
+static volatile bool has_shut_down = false;
 static alarm_t *epilog_alarm;
 
 // Outbound-related
@@ -134,7 +134,7 @@ static void start_epilog_wait_timer();
 
 // Interface functions
 
-static bool hci_init(
+static bool start_up(
     bdaddr_t local_bdaddr,
     const allocator_t *upward_buffer_allocator,
     const hci_callbacks_t *upper_callbacks) {
@@ -149,7 +149,7 @@ static bool hci_init(
   // This value can change when you get a command complete or command status event.
   command_credits = 1;
   firmware_is_configured = false;
-  has_cleaned_up = false;
+  has_shut_down = false;
 
   epilog_alarm = alarm_new();
   if (!epilog_alarm) {
@@ -205,13 +205,13 @@ static bool hci_init(
 
   return true;
 error:;
-  interface.cleanup();
+  interface.shut_down();
   return false;
 }
 
-static void hci_cleanup() {
-  if (has_cleaned_up) {
-    ALOGW("%s already cleaned up for this session", __func__);
+static void shut_down() {
+  if (has_shut_down) {
+    ALOGW("%s already happened for this session", __func__);
     return;
   }
 
@@ -248,7 +248,7 @@ static void hci_cleanup() {
   thread_free(thread);
   thread = NULL;
   firmware_is_configured = false;
-  has_cleaned_up = true;
+  has_shut_down = true;
 }
 
 static void set_chip_power_on(bool value) {
@@ -615,8 +615,8 @@ static void fragmenter_transmit_finished(void *buffer, bool all_fragments_sent) 
 
 static void init_layer_interface() {
   if (!interface_created) {
-    interface.init = hci_init;
-    interface.cleanup = hci_cleanup;
+    interface.start_up = start_up;
+    interface.shut_down = shut_down;
 
     interface.set_chip_power_on = set_chip_power_on;
     interface.send_low_power_command = low_power_manager->post_command;

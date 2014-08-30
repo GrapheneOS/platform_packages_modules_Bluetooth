@@ -93,8 +93,8 @@ static const hci_interface_t *hci;
 static const hci_callbacks_t hci_callbacks;
 static const allocator_t buffer_allocator;
 static bt_preload_retry_cb_t preload_retry_cb;
-// Lock to serialize cleanup requests from upper layer.
-static pthread_mutex_t cleanup_lock;
+// Lock to serialize shutdown requests from upper layer.
+static pthread_mutex_t shutdown_lock;
 
 // These are temporary so we can run the new HCI code
 // with the old upper stack.
@@ -177,7 +177,7 @@ void bte_main_boot_entry(void)
     BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
 #endif
 
-    pthread_mutex_init(&cleanup_lock, NULL);
+    pthread_mutex_init(&shutdown_lock, NULL);
 
 }
 
@@ -192,10 +192,10 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
-    pthread_mutex_destroy(&cleanup_lock);
-
     alarm_free(preload_retry_cb.alarm);
     preload_retry_cb.alarm = NULL;
+
+    pthread_mutex_destroy(&shutdown_lock);
 
     GKI_shutdown();
 }
@@ -288,8 +288,8 @@ static void bte_hci_enable(void)
 
     preload_start_wait_timer();
 
-    bool success = hci->init(btif_local_bd_addr.address, &buffer_allocator, &hci_callbacks);
-    APPL_TRACE_EVENT("libbt-hci init returns %d", success);
+    bool success = hci->start_up(btif_local_bd_addr.address, &buffer_allocator, &hci_callbacks);
+    APPL_TRACE_EVENT("libbt-hci start_up returns %d", success);
 
     assert(success);
 
@@ -334,14 +334,14 @@ static void bte_hci_disable(void)
     if (!hci)
         return;
 
-    // Cleanup is not thread safe and must be protected.
-    pthread_mutex_lock(&cleanup_lock);
+    // Shutdown is not thread safe and must be protected.
+    pthread_mutex_lock(&shutdown_lock);
 
     if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
         hci->turn_off_logging();
-    hci->cleanup();
+    hci->shut_down();
 
-    pthread_mutex_unlock(&cleanup_lock);
+    pthread_mutex_unlock(&shutdown_lock);
 }
 
 /*******************************************************************************
