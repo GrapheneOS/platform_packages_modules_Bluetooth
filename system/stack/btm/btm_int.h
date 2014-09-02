@@ -219,7 +219,6 @@ UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
     UINT8                state;
     tBTM_IO_CAP          loc_io_caps;       /* IO capability of the local device */
     tBTM_AUTH_REQ        loc_auth_req;      /* the auth_req flag  */
-    BD_FEATURES          brcm_features;     /* Broadcom specific features bit mask  */
 #define BTM_RELOAD_LE_HOST_FEATURE      0x10
 
 #define BTM_RE_READ_1ST_PAGE            0x01            /* Set it if you set at least one of "..._HOST_MAY_SUPP_..." bits */

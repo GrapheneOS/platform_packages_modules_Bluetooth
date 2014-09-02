@@ -1745,20 +1745,6 @@ UINT8 *BTM_ReadLocalExtendedFeatures (UINT8 page_number)
 
 /*******************************************************************************
 **
-** Function         BTM_ReadBrcmFeatures
-**
-** Description      This function is called to read the Broadcom specific features
-**
-** Returns          pointer to the Broadcom features string
-**
-*******************************************************************************/
-UINT8 *BTM_ReadBrcmFeatures (void)
-{
-    return (btm_cb.devcb.brcm_features);
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_RegisterForDeviceStatusNotif
 **
 ** Description      This function is called to register for device status

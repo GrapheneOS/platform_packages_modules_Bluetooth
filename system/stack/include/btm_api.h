@@ -1884,35 +1884,6 @@ typedef struct
 
 } tBTM_DELETE_STORED_LINK_KEY_COMPLETE;
 
-
-/* These macros are defined to check the Broadcom features supported in controller
- * (the return value for BTM_ReadBrcmFeatures() */
-/* multi-av */
-#define BTM_FEATURE_MULTI_AV_MASK 0x01
-#define BTM_FEATURE_MULTI_AV_OFF  0
-#define BTM_VSC_MULTI_AV_SUPPORTED(x) ((x)[BTM_FEATURE_MULTI_AV_OFF] & BTM_FEATURE_MULTI_AV_MASK)
-
-/* WBS SBC codec */
-#define BTM_FEATURE_WBS_SBC_MASK 0x02
-#define BTM_FEATURE_WBS_SBC_OFF  0
-#define BTM_VSC_WBS_SBC_SUPPORTED(x) ((x)[BTM_FEATURE_WBS_SBC_OFF] & BTM_FEATURE_WBS_SBC_MASK)
-
-/* Advanced Audio LC-PLC */
-#define BTM_FEATURE_AUDIO_LC_PLC_MASK 0x04
-#define BTM_FEATURE_AUDIO_LC_PLC_OFF  0
-#define BTM_VSC_AUDIO_LC_PLC_SUPPORTED(x) ((x)[BTM_FEATURE_AUDIO_LC_PLC_OFF] & BTM_FEATURE_AUDIO_LC_PLC_MASK)
-
-/* Light stack for audio routing in Controller */
-#define BTM_FEATURE_LIGHT_STACK_MASK 0x08
-#define BTM_FEATURE_LIGHT_STACK_OFF  0
-#define BTM_VSC_LIGHT_STACK_SUPPORTED(x) ((x)[BTM_FEATURE_LIGHT_STACK_OFF] & BTM_FEATURE_LIGHT_STACK_MASK)
-
-/* NFC support */
-#define BTM_FEATURE_NFC_MASK        (HCI_BRCM_FEATURE_NFC_MASK) /* 0x10 */
-#define BTM_FEATURE_NFC_OFF         (HCI_BRCM_FEATURE_NFC_OFF)  /* 0    */
-#define BTM_VSC_NFC_SUPPORTED(x) ((x)[BTM_FEATURE_NFC_OFF] & BTM_FEATURE_NFC_MASK)
-
-
 /* MIP evnets, callbacks    */
 enum
 {
@@ -2163,17 +2134,6 @@ extern "C" {
 **
 *******************************************************************************/
     BTM_API extern UINT8 *BTM_ReadLocalExtendedFeatures (UINT8 page_number);
-
-/*******************************************************************************
-**
-** Function         BTM_ReadBrcmFeatures
-**
-** Description      This function is called to read the Broadcom specific features
-**
-** Returns          pointer to the Broadcom features string
-**
-*******************************************************************************/
-    BTM_API extern UINT8 *BTM_ReadBrcmFeatures (void);
 
 /*******************************************************************************
 **
