@@ -1230,20 +1230,14 @@ tBTM_INQ_INFO *BTM_InqNextResult (tBTM_INQ_INFO *p_cur)
 *******************************************************************************/
 tBTM_INQ_INFO *BTM_InqDbRead (BD_ADDR p_bda)
 {
-    UINT16       xx;
-    tINQ_DB_ENT  *p_ent = btm_cb.btm_inq_vars.inq_db;
-
     BTM_TRACE_API ("BTM_InqDbRead: bd addr [%02x%02x%02x%02x%02x%02x]",
                p_bda[0], p_bda[1], p_bda[2], p_bda[3], p_bda[4], p_bda[5]);
 
-    for (xx = 0; xx < BTM_INQ_DB_SIZE; xx++, p_ent++)
-    {
-        if ((p_ent->in_use) && (!memcmp (p_ent->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN)))
-            return (&p_ent->inq_info);
-    }
+    tINQ_DB_ENT *p_ent = btm_inq_db_find(p_bda);
+    if (!p_ent)
+      return NULL;
 
-    /* If here, not found */
-    return ((tBTM_INQ_INFO *)NULL);
+    return &p_ent->inq_info;
 }
 
 
