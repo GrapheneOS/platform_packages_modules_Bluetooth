@@ -3546,21 +3546,6 @@ BTM_API extern tBTM_STATUS BTM_SetWBSCodec (tBTM_SCO_CODEC_TYPE codec_type);
 
 /*******************************************************************************
 **
-** Function         BTM_SecSetConnectFilterCallback
-**
-** Description      Host can register to be asked whenever an HCI connection
-**                  request is received.  In the registered function host
-**                  suppose to check connectibility filters.  Yes/No result
-**                  should be returned synchronously.
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_SecSetConnectFilterCallback (tBTM_FILTER_CB *p_callback);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_GetSecurityMode
 **
 ** Description      Get security mode for the device

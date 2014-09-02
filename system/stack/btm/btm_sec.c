@@ -302,24 +302,6 @@ BOOLEAN  BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
     return(FALSE);
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_SecSetConnectFilterCallback
-**
-** Description      Host can register to be asked whenever a HCI connection
-**                  request is received.  In the registered function host
-**                  suppose to check connectibility filters.  Yes/No result
-**                  should be returned syncronously
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_SecSetConnectFilterCallback (tBTM_FILTER_CB *p_callback)
-{
-    btm_cb.p_conn_filter_cb = p_callback;
-}
-
 /*******************************************************************************
 **
 ** Function         BTM_GetSecurityMode
@@ -2711,19 +2693,6 @@ void btm_sec_conn_req (UINT8 *bda, UINT8 *dc)
         }
     }
 #endif
-
-    /* Host can be registered to verify comming BDA or DC */
-    if (btm_cb.p_conn_filter_cb)
-    {
-        if (!(* btm_cb.p_conn_filter_cb) (bda, dc))
-        {
-            BTM_TRACE_EVENT ("Security Manager: connect request did not pass filter");
-
-            /* incomming call did not pass connection filters.  Reject */
-            btsnd_hcic_reject_conn (bda, HCI_ERR_HOST_REJECT_DEVICE);
-            return;
-        }
-    }
 
     if ((btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
         &&(btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)

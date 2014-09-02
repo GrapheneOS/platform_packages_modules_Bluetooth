@@ -870,9 +870,6 @@ typedef struct
 #define BTM_SEC_MAX_RMT_NAME_CALLBACKS  2
     tBTM_RMT_NAME_CALLBACK  *p_rmt_name_callback[BTM_SEC_MAX_RMT_NAME_CALLBACKS];
 
-    tBTM_FILTER_CB          *p_conn_filter_cb;  /* Callback that can be set if host */
-                                                /* wants to verify connectability filters*/
-
     tBTM_SEC_DEV_REC        *p_collided_dev_rec;
     TIMER_LIST_ENT           sec_collision_tle;
     UINT32                   collision_start_time;
