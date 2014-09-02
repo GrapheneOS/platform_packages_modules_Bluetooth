@@ -2150,34 +2150,6 @@ UINT16 BTM_GetNumAclLinks (void)
 
 /*******************************************************************************
 **
-** Function         BTM_GetNumLeLinks
-**
-** Description      This function is called to count the number of
-**                   LE ACL links that are active.
-**
-** Returns          UINT16  Number of active LE links
-**
-*******************************************************************************/
-UINT16 BTM_GetNumLeLinks (void)
-{
-    UINT16 yy = 0;
-
-#if BLE_INCLUDED == TRUE
-    tACL_CONN   *p = &btm_cb.acl_db[0];
-    UINT16      xx;
-    BTM_TRACE_DEBUG ("BTM_GetNumLeLinks");
-    for (xx = yy = 0; xx < MAX_L2CAP_LINKS; xx++, p++)
-    {
-        if  ((p->in_use) &&(p->transport == BT_TRANSPORT_LE))
-            yy++;
-    }
-#endif
-
-    return(yy);
-}
-
-/*******************************************************************************
-**
 ** Function         btm_get_acl_disc_reason_code
 **
 ** Description      This function is called to get the disconnection reason code
