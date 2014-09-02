@@ -1363,22 +1363,6 @@ UINT8 BTM_ReadNumInqDbEntries (void)
 
 /*******************************************************************************
 **
-** Function         BTM_SetInquiryFilterCallback
-**
-** Description      Host can register to be asked whenever an inquiry result
-**                  is received.  If host does not like the device no name
-**                  request is issued for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_SetInquiryFilterCallback (tBTM_FILTER_CB *p_callback)
-{
-    btm_cb.p_inq_filter_cb = p_callback;
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_ReadInquiryRspTxPower
 **
 ** Description      This command will read the inquiry Transmit Power level used
@@ -2136,15 +2120,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
             /* If no update needed continue with next response (if any) */
             else
                 continue;
-        }
-
-        /* Host can be registered to verify comming BDA or DC */
-        if (btm_cb.p_inq_filter_cb)
-        {
-            if (!(* btm_cb.p_inq_filter_cb) (bda, dc))
-            {
-                continue;
-            }
         }
 
         /* If existing entry, use that, else get a new one (possibly reusing the oldest) */

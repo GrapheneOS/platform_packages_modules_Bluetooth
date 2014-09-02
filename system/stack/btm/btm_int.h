@@ -855,8 +855,6 @@ typedef struct
     **      Inquiry
     *****************************************************/
     tBTM_INQUIRY_VAR_ST     btm_inq_vars;
-    tBTM_FILTER_CB          *p_inq_filter_cb;   /* Callback that can be set if host */
-                                                /* wants to verify inquiry filters */
 
     /*****************************************************
     **      SCO Management

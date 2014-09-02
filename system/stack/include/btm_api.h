@@ -2478,20 +2478,6 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 
 /*******************************************************************************
 **
-** Function         BTM_SetInquiryFilterCallback
-**
-** Description      Host can register to be asked whenever an inquiry result
-**                  is received.  If host does not like the device no name
-**                  request is issued for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-    BTM_API extern void BTM_SetInquiryFilterCallback(tBTM_FILTER_CB *p_callback);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_SetConnectability
 **
 ** Description      This function is called to set the device into or out of
