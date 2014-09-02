@@ -591,6 +591,23 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len, bt_bd
  * the property->type.
  *******************************************************************************/
 
+/*****************************************************************************
+**
+** Function         btif_storage_is_device_bonded
+**
+** Description      BTIF storage API - checks if device present in bonded list
+**
+** Returns          TRUE if the device is bonded,
+**                  FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btif_storage_is_device_bonded(bt_bdaddr_t *remote_bd_addr)
+{
+    bdstr_t bdstr;
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
+    return (btif_in_fetch_bonded_device(bdstr) == BT_STATUS_SUCCESS);
+}
+
 /*******************************************************************************
 **
 ** Function         btif_storage_get_adapter_property
