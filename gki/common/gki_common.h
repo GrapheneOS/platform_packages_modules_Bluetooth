@@ -63,6 +63,9 @@ typedef struct _buffer_hdr
 	UINT8   task_id;              /* task which allocated the buffer*/
 	UINT8   status;               /* FREE, UNLINKED or QUEUED */
 	UINT8   Type;
+#if VALGRIND
+        UINT16  size;
+#endif
 } BUFFER_HDR_T;
 
 typedef struct _free_queue

@@ -91,6 +91,7 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
 
 // btla-specific ++
 #ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
+#if !VALGRIND
 static BOOLEAN gki_alloc_free_queue(UINT8 id)
 {
     FREE_QUEUE_T  *Q;
@@ -115,6 +116,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
     GKI_TRACE("\ngki_alloc_free_queue out failed, id:%d\n", id);
     return FALSE;
 }
+#endif
 
 void gki_dealloc_free_queue(void)
 {
@@ -367,6 +369,15 @@ void GKI_init_q (BUFFER_Q *p_q)
 *******************************************************************************/
 void *GKI_getbuf (UINT16 size)
 {
+#if VALGRIND
+  BUFFER_HDR_T *header = malloc(size + BUFFER_HDR_SIZE);
+  header->task_id = GKI_get_taskid();
+  header->status  = BUF_STATUS_UNLINKED;
+  header->p_next  = NULL;
+  header->Type    = 0;
+  header->size = size;
+  return header + 1;
+#else
     UINT8         i;
     FREE_QUEUE_T  *Q;
     BUFFER_HDR_T  *p_hdr;
@@ -441,6 +452,7 @@ void *GKI_getbuf (UINT16 size)
 
     GKI_exception (GKI_ERROR_OUT_OF_BUFFERS, "getbuf: out of buffers");
     return (NULL);
+#endif
 }
 
 
@@ -461,6 +473,9 @@ void *GKI_getbuf (UINT16 size)
 *******************************************************************************/
 void *GKI_getpoolbuf (UINT8 pool_id)
 {
+#if VALGRIND
+  return GKI_getbuf(gki_cb.com.pool_size[pool_id]);
+#else
     FREE_QUEUE_T  *Q;
     BUFFER_HDR_T  *p_hdr;
     tGKI_COM_CB *p_cb = &gki_cb.com;
@@ -511,7 +526,7 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 
     /* try for free buffers in public pools */
     return (GKI_getbuf(p_cb->freeq[pool_id].size));
-
+#endif
 }
 
 /*******************************************************************************
@@ -527,6 +542,9 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 *******************************************************************************/
 void GKI_freebuf (void *p_buf)
 {
+#if VALGRIND
+  free((BUFFER_HDR_T *)p_buf - 1);
+#else
     FREE_QUEUE_T    *Q;
     BUFFER_HDR_T    *p_hdr;
 
@@ -573,6 +591,7 @@ void GKI_freebuf (void *p_buf)
     GKI_enable();
 
     return;
+#endif
 }
 
 
@@ -589,6 +608,10 @@ void GKI_freebuf (void *p_buf)
 *******************************************************************************/
 UINT16 GKI_get_buf_size (void *p_buf)
 {
+#if VALGRIND
+  BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
+  return header->size;
+#else
     BUFFER_HDR_T    *p_hdr;
 
     p_hdr = (BUFFER_HDR_T *)((UINT8 *) p_buf - BUFFER_HDR_SIZE);
@@ -602,6 +625,7 @@ UINT16 GKI_get_buf_size (void *p_buf)
     }
 
     return (0);
+#endif
 }
 
 /*******************************************************************************
@@ -615,7 +639,7 @@ UINT16 GKI_get_buf_size (void *p_buf)
 *******************************************************************************/
 BOOLEAN gki_chk_buf_damage(void *p_buf)
 {
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
+#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE) && !VALGRIND
 
     UINT32 *magic;
     magic  = (UINT32 *)((UINT8 *) p_buf + GKI_get_buf_size(p_buf));
@@ -630,6 +654,7 @@ BOOLEAN gki_chk_buf_damage(void *p_buf)
 
 #else
 
+    (void)p_buf;
     return (FALSE);
 
 #endif
