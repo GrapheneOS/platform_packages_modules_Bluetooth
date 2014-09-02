@@ -2791,19 +2791,6 @@ BTM_API extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
 *******************************************************************************/
     BTM_API extern UINT8 BTM_ReadNumInqDbEntries (void);
 
-
-/*******************************************************************************
-**
-** Function         BTM_InquiryRegisterForChanges
-**
-** Description      This function is called to register a callback for when the
-**                  inquiry database changes, i.e. new entry or entry deleted.
-**
-** Returns          BTM_SUCCESS if successful, otherwise error code
-**
-*******************************************************************************/
-    BTM_API extern tBTM_STATUS BTM_InquiryRegisterForChanges (tBTM_INQ_DB_CHANGE_CB *p_cb);
-
 /*******************************************************************************
 **
 ** Function         BTM_ReadInquiryRspTxPower

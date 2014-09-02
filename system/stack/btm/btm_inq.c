@@ -1361,28 +1361,6 @@ UINT8 BTM_ReadNumInqDbEntries (void)
     return (num_results);
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_InquiryRegisterForChanges
-**
-** Returns          This function is called to register a callback for when the
-**                  inquiry database changes, i.e. new entry or entry deleted.
-**
-*******************************************************************************/
-tBTM_STATUS  BTM_InquiryRegisterForChanges (tBTM_INQ_DB_CHANGE_CB *p_cb)
-{
-    if (!p_cb)
-        btm_cb.btm_inq_vars.p_inq_change_cb = NULL;
-    else if (btm_cb.btm_inq_vars.p_inq_change_cb)
-        return (BTM_BUSY);
-    else
-        btm_cb.btm_inq_vars.p_inq_change_cb = p_cb;
-
-    return (BTM_SUCCESS);
-}
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SetInquiryFilterCallback
@@ -1647,8 +1625,6 @@ void btm_clr_inq_db (BD_ADDR p_bda)
                 (!memcmp (p_ent->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN)))
             {
                 p_ent->in_use = FALSE;
-                if (btm_cb.btm_inq_vars.p_inq_change_cb)
-                    (*btm_cb.btm_inq_vars.p_inq_change_cb) (&p_ent->inq_info, FALSE);
             }
         }
     }
@@ -1786,11 +1762,6 @@ tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda)
     }
 
     /* If here, no free entry found. Return the oldest. */
-
-    /* Before deleting the oldest, if anyone is registered for change */
-    /* notifications, then tell him we are deleting an entry.         */
-    if (btm_cb.btm_inq_vars.p_inq_change_cb)
-        (*btm_cb.btm_inq_vars.p_inq_change_cb) (&p_old->inq_info, FALSE);
 
     memset (p_old, 0, sizeof (tINQ_DB_ENT));
     memcpy (p_old->inq_info.results.remote_bd_addr, p_bda, BD_ADDR_LEN);
@@ -2282,10 +2253,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 #else
                 (p_inq_results_cb)((tBTM_INQ_RESULTS *) p_cur, NULL);
 #endif
-
-            /* If anyone is registered for change notifications, then tell him we added an entry.  */
-            if (p_inq->p_inq_change_cb)
-                (*p_inq->p_inq_change_cb) (&p_i->inq_info, TRUE);
         }
     }
 }
