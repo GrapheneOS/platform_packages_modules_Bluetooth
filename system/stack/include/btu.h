@@ -271,7 +271,6 @@ BTU_API extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, 
 BTU_API extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
 
 BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
-
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
 BTU_API extern void btu_hcif_flush_cmd_queue(void);
