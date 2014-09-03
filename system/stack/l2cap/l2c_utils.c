@@ -216,6 +216,8 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         list_remove(p_lcb->link_xmit_data_q, p_buf);
         GKI_freebuf(p_buf);
     }
+    list_free(p_lcb->link_xmit_data_q);
+    p_lcb->link_xmit_data_q = NULL;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     /* clean up any security pending UCD */
