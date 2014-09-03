@@ -686,17 +686,6 @@ tSDP_DISC_REC *SDP_FindServiceUUIDInDb (tSDP_DISCOVERY_DB *p_db, tBT_UUID *p_uui
                 {
                     if (SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UUID_DESC_TYPE)
                     {
-
-                        SDP_TRACE_DEBUG("uuid len=%d ", p_uuid->len);
-                        if (p_uuid->len == 2)
-                        {
-                            SDP_TRACE_DEBUG("uuid=0x%x \n", p_uuid->uu.uuid16);
-                        }
-                        else
-                        {
-                            SDP_TRACE_DEBUG("\n");
-                        }
-
                         if (sdpu_compare_uuid_with_attr (p_uuid, p_sattr))
                             return(p_rec);
                     }
