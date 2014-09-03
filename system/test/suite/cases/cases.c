@@ -26,6 +26,9 @@ TEST_CASE_DECL(adapter_get_name);
 TEST_CASE_DECL(adapter_start_discovery);
 TEST_CASE_DECL(adapter_cancel_discovery);
 
+TEST_CASE_DECL(rfcomm_connect);
+TEST_CASE_DECL(rfcomm_repeated_connect);
+
 TEST_CASE_DECL(pan_enable);
 TEST_CASE_DECL(pan_connect);
 TEST_CASE_DECL(pan_disconnect);
@@ -43,6 +46,9 @@ const test_case_t test_suite[] = {
   TEST_CASE(adapter_get_name),
   TEST_CASE(adapter_start_discovery),
   TEST_CASE(adapter_cancel_discovery),
+
+  TEST_CASE(rfcomm_connect),
+  TEST_CASE(rfcomm_repeated_connect),
 
   TEST_CASE(pan_enable),
   TEST_CASE(pan_connect),

@@ -25,6 +25,7 @@
 #include "support/callbacks.h"
 #include "support/hal.h"
 #include "support/pan.h"
+#include "support/rfcomm.h"
 
 // How long the watchdog thread should wait before checking if a test has completed.
 // Any individual test will have at least WATCHDOG_PERIOD_SEC and at most
@@ -87,9 +88,14 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  if (!btsocket_init()) {
+    printf("Unable to initialize Bluetooth sockets.\n");
+    return 2;
+  }
+
   if (!pan_init()) {
     printf("Unable to initialize PAN.\n");
-    return 2;
+    return 3;
   }
 
   watchdog_running = true;
@@ -126,7 +132,7 @@ int main(int argc, char **argv) {
   if (fail) {
     printf("\n%sSanity suite failed with %d errors.%s\n", RED, fail, GRAY);
     hal_close();
-    return 0;
+    return 4;
   }
 
   // Run the full test suite.

@@ -16,22 +16,13 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include "base.h"
+#include "support/callbacks.h"
+#include "support/rfcomm.h"
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+const btsock_interface_t *socket_interface;
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_pan.h>
-#include <hardware/bt_sock.h>
-#include <hardware/hardware.h>
-
-#ifndef ARRAY_SIZE
-#  define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-#endif
-
-#define TASSERT(c, ...) if (!(c)) { fprintf(stderr, "%s:%d: ", __func__, __LINE__); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); return false; }
-
-extern const bt_interface_t *bt_interface;
-extern bt_bdaddr_t bt_remote_bdaddr;
+bool btsocket_init(void) {
+  socket_interface = bt_interface->get_profile_interface(BT_PROFILE_SOCKETS_ID);
+  return socket_interface != NULL;
+}

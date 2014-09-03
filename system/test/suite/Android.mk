@@ -28,10 +28,12 @@ LOCAL_SRC_FILES := \
     cases/adapter.c \
     cases/cases.c \
     cases/pan.c \
+    cases/rfcomm.c \
     support/adapter.c \
     support/callbacks.c \
     support/hal.c \
     support/pan.c \
+    support/rfcomm.c \
     main.c
 
 LOCAL_SHARED_LIBRARIES += \
