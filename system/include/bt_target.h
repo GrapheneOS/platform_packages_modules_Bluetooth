@@ -801,11 +801,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTU_STARTUP_DELAY           0
 #endif
 
-/* Whether BTA is included in BTU task. */
-#ifndef BTU_BTA_INCLUDED
-#define BTU_BTA_INCLUDED            TRUE
-#endif
-
 /* Default class of device
 * {SERVICE_CLASS, MAJOR_CLASS, MINOR_CLASS}
 *

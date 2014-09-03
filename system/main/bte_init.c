@@ -79,10 +79,8 @@
 #include "bip_api.h"
 #endif
 
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
 #if (defined(BTA_BI_INCLUDED) && BTA_BI_INCLUDED == TRUE)
 #include "bta_bi_api.h"
-#endif
 #endif
 
 #if (defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE)
@@ -321,11 +319,9 @@ BT_API void BTE_InitStack(void)
     OBX_Init();
 #if (defined(BIP_INCLUDED) && BIP_INCLUDED == TRUE)
     BIP_Init();
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
 #if (defined(BTA_BI_INCLUDED) && BTA_BI_INCLUDED == TRUE)
     BTA_BicInit();
 #endif  /* BTA BI */
-#endif
 #endif  /* BIP */
 
 #if (defined(GOEP_INCLUDED) && GOEP_INCLUDED == TRUE)

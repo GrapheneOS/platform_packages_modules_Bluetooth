@@ -119,9 +119,7 @@ extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #include "mca_int.h"
 #endif
 
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
 #include "bta_sys.h"
-#endif
 
 #if (BLE_INCLUDED == TRUE)
 #include "gatt_int.h"
@@ -413,9 +411,7 @@ BTU_API void btu_task (void)
     /* Initialize any optional stack components */
     BTE_InitStack();
 
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
     bta_sys_init();
-#endif
 
     /* Initialise platform trace levels at this point as BTE_InitStack() and bta_sys_init()
      * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
@@ -453,7 +449,6 @@ BTU_API void btu_task (void)
         }
 #endif  // QUICK_TIMER
 
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
         // BTA message queue.
         while (!fixed_queue_is_empty(btu_bta_msg_queue)) {
             p_msg = (BT_HDR *)fixed_queue_dequeue(btu_bta_msg_queue);
@@ -465,7 +460,6 @@ BTU_API void btu_task (void)
             p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_bta_alarm_queue);
             btu_bta_alarm_process(p_tle);
         }
-#endif  // BTU_BTA_INCLUDED
 
         while (!fixed_queue_is_empty(btu_oneshot_alarm_queue)) {
             p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_oneshot_alarm_queue);
@@ -495,9 +489,7 @@ BTU_API void btu_task (void)
             break;
     }
 
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
     bta_sys_free();
-#endif
 
     btu_free_core();
 
