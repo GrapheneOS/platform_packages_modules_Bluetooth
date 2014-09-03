@@ -33,8 +33,8 @@ static const char *VENDOR_LIBRARY_SYMBOL_NAME = "BLUETOOTH_VENDOR_LIB_INTERFACE"
 
 static const vendor_interface_t interface;
 static const allocator_t *allocator;
+static const hci_interface_t *hci;
 static vendor_cb callbacks[LAST_VENDOR_OPCODE_VALUE + 1];
-static send_internal_command_cb send_internal_command_callback;
 
 static void *lib_handle;
 static bt_vendor_interface_t *lib_interface;
@@ -42,9 +42,13 @@ static const bt_vendor_callbacks_t lib_callbacks;
 
 // Interface functions
 
-static bool vendor_open(const uint8_t *local_bdaddr, const allocator_t *buffer_allocator) {
+static bool vendor_open(
+    const uint8_t *local_bdaddr,
+    const allocator_t *buffer_allocator,
+    const hci_interface_t *hci_interface) {
   assert(lib_handle == NULL);
   allocator = buffer_allocator;
+  hci = hci_interface;
 
   lib_handle = dlopen(VENDOR_LIBRARY_NAME, RTLD_NOW);
   if (!lib_handle) {
@@ -99,10 +103,6 @@ static int send_async_command(vendor_async_opcode_t opcode, void *param) {
 
 static void set_callback(vendor_async_opcode_t opcode, vendor_cb callback) {
   callbacks[opcode] = callback;
-}
-
-static void set_send_internal_command_callback(send_internal_command_cb callback) {
-  send_internal_command_callback = callback;
 }
 
 // Internal functions
@@ -164,10 +164,15 @@ static void buffer_free_cb(void *buffer) {
   allocator->free(buffer);
 }
 
+static void transmit_completed_callback(BT_HDR *response, void *context) {
+  ((tINT_CMD_CBACK)context)(response);
+}
+
 // Called back from vendor library when it wants to send an HCI command.
-static uint8_t transmit_cb(uint16_t opcode, void *buffer, tINT_CMD_CBACK callback) {
-  assert(send_internal_command_callback != NULL);
-  return send_internal_command_callback(opcode, (BT_HDR *)buffer, callback);
+static uint8_t transmit_cb(UNUSED_ATTR uint16_t opcode, void *buffer, tINT_CMD_CBACK callback) {
+  assert(hci != NULL);
+  hci->transmit_command((BT_HDR *)buffer, transmit_completed_callback, NULL, callback);
+  return true;
 }
 
 // Called back from vendor library when the epilog procedure has
@@ -198,7 +203,6 @@ static const vendor_interface_t interface = {
   send_command,
   send_async_command,
   set_callback,
-  set_send_internal_command_callback
 };
 
 const vendor_interface_t *vendor_get_interface() {

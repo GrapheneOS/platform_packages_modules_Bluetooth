@@ -25,6 +25,7 @@
 #include "bt_types.h"
 #include "bt_vendor_lib.h"
 #include "hci_internals.h"
+#include "hci_layer.h"
 
 typedef enum {
   VENDOR_CHIP_POWER_CONTROL   = BT_VND_OP_POWER_CTRL,
@@ -42,13 +43,17 @@ typedef enum {
 } vendor_async_opcode_t;
 
 typedef void (*vendor_cb)(bool success);
-typedef bool (*send_internal_command_cb)(uint16_t opcode, BT_HDR *buffer, internal_command_cb callback);
 
 typedef struct vendor_interface_t{
   // Opens the vendor-specific library and sets the Bluetooth
   // address of the adapter to |local_bdaddr|. |allocator| is used
-  // when the vendor library requests buffers.
-  bool (*open)(const uint8_t *local_bdaddr, const allocator_t *allocator);
+  // when the vendor library requests buffers. |hci_interface| is
+  // used to send commands on behalf of the vendor library.
+  bool (*open)(
+    const uint8_t *local_bdaddr,
+    const allocator_t *allocator,
+    const hci_interface_t *hci_interface
+  );
 
   // Closes the vendor-specific library and frees all associated resources.
   // Only |vendor_open| may be called after |vendor_close|.
@@ -62,9 +67,6 @@ typedef struct vendor_interface_t{
 
   // Registers a callback for an asynchronous vendor-specific command.
   void (*set_callback)(vendor_async_opcode_t opcode, vendor_cb callback);
-
-  // Set the callback for sending internal commands;
-  void (*set_send_internal_command_callback)(send_internal_command_cb callback);
 } vendor_interface_t;
 
 const vendor_interface_t *vendor_get_interface();

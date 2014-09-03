@@ -27,6 +27,7 @@ extern "C" {
 #include "allocation_tracker.h"
 #include "allocator.h"
 #include "btsnoop.h"
+#include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
@@ -46,7 +47,9 @@ DECLARE_TEST_MODES(
   postload,
   transmit_simple,
   receive_simple,
-  send_internal_command,
+  transmit_command_no_callbacks,
+  transmit_command_command_status,
+  transmit_command_command_complete,
   turn_on_logging,
   turn_off_logging
 );
@@ -63,7 +66,6 @@ static thread_t *internal_thread;
 static vendor_cb firmware_config_callback;
 static vendor_cb sco_config_callback;
 static vendor_cb epilog_callback;
-static send_internal_command_cb send_internal_command_callback;
 static semaphore_t *done;
 static const uint16_t test_handle = (0x1992 & 0xCFFF);
 static const uint16_t test_handle_continuation = (0x1992 & 0xCFFF) | 0x1000;
@@ -82,8 +84,13 @@ static BT_HDR *manufacture_packet(uint16_t event, const char *data) {
   BT_HDR *packet = (BT_HDR *)osi_malloc(size + sizeof(BT_HDR));
   packet->len = size;
   packet->offset = 0;
-  packet->event = event;
   packet->layer_specific = 0;
+
+  // The command transmit interface adds the event type automatically.
+  // Make sure it works but omitting it here.
+  if (event != MSG_STACK_TO_HC_HCI_CMD)
+    packet->event = event;
+
   uint8_t *packet_data = packet->data;
 
   if (event == MSG_STACK_TO_HC_HCI_ACL) {
@@ -93,6 +100,11 @@ static BT_HDR *manufacture_packet(uint16_t event, const char *data) {
 
   for (int i = 0; i < data_length; i++) {
     packet_data[i] = data[i];
+  }
+
+  if (event == MSG_STACK_TO_HC_HCI_CMD) {
+    STREAM_SKIP_UINT16(packet_data);
+    UINT8_TO_STREAM(packet_data, data_length - 3);
   }
 
   return packet;
@@ -131,7 +143,11 @@ static void expect_packet(uint16_t event, int max_acl_data_size, const uint8_t *
   }
 
   for (int i = 0; i < length_to_check; i++) {
-    EXPECT_EQ(expected_data[expected_data_offset + i], data[i]);
+    if (event == MSG_STACK_TO_HC_HCI_CMD && (i == 2))
+      EXPECT_EQ(data_length - 3, data[i]);
+    else
+      EXPECT_EQ(expected_data[expected_data_offset + i], data[i]);
+
     data_size_sum++;
   }
 }
@@ -165,7 +181,11 @@ STUB_FUNCTION(uint16_t, hal_transmit_data, (serial_data_type_t type, uint8_t *da
     return length;
   }
 
-  DURING(send_internal_command) AT_CALL(0) {
+  DURING(
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete
+    ) AT_CALL(0) {
     EXPECT_EQ(DATA_TYPE_COMMAND, type);
     expect_packet(MSG_STACK_TO_HC_HCI_CMD, 1021, data, length, command_sample_data);
     return length;
@@ -175,18 +195,32 @@ STUB_FUNCTION(uint16_t, hal_transmit_data, (serial_data_type_t type, uint8_t *da
   return 0;
 }
 
+static size_t replay_data_to_receive(size_t max_size, uint8_t *buffer) {
+  for (size_t i = 0; i < max_size; i++) {
+    if (data_to_receive->offset >= data_to_receive->len)
+      break;
+
+    buffer[i] = data_to_receive->data[data_to_receive->offset++];
+
+    if (i == (max_size - 1))
+      return i + 1; // We return the length, not the index;
+  }
+
+  return 0;
+}
+
 STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, size_t max_size, UNUSED_ATTR bool block))
   DURING(receive_simple) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
-    for (size_t i = 0; i < max_size; i++) {
-      if (data_to_receive->offset >= data_to_receive->len)
-        break;
+    return replay_data_to_receive(max_size, buffer);
+  }
 
-      buffer[i] = data_to_receive->data[data_to_receive->offset++];
-
-      if (i == (max_size - 1))
-        return i + 1; // We return the length, not the index;
-    }
+  DURING(
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete) {
+    EXPECT_EQ(DATA_TYPE_EVENT, type);
+    return replay_data_to_receive(max_size, buffer);
   }
 
   UNEXPECTED_CALL;
@@ -196,6 +230,15 @@ STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, 
 STUB_FUNCTION(void, hal_packet_finished, (serial_data_type_t type))
   DURING(receive_simple) AT_CALL(0) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
+    return;
+  }
+
+  DURING(
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete
+    ) AT_CALL(0) {
+    EXPECT_EQ(DATA_TYPE_EVENT, type);
     return;
   }
 
@@ -238,12 +281,23 @@ STUB_FUNCTION(void, btsnoop_capture, (const BT_HDR *buffer, bool is_received))
     return;
   }
 
-  DURING(send_internal_command) AT_CALL(0) {
-    EXPECT_FALSE(is_received);
-    expect_packet(MSG_STACK_TO_HC_HCI_CMD, 1021, buffer->data + buffer->offset, buffer->len, command_sample_data);
-    packet_index = 0;
-    data_size_sum = 0;
-    return;
+
+  DURING(
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete) {
+    AT_CALL(0) {
+      EXPECT_FALSE(is_received);
+      expect_packet(MSG_STACK_TO_HC_HCI_CMD, 1021, buffer->data + buffer->offset, buffer->len, command_sample_data);
+      packet_index = 0;
+      data_size_sum = 0;
+      return;
+    }
+    AT_CALL(1) {
+      EXPECT_TRUE(is_received);
+      // not super important to verify the contents right now
+      return;
+    }
   }
 
   DURING(receive_simple) AT_CALL(0) {
@@ -272,21 +326,34 @@ STUB_FUNCTION(void, low_power_cleanup, ())
 }
 
 STUB_FUNCTION(void, low_power_wake_assert, ())
-  DURING(transmit_simple) AT_CALL(0) return;
-  DURING(send_internal_command) AT_CALL(0) return;
+  DURING(
+      transmit_simple,
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete) {
+    AT_CALL(0) return;
+  }
+
   UNEXPECTED_CALL;
 }
 
 STUB_FUNCTION(void, low_power_transmit_done, ())
-  DURING(transmit_simple) AT_CALL(0) return;
-  DURING(send_internal_command) AT_CALL(0) return;
+  DURING(
+      transmit_simple,
+      transmit_command_no_callbacks,
+      transmit_command_command_status,
+      transmit_command_command_complete) {
+    AT_CALL(0) return;
+  }
+
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const allocator_t *allocator))
+STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const allocator_t *allocator, const hci_interface_t *hci_interface))
   DURING(start_up) AT_CALL(0) {
     EXPECT_EQ(test_addr, addr);
     EXPECT_EQ(&allocator_malloc, allocator);
+    EXPECT_EQ(hci, hci_interface);
     return true;
   }
 
@@ -316,16 +383,6 @@ STUB_FUNCTION(void, vendor_set_callback, (vendor_async_opcode_t opcode, UNUSED_A
       epilog_callback = callback;
       return;
     }
-  }
-
-  UNEXPECTED_CALL;
-}
-
-STUB_FUNCTION(void, vendor_set_send_internal_command_callback, (UNUSED_ATTR send_internal_command_cb callback))
-  DURING(start_up) AT_CALL (0) {
-    EXPECT_TRUE(callback != NULL);
-    send_internal_command_callback = callback;
-    return;
   }
 
   UNEXPECTED_CALL;
@@ -377,16 +434,24 @@ STUB_FUNCTION(void, callback_transmit_finished, (UNUSED_ATTR void *buffer, bool 
     return;
   }
 
-  DURING(send_internal_command) AT_CALL(0) {
-    EXPECT_TRUE(all_fragments_sent);
-    osi_free(buffer);
+  UNEXPECTED_CALL;
+}
+
+STUB_FUNCTION(void, command_complete_callback, (BT_HDR *response, UNUSED_ATTR void *context))
+  DURING(transmit_command_command_complete) AT_CALL(0) {
+    osi_free(response);
     return;
   }
 
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(void, internal_command_response, (UNUSED_ATTR void *response))
+STUB_FUNCTION(void, command_status_callback, (UNUSED_ATTR uint8_t status, BT_HDR *command, UNUSED_ATTR void *context))
+  DURING(transmit_command_command_status) AT_CALL(0) {
+    osi_free(command);
+    return;
+  }
+
   UNEXPECTED_CALL;
 }
 
@@ -394,7 +459,6 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(vendor_open);
   RESET_CALL_COUNT(vendor_close);
   RESET_CALL_COUNT(vendor_set_callback);
-  RESET_CALL_COUNT(vendor_set_send_internal_command_callback);
   RESET_CALL_COUNT(vendor_send_command);
   RESET_CALL_COUNT(vendor_send_async_command);
   RESET_CALL_COUNT(hal_init);
@@ -413,7 +477,8 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(low_power_wake_assert);
   RESET_CALL_COUNT(low_power_transmit_done);
   RESET_CALL_COUNT(callback_transmit_finished);
-  RESET_CALL_COUNT(internal_command_response);
+  RESET_CALL_COUNT(command_complete_callback);
+  RESET_CALL_COUNT(command_status_callback);
   CURRENT_TEST_MODE = next;
 }
 
@@ -440,7 +505,6 @@ class HciLayerTest : public AlarmTestHarness {
       vendor.open = vendor_open;
       vendor.close = vendor_close;
       vendor.set_callback = vendor_set_callback;
-      vendor.set_send_internal_command_callback = vendor_set_send_internal_command_callback;
       vendor.send_command = vendor_send_command;
       vendor.send_async_command = vendor_send_async_command;
       hal.init = hal_init;
@@ -469,7 +533,6 @@ class HciLayerTest : public AlarmTestHarness {
       EXPECT_CALL_COUNT(hal_init, 1);
       EXPECT_CALL_COUNT(low_power_init, 1);
       EXPECT_CALL_COUNT(vendor_set_callback, 3);
-      EXPECT_CALL_COUNT(vendor_set_send_internal_command_callback, 1);
     }
 
     virtual void TearDown() {
@@ -552,20 +615,102 @@ TEST_F(HciLayerTest, test_receive_simple) {
   osi_free(data_to_receive);
 }
 
-TEST_F(HciLayerTest, test_send_internal_command) {
+static BT_HDR *manufacture_command_complete(command_opcode_t opcode) {
+  BT_HDR *ret = (BT_HDR *)osi_calloc(sizeof(BT_HDR) + 5);
+  uint8_t *stream = ret->data;
+  UINT8_TO_STREAM(stream, HCI_COMMAND_COMPLETE_EVT);
+  UINT8_TO_STREAM(stream, 3); // length of the event parameters
+  UINT8_TO_STREAM(stream, 1); // the number of commands that can be sent
+  UINT16_TO_STREAM(stream, opcode);
+  ret->len = 5;
+
+  return ret;
+}
+
+static BT_HDR *manufacture_command_status(command_opcode_t opcode) {
+  BT_HDR *ret = (BT_HDR *)osi_calloc(sizeof(BT_HDR) + 6);
+  uint8_t *stream = ret->data;
+  UINT8_TO_STREAM(stream, HCI_COMMAND_STATUS_EVT);
+  UINT8_TO_STREAM(stream, 4); // length of the event parameters
+  UINT8_TO_STREAM(stream, HCI_PENDING); // status
+  UINT8_TO_STREAM(stream, 1); // the number of commands that can be sent
+  UINT16_TO_STREAM(stream, opcode);
+  ret->len = 6;
+
+  return ret;
+}
+
+TEST_F(HciLayerTest, test_transmit_command_no_callbacks) {
   // Send a test command
-  reset_for(send_internal_command);
+  reset_for(transmit_command_no_callbacks);
   data_to_receive = manufacture_packet(MSG_STACK_TO_HC_HCI_CMD, command_sample_data);
-  send_internal_command_callback(MSG_STACK_TO_HC_HCI_CMD, data_to_receive, internal_command_response);
+  hci->transmit_command(data_to_receive, NULL, NULL, NULL);
 
   flush_thread(internal_thread);
   EXPECT_CALL_COUNT(hal_transmit_data, 1);
   EXPECT_CALL_COUNT(btsnoop_capture, 1);
   EXPECT_CALL_COUNT(low_power_transmit_done, 1);
   EXPECT_CALL_COUNT(low_power_wake_assert, 1);
-  EXPECT_CALL_COUNT(callback_transmit_finished, 1);
 
-  // TODO(zachoverflow): send a response and make sure the response ends up at the callback
+  // Send a response
+  command_opcode_t opcode = *((uint16_t *)command_sample_data);
+  data_to_receive = manufacture_command_complete(opcode);
+
+  hal_callbacks->data_ready(DATA_TYPE_EVENT);
+  EXPECT_CALL_COUNT(hal_packet_finished, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 2);
+
+  osi_free(data_to_receive);
+}
+
+TEST_F(HciLayerTest, test_transmit_command_command_status) {
+  // Send a test command
+  reset_for(transmit_command_command_status);
+  data_to_receive = manufacture_packet(MSG_STACK_TO_HC_HCI_CMD, command_sample_data);
+  hci->transmit_command(data_to_receive, command_complete_callback, command_status_callback, NULL);
+
+  flush_thread(internal_thread);
+  EXPECT_CALL_COUNT(hal_transmit_data, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 1);
+  EXPECT_CALL_COUNT(low_power_transmit_done, 1);
+  EXPECT_CALL_COUNT(low_power_wake_assert, 1);
+
+  command_opcode_t opcode = *((uint16_t *)command_sample_data);
+
+  // Send status event response
+  data_to_receive = manufacture_command_status(opcode);
+
+  hal_callbacks->data_ready(DATA_TYPE_EVENT);
+  EXPECT_CALL_COUNT(hal_packet_finished, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 2);
+  EXPECT_CALL_COUNT(command_status_callback, 1);
+
+  osi_free(data_to_receive);
+}
+
+TEST_F(HciLayerTest, test_transmit_command_command_complete) {
+  // Send a test command
+  reset_for(transmit_command_command_complete);
+  data_to_receive = manufacture_packet(MSG_STACK_TO_HC_HCI_CMD, command_sample_data);
+  hci->transmit_command(data_to_receive, command_complete_callback, command_status_callback, NULL);
+
+  flush_thread(internal_thread);
+  EXPECT_CALL_COUNT(hal_transmit_data, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 1);
+  EXPECT_CALL_COUNT(low_power_transmit_done, 1);
+  EXPECT_CALL_COUNT(low_power_wake_assert, 1);
+
+  command_opcode_t opcode = *((uint16_t *)command_sample_data);
+
+  // Send complete event response
+  data_to_receive = manufacture_command_complete(opcode);
+
+  hal_callbacks->data_ready(DATA_TYPE_EVENT);
+  EXPECT_CALL_COUNT(hal_packet_finished, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 2);
+  EXPECT_CALL_COUNT(command_complete_callback, 1);
+
+  osi_free(data_to_receive);
 }
 
 // TODO(zachoverflow): test post-reassembly better, stub out fragmenter instead of using it

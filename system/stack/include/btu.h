@@ -30,6 +30,25 @@
 #include "bt_target.h"
 #include "gki.h"
 
+// HACK(zachoverflow): temporary dark magic
+#define BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK 0x1700 // didn't look used in bt_types...here goes nothing
+typedef struct {
+  void (*callback)(BT_HDR *);
+} post_to_task_hack_t;
+
+typedef struct {
+  void (*callback)(BT_HDR *);
+  BT_HDR *response;
+  void *context;
+} command_complete_hack_t;
+
+typedef struct {
+  void (*callback)(BT_HDR *);
+  uint8_t status;
+  BT_HDR *command;
+  void *context;
+} command_status_hack_t;
+
 /* Define the BTU mailbox usage
 */
 #define BTU_HCI_RCV_MBOX        TASK_MBOX_0     /* Messages from HCI  */
@@ -135,12 +154,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 /* eL2CAP Info Request and other proto cmds timer */
 #define BTU_TTYPE_L2CAP_FCR_ACK     78
 #define BTU_TTYPE_L2CAP_INFO        79
-
-/* BTU internal for BR/EDR and AMP HCI command timeout (reserve up to 3 AMP controller) */
-#define BTU_TTYPE_BTU_CMD_CMPL                      80
-#define BTU_TTYPE_BTU_AMP1_CMD_CMPL                 81
-#define BTU_TTYPE_BTU_AMP2_CMD_CMPL                 82
-#define BTU_TTYPE_BTU_AMP3_CMD_CMPL                 83
 
 #define BTU_TTYPE_MCA_CCB_RSP                       98
 

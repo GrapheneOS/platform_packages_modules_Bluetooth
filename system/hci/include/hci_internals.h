@@ -26,6 +26,3 @@
 #define HCI_SCO_PREAMBLE_SIZE 3
 // 1 byte for event code, 1 byte for parameter length (Volume 2, Part E, 5.4.4)
 #define HCI_EVENT_PREAMBLE_SIZE 2
-
-typedef void (*internal_command_cb)(void *response);
-

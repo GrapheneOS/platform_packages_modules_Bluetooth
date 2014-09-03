@@ -22,13 +22,14 @@
 #include <utils/Log.h>
 
 #include "alarm.h"
-#include "bt_types.h"
 #include "btsnoop.h"
 #include "fixed_queue.h"
+#include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_internals.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
+#include "list.h"
 #include "low_power_manager.h"
 #include "osi.h"
 #include "packet_fragmenter.h"
@@ -37,7 +38,6 @@
 
 #define HCI_COMMAND_COMPLETE_EVT    0x0E
 #define HCI_COMMAND_STATUS_EVT      0x0F
-#define HCI_READ_BUFFER_SIZE        0x1005
 #define HCI_LE_READ_BUFFER_SIZE     0x2002
 
 #define INBOUND_PACKET_TYPE_COUNT 3
@@ -46,8 +46,6 @@
 
 #define PREAMBLE_BUFFER_SIZE 4 // max preamble size, ACL
 #define RETRIEVE_ACL_LENGTH(preamble) ((((preamble)[3]) << 8) | (preamble)[2])
-
-#define MAX_WAITING_INTERNAL_COMMANDS 8
 
 static const uint8_t preamble_sizes[] = {
   HCI_COMMAND_PREAMBLE_SIZE,
@@ -82,10 +80,14 @@ typedef struct {
 
 typedef struct {
   uint16_t opcode;
-  internal_command_cb callback;
-} waiting_internal_command_t;
+  command_complete_cb complete_callback;
+  command_status_cb status_callback;
+  void *context;
+  BT_HDR *command;
+} waiting_command_t;
 
 static const uint32_t EPILOG_TIMEOUT_MS = 3000;
+static const uint32_t COMMAND_PENDING_TIMEOUT = 8000;
 
 // Our interface
 static bool interface_created;
@@ -115,7 +117,9 @@ static fixed_queue_t *command_queue;
 static fixed_queue_t *packet_queue;
 
 // Inbound-related
-static fixed_queue_t *waiting_internal_commands;
+static alarm_t *command_response_alarm;
+static list_t *commands_pending_response;
+static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 
 static void event_preload(void *context);
@@ -129,8 +133,7 @@ static void sco_config_callback(bool success);
 static void epilog_finished_callback(bool success);
 
 static void hal_says_data_ready(serial_data_type_t type);
-static bool send_internal_command(uint16_t opcode, BT_HDR *packet, internal_command_cb callback);
-static void start_epilog_wait_timer();
+static void epilog_wait_timer_expired(void *context);
 
 // Interface functions
 
@@ -151,9 +154,17 @@ static bool start_up(
   firmware_is_configured = false;
   has_shut_down = false;
 
+  pthread_mutex_init(&commands_pending_response_lock, NULL);
+
   epilog_alarm = alarm_new();
   if (!epilog_alarm) {
     ALOGE("%s unable to create epilog alarm.", __func__);
+    goto error;
+  }
+
+  command_response_alarm = alarm_new();
+  if (!command_response_alarm) {
+    ALOGE("%s unable to create command response alarm.", __func__);
     goto error;
   }
 
@@ -175,9 +186,9 @@ static bool start_up(
     goto error;
   }
 
-  waiting_internal_commands = fixed_queue_new(MAX_WAITING_INTERNAL_COMMANDS);
-  if (!waiting_internal_commands) {
-    ALOGE("%s unable to create waiting internal command queue.", __func__);
+  commands_pending_response = list_new(NULL);
+  if (!commands_pending_response) {
+    ALOGE("%s unable to create list for commands pending response.", __func__);
     goto error;
   }
 
@@ -190,14 +201,13 @@ static bool start_up(
   fixed_queue_register_dequeue(command_queue, thread_get_reactor(thread), event_command_ready, NULL);
   fixed_queue_register_dequeue(packet_queue, thread_get_reactor(thread), event_packet_ready, NULL);
 
-  vendor->open(local_bdaddr, buffer_allocator);
+  vendor->open(local_bdaddr, buffer_allocator, &interface);
   hal->init(&hal_callbacks, thread);
   low_power_manager->init(thread);
 
   vendor->set_callback(VENDOR_CONFIGURE_FIRMWARE, firmware_config_callback);
   vendor->set_callback(VENDOR_CONFIGURE_SCO, sco_config_callback);
   vendor->set_callback(VENDOR_DO_EPILOG, epilog_finished_callback);
-  vendor->set_send_internal_command_callback(send_internal_command);
 
   if (!hci_inject->open(&interface, buffer_allocator)) {
     // TODO(sharvil): gracefully propagate failures from this layer.
@@ -221,7 +231,7 @@ static void shut_down() {
 
   if (thread) {
     if (firmware_is_configured) {
-      start_epilog_wait_timer();
+      alarm_set(epilog_alarm, EPILOG_TIMEOUT_MS, epilog_wait_timer_expired, NULL);
       thread_post(thread, event_epilog, NULL);
     } else {
       thread_stop(thread);
@@ -232,12 +242,15 @@ static void shut_down() {
 
   fixed_queue_free(command_queue, buffer_allocator->free);
   fixed_queue_free(packet_queue, buffer_allocator->free);
-  fixed_queue_free(waiting_internal_commands, osi_free);
+  list_free(commands_pending_response);
+
+  pthread_mutex_destroy(&commands_pending_response_lock);
 
   packet_fragmenter->cleanup();
 
+
   alarm_free(epilog_alarm);
-  epilog_alarm = NULL;
+  alarm_free(command_response_alarm);
 
   low_power_manager->cleanup();
   hal->close();
@@ -282,9 +295,36 @@ static void turn_off_logging() {
   btsnoop->close();
 }
 
+static void transmit_command(
+    BT_HDR *command,
+    command_complete_cb complete_callback,
+    command_status_cb status_callback,
+    void *context) {
+  waiting_command_t *wait_entry = osi_calloc(sizeof(waiting_command_t));
+  if (!wait_entry) {
+    ALOGE("%s couldn't allocate space for wait entry.", __func__);
+    return;
+  }
+
+  uint8_t *stream = command->data + command->offset;
+  STREAM_TO_UINT16(wait_entry->opcode, stream);
+  wait_entry->complete_callback = complete_callback;
+  wait_entry->status_callback = status_callback;
+  wait_entry->command = command;
+  wait_entry->context = context;
+
+  // Store the command message type in the event field
+  // in case the upper layer didn't already
+  command->event = MSG_STACK_TO_HC_HCI_CMD;
+
+  fixed_queue_enqueue(command_queue, wait_entry);
+}
+
 static void transmit_downward(data_dispatcher_type_t type, void *data) {
   if (type == MSG_STACK_TO_HC_HCI_CMD) {
-    fixed_queue_enqueue(command_queue, data);
+    // TODO(zachoverflow): eliminate this call
+    transmit_command((BT_HDR *)data, NULL, NULL, NULL);
+    ALOGW("%s legacy transmit of command. Use transmit_command instead.", __func__);
   } else {
     fixed_queue_enqueue(packet_queue, data);
   }
@@ -292,71 +332,116 @@ static void transmit_downward(data_dispatcher_type_t type, void *data) {
 
 // Internal functions
 
+static void command_timed_out(UNUSED_ATTR void *context) {
+  pthread_mutex_lock(&commands_pending_response_lock);
+
+  if (list_is_empty(commands_pending_response)) {
+    ALOGE("%s with no commands pending response", __func__);
+    return;
+  }
+
+  waiting_command_t *wait_entry = list_front(commands_pending_response);
+  pthread_mutex_unlock(&commands_pending_response_lock);
+
+  // We shouldn't try to recover the stack from this command timeout.
+  // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
+  ALOGE("%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
+  ALOGE("%s restarting the bluetooth process.", __func__);
+  usleep(10000);
+  kill(getpid(), SIGKILL);
+}
+
+static void restart_command_timeout_alarm() {
+  if (list_is_empty(commands_pending_response))
+    alarm_cancel(command_response_alarm);
+  else
+    alarm_set(command_response_alarm, COMMAND_PENDING_TIMEOUT, command_timed_out, NULL);
+}
+
+static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
+  pthread_mutex_lock(&commands_pending_response_lock);
+
+  for (const list_node_t *node = list_begin(commands_pending_response);
+      node != list_end(commands_pending_response);
+      node = list_next(node)) {
+    waiting_command_t *wait_entry = list_node(node);
+
+    if (!wait_entry || wait_entry->opcode != opcode)
+      continue;
+
+    list_remove(commands_pending_response, wait_entry);
+
+    pthread_mutex_unlock(&commands_pending_response_lock);
+    return wait_entry;
+  }
+
+  pthread_mutex_unlock(&commands_pending_response_lock);
+  return NULL;
+}
+
 // Inspects an incoming event for interesting information, like how many
 // commands are now able to be sent. Returns true if the event should
-// not proceed to higher layers (i.e. was intercepted for internal use).
+// not proceed to higher layers (i.e. was intercepted).
 static bool filter_incoming_event(BT_HDR *packet) {
+  waiting_command_t *wait_entry = NULL;
   uint8_t *stream = packet->data;
   uint8_t event_code;
+  command_opcode_t opcode;
 
   STREAM_TO_UINT8(event_code, stream);
   STREAM_SKIP_UINT8(stream); // Skip the parameter total length field
 
   if (event_code == HCI_COMMAND_COMPLETE_EVT) {
-    uint16_t opcode;
-
     STREAM_TO_UINT8(command_credits, stream);
     STREAM_TO_UINT16(opcode, stream);
 
-    // TODO make this look back in the commands rather than just the first one
-    waiting_internal_command_t *first_waiting = fixed_queue_try_peek(waiting_internal_commands);
-    if (first_waiting != NULL && opcode == first_waiting->opcode) {
-      fixed_queue_dequeue(waiting_internal_commands);
+    wait_entry = get_waiting_command(opcode);
+    if (!wait_entry)
+      ALOGW("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
+    else if (wait_entry->complete_callback)
+      wait_entry->complete_callback(packet, wait_entry->context);
 
-      if (first_waiting->callback)
-        first_waiting->callback(packet);
-      else
-        buffer_allocator->free(packet);
-
-      osi_free(first_waiting);
-      return true;
-    }
-
+    goto intercepted;
   } else if (event_code == HCI_COMMAND_STATUS_EVT) {
-    STREAM_SKIP_UINT8(stream); // Skip the status field
+    uint8_t status;
+    STREAM_TO_UINT8(status, stream);
     STREAM_TO_UINT8(command_credits, stream);
+    STREAM_TO_UINT16(opcode, stream);
+
+    // If a command generates a command status event, it won't be getting a command complete event
+
+    wait_entry = get_waiting_command(opcode);
+    if (!wait_entry)
+      ALOGW("%s command status event with no matching command. opcode: 0x%x", __func__, opcode);
+    else if (wait_entry->status_callback)
+      wait_entry->status_callback(status, wait_entry->command, wait_entry->context);
+
+    goto intercepted;
   }
 
   return false;
-}
+intercepted:;
+  restart_command_timeout_alarm();
+  if (wait_entry) {
+    // If it has a callback, it's responsible for freeing the packet
+    if (event_code == HCI_COMMAND_STATUS_EVT || !wait_entry->complete_callback)
+      buffer_allocator->free(packet);
 
-// Send an internal command. Called by the vendor library, and also
-// internally by the HCI layer to fetch controller buffer sizes.
-static bool send_internal_command(uint16_t opcode, BT_HDR *packet, internal_command_cb callback) {
-  waiting_internal_command_t *wait_entry = osi_calloc(sizeof(waiting_internal_command_t));
-  if (!wait_entry) {
-    ALOGE("%s couldn't allocate space for wait entry.", __func__);
-    return false;
-  }
+    // If it has a callback, it's responsible for freeing the command
+    if (event_code == HCI_COMMAND_COMPLETE_EVT || !wait_entry->status_callback)
+      buffer_allocator->free(wait_entry->command);
 
-  wait_entry->opcode = opcode;
-  wait_entry->callback = callback;
-
-  if (!fixed_queue_try_enqueue(waiting_internal_commands, wait_entry)) {
     osi_free(wait_entry);
-    ALOGE("%s too many waiting internal commands. Rejecting 0x%04X", __func__, opcode);
-    return false;
+  } else {
+    buffer_allocator->free(packet);
   }
 
-  packet->layer_specific = opcode;
-  transmit_downward(packet->event, packet);
   return true;
 }
 
-static void request_acl_buffer_size_callback(void *response) {
-  BT_HDR *packet = (BT_HDR *)response;
-  uint8_t *stream = packet->data;
-  uint16_t opcode;
+static void request_acl_buffer_size_callback(BT_HDR *response, UNUSED_ATTR void *context) {
+  uint8_t *stream = response->data + response->offset;
+  command_opcode_t opcode;
   uint8_t status;
   uint16_t data_size = 0;
 
@@ -364,32 +449,29 @@ static void request_acl_buffer_size_callback(void *response) {
   STREAM_TO_UINT16(opcode, stream);
   STREAM_TO_UINT8(status, stream);
 
-  if (status == 0)
+  if (status == HCI_SUCCESS)
     STREAM_TO_UINT16(data_size, stream);
 
   if (opcode == HCI_READ_BUFFER_SIZE) {
-    if (status == 0)
+    if (status == HCI_SUCCESS)
       packet_fragmenter->set_acl_data_size(data_size);
 
     // Now request the ble buffer size, using the same buffer
-    packet->event = HCI_LE_READ_BUFFER_SIZE;
-    packet->offset = 0;
-    packet->layer_specific = 0;
-    packet->len = HCI_COMMAND_PREAMBLE_SIZE;
+    response->event = HCI_LE_READ_BUFFER_SIZE;
+    response->offset = 0;
+    response->layer_specific = 0;
+    response->len = HCI_COMMAND_PREAMBLE_SIZE;
 
-    stream = packet->data;
+    stream = response->data;
     UINT16_TO_STREAM(stream, HCI_LE_READ_BUFFER_SIZE);
     UINT8_TO_STREAM(stream, 0); // no parameters
 
-    if (!send_internal_command(HCI_LE_READ_BUFFER_SIZE, packet, request_acl_buffer_size_callback)) {
-      buffer_allocator->free(packet);
-      ALOGI("%s couldn't send ble read buffer command, so postload finished.", __func__);
-    }
+    transmit_command(response, request_acl_buffer_size_callback, NULL, NULL);
   } else if (opcode == HCI_LE_READ_BUFFER_SIZE) {
-    if (status == 0)
+    if (status == HCI_SUCCESS)
       packet_fragmenter->set_ble_acl_data_size(data_size);
 
-    buffer_allocator->free(packet);
+    buffer_allocator->free(response);
     ALOGI("%s postload finished.", __func__);
   } else {
     ALOGE("%s unexpected opcode %d", __func__, opcode);
@@ -413,10 +495,7 @@ static void request_acl_buffer_size() {
   UINT16_TO_STREAM(stream, HCI_READ_BUFFER_SIZE);
   UINT8_TO_STREAM(stream, 0); // no parameters
 
-  if (!send_internal_command(HCI_READ_BUFFER_SIZE, packet, request_acl_buffer_size_callback)) {
-    buffer_allocator->free(packet);
-    ALOGE("%s couldn't send internal command, so postload aborted.", __func__);
-  }
+  transmit_command(packet, request_acl_buffer_size_callback, NULL, NULL);
 }
 
 static void sco_config_callback(UNUSED_ATTR bool success) {
@@ -436,10 +515,6 @@ static void epilog_finished_callback(UNUSED_ATTR bool success) {
 static void epilog_wait_timer_expired(UNUSED_ATTR void *context) {
   ALOGI("%s", __func__);
   thread_stop(thread);
-}
-
-static void start_epilog_wait_timer() {
-  alarm_set(epilog_alarm, EPILOG_TIMEOUT_MS, epilog_wait_timer_expired, NULL);
 }
 
 static void event_preload(UNUSED_ATTR void *context) {
@@ -463,7 +538,20 @@ static void event_epilog(UNUSED_ATTR void *context) {
 
 static void event_command_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
   if (command_credits > 0) {
-    event_packet_ready(queue, context);
+    waiting_command_t *wait_entry = fixed_queue_dequeue(queue);
+    command_credits--;
+
+    // Move it to the list of commands awaiting response
+    pthread_mutex_lock(&commands_pending_response_lock);
+    list_append(commands_pending_response, wait_entry);
+    pthread_mutex_unlock(&commands_pending_response_lock);
+
+    // Send it off
+    low_power_manager->wake_assert();
+    packet_fragmenter->fragment_and_dispatch(wait_entry->command);
+    low_power_manager->transmit_done();
+
+    restart_command_timeout_alarm();
   }
 }
 
@@ -570,34 +658,21 @@ static serial_data_type_t event_to_data_type(uint16_t event) {
   else if (event == MSG_STACK_TO_HC_HCI_CMD)
     return DATA_TYPE_COMMAND;
   else
-    ALOGE("%s invalid event type, could not translate.", __func__);
+    ALOGE("%s invalid event type, could not translate 0x%x", __func__, event);
 
   return 0;
 }
 
 // Callback for the fragmenter to send a fragment
 static void transmit_fragment(BT_HDR *packet, bool send_transmit_finished) {
-  uint16_t opcode = 0;
-  uint8_t *stream = packet->data + packet->offset;
   uint16_t event = packet->event & MSG_EVT_MASK;
   serial_data_type_t type = event_to_data_type(event);
-
-  if (event == MSG_STACK_TO_HC_HCI_CMD) {
-    command_credits--;
-    STREAM_TO_UINT16(opcode, stream);
-  }
 
   btsnoop->capture(packet, false);
   hal->transmit_data(type, packet->data + packet->offset, packet->len);
 
-  if (event == MSG_STACK_TO_HC_HCI_CMD
-    && !fixed_queue_is_empty(waiting_internal_commands)
-    && packet->layer_specific == opcode) {
-    // This is an internal command, so nobody owns the buffer now
-    buffer_allocator->free(packet);
-  } else if (send_transmit_finished) {
+  if (event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished)
     callbacks->transmit_finished(packet, true);
-  }
 }
 
 // Callback for the fragmenter to dispatch up a completely reassembled packet
@@ -633,6 +708,7 @@ static void init_layer_interface() {
       return;
     }
 
+    interface.transmit_command = transmit_command;
     interface.transmit_downward = transmit_downward;
     interface_created = true;
   }

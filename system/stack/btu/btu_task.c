@@ -182,6 +182,9 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
     /* Determine the input message type. */
     switch (p_msg->event & BT_EVT_MASK)
     {
+        case BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK: // TODO(zachoverflow): remove this
+            ((post_to_task_hack_t *)(&p_msg->data[0]))->callback(p_msg);
+            break;
         case BT_EVT_TO_BTU_HCI_ACL:
             /* All Acl Data goes to L2CAP */
             l2c_rcv_acl_data (p_msg);
@@ -586,10 +589,6 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
             sap_process_timeout(p_tle);
             break;
 #endif
-
-        case BTU_TTYPE_BTU_CMD_CMPL:
-            btu_hcif_cmd_timeout((UINT8)(p_tle->event - BTU_TTYPE_BTU_CMD_CMPL));
-            break;
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
         case BTU_TTYPE_HID_HOST_REPAGE_TO :

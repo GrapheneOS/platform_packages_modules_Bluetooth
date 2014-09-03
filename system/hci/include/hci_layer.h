@@ -21,6 +21,7 @@
 #include <stdbool.h>
 
 #include "allocator.h"
+#include "bt_types.h"
 #include "data_dispatcher.h"
 #include "osi.h"
 
@@ -55,6 +56,7 @@ typedef struct vendor_interface_t vendor_interface_t;
 typedef struct low_power_manager_interface_t low_power_manager_interface_t;
 
 typedef unsigned char * bdaddr_t;
+typedef uint16_t command_opcode_t;
 
 typedef enum {
   LPM_DISABLE,
@@ -65,6 +67,8 @@ typedef enum {
 
 typedef void (*preload_finished_cb)(bool success);
 typedef void (*transmit_finished_cb)(void *buffer, bool all_fragments_sent);
+typedef void (*command_complete_cb)(BT_HDR *response, void *context);
+typedef void (*command_status_cb)(uint8_t status, BT_HDR *command, void *context);
 
 typedef struct {
   // Called when the HCI layer finishes the preload sequence.
@@ -75,7 +79,7 @@ typedef struct {
 } hci_callbacks_t;
 
 typedef struct hci_interface_t {
-  // Start up the hci layer, with the specified |local_bdaddr|.
+  // Start up the HCI layer, with the specified |local_bdaddr|.
   bool (*start_up)(
       bdaddr_t local_bdaddr,
       const allocator_t *upward_buffer_allocator,
@@ -104,6 +108,14 @@ typedef struct hci_interface_t {
 
   // Register with this data dispatcher to receive data flowing upward out of the HCI layer
   data_dispatcher_t *upward_dispatcher;
+
+  // Send a command through the HCI layer
+  void (*transmit_command)(
+      BT_HDR *command,
+      command_complete_cb complete_callback,
+      command_status_cb status_cb,
+      void *context
+  );
 
   // Send some data downward through the HCI layer
   void (*transmit_downward)(data_dispatcher_type_t type, void *data);

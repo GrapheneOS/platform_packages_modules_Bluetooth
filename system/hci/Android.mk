@@ -2,8 +2,6 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_CFLAGS += $(bdroid_CFLAGS)
-
 LOCAL_SRC_FILES := \
     src/btsnoop.c \
     src/btsnoop_net.c \
@@ -16,7 +14,7 @@ LOCAL_SRC_FILES := \
     src/packet_fragmenter.c \
     src/vendor.c
 
-LOCAL_CFLAGS := -Wno-unused-parameter
+LOCAL_CFLAGS := -Wno-unused-parameter $(bdroid_CFLAGS)
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
 LOCAL_CFLAGS += -DHCI_USE_MCT
@@ -54,6 +52,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../utils/include \
     $(bdroid_C_INCLUDES)
 
+
 LOCAL_SRC_FILES := \
     ../osi/test/AllocationTestHarness.cpp \
     ../osi/test/AlarmTestHarness.cpp \
@@ -61,10 +60,11 @@ LOCAL_SRC_FILES := \
     ./test/hci_hal_mct_test.cpp \
     ./test/hci_layer_test.cpp \
     ./test/low_power_manager_test.cpp \
-    ./test/packet_fragmenter_test.cpp
+    ./test/packet_fragmenter_test.cpp \
+    $(bdroid_C_INCLUDES)
 
 
-LOCAL_CFLAGS := -Wall -Werror
+LOCAL_CFLAGS := -Wall -Werror $(bdroid_CFLAGS)
 LOCAL_MODULE := libbt-hcitests
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog libdl

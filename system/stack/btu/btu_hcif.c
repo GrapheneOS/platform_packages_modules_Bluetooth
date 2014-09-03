@@ -36,6 +36,13 @@
 #include "l2c_int.h"
 #include "btm_api.h"
 #include "btm_int.h"
+#include "bt_utils.h"
+#include "osi.h"
+#include "hci_layer.h"
+
+// TODO(zachoverflow): remove this horrible hack
+#include "btu.h"
+extern fixed_queue_t *btu_hci_msg_queue;
 
 extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
 extern void btm_ble_test_command_complete(UINT8 *p);
@@ -56,9 +63,6 @@ extern void btm_ble_test_command_complete(UINT8 *p);
 #include "bte_appl.h"
 #endif
 // btla-specific --
-
-//Counter to track number of HCI command timeout
-static int num_hci_cmds_timed_out;
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -82,8 +86,8 @@ static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p);
 static void btu_hcif_qos_setup_comp_evt (UINT8 *p);
-static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16 evt_len);
-static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p);
+static void btu_hcif_command_complete_evt (BT_HDR *response, void *context);
+static void btu_hcif_command_status_evt (uint8_t status, BT_HDR *command, void *context);
 static void btu_hcif_hardware_error_evt (UINT8 *p);
 static void btu_hcif_flush_occured_evt (void);
 static void btu_hcif_role_change_evt (UINT8 *p);
@@ -143,74 +147,6 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
 static void btu_ble_rc_param_req_evt(UINT8 *p);
 #endif
     #endif
-/*******************************************************************************
-**
-** Function         btu_hcif_store_cmd
-**
-** Description      This function stores a copy of an outgoing command and
-**                  and sets a timer waiting for a event in response to the
-**                  command.
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btu_hcif_store_cmd (UINT8 controller_id, BT_HDR *p_buf)
-{
-    tHCI_CMD_CB *p_hci_cmd_cb;
-    UINT16  opcode;
-    BT_HDR  *p_cmd;
-    UINT8   *p;
-
-    /* Validate controller ID */
-    if (controller_id >= BTU_MAX_LOCAL_CTRLS)
-        return;
-
-    p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-
-    /* get command opcode */
-    STREAM_TO_UINT16 (opcode, p);
-
-    /* don't do anything for certain commands */
-    if ((opcode == HCI_RESET) || (opcode == HCI_HOST_NUM_PACKETS_DONE))
-    {
-        return;
-    }
-
-    /* allocate buffer (HCI_GET_CMD_BUF will either get a buffer from HCI_CMD_POOL or from 'best-fit' pool) */
-    if ((p_cmd = HCI_GET_CMD_BUF(p_buf->len + p_buf->offset - HCIC_PREAMBLE_SIZE)) == NULL)
-    {
-        return;
-    }
-
-    /* copy buffer */
-    memcpy (p_cmd, p_buf, sizeof(BT_HDR));
-
-    /* If vendor specific save the callback function */
-    if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
-#if BLE_INCLUDED == TRUE
-        || (opcode == HCI_BLE_RAND )
-        || (opcode == HCI_BLE_ENCRYPT)
-#endif
-       )
-    {
-        memcpy ((UINT8 *)(p_cmd + 1), (UINT8 *)(p_buf + 1), sizeof(void *));
-    }
-
-    memcpy ((UINT8 *)(p_cmd + 1) + p_cmd->offset,
-            (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
-
-    /* queue copy of cmd */
-    GKI_enqueue(&(p_hci_cmd_cb->cmd_cmpl_q), p_cmd);
-
-    /* start timer */
-    if (BTU_CMD_CMPL_TIMEOUT > 0)
-    {
-        btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
-                         (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
-                         BTU_CMD_CMPL_TIMEOUT);
-    }
-}
 
 /*******************************************************************************
 **
@@ -222,7 +158,7 @@ static void btu_hcif_store_cmd (UINT8 controller_id, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
+void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
 {
     UINT8   *p = (UINT8 *)(p_msg + 1) + p_msg->offset;
     UINT8   hci_evt_code, hci_evt_len;
@@ -290,10 +226,12 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
             btu_hcif_qos_setup_comp_evt (p);
             break;
         case HCI_COMMAND_COMPLETE_EVT:
-            btu_hcif_command_complete_evt (controller_id, p, hci_evt_len);
+            ALOGE("%s should not have received a command complete event. "
+                  "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_COMMAND_STATUS_EVT:
-            btu_hcif_command_status_evt (controller_id, p);
+            ALOGE("%s should not have received a command status event. "
+                  "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_HARDWARE_ERROR_EVT:
             btu_hcif_hardware_error_evt (p);
@@ -431,8 +369,6 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
                 btm_vendor_specific_evt (p, hci_evt_len);
             break;
     }
-    // reset the  num_hci_cmds_timed_out upon receving any event from controller.
-    num_hci_cmds_timed_out = 0;
 }
 
 
@@ -440,71 +376,40 @@ void btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_msg)
 **
 ** Function         btu_hcif_send_cmd
 **
-** Description      This function is called to check if it can send commands
-**                  to the Host Controller. It may be passed the address of
-**                  a packet to send.
+** Description      This function is called to send commands to the Host Controller.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_buf)
+void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
 {
-    tHCI_CMD_CB * p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
+    if (!p_buf)
+      return;
 
-    /* If there are already commands in the queue, then enqueue this command */
-    if ((p_buf) && (!GKI_queue_is_empty(&p_hci_cmd_cb->cmd_xmit_q)))
-    {
-        GKI_enqueue (&(p_hci_cmd_cb->cmd_xmit_q), p_buf);
-        p_buf = NULL;
-    }
+    uint16_t opcode;
+    uint8_t *stream = p_buf->data + p_buf->offset;
+    void * vsc_callback = NULL;
 
-    /* Allow for startup case, where no acks may be received */
-    if ( ((controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
-         && (p_hci_cmd_cb->cmd_window == 0)
-         && (btm_cb.devcb.state == BTM_DEV_STATE_WAIT_RESET_CMPLT)) )
-    {
-        p_hci_cmd_cb->cmd_window = GKI_queue_length(&p_hci_cmd_cb->cmd_xmit_q) + 1;
-    }
+    STREAM_TO_UINT16(opcode, stream);
 
-    /* See if we can send anything */
-    while (p_hci_cmd_cb->cmd_window != 0)
-    {
-        if (!p_buf)
-            p_buf = (BT_HDR *)GKI_dequeue (&(p_hci_cmd_cb->cmd_xmit_q));
-
-        if (p_buf)
-        {
-            btu_hcif_store_cmd(controller_id, p_buf);
-            p_hci_cmd_cb->cmd_window--;
-
-            if (controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
-            {
-                HCI_CMD_TO_LOWER(p_buf);
-            }
-            else
-            {
-                /* Unknown controller */
-                HCI_TRACE_WARNING("BTU HCI(ctrl id=%d) controller ID not recognized", controller_id);
-                GKI_freebuf(p_buf);;
-            }
-
-            p_buf = NULL;
-        }
-        else
-            break;
-    }
-
-    if (p_buf)
-        GKI_enqueue (&(p_hci_cmd_cb->cmd_xmit_q), p_buf);
-
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
-    if (controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
-    {
-        /* check if controller can go to sleep */
-        btu_check_bt_sleep ();
-    }
+    // Eww...horrible hackery here
+    /* If command was a VSC, then extract command_complete callback */
+    if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
+#if BLE_INCLUDED == TRUE
+        || (opcode == HCI_BLE_RAND)
+        || (opcode == HCI_BLE_ENCRYPT)
 #endif
+       ) {
+        vsc_callback = *((void **)(p_buf + 1));
+    }
 
+    hci_layer_get_interface()->transmit_command(
+      p_buf,
+      btu_hcif_command_complete_evt,
+      btu_hcif_command_status_evt,
+      vsc_callback);
+
+    btu_check_bt_sleep ();
 }
 
 
@@ -1155,88 +1060,37 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_command_complete_evt (UINT8 controller_id, UINT8 *p, UINT16 evt_len)
+static void btu_hcif_command_complete_evt_on_task(BT_HDR *event)
 {
-    tHCI_CMD_CB *p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
-    UINT16      cc_opcode;
-    BT_HDR      *p_cmd;
-    void        *p_cplt_cback = NULL;
+    command_complete_hack_t *hack = (command_complete_hack_t *)&event->data[0];
 
-    STREAM_TO_UINT8  (p_hci_cmd_cb->cmd_window, p);
+    command_opcode_t opcode;
+    uint8_t *stream = hack->response->data + hack->response->offset + 3; // 2 to skip the event headers, 1 to skip the command credits
+    STREAM_TO_UINT16(opcode, stream);
 
-#if (defined(HCI_MAX_SIMUL_CMDS) && (HCI_MAX_SIMUL_CMDS > 0))
-    if (p_hci_cmd_cb->cmd_window > HCI_MAX_SIMUL_CMDS)
-        p_hci_cmd_cb->cmd_window = HCI_MAX_SIMUL_CMDS;
-#endif
+    btu_hcif_hdl_command_complete(
+      opcode,
+      stream,
+      hack->response->len - 5, // 3 for the command complete headers, 2 for the event headers
+      hack->context);
 
-    STREAM_TO_UINT16 (cc_opcode, p);
+   GKI_freebuf(hack->response);
+   osi_free(hack);
+}
 
-    evt_len -= 3;
+static void btu_hcif_command_complete_evt(BT_HDR *response, void *context)
+{
+    BT_HDR *event = osi_calloc(sizeof(BT_HDR) + sizeof(command_complete_hack_t));
+    command_complete_hack_t *hack = (command_complete_hack_t *)&event->data[0];
 
-    /* only do this for certain commands */
-    if ((cc_opcode != HCI_RESET) && (cc_opcode != HCI_HOST_NUM_PACKETS_DONE) &&
-        (cc_opcode != HCI_COMMAND_NONE))
-    {
-        /* dequeue and free stored command */
+    hack->callback = btu_hcif_command_complete_evt_on_task;
+    hack->response = response;
+    hack->context = context;
 
-/* always use cmd code check, when one cmd timeout waiting for cmd_cmpl,
-   it'll cause the rest of the command goes in wrong order                  */
-        p_cmd = (BT_HDR *) GKI_getfirst (&p_hci_cmd_cb->cmd_cmpl_q);
+    event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
 
-        while (p_cmd)
-        {
-            UINT16 opcode_dequeued;
-            UINT8  *p_dequeued;
-
-            /* Make sure dequeued command is for the command_cplt received */
-            p_dequeued = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-            STREAM_TO_UINT16 (opcode_dequeued, p_dequeued);
-
-            if (opcode_dequeued != cc_opcode)
-            {
-                /* opcode does not match, check next command in the queue */
-                p_cmd = (BT_HDR *) GKI_getnext(p_cmd);
-                continue;
-            }
-            GKI_remove_from_queue(&p_hci_cmd_cb->cmd_cmpl_q, p_cmd);
-
-            /* If command was a VSC, then extract command_complete callback */
-            if ((cc_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
-#if BLE_INCLUDED == TRUE
-                || (cc_opcode == HCI_BLE_RAND )
-                || (cc_opcode == HCI_BLE_ENCRYPT)
-#endif
-               )
-            {
-                p_cplt_cback = *((void **)(p_cmd + 1));
-            }
-
-            GKI_freebuf (p_cmd);
-
-            break;
-        }
-
-        /* if more commands in queue restart timer */
-        if (BTU_CMD_CMPL_TIMEOUT > 0)
-        {
-            if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
-            {
-                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
-                                 (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
-                                 BTU_CMD_CMPL_TIMEOUT);
-            }
-            else
-            {
-                btu_stop_timer (&(p_hci_cmd_cb->cmd_cmpl_timer));
-            }
-        }
-    }
-
-    /* handle event */
-    btu_hcif_hdl_command_complete (cc_opcode, p, evt_len, p_cplt_cback);
-
-    /* see if we can send more commands */
-    btu_hcif_send_cmd (controller_id, NULL);
+    fixed_queue_enqueue(btu_hci_msg_queue, event);
+    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
 }
 
 
@@ -1421,222 +1275,39 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_hcif_command_status_evt (UINT8 controller_id, UINT8 *p)
+static void btu_hcif_command_status_evt_on_task(BT_HDR *event)
 {
-    tHCI_CMD_CB * p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
-    UINT8       status;
-    UINT16      opcode;
-    UINT16      cmd_opcode;
-    BT_HDR      *p_cmd = NULL;
-    UINT8       *p_data = NULL;
-    void        *p_vsc_status_cback = NULL;
+    ALOGI("%s", __func__);
+    command_status_hack_t *hack = (command_status_hack_t *)&event->data[0];
 
-    STREAM_TO_UINT8  (status, p);
-    STREAM_TO_UINT8  (p_hci_cmd_cb->cmd_window, p);
+    command_opcode_t opcode;
+    uint8_t *stream = hack->command->data + hack->command->offset;
+    STREAM_TO_UINT16(opcode, stream);
 
-#if (defined(HCI_MAX_SIMUL_CMDS) && (HCI_MAX_SIMUL_CMDS > 0))
-    if (p_hci_cmd_cb->cmd_window > HCI_MAX_SIMUL_CMDS)
-        p_hci_cmd_cb->cmd_window = HCI_MAX_SIMUL_CMDS;
-#endif
+    btu_hcif_hdl_command_status(
+      opcode,
+      hack->status,
+      stream,
+      hack->context);
 
-    STREAM_TO_UINT16 (opcode, p);
-
-    /* only do this for certain commands */
-    if ((opcode != HCI_RESET) && (opcode != HCI_HOST_NUM_PACKETS_DONE) &&
-        (opcode != HCI_COMMAND_NONE))
-    {
-        /*look for corresponding command in cmd_queue*/
-        p_cmd = (BT_HDR *) GKI_getfirst(&(p_hci_cmd_cb->cmd_cmpl_q));
-        while (p_cmd)
-        {
-            p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-            STREAM_TO_UINT16 (cmd_opcode, p_data);
-
-            /* Make sure this  command is for the command_status received */
-            if (cmd_opcode != opcode)
-            {
-                /* opcode does not match, check next command in the queue */
-                p_cmd = (BT_HDR *) GKI_getnext(p_cmd);
-                continue;
-            }
-            else
-            {
-                GKI_remove_from_queue(&p_hci_cmd_cb->cmd_cmpl_q, p_cmd);
-
-                /* If command was a VSC, then extract command_status callback */
-                 if ((cmd_opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
-                {
-                    p_vsc_status_cback = *((void **)(p_cmd + 1));
-                }
-                break;
-            }
-        }
-
-        /* if more commands in queue restart timer */
-        if (BTU_CMD_CMPL_TIMEOUT > 0)
-        {
-            if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
-            {
-                btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
-                                 (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
-                                 BTU_CMD_CMPL_TIMEOUT);
-            }
-            else
-            {
-                btu_stop_timer (&(p_hci_cmd_cb->cmd_cmpl_timer));
-            }
-        }
-    }
-
-    /* handle command */
-    btu_hcif_hdl_command_status (opcode, status, p_data, p_vsc_status_cback);
-
-    /* free stored command */
-    if (p_cmd != NULL)
-    {
-        GKI_freebuf (p_cmd);
-    }
-    else
-    {
-        HCI_TRACE_WARNING("No command in queue matching opcode %d", opcode);
-    }
-
-    /* See if we can forward any more commands */
-    btu_hcif_send_cmd (controller_id, NULL);
+    GKI_freebuf(hack->command);
+    osi_free(hack);
 }
 
-/*******************************************************************************
-**
-** Function         btu_hcif_cmd_timeout
-**
-** Description      Handle a command timeout
-**
-** Returns          void
-**
-*******************************************************************************/
-void btu_hcif_cmd_timeout (UINT8 controller_id)
+static void btu_hcif_command_status_evt(uint8_t status, BT_HDR *command, void *context)
 {
-    tHCI_CMD_CB * p_hci_cmd_cb = &(btu_cb.hci_cmd_cb[controller_id]);
-    BT_HDR  *p_cmd;
-    UINT8   *p;
-    void    *p_cplt_cback = NULL;
-    UINT16  opcode;
-    UINT16  event;
+    BT_HDR *event = osi_calloc(sizeof(BT_HDR) + sizeof(command_status_hack_t));
+    command_status_hack_t *hack = (command_status_hack_t *)&event->data[0];
 
-    /* set the controller cmd window to 1, as if we received a response, so
-    ** the flow of commands from the stack doesn't hang */
-    p_hci_cmd_cb->cmd_window = 1;
+    hack->callback = btu_hcif_command_status_evt_on_task;
+    hack->status = status;
+    hack->command = command;
+    hack->context = context;
 
-    /* get queued command */
-    if ((p_cmd = (BT_HDR *) GKI_dequeue (&(p_hci_cmd_cb->cmd_cmpl_q))) == NULL)
-    {
-        HCI_TRACE_WARNING("Cmd timeout; no cmd in queue");
-        return;
-    }
+    event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
 
-    /* if more commands in queue restart timer */
-    if (BTU_CMD_CMPL_TIMEOUT > 0)
-    {
-        if (!GKI_queue_is_empty (&(p_hci_cmd_cb->cmd_cmpl_q)))
-        {
-            btu_start_timer (&(p_hci_cmd_cb->cmd_cmpl_timer),
-                             (UINT16)(BTU_TTYPE_BTU_CMD_CMPL + controller_id),
-                             BTU_CMD_CMPL_TIMEOUT);
-        }
-    }
-
-    p = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-#if (NFC_INCLUDED == TRUE)
-    if (controller_id == NFC_CONTROLLER_ID)
-    {
-        //TODO call nfc_ncif_cmd_timeout
-        HCI_TRACE_WARNING("BTU NCI command timeout - header 0x%02x%02x", p[0], p[1]);
-        return;
-    }
-#endif
-
-    /* get opcode from stored command */
-    STREAM_TO_UINT16 (opcode, p);
-
-// btla-specific ++
-#if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE))
-    ALOGE("######################################################################");
-    ALOGE("#");
-    ALOGE("# WARNING : BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
-    ALOGE("#");
-    ALOGE("######################################################################");
-#else
-    HCI_TRACE_WARNING("BTU HCI(id=%d) command timeout. opcode=0x%x", controller_id, opcode);
-#endif
-// btla-specific ++
-
-    /* send stack a fake command complete or command status, but first determine
-    ** which to send
-    */
-    switch (opcode)
-    {
-        case HCI_HOLD_MODE:
-        case HCI_SNIFF_MODE:
-        case HCI_EXIT_SNIFF_MODE:
-        case HCI_PARK_MODE:
-        case HCI_EXIT_PARK_MODE:
-        case HCI_INQUIRY:
-        case HCI_RMT_NAME_REQUEST:
-        case HCI_QOS_SETUP_COMP_EVT:
-        case HCI_CREATE_CONNECTION:
-        case HCI_CHANGE_CONN_LINK_KEY:
-        case HCI_SWITCH_ROLE:
-        case HCI_READ_RMT_EXT_FEATURES:
-        case HCI_AUTHENTICATION_REQUESTED:
-        case HCI_SET_CONN_ENCRYPTION:
-#if BTM_SCO_INCLUDED == TRUE
-        case HCI_SETUP_ESCO_CONNECTION:
-#endif
-            /* fake a command status */
-            btu_hcif_hdl_command_status (opcode, HCI_ERR_UNSPECIFIED, p, NULL);
-            break;
-
-        default:
-            /* If vendor specific restore the callback function */
-            if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC
-#if BLE_INCLUDED == TRUE
-                || (opcode == HCI_BLE_RAND ) ||
-                (opcode == HCI_BLE_ENCRYPT)
-#endif
-               )
-            {
-                p_cplt_cback = *((void **)(p_cmd + 1));
-            }
-
-            /* fake a command complete; first create a fake event */
-            event = HCI_ERR_UNSPECIFIED;
-            btu_hcif_hdl_command_complete (opcode, (UINT8 *)&event, 1, p_cplt_cback);
-            break;
-    }
-
-    /* free stored command */
-    GKI_freebuf(p_cmd);
-
-    num_hci_cmds_timed_out++;
-    /* When we receive consecutive HCI cmd timeouts for >=BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART
-     times, Bluetooth process will be killed and restarted */
-    if (num_hci_cmds_timed_out >= BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART)
-    {
-        HCI_TRACE_ERROR("Num consecutive HCI Cmd tout =%d Restarting BT process",num_hci_cmds_timed_out);
-
-        usleep(10000); /* 10 milliseconds */
-        /* Killing the process to force a restart as part of fault tolerance */
-        kill(getpid(), SIGKILL);
-    }
-    else
-    {
-        HCI_TRACE_WARNING("HCI Cmd timeout counter %d", num_hci_cmds_timed_out);
-
-        /* If anyone wants device status notifications, give him one */
-        btm_report_device_status (BTM_DEV_STATUS_CMD_TOUT);
-    }
-    /* See if we can forward any more commands */
-    btu_hcif_send_cmd (controller_id, NULL);
+    fixed_queue_enqueue(btu_hci_msg_queue, event);
+    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
 }
 
 /*******************************************************************************
