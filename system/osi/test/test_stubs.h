@@ -40,12 +40,34 @@
   << " to " << __func__ \
   << " during mode " << (int)_current_mode
 
-// Use this to branch stub function execution to a specific mode.
+#define MODE_IS(mode) (_current_mode == (mode))
+
+// Macro selection helpers
+#define OVERLOAD_CAT(A, B) A##B
+#define OVERLOAD_SELECT(NAME, NUM) OVERLOAD_CAT(NAME##_, NUM)
+#define OVERLOAD_GET_COUNT(_1, _2, _3, _4, _5, _6, COUNT, ...) COUNT
+#define OVERLOAD_VA_SIZE(...) OVERLOAD_GET_COUNT(__VA_ARGS__, 6, 5, 4, 3, 2, 1)
+#define OVERLOAD_OF(NAME, ...) OVERLOAD_SELECT(NAME, OVERLOAD_VA_SIZE(__VA_ARGS__))(__VA_ARGS__)
+
+// Use this to branch stub function execution to a specific mode or modes.
 // Treat it like an if statement. For example:
 //
 // DURING(dinner) EXPECT_EQ(bread_pudding, food);
-#define DURING(mode) \
-  if (_current_mode == mode)
+// DURING(midday_snack, midnight_snack) EXPECT_EQ(chocolate, food);
+#define DURING(...) OVERLOAD_OF(DURING, __VA_ARGS__)
+
+#define DURING_1(mode0) \
+  if (MODE_IS(mode0))
+#define DURING_2(mode0, mode1) \
+  if (MODE_IS(mode0) || MODE_IS(mode1))
+#define DURING_3(mode0, mode1, mode2) \
+  if (MODE_IS(mode0) || MODE_IS(mode1) || MODE_IS(mode2))
+#define DURING_4(mode0, mode1, mode2, mode3) \
+  if (MODE_IS(mode0) || MODE_IS(mode1) || MODE_IS(mode2) || MODE_IS(mode3))
+#define DURING_5(mode0, mode1, mode2, mode3, mode4) \
+  if (MODE_IS(mode0) || MODE_IS(mode1) || MODE_IS(mode2) || MODE_IS(mode3) || MODE_IS(mode4))
+#define DURING_6(mode0, mode1, mode2, mode3, mode4, mode5) \
+  if (MODE_IS(mode0) || MODE_IS(mode1) || MODE_IS(mode2) || MODE_IS(mode3) || MODE_IS(mode4) || MODE_IS(mode5))
 
 // Use this to branch stub function exeuction to a specific call
 // count index (zero based). Treat it like an if statement.
