@@ -45,11 +45,6 @@ typedef void (tBTA_SYS_DISABLE)(void);
 enum
 {
     BTA_SYS_HW_BLUETOOTH,
-    BTA_SYS_HW_FMRX,
-    BTA_SYS_HW_FMTX,
-    BTA_SYS_HW_GPS,
-    BTA_SYS_HW_SENSOR,
-    BTA_SYS_HW_NFC,
     BTA_SYS_HW_RT,
 
     BTA_SYS_MAX_HW_MODULES
@@ -97,16 +92,6 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 #define BTA_ID_GATTC        31           /* GATT Client */
 #define BTA_ID_GATTS        32           /* GATT Client */
 #define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */
-
-/* FM */
-#define BTA_ID_FM           34           /* FM  */
-#define BTA_ID_FMTX         35           /* FM TX */
-
-/* SENSOR */
-#define BTA_ID_SSR          36           /* Sensor  */
-
-/* GPS */
-#define BTA_ID_GPS          37           /* GPS  */
 
 /* GENERIC */
 #define BTA_ID_PRM          38

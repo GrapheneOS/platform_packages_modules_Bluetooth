@@ -636,18 +636,6 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
             bta_id = BTA_ID_DM;
             bta_id_max = BTA_ID_BLUETOOTH_MAX;
             break;
-        case BTA_SYS_HW_FMRX:
-            bta_id = BTA_ID_FM;
-            bta_id_max = BTA_ID_FM;
-            break;
-        case BTA_SYS_HW_FMTX:
-            bta_id = BTA_ID_FMTX;
-            bta_id_max = BTA_ID_FMTX;
-            break;
-        case BTA_SYS_HW_GPS:
-            bta_id = BTA_ID_GPS;
-            bta_id_max = BTA_ID_GPS;
-            break;
         default:
             APPL_TRACE_WARNING("bta_sys_disable: unkown module");
             return;
