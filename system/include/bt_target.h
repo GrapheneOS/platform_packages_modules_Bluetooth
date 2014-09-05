@@ -139,10 +139,6 @@
 #define BTA_PAN_INCLUDED TRUE
 #endif
 
-#ifndef BTA_FS_INCLUDED
-#define BTA_FS_INCLUDED TRUE
-#endif
-
 #ifndef BTA_HH_INCLUDED
 #define BTA_HH_INCLUDED TRUE
 #endif
