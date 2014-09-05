@@ -21,12 +21,6 @@
 
 #include "data_types.h"
 
-#ifdef _WIN32
-#ifdef BLUESTACK_TESTER
-    #include "bte_stack_entry.h"
-#endif
-#endif
-
 /* READ WELL !!
 **
 ** This section defines global events. These are events that cross layers.

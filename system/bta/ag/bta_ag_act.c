@@ -411,12 +411,6 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     int i, num_active_conn = 0;
     UNUSED(p_data);
 
-#ifdef  _WIN32_WCE
-    /* The BTE RFCOMM automatically removes the connection when closed, but BTW does not */
-    if (p_scb->conn_handle != 0)
-        RFCOMM_RemoveConnection (p_scb->conn_handle);
-#endif
-
     /* reinitialize stuff */
     p_scb->conn_service = 0;
     p_scb->peer_features = 0;
