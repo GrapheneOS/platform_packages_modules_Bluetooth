@@ -26,17 +26,6 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
-#include "bta_sys_ci.h"
-#include "bta_sys_co.h"
-#if BTA_FM_INCLUDED == TRUE
-#include "bta_fm_api.h"
-#endif
-#if BTA_FMTX_INCLUDED == TRUE
-#include "bta_fmtx_api.h"
-#endif
-#if GPS_INCLUDED == TRUE
-#include "bta_gps_api.h"
-#endif
 
 #include "gki.h"
 #include "ptim.h"
@@ -339,8 +328,14 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
         /* register which HW module was turned on */
         bta_sys_cb.sys_hw_module_active |=  ((UINT32)1 << p_sys_hw_msg->hw_module );
 
-        /* use call-out to power-up HW */
-        bta_sys_hw_co_enable(p_sys_hw_msg->hw_module);
+        tBTA_SYS_HW_MSG *p_msg;
+        if ((p_msg = (tBTA_SYS_HW_MSG *) GKI_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+        {
+            p_msg->hdr.event = BTA_SYS_EVT_ENABLED_EVT;
+            p_msg->hw_module = p_sys_hw_msg->hw_module;
+
+            bta_sys_sendmsg(p_msg);
+        }
     }
     else
     {
@@ -391,8 +386,15 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
     {
         /* manually update the state of our system */
         bta_sys_cb.state = BTA_SYS_HW_STOPPING;
-        /* and use the call-out to disable HW */
-        bta_sys_hw_co_disable(p_sys_hw_msg->hw_module);
+
+        tBTA_SYS_HW_MSG *p_msg;
+        if ((p_msg = (tBTA_SYS_HW_MSG *) GKI_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+        {
+            p_msg->hdr.event = BTA_SYS_EVT_DISABLED_EVT;
+            p_msg->hw_module = p_sys_hw_msg->hw_module;
+
+            bta_sys_sendmsg(p_msg);
+        }
     }
 
 }

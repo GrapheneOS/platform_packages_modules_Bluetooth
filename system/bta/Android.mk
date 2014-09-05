@@ -78,7 +78,6 @@ LOCAL_SRC_FILES:= \
     ./mce/bta_mce_act.c \
     ./mce/bta_mce_cfg.c \
     ./sys/bta_sys_main.c \
-    ./sys/bta_sys_ci.c \
     ./sys/bta_sys_conn.c \
     ./sys/ptim.c \
     ./sys/bd.c \

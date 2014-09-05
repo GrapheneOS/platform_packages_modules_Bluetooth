@@ -51,7 +51,6 @@ LOCAL_SRC_FILES += \
 
 # callouts
 LOCAL_SRC_FILES+= \
-    ../btif/co/bta_sys_co.c \
     ../btif/co/bta_fs_co.c \
     ../btif/co/bta_ag_co.c \
     ../btif/co/bta_dm_co.c \
