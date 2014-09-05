@@ -16,25 +16,13 @@
  *
  ******************************************************************************/
 
-/******************************************************************************
- *
- *  This file contains the main Bluetooth Upper Layer processing loop.
- *  The Broadcom implementations of L2CAP RFCOMM, SDP and the BTIf run as one
- *  GKI task. This btu_task switches between them.
- *
- *  Note that there will always be an L2CAP, but there may or may not be an
- *  RFCOMM or SDP. Whether these layers are present or not is determined by
- *  compile switches.
- *
- ******************************************************************************/
+#define LOG_TAG "btu_task"
 
 #include <assert.h>
-
-#define LOG_TAG "btu_task"
 #include <cutils/log.h>
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "alarm.h"
 #include "bt_target.h"
@@ -46,6 +34,7 @@
 #include "btm_int.h"
 #include "btu.h"
 #include "fixed_queue.h"
+#include "future.h"
 #include "gki.h"
 #include "hash_map.h"
 #include "hcimsgs.h"
@@ -54,7 +43,9 @@
 #include "bt_utils.h"
 #include <sys/prctl.h>
 
+#include "osi.h"
 #include "sdpint.h"
+#include "thread.h"
 
 #if ( defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE )
 #include "port_api.h"
@@ -170,11 +161,69 @@ extern fixed_queue_t *btu_l2cap_alarm_queue;
 extern hash_map_t *btu_l2cap_alarm_hash_map;
 extern pthread_mutex_t btu_l2cap_alarm_lock;
 
+extern fixed_queue_t *event_queue;
+extern fixed_queue_t *btif_msg_queue;
+
+extern thread_t *bt_workqueue_thread;
+
 /* Define a function prototype to allow a generic timeout handler */
 typedef void (tUSER_TIMEOUT_FUNC) (TIMER_LIST_ENT *p_tle);
 
 static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle);
 static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle);
+static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle);
+static void btu_hci_msg_process(BT_HDR *p_msg);
+
+void btu_hci_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    BT_HDR *p_msg = (BT_HDR *)fixed_queue_dequeue(queue);
+    btu_hci_msg_process(p_msg);
+}
+
+void btu_general_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
+    btu_general_alarm_process(p_tle);
+}
+
+void btu_oneshot_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
+    btu_general_alarm_process(p_tle);
+
+    switch (p_tle->event) {
+#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
+        case BTU_TTYPE_BLE_RANDOM_ADDR:
+            btm_ble_timeout(p_tle);
+            break;
+#endif
+
+        case BTU_TTYPE_USER_FUNC:
+            {
+                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
+                (*p_uf)(p_tle);
+            }
+            break;
+
+        default:
+            // FAIL
+            BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
+                p_tle->event);
+            break;
+    }
+}
+
+void btu_l2cap_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
+    btu_l2cap_alarm_process(p_tle);
+}
+
+void btu_bta_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    BT_HDR *p_msg = (BT_HDR *)fixed_queue_dequeue(queue);
+    bta_sys_event(p_msg);
+}
+
+void btu_bta_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
+    btu_bta_alarm_process(p_tle);
+}
 
 static void btu_hci_msg_process(BT_HDR *p_msg) {
     /* Determine the input message type. */
@@ -354,146 +403,66 @@ static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle) {
     }
 }
 
-/*******************************************************************************
-**
-** Function         btu_task
-**
-** Description      This is the main task of the Bluetooth Upper Layers unit.
-**                  It sits in a loop waiting for messages, and dispatches them
-**                  to the appropiate handlers.
-**
-** Returns          should never return
-**
-*******************************************************************************/
-BTU_API void btu_task (void)
-{
-    UINT16           event;
-    BT_HDR          *p_msg;
-    TIMER_LIST_ENT  *p_tle;
-    UINT8            i;
-    UINT16           mask;
-    BOOLEAN          handled;
+void btu_task_start_up(UNUSED_ATTR void *context) {
+  BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
+      "btu_task pending for preload complete event");
 
-    /* wait an event that HCISU is ready */
-    BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
-                "btu_task pending for preload complete event");
+  ALOGI("Bluetooth chip preload is complete");
 
-    for (;;)
-    {
-        event = GKI_wait (0xFFFF, 0);
-        if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
-        {
-            /* indicates BT ENABLE abort */
-            BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
-                        "btu_task start abort!");
-            return;
-        }
-        else if (event & BT_EVT_PRELOAD_CMPL)
-        {
-            break;
-        }
-        else
-        {
-            BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
-                "btu_task ignore evt %04x while pending for preload complete",
-                event);
-        }
-    }
+  BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
+      "btu_task received preload complete event");
 
-    BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
-                "btu_task received preload complete event");
+  /* Initialize the mandatory core stack control blocks
+     (BTU, BTM, L2CAP, and SDP)
+   */
+  btu_init_core();
 
-    /* Initialize the mandatory core stack control blocks
-       (BTU, BTM, L2CAP, and SDP)
-     */
-    btu_init_core();
+  /* Initialize any optional stack components */
+  BTE_InitStack();
 
-    /* Initialize any optional stack components */
-    BTE_InitStack();
+  bta_sys_init();
 
-    bta_sys_init();
-
-    /* Initialise platform trace levels at this point as BTE_InitStack() and bta_sys_init()
-     * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
-     */
+  /* Initialise platform trace levels at this point as BTE_InitStack() and bta_sys_init()
+   * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
+   */
 #if ( BT_USE_TRACES==TRUE )
-    BTE_InitTraceLevels();
+  BTE_InitTraceLevels();
 #endif
 
-    // Inform the bt jni thread initialization is ok.
-    btif_transfer_context(btif_init_ok, 0, NULL, 0, NULL);
+  // Inform the bt jni thread initialization is ok.
+  btif_transfer_context(btif_init_ok, 0, NULL, 0, NULL);
 
-    raise_priority_a2dp(TASK_HIGH_BTU);
+  fixed_queue_register_dequeue(btu_bta_msg_queue,
+      thread_get_reactor(bt_workqueue_thread),
+      btu_bta_msg_ready,
+      NULL);
 
-    /* Wait for, and process, events */
-    for (;;) {
-        event = GKI_wait (0xFFFF, 0);
+  fixed_queue_register_dequeue(btu_hci_msg_queue,
+      thread_get_reactor(bt_workqueue_thread),
+      btu_hci_msg_ready,
+      NULL);
 
-        // HCI message queue.
-        while (!fixed_queue_is_empty(btu_hci_msg_queue)) {
-            p_msg = (BT_HDR *)fixed_queue_dequeue(btu_hci_msg_queue);
-            btu_hci_msg_process(p_msg);
-        }
+  fixed_queue_register_dequeue(btu_general_alarm_queue,
+      thread_get_reactor(bt_workqueue_thread),
+      btu_general_alarm_ready,
+      NULL);
 
-        // General alarm queue.
-        while (!fixed_queue_is_empty(btu_general_alarm_queue)) {
-            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_general_alarm_queue);
-            btu_general_alarm_process(p_tle);
-        }
+  fixed_queue_register_dequeue(btu_oneshot_alarm_queue,
+      thread_get_reactor(bt_workqueue_thread),
+      btu_oneshot_alarm_ready,
+      NULL);
 
-#if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-        // L2CAP alarm queue.
-        while (!fixed_queue_is_empty(btu_l2cap_alarm_queue)) {
-            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_l2cap_alarm_queue);
-            btu_l2cap_alarm_process(p_tle);
-        }
-#endif  // QUICK_TIMER
+  fixed_queue_register_dequeue(btu_l2cap_alarm_queue,
+      thread_get_reactor(bt_workqueue_thread),
+      btu_l2cap_alarm_ready,
+      NULL);
+}
 
-        // BTA message queue.
-        while (!fixed_queue_is_empty(btu_bta_msg_queue)) {
-            p_msg = (BT_HDR *)fixed_queue_dequeue(btu_bta_msg_queue);
-            bta_sys_event(p_msg);
-        }
-
-        // BTA timer queue.
-        while (!fixed_queue_is_empty(btu_bta_alarm_queue)) {
-            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_bta_alarm_queue);
-            btu_bta_alarm_process(p_tle);
-        }
-
-        while (!fixed_queue_is_empty(btu_oneshot_alarm_queue)) {
-            p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(btu_oneshot_alarm_queue);
-            switch (p_tle->event) {
-#if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
-                case BTU_TTYPE_BLE_RANDOM_ADDR:
-                    btm_ble_timeout(p_tle);
-                    break;
+void btu_task_shut_down(UNUSED_ATTR void *context) {
+#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
+  bta_sys_free();
 #endif
-
-                case BTU_TTYPE_USER_FUNC:
-                    {
-                        tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
-                        (*p_uf)(p_tle);
-                    }
-                    break;
-
-                default:
-                    // FAIL
-                    BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
-                        p_tle->event);
-                    break;
-            }
-        }
-
-        if (event & EVENT_MASK(APPL_EVT_7))
-            break;
-    }
-
-    bta_sys_free();
-
-    btu_free_core();
-
-    return;
+  btu_free_core();
 }
 
 /*******************************************************************************

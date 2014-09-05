@@ -43,6 +43,7 @@
 #include "btsnoop.h"
 #include "bt_utils.h"
 #include "fixed_queue.h"
+#include "future.h"
 #include "gki.h"
 #include "hash_functions.h"
 #include "hash_map.h"
@@ -76,30 +77,6 @@ BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
 BOOLEAN hci_save_log = FALSE; /* save a copy of the log before starting again */
 char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
-// Communication queue between btu_task and bta.
-fixed_queue_t *btu_bta_msg_queue;
-
-// Communication queue between btu_task and hci.
-fixed_queue_t *btu_hci_msg_queue;
-
-// General timer queue.
-fixed_queue_t *btu_general_alarm_queue;
-hash_map_t *btu_general_alarm_hash_map;
-pthread_mutex_t btu_general_alarm_lock;
-static const size_t BTU_GENERAL_ALARM_HASH_MAP_SIZE = 17;
-
-// Oneshot timer queue.
-fixed_queue_t *btu_oneshot_alarm_queue;
-hash_map_t *btu_oneshot_alarm_hash_map;
-pthread_mutex_t btu_oneshot_alarm_lock;
-static const size_t BTU_ONESHOT_ALARM_HASH_MAP_SIZE = 17;
-
-// l2cap timer queue.
-fixed_queue_t *btu_l2cap_alarm_queue;
-hash_map_t *btu_l2cap_alarm_hash_map;
-pthread_mutex_t btu_l2cap_alarm_lock;
-static const size_t BTU_L2CAP_ALARM_HASH_MAP_SIZE = 17;
-
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
@@ -109,15 +86,9 @@ static const hci_callbacks_t hci_callbacks;
 // Lock to serialize shutdown requests from upper layer.
 static pthread_mutex_t shutdown_lock;
 
-// These are temporary so we can run the new HCI code
-// with the old upper stack.
-static fixed_queue_t *upbound_data;
-static thread_t *dispatch_thread;
-
 /*******************************************************************************
 **  Static functions
 *******************************************************************************/
-static void dump_upbound_data_to_btu(fixed_queue_t *queue, void *context);
 
 /*******************************************************************************
 **  Externs
@@ -128,6 +99,8 @@ void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
 void bte_load_conf(const char *p_path);
 extern void bte_load_ble_conf(const char *p_path);
 bt_bdaddr_t btif_local_bd_addr;
+
+fixed_queue_t *btu_hci_msg_queue;
 
 /******************************************************************************
 **
@@ -149,17 +122,13 @@ void bte_main_boot_entry(void)
 
     btsnoop = btsnoop_get_interface();
 
-    upbound_data = fixed_queue_new(SIZE_MAX);
-    dispatch_thread = thread_new("hci_dispatch");
+    btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
+    if (btu_hci_msg_queue == NULL) {
+      ALOGE("%s unable to allocate hci message queue.", __func__);
+      return;
+    }
 
-    fixed_queue_register_dequeue(
-      upbound_data,
-      thread_get_reactor(dispatch_thread),
-      dump_upbound_data_to_btu,
-      NULL
-    );
-
-    data_dispatcher_register_default(hci->upward_dispatcher, upbound_data);
+    data_dispatcher_register_default(hci->upward_dispatcher, btu_hci_msg_queue);
 
     bte_load_conf(BTE_STACK_CONF_FILE);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -186,12 +155,10 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
-    thread_free(dispatch_thread);
     data_dispatcher_register_default(hci_layer_get_interface()->upward_dispatcher, NULL);
-    fixed_queue_free(upbound_data, NULL);
+    fixed_queue_free(btu_hci_msg_queue, NULL);
 
-    dispatch_thread = NULL;
-    upbound_data = NULL;
+    btu_hci_msg_queue = NULL;
 
     pthread_mutex_destroy(&shutdown_lock);
     GKI_shutdown();
@@ -211,25 +178,7 @@ void bte_main_enable()
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
-    btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
-
-    btu_general_alarm_hash_map = hash_map_new(BTU_GENERAL_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
-    pthread_mutex_init(&btu_general_alarm_lock, NULL);
-    btu_general_alarm_queue = fixed_queue_new(SIZE_MAX);
-
-    btu_oneshot_alarm_hash_map = hash_map_new(BTU_ONESHOT_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
-    pthread_mutex_init(&btu_oneshot_alarm_lock, NULL);
-    btu_oneshot_alarm_queue = fixed_queue_new(SIZE_MAX);
-
-    btu_l2cap_alarm_hash_map = hash_map_new(BTU_L2CAP_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
-    pthread_mutex_init(&btu_l2cap_alarm_lock, NULL);
-    btu_l2cap_alarm_queue = fixed_queue_new(SIZE_MAX);
-
-    BTU_StartUp();
+//    BTU_StartUp();
 
     btsnoop->set_is_running(hci_logging_enabled || hci_logging_config);
     assert(hci->start_up_async(btif_local_bd_addr.address, &hci_callbacks));
@@ -260,21 +209,6 @@ void bte_main_disable(void)
     }
 
     BTU_ShutDown();
-
-    fixed_queue_free(btu_bta_msg_queue, NULL);
-    fixed_queue_free(btu_hci_msg_queue, NULL);
-
-    hash_map_free(btu_general_alarm_hash_map);
-    pthread_mutex_destroy(&btu_general_alarm_lock);
-    fixed_queue_free(btu_general_alarm_queue, NULL);
-
-    hash_map_free(btu_oneshot_alarm_hash_map);
-    pthread_mutex_destroy(&btu_oneshot_alarm_lock);
-    fixed_queue_free(btu_oneshot_alarm_queue, NULL);
-
-    hash_map_free(btu_l2cap_alarm_hash_map);
-    pthread_mutex_destroy(&btu_l2cap_alarm_lock);
-    fixed_queue_free(btu_l2cap_alarm_queue, NULL);
 }
 
 /******************************************************************************
@@ -459,19 +393,11 @@ static void hci_startup_cb(bool success)
     APPL_TRACE_EVENT("HC preload_cb %d [1:SUCCESS 0:FAIL]", success);
 
     if (success) {
-        /* notify BTU task that libbt-hci is ready */
-        GKI_send_event(BTU_TASK, BT_EVT_PRELOAD_CMPL);
+        BTU_StartUp();
     } else {
-        /* Notify BTIF_TASK that the init procedure had failed*/
-        GKI_send_event(BTIF_TASK, BT_EVT_HARDWARE_INIT_FAIL);
+        ALOGE("%s hci startup failed", __func__);
+        // TODO(cmanton) Initiate shutdown sequence.
     }
-}
-
-static void dump_upbound_data_to_btu(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    fixed_queue_enqueue(btu_hci_msg_queue, fixed_queue_dequeue(queue));
-    // Signal the target thread work is ready.
-    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-
 }
 
 /******************************************************************************
@@ -491,21 +417,14 @@ static void dump_upbound_data_to_btu(fixed_queue_t *queue, UNUSED_ATTR void *con
 **                  boundary. The 'p_buf' is not intended to be used here
 **                  but might point to data portion in data-path buffer.
 **
-** Returns          bt_hc_status_t
+** Returns          void
 **
 ******************************************************************************/
-static void tx_result(void *p_buf, bool all_fragments_sent)
-{
+static void tx_result(void *p_buf, bool all_fragments_sent) {
     if (!all_fragments_sent)
-    {
         fixed_queue_enqueue(btu_hci_msg_queue, p_buf);
-        // Signal the target thread work is ready.
-        GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
-    }
     else
-    {
         GKI_freebuf(p_buf);
-    }
 }
 
 /*****************************************************************************

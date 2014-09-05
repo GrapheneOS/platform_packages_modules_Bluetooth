@@ -278,11 +278,11 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 /* Functions provided by btu_task.c
 ************************************
 */
-BTU_API extern void btu_task (void);
-BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
+extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
+extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
+extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 
 BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);

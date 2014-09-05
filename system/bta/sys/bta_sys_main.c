@@ -24,6 +24,7 @@
 #include <assert.h>
 #define LOG_TAG "bta_sys_main"
 #include <cutils/log.h>
+#include <string.h>
 
 #include "alarm.h"
 #include "btm_api.h"
@@ -36,7 +37,8 @@
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "ptim.h"
-#include <string.h>
+#include "osi.h"
+#include "thread.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
@@ -51,6 +53,7 @@ fixed_queue_t *btu_bta_alarm_queue;
 static hash_map_t *bta_alarm_hash_map;
 static const size_t BTA_ALARM_HASH_MAP_SIZE = 17;
 static pthread_mutex_t bta_alarm_lock;
+extern thread_t *bt_workqueue_thread;
 
 /* trace level */
 /* TODO Bluedroid - Hard-coded trace levels -  Needs to be configurable */
@@ -59,6 +62,7 @@ UINT8 btif_trace_level = BT_TRACE_LEVEL_WARNING;
 
 // Communication queue between btu_task and bta.
 extern fixed_queue_t *btu_bta_msg_queue;
+void btu_bta_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context);
 
 static const tBTA_SYS_REG bta_sys_hw_reg =
 {
@@ -179,6 +183,11 @@ BTA_API void bta_sys_init(void)
     bta_alarm_hash_map = hash_map_new(BTA_ALARM_HASH_MAP_SIZE,
             hash_function_pointer, NULL, (data_free_fn)alarm_free);
     btu_bta_alarm_queue = fixed_queue_new(SIZE_MAX);
+
+    fixed_queue_register_dequeue(btu_bta_alarm_queue,
+        thread_get_reactor(bt_workqueue_thread),
+        btu_bta_alarm_ready,
+        NULL);
 
     bta_sys_cb.task_id = GKI_get_taskid();
     appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
