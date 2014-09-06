@@ -255,7 +255,7 @@ typedef struct
     UINT16  OSStackSize[GKI_MAX_TASKS];     /* stack size available to each task */
 
 
-    INT8   *OSTName[GKI_MAX_TASKS];         /* name of the task */
+    const char *OSTName[GKI_MAX_TASKS];         /* name of the task */
 
     UINT8   OSRdyTbl[GKI_MAX_TASKS];        /* current state of the task */
     UINT16  OSWaitEvt[GKI_MAX_TASKS];       /* events that have to be processed by the task */

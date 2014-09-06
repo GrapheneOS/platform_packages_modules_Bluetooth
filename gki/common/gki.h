@@ -138,14 +138,14 @@ extern "C" {
 
 /* Task management
 */
-GKI_API extern UINT8   GKI_create_task (TASKPTR, UINT8, INT8 *, UINT16 *, UINT16);
+GKI_API extern UINT8   GKI_create_task(TASKPTR, UINT8, const char *);
 GKI_API extern void    GKI_destroy_task(UINT8 task_id);
 GKI_API extern void    GKI_task_self_cleanup(UINT8 task_id);
 GKI_API extern void    GKI_exit_task(UINT8);
 GKI_API extern UINT8   GKI_get_taskid(void);
 GKI_API extern void    GKI_init(void);
 GKI_API extern void    GKI_shutdown(void);
-GKI_API extern INT8   *GKI_map_taskname(UINT8);
+GKI_API extern const char *GKI_map_taskname(UINT8);
 GKI_API extern void    GKI_run(void);
 GKI_API extern void    GKI_stop(void);
 

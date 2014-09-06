@@ -176,13 +176,6 @@ enum {
 #define BTIF_A2DP_NON_EDR_MAX_RATE 229
 #endif
 
-#ifndef A2DP_MEDIA_TASK_STACK_SIZE
-#define A2DP_MEDIA_TASK_STACK_SIZE       0x2000         /* In bytes */
-#endif
-
-#define A2DP_MEDIA_TASK_TASK_STR        ((INT8 *) "A2DP-MEDIA")
-static UINT32 a2dp_media_task_stack[(A2DP_MEDIA_TASK_STACK_SIZE + 3) / 4];
-
 #define BT_MEDIA_TASK A2DP_MEDIA_TASK
 
 #define USEC_PER_SEC 1000000L
@@ -779,10 +772,7 @@ int btif_a2dp_start_media_task(void)
     btif_media_data_msg_queue = fixed_queue_new(SIZE_MAX);
 
     /* start a2dp media task */
-    retval = GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK,
-                A2DP_MEDIA_TASK_TASK_STR,
-                (UINT16 *) ((UINT8 *)a2dp_media_task_stack + A2DP_MEDIA_TASK_STACK_SIZE),
-                sizeof(a2dp_media_task_stack));
+    retval = GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK, "A2DP-MEDIA");
 
     if (retval != GKI_SUCCESS)
         return retval;

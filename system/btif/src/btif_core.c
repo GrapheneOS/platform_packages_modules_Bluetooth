@@ -58,15 +58,9 @@
 **  Constants & Macros
 ************************************************************************************/
 
-#ifndef BTIF_TASK_STACK_SIZE
-#define BTIF_TASK_STACK_SIZE       0x2000         /* In bytes */
-#endif
-
 #ifndef BTE_DID_CONF_FILE
 #define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
 #endif
-
-#define BTIF_TASK_STR        ((INT8 *) "BTIF")
 
 /************************************************************************************
 **  Local type definitions
@@ -102,8 +96,6 @@ typedef enum {
 ************************************************************************************/
 
 bt_bdaddr_t btif_local_bd_addr;
-
-static UINT32 btif_task_stack[(BTIF_TASK_STACK_SIZE + 3) / 4];
 
 /* holds main adapter state */
 static btif_core_state_t btif_core_state = BTIF_CORE_STATE_DISABLED;
@@ -491,9 +483,7 @@ bt_status_t btif_init_bluetooth()
     btif_fetch_local_bdaddr(&btif_local_bd_addr);
 
     /* start btif task */
-    status = GKI_create_task(btif_task, BTIF_TASK, BTIF_TASK_STR,
-                (UINT16 *) ((UINT8 *)btif_task_stack + BTIF_TASK_STACK_SIZE),
-                sizeof(btif_task_stack));
+    status = GKI_create_task(btif_task, BTIF_TASK, "BTIF");
 
     if (status != GKI_SUCCESS)
         return BT_STATUS_FAIL;

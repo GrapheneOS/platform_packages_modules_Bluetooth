@@ -201,8 +201,6 @@ UINT32 GKI_get_os_tick_count(void)
 ** Parameters:      task_entry  - (input) pointer to the entry function of the task
 **                  task_id     - (input) Task id is mapped to priority
 **                  taskname    - (input) name given to the task
-**                  stack       - (input) pointer to the top of the stack (highest memory location)
-**                  stacksize   - (input) size of the stack allocated for the task
 **
 ** Returns          GKI_SUCCESS if all OK, GKI_FAILURE if any problem
 **
@@ -211,25 +209,21 @@ UINT32 GKI_get_os_tick_count(void)
 **                  of the function prototype.
 **
 *******************************************************************************/
-UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16 *stack, UINT16 stacksize)
+UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
 {
     UINT16  i;
     UINT8   *p;
     struct sched_param param;
     int policy, ret = 0;
     pthread_attr_t attr1;
-    UNUSED(stack);
-    UNUSED(stacksize);
 
-    GKI_TRACE( "GKI_create_task %x %d %s %x %d", (int)task_entry, (int)task_id,
-            (char*) taskname, (int) stack, (int)stacksize);
+    GKI_TRACE( "GKI_create_task %x %d %s", (int)task_entry, (int)task_id, taskname);
 
     if (task_id >= GKI_MAX_TASKS)
     {
         ALOGE("Error! task ID > max task allowed");
         return (GKI_FAILURE);
     }
-
 
     gki_cb.com.OSRdyTbl[task_id]    = TASK_READY;
     gki_cb.com.OSTName[task_id]     = taskname;
@@ -297,13 +291,11 @@ UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16
          pthread_setschedparam(gki_cb.os.thread_id[task_id], policy, &param);
      }
 
-    GKI_TRACE( "Leaving GKI_create_task %x %d %x %s %x %d\n",
+    GKI_TRACE( "Leaving GKI_create_task %x %d %x %s\n",
               (int)task_entry,
               (int)task_id,
               (int)gki_cb.os.thread_id[task_id],
-              (char*)taskname,
-              (int)stack,
-              (int)stacksize);
+              taskname);
 
     return (GKI_SUCCESS);
 }
@@ -818,25 +810,14 @@ UINT8 GKI_get_taskid (void)
 **
 *******************************************************************************/
 
-INT8 *GKI_map_taskname (UINT8 task_id)
-{
-    GKI_TRACE("GKI_map_taskname %d", task_id);
+const char *GKI_map_taskname(UINT8 task_id) {
+  assert(task_id <= GKI_MAX_TASKS);
 
-    if (task_id < GKI_MAX_TASKS)
-    {
-        GKI_TRACE("GKI_map_taskname %d %s done", task_id, gki_cb.com.OSTName[task_id]);
-         return (gki_cb.com.OSTName[task_id]);
-    }
-    else if (task_id == GKI_MAX_TASKS )
-    {
-        return (gki_cb.com.OSTName[GKI_get_taskid()]);
-    }
-    else
-    {
-        return (INT8*)"BAD";
-    }
+  if (task_id == GKI_MAX_TASKS)
+    task_id = GKI_get_taskid();
+
+  return gki_cb.com.OSTName[task_id];
 }
-
 
 /*******************************************************************************
 **

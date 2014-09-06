@@ -126,7 +126,7 @@ void BTU_StartUp(void)
       btu_cb.hci_cmd_cb[i].cmd_window = 1;
     }
 
-    GKI_create_task(btu_task, BTU_TASK, (INT8 *)"BTU", NULL, 0);
+    GKI_create_task(btu_task, BTU_TASK, "BTU");
 }
 
 void BTU_ShutDown(void) {
