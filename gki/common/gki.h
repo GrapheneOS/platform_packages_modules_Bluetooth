@@ -146,8 +146,6 @@ GKI_API extern UINT8   GKI_get_taskid(void);
 GKI_API extern void    GKI_init(void);
 GKI_API extern void    GKI_shutdown(void);
 GKI_API extern const char *GKI_map_taskname(UINT8);
-GKI_API extern void    GKI_run(void);
-GKI_API extern void    GKI_stop(void);
 
 /* To send buffers and events between tasks
 */

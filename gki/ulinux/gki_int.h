@@ -41,18 +41,6 @@
 #define GKI_LINUX_BASE_POLICY GKI_SCHED_NORMAL
 #endif
 
-/* GKI timer bases should use GKI_SCHED_FIFO to ensure the least jitter possible */
-#ifndef GKI_LINUX_TIMER_POLICY
-#define GKI_LINUX_TIMER_POLICY GKI_SCHED_FIFO
-#endif
-
-/* the GKI_timer_update() thread should have the highest real time priority to ensue correct
- * timer expiry.
- */
-#ifndef GKI_LINUX_TIMER_TICK_PRIORITY
-#define GKI_LINUX_TIMER_TICK_PRIORITY GKI_LINUX_BASE_PRIORITY+2
-#endif
-
 typedef struct
 {
     pthread_mutex_t     GKI_mutex;
