@@ -203,10 +203,6 @@
 #define GKI_SHUTDOWN_EVT  APPL_EVT_7
 #endif
 
-#ifndef GKI_PTHREAD_JOINABLE
-#define GKI_PTHREAD_JOINABLE  TRUE
-#endif
-
 #ifndef LINUX_DRV_INCLUDED
 #define LINUX_DRV_INCLUDED  TRUE
 #endif

@@ -173,8 +173,6 @@ void GKI_init(void)
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_init(&p_os->GKI_trace_mutex, NULL);
 #endif
-    /* pthread_mutex_init(&thread_delay_mutex, NULL); */  /* used in GKI_delay */
-    /* pthread_cond_init (&thread_delay_cond, NULL); */
 }
 
 
@@ -241,14 +239,6 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
     pthread_cond_init (&gki_cb.os.thread_timeout_cond[task_id], NULL);
 
     pthread_attr_init(&attr1);
-    /* by default, pthread creates a joinable thread */
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-    pthread_attr_setdetachstate(&attr1, PTHREAD_CREATE_DETACHED);
-
-    GKI_TRACE("GKI creating task %i\n", task_id);
-#else
-    GKI_TRACE("GKI creating JOINABLE task %i\n", task_id);
-#endif
 
     /* On Android, the new tasks starts running before 'gki_cb.os.thread_id[task_id]' is initialized */
     /* Pass task_id to new task so it can initialize gki_cb.os.thread_id[task_id] for it calls GKI_wait */
@@ -302,11 +292,6 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
 
 void GKI_destroy_task(UINT8 task_id)
 {
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-        int i = 0;
-#else
-        int result;
-#endif
     if (gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
     {
         gki_cb.com.OSRdyTbl[task_id] = TASK_DEAD;
@@ -337,18 +322,11 @@ void GKI_destroy_task(UINT8 task_id)
 
         GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-        i = 0;
-
-        while ((gki_cb.com.OSWaitEvt[task_id] != 0) && (++i < 10))
-            usleep(100 * 1000);
-#else
-        result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
+        int result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
         if ( result < 0 )
         {
             ALOGE( "pthread_join() FAILED: result: %d", result );
         }
-#endif
         GKI_exit_task(task_id);
         ALOGI( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.OSTName[task_id]);
     }
@@ -435,11 +413,6 @@ void GKI_task_self_cleanup(UINT8 task_id)
 void GKI_shutdown(void)
 {
     UINT8 task_id;
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-    int i = 0;
-#else
-    int result;
-#endif
 
     alarm_free(alarm_timer);
     alarm_timer = NULL;
@@ -461,19 +434,12 @@ void GKI_shutdown(void)
                                                 TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
             GKI_send_event(task_id - 1, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-            i = 0;
-
-            while ((gki_cb.com.OSWaitEvt[task_id - 1] != 0) && (++i < 10))
-                usleep(100 * 1000);
-#else
-            result = pthread_join( gki_cb.os.thread_id[task_id-1], NULL );
+            int result = pthread_join( gki_cb.os.thread_id[task_id-1], NULL );
 
             if ( result < 0 )
             {
                 ALOGE( "pthread_join() FAILED: result: %d", result );
             }
-#endif
             GKI_exit_task(task_id - 1);
         }
     }
@@ -481,16 +447,9 @@ void GKI_shutdown(void)
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.GKI_mutex);
 
-    /*    pthread_mutex_destroy(&GKI_sched_mutex); */
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_destroy(&gki_cb.os.GKI_trace_mutex);
 #endif
-    /*    pthread_mutex_destroy(&thread_delay_mutex);
-     pthread_cond_destroy (&thread_delay_cond); */
-#if ( FALSE == GKI_PTHREAD_JOINABLE )
-    i = 0;
-#endif
-
 }
 
 /*****************************************************************************
