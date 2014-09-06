@@ -43,15 +43,10 @@
 **  Constants & Macros
 ******************************************************************************/
 
-#define SCHED_NORMAL 0
-#define SCHED_FIFO 1
-#define SCHED_RR 2
-#define SCHED_BATCH 3
-
-#define NANOSEC_PER_MILLISEC    1000000
+#define NANOSEC_PER_MILLISEC    (1000000)
 #define NSEC_PER_SEC            (1000 * NANOSEC_PER_MILLISEC)
-#define USEC_PER_SEC            1000000
-#define NSEC_PER_USEC           1000
+#define USEC_PER_SEC            (1000000)
+#define NSEC_PER_USEC           (1000)
 
 #if GKI_DYNAMIC_MEMORY == FALSE
 tGKI_CB   gki_cb;
@@ -256,30 +251,6 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
          ALOGE("pthread_create failed(%d), %s!", ret, taskname);
          return GKI_FAILURE;
     }
-
-    if(pthread_getschedparam(gki_cb.os.thread_id[task_id], &policy, &param)==0)
-     {
-#if (GKI_LINUX_BASE_POLICY!=GKI_SCHED_NORMAL)
-#if defined(PBS_SQL_TASK)
-         if (task_id == PBS_SQL_TASK)
-         {
-             GKI_TRACE("PBS SQL lowest priority task");
-             policy = SCHED_NORMAL;
-         }
-         else
-#endif
-#endif
-         {
-             /* check if define in gki_int.h is correct for this compile environment! */
-             policy = GKI_LINUX_BASE_POLICY;
-#if (GKI_LINUX_BASE_POLICY != GKI_SCHED_NORMAL)
-             param.sched_priority = GKI_LINUX_BASE_PRIORITY - task_id - 2;
-#else
-             param.sched_priority = 0;
-#endif
-         }
-         pthread_setschedparam(gki_cb.os.thread_id[task_id], policy, &param);
-     }
 
     GKI_TRACE( "Leaving GKI_create_task %x %d %x %s\n",
               (int)task_entry,

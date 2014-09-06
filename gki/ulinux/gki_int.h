@@ -25,21 +25,6 @@
 /**********************************************************************
 ** OS specific definitions
 */
-/* The base priority used for pthread based GKI task. below value is to keep it retro compatible.
- * It is recommended to use (GKI_MAX_TASKS+3), this will assign real time priorities GKI_MAX_TASKS-
- * task_id -2 to the thread */
-#ifndef GKI_LINUX_BASE_PRIORITY
-#define GKI_LINUX_BASE_PRIORITY 30
-#endif
-
-/* The base policy used for pthread based GKI task. the sched defines are defined here to avoid undefined values due
- * to missing header file, see pthread functions! Overall it is recommend however to use SCHED_NOMRAL */
-#define GKI_SCHED_NORMAL    0
-#define GKI_SCHED_FIFO      1
-#define GKI_SCHED_RR        2
-#ifndef GKI_LINUX_BASE_POLICY
-#define GKI_LINUX_BASE_POLICY GKI_SCHED_NORMAL
-#endif
 
 typedef struct
 {
