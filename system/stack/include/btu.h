@@ -265,6 +265,7 @@ BTU_API extern const BD_ADDR        BT_BD_ANY;
 /* Functions provided by btu_task.c
 ************************************
 */
+BTU_API extern void btu_task (UINT32 param);
 BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
@@ -302,7 +303,10 @@ BTU_API extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
 */
 BTU_API extern void  btu_init_core(void);
 BTU_API extern void  btu_free_core(void);
-BTU_API extern void  BTE_Init(void);
+
+void BTU_StartUp(void);
+void BTU_ShutDown(void);
+
 BTU_API extern UINT16 BTU_AclPktSize(void);
 BTU_API extern UINT16 BTU_BleAclPktSize(void);
 

@@ -140,27 +140,12 @@ static void dump_upbound_data_to_btu(fixed_queue_t *queue, void *context);
 /*******************************************************************************
 **  Externs
 *******************************************************************************/
-UINT32 btu_task (UINT32 param);
-void BTE_StartUp(void);
-void BTE_ShutDown(void);
 void BTE_LoadStack(void);
 void BTE_UnloadStack(void);
 void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
 void bte_load_conf(const char *p_path);
 extern void bte_load_ble_conf(const char *p_path);
 bt_bdaddr_t btif_local_bd_addr;
-
-
-/*******************************************************************************
-**                        System Task Configuration
-*******************************************************************************/
-
-/* bluetooth protocol stack (BTU) task */
-#ifndef BTE_BTU_STACK_SIZE
-#define BTE_BTU_STACK_SIZE       0//0x2000         /* In bytes */
-#endif
-#define BTE_BTU_TASK_STR        ((INT8 *) "BTU")
-UINT32 bte_btu_stack[(BTE_BTU_STACK_SIZE + 3) / 4];
 
 /******************************************************************************
 **
@@ -260,12 +245,7 @@ void bte_main_enable()
     pthread_mutex_init(&btu_l2cap_alarm_lock, NULL);
     btu_l2cap_alarm_queue = fixed_queue_new(SIZE_MAX);
 
-    /* Initialize BTE control block */
-    BTE_StartUp();
-
-    GKI_create_task((TASKPTR)btu_task, BTU_TASK, BTE_BTU_TASK_STR,
-                    (UINT16 *) ((UINT8 *)bte_btu_stack + BTE_BTU_STACK_SIZE),
-                    sizeof(bte_btu_stack));
+    BTU_StartUp();
 
     bte_hci_enable();
 
@@ -288,7 +268,7 @@ void bte_main_disable(void)
 
     preload_stop_wait_timer();
     bte_hci_disable();
-    GKI_destroy_task(BTU_TASK);
+    BTU_ShutDown();
 
     fixed_queue_free(btu_bta_msg_queue, NULL);
     fixed_queue_free(btu_hci_msg_queue, NULL);
@@ -304,8 +284,6 @@ void bte_main_disable(void)
     hash_map_free(btu_l2cap_alarm_hash_map);
     pthread_mutex_destroy(&btu_l2cap_alarm_lock);
     fixed_queue_free(btu_l2cap_alarm_queue, NULL);
-
-    BTE_ShutDown();
 }
 
 /******************************************************************************

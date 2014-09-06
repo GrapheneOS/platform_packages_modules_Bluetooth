@@ -101,7 +101,7 @@ void btu_free_core(void)
 
 /*****************************************************************************
 **
-** Function         BTE_StartUp
+** Function         BTU_StartUp
 **
 ** Description      Initializes the BTU control block.
 **
@@ -111,7 +111,7 @@ void btu_free_core(void)
 ** Returns          void
 **
 ******************************************************************************/
-void BTE_StartUp(void)
+void BTU_StartUp(void)
 {
     memset (&btu_cb, 0, sizeof (tBTU_CB));
     btu_cb.hcit_acl_pkt_size = BTU_DEFAULT_DATA_SIZE + HCI_DATA_PREAMBLE_SIZE;
@@ -125,10 +125,12 @@ void BTE_StartUp(void)
       GKI_init_q(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q);
       btu_cb.hci_cmd_cb[i].cmd_window = 1;
     }
+
+    GKI_create_task(btu_task, BTU_TASK, (INT8 *)"BTU", NULL, 0);
 }
 
-
-void BTE_ShutDown(void) {
+void BTU_ShutDown(void) {
+  GKI_destroy_task(BTU_TASK);
   for (int i = 0; i < BTU_MAX_LOCAL_CTRLS; ++i) {
     while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_xmit_q))
       GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_xmit_q));

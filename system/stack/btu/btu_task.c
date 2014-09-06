@@ -363,7 +363,7 @@ static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle) {
 ** Returns          should never return
 **
 *******************************************************************************/
-BTU_API UINT32 btu_task (UINT32 param)
+BTU_API void btu_task (UINT32 param)
 {
     UINT16           event;
     BT_HDR          *p_msg;
@@ -385,7 +385,7 @@ BTU_API UINT32 btu_task (UINT32 param)
             /* indicates BT ENABLE abort */
             BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_WARNING,
                         "btu_task start abort!");
-            return (0);
+            return;
         }
         else if (event & BT_EVT_PRELOAD_CMPL)
         {
@@ -498,7 +498,7 @@ BTU_API UINT32 btu_task (UINT32 param)
 
     btu_free_core();
 
-    return(0);
+    return;
 }
 
 /*******************************************************************************
