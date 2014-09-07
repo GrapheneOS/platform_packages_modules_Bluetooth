@@ -91,10 +91,6 @@ typedef struct _free_queue
 #define BUF_STATUS_UNLINKED 1
 #define BUF_STATUS_QUEUED   2
 
-// btla-specific ++
-#define GKI_USE_DEFERED_ALLOC_BUF_POOLS
-// btla-specific --
-
 /* Exception related structures (Used in debug mode only)
 */
 #if (GKI_DEBUG == TRUE)
@@ -115,75 +111,6 @@ typedef struct
     */
     /* The stack and stack size are not used on Windows
     */
-// btla-specific ++
-#if (!defined GKI_USE_DEFERED_ALLOC_BUF_POOLS && (GKI_USE_DYNAMIC_BUFFERS == FALSE))
-// btla-specific --
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 0)
-    UINT8 bufpool0[(ALIGN_POOL(GKI_BUF0_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF0_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 1)
-    UINT8 bufpool1[(ALIGN_POOL(GKI_BUF1_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF1_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 2)
-    UINT8 bufpool2[(ALIGN_POOL(GKI_BUF2_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF2_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 3)
-    UINT8 bufpool3[(ALIGN_POOL(GKI_BUF3_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF3_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 4)
-    UINT8 bufpool4[(ALIGN_POOL(GKI_BUF4_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF4_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 5)
-    UINT8 bufpool5[(ALIGN_POOL(GKI_BUF5_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF5_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 6)
-    UINT8 bufpool6[(ALIGN_POOL(GKI_BUF6_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF6_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 7)
-    UINT8 bufpool7[(ALIGN_POOL(GKI_BUF7_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF7_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 8)
-    UINT8 bufpool8[(ALIGN_POOL(GKI_BUF8_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF8_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 9)
-    UINT8 bufpool9[(ALIGN_POOL(GKI_BUF9_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF9_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 10)
-    UINT8 bufpool10[(ALIGN_POOL(GKI_BUF10_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF10_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 11)
-    UINT8 bufpool11[(ALIGN_POOL(GKI_BUF11_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF11_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 12)
-    UINT8 bufpool12[(ALIGN_POOL(GKI_BUF12_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF12_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 13)
-    UINT8 bufpool13[(ALIGN_POOL(GKI_BUF13_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF13_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 14)
-    UINT8 bufpool14[(ALIGN_POOL(GKI_BUF14_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF14_MAX];
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 15)
-    UINT8 bufpool15[(ALIGN_POOL(GKI_BUF15_SIZE) + BUFFER_PADDING_SIZE) * GKI_BUF15_MAX];
-#endif
-
-#else
 /* Definitions for dynamic buffer use */
 #if (GKI_NUM_FIXED_BUF_POOLS > 0)
     UINT8 *bufpool0;
@@ -249,8 +176,6 @@ typedef struct
     UINT8 *bufpool15;
 #endif
 
-#endif
-
     const char *OSTName[GKI_MAX_TASKS];         /* name of the task */
 
     UINT8   OSRdyTbl[GKI_MAX_TASKS];        /* current state of the task */
@@ -303,10 +228,7 @@ extern BOOLEAN   gki_chk_buf_owner(void *);
 extern void      gki_buffer_init (void);
 extern void      gki_timers_init(void);
 extern void      gki_adjust_timer_count (INT32);
-
-#ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
 extern void      gki_dealloc_free_queue(void);
-#endif
 
 
 /* Debug aids

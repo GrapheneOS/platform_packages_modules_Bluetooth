@@ -352,9 +352,7 @@ void GKI_shutdown(void)
     alarm_free(alarm_timer);
     alarm_timer = NULL;
 
-#ifdef GKI_USE_DEFERED_ALLOC_BUF_POOLS
     gki_dealloc_free_queue();
-#endif
 
     /* release threads and set as TASK_DEAD. going from low to high priority fixes
      * GKI_exception problem due to btu->hci sleep request events  */
