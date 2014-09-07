@@ -15,8 +15,10 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include "gki_int.h"
 #include <cutils/log.h>
+
+#include "allocator.h"
+#include "gki_int.h"
 
 #if (GKI_NUM_TOTAL_BUF_POOLS > 16)
 #error Number of pools out of range (16 Max)!
@@ -100,7 +102,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
 
     if(Q->_p_first == 0)
     {
-        void* p_mem = GKI_os_malloc((Q->size + BUFFER_PADDING_SIZE) * Q->total);
+        void* p_mem = osi_malloc((Q->size + BUFFER_PADDING_SIZE) * Q->total);
         if(p_mem)
         {
             //re-initialize the queue with allocated memory
@@ -125,7 +127,7 @@ void gki_dealloc_free_queue(void)
     {
         if ( 0 < p_cb->freeq[i].max_cnt )
         {
-            GKI_os_free(p_cb->pool_start[i]);
+            osi_free(p_cb->pool_start[i]);
 
             p_cb->freeq[i].cur_cnt   = 0;
             p_cb->freeq[i].max_cnt   = 0;

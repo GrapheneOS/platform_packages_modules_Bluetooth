@@ -192,11 +192,6 @@ GKI_API extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
 GKI_API extern void    GKI_enable(void);
 GKI_API extern void    GKI_disable(void);
 
-/* Allocate (Free) memory from an OS
-*/
-GKI_API extern void     *GKI_os_malloc (UINT32);
-GKI_API extern void      GKI_os_free (void *);
-
 /* os timer operation */
 GKI_API extern UINT32 GKI_get_os_tick_count(void);
 

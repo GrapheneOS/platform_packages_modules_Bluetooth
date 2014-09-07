@@ -711,47 +711,6 @@ void GKI_exception (UINT16 code, char *msg)
 
 /*******************************************************************************
 **
-** Function         GKI_os_malloc
-**
-** Description      This function allocates memory
-**
-** Parameters:      size -  (input) The size of the memory that has to be
-**                  allocated
-**
-** Returns          the address of the memory allocated, or NULL if failed
-**
-** NOTE             This function is called by the Broadcom stack when
-**                  dynamic memory allocation is used. (see dyn_mem.h)
-**
-*******************************************************************************/
-void *GKI_os_malloc (UINT32 size)
-{
-    return malloc(size);
-}
-
-/*******************************************************************************
-**
-** Function         GKI_os_free
-**
-** Description      This function frees memory
-**
-** Parameters:      size -  (input) The address of the memory that has to be
-**                  freed
-**
-** Returns          void
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. It is only called from within GKI if dynamic
-**
-*******************************************************************************/
-void GKI_os_free (void *p_mem)
-{
-    free(p_mem);
-}
-
-
-/*******************************************************************************
-**
 ** Function         GKI_exit_task
 **
 ** Description      This function is called to stop a GKI task.
