@@ -119,16 +119,16 @@ static void gki_task_entry(UINT32 params)
     gki_pthread_info_t *p_pthread_info = (gki_pthread_info_t *)params;
     gki_cb.os.thread_id[p_pthread_info->task_id] = pthread_self();
 
-    prctl(PR_SET_NAME, (unsigned long)gki_cb.com.OSTName[p_pthread_info->task_id], 0, 0, 0);
+    prctl(PR_SET_NAME, (unsigned long)gki_cb.com.task_name[p_pthread_info->task_id], 0, 0, 0);
 
     ALOGI("gki_task_entry task_id=%i [%s] starting\n", p_pthread_info->task_id,
-                gki_cb.com.OSTName[p_pthread_info->task_id]);
+                gki_cb.com.task_name[p_pthread_info->task_id]);
 
     /* Call the actual thread entry point */
     (p_pthread_info->task_entry)(p_pthread_info->params);
 
     ALOGI("gki_task task_id=%i [%s] terminating\n", p_pthread_info->task_id,
-                gki_cb.com.OSTName[p_pthread_info->task_id]);
+                gki_cb.com.task_name[p_pthread_info->task_id]);
 
     pthread_exit(0);    /* GKI tasks have no return value */
 }
@@ -213,8 +213,8 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
         return (GKI_FAILURE);
     }
 
-    gki_cb.com.OSRdyTbl[task_id]    = TASK_READY;
-    gki_cb.com.OSTName[task_id]     = taskname;
+    gki_cb.com.task_state[task_id]  = TASK_READY;
+    gki_cb.com.task_name[task_id]     = taskname;
     gki_cb.com.OSWaitTmr[task_id]   = 0;
     gki_cb.com.OSWaitEvt[task_id]   = 0;
 
@@ -254,9 +254,9 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
 
 void GKI_destroy_task(UINT8 task_id)
 {
-    if (gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
+    if (gki_cb.com.task_state[task_id] != TASK_DEAD)
     {
-        gki_cb.com.OSRdyTbl[task_id] = TASK_DEAD;
+        gki_cb.com.task_state[task_id] = TASK_DEAD;
 
         /* paranoi settings, make sure that we do not execute any mailbox events */
         gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
@@ -275,7 +275,7 @@ void GKI_destroy_task(UINT8 task_id)
             ALOGE( "pthread_join() FAILED: result: %d", result );
         }
         GKI_exit_task(task_id);
-        ALOGI( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.OSTName[task_id]);
+        ALOGI( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.task_name[task_id]);
     }
 }
 
@@ -308,7 +308,7 @@ void GKI_task_self_cleanup(UINT8 task_id)
         return;
     }
 
-    if (gki_cb.com.OSRdyTbl[task_id] != TASK_DEAD)
+    if (gki_cb.com.task_state[task_id] != TASK_DEAD)
     {
         /* paranoi settings, make sure that we do not execute any mailbox events */
         gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
@@ -355,9 +355,9 @@ void GKI_shutdown(void)
      * GKI_exception problem due to btu->hci sleep request events  */
     for (task_id = GKI_MAX_TASKS; task_id > 0; task_id--)
     {
-        if (gki_cb.com.OSRdyTbl[task_id - 1] != TASK_DEAD)
+        if (gki_cb.com.task_state[task_id - 1] != TASK_DEAD)
         {
-            gki_cb.com.OSRdyTbl[task_id - 1] = TASK_DEAD;
+            gki_cb.com.task_state[task_id - 1] = TASK_DEAD;
 
             /* paranoi settings, make sure that we do not execute any mailbox events */
             gki_cb.com.OSWaitEvt[task_id-1] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
@@ -445,7 +445,7 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
            no need to call GKI_disable() here as we know that we will have some events as we've been waking
            up after condition pending or timeout */
 
-        if (gki_cb.com.OSRdyTbl[rtask] == TASK_DEAD)
+        if (gki_cb.com.task_state[rtask] == TASK_DEAD)
         {
             gki_cb.com.OSWaitEvt[rtask] = 0;
             /* unlock thread_evt_mutex as pthread_cond_wait() does auto lock when cond is met */
@@ -486,34 +486,18 @@ UINT16 GKI_wait (UINT16 flag, UINT32 timeout)
 
 void GKI_delay (UINT32 timeout)
 {
-    UINT8 rtask = GKI_get_taskid();
     struct timespec delay;
     int err;
 
-    GKI_TRACE("GKI_delay %d %d", (int)rtask, (int)timeout);
-
     delay.tv_sec = timeout / 1000;
-    delay.tv_nsec = 1000 * 1000 * (timeout%1000);
+    delay.tv_nsec = 1000 * 1000 * (timeout % 1000);
 
     /* [u]sleep can't be used because it uses SIGALRM */
 
     do {
         err = nanosleep(&delay, &delay);
-    } while (err < 0 && errno ==EINTR);
-
-    /* Check if task was killed while sleeping */
-
-     /* NOTE : if you do not implement task killing, you do not need this check */
-
-    if (rtask && gki_cb.com.OSRdyTbl[rtask] == TASK_DEAD)
-    {
-    }
-
-    GKI_TRACE("GKI_delay %d %d done", (int)rtask, (int)timeout);
-
-    return;
+    } while (err == -1 && errno ==EINTR);
 }
-
 
 /*******************************************************************************
 **
@@ -614,7 +598,7 @@ const char *GKI_map_taskname(UINT8 task_id) {
   if (task_id == GKI_MAX_TASKS)
     task_id = GKI_get_taskid();
 
-  return gki_cb.com.OSTName[task_id];
+  return gki_cb.com.task_name[task_id];
 }
 
 /*******************************************************************************
@@ -662,19 +646,16 @@ void GKI_disable (void)
 **
 *******************************************************************************/
 
-void GKI_exception (UINT16 code, char *msg)
+void GKI_exception(UINT16 code, char *msg)
 {
-    UINT8 task_id;
-    int i = 0;
-
     ALOGE( "GKI_exception(): Task State Table");
 
-    for(task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
+    for (int task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
     {
         ALOGE( "TASK ID [%d] task name [%s] state [%d]",
                          task_id,
-                         gki_cb.com.OSTName[task_id],
-                         gki_cb.com.OSRdyTbl[task_id]);
+                         gki_cb.com.task_name[task_id],
+                         gki_cb.com.task_state[task_id]);
     }
 
     ALOGE("GKI_exception %d %s", code, msg);
@@ -683,7 +664,6 @@ void GKI_exception (UINT16 code, char *msg)
     ALOGE( "********************************************************************");
 
     GKI_TRACE("GKI_exception %d %s done", code, msg);
-    return;
 }
 
 /*******************************************************************************
@@ -704,7 +684,7 @@ void GKI_exception (UINT16 code, char *msg)
 void GKI_exit_task (UINT8 task_id)
 {
     GKI_disable();
-    gki_cb.com.OSRdyTbl[task_id] = TASK_DEAD;
+    gki_cb.com.task_state[task_id] = TASK_DEAD;
 
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.thread_evt_mutex[task_id]);

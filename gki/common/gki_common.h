@@ -21,13 +21,13 @@
 #include "gki.h"
 #include "dyn_mem.h"
 
-/* Task States: (For OSRdyTbl) */
-#define TASK_DEAD       0   /* b0000 */
-#define TASK_READY      1   /* b0001 */
-#define TASK_WAIT       2   /* b0010 */
-#define TASK_DELAY      4   /* b0100 */
-#define TASK_SUSPEND    8   /* b1000 */
-
+typedef enum {
+  TASK_DEAD,
+  TASK_READY,
+  TASK_WAIT,
+  TASK_DELAY,
+  TASK_SUSPEND,
+} gki_task_state_t;
 
 /********************************************************************
 **  Internal Error codes
@@ -46,15 +46,6 @@
 #define GKI_ERROR_OUT_OF_BUFFERS        0xFFF4
 #define GKI_ERROR_GETPOOLBUF_BAD_QID    0xFFF3
 #define GKI_ERROR_TIMER_LIST_CORRUPTED  0xFFF2
-
-
-/********************************************************************
-**  Misc constants
-*********************************************************************/
-
-/********************************************************************
-**  Buffer Management Data Structures
-*********************************************************************/
 
 typedef struct _buffer_hdr
 {
@@ -78,26 +69,13 @@ typedef struct _free_queue
 	UINT16		 max_cnt;          /* maximum number of buffers allocated at any time */
 } FREE_QUEUE_T;
 
-
-/* Buffer related defines
-*/
-#define ALIGN_POOL(pl_size)  ( (((pl_size) + 3) / sizeof(UINT32)) * sizeof(UINT32))
-#define BUFFER_HDR_SIZE     (sizeof(BUFFER_HDR_T))                  /* Offset past header */
-#define BUFFER_PADDING_SIZE (sizeof(BUFFER_HDR_T) + sizeof(UINT32)) /* Header + Magic Number */
-#define MAX_USER_BUF_SIZE   ((UINT16)0xffff - BUFFER_PADDING_SIZE)  /* pool size must allow for header */
-#define MAGIC_NO            0xDDBADDBA
-
-#define BUF_STATUS_FREE     0
-#define BUF_STATUS_UNLINKED 1
-#define BUF_STATUS_QUEUED   2
-
 /* Put all GKI variables into one control block
 */
 typedef struct
 {
-    const char *OSTName[GKI_MAX_TASKS];         /* name of the task */
+    const char *task_name[GKI_MAX_TASKS];         /* name of the task */
+    gki_task_state_t task_state[GKI_MAX_TASKS];   /* current state of the task */
 
-    UINT8   OSRdyTbl[GKI_MAX_TASKS];        /* current state of the task */
     UINT16  OSWaitEvt[GKI_MAX_TASKS];       /* events that have to be processed by the task */
     UINT16  OSWaitForEvt[GKI_MAX_TASKS];    /* events the task is waiting for*/
 
@@ -128,8 +106,6 @@ typedef struct
 
     /* Define the buffer pool access control variables */
     UINT16      pool_access_mask;                   /* Bits are set if the corresponding buffer pool is a restricted pool */
-    UINT8       pool_list[GKI_NUM_TOTAL_BUF_POOLS]; /* buffer pools arranged in the order of size */
-    UINT8       curr_total_no_of_pools;             /* number of fixed buf pools + current number of dynamic pools */
 
     BOOLEAN     timer_nesting;                      /* flag to prevent timer interrupt nesting */
 } tGKI_COM_CB;
@@ -137,7 +113,6 @@ typedef struct
 /* Internal GKI function prototypes
 */
 BOOLEAN   gki_chk_buf_damage(void *);
-BOOLEAN   gki_chk_buf_owner(void *);
 void      gki_buffer_init (void);
 void      gki_timers_init(void);
 void      gki_adjust_timer_count (INT32);

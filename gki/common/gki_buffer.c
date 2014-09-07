@@ -24,8 +24,14 @@
 #error Number of pools out of range (16 Max)!
 #endif
 
-static void gki_add_to_pool_list(UINT8 pool_id);
-static void gki_remove_from_pool_list(UINT8 pool_id);
+#define ALIGN_POOL(pl_size)  ( (((pl_size) + 3) / sizeof(UINT32)) * sizeof(UINT32))
+#define BUFFER_HDR_SIZE     (sizeof(BUFFER_HDR_T))                  /* Offset past header */
+#define BUFFER_PADDING_SIZE (sizeof(BUFFER_HDR_T) + sizeof(UINT32)) /* Header + Magic Number */
+#define MAGIC_NO            0xDDBADDBA
+
+#define BUF_STATUS_FREE     0
+#define BUF_STATUS_UNLINKED 1
+#define BUF_STATUS_QUEUED   2
 
 /*******************************************************************************
 **
@@ -52,13 +58,11 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
     act_size = (UINT16)(tempsize + BUFFER_PADDING_SIZE);
 
     /* Remember pool start and end addresses */
-// btla-specific ++
     if(p_mem)
     {
         p_cb->pool_start[id] = (UINT8 *)p_mem;
         p_cb->pool_end[id]   = (UINT8 *)p_mem + (act_size * total);
     }
-// btla-specific --
 
     p_cb->pool_size[id]  = act_size;
 
@@ -68,7 +72,6 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
     p_cb->freeq[id].max_cnt   = 0;
 
     /* Initialize  index table */
-// btla-specific ++
     if(p_mem)
     {
         hdr = (BUFFER_HDR_T *)p_mem;
@@ -87,8 +90,6 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
         hdr1->p_next = NULL;
         p_cb->freeq[id]._p_last = hdr1;
     }
-// btla-specific --
-    return;
 }
 
 #if !VALGRIND
@@ -98,7 +99,7 @@ static BOOLEAN gki_alloc_free_queue(UINT8 id)
     tGKI_COM_CB *p_cb = &gki_cb.com;
     GKI_TRACE("\ngki_alloc_free_queue in, id:%d \n", (int)id );
 
-    Q = &p_cb->freeq[p_cb->pool_list[id]];
+    Q = &p_cb->freeq[id];
 
     if(Q->_p_first == 0)
     {
@@ -123,7 +124,7 @@ void gki_dealloc_free_queue(void)
     UINT8   i;
     tGKI_COM_CB *p_cb = &gki_cb.com;
 
-    for (i=0; i < p_cb->curr_total_no_of_pools; i++)
+    for (i=0; i < GKI_NUM_FIXED_BUF_POOLS; i++)
     {
         if ( 0 < p_cb->freeq[i].max_cnt )
         {
@@ -191,14 +192,8 @@ void gki_buffer_init(void)
 
     for (int i = 0; i < GKI_NUM_FIXED_BUF_POOLS; ++i) {
       gki_init_free_queue(i, buffer_info[i].size, buffer_info[i].count, NULL);
-      p_cb->pool_list[i] = i;
     }
-
-    p_cb->curr_total_no_of_pools = GKI_NUM_FIXED_BUF_POOLS;
-
-    return;
 }
-
 
 /*******************************************************************************
 **
@@ -213,10 +208,7 @@ void GKI_init_q (BUFFER_Q *p_q)
 {
     p_q->_p_first = p_q->_p_last = NULL;
     p_q->_count = 0;
-
-    return;
 }
-
 
 /*******************************************************************************
 **
@@ -257,13 +249,13 @@ void *GKI_getbuf (UINT16 size)
     }
 
     /* Find the first buffer pool that is public that can hold the desired size */
-    for (i=0; i < p_cb->curr_total_no_of_pools; i++)
+    for (i=0; i < GKI_NUM_FIXED_BUF_POOLS; i++)
     {
-        if ( size <= p_cb->freeq[p_cb->pool_list[i]].size )
+        if ( size <= p_cb->freeq[i].size )
             break;
     }
 
-    if(i == p_cb->curr_total_no_of_pools)
+    if(i == GKI_NUM_FIXED_BUF_POOLS)
     {
         GKI_exception (GKI_ERROR_BUF_SIZE_TOOBIG, "getbuf: Size is too big");
         return (NULL);
@@ -274,13 +266,13 @@ void *GKI_getbuf (UINT16 size)
 
     /* search the public buffer pools that are big enough to hold the size
      * until a free buffer is found */
-    for ( ; i < p_cb->curr_total_no_of_pools; i++)
+    for ( ; i < GKI_NUM_FIXED_BUF_POOLS; i++)
     {
         /* Only look at PUBLIC buffer pools (bypass RESTRICTED pools) */
-        if (((UINT16)1 << p_cb->pool_list[i]) & p_cb->pool_access_mask)
+        if (((UINT16)1 << i) & p_cb->pool_access_mask)
             continue;
-        if ( size <= p_cb->freeq[p_cb->pool_list[i]].size )
-             Q = &p_cb->freeq[p_cb->pool_list[i]];
+        if ( size <= p_cb->freeq[i].size )
+             Q = &p_cb->freeq[i];
         else
              continue;
 
@@ -442,8 +434,6 @@ void GKI_freebuf (void *p_buf)
         Q->cur_cnt--;
 
     GKI_enable();
-
-    return;
 #endif
 }
 
@@ -563,8 +553,6 @@ void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
     p_hdr->status = BUF_STATUS_QUEUED;
 
     GKI_enable();
-
-    return;
 }
 
 
@@ -668,7 +656,6 @@ void *GKI_dequeue (BUFFER_Q *p_q)
     return ((UINT8 *)p_hdr + BUFFER_HDR_SIZE);
 }
 
-
 /*******************************************************************************
 **
 ** Function         GKI_remove_from_queue
@@ -740,7 +727,6 @@ void *GKI_getfirst (BUFFER_Q *p_q)
     return (p_q->_p_first);
 }
 
-
 /*******************************************************************************
 **
 ** Function         GKI_getlast
@@ -780,8 +766,6 @@ void *GKI_getnext (void *p_buf)
         return (NULL);
 }
 
-
-
 /*******************************************************************************
 **
 ** Function         GKI_queue_is_empty
@@ -801,115 +785,6 @@ BOOLEAN GKI_queue_is_empty(BUFFER_Q *p_q)
 UINT16 GKI_queue_length(BUFFER_Q *p_q)
 {
     return p_q->_count;
-}
-
-/*******************************************************************************
-**
-** Function         gki_add_to_pool_list
-**
-** Description      Adds pool to the pool list which is arranged in the
-**                  order of size
-**
-** Returns          void
-**
-*******************************************************************************/
-static void gki_add_to_pool_list(UINT8 pool_id)
-{
-
-    INT32 i, j;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-
-     /* Find the position where the specified pool should be inserted into the list */
-    for(i=0; i < p_cb->curr_total_no_of_pools; i++)
-    {
-
-        if(p_cb->freeq[pool_id].size <= p_cb->freeq[ p_cb->pool_list[i] ].size)
-            break;
-    }
-
-    /* Insert the new buffer pool ID into the list of pools */
-    for(j = p_cb->curr_total_no_of_pools; j > i; j--)
-    {
-        p_cb->pool_list[j] = p_cb->pool_list[j-1];
-    }
-
-    p_cb->pool_list[i] = pool_id;
-
-    return;
-}
-
-/*******************************************************************************
-**
-** Function         gki_remove_from_pool_list
-**
-** Description      Removes pool from the pool list. Called when a pool is deleted
-**
-** Returns          void
-**
-*******************************************************************************/
-static void gki_remove_from_pool_list(UINT8 pool_id)
-{
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-    UINT8 i;
-
-    for(i=0; i < p_cb->curr_total_no_of_pools; i++)
-    {
-        if(pool_id == p_cb->pool_list[i])
-            break;
-    }
-
-    while (i < (p_cb->curr_total_no_of_pools - 1))
-    {
-        p_cb->pool_list[i] = p_cb->pool_list[i+1];
-        i++;
-    }
-
-    return;
-}
-
-/*******************************************************************************
-**
-** Function         GKI_igetpoolbuf
-**
-** Description      Called by an interrupt service routine to get a free buffer from
-**                  a specific buffer pool.
-**
-** Parameters       pool_id - (input) pool ID to get a buffer out of.
-**
-** Returns          A pointer to the buffer, or NULL if none available
-**
-*******************************************************************************/
-void *GKI_igetpoolbuf (UINT8 pool_id)
-{
-    FREE_QUEUE_T  *Q;
-    BUFFER_HDR_T  *p_hdr;
-
-    if (pool_id >= GKI_NUM_TOTAL_BUF_POOLS)
-        return (NULL);
-
-
-    Q = &gki_cb.com.freeq[pool_id];
-    if(Q->cur_cnt < Q->total)
-    {
-        p_hdr = Q->_p_first;
-        Q->_p_first = p_hdr->p_next;
-
-        if (!Q->_p_first)
-            Q->_p_last = NULL;
-
-        if(++Q->cur_cnt > Q->max_cnt)
-            Q->max_cnt = Q->cur_cnt;
-
-        p_hdr->task_id = GKI_get_taskid();
-
-        p_hdr->status  = BUF_STATUS_UNLINKED;
-        p_hdr->p_next  = NULL;
-        p_hdr->Type    = 0;
-
-        return ((void *) ((UINT8 *)p_hdr + BUFFER_HDR_SIZE));
-    }
-
-    return (NULL);
 }
 
 /*******************************************************************************
@@ -1001,4 +876,3 @@ UINT16 GKI_poolutilization (UINT8 pool_id)
 
     return ((Q->cur_cnt * 100) / Q->total);
 }
-

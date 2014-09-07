@@ -265,7 +265,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             if (gki_cb.com.OSWaitTmr[task_id] <= 0)
             {
                 /* Timer Expired */
-                gki_cb.com.OSRdyTbl[task_id] = TASK_READY;
+                gki_cb.com.task_state[task_id] = TASK_READY;
             }
         }
 
