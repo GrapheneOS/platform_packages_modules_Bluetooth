@@ -151,6 +151,22 @@ void gki_dealloc_free_queue(void)
 *******************************************************************************/
 void gki_buffer_init(void)
 {
+    static const struct {
+      uint16_t size;
+      uint16_t count;
+    } buffer_info[GKI_NUM_FIXED_BUF_POOLS] = {
+      { GKI_BUF0_SIZE, GKI_BUF0_MAX },
+      { GKI_BUF1_SIZE, GKI_BUF1_MAX },
+      { GKI_BUF2_SIZE, GKI_BUF2_MAX },
+      { GKI_BUF3_SIZE, GKI_BUF3_MAX },
+      { GKI_BUF4_SIZE, GKI_BUF4_MAX },
+      { GKI_BUF5_SIZE, GKI_BUF5_MAX },
+      { GKI_BUF6_SIZE, GKI_BUF6_MAX },
+      { GKI_BUF7_SIZE, GKI_BUF7_MAX },
+      { GKI_BUF8_SIZE, GKI_BUF8_MAX },
+      { GKI_BUF9_SIZE, GKI_BUF9_MAX },
+    };
+
     UINT8   i, tt, mb;
     tGKI_COM_CB *p_cb = &gki_cb.com;
 
@@ -171,74 +187,9 @@ void gki_buffer_init(void)
     /* Use default from target.h */
     p_cb->pool_access_mask = GKI_DEF_BUFPOOL_PERM_MASK;
 
-#if (GKI_NUM_FIXED_BUF_POOLS > 0)
-    gki_init_free_queue(0, GKI_BUF0_SIZE, GKI_BUF0_MAX, p_cb->bufpool0);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 1)
-    gki_init_free_queue(1, GKI_BUF1_SIZE, GKI_BUF1_MAX, p_cb->bufpool1);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 2)
-    gki_init_free_queue(2, GKI_BUF2_SIZE, GKI_BUF2_MAX, p_cb->bufpool2);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 3)
-    gki_init_free_queue(3, GKI_BUF3_SIZE, GKI_BUF3_MAX, p_cb->bufpool3);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 4)
-    gki_init_free_queue(4, GKI_BUF4_SIZE, GKI_BUF4_MAX, p_cb->bufpool4);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 5)
-    gki_init_free_queue(5, GKI_BUF5_SIZE, GKI_BUF5_MAX, p_cb->bufpool5);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 6)
-    gki_init_free_queue(6, GKI_BUF6_SIZE, GKI_BUF6_MAX, p_cb->bufpool6);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 7)
-    gki_init_free_queue(7, GKI_BUF7_SIZE, GKI_BUF7_MAX, p_cb->bufpool7);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 8)
-    gki_init_free_queue(8, GKI_BUF8_SIZE, GKI_BUF8_MAX, p_cb->bufpool8);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 9)
-    gki_init_free_queue(9, GKI_BUF9_SIZE, GKI_BUF9_MAX, p_cb->bufpool9);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 10)
-    gki_init_free_queue(10, GKI_BUF10_SIZE, GKI_BUF10_MAX, p_cb->bufpool10);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 11)
-    gki_init_free_queue(11, GKI_BUF11_SIZE, GKI_BUF11_MAX, p_cb->bufpool11);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 12)
-    gki_init_free_queue(12, GKI_BUF12_SIZE, GKI_BUF12_MAX, p_cb->bufpool12);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 13)
-    gki_init_free_queue(13, GKI_BUF13_SIZE, GKI_BUF13_MAX, p_cb->bufpool13);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 14)
-    gki_init_free_queue(14, GKI_BUF14_SIZE, GKI_BUF14_MAX, p_cb->bufpool14);
-#endif
-
-#if (GKI_NUM_FIXED_BUF_POOLS > 15)
-    gki_init_free_queue(15, GKI_BUF15_SIZE, GKI_BUF15_MAX, p_cb->bufpool15);
-#endif
-
-    /* add pools to the pool_list which is arranged in the order of size */
-    for(i=0; i < GKI_NUM_FIXED_BUF_POOLS ; i++)
-    {
-        p_cb->pool_list[i] = i;
+    for (int i = 0; i < GKI_NUM_FIXED_BUF_POOLS; ++i) {
+      gki_init_free_queue(i, buffer_info[i].size, buffer_info[i].count, NULL);
+      p_cb->pool_list[i] = i;
     }
 
     p_cb->curr_total_no_of_pools = GKI_NUM_FIXED_BUF_POOLS;
