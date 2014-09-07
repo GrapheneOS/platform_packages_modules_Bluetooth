@@ -40,8 +40,6 @@ typedef int16_t INT16;
 typedef int32_t INT32;
 typedef bool BOOLEAN;
 
-typedef UINT32          TIME_STAMP;
-
 #ifdef __arm
 #  define PACKED  __packed
 #  define INLINE  __inline

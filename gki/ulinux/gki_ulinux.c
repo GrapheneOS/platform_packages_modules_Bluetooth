@@ -26,18 +26,18 @@
 *****************************************************************************/
 #include "bt_target.h"
 
+#define LOG_TAG "bt_gki"
+
 #include <assert.h>
+#include <hardware/bluetooth.h>
+#include <sys/prctl.h>
 #include <sys/times.h>
+#include <utils/Log.h>
 
 #include "alarm.h"
 #include "bt_utils.h"
 #include "gki_int.h"
 #include "osi.h"
-
-#define LOG_TAG "GKI_LINUX"
-
-#include <utils/Log.h>
-#include <hardware/bluetooth.h>
 
 /*****************************************************************************
 **  Constants & Macros
@@ -164,7 +164,6 @@ void GKI_init(void)
 #endif
     p_os = &gki_cb.os;
     pthread_mutex_init(&p_os->GKI_mutex, &attr);
-    /* pthread_mutex_init(&GKI_sched_mutex, NULL); */
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_init(&p_os->GKI_trace_mutex, NULL);
 #endif
@@ -208,7 +207,6 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
     UINT8   *p;
     struct sched_param param;
     int policy, ret = 0;
-    pthread_attr_t attr1;
 
     GKI_TRACE( "GKI_create_task %x %d %s", (int)task_entry, (int)task_id, taskname);
 
@@ -230,10 +228,6 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
 
     pthread_mutex_init(&gki_cb.os.thread_evt_mutex[task_id], NULL);
     pthread_cond_init (&gki_cb.os.thread_evt_cond[task_id], &cond_attr);
-    pthread_mutex_init(&gki_cb.os.thread_timeout_mutex[task_id], NULL);
-    pthread_cond_init (&gki_cb.os.thread_timeout_cond[task_id], NULL);
-
-    pthread_attr_init(&attr1);
 
     /* On Android, the new tasks starts running before 'gki_cb.os.thread_id[task_id]' is initialized */
     /* Pass task_id to new task so it can initialize gki_cb.os.thread_id[task_id] for it calls GKI_wait */
@@ -242,7 +236,7 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
     gki_pthread_info[task_id].params = 0;
 
     ret = pthread_create( &gki_cb.os.thread_id[task_id],
-              &attr1,
+              NULL,
               (void *)gki_task_entry,
               &gki_pthread_info[task_id]);
 
@@ -781,8 +775,6 @@ void GKI_exit_task (UINT8 task_id)
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.thread_evt_mutex[task_id]);
     pthread_cond_destroy (&gki_cb.os.thread_evt_cond[task_id]);
-    pthread_mutex_destroy(&gki_cb.os.thread_timeout_mutex[task_id]);
-    pthread_cond_destroy (&gki_cb.os.thread_timeout_cond[task_id]);
 
     GKI_enable();
 

@@ -15,12 +15,12 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#ifndef GKI_INT_H
-#define GKI_INT_H
+
+#pragma once
+
+#include <pthread.h>
 
 #include "gki_common.h"
-#include <pthread.h>
-#include <sys/prctl.h>
 
 /**********************************************************************
 ** OS specific definitions
@@ -32,14 +32,10 @@ typedef struct
     pthread_t           thread_id[GKI_MAX_TASKS];
     pthread_mutex_t     thread_evt_mutex[GKI_MAX_TASKS];
     pthread_cond_t      thread_evt_cond[GKI_MAX_TASKS];
-    pthread_mutex_t     thread_timeout_mutex[GKI_MAX_TASKS];
-    pthread_cond_t      thread_timeout_cond[GKI_MAX_TASKS];
 #if (GKI_DEBUG == TRUE)
     pthread_mutex_t     GKI_trace_mutex;
 #endif
 } tGKI_OS;
-
-extern void gki_system_tick_start_stop_cback(BOOLEAN start);
 
 /* Contains common control block as well as OS specific variables */
 typedef struct
@@ -48,23 +44,9 @@ typedef struct
     tGKI_COM_CB com;
 } tGKI_CB;
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern int acquire_wake_lock(int lock, const char* id);
-extern int release_wake_lock(const char* id);
-
 #if GKI_DYNAMIC_MEMORY == FALSE
 GKI_API extern tGKI_CB  gki_cb;
 #else
 GKI_API extern tGKI_CB *gki_cb_ptr;
 #define gki_cb (*gki_cb_ptr)
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif
