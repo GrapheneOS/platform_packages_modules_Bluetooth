@@ -21,7 +21,6 @@ endif
 LOCAL_PRELINK_MODULE := false
 LOCAL_SRC_FILES := \
 	./common/gki_buffer.c \
-	./common/gki_debug.c \
 	./common/gki_time.c \
 	./ulinux/gki_ulinux.c
 

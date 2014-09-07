@@ -198,12 +198,3 @@ GKI_API extern UINT32 GKI_get_os_tick_count(void);
 /* Exception handling
 */
 GKI_API extern void    GKI_exception (UINT16, char *);
-
-#if GKI_DEBUG == TRUE
-GKI_API extern void    GKI_PrintBufferUsage(UINT8 *p_num_pools, UINT16 *p_cur_used);
-GKI_API extern void    GKI_PrintBuffer(void);
-GKI_API extern void    GKI_print_task(void);
-#else
-#undef GKI_PrintBufferUsage
-#define GKI_PrintBuffer() NULL
-#endif

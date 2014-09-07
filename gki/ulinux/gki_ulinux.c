@@ -164,9 +164,6 @@ void GKI_init(void)
 #endif
     p_os = &gki_cb.os;
     pthread_mutex_init(&p_os->GKI_mutex, &attr);
-#if (GKI_DEBUG == TRUE)
-    pthread_mutex_init(&p_os->GKI_trace_mutex, NULL);
-#endif
 }
 
 
@@ -379,10 +376,6 @@ void GKI_shutdown(void)
 
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.GKI_mutex);
-
-#if (GKI_DEBUG == TRUE)
-    pthread_mutex_destroy(&gki_cb.os.GKI_trace_mutex);
-#endif
 }
 
 /*******************************************************************************
@@ -688,22 +681,6 @@ void GKI_exception (UINT16 code, char *msg)
     ALOGE( "********************************************************************");
     ALOGE( "* GKI_exception(): %d %s", code, msg);
     ALOGE( "********************************************************************");
-
-#if 0//(GKI_DEBUG == TRUE)
-    GKI_disable();
-
-    if (gki_cb.com.ExceptionCnt < GKI_MAX_EXCEPTION)
-    {
-        EXCEPTION_T *pExp;
-
-        pExp =  &gki_cb.com.Exception[gki_cb.com.ExceptionCnt++];
-        pExp->type = code;
-        pExp->taskid = GKI_get_taskid();
-        strncpy((char *)pExp->msg, msg, GKI_MAX_EXCEPTION_MSGLEN - 1);
-    }
-
-    GKI_enable();
-#endif
 
     GKI_TRACE("GKI_exception %d %s done", code, msg);
     return;

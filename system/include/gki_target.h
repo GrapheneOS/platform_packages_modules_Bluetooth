@@ -39,16 +39,7 @@
 #define GKI_API EXPORT_API
 #define UDRV_API EXPORT_API
 
-#ifndef GKI_DEBUG
-#define GKI_DEBUG FALSE
-#endif
-
-
-#if defined (GKI_DEBUG) && (GKI_DEBUG == TRUE)
-#define GKI_TRACE(fmt, ...)     ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-#else
 #define GKI_TRACE(fmt, ...)
-#endif
 
 /******************************************************************************
 **

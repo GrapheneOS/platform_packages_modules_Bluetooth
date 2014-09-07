@@ -91,18 +91,6 @@ typedef struct _free_queue
 #define BUF_STATUS_UNLINKED 1
 #define BUF_STATUS_QUEUED   2
 
-/* Exception related structures (Used in debug mode only)
-*/
-#if (GKI_DEBUG == TRUE)
-typedef struct
-{
-	UINT16  type;
-	UINT8   taskid;
-	UINT8   msg[GKI_MAX_EXCEPTION_MSGLEN];
-} EXCEPTION_T;
-#endif
-
-
 /* Put all GKI variables into one control block
 */
 typedef struct
@@ -144,12 +132,6 @@ typedef struct
     UINT8       curr_total_no_of_pools;             /* number of fixed buf pools + current number of dynamic pools */
 
     BOOLEAN     timer_nesting;                      /* flag to prevent timer interrupt nesting */
-
-#if (GKI_DEBUG == TRUE)
-    UINT16      ExceptionCnt;                       /* number of GKI exceptions that have happened */
-    EXCEPTION_T Exception[GKI_MAX_EXCEPTION];
-#endif
-
 } tGKI_COM_CB;
 
 /* Internal GKI function prototypes
@@ -165,20 +147,3 @@ extern void      gki_dealloc_free_queue(void);
 /* Debug aids
 */
 typedef void  (*FP_PRINT)(char *, ...);
-
-#if (GKI_DEBUG == TRUE)
-
-typedef void  (*PKT_PRINT)(UINT8 *, UINT16);
-
-extern void gki_print_task(FP_PRINT);
-extern void gki_print_exception(FP_PRINT);
-extern void gki_print_timer(FP_PRINT);
-extern void gki_print_stack(FP_PRINT);
-extern void gki_print_buffer(FP_PRINT);
-extern void gki_print_buffer_statistics(FP_PRINT, INT16);
-GKI_API extern void gki_print_used_bufs (FP_PRINT, UINT8);
-extern void gki_dump(UINT8 *, UINT16, FP_PRINT);
-extern void gki_dump2(UINT16 *, UINT16, FP_PRINT);
-extern void gki_dump4(UINT32 *, UINT16, FP_PRINT);
-
-#endif
