@@ -18,27 +18,6 @@
 #ifndef GKI_TARGET_H
 #define GKI_TARGET_H
 
-/* Operating System Selection */
-#ifndef BTE_SIM_APP
-#define _GKI_ARM
-#define _GKI_STANDALONE
-#else
-#define _BT_WIN32
-#endif
-
-/* define prefix for exporting APIs from libraries */
-#define EXPORT_API
-
-#ifndef BTE_BSE_WRAPPER
-#ifdef  BTE_SIM_APP
-#undef  EXPORT_API
-#define EXPORT_API  __declspec(dllexport)
-#endif
-#endif
-
-#define GKI_API EXPORT_API
-#define UDRV_API EXPORT_API
-
 #define GKI_TRACE(fmt, ...)
 
 /******************************************************************************
@@ -230,7 +209,6 @@ If BTA_HL_INCLUDED is FALSE then Pool ID 7 is uncessary and set the following to
 If BLE_INCLUDED is FALSE then Pool ID 8 is uncessary and set the following to 8, otherwise set to 9
 POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 */
-// btla-specific ++
 #ifndef GKI_NUM_FIXED_BUF_POOLS
 #define GKI_NUM_FIXED_BUF_POOLS     10
 #endif
@@ -240,7 +218,6 @@ POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 /* Setting POOL_ID 9 as a public pool meant for large buffers such as SDP_DB */
 #define GKI_DEF_BUFPOOL_PERM_MASK   0xfdf0
 #endif
-// btla-specific --
 
 /* The number of fixed and dynamic buffer pools */
 #ifndef GKI_NUM_TOTAL_BUF_POOLS
@@ -362,7 +339,6 @@ over HCI data and intentionally kept out of order */
 #define GKI_BUF8_MAX                30
 #endif
 
-// btla-specific ++
 /* The following pool is  meant for large allocations such as SDP_DB */
 #ifndef GKI_POOL_ID_9
 #define GKI_POOL_ID_9              9
@@ -375,17 +351,7 @@ over HCI data and intentionally kept out of order */
 #ifndef GKI_BUF9_MAX
 #define GKI_BUF9_MAX           5
 #endif
-// btla-specific --
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-EXPORT_API extern void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
-
-#ifdef __cplusplus
-}
-#endif
+void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
 
 #endif  /* GKI_TARGET_H */

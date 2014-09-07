@@ -136,14 +136,9 @@ typedef struct
 
 /* Internal GKI function prototypes
 */
-GKI_API extern BOOLEAN   gki_chk_buf_damage(void *);
-extern BOOLEAN   gki_chk_buf_owner(void *);
-extern void      gki_buffer_init (void);
-extern void      gki_timers_init(void);
-extern void      gki_adjust_timer_count (INT32);
-extern void      gki_dealloc_free_queue(void);
-
-
-/* Debug aids
-*/
-typedef void  (*FP_PRINT)(char *, ...);
+BOOLEAN   gki_chk_buf_damage(void *);
+BOOLEAN   gki_chk_buf_owner(void *);
+void      gki_buffer_init (void);
+void      gki_timers_init(void);
+void      gki_adjust_timer_count (INT32);
+void      gki_dealloc_free_queue(void);

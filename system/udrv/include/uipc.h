@@ -18,10 +18,6 @@
 #ifndef UIPC_H
 #define UIPC_H
 
-#ifndef UDRV_API
-#define UDRV_API
-#endif
-
 #define UIPC_CH_ID_AV_CTRL  0
 #define UIPC_CH_ID_AV_AUDIO 1
 #define UIPC_CH_NUM         2
@@ -52,13 +48,7 @@ typedef enum {
 
 typedef void (tUIPC_RCV_CBACK)(tUIPC_CH_ID ch_id, tUIPC_EVENT event); /* points to BT_HDR which describes event type and length of data; len contains the number of bytes of entire message (sizeof(BT_HDR) + offset + size of data) */
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 const char* dump_uipc_event(tUIPC_EVENT event);
-
 
 /*******************************************************************************
 **
@@ -69,7 +59,7 @@ const char* dump_uipc_event(tUIPC_EVENT event);
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern void UIPC_Init(void *);
+void UIPC_Init(void *);
 
 /*******************************************************************************
 **
@@ -80,7 +70,7 @@ UDRV_API extern void UIPC_Init(void *);
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
+BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -91,7 +81,7 @@ UDRV_API extern BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern void UIPC_Close(tUIPC_CH_ID ch_id);
+void UIPC_Close(tUIPC_CH_ID ch_id);
 
 /*******************************************************************************
 **
@@ -103,7 +93,7 @@ UDRV_API extern void UIPC_Close(tUIPC_CH_ID ch_id);
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg);
+BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg);
 
 /*******************************************************************************
 **
@@ -114,7 +104,7 @@ UDRV_API extern BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg);
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf, UINT16 msglen);
+BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf, UINT16 msglen);
 
 /*******************************************************************************
 **
@@ -125,7 +115,7 @@ UDRV_API extern BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_bu
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len);
+UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len);
 
 /*******************************************************************************
 **
@@ -136,14 +126,6 @@ UDRV_API extern UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_
 ** Returns          void
 **
 *******************************************************************************/
-UDRV_API extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param);
-
-
-#ifdef __cplusplus
-}
-#endif
-
+BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param);
 
 #endif  /* UIPC_H */
-
-

@@ -183,48 +183,41 @@ extern const UINT16 bttrc_map_size;
 extern BT_API tBTTRC_LEVEL * BTA_SysSetTraceLevel( tBTTRC_LEVEL * p_levels );
 // btla-specific --
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* External declaration for appl_trace_level here to avoid to add the declaration in all the files using APPL_TRACExxx macros */
 extern UINT8 appl_trace_level ;
 
-// btla-specific ++
-EXPORT_API extern void BTE_InitTraceLevels( void );
-// btla-specific --
+void BTE_InitTraceLevels( void );
 
 /* Prototype for message logging function. */
-EXPORT_API extern void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
+void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
 
 /* Prototype for stack tracing function. */
-EXPORT_API extern void BTTRC_StackTrace0(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace0(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token);
-EXPORT_API extern void BTTRC_StackTrace1(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace1(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val);
-EXPORT_API extern void BTTRC_StackTrace2(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace2(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val,
                                    tBTTRC_PARAM_TYPE p2_type, UINT32 p2_val);
-EXPORT_API extern void BTTRC_StackTrace3(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace3(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val,
                                    tBTTRC_PARAM_TYPE p2_type, UINT32 p2_val,
                                    tBTTRC_PARAM_TYPE p3_type, UINT32 p3_val);
-EXPORT_API extern void BTTRC_StackTrace4(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace4(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val,
                                    tBTTRC_PARAM_TYPE p2_type, UINT32 p2_val,
                                    tBTTRC_PARAM_TYPE p3_type, UINT32 p3_val,
                                    tBTTRC_PARAM_TYPE p4_type, UINT32 p4_val);
-EXPORT_API extern void BTTRC_StackTrace5(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace5(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val,
@@ -232,7 +225,7 @@ EXPORT_API extern void BTTRC_StackTrace5(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_PARAM_TYPE p3_type, UINT32 p3_val,
                                    tBTTRC_PARAM_TYPE p4_type, UINT32 p4_val,
                                    tBTTRC_PARAM_TYPE p5_type, UINT32 p5_val);
-EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
+void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_TYPE type,
                                    UINT16 token,
                                    tBTTRC_PARAM_TYPE p1_type, UINT32 p1_val,
@@ -241,15 +234,6 @@ EXPORT_API extern void BTTRC_StackTrace6(tBTTRC_LAYER_ID layer_id,
                                    tBTTRC_PARAM_TYPE p4_type, UINT32 p4_val,
                                    tBTTRC_PARAM_TYPE p5_type, UINT32 p5_val,
                                    tBTTRC_PARAM_TYPE p6_type, UINT32 p6_val);
-
-// btla-specific ++
-/* p_levels must be a 0 terminated list ! */
-//EXPORT_API extern tBTTRC_LEVEL * BTA_SysSetTraceLevel( tBTTRC_LEVEL * p_levels );
-// btla-specific --
-
-#ifdef __cplusplus
-}
-#endif
 
 /******************************************************************************
 **
