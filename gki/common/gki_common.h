@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#ifndef GKI_COMMON_H
-#define GKI_COMMON_H
+
+#pragma once
 
 #include "gki.h"
 #include "dyn_mem.h"
@@ -251,10 +251,6 @@ typedef struct
 
 #endif
 
-    UINT8  *OSStack[GKI_MAX_TASKS];         /* pointer to beginning of stack */
-    UINT16  OSStackSize[GKI_MAX_TASKS];     /* stack size available to each task */
-
-
     const char *OSTName[GKI_MAX_TASKS];         /* name of the task */
 
     UINT8   OSRdyTbl[GKI_MAX_TASKS];        /* current state of the task */
@@ -262,10 +258,6 @@ typedef struct
     UINT16  OSWaitForEvt[GKI_MAX_TASKS];    /* events the task is waiting for*/
 
     UINT32  OSTicks;                        /* system ticks from start */
-    UINT32  OSIdleCnt;                      /* idle counter */
-    INT16   OSDisableNesting;               /* counter to keep track of interrupt disable nesting */
-    INT16   OSLockNesting;                  /* counter to keep track of sched lock nesting */
-    INT16   OSIntNesting;                   /* counter to keep track of interrupt nesting */
 
     /* Timer related variables
     */
@@ -283,8 +275,6 @@ typedef struct
     FREE_QUEUE_T    freeq[GKI_NUM_TOTAL_BUF_POOLS];
 
     UINT16   pool_buf_size[GKI_NUM_TOTAL_BUF_POOLS];
-    UINT16   pool_max_count[GKI_NUM_TOTAL_BUF_POOLS];
-    UINT16   pool_additions[GKI_NUM_TOTAL_BUF_POOLS];
 
     /* Define the buffer pool start addresses
     */
@@ -293,7 +283,6 @@ typedef struct
     UINT16   pool_size[GKI_NUM_TOTAL_BUF_POOLS];    /* actual size of the buffers in a pool */
 
     /* Define the buffer pool access control variables */
-    void        *p_user_mempool;                    /* User O/S memory pool */
     UINT16      pool_access_mask;                   /* Bits are set if the corresponding buffer pool is a restricted pool */
     UINT8       pool_list[GKI_NUM_TOTAL_BUF_POOLS]; /* buffer pools arranged in the order of size */
     UINT8       curr_total_no_of_pools;             /* number of fixed buf pools + current number of dynamic pools */
@@ -306,11 +295,6 @@ typedef struct
 #endif
 
 } tGKI_COM_CB;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Internal GKI function prototypes
 */
@@ -343,11 +327,5 @@ GKI_API extern void gki_print_used_bufs (FP_PRINT, UINT8);
 extern void gki_dump(UINT8 *, UINT16, FP_PRINT);
 extern void gki_dump2(UINT16 *, UINT16, FP_PRINT);
 extern void gki_dump4(UINT32 *, UINT16, FP_PRINT);
-
-#endif
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

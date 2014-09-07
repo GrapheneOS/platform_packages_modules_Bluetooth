@@ -15,9 +15,8 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#ifndef GKI_H
-#define GKI_H
 
+#pragma once
 
 #include "bt_target.h"
 #include "bt_types.h"
@@ -120,10 +119,7 @@ typedef struct
 
 /* Task constants
 */
-#ifndef TASKPTR
 typedef void (*TASKPTR)(UINT32);
-#endif
-
 
 #define GKI_PUBLIC_POOL         0       /* General pool accessible to GKI_getbuf() */
 #define GKI_RESTRICTED_POOL     1       /* Inaccessible pool to GKI_getbuf() */
@@ -131,10 +127,6 @@ typedef void (*TASKPTR)(UINT32);
 /***********************************************************************
 ** Function prototypes
 */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Task management
 */
@@ -219,11 +211,4 @@ GKI_API extern void    GKI_print_task(void);
 #else
 #undef GKI_PrintBufferUsage
 #define GKI_PrintBuffer() NULL
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-
 #endif
