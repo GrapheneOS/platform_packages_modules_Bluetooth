@@ -275,25 +275,8 @@ typedef struct
     INT32   OSWaitTmr   [GKI_MAX_TASKS];  /* ticks the task has to wait, for specific events */
 
     /* Only take up space timers used in the system (GKI_NUM_TIMERS defined in target.h) */
-#if (GKI_NUM_TIMERS > 0)
-    INT32   OSTaskTmr0  [GKI_MAX_TASKS];
-    INT32   OSTaskTmr0R [GKI_MAX_TASKS];
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-    INT32   OSTaskTmr1  [GKI_MAX_TASKS];
-    INT32   OSTaskTmr1R [GKI_MAX_TASKS];
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-    INT32   OSTaskTmr2  [GKI_MAX_TASKS];
-    INT32   OSTaskTmr2R [GKI_MAX_TASKS];
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-    INT32   OSTaskTmr3  [GKI_MAX_TASKS];
-    INT32   OSTaskTmr3R [GKI_MAX_TASKS];
-#endif
+    INT32   OSTaskTmr[GKI_MAX_TASKS][GKI_NUM_TIMERS];
+    INT32   OSTaskTmrR[GKI_MAX_TASKS][GKI_NUM_TIMERS];
 
     /* Define the buffer pool management variables
     */

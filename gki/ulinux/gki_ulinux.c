@@ -271,25 +271,10 @@ void GKI_destroy_task(UINT8 task_id)
         gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
                                             TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
 
-#if (GKI_NUM_TIMERS > 0)
-        gki_cb.com.OSTaskTmr0R[task_id] = 0;
-        gki_cb.com.OSTaskTmr0 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-        gki_cb.com.OSTaskTmr1R[task_id] = 0;
-        gki_cb.com.OSTaskTmr1 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-        gki_cb.com.OSTaskTmr2R[task_id] = 0;
-        gki_cb.com.OSTaskTmr2 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        gki_cb.com.OSTaskTmr3R[task_id] = 0;
-        gki_cb.com.OSTaskTmr3 [task_id] = 0;
-#endif
+        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
+          gki_cb.com.OSTaskTmr[task_id][i] = 0;
+          gki_cb.com.OSTaskTmrR[task_id][i] = 0;
+        }
 
         GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
 
@@ -338,25 +323,10 @@ void GKI_task_self_cleanup(UINT8 task_id)
         gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
                                             TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
 
-#if (GKI_NUM_TIMERS > 0)
-        gki_cb.com.OSTaskTmr0R[task_id] = 0;
-        gki_cb.com.OSTaskTmr0 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-        gki_cb.com.OSTaskTmr1R[task_id] = 0;
-        gki_cb.com.OSTaskTmr1 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-        gki_cb.com.OSTaskTmr2R[task_id] = 0;
-        gki_cb.com.OSTaskTmr2 [task_id] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        gki_cb.com.OSTaskTmr3R[task_id] = 0;
-        gki_cb.com.OSTaskTmr3 [task_id] = 0;
-#endif
+        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
+          gki_cb.com.OSTaskTmr[task_id][i] = 0;
+          gki_cb.com.OSTaskTmrR[task_id][i] = 0;
+        }
 
         GKI_exit_task(task_id);
 

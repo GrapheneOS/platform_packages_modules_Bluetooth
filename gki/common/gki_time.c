@@ -20,12 +20,6 @@
 #include <utils/Log.h>
 #include "gki_int.h"
 
-/* Make sure that this has been defined in target.h */
-#ifndef GKI_NUM_TIMERS
-#error  NO TIMERS: Must define at least 1 timer in the system!
-#endif
-
-
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
 
 // Used for controlling alarms from AlarmService.
@@ -52,25 +46,10 @@ void gki_timers_init(void)
     {
         gki_cb.com.OSWaitTmr   [tt] = 0;
 
-#if (GKI_NUM_TIMERS > 0)
-        gki_cb.com.OSTaskTmr0  [tt] = 0;
-        gki_cb.com.OSTaskTmr0R [tt] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-        gki_cb.com.OSTaskTmr1  [tt] = 0;
-        gki_cb.com.OSTaskTmr1R [tt] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-        gki_cb.com.OSTaskTmr2  [tt] = 0;
-        gki_cb.com.OSTaskTmr2R [tt] = 0;
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        gki_cb.com.OSTaskTmr3  [tt] = 0;
-        gki_cb.com.OSTaskTmr3R [tt] = 0;
-#endif
+        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
+          gki_cb.com.OSTaskTmr[tt][i] = 0;
+          gki_cb.com.OSTaskTmrR[tt][i] = 0;
+        }
     }
 
     return;
@@ -86,43 +65,12 @@ void gki_timers_init(void)
 ** Returns          TRUE if at least one time is running in the system, FALSE else.
 **
 *******************************************************************************/
-BOOLEAN gki_timers_is_timer_running(void)
-{
-    UINT8   tt;
-    for (tt = 0; tt < GKI_MAX_TASKS; tt++)
-    {
-
-#if (GKI_NUM_TIMERS > 0)
-        if(gki_cb.com.OSTaskTmr0  [tt])
-        {
-            return TRUE;
-        }
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-        if(gki_cb.com.OSTaskTmr1  [tt] )
-        {
-            return TRUE;
-        }
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-        if(gki_cb.com.OSTaskTmr2  [tt] )
-        {
-            return TRUE;
-        }
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        if(gki_cb.com.OSTaskTmr3  [tt] )
-        {
-            return TRUE;
-        }
-#endif
-    }
-
-    return FALSE;
-
+BOOLEAN gki_timers_is_timer_running(void) {
+  for (int i = 0; i < GKI_MAX_TASKS; ++i)
+    for (int j = 0; j < GKI_NUM_TIMERS; ++j)
+      if (gki_cb.com.OSTaskTmr[i][j])
+        return true;
+    return false;
 }
 
 /*******************************************************************************
@@ -187,7 +135,6 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
     INT32   reload;
     INT32   orig_ticks;
     UINT8   task_id = GKI_get_taskid();
-    BOOLEAN bad_timer = FALSE;
 
     if (ticks <= 0)
         ticks = 1;
@@ -214,48 +161,13 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
     else
         ticks = INT32_MAX;
 
-    switch (tnum)
-    {
-#if (GKI_NUM_TIMERS > 0)
-        case TIMER_0:
-            gki_cb.com.OSTaskTmr0R[task_id] = reload;
-            gki_cb.com.OSTaskTmr0 [task_id] = ticks;
-            break;
-#endif
+    assert(tnum < GKI_NUM_TIMERS);
 
-#if (GKI_NUM_TIMERS > 1)
-        case TIMER_1:
-            gki_cb.com.OSTaskTmr1R[task_id] = reload;
-            gki_cb.com.OSTaskTmr1 [task_id] = ticks;
-            break;
-#endif
+    gki_cb.com.OSTaskTmr[task_id][tnum] = ticks;
+    gki_cb.com.OSTaskTmrR[task_id][tnum] = reload;
 
-#if (GKI_NUM_TIMERS > 2)
-        case TIMER_2:
-            gki_cb.com.OSTaskTmr2R[task_id] = reload;
-            gki_cb.com.OSTaskTmr2 [task_id] = ticks;
-            break;
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        case TIMER_3:
-            gki_cb.com.OSTaskTmr3R[task_id] = reload;
-            gki_cb.com.OSTaskTmr3 [task_id] = ticks;
-            break;
-#endif
-        default:
-            bad_timer = TRUE;       /* Timer number is bad, so do not use */
-    }
-
-    /* Update the expiration timeout if a legitimate timer */
-    if (!bad_timer)
-    {
-        /* Only update the timeout value if it is less than any other newly started timers */
-        gki_adjust_timer_count (orig_ticks);
-    }
-
+    gki_adjust_timer_count (orig_ticks);
     GKI_enable();
-
 }
 
 /*******************************************************************************
@@ -271,40 +183,13 @@ void GKI_start_timer (UINT8 tnum, INT32 ticks, BOOLEAN is_continuous)
 ** Returns          void
 **
 *******************************************************************************/
-void GKI_stop_timer (UINT8 tnum)
-{
-    UINT8  task_id = GKI_get_taskid();
+void GKI_stop_timer(UINT8 tnum) {
+  assert(tnum < GKI_NUM_TIMERS);
 
-    switch (tnum)
-    {
-#if (GKI_NUM_TIMERS > 0)
-        case TIMER_0:
-            gki_cb.com.OSTaskTmr0R[task_id] = 0;
-            gki_cb.com.OSTaskTmr0 [task_id] = 0;
-            break;
-#endif
+  UINT8  task_id = GKI_get_taskid();
 
-#if (GKI_NUM_TIMERS > 1)
-        case TIMER_1:
-            gki_cb.com.OSTaskTmr1R[task_id] = 0;
-            gki_cb.com.OSTaskTmr1 [task_id] = 0;
-            break;
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-        case TIMER_2:
-            gki_cb.com.OSTaskTmr2R[task_id] = 0;
-            gki_cb.com.OSTaskTmr2 [task_id] = 0;
-            break;
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-        case TIMER_3:
-            gki_cb.com.OSTaskTmr3R[task_id] = 0;
-            gki_cb.com.OSTaskTmr3 [task_id] = 0;
-            break;
-#endif
-    }
+  gki_cb.com.OSTaskTmr[task_id][tnum] = 0;
+  gki_cb.com.OSTaskTmrR[task_id][tnum] = 0;
 }
 
 
@@ -384,82 +269,26 @@ void GKI_timer_update (INT32 ticks_since_last_update)
             }
         }
 
-#if (GKI_NUM_TIMERS > 0)
-         /* If any timer is running, decrement */
-        if (gki_cb.com.OSTaskTmr0[task_id] > 0)
-        {
-            gki_cb.com.OSTaskTmr0[task_id] -= gki_cb.com.OSNumOrigTicks;
+        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
+          /* If any timer is running, decrement */
+          if (gki_cb.com.OSTaskTmr[task_id][i] > 0)
+          {
+            gki_cb.com.OSTaskTmr[task_id][i] -= gki_cb.com.OSNumOrigTicks;
 
-            if (gki_cb.com.OSTaskTmr0[task_id] <= 0)
+            if (gki_cb.com.OSTaskTmr[task_id][i] <= 0)
             {
-                /* Reload timer and set Timer 0 Expired event mask */
-                gki_cb.com.OSTaskTmr0[task_id] = gki_cb.com.OSTaskTmr0R[task_id];
-                GKI_send_event (task_id, TIMER_0_EVT_MASK);
+              /* Reload timer and set timer expired event mask */
+              gki_cb.com.OSTaskTmr[task_id][i] = gki_cb.com.OSTaskTmrR[task_id][i];
+
+              // (1 << (i+4)) evaluates to the same value as TIMER_x_EVT_MASK.
+              GKI_send_event(task_id, (1 << (i+4)));
             }
+          }
+
+          /* Check to see if this timer is the next one to expire */
+          if (gki_cb.com.OSTaskTmr[task_id][i] > 0 && gki_cb.com.OSTaskTmr[task_id][i] < next_expiration)
+            next_expiration = gki_cb.com.OSTaskTmr[task_id][i];
         }
-
-        /* Check to see if this timer is the next one to expire */
-        if (gki_cb.com.OSTaskTmr0[task_id] > 0 && gki_cb.com.OSTaskTmr0[task_id] < next_expiration)
-            next_expiration = gki_cb.com.OSTaskTmr0[task_id];
-#endif
-
-#if (GKI_NUM_TIMERS > 1)
-         /* If any timer is running, decrement */
-        if (gki_cb.com.OSTaskTmr1[task_id] > 0)
-        {
-            gki_cb.com.OSTaskTmr1[task_id] -= gki_cb.com.OSNumOrigTicks;
-
-            if (gki_cb.com.OSTaskTmr1[task_id] <= 0)
-            {
-                /* Reload timer and set Timer 1 Expired event mask */
-                gki_cb.com.OSTaskTmr1[task_id] = gki_cb.com.OSTaskTmr1R[task_id];
-                GKI_send_event (task_id, TIMER_1_EVT_MASK);
-            }
-        }
-
-        /* Check to see if this timer is the next one to expire */
-        if (gki_cb.com.OSTaskTmr1[task_id] > 0 && gki_cb.com.OSTaskTmr1[task_id] < next_expiration)
-            next_expiration = gki_cb.com.OSTaskTmr1[task_id];
-#endif
-
-#if (GKI_NUM_TIMERS > 2)
-         /* If any timer is running, decrement */
-        if (gki_cb.com.OSTaskTmr2[task_id] > 0)
-        {
-            gki_cb.com.OSTaskTmr2[task_id] -= gki_cb.com.OSNumOrigTicks;
-
-            if (gki_cb.com.OSTaskTmr2[task_id] <= 0)
-            {
-                /* Reload timer and set Timer 2 Expired event mask */
-                gki_cb.com.OSTaskTmr2[task_id] = gki_cb.com.OSTaskTmr2R[task_id];
-                GKI_send_event (task_id, TIMER_2_EVT_MASK);
-            }
-        }
-
-        /* Check to see if this timer is the next one to expire */
-        if (gki_cb.com.OSTaskTmr2[task_id] > 0 && gki_cb.com.OSTaskTmr2[task_id] < next_expiration)
-            next_expiration = gki_cb.com.OSTaskTmr2[task_id];
-#endif
-
-#if (GKI_NUM_TIMERS > 3)
-         /* If any timer is running, decrement */
-        if (gki_cb.com.OSTaskTmr3[task_id] > 0)
-        {
-            gki_cb.com.OSTaskTmr3[task_id] -= gki_cb.com.OSNumOrigTicks;
-
-            if (gki_cb.com.OSTaskTmr3[task_id] <= 0)
-            {
-                /* Reload timer and set Timer 3 Expired event mask */
-                gki_cb.com.OSTaskTmr3[task_id] = gki_cb.com.OSTaskTmr3R[task_id];
-                GKI_send_event (task_id, TIMER_3_EVT_MASK);
-            }
-        }
-
-        /* Check to see if this timer is the next one to expire */
-        if (gki_cb.com.OSTaskTmr3[task_id] > 0 && gki_cb.com.OSTaskTmr3[task_id] < next_expiration)
-            next_expiration = gki_cb.com.OSTaskTmr3[task_id];
-#endif
-
     }
     /* Set the next timer experation value if there is one to start */
     if (next_expiration < GKI_NO_NEW_TMRS_STARTED)
