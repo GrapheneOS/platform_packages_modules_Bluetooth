@@ -271,11 +271,10 @@ int btif_is_enabled(void)
 **
 *******************************************************************************/
 
-static void btif_task(UINT32 params)
+static void btif_task(void)
 {
     UINT16   event;
     BT_HDR   *p_msg;
-    UNUSED(params);
 
     BTIF_TRACE_DEBUG("btif task starting");
 

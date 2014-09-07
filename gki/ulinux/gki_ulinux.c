@@ -64,28 +64,14 @@ typedef struct
 {
     UINT8 task_id;          /* GKI task id */
     TASKPTR task_entry;     /* Task entry function*/
-    UINT32 params;          /* Extra params to pass to task entry function */
 } gki_pthread_info_t;
 
-/*****************************************************************************
-**  Static variables
-******************************************************************************/
-
-gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
+static gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
 
 // Only a single alarm is used to wake bluedroid.
 // NOTE: Must be manipulated with the GKI_disable() lock held.
 static alarm_t *alarm_timer;
 static int32_t alarm_ticks;
-
-
-/*****************************************************************************
-**  Externs
-******************************************************************************/
-
-/*****************************************************************************
-**  Functions
-******************************************************************************/
 
 static void bt_alarm_cb(UNUSED_ATTR void *data) {
     GKI_timer_update(alarm_ticks);
@@ -104,7 +90,6 @@ void alarm_service_reschedule() {
         ALOGV("%s no more alarms.", __func__);
 }
 
-
 /*****************************************************************************
 **
 ** Function        gki_task_entry
@@ -114,23 +99,21 @@ void alarm_service_reschedule() {
 ** Returns         void
 **
 *******************************************************************************/
-static void gki_task_entry(UINT32 params)
+static void *gki_task_entry(void *params)
 {
     gki_pthread_info_t *p_pthread_info = (gki_pthread_info_t *)params;
     gki_cb.os.thread_id[p_pthread_info->task_id] = pthread_self();
 
     prctl(PR_SET_NAME, (unsigned long)gki_cb.com.task_name[p_pthread_info->task_id], 0, 0, 0);
 
-    ALOGI("gki_task_entry task_id=%i [%s] starting\n", p_pthread_info->task_id,
-                gki_cb.com.task_name[p_pthread_info->task_id]);
+    ALOGI("%s '%s' task [%d] starting", __func__, gki_cb.com.task_name[p_pthread_info->task_id], p_pthread_info->task_id);
 
     /* Call the actual thread entry point */
-    (p_pthread_info->task_entry)(p_pthread_info->params);
+    (p_pthread_info->task_entry)();
 
-    ALOGI("gki_task task_id=%i [%s] terminating\n", p_pthread_info->task_id,
-                gki_cb.com.task_name[p_pthread_info->task_id]);
+    ALOGI("%s '%s' task [%d] terminating", __func__, gki_cb.com.task_name[p_pthread_info->task_id], p_pthread_info->task_id);
 
-    pthread_exit(0);    /* GKI tasks have no return value */
+    return NULL;
 }
 
 /*******************************************************************************
@@ -200,13 +183,6 @@ UINT32 GKI_get_os_tick_count(void)
 *******************************************************************************/
 UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
 {
-    UINT16  i;
-    UINT8   *p;
-    struct sched_param param;
-    int policy, ret = 0;
-
-    GKI_TRACE( "GKI_create_task %x %d %s", (int)task_entry, (int)task_id, taskname);
-
     if (task_id >= GKI_MAX_TASKS)
     {
         ALOGE("Error! task ID > max task allowed");
@@ -214,7 +190,7 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
     }
 
     gki_cb.com.task_state[task_id]  = TASK_READY;
-    gki_cb.com.task_name[task_id]     = taskname;
+    gki_cb.com.task_name[task_id]   = taskname;
     gki_cb.com.OSWaitTmr[task_id]   = 0;
     gki_cb.com.OSWaitEvt[task_id]   = 0;
 
@@ -230,11 +206,10 @@ UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
     /* Pass task_id to new task so it can initialize gki_cb.os.thread_id[task_id] for it calls GKI_wait */
     gki_pthread_info[task_id].task_id = task_id;
     gki_pthread_info[task_id].task_entry = task_entry;
-    gki_pthread_info[task_id].params = 0;
 
-    ret = pthread_create( &gki_cb.os.thread_id[task_id],
+    int ret = pthread_create( &gki_cb.os.thread_id[task_id],
               NULL,
-              (void *)gki_task_entry,
+              gki_task_entry,
               &gki_pthread_info[task_id]);
 
     if (ret != 0)

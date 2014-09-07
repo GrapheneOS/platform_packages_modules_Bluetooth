@@ -119,7 +119,7 @@ typedef struct
 
 /* Task constants
 */
-typedef void (*TASKPTR)(UINT32);
+typedef void (*TASKPTR)(void);
 
 #define GKI_PUBLIC_POOL         0       /* General pool accessible to GKI_getbuf() */
 #define GKI_RESTRICTED_POOL     1       /* Inaccessible pool to GKI_getbuf() */

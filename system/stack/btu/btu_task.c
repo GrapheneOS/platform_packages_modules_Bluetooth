@@ -363,7 +363,7 @@ static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle) {
 ** Returns          should never return
 **
 *******************************************************************************/
-BTU_API void btu_task (UINT32 param)
+BTU_API void btu_task (void)
 {
     UINT16           event;
     BT_HDR          *p_msg;
@@ -371,7 +371,6 @@ BTU_API void btu_task (UINT32 param)
     UINT8            i;
     UINT16           mask;
     BOOLEAN          handled;
-    UNUSED(param);
 
     /* wait an event that HCISU is ready */
     BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,

@@ -772,7 +772,7 @@ int btif_a2dp_start_media_task(void)
     btif_media_data_msg_queue = fixed_queue_new(SIZE_MAX);
 
     /* start a2dp media task */
-    retval = GKI_create_task((TASKPTR)btif_media_task, A2DP_MEDIA_TASK, "A2DP-MEDIA");
+    retval = GKI_create_task(btif_media_task, A2DP_MEDIA_TASK, "A2DP-MEDIA");
 
     if (retval != GKI_SUCCESS)
         return retval;
@@ -1359,11 +1359,10 @@ void btif_media_task_init(void)
  ** Returns          void
  **
  *******************************************************************************/
-int btif_media_task(void *p)
+void btif_media_task(void)
 {
     UINT16 event;
     BT_HDR *p_msg;
-    UNUSED(p);
 
     VERBOSE("================ MEDIA TASK STARTING ================");
 
@@ -1423,8 +1422,6 @@ int btif_media_task(void *p)
     media_task_running = MEDIA_TASK_STATE_OFF;
 
     APPL_TRACE_DEBUG("MEDIA TASK EXITING");
-
-    return 0;
 }
 
 
