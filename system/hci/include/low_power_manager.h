@@ -21,9 +21,9 @@
 #include "hci_layer.h"
 
 typedef struct thread_t thread_t;
-typedef struct vendor_interface_t vendor_interface_t;
+typedef struct vendor_t vendor_t;
 
-typedef struct low_power_manager_interface_t {
+typedef struct low_power_manager_t {
   // Initialize the low power manager, and use |post_thread| to synchronize actions.
   void (*init)(thread_t *post_thread);
 
@@ -41,7 +41,7 @@ typedef struct low_power_manager_interface_t {
   // Tell the low power manager that you're done transmitting data. Must be
   // called on the thread provided at initialization time.
   void (*transmit_done)(void);
-} low_power_manager_interface_t;
+} low_power_manager_t;
 
-const low_power_manager_interface_t *low_power_manager_get_interface();
-const low_power_manager_interface_t *low_power_manager_get_test_interface(const vendor_interface_t *vendor_interface);
+const low_power_manager_t *low_power_manager_get_interface();
+const low_power_manager_t *low_power_manager_get_test_interface(const vendor_t *vendor_interface);

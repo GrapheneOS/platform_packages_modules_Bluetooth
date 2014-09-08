@@ -30,9 +30,9 @@
 #define HCI_HAL_SERIAL_BUFFER_SIZE 1026
 
 // Our interface and modules we import
-static const hci_hal_interface_t interface;
+static const hci_hal_t interface;
 static const hci_hal_callbacks_t *callbacks;
-static const vendor_interface_t *vendor;
+static const vendor_t *vendor;
 
 static thread_t *thread; // Not owned by us
 
@@ -183,7 +183,7 @@ static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *conte
   }
 }
 
-static const hci_hal_interface_t interface = {
+static const hci_hal_t interface = {
   hal_init,
 
   hal_open,
@@ -194,12 +194,12 @@ static const hci_hal_interface_t interface = {
   transmit_data,
 };
 
-const hci_hal_interface_t *hci_hal_h4_get_interface() {
+const hci_hal_t *hci_hal_h4_get_interface() {
   vendor = vendor_get_interface();
   return &interface;
 }
 
-const hci_hal_interface_t *hci_hal_h4_get_test_interface(vendor_interface_t *vendor_interface) {
+const hci_hal_t *hci_hal_h4_get_test_interface(vendor_t *vendor_interface) {
   vendor = vendor_interface;
   return &interface;
 }

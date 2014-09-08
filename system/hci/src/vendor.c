@@ -22,6 +22,7 @@
 #include <dlfcn.h>
 #include <utils/Log.h>
 
+#include "buffer_allocator.h"
 #include "bt_vendor_lib.h"
 #include "osi.h"
 #include "vendor.h"
@@ -31,9 +32,9 @@
 static const char *VENDOR_LIBRARY_NAME = "libbt-vendor.so";
 static const char *VENDOR_LIBRARY_SYMBOL_NAME = "BLUETOOTH_VENDOR_LIB_INTERFACE";
 
-static const vendor_interface_t interface;
-static const allocator_t *allocator;
-static const hci_interface_t *hci;
+static const vendor_t interface;
+static const allocator_t *buffer_allocator;
+static const hci_t *hci;
 static vendor_cb callbacks[LAST_VENDOR_OPCODE_VALUE + 1];
 
 static void *lib_handle;
@@ -44,10 +45,8 @@ static const bt_vendor_callbacks_t lib_callbacks;
 
 static bool vendor_open(
     const uint8_t *local_bdaddr,
-    const allocator_t *buffer_allocator,
-    const hci_interface_t *hci_interface) {
+    const hci_t *hci_interface) {
   assert(lib_handle == NULL);
-  allocator = buffer_allocator;
   hci = hci_interface;
 
   lib_handle = dlopen(VENDOR_LIBRARY_NAME, RTLD_NOW);
@@ -155,13 +154,13 @@ static void sco_audiostate_cb(bt_vendor_op_result_t result)
 
 // Called by vendor library when it needs an HCI buffer.
 static void *buffer_alloc_cb(int size) {
-  return allocator->alloc(size);
+  return buffer_allocator->alloc(size);
 }
 
 // Called by vendor library when it needs to free a buffer allocated with
 // |buffer_alloc_cb|.
 static void buffer_free_cb(void *buffer) {
-  allocator->free(buffer);
+  buffer_allocator->free(buffer);
 }
 
 static void transmit_completed_callback(BT_HDR *response, void *context) {
@@ -197,7 +196,7 @@ static const bt_vendor_callbacks_t lib_callbacks = {
   epilog_cb
 };
 
-static const vendor_interface_t interface = {
+static const vendor_t interface = {
   vendor_open,
   vendor_close,
   send_command,
@@ -205,6 +204,7 @@ static const vendor_interface_t interface = {
   set_callback,
 };
 
-const vendor_interface_t *vendor_get_interface() {
+const vendor_t *vendor_get_interface() {
+  buffer_allocator = buffer_allocator_get_interface();
   return &interface;
 }

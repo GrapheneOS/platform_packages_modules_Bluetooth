@@ -43,8 +43,8 @@ typedef enum {
 } wake_state_t;
 
 // Our interface and modules we import
-static const low_power_manager_interface_t interface;
-static const vendor_interface_t *vendor;
+static const low_power_manager_t interface;
+static const vendor_t *vendor;
 
 static void vendor_enable_disable_callback(bool success);
 
@@ -223,7 +223,7 @@ static void vendor_enable_disable_callback(bool success) {
   }
 }
 
-static const low_power_manager_interface_t interface = {
+static const low_power_manager_t interface = {
   init,
   cleanup,
   post_command,
@@ -231,12 +231,12 @@ static const low_power_manager_interface_t interface = {
   transmit_done
 };
 
-const low_power_manager_interface_t *low_power_manager_get_interface() {
+const low_power_manager_t *low_power_manager_get_interface() {
   vendor = vendor_get_interface();
   return &interface;
 }
 
-const low_power_manager_interface_t *low_power_manager_get_test_interface(const vendor_interface_t *vendor_interface) {
+const low_power_manager_t *low_power_manager_get_test_interface(const vendor_t *vendor_interface) {
   vendor = vendor_interface;
   return &interface;
 }

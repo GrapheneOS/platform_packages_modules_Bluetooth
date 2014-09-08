@@ -24,6 +24,7 @@
 
 #include "allocator.h"
 #include "bt_types.h"
+#include "buffer_allocator.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
 #include "list.h"
@@ -46,9 +47,9 @@ typedef struct {
 
 static const port_t LISTEN_PORT = 8873;
 
-static const hci_inject_interface_t interface;
-static const hci_interface_t *hci;
-static const allocator_t *allocator;
+static const hci_inject_t interface;
+static const hci_t *hci;
+static const allocator_t *buffer_allocator;
 static socket_t *listen_socket;
 static thread_t *thread;
 static list_t *clients;
@@ -58,15 +59,13 @@ static void accept_ready(socket_t *socket, void *context);
 static void read_ready(socket_t *socket, void *context);
 static void client_free(void *ptr);
 
-bool hci_inject_open(const hci_interface_t *hci_interface, const allocator_t *buffer_allocator) {
+bool hci_inject_open(const hci_t *hci_interface) {
   assert(listen_socket == NULL);
   assert(thread == NULL);
   assert(clients == NULL);
   assert(hci_interface != NULL);
-  assert(buffer_allocator != NULL);
 
   hci = hci_interface;
-  allocator = buffer_allocator;
 
   thread = thread_new("hci_inject");
   if (!thread)
@@ -167,7 +166,7 @@ static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
     // TODO(sharvil): once we have an HCI parser, we can eliminate
     //   the 2-byte size field since it will be contained in the packet.
 
-    BT_HDR *buf = (BT_HDR *)allocator->alloc(packet_len);
+    BT_HDR *buf = (BT_HDR *)buffer_allocator->alloc(packet_len);
     if (buf) {
       buf->event = hci_packet_to_event(packet_type);
       buf->offset = 0;
@@ -194,11 +193,12 @@ static void client_free(void *ptr) {
   osi_free(client);
 }
 
-static const hci_inject_interface_t interface = {
+static const hci_inject_t interface = {
   hci_inject_open,
   hci_inject_close
 };
 
-const hci_inject_interface_t *hci_inject_get_interface() {
+const hci_inject_t *hci_inject_get_interface() {
+  buffer_allocator = buffer_allocator_get_interface();
   return &interface;
 }

@@ -25,6 +25,7 @@ extern "C" {
 #include <utils/Log.h>
 
 #include "allocator.h"
+#include "controller.h"
 #include "hci_internals.h"
 #include "packet_fragmenter.h"
 #include "osi.h"
@@ -61,7 +62,7 @@ static const uint16_t test_handle_continuation = (0x1992 & 0xCFFF) | 0x1000;
 static int packet_index;
 static unsigned int data_size_sum;
 
-static const packet_fragmenter_interface_t *fragmenter;
+static const packet_fragmenter_t *fragmenter;
 
 static BT_HDR *manufacture_packet_for_fragmentation(uint16_t event, const char *data) {
   uint16_t data_length = strlen(data);
@@ -250,10 +251,31 @@ STUB_FUNCTION(void, transmit_finished_callback, (UNUSED_ATTR void *packet, UNUSE
   UNEXPECTED_CALL;
 }
 
+STUB_FUNCTION(uint16_t, get_acl_size_classic, (void))
+  DURING(no_fragmentation,
+         non_acl_passthrough_fragmentation,
+         no_reassembly) return 42;
+  DURING(fragmentation) return 10;
+  DURING(no_reassembly) return 1337;
+
+  UNEXPECTED_CALL;
+  return 0;
+}
+
+STUB_FUNCTION(uint16_t, get_acl_size_ble, (void))
+  DURING(ble_no_fragmentation) return 42;
+  DURING(ble_fragmentation) return 10;
+
+  UNEXPECTED_CALL;
+  return 0;
+}
+
 static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(fragmented_callback);
   RESET_CALL_COUNT(reassembled_callback);
   RESET_CALL_COUNT(transmit_finished_callback);
+  RESET_CALL_COUNT(get_acl_size_classic);
+  RESET_CALL_COUNT(get_acl_size_ble);
   CURRENT_TEST_MODE = next;
 }
 
@@ -261,16 +283,21 @@ class PacketFragmenterTest : public AllocationTestHarness {
   protected:
     virtual void SetUp() {
       AllocationTestHarness::SetUp();
-      fragmenter = packet_fragmenter_get_interface();
+      fragmenter = packet_fragmenter_get_test_interface(
+        &controller,
+        &allocator_malloc);
+
       packet_index = 0;
       data_size_sum = 0;
 
       callbacks.fragmented = fragmented_callback;
       callbacks.reassembled = reassembled_callback;
       callbacks.transmit_finished = transmit_finished_callback;
+      controller.get_acl_size_classic = get_acl_size_classic;
+      controller.get_acl_size_ble = get_acl_size_ble;
 
       reset_for(init);
-      fragmenter->init(&callbacks, &allocator_malloc);
+      fragmenter->init(&callbacks);
     }
 
     virtual void TearDown() {
@@ -278,19 +305,12 @@ class PacketFragmenterTest : public AllocationTestHarness {
       AllocationTestHarness::TearDown();
     }
 
+    controller_t controller;
     packet_fragmenter_callbacks_t callbacks;
 };
 
-TEST_F(PacketFragmenterTest, test_set_data_sizes) {
-  reset_for(set_data_sizes);
-  fragmenter->set_acl_data_size(1337);
-  fragmenter->set_ble_acl_data_size(42);
-}
-
 TEST_F(PacketFragmenterTest, test_no_fragment_necessary) {
   reset_for(no_fragmentation);
-  fragmenter->set_acl_data_size(42);
-
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, small_sample_data);
   fragmenter->fragment_and_dispatch(packet);
 
@@ -300,8 +320,6 @@ TEST_F(PacketFragmenterTest, test_no_fragment_necessary) {
 
 TEST_F(PacketFragmenterTest, test_fragment_necessary) {
   reset_for(fragmentation);
-  fragmenter->set_acl_data_size(10);
-
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, sample_data);
   fragmenter->fragment_and_dispatch(packet);
 
@@ -310,9 +328,6 @@ TEST_F(PacketFragmenterTest, test_fragment_necessary) {
 
 TEST_F(PacketFragmenterTest, test_ble_no_fragment_necessary) {
   reset_for(ble_no_fragmentation);
-  fragmenter->set_acl_data_size(1);
-  fragmenter->set_ble_acl_data_size(42);
-
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, small_sample_data);
   packet->event |= LOCAL_BLE_CONTROLLER_ID;
   fragmenter->fragment_and_dispatch(packet);
@@ -323,9 +338,6 @@ TEST_F(PacketFragmenterTest, test_ble_no_fragment_necessary) {
 
 TEST_F(PacketFragmenterTest, test_ble_fragment_necessary) {
   reset_for(ble_fragmentation);
-  fragmenter->set_acl_data_size(10000);
-  fragmenter->set_ble_acl_data_size(10);
-
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_ACL, sample_data);
   packet->event |= LOCAL_BLE_CONTROLLER_ID;
   fragmenter->fragment_and_dispatch(packet);
@@ -335,9 +347,6 @@ TEST_F(PacketFragmenterTest, test_ble_fragment_necessary) {
 
 TEST_F(PacketFragmenterTest, test_non_acl_passthrough_fragmentation) {
   reset_for(non_acl_passthrough_fragmentation);
-  fragmenter->set_acl_data_size(42);
-  fragmenter->set_ble_acl_data_size(42);
-
   BT_HDR *packet = manufacture_packet_for_fragmentation(MSG_STACK_TO_HC_HCI_CMD, sample_data);
   fragmenter->fragment_and_dispatch(packet);
 
@@ -347,7 +356,6 @@ TEST_F(PacketFragmenterTest, test_non_acl_passthrough_fragmentation) {
 
 TEST_F(PacketFragmenterTest, test_no_reassembly_necessary) {
   reset_for(no_reassembly);
-  fragmenter->set_acl_data_size(1337);
   manufacture_packet_and_then_reassemble(MSG_HC_TO_STACK_HCI_ACL, 1337, small_sample_data);
 
   EXPECT_EQ(strlen(small_sample_data), data_size_sum);
@@ -356,7 +364,6 @@ TEST_F(PacketFragmenterTest, test_no_reassembly_necessary) {
 
 TEST_F(PacketFragmenterTest, test_reassembly_necessary) {
   reset_for(reassembly);
-  fragmenter->set_acl_data_size(42);
   manufacture_packet_and_then_reassemble(MSG_HC_TO_STACK_HCI_ACL, 42, sample_data);
 
   EXPECT_EQ(strlen(sample_data), data_size_sum);
@@ -365,7 +372,6 @@ TEST_F(PacketFragmenterTest, test_reassembly_necessary) {
 
 TEST_F(PacketFragmenterTest, test_non_acl_passthrough_reasseembly) {
   reset_for(non_acl_passthrough_reassembly);
-  fragmenter->set_acl_data_size(42);
   manufacture_packet_and_then_reassemble(MSG_HC_TO_STACK_HCI_EVT, 42, sample_data);
 
   EXPECT_EQ(strlen(sample_data), data_size_sum);

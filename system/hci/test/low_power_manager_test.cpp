@@ -38,7 +38,7 @@ DECLARE_TEST_MODES(
   enable_disable
 );
 
-static const low_power_manager_interface_t *manager;
+static const low_power_manager_t *manager;
 static thread_t *thread;
 static semaphore_t *done;
 
@@ -126,7 +126,7 @@ class LowPowerManagerTest : public AlarmTestHarness {
       AlarmTestHarness::TearDown();
     }
 
-    vendor_interface_t vendor;
+    vendor_t vendor;
 };
 
 TEST_F(LowPowerManagerTest, test_enable_disable) {

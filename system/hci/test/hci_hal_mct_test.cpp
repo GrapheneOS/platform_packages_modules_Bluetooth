@@ -49,7 +49,7 @@ static char sample_data3[100] = "The ends of a line are points.";
 static char acl_data[100] =     "A straight line is a line which lies evenly with the points on itself.";
 static char event_data[100] =   "The edges of a surface are lines.";
 
-static const hci_hal_interface_t *hal;
+static const hci_hal_t *hal;
 static int command_out_fd;
 static int acl_out_fd;
 static int acl_in_fd;
@@ -174,7 +174,7 @@ class HciHalMctTest : public AllocationTestHarness {
     int event_sockfd[2];
     int acl_in_sockfd[2];
     int acl_out_sockfd[2];
-    vendor_interface_t vendor;
+    vendor_t vendor;
     thread_t *thread;
     hci_hal_callbacks_t callbacks;
 };

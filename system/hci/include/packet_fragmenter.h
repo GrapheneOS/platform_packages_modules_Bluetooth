@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include "allocator.h"
 #include "bt_types.h"
 #include "hci_layer.h"
 
@@ -36,18 +37,12 @@ typedef struct {
   transmit_finished_cb transmit_finished;
 } packet_fragmenter_callbacks_t;
 
-typedef struct packet_fragmenter_interface_t {
-  // Initialize the fragmenter, specifying the |result_callbacks|. |buffer_allocator|
-  // is used to allocate and free buffers for the reassembled packets.
-  void (*init)(const packet_fragmenter_callbacks_t *result_callbacks, const allocator_t *buffer_allocator);
+typedef struct packet_fragmenter_t {
+  // Initialize the fragmenter, specifying the |result_callbacks|.
+  void (*init)(const packet_fragmenter_callbacks_t *result_callbacks);
 
   // Release all resources associated with the fragmenter.
   void (*cleanup)(void);
-
-  // Sets the fragmentation size for normal acl data.
-  void (*set_acl_data_size)(uint16_t size);
-  // Sets the fragmentation size for bluetooth low energy acl data.
-  void (*set_ble_acl_data_size)(uint16_t size);
 
   // Fragments |packet| if necessary and hands off everything to the fragmented callback.
   void (*fragment_and_dispatch)(BT_HDR *packet);
@@ -55,6 +50,10 @@ typedef struct packet_fragmenter_interface_t {
   // holds onto it until all fragments arrive, at which point the reassembled callback is called
   // with the reassembled data.
   void (*reassemble_and_dispatch)(BT_HDR *packet);
-} packet_fragmenter_interface_t;
+} packet_fragmenter_t;
 
-const packet_fragmenter_interface_t *packet_fragmenter_get_interface();
+const packet_fragmenter_t *packet_fragmenter_get_interface();
+
+const packet_fragmenter_t *packet_fragmenter_get_test_interface(
+    const controller_t *controller_interface,
+    const allocator_t *buffer_allocator_interface);

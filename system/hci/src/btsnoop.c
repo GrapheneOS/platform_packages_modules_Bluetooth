@@ -171,12 +171,12 @@ static void btsnoop_capture(const BT_HDR *buffer, bool is_received) {
   }
 }
 
-static const btsnoop_interface_t interface = {
+static const btsnoop_t interface = {
   btsnoop_open,
   btsnoop_close,
   btsnoop_capture
 };
 
-const btsnoop_interface_t *btsnoop_get_interface() {
+const btsnoop_t *btsnoop_get_interface() {
   return &interface;
 }

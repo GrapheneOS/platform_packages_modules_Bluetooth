@@ -22,7 +22,9 @@
 #include <utils/Log.h>
 
 #include "alarm.h"
+#include "buffer_allocator.h"
 #include "btsnoop.h"
+#include "controller.h"
 #include "fixed_queue.h"
 #include "hcimsgs.h"
 #include "hci_hal.h"
@@ -38,7 +40,6 @@
 
 #define HCI_COMMAND_COMPLETE_EVT    0x0E
 #define HCI_COMMAND_STATUS_EVT      0x0F
-#define HCI_LE_READ_BUFFER_SIZE     0x2002
 
 #define INBOUND_PACKET_TYPE_COUNT 3
 #define PACKET_TYPE_TO_INBOUND_INDEX(type) ((type) - 2)
@@ -91,19 +92,20 @@ static const uint32_t COMMAND_PENDING_TIMEOUT = 8000;
 
 // Our interface
 static bool interface_created;
-static hci_interface_t interface;
+static hci_t interface;
 
 // Modules we import and callbacks we export
 static const allocator_t *buffer_allocator;
-static const btsnoop_interface_t *btsnoop;
+static const btsnoop_t *btsnoop;
+static const controller_t *controller;
 static const hci_callbacks_t *callbacks;
-static const hci_hal_interface_t *hal;
+static const hci_hal_t *hal;
 static const hci_hal_callbacks_t hal_callbacks;
-static const hci_inject_interface_t *hci_inject;
-static const low_power_manager_interface_t *low_power_manager;
-static const packet_fragmenter_interface_t *packet_fragmenter;
+static const hci_inject_t *hci_inject;
+static const low_power_manager_t *low_power_manager;
+static const packet_fragmenter_t *packet_fragmenter;
 static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks;
-static const vendor_interface_t *vendor;
+static const vendor_t *vendor;
 
 static thread_t *thread; // We own this
 
@@ -137,12 +139,8 @@ static void epilog_wait_timer_expired(void *context);
 
 // Interface functions
 
-static bool start_up(
-    bdaddr_t local_bdaddr,
-    const allocator_t *upward_buffer_allocator,
-    const hci_callbacks_t *upper_callbacks) {
+static bool start_up(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbacks) {
   assert(local_bdaddr != NULL);
-  assert(upward_buffer_allocator != NULL);
   assert(upper_callbacks != NULL);
 
   ALOGI("%s", __func__);
@@ -193,15 +191,15 @@ static bool start_up(
   }
 
   callbacks = upper_callbacks;
-  buffer_allocator = upward_buffer_allocator;
   memset(incoming_packets, 0, sizeof(incoming_packets));
 
-  packet_fragmenter->init(&packet_fragmenter_callbacks, buffer_allocator);
+  controller->init(&interface);
+  packet_fragmenter->init(&packet_fragmenter_callbacks);
 
   fixed_queue_register_dequeue(command_queue, thread_get_reactor(thread), event_command_ready, NULL);
   fixed_queue_register_dequeue(packet_queue, thread_get_reactor(thread), event_packet_ready, NULL);
 
-  vendor->open(local_bdaddr, buffer_allocator, &interface);
+  vendor->open(local_bdaddr, &interface);
   hal->init(&hal_callbacks, thread);
   low_power_manager->init(thread);
 
@@ -209,7 +207,7 @@ static bool start_up(
   vendor->set_callback(VENDOR_CONFIGURE_SCO, sco_config_callback);
   vendor->set_callback(VENDOR_DO_EPILOG, epilog_finished_callback);
 
-  if (!hci_inject->open(&interface, buffer_allocator)) {
+  if (!hci_inject->open(&interface)) {
     // TODO(sharvil): gracefully propagate failures from this layer.
   }
 
@@ -439,67 +437,12 @@ intercepted:;
   return true;
 }
 
-static void request_acl_buffer_size_callback(BT_HDR *response, UNUSED_ATTR void *context) {
-  uint8_t *stream = response->data + response->offset;
-  command_opcode_t opcode;
-  uint8_t status;
-  uint16_t data_size = 0;
-
-  stream += 3; // Skip the event header fields, and the number of hci command packets field
-  STREAM_TO_UINT16(opcode, stream);
-  STREAM_TO_UINT8(status, stream);
-
-  if (status == HCI_SUCCESS)
-    STREAM_TO_UINT16(data_size, stream);
-
-  if (opcode == HCI_READ_BUFFER_SIZE) {
-    if (status == HCI_SUCCESS)
-      packet_fragmenter->set_acl_data_size(data_size);
-
-    // Now request the ble buffer size, using the same buffer
-    response->event = HCI_LE_READ_BUFFER_SIZE;
-    response->offset = 0;
-    response->layer_specific = 0;
-    response->len = HCI_COMMAND_PREAMBLE_SIZE;
-
-    stream = response->data;
-    UINT16_TO_STREAM(stream, HCI_LE_READ_BUFFER_SIZE);
-    UINT8_TO_STREAM(stream, 0); // no parameters
-
-    transmit_command(response, request_acl_buffer_size_callback, NULL, NULL);
-  } else if (opcode == HCI_LE_READ_BUFFER_SIZE) {
-    if (status == HCI_SUCCESS)
-      packet_fragmenter->set_ble_acl_data_size(data_size);
-
-    buffer_allocator->free(response);
-    ALOGI("%s postload finished.", __func__);
-  } else {
-    ALOGE("%s unexpected opcode %d", __func__, opcode);
-  }
-}
-
-static void request_acl_buffer_size() {
-  ALOGI("%s", __func__);
-  BT_HDR *packet = (BT_HDR *)buffer_allocator->alloc(sizeof(BT_HDR) + HCI_COMMAND_PREAMBLE_SIZE);
-  if (!packet) {
-    ALOGE("%s couldn't get buffer for packet.", __func__);
-    return;
-  }
-
-  packet->event = MSG_STACK_TO_HC_HCI_CMD;
-  packet->offset = 0;
-  packet->layer_specific = 0;
-  packet->len = HCI_COMMAND_PREAMBLE_SIZE;
-
-  uint8_t *stream = packet->data;
-  UINT16_TO_STREAM(stream, HCI_READ_BUFFER_SIZE);
-  UINT8_TO_STREAM(stream, 0); // no parameters
-
-  transmit_command(packet, request_acl_buffer_size_callback, NULL, NULL);
+static void on_controller_acl_size_fetch_finished(void) {
+  ALOGI("%s postload finished.", __func__);
 }
 
 static void sco_config_callback(UNUSED_ATTR bool success) {
-  request_acl_buffer_size();
+  controller->begin_acl_size_fetch(on_controller_acl_size_fetch_finished);
 }
 
 static void firmware_config_callback(UNUSED_ATTR bool success) {
@@ -724,9 +667,11 @@ static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks = {
   fragmenter_transmit_finished
 };
 
-const hci_interface_t *hci_layer_get_interface() {
+const hci_t *hci_layer_get_interface() {
+  buffer_allocator = buffer_allocator_get_interface();
   hal = hci_hal_get_interface();
   btsnoop = btsnoop_get_interface();
+  controller = controller_get_interface();
   hci_inject = hci_inject_get_interface();
   packet_fragmenter = packet_fragmenter_get_interface();
   vendor = vendor_get_interface();
@@ -736,16 +681,20 @@ const hci_interface_t *hci_layer_get_interface() {
   return &interface;
 }
 
-const hci_interface_t *hci_layer_get_test_interface(
-    const hci_hal_interface_t *hal_interface,
-    const btsnoop_interface_t *btsnoop_interface,
-    const hci_inject_interface_t *hci_inject_interface,
-    const packet_fragmenter_interface_t *packet_fragmenter_interface,
-    const vendor_interface_t *vendor_interface,
-    const low_power_manager_interface_t *low_power_manager_interface) {
+const hci_t *hci_layer_get_test_interface(
+    const allocator_t *buffer_allocator_interface,
+    const hci_hal_t *hal_interface,
+    const btsnoop_t *btsnoop_interface,
+    const controller_t *controller_interface,
+    const hci_inject_t *hci_inject_interface,
+    const packet_fragmenter_t *packet_fragmenter_interface,
+    const vendor_t *vendor_interface,
+    const low_power_manager_t *low_power_manager_interface) {
 
+  buffer_allocator = buffer_allocator_interface;
   hal = hal_interface;
   btsnoop = btsnoop_interface;
+  controller = controller_interface;
   hci_inject = hci_inject_interface;
   packet_fragmenter = packet_fragmenter_interface;
   vendor = vendor_interface;

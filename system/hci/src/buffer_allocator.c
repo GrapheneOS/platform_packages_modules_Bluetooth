@@ -16,19 +16,22 @@
  *
  ******************************************************************************/
 
-#pragma once
+#include <assert.h>
 
-#include <stdbool.h>
+#include "buffer_allocator.h"
+#include "gki.h"
 
-typedef struct hci_t hci_t;
+// TODO(zachoverflow): move the assertion into GKI_getbuf in the future
+static void *buffer_alloc(size_t size) {
+  assert(size <= GKI_MAX_BUF_SIZE);
+  return GKI_getbuf((uint16_t)size);
+}
 
-typedef struct hci_inject_t {
-  // Starts the HCI injection module. Returns true on success, false on failure.
-  // Once started, this module must be shut down with |close|.
-  bool (*open)(const hci_t *hci_interface);
+static const allocator_t interface = {
+  buffer_alloc,
+  GKI_freebuf
+};
 
-  // Shuts down the HCI injection module.
-  void (*close)(void);
-} hci_inject_t;
-
-const hci_inject_t *hci_inject_get_interface();
+const allocator_t *buffer_allocator_get_interface() {
+  return &interface;
+}

@@ -51,7 +51,7 @@ static char acl_data[100] =     "A straight line is a line which lies evenly wit
 static char sco_data[100] =     "A surface is that which has length and breadth only.";
 static char event_data[100] =   "The edges of a surface are lines.";
 
-static const hci_hal_interface_t *hal;
+static const hci_hal_t *hal;
 static int dummy_serial_fd;
 static int reentry_i = 0;
 
@@ -165,7 +165,7 @@ class HciHalH4Test : public AllocationTestHarness {
     }
 
     int sockfd[2];
-    vendor_interface_t vendor;
+    vendor_t vendor;
     thread_t *thread;
     hci_hal_callbacks_t callbacks;
 };

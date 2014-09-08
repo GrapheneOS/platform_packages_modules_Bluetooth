@@ -5,11 +5,15 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
     src/btsnoop.c \
     src/btsnoop_net.c \
+    src/buffer_allocator.c \
+    src/controller.c \
     src/hci_hal.c \
     src/hci_hal_h4.c \
     src/hci_hal_mct.c \
     src/hci_inject.c \
     src/hci_layer.c \
+    src/hci_packet_factory.c \
+    src/hci_packet_parser.c \
     src/low_power_manager.c \
     src/packet_fragmenter.c \
     src/vendor.c

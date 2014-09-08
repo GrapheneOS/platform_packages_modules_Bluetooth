@@ -48,12 +48,13 @@
 
 ///// END LEGACY DEFINITIONS /////
 
-typedef struct hci_hal_interface_t hci_hal_interface_t;
-typedef struct btsnoop_interface_t btsnoop_interface_t;
-typedef struct hci_inject_interface_t hci_inject_interface_t;
-typedef struct packet_fragmenter_interface_t packet_fragmenter_interface_t;
-typedef struct vendor_interface_t vendor_interface_t;
-typedef struct low_power_manager_interface_t low_power_manager_interface_t;
+typedef struct hci_hal_t hci_hal_t;
+typedef struct btsnoop_t btsnoop_t;
+typedef struct controller_t controller_t;
+typedef struct hci_inject_t hci_inject_t;
+typedef struct packet_fragmenter_t packet_fragmenter_t;
+typedef struct vendor_t vendor_t;
+typedef struct low_power_manager_t low_power_manager_t;
 
 typedef unsigned char * bdaddr_t;
 typedef uint16_t command_opcode_t;
@@ -78,11 +79,10 @@ typedef struct {
   transmit_finished_cb transmit_finished;
 } hci_callbacks_t;
 
-typedef struct hci_interface_t {
+typedef struct hci_t {
   // Start up the HCI layer, with the specified |local_bdaddr|.
   bool (*start_up)(
       bdaddr_t local_bdaddr,
-      const allocator_t *upward_buffer_allocator,
       const hci_callbacks_t *upper_callbacks
   );
 
@@ -119,14 +119,16 @@ typedef struct hci_interface_t {
 
   // Send some data downward through the HCI layer
   void (*transmit_downward)(data_dispatcher_type_t type, void *data);
-} hci_interface_t;
+} hci_t;
 
-const hci_interface_t *hci_layer_get_interface();
+const hci_t *hci_layer_get_interface();
 
-const hci_interface_t *hci_layer_get_test_interface(
-    const hci_hal_interface_t *hal_interface,
-    const btsnoop_interface_t *btsnoop_interface,
-    const hci_inject_interface_t *hci_inject_interface,
-    const packet_fragmenter_interface_t *packet_fragmenter_interface,
-    const vendor_interface_t *vendor_interface,
-    const low_power_manager_interface_t *low_power_manager_interface);
+const hci_t *hci_layer_get_test_interface(
+    const allocator_t *buffer_allocator_interface,
+    const hci_hal_t *hal_interface,
+    const btsnoop_t *btsnoop_interface,
+    const controller_t *controller,
+    const hci_inject_t *hci_inject_interface,
+    const packet_fragmenter_t *packet_fragmenter_interface,
+    const vendor_t *vendor_interface,
+    const low_power_manager_t *low_power_manager_interface);

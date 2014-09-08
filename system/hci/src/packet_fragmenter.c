@@ -16,11 +16,13 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "hci_hal_h4"
+#define LOG_TAG "hci_packet_fragmenter"
 
 #include <assert.h>
 #include <utils/Log.h>
 
+#include "buffer_allocator.h"
+#include "controller.h"
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "hci_internals.h"
@@ -42,23 +44,15 @@
 #define NUMBER_OF_BUCKETS 42
 
 // Our interface and callbacks
-static const packet_fragmenter_interface_t interface;
-static const allocator_t *allocator;
+static const packet_fragmenter_t interface;
+static const allocator_t *buffer_allocator;
+static const controller_t *controller;
 static const packet_fragmenter_callbacks_t *callbacks;
 
-static uint16_t acl_data_size;
-static uint16_t ble_acl_data_size;
 static hash_map_t *partial_packets;
 
-static void init(const packet_fragmenter_callbacks_t *result_callbacks, const allocator_t *buffer_allocator) {
-  allocator = buffer_allocator;
+static void init(const packet_fragmenter_callbacks_t *result_callbacks) {
   callbacks = result_callbacks;
-
-  // Give initial values for the data sizes, which will
-  // be updated when we talk to the actual controller
-  acl_data_size = 1021;
-  ble_acl_data_size = 27;
-
   partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL);
 }
 
@@ -67,23 +61,15 @@ static void cleanup() {
     hash_map_free(partial_packets);
 }
 
-static void set_acl_data_size(uint16_t size) {
-  assert(size > 0);
-  acl_data_size = size;
-}
-
-static void set_ble_acl_data_size(uint16_t size) {
-  // If the ble acl data size is zero, the ble acl buffers are the same size
-  // as the normal ones.
-  ble_acl_data_size = size == 0 ? acl_data_size : size;
-}
-
 static void fragment_and_dispatch(BT_HDR *packet) {
   assert(packet != NULL);
 
   uint16_t remaining_length = packet->len;
   uint16_t event = packet->event & MSG_EVT_MASK;
-  uint16_t max_data_size = SUB_EVENT(packet->event) == LOCAL_BR_EDR_CONTROLLER_ID ? acl_data_size : ble_acl_data_size;
+  uint16_t max_data_size =
+    SUB_EVENT(packet->event) == LOCAL_BR_EDR_CONTROLLER_ID ?
+      controller->get_acl_size_classic() :
+      controller->get_acl_size_ble();
   uint16_t max_packet_size = max_data_size + HCI_ACL_PREAMBLE_SIZE;
 
   uint8_t *stream = packet->data + packet->offset;
@@ -150,7 +136,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
         ALOGW("%s found unfinished packet for handle with start packet. Dropping old.", __func__);
 
         hash_map_erase(partial_packets, (void *)(uintptr_t)handle);
-        allocator->free(partial_packet);
+        buffer_allocator->free(partial_packet);
       }
 
       uint16_t full_length = l2cap_length + L2CAP_HEADER_SIZE + HCI_ACL_PREAMBLE_SIZE;
@@ -162,7 +148,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
         return;
       }
 
-      partial_packet = (BT_HDR *)allocator->alloc(full_length + sizeof(BT_HDR));
+      partial_packet = (BT_HDR *)buffer_allocator->alloc(full_length + sizeof(BT_HDR));
       partial_packet->event = packet->event;
       partial_packet->len = full_length;
       partial_packet->offset = packet->len;
@@ -176,11 +162,11 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
 
       hash_map_set(partial_packets, (void *)(uintptr_t)handle, partial_packet);
       // Free the old packet buffer, since we don't need it anymore
-      allocator->free(packet);
+      buffer_allocator->free(packet);
     } else {
       if (!partial_packet) {
         ALOGW("%s got continuation for unknown packet. Dropping it.", __func__);
-        allocator->free(packet);
+        buffer_allocator->free(packet);
         return;
       }
 
@@ -199,7 +185,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       );
 
       // Free the old packet buffer, since we don't need it anymore
-      allocator->free(packet);
+      buffer_allocator->free(packet);
       partial_packet->offset = projected_offset;
 
       if (partial_packet->offset == partial_packet->len) {
@@ -213,17 +199,24 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
   }
 }
 
-static const packet_fragmenter_interface_t interface = {
+static const packet_fragmenter_t interface = {
   init,
   cleanup,
-
-  set_acl_data_size,
-  set_ble_acl_data_size,
 
   fragment_and_dispatch,
   reassemble_and_dispatch
 };
 
-const packet_fragmenter_interface_t *packet_fragmenter_get_interface() {
+const packet_fragmenter_t *packet_fragmenter_get_interface() {
+  controller = controller_get_interface();
+  buffer_allocator = buffer_allocator_get_interface();
+  return &interface;
+}
+
+const packet_fragmenter_t *packet_fragmenter_get_test_interface(
+    const controller_t *controller_interface,
+    const allocator_t *buffer_allocator_interface) {
+  controller = controller_interface;
+  buffer_allocator = buffer_allocator_interface;
   return &interface;
 }

@@ -27,6 +27,7 @@ extern "C" {
 #include "allocation_tracker.h"
 #include "allocator.h"
 #include "btsnoop.h"
+#include "controller.h"
 #include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_inject.h"
@@ -59,7 +60,7 @@ static const char *command_sample_data = "that thou art not used to this busines
 
 static const char *logging_path = "this/is/a/test/logging/path";
 
-static const hci_interface_t *hci;
+static const hci_t *hci;
 static bdaddr_t test_addr = (bdaddr_t)"testaddress123";
 static const hci_hal_callbacks_t *hal_callbacks;
 static thread_t *internal_thread;
@@ -260,8 +261,7 @@ STUB_FUNCTION(void, btsnoop_close, ())
 }
 
 STUB_FUNCTION(bool, hci_inject_open, (
-    UNUSED_ATTR const hci_interface_t *hci_interface,
-    UNUSED_ATTR const allocator_t *buffer_allocator))
+    UNUSED_ATTR const hci_t *hci_interface))
   DURING(start_up) AT_CALL(0) return true;
   UNEXPECTED_CALL;
   return false;
@@ -349,10 +349,9 @@ STUB_FUNCTION(void, low_power_transmit_done, ())
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const allocator_t *allocator, const hci_interface_t *hci_interface))
+STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const hci_t *hci_interface))
   DURING(start_up) AT_CALL(0) {
     EXPECT_EQ(test_addr, addr);
-    EXPECT_EQ(&allocator_malloc, allocator);
     EXPECT_EQ(hci, hci_interface);
     return true;
   }
@@ -420,6 +419,7 @@ STUB_FUNCTION(int, vendor_send_async_command, (UNUSED_ATTR vendor_async_opcode_t
 
   DURING(postload) AT_CALL(0) {
     EXPECT_EQ(VENDOR_CONFIGURE_SCO, opcode);
+    sco_config_callback(true);
     return 0;
   }
 
@@ -455,6 +455,32 @@ STUB_FUNCTION(void, command_status_callback, (UNUSED_ATTR uint8_t status, BT_HDR
   UNEXPECTED_CALL;
 }
 
+STUB_FUNCTION(void, controller_init, (const hci_t *hci_interface))
+  DURING(start_up) AT_CALL(0) {
+    EXPECT_EQ(hci, hci_interface);
+    return;
+  }
+
+  UNEXPECTED_CALL;
+}
+
+STUB_FUNCTION(void, controller_begin_acl_size_fetch, (fetch_finished_cb callback))
+  DURING(postload) AT_CALL(0) {
+    callback();
+    return;
+  }
+
+  UNEXPECTED_CALL;
+}
+
+STUB_FUNCTION(uint16_t, controller_get_acl_size_classic, (void))
+  return 2048;
+}
+
+STUB_FUNCTION(uint16_t, controller_get_acl_size_ble, (void))
+  return 2048;
+}
+
 static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(vendor_open);
   RESET_CALL_COUNT(vendor_close);
@@ -479,6 +505,10 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(callback_transmit_finished);
   RESET_CALL_COUNT(command_complete_callback);
   RESET_CALL_COUNT(command_status_callback);
+  RESET_CALL_COUNT(controller_init);
+  RESET_CALL_COUNT(controller_begin_acl_size_fetch);
+  RESET_CALL_COUNT(controller_get_acl_size_classic);
+  RESET_CALL_COUNT(controller_get_acl_size_ble);
   CURRENT_TEST_MODE = next;
 }
 
@@ -488,10 +518,12 @@ class HciLayerTest : public AlarmTestHarness {
       AlarmTestHarness::SetUp();
 
       hci = hci_layer_get_test_interface(
+        &allocator_malloc,
         &hal,
         &btsnoop,
+        &controller,
         &hci_inject,
-        packet_fragmenter_get_interface(),
+        packet_fragmenter_get_test_interface(&controller, &allocator_malloc),
         &vendor,
         &low_power_manager
       );
@@ -523,16 +555,21 @@ class HciLayerTest : public AlarmTestHarness {
       low_power_manager.wake_assert = low_power_wake_assert;
       low_power_manager.transmit_done = low_power_transmit_done;
       callbacks.transmit_finished = callback_transmit_finished;
+      controller.init = controller_init;
+      controller.begin_acl_size_fetch = controller_begin_acl_size_fetch;
+      controller.get_acl_size_classic = controller_get_acl_size_classic;
+      controller.get_acl_size_ble = controller_get_acl_size_ble;
 
       done = semaphore_new(0);
 
       reset_for(start_up);
-      hci->start_up(test_addr, &allocator_malloc, &callbacks);
+      hci->start_up(test_addr, &callbacks);
 
       EXPECT_CALL_COUNT(vendor_open, 1);
       EXPECT_CALL_COUNT(hal_init, 1);
       EXPECT_CALL_COUNT(low_power_init, 1);
       EXPECT_CALL_COUNT(vendor_set_callback, 3);
+      EXPECT_CALL_COUNT(controller_init, 1);
     }
 
     virtual void TearDown() {
@@ -548,11 +585,12 @@ class HciLayerTest : public AlarmTestHarness {
       AlarmTestHarness::TearDown();
     }
 
-    hci_hal_interface_t hal;
-    btsnoop_interface_t btsnoop;
-    hci_inject_interface_t hci_inject;
-    vendor_interface_t vendor;
-    low_power_manager_interface_t low_power_manager;
+    hci_hal_t hal;
+    btsnoop_t btsnoop;
+    controller_t controller;
+    hci_inject_t hci_inject;
+    vendor_t vendor;
+    low_power_manager_t low_power_manager;
     hci_callbacks_t callbacks;
 };
 
@@ -588,6 +626,7 @@ TEST_F(HciLayerTest, test_postload) {
 
   flush_thread(internal_thread);
   EXPECT_CALL_COUNT(vendor_send_async_command, 1);
+  EXPECT_CALL_COUNT(controller_begin_acl_size_fetch, 1);
 }
 
 TEST_F(HciLayerTest, test_transmit_simple) {

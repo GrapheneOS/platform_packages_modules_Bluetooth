@@ -117,9 +117,8 @@ static const size_t BTU_L2CAP_ALARM_HASH_MAP_SIZE = 17;
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
-static const hci_interface_t *hci;
+static const hci_t *hci;
 static const hci_callbacks_t hci_callbacks;
-static const allocator_t buffer_allocator;
 static bt_preload_retry_cb_t preload_retry_cb;
 // Lock to serialize shutdown requests from upper layer.
 static pthread_mutex_t shutdown_lock;
@@ -328,7 +327,7 @@ static void bte_hci_enable(void)
 
     preload_start_wait_timer();
 
-    bool success = hci->start_up(btif_local_bd_addr.address, &buffer_allocator, &hci_callbacks);
+    bool success = hci->start_up(btif_local_bd_addr.address, &hci_callbacks);
     APPL_TRACE_EVENT("libbt-hci start_up returns %d", success);
 
     assert(success);
@@ -620,54 +619,6 @@ static void preload_cb(bool success)
     }
 }
 
-/******************************************************************************
-**
-** Function         alloc
-**
-** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
-**                  from the libbt-hci to request for data buffer allocation
-**
-** Returns          NULL / pointer to allocated buffer
-**
-******************************************************************************/
-static void *alloc(size_t size)
-{
-    /* Requested buffer size cannot exceed GKI_MAX_BUF_SIZE. */
-    if (size > GKI_MAX_BUF_SIZE)
-    {
-         APPL_TRACE_ERROR("HCI DATA SIZE %d greater than MAX %d",
-                           size, GKI_MAX_BUF_SIZE);
-         return NULL;
-    }
-
-    BT_HDR *p_hdr = (BT_HDR *) GKI_getbuf ((UINT16) size);
-
-    if (!p_hdr)
-    {
-        APPL_TRACE_WARNING("alloc returns NO BUFFER! (sz %d)", size);
-    }
-
-    return p_hdr;
-}
-
-/******************************************************************************
-**
-** Function         dealloc
-**
-** Description      HOST/CONTROLLER LIB CALLOUT API - This function is called
-**                  from the libbt-hci to release the data buffer allocated
-**                  through the alloc call earlier
-**
-**                  Bluedroid libbt-hci library uses 'transac' parameter to
-**                  pass data-path buffer/packet across bt_hci_lib interface
-**                  boundary.
-**
-******************************************************************************/
-static void dealloc(void *buffer)
-{
-    GKI_freebuf(buffer);
-}
-
 static void dump_upbound_data_to_btu(fixed_queue_t *queue, UNUSED_ATTR void *context) {
     fixed_queue_enqueue(btu_hci_msg_queue, fixed_queue_dequeue(queue));
     // Signal the target thread work is ready.
@@ -716,9 +667,3 @@ static const hci_callbacks_t hci_callbacks = {
     preload_cb,
     tx_result
 };
-
-static const allocator_t buffer_allocator = {
-    alloc,
-    dealloc
-};
-

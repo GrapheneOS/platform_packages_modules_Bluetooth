@@ -46,7 +46,7 @@ typedef struct {
   */
 } hci_hal_callbacks_t;
 
-typedef struct hci_hal_interface_t {
+typedef struct hci_hal_t {
   // Initialize the HAL, with |upper_callbacks| and |upper_thread| to run in the context of.
   bool (*init)(const hci_hal_callbacks_t *upper_callbacks, thread_t *upper_thread);
 
@@ -76,13 +76,13 @@ typedef struct hci_hal_interface_t {
   // This is safe in the bluetooth context, because there is always a buffer
   // header that prefixes data you're sending.
   uint16_t (*transmit_data)(serial_data_type_t type, uint8_t *data, uint16_t length);
-} hci_hal_interface_t;
+} hci_hal_t;
 
 // Gets the correct hal implementation, as compiled for.
-const hci_hal_interface_t *hci_hal_get_interface(void);
+const hci_hal_t *hci_hal_get_interface(void);
 
-const hci_hal_interface_t *hci_hal_h4_get_interface(void);
-const hci_hal_interface_t *hci_hal_h4_get_test_interface(vendor_interface_t *vendor_interface);
+const hci_hal_t *hci_hal_h4_get_interface(void);
+const hci_hal_t *hci_hal_h4_get_test_interface(vendor_t *vendor_interface);
 
-const hci_hal_interface_t *hci_hal_mct_get_interface(void);
-const hci_hal_interface_t *hci_hal_mct_get_test_interface(vendor_interface_t *vendor_interface);
+const hci_hal_t *hci_hal_mct_get_interface(void);
+const hci_hal_t *hci_hal_mct_get_test_interface(vendor_t *vendor_interface);

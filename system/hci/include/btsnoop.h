@@ -22,7 +22,7 @@
 
 #include "bt_types.h"
 
-typedef struct btsnoop_interface_t {
+typedef struct btsnoop_t {
   // Open btsnoop, and dump captured packets to the file pointed to by |path|.
   void (*open)(const char *path);
 
@@ -33,6 +33,6 @@ typedef struct btsnoop_interface_t {
   // true, the packet is marked as incoming. Otherwise, the packet is marked
   // as outgoing.
   void (*capture)(const BT_HDR *packet, bool is_received);
-} btsnoop_interface_t;
+} btsnoop_t;
 
-const btsnoop_interface_t *btsnoop_get_interface();
+const btsnoop_t *btsnoop_get_interface();

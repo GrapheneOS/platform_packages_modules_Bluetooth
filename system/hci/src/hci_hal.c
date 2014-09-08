@@ -18,7 +18,7 @@
 
 #include "hci_hal.h"
 
-const hci_hal_interface_t *hci_hal_get_interface() {
+const hci_hal_t *hci_hal_get_interface() {
 #if HCI_USE_MCT
   return hci_hal_mct_get_interface();
 #else
