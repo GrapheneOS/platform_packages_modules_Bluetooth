@@ -236,19 +236,6 @@ void BTU_ShutDown(void) {
 
 /*****************************************************************************
 **
-** Function         BTU_AclPktSize
-**
-** Description      export the ACL packet size.
-**
-** Returns          UINT16
-**
-******************************************************************************/
-UINT16 BTU_AclPktSize(void)
-{
-    return controller_get_interface()->get_acl_packet_size_classic();
-}
-/*****************************************************************************
-**
 ** Function         BTU_BleAclPktSize
 **
 ** Description      export the BLE ACL packet size.

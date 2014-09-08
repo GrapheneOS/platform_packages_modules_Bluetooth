@@ -228,8 +228,6 @@ typedef struct
     TIMER_LIST_Q  timer_queue;              /* Timer queue for normal BTU task (1 second)   */
     TIMER_LIST_Q  timer_queue_oneshot;      /* Timer queue for oneshot BTU tasks */
 
-    TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
-
     BOOLEAN     reset_complete;             /* TRUE after first ack from device received */
     UINT8       trace_level;                /* Trace level for HCI layer */
 } tBTU_CB;
@@ -292,7 +290,6 @@ extern void  btu_free_core(void);
 void BTU_StartUp(void);
 void BTU_ShutDown(void);
 
-extern UINT16 BTU_AclPktSize(void);
 extern UINT16 BTU_BleAclPktSize(void);
 
 #ifdef __cplusplus
