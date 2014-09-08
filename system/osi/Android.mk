@@ -34,6 +34,7 @@ LOCAL_SRC_FILES := \
     ./src/hash_functions.c \
     ./src/hash_map.c \
     ./src/list.c \
+    ./src/non_repeating_timer.c \
     ./src/reactor.c \
     ./src/semaphore.c \
     ./src/socket.c \

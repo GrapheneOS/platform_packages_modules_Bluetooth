@@ -21,7 +21,6 @@
 #include <assert.h>
 #include <utils/Log.h>
 
-#include "alarm.h"
 #include "buffer_allocator.h"
 #include "btsnoop.h"
 #include "controller.h"
@@ -33,6 +32,7 @@
 #include "hci_layer.h"
 #include "list.h"
 #include "low_power_manager.h"
+#include "non_repeating_timer.h"
 #include "osi.h"
 #include "packet_fragmenter.h"
 #include "reactor.h"
@@ -111,7 +111,7 @@ static thread_t *thread; // We own this
 
 static volatile bool firmware_is_configured = false;
 static volatile bool has_shut_down = false;
-static alarm_t *epilog_alarm;
+static non_repeating_timer_t *epilog_timer;
 
 // Outbound-related
 static int command_credits = 1;
@@ -119,7 +119,7 @@ static fixed_queue_t *command_queue;
 static fixed_queue_t *packet_queue;
 
 // Inbound-related
-static alarm_t *command_response_alarm;
+static non_repeating_timer_t *command_response_timer;
 static list_t *commands_pending_response;
 static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
@@ -134,6 +134,7 @@ static void firmware_config_callback(bool success);
 static void sco_config_callback(bool success);
 static void epilog_finished_callback(bool success);
 
+static void command_timed_out(void *context);
 static void hal_says_data_ready(serial_data_type_t type);
 static void epilog_wait_timer_expired(void *context);
 
@@ -154,15 +155,15 @@ static bool start_up(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbac
 
   pthread_mutex_init(&commands_pending_response_lock, NULL);
 
-  epilog_alarm = alarm_new();
-  if (!epilog_alarm) {
-    ALOGE("%s unable to create epilog alarm.", __func__);
+  epilog_timer = non_repeating_timer_new(EPILOG_TIMEOUT_MS, epilog_wait_timer_expired, NULL);
+  if (!epilog_timer) {
+    ALOGE("%s unable to create epilog timer.", __func__);
     goto error;
   }
 
-  command_response_alarm = alarm_new();
-  if (!command_response_alarm) {
-    ALOGE("%s unable to create command response alarm.", __func__);
+  command_response_timer = non_repeating_timer_new(COMMAND_PENDING_TIMEOUT, command_timed_out, NULL);
+  if (!command_response_timer) {
+    ALOGE("%s unable to create command response timer.", __func__);
     goto error;
   }
 
@@ -229,7 +230,7 @@ static void shut_down() {
 
   if (thread) {
     if (firmware_is_configured) {
-      alarm_set(epilog_alarm, EPILOG_TIMEOUT_MS, epilog_wait_timer_expired, NULL);
+      non_repeating_timer_restart(epilog_timer);
       thread_post(thread, event_epilog, NULL);
     } else {
       thread_stop(thread);
@@ -246,9 +247,8 @@ static void shut_down() {
 
   packet_fragmenter->cleanup();
 
-
-  alarm_free(epilog_alarm);
-  alarm_free(command_response_alarm);
+  non_repeating_timer_free(epilog_timer);
+  non_repeating_timer_free(command_response_timer);
 
   low_power_manager->cleanup();
   hal->close();
@@ -349,13 +349,6 @@ static void command_timed_out(UNUSED_ATTR void *context) {
   kill(getpid(), SIGKILL);
 }
 
-static void restart_command_timeout_alarm() {
-  if (list_is_empty(commands_pending_response))
-    alarm_cancel(command_response_alarm);
-  else
-    alarm_set(command_response_alarm, COMMAND_PENDING_TIMEOUT, command_timed_out, NULL);
-}
-
 static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
   pthread_mutex_lock(&commands_pending_response_lock);
 
@@ -419,7 +412,8 @@ static bool filter_incoming_event(BT_HDR *packet) {
 
   return false;
 intercepted:;
-  restart_command_timeout_alarm();
+  non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
+
   if (wait_entry) {
     // If it has a callback, it's responsible for freeing the packet
     if (event_code == HCI_COMMAND_STATUS_EVT || !wait_entry->complete_callback)
@@ -494,7 +488,7 @@ static void event_command_ready(fixed_queue_t *queue, UNUSED_ATTR void *context)
     packet_fragmenter->fragment_and_dispatch(wait_entry->command);
     low_power_manager->transmit_done();
 
-    restart_command_timeout_alarm();
+    non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
   }
 }
 
