@@ -22,6 +22,10 @@ hash_index_t hash_function_naive(const void *key) {
   return (hash_index_t)key;
 }
 
-hash_index_t hash_function_knuth(const void *key) {
+hash_index_t hash_function_integer(const void *key) {
+  return ((hash_index_t)key) * 2654435761;
+}
+
+hash_index_t hash_function_pointer(const void *key) {
   return ((hash_index_t)key) * 2654435761;
 }

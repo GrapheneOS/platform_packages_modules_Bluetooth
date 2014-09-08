@@ -27,7 +27,6 @@
 #include "hash_map.h"
 #include "osi.h"
 
-#define ALLOCATION_HASH_MAP_SIZE 1024
 
 typedef struct {
   uint8_t allocator_id;
@@ -49,6 +48,7 @@ hash_map_t *hash_map_new_internal(
 static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context);
 static void *untracked_calloc(size_t size);
 
+static const size_t allocation_hash_map_size = 1024;
 static const char *canary = "tinybird";
 static const allocator_t untracked_calloc_allocator = {
   untracked_calloc,
@@ -69,8 +69,8 @@ void allocation_tracker_init(bool use_canaries) {
 
   pthread_mutex_init(&lock, NULL);
   allocations = hash_map_new_internal(
-    ALLOCATION_HASH_MAP_SIZE,
-    hash_function_knuth,
+    allocation_hash_map_size,
+    hash_function_pointer,
     NULL,
     free,
     &untracked_calloc_allocator);

@@ -22,4 +22,7 @@
 
 hash_index_t hash_function_naive(const void *key);
 
-hash_index_t hash_function_knuth(const void *key);
+hash_index_t hash_function_integer(const void *key);
+
+// Hashes a pointer based only on its address value
+hash_index_t hash_function_pointer(const void *key);
