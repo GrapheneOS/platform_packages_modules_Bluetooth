@@ -38,6 +38,7 @@
 #include "bta_api.h"
 #include "bt_hci_bdroid.h"
 #include "bte.h"
+#include "btif_common.h"
 #include "btu.h"
 #include "bt_utils.h"
 #include "fixed_queue.h"
@@ -406,8 +407,8 @@ static void preload_wait_timeout(UNUSED_ATTR void *context)
     }
     else
     {
-        /* Notify BTIF_TASK that the init procedure had failed*/
-        GKI_send_event(BTIF_TASK, BT_EVT_HARDWARE_INIT_FAIL);
+        // Inform the bt jni thread initialization has failed.
+        btif_transfer_context(btif_init_fail, 0, NULL, 0, NULL);
     }
 }
 

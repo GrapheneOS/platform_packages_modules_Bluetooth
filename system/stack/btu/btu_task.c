@@ -41,6 +41,7 @@
 #include "bt_trace.h"
 #include "bt_types.h"
 #include "bt_utils.h"
+#include "btif_common.h"
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
@@ -420,8 +421,8 @@ BTU_API void btu_task (void)
     BTE_InitTraceLevels();
 #endif
 
-    /* Send a startup evt message to BTIF_TASK to kickstart the init procedure */
-    GKI_send_event(BTIF_TASK, BT_EVT_TRIGGER_STACK_INIT);
+    // Inform the bt jni thread initialization is ok.
+    btif_transfer_context(btif_init_ok, 0, NULL, 0, NULL);
 
     raise_priority_a2dp(TASK_HIGH_BTU);
 

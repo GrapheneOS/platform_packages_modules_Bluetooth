@@ -26,34 +26,38 @@
  *
  ***********************************************************************************/
 
-#include <stdlib.h>
-#include <hardware/bluetooth.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <dirent.h>
 #include <ctype.h>
 #include <cutils/properties.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <hardware/bluetooth.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #define LOG_TAG "BTIF_CORE"
+#include "bd.h"
 #include "bdaddr.h"
-#include "btif_api.h"
 #include "bt_utils.h"
 #include "bta_api.h"
-#include "fixed_queue.h"
-#include "gki.h"
-#include "btu.h"
 #include "bte.h"
-#include "bd.h"
+#include "btif_api.h"
 #include "btif_av.h"
-#include "btif_storage.h"
-#include "btif_util.h"
-#include "btif_sock.h"
+#include "btif_config.h"
 #include "btif_pan.h"
 #include "btif_mce.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
+#include "btif_sock.h"
+#include "btif_storage.h"
+#include "btif_util.h"
+#include "btu.h"
+#include "fixed_queue.h"
+#include "gki.h"
+#include "thread.h"
+#include "osi.h"
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -111,16 +115,20 @@ static tBTA_SERVICE_MASK btif_enabled_services = 0;
 */
 static UINT8 btif_dut_mode = 0;
 
+// btif jni workqueue.
+static fixed_queue_t *btif_msg_queue;
+
+static thread_t *bt_jni_workqueue_thread;
+static const char *BT_JNI_WORKQUEUE_NAME = "bt_jni_workqueue";
+
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
-static bt_status_t btif_associate_evt(void);
-static bt_status_t btif_disassociate_evt(void);
+static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
 
 /* sends message to btif task */
 static void btif_sendmsg(void *p_msg);
-
-static fixed_queue_t *btif_msg_queue;
 
 /************************************************************************************
 **  Externs
@@ -144,16 +152,6 @@ void btif_dm_load_local_oob(void);
 #endif
 void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled);
 
-/************************************************************************************
-**  Functions
-************************************************************************************/
-
-
-/*****************************************************************************
-**   Context switching functions
-*****************************************************************************/
-
-
 /*******************************************************************************
 **
 ** Function         btif_context_switched
@@ -168,11 +166,10 @@ void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled);
 
 static void btif_context_switched(void *p_msg)
 {
-    tBTIF_CONTEXT_SWITCH_CBACK *p;
 
     BTIF_TRACE_VERBOSE("btif_context_switched");
 
-    p = (tBTIF_CONTEXT_SWITCH_CBACK *) p_msg;
+    tBTIF_CONTEXT_SWITCH_CBACK *p = (tBTIF_CONTEXT_SWITCH_CBACK *) p_msg;
 
     /* each callback knows how to parse the data */
     if (p->p_cb)
@@ -260,6 +257,24 @@ int btif_is_enabled(void)
     return ((!btif_is_dut_mode()) && (btif_core_state == BTIF_CORE_STATE_ENABLED));
 }
 
+void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+  BTIF_TRACE_DEBUG("btif_task: received trigger stack init event");
+#if (BLE_INCLUDED == TRUE)
+  btif_dm_load_ble_local_keys();
+#endif
+  BTA_EnableBluetooth(bte_dm_evt);
+}
+
+void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+  BTIF_TRACE_DEBUG("btif_task: hardware init failed");
+  bte_main_disable();
+  btif_queue_release();
+  bte_main_shutdown();
+  btif_dut_mode = 0;
+  btif_core_state = BTIF_CORE_STATE_DISABLED;
+  HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
+}
+
 /*******************************************************************************
 **
 ** Function         btif_task
@@ -270,76 +285,21 @@ int btif_is_enabled(void)
 ** Returns          void
 **
 *******************************************************************************/
+static void bt_jni_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
+  BT_HDR *p_msg = (BT_HDR *)fixed_queue_dequeue(queue);
 
-static void btif_task(void)
-{
-    UINT16   event;
-    BT_HDR   *p_msg;
+  BTIF_TRACE_VERBOSE("btif task fetched event %x", p_msg->event);
 
-    BTIF_TRACE_DEBUG("btif task starting");
-
-    btif_associate_evt();
-
-    for(;;)
-    {
-        /* wait for specified events */
-        event = GKI_wait(0xFFFF, 0);
-
-        /*
-         * Wait for the trigger to init chip and stack. This trigger will
-         * be received by btu_task once the UART is opened and ready
-         */
-        if (event == BT_EVT_TRIGGER_STACK_INIT)
-        {
-            BTIF_TRACE_DEBUG("btif_task: received trigger stack init event");
-            #if (BLE_INCLUDED == TRUE)
-            btif_dm_load_ble_local_keys();
-            #endif
-            BTA_EnableBluetooth(bte_dm_evt);
-        }
-
-        /*
-         * Failed to initialize controller hardware, reset state and bring
-         * down all threads
-         */
-        if (event == BT_EVT_HARDWARE_INIT_FAIL)
-        {
-            BTIF_TRACE_DEBUG("btif_task: hardware init failed");
-            bte_main_disable();
-            btif_queue_release();
-            GKI_task_self_cleanup(BTIF_TASK);
-            bte_main_shutdown();
-            btif_dut_mode = 0;
-            btif_core_state = BTIF_CORE_STATE_DISABLED;
-            HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
-            break;
-        }
-
-        if (event & EVENT_MASK(GKI_SHUTDOWN_EVT))
-            break;
-
-        while ((p_msg = fixed_queue_try_dequeue(btif_msg_queue)) != NULL) {
-            BTIF_TRACE_VERBOSE("btif task fetched event %x", p_msg->event);
-
-            switch (p_msg->event)
-            {
-                case BT_EVT_CONTEXT_SWITCH_EVT:
-                    btif_context_switched(p_msg);
-                    break;
-                default:
-                    BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
-                    break;
-            }
-
-            GKI_freebuf(p_msg);
-        }
-    }
-
-    btif_disassociate_evt();
-
-    BTIF_TRACE_DEBUG("btif task exiting");
+  switch (p_msg->event) {
+    case BT_EVT_CONTEXT_SWITCH_EVT:
+      btif_context_switched(p_msg);
+      break;
+    default:
+      BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
+      break;
+  }
+  GKI_freebuf(p_msg);
 }
-
 
 /*******************************************************************************
 **
@@ -354,8 +314,6 @@ static void btif_task(void)
 void btif_sendmsg(void *p_msg)
 {
     fixed_queue_enqueue(btif_msg_queue, p_msg);
-    // Signal the target thread work is ready.
-    GKI_send_event(BTIF_TASK, (UINT16)EVENT_MASK(BTU_BTIF_MBOX));
 }
 
 static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
@@ -452,12 +410,6 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     btif_config_set_str("Adapter", "Address", bdstr);
 }
 
-/*****************************************************************************
-**
-**   btif core api functions
-**
-*****************************************************************************/
-
 /*******************************************************************************
 **
 ** Function         btif_init_bluetooth
@@ -467,48 +419,42 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 ** Returns          bt_status_t
 **
 *******************************************************************************/
+bt_status_t btif_init_bluetooth() {
+  btif_config_init();
+  bte_main_boot_entry();
 
-bt_status_t btif_init_bluetooth()
-{
-    UINT8 status;
+  /* As part of the init, fetch the local BD ADDR */
+  memset(&btif_local_bd_addr, 0, sizeof(bt_bdaddr_t));
+  btif_fetch_local_bdaddr(&btif_local_bd_addr);
 
-    btif_msg_queue = fixed_queue_new(SIZE_MAX);
+  btif_msg_queue = fixed_queue_new(SIZE_MAX);
+  if (btif_msg_queue == NULL) {
+    ALOGE("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
+    goto error_exit;
+  }
 
-    btif_config_init();
-    bte_main_boot_entry();
+  bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
+  if (bt_jni_workqueue_thread == NULL) {
+    ALOGE("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
+    goto error_exit;
+  }
 
-    /* As part of the init, fetch the local BD ADDR */
-    memset(&btif_local_bd_addr, 0, sizeof(bt_bdaddr_t));
-    btif_fetch_local_bdaddr(&btif_local_bd_addr);
+  fixed_queue_register_dequeue(btif_msg_queue,
+      thread_get_reactor(bt_jni_workqueue_thread),
+      bt_jni_msg_ready,
+      NULL);
 
-    /* start btif task */
-    status = GKI_create_task(btif_task, BTIF_TASK, "BTIF");
+  // Associate this workqueue thread with jni.
+  btif_transfer_context(btif_jni_associate, 0, NULL, 0, NULL);
 
-    if (status != GKI_SUCCESS)
-        return BT_STATUS_FAIL;
+  return BT_STATUS_SUCCESS;
 
-    return BT_STATUS_SUCCESS;
+error_exit:;
+     fixed_queue_free(btif_msg_queue, GKI_freebuf);
+     thread_free(bt_jni_workqueue_thread);
+
+     return BT_STATUS_FAIL;
 }
-
-/*******************************************************************************
-**
-** Function         btif_associate_evt
-**
-** Description      Event indicating btif_task is up
-**                  Attach btif_task to JVM
-**
-** Returns          void
-**
-*******************************************************************************/
-
-static bt_status_t btif_associate_evt(void)
-{
-    BTIF_TRACE_DEBUG("%s: notify ASSOCIATE_JVM", __FUNCTION__);
-    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
-
-    return BT_STATUS_SUCCESS;
-}
-
 
 /*******************************************************************************
 **
@@ -532,7 +478,6 @@ bt_status_t btif_enable_bluetooth(void)
 
     btif_core_state = BTIF_CORE_STATE_ENABLING;
 
-    /* Create the GKI tasks and run them */
     bte_main_enable();
 
     return BT_STATUS_SUCCESS;
@@ -770,50 +715,28 @@ bt_status_t btif_shutdown_bluetooth(void)
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
 
-    GKI_destroy_task(BTIF_TASK);
+    btif_transfer_context(btif_jni_disassociate, 0, NULL, 0, NULL);
+
     btif_queue_release();
+
+    fixed_queue_unregister_dequeue(btif_msg_queue);
+    fixed_queue_free(btif_msg_queue, GKI_freebuf);
+    btif_msg_queue = NULL;
+
+    thread_free(bt_jni_workqueue_thread);
+    bt_jni_workqueue_thread = NULL;
+
     bte_main_shutdown();
 
     btif_dut_mode = 0;
 
     bt_utils_cleanup();
 
-    fixed_queue_free(btif_msg_queue, NULL);
-
     BTIF_TRACE_DEBUG("%s done", __FUNCTION__);
 
     return BT_STATUS_SUCCESS;
 }
 
-
-/*******************************************************************************
-**
-** Function         btif_disassociate_evt
-**
-** Description      Event indicating btif_task is going down
-**                  Detach btif_task to JVM
-**
-** Returns          void
-**
-*******************************************************************************/
-
-static bt_status_t btif_disassociate_evt(void)
-{
-    BTIF_TRACE_DEBUG("%s: notify DISASSOCIATE_JVM", __FUNCTION__);
-
-    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
-
-    /* shutdown complete, all events notified and we reset HAL callbacks */
-    bt_hal_cbacks = NULL;
-
-    return BT_STATUS_SUCCESS;
-}
-
-/****************************************************************************
-**
-**   BTIF Test Mode APIs
-**
-*****************************************************************************/
 /*******************************************************************************
 **
 ** Function         btif_dut_mode_cback
@@ -1506,6 +1429,17 @@ bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
 
     return BT_STATUS_SUCCESS;
 }
+
+static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+  BTIF_TRACE_DEBUG("%s Associating thread to JVM", __func__);
+  HAL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
+}
+
+static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+    BTIF_TRACE_DEBUG("%s Disassociating thread from JVM", __func__);
+    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
+}
+
 
 /*******************************************************************************
 **

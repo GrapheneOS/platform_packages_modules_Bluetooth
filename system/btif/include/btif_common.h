@@ -20,9 +20,12 @@
 #ifndef BTIF_COMMON_H
 #define BTIF_COMMON_H
 
-#include "data_types.h"
+#include <hardware/bluetooth.h>
+
 #include "bt_types.h"
 #include "bta_api.h"
+#include "data_types.h"
+#include "osi.h"
 
 #ifndef LOG_TAG
 #error "LOG_TAG not defined, please add in .c file prior to including bt_common.h"
@@ -188,4 +191,8 @@ void btif_disable_bluetooth_evt(void);
 void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props, bt_property_t *p_props);
 void btif_remote_properties_evt(bt_status_t status, bt_bdaddr_t *remote_addr,
                                    uint32_t num_props, bt_property_t *p_props);
+
+void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+
 #endif /* BTIF_COMMON_H */

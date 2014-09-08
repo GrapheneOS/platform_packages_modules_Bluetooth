@@ -19,6 +19,8 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/srvc \
                    $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../vnd/ble \
+                   $(LOCAL_PATH)/../btif/include \
+                   $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
