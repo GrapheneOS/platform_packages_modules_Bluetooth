@@ -66,14 +66,14 @@ typedef enum {
   LPM_WAKE_DEASSERT
 } low_power_command_t;
 
-typedef void (*preload_finished_cb)(bool success);
+typedef void (*startup_finished_cb)(bool success);
 typedef void (*transmit_finished_cb)(void *buffer, bool all_fragments_sent);
 typedef void (*command_complete_cb)(BT_HDR *response, void *context);
 typedef void (*command_status_cb)(uint8_t status, BT_HDR *command, void *context);
 
 typedef struct {
   // Called when the HCI layer finishes the preload sequence.
-  preload_finished_cb preload_finished;
+  startup_finished_cb startup_finished;
 
   // Called when the HCI layer finishes sending a packet.
   transmit_finished_cb transmit_finished;
@@ -81,7 +81,9 @@ typedef struct {
 
 typedef struct hci_t {
   // Start up the HCI layer, with the specified |local_bdaddr|.
-  bool (*start_up)(
+  // |upper_callbacks->startup_finished| will be called when the full
+  // start up sequence is complete.
+  bool (*start_up_async)(
       bdaddr_t local_bdaddr,
       const hci_callbacks_t *upper_callbacks
   );
@@ -89,22 +91,11 @@ typedef struct hci_t {
   // Tear down and relese all resources
   void (*shut_down)(void);
 
-  // Turn the Bluetooth chip on or off, depending on |value|.
-  void (*set_chip_power_on)(bool value);
-
   // Send a low power command, if supported and the low power manager is enabled.
   void (*send_low_power_command)(low_power_command_t command);
 
-  // Do the preload sequence (call before the rest of the BT stack initializes).
-  void (*do_preload)(void);
-
   // Do the postload sequence (call after the rest of the BT stack initializes).
   void (*do_postload)(void);
-
-  // Turn logging on, and log to the specified |path|.
-  void (*turn_on_logging)(const char *path);
-
-  void (*turn_off_logging)(void);
 
   // Register with this data dispatcher to receive data flowing upward out of the HCI layer
   data_dispatcher_t *upward_dispatcher;

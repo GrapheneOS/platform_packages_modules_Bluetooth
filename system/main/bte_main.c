@@ -40,6 +40,7 @@
 #include "bte.h"
 #include "btif_common.h"
 #include "btu.h"
+#include "btsnoop.h"
 #include "bt_utils.h"
 #include "fixed_queue.h"
 #include "gki.h"
@@ -66,21 +67,6 @@
 #ifndef HCI_LOGGING_FILENAME
 #define HCI_LOGGING_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
 #endif
-
-/* Stack preload process maximum retry attempts  */
-#ifndef PRELOAD_MAX_RETRY_ATTEMPTS
-#define PRELOAD_MAX_RETRY_ATTEMPTS 0
-#endif
-
-/*******************************************************************************
-**  Local type definitions
-*******************************************************************************/
-/* Preload retry control block */
-typedef struct
-{
-    int     retry_counts;
-    alarm_t *alarm;
-} bt_preload_retry_cb_t;
 
 /******************************************************************************
 **  Variables
@@ -118,8 +104,8 @@ static const size_t BTU_L2CAP_ALARM_HASH_MAP_SIZE = 17;
 **  Static variables
 *******************************************************************************/
 static const hci_t *hci;
+static const btsnoop_t *btsnoop;
 static const hci_callbacks_t hci_callbacks;
-static bt_preload_retry_cb_t preload_retry_cb;
 // Lock to serialize shutdown requests from upper layer.
 static pthread_mutex_t shutdown_lock;
 
@@ -131,10 +117,6 @@ static thread_t *dispatch_thread;
 /*******************************************************************************
 **  Static functions
 *******************************************************************************/
-static void bte_hci_enable(void);
-static void bte_hci_disable(void);
-static void preload_start_wait_timer(void);
-static void preload_stop_wait_timer(void);
 static void dump_upbound_data_to_btu(fixed_queue_t *queue, void *context);
 
 /*******************************************************************************
@@ -165,6 +147,8 @@ void bte_main_boot_entry(void)
     if (!hci)
       ALOGE("%s could not get hci layer interface.", __func__);
 
+    btsnoop = btsnoop_get_interface();
+
     upbound_data = fixed_queue_new(SIZE_MAX);
     dispatch_thread = thread_new("hci_dispatch");
 
@@ -177,9 +161,6 @@ void bte_main_boot_entry(void)
 
     data_dispatcher_register_default(hci->upward_dispatcher, upbound_data);
 
-    memset(&preload_retry_cb, 0, sizeof(bt_preload_retry_cb_t));
-    preload_retry_cb.alarm = alarm_new();
-
     bte_load_conf(BTE_STACK_CONF_FILE);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
@@ -191,7 +172,7 @@ void bte_main_boot_entry(void)
 #endif
 
     pthread_mutex_init(&shutdown_lock, NULL);
-
+    btsnoop->set_logging_path(hci_logfile);
 }
 
 /******************************************************************************
@@ -205,11 +186,14 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
-    alarm_free(preload_retry_cb.alarm);
-    preload_retry_cb.alarm = NULL;
+    thread_free(dispatch_thread);
+    data_dispatcher_register_default(hci_layer_get_interface()->upward_dispatcher, NULL);
+    fixed_queue_free(upbound_data, NULL);
+
+    dispatch_thread = NULL;
+    upbound_data = NULL;
 
     pthread_mutex_destroy(&shutdown_lock);
-
     GKI_shutdown();
 }
 
@@ -247,7 +231,8 @@ void bte_main_enable()
 
     BTU_StartUp();
 
-    bte_hci_enable();
+    btsnoop->set_is_running(hci_logging_enabled || hci_logging_config);
+    assert(hci->start_up_async(btif_local_bd_addr.address, &hci_callbacks));
 }
 
 /******************************************************************************
@@ -264,8 +249,16 @@ void bte_main_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    preload_stop_wait_timer();
-    bte_hci_disable();
+    if (hci) {
+      // Shutdown is not thread safe and must be protected.
+      pthread_mutex_lock(&shutdown_lock);
+
+      btsnoop->set_is_running(false);
+      hci->shut_down();
+
+      pthread_mutex_unlock(&shutdown_lock);
+    }
+
     BTU_ShutDown();
 
     fixed_queue_free(btu_bta_msg_queue, NULL);
@@ -295,153 +288,8 @@ void bte_main_disable(void)
 ******************************************************************************/
 void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
 {
-    int old = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
-    int new;
-
-    hci_logging_config = enable;
-
-    new = (hci_logging_enabled == TRUE) || (hci_logging_config == TRUE);
-
-    if ((old == new) || bt_disabled) {
-        return;
-    }
-
-    if (new)
-      hci->turn_on_logging(hci_logfile);
-    else
-      hci->turn_off_logging();
-}
-
-/******************************************************************************
-**
-** Function         bte_hci_enable
-**
-** Description      Enable HCI & Vendor modules
-**
-** Returns          None
-**
-******************************************************************************/
-static void bte_hci_enable(void)
-{
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
-
-    preload_start_wait_timer();
-
-    bool success = hci->start_up(btif_local_bd_addr.address, &hci_callbacks);
-    APPL_TRACE_EVENT("libbt-hci start_up returns %d", success);
-
-    assert(success);
-
-    if (hci_logging_enabled == TRUE || hci_logging_config == TRUE)
-        hci->turn_on_logging(hci_logfile);
-
-#if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
-    APPL_TRACE_DEBUG("%s not turning off the chip before turning it on", __FUNCTION__);
-
-    /* Do not power off the chip before powering on  if BT_CLEAN_TURN_ON_DISABLED flag
-     is defined and set to TRUE to avoid below mentioned issue.
-
-     Wingray kernel driver maintains a combined  counter to keep track of
-     BT-Wifi state. Invoking  set_power(BT_HC_CHIP_PWR_OFF) when the BT is already
-     in OFF state causes this counter to be incorrectly decremented and results in undesired
-     behavior of the chip.
-
-     This is only a workaround and when the issue is fixed in the kernel this work around
-     should be removed. */
-#else
-    /* toggle chip power to ensure we will reset chip in case
-       a previous stack shutdown wasn't completed gracefully */
-    hci->set_chip_power_on(false);
-#endif
-    hci->set_chip_power_on(true);
-    hci->do_preload();
-}
-
-/******************************************************************************
-**
-** Function         bte_hci_disable
-**
-** Description      Disable HCI & Vendor modules
-**
-** Returns          None
-**
-******************************************************************************/
-static void bte_hci_disable(void)
-{
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
-
-    if (!hci)
-        return;
-
-    // Shutdown is not thread safe and must be protected.
-    pthread_mutex_lock(&shutdown_lock);
-
-    if (hci_logging_enabled == TRUE ||  hci_logging_config == TRUE)
-        hci->turn_off_logging();
-    hci->shut_down();
-
-    pthread_mutex_unlock(&shutdown_lock);
-}
-
-/*******************************************************************************
-**
-** Function        preload_wait_timeout
-**
-** Description     Timeout thread of preload watchdog timer
-**
-** Returns         None
-**
-*******************************************************************************/
-static void preload_wait_timeout(UNUSED_ATTR void *context)
-{
-    APPL_TRACE_ERROR("...preload_wait_timeout (retried:%d/max-retry:%d)...",
-                        preload_retry_cb.retry_counts,
-                        PRELOAD_MAX_RETRY_ATTEMPTS);
-
-    if (preload_retry_cb.retry_counts++ < PRELOAD_MAX_RETRY_ATTEMPTS)
-    {
-        bte_hci_disable();
-        GKI_delay(100);
-        bte_hci_enable();
-    }
-    else
-    {
-        // Inform the bt jni thread initialization has failed.
-        btif_transfer_context(btif_init_fail, 0, NULL, 0, NULL);
-    }
-}
-
-/*******************************************************************************
-**
-** Function        preload_start_wait_timer
-**
-** Description     Launch startup watchdog timer
-**
-** Returns         None
-**
-*******************************************************************************/
-static void preload_start_wait_timer(void)
-{
-    uint32_t timeout_ms;
-    char timeout_prop[PROPERTY_VALUE_MAX];
-    if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, "3000") || (timeout_ms = atoi(timeout_prop)) < 100)
-        timeout_ms = 3000;
-
-    alarm_set(preload_retry_cb.alarm, timeout_ms, preload_wait_timeout, NULL);
-}
-
-/*******************************************************************************
-**
-** Function        preload_stop_wait_timer
-**
-** Description     Stop preload watchdog timer
-**
-** Returns         None
-**
-*******************************************************************************/
-static void preload_stop_wait_timer(void)
-{
-    alarm_cancel(preload_retry_cb.alarm);
+  hci_logging_config = enable;
+  btsnoop->set_is_running((hci_logging_config || hci_logging_enabled) && !bt_disabled);
 }
 
 /******************************************************************************
@@ -598,7 +446,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
 
 /******************************************************************************
 **
-** Function         preload_cb
+** Function         hci_startup_cb
 **
 ** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
 **                  when the libbt-hci completed stack preload process
@@ -606,16 +454,16 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
 ** Returns          None
 **
 ******************************************************************************/
-static void preload_cb(bool success)
+static void hci_startup_cb(bool success)
 {
     APPL_TRACE_EVENT("HC preload_cb %d [1:SUCCESS 0:FAIL]", success);
 
-    if (success)
-    {
-        preload_stop_wait_timer();
-
+    if (success) {
         /* notify BTU task that libbt-hci is ready */
         GKI_send_event(BTU_TASK, BT_EVT_PRELOAD_CMPL);
+    } else {
+        /* Notify BTIF_TASK that the init procedure had failed*/
+        GKI_send_event(BTIF_TASK, BT_EVT_HARDWARE_INIT_FAIL);
     }
 }
 
@@ -664,6 +512,6 @@ static void tx_result(void *p_buf, bool all_fragments_sent)
 **   The libbt-hci Callback Functions Table
 *****************************************************************************/
 static const hci_callbacks_t hci_callbacks = {
-    preload_cb,
+    hci_startup_cb,
     tx_result
 };

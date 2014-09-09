@@ -19,6 +19,7 @@
 #define LOG_TAG "hci_layer"
 
 #include <assert.h>
+#include <cutils/properties.h>
 #include <utils/Log.h>
 
 #include "buffer_allocator.h"
@@ -87,6 +88,10 @@ typedef struct {
   BT_HDR *command;
 } waiting_command_t;
 
+// Using a define here, because it can be stringified for the property lookup
+#define DEFAULT_STARTUP_TIMEOUT_MS 3000
+#define STRING_VALUE_OF(x) #x
+
 static const uint32_t EPILOG_TIMEOUT_MS = 3000;
 static const uint32_t COMMAND_PENDING_TIMEOUT = 8000;
 
@@ -112,6 +117,7 @@ static thread_t *thread; // We own this
 static volatile bool firmware_is_configured = false;
 static volatile bool has_shut_down = false;
 static non_repeating_timer_t *epilog_timer;
+static non_repeating_timer_t *startup_timer;
 
 // Outbound-related
 static int command_credits = 1;
@@ -124,7 +130,7 @@ static list_t *commands_pending_response;
 static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 
-static void event_preload(void *context);
+static void event_finish_startup(void *context);
 static void event_postload(void *context);
 static void event_epilog(void *context);
 static void event_command_ready(fixed_queue_t *queue, void *context);
@@ -136,11 +142,12 @@ static void epilog_finished_callback(bool success);
 
 static void command_timed_out(void *context);
 static void hal_says_data_ready(serial_data_type_t type);
-static void epilog_wait_timer_expired(void *context);
+static void startup_timer_expired(void *context);
+static void epilog_timer_expired(void *context);
 
 // Interface functions
 
-static bool start_up(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbacks) {
+static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbacks) {
   assert(local_bdaddr != NULL);
   assert(upper_callbacks != NULL);
 
@@ -155,7 +162,23 @@ static bool start_up(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbac
 
   pthread_mutex_init(&commands_pending_response_lock, NULL);
 
-  epilog_timer = non_repeating_timer_new(EPILOG_TIMEOUT_MS, epilog_wait_timer_expired, NULL);
+  // Grab the override startup timeout ms, if present.
+  period_ms_t startup_timeout_ms;
+  char timeout_prop[PROPERTY_VALUE_MAX];
+  if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, STRING_VALUE_OF(DEFAULT_STARTUP_TIMEOUT_MS))
+      || (startup_timeout_ms = atoi(timeout_prop)) < 100)
+    startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
+
+  startup_timer = non_repeating_timer_new(startup_timeout_ms, startup_timer_expired, NULL);
+  if (!startup_timer) {
+    ALOGE("%s unable to create startup timer.", __func__);
+    goto error;
+  }
+
+  // Make sure we run in a bounded amount of time
+  non_repeating_timer_restart(startup_timer);
+
+  epilog_timer = non_repeating_timer_new(EPILOG_TIMEOUT_MS, epilog_timer_expired, NULL);
   if (!epilog_timer) {
     ALOGE("%s unable to create epilog timer.", __func__);
     goto error;
@@ -212,6 +235,25 @@ static bool start_up(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbac
     // TODO(sharvil): gracefully propagate failures from this layer.
   }
 
+  int power_state = BT_VND_PWR_OFF;
+#if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
+  ALOGW("%s not turning off the chip before turning on.", __func__);
+  // So apparently this hack was needed in the past because a Wingray kernel driver
+  // didn't handle power off commands in a powered off state correctly.
+
+  // The comment in the old code said the workaround should be removed when the
+  // problem was fixed. Sadly, I have no idea if said bug was fixed or if said
+  // kernel is still in use, so we must leave this here for posterity. #sadpanda
+#else
+  // cycle power on the chip to ensure it has been reset
+  vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
+#endif
+  power_state = BT_VND_PWR_ON;
+  vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
+
+  ALOGD("%s starting async portion", __func__);
+  thread_post(thread, event_finish_startup, NULL);
+
   return true;
 error:;
   interface.shut_down();
@@ -249,11 +291,17 @@ static void shut_down() {
 
   non_repeating_timer_free(epilog_timer);
   non_repeating_timer_free(command_response_timer);
+  non_repeating_timer_free(startup_timer);
+
+  epilog_timer = NULL;
+  command_response_timer = NULL;
 
   low_power_manager->cleanup();
   hal->close();
 
-  interface.set_chip_power_on(false);
+  // Turn off the chip
+  int power_state = BT_VND_PWR_OFF;
+  vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
   vendor->close();
 
   thread_free(thread);
@@ -262,35 +310,9 @@ static void shut_down() {
   has_shut_down = true;
 }
 
-static void set_chip_power_on(bool value) {
-  ALOGD("%s setting bluetooth chip power on to: %d", __func__, value);
-
-  int power_state = value ? BT_VND_PWR_ON : BT_VND_PWR_OFF;
-  vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
-}
-
-static void do_preload() {
-  ALOGD("%s posting preload work item", __func__);
-  thread_post(thread, event_preload, NULL);
-}
-
 static void do_postload() {
   ALOGD("%s posting postload work item", __func__);
   thread_post(thread, event_postload, NULL);
-}
-
-static void turn_on_logging(const char *path) {
-  ALOGD("%s", __func__);
-
-  if (path != NULL)
-    btsnoop->open(path);
-  else
-    ALOGW("%s wanted to start logging, but path was NULL", __func__);
-}
-
-static void turn_off_logging() {
-  ALOGD("%s", __func__);
-  btsnoop->close();
 }
 
 static void transmit_command(
@@ -431,34 +453,25 @@ intercepted:;
   return true;
 }
 
-static void on_controller_acl_size_fetch_finished(void) {
-  ALOGI("%s postload finished.", __func__);
-}
+// Start up functions
 
-static void sco_config_callback(UNUSED_ATTR bool success) {
-  controller->begin_acl_size_fetch(on_controller_acl_size_fetch_finished);
-}
-
-static void firmware_config_callback(UNUSED_ATTR bool success) {
-  firmware_is_configured = true;
-  callbacks->preload_finished(true);
-}
-
-static void epilog_finished_callback(UNUSED_ATTR bool success) {
-  ALOGI("%s", __func__);
-  thread_stop(thread);
-}
-
-static void epilog_wait_timer_expired(UNUSED_ATTR void *context) {
-  ALOGI("%s", __func__);
-  thread_stop(thread);
-}
-
-static void event_preload(UNUSED_ATTR void *context) {
+static void event_finish_startup(UNUSED_ATTR void *context) {
   ALOGI("%s", __func__);
   hal->open();
   vendor->send_async_command(VENDOR_CONFIGURE_FIRMWARE, NULL);
 }
+
+static void firmware_config_callback(UNUSED_ATTR bool success) {
+  firmware_is_configured = true;
+  non_repeating_timer_cancel(startup_timer);
+  callbacks->startup_finished(true);
+}
+
+static void startup_timer_expired(UNUSED_ATTR void *context) {
+  callbacks->startup_finished(false);
+}
+
+// Postload functions
 
 static void event_postload(UNUSED_ATTR void *context) {
   ALOGI("%s", __func__);
@@ -469,8 +482,28 @@ static void event_postload(UNUSED_ATTR void *context) {
   }
 }
 
+static void on_controller_acl_size_fetch_finished(void) {
+  ALOGI("%s postload finished.", __func__);
+}
+
+static void sco_config_callback(UNUSED_ATTR bool success) {
+  controller->begin_acl_size_fetch(on_controller_acl_size_fetch_finished);
+}
+
+// Epilog functions
+
 static void event_epilog(UNUSED_ATTR void *context) {
   vendor->send_async_command(VENDOR_DO_EPILOG, NULL);
+}
+
+static void epilog_finished_callback(UNUSED_ATTR bool success) {
+  ALOGI("%s", __func__);
+  thread_stop(thread);
+}
+
+static void epilog_timer_expired(UNUSED_ATTR void *context) {
+  ALOGI("%s", __func__);
+  thread_stop(thread);
 }
 
 static void event_command_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
@@ -627,15 +660,11 @@ static void fragmenter_transmit_finished(void *buffer, bool all_fragments_sent) 
 
 static void init_layer_interface() {
   if (!interface_created) {
-    interface.start_up = start_up;
+    interface.start_up_async = start_up_async;
     interface.shut_down = shut_down;
 
-    interface.set_chip_power_on = set_chip_power_on;
     interface.send_low_power_command = low_power_manager->post_command;
-    interface.do_preload = do_preload;
     interface.do_postload = do_postload;
-    interface.turn_on_logging = turn_on_logging;
-    interface.turn_off_logging = turn_off_logging;
 
     // It's probably ok for this to live forever. It's small and
     // there's only one instance of the hci interface.

@@ -23,11 +23,12 @@
 #include "bt_types.h"
 
 typedef struct btsnoop_t {
-  // Open btsnoop, and dump captured packets to the file pointed to by |path|.
-  void (*open)(const char *path);
+  // Sets the logging path for btsnoop to the provided |path|.
+  void (*set_logging_path)(const char *path);
 
-  // Close btsnoop, so no more packets are captured.
-  void (*close)(void);
+  // Turns btsnoop logging on or off, depending on |value|. If
+  // you are turning btsnoop on, you must have set a logging path.
+  void (*set_is_running)(bool value);
 
   // Capture |packet| and dump it to the btsnoop logs. If |is_received| is
   // true, the packet is marked as incoming. Otherwise, the packet is marked

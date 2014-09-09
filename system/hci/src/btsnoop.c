@@ -49,6 +49,8 @@ static const uint64_t BTSNOOP_EPOCH_DELTA = 0x00dcddb30f2f8000ULL;
 
 // File descriptor for btsnoop file.
 static int hci_btsnoop_fd = -1;
+static bool is_logging = false;
+static const char *logging_path;
 
 void btsnoop_net_open();
 void btsnoop_net_close();
@@ -147,6 +149,24 @@ static void btsnoop_close(void) {
   btsnoop_net_close();
 }
 
+static void btsnoop_set_logging_path(const char *path) {
+  assert(!is_logging);
+  logging_path = path;
+}
+
+static void btsnoop_set_is_running(bool should_log) {
+  if (should_log == is_logging)
+    return;
+
+  is_logging = should_log;
+  if (should_log) {
+    assert(logging_path != NULL);
+    btsnoop_open(logging_path);
+  } else {
+    btsnoop_close();
+  }
+}
+
 static void btsnoop_capture(const BT_HDR *buffer, bool is_received) {
   const uint8_t *p = buffer->data + buffer->offset;
 
@@ -172,8 +192,8 @@ static void btsnoop_capture(const BT_HDR *buffer, bool is_received) {
 }
 
 static const btsnoop_t interface = {
-  btsnoop_open,
-  btsnoop_close,
+  btsnoop_set_logging_path,
+  btsnoop_set_is_running,
   btsnoop_capture
 };
 
