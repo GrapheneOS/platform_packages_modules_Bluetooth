@@ -131,19 +131,25 @@ static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 
 static void event_finish_startup(void *context);
+static void firmware_config_callback(bool success);
+static void startup_timer_expired(void *context);
+
 static void event_postload(void *context);
+static void sco_config_callback(bool success);
+
 static void event_epilog(void *context);
+static void epilog_finished_callback(bool success);
+static void epilog_timer_expired(void *context);
+
 static void event_command_ready(fixed_queue_t *queue, void *context);
 static void event_packet_ready(fixed_queue_t *queue, void *context);
-
-static void firmware_config_callback(bool success);
-static void sco_config_callback(bool success);
-static void epilog_finished_callback(bool success);
-
 static void command_timed_out(void *context);
+
 static void hal_says_data_ready(serial_data_type_t type);
-static void startup_timer_expired(void *context);
-static void epilog_timer_expired(void *context);
+static bool filter_incoming_event(BT_HDR *packet);
+
+static serial_data_type_t event_to_data_type(uint16_t event);
+static waiting_command_t *get_waiting_command(command_opcode_t opcode);
 
 // Interface functions
 
@@ -350,109 +356,6 @@ static void transmit_downward(data_dispatcher_type_t type, void *data) {
   }
 }
 
-// Internal functions
-
-static void command_timed_out(UNUSED_ATTR void *context) {
-  pthread_mutex_lock(&commands_pending_response_lock);
-
-  if (list_is_empty(commands_pending_response)) {
-    ALOGE("%s with no commands pending response", __func__);
-    return;
-  }
-
-  waiting_command_t *wait_entry = list_front(commands_pending_response);
-  pthread_mutex_unlock(&commands_pending_response_lock);
-
-  // We shouldn't try to recover the stack from this command timeout.
-  // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
-  ALOGE("%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
-  ALOGE("%s restarting the bluetooth process.", __func__);
-  usleep(10000);
-  kill(getpid(), SIGKILL);
-}
-
-static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
-  pthread_mutex_lock(&commands_pending_response_lock);
-
-  for (const list_node_t *node = list_begin(commands_pending_response);
-      node != list_end(commands_pending_response);
-      node = list_next(node)) {
-    waiting_command_t *wait_entry = list_node(node);
-
-    if (!wait_entry || wait_entry->opcode != opcode)
-      continue;
-
-    list_remove(commands_pending_response, wait_entry);
-
-    pthread_mutex_unlock(&commands_pending_response_lock);
-    return wait_entry;
-  }
-
-  pthread_mutex_unlock(&commands_pending_response_lock);
-  return NULL;
-}
-
-// Inspects an incoming event for interesting information, like how many
-// commands are now able to be sent. Returns true if the event should
-// not proceed to higher layers (i.e. was intercepted).
-static bool filter_incoming_event(BT_HDR *packet) {
-  waiting_command_t *wait_entry = NULL;
-  uint8_t *stream = packet->data;
-  uint8_t event_code;
-  command_opcode_t opcode;
-
-  STREAM_TO_UINT8(event_code, stream);
-  STREAM_SKIP_UINT8(stream); // Skip the parameter total length field
-
-  if (event_code == HCI_COMMAND_COMPLETE_EVT) {
-    STREAM_TO_UINT8(command_credits, stream);
-    STREAM_TO_UINT16(opcode, stream);
-
-    wait_entry = get_waiting_command(opcode);
-    if (!wait_entry)
-      ALOGW("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
-    else if (wait_entry->complete_callback)
-      wait_entry->complete_callback(packet, wait_entry->context);
-
-    goto intercepted;
-  } else if (event_code == HCI_COMMAND_STATUS_EVT) {
-    uint8_t status;
-    STREAM_TO_UINT8(status, stream);
-    STREAM_TO_UINT8(command_credits, stream);
-    STREAM_TO_UINT16(opcode, stream);
-
-    // If a command generates a command status event, it won't be getting a command complete event
-
-    wait_entry = get_waiting_command(opcode);
-    if (!wait_entry)
-      ALOGW("%s command status event with no matching command. opcode: 0x%x", __func__, opcode);
-    else if (wait_entry->status_callback)
-      wait_entry->status_callback(status, wait_entry->command, wait_entry->context);
-
-    goto intercepted;
-  }
-
-  return false;
-intercepted:;
-  non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
-
-  if (wait_entry) {
-    // If it has a callback, it's responsible for freeing the packet
-    if (event_code == HCI_COMMAND_STATUS_EVT || !wait_entry->complete_callback)
-      buffer_allocator->free(packet);
-
-    // If it has a callback, it's responsible for freeing the command
-    if (event_code == HCI_COMMAND_COMPLETE_EVT || !wait_entry->status_callback)
-      buffer_allocator->free(wait_entry->command);
-
-    osi_free(wait_entry);
-  } else {
-    buffer_allocator->free(packet);
-  }
-
-  return true;
-}
-
 // Start up functions
 
 static void event_finish_startup(UNUSED_ATTR void *context) {
@@ -506,6 +409,8 @@ static void epilog_timer_expired(UNUSED_ATTR void *context) {
   thread_stop(thread);
 }
 
+// Command/packet transmitting functions
+
 static void event_command_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
   if (command_credits > 0) {
     waiting_command_t *wait_entry = fixed_queue_dequeue(queue);
@@ -533,6 +438,43 @@ static void event_packet_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) 
   packet_fragmenter->fragment_and_dispatch(packet);
   low_power_manager->transmit_done();
 }
+
+// Callback for the fragmenter to send a fragment
+static void transmit_fragment(BT_HDR *packet, bool send_transmit_finished) {
+  uint16_t event = packet->event & MSG_EVT_MASK;
+  serial_data_type_t type = event_to_data_type(event);
+
+  btsnoop->capture(packet, false);
+  hal->transmit_data(type, packet->data + packet->offset, packet->len);
+
+  if (event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished)
+    callbacks->transmit_finished(packet, true);
+}
+
+static void fragmenter_transmit_finished(void *buffer, bool all_fragments_sent) {
+  callbacks->transmit_finished(buffer, all_fragments_sent);
+}
+
+static void command_timed_out(UNUSED_ATTR void *context) {
+  pthread_mutex_lock(&commands_pending_response_lock);
+
+  if (list_is_empty(commands_pending_response)) {
+    ALOGE("%s with no commands pending response", __func__);
+  } else {
+    waiting_command_t *wait_entry = list_front(commands_pending_response);
+    pthread_mutex_unlock(&commands_pending_response_lock);
+
+    // We shouldn't try to recover the stack from this command timeout.
+    // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
+    ALOGE("%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
+  }
+
+  ALOGE("%s restarting the bluetooth process.", __func__);
+  usleep(10000);
+  kill(getpid(), SIGKILL);
+}
+
+// Event/packet receiving functions
 
 // This function is not required to read all of a packet in one go, so
 // be wary of reentry. But this function must return after finishing a packet.
@@ -619,6 +561,78 @@ static void hal_says_data_ready(serial_data_type_t type) {
   }
 }
 
+// Returns true if the event was intercepted and should not proceed to
+// higher layers. Also inspects an incoming event for interesting
+// information, like how many commands are now able to be sent.
+static bool filter_incoming_event(BT_HDR *packet) {
+  waiting_command_t *wait_entry = NULL;
+  uint8_t *stream = packet->data;
+  uint8_t event_code;
+  command_opcode_t opcode;
+
+  STREAM_TO_UINT8(event_code, stream);
+  STREAM_SKIP_UINT8(stream); // Skip the parameter total length field
+
+  if (event_code == HCI_COMMAND_COMPLETE_EVT) {
+    STREAM_TO_UINT8(command_credits, stream);
+    STREAM_TO_UINT16(opcode, stream);
+
+    wait_entry = get_waiting_command(opcode);
+    if (!wait_entry)
+      ALOGW("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
+    else if (wait_entry->complete_callback)
+      wait_entry->complete_callback(packet, wait_entry->context);
+
+    goto intercepted;
+  } else if (event_code == HCI_COMMAND_STATUS_EVT) {
+    uint8_t status;
+    STREAM_TO_UINT8(status, stream);
+    STREAM_TO_UINT8(command_credits, stream);
+    STREAM_TO_UINT16(opcode, stream);
+
+    // If a command generates a command status event, it won't be getting a command complete event
+
+    wait_entry = get_waiting_command(opcode);
+    if (!wait_entry)
+      ALOGW("%s command status event with no matching command. opcode: 0x%x", __func__, opcode);
+    else if (wait_entry->status_callback)
+      wait_entry->status_callback(status, wait_entry->command, wait_entry->context);
+
+    goto intercepted;
+  }
+
+  return false;
+intercepted:;
+  non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
+
+  if (wait_entry) {
+    // If it has a callback, it's responsible for freeing the packet
+    if (event_code == HCI_COMMAND_STATUS_EVT || !wait_entry->complete_callback)
+      buffer_allocator->free(packet);
+
+    // If it has a callback, it's responsible for freeing the command
+    if (event_code == HCI_COMMAND_COMPLETE_EVT || !wait_entry->status_callback)
+      buffer_allocator->free(wait_entry->command);
+
+    osi_free(wait_entry);
+  } else {
+    buffer_allocator->free(packet);
+  }
+
+  return true;
+}
+
+// Callback for the fragmenter to dispatch up a completely reassembled packet
+static void dispatch_reassembled(BT_HDR *packet) {
+  data_dispatcher_dispatch(
+    interface.upward_dispatcher,
+    packet->event & MSG_EVT_MASK,
+    packet
+  );
+}
+
+// Misc internal functions
+
 // TODO(zachoverflow): we seem to do this a couple places, like the HCI inject module. #centralize
 static serial_data_type_t event_to_data_type(uint16_t event) {
   if (event == MSG_STACK_TO_HC_HCI_ACL)
@@ -633,29 +647,25 @@ static serial_data_type_t event_to_data_type(uint16_t event) {
   return 0;
 }
 
-// Callback for the fragmenter to send a fragment
-static void transmit_fragment(BT_HDR *packet, bool send_transmit_finished) {
-  uint16_t event = packet->event & MSG_EVT_MASK;
-  serial_data_type_t type = event_to_data_type(event);
+static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
+  pthread_mutex_lock(&commands_pending_response_lock);
 
-  btsnoop->capture(packet, false);
-  hal->transmit_data(type, packet->data + packet->offset, packet->len);
+  for (const list_node_t *node = list_begin(commands_pending_response);
+      node != list_end(commands_pending_response);
+      node = list_next(node)) {
+    waiting_command_t *wait_entry = list_node(node);
 
-  if (event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished)
-    callbacks->transmit_finished(packet, true);
-}
+    if (!wait_entry || wait_entry->opcode != opcode)
+      continue;
 
-// Callback for the fragmenter to dispatch up a completely reassembled packet
-static void dispatch_reassembled(BT_HDR *packet) {
-  data_dispatcher_dispatch(
-    interface.upward_dispatcher,
-    packet->event & MSG_EVT_MASK,
-    packet
-  );
-}
+    list_remove(commands_pending_response, wait_entry);
 
-static void fragmenter_transmit_finished(void *buffer, bool all_fragments_sent) {
-  callbacks->transmit_finished(buffer, all_fragments_sent);
+    pthread_mutex_unlock(&commands_pending_response_lock);
+    return wait_entry;
+  }
+
+  pthread_mutex_unlock(&commands_pending_response_lock);
+  return NULL;
 }
 
 static void init_layer_interface() {
