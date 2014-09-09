@@ -46,16 +46,13 @@
 #include "btif_api.h"
 #include "bt_utils.h"
 #include "osi.h"
+#include "stack_manager.h"
 
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
 
 #define is_profile(profile, str) ((strlen(str) == strlen(profile)) && strncmp((const char *)profile, str, strlen(str)) == 0)
-
-/************************************************************************************
-**  Local type definitions
-************************************************************************************/
 
 /************************************************************************************
 **  Static variables
@@ -65,10 +62,6 @@ bt_callbacks_t *bt_hal_cbacks = NULL;
 
 /** Operating System specific callouts for resource management */
 bt_os_callouts_t *bt_os_callouts = NULL;
-
-/************************************************************************************
-**  Static functions
-************************************************************************************/
 
 /************************************************************************************
 **  Externs
@@ -106,15 +99,9 @@ extern btrc_interface_t *btif_rc_ctrl_get_interface();
 **  Functions
 ************************************************************************************/
 
-static uint8_t interface_ready(void)
-{
-    /* add checks here that would prevent API calls other than init to be executed */
-    if (bt_hal_cbacks == NULL)
-        return FALSE;
-
-    return TRUE;
+static bool interface_ready(void) {
+  return bt_hal_cbacks != NULL;
 }
-
 
 /*****************************************************************************
 **
@@ -122,58 +109,37 @@ static uint8_t interface_ready(void)
 **
 *****************************************************************************/
 
-static int init(bt_callbacks_t* callbacks )
-{
-    ALOGI("init");
+static int init(bt_callbacks_t *callbacks) {
+  ALOGI("%s", __func__);
 
-    /* sanity check */
-    if (interface_ready() == TRUE)
-        return BT_STATUS_DONE;
+  if (interface_ready())
+    return BT_STATUS_DONE;
 
-    /* store reference to user callbacks */
-    bt_hal_cbacks = callbacks;
-
-    /* add checks for individual callbacks ? */
-
-    bt_utils_init();
-
-    /* init btif */
-    btif_init_bluetooth();
-
-    return BT_STATUS_SUCCESS;
+  bt_hal_cbacks = callbacks;
+  stack_manager_get_interface()->init_stack();
+  return BT_STATUS_SUCCESS;
 }
 
-static int enable( void )
-{
-    ALOGI("enable");
+static int enable(void) {
+  ALOGI("%s", __func__);
 
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return BT_STATUS_NOT_READY;
+  if (!interface_ready())
+    return BT_STATUS_NOT_READY;
 
-    return btif_enable_bluetooth();
+  stack_manager_get_interface()->start_up_stack_async();
+  return BT_STATUS_SUCCESS;
 }
 
-static int disable(void)
-{
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return BT_STATUS_NOT_READY;
+static int disable(void) {
+  if (!interface_ready())
+    return BT_STATUS_NOT_READY;
 
-    return btif_disable_bluetooth();
+  stack_manager_get_interface()->shut_down_stack_async();
+  return BT_STATUS_SUCCESS;
 }
 
-static void cleanup( void )
-{
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return;
-
-    btif_shutdown_bluetooth();
-
-    /* hal callbacks reset upon shutdown complete callback */
-
-    return;
+static void cleanup(void) {
+  stack_manager_get_interface()->clean_up_stack_async();
 }
 
 static int get_adapter_properties(void)
