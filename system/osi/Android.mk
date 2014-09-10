@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
     ./src/alarm.c \
     ./src/allocation_tracker.c \
     ./src/allocator.c \
+    ./src/async_result.c \
     ./src/config.c \
     ./src/data_dispatcher.c \
     ./src/eager_reader.c \
@@ -60,6 +61,7 @@ LOCAL_SRC_FILES := \
     ./test/alarm_test.cpp \
     ./test/AllocationTestHarness.cpp \
     ./test/allocation_tracker_test.cpp \
+    ./test/async_result_test.cpp \
     ./test/atomic_test.cpp \
     ./test/config_test.cpp \
     ./test/data_dispatcher_test.cpp \
