@@ -379,7 +379,7 @@ static int add_ops_sdp(const char *p_service_name,int scn)
 
             SDP_AddProfileDescriptorList(sdp_handle,
                 UUID_SERVCLASS_OBEX_OBJECT_PUSH,
-                0x0100);
+                0x0101);
         }
     }
 
