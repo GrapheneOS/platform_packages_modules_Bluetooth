@@ -711,7 +711,7 @@ void btu_stop_timer(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -787,7 +787,7 @@ void btu_stop_quick_timer(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -836,7 +836,7 @@ void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to find expected alarm in hashmap\n", __func__);
+    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);
