@@ -93,7 +93,7 @@ bt_status_t btsock_sco_init(thread_t *thread_) {
   pthread_mutex_init(&lock, NULL);
 
   thread = thread_;
-  BTM_SetEScoMode(BTM_LINK_TYPE_SCO, &sco_parameters);
+  BTM_SetEScoMode(BTM_LINK_TYPE_ESCO, &sco_parameters);
 
   return BT_STATUS_SUCCESS;
 }
