@@ -214,6 +214,9 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *uuid,
   UINT8 type = UUID_DESC_TYPE;
   UINT8 type_len = UUID_MAX_LENGTH;
   UINT8 type_buf[48];
+  // Store the address of type buf in a pointer on the stack, so we can pass
+  // a double pointer to SDP_AddSequence
+  UINT8 *type_buf_ptr = type_buf;
 
   // Do the conversion to big-endian -- tmp is only used to iterate through the
   // UUID array in the macro and serves no other purpose as the conversion
@@ -225,7 +228,7 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *uuid,
 
   stage = "service_class_sequence";
   if (!SDP_AddSequence(handle, (UINT16)ATTR_ID_SERVICE_CLASS_ID_LIST,
-                       1, &type, &type_len, (UINT8**)&type_buf))
+                       1, &type, &type_len, &type_buf_ptr))
     goto error;
 
 
