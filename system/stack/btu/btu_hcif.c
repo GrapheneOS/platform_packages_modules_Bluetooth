@@ -1075,7 +1075,7 @@ static void btu_hcif_command_complete_evt_on_task(BT_HDR *event)
       hack->context);
 
    GKI_freebuf(hack->response);
-   osi_free(hack);
+   osi_free(event);
 }
 
 static void btu_hcif_command_complete_evt(BT_HDR *response, void *context)
@@ -1277,7 +1277,6 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
 *******************************************************************************/
 static void btu_hcif_command_status_evt_on_task(BT_HDR *event)
 {
-    ALOGI("%s", __func__);
     command_status_hack_t *hack = (command_status_hack_t *)&event->data[0];
 
     command_opcode_t opcode;
@@ -1291,7 +1290,7 @@ static void btu_hcif_command_status_evt_on_task(BT_HDR *event)
       hack->context);
 
     GKI_freebuf(hack->command);
-    osi_free(hack);
+    osi_free(event);
 }
 
 static void btu_hcif_command_status_evt(uint8_t status, BT_HDR *command, void *context)
