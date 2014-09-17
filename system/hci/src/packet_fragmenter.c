@@ -64,48 +64,53 @@ static void cleanup() {
 static void fragment_and_dispatch(BT_HDR *packet) {
   assert(packet != NULL);
 
-  uint16_t remaining_length = packet->len;
   uint16_t event = packet->event & MSG_EVT_MASK;
+  uint8_t *stream = packet->data + packet->offset;
+
+  // We only fragment ACL packets
+  if (event != MSG_STACK_TO_HC_HCI_ACL) {
+    callbacks->fragmented(packet, true);
+    return;
+  }
+
   uint16_t max_data_size =
     SUB_EVENT(packet->event) == LOCAL_BR_EDR_CONTROLLER_ID ?
       controller->get_acl_size_classic() :
       controller->get_acl_size_ble();
+
   uint16_t max_packet_size = max_data_size + HCI_ACL_PREAMBLE_SIZE;
+  uint16_t remaining_length = packet->len;
 
-  uint8_t *stream = packet->data + packet->offset;
+  uint16_t continuation_handle;
+  STREAM_TO_UINT16(continuation_handle, stream);
+  continuation_handle = APPLY_CONTINUATION_FLAG(continuation_handle);
 
-  if (event == MSG_STACK_TO_HC_HCI_ACL && remaining_length > max_packet_size) {
-    uint16_t continuation_handle;
-    STREAM_TO_UINT16(continuation_handle, stream);
-    continuation_handle = APPLY_CONTINUATION_FLAG(continuation_handle);
+  while (remaining_length > max_packet_size) {
+    // Make sure we use the right ACL packet size
+    stream = packet->data + packet->offset;
+    STREAM_SKIP_UINT16(stream);
+    UINT16_TO_STREAM(stream, max_data_size);
 
-    while (remaining_length > max_packet_size) {
-      // Make sure we use the right ACL packet size
-      stream = packet->data + packet->offset;
-      STREAM_SKIP_UINT16(stream);
-      UINT16_TO_STREAM(stream, max_data_size);
+    packet->len = max_packet_size;
+    callbacks->fragmented(packet, false);
 
-      packet->len = max_packet_size;
-      callbacks->fragmented(packet, false);
+    packet->offset += max_data_size;
+    remaining_length -= max_data_size;
+    packet->len = remaining_length;
 
-      packet->offset += max_data_size;
-      remaining_length -= max_data_size;
-      packet->len = remaining_length;
+    // Write the ACL header for the next fragment
+    stream = packet->data + packet->offset;
+    UINT16_TO_STREAM(stream, continuation_handle);
+    UINT16_TO_STREAM(stream, remaining_length - HCI_ACL_PREAMBLE_SIZE);
 
-      // Write the ACL header for the next fragment
-      stream = packet->data + packet->offset;
-      UINT16_TO_STREAM(stream, continuation_handle);
-      UINT16_TO_STREAM(stream, remaining_length - HCI_ACL_PREAMBLE_SIZE);
+    // Apparently L2CAP can set layer_specific to a max number of segments to transmit
+    if (packet->layer_specific) {
+      packet->layer_specific--;
 
-      // Apparently L2CAP can set layer_specific to a max number of segments to transmit
-      if (packet->layer_specific) {
-        packet->layer_specific--;
-
-        if (packet->layer_specific == 0) {
-          packet->event = MSG_HC_TO_STACK_L2C_SEG_XMIT;
-          callbacks->transmit_finished(packet, false);
-          return;
-        }
+      if (packet->layer_specific == 0) {
+        packet->event = MSG_HC_TO_STACK_L2C_SEG_XMIT;
+        callbacks->transmit_finished(packet, false);
+        return;
       }
     }
   }
