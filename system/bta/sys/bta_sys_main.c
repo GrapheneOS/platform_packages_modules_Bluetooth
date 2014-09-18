@@ -630,7 +630,7 @@ void bta_alarm_cb(void *data) {
   fixed_queue_enqueue(btu_bta_alarm_queue, p_tle);
 }
 
-void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout) {
+void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms) {
   assert(p_tle != NULL);
 
   // Get the alarm for this p_tle.
@@ -642,14 +642,13 @@ void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout) {
 
   alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to create alarm\n", __func__);
+    ALOGE("%s unable to create alarm.", __func__);
     return;
   }
-  alarm_cancel(alarm);
 
   p_tle->event = type;
-  p_tle->ticks = timeout;
-  alarm_set(alarm, (period_ms_t)GKI_TICKS_TO_MS(timeout), bta_alarm_cb, (void *)p_tle);
+  p_tle->ticks = timeout_ms;
+  alarm_set(alarm, (period_ms_t)timeout_ms, bta_alarm_cb, p_tle);
 }
 
 /*******************************************************************************
@@ -666,7 +665,7 @@ void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle) {
 
   alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Expected alarm was not in bta alarm hash map\n", __func__);
+    ALOGE("%s expected alarm was not in bta alarm hash map.", __func__);
     return;
   }
   alarm_cancel(alarm);
