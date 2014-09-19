@@ -18,11 +18,14 @@
 
 #define LOG_TAG "BTIF_SOCK_SDP"
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sock.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
+
+#include <hardware/bluetooth.h>
+#include <hardware/bt_sock.h>
 #include <cutils/log.h>
 
 #include "btif_common.h"
@@ -113,9 +116,9 @@ static const tBTA_OP_FMT bta_ops_obj_fmt[OBEX_PUSH_NUM_FORMATS] = {
 #define BTA_MAP_DEFAULT_VERSION 0x0101
 
 typedef struct {
-  UINT8 mas_id;                  // the MAS instance id
+  uint8_t mas_id;                  // the MAS instance id
   const char *service_name;      // Description of the MAS instance
-  UINT8 supported_message_types; // Server supported message types - SMS/MMS/EMAIL
+  uint8_t supported_message_types; // Server supported message types - SMS/MMS/EMAIL
 } tBTA_MAP_CFG;
 
 const tBTA_MAP_CFG bta_map_cfg_sms = {
@@ -137,8 +140,8 @@ const tBTA_MAP_CFG bta_map_cfg_sms = {
 // at the end of the protocol list.
 //
 // Returns TRUE if successful, otherwise FALSE.
-static BOOLEAN create_base_record(const UINT32 sdp_handle, const char *name,
-                                  const UINT16 channel, const BOOLEAN with_obex) {
+static bool create_base_record(const uint32_t sdp_handle, const char *name,
+                               const uint16_t channel, const bool with_obex) {
   APPL_TRACE_DEBUG("create_base_record: scn: %d, name: %s, with_obex: %d",
                    channel, name, with_obex);
 
@@ -167,13 +170,13 @@ static BOOLEAN create_base_record(const UINT32 sdp_handle, const char *name,
   if (name[0] != '\0') {
     stage = "service_name";
     if (!SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME,
-                          TEXT_STR_DESC_TYPE, (UINT32)(strlen(name) + 1),
-                          (UINT8 *)name))
+                          TEXT_STR_DESC_TYPE, (uint32_t)(strlen(name) + 1),
+                          (uint8_t *)name))
       goto error;
   }
 
   // Mark the service as browseable.
-  UINT16 list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+  uint16_t list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
   stage = "browseable";
   if (!SDP_AddUuidSequence(sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &list))
     goto error;
@@ -194,10 +197,10 @@ error:
 // database as a generic L2CAP RFCOMM protocol, storing its |uuid| as a service
 // class sequence.
 static int add_sdp_by_uuid(const char *name,  const uint8_t *uuid,
-                           const UINT16 channel) {
+                           const uint16_t channel) {
   APPL_TRACE_DEBUG("add_sdp_by_uuid: scn: %d, service_name: %s", channel, name);
 
-  UINT32 handle = SDP_CreateRecord();
+  uint32_t handle = SDP_CreateRecord();
   if (handle == 0) {
     APPL_TRACE_ERROR("add_sdp_by_uuid: failed to create sdp record, "
                      "scn: %d, service_name: %s", channel, name);
@@ -211,23 +214,23 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *uuid,
 
   // Convert the |uuid| into a big-endian representation and add it as a
   // sequence.
-  UINT8 type = UUID_DESC_TYPE;
-  UINT8 type_len = UUID_MAX_LENGTH;
-  UINT8 type_buf[48];
+  uint8_t type = UUID_DESC_TYPE;
+  uint8_t type_len = UUID_MAX_LENGTH;
+  uint8_t type_buf[48];
   // Store the address of type buf in a pointer on the stack, so we can pass
   // a double pointer to SDP_AddSequence
-  UINT8 *type_buf_ptr = type_buf;
+  uint8_t *type_buf_ptr = type_buf;
 
   // Do the conversion to big-endian -- tmp is only used to iterate through the
   // UUID array in the macro and serves no other purpose as the conversion
   // macros are not hygenic.
   {
-    UINT8 *tmp = type_buf;
+    uint8_t *tmp = type_buf;
     ARRAY_TO_BE_STREAM(tmp, uuid, UUID_MAX_LENGTH);
   }
 
   stage = "service_class_sequence";
-  if (!SDP_AddSequence(handle, (UINT16)ATTR_ID_SERVICE_CLASS_ID_LIST,
+  if (!SDP_AddSequence(handle, (uint16_t)ATTR_ID_SERVICE_CLASS_ID_LIST,
                        1, &type, &type_len, &type_buf_ptr))
     goto error;
 
@@ -248,7 +251,7 @@ error:
 static int add_pbap_sdp(const char *name, const int channel) {
   APPL_TRACE_DEBUG("add_pbap_sdp: scn %d, service_name %s", channel, name);
 
-  UINT32 handle = SDP_CreateRecord();
+  uint32_t handle = SDP_CreateRecord();
   if (handle == 0) {
     APPL_TRACE_ERROR("add_pbap_sdp: failed to create sdp record, "
                      "service_name: %s", name);
@@ -261,7 +264,7 @@ static int add_pbap_sdp(const char *name, const int channel) {
     goto error;
 
   // Add service class
-  UINT16 service = UUID_SERVCLASS_PBAP_PSE;
+  uint16_t service = UUID_SERVCLASS_PBAP_PSE;
   stage = "service_class";
   if (!SDP_AddServiceClassIdList(handle, 1, &service))
     goto error;
@@ -276,7 +279,7 @@ static int add_pbap_sdp(const char *name, const int channel) {
   // Set up our supported repositories
   stage = "supported_repositories";
   if (!SDP_AddAttribute(handle, ATTR_ID_SUPPORTED_REPOSITORIES, UINT_DESC_TYPE,
-                        1, (UINT8*)&bta_pbs_cfg.supported_repositories))
+                        1, (uint8_t*)&bta_pbs_cfg.supported_repositories))
     goto error;
 
   // Notify the system that we've got a new service class UUID.
@@ -299,7 +302,7 @@ static int add_maps_sdp(const char *name, const int channel) {
   APPL_TRACE_DEBUG("add_maps_sdp: scn %d, service_name %s", channel,
                    name);
 
-  UINT32 handle = SDP_CreateRecord();
+  uint32_t handle = SDP_CreateRecord();
   if (handle == 0) {
     APPL_TRACE_ERROR("add_maps_sdp: failed to create sdp record, "
                      "service_name: %s", name);
@@ -312,7 +315,7 @@ static int add_maps_sdp(const char *name, const int channel) {
     goto error;
 
   // add service class
-  UINT16 service = UUID_SERVCLASS_MESSAGE_ACCESS;
+  uint16_t service = UUID_SERVCLASS_MESSAGE_ACCESS;
   stage = "service_class";
   if (!SDP_AddServiceClassIdList(handle, 1, &service))
     goto error;
@@ -330,13 +333,13 @@ static int add_maps_sdp(const char *name, const int channel) {
 
   stage = "mas_instance_id";
   if (!SDP_AddAttribute(handle, ATTR_ID_MAS_INSTANCE_ID, UINT_DESC_TYPE,
-                        (UINT32)1, (UINT8*)(&bta_map_cfg->mas_id)))
+                        (uint32_t)1, (uint8_t*)(&bta_map_cfg->mas_id)))
     goto error;
 
   stage = "support_message_types";
   if (!SDP_AddAttribute(handle, ATTR_ID_SUPPORTED_MSG_TYPE, UINT_DESC_TYPE,
-                        (UINT32)1,
-                        (UINT8*)(&bta_map_cfg->supported_message_types)))
+                        (uint32_t)1,
+                        (uint8_t*)(&bta_map_cfg->supported_message_types)))
     goto error;
 
   // Notify the system that we've got a new service class UUID.
@@ -358,7 +361,7 @@ error:
 static int add_ops_sdp(const char *name, const int channel) {
   APPL_TRACE_DEBUG("add_ops_sdp: scn %d, service_name %s", channel, name);
 
-  UINT32 handle = SDP_CreateRecord();
+  uint32_t handle = SDP_CreateRecord();
   if (handle == 0) {
     APPL_TRACE_ERROR("add_ops_sdp: failed to create sdp record, "
                      "service_name: %s", name);
@@ -372,7 +375,7 @@ static int add_ops_sdp(const char *name, const int channel) {
 
   // Add service class.
   stage = "service_class";
-  UINT16 service = UUID_SERVCLASS_OBEX_OBJECT_PUSH;
+  uint16_t service = UUID_SERVCLASS_OBEX_OBJECT_PUSH;
   if (!SDP_AddServiceClassIdList(handle, 1, &service))
     goto error;
 
@@ -383,21 +386,21 @@ static int add_ops_sdp(const char *name, const int channel) {
     goto error;
 
   // Add sequence for supported types.
-  UINT8 desc_type[OBEX_PUSH_NUM_FORMATS];
-  UINT8 type_len[OBEX_PUSH_NUM_FORMATS];
-  UINT8 *type_value[OBEX_PUSH_NUM_FORMATS];
-  UINT8 j = 0;
+  uint8_t desc_type[OBEX_PUSH_NUM_FORMATS];
+  uint8_t type_len[OBEX_PUSH_NUM_FORMATS];
+  uint8_t *type_value[OBEX_PUSH_NUM_FORMATS];
+  uint8_t j = 0;
 
   for (int i = 0; i < OBEX_PUSH_NUM_FORMATS; i++) {
     if ((BTUI_OPS_FORMATS >> i) & 1) {
-      type_value[j] = (UINT8*)(&bta_ops_obj_fmt[i]);
+      type_value[j] = (uint8_t*)(&bta_ops_obj_fmt[i]);
       desc_type[j] = UINT_DESC_TYPE;
       type_len[j++] = 1;
     }
   }
 
   stage = "supported_types";
-  if (!SDP_AddSequence(handle, (UINT16)ATTR_ID_SUPPORTED_FORMATS_LIST,
+  if (!SDP_AddSequence(handle, (uint16_t)ATTR_ID_SUPPORTED_FORMATS_LIST,
                        j, desc_type, type_len, type_value))
     goto error;
 
@@ -439,7 +442,7 @@ static int add_spp_sdp(const char *name, const int channel) {
   if (!create_base_record(handle, name, channel, FALSE /* with_obex */))
     goto error;
 
-  UINT16 service = UUID_SERVCLASS_SERIAL_PORT;
+  uint16_t service = UUID_SERVCLASS_SERIAL_PORT;
   stage = "service_class";
   if (!SDP_AddServiceClassIdList(handle, 1, &service))
     goto error;
@@ -502,7 +505,7 @@ static int add_rfc_sdp_by_uuid(const char *name, const uint8_t *uuid,
   return handle;
 }
 
-BOOLEAN is_reserved_rfc_channel(const int channel) {
+bool is_reserved_rfc_channel(const int channel) {
   switch(channel) {
     case RESERVED_SCN_PBS:
     case RESERVED_SCN_OPS:
