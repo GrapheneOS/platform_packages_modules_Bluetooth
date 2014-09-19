@@ -21,7 +21,6 @@
 #include <hardware/bluetooth.h>
 #include <utils/Log.h>
 
-#include "async_result.h"
 #include "btif_api.h"
 #include "bt_utils.h"
 #include "osi.h"
