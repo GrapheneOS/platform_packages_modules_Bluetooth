@@ -41,6 +41,8 @@ static void event_start_up_stack(void *context);
 static void event_shut_down_stack(void *context);
 static void event_clean_up_stack(void *context);
 
+static future_t *hack_future;
+
 // Interface functions
 
 static void init_stack(void) {
@@ -99,8 +101,12 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   ensure_stack_is_initialized();
 
   ALOGD("%s is bringing up the stack.", __func__);
+  hack_future = future_new();
+
   btif_enable_bluetooth();
-  stack_is_running = true;
+
+  if (future_await(hack_future) == FUTURE_SUCCESS)
+    stack_is_running = true;
   ALOGD("%s finished", __func__);
 }
 
@@ -112,8 +118,12 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   }
 
   ALOGD("%s is bringing down the stack.", __func__);
-  btif_disable_bluetooth();
+  hack_future = future_new();
   stack_is_running = false;
+
+  btif_disable_bluetooth();
+
+  future_await(hack_future);
   ALOGD("%s finished.", __func__);
 }
 
@@ -133,9 +143,13 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
 
   ensure_stack_is_not_running();
 
-  ALOGD("%s is bringing down the stack.", __func__);
-  btif_shutdown_bluetooth();
+  ALOGD("%s is cleaning up the stack.", __func__);
+  hack_future = future_new();
   stack_is_initialized = false;
+
+  btif_shutdown_bluetooth();
+
+  future_await(hack_future);
   ALOGD("%s finished.", __func__);
 }
 
@@ -160,4 +174,8 @@ static const stack_manager_t interface = {
 const stack_manager_t *stack_manager_get_interface() {
   ensure_manager_initialized();
   return &interface;
+}
+
+future_t *stack_manager_get_hack_future() {
+  return hack_future;
 }

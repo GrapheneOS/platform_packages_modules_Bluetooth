@@ -54,7 +54,9 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "fixed_queue.h"
+#include "future.h"
 #include "gki.h"
+#include "stack_manager.h"
 #include "thread.h"
 #include "osi.h"
 
@@ -272,6 +274,8 @@ void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
   bte_main_shutdown();
   btif_dut_mode = 0;
   btif_core_state = BTIF_CORE_STATE_DISABLED;
+
+  future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
   HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
 }
 
@@ -567,6 +571,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         /* now fully enabled, update state */
         btif_core_state = BTIF_CORE_STATE_ENABLED;
 
+        future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
     else
@@ -579,6 +584,7 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         /* we failed to enable, reset state */
         btif_core_state = BTIF_CORE_STATE_DISABLED;
 
+        future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
 }
@@ -660,6 +666,7 @@ void btif_disable_bluetooth_evt(void)
     btif_core_state = BTIF_CORE_STATE_DISABLED;
 
     /* callback to HAL */
+    future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
     HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
 
     if (btif_shutdown_pending)
@@ -1436,8 +1443,10 @@ static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_p
 }
 
 static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
-    BTIF_TRACE_DEBUG("%s Disassociating thread from JVM", __func__);
-    HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
+  BTIF_TRACE_DEBUG("%s Disassociating thread from JVM", __func__);
+  HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
+  bt_hal_cbacks = NULL;
+  future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
 }
 
 

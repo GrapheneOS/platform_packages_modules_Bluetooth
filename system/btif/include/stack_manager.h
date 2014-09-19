@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "future.h"
+
 typedef struct {
   void (*init_stack)(void);
   void (*start_up_stack_async)(void);
@@ -26,3 +28,6 @@ typedef struct {
 } stack_manager_t;
 
 const stack_manager_t *stack_manager_get_interface();
+
+// TODO(zachoverflow): remove this terrible hack once the startup sequence is more sane
+future_t *stack_manager_get_hack_future();
