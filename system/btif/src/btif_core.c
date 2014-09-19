@@ -103,10 +103,6 @@ typedef enum {
 
 bt_bdaddr_t btif_local_bd_addr;
 
-/* holds main adapter state */
-static btif_core_state_t btif_core_state = BTIF_CORE_STATE_DISABLED;
-
-static int btif_shutdown_pending = 0;
 static tBTA_SERVICE_MASK btif_enabled_services = 0;
 
 /*
@@ -141,7 +137,6 @@ extern void bte_load_did_conf(const char *p_path);
 
 /** TODO: Move these to _common.h */
 void bte_main_boot_entry(void);
-void bte_main_enable();
 void bte_main_disable(void);
 void bte_main_shutdown(void);
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
@@ -256,7 +251,7 @@ UINT8 btif_is_dut_mode(void)
 
 int btif_is_enabled(void)
 {
-    return ((!btif_is_dut_mode()) && (btif_core_state == BTIF_CORE_STATE_ENABLED));
+    return ((!btif_is_dut_mode()) && (stack_manager_get_interface()->get_stack_is_running()));
 }
 
 void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
@@ -273,7 +268,6 @@ void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
   btif_queue_release();
   bte_main_shutdown();
   btif_dut_mode = 0;
-  btif_core_state = BTIF_CORE_STATE_DISABLED;
 
   future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
   HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
@@ -462,34 +456,6 @@ error_exit:;
 
 /*******************************************************************************
 **
-** Function         btif_enable_bluetooth
-**
-** Description      Performs chip power on and kickstarts OS scheduler
-**
-** Returns          bt_status_t
-**
-*******************************************************************************/
-
-bt_status_t btif_enable_bluetooth(void)
-{
-    BTIF_TRACE_DEBUG("BTIF ENABLE BLUETOOTH");
-
-    if (btif_core_state != BTIF_CORE_STATE_DISABLED)
-    {
-        ALOGD("not disabled\n");
-        return BT_STATUS_DONE;
-    }
-
-    btif_core_state = BTIF_CORE_STATE_ENABLING;
-
-    bte_main_enable();
-
-    return BT_STATUS_SUCCESS;
-}
-
-
-/*******************************************************************************
-**
 ** Function         btif_enable_bluetooth_evt
 **
 ** Description      Event indicating bluetooth enable is completed
@@ -568,8 +534,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 #ifdef BTIF_DM_OOB_TEST
         btif_dm_load_local_oob();
 #endif
-        /* now fully enabled, update state */
-        btif_core_state = BTIF_CORE_STATE_ENABLED;
 
         future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
@@ -580,9 +544,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         btif_sock_cleanup();
 
         btif_pan_cleanup();
-
-        /* we failed to enable, reset state */
-        btif_core_state = BTIF_CORE_STATE_DISABLED;
 
         future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
         HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
@@ -602,37 +563,15 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 *******************************************************************************/
 bt_status_t btif_disable_bluetooth(void)
 {
-    tBTA_STATUS status;
-
-    if (!btif_is_enabled())
-    {
-        BTIF_TRACE_ERROR("btif_disable_bluetooth : not yet enabled");
-        return BT_STATUS_NOT_READY;
-    }
-
     BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
     btif_dm_on_disable();
-    btif_core_state = BTIF_CORE_STATE_DISABLING;
-
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
-
     btif_pan_cleanup();
-
-    status = BTA_DisableBluetooth();
-
+    BTA_DisableBluetooth();
     btif_config_flush();
 
-    if (status != BTA_SUCCESS)
-    {
-        BTIF_TRACE_ERROR("disable bt failed (%d)", status);
-
-        /* reset the original state to allow attempting disable again */
-        btif_core_state = BTIF_CORE_STATE_ENABLED;
-
-        return BT_STATUS_FAIL;
-    }
     return BT_STATUS_SUCCESS;
 }
 
@@ -662,18 +601,9 @@ void btif_disable_bluetooth_evt(void)
 
      bte_main_disable();
 
-    /* update local state */
-    btif_core_state = BTIF_CORE_STATE_DISABLED;
-
     /* callback to HAL */
     future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
     HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
-
-    if (btif_shutdown_pending)
-    {
-        BTIF_TRACE_DEBUG("%s: calling btif_shutdown_bluetooth", __FUNCTION__);
-        btif_shutdown_bluetooth();
-    }
 }
 
 
@@ -691,36 +621,6 @@ void btif_disable_bluetooth_evt(void)
 bt_status_t btif_shutdown_bluetooth(void)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-
-    if (btif_core_state == BTIF_CORE_STATE_DISABLING)
-    {
-        BTIF_TRACE_WARNING("shutdown during disabling");
-        /* shutdown called before disabling is done */
-        btif_shutdown_pending = 1;
-        return BT_STATUS_NOT_READY;
-    }
-
-    if (btif_is_enabled())
-    {
-        BTIF_TRACE_WARNING("shutdown while still enabled, initiate disable");
-
-        /* shutdown called prior to disabling, initiate disable */
-        btif_disable_bluetooth();
-        btif_shutdown_pending = 1;
-        return BT_STATUS_NOT_READY;
-    }
-
-    btif_shutdown_pending = 0;
-
-    if (btif_core_state == BTIF_CORE_STATE_ENABLING)
-    {
-        // Java layer abort BT ENABLING, could be due to ENABLE TIMEOUT
-        // Direct call from cleanup()@bluetooth.c
-        // bring down HCI/Vendor lib
-        bte_main_disable();
-        btif_core_state = BTIF_CORE_STATE_DISABLED;
-        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
-    }
 
     btif_transfer_context(btif_jni_disassociate, 0, NULL, 0, NULL);
 
@@ -773,7 +673,7 @@ bt_status_t btif_dut_mode_configure(uint8_t enable)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (btif_core_state != BTIF_CORE_STATE_ENABLED) {
+    if (!stack_manager_get_interface()->get_stack_is_running()) {
         BTIF_TRACE_ERROR("btif_dut_mode_configure : Bluetooth not enabled");
         return BT_STATUS_NOT_READY;
     }
@@ -1461,7 +1361,6 @@ static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *
 *******************************************************************************/
 bt_status_t btif_config_hci_snoop_log(uint8_t enable)
 {
-    bte_main_config_hci_logging(enable != 0,
-             btif_core_state == BTIF_CORE_STATE_DISABLED);
+    bte_main_config_hci_logging(enable != 0, !stack_manager_get_interface()->get_stack_is_running());
     return BT_STATUS_SUCCESS;
 }

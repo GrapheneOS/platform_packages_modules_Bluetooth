@@ -25,6 +25,8 @@ typedef struct {
   void (*start_up_stack_async)(void);
   void (*shut_down_stack_async)(void);
   void (*clean_up_stack_async)(void);
+
+  bool (*get_stack_is_running)(void);
 } stack_manager_t;
 
 const stack_manager_t *stack_manager_get_interface();

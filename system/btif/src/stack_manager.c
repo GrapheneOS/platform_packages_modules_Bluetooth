@@ -41,7 +41,10 @@ static void event_start_up_stack(void *context);
 static void event_shut_down_stack(void *context);
 static void event_clean_up_stack(void *context);
 
+// Unvetted includes/imports, etc which should be removed or vetted in the future
 static future_t *hack_future;
+void bte_main_enable();
+// End unvetted section
 
 // Interface functions
 
@@ -63,6 +66,10 @@ static void shut_down_stack_async(void) {
 
 static void clean_up_stack_async(void) {
   thread_post(management_thread, event_clean_up_stack, NULL);
+}
+
+static bool get_stack_is_running(void) {
+  return stack_is_running;
 }
 
 // Internal functions
@@ -103,7 +110,7 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   ALOGD("%s is bringing up the stack.", __func__);
   hack_future = future_new();
 
-  btif_enable_bluetooth();
+  bte_main_enable();
 
   if (future_await(hack_future) == FUTURE_SUCCESS)
     stack_is_running = true;
@@ -168,7 +175,9 @@ static const stack_manager_t interface = {
   init_stack,
   start_up_stack_async,
   shut_down_stack_async,
-  clean_up_stack_async
+  clean_up_stack_async,
+
+  get_stack_is_running
 };
 
 const stack_manager_t *stack_manager_get_interface() {
