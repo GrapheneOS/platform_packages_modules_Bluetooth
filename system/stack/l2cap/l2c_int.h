@@ -24,10 +24,10 @@
 #ifndef L2C_INT_H
 #define L2C_INT_H
 
+#include "btm_api.h"
+#include "gki.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "gki.h"
-#include "btm_api.h"
 #include "list.h"
 
 #define L2CAP_MIN_MTU   48      /* Minimum acceptable MTU is 48 bytes */
@@ -446,7 +446,7 @@ typedef struct
     UINT16          num_lm_acl_bufs;                /* # of ACL buffers on controller   */
     UINT16          idle_timeout;                   /* Idle timeout                     */
 
-    BUFFER_Q        rcv_hold_q;                     /* Recv pending queue               */
+    list_t          *rcv_pending_q;                 /* Recv pending queue               */
     TIMER_LIST_ENT  rcv_hold_tle;                   /* Timer list entry for rcv hold    */
 
     tL2C_LCB        *p_cur_hcit_lcb;                /* Current HCI Transport buffer     */
@@ -537,7 +537,9 @@ extern tL2C_CB *l2c_cb_ptr;
 /* Functions provided by l2c_main.c
 ************************************
 */
-extern void     l2c_init (void);
+void l2c_init(void);
+void l2c_free(void);
+
 extern void     l2c_process_timeout (TIMER_LIST_ENT *p_tle);
 extern UINT8    l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flag);
 extern void     l2c_rcv_acl_data (BT_HDR *p_msg);

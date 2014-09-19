@@ -124,6 +124,8 @@ void btu_init_core(void)
 void btu_free_core(void)
 {
       /* Free the mandatory core stack components */
+      l2c_free();
+
 #if BLE_INCLUDED == TRUE
       gatt_free();
 #endif

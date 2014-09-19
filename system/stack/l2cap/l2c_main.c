@@ -22,20 +22,21 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
+#include <cutils/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "device/include/controller.h"
 #include "counter.h"
+#include "bt_target.h"
+#include "btm_int.h"
+#include "btu.h"
 #include "gki.h"
 #include "hcimsgs.h"
-#include "l2cdefs.h"
-#include "l2c_int.h"
 #include "l2c_api.h"
-#include "btu.h"
-#include "btm_int.h"
+#include "l2c_int.h"
+#include "l2cdefs.h"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -150,23 +151,21 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             STREAM_TO_UINT8  (cmd_code, p);
 
             if ((p_msg->layer_specific == 0) && (rcv_cid == L2CAP_SIGNALLING_CID)
-                && (cmd_code == L2CAP_CMD_INFO_REQ || cmd_code == L2CAP_CMD_CONN_REQ))
-            {
-                L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
-                                    handle, p_msg->layer_specific, rcv_cid, cmd_code,
-                                    GKI_queue_length(&l2cb.rcv_hold_q));
+                    && (cmd_code == L2CAP_CMD_INFO_REQ || cmd_code == L2CAP_CMD_CONN_REQ)) {
+                L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d"
+                        "  cid:%d opcode:%d cur count:%d", handle, p_msg->layer_specific,
+                        rcv_cid, cmd_code, list_length(l2cb.rcv_pending_q));
                 p_msg->layer_specific = 2;
-                GKI_enqueue (&l2cb.rcv_hold_q, p_msg);
+                list_append(l2cb.rcv_pending_q, p_msg);
 
-                if (GKI_queue_length(&l2cb.rcv_hold_q) == 1)
+                if (list_length(l2cb.rcv_pending_q) == 1)
                     btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 
                 return;
-            }
-            else
-            {
-                L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
-                                    handle, p_msg->layer_specific, rcv_cid, cmd_code, GKI_queue_length(&l2cb.rcv_hold_q));
+            } else {
+                L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d"
+                        " opcode:%d cur count:%d", handle, p_msg->layer_specific, rcv_cid,
+                        cmd_code, list_length(l2cb.rcv_pending_q));
             }
             GKI_freebuf (p_msg);
             return;
@@ -807,38 +806,30 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_process_held_packets (BOOLEAN timed_out)
-{
-    BT_HDR      *p_buf, *p_buf1;
-    BUFFER_Q    *p_rcv_hold_q = &l2cb.rcv_hold_q;
-
-    if (GKI_queue_is_empty(p_rcv_hold_q))
+void l2c_process_held_packets(BOOLEAN timed_out) {
+    if (list_is_empty(l2cb.rcv_pending_q))
         return;
 
-    if (!timed_out)
-    {
+    if (!timed_out) {
         btu_stop_timer(&l2cb.rcv_hold_tle);
         L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
-    }
-    else
-    {
+    } else {
         L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
     }
 
-    /* Update the timeouts in the hold queue */
-    for (p_buf = (BT_HDR *)GKI_getfirst (p_rcv_hold_q); p_buf; p_buf = p_buf1)
-    {
-        p_buf1 = (BT_HDR *)GKI_getnext (p_buf);
-        if (!timed_out || (!p_buf->layer_specific) || (--p_buf->layer_specific == 0))
-        {
-            GKI_remove_from_queue (p_rcv_hold_q, p_buf);
+    for (const list_node_t *node = list_begin(l2cb.rcv_pending_q);
+        node != list_end(l2cb.rcv_pending_q);)  {
+        BT_HDR *p_buf = list_node(node);
+        node = list_next(node);
+        if (!timed_out || (!p_buf->layer_specific) || (--p_buf->layer_specific == 0)) {
+            list_remove(l2cb.rcv_pending_q, p_buf);
             p_buf->layer_specific = 0xFFFF;
-            l2c_rcv_acl_data (p_buf);
+            l2c_rcv_acl_data(p_buf);
         }
     }
 
     /* If anyone still in the queue, restart the timeout */
-    if (!GKI_queue_is_empty(p_rcv_hold_q))
+    if (!list_is_empty(l2cb.rcv_pending_q))
         btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 }
 
@@ -901,6 +892,13 @@ void l2c_init (void)
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
 
+    l2cb.rcv_pending_q = list_new(NULL);
+    if (l2cb.rcv_pending_q == NULL)
+        ALOGE("%s unable to allocate memory for link layer control block", __func__);
+}
+
+void l2c_free(void) {
+    list_free(l2cb.rcv_pending_q);
 }
 
 /*******************************************************************************
