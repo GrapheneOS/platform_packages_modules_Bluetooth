@@ -16,15 +16,13 @@
  *
  ******************************************************************************/
 
+#include <unistd.h>
+
 #include "base.h"
 #include "cases/cases.h"
 #include "support/callbacks.h"
 #include "support/hal.h"
 #include "support/pan.h"
-
-#define GRAY  "\x1b[0;37m"
-#define GREEN "\x1b[0;32m"
-#define RED   "\x1b[0;31m"
 
 const bt_interface_t *bt_interface;
 bt_bdaddr_t bt_remote_bdaddr;
@@ -62,11 +60,18 @@ int main(int argc, char **argv) {
     return 2;
   }
 
+  static const char *GRAY  = "\x1b[0;37m";
+  static const char *GREEN = "\x1b[0;32m";
+  static const char *RED   = "\x1b[0;31m";
+
+  // If the output is not a TTY device, don't colorize output.
+  if (!isatty(fileno(stdout))) {
+    GRAY = GREEN = RED = "";
+  }
+
   int pass = 0;
   int fail = 0;
   int case_num = 0;
-
-  printf("Running sanity suite:\n");
 
   // Run through the sanity suite.
   for (size_t i = 0; i < sanity_suite_size; ++i) {
@@ -87,8 +92,6 @@ int main(int argc, char **argv) {
     hal_close();
     return 0;
   }
-
-  printf("Running full test suite:\n");
 
   // Run the full test suite.
   for (size_t i = 0; i < test_suite_size; ++i) {
