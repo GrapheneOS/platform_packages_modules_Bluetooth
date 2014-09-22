@@ -1857,14 +1857,12 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         }
 #endif
 
-
         // Iterate though list and flush the amount requested from
         // the transmit data queue that satisfy the layer and event conditions.
         for (const list_node_t *node = list_begin(p_lcb->link_xmit_data_q);
-            (num_to_flush > 0) && node != list_end(p_lcb->link_xmit_data_q);
-            node = list_next(node)) {
-
+            (num_to_flush > 0) && node != list_end(p_lcb->link_xmit_data_q);) {
           BT_HDR *p_buf = (BT_HDR *)list_node(node);
+          node = list_next(node);
           if ((p_buf->layer_specific == 0) && (p_buf->event == lcid)) {
             num_to_flush--;
             num_flushed1++;
