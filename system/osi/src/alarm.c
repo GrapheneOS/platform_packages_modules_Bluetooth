@@ -207,13 +207,6 @@ static void timer_callback(void *ptr) {
   pthread_mutex_lock(&monitor);
 
   bool alarm_valid = list_remove(alarms, alarm);
-  alarm_callback_t callback = alarm->callback;
-  void *data = alarm->data;
-
-  alarm->deadline = 0;
-  alarm->callback = NULL;
-  alarm->data = NULL;
-
   reschedule();
 
   // The alarm was cancelled before we got to it. Release the monitor
@@ -222,6 +215,13 @@ static void timer_callback(void *ptr) {
     pthread_mutex_unlock(&monitor);
     return;
   }
+
+  alarm_callback_t callback = alarm->callback;
+  void *data = alarm->data;
+
+  alarm->deadline = 0;
+  alarm->callback = NULL;
+  alarm->data = NULL;
 
   // Downgrade lock.
   pthread_mutex_lock(&alarm->callback_lock);
