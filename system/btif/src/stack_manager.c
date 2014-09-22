@@ -54,6 +54,7 @@ static void init_stack(void) {
   semaphore_t *semaphore = semaphore_new(0);
   thread_post(management_thread, event_init_stack, semaphore);
   semaphore_wait(semaphore);
+  semaphore_free(semaphore);
 }
 
 static void start_up_stack_async(void) {
