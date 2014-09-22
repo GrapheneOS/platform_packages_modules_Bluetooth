@@ -215,17 +215,17 @@ void bte_main_enable()
     btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
 
     btu_general_alarm_hash_map = hash_map_new(BTU_GENERAL_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL,NULL);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free);
     pthread_mutex_init(&btu_general_alarm_lock, NULL);
     btu_general_alarm_queue = fixed_queue_new(SIZE_MAX);
 
     btu_oneshot_alarm_hash_map = hash_map_new(BTU_ONESHOT_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL,NULL);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free);
     pthread_mutex_init(&btu_oneshot_alarm_lock, NULL);
     btu_oneshot_alarm_queue = fixed_queue_new(SIZE_MAX);
 
     btu_l2cap_alarm_hash_map = hash_map_new(BTU_L2CAP_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL,NULL);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free);
     pthread_mutex_init(&btu_l2cap_alarm_lock, NULL);
     btu_l2cap_alarm_queue = fixed_queue_new(SIZE_MAX);
 

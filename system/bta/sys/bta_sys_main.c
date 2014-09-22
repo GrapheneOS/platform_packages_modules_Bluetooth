@@ -177,7 +177,7 @@ BTA_API void bta_sys_init(void)
     pthread_mutex_init(&bta_alarm_lock, NULL);
 
     bta_alarm_hash_map = hash_map_new(BTA_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL,NULL);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free);
     btu_bta_alarm_queue = fixed_queue_new(SIZE_MAX);
 
     bta_sys_cb.task_id = GKI_get_taskid();
