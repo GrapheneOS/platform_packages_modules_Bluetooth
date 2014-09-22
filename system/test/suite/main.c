@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "base.h"
@@ -24,8 +26,17 @@
 #include "support/hal.h"
 #include "support/pan.h"
 
+// How long the watchdog thread should wait before checking if a test has completed.
+// Any individual test will have at least WATCHDOG_PERIOD_SEC and at most
+// 2 * WATCHDOG_PERIOD_SEC seconds to complete.
+static const int WATCHDOG_PERIOD_SEC = 1 * 60;
+
 const bt_interface_t *bt_interface;
 bt_bdaddr_t bt_remote_bdaddr;
+
+static pthread_t watchdog_thread;
+static int watchdog_id;
+static bool watchdog_running;
 
 static bool parse_bdaddr(const char *str, bt_bdaddr_t *addr) {
   if (!addr) {
@@ -44,6 +55,27 @@ static bool parse_bdaddr(const char *str, bt_bdaddr_t *addr) {
   return true;
 }
 
+void *watchdog_fn(void *arg) {
+  int current_id = 0;
+  for (;;) {
+    // Check every second whether this thread should exit and check
+    // every WATCHDOG_PERIOD_SEC whether we should terminate the process.
+    for (int i = 0; watchdog_running && i < WATCHDOG_PERIOD_SEC; ++i) {
+      sleep(1);
+    }
+
+    if (!watchdog_running)
+      break;
+
+    if (current_id == watchdog_id) {
+      printf("Watchdog detected hanging test suite, aborting...\n");
+      exit(-1);
+    }
+    current_id = watchdog_id;
+  }
+  return NULL;
+}
+
 int main(int argc, char **argv) {
   if (argc < 2 || !parse_bdaddr(argv[1], &bt_remote_bdaddr)) {
     printf("Usage: %s <bdaddr>\n", argv[0]);
@@ -59,6 +91,9 @@ int main(int argc, char **argv) {
     printf("Unable to initialize PAN.\n");
     return 2;
   }
+
+  watchdog_running = true;
+  pthread_create(&watchdog_thread, NULL, watchdog_fn, NULL);
 
   static const char *GRAY  = "\x1b[0;37m";
   static const char *GREEN = "\x1b[0;32m";
@@ -84,6 +119,7 @@ int main(int argc, char **argv) {
       ++fail;
     }
     callbacks_cleanup();
+    ++watchdog_id;
   }
 
   // If there was a failure in the sanity suite, don't bother running the rest of the tests.
@@ -106,6 +142,7 @@ int main(int argc, char **argv) {
     }
     CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
     callbacks_cleanup();
+    ++watchdog_id;
   }
 
   printf("\n");
@@ -116,6 +153,10 @@ int main(int argc, char **argv) {
     printf("All tests passed!\n");
   }
 
+  watchdog_running = false;
+  pthread_join(watchdog_thread, NULL);
+
   hal_close();
+
   return 0;
 }
