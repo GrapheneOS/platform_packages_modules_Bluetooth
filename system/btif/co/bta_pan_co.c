@@ -172,7 +172,7 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
     if(!conn || conn->state != PAN_STATE_OPEN)
     {
         BTIF_TRACE_ERROR("bta_pan_co_tx_path: cannot find pan connction or conn"
-            "is not opened, conn:%p, conn->state:%d", conn, conn->state);
+            "is not opened, conn:%p, conn->state:%d", conn, conn ? conn->state : -1);
         return;
     }
     do
