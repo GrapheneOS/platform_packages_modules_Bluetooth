@@ -24,6 +24,7 @@
 #include "btif_api.h"
 #include "btif_common.h"
 #include "bt_utils.h"
+#include "module.h"
 #include "osi.h"
 #include "semaphore.h"
 #include "stack_manager.h"
@@ -85,6 +86,8 @@ static void event_init_stack(void *context) {
   semaphore_t *semaphore = (semaphore_t *)context;
 
   if (!stack_is_initialized) {
+    module_management_start();
+
     bt_utils_init();
     btif_init_bluetooth();
 
@@ -143,6 +146,7 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   btif_disable_bluetooth();
 
   future_await(hack_future);
+  module_management_stop();
   ALOGD("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }
