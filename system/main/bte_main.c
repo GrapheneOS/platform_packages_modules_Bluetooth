@@ -48,40 +48,28 @@
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "hci_layer.h"
+#include "module.h"
 #include "osi.h"
+#include "stack_config.h"
 #include "thread.h"
 
 /*******************************************************************************
 **  Constants & Macros
 *******************************************************************************/
 
-/* Run-time configuration file */
-#ifndef BTE_STACK_CONF_FILE
-#define BTE_STACK_CONF_FILE "/etc/bluetooth/bt_stack.conf"
-#endif
 /* Run-time configuration file for BLE*/
 #ifndef BTE_BLE_STACK_CONF_FILE
 #define BTE_BLE_STACK_CONF_FILE "/etc/bluetooth/ble_stack.conf"
 #endif
 
-/* if not specified in .txt file then use this as default  */
-#ifndef HCI_LOGGING_FILENAME
-#define HCI_LOGGING_FILENAME  "/data/misc/bluedroid/btsnoop_hci.log"
-#endif
-
 /******************************************************************************
 **  Variables
 ******************************************************************************/
-BOOLEAN hci_logging_enabled = FALSE;    /* by default, turn hci log off */
-BOOLEAN hci_logging_config = FALSE;    /* configured from bluetooth framework */
-BOOLEAN hci_save_log = FALSE; /* save a copy of the log before starting again */
-char hci_logfile[256] = HCI_LOGGING_FILENAME;
 
 /*******************************************************************************
 **  Static variables
 *******************************************************************************/
 static const hci_t *hci;
-static const btsnoop_t *btsnoop;
 static const hci_callbacks_t hci_callbacks;
 // Lock to serialize shutdown requests from upper layer.
 static pthread_mutex_t shutdown_lock;
@@ -120,8 +108,6 @@ void bte_main_boot_entry(void)
     if (!hci)
       ALOGE("%s could not get hci layer interface.", __func__);
 
-    btsnoop = btsnoop_get_interface();
-
     btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
     if (btu_hci_msg_queue == NULL) {
       ALOGE("%s unable to allocate hci message queue.", __func__);
@@ -130,10 +116,10 @@ void bte_main_boot_entry(void)
 
     data_dispatcher_register_default(hci->upward_dispatcher, btu_hci_msg_queue);
 
-    bte_load_conf(BTE_STACK_CONF_FILE);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
 #endif
+    module_init(get_module(STACK_CONFIG_MODULE));
 
 #if (BTTRC_INCLUDED == TRUE)
     /* Initialize trace feature */
@@ -141,7 +127,6 @@ void bte_main_boot_entry(void)
 #endif
 
     pthread_mutex_init(&shutdown_lock, NULL);
-    btsnoop->set_logging_path(hci_logfile);
 }
 
 /******************************************************************************
@@ -159,6 +144,8 @@ void bte_main_shutdown()
     fixed_queue_free(btu_hci_msg_queue, NULL);
 
     btu_hci_msg_queue = NULL;
+
+    module_clean_up(get_module(STACK_CONFIG_MODULE));
 
     pthread_mutex_destroy(&shutdown_lock);
     GKI_shutdown();
@@ -180,8 +167,8 @@ void bte_main_enable()
 
 //    BTU_StartUp();
 
-    btsnoop->set_is_running(hci_logging_enabled || hci_logging_config);
     assert(hci->start_up_async(btif_local_bd_addr.address, &hci_callbacks));
+    module_start_up(get_module(BTSNOOP_MODULE));
 }
 
 /******************************************************************************
@@ -198,32 +185,17 @@ void bte_main_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
+    module_shut_down(get_module(BTSNOOP_MODULE));
     if (hci) {
       // Shutdown is not thread safe and must be protected.
       pthread_mutex_lock(&shutdown_lock);
 
-      btsnoop->set_is_running(false);
       hci->shut_down();
 
       pthread_mutex_unlock(&shutdown_lock);
     }
 
     BTU_ShutDown();
-}
-
-/******************************************************************************
-**
-** Function         bte_main_config_hci_logging
-**
-** Description      enable or disable HIC snoop logging
-**
-** Returns          None
-**
-******************************************************************************/
-void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled)
-{
-  hci_logging_config = enable;
-  btsnoop->set_is_running((hci_logging_config || hci_logging_enabled) && !bt_disabled);
 }
 
 /******************************************************************************

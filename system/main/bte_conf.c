@@ -26,35 +26,6 @@
 #include "bta_api.h"
 #include "config.h"
 
-// TODO: eliminate these global variables.
-extern char hci_logfile[256];
-extern BOOLEAN hci_logging_enabled;
-extern BOOLEAN hci_save_log;
-extern BOOLEAN trace_conf_enabled;
-void bte_trace_conf_config(const config_t *config);
-
-// Reads the stack configuration file and populates global variables with
-// the contents of the file.
-void bte_load_conf(const char *path) {
-  assert(path != NULL);
-
-  ALOGI("%s attempt to load stack conf from %s", __func__, path);
-
-  config_t *config = config_new(path);
-  if (!config) {
-    ALOGI("%s file >%s< not found", __func__, path);
-    return;
-  }
-
-  strlcpy(hci_logfile, config_get_string(config, CONFIG_DEFAULT_SECTION, "BtSnoopFileName", ""), sizeof(hci_logfile));
-  hci_logging_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopLogOutput", false);
-  hci_save_log = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopSaveLog", false);
-  trace_conf_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "TraceConf", false);
-
-  bte_trace_conf_config(config);
-  config_free(config);
-}
-
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 extern int btm_ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1];
 void bte_load_ble_conf(const char* path)

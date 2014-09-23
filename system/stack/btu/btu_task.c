@@ -39,10 +39,7 @@
 #include "hash_map.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "btu.h"
-#include "bt_utils.h"
-#include <sys/prctl.h>
-
+#include "module.h"
 #include "osi.h"
 #include "sdpint.h"
 #include "thread.h"
@@ -426,7 +423,7 @@ void btu_task_start_up(UNUSED_ATTR void *context) {
    * reset the control blocks and preset the trace level with XXX_INITIAL_TRACE_LEVEL
    */
 #if ( BT_USE_TRACES==TRUE )
-  BTE_InitTraceLevels();
+  module_init(get_module(BTE_LOGMSG_MODULE));
 #endif
 
   // Inform the bt jni thread initialization is ok.

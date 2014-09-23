@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2014 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,24 +18,21 @@
 
 #define LOG_TAG "btsnoop"
 
-#include <arpa/inet.h>
 #include <assert.h>
-#include <ctype.h>
 #include <cutils/log.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 #include "btsnoop.h"
 #include "bt_types.h"
-#include "bt_utils.h"
 #include "hci_layer.h"
+#include "stack_config.h"
 
 typedef enum {
   kCommandPacket = 1,
@@ -47,14 +44,120 @@ typedef enum {
 // Epoch in microseconds since 01/01/0000.
 static const uint64_t BTSNOOP_EPOCH_DELTA = 0x00dcddb30f2f8000ULL;
 
-// File descriptor for btsnoop file.
-static int hci_btsnoop_fd = -1;
-static bool is_logging = false;
-static const char *logging_path;
+static const stack_config_t *stack_config;
 
+static int logfile_fd = INVALID_FD;
+static bool module_started;
+static bool is_logging;
+static bool logging_enabled_via_api;
+
+// TODO(zachoverflow): merge btsnoop and btsnoop_net together
 void btsnoop_net_open();
 void btsnoop_net_close();
 void btsnoop_net_write(const void *data, size_t length);
+
+static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool is_received);
+static void update_logging();
+
+// Module lifecycle functions
+
+static future_t *start_up(void) {
+  module_started = true;
+  update_logging();
+
+  return NULL;
+}
+
+static future_t *shut_down(void) {
+  module_started = false;
+  update_logging();
+
+  return NULL;
+}
+
+const module_t btsnoop_module = {
+  .name = BTSNOOP_MODULE,
+  .init = NULL,
+  .start_up = start_up,
+  .shut_down = shut_down,
+  .clean_up = NULL,
+  .dependencies = {
+    STACK_CONFIG_MODULE,
+    NULL
+  }
+};
+
+// Interface functions
+
+static void set_api_wants_to_log(bool value) {
+  logging_enabled_via_api = value;
+  update_logging();
+}
+
+static void capture(const BT_HDR *buffer, bool is_received) {
+  const uint8_t *p = buffer->data + buffer->offset;
+
+  if (logfile_fd == INVALID_FD)
+    return;
+
+  switch (buffer->event & MSG_EVT_MASK) {
+    case MSG_HC_TO_STACK_HCI_EVT:
+      btsnoop_write_packet(kEventPacket, p, false);
+      break;
+    case MSG_HC_TO_STACK_HCI_ACL:
+    case MSG_STACK_TO_HC_HCI_ACL:
+      btsnoop_write_packet(kAclPacket, p, is_received);
+      break;
+    case MSG_HC_TO_STACK_HCI_SCO:
+    case MSG_STACK_TO_HC_HCI_SCO:
+      btsnoop_write_packet(kScoPacket, p, is_received);
+      break;
+    case MSG_STACK_TO_HC_HCI_CMD:
+      btsnoop_write_packet(kCommandPacket, p, true);
+      break;
+  }
+}
+
+static const btsnoop_t interface = {
+  set_api_wants_to_log,
+  capture
+};
+
+const btsnoop_t *btsnoop_get_interface() {
+  stack_config = stack_config_get_interface();
+  return &interface;
+}
+
+// Internal functions
+
+static void update_logging() {
+  bool should_log = module_started &&
+    (logging_enabled_via_api || stack_config->get_btsnoop_turned_on());
+
+  if (should_log == is_logging)
+    return;
+
+  is_logging = should_log;
+  if (should_log) {
+    btsnoop_net_open();
+
+    const char *path = stack_config->get_btsnoop_log_path();
+    logfile_fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+
+    if (logfile_fd == INVALID_FD) {
+      ALOGE("%s unable to open '%s': %s", __func__, path, strerror(errno));
+      return;
+    }
+
+    write(logfile_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
+  } else {
+    if (logfile_fd != INVALID_FD)
+      close(logfile_fd);
+
+    logfile_fd = INVALID_FD;
+    btsnoop_net_close();
+  }
+}
 
 static uint64_t btsnoop_timestamp(void) {
   struct timeval tv;
@@ -68,8 +171,8 @@ static uint64_t btsnoop_timestamp(void) {
 }
 
 static void btsnoop_write(const void *data, size_t length) {
-  if (hci_btsnoop_fd != -1)
-    write(hci_btsnoop_fd, data, length);
+  if (logfile_fd != INVALID_FD)
+    write(logfile_fd, data, length);
 
   btsnoop_net_write(data, length);
 }
@@ -116,87 +219,4 @@ static void btsnoop_write_packet(packet_type_t type, const uint8_t *packet, bool
   btsnoop_write(&time_lo, 4);
   btsnoop_write(&type, 1);
   btsnoop_write(packet, length_he - 1);
-}
-
-static void btsnoop_open(const char *p_path) {
-  assert(p_path != NULL);
-  assert(*p_path != '\0');
-
-  btsnoop_net_open();
-
-  if (hci_btsnoop_fd != -1) {
-    ALOGE("%s btsnoop log file is already open.", __func__);
-    return;
-  }
-
-  hci_btsnoop_fd = open(p_path,
-                        O_WRONLY | O_CREAT | O_TRUNC,
-                        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
-
-  if (hci_btsnoop_fd == -1) {
-    ALOGE("%s unable to open '%s': %s", __func__, p_path, strerror(errno));
-    return;
-  }
-
-  write(hci_btsnoop_fd, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16);
-}
-
-static void btsnoop_close(void) {
-  if (hci_btsnoop_fd != -1)
-    close(hci_btsnoop_fd);
-  hci_btsnoop_fd = -1;
-
-  btsnoop_net_close();
-}
-
-static void btsnoop_set_logging_path(const char *path) {
-  assert(!is_logging);
-  logging_path = path;
-}
-
-static void btsnoop_set_is_running(bool should_log) {
-  if (should_log == is_logging)
-    return;
-
-  is_logging = should_log;
-  if (should_log) {
-    assert(logging_path != NULL);
-    btsnoop_open(logging_path);
-  } else {
-    btsnoop_close();
-  }
-}
-
-static void btsnoop_capture(const BT_HDR *buffer, bool is_received) {
-  const uint8_t *p = buffer->data + buffer->offset;
-
-  if (hci_btsnoop_fd == -1)
-    return;
-
-  switch (buffer->event & MSG_EVT_MASK) {
-    case MSG_HC_TO_STACK_HCI_EVT:
-      btsnoop_write_packet(kEventPacket, p, false);
-      break;
-    case MSG_HC_TO_STACK_HCI_ACL:
-    case MSG_STACK_TO_HC_HCI_ACL:
-      btsnoop_write_packet(kAclPacket, p, is_received);
-      break;
-    case MSG_HC_TO_STACK_HCI_SCO:
-    case MSG_STACK_TO_HC_HCI_SCO:
-      btsnoop_write_packet(kScoPacket, p, is_received);
-      break;
-    case MSG_STACK_TO_HC_HCI_CMD:
-      btsnoop_write_packet(kCommandPacket, p, true);
-      break;
-  }
-}
-
-static const btsnoop_t interface = {
-  btsnoop_set_logging_path,
-  btsnoop_set_is_running,
-  btsnoop_capture
-};
-
-const btsnoop_t *btsnoop_get_interface() {
-  return &interface;
 }

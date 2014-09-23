@@ -18,6 +18,8 @@
 
 #pragma once
 
+#define BTE_LOGMSG_MODULE "bte_logmsg_module"
+
 /* BTE tracing IDs for debug purposes */
 /* LayerIDs for stack */
 #define BTTRC_ID_STK_GKI                   1
@@ -435,5 +437,3 @@ typedef struct {
 
 /* External declaration for appl_trace_level here to avoid to add the declaration in all the files using APPL_TRACExxx macros */
 extern UINT8 appl_trace_level;
-
-void BTE_InitTraceLevels(void);

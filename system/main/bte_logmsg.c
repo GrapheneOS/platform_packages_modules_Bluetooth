@@ -32,6 +32,7 @@
 #include "config.h"
 #include "gki.h"
 #include "l2c_api.h"
+#include "stack_config.h"
 
 #if (RFCOMM_INCLUDED==TRUE)
 #include "port_api.h"
@@ -102,8 +103,6 @@
 #define BTE_LOG_MAX_SIZE  (BTE_LOG_BUF_SIZE - 12)
 
 #define MSG_BUFFER_OFFSET 0
-
-bool trace_conf_enabled = false;
 
 /* LayerIDs for BTA, currently everything maps onto appl_trace_level */
 static const char * const bt_layer_tags[] = {
@@ -231,16 +230,6 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
 
 static const UINT16 bttrc_map_size = sizeof(bttrc_set_level_map)/sizeof(tBTTRC_FUNC_MAP);
 
-void bte_trace_conf_config(const config_t *config) {
-  assert(config != NULL);
-
-  for (tBTTRC_FUNC_MAP *functions = &bttrc_set_level_map[0]; functions->trc_name; ++functions) {
-    int value = config_get_int(config, CONFIG_DEFAULT_SECTION, functions->trc_name, -1);
-    if (value != -1)
-      functions->trace_level = value;
-  }
-}
-
 void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {
   static char buffer[BTE_LOG_BUF_SIZE];
   int trace_layer = TRACE_GET_LAYER(trace_set_mask);
@@ -272,36 +261,6 @@ void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {
   }
 }
 
-/********************************************************************************
- **
- **    Function Name:     BTE_InitTraceLevels
- **
- **    Purpose:           This function can be used to set the boot time reading it from the
- **                       platform.
- **                       WARNING: it is called under BTU context and it blocks the BTU task
- **                       till it returns (sync call)
- **
- **    Input Parameters:  None, platform to provide levels
- **    Returns:
- **                       Newly set levels, if any!
- **
- *********************************************************************************/
-void BTE_InitTraceLevels(void) {
-  //  Read and set trace levels by calling the different XXX_SetTraceLevel().
-  if (trace_conf_enabled == false) {
-    ALOGI("[bttrc] using compile default trace settings");
-    return;
-  }
-
-  tBTTRC_FUNC_MAP *p_f_map = (tBTTRC_FUNC_MAP *)&bttrc_set_level_map[0];
-  while (p_f_map->trc_name != NULL) {
-    ALOGI("BTE_InitTraceLevels -- %s", p_f_map->trc_name);
-    if (p_f_map->p_f)
-      p_f_map->p_f(p_f_map->trace_level);
-    p_f_map++;
-  }
-}
-
 /* this function should go into BTAPP_DM for example */
 static uint8_t BTAPP_SetTraceLevel(uint8_t new_level) {
   if (new_level != 0xFF)
@@ -323,3 +282,40 @@ static uint8_t BTU_SetTraceLevel(uint8_t new_level) {
 
   return btu_cb.trace_level;
 }
+
+static void load_levels_from_config(const config_t *config) {
+  assert(config != NULL);
+
+  for (tBTTRC_FUNC_MAP *functions = &bttrc_set_level_map[0]; functions->trc_name; ++functions) {
+    ALOGI("BTE_InitTraceLevels -- %s", functions->trc_name);
+    int value = config_get_int(config, CONFIG_DEFAULT_SECTION, functions->trc_name, -1);
+    if (value != -1)
+      functions->trace_level = value;
+
+    if (functions->p_f)
+      functions->p_f(functions->trace_level);
+  }
+}
+
+static future_t *init(void) {
+  const stack_config_t *stack_config = stack_config_get_interface();
+  if (!stack_config->get_trace_config_enabled()) {
+    ALOGI("[bttrc] using compile default trace settings");
+    return NULL;
+  }
+
+  load_levels_from_config(stack_config->get_all());
+  return NULL;
+}
+
+const module_t bte_logmsg_module = {
+  .name = BTE_LOGMSG_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = NULL,
+  .clean_up = NULL,
+  .dependencies = {
+    STACK_CONFIG_MODULE,
+    NULL
+  }
+};

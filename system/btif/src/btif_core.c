@@ -1331,18 +1331,3 @@ static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *
   future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
 }
 
-
-/*******************************************************************************
-**
-** Function         btif_config_hci_snoop_log
-**
-** Description      enable or disable HCI snoop log
-**
-** Returns          bt_status_t
-**
-*******************************************************************************/
-bt_status_t btif_config_hci_snoop_log(uint8_t enable)
-{
-    bte_main_config_hci_logging(enable != 0, !stack_manager_get_interface()->get_stack_is_running());
-    return BT_STATUS_SUCCESS;
-}

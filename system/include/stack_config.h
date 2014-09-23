@@ -20,19 +20,15 @@
 
 #include <stdbool.h>
 
-#include "bt_types.h"
+#include "config.h"
+#include "module.h"
 
-typedef struct btsnoop_t {
-  // Inform btsnoop whether the API desires to log. If |value| is true.
-  // logging will be enabled. Otherwise it defers to the value from the
-  // config file.
-  void (*set_api_wants_to_log)(bool value);
+typedef struct {
+  const char *(*get_btsnoop_log_path)(void);
+  bool (*get_btsnoop_turned_on)(void);
+  bool (*get_trace_config_enabled)(void);
+  config_t *(*get_all)(void);
+} stack_config_t;
 
-  // Capture |packet| and dump it to the btsnoop logs. If |is_received| is
-  // true, the packet is marked as incoming. Otherwise, the packet is marked
-  // as outgoing.
-  void (*capture)(const BT_HDR *packet, bool is_received);
-} btsnoop_t;
-
-#define BTSNOOP_MODULE "btsnoop_module"
-const btsnoop_t *btsnoop_get_interface();
+#define STACK_CONFIG_MODULE "stack_config_module"
+const stack_config_t *stack_config_get_interface();

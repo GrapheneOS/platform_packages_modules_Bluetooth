@@ -44,6 +44,7 @@
 #define LOG_TAG "bluedroid"
 
 #include "btif_api.h"
+#include "btsnoop.h"
 #include "bt_utils.h"
 #include "osi.h"
 #include "stack_manager.h"
@@ -385,11 +386,11 @@ int config_hci_snoop_log(uint8_t enable)
 {
     ALOGI("config_hci_snoop_log");
 
-    /* sanity check */
-    if (interface_ready() == FALSE)
+    if (!interface_ready())
         return BT_STATUS_NOT_READY;
 
-    return btif_config_hci_snoop_log(enable);
+    btsnoop_get_interface()->set_api_wants_to_log(enable);
+    return BT_STATUS_SUCCESS;
 }
 
 static int set_os_callouts(bt_os_callouts_t *callouts) {
