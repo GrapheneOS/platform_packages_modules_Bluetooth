@@ -113,9 +113,6 @@ static tBTA_SERVICE_MASK btif_enabled_services = 0;
 */
 static UINT8 btif_dut_mode = 0;
 
-// btif jni workqueue.
-static fixed_queue_t *btif_msg_queue;
-
 static thread_t *bt_jni_workqueue_thread;
 static const char *BT_JNI_WORKQUEUE_NAME = "bt_jni_workqueue";
 
@@ -282,8 +279,8 @@ void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
 ** Returns          void
 **
 *******************************************************************************/
-static void bt_jni_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-  BT_HDR *p_msg = (BT_HDR *)fixed_queue_dequeue(queue);
+static void bt_jni_msg_ready(void *context) {
+  BT_HDR *p_msg = (BT_HDR *)context;
 
   BTIF_TRACE_VERBOSE("btif task fetched event %x", p_msg->event);
 
@@ -310,7 +307,7 @@ static void bt_jni_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
 
 void btif_sendmsg(void *p_msg)
 {
-    fixed_queue_enqueue(btif_msg_queue, p_msg);
+    thread_post(bt_jni_workqueue_thread, bt_jni_msg_ready, p_msg);
 }
 
 void btif_thread_post(thread_fn func, void *context) {
@@ -428,22 +425,11 @@ bt_status_t btif_init_bluetooth() {
   memset(&btif_local_bd_addr, 0, sizeof(bt_bdaddr_t));
   btif_fetch_local_bdaddr(&btif_local_bd_addr);
 
-  btif_msg_queue = fixed_queue_new(SIZE_MAX);
-  if (btif_msg_queue == NULL) {
-    ALOGE("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
-    goto error_exit;
-  }
-
   bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
   if (bt_jni_workqueue_thread == NULL) {
     ALOGE("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
     goto error_exit;
   }
-
-  fixed_queue_register_dequeue(btif_msg_queue,
-      thread_get_reactor(bt_jni_workqueue_thread),
-      bt_jni_msg_ready,
-      NULL);
 
   // Associate this workqueue thread with jni.
   btif_transfer_context(btif_jni_associate, 0, NULL, 0, NULL);
@@ -451,8 +437,9 @@ bt_status_t btif_init_bluetooth() {
   return BT_STATUS_SUCCESS;
 
 error_exit:;
-     fixed_queue_free(btif_msg_queue, GKI_freebuf);
      thread_free(bt_jni_workqueue_thread);
+
+     bt_jni_workqueue_thread = NULL;
 
      return BT_STATUS_FAIL;
 }
@@ -624,10 +611,6 @@ bt_status_t btif_shutdown_bluetooth(void)
     btif_transfer_context(btif_jni_disassociate, 0, NULL, 0, NULL);
 
     btif_queue_release();
-
-    fixed_queue_unregister_dequeue(btif_msg_queue);
-    fixed_queue_free(btif_msg_queue, GKI_freebuf);
-    btif_msg_queue = NULL;
 
     thread_free(bt_jni_workqueue_thread);
     bt_jni_workqueue_thread = NULL;
