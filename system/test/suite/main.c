@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
   printf("\n");
 
   if (fail) {
-    printf("%d/%d tests failed. See above for failed test cases.\n", fail, test_suite_size);
+    printf("%d/%d tests failed. See above for failed test cases.\n", fail, sanity_suite_size + test_suite_size);
   } else {
     printf("All tests passed!\n");
   }
