@@ -531,8 +531,6 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
 #if AVDT_DEBUG == TRUE
     AVDT_TRACE_EVENT("SCB hdl=%d event=%d/%s state=%s", avdt_scb_to_hdl(p_scb), event, avdt_scb_evt_str[event], avdt_scb_st_str[p_scb->state]);
 #endif
-    BTTRC_AVDT_SCB_EVENT(event, p_scb->state);
-
     /* set current event */
     p_scb->curr_evt = event;
 
@@ -541,7 +539,6 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
 
     /* set next state */
     if (p_scb->state != state_table[event][AVDT_SCB_NEXT_STATE]) {
-        BTTRC_AVDT_SCB_STATE(state_table[event][AVDT_SCB_NEXT_STATE]);
         p_scb->state = state_table[event][AVDT_SCB_NEXT_STATE];
     }
 
@@ -550,7 +547,6 @@ void avdt_scb_event(tAVDT_SCB *p_scb, UINT8 event, tAVDT_SCB_EVT *p_data)
     {
         if ((action = state_table[event][i]) != AVDT_SCB_IGNORE)
         {
-            BTTRC_AVDT_SCB_ACTION(action);
             (*avdt_cb.p_scb_act[action])(p_scb, p_data);
         }
         else

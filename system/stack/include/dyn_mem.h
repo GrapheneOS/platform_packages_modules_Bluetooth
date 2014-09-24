@@ -175,13 +175,5 @@
 #define BTA_DYNAMIC_MEMORY FALSE
 #endif
 
-/****************************************************************************
-** Define memory usage for BT Trace (if not defined in bdroid_buildcfg.h)
-**  The default is to use static memory allocations.
-*/
-#ifndef BTTRC_DYNAMIC_MEMORY
-#define BTTRC_DYNAMIC_MEMORY FALSE
-#endif
-
 #endif  /* #ifdef DYN_MEM_H */
 

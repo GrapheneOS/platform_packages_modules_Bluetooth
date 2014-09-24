@@ -223,25 +223,6 @@
 #endif
 // btla-specific --
 
-/***************************************************************************************/
-/*AVDT MACROS */
-#define BTTRC_AVDT_API0(api)
-#define BTTRC_AVDT_API1(api, p1_t,p1_v)
-#define BTTRC_AVDT_API2(api, p1_t,p1_v,p2_t,p2_v)
-/***************************************************************************************/
-/*AVDT_SCB MACROS */
-
-#define BTTRC_AVDT_SCB_EVENT(event, state)
-#define BTTRC_AVDT_SCB_ACTION(action)
-#define BTTRC_AVDT_SCB_STATE(next_state)
-
-/***************************************************************************************/
-/*AVDT_CCB MACROS */
-
-#define BTTRC_AVDT_CCB_EVENT(event, state)
-#define BTTRC_AVDT_CCB_ACTION(action)
-#define BTTRC_AVDT_CCB_STATE(next_state)
-
 #define BT_TRACE(l,t,...)                        LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
 #define BT_ERROR_TRACE(l,...)                    LogMsg(TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | TRACE_TYPE_ERROR, ##__VA_ARGS__)
 

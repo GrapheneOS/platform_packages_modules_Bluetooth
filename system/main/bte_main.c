@@ -110,11 +110,6 @@ void bte_main_boot_entry(void)
     bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
 #endif
     module_init(get_module(STACK_CONFIG_MODULE));
-
-#if (BTTRC_INCLUDED == TRUE)
-    /* Initialize trace feature */
-    BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
-#endif
 }
 
 /******************************************************************************

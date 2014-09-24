@@ -182,20 +182,8 @@
 #define BT_TRACE_BTIF  TRUE
 #endif
 
-#ifndef BTTRC_INCLUDED
-#define BTTRC_INCLUDED  FALSE
-#endif
-
 #ifndef BT_TRACE_VERBOSE
 #define BT_TRACE_VERBOSE  FALSE
-#endif
-
-#ifndef BTTRC_PARSER_INCLUDED
-#define BTTRC_PARSER_INCLUDED  FALSE
-#endif
-
-#ifndef MAX_TRACE_RAM_SIZE
-#define MAX_TRACE_RAM_SIZE  10000
 #endif
 
 #ifndef BTA_DM_SDP_DB_SIZE
