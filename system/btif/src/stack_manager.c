@@ -30,6 +30,9 @@
 #include "stack_manager.h"
 #include "thread.h"
 
+// Temp includes
+#include "btif_config.h"
+
 static thread_t *management_thread;
 
 // If initialized, any of the bluetooth API functions can be called.
@@ -89,6 +92,7 @@ static void event_init_stack(void *context) {
     module_management_start();
 
     bt_utils_init();
+    module_init(get_module(BTIF_CONFIG_MODULE));
     btif_init_bluetooth();
 
     // stack init is synchronous, so no waiting necessary here
@@ -119,6 +123,8 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   ALOGD("%s is bringing up the stack.", __func__);
   hack_future = future_new();
 
+  // Include this for now to put btif config into a shutdown-able state
+  module_start_up(get_module(BTIF_CONFIG_MODULE));
   bte_main_enable();
 
   if (future_await(hack_future) != FUTURE_SUCCESS) {
@@ -144,6 +150,7 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   stack_is_running = false;
 
   btif_disable_bluetooth();
+  module_shut_down(get_module(BTIF_CONFIG_MODULE));
 
   future_await(hack_future);
   ALOGD("%s finished.", __func__);
@@ -171,6 +178,7 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
   stack_is_initialized = false;
 
   btif_shutdown_bluetooth();
+  module_clean_up(get_module(BTIF_CONFIG_MODULE));
 
   future_await(hack_future);
   module_management_stop();

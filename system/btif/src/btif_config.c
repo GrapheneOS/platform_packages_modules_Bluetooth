@@ -31,6 +31,7 @@
 #include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "config.h"
+#include "module.h"
 #include "osi.h"
 
 #include "bd.h"
@@ -83,7 +84,9 @@ static pthread_mutex_t lock;  // protects operations on |config|.
 static config_t *config;
 static alarm_t *alarm_timer;
 
-bool btif_config_init(void) {
+// Module lifecycle functions
+
+static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
@@ -103,7 +106,7 @@ bool btif_config_init(void) {
   }
 
   // TODO(sharvil): use a non-wake alarm for this once we have
-  // API support for it. Threre's no need to wake the system to
+  // API support for it. There's no need to wake the system to
   // write back to disk.
   alarm_timer = alarm_new();
   if (!alarm_timer) {
@@ -111,7 +114,7 @@ bool btif_config_init(void) {
     goto error;
   }
 
-  return true;
+  return future_new_immediate(FUTURE_SUCCESS);
 
 error:;
   alarm_free(alarm_timer);
@@ -119,10 +122,15 @@ error:;
   pthread_mutex_destroy(&lock);
   alarm_timer = NULL;
   config = NULL;
-  return false;
+  return future_new_immediate(FUTURE_FAIL);
 }
 
-void btif_config_cleanup(void) {
+static future_t *shut_down(void) {
+  btif_config_flush();
+  return future_new_immediate(FUTURE_SUCCESS);
+}
+
+static future_t *clean_up(void) {
   btif_config_flush();
 
   alarm_free(alarm_timer);
@@ -130,7 +138,19 @@ void btif_config_cleanup(void) {
   pthread_mutex_destroy(&lock);
   alarm_timer = NULL;
   config = NULL;
+  return future_new_immediate(FUTURE_SUCCESS);
 }
+
+const module_t btif_config_module = {
+  .name = BTIF_CONFIG_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = shut_down,
+  .clean_up = clean_up,
+  .dependencies = {
+    NULL
+  }
+};
 
 bool btif_config_has_section(const char *section) {
   assert(config != NULL);

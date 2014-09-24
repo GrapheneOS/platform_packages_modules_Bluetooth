@@ -25,8 +25,7 @@
 
 typedef struct btif_config_section_iter_t btif_config_section_iter_t;
 
-bool btif_config_init(void);
-void btif_config_cleanup(void);
+#define BTIF_CONFIG_MODULE "btif_config_module"
 
 bool btif_config_has_section(const char *section);
 bool btif_config_exist(const char *section, const char *key);

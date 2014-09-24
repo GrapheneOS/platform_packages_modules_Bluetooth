@@ -418,7 +418,6 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 **
 *******************************************************************************/
 bt_status_t btif_init_bluetooth() {
-  btif_config_init();
   bte_main_boot_entry();
 
   /* As part of the init, fetch the local BD ADDR */
@@ -558,7 +557,6 @@ bt_status_t btif_disable_bluetooth(void)
     btif_sock_cleanup();
     btif_pan_cleanup();
     BTA_DisableBluetooth();
-    btif_config_flush();
 
     return BT_STATUS_SUCCESS;
 }
