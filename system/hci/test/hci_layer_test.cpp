@@ -33,11 +33,14 @@ extern "C" {
 #include "hci_inject.h"
 #include "hci_layer.h"
 #include "low_power_manager.h"
+#include "module.h"
 #include "osi.h"
 #include "packet_fragmenter.h"
 #include "semaphore.h"
 #include "test_stubs.h"
 #include "vendor.h"
+
+extern const module_t hci_module;
 }
 
 DECLARE_TEST_MODES(
@@ -343,9 +346,9 @@ STUB_FUNCTION(void, low_power_transmit_done, ())
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(bool, vendor_open, (const uint8_t *addr, const hci_t *hci_interface))
+STUB_FUNCTION(bool, vendor_open, (UNUSED_ATTR const uint8_t *addr, const hci_t *hci_interface))
   DURING(start_up_async) AT_CALL(0) {
-    EXPECT_EQ(test_addr, addr);
+    //EXPECT_EQ(test_addr, addr); // TODO(zachoverflow): reinstate when address put into module
     EXPECT_EQ(hci, hci_interface);
     return true;
   }
@@ -428,26 +431,6 @@ STUB_FUNCTION(int, vendor_send_async_command, (UNUSED_ATTR vendor_async_opcode_t
   return 0;
 }
 
-STUB_FUNCTION(void, callback_startup_finished, (bool success))
-  DURING(start_up_async) AT_CALL(0) {
-    EXPECT_EQ(true, success);
-    semaphore_post(done);
-    return;
-  }
-
-  UNEXPECTED_CALL;
-}
-
-STUB_FUNCTION(void, callback_transmit_finished, (UNUSED_ATTR void *buffer, bool all_fragments_sent))
-  DURING(transmit_simple) AT_CALL(0) {
-    EXPECT_TRUE(all_fragments_sent);
-    osi_free(buffer);
-    return;
-  }
-
-  UNEXPECTED_CALL;
-}
-
 STUB_FUNCTION(void, command_complete_callback, (BT_HDR *response, UNUSED_ATTR void *context))
   DURING(transmit_command_command_complete) AT_CALL(0) {
     osi_free(response);
@@ -511,8 +494,6 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(low_power_cleanup);
   RESET_CALL_COUNT(low_power_wake_assert);
   RESET_CALL_COUNT(low_power_transmit_done);
-  RESET_CALL_COUNT(callback_startup_finished);
-  RESET_CALL_COUNT(callback_transmit_finished);
   RESET_CALL_COUNT(command_complete_callback);
   RESET_CALL_COUNT(command_status_callback);
   RESET_CALL_COUNT(controller_init);
@@ -540,6 +521,7 @@ class HciLayerTest : public AlarmTestHarness {
 
       // Make sure the data dispatcher allocation isn't tracked
       allocation_tracker_reset();
+      module_management_start();
 
       packet_index = 0;
       data_size_sum = 0;
@@ -562,8 +544,6 @@ class HciLayerTest : public AlarmTestHarness {
       low_power_manager.cleanup = low_power_cleanup;
       low_power_manager.wake_assert = low_power_wake_assert;
       low_power_manager.transmit_done = low_power_transmit_done;
-      callbacks.startup_finished = callback_startup_finished;
-      callbacks.transmit_finished = callback_transmit_finished;
       controller.init = controller_init;
       controller.begin_acl_size_fetch = controller_begin_acl_size_fetch;
       controller.get_acl_size_classic = controller_get_acl_size_classic;
@@ -572,8 +552,7 @@ class HciLayerTest : public AlarmTestHarness {
       done = semaphore_new(0);
 
       reset_for(start_up_async);
-      hci->start_up_async(test_addr, &callbacks);
-      semaphore_wait(done);
+      EXPECT_TRUE(module_start_up(&hci_module));
 
       EXPECT_CALL_COUNT(vendor_open, 1);
       EXPECT_CALL_COUNT(hal_init, 1);
@@ -582,12 +561,11 @@ class HciLayerTest : public AlarmTestHarness {
       EXPECT_CALL_COUNT(controller_init, 1);
       EXPECT_CALL_COUNT(hal_open, 1);
       EXPECT_CALL_COUNT(vendor_send_async_command, 1);
-      EXPECT_CALL_COUNT(callback_startup_finished, 1);
     }
 
     virtual void TearDown() {
       reset_for(shut_down);
-      hci->shut_down();
+      module_shut_down(&hci_module);
 
       EXPECT_CALL_COUNT(low_power_cleanup, 1);
       EXPECT_CALL_COUNT(hal_close, 1);
@@ -595,6 +573,7 @@ class HciLayerTest : public AlarmTestHarness {
       EXPECT_CALL_COUNT(vendor_close, 1);
 
       semaphore_free(done);
+      module_management_stop();
       AlarmTestHarness::TearDown();
     }
 
@@ -604,7 +583,6 @@ class HciLayerTest : public AlarmTestHarness {
     hci_inject_t hci_inject;
     vendor_t vendor;
     low_power_manager_t low_power_manager;
-    hci_callbacks_t callbacks;
 };
 
 TEST_F(HciLayerTest, test_postload) {
@@ -626,7 +604,6 @@ TEST_F(HciLayerTest, test_transmit_simple) {
   EXPECT_CALL_COUNT(btsnoop_capture, 1);
   EXPECT_CALL_COUNT(low_power_transmit_done, 1);
   EXPECT_CALL_COUNT(low_power_wake_assert, 1);
-  EXPECT_CALL_COUNT(callback_transmit_finished, 1);
 }
 
 TEST_F(HciLayerTest, test_receive_simple) {

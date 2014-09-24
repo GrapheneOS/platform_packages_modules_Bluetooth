@@ -22,6 +22,7 @@
 #include "bt_types.h"
 #include "hci_layer.h"
 
+typedef void (*transmit_finished_cb)(BT_HDR *packet, bool all_fragments_sent);
 typedef void (*packet_reassembled_cb)(BT_HDR *packet);
 typedef void (*packet_fragmented_cb)(BT_HDR *packet, bool send_transmit_finished);
 

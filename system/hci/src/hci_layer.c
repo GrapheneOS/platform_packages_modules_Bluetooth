@@ -33,11 +33,16 @@
 #include "hci_layer.h"
 #include "list.h"
 #include "low_power_manager.h"
+#include "module.h"
 #include "non_repeating_timer.h"
 #include "osi.h"
 #include "packet_fragmenter.h"
 #include "reactor.h"
 #include "vendor.h"
+
+// TODO(zachoverflow): remove this hack extern
+#include <hardware/bluetooth.h>
+bt_bdaddr_t btif_local_bd_addr;
 
 #define HCI_COMMAND_COMPLETE_EVT    0x0E
 #define HCI_COMMAND_STATUS_EVT      0x0F
@@ -103,7 +108,6 @@ static hci_t interface;
 static const allocator_t *buffer_allocator;
 static const btsnoop_t *btsnoop;
 static const controller_t *controller;
-static const hci_callbacks_t *callbacks;
 static const hci_hal_t *hal;
 static const hci_hal_callbacks_t hal_callbacks;
 static const hci_inject_t *hci_inject;
@@ -112,10 +116,10 @@ static const packet_fragmenter_t *packet_fragmenter;
 static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks;
 static const vendor_t *vendor;
 
+static future_t *startup_future;
 static thread_t *thread; // We own this
 
 static volatile bool firmware_is_configured = false;
-static volatile bool has_shut_down = false;
 static non_repeating_timer_t *epilog_timer;
 static non_repeating_timer_t *startup_timer;
 
@@ -129,6 +133,8 @@ static non_repeating_timer_t *command_response_timer;
 static list_t *commands_pending_response;
 static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
+
+static future_t *shut_down();
 
 static void event_finish_startup(void *context);
 static void firmware_config_callback(bool success);
@@ -151,12 +157,9 @@ static bool filter_incoming_event(BT_HDR *packet);
 static serial_data_type_t event_to_data_type(uint16_t event);
 static waiting_command_t *get_waiting_command(command_opcode_t opcode);
 
-// Interface functions
+// Module lifecycle functions
 
-static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_callbacks) {
-  assert(local_bdaddr != NULL);
-  assert(upper_callbacks != NULL);
-
+static future_t *start_up(void) {
   ALOGI("%s", __func__);
 
   // The host is only allowed to send at most one command initially,
@@ -164,7 +167,6 @@ static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_c
   // This value can change when you get a command complete or command status event.
   command_credits = 1;
   firmware_is_configured = false;
-  has_shut_down = false;
 
   pthread_mutex_init(&commands_pending_response_lock, NULL);
 
@@ -220,7 +222,6 @@ static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_c
     goto error;
   }
 
-  callbacks = upper_callbacks;
   memset(incoming_packets, 0, sizeof(incoming_packets));
 
   controller->init(&interface);
@@ -229,7 +230,7 @@ static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_c
   fixed_queue_register_dequeue(command_queue, thread_get_reactor(thread), event_command_ready, NULL);
   fixed_queue_register_dequeue(packet_queue, thread_get_reactor(thread), event_packet_ready, NULL);
 
-  vendor->open(local_bdaddr, &interface);
+  vendor->open(btif_local_bd_addr.address, &interface);
   hal->init(&hal_callbacks, thread);
   low_power_manager->init(thread);
 
@@ -257,21 +258,16 @@ static bool start_up_async(bdaddr_t local_bdaddr, const hci_callbacks_t *upper_c
   power_state = BT_VND_PWR_ON;
   vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
 
+  startup_future = future_new();
   ALOGD("%s starting async portion", __func__);
   thread_post(thread, event_finish_startup, NULL);
-
-  return true;
+  return startup_future;
 error:;
-  interface.shut_down();
-  return false;
+  shut_down(); // returns NULL so no need to wait for it
+  return future_new_immediate(FUTURE_FAIL);
 }
 
-static void shut_down() {
-  if (has_shut_down) {
-    ALOGW("%s already happened for this session", __func__);
-    return;
-  }
-
+static future_t *shut_down() {
   ALOGI("%s", __func__);
 
   hci_inject->close();
@@ -313,8 +309,23 @@ static void shut_down() {
   thread_free(thread);
   thread = NULL;
   firmware_is_configured = false;
-  has_shut_down = true;
+
+  return NULL;
 }
+
+const module_t hci_module = {
+  .name = HCI_MODULE,
+  .init = NULL,
+  .start_up = start_up,
+  .shut_down = shut_down,
+  .clean_up = NULL,
+  .dependencies = {
+    BTSNOOP_MODULE,
+    NULL
+  }
+};
+
+// Interface functions
 
 static void do_postload() {
   ALOGD("%s posting postload work item", __func__);
@@ -367,11 +378,14 @@ static void event_finish_startup(UNUSED_ATTR void *context) {
 static void firmware_config_callback(UNUSED_ATTR bool success) {
   firmware_is_configured = true;
   non_repeating_timer_cancel(startup_timer);
-  callbacks->startup_finished(true);
+
+  future_ready(startup_future, FUTURE_SUCCESS);
+  startup_future = NULL;
 }
 
 static void startup_timer_expired(UNUSED_ATTR void *context) {
-  callbacks->startup_finished(false);
+  future_ready(startup_future, FUTURE_FAIL);
+  startup_future = NULL;
 }
 
 // Postload functions
@@ -448,11 +462,14 @@ static void transmit_fragment(BT_HDR *packet, bool send_transmit_finished) {
   hal->transmit_data(type, packet->data + packet->offset, packet->len);
 
   if (event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished)
-    callbacks->transmit_finished(packet, true);
+    buffer_allocator->free(packet);
 }
 
-static void fragmenter_transmit_finished(void *buffer, bool all_fragments_sent) {
-  callbacks->transmit_finished(buffer, all_fragments_sent);
+static void fragmenter_transmit_finished(BT_HDR *packet, bool all_fragments_sent) {
+  if (all_fragments_sent)
+    buffer_allocator->free(packet);
+  else
+    data_dispatcher_dispatch(interface.upward_dispatcher, packet->event & MSG_EVT_MASK, packet);
 }
 
 static void command_timed_out(UNUSED_ATTR void *context) {
@@ -670,9 +687,6 @@ static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
 
 static void init_layer_interface() {
   if (!interface_created) {
-    interface.start_up_async = start_up_async;
-    interface.shut_down = shut_down;
-
     interface.send_low_power_command = low_power_manager->post_command;
     interface.do_postload = do_postload;
 

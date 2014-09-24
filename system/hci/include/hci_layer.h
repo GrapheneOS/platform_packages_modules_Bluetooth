@@ -66,31 +66,10 @@ typedef enum {
   LPM_WAKE_DEASSERT
 } low_power_command_t;
 
-typedef void (*startup_finished_cb)(bool success);
-typedef void (*transmit_finished_cb)(void *buffer, bool all_fragments_sent);
 typedef void (*command_complete_cb)(BT_HDR *response, void *context);
 typedef void (*command_status_cb)(uint8_t status, BT_HDR *command, void *context);
 
-typedef struct {
-  // Called when the HCI layer finishes the preload sequence.
-  startup_finished_cb startup_finished;
-
-  // Called when the HCI layer finishes sending a packet.
-  transmit_finished_cb transmit_finished;
-} hci_callbacks_t;
-
 typedef struct hci_t {
-  // Start up the HCI layer, with the specified |local_bdaddr|.
-  // |upper_callbacks->startup_finished| will be called when the full
-  // start up sequence is complete.
-  bool (*start_up_async)(
-      bdaddr_t local_bdaddr,
-      const hci_callbacks_t *upper_callbacks
-  );
-
-  // Tear down and relese all resources
-  void (*shut_down)(void);
-
   // Send a low power command, if supported and the low power manager is enabled.
   void (*send_low_power_command)(low_power_command_t command);
 
@@ -112,6 +91,7 @@ typedef struct hci_t {
   void (*transmit_downward)(data_dispatcher_type_t type, void *data);
 } hci_t;
 
+#define HCI_MODULE "hci_module"
 const hci_t *hci_layer_get_interface();
 
 const hci_t *hci_layer_get_test_interface(

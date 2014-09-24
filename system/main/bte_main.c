@@ -70,9 +70,6 @@
 **  Static variables
 *******************************************************************************/
 static const hci_t *hci;
-static const hci_callbacks_t hci_callbacks;
-// Lock to serialize shutdown requests from upper layer.
-static pthread_mutex_t shutdown_lock;
 
 /*******************************************************************************
 **  Static functions
@@ -81,13 +78,7 @@ static pthread_mutex_t shutdown_lock;
 /*******************************************************************************
 **  Externs
 *******************************************************************************/
-void BTE_LoadStack(void);
-void BTE_UnloadStack(void);
-void scru_flip_bda (BD_ADDR dst, const BD_ADDR src);
-void bte_load_conf(const char *p_path);
 extern void bte_load_ble_conf(const char *p_path);
-bt_bdaddr_t btif_local_bd_addr;
-
 fixed_queue_t *btu_hci_msg_queue;
 
 /******************************************************************************
@@ -125,8 +116,6 @@ void bte_main_boot_entry(void)
     /* Initialize trace feature */
     BTTRC_TraceInit(MAX_TRACE_RAM_SIZE, &BTE_TraceLogBuf[0], BTTRC_METHOD_RAM);
 #endif
-
-    pthread_mutex_init(&shutdown_lock, NULL);
 }
 
 /******************************************************************************
@@ -147,7 +136,6 @@ void bte_main_shutdown()
 
     module_clean_up(get_module(STACK_CONFIG_MODULE));
 
-    pthread_mutex_destroy(&shutdown_lock);
     GKI_shutdown();
 }
 
@@ -165,10 +153,10 @@ void bte_main_enable()
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-//    BTU_StartUp();
-
-    assert(hci->start_up_async(btif_local_bd_addr.address, &hci_callbacks));
     module_start_up(get_module(BTSNOOP_MODULE));
+    module_start_up(get_module(HCI_MODULE));
+
+    BTU_StartUp();
 }
 
 /******************************************************************************
@@ -185,15 +173,8 @@ void bte_main_disable(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
+    module_shut_down(get_module(HCI_MODULE));
     module_shut_down(get_module(BTSNOOP_MODULE));
-    if (hci) {
-      // Shutdown is not thread safe and must be protected.
-      pthread_mutex_lock(&shutdown_lock);
-
-      hci->shut_down();
-
-      pthread_mutex_unlock(&shutdown_lock);
-    }
 
     BTU_ShutDown();
 }
@@ -343,66 +324,3 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
         GKI_freebuf(p_msg);
     }
 }
-
-/*****************************************************************************
-**
-**   libbt-hci Callback Functions
-**
-*****************************************************************************/
-
-/******************************************************************************
-**
-** Function         hci_startup_cb
-**
-** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
-**                  when the libbt-hci completed stack preload process
-**
-** Returns          None
-**
-******************************************************************************/
-static void hci_startup_cb(bool success)
-{
-    APPL_TRACE_EVENT("HC preload_cb %d [1:SUCCESS 0:FAIL]", success);
-
-    if (success) {
-        BTU_StartUp();
-    } else {
-        ALOGE("%s hci startup failed", __func__);
-        // TODO(cmanton) Initiate shutdown sequence.
-    }
-}
-
-/******************************************************************************
-**
-** Function         tx_result
-**
-** Description      HOST/CONTROLLER LIB CALLBACK API - This function is called
-**                  from the libbt-hci once it has processed/sent the prior data
-**                  buffer which core stack passed to it through transmit_buf
-**                  call earlier.
-**
-**                  The core stack is responsible for releasing the data buffer
-**                  if it has been completedly processed.
-**
-**                  Bluedroid libbt-hci library uses 'transac' parameter to
-**                  pass data-path buffer/packet across bt_hci_lib interface
-**                  boundary. The 'p_buf' is not intended to be used here
-**                  but might point to data portion in data-path buffer.
-**
-** Returns          void
-**
-******************************************************************************/
-static void tx_result(void *p_buf, bool all_fragments_sent) {
-    if (!all_fragments_sent)
-        fixed_queue_enqueue(btu_hci_msg_queue, p_buf);
-    else
-        GKI_freebuf(p_buf);
-}
-
-/*****************************************************************************
-**   The libbt-hci Callback Functions Table
-*****************************************************************************/
-static const hci_callbacks_t hci_callbacks = {
-    hci_startup_cb,
-    tx_result
-};

@@ -247,7 +247,7 @@ STUB_FUNCTION(void, reassembled_callback, (BT_HDR *packet))
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(void, transmit_finished_callback, (UNUSED_ATTR void *packet, UNUSED_ATTR bool sent_all_fragments))
+STUB_FUNCTION(void, transmit_finished_callback, (UNUSED_ATTR BT_HDR *packet, UNUSED_ATTR bool sent_all_fragments))
   UNEXPECTED_CALL;
 }
 
