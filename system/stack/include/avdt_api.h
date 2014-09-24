@@ -437,7 +437,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
+extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -452,7 +452,7 @@ AVDT_API extern void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDT_Deregister(void);
+extern void AVDT_Deregister(void);
 
 
 /*******************************************************************************
@@ -467,7 +467,7 @@ AVDT_API extern void AVDT_Deregister(void);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDT_SINK_Activate(void);
+extern void AVDT_SINK_Activate(void);
 
 /*******************************************************************************
 **
@@ -481,7 +481,7 @@ AVDT_API extern void AVDT_SINK_Activate(void);
 ** Returns          void.
 **
 *******************************************************************************/
-AVDT_API extern void AVDT_SINK_Deactivate(void);
+extern void AVDT_SINK_Deactivate(void);
 
 /*******************************************************************************
 **
@@ -497,7 +497,7 @@ AVDT_API extern void AVDT_SINK_Deactivate(void);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs);
+extern UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs);
 
 /*******************************************************************************
 **
@@ -513,7 +513,7 @@ AVDT_API extern UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_RemoveStream(UINT8 handle);
+extern UINT16 AVDT_RemoveStream(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -541,8 +541,8 @@ AVDT_API extern UINT16 AVDT_RemoveStream(UINT8 handle);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
-                                        UINT8 max_seps, tAVDT_CTRL_CBACK *p_cback);
+extern UINT16 AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
+                               UINT8 max_seps, tAVDT_CTRL_CBACK *p_cback);
 
 
 /*******************************************************************************
@@ -569,8 +569,8 @@ AVDT_API extern UINT16 AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_i
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg,
-                                      tAVDT_CTRL_CBACK *p_cback);
+extern UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg,
+                             tAVDT_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -596,8 +596,8 @@ AVDT_API extern UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_GetAllCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg,
-                                      tAVDT_CTRL_CBACK *p_cback);
+extern UINT16 AVDT_GetAllCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg,
+                                tAVDT_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -610,7 +610,7 @@ AVDT_API extern UINT16 AVDT_GetAllCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG 
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_DelayReport(UINT8 handle, UINT8 seid, UINT16 delay);
+extern UINT16 AVDT_DelayReport(UINT8 handle, UINT8 seid, UINT16 delay);
 
 /*******************************************************************************
 **
@@ -625,8 +625,8 @@ AVDT_API extern UINT16 AVDT_DelayReport(UINT8 handle, UINT8 seid, UINT16 delay);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_OpenReq(UINT8 handle, BD_ADDR bd_addr, UINT8 seid,
-                                    tAVDT_CFG *p_cfg);
+extern UINT16 AVDT_OpenReq(UINT8 handle, BD_ADDR bd_addr, UINT8 seid,
+                           tAVDT_CFG *p_cfg);
 
 
 /*******************************************************************************
@@ -641,8 +641,8 @@ AVDT_API extern UINT16 AVDT_OpenReq(UINT8 handle, BD_ADDR bd_addr, UINT8 seid,
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_ConfigRsp(UINT8 handle, UINT8 label, UINT8 error_code,
-                                      UINT8 category);
+extern UINT16 AVDT_ConfigRsp(UINT8 handle, UINT8 label, UINT8 error_code,
+                             UINT8 category);
 
 /*******************************************************************************
 **
@@ -658,7 +658,7 @@ AVDT_API extern UINT16 AVDT_ConfigRsp(UINT8 handle, UINT8 label, UINT8 error_cod
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_StartReq(UINT8 *p_handles, UINT8 num_handles);
+extern UINT16 AVDT_StartReq(UINT8 *p_handles, UINT8 num_handles);
 
 /*******************************************************************************
 **
@@ -675,7 +675,7 @@ AVDT_API extern UINT16 AVDT_StartReq(UINT8 *p_handles, UINT8 num_handles);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SuspendReq(UINT8 *p_handles, UINT8 num_handles);
+extern UINT16 AVDT_SuspendReq(UINT8 *p_handles, UINT8 num_handles);
 
 /*******************************************************************************
 **
@@ -691,7 +691,7 @@ AVDT_API extern UINT16 AVDT_SuspendReq(UINT8 *p_handles, UINT8 num_handles);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_CloseReq(UINT8 handle);
+extern UINT16 AVDT_CloseReq(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -709,7 +709,7 @@ AVDT_API extern UINT16 AVDT_CloseReq(UINT8 handle);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_ReconfigReq(UINT8 handle, tAVDT_CFG *p_cfg);
+extern UINT16 AVDT_ReconfigReq(UINT8 handle, tAVDT_CFG *p_cfg);
 
 /*******************************************************************************
 **
@@ -723,8 +723,8 @@ AVDT_API extern UINT16 AVDT_ReconfigReq(UINT8 handle, tAVDT_CFG *p_cfg);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_ReconfigRsp(UINT8 handle, UINT8 label, UINT8 error_code,
-                                        UINT8 category);
+extern UINT16 AVDT_ReconfigRsp(UINT8 handle, UINT8 label, UINT8 error_code,
+                               UINT8 category);
 
 /*******************************************************************************
 **
@@ -740,7 +740,7 @@ AVDT_API extern UINT16 AVDT_ReconfigRsp(UINT8 handle, UINT8 label, UINT8 error_c
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SecurityReq(UINT8 handle, UINT8 *p_data, UINT16 len);
+extern UINT16 AVDT_SecurityReq(UINT8 handle, UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -756,8 +756,8 @@ AVDT_API extern UINT16 AVDT_SecurityReq(UINT8 handle, UINT8 *p_data, UINT16 len)
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SecurityRsp(UINT8 handle, UINT8 label, UINT8 error_code,
-                                        UINT8 *p_data, UINT16 len);
+extern UINT16 AVDT_SecurityRsp(UINT8 handle, UINT8 label, UINT8 error_code,
+                               UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -792,8 +792,8 @@ AVDT_API extern UINT16 AVDT_SecurityRsp(UINT8 handle, UINT8 label, UINT8 error_c
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_WriteReq(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp,
-                                     UINT8 m_pt);
+extern UINT16 AVDT_WriteReq(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp,
+                            UINT8 m_pt);
 /*******************************************************************************
 **
 ** Function         AVDT_WriteReqOpt
@@ -830,8 +830,8 @@ AVDT_API extern UINT16 AVDT_WriteReq(UINT8 handle, BT_HDR *p_pkt, UINT32 time_st
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp,
-                                     UINT8 m_pt, tAVDT_DATA_OPT_MASK opt);
+extern UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp,
+                               UINT8 m_pt, tAVDT_DATA_OPT_MASK opt);
 
 /*******************************************************************************
 **
@@ -848,8 +848,8 @@ AVDT_API extern UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_ConnectReq(BD_ADDR bd_addr, UINT8 sec_mask,
-                                       tAVDT_CTRL_CBACK *p_cback);
+extern UINT16 AVDT_ConnectReq(BD_ADDR bd_addr, UINT8 sec_mask,
+                              tAVDT_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -863,7 +863,7 @@ AVDT_API extern UINT16 AVDT_ConnectReq(BD_ADDR bd_addr, UINT8 sec_mask,
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback);
+extern UINT16 AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -874,7 +874,7 @@ AVDT_API extern UINT16 AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_c
 ** Returns          CID if successful, otherwise 0.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_GetL2CapChannel(UINT8 handle);
+extern UINT16 AVDT_GetL2CapChannel(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -885,7 +885,7 @@ AVDT_API extern UINT16 AVDT_GetL2CapChannel(UINT8 handle);
 ** Returns          CID if successful, otherwise 0.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr);
+extern UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -908,8 +908,8 @@ AVDT_API extern UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr);
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
-                                     UINT32 time_stamp, UINT8 m_pt, UINT8 marker);
+extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
+                                UINT32 time_stamp, UINT8 m_pt, UINT8 marker);
 
 /*******************************************************************************
 **
@@ -929,7 +929,7 @@ AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 dat
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len);
+extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len);
 
 /*******************************************************************************
 **
@@ -942,8 +942,8 @@ AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_l
 ** Returns
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
-                       tAVDT_REPORT_DATA *p_data);
+extern UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
+                              tAVDT_REPORT_DATA *p_data);
 
 /******************************************************************************
 **
@@ -966,7 +966,7 @@ AVDT_API extern UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-AVDT_API extern UINT8 AVDT_SetTraceLevel (UINT8 new_level);
+extern UINT8 AVDT_SetTraceLevel (UINT8 new_level);
 
 #ifdef __cplusplus
 }

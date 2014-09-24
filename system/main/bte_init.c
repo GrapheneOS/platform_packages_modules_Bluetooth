@@ -286,7 +286,7 @@ tBTA_JV_CB *bta_jv_cb_ptr = NULL;
 ** Returns          void
 **
 ******************************************************************************/
-BT_API void BTE_InitStack(void)
+void BTE_InitStack(void)
 {
 /* Initialize the optional stack components */
 

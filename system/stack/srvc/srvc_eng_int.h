@@ -64,9 +64,9 @@ extern "C" {
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE
-GATT_API extern tSRVC_ENG_CB srvc_eng_cb;
+extern tSRVC_ENG_CB srvc_eng_cb;
 #else
-GATT_API extern tSRVC_ENG_CB srvc_eng_cb_ptr;
+extern tSRVC_ENG_CB srvc_eng_cb_ptr;
 #define srvc_eng_cb (*srvc_eng_cb_ptr)
 
 #endif

@@ -227,9 +227,9 @@ extern "C"
 #endif
 
 #if SMP_DYNAMIC_MEMORY == FALSE
-    SMP_API extern tSMP_CB  smp_cb;
+extern tSMP_CB  smp_cb;
 #else
-    SMP_API extern tSMP_CB *smp_cb_ptr;
+extern tSMP_CB *smp_cb_ptr;
 #define smp_cb (*smp_cb_ptr)
 #endif
 
@@ -238,15 +238,15 @@ extern "C"
 #endif
 
 /* Functions provided by att_main.c */
-SMP_API extern void smp_init (void);
+extern void smp_init (void);
 
 #if SMP_CONFORMANCE_TESTING == TRUE
 /* Used only for conformance testing */
-SMP_API extern void  smp_set_test_confirm_value (BOOLEAN enable, UINT8 *p_c_value);
-SMP_API extern void  smp_set_test_rand_value (BOOLEAN enable, UINT8 *p_c_value);
-SMP_API extern void  smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status);
-SMP_API extern void  smp_remove_fixed_channel_disable (BOOLEAN disable);
-SMP_API extern void  smp_skip_compare_check (BOOLEAN enable);
+extern void  smp_set_test_confirm_value (BOOLEAN enable, UINT8 *p_c_value);
+extern void  smp_set_test_rand_value (BOOLEAN enable, UINT8 *p_c_value);
+extern void  smp_set_test_pair_fail_status (BOOLEAN enable, UINT8 status);
+extern void  smp_remove_fixed_channel_disable (BOOLEAN disable);
+extern void  smp_skip_compare_check (BOOLEAN enable);
 #endif
 /* smp main */
 extern void smp_sm_event(tSMP_CB *p_cb, tSMP_EVENT event, void *p_data);
@@ -321,4 +321,3 @@ extern tSMP_STATE smp_get_state(void);
 extern void smp_reject_unexp_pair_req(BD_ADDR bd_addr);
 
 #endif /* SMP_INT_H */
-

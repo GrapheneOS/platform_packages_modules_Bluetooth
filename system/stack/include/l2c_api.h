@@ -347,7 +347,7 @@ extern "C"
 **                  BTM_SetSecurityLevel().
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info);
+extern UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
 **
@@ -359,7 +359,7 @@ L2C_API extern UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info);
 ** Returns          void
 **
 *******************************************************************************/
-L2C_API extern void L2CA_Deregister (UINT16 psm);
+extern void L2CA_Deregister (UINT16 psm);
 
 /*******************************************************************************
 **
@@ -371,7 +371,7 @@ L2C_API extern void L2CA_Deregister (UINT16 psm);
 ** Returns          PSM to use.
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_AllocatePSM(void);
+extern UINT16 L2CA_AllocatePSM(void);
 
 /*******************************************************************************
 **
@@ -385,7 +385,7 @@ L2C_API extern UINT16 L2CA_AllocatePSM(void);
 ** Returns          the CID of the connection, or 0 if it failed to start
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_ConnectReq (UINT16 psm, BD_ADDR p_bd_addr);
+extern UINT16 L2CA_ConnectReq (UINT16 psm, BD_ADDR p_bd_addr);
 
 /*******************************************************************************
 **
@@ -398,7 +398,7 @@ L2C_API extern UINT16 L2CA_ConnectReq (UINT16 psm, BD_ADDR p_bd_addr);
 ** Returns          TRUE for success, FALSE for failure
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
+extern BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
                                         UINT16 result, UINT16 status);
 
 /*******************************************************************************
@@ -414,7 +414,7 @@ L2C_API extern BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid
 ** Returns          the CID of the connection, or 0 if it failed to start
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr,
+extern UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr,
                                            tL2CAP_ERTM_INFO *p_ertm_info);
 
 /*******************************************************************************
@@ -429,7 +429,7 @@ L2C_API extern UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr,
 ** Returns          TRUE for success, FALSE for failure
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN  L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
+extern BOOLEAN  L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
                                              UINT16 result, UINT16 status,
                                              tL2CAP_ERTM_INFO *p_ertm_info);
 
@@ -442,7 +442,7 @@ L2C_API extern BOOLEAN  L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16
 ** Returns          TRUE if configuration sent, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
+extern BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
 **
@@ -454,7 +454,7 @@ L2C_API extern BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
 ** Returns          TRUE if configuration response sent, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
+extern BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
 **
@@ -465,7 +465,7 @@ L2C_API extern BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg);
 ** Returns          TRUE if disconnect sent, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_DisconnectReq (UINT16 cid);
+extern BOOLEAN L2CA_DisconnectReq (UINT16 cid);
 
 /*******************************************************************************
 **
@@ -477,7 +477,7 @@ L2C_API extern BOOLEAN L2CA_DisconnectReq (UINT16 cid);
 ** Returns          void
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_DisconnectRsp (UINT16 cid);
+extern BOOLEAN L2CA_DisconnectRsp (UINT16 cid);
 
 /*******************************************************************************
 **
@@ -490,7 +490,7 @@ L2C_API extern BOOLEAN L2CA_DisconnectRsp (UINT16 cid);
 **                  L2CAP_DW_FAILED, if error
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data);
+extern UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data);
 
 /*******************************************************************************
 **
@@ -501,7 +501,7 @@ L2C_API extern UINT8 L2CA_DataWrite (UINT16 cid, BT_HDR *p_data);
 ** Returns          TRUE if echo request sent, else FALSE.
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
+extern BOOLEAN L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
 
 /*******************************************************************************
 **
@@ -513,7 +513,7 @@ L2C_API extern BOOLEAN L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
 ** Returns          TRUE if echo request sent, else FALSE.
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback);
+extern BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback);
 
 /*******************************************************************************
 **
@@ -530,7 +530,7 @@ L2C_API extern BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
+extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
                                             BOOLEAN is_global);
 
 /*******************************************************************************
@@ -552,7 +552,7 @@ L2C_API extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
 ** NOTE             This timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout);
+extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout);
 
 /*******************************************************************************
 **
@@ -564,7 +564,7 @@ L2C_API extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeo
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_SetTraceLevel (UINT8 trace_level);
+extern UINT8 L2CA_SetTraceLevel (UINT8 trace_level);
 
 /*******************************************************************************
 **
@@ -582,7 +582,7 @@ L2C_API extern UINT8 L2CA_SetTraceLevel (UINT8 trace_level);
 ** Returns      the new (current) role
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_SetDesireRole (UINT8 new_role);
+extern UINT8 L2CA_SetDesireRole (UINT8 new_role);
 
 /*******************************************************************************
 **
@@ -593,7 +593,7 @@ L2C_API extern UINT8 L2CA_SetDesireRole (UINT8 new_role);
 ** Returns      CID of 0 if none.
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr);
+extern UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR p_bd_addr);
 
 /*******************************************************************************
 **
@@ -609,7 +609,7 @@ L2C_API extern UINT16 L2CA_LocalLoopbackReq (UINT16 psm, UINT16 handle, BD_ADDR 
 ** Returns      Number of buffers left queued for that CID
 **
 *******************************************************************************/
-L2C_API extern UINT16   L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush);
+extern UINT16   L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush);
 
 
 /*******************************************************************************
@@ -623,7 +623,7 @@ L2C_API extern UINT16   L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush);
 ** Returns          TRUE if a valid channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority);
+extern BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority);
 
 /*******************************************************************************
 **
@@ -636,7 +636,7 @@ L2C_API extern BOOLEAN L2CA_SetAclPriority (BD_ADDR bd_addr, UINT8 priority);
 ** Returns          TRUE if valid channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled);
+extern BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled);
 
 /*******************************************************************************
 **
@@ -647,7 +647,7 @@ L2C_API extern BOOLEAN L2CA_FlowControl (UINT16 cid, BOOLEAN data_enabled);
 ** Returns          TRUE if valid Channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type,
+extern BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type,
                                             UINT8 back_track);
 
 /*******************************************************************************
@@ -659,7 +659,7 @@ L2C_API extern BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type,
 ** Returns          TRUE if a valid channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY priority);
+extern BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY priority);
 
 /*******************************************************************************
 **
@@ -673,7 +673,7 @@ L2C_API extern BOOLEAN L2CA_SetTxPriority (UINT16 cid, tL2CAP_CHNL_PRIORITY prio
 ** Returns
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda);
+extern BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda);
 
 /*******************************************************************************
 **
@@ -684,7 +684,7 @@ L2C_API extern BOOLEAN L2CA_RegForNoCPEvt(tL2CA_NOCP_CB *p_cb, BD_ADDR p_bda);
 ** Returns          TRUE if a valid channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_DATA_RATE rx);
+extern BOOLEAN L2CA_SetChnlDataRate (UINT16 cid, tL2CAP_CHNL_DATA_RATE tx, tL2CAP_CHNL_DATA_RATE rx);
 
 typedef void (tL2CA_RESERVE_CMPL_CBACK) (void);
 
@@ -709,7 +709,7 @@ typedef void (tL2CA_RESERVE_CMPL_CBACK) (void);
 ** NOTE             This flush timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout);
+extern BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout);
 
 /*******************************************************************************
 **
@@ -726,7 +726,7 @@ L2C_API extern BOOLEAN L2CA_SetFlushTimeout (BD_ADDR bd_addr, UINT16 flush_tout)
 **                  L2CAP_DW_FAILED, if error
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags);
+extern UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags);
 
 /*******************************************************************************
 **
@@ -738,7 +738,7 @@ L2C_API extern UINT8 L2CA_DataWriteEx (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 ** Returns          TRUE if CID found, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable);
+extern BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushable);
 
 /*******************************************************************************
 **
@@ -752,7 +752,7 @@ L2C_API extern BOOLEAN L2CA_SetChnlFlushability (UINT16 cid, BOOLEAN is_flushabl
 **  Return value:    TRUE if peer is connected
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl_mask);
+extern BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat, UINT8 *p_chnl_mask);
 
 /*******************************************************************************
 **
@@ -766,7 +766,7 @@ L2C_API extern BOOLEAN L2CA_GetPeerFeatures (BD_ADDR bd_addr, UINT32 *p_ext_feat
 **  Return value:    TRUE if found lcb for the given handle, FALSE otherwise
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr);
+extern BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -779,7 +779,7 @@ L2C_API extern BOOLEAN L2CA_GetBDAddrbyHandle (UINT16 handle, BD_ADDR bd_addr);
 **  Return value:    Channel mode
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_GetChnlFcrMode (UINT16 lcid);
+extern UINT8 L2CA_GetChnlFcrMode (UINT16 lcid);
 
 
 /*******************************************************************************
@@ -832,7 +832,7 @@ typedef struct
 **  Return value:   TRUE if successs
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info );
+extern BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_info );
 
 /*******************************************************************************
 **
@@ -845,7 +845,7 @@ L2C_API extern BOOLEAN L2CA_UcdRegister ( UINT16 psm, tL2CAP_UCD_CB_INFO *p_cb_i
 **  Return value:   TRUE if successs
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UcdDeregister ( UINT16 psm );
+extern BOOLEAN L2CA_UcdDeregister ( UINT16 psm );
 
 /*******************************************************************************
 **
@@ -862,7 +862,7 @@ L2C_API extern BOOLEAN L2CA_UcdDeregister ( UINT16 psm );
 **  Return value:   TRUE if successs
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type );
+extern BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 info_type );
 
 /*******************************************************************************
 **
@@ -881,7 +881,7 @@ L2C_API extern BOOLEAN L2CA_UcdDiscover ( UINT16 psm, BD_ADDR rem_bda, UINT8 inf
 **                  L2CAP_DW_FAILED,  if error
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 flags);
+extern UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 flags);
 
 /*******************************************************************************
 **
@@ -895,7 +895,7 @@ L2C_API extern UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_
 **  Return value:   TRUE if successs
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout );
+extern BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout );
 
 /*******************************************************************************
 **
@@ -906,7 +906,7 @@ L2C_API extern BOOLEAN L2CA_UcdSetIdleTimeout ( BD_ADDR rem_bda, UINT16 timeout 
 ** Returns          TRUE if a valid channel, else FALSE
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority );
+extern BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY priority );
 
 
 /*******************************************************************************
@@ -963,7 +963,7 @@ typedef struct
 **  Return value:   TRUE if registered OK
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXED_CHNL_REG *p_freg);
+extern BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXED_CHNL_REG *p_freg);
 
 /*******************************************************************************
 **
@@ -977,7 +977,7 @@ L2C_API extern BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXE
 **  Return value:   TRUE if connection started
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR bd_addr);
+extern BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -993,7 +993,7 @@ L2C_API extern BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR bd_addr)
 **                  L2CAP_DW_FAILED,  if error
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf);
+extern UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf);
 
 /*******************************************************************************
 **
@@ -1008,7 +1008,7 @@ L2C_API extern UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda,
 **  Return value:   TRUE if channel removed
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda);
+extern BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda);
 
 /*******************************************************************************
 **
@@ -1027,7 +1027,7 @@ L2C_API extern BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda);
 ** Returns          TRUE if command succeeded, FALSE if failed
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle_tout);
+extern BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle_tout);
 
 #endif /* (L2CAP_NUM_FIXED_CHNLS > 0) */
 
@@ -1044,9 +1044,9 @@ L2C_API extern BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_c
 ** Returns      TRUE if successful
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
-                                              tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
-                                              tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits);
+extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
+                                      tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
+                                      tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits);
 
 #if (L2CAP_CORRUPT_ERTM_PKTS == TRUE)
 /*******************************************************************************
@@ -1074,7 +1074,7 @@ L2C_API extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
 ** Returns          CID of channel running test
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UINT16 count);
+extern UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UINT16 count);
 
 /*******************************************************************************
 **
@@ -1091,7 +1091,7 @@ L2C_API extern UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx,
 ** Returns          void
 **
 *******************************************************************************/
-L2C_API extern void L2CA_SendPolledSFrame (UINT16 cid, UINT16 sup_type);
+extern void L2CA_SendPolledSFrame (UINT16 cid, UINT16 sup_type);
 
 /*******************************************************************************
 **
@@ -1108,7 +1108,7 @@ L2C_API extern void L2CA_SendPolledSFrame (UINT16 cid, UINT16 sup_type);
 ** Returns          void
 **
 *******************************************************************************/
-L2C_API extern void L2CA_BypassSFrame (UINT16 cid, UINT8 count);
+extern void L2CA_BypassSFrame (UINT16 cid, UINT8 count);
 
 #endif /* (L2CAP_CORRUPT_ERTM_PKTS == TRUE) */
 
@@ -1125,7 +1125,7 @@ L2C_API extern void L2CA_BypassSFrame (UINT16 cid, UINT8 count);
 **  Return value:   TRUE if connection was cancelled
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
+extern BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
 
 /*******************************************************************************
 **
@@ -1138,8 +1138,8 @@ L2C_API extern BOOLEAN L2CA_CancelBleConnectReq (BD_ADDR rem_bda);
 **  Return value:   TRUE if update started
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int,
-                                                          UINT16 max_int, UINT16 latency, UINT16 timeout);
+extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_int,
+                                         UINT16 max_int, UINT16 latency, UINT16 timeout);
 
 /*******************************************************************************
 **
@@ -1153,7 +1153,7 @@ L2C_API extern BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bdRa, UINT16 min_in
 **  Return value:   TRUE if update started
 **
 *******************************************************************************/
-L2C_API extern BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable);
+extern BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable);
 
 /*******************************************************************************
 **
@@ -1164,7 +1164,7 @@ L2C_API extern BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN 
 ** Returns          link role.
 **
 *******************************************************************************/
-L2C_API extern UINT8 L2CA_GetBleConnRole (BD_ADDR bd_addr);
+extern UINT8 L2CA_GetBleConnRole (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1178,7 +1178,7 @@ L2C_API extern UINT8 L2CA_GetBleConnRole (BD_ADDR bd_addr);
 ** Returns          disconnect reason
 **
 *******************************************************************************/
-L2C_API extern UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport);
+extern UINT16 L2CA_GetDisconnectReason (BD_ADDR remote_bda, tBT_TRANSPORT transport);
 
 #endif /* (BLE_INCLUDED == TRUE) */
 

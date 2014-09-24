@@ -232,12 +232,12 @@ typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 extern "C" {
 #endif
 
-BTA_API extern void bta_sys_init(void);
-BTA_API extern void bta_sys_free(void);
-BTA_API extern void bta_sys_event(BT_HDR *p_msg);
-BTA_API extern void bta_sys_timer_update(void);
-BTA_API extern void bta_sys_disable_timers(void);
-BTA_API extern void bta_sys_set_trace_level(UINT8 level);
+extern void bta_sys_init(void);
+extern void bta_sys_free(void);
+extern void bta_sys_event(BT_HDR *p_msg);
+extern void bta_sys_timer_update(void);
+extern void bta_sys_disable_timers(void);
+extern void bta_sys_set_trace_level(UINT8 level);
 extern void bta_sys_register(UINT8 id, const tBTA_SYS_REG *p_reg);
 extern void bta_sys_deregister(UINT8 id);
 extern BOOLEAN bta_sys_is_register(UINT8 id);

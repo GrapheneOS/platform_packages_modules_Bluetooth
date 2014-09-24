@@ -678,7 +678,7 @@ extern "C"
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-    GATT_API extern UINT8 GATT_SetTraceLevel (UINT8 new_level);
+extern UINT8 GATT_SetTraceLevel (UINT8 new_level);
 
 
 /*******************************************************************************/
@@ -699,7 +699,7 @@ extern "C"
 **
 *******************************************************************************/
 
-    GATT_API extern BOOLEAN GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range);
+extern BOOLEAN GATTS_AddHandleRange(tGATTS_HNDL_RANGE *p_hndl_range);
 
 /*******************************************************************************
 **
@@ -714,7 +714,7 @@ extern "C"
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info);
+extern BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info);
 
 
 /*******************************************************************************
@@ -734,8 +734,8 @@ extern "C"
 ** Returns          service handle if sucessful, otherwise 0.
 **
 *******************************************************************************/
-    GATT_API extern UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
-                                                UINT16 svc_inst, UINT16 num_handles, BOOLEAN is_pri);
+extern UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
+                                   UINT16 svc_inst, UINT16 num_handles, BOOLEAN is_pri);
 
 
 /*******************************************************************************
@@ -751,8 +751,8 @@ extern "C"
 **                  fail.
 **
 *******************************************************************************/
-    GATT_API extern UINT16 GATTS_AddIncludeService (UINT16 service_handle,
-                                                    UINT16 include_svc_handle);
+extern UINT16 GATTS_AddIncludeService (UINT16 service_handle,
+                                       UINT16 include_svc_handle);
 
 
 /*******************************************************************************
@@ -773,8 +773,8 @@ extern "C"
 **                  characteristic failed.
 **
 *******************************************************************************/
-    GATT_API extern UINT16 GATTS_AddCharacteristic (UINT16 service_handle, tBT_UUID *char_uuid,
-                                                    tGATT_PERM perm,tGATT_CHAR_PROP property);
+extern UINT16 GATTS_AddCharacteristic (UINT16 service_handle, tBT_UUID *char_uuid,
+                                       tGATT_PERM perm,tGATT_CHAR_PROP property);
 
 /*******************************************************************************
 **
@@ -795,8 +795,8 @@ extern "C"
 **                 characteristic descriptor failed.
 **
 *******************************************************************************/
-    GATT_API extern UINT16 GATTS_AddCharDescriptor (UINT16 service_handle, tGATT_PERM perm,
-                                                     tBT_UUID * p_descr_uuid);
+extern UINT16 GATTS_AddCharDescriptor (UINT16 service_handle, tGATT_PERM perm,
+                                       tBT_UUID * p_descr_uuid);
 
 /*******************************************************************************
 **
@@ -811,8 +811,8 @@ extern "C"
 ** Returns          TRUE if operation succeed, FALSE if handle block was not found.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
-                                                      UINT16 svc_inst);
+extern BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
+                                    UINT16 svc_inst);
 
 /*******************************************************************************
 **
@@ -827,8 +827,8 @@ extern "C"
 ** return           GATT_SUCCESS if sucessfully started; otherwise error code.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
-                                                     tGATT_TRANSPORT sup_transport);
+extern tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
+                                        tGATT_TRANSPORT sup_transport);
 
 
 /*******************************************************************************
@@ -842,7 +842,7 @@ extern "C"
 ** Returns          None.
 **
 *******************************************************************************/
-    GATT_API extern void GATTS_StopService (UINT16 service_handle);
+extern void GATTS_StopService (UINT16 service_handle);
 
 
 /*******************************************************************************
@@ -859,9 +859,9 @@ extern "C"
 ** Returns          GATT_SUCCESS if sucessfully sent or queued; otherwise error code.
 **
 *******************************************************************************/
-    GATT_API extern  tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,
-                                                               UINT16 attr_handle,
-                                                               UINT16 val_len, UINT8 *p_val);
+extern  tGATT_STATUS GATTS_HandleValueIndication (UINT16 conn_id,
+                                                  UINT16 attr_handle,
+                                                  UINT16 val_len, UINT8 *p_val);
 
 /*******************************************************************************
 **
@@ -877,8 +877,8 @@ extern "C"
 ** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
 **
 *******************************************************************************/
-    GATT_API extern  tGATT_STATUS GATTS_HandleValueNotification (UINT16 conn_id, UINT16 attr_handle,
-                                                                 UINT16 val_len, UINT8 *p_val);
+extern  tGATT_STATUS GATTS_HandleValueNotification (UINT16 conn_id, UINT16 attr_handle,
+                                                    UINT16 val_len, UINT8 *p_val);
 
 
 /*******************************************************************************
@@ -895,8 +895,8 @@ extern "C"
 ** Returns          GATT_SUCCESS if sucessfully sent; otherwise error code.
 **
 *******************************************************************************/
-    GATT_API extern  tGATT_STATUS GATTS_SendRsp (UINT16 conn_id,  UINT32 trans_id,
-                                                 tGATT_STATUS status, tGATTS_RSP *p_msg);
+extern  tGATT_STATUS GATTS_SendRsp (UINT16 conn_id,  UINT32 trans_id,
+                                    tGATT_STATUS status, tGATTS_RSP *p_msg);
 
 
 /*******************************************************************************/
@@ -916,7 +916,7 @@ extern "C"
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16  mtu);
+extern tGATT_STATUS GATTC_ConfigureMTU (UINT16 conn_id, UINT16  mtu);
 
 /*******************************************************************************
 **
@@ -931,9 +931,9 @@ extern "C"
 ** Returns          GATT_SUCCESS if command received/sent successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_Discover (UINT16 conn_id,
-                                                 tGATT_DISC_TYPE disc_type,
-                                                 tGATT_DISC_PARAM *p_param );
+extern tGATT_STATUS GATTC_Discover (UINT16 conn_id,
+                                    tGATT_DISC_TYPE disc_type,
+                                    tGATT_DISC_PARAM *p_param );
 /*******************************************************************************
 **
 ** Function         GATTC_Read
@@ -948,8 +948,8 @@ extern "C"
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type,
-                                             tGATT_READ_PARAM *p_read);
+extern tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type,
+                                tGATT_READ_PARAM *p_read);
 
 /*******************************************************************************
 **
@@ -965,8 +965,8 @@ extern "C"
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type,
-                                              tGATT_VALUE *p_write);
+extern tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type,
+                                 tGATT_VALUE *p_write);
 
 
 /*******************************************************************************
@@ -982,7 +982,7 @@ extern "C"
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute);
+extern tGATT_STATUS GATTC_ExecuteWrite (UINT16 conn_id, BOOLEAN is_execute);
 
 /*******************************************************************************
 **
@@ -997,7 +997,7 @@ extern "C"
 ** Returns          GATT_SUCCESS if command started successfully.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle);
+extern tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle);
 
 
 /*******************************************************************************
@@ -1014,8 +1014,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    GATT_API extern void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout,
-                                            tGATT_TRANSPORT transport);
+extern void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout,
+                                 tGATT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1031,7 +1031,7 @@ extern "C"
 ** Returns          0 for error, otherwise the index of the client registered with GATT
 **
 *******************************************************************************/
-    GATT_API extern  tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info);
+extern  tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info);
 
 /*******************************************************************************
 **
@@ -1044,7 +1044,7 @@ extern "C"
 ** Returns          None.
 **
 *******************************************************************************/
-    GATT_API extern void GATT_Deregister (tGATT_IF gatt_if);
+extern void GATT_Deregister (tGATT_IF gatt_if);
 
 /*******************************************************************************
 **
@@ -1059,7 +1059,7 @@ extern "C"
 ** Returns          None
 **
 *******************************************************************************/
-    GATT_API extern  void GATT_StartIf (tGATT_IF gatt_if);
+extern  void GATT_StartIf (tGATT_IF gatt_if);
 
 /*******************************************************************************
 **
@@ -1076,8 +1076,8 @@ extern "C"
 ** Returns          TRUE if connection started; FALSE if connection start failure.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
-                                          BOOLEAN is_direct, tBT_TRANSPORT transport);
+extern BOOLEAN GATT_Connect (tGATT_IF gatt_if, BD_ADDR bd_addr,
+                             BOOLEAN is_direct, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1095,8 +1095,8 @@ extern "C"
 ** Returns          TRUE if connection started; FALSE if connection start failure.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr,
-                                                BOOLEAN is_direct);
+extern BOOLEAN GATT_CancelConnect (tGATT_IF gatt_if, BD_ADDR bd_addr,
+                                   BOOLEAN is_direct);
 
 /*******************************************************************************
 **
@@ -1110,7 +1110,7 @@ extern "C"
 ** Returns          GATT_SUCCESS if disconnected.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS GATT_Disconnect (UINT16 conn_id);
+extern tGATT_STATUS GATT_Disconnect (UINT16 conn_id);
 
 
 
@@ -1129,8 +1129,8 @@ extern "C"
 ** Returns          TRUE the ligical link information is found for conn_id
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if,
-                                        BD_ADDR bd_addr, tBT_TRANSPORT *p_transport);
+extern BOOLEAN GATT_GetConnectionInfor(UINT16 conn_id, tGATT_IF *p_gatt_if,
+                                       BD_ADDR bd_addr, tBT_TRANSPORT *p_transport);
 
 
 /*******************************************************************************
@@ -1148,8 +1148,8 @@ extern "C"
 ** Returns          TRUE the ligical link is connected
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr,
-                                                      UINT16 *p_conn_id, tBT_TRANSPORT transport);
+extern BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr,
+                                         UINT16 *p_conn_id, tBT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1167,7 +1167,7 @@ extern "C"
 ** Returns          TRUE if advertisement is started; FALSE if adv start failure.
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr);
+extern BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr);
 
 /*******************************************************************************
 **
@@ -1178,7 +1178,7 @@ extern "C"
 ** Returns          None.
 **
 *******************************************************************************/
-    GATT_API extern void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, BOOLEAN enable,
+extern void GATT_ConfigServiceChangeCCC (BD_ADDR remote_bda, BOOLEAN enable,
                                                     tBT_TRANSPORT transport);
  
 #ifdef __cplusplus

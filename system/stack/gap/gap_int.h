@@ -187,9 +187,9 @@ extern "C" {
 #endif
 
 #if GAP_DYNAMIC_MEMORY == FALSE
-    GAP_API extern tGAP_CB  gap_cb;
+    extern tGAP_CB  gap_cb;
 #else
-    GAP_API extern tGAP_CB *gap_cb_ptr;
+    extern tGAP_CB *gap_cb_ptr;
 #define gap_cb (*gap_cb_ptr)
 #endif
 

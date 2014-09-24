@@ -173,7 +173,7 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    peer_role)
+void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    peer_role)
 {
 
     tBTA_PAN_API_OPEN  *p_buf;
@@ -199,7 +199,7 @@ BTA_API void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_PanClose(UINT16 handle)
+void BTA_PanClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 

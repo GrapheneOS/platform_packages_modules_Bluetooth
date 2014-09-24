@@ -247,8 +247,8 @@ extern "C"
 **                  GAP_ERR_PROCESSING if not enough resources to carry out request
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_SetDiscoverableMode (UINT16 mode, UINT16 duration,
-                                               UINT16 interval);
+extern UINT16 GAP_SetDiscoverableMode (UINT16 mode, UINT16 duration,
+                                       UINT16 interval);
 
 /*******************************************************************************
 **
@@ -261,7 +261,7 @@ GAP_API extern UINT16 GAP_SetDiscoverableMode (UINT16 mode, UINT16 duration,
 **                  GAP_GENERAL_DISCOVERABLE
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ReadDiscoverableMode (UINT16 *duration, UINT16 *interval);
+extern UINT16 GAP_ReadDiscoverableMode (UINT16 *duration, UINT16 *interval);
 
 /*******************************************************************************
 **
@@ -279,9 +279,9 @@ GAP_API extern UINT16 GAP_ReadDiscoverableMode (UINT16 *duration, UINT16 *interv
 **                  GAP_ERR_PROCESSING if any other BTM error was returned
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_StartInquiry (tGAP_INQ_PARMS *p_inq_parms,
-                                        tGAP_CALLBACK *p_results_cb,
-                                        tGAP_CALLBACK *p_cmpl_cb);
+extern UINT16 GAP_StartInquiry (tGAP_INQ_PARMS *p_inq_parms,
+                                tGAP_CALLBACK *p_results_cb,
+                                tGAP_CALLBACK *p_cmpl_cb);
 
 /*******************************************************************************
 **
@@ -299,10 +299,10 @@ GAP_API extern UINT16 GAP_StartInquiry (tGAP_INQ_PARMS *p_inq_parms,
 **                  GAP_ERR_PROCESSING if any other BTM error was returned
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_StartPeriodicInquiry (tGAP_INQ_PARMS *p_inq_parms,
-                                                UINT16 min_time,
-                                                UINT16 max_time,
-                                                tGAP_CALLBACK *p_results_cb);
+extern UINT16 GAP_StartPeriodicInquiry (tGAP_INQ_PARMS *p_inq_parms,
+                                        UINT16 min_time,
+                                        UINT16 max_time,
+                                        tGAP_CALLBACK *p_results_cb);
 
 /*******************************************************************************
 **
@@ -313,7 +313,7 @@ GAP_API extern UINT16 GAP_StartPeriodicInquiry (tGAP_INQ_PARMS *p_inq_parms,
 ** Returns          BOOLEAN (TRUE if successful, otherwise FALSE)
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_CancelInquiry(void);
+extern UINT16 GAP_CancelInquiry(void);
 
 /*******************************************************************************
 **
@@ -324,7 +324,7 @@ GAP_API extern UINT16 GAP_CancelInquiry(void);
 ** Returns          BOOLEAN: (TRUE if successful, otherwise FALSE)
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_CancelPeriodicInquiry(void);
+extern UINT16 GAP_CancelPeriodicInquiry(void);
 
 /*******************************************************************************
 **
@@ -336,7 +336,7 @@ GAP_API extern UINT16 GAP_CancelPeriodicInquiry(void);
 **                  GAP_EOINQDB if no more entries in the database.
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_GetFirstInquiryResult(tGAP_INQ_RESULTS *p_results);
+extern UINT16 GAP_GetFirstInquiryResult(tGAP_INQ_RESULTS *p_results);
 
 /*******************************************************************************
 **
@@ -348,7 +348,7 @@ GAP_API extern UINT16 GAP_GetFirstInquiryResult(tGAP_INQ_RESULTS *p_results);
 **                  GAP_EOINQDB if no more entries in the database.
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_GetNextInquiryResult(tGAP_INQ_RESULTS *p_results);
+extern UINT16 GAP_GetNextInquiryResult(tGAP_INQ_RESULTS *p_results);
 
 /*******************************************************************************
 **
@@ -366,10 +366,10 @@ GAP_API extern UINT16 GAP_GetNextInquiryResult(tGAP_INQ_RESULTS *p_results);
 **                  GAP_CMD_INITIATED if an inquiry has been initiated
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_FindAddrByName (BD_NAME devname,
-                                          tGAP_INQ_PARMS *p_inq_parms,
-                                          tGAP_CALLBACK *p_addr_cb,
-                                          BD_ADDR bd_addr);
+extern UINT16 GAP_FindAddrByName (BD_NAME devname,
+                                  tGAP_INQ_PARMS *p_inq_parms,
+                                  tGAP_CALLBACK *p_addr_cb,
+                                  BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -384,8 +384,8 @@ GAP_API extern UINT16 GAP_FindAddrByName (BD_NAME devname,
 **                  GAP_ERR_PROCESSING if not enough resources to carry out request
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_SetConnectableMode (UINT16 mode, UINT16 duration,
-                                              UINT16 interval);
+extern UINT16 GAP_SetConnectableMode (UINT16 mode, UINT16 duration,
+                                      UINT16 interval);
 
 /*******************************************************************************
 **
@@ -397,7 +397,7 @@ GAP_API extern UINT16 GAP_SetConnectableMode (UINT16 mode, UINT16 duration,
 ** Returns          GAP_NON_CONNECTABLE, GAP_CONNECTABLE
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ReadConnectableMode (UINT16 *duration, UINT16 *interval);
+extern UINT16 GAP_ReadConnectableMode (UINT16 *duration, UINT16 *interval);
 
 /*******************************************************************************
 **
@@ -408,7 +408,7 @@ GAP_API extern UINT16 GAP_ReadConnectableMode (UINT16 *duration, UINT16 *interva
 ** Returns          void
 **
 *******************************************************************************/
-GAP_API extern void GAP_SetSecurityMode (UINT8 sec_mode);
+extern void GAP_SetSecurityMode (UINT8 sec_mode);
 
 /*******************************************************************************
 **
@@ -420,7 +420,7 @@ GAP_API extern void GAP_SetSecurityMode (UINT8 sec_mode);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-GAP_API extern BOOLEAN GAP_SecRegister (tBTM_APPL_INFO *p_cb_info);
+extern BOOLEAN GAP_SecRegister (tBTM_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
 **
@@ -432,7 +432,7 @@ GAP_API extern BOOLEAN GAP_SecRegister (tBTM_APPL_INFO *p_cb_info);
 ** Returns          BT_PASS (0) if successful, or a non-zero error code
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_SetPairableMode (UINT16 mode, BOOLEAN connect_only_paired);
+extern UINT16 GAP_SetPairableMode (UINT16 mode, BOOLEAN connect_only_paired);
 
 /*******************************************************************************
 **
@@ -448,8 +448,8 @@ GAP_API extern UINT16 GAP_SetPairableMode (UINT16 mode, BOOLEAN connect_only_pai
 ** Returns          tBTM_STATUS - BTM_CMD_STARTED of successfully initiated
 **
 *******************************************************************************/
-GAP_API extern UINT8 GAP_Bond (BD_ADDR bd_addr, UINT8 pin_len,
-                               UINT8 *p_pin, UINT32 trusted_mask[]);
+extern UINT8 GAP_Bond (BD_ADDR bd_addr, UINT8 pin_len,
+                       UINT8 *p_pin, UINT32 trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -461,8 +461,8 @@ GAP_API extern UINT8 GAP_Bond (BD_ADDR bd_addr, UINT8 pin_len,
 ** Returns          void
 **
 *******************************************************************************/
-GAP_API extern void GAP_PinRsp (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
-                                UINT8 *p_pin, UINT32 trusted_mask[]);
+extern void GAP_PinRsp (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
+                        UINT8 *p_pin, UINT32 trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -474,8 +474,8 @@ GAP_API extern void GAP_PinRsp (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
 ** Returns          void
 **
 *******************************************************************************/
-GAP_API extern void GAP_AuthorizeRsp (BD_ADDR bd_addr, UINT8 res,
-                                      UINT32 trusted_mask[]);
+extern void GAP_AuthorizeRsp (BD_ADDR bd_addr, UINT8 res,
+                              UINT32 trusted_mask[]);
 
 /*******************************************************************************
 **
@@ -489,7 +489,7 @@ GAP_API extern void GAP_AuthorizeRsp (BD_ADDR bd_addr, UINT8 res,
 **                  GAP_ERR_PROCESSING if any other BTM error has been returned
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_SetDeviceClass(tGAP_COD *p_cod, UINT8 cmd);
+extern UINT16 GAP_SetDeviceClass(tGAP_COD *p_cod, UINT8 cmd);
 
 /*******************************************************************************
 **
@@ -500,7 +500,7 @@ GAP_API extern UINT16 GAP_SetDeviceClass(tGAP_COD *p_cod, UINT8 cmd);
 ** Returns          BT_PASS
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ReadDeviceClass(tGAP_COD *p_cod);
+extern UINT16 GAP_ReadDeviceClass(tGAP_COD *p_cod);
 
 /*******************************************************************************
 **
@@ -512,9 +512,9 @@ GAP_API extern UINT16 GAP_ReadDeviceClass(tGAP_COD *p_cod);
 ** Returns          BT_PASS (0) if successful, or a non-zero error code
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ReadLocalDeviceInfo(  UINT8 *name, BD_ADDR *addr,
-                                                tGAP_LMP_VERSION *verinfo,
-                                                tGAP_LMP_FEATURES *features);
+extern UINT16 GAP_ReadLocalDeviceInfo(  UINT8 *name, BD_ADDR *addr,
+                                        tGAP_LMP_VERSION *verinfo,
+                                        tGAP_LMP_FEATURES *features);
 
 
 /*******************************************************************************
@@ -535,7 +535,7 @@ GAP_API extern UINT16 GAP_ReadLocalDeviceInfo(  UINT8 *name, BD_ADDR *addr,
 **                  GAP_ERR_PROCESSING if any other BTM error has been returned
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_GetRemoteDeviceName (BD_ADDR addr, tGAP_CALLBACK *callback);
+extern UINT16 GAP_GetRemoteDeviceName (BD_ADDR addr, tGAP_CALLBACK *callback);
 
 /*** Functions for L2CAP connection interface ***/
 /*******************************************************************************
@@ -547,9 +547,9 @@ GAP_API extern UINT16 GAP_GetRemoteDeviceName (BD_ADDR addr, tGAP_CALLBACK *call
 ** Returns          handle of the connection if successful, else GAP_INVALID_HANDLE
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
-                                    BD_ADDR p_rem_bda, UINT16 psm, tL2CAP_CFG_INFO *p_cfg,
-                                    UINT16 security, UINT8 chan_mode_mask, tGAP_CONN_CALLBACK *p_cb);
+extern UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
+                            BD_ADDR p_rem_bda, UINT16 psm, tL2CAP_CFG_INFO *p_cfg,
+                            UINT16 security, UINT8 chan_mode_mask, tGAP_CONN_CALLBACK *p_cb);
 
 /*******************************************************************************
 **
@@ -561,7 +561,7 @@ GAP_API extern UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnClose (UINT16 gap_handle);
+extern UINT16 GAP_ConnClose (UINT16 gap_handle);
 
 /*******************************************************************************
 **
@@ -576,8 +576,8 @@ GAP_API extern UINT16 GAP_ConnClose (UINT16 gap_handle);
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data,
-                                        UINT16 max_len, UINT16 *p_len);
+extern UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data,
+                                UINT16 max_len, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -590,7 +590,7 @@ GAP_API extern UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data,
 **
 **
 *******************************************************************************/
-GAP_API extern int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count);
+extern int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count);
 
 /*******************************************************************************
 **
@@ -605,7 +605,7 @@ GAP_API extern int GAP_GetRxQueueCnt (UINT16 handle, UINT32 *p_rx_queue_count);
 **                  GAP_NO_DATA_AVAIL   - no data available
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
+extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
 
 /*******************************************************************************
 **
@@ -619,7 +619,7 @@ GAP_API extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
 **                  GAP_ERR_BAD_STATE       - connection not established
 **                  GAP_INVALID_BUF_OFFSET  - buffer offset is invalid
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf);
+extern UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf);
 
 /*******************************************************************************
 **
@@ -635,8 +635,8 @@ GAP_API extern UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf);
 **                  GAP_CONGESTION          - system is congested
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data,
-                                         UINT16 max_len, UINT16 *p_len);
+extern UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data,
+                                 UINT16 max_len, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -648,7 +648,7 @@ GAP_API extern UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data,
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg);
+extern UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cfg);
 
 /*******************************************************************************
 **
@@ -666,7 +666,7 @@ GAP_API extern UINT16 GAP_ConnReconfig (UINT16 gap_handle, tL2CAP_CFG_INFO *p_cf
 **                  GAP_ERR_BAD_HANDLE      - invalid handle
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout);
+extern UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout);
 
 /*******************************************************************************
 **
@@ -679,7 +679,7 @@ GAP_API extern UINT16 GAP_ConnSetIdleTimeout (UINT16 gap_handle, UINT16 timeout)
 **                  GAP_ERR_BAD_HANDLE  - invalid handle
 **
 *******************************************************************************/
-GAP_API extern UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle);
+extern UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle);
 
 /*******************************************************************************
 **
@@ -690,7 +690,7 @@ GAP_API extern UINT8 *GAP_ConnGetRemoteAddr (UINT16 gap_handle);
 ** Returns          UINT16 - maximum size buffer that can be transmitted to the peer
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle);
+extern UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle);
 
 /*******************************************************************************
 **
@@ -704,7 +704,7 @@ GAP_API extern UINT16 GAP_ConnGetRemMtuSize (UINT16 gap_handle);
 **                  0, if error
 **
 *******************************************************************************/
-GAP_API extern UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle);
+extern UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle);
 
 /*******************************************************************************
 **
@@ -716,7 +716,7 @@ GAP_API extern UINT16 GAP_ConnGetL2CAPCid (UINT16 gap_handle);
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-GAP_API extern UINT8 GAP_SetTraceLevel (UINT8 new_level);
+extern UINT8 GAP_SetTraceLevel (UINT8 new_level);
 
 /*******************************************************************************
 **
@@ -729,7 +729,7 @@ GAP_API extern UINT8 GAP_SetTraceLevel (UINT8 new_level);
 ** Returns          Nothing
 **
 *******************************************************************************/
-GAP_API extern void GAP_Init(void);
+extern void GAP_Init(void);
 
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
@@ -741,7 +741,7 @@ GAP_API extern void GAP_Init(void);
 ** Returns          Nothing
 **
 *******************************************************************************/
-GAP_API extern void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
+extern void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value);
 
 
 /*******************************************************************************
@@ -754,7 +754,7 @@ GAP_API extern void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p
 ** Returns          TRUE if read started, else FALSE if GAP is busy
 **
 *******************************************************************************/
-GAP_API extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
+extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 
 /*******************************************************************************
 **
@@ -765,7 +765,7 @@ GAP_API extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 ** Returns          TRUE if request accepted
 **
 *******************************************************************************/
-GAP_API extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback);
+extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback);
 
 
 /*******************************************************************************
@@ -777,7 +777,7 @@ GAP_API extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NA
 ** Returns          TRUE if request accepted
 **
 *******************************************************************************/
-GAP_API extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
+extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 
 /*******************************************************************************
 **
@@ -789,9 +789,9 @@ GAP_API extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 ** Returns          TRUE if read started, else FALSE if GAP is busy
 **
 *******************************************************************************/
-GAP_API extern BOOLEAN GAP_BleUpdateReconnectAddr (BD_ADDR peer_bda,
-                                                   BD_ADDR reconn_addr,
-                                                   tGAP_BLE_RECONN_ADDR_CBACK *p_cback);
+extern BOOLEAN GAP_BleUpdateReconnectAddr (BD_ADDR peer_bda,
+                                           BD_ADDR reconn_addr,
+                                           tGAP_BLE_RECONN_ADDR_CBACK *p_cback);
 
 #endif
 
@@ -800,4 +800,3 @@ GAP_API extern BOOLEAN GAP_BleUpdateReconnectAddr (BD_ADDR peer_bda,
 #endif
 
 #endif  /* GAP_API_H */
-

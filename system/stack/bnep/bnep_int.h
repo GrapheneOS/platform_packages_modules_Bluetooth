@@ -195,9 +195,9 @@ extern "C" {
 /* Global BNEP data
 */
 #if BNEP_DYNAMIC_MEMORY == FALSE
-BNEP_API extern tBNEP_CB  bnep_cb;
+extern tBNEP_CB  bnep_cb;
 #else
-BNEP_API extern tBNEP_CB  *bnep_cb_ptr;
+extern tBNEP_CB  *bnep_cb_ptr;
 #define bnep_cb (*bnep_cb_ptr)
 #endif
 
@@ -251,4 +251,3 @@ extern void        bnep_dump_status (void);
 
 
 #endif
-

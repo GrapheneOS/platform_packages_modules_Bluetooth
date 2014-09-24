@@ -76,7 +76,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
+extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -87,8 +87,8 @@ AVDT_API extern void AVDTC_Init(tAVDTC_CTRL_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, UINT8 label,
-                                     tAVDT_SEP_INFO sep_info[], UINT8 num_seps);
+extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, UINT8 label,
+                              tAVDT_SEP_INFO sep_info[], UINT8 num_seps);
 
 /*******************************************************************************
 **
@@ -99,7 +99,7 @@ AVDT_API extern void AVDTC_DiscoverRsp(BD_ADDR bd_addr, UINT8 label,
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_cap);
+extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_cap);
 
 /*******************************************************************************
 **
@@ -110,7 +110,7 @@ AVDT_API extern void AVDTC_GetCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_GetAllCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_cap);
+extern void AVDTC_GetAllCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG *p_cap);
 
 /*******************************************************************************
 **
@@ -121,7 +121,7 @@ AVDT_API extern void AVDTC_GetAllCapRsp(BD_ADDR bd_addr, UINT8 label, tAVDT_CFG 
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_GetConfigReq(UINT8 handle);
+extern void AVDTC_GetConfigReq(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -132,7 +132,7 @@ AVDT_API extern void AVDTC_GetConfigReq(UINT8 handle);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_GetConfigRsp(UINT8 handle, UINT8 label, tAVDT_CFG *p_cfg);
+extern void AVDTC_GetConfigRsp(UINT8 handle, UINT8 label, tAVDT_CFG *p_cfg);
 
 /*******************************************************************************
 **
@@ -143,7 +143,7 @@ AVDT_API extern void AVDTC_GetConfigRsp(UINT8 handle, UINT8 label, tAVDT_CFG *p_
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_OpenReq(UINT8 handle);
+extern void AVDTC_OpenReq(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -154,7 +154,7 @@ AVDT_API extern void AVDTC_OpenReq(UINT8 handle);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_OpenRsp(UINT8 handle, UINT8 label);
+extern void AVDTC_OpenRsp(UINT8 handle, UINT8 label);
 
 /*******************************************************************************
 **
@@ -165,7 +165,7 @@ AVDT_API extern void AVDTC_OpenRsp(UINT8 handle, UINT8 label);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_StartRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 label);
+extern void AVDTC_StartRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 label);
 
 /*******************************************************************************
 **
@@ -176,7 +176,7 @@ AVDT_API extern void AVDTC_StartRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 l
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_CloseRsp(UINT8 handle, UINT8 label);
+extern void AVDTC_CloseRsp(UINT8 handle, UINT8 label);
 
 /*******************************************************************************
 **
@@ -187,7 +187,7 @@ AVDT_API extern void AVDTC_CloseRsp(UINT8 handle, UINT8 label);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_SuspendRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 label);
+extern void AVDTC_SuspendRsp(UINT8 *p_handles, UINT8 num_handles, UINT8 label);
 
 /*******************************************************************************
 **
@@ -198,7 +198,7 @@ AVDT_API extern void AVDTC_SuspendRsp(UINT8 *p_handles, UINT8 num_handles, UINT8
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_AbortReq(UINT8 handle);
+extern void AVDTC_AbortReq(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -209,7 +209,7 @@ AVDT_API extern void AVDTC_AbortReq(UINT8 handle);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_AbortRsp(UINT8 handle, UINT8 label);
+extern void AVDTC_AbortRsp(UINT8 handle, UINT8 label);
 
 /*******************************************************************************
 **
@@ -220,12 +220,11 @@ AVDT_API extern void AVDTC_AbortRsp(UINT8 handle, UINT8 label);
 ** Returns          void
 **
 *******************************************************************************/
-AVDT_API extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label,
-                             UINT8 err_code, UINT8 err_param);
+extern void AVDTC_Rej(UINT8 handle, BD_ADDR bd_addr, UINT8 cmd, UINT8 label,
+                      UINT8 err_code, UINT8 err_param);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* AVDT_CAPI_H */
-

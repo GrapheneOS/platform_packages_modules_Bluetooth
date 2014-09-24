@@ -50,7 +50,7 @@
 ** Returns         Bloolean - TRUE success
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_hl_co_get_num_of_mdep(UINT8 app_id, UINT8 *p_num_of_mdep);
+extern BOOLEAN bta_hl_co_get_num_of_mdep(UINT8 app_id, UINT8 *p_num_of_mdep);
 /*******************************************************************************
 **
 ** Function        bta_hl_co_advrtise_source_sdp
@@ -64,7 +64,7 @@ BTA_API extern BOOLEAN bta_hl_co_get_num_of_mdep(UINT8 app_id, UINT8 *p_num_of_m
 **                            information
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_hl_co_advrtise_source_sdp(UINT8 app_id);
+extern BOOLEAN bta_hl_co_advrtise_source_sdp(UINT8 app_id);
 /*******************************************************************************
 **
 ** Function        bta_hl_co_get_mdep_config
@@ -82,11 +82,11 @@ BTA_API extern BOOLEAN bta_hl_co_advrtise_source_sdp(UINT8 app_id);
 **
 ** Returns         Bloolean - TRUE success
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_hl_co_get_mdep_config(UINT8 app_id,
-                                                 UINT8 mdep_idx,
-                                                 UINT8 mdep_counter,
-                                                 tBTA_HL_MDEP_ID mdep_id,
-                                                 tBTA_HL_MDEP_CFG *p_mdep_cfg);
+extern BOOLEAN bta_hl_co_get_mdep_config(UINT8 app_id,
+                                         UINT8 mdep_idx,
+                                         UINT8 mdep_counter,
+                                         tBTA_HL_MDEP_ID mdep_id,
+                                         tBTA_HL_MDEP_CFG *p_mdep_cfg);
 
 
 /*******************************************************************************
@@ -102,8 +102,8 @@ BTA_API extern BOOLEAN bta_hl_co_get_mdep_config(UINT8 app_id,
 **
 ** Returns         Bloolean - TRUE success
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
-                                                 tBTA_HL_ECHO_CFG *p_echo_cfg);
+extern BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
+                                         tBTA_HL_ECHO_CFG *p_echo_cfg);
 
 
 /*******************************************************************************
@@ -120,7 +120,7 @@ BTA_API extern BOOLEAN bta_hl_co_get_echo_config(UINT8  app_id,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_save_mdl(UINT8 app_id, UINT8 item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg );
+extern void bta_hl_co_save_mdl(UINT8 app_id, UINT8 item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg );
 /*******************************************************************************
 **
 ** Function        bta_hl_co_delete_mdl
@@ -134,7 +134,7 @@ BTA_API extern void bta_hl_co_save_mdl(UINT8 app_id, UINT8 item_idx, tBTA_HL_MDL
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_delete_mdl(UINT8 app_id, UINT8 item_idx);
+extern void bta_hl_co_delete_mdl(UINT8 app_id, UINT8 item_idx);
 /*******************************************************************************
 **
 ** Function         bta_hl_co_get_mdl_config
@@ -151,8 +151,8 @@ BTA_API extern void bta_hl_co_delete_mdl(UINT8 app_id, UINT8 item_idx);
 **
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
-                                                  tBTA_HL_MDL_CFG *p_mdl_buf );
+extern BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
+                                          tBTA_HL_MDL_CFG *p_mdl_buf );
 
 
 /*******************************************************************************
@@ -171,8 +171,8 @@ BTA_API extern BOOLEAN bta_hl_co_load_mdl_config (UINT8 app_id, UINT8 buffer_siz
 ** Returns        Void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_get_tx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
-                                           UINT16 buf_size, UINT8 *p_buf, UINT16 evt);
+extern void bta_hl_co_get_tx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
+                                   UINT16 buf_size, UINT8 *p_buf, UINT16 evt);
 
 
 /*******************************************************************************
@@ -191,8 +191,8 @@ BTA_API extern void bta_hl_co_get_tx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_
 ** Returns        Void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
-                                           UINT16 data_size, UINT8 *p_data, UINT16 evt);
+extern void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
+                                   UINT16 data_size, UINT8 *p_data, UINT16 evt);
 /*******************************************************************************
 **
 ** Function         bta_hl_co_get_tx_data
@@ -209,8 +209,8 @@ BTA_API extern void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_
 ** Returns        Void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_get_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                                             UINT16 buf_size, UINT8 *p_buf, UINT16 evt);
+extern void bta_hl_co_get_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
+                                     UINT16 buf_size, UINT8 *p_buf, UINT16 evt);
 
 /*******************************************************************************
 **
@@ -228,7 +228,7 @@ BTA_API extern void bta_hl_co_get_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mc
 ** Returns        Void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_co_put_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
-                                             UINT16 data_size, UINT8 *p_data, UINT16 evt);
+extern void bta_hl_co_put_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
+                                     UINT16 data_size, UINT8 *p_data, UINT16 evt);
 
 #endif /* BTA_HL_CO_H */

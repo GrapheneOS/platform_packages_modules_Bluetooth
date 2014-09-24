@@ -211,64 +211,6 @@
 //------------------End added from bdroid_buildcfg.h---------------------
 
 
-
-/******************************************************************************
-**
-** Platform-Specific
-**
-******************************************************************************/
-
-/* API macros for simulator */
-
-#define BTAPI
-
-#ifndef BTE_BSE_WRAPPER
-#ifdef  BTE_SIM_APP
-#undef  BTAPI
-#define BTAPI         __declspec(dllexport)
-#endif
-#endif
-
-#define BT_API          BTAPI
-#define BTU_API         BTAPI
-#define A2D_API         BTAPI
-#define VDP_API         BTAPI
-#define AVDT_API        BTAPI
-#define AVCT_API        BTAPI
-#define AVRC_API        BTAPI
-#define BIP_API         BTAPI
-#define BNEP_API        BTAPI
-#define BPP_API         BTAPI
-#define BTM_API         BTAPI
-#define CTP_API         BTAPI
-#define DUN_API         BTAPI
-#define FTP_API         BTAPI
-#define GAP_API         BTAPI
-#define GOEP_API        BTAPI
-#define HCI_API         BTAPI
-#define HCRP_API        BTAPI
-#define HID_API         BTAPI
-#define HFP_API         BTAPI
-#define HSP2_API        BTAPI
-#define ICP_API         BTAPI
-#define L2C_API         BTAPI
-#define OBX_API         BTAPI
-#define OPP_API         BTAPI
-#define PAN_API         BTAPI
-#define RFC_API         BTAPI
-#define RPC_API         BTAPI
-#define SDP_API         BTAPI
-#define SPP_API         BTAPI
-#define TCS_API         BTAPI
-#define XML_API         BTAPI
-#define BTA_API         BTAPI
-#define SBC_API         BTAPI
-#define MCE_API         BTAPI
-#define MCA_API         BTAPI
-#define GATT_API        BTAPI
-#define SMP_API         BTAPI
-
-
 /******************************************************************************
 **
 ** GKI Buffer Pools

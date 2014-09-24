@@ -531,7 +531,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features,
+void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features,
                           tBTA_AV_CBACK *p_cback);
 
 /*******************************************************************************
@@ -544,7 +544,7 @@ BTA_API void BTA_AvEnable(tBTA_SEC sec_mask, tBTA_AV_FEAT features,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvDisable(void);
+void BTA_AvDisable(void);
 
 /*******************************************************************************
 **
@@ -559,7 +559,7 @@ BTA_API void BTA_AvDisable(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
+void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
                             UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback);
 
 /*******************************************************************************
@@ -571,7 +571,7 @@ BTA_API void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvDeregister(tBTA_AV_HNDL hndl);
+void BTA_AvDeregister(tBTA_AV_HNDL hndl);
 
 /*******************************************************************************
 **
@@ -584,7 +584,7 @@ BTA_API void BTA_AvDeregister(tBTA_AV_HNDL hndl);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle,
+void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle,
                         BOOLEAN use_rc, tBTA_SEC sec_mask, UINT16 uuid);
 
 /*******************************************************************************
@@ -596,7 +596,7 @@ BTA_API void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvClose(tBTA_AV_HNDL handle);
+void BTA_AvClose(tBTA_AV_HNDL handle);
 
 /*******************************************************************************
 **
@@ -607,7 +607,7 @@ BTA_API void BTA_AvClose(tBTA_AV_HNDL handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvDisconnect(BD_ADDR bd_addr);
+void BTA_AvDisconnect(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -629,7 +629,7 @@ void BTA_AvEnable_Sink(int enable);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvStart(void);
+void BTA_AvStart(void);
 
 /*******************************************************************************
 **
@@ -642,7 +642,7 @@ BTA_API void BTA_AvStart(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvStop(BOOLEAN suspend);
+void BTA_AvStop(BOOLEAN suspend);
 
 /*******************************************************************************
 **
@@ -657,7 +657,7 @@ BTA_API void BTA_AvStop(BOOLEAN suspend);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
+void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
                             UINT8 *p_codec_info, UINT8 num_protect, UINT8 *p_protect_info);
 
 /*******************************************************************************
@@ -670,7 +670,7 @@ BTA_API void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_i
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
+void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -684,7 +684,7 @@ BTA_API void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data,
+void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data,
                               UINT16 len);
 
 /*******************************************************************************
@@ -697,7 +697,7 @@ BTA_API void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
+void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
                              tBTA_AV_STATE key_state);
 
 /*******************************************************************************
@@ -711,7 +711,7 @@ BTA_API void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code,
+void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code,
                              UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
@@ -726,7 +726,7 @@ BTA_API void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
+void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
                              UINT8 *p_data, UINT16 len, UINT32 company_id);
 
 
@@ -740,7 +740,7 @@ BTA_API void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvOpenRc(tBTA_AV_HNDL handle);
+void BTA_AvOpenRc(tBTA_AV_HNDL handle);
 
 /*******************************************************************************
 **
@@ -751,7 +751,7 @@ BTA_API void BTA_AvOpenRc(tBTA_AV_HNDL handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvCloseRc(UINT8 rc_handle);
+void BTA_AvCloseRc(UINT8 rc_handle);
 
 /*******************************************************************************
 **
@@ -765,7 +765,7 @@ BTA_API void BTA_AvCloseRc(UINT8 rc_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
+void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
                                BT_HDR *p_pkt);
 
 /*******************************************************************************
@@ -782,7 +782,7 @@ BTA_API void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt);
+void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt);
 
 #ifdef __cplusplus
 }

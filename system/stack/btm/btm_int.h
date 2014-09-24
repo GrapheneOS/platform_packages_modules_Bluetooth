@@ -938,9 +938,9 @@ extern "C"
 #endif
 
 #if BTM_DYNAMIC_MEMORY == FALSE
-BTM_API extern tBTM_CB  btm_cb;
+extern tBTM_CB  btm_cb;
 #else
-BTM_API extern tBTM_CB *btm_cb_ptr;
+extern tBTM_CB *btm_cb_ptr;
 #define btm_cb (*btm_cb_ptr)
 #endif
 
@@ -1002,8 +1002,8 @@ extern tBTM_STATUS  btm_set_packet_types (tACL_CONN *p, UINT16 pkt_types);
 extern void         btm_process_clk_off_comp_evt (UINT16 hci_handle, UINT16 clock_offset);
 extern void         btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role);
 extern void         btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable);
-BTM_API extern UINT16       btm_get_acl_disc_reason_code (void);
-BTM_API extern tBTM_STATUS  btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport);
+extern UINT16       btm_get_acl_disc_reason_code (void);
+extern tBTM_STATUS  btm_remove_acl (BD_ADDR bd_addr, tBT_TRANSPORT transport);
 extern void         btm_read_remote_features_complete (UINT8 *p);
 extern void         btm_read_remote_ext_features_complete (UINT8 *p);
 extern void         btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle);
@@ -1180,4 +1180,3 @@ extern void  btm_sec_clr_temp_auth_service (BD_ADDR bda);
 #endif
 
 #endif
-

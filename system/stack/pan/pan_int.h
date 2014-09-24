@@ -101,9 +101,9 @@ extern "C" {
 /* Global PAN data
 */
 #if PAN_DYNAMIC_MEMORY == FALSE
-PAN_API extern tPAN_CB  pan_cb;
+extern tPAN_CB  pan_cb;
 #else
-PAN_API extern tPAN_CB  *pan_cb_ptr;
+extern tPAN_CB  *pan_cb_ptr;
 #define pan_cb (*pan_cb_ptr)
 #endif
 
@@ -155,4 +155,3 @@ extern void pan_dump_status (void);
 #endif
 
 #endif
-

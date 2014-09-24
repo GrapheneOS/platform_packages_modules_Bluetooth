@@ -215,7 +215,7 @@ extern "C"
 ** (scn * 2 + 1) dlci.
 **
 *******************************************************************************/
-RFC_API extern int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn,
+extern int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn,
                                             BOOLEAN is_server, UINT16 mtu,
                                             BD_ADDR bd_addr, UINT16 *p_handle,
                                             tPORT_CALLBACK *p_mgmt_cb);
@@ -230,7 +230,7 @@ RFC_API extern int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn,
 ** Parameters:      handle     - Handle of the port returned in the Open
 **
 *******************************************************************************/
-RFC_API extern int RFCOMM_RemoveConnection (UINT16 handle);
+extern int RFCOMM_RemoveConnection (UINT16 handle);
 
 
 /*******************************************************************************
@@ -242,7 +242,7 @@ RFC_API extern int RFCOMM_RemoveConnection (UINT16 handle);
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-RFC_API extern int RFCOMM_RemoveServer (UINT16 handle);
+extern int RFCOMM_RemoveServer (UINT16 handle);
 
 
 /*******************************************************************************
@@ -257,8 +257,8 @@ RFC_API extern int RFCOMM_RemoveServer (UINT16 handle);
 **                                 specified in the mask occurs.
 **
 *******************************************************************************/
-RFC_API extern int PORT_SetEventCallback (UINT16 port_handle,
-                                          tPORT_CALLBACK *p_port_cb);
+extern int PORT_SetEventCallback (UINT16 port_handle,
+                                  tPORT_CALLBACK *p_port_cb);
 
 /*******************************************************************************
 **
@@ -283,10 +283,10 @@ int PORT_ClearKeepHandleFlag (UINT16 port_handle);
 **                                 packet is received.
 **
 *******************************************************************************/
-RFC_API extern int PORT_SetDataCallback (UINT16 port_handle,
-                                         tPORT_DATA_CALLBACK *p_cb);
+extern int PORT_SetDataCallback (UINT16 port_handle,
+                                 tPORT_DATA_CALLBACK *p_cb);
 
-RFC_API extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb);
+extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_cb);
 /*******************************************************************************
 **
 ** Function         PORT_SetEventMask
@@ -298,7 +298,7 @@ RFC_API extern int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CAL
 **                           of zero disables all events.
 **
 *******************************************************************************/
-RFC_API extern int PORT_SetEventMask (UINT16 port_handle, UINT32 mask);
+extern int PORT_SetEventMask (UINT16 port_handle, UINT32 mask);
 
 
 /*******************************************************************************
@@ -313,8 +313,8 @@ RFC_API extern int PORT_SetEventMask (UINT16 port_handle, UINT32 mask);
 **                  p_lcid     - OUT L2CAP's LCID
 **
 *******************************************************************************/
-RFC_API extern int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr,
-                                         UINT16 *p_lcid);
+extern int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr,
+                                 UINT16 *p_lcid);
 
 /*******************************************************************************
 **
@@ -327,7 +327,7 @@ RFC_API extern int PORT_CheckConnection (UINT16 handle, BD_ADDR bd_addr,
 **                  bd_addr    - bd_addr of the peer
 **
 *******************************************************************************/
-RFC_API extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
+extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -341,7 +341,7 @@ RFC_API extern BOOLEAN PORT_IsOpening (BD_ADDR bd_addr);
 **                               configuration information for the connection.
 **
 *******************************************************************************/
-RFC_API extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
+extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
 
 /*******************************************************************************
 **
@@ -353,7 +353,7 @@ RFC_API extern int PORT_SetState (UINT16 handle, tPORT_STATE *p_settings);
 **                  p_rx_queue_count - Pointer to return queue count in.
 **
 *******************************************************************************/
-RFC_API extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
+extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
 
 /*******************************************************************************
 **
@@ -367,7 +367,7 @@ RFC_API extern int PORT_GetRxQueueCnt (UINT16 handle, UINT16 *p_rx_queue_count);
 **                               configuration information is returned.
 **
 *******************************************************************************/
-RFC_API extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
+extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
 
 
 /*******************************************************************************
@@ -391,7 +391,7 @@ RFC_API extern int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings);
 #define PORT_CLR_DCD            0x08        /* DCE only */
 #define PORT_BREAK              0x09        /* Break event */
 
-RFC_API extern int PORT_Control (UINT16 handle, UINT8 signal);
+extern int PORT_Control (UINT16 handle, UINT8 signal);
 
 
 /*******************************************************************************
@@ -406,7 +406,7 @@ RFC_API extern int PORT_Control (UINT16 handle, UINT8 signal);
 **                  enable     - enables data flow
 **
 *******************************************************************************/
-RFC_API extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
+extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
 
 
 /*******************************************************************************
@@ -436,7 +436,7 @@ RFC_API extern int PORT_FlowControl (UINT16 handle, BOOLEAN enable);
 #define PORT_PPP_DEFAULT_SIGNAL_STATE   (PORT_DTRDSR_ON | PORT_CTSRTS_ON | PORT_DCD_ON)
 #define PORT_DUN_DEFAULT_SIGNAL_STATE   (PORT_DTRDSR_ON | PORT_CTSRTS_ON)
 
-RFC_API extern int PORT_GetModemStatus (UINT16 handle, UINT8 *p_control_signal);
+extern int PORT_GetModemStatus (UINT16 handle, UINT8 *p_control_signal);
 
 
 /*******************************************************************************
@@ -475,8 +475,8 @@ typedef struct
 } tPORT_STATUS;
 
 
-RFC_API extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
-                                    tPORT_STATUS *p_status);
+extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
+                            tPORT_STATUS *p_status);
 
 
 /*******************************************************************************
@@ -489,7 +489,7 @@ RFC_API extern int PORT_ClearError (UINT16 handle, UINT16 *p_errors,
 **                  errors     - receive error codes
 **
 *******************************************************************************/
-RFC_API extern int PORT_SendError (UINT16 handle, UINT8 errors);
+extern int PORT_SendError (UINT16 handle, UINT8 errors);
 
 
 /*******************************************************************************
@@ -503,7 +503,7 @@ RFC_API extern int PORT_SendError (UINT16 handle, UINT8 errors);
 **                               connection status
 **
 *******************************************************************************/
-RFC_API extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
+extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
 
 
 /*******************************************************************************
@@ -520,7 +520,7 @@ RFC_API extern int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status);
 #define PORT_PURGE_TXCLEAR  0x01
 #define PORT_PURGE_RXCLEAR  0x02
 
-RFC_API extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
+extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
 
 
 /*******************************************************************************
@@ -538,7 +538,7 @@ RFC_API extern int PORT_Purge (UINT16 handle, UINT8 purge_flags);
 **                  pp_buf      - pointer to address of buffer with data,
 **
 *******************************************************************************/
-RFC_API extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
+extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
 
 
 /*******************************************************************************
@@ -555,8 +555,8 @@ RFC_API extern int PORT_Read (UINT16 handle, BT_HDR **pp_buf);
 **                  p_len       - Byte count received
 **
 *******************************************************************************/
-RFC_API extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
-                                  UINT16 *p_len);
+extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
+                          UINT16 *p_len);
 
 
 /*******************************************************************************
@@ -570,7 +570,7 @@ RFC_API extern int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len,
 **                  p_buf       - pointer to the buffer with data,
 **
 *******************************************************************************/
-RFC_API extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
+extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
 
 
 /*******************************************************************************
@@ -586,8 +586,8 @@ RFC_API extern int PORT_Write (UINT16 handle, BT_HDR *p_buf);
 **                  p_len       - Bytes written
 **
 *******************************************************************************/
-RFC_API extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
-                                   UINT16 *p_len);
+extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
+                           UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -599,7 +599,7 @@ RFC_API extern int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len,
 ** Parameters:      handle     - Handle returned in the RFCOMM_CreateConnection
 **
 *******************************************************************************/
-RFC_API extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
+extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
 
 /*******************************************************************************
 **
@@ -612,7 +612,7 @@ RFC_API extern int PORT_WriteDataCO (UINT16 handle, int* p_len);
 **                  max_len     - Byte count requested
 **
 *******************************************************************************/
-RFC_API extern int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len);
+extern int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len);
 
 
 /*******************************************************************************
@@ -622,7 +622,7 @@ RFC_API extern int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len);
 ** Description      This function is called to initialize RFCOMM layer
 **
 *******************************************************************************/
-RFC_API extern void RFCOMM_Init (void);
+extern void RFCOMM_Init (void);
 
 
 /*******************************************************************************
@@ -635,7 +635,7 @@ RFC_API extern void RFCOMM_Init (void);
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-RFC_API extern UINT8 PORT_SetTraceLevel (UINT8 new_level);
+extern UINT8 PORT_SetTraceLevel (UINT8 new_level);
 
 
 #ifdef __cplusplus

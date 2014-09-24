@@ -236,7 +236,7 @@ extern "C"
 ** Returns          none
 **
 *******************************************************************************/
-PAN_API extern void PAN_Register (tPAN_REGISTER *p_register);
+extern void PAN_Register (tPAN_REGISTER *p_register);
 
 
 /*******************************************************************************
@@ -251,7 +251,7 @@ PAN_API extern void PAN_Register (tPAN_REGISTER *p_register);
 ** Returns          none
 **
 *******************************************************************************/
-PAN_API extern void PAN_Deregister (void);
+extern void PAN_Deregister (void);
 
 /*******************************************************************************
 **
@@ -277,11 +277,11 @@ PAN_API extern void PAN_Deregister (void);
 **                  PAN_FAILURE     - if the role is not valid
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_SetRole (UINT8 role,
-                                       UINT8 *sec_mask,
-                                       char *p_user_name,
-                                       char *p_gn_name,
-                                       char *p_nap_name);
+extern tPAN_RESULT PAN_SetRole (UINT8 role,
+                                UINT8 *sec_mask,
+                                char *p_user_name,
+                                char *p_gn_name,
+                                char *p_nap_name);
 
 /*******************************************************************************
 **
@@ -306,7 +306,7 @@ PAN_API extern tPAN_RESULT PAN_SetRole (UINT8 role,
 **                                           allowed at that point of time
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16 *handle);
+extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16 *handle);
 
 /*******************************************************************************
 **
@@ -321,7 +321,7 @@ PAN_API extern tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 d
 **                                           there is an error in disconnecting
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
+extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
 
 /*******************************************************************************
 **
@@ -346,13 +346,13 @@ PAN_API extern tPAN_RESULT PAN_Disconnect (UINT16 handle);
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_Write (UINT16 handle,
-                                     BD_ADDR dst,
-                                     BD_ADDR src,
-                                     UINT16 protocol,
-                                     UINT8 *p_data,
-                                     UINT16 len,
-                                     BOOLEAN ext);
+extern tPAN_RESULT PAN_Write (UINT16 handle,
+                              BD_ADDR dst,
+                              BD_ADDR src,
+                              UINT16 protocol,
+                              UINT8 *p_data,
+                              UINT16 len,
+                              BOOLEAN ext);
 
 /*******************************************************************************
 **
@@ -376,12 +376,12 @@ PAN_API extern tPAN_RESULT PAN_Write (UINT16 handle,
 **                                           there is an error in sending data
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
-                                        BD_ADDR dst,
-                                        BD_ADDR src,
-                                        UINT16 protocol,
-                                        BT_HDR *p_buf,
-                                        BOOLEAN ext);
+extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
+                                 BD_ADDR dst,
+                                 BD_ADDR src,
+                                 UINT16 protocol,
+                                 BT_HDR *p_buf,
+                                 BOOLEAN ext);
 
 /*******************************************************************************
 **
@@ -399,10 +399,10 @@ PAN_API extern tPAN_RESULT PAN_WriteBuf (UINT16 handle,
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-PAN_API extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
-                                                  UINT16 num_filters,
-                                                  UINT16 *p_start_array,
-                                                  UINT16 *p_end_array);
+extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
+                                           UINT16 num_filters,
+                                           UINT16 *p_start_array,
+                                           UINT16 *p_end_array);
 
 /*******************************************************************************
 **
@@ -422,10 +422,10 @@ PAN_API extern tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
 **                  PAN_FAILURE        if connection not found or error in setting
 **
 *******************************************************************************/
-PAN_API extern tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
-                                                    UINT16 num_mcast_filters,
-                                                    UINT8 *p_start_array,
-                                                    UINT8 *p_end_array);
+extern tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
+                                             UINT16 num_mcast_filters,
+                                             UINT8 *p_start_array,
+                                             UINT8 *p_end_array);
 
 /*******************************************************************************
 **
@@ -437,7 +437,7 @@ PAN_API extern tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-PAN_API extern UINT8 PAN_SetTraceLevel (UINT8 new_level);
+extern UINT8 PAN_SetTraceLevel (UINT8 new_level);
 
 /*******************************************************************************
 **
@@ -450,7 +450,7 @@ PAN_API extern UINT8 PAN_SetTraceLevel (UINT8 new_level);
 ** Returns          void
 **
 *******************************************************************************/
-PAN_API extern void PAN_Init (void);
+extern void PAN_Init (void);
 
 #ifdef __cplusplus
 }

@@ -101,7 +101,7 @@ extern "C"
 **
 ** Returns          nothing.
 ******************************************************************************/
-A2D_API extern void A2D_SbcChkFrInit(UINT8 *p_pkt);
+extern void A2D_SbcChkFrInit(UINT8 *p_pkt);
 
 /******************************************************************************
 **
@@ -111,7 +111,7 @@ A2D_API extern void A2D_SbcChkFrInit(UINT8 *p_pkt);
 **
 ** Returns          nothing.
 ******************************************************************************/
-A2D_API extern void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len);
+extern void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len);
 
 /******************************************************************************
 **
@@ -131,8 +131,8 @@ A2D_API extern void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len);
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-A2D_API extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
-                                          UINT8 *p_result);
+extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
+                                  UINT8 *p_result);
 
 /******************************************************************************
 **
@@ -152,8 +152,8 @@ A2D_API extern tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-A2D_API extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info,
-                                           BOOLEAN for_caps);
+extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info,
+                                   BOOLEAN for_caps);
 
 /******************************************************************************
 **
@@ -177,8 +177,8 @@ A2D_API extern tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info,
 **
 ** Returns          void.
 ******************************************************************************/
-A2D_API extern void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
-                                     BOOLEAN last, UINT8 num);
+extern void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
+                             BOOLEAN last, UINT8 num);
 
 /******************************************************************************
 **
@@ -202,9 +202,9 @@ A2D_API extern void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
 **
 ** Returns          void.
 ******************************************************************************/
-A2D_API extern void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag,
-                                      BOOLEAN *p_start, BOOLEAN *p_last,
-                                      UINT8 *p_num);
+extern void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag,
+                              BOOLEAN *p_start, BOOLEAN *p_last,
+                              UINT8 *p_num);
 #ifdef __cplusplus
 }
 #endif

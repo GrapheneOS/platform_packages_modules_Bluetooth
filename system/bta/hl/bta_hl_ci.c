@@ -44,9 +44,9 @@
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
-                                            tBTA_HL_STATUS status,
-                                            UINT16 evt )
+extern void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
+                                    tBTA_HL_STATUS status,
+                                    UINT16 evt )
 {
     tBTA_HL_CI_GET_PUT_DATA  *p_evt;
 
@@ -79,9 +79,9 @@ BTA_API extern void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
-                                            tBTA_HL_STATUS status,
-                                            UINT16 evt )
+extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
+                                    tBTA_HL_STATUS status,
+                                    UINT16 evt )
 {
     tBTA_HL_CI_GET_PUT_DATA  *p_evt;
 #if  (BTA_HL_DEBUG == TRUE)
@@ -114,9 +114,9 @@ BTA_API extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
-                                              tBTA_HL_STATUS status,
-                                              UINT16 evt )
+extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
+                                      tBTA_HL_STATUS status,
+                                      UINT16 evt )
 {
     tBTA_HL_CI_ECHO_DATA  *p_evt;
 
@@ -149,9 +149,9 @@ BTA_API extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
-                                              tBTA_HL_STATUS status,
-                                              UINT16 evt )
+extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
+                                      tBTA_HL_STATUS status,
+                                      UINT16 evt )
 {
     tBTA_HL_CI_ECHO_DATA  *p_evt;
 
@@ -168,4 +168,3 @@ BTA_API extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
         bta_sys_sendmsg(p_evt);
     }
 }
-

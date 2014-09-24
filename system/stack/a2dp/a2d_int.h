@@ -67,14 +67,14 @@ extern "C"
 ** Main Control Block
 *******************************************************************************/
 #if A2D_DYNAMIC_MEMORY == FALSE
-A2D_API extern tA2D_CB  a2d_cb;
+extern tA2D_CB  a2d_cb;
 #else
-A2D_API extern tA2D_CB *a2d_cb_ptr;
+extern tA2D_CB *a2d_cb_ptr;
 #define a2d_cb (*a2d_cb_ptr)
 #endif
 
 /* Used only for conformance testing */
-A2D_API extern void a2d_set_avdt_sdp_ver (UINT16 avdt_sdp_ver);
+extern void a2d_set_avdt_sdp_ver (UINT16 avdt_sdp_ver);
 
 #ifdef __cplusplus
 }

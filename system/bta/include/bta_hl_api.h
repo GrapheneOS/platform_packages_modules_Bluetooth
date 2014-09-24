@@ -650,7 +650,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlEnable(tBTA_HL_CTRL_CBACK *p_ctrl_cback);
+extern void BTA_HlEnable(tBTA_HL_CTRL_CBACK *p_ctrl_cback);
 /*******************************************************************************
 **
 ** Function         BTA_HlDisable
@@ -660,7 +660,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDisable(void);
+extern void BTA_HlDisable(void);
 
 /*******************************************************************************
 **
@@ -676,9 +676,9 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlUpdate(UINT8  app_id,
-                    tBTA_HL_REG_PARAM *p_reg_param, BOOLEAN is_register,
-                    tBTA_HL_CBACK *p_cback);
+extern void BTA_HlUpdate(UINT8  app_id,
+                         tBTA_HL_REG_PARAM *p_reg_param, BOOLEAN is_register,
+                         tBTA_HL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -695,9 +695,9 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlRegister(UINT8  app_id,
-                                       tBTA_HL_REG_PARAM *p_reg_param,
-                                       tBTA_HL_CBACK *p_cback);
+extern void BTA_HlRegister(UINT8  app_id,
+                           tBTA_HL_REG_PARAM *p_reg_param,
+                           tBTA_HL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -710,7 +710,7 @@ extern "C"
 ** Returns         void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle);
+extern void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle);
 
 /*******************************************************************************
 **
@@ -730,8 +730,8 @@ extern "C"
 **                  Note: If the control PSM value is zero then the first HDP
 **                        instance is used for the control channel setup
 *******************************************************************************/
-    BTA_API extern void BTA_HlCchOpen(UINT8 app_id, tBTA_HL_APP_HANDLE app_handle,
-                                      tBTA_HL_CCH_OPEN_PARAM *p_open_param);
+extern void BTA_HlCchOpen(UINT8 app_id, tBTA_HL_APP_HANDLE app_handle,
+                          tBTA_HL_CCH_OPEN_PARAM *p_open_param);
 
 /*******************************************************************************
 **
@@ -745,7 +745,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern  void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle);
+extern  void BTA_HlCchClose(tBTA_HL_MCL_HANDLE mcl_handle);
 
 /*******************************************************************************
 **
@@ -759,8 +759,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern  void BTA_HlDchOpen(tBTA_HL_MCL_HANDLE mcl_handle,
-                                       tBTA_HL_DCH_OPEN_PARAM *p_open_param);
+extern  void BTA_HlDchOpen(tBTA_HL_MCL_HANDLE mcl_handle,
+                           tBTA_HL_DCH_OPEN_PARAM *p_open_param);
 /*******************************************************************************
 **
 ** Function         BTA_HlDchReconnect
@@ -773,8 +773,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDchReconnect(tBTA_HL_MCL_HANDLE mcl_handle,
-                                            tBTA_HL_DCH_RECONNECT_PARAM *p_recon_param);
+extern void BTA_HlDchReconnect(tBTA_HL_MCL_HANDLE mcl_handle,
+                               tBTA_HL_DCH_RECONNECT_PARAM *p_recon_param);
 /*******************************************************************************
 **
 ** Function         BTA_HlDchClose
@@ -786,7 +786,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle);
+extern void BTA_HlDchClose(tBTA_HL_MDL_HANDLE mdl_handle);
 
 /*******************************************************************************
 **
@@ -801,7 +801,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle);
+extern void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle);
 
 /*******************************************************************************
 **
@@ -815,8 +815,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
-                                       UINT16           pkt_size);
+extern void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
+                           UINT16           pkt_size);
 
 /*******************************************************************************
 **
@@ -834,8 +834,8 @@ extern "C"
 **                        not other requests
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
-                                        tBTA_HL_MDL_ID mdl_id );
+extern void BTA_HlDeleteMdl(tBTA_HL_MCL_HANDLE mcl_handle,
+                            tBTA_HL_MDL_ID mdl_id );
 
 /*******************************************************************************
 **
@@ -849,8 +849,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
-                                           tBTA_HL_DCH_ECHO_TEST_PARAM *p_echo_test_param);
+extern void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
+                               tBTA_HL_DCH_ECHO_TEST_PARAM *p_echo_test_param);
 
 /*******************************************************************************
 **
@@ -865,8 +865,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern  void BTA_HlSdpQuery(UINT8  app_id,tBTA_HL_APP_HANDLE app_handle,
-                                        BD_ADDR bd_addr);
+extern  void BTA_HlSdpQuery(UINT8  app_id,tBTA_HL_APP_HANDLE app_handle,
+                            BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -884,8 +884,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_HlDchCreateRsp(tBTA_HL_MCL_HANDLE mcl_handle,
-                                           tBTA_HL_DCH_CREATE_RSP_PARAM *p_rsp_param);
+extern void BTA_HlDchCreateRsp(tBTA_HL_MCL_HANDLE mcl_handle,
+                               tBTA_HL_DCH_CREATE_RSP_PARAM *p_rsp_param);
 
 
 
@@ -895,41 +895,3 @@ extern "C"
 #endif
 
 #endif /* BTA_HL_API_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

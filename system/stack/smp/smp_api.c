@@ -82,7 +82,7 @@ void SMP_Init(void)
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-SMP_API extern UINT8 SMP_SetTraceLevel (UINT8 new_level)
+extern UINT8 SMP_SetTraceLevel (UINT8 new_level)
 {
     if (new_level != 0xFF)
         smp_cb.trace_level = new_level;
@@ -338,5 +338,3 @@ BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
     return status;
 }
 #endif /* SMP_INCLUDED */
-
-

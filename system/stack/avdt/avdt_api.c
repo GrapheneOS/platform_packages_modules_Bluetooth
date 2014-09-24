@@ -1164,8 +1164,8 @@ UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr)
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
-                                     UINT32 time_stamp, UINT8 m_pt, UINT8 marker)
+extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
+                                UINT32 time_stamp, UINT8 m_pt, UINT8 marker)
 {
 
     tAVDT_SCB       *p_scb;
@@ -1250,7 +1250,7 @@ AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 dat
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len)
+extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len)
 {
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_SUCCESS;
@@ -1426,4 +1426,3 @@ UINT8 AVDT_SetTraceLevel (UINT8 new_level)
 
     return (avdt_cb.trace_level);
 }
-

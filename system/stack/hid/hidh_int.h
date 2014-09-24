@@ -80,9 +80,9 @@ extern "C"
 ** Main Control Block
 *******************************************************************************/
 #if HID_DYNAMIC_MEMORY == FALSE
-HID_API extern tHID_HOST_CTB  hh_cb;
+extern tHID_HOST_CTB  hh_cb;
 #else
-HID_API extern tHID_HOST_CTB *hidh_cb_ptr;
+extern tHID_HOST_CTB *hidh_cb_ptr;
 #define hh_cb (*hidh_cb_ptr)
 #endif
 
@@ -91,4 +91,3 @@ HID_API extern tHID_HOST_CTB *hidh_cb_ptr;
 #endif
 
 #endif
-

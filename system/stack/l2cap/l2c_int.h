@@ -560,9 +560,9 @@ extern "C" {
 ************************************
 */
 #if (!defined L2C_DYNAMIC_MEMORY) || (L2C_DYNAMIC_MEMORY == FALSE)
-L2C_API extern tL2C_CB  l2cb;
+extern tL2C_CB  l2cb;
 #else
-L2C_API extern tL2C_CB *l2c_cb_ptr;
+extern tL2C_CB *l2c_cb_ptr;
 #define l2cb (*l2c_cb_ptr)
 #endif
 
@@ -719,7 +719,7 @@ extern BOOLEAN  l2c_link_check_power_mode ( tL2C_LCB *p_lcb );
 
 #if L2CAP_CONFORMANCE_TESTING == TRUE
 /* Used only for conformance testing */
-L2C_API extern void l2cu_set_info_rsp_mask (UINT32 mask);
+extern void l2cu_set_info_rsp_mask (UINT32 mask);
 #endif
 
 /* Functions provided by l2c_csm.c
@@ -727,7 +727,7 @@ L2C_API extern void l2cu_set_info_rsp_mask (UINT32 mask);
 */
 extern void l2c_csm_execute (tL2C_CCB *p_ccb, UINT16 event, void *p_data);
 
-L2C_API extern void     l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
+extern void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 
 
 /* Functions provided by l2c_fcr.c

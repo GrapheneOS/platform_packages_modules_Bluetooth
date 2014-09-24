@@ -480,7 +480,7 @@ extern "C"
 ** Returns      void.
 **
 *******************************************************************************/
-OBX_API extern void OBX_Init(void);
+extern void OBX_Init(void);
 
 /*******************************************************************************
 **
@@ -503,7 +503,7 @@ OBX_API extern void OBX_Init(void);
 **                  the input parameter is 0xff.
 **
 *******************************************************************************/
-OBX_API extern UINT8 OBX_SetTraceLevel (UINT8 level);
+extern UINT8 OBX_SetTraceLevel (UINT8 level);
 
 /*******************************************************************************
 ** Function     OBX_HandleToMtu
@@ -513,7 +513,7 @@ OBX_API extern UINT8 OBX_SetTraceLevel (UINT8 level);
 ** Returns      MTU.
 **
 *******************************************************************************/
-OBX_API extern UINT16 OBX_HandleToMtu(tOBX_HANDLE handle);
+extern UINT16 OBX_HandleToMtu(tOBX_HANDLE handle);
 
 /* Server API's: */
 /*******************************************************************************
@@ -526,7 +526,7 @@ OBX_API extern UINT16 OBX_HandleToMtu(tOBX_HANDLE handle);
 **              OBX_NO_RESOURCES, if OBX does not have resources.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_StartServer(tOBX_StartParams *p_params, tOBX_HANDLE *p_handle);
+extern tOBX_STATUS OBX_StartServer(tOBX_StartParams *p_params, tOBX_HANDLE *p_handle);
 
 /*******************************************************************************
 **
@@ -539,7 +539,7 @@ OBX_API extern tOBX_STATUS OBX_StartServer(tOBX_StartParams *p_params, tOBX_HAND
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_StopServer(tOBX_HANDLE handle);
+extern tOBX_STATUS OBX_StopServer(tOBX_HANDLE handle);
 
 /*******************************************************************************
 **
@@ -552,8 +552,8 @@ OBX_API extern tOBX_STATUS OBX_StopServer(tOBX_HANDLE handle);
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_AddSuspendedSession(tOBX_HANDLE shandle, BD_ADDR peer_addr, UINT8 *p_sess_info,
-                                                   UINT32 timeout, UINT8 ssn, UINT32 offset);
+extern tOBX_STATUS OBX_AddSuspendedSession(tOBX_HANDLE shandle, BD_ADDR peer_addr, UINT8 *p_sess_info,
+                                           UINT32 timeout, UINT8 ssn, UINT32 offset);
 
 /*******************************************************************************
 **
@@ -566,7 +566,7 @@ OBX_API extern tOBX_STATUS OBX_AddSuspendedSession(tOBX_HANDLE shandle, BD_ADDR 
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_ConnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_ConnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -579,8 +579,8 @@ OBX_API extern tOBX_STATUS OBX_ConnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, B
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_SessionRsp(tOBX_HANDLE shandle, UINT8 rsp_code,
-                                          UINT8 ssn, UINT32 offset, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_SessionRsp(tOBX_HANDLE shandle, UINT8 rsp_code,
+                                  UINT8 ssn, UINT32 offset, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -593,7 +593,7 @@ OBX_API extern tOBX_STATUS OBX_SessionRsp(tOBX_HANDLE shandle, UINT8 rsp_code,
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_SetPathRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_SetPathRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -606,7 +606,7 @@ OBX_API extern tOBX_STATUS OBX_SetPathRsp(tOBX_HANDLE shandle, UINT8 rsp_code, B
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_PutRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_PutRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -619,7 +619,7 @@ OBX_API extern tOBX_STATUS OBX_PutRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HD
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_GetRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_GetRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -632,7 +632,7 @@ OBX_API extern tOBX_STATUS OBX_GetRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HD
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_AbortRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_AbortRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -645,7 +645,7 @@ OBX_API extern tOBX_STATUS OBX_AbortRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_ActionRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_ActionRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -660,7 +660,7 @@ OBX_API extern tOBX_STATUS OBX_ActionRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_DisconnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_DisconnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -672,8 +672,8 @@ OBX_API extern tOBX_STATUS OBX_DisconnectRsp(tOBX_HANDLE shandle, UINT8 rsp_code
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_Password(tOBX_HANDLE shandle, UINT8 *p_password, UINT8 password_len,
-                                        UINT8 *p_userid, UINT8 userid_len);
+extern tOBX_STATUS OBX_Password(tOBX_HANDLE shandle, UINT8 *p_password, UINT8 password_len,
+                                UINT8 *p_userid, UINT8 userid_len);
 
 /*******************************************************************************
 **
@@ -685,7 +685,7 @@ OBX_API extern tOBX_STATUS OBX_Password(tOBX_HANDLE shandle, UINT8 *p_password, 
 ** Returns      L2CAP channel ID.
 **
 *******************************************************************************/
-OBX_API extern UINT16 OBX_GetPeerAddr(tOBX_HANDLE shandle, BD_ADDR bd_addr);
+extern UINT16 OBX_GetPeerAddr(tOBX_HANDLE shandle, BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -699,7 +699,7 @@ OBX_API extern UINT16 OBX_GetPeerAddr(tOBX_HANDLE shandle, BD_ADDR bd_addr);
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_GetPortHandle(tOBX_HANDLE handle, UINT16 *port_handle);
+extern tOBX_STATUS OBX_GetPortHandle(tOBX_HANDLE handle, UINT16 *port_handle);
 
 /* Client API's: */
 /*******************************************************************************
@@ -713,8 +713,8 @@ OBX_API extern tOBX_STATUS OBX_GetPortHandle(tOBX_HANDLE handle, UINT16 *port_ha
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_ConnectReq(BD_ADDR bd_addr, UINT8 scn, UINT16 mtu,
-                                          tOBX_CL_CBACK *p_cback, tOBX_HANDLE *p_handle, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_ConnectReq(BD_ADDR bd_addr, UINT8 scn, UINT16 mtu,
+                                  tOBX_CL_CBACK *p_cback, tOBX_HANDLE *p_handle, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -732,8 +732,8 @@ OBX_API extern tOBX_STATUS OBX_ConnectReq(BD_ADDR bd_addr, UINT8 scn, UINT16 mtu
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_AllocSession (UINT8 *p_session_info, UINT8 scn, UINT16 *p_psm,
-                              tOBX_CL_CBACK *p_cback, tOBX_HANDLE *p_handle);
+extern tOBX_STATUS OBX_AllocSession (UINT8 *p_session_info, UINT8 scn, UINT16 *p_psm,
+                                     tOBX_CL_CBACK *p_cback, tOBX_HANDLE *p_handle);
 
 /*******************************************************************************
 **
@@ -747,8 +747,8 @@ OBX_API extern tOBX_STATUS OBX_AllocSession (UINT8 *p_session_info, UINT8 scn, U
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_CreateSession (BD_ADDR bd_addr, UINT16 mtu, BOOLEAN srm, UINT32 nonce,
-                                              tOBX_HANDLE handle, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_CreateSession (BD_ADDR bd_addr, UINT16 mtu, BOOLEAN srm, UINT32 nonce,
+                                      tOBX_HANDLE handle, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -761,7 +761,7 @@ OBX_API extern tOBX_STATUS OBX_CreateSession (BD_ADDR bd_addr, UINT16 mtu, BOOLE
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_ResumeSession (BD_ADDR bd_addr, UINT8 ssn, UINT32 offset, tOBX_HANDLE handle);
+extern tOBX_STATUS OBX_ResumeSession (BD_ADDR bd_addr, UINT8 ssn, UINT32 offset, tOBX_HANDLE handle);
 
 /*******************************************************************************
 **
@@ -775,7 +775,7 @@ OBX_API extern tOBX_STATUS OBX_ResumeSession (BD_ADDR bd_addr, UINT8 ssn, UINT32
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_SessionReq (tOBX_HANDLE handle, tOBX_SESS_OP opcode, UINT32 timeout);
+extern tOBX_STATUS OBX_SessionReq (tOBX_HANDLE handle, tOBX_SESS_OP opcode, UINT32 timeout);
 
 /*******************************************************************************
 **
@@ -787,7 +787,7 @@ OBX_API extern tOBX_STATUS OBX_SessionReq (tOBX_HANDLE handle, tOBX_SESS_OP opco
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_SetPathReq(tOBX_HANDLE handle, UINT8 flags, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_SetPathReq(tOBX_HANDLE handle, UINT8 flags, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -799,7 +799,7 @@ OBX_API extern tOBX_STATUS OBX_SetPathReq(tOBX_HANDLE handle, UINT8 flags, BT_HD
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_PutReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_PutReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -811,7 +811,7 @@ OBX_API extern tOBX_STATUS OBX_PutReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR 
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_GetReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_GetReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -823,7 +823,7 @@ OBX_API extern tOBX_STATUS OBX_GetReq(tOBX_HANDLE handle, BOOLEAN final, BT_HDR 
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_AbortReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_AbortReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -835,7 +835,7 @@ OBX_API extern tOBX_STATUS OBX_AbortReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_DisconnectReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_DisconnectReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -851,7 +851,7 @@ OBX_API extern tOBX_STATUS OBX_DisconnectReq(tOBX_HANDLE handle, BT_HDR *p_pkt);
 **              OBX_BAD_HANDLE, if the handle is not valid.
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_ActionReq(tOBX_HANDLE handle, tOBX_ACTION action_id, BT_HDR *p_pkt);
+extern tOBX_STATUS OBX_ActionReq(tOBX_HANDLE handle, tOBX_ACTION action_id, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -863,10 +863,10 @@ OBX_API extern tOBX_STATUS OBX_ActionReq(tOBX_HANDLE handle, tOBX_ACTION action_
 **              OBX_NO_RESOURCES, if OBX does not resources
 **
 *******************************************************************************/
-OBX_API extern tOBX_STATUS OBX_AuthResponse(tOBX_HANDLE handle,
-                                            UINT8 *p_password, UINT8 password_len,
-                                            UINT8 *p_userid, UINT8 userid_len,
-                                            BOOLEAN authenticate);
+extern tOBX_STATUS OBX_AuthResponse(tOBX_HANDLE handle,
+                                    UINT8 *p_password, UINT8 password_len,
+                                    UINT8 *p_userid, UINT8 userid_len,
+                                    BOOLEAN authenticate);
 
 
 /*******************************************************************************
@@ -886,7 +886,7 @@ OBX_API extern tOBX_STATUS OBX_AuthResponse(tOBX_HANDLE handle,
 ** Returns      BT_HDR *.
 **
 *******************************************************************************/
-OBX_API extern BT_HDR * OBX_HdrInit(tOBX_HANDLE handle, UINT16 pkt_size);
+extern BT_HDR * OBX_HdrInit(tOBX_HANDLE handle, UINT16 pkt_size);
 
 /*******************************************************************************
 **
@@ -899,7 +899,7 @@ OBX_API extern BT_HDR * OBX_HdrInit(tOBX_HANDLE handle, UINT16 pkt_size);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 len);
+extern BOOLEAN OBX_AddNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 len);
 
 /*******************************************************************************
 **
@@ -910,7 +910,7 @@ OBX_API extern BOOLEAN OBX_AddNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 len)
 ** Returns      the length.
 **
 *******************************************************************************/
-OBX_API extern UINT16 OBX_CharToWchar (UINT16 *w_str, char* a_str, UINT16 w_size);
+extern UINT16 OBX_CharToWchar (UINT16 *w_str, char* a_str, UINT16 w_size);
 
 /*******************************************************************************
 **
@@ -923,7 +923,7 @@ OBX_API extern UINT16 OBX_CharToWchar (UINT16 *w_str, char* a_str, UINT16 w_size
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddAsciiNameHdr(BT_HDR *p_pkt, char *p_name);
+extern BOOLEAN OBX_AddAsciiNameHdr(BT_HDR *p_pkt, char *p_name);
 
 /*******************************************************************************
 **
@@ -936,7 +936,7 @@ OBX_API extern BOOLEAN OBX_AddAsciiNameHdr(BT_HDR *p_pkt, char *p_name);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddTypeHdr(BT_HDR *p_pkt, char *p_type);
+extern BOOLEAN OBX_AddTypeHdr(BT_HDR *p_pkt, char *p_type);
 
 /*******************************************************************************
 **
@@ -950,7 +950,7 @@ OBX_API extern BOOLEAN OBX_AddTypeHdr(BT_HDR *p_pkt, char *p_type);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddLengthHdr(BT_HDR *p_pkt, UINT32 len);
+extern BOOLEAN OBX_AddLengthHdr(BT_HDR *p_pkt, UINT32 len);
 
 /*******************************************************************************
 **
@@ -963,7 +963,7 @@ OBX_API extern BOOLEAN OBX_AddLengthHdr(BT_HDR *p_pkt, UINT32 len);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddTimeHdr(BT_HDR *p_pkt, char *p_time);
+extern BOOLEAN OBX_AddTimeHdr(BT_HDR *p_pkt, char *p_time);
 
 /*******************************************************************************
 **
@@ -976,7 +976,7 @@ OBX_API extern BOOLEAN OBX_AddTimeHdr(BT_HDR *p_pkt, char *p_time);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 len);
+extern BOOLEAN OBX_AddDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 len);
 
 /*******************************************************************************
 **
@@ -989,7 +989,7 @@ OBX_API extern BOOLEAN OBX_AddDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 le
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr);
+extern BOOLEAN OBX_AddAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr);
 
 /*******************************************************************************
 **
@@ -1004,7 +1004,7 @@ OBX_API extern BOOLEAN OBX_AddAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddTargetHdr(BT_HDR *p_pkt, UINT8 *p_target, UINT16 len);
+extern BOOLEAN OBX_AddTargetHdr(BT_HDR *p_pkt, UINT8 *p_target, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1017,7 +1017,7 @@ OBX_API extern BOOLEAN OBX_AddTargetHdr(BT_HDR *p_pkt, UINT8 *p_target, UINT16 l
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddHttpHdr(BT_HDR *p_pkt, UINT8 *p_http, UINT16 len);
+extern BOOLEAN OBX_AddHttpHdr(BT_HDR *p_pkt, UINT8 *p_http, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1032,7 +1032,7 @@ OBX_API extern BOOLEAN OBX_AddHttpHdr(BT_HDR *p_pkt, UINT8 *p_http, UINT16 len);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddBodyHdr(BT_HDR *p_pkt, UINT8 *p_body, UINT16 len, BOOLEAN end);
+extern BOOLEAN OBX_AddBodyHdr(BT_HDR *p_pkt, UINT8 *p_body, UINT16 len, BOOLEAN end);
 
 /* Alternate Body header functions: for non-blocking scenario */
 /*******************************************************************************
@@ -1045,7 +1045,7 @@ OBX_API extern BOOLEAN OBX_AddBodyHdr(BT_HDR *p_pkt, UINT8 *p_body, UINT16 len, 
 ** Returns      The address to add body content.
 **
 *******************************************************************************/
-OBX_API extern UINT8 *OBX_AddBodyStart(BT_HDR *p_pkt, UINT16 *p_len);
+extern UINT8 *OBX_AddBodyStart(BT_HDR *p_pkt, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1059,7 +1059,7 @@ OBX_API extern UINT8 *OBX_AddBodyStart(BT_HDR *p_pkt, UINT16 *p_len);
 ** Returns      void
 **
 *******************************************************************************/
-OBX_API extern void OBX_AddBodyEnd(BT_HDR *p_pkt, UINT8 *p, UINT16 len, BOOLEAN end);
+extern void OBX_AddBodyEnd(BT_HDR *p_pkt, UINT8 *p, UINT16 len, BOOLEAN end);
 
 /*******************************************************************************
 **
@@ -1080,7 +1080,7 @@ OBX_API extern void OBX_AddBodyEnd(BT_HDR *p_pkt, UINT8 *p, UINT16 len, BOOLEAN 
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddWhoHdr(BT_HDR *p_pkt, UINT8 *p_who, UINT16 len);
+extern BOOLEAN OBX_AddWhoHdr(BT_HDR *p_pkt, UINT8 *p_who, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1094,7 +1094,7 @@ OBX_API extern BOOLEAN OBX_AddWhoHdr(BT_HDR *p_pkt, UINT8 *p_who, UINT16 len);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddAppParamHdr(BT_HDR *p_pkt, tOBX_TRIPLET *p_triplet, UINT8 num);
+extern BOOLEAN OBX_AddAppParamHdr(BT_HDR *p_pkt, tOBX_TRIPLET *p_triplet, UINT8 num);
 
 /*******************************************************************************
 **
@@ -1107,7 +1107,7 @@ OBX_API extern BOOLEAN OBX_AddAppParamHdr(BT_HDR *p_pkt, tOBX_TRIPLET *p_triplet
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16 len);
+extern BOOLEAN OBX_AddDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1120,7 +1120,7 @@ OBX_API extern BOOLEAN OBX_AddDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16 
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddAsciiDestNameHdr(BT_HDR *p_pkt, char *p_descr);
+extern BOOLEAN OBX_AddAsciiDestNameHdr(BT_HDR *p_pkt, char *p_descr);
 
 /*******************************************************************************
 **
@@ -1137,7 +1137,7 @@ OBX_API extern BOOLEAN OBX_AddAsciiDestNameHdr(BT_HDR *p_pkt, char *p_descr);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddPermissionHdr(BT_HDR *p_pkt, UINT8 user, UINT8 group, UINT8 other);
+extern BOOLEAN OBX_AddPermissionHdr(BT_HDR *p_pkt, UINT8 user, UINT8 group, UINT8 other);
 
 /*******************************************************************************
 **
@@ -1150,7 +1150,7 @@ OBX_API extern BOOLEAN OBX_AddPermissionHdr(BT_HDR *p_pkt, UINT8 user, UINT8 gro
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_Add1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 data);
+extern BOOLEAN OBX_Add1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 data);
 
 /*******************************************************************************
 **
@@ -1163,7 +1163,7 @@ OBX_API extern BOOLEAN OBX_Add1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 data);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_Add4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 data);
+extern BOOLEAN OBX_Add4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 data);
 
 /*******************************************************************************
 **
@@ -1175,7 +1175,7 @@ OBX_API extern BOOLEAN OBX_Add4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 data);
 ** Returns      The address to add the byte sequence.
 **
 *******************************************************************************/
-OBX_API extern UINT8 *OBX_AddByteStrStart(BT_HDR *p_pkt, UINT16 *p_len);
+extern UINT8 *OBX_AddByteStrStart(BT_HDR *p_pkt, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1188,7 +1188,7 @@ OBX_API extern UINT8 *OBX_AddByteStrStart(BT_HDR *p_pkt, UINT16 *p_len);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data, UINT16 len);
+extern BOOLEAN OBX_AddByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1201,7 +1201,7 @@ OBX_API extern BOOLEAN OBX_AddByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data,
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_data, UINT16 len);
+extern BOOLEAN OBX_AddUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1219,7 +1219,7 @@ OBX_API extern BOOLEAN OBX_AddUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_data
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_triplet, UINT8 num);
+extern BOOLEAN OBX_AddTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_triplet, UINT8 num);
 
 /*******************************************************************************
 **
@@ -1232,7 +1232,7 @@ OBX_API extern BOOLEAN OBX_AddTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_t
 **              The pointer to the specified header beginning from HI.
 **
 *******************************************************************************/
-OBX_API extern UINT8 * OBX_CheckHdr(BT_HDR *p_pkt, UINT8 id);
+extern UINT8 * OBX_CheckHdr(BT_HDR *p_pkt, UINT8 id);
 
 /*******************************************************************************
 **
@@ -1244,7 +1244,7 @@ OBX_API extern UINT8 * OBX_CheckHdr(BT_HDR *p_pkt, UINT8 id);
 ** Returns      number of headers.
 **
 *******************************************************************************/
-OBX_API extern UINT8 OBX_ReadNumHdrs(BT_HDR *p_pkt, UINT8 *p_num_body);
+extern UINT8 OBX_ReadNumHdrs(BT_HDR *p_pkt, UINT8 *p_num_body);
 
 /*******************************************************************************
 **
@@ -1257,7 +1257,7 @@ OBX_API extern UINT8 OBX_ReadNumHdrs(BT_HDR *p_pkt, UINT8 *p_num_body);
 **              Otherwise the actual length of the header.
 **
 *******************************************************************************/
-OBX_API extern UINT16 OBX_ReadHdrLen(BT_HDR *p_pkt, UINT8 id);
+extern UINT16 OBX_ReadHdrLen(BT_HDR *p_pkt, UINT8 id);
 
 /*******************************************************************************
 **
@@ -1270,7 +1270,7 @@ OBX_API extern UINT16 OBX_ReadHdrLen(BT_HDR *p_pkt, UINT8 id);
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 *p_len);
+extern BOOLEAN OBX_ReadNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1281,7 +1281,7 @@ OBX_API extern BOOLEAN OBX_ReadNameHdr(BT_HDR *p_pkt, UINT16 *p_name, UINT16 *p_
 ** Returns      void.
 **
 *******************************************************************************/
-OBX_API extern void OBX_WcharToChar (char *a_str, UINT16* w_str, UINT16 a_size) ;
+extern void OBX_WcharToChar (char *a_str, UINT16* w_str, UINT16 a_size) ;
 
 /*******************************************************************************
 **
@@ -1295,7 +1295,7 @@ OBX_API extern void OBX_WcharToChar (char *a_str, UINT16* w_str, UINT16 a_size) 
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadAsciiNameHdr(BT_HDR *p_pkt, char *p_name, UINT16 max_len);
+extern BOOLEAN OBX_ReadAsciiNameHdr(BT_HDR *p_pkt, char *p_name, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1308,7 +1308,7 @@ OBX_API extern BOOLEAN OBX_ReadAsciiNameHdr(BT_HDR *p_pkt, char *p_name, UINT16 
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadTypeHdr(BT_HDR *p_pkt, UINT8 **p_type, UINT16 *p_len);
+extern BOOLEAN OBX_ReadTypeHdr(BT_HDR *p_pkt, UINT8 **p_type, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1321,7 +1321,7 @@ OBX_API extern BOOLEAN OBX_ReadTypeHdr(BT_HDR *p_pkt, UINT8 **p_type, UINT16 *p_
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadLengthHdr(BT_HDR *p_pkt, UINT32 *p_len);
+extern BOOLEAN OBX_ReadLengthHdr(BT_HDR *p_pkt, UINT32 *p_len);
 
 /*******************************************************************************
 **
@@ -1334,7 +1334,7 @@ OBX_API extern BOOLEAN OBX_ReadLengthHdr(BT_HDR *p_pkt, UINT32 *p_len);
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadTimeHdr(BT_HDR *p_pkt, UINT8 **p_time, UINT16 *p_len);
+extern BOOLEAN OBX_ReadTimeHdr(BT_HDR *p_pkt, UINT8 **p_time, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1347,7 +1347,7 @@ OBX_API extern BOOLEAN OBX_ReadTimeHdr(BT_HDR *p_pkt, UINT8 **p_time, UINT16 *p_
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 *p_len);
+extern BOOLEAN OBX_ReadDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1360,7 +1360,7 @@ OBX_API extern BOOLEAN OBX_ReadDescrHdr(BT_HDR *p_pkt, UINT16 *p_descr, UINT16 *
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16 *p_len);
+extern BOOLEAN OBX_ReadDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1375,7 +1375,7 @@ OBX_API extern BOOLEAN OBX_ReadDestNameHdr(BT_HDR *p_pkt, UINT16 *p_dest, UINT16
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr, UINT16 max_len);
+extern BOOLEAN OBX_ReadAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1390,7 +1390,7 @@ OBX_API extern BOOLEAN OBX_ReadAsciiDescrHdr(BT_HDR *p_pkt, char *p_descr, UINT1
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadAsciiDestNameHdr(BT_HDR *p_pkt, char *p_dest, UINT16 max_len);
+extern BOOLEAN OBX_ReadAsciiDestNameHdr(BT_HDR *p_pkt, char *p_dest, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1403,7 +1403,7 @@ OBX_API extern BOOLEAN OBX_ReadAsciiDestNameHdr(BT_HDR *p_pkt, char *p_dest, UIN
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadTargetHdr(BT_HDR *p_pkt, UINT8 **p_target, UINT16 *p_len, UINT8 next);
+extern BOOLEAN OBX_ReadTargetHdr(BT_HDR *p_pkt, UINT8 **p_target, UINT16 *p_len, UINT8 next);
 
 /*******************************************************************************
 **
@@ -1416,7 +1416,7 @@ OBX_API extern BOOLEAN OBX_ReadTargetHdr(BT_HDR *p_pkt, UINT8 **p_target, UINT16
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadHttpHdr(BT_HDR *p_pkt, UINT8 **p_http, UINT16 *p_len, UINT8 next);
+extern BOOLEAN OBX_ReadHttpHdr(BT_HDR *p_pkt, UINT8 **p_http, UINT16 *p_len, UINT8 next);
 
 /*******************************************************************************
 **
@@ -1430,7 +1430,7 @@ OBX_API extern BOOLEAN OBX_ReadHttpHdr(BT_HDR *p_pkt, UINT8 **p_http, UINT16 *p_
 **              0, (FALSE) otherwise.
 **
 *******************************************************************************/
-OBX_API extern UINT8 OBX_ReadBodyHdr(BT_HDR *p_pkt, UINT8 **p_body, UINT16 *p_len, BOOLEAN *p_end);
+extern UINT8 OBX_ReadBodyHdr(BT_HDR *p_pkt, UINT8 **p_body, UINT16 *p_len, BOOLEAN *p_end);
 
 /*******************************************************************************
 **
@@ -1443,7 +1443,7 @@ OBX_API extern UINT8 OBX_ReadBodyHdr(BT_HDR *p_pkt, UINT8 **p_body, UINT16 *p_le
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadWhoHdr(BT_HDR *p_pkt, UINT8 **p_who, UINT16 *p_len);
+extern BOOLEAN OBX_ReadWhoHdr(BT_HDR *p_pkt, UINT8 **p_who, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1456,7 +1456,7 @@ OBX_API extern BOOLEAN OBX_ReadWhoHdr(BT_HDR *p_pkt, UINT8 **p_who, UINT16 *p_le
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadAppParamHdr(BT_HDR *p_pkt, UINT8 *p_tag, UINT8 **p_app_param, UINT8 *p_len, UINT8 next);
+extern BOOLEAN OBX_ReadAppParamHdr(BT_HDR *p_pkt, UINT8 *p_tag, UINT8 **p_app_param, UINT8 *p_len, UINT8 next);
 
 /*******************************************************************************
 **
@@ -1469,7 +1469,7 @@ OBX_API extern BOOLEAN OBX_ReadAppParamHdr(BT_HDR *p_pkt, UINT8 *p_tag, UINT8 **
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadPermissionHdr(BT_HDR *p_pkt, UINT8 *p_user, UINT8 *p_group, UINT8 *p_other);
+extern BOOLEAN OBX_ReadPermissionHdr(BT_HDR *p_pkt, UINT8 *p_user, UINT8 *p_group, UINT8 *p_other);
 
 /*******************************************************************************
 **
@@ -1482,7 +1482,7 @@ OBX_API extern BOOLEAN OBX_ReadPermissionHdr(BT_HDR *p_pkt, UINT8 *p_user, UINT8
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_Read1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data);
+extern BOOLEAN OBX_Read1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data);
 
 /*******************************************************************************
 **
@@ -1495,7 +1495,7 @@ OBX_API extern BOOLEAN OBX_Read1ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT8 *p_data);
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_Read4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 *p_data);
+extern BOOLEAN OBX_Read4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 *p_data);
 
 /*******************************************************************************
 **
@@ -1508,7 +1508,7 @@ OBX_API extern BOOLEAN OBX_Read4ByteHdr(BT_HDR *p_pkt, UINT8 id, UINT32 *p_data)
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 **p_data, UINT16 *p_len, UINT8 next);
+extern BOOLEAN OBX_ReadByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 **p_data, UINT16 *p_len, UINT8 next);
 
 /*******************************************************************************
 **
@@ -1521,7 +1521,7 @@ OBX_API extern BOOLEAN OBX_ReadByteStrHdr(BT_HDR *p_pkt, UINT8 id, UINT8 **p_dat
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_data, UINT16 *p_len);
+extern BOOLEAN OBX_ReadUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_data, UINT16 *p_len);
 
 /*******************************************************************************
 **
@@ -1534,7 +1534,7 @@ OBX_API extern BOOLEAN OBX_ReadUnicodeHdr(BT_HDR *p_pkt, UINT8 id, UINT16 *p_dat
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_triplet, UINT8 *p_num);
+extern BOOLEAN OBX_ReadTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_triplet, UINT8 *p_num);
 
 /*******************************************************************************
 **
@@ -1547,7 +1547,7 @@ OBX_API extern BOOLEAN OBX_ReadTriplet(BT_HDR *p_pkt, UINT8 id, tOBX_TRIPLET *p_
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadActionIdHdr(BT_HDR *p_pkt, UINT8 *p_data);
+extern BOOLEAN OBX_ReadActionIdHdr(BT_HDR *p_pkt, UINT8 *p_data);
 
 /*******************************************************************************
 **
@@ -1560,9 +1560,9 @@ OBX_API extern BOOLEAN OBX_ReadActionIdHdr(BT_HDR *p_pkt, UINT8 *p_data);
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadChallenge(BT_HDR *p_pkt, tOBX_CHARSET *p_charset,
-                                         UINT8 **p_realm, UINT8 *p_len,
-                                         tOBX_AUTH_OPT *p_option);
+extern BOOLEAN OBX_ReadChallenge(BT_HDR *p_pkt, tOBX_CHARSET *p_charset,
+                                 UINT8 **p_realm, UINT8 *p_len,
+                                 tOBX_AUTH_OPT *p_option);
 
 /*******************************************************************************
 **
@@ -1575,8 +1575,8 @@ OBX_API extern BOOLEAN OBX_ReadChallenge(BT_HDR *p_pkt, tOBX_CHARSET *p_charset,
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadAuthParams(BT_HDR *p_pkt, UINT8 **p_userid, UINT8 *p_len,
-                                          BOOLEAN *is_challenged, tOBX_AUTH_OPT *p_option);
+extern BOOLEAN OBX_ReadAuthParams(BT_HDR *p_pkt, UINT8 **p_userid, UINT8 *p_len,
+                                  BOOLEAN *is_challenged, tOBX_AUTH_OPT *p_option);
 
 
 /*******************************************************************************
@@ -1589,7 +1589,7 @@ OBX_API extern BOOLEAN OBX_ReadAuthParams(BT_HDR *p_pkt, UINT8 **p_userid, UINT8
 ** Returns          Length of UTF-8 string in bytes.
 **
 *******************************************************************************/
-OBX_API extern UINT16 utfc_16_to_8(UINT8 *p_utf8, UINT16 utf8_len, UINT16 *p_utf16, UINT16 utf16_len);
+extern UINT16 utfc_16_to_8(UINT8 *p_utf8, UINT16 utf8_len, UINT16 *p_utf16, UINT16 utf16_len);
 
 /*******************************************************************************
 **
@@ -1601,7 +1601,7 @@ OBX_API extern UINT16 utfc_16_to_8(UINT8 *p_utf8, UINT16 utf8_len, UINT16 *p_utf
 ** Returns          Length of UTF-16 array.
 **
 *******************************************************************************/
-OBX_API extern UINT16 utfc_8_to_16(UINT16 *p_utf16, UINT16 utf16_len, UINT8 *p_utf8);
+extern UINT16 utfc_8_to_16(UINT16 *p_utf16, UINT16 utf16_len, UINT8 *p_utf8);
 
 /*******************************************************************************
 **
@@ -1614,7 +1614,7 @@ OBX_API extern UINT16 utfc_8_to_16(UINT16 *p_utf16, UINT16 utf16_len, UINT8 *p_u
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name);
+extern BOOLEAN OBX_AddUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name);
 
 /*******************************************************************************
 **
@@ -1627,7 +1627,7 @@ OBX_API extern BOOLEAN OBX_AddUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr);
+extern BOOLEAN OBX_AddUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr);
 
 /*******************************************************************************
 **
@@ -1640,7 +1640,7 @@ OBX_API extern BOOLEAN OBX_AddUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr);
 **              FALSE, if the operation failed. p_pkt is not altered.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_AddUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest);
+extern BOOLEAN OBX_AddUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest);
 
 /*******************************************************************************
 **
@@ -1654,7 +1654,7 @@ OBX_API extern BOOLEAN OBX_AddUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest);
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name, UINT16 max_len);
+extern BOOLEAN OBX_ReadUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1669,7 +1669,7 @@ OBX_API extern BOOLEAN OBX_ReadUtf8NameHdr(BT_HDR *p_pkt, UINT8 *p_name, UINT16 
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr, UINT16 max_len);
+extern BOOLEAN OBX_ReadUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1682,7 +1682,7 @@ OBX_API extern BOOLEAN OBX_ReadUtf8DescrHdr(BT_HDR *p_pkt, UINT8 *p_descr, UINT1
 **              FALSE, otherwise.
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_ReadUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest, UINT16 max_len);
+extern BOOLEAN OBX_ReadUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest, UINT16 max_len);
 
 /*******************************************************************************
 **
@@ -1695,7 +1695,7 @@ OBX_API extern BOOLEAN OBX_ReadUtf8DestNameHdr(BT_HDR *p_pkt, UINT8 *p_dest, UIN
 **              FALSE, if authentication failed
 **
 *******************************************************************************/
-OBX_API extern BOOLEAN OBX_VerifyResponse(UINT32 nonce_u32, UINT8 *p_password, UINT8 password_len, UINT8 *p_response);
+extern BOOLEAN OBX_VerifyResponse(UINT32 nonce_u32, UINT8 *p_password, UINT8 password_len, UINT8 *p_response);
 
 #ifdef __cplusplus
 }

@@ -256,13 +256,13 @@ extern "C" {
 
 /* Global BTU data */
 #if BTU_DYNAMIC_MEMORY == FALSE
-BTU_API extern tBTU_CB  btu_cb;
+extern tBTU_CB  btu_cb;
 #else
-BTU_API extern tBTU_CB *btu_cb_ptr;
+extern tBTU_CB *btu_cb_ptr;
 #define btu_cb (*btu_cb_ptr)
 #endif
 
-BTU_API extern const BD_ADDR        BT_BD_ANY;
+extern const BD_ADDR        BT_BD_ANY;
 
 /* Functions provided by btu_task.c
 ************************************
@@ -273,43 +273,43 @@ extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 t
 extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
 extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 
-BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
+extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
+extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
 /*
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
 #define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC)
-BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_process_quick_timer_evt (void);
-BTU_API extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);
+extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
+extern void btu_process_quick_timer_evt (void);
+extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);
 #endif
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
-BTU_API extern void btu_check_bt_sleep (void);
+extern void btu_check_bt_sleep (void);
 #endif
 
 /* Functions provided by btu_hcif.c
 ************************************
 */
-BTU_API extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
-BTU_API extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
-BTU_API extern void  btu_hcif_send_host_rdy_for_data(void);
-BTU_API extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
+extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
+extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
+extern void  btu_hcif_send_host_rdy_for_data(void);
+extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
 
 /* Functions provided by btu_core.c
 ************************************
 */
-BTU_API extern void  btu_init_core(void);
-BTU_API extern void  btu_free_core(void);
+extern void  btu_init_core(void);
+extern void  btu_free_core(void);
 
 void BTU_StartUp(void);
 void BTU_ShutDown(void);
 
-BTU_API extern UINT16 BTU_AclPktSize(void);
-BTU_API extern UINT16 BTU_BleAclPktSize(void);
+extern UINT16 BTU_AclPktSize(void);
+extern UINT16 BTU_BleAclPktSize(void);
 
 #ifdef __cplusplus
 }

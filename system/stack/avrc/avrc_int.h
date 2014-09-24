@@ -138,9 +138,9 @@ extern "C"
 ** Main Control Block
 *******************************************************************************/
 #if AVRC_DYNAMIC_MEMORY == FALSE
-AVRC_API extern tAVRC_CB  avrc_cb;
+extern tAVRC_CB  avrc_cb;
 #else
-AVRC_API extern tAVRC_CB *avrc_cb_ptr;
+extern tAVRC_CB *avrc_cb_ptr;
 #define avrc_cb (*avrc_cb_ptr)
 #endif
 
@@ -156,4 +156,3 @@ extern BOOLEAN avrc_is_valid_opcode(UINT8 opcode);
 #endif
 
 #endif /* AVRC_INT_H */
-

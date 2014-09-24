@@ -533,14 +533,14 @@ extern "C" {
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE
-GATT_API extern tGATT_CB  gatt_cb;
+extern tGATT_CB  gatt_cb;
 #else
-GATT_API extern tGATT_CB *gatt_cb_ptr;
+extern tGATT_CB *gatt_cb_ptr;
 #define gatt_cb (*gatt_cb_ptr)
 #endif
 
 #if GATT_CONFORMANCE_TESTING == TRUE
-GATT_API extern void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 err_status);
+extern void gatt_set_err_rsp(BOOLEAN enable, UINT8 req_op_code, UINT8 err_status);
 #endif
 
 #ifdef __cplusplus
@@ -710,5 +710,3 @@ extern tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db);
 
 extern void gatt_reset_bgdev_list(void);
 #endif
-
-

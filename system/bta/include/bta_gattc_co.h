@@ -41,7 +41,7 @@
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt,
+extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt,
                                             UINT16 conn_id, BOOLEAN to_save);
 
 /*******************************************************************************
@@ -57,7 +57,7 @@ BTA_API extern void bta_gattc_co_cache_open(BD_ADDR server_bda, UINT16 evt,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id);
+extern void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -75,9 +75,9 @@ BTA_API extern void bta_gattc_co_cache_close(BD_ADDR server_bda, UINT16 conn_id)
 ** Returns
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt,
-                                          UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_attr,
-                                          UINT16 attr_index, UINT16 conn_id);
+extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt,
+                                    UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_attr,
+                                    UINT16 attr_index, UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -94,8 +94,8 @@ BTA_API extern void bta_gattc_co_cache_save(BD_ADDR server_bda, UINT16 evt,
 ** Returns
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt,
-                                            UINT16 start_index, UINT16 conn_id);
+extern void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt,
+                                    UINT16 start_index, UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -109,7 +109,6 @@ BTA_API extern void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_co_cache_reset(BD_ADDR server_bda);
+extern void bta_gattc_co_cache_reset(BD_ADDR server_bda);
 
 #endif /* BTA_GATT_CO_H */
-

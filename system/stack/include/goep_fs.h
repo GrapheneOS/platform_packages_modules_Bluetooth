@@ -333,8 +333,8 @@ extern "C" {
 **  Returns:     void
 **
 *****************************************************************************/
-GOEP_API extern void GOEP_OpenRsp (tGOEP_FD fd, tGOEP_STATUS status,
-                                   UINT32 file_size, UINT16 event_id);
+extern void GOEP_OpenRsp (tGOEP_FD fd, tGOEP_STATUS status,
+                          UINT32 file_size, UINT16 event_id);
 
 /*****************************************************************************
 **
@@ -350,8 +350,8 @@ GOEP_API extern void GOEP_OpenRsp (tGOEP_FD fd, tGOEP_STATUS status,
 **  Returns:     void
 **
 *****************************************************************************/
-GOEP_API extern void GOEP_ReadRsp (tGOEP_FD fd, tGOEP_STATUS status,
-                                   UINT16 bytes_read, UINT16 event_id);
+extern void GOEP_ReadRsp (tGOEP_FD fd, tGOEP_STATUS status,
+                          UINT16 bytes_read, UINT16 event_id);
 
 /*****************************************************************************
 **
@@ -366,7 +366,7 @@ GOEP_API extern void GOEP_ReadRsp (tGOEP_FD fd, tGOEP_STATUS status,
 **  Returns:     void
 **
 *****************************************************************************/
-GOEP_API extern void GOEP_WriteRsp (tGOEP_FD fd, tGOEP_STATUS status, UINT16 event_id);
+extern void GOEP_WriteRsp (tGOEP_FD fd, tGOEP_STATUS status, UINT16 event_id);
 
 /*******************************************************************************
 **
@@ -384,7 +384,7 @@ GOEP_API extern void GOEP_WriteRsp (tGOEP_FD fd, tGOEP_STATUS status, UINT16 eve
 ** Returns      void
 **
 *******************************************************************************/
-GOEP_API extern void GOEP_DirentryRsp(tGOEP_STATUS status, UINT16 event_id);
+extern void GOEP_DirentryRsp(tGOEP_STATUS status, UINT16 event_id);
 
 #ifdef __cplusplus
 }

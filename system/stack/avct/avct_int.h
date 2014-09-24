@@ -218,9 +218,9 @@ extern "C"
 
 /* Main control block */
 #if AVCT_DYNAMIC_MEMORY == FALSE
-AVCT_API extern tAVCT_CB avct_cb;
+extern tAVCT_CB avct_cb;
 #else
-AVCT_API extern tAVCT_CB *avct_cb_ptr;
+extern tAVCT_CB *avct_cb_ptr;
 #define avct_cb (*avct_cb_ptr)
 #endif
 
@@ -235,5 +235,3 @@ extern const tL2CAP_APPL_INFO avct_l2c_br_appl;
 #endif
 
 #endif /* AVCT_INT_H */
-
-

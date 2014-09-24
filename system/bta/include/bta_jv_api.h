@@ -485,7 +485,7 @@ extern "C"
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback);
+extern tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -496,7 +496,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvEnable(tBTA_JV_DM_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_JvDisable(void);
+extern void BTA_JvDisable(void);
 
 /*******************************************************************************
 **
@@ -507,7 +507,7 @@ BTA_API extern void BTA_JvDisable(void);
 ** Returns          TRUE, if registered
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_JvIsEnable(void);
+extern BOOLEAN BTA_JvIsEnable(void);
 
 /*******************************************************************************
 **
@@ -524,7 +524,7 @@ BTA_API extern BOOLEAN BTA_JvIsEnable(void);
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode);
+extern tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode);
 
 /*******************************************************************************
 **
@@ -536,7 +536,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode);
 ** Returns          The current Bluetooth discoverable mode.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_DISC BTA_JvGetDiscoverability(void);
+extern tBTA_JV_DISC BTA_JvGetDiscoverability(void);
 
 /*******************************************************************************
 **
@@ -550,7 +550,7 @@ BTA_API extern tBTA_JV_DISC BTA_JvGetDiscoverability(void);
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void);
+extern tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void);
 
 /*******************************************************************************
 **
@@ -564,7 +564,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void);
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvGetLocalDeviceName(void);
+extern tBTA_JV_STATUS BTA_JvGetLocalDeviceName(void);
 
 /*******************************************************************************
 **
@@ -578,7 +578,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvGetLocalDeviceName(void);
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvGetRemoteDeviceName(BD_ADDR bd_addr);
+extern tBTA_JV_STATUS BTA_JvGetRemoteDeviceName(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -592,7 +592,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvGetRemoteDeviceName(BD_ADDR bd_addr);
 **                  BTA_JV_INTERNAL_ERR(-1) if internal failure.
 **
 *******************************************************************************/
-BTA_API extern INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index);
+extern INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index);
 
 /*******************************************************************************
 **
@@ -605,7 +605,7 @@ BTA_API extern INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index);
 **                  "Bluetooth Assigned Numbers".
 **
 *******************************************************************************/
-BTA_API extern UINT8 * BTA_JvGetDeviceClass(void);
+extern UINT8 * BTA_JvGetDeviceClass(void);
 
 /*******************************************************************************
 **
@@ -617,7 +617,7 @@ BTA_API extern UINT8 * BTA_JvGetDeviceClass(void);
 **                  BTA_JV_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvSetServiceClass(UINT32 service);
+extern tBTA_JV_STATUS BTA_JvSetServiceClass(UINT32 service);
 
 /*******************************************************************************
 **
@@ -632,7 +632,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvSetServiceClass(UINT32 service);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvSetEncryption(BD_ADDR bd_addr);
+extern tBTA_JV_STATUS BTA_JvSetEncryption(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -644,7 +644,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvSetEncryption(BD_ADDR bd_addr);
 **                  FALSE if not.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_JvIsAuthenticated(BD_ADDR bd_addr);
+extern BOOLEAN BTA_JvIsAuthenticated(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -657,7 +657,7 @@ BTA_API extern BOOLEAN BTA_JvIsAuthenticated(BD_ADDR bd_addr);
 **                  FALSE if not.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_JvIsTrusted(BD_ADDR bd_addr);
+extern BOOLEAN BTA_JvIsTrusted(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -669,7 +669,7 @@ BTA_API extern BOOLEAN BTA_JvIsTrusted(BD_ADDR bd_addr);
 **                  FALSE if not.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_JvIsAuthorized(BD_ADDR bd_addr);
+extern BOOLEAN BTA_JvIsAuthorized(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -681,7 +681,7 @@ BTA_API extern BOOLEAN BTA_JvIsAuthorized(BD_ADDR bd_addr);
 **                  FALSE if not.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr);
+extern BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -693,7 +693,7 @@ BTA_API extern BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr);
 ** Returns          The current Bluetooth security mode.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_SEC_MODE BTA_JvGetSecurityMode(void);
+extern tBTA_JV_SEC_MODE BTA_JvGetSecurityMode(void);
 
 /* BTA_JvIsMaster is replaced by BTA_DmIsMaster */
 
@@ -713,7 +713,7 @@ BTA_API extern tBTA_JV_SEC_MODE BTA_JvGetSecurityMode(void);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvGetSCN(void);
+extern tBTA_JV_STATUS BTA_JvGetSCN(void);
 
 /*******************************************************************************
 **
@@ -726,7 +726,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvGetSCN(void);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn);
+extern tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn);
 
 /*******************************************************************************
 **
@@ -740,7 +740,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn);
 ** Returns          The next free PSM
 **
 *******************************************************************************/
-BTA_API extern UINT16 BTA_JvGetPSM(void);
+extern UINT16 BTA_JvGetPSM(void);
 
 /*******************************************************************************
 **
@@ -755,8 +755,8 @@ BTA_API extern UINT16 BTA_JvGetPSM(void);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_uuid,
-                           tSDP_UUID *p_uuid_list, void* user_data);
+extern tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_uuid,
+                                           tSDP_UUID *p_uuid_list, void* user_data);
 
 /*******************************************************************************
 **
@@ -771,7 +771,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_u
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvCancelDiscovery(void * user_data);
+extern tBTA_JV_STATUS BTA_JvCancelDiscovery(void * user_data);
 
 /*******************************************************************************
 **
@@ -787,7 +787,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvCancelDiscovery(void * user_data);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p_services_len);
+extern tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p_services_len);
 
 /*******************************************************************************
 **
@@ -803,7 +803,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p
 ** Returns          -1, if error. Otherwise, the number of services
 **
 *******************************************************************************/
-BTA_API extern INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs);
+extern INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs);
 
 /*******************************************************************************
 **
@@ -819,7 +819,7 @@ BTA_API extern INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvServiceSelect(UINT16 uuid);
+extern tBTA_JV_STATUS BTA_JvServiceSelect(UINT16 uuid);
 
 /*******************************************************************************
 **
@@ -833,7 +833,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvServiceSelect(UINT16 uuid);
 ** Returns          -1, if error. Otherwise, the length of service record.
 **
 *******************************************************************************/
-BTA_API extern INT32 BTA_JvServiceResult(UINT8 *TLV);
+extern INT32 BTA_JvServiceResult(UINT8 *TLV);
 
 /*******************************************************************************
 **
@@ -846,7 +846,7 @@ BTA_API extern INT32 BTA_JvServiceResult(UINT8 *TLV);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
+extern tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
 
 /*******************************************************************************
 **
@@ -860,8 +860,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
-                           UINT8 **p_values, INT32 *p_value_sizes, INT32 array_len);
+extern tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
+                                         UINT8 **p_values, INT32 *p_value_sizes, INT32 array_len);
 
 /*******************************************************************************
 **
@@ -875,8 +875,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvAddAttribute(UINT32 handle, UINT16 attr_id,
-                           UINT8 *p_value, INT32 value_size);
+extern tBTA_JV_STATUS BTA_JvAddAttribute(UINT32 handle, UINT16 attr_id,
+                                         UINT8 *p_value, INT32 value_size);
 
 /*******************************************************************************
 **
@@ -890,7 +890,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvAddAttribute(UINT32 handle, UINT16 attr_id,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_id);
+extern tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_id);
 
 /*******************************************************************************
 **
@@ -902,7 +902,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_i
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle);
+extern tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle);
 
 /*******************************************************************************
 **
@@ -916,7 +916,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle);
 **                  The size of data copied into p_data is in *p_data_len.
 **
 *******************************************************************************/
-BTA_API extern INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len);
+extern INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len);
 
 /*******************************************************************************
 **
@@ -933,9 +933,9 @@ BTA_API extern INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_dat
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
-                           tBTA_JV_ROLE role,  UINT16 remote_psm, UINT16 rx_mtu,
-                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback);
+extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
+                                         tBTA_JV_ROLE role,  UINT16 remote_psm, UINT16 rx_mtu,
+                                         BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -947,7 +947,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
+extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
 
 /*******************************************************************************
 **
@@ -963,9 +963,9 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
-                           UINT16 local_psm, UINT16 rx_mtu,
-                           tBTA_JV_L2CAP_CBACK *p_cback);
+extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                                             UINT16 local_psm, UINT16 rx_mtu,
+                                             tBTA_JV_L2CAP_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -978,7 +978,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm);
+extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm);
 
 /*******************************************************************************
 **
@@ -992,8 +992,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id,
-                                              UINT8 *p_data, UINT16 len);
+extern tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id,
+                                      UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1008,8 +1008,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id,
-                                              UINT8 *p_data, UINT16 len);
+extern tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id,
+                                         UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1022,7 +1022,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id,
 **                  BTA_JV_FAILURE, if error.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size);
+extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size);
 
 /*******************************************************************************
 **
@@ -1036,8 +1036,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_siz
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
-                                               UINT8 *p_data, UINT16 len);
+extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
+                                       UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1054,9 +1054,9 @@ BTA_API extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask,
-                           tBTA_JV_ROLE role, UINT8 remote_scn, BD_ADDR peer_bd_addr,
-                           tBTA_JV_RFCOMM_CBACK *p_cback, void *user_data);
+extern tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask,
+                                          tBTA_JV_ROLE role, UINT8 remote_scn, BD_ADDR peer_bd_addr,
+                                          tBTA_JV_RFCOMM_CBACK *p_cback, void *user_data);
 
 /*******************************************************************************
 **
@@ -1068,7 +1068,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommConnect(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void* user_data);
+extern tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void* user_data);
 
 /*******************************************************************************
 **
@@ -1085,9 +1085,9 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommClose(UINT32 handle, void* user_data);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
-                           tBTA_JV_ROLE role, UINT8 local_scn, UINT8 max_session,
-                           tBTA_JV_RFCOMM_CBACK *p_cback, void *user_data);
+extern tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
+                                              tBTA_JV_ROLE role, UINT8 local_scn, UINT8 max_session,
+                                              tBTA_JV_RFCOMM_CBACK *p_cback, void *user_data);
 
 /*******************************************************************************
 **
@@ -1100,7 +1100,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStartServer(tBTA_SEC sec_mask,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void* user_data);
+extern tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void* user_data);
 
 /*******************************************************************************
 **
@@ -1114,8 +1114,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void* user_d
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id,
-                                               UINT8 *p_data, UINT16 len);
+extern tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id,
+                                       UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1128,7 +1128,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id,
 **                  BTA_JV_FAILURE, if error.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_size);
+extern tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_size);
 
 /*******************************************************************************
 **
@@ -1142,7 +1142,7 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_si
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id);
+extern tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id);
 
 /*******************************************************************************
  **
@@ -1163,8 +1163,8 @@ BTA_API extern tBTA_JV_STATUS BTA_JvRfcommWrite(UINT32 handle, UINT32 req_id);
  **              BTA_JV_CONN_CLOSE to remove in case of connection close!
  **
  *******************************************************************************/
-BTA_API extern tBTA_JV_STATUS BTA_JvSetPmProfile(UINT32 handle, tBTA_JV_PM_ID app_id,
-                                                 tBTA_JV_CONN_STATE init_st);
+extern tBTA_JV_STATUS BTA_JvSetPmProfile(UINT32 handle, tBTA_JV_PM_ID app_id,
+                                         tBTA_JV_CONN_STATE init_st);
 
 /*******************************************************************************
 **
@@ -1183,4 +1183,3 @@ UINT16 BTA_JvRfcommGetPortHdl(UINT32 handle);
 #endif
 
 #endif /* BTA_JV_API_H */
-

@@ -122,7 +122,7 @@ extern "C"
 {
 #endif
 
-BT_API extern void BTE_InitStack(void);
+extern void BTE_InitStack(void);
 
 #ifdef __cplusplus
 }

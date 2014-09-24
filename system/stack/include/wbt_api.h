@@ -54,15 +54,15 @@ extern "C"
 {
 #endif
 
-BT_API extern BOOLEAN WBT_ExtCreateRecord(void);
+extern BOOLEAN WBT_ExtCreateRecord(void);
 
 /*** Features ***/
-BT_API extern BOOLEAN WBT_ExtAddPinCode(void);
+extern BOOLEAN WBT_ExtAddPinCode(void);
 
 
-BT_API extern UINT32 wbt_sdp_show_ext(UINT8 scn, char *service_name,
-                                      UINT8 pin_code_ext,
-                                      UINT8 active_sync_ext);
+extern UINT32 wbt_sdp_show_ext(UINT8 scn, char *service_name,
+                               UINT8 pin_code_ext,
+                               UINT8 active_sync_ext);
 
 #ifdef __cplusplus
 }

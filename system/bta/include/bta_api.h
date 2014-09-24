@@ -1376,7 +1376,7 @@ extern "C"
 **                  BTA_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback);
+extern tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -1390,7 +1390,7 @@ BTA_API extern tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DisableBluetooth(void);
+extern tBTA_STATUS BTA_DisableBluetooth(void);
 
 /*******************************************************************************
 **
@@ -1402,7 +1402,7 @@ BTA_API extern tBTA_STATUS BTA_DisableBluetooth(void);
 ** Returns          tBTA_STATUS
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_EnableTestMode(void);
+extern tBTA_STATUS BTA_EnableTestMode(void);
 
 /*******************************************************************************
 **
@@ -1414,7 +1414,7 @@ BTA_API extern tBTA_STATUS BTA_EnableTestMode(void);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DisableTestMode(void);
+extern void BTA_DisableTestMode(void);
 
 /*******************************************************************************
 **
@@ -1429,7 +1429,7 @@ BTA_API extern void BTA_DisableTestMode(void);
 **                  FALSE if the module is not ready.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_DmIsDeviceUp(void);
+extern BOOLEAN BTA_DmIsDeviceUp(void);
 
 /*******************************************************************************
 **
@@ -1441,7 +1441,7 @@ BTA_API extern BOOLEAN BTA_DmIsDeviceUp(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetDeviceName(char *p_name);
+extern void BTA_DmSetDeviceName(char *p_name);
 
 /*******************************************************************************
 **
@@ -1456,7 +1456,7 @@ BTA_API extern void BTA_DmSetDeviceName(char *p_name);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter);
+extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter);
 
 /*******************************************************************************
 **
@@ -1469,8 +1469,8 @@ BTA_API extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN con
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
-                                  UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window);
+extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
+                                UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window);
 
 /*******************************************************************************
 **
@@ -1485,7 +1485,7 @@ BTA_API extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_s
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
+extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
 
 
 /*******************************************************************************
@@ -1499,7 +1499,7 @@ BTA_API extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
 ** Returns          tBTA_STATUS
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,UINT8 *p_param_buf, tBTA_VENDOR_CMPL_CBACK *p_cback);
+extern tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,UINT8 *p_param_buf, tBTA_VENDOR_CMPL_CBACK *p_cback);
 
 
 /*******************************************************************************
@@ -1516,8 +1516,8 @@ BTA_API extern tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 par
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services,
-                                 tBTA_DM_SEARCH_CBACK *p_cback);
+extern void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services,
+                         tBTA_DM_SEARCH_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -1530,7 +1530,7 @@ BTA_API extern void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK servic
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSearchCancel(void);
+extern void BTA_DmSearchCancel(void);
 
 /*******************************************************************************
 **
@@ -1543,8 +1543,8 @@ BTA_API extern void BTA_DmSearchCancel(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
-                                   tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
+extern void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
+                           tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
 
 // btla-specific ++
 /*******************************************************************************
@@ -1558,8 +1558,8 @@ BTA_API extern void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
+extern void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
+                               tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
 
 /*******************************************************************************
 **
@@ -1585,7 +1585,7 @@ tBTA_STATUS BTA_DmGetCachedRemoteName(BD_ADDR remote_device, UINT8 **pp_cached_n
 **                  FALSE if not.
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr);
+extern BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1599,7 +1599,7 @@ BTA_API extern BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBond(BD_ADDR bd_addr);
+extern void BTA_DmBond(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1613,7 +1613,7 @@ BTA_API extern void BTA_DmBond(BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBondByTransport(BD_ADDR bd_addr, tBTA_TRANSPORT transport);
+extern void BTA_DmBondByTransport(BD_ADDR bd_addr, tBTA_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1627,7 +1627,7 @@ BTA_API extern void BTA_DmBondByTransport(BD_ADDR bd_addr, tBTA_TRANSPORT transp
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBondCancel(BD_ADDR bd_addr);
+extern void BTA_DmBondCancel(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1642,8 +1642,8 @@ BTA_API extern void BTA_DmBondCancel(BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len,
-                                   UINT8 *p_pin);
+extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len,
+                           UINT8 *p_pin);
 
 /*******************************************************************************
 **
@@ -1657,8 +1657,8 @@ BTA_API extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_le
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
-                                     BOOLEAN set);
+extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
+                             BOOLEAN set);
 
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
@@ -1671,7 +1671,7 @@ BTA_API extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mas
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmLocalOob(void);
+extern void BTA_DmLocalOob(void);
 #endif /* BTM_OOB_INCLUDED */
 
 /*******************************************************************************
@@ -1684,7 +1684,7 @@ BTA_API extern void BTA_DmLocalOob(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept);
+extern void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept);
 
 /*******************************************************************************
 **
@@ -1696,7 +1696,7 @@ BTA_API extern void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmPasskeyCancel(BD_ADDR bd_addr);
+extern void BTA_DmPasskeyCancel(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1711,10 +1711,10 @@ BTA_API extern void BTA_DmPasskeyCancel(BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                    LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
-                                    BOOLEAN is_trusted, UINT8 key_type,
-                                    tBTA_IO_CAP io_cap);
+extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
+                            LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
+                            BOOLEAN is_trusted, UINT8 key_type,
+                            tBTA_IO_CAP io_cap);
 
 /*******************************************************************************
 **
@@ -1731,10 +1731,10 @@ BTA_API extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
 **                  BTA_FEATURE_BYTES_PER_PAGE * (BTA_EXT_FEATURES_PAGE_MAX + 1)
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                      BD_NAME bd_name, UINT8 *features,
-                                      LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
-                                      BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap);
+extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
+                                  BD_NAME bd_name, UINT8 *features,
+                                  LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
+                                  BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap);
 
 /*******************************************************************************
 **
@@ -1749,7 +1749,7 @@ BTA_API extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **                  BTA_FAIL if operation failed.
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
+extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1764,8 +1764,8 @@ BTA_API extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service,
-                                         tBTA_AUTH_RESP response);
+extern void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service,
+                                 tBTA_AUTH_RESP response);
 
 /*******************************************************************************
 **
@@ -1780,7 +1780,7 @@ BTA_API extern void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID servic
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN start);
+extern void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN start);
 
 /*******************************************************************************
 **
@@ -1794,7 +1794,7 @@ BTA_API extern void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 per
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmWriteInqTxPower(INT8 tx_power);
+extern void BTA_DmWriteInqTxPower(INT8 tx_power);
 
 /*******************************************************************************
 **
@@ -1807,7 +1807,7 @@ BTA_API extern void BTA_DmWriteInqTxPower(INT8 tx_power);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmEirAddUUID (tBT_UUID *p_uuid);
+extern void BTA_DmEirAddUUID (tBT_UUID *p_uuid);
 
 /*******************************************************************************
 **
@@ -1820,7 +1820,7 @@ BTA_API extern void BTA_DmEirAddUUID (tBT_UUID *p_uuid);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid);
+extern void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid);
 
 /*******************************************************************************
 **
@@ -1835,7 +1835,7 @@ BTA_API extern void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg);
+extern void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg);
 
 /*******************************************************************************
 **
@@ -1850,7 +1850,7 @@ BTA_API extern void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg);
 ** Returns          pointer of EIR data
 **
 *******************************************************************************/
-BTA_API extern UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 tag, UINT8 *p_length );
+extern UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 tag, UINT8 *p_length );
 
 /*******************************************************************************
 **
@@ -1864,7 +1864,7 @@ BTA_API extern UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 tag, UINT8 *p_length
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services );
+extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services );
 
 /*******************************************************************************
 **
@@ -1876,7 +1876,7 @@ BTA_API extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_servic
 ** Returns          TRUE, if SSR is supported
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
+extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
 
 /*******************************************************************************
 **
@@ -1887,7 +1887,7 @@ BTA_API extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
 ** Returns          0 if the device is NOT connected.
 **
 *******************************************************************************/
-BTA_API extern UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr );
+extern UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr );
 
 
 /*******************************************************************************
@@ -1899,8 +1899,8 @@ BTA_API extern UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr );
 ** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
-	                          UINT32 *p_handle );
+extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
+                                           UINT32 *p_handle );
 
 /*******************************************************************************
 **
@@ -1913,8 +1913,8 @@ BTA_API extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info
 ** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
-	                          UINT32 *p_handle );
+extern tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
+                                           UINT32 *p_handle );
 
 /*******************************************************************************
 **
@@ -1925,8 +1925,8 @@ BTA_API extern tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_
 ** Returns          None.
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *p_db,
-                       UINT32 len, tBTA_DM_SEARCH_CBACK *p_cback );
+extern void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *p_db,
+                              UINT32 len, tBTA_DM_SEARCH_CBACK *p_cback );
 
 /*******************************************************************************
 **
@@ -1938,8 +1938,8 @@ BTA_API extern void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *
 ** Returns          None.
 **
 *******************************************************************************/
-BTA_API extern tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GET_RECORD *p_device_info,
-                        tBTA_DISCOVERY_DB *p_db );
+extern tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GET_RECORD *p_device_info,
+                                      tBTA_DISCOVERY_DB *p_db );
 
 /*******************************************************************************
 **
@@ -1957,7 +1957,7 @@ BTA_API extern tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GE
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transport);
+extern void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -1968,7 +1968,7 @@ BTA_API extern void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRA
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_SysFeatures (UINT16 sys_features);
+extern void BTA_SysFeatures (UINT16 sys_features);
 
 /*******************************************************************************
 **
@@ -1981,7 +1981,7 @@ BTA_API extern void BTA_SysFeatures (UINT16 sys_features);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param);
+extern void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param);
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
 /*******************************************************************************
@@ -1998,7 +1998,7 @@ BTA_API extern void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void 
 ** Returns          none
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmPcmInitSamples (UINT32 src_sps, UINT32 bits, UINT32 n_channels);
+extern void BTA_DmPcmInitSamples (UINT32 src_sps, UINT32 bits, UINT32 n_channels);
 
 /**************************************************************************************
 ** Function         BTA_DmPcmResample
@@ -2016,7 +2016,7 @@ BTA_API extern void BTA_DmPcmInitSamples (UINT32 src_sps, UINT32 bits, UINT32 n_
 ** Returns          INT32: number of samples converted.
 **
 **************************************************************************************/
-BTA_API extern INT32 BTA_DmPcmResample (void *p_src, UINT32 in_bytes, void *p_dst);
+extern INT32 BTA_DmPcmResample (void *p_src, UINT32 in_bytes, void *p_dst);
 #endif
 
 #if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -2033,7 +2033,7 @@ BTA_API extern INT32 BTA_DmPcmResample (void *p_src, UINT32 in_bytes, void *p_ds
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res);
+extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res);
 
 
 
@@ -2051,7 +2051,7 @@ BTA_API extern void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRAN
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_CBACK *p_select_cback);
+extern void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_CBACK *p_select_cback);
 
 /*******************************************************************************
 **
@@ -2067,7 +2067,7 @@ BTA_API extern void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, t
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey);
+extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey);
 
 /*******************************************************************************
 **
@@ -2084,8 +2084,8 @@ BTA_API extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT3
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type,
-                                       tBT_DEVICE_TYPE dev_type);
+extern void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type,
+                               tBT_DEVICE_TYPE dev_type);
 
 
 /*******************************************************************************
@@ -2103,9 +2103,9 @@ BTA_API extern void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmAddBleKey (BD_ADDR bd_addr,
-                                     tBTA_LE_KEY_VALUE *p_le_key,
-                                     tBTA_LE_KEY_TYPE key_type);
+extern void BTA_DmAddBleKey (BD_ADDR bd_addr,
+                             tBTA_LE_KEY_VALUE *p_le_key,
+                             tBTA_LE_KEY_TYPE key_type);
 
 /*******************************************************************************
 **
@@ -2124,9 +2124,9 @@ BTA_API extern void BTA_DmAddBleKey (BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
-                               UINT16 min_conn_int, UINT16 max_conn_int,
-                               UINT16 slave_latency, UINT16 supervision_tout );
+extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
+                                       UINT16 min_conn_int, UINT16 max_conn_int,
+                                       UINT16 slave_latency, UINT16 supervision_tout );
 
 /*******************************************************************************
 **
@@ -2142,8 +2142,8 @@ BTA_API extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetBleConnScanParams(UINT16 scan_interval,
-                                               UINT16 scan_window );
+extern void BTA_DmSetBleConnScanParams(UINT16 scan_interval,
+                                       UINT16 scan_window );
 
 /*******************************************************************************
 **
@@ -2160,8 +2160,8 @@ BTA_API extern void BTA_DmSetBleConnScanParams(UINT16 scan_interval,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
-                                           tBLE_BD_ADDR *p_dir_bda);
+extern void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
+                                   tBLE_BD_ADDR *p_dir_bda);
 /*******************************************************************************
 **
 ** Function         BTA_DmSearchExt
@@ -2181,8 +2181,8 @@ BTA_API extern void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_ma
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services,
-                                    tBTA_DM_SEARCH_CBACK *p_cback);
+extern void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services,
+                            tBTA_DM_SEARCH_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -2199,8 +2199,8 @@ BTA_API extern void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
-                                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
+extern void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
+                              tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search);
 
 /*******************************************************************************
 **
@@ -2218,9 +2218,9 @@ BTA_API extern void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
-                                              tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
-                                              tBTA_TRANSPORT transport);
+extern void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
+                                      tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
+                                      tBTA_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -2245,9 +2245,9 @@ BTA_API extern void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK
 **
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport,
-                                        tBTA_DM_ENCRYPT_CBACK *p_callback,
-                                         tBTA_DM_BLE_SEC_ACT sec_act);
+extern void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport,
+                                tBTA_DM_ENCRYPT_CBACK *p_callback,
+                                tBTA_DM_BLE_SEC_ACT sec_act);
 
 
 /*******************************************************************************
@@ -2264,8 +2264,8 @@ BTA_API extern void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transpor
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
-                                           tBTA_DM_SEARCH_CBACK *p_results_cb);
+extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
+                             tBTA_DM_SEARCH_CBACK *p_results_cb);
 
 
 #endif
@@ -2280,7 +2280,7 @@ BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 ** Returns          status
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable);
+extern void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable);
 
 #if BLE_INCLUDED == TRUE
 // btla-specific --
@@ -2295,7 +2295,7 @@ BTA_API extern void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable);
+extern void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable);
 
 /*******************************************************************************
 **
@@ -2309,7 +2309,7 @@ BTA_API extern void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable);
+extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable);
 
 
 /*******************************************************************************
@@ -2323,9 +2323,9 @@ BTA_API extern void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privac
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
-                                           tBTA_BLE_ADV_DATA *p_adv_cfg,
-                                           tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
+extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
+                                   tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                   tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -2338,9 +2338,9 @@ BTA_API extern void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
-                                         tBTA_BLE_ADV_DATA *p_adv_cfg,
-                                         tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
+extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
+                                 tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                 tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback);
 
 /*******************************************************************************
 **
@@ -2353,7 +2353,7 @@ BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start);
+extern void BTA_DmBleBroadcast (BOOLEAN start);
 
 
 /*******************************************************************************
@@ -2369,7 +2369,7 @@ BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
+extern void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
                                 tBTA_BLE_MULTI_ADV_CBACK *p_cback,void *p_ref);
 
 /*******************************************************************************
@@ -2384,7 +2384,7 @@ BTA_API extern void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_BleUpdateAdvInstParam (UINT8 inst_id,
+extern void BTA_BleUpdateAdvInstParam (UINT8 inst_id,
                                 tBTA_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
@@ -2399,7 +2399,7 @@ BTA_API extern void BTA_BleUpdateAdvInstParam (UINT8 inst_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+extern void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                                 tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_data);
 
 /*******************************************************************************
@@ -2413,7 +2413,7 @@ BTA_API extern void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
+extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 
 /*******************************************************************************
 **
@@ -2430,7 +2430,7 @@ BTA_API extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
+extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
                                    UINT16 max_int, UINT16 latency, UINT16 timeout);
 
 /*******************************************************************************
@@ -2451,7 +2451,7 @@ BTA_API extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_
 ** Returns           None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
+extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
                                          UINT8 batch_scan_trunc_max,
                                          UINT8 batch_scan_notify_threshold,
                                          tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
@@ -2475,7 +2475,7 @@ BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 ** Returns           None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
                                          UINT32 scan_interval, UINT32 scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
@@ -2493,7 +2493,7 @@ BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
@@ -2507,7 +2507,7 @@ BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
+extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
 **
@@ -2522,7 +2522,7 @@ BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmEnableScanFilter(UINT8 action,
+extern void BTA_DmEnableScanFilter(UINT8 action,
                                         tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
                                         tBTA_DM_BLE_REF_VALUE ref_value);
 
@@ -2542,7 +2542,7 @@ BTA_API extern void BTA_DmEnableScanFilter(UINT8 action,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleScanFilterSetup(UINT8 action,
+extern void BTA_DmBleScanFilterSetup(UINT8 action,
                                                    tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                                                    tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
                                                    tBLE_BD_ADDR *p_target,
@@ -2566,7 +2566,7 @@ BTA_API extern void BTA_DmBleScanFilterSetup(UINT8 action,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
+extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                                  tBTA_DM_BLE_PF_COND_TYPE cond_type,
                                                  tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                                                  tBTA_DM_BLE_PF_COND_PARAM *p_cond,
@@ -2586,7 +2586,7 @@ BTA_API extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
+extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
                             tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback);
 
 /*******************************************************************************
@@ -2600,7 +2600,7 @@ BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback);
+extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback);
 
 /*******************************************************************************
 **
@@ -2611,7 +2611,7 @@ BTA_API extern void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cb
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_VendorInit  (void);
+extern void BTA_VendorInit  (void);
 
 /*******************************************************************************
 **
@@ -2622,7 +2622,7 @@ BTA_API extern void BTA_VendorInit  (void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_VendorCleanup (void);
+extern void BTA_VendorCleanup (void);
 
 #endif
 
@@ -2631,4 +2631,3 @@ BTA_API extern void BTA_VendorCleanup (void);
 #endif
 
 #endif /* BTA_API_H */
-

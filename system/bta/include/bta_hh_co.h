@@ -46,9 +46,9 @@ typedef struct
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len,
-                                   tBTA_HH_PROTO_MODE  mode, UINT8 sub_class,
-                                   UINT8 ctry_code, BD_ADDR peer_addr, UINT8 app_id);
+extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len,
+                           tBTA_HH_PROTO_MODE  mode, UINT8 sub_class,
+                           UINT8 ctry_code, BD_ADDR peer_addr, UINT8 app_id);
 
 /*******************************************************************************
 **
@@ -61,8 +61,8 @@ BTA_API extern void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class,
-                                   UINT16 attr_mask, UINT8 app_id);
+extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class,
+                           UINT16 attr_mask, UINT8 app_id);
 
 /*******************************************************************************
 **
@@ -74,7 +74,7 @@ BTA_API extern void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id);
+extern void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id);
 
 #if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE)
 /*******************************************************************************
@@ -93,7 +93,7 @@ BTA_API extern void bta_hh_co_close(UINT8 dev_handle, UINT8 app_id);
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
+extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
                                           tBTA_HH_RPT_CACHE_ENTRY *p_entry,
                                           UINT8 app_id);
 
@@ -112,7 +112,7 @@ BTA_API extern void bta_hh_le_co_rpt_info(BD_ADDR remote_bda,
 ** Returns          the acched report array
 **
 *******************************************************************************/
-BTA_API extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
+extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_bda,
                                                                  UINT8 *p_num_rpt,
                                                                  UINT8 app_id);
 
@@ -127,8 +127,7 @@ BTA_API extern tBTA_HH_RPT_CACHE_ENTRY *bta_hh_le_co_cache_load (BD_ADDR remote_
 ** Returns          none
 **
 *******************************************************************************/
-BTA_API extern void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, UINT8 app_id);
+extern void bta_hh_le_co_reset_rpt_cache (BD_ADDR remote_bda, UINT8 app_id);
 
 #endif /* #if (BLE_INCLUDED == TRUE && BTA_HH_LE_INCLUDED == TRUE) */
 #endif /* BTA_HH_CO_H */
-

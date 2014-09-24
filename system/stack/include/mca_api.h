@@ -224,7 +224,7 @@ typedef void (tMCA_CTRL_CBACK)(tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
 ** Returns          void
 **
 *******************************************************************************/
-MCA_API extern void MCA_Init(void);
+extern void MCA_Init(void);
 
 /*******************************************************************************
 **
@@ -247,7 +247,7 @@ MCA_API extern void MCA_Init(void);
 **                  the input parameter is 0xff.
 **
 *******************************************************************************/
-MCA_API extern UINT8 MCA_SetTraceLevel (UINT8 level);
+extern UINT8 MCA_SetTraceLevel (UINT8 level);
 
 /*******************************************************************************
 **
@@ -261,7 +261,7 @@ MCA_API extern UINT8 MCA_SetTraceLevel (UINT8 level);
 ** Returns          0, if failed. Otherwise, the MCA handle.
 **
 *******************************************************************************/
-MCA_API extern tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback);
+extern tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -274,7 +274,7 @@ MCA_API extern tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cbac
 ** Returns          void
 **
 *******************************************************************************/
-MCA_API extern void MCA_Deregister(tMCA_HANDLE handle);
+extern void MCA_Deregister(tMCA_HANDLE handle);
 
 /*******************************************************************************
 **
@@ -288,7 +288,7 @@ MCA_API extern void MCA_Deregister(tMCA_HANDLE handle);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tMCA_CS *p_cs);
+extern tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tMCA_CS *p_cs);
 
 /*******************************************************************************
 **
@@ -303,7 +303,7 @@ MCA_API extern tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tM
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep);
+extern tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep);
 
 /*******************************************************************************
 **
@@ -321,9 +321,9 @@ MCA_API extern tMCA_RESULT MCA_DeleteDep(tMCA_HANDLE handle, tMCA_DEP dep);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
-                                          UINT16 ctrl_psm,
-                                          UINT16 sec_mask);
+extern tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
+                                  UINT16 ctrl_psm,
+                                  UINT16 sec_mask);
 
 /*******************************************************************************
 **
@@ -338,7 +338,7 @@ MCA_API extern tMCA_RESULT MCA_ConnectReq(tMCA_HANDLE handle, BD_ADDR bd_addr,
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl);
+extern tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl);
 
 /*******************************************************************************
 **
@@ -355,9 +355,9 @@ MCA_API extern tMCA_RESULT MCA_DisconnectReq(tMCA_CL mcl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                         UINT16 mdl_id, UINT8 peer_dep_id,
-                                         UINT8 cfg, const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
+                                 UINT16 mdl_id, UINT8 peer_dep_id,
+                                 UINT8 cfg, const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -373,9 +373,9 @@ MCA_API extern tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                            UINT16 mdl_id, UINT8 cfg, UINT8 rsp_code,
-                                            const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
+                                    UINT16 mdl_id, UINT8 cfg, UINT8 rsp_code,
+                                    const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -388,7 +388,7 @@ MCA_API extern tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_CloseReq(tMCA_DL mdl);
+extern tMCA_RESULT MCA_CloseReq(tMCA_DL mdl);
 
 /*******************************************************************************
 **
@@ -403,8 +403,8 @@ MCA_API extern tMCA_RESULT MCA_CloseReq(tMCA_DL mdl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
-                                            UINT16 mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
+                                    UINT16 mdl_id, const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -419,9 +419,9 @@ MCA_API extern tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 da
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
-                                               UINT16 mdl_id, UINT8 rsp_code,
-                                               const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
+                                       UINT16 mdl_id, UINT8 rsp_code,
+                                       const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -435,7 +435,7 @@ MCA_API extern tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg);
+extern tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg);
 
 /*******************************************************************************
 **
@@ -447,7 +447,7 @@ MCA_API extern tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_c
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_Abort(tMCA_CL mcl);
+extern tMCA_RESULT MCA_Abort(tMCA_CL mcl);
 
 /*******************************************************************************
 **
@@ -459,7 +459,7 @@ MCA_API extern tMCA_RESULT MCA_Abort(tMCA_CL mcl);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id);
+extern tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id);
 
 /*******************************************************************************
 **
@@ -479,7 +479,7 @@ MCA_API extern tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id);
 ** Returns          MCA_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-MCA_API extern tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt);
+extern tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **
@@ -490,6 +490,6 @@ MCA_API extern tMCA_RESULT MCA_WriteReq(tMCA_DL mdl, BT_HDR *p_pkt);
 ** Returns          L2CAP channel ID if successful, otherwise 0.
 **
 *******************************************************************************/
-MCA_API extern UINT16 MCA_GetL2CapChannel (tMCA_DL mdl);
+extern UINT16 MCA_GetL2CapChannel (tMCA_DL mdl);
 
 #endif /* MCA_API_H */

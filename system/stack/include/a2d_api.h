@@ -163,7 +163,7 @@ extern "C"
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-A2D_API extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_provider_name,
+extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_name, char *p_provider_name,
         UINT16 features, UINT32 sdp_handle);
 
 /******************************************************************************
@@ -201,8 +201,8 @@ A2D_API extern tA2D_STATUS A2D_AddRecord(UINT16 service_uuid, char *p_service_na
 **                  A2D_FAIL if function execution failed.
 **
 ******************************************************************************/
-A2D_API extern tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
-                        tA2D_SDP_DB_PARAMS *p_db, tA2D_FIND_CBACK *p_cback);
+extern tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
+                                   tA2D_SDP_DB_PARAMS *p_db, tA2D_FIND_CBACK *p_cback);
 
 /******************************************************************************
 **
@@ -225,7 +225,7 @@ A2D_API extern tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-A2D_API extern UINT8 A2D_SetTraceLevel (UINT8 new_level);
+extern UINT8 A2D_SetTraceLevel (UINT8 new_level);
 
 /******************************************************************************
 ** Function         A2D_BitsSet
@@ -235,7 +235,7 @@ A2D_API extern UINT8 A2D_SetTraceLevel (UINT8 new_level);
 **                  A2D_SET_ZERO_BIT, if all bits clear
 **                  A2D_SET_MULTL_BIT, if multiple bits are set
 ******************************************************************************/
-A2D_API extern UINT8 A2D_BitsSet(UINT8 num);
+extern UINT8 A2D_BitsSet(UINT8 num);
 
 #ifdef __cplusplus
 }
@@ -252,6 +252,6 @@ A2D_API extern UINT8 A2D_BitsSet(UINT8 num);
 ** Returns          void
 **
 *******************************************************************************/
-A2D_API extern void A2D_Init(void);
+extern void A2D_Init(void);
 
 #endif /* A2D_API_H */

@@ -45,7 +45,7 @@
 ** Returns          Void.
 **
 *******************************************************************************/
-BTA_API extern void bta_ag_co_init(void);
+extern void bta_ag_co_init(void);
 
 /*******************************************************************************
 **
@@ -69,11 +69,11 @@ BTA_API extern void bta_ag_co_init(void);
 **
 *******************************************************************************/
 #if (BTM_WBS_INCLUDED == TRUE )
-BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state,
+extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state,
                                           tBTA_AG_PEER_CODEC codec);
 
 #else
-BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state);
+extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state);
 #endif
 
 /*******************************************************************************
@@ -89,7 +89,7 @@ BTA_API extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 sta
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
+extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
 
 /*******************************************************************************
 **
@@ -102,7 +102,7 @@ BTA_API extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_ag_co_data_close(UINT16 handle);
+extern void bta_ag_co_data_close(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -116,7 +116,6 @@ BTA_API extern void bta_ag_co_data_close(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_ag_co_tx_write(UINT16 handle, UINT8 *p_data, UINT16 len);
+extern void bta_ag_co_tx_write(UINT16 handle, UINT8 *p_data, UINT16 len);
 
 #endif /* BTA_AG_CO_H */
-

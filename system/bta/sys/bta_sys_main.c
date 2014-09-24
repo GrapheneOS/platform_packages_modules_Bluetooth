@@ -172,7 +172,7 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void bta_sys_init(void)
+void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
 
@@ -204,7 +204,7 @@ BTA_API void bta_sys_init(void)
 
 }
 
-BTA_API void bta_sys_free(void) {
+void bta_sys_free(void) {
     fixed_queue_free(btu_bta_alarm_queue, NULL);
     hash_map_free(bta_alarm_hash_map);
     pthread_mutex_destroy(&bta_alarm_lock);
@@ -510,7 +510,7 @@ void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void bta_sys_event(BT_HDR *p_msg)
+void bta_sys_event(BT_HDR *p_msg)
 {
     UINT8       id;
     BOOLEAN     freebuf = TRUE;
@@ -546,7 +546,7 @@ BTA_API void bta_sys_event(BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void bta_sys_timer_update(void)
+void bta_sys_timer_update(void)
 {
     if (!bta_sys_cb.timers_disabled)
     {
@@ -761,5 +761,3 @@ UINT16 bta_sys_get_sys_features (void)
 {
     return bta_sys_cb.sys_features;
 }
-
-

@@ -1557,8 +1557,8 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
-                        tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
+extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                 tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
 
@@ -1591,7 +1591,7 @@ BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_AD
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
+extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
                                          UINT8 batch_scan_trunc_max,
                                          UINT8 batch_scan_notify_threshold,
                                          tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
@@ -1632,7 +1632,7 @@ BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
                                          UINT32 scan_interval, UINT32 scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
@@ -1664,7 +1664,7 @@ BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
+extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 {
     tBTA_DM_API_DISABLE_SCAN  *p_msg;
 
@@ -1689,7 +1689,7 @@ BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value)
 {
     tBTA_DM_API_READ_SCAN_REPORTS  *p_msg;
@@ -1716,7 +1716,7 @@ BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
+extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
                             tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback)
 {
     tBTA_DM_API_TRACK_ADVERTISER  *p_msg;
@@ -1742,7 +1742,7 @@ BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start)
+extern void BTA_DmBleBroadcast (BOOLEAN start)
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 
@@ -2526,8 +2526,8 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
-                                     tBTA_DM_SEARCH_CBACK *p_results_cb)
+extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
+                             tBTA_DM_SEARCH_CBACK *p_results_cb)
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 

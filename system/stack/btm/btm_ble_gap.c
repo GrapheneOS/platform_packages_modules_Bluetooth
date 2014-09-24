@@ -496,7 +496,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
+extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 {
     BTM_TRACE_DEBUG("BTM_BleGetVendorCapabilities");
 
@@ -517,7 +517,7 @@ BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
+extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
     if (TRUE == btm_cb.cmn_ble_vsc_cb.values_read)
         return;
@@ -612,7 +612,7 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
 ** Returns          Max multi adv instance count
 **
 *******************************************************************************/
-BTM_API extern UINT8  BTM_BleMaxMultiAdvInstanceCount()
+extern UINT8  BTM_BleMaxMultiAdvInstanceCount()
 {
     return btm_cb.cmn_ble_vsc_cb.adv_inst_max < BTM_BLE_MULTI_ADV_MAX ?
         btm_cb.cmn_ble_vsc_cb.adv_inst_max : BTM_BLE_MULTI_ADV_MAX;

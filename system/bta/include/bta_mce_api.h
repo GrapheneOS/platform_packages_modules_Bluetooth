@@ -108,7 +108,7 @@ extern "C"
 **                  BTA_MCE_FAIL if internal failure.
 **
 *******************************************************************************/
-BTA_API extern tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback);
+extern tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -123,7 +123,7 @@ BTA_API extern tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback);
 **                  BTA_MCE_FAILURE, otherwise.
 **
 *******************************************************************************/
-BTA_API extern tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr);
+extern tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr);
 
 #ifdef __cplusplus
 }

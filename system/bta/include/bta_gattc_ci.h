@@ -71,7 +71,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt,
+extern void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt,
                                             tBTA_GATT_STATUS status, UINT16 conn_id);
 
 /*******************************************************************************
@@ -90,9 +90,9 @@ BTA_API extern void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt,
-                                            UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_atrr,
-                                            tBTA_GATT_STATUS status, UINT16 conn_id);
+extern void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt,
+                                    UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_atrr,
+                                    tBTA_GATT_STATUS status, UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -108,8 +108,8 @@ BTA_API extern void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt,
-                                            tBTA_GATT_STATUS status, UINT16 conn_id);
+extern void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt,
+                                    tBTA_GATT_STATUS status, UINT16 conn_id);
 
 
 #ifdef __cplusplus
@@ -117,4 +117,3 @@ BTA_API extern void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt,
 #endif
 
 #endif /* BTA_GATTC_CI_H */
-

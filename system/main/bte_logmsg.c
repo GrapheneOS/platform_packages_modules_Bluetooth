@@ -156,7 +156,6 @@ static const char * const bt_layer_tags[] = {
   "bt-ndef",
   "bt-nfa",
 };
-
 static uint8_t BTAPP_SetTraceLevel(uint8_t new_level);
 static uint8_t BTIF_SetTraceLevel(uint8_t new_level);
 static uint8_t BTU_SetTraceLevel(uint8_t new_level);

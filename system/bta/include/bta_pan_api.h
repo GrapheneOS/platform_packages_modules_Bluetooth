@@ -136,7 +136,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_PanEnable(tBTA_PAN_CBACK p_cback);
+extern void BTA_PanEnable(tBTA_PAN_CBACK p_cback);
 
 /*******************************************************************************
 **
@@ -147,7 +147,7 @@ BTA_API extern void BTA_PanEnable(tBTA_PAN_CBACK p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_PanDisable(void);
+extern void BTA_PanDisable(void);
 
 
 /*******************************************************************************
@@ -160,8 +160,8 @@ BTA_API extern void BTA_PanDisable(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PAN_ROLE_INFO *p_gn_info,
-                                        tBTA_PAN_ROLE_INFO *p_nap_info);
+void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PAN_ROLE_INFO *p_gn_info,
+                    tBTA_PAN_ROLE_INFO *p_nap_info);
 
 
 /*******************************************************************************
@@ -176,7 +176,7 @@ BTA_API void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE  peer_role);
+void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE  peer_role);
 
 
 
@@ -190,7 +190,7 @@ BTA_API void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_PanClose(UINT16 handle);
+extern void BTA_PanClose(UINT16 handle);
 
 
 #ifdef __cplusplus
@@ -198,4 +198,3 @@ BTA_API extern void BTA_PanClose(UINT16 handle);
 #endif
 
 #endif /* BTA_PAN_API_H */
-
