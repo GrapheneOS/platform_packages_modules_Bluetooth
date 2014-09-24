@@ -128,11 +128,11 @@ typedef void (*TASKPTR)(void);
 ** Function prototypes
 */
 
+#define GKI_MODULE "gki_module"
+
 /* Task management
 */
 UINT8   GKI_get_taskid(void);
-void    GKI_init(void);
-void    GKI_shutdown(void);
 
 /* To send buffers and events between tasks
 */

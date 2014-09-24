@@ -37,6 +37,7 @@
 #include "alarm.h"
 #include "bt_utils.h"
 #include "gki_int.h"
+#include "module.h"
 #include "osi.h"
 
 /*****************************************************************************
@@ -90,18 +91,7 @@ void alarm_service_reschedule() {
         ALOGV("%s no more alarms.", __func__);
 }
 
-/*******************************************************************************
-**
-** Function         GKI_init
-**
-** Description      This function is called once at startup to initialize
-**                  all the timer structures.
-**
-** Returns          void
-**
-*******************************************************************************/
-
-void GKI_init(void)
+static future_t *init(void)
 {
     pthread_mutexattr_t attr;
     tGKI_OS             *p_os;
@@ -121,6 +111,7 @@ void GKI_init(void)
 #endif
     p_os = &gki_cb.os;
     pthread_mutex_init(&p_os->GKI_mutex, &attr);
+    return NULL;
 }
 
 
@@ -138,20 +129,7 @@ UINT32 GKI_get_os_tick_count(void)
     return gki_cb.com.OSTicks;
 }
 
-/*******************************************************************************
-**
-** Function         GKI_shutdown
-**
-** Description      shutdowns the GKI tasks/threads in from max task id to 0 and frees
-**                  pthread resources!
-**                  IMPORTANT: in case of join method, GKI_shutdown must be called outside
-**                  a GKI thread context!
-**
-** Returns          void
-**
-*******************************************************************************/
-
-void GKI_shutdown(void)
+static future_t *clean_up(void)
 {
     alarm_free(alarm_timer);
     alarm_timer = NULL;
@@ -160,7 +138,20 @@ void GKI_shutdown(void)
 
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.GKI_mutex);
+    return NULL;
 }
+
+// Temp module until GKI dies
+const module_t gki_module = {
+  .name = GKI_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = NULL,
+  .clean_up = clean_up,
+  .dependencies = {
+    NULL
+  }
+};
 
 /*******************************************************************************
 **

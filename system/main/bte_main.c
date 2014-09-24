@@ -92,8 +92,7 @@ fixed_queue_t *btu_hci_msg_queue;
 ******************************************************************************/
 void bte_main_boot_entry(void)
 {
-    /* initialize OS */
-    GKI_init();
+    module_init(get_module(GKI_MODULE));
 
     hci = hci_layer_get_interface();
     if (!hci)
@@ -136,7 +135,7 @@ void bte_main_shutdown()
 
     module_clean_up(get_module(STACK_CONFIG_MODULE));
 
-    GKI_shutdown();
+    module_clean_up(get_module(GKI_MODULE));
 }
 
 /******************************************************************************

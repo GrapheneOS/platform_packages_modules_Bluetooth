@@ -5,6 +5,7 @@ include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/common \
 	$(LOCAL_PATH)/ulinux \
+	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../osi/include \
 	$(LOCAL_PATH)/../stack/include \
