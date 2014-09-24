@@ -270,7 +270,6 @@ void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
   btif_dut_mode = 0;
 
   future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
-  HAL_CBACK(bt_hal_cbacks,adapter_state_changed_cb,BT_STATE_OFF);
 }
 
 /*******************************************************************************
@@ -536,7 +535,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
 #endif
 
         future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
-        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
     }
     else
     {
@@ -546,7 +544,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
         btif_pan_cleanup();
 
         future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
-        HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
     }
 }
 
@@ -602,8 +599,7 @@ void btif_disable_bluetooth_evt(void)
      bte_main_disable();
 
     /* callback to HAL */
-    future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
-    HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
+    future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
 }
 
 

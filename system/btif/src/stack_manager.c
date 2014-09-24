@@ -22,6 +22,7 @@
 #include <utils/Log.h>
 
 #include "btif_api.h"
+#include "btif_common.h"
 #include "bt_utils.h"
 #include "osi.h"
 #include "semaphore.h"
@@ -113,9 +114,14 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
 
   bte_main_enable();
 
-  if (future_await(hack_future) == FUTURE_SUCCESS)
-    stack_is_running = true;
+  if (future_await(hack_future) != FUTURE_SUCCESS) {
+    event_shut_down_stack(NULL);
+    return;
+  }
+
+  stack_is_running = true;
   ALOGD("%s finished", __func__);
+  HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
 }
 
 // Synchronous function to shut down the stack
@@ -133,6 +139,7 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
 
   future_await(hack_future);
   ALOGD("%s finished.", __func__);
+  HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_OFF);
 }
 
 static void ensure_stack_is_not_running(void) {
