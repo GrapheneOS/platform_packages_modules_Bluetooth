@@ -101,13 +101,13 @@ int main(int argc, char **argv) {
   watchdog_running = true;
   pthread_create(&watchdog_thread, NULL, watchdog_fn, NULL);
 
-  static const char *GRAY  = "\x1b[0;37m";
+  static const char *DEFAULT  = "\x1b[0m";
   static const char *GREEN = "\x1b[0;32m";
   static const char *RED   = "\x1b[0;31m";
 
   // If the output is not a TTY device, don't colorize output.
   if (!isatty(fileno(stdout))) {
-    GRAY = GREEN = RED = "";
+    DEFAULT = GREEN = RED = "";
   }
 
   int pass = 0;
@@ -118,10 +118,10 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < sanity_suite_size; ++i) {
     callbacks_init();
     if (sanity_suite[i].function()) {
-      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, GRAY);
+      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
       ++pass;
     } else {
-      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, GRAY);
+      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
       ++fail;
     }
     callbacks_cleanup();
@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 
   // If there was a failure in the sanity suite, don't bother running the rest of the tests.
   if (fail) {
-    printf("\n%sSanity suite failed with %d errors.%s\n", RED, fail, GRAY);
+    printf("\n%sSanity suite failed with %d errors.%s\n", RED, fail, DEFAULT);
     hal_close();
     return 4;
   }
@@ -140,10 +140,10 @@ int main(int argc, char **argv) {
     callbacks_init();
     CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
     if (test_suite[i].function()) {
-      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, GRAY);
+      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, DEFAULT);
       ++pass;
     } else {
-      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, GRAY);
+      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, DEFAULT);
       ++fail;
     }
     CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
