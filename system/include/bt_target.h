@@ -58,18 +58,6 @@
 
 
 //------------------Added from bdroid_buildcfg.h---------------------
-#ifndef UNV_INCLUDED
-#define UNV_INCLUDED FALSE
-#endif
-
-#ifndef GATT_PTS
-#define GATT_PTS FALSE
-#endif
-
-#ifndef L2CAP_INCLUDED
-#define L2CAP_INCLUDED TRUE
-#endif
-
 #ifndef L2CAP_EXTFEA_SUPPORTED_MASK
 #define L2CAP_EXTFEA_SUPPORTED_MASK (L2CAP_EXTFEA_ENH_RETRANS | L2CAP_EXTFEA_STREAM_MODE | L2CAP_EXTFEA_NO_CRC | L2CAP_EXTFEA_FIXED_CHNLS)
 #endif
@@ -82,30 +70,6 @@
 #define BTA_RFC_MTU_SIZE (L2CAP_MTU_SIZE-L2CAP_MIN_OFFSET-RFCOMM_DATA_OVERHEAD)
 #endif
 
-#ifndef BTA_DUN_MTU
-#define BTA_DUN_MTU BTA_RFC_MTU_SIZE
-#endif
-
-#ifndef BTA_SPP_MTU
-#define BTA_SPP_MTU BTA_RFC_MTU_SIZE
-#endif
-
-#ifndef BTA_FAX_MTU
-#define BTA_FAX_MTU BTA_RFC_MTU_SIZE
-#endif
-
-#ifndef SDP_RAW_PDU_INCLUDED
-#define SDP_RAW_PDU_INCLUDED  TRUE
-#endif
-
-#ifndef GATTS_APPU_USE_GATT_TRACE
-#define GATTS_APPU_USE_GATT_TRACE FALSE
-#endif
-
-#ifndef SMP_HOST_ENCRYPT_INCLUDED
-#define SMP_HOST_ENCRYPT_INCLUDED FALSE
-#endif
-
 #ifndef SBC_NO_PCM_CPY_OPTION
 #define SBC_NO_PCM_CPY_OPTION FALSE
 #endif
@@ -116,15 +80,6 @@
 
 #ifndef BTA_AG_INCLUDED
 #define BTA_AG_INCLUDED  TRUE
-#endif
-
-#ifndef BTA_DM_INCLUDED
-#define BTA_DM_INCLUDED TRUE
-#endif
-
-
-#ifndef BTA_DI_INCLUDED
-#define BTA_DI_INCLUDED FALSE
 #endif
 
 #ifndef BTA_BI_INCLUDED
@@ -171,10 +126,6 @@
 #define BTA_DISABLE_DELAY 200 /* in milliseconds */
 #endif
 
-#ifndef RPC_TRACE_ONLY
-#define RPC_TRACE_ONLY  FALSE
-#endif
-
 #ifndef ANDROID_APP_INCLUDED
 #define ANDROID_APP_INCLUDED  TRUE
 #endif
@@ -183,14 +134,11 @@
 #define ANDROID_USE_LOGCAT  TRUE
 #endif
 
-#ifndef LINUX_GKI_INCLUDED
-#define LINUX_GKI_INCLUDED  TRUE
-#endif
-
 // If the next wakeup time is less than this threshold, we should acquire
 // a wakelock instead of setting a wake alarm so we're not bouncing in
 // and out of suspend frequently.
 // in millisecond
+// TODO(zachoverflow): reinstate in alarm code
 #ifndef GKI_TIMER_INTERVAL_FOR_WAKELOCK
 #define GKI_TIMER_INTERVAL_FOR_WAKELOCK 3000
 #endif
@@ -203,20 +151,8 @@
 #define GKI_SHUTDOWN_EVT  APPL_EVT_7
 #endif
 
-#ifndef LINUX_DRV_INCLUDED
-#define LINUX_DRV_INCLUDED  TRUE
-#endif
-
-#ifndef LINUX_OS
-#define LINUX_OS  TRUE
-#endif
-
 #ifndef SBC_FOR_EMBEDDED_LINUX
 #define SBC_FOR_EMBEDDED_LINUX TRUE
-#endif
-
-#ifndef BTA_DM_REMOTE_DEVICE_NAME_LENGTH
-#define BTA_DM_REMOTE_DEVICE_NAME_LENGTH 248
 #endif
 
 #ifndef AVDT_VERSION
@@ -247,17 +183,9 @@
 #define BTA_AV_CO_CP_SCMS_T  FALSE
 #endif
 
-#ifndef AVDT_CONNECT_CP_ONLY
-#define AVDT_CONNECT_CP_ONLY  FALSE
-#endif
-
 /* This feature is used to eanble interleaved scan*/
 #ifndef BTA_HOST_INTERLEAVE_SEARCH
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
-#endif
-
-#ifndef BT_TRACE_PROTOCOL
-#define BT_TRACE_PROTOCOL  TRUE
 #endif
 
 #ifndef BT_USE_TRACES
@@ -282,14 +210,6 @@
 
 #ifndef MAX_TRACE_RAM_SIZE
 #define MAX_TRACE_RAM_SIZE  10000
-#endif
-
-#ifndef OBX_INITIAL_TRACE_LEVEL
-#define OBX_INITIAL_TRACE_LEVEL  BT_TRACE_LEVEL_ERROR
-#endif
-
-#ifndef PBAP_ZERO_VCARD_IN_DB
-#define PBAP_ZERO_VCARD_IN_DB  FALSE
 #endif
 
 #ifndef BTA_DM_SDP_DB_SIZE
@@ -395,10 +315,6 @@
 #define HCI_ACL_POOL_ID             GKI_POOL_ID_3
 #endif
 
-#ifndef HCI_ACL_POOL_BUF_SIZE
-#define HCI_ACL_POOL_BUF_SIZE       GKI_BUF3_SIZE
-#endif
-
 /* Maximum number of buffers available for ACL receive data. */
 #ifndef HCI_ACL_BUF_MAX
 #define HCI_ACL_BUF_MAX             GKI_BUF3_MAX
@@ -409,11 +325,6 @@
 #define HCI_SCO_POOL_ID             GKI_POOL_ID_6
 #endif
 
-/* Not used. */
-#ifndef HCI_DATA_DESCR_POOL_ID
-#define HCI_DATA_DESCR_POOL_ID      GKI_POOL_ID_0
-#endif
-
 /* Sends SDP data packets. */
 #ifndef SDP_POOL_ID
 #define SDP_POOL_ID                 3
@@ -422,10 +333,6 @@
 /* Sends RFCOMM command packets. */
 #ifndef RFCOMM_CMD_POOL_ID
 #define RFCOMM_CMD_POOL_ID          GKI_POOL_ID_2
-#endif
-
-#ifndef RFCOMM_CMD_POOL_BUF_SIZE
-#define RFCOMM_CMD_POOL_BUF_SIZE    GKI_BUF2_SIZE
 #endif
 
 /* Sends RFCOMM data packets. */
@@ -463,10 +370,6 @@
 #define BTM_CMD_POOL_ID             GKI_POOL_ID_2
 #endif
 
-#ifndef OBX_CMD_POOL_SIZE
-#define OBX_CMD_POOL_SIZE           GKI_BUF2_SIZE
-#endif
-
 #ifndef OBX_LRG_DATA_POOL_SIZE
 #define OBX_LRG_DATA_POOL_SIZE      GKI_BUF4_SIZE
 #endif
@@ -475,19 +378,9 @@
 #define OBX_LRG_DATA_POOL_ID        GKI_POOL_ID_4
 #endif
 
-/* Used for CTP discovery database. */
-#ifndef CTP_SDP_DB_POOL_ID
-#define CTP_SDP_DB_POOL_ID          GKI_POOL_ID_3
-#endif
-
 /* Used to send data to L2CAP. */
 #ifndef GAP_DATA_POOL_ID
 #define GAP_DATA_POOL_ID            GKI_POOL_ID_3
-#endif
-
-/* Used for SPP inquiry and discovery databases. */
-#ifndef SPP_DB_POOL_ID
-#define SPP_DB_POOL_ID              GKI_POOL_ID_3
 #endif
 
 #ifndef SPP_DB_SIZE
@@ -502,20 +395,6 @@
 /* RPC pool for temporary trace message buffers. */
 #ifndef RPC_SCRATCH_POOL_ID
 #define RPC_SCRATCH_POOL_ID         GKI_POOL_ID_2
-#endif
-
-/* RPC scratch buffer size (not related to RPC_SCRATCH_POOL_ID) */
-#ifndef RPC_SCRATCH_BUF_SIZE
-#define RPC_SCRATCH_BUF_SIZE        GKI_BUF3_SIZE
-#endif
-
-/* RPC pool for protocol messages */
-#ifndef RPC_MSG_POOL_ID
-#define RPC_MSG_POOL_ID             GKI_POOL_ID_3
-#endif
-
-#ifndef RPC_MSG_POOL_SIZE
-#define RPC_MSG_POOL_SIZE           GKI_BUF3_SIZE
 #endif
 
 /* AVDTP pool for protocol messages */
@@ -534,22 +413,9 @@
 #define PAN_POOL_MAX                (GKI_BUF3_MAX / 4)
 #endif
 
-/* UNV pool for read/write serialization */
-#ifndef UNV_MSG_POOL_ID
-#define UNV_MSG_POOL_ID             GKI_POOL_ID_2
-#endif
-
-#ifndef UNV_MSG_POOL_SIZE
-#define UNV_MSG_POOL_SIZE           GKI_BUF2_SIZE
-#endif
-
 /* AVCTP pool for protocol messages */
 #ifndef AVCT_CMD_POOL_ID
 #define AVCT_CMD_POOL_ID            GKI_POOL_ID_1
-#endif
-
-#ifndef AVCT_META_CMD_POOL_ID
-#define AVCT_META_CMD_POOL_ID       GKI_POOL_ID_2
 #endif
 
 /* AVRCP pool for protocol messages */
@@ -576,11 +442,6 @@
 /* AVRCP buffer size for browsing channel messages */
 #ifndef AVRC_BROWSE_POOL_SIZE
 #define AVRC_BROWSE_POOL_SIZE     GKI_MAX_BUF_SIZE
-#endif
-
-/*  HDP buffer size for the Pulse Oximeter  */
-#ifndef BTA_HL_LRG_DATA_POOL_SIZE
-#define BTA_HL_LRG_DATA_POOL_SIZE      GKI_BUF7_SIZE
 #endif
 
 #ifndef BTA_HL_LRG_DATA_POOL_ID
@@ -659,16 +520,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define HCI_LP_ALLOW_BT_DEVICE_SLEEP()       bte_main_lpm_allow_bt_device_sleep()
 #endif
 
-/* If nonzero, the upper-layer sends at most this number of HCI commands to the lower-layer. */
-#ifndef HCI_MAX_SIMUL_CMDS
-#define HCI_MAX_SIMUL_CMDS          0
-#endif
-
-/* Timeout for receiving response to HCI command */
-#ifndef BTU_CMD_CMPL_TIMEOUT
-#define BTU_CMD_CMPL_TIMEOUT        8
-#endif
-
 /* Use 2 second for low-resolution systems, override to 1 for high-resolution systems */
 #ifndef BT_1SEC_TIMEOUT
 #define BT_1SEC_TIMEOUT             (2)
@@ -686,11 +537,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 ** BTM
 **
 ******************************************************************************/
-/* Include BTM Discovery database and code. */
-#ifndef BTM_DISCOVERY_INCLUDED
-#define BTM_DISCOVERY_INCLUDED      TRUE
-#endif
-
 /* Include inquiry code. */
 #ifndef BTM_INQUIRY_INCLUDED
 #define BTM_INQUIRY_INCLUDED        TRUE
@@ -699,16 +545,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* Cancel Inquiry on incoming SSP */
 #ifndef BTM_NO_SSP_ON_INQUIRY
 #define BTM_NO_SSP_ON_INQUIRY       FALSE
-#endif
-
-/* Include periodic inquiry code (used when BTM_INQUIRY_INCLUDED is TRUE). */
-#ifndef BTM_PERIODIC_INQ_INCLUDED
-#define BTM_PERIODIC_INQ_INCLUDED   TRUE
-#endif
-
-/* Include security authorization code */
-#ifndef BTM_AUTHORIZATION_INCLUDED
-#define BTM_AUTHORIZATION_INCLUDED  TRUE
 #endif
 
 /* Includes SCO if TRUE */
@@ -751,11 +587,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_INQ_DB_SIZE             40
 #endif
 
-/* The inquiry duration in 1.28 second units when auto inquiry is enabled. */
-#ifndef BTM_DEFAULT_INQ_DUR
-#define BTM_DEFAULT_INQ_DUR         5
-#endif
-
 /* TRUE if controller does not support inquiry event filtering. */
 #ifndef BTM_BYPASS_EVENT_FILTERING
 #define BTM_BYPASS_EVENT_FILTERING  FALSE
@@ -794,11 +625,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* When automatic inquiry scan is enabled, this sets the inquiry scan interval. */
 #ifndef BTM_DEFAULT_DISC_INTERVAL
 #define BTM_DEFAULT_DISC_INTERVAL   0x0800
-#endif
-
-/* Number of milliseconds to delay BTU task startup upon device initialization. */
-#ifndef BTU_STARTUP_DELAY
-#define BTU_STARTUP_DELAY           0
 #endif
 
 /* Default class of device
@@ -859,11 +685,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* Maximum service name stored with security authorization (0 if not needed) */
 #ifndef BTM_SEC_SERVICE_NAME_LEN
 #define BTM_SEC_SERVICE_NAME_LEN    BT_MAX_SERVICE_NAME_LEN
-#endif
-
-/* Maximum number of pending security callback */
-#ifndef BTM_SEC_MAX_CALLBACKS
-#define BTM_SEC_MAX_CALLBACKS       7
 #endif
 
 /* Maximum length of the service name. */
@@ -978,12 +799,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define BTM_BLE_CONFORMANCE_TESTING           FALSE
 #endif
 
-/* Maximum number of consecutive HCI commands  that can time out
-* before  it gets treated as H/w error*/
-#ifndef BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART
-#define BTM_MAX_HCI_CMD_TOUT_BEFORE_RESTART 2
-#endif
-
 /******************************************************************************
 **
 ** L2CAP
@@ -1043,11 +858,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define L2CAP_HOST_FC_ACL_BUFS      20
 #endif
 
-/* The percentage of the queue size allowed before a congestion event is sent to the L2CAP client (typically 120%). */
-#ifndef L2CAP_FWD_CONG_THRESH
-#define L2CAP_FWD_CONG_THRESH       120
-#endif
-
 /* This is set to enable L2CAP to  take the ACL link out of park mode when ACL data is to be sent. */
 #ifndef L2CAP_WAKE_PARKED_LINK
 #define L2CAP_WAKE_PARKED_LINK      TRUE
@@ -1096,11 +906,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* Unicast Connectionless Data Idle Timeout */
 #ifndef L2CAP_UCD_CH_PRIORITY
 #define L2CAP_UCD_CH_PRIORITY               L2CAP_CHNL_PRIORITY_MEDIUM
-#endif
-
-/* Max clients on Unicast Connectionless Data */
-#ifndef L2CAP_MAX_UCD_CLIENTS
-#define L2CAP_MAX_UCD_CLIENTS               5
 #endif
 
 /* Used for features using fixed channels; set to zero if no fixed channels supported (BLE, etc.) */
@@ -1236,23 +1041,13 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #ifndef BLE_LLT_INCLUDED
 #define BLE_LLT_INCLUDED    TRUE
 #endif
-#ifndef BTM_DUMO_ADDR_CENTRAL_ENABLED
-#define BTM_DUMO_ADDR_CENTRAL_ENABLED    FALSE
-#endif
+
 #ifndef ATT_INCLUDED
 #define ATT_INCLUDED         TRUE
 #endif
 
 #ifndef ATT_DEBUG
 #define ATT_DEBUG           TRUE
-#endif
-
-#ifndef GATT_SERVER_ENABLED
-#define GATT_SERVER_ENABLED          TRUE
-#endif
-
-#ifndef GATT_CLIENT_ENABLED
-#define GATT_CLIENT_ENABLED          TRUE
 #endif
 
 #ifndef BLE_PERIPHERAL_MODE_SUPPORT
@@ -1283,10 +1078,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 
 #ifndef GATT_MAX_APPS
 #define GATT_MAX_APPS            32 /* note: 2 apps used internally GATT and GAP */
-#endif
-
-#ifndef GATT_MAX_CL_PROFILES
-#define GATT_MAX_CL_PROFILES        4
 #endif
 
 #ifndef GATT_MAX_PHY_CHANNEL
@@ -1436,11 +1227,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define SDP_SECURITY_LEVEL          BTM_SEC_NONE
 #endif
 
-/* Device identification feature. */
-#ifndef SDP_DI_INCLUDED
-#define SDP_DI_INCLUDED             TRUE
-#endif
-
 /******************************************************************************
 **
 ** RFCOMM
@@ -1528,11 +1314,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define PORT_CREDIT_RX_LOW          8
 #endif
 
-/* Test code allowing l2cap FEC on RFCOMM.*/
-#ifndef PORT_ENABLE_L2CAP_FCR_TEST
-#define PORT_ENABLE_L2CAP_FCR_TEST  FALSE
-#endif
-
 /* if application like BTA, Java or script test engine is running on other than BTU thread, */
 /* PORT_SCHEDULE_LOCK shall be defined as GKI_sched_lock() or GKI_disable() */
 #ifndef PORT_SCHEDULE_LOCK
@@ -1555,64 +1336,14 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define TCS_INCLUDED                FALSE
 #endif
 
-/* If set to TRUE, gives lean TCS state machine configuration. */
-#ifndef TCS_LEAN
-#define TCS_LEAN                    FALSE
-#endif
-
 /* To include/exclude point-to-multipoint broadcast SETUP configuration. */
 #ifndef TCS_BCST_SETUP_INCLUDED
 #define TCS_BCST_SETUP_INCLUDED     TRUE
 #endif
 
-/* To include/exclude supplementary services. */
-#ifndef TCS_SUPP_SVCS_INCLUDED
-#define TCS_SUPP_SVCS_INCLUDED      TRUE
-#endif
-
-/* To include/exclude WUG master role. */
-#ifndef TCS_WUG_MASTER_INCLUDED
-#define TCS_WUG_MASTER_INCLUDED     TRUE
-#endif
-
 /* To include/exclude WUG member role. */
 #ifndef TCS_WUG_MEMBER_INCLUDED
 #define TCS_WUG_MEMBER_INCLUDED     TRUE
-#endif
-
-/* Maximum number of WUG members. */
-#ifndef TCS_MAX_WUG_MEMBERS
-#define TCS_MAX_WUG_MEMBERS         7
-#endif
-
-/* Broadcom specific acknowledgement message to ensure fast and robust operation of WUG FIMA procedure. */
-#ifndef TCS_WUG_LISTEN_ACPT_ACK_INCLUDED
-#define TCS_WUG_LISTEN_ACPT_ACK_INCLUDED TRUE
-#endif
-
-/* The number of simultaneous calls supported. */
-#ifndef TCS_MAX_NUM_SIMUL_CALLS
-#define TCS_MAX_NUM_SIMUL_CALLS     3
-#endif
-
-/* The number of devices the device can connect to. */
-#ifndef TCS_MAX_NUM_ACL_CONNS
-#define TCS_MAX_NUM_ACL_CONNS       7
-#endif
-
-/* The maximum length, in bytes, of the company specific information element. */
-#ifndef TCS_MAX_CO_SPEC_LEN
-#define TCS_MAX_CO_SPEC_LEN         40
-#endif
-
-/* The maximum length, in bytes, of the audio control information element . */
-#ifndef TCS_MAX_AUDIO_CTL_LEN
-#define TCS_MAX_AUDIO_CTL_LEN       40
-#endif
-
-/* (Dis)allow EDR ESCO */
-#ifndef TCS_AUDIO_USE_ESCO_EDR
-#define TCS_AUDIO_USE_ESCO_EDR      FALSE
 #endif
 
 /******************************************************************************
@@ -1637,11 +1368,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define OBX_MD5_INCLUDED           TRUE
 #endif
 
-/* TRUE to include OBEX authentication/MD5 test code */
-#ifndef OBX_MD5_TEST_INCLUDED
-#define OBX_MD5_TEST_INCLUDED       FALSE
-#endif
-
 /* TRUE to include OBEX 1.4 enhancement (including Obex Over L2CAP) */
 #ifndef OBX_14_INCLUDED
 #define OBX_14_INCLUDED             FALSE
@@ -1658,19 +1384,9 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define OBX_14_INCLUDED             FALSE
 #endif
 
-/* The timeout value (in seconds) for reliable sessions to remain in suspend. 0xFFFFFFFF for no timeout event. */
-#ifndef OBX_SESS_TIMEOUT_VALUE
-#define OBX_SESS_TIMEOUT_VALUE      600
-#endif
-
 /* The idle timeout value. 0 for no timeout event. */
 #ifndef OBX_TIMEOUT_VALUE
 #define OBX_TIMEOUT_VALUE           60
-#endif
-
-/* Timeout value used for disconnect */
-#ifndef OBX_DISC_TOUT_VALUE
-#define OBX_DISC_TOUT_VALUE         5
 #endif
 
 /* The maximum number of registered servers. */
@@ -1681,12 +1397,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 /* The maximum number of sessions per registered server. */
 #ifndef OBX_MAX_SR_SESSION
 #define OBX_MAX_SR_SESSION          4
-#endif
-
-/* The maximum number of sessions for all registered servers.
- * (must be equal or bigger than OBX_NUM_SERVERS) */
-#ifndef OBX_NUM_SR_SESSIONS
-#define OBX_NUM_SR_SESSIONS         26
 #endif
 
 /* The maximum number of sessions per registered server.
@@ -1710,32 +1420,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define OBX_MAX_TARGET_LEN          16
 #endif
 
-/* The maximum length of authentication challenge realm.*/
-#ifndef OBX_MAX_REALM_LEN
-#define OBX_MAX_REALM_LEN           30
-#endif
-
-/* The maximum of GKI buffer queued at OBX before flow control L2CAP */
-#ifndef OBX_MAX_RX_QUEUE_COUNT
-#define OBX_MAX_RX_QUEUE_COUNT      3
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-   Pool ID where to reassemble the SDU.
-   This Pool will allow buffers to be used that are larger than
-   the L2CAP_MAX_MTU. */
-#ifndef OBX_USER_RX_POOL_ID
-#define OBX_USER_RX_POOL_ID     OBX_LRG_DATA_POOL_ID
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-   Pool ID where to hold the SDU.
-   This Pool will allow buffers to be used that are larger than
-   the L2CAP_MAX_MTU. */
-#ifndef OBX_USER_TX_POOL_ID
-#define OBX_USER_TX_POOL_ID     OBX_LRG_DATA_POOL_ID
-#endif
-
 /* This option is application when OBX_14_INCLUDED=TRUE
 GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
 */
@@ -1753,42 +1437,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 */
 #ifndef OBX_FCR_TX_POOL_ID
 #define OBX_FCR_TX_POOL_ID      HCI_ACL_POOL_ID
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-Size of the transmission window when using enhanced retransmission mode. Not used
-in basic and streaming modes. Range: 1 - 63
-*/
-#ifndef OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR
-#define OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR       20
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-Number of transmission attempts for a single I-Frame before taking
-Down the connection. Used In ERTM mode only. Value is Ignored in basic and
-Streaming modes.
-Range: 0, 1-0xFF
-0 - infinite retransmissions
-1 - single transmission
-*/
-#ifndef OBX_FCR_OPT_MAX_TX_B4_DISCNT
-#define OBX_FCR_OPT_MAX_TX_B4_DISCNT    20
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-Retransmission Timeout
-Range: Minimum 2000 (2 secs) on BR/EDR when supporting PBF.
- */
-#ifndef OBX_FCR_OPT_RETX_TOUT
-#define OBX_FCR_OPT_RETX_TOUT           2000
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-Monitor Timeout
-Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
-*/
-#ifndef OBX_FCR_OPT_MONITOR_TOUT
-#define OBX_FCR_OPT_MONITOR_TOUT        12000
 #endif
 
 /******************************************************************************
@@ -1852,11 +1500,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 /* Preferred MTU size. */
 #ifndef BNEP_MTU_SIZE
 #define BNEP_MTU_SIZE               BNEP_MIN_MTU_SIZE
-#endif
-
-/* Maximum size of user data, in bytes.  */
-#ifndef BNEP_MAX_USER_DATA_SIZE
-#define BNEP_MAX_USER_DATA_SIZE     1500
 #endif
 
 /* Maximum number of buffers allowed in transmit data queue. */
@@ -2056,164 +1699,9 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define CTP_INCLUDED                FALSE
 #endif
 
-/* To include CTP gateway functionality or not. */
-#ifndef CTP_GW_INCLUDED
-#define CTP_GW_INCLUDED             TRUE
-#endif
-
-/* The number of terminals supported. */
-#ifndef CTP_MAX_NUM_TLS
-#define CTP_MAX_NUM_TLS             7
-#endif
-
-/* If the controller can not support sniff mode when the SCO is up, set this to FALSE. */
-#ifndef CTP_USE_SNIFF_ON_SCO
-#define CTP_USE_SNIFF_ON_SCO        FALSE
-#endif
-
-/* When ACL link between TL and GW is idle for more than this amount of seconds, the ACL may be put to low power mode. */
-#ifndef CTP_TL_IDLE_TIMEOUT
-#define CTP_TL_IDLE_TIMEOUT         90
-#endif
-
-/* To include CTP terminal functionality or not. */
-#ifndef CTP_TL_INCLUDED
-#define CTP_TL_INCLUDED             TRUE
-#endif
-
-/* To include CTP device discovery functionality or not. */
-#ifndef CTP_DISCOVERY_INCLUDED
-#define CTP_DISCOVERY_INCLUDED      TRUE
-#endif
-
-/* set to TRUE for controllers that do not support multi-point */
-#ifndef CTP_TL_WAIT_DISC
-#define CTP_TL_WAIT_DISC            TRUE
-#endif
-
-/* The CTP inquiry database size. */
-#ifndef CTP_INQ_DB_SIZE
-#define CTP_INQ_DB_SIZE             CTP_DISC_REC_SIZE
-#endif
-
 /* The CTP discovery record size. */
 #ifndef CTP_DISC_REC_SIZE
 #define CTP_DISC_REC_SIZE           60
-#endif
-
-/* CTP TL would try to re-establish L2CAP channel after channel is disconnected for this amount of seconds. */
-#ifndef CTP_GUARD_LINK_LOST
-#define CTP_GUARD_LINK_LOST         1
-#endif
-
-/* The link policy bitmap. */
-#ifndef CTP_DEFAULT_LINK_POLICY
-#define CTP_DEFAULT_LINK_POLICY     0x000F
-#endif
-
-/* The minimum period interval used for the sniff and park modes. */
-#ifndef CTP_DEF_LOWPWR_MIN_PERIOD
-#define CTP_DEF_LOWPWR_MIN_PERIOD   0x100
-#endif
-
-/* The maximum period interval used for the sniff and park modes. */
-#ifndef CTP_DEF_LOWPWR_MAX_PERIOD
-#define CTP_DEF_LOWPWR_MAX_PERIOD   0x1E0
-#endif
-
-/* The number of baseband receive slot sniff attempts. */
-#ifndef CTP_DEF_LOWPWR_ATTEMPT
-#define CTP_DEF_LOWPWR_ATTEMPT      0x200
-#endif
-
-/* The number of baseband receive slots for sniff timeout. */
-#ifndef CTP_DEF_LOWPWR_TIMEOUT
-#define CTP_DEF_LOWPWR_TIMEOUT      0x200
-#endif
-
-/* This is set if CTP is to use park mode. */
-#ifndef CTP_PARK_INCLUDED
-#define CTP_PARK_INCLUDED           TRUE
-#endif
-
-/* This is set if CTP is to use sniff mode. */
-#ifndef CTP_SNIFF_INCLUDED
-#define CTP_SNIFF_INCLUDED          TRUE
-#endif
-
-/* To include CTP data exchange functionality or not. */
-#ifndef CTP_DATA_EXCHG_FEATURE
-#define CTP_DATA_EXCHG_FEATURE      FALSE
-#endif
-
-/* To include CTP GW intercom functionality or not. */
-#ifndef CTP_GW_INTERCOM_FEATURE
-#define CTP_GW_INTERCOM_FEATURE     FALSE
-#endif
-
-/* The MTU size for L2CAP channel. */
-#ifndef CTP_MTU_SIZE
-#define CTP_MTU_SIZE                200
-#endif
-
-/* The L2CAP PSM for the data exchange feature. */
-#ifndef CTP_DATA_EXCHG_PSM
-#define CTP_DATA_EXCHG_PSM          13
-#endif
-
-/* The flush timeout for L2CAP channels. */
-#ifndef CTP_FLUSH_TO
-#define CTP_FLUSH_TO                0xFFFF
-#endif
-
-/* The default service name for CTP. */
-#ifndef CTP_DEFAULT_SERVICE_NAME
-#define CTP_DEFAULT_SERVICE_NAME    "Cordless Telephony"
-#endif
-
-/* The CTP security level. */
-#ifndef CTP_SECURITY_LEVEL
-#define CTP_SECURITY_LEVEL          (BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT)
-#endif
-
-/* The number of lines to the external network. */
-#ifndef CTP_MAX_LINES
-#define CTP_MAX_LINES               1
-#endif
-
-/* Test if the number of resources in TCS is consistent with CTP setting. */
-#ifndef CTP_TEST_FULL_TCS
-#define CTP_TEST_FULL_TCS           TRUE
-#endif
-
-/* The default inquiry mode. */
-#ifndef CTP_DEFAULT_INQUIRY_MODE
-#define CTP_DEFAULT_INQUIRY_MODE    BTM_GENERAL_INQUIRY
-#endif
-
-/* The default inquiry duration. */
-#ifndef CTP_DEFAULT_INQ_DURATION
-#define CTP_DEFAULT_INQ_DURATION    4
-#endif
-
-/* The maximum number of inquiry responses. */
-#ifndef CTP_DEFAULT_INQ_MAX_RESP
-#define CTP_DEFAULT_INQ_MAX_RESP    3
-#endif
-
-/* When TL does not create another L2CAP channel within this period of time GW declares that it's "Connected Limited". */
-#ifndef CTP_TL_CONN_TIMEOUT
-#define CTP_TL_CONN_TIMEOUT         5
-#endif
-
-/* The delay for ACL to completely disconnect (for intercom) before sending the connect request to GW. */
-#ifndef CTP_RECONNECT_DELAY
-#define CTP_RECONNECT_DELAY         5
-#endif
-
-/* How many times to retry connection when it has failed. */
-#ifndef CTP_RETRY_ON_CONN_ERR
-#define CTP_RETRY_ON_CONN_ERR       5
 #endif
 
 /******************************************************************************
@@ -2226,26 +1714,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define ICP_INCLUDED                FALSE
 #endif
 
-/* The ICP default MTU. */
-#ifndef ICP_MTU_SIZE
-#define ICP_MTU_SIZE                100
-#endif
-
-/* The ICP security level. */
-#ifndef ICP_SECURITY_LEVEL
-#define ICP_SECURITY_LEVEL          BTM_SEC_NONE
-#endif
-
-/* The default service name for ICP. */
-#ifndef ICP_DEFAULT_SERVICE_NAME
-#define ICP_DEFAULT_SERVICE_NAME    "Intercom"
-#endif
-
-/* The flush timeout for L2CAP channels. */
-#ifndef ICP_FLUSH_TO
-#define ICP_FLUSH_TO                0xFFFF
-#endif
-
 /******************************************************************************
 **
 ** SPP
@@ -2256,38 +1724,9 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define SPP_INCLUDED                FALSE
 #endif
 
-/* The SPP default MTU. */
-#ifndef SPP_DEFAULT_MTU
-#define SPP_DEFAULT_MTU             127
-#endif
-
-/* The interval, in seconds, that a client tries to reconnect to a service. */
-#ifndef SPP_RETRY_CONN_INTERVAL
-#define SPP_RETRY_CONN_INTERVAL     1
-#endif
-
-/* The SPP discoverable mode: limited or general. */
-#ifndef SPP_DISCOVERABLE_MODE
-#define SPP_DISCOVERABLE_MODE       BTM_GENERAL_DISCOVERABLE
-#endif
-
-/* The maximum number of inquiry results returned in by inquiry procedure. */
-#ifndef SPP_DEF_INQ_MAX_RESP
-#define SPP_DEF_INQ_MAX_RESP        10
-#endif
-
 /* The SPP discovery record size. */
 #ifndef SPP_DISC_REC_SIZE
 #define SPP_DISC_REC_SIZE           60
-#endif
-
-#ifndef SPP_MAX_RECS_PER_DEVICE
-#define SPP_MAX_RECS_PER_DEVICE     (SPP_DB_SIZE / SPP_DISC_REC_SIZE)
-#endif
-
-/* Inquiry duration in 1.28 second units. */
-#ifndef SPP_DEF_INQ_DURATION
-#define SPP_DEF_INQ_DURATION        9
 #endif
 
 /* keep the raw data received from SDP server in database. */
@@ -2315,153 +1754,9 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define HSP2_INCLUDED               FALSE
 #endif
 
-/* Include the ability to perform inquiry for peer devices. */
-#ifndef HSP2_INQUIRY_INCLUDED
-#define HSP2_INQUIRY_INCLUDED       TRUE
-#endif
-
-/* Include Audio Gateway specific code. */
-#ifndef HSP2_AG_INCLUDED
-#define HSP2_AG_INCLUDED            TRUE
-#endif
-
-/* Include Headset Specific Code. */
-#ifndef HSP2_HS_INCLUDED
-#define HSP2_HS_INCLUDED            TRUE
-#endif
-
-/* Include the ability to open an SCO connection for In-Band Ringing. */
-#ifndef HSP2_IB_RING_INCLUDED
-#define HSP2_IB_RING_INCLUDED       TRUE
-#endif
-
-/* Include the ability to repeat a ring. */
-#ifndef HSP2_AG_REPEAT_RING
-#define HSP2_AG_REPEAT_RING         TRUE
-#endif
-
-#ifndef HSP2_APP_CLOSES_ON_CKPD
-#define HSP2_APP_CLOSES_ON_CKPD     FALSE
-#endif
-
-
-/* Include the ability to park a connection. */
-#ifndef HSP2_PARK_INCLUDED
-#define HSP2_PARK_INCLUDED          TRUE
-#endif
-
-/* Include HSP State Machine debug trace messages. */
-#ifndef HSP2_FSM_DEBUG
-#define HSP2_FSM_DEBUG              TRUE
-#endif
-
-/* The Module's Inquiry Scan Window. */
-#ifndef HSP2_INQ_SCAN_WINDOW
-#define HSP2_INQ_SCAN_WINDOW        0
-#endif
-
-/* The Module's Inquiry Scan Interval. */
-#ifndef HSP2_INQ_SCAN_INTERVAL
-#define HSP2_INQ_SCAN_INTERVAL      0
-#endif
-
-/* The Module's Page Scan Interval. */
-#ifndef HSP2_PAGE_SCAN_INTERVAL
-#define HSP2_PAGE_SCAN_INTERVAL     0
-#endif
-
-/* The Module's Page Scan Window. */
-#ifndef HSP2_PAGE_SCAN_WINDOW
-#define HSP2_PAGE_SCAN_WINDOW       0
-#endif
-
-/* The Park Mode's Minimum Beacon Period. */
-#ifndef HSP2_BEACON_MIN_PERIOD
-#define HSP2_BEACON_MIN_PERIOD      450
-#endif
-
-/* The Park Mode's Maximum Beacon Period. */
-#ifndef HSP2_BEACON_MAX_PERIOD
-#define HSP2_BEACON_MAX_PERIOD      500
-#endif
-
-/* The duration of the inquiry in seconds. */
-#ifndef HSP2_INQ_DURATION
-#define HSP2_INQ_DURATION           4
-#endif
-
-/* Maximum number of peer responses during an inquiry. */
-#ifndef HSP2_INQ_MAX_NUM_RESPS
-#define HSP2_INQ_MAX_NUM_RESPS      3
-#endif
-
-/* Maximum number of times to retry an inquiry prior to failure. */
-#ifndef HSP2_MAX_INQ_RETRY
-#define HSP2_MAX_INQ_RETRY          6
-#endif
-
-/* Maximum number of times to retry an RFCOMM connection prior to failure. */
-#ifndef HSP2_MAX_CONN_RETRY
-#define HSP2_MAX_CONN_RETRY         3
-#endif
-
-/* If the connect request failed for authentication reasons, do not retry */
-#ifndef HSP2_NO_RETRY_ON_AUTH_FAIL
-#define HSP2_NO_RETRY_ON_AUTH_FAIL  TRUE
-#endif
-
-/* Maximum number of characters in an HSP2 device name. */
-#ifndef HSP2_MAX_NAME_LEN
-#define HSP2_MAX_NAME_LEN           32
-#endif
-
-/* The minimum speaker and/or microphone gain setting. */
-#ifndef HSP2_MIN_GAIN
-#define HSP2_MIN_GAIN               0
-#endif
-
-/* The maximum speaker and/or microphone setting. */
-#ifndef HSP2_MAX_GAIN
-#define HSP2_MAX_GAIN               15
-#endif
-
-/* The default value to send on an AT+CKPD. */
-#ifndef HSP2_KEYPRESS_DEFAULT
-#define HSP2_KEYPRESS_DEFAULT       200
-#endif
-
-/* Maximum amount a data that can be received per RFCOMM frame. */
-#ifndef HSP2_MAX_RFC_READ_LEN
-#define HSP2_MAX_RFC_READ_LEN       128
-#endif
-
 /* The time in seconds to wait for completion of a partial AT command or response from the peer. */
 #ifndef HSP2_AT_TO_INTERVAL
 #define HSP2_AT_TO_INTERVAL         30
-#endif
-
-/* The time to wait before repeating a ring to a peer Headset. */
-#ifndef HSP2_REPEAT_RING_TO
-#define HSP2_REPEAT_RING_TO         4
-#endif
-
-/* Time to wait for a response for an AT command */
-#ifndef HSP2_AT_RSP_TO
-#define HSP2_AT_RSP_TO              20
-#endif
-
-/* SCO packet type(s) to use (bitmask: see spec), 0 - device default (recommended) */
-#ifndef HSP2_SCO_PKT_TYPES
-#define HSP2_SCO_PKT_TYPES          ((UINT16)0x0000)
-#endif
-
-/* The default settings of the SCO voice link. */
-#ifndef HSP2_DEFAULT_VOICE_SETTINGS
-#define HSP2_DEFAULT_VOICE_SETTINGS (HCI_INP_CODING_LINEAR | HCI_INP_DATA_FMT_2S_COMPLEMENT | HCI_INP_SAMPLE_SIZE_16BIT | HCI_AIR_CODING_FORMAT_CVSD)
-#endif
-
-#ifndef HSP2_MAX_AT_CMD_LENGTH
-#define HSP2_MAX_AT_CMD_LENGTH       16
 #endif
 
 #ifndef HSP2_MAX_AT_VAL_LENGTH
@@ -2472,12 +1767,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #endif
 #endif
 
-
-#ifndef HSP2_SDP_DB_SIZE
-#define HSP2_SDP_DB_SIZE             300
-#endif
-
-
 /******************************************************************************
 **
 ** HFP
@@ -2486,40 +1775,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 
 #ifndef HFP_INCLUDED
 #define HFP_INCLUDED                FALSE
-#endif
-
-/* Include Audio Gateway specific code. */
-#ifndef HFP_AG_INCLUDED
-#define HFP_AG_INCLUDED             TRUE
-#endif
-
-/* Include Hand Free Specific Code. */
-#ifndef HFP_HF_INCLUDED
-#define HFP_HF_INCLUDED             TRUE
-#endif
-
-/* Use AT interface instead of full blown API */
-#ifndef AT_INTERFACE
-#define AT_INTERFACE            FALSE
-#endif
-
-/* HFP Manages SCO establishement for various procedures */
-#ifndef HFP_SCO_MGMT_INCLUDED
-#define HFP_SCO_MGMT_INCLUDED             TRUE
-#endif
-
-/* CCAP compliant features and behavior desired */
-#ifndef CCAP_COMPLIANCE
-#define CCAP_COMPLIANCE             TRUE
-#endif
-
-/* Caller ID string, part of +CLIP result code */
-#ifndef HFP_MAX_CLIP_INFO
-#define HFP_MAX_CLIP_INFO             45
-#endif
-
-#ifndef HFP_RPT_PEER_INFO_INCLUDED
-#define HFP_RPT_PEER_INFO_INCLUDED  TRUE  /* Reporting of peer features enabled */
 #endif
 
 /******************************************************************************
@@ -2537,122 +1792,8 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define HID_DEV_PM_INCLUDED         TRUE
 #endif
 
-/* The HID Device is a virtual cable */
-#ifndef HID_DEV_VIRTUAL_CABLE
-#define HID_DEV_VIRTUAL_CABLE       TRUE
-#endif
-
-/* The HID device initiates the reconnections */
-#ifndef HID_DEV_RECONN_INITIATE
-#define HID_DEV_RECONN_INITIATE     TRUE
-#endif
-
-/* THe HID device is normally connectable */
-#ifndef HID_DEV_NORMALLY_CONN
-#define HID_DEV_NORMALLY_CONN       FALSE
-#endif
-
-/* The device is battery powered */
-#ifndef HID_DEV_BATTERY_POW
-#define HID_DEV_BATTERY_POW         TRUE
-#endif
-
-/* Device is capable of waking up the host */
-#ifndef HID_DEV_REMOTE_WAKE
-#define HID_DEV_REMOTE_WAKE         TRUE
-#endif
-
-/* Device needs host to close SDP channel after SDP is over */
-#ifndef HID_DEV_SDP_DISABLE
-#define HID_DEV_SDP_DISABLE         TRUE
-#endif
-
-#ifndef HID_DEV_MTU_SIZE
-#define HID_DEV_MTU_SIZE                 64
-#endif
-
-#ifndef HID_DEV_FLUSH_TO
-#define HID_DEV_FLUSH_TO                 0xffff
-#endif
-
-#ifndef HID_DEV_PAGE_SCAN_WIN
-#define HID_DEV_PAGE_SCAN_WIN       (0)
-#endif
-
-#ifndef HID_DEV_PAGE_SCAN_INT
-#define HID_DEV_PAGE_SCAN_INT       (0)
-#endif
-
-#ifndef HID_DEV_MAX_CONN_RETRY
-#define HID_DEV_MAX_CONN_RETRY      (15)
-#endif
-
-#ifndef HID_DEV_REPAGE_WIN
-#define HID_DEV_REPAGE_WIN          (1)
-#endif
-
-#ifndef HID_DEV_SVC_NAME
-#define HID_DEV_SVC_NAME            "HID"
-#endif
-
-#ifndef HID_DEV_SVC_DESCR
-#define HID_DEV_SVC_DESCR           "3-button mouse and keyboard"
-#endif
-
-#ifndef HID_DEV_PROVIDER_NAME
-#define HID_DEV_PROVIDER_NAME       "Widcomm"
-#endif
-
-#ifndef HID_DEV_REL_NUM
-#define HID_DEV_REL_NUM             0x0100
-#endif
-
-#ifndef HID_DEV_PARSER_VER
-#define HID_DEV_PARSER_VER          0x0111
-#endif
-
 #ifndef HID_DEV_SUBCLASS
 #define HID_DEV_SUBCLASS            COD_MINOR_POINTING
-#endif
-
-#ifndef HID_DEV_COUNTRY_CODE
-#define HID_DEV_COUNTRY_CODE        0x33
-#endif
-
-#ifndef HID_DEV_SUP_TOUT
-#define HID_DEV_SUP_TOUT            0x8000
-#endif
-
-#ifndef HID_DEV_NUM_LANGS
-#define HID_DEV_NUM_LANGS           1
-#endif
-
-#ifndef HID_DEV_INACT_TIMEOUT
-#define HID_DEV_INACT_TIMEOUT       60
-#endif
-
-#ifndef HID_DEV_BUSY_MODE_PARAMS
-#define HID_DEV_BUSY_MODE_PARAMS    { 320, 160, 10, 20, HCI_MODE_ACTIVE }
-#endif
-
-#ifndef HID_DEV_IDLE_MODE_PARAMS
-#define HID_DEV_IDLE_MODE_PARAMS    { 320, 160, 10, 20, HCI_MODE_SNIFF }
-#endif
-
-#ifndef HID_DEV_SUSP_MODE_PARAMS
-#define HID_DEV_SUSP_MODE_PARAMS    { 640, 320,  0,    0, HCI_MODE_PARK }
-#endif
-
-#ifndef HID_DEV_MAX_DESCRIPTOR_SIZE
-#define HID_DEV_MAX_DESCRIPTOR_SIZE      128     /* Max descriptor size          */
-#endif
-
-#ifndef HID_DEV_LANGUAGELIST
-#define HID_DEV_LANGUAGELIST             {0x35, 0x06, 0x09, 0x04, 0x09, 0x09, 0x01, 0x00}
-#endif
-
-#ifndef HID_DEV_LINK_SUPERVISION_TO
-#define HID_DEV_LINK_SUPERVISION_TO      0x8000
 #endif
 
 #ifndef HID_CONTROL_POOL_ID
@@ -2727,46 +1868,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define GOEP_INCLUDED               FALSE
 #endif
 
-/* This is set to enable GOEP non-blocking file system access functions. */
-#ifndef GOEP_FS_INCLUDED
-#define GOEP_FS_INCLUDED        FALSE
-#endif
-
-/* GOEP authentication key size. */
-#ifndef GOEP_MAX_AUTH_KEY_SIZE
-#define GOEP_MAX_AUTH_KEY_SIZE      16
-#endif
-
-/* Maximum size of the realm authentication string. */
-#ifndef GOEP_MAX_AUTH_REALM_SIZE
-#define GOEP_MAX_AUTH_REALM_SIZE    16
-#endif
-
-/* Realm Character Set */
-#ifndef GOEP_REALM_CHARSET
-#define GOEP_REALM_CHARSET          0       /* ASCII */
-#endif
-
-/* This is set to the maximum length of path name allowed in the system (_MAX_PATH). */
-#ifndef GOEP_MAX_PATH_SIZE
-#define GOEP_MAX_PATH_SIZE          255
-#endif
-
-/* Specifies whether or not client's user id is required during obex authentication */
-#ifndef GOEP_SERVER_USERID_REQUIRED
-#define GOEP_SERVER_USERID_REQUIRED FALSE
-#endif
-
-/* This is set to the maximum length of file name allowed in the system (_MAX_FNAME). */
-#ifndef GOEP_MAX_FILE_SIZE
-#define GOEP_MAX_FILE_SIZE          128
-#endif
-
-/* Character used as path separator */
-#ifndef GOEP_PATH_SEPARATOR
-#define GOEP_PATH_SEPARATOR         ((char) 0x5c)   /* 0x2f ('/'), or 0x5c ('\') */
-#endif
-
 /******************************************************************************
 **
 ** OPP
@@ -2777,45 +1878,11 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define OPP_INCLUDED                FALSE
 #endif
 
-/* This is set to enable OPP client capabilities. */
-#ifndef OPP_CLIENT_INCLUDED
-#define OPP_CLIENT_INCLUDED         FALSE
-#endif
-
-/* This is set to enable OPP server capabilities. */
-#ifndef OPP_SERVER_INCLUDED
-#define OPP_SERVER_INCLUDED         FALSE
-#endif
-
-/* if the optional formating functions are to be included or not */
-#ifndef OPP_FORMAT_INCLUDED
-#define OPP_FORMAT_INCLUDED         FALSE
-#endif
-
-/* Maximum number of client sessions allowed by server */
-#ifndef OPP_MAX_SRVR_SESS
-#define OPP_MAX_SRVR_SESS           3
-#endif
-
-/******************************************************************************
-**
-** XML Parser
-**
-******************************************************************************/
-
-#ifndef XML_STACK_SIZE
-#define XML_STACK_SIZE             7
-#endif
-
 /******************************************************************************
 **
 ** BPP Printer
 **
 ******************************************************************************/
-#ifndef BPP_DEBUG
-#define BPP_DEBUG            FALSE
-#endif
-
 #ifndef BPP_INCLUDED
 #define BPP_INCLUDED                FALSE
 #endif
@@ -2823,117 +1890,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #ifndef BPP_SND_INCLUDED
 #define BPP_SND_INCLUDED            FALSE
 #endif
-
-/* Maximum number of senders allowed to connect simultaneously
-** The maximum is 6 or (OBX_NUM_SERVERS / 2), whichever is smaller
-*/
-#ifndef BPP_PR_MAX_CON
-#define BPP_PR_MAX_CON         3
-#endif
-
-/* Service Name. maximum length: 248
-#ifndef BPP_SERVICE_NAME
-#define BPP_SERVICE_NAME            "Basic Printing"
-#endif
- */
-/* Document Format Supported. ASCII comma-delimited list of MIME type:version string
-#ifndef BPP_DOC_FORMAT_SUPPORTED
-#define BPP_DOC_FORMAT_SUPPORTED    "application/vnd.pwg-xhtml-print:1.0,application/vnd.hp-PCL:5E,application/PDF"
-#endif
-
-#ifndef BPP_DOC_FORMAT_SUPPORTED_LEN
-#define BPP_DOC_FORMAT_SUPPORTED_LEN    77
-#endif
- */
-/* Character repertoires.
-#ifndef BPP_CHARACTER_REPERTOIRES
-#define BPP_CHARACTER_REPERTOIRES {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01}
-#endif
- */
-/* XHTML formats.
-#ifndef BPP_XHTML_PRINT_FORMATS
-#define BPP_XHTML_PRINT_FORMATS     "image/gif:89A,image/jpeg"
-#endif
-
-#ifndef BPP_XHTML_PRINT_FORMATS_LEN
-#define BPP_XHTML_PRINT_FORMATS_LEN 24
-#endif
- */
-/* Color supported.
-#ifndef BPP_COLOR_SUPORTED
-#define BPP_COLOR_SUPORTED          FALSE
-#endif
- */
-/* 1284 ID string. First 2 bytes are the length.
-#ifndef BPP_1284ID
-#define BPP_1284ID                  "\x00\x48MANUFACTURER:ACME Manufacturing;COMMAND SET:PCL,MPL;MODEL:LaserBeam \?;"
-#endif
-
-#ifndef BPP_1284ID_LEN
-#define BPP_1284ID_LEN              72
-#endif
- */
-/* Printer name.
-#ifndef BPP_PRINTER_NAME
-#define BPP_PRINTER_NAME            "My Printer"
-#endif
-
-#ifndef BPP_PRINTER_NAME_LEN
-#define BPP_PRINTER_NAME_LEN        10
-#endif
- */
-
-/* Printer location.
-#ifndef BPP_PRINTER_LOCATION
-#define BPP_PRINTER_LOCATION        "Hotel Lobby"
-#endif
-
-#ifndef BPP_PRINTER_LOCATION_LEN
-#define BPP_PRINTER_LOCATION_LEN    11
-#endif
- */
-/* Duplex printing supported.
-#ifndef BPP_DUPLEX_SUPPORTED
-#define BPP_DUPLEX_SUPPORTED        TRUE
-#endif
- */
-
-/* Media types supported.
-#ifndef BPP_MEDIA_TYPES_SUPPORTED
-#define BPP_MEDIA_TYPES_SUPPORTED   "stationary,continuous-long,photographic-high-gloss,cardstock"
-#endif
-
-#ifndef BPP_MEDIA_TYPES_SUPPORTED_LEN
-#define BPP_MEDIA_TYPES_SUPPORTED_LEN   60
-#endif
- */
-/* Maximum media with supported.
-#ifndef BPP_MAX_MEDIA_WIDTH
-#define BPP_MAX_MEDIA_WIDTH         205
-#endif
- */
-/* Maximum media length supported.
-#ifndef BPP_MAX_MEDIA_LENGTH
-#define BPP_MAX_MEDIA_LENGTH        285
-#endif
- */
-/* the maximum string len for the media size of medium loaded */
-#ifndef BPP_MEDIA_SIZE_LEN
-#define BPP_MEDIA_SIZE_LEN          33
-#endif
-
-/* Debug Trace the SOAP object, if TRUE */
-#ifndef BPP_TRACE_XML
-#define BPP_TRACE_XML               TRUE
-#endif
-
-/* in case that the SOAP object does not all come in one OBEX packet,
- * this size of data may be kept in the BPP control block for continuing parsing.
- * The maximum is the size of the biggest GKI buffer (GKI_MAX_BUF_SIZE) */
-#ifndef BPP_SOAP_KEEP_SIZE
-#define BPP_SOAP_KEEP_SIZE          200
-#endif
-
 
 /******************************************************************************
 **
@@ -2943,111 +1899,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #ifndef BIP_INCLUDED
 #define BIP_INCLUDED                FALSE
 #endif
-
-/* TRUE to include imaging initiator */
-#ifndef BIP_INITR_INCLUDED
-#define BIP_INITR_INCLUDED          FALSE
-#endif
-
-/* TRUE to include imaging responder */
-#ifndef BIP_RSPDR_INCLUDED
-#define BIP_RSPDR_INCLUDED          FALSE
-#endif
-
-/* TRUE to include image push feature */
-#ifndef BIP_PUSH_INCLUDED
-#define BIP_PUSH_INCLUDED           TRUE
-#endif
-
-/* TRUE to include image pull feature */
-#ifndef BIP_PULL_INCLUDED
-#define BIP_PULL_INCLUDED           TRUE
-#endif
-
-/* TRUE to include advanced image printing feature */
-#ifndef BIP_PRINTING_INCLUDED
-#define BIP_PRINTING_INCLUDED       TRUE
-#endif
-
-/* TRUE to include automatic archive feature */
-#ifndef BIP_ARCHIVE_INCLUDED
-#define BIP_ARCHIVE_INCLUDED        TRUE
-#endif
-
-/* TRUE to include remote camera feature */
-#ifndef BIP_CAMERA_INCLUDED
-#define BIP_CAMERA_INCLUDED         TRUE
-#endif
-
-/* TRUE to include remote display feature */
-#ifndef BIP_DISPLAY_INCLUDED
-#define BIP_DISPLAY_INCLUDED        TRUE
-#endif
-
-/* TRUE to include sanity check code for API functions */
-#ifndef BIP_SANITY_CHECKS
-#define BIP_SANITY_CHECKS           TRUE
-#endif
-
-/* TRUE to show the received XML object in trace for conformance tests */
-#ifndef BIP_TRACE_XML
-#define BIP_TRACE_XML               TRUE
-#endif
-
-/* in case that the received XML object is not complete, the XML parser state machine needs
- * to keep a copy of the data from the last '<'
- * This macro specifies the maximun amount of data for this purpose */
-#ifndef BIP_XML_CARRY_OVER_LEN
-#define BIP_XML_CARRY_OVER_LEN      100
-#endif
-
-/* minimum 4, maximum is 255. The value should be set to the maximum size of encoding string + 1. JPEG2000.
- * If vendor specific format is supported, it might be bigger than 9 */
-#ifndef BIP_IMG_ENCODE_SIZE
-#define BIP_IMG_ENCODE_SIZE         9
-#endif
-
-/* MIME type: text/plain */
-#ifndef BIP_TYPE_SIZE
-#define BIP_TYPE_SIZE               20
-#endif
-
-/* example: iso-8895-1 */
-#ifndef BIP_CHARSET_SIZE
-#define BIP_CHARSET_SIZE            10
-#endif
-
-/* friendly name */
-#ifndef BIP_FNAME_SIZE
-#define BIP_FNAME_SIZE              20
-#endif
-
-/* service name */
-#ifndef BIP_SNAME_SIZE
-#define BIP_SNAME_SIZE              60
-#endif
-
-/* temporary storage file name(for file system access, may include path) */
-#ifndef BIP_TEMP_NAME_SIZE
-#define BIP_TEMP_NAME_SIZE          200
-#endif
-
-/* image file name */
-#ifndef BIP_IMG_NAME_SIZE
-#define BIP_IMG_NAME_SIZE           200
-#endif
-
-/* attachment file name */
-#ifndef BIP_ATT_NAME_SIZE
-#define BIP_ATT_NAME_SIZE           200
-#endif
-
-/* object (image, attachment, thumbnail) file name (may be used for file system) */
-#ifndef BIP_OBJ_NAME_SIZE
-#define BIP_OBJ_NAME_SIZE           200
-#endif
-
-
 
 /******************************************************************************
 **
@@ -3069,112 +1920,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define HCRP_CLIENT_INCLUDED        FALSE
 #endif
 
-/* TRUE enables the notification option of the profile. */
-#ifndef HCRP_NOTIFICATION_INCLUDED
-#define HCRP_NOTIFICATION_INCLUDED  TRUE
-#endif
-
-/* TRUE enables the vendor specific option of the profile. */
-#ifndef HCRP_VENDOR_SPEC_INCLUDED
-#define HCRP_VENDOR_SPEC_INCLUDED   TRUE
-#endif
-
-/* TRUE enables state machine traces. */
-#ifndef HCRP_FSM_DEBUG
-#define HCRP_FSM_DEBUG              FALSE
-#endif
-
-/* TRUE enables protocol message traces. */
-#ifndef HCRP_PROTO_DEBUG
-#define HCRP_PROTO_DEBUG            FALSE
-#endif
-
-/* Maximum length used to store the service name (Minimum 1). */
-#ifndef HCRP_MAX_SERVICE_NAME_LEN
-#define HCRP_MAX_SERVICE_NAME_LEN   32
-#endif
-
-/* Maximum length used to store the device name (Minimum 1). */
-#ifndef HCRP_MAX_DEVICE_NAME_LEN
-#define HCRP_MAX_DEVICE_NAME_LEN    32
-#endif
-
-/* Maximum length of device location (Minimum 1) */
-#ifndef HCRP_MAX_DEVICE_LOC_LEN
-#define HCRP_MAX_DEVICE_LOC_LEN     32
-#endif
-
-/* Maximum length used to store the friendly name (Minimum 1). */
-#ifndef HCRP_MAX_FRIENDLY_NAME_LEN
-#define HCRP_MAX_FRIENDLY_NAME_LEN  32
-#endif
-
-/* Maximum length used to store the 1284 id string (Minimum 2 byte length field). */
-#ifndef HCRP_MAX_SDP_1284_ID_LEN
-#define HCRP_MAX_SDP_1284_ID_LEN    128
-#endif
-
-/* Maximum length for parameters to be processed for vendor specific commands. */
-#ifndef HCRP_MAX_VEND_SPEC_LEN
-#define HCRP_MAX_VEND_SPEC_LEN      4
-#endif
-
-/* Number of seconds to wait for 2nd GAP to open. */
-#ifndef HCRP_OPEN_CHAN_TOUT
-#define HCRP_OPEN_CHAN_TOUT         5
-#endif
-
-/* Number of seconds to wait for 2nd GAP to close. */
-#ifndef HCRP_CLOSE_CHAN_TOUT
-#define HCRP_CLOSE_CHAN_TOUT        3
-#endif
-
-/* Number of seconds to wait for the application to respond to a protocol request. */
-#ifndef HCRP_APPL_RSP_TOUT
-#define HCRP_APPL_RSP_TOUT          5
-#endif
-
-/* Number of seconds to wait for the peer device to respond to a protocol request. */
-#ifndef HCRP_CMD_RSP_TOUT
-#define HCRP_CMD_RSP_TOUT           7
-#endif
-
-/* Number of seconds between subsequent credit requests to the server when the send watermark has been exceeded. */
-#ifndef HCRP_CREDIT_REQ_UPDATES
-#define HCRP_CREDIT_REQ_UPDATES     1
-#endif
-
-/* Maximum number of results to return in a HCRP_FindServices search. */
-#ifndef HCRP_MAX_SEARCH_RESULTS
-#define HCRP_MAX_SEARCH_RESULTS     1
-#endif
-
-/* Maximum number of bytes to be reserved for searching for the client's notification record. */
-#ifndef HCRP_MAX_NOTIF_DISC_BUF
-#define HCRP_MAX_NOTIF_DISC_BUF     300
-#endif
-
-/* Maximum number of clients the server will allow to be registered for notifications. */
-#ifndef HCRP_MAX_NOTIF_CLIENTS
-#define HCRP_MAX_NOTIF_CLIENTS      3
-#endif
-
-/* Spec says minimum of two notification retries. */
-#ifndef HCRP_NOTIF_NUM_RETRIES
-#define HCRP_NOTIF_NUM_RETRIES      4
-#endif
-
-/*************************************************************************
-** Definitions for Multi-Client Server HCRP
-** Note: Many of the above HCRP definitions are also used
-** Maximum number of clients allowed to connect simultaneously
-** Must be less than ((GAP_MAX_CONNECTIONS - 1) / 2)
-*/
-#ifndef HCRPM_MAX_CLIENTS
-#define HCRPM_MAX_CLIENTS           3
-#endif
-
-
 /******************************************************************************
 **
 ** PAN
@@ -3184,7 +1929,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #ifndef PAN_INCLUDED
 #define PAN_INCLUDED                FALSE
 #endif
-
 
 /******************************************************************************
 **
@@ -3208,16 +1952,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 #define A2D_SBC_INCLUDED        A2D_INCLUDED
 #endif
 
-/* TRUE to include MPEG-1,2 (mp3) utility functions */
-#ifndef A2D_M12_INCLUDED
-#define A2D_M12_INCLUDED        A2D_INCLUDED
-#endif
-
-/* TRUE to include MPEG-2,4 (aac) utility functions */
-#ifndef A2D_M24_INCLUDED
-#define A2D_M24_INCLUDED        A2D_INCLUDED
-#endif
-
 /******************************************************************************
 **
 ** AVCTP
@@ -3236,77 +1970,6 @@ Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
 /* Number of simultaneous AVCTP connections. */
 #ifndef AVCT_NUM_CONN
 #define AVCT_NUM_CONN               3
-#endif
-
-/* Pool ID where to reassemble the SDU.
-   This Pool allows buffers to be used that are larger than
-   the L2CAP_MAX_MTU. */
-#ifndef AVCT_BR_USER_RX_POOL_ID
-#define AVCT_BR_USER_RX_POOL_ID     HCI_ACL_POOL_ID
-#endif
-
-/* Pool ID where to hold the SDU.
-   This Pool allows buffers to be used that are larger than
-   the L2CAP_MAX_MTU. */
-#ifndef AVCT_BR_USER_TX_POOL_ID
-#define AVCT_BR_USER_TX_POOL_ID     HCI_ACL_POOL_ID
-#endif
-
-/*
-GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
-*/
-#ifndef AVCT_BR_FCR_RX_POOL_ID
-#define AVCT_BR_FCR_RX_POOL_ID      HCI_ACL_POOL_ID
-#endif
-
-/*
-GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
-L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
-Note:  This pool needs to have enough buffers to hold two times the window size negotiated
- in the tL2CAP_FCR_OPTIONS (2 * tx_win_size)  to allow for retransmissions.
- The size of each buffer must be able to hold the maximum MPS segment size passed in
- tL2CAP_FCR_OPTIONS plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
-*/
-#ifndef AVCT_BR_FCR_TX_POOL_ID
-#define AVCT_BR_FCR_TX_POOL_ID      HCI_ACL_POOL_ID
-#endif
-
-/* AVCTP Browsing channel FCR Option:
-Size of the transmission window when using enhanced retransmission mode. Not used
-in basic and streaming modes. Range: 1 - 63
-*/
-#ifndef AVCT_BR_FCR_OPT_TX_WINDOW_SIZE
-#define AVCT_BR_FCR_OPT_TX_WINDOW_SIZE      10
-#endif
-
-/* AVCTP Browsing channel FCR Option:
-Number of transmission attempts for a single I-Frame before taking
-Down the connection. Used In ERTM mode only. Value is Ignored in basic and
-Streaming modes.
-Range: 0, 1-0xFF
-0 - infinite retransmissions
-1 - single transmission
-*/
-#ifndef AVCT_BR_FCR_OPT_MAX_TX_B4_DISCNT
-#define AVCT_BR_FCR_OPT_MAX_TX_B4_DISCNT    20
-#endif
-
-/* AVCTP Browsing channel FCR Option: Retransmission Timeout
-The AVRCP specification set a value in the range of 300 - 2000 ms
-Timeout (in msecs) to detect Lost I-Frames. Only used in Enhanced retransmission mode.
-Range: Minimum 2000 (2 secs) when supporting PBF.
- */
-#ifndef AVCT_BR_FCR_OPT_RETX_TOUT
-#define AVCT_BR_FCR_OPT_RETX_TOUT           2000
-#endif
-
-/* AVCTP Browsing channel FCR Option: Monitor Timeout
-The AVRCP specification set a value in the range of 300 - 2000 ms
-Timeout (in msecs) to detect Lost S-Frames. Only used in Enhanced retransmission mode.
-Range: Minimum 12000 (12 secs) when supporting PBF.
-*/
-#ifndef AVCT_BR_FCR_OPT_MONITOR_TOUT
-#define AVCT_BR_FCR_OPT_MONITOR_TOUT        12000
 #endif
 
 /******************************************************************************
@@ -3338,11 +2001,6 @@ Range: Minimum 12000 (12 secs) when supporting PBF.
 ******************************************************************************/
 #ifndef MCA_INCLUDED
 #define MCA_INCLUDED                FALSE
-#endif
-
-/* TRUE to support Clock Synchronization OpCodes */
-#ifndef MCA_SYNC_INCLUDED
-#define MCA_SYNC_INCLUDED           FALSE
 #endif
 
 /* The MTU size for the L2CAP configuration on control channel. 48 is the minimal */
@@ -3459,29 +2117,9 @@ The maximum number of payload octets that the local device can receive in a sing
 #define SER_INCLUDED                FALSE
 #endif
 
-/* Task which runs the serial application. */
-#ifndef SER_TASK
-#define SER_TASK                    BTE_APPL_TASK
-#endif
-
 /* Mailbox used by serial application. */
 #ifndef SER_MBOX
 #define SER_MBOX                    TASK_MBOX_1
-#endif
-
-/* Mailbox mask. */
-#ifndef SER_MBOX_MASK
-#define SER_MBOX_MASK               TASK_MBOX_1_EVT_MASK
-#endif
-
-/* TX path application event. */
-#ifndef SER_TX_PATH_APPL_EVT
-#define SER_TX_PATH_APPL_EVT        EVENT_MASK(APPL_EVT_3)
-#endif
-
-/* RX path application event. */
-#ifndef SER_RX_PATH_APPL_EVT
-#define SER_RX_PATH_APPL_EVT        EVENT_MASK(APPL_EVT_4)
 #endif
 
 /******************************************************************************
@@ -3514,16 +2152,8 @@ The maximum number of payload octets that the local device can receive in a sing
 #define APPL_INCLUDED                TRUE
 #endif
 
-/* When TRUE remote terminal code included (RPC MUST be included) */
-#ifndef RSI_INCLUDED
-#define RSI_INCLUDED                TRUE
-#endif
-
-
-
 #define L2CAP_FEATURE_REQ_ID      73
 #define L2CAP_FEATURE_RSP_ID     173
-
 
 /******************************************************************************
 **
