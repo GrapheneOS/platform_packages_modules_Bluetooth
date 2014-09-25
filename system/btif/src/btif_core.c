@@ -313,6 +313,10 @@ void btif_sendmsg(void *p_msg)
     fixed_queue_enqueue(btif_msg_queue, p_msg);
 }
 
+void btif_thread_post(thread_fn func, void *context) {
+    thread_post(bt_jni_workqueue_thread, func, context);
+}
+
 static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
 {
     char val[256];
@@ -601,7 +605,6 @@ void btif_disable_bluetooth_evt(void)
     /* callback to HAL */
     future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
