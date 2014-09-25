@@ -41,7 +41,7 @@
 
 #include "data_types.h"
 #include "bt_utils.h"
-
+#include "module.h"
 
 /*******************************************************************************
 **  Type definitions for callback functions
@@ -53,40 +53,37 @@ static int g_TaskIdx;
 static int g_TaskIDs[TASK_HIGH_MAX];
 #define INVALID_TASK_ID  (-1)
 
-/*****************************************************************************
-**
-** Function        bt_utils_init
-**
-** Description     Initialize bluedroid util
-**
-** Returns         void
-**
-*******************************************************************************/
-void bt_utils_init() {
-    int i;
-    pthread_mutexattr_t lock_attr;
+static future_t *init(void) {
+  int i;
+  pthread_mutexattr_t lock_attr;
 
-    for(i = 0; i < TASK_HIGH_MAX; i++) {
-        g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
-        g_DoSchedulingGroup[i] = TRUE;
-        g_TaskIDs[i] = INVALID_TASK_ID;
-    }
-    pthread_mutexattr_init(&lock_attr);
-    pthread_mutex_init(&gIdxLock, &lock_attr);
+  for(i = 0; i < TASK_HIGH_MAX; i++) {
+    g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
+    g_DoSchedulingGroup[i] = TRUE;
+    g_TaskIDs[i] = INVALID_TASK_ID;
+  }
+
+  pthread_mutexattr_init(&lock_attr);
+  pthread_mutex_init(&gIdxLock, &lock_attr);
+  return NULL;
 }
 
-/*****************************************************************************
-**
-** Function        bt_utils_cleanup
-**
-** Description     Clean up bluedroid util
-**
-** Returns         void
-**
-*******************************************************************************/
-void bt_utils_cleanup() {
-    pthread_mutex_destroy(&gIdxLock);
+static future_t *clean_up(void) {
+  pthread_mutex_destroy(&gIdxLock);
+  return NULL;
 }
+
+const module_t bt_utils_module = {
+  .name = BT_UTILS_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = NULL,
+  .clean_up = clean_up,
+  .dependencies = {
+    NULL
+  }
+};
+
 
 /*****************************************************************************
 **

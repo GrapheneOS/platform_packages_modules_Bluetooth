@@ -617,8 +617,6 @@ bt_status_t btif_shutdown_bluetooth(void)
 
     btif_dut_mode = 0;
 
-    bt_utils_cleanup();
-
     BTIF_TRACE_DEBUG("%s done", __FUNCTION__);
 
     return BT_STATUS_SUCCESS;

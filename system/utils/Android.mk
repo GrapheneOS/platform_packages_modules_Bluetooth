@@ -4,7 +4,9 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../gki/ulinux \
+	$(LOCAL_PATH)/../osi/include \
 	$(bdroid_C_INCLUDES)
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99

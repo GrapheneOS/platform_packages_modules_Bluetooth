@@ -38,8 +38,7 @@ typedef enum {
 **  Functions
 ********************************************************************************/
 
-void bt_utils_init();
-void bt_utils_cleanup();
+#define BT_UTILS_MODULE "bt_utils_module"
 void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task);
 void adjust_priority_a2dp(int start);
 #define UNUSED(x) (void)(x)

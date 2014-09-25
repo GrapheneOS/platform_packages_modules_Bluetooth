@@ -32,6 +32,7 @@
 
 // Temp includes
 #include "btif_config.h"
+#include "bt_utils.h"
 
 static thread_t *management_thread;
 
@@ -91,7 +92,7 @@ static void event_init_stack(void *context) {
   if (!stack_is_initialized) {
     module_management_start();
 
-    bt_utils_init();
+    module_init(get_module(BT_UTILS_MODULE));
     module_init(get_module(BTIF_CONFIG_MODULE));
     btif_init_bluetooth();
 
@@ -179,6 +180,7 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
 
   btif_shutdown_bluetooth();
   module_clean_up(get_module(BTIF_CONFIG_MODULE));
+  module_clean_up(get_module(BT_UTILS_MODULE));
 
   future_await(hack_future);
   module_management_stop();
