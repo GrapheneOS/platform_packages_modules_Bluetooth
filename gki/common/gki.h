@@ -130,14 +130,9 @@ typedef void (*TASKPTR)(void);
 
 /* Task management
 */
-UINT8   GKI_create_task(TASKPTR, UINT8, const char *);
-void    GKI_destroy_task(UINT8 task_id);
-void    GKI_task_self_cleanup(UINT8 task_id);
-void    GKI_exit_task(UINT8);
 UINT8   GKI_get_taskid(void);
 void    GKI_init(void);
 void    GKI_shutdown(void);
-const char *GKI_map_taskname(UINT8);
 
 /* To send buffers and events between tasks
 */

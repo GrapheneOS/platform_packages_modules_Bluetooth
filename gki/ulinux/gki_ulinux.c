@@ -90,32 +90,6 @@ void alarm_service_reschedule() {
         ALOGV("%s no more alarms.", __func__);
 }
 
-/*****************************************************************************
-**
-** Function        gki_task_entry
-**
-** Description     GKI pthread callback
-**
-** Returns         void
-**
-*******************************************************************************/
-static void *gki_task_entry(void *params)
-{
-    gki_pthread_info_t *p_pthread_info = (gki_pthread_info_t *)params;
-    gki_cb.os.thread_id[p_pthread_info->task_id] = pthread_self();
-
-    prctl(PR_SET_NAME, (unsigned long)gki_cb.com.task_name[p_pthread_info->task_id], 0, 0, 0);
-
-    ALOGI("%s '%s' task [%d] starting", __func__, gki_cb.com.task_name[p_pthread_info->task_id], p_pthread_info->task_id);
-
-    /* Call the actual thread entry point */
-    (p_pthread_info->task_entry)();
-
-    ALOGI("%s '%s' task [%d] terminating", __func__, gki_cb.com.task_name[p_pthread_info->task_id], p_pthread_info->task_id);
-
-    return NULL;
-}
-
 /*******************************************************************************
 **
 ** Function         GKI_init
@@ -166,146 +140,6 @@ UINT32 GKI_get_os_tick_count(void)
 
 /*******************************************************************************
 **
-** Function         GKI_create_task
-**
-** Description      This function is called to create a new OSS task.
-**
-** Parameters:      task_entry  - (input) pointer to the entry function of the task
-**                  task_id     - (input) Task id is mapped to priority
-**                  taskname    - (input) name given to the task
-**
-** Returns          GKI_SUCCESS if all OK, GKI_FAILURE if any problem
-**
-** NOTE             This function take some parameters that may not be needed
-**                  by your particular OS. They are here for compatability
-**                  of the function prototype.
-**
-*******************************************************************************/
-UINT8 GKI_create_task(TASKPTR task_entry, UINT8 task_id, const char *taskname)
-{
-    if (task_id >= GKI_MAX_TASKS)
-    {
-        ALOGE("Error! task ID > max task allowed");
-        return (GKI_FAILURE);
-    }
-
-    gki_cb.com.task_state[task_id]  = TASK_READY;
-    gki_cb.com.task_name[task_id]   = taskname;
-    gki_cb.com.OSWaitTmr[task_id]   = 0;
-    gki_cb.com.OSWaitEvt[task_id]   = 0;
-
-    /* Initialize mutex and condition variable objects for events and timeouts */
-    pthread_condattr_t cond_attr;
-    pthread_condattr_init(&cond_attr);
-    pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-
-    pthread_mutex_init(&gki_cb.os.thread_evt_mutex[task_id], NULL);
-    pthread_cond_init (&gki_cb.os.thread_evt_cond[task_id], &cond_attr);
-
-    /* On Android, the new tasks starts running before 'gki_cb.os.thread_id[task_id]' is initialized */
-    /* Pass task_id to new task so it can initialize gki_cb.os.thread_id[task_id] for it calls GKI_wait */
-    gki_pthread_info[task_id].task_id = task_id;
-    gki_pthread_info[task_id].task_entry = task_entry;
-
-    int ret = pthread_create( &gki_cb.os.thread_id[task_id],
-              NULL,
-              gki_task_entry,
-              &gki_pthread_info[task_id]);
-
-    if (ret != 0)
-    {
-         ALOGE("pthread_create failed(%d), %s!", ret, taskname);
-         return GKI_FAILURE;
-    }
-
-    GKI_TRACE( "Leaving GKI_create_task %x %d %x %s\n",
-              (int)task_entry,
-              (int)task_id,
-              (int)gki_cb.os.thread_id[task_id],
-              taskname);
-
-    return (GKI_SUCCESS);
-}
-
-void GKI_destroy_task(UINT8 task_id)
-{
-    if (gki_cb.com.task_state[task_id] != TASK_DEAD)
-    {
-        gki_cb.com.task_state[task_id] = TASK_DEAD;
-
-        /* paranoi settings, make sure that we do not execute any mailbox events */
-        gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
-                                            TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
-
-        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
-          gki_cb.com.OSTaskTmr[task_id][i] = 0;
-          gki_cb.com.OSTaskTmrR[task_id][i] = 0;
-        }
-
-        GKI_send_event(task_id, EVENT_MASK(GKI_SHUTDOWN_EVT));
-
-        int result = pthread_join( gki_cb.os.thread_id[task_id], NULL );
-        if ( result < 0 )
-        {
-            ALOGE( "pthread_join() FAILED: result: %d", result );
-        }
-        GKI_exit_task(task_id);
-        ALOGI( "GKI_shutdown(): task [%s] terminated\n", gki_cb.com.task_name[task_id]);
-    }
-}
-
-
-/*******************************************************************************
-**
-** Function         GKI_task_self_cleanup
-**
-** Description      This function is used in the case when the calling thread
-**                  is exiting itself. The GKI_destroy_task function can not be
-**                  used in this case due to the pthread_join call. The function
-**                  cleans up GKI control block associated to the terminating
-**                  thread.
-**
-** Parameters:      task_id     - (input) Task id is used for sanity check to
-**                                 make sure the calling thread is in the right
-**                                 context.
-**
-** Returns          None
-**
-*******************************************************************************/
-void GKI_task_self_cleanup(UINT8 task_id)
-{
-    UINT8 my_task_id = GKI_get_taskid();
-
-    if (task_id != my_task_id)
-    {
-        ALOGE("%s: Wrong context - current task %d is not the given task id %d",\
-                      __FUNCTION__, my_task_id, task_id);
-        return;
-    }
-
-    if (gki_cb.com.task_state[task_id] != TASK_DEAD)
-    {
-        /* paranoi settings, make sure that we do not execute any mailbox events */
-        gki_cb.com.OSWaitEvt[task_id] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
-                                            TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
-
-        for (int i = 0; i < GKI_NUM_TIMERS; ++i) {
-          gki_cb.com.OSTaskTmr[task_id][i] = 0;
-          gki_cb.com.OSTaskTmrR[task_id][i] = 0;
-        }
-
-        GKI_exit_task(task_id);
-
-        /* Calling pthread_detach here to mark the thread as detached.
-           Once the thread terminates, the system can reclaim its resources
-           without waiting for another thread to join with.
-        */
-        pthread_detach(gki_cb.os.thread_id[task_id]);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         GKI_shutdown
 **
 ** Description      shutdowns the GKI tasks/threads in from max task id to 0 and frees
@@ -319,35 +153,10 @@ void GKI_task_self_cleanup(UINT8 task_id)
 
 void GKI_shutdown(void)
 {
-    UINT8 task_id;
-
     alarm_free(alarm_timer);
     alarm_timer = NULL;
 
     gki_dealloc_free_queue();
-
-    /* release threads and set as TASK_DEAD. going from low to high priority fixes
-     * GKI_exception problem due to btu->hci sleep request events  */
-    for (task_id = GKI_MAX_TASKS; task_id > 0; task_id--)
-    {
-        if (gki_cb.com.task_state[task_id - 1] != TASK_DEAD)
-        {
-            gki_cb.com.task_state[task_id - 1] = TASK_DEAD;
-
-            /* paranoi settings, make sure that we do not execute any mailbox events */
-            gki_cb.com.OSWaitEvt[task_id-1] &= ~(TASK_MBOX_0_EVT_MASK|TASK_MBOX_1_EVT_MASK|
-                                                TASK_MBOX_2_EVT_MASK|TASK_MBOX_3_EVT_MASK);
-            GKI_send_event(task_id - 1, EVENT_MASK(GKI_SHUTDOWN_EVT));
-
-            int result = pthread_join( gki_cb.os.thread_id[task_id-1], NULL );
-
-            if ( result < 0 )
-            {
-                ALOGE( "pthread_join() FAILED: result: %d", result );
-            }
-            GKI_exit_task(task_id - 1);
-        }
-    }
 
     /* Destroy mutex and condition variable objects */
     pthread_mutex_destroy(&gki_cb.os.GKI_mutex);
@@ -548,34 +357,6 @@ UINT8 GKI_get_taskid (void)
     return(-1);
 }
 
-
-/*******************************************************************************
-**
-** Function         GKI_map_taskname
-**
-** Description      This function gets the task name of the taskid passed as arg.
-**                  If GKI_MAX_TASKS is passed as arg the currently running task
-**                  name is returned
-**
-** Parameters:      task_id -  (input) The id of the task whose name is being
-**                  sought. GKI_MAX_TASKS is passed to get the name of the
-**                  currently running task.
-**
-** Returns          pointer to task name
-**
-** NOTE             this function needs no customization
-**
-*******************************************************************************/
-
-const char *GKI_map_taskname(UINT8 task_id) {
-  assert(task_id <= GKI_MAX_TASKS);
-
-  if (task_id == GKI_MAX_TASKS)
-    task_id = GKI_get_taskid();
-
-  return gki_cb.com.task_name[task_id];
-}
-
 /*******************************************************************************
 **
 ** Function         GKI_enable
@@ -639,34 +420,4 @@ void GKI_exception(UINT16 code, char *msg)
     ALOGE( "********************************************************************");
 
     GKI_TRACE("GKI_exception %d %s done", code, msg);
-}
-
-/*******************************************************************************
-**
-** Function         GKI_exit_task
-**
-** Description      This function is called to stop a GKI task.
-**
-** Parameters:      task_id  - (input) the id of the task that has to be stopped
-**
-** Returns          void
-**
-** NOTE             This function is NOT called by the Broadcom stack and
-**                  profiles. If you want to use it in your own implementation,
-**                  put specific code here to kill a task.
-**
-*******************************************************************************/
-void GKI_exit_task (UINT8 task_id)
-{
-    GKI_disable();
-    gki_cb.com.task_state[task_id] = TASK_DEAD;
-
-    /* Destroy mutex and condition variable objects */
-    pthread_mutex_destroy(&gki_cb.os.thread_evt_mutex[task_id]);
-    pthread_cond_destroy (&gki_cb.os.thread_evt_cond[task_id]);
-
-    GKI_enable();
-
-    ALOGI("GKI_exit_task %d done", task_id);
-    return;
 }
