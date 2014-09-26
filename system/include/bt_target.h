@@ -25,19 +25,6 @@
 #endif
 #include "data_types.h"
 
-
-#ifndef BTIF_HSAG_SERVICE_NAME
-#define BTIF_HSAG_SERVICE_NAME  ("Headset Gateway")
-#endif
-
-#ifndef BTIF_HFAG_SERVICE_NAME
-#define BTIF_HFAG_SERVICE_NAME  ("Handsfree Gateway")
-#endif
-
-#ifndef BTIF_HF_CLIENT_SERVICE_NAME
-#define BTIF_HF_CLIENT_SERVICE_NAME  ("Handsfree")
-#endif
-
 #ifdef BUILDCFG
 
 #if !defined(HAS_BDROID_BUILDCFG) && !defined(HAS_NO_BDROID_BUILDCFG)
@@ -48,14 +35,13 @@
 #include "bdroid_buildcfg.h"
 #endif
 
-#endif
+#endif  // BUILDCFG
 
 /* Include common GKI definitions used by this platform */
 #include "gki_target.h"
 
 #include "bt_types.h"   /* This must be defined AFTER buildcfg.h */
 #include "dyn_mem.h"    /* defines static and/or dynamic memory for components */
-
 
 //------------------Added from bdroid_buildcfg.h---------------------
 #ifndef L2CAP_EXTFEA_SUPPORTED_MASK
@@ -484,40 +470,8 @@
 extern "C" {
 #endif
 
-BT_API extern void bte_main_hci_send (BT_HDR *p_msg, UINT16 event);
-BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
-
 #ifdef __cplusplus
 }
-#endif
-
-/* Sends ACL data received from the upper stack to the BD/EDR HCI transport. */
-#ifndef HCI_ACL_DATA_TO_LOWER
-#define HCI_ACL_DATA_TO_LOWER(p)    bte_main_hci_send((BT_HDR *)(p), BT_EVT_TO_LM_HCI_ACL);
-#endif
-
-#ifndef HCI_BLE_ACL_DATA_TO_LOWER
-#define HCI_BLE_ACL_DATA_TO_LOWER(p)    bte_main_hci_send((BT_HDR *)(p), (UINT16)(BT_EVT_TO_LM_HCI_ACL|LOCAL_BLE_CONTROLLER_ID));
-#endif
-
-/* Sends SCO data received from the upper stack to the HCI transport. */
-#ifndef HCI_SCO_DATA_TO_LOWER
-#define HCI_SCO_DATA_TO_LOWER(p)    bte_main_hci_send((BT_HDR *)(p), BT_EVT_TO_LM_HCI_SCO);
-#endif
-
-/* Sends an HCI command received from the upper stack to the BD/EDR HCI transport. */
-#ifndef HCI_CMD_TO_LOWER
-#define HCI_CMD_TO_LOWER(p)         bte_main_hci_send((BT_HDR *)(p), BT_EVT_TO_LM_HCI_CMD);
-#endif
-
-/* Sends an LM Diagnosic command received from the upper stack to the HCI transport. */
-#ifndef HCI_LM_DIAG_TO_LOWER
-#define HCI_LM_DIAG_TO_LOWER(p)     bte_main_hci_send((BT_HDR *)(p), BT_EVT_TO_LM_DIAG);
-#endif
-
-/* Send HCISU a message to allow BT sleep */
-#ifndef HCI_LP_ALLOW_BT_DEVICE_SLEEP
-#define HCI_LP_ALLOW_BT_DEVICE_SLEEP()       bte_main_lpm_allow_bt_device_sleep()
 #endif
 
 /* Use 2 second for low-resolution systems, override to 1 for high-resolution systems */
@@ -962,13 +916,8 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 #define L2CAP_CONFORMANCE_TESTING           FALSE
 #endif
 
-
 #ifndef TIMER_PARAM_TYPE
-#ifdef  WIN2000
-#define TIMER_PARAM_TYPE    void *
-#else
 #define TIMER_PARAM_TYPE    UINT32
-#endif
 #endif
 
 /******************************************************************************
@@ -1151,11 +1100,7 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 
 /* The maximum number of attributes in each record. */
 #ifndef SDP_MAX_REC_ATTR
-//#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
 #define SDP_MAX_REC_ATTR            25
-//#else
-//#define SDP_MAX_REC_ATTR            13
-//#endif
 #endif
 
 #ifndef SDP_MAX_PAD_LEN
@@ -1164,11 +1109,6 @@ BT_API extern void bte_main_lpm_allow_bt_device_sleep(void);
 
 /* The maximum length, in bytes, of an attribute. */
 #ifndef SDP_MAX_ATTR_LEN
-//#if defined(HID_DEV_INCLUDED) && (HID_DEV_INCLUDED==TRUE)
-//#define SDP_MAX_ATTR_LEN            80
-//#else
-//#define SDP_MAX_ATTR_LEN            100
-//#endif
 #define SDP_MAX_ATTR_LEN            400
 #endif
 
@@ -1552,9 +1492,9 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #else
 /* signaling and media channels */
 #define AVDT_NUM_CHANNELS   2
-#endif
+#endif  // AVDT_REPORTING
 
-#endif
+#endif  // AVDT_NUM_CHANNELS
 
 /* Number of transport channels setup by AVDT for all media streams
  * AVDT_NUM_CHANNELS * Number of simultaneous streams.
@@ -1562,7 +1502,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #ifndef AVDT_NUM_TC_TBL
 #define AVDT_NUM_TC_TBL             6
 #endif
-
 
 /* Maximum size in bytes of the codec capabilities information element. */
 #ifndef AVDT_CODEC_SIZE
@@ -1609,7 +1548,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #ifndef PAN_SUPPORTS_DEBUG_DUMP
 #define PAN_SUPPORTS_DEBUG_DUMP             TRUE
 #endif
-
 
 /* Maximum number of PAN connections allowed */
 #ifndef MAX_PAN_CONNS
@@ -1660,9 +1598,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #ifndef PAN_NAP_SECURITY_LEVEL
 #define PAN_NAP_SECURITY_LEVEL           0
 #endif
-
-
-
 
 /******************************************************************************
 **
@@ -1846,7 +1781,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #define HID_HOST_REPAGE_WIN          (2)
 #endif
 
-
 /******************************************************************************
 **
 ** DUN and FAX
@@ -1856,7 +1790,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #ifndef DUN_INCLUDED
 #define DUN_INCLUDED                FALSE
 #endif
-
 
 /******************************************************************************
 **

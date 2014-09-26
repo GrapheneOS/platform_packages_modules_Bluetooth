@@ -101,7 +101,7 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
 
     if (p_buf->len <= btu_cb.hcit_acl_pkt_size)
     {
-        HCI_ACL_DATA_TO_LOWER (p_buf);
+        bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
     }
 }
 

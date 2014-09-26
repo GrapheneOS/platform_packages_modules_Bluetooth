@@ -28,6 +28,9 @@
 extern "C" {
 #endif
 
+void bte_main_hci_send(BT_HDR *p_msg, UINT16 event);
+void bte_main_lpm_allow_bt_device_sleep(void);
+
 /* Message by message.... */
 
 #define HCIC_GET_UINT8(p, off)    (UINT8)(*((UINT8 *)((p) + 1) + p->offset + 3 + (off)))

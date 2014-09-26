@@ -3340,7 +3340,7 @@ void btsnd_hcic_data (BT_HDR *p_buf, UINT16 len, UINT16 handle, UINT8 boundary, 
     UINT16_TO_STREAM (p, handle | ((boundary & 3) << 12) | ((broadcast & 3) << 14));
     UINT16_TO_STREAM (p, len);
 
-    HCI_ACL_DATA_TO_LOWER (p_buf);
+    bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
 }
 
 BOOLEAN btsnd_hcic_nop (void)

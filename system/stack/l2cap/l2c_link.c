@@ -41,12 +41,6 @@
 
 static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf);
 
-#define L2C_LINK_SEND_ACL_DATA(x)  HCI_ACL_DATA_TO_LOWER((x))
-
-#if (BLE_INCLUDED == TRUE)
-#define L2C_LINK_SEND_BLE_ACL_DATA(x)  HCI_BLE_ACL_DATA_TO_LOWER((x))
-#endif
-
 /*******************************************************************************
 **
 ** Function         l2c_link_hci_conn_req
@@ -1289,13 +1283,13 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
             l2cb.controller_le_xmit_window--;
-            L2C_LINK_SEND_BLE_ACL_DATA (p_buf);
+            bte_main_hci_send(p_buf, (UINT16)(BT_EVT_TO_LM_HCI_ACL|LOCAL_BLE_CONTROLLER_ID));
         }
         else
 #endif
         {
             l2cb.controller_xmit_window--;
-            L2C_LINK_SEND_ACL_DATA (p_buf);
+            bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
         }
     }
     else
@@ -1359,12 +1353,12 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 #if BLE_INCLUDED == TRUE
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
-            L2C_LINK_SEND_BLE_ACL_DATA(p_buf);
+            bte_main_hci_send(p_buf, (UINT16)(BT_EVT_TO_LM_HCI_ACL|LOCAL_BLE_CONTROLLER_ID));
         }
         else
 #endif
         {
-            L2C_LINK_SEND_ACL_DATA (p_buf);
+            bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
         }
     }
 
