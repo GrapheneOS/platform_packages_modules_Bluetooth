@@ -223,15 +223,6 @@ typedef struct
 #define NFC_CONTROLLER_ID       (1)
 #define BTU_MAX_LOCAL_CTRLS     (1 + NFC_MAX_LOCAL_CTRLS) /* only BR/EDR */
 
-/* AMP HCI control block */
-typedef struct
-{
-    BUFFER_Q         cmd_xmit_q;
-    BUFFER_Q         cmd_cmpl_q;
-    UINT16           cmd_window;
-    TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
-} tHCI_CMD_CB;
-
 /* Define structure holding BTU variables
 */
 typedef struct
@@ -257,8 +248,6 @@ typedef struct
 
     BOOLEAN     reset_complete;             /* TRUE after first ack from device received */
     UINT8       trace_level;                /* Trace level for HCI layer */
-
-    tHCI_CMD_CB hci_cmd_cb[BTU_MAX_LOCAL_CTRLS]; /* including BR/EDR */
 } tBTU_CB;
 
 #ifdef __cplusplus
@@ -287,7 +276,6 @@ extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
-BTU_API extern void btu_hcif_flush_cmd_queue(void);
 /*
 ** Quick Timer
 */

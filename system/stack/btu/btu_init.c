@@ -149,12 +149,6 @@ void BTU_StartUp(void)
 #endif
     btu_cb.trace_level = HCI_INITIAL_TRACE_LEVEL;
 
-    for (int i = 0; i < BTU_MAX_LOCAL_CTRLS; ++i) {
-      GKI_init_q(&btu_cb.hci_cmd_cb[i].cmd_xmit_q);
-      GKI_init_q(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q);
-      btu_cb.hci_cmd_cb[i].cmd_window = 1;
-    }
-
     btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
     if (btu_bta_msg_queue == NULL)
         goto error_exit;
@@ -209,13 +203,6 @@ void BTU_StartUp(void)
 }
 
 void BTU_ShutDown(void) {
-  for (int i = 0; i < BTU_MAX_LOCAL_CTRLS; ++i) {
-    while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_xmit_q))
-      GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_xmit_q));
-    while (!GKI_queue_is_empty(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q))
-      GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q));
-  }
-
   btu_task_shut_down(NULL);
 
   fixed_queue_free(btu_bta_msg_queue, NULL);

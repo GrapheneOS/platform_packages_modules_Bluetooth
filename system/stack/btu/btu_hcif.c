@@ -1824,30 +1824,6 @@ static void btu_hcif_simple_pair_complete_evt (UINT8 *p)
 {
     btm_simple_pair_complete(p);
 }
-/*******************************************************************************
-**
-** Function         btu_hcif_flush_cmd_queue
-**
-** Description      Flush the HCI command complete queue and transmit queue when
-**                  needed.
-**
-** Returns          void
-**
-*******************************************************************************/
-void btu_hcif_flush_cmd_queue(void)
-{
-    BT_HDR *p_cmd;
-
-    btu_cb.hci_cmd_cb[0].cmd_window = 0;
-    while ((p_cmd = (BT_HDR *) GKI_dequeue (&btu_cb.hci_cmd_cb[0].cmd_cmpl_q)) != NULL)
-    {
-        GKI_freebuf (p_cmd);
-    }
-    while ((p_cmd = (BT_HDR *) GKI_dequeue (&btu_cb.hci_cmd_cb[0].cmd_xmit_q)) != NULL)
-    {
-        GKI_freebuf (p_cmd);
-    }
-}
 
 /*******************************************************************************
 **

@@ -332,9 +332,6 @@ static void btm_dev_reset (void)
 {
     btm_cb.devcb.state = BTM_DEV_STATE_WAIT_RESET_CMPLT;
 
-    /* flush out the command complete queue and command transmit queue */
-    btu_hcif_flush_cmd_queue();
-
     /* Start reset timer.  When timer expires we will send first command */
     /* from the setup sequence */
 

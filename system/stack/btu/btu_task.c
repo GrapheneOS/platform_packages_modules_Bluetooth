@@ -840,14 +840,10 @@ void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
 *******************************************************************************/
 void btu_check_bt_sleep (void)
 {
-    if ((GKI_queue_is_empty(&btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_cmpl_q)
-        && GKI_queue_is_empty(&btu_cb.hci_cmd_cb[LOCAL_BR_EDR_CONTROLLER_ID].cmd_xmit_q)))
+    // TODO(zachoverflow) take pending commands into account?
+    if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs)
     {
-        if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs)
-        {
-            /* enable dev to sleep  in the cmd cplt and cmd status only and num cplt packet */
-            bte_main_lpm_allow_bt_device_sleep();
-        }
+        bte_main_lpm_allow_bt_device_sleep();
     }
 }
 #endif
