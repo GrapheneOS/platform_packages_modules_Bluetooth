@@ -81,6 +81,7 @@ OI_CODEC_SBC_DECODER_CONTEXT context;
 OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 #endif
+#include "thread.h"
 
 /*****************************************************************************
  **  Constants
@@ -111,7 +112,6 @@ OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 
 #define BTIF_MEDIA_TASK_CMD_MBOX        TASK_MBOX_0     /* cmd mailbox  */
 #define BTIF_MEDIA_TASK_DATA_MBOX       TASK_MBOX_1     /* data mailbox  */
-
 
 /* BTIF media cmd event definition : BTIF_MEDIA_TASK_CMD */
 enum
@@ -353,6 +353,11 @@ static void btif_media_task_aa_handle_start_decoding(void );
 #endif
 BOOLEAN btif_media_task_start_decoding_req(void);
 BOOLEAN btif_media_task_clear_track(void);
+
+static const char *BT_MEDIA_WORKQUEUE_NAME = "bt_media_workqueue";
+static thread_t *bt_media_workqueue_thread;
+static void btif_media_thread(UNUSED_ATTR void *context);
+
 /*****************************************************************************
  **  Misc helper functions
  *****************************************************************************/
@@ -758,7 +763,7 @@ static void btif_a2dp_encoder_update(void)
 
 int btif_a2dp_start_media_task(void)
 {
-    int retval;
+    int retval = GKI_SUCCESS;
 
     if (media_task_running != MEDIA_TASK_STATE_OFF)
     {
@@ -766,24 +771,29 @@ int btif_a2dp_start_media_task(void)
         return GKI_FAILURE;
     }
 
-    APPL_TRACE_EVENT("## A2DP START MEDIA TASK ##");
+    APPL_TRACE_EVENT("## A2DP START MEDIA THREAD ##");
 
     btif_media_cmd_msg_queue = fixed_queue_new(SIZE_MAX);
     btif_media_data_msg_queue = fixed_queue_new(SIZE_MAX);
 
     /* start a2dp media task */
-    retval = GKI_create_task(btif_media_task, A2DP_MEDIA_TASK, "A2DP-MEDIA");
+    bt_media_workqueue_thread = thread_new(BT_MEDIA_WORKQUEUE_NAME);
+    if (bt_media_workqueue_thread == NULL)
+        goto error_exit;
 
-    if (retval != GKI_SUCCESS)
-        return retval;
+    thread_post(bt_media_workqueue_thread, btif_media_thread, NULL);
 
     /* wait for task to come up to sure we are able to send messages to it */
     while (media_task_running == MEDIA_TASK_STATE_OFF)
         usleep(10);
 
-    APPL_TRACE_EVENT("## A2DP MEDIA TASK STARTED ##");
+    APPL_TRACE_EVENT("## A2DP MEDIA THREAD STARTED ##");
 
     return retval;
+
+ error_exit:;
+    APPL_TRACE_ERROR("%s unable to start up media thread", __func__);
+    return GKI_FAILURE;
 }
 
 /*****************************************************************************
@@ -798,11 +808,15 @@ int btif_a2dp_start_media_task(void)
 
 void btif_a2dp_stop_media_task(void)
 {
-    APPL_TRACE_EVENT("## A2DP STOP MEDIA TASK ##");
-    GKI_destroy_task(BT_MEDIA_TASK);
-
+    APPL_TRACE_EVENT("## A2DP STOP MEDIA THREAD ##");
     fixed_queue_free(btif_media_cmd_msg_queue, NULL);
     fixed_queue_free(btif_media_data_msg_queue, NULL);
+
+    thread_free(bt_media_workqueue_thread);
+
+    bt_media_workqueue_thread = NULL;
+    btif_media_cmd_msg_queue = NULL;
+    btif_media_data_msg_queue = NULL;
 }
 
 /*****************************************************************************
@@ -1359,12 +1373,12 @@ void btif_media_task_init(void)
  ** Returns          void
  **
  *******************************************************************************/
-void btif_media_task(void)
+void btif_media_thread(UNUSED_ATTR void *context)
 {
     UINT16 event;
     BT_HDR *p_msg;
 
-    VERBOSE("================ MEDIA TASK STARTING ================");
+    VERBOSE("================ MEDIA THREAD STARTING ================");
 
     btif_media_task_init();
 
@@ -1376,7 +1390,7 @@ void btif_media_task(void)
     {
         event = GKI_wait(0xffff, 0);
 
-        VERBOSE("================= MEDIA TASK EVENT %d ===============", event);
+        VERBOSE("================= MEDIA THREAD EVENT %d ===============", event);
 
         /* Process all messages in the queue */
         while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btif_media_cmd_msg_queue)) != NULL) {
@@ -1404,7 +1418,7 @@ void btif_media_task(void)
 
 
 
-        VERBOSE("=============== MEDIA TASK EVENT %d DONE ============", event);
+        VERBOSE("=============== MEDIA THREAD EVENT %d DONE ============", event);
 
         /* When we get this event we exit the task  - should only happen on GKI_shutdown  */
         if (event & BTIF_MEDIA_TASK_KILL)
@@ -1421,7 +1435,7 @@ void btif_media_task(void)
     /* Clear media task flag */
     media_task_running = MEDIA_TASK_STATE_OFF;
 
-    APPL_TRACE_DEBUG("MEDIA TASK EXITING");
+    APPL_TRACE_DEBUG("MEDIA THREAD EXITING");
 }
 
 
