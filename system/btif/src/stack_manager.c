@@ -146,7 +146,6 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   btif_disable_bluetooth();
 
   future_await(hack_future);
-  module_management_stop();
   ALOGD("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }
@@ -174,6 +173,7 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
   btif_shutdown_bluetooth();
 
   future_await(hack_future);
+  module_management_stop();
   ALOGD("%s finished.", __func__);
 }
 
