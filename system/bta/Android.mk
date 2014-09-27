@@ -96,13 +96,13 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \
                    $(LOCAL_PATH)/hh \
+                   $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
+                   $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \
                    $(LOCAL_PATH)/../stack/btm \
-                   $(LOCAL_PATH)/../hcis \
-                   $(LOCAL_PATH)/../hcis/patchram \
                    $(LOCAL_PATH)/../osi/include \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../vnd/include \

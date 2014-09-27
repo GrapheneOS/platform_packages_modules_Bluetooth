@@ -69,10 +69,10 @@ typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
                                           HCI_PKT_TYPES_MASK_NO_3_DH5)
 
 #define BTM_EPR_AVAILABLE(p) ((HCI_ATOMIC_ENCRYPT_SUPPORTED((p)->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]) && \
-                               HCI_ATOMIC_ENCRYPT_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0])) \
+                               HCI_ATOMIC_ENCRYPT_SUPPORTED(controller_get_interface()->get_features_classic(0)->as_array)) \
                                ? TRUE : FALSE)
 
-#define BTM_IS_BRCM_CONTROLLER() (btm_cb.devcb.local_version.manufacturer == LMP_COMPID_BROADCOM)
+#define BTM_IS_BRCM_CONTROLLER() (controller_get_interface()->get_bt_version()->manufacturer == LMP_COMPID_BROADCOM)
 
 /* Define the ACL Management control structure
 */
@@ -145,8 +145,7 @@ typedef struct
     tBTM_CMPL_CB        *p_stored_link_key_cmpl_cb;   /* Read/Write/Delete stored link key    */
 
     TIMER_LIST_ENT       reset_timer;
-    tBTM_CMPL_CB        *p_reset_cmpl_cb;   /* Callback function to be called       */
-                                            /* when startup of the device is done   */
+
     TIMER_LIST_ENT       rln_timer;
     tBTM_CMPL_CB        *p_rln_cmpl_cb;     /* Callback function to be called when  */
                                             /* read local name function complete    */
@@ -178,12 +177,7 @@ typedef struct
     TIMER_LIST_ENT       tx_power_timer;
     tBTM_CMPL_CB        *p_tx_power_cmpl_cb;/* Callback function to be called       */
 
-    BD_ADDR              local_addr;        /* BD_ADDR of the local device          */
-    tBTM_VERSION_INFO    local_version;     /* Local Version Information            */
     DEV_CLASS            dev_class;         /* Local device class                   */
-
-    /* Local LMP Extended features mask table for the device */
-    BD_FEATURES          local_lmp_features[HCI_EXT_FEATURES_PAGE_MAX + 1];
 
 #if BLE_INCLUDED == TRUE
 
@@ -191,7 +185,6 @@ typedef struct
                                                   LE test mode command has been sent successfully */
 
     BD_ADDR                 read_tx_pwr_addr;   /* read TX power target address     */
-    BD_FEATURES             local_le_features;  /* Local LE Supported features mask for the device */
 
     tBTM_BLE_LOCAL_ID_KEYS  id_keys;        /* local BLE ID keys                    */
     BT_OCTET16              er;             /* BLE encryption key                   */
@@ -212,22 +205,8 @@ UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
 
 #endif  /* BLE_INCLUDED */
 
-#define BTM_DEV_STATE_WAIT_RESET_CMPLT  0
-#define BTM_DEV_STATE_WAIT_AFTER_RESET  1
-#define BTM_DEV_STATE_READY             2
-
-    UINT8                state;
     tBTM_IO_CAP          loc_io_caps;       /* IO capability of the local device */
     tBTM_AUTH_REQ        loc_auth_req;      /* the auth_req flag  */
-#define BTM_RELOAD_LE_HOST_FEATURE      0x10
-
-#define BTM_RE_READ_1ST_PAGE            0x01            /* Set it if you set at least one of "..._HOST_MAY_SUPP_..." bits */
-#define BTM_HOST_MAY_SUPP_SSP           0x02
-#define BTM_HOST_MAY_SUPP_LE            0x04
-#define BTM_HOST_MAY_SUPP_SIMULT_BR_LE  0x08
-    UINT8               lmp_features_host_may_support;  /* The flags of LMP features host may support via BR/EDR ctrlr + BTM_RE_READ_1ST_PAGE */
-    UINT8               supported_cmds[HCI_NUM_SUPP_COMMANDS_BYTES]; /* Supported Commands bit field */
-
 } tBTM_DEVCB;
 
 
@@ -1066,24 +1045,10 @@ extern void btm_sco_flush_sco_data(UINT16 sco_inx);
 **********************************************
 */
 extern void btm_dev_init (void);
-extern void btm_dev_absent (void);
 extern void btm_dev_timeout (TIMER_LIST_ENT *p_tle);
-extern void btm_reset_complete (void);
-extern void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_hci_buf_size_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_local_supported_cmds_complete (UINT8 *p);
-extern void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_local_addr_complete (UINT8 *p, UINT16 evt_len);
-extern  void btm_reset_ctrlr_complete (void);
-extern void btm_write_simple_paring_mode_complete (UINT8 *p);
-extern void btm_write_le_host_supported_complete (UINT8 *p);
 
 #if (BLE_INCLUDED == TRUE)
-extern void btm_read_ble_buf_size_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_ble_local_supported_features_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_add_2_white_list_complete(UINT8 status);
 extern void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_clear_white_list_complete(UINT8 *p, UINT16 evt_len);
@@ -1105,7 +1070,6 @@ extern void btm_report_device_status (tBTM_DEV_STATUS status);
 **********************************************
 */
 extern BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr);
-extern UINT8 btm_get_voice_coding_support (void);
 
 extern tBTM_SEC_DEV_REC  *btm_sec_alloc_dev (BD_ADDR bd_addr);
 extern void               btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec);

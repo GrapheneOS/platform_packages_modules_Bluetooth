@@ -23,7 +23,7 @@
 
 #include "btif_api.h"
 #include "btif_common.h"
-#include "bt_utils.h"
+#include "controller.h"
 #include "module.h"
 #include "osi.h"
 #include "semaphore.h"
@@ -154,6 +154,7 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   module_shut_down(get_module(BTIF_CONFIG_MODULE));
 
   future_await(hack_future);
+  module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
   ALOGD("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }

@@ -31,6 +31,7 @@
 #include "btm_int.h"
 #include "btm_ble_api.h"
 #include "btu.h"
+#include "controller.h"
 #include "hcimsgs.h"
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
@@ -254,7 +255,7 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 
     BTM_TRACE_EVENT ("BTM_BleUpdateAdvFilterPolicy");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return;
 
     if (p_cb->afp != adv_policy)
@@ -305,7 +306,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
 
     BTM_TRACE_EVENT ("BTM_BleObserve : scan_type:%d",btm_cb.btm_inq_vars.scan_type);
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     if (start)
@@ -379,7 +380,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
     UINT8 evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
 #ifdef  BTM_BLE_PC_ADV_TEST_MODE
@@ -695,7 +696,7 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
     BOOLEAN started = TRUE;
 
     BTM_TRACE_EVENT ("BTM_BleSetBgConnType ");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return FALSE;
 
     if (btm_cb.ble_ctr_cb.bg_conn_type != bg_conn_type)
@@ -804,7 +805,7 @@ tBTM_STATUS BTM_BleSetConnMode(BOOLEAN is_directed)
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT ("BTM_BleSetConnMode is_directed = %d ", is_directed);
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     p_cb->directed_conn = is_directed;
@@ -884,7 +885,7 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
 
     BTM_TRACE_EVENT ("BTM_BleSetAdvParams");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     if (!BTM_BLE_VALID_PRAM(adv_int_min, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX) ||
@@ -945,7 +946,7 @@ void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT ("BTM_BleReadAdvParams ");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return ;
 
     *adv_int_min = p_cb->adv_interval_min;
@@ -978,7 +979,7 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT (" BTM_BleSetScanParams");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return ;
 
     if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
@@ -1020,7 +1021,7 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     BTM_TRACE_EVENT (" BTM_BleWriteScanRsp");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     memset(rsp_data, 0, BTM_BLE_AD_DATA_LEN);
@@ -1060,7 +1061,7 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     BTM_TRACE_EVENT ("BTM_BleWriteAdvData ");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     memset(p_cb_data, 0, sizeof(tBTM_BLE_LOCAL_ADV_DATA));
@@ -1470,7 +1471,7 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
         flag &= ~BTM_BLE_BREDR_NOT_SPT;
 
     /* if local controller support, mark both controller and host support in flag */
-    if (HCI_SIMUL_LE_BREDR_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (controller_get_interface()->supports_simultaneous_le_bredr())
         flag |= (BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
     else
         flag &= ~(BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
@@ -1785,7 +1786,7 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, t
 {
     tBTM_INQUIRY_VAR_ST      *p_inq = &btm_cb.btm_inq_vars;
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ERR_PROCESSING;
 
     if (p_cur &&

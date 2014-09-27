@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "controller.h"
 #include "gki.h"
 #include "bt_types.h"
 #include "hcimsgs.h"
@@ -1054,9 +1055,11 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
         return;
     }
 
+    uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
+    uint16_t acl_packet_size = controller_get_interface()->get_acl_packet_size_classic();
     /* Don't return data if it does not fit in ACL and L2CAP MTU */
-    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > btu_cb.hcit_acl_pkt_size) ?
-               btu_cb.hcit_acl_data_size : (UINT16)GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID);
+    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > acl_packet_size) ?
+               acl_data_size : (UINT16)GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID);
     maxlen -= (UINT16)(BT_HDR_SIZE + HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD +
                 L2CAP_CMD_OVERHEAD + L2CAP_ECHO_RSP_LEN);
 
@@ -2233,7 +2236,7 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 
     if (transport == BT_TRANSPORT_LE)
     {
-        if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        if (!controller_get_interface()->supports_ble())
             return FALSE;
 
         p_lcb->ble_addr_type = addr_type;
@@ -3362,10 +3365,11 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
     {
         UINT16_TO_STREAM (p, p_ccb->p_lcb->handle | (L2CAP_PKT_START_NON_FLUSHABLE << L2CAP_PKT_TYPE_SHIFT));
 
+        uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_ble();
         /* The HCI transport will segment the buffers. */
-        if (p_buf->len > btu_cb.hcit_ble_acl_data_size)
+        if (p_buf->len > acl_data_size)
         {
-            UINT16_TO_STREAM (p, btu_cb.hcit_ble_acl_data_size);
+            UINT16_TO_STREAM (p, acl_data_size);
         }
         else
         {
@@ -3389,10 +3393,11 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
         UINT16_TO_STREAM (p, p_ccb->p_lcb->handle | (L2CAP_PKT_START << L2CAP_PKT_TYPE_SHIFT));
 #endif
 
+        uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
         /* The HCI transport will segment the buffers. */
-        if (p_buf->len > btu_cb.hcit_acl_data_size)
+        if (p_buf->len > acl_data_size)
         {
-            UINT16_TO_STREAM (p, btu_cb.hcit_acl_data_size);
+            UINT16_TO_STREAM (p, acl_data_size);
         }
         else
         {

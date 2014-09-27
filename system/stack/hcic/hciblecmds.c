@@ -35,68 +35,6 @@
 
 #if (defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE)
 
-BOOLEAN btsnd_hcic_ble_set_evt_mask (BT_EVENT_MASK event_mask)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_SET_EVENT_MASK)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_SET_EVENT_MASK;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_BLE_SET_EVENT_MASK);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_SET_EVENT_MASK);
-    ARRAY8_TO_STREAM (pp, event_mask);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-
-BOOLEAN btsnd_hcic_ble_read_buffer_size (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_BLE_READ_BUFFER_SIZE);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_ble_read_local_spt_feat (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_BLE_READ_LOCAL_SPT_FEAT);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_ble_set_local_used_feat (UINT8 feat_set[8])
 {
     BT_HDR *p;
@@ -386,26 +324,6 @@ BOOLEAN btsnd_hcic_ble_create_conn_cancel (void)
 
     UINT16_TO_STREAM (pp, HCI_BLE_CREATE_CONN_CANCEL);
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_BLE_CREATE_CONN_CANCEL);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_ble_read_white_list_size (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_BLE_READ_WHITE_LIST_SIZE);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
     return (TRUE);
@@ -707,26 +625,6 @@ BOOLEAN btsnd_hcic_ble_ltk_req_neg_reply (UINT16 handle)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_ble_read_supported_states (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_BLE_READ_SUPPORTED_STATES);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_ble_receiver_test(UINT8 rx_freq)
 {
     BT_HDR *p;
@@ -806,30 +704,8 @@ BOOLEAN btsnd_hcic_ble_read_host_supported (void)
     p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
     p->offset = 0;
 
-    UINT16_TO_STREAM (pp, HCI_READ_LE_HOST_SUPPORTED);
+    UINT16_TO_STREAM (pp, HCI_READ_LE_HOST_SUPPORT);
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_ble_write_host_supported (UINT8 le_host_spt, UINT8 simul_le_host_spt)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_WRITE_LE_HOST_SUPPORTED);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED);
-	UINT8_TO_STREAM  (pp, le_host_spt);
-	UINT8_TO_STREAM  (pp, simul_le_host_spt);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
     return (TRUE);

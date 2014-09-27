@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "l2cdefs.h"
@@ -82,10 +83,11 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
     /* First, the HCI transport header */
     UINT16_TO_STREAM (p, 0x0050 | (L2CAP_PKT_START << 12) | (2 << 14));
 
+    uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
     /* The HCI transport will segment the buffers. */
-    if (p_buf->len > btu_cb.hcit_acl_data_size)
+    if (p_buf->len > acl_data_size)
     {
-        UINT16_TO_STREAM (p, btu_cb.hcit_acl_data_size);
+        UINT16_TO_STREAM (p, acl_data_size);
     }
     else
     {
@@ -99,7 +101,7 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
 
     p_buf->len += HCI_DATA_PREAMBLE_SIZE;
 
-    if (p_buf->len <= btu_cb.hcit_acl_pkt_size)
+    if (p_buf->len <= controller_get_interface()->get_acl_packet_size_classic())
     {
         bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
     }

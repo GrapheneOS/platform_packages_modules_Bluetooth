@@ -2113,18 +2113,6 @@ extern UINT8 *BTM_ReadLocalFeatures (void);
 
 /*******************************************************************************
 **
-** Function         BTM_ReadLocalExtendedFeatures
-**
-** Description      This function is called to read the local extended features
-**
-** Returns          pointer to the local extended features mask or NULL if bad
-**                  page
-**
-*******************************************************************************/
-extern UINT8 *BTM_ReadLocalExtendedFeatures (UINT8 page_number);
-
-/*******************************************************************************
-**
 ** Function         BTM_RegisterForDeviceStatusNotif
 **
 ** Description      This function is called to register for device status

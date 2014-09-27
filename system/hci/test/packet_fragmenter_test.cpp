@@ -251,7 +251,7 @@ STUB_FUNCTION(void, transmit_finished_callback, (UNUSED_ATTR BT_HDR *packet, UNU
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(uint16_t, get_acl_size_classic, (void))
+STUB_FUNCTION(uint16_t, get_acl_data_size_classic, (void))
   DURING(no_fragmentation,
          non_acl_passthrough_fragmentation,
          no_reassembly) return 42;
@@ -262,7 +262,7 @@ STUB_FUNCTION(uint16_t, get_acl_size_classic, (void))
   return 0;
 }
 
-STUB_FUNCTION(uint16_t, get_acl_size_ble, (void))
+STUB_FUNCTION(uint16_t, get_acl_data_size_ble, (void))
   DURING(ble_no_fragmentation) return 42;
   DURING(ble_fragmentation) return 10;
 
@@ -274,8 +274,8 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(fragmented_callback);
   RESET_CALL_COUNT(reassembled_callback);
   RESET_CALL_COUNT(transmit_finished_callback);
-  RESET_CALL_COUNT(get_acl_size_classic);
-  RESET_CALL_COUNT(get_acl_size_ble);
+  RESET_CALL_COUNT(get_acl_data_size_classic);
+  RESET_CALL_COUNT(get_acl_data_size_ble);
   CURRENT_TEST_MODE = next;
 }
 
@@ -293,8 +293,8 @@ class PacketFragmenterTest : public AllocationTestHarness {
       callbacks.fragmented = fragmented_callback;
       callbacks.reassembled = reassembled_callback;
       callbacks.transmit_finished = transmit_finished_callback;
-      controller.get_acl_size_classic = get_acl_size_classic;
-      controller.get_acl_size_ble = get_acl_size_ble;
+      controller.get_acl_data_size_classic = get_acl_data_size_classic;
+      controller.get_acl_data_size_ble = get_acl_data_size_ble;
 
       reset_for(init);
       fragmenter->init(&callbacks);

@@ -23,7 +23,9 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "bt_types.h"
+#include "controller.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"
@@ -381,7 +383,7 @@ void BTM_SetPinType (UINT8 pin_type, PIN_CODE pin_code, UINT8 pin_code_len)
 
     /* If device is not up security mode will be set as a part of startup */
     if ( (btm_cb.cfg.pin_type != pin_type)
-         && (btm_cb.devcb.state > BTM_DEV_STATE_WAIT_AFTER_RESET) )
+         && controller_get_interface()->get_is_ready() )
     {
         btsnd_hcic_write_pin_type (pin_type);
     }
@@ -1154,7 +1156,7 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
 
 
     BTM_TRACE_DEBUG ("after update sec_flags=0x%x", p_dev_rec->sec_flags);
-    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (!controller_get_interface()->supports_simple_pairing())
     {
         /* The special case when we authenticate keyboard.  Set pin type to fixed */
         /* It would be probably better to do it from the application, but it is */
@@ -1197,7 +1199,7 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
     }
 
     BTM_TRACE_DEBUG ("sec mode: %d sm4:x%x", btm_cb.security_mode, p_dev_rec->sm4);
-    if (!HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0])
+    if (!controller_get_interface()->supports_simple_pairing()
         || (p_dev_rec->sm4 == BTM_SM4_KNOWN))
     {
         if ( btm_sec_check_prefetch_pin (p_dev_rec) )
@@ -1848,7 +1850,7 @@ UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
     {
         /* add mandatory part */
         UINT16_TO_STREAM(p, len);
-        BDADDR_TO_STREAM(p, btm_cb.devcb.local_addr);
+        BDADDR_TO_STREAM(p, controller_get_interface()->get_address()->address);
 
         len = BTM_OOB_MANDATORY_SIZE;
         max_len -= len;
@@ -2590,7 +2592,7 @@ void btm_sec_conn_req (UINT8 *bda, UINT8 *dc)
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (bda);
 
     /* Some device may request a connection before we are done with the HCI_Reset sequence */
-    if (btm_cb.devcb.state != BTM_DEV_STATE_READY)
+    if (!controller_get_interface()->get_is_ready())
     {
         BTM_TRACE_EVENT ("Security Manager: connect request when device not ready");
         btsnd_hcic_reject_conn (bda, HCI_ERR_HOST_REJECT_DEVICE);
@@ -2826,17 +2828,8 @@ void btm_sec_device_down (void)
 *******************************************************************************/
 void btm_sec_dev_reset (void)
 {
-    /* btm_sec_dev_reset() is only called from btm_decode_ext_features_page(...)
-     * right now. */
-    if (HCI_SIMPLE_PAIRING_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (controller_get_interface()->supports_simple_pairing())
     {
-#if BLE_INCLUDED == TRUE
-        btsnd_hcic_set_event_mask(LOCAL_BR_EDR_CONTROLLER_ID,
-                                  (UINT8 *)HCI_DUMO_EVENT_MASK_EXT);
-#else
-        btsnd_hcic_set_event_mask(LOCAL_BR_EDR_CONTROLLER_ID,
-                                  (UINT8 *)HCI_LISBON_EVENT_MASK_EXT);
-#endif
         /* set the default IO capabilities */
         btm_cb.devcb.loc_io_caps = BTM_LOCAL_IO_CAPS;
         /* add mx service to use no security */

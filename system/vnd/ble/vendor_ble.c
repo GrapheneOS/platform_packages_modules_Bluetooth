@@ -33,6 +33,7 @@
 #include "vendor_ble.h"
 #include "vendor_hcidefs.h"
 #include "gatt_int.h"
+#include "controller.h"
 
 /*** This needs to be moved to a VSC control block eventually per coding conventions ***/
 #if VENDOR_DYNAMIC_MEMORY == FALSE
@@ -688,7 +689,6 @@ tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
     return BTM_MODE_UNSUPPORTED;
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_ble_vendor_init
@@ -719,7 +719,7 @@ void btm_ble_vendor_init(UINT8 max_irk_list_sz)
 
     btm_ble_vendor_cb.irk_avail_size = max_irk_list_sz;
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return;
 #endif
 }

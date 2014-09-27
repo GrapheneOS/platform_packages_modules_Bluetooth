@@ -449,29 +449,11 @@ STUB_FUNCTION(void, command_status_callback, (UNUSED_ATTR uint8_t status, BT_HDR
   UNEXPECTED_CALL;
 }
 
-STUB_FUNCTION(void, controller_init, (const hci_t *hci_interface))
-  DURING(start_up_async) AT_CALL(0) {
-    EXPECT_EQ(hci, hci_interface);
-    return;
-  }
-
-  UNEXPECTED_CALL;
-}
-
-STUB_FUNCTION(void, controller_begin_acl_size_fetch, (fetch_finished_cb callback))
-  DURING(postload) AT_CALL(0) {
-    callback();
-    return;
-  }
-
-  UNEXPECTED_CALL;
-}
-
-STUB_FUNCTION(uint16_t, controller_get_acl_size_classic, (void))
+STUB_FUNCTION(uint16_t, controller_get_acl_data_size_classic, (void))
   return 2048;
 }
 
-STUB_FUNCTION(uint16_t, controller_get_acl_size_ble, (void))
+STUB_FUNCTION(uint16_t, controller_get_acl_data_size_ble, (void))
   return 2048;
 }
 
@@ -496,10 +478,8 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(low_power_transmit_done);
   RESET_CALL_COUNT(command_complete_callback);
   RESET_CALL_COUNT(command_status_callback);
-  RESET_CALL_COUNT(controller_init);
-  RESET_CALL_COUNT(controller_begin_acl_size_fetch);
-  RESET_CALL_COUNT(controller_get_acl_size_classic);
-  RESET_CALL_COUNT(controller_get_acl_size_ble);
+  RESET_CALL_COUNT(controller_get_acl_data_size_classic);
+  RESET_CALL_COUNT(controller_get_acl_data_size_ble);
   CURRENT_TEST_MODE = next;
 }
 
@@ -512,7 +492,6 @@ class HciLayerTest : public AlarmTestHarness {
         &allocator_malloc,
         &hal,
         &btsnoop,
-        &controller,
         &hci_inject,
         packet_fragmenter_get_test_interface(&controller, &allocator_malloc),
         &vendor,
@@ -544,10 +523,8 @@ class HciLayerTest : public AlarmTestHarness {
       low_power_manager.cleanup = low_power_cleanup;
       low_power_manager.wake_assert = low_power_wake_assert;
       low_power_manager.transmit_done = low_power_transmit_done;
-      controller.init = controller_init;
-      controller.begin_acl_size_fetch = controller_begin_acl_size_fetch;
-      controller.get_acl_size_classic = controller_get_acl_size_classic;
-      controller.get_acl_size_ble = controller_get_acl_size_ble;
+      controller.get_acl_data_size_classic = controller_get_acl_data_size_classic;
+      controller.get_acl_data_size_ble = controller_get_acl_data_size_ble;
 
       done = semaphore_new(0);
 
@@ -558,7 +535,6 @@ class HciLayerTest : public AlarmTestHarness {
       EXPECT_CALL_COUNT(hal_init, 1);
       EXPECT_CALL_COUNT(low_power_init, 1);
       EXPECT_CALL_COUNT(vendor_set_callback, 3);
-      EXPECT_CALL_COUNT(controller_init, 1);
       EXPECT_CALL_COUNT(hal_open, 1);
       EXPECT_CALL_COUNT(vendor_send_async_command, 1);
     }
@@ -591,7 +567,6 @@ TEST_F(HciLayerTest, test_postload) {
 
   flush_thread(internal_thread);
   EXPECT_CALL_COUNT(vendor_send_async_command, 1);
-  EXPECT_CALL_COUNT(controller_begin_acl_size_fetch, 1);
 }
 
 TEST_F(HciLayerTest, test_transmit_simple) {

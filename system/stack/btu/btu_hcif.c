@@ -25,6 +25,7 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -899,10 +900,6 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
 {
     switch (opcode)
     {
-        case HCI_RESET:
-            btm_reset_complete ();  /* BR/EDR */
-            break;
-
         case HCI_INQUIRY_CANCEL:
             /* Tell inquiry processing that we are done */
             btm_process_cancel_complete(HCI_SUCCESS, BTM_BR_INQUIRY_MASK);
@@ -923,36 +920,12 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_delete_stored_link_key_complete (p);
             break;
 
-        case HCI_READ_LOCAL_VERSION_INFO:
-            btm_read_local_version_complete (p, evt_len);
-            break;
-
         case HCI_READ_POLICY_SETTINGS:
             btm_read_link_policy_complete (p);
             break;
 
-        case HCI_READ_BUFFER_SIZE:
-            btm_read_hci_buf_size_complete (p, evt_len);
-            break;
-
-        case HCI_READ_LOCAL_SUPPORTED_CMDS:
-            btm_read_local_supported_cmds_complete (p);
-            break;
-
-        case HCI_READ_LOCAL_FEATURES:
-            btm_read_local_features_complete (p, evt_len);
-            break;
-
-        case HCI_READ_LOCAL_EXT_FEATURES:
-            btm_read_local_ext_features_complete (p, evt_len);
-            break;
-
         case HCI_READ_LOCAL_NAME:
             btm_read_local_name_complete (p, evt_len);
-            break;
-
-        case HCI_READ_BD_ADDR:
-            btm_read_local_addr_complete (p, evt_len);
             break;
 
         case HCI_GET_LINK_QUALITY:
@@ -982,20 +955,8 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_read_linq_tx_power_complete (p);
             break;
 
-        case HCI_WRITE_SIMPLE_PAIRING_MODE:
-            btm_write_simple_paring_mode_complete (p);
-            break;
-
-        case HCI_WRITE_LE_HOST_SUPPORTED:
-            btm_write_le_host_supported_complete (p);
-            break;
-
 #if (BLE_INCLUDED == TRUE)
 /* BLE Commands sComplete*/
-        case HCI_BLE_READ_WHITE_LIST_SIZE :
-            btm_read_white_list_size_complete(p, evt_len);
-            break;
-
         case HCI_BLE_ADD_WHITE_LIST:
             btm_ble_add_2_white_list_complete(*p);
             break;
@@ -1013,24 +974,12 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_ble_rand_enc_complete (p, opcode, (tBTM_RAND_ENC_CB *)p_cplt_cback);
             break;
 
-        case HCI_BLE_READ_BUFFER_SIZE:
-            btm_read_ble_buf_size_complete(p, evt_len);
-            break;
-
-        case HCI_BLE_READ_LOCAL_SPT_FEAT:
-            btm_read_ble_local_supported_features_complete(p, evt_len);
-            break;
-
         case HCI_BLE_READ_ADV_CHNL_TX_POWER:
             btm_read_tx_power_complete(p, TRUE);
             break;
 
         case HCI_BLE_WRITE_ADV_ENABLE:
             btm_ble_write_adv_enable_complete(p);
-            break;
-
-        case HCI_BLE_READ_SUPPORTED_STATES:
-            btm_read_ble_local_supported_states_complete(p, evt_len);
             break;
 
         case HCI_BLE_CREATE_LL_CONN:

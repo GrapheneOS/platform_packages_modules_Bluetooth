@@ -30,6 +30,7 @@
 
 #include "bt_types.h"
 #include "bt_target.h"
+#include "controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "btu.h"
@@ -326,7 +327,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                     &p->active_remote_addr_type);
 #endif
 
-                if (HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features)
+                if (HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(controller_get_interface()->get_features_ble()->as_array)
                     || link_role == HCI_ROLE_MASTER)
                 {
                     btsnd_hcic_ble_read_remote_feat(p->hci_handle);
@@ -648,7 +649,7 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
                     remote_bd_addr[3], remote_bd_addr[4], remote_bd_addr[5]);
 
     /* Make sure the local device supports switching */
-    if (!(HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0])))
+    if (!controller_get_interface()->supports_master_slave_role_switch())
         return(BTM_MODE_UNSUPPORTED);
 
     if (btm_cb.devcb.p_switch_role_cb && p_cb)
@@ -1487,7 +1488,7 @@ void btm_read_remote_features_complete (UINT8 *p)
                     HCI_FEATURE_BYTES_PER_PAGE);
 
     if ((HCI_LMP_EXTENDED_SUPPORTED(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) &&
-        (HCI_READ_REMOTE_EXT_FEATURES_SUPPORTED(btm_cb.devcb.supported_cmds)))
+        (controller_get_interface()->supports_reading_remote_extended_features()))
     {
         /* if the remote controller has extended features and local controller supports
         ** HCI_Read_Remote_Extended_Features command then start reading these feature starting
@@ -2561,7 +2562,7 @@ UINT16 btm_get_max_packet_size (BD_ADDR addr)
     else
     {
         /* Special case for when info for the local device is requested */
-        if (memcmp (btm_cb.devcb.local_addr, addr, BD_ADDR_LEN) == 0)
+        if (memcmp (controller_get_interface()->get_address(), addr, BD_ADDR_LEN) == 0)
         {
             pkt_types = btm_cb.btm_acl_pkt_types_supported;
         }

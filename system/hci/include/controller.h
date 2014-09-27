@@ -18,32 +18,56 @@
 
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
-#include "allocator.h"
+#include "bdaddr.h"
+#include "device_features.h"
 #include "hci_layer.h"
 #include "hci_packet_factory.h"
 #include "hci_packet_parser.h"
 
-typedef void (*fetch_finished_cb)(void);
-
 typedef struct controller_t {
-  // Initialize the controller module. Does no work; no clean up required.
-  void (*init)(const hci_t *hci_interface);
+  bool (*get_is_ready)(void);
 
-  // Starts the acl buffer size fetch sequence. |callback| is called when
-  // the process is complete.
-  void (*begin_acl_size_fetch)(fetch_finished_cb callback);
+  const bt_bdaddr_t *(*get_address)(void);
+  const bt_version_t *(*get_bt_version)(void);
 
-  // Get the cached classic acl size for the controller.
-  uint16_t (*get_acl_size_classic)(void);
-  // Get the cached ble acl size of the controller.
-  uint16_t (*get_acl_size_ble)(void);
+  const bt_device_features_t *(*get_features_classic)(int index);
+  uint8_t (*get_last_features_classic_index)(void);
+
+  const bt_device_features_t *(*get_features_ble)(void);
+
+  bool (*supports_simple_pairing)(void);
+  bool (*supports_simultaneous_le_bredr)(void);
+  bool (*supports_reading_remote_extended_features)(void);
+  bool (*supports_interlaced_inquiry_scan)(void);
+  bool (*supports_rssi_with_inquiry_results)(void);
+  bool (*supports_extended_inquiry_response)(void);
+  bool (*supports_master_slave_role_switch)(void);
+
+  bool (*supports_ble)(void);
+  bool (*supports_ble_connection_parameters_request)(void);
+
+  // Get the cached acl data sizes for the controller.
+  uint16_t (*get_acl_data_size_classic)(void);
+  uint16_t (*get_acl_data_size_ble)(void);
+
+  // Get the cached acl packet sizes for the controller.
+  // This is a convenience function for the respective
+  // acl data size + size of the acl header.
+  uint16_t (*get_acl_packet_size_classic)(void);
+  uint16_t (*get_acl_packet_size_ble)(void);
+
+  // Get the number of acl packets the controller can buffer.
+  uint16_t (*get_acl_buffer_count_classic)(void);
+  uint8_t (*get_acl_buffer_count_ble)(void);
 } controller_t;
 
+#define CONTROLLER_MODULE "controller_module"
 const controller_t *controller_get_interface();
 
 const controller_t *controller_get_test_interface(
-    const allocator_t *buffer_allocator_interface,
+    const hci_t *hci_interface,
     const hci_packet_factory_t *packet_factory_interface,
     const hci_packet_parser_t *packet_parser_interface);

@@ -28,6 +28,7 @@
 #include <stddef.h>
 
 #include "bt_types.h"
+#include "controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "btu.h"
@@ -362,7 +363,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
         return(FALSE);
 #endif
     p_dev_rec = btm_find_dev (bd_addr);
-    if (p_dev_rec && HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (p_dev_rec && controller_get_interface()->supports_master_slave_role_switch())
     {
         if (HCI_SWITCH_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
         {

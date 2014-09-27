@@ -1065,27 +1065,6 @@ BOOLEAN btsnd_hcic_flow_specification(UINT16 handle, UINT8 flags, UINT8 flow_dir
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_set_event_mask(UINT8 local_controller_id, BT_EVENT_MASK event_mask)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_SET_EVENT_MASK)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_SET_EVENT_MASK;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_SET_EVENT_MASK);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_SET_EVENT_MASK);
-    ARRAY8_TO_STREAM (pp, event_mask);
-
-    btu_hcif_send_cmd (local_controller_id,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_set_event_mask_page_2 (UINT8 local_controller_id, BT_EVENT_MASK event_mask)
 {
     BT_HDR *p;
@@ -1104,34 +1083,6 @@ BOOLEAN btsnd_hcic_set_event_mask_page_2 (UINT8 local_controller_id, BT_EVENT_MA
     ARRAY8_TO_STREAM (pp, event_mask);
 
     btu_hcif_send_cmd (local_controller_id,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_reset (UINT8 local_controller_id)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_RESET)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_RESET;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_RESET);
-    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_RESET);
-
-    btu_hcif_send_cmd (local_controller_id,  p);
-/* If calling from LMP_TEST or ScriptEngine, then send HCI command immediately */
-#if (!defined (LMP_TEST) && !defined(BTISE))
-    if (local_controller_id == LOCAL_BR_EDR_CONTROLLER_ID)
-    {
-        btm_acl_reset_paging ();
-        btm_acl_set_discing (FALSE);
-    }
-#endif
     return (TRUE);
 }
 
@@ -1997,32 +1948,6 @@ BOOLEAN btsnd_hcic_set_host_flow_ctrl (UINT8 value)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_set_host_buf_size (UINT16 acl_len, UINT8 sco_len,
-                                      UINT16 acl_num, UINT16 sco_num)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_SET_HOST_BUF_SIZE)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_SET_HOST_BUF_SIZE;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_HOST_BUFFER_SIZE);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_SET_HOST_BUF_SIZE);
-
-    UINT16_TO_STREAM (pp, acl_len);
-    UINT8_TO_STREAM  (pp, sco_len);
-    UINT16_TO_STREAM (pp, acl_num);
-    UINT16_TO_STREAM (pp, sco_num);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_host_num_xmitted_pkts (UINT8 num_handles, UINT16 *handle,
                                           UINT16 *num_pkts)
 {
@@ -2318,29 +2243,6 @@ void btsnd_hcic_write_ext_inquiry_response (void *buffer, UINT8 fec_req)
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 }
 #endif  /* BTM_EIR_SERVER_INCLUDED == TRUE */
-
-/**** Simple Pairing Commands ****/
-BOOLEAN btsnd_hcic_write_simple_pairing_mode (UINT8 mode)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_W_SIMP_PAIR)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_W_SIMP_PAIR;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_WRITE_SIMPLE_PAIRING_MODE);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_W_SIMP_PAIR);
-
-    UINT8_TO_STREAM (pp, mode);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
 
 BOOLEAN btsnd_hcic_read_simple_pairing_mode (void)
 {
@@ -2737,108 +2639,6 @@ BOOLEAN btsnd_hcic_refresh_encryption_key (UINT16 handle)
 ** End of Lisbon Commands
 **************************/
 
-BOOLEAN btsnd_hcic_read_local_ver (UINT8 local_controller_id)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_LOCAL_VERSION_INFO);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (local_controller_id,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_read_local_supported_cmds (UINT8 local_controller_id)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_LOCAL_SUPPORTED_CMDS);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (local_controller_id,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_read_local_features (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_LOCAL_FEATURES);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_read_local_ext_features (UINT8 page_num)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_LOCAL_EXT_FEATURES)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_LOCAL_EXT_FEATURES;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_LOCAL_EXT_FEATURES);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_LOCAL_EXT_FEATURES);
-
-    UINT8_TO_STREAM (pp, page_num);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_read_buffer_size (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_BUFFER_SIZE);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_read_country_code (void)
 {
     BT_HDR *p;
@@ -2853,26 +2653,6 @@ BOOLEAN btsnd_hcic_read_country_code (void)
     p->offset = 0;
 
     UINT16_TO_STREAM (pp, HCI_READ_COUNTRY_CODE);
-    UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_read_bd_addr (void)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_CMD)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_CMD;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_BD_ADDR);
     UINT8_TO_STREAM  (pp,  HCIC_PARAM_SIZE_READ_CMD);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);

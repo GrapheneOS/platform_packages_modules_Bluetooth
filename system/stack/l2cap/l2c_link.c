@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "controller.h"
 #include "gki.h"
 #include "bt_types.h"
 #include "bt_utils.h"
@@ -1257,11 +1258,12 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 {
     UINT16      num_segs;
     UINT16      xmit_window, acl_data_size;
+    const controller_t *controller = controller_get_interface();
 
-    if ((p_buf->len <= btu_cb.hcit_acl_pkt_size
+    if ((p_buf->len <= controller->get_acl_packet_size_classic()
 #if (BLE_INCLUDED == TRUE)
         && (p_lcb->transport == BT_TRANSPORT_BR_EDR)) ||
-        ((p_lcb->transport == BT_TRANSPORT_LE) && (p_buf->len <= btu_cb.hcit_ble_acl_pkt_size))
+        ((p_lcb->transport == BT_TRANSPORT_LE) && (p_buf->len <= controller->get_acl_packet_size_ble()))
 #else
         )
 #endif
@@ -1297,14 +1299,14 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
 #if BLE_INCLUDED == TRUE
         if (p_lcb->transport == BT_TRANSPORT_LE)
         {
-            acl_data_size = btu_cb.hcit_ble_acl_data_size;
+            acl_data_size = controller->get_acl_data_size_ble();
             xmit_window = l2cb.controller_le_xmit_window;
 
         }
         else
 #endif
         {
-            acl_data_size = btu_cb.hcit_acl_data_size;
+            acl_data_size = controller->get_acl_data_size_classic();
             xmit_window = l2cb.controller_xmit_window;
         }
         num_segs = (p_buf->len - HCI_DATA_PREAMBLE_SIZE + acl_data_size - 1) / acl_data_size;

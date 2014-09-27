@@ -236,16 +236,6 @@ typedef struct
 
     TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
 
-    UINT16    hcit_acl_data_size;           /* Max ACL data size across HCI transport    */
-    UINT16    hcit_acl_pkt_size;            /* Max ACL packet size across HCI transport  */
-                                            /* (this is data size plus 4 bytes overhead) */
-
-#if BLE_INCLUDED == TRUE
-    UINT16    hcit_ble_acl_data_size;           /* Max BLE ACL data size across HCI transport    */
-    UINT16    hcit_ble_acl_pkt_size;            /* Max BLE ACL packet size across HCI transport  */
-                                            /* (this is data size plus 4 bytes overhead) */
-#endif
-
     BOOLEAN     reset_complete;             /* TRUE after first ack from device received */
     UINT8       trace_level;                /* Trace level for HCI layer */
 } tBTU_CB;

@@ -28,6 +28,7 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 #include "vendor_ble.h"
+#include "controller.h"
 
 #define BTM_BLE_ADV_FILT_META_HDR_LENGTH 3
 #define BTM_BLE_ADV_FILT_FEAT_SELN_LEN 13
@@ -1302,7 +1303,7 @@ void btm_ble_adv_filter_init(void)
             (tBTM_BLE_PF_COUNT*) GKI_getbuf( sizeof(tBTM_BLE_PF_COUNT) * cmn_ble_vsc_cb.max_filter);
     }
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return;
 }
 

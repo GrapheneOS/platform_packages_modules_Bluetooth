@@ -30,6 +30,7 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
+#include "controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
@@ -416,7 +417,7 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
-    if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features))
+    if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(controller_get_interface()->get_features_ble()->as_array))
     {
         p_lcb->link_state = LST_CONNECTED;
         l2cu_process_fixed_chnl_resp (p_lcb);
@@ -488,7 +489,7 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
             /* if both side 4.1, or we are master device, send HCI command */
             if (p_lcb->link_role == HCI_ROLE_MASTER
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
-                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(btm_cb.devcb.local_le_features) &&
+                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(controller_get_interface()->get_features_ble()->as_array) &&
                     HCI_LE_CONN_PARAM_REQ_SUPPORTED(p_acl_cb->peer_le_features))
 #endif
                  )
@@ -513,7 +514,7 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
              /* if both side 4.1, or we are master device, send HCI command */
             if (p_lcb->link_role == HCI_ROLE_MASTER
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
-                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(btm_cb.devcb.local_le_features) &&
+                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(controller_get_interface()->get_features_ble()->as_array) &&
                     HCI_LE_CONN_PARAM_REQ_SUPPORTED(p_acl_cb->peer_le_features))
 #endif
                  )

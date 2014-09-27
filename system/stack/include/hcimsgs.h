@@ -611,13 +611,6 @@ extern BOOLEAN btsnd_hcic_refresh_encryption_key(UINT16 handle);       /* Refres
 
 /**** end of Simple Pairing Commands ****/
 
-
-extern BOOLEAN btsnd_hcic_set_event_mask(UINT8 local_controller_id, BT_EVENT_MASK evt_mask);
-
-#define HCIC_PARAM_SIZE_SET_EVENT_MASK  8
-#define HCI_EVENT_MASK_MASK_OFF         0
-                                                                    /* Set Event Mask */
-
                                                                     /* Reset */
 extern BOOLEAN btsnd_hcic_set_event_mask_page_2 (UINT8 local_controller_id,
                                                  BT_EVENT_MASK event_mask);
@@ -625,12 +618,6 @@ extern BOOLEAN btsnd_hcic_set_event_mask_page_2 (UINT8 local_controller_id,
 #define HCIC_PARAM_SIZE_SET_EVENT_MASK_PAGE_2   8
 #define HCI_EVENT_MASK_MASK_OFF                 0
                                                                     /* Set Event Mask Page 2 */
-
-                                                                    /* Reset */
-extern BOOLEAN btsnd_hcic_reset(UINT8 local_controller_id);
-
-#define HCIC_PARAM_SIZE_RESET           0
-                                                                    /* Reset */
 
                                                                     /* Store Current Settings */
 #define MAX_FILT_COND   (sizeof (BD_ADDR) + 1)
@@ -877,7 +864,6 @@ extern BOOLEAN btsnd_hcic_write_page_scan_mode (UINT8 mode);           /* Write 
 extern BOOLEAN btsnd_hcic_read_local_ver (UINT8 local_controller_id);         /* Read Local Version Info */
 extern BOOLEAN btsnd_hcic_read_local_supported_cmds (UINT8 local_controller_id); /* Read Local Supported Commands */
 extern BOOLEAN btsnd_hcic_read_local_features (void);                  /* Read Local Supported Features */
-extern BOOLEAN btsnd_hcic_read_buffer_size (void);                     /* Read Local buffer sizes */
 extern BOOLEAN btsnd_hcic_read_country_code (void);                    /* Read Country Code */
 extern BOOLEAN btsnd_hcic_read_bd_addr (void);                         /* Read Local BD_ADDR */
 extern BOOLEAN btsnd_hcic_read_fail_contact_count (UINT8 local_controller_id, UINT16 handle); /* Read Failed Contact Counter */

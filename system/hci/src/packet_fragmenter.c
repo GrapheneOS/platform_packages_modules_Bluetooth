@@ -75,8 +75,8 @@ static void fragment_and_dispatch(BT_HDR *packet) {
 
   uint16_t max_data_size =
     SUB_EVENT(packet->event) == LOCAL_BR_EDR_CONTROLLER_ID ?
-      controller->get_acl_size_classic() :
-      controller->get_acl_size_ble();
+      controller->get_acl_data_size_classic() :
+      controller->get_acl_data_size_ble();
 
   uint16_t max_packet_size = max_data_size + HCI_ACL_PREAMBLE_SIZE;
   uint16_t remaining_length = packet->len;

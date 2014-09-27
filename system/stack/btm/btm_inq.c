@@ -31,6 +31,7 @@
 #include <stddef.h>
 
 #include "bt_types.h"
+#include "controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "btu.h"
@@ -185,7 +186,7 @@ tBTM_STATUS BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window, UINT16 inter
 
     BTM_TRACE_API ("BTM_SetDiscoverability");
 #if (BLE_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
-    if (HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (controller_get_interface()->supports_ble())
     {
         if (btm_ble_set_discoverability((UINT16)(inq_mode))
                             == BTM_SUCCESS)
@@ -202,7 +203,7 @@ tBTM_STATUS BTM_SetDiscoverability (UINT16 inq_mode, UINT16 window, UINT16 inter
         return (BTM_ILLEGAL_VALUE);
 
     /* Make sure the controller is active */
-    if (btm_cb.devcb.state < BTM_DEV_STATE_READY)
+    if (!controller_get_interface()->get_is_ready())
         return (BTM_DEV_RESET);
 
     /* If the window and/or interval is '0', set to default values */
@@ -316,7 +317,7 @@ tBTM_STATUS BTM_SetInquiryScanType (UINT16 scan_type)
         return (BTM_ILLEGAL_VALUE);
 
     /* whatever app wants if device is not 1.2 scan type should be STANDARD */
-    if (!HCI_LMP_INTERLACED_INQ_SCAN_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (!controller_get_interface()->supports_interlaced_inquiry_scan())
      return (BTM_MODE_UNSUPPORTED);
 
     /* Check for scan type if configuration has been changed */
@@ -353,7 +354,7 @@ tBTM_STATUS BTM_SetPageScanType (UINT16 scan_type)
         return (BTM_ILLEGAL_VALUE);
 
     /* whatever app wants if device is not 1.2 scan type should be STANDARD */
-    if (!HCI_LMP_INTERLACED_PAGE_SCAN_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (!controller_get_interface()->supports_interlaced_inquiry_scan())
      return (BTM_MODE_UNSUPPORTED);
 
     /* Check for scan type if configuration has been changed */
@@ -389,6 +390,7 @@ tBTM_STATUS BTM_SetPageScanType (UINT16 scan_type)
 *******************************************************************************/
 tBTM_STATUS BTM_SetInquiryMode (UINT8 mode)
 {
+    const controller_t *controller = controller_get_interface();
     BTM_TRACE_API ("BTM_SetInquiryMode");
     if (mode == BTM_INQ_RESULT_STANDARD)
     {
@@ -396,13 +398,13 @@ tBTM_STATUS BTM_SetInquiryMode (UINT8 mode)
     }
     else if (mode == BTM_INQ_RESULT_WITH_RSSI)
     {
-    if (!HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-        return (BTM_MODE_UNSUPPORTED);
+        if (!controller->supports_rssi_with_inquiry_results())
+            return (BTM_MODE_UNSUPPORTED);
     }
 #if (( BTM_EIR_CLIENT_INCLUDED == TRUE )||( BTM_EIR_SERVER_INCLUDED == TRUE ))
     else if (mode == BTM_INQ_RESULT_EXTENDED)
     {
-        if (!HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+        if (!controller->supports_extended_inquiry_response())
             return (BTM_MODE_UNSUPPORTED);
     }
 #endif
@@ -622,7 +624,7 @@ tBTM_STATUS BTM_SetConnectability (UINT16 page_mode, UINT16 window, UINT16 inter
     BTM_TRACE_API ("BTM_SetConnectability");
 
 #if (BLE_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
-    if (HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (controller_get_interface()->supports_ble())
     {
         if (btm_ble_set_connectability(page_mode) != BTM_SUCCESS)
         {
@@ -639,7 +641,7 @@ tBTM_STATUS BTM_SetConnectability (UINT16 page_mode, UINT16 window, UINT16 inter
         return (BTM_ILLEGAL_VALUE);
 
     /* Make sure the controller is active */
-    if (btm_cb.devcb.state < BTM_DEV_STATE_READY)
+    if (!controller_get_interface()->get_is_ready())
         return (BTM_DEV_RESET);
 
     /* If the window and/or interval is '0', set to default values */
@@ -946,7 +948,7 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
         BTM_TRACE_API("BTM:Starting LE Scan with duration %d and activeMode:0x%02x",
                        p_inqparms->duration, (p_inqparms->mode & BTM_BLE_INQUIRY_MASK));
 #endif
-        if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        if (!controller_get_interface()->supports_ble())
         {
             p_inq->inqparms.mode &= ~ BTM_BLE_INQUIRY_MASK;
             status = BTM_ILLEGAL_VALUE;
@@ -2335,7 +2337,7 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
             btm_clr_inq_result_flt();
 
             if((p_inq->inq_cmpl_info.status == BTM_SUCCESS) &&
-                HCI_LMP_INQ_RSSI_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+                controller_get_interface()->supports_rssi_with_inquiry_results())
             {
                 btm_sort_inq_result();
             }
@@ -2648,7 +2650,7 @@ void btm_read_linq_tx_power_complete(UINT8 *p)
 tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
 {
 #if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    if (HCI_EXT_INQ_RSP_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (controller_get_interface()->supports_extended_inquiry_response())
     {
         BTM_TRACE_API("Write Extended Inquiry Response to controller");
         btsnd_hcic_write_ext_inquiry_response (p_buff, BTM_EIR_DEFAULT_FEC_REQUIRED);

@@ -24,8 +24,9 @@
 
 #include "buffer_allocator.h"
 #include "btsnoop.h"
-#include "controller.h"
 #include "fixed_queue.h"
+#include "future.h"
+#include "hcidefs.h"
 #include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_internals.h"
@@ -43,9 +44,6 @@
 // TODO(zachoverflow): remove this hack extern
 #include <hardware/bluetooth.h>
 bt_bdaddr_t btif_local_bd_addr;
-
-#define HCI_COMMAND_COMPLETE_EVT    0x0E
-#define HCI_COMMAND_STATUS_EVT      0x0F
 
 #define INBOUND_PACKET_TYPE_COUNT 3
 #define PACKET_TYPE_TO_INBOUND_INDEX(type) ((type) - 2)
@@ -108,7 +106,6 @@ static hci_t interface;
 // Modules we import and callbacks we export
 static const allocator_t *buffer_allocator;
 static const btsnoop_t *btsnoop;
-static const controller_t *controller;
 static const hci_hal_t *hal;
 static const hci_hal_callbacks_t hal_callbacks;
 static const hci_inject_t *hci_inject;
@@ -225,7 +222,6 @@ static future_t *start_up(void) {
 
   memset(incoming_packets, 0, sizeof(incoming_packets));
 
-  controller->init(&interface);
   packet_fragmenter->init(&packet_fragmenter_callbacks);
 
   fixed_queue_register_dequeue(command_queue, thread_get_reactor(thread), event_command_ready, NULL);
@@ -416,15 +412,12 @@ static void event_postload(UNUSED_ATTR void *context) {
     // If couldn't configure sco, we won't get the sco configuration callback
     // so go pretend to do it now
     sco_config_callback(false);
+
   }
 }
 
-static void on_controller_acl_size_fetch_finished(void) {
-  ALOGI("%s postload finished.", __func__);
-}
-
 static void sco_config_callback(UNUSED_ATTR bool success) {
-  controller->begin_acl_size_fetch(on_controller_acl_size_fetch_finished);
+  ALOGI("%s postload finished.", __func__);
 }
 
 // Epilog functions
@@ -741,7 +734,6 @@ const hci_t *hci_layer_get_interface() {
   buffer_allocator = buffer_allocator_get_interface();
   hal = hci_hal_get_interface();
   btsnoop = btsnoop_get_interface();
-  controller = controller_get_interface();
   hci_inject = hci_inject_get_interface();
   packet_fragmenter = packet_fragmenter_get_interface();
   vendor = vendor_get_interface();
@@ -755,7 +747,6 @@ const hci_t *hci_layer_get_test_interface(
     const allocator_t *buffer_allocator_interface,
     const hci_hal_t *hal_interface,
     const btsnoop_t *btsnoop_interface,
-    const controller_t *controller_interface,
     const hci_inject_t *hci_inject_interface,
     const packet_fragmenter_t *packet_fragmenter_interface,
     const vendor_t *vendor_interface,
@@ -764,7 +755,6 @@ const hci_t *hci_layer_get_test_interface(
   buffer_allocator = buffer_allocator_interface;
   hal = hal_interface;
   btsnoop = btsnoop_interface;
-  controller = controller_interface;
   hci_inject = hci_inject_interface;
   packet_fragmenter = packet_fragmenter_interface;
   vendor = vendor_interface;

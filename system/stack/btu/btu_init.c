@@ -26,6 +26,7 @@
 #include "dyn_mem.h"
 
 #include "alarm.h"
+#include "controller.h"
 #include "fixed_queue.h"
 #include "hash_functions.h"
 #include "hash_map.h"
@@ -143,10 +144,6 @@ void btu_free_core(void)
 void BTU_StartUp(void)
 {
     memset (&btu_cb, 0, sizeof (tBTU_CB));
-    btu_cb.hcit_acl_pkt_size = BTU_DEFAULT_DATA_SIZE + HCI_DATA_PREAMBLE_SIZE;
-#if (BLE_INCLUDED == TRUE)
-    btu_cb.hcit_ble_acl_pkt_size = BTU_DEFAULT_BLE_DATA_SIZE + HCI_DATA_PREAMBLE_SIZE;
-#endif
     btu_cb.trace_level = HCI_INITIAL_TRACE_LEVEL;
 
     btu_bta_msg_queue = fixed_queue_new(SIZE_MAX);
@@ -246,7 +243,7 @@ void BTU_ShutDown(void) {
 ******************************************************************************/
 UINT16 BTU_AclPktSize(void)
 {
-    return btu_cb.hcit_acl_pkt_size;
+    return controller_get_interface()->get_acl_packet_size_classic();
 }
 /*****************************************************************************
 **
@@ -260,7 +257,7 @@ UINT16 BTU_AclPktSize(void)
 UINT16 BTU_BleAclPktSize(void)
 {
 #if BLE_INCLUDED == TRUE
-    return btu_cb.hcit_ble_acl_pkt_size;
+    return controller_get_interface()->get_acl_packet_size_ble();
 #else
     return 0;
 #endif

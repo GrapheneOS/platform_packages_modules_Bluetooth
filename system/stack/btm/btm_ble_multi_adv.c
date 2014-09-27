@@ -17,7 +17,9 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "bt_target.h"
+#include "controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "bt_types.h"
@@ -260,7 +262,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
 #endif
     {
         UINT8_TO_STREAM  (pp, BLE_ADDR_PUBLIC);
-        BDADDR_TO_STREAM (pp, btm_cb.devcb.local_addr);
+        BDADDR_TO_STREAM (pp, controller_get_interface()->get_address()->address);
     }
 
     BTM_TRACE_EVENT (" btm_ble_multi_adv_set_params,Min %d, Max %d,adv_type %d",
