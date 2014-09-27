@@ -462,6 +462,10 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
   fixed_queue_unregister_dequeue(btu_oneshot_alarm_queue);
   fixed_queue_unregister_dequeue(btu_l2cap_alarm_queue);
 
+#if ( BT_USE_TRACES==TRUE )
+  module_clean_up(get_module(BTE_LOGMSG_MODULE));
+#endif
+
   bta_sys_free();
   btu_free_core();
 }
