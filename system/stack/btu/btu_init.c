@@ -216,8 +216,7 @@ void BTU_ShutDown(void) {
       GKI_freebuf(GKI_dequeue(&btu_cb.hci_cmd_cb[i].cmd_cmpl_q));
   }
 
-  fixed_queue_unregister_dequeue(btu_l2cap_alarm_queue);
-  fixed_queue_unregister_dequeue(btu_general_alarm_queue);
+  btu_task_shut_down(NULL);
 
   fixed_queue_free(btu_bta_msg_queue, NULL);
 

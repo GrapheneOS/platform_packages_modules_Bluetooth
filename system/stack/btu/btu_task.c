@@ -459,9 +459,13 @@ void btu_task_start_up(UNUSED_ATTR void *context) {
 }
 
 void btu_task_shut_down(UNUSED_ATTR void *context) {
-#if (defined(BTU_BTA_INCLUDED) && BTU_BTA_INCLUDED == TRUE)
+  fixed_queue_unregister_dequeue(btu_bta_msg_queue);
+  fixed_queue_unregister_dequeue(btu_hci_msg_queue);
+  fixed_queue_unregister_dequeue(btu_general_alarm_queue);
+  fixed_queue_unregister_dequeue(btu_oneshot_alarm_queue);
+  fixed_queue_unregister_dequeue(btu_l2cap_alarm_queue);
+
   bta_sys_free();
-#endif
   btu_free_core();
 }
 
