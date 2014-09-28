@@ -168,3 +168,58 @@ static void set_module_state(const module_t *module, module_state_t state) {
 
   *state_ptr = state;
 }
+
+// TODO(zachoverflow): remove when everything modulized
+// Temporary callback-wrapper-related code
+
+typedef struct {
+  const module_t *module;
+  thread_t *lifecycle_thread;
+  thread_t *callback_thread; // we don't own this thread
+  thread_fn callback;
+  bool success;
+} callbacked_wrapper_t;
+
+static void run_wrapped_start_up(void *context);
+static void post_result_to_callback(void *context);
+
+void module_start_up_callbacked_wrapper(
+    const module_t *module,
+    thread_t *callback_thread,
+    thread_fn callback) {
+  callbacked_wrapper_t *wrapper = osi_calloc(sizeof(callbacked_wrapper_t));
+
+  wrapper->module = module;
+  wrapper->lifecycle_thread = thread_new("module_wrapper");
+  wrapper->callback_thread = callback_thread;
+  wrapper->callback = callback;
+
+  // Run the actual module start up
+  thread_post(wrapper->lifecycle_thread, run_wrapped_start_up, wrapper);
+}
+
+static void run_wrapped_start_up(void *context) {
+  assert(context);
+
+  callbacked_wrapper_t *wrapper = context;
+  wrapper->success = module_start_up(wrapper->module);
+
+  // Post the result back to the callback
+  thread_post(wrapper->callback_thread, post_result_to_callback, wrapper);
+}
+
+static void post_result_to_callback(void *context) {
+  assert(context);
+
+  callbacked_wrapper_t *wrapper = context;
+
+  // Save the values we need for callback
+  void *result = wrapper->success ? FUTURE_SUCCESS : FUTURE_FAIL;
+  thread_fn callback = wrapper->callback;
+
+  // Clean up the resources we used
+  thread_stop(wrapper->lifecycle_thread);
+  osi_free(wrapper);
+
+  callback(result);
+}
