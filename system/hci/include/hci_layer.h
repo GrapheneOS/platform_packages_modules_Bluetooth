@@ -23,6 +23,7 @@
 #include "allocator.h"
 #include "bt_types.h"
 #include "data_dispatcher.h"
+#include "future.h"
 #include "osi.h"
 
 ///// LEGACY DEFINITIONS /////
@@ -86,6 +87,8 @@ typedef struct hci_t {
       command_status_cb status_cb,
       void *context
   );
+
+  future_t *(*transmit_command_futured)(BT_HDR *command);
 
   // Send some data downward through the HCI layer
   void (*transmit_downward)(data_dispatcher_type_t type, void *data);

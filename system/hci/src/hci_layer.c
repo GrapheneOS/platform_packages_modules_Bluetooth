@@ -87,6 +87,7 @@ typedef struct {
 
 typedef struct {
   uint16_t opcode;
+  future_t *complete_future;
   command_complete_cb complete_callback;
   command_status_cb status_callback;
   void *context;
@@ -357,6 +358,25 @@ static void transmit_command(
   fixed_queue_enqueue(command_queue, wait_entry);
 }
 
+static future_t *transmit_command_futured(BT_HDR *command) {
+  waiting_command_t *wait_entry = osi_calloc(sizeof(waiting_command_t));
+  assert(wait_entry != NULL);
+
+  future_t *future = future_new();
+
+  uint8_t *stream = command->data + command->offset;
+  STREAM_TO_UINT16(wait_entry->opcode, stream);
+  wait_entry->complete_future = future;
+  wait_entry->command = command;
+
+  // Store the command message type in the event field
+  // in case the upper layer didn't already
+  command->event = MSG_STACK_TO_HC_HCI_CMD;
+
+  fixed_queue_enqueue(command_queue, wait_entry);
+  return future;
+}
+
 static void transmit_downward(data_dispatcher_type_t type, void *data) {
   if (type == MSG_STACK_TO_HC_HCI_CMD) {
     // TODO(zachoverflow): eliminate this call
@@ -599,6 +619,8 @@ static bool filter_incoming_event(BT_HDR *packet) {
       ALOGW("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
     else if (wait_entry->complete_callback)
       wait_entry->complete_callback(packet, wait_entry->context);
+    else if (wait_entry->complete_future)
+      future_ready(wait_entry->complete_future, packet);
 
     goto intercepted;
   } else if (event_code == HCI_COMMAND_STATUS_EVT) {
@@ -624,7 +646,7 @@ intercepted:;
 
   if (wait_entry) {
     // If it has a callback, it's responsible for freeing the packet
-    if (event_code == HCI_COMMAND_STATUS_EVT || !wait_entry->complete_callback)
+    if (event_code == HCI_COMMAND_STATUS_EVT || (!wait_entry->complete_callback && !wait_entry->complete_future))
       buffer_allocator->free(packet);
 
     // If it has a callback, it's responsible for freeing the command
@@ -699,6 +721,7 @@ static void init_layer_interface() {
     }
 
     interface.transmit_command = transmit_command;
+    interface.transmit_command_futured = transmit_command_futured;
     interface.transmit_downward = transmit_downward;
     interface_created = true;
   }
