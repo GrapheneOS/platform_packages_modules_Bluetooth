@@ -875,20 +875,6 @@ extern "C" {
 #define L2CAP_NUM_XMIT_BUFFS                HCI_ACL_BUF_MAX
 #endif
 
-/* Used for features using fixed channels; set to zero if no fixed channels supported (BLE, etc.) */
-#ifndef L2CAP_NUM_FIXED_CHNLS
-#define L2CAP_NUM_FIXED_CHNLS               1
-#endif
-
-/* First fixed channel supported */
-#ifndef L2CAP_FIRST_FIXED_CHNL
-#define L2CAP_FIRST_FIXED_CHNL              3
-#endif
-
-#ifndef L2CAP_LAST_FIXED_CHNL
-#define L2CAP_LAST_FIXED_CHNL           (L2CAP_FIRST_FIXED_CHNL + L2CAP_NUM_FIXED_CHNLS - 1)
-#endif
-
 /* used for monitoring eL2CAP data flow */
 #ifndef L2CAP_ERTM_STATS
 #define L2CAP_ERTM_STATS                    FALSE
