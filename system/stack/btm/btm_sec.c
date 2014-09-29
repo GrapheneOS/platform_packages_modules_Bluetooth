@@ -4680,9 +4680,6 @@ void btm_sec_link_key_notification (UINT8 *p_bda, UINT8 *p_link_key, UINT8 key_t
     /* If connection was made to do bonding restore link security if changed */
     btm_restore_mode();
 
-    /* Override the key type if version is pre-1.1 */
-    if (btm_cb.devcb.local_version.hci_version < HCI_VERSION_1_1)
-        p_dev_rec->link_key_type = BTM_LKEY_TYPE_IGNORE;
     if (key_type != BTM_LKEY_TYPE_CHANGED_COMB)
         p_dev_rec->link_key_type = key_type;
 

@@ -167,18 +167,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     btm_status = BTM_ReadLocalVersion (&vers);
     p_dev = bta_dm_find_peer_device(peer_addr);
 
-    /* Disable/Enable sniff policy on the SCO link if sco Up/Down. Will be removed in 2.2*/
-    if ((p_dev) &&
-        ((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) )
-    {
-        if ((btm_status == BTM_SUCCESS) &&
-            (vers.manufacturer ==  LMP_COMPID_BROADCOM) &&
-            (vers.hci_version < HCI_PROTO_VERSION_2_0))
-        {
-            bta_dm_pm_set_sniff_policy(p_dev, (status == BTA_SYS_SCO_OPEN));
-        }
-    }
-
     /* find if there is an power mode entry for the service */
     for(i=1; i<=p_bta_dm_pm_cfg[0].app_id; i++)
     {

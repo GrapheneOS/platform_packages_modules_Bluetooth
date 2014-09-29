@@ -1094,7 +1094,6 @@ extern void btm_vsc_complete (UINT8 *p, UINT16 cc_opcode, UINT16 evt_len,
                               tBTM_CMPL_CB *p_vsc_cplt_cback);
 extern void btm_inq_db_reset (void);
 extern void btm_vendor_specific_evt (UINT8 *p, UINT8 evt_len);
-extern UINT8 btm_get_hci_version (void);
 extern void btm_read_stored_link_key_complete (UINT8 *p);
 extern void btm_write_stored_link_key_complete (UINT8 *p);
 extern void btm_delete_stored_link_key_complete (UINT8 *p);

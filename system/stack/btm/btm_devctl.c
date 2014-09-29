@@ -2014,22 +2014,6 @@ tBTM_STATUS BTM_EnableTestMode(void)
 
 /*******************************************************************************
 **
-** Function         btm_get_hci_version
-**
-** Description      Local function called to retrieve the current HCI version
-**
-** Returns          Bluetooth HCI Version returned by the controller
-**
-*******************************************************************************/
-UINT8 btm_get_hci_version (void)
-{
-    return (btm_cb.devcb.local_version.hci_version);
-}
-
-
-
-/*******************************************************************************
-**
 ** Function         BTM_ReadStoredLinkKey
 **
 ** Description      This function is called to obtain link key for the specified

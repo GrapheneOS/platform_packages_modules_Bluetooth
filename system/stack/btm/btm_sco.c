@@ -176,61 +176,50 @@ static void btm_esco_conn_rsp (UINT16 sco_inx, UINT8 hci_status, BD_ADDR bda,
     else    /* Connection is being accepted */
     {
         p_sco->state = SCO_ST_CONNECTING;
-        if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_1_2)
+        p_setup = &p_sco->esco.setup;
+        /* If parameters not specified use the default */
+        if (p_parms)
+            *p_setup = *p_parms;
+        else /* Use the last setup passed thru BTM_SetEscoMode (or defaults) */
         {
-            p_setup = &p_sco->esco.setup;
-            /* If parameters not specified use the default */
-            if (p_parms)
-                *p_setup = *p_parms;
-            else /* Use the last setup passed thru BTM_SetEscoMode (or defaults) */
-            {
-                *p_setup = btm_cb.sco_cb.def_esco_parms;
-            }
-
-            temp_pkt_types = (p_setup->packet_types &
-                              BTM_SCO_SUPPORTED_PKTS_MASK &
-                              btm_cb.btm_sco_pkt_types_supported);
-
-            /* Make sure at least one eSCO packet type is sent, else might confuse peer */
-            /* Taking this out to confirm with BQB tests
-            ** Real application would like to include this though, as many devices
-            ** do not retry with SCO only if an eSCO connection fails.
-            if (!(temp_pkt_types & BTM_ESCO_LINK_ONLY_MASK))
-            {
-                temp_pkt_types |= BTM_SCO_PKT_TYPES_MASK_EV3;
-            }
-            */
-            /* If SCO request, remove eSCO packet types (conformance) */
-            if (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO)
-            {
-                temp_pkt_types &= BTM_SCO_LINK_ONLY_MASK;
-
-                if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-                {
-                    temp_pkt_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
-                }
-            }
-             /* OR in any exception packet types if at least 2.0 version of spec */
-            else if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-            {
-                temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
-                    (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
-            }
-
-            if (btsnd_hcic_accept_esco_conn (bda, p_setup->tx_bw, p_setup->rx_bw,
-                                         p_setup->max_latency, p_setup->voice_contfmt,
-                                             p_setup->retrans_effort, temp_pkt_types))
-            {
-                p_setup->packet_types = temp_pkt_types;
-            }
-            else
-            {
-                BTM_TRACE_ERROR("Could not accept SCO conn: No Buffer!!!");
-            }
+            *p_setup = btm_cb.sco_cb.def_esco_parms;
         }
-        else    /* Controller is version 1.1 or earlier */
+
+        temp_pkt_types = (p_setup->packet_types &
+                          BTM_SCO_SUPPORTED_PKTS_MASK &
+                          btm_cb.btm_sco_pkt_types_supported);
+
+        /* Make sure at least one eSCO packet type is sent, else might confuse peer */
+        /* Taking this out to confirm with BQB tests
+        ** Real application would like to include this though, as many devices
+        ** do not retry with SCO only if an eSCO connection fails.
+        if (!(temp_pkt_types & BTM_ESCO_LINK_ONLY_MASK))
         {
-            btsnd_hcic_accept_conn (bda, 0);
+            temp_pkt_types |= BTM_SCO_PKT_TYPES_MASK_EV3;
+        }
+        */
+        /* If SCO request, remove eSCO packet types (conformance) */
+        if (p_sco->esco.data.link_type == BTM_LINK_TYPE_SCO)
+        {
+            temp_pkt_types &= BTM_SCO_LINK_ONLY_MASK;
+            temp_pkt_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
+        }
+        else
+        {
+            /* OR in any exception packet types */
+            temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
+                (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
+        }
+
+        if (btsnd_hcic_accept_esco_conn (bda, p_setup->tx_bw, p_setup->rx_bw,
+                                     p_setup->max_latency, p_setup->voice_contfmt,
+                                         p_setup->retrans_effort, temp_pkt_types))
+        {
+            p_setup->packet_types = temp_pkt_types;
+        }
+        else
+        {
+            BTM_TRACE_ERROR("Could not accept SCO conn: No Buffer!!!");
         }
     }
 #endif
@@ -421,12 +410,9 @@ static tBTM_STATUS btm_send_connect_request(UINT16 acl_handle,
         temp_pkt_types = (p_setup->packet_types & BTM_SCO_SUPPORTED_PKTS_MASK &
                              btm_cb.btm_sco_pkt_types_supported);
 
-        /* OR in any exception packet types if at least 2.0 version of spec */
-        if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-        {
-            temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
-                (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
-        }
+        /* OR in any exception packet types */
+        temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
+            (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
 
         /* Finally, remove EDR eSCO if the remote device doesn't support it */
         /* UPF25:  Only SCO was brought up in this case */
@@ -656,18 +642,15 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
             temp_pkt_types = (p_setup->packet_types & BTM_SCO_SUPPORTED_PKTS_MASK &
                              btm_cb.btm_sco_pkt_types_supported);
 
-            /* OR in any exception packet types if at least 2.0 version of spec */
-            if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
+            /* OR in any exception packet types */
+            if (btm_cb.sco_cb.desired_sco_mode == HCI_LINK_TYPE_ESCO)
             {
-                if (btm_cb.sco_cb.desired_sco_mode == HCI_LINK_TYPE_ESCO)
-                {
-                    temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
-                        (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
-                }
-                else    /* Only using SCO packet types; turn off EDR also */
-                {
-                    temp_pkt_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
-                }
+                temp_pkt_types |= ((p_setup->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
+                    (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
+            }
+            else    /* Only using SCO packet types; turn off EDR also */
+            {
+                temp_pkt_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
             }
 
             p_setup->packet_types = temp_pkt_types;
@@ -1368,11 +1351,8 @@ tBTM_STATUS BTM_SetEScoMode (tBTM_SCO_TYPE sco_mode, tBTM_ESCO_PARAMS *p_parms)
                 p_def->voice_contfmt    = 0x0060;
                 p_def->retrans_effort   = 0;
 
-                /* OR in any exception packet types if at least 2.0 version of spec */
-                if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-                {
-                    p_def->packet_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
-                }
+                /* OR in any exception packet types */
+                p_def->packet_types |= BTM_SCO_EXCEPTION_PKTS_MASK;
             }
         }
         p_esco->desired_sco_mode = sco_mode;
@@ -1536,12 +1516,9 @@ tBTM_STATUS BTM_ChangeEScoLinkParms (UINT16 sco_inx, tBTM_CHG_ESCO_PARAMS *p_par
         temp_pkt_types = (p_parms->packet_types & BTM_SCO_SUPPORTED_PKTS_MASK &
                              btm_cb.btm_sco_pkt_types_supported);
 
-        /* OR in any exception packet types if at least 2.0 version of spec */
-        if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-        {
-            temp_pkt_types |= ((p_parms->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
-                (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
-        }
+        /* OR in any exception packet types */
+        temp_pkt_types |= ((p_parms->packet_types & BTM_SCO_EXCEPTION_PKTS_MASK) |
+            (btm_cb.btm_sco_pkt_types_supported & BTM_SCO_EXCEPTION_PKTS_MASK));
 
         BTM_TRACE_API("BTM_ChangeEScoLinkParms -> eSCO Link for handle 0x%04x", p_sco->hci_handle);
         BTM_TRACE_API("      txbw 0x%x, rxbw 0x%x, lat 0x%x, voice 0x%x, retrans 0x%02x, pkt 0x%04x",

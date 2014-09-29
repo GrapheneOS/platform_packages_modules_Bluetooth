@@ -2522,15 +2522,8 @@ tBTM_STATUS btm_set_packet_types (tACL_CONN *p, UINT16 pkt_types)
                       btm_cb.btm_acl_pkt_types_supported);
 
     /* OR in any exception packet types if at least 2.0 version of spec */
-    if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
-    {
-        temp_pkt_types |= ((pkt_types & BTM_ACL_EXCEPTION_PKTS_MASK) |
-                           (btm_cb.btm_acl_pkt_types_supported & BTM_ACL_EXCEPTION_PKTS_MASK));
-    }
-    else
-    {
-        temp_pkt_types &= (~BTM_ACL_EXCEPTION_PKTS_MASK);
-    }
+    temp_pkt_types |= ((pkt_types & BTM_ACL_EXCEPTION_PKTS_MASK) |
+                       (btm_cb.btm_acl_pkt_types_supported & BTM_ACL_EXCEPTION_PKTS_MASK));
 
     /* Exclude packet types not supported by the peer */
     btm_acl_chk_peer_pkt_type_support (p, &temp_pkt_types);
@@ -3496,31 +3489,27 @@ void btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type)
     if (!HCI_5_SLOT_PACKETS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
         *p_pkt_type &= ~(BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5);
 
-    /* If HCI version > 2.0, then also check EDR packet types */
-    if (btm_cb.devcb.local_version.hci_version >= HCI_PROTO_VERSION_2_0)
+    /* 2 and 3 MPS support? */
+    if (!HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+        /* Not supported. Add 'not_supported' mask for all 2MPS packet types */
+        *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
+                            BTM_ACL_PKT_TYPES_MASK_NO_2_DH5);
+
+    if (!HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+        /* Not supported. Add 'not_supported' mask for all 3MPS packet types */
+        *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 +
+                            BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
+
+    /* EDR 3 and 5 slot support? */
+    if (HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])
+     || HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
     {
-        /* 2 and 3 MPS support? */
-        if (!HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-            /* Not supported. Add 'not_supported' mask for all 2MPS packet types */
-            *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
-                                BTM_ACL_PKT_TYPES_MASK_NO_2_DH5);
+        if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+            /* Not supported. Add 'not_supported' mask for all 3-slot EDR packet types */
+            *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3);
 
-        if (!HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-            /* Not supported. Add 'not_supported' mask for all 3MPS packet types */
-            *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 +
-                                BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
-
-        /* EDR 3 and 5 slot support? */
-        if (HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])
-         || HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-        {
-            if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-                /* Not supported. Add 'not_supported' mask for all 3-slot EDR packet types */
-                *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3);
-
-            if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
-                /* Not supported. Add 'not_supported' mask for all 5-slot EDR packet types */
-                *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH5 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
-        }
+        if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+            /* Not supported. Add 'not_supported' mask for all 5-slot EDR packet types */
+            *p_pkt_type |= (BTM_ACL_PKT_TYPES_MASK_NO_2_DH5 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
     }
 }
