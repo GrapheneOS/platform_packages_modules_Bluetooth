@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
-#include "data_types.h"
 #include "bt_types.h"
 #include "bt_utils.h"
 

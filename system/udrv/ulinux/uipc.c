@@ -45,7 +45,7 @@
 
 
 #include "gki.h"
-#include "data_types.h"
+#include "bt_types.h"
 #include "uipc.h"
 
 #include <cutils/sockets.h>

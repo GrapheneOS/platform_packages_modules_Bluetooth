@@ -19,7 +19,37 @@
 #ifndef BT_TYPES_H
 #define BT_TYPES_H
 
-#include "data_types.h"
+#include <stdint.h>
+#include <stdbool.h>
+
+#ifndef FALSE
+#  define FALSE  false
+#endif
+
+#ifndef TRUE
+#  define TRUE   true
+#endif
+
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
+
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef bool BOOLEAN;
+
+#ifdef __arm
+#  define PACKED  __packed
+#  define INLINE  __inline
+#else
+#  define PACKED
+#  define INLINE
+#endif
+
+#define BCM_STRCPY_S(x1,x2,x3)      strcpy((x1),(x3))
+#define BCM_STRNCPY_S(x1,x2,x3,x4)  strncpy((x1),(x3),(x4))
 
 /* READ WELL !!
 **

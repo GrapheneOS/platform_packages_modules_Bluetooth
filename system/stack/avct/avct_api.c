@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "gki.h"

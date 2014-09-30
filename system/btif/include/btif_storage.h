@@ -19,7 +19,6 @@
 #ifndef BTIF_STORAGE_H
 #define BTIF_STORAGE_H
 
-#include "data_types.h"
 #include "bt_types.h"
 
 #include <utils/Log.h>

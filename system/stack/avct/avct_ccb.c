@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "avct_api.h"
 #include "avct_int.h"

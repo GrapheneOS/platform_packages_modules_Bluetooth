@@ -25,7 +25,6 @@
 #ifndef BTA_API_H
 #define BTA_API_H
 
-#include "data_types.h"
 #include "bt_target.h"
 #include "bt_types.h"
 #include "btm_api.h"

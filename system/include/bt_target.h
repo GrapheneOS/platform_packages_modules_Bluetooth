@@ -23,7 +23,7 @@
 #ifndef BUILDCFG
 #define BUILDCFG
 #endif
-#include "data_types.h"
+#include "bt_types.h"
 
 #ifdef BUILDCFG
 

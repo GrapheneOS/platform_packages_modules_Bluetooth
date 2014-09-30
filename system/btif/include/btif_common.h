@@ -24,7 +24,6 @@
 
 #include "bt_types.h"
 #include "bta_api.h"
-#include "data_types.h"
 #include "osi.h"
 
 #ifndef LOG_TAG
