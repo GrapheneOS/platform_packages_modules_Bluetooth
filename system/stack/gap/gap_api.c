@@ -225,22 +225,6 @@ UINT16 GAP_ReadConnectableMode (UINT16 *duration, UINT16 *interval)
     return (BTM_ReadConnectability(duration, interval));
 }
 
-
-/*******************************************************************************
-**
-** Function         GAP_SetSecurityMode
-**
-** Description      Set security mode for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-void GAP_SetSecurityMode (UINT8 sec_mode)
-{
-    BTM_SetSecurityMode (sec_mode);
-}
-
-
 /*******************************************************************************
 **
 ** Function         GAP_Bond

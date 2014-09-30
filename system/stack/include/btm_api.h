@@ -3592,19 +3592,6 @@ extern BOOLEAN BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr,
 *******************************************************************************/
 extern UINT32 * BTM_ReadTrustedMask (BD_ADDR bd_addr);
 
-
-/*******************************************************************************
-**
-** Function         BTM_SetSecurityMode
-**
-** Description      Set security mode for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_SetSecurityMode (UINT8 sec_mode);
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SetPinType

@@ -401,17 +401,6 @@ extern UINT16 GAP_ReadConnectableMode (UINT16 *duration, UINT16 *interval);
 
 /*******************************************************************************
 **
-** Function         GAP_SetSecurityMode
-**
-** Description      Set security mode for the device (Service or Link level)
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void GAP_SetSecurityMode (UINT8 sec_mode);
-
-/*******************************************************************************
-**
 ** Function         GAP_SecRegister
 **
 ** Description      Application calls this function to register for
