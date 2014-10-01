@@ -52,11 +52,6 @@ extern BOOLEAN BTA_PRM_CHECK_FW_VER(UINT8 *p);
 /*                 L O C A L    D A T A    D E F I N I T I O N S                */
 /********************************************************************************/
 
-/* The default class of device. */
-#ifndef BTM_INIT_CLASS_OF_DEVICE
-#define BTM_INIT_CLASS_OF_DEVICE    "\x00\x1F\x00"
-#endif
-
 #ifndef BTM_DEV_RESET_TIMEOUT
 #define BTM_DEV_RESET_TIMEOUT   4
 #endif
@@ -178,8 +173,6 @@ static void btm_db_reset (void)
             (*p_cb)((tBTM_RSSI_RESULTS *) &status);
     }
 }
-
-
 
 /*******************************************************************************
 **
@@ -616,9 +609,6 @@ void btm_reset_complete (void)
 void btm_continue_reset (void)
 {
     btm_get_hci_buf_size ();
-
-    /* default device class */
-    BTM_SetDeviceClass((UINT8 *) BTM_INIT_CLASS_OF_DEVICE);
 
 #if (BTM_MAX_LOC_BD_NAME_LEN > 0) && (BTM_SET_DEV_NAME_UPON_RESET == TRUE)
     BTM_SetLocalDeviceName(btm_cb.cfg.bd_name);
