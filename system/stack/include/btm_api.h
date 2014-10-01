@@ -2064,18 +2064,6 @@ extern tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cm
 
 /*******************************************************************************
 **
-** Function         BTM_ReadLocalVersion
-**
-** Description      This function is called to read the local device version
-**
-** Returns          BTM_SUCCESS if successful, otherwise an error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ReadLocalVersion (tBTM_VERSION_INFO *p_vers);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_ReadLocalDeviceAddr
 **
 ** Description      This function is called to read the local device address

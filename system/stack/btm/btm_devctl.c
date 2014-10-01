@@ -1630,30 +1630,6 @@ void btm_read_local_addr_complete (UINT8 *p, UINT16 evt_len)
     }
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_ReadLocalVersion
-**
-** Description      This function is called to read the local device version
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_ReadLocalVersion (tBTM_VERSION_INFO *p_vers)
-{
-    /* Make sure the device has retrieved the info (not being reset) */
-    if (btm_cb.devcb.state < BTM_DEV_STATE_READY)
-        return (BTM_DEV_RESET);
-
-    *p_vers = btm_cb.devcb.local_version;
-
-    return (BTM_SUCCESS);
-}
-
-
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SetDeviceClass
