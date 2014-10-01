@@ -41,7 +41,6 @@
 #include "btif_api.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "bd.h"
 #include "bdaddr.h"
 #include "config.h"
 #include "gki.h"

@@ -26,7 +26,6 @@
 #define BTA_HH_INT_H
 
 #include "bta_sys.h"
-#include "bd.h"
 #include "utl.h"
 #include "bta_hh_api.h"
 

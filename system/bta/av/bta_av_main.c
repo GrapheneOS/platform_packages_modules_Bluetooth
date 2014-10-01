@@ -28,7 +28,6 @@
 #include <string.h>
 #include "bta_av_int.h"
 #include "utl.h"
-#include "bd.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "bta_av_co.h"

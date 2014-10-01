@@ -28,7 +28,6 @@
 #include "bta_api.h"
 #include "bta_hf_client_int.h"
 #include "port_api.h"
-#include "bd.h"
 #include "bt_utils.h"
 
 /*******************************************************************************

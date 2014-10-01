@@ -33,7 +33,6 @@
 #include "port_api.h"
 #include "rfcdefs.h"
 #include "gki.h"
-#include "bd.h"
 #include "utl.h"
 
 /* Event mask for RfCOMM port callback */

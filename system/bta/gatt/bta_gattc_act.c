@@ -27,7 +27,6 @@
 
 #include "utl.h"
 #include "gki.h"
-#include "bd.h"
 #include "bta_sys.h"
 
 #include "bta_gattc_int.h"

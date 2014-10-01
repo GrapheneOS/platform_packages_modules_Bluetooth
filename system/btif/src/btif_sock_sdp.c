@@ -30,7 +30,6 @@
 
 #include "btif_common.h"
 #include "btif_util.h"
-#include "bd.h"
 #include "bta_api.h"
 #include "bt_target.h"
 #include "gki.h"

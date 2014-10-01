@@ -38,7 +38,6 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 #include "hcidefs.h"
-#include "bd.h"
 #include "bt_utils.h"
 
 static void btm_read_remote_features (UINT16 handle);

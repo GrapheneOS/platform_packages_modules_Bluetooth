@@ -29,7 +29,6 @@
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "avrc_defs.h"
-#include "bd.h"
 #include "gki.h"
 
 #define LOG_TAG "BTIF_RC"

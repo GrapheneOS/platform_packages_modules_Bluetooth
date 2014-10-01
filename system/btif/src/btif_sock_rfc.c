@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #include <utils/Log.h>
 
-#include "bd.h"
 #include "bta_api.h"
 #include "bt_target.h"
 #include "bta_jv_api.h"

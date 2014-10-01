@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "gki.h"
-#include "bd.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"

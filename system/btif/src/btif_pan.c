@@ -50,7 +50,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btm_api.h"
-#include "bd.h"
 #include "bdaddr.h"
 #include "controller.h"
 

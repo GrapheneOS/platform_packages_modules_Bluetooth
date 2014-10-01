@@ -30,7 +30,6 @@
 #if defined(HL_INCLUDED) && (HL_INCLUDED == TRUE)
 
 #include "gki.h"
-#include "bd.h"
 #include "bta_hl_api.h"
 #include "bta_hl_int.h"
 

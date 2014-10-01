@@ -30,7 +30,6 @@
 #include <string.h>
 #include "bta_av_int.h"
 #include "avdt_api.h"
-#include "bd.h"
 #include "utl.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"

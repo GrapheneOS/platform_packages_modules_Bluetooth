@@ -34,7 +34,6 @@
 #include <cutils/properties.h>
 #include "gki.h"
 #include "btu.h"
-#include "bd.h"
 #include "bdaddr.h"
 #include "bta_api.h"
 #include "btif_api.h"

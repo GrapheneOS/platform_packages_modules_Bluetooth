@@ -32,7 +32,6 @@
 #include "bta_sys.h"
 #include "bta_gattc_ci.h"
 #include "gki.h"
-#include "bd.h"
 #include "utl.h"
 
 /*******************************************************************************

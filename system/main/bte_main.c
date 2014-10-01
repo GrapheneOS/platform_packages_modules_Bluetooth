@@ -34,7 +34,6 @@
 #include <utils/Log.h>
 
 #include "alarm.h"
-#include "bd.h"
 #include "bta_api.h"
 #include "bt_hci_bdroid.h"
 #include "bte.h"

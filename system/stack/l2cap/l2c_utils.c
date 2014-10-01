@@ -37,7 +37,6 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "hcidefs.h"
-#include "bd.h"
 #include "bt_utils.h"
 
 /*******************************************************************************

@@ -28,7 +28,6 @@
 #define BTIF_MEDIA_H
 
 #include "bta_api.h"
-#include "bd.h"
 #include "gki.h"
 #include "btif_av_api.h"
 #include "audio_a2dp_hw.h"

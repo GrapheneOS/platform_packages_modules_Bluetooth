@@ -24,7 +24,6 @@
 #include "bt_target.h"
 #include "bt_types.h"
 #include "gki.h"
-#include "bd.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_ag_api.h"

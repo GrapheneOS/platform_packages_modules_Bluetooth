@@ -38,7 +38,6 @@
 #include "btif_media.h"
 #include "bta_av_api.h"
 #include "gki.h"
-#include "bd.h"
 #include "btu.h"
 #include "bt_utils.h"
 

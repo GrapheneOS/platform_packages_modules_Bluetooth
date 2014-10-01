@@ -32,7 +32,6 @@
 
 #include "gki.h"
 #include "utl.h"
-#include "bd.h"
 #include "bta_hl_int.h"
 #include "bta_hl_co.h"
 #include "mca_defs.h"

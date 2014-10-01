@@ -690,5 +690,99 @@ typedef UINT8 tBT_DEVICE_TYPE;
 /* Define a function for logging */
 typedef void (BT_LOG_FUNC) (int trace_type, const char *fmt_str, ...);
 
+/* bd addr length and type */
+#ifndef BD_ADDR_LEN
+#define BD_ADDR_LEN     6
+typedef uint8_t BD_ADDR[BD_ADDR_LEN];
 #endif
+
+// From bd.c
+
+/*****************************************************************************
+**  Constants
+*****************************************************************************/
+
+/* global constant for "any" bd addr */
+static const BD_ADDR bd_addr_any = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static const BD_ADDR bd_addr_null= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+/*****************************************************************************
+**  Functions
+*****************************************************************************/
+
+/*******************************************************************************
+**
+** Function         bdcpy
+**
+** Description      Copy bd addr b to a.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+inline void bdcpy(BD_ADDR a, const BD_ADDR b)
+{
+    int i;
+
+    for (i = BD_ADDR_LEN; i != 0; i--)
+    {
+        *a++ = *b++;
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bdcmp
+**
+** Description      Compare bd addr b to a.
+**
+**
+** Returns          Zero if b==a, nonzero otherwise (like memcmp).
+**
+*******************************************************************************/
+inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
+{
+    int i;
+
+    for (i = BD_ADDR_LEN; i != 0; i--)
+    {
+        if (*a++ != *b++)
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+/*******************************************************************************
+**
+** Function         bdcmpany
+**
+** Description      Compare bd addr to "any" bd addr.
+**
+**
+** Returns          Zero if a equals bd_addr_any.
+**
+*******************************************************************************/
+static inline int bdcmpany(const BD_ADDR a)
+{
+    return bdcmp(a, bd_addr_any);
+}
+
+/*******************************************************************************
+**
+** Function         bdsetany
+**
+** Description      Set bd addr to "any" bd addr.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static inline void bdsetany(BD_ADDR a)
+{
+    bdcpy(a, bd_addr_any);
+}
+#endif
+
 

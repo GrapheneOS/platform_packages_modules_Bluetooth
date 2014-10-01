@@ -28,7 +28,6 @@
 
 #include "gki.h"
 #include "pan_api.h"
-#include "bd.h"
 #include "bta_api.h"
 #include "bta_pan_api.h"
 #include "bta_pan_ci.h"

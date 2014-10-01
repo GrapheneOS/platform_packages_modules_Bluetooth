@@ -41,7 +41,6 @@
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"
-#include "bd.h"
 #include "btif_storage.h"
 
 #include "btif_gatt.h"

@@ -34,7 +34,7 @@
 #include "module.h"
 #include "osi.h"
 
-#include "bd.h"
+#include "bt_types.h"
 
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";

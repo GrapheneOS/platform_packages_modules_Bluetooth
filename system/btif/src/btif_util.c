@@ -42,7 +42,6 @@
 #include "gki.h"
 #include "btu.h"
 #include "bte.h"
-#include "bd.h"
 #include "btif_dm.h"
 #include "btif_util.h"
 #include "bta_ag_api.h"

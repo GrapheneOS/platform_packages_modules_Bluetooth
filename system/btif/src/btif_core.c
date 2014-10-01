@@ -37,7 +37,6 @@
 #include <sys/types.h>
 
 #define LOG_TAG "BTIF_CORE"
-#include "bd.h"
 #include "bdaddr.h"
 #include "bt_utils.h"
 #include "bta_api.h"

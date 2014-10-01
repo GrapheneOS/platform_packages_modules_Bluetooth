@@ -51,7 +51,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 #include "gki.h"
-#include "bd.h"
 #include "bta_api.h"
 #include "bta_hl_api.h"
 #include "mca_api.h"

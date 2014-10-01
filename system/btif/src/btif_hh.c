@@ -35,7 +35,6 @@
 
 #include "bta_api.h"
 #include "bta_hh_api.h"
-#include "bd.h"
 #include "btif_storage.h"
 
 #include "btif_common.h"

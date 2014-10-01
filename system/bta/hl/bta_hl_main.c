@@ -33,7 +33,6 @@
 #include "bta_hl_int.h"
 #include "gki.h"
 #include "utl.h"
-#include "bd.h"
 #include "l2c_api.h"
 #include "mca_defs.h"
 

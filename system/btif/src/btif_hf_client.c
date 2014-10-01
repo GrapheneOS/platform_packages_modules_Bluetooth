@@ -36,7 +36,6 @@
 #include "btif_util.h"
 #include "btif_profile_queue.h"
 #include "bt_utils.h"
-#include "bd.h"
 #include "bdaddr.h"
 #include "bta_hf_client_api.h"
 

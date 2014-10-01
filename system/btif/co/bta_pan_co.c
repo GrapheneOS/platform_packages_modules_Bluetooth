@@ -34,7 +34,6 @@
 #include <hardware/bt_pan.h>
 #include "btif_pan_internal.h"
 #include "btif_sock_thread.h"
-#include "bd.h"
 #include <string.h>
 #include "btif_util.h"
 

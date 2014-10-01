@@ -31,7 +31,6 @@
 #include "gki.h"
 #include "bta_pan_api.h"
 #include "bta_pan_int.h"
-#include "bd.h"
 #include <string.h>
 #include "bt_utils.h"
 
