@@ -478,7 +478,6 @@ extern UINT32 bta_jv_get_sdp_handle(UINT32 sdp_id);
 extern void bta_jv_enable (tBTA_JV_MSG *p_data);
 extern void bta_jv_disable (tBTA_JV_MSG *p_data);
 extern void bta_jv_set_discoverability (tBTA_JV_MSG *p_data);
-extern void bta_jv_get_local_device_addr (tBTA_JV_MSG *p_data);
 extern void bta_jv_get_local_device_name (tBTA_JV_MSG *p_data);
 extern void bta_jv_get_remote_device_name (tBTA_JV_MSG *p_data);
 extern void bta_jv_set_service_class (tBTA_JV_MSG *p_data);

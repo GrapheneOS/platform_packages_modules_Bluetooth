@@ -643,7 +643,6 @@ typedef UINT8 tBTA_DM_SEC_EVT;
 /* Structure associated with BTA_DM_ENABLE_EVT */
 typedef struct
 {
-    BD_ADDR         bd_addr;            /* BD address of local device. */
     tBTA_STATUS    status;
 } tBTA_DM_ENABLE;
 

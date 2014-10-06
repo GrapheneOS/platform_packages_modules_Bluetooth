@@ -70,21 +70,6 @@ tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_
 
 /*******************************************************************************
 **
-** Function     bta_jv_get_local_device_addr_cback
-**
-** Description  Callback from btm after local bdaddr is read
-**
-** Returns      void
-**
-*******************************************************************************/
-static void bta_jv_get_local_device_addr_cback(BD_ADDR bd_addr)
-{
-    if(bta_jv_cb.p_dm_cback)
-        bta_jv_cb.p_dm_cback(BTA_JV_LOCAL_ADDR_EVT, (tBTA_JV *)bd_addr, 0);
-}
-
-/*******************************************************************************
-**
 ** Function     bta_jv_get_remote_device_name_cback
 **
 ** Description  Callback from btm after remote name is read
@@ -834,22 +819,6 @@ void bta_jv_set_discoverability (tBTA_JV_MSG *p_data)
 
     if(bta_jv_cb.p_dm_cback)
         bta_jv_cb.p_dm_cback(BTA_JV_SET_DISCOVER_EVT, &evt_data, 0);
-}
-
-/*******************************************************************************
-**
-** Function     bta_jv_get_local_device_addr
-**
-** Description  Reads the local Bluetooth device address
-**
-** Returns      void
-**
-*******************************************************************************/
-void bta_jv_get_local_device_addr(tBTA_JV_MSG *p_data)
-{
-    UNUSED(p_data);
-
-    BTM_ReadLocalDeviceAddr((tBTM_CMPL_CB *)bta_jv_get_local_device_addr_cback);
 }
 
 /*******************************************************************************

@@ -30,6 +30,7 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "bt_utils.h"
+#include "controller.h"
 
 
 /********************************************************************************/
@@ -487,19 +488,20 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
 void bnepu_build_bnep_hdr (tBNEP_CONN *p_bcb, BT_HDR *p_buf, UINT16 protocol,
                            UINT8 *p_src_addr, UINT8 *p_dest_addr, BOOLEAN fw_ext_present)
 {
+    const controller_t *controller = controller_get_interface();
     UINT8    ext_bit, *p = (UINT8 *)NULL;
     UINT8    type = BNEP_FRAME_COMPRESSED_ETHERNET;
 
     ext_bit = fw_ext_present ? 0x80 : 0x00;
 
-    if ((p_src_addr) && (memcmp (p_src_addr, bnep_cb.my_bda, BD_ADDR_LEN)))
+    if ((p_src_addr) && (memcmp (p_src_addr, &controller->get_address()->address, BD_ADDR_LEN)))
         type = BNEP_FRAME_COMPRESSED_ETHERNET_SRC_ONLY;
 
     if (memcmp (p_dest_addr, p_bcb->rem_bda, BD_ADDR_LEN))
         type = (type == BNEP_FRAME_COMPRESSED_ETHERNET) ? BNEP_FRAME_COMPRESSED_ETHERNET_DEST_ONLY : BNEP_FRAME_GENERAL_ETHERNET;
 
     if (!p_src_addr)
-        p_src_addr = (UINT8 *)bnep_cb.my_bda;
+        p_src_addr = (UINT8 *)controller->get_address();
 
     switch (type)
     {
@@ -1444,11 +1446,7 @@ void bnep_dump_status (void)
     char            buff[200];
     tBNEP_CONN     *p_bcb;
 
-    BNEP_TRACE_DEBUG ("BNEP my BD Addr %x.%x.%x.%x.%x.%x",
-        bnep_cb.my_bda[0], bnep_cb.my_bda[1], bnep_cb.my_bda[2],
-        bnep_cb.my_bda[3], bnep_cb.my_bda[4], bnep_cb.my_bda[5]);
-    BNEP_TRACE_DEBUG ("profile registered %d, trace %d, got_my_bd_addr %d",
-        bnep_cb.profile_registered, bnep_cb.trace_level, bnep_cb.got_my_bd_addr);
+    BNEP_TRACE_DEBUG ("profile registered %d, trace %d", bnep_cb.profile_registered, bnep_cb.trace_level);
 
     for (i = 0, p_bcb = bnep_cb.bcb; i < BNEP_MAX_CONNECTIONS; i++, p_bcb++)
     {

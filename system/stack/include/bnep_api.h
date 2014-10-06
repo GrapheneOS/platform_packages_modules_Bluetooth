@@ -418,18 +418,6 @@ extern tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
 
 /*******************************************************************************
 **
-** Function         BNEP_GetMyBdAddr
-**
-** Description      This function returns a pointer to the local device BD address.
-**                  If the BD address has not been read yet, it returns NULL.
-**
-** Returns          the BD address
-**
-*******************************************************************************/
-extern UINT8 *BNEP_GetMyBdAddr (void);
-
-/*******************************************************************************
-**
 ** Function         BNEP_SetTraceLevel
 **
 ** Description      This function sets the trace level for BNEP. If called with

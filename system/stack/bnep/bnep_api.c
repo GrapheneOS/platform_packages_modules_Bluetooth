@@ -83,7 +83,6 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
         return BNEP_SECURITY_FAIL;
 
     bnep_cb.profile_registered  = TRUE;
-    BTM_GetLocalDeviceAddr (bnep_cb.my_bda);
     return BNEP_SUCCESS;
 }
 
@@ -688,25 +687,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
 #else
     return (BNEP_SET_FILTER_FAIL);
 #endif
-}
-
-
-/*******************************************************************************
-**
-** Function         BNEP_GetMyBdAddr
-**
-** Description      This function returns a pointer to the local device BD address.
-**                  If the BD address has not been read yet, it returns NULL.
-**
-** Returns          the BD address
-**
-*******************************************************************************/
-UINT8 *BNEP_GetMyBdAddr (void)
-{
-    if (bnep_cb.got_my_bd_addr)
-        return (bnep_cb.my_bda);
-    else
-        return (NULL);
 }
 
 /*******************************************************************************

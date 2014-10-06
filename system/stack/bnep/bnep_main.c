@@ -43,6 +43,8 @@
 #include "bnep_int.h"
 #include "bt_utils.h"
 
+#include "controller.h"
+
 
 /********************************************************************************/
 /*                       G L O B A L    B N E P       D A T A                   */
@@ -64,8 +66,6 @@ static void bnep_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed);
 static void bnep_disconnect_cfm (UINT16 l2cap_cid, UINT16 result);
 static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg);
 static void bnep_congestion_ind (UINT16 lcid, BOOLEAN is_congested);
-
-static void bnep_read_addr_cb (void *p_bda);
 
 
 /*******************************************************************************
@@ -639,7 +639,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
         p_src_addr = (UINT8 *) p_bcb->rem_bda;
 
     if (!p_dst_addr)
-        p_dst_addr = (UINT8 *) bnep_cb.my_bda;
+        p_dst_addr = (UINT8 *) controller_get_interface()->get_address();
 
     /* check whether there are any extensions to be forwarded */
     if (ext_type)
@@ -677,13 +677,6 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
 
     if (!p_tle->param)
     {
-        if (!bnep_cb.got_my_bd_addr)
-        {
-            if (BTM_IsDeviceUp())
-                BTM_ReadLocalDeviceAddr (bnep_read_addr_cb);
-
-            btu_start_timer (&bnep_cb.bnep_tle, BTU_TTYPE_BNEP, 2);
-        }
         return;
     }
 
@@ -810,31 +803,3 @@ void bnep_connected (tBNEP_CONN *p_bcb)
     if (bnep_cb.p_conn_state_cb)
         (*bnep_cb.p_conn_state_cb) (p_bcb->handle, p_bcb->rem_bda, BNEP_SUCCESS, is_role_change);
 }
-
-
-/*******************************************************************************
-**
-** Function         bnep_read_addr_cb
-**
-** Description      This function is called by BTM when the local BD address
-**                  is read. It saves the BD address, and flags it as read.
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bnep_read_addr_cb (void *p_bda)
-{
-    UINT8 *bda = (UINT8 *)p_bda;
-    if (p_bda &&
-            (bda[0] | bda[1] | bda[2] | bda[3] | bda[4] | bda[5]) != 0)
-    {
-        /* Save my BD address */
-        memcpy (bnep_cb.my_bda, p_bda, BD_ADDR_LEN);
-
-        bnep_cb.got_my_bd_addr = TRUE;
-    }
-    else
-        /* Retry after a couple seconds */
-        btu_start_timer (&bnep_cb.bnep_tle, BTU_TTYPE_BNEP, 2);
-}
-

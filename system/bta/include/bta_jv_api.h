@@ -137,7 +137,7 @@ typedef UINT8 tBTA_JV_CONN_STATE;
 /* events received by tBTA_JV_DM_CBACK */
 #define BTA_JV_ENABLE_EVT           0  /* JV enabled */
 #define BTA_JV_SET_DISCOVER_EVT     1  /* the result for BTA_JvSetDiscoverability */
-#define BTA_JV_LOCAL_ADDR_EVT       2  /* Local device address */
+// (zachoverflow): removed 2 because it's obsolete now
 #define BTA_JV_LOCAL_NAME_EVT       3  /* Local device name */
 #define BTA_JV_REMOTE_NAME_EVT      4  /* Remote device name */
 #define BTA_JV_SET_ENCRYPTION_EVT   5  /* Set Encryption */
@@ -415,7 +415,6 @@ typedef union
     tBTA_JV_DISCOVERY_COMP  disc_comp;      /* BTA_JV_DISCOVERY_COMP_EVT */
     tBTA_JV_SET_DISCOVER    set_discover;   /* BTA_JV_SET_DISCOVER_EVT */
     tBTA_JV_SET_ENCRYPTION  set_encrypt;    /* BTA_JV_SET_ENCRYPTION_EVT */
-    BD_ADDR                 bd_addr;        /* BTA_JV_LOCAL_ADDR_EVT */
     UINT8                   *p_name;        /* BTA_JV_LOCAL_NAME_EVT,
                                                BTA_JV_REMOTE_NAME_EVT */
     UINT8                   scn;            /* BTA_JV_GET_SCN_EVT */
@@ -537,20 +536,6 @@ extern tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode);
 **
 *******************************************************************************/
 extern tBTA_JV_DISC BTA_JvGetDiscoverability(void);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetLocalDeviceAddr
-**
-** Description      This function obtains the local Bluetooth device address.
-**                  The local Bluetooth device address is reported by the
-**                  tBTA_JV_DM_CBACK callback with a BTA_JV_LOCAL_ADDR_EVT.
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void);
 
 /*******************************************************************************
 **

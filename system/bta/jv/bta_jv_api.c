@@ -177,34 +177,6 @@ tBTA_JV_DISC BTA_JvGetDiscoverability(void)
 
 /*******************************************************************************
 **
-** Function         BTA_JvGetLocalDeviceAddr
-**
-** Description      This function obtains the local Bluetooth device address.
-**                  The local Bluetooth device address is reported by the
-**                  tBTA_JV_DM_CBACK callback with a BTA_JV_LOCAL_ADDR_EVT.
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-tBTA_JV_STATUS BTA_JvGetLocalDeviceAddr(void)
-{
-    tBTA_JV_STATUS ret = BTA_JV_FAILURE;
-    BT_HDR *p_msg;
-
-    APPL_TRACE_API( "BTA_JvGetLocalDeviceAddr");
-    if ((p_msg = (BT_HDR *)GKI_getbuf(sizeof(BT_HDR))) != NULL)
-    {
-        p_msg->event = BTA_JV_API_GET_LOCAL_DEVICE_ADDR_EVT;
-        bta_sys_sendmsg(p_msg);
-        ret = BTA_JV_SUCCESS;
-    }
-
-    return(ret);
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_JvGetLocalDeviceName
 **
 ** Description      This function obtains the name of the local device

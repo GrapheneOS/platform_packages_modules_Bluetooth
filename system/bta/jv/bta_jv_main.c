@@ -47,7 +47,7 @@ const tBTA_JV_ACTION bta_jv_action[] =
     bta_jv_enable,                  /* BTA_JV_API_ENABLE_EVT */
     bta_jv_disable,                 /* BTA_JV_API_DISABLE_EVT */
     bta_jv_set_discoverability,     /* BTA_JV_API_SET_DISCOVERABILITY_EVT */
-    bta_jv_get_local_device_addr,   /* BTA_JV_API_GET_LOCAL_DEVICE_ADDR_EVT */
+    NULL,   /* BTA_JV_API_GET_LOCAL_DEVICE_ADDR_EVT is obsolete */
     bta_jv_get_local_device_name,   /* BTA_JV_API_GET_LOCAL_DEVICE_NAME_EVT */
     bta_jv_get_remote_device_name,  /* BTA_JV_API_GET_REMOTE_DEVICE_NAME_EVT */
     bta_jv_set_service_class,       /* BTA_JV_API_SET_SERVICE_CLASS_EVT */

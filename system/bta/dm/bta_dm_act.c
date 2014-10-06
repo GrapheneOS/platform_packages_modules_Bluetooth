@@ -3198,7 +3198,6 @@ static void bta_dm_local_name_cback(UINT8 *p_name)
     tBTA_DM_SEC sec_event;
     UNUSED(p_name);
 
-    BTM_GetLocalDeviceAddr(sec_event.enable.bd_addr);
     sec_event.enable.status = BTA_SUCCESS;
 
     if(bta_dm_cb.p_sec_cback)

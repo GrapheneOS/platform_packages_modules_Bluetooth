@@ -183,8 +183,6 @@ typedef struct
     TIMER_LIST_ENT          bnep_tle;
     BOOLEAN                 profile_registered;             /* TRUE when we got our BD addr */
     UINT8                   trace_level;
-    BOOLEAN                 got_my_bd_addr;         /* TRUE when we got our BD addr */
-    BD_ADDR                 my_bda;                 /* BD Address of this device    */
 
 } tBNEP_CB;
 

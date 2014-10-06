@@ -82,7 +82,6 @@ typedef struct
     tPAN_MFILTER_IND_CB         *pan_mfilt_ind_cb;      /* multicast filter indication callback */
     tPAN_TX_DATA_FLOW_CB        *pan_tx_data_flow_cb;
 
-    BD_ADDR                     my_bda;                 /* BD Address of this device    */
     char                        *user_service_name;
     char                        *gn_service_name;
     char                        *nap_service_name;

@@ -256,7 +256,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
 #endif
                 {
                     p->conn_addr_type = BLE_ADDR_PUBLIC;
-                    BTM_GetLocalDeviceAddr(p->conn_addr);
+                    memcpy(p->conn_addr, controller_get_interface()->get_address()->address, BD_ADDR_LEN);
                 }
             }
 #endif

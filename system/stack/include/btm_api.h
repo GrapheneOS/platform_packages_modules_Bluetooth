@@ -2064,32 +2064,6 @@ extern tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cm
 
 /*******************************************************************************
 **
-** Function         BTM_ReadLocalDeviceAddr
-**
-** Description      This function is called to read the local device address
-**
-** Returns          BTM_SUCCESS
-**                  Callback returns the local device address
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ReadLocalDeviceAddr (tBTM_CMPL_CB *p_cb);
-
-
-/*******************************************************************************
-**
-** Function         BTM_GetLocalDeviceAddr
-**
-** Description      This function is called to read the local device address
-**
-** Returns          void
-**                  the local device address is copied into bd_addr
-**
-*******************************************************************************/
-extern void BTM_GetLocalDeviceAddr (BD_ADDR bd_addr);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_ReadDeviceClass
 **
 ** Description      This function is called to read the local device class

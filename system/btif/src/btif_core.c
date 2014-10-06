@@ -53,6 +53,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btu.h"
+#include "controller.h"
 #include "fixed_queue.h"
 #include "future.h"
 #include "gki.h"
@@ -454,47 +455,43 @@ error_exit:;
 **
 *******************************************************************************/
 
-void btif_enable_bluetooth_evt(tBTA_STATUS status, BD_ADDR local_bd)
+void btif_enable_bluetooth_evt(tBTA_STATUS status)
 {
-    bt_bdaddr_t bd_addr;
+    const controller_t *controller = controller_get_interface();
     bdstr_t bdstr;
+    bdaddr_to_string(controller->get_address(), bdstr, sizeof(bdstr));
 
-    bdcpy(bd_addr.address, local_bd);
-    BTIF_TRACE_DEBUG("%s: status %d, local bd [%s]", __FUNCTION__, status,
-                                                     bdaddr_to_string(&bd_addr, bdstr, sizeof(bdstr)));
+    BTIF_TRACE_DEBUG("%s: status %d, local bd [%s]", __FUNCTION__, status, bdstr);
 
-    if (bdcmp(btif_local_bd_addr.address,local_bd))
+    if (bdcmp(btif_local_bd_addr.address, controller->get_address()->address))
     {
-        bdstr_t buf;
+        // TODO(zachoverflow): this whole code path seems like a bad time waiting to happen
+        // We open the vendor library using the old address.
+        bdstr_t old_address;
         bt_property_t prop;
+
+        bdaddr_to_string(&btif_local_bd_addr, old_address, sizeof(old_address));
 
         /**
          * The Controller's BDADDR does not match to the BTIF's initial BDADDR!
-         * This could be because the factory BDADDR was stored separatley in
+         * This could be because the factory BDADDR was stored separately in
          * the Controller's non-volatile memory rather than in device's file
          * system.
          **/
         BTIF_TRACE_WARNING("***********************************************");
-        BTIF_TRACE_WARNING("BTIF init BDA was %02X:%02X:%02X:%02X:%02X:%02X",
-            btif_local_bd_addr.address[0], btif_local_bd_addr.address[1],
-            btif_local_bd_addr.address[2], btif_local_bd_addr.address[3],
-            btif_local_bd_addr.address[4], btif_local_bd_addr.address[5]);
-        BTIF_TRACE_WARNING("Controller BDA is %02X:%02X:%02X:%02X:%02X:%02X",
-            local_bd[0], local_bd[1], local_bd[2],
-            local_bd[3], local_bd[4], local_bd[5]);
+        BTIF_TRACE_WARNING("BTIF init BDA was %s", old_address);
+        BTIF_TRACE_WARNING("Controller BDA is %s", bdstr);
         BTIF_TRACE_WARNING("***********************************************");
 
-        bdcpy(btif_local_bd_addr.address, local_bd);
+        btif_local_bd_addr = *controller->get_address();
 
         //save the bd address to config file
-        bdaddr_to_string(&btif_local_bd_addr, buf, sizeof(buf));
-        btif_config_set_str("Adapter", "Address", buf);
+        btif_config_set_str("Adapter", "Address", bdstr);
         btif_config_save();
 
         //fire HAL callback for property change
-        memcpy(buf, &btif_local_bd_addr, sizeof(bt_bdaddr_t));
         prop.type = BT_PROPERTY_BDADDR;
-        prop.val = (void*)buf;
+        prop.val = (void*)&btif_local_bd_addr;
         prop.len = sizeof(bt_bdaddr_t);
         HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1, &prop);
     }

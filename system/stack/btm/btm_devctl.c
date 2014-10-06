@@ -620,40 +620,6 @@ void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len)
     }
 }
 
-// TODO(zachoverflow):
-// These two functions do pretty much the same thing...just what is this I can't even whyyy
-/*******************************************************************************
-**
-** Function         BTM_GetLocalDeviceAddr
-**
-** Description      This function is called to read the local device address
-**
-** Returns          void
-**                  the local device address is copied into bd_addr
-**
-*******************************************************************************/
-void BTM_GetLocalDeviceAddr (BD_ADDR bd_addr)
-{
-    memcpy (bd_addr, controller_get_interface()->get_address(), BD_ADDR_LEN);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_ReadLocalDeviceAddr
-**
-** Description      This function is called to read the local device address
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_ReadLocalDeviceAddr (tBTM_CMPL_CB *p_cb)
-{
-    if(p_cb)
-        (*p_cb)((void *)controller_get_interface()->get_address());
-
-    return (BTM_SUCCESS);
-}
-
 /*******************************************************************************
 **
 ** Function         BTM_SetDeviceClass
