@@ -80,7 +80,6 @@ typedef struct
 {
     UINT16          hci_handle;
     UINT16          pkt_types_mask;
-    UINT16          restore_pkt_types;  /* when coming in/out of SCO connection restore the packet types */
     UINT16          clock_offset;
     BD_ADDR         remote_addr;
     DEV_CLASS       remote_dc;

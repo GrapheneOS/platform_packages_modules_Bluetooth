@@ -260,7 +260,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                 }
             }
 #endif
-            p->restore_pkt_types = 0;   /* Only exists while SCO is active */
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
 
 #if BTM_PWR_MGR_INCLUDED == FALSE

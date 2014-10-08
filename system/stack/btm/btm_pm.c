@@ -44,15 +44,6 @@
 
 #if BTM_PWR_MGR_INCLUDED == TRUE
 
-/* This compile option is only useful when the FW has a bug
- * it automatically uses single slot when entering SNIFF mode, but does not restore the setting
- * This issue was found when A2DP link goes into sniff and existing sniff still has choppy audio.
- * If this issue is seen, look for FW solution first.
- * This work around code will be removed later. */
-#ifndef BTM_PM_SNIFF_SLOT_WORK_AROUND
-#define BTM_PM_SNIFF_SLOT_WORK_AROUND       FALSE
-#endif
-
 /*****************************************************************************/
 /*      to handle different modes                                            */
 /*****************************************************************************/
@@ -799,49 +790,6 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
         return;
 
     p = &btm_cb.acl_db[xx];
-
-    /*** 2035 and 2045 work around:  If mode is active and coming out of a SCO disconnect, restore packet types ***/
-    if (mode == HCI_MODE_ACTIVE)
-    {
-        if(BTM_GetNumScoLinks() == 0)
-        {
-            if(p->restore_pkt_types)
-    {
-        BTM_TRACE_DEBUG("btm mode change AFTER unsniffing; hci hdl 0x%x, types 0x%02x/0x%02x",
-                            hci_handle, p->pkt_types_mask, p->restore_pkt_types);
-        p->pkt_types_mask = p->restore_pkt_types;
-        p->restore_pkt_types = 0;   /* Only exists while SCO is active */
-        btsnd_hcic_change_conn_type (p->hci_handle, p->pkt_types_mask);
-    }
-#if (BTM_PM_SNIFF_SLOT_WORK_AROUND == TRUE)
-            else
-            {
-                BTM_TRACE_DEBUG("btm mode change AFTER unsniffing; hci hdl 0x%x, types 0x%02x",
-                                    hci_handle, btm_cb.btm_acl_pkt_types_supported);
-                btm_set_packet_types (p, btm_cb.btm_acl_pkt_types_supported);
-            }
-#endif
-        }
-#if (BTM_PM_SNIFF_SLOT_WORK_AROUND == TRUE)
-        else
-        {
-            /* Mode changed from Sniff to Active while SCO is open. */
-            /* Packet types of active mode, not sniff mode, should be used for ACL when SCO is closed. */
-            p->restore_pkt_types = btm_cb.btm_acl_pkt_types_supported;
-
-            /* Exclude packet types not supported by the peer */
-            btm_acl_chk_peer_pkt_type_support (p, &p->restore_pkt_types);
-        }
-#endif
-    }
-#if (BTM_PM_SNIFF_SLOT_WORK_AROUND == TRUE)
-    else if (mode == HCI_MODE_SNIFF)
-    {
-        BTM_TRACE_DEBUG("btm mode change to sniff; hci hdl 0x%x use single slot",
-                            hci_handle);
-        btm_set_packet_types (p, (HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1));
-    }
-#endif
 
     /* update control block */
     p_cb = &(btm_cb.pm_mode_db[xx]);
