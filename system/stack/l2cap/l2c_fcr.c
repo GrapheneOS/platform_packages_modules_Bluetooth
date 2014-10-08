@@ -94,12 +94,6 @@ static void    prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retra
 static void    process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word);
 
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-static BOOLEAN l2c_corrupt_the_fcr_packet (tL2C_CCB *p_ccb, BT_HDR *p_buf,
-                                           BOOLEAN is_rx, UINT16 ctrl_word);
-static BOOLEAN l2c_bypass_sframe_packet (tL2C_CCB *p_ccb);
-#endif
-
 #if (L2CAP_ERTM_STATS == TRUE)
 static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked);
 #endif
@@ -524,12 +518,6 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     UINT16      ctrl_word;
     UINT16      fcs;
 
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-    /* Only used for conformance testing */
-    if (l2c_bypass_sframe_packet (p_ccb))
-        return;
-#endif
-
     if ((!p_ccb->in_use) || (p_ccb->chnl_state != CST_OPEN))
         return;
 
@@ -577,11 +565,6 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
             UINT16_TO_STREAM (p, L2CAP_FCR_OVERHEAD);
         }
 
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-        /* Get out if packet was dropped */
-        if (l2c_corrupt_the_fcr_packet (p_ccb, p_buf, FALSE, ctrl_word))
-            return;
-#endif
         /* Now, the HCI transport header */
         p_buf->layer_specific = L2CAP_NON_FLUSHABLE_PKT;
         l2cu_set_acl_hci_header (p_buf, p_ccb);
@@ -702,15 +685,6 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                         p_ccb->fcrb.last_ack_sent, GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q), p_ccb->fcrb.num_tries);
 
 #endif /* BT_TRACE_VERBOSE */
-
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-    p = ((UINT8 *)(p_buf+1)) + p_buf->offset;
-    STREAM_TO_UINT16 (ctrl_word, p);
-
-    /* Get out if packet was dropped */
-    if (l2c_corrupt_the_fcr_packet (p_ccb, p_buf, TRUE, ctrl_word))
-        return;
-#endif  /* L2CAP_CORRUPT_ERTM_PKTS */
 
     /* Verify FCS if using */
     if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
@@ -1638,16 +1612,6 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 
         p_buf->event = p_ccb->local_cid;
 
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-        /* Use sdu_len to hold the control word */
-        p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
-        STREAM_TO_UINT16 (sdu_len, p);
-
-        /* Get out if packet was dropped; just pretend it went out */
-        if (l2c_corrupt_the_fcr_packet (p_ccb, p_buf, FALSE, sdu_len))
-            return (NULL);
-#endif  /* L2CAP_CORRUPT_ERTM_PKTS */
-
 #if (L2CAP_ERTM_STATS == TRUE)
         p_ccb->fcrb.pkts_retransmitted++;
         p_ccb->fcrb.ertm_pkt_counts[0]++;
@@ -1782,17 +1746,6 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
             GKI_enqueue (&p_ccb->fcrb.waiting_for_ack_q, p_wack);
         }
 
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-        {
-            UINT16 ctrl_word;
-            p = ((UINT8 *) (p_xmit+1)) + p_xmit->offset + L2CAP_PKT_OVERHEAD;
-            STREAM_TO_UINT16 (ctrl_word, p);
-
-            /* Get out if packet was dropped; pretend it was sent */
-            if (l2c_corrupt_the_fcr_packet (p_ccb, p_xmit, FALSE, ctrl_word))
-                return (NULL);
-        }
-#endif
 #if (L2CAP_ERTM_STATS == TRUE)
         p_ccb->fcrb.ertm_pkt_counts[0]++;
         p_ccb->fcrb.ertm_byte_counts[0] += (p_xmit->len - 8);
@@ -2266,341 +2219,6 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
     return (fcr_ok);
 }
-
-
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-/*******************************************************************************
-**  Functions used for testing ERTM mode
-*/
-/* If FALSE, will also corrupt cid, length, control word, etc. */
-#ifndef L2CAP_CORR_FCS_ONLY
-#define L2CAP_CORR_FCS_ONLY TRUE
-#endif
-
-#define L2C_DISP_FRAME_SIZE 16
-/*******************************************************************************
-**
-** Function         l2c_corrupt_the_fcr_packet
-**
-** Description      This function is used for testing purposes only.
-**                  It systematically or randomly corrupts packets used with
-**                  ERTM channels.
-**
-** Returns          BOOLEAN   TRUE if packet was dropped,
-**                            FALSE if fcs corrupted or no corruption
-**
-*******************************************************************************/
-static BOOLEAN l2c_corrupt_the_fcr_packet (tL2C_CCB *p_ccb, BT_HDR *p_buf,
-                                           BOOLEAN is_rx, UINT16 ctrl_word)
-{
-    tL2C_FCR_TEST_CFG *p_cfg;
-    UINT32   tc;
-    UINT8   *p;
-    UINT32   xx;
-    char     buf[L2C_DISP_FRAME_SIZE];
-
-    if (!p_ccb || !p_ccb->fcrb.test_cb.cfg.in_use)
-        return FALSE;
-
-    /* Prepare bad FCS */
-    p = ((UINT8 *) (p_buf + 1)) + p_buf->offset;
-    tc = GKI_get_os_tick_count();
-    tc ^= p[p_buf->len - 1];
-    xx = tc % 47;
-
-    p_cfg = &p_ccb->fcrb.test_cb.cfg;
-#if 0
-    L2CAP_TRACE_DEBUG ("testcfg: type: %d, freq: %d (NRM-0, RDM-1), is_rx: %d, count: %d",
-        p_cfg->type, p_cfg->freq, p_cfg->is_rx, p_cfg->count);
-#endif
-    /* If not time to corrupt get out */
-    if (p_cfg->freq == L2CAP_FCR_FREQ_RANDOM)
-    {
-        if (xx != 0)
-            return FALSE;
-    }
-    else    /* check test criteria before corrupting */
-    {
-        if ( (p_cfg->count == 0)
-          || (p_cfg->is_rx != is_rx)
-          || ((UINT8)(ctrl_word & L2CAP_FCR_S_FRAME_BIT) != p_cfg->type) )
-        {
-            return FALSE;
-        }
-
-        /* Turn off if done */
-        if (--(p_cfg->count) == 0)
-        {
-            p_ccb->fcrb.test_cb.cfg.in_use = FALSE;
-        }
-    }
-
-#if L2CAP_CORR_FCS_ONLY == TRUE
-    /* Corrupt the FCS check */
-    p[p_buf->len - 1] = p[p_buf->len - 2] = 0;
-#else
-    /* If made it this far packet needs to be corrupted */
-    xx = tc % p_buf->len;
-
-    /* Make sure the value was changed */
-    if (p[xx + 1] == 0)
-        p[xx + 1] = 0x5A;
-
-    p[xx] = p[xx] ^ p[xx + 1];
-
-#if 1   /* Enable if not wishing to corrupting frame type */
-    {
-        UINT8 *p_temp = ((UINT8 *) (p_buf + 1)) + p_buf->offset;
-        p_temp += L2CAP_PKT_OVERHEAD;
-        if ((UINT16)((*p_temp) & 0x01) != (ctrl_word & 0x0001))
-        {
-            (*p_temp) |= (UINT8)(ctrl_word & 0x0001);
-        }
-    }
-#endif
-#endif
-
-    if (is_rx)
-    {
-        if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
-            BCM_STRCPY_S(buf, L2C_DISP_FRAME_SIZE, "Rx S-Frame");
-        else
-            BCM_STRCPY_S(buf, L2C_DISP_FRAME_SIZE, "Rx I-Frame");
-    }
-    else
-    {
-        if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
-            BCM_STRCPY_S(buf, L2C_DISP_FRAME_SIZE, "Tx S-Frame");
-        else
-            BCM_STRCPY_S(buf, L2C_DISP_FRAME_SIZE, "Tx I-Frame");
-    }
-
-    /* Lastly, just drop packet if FCS is not being used or if Tx */
-    if (!is_rx || p_ccb->bypass_fcs == L2CAP_BYPASS_FCS)
-    {
-        L2CAP_TRACE_ERROR ("-=-=-=-=-=-=-=-   Dropping %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
-                        buf, (UINT32)p_buf, tc, p_buf->len, xx, p_cfg->count);
-        GKI_freebuf(p_buf);
-        return TRUE;
-    }
-    else
-    {
-        L2CAP_TRACE_ERROR ("-=-=-=-=-=-=-=-   Corrupting %s packet (0x%04x) tc: %u  Buf Len: %u  xx: %u  count: %d",
-                        buf, (UINT32)p_buf, tc, p_buf->len, xx, p_cfg->count);
-    }
-
-    return FALSE;
-}
-
-
-/*******************************************************************************
-**
-** Function         L2CA_SetupErtmTest
-**
-** Description      This function is used for testing purposes only.
-**                  It corrupts or drops one or more packets used with ERTM channels.
-**
-** Parameters
-**                  cid - channel ID  (0 uses RFCOMM PSM's CID)
-**
-**                  type - type of test to run (L2CAP_FCR_TTYPE_CORR_IFRAMES
-**                                              L2CAP_FCR_TTYPE_CORR_SFRAME
-**                                              L2CAP_FCR_TTYPE_STOP_TEST
-**                                              L2CAP_FCR_TTYPE_GET_CID - returns rfcomm cid only)
-**
-**                  is_rx  - TRUE to corrupt Rx packet, FALSE for Tx packet)
-**
-**                  freq - L2CAP_FCR_FREQ_RANDOM    (turns on random corruptions/drops)
-**                         L2CAP_FCR_FREQ_NORMAL    (turns on test with "count" corruptions/drops)
-**
-**                  count - number of packets in a row to drop or corrupt
-**
-** Returns          CID of channel running test
-**
-*******************************************************************************/
-UINT16 L2CA_SetupErtmTest (UINT16 cid, UINT8 type, BOOLEAN is_rx, UINT8 freq, UINT16 count)
-{
-    tL2C_CCB *p_ccb = NULL;
-    tL2C_CCB *p_temp_ccb;
-    tL2C_FCR_TEST_CB *p_test_cb;
-    UINT16 xx;
-
-    /* If '0' tests run on top of RFCOMM CID if active */
-    if (cid == 0)
-    {
-        p_temp_ccb = l2cb.ccb_pool;
-        for (xx = 0; xx < MAX_L2CAP_CHANNELS; xx++, p_temp_ccb++)
-        {
-            /* Fixed channels don't have p_rcb's */
-            if (p_temp_ccb->in_use && p_temp_ccb->p_rcb && p_temp_ccb->p_rcb->psm == BT_PSM_RFCOMM)
-            {
-                p_ccb = p_temp_ccb;
-                cid = L2CAP_BASE_APPL_CID + xx;
-                break;
-            }
-        }
-    }
-    else
-        p_ccb = l2cu_find_ccb_by_cid (NULL, cid);
-
-    if (!p_ccb || type == L2CAP_FCR_TTYPE_GET_CID)
-    {
-        if (type == L2CAP_FCR_TTYPE_GET_CID)
-        {
-            L2CAP_TRACE_API ("L2CA_SetupErtmTest (GET_CID): cid = 0x%04x", cid);
-        }
-        return (cid);
-    }
-
-    p_test_cb = &p_ccb->fcrb.test_cb;
-
-    /* Turn off the current test */
-    if (type == L2CAP_FCR_TTYPE_STOP_TEST)
-    {
-        if (p_test_cb->cfg.in_use)
-        {
-            L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (OFF): cid 0x%04x", cid);
-        }
-        p_test_cb->cfg.in_use = FALSE;
-        p_test_cb->cfg.count = 0;
-    }
-
-    /* Process the new request */
-    else if (!p_test_cb->cfg.in_use)
-    {
-        /* count must be positive unless random is used */
-        if (!count && freq != L2CAP_FCR_FREQ_RANDOM)
-        {
-            L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (FAIL): Count = 0, freq = %d", freq);
-            return (cid);
-        }
-
-        L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (START): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
-                            cid, type, is_rx, freq, count);
-
-        p_test_cb->cfg.in_use = TRUE;
-        p_test_cb->cfg.freq = freq;
-        p_test_cb->cfg.type = type;
-        p_test_cb->cfg.is_rx = is_rx;
-        p_test_cb->cfg.count = count;
-    }
-    else /* Test already in progress so ignore */
-    {
-        L2CAP_TRACE_ERROR ("L2CA_SetupErtmTest (ignoring): cid 0x%04x, type %d, is_rx %d, freq %d, count %d",
-                            cid, type, is_rx, freq, count);
-    }
-
-    return (cid);
-}
-
-
-/*******************************************************************************
-** The following routines are only used in conjunction with Conformance testing
-********************************************************************************/
-
-/*******************************************************************************
-**
-** Function         L2CA_SendPolledSFrame
-**
-** Description      This function is used for testing purposes only.
-**                  It Sends a Polled RR or RNR to the peer
-**
-** Parameters
-**                  cid - channel ID
-**
-**                  sup_type - (L2CAP_FCR_SUP_RR or L2CAP_FCR_SUP_RNR)
-**
-** Returns          void
-**
-*******************************************************************************/
-void L2CA_SendPolledSFrame (UINT16 cid, UINT16 sup_type)
-{
-    tL2C_CCB *p_ccb = l2cu_find_ccb_by_cid (NULL, cid);
-
-    if (p_ccb && (sup_type == L2CAP_FCR_SUP_RR || sup_type == L2CAP_FCR_SUP_RNR))
-    {
-        l2c_fcr_send_S_frame (p_ccb, sup_type, L2CAP_FCR_P_BIT);
-    }
-    else
-    {
-        L2CAP_TRACE_ERROR ("L2CA_SendPolledSFrame(ERROR): sup_type %u, p_ccb 0x%07x",
-                            sup_type, (UINT32)p_ccb);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         l2c_bypass_sframe_packet
-**
-** Description      This function is used for testing purposes only.
-**                  It returns TRUE if S-Frame should be bypassed.
-**
-** Returns          void
-**
-*******************************************************************************/
-static BOOLEAN l2c_bypass_sframe_packet (tL2C_CCB *p_ccb)
-{
-    if (p_ccb && p_ccb->fcrb.test_cb.cfm.in_use)
-    {
-        if (p_ccb->fcrb.test_cb.cfm.skip_sframe_count > 0)
-        {
-            L2CAP_TRACE_ERROR ("l2c_bypass_sframe_packet (count %d)",
-                                p_ccb->fcrb.test_cb.cfm.skip_sframe_count);
-
-            if (--p_ccb->fcrb.test_cb.cfm.skip_sframe_count == 0)
-                p_ccb->fcrb.test_cb.cfm.in_use = FALSE;
-
-            /* Bypass sending S-Frame */
-            return TRUE;
-        }
-        else
-            p_ccb->fcrb.test_cb.cfm.in_use = FALSE;
-    }
-
-    return FALSE;
-}
-
-/*******************************************************************************
-**
-** Function         L2CA_BypassSFrame
-**
-** Description      This function is used for testing purposes only.
-**                  It skips sending 'count' S-Frames.
-**
-** Parameters
-**                  cid - channel ID
-**
-**                  count - Number of S-Frames to skip sending
-**
-** Returns          void
-**
-*******************************************************************************/
-void L2CA_BypassSFrame (UINT16 cid, UINT8 count)
-{
-    tL2C_CCB *p_ccb = l2cu_find_ccb_by_cid (NULL, cid);
-    tL2C_FCR_CFM_TEST_CB *p_test_cb;
-
-    if (!p_ccb)
-    {
-        L2CAP_TRACE_WARNING ("L2CA_BypassSFrame(ERROR): no p_ccb (0x%07x)", (UINT32)p_ccb);
-        return;
-    }
-
-    p_test_cb = &p_ccb->fcrb.test_cb.cfm;
-
-    /* Initiate test if not active */
-    if (!p_test_cb->in_use)
-    {
-        p_test_cb->in_use = TRUE;
-        p_test_cb->skip_sframe_count = count;
-    }
-    else
-    {
-        L2CAP_TRACE_WARNING ("L2CA_BypassSFrame(ERROR): already in use (ignoring...)");
-    }
-}
-
-#endif  /* L2CAP_CORRUPT_ERTM_PKTS == TRUE */
 
 #if (L2CAP_ERTM_STATS == TRUE)
 /*******************************************************************************

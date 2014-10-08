@@ -153,34 +153,6 @@ typedef enum
 
 #define L2CAP_MAX_FCR_CFG_TRIES         2       /* Config attempts before disconnecting */
 
-/* Only compiled in when in test mode. Production devices must not include
-*/
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-
-/* These are used for conformance and corruption testing only */
-typedef struct
-{
-    BOOLEAN in_use;                 /* TRUE if test in progress */
-    UINT8   type;                   /* Type of test to run or turns off random test */
-    UINT8   freq;                   /* One-shot or random */
-    BOOLEAN is_rx;                  /* TRUE if incoming packets */
-    UINT16  count;                  /* How many I-frames to drop in a row; used only with one-shot tests */
-} tL2C_FCR_TEST_CFG;
-
-typedef struct
-{
-    BOOLEAN in_use;                 /* TRUE if test in progress */
-    UINT8   skip_sframe_count;      /* Number of S-Frames to skip sending */
-} tL2C_FCR_CFM_TEST_CB;
-
-typedef struct
-{
-    tL2C_FCR_TEST_CFG       cfg;    /* Current corruption test configuration */
-    tL2C_FCR_CFM_TEST_CB    cfm;    /* Conformance test structure */
-} tL2C_FCR_TEST_CB;
-
-#endif /* L2CAP_CORRUPT_ERTM_PKTS == TRUE */
-
 typedef struct
 {
     UINT8       next_tx_seq;                /* Next sequence number to be Tx'ed         */
@@ -235,11 +207,6 @@ typedef struct
     UINT32      ack_q_count_min[L2CAP_ERTM_STATS_NUM_AVG];
     UINT32      ack_q_count_max[L2CAP_ERTM_STATS_NUM_AVG];
 #endif
-
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-    tL2C_FCR_TEST_CB test_cb;               /* Used for SVT and UPF testing */
-#endif
-
 } tL2C_FCRB;
 
 

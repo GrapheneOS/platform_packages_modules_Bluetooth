@@ -293,17 +293,4 @@
 #define L2CAP_FCR_INIT_CRC            0   /* Initial state of the CRC register */
 #define L2CAP_FCR_SEQ_MODULO          0x3F     /* Mask for sequence numbers (range 0 - 63) */
 
-/*************************************************************************************************
-** The following definitions are only used for internal testing of ERTM at the application level
-*************************************************************************************************/
-/* L2CA_SetupErtmTest() corruption test types */
-#define L2CAP_FCR_TTYPE_CORR_IFRAME     0       /* Corrupt one or more I-frames, based on count   */
-#define L2CAP_FCR_TTYPE_CORR_SFRAME     1       /* Corrupt an S-frame, (acknowledgement) */
-#define L2CAP_FCR_TTYPE_STOP_TEST       2       /* Used when turning off a test */
-#define L2CAP_FCR_TTYPE_GET_CID         3       /* Returns RFCOMM cid when '0' is passed in cid argument */
-
-/* L2CA_SetupErtmTest() Freq */
-#define L2CAP_FCR_FREQ_NORMAL           0       /* A single test is run */
-#define L2CAP_FCR_FREQ_RANDOM           1       /* Randomly loses or corrupts a packet */
-
 #endif

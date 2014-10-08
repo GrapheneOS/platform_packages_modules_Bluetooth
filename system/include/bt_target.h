@@ -822,11 +822,6 @@ extern "C" {
 #define L2CAP_ERTM_STATS                    FALSE
 #endif
 
-/* USED FOR FCR TEST ONLY:  When TRUE generates bad tx and rx packets */
-#ifndef L2CAP_CORRUPT_ERTM_PKTS
-#define L2CAP_CORRUPT_ERTM_PKTS             FALSE
-#endif
-
 /* Used for conformance testing ONLY:  When TRUE lets scriptwrapper overwrite info response */
 #ifndef L2CAP_CONFORMANCE_TESTING
 #define L2CAP_CONFORMANCE_TESTING           FALSE
