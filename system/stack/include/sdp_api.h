@@ -49,11 +49,6 @@
 #define  SDP_CONN_REJECTED                  0xFFF7
 #define  SDP_CANCEL                         0xFFF8
 
-/* these result codes are used only when SDP_FOR_JV_INCLUDED==TRUE */
-#define  SDP_EVT_OPEN                       0x00F0 /* connected */
-#define  SDP_EVT_DATA_IND                   0x00F1 /* data ind */
-#define  SDP_EVT_CLOSE                      0x00F2 /* disconnected */
-
 /* Define the PSM that SDP uses */
 #define SDP_PSM     0x0001
 

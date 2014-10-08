@@ -150,7 +150,6 @@ enum
 {
     SDP_IS_SEARCH,
     SDP_IS_ATTR_SEARCH,
-    SDP_IS_PASS_THRU    /* only when SDP_FOR_JV_INCLUDED == TRUE */
 };
 
 #if SDP_SERVER_ENABLED == TRUE
@@ -204,7 +203,6 @@ typedef struct
 #define SDP_DISC_WAIT_HANDLES       1
 #define SDP_DISC_WAIT_ATTR          2
 #define SDP_DISC_WAIT_SEARCH_ATTR   3
-#define SDP_DISC_WAIT_PASS_THRU     4    /* only when SDP_FOR_JV_INCLUDED == TRUE */
 #define SDP_DISC_WAIT_CANCEL        5
 
     UINT8             disc_state;

@@ -45,11 +45,6 @@ typedef UINT8 tBTA_JV_STATUS;
 #define BTA_JV_MAX_UUIDS        SDP_MAX_UUID_FILTERS
 #define BTA_JV_MAX_ATTRS        SDP_MAX_ATTR_FILTERS
 #define BTA_JV_MAX_SDP_REC      SDP_MAX_RECORDS
-#if SDP_FOR_JV_INCLUDED == TRUE
-#define BTA_JV_MAX_L2C_CONN     (GAP_MAX_CONNECTIONS + 1)
-#else
-#define BTA_JV_MAX_L2C_CONN     GAP_MAX_CONNECTIONS
-#endif
 #define BTA_JV_MAX_SCN          PORT_MAX_RFC_PORTS /* same as BTM_MAX_SCN (in btm_int.h) */
 #define BTA_JV_MAX_RFC_CONN     MAX_RFC_PORTS
 
@@ -80,15 +75,6 @@ enum
     BTA_JV_DISC_GENERAL
 };
 typedef UINT16 tBTA_JV_DISC;
-
-/* Security Mode (BTA_JvGetSecurityMode) */
-#define BTA_JV_SEC_MODE_UNDEFINED   BTM_SEC_MODE_UNDEFINED  /* 0 */
-#define BTA_JV_SEC_MODE_NONE        BTM_SEC_MODE_NONE       /* 1 */
-#define BTA_JV_SEC_MODE_SERVICE     BTM_SEC_MODE_SERVICE    /* 2 */
-#define BTA_JV_SEC_MODE_LINK        BTM_SEC_MODE_LINK       /* 3 */
-#define BTA_JV_SEC_MODE_SP          BTM_SEC_MODE_SP         /* 4 */
-#define BTA_JV_SEC_MODE_SP_DEBUG    BTM_SEC_MODE_SP_DEBUG   /* 5 */
-typedef UINT8 tBTA_JV_SEC_MODE;
 
 #define BTA_JV_ROLE_SLAVE       BTM_ROLE_SLAVE
 #define BTA_JV_ROLE_MASTER      BTM_ROLE_MASTER
@@ -136,32 +122,8 @@ typedef UINT8 tBTA_JV_CONN_STATE;
 /* Java I/F callback events */
 /* events received by tBTA_JV_DM_CBACK */
 #define BTA_JV_ENABLE_EVT           0  /* JV enabled */
-#define BTA_JV_SET_DISCOVER_EVT     1  /* the result for BTA_JvSetDiscoverability */
-// (zachoverflow): removed 2 because it's obsolete now
-#define BTA_JV_LOCAL_NAME_EVT       3  /* Local device name */
-#define BTA_JV_REMOTE_NAME_EVT      4  /* Remote device name */
-#define BTA_JV_SET_ENCRYPTION_EVT   5  /* Set Encryption */
-#define BTA_JV_GET_SCN_EVT          6  /* Reserved an SCN */
-#define BTA_JV_GET_PSM_EVT          7  /* Reserved a PSM */
 #define BTA_JV_DISCOVERY_COMP_EVT   8  /* SDP discovery complete */
-#define BTA_JV_SERVICES_LEN_EVT     9  /* the result for BTA_JvGetServicesLength */
-#define BTA_JV_SERVICE_SEL_EVT      10 /* the result for BTA_JvServiceSelect */
 #define BTA_JV_CREATE_RECORD_EVT    11 /* the result for BTA_JvCreateRecord */
-#define BTA_JV_UPDATE_RECORD_EVT    12 /* the result for BTA_JvUpdateRecord */
-#define BTA_JV_ADD_ATTR_EVT         13 /* the result for BTA_JvAddAttribute */
-#define BTA_JV_DELETE_ATTR_EVT      14 /* the result for BTA_JvDeleteAttribute */
-#define BTA_JV_CANCEL_DISCVRY_EVT   15 /* the result for BTA_JvCancelDiscovery */
-
-/* events received by tBTA_JV_L2CAP_CBACK */
-#define BTA_JV_L2CAP_OPEN_EVT       16 /* open status of L2CAP connection */
-#define BTA_JV_L2CAP_CLOSE_EVT      17 /* L2CAP connection closed */
-#define BTA_JV_L2CAP_START_EVT      18 /* L2CAP server started */
-#define BTA_JV_L2CAP_CL_INIT_EVT    19 /* L2CAP client initiated a connection */
-#define BTA_JV_L2CAP_DATA_IND_EVT   20 /* L2CAP connection received data */
-#define BTA_JV_L2CAP_CONG_EVT       21 /* L2CAP connection congestion status changed */
-#define BTA_JV_L2CAP_READ_EVT       22 /* the result for BTA_JvL2capRead */
-#define BTA_JV_L2CAP_RECEIVE_EVT    23 /* the result for BTA_JvL2capReceive*/
-#define BTA_JV_L2CAP_WRITE_EVT      24 /* the result for BTA_JvL2capWrite*/
 
 /* events received by tBTA_JV_RFCOMM_CBACK */
 #define BTA_JV_RFCOMM_OPEN_EVT      25 /* open status of RFCOMM Client connection */
@@ -191,128 +153,11 @@ typedef struct
     int scn;                    /* channel # */
 } tBTA_JV_DISCOVERY_COMP;
 
-/* data associated with BTA_JV_SET_ENCRYPTION_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    BD_ADDR     bd_addr;        /* The peer address */
-} tBTA_JV_SET_ENCRYPTION;
-
-/* data associated with BTA_JV_SERVICES_LEN_EVT */
-typedef struct
-{
-    INT32       num_services;       /* -1, if error. Otherwise, the number of
-                                     * services collected from peer */
-    UINT16      *p_services_len;    /* this points the same location as the
-                                     * parameter in BTA_JvGetServicesLength() */
-} tBTA_JV_SERVICES_LEN;
-
-/* data associated with BTA_JV_SERVICE_SEL_EVT */
-typedef struct
-{
-    BD_ADDR     bd_addr;            /* The peer address */
-    UINT16      service_len;        /* the length of this record */
-} tBTA_JV_SERVICE_SEL;
-
 /* data associated with BTA_JV_CREATE_RECORD_EVT */
 typedef struct
 {
    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
 } tBTA_JV_CREATE_RECORD;
-
-/* data associated with BTA_JV_UPDATE_RECORD_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The SDP record handle was updated */
-} tBTA_JV_UPDATE_RECORD;
-
-/* data associated with BTA_JV_ADD_ATTR_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The SDP record handle was updated */
-} tBTA_JV_ADD_ATTR;
-
-/* data associated with BTA_JV_DELETE_ATTR_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The SDP record handle was updated */
-} tBTA_JV_DELETE_ATTR;
-
-/* data associated with BTA_JV_L2CAP_OPEN_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    BD_ADDR         rem_bda;    /* The peer address */
-    INT32           tx_mtu;     /* The transmit MTU */
-} tBTA_JV_L2CAP_OPEN;
-
-/* data associated with BTA_JV_L2CAP_CLOSE_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    BOOLEAN         async;      /* FALSE, if local initiates disconnect */
-} tBTA_JV_L2CAP_CLOSE;
-
-/* data associated with BTA_JV_L2CAP_START_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    UINT8           sec_id;     /* security ID used by this server */
-} tBTA_JV_L2CAP_START;
-
-/* data associated with BTA_JV_L2CAP_CL_INIT_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    UINT8           sec_id;     /* security ID used by this client */
-} tBTA_JV_L2CAP_CL_INIT;
-
-/* data associated with BTA_JV_L2CAP_CONG_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    BOOLEAN         cong;       /* TRUE, congested. FALSE, uncongested */
-} tBTA_JV_L2CAP_CONG;
-
-/* data associated with BTA_JV_L2CAP_READ_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capRead() */
-    UINT8           *p_data;    /* This points the same location as the p_data
-                                 * parameter in BTA_JvL2capRead () */
-    UINT16          len;        /* The length of the data read. */
-} tBTA_JV_L2CAP_READ;
-
-/* data associated with BTA_JV_L2CAP_RECEIVE_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capReceive() */
-    UINT8           *p_data;    /* This points the same location as the p_data
-                                 * parameter in BTA_JvL2capReceive () */
-    UINT16          len;        /* The length of the data read. */
-} tBTA_JV_L2CAP_RECEIVE;
-
-/* data associated with BTA_JV_L2CAP_WRITE_EVT */
-typedef struct
-{
-    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
-    UINT32          handle;     /* The connection handle */
-    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capWrite() */
-    UINT16          len;        /* The length of the data written. */
-    BOOLEAN         cong;       /* congestion status */
-} tBTA_JV_L2CAP_WRITE;
 
 /* data associated with BTA_JV_RFCOMM_OPEN_EVT */
 typedef struct
@@ -414,24 +259,7 @@ typedef union
     tBTA_JV_STATUS          status;         /* BTA_JV_ENABLE_EVT */
     tBTA_JV_DISCOVERY_COMP  disc_comp;      /* BTA_JV_DISCOVERY_COMP_EVT */
     tBTA_JV_SET_DISCOVER    set_discover;   /* BTA_JV_SET_DISCOVER_EVT */
-    tBTA_JV_SET_ENCRYPTION  set_encrypt;    /* BTA_JV_SET_ENCRYPTION_EVT */
-    UINT8                   *p_name;        /* BTA_JV_LOCAL_NAME_EVT,
-                                               BTA_JV_REMOTE_NAME_EVT */
-    UINT8                   scn;            /* BTA_JV_GET_SCN_EVT */
-    UINT16                  psm;            /* BTA_JV_GET_PSM_EVT */
-    tBTA_JV_SERVICES_LEN    servs_len;      /* BTA_JV_SERVICES_LEN_EVT */
-    tBTA_JV_SERVICE_SEL     serv_sel;       /* BTA_JV_SERVICE_SEL_EVT */
     tBTA_JV_CREATE_RECORD   create_rec;     /* BTA_JV_CREATE_RECORD_EVT */
-    tBTA_JV_UPDATE_RECORD   update_rec;     /* BTA_JV_UPDATE_RECORD_EVT */
-    tBTA_JV_ADD_ATTR        add_attr;       /* BTA_JV_ADD_ATTR_EVT */
-    tBTA_JV_DELETE_ATTR     del_attr;       /* BTA_JV_DELETE_ATTR_EVT */
-    tBTA_JV_L2CAP_OPEN      l2c_open;       /* BTA_JV_L2CAP_OPEN_EVT */
-    tBTA_JV_L2CAP_CLOSE     l2c_close;      /* BTA_JV_L2CAP_CLOSE_EVT */
-    tBTA_JV_L2CAP_START     l2c_start;      /* BTA_JV_L2CAP_START_EVT */
-    tBTA_JV_L2CAP_CL_INIT   l2c_cl_init;    /* BTA_JV_L2CAP_CL_INIT_EVT */
-    tBTA_JV_L2CAP_CONG      l2c_cong;       /* BTA_JV_L2CAP_CONG_EVT */
-    tBTA_JV_L2CAP_READ      l2c_read;       /* BTA_JV_L2CAP_READ_EVT */
-    tBTA_JV_L2CAP_WRITE     l2c_write;      /* BTA_JV_L2CAP_WRITE_EVT */
     tBTA_JV_RFCOMM_OPEN     rfc_open;       /* BTA_JV_RFCOMM_OPEN_EVT */
     tBTA_JV_RFCOMM_SRV_OPEN rfc_srv_open;   /* BTA_JV_RFCOMM_SRV_OPEN_EVT */
     tBTA_JV_RFCOMM_CLOSE    rfc_close;      /* BTA_JV_RFCOMM_CLOSE_EVT */
@@ -450,9 +278,6 @@ typedef void (tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void * user_
 /* JAVA RFCOMM interface callback */
 typedef void* (tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 
-/* JAVA L2CAP interface callback */
-typedef void (tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data);
-
 /* JV configuration structure */
 typedef struct
 {
@@ -461,14 +286,6 @@ typedef struct
     UINT8   *p_sdp_raw_data;        /* The data buffer to keep raw data */
     tSDP_DISCOVERY_DB   *p_sdp_db;  /* The data buffer to keep SDP database */
 } tBTA_JV_CFG;
-
-/*****************************************************************************
-**  External Function Declarations
-*****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*******************************************************************************
 **
@@ -510,154 +327,6 @@ extern BOOLEAN BTA_JvIsEnable(void);
 
 /*******************************************************************************
 **
-** Function         BTA_JvSetDiscoverability
-**
-** Description      This function sets the Bluetooth  discoverable modes
-**                  of the local device.  This controls whether other
-**                  Bluetooth devices can find the local device.
-**
-**                  When the operation is complete the tBTA_JV_DM_CBACK callback
-**                  function will be called with a BTA_JV_SET_DISCOVER_EVT.
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvSetDiscoverability(tBTA_JV_DISC disc_mode);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetDiscoverability
-**
-** Description      This function gets the Bluetooth
-**                  discoverable modes of local device
-**
-** Returns          The current Bluetooth discoverable mode.
-**
-*******************************************************************************/
-extern tBTA_JV_DISC BTA_JvGetDiscoverability(void);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetLocalDeviceName
-**
-** Description      This function obtains the name of the local device
-**                  The local Bluetooth device name is reported by the
-**                  tBTA_JV_DM_CBACK callback with a BTA_JV_LOCAL_NAME_EVT.
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvGetLocalDeviceName(void);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetRemoteDeviceName
-**
-** Description      This function obtains the name of the specified device.
-**                  The Bluetooth device name is reported by the
-**                  tBTA_JV_DM_CBACK callback with a BTA_JV_REMOTE_NAME_EVT.
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvGetRemoteDeviceName(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetPreknownDevice
-**
-** Description      This function obtains the Bluetooth address in the inquiry
-**                  database collected via the previous call to BTA_DmSearch().
-**
-** Returns          The number of preknown devices if p_bd_addr is NULL
-**                  BTA_JV_SUCCESS if successful.
-**                  BTA_JV_INTERNAL_ERR(-1) if internal failure.
-**
-*******************************************************************************/
-extern INT32 BTA_JvGetPreknownDevice(UINT8 * p_bd_addr, UINT32 index);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetDeviceClass
-**
-** Description      This function obtains the local Class of Device.
-**
-** Returns          DEV_CLASS, A three-byte array of UINT8 that contains the
-**                  Class of Device information. The definitions are in the
-**                  "Bluetooth Assigned Numbers".
-**
-*******************************************************************************/
-extern UINT8 * BTA_JvGetDeviceClass(void);
-
-/*******************************************************************************
-**
-** Function         BTA_JvSetServiceClass
-**
-** Description      This function sets the service class of local Class of Device
-**
-** Returns          BTA_JV_SUCCESS if successful.
-**                  BTA_JV_FAIL if internal failure.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvSetServiceClass(UINT32 service);
-
-/*******************************************************************************
-**
-** Function         BTA_JvSetEncryption
-**
-** Description      This function ensures that the connection to the given device
-**                  is encrypted.
-**                  When the operation is complete the tBTA_JV_DM_CBACK callback
-**                  function will be called with a BTA_JV_SET_ENCRYPTION_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvSetEncryption(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_JvIsAuthenticated
-**
-** Description      This function checks if the peer device is authenticated
-**
-** Returns          TRUE if authenticated.
-**                  FALSE if not.
-**
-*******************************************************************************/
-extern BOOLEAN BTA_JvIsAuthenticated(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_JvIsTrusted
-**
-** Description      This function checks if the peer device is trusted
-**                  (previously paired)
-**
-** Returns          TRUE if trusted.
-**                  FALSE if not.
-**
-*******************************************************************************/
-extern BOOLEAN BTA_JvIsTrusted(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_JvIsAuthorized
-**
-** Description      This function checks if the peer device is authorized
-**
-** Returns          TRUE if authorized.
-**                  FALSE if not.
-**
-*******************************************************************************/
-extern BOOLEAN BTA_JvIsAuthorized(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
 ** Function         BTA_JvIsEncrypted
 **
 ** Description      This function checks if the link to peer device is encrypted
@@ -667,65 +336,6 @@ extern BOOLEAN BTA_JvIsAuthorized(BD_ADDR bd_addr);
 **
 *******************************************************************************/
 extern BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetSecurityMode
-**
-** Description      This function returns the current Bluetooth security mode
-**                  of the local device
-**
-** Returns          The current Bluetooth security mode.
-**
-*******************************************************************************/
-extern tBTA_JV_SEC_MODE BTA_JvGetSecurityMode(void);
-
-/* BTA_JvIsMaster is replaced by BTA_DmIsMaster */
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetSCN
-**
-** Description      This function reserves a SCN (server channel number) for
-**                  applications running over RFCOMM. It is primarily called by
-**                  server profiles/applications to register their SCN into the
-**                  SDP database. The SCN is reported by the tBTA_JV_DM_CBACK
-**                  callback with a BTA_JV_GET_SCN_EVT.
-**                  If the SCN reported is 0, that means all SCN resources are
-**                  exhausted.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvGetSCN(void);
-
-/*******************************************************************************
-**
-** Function         BTA_JvFreeSCN
-**
-** Description      This function frees a server channel number that was used
-**                  by an application running over RFCOMM.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvFreeSCN(UINT8 scn);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetPSM
-**
-** Description      This function reserves a PSM (Protocol Service Multiplexer)
-**                  applications running over L2CAP. It is primarily called by
-**                  server profiles/applications to register their PSM into the
-**                  SDP database.
-**
-** Returns          The next free PSM
-**
-*******************************************************************************/
-extern UINT16 BTA_JvGetPSM(void);
 
 /*******************************************************************************
 **
@@ -745,83 +355,6 @@ extern tBTA_JV_STATUS BTA_JvStartDiscovery(BD_ADDR bd_addr, UINT16 num_uuid,
 
 /*******************************************************************************
 **
-** Function         BTA_JvCancelDiscovery
-**
-** Description      This function cancels an active service discovery.
-**                  When the operation is
-**                  complete the tBTA_JV_DM_CBACK callback function will be
-**                  called with a BTA_JV_CANCEL_DISCVRY_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvCancelDiscovery(void * user_data);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetServicesLength
-**
-** Description      This function obtains the number of services and the length
-**                  of each service found in the SDP database (result of last
-**                  BTA_JvStartDiscovery().When the operation is complete the
-**                  tBTA_JV_DM_CBACK callback function will be called with a
-**                  BTA_JV_SERVICES_LEN_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvGetServicesLength(BOOLEAN inc_hdr, UINT16 *p_services_len);
-
-/*******************************************************************************
-**
-** Function         BTA_JvGetServicesResult
-**
-** Description      This function returns a number of service records found
-**                  during current service search, equals to the number returned
-**                  by previous call to BTA_JvGetServicesLength.
-**                  The contents of each SDP record will be returned under a
-**                  TLV (type, len, value) representation in the data buffer
-**                  provided by the caller.
-**
-** Returns          -1, if error. Otherwise, the number of services
-**
-*******************************************************************************/
-extern INT32 BTA_JvGetServicesResult(BOOLEAN inc_hdr, UINT8 **TLVs);
-
-/*******************************************************************************
-**
-** Function         BTA_JvServiceSelect
-**
-** Description      This function checks if the SDP database contains the given
-**                  service UUID. When the operation is complete the
-**                  tBTA_JV_DM_CBACK callback function will be called with a
-**                  BTA_JV_SERVICE_SEL_EVT with the length of the service record.
-**                  If the service is not found or error, -1 is reported.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvServiceSelect(UINT16 uuid);
-
-/*******************************************************************************
-**
-** Function         BTA_JvServiceResult
-**
-** Description      This function returns the contents of the SDP record from
-**                  last BTA_JvServiceSelect. The contents will be returned under
-**                  a TLV (type, len, value) representation in the data buffer
-**                  provided by the caller.
-**
-** Returns          -1, if error. Otherwise, the length of service record.
-**
-*******************************************************************************/
-extern INT32 BTA_JvServiceResult(UINT8 *TLV);
-
-/*******************************************************************************
-**
 ** Function         BTA_JvCreateRecord
 **
 ** Description      Create a service record in the local SDP database by user in
@@ -835,50 +368,6 @@ extern tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
 
 /*******************************************************************************
 **
-** Function         BTA_JvUpdateRecord
-**
-** Description      Update a service record in the local SDP database.
-**                  When the operation is complete the tBTA_JV_DM_CBACK callback
-**                  function will be called with a BTA_JV_UPDATE_RECORD_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvUpdateRecord(UINT32 handle, UINT16 *p_ids,
-                                         UINT8 **p_values, INT32 *p_value_sizes, INT32 array_len);
-
-/*******************************************************************************
-**
-** Function         BTA_JvAddAttribute
-**
-** Description      Add an attribute to a service record in the local SDP database.
-**                  When the operation is complete the tBTA_JV_DM_CBACK callback
-**                  function will be called with a BTA_JV_ADD_ATTR_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvAddAttribute(UINT32 handle, UINT16 attr_id,
-                                         UINT8 *p_value, INT32 value_size);
-
-/*******************************************************************************
-**
-** Function         BTA_JvDeleteAttribute
-**
-** Description      Delete an attribute from a service record in the local SDP database.
-**                  When the operation is complete the tBTA_JV_DM_CBACK callback
-**                  function will be called with a BTA_JV_DELETE_ATTR_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_id);
-
-/*******************************************************************************
-**
 ** Function         BTA_JvDeleteRecord
 **
 ** Description      Delete a service record in the local SDP database.
@@ -888,141 +377,6 @@ extern tBTA_JV_STATUS BTA_JvDeleteAttribute(UINT32 handle, UINT16 attr_id);
 **
 *******************************************************************************/
 extern tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle);
-
-/*******************************************************************************
-**
-** Function         BTA_JvReadRecord
-**
-** Description      Read a service record in the local SDP database.
-**
-** Returns          -1, if the record is not found.
-**                  Otherwise, the offset (0 or 1) to start of data in p_data.
-**
-**                  The size of data copied into p_data is in *p_data_len.
-**
-*******************************************************************************/
-extern INT32 BTA_JvReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capConnect
-**
-** Description      Initiate a connection as a L2CAP client to the given BD
-**                  Address.
-**                  When the connection is initiated or failed to initiate,
-**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_CL_INIT_EVT
-**                  When the connection is established or failed,
-**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask,
-                                         tBTA_JV_ROLE role,  UINT16 remote_psm, UINT16 rx_mtu,
-                                         BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capClose
-**
-** Description      This function closes an L2CAP client connection
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capStartServer
-**
-** Description      This function starts an L2CAP server and listens for an L2CAP
-**                  connection from a remote Bluetooth device.  When the server
-**                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
-**                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
-**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
-                                             UINT16 local_psm, UINT16 rx_mtu,
-                                             tBTA_JV_L2CAP_CBACK *p_cback);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capStopServer
-**
-** Description      This function stops the L2CAP server. If the server has an
-**                  active connection, it would be closed.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capRead
-**
-** Description      This function reads data from an L2CAP connection
-**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
-**                  called with BTA_JV_L2CAP_READ_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id,
-                                      UINT8 *p_data, UINT16 len);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capReceive
-**
-** Description      This function reads data from an L2CAP connection
-**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
-**                  called with BTA_JV_L2CAP_RECEIVE_EVT.
-**                  If there are more data queued in L2CAP than len, the extra data will be discarded.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id,
-                                         UINT8 *p_data, UINT16 len);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capReady
-**
-** Description      This function determined if there is data to read from
-**                  an L2CAP connection
-**
-** Returns          BTA_JV_SUCCESS, if data queue size is in *p_data_size.
-**                  BTA_JV_FAILURE, if error.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size);
-
-/*******************************************************************************
-**
-** Function         BTA_JvL2capWrite
-**
-** Description      This function writes data to an L2CAP connection
-**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
-**                  called with BTA_JV_L2CAP_WRITE_EVT.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
-                                       UINT8 *p_data, UINT16 len);
 
 /*******************************************************************************
 **
@@ -1162,9 +516,5 @@ extern tBTA_JV_STATUS BTA_JvSetPmProfile(UINT32 handle, tBTA_JV_PM_ID app_id,
 **
 *******************************************************************************/
 UINT16 BTA_JvRfcommGetPortHdl(UINT32 handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_JV_API_H */

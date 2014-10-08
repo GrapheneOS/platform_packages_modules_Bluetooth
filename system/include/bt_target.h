@@ -1585,11 +1585,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #define SDP_RAW_DATA_INCLUDED       TRUE
 #endif
 
-/* TRUE, to allow JV to create L2CAP connection on SDP PSM. */
-#ifndef SDP_FOR_JV_INCLUDED
-#define SDP_FOR_JV_INCLUDED         FALSE
-#endif
-
 /* Inquiry duration in 1.28 second units. */
 #ifndef SDP_DEBUG
 #define SDP_DEBUG                   TRUE
