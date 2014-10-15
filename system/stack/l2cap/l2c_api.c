@@ -710,6 +710,19 @@ BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
 
 }
 
+bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle) {
+  tL2C_CCB *control_block = l2cu_find_ccb_by_cid(NULL, lcid);
+  if (!control_block)
+    return false;
+
+  if (rcid)
+    *rcid = control_block->remote_cid;
+  if (handle)
+    *handle = control_block->p_lcb->handle;
+
+  return true;
+}
+
 /*******************************************************************************
 **
 ** Function         L2CA_SetIdleTimeout

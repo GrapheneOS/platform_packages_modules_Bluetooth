@@ -24,6 +24,8 @@
 #ifndef L2C_API_H
 #define L2C_API_H
 
+#include <stdbool.h>
+
 #include "bt_target.h"
 #include "l2cdefs.h"
 #include "hcidefs.h"
@@ -514,6 +516,12 @@ extern BOOLEAN L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_cb);
 **
 *******************************************************************************/
 extern BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_callback);
+
+// Given a local channel identifier, |lcid|, this function returns the bound remote
+// channel identifier, |rcid|, and the ACL link handle, |handle|. If |lcid| is not
+// known or is invalid, this function returns false and does not modify the values
+// pointed at by |rcid| and |handle|. |rcid| and |handle| may be NULL.
+bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle);
 
 /*******************************************************************************
 **
