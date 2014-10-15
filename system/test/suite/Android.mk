@@ -32,7 +32,6 @@ LOCAL_SRC_FILES := \
     support/callbacks.c \
     support/hal.c \
     support/pan.c \
-    support/property.c \
     main.c
 
 LOCAL_SHARED_LIBRARIES += \
@@ -40,7 +39,9 @@ LOCAL_SHARED_LIBRARIES += \
     libhardware \
     libhardware_legacy
 
-LOCAL_STATIC_LIBRARIES += libosi
+LOCAL_STATIC_LIBRARIES += \
+  libbtcore \
+  libosi
 
 LOCAL_CFLAGS += -std=c99 -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 

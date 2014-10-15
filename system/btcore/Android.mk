@@ -27,6 +27,7 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
     src/bdaddr.c \
     src/module.c \
+    src/property.c \
     src/uuid.c
 
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)

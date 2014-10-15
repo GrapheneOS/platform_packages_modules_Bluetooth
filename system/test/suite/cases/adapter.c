@@ -19,7 +19,7 @@
 #include "base.h"
 #include "support/adapter.h"
 #include "support/callbacks.h"
-#include "support/property.h"
+#include "btcore/include/property.h"
 
 bool adapter_enable_disable() {
   int error;

@@ -19,25 +19,22 @@
 #include "base.h"
 #include "support/callbacks.h"
 
+// Bluetooth callbacks
+void acl_state_changed(bt_status_t status, bt_bdaddr_t *remote_bd_addr, bt_acl_state_t state);
+void adapter_properties(bt_status_t status, int num_properties, bt_property_t *properties);
 void adapter_state_changed(bt_state_t state);
-void adapter_properties(bt_status_t status,
-                        int num_properties,
-                        bt_property_t *properties);
+void bond_state_changed(bt_status_t status, bt_bdaddr_t *remote_bd_addr, bt_bond_state_t state);
+
+void device_found(int num_properties, bt_property_t *properties);
 void discovery_state_changed(bt_discovery_state_t state);
+void remote_device_properties(bt_status_t status, bt_bdaddr_t *bd_addr, int num_properties, bt_property_t *properties);
+void ssp_request(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *bd_name, uint32_t cod, bt_ssp_variant_t pairing_variant, uint32_t pass_key);
+void thread_evt(bt_cb_thread_evt evt);
 
-void pan_control_state_changed(btpan_control_state_t state, int local_role, bt_status_t error, const char *ifname);
+// PAN callbacks
 void pan_connection_state_changed(btpan_connection_state_t state, bt_status_t error, const bt_bdaddr_t *bd_addr, int local_role, int remote_role);
+void pan_control_state_changed(btpan_control_state_t state, int local_role, bt_status_t error, const char *ifname);
 
-static void remote_device_properties(bt_status_t status,
-                                     bt_bdaddr_t *bd_addr,
-                                     int num_properties,
-                                     bt_property_t *properties) {
-  CALLBACK_RET();
-}
-
-static void thread_evt(bt_cb_thread_evt evt) {
-  CALLBACK_RET();
-}
 
 static struct {
   const char *name;
@@ -47,12 +44,12 @@ static struct {
   { "adapter_state_changed" },
   { "adapter_properties" },
   { "remote_device_properties" },
-  {},
+  { "device_found" },
   { "discovery_state_changed" },
   {},
-  {},
-  {},
-  {},
+  { "ssp_request" },
+  { "bond_state_changed" },
+  { "acl_state_changed" },
   { "thread_evt" },
   {},
   {},
@@ -67,12 +64,12 @@ static bt_callbacks_t bt_callbacks = {
   adapter_state_changed,     // adapter_state_changed_callback
   adapter_properties,        // adapter_properties_callback
   remote_device_properties,  // remote_device_properties_callback
-  NULL,                      // device_found_callback
+  device_found,              // device_found_callback
   discovery_state_changed,   // discovery_state_changed_callback
   NULL,                      // pin_request_callback
-  NULL,                      // ssp_request_callback
-  NULL,                      // bond_state_changed_callback
-  NULL,                      // acl_state_changed_callback
+  ssp_request,               // ssp_request_callback
+  bond_state_changed,        // bond_state_changed_callback
+  acl_state_changed,         // acl_state_changed_callback
   thread_evt,                // callback_thread_event
   NULL,                      // dut_mode_recv_callback
   NULL,                      // le_test_mode_callback

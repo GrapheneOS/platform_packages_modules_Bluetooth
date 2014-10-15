@@ -16,18 +16,18 @@
  *
  ******************************************************************************/
 
-#include "base.h"
-#include "support/property.h"
+#include "allocator.h"
+#include "property.h"
 
 bt_property_t *property_copy_array(const bt_property_t *properties, size_t count) {
-  bt_property_t *clone = calloc(sizeof(bt_property_t), count);
+  bt_property_t *clone = osi_calloc(sizeof(bt_property_t) * count);
   if (!clone) {
     return NULL;
   }
 
   memcpy(&clone[0], &properties[0], sizeof(bt_property_t) * count);
   for (size_t i = 0; i < count; ++i) {
-    clone[i].val = calloc(clone[i].len, 1);
+    clone[i].val = osi_calloc(clone[i].len);
     memcpy(clone[i].val, properties[i].val, clone[i].len);
   }
 
@@ -35,8 +35,8 @@ bt_property_t *property_copy_array(const bt_property_t *properties, size_t count
 }
 
 bt_property_t *property_new_name(const char *name) {
-  bt_bdname_t *bdname = calloc(sizeof(bt_bdname_t), 1);
-  bt_property_t *property = calloc(sizeof(bt_property_t), 1);
+  bt_bdname_t *bdname = osi_calloc(sizeof(bt_bdname_t));
+  bt_property_t *property = osi_calloc(sizeof(bt_property_t));
 
   property->type = BT_PROPERTY_BDNAME;
   property->val = bdname;
@@ -48,14 +48,27 @@ bt_property_t *property_new_name(const char *name) {
 }
 
 bt_property_t *property_new_discovery_timeout(uint32_t timeout) {
-  uint32_t *val = malloc(sizeof(uint32_t));
-  bt_property_t *property = malloc(sizeof(bt_property_t));
+  uint32_t *val = osi_malloc(sizeof(uint32_t));
+  bt_property_t *property = osi_malloc(sizeof(bt_property_t));
 
   property->type = BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT;
   property->val = val;
   property->len = sizeof(uint32_t);
 
   *val = timeout;
+
+  return property;
+}
+
+bt_property_t *property_new_scan_mode(bt_scan_mode_t scan_mode) {
+  bt_scan_mode_t *val = osi_malloc(sizeof(bt_scan_mode_t));
+  bt_property_t *property = osi_malloc(sizeof(bt_property_t));
+
+  property->type = BT_PROPERTY_ADAPTER_SCAN_MODE;
+  property->val = val;
+  property->len = sizeof(bt_scan_mode_t);
+
+  *val = scan_mode;
 
   return property;
 }
@@ -71,6 +84,48 @@ const char *property_extract_name(const bt_property_t *property) {
   name[sizeof(name) - 1] = '\0';
 
   return name;
+}
+
+const bt_bdaddr_t *property_extract_bdaddr(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_BDADDR || !property->val) {
+    return NULL;
+  }
+  return (const bt_bdaddr_t *)property->val;
+}
+
+const bt_bdname_t *property_extract_bdname(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_BDNAME || !property->val) {
+    return NULL;
+  }
+  return (const bt_bdname_t *)property->val;
+}
+
+uint32_t property_extract_device_class(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_CLASS_OF_DEVICE || !property->val) {
+    return 0;
+  }
+  return *(const uint32_t *)property->val;
+}
+
+const bt_device_type_t *property_extract_device_type(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_TYPE_OF_DEVICE || !property->val) {
+    return NULL;
+  }
+  return (const bt_device_type_t*)property->val;
+}
+
+int32_t property_extract_remote_rssi(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_REMOTE_RSSI || !property->val) {
+    return 0;
+  }
+  return *(const int32_t*)property->val;
+}
+
+const bt_uuid_t *property_extract_uuid(const bt_property_t *property) {
+  if (!property || property->type != BT_PROPERTY_UUIDS || !property->val) {
+    return NULL;
+  }
+  return (const bt_uuid_t *)property->val;
 }
 
 bool property_equals(const bt_property_t *p1, const bt_property_t *p2) {
@@ -106,8 +161,8 @@ void property_free(bt_property_t *property) {
 
 void property_free_array(bt_property_t *properties, size_t count) {
   for (size_t i = 0; i < count; ++i) {
-    free(properties[i].val);
+    osi_free(properties[i].val);
   }
 
-  free(properties);
+  osi_free(properties);
 }
