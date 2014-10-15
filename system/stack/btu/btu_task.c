@@ -311,12 +311,6 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             GKI_freebuf (p_msg);
             break;
 #endif /* SAP */
-#if (defined(GAP_CONN_INCLUDED) && GAP_CONN_INCLUDED == TRUE && GAP_CONN_POST_EVT_INCLUDED == TRUE)
-        case BT_EVT_TO_GAP_MSG :
-            gap_proc_btu_event(p_msg);
-            GKI_freebuf (p_msg);
-            break;
-#endif
             // NOTE: The timer calls below may not be sent by HCI.
         case BT_EVT_TO_START_TIMER :
             /* Start free running 1 second timer for list management */
