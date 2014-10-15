@@ -184,9 +184,7 @@ static void reset_complete(void *result) {
   btm_ble_multi_adv_init();
 #endif
 
-#if BTM_PWR_MGR_INCLUDED == TRUE
   btm_pm_reset();
-#endif
 
   l2c_link_processs_num_bufs(controller->get_acl_buffer_count_classic());
 #if (BLE_INCLUDED == TRUE)

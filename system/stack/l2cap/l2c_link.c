@@ -1019,7 +1019,7 @@ void l2c_pin_code_request (BD_ADDR bd_addr)
     }
 }
 
-#if ((BTM_PWR_MGR_INCLUDED == TRUE) && L2CAP_WAKE_PARKED_LINK == TRUE)
+#if L2CAP_WAKE_PARKED_LINK == TRUE
 /*******************************************************************************
 **
 ** Function         l2c_link_check_power_mode
@@ -1069,7 +1069,7 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
     }
     return FALSE;
 }
-#endif /* ((BTM_PWR_MGR_INCLUDED == TRUE) && L2CAP_WAKE_PARKED_LINK == TRUE) */
+#endif /* L2CAP_WAKE_PARKED_LINK == TRUE) */
 
 /*******************************************************************************
 **

@@ -110,10 +110,6 @@ typedef struct
 #define BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON        3   /* encryption turning on */
     UINT8           encrypt_state;                  /* overall BTM encryption state */
 
-#if BTM_PWR_MGR_INCLUDED == FALSE
-    UINT8           mode;
-#endif /* BTM_PWR_MGR_INCLUDED */
-
 #if BLE_INCLUDED == TRUE
     tBT_TRANSPORT   transport;
     BD_ADDR         conn_addr;              /* local device address used for this connection */
@@ -609,7 +605,6 @@ typedef struct
     UINT8            def_inq_scan_mode;          /* ??? limited/general/none */
 } tBTM_CFG;
 
-#if BTM_PWR_MGR_INCLUDED == TRUE
 enum
 {
     BTM_PM_ST_ACTIVE  = BTM_PM_STS_ACTIVE,
@@ -674,7 +669,6 @@ typedef struct
     tBTM_PM_STATUS_CBACK *cback;/* to notify the registered party of mode change event */
     UINT8                 mask; /* registered request mask. 0, if this entry is not used */
 } tBTM_PM_RCB;
-#endif  /* BTM_PWR_MGR_INCLUDED */
 
 enum
 {
@@ -784,12 +778,10 @@ typedef struct
     /****************************************************
     **      Power Management
     ****************************************************/
-#if BTM_PWR_MGR_INCLUDED == TRUE
     tBTM_PM_MCB pm_mode_db[MAX_L2CAP_LINKS];   /* per ACL link */
     tBTM_PM_RCB pm_reg_db[BTM_MAX_PM_RECORDS+1]; /* per application/module */
     UINT8       pm_pend_link;  /* the index of acl_db, which has a pending PM cmd */
     UINT8       pm_pend_id;    /* the id pf the module, which has a pending PM cmd */
-#endif /* BTM_PWR_MGR_INCLUDED == TRUE */
 
     /*****************************************************
     **      Device control
@@ -977,14 +969,6 @@ extern UINT16 btm_get_max_packet_size (BD_ADDR addr);
 extern tACL_CONN *btm_bda_to_acl (BD_ADDR bda, tBT_TRANSPORT transport);
 extern BOOLEAN    btm_acl_notif_conn_collision (BD_ADDR bda);
 
-#if BTM_PWR_MGR_INCLUDED == FALSE
-extern void         btm_process_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode,
-                                             UINT16 interval);
-
-/* Internal functions provided by btm_pm.c
-********************************************
-*/
-#else
 extern void btm_pm_reset(void);
 extern void btm_pm_sm_alloc(UINT8 ind);
 extern void btm_pm_proc_cmd_status(UINT8 status);
@@ -996,7 +980,6 @@ extern void btm_sco_chk_pend_unpark (UINT8 hci_status, UINT16 hci_handle);
 #else
 #define btm_sco_chk_pend_unpark(hci_status, hci_handle)
 #endif /* BTM_SCO_INCLUDED */
-#endif /* BTM_PWR_MGR_INCLUDED == FALSE */
 extern void btm_qos_setup_complete (UINT8 status, UINT16 handle, FLOW_SPEC *p_flow);
 
 

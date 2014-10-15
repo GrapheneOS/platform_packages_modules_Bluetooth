@@ -677,12 +677,12 @@ extern void     l2c_link_adjust_chnl_allocation (void);
 extern void     l2c_link_processs_ble_num_bufs (UINT16 num_lm_acl_bufs);
 #endif
 
-#if ((BTM_PWR_MGR_INCLUDED == TRUE) && L2CAP_WAKE_PARKED_LINK == TRUE)
+#if L2CAP_WAKE_PARKED_LINK == TRUE
 extern BOOLEAN  l2c_link_check_power_mode ( tL2C_LCB *p_lcb );
 #define L2C_LINK_CHECK_POWER_MODE(x) l2c_link_check_power_mode ((x))
-#else
+#else  // L2CAP_WAKE_PARKED_LINK
 #define L2C_LINK_CHECK_POWER_MODE(x) (FALSE)
-#endif
+#endif  // L2CAP_WAKE_PARKED_LINK
 
 #if L2CAP_CONFORMANCE_TESTING == TRUE
 /* Used only for conformance testing */

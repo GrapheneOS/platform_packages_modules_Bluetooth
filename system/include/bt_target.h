@@ -565,11 +565,6 @@ extern "C" {
 #define BTM_ACL_BUF_SIZE            0
 #endif
 
-/* This is set to use the BTM power manager. */
-#ifndef BTM_PWR_MGR_INCLUDED
-#define BTM_PWR_MGR_INCLUDED        TRUE
-#endif
-
 /* The maximum number of clients that can register with the power manager. */
 #ifndef BTM_MAX_PM_RECORDS
 #define BTM_MAX_PM_RECORDS          2

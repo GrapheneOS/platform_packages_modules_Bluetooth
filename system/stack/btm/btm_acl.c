@@ -257,11 +257,7 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
 #endif
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
 
-#if BTM_PWR_MGR_INCLUDED == FALSE
-            p->mode             = BTM_ACL_MODE_NORMAL;
-#else
             btm_pm_sm_alloc(xx);
-#endif /* BTM_PWR_MGR_INCLUDED == FALSE */
 
             memcpy (p->remote_addr, bda, BD_ADDR_LEN);
 
@@ -615,11 +611,9 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
 #if BTM_SCO_INCLUDED == TRUE
     BOOLEAN    is_sco_active;
 #endif
-#if BTM_PWR_MGR_INCLUDED == TRUE
     tBTM_STATUS  status;
     tBTM_PM_MODE pwr_mode;
     tBTM_PM_PWR_MD settings;
-#endif
 #if (BT_USE_TRACES == TRUE)
     BD_ADDR_PTR  p_bda;
 #endif
@@ -665,24 +659,6 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
         return(BTM_BUSY);
     }
 
-    /* Cannot switch role while parked or sniffing */
-#if BTM_PWR_MGR_INCLUDED == FALSE
-    if (p->mode == HCI_MODE_PARK)
-    {
-        if (!btsnd_hcic_exit_park_mode (p->hci_handle))
-            return(BTM_NO_RESOURCES);
-
-        p->switch_role_state = BTM_ACL_SWKEY_STATE_MODE_CHANGE;
-    }
-    else if (p->mode == HCI_MODE_SNIFF)
-    {
-        if (!btsnd_hcic_exit_sniff_mode (p->hci_handle))
-            return(BTM_NO_RESOURCES);
-
-        p->switch_role_state = BTM_ACL_SWKEY_STATE_MODE_CHANGE;
-    }
-#else   /* power manager is in use */
-
     if ((status = BTM_ReadPowerMode(p->remote_addr, &pwr_mode)) != BTM_SUCCESS)
         return(status);
 
@@ -697,7 +673,6 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
 
         p->switch_role_state = BTM_ACL_SWKEY_STATE_MODE_CHANGE;
     }
-#endif
     /* some devices do not support switch while encryption is on */
     else
     {
@@ -1543,192 +1518,6 @@ void btm_proc_lsto_evt(UINT16 handle, UINT16 timeout)
     }
 }
 
-#if BTM_PWR_MGR_INCLUDED == FALSE
-/*******************************************************************************
-**
-** Function         BTM_SetHoldMode
-**
-** Description      This function is called to set a connection into hold mode.
-**                  A check is made if the connection is in sniff or park mode,
-**                  and if yes, the hold mode is ignored.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SetHoldMode (BD_ADDR remote_bda, UINT16 min_interval, UINT16 max_interval)
-{
-    tACL_CONN   *p;
-
-    BTM_TRACE_DEBUG ("BTM_SetHoldMode");
-    /* First, check if hold mode is supported */
-    if (!HCI_HOLD_MODE_SUPPORTED(BTM_ReadLocalFeatures()))
-        return(BTM_MODE_UNSUPPORTED);
-
-    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    if (p != (tACL_CONN *)NULL)
-    {
-        /* If the connection is in park or sniff mode, forget about holding it */
-        if (p->mode != BTM_ACL_MODE_NORMAL)
-            return(BTM_SUCCESS);
-
-        if (!btsnd_hcic_hold_mode (p->hci_handle, max_interval, min_interval))
-            return(BTM_NO_RESOURCES);
-
-        return(BTM_CMD_STARTED);
-    }
-
-    /* If here, no BD Addr found */
-    return(BTM_UNKNOWN_ADDR);
-}
-
-
-/*******************************************************************************
-**
-** Function         BTM_SetSniffMode
-**
-** Description      This function is called to set a connection into sniff mode.
-**                  A check is made if the connection is already in sniff or park
-**                  mode, and if yes, the sniff mode is ignored.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SetSniffMode (BD_ADDR remote_bda, UINT16 min_period, UINT16 max_period,
-                              UINT16 attempt, UINT16 timeout)
-{
-    tACL_CONN   *p;
-    BTM_TRACE_DEBUG ("BTM_SetSniffMode");
-    /* First, check if sniff mode is supported */
-    if (!HCI_SNIFF_MODE_SUPPORTED(BTM_ReadLocalFeatures()))
-        return(BTM_MODE_UNSUPPORTED);
-
-    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    if (p != (tACL_CONN *)NULL)
-    {
-        /* If the connection is in park mode, forget about sniffing it */
-        if (p->mode != BTM_ACL_MODE_NORMAL)
-            return(BTM_WRONG_MODE);
-
-        if (!btsnd_hcic_sniff_mode (p->hci_handle, max_period,
-                                    min_period, attempt, timeout))
-            return(BTM_NO_RESOURCES);
-
-        return(BTM_CMD_STARTED);
-    }
-
-    /* If here, no BD Addr found */
-    return(BTM_UNKNOWN_ADDR);
-}
-
-
-
-
-/*******************************************************************************
-**
-** Function         BTM_CancelSniffMode
-**
-** Description      This function is called to put a connection out of sniff mode.
-**                  A check is made if the connection is already in sniff mode,
-**                  and if not, the cancel sniff mode is ignored.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_CancelSniffMode (BD_ADDR remote_bda)
-{
-    tACL_CONN   *p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    BTM_TRACE_DEBUG ("BTM_CancelSniffMode ");
-    if (p == (tACL_CONN *)NULL)
-        return(BTM_UNKNOWN_ADDR);
-
-    /* If the connection is not in sniff mode, cannot cancel */
-    if (p->mode != BTM_ACL_MODE_SNIFF)
-        return(BTM_WRONG_MODE);
-
-    if (!btsnd_hcic_exit_sniff_mode (p->hci_handle))
-        return(BTM_NO_RESOURCES);
-
-    return(BTM_CMD_STARTED);
-}
-
-
-/*******************************************************************************
-**
-** Function         BTM_SetParkMode
-**
-** Description      This function is called to set a connection into park mode.
-**                  A check is made if the connection is already in sniff or park
-**                  mode, and if yes, the park mode is ignored.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SetParkMode (BD_ADDR remote_bda, UINT16 beacon_min_period, UINT16 beacon_max_period)
-{
-    tACL_CONN   *p;
-
-    BTM_TRACE_DEBUG ("BTM_SetParkMode");
-    /* First, check if park mode is supported */
-    if (!HCI_PARK_MODE_SUPPORTED(BTM_ReadLocalFeatures()))
-        return(BTM_MODE_UNSUPPORTED);
-
-    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    if (p != (tACL_CONN *)NULL)
-    {
-        /* If the connection is in sniff mode, forget about parking it */
-        if (p->mode != BTM_ACL_MODE_NORMAL)
-            return(BTM_WRONG_MODE);
-
-        /* no park mode if SCO exists -- CR#1982, 1.1 errata 1124
-           command status event should be returned /w error code 0x0C "Command Disallowed"
-           Let LM do this.
-        */
-        if (!btsnd_hcic_park_mode (p->hci_handle,
-                                   beacon_max_period, beacon_min_period))
-            return(BTM_NO_RESOURCES);
-
-        return(BTM_CMD_STARTED);
-    }
-
-    /* If here, no BD Addr found */
-    return(BTM_UNKNOWN_ADDR);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_CancelParkMode
-**
-** Description      This function is called to put a connection out of park mode.
-**                  A check is made if the connection is already in park mode,
-**                  and if not, the cancel sniff mode is ignored.
-**
-** Returns          status of the operation
-**
-*******************************************************************************/
-tBTM_STATUS BTM_CancelParkMode (BD_ADDR remote_bda)
-{
-    tACL_CONN   *p;
-
-    BTM_TRACE_DEBUG ("BTM_CancelParkMode");
-    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    if (p != (tACL_CONN *)NULL)
-    {
-        /* If the connection is not in park mode, cannot cancel */
-        if (p->mode != BTM_ACL_MODE_PARK)
-            return(BTM_WRONG_MODE);
-
-        if (!btsnd_hcic_exit_park_mode (p->hci_handle))
-            return(BTM_NO_RESOURCES);
-
-        return(BTM_CMD_STARTED);
-    }
-
-    /* If here, no BD Addr found */
-    return(BTM_UNKNOWN_ADDR);
-}
-#endif /* BTM_PWR_MGR_INCLUDED == FALSE */
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SetPacketTypes
@@ -1776,48 +1565,6 @@ UINT16 BTM_ReadPacketTypes (BD_ADDR remote_bda)
     /* If here, no BD Addr found */
     return(0);
 }
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadAclMode
-**
-** Description      This returns the current mode for a specific
-**                  ACL connection.
-**
-** Input Param      remote_bda - device address of desired ACL connection
-**
-** Output Param     p_mode - address where the current mode is copied into.
-**                          BTM_ACL_MODE_NORMAL
-**                          BTM_ACL_MODE_HOLD
-**                          BTM_ACL_MODE_SNIFF
-**                          BTM_ACL_MODE_PARK
-**                          (valid only if return code is BTM_SUCCESS)
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**
-*******************************************************************************/
-#if BTM_PWR_MGR_INCLUDED == FALSE
-tBTM_STATUS BTM_ReadAclMode (BD_ADDR remote_bda, UINT8 *p_mode)
-{
-    tACL_CONN   *p;
-
-    BTM_TRACE_API ("BTM_ReadAclMode: RemBdAddr: %02x%02x%02x%02x%02x%02x",
-                    remote_bda[0], remote_bda[1], remote_bda[2],
-                    remote_bda[3], remote_bda[4], remote_bda[5]);
-
-    p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
-    if (p != (tACL_CONN *)NULL)
-    {
-        *p_mode = p->mode;
-        return(BTM_SUCCESS);
-    }
-
-    /* If here, no BD Addr found */
-    return(BTM_UNKNOWN_ADDR);
-}
-#endif /* BTM_PWR_MGR_INCLUDED == FALSE */
 
 /*******************************************************************************
 **
@@ -1930,49 +1677,6 @@ UINT16 BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport)
     /* If here, no BD Addr found */
     return(0xFFFF);
 }
-
-#if BTM_PWR_MGR_INCLUDED == FALSE
-/*******************************************************************************
-**
-** Function         btm_process_mode_change
-**
-** Description      This function is called when an HCI mode change event occurs.
-**
-** Input Parms      hci_status - status of the event (HCI_SUCCESS if no errors)
-**                  hci_handle - connection handle associated with the change
-**                  mode - HCI_MODE_ACTIVE, HCI_MODE_HOLD, HCI_MODE_SNIFF, or HCI_MODE_PARK
-**                  interval - number of baseband slots (meaning depends on mode)
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_process_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, UINT16 interval)
-{
-    tACL_CONN        *p;
-    UINT8             xx;
-    BTM_TRACE_DEBUG ("btm_process_mode_change");
-    if (hci_status != HCI_SUCCESS)
-    {
-        BTM_TRACE_WARNING ("BTM: HCI Mode Change Error Status: 0x%02x", hci_status);
-    }
-
-    /* Look up the connection by handle and set the current mode */
-    xx = btm_handle_to_acl_index(hci_handle);
-
-    /* don't assume that we can never get a bad hci_handle */
-    if (xx >= MAX_L2CAP_LINKS)
-        return;
-
-    p = &btm_cb.acl_db[xx];
-
-    /* If status is not success mode does not mean anything */
-    if (hci_status == HCI_SUCCESS)
-        p->mode = mode;
-
-    /* If mode change was because of an active role switch or change link key */
-    btm_cont_rswitch_or_chglinkkey(p, btm_find_dev(p->remote_addr), hci_status);
-}
-#endif /* BTM_PWR_MGR_INCLUDED == FALSE */
 
 /*******************************************************************************
 **

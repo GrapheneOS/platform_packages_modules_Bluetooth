@@ -556,12 +556,12 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
     UINT16            temp_pkt_types;
     tACL_CONN        *p_acl;
 
-#if (BTM_PWR_MGR_INCLUDED == TRUE) && (BTM_SCO_WAKE_PARKED_LINK == TRUE)
+#if (BTM_SCO_WAKE_PARKED_LINK == TRUE)
     tBTM_PM_MODE      md;
     tBTM_PM_PWR_MD    pm;
-#else
+#else  // BTM_SCO_WAKE_PARKED_LINK
     UINT8             mode;
-#endif
+#endif  // BTM_SCO_WAKE_PARKED_LINK
 
     *p_sco_inx = BTM_INVALID_SCO_INDEX;
 
@@ -605,7 +605,7 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
                 if (is_orig)
                 {
                     /* can not create SCO link if in park mode */
-#if (BTM_PWR_MGR_INCLUDED == TRUE) && (BTM_SCO_WAKE_PARKED_LINK == TRUE)
+#if BTM_SCO_WAKE_PARKED_LINK == TRUE
                     if(BTM_ReadPowerMode(remote_bda, &md) == BTM_SUCCESS)
                     {
                         if (md == BTM_PM_MD_PARK || md == BTM_PM_MD_SNIFF)
@@ -616,13 +616,10 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
                             p->state = SCO_ST_PEND_UNPARK;
                         }
                     }
-#elif BTM_PWR_MGR_INCLUDED == TRUE
+#else  // BTM_SCO_WAKE_PARKED_LINK
                     if( (BTM_ReadPowerMode(remote_bda, &mode) == BTM_SUCCESS) && (mode == BTM_PM_MD_PARK) )
                         return (BTM_WRONG_MODE);
-#else
-                    if( (BTM_ReadAclMode(remote_bda, &mode) == BTM_SUCCESS) && (mode == BTM_ACL_MODE_PARK) )
-                        return (BTM_WRONG_MODE);
-#endif
+#endif  // BTM_SCO_WAKE_PARKED_LINK
                 }
                 memcpy (p->esco.data.bd_addr, remote_bda, BD_ADDR_LEN);
                 p->rem_bd_known = TRUE;
@@ -702,7 +699,7 @@ tBTM_STATUS BTM_CreateSco (BD_ADDR remote_bda, BOOLEAN is_orig, UINT16 pkt_types
     return (BTM_NO_RESOURCES);
 }
 
-#if (BTM_PWR_MGR_INCLUDED == TRUE) && (BTM_SCO_WAKE_PARKED_LINK == TRUE)
+#if (BTM_SCO_WAKE_PARKED_LINK == TRUE)
 /*******************************************************************************
 **
 ** Function         btm_sco_chk_pend_unpark
@@ -733,9 +730,9 @@ void btm_sco_chk_pend_unpark (UINT8 hci_status, UINT16 hci_handle)
                 p->state = SCO_ST_CONNECTING;
         }
     }
-#endif
+#endif  // BTM_MAX_SCO_LINKS
 }
-#endif
+#endif  // BTM_SCO_WAKE_PARKED_LINK
 
 /*******************************************************************************
 **

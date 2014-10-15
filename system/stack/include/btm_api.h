@@ -2854,109 +2854,6 @@ extern tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda,
 *******************************************************************************/
 extern void BTM_RegForLstoEvt (tBTM_LSTO_CBACK *p_cback);
 
-
-/* These next APIs are available if the power manager is not compiled in */
-#if BTM_PWR_MGR_INCLUDED == FALSE
-/*******************************************************************************
-**
-** Function         BTM_SetHoldMode
-**
-** Description      This function is called to set a connection into hold mode.
-**                  A check is made if the connection is in sniff or park mode,
-**                  and if yes, the hold mode is ignored.
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetHoldMode (BD_ADDR remote_bda, UINT16 min_interval,
-                                    UINT16 max_interval);
-
-
-/*******************************************************************************
-**
-** Function         BTM_SetSniffMode
-**
-** Description      This function is called to set a connection into sniff mode.
-**                  A check is made if the connection is already in sniff or park
-**                  mode, and if yes, the sniff mode is ignored.
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetSniffMode (BD_ADDR remote_bda, UINT16 min_period,
-                                     UINT16 max_period, UINT16 attempt,
-                                     UINT16 timeout);
-
-
-/*******************************************************************************
-**
-** Function         BTM_CancelSniffMode
-**
-** Description      This function is called to put a connection out of sniff mode.
-**                  A check is made if the connection is already in sniff mode,
-**                  and if not, the cancel sniff mode is ignored.
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_CancelSniffMode (BD_ADDR remote_bda);
-
-
-/*******************************************************************************
-**
-** Function         BTM_SetParkMode
-**
-** Description      This function is called to set a connection into park mode.
-**                  A check is made if the connection is already in sniff or park
-**                  mode, and if yes, the park mode is ignored.
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetParkMode (BD_ADDR remote_bda,
-                                    UINT16 beacon_min_period,
-                                    UINT16 beacon_max_period);
-
-
-/*******************************************************************************
-**
-** Function         BTM_CancelParkMode
-**
-** Description      This function is called to put a connection out of park mode.
-**                  A check is made if the connection is already in park mode,
-**                  and if not, the cancel sniff mode is ignored.
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_CancelParkMode (BD_ADDR remote_bda);
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadAclMode
-**
-** Description      This returns the current mode for a specific
-**                  ACL connection.
-**
-** Input Param      remote_bda - device address of desired ACL connection
-**
-** Output Param     p_mode - address where the current mode is copied into.
-**                          BTM_ACL_MODE_NORMAL
-**                          BTM_ACL_MODE_HOLD
-**                          BTM_ACL_MODE_SNIFF
-**                          BTM_ACL_MODE_PARK
-**                          (valid only if return code is BTM_SUCCESS)
-**
-** Returns          BTM_SUCCESS if successful,
-**                  BTM_UNKNOWN_ADDR if bd addr is not active or bad
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ReadAclMode (BD_ADDR remote_bda, UINT8 *p_mode);
-
-#endif /* if BTM_PWR_MGR_INCLUDED == FALSE */
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SetPacketTypes
@@ -4016,19 +3913,6 @@ extern tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda,
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, UINT16 max_lat,
                                      UINT16 min_rmt_to, UINT16 min_loc_to);
-
-/*******************************************************************************
-**
-** Function         BTM_IsPowerManagerOn
-**
-** Description      This function is called to check if power manager is included.
-**                  in the BTE version.
-**
-** Returns          TRUE if power manager is compiled in, otherwise FALSE.
-**
-*******************************************************************************/
-extern BOOLEAN BTM_IsPowerManagerOn (void);
-
 
 /*******************************************************************************
 **

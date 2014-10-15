@@ -42,8 +42,6 @@
 #include "hcidefs.h"
 #include "bt_utils.h"
 
-#if BTM_PWR_MGR_INCLUDED == TRUE
-
 /*****************************************************************************/
 /*      to handle different modes                                            */
 /*****************************************************************************/
@@ -112,7 +110,7 @@ const char * btm_pm_action_str[] =
     "pm_hci_sts_action",
     "pm_update_action"
 };
-#endif
+#endif  // BTM_PM_DEBUG
 
 /*****************************************************************************/
 /*                     P U B L I C  F U N C T I O N S                        */
@@ -232,7 +230,7 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
     {
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "BTM_SetPowerMode: Saving cmd acl_ind %d temp_pm_id %d", acl_ind,temp_pm_id);
-#endif
+#endif  // BTM_PM_DEBUG
         /* Make sure mask is set to BTM_PM_REG_SET */
         btm_cb.pm_reg_db[temp_pm_id].mask |= BTM_PM_REG_SET;
         *(&p_cb->req_mode[temp_pm_id]) = *((tBTM_PM_PWR_MD *)p_mode);
@@ -241,7 +239,7 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
 
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "btm_pm state:0x%x, pm_pend_link: %d", p_cb->state, btm_cb.pm_pend_link);
-#endif
+#endif  // BTM_PM_DEBUG
     /* if mode == hold or pending, return */
     if( (p_cb->state == BTM_PM_STS_HOLD) ||
         (p_cb->state ==  BTM_PM_STS_PENDING) ||
@@ -336,7 +334,7 @@ tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, UINT16 max_lat,
     return BTM_CMD_STORED;
 #else
     return BTM_ILLEGAL_ACTION;
-#endif
+#endif  // BTM_SSR_INCLUDED
 }
 
 /*******************************************************************************
@@ -391,7 +389,7 @@ void btm_pm_sm_alloc(UINT8 ind)
     p_db->state = BTM_PM_ST_ACTIVE;
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "btm_pm_sm_alloc ind:%d st:%d", ind, p_db->state);
-#endif
+#endif  // BTM_PM_DEBUG
 }
 
 /*******************************************************************************
@@ -414,12 +412,12 @@ static int btm_pm_find_acl_ind(BD_ADDR remote_bda)
         if ((p->in_use) && (!memcmp (p->remote_addr, remote_bda, BD_ADDR_LEN))
 #if (BLE_INCLUDED == TRUE)
             && p->transport == BT_TRANSPORT_BR_EDR
-#endif
+#endif  // BLE_INCLUDED
             )
         {
 #if BTM_PM_DEBUG == TRUE
             BTM_TRACE_DEBUG( "btm_pm_find_acl_ind ind:%d, st:%d", xx, btm_cb.pm_mode_db[xx].state);
-#endif
+#endif  // BTM_PM_DEBUG
             break;
         }
     }
@@ -584,7 +582,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "btm_pm_snd_md_req link_ind:%d, mode: %d",
         link_ind, mode);
-#endif
+#endif  // BTM_PM_DEBUG
 
     if( p_cb->state == mode)
     {
@@ -610,7 +608,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
                                   p_cb->min_rmt_to, p_cb->min_loc_to);
         p_cb->max_lat = 0;
     }
-#endif
+#endif  // BTM_SSR_INCLUDED
     /* Default is failure */
     btm_cb.pm_pend_link = MAX_L2CAP_LINKS;
 
@@ -619,7 +617,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
 
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG("btm_pm_snd_md_req state:0x%x, link_ind: %d", p_cb->state, link_ind);
-#endif
+#endif  // BTM_PM_DEBUG
     switch(md_res.mode)
     {
     case BTM_PM_MD_ACTIVE:
@@ -677,7 +675,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
         /* the command was not sent */
 #if BTM_PM_DEBUG == TRUE
         BTM_TRACE_DEBUG( "pm_pend_link: %d",btm_cb.pm_pend_link);
-#endif
+#endif  // BTM_PM_DEBUG
         return (BTM_NO_RESOURCES);
     }
 
@@ -739,7 +737,7 @@ void btm_pm_proc_cmd_status(UINT8 status)
         pm_status = BTM_PM_STS_PENDING;
 #if BTM_PM_DEBUG == TRUE
         BTM_TRACE_DEBUG( "btm_pm_proc_cmd_status new state:0x%x", p_cb->state);
-#endif
+#endif // BTM_PM_DEBUG
     }
     else /* the command was not successfull. Stay in the same state */
     {
@@ -757,7 +755,7 @@ void btm_pm_proc_cmd_status(UINT8 status)
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "btm_pm_proc_cmd_status state:0x%x, pm_pend_link: %d(new: %d)",
         p_cb->state, btm_cb.pm_pend_link, MAX_L2CAP_LINKS);
-#endif
+#endif  // BTM_PM_DEBUG
     btm_cb.pm_pend_link = MAX_L2CAP_LINKS;
 
     btm_pm_check_stored();
@@ -798,7 +796,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     p_cb->interval  = interval;
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG( "btm_pm_proc_mode_change new state:0x%x (old:0x%x)", p_cb->state, old_state);
-#endif
+#endif  // BTM_PM_DEBUG
 
     if ((p_lcb = l2cu_find_lcb_by_bd_addr(p->remote_addr, BT_TRANSPORT_BR_EDR)) != NULL)
     {
@@ -824,7 +822,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     {
 #if BTM_PM_DEBUG == TRUE
         BTM_TRACE_DEBUG( "btm_pm_proc_mode_change: Sending stored req:%d", xx);
-#endif
+#endif  // BTM_PM_DEBUG
         btm_pm_snd_md_req(BTM_PM_SET_ONLY_ID, xx, NULL);
     }
     else
@@ -835,7 +833,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
             {
 #if BTM_PM_DEBUG == TRUE
                 BTM_TRACE_DEBUG( "btm_pm_proc_mode_change: Sending PM req :%d", zz);
-#endif
+#endif   // BTM_PM_DEBUG
                 btm_pm_snd_md_req(BTM_PM_SET_ONLY_ID, zz, NULL);
                 break;
             }
@@ -907,52 +905,7 @@ void btm_pm_proc_ssr_evt (UINT8 *p, UINT16 evt_len)
         }
     }
 }
-
-#endif
-
-#else /* BTM_PWR_MGR_INCLUDED == TRUE */
-
-/*******************************************************************************
-**
-** Functions        BTM_PmRegister, BTM_SetPowerMode, and BTM_ReadPowerMode
-**
-** Description      Stubbed versions for BTM_PWR_MGR_INCLUDED = FALSE
-**
-** Returns          BTM_MODE_UNSUPPORTED.
-**
-*******************************************************************************/
-tBTM_STATUS BTM_PmRegister (UINT8 mask, UINT8 *p_pm_id, tBTM_PM_STATUS_CBACK *p_cb)
-{
-    return BTM_MODE_UNSUPPORTED;
-}
-
-tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p_mode)
-{
-    return BTM_MODE_UNSUPPORTED;
-}
-
-tBTM_STATUS BTM_ReadPowerMode (BD_ADDR remote_bda, tBTM_PM_MODE *p_mode)
-{
-    return BTM_MODE_UNSUPPORTED;
-}
-
-#endif
-
-
-/*******************************************************************************
-**
-** Function         BTM_IsPowerManagerOn
-**
-** Description      This function is called to check if power manager is included.
-**                  in the BTE version.
-**
-** Returns          BTM_PWR_MGR_INCLUDED.
-**
-*******************************************************************************/
-BOOLEAN BTM_IsPowerManagerOn (void)
-{
-    return BTM_PWR_MGR_INCLUDED;
-}
+#endif  // BTM_SSR_INCLUDED
 
 /*******************************************************************************
 **
@@ -1037,4 +990,3 @@ tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void)
     else
        return BTM_CONTRL_IDLE;
 }
-

@@ -1023,7 +1023,6 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
     tBTM_ESCO_DATA  esco_data;
 #endif
 
-#if BTM_PWR_MGR_INCLUDED == TRUE
     switch (opcode)
     {
         case HCI_EXIT_SNIFF_MODE:
@@ -1049,7 +1048,6 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
             break;
 
         default:
-#endif  /* BTM_PWR_MGR_INCLUDED */
             /* If command failed to start, we may need to tell BTM */
             if (status != HCI_SUCCESS)
             {
@@ -1160,9 +1158,7 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
                 if ((opcode & HCI_GRP_VENDOR_SPECIFIC) == HCI_GRP_VENDOR_SPECIFIC)
                     btm_vsc_complete (&status, opcode, 1, (tBTM_CMPL_CB *)p_vsc_status_cback);
             }
-#if BTM_PWR_MGR_INCLUDED == TRUE
     }
-#endif
 }
 
 /*******************************************************************************
@@ -1307,14 +1303,10 @@ static void btu_hcif_mode_change_evt (UINT8 *p)
     STREAM_TO_UINT16 (handle, p);
     STREAM_TO_UINT8 (current_mode, p);
     STREAM_TO_UINT16 (interval, p);
-#if BTM_PWR_MGR_INCLUDED == TRUE
 #if BTM_SCO_WAKE_PARKED_LINK == TRUE
     btm_sco_chk_pend_unpark (status, handle);
 #endif
     btm_pm_proc_mode_change (status, handle, current_mode, interval);
-#else
-    btm_process_mode_change (status, handle, current_mode, interval);
-#endif /* BTM_PWR_MGR_INCLUDED == TRUE */
 
 #if (HID_DEV_INCLUDED == TRUE) && (HID_DEV_PM_INCLUDED == TRUE)
     hidd_pm_proc_mode_change( status, current_mode, interval ) ;
@@ -1333,9 +1325,7 @@ static void btu_hcif_mode_change_evt (UINT8 *p)
     #if (BTM_SSR_INCLUDED == TRUE)
 static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len)
 {
-#if (BTM_PWR_MGR_INCLUDED == TRUE)
     btm_pm_proc_ssr_evt(p, evt_len);
-#endif
 }
     #endif
 
