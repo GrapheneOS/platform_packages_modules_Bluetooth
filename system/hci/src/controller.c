@@ -159,7 +159,7 @@ static future_t *start_up(void) {
   // Request the remaining feature pages
   while (page_number <= last_features_classic_page_index &&
          page_number < MAX_FEATURES_CLASSIC_PAGE_COUNT) {
-    response = AWAIT_COMMAND(packet_factory->make_read_local_extended_features(1));
+    response = AWAIT_COMMAND(packet_factory->make_read_local_extended_features(page_number));
     packet_parser->parse_read_local_extended_features_response(
       response,
       &page_number,
