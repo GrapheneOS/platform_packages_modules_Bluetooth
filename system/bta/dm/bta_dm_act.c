@@ -58,11 +58,7 @@ static UINT8 bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_
 static UINT8 bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result);
 static void bta_dm_local_name_cback(BD_ADDR bd_addr);
 static BOOLEAN bta_dm_check_av(UINT16 event);
-#if (BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data);
-#else
-static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn, UINT8 *features, BOOLEAN is_new);
-#endif
 static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 
 /* Extended Inquiry Response */
@@ -376,11 +372,7 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
         BTM_WritePageTimeout(bta_dm_cfg.page_timeout);
         bta_dm_cb.cur_policy = bta_dm_cfg.policy_settings;
         BTM_SetDefaultLinkPolicy(bta_dm_cb.cur_policy);
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         BTM_RegBusyLevelNotif (bta_dm_bl_change_cback, NULL, BTM_BL_UPDATE_MASK|BTM_BL_ROLE_CHG_MASK);
-#else
-        BTM_AclRegisterForChanges(bta_dm_acl_change_cback);
-#endif
 
 #if BLE_VND_INCLUDED == TRUE
         BTM_BleReadControllerFeatures (bta_dm_ctrl_features_rd_cmpl_cback);
@@ -3260,8 +3252,6 @@ static void bta_dm_signal_strength_timer_cback (TIMER_LIST_ENT *p_tle)
     }
 }
 
-
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_dm_bl_change_cback
@@ -3318,47 +3308,6 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
     }
 
 }
-#else
-
-/*******************************************************************************
-**
-** Function         bta_dm_acl_change_cback
-**
-** Description      Callback from btm when acl connection goes up or down
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_dm_acl_change_cback (BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn,
-                                     UINT8 *features, BOOLEAN is_new,UINT16 handle,
-                                     tBT_TRANSPORT transport)
-{
-
-    tBTA_DM_ACL_CHANGE * p_msg;
-
-    if ((p_msg = (tBTA_DM_ACL_CHANGE *) GKI_getbuf(sizeof(tBTA_DM_ACL_CHANGE))) != NULL)
-    {
-        bdcpy (p_msg->bd_addr, p_bda);
-        p_msg->is_new = is_new;
-#if BLE_INCLUDED == TRUE
-        p_msg->handle   = handle;
-        p_msg->transport = transport;
-#endif
-        /* This is collision case */
-        if (features != NULL)
-        {
-            if ((features[0] == 0xFF) && !is_new)
-                p_msg->event = BTM_BL_COLLISION_EVT;
-        }
-
-        p_msg->hdr.event = BTA_DM_ACL_CHANGE_EVT;
-        bta_sys_sendmsg(p_msg);
-
-    }
-
-}
-#endif
 /*******************************************************************************
 **
 ** Function         bta_dm_rs_cback
@@ -3455,7 +3404,6 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
     BOOLEAN         need_policy_change = FALSE;
     BOOLEAN         issue_unpair_cb = FALSE;
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTA_DM_PEER_DEVICE *p_dev;
     memset(&conn, 0, sizeof(tBTA_DM_SEC));
 
@@ -3513,7 +3461,6 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
         }
         return;
     }
-#endif
 
     /* Collision report from Stack: Notify profiles */
     if (p_data->acl_change.event == BTM_BL_COLLISION_EVT)

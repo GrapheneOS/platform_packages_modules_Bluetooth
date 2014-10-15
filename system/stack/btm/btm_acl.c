@@ -66,11 +66,7 @@ void btm_acl_init (void)
     memset (btm_cb.btm_scn, 0, BTM_MAX_SCN);          /* Initialize the SCN usage to FALSE */
 #endif
     btm_cb.btm_def_link_policy     = 0;
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_cb.p_bl_changed_cb         = NULL;
-#else
-    btm_cb.p_acl_changed_cb        = NULL;
-#endif
 #endif
 
     /* Initialize nonzero defaults */
@@ -387,13 +383,10 @@ void btm_acl_report_role_change (UINT8 hci_status, BD_ADDR bda)
 void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p;
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTM_BL_EVENT_DATA  evt_data;
-#endif
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
     tBTM_SEC_DEV_REC *p_dev_rec=NULL;
 #endif
-
     BTM_TRACE_DEBUG ("btm_acl_removed");
     p = btm_bda_to_acl(bda, transport);
     if (p != (tACL_CONN *)NULL)
@@ -409,7 +402,6 @@ void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
             p->link_up_issued = FALSE;
 
             /* If anyone cares, tell him database changed */
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
             if (btm_cb.p_bl_changed_cb)
             {
                 evt_data.event = BTM_BL_DISCN_EVT;
@@ -422,14 +414,6 @@ void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
             }
 
             btm_acl_update_busy_level (BTM_BLI_ACL_DOWN_EVT);
-#else
-            if (btm_cb.p_acl_changed_cb)
-#if BLE_INCLUDED == TRUE
-                (*btm_cb.p_acl_changed_cb) (bda, NULL, NULL, NULL, FALSE, p->hci_handle, p->transport);
-#else
-                (*btm_cb.p_acl_changed_cb) (bda, NULL, NULL, NULL, FALSE);
-#endif
-#endif
         }
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
@@ -503,7 +487,6 @@ void btm_acl_device_down (void)
     }
 }
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btm_acl_update_busy_level
@@ -580,8 +563,6 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
         }
     }
 }
-#endif
-
 
 /*******************************************************************************
 **
@@ -780,9 +761,7 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
     tACL_CONN *p;
     UINT8     xx;
     tBTM_SEC_DEV_REC  *p_dev_rec;
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTM_BL_ROLE_CHG_DATA   evt;
-#endif
 
     BTM_TRACE_DEBUG ("btm_acl_encrypt_change handle=%d status=%d encr_enabl=%d",
                       handle, status, encr_enable);
@@ -830,7 +809,6 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
         p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
         btm_acl_report_role_change(btm_cb.devcb.switch_role_ref_data.hci_status, p->remote_addr);
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         /* if role change event is registered, report it now */
         if (btm_cb.p_bl_changed_cb && (btm_cb.bl_evt_mask & BTM_BL_ROLE_CHG_MASK))
         {
@@ -843,7 +821,6 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
             BTM_TRACE_DEBUG("Role Switch Event: new_role 0x%02x, HCI Status 0x%02x, rs_st:%d",
                              evt.new_role, evt.hci_status, p->switch_role_state);
         }
-#endif
 
 #if BTM_DISC_DURING_RS == TRUE
         /* If a disconnect is pending, issue it now that role switch has completed */
@@ -1412,9 +1389,7 @@ void btm_read_remote_ext_features_failed (UINT8 status, UINT16 handle)
 *******************************************************************************/
 void btm_establish_continue (tACL_CONN *p_acl_cb)
 {
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         tBTM_BL_EVENT_DATA  evt_data;
-#endif
         BTM_TRACE_DEBUG ("btm_establish_continue");
 #if (!defined(BTM_BYPASS_EXTRA_ACL_SETUP) || BTM_BYPASS_EXTRA_ACL_SETUP == FALSE)
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
@@ -1433,7 +1408,6 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
         p_acl_cb->link_up_issued = TRUE;
 
         /* If anyone cares, tell him database changed */
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         if (btm_cb.p_bl_changed_cb)
         {
             evt_data.event = BTM_BL_CONN_EVT;
@@ -1449,26 +1423,6 @@ void btm_establish_continue (tACL_CONN *p_acl_cb)
             (*btm_cb.p_bl_changed_cb)(&evt_data);
         }
         btm_acl_update_busy_level (BTM_BLI_ACL_UP_EVT);
-#else
-        if (btm_cb.p_acl_changed_cb)
-#if BLE_INCLUDED == TRUE
-            (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr,
-                                        p_acl_cb->remote_dc,
-                                        p_acl_cb->remote_name,
-                                        p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0],
-                                        TRUE,
-                                        p_acl_cb->hci_handle,
-                                        p_acl_cb->transport);
-#else
-            (*btm_cb.p_acl_changed_cb) (p_acl_cb->remote_addr,
-                                        p_acl_cb->remote_dc,
-                                        p_acl_cb->remote_name,
-                                        p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0],
-                                        TRUE);
-#endif
-
-#endif
-
 }
 
 
@@ -1932,20 +1886,7 @@ BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 *******************************************************************************/
 UINT16 BTM_GetNumAclLinks (void)
 {
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     return(UINT16)btm_cb.num_acl;
-#else
-    tACL_CONN   *p = &btm_cb.acl_db[0];
-    UINT16      xx, yy;
-    BTM_TRACE_DEBUG ("BTM_GetNumAclLinks");
-    for (xx = yy = 0; xx < MAX_L2CAP_LINKS; xx++, p++)
-    {
-        if (p->in_use)
-            yy++;
-    }
-
-    return(yy);
-#endif
 }
 
 /*******************************************************************************
@@ -2073,9 +2014,7 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
     tACL_CONN               *p = btm_bda_to_acl(p_bda, BT_TRANSPORT_BR_EDR);
     tBTM_ROLE_SWITCH_CMPL   *p_data = &btm_cb.devcb.switch_role_ref_data;
     tBTM_SEC_DEV_REC        *p_dev_rec;
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTM_BL_ROLE_CHG_DATA   evt;
-#endif
 
     BTM_TRACE_DEBUG ("btm_acl_role_changed");
     /* Ignore any stray events */
@@ -2135,7 +2074,6 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
     /* if role switch complete is needed, report it now */
     btm_acl_report_role_change(hci_status, bd_addr);
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     /* if role change event is registered, report it now */
     if (btm_cb.p_bl_changed_cb && (btm_cb.bl_evt_mask & BTM_BL_ROLE_CHG_MASK))
     {
@@ -2148,7 +2086,6 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
 
     BTM_TRACE_DEBUG("Role Switch Event: new_role 0x%02x, HCI Status 0x%02x, rs_st:%d",
                      p_data->role, p_data->hci_status, p->switch_role_state);
-#endif
 
 #if BTM_DISC_DURING_RS == TRUE
     /* If a disconnect is pending, issue it now that role switch has completed */
@@ -2509,7 +2446,6 @@ UINT8 *BTM_ReadAllRemoteFeatures (BD_ADDR addr)
 ** Returns          BTM_SUCCESS if successfully registered, otherwise error
 **
 *******************************************************************************/
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
 tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, UINT8 *p_level,
                                    tBTM_BL_EVENT_MASK evt_mask)
 {
@@ -2528,28 +2464,6 @@ tBTM_STATUS BTM_RegBusyLevelNotif (tBTM_BL_CHANGE_CB *p_cb, UINT8 *p_level,
 
     return(BTM_SUCCESS);
 }
-#else
-/*******************************************************************************
-**
-** Function         BTM_AclRegisterForChanges
-**
-** Returns          This function is called to register a callback for when the
-**                  ACL database changes, i.e. new entry or entry deleted.
-**
-*******************************************************************************/
-tBTM_STATUS BTM_AclRegisterForChanges (tBTM_ACL_DB_CHANGE_CB *p_cb)
-{
-    BTM_TRACE_DEBUG ("BTM_AclRegisterForChanges");
-    if (!p_cb)
-        btm_cb.p_acl_changed_cb = NULL;
-    else if (btm_cb.p_acl_changed_cb)
-        return(BTM_BUSY);
-    else
-        btm_cb.p_acl_changed_cb = p_cb;
-
-    return(BTM_SUCCESS);
-}
-#endif
 
 /*******************************************************************************
 **
@@ -3204,15 +3118,11 @@ void  btm_acl_paging (BT_HDR *p, BD_ADDR bda)
 ** Description      Send connection collision event to upper layer if registered
 **
 ** Returns          TRUE if sent out to upper layer,
-**                  FALSE if BTM_BUSY_LEVEL_CHANGE_INCLUDED == FALSE, or no one
-**                  needs the notification.
-**
-**          Note: Function only used if BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE
+**                  FALSE if no one needs the notification.
 **
 *******************************************************************************/
 BOOLEAN  btm_acl_notif_conn_collision (BD_ADDR bda)
 {
-#if (BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTM_BL_EVENT_DATA  evt_data;
 
     /* Report possible collision to the upper layer. */
@@ -3233,9 +3143,6 @@ BOOLEAN  btm_acl_notif_conn_collision (BD_ADDR bda)
     }
     else
         return FALSE;
-#else
-    return FALSE;
-#endif
 }
 
 

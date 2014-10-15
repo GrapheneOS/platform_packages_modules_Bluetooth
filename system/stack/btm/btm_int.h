@@ -776,12 +776,8 @@ typedef struct
     UINT16      btm_def_link_policy;
     UINT16      btm_def_link_super_tout;
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     tBTM_BL_EVENT_MASK     bl_evt_mask;
     tBTM_BL_CHANGE_CB     *p_bl_changed_cb;    /* Callback for when Busy Level changed */
-#else
-    tBTM_ACL_DB_CHANGE_CB *p_acl_changed_cb;    /* Callback for when ACL DB changed */
-#endif
 
     tBTM_LSTO_CBACK       *p_lsto_cback;  /* for link supervision timeout change event */
 
@@ -876,12 +872,10 @@ typedef struct
 
     UINT8                   acl_disc_reason;
     UINT8                   trace_level;
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     UINT8                   num_acl;    /* num of active ACL links */
     UINT8                   busy_level; /* the current busy level */
     BOOLEAN                 is_paging;  /* TRUE, if paging is in progess */
     BOOLEAN                 is_inquiry; /* TRUE, if inquiry is in progess */
-#endif
     BUFFER_Q                page_queue;
     BOOLEAN                 paging;
     BOOLEAN                 discing;

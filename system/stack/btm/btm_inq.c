@@ -783,12 +783,10 @@ tBTM_STATUS BTM_CancelInquiry(void)
 #endif
         }
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
         /* Do not send the BUSY_LEVEL event yet. Wait for the cancel_complete event
          * and then send the BUSY_LEVEL event
          * btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
          */
-#endif
 
          p_inq->inq_counter++;
          btm_clr_inq_result_flt();
@@ -1926,9 +1924,7 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
     BTM_TRACE_DEBUG ("btm_initiate_inquiry: inq_active:0x%x state:%d inqfilt_active:%d",
         btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state, btm_cb.btm_inq_vars.inqfilt_active);
 #endif
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_acl_update_busy_level (BTM_BLI_INQ_EVT);
-#endif
 
     if (p_inq->inq_active & BTM_SSP_INQUIRY_ACTIVE)
     {
@@ -2167,11 +2163,7 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
                 if ((p_inq->inqparms.mode & BTM_BLE_INQUIRY_MASK) != 0)
                     btm_ble_stop_inquiry();
 #endif
-
-
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
                 btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
-#endif
             }
 #endif
             /* Initialize flag to FALSE. This flag is set/used by application */
@@ -2288,9 +2280,7 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
     BTM_TRACE_DEBUG ("btm_process_inq_complete inq_active:0x%x state:%d inqfilt_active:%d",
         btm_cb.btm_inq_vars.inq_active, btm_cb.btm_inq_vars.state, btm_cb.btm_inq_vars.inqfilt_active);
 #endif
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
-#endif
     /* Ignore any stray or late complete messages if the inquiry is not active */
     if (p_inq->inq_active)
     {
@@ -2366,9 +2356,7 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
 *******************************************************************************/
 void btm_process_cancel_complete(UINT8 status, UINT8 mode)
 {
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
      btm_acl_update_busy_level (BTM_BLI_INQ_CANCEL_EVT);
-#endif
      btm_process_inq_complete(status, mode);
 }
 /*******************************************************************************

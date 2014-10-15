@@ -2382,9 +2382,7 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
         return (FALSE);
     }
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_acl_update_busy_level (BTM_BLI_PAGE_EVT);
-#endif
 
     btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK,
                      L2CAP_LINK_CONNECT_TOUT);

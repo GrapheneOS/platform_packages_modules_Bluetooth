@@ -154,9 +154,7 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
     tL2C_CCB            *p_ccb;
     tBTM_SEC_DEV_REC    *p_dev_info = NULL;
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_acl_update_busy_level (BTM_BLI_PAGE_DONE_EVT);
-#endif
 
     /* Save the parameters */
     ci.status       = status;

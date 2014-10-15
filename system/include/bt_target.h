@@ -585,11 +585,6 @@ extern "C" {
 #define BTM_SCO_WAKE_PARKED_LINK    TRUE
 #endif
 
-/* This is set to TRUE if the busy level change event is desired. (replace ACL change event) */
-#ifndef BTM_BUSY_LEVEL_CHANGE_INCLUDED
-#define BTM_BUSY_LEVEL_CHANGE_INCLUDED  TRUE
-#endif
-
 /* If the user does not respond to security process requests within this many seconds,
  * a negative response would be sent automatically.
  * 30 is LMP response timeout value */

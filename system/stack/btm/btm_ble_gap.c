@@ -2554,9 +2554,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
             btm_ble_stop_inquiry();
 
-#if BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE
             btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
-#endif
         }
     }
 #endif
