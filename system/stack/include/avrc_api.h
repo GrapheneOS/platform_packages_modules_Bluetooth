@@ -89,6 +89,9 @@
  * send messages. */
 #define AVRC_BROWSE_UNCONG_IND_EVT     7
 
+/* AVRC_CMD_TIMEOUT_EVT event indicates timeout waiting for AVRC command response from the peer */
+#define AVRC_CMD_TIMEOUT_EVT           8
+
 /* Supported categories */
 #define AVRC_SUPF_CT_CAT1               0x0001      /* Category 1 */
 #define AVRC_SUPF_CT_CAT2               0x0002      /* Category 2 */
