@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "base.h"
+#include "btcore/include/bdaddr.h"
 #include "cases/cases.h"
 #include "support/callbacks.h"
 #include "support/hal.h"
@@ -38,23 +39,6 @@ bt_bdaddr_t bt_remote_bdaddr;
 static pthread_t watchdog_thread;
 static int watchdog_id;
 static bool watchdog_running;
-
-static bool parse_bdaddr(const char *str, bt_bdaddr_t *addr) {
-  if (!addr) {
-    return false;
-  }
-
-  int v[6];
-  if (sscanf(str, "%02x:%02x:%02x:%02x:%02x:%02x", &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) != 6) {
-    return false;
-  }
-
-  for (int i = 0; i < 6; ++i) {
-    addr->address[i] = (uint8_t)v[i];
-  }
-
-  return true;
-}
 
 void *watchdog_fn(void *arg) {
   int current_id = 0;
@@ -78,7 +62,7 @@ void *watchdog_fn(void *arg) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 2 || !parse_bdaddr(argv[1], &bt_remote_bdaddr)) {
+  if (argc < 2 || !string_to_bdaddr(argv[1], &bt_remote_bdaddr)) {
     printf("Usage: %s <bdaddr>\n", argv[0]);
     return -1;
   }
