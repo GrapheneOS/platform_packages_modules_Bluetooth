@@ -2845,17 +2845,6 @@ extern tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda,
 
 /*******************************************************************************
 **
-** Function         BTM_RegForLstoEvt
-**
-** Description      register for the HCI "Link Supervision Timeout Change" event
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_RegForLstoEvt (tBTM_LSTO_CBACK *p_cback);
-
-/*******************************************************************************
-**
 ** Function         BTM_SetPacketTypes
 **
 ** Description      This function is set the packet types used for a specific

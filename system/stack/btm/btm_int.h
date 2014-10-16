@@ -1097,7 +1097,6 @@ extern void  btm_read_local_oob_complete (UINT8 *p);
 extern void  btm_acl_resubmit_page (void);
 extern void  btm_acl_reset_paging (void);
 extern void  btm_acl_paging (BT_HDR *p, BD_ADDR dest);
-extern void  btm_acl_set_discing (BOOLEAN discing);
 extern UINT8 btm_sec_clr_service_by_psm (UINT16 psm);
 extern void  btm_sec_clr_temp_auth_service (BD_ADDR bda);
 

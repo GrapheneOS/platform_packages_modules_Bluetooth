@@ -1478,21 +1478,6 @@ tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, UINT16 timeout)
 
 /*******************************************************************************
 **
-** Function         BTM_RegForLstoEvt
-**
-** Description      register for the HCI "Link Supervision Timeout Change" event
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTM_RegForLstoEvt (tBTM_LSTO_CBACK *p_cback)
-{
-    BTM_TRACE_DEBUG ("BTM_RegForLstoEvt");
-    btm_cb.p_lsto_cback = p_cback;
-}
-
-/*******************************************************************************
-**
 ** Function         btm_proc_lsto_evt
 **
 ** Description      process the HCI "Link Supervision Timeout Change" event
@@ -2749,19 +2734,6 @@ void  btm_acl_reset_paging (void)
         GKI_freebuf (p);
 
     btm_cb.paging = FALSE;
-}
-
-/*******************************************************************************
-**
-** Function         btm_acl_set_discing
-**
-** Description      set discing to the given value
-**
-*******************************************************************************/
-void  btm_acl_set_discing (BOOLEAN discing)
-{
-    BTM_TRACE_DEBUG ("btm_acl_set_discing");
-    btm_cb.discing = discing;
 }
 
 /*******************************************************************************
