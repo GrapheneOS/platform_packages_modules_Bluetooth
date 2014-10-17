@@ -141,7 +141,12 @@ int main(int argc, char **argv) {
   if (get_name) {
     CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
-    CALL_AND_WAIT(bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    int error;
+    CALL_AND_WAIT(error = bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to get adapter property\n");
+      exit(1);
+    }
     bt_property_t *property = adapter_get_property(BT_PROPERTY_BDNAME);
     const bt_bdname_t *bdname = property_extract_bdname(property);
     if (bdname)
@@ -156,8 +161,17 @@ int main(int argc, char **argv) {
 
     bt_property_t *property = property_new_name(bd_name);
     printf("Setting bluetooth device name to:%s\n", bd_name);
-    CALL_AND_WAIT(bt_interface->set_adapter_property(property), adapter_properties);
-    CALL_AND_WAIT(bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    int error;
+    CALL_AND_WAIT(error = bt_interface->set_adapter_property(property), adapter_properties);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to set adapter property\n");
+      exit(1);
+    }
+    CALL_AND_WAIT(error = bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to get adapter property\n");
+      exit(1);
+    }
     property_free(property);
     sleep(timeout_in_sec);
   }
