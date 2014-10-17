@@ -947,7 +947,7 @@ tBTM_STATUS BTM_EnableTestMode(void)
 
     /* mask off all of event from controller */
     hci_layer_get_interface()->transmit_command(
-      hci_packet_factory_get_interface()->make_set_event_mask((const bt_event_mask_t *)(&"\x00\x00\x00\x00\x00\x00\x00\x00")),
+      hci_packet_factory_get_interface()->make_set_event_mask((const bt_event_mask_t *)("\x00\x00\x00\x00\x00\x00\x00\x00")),
       NULL,
       NULL,
       NULL);
