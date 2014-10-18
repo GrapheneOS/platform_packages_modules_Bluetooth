@@ -33,12 +33,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#if defined (LMP_TEST)
-#include <script.h>
-#define btu_hcif_send_cmd(p1, p2) HCI_CMD_TO_LOWER((p2))
-#else
 #include "btm_int.h"    /* Included for UIPC_* macro definitions */
-#endif
 
 BOOLEAN btsnd_hcic_inquiry(const LAP inq_lap, UINT8 duration, UINT8 response_cnt)
 {
@@ -163,12 +158,7 @@ BOOLEAN btsnd_hcic_create_conn(BD_ADDR dest, UINT16 packet_types,
 #if !defined (BT_10A)
     UINT8_TO_STREAM  (pp, allow_switch);
 #endif
-/* If calling from LMP_TEST or ScriptEngine, then send HCI command immediately */
-#if (!defined (LMP_TEST) && !defined(BTISE))
     btm_acl_paging (p, dest);
-#else
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
-#endif
     return (TRUE);
 }
 
@@ -191,12 +181,6 @@ BOOLEAN btsnd_hcic_disconnect (UINT16 handle, UINT8 reason)
     UINT8_TO_STREAM  (pp, reason);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
-/* If calling from LMP_TEST or ScriptEngine, then send HCI command immediately */
-#if (!defined (LMP_TEST) && !defined(BTISE))
-// btla-specific ++
-    // btm_acl_set_discing(TRUE);
-// btla-specific --
-#endif
     return (TRUE);
 }
 
@@ -525,12 +509,7 @@ BOOLEAN btsnd_hcic_rmt_name_req (BD_ADDR bd_addr, UINT8 page_scan_rep_mode,
     UINT8_TO_STREAM  (pp, page_scan_mode);
     UINT16_TO_STREAM (pp, clock_offset);
 
-/* If calling from LMP_TEST or ScriptEngine, then send HCI command immediately */
-#if (!defined (LMP_TEST) && !defined(BTISE))
     btm_acl_paging (p, bd_addr);
-#else
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
-#endif
     return (TRUE);
 }
 
@@ -3083,7 +3062,7 @@ BOOLEAN btsnd_hcic_write_pagescan_type (UINT8 type)
 }
 
 /* Must have room to store BT_HDR + max VSC length + callback pointer */
-#if !defined (LMP_TEST) && (HCI_CMD_POOL_BUF_SIZE < 268)
+#if (HCI_CMD_POOL_BUF_SIZE < 268)
 #error "HCI_CMD_POOL_BUF_SIZE must be larger than 268"
 #endif
 
