@@ -71,9 +71,6 @@
 #if (GAP_INCLUDED==TRUE)
 #include "gap_api.h"
 #endif
-#if (GOEP_INCLUDED==TRUE)
-#include "goep_util.h"
-#endif
 #if (HCRP_INCLUDED==TRUE)
 #include "hcrp_api.h"
 #endif
@@ -122,7 +119,7 @@ static const char * const bt_layer_tags[] = {
   "bt-btm",
   "bt-gap",
   "bt-dun",
-  "bt-goep",
+  "UNUSED",
   "bt-icp",
   "bt-hsp2",
   "bt-spp",
@@ -200,9 +197,6 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
 #endif
 #if (GAP_INCLUDED==TRUE)
   {BTTRC_ID_STK_GAP, BTTRC_ID_STK_GAP, GAP_SetTraceLevel, "TRC_GAP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
-#if (GOEP_INCLUDED==TRUE)
-  {BTTRC_ID_STK_GOEP, BTTRC_ID_STK_GOEP, GOEP_SetTraceLevel, "TRC_GOEP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
 #if (HCRP_INCLUDED==TRUE)
   {BTTRC_ID_STK_HCRP, BTTRC_ID_STK_HCRP, HCRP_SetTraceLevel, "TRC_HCRP", DEFAULT_CONF_TRACE_LEVEL},

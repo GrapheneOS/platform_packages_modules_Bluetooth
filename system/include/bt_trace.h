@@ -51,7 +51,6 @@
 #define BTTRC_ID_STK_FTC                   27
 #define BTTRC_ID_STK_FTS                   28
 #define BTTRC_ID_STK_GAP                   29
-#define BTTRC_ID_STK_GOEP                  30
 #define BTTRC_ID_STK_HCRP                  31
 #define BTTRC_ID_STK_ICP                   32
 #define BTTRC_ID_STK_OPC                   33

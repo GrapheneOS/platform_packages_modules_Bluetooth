@@ -67,10 +67,6 @@
 #include "dun_api.h"
 #endif
 
-#if (defined(GOEP_INCLUDED) &&  GOEP_INCLUDED == TRUE)
-#include "goep_util.h"
-#endif /* GOEP included */
-
 #if (defined(OPP_INCLUDED) && OPP_INCLUDED == TRUE)
 #include "opp_api.h"
 #endif /* OPP */
@@ -324,11 +320,6 @@ void BTE_InitStack(void)
 #endif  /* BTA BI */
 #endif  /* BIP */
 
-#if (defined(GOEP_INCLUDED) && GOEP_INCLUDED == TRUE)
-    GOEP_Init();
-#endif /* GOEP */
-
-
 #if (defined(OPP_INCLUDED) && OPP_INCLUDED == TRUE)
     OPP_Init();
 #endif
@@ -507,4 +498,5 @@ void BTE_InitStack(void)
 
 #endif /* BTA_INCLUDED == TRUE */
 // btla-specific --
+
 }
