@@ -65,9 +65,6 @@
 #include "bpp_api.h"
 #endif
 #include "btm_api.h"
-#if (DUN_INCLUDED==TRUE)
-#include "dun_api.h"
-#endif
 #if (GAP_INCLUDED==TRUE)
 #include "gap_api.h"
 #endif
@@ -118,7 +115,7 @@ static const char * const bt_layer_tags[] = {
   "bt-obex",
   "bt-btm",
   "bt-gap",
-  "bt-dun",
+  "UNUSED",
   "UNUSED",
   "bt-icp",
   "bt-hsp2",
@@ -192,9 +189,6 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {BTTRC_ID_STK_BPP, BTTRC_ID_STK_BPP, BPP_SetTraceLevel, "TRC_BPP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
   {BTTRC_ID_STK_BTM_ACL, BTTRC_ID_STK_BTM_SEC, BTM_SetTraceLevel, "TRC_BTM", DEFAULT_CONF_TRACE_LEVEL},
-#if (DUN_INCLUDED==TRUE)
-  {BTTRC_ID_STK_DUN, BTTRC_ID_STK_DUN, DUN_SetTraceLevel, "TRC_DUN", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (GAP_INCLUDED==TRUE)
   {BTTRC_ID_STK_GAP, BTTRC_ID_STK_GAP, GAP_SetTraceLevel, "TRC_GAP", DEFAULT_CONF_TRACE_LEVEL},
 #endif

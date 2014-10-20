@@ -44,7 +44,6 @@
 #define BTTRC_ID_STK_BTM_INQ               20
 #define BTTRC_ID_STK_BTM_SCO               21
 #define BTTRC_ID_STK_BTM_SEC               22
-#define BTTRC_ID_STK_DUN                   23
 #define BTTRC_ID_STK_HID                   24
 #define BTTRC_ID_STK_HSP2                  25
 #define BTTRC_ID_STK_CTP                   26

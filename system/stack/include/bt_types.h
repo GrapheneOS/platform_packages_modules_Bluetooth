@@ -565,7 +565,6 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_LAYER_OBEX            0x000c0000
 #define TRACE_LAYER_BTM             0x000d0000
 #define TRACE_LAYER_GAP             0x000e0000
-#define TRACE_LAYER_DUN             0x000f0000
 #define TRACE_LAYER_ICP             0x00110000
 #define TRACE_LAYER_HSP2            0x00120000
 #define TRACE_LAYER_SPP             0x00130000

@@ -51,10 +51,6 @@
 #include "spp_api.h"
 #endif
 
-#if (defined(DUN_INCLUDED) && DUN_INCLUDED == TRUE)
-#include "dun_api.h"
-#endif
-
 #if (defined(OPP_INCLUDED) && OPP_INCLUDED == TRUE)
 #include "opp_api.h"
 #endif /* OPP */
@@ -283,10 +279,6 @@ void BTE_InitStack(void)
 #if (defined(SPP_INCLUDED) && SPP_INCLUDED == TRUE)
     SPP_Init();
 #endif  /* SPP */
-
-#if (defined(DUN_INCLUDED) && DUN_INCLUDED == TRUE)
-    DUN_Init();
-#endif  /* DUN */
 
 #if (defined(HSP2_INCLUDED) && HSP2_INCLUDED == TRUE)
     HSP2_Init();

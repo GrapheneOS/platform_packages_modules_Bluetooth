@@ -111,10 +111,6 @@
 #define CTP_DYNAMIC_MEMORY  FALSE
 #endif
 
-#ifndef DUN_DYNAMIC_MEMORY
-#define DUN_DYNAMIC_MEMORY  FALSE
-#endif
-
 #ifndef FTP_DYNAMIC_MEMORY
 #define FTP_DYNAMIC_MEMORY  FALSE
 #endif
