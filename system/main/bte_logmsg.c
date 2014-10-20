@@ -55,21 +55,12 @@
 #if (A2D_INCLUDED==TRUE)
 #include "a2d_api.h"
 #endif
-#if (BIP_INCLUDED==TRUE)
-#include "bip_api.h"
-#endif
 #if (BNEP_INCLUDED==TRUE)
 #include "bnep_api.h"
-#endif
-#if (BPP_INCLUDED==TRUE)
-#include "bpp_api.h"
 #endif
 #include "btm_api.h"
 #if (GAP_INCLUDED==TRUE)
 #include "gap_api.h"
-#endif
-#if (HCRP_INCLUDED==TRUE)
-#include "hcrp_api.h"
 #endif
 #if (PAN_INCLUDED==TRUE)
 #include "pan_api.h"
@@ -179,27 +170,15 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
 #if (A2D_INCLUDED==TRUE)
   {BTTRC_ID_STK_A2D, BTTRC_ID_STK_A2D, A2D_SetTraceLevel, "TRC_A2D", DEFAULT_CONF_TRACE_LEVEL},
 #endif
-#if (BIP_INCLUDED==TRUE)
-  {BTTRC_ID_STK_BIP, BTTRC_ID_STK_BIP, BIP_SetTraceLevel, "TRC_BIP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (BNEP_INCLUDED==TRUE)
   {BTTRC_ID_STK_BNEP, BTTRC_ID_STK_BNEP, BNEP_SetTraceLevel, "TRC_BNEP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
-#if (BPP_INCLUDED==TRUE)
-  {BTTRC_ID_STK_BPP, BTTRC_ID_STK_BPP, BPP_SetTraceLevel, "TRC_BPP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
   {BTTRC_ID_STK_BTM_ACL, BTTRC_ID_STK_BTM_SEC, BTM_SetTraceLevel, "TRC_BTM", DEFAULT_CONF_TRACE_LEVEL},
 #if (GAP_INCLUDED==TRUE)
   {BTTRC_ID_STK_GAP, BTTRC_ID_STK_GAP, GAP_SetTraceLevel, "TRC_GAP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
-#if (HCRP_INCLUDED==TRUE)
-  {BTTRC_ID_STK_HCRP, BTTRC_ID_STK_HCRP, HCRP_SetTraceLevel, "TRC_HCRP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (PAN_INCLUDED==TRUE)
   {BTTRC_ID_STK_PAN, BTTRC_ID_STK_PAN, PAN_SetTraceLevel, "TRC_PAN", DEFAULT_CONF_TRACE_LEVEL},
-#endif
-#if (SAP_SERVER_INCLUDED==TRUE)
-  {BTTRC_ID_STK_SAP, BTTRC_ID_STK_SAP, NULL, "TRC_SAP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
   {BTTRC_ID_STK_SDP, BTTRC_ID_STK_SDP, SDP_SetTraceLevel, "TRC_SDP", DEFAULT_CONF_TRACE_LEVEL},
 #if (BLE_INCLUDED==TRUE)

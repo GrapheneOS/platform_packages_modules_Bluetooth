@@ -132,11 +132,6 @@ static void btu_hcif_enhanced_flush_complete_evt (void);
 static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len);
     #endif /* BTM_SSR_INCLUDED == TRUE */
 
-    #if (HID_DEV_INCLUDED == TRUE) && (HID_DEV_PM_INCLUDED == TRUE)
-extern void hidd_pm_proc_mode_change( UINT8 hci_status, UINT8 mode, UINT16 interval );
-    #endif
-
-
     #if BLE_INCLUDED == TRUE
 static void btu_ble_ll_conn_complete_evt (UINT8 *p, UINT16 evt_len);
 static void btu_ble_process_adv_pkt (UINT8 *p);

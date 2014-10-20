@@ -68,14 +68,6 @@
 #define BTA_AG_INCLUDED  TRUE
 #endif
 
-#ifndef BTA_BI_INCLUDED
-#define BTA_BI_INCLUDED FALSE
-#endif
-
-#ifndef BTA_SC_INCLUDED
-#define BTA_SC_INCLUDED FALSE
-#endif
-
 #ifndef BTA_PAN_INCLUDED
 #define BTA_PAN_INCLUDED TRUE
 #endif
@@ -1500,21 +1492,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 #define GAP_INCLUDED                TRUE
 #endif
 
-/******************************************************************************
-**
-** SPP
-**
-******************************************************************************/
-
-#ifndef SPP_INCLUDED
-#define SPP_INCLUDED                FALSE
-#endif
-
-/* The SPP discovery record size. */
-#ifndef SPP_DISC_REC_SIZE
-#define SPP_DISC_REC_SIZE           60
-#endif
-
 /* keep the raw data received from SDP server in database. */
 #ifndef SDP_RAW_DATA_INCLUDED
 #define SDP_RAW_DATA_INCLUDED       TRUE
@@ -1527,47 +1504,9 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 
 /******************************************************************************
 **
-** HSP2, HFP
-**
-******************************************************************************/
-
-#ifndef HSP2_INCLUDED
-#define HSP2_INCLUDED               FALSE
-#endif
-
-/* The time in seconds to wait for completion of a partial AT command or response from the peer. */
-#ifndef HSP2_AT_TO_INTERVAL
-#define HSP2_AT_TO_INTERVAL         30
-#endif
-
-#ifndef HSP2_MAX_AT_VAL_LENGTH
-#if (defined(HFP_INCLUDED) && HFP_INCLUDED == TRUE)
-#define HSP2_MAX_AT_VAL_LENGTH       310
-#else
-#define HSP2_MAX_AT_VAL_LENGTH       5
-#endif
-#endif
-
-/******************************************************************************
-**
-** HFP
-**
-******************************************************************************/
-
-#ifndef HFP_INCLUDED
-#define HFP_INCLUDED                FALSE
-#endif
-
-/******************************************************************************
-**
 ** HID
 **
 ******************************************************************************/
-
-/* HID Device Role Included */
-#ifndef HID_DEV_INCLUDED
-#define HID_DEV_INCLUDED             FALSE
-#endif
 
 #ifndef HID_DEV_PM_INCLUDED
 #define HID_DEV_PM_INCLUDED         TRUE
@@ -1629,74 +1568,12 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 
 /******************************************************************************
 **
-** OPP
-**
-******************************************************************************/
-
-#ifndef OPP_INCLUDED
-#define OPP_INCLUDED                FALSE
-#endif
-
-/******************************************************************************
-**
-** BPP Printer
-**
-******************************************************************************/
-#ifndef BPP_INCLUDED
-#define BPP_INCLUDED                FALSE
-#endif
-
-#ifndef BPP_SND_INCLUDED
-#define BPP_SND_INCLUDED            FALSE
-#endif
-
-/******************************************************************************
-**
-** BIP
-**
-******************************************************************************/
-#ifndef BIP_INCLUDED
-#define BIP_INCLUDED                FALSE
-#endif
-
-/******************************************************************************
-**
-** HCRP
-**
-******************************************************************************/
-
-#ifndef HCRP_INCLUDED
-#define HCRP_INCLUDED               FALSE
-#endif
-
-/* This is set to enable server. */
-#ifndef HCRP_SERVER_INCLUDED
-#define HCRP_SERVER_INCLUDED       FALSE
-#endif
-
-/* This is set to enable client. */
-#ifndef HCRP_CLIENT_INCLUDED
-#define HCRP_CLIENT_INCLUDED        FALSE
-#endif
-
-/******************************************************************************
-**
 ** PAN
 **
 ******************************************************************************/
 
 #ifndef PAN_INCLUDED
 #define PAN_INCLUDED                FALSE
-#endif
-
-/******************************************************************************
-**
-** SAP
-**
-******************************************************************************/
-
-#ifndef SAP_SERVER_INCLUDED
-#define SAP_SERVER_INCLUDED         FALSE
 #endif
 
 /*************************************************************************

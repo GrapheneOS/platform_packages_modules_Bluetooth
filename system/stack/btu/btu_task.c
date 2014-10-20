@@ -64,10 +64,6 @@
 #include "bip_int.h"
 #endif /* BIP */
 
-#if (BPP_SND_INCLUDED == TRUE ||  BPP_INCLUDED == TRUE)
-#include "bpp_int.h"
-#endif /* BPP */
-
 #endif /* OBX */
 
 /* BTE application task */
@@ -81,14 +77,6 @@
 
 #if (defined(PAN_INCLUDED) && PAN_INCLUDED == TRUE)
 #include "pan_int.h"
-#endif
-
-#if (defined(SAP_SERVER_INCLUDED) && SAP_SERVER_INCLUDED == TRUE)
-#include "sap_int.h"
-#endif
-
-#if (defined(HID_DEV_INCLUDED) && HID_DEV_INCLUDED == TRUE )
-#include "hidd_int.h"
 #endif
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE )
@@ -291,26 +279,8 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             GKI_freebuf (p_msg);
             break;
 #endif /* BIP */
-#if (BPP_SND_INCLUDED == TRUE || BPP_INCLUDED == TRUE)
-        case BT_EVT_TO_BPP_PR_CMDS:
-            bpp_pr_proc_event(p_msg);
-            GKI_freebuf (p_msg);
-            break;
-        case BT_EVT_TO_BPP_SND_CMDS:
-            bpp_snd_proc_event(p_msg);
-            GKI_freebuf (p_msg);
-            break;
-
-#endif /* BPP */
-
 #endif /* OBX */
 
-#if (defined(SAP_SERVER_INCLUDED) && SAP_SERVER_INCLUDED == TRUE)
-        case BT_EVT_TO_BTU_SAP :
-            sap_proc_btu_event(p_msg);
-            GKI_freebuf (p_msg);
-            break;
-#endif /* SAP */
             // NOTE: The timer calls below may not be sent by HCI.
         case BT_EVT_TO_START_TIMER :
             /* Start free running 1 second timer for list management */
@@ -542,12 +512,6 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
             obx_sr_sess_timeout(p_tle);
             break;
 #endif
-#endif
-
-#if (defined(SAP_SERVER_INCLUDED) && SAP_SERVER_INCLUDED == TRUE)
-        case BTU_TTYPE_SAP_TO:
-            sap_process_timeout(p_tle);
-            break;
 #endif
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
