@@ -57,15 +57,6 @@
 #include "gap_int.h"
 #endif
 
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-#include "obx_int.h"
-
-#if (defined(BIP_INCLUDED) && BIP_INCLUDED == TRUE)
-#include "bip_int.h"
-#endif /* BIP */
-
-#endif /* OBX */
-
 /* BTE application task */
 #if APPL_INCLUDED == TRUE
 #include "bte_appl.h"
@@ -247,39 +238,6 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
         case BT_EVT_TO_BTU_HCI_CMD:
             btu_hcif_send_cmd ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
             break;
-
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-#if (defined(OBX_SERVER_INCLUDED) && OBX_SERVER_INCLUDED == TRUE)
-        case BT_EVT_TO_OBX_SR_MSG:
-            obx_sr_proc_evt((tOBX_PORT_EVT *)(p_msg + 1));
-            GKI_freebuf (p_msg);
-            break;
-
-        case BT_EVT_TO_OBX_SR_L2C_MSG:
-            obx_sr_proc_l2c_evt((tOBX_L2C_EVT_MSG *)(p_msg + 1));
-            GKI_freebuf (p_msg);
-            break;
-#endif
-
-#if (defined(OBX_CLIENT_INCLUDED) && OBX_CLIENT_INCLUDED == TRUE)
-        case BT_EVT_TO_OBX_CL_MSG:
-            obx_cl_proc_evt((tOBX_PORT_EVT *)(p_msg + 1));
-            GKI_freebuf (p_msg);
-            break;
-
-        case BT_EVT_TO_OBX_CL_L2C_MSG:
-            obx_cl_proc_l2c_evt((tOBX_L2C_EVT_MSG *)(p_msg + 1));
-            GKI_freebuf (p_msg);
-            break;
-#endif
-
-#if (defined(BIP_INCLUDED) && BIP_INCLUDED == TRUE)
-        case BT_EVT_TO_BIP_CMDS :
-            bip_proc_btu_event(p_msg);
-            GKI_freebuf (p_msg);
-            break;
-#endif /* BIP */
-#endif /* OBX */
 
             // NOTE: The timer calls below may not be sent by HCI.
         case BT_EVT_TO_START_TIMER :
@@ -495,23 +453,6 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
         case BTU_TTYPE_AVDT_SCB_TC:
             avdt_process_timeout(p_tle);
             break;
-#endif
-
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-#if (defined(OBX_CLIENT_INCLUDED) && OBX_CLIENT_INCLUDED == TRUE)
-        case BTU_TTYPE_OBX_CLIENT_TO:
-            obx_cl_timeout(p_tle);
-            break;
-#endif
-#if (defined(OBX_SERVER_INCLUDED) && OBX_SERVER_INCLUDED == TRUE)
-        case BTU_TTYPE_OBX_SERVER_TO:
-            obx_sr_timeout(p_tle);
-            break;
-
-        case BTU_TTYPE_OBX_SVR_SESS_TO:
-            obx_sr_sess_timeout(p_tle);
-            break;
-#endif
 #endif
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)

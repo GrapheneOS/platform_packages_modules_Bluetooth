@@ -35,10 +35,6 @@
 #include "port_api.h"
 #endif
 
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-#include "obx_api.h"
-#endif
-
 #if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
 #include "bnep_api.h"
 #endif
@@ -157,15 +153,6 @@ void BTE_InitStack(void)
 *****************************/
 #if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
     RFCOMM_Init();
-
-/**************************
-** OBEX and its profiles **
-***************************/
-#if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
-    OBX_Init();
-#endif  /* OBX */
-
-
 #endif  /* RFCOMM Included */
 
 /**************************

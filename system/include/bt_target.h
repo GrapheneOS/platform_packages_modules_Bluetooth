@@ -278,14 +278,6 @@
 #define BTM_CMD_POOL_ID             GKI_POOL_ID_2
 #endif
 
-#ifndef OBX_LRG_DATA_POOL_SIZE
-#define OBX_LRG_DATA_POOL_SIZE      GKI_BUF4_SIZE
-#endif
-
-#ifndef OBX_LRG_DATA_POOL_ID
-#define OBX_LRG_DATA_POOL_ID        GKI_POOL_ID_4
-#endif
-
 /* Used to send data to L2CAP. */
 #ifndef GAP_DATA_POOL_ID
 #define GAP_DATA_POOL_ID            GKI_POOL_ID_3
@@ -600,7 +592,6 @@ extern "C" {
 
 /* If the user does not respond to security process requests within this many seconds,
  * a negative response would be sent automatically.
- * It's recommended to use a value between 30 and OBX_TIMEOUT_VALUE
  * 30 is LMP response timeout value */
 #ifndef BTM_SEC_TIMEOUT_VALUE
 #define BTM_SEC_TIMEOUT_VALUE           35
@@ -1167,99 +1158,6 @@ extern "C" {
 /* PORT_SCHEDULE_LOCK shall be defined as GKI_sched_unlock() or GKI_enable() */
 #ifndef PORT_SCHEDULE_UNLOCK
 #define PORT_SCHEDULE_UNLOCK        GKI_enable()
-#endif
-
-/******************************************************************************
-**
-** OBX
-**
-******************************************************************************/
-#ifndef OBX_INCLUDED
-#define OBX_INCLUDED               FALSE
-#endif
-
-#ifndef OBX_CLIENT_INCLUDED
-#define OBX_CLIENT_INCLUDED        TRUE
-#endif
-
-#ifndef OBX_SERVER_INCLUDED
-#define OBX_SERVER_INCLUDED        TRUE
-#endif
-
-/* TRUE to include OBEX authentication/MD5 code */
-#ifndef OBX_MD5_INCLUDED
-#define OBX_MD5_INCLUDED           TRUE
-#endif
-
-/* TRUE to include OBEX 1.4 enhancement (including Obex Over L2CAP) */
-#ifndef OBX_14_INCLUDED
-#define OBX_14_INCLUDED             FALSE
-#endif
-/* MD5 code is required to use OBEX 1.4 features (Reliable session) */
-#if (OBX_MD5_INCLUDED == FALSE)
-#undef OBX_14_INCLUDED
-#define OBX_14_INCLUDED             FALSE
-#endif
-
-/* L2CAP FCR/eRTM mode is required to use OBEX Over L2CAP */
-#if (L2CAP_FCR_INCLUDED == FALSE)
-#undef OBX_14_INCLUDED
-#define OBX_14_INCLUDED             FALSE
-#endif
-
-/* The idle timeout value. 0 for no timeout event. */
-#ifndef OBX_TIMEOUT_VALUE
-#define OBX_TIMEOUT_VALUE           60
-#endif
-
-/* The maximum number of registered servers. */
-#ifndef OBX_NUM_SERVERS
-#define OBX_NUM_SERVERS             12
-#endif
-
-/* The maximum number of sessions per registered server. */
-#ifndef OBX_MAX_SR_SESSION
-#define OBX_MAX_SR_SESSION          4
-#endif
-
-/* The maximum number of sessions per registered server.
- * must be less than MAX_BD_CONNECTIONS */
-#ifndef OBX_MAX_SR_SESSION
-#define OBX_MAX_SR_SESSION          4
-#endif
-
-/* The maximum number of suspended sessions per registered servers. */
-#ifndef OBX_MAX_SUSPEND_SESSIONS
-#define OBX_MAX_SUSPEND_SESSIONS    4
-#endif
-
-/* The maximum number of active clients. */
-#ifndef OBX_NUM_CLIENTS
-#define OBX_NUM_CLIENTS             8
-#endif
-
-/* The maximum length of OBEX target header.*/
-#ifndef OBX_MAX_TARGET_LEN
-#define OBX_MAX_TARGET_LEN          16
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
-*/
-#ifndef OBX_FCR_RX_POOL_ID
-#define OBX_FCR_RX_POOL_ID      HCI_ACL_POOL_ID
-#endif
-
-/* This option is application when OBX_14_INCLUDED=TRUE
-GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
-L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
-Note:  This pool needs to have enough buffers to hold two times the window size negotiated
- in the L2CA_SetFCROptions (2 * tx_win_size)  to allow for retransmissions.
- The size of each buffer must be able to hold the maximum MPS segment size passed in
- L2CA_SetFCROptions plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
-*/
-#ifndef OBX_FCR_TX_POOL_ID
-#define OBX_FCR_TX_POOL_ID      HCI_ACL_POOL_ID
 #endif
 
 /******************************************************************************

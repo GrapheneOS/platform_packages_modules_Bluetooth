@@ -27,7 +27,6 @@
 
 #include "bt_target.h"
 #include "bta_sys.h"
-#include "obx_api.h"
 #include "bta_hl_api.h"
 #include "bta_hl_co.h"
 #include "l2cdefs.h"

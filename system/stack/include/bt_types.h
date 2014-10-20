@@ -81,14 +81,7 @@
 
 #define BT_EVT_TO_TCS_CMDS          0x3000
 
-#define BT_EVT_TO_OBX_CL_MSG        0x3100
-#define BT_EVT_TO_OBX_SR_MSG        0x3200
-
 #define BT_EVT_TO_CTP_CMDS          0x3300
-
-/* Obex Over L2CAP */
-#define BT_EVT_TO_OBX_CL_L2C_MSG    0x3400
-#define BT_EVT_TO_OBX_SR_L2C_MSG    0x3500
 
 /* ftp events */
 #define BT_EVT_TO_FTP_SRVR_CMDS     0x3600

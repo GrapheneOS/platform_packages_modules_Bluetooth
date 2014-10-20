@@ -146,7 +146,7 @@ UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size)
 {
     UINT8 pool_id;
 
-    if (max_tx_size > GKI_get_pool_bufsize (OBX_FCR_TX_POOL_ID))
+    if (max_tx_size > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
     {
         pool_id = BTA_HL_LRG_DATA_POOL_ID;
     }
@@ -157,7 +157,7 @@ UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size)
 
 #if BTA_HL_DEBUG == TRUE
     APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d max_tx_size=%d default_ertm_pool_size=%d",
-                      pool_id, max_tx_size, GKI_get_pool_bufsize (OBX_FCR_TX_POOL_ID));
+                      pool_id, max_tx_size, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
 #endif
 
     return pool_id;
@@ -177,7 +177,7 @@ UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu)
 {
     UINT8 pool_id;
 
-    if (mtu > GKI_get_pool_bufsize (OBX_FCR_RX_POOL_ID))
+    if (mtu > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
     {
         pool_id = BTA_HL_LRG_DATA_POOL_ID;
     }
@@ -188,7 +188,7 @@ UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu)
 
 #if BTA_HL_DEBUG == TRUE
     APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d mtu=%d default_ertm_pool_size=%d",
-                      pool_id, mtu, GKI_get_pool_bufsize (OBX_FCR_RX_POOL_ID));
+                      pool_id, mtu, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
 #endif
 
     return pool_id;

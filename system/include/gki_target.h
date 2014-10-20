@@ -180,13 +180,7 @@
 #define GKI_MAX_BUF_SIZE_POOL_ID    GKI_POOL_ID_3
 #endif
 
-/* RESERVED buffer pool for OBX */
-/* Ideally there should be 1 buffer for each instance for RX data, and some number
-of TX buffers based on active instances. OBX will only use these if packet size
-requires it. In most cases the large packets are used in only one direction so
-the other direction will use smaller buffers.
-Devices with small amount of RAM should limit the number of active obex objects.
-*/
+/* Pool 4 is unused */
 /* The size of the buffers in pool 4. */
 #ifndef GKI_BUF4_SIZE
 #define GKI_BUF4_SIZE               (8080+26)
@@ -194,7 +188,7 @@ Devices with small amount of RAM should limit the number of active obex objects.
 
 /* The number of buffers in buffer pool 4. */
 #ifndef GKI_BUF4_MAX
-#define GKI_BUF4_MAX                (OBX_NUM_SERVERS + OBX_NUM_CLIENTS)
+#define GKI_BUF4_MAX                0
 #endif
 
 /* The ID of buffer pool 4. */

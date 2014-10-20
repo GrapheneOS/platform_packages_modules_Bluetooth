@@ -146,12 +146,6 @@
 #define  ATTR_ID_HDP_DATA_EXCH_SPEC         0x0301  /* Data exchange specification */
 #define  ATTR_ID_HDP_MCAP_SUP_PROC          0x0302  /* MCAP supported procedures */
 
-/* a temporary value for IOP */
-#ifndef ATTR_ID_OBX_OVR_L2CAP_PSM
-#define  ATTR_ID_OBX_OVR_L2CAP_PSM          0x0200
-#endif
-
-
 /* Define common 16-bit protocol UUIDs
 */
 #define UUID_PROTOCOL_SDP                    0x0001

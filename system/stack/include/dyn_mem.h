@@ -55,10 +55,6 @@
 #define TCS_DYNAMIC_MEMORY  FALSE
 #endif
 
-#ifndef OBX_DYNAMIC_MEMORY
-#define OBX_DYNAMIC_MEMORY  FALSE
-#endif
-
 #ifndef BNEP_DYNAMIC_MEMORY
 #define BNEP_DYNAMIC_MEMORY FALSE
 #endif

@@ -118,12 +118,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 /* BNEP Timers */
 #define BTU_TTYPE_BNEP              50
 
-/* OBX */
-#define BTU_TTYPE_OBX_CLIENT_TO     51
-#define BTU_TTYPE_OBX_SERVER_TO     52
-#define BTU_TTYPE_OBX_SVR_SESS_TO   53
-
-
 #define BTU_TTYPE_HSP2_SDP_FAIL_TO  55
 #define BTU_TTYPE_HSP2_SDP_RTRY_TO  56
 
