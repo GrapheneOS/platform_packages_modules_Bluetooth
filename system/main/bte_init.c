@@ -85,10 +85,6 @@
 
 #include "bta_dm_int.h"
 
-#if BTA_PBS_INCLUDED == TRUE
-#include "bta_pbs_int.h"
-#endif
-
 #if BTA_AR_INCLUDED==TRUE
 #include "bta_ar_int.h"
 #endif
@@ -210,9 +206,6 @@ void BTE_InitStack(void)
 #endif
 #if BTA_HS_INCLUDED == TRUE
     memset((void*)bta_hs_cb_ptr, 0, sizeof(tBTA_HS_CB));
-#endif
-#if BTA_PBS_INCLUDED==TRUE
-    memset((void*)bta_pbs_cb_ptr, 0, sizeof(tBTA_PBS_CB));
 #endif
 #if BTA_AR_INCLUDED==TRUE
     memset((void *)bta_ar_cb_ptr, 0, sizeof(tBTA_AR_CB));

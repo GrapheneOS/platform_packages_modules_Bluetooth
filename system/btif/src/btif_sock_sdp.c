@@ -58,11 +58,7 @@
 // authentication
 #define BTA_PBS_USERID_REQ FALSE
 
-// TODO(jtgans): Is this really exported to anything anywhere? If so, we should
-// stuff it into the header, otherwise, WHY IS IT HERE?!
-extern const tBTA_PBS_CFG bta_pbs_cfg;
-
-const tBTA_PBS_CFG bta_pbs_cfg = {
+static const tBTA_PBS_CFG bta_pbs_cfg = {
   BTA_PBS_REALM_CHARSET,                          // realm_charset: Server only
   BTA_PBS_USERID_REQ,                             // userid_req: Server only
   (BTA_PBS_SUPF_DOWNLOAD | BTA_PBS_SURF_BROWSE),  // supported_features
