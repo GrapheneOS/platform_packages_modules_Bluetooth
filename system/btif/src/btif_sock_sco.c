@@ -253,7 +253,6 @@ static void connection_request_cb(tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *data)
 
   BTM_RegForEScoEvts(listen_sco_socket->sco_handle, connection_request_cb);
   BTM_EScoConnRsp(conn_data->sco_inx, HCI_SUCCESS, NULL);
-  socket_register(new_sco_socket->socket, thread_get_reactor(thread), new_sco_socket, socket_read_ready_cb, NULL);
 
   pthread_mutex_unlock(&lock);
   return;
