@@ -35,10 +35,6 @@
 #include "port_api.h"
 #endif
 
-#if (defined(TCS_INCLUDED) && TCS_INCLUDED == TRUE)
-#include "tcs_api.h"
-#endif
-
 #if (defined(OBX_INCLUDED) && OBX_INCLUDED == TRUE)
 #include "obx_api.h"
 #endif
@@ -49,14 +45,6 @@
 
 #if (defined(GAP_INCLUDED) && GAP_INCLUDED == TRUE)
 #include "gap_api.h"
-#endif
-
-#if ((defined(CTP_INCLUDED) && CTP_INCLUDED == TRUE))
-#include "ctp_api.h"
-#endif
-
-#if ((defined(ICP_INCLUDED) && ICP_INCLUDED == TRUE))
-#include "icp_api.h"
 #endif
 
 #if (defined(SPP_INCLUDED) && SPP_INCLUDED == TRUE)
@@ -331,23 +319,6 @@ void BTE_InitStack(void)
 
 
 #endif  /* RFCOMM Included */
-
-/*************************
-** TCS and its profiles **
-**************************/
-#if (defined(TCS_INCLUDED) && TCS_INCLUDED == TRUE)
-    TCS_Init();
-
-#if (defined(CTP_INCLUDED) && CTP_INCLUDED == TRUE)
-    CTP_Init();
-#endif /* CTP_INCLUDED */
-
-#if (defined(ICP_INCLUDED) && ICP_INCLUDED == TRUE)
-    ICP_Init();
-#endif /* ICP_INCLUDED */
-
-#endif /* TCS_INCLUDED */
-
 
 /**************************
 ** BNEP and its profiles **

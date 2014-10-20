@@ -48,10 +48,6 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
 tL2C_CB l2cb;
 #endif
 
-/* Temporary - until l2cap implements group management */
-#if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-extern void tcs_proc_bcst_msg( BD_ADDR addr, BT_HDR *p_msg ) ;
-#endif
 /*******************************************************************************
 **
 ** Function         l2c_bcst_msg
@@ -230,16 +226,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
         /* process_connectionless_data (p_lcb); */
         STREAM_TO_UINT16 (psm, p);
         L2CAP_TRACE_DEBUG( "GOT CONNECTIONLESS DATA PSM:%d", psm ) ;
-#if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-        if (psm == TCS_PSM_INTERCOM || psm == TCS_PSM_CORDLESS)
-        {
-            p_msg->offset += L2CAP_BCST_OVERHEAD;
-            p_msg->len -= L2CAP_BCST_OVERHEAD;
-            tcs_proc_bcst_msg( p_lcb->remote_bd_addr, p_msg ) ;
-            GKI_freebuf (p_msg);
-        }
-        else
-#endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
         /* if it is not broadcast, check UCD registration */

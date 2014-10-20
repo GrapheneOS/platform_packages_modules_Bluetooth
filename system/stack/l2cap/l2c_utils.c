@@ -2206,10 +2206,6 @@ void l2cu_device_reset (void)
 #endif
 }
 
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-extern UINT16 tcs_wug_get_clk_offset( BD_ADDR addr ) ;
-#endif
-
 /*******************************************************************************
 **
 ** Function         l2cu_create_conn
@@ -2356,35 +2352,21 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 
     p_lcb->link_state = LST_CONNECTING;
 
-
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-    if ( (clock_offset = tcs_wug_get_clk_offset( p_lcb->remote_bd_addr )) != 0 )
+    /* Check with the BT manager if details about remote device are known */
+    if ((p_inq_info = BTM_InqDbRead(p_lcb->remote_bd_addr)) != NULL)
     {
-        page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R0;
-        page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
+        page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
+        page_scan_mode = p_inq_info->results.page_scan_mode;
+        clock_offset = (UINT16)(p_inq_info->results.clock_offset);
     }
     else
     {
-#endif
+        /* No info known. Use default settings */
+        page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
+        page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
 
-        /* Check with the BT manager if details about remote device are known */
-        if ((p_inq_info = BTM_InqDbRead(p_lcb->remote_bd_addr)) != NULL)
-        {
-            page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
-            page_scan_mode = p_inq_info->results.page_scan_mode;
-            clock_offset = (UINT16)(p_inq_info->results.clock_offset);
-        }
-        else
-        {
-            /* No info known. Use default settings */
-            page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
-            page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
-
-            clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
-        }
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
+        clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
     }
-#endif
 
     if (!btsnd_hcic_create_conn (p_lcb->remote_bd_addr,
                                  ( HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1

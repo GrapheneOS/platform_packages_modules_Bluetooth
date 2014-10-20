@@ -1179,26 +1179,6 @@ extern "C" {
 
 /******************************************************************************
 **
-** TCS
-**
-******************************************************************************/
-
-#ifndef TCS_INCLUDED
-#define TCS_INCLUDED                FALSE
-#endif
-
-/* To include/exclude point-to-multipoint broadcast SETUP configuration. */
-#ifndef TCS_BCST_SETUP_INCLUDED
-#define TCS_BCST_SETUP_INCLUDED     TRUE
-#endif
-
-/* To include/exclude WUG member role. */
-#ifndef TCS_WUG_MEMBER_INCLUDED
-#define TCS_WUG_MEMBER_INCLUDED     TRUE
-#endif
-
-/******************************************************************************
-**
 ** OBX
 **
 ******************************************************************************/
@@ -1518,31 +1498,6 @@ Note:  This pool needs to have enough buffers to hold two times the window size 
 
 #ifndef GAP_INCLUDED
 #define GAP_INCLUDED                TRUE
-#endif
-
-/******************************************************************************
-**
-** CTP
-**
-******************************************************************************/
-
-#ifndef CTP_INCLUDED
-#define CTP_INCLUDED                FALSE
-#endif
-
-/* The CTP discovery record size. */
-#ifndef CTP_DISC_REC_SIZE
-#define CTP_DISC_REC_SIZE           60
-#endif
-
-/******************************************************************************
-**
-** ICP
-**
-******************************************************************************/
-
-#ifndef ICP_INCLUDED
-#define ICP_INCLUDED                FALSE
 #endif
 
 /******************************************************************************
