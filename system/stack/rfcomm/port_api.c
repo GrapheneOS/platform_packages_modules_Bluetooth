@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include "bt_target.h"
+#include "counter.h"
 #include "gki.h"
 #include "rfcdefs.h"
 #include "port_api.h"
@@ -83,6 +84,8 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     UINT8      dlci;
     tRFC_MCB   *p_mcb = port_find_mcb (bd_addr);
     UINT16     rfcomm_mtu;
+
+    counter_add("rfcomm.conn.created", 1);
 
     RFCOMM_TRACE_API ("RFCOMM_CreateConnection()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
                        bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
@@ -208,6 +211,8 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
 int RFCOMM_RemoveConnection (UINT16 handle)
 {
     tPORT      *p_port;
+
+    counter_add("rfcomm.conn.destroyed", 1);
 
     RFCOMM_TRACE_API ("RFCOMM_RemoveConnection() handle:%d", handle);
 

@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
+#include "counter.h"
 #include "gki.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
@@ -249,6 +250,8 @@ BOOLEAN btsnd_hcic_accept_conn (BD_ADDR dest, UINT8 role)
     BDADDR_TO_STREAM (pp, dest);
     UINT8_TO_STREAM  (pp, role);
 
+    counter_add("hci.conn.accept", 1);
+
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
     return (TRUE);
 }
@@ -271,6 +274,8 @@ BOOLEAN btsnd_hcic_reject_conn (BD_ADDR dest, UINT8 reason)
 
     BDADDR_TO_STREAM (pp, dest);
     UINT8_TO_STREAM (pp, reason);
+
+    counter_add("hci.conn.reject", 1);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
     return (TRUE);
