@@ -543,8 +543,6 @@ void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
   p_tle->event = type;
   // NOTE: This value is in seconds but stored in a ticks field.
   p_tle->ticks = timeout_sec;
-  if (p_tle->in_use == TRUE)
-    ALOGW("%s Starting alarm already in use\n", __func__);
   p_tle->in_use = TRUE;
   alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_general_alarm_cb, (void *)p_tle);
 }
@@ -639,8 +637,6 @@ void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ti
 
   p_tle->event = type;
   p_tle->ticks = timeout_ticks;
-  if (p_tle->in_use == TRUE)
-    ALOGW("%s Starting alarm already in use\n", __func__);
   p_tle->in_use = TRUE;
   // The quick timer ticks are 100ms long.
   alarm_set(alarm, (period_ms_t)(timeout_ticks * 100), btu_l2cap_alarm_cb, (void *)p_tle);
@@ -703,8 +699,6 @@ void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_
   alarm_cancel(alarm);
 
   p_tle->event = type;
-  if (p_tle->in_use == TRUE)
-    ALOGW("%s Starting alarm already in use\n", __func__);
   p_tle->in_use = TRUE;
   // NOTE: This value is in seconds but stored in a ticks field.
   p_tle->ticks = timeout_sec;
