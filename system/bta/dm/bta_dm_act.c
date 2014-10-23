@@ -560,13 +560,13 @@ void bta_dm_set_visibility (tBTA_DM_MSG *p_data)
     /* set modes for Discoverability and connectability if not ignore */
     if (p_data->set_visibility.disc_mode != BTA_DM_IGNORE)
         BTM_SetDiscoverability((UINT8)p_data->set_visibility.disc_mode,
-                                bta_dm_cb.inquiry_scan_window,
-                                bta_dm_cb.inquiry_scan_interval);
+                                0,
+                                0);
 
     if (p_data->set_visibility.conn_mode != BTA_DM_IGNORE)
         BTM_SetConnectability((UINT8)p_data->set_visibility.conn_mode,
-                                bta_dm_cb.page_scan_window,
-                                bta_dm_cb.page_scan_interval);
+                                0,
+                                0);
 
     /* Send False or True if not ignore */
     if (p_data->set_visibility.pair_mode != BTA_DM_IGNORE )

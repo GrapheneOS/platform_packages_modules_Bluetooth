@@ -944,10 +944,6 @@ typedef struct
     BOOLEAN                     disable_pair_mode;          /* disable pair mode or not */
     BOOLEAN                     conn_paired_only;   /* allow connectable to paired device only or not */
     tBTA_DM_API_SEARCH          search_msg;
-    UINT16                      page_scan_interval;
-    UINT16                      page_scan_window;
-    UINT16                      inquiry_scan_interval;
-    UINT16                      inquiry_scan_window;
 
     /* Storage for pin code request parameters */
     BD_ADDR                     pin_bd_addr;
