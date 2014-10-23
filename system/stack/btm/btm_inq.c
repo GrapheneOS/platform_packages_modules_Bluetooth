@@ -503,14 +503,6 @@ tBTM_STATUS BTM_SetPeriodicInquiryMode (tBTM_INQ_PARMS *p_inqparms, UINT16 max_d
                             (BTM_LIMITED_INQUIRY_ACTIVE | BTM_PERIODIC_INQUIRY_ACTIVE) :
                             (BTM_GENERAL_INQUIRY_ACTIVE | BTM_PERIODIC_INQUIRY_ACTIVE));
 
-#if (defined(BTM_BYPASS_EVENT_FILTERING) && BTM_BYPASS_EVENT_FILTERING == TRUE)
-    BTM_TRACE_WARNING("BTM: Bypassing event filtering...");
-
-    p_inq->state = BTM_INQ_ACTIVE_STATE;
-    p_inq->inqfilt_active = FALSE;
-    btm_initiate_inquiry (p_inq);
-    status = BTM_CMD_STARTED;
-#else
     /* If a filter is specified, then save it for later and clear the current filter.
        The setting of the filter is done upon completion of clearing of the previous
        filter.
@@ -532,7 +524,6 @@ tBTM_STATUS BTM_SetPeriodicInquiryMode (tBTM_INQ_PARMS *p_inqparms, UINT16 max_d
 
     }
 
-#endif
     return (status);
 }
 
@@ -975,12 +966,6 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
     {
         p_inq->inq_active = (p_inqparms->mode & BTM_BR_INQUIRY_MASK);
 #endif
-#if (defined(BTM_BYPASS_EVENT_FILTERING) && BTM_BYPASS_EVENT_FILTERING == TRUE)
-    BTM_TRACE_WARNING("BTM: Bypassing event filtering...");
-    p_inq->inqfilt_active = FALSE;
-    btm_initiate_inquiry (p_inq);
-    status = BTM_CMD_STARTED;
-#else
     /* If a filter is specified, then save it for later and clear the current filter.
        The setting of the filter is done upon completion of clearing of the previous
        filter.
@@ -1008,7 +993,6 @@ tBTM_STATUS BTM_StartInquiry (tBTM_INQ_PARMS *p_inqparms, tBTM_INQ_RESULTS_CB *p
     if ((status = btm_set_inq_event_filter (p_inqparms->filter_cond_type,
                                             &p_inqparms->filter_cond)) != BTM_CMD_STARTED)
         p_inq->state = BTM_INQ_INACTIVE_STATE;
-#endif
 
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
         if (p_inq->next_state==BTM_NO_INTERLEAVING)

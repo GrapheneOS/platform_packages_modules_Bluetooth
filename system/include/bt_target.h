@@ -455,11 +455,6 @@ extern "C" {
 #define BTM_INQ_DB_SIZE             40
 #endif
 
-/* TRUE if controller does not support inquiry event filtering. */
-#ifndef BTM_BYPASS_EVENT_FILTERING
-#define BTM_BYPASS_EVENT_FILTERING  FALSE
-#endif
-
 /* TRUE if inquiry filtering is desired from BTM. */
 #ifndef BTM_USE_INQ_RESULTS_FILTER
 #define BTM_USE_INQ_RESULTS_FILTER  TRUE
