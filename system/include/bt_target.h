@@ -455,11 +455,6 @@ extern "C" {
 #define BTM_INQ_DB_SIZE             40
 #endif
 
-/* TRUE if inquiry filtering is desired from BTM. */
-#ifndef BTM_USE_INQ_RESULTS_FILTER
-#define BTM_USE_INQ_RESULTS_FILTER  TRUE
-#endif
-
 /* The default scan mode */
 #ifndef BTM_DEFAULT_SCAN_TYPE
 #define BTM_DEFAULT_SCAN_TYPE       BTM_SCAN_TYPE_INTERLACED

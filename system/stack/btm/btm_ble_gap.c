@@ -2535,7 +2535,6 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
     }
     if (!update)
         result &= ~BTM_BLE_INQ_RESULT;
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
     /* If the number of responses found and limited, issue a cancel inquiry */
     if (p_inq->inqparms.max_resps &&
         p_inq->inq_cmpl_info.num_resp == p_inq->inqparms.max_resps)
@@ -2557,7 +2556,6 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
             btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
         }
     }
-#endif
     /* background connection in selective connection mode */
     if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
     {

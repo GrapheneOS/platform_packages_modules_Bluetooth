@@ -209,7 +209,6 @@ typedef struct
 #define BTM_MIN_INQ_TX_POWER    -70
 #define BTM_MAX_INQ_TX_POWER    20
 
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
 typedef struct
 {
     UINT32          inq_count;          /* Used for determining if a response has already been      */
@@ -218,7 +217,6 @@ typedef struct
                                         /* the same device.                                         */
     BD_ADDR         bd_addr;
 } tINQ_BDADDR;
-#endif
 
 typedef struct
 {
@@ -280,11 +278,9 @@ typedef struct
                                             /* Used for determining whether or not duplicate devices */
                                             /* have responded to the same inquiry */
     TIMER_LIST_ENT   inq_timer_ent;
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
     tINQ_BDADDR     *p_bd_db;               /* Pointer to memory that holds bdaddrs */
     UINT16           num_bd_entries;        /* Number of entries in database */
     UINT16           max_bd_entries;        /* Maximum number of entries that can be stored */
-#endif
     tINQ_DB_ENT      inq_db[BTM_INQ_DB_SIZE];
     tBTM_INQ_PARMS   inqparms;              /* Contains the parameters for the current inquiry */
     tBTM_INQUIRY_CMPL inq_cmpl_info;        /* Status and number of responses from the last inquiry */

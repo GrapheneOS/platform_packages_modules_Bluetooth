@@ -1587,7 +1587,6 @@ void btm_clr_inq_db (BD_ADDR p_bda)
 *******************************************************************************/
 static void btm_clr_inq_result_flt (void)
 {
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
 
     if (p_inq->p_bd_db)
@@ -1597,7 +1596,6 @@ static void btm_clr_inq_result_flt (void)
     }
     p_inq->num_bd_entries = 0;
     p_inq->max_bd_entries = 0;
-#endif
 }
 
 /*******************************************************************************
@@ -1612,7 +1610,6 @@ static void btm_clr_inq_result_flt (void)
 *******************************************************************************/
 BOOLEAN btm_inq_find_bdaddr (BD_ADDR p_bda)
 {
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
     tINQ_BDADDR         *p_db = &p_inq->p_bd_db[0];
     UINT16       xx;
@@ -1635,7 +1632,6 @@ BOOLEAN btm_inq_find_bdaddr (BD_ADDR p_bda)
         p_inq->num_bd_entries++;
     }
 
-#endif
     /* If here, New Entry */
     return (FALSE);
 }
@@ -1931,7 +1927,6 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
     }
     else
     {
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
         btm_clr_inq_result_flt();
 
         /* Allocate memory to hold bd_addrs responding */
@@ -1944,9 +1939,6 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
         }
 
         if (!btsnd_hcic_inquiry(*lap, p_inqparms->duration, 0))
-#else
-        if (!btsnd_hcic_inquiry(*lap, p_inqparms->duration, p_inqparms->max_resps))
-#endif /* BTM_USE_INQ_RESULTS_FILTER */
             btm_process_inq_complete (BTM_NO_RESOURCES, (UINT8)(p_inqparms->mode & BTM_BR_INQUIRY_MASK));
     }
 }
@@ -2017,7 +2009,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 
         p_i = btm_inq_db_find (bda);
 
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
         /* Only process the num_resp is smaller than max_resps.
            If results are queued to BTU task while canceling inquiry,
            or when more than one result is in this response, > max_resp
@@ -2038,7 +2029,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 /*            BTM_TRACE_WARNING("INQ RES: Extra Response Received...ignoring"); */
             return;
         }
-#endif
 
         /* Check if this address has already been processed for this inquiry */
         if (btm_inq_find_bdaddr(bda))
@@ -2127,7 +2117,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 #endif
                 p_i->inq_count = p_inq->inq_counter;   /* Mark entry for current inquiry */
 
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
             /* If the number of responses found and not unlimited, issue a cancel inquiry */
             if (!(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE) &&
                 p_inq->inqparms.max_resps &&
@@ -2149,7 +2138,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 #endif
                 btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
             }
-#endif
             /* Initialize flag to FALSE. This flag is set/used by application */
             p_i->inq_info.appl_knows_rem_name = FALSE;
         }
