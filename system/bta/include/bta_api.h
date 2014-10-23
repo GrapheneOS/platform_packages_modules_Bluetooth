@@ -1458,20 +1458,6 @@ extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, 
 
 /*******************************************************************************
 **
-** Function         BTA_DmSetScanParam
-**
-** Description      This function sets the parameters for page scan and
-**                  inquiry scan.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
-                                UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window);
-
-/*******************************************************************************
-**
 ** Function         BTA_DmSetAfhChannels
 **
 ** Description      This function sets the AFH first and

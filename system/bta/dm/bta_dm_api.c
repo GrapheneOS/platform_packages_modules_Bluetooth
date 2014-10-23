@@ -240,30 +240,6 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 
 /*******************************************************************************
 **
-** Function         BTA_DmSetScanParam
-**
-** Description      This function sets the parameters for page scan and
-**                  inquiry scan.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
-                                  UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window)
-{
-    APPL_TRACE_API ("BTA_DmSetScanParam: %d, %d, %d, %d",
-            page_scan_interval, page_scan_window,
-            inquiry_scan_interval, inquiry_scan_window);
-
-    bta_dm_cb.page_scan_interval = page_scan_interval;
-    bta_dm_cb.page_scan_window = page_scan_window;
-    bta_dm_cb.inquiry_scan_interval = inquiry_scan_interval;
-    bta_dm_cb.inquiry_scan_window = inquiry_scan_window;
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_DmSetAfhChannels
 **
 ** Description      This function sets the AFH first and
