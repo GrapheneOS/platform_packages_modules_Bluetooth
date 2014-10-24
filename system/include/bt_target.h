@@ -585,12 +585,6 @@ extern "C" {
 /******************************************
 **    Lisbon Features
 *******************************************/
-/* This is set to TRUE if the server Extended Inquiry Response feature is desired. */
-/* server sends EIR to client */
-#ifndef BTM_EIR_SERVER_INCLUDED
-#define BTM_EIR_SERVER_INCLUDED         TRUE
-#endif
-
 /* This is set to TRUE if the FEC is required for EIR packet. */
 #ifndef BTM_EIR_DEFAULT_FEC_REQUIRED
 #define BTM_EIR_DEFAULT_FEC_REQUIRED    TRUE

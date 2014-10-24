@@ -385,19 +385,13 @@ extern BOOLEAN btsnd_hcic_sniff_sub_rate(UINT16 handle, UINT16 max_lat,
 #endif  /* BTM_SSR_INCLUDED */
 
                                                                     /* Extended Inquiry Response */
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
 extern void btsnd_hcic_write_ext_inquiry_response(void *buffer, UINT8 fec_req);
 
 #define HCIC_PARAM_SIZE_EXT_INQ_RESP        241
 
 #define HCIC_EXT_INQ_RESP_FEC_OFF     0
 #define HCIC_EXT_INQ_RESP_RESPONSE    1
-
-#else
-#define btsnd_hcic_write_ext_inquiry_response(buffer, fec_req)
-#endif
-
-                                                                    /* IO Capabilities Response */
+                                                                   /* IO Capabilities Response */
 extern BOOLEAN btsnd_hcic_io_cap_req_reply (BD_ADDR bd_addr, UINT8 capability,
                                             UINT8 oob_present, UINT8 auth_req);
 

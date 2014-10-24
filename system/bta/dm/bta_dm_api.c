@@ -908,7 +908,7 @@ void BTA_DmWriteInqTxPower(INT8 tx_power)
 *******************************************************************************/
 void BTA_DmEirAddUUID (tBT_UUID *p_uuid)
 {
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
 
     if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
@@ -935,7 +935,7 @@ void BTA_DmEirAddUUID (tBT_UUID *p_uuid)
 *******************************************************************************/
 void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid)
 {
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
 
     if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
@@ -964,7 +964,6 @@ void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid)
 *******************************************************************************/
 void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
 {
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     tBTA_DM_API_SET_EIR_CONFIG  *p_msg;
 
     if ((p_msg = (tBTA_DM_API_SET_EIR_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_EIR_CONFIG))) != NULL)
@@ -974,7 +973,6 @@ void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 }
 
 /*******************************************************************************

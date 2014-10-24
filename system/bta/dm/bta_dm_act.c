@@ -64,9 +64,7 @@ static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app
 /* Extended Inquiry Response */
 static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
 
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
 static void bta_dm_set_eir (char *local_name);
-#endif /* BTM_EIR_SERVER_INCLUDED */
 
 static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
@@ -527,9 +525,7 @@ void bta_dm_set_dev_name (tBTA_DM_MSG *p_data)
 {
 
     BTM_SetLocalDeviceName((char*)p_data->set_name.name);
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     bta_dm_set_eir ((char*)p_data->set_name.name);
-#endif
 }
 
 /*******************************************************************************
@@ -4003,7 +3999,6 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
     }
 }
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
     #if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
 /*******************************************************************************
 **
@@ -4071,7 +4066,7 @@ void bta_dm_update_eir_uuid (tBTA_DM_MSG *p_data)
 
     bta_dm_set_eir (NULL);
 }
-    #endif
+    #endif  // BTA_EIR_CANNED_UUID_LIST
 
 /*******************************************************************************
 **
@@ -4116,13 +4111,13 @@ static void bta_dm_set_eir (char *local_name)
     UINT8    max_num_uuid;
 #if (BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     UINT8    custom_uuid_idx;
-#endif
-#endif
+#endif  // BTA_EIR_SERVER_NUM_CUSTOM_UUID
+#endif  // BTA_EIR_CANNED_UUID_LIST
 #if (BTM_EIR_DEFAULT_FEC_REQUIRED == FALSE)
     UINT8    free_eir_length = HCI_EXT_INQ_RESPONSE_LEN;
-#else
+#else  // BTM_EIR_DEFAULT_FEC_REQUIRED
     UINT8    free_eir_length = HCI_DM5_PACKET_SIZE;
-#endif
+#endif  // BTM_EIR_DEFAULT_FEC_REQUIRED 
     UINT8    num_uuid;
     UINT8    data_type;
     UINT8    local_name_len;
@@ -4144,7 +4139,7 @@ static void bta_dm_set_eir (char *local_name)
             APPL_TRACE_ERROR("Fail to read local device name for EIR");
         }
     }
-#endif
+#endif  // BTA_EIR_CANNED_UUID_LIST
 
     /* Allocate a buffer to hold HCI command */
     if ((p_buf = (BT_HDR *)GKI_getpoolbuf(BTM_CMD_POOL_ID)) == NULL)
@@ -4171,12 +4166,12 @@ static void bta_dm_set_eir (char *local_name)
         /* get number of UUID 16-bit list */
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
         num_uuid = p_bta_dm_eir_cfg->bta_dm_eir_uuid16_len/LEN_UUID_16;
-#else
+#else  // BTA_EIR_CANNED_UUID_LIST
         max_num_uuid = (free_eir_length - 2)/LEN_UUID_16;
         data_type = BTM_GetEirSupportedServices( bta_dm_cb.eir_uuid, &p,
                                                  max_num_uuid, &num_uuid );
         p = (UINT8 *)p_buf + BTM_HCI_EIR_OFFSET; /* reset p */
-#endif
+#endif  // BTA_EIR_CANNED_UUID_LIST
 
         /* if UUID doesn't fit remaing space, shorten local name */
         if ( local_name_len > (free_eir_length - 4 - num_uuid*LEN_UUID_16))
@@ -4387,7 +4382,6 @@ static void bta_dm_set_eir (char *local_name)
     BTM_WriteEIR( p_buf );
 
 }
-#endif
 
 /*******************************************************************************
 **
@@ -4463,7 +4457,7 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                         *p_services_to_search, *p_services_found);
 }
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
+#if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /*******************************************************************************
 **
 ** Function         bta_dm_eir_update_uuid

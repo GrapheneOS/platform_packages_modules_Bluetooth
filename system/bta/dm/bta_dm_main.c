@@ -121,12 +121,10 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ble_get_energy_info,    /* BTA_DM_API_BLE_ENERGY_INFO_EVT */
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     bta_dm_update_eir_uuid,     /*  BTA_DM_API_UPDATE_EIR_UUID_EVT      */
 #endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     bta_dm_set_eir_config,      /*  BTA_DM_API_SET_EIR_CONFIG_EVT       */
-#endif
 
     bta_dm_enable_test_mode,    /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */
     bta_dm_disable_test_mode,   /*  BTA_DM_API_DISABLE_TEST_MODE_EVT    */

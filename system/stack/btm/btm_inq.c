@@ -2579,7 +2579,6 @@ void btm_read_linq_tx_power_complete(UINT8 *p)
 *******************************************************************************/
 tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
 {
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     if (controller_get_interface()->supports_extended_inquiry_response())
     {
         BTM_TRACE_API("Write Extended Inquiry Response to controller");
@@ -2591,10 +2590,6 @@ tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
         GKI_freebuf(p_buff);
         return BTM_MODE_UNSUPPORTED;
     }
-#else
-    GKI_freebuf(p_buff);
-    return BTM_SUCCESS;
-#endif
 }
 
 /*******************************************************************************
@@ -2748,13 +2743,11 @@ void BTM_AddEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 *******************************************************************************/
 void BTM_RemoveEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 {
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     UINT8 service_id;
 
     service_id = btm_convert_uuid_to_eir_service(uuid16);
     if( service_id < BTM_EIR_MAX_SERVICES )
         BTM_EIR_CLR_SERVICE( p_eir_uuid, service_id );
-#endif
 }
 
 /*******************************************************************************
@@ -2775,7 +2768,6 @@ void BTM_RemoveEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
                                    UINT8  max_num_uuid16, UINT8 *p_num_uuid16)
 {
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     UINT8 service_index;
 
     *p_num_uuid16 = 0;
@@ -2797,9 +2789,6 @@ UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
         }
     }
     return BTM_EIR_COMPLETE_16BITS_UUID_TYPE;
-#else
-    return BTM_EIR_COMPLETE_16BITS_UUID_TYPE;
-#endif
 }
 
 /*******************************************************************************

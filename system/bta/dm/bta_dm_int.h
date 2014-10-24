@@ -125,12 +125,10 @@ enum
     BTA_DM_API_BLE_ENERGY_INFO_EVT,
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     BTA_DM_API_UPDATE_EIR_UUID_EVT,
 #endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     BTA_DM_API_SET_EIR_CONFIG_EVT,
-#endif
 
     BTA_DM_API_ENABLE_TEST_MODE_EVT,
     BTA_DM_API_DISABLE_TEST_MODE_EVT,
@@ -654,7 +652,7 @@ typedef struct
     BOOLEAN                 enable_or_disable;
 }tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT;
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
 /* data type for BTA_DM_API_UPDATE_EIR_UUID_EVT */
 typedef struct
 {
@@ -664,14 +662,12 @@ typedef struct
 }tBTA_DM_API_UPDATE_EIR_UUID;
 #endif
 
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
 /* data type for BTA_DM_API_SET_EIR_CONFIG_EVT */
 typedef struct
 {
     BT_HDR              hdr;
     tBTA_DM_EIR_CONF    *p_eir_cfg;
 }tBTA_DM_API_SET_EIR_CONFIG;
-#endif
 
 /* data type for BTA_DM_API_REMOVE_ACL_EVT */
 typedef struct
@@ -820,12 +816,10 @@ typedef union
 
     tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     tBTA_DM_API_UPDATE_EIR_UUID     update_eir_uuid;
 #endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
     tBTA_DM_API_SET_EIR_CONFIG          set_eir_cfg;
-#endif
     tBTA_DM_API_REMOVE_ACL              remove_acl;
 
 } tBTA_DM_MSG;
@@ -955,7 +949,7 @@ typedef struct
     tBTA_DM_SEC_EVT             pin_evt;
     UINT32          num_val;        /* the numeric value for comparison. If just_works, do not show this number to UI */
     BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )
     /* store UUID list for EIR */
     TIMER_LIST_ENT              app_ready_timer;
     UINT32                      eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
@@ -1113,11 +1107,9 @@ extern tBTM_PM_PWR_MD *p_bta_dm_pm_md;
 extern tBTA_DM_SSR_SPEC *p_bta_dm_ssr_spec;
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
 /* update dynamic BRCM Aware EIR data */
 extern const tBTA_DM_EIR_CONF bta_dm_eir_cfg;
 extern tBTA_DM_EIR_CONF *p_bta_dm_eir_cfg;
-#endif
 
 /* DM control block */
 #if BTA_DYNAMIC_MEMORY == FALSE
@@ -1244,18 +1236,12 @@ extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
 
 extern void bta_dm_pm_active(BD_ADDR peer_addr);
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
 void bta_dm_eir_update_uuid(UINT16 uuid16, BOOLEAN adding);
-#else
-#define bta_dm_eir_update_uuid(x, y)
-#endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
 extern void bta_dm_update_eir_uuid (tBTA_DM_MSG *p_data);
 #endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
 extern void bta_dm_set_eir_config (tBTA_DM_MSG *p_data);
-#endif
 extern void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_disable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_execute_callback(tBTA_DM_MSG *p_data);

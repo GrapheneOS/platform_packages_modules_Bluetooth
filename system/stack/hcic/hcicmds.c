@@ -1471,7 +1471,6 @@ BOOLEAN btsnd_hcic_sniff_sub_rate(UINT16 handle, UINT16 max_lat,
 }
 #endif /* BTM_SSR_INCLUDED */
 
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
 /**** Extended Inquiry Response Commands ****/
 void btsnd_hcic_write_ext_inquiry_response (void *buffer, UINT8 fec_req)
 {
@@ -1488,7 +1487,6 @@ void btsnd_hcic_write_ext_inquiry_response (void *buffer, UINT8 fec_req)
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
 }
-#endif  /* BTM_EIR_SERVER_INCLUDED == TRUE */
 
 BOOLEAN btsnd_hcic_io_cap_req_reply (BD_ADDR bd_addr, UINT8 capability,
                                 UINT8 oob_present, UINT8 auth_req)
