@@ -73,11 +73,9 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
 static void bta_dm_set_eir (char *local_name);
 #endif /* BTM_EIR_SERVER_INCLUDED */
 
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
                                         tBTA_SERVICE_MASK *p_services_found);
-#endif /* BTM_EIR_CLIENT_INCLUDED */
 
 static void bta_dm_rssi_cback (tBTM_RSSI_RESULTS *p_result);
 static void bta_dm_signal_strength_timer_cback (TIMER_LIST_ENT *p_tle);
@@ -2003,10 +2001,8 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
     /* if searching did not initiate to create link */
     if(!bta_dm_search_cb.wait_disc )
     {
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
         /* if service searching is done with EIR, don't search next device */
         if( bta_dm_search_cb.p_btm_inq_info )
-#endif
         bta_dm_discover_next_device();
     }
     else
@@ -2456,7 +2452,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
         bta_dm_search_cb.uuid_to_search     = bta_dm_search_cb.num_uuid;
 #endif
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
         if ((bta_dm_search_cb.p_btm_inq_info != NULL) &&
 			bta_dm_search_cb.services != BTA_USER_SERVICE_MASK
             &&(bta_dm_search_cb.sdp_search == FALSE))
@@ -2469,7 +2464,6 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 
         /* if seaching with EIR is not completed */
         if(bta_dm_search_cb.services_to_search)
-#endif
         {
             /* check whether connection already exists to the device
                if connection exists, we don't have to wait for ACL
@@ -4449,7 +4443,6 @@ static void bta_dm_set_eir (char *local_name)
 }
 #endif
 
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
 /*******************************************************************************
 **
 ** Function         bta_dm_eir_search_services
@@ -4523,7 +4516,6 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
     APPL_TRACE_ERROR("BTA EIR search result, services_to_search=0x%08X, services_found=0x%08X",
                         *p_services_to_search, *p_services_found);
 }
-#endif
 
 #if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
 /*******************************************************************************

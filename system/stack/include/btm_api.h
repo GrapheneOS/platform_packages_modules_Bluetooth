@@ -611,10 +611,8 @@ typedef struct
     UINT8       page_scan_per_mode;
     UINT8       page_scan_mode;
     INT8        rssi;       /* Set to BTM_INQ_RES_IGNORE_RSSI if  not valid */
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
     UINT32      eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
     BOOLEAN     eir_complete_list;
-#endif
 #if (BLE_INCLUDED == TRUE)
     tBT_DEVICE_TYPE         device_type;
     UINT8       inq_result_type;

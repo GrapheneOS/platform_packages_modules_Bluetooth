@@ -71,9 +71,7 @@ extern void btm_ble_test_command_complete(UINT8 *p);
 static void btu_hcif_inquiry_comp_evt (UINT8 *p);
 static void btu_hcif_inquiry_result_evt (UINT8 *p);
 static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p);
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 static void btu_hcif_extended_inquiry_result_evt (UINT8 *p);
-#endif
 
 static void btu_hcif_connection_comp_evt (UINT8 *p);
 static void btu_hcif_connection_request_evt (UINT8 *p);
@@ -174,11 +172,9 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
         case HCI_INQUIRY_RSSI_RESULT_EVT:
             btu_hcif_inquiry_rssi_result_evt (p);
             break;
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
         case HCI_EXTENDED_INQUIRY_RESULT_EVT:
             btu_hcif_extended_inquiry_result_evt (p);
             break;
-#endif
         case HCI_CONNECTION_COMP_EVT:
             btu_hcif_connection_comp_evt (p);
             break;
@@ -493,13 +489,11 @@ static void btu_hcif_inquiry_rssi_result_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 static void btu_hcif_extended_inquiry_result_evt (UINT8 *p)
 {
     /* Store results in the cache */
     btm_process_inq_results (p, BTM_INQ_RESULT_EXTENDED);
 }
-#endif
 
 /*******************************************************************************
 **

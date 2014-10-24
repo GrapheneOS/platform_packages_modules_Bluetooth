@@ -941,9 +941,7 @@ extern void         btm_inq_clear_ssp(void);
 extern tINQ_DB_ENT *btm_inq_db_find (BD_ADDR p_bda);
 extern BOOLEAN      btm_inq_find_bdaddr (BD_ADDR p_bda);
 
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 extern BOOLEAN btm_lookup_eir(BD_ADDR_PTR p_rem_addr);
-#endif
 
 /* Internal functions provided by btm_acl.c
 ********************************************

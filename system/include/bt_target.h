@@ -611,12 +611,6 @@ extern "C" {
 #define BTM_EIR_SERVER_INCLUDED         TRUE
 #endif
 
-/* This is set to TRUE if the client Extended Inquiry Response feature is desired. */
-/* client inquiry to server */
-#ifndef BTM_EIR_CLIENT_INCLUDED
-#define BTM_EIR_CLIENT_INCLUDED         TRUE
-#endif
-
 /* This is set to TRUE if the FEC is required for EIR packet. */
 #ifndef BTM_EIR_DEFAULT_FEC_REQUIRED
 #define BTM_EIR_DEFAULT_FEC_REQUIRED    TRUE

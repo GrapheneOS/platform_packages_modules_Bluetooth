@@ -1017,11 +1017,7 @@ void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
 *******************************************************************************/
 UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 {
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
     return BTM_CheckEirData( p_eir, type, p_length );
-#else
-    return NULL;
-#endif
 }
 
 /*******************************************************************************
@@ -1039,7 +1035,6 @@ UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 extern const UINT16 bta_service_id_to_uuid_lkup_tbl [];
 void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
 {
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
     UINT8 xx, yy;
     UINT8 num_uuid, max_num_uuid = 32;
     UINT8 uuid_list[32*LEN_UUID_16];
@@ -1070,7 +1065,6 @@ void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
         if (*(p_uuid16 + xx) == UUID_SERVCLASS_HDP_SINK)
             *p_services |= BTA_HL_SERVICE_MASK;
     }
-#endif
 }
 
 /*******************************************************************************

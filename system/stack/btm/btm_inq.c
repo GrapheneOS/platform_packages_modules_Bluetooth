@@ -51,7 +51,6 @@
 static const LAP general_inq_lap = {0x9e,0x8b,0x33};
 static const LAP limited_inq_lap = {0x9e,0x8b,0x00};
 
-#if (( BTM_EIR_CLIENT_INCLUDED == TRUE )||( BTM_EIR_SERVER_INCLUDED == TRUE ))
 #ifndef BTM_EIR_UUID_LKUP_TBL
 const UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
 {
@@ -125,7 +124,7 @@ const UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
     UUID_SERVCLASS_HDP_SOURCE,
     UUID_SERVCLASS_HDP_SINK
 };
-#else
+#else  // BTM_EIR_UUID_LKUP_TBL
 /*
 If customized UUID look-up table needs to be used,
 the followings should be defined in bdroid_buildcfg.h.
@@ -134,11 +133,10 @@ BTM_EIR_MAX_SERVICES = <number of UUID in list>
 */
 #if (BTM_EIR_MAX_SERVICES == 0)
 const UINT16 BTM_EIR_UUID_LKUP_TBL[];
-#else
+#else  // BTM_EIR_MAX_SERVICES
 extern UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES];
-#endif
-#endif
-#endif /* BTM_EIR_UUID_LKUP_TBL*/
+#endif  // BTM_EIR_MAX_SERVICES
+#endif  // BTM_EIR_UUID_LKUP_TBL
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -147,15 +145,11 @@ static void         btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq);
 static tBTM_STATUS  btm_set_inq_event_filter (UINT8 filter_cond_type, tBTM_INQ_FILT_COND *p_filt_cond);
 static void         btm_clr_inq_result_flt (void);
 
-#if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
 static UINT8        btm_convert_uuid_to_eir_service( UINT16 uuid16 );
-#endif
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 static void         btm_set_eir_uuid( UINT8 *p_eir, tBTM_INQ_RESULTS *p_results );
 static UINT8       *btm_eir_get_uuid_list( UINT8 *p_eir, UINT8 uuid_size,
                                            UINT8 *p_num_uuid, UINT8 *p_uuid_list_type );
 static UINT16       btm_convert_uuid_to_uuid16( UINT8 *p_uuid, UINT8 uuid_size );
-#endif
 
 /*******************************************************************************
 **
@@ -401,13 +395,11 @@ tBTM_STATUS BTM_SetInquiryMode (UINT8 mode)
         if (!controller->supports_rssi_with_inquiry_results())
             return (BTM_MODE_UNSUPPORTED);
     }
-#if (( BTM_EIR_CLIENT_INCLUDED == TRUE )||( BTM_EIR_SERVER_INCLUDED == TRUE ))
     else if (mode == BTM_INQ_RESULT_EXTENDED)
     {
         if (!controller->supports_extended_inquiry_response())
             return (BTM_MODE_UNSUPPORTED);
     }
-#endif
     else
         return (BTM_ILLEGAL_VALUE);
 
@@ -2025,9 +2017,7 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
     UINT8            rssi = 0;
     DEV_CLASS        dc;
     UINT16           clock_offset;
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
     UINT8            *p_eir_data = NULL;
-#endif
 
 #if (BTM_INQ_DEBUG == TRUE)
     BTM_TRACE_DEBUG ("btm_process_inq_results inq_active:0x%x state:%d inqfilt_active:%d",
@@ -2204,7 +2194,6 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 
         if (is_new || update)
         {
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
             if( inq_res_mode == BTM_INQ_RESULT_EXTENDED )
             {
                 memset( p_cur->eir_uuid, 0,
@@ -2215,15 +2204,10 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
             }
             else
                 p_eir_data = NULL;
-#endif
 
             /* If a callback is registered, call it with the results */
             if (p_inq_results_cb)
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
                 (p_inq_results_cb)((tBTM_INQ_RESULTS *) p_cur, p_eir_data);
-#else
-                (p_inq_results_cb)((tBTM_INQ_RESULTS *) p_cur, NULL);
-#endif
         }
     }
 }
@@ -2682,7 +2666,6 @@ tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
 *******************************************************************************/
 UINT8 *BTM_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 {
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
     UINT8 *p = p_eir;
     UINT8 length;
     UINT8 eir_type;
@@ -2704,9 +2687,6 @@ UINT8 *BTM_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 
     *p_length = 0;
     return NULL;
-#else
-    return NULL;
-#endif
 }
 
 /*******************************************************************************
@@ -2721,7 +2701,6 @@ UINT8 *BTM_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 **                  BTM_EIR_MAX_SERVICES - if not found
 **
 *******************************************************************************/
-#if (( BTM_EIR_CLIENT_INCLUDED == TRUE )||( BTM_EIR_SERVER_INCLUDED == TRUE ))
 static UINT8 btm_convert_uuid_to_eir_service( UINT16 uuid16 )
 {
     UINT8 xx;
@@ -2735,7 +2714,6 @@ static UINT8 btm_convert_uuid_to_eir_service( UINT16 uuid16 )
     }
     return BTM_EIR_MAX_SERVICES;
 }
-#endif
 
 /*******************************************************************************
 **
@@ -2752,7 +2730,6 @@ static UINT8 btm_convert_uuid_to_eir_service( UINT16 uuid16 )
 *******************************************************************************/
 BOOLEAN BTM_HasEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 {
-#if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
     UINT8 service_id;
 
     service_id = btm_convert_uuid_to_eir_service(uuid16);
@@ -2760,9 +2737,6 @@ BOOLEAN BTM_HasEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
         return( BTM_EIR_HAS_SERVICE( p_eir_uuid, service_id ));
     else
         return( FALSE );
-#else
-    return( FALSE );
-#endif
 }
 
 /*******************************************************************************
@@ -2781,7 +2755,6 @@ BOOLEAN BTM_HasEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 *******************************************************************************/
 tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_results, UINT16 uuid16 )
 {
-#if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
     if( BTM_HasEirService( p_results->eir_uuid, uuid16 ))
     {
         return BTM_EIR_FOUND;
@@ -2792,9 +2765,6 @@ tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_results, UI
     }
     else
         return BTM_EIR_UNKNOWN;
-#else
-    return BTM_EIR_UNKNOWN;
-#endif
 }
 
 /*******************************************************************************
@@ -2811,13 +2781,11 @@ tBTM_EIR_SEARCH_RESULT BTM_HasInquiryEirService( tBTM_INQ_RESULTS *p_results, UI
 *******************************************************************************/
 void BTM_AddEirService( UINT32 *p_eir_uuid, UINT16 uuid16 )
 {
-#if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
     UINT8 service_id;
 
     service_id = btm_convert_uuid_to_eir_service(uuid16);
     if( service_id < BTM_EIR_MAX_SERVICES )
         BTM_EIR_SET_SERVICE( p_eir_uuid, service_id );
-#endif
 }
 
 /*******************************************************************************
@@ -2912,7 +2880,6 @@ UINT8 BTM_GetEirSupportedServices( UINT32 *p_eir_uuid,    UINT8 **p,
 UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uuid,
                             UINT8 *p_uuid_list, UINT8 max_num_uuid)
 {
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
     UINT8   *p_uuid_data;
     UINT8   type;
     UINT8   yy, xx;
@@ -2963,14 +2930,9 @@ UINT8 BTM_GetEirUuidList( UINT8 *p_eir, UINT8 uuid_size, UINT8 *p_num_uuid,
     }
 
     return type;
-#else
-    *p_num_uuid = 0;
-    return 0x00;
-#endif
 }
 
 
-#if (BTM_EIR_CLIENT_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btm_eir_get_uuid_list
@@ -3154,5 +3116,3 @@ void btm_set_eir_uuid( UINT8 *p_eir, tBTM_INQ_RESULTS *p_results )
         }
     }
 }
-#endif
-
