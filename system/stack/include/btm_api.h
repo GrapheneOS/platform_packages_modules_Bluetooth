@@ -411,7 +411,6 @@ typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 /* BTM service definitions
 ** Used for storing EIR data to bit mask
 */
-#ifndef BTM_EIR_UUID_LKUP_TBL
 enum
 {
     BTM_EIR_UUID_SERVCLASS_SERVICE_DISCOVERY_SERVER,
@@ -488,7 +487,6 @@ enum
     BTM_EIR_UUID_SERVCLASS_HDP_SINK,
     BTM_EIR_MAX_SERVICES
 };
-#endif /* BTM_EIR_UUID_LKUP_TBL */
 
 /* search result in EIR of inquiry database */
 #define BTM_EIR_FOUND           0

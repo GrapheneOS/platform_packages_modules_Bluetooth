@@ -51,7 +51,6 @@
 static const LAP general_inq_lap = {0x9e,0x8b,0x33};
 static const LAP limited_inq_lap = {0x9e,0x8b,0x00};
 
-#ifndef BTM_EIR_UUID_LKUP_TBL
 const UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
 {
     UUID_SERVCLASS_SERVICE_DISCOVERY_SERVER,
@@ -124,19 +123,6 @@ const UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES] =
     UUID_SERVCLASS_HDP_SOURCE,
     UUID_SERVCLASS_HDP_SINK
 };
-#else  // BTM_EIR_UUID_LKUP_TBL
-/*
-If customized UUID look-up table needs to be used,
-the followings should be defined in bdroid_buildcfg.h.
-BTM_EIR_UUID_LKUP_TBL = <customized UUID list>
-BTM_EIR_MAX_SERVICES = <number of UUID in list>
-*/
-#if (BTM_EIR_MAX_SERVICES == 0)
-const UINT16 BTM_EIR_UUID_LKUP_TBL[];
-#else  // BTM_EIR_MAX_SERVICES
-extern UINT16 BTM_EIR_UUID_LKUP_TBL[BTM_EIR_MAX_SERVICES];
-#endif  // BTM_EIR_MAX_SERVICES
-#endif  // BTM_EIR_UUID_LKUP_TBL
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */

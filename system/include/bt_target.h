@@ -616,10 +616,6 @@ extern "C" {
 #define BTM_EIR_DEFAULT_FEC_REQUIRED    TRUE
 #endif
 
-/* User defined UUID look up table */
-#ifndef BTM_EIR_UUID_LKUP_TBL
-#endif
-
 /* The IO capability of the local device (for Simple Pairing) */
 #ifndef BTM_LOCAL_IO_CAPS
 #define BTM_LOCAL_IO_CAPS               BTM_IO_CAP_IO
