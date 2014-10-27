@@ -31,6 +31,7 @@
 #include "btif_profile_queue.h"
 #include "gki.h"
 #include "list.h"
+#include "stack_manager.h"
 
 /*******************************************************************************
 **  Local type definitions
@@ -77,21 +78,6 @@ static void queue_int_advance() {
         list_remove(connect_queue, list_front(connect_queue));
 }
 
-static bt_status_t queue_int_connect_next() {
-    if (!connect_queue || list_is_empty(connect_queue))
-        return BT_STATUS_FAIL;
-
-    connect_node_t *p_head = list_front(connect_queue);
-
-    // If the queue is currently busy, we return success anyway,
-    // since the connection has been queued...
-    if (p_head->busy)
-        return BT_STATUS_SUCCESS;
-
-    p_head->busy = true;
-    return p_head->connect_cb(&p_head->bda, p_head->uuid);
-}
-
 static void queue_int_handle_evt(UINT16 event, char *p_param) {
     switch(event) {
         case BTIF_QUEUE_CONNECT_EVT:
@@ -103,7 +89,8 @@ static void queue_int_handle_evt(UINT16 event, char *p_param) {
             break;
     }
 
-    queue_int_connect_next();
+    if (stack_manager_get_interface()->get_stack_is_running())
+        btif_queue_connect_next();
 }
 
 /*******************************************************************************
@@ -141,6 +128,24 @@ void btif_queue_advance() {
     btif_transfer_context(queue_int_handle_evt, BTIF_QUEUE_ADVANCE_EVT,
                           NULL, 0, NULL);
 }
+
+// This function dispatches the next pending connect request. It is called from
+// stack_manager when the stack comes up.
+bt_status_t btif_queue_connect_next(void) {
+    if (!connect_queue || list_is_empty(connect_queue))
+        return BT_STATUS_FAIL;
+
+    connect_node_t *p_head = list_front(connect_queue);
+
+    // If the queue is currently busy, we return success anyway,
+    // since the connection has been queued...
+    if (p_head->busy)
+        return BT_STATUS_SUCCESS;
+
+    p_head->busy = true;
+    return p_head->connect_cb(&p_head->bda, p_head->uuid);
+}
+
 
 /*******************************************************************************
 **

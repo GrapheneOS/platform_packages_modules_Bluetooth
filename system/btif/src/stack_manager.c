@@ -32,6 +32,7 @@
 
 // Temp includes
 #include "btif_config.h"
+#include "btif_profile_queue.h"
 #include "bt_utils.h"
 
 static thread_t *management_thread;
@@ -189,6 +190,9 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
 }
 
 static void event_signal_stack_up(UNUSED_ATTR void *context) {
+  // Notify BTIF connect queue that we've brought up the stack. It's
+  // now time to dispatch all the pending profile connect requests.
+  btif_queue_connect_next();
   HAL_CBACK(bt_hal_cbacks, adapter_state_changed_cb, BT_STATE_ON);
 }
 
