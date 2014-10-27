@@ -18,21 +18,10 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <string.h>
+#include "base.h"
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
-#include <hardware/bt_pan.h>
-#include <hardware/bt_sock.h>
-#include <hardware/hardware.h>
+extern const btgatt_interface_t *gatt_interface;
 
-#ifndef ARRAY_SIZE
-#  define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-#endif
-
-#define TASSERT(c, ...) if (!(c)) { fprintf(stderr, "%s:%d: ", __func__, __LINE__); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); return false; }
-
-extern const bt_interface_t *bt_interface;
-extern bt_bdaddr_t bt_remote_bdaddr;
+bool gatt_init();
+int gatt_get_client_interface();
+int gatt_get_status();

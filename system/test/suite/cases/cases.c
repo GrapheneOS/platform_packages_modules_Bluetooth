@@ -34,10 +34,13 @@ TEST_CASE_DECL(pan_connect);
 TEST_CASE_DECL(pan_disconnect);
 TEST_CASE_DECL(pan_quick_reconnect);
 
+TEST_CASE_DECL(gatt_client_register);
+TEST_CASE_DECL(gatt_client_scan);
+
 // These are run with the Bluetooth adapter disabled.
 const test_case_t sanity_suite[] = {
   TEST_CASE(adapter_enable_disable),
-  TEST_CASE(adapter_repeated_enable_disable),
+  TEST_CASE(adapter_repeated_enable_disable)
 };
 
 // The normal test suite is run with the adapter enabled.
@@ -53,6 +56,9 @@ const test_case_t test_suite[] = {
   TEST_CASE(pan_enable),
   TEST_CASE(pan_connect),
   TEST_CASE(pan_disconnect),
+
+  TEST_CASE(gatt_client_register),
+  TEST_CASE(gatt_client_scan)
 };
 
 const size_t sanity_suite_size = ARRAY_SIZE(sanity_suite);

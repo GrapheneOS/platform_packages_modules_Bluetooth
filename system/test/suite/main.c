@@ -27,6 +27,7 @@
 #include "osi/include/config.h"
 #include "support/callbacks.h"
 #include "support/hal.h"
+#include "support/gatt.h"
 #include "support/pan.h"
 #include "support/rfcomm.h"
 
@@ -173,6 +174,11 @@ int main(int argc, char **argv) {
   if (!pan_init()) {
     printf("Unable to initialize PAN.\n");
     return 3;
+  }
+
+  if (!gatt_init()) {
+    printf("Unable to initialize GATT.\n");
+    return 4;
   }
 
   watchdog_running = true;
