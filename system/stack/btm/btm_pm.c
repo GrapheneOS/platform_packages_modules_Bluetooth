@@ -905,7 +905,7 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     }
 
     /* If mode change was because of an active role switch or change link key */
-    btm_cont_rswitch_or_chglinkkey(p, btm_find_dev(p->remote_addr), hci_status);
+    btm_cont_rswitch(p, btm_find_dev(p->remote_addr), hci_status);
 }
 
 /*******************************************************************************

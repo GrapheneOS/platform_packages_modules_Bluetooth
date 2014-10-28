@@ -81,7 +81,6 @@ static void btu_hcif_disconnection_comp_evt (UINT8 *p);
 static void btu_hcif_authentication_comp_evt (UINT8 *p);
 static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len);
 static void btu_hcif_encryption_change_evt (UINT8 *p);
-static void btu_hcif_change_conn_link_key_evt (UINT8 *p);
 static void btu_hcif_master_link_key_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p);
@@ -203,9 +202,6 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             btu_hcif_encryption_key_refresh_cmpl_evt(p);
             break;
 #endif
-        case HCI_CHANGE_CONN_LINK_KEY_EVT:
-            btu_hcif_change_conn_link_key_evt (p);
-            break;
         case HCI_MASTER_LINK_KEY_COMP_EVT:
             btu_hcif_master_link_key_comp_evt (p);
             break;
@@ -687,28 +683,6 @@ static void btu_hcif_encryption_change_evt (UINT8 *p)
     btm_sec_encrypt_change (handle, status, encr_enable);
 }
 
-
-/*******************************************************************************
-**
-** Function         btu_hcif_change_conn_link_key_evt
-**
-** Description      Process event HCI_CHANGE_CONN_LINK_KEY_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btu_hcif_change_conn_link_key_evt (UINT8 *p)
-{
-    UINT8   status;
-    UINT16  handle;
-
-    STREAM_TO_UINT8  (status, p);
-    STREAM_TO_UINT16 (handle, p);
-
-    btm_acl_link_key_change (handle, status);
-}
-
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_master_link_key_comp_evt
@@ -1098,18 +1072,6 @@ static void btu_hcif_hdl_command_status (UINT16 opcode, UINT8 status, UINT8 *p_c
                         btm_process_remote_name (NULL, NULL, 0, status);
 
                         btm_sec_rmt_name_request_complete (NULL, NULL, status);
-                        break;
-
-                    case HCI_CHANGE_CONN_LINK_KEY:
-                        /* Let host know we're done with error */
-                        /* read handle out of stored command */
-                        if (p_cmd != NULL)
-                        {
-                            p_cmd++;
-                            STREAM_TO_UINT16 (handle, p_cmd);
-
-                            btm_acl_link_key_change (handle, status);
-                        }
                         break;
 
                     case HCI_QOS_SETUP_COMP_EVT:

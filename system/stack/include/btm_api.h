@@ -745,17 +745,6 @@ typedef struct
     BD_ADDR remote_bd_addr; /* Remote BD addr involved with the switch */
 } tBTM_ROLE_SWITCH_CMPL;
 
-
-/* Structure returned with Change Link Key information (in tBTM_CMPL_CB callback function)
-** in response to BTM_ChangeLinkKey call.
-*/
-typedef struct
-{
-    UINT8   hci_status;     /* HCI status returned with the event */
-    BD_ADDR remote_bd_addr; /* Remote BD addr involved with the change link key */
-} tBTM_CHANGE_KEY_CMPL;
-
-
 /* Structure returned with QoS information (in tBTM_CMPL_CB callback function)
 ** in response to BTM_SetQoS call.
 */
@@ -3045,22 +3034,6 @@ extern tBTM_STATUS BTM_GetRole (BD_ADDR remote_bd_addr, UINT8 *p_role);
 extern tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr,
                                    UINT8 new_role,
                                    tBTM_CMPL_CB *p_cb);
-
-/*******************************************************************************
-**
-** Function         BTM_ChangeLinkKey
-**
-** Description      This function is called to change the link key of the
-**                  connection.
-**
-** Returns          BTM_CMD_STARTED if command issued to controller.
-**                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
-**                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
-**                  BTM_BUSY if the previous command is not completed
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ChangeLinkKey (BD_ADDR remote_bd_addr,
-                                      tBTM_CMPL_CB *p_cb);
 
 /*******************************************************************************
 **

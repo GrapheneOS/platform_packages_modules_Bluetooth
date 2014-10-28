@@ -767,163 +767,6 @@ tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr, UINT8 new_role, tBTM_CMPL_CB
 
 /*******************************************************************************
 **
-** Function         BTM_ChangeLinkKey
-**
-** Description      This function is called to change the link key of the
-**                  connection.
-**
-** Returns          BTM_CMD_STARTED if command issued to controller.
-**                  BTM_NO_RESOURCES if couldn't allocate memory to issue command
-**                  BTM_UNKNOWN_ADDR if no active link with bd addr specified
-**                  BTM_BUSY if the previous command is not completed
-**
-*******************************************************************************/
-tBTM_STATUS BTM_ChangeLinkKey (BD_ADDR remote_bd_addr, tBTM_CMPL_CB *p_cb)
-{
-    tACL_CONN   *p;
-    tBTM_SEC_DEV_REC  *p_dev_rec = NULL;
-#if BTM_PWR_MGR_INCLUDED == TRUE
-    tBTM_STATUS  status;
-    tBTM_PM_MODE pwr_mode;
-    tBTM_PM_PWR_MD settings;
-#endif
-    BTM_TRACE_DEBUG ("BTM_ChangeLinkKey");
-    if ((p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR)) == NULL)
-        return(BTM_UNKNOWN_ADDR);
-
-    /* Ignore change link key request if the previsous request has not completed */
-    if (p->change_key_state != BTM_ACL_SWKEY_STATE_IDLE)
-    {
-        BTM_TRACE_DEBUG ("Link key change request declined since the previous request"
-                          " for this device has not completed ");
-        return(BTM_BUSY);
-    }
-
-    memset (&btm_cb.devcb.chg_link_key_ref_data, 0, sizeof(tBTM_CHANGE_KEY_CMPL));
-
-    /* Cannot change key while parked */
-#if BTM_PWR_MGR_INCLUDED == FALSE
-    if (p->mode == HCI_MODE_PARK)
-    {
-        if (!btsnd_hcic_exit_park_mode (p->hci_handle))
-            return(BTM_NO_RESOURCES);
-
-        p->change_key_state = BTM_ACL_SWKEY_STATE_MODE_CHANGE;
-    }
-#else   /* power manager is in use */
-
-
-    if ((status = BTM_ReadPowerMode(p->remote_addr, &pwr_mode)) != BTM_SUCCESS)
-        return(status);
-
-    /* Wake up the link if in park before attempting to change link keys */
-    if (pwr_mode == BTM_PM_MD_PARK)
-    {
-        memset( (void*)&settings, 0, sizeof(settings));
-        settings.mode = BTM_PM_MD_ACTIVE;
-        status = BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p->remote_addr, &settings);
-        if (status != BTM_CMD_STARTED)
-            return(BTM_WRONG_MODE);
-
-        p->change_key_state = BTM_ACL_SWKEY_STATE_MODE_CHANGE;
-    }
-#endif
-    /* some devices do not support change of link key while encryption is on */
-    else if (((p_dev_rec = btm_find_dev (remote_bd_addr)) != NULL)
-             && ((p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED) != 0) && !BTM_EPR_AVAILABLE(p))
-    {
-        /* bypass turning off encryption if switch role is already doing it */
-        if (p->encrypt_state != BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF)
-        {
-            if (!btsnd_hcic_set_conn_encrypt (p->hci_handle, FALSE))
-                return(BTM_NO_RESOURCES);
-            else
-                p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
-        }
-
-        p->change_key_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
-    }
-    else    /* Ok to initiate change of link key */
-    {
-        if (!btsnd_hcic_change_link_key (p->hci_handle))
-            return(BTM_NO_RESOURCES);
-
-        p->change_key_state = BTM_ACL_SWKEY_STATE_IN_PROGRESS;
-    }
-
-    /* Initialize return structure in case request fails */
-    memcpy (btm_cb.devcb.chg_link_key_ref_data.remote_bd_addr, remote_bd_addr,
-            BD_ADDR_LEN);
-    btm_cb.devcb.p_chg_link_key_cb = p_cb;
-    return(BTM_CMD_STARTED);
-}
-
-/*******************************************************************************
-**
-** Function         btm_acl_link_key_change
-**
-** Description      This function is called to when a change link key event
-**                  is received.
-**
-*******************************************************************************/
-void btm_acl_link_key_change (UINT16 handle, UINT8 status)
-{
-    tBTM_CHANGE_KEY_CMPL *p_data;
-    tACL_CONN            *p;
-    UINT8                xx;
-    BTM_TRACE_DEBUG ("btm_acl_link_key_change");
-    /* Look up the connection by handle and set the current mode */
-    xx = btm_handle_to_acl_index(handle);
-
-    /* don't assume that we can never get a bad hci_handle */
-    if (xx >= MAX_L2CAP_LINKS)
-        return;
-
-    p_data = &btm_cb.devcb.chg_link_key_ref_data;
-    p = &btm_cb.acl_db[xx];
-    p_data->hci_status = status;
-
-    /* if switching state is switching we need to turn encryption on */
-    /* if idle, we did not change encryption */
-    if (p->change_key_state == BTM_ACL_SWKEY_STATE_SWITCHING)
-    {
-        /* Make sure there's not also a role switch going on before re-enabling */
-        if (p->switch_role_state != BTM_ACL_SWKEY_STATE_SWITCHING)
-        {
-            if (btsnd_hcic_set_conn_encrypt (p->hci_handle, TRUE))
-            {
-                p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON;
-                p->change_key_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
-                return;
-            }
-        }
-        else    /* Set the state and wait for change link key */
-        {
-            p->change_key_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
-            return;
-        }
-    }
-
-    /* Set the switch_role_state to IDLE since the reply received from HCI */
-    /* regardless of its result either success or failed. */
-    if (p->change_key_state == BTM_ACL_SWKEY_STATE_IN_PROGRESS)
-    {
-        p->change_key_state = BTM_ACL_SWKEY_STATE_IDLE;
-        p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-    }
-
-    if (btm_cb.devcb.p_chg_link_key_cb)
-    {
-        (*btm_cb.devcb.p_chg_link_key_cb)((void *)p_data);
-        btm_cb.devcb.p_chg_link_key_cb = NULL;
-    }
-
-    BTM_TRACE_ERROR("Change Link Key Complete Event: Handle 0x%02x, HCI Status 0x%02x",
-                     handle, p_data->hci_status);
-}
-
-/*******************************************************************************
-**
 ** Function         btm_acl_encrypt_change
 **
 ** Description      This function is when encryption of the connection is
@@ -1018,45 +861,6 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
             p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
         }
 #endif
-    }
-
-
-    /* Process Change Link Key if active */
-    if (p->change_key_state == BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF)
-    {
-        /* if encryption turn off failed we still will try to change link key */
-        if (encr_enable)
-        {
-            p->change_key_state = BTM_ACL_SWKEY_STATE_IDLE;
-            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-        }
-        else
-        {
-            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_TEMP_FUNC;
-            p->change_key_state = BTM_ACL_SWKEY_STATE_SWITCHING;
-        }
-
-        if (!btsnd_hcic_change_link_key (p->hci_handle))
-        {
-            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-            p->change_key_state = BTM_ACL_SWKEY_STATE_IDLE;
-            if (btm_cb.devcb.p_chg_link_key_cb)
-            {
-                (*btm_cb.devcb.p_chg_link_key_cb)(&btm_cb.devcb.chg_link_key_ref_data);
-                btm_cb.devcb.p_chg_link_key_cb = NULL;
-            }
-        }
-    }
-    /* Finished enabling Encryption after changing link key */
-    else if (p->change_key_state == BTM_ACL_SWKEY_STATE_ENCRYPTION_ON)
-    {
-        p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-        p->change_key_state = BTM_ACL_SWKEY_STATE_IDLE;
-        if (btm_cb.devcb.p_chg_link_key_cb)
-        {
-            (*btm_cb.devcb.p_chg_link_key_cb)(&btm_cb.devcb.chg_link_key_ref_data);
-            btm_cb.devcb.p_chg_link_key_cb = NULL;
-        }
     }
 }
 /*******************************************************************************
@@ -2317,18 +2121,9 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
     /* if idle, we did not change encryption */
     if (p->switch_role_state == BTM_ACL_SWKEY_STATE_SWITCHING)
     {
-        /* Make sure there's not also a change link key going on before re-enabling */
-        if (p->change_key_state != BTM_ACL_SWKEY_STATE_SWITCHING)
+        if (btsnd_hcic_set_conn_encrypt (p->hci_handle, TRUE))
         {
-            if (btsnd_hcic_set_conn_encrypt (p->hci_handle, TRUE))
-            {
-                p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON;
-                p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
-                return;
-            }
-        }
-        else    /* Set the state and wait for change link key */
-        {
+            p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_ON;
             p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_ON;
             return;
         }
@@ -3233,25 +3028,23 @@ UINT8 BTM_SetTraceLevel (UINT8 new_level)
 
 /*******************************************************************************
 **
-** Function         btm_cont_rswitch_or_chglinkkey
+** Function         btm_cont_rswitch
 **
 ** Description      This function is called to continue processing an active
-**                  role switch or change of link key procedure.  It first
-**                  disables encryption if enabled and EPR is not supported
+**                  role switch. It first disables encryption if enabled and
+**                  EPR is not supported
 **
 ** Returns          void
 **
 *******************************************************************************/
-void btm_cont_rswitch_or_chglinkkey (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
+void btm_cont_rswitch (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
                                      UINT8 hci_status)
 {
     BOOLEAN sw_ok = TRUE;
-    BOOLEAN chlk_ok = TRUE;
-    BTM_TRACE_DEBUG ("btm_cont_rswitch_or_chglinkkey ");
+    BTM_TRACE_DEBUG ("btm_cont_rswitch");
     /* Check to see if encryption needs to be turned off if pending
        change of link key or role switch */
-    if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE ||
-        p->change_key_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
+    if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
     {
         /* Must turn off Encryption first if necessary */
         /* Some devices do not support switch or change of link key while encryption is on */
@@ -3263,18 +3056,12 @@ void btm_cont_rswitch_or_chglinkkey (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
                 p->encrypt_state = BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF;
                 if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
                     p->switch_role_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
-
-                if (p->change_key_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
-                    p->change_key_state = BTM_ACL_SWKEY_STATE_ENCRYPTION_OFF;
             }
             else
             {
                 /* Error occurred; set states back to Idle */
                 if (p->switch_role_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
                     sw_ok = FALSE;
-
-                if (p->change_key_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
-                    chlk_ok = FALSE;
             }
         }
         else    /* Encryption not used or EPR supported, continue with switch
@@ -3289,29 +3076,12 @@ void btm_cont_rswitch_or_chglinkkey (tACL_CONN *p, tBTM_SEC_DEV_REC *p_dev_rec,
 #endif
                 sw_ok = btsnd_hcic_switch_role (p->remote_addr, (UINT8)!p->link_role);
             }
-
-            if (p->change_key_state == BTM_ACL_SWKEY_STATE_MODE_CHANGE)
-            {
-                p->switch_role_state = BTM_ACL_SWKEY_STATE_IN_PROGRESS;
-                chlk_ok = btsnd_hcic_change_link_key (p->hci_handle);
-            }
         }
 
         if (!sw_ok)
         {
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
             btm_acl_report_role_change(hci_status, p->remote_addr);
-        }
-
-        if (!chlk_ok)
-        {
-            p->change_key_state = BTM_ACL_SWKEY_STATE_IDLE;
-            if (btm_cb.devcb.p_chg_link_key_cb)
-            {
-                btm_cb.devcb.chg_link_key_ref_data.hci_status = hci_status;
-                (*btm_cb.devcb.p_chg_link_key_cb)(&btm_cb.devcb.chg_link_key_ref_data);
-                btm_cb.devcb.p_chg_link_key_cb = NULL;
-            }
         }
     }
 }

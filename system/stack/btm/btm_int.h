@@ -104,7 +104,6 @@ typedef struct
 #define BTM_ACL_SWKEY_STATE_ENCRYPTION_ON       4
 #define BTM_ACL_SWKEY_STATE_IN_PROGRESS         5
     UINT8           switch_role_state;
-    UINT8           change_key_state;
 
 #define BTM_ACL_ENCRYPT_STATE_IDLE              0
 #define BTM_ACL_ENCRYPT_STATE_ENCRYPT_OFF       1   /* encryption turning off */
@@ -169,10 +168,6 @@ typedef struct
     tBTM_ROLE_SWITCH_CMPL switch_role_ref_data;
     tBTM_CMPL_CB        *p_switch_role_cb;  /* Callback function to be called when  */
                                             /* requested switch role is completed   */
-
-    tBTM_CHANGE_KEY_CMPL chg_link_key_ref_data;
-    tBTM_CMPL_CB        *p_chg_link_key_cb; /* Callback function to be called when  */
-                                            /* change of link key is completed      */
 
     TIMER_LIST_ENT       tx_power_timer;
     tBTM_CMPL_CB        *p_tx_power_cmpl_cb;/* Callback function to be called       */
@@ -966,11 +961,10 @@ extern void         btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
 extern void         btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport);
 extern void         btm_acl_device_down (void);
 extern void         btm_acl_update_busy_level (tBTM_BLI_EVENT event);
-extern void         btm_acl_link_key_change (UINT16 handle, UINT8 status);
 
-extern void         btm_cont_rswitch_or_chglinkkey (tACL_CONN *p,
-                                                    tBTM_SEC_DEV_REC *p_dev_rec,
-                                                    UINT8 hci_status);
+extern void         btm_cont_rswitch (tACL_CONN *p,
+                                      tBTM_SEC_DEV_REC *p_dev_rec,
+                                      UINT8 hci_status);
 
 extern UINT8        btm_handle_to_acl_index (UINT16 hci_handle);
 extern void         btm_read_link_policy_complete (UINT8 *p);

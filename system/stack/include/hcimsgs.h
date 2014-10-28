@@ -187,8 +187,6 @@ extern BOOLEAN btsnd_hcic_set_conn_encrypt (UINT16 handle, BOOLEAN enable);
 #define HCI_SET_ENCRYPT_ENABLE_OFF      2
                                                                     /* Set Connection Encryption */
 
-extern BOOLEAN btsnd_hcic_change_link_key (UINT16 handle);  /* Change Connection Link Key */
-
                                                                     /* Master Link Key */
 extern BOOLEAN btsnd_hcic_master_link_key (BOOLEAN key_flag);
 
