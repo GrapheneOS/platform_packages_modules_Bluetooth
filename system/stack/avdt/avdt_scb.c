@@ -730,41 +730,36 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
     int         i;
     tAVDT_SCB   *p_scb;
     UINT8       nsc_mask;
-    UINT8       chk_state;
     UINT8       ret = 0;
 
     AVDT_TRACE_DEBUG("avdt_scb_verify state %d", state);
     /* set nonsupported command mask */
     /* translate public state into private state */
     nsc_mask = 0;
-    chk_state = AVDT_SCB_STREAM_ST;
-    switch(state)
-    {
-    case AVDT_VERIFY_SUSPEND:
-        nsc_mask = AVDT_NSC_SUSPEND;
-        break;
-    case AVDT_VERIFY_OPEN:
-    case AVDT_VERIFY_START:
-        chk_state = AVDT_SCB_OPEN_ST;
-        break;
-    }
+    if (state == AVDT_VERIFY_SUSPEND)
+      nsc_mask = AVDT_NSC_SUSPEND;
 
     /* verify every scb */
-    for (i = 0; i < num_seid; i++)
+    for (i = 0, *p_err_code = 0; i < num_seid && *p_err_code == 0; i++)
     {
         if ((p_scb = avdt_scb_by_hdl(p_seid[i])) == NULL)
-        {
             *p_err_code = AVDT_ERR_BAD_STATE;
-            break;
-        }
-        else if ((p_scb->state != chk_state) || (p_scb->p_ccb != p_ccb))
-        {
+        else if (p_scb->p_ccb != p_ccb)
             *p_err_code = AVDT_ERR_BAD_STATE;
-            break;
-        }
         else if (p_scb->cs.nsc_mask & nsc_mask)
-        {
             *p_err_code = AVDT_ERR_NSC;
+
+        switch (state) {
+          case AVDT_VERIFY_OPEN:
+          case AVDT_VERIFY_START:
+            if (p_scb->state != AVDT_SCB_OPEN_ST && p_scb->state != AVDT_SCB_STREAM_ST)
+              *p_err_code = AVDT_ERR_BAD_STATE;
+            break;
+
+          case AVDT_VERIFY_SUSPEND:
+          case AVDT_VERIFY_STREAMING:
+            if (p_scb->state != AVDT_SCB_STREAM_ST)
+              *p_err_code = AVDT_ERR_BAD_STATE;
             break;
         }
     }
@@ -773,8 +768,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
     {
         ret = p_seid[i];
     }
-    AVDT_TRACE_DEBUG("avdt_scb_verify state %d, nsc_mask0x%x, ret: %d",
-        chk_state, nsc_mask, ret);
+
     return ret;
 }
 
