@@ -24,4 +24,5 @@ extern const btgatt_interface_t *gatt_interface;
 
 bool gatt_init();
 int gatt_get_client_interface();
+int gatt_get_server_interface();
 int gatt_get_status();

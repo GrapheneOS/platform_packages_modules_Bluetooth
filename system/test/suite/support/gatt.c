@@ -23,6 +23,7 @@
 
 const btgatt_interface_t *gatt_interface;
 static int gatt_client_interface;
+static int gatt_server_interface;
 static int gatt_status;
 
 bool gatt_init() {
@@ -32,6 +33,10 @@ bool gatt_init() {
 
 int gatt_get_client_interface() {
   return gatt_client_interface;
+}
+
+int gatt_get_server_interface() {
+  return gatt_server_interface;
 }
 
 int gatt_get_status() {
@@ -110,11 +115,15 @@ void btgattc_remote_rssi_cb(int client_if,bt_bdaddr_t* bda, int rssi, int status
 }
 
 void btgattc_advertise_cb(int status, int client_if) {
+  gatt_status = status;
+  gatt_client_interface = client_if;
   CALLBACK_RET();
 }
 
 // GATT server callbacks
 void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
   CALLBACK_RET();
 }
 
