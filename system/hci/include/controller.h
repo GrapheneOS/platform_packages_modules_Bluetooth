@@ -37,6 +37,7 @@ typedef struct controller_t {
   uint8_t (*get_last_features_classic_index)(void);
 
   const bt_device_features_t *(*get_features_ble)(void);
+  const uint8_t *(*get_ble_supported_states)(void);
 
   bool (*supports_simple_pairing)(void);
   bool (*supports_simultaneous_le_bredr)(void);

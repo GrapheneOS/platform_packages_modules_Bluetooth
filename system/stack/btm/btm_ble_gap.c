@@ -3139,7 +3139,9 @@ BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
     mask = btm_le_state_combo_tbl[0][request_state - 1][0];
     offset = btm_le_state_combo_tbl[0][request_state-1][1];
 
-    if (!BTM_LE_STATES_SUPPORTED(btm_cb.devcb.le_supported_states, mask, offset))
+    const uint8_t *ble_supported_states = controller_get_interface()->get_ble_supported_states();
+
+    if (!BTM_LE_STATES_SUPPORTED(ble_supported_states, mask, offset))
     {
         BTM_TRACE_ERROR("state requested not supported: %d", request_state);
         return rt;
@@ -3157,7 +3159,7 @@ BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
 
             if (mask != 0 && offset != 0)
             {
-                if (!BTM_LE_STATES_SUPPORTED(btm_cb.devcb.le_supported_states, mask, offset))
+                if (!BTM_LE_STATES_SUPPORTED(ble_supported_states, mask, offset))
                 {
                     rt = FALSE;
                     break;

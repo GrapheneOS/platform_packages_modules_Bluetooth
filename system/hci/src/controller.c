@@ -271,6 +271,12 @@ static const bt_device_features_t *get_features_ble(void) {
   return &features_ble;
 }
 
+static const uint8_t *get_ble_supported_states(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_supported_states;
+}
+
 static bool supports_simple_pairing(void) {
   assert(readable);
   return simple_pairing_supported;
@@ -359,6 +365,7 @@ static const controller_t interface = {
   get_last_features_classic_index,
 
   get_features_ble,
+  get_ble_supported_states,
 
   supports_simple_pairing,
   supports_simultaneous_le_bredr,

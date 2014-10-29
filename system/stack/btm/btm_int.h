@@ -184,11 +184,6 @@ typedef struct
     tBTM_BLE_LOCAL_ID_KEYS  id_keys;        /* local BLE ID keys                    */
     BT_OCTET16              er;             /* BLE encryption key                   */
 
-#define BTM_LE_SUPPORT_STATE_SIZE   8
-UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
-
-
-
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
     BOOLEAN                 no_disc_if_pair_fail;
     BOOLEAN                 enable_test_mac_val;
