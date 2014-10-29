@@ -2576,35 +2576,6 @@ extern UINT8 *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
 
 /*******************************************************************************
 **
-** Function         BTM_InqFirstResult
-**
-** Description      This function looks through the inquiry database for the first
-**                  used entrysince the LAST inquiry. This is used in conjunction
-**                  with BTM_InqNext by applications as a way to walk through the
-**                  inquiry results database.
-**
-** Returns          pointer to first in-use entry, or NULL if DB is empty
-**
-*******************************************************************************/
-extern tBTM_INQ_INFO *BTM_InqFirstResult (void);
-
-
-/*******************************************************************************
-**
-** Function         BTM_InqNextResult
-**
-** Description      This function looks through the inquiry database for the next
-**                  used entrysince the LAST inquiry. If the input parameter is NULL,
-**                  the first entry is returned.
-**
-** Returns          pointer to next in-use entry, or NULL if no more found.
-**
-*******************************************************************************/
-extern tBTM_INQ_INFO *BTM_InqNextResult (tBTM_INQ_INFO *p_cur);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_InqDbRead
 **
 ** Description      This function looks through the inquiry database for a match
