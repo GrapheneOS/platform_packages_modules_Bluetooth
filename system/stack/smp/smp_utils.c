@@ -34,7 +34,7 @@
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "smp_int.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 
 #define SMP_PAIRING_REQ_SIZE    7

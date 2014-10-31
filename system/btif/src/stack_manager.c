@@ -23,7 +23,7 @@
 
 #include "btif_api.h"
 #include "btif_common.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "module.h"
 #include "osi.h"
 #include "semaphore.h"

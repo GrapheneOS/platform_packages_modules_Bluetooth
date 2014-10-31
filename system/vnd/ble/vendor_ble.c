@@ -33,7 +33,7 @@
 #include "vendor_ble.h"
 #include "vendor_hcidefs.h"
 #include "gatt_int.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 /*** This needs to be moved to a VSC control block eventually per coding conventions ***/
 #if VENDOR_DYNAMIC_MEMORY == FALSE

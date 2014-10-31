@@ -43,7 +43,7 @@
 #include "bnep_int.h"
 #include "bt_utils.h"
 
-#include "controller.h"
+#include "device/include/controller.h"
 
 
 /********************************************************************************/

@@ -27,7 +27,7 @@ extern "C" {
 #include "allocation_tracker.h"
 #include "allocator.h"
 #include "btsnoop.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_inject.h"

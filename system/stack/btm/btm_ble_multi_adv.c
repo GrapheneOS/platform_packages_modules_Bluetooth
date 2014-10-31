@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "bt_types.h"

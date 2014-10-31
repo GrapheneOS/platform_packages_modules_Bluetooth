@@ -26,7 +26,7 @@
 #include "dyn_mem.h"
 
 #include "alarm.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "fixed_queue.h"
 #include "hash_functions.h"
 #include "hash_map.h"

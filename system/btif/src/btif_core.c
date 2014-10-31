@@ -52,7 +52,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btu.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "fixed_queue.h"
 #include "future.h"
 #include "gki.h"

@@ -25,7 +25,7 @@ extern "C" {
 #include <utils/Log.h>
 
 #include "allocator.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hci_internals.h"
 #include "packet_fragmenter.h"
 #include "osi.h"

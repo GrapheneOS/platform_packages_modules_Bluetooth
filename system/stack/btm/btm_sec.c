@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "bt_types.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_int.h"

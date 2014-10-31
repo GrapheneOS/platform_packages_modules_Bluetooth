@@ -30,7 +30,7 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);

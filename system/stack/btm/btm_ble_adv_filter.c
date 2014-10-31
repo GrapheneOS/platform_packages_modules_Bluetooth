@@ -28,7 +28,7 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 #include "vendor_ble.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 #define BTM_BLE_ADV_FILT_META_HDR_LENGTH 3
 #define BTM_BLE_ADV_FILT_FEAT_SELN_LEN 13

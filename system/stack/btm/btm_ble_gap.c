@@ -31,7 +31,7 @@
 #include "btm_int.h"
 #include "btm_ble_api.h"
 #include "btu.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"

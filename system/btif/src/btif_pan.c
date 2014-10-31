@@ -51,7 +51,7 @@
 #include "btif_util.h"
 #include "btm_api.h"
 #include "bdaddr.h"
-#include "controller.h"
+#include "device/include/controller.h"
 
 #include "bta_api.h"
 #include "bta_pan_api.h"

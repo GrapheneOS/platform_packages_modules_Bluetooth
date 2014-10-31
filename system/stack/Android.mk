@@ -33,6 +33,7 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/../bta/include \
                    $(LOCAL_PATH)/../bta/sys \
                    $(LOCAL_PATH)/../utils/include \
+                   $(LOCAL_PATH)/../ \
                    $(bdroid_C_INCLUDES) \
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99

@@ -25,7 +25,7 @@
 #include "bt_utils.h"
 #include "btu.h"
 #include "btm_int.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
 
 #if (BLE_INCLUDED == TRUE)

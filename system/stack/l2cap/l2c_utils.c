@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "controller.h"
+#include "device/include/controller.h"
 #include "counter.h"
 #include "gki.h"
 #include "bt_types.h"

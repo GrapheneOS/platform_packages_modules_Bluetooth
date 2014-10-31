@@ -77,6 +77,7 @@ LOCAL_SRC_FILES+= \
 	../udrv/ulinux/uipc.c
 
 LOCAL_C_INCLUDES+= . \
+	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../bta/include \
 	$(LOCAL_PATH)/../bta/sys \
 	$(LOCAL_PATH)/../bta/dm \
@@ -129,6 +130,7 @@ LOCAL_STATIC_LIBRARIES := \
     libbt-brcm_gki \
     libbt-brcm_bta \
     libbt-brcm_stack \
+    libbtdevice \
     libbt-hci \
     libbt-utils \
     libbt-qcom_sbc_decoder \

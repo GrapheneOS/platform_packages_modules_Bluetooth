@@ -6,7 +6,6 @@ LOCAL_SRC_FILES := \
     src/btsnoop.c \
     src/btsnoop_net.c \
     src/buffer_allocator.c \
-    src/controller.c \
     src/hci_hal.c \
     src/hci_hal_h4.c \
     src/hci_hal_mct.c \
@@ -26,6 +25,7 @@ LOCAL_CFLAGS += -std=c99 $(bdroid_CFLAGS)
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/.. \
     $(LOCAL_PATH)/../include \
     $(LOCAL_PATH)/../btcore/include \
     $(LOCAL_PATH)/../gki/common \
@@ -46,6 +46,7 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/.. \
     $(LOCAL_PATH)/../include \
     $(LOCAL_PATH)/../btcore/include \
     $(LOCAL_PATH)/../gki/common \

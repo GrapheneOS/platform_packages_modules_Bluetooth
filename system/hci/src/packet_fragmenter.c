@@ -22,7 +22,7 @@
 #include <utils/Log.h>
 
 #include "buffer_allocator.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "hci_internals.h"

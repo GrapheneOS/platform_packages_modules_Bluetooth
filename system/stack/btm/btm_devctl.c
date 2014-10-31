@@ -34,7 +34,7 @@
 #include "bt_utils.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "controller.h"
+#include "device/include/controller.h"
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
