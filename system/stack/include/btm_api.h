@@ -1951,28 +1951,6 @@ extern "C" {
 
 /*******************************************************************************
 **
-** Function         BTM_SetAfhChannels
-**
-** Description      This function is called to disable channels
-**
-** Returns          status
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetAfhChannels (UINT8 first, UINT8 last);
-
-/*******************************************************************************
-**
-** Function         BTM_SetAfhChannelAssessment
-**
-** Description      This function is called to set the channel assessment mode on or off
-**
-** Returns          status
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetAfhChannelAssessment (BOOLEAN enable_or_disable);
-
-/*******************************************************************************
-**
 ** Function         BTM_DeviceReset
 **
 ** Description      This function is called to reset the controller.The Callback function

@@ -100,9 +100,6 @@ void btm_dev_init (void)
                                          BTM_SCO_PKT_TYPES_MASK_EV3 +
                                          BTM_SCO_PKT_TYPES_MASK_EV4 +
                                          BTM_SCO_PKT_TYPES_MASK_EV5;
-
-    btm_cb.first_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
-    btm_cb.last_disabled_channel = 0xff; /* To allow disabling 0th channel alone */
 }
 
 
@@ -229,67 +226,6 @@ void BTM_DeviceReset (UNUSED_ATTR tBTM_CMPL_CB *p_cb) {
 BOOLEAN BTM_IsDeviceUp (void)
 {
     return controller_get_interface()->get_is_ready();
-}
-
-/*******************************************************************************
-**
-** Function         BTM_SetAfhChannels
-**
-** Description      This function is called disable channels
-**
-** Returns          tBTM_STATUS
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SetAfhChannels (UINT8 first, UINT8 last)
-{
-    BTM_TRACE_API ("BTM_SetAfhChannels first: %d (%d) last: %d (%d)",
-                       first, btm_cb.first_disabled_channel, last,
-                       btm_cb.last_disabled_channel);
-
-    const controller_t *controller = controller_get_interface();
-    /* Make sure the local device supports the feature before sending */
-    if (!HCI_LMP_AFH_CAP_MASTR_SUPPORTED(controller->get_features_classic(0)->as_array) &&
-        !HCI_LMP_AFH_CLASS_SLAVE_SUPPORTED(controller->get_features_classic(0)->as_array) &&
-        !HCI_LMP_AFH_CLASS_MASTR_SUPPORTED(controller->get_features_classic(0)->as_array))
-        return (BTM_MODE_UNSUPPORTED);
-
-    if (!BTM_IsDeviceUp())
-        return (BTM_WRONG_MODE);
-
-    if ((btm_cb.first_disabled_channel != first)
-     || (btm_cb.last_disabled_channel  != last))
-    {
-        if (btsnd_hcic_set_afh_channels (first, last))
-        {
-            btm_cb.first_disabled_channel = first;
-            btm_cb.last_disabled_channel  = last;
-        }
-        else
-            return (BTM_NO_RESOURCES);
-    }
-    return (BTM_SUCCESS);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_SetAfhChannelAssessment
-**
-** Description      This function is called to set the channel assessment mode on or off
-**
-** Returns          none
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SetAfhChannelAssessment (BOOLEAN enable_or_disable)
-{
-    const controller_t *controller = controller_get_interface();
-    /* whatever app wants if device is not 1.2 scan type should be STANDARD */
-    if (!HCI_LMP_AFH_CAP_SLAVE_SUPPORTED(controller->get_features_classic(0)->as_array))
-     return (BTM_MODE_UNSUPPORTED);
-
-    if (!btsnd_hcic_write_afh_channel_assessment_mode (enable_or_disable))
-        return (BTM_NO_RESOURCES);
-
-    return (BTM_SUCCESS);
 }
 
 /*******************************************************************************

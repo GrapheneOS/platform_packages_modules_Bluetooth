@@ -641,8 +641,6 @@ extern BOOLEAN btsnd_hcic_enable_test_mode (void);                     /* Enable
 extern BOOLEAN btsnd_hcic_write_pagescan_type(UINT8 type);             /* Write Page Scan Type */
 extern BOOLEAN btsnd_hcic_write_inqscan_type(UINT8 type);              /* Write Inquiry Scan Type */
 extern BOOLEAN btsnd_hcic_write_inquiry_mode(UINT8 type);              /* Write Inquiry Mode */
-extern BOOLEAN btsnd_hcic_set_afh_channels (UINT8 first, UINT8 last);
-extern BOOLEAN btsnd_hcic_write_afh_channel_assessment_mode (UINT8 mode);
 
 #define HCI_DATA_HANDLE_MASK 0x0FFF
 

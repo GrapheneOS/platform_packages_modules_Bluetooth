@@ -1818,63 +1818,6 @@ BOOLEAN btsnd_hcic_enable_test_mode (void)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_write_afh_channel_assessment_mode (UINT8 mode)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_WRITE_PARAM1)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_WRITE_PARAM1;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_WRITE_AFH_ASSESSMENT_MODE);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_WRITE_PARAM1);
-
-    UINT8_TO_STREAM  (pp, mode);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_set_afh_channels (UINT8 first, UINT8 last)
-{
-    BT_HDR *p;
-    UINT8  *pp;
-    UINT8  channels[10] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x7F};
-    int    i;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_SET_AFH_CHANNELS)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_SET_AFH_CHANNELS;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_SET_AFH_CHANNELS);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_SET_AFH_CHANNELS);
-
-    /* Just make sure that caller did not exceed 79 Bluetooth channels */
-    if ((first <= last) && (last <= 78))
-    {
-        for (i = first; i <= last; i++)
-        {
-            int byte_offset = i / 8;
-            int bit_offset  = i % 8;
-            channels[byte_offset] &= ~(1 << bit_offset);
-        }
-    }
-    for (i = 0; i < 10; i++)
-        *pp++ = channels[i];
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_write_inqscan_type (UINT8 type)
 {
     BT_HDR *p;

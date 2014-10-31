@@ -855,9 +855,6 @@ typedef struct
     BD_ADDR                  connecting_bda;
     DEV_CLASS                connecting_dc;
 
-    UINT8                   first_disabled_channel;
-    UINT8                   last_disabled_channel;
-
     UINT8                   acl_disc_reason;
     UINT8                   trace_level;
     UINT8                   num_acl;    /* num of active ACL links */
