@@ -296,11 +296,11 @@ static BOOLEAN check_eir_remote_name(tBTA_DM_SEARCH *p_search_data,
     /* Check EIR for remote name and services */
     if (p_search_data->inq_res.p_eir)
     {
-        p_eir_remote_name = BTA_CheckEirData(p_search_data->inq_res.p_eir,
+        p_eir_remote_name = BTM_CheckEirData(p_search_data->inq_res.p_eir,
                 BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
         if (!p_eir_remote_name)
         {
-            p_eir_remote_name = BTA_CheckEirData(p_search_data->inq_res.p_eir,
+            p_eir_remote_name = BTM_CheckEirData(p_search_data->inq_res.p_eir,
                     BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
         }
 

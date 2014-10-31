@@ -1614,21 +1614,6 @@ extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
-** Function         BTA_CheckEirData
-**
-** Description      This function is called to get EIR data from significant part.
-**
-** Parameters       p_eir - pointer of EIR significant part
-**                  type   - finding EIR data type
-**                  p_length - return the length of EIR data
-**
-** Returns          pointer of EIR data
-**
-*******************************************************************************/
-extern UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 tag, UINT8 *p_length );
-
-/*******************************************************************************
-**
 ** Function         BTA_GetEirService
 **
 ** Description      This function is called to get BTA service mask from EIR.

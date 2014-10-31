@@ -384,12 +384,12 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
     uint8_t *p_eir_remote_name=NULL;
     bt_bdname_t bdname;
 
-    p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+    p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
     if (p_eir_remote_name == NULL)
     {
-        p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+        p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
     }
 
@@ -566,12 +566,12 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             bt_device_type_t dev_type;
             bt_property_t properties;
 
-            p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+            p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
             if (p_eir_remote_name == NULL)
             {
-                p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
             }
 
@@ -970,7 +970,7 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
             if (p_data->inq_res.p_eir)
             {
                 memcpy(btif_cb.value, p_data->inq_res.p_eir, 62);
-                if (BTA_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
+                if (BTM_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
                                       &len))
                 {
                     p_data->inq_res.remt_name_not_required  = TRUE;
