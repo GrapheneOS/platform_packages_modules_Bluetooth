@@ -1259,31 +1259,7 @@ tBTM_STATUS BTM_ReadInquiryRspTxPower (tBTM_CMPL_CB *p_cb)
     else
         return (BTM_CMD_STARTED);
 }
-/*******************************************************************************
-**
-** Function         BTM_WriteInquiryTxPower
-**
-** Description      This command is used to write the inquiry transmit power level
-**                  used to transmit the inquiry (ID) data packets. The Controller
-**                  should use the supported TX power level closest to the Tx_Power
-**                  parameter.
-**
-** Returns          BTM_SUCCESS if successful
-**
-*******************************************************************************/
-tBTM_STATUS  BTM_WriteInquiryTxPower (INT8 tx_power)
-{
-    tBTM_STATUS status = BTM_SUCCESS;
 
-    if (tx_power < BTM_MIN_INQ_TX_POWER || tx_power > BTM_MAX_INQ_TX_POWER)
-    {
-        status = BTM_ILLEGAL_VALUE;
-    }
-    else if (!btsnd_hcic_write_inq_tx_power(tx_power))
-        status = BTM_NO_RESOURCES;
-
-    return status;
-}
 /*********************************************************************************
 **********************************************************************************
 **                                                                              **

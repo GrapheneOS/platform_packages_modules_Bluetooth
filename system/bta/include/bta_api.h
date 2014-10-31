@@ -600,10 +600,6 @@ typedef INT8 tBTA_DM_RSSI_VALUE;
 typedef UINT8 tBTA_DM_LINK_QUALITY_VALUE;
 
 
-/* signal strength mask */
-#define BTA_SIG_STRENGTH_RSSI_MASK          1
-#define BTA_SIG_STRENGTH_LINK_QUALITY_MASK  2
-
 typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 
 
@@ -802,16 +798,6 @@ typedef struct
     UINT8           new_role;           /* the new connection role */
 } tBTA_DM_ROLE_CHG;
 
-/* Structure associated with BTA_DM_SIG_STRENGTH_EVT */
-typedef struct
-{
-    BD_ADDR         bd_addr;            /* BD address peer device. */
-    tBTA_SIG_STRENGTH_MASK mask;        /* mask for the values that are valid */
-    tBTA_DM_RSSI_VALUE  rssi_value;
-    tBTA_DM_LINK_QUALITY_VALUE link_quality_value;
-
-} tBTA_DM_SIG_STRENGTH;
-
 /* Structure associated with BTA_DM_BUSY_LEVEL_EVT */
 typedef struct
 {
@@ -922,7 +908,6 @@ typedef union
     tBTA_DM_AUTHORIZE   authorize;      /* Authorization request. */
     tBTA_DM_LINK_UP     link_up;       /* ACL connection down event */
     tBTA_DM_LINK_DOWN   link_down;       /* ACL connection down event */
-    tBTA_DM_SIG_STRENGTH sig_strength;  /* rssi and link quality value */
     tBTA_DM_BUSY_LEVEL  busy_level;     /* System busy level */
     tBTA_DM_SP_CFM_REQ  cfm_req;        /* user confirm request */
     tBTA_DM_SP_KEY_NOTIF key_notif;     /* passkey notification */
@@ -1020,9 +1005,6 @@ typedef struct
     tBTA_DM_BLE_PF_TIMEOUT lost_timeout;
     tBTA_DM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
 } tBTA_DM_BLE_PF_FILT_PARAMS;
-
-/* Vendor Specific Command Callback */
-typedef tBTM_VSC_CMPL_CB        tBTA_VENDOR_CMPL_CBACK;
 
 /* Search callback events */
 #define BTA_DM_INQ_RES_EVT              0       /* Inquiry result for a peer device. */
@@ -1416,21 +1398,6 @@ extern void BTA_DisableTestMode(void);
 
 /*******************************************************************************
 **
-** Function         BTA_DmIsDeviceUp
-**
-** Description      This function tests whether the Bluetooth module is up
-**                  and ready.  This is a direct execution function that
-**                  may lock task scheduling on some platforms.
-**
-**
-** Returns          TRUE if the module is ready.
-**                  FALSE if the module is not ready.
-**
-*******************************************************************************/
-extern BOOLEAN BTA_DmIsDeviceUp(void);
-
-/*******************************************************************************
-**
 ** Function         BTA_DmSetDeviceName
 **
 ** Description      This function sets the Bluetooth name of the local device.
@@ -1455,36 +1422,6 @@ extern void BTA_DmSetDeviceName(char *p_name);
 **
 *******************************************************************************/
 extern void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter);
-
-/*******************************************************************************
-**
-** Function         BTA_DmSetAfhChannels
-**
-** Description      This function sets the AFH first and
-**                  last disable channel, so channels within
-**                  that range are disabled.
-**                  In order to use this API, BTM_BYPASS_AMP_AUTO_AFH must be set
-**                  to be TRUE
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmSetAfhChannels(UINT8 first, UINT8 last);
-
-
-/*******************************************************************************
-**
-** Function         BTA_DmVendorSpecificCommand
-**
-** Description      This function sends the vendor specific command
-**                  to the controller
-**
-**
-** Returns          tBTA_STATUS
-**
-*******************************************************************************/
-extern tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,UINT8 *p_param_buf, tBTA_VENDOR_CMPL_CBACK *p_cback);
-
 
 /*******************************************************************************
 **
@@ -1560,19 +1497,6 @@ tBTA_STATUS BTA_DmGetCachedRemoteName(BD_ADDR remote_device, UINT8 **pp_cached_n
 
 /*******************************************************************************
 **
-** Function         BTA_DmIsMaster
-**
-** Description      This function checks if the local device is the master of
-**                  the link to the given device
-**
-** Returns          TRUE if master.
-**                  FALSE if not.
-**
-*******************************************************************************/
-extern BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
 ** Function         BTA_DmBond
 **
 ** Description      This function initiates a bonding procedure with a peer
@@ -1629,21 +1553,6 @@ extern void BTA_DmBondCancel(BD_ADDR bd_addr);
 extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len,
                            UINT8 *p_pin);
 
-/*******************************************************************************
-**
-** Function         BTA_DmLinkPolicy
-**
-** Description      This function sets/clears the link policy mask to the given
-**                  bd_addr.
-**                  If clearing the sniff or park mode mask, the link is put
-**                  in active mode.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
-                             BOOLEAN set);
-
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
@@ -1672,18 +1581,6 @@ extern void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept);
 
 /*******************************************************************************
 **
-** Function         BTA_DmPasskeyCancel
-**
-** Description      This function is called to cancel the simple pairing process
-**                  reported by BTA_DM_SP_KEY_NOTIF_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmPasskeyCancel(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
 ** Function         BTA_DmAddDevice
 **
 ** Description      This function adds a device to the security database list
@@ -1702,26 +1599,6 @@ extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
 
 /*******************************************************************************
 **
-** Function         BTA_DmAddDevWithName
-**
-** Description      This function is newer version of  BTA_DmAddDevice()
-**                  which added bd_name and features as input parameters.
-**
-**
-** Returns          void
-**
-** Note:            features points to the remote device features array.
-**                  The array size is
-**                  BTA_FEATURE_BYTES_PER_PAGE * (BTA_EXT_FEATURES_PAGE_MAX + 1)
-**
-*******************************************************************************/
-extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                  BD_NAME bd_name, UINT8 *features,
-                                  LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
-                                  BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap);
-
-/*******************************************************************************
-**
 ** Function         BTA_DmRemoveDevice
 **
 ** Description      This function removes a device from the security database.
@@ -1734,92 +1611,6 @@ extern void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **
 *******************************************************************************/
 extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
-
-/*******************************************************************************
-**
-** Function         BTA_DmAuthorizeReply
-**
-** Description      This function provides an authorization reply when
-**                  authorization is requested by BTA.  The application calls
-**                  this function after the security callback is called with
-**                  a BTA_DM_AUTHORIZE_EVT.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service,
-                                 tBTA_AUTH_RESP response);
-
-/*******************************************************************************
-**
-** Function         BTA_DmSignalStrength
-**
-** Description      This function initiates RSSI and channnel quality
-**                  measurments. BTA_DM_SIG_STRENGTH_EVT is sent to
-**                  application with the values of RSSI and channel
-**                  quality
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN start);
-
-/*******************************************************************************
-**
-** Function         BTA_DmWriteInqTxPower
-**
-** Description      This command is used to write the inquiry transmit power level
-**                  used to transmit the inquiry (ID) data packets.
-**
-** Parameters       tx_power - tx inquiry power to use, valid value is -70 ~ 20
-
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_DmWriteInqTxPower(INT8 tx_power);
-
-/*******************************************************************************
-**
-** Function         BTA_DmEirAddUUID
-**
-** Description      This function is called to add UUID into EIR.
-**
-** Parameters       tBT_UUID - UUID
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_DmEirAddUUID (tBT_UUID *p_uuid);
-
-/*******************************************************************************
-**
-** Function         BTA_DmEirRemoveUUID
-**
-** Description      This function is called to remove UUID from EIR.
-**
-** Parameters       tBT_UUID - UUID
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid);
-
-/*******************************************************************************
-**
-** Function         BTA_DmSetEIRConfig
-**
-** Description      This function is called to override the BTA default EIR parameters.
-**                  This funciton is only valid in a system where BTU & App task
-**                  are in the same memory space.
-**
-** Parameters       Pointer to User defined EIR config
-**
-** Returns          None
-**
-*******************************************************************************/
-extern void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg);
 
 /*******************************************************************************
 **
@@ -1852,18 +1643,6 @@ extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services );
 
 /*******************************************************************************
 **
-** Function         BTA_DmUseSsr
-**
-** Description      This function is called to check if the connected peer device
-**                  supports SSR or not.
-**
-** Returns          TRUE, if SSR is supported
-**
-*******************************************************************************/
-extern BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr );
-
-/*******************************************************************************
-**
 ** Function         BTA_DmGetConnectionState
 **
 ** Description      Returns whether the remote device is currently connected.
@@ -1888,45 +1667,6 @@ extern tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
 
 /*******************************************************************************
 **
-** Function         BTA_DmGetLocalDiRecord
-**
-** Description      Get a specified DI record to the local SDP database. If no
-**                  record handle is provided, the primary DI record will be
-**                  returned.
-**
-** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
-**
-*******************************************************************************/
-extern tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
-                                           UINT32 *p_handle );
-
-/*******************************************************************************
-**
-** Function         BTA_DmDiDiscover
-**
-** Description      This function queries a remote device for DI information.
-**
-** Returns          None.
-**
-*******************************************************************************/
-extern void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *p_db,
-                              UINT32 len, tBTA_DM_SEARCH_CBACK *p_cback );
-
-/*******************************************************************************
-**
-** Function         BTA_DmGetDiRecord
-**
-** Description      This function retrieves a remote device's DI record from
-**                  the specified database.
-**
-** Returns          None.
-**
-*******************************************************************************/
-extern tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GET_RECORD *p_device_info,
-                                      tBTA_DISCOVERY_DB *p_db );
-
-/*******************************************************************************
-**
 **
 ** Function         BTA_DmCloseACL
 **
@@ -1942,17 +1682,6 @@ extern tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GET_RECORD
 **
 *******************************************************************************/
 extern void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transport);
-
-/*******************************************************************************
-**
-** Function         BTA_SysFeatures
-**
-** Description      This function is called to set system features.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_SysFeatures (UINT16 sys_features);
 
 /*******************************************************************************
 **
@@ -2253,18 +1982,6 @@ extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 
 
 #endif
-
-// btla-specific ++
-/*******************************************************************************
-**
-** Function         BTA_DmSetAfhChannelAssessment
-**
-** Description      This function is called to set the channel assessment mode on or off
-**
-** Returns          status
-**
-*******************************************************************************/
-extern void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable);
 
 #if BLE_INCLUDED == TRUE
 // btla-specific --

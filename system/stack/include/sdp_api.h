@@ -627,21 +627,6 @@ extern UINT16 SDP_SetLocalDiRecord (tSDP_DI_RECORD *device_info,
 
 /*******************************************************************************
 **
-** Function         SDP_GetLocalDiRecord
-**
-** Description      This function adds a DI record to the local SDP database.
-**
-**                  Fills in the device information of the record
-**                  p_handle - if p_handle == NULL, the primary record is returned
-**
-** Returns          Returns SDP_SUCCESS if record exists, else error
-**
-*******************************************************************************/
-extern UINT16 SDP_GetLocalDiRecord(tSDP_DI_GET_RECORD *p_device_info,
-                                   UINT32 *p_handle );
-
-/*******************************************************************************
-**
 ** Function         SDP_DiDiscover
 **
 ** Description      This function queries a remote device for DI information.

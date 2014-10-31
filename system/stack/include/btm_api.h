@@ -2648,20 +2648,6 @@ extern tBTM_STATUS BTM_ReadInquiryRspTxPower (tBTM_CMPL_CB *p_cb);
 
 /*******************************************************************************
 **
-** Function         BTM_WriteInquiryTxPower
-**
-** Description      This command is used to write the inquiry transmit power level
-**                  used to transmit the inquiry (ID) data packets. The Controller
-**                  should use the supported TX power level closest to the Tx_Power
-**                  parameter.
-**
-** Returns          BTM_SUCCESS if successful
-**
-*******************************************************************************/
-extern tBTM_STATUS  BTM_WriteInquiryTxPower (INT8 tx_power);
-
-/*******************************************************************************
-**
 ** Function         BTM_StartDiscovery
 **
 ** Description      This function is called by an application (or profile)

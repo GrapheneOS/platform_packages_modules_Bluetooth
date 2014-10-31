@@ -70,9 +70,6 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
                                         tBTA_SERVICE_MASK *p_services_found);
 
-static void bta_dm_rssi_cback (tBTM_RSSI_RESULTS *p_result);
-static void bta_dm_signal_strength_timer_cback (TIMER_LIST_ENT *p_tle);
-static void bta_dm_link_quality_cback (tBTM_LINK_QUALITY_RESULTS *p_result);
 static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle);
 static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle);
 static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle);
@@ -581,61 +578,6 @@ void bta_dm_set_visibility (tBTA_DM_MSG *p_data)
 
 }
 
-
-/*******************************************************************************
-**
-** Function         bta_dm_set_afhchannels
-**
-** Description      This function sets the AFH first and
-**                  last disable channel, so channels within
-**                  that range are disabled.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data)
-{
-    BTM_SetAfhChannels(p_data->set_afhchannels.first,p_data->set_afhchannels.last);
-
-}
-
-
-/*******************************************************************************
-**
-** Function         bta_dm_vendor_spec_command
-**
-** Description      Send a vendor specific command to the controller
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_vendor_spec_command (tBTA_DM_MSG *p_data)
-{
-    BTM_VendorSpecificCommand(p_data->vendor_command.opcode,p_data->vendor_command.param_len,p_data->vendor_command.p_param_buf, p_data->vendor_command.p_cback);
-}
-
-
-/*******************************************************************************
-**
-** Function         bta_dm_tx_inqpower
-**
-** Description      write inquiry tx power.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data)
-{
-    if (BTM_WriteInquiryTxPower (p_data->tx_inq_pwr.tx_power) == BTM_ILLEGAL_VALUE)
-    {
-        APPL_TRACE_ERROR("Invalid Inquiry Tx Power: %d", p_data->tx_inq_pwr.tx_power);
-    }
-    return;
-}
-
 /*******************************************************************************
 **
 ** Function         bta_dm_remove_device
@@ -925,46 +867,6 @@ void bta_dm_pin_reply (tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_dm_link_policy
-**
-** Description      remove/set link policy mask.
-**                  wake the link, is sniff/park is removed
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_link_policy (tBTA_DM_MSG *p_data)
-{
-    tBTA_DM_PEER_DEVICE *p_dev;
-
-    p_dev = bta_dm_find_peer_device(p_data->link_policy.bd_addr);
-    if(!p_dev)
-        return;
-
-    APPL_TRACE_DEBUG(" bta_dm_link_policy set:%d, policy:0x%x",
-        p_data->link_policy.set, p_data->link_policy.policy_mask);
-    if(p_data->link_policy.set)
-    {
-        /* restore the default link policy */
-        p_dev->link_policy |= p_data->link_policy.policy_mask;
-        BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
-    }
-    else
-    {
-        /* clear the policy from the default link policy */
-        p_dev->link_policy &= (~p_data->link_policy.policy_mask);
-        BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
-
-        if(p_data->link_policy.policy_mask & (HCI_ENABLE_SNIFF_MODE | HCI_ENABLE_PARK_MODE))
-        {
-            /* if clearing sniff/park, wake the link */
-            bta_dm_pm_active(p_dev->peer_bdaddr);
-        }
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         bta_dm_policy_cback
 **
 ** Description      process the link policy changes
@@ -1027,56 +929,6 @@ static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app
     }
 }
 
-
-/*******************************************************************************
-**
-** Function         bta_dm_auth_reply
-**
-** Description      Send the authorization reply to a request from BTM
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_auth_reply (tBTA_DM_MSG *p_data)
-{
-
-    UINT32  trusted_mask[BTM_SEC_SERVICE_ARRAY_SIZE];
-    UINT8   btm_mask_index = 0;
-    UINT32  * current_trusted_mask;
-
-    current_trusted_mask = BTM_ReadTrustedMask(p_data->auth_reply.bd_addr);
-
-    if(current_trusted_mask)
-    {
-        memcpy(trusted_mask, current_trusted_mask, sizeof(trusted_mask));
-    }
-    else
-    {
-        memset(trusted_mask, 0, sizeof(trusted_mask));
-    }
-
-    if(p_data->auth_reply.response != BTA_DM_NOT_AUTH)
-    {
-        if(p_data->auth_reply.response == BTA_DM_AUTH_PERM)
-        {
-            if(p_data->auth_reply.service < BTA_MAX_SERVICE_ID)
-            {
-                /* convert BTA service id to BTM mask */
-                btm_mask_index =  bta_service_id_to_btm_srv_id_lkup_tbl[p_data->auth_reply.service] / 32;
-                trusted_mask[btm_mask_index] |= (UINT32)(1 << (bta_service_id_to_btm_srv_id_lkup_tbl[p_data->auth_reply.service] - (UINT32)(btm_mask_index * 32)));
-
-            }
-        }
-        BTM_DeviceAuthorized (p_data->auth_reply.bd_addr, BTM_SUCCESS,trusted_mask);
-    }
-    else
-    {
-        BTM_DeviceAuthorized (p_data->auth_reply.bd_addr, BTM_NOT_AUTHORIZED,trusted_mask);
-    }
-
-}
-
 /*******************************************************************************
 **
 ** Function         bta_dm_confirm
@@ -1095,22 +947,6 @@ void bta_dm_confirm(tBTA_DM_MSG *p_data)
         res = BTM_SUCCESS;
     BTM_ConfirmReqReply(res, p_data->confirm.bd_addr);
 }
-
-/*******************************************************************************
-**
-** Function         bta_dm_passkey_cancel
-**
-** Description      Send the passkey cancel from SP initiator by sending a negative
-**                  passkey request replyreply.
-** Returns          void
-**
-*******************************************************************************/
-#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
-void bta_dm_passkey_cancel(tBTA_DM_MSG *p_data)
-{
-    BTM_PasskeyReqReply(BTM_NOT_AUTHORIZED, p_data->passkey_cancel.bd_addr, 0);
-}
-#endif
 
 /*******************************************************************************
 **
@@ -3185,71 +3021,6 @@ static void bta_dm_local_name_cback(UINT8 *p_name)
 
 /*******************************************************************************
 **
-** Function         bta_dm_signal_strength
-**
-** Description      Callback from btm after local bdaddr is read
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_signal_strength(tBTA_DM_MSG *p_data)
-{
-
-    if(p_data->sig_strength.start)
-    {
-        bta_dm_cb.signal_strength_mask = p_data->sig_strength.mask;
-        bta_dm_cb.signal_strength_period = p_data->sig_strength.period;
-        bta_dm_signal_strength_timer_cback(NULL);
-    }
-    else
-    {
-        bta_sys_stop_timer(&bta_dm_cb.signal_strength_timer);
-    }
-
-}
-/*******************************************************************************
-**
-** Function         bta_dm_signal_strength_timer_cback
-**
-** Description      Periodic timer callback to read signal strength
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_dm_signal_strength_timer_cback (TIMER_LIST_ENT *p_tle)
-{
-    UNUSED(p_tle);
-    UINT8 i;
-
-    if(bta_dm_cb.signal_strength_mask & BTA_SIG_STRENGTH_RSSI_MASK)
-    {
-        for(i=0; i<bta_dm_cb.device_list.count; i++)
-        {
-            BTM_ReadRSSI (bta_dm_cb.device_list.peer_device[i].peer_bdaddr, (tBTM_CMPL_CB *)bta_dm_rssi_cback);
-
-        }
-    }
-    if(bta_dm_cb.signal_strength_mask & BTA_SIG_STRENGTH_LINK_QUALITY_MASK)
-    {
-
-        for(i=0; i<bta_dm_cb.device_list.count; i++)
-        {
-            BTM_ReadLinkQuality (bta_dm_cb.device_list.peer_device[i].peer_bdaddr, (tBTM_CMPL_CB *)bta_dm_link_quality_cback);
-        }
-
-    }
-
-    if(bta_dm_cb.signal_strength_period)
-    {
-        bta_dm_cb.signal_strength_timer.p_cback = (TIMER_CBACK*)&bta_dm_signal_strength_timer_cback;
-        bta_sys_start_timer(&bta_dm_cb.signal_strength_timer, 0, (UINT32)1000*bta_dm_cb.signal_strength_period);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         bta_dm_bl_change_cback
 **
 ** Description      Callback from btm when acl connection goes up or down
@@ -3632,59 +3403,6 @@ static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle)
 
 /*******************************************************************************
 **
-** Function         bta_dm_rssi_cback
-**
-** Description      Callback from btm with rssi values
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_dm_rssi_cback (tBTM_RSSI_RESULTS *p_result)
-{
-    tBTA_DM_SEC sec_event;
-
-    if(p_result->status == BTM_SUCCESS)
-    {
-
-        bdcpy(sec_event.sig_strength.bd_addr, p_result->rem_bda);
-        sec_event.sig_strength.mask = BTA_SIG_STRENGTH_RSSI_MASK;
-        sec_event.sig_strength.rssi_value = p_result->rssi;
-        if( bta_dm_cb.p_sec_cback!= NULL )
-            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, &sec_event);
-
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_dm_link_quality_cback
-**
-** Description      Callback from btm with link quality value
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_dm_link_quality_cback (tBTM_LINK_QUALITY_RESULTS *p_result)
-{
-
-    tBTA_DM_SEC sec_event;
-
-    if(p_result->status == BTM_SUCCESS)
-    {
-
-        bdcpy(sec_event.sig_strength.bd_addr, p_result->rem_bda);
-        sec_event.sig_strength.mask = BTA_SIG_STRENGTH_LINK_QUALITY_MASK;
-        sec_event.sig_strength.link_quality_value = p_result->link_quality;
-        if( bta_dm_cb.p_sec_cback!= NULL )
-            bta_dm_cb.p_sec_cback(BTA_DM_SIG_STRENGTH_EVT, &sec_event);
-
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         bta_dm_rm_cback
 **
 ** Description      Role management callback from sys
@@ -3997,99 +3715,6 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
     {
         bta_dm_cb.p_sec_cback(BTA_DM_BOND_CANCEL_CMPL_EVT, &sec_event);
     }
-}
-
-    #if ( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-/*******************************************************************************
-**
-** Function         bta_dm_update_eir_uuid
-**
-** Description
-**
-**
-*******************************************************************************/
-void bta_dm_update_eir_uuid (tBTA_DM_MSG *p_data)
-{
-    tBTA_DM_API_UPDATE_EIR_UUID *p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *)p_data;
-    UINT8 xx;
-    UINT8 empty_slot = BTA_EIR_SERVER_NUM_CUSTOM_UUID;
-    UINT8 match_slot = BTA_EIR_SERVER_NUM_CUSTOM_UUID;
-
-    for (xx = 0; xx < BTA_EIR_SERVER_NUM_CUSTOM_UUID; xx++)
-    {
-        if (bta_dm_cb.custom_uuid[xx].len == 0)
-        {
-            if (empty_slot == BTA_EIR_SERVER_NUM_CUSTOM_UUID)
-                empty_slot = xx;
-        }
-        else if (match_slot == BTA_EIR_SERVER_NUM_CUSTOM_UUID)
-        {
-            if (!memcmp (bta_dm_cb.custom_uuid[xx].uu.uuid128, p_msg->uuid.uu.uuid128, p_msg->uuid.len))
-            {
-                match_slot = xx;;
-            }
-        }
-    }
-
-    if (p_msg->is_add)
-    {
-        if (match_slot == BTA_EIR_SERVER_NUM_CUSTOM_UUID)
-        {
-            if (empty_slot == BTA_EIR_SERVER_NUM_CUSTOM_UUID)
-            {
-                APPL_TRACE_ERROR("No space to add UUID for EIR");
-                return;
-            }
-            else
-            {
-                memcpy (&(bta_dm_cb.custom_uuid[empty_slot]), &(p_msg->uuid), sizeof(tBT_UUID));
-            }
-        }
-        else
-        {
-            APPL_TRACE_ERROR("UUID is already added for EIR");
-            return;
-        }
-    }
-    else
-    {
-        if (match_slot == BTA_EIR_SERVER_NUM_CUSTOM_UUID)
-        {
-            APPL_TRACE_ERROR("UUID is not found for EIR");
-            return;
-        }
-        else
-        {
-            memset (&(bta_dm_cb.custom_uuid[match_slot]), 0, sizeof(tBT_UUID));
-        }
-    }
-
-    bta_dm_set_eir (NULL);
-}
-    #endif  // BTA_EIR_CANNED_UUID_LIST
-
-/*******************************************************************************
-**
-** Function         bta_dm_set_eir_config
-**
-** Description
-**
-**
-*******************************************************************************/
-void bta_dm_set_eir_config (tBTA_DM_MSG *p_data)
-{
-    if (p_data->set_eir_cfg.p_eir_cfg)
-    {
-        /* User defined config */
-        p_bta_dm_eir_cfg = p_data->set_eir_cfg.p_eir_cfg;
-    }
-    else
-    {
-        /* Back to default config */
-        p_bta_dm_eir_cfg = (tBTA_DM_EIR_CONF*)&bta_dm_eir_cfg;
-    }
-
-    bta_dm_set_eir (NULL);
 }
 
 /*******************************************************************************
@@ -4648,38 +4273,6 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
     {
         APPL_TRACE_ERROR(" %s Device not found/not connected", __FUNCTION__);
     }
-}
-
-/*******************************************************************************
-**
-** Function         bta_dm_set_afh_channels
-**
-** Description      set afh channels
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_dm_set_afh_channels(tBTA_DM_MSG * p_data)
-{
-
-    BTM_SetAfhChannels(p_data->set_afhchannels.first,p_data->set_afhchannels.last);
-}
-
-/*******************************************************************************
-**
-** Function         bta_dm_set_afh_channel_assesment
-**
-** Description      set afh channel assesment
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-
-void bta_dm_set_afh_channel_assesment (tBTA_DM_MSG * p_data)
-{
-    BTM_SetAfhChannelAssessment(p_data->set_afh_channel_assessment.enable_or_disable);
 }
 
 #if (BLE_INCLUDED == TRUE)

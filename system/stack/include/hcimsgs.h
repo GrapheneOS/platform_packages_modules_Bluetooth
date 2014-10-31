@@ -459,12 +459,6 @@ extern BOOLEAN btsnd_hcic_read_inq_tx_power (void);
 
 #define HCIC_PARAM_SIZE_R_TX_POWER      0
 
-                                                            /* Write Tx Power Level */
-extern BOOLEAN btsnd_hcic_write_inq_tx_power (INT8 level);
-
-#define HCIC_PARAM_SIZE_W_TX_POWER      1
-
-#define HCIC_WRITE_TX_POWER_LEVEL_OFF   0
                                                             /* Read Default Erroneous Data Reporting */
 extern BOOLEAN btsnd_hcic_read_default_erroneous_data_rpt (void);
 
