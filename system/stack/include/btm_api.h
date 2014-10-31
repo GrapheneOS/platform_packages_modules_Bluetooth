@@ -2633,16 +2633,6 @@ extern tBTM_INQ_INFO *BTM_InqDbNext (tBTM_INQ_INFO *p_cur);
 *******************************************************************************/
 extern tBTM_STATUS  BTM_ClearInqDb (BD_ADDR p_bda);
 
-
-/*******************************************************************************
-**
-** Function         BTM_ReadNumInqDbEntries
-**
-** Returns          This function returns the number of entries in the inquiry database.
-**
-*******************************************************************************/
-extern UINT8 BTM_ReadNumInqDbEntries (void);
-
 /*******************************************************************************
 **
 ** Function         BTM_ReadInquiryRspTxPower

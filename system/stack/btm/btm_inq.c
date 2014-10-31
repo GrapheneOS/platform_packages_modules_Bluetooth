@@ -1229,29 +1229,6 @@ tBTM_STATUS BTM_ClearInqDb (BD_ADDR p_bda)
     return (BTM_SUCCESS);
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_ReadNumInqDbEntries
-**
-** Returns          This function returns the number of entries in the inquiry database.
-**
-*******************************************************************************/
-UINT8 BTM_ReadNumInqDbEntries (void)
-{
-    UINT8         num_entries;
-    UINT8         num_results;
-    tINQ_DB_ENT  *p_ent = btm_cb.btm_inq_vars.inq_db;
-
-    for (num_entries = 0, num_results = 0; num_entries < BTM_INQ_DB_SIZE; num_entries++, p_ent++)
-    {
-        if (p_ent->in_use)
-            num_results++;
-    }
-
-    return (num_results);
-}
-
 /*******************************************************************************
 **
 ** Function         BTM_ReadInquiryRspTxPower
