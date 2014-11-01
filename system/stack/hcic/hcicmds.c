@@ -1031,63 +1031,6 @@ BOOLEAN btsnd_hcic_write_pin_type (UINT8 type)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_read_stored_key (BD_ADDR bd_addr, BOOLEAN read_all_flag)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_READ_STORED_KEY)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_READ_STORED_KEY;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_STORED_LINK_KEY);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_READ_STORED_KEY);
-
-    BDADDR_TO_STREAM (pp, bd_addr);
-    UINT8_TO_STREAM  (pp, read_all_flag);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
-BOOLEAN btsnd_hcic_write_stored_key (UINT8 num_keys, BD_ADDR *bd_addr,
-                                     LINK_KEY *link_key)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-    int j;
-
-    if ((p = HCI_GET_CMD_BUF(1 + (num_keys * (BD_ADDR_LEN + LINK_KEY_LEN)))) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-
-    p->len    = HCIC_PREAMBLE_SIZE + 1 + (num_keys * (BD_ADDR_LEN + LINK_KEY_LEN));
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_WRITE_STORED_LINK_KEY);
-    UINT8_TO_STREAM  (pp, p->len - HCIC_PREAMBLE_SIZE);
-
-    if(num_keys > HCI_MAX_NUM_OF_LINK_KEYS_PER_CMMD)
-        num_keys = HCI_MAX_NUM_OF_LINK_KEYS_PER_CMMD;
-
-    UINT8_TO_STREAM (pp, num_keys);
-
-    for (j = 0; j < num_keys; j++)
-    {
-        BDADDR_TO_STREAM  (pp, bd_addr[j]);
-        ARRAY16_TO_STREAM (pp, link_key[j]);
-    }
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_delete_stored_key (BD_ADDR bd_addr, BOOLEAN delete_all_flag)
 {
     BT_HDR *p;

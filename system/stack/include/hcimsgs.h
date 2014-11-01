@@ -495,30 +495,6 @@ extern BOOLEAN btsnd_hcic_set_event_filter(UINT8 filt_type,
 #define HCI_FILT_COND_FILT_OFF          2
                                                                     /* Set Event Filter */
 
-                                                                /* Read Stored Key */
-extern BOOLEAN btsnd_hcic_read_stored_key (BD_ADDR bd_addr,
-                                           BOOLEAN read_all_flag);
-
-#define HCIC_PARAM_SIZE_READ_STORED_KEY 7
-
-#define HCI_READ_KEY_BD_ADDR_OFF        0
-#define HCI_READ_KEY_ALL_FLAG_OFF       6
-                                                                /* Read Stored Key */
-
-#define MAX_WRITE_KEYS 10
-                                                                /* Write Stored Key */
-extern BOOLEAN btsnd_hcic_write_stored_key (UINT8 num_keys, BD_ADDR *bd_addr,
-                                            LINK_KEY *link_key);
-
-#define HCIC_PARAM_SIZE_WRITE_STORED_KEY  sizeof(btmsg_hcic_write_stored_key_t)
-
-#define HCI_WRITE_KEY_NUM_KEYS_OFF          0
-#define HCI_WRITE_KEY_BD_ADDR_OFF           1
-#define HCI_WRITE_KEY_KEY_OFF               7
-/* only 0x0b keys cab be sent in one HCI command */
-#define HCI_MAX_NUM_OF_LINK_KEYS_PER_CMMD   0x0b
-                                                                /* Write Stored Key */
-
                                                                 /* Delete Stored Key */
 extern BOOLEAN btsnd_hcic_delete_stored_key (BD_ADDR bd_addr, BOOLEAN delete_all_flag);
 

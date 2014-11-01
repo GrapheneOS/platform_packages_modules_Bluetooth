@@ -91,7 +91,6 @@ static void btu_hcif_flush_occured_evt (void);
 static void btu_hcif_role_change_evt (UINT8 *p);
 static void btu_hcif_num_compl_data_pkts_evt (UINT8 *p);
 static void btu_hcif_mode_change_evt (UINT8 *p);
-static void btu_hcif_return_link_keys_evt (UINT8 *p);
 static void btu_hcif_pin_code_request_evt (UINT8 *p);
 static void btu_hcif_link_key_request_evt (UINT8 *p);
 static void btu_hcif_link_key_notification_evt (UINT8 *p);
@@ -235,9 +234,6 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             break;
         case HCI_MODE_CHANGE_EVT:
             btu_hcif_mode_change_evt (p);
-            break;
-        case HCI_RETURN_LINK_KEYS_EVT:
-            btu_hcif_return_link_keys_evt (p);
             break;
         case HCI_PIN_CODE_REQUEST_EVT:
             btu_hcif_pin_code_request_evt (p);
@@ -870,14 +866,6 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_event_filter_complete (p);
             break;
 
-        case HCI_READ_STORED_LINK_KEY:
-            btm_read_stored_link_key_complete (p);
-            break;
-
-        case HCI_WRITE_STORED_LINK_KEY:
-            btm_write_stored_link_key_complete (p);
-            break;
-
         case HCI_DELETE_STORED_LINK_KEY:
             btm_delete_stored_link_key_complete (p);
             break;
@@ -1328,38 +1316,6 @@ static void btu_hcif_ssr_evt (UINT8 *p, UINT16 evt_len)
     btm_pm_proc_ssr_evt(p, evt_len);
 }
     #endif
-
-
-/*******************************************************************************
-**
-** Function         btu_hcif_return_link_keys_evt
-**
-** Description      Process event HCI_RETURN_LINK_KEYS_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-
-static void btu_hcif_return_link_keys_evt (UINT8 *p)
-{
-    UINT8                       num_keys;
-    tBTM_RETURN_LINK_KEYS_EVT   *result;
-
-    /* get the number of link keys */
-    num_keys = *p;
-
-    /* If there are no link keys don't call the call back */
-    if (!num_keys)
-        return;
-
-    /* Take one extra byte at the beginning to specify event */
-    result = (tBTM_RETURN_LINK_KEYS_EVT *)(--p);
-    result->event = BTM_CB_EVT_RETURN_LINK_KEYS;
-
-    /* Call the BTM function to pass the link keys to application */
-    btm_return_link_keys_evt (result);
-}
-
 
 /*******************************************************************************
 **

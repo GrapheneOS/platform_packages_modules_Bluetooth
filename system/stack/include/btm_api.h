@@ -1814,52 +1814,7 @@ typedef void (tBTM_PM_STATUS_CBACK) (BD_ADDR p_bda, tBTM_PM_STATUS status,
 /************************
 **  Stored Linkkey Types
 *************************/
-#define BTM_CB_EVT_RETURN_LINK_KEYS         1
-#define BTM_CB_EVT_READ_STORED_LINK_KEYS    2
-#define BTM_CB_EVT_WRITE_STORED_LINK_KEYS   3
 #define BTM_CB_EVT_DELETE_STORED_LINK_KEYS  4
-
-typedef struct
-{
-    UINT8          event;
-
-} tBTM_STORED_LINK_KEYS_EVT;
-
-
-typedef struct
-{
-    UINT8          event;
-    UINT8          num_keys;
-
-} tBTM_RETURN_LINK_KEYS_EVT;
-
-
-typedef struct
-{
-    BD_ADDR         bd_addr;
-    LINK_KEY        link_key;
-
-} tBTM_BD_ADDR_LINK_KEY_PAIR;
-
-
-typedef struct
-{
-    UINT8          event;
-    UINT8          status;
-    UINT16         max_keys;
-    UINT16         read_keys;
-
-} tBTM_READ_STORED_LINK_KEY_COMPLETE;
-
-
-typedef struct
-{
-    UINT8          event;
-    UINT8          status;
-    UINT8          num_keys;
-
-} tBTM_WRITE_STORED_LINK_KEY_COMPLETE;
-
 
 typedef struct
 {
@@ -3839,44 +3794,6 @@ extern tBTM_STATUS BTM_SetSsrParams (BD_ADDR remote_bda, UINT16 max_lat,
 **
 *******************************************************************************/
 extern UINT16 BTM_GetHCIConnHandle (BD_ADDR remote_bda, tBT_TRANSPORT transport);
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadStoredLinkKey
-**
-** Description      This function is called to obtain link key for the specified
-**                  device from the NVRAM storage attached to the Bluetooth
-**                  controller.
-**
-** Parameters:      bd_addr      - Address of the device
-**                  p_cb         - Call back function to be called to return
-**                                 the results
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ReadStoredLinkKey (BD_ADDR bd_addr,  tBTM_CMPL_CB *p_cb);
-
-
-/*******************************************************************************
-**
-** Function         BTM_WriteStoredLinkKey
-**
-** Description      This function is called to write link keys for the specified
-**                  device addresses to the NVRAM storage attached to the Bluetooth
-**                  controller.
-**
-** Parameters:      num_keys     - Number of link keys
-**                  bd_addr      - Addresses of the devices
-**                  link_key     - Link Keys to be stored
-**                  p_cb         - Call back function to be called to return
-**                                 the results
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_WriteStoredLinkKey (UINT8 num_keys,
-                                           BD_ADDR *bd_addr,
-                                           LINK_KEY *link_key,
-                                           tBTM_CMPL_CB *p_cb);
-
 
 /*******************************************************************************
 **
