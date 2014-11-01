@@ -24,8 +24,6 @@
 #ifndef BTA_SYS_INT_H
 #define BTA_SYS_INT_H
 
-#include "ptim.h"
-
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -58,8 +56,6 @@ typedef struct
 {
     tBTA_SYS_REG            *reg[BTA_ID_MAX];       /* registration structures */
     BOOLEAN                 is_reg[BTA_ID_MAX];     /* registration structures */
-    tPTIM_CB                ptim_cb;                /* protocol timer list */
-    BOOLEAN                 timers_disabled;        /* TRUE if sys timers disabled */
     UINT8                   task_id;                /* GKI task id */
     tBTA_SYS_HW_STATE state;
     tBTA_SYS_HW_CBACK *sys_hw_cback[BTA_SYS_MAX_HW_MODULES];    /* enable callback for each HW modules */

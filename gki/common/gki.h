@@ -166,20 +166,14 @@ UINT16  GKI_get_pool_bufsize (UINT8);
 
 /* Timer management
 */
-void    GKI_add_to_timer_list (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 void    GKI_delay(UINT32);
 UINT32  GKI_get_tick_count(void);
-void    GKI_init_timer_list (TIMER_LIST_Q *);
 INT32   GKI_ready_to_sleep (void);
-BOOLEAN    GKI_remove_from_timer_list (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 void    GKI_start_timer(UINT8, INT32, BOOLEAN);
 void    GKI_stop_timer (UINT8);
 void    GKI_timer_update(INT32);
-UINT16  GKI_update_timer_list (TIMER_LIST_Q *, INT32);
 UINT32  GKI_get_remaining_ticks (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 UINT16  GKI_wait(UINT16, UINT32);
-BOOLEAN GKI_timer_queue_is_empty(const TIMER_LIST_Q *timer_q);
-TIMER_LIST_ENT *GKI_timer_getfirst(const TIMER_LIST_Q *timer_q);
 extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
 
 /* Disable Interrupts, Enable Interrupts

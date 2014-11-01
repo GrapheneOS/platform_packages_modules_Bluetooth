@@ -36,7 +36,6 @@
 #include "gki.h"
 #include "hash_functions.h"
 #include "hash_map.h"
-#include "ptim.h"
 #include "osi.h"
 #include "thread.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
@@ -175,8 +174,6 @@ const tBTA_SYS_ST_TBL bta_sys_st_tbl[] = {
 void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
-
-    ptim_init(&bta_sys_cb.ptim_cb, BTA_SYS_TIMER_PERIOD, BTA_TIMER);
 
     pthread_mutex_init(&bta_alarm_lock, NULL);
 
@@ -539,23 +536,6 @@ void bta_sys_event(BT_HDR *p_msg)
 
 /*******************************************************************************
 **
-** Function         bta_sys_timer_update
-**
-** Description      Update the BTA timer list and handle expired timers.
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_sys_timer_update(void)
-{
-    if (!bta_sys_cb.timers_disabled)
-    {
-        ptim_timer_update(&bta_sys_cb.ptim_cb);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         bta_sys_register
 **
 ** Description      Called by other BTA subsystems to register their event
@@ -718,20 +698,6 @@ void bta_sys_disable(tBTA_SYS_HW_MODULE module)
             }
         }
     }
-}
-
-/*******************************************************************************
-**
-** Function         bta_sys_disable_timers
-**
-** Description      Disable sys timer event handling
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_sys_disable_timers(void)
-{
-    bta_sys_cb.timers_disabled = TRUE;
 }
 
 /*******************************************************************************
