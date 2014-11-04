@@ -40,7 +40,7 @@ static pthread_t watchdog_thread;
 static int watchdog_id;
 static bool watchdog_running;
 
-void *watchdog_fn(void *arg) {
+static void *watchdog_fn(void *arg) {
   int current_id = 0;
   for (;;) {
     // Check every second whether this thread should exit and check
@@ -61,9 +61,54 @@ void *watchdog_fn(void *arg) {
   return NULL;
 }
 
+static void print_usage(const char *program_name) {
+  printf("Usage: %s <bdaddr> [test name]\n", program_name);
+  printf("Valid test names are:\n");
+  for (size_t i = 0; i < sanity_suite_size; ++i) {
+    printf("%s\n", sanity_suite[i].function_name);
+  }
+  for (size_t i = 0; i < test_suite_size; ++i) {
+    printf("%s\n", test_suite[i].function_name);
+  }
+}
+
+static bool is_valid(const char *test_name) {
+  for (size_t i = 0; i < sanity_suite_size; ++i) {
+    if (!strcmp(test_name, sanity_suite[i].function_name)) {
+      return true;
+    }
+  }
+  for (size_t i = 0; i < test_suite_size; ++i) {
+    if (!strcmp(test_name, test_suite[i].function_name)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 int main(int argc, char **argv) {
-  if (argc < 2 || !string_to_bdaddr(argv[1], &bt_remote_bdaddr)) {
-    printf("Usage: %s <bdaddr>\n", argv[0]);
+  if (argc < 2) {
+    printf("Error: too few arguments.\n");
+    print_usage(argv[0]);
+    return -1;
+  }
+
+  if (argc > 3) {
+    printf("Error: too many arguments.\n");
+    print_usage(argv[0]);
+    return -1;
+  }
+
+  if (!string_to_bdaddr(argv[1], &bt_remote_bdaddr)) {
+    printf("Error: invalid bluetooth address.\n");
+    print_usage(argv[0]);
+    return -1;
+  }
+
+  const char *test_name = (argc == 3) ? argv[2] : NULL;
+  if (test_name && !is_valid(test_name)) {
+    printf("Error: invalid test name.\n");
+    print_usage(argv[0]);
     return -1;
   }
 
@@ -98,18 +143,21 @@ int main(int argc, char **argv) {
   int fail = 0;
   int case_num = 0;
 
-  // Run through the sanity suite.
+  // If test name is specified, run that specific test.
+  // Otherwise run through the sanity suite.
   for (size_t i = 0; i < sanity_suite_size; ++i) {
-    callbacks_init();
-    if (sanity_suite[i].function()) {
-      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
-      ++pass;
-    } else {
-      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
-      ++fail;
+    if (!test_name || !strcmp(test_name, sanity_suite[i].function_name)) {
+      callbacks_init();
+      if (sanity_suite[i].function()) {
+        printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
+        ++pass;
+      } else {
+        printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
+        ++fail;
+      }
+      callbacks_cleanup();
+      ++watchdog_id;
     }
-    callbacks_cleanup();
-    ++watchdog_id;
   }
 
   // If there was a failure in the sanity suite, don't bother running the rest of the tests.
@@ -119,20 +167,23 @@ int main(int argc, char **argv) {
     return 4;
   }
 
-  // Run the full test suite.
+  // If test name is specified, run that specific test.
+  // Otherwise run through the full test suite.
   for (size_t i = 0; i < test_suite_size; ++i) {
-    callbacks_init();
-    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
-    if (test_suite[i].function()) {
-      printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, DEFAULT);
-      ++pass;
-    } else {
-      printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, DEFAULT);
-      ++fail;
+    if (!test_name || !strcmp(test_name, test_suite[i].function_name)) {
+      callbacks_init();
+      CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+      if (test_suite[i].function()) {
+        printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, DEFAULT);
+        ++pass;
+      } else {
+        printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, DEFAULT);
+        ++fail;
+      }
+      CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
+      callbacks_cleanup();
+      ++watchdog_id;
     }
-    CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
-    callbacks_cleanup();
-    ++watchdog_id;
   }
 
   printf("\n");
