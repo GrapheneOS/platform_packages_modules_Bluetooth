@@ -49,6 +49,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/..
 
 LOCAL_SRC_FILES := \
+    ./test/bdaddr_test.cpp \
     ./test/counter_test.cpp \
     ../osi/test/AllocationTestHarness.cpp
 

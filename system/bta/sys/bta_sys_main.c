@@ -34,9 +34,9 @@
 
 #include "fixed_queue.h"
 #include "gki.h"
-#include "hash_functions.h"
 #include "hash_map.h"
 #include "osi.h"
+#include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
 #include "thread.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)

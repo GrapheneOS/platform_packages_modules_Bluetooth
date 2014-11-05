@@ -23,10 +23,10 @@
 #include <pthread.h>
 
 #include "allocator.h"
-#include "hash_functions.h"
 #include "hash_map.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
 
 typedef enum {

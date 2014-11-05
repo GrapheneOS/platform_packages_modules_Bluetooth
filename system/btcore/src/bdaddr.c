@@ -84,3 +84,11 @@ bool string_to_bdaddr(const char *string, bt_bdaddr_t *addr) {
 
   return ret;
 }
+
+hash_index_t hash_function_bdaddr(const void *key) {
+  hash_index_t hash = 5381;
+  const char *bytes = (const char *)key;
+  for (size_t i = 0; i < sizeof(bt_bdaddr_t); ++i)
+    hash = ((hash << 5) + hash) + bytes[i];
+  return hash;
+}

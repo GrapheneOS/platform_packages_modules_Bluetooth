@@ -22,12 +22,12 @@
 
 #include "buffer_allocator.h"
 #include "device/include/controller.h"
-#include "hash_functions.h"
 #include "hash_map.h"
 #include "hci_internals.h"
 #include "hci_layer.h"
 #include "packet_fragmenter.h"
 #include "osi.h"
+#include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
 
 #define APPLY_CONTINUATION_FLAG(handle) (((handle) & 0xCFFF) | 0x1000)
