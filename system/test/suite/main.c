@@ -64,13 +64,18 @@ static void *watchdog_fn(void *arg) {
 }
 
 static void print_usage(const char *program_name) {
-  printf("Usage: %s [test name]\n", program_name);
+  printf("Usage: %s [options] [test name]\n", program_name);
+  printf("\n");
+  printf("Options:\n");
+  printf("  %-20sdisplay this help text.\n", "--help");
+  printf("  %-20sdo not run sanity suite.\n", "--insanity");
+  printf("\n");
   printf("Valid test names are:\n");
   for (size_t i = 0; i < sanity_suite_size; ++i) {
-    printf("%s\n", sanity_suite[i].function_name);
+    printf("  %s\n", sanity_suite[i].function_name);
   }
   for (size_t i = 0; i < test_suite_size; ++i) {
-    printf("%s\n", test_suite[i].function_name);
+    printf("  %s\n", test_suite[i].function_name);
   }
 }
 
@@ -89,10 +94,33 @@ static bool is_valid(const char *test_name) {
 }
 
 int main(int argc, char **argv) {
-  if (argc > 2) {
-    printf("Error: invalid arguments.\n");
-    print_usage(argv[0]);
-    return -1;
+  const char *test_name = NULL;
+  bool skip_sanity_suite = false;
+
+  for (int i = 1; i < argc; ++i) {
+    if (!strcmp("--help", argv[i])) {
+      print_usage(argv[0]);
+      return 0;
+    }
+
+    if (!strcmp("--insanity", argv[i])) {
+      skip_sanity_suite = true;
+      continue;
+    }
+
+    if (!is_valid(argv[i])) {
+      printf("Error: invalid test name.\n");
+      print_usage(argv[0]);
+      return -1;
+    }
+
+    if (test_name != NULL) {
+      printf("Error: invalid arguments.\n");
+      print_usage(argv[0]);
+      return -1;
+    }
+
+    test_name = argv[i];
   }
 
   config_t *config = config_new(CONFIG_FILE_PATH);
@@ -113,13 +141,6 @@ int main(int argc, char **argv) {
 
   if (bdaddr_is_empty(&bt_remote_bdaddr)) {
     printf("Error: unable to find paired device in config file.\n");
-    print_usage(argv[0]);
-    return -1;
-  }
-
-  const char *test_name = (argc == 3) ? argv[2] : NULL;
-  if (test_name && !is_valid(test_name)) {
-    printf("Error: invalid test name.\n");
     print_usage(argv[0]);
     return -1;
   }
@@ -157,18 +178,20 @@ int main(int argc, char **argv) {
 
   // If test name is specified, run that specific test.
   // Otherwise run through the sanity suite.
-  for (size_t i = 0; i < sanity_suite_size; ++i) {
-    if (!test_name || !strcmp(test_name, sanity_suite[i].function_name)) {
-      callbacks_init();
-      if (sanity_suite[i].function()) {
-        printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
-        ++pass;
-      } else {
-        printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
-        ++fail;
+  if (!skip_sanity_suite) {
+    for (size_t i = 0; i < sanity_suite_size; ++i) {
+      if (!test_name || !strcmp(test_name, sanity_suite[i].function_name)) {
+        callbacks_init();
+        if (sanity_suite[i].function()) {
+          printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
+          ++pass;
+        } else {
+          printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
+          ++fail;
+        }
+        callbacks_cleanup();
+        ++watchdog_id;
       }
-      callbacks_cleanup();
-      ++watchdog_id;
     }
   }
 
