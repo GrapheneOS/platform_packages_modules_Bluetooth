@@ -23,6 +23,7 @@
 #include "base.h"
 #include "btcore/include/bdaddr.h"
 #include "cases/cases.h"
+#include "osi/include/config.h"
 #include "support/callbacks.h"
 #include "support/hal.h"
 #include "support/pan.h"
@@ -32,6 +33,7 @@
 // Any individual test will have at least WATCHDOG_PERIOD_SEC and at most
 // 2 * WATCHDOG_PERIOD_SEC seconds to complete.
 static const int WATCHDOG_PERIOD_SEC = 1 * 60;
+static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 
 const bt_interface_t *bt_interface;
 bt_bdaddr_t bt_remote_bdaddr;
@@ -62,7 +64,7 @@ static void *watchdog_fn(void *arg) {
 }
 
 static void print_usage(const char *program_name) {
-  printf("Usage: %s <bdaddr> [test name]\n", program_name);
+  printf("Usage: %s [test name]\n", program_name);
   printf("Valid test names are:\n");
   for (size_t i = 0; i < sanity_suite_size; ++i) {
     printf("%s\n", sanity_suite[i].function_name);
@@ -87,20 +89,30 @@ static bool is_valid(const char *test_name) {
 }
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    printf("Error: too few arguments.\n");
+  if (argc > 2) {
+    printf("Error: invalid arguments.\n");
     print_usage(argv[0]);
     return -1;
   }
 
-  if (argc > 3) {
-    printf("Error: too many arguments.\n");
+  config_t *config = config_new(CONFIG_FILE_PATH);
+  if (!config) {
+    printf("Error: unable to open stack config file.\n");
     print_usage(argv[0]);
     return -1;
   }
 
-  if (!string_to_bdaddr(argv[1], &bt_remote_bdaddr)) {
-    printf("Error: invalid bluetooth address.\n");
+  for (const config_section_node_t *node = config_section_begin(config); node != config_section_end(config); node = config_section_next(node)) {
+    const char *name = config_section_name(node);
+    if (config_has_key(config, name, "LinkKey") && string_to_bdaddr(name, &bt_remote_bdaddr)) {
+      break;
+    }
+  }
+
+  config_free(config);
+
+  if (bdaddr_is_empty(&bt_remote_bdaddr)) {
+    printf("Error: unable to find paired device in config file.\n");
     print_usage(argv[0]);
     return -1;
   }
