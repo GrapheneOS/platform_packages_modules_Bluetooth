@@ -24,6 +24,7 @@ typedef struct {
 } command_t;
 
 static int help(int argc, char **argv);
+static int set_discoverable(int argc, char **argv);
 static int set_name(int argc, char **argv);
 static int set_pcm_loopback(int argc, char **argv);
 
@@ -33,6 +34,7 @@ static void usage(const char *name);
 
 static const command_t commands[] = {
   { "help", "<command> - shows help text for <command>.", help },
+  { "setDiscoverable", "(true|false) - whether the controller should be discoverable.", set_discoverable },
   { "setName", "<name> - sets the device's Bluetooth name to <name>.", set_name },
   { "setPcmLoopback", "(true|false) - enables or disables PCM loopback on the controller.", set_pcm_loopback },
 };
@@ -51,6 +53,24 @@ static int help(int argc, char **argv) {
 
   printf("%s %s\n", argv[0], command->help);
   return 0;
+}
+
+static int set_discoverable(int argc, char **argv) {
+  if (argc != 1) {
+    printf("Discoverable mode not specified.\n");
+    return 1;
+  }
+
+  if (strcmp(argv[0], "true") && strcmp(argv[0], "false")) {
+    printf("Invalid discoverable mode '%s'.\n", argv[0]);
+    return 2;
+  }
+
+  uint8_t packet[] = { 0x1A, 0x0C, 0x01, 0x00 };
+  if (argv[0][0] == 't')
+    packet[ARRAY_SIZE(packet) - 1] = 0x03;
+
+  return !write_hci_command(HCI_PACKET_COMMAND, packet, ARRAY_SIZE(packet));
 }
 
 static int set_name(int argc, char **argv) {
