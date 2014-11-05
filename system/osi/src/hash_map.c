@@ -36,22 +36,25 @@ typedef struct hash_map_t {
   key_free_fn key_fn;
   data_free_fn data_fn;
   const allocator_t *allocator;
+  key_equality_fn keys_are_equal;
 } hash_map_t;
 
 // Hidden constructor for list, only to be used by us.
 list_t *list_new_internal(list_free_cb callback, const allocator_t *zeroed_allocator);
 
 static void bucket_free_(void *data);
+static bool default_key_equality(const void *x, const void *y);
 static hash_map_entry_t *find_bucket_entry_(list_t *hash_bucket_list,
     const void *key);
 
 // Hidden constructor, only to be used by the allocation tracker. Behaves the same as
 // |hash_map_new|, except you get to specify the allocator.
-hash_map_t * hash_map_new_internal(
+hash_map_t *hash_map_new_internal(
     size_t num_bucket,
     hash_index_fn hash_fn,
     key_free_fn key_fn,
     data_free_fn data_fn,
+    key_equality_fn equality_fn,
     const allocator_t *zeroed_allocator) {
   assert(hash_fn != NULL);
   assert(num_bucket > 0);
@@ -65,6 +68,7 @@ hash_map_t * hash_map_new_internal(
   hash_map->key_fn = key_fn;
   hash_map->data_fn = data_fn;
   hash_map->allocator = zeroed_allocator;
+  hash_map->keys_are_equal = equality_fn ? equality_fn : default_key_equality;
 
   hash_map->num_bucket = num_bucket;
   hash_map->bucket = zeroed_allocator->alloc(sizeof(hash_map_bucket_t) * num_bucket);
@@ -82,13 +86,15 @@ hash_map_t * hash_map_new_internal(
 // The |key_fn| and |data_fn| are called whenever a hash_map element is removed from
 // the hash_map. They can be used to release resources held by the hash_map element,
 // e.g.  memory or file descriptor.  |key_fn| and |data_fn| may be NULL if no cleanup
-// is necessary on element removal.
-hash_map_t * hash_map_new(
+// is necessary on element removal. |equality_fn| is used to check for key equality.
+// If |equality_fn| is NULL, default pointer equality is used.
+hash_map_t *hash_map_new(
     size_t num_bucket,
     hash_index_fn hash_fn,
     key_free_fn key_fn,
-    data_free_fn data_fn) {
-  return hash_map_new_internal(num_bucket, hash_fn, key_fn, data_fn, &allocator_calloc);
+    data_free_fn data_fn,
+    key_equality_fn equality_fn) {
+  return hash_map_new_internal(num_bucket, hash_fn, key_fn, data_fn, equality_fn, &allocator_calloc);
 }
 
 // Frees the hash_map. This function accepts NULL as an argument, in which case it
@@ -265,9 +271,13 @@ static hash_map_entry_t * find_bucket_entry_(list_t *hash_bucket_list,
       iter != list_end(hash_bucket_list);
       iter = list_next(iter)) {
     hash_map_entry_t *hash_map_entry = (hash_map_entry_t *)list_node(iter);
-    if (hash_map_entry->key == key) {
+    if (hash_map_entry->hash_map->keys_are_equal(hash_map_entry->key, key)) {
       return hash_map_entry;
     }
   }
   return NULL;
+}
+
+static bool default_key_equality(const void *x, const void *y) {
+  return x == y;
 }

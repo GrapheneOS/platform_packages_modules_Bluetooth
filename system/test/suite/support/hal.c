@@ -79,7 +79,7 @@ static bool set_wake_alarm(uint64_t delay_millis, bool should_wake, alarm_cb cb,
   static hash_map_t *timers;
 
   if (!timers) {
-    timers = hash_map_new(TIMER_BUCKET_COUNT, hash_function_pointer, NULL, NULL);
+    timers = hash_map_new(TIMER_BUCKET_COUNT, hash_function_pointer, NULL, NULL, NULL);
   }
 
   timer_t *timer = hash_map_get(timers, cb);

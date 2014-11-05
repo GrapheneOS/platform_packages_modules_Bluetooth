@@ -44,7 +44,7 @@ data_dispatcher_t *data_dispatcher_new(const char *name) {
     goto error;
   }
 
-  ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL);
+  ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL, NULL);
   if (!ret->dispatch_table) {
     LOG_ERROR("%s unable to create dispatch table.", __func__);
     goto error;

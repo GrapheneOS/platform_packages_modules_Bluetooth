@@ -154,7 +154,7 @@ void BTU_StartUp(void)
         goto error_exit;
 
     btu_general_alarm_hash_map = hash_map_new(BTU_GENERAL_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free, NULL);
     if (btu_general_alarm_hash_map == NULL)
         goto error_exit;
 
@@ -166,7 +166,7 @@ void BTU_StartUp(void)
         goto error_exit;
 
     btu_oneshot_alarm_hash_map = hash_map_new(BTU_ONESHOT_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free, NULL);
     if (btu_oneshot_alarm_hash_map == NULL)
         goto error_exit;
 
@@ -178,7 +178,7 @@ void BTU_StartUp(void)
         goto error_exit;
 
     btu_l2cap_alarm_hash_map = hash_map_new(BTU_L2CAP_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free, NULL);
     if (btu_l2cap_alarm_hash_map == NULL)
         goto error_exit;
 

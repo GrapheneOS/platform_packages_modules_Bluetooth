@@ -43,13 +43,13 @@ void data_free_fn00(UNUSED_ATTR void *data) {
 }
 
 TEST_F(HashMapTest, test_new_free_simple) {
-  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
   hash_map_free(hash_map);
 }
 
 TEST_F(HashMapTest, test_insert_simple) {
-  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
 
   struct {
@@ -82,7 +82,7 @@ TEST_F(HashMapTest, test_insert_simple) {
 }
 
 TEST_F(HashMapTest, test_insert_same) {
-  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL);
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, NULL, NULL, NULL);
   ASSERT_TRUE(hash_map != NULL);
 
   struct {
@@ -113,7 +113,7 @@ TEST_F(HashMapTest, test_insert_same) {
 }
 
 TEST_F(HashMapTest, test_functions) {
-  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00);
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00, NULL);
   ASSERT_TRUE(hash_map != NULL);
 
   struct {
@@ -183,7 +183,7 @@ bool hash_test_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context) {
 }
 
 TEST_F(HashMapTest, test_iter) {
-  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00);
+  hash_map_t *hash_map = hash_map_new(5, hash_map_fn00, key_free_fn00, data_free_fn00, NULL);
   ASSERT_TRUE(hash_map != NULL);
   g_data_free = 0;
   g_key_free = 0;

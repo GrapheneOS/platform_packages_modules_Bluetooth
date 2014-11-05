@@ -43,6 +43,7 @@ hash_map_t *hash_map_new_internal(
     hash_index_fn hash_fn,
     key_free_fn key_fn,
     data_free_fn,
+    key_equality_fn equality_fn,
     const allocator_t *zeroed_allocator);
 
 static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context);
@@ -71,6 +72,7 @@ void allocation_tracker_init(void) {
     hash_function_pointer,
     NULL,
     free,
+    NULL,
     &untracked_calloc_allocator);
 }
 

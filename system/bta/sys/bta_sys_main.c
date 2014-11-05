@@ -179,7 +179,7 @@ void bta_sys_init(void)
     pthread_mutex_init(&bta_alarm_lock, NULL);
 
     bta_alarm_hash_map = hash_map_new(BTA_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free);
+            hash_function_pointer, NULL, (data_free_fn)alarm_free, NULL);
     btu_bta_alarm_queue = fixed_queue_new(SIZE_MAX);
 
     fixed_queue_register_dequeue(btu_bta_alarm_queue,

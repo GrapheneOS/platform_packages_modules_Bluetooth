@@ -36,6 +36,8 @@ typedef size_t hash_index_t;
 typedef hash_index_t (*hash_index_fn)(const void *key);
 typedef bool (*hash_map_iter_cb)(hash_map_entry_t *hash_entry, void *context);
 
+typedef bool (*key_equality_fn)(const void *x, const void *y);
+
 typedef void (*key_free_fn)(void *data);
 typedef void (*data_free_fn)(void *data);
 
@@ -44,7 +46,9 @@ hash_map_t *hash_map_new(
     size_t size,
     hash_index_fn hash_fn,
     key_free_fn key_fn,
-    data_free_fn);
+    data_free_fn data_fn,
+    key_equality_fn equality_fn);
+
 void hash_map_free(hash_map_t *hash_map);
 
 // Accessors.

@@ -53,7 +53,7 @@ static hash_map_t *partial_packets;
 
 static void init(const packet_fragmenter_callbacks_t *result_callbacks) {
   callbacks = result_callbacks;
-  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL);
+  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL, NULL);
 }
 
 static void cleanup() {

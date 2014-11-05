@@ -49,7 +49,8 @@ void module_management_start(void) {
     number_of_metadata_buckets,
     hash_function_pointer,
     NULL,
-    osi_free
+    osi_free,
+    NULL
   );
 
   pthread_mutex_init(&metadata_lock, NULL);

@@ -121,7 +121,7 @@ static future_t *counter_init(void) {
   assert(hash_map_counter_ == NULL);
   pthread_mutex_init(&hash_map_lock_, NULL);
   hash_map_counter_ = hash_map_new(COUNTER_NUM_BUCKETS, hash_function_string,
-      NULL, hash_element_free_);
+      NULL, hash_element_free_, NULL);
   if (hash_map_counter_ == NULL) {
     LOG_ERROR("%s unable to allocate resources", __func__);
     return future_new_immediate(FUTURE_FAIL);
