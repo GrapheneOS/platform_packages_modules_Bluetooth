@@ -32,6 +32,7 @@ LOCAL_C_INCLUDES := \
     $(bdroid_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
+    src/classic/peer.c \
     src/controller.c
 
 LOCAL_CFLAGS := $(bdroid_CFLAGS)
@@ -42,3 +43,24 @@ LOCAL_SHARED_LIBRARIES := libc liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 include $(BUILD_STATIC_LIBRARY)
+
+#####################################################
+
+include $(CLEAR_VARS)
+
+LOCAL_C_INCLUDES := \
+    $(LOCAL_PATH)/.. \
+    $(LOCAL_PATH)/../osi/include \
+    $(bdroid_C_INCLUDES)
+
+LOCAL_SRC_FILES := \
+    ../osi/test/AllocationTestHarness.cpp \
+    ./test/classic/peer_test.cpp
+
+LOCAL_CFLAGS := -Wall -Werror $(bdroid_CFLAGS)
+LOCAL_MODULE := net_test_device
+LOCAL_MODULE_TAGS := tests
+LOCAL_SHARED_LIBRARIES := liblog libdl
+LOCAL_STATIC_LIBRARIES := libbtdevice libbtcore libosi libcutils
+
+include $(BUILD_NATIVE_TEST)

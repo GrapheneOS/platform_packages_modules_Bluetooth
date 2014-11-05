@@ -2,6 +2,7 @@
 
 known_tests=(
   net_test_btcore
+  net_test_device
   net_test_hci
   net_test_osi
 )

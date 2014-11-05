@@ -8,6 +8,7 @@ This document lists all of the log tags used by bluedroid.
 * bta_sys_main
 * bt_btif_config
 * bt_btif_config_transcode
+* bt_classic_peer
 * bte_conf
 * BtGatt.btif
 * BtGatt.btif_test
