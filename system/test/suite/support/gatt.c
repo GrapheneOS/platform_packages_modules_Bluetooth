@@ -22,13 +22,23 @@
 #include "support/gatt.h"
 
 const btgatt_interface_t *gatt_interface;
+static bt_bdaddr_t remote_bd_addr;
 static int gatt_client_interface;
 static int gatt_server_interface;
+static int gatt_service_handle;
+static int gatt_included_service_handle;
+static int gatt_characteristic_handle;
+static int gatt_descriptor_handle;
+static int gatt_connection_id;
 static int gatt_status;
 
 bool gatt_init() {
   gatt_interface = bt_interface->get_profile_interface(BT_PROFILE_GATT_ID);
   return gatt_interface->init(callbacks_get_gatt_struct()) == BT_STATUS_SUCCESS;
+}
+
+int gatt_get_connection_id() {
+  return gatt_connection_id;
 }
 
 int gatt_get_client_interface() {
@@ -37,6 +47,22 @@ int gatt_get_client_interface() {
 
 int gatt_get_server_interface() {
   return gatt_server_interface;
+}
+
+int gatt_get_service_handle() {
+  return gatt_service_handle;
+}
+
+int gatt_get_included_service_handle() {
+  return gatt_included_service_handle;
+}
+
+int gatt_get_characteristic_handle() {
+  return gatt_characteristic_handle;
+}
+
+int gatt_get_descriptor_handle() {
+  return gatt_descriptor_handle;
 }
 
 int gatt_get_status() {
@@ -128,34 +154,62 @@ void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid) {
 }
 
 void btgatts_connection_cb(int conn_id, int server_if, int connected, bt_bdaddr_t *bda) {
+  gatt_connection_id = conn_id;
+  for (int i = 0; i < 6; ++i) {
+    remote_bd_addr.address[i] = bda->address[i];
+  }
   CALLBACK_RET();
 }
 
 void btgatts_service_added_cb(int status, int server_if, btgatt_srvc_id_t *srvc_id, int srvc_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
   CALLBACK_RET();
 }
 
 void btgatts_included_service_added_cb(int status, int server_if, int srvc_handle, int incl_srvc_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
+  gatt_included_service_handle = incl_srvc_handle;
   CALLBACK_RET();
 }
 
 void btgatts_characteristic_added_cb(int status, int server_if, bt_uuid_t *char_id, int srvc_handle, int char_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
+  gatt_characteristic_handle = char_handle;
   CALLBACK_RET();
 }
 
 void btgatts_descriptor_added_cb(int status, int server_if, bt_uuid_t *descr_id, int srvc_handle, int descr_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
+  gatt_descriptor_handle = descr_handle;
   CALLBACK_RET();
 }
 
 void btgatts_service_started_cb(int status, int server_if, int srvc_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
   CALLBACK_RET();
 }
 
 void btgatts_service_stopped_cb(int status, int server_if, int srvc_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
   CALLBACK_RET();
 }
 
 void btgatts_service_deleted_cb(int status, int server_if, int srvc_handle) {
+  gatt_status = status;
+  gatt_server_interface = server_if;
+  gatt_service_handle = srvc_handle;
   CALLBACK_RET();
 }
 

@@ -38,6 +38,7 @@ TEST_CASE_DECL(gatt_client_register);
 TEST_CASE_DECL(gatt_client_scan);
 TEST_CASE_DECL(gatt_client_advertise);
 TEST_CASE_DECL(gatt_server_register);
+TEST_CASE_DECL(gatt_server_build);
 
 // These are run with the Bluetooth adapter disabled.
 const test_case_t sanity_suite[] = {
@@ -62,7 +63,8 @@ const test_case_t test_suite[] = {
   TEST_CASE(gatt_client_register),
   TEST_CASE(gatt_client_scan),
   TEST_CASE(gatt_client_advertise),
-  TEST_CASE(gatt_server_register)
+  TEST_CASE(gatt_server_register),
+  TEST_CASE(gatt_server_build)
 };
 
 const size_t sanity_suite_size = ARRAY_SIZE(sanity_suite);

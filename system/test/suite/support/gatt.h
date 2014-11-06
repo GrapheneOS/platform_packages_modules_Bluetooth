@@ -23,6 +23,11 @@
 extern const btgatt_interface_t *gatt_interface;
 
 bool gatt_init();
+int gatt_get_connection_id();
 int gatt_get_client_interface();
 int gatt_get_server_interface();
+int gatt_get_service_handle();
+int gatt_get_included_service_handle();
+int gatt_get_characteristic_handle();
+int gatt_get_descriptor_handle();
 int gatt_get_status();
