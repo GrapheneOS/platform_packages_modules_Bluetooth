@@ -16,6 +16,7 @@
  *
  ******************************************************************************/
 
+#include <cutils/properties.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -61,6 +62,16 @@ static void *watchdog_fn(void *arg) {
     current_id = watchdog_id;
   }
   return NULL;
+}
+
+// Is shell still running? bdtest must run with shell stopped.
+static bool is_shell_running() {
+  char property_str[100];
+  property_get("init.svc.zygote", property_str, NULL);
+  if (!strcmp("running", property_str)) {
+    return true;
+  }
+  return false;
 }
 
 static void print_usage(const char *program_name) {
@@ -121,6 +132,11 @@ int main(int argc, char **argv) {
     }
 
     test_name = argv[i];
+  }
+
+  if (is_shell_running()) {
+    printf("Run 'adb shell stop' before running %s.\n", argv[0]);
+    return -1;
   }
 
   config_t *config = config_new(CONFIG_FILE_PATH);

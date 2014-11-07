@@ -39,7 +39,8 @@ LOCAL_SRC_FILES := \
 LOCAL_SHARED_LIBRARIES += \
     liblog \
     libhardware \
-    libhardware_legacy
+    libhardware_legacy \
+    libcutils
 
 LOCAL_STATIC_LIBRARIES += \
   libbtcore \
