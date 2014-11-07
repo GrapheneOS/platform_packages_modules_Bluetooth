@@ -22,7 +22,8 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/../osi/include
+    $(LOCAL_PATH)/../osi/include \
+    $(LOCAL_PATH)/..
 
 LOCAL_SRC_FILES := \
     src/bdaddr.c \
