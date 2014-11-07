@@ -23,6 +23,8 @@
 #include "config.h"
 #include "module.h"
 
+static const char STACK_CONFIG_MODULE[] = "stack_config_module";
+
 typedef struct {
   const char *(*get_btsnoop_log_path)(void);
   bool (*get_btsnoop_turned_on)(void);
@@ -30,5 +32,4 @@ typedef struct {
   config_t *(*get_all)(void);
 } stack_config_t;
 
-#define STACK_CONFIG_MODULE "stack_config_module"
 const stack_config_t *stack_config_get_interface();

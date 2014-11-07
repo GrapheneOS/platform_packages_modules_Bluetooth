@@ -26,6 +26,8 @@
 #include "future.h"
 #include "osi.h"
 
+static const char HCI_MODULE[] = "hci_module";
+
 ///// LEGACY DEFINITIONS /////
 
 /* Message event mask across Host/Controller lib and stack */
@@ -94,7 +96,6 @@ typedef struct hci_t {
   void (*transmit_downward)(data_dispatcher_type_t type, void *data);
 } hci_t;
 
-#define HCI_MODULE "hci_module"
 const hci_t *hci_layer_get_interface();
 
 const hci_t *hci_layer_get_test_interface(

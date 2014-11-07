@@ -21,6 +21,8 @@
 #include "bt_target.h"
 #include "bt_types.h"
 
+static const char GKI_MODULE[] = "gki_module";
+
 /* Error codes */
 #define GKI_SUCCESS         0x00
 #define GKI_FAILURE         0x01
@@ -127,8 +129,6 @@ typedef void (*TASKPTR)(void);
 /***********************************************************************
 ** Function prototypes
 */
-
-#define GKI_MODULE "gki_module"
 
 /* Task management
 */

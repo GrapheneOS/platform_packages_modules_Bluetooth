@@ -18,7 +18,7 @@
 
 #pragma once
 
-#define BTE_LOGMSG_MODULE "bte_logmsg_module"
+static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 
 /* BTE tracing IDs for debug purposes */
 /* LayerIDs for stack */

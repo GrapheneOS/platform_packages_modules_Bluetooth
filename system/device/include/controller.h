@@ -27,6 +27,8 @@
 #include "hci_packet_factory.h"
 #include "hci_packet_parser.h"
 
+static const char CONTROLLER_MODULE[] = "controller_module";
+
 typedef struct controller_t {
   bool (*get_is_ready)(void);
 
@@ -65,7 +67,6 @@ typedef struct controller_t {
   uint8_t (*get_acl_buffer_count_ble)(void);
 } controller_t;
 
-#define CONTROLLER_MODULE "controller_module"
 const controller_t *controller_get_interface();
 
 const controller_t *controller_get_test_interface(

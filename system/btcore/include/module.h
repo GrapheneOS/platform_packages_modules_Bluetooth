@@ -26,7 +26,7 @@
 typedef future_t *(*module_lifecycle_fn)(void);
 
 typedef struct {
-  char *name;
+  const char *name;
   module_lifecycle_fn init;
   module_lifecycle_fn start_up;
   module_lifecycle_fn shut_down;

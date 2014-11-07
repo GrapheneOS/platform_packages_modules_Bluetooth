@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define COUNTER_MODULE "counter_module"
+static const char COUNTER_MODULE[] = "counter_module";
 
 typedef int64_t counter_data_t;
 

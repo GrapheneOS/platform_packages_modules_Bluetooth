@@ -22,6 +22,8 @@
 
 #include "bt_types.h"
 
+static const char BTSNOOP_MODULE[] = "btsnoop_module";
+
 typedef struct btsnoop_t {
   // Inform btsnoop whether the API desires to log. If |value| is true.
   // logging will be enabled. Otherwise it defers to the value from the
@@ -34,5 +36,4 @@ typedef struct btsnoop_t {
   void (*capture)(const BT_HDR *packet, bool is_received);
 } btsnoop_t;
 
-#define BTSNOOP_MODULE "btsnoop_module"
-const btsnoop_t *btsnoop_get_interface();
+const btsnoop_t *btsnoop_get_interface(void);
