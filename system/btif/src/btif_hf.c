@@ -394,6 +394,12 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 
     BTIF_TRACE_DEBUG("%s: event=%s", __FUNCTION__, dump_hf_event(event));
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return;
+    }
+
     switch (event)
     {
         case BTA_AG_ENABLE_EVT:
@@ -672,6 +678,13 @@ static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
     int idx = btif_hf_idx_by_bdaddr((bt_bdaddr_t *)p_param);
 
     BTIF_TRACE_EVENT("%s: event=%d", __FUNCTION__, event);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return;
+    }
+
     switch (event) {
         case BTIF_HFP_CB_AUDIO_CONNECTING:
         {
@@ -783,6 +796,12 @@ static bt_status_t disconnect( bt_bdaddr_t *bd_addr )
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
+
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         BTA_AgClose(btif_hf_cb[idx].handle);
@@ -806,6 +825,12 @@ static bt_status_t connect_audio( bt_bdaddr_t *bd_addr )
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     /* Check if SLC is connected */
     if (btif_hf_check_if_slc_connected() != BT_STATUS_SUCCESS)
@@ -839,6 +864,12 @@ static bt_status_t disconnect_audio( bt_bdaddr_t *bd_addr )
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
+
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         BTA_AgAudioClose(btif_hf_cb[idx].handle);
@@ -862,6 +893,12 @@ static bt_status_t start_voice_recognition(bt_bdaddr_t *bd_addr)
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
@@ -898,6 +935,12 @@ static bt_status_t stop_voice_recognition(bt_bdaddr_t *bd_addr)
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
+
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         if (btif_hf_cb[idx].peer_feat & BTA_AG_PEER_FEAT_VREC)
@@ -933,6 +976,12 @@ static bt_status_t volume_control(bthf_volume_type_t type, int volume,
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     tBTA_AG_RES_DATA ag_res;
     memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
@@ -994,6 +1043,12 @@ static bt_status_t cops_response(const char *cops, bt_bdaddr_t *bd_addr)
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
+
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         tBTA_AG_RES_DATA    ag_res;
@@ -1025,6 +1080,12 @@ static bt_status_t cind_response(int svc, int num_active, int num_held,
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
@@ -1066,6 +1127,12 @@ static bt_status_t formatted_at_response(const char *rsp, bt_bdaddr_t *bd_addr)
     tBTA_AG_RES_DATA    ag_res;
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
 
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
+
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
         /* Format the response and send */
@@ -1094,6 +1161,12 @@ static bt_status_t at_response(bthf_at_response_t response_code,
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
@@ -1125,6 +1198,12 @@ static bt_status_t clcc_response(int index, bthf_call_direction_t dir,
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     if (is_connected(bd_addr) && (idx != BTIF_HF_INVALID_IDX))
     {
@@ -1450,6 +1529,12 @@ static bt_status_t  configure_wbs( bt_bdaddr_t *bd_addr , bthf_wbs_config_t conf
     CHECK_BTHF_INIT();
 
     int idx = btif_hf_idx_by_bdaddr(bd_addr);
+
+    if ((idx < 0) || (idx >= BTIF_HF_NUM_CB))
+    {
+        BTIF_TRACE_ERROR("%s: Invalid index %d", __FUNCTION__, idx);
+        return BT_STATUS_FAIL;
+    }
 
     BTIF_TRACE_EVENT("%s config is %d", __FUNCTION__,config);
     if (config == BTHF_WBS_YES)
