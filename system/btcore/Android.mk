@@ -39,3 +39,23 @@ LOCAL_SHARED_LIBRARIES := libc liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 include $(BUILD_STATIC_LIBRARY)
+
+#####################################################
+
+include $(CLEAR_VARS)
+
+LOCAL_C_INCLUDES := \
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/..
+
+LOCAL_SRC_FILES := \
+    ./test/counter_test.cpp \
+    ../osi/test/AllocationTestHarness.cpp
+
+LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
+LOCAL_MODULE := btcoretests
+LOCAL_MODULE_TAGS := tests
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_STATIC_LIBRARIES := libbtcore libosi
+
+include $(BUILD_NATIVE_TEST)
