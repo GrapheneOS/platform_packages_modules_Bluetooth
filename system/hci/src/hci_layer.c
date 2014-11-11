@@ -392,6 +392,7 @@ static void event_finish_startup(UNUSED_ATTR void *context) {
 }
 
 static void firmware_config_callback(UNUSED_ATTR bool success) {
+  ALOGI("%s", __func__);
   firmware_is_configured = true;
   non_repeating_timer_cancel(startup_timer);
 
@@ -400,6 +401,7 @@ static void firmware_config_callback(UNUSED_ATTR bool success) {
 }
 
 static void startup_timer_expired(UNUSED_ATTR void *context) {
+  ALOGE("%s", __func__);
   future_ready(startup_future, FUTURE_FAIL);
   startup_future = NULL;
 }
