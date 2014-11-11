@@ -534,7 +534,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
           incoming->buffer = (BT_HDR *)buffer_allocator->alloc(buffer_size);
 
           if (!incoming->buffer) {
-            ALOGE("%s error getting buffer for incoming packet", __func__);
+            ALOGE("%s error getting buffer for incoming packet of type %d and size %d", __func__, type, buffer_size);
             // Can't read any more of this current packet, so jump out
             incoming->state = incoming->bytes_remaining == 0 ? BRAND_NEW : IGNORE;
             break;
@@ -563,7 +563,15 @@ static void hal_says_data_ready(serial_data_type_t type) {
         break;
       case IGNORE:
         incoming->bytes_remaining--;
-        incoming->state = incoming->bytes_remaining == 0 ? BRAND_NEW : incoming->state;
+        if (incoming->bytes_remaining == 0) {
+          incoming->state = BRAND_NEW;
+          // Don't forget to let the hal know we finished the packet we were ignoring.
+          // Otherwise we'll get out of sync with hals that embed extra information
+          // in the uart stream (like H4). #badnewsbears
+          hal->packet_finished(type);
+          return;
+        }
+
         break;
       case FINISHED:
         ALOGE("%s the state machine should not have been left in the finished state.", __func__);

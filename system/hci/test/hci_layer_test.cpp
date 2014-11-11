@@ -52,10 +52,14 @@ DECLARE_TEST_MODES(
   transmit_command_no_callbacks,
   transmit_command_command_status,
   transmit_command_command_complete,
+  ignoring_packets_ignored_packet,
+  ignoring_packets_following_packet
 );
 
 static const char *small_sample_data = "\"It is easy to see,\" replied Don Quixote";
 static const char *command_sample_data = "that thou art not used to this business of adventures; those are giants";
+static const char *ignored_data = "and if thou art afraid, away with thee out of this and betake thyself to prayer";
+static const char *unignored_data = "while I engage them in fierce and unequal combat";
 
 static const char *logging_path = "this/is/a/test/logging/path";
 
@@ -117,6 +121,9 @@ static BT_HDR *manufacture_packet(uint16_t event, const char *data) {
   if (event == MSG_STACK_TO_HC_HCI_CMD) {
     STREAM_SKIP_UINT16(packet_data);
     UINT8_TO_STREAM(packet_data, data_length - 3);
+  } else if (event == MSG_HC_TO_STACK_HCI_EVT) {
+    STREAM_SKIP_UINT8(packet_data);
+    UINT8_TO_STREAM(packet_data, data_length - 2);
   }
 
   return packet;
@@ -222,8 +229,13 @@ static size_t replay_data_to_receive(size_t max_size, uint8_t *buffer) {
 }
 
 STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, size_t max_size, UNUSED_ATTR bool block))
-  DURING(receive_simple) {
+  DURING(receive_simple, ignoring_packets_following_packet) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
+    return replay_data_to_receive(max_size, buffer);
+  }
+
+  DURING(ignoring_packets_ignored_packet) {
+    EXPECT_EQ(DATA_TYPE_EVENT, type);
     return replay_data_to_receive(max_size, buffer);
   }
 
@@ -240,8 +252,13 @@ STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, 
 }
 
 STUB_FUNCTION(void, hal_packet_finished, (serial_data_type_t type))
-  DURING(receive_simple) AT_CALL(0) {
+  DURING(receive_simple, ignoring_packets_following_packet) AT_CALL(0) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
+    return;
+  }
+
+  DURING(ignoring_packets_ignored_packet) AT_CALL(0) {
+    EXPECT_EQ(DATA_TYPE_EVENT, type);
     return;
   }
 
@@ -297,7 +314,10 @@ STUB_FUNCTION(void, btsnoop_capture, (const BT_HDR *buffer, bool is_received))
     }
   }
 
-  DURING(receive_simple) AT_CALL(0) {
+  DURING(
+      receive_simple,
+      ignoring_packets_following_packet
+    ) AT_CALL(0) {
     EXPECT_TRUE(is_received);
     EXPECT_TRUE(buffer->len == data_to_receive->len);
     const uint8_t *buffer_base = buffer->data + buffer->offset;
@@ -457,6 +477,21 @@ STUB_FUNCTION(uint16_t, controller_get_acl_data_size_ble, (void))
   return 2048;
 }
 
+STUB_FUNCTION(void *, buffer_allocator_alloc, (size_t size))
+  DURING(ignoring_packets_ignored_packet) {
+    AT_CALL(0)
+      return NULL;
+
+    UNEXPECTED_CALL;
+  }
+
+  return allocator_malloc.alloc(size);
+}
+
+STUB_FUNCTION(void, buffer_allocator_free, (void *ptr))
+  allocator_malloc.free(ptr);
+}
+
 static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(vendor_open);
   RESET_CALL_COUNT(vendor_close);
@@ -480,6 +515,8 @@ static void reset_for(TEST_MODES_T next) {
   RESET_CALL_COUNT(command_status_callback);
   RESET_CALL_COUNT(controller_get_acl_data_size_classic);
   RESET_CALL_COUNT(controller_get_acl_data_size_ble);
+  RESET_CALL_COUNT(buffer_allocator_alloc);
+  RESET_CALL_COUNT(buffer_allocator_free);
   CURRENT_TEST_MODE = next;
 }
 
@@ -489,7 +526,7 @@ class HciLayerTest : public AlarmTestHarness {
       AlarmTestHarness::SetUp();
 
       hci = hci_layer_get_test_interface(
-        &allocator_malloc,
+        &buffer_allocator,
         &hal,
         &btsnoop,
         &hci_inject,
@@ -525,6 +562,8 @@ class HciLayerTest : public AlarmTestHarness {
       low_power_manager.transmit_done = low_power_transmit_done;
       controller.get_acl_data_size_classic = controller_get_acl_data_size_classic;
       controller.get_acl_data_size_ble = controller_get_acl_data_size_ble;
+      buffer_allocator.alloc = buffer_allocator_alloc;
+      buffer_allocator.free = buffer_allocator_free;
 
       done = semaphore_new(0);
 
@@ -559,6 +598,7 @@ class HciLayerTest : public AlarmTestHarness {
     hci_inject_t hci_inject;
     vendor_t vendor;
     low_power_manager_t low_power_manager;
+    allocator_t buffer_allocator;
 };
 
 TEST_F(HciLayerTest, test_postload) {
@@ -688,6 +728,26 @@ TEST_F(HciLayerTest, test_transmit_command_command_complete) {
   EXPECT_CALL_COUNT(btsnoop_capture, 2);
   EXPECT_CALL_COUNT(command_complete_callback, 1);
 
+  osi_free(data_to_receive);
+}
+
+TEST_F(HciLayerTest, test_ignoring_packets) {
+  reset_for(ignoring_packets_ignored_packet);
+  data_to_receive = manufacture_packet(MSG_HC_TO_STACK_HCI_EVT, unignored_data);
+
+  hal_callbacks->data_ready(DATA_TYPE_EVENT);
+  EXPECT_CALL_COUNT(buffer_allocator_alloc, 1);
+  EXPECT_CALL_COUNT(hal_packet_finished, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 0);
+  osi_free(data_to_receive);
+
+  reset_for(ignoring_packets_following_packet);
+  data_to_receive = manufacture_packet(MSG_STACK_TO_HC_HCI_ACL, ignored_data);
+
+  hal_callbacks->data_ready(DATA_TYPE_ACL);
+  EXPECT_CALL_COUNT(buffer_allocator_alloc, 1);
+  EXPECT_CALL_COUNT(hal_packet_finished, 1);
+  EXPECT_CALL_COUNT(btsnoop_capture, 1);
   osi_free(data_to_receive);
 }
 
