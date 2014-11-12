@@ -92,33 +92,6 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
     }
 }
 
-#if !VALGRIND
-static BOOLEAN gki_alloc_free_queue(UINT8 id)
-{
-    FREE_QUEUE_T  *Q;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-    GKI_TRACE("\ngki_alloc_free_queue in, id:%d \n", (int)id );
-
-    Q = &p_cb->freeq[id];
-
-    if(Q->_p_first == 0)
-    {
-        void* p_mem = osi_malloc((Q->size + BUFFER_PADDING_SIZE) * Q->total);
-        if(p_mem)
-        {
-            //re-initialize the queue with allocated memory
-            GKI_TRACE("\ngki_alloc_free_queue calling  gki_init_free_queue, id:%d  size:%d, totol:%d\n", id, Q->size, Q->total);
-            gki_init_free_queue(id, Q->size, Q->total, p_mem);
-            GKI_TRACE("\ngki_alloc_free_queue ret OK, id:%d  size:%d, totol:%d\n", id, Q->size, Q->total);
-            return TRUE;
-        }
-        GKI_exception (GKI_ERROR_BUF_SIZE_TOOBIG, "gki_alloc_free_queue: Not enough memory");
-    }
-    GKI_TRACE("\ngki_alloc_free_queue out failed, id:%d\n", id);
-    return FALSE;
-}
-#endif
-
 void gki_dealloc_free_queue(void)
 {
     UINT8   i;
@@ -228,7 +201,6 @@ void GKI_init_q (BUFFER_Q *p_q)
 *******************************************************************************/
 void *GKI_getbuf (UINT16 size)
 {
-#if VALGRIND
   BUFFER_HDR_T *header = malloc(size + BUFFER_HDR_SIZE);
   header->task_id = GKI_get_taskid();
   header->status  = BUF_STATUS_UNLINKED;
@@ -236,78 +208,6 @@ void *GKI_getbuf (UINT16 size)
   header->Type    = 0;
   header->size = size;
   return header + 1;
-#else
-    UINT8         i;
-    FREE_QUEUE_T  *Q;
-    BUFFER_HDR_T  *p_hdr;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-
-    if (size == 0)
-    {
-        GKI_exception (GKI_ERROR_BUF_SIZE_ZERO, "getbuf: Size is zero");
-        return (NULL);
-    }
-
-    /* Find the first buffer pool that is public that can hold the desired size */
-    for (i=0; i < GKI_NUM_FIXED_BUF_POOLS; i++)
-    {
-        if ( size <= p_cb->freeq[i].size )
-            break;
-    }
-
-    if(i == GKI_NUM_FIXED_BUF_POOLS)
-    {
-        GKI_exception (GKI_ERROR_BUF_SIZE_TOOBIG, "getbuf: Size is too big");
-        return (NULL);
-    }
-
-    /* Make sure the buffers aren't disturbed til finished with allocation */
-    GKI_disable();
-
-    /* search the public buffer pools that are big enough to hold the size
-     * until a free buffer is found */
-    for ( ; i < GKI_NUM_FIXED_BUF_POOLS; i++)
-    {
-        /* Only look at PUBLIC buffer pools (bypass RESTRICTED pools) */
-        if (((UINT16)1 << i) & p_cb->pool_access_mask)
-            continue;
-        if ( size <= p_cb->freeq[i].size )
-             Q = &p_cb->freeq[i];
-        else
-             continue;
-
-        if(Q->cur_cnt < Q->total)
-        {
-            if(Q->_p_first == 0 && gki_alloc_free_queue(i) != TRUE) {
-                GKI_enable();
-                return NULL;
-            }
-            p_hdr = Q->_p_first;
-            Q->_p_first = p_hdr->p_next;
-
-            if (!Q->_p_first)
-                Q->_p_last = NULL;
-
-            if(++Q->cur_cnt > Q->max_cnt)
-                Q->max_cnt = Q->cur_cnt;
-
-            GKI_enable();
-
-            p_hdr->task_id = GKI_get_taskid();
-
-            p_hdr->status  = BUF_STATUS_UNLINKED;
-            p_hdr->p_next  = NULL;
-            p_hdr->Type    = 0;
-
-            return ((void *) ((UINT8 *)p_hdr + BUFFER_HDR_SIZE));
-        }
-    }
-
-    GKI_enable();
-
-    GKI_exception (GKI_ERROR_OUT_OF_BUFFERS, "getbuf: out of buffers");
-    return (NULL);
-#endif
 }
 
 
@@ -328,56 +228,7 @@ void *GKI_getbuf (UINT16 size)
 *******************************************************************************/
 void *GKI_getpoolbuf (UINT8 pool_id)
 {
-#if VALGRIND
   return GKI_getbuf(gki_cb.com.pool_size[pool_id]);
-#else
-    FREE_QUEUE_T  *Q;
-    BUFFER_HDR_T  *p_hdr;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-
-    if (pool_id >= GKI_NUM_TOTAL_BUF_POOLS)
-    {
-        GKI_exception(GKI_ERROR_GETPOOLBUF_BAD_QID, "getpoolbuf bad pool");
-        return (NULL);
-    }
-
-    /* Make sure the buffers aren't disturbed til finished with allocation */
-    GKI_disable();
-
-    Q = &p_cb->freeq[pool_id];
-    if(Q->cur_cnt < Q->total)
-    {
-        if(Q->_p_first == 0 && gki_alloc_free_queue(pool_id) != TRUE) {
-            GKI_enable();
-            return NULL;
-        }
-        p_hdr = Q->_p_first;
-        Q->_p_first = p_hdr->p_next;
-
-        if (!Q->_p_first)
-            Q->_p_last = NULL;
-
-        if(++Q->cur_cnt > Q->max_cnt)
-            Q->max_cnt = Q->cur_cnt;
-
-        GKI_enable();
-
-
-        p_hdr->task_id = GKI_get_taskid();
-
-        p_hdr->status  = BUF_STATUS_UNLINKED;
-        p_hdr->p_next  = NULL;
-        p_hdr->Type    = 0;
-
-        return ((void *) ((UINT8 *)p_hdr + BUFFER_HDR_SIZE));
-    }
-
-    /* If here, no buffers in the specified pool */
-    GKI_enable();
-
-    /* try for free buffers in public pools */
-    return (GKI_getbuf(p_cb->freeq[pool_id].size));
-#endif
 }
 
 /*******************************************************************************
@@ -393,48 +244,7 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 *******************************************************************************/
 void GKI_freebuf (void *p_buf)
 {
-#if VALGRIND
   free((BUFFER_HDR_T *)p_buf - 1);
-#else
-    FREE_QUEUE_T    *Q;
-    BUFFER_HDR_T    *p_hdr;
-
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
-    if (!p_buf || gki_chk_buf_damage(p_buf))
-    {
-        GKI_exception(GKI_ERROR_BUF_CORRUPTED, "Free - Buf Corrupted");
-        return;
-    }
-#endif
-
-    p_hdr = (BUFFER_HDR_T *) ((UINT8 *)p_buf - BUFFER_HDR_SIZE);
-
-    if (p_hdr->q_id >= GKI_NUM_TOTAL_BUF_POOLS)
-    {
-        GKI_exception(GKI_ERROR_FREEBUF_BAD_QID, "Bad Buf QId");
-        return;
-    }
-
-    GKI_disable();
-
-    /*
-    ** Release the buffer
-    */
-    Q  = &gki_cb.com.freeq[p_hdr->q_id];
-    if (Q->_p_last)
-        Q->_p_last->p_next = p_hdr;
-    else
-        Q->_p_first = p_hdr;
-
-    Q->_p_last      = p_hdr;
-    p_hdr->p_next  = NULL;
-    p_hdr->status  = BUF_STATUS_FREE;
-    p_hdr->task_id = GKI_INVALID_TASK;
-    if (Q->cur_cnt > 0)
-        Q->cur_cnt--;
-
-    GKI_enable();
-#endif
 }
 
 
@@ -451,24 +261,8 @@ void GKI_freebuf (void *p_buf)
 *******************************************************************************/
 UINT16 GKI_get_buf_size (void *p_buf)
 {
-#if VALGRIND
   BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
   return header->size;
-#else
-    BUFFER_HDR_T    *p_hdr;
-
-    p_hdr = (BUFFER_HDR_T *)((UINT8 *) p_buf - BUFFER_HDR_SIZE);
-
-    if ((UINT32)p_hdr & 1)
-        return (0);
-
-    if (p_hdr->q_id < GKI_NUM_TOTAL_BUF_POOLS)
-    {
-        return (gki_cb.com.freeq[p_hdr->q_id].size);
-    }
-
-    return (0);
-#endif
 }
 
 /*******************************************************************************
@@ -482,25 +276,8 @@ UINT16 GKI_get_buf_size (void *p_buf)
 *******************************************************************************/
 BOOLEAN gki_chk_buf_damage(void *p_buf)
 {
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE) && !VALGRIND
-
-    UINT32 *magic;
-    magic  = (UINT32 *)((UINT8 *) p_buf + GKI_get_buf_size(p_buf));
-
-    if ((UINT32)magic & 1)
-        return (TRUE);
-
-    if (*magic == MAGIC_NO)
-        return (FALSE);
-
-    return (TRUE);
-
-#else
-
     (void)p_buf;
     return (FALSE);
-
-#endif
 }
 
 /*******************************************************************************
