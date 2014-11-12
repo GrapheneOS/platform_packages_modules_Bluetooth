@@ -210,7 +210,6 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                       UINT16 hci_handle, UINT8 link_role, tBT_TRANSPORT transport)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = NULL;
-    UINT8             yy;
     tACL_CONN        *p;
     UINT8             xx;
 
@@ -2446,8 +2445,6 @@ UINT8 BTM_AllocateSCN(void)
 
 BOOLEAN BTM_TryAllocateSCN(UINT8 scn)
 {
-    UINT8   x;
-
     /* Make sure we don't exceed max port range.
      * Stack reserves scn 1 for HFP, HSP we still do the correct way.
      */

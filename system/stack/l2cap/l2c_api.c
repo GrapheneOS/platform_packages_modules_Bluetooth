@@ -1317,7 +1317,6 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 {
     tL2C_LCB        *p_lcb;
     tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
-    UINT16          reason;
 
     L2CAP_TRACE_API  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
                     (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);

@@ -698,8 +698,6 @@ void GKI_add_to_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 *******************************************************************************/
 BOOLEAN GKI_remove_from_timer_list (TIMER_LIST_Q *p_timer_listq, TIMER_LIST_ENT  *p_tle)
 {
-    UINT8 tt;
-
     /* Verify that the entry is valid */
     if (p_tle == NULL || p_timer_listq->p_first == NULL)
         return FALSE;

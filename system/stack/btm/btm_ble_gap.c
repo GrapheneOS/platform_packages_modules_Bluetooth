@@ -54,8 +54,9 @@
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
 #define MIN_ADV_LENGTH                       2
 
-static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
+#if BLE_VND_INCLUDED == TRUE
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
+#endif
 
 /*******************************************************************************
 **  Local functions
@@ -422,6 +423,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     return status;
 }
 
+#if BLE_VND_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         btm_vsc_brcm_features_complete
@@ -433,7 +435,6 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 *******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
 {
-#if BLE_VND_INCLUDED == TRUE
     UINT8  status = 0xFF, *p;
 
     BTM_TRACE_DEBUG("btm_ble_vendor_capability_vsc_cmpl_cback");
@@ -479,11 +480,8 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 
     if (p_ctrl_le_feature_rd_cmpl_cback != NULL)
         p_ctrl_le_feature_rd_cmpl_cback(status);
-
-#else
-    UNUSED(p_vcs_cplt_params);
-#endif
 }
+#endif
 
 /*******************************************************************************
 **
@@ -3115,8 +3113,6 @@ void btm_ble_init (void)
 BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
 {
     BOOLEAN rt = FALSE;
-    UINT32  llt_mask = 0;
-    UINT8   *p;
 
     UINT8   state_offset = 0;
     UINT16  cur_states = btm_cb.ble_ctr_cb.cur_states;

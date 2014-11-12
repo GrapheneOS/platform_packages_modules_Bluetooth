@@ -1037,7 +1037,6 @@ void btif_reset_decoder(UINT8 *p_av)
 
 BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start)
 {
-    tBTIF_STATUS status;
     BOOLEAN ack = FALSE;
 
     APPL_TRACE_EVENT("## ON A2DP STARTED ##");
@@ -1091,8 +1090,6 @@ BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start)
 
 void btif_a2dp_ack_fail(void)
 {
-    tBTIF_STATUS status;
-
     APPL_TRACE_EVENT("## A2DP_CTRL_ACK_FAILURE ##");
     a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
 }

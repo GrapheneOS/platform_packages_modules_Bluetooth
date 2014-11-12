@@ -2715,7 +2715,7 @@ void btm_process_remote_name (BD_ADDR bda, BD_NAME bdn, UINT16 evt_len, UINT8 hc
          /* Note: If part of the inquiry, the name is not stored, and the    */
          /*       inquiry complete callback is called.                       */
 
-        if ((hci_status == HCI_SUCCESS))
+        if (hci_status == HCI_SUCCESS)
         {
             /* Copy the name from the data stream into the return structure */
             /* Note that even if it is not being returned, it is used as a  */

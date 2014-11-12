@@ -546,8 +546,6 @@ static tBTA_JV_PM_CB *bta_jv_alloc_set_pm_profile_cb(UINT32 jv_handle, tBTA_JV_P
             /* rfc handle bd addr retrieval requires core stack handle */
             if (bRfcHandle)
             {
-                UINT32 hi = ((jv_handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
-                UINT32 si = BTA_JV_RFC_HDL_TO_SIDX(jv_handle);
                 for (j = 0; j < BTA_JV_MAX_RFC_CONN; j++)
                 {
                     if (jv_handle == bta_jv_cb.port_cb[j].handle)
@@ -2145,8 +2143,6 @@ static void bta_jv_port_mgmt_sr_cback(UINT32 code, UINT16 port_handle)
     tBTA_JV evt_data;
     BD_ADDR rem_bda;
     UINT16 lcid;
-    UINT8  num;
-    UINT32  si;
     APPL_TRACE_DEBUG("bta_jv_port_mgmt_sr_cback, code:%d, port_handle:%d", code, port_handle);
     if(NULL == p_cb || NULL == p_cb->p_cback)
     {

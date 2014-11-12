@@ -904,7 +904,7 @@ BOOLEAN btif_hl_cch_open(UINT8 app_id, BD_ADDR bd_addr, UINT16 ctrl_psm,
     btif_hl_app_cb_t            *p_acb;
     btif_hl_mcl_cb_t            *p_mcb;
     btif_hl_pending_chan_cb_t   *p_pcb;
-    UINT8                       app_idx, mcl_idx, chan_idx;
+    UINT8                       app_idx, mcl_idx;
     BOOLEAN                     status = TRUE;
 
     BTIF_TRACE_DEBUG("%s app_id=%d ctrl_psm=%d mdep_cfg_idx=%d op=%d",
@@ -1284,7 +1284,6 @@ static  BOOLEAN btif_hl_find_mdep_cfg_idx(UINT8 app_idx,  tBTA_HL_MDEP_ID local_
 BOOLEAN btif_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx){
     BOOLEAN found=FALSE;
     UINT8 i;
-    btif_hl_app_cb_t  *p_acb =BTIF_HL_GET_APP_CB_PTR(app_idx);
     btif_hl_mcl_cb_t  *p_mcb;
 
     *p_mcl_idx = 0;
@@ -1856,7 +1855,6 @@ BOOLEAN btif_hl_find_app_idx_using_deleted_mdl_id( UINT8 mdl_id,
 *******************************************************************************/
 static void btif_hl_stop_timer_using_handle( tBTA_HL_MCL_HANDLE mcl_handle){
     btif_hl_app_cb_t  *p_acb;
-    BOOLEAN         found=FALSE;
     UINT8 i,j;
 
     for (i=0; i<BTA_HL_NUM_APPS; i++)
@@ -1886,7 +1884,7 @@ BOOLEAN btif_hl_find_mcl_idx_using_app_idx( tBTA_HL_MCL_HANDLE mcl_handle,
                                            UINT8 p_app_idx, UINT8 *p_mcl_idx){
     btif_hl_app_cb_t  *p_acb;
     BOOLEAN         found=FALSE;
-    UINT8 i,j;
+    UINT8 j;
 
     p_acb =BTIF_HL_GET_APP_CB_PTR(p_app_idx);
     for (j=0; j < BTA_HL_NUM_MCLS ; j++)
@@ -1917,7 +1915,7 @@ void btif_hl_clean_mdls_using_app_idx( UINT8 app_idx){
     btif_hl_app_cb_t  *p_acb;
     btif_hl_mcl_cb_t  *p_mcb;
     btif_hl_mdl_cb_t  *p_dcb;
-    UINT8 i,j,x,y;
+    UINT8 j,x,y;
     bt_bdaddr_t     bd_addr;
 
         p_acb =BTIF_HL_GET_APP_CB_PTR(app_idx);
@@ -2110,7 +2108,6 @@ static void btif_hl_proc_dereg_cfm(tBTA_HL *p_data)
     UINT8                   app_idx;
     int                     app_id = 0;
     bthl_app_reg_state_t    state = BTHL_APP_REG_STATE_DEREG_SUCCESS;
-    bt_status_t             status            = BT_STATUS_SUCCESS;
 
     BTIF_TRACE_DEBUG("%s de-reg status=%d app_handle=%d", __FUNCTION__,
                 p_data->dereg_cfm.status, p_data->dereg_cfm.app_handle);
@@ -2150,7 +2147,6 @@ static void btif_hl_proc_reg_cfm(tBTA_HL *p_data){
     btif_hl_app_cb_t       *p_acb;
     UINT8                  app_idx;
     bthl_app_reg_state_t   state = BTHL_APP_REG_STATE_REG_SUCCESS;
-    bt_status_t            bt_status;
 
     BTIF_TRACE_DEBUG("%s reg status=%d app_handle=%d", __FUNCTION__, p_data->reg_cfm.status, p_data->reg_cfm.app_handle);
 
@@ -2454,7 +2450,7 @@ static void btif_hl_proc_cch_open_ind(tBTA_HL *p_data)
 
 {
     btif_hl_mcl_cb_t         *p_mcb;
-    UINT8                   app_idx, mcl_idx;
+    UINT8                   mcl_idx;
     int                     i;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -2578,7 +2574,6 @@ static BOOLEAN btif_hl_proc_cch_open_cfm(tBTA_HL *p_data)
     btif_hl_mcl_cb_t         *p_mcb;
     UINT8                    app_idx, mcl_idx;
     BOOLEAN                  status = FALSE;
-    tBTA_HL_DCH_OPEN_PARAM   dch_open;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
@@ -2647,7 +2642,6 @@ static void btif_hl_clean_mcb_using_handle( tBTA_HL_MCL_HANDLE mcl_handle){
 static void btif_hl_proc_cch_close_ind(tBTA_HL *p_data)
 
 {
-    UINT8                   app_idx, mcl_idx;
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
     btif_hl_clean_mcb_using_handle(p_data->cch_close_ind.mcl_handle);
@@ -2665,7 +2659,6 @@ static void btif_hl_proc_cch_close_ind(tBTA_HL *p_data)
 *******************************************************************************/
 static void btif_hl_proc_cch_close_cfm(tBTA_HL *p_data)
 {
-    UINT8                   app_idx, mcl_idx;
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
     btif_hl_clean_mcb_using_handle(p_data->cch_close_ind.mcl_handle);
@@ -2684,7 +2677,7 @@ static void btif_hl_proc_create_ind(tBTA_HL *p_data){
     btif_hl_app_cb_t         *p_acb;
     btif_hl_mcl_cb_t         *p_mcb;
     tBTA_HL_MDEP            *p_mdep;
-    UINT8                   app_idx, orig_app_idx, mcl_idx, mdep_cfg_idx;
+    UINT8                   orig_app_idx, mcl_idx, mdep_cfg_idx;
     BOOLEAN                 first_reliable_exist;
     BOOLEAN                 success = TRUE;
     tBTA_HL_DCH_CFG         rsp_cfg = BTA_HL_DCH_CFG_UNKNOWN;
@@ -2769,7 +2762,6 @@ static void btif_hl_proc_dch_open_ind(tBTA_HL *p_data)
     btif_hl_mcl_cb_t         *p_mcb;
     btif_hl_mdl_cb_t         *p_dcb;
     UINT8                    orig_app_idx, mcl_idx, mdl_idx, mdep_cfg_idx;
-    UINT8                    dc_cfg;
     BOOLEAN close_dch = FALSE;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -3003,7 +2995,7 @@ static void btif_hl_proc_dch_reconnect_ind(tBTA_HL *p_data)
     btif_hl_app_cb_t        *p_acb;
     btif_hl_mcl_cb_t        *p_mcb;
     btif_hl_mdl_cb_t        *p_dcb;
-    UINT8                   app_idx, mcl_idx, mdl_idx, mdep_cfg_idx, dc_cfg;
+    UINT8                   app_idx, mcl_idx, mdl_idx, mdep_cfg_idx;
     BOOLEAN                 close_dch = FALSE;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -3136,7 +3128,6 @@ static void btif_hl_proc_dch_close_cfm(tBTA_HL *p_data)
 *******************************************************************************/
 static void btif_hl_proc_abort_ind(tBTA_HL_MCL_HANDLE mcl_handle){
 
-    UINT8                   app_idx,mcl_idx;
     BTIF_TRACE_DEBUG("%s", __FUNCTION__ );
     btif_hl_app_cb_t  *p_acb;
     UINT8 i,j;
@@ -3169,8 +3160,6 @@ static void btif_hl_proc_abort_ind(tBTA_HL_MCL_HANDLE mcl_handle){
 **
 *******************************************************************************/
 static void btif_hl_proc_abort_cfm(tBTA_HL_MCL_HANDLE mcl_handle){
-    UINT8                   app_idx,mcl_idx;
-
     BTIF_TRACE_DEBUG("%s", __FUNCTION__ );
     btif_hl_app_cb_t  *p_acb;
     UINT8 i,j;
@@ -3257,9 +3246,6 @@ static void btif_hl_proc_dch_cong_ind(tBTA_HL *p_data)
 static void btif_hl_proc_reg_request(UINT8 app_idx, UINT8  app_id,
                                      tBTA_HL_REG_PARAM *p_reg_param,
                                      tBTA_HL_CBACK *p_cback){
-    bt_status_t status= BT_STATUS_SUCCESS;
-    UINT8 i;
-    btif_hl_app_data_t *p_data;
     UNUSED(p_cback);
 
     BTIF_TRACE_DEBUG("%s app_idx=%d app_id=%d", __FUNCTION__, app_idx, app_id);
@@ -3291,10 +3277,7 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
     BOOLEAN                         send_chan_cb=TRUE;
     tBTA_HL_REG_PARAM               reg_param;
     btif_hl_app_cb_t                *p_acb;
-    bthl_app_reg_state_t            reg_state = BTHL_APP_REG_STATE_REG_FAILED;
     int                             app_id;
-    UINT8                           preg_idx;
-    bt_status_t                     bt_status;
 
     BTIF_TRACE_DEBUG("%s event %d", __FUNCTION__, event);
     btif_hl_display_calling_process_name();
@@ -3382,7 +3365,6 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
     UINT8                 app_idx, mcl_idx;
     btif_hl_app_cb_t      *p_acb;
     btif_hl_mcl_cb_t      *p_mcb = NULL;
-    BD_ADDR               bd_addr;
     btif_hl_pend_dch_op_t  pending_op;
     BOOLEAN status;
 
@@ -4075,11 +4057,10 @@ static bt_status_t connect_channel(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
 **
 *******************************************************************************/
 static bt_status_t destroy_channel(int channel_id){
-    UINT8 app_idx, mcl_idx, mdl_idx, mdl_cfg_idx, app_id, mdep_cfg_idx = 0;
+    UINT8 app_idx, mcl_idx, mdl_cfg_idx, mdep_cfg_idx = 0;
     bt_status_t status = BT_STATUS_SUCCESS;
     btif_hl_mdl_cfg_t     *p_mdl;
     btif_hl_mcl_cb_t     *p_mcb;
-    btif_hl_mdl_cb_t     *p_dcb;
     btif_hl_app_cb_t     *p_acb;
 
     CHECK_BTHL_INIT();
@@ -4208,7 +4189,7 @@ static bt_status_t register_application(bthl_reg_param_t *p_reg_param, int *app_
     tBTA_HL_SUP_FEATURE         *p_sup;
     tBTA_HL_MDEP_CFG            *p_cfg;
     tBTA_HL_MDEP_DATA_TYPE_CFG  *p_data;
-    UINT8                       app_idx=0, i=0, pending_reg_idx=0;
+    UINT8                       app_idx=0, i=0;
     bthl_mdep_cfg_t             *p_mdep_cfg;
     bt_status_t                 status = BT_STATUS_SUCCESS;
     btif_hl_evt_cb_t            evt_param;
@@ -4338,7 +4319,7 @@ BOOLEAN  btif_hl_save_mdl_cfg(UINT8 mdep_id, UINT8 item_idx,
     BOOLEAN             success = FALSE;
     btif_hl_app_cb_t    *p_acb;
     btif_hl_mcl_cb_t    *p_mcb;
-    UINT8               app_idx, mcl_idx, mdl_idx, len;
+    UINT8               app_idx, mcl_idx, len;
     bt_status_t         bt_status;
     btif_hl_evt_cb_t    evt_param;
     int                 *p_channel_id;
@@ -4575,7 +4556,6 @@ void btif_hl_set_socket_state(btif_hl_soc_cb_t *p_scb, btif_hl_soc_state_t new_s
 **
 *******************************************************************************/
 void btif_hl_release_mcl_sockets(UINT8 app_idx, UINT8 mcl_idx){
-    btif_hl_soc_cb_t    *p_scb = NULL;
     UINT8               i;
     btif_hl_mdl_cb_t    *p_dcb;
     BOOLEAN             found= FALSE;
@@ -4631,7 +4611,6 @@ BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx){
     btif_hl_mcl_cb_t      *p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     btif_hl_mdl_cb_t      *p_dcb = BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
     btif_hl_soc_cb_t      *p_scb = NULL;
-    UINT8                 soc_idx;
     BOOLEAN               status = FALSE;
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -4733,10 +4712,8 @@ void btif_hl_close_socket( fd_set *p_org_set){
     btif_hl_soc_cb_t                *p_scb = NULL;
     BOOLEAN                         element_removed = FALSE;
     btif_hl_mdl_cb_t                *p_dcb = NULL ;
-    btif_hl_app_cb_t                *p_acb = NULL ;
     btif_hl_evt_cb_t                evt_param;
     int                             len;
-    int                             app_idx;
     bt_status_t                     status;
 
     BTIF_TRACE_DEBUG("entering %s",__FUNCTION__);

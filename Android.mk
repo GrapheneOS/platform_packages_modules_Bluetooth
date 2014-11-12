@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-bdroid_CFLAGS := -Wno-unused-parameter
+bdroid_CFLAGS := -Wno-unused-parameter -Wno-missing-field-initializers
 
 # Setup bdroid local make variables for handling configuration
 ifneq ($(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR),)

@@ -324,7 +324,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
     tL2CAP_CFG_INFO cfg_info;
     UINT16          rej_reason, rej_mtu, lcid, rcid, info_type;
     tL2C_CCB        *p_ccb;
-    tL2C_RCB        *p_rcb, *p_rcb2;
+    tL2C_RCB        *p_rcb;
     BOOLEAN         cfg_rej, pkt_size_rej = FALSE;
     UINT16          cfg_rej_len, cmd_len;
     UINT16          result;

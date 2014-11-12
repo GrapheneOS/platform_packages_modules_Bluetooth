@@ -137,7 +137,7 @@ static void btif_in_hf_client_generic_evt(UINT16 event, char *p_param)
     switch (event) {
         case BTIF_HF_CLIENT_CB_AUDIO_CONNECTING:
         {
-            HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, BTHF_AUDIO_STATE_CONNECTING,
+            HAL_CBACK(bt_hf_client_callbacks, audio_state_cb, (bthf_client_audio_state_t)BTHF_AUDIO_STATE_CONNECTING,
                       &btif_hf_client_cb.connected_bda);
         } break;
         default:
@@ -367,8 +367,6 @@ static bt_status_t stop_voice_recognition()
 *******************************************************************************/
 static bt_status_t volume_control(bthf_client_volume_type_t type, int volume)
 {
-    BOOLEAN speaker;
-
     CHECK_BTHF_CLIENT_SLC_CONNECTED();
 
     switch (type)

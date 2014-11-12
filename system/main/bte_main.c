@@ -777,7 +777,6 @@ static void dealloc(TRANSAC transac)
 ******************************************************************************/
 static int data_ind(TRANSAC transac, char *p_buf, int len)
 {
-    BT_HDR *p_msg = (BT_HDR *) transac;
     UNUSED(p_buf);
     UNUSED(len);
 

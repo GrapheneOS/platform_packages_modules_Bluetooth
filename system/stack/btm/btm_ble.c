@@ -692,7 +692,6 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback)
 void btm_ble_test_command_complete(UINT8 *p)
 {
     tBTM_CMPL_CB   *p_cb = btm_cb.devcb.p_le_test_cmd_cmpl_cb;
-    UINT8           status;
 
     btm_cb.devcb.p_le_test_cmd_cmpl_cb = NULL;
 

@@ -362,7 +362,6 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
 void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC *p)
 {
 #if (SMP_INCLUDED == TRUE)
-    tBTM_LE_RANDOM_CB *p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
     tSMP_ENC    output;
     UINT8 index = 0;
     tBTM_BLE_MULTI_ADV_INST *p_inst = NULL;

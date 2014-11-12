@@ -355,8 +355,6 @@ UINT32 GKI_get_os_tick_count(void)
 *******************************************************************************/
 UINT8 GKI_create_task (TASKPTR task_entry, UINT8 task_id, INT8 *taskname, UINT16 *stack, UINT16 stacksize)
 {
-    UINT16  i;
-    UINT8   *p;
     struct sched_param param;
     int policy, ret = 0;
     pthread_attr_t attr1;
@@ -1038,7 +1036,6 @@ void GKI_disable (void)
 void GKI_exception (UINT16 code, char *msg)
 {
     UINT8 task_id;
-    int i = 0;
 
     ALOGE( "GKI_exception(): Task State Table");
 

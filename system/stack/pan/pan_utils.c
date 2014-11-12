@@ -63,7 +63,6 @@ UINT32 pan_register_with_sdp (UINT16 uuid, UINT8 sec_mask, char *p_name, char *p
     UINT32  sdp_handle;
     UINT16  browse_list = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
     UINT16  security = 0;
-    UINT8   availability;
     UINT32  proto_len = (UINT32)pan_proto_elem_data[1];
 
     /* Create a record */

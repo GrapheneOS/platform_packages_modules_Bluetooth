@@ -560,7 +560,6 @@ void bta_fs_co_seek (int fd, INT32 offset, INT16 origin, UINT8 app_id)
 tBTA_FS_CO_STATUS bta_fs_co_access(const char *p_path, int mode, BOOLEAN *p_is_dir,
                                    UINT8 app_id)
 {
-    int err;
     int os_mode = 0;
     tBTA_FS_CO_STATUS status = BTA_FS_CO_OK;
     struct stat buffer;

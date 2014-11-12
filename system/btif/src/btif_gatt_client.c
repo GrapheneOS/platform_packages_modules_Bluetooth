@@ -337,7 +337,6 @@ static void btif_gattc_init_dev_cb(void)
 
 static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
 {
-    BOOLEAN found=FALSE;
     uint8_t i;
     for (i = 0; i < BTIF_GATT_MAX_OBSERVED_DEV; i++)
     {

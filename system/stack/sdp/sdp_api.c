@@ -432,7 +432,7 @@ BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
 BOOLEAN SDP_FindServiceUUIDInRec_128bit(tSDP_DISC_REC *p_rec, tBT_UUID * p_uuid)
 {
 #if SDP_CLIENT_ENABLED == TRUE
-    tSDP_DISC_ATTR  *p_attr, *p_sattr, *p_extra_sattr;
+    tSDP_DISC_ATTR  *p_attr, *p_sattr;
 
     p_attr = p_rec->p_first_attr;
 
@@ -597,7 +597,7 @@ tSDP_DISC_REC *SDP_FindServiceInDb_128bit(tSDP_DISCOVERY_DB *p_db, tSDP_DISC_REC
 {
 #if SDP_CLIENT_ENABLED == TRUE
     tSDP_DISC_REC   *p_rec;
-    tSDP_DISC_ATTR  *p_attr, *p_sattr, *p_extra_sattr;
+    tSDP_DISC_ATTR  *p_attr, *p_sattr;
 
     /* Must have a valid database */
     if (p_db == NULL)

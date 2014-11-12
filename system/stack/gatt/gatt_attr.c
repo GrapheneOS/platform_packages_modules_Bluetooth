@@ -82,32 +82,6 @@ UINT16 gatt_profile_find_conn_id_by_bd_addr(BD_ADDR bda)
 
 /*******************************************************************************
 **
-** Function         gatt_profile_find_clcb_by_bd_addr
-**
-** Description      The function searches all LCBs with macthing bd address.
-**
-** Returns          Pointer to the found link conenction control block.
-**
-*******************************************************************************/
-static tGATT_PROFILE_CLCB *gatt_profile_find_clcb_by_bd_addr(BD_ADDR bda, tBT_TRANSPORT transport)
-{
-    UINT8 i_clcb;
-    tGATT_PROFILE_CLCB    *p_clcb = NULL;
-
-    for (i_clcb = 0, p_clcb= gatt_cb.profile_clcb; i_clcb < GATT_MAX_APPS; i_clcb++, p_clcb++)
-    {
-        if (p_clcb->in_use && p_clcb->transport == transport &&
-            p_clcb->connected && !memcmp(p_clcb->bda, bda, BD_ADDR_LEN))
-        {
-            return p_clcb;
-        }
-    }
-
-    return p_clcb;
-}
-
-/*******************************************************************************
-**
 ** Function         gatt_profile_clcb_alloc
 **
 ** Description      The function allocates a GATT profile  connection link control block

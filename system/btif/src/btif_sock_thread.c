@@ -112,55 +112,6 @@ static inline void add_poll(int h, int fd, int type, int flags, uint32_t user_id
 static pthread_mutex_t thread_slot_lock;
 
 
-static inline void set_socket_blocking(int s, int blocking)
-{
-    int opts;
-    opts = fcntl(s, F_GETFL);
-    if (opts<0) APPL_TRACE_ERROR("set blocking (%s)", strerror(errno));
-    if(blocking)
-        opts &= ~O_NONBLOCK;
-    else opts |= O_NONBLOCK;
-    fcntl(s, F_SETFL, opts);
-}
-
-static inline int create_server_socket(const char* name)
-{
-    int s = socket(AF_LOCAL, SOCK_STREAM, 0);
-    APPL_TRACE_DEBUG("covert name to android abstract name:%s", name);
-    if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) >= 0)
-    {
-        if(listen(s, 5) == 0)
-        {
-            APPL_TRACE_DEBUG("listen to local socket:%s, fd:%d", name, s);
-            return s;
-        }
-        else APPL_TRACE_ERROR("listen to local socket:%s, fd:%d failed, errno:%d", name, s, errno);
-    }
-    else APPL_TRACE_ERROR("create local socket:%s fd:%d, failed, errno:%d", name, s, errno);
-    close(s);
-    return -1;
-}
-static inline int connect_server_socket(const char* name)
-{
-    int s = socket(AF_LOCAL, SOCK_STREAM, 0);
-    set_socket_blocking(s, TRUE);
-    if(socket_local_client_connect(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) >= 0)
-    {
-        APPL_TRACE_DEBUG("connected to local socket:%s, fd:%d", name, s);
-        return s;
-    }
-    else APPL_TRACE_ERROR("connect to local socket:%s, fd:%d failed, errno:%d", name, s, errno);
-    close(s);
-    return -1;
-}
-static inline int accept_server_socket(int s)
-{
-    struct sockaddr_un client_address;
-    socklen_t clen;
-    int fd = accept(s, (struct sockaddr*)&client_address, &clen);
-    APPL_TRACE_DEBUG("accepted fd:%d for server fd:%d", fd, s);
-    return fd;
-}
 static inline pthread_t create_thread(void *(*start_routine)(void *), void * arg)
 {
     pthread_attr_t thread_attr;
@@ -223,7 +174,6 @@ int btsock_thread_init()
 }
 int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback)
 {
-    int ret = FALSE;
     asrt(callback || cmd_callback);
     lock_slot(&thread_slot_lock);
     int h = alloc_thread_slot();
