@@ -93,7 +93,7 @@ thread_t *thread_new_sized(const char *name, size_t work_queue_capacity) {
 
 error:;
   if (ret) {
-    fixed_queue_free(ret->work_queue, free);
+    fixed_queue_free(ret->work_queue, osi_free);
     reactor_free(ret->reactor);
   }
   osi_free(ret);
@@ -111,7 +111,7 @@ void thread_free(thread_t *thread) {
   thread_stop(thread);
   thread_join(thread);
 
-  fixed_queue_free(thread->work_queue, free);
+  fixed_queue_free(thread->work_queue, osi_free);
   reactor_free(thread->reactor);
   osi_free(thread);
 }

@@ -47,6 +47,7 @@
 #include "btsnoop.h"
 #include "bt_utils.h"
 #include "osi.h"
+#include "osi/include/allocation_tracker.h"
 #include "stack_manager.h"
 
 /************************************************************************************
@@ -115,6 +116,10 @@ static int init(bt_callbacks_t *callbacks) {
 
   if (interface_ready())
     return BT_STATUS_DONE;
+
+#ifdef BLUEDROID_DEBUG
+  allocation_tracker_init();
+#endif
 
   bt_hal_cbacks = callbacks;
   stack_manager_get_interface()->init_stack();

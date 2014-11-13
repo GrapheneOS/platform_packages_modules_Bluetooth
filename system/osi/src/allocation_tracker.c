@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_allocation_tracker"
+
 #include <assert.h>
 #include <pthread.h>
 #include <stdint.h>
@@ -27,13 +29,11 @@
 #include "hash_map.h"
 #include "osi.h"
 
-
 typedef struct {
   uint8_t allocator_id;
   void *ptr;
   size_t size;
   bool freed;
-  bool is_canaried;
 } allocation_t;
 
 // Hidden constructor for hash map for our use only. Everything else should use the
@@ -55,16 +55,14 @@ static const allocator_t untracked_calloc_allocator = {
   free
 };
 
-static bool using_canaries;
 static size_t canary_size;
 static hash_map_t *allocations;
 static pthread_mutex_t lock;
 
-void allocation_tracker_init(bool use_canaries) {
+void allocation_tracker_init(void) {
   if (allocations)
     return;
 
-  using_canaries = use_canaries;
   canary_size = strlen(canary);
 
   pthread_mutex_init(&lock, NULL);
@@ -77,7 +75,7 @@ void allocation_tracker_init(bool use_canaries) {
 }
 
 // Test function only. Do not call in the normal course of operations.
-void allocation_tracker_uninit() {
+void allocation_tracker_uninit(void) {
   hash_map_free(allocations);
   allocations = NULL;
 }
@@ -89,7 +87,7 @@ void allocation_tracker_reset(void) {
   hash_map_clear(allocations);
 }
 
-size_t allocation_tracker_expect_no_allocations() {
+size_t allocation_tracker_expect_no_allocations(void) {
   if (!allocations)
     return 0;
 
@@ -103,15 +101,13 @@ size_t allocation_tracker_expect_no_allocations() {
   return unfreed_memory_size;
 }
 
-void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t requested_size, bool add_canary) {
+void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t requested_size) {
   if (!allocations || !ptr)
     return ptr;
 
   char *return_ptr = (char *)ptr;
 
-  bool using_canaries_here = using_canaries && add_canary;
-  if (using_canaries_here)
-    return_ptr += canary_size;
+  return_ptr += canary_size;
 
   pthread_mutex_lock(&lock);
 
@@ -124,18 +120,15 @@ void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t re
   }
 
   allocation->allocator_id = allocator_id;
-  allocation->is_canaried = using_canaries_here;
   allocation->freed = false;
   allocation->size = requested_size;
   allocation->ptr = return_ptr;
 
   pthread_mutex_unlock(&lock);
 
-  if (using_canaries_here) {
-    // Add the canary on both sides
-    memcpy(return_ptr - canary_size, canary, canary_size);
-    memcpy(return_ptr + requested_size, canary, canary_size);
-  }
+  // Add the canary on both sides
+  memcpy(return_ptr - canary_size, canary, canary_size);
+  memcpy(return_ptr + requested_size, canary, canary_size);
 
   return return_ptr;
 }
@@ -152,23 +145,21 @@ void *allocation_tracker_notify_free(uint8_t allocator_id, void *ptr) {
   assert(allocation->allocator_id == allocator_id); // Must be from the same allocator
   allocation->freed = true;
 
-  if (allocation->is_canaried) {
-    const char *beginning_canary = ((char *)ptr) - canary_size;
-    const char *end_canary = ((char *)ptr) + allocation->size;
+  const char *beginning_canary = ((char *)ptr) - canary_size;
+  const char *end_canary = ((char *)ptr) + allocation->size;
 
-    for (size_t i = 0; i < canary_size; i++) {
-      assert(beginning_canary[i] == canary[i]);
-      assert(end_canary[i] == canary[i]);
-    }
+  for (size_t i = 0; i < canary_size; i++) {
+    assert(beginning_canary[i] == canary[i]);
+    assert(end_canary[i] == canary[i]);
   }
 
   pthread_mutex_unlock(&lock);
 
-  return allocation->is_canaried ? ((char *)ptr) - canary_size : ptr;
+  return ((char *)ptr) - canary_size;
 }
 
 size_t allocation_tracker_resize_for_canary(size_t size) {
-  return (!allocations || !using_canaries) ? size : size + (2 * canary_size);
+  return (!allocations) ? size : size + (2 * canary_size);
 }
 
 static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context) {

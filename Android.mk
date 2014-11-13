@@ -13,6 +13,10 @@ ifneq ($(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED),)
   bdroid_CFLAGS += -DHCILP_INCLUDED=$(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED)
 endif
 
+ifneq ($(TARGET_BUILD_VARIANT),user)
+bdroid_CFLAGS += -DBLUEDROID_DEBUG
+endif
+
 bdroid_CFLAGS += \
   -Wall \
   -Werror \

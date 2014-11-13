@@ -43,7 +43,7 @@ semaphore_t *semaphore_new(unsigned int value) {
     ret->fd = eventfd(value, EFD_SEMAPHORE);
     if (ret->fd == INVALID_FD) {
       ALOGE("%s unable to allocate semaphore: %s", __func__, strerror(errno));
-      free(ret);
+      osi_free(ret);
       ret = NULL;
     }
   }

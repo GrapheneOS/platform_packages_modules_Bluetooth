@@ -21,14 +21,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "allocator.h"
-
 typedef struct allocation_tracker_t allocation_tracker_t;
 typedef uint8_t allocator_id_t;
 
 // Initialize the allocation tracker. If you do not call this function,
 // the allocation tracker functions do nothing but are still safe to call.
-void allocation_tracker_init(bool use_canaries);
+void allocation_tracker_init(void);
 
 // Reset the allocation tracker. Don't call this in the normal course of
 // operations. Useful mostly for testing.
@@ -41,13 +39,11 @@ size_t allocation_tracker_expect_no_allocations(void);
 
 // Notify the tracker of a new allocation belonging to |allocator_id|.
 // If |ptr| is NULL, this function does nothing. |requested_size| is the
-// size of the allocation without any canaries. |add_canary| indicates
-// if the caller has appropriately sized the allocation using
-// |allocation_tracker_resize_for_canary|, and if the canaries should be
-// filled now and then checked upon free. |add_canary| has no effect if
-// the tracker was initialized with |use_canaries| as false. Returns
-// |ptr| offset to the the beginning of the uncanaried region.
-void *allocation_tracker_notify_alloc(allocator_id_t allocator_id, void *ptr, size_t requested_size, bool add_canary);
+// size of the allocation without any canaries. The caller must allocate
+// enough memory for canaries; the total allocation size can be determined
+// by calling |allocation_tracker_resize_for_canary|. Returns |ptr| offset
+// to the the beginning of the uncanaried region.
+void *allocation_tracker_notify_alloc(allocator_id_t allocator_id, void *ptr, size_t requested_size);
 
 // Notify the tracker of an allocation that is being freed. |ptr| must be a
 // pointer returned by a call to |allocation_tracker_notify_alloc| with the
@@ -56,7 +52,5 @@ void *allocation_tracker_notify_alloc(allocator_id_t allocator_id, void *ptr, si
 // space.
 void *allocation_tracker_notify_free(allocator_id_t allocator_id, void *ptr);
 
-// Get the full size for an allocation, taking into account whether canaries
-// are turned on or not. If you call this for an allocation, pass true to the
-// |add_canary| parameter of |allocation_tracker_notify_alloc|.
+// Get the full size for an allocation, taking into account the size of canaries.
 size_t allocation_tracker_resize_for_canary(size_t size);
