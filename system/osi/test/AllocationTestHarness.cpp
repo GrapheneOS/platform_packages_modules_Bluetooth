@@ -18,10 +18,10 @@
 
 #include <gtest/gtest.h>
 
-#include "AllocationTestHarness.h"
+#include "osi/test/AllocationTestHarness.h"
 
 extern "C" {
-#include "allocation_tracker.h"
+#include "osi/include/allocation_tracker.h"
 }
 
 void AllocationTestHarness::SetUp() {

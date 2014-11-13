@@ -21,7 +21,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/..
 
 LOCAL_SRC_FILES := \
     ./src/alarm.c \
@@ -54,7 +55,8 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/..
 
 LOCAL_SRC_FILES := \
     ./test/AlarmTestHarness.cpp \
