@@ -117,7 +117,7 @@
 
 /* The number of buffers in buffer pool 0. */
 #ifndef GKI_BUF0_MAX
-#define GKI_BUF0_MAX                48
+#define GKI_BUF0_MAX                96
 #endif
 
 /* The ID of buffer pool 0. */
@@ -132,7 +132,7 @@
 
 /* The number of buffers in buffer pool 1. */
 #ifndef GKI_BUF1_MAX
-#define GKI_BUF1_MAX                26
+#define GKI_BUF1_MAX                52
 #endif
 
 /* The ID of buffer pool 1. */
@@ -147,7 +147,7 @@
 
 /* The number of buffers in buffer pool 2. */
 #ifndef GKI_BUF2_MAX
-#define GKI_BUF2_MAX                45
+#define GKI_BUF2_MAX                90
 #endif
 
 /* The ID of buffer pool 2. */
@@ -162,7 +162,7 @@
 
 /* The number of buffers in buffer pool 3. */
 #ifndef GKI_BUF3_MAX
-#define GKI_BUF3_MAX                200
+#define GKI_BUF3_MAX                400
 #endif
 
 /* The ID of buffer pool 3. */
