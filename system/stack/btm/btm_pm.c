@@ -28,6 +28,9 @@
  *
  *****************************************************************************/
 
+#define LOG_TAG "bt_pm"
+
+#include <cutils/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -76,6 +79,7 @@ const UINT8 btm_pm_md_comp_matrix[BTM_PM_NUM_SET_MODES*BTM_PM_NUM_SET_MODES] =
 /* function prototype */
 static int btm_pm_find_acl_ind(BD_ADDR remote_bda);
 static tBTM_STATUS btm_pm_snd_md_req( UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *p_mode );
+static const char *mode_to_string(tBTM_PM_MODE mode);
 
 /*
 #ifdef BTM_PM_DEBUG
@@ -618,6 +622,8 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
 #if BTM_PM_DEBUG == TRUE
     BTM_TRACE_DEBUG("btm_pm_snd_md_req state:0x%x, link_ind: %d", p_cb->state, link_ind);
 #endif  // BTM_PM_DEBUG
+
+    ALOGD("%s switching from %s to %s.", __func__, mode_to_string(p_cb->state), mode_to_string(md_res.mode));
     switch(md_res.mode)
     {
     case BTM_PM_MD_ACTIVE:
@@ -989,4 +995,14 @@ tBTM_CONTRL_STATE BTM_PM_ReadControllerState(void)
        return BTM_CONTRL_SCAN;
     else
        return BTM_CONTRL_IDLE;
+}
+
+static const char *mode_to_string(tBTM_PM_MODE mode) {
+  switch (mode) {
+    case BTM_PM_MD_ACTIVE: return "ACTIVE";
+    case BTM_PM_MD_SNIFF:  return "SNIFF";
+    case BTM_PM_MD_PARK:   return "PARK";
+    case BTM_PM_MD_HOLD:   return "HOLD";
+    default:               return "UNKNOWN";
+  }
 }
