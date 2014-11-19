@@ -144,4 +144,6 @@ LOCAL_REQUIRED_MODULES := \
 	libbt-vendor
 LOCAL_MULTILIB := 32
 
+LOCAL_CLANG_CFLAGS := -Wno-error=gnu-variable-sized-type-not-at-end
+
 include $(BUILD_SHARED_LIBRARY)

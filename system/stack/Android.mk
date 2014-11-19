@@ -156,5 +156,9 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_SHARED_LIBRARIES := libcutils libc
 LOCAL_MULTILIB := 32
+# gnu-variable-sized-type-not-at-end is needed for a variable-size header in
+# a struct.
+# const-logical-operand is needed for code in l2c_utils.c that looks intentional.
+LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=constant-logical-operand
 
 include $(BUILD_STATIC_LIBRARY)
