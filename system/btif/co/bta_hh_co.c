@@ -207,6 +207,7 @@ void bta_hh_co_destroy(int fd)
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_DESTROY;
     uhid_write(fd, &ev);
+    APPL_TRACE_DEBUG("%s: closing fd=%d", __func__, fd);
     close(fd);
 }
 
