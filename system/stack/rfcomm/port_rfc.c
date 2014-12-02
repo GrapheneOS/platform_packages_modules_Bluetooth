@@ -1095,6 +1095,9 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
 
     p_port->rfc.state = RFC_STATE_CLOSED;
 
+    RFCOMM_TRACE_WARNING ("%s RFCOMM connection in state %d closed: %s (res: %d)",
+                          __func__, p_port->state, PORT_GetResultString(res), res);
+
     port_release_port (p_port);
 }
 
@@ -1115,6 +1118,3 @@ void port_get_credits (tPORT *p_port, UINT8 k)
     if (p_port->credit_tx == 0)
         p_port->tx.peer_fc = TRUE;
 }
-
-
-

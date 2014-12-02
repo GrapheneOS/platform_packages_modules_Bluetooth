@@ -44,6 +44,36 @@
 #define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
 #define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
+/* Mapping from PORT_* result codes to human readable strings. */
+static const char *result_code_strings[] = {
+  "Success",
+  "Unknown error",
+  "Already opened",
+  "Command pending",
+  "App not registered",
+  "No memory",
+  "No resources",
+  "Bad BD address",
+  "Bad handle",
+  "Not opened",
+  "Line error",
+  "Start failed",
+  "Parameter negotiation failed",
+  "Port negotiation failed",
+  "Sec failed",
+  "Peer connection failed",
+  "Peer failed",
+  "Peer timeout",
+  "Closed",
+  "TX full",
+  "Local closed",
+  "Local timeout",
+  "TX queue disabled",
+  "Page timeout",
+  "Invalid SCN",
+  "Unknown result code"
+};
+
 /*******************************************************************************
 **
 ** Function         RFCOMM_CreateConnection
@@ -1846,3 +1876,20 @@ UINT8 PORT_SetTraceLevel (UINT8 new_level)
     return (rfc_cb.trace_level);
 }
 
+/*******************************************************************************
+**
+** Function         PORT_GetResultString
+**
+** Description      This function returns the human-readable string for a given
+**                  result code.
+**
+** Returns          a pointer to the human-readable string for the given result.
+**
+*******************************************************************************/
+const char *PORT_GetResultString (const uint8_t result_code) {
+  if (result_code > PORT_ERR_MAX) {
+    return result_code_strings[PORT_ERR_MAX];
+  }
+
+  return result_code_strings[result_code];
+}

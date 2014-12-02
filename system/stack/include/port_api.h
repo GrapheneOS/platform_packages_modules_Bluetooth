@@ -175,6 +175,7 @@ typedef void (tPORT_CALLBACK) (UINT32 code, UINT16 port_handle);
 #define PORT_PAGE_TIMEOUT           (PORT_ERR_BASE + 24)
 #define PORT_INVALID_SCN            (PORT_ERR_BASE + 25)
 
+#define PORT_ERR_MAX                (PORT_ERR_BASE + 26)
 
 /*****************************************************************************
 **  External Function Declarations
@@ -637,6 +638,19 @@ extern void RFCOMM_Init (void);
 *******************************************************************************/
 extern UINT8 PORT_SetTraceLevel (UINT8 new_level);
 
+
+/*******************************************************************************
+**
+** Function         PORT_GetResultString
+**
+** Description      This function returns the human-readable string for a given
+**                  result code.
+**
+** Returns          a pointer to the human-readable string for the given
+**                  result. Note that the string returned must not be freed.
+**
+*******************************************************************************/
+extern const char *PORT_GetResultString (const uint8_t result_code);
 
 #ifdef __cplusplus
 }
