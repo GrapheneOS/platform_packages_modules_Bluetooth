@@ -2842,14 +2842,13 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
     VERBOSE("%s() - frames=%d (queue=%d)", __FUNCTION__, nb_frame, btif_media_cb.TxAaQ.count);
 
-    while (btif_media_cb.TxAaQ.count >= (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ-nb_frame))
+    if (btif_media_cb.TxAaQ.count >= MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
     {
-        APPL_TRACE_WARNING("%s() - TX queue buffer count %d",
-            __FUNCTION__, btif_media_cb.TxAaQ.count);
-        GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
+        APPL_TRACE_WARNING("%s() - TX queue buffer count %d, truncating to %d",
+            __FUNCTION__, btif_media_cb.TxAaQ.count, nb_frame);
+        while (btif_media_cb.TxAaQ.count > nb_frame)
+            GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
     }
-
-    if (btif_media_cb.TxAaQ.count) --nb_frame;
 
     switch (btif_media_cb.TxTranscoding)
     {

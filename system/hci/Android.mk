@@ -8,6 +8,7 @@ LOCAL_SRC_FILES := \
 	src/bt_hci_bdroid.c \
 	src/btsnoop.c \
 	src/btsnoop_net.c \
+	src/btsnoop_mem.c \
 	src/lpm.c \
 	src/utils.c \
 	src/vendor.c

@@ -12,7 +12,8 @@ LOCAL_SRC_FILES := \
     ./src/list.c \
     ./src/reactor.c \
     ./src/semaphore.c \
-    ./src/thread.c
+    ./src/thread.c \
+    ./src/ringbuffer.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror
 LOCAL_MODULE := libosi
@@ -34,7 +35,8 @@ LOCAL_SRC_FILES := \
     ./test/config_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
-    ./test/thread_test.cpp
+    ./test/thread_test.cpp \
+    ./test/ringbuffer_test.cpp
 
 LOCAL_CFLAGS := -Wall -Werror
 LOCAL_MODULE := ositests

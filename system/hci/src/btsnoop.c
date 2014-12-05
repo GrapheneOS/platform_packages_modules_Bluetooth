@@ -35,6 +35,7 @@
 #include "bt_hci_bdroid.h"
 #include "bt_utils.h"
 #include "utils.h"
+#include "btsnoop_mem.h"
 
 typedef enum {
   kCommandPacket = 1,
@@ -161,6 +162,8 @@ void btsnoop_close(void) {
 
 void btsnoop_capture(const HC_BT_HDR *p_buf, bool is_rcvd) {
   const uint8_t *p = (const uint8_t *)(p_buf + 1) + p_buf->offset;
+
+  btsnoop_mem_capture(p_buf);
 
   if (hci_btsnoop_fd == -1)
     return;

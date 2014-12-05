@@ -48,6 +48,7 @@
 
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+#include "btif_debug_conn.h"
 #include "btif_dm.h"
 #include "btif_storage.h"
 
@@ -538,6 +539,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
             if (p_data->open.status == BTA_GATT_OK)
                 btif_gatt_check_encrypted_link(p_data->open.remote_bda);
+
+            btif_debug_conn_state(bda, BTIF_DEBUG_CONNECTED, p_data->open.status);
             break;
         }
 
@@ -547,6 +550,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             bdcpy(bda.address, p_data->close.remote_bda);
             HAL_CBACK(bt_gatt_callbacks, client->close_cb, p_data->close.conn_id
                 , p_data->status, p_data->close.client_if, &bda);
+
+            btif_debug_conn_state(bda, BTIF_DEBUG_DISCONNECTED, p_data->close.status);
             break;
         }
 

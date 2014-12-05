@@ -46,6 +46,9 @@ LOCAL_SRC_FILES += \
 	../btif/src/btif_sock_thread.c \
 	../btif/src/btif_sock_util.c \
 	../btif/src/btif_storage.c \
+	../btif/src/btif_debug.c \
+	../btif/src/btif_debug_btsnoop.c \
+	../btif/src/btif_debug_conn.c \
 	../btif/src/btif_util.c
 
 # callouts
@@ -101,7 +104,8 @@ LOCAL_C_INCLUDES += . \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
-	external/tinyxml2
+	external/tinyxml2 \
+	external/zlib
 
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
 LOCAL_CONLYFLAGS := -std=c99
@@ -120,6 +124,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libcutils \
 	libdl \
 	liblog \
+	libz \
 	libpower
 
 LOCAL_STATIC_LIBRARIES := \
