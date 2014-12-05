@@ -34,6 +34,7 @@
 #include "bta_gatts_int.h"
 #include "bta_gatts_co.h"
 #include "btm_ble_api.h"
+#include "btif/include/btif_debug_conn.h"
 #include <string.h>
 
 static void bta_gatts_nv_save_cback(BOOLEAN is_saved, tGATTS_HNDL_RANGE *p_hndl_range);
@@ -922,6 +923,13 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
                         gatt_if, conn_id, connected, reason);
     APPL_TRACE_DEBUG("bta_gatts_conn_cback  bda :%02x-%02x-%02x-%02x-%02x-%02x ",
                       bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
+
+    bt_bdaddr_t bdaddr;
+    bdcpy(bdaddr.address, bda);
+    if (connected)
+        btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_UNKNOWN);
+    else
+        btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, reason);
 
     p_reg = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 

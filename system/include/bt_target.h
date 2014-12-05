@@ -1701,6 +1701,11 @@ The maximum number of payload octets that the local device can receive in a sing
 **
 ******************************************************************************/
 
+/* Enable/disable BTSnoop memory logging */
+#ifndef BTSNOOP_MEM
+#define BTSNOOP_MEM TRUE
+#endif
+
 #include "bt_trace.h"
 
 #endif /* BT_TARGET_H */

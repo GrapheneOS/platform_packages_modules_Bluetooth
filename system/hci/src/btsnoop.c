@@ -32,7 +32,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "btsnoop.h"
+#include "hci/include/btsnoop.h"
+#include "hci/include/btsnoop_mem.h"
 #include "bt_types.h"
 #include "hci_layer.h"
 #include "osi/include/log.h"
@@ -100,6 +101,8 @@ static void set_api_wants_to_log(bool value) {
 
 static void capture(const BT_HDR *buffer, bool is_received) {
   const uint8_t *p = buffer->data + buffer->offset;
+
+  btsnoop_mem_capture(buffer);
 
   if (logfile_fd == INVALID_FD)
     return;

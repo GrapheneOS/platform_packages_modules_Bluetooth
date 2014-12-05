@@ -46,7 +46,9 @@
 #define LOG_TAG "bt_bluedroid"
 
 #include "btif_api.h"
+#include "btif_debug.h"
 #include "btsnoop.h"
+#include "btsnoop_mem.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 #include "osi/include/allocation_tracker.h"
@@ -128,6 +130,7 @@ static int init(bt_callbacks_t *callbacks) {
 
   bt_hal_cbacks = callbacks;
   stack_manager_get_interface()->init_stack();
+  btif_debug_init();
   return BT_STATUS_SUCCESS;
 }
 
@@ -307,6 +310,11 @@ static int read_energy_info()
     return BT_STATUS_SUCCESS;
 }
 
+static void dump(int fd)
+{
+    btif_debug_dump(fd);
+}
+
 static const void* get_profile_interface (const char *profile_id)
 {
     LOG_INFO("get_profile_interface %s", profile_id);
@@ -441,6 +449,7 @@ static const bt_interface_t bluetoothInterface = {
     config_hci_snoop_log,
     set_os_callouts,
     read_energy_info,
+    dump
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()

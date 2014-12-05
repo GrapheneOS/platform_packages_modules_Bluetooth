@@ -4,6 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
     src/btsnoop.c \
+    src/btsnoop_mem.c \
     src/btsnoop_net.c \
     src/buffer_allocator.c \
     src/hci_audio.c \
