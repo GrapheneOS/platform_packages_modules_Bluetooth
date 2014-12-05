@@ -37,6 +37,8 @@
 #include "bta_hh_int.h"
 #endif
 
+#include "btif/include/btif_debug_conn.h"
+
 #include <string.h>
 
 #include "osi/include/log.h"
@@ -1802,6 +1804,13 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
         APPL_TRACE_WARNING("%s() - cif=%d connected=%d conn_id=%d reason=0x%04x",
                       __FUNCTION__, gattc_if, connected, conn_id, reason);
     }
+
+    bt_bdaddr_t bdaddr;
+    bdcpy(bdaddr.address, bda);
+    if (connected)
+        btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_UNKNOWN);
+    else
+        btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, reason);
 
     if ((p_buf = (tBTA_GATTC_DATA *) GKI_getbuf(sizeof(tBTA_GATTC_DATA))) != NULL)
     {

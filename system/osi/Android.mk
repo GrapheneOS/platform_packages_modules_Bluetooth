@@ -43,6 +43,7 @@ LOCAL_SRC_FILES := \
     ./src/list.c \
     ./src/non_repeating_timer.c \
     ./src/reactor.c \
+    ./src/ringbuffer.c \
     ./src/semaphore.c \
     ./src/socket.c \
     ./src/thread.c
@@ -82,9 +83,10 @@ LOCAL_SRC_FILES := \
     ./test/hash_map_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
+    ./test/ringbuffer_test.cpp \
     ./test/thread_test.cpp
 
-LOCAL_CFLAGS := -Wall -Werror
+LOCAL_CFLAGS := -Wall
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
