@@ -54,6 +54,7 @@ static const char *result_code_strings[] = {
   "No memory",
   "No resources",
   "Bad BD address",
+  "Unspecified error",
   "Bad handle",
   "Not opened",
   "Line error",
