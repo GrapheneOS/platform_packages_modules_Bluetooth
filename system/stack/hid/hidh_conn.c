@@ -324,7 +324,6 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 #if (HID_HOST_MAX_CONN_RETRY > 0)
     UINT32 cb_res = HID_ERR_AUTH_FAILED;
 #endif
-    UINT32 reason;
     UNUSED(bd_addr);
     UNUSED (transport);
 

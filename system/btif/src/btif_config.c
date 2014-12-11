@@ -452,7 +452,6 @@ static cfg_node* find_add_node(cfg_node* p, const char* name)
 static int set_node(const char* section, const char* key, const char* name,
                     const char* value, short bytes, short type)
 {
-    int si = -1, ki = -1, vi = -1;
     cfg_node* section_node = NULL;
     if((section_node = find_add_node(&root, section)))
     {
@@ -575,7 +574,6 @@ static int remove_node(const char* section, const char* key, const char* name)
             if(name == NULL)
             {
                 int count = GET_CHILD_COUNT(key_node);
-                int i;
                 free_child(key_node, 0, count);
                 free_child(section_node, ki, 1);
                 return TRUE;
@@ -613,7 +611,6 @@ static void pack_child(cfg_node* p)
     int child_count = GET_CHILD_COUNT(p);
     int occupy = 1;
     int empty = 0;
-    int i;
     for(;;)
     {
         empty = find_first_empty(p, empty, child_count);
@@ -766,7 +763,6 @@ static void clean_newline_char()
 static void load_cfg()
 {
     const char* file_name = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT;
-    const char* file_name_new = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_NEW;
     const char* file_name_old = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_OLD;
     if(!btif_config_load_file(file_name))
     {

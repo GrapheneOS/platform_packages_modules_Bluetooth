@@ -94,7 +94,6 @@ BOOLEAN bta_hf_client_add_record(char *p_service_name, UINT8 scn,
     UINT16              version;
     UINT16              profile_uuid;
     BOOLEAN             result = TRUE;
-    BOOLEAN             codec_supported = FALSE;
     UINT8               buf[2];
     UINT16              sdp_features = 0;
 

@@ -394,8 +394,6 @@ BOOLEAN BTM_GetSecurityFlagsByTransport (BD_ADDR bd_addr, UINT8 * p_sec_flags,
 *******************************************************************************/
 void BTM_SetSecurityMode (UINT8 security_mode)
 {
-    UINT8   old_mode = btm_cb.security_mode;
-
     UINT8   sp_mode = HCI_SP_MODE_ENABLED;
     UINT8   sp_debug_mode = HCI_SPD_MODE_DISABLED;
 
@@ -5863,7 +5861,7 @@ static char *btm_pair_state_descr (tBTM_PAIRING_STATE state)
 
     return("???");
 #else
-    sprintf(btm_cb.state_temp_buffer,"%hu",state);
+    sprintf(btm_cb.state_temp_buffer,"%hhu",state);
 
     return(btm_cb.state_temp_buffer);
 #endif

@@ -218,27 +218,6 @@ static inline rfc_slot_t* find_rfc_slot_requesting_sdp()
     return NULL;
 }
 
-static inline rfc_slot_t* find_rfc_slot_by_fd(int fd)
-{
-    int i;
-    if(fd >= 0)
-    {
-        for(i = 0; i < MAX_RFC_CHANNEL; i++)
-        {
-            if(rfc_slots[i].fd == fd)
-            {
-                if(rfc_slots[i].id)
-                    return &rfc_slots[i];
-                else
-                {
-                    APPL_TRACE_ERROR("invalid rfc slot id, cannot be 0");
-                    break;
-                }
-            }
-        }
-    }
-    return NULL;
-}
 static rfc_slot_t* alloc_rfc_slot(const bt_bdaddr_t *addr, const char* name, const uint8_t* uuid, int channel, int flags, BOOLEAN server)
 {
     int security = 0;
@@ -692,7 +671,6 @@ static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id)
 
 static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
-    int rc;
     void* new_user_data = NULL;
     APPL_TRACE_DEBUG("event=%s", jv_evt[event]);
 

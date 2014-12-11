@@ -1487,7 +1487,6 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     UINT16     length;
 
     RFCOMM_TRACE_API ("PORT_WriteDataCO() handle:%d", handle);
-    int written;
     *p_len = 0;
 
     /* Check if handle is valid to avoid crashing */

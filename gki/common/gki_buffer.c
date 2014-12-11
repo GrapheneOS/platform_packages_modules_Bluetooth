@@ -22,9 +22,6 @@
 #error Number of pools out of range (16 Max)!
 #endif
 
-static void gki_add_to_pool_list(UINT8 pool_id);
-static void gki_remove_from_pool_list(UINT8 pool_id);
-
 /*******************************************************************************
 **
 ** Function         gki_init_free_queue
@@ -1014,70 +1011,6 @@ void *GKI_getnext (void *p_buf)
 BOOLEAN GKI_queue_is_empty(BUFFER_Q *p_q)
 {
     return ((BOOLEAN) (p_q->count == 0));
-}
-
-/*******************************************************************************
-**
-** Function         gki_add_to_pool_list
-**
-** Description      Adds pool to the pool list which is arranged in the
-**                  order of size
-**
-** Returns          void
-**
-*******************************************************************************/
-static void gki_add_to_pool_list(UINT8 pool_id)
-{
-
-    INT32 i, j;
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-
-     /* Find the position where the specified pool should be inserted into the list */
-    for(i=0; i < p_cb->curr_total_no_of_pools; i++)
-    {
-
-        if(p_cb->freeq[pool_id].size <= p_cb->freeq[ p_cb->pool_list[i] ].size)
-            break;
-    }
-
-    /* Insert the new buffer pool ID into the list of pools */
-    for(j = p_cb->curr_total_no_of_pools; j > i; j--)
-    {
-        p_cb->pool_list[j] = p_cb->pool_list[j-1];
-    }
-
-    p_cb->pool_list[i] = pool_id;
-
-    return;
-}
-
-/*******************************************************************************
-**
-** Function         gki_remove_from_pool_list
-**
-** Description      Removes pool from the pool list. Called when a pool is deleted
-**
-** Returns          void
-**
-*******************************************************************************/
-static void gki_remove_from_pool_list(UINT8 pool_id)
-{
-    tGKI_COM_CB *p_cb = &gki_cb.com;
-    UINT8 i;
-
-    for(i=0; i < p_cb->curr_total_no_of_pools; i++)
-    {
-        if(pool_id == p_cb->pool_list[i])
-            break;
-    }
-
-    while (i < (p_cb->curr_total_no_of_pools - 1))
-    {
-        p_cb->pool_list[i] = p_cb->pool_list[i+1];
-        i++;
-    }
-
-    return;
 }
 
 /*******************************************************************************

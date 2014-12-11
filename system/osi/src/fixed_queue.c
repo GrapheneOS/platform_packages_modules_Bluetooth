@@ -25,13 +25,13 @@
 #include "osi.h"
 #include "semaphore.h"
 
-typedef struct fixed_queue_t {
+struct fixed_queue_t {
   list_t *list;
   semaphore_t *enqueue_sem;
   semaphore_t *dequeue_sem;
   pthread_mutex_t lock;
   size_t capacity;
-} fixed_queue_t;
+};
 
 fixed_queue_t *fixed_queue_new(size_t capacity) {
   fixed_queue_t *ret = calloc(1, sizeof(fixed_queue_t));

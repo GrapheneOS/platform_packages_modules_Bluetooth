@@ -944,7 +944,6 @@ tBTA_GATTC_CLCB * bta_gattc_find_int_conn_clcb(tBTA_GATTC_DATA *p_msg)
 tBTA_GATTC_CLCB * bta_gattc_find_int_disconn_clcb(tBTA_GATTC_DATA *p_msg)
 {
     tBTA_GATTC_CLCB         *p_clcb = NULL;
-    tGATT_DISCONN_REASON    reason = p_msg->int_conn.reason;
 
     bta_gattc_conn_dealloc(p_msg->int_conn.remote_bda);
     if ((p_clcb = bta_gattc_find_clcb_by_conn_id(p_msg->int_conn.hdr.layer_specific)) == NULL)

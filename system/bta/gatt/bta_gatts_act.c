@@ -154,7 +154,6 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb)
 {
     UINT8 i;
-    tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
     if (p_cb->enabled)
     {

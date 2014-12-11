@@ -159,7 +159,6 @@ void bta_pan_co_close(UINT16 handle, UINT8 app_id)
 void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
 {
     BT_HDR          *p_buf;
-    UINT8           i;
     BD_ADDR            src;
     BD_ADDR            dst;
     UINT16            protocol;

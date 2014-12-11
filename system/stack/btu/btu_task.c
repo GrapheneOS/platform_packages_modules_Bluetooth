@@ -583,7 +583,6 @@ BTU_API UINT32 btu_task (UINT32 param)
         if (event & TIMER_3_EVT_MASK) {
             BTM_TRACE_API("Received oneshot timer event complete");
             if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                TIMER_LIST_ENT *p_tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
                 INT32 ticks_since_last_update = GKI_timer_ticks_getinitial(GKI_timer_getfirst(&btu_cb.timer_queue_oneshot));
                 GKI_update_timer_list(&btu_cb.timer_queue_oneshot, ticks_since_last_update);
             }

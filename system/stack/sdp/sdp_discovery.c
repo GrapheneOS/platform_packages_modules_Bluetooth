@@ -385,7 +385,6 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
     UINT8           *p;
     UINT8           * p_temp;
     UINT8           type;
-    UINT32          delta_len = 0;
 
 #if (SDP_DEBUG_RAW == TRUE)
     UINT8 num_array[SDP_MAX_LIST_BYTE_COUNT];

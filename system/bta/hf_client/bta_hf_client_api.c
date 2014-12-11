@@ -59,7 +59,6 @@ static const tBTA_SYS_REG bta_hf_client_reg =
 BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
 {
     tBTA_HF_CLIENT_API_ENABLE  *p_buf;
-    UINT8       idx;
 
     if (bta_sys_is_register (BTA_ID_HS))
     {

@@ -963,19 +963,9 @@ typedef UINT32 tBTA_DM_BLE_REF_VALUE;
 #define BTA_DM_BLE_PF_CONFIG_EVT       BTM_BLE_PF_CONFIG
 typedef UINT8 tBTA_DM_BLE_PF_EVT;
 
-typedef UINT8   tBTA_DM_BLE_PF_COND_TYPE;
-
-#define BTA_DM_BLE_PF_LOGIC_OR              0
-#define BTA_DM_BLE_PF_LOGIC_AND             1
-typedef UINT8 tBTA_DM_BLE_PF_LOGIC_TYPE;
-
 #define BTA_DM_BLE_PF_ENABLE       1
 #define BTA_DM_BLE_PF_CONFIG       2
 typedef UINT8 tBTA_DM_BLE_PF_ACTION;
-
-typedef UINT8 tBTA_DM_BLE_PF_FILT_INDEX;
-
-typedef UINT8 tBTA_DM_BLE_PF_AVBL_SPACE;
 
 /* Config callback */
 typedef void (tBTA_DM_BLE_PF_CFG_CBACK) (tBTA_DM_BLE_PF_ACTION action,

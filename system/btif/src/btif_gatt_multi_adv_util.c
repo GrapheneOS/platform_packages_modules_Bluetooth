@@ -258,7 +258,6 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
 
 BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN bInstData)
 {
-    int i=0;
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
     if (NULL == p_multi_adv_data_cb || cbindex < 0)
        return false;
