@@ -998,36 +998,47 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     bta_sys_app_open(BTA_ID_AV, p_scb->app_id, p_scb->peer_addr);
 
+    if (p_scb->skip_sdp == TRUE)
+    {
+        tA2D_Service a2d_ser;
+        a2d_ser.avdt_version = AVDT_VERSION;
+        p_scb->skip_sdp = FALSE;
+        p_scb->uuid_int = p_data->api_open.uuid;
+        /* only one A2D find service is active at a time */
+        bta_av_cb.handle = p_scb->hndl;
+        APPL_TRACE_WARNING("%s: Skip Sdp for incoming A2dp connection", __func__);
+        bta_av_a2d_sdp_cback(TRUE, &a2d_ser);
+        return;
+    }
     /* allocate discovery database */
     if (p_scb->p_disc_db == NULL)
-    {
-        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_AV_DISC_BUF_SIZE);
-    }
-
+        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc (BTA_AV_DISC_BUF_SIZE);
     /* only one A2D find service is active at a time */
     bta_av_cb.handle = p_scb->hndl;
 
-    /* set up parameters */
-    db_params.db_len = BTA_AV_DISC_BUF_SIZE;
-    db_params.num_attr = 3;
-    db_params.p_db = p_scb->p_disc_db;
-    db_params.p_attrs = attr_list;
-    p_scb->uuid_int = p_data->api_open.uuid;
-    if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SINK)
-        sdp_uuid = UUID_SERVCLASS_AUDIO_SOURCE;
-    else if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SOURCE)
-        sdp_uuid = UUID_SERVCLASS_AUDIO_SINK;
+    if(p_scb->p_disc_db)
+    {
+        /* set up parameters */
+        db_params.db_len = BTA_AV_DISC_BUF_SIZE;
+        db_params.num_attr = 3;
+        db_params.p_db = p_scb->p_disc_db;
+        db_params.p_attrs = attr_list;
+        p_scb->uuid_int = p_data->api_open.uuid;
+        if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SINK)
+            sdp_uuid = UUID_SERVCLASS_AUDIO_SOURCE;
+        else if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SOURCE)
+            sdp_uuid = UUID_SERVCLASS_AUDIO_SINK;
 
-    APPL_TRACE_DEBUG("uuid_int 0x%x, Doing SDP For 0x%x", p_scb->uuid_int,
-                     sdp_uuid);
-    if (A2D_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
-                        bta_av_a2d_sdp_cback) == A2D_SUCCESS) {
-        return;
+        APPL_TRACE_DEBUG("%s: uuid_int 0x%x, Doing SDP For 0x%x", __func__,
+                        p_scb->uuid_int, sdp_uuid);
+        if(A2D_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
+                        bta_av_a2d_sdp_cback) == A2D_SUCCESS)
+            return;
+
+        /* when the code reaches here, either the DB is NULL
+         * or A2D_FindService is not successful */
+        bta_av_a2d_sdp_cback(FALSE, NULL);
     }
-
-    /* when the code reaches here, either the DB is NULL
-     * or A2D_FindService is not successful */
-    bta_av_a2d_sdp_cback(FALSE, NULL);
 }
 
 /*******************************************************************************
@@ -1073,6 +1084,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
     p_scb->offload_start_pending = FALSE;
 
+    p_scb->skip_sdp = FALSE;
     if (p_scb->deregistring)
     {
         /* remove stream */
@@ -3108,6 +3120,7 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         tBTA_AV_API_OPEN *p_buf =
             (tBTA_AV_API_OPEN *)osi_malloc(sizeof(tBTA_AV_API_OPEN));
         memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
+        p_scb->skip_sdp = TRUE;
         bta_sys_sendmsg(p_buf);
     }
 }
