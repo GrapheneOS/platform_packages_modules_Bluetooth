@@ -423,14 +423,12 @@ BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
 *******************************************************************************/
 BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
 {
-    UINT8 i = 0;
     UINT16 manufacturer = 0;
     UINT8 lmp_ver = 0;
     UINT16 lmp_subver = 0;
     tBTM_STATUS btm_status;
     bt_property_t prop_name;
     bt_remote_version_t info;
-    bt_status_t status;
 
 
     if (remote_bdaddr == NULL)
@@ -680,7 +678,6 @@ static void btif_dm_cb_create_bond(bt_bdaddr_t *bd_addr, tBTA_TRANSPORT transpor
 *******************************************************************************/
 void btif_dm_cb_remove_bond(bt_bdaddr_t *bd_addr)
 {
-     bdstr_t bdstr;
      /*special handling for HID devices */
      /*  VUP needs to be sent if its a HID Device. The HID HOST module will check if there
      is a valid hid connection with this bd_addr. If yes VUP will be issued.*/
@@ -1197,11 +1194,9 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
         {
             /* inquiry result */
             UINT32 cod;
-            UINT8 *p_eir_remote_name = NULL;
             bt_bdname_t bdname;
             bt_bdaddr_t bdaddr;
             UINT8 remote_name_len;
-            UINT8 *p_cached_name = NULL;
             tBTA_SERVICE_MASK services = 0;
             bdstr_t bdstr;
 
@@ -1349,9 +1344,8 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
     {
         case BTA_DM_DISC_RES_EVT:
         {
-            bt_uuid_t uuid_arr[BT_MAX_NUM_UUIDS]; /* Max 32 services */
             bt_property_t prop;
-            uint32_t i = 0,  j = 0;
+            uint32_t i = 0;
             bt_bdaddr_t bd_addr;
             bt_status_t ret;
 
@@ -1485,7 +1479,6 @@ static void btif_dm_remote_service_record_evt(UINT16 event, char *p_param)
         {
             bt_service_record_t rec;
             bt_property_t prop;
-            uint32_t i = 0;
             bt_bdaddr_t bd_addr;
 
             memset(&rec, 0, sizeof(bt_service_record_t));
@@ -1528,7 +1521,6 @@ static void btif_dm_remote_service_record_evt(UINT16 event, char *p_param)
 *******************************************************************************/
 static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 {
-    tBTA_DM_SEC_EVT dm_event = (tBTA_DM_SEC_EVT)event;
     tBTA_DM_SEC *p_data = (tBTA_DM_SEC*)p_param;
     tBTA_SERVICE_MASK service_mask;
     uint32_t i;
@@ -2467,8 +2459,6 @@ bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr,
 *******************************************************************************/
 bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
 {
-    bt_status_t status;
-
     BTIF_TRACE_EVENT("%s: type=0x%x", __FUNCTION__, prop->type);
     switch (prop->type)
     {
@@ -2847,8 +2837,6 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
 void    btif_dm_load_ble_local_keys(void)
 {
-    bt_status_t bt_status;
-
     memset(&ble_local_key_cb, 0, sizeof(btif_dm_local_key_cb_t));
 
     if (btif_storage_get_ble_local_key(BTIF_DM_LE_LOCAL_KEY_ER,(char*)&ble_local_key_cb.er[0],

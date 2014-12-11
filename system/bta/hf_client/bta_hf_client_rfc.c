@@ -145,7 +145,6 @@ void bta_hf_client_setup_port(UINT16 handle)
 *******************************************************************************/
 void bta_hf_client_start_server(void)
 {
-    int i;
     int port_status;
 
     if (bta_hf_client_cb.scb.serv_handle > 0)

@@ -1604,7 +1604,6 @@ void bta_hl_sort_cfg_time_idx(UINT8 app_idx, UINT8 *a, UINT8 n)
 *******************************************************************************/
 void  bta_hl_compact_mdl_cfg_time(UINT8 app_idx, UINT8 mdep_id)
 {
-    tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDL_CFG     *p_mdl;
     UINT8 i, time_min, cnt=0;
     UINT8   s_arr[BTA_HL_NUM_MDL_CFGS];
@@ -1703,8 +1702,6 @@ BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
     tBTA_HL_MDL_CFG     *p_mdl;
     BOOLEAN             success = FALSE;
     UINT8               i;
-    tBTA_HL_APP_CB      *p_acb= BTA_HL_GET_APP_CB_PTR(app_idx);
-    UINT8               app_id = p_acb->app_id;
 
     for (i = 0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {

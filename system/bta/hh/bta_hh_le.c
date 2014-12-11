@@ -2405,7 +2405,6 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
 void bta_hh_le_open_fail(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
-    tBTA_HH_LE_HID_SRVC     *p_hid_srvc = &p_cb->hid_srvc[0];
 
     /* open failure in the middle of service discovery, clear all services */
     if (p_cb->disc_active & BTA_HH_LE_DISC_HIDS)

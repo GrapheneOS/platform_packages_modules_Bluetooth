@@ -113,7 +113,10 @@ extern tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
     #endif
 static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb (void * p_result);
+
+#if BLE_VND_INCLUDED == TRUE
 static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
+#endif
 
 #ifndef BTA_DM_BLE_ADV_CHNL_MAP
 #define BTA_DM_BLE_ADV_CHNL_MAP (BTM_BLE_ADV_CHNL_37|BTM_BLE_ADV_CHNL_38|BTM_BLE_ADV_CHNL_39)
@@ -2198,8 +2201,6 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
 {
 
     tSDP_UUID    uuid;
-    UINT16       attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, ATTR_ID_EXT_BRCM_VERSION};
-    UINT16       num_attrs = 1;
     tBTA_DM_MSG *p_msg;
 
     memset (&uuid, 0, sizeof(tSDP_UUID));
@@ -4755,7 +4756,6 @@ static void bta_dm_observe_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir)
 ;
     tBTA_DM_SEARCH     result;
     tBTM_INQ_INFO      *p_inq_info;
-    UINT16             service_class;
     APPL_TRACE_DEBUG("bta_dm_observe_results_cb")
 
     bdcpy(result.inq_res.bd_addr, p_inq->remote_bd_addr);
@@ -5285,7 +5285,6 @@ void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data)
 void bta_dm_ble_multi_adv_enb(tBTA_DM_MSG *p_data)
 {
     tBTM_STATUS btm_status = 0;
-    void *p_ref = NULL;
 
     bta_dm_cb.p_multi_adv_cback = p_data->ble_multi_adv_enb.p_cback;
     if(BTM_BleMaxMultiAdvInstanceCount() > 0 && NULL != p_data->ble_multi_adv_enb.p_ref)
@@ -5596,27 +5595,6 @@ static void bta_ble_scan_cfg_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_
 
     if(bta_dm_cb.p_scan_filt_cfg_cback)
        bta_dm_cb.p_scan_filt_cfg_cback(action, cfg_op, avbl_space, st, ref_value);
-}
-
-/*******************************************************************************
-**
-** Function         bta_ble_status_cmpl
-**
-** Description      ADV payload filtering enable / disable complete callback
-**
-**
-** Returns          None
-**
-*******************************************************************************/
-static void bta_ble_status_cmpl(tBTM_BLE_PF_ACTION action, tBTM_BLE_REF_VALUE ref_value,
-                                    tBTM_STATUS status)
-{
-    tBTA_STATUS st = (status == BTM_SUCCESS) ? BTA_SUCCESS: BTA_FAILURE;
-
-    APPL_TRACE_DEBUG("bta_ble_status_cmpl: %d, %d", action, status);
-
-    if(bta_dm_cb.p_scan_filt_status_cback)
-       bta_dm_cb.p_scan_filt_status_cback(action, ref_value, st);
 }
 
 /*******************************************************************************
@@ -6113,6 +6091,7 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 
 #endif /* BTA_GATT_INCLUDED */
 
+#if BLE_VND_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         bta_dm_ctrl_features_rd_cmpl_cback
@@ -6136,6 +6115,6 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result)
     }
 
 }
-
+#endif /* BLE_VND_INCLUDED */
 
 #endif  /* BLE_INCLUDED */

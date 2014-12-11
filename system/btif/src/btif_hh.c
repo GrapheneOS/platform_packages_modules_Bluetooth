@@ -68,7 +68,6 @@
 
 extern const int BT_UID;
 extern const int BT_GID;
-static int btif_hh_prev_keyevents=0; //The previous key events
 static int btif_hh_keylockstates=0; //The current key state of each key
 
 #define BTIF_HH_ID_1        0
@@ -624,7 +623,6 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
     char bda_str[20];
     int i;
     BD_ADDR *bda = (BD_ADDR*)bd_addr;
-    tBTA_HH_CONN conn;
     CHECK_BTHH_INIT();
     dev = btif_hh_find_dev_by_bda(bd_addr);
     BTIF_TRACE_DEBUG("Connect _hh");
@@ -688,7 +686,6 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
 
 void btif_hh_disconnect(bt_bdaddr_t *bd_addr)
 {
-    BD_ADDR *bda = (BD_ADDR*)bd_addr;
     btif_hh_device_t *p_dev;
     p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
     if (p_dev != NULL)
@@ -742,7 +739,6 @@ void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT1
 static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
 {
     tBTA_HH *p_data = (tBTA_HH *)p_param;
-    bdstr_t bdstr;
     btif_hh_device_t *p_dev = NULL;
     int i;
     int len, tmplen;
@@ -1183,7 +1179,7 @@ static void btif_hh_handle_evt(UINT16 event, char *p_param)
 void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle)
 {
     btif_hh_device_t *p_dev;
-    UINT8               i,j;
+    UINT8               i;
     tBTA_HH_EVT event;
     tBTA_HH p_data;
     int param_len = 0;

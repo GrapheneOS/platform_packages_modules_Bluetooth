@@ -173,11 +173,6 @@ static const struct {
  * For now, only the rc_white_addr_prefix is used in the code while
  * rc_black_addr_prefix is kept here for future long term solution.
  */
-static const UINT8 rc_black_addr_prefix[][3] = {
-    {0x0, 0x18, 0x6B}, // LG HBS-730
-    {0x0, 0x26, 0x7E}  // VW Passat
-};
-
 static const UINT8 rc_white_addr_prefix[][3] = {
     {0x94, 0xCE, 0x2C}, // Sony SBH50
     {0x30, 0x17, 0xC8} // Sony wm600
@@ -274,7 +269,7 @@ int uinput_driver_check()
 int uinput_create(char *name)
 {
     struct uinput_dev dev;
-    int fd, err, x = 0;
+    int fd, x = 0;
 
     for(x=0; x < MAX_UINPUT_PATHS; x++)
     {
@@ -422,8 +417,6 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
     BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
     bt_status_t result = BT_STATUS_SUCCESS;
-    int i;
-    char bd_str[18];
 #if (AVRC_CTLR_INCLUDED == TRUE)
     bt_bdaddr_t rc_addr;
 #endif
@@ -917,7 +910,6 @@ static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label, tBTA_AV_CODE code,
     tAVRC_RESPONSE *pmetamsg_resp)
 {
     UINT8 ctype;
-    tAVRC_STS status;
 
     if (!pmetamsg_resp)
     {
@@ -1253,7 +1245,6 @@ static bt_status_t get_play_status_rsp(btrc_play_status_t play_status, uint32_t 
     uint32_t song_pos)
 {
     tAVRC_RESPONSE avrc_rsp;
-    UINT32 i;
     CHECK_RC_CONNECTED
     memset(&(avrc_rsp.get_play_status), 0, sizeof(tAVRC_GET_PLAY_STATUS_RSP));
     avrc_rsp.get_play_status.song_len = song_len;
@@ -1282,7 +1273,6 @@ static bt_status_t get_element_attr_rsp(uint8_t num_attr, btrc_element_attr_val_
 {
     tAVRC_RESPONSE avrc_rsp;
     UINT32 i;
-    uint8_t j;
     tAVRC_ATTR_ENTRY element_attrs[BTRC_MAX_ELEM_ATTR_SIZE];
     CHECK_RC_CONNECTED
     memset(element_attrs, 0, sizeof(tAVRC_ATTR_ENTRY) * num_attr);
@@ -1451,8 +1441,6 @@ static void register_volumechange (UINT8 lbl)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     tAVRC_STS BldResp=AVRC_STS_BAD_CMD;
-    UINT16 rv = 0;
-    bt_status_t tran_status;
     rc_transaction_t *p_transaction=NULL;
 
     BTIF_TRACE_DEBUG("%s called with label:%d",__FUNCTION__,lbl);
@@ -1592,7 +1580,6 @@ static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, 
                                                     key_code, key_state);
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
     {
-        tAVRC_MSG_PASS avrc_cmd;
         bt_status_t tran_status = get_transaction(&p_transaction);
         if(BT_STATUS_SUCCESS == tran_status && NULL != p_transaction)
         {

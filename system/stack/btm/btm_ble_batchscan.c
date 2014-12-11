@@ -318,7 +318,6 @@ void btm_ble_batchscan_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
     UINT8  *p = p_params->p_param_buf;
     UINT16  len = p_params->param_len;
     tBTM_BLE_REF_VALUE ref_value = 0;
-    int index = 0;
 
     UINT8  status = 0, subcode = 0, opcode = 0;
     UINT8 report_format = 0, num_records = 0, cb_evt = 0;
@@ -801,7 +800,7 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
     tBTM_STATUS     status = BTM_NO_RESOURCES;
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     UINT8 read_scan_mode = 0;
-    UINT8  *p_data = NULL, report_format = 0, num_records = 0;
+    UINT8  *p_data = NULL, num_records = 0;
     UINT16 data_len = 0;
 
     BTM_TRACE_EVENT (" BTM_BleReadScanReports; %d, %d", scan_mode, ref_value);

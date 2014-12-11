@@ -332,7 +332,6 @@ void gatt_process_exec_write_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 {
     UINT8   *p = p_data, flag, i = 0;
     UINT32  trans_id = 0;
-    BT_HDR  *p_buf;
     tGATT_IF gatt_if;
     UINT16  conn_id;
 

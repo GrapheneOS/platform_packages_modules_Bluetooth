@@ -463,7 +463,6 @@ UINT8 bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
     BOOLEAN supported;
     tBTA_AV_CO_PEER *p_peer;
     tBTA_AV_CO_SINK *p_src;
-    UINT8 codec_cfg[AVDT_CODEC_SIZE];
     UINT8 pref_cfg[AVDT_CODEC_SIZE];
     UINT8 index;
 
