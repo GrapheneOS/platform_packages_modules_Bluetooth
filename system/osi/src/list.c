@@ -3,17 +3,17 @@
 #include "list.h"
 #include "osi.h"
 
-typedef struct list_node_t {
+struct list_node_t {
   struct list_node_t *next;
   void *data;
-} list_node_t;
+};
 
-typedef struct list_t {
+struct list_t {
   list_node_t *head;
   list_node_t *tail;
   size_t length;
   list_free_cb free_cb;
-} list_t;
+};
 
 static list_node_t *list_free_node_(list_t *list, list_node_t *node);
 

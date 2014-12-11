@@ -237,7 +237,6 @@ uint16_t get_uuid16(tBT_UUID *p_uuid)
 
 uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
 {
-    int i = 0;
     uint16_t descr_type = 0;
     uint16_t len = 0;
 

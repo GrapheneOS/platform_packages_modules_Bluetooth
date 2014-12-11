@@ -264,7 +264,6 @@ void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA *p_data)
 void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
 {
     UINT16          lcid;
-    int             i;
     BD_ADDR         dev_addr;
     int             status;
 
@@ -392,7 +391,6 @@ void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
 {
-    int i, num_active_conn = 0;
     UNUSED(p_data);
 
     /* reinitialize stuff */

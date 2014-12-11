@@ -352,7 +352,7 @@ static bt_status_t btif_hf_check_if_slc_connected()
         int i;
         for (i = 0; i < btif_max_hf_clients; i++)
         {
-            if ((btif_hf_cb[i].state == BTHF_CONNECTION_STATE_SLC_CONNECTED))
+            if (btif_hf_cb[i].state == BTHF_CONNECTION_STATE_SLC_CONNECTED)
             {
                 BTIF_TRACE_EVENT("BTHF: %s: slc connected for idx = %d",
                                          __FUNCTION__, i);
@@ -388,7 +388,6 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
 {
     tBTA_AG *p_data = (tBTA_AG *)p_param;
     bdstr_t bdstr;
-    bt_bdaddr_t addr;
     int idx = p_data->hdr.handle - 1;
 
     BTIF_TRACE_DEBUG("%s: event=%s", __FUNCTION__, dump_hf_event(event));

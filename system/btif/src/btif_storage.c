@@ -440,7 +440,6 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
 {
     BOOLEAN bt_linkkey_file_found=FALSE;
-    int device_type;
 
         int type = BTIF_CFG_TYPE_BIN;
         LINK_KEY link_key;
@@ -489,7 +488,7 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
     BTIF_TRACE_DEBUG("in add:%d", add);
     memset(p_bonded_devices, 0, sizeof(btif_bonded_devices_t));
 
-    char kname[128], vname[128];
+    char kname[128];
     short kpos;
     int kname_size;
     kname_size = sizeof(kname);
@@ -590,7 +589,6 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
     /* Special handling for adapter BD_ADDR and BONDED_DEVICES */
     if (property->type == BT_PROPERTY_BDADDR)
     {
-        BD_ADDR addr;
         bt_bdaddr_t *bd_addr = (bt_bdaddr_t*)property->val;
         /* This has been cached in btif. Just fetch it from there */
         memcpy(bd_addr, &btif_local_bd_addr, sizeof(bt_bdaddr_t));
@@ -834,7 +832,6 @@ bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
 *******************************************************************************/
 bt_status_t btif_storage_load_bonded_devices(void)
 {
-    char *fname;
     btif_bonded_devices_t bonded_devices;
     uint32_t i = 0;
     bt_property_t adapter_props[6];
@@ -1420,12 +1417,11 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
 {
     bt_bdaddr_t bd_addr;
     tBTA_HH_DEV_DSCP_INFO dscp_info;
-    uint32_t i;
     uint16_t attr_mask;
     uint8_t  sub_class;
     uint8_t  app_id;
 
-    char kname[128], vname[128];
+    char kname[128];
     short kpos;
     int kname_size;
     kname_size = sizeof(kname);
@@ -1512,8 +1508,6 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
 *******************************************************************************/
 bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
 {
-    char *fname;
-    int ret;
     bdstr_t bdstr;
     bd2str(remote_bd_addr, &bdstr);
 
@@ -1637,10 +1631,8 @@ bt_status_t btif_storage_load_autopair_device_list() {
 BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_bd_addr)
 {
     char *token;
-    int ret;
     bdstr_t bdstr;
     char *dev_name_str;
-    uint8_t i = 0;
     char value[BTIF_STORAGE_MAX_LINE_SZ];
     int value_size = sizeof(value);
 
@@ -1742,10 +1734,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_bd
 *******************************************************************************/
 BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
 {
-    int ret;
     bdstr_t bdstr;
-    char *dev_name_str;
-    uint8_t i = 0;
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
 
     bd2str(remote_bd_addr, &bdstr);

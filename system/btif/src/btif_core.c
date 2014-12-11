@@ -1001,8 +1001,6 @@ static bt_status_t btif_in_get_remote_device_properties(bt_bdaddr_t *bd_addr)
 
 static void execute_storage_request(UINT16 event, char *p_param)
 {
-    uint8_t is_local;
-    int num_entries = 0;
     bt_status_t status = BT_STATUS_SUCCESS;
 
     BTIF_TRACE_EVENT("execute storage request event : %d", event);
@@ -1312,7 +1310,6 @@ bt_status_t btif_set_adapter_property(const bt_property_t *property)
 
     if (storage_req_id != BTIF_CORE_STORAGE_NO_ACTION)
     {
-        int btif_status;
         /* pass on to storage for updating local database */
 
         memset(&(req.write_req.bd_addr), 0, sizeof(bt_bdaddr_t));

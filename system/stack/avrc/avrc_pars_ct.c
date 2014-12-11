@@ -45,14 +45,6 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
     UINT8   *p = p_msg->p_vendor_data;
     UINT16  len;
-    UINT8   xx, yy;
-    tAVRC_NOTIF_RSP_PARAM   *p_param;
-    tAVRC_APP_SETTING       *p_app_set;
-    tAVRC_APP_SETTING_TEXT  *p_app_txt;
-    tAVRC_ATTR_ENTRY        *p_entry;
-    UINT32  *p_u32;
-    UINT8   *p_u8;
-    UINT16  size_needed;
     UINT8 eventid=0;
 
     BE_STREAM_TO_UINT8 (p_result->pdu, p);

@@ -985,9 +985,6 @@ void btm_read_local_version_complete (UINT8 *p, UINT16 evt_len)
 *******************************************************************************/
 static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_features)
 {
-    UINT8 last;
-    UINT8 first;
-
     BTM_TRACE_DEBUG ("btm_decode_ext_features_page page: %d", page_number);
     switch (page_number)
     {
@@ -1423,8 +1420,6 @@ void btm_read_local_features_complete (UINT8 *p, UINT16 evt_len)
 *******************************************************************************/
 void btm_read_local_ext_features_complete (UINT8 *p, UINT16 evt_len)
 {
-    tBTM_DEVCB     *p_devcb = &btm_cb.devcb;
-    tBTM_CMPL_CB   *p_cb = p_devcb->p_reset_cmpl_cb;
     UINT8           status;
     UINT8           page_number;
     UINT8           page_number_max;

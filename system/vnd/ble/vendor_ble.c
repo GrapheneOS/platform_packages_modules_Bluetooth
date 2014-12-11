@@ -39,8 +39,6 @@
 tBTM_BLE_VENDOR_CB  btm_ble_vendor_cb;
 #endif
 
-static const BD_ADDR     na_bda= {0};
-
 /*******************************************************************************
 **         Resolve Address Using IRK List functions
 *******************************************************************************/
@@ -663,7 +661,6 @@ tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
 #if BLE_PRIVACY_SPT == TRUE
     UINT8           param[20], *p;
     tBTM_STATUS     st = BTM_WRONG_MODE;
-    tBTM_BLE_PF_COUNT *p_bda_filter;
 
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz == 0)
         return BTM_MODE_UNSUPPORTED;

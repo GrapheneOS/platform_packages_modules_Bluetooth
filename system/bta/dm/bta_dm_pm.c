@@ -154,7 +154,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 {
 
     UINT8 i,j;
-    UINT16 policy_setting;
     tBTM_STATUS btm_status;
     tBTM_VERSION_INFO vers;
 #if (BTM_SSR_INCLUDED == TRUE)
