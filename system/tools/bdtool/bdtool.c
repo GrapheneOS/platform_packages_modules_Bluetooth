@@ -27,6 +27,9 @@
 #include "test/suite/support/callbacks.h"
 #include "test/suite/support/hal.h"
 
+static const bt_uuid_t HFP_UUID = {{ 0x00, 0x00, 0x11, 0x1E, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB }};
+static const bt_uuid_t HFP_AG_UUID = {{ 0x00, 0x00, 0x11, 0x1F, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB }};
+
 const bt_interface_t *bt_interface;
 
 bt_bdaddr_t bt_remote_bdaddr;
@@ -38,6 +41,8 @@ static bool bond = false;
 static bool up = false;
 static bool get_name = false;
 static bool set_name = false;
+static bool sco_listen = false;
+static bool sco_connect = false;
 
 static int timeout_in_sec = 30;
 static char *bd_name;
@@ -52,6 +57,8 @@ static struct option long_options[] = {
   {"verbose", no_argument, 0, 0 },
   {"get_name", no_argument, 0, 0 },
   {"set_name", required_argument, 0, 0 },
+  {"sco_listen", no_argument, 0, 0 },
+  {"sco_connect", no_argument, 0, 0 },
   {0, 0, 0, 0 }
 };
 
@@ -71,7 +78,12 @@ int main(int argc, char **argv) {
     usage(argv[0]);
   }
 
-  if (!bond && !discover && !discoverable && !up && !get_name && !set_name) {
+  if (sco_listen && sco_connect) {
+    fprintf(stderr, "Can only select either sco_listen or sco_connect, not both\n");
+    usage(argv[0]);
+  }
+
+  if (!bond && !discover && !discoverable && !up && !get_name && !set_name && !sco_listen && !sco_connect) {
     fprintf(stderr, "Must specify one command\n");
     usage(argv[0]);
   }
@@ -176,6 +188,64 @@ int main(int argc, char **argv) {
     sleep(timeout_in_sec);
   }
 
+  if (sco_listen) {
+    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    fprintf(stdout, "BT adapter is up\n");
+
+    bt_property_t *property = property_new_scan_mode(BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+    CALL_AND_WAIT(bt_interface->set_adapter_property(property), adapter_properties);
+    property_free(property);
+
+    const btsock_interface_t *sock = bt_interface->get_profile_interface(BT_PROFILE_SOCKETS_ID);
+
+    int rfcomm_fd = INVALID_FD;
+    int error = sock->listen(BTSOCK_RFCOMM, "meow", (const uint8_t *)&HFP_AG_UUID, 0, &rfcomm_fd, 0);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to listen for incoming RFCOMM socket: %d\n", error);
+      exit(1);
+    }
+
+    int sock_fd = INVALID_FD;
+    error = sock->listen(BTSOCK_SCO, NULL, NULL, 5, &sock_fd, 0);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to listen for incoming SCO sockets: %d\n", error);
+      exit(1);
+    }
+    fprintf(stdout, "Waiting for incoming SCO connections...\n");
+    sleep(timeout_in_sec);
+  }
+
+  if (sco_connect) {
+    if (bdaddr_is_empty(&bt_remote_bdaddr)) {
+      fprintf(stderr, "Must specify a remote device address [ --bdaddr=xx:yy:zz:aa:bb:cc ]\n");
+      exit(1);
+    }
+
+    CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
+    fprintf(stdout, "BT adapter is up\n");
+
+    const btsock_interface_t *sock = bt_interface->get_profile_interface(BT_PROFILE_SOCKETS_ID);
+
+    int rfcomm_fd = INVALID_FD;
+    int error = sock->connect(&bt_remote_bdaddr, BTSOCK_RFCOMM, (const uint8_t *)&HFP_AG_UUID, 0, &rfcomm_fd, 0);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to connect to RFCOMM socket: %d.\n", error);
+      exit(1);
+    }
+
+    WAIT(acl_state_changed);
+
+    fprintf(stdout, "Establishing SCO connection...\n");
+
+    int sock_fd = INVALID_FD;
+    error = sock->connect(&bt_remote_bdaddr, BTSOCK_SCO, NULL, 5, &sock_fd, 0);
+    if (error != BT_STATUS_SUCCESS) {
+      fprintf(stderr, "Unable to connect to SCO socket: %d.\n", error);
+      exit(1);
+    }
+    sleep(timeout_in_sec);
+  }
+
   CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
   fprintf(stdout, "BT adapter is down\n");
 }
@@ -190,11 +260,13 @@ static void sig_handler(int signo) {
 }
 
 static void usage(const char *name) {
-  fprintf(stderr, "Usage: %s [--bond|--discover|--discoverable-|-up] [--bdaddr=<bdaddr>] [--time=<time_in_sec>] --verbose\n", name);
+  fprintf(stderr, "Usage: %s [--bond|--discover|--discoverable|--up|--sco_listen|--sco_connect] [--bdaddr=<bdaddr>] [--time=<time_in_sec>] --verbose\n", name);
   fprintf(stderr, "     bond: Discover actively advertising devices\n");
   fprintf(stderr, "     discover: Discover actively advertising devices\n");
   fprintf(stderr, "     discoverable: Set into a connectable and discoverable mode\n");
   fprintf(stderr, "     up: Only bring up stack\n");
+  fprintf(stderr, "     sco_listen: Listen for incoming SCO connections\n");
+  fprintf(stderr, "     sco_connect: Establish a SCO connection with another device\n");
   fprintf(stderr, "     time: Time to hold in the specified mode\n");
   exit(1);
 }
@@ -238,7 +310,13 @@ static bool parse_args(int argc, char **argv) {
           bd_name = (char *)optarg;
           set_name = true;
         }
-         break;
+        if (option_index == 9) {
+          sco_listen = true;
+        }
+        if (option_index == 10) {
+          sco_connect = true;
+        }
+        break;
 
       default:
         fprintf(stderr, "?? getopt returned character code 0%o ??\n", c);
