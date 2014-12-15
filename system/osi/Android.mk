@@ -29,6 +29,7 @@ LOCAL_SRC_FILES := \
     ./src/allocation_tracker.c \
     ./src/allocator.c \
     ./src/array.c \
+    ./src/buffer.c \
     ./src/config.c \
     ./src/data_dispatcher.c \
     ./src/eager_reader.c \
