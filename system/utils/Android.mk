@@ -9,7 +9,6 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
 
-LOCAL_PRELINK_MODULE :=false
 LOCAL_SRC_FILES := \
 	./src/bt_utils.c
 

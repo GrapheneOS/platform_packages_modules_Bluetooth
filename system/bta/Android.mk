@@ -9,7 +9,6 @@ endif
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -std=c99
 LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end
 
-LOCAL_PRELINK_MODULE:=false
 LOCAL_SRC_FILES:= \
     ./dm/bta_dm_ci.c \
     ./dm/bta_dm_act.c \
