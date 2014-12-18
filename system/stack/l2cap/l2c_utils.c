@@ -74,6 +74,7 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
             p_lcb->is_bonding      = is_bonding;
 #if (BLE_INCLUDED == TRUE)
             p_lcb->transport       = transport;
+            p_lcb->tx_data_len     = controller_get_interface()->get_ble_default_data_packet_length();
 
             if (transport == BT_TRANSPORT_LE)
             {

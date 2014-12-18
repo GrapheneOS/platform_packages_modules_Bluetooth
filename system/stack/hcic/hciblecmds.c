@@ -929,6 +929,29 @@ BOOLEAN btsnd_hcic_ble_set_rand_priv_addr_timeout (UINT16 rpa_timout)
     return (TRUE);
 }
 
+BOOLEAN btsnd_hcic_ble_set_data_length(UINT16 conn_handle, UINT16 tx_octets, UINT16 tx_time)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_BLE_SET_DATA_LENGTH)) == NULL)
+        return FALSE;
+
+    pp = p->data;
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_SET_DATA_LENGTH;
+    p->offset = 0;
+
+    UINT16_TO_STREAM(pp, HCI_BLE_SET_DATA_LENGTH);
+    UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_BLE_SET_DATA_LENGTH);
+
+    UINT16_TO_STREAM(pp, conn_handle);
+    UINT16_TO_STREAM(pp, tx_octets);
+    UINT16_TO_STREAM(pp, tx_time);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+    return TRUE;
+}
 
 #endif
 

@@ -985,5 +985,103 @@ void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 i
 }
 #endif
 
+/*******************************************************************************
+**
+** Function         l2cble_update_data_length
+**
+** Description      This function update link tx data length if applicable
+**
+** Returns          void
+**
+*******************************************************************************/
+void l2cble_update_data_length(tL2C_LCB *p_lcb)
+{
+    UINT16 tx_mtu = 0;
+    UINT16 i = 0;
+
+    L2CAP_TRACE_DEBUG("%s", __FUNCTION__);
+
+    /* See if we have a link control block for the connection */
+    if (p_lcb == NULL)
+        return;
+
+    for (i = 0; i < L2CAP_NUM_FIXED_CHNLS; i++)
+    {
+        if (i + L2CAP_FIRST_FIXED_CHNL != L2CAP_BLE_SIGNALLING_CID)
+        {
+            if ((p_lcb->p_fixed_ccbs[i] != NULL) &&
+                    (tx_mtu < (p_lcb->p_fixed_ccbs[i]->tx_data_len + L2CAP_PKT_OVERHEAD)))
+                tx_mtu = p_lcb->p_fixed_ccbs[i]->tx_data_len + L2CAP_PKT_OVERHEAD;
+        }
+    }
+
+    if (tx_mtu > BTM_BLE_DATA_SIZE_MAX)
+        tx_mtu = BTM_BLE_DATA_SIZE_MAX;
+
+    /* update TX data length if changed */
+    if (p_lcb->tx_data_len != tx_mtu)
+        BTM_SetBleDataLength(p_lcb->remote_bd_addr, tx_mtu);
+
+}
+
+/*******************************************************************************
+**
+** Function         l2cble_process_data_length_change_evt
+**
+** Description      This function process the data length change event
+**
+** Returns          void
+**
+*******************************************************************************/
+void l2cble_process_data_length_change_event(UINT16 handle, UINT16 tx_data_len, UINT16 rx_data_len)
+{
+    tL2C_LCB *p_lcb = l2cu_find_lcb_by_handle(handle);
+
+    L2CAP_TRACE_DEBUG("%s TX data len = %d", __FUNCTION__, tx_data_len);
+    if (p_lcb == NULL)
+        return;
+
+    if (tx_data_len > 0)
+        p_lcb->tx_data_len = tx_data_len;
+
+    /* ignore rx_data len for now */
+}
+
+/*******************************************************************************
+**
+** Function         l2cble_set_fixed_channel_tx_data_length
+**
+** Description      This function update max fixed channel tx data length if applicable
+**
+** Returns          void
+**
+*******************************************************************************/
+void l2cble_set_fixed_channel_tx_data_length(BD_ADDR remote_bda, UINT16 fix_cid, UINT16 tx_mtu)
+{
+    tL2C_LCB *p_lcb = l2cu_find_lcb_by_bd_addr(remote_bda, BT_TRANSPORT_LE);
+    UINT16 cid = fix_cid - L2CAP_FIRST_FIXED_CHNL;
+
+    L2CAP_TRACE_DEBUG("%s TX MTU = %d", __FUNCTION__, tx_mtu);
+
+    if (!controller_get_interface()->supports_ble_packet_extension())
+    {
+        L2CAP_TRACE_WARNING("%s, request not supported", __FUNCTION__);
+        return;
+    }
+
+    /* See if we have a link control block for the connection */
+    if (p_lcb == NULL)
+        return;
+
+    if (p_lcb->p_fixed_ccbs[cid] != NULL)
+    {
+        if (tx_mtu > BTM_BLE_DATA_SIZE_MAX)
+            tx_mtu = BTM_BLE_DATA_SIZE_MAX;
+
+        p_lcb->p_fixed_ccbs[cid]->tx_data_len = tx_mtu;
+    }
+
+    l2cble_update_data_length(p_lcb);
+}
 
 #endif /* (BLE_INCLUDED == TRUE) */

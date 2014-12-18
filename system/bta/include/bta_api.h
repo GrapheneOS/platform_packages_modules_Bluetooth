@@ -2146,6 +2146,17 @@ extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
 
 /*******************************************************************************
 **
+** Function         BTA_DmBleSetDataLength
+**
+** Description      This function is to set maximum LE data packet size
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTA_DmBleSetDataLength(BD_ADDR remote_device, UINT16 tx_data_length);
+
+/*******************************************************************************
+**
 ** Function         BTA_DmBleSetStorageParams
 **
 ** Description      This function is called to set the storage parameters

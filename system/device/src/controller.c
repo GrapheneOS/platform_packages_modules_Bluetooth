@@ -34,7 +34,8 @@
 #include "stack/include/btm_ble_api.h"
 #include "btcore/include/version.h"
 
-const bt_event_mask_t BLE_EVENT_MASK = { "\x00\x00\x00\x00\x00\x00\x00\x3f" };
+const bt_event_mask_t BLE_EVENT_MASK = { "\x00\x00\x00\x00\x00\x00\x04\x7f" };
+
 #if (BLE_INCLUDED)
 const bt_event_mask_t CLASSIC_EVENT_MASK = { HCI_DUMO_EVENT_MASK_EXT };
 #else
@@ -69,6 +70,7 @@ static uint8_t ble_white_list_size;
 static uint8_t ble_resolving_list_max_size;
 static uint8_t ble_supported_states[BLE_SUPPORTED_STATES_SIZE];
 static bt_device_features_t features_ble;
+static uint16_t ble_suggested_default_data_length;
 
 static bool readable;
 static bool ble_supported;
@@ -225,6 +227,13 @@ static future_t *start_up(void) {
             &ble_resolving_list_max_size);
     }
 
+    if (HCI_LE_DATA_LEN_EXT_SUPPORTED(features_ble.as_array)) {
+        response = AWAIT_COMMAND(packet_factory->make_ble_read_suggested_default_data_length());
+        packet_parser->parse_ble_read_suggested_default_data_length_response(
+            response,
+            &ble_suggested_default_data_length);
+    }
+
     // Set the ble event mask next
     response = AWAIT_COMMAND(packet_factory->make_ble_set_event_mask(&BLE_EVENT_MASK));
     packet_parser->parse_generic_command_complete(response);
@@ -348,6 +357,12 @@ static bool supports_ble_privacy(void) {
   return HCI_LE_ENHANCED_PRIVACY_SUPPORTED(features_ble.as_array);
 }
 
+static bool supports_ble_packet_extension(void) {
+  assert(readable);
+  assert(ble_supported);
+  return HCI_LE_DATA_LEN_EXT_SUPPORTED(features_ble.as_array);
+}
+
 static bool supports_ble_connection_parameters_request(void) {
   assert(readable);
   assert(ble_supported);
@@ -373,6 +388,12 @@ static uint16_t get_acl_packet_size_classic(void) {
 static uint16_t get_acl_packet_size_ble(void) {
   assert(readable);
   return acl_data_size_ble + HCI_DATA_PREAMBLE_SIZE;
+}
+
+static uint16_t get_ble_suggested_default_data_length(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_suggested_default_data_length;
 }
 
 static uint16_t get_acl_buffer_count_classic(void) {
@@ -420,6 +441,7 @@ static const controller_t interface = {
   supports_master_slave_role_switch,
 
   supports_ble,
+  supports_ble_packet_extension,
   supports_ble_connection_parameters_request,
   supports_ble_privacy,
 
@@ -428,6 +450,7 @@ static const controller_t interface = {
 
   get_acl_packet_size_classic,
   get_acl_packet_size_ble,
+  get_ble_suggested_default_data_length,
 
   get_acl_buffer_count_classic,
   get_acl_buffer_count_ble,

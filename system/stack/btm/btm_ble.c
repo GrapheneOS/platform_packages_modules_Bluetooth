@@ -38,6 +38,7 @@
 #include "gap_api.h"
 #include "bt_utils.h"
 #include "device/include/controller.h"
+
 #define LOG_TAG "bt_btm_ble"
 #include "osi/include/log.h"
 
@@ -759,6 +760,54 @@ BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr)
     }
     return use_le;
 }
+
+
+/*******************************************************************************
+**
+** Function         BTM_SetBleDataLength
+**
+** Description      This function is to set maximum BLE transmission packet size
+**
+** Returns          BTM_SUCCESS if success; otherwise failed.
+**
+*******************************************************************************/
+tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr, UINT16 tx_pdu_length)
+{
+    tACL_CONN *p_acl = btm_bda_to_acl(bd_addr, BT_TRANSPORT_LE);
+    BTM_TRACE_DEBUG("%s: tx_pdu_length =%d", __FUNCTION__, tx_pdu_length);
+
+    if (!controller_get_interface()->supports_ble_packet_extension())
+    {
+        BTM_TRACE_ERROR("%s failed, request not supported", __FUNCTION__);
+        return BTM_ILLEGAL_VALUE;
+    }
+
+    if (!HCI_LE_DATA_LEN_EXT_SUPPORTED(p_acl->peer_le_features))
+    {
+        BTM_TRACE_ERROR("%s failed, peer does not support request", __FUNCTION__);
+        return BTM_ILLEGAL_VALUE;
+    }
+
+    if (p_acl != NULL)
+    {
+        if (tx_pdu_length > BTM_BLE_DATA_SIZE_MAX)
+            tx_pdu_length =  BTM_BLE_DATA_SIZE_MAX;
+        else if (tx_pdu_length < BTM_BLE_DATA_SIZE_MIN)
+            tx_pdu_length =  BTM_BLE_DATA_SIZE_MIN;
+
+        /* always set the TxTime to be max, as controller does not care for now */
+        btsnd_hcic_ble_set_data_length(p_acl->hci_handle, tx_pdu_length,
+                                            BTM_BLE_DATA_TX_TIME_MAX);
+
+        return BTM_SUCCESS;
+    }
+    else
+    {
+        BTM_TRACE_ERROR("%s: Wrong mode: no LE link exist or LE not supported",__FUNCTION__);
+        return BTM_WRONG_MODE;
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_rand_enc_complete

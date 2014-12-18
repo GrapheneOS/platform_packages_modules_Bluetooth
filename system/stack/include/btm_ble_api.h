@@ -327,10 +327,21 @@ typedef  UINT32  tBTM_BLE_AD_MASK;
 #define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
 typedef UINT8   tBTM_BLE_AD_TYPE;
 
-/* security settings used with L2CAP LE COC */
+/*  Security settings used with L2CAP LE COC */
 #define BTM_SEC_LE_LINK_ENCRYPTED           0x01
 #define BTM_SEC_LE_LINK_PAIRED_WITHOUT_MITM 0x02
 #define BTM_SEC_LE_LINK_PAIRED_WITH_MITM    0x04
+
+/*  Min/max Preferred  number of payload octets that the local Controller
+    should include in a single Link Layer Data Channel PDU. */
+#define BTM_BLE_DATA_SIZE_MAX     0x00fb
+#define BTM_BLE_DATA_SIZE_MIN     0x001b
+
+/*  Preferred maximum number of microseconds that the local Controller
+    should use to transmit a single Link Layer Data Channel PDU. */
+#define BTM_BLE_DATA_TX_TIME_MIN     0x0148
+#define BTM_BLE_DATA_TX_TIME_MAX     0x0848
+
 /* adv tx power level */
 #define BTM_BLE_ADV_TX_POWER_MIN        0           /* minimum tx power */
 #define BTM_BLE_ADV_TX_POWER_LOW        1           /* low tx power     */
@@ -1764,6 +1775,17 @@ extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback);
+
+/*******************************************************************************
+**
+** Function         BTM_SetBleDataLength
+**
+** Description      This function is called to set maximum BLE transmission packet size
+**
+** Returns          BTM_SUCCESS if success; otherwise failed.
+**
+*******************************************************************************/
+extern tBTM_STATUS BTM_SetBleDataLength(BD_ADDR bd_addr, UINT16 tx_pdu_length);
 
 #ifdef __cplusplus
 }

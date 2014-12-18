@@ -313,7 +313,7 @@ typedef struct t_l2c_ccb
 #if (L2CAP_NUM_FIXED_CHNLS > 0) || (L2CAP_UCD_INCLUDED == TRUE)
     UINT16              fixed_chnl_idle_tout;   /* Idle timeout to use for the fixed channel       */
 #endif
-
+    UINT16              tx_data_len;
 } tL2C_CCB;
 
 /***********************************************************************
@@ -403,6 +403,7 @@ typedef struct t_l2c_linkcb
     tBT_TRANSPORT       transport;
 #if (BLE_INCLUDED == TRUE)
     tBLE_ADDR_TYPE      ble_addr_type;
+    UINT16              tx_data_len;            /* tx data length used in data length extension */
 
 #define L2C_BLE_CONN_UPDATE_DISABLE 0x1  /* disable update connection parameters */
 #define L2C_BLE_NEW_CONN_PARAM      0x2  /* new connection parameter to be set */
@@ -744,6 +745,13 @@ extern void l2cble_process_conn_update_evt (UINT16 handle, UINT8 status);
 extern void l2cble_process_rc_param_request_evt(UINT16 handle, UINT16 int_min, UINT16 int_max,
                                                         UINT16 latency, UINT16 timeout);
 #endif
+
+extern void l2cble_update_data_length(tL2C_LCB *p_lcb);
+extern void l2cble_set_fixed_channel_tx_data_length(BD_ADDR remote_bda, UINT16 fix_cid,
+                                                                UINT16 tx_mtu);
+extern void l2cble_process_data_length_change_event(UINT16 handle, UINT16 tx_data_len,
+                                                                UINT16 rx_data_len);
+
 #endif
 extern void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb);
 

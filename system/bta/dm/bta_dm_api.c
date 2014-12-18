@@ -1882,6 +1882,32 @@ void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max
         bta_sys_sendmsg(p_msg);
     }
 }
+
+/*******************************************************************************
+**
+** Function         BTA_DmBleSetDataLength
+**
+** Description      This function is to set maximum LE data packet size
+**
+** Returns          void
+**
+**
+*******************************************************************************/
+void BTA_DmBleSetDataLength(BD_ADDR remote_device, UINT16 tx_data_length)
+{
+    tBTA_DM_API_BLE_SET_DATA_LENGTH *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_BLE_SET_DATA_LENGTH *)GKI_getbuf(sizeof(tBTA_DM_API_BLE_SET_DATA_LENGTH)))
+                  != NULL)
+    {
+        bdcpy(p_msg->remote_bda, remote_device);
+        p_msg->hdr.event = BTA_DM_API_SET_DATA_LENGTH_EVT;
+        p_msg->tx_data_length = tx_data_length;
+
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
 #endif
 
 /*******************************************************************************

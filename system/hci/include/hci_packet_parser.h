@@ -87,6 +87,10 @@ typedef struct {
     uint8_t *resolving_list_size_ptr
   );
 
+  void (*parse_ble_read_suggested_default_data_length_response)(
+    BT_HDR *response,
+    uint16_t *ble_default_packet_length_ptr
+  );
 } hci_packet_parser_t;
 
 const hci_packet_parser_t *hci_packet_parser_get_interface();
