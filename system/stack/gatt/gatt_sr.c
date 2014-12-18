@@ -29,7 +29,7 @@
 #include <string.h>
 #include "gatt_int.h"
 #include "l2c_api.h"
-
+#include "l2c_int.h"
 #define GATT_MTU_REQ_MIN_LEN        2
 
 
@@ -935,6 +935,8 @@ static void gatts_process_mtu_req (tGATT_TCB *p_tcb, UINT16 len, UINT8 *p_data)
             p_tcb->payload_size = mtu;
 
         GATT_TRACE_ERROR("MTU request PDU with MTU size %d", p_tcb->payload_size);
+
+        l2cble_set_fixed_channel_tx_data_length(p_tcb->peer_bda, L2CAP_ATT_CID, p_tcb->payload_size);
 
         if ((p_buf = attp_build_sr_msg(p_tcb, GATT_RSP_MTU, (tGATT_SR_MSG *) &p_tcb->payload_size)) != NULL)
         {

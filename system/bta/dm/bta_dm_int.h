@@ -99,6 +99,7 @@ enum
     BTA_DM_API_BLE_SET_ADV_CONFIG_EVT,
     BTA_DM_API_BLE_SET_SCAN_RSP_EVT,
     BTA_DM_API_BLE_BROADCAST_EVT,
+    BTA_DM_API_SET_DATA_LENGTH_EVT,
 
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
     BTA_DM_API_CFG_FILTER_COND_EVT,
@@ -466,6 +467,13 @@ typedef struct
     tBTA_DM_SEARCH_CBACK * p_cback;
 }tBTA_DM_API_BLE_OBSERVE;
 
+typedef struct
+{
+    BT_HDR      hdr;
+    BD_ADDR     remote_bda;
+    UINT16      tx_data_length;
+}tBTA_DM_API_BLE_SET_DATA_LENGTH;
+
 /* set adv parameter for BLE advertising */
 typedef struct
 {
@@ -692,6 +700,8 @@ typedef union
     tBTA_DM_API_ENABLE_SCAN_FILTER      ble_enable_scan_filt;
 #endif
     tBTA_DM_API_UPDATE_CONN_PARAM       ble_update_conn_params;
+    tBTA_DM_API_BLE_SET_DATA_LENGTH     ble_set_data_length;
+
     tBTA_DM_API_BLE_MULTI_ADV_ENB       ble_multi_adv_enb;
     tBTA_DM_API_BLE_MULTI_ADV_PARAM     ble_multi_adv_param;
     tBTA_DM_API_BLE_MULTI_ADV_DATA      ble_multi_adv_data;
@@ -1057,6 +1067,7 @@ extern void bta_dm_ble_set_adv_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_broadcast (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data);
 
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
 extern void bta_dm_cfg_filter_cond (tBTA_DM_MSG *p_data);

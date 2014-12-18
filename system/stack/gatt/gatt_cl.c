@@ -30,6 +30,7 @@
 #include "bt_utils.h"
 #include "gki.h"
 #include "gatt_int.h"
+#include "l2c_int.h"
 
 #define GATT_WRITE_LONG_HDR_SIZE    5 /* 1 opcode + 2 handle + 2 offset */
 #define GATT_READ_CHAR_VALUE_HDL    (GATT_READ_CHAR_VALUE | 0x80)
@@ -1065,6 +1066,7 @@ void gatt_process_mtu_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT16 len, UINT
         p_tcb->payload_size = mtu;
     }
 
+    l2cble_set_fixed_channel_tx_data_length(p_tcb->peer_bda, L2CAP_ATT_CID, p_tcb->payload_size);
     gatt_end_operation(p_clcb, status, NULL);
 }
 /*******************************************************************************

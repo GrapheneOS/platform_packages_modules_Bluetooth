@@ -661,13 +661,13 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode,
 #define HCIC_PARAM_SIZE_BLE_READ_REMOTE_FEAT    2
 #define HCIC_PARAM_SIZE_BLE_ENCRYPT             32
 #define HCIC_PARAM_SIZE_BLE_RAND                0
-#define HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED	2
+#define HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED 2
 
 #define HCIC_BLE_RAND_DI_SIZE                   8
 #define HCIC_BLE_ENCRYT_KEY_SIZE                16
 #define HCIC_PARAM_SIZE_BLE_START_ENC           (4 + HCIC_BLE_RAND_DI_SIZE + HCIC_BLE_ENCRYT_KEY_SIZE)
 #define HCIC_PARAM_SIZE_LTK_REQ_REPLY           (2 + HCIC_BLE_ENCRYT_KEY_SIZE)
-#define HCIC_PARAM_SIZE_LTK_REQ_NEG_REPLY           2
+#define HCIC_PARAM_SIZE_LTK_REQ_NEG_REPLY       2
 #define HCIC_BLE_CHNL_MAP_SIZE                  5
 #define HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA      31
 
@@ -679,6 +679,7 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode,
 #define HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_LOCAL  7
 #define HCIC_PARAM_SIZE_BLE_SET_ADDR_RESOLUTION_ENABLE  1
 #define HCIC_PARAM_SIZE_BLE_SET_RAND_PRIV_ADDR_TIMOUT   2
+#define HCIC_PARAM_SIZE_BLE_SET_DATA_LENGTH             6
 
 /* ULP HCI command */
 extern BOOLEAN btsnd_hcic_ble_set_evt_mask (BT_EVENT_MASK event_mask);
@@ -771,6 +772,8 @@ extern BOOLEAN btsnd_hcic_ble_rc_param_req_neg_reply(UINT16 handle, UINT8 reason
 
 #endif /* BLE_LLT_INCLUDED */
 
+extern BOOLEAN btsnd_hcic_ble_set_data_length(UINT16 conn_handle, UINT16 tx_octets,
+                                                      UINT16 tx_time);
 
 extern BOOLEAN btsnd_hcic_ble_add_device_resolving_list (UINT8 addr_type_peer,
                                                                BD_ADDR bda_peer,

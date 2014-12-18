@@ -4755,6 +4755,24 @@ void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_dm_ble_set_data_length
+**
+** Description      This function set the maximum transmission packet size
+**
+** Parameters
+**
+*******************************************************************************/
+void bta_dm_ble_set_data_length(tBTA_DM_MSG *p_data)
+{
+    if (BTM_SetBleDataLength(p_data->ble_set_data_length.remote_bda,
+                        p_data->ble_set_data_length.tx_data_length) != BTM_SUCCESS)
+    {
+        APPL_TRACE_ERROR("%s failed", __FUNCTION__);
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_ble_broadcast
 **
 ** Description      Starts or stops LE broadcasts

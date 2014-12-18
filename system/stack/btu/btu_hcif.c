@@ -40,7 +40,8 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "bt_utils.h"
-#include "osi/include/osi.h"
+#include "device/include/controller.h"
+#include "osi.h"
 #include "osi/include/log.h"
 #include "hci_layer.h"
 
@@ -119,6 +120,7 @@ static void btu_ble_read_remote_feat_evt (UINT8 *p);
 static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len);
 static void btu_ble_proc_ltk_req (UINT8 *p);
 static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
+static void btu_ble_data_length_change_evt (UINT8 *p, UINT16 evt_len);
 #if (BLE_LLT_INCLUDED == TRUE)
 static void btu_ble_rc_param_req_evt(UINT8 *p);
 #endif
@@ -332,7 +334,9 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
                     btu_ble_rc_param_req_evt(p);
                     break;
 #endif
-
+               case HCI_BLE_DATA_LENGTH_CHANGE_EVT:
+                    btu_ble_data_length_change_evt(p, hci_evt_len);
+                    break;
             }
             break;
 #endif /* BLE_INCLUDED */
@@ -1719,6 +1723,27 @@ static void btu_ble_proc_ltk_req (UINT8 *p)
 #endif
     /* This is empty until an upper layer cares about returning event */
 }
+
+static void btu_ble_data_length_change_evt(UINT8 *p, UINT16 evt_len)
+{
+    UINT16 handle;
+    UINT16 tx_data_len;
+    UINT16 rx_data_len;
+
+    if (!controller_get_interface()->supports_ble_packet_extension())
+    {
+        HCI_TRACE_WARNING("%s, request not supported", __FUNCTION__);
+        return;
+    }
+
+    STREAM_TO_UINT16(handle, p);
+    STREAM_TO_UINT16(tx_data_len, p);
+    p += 2; /* Skip the TxTimer */
+    STREAM_TO_UINT16(rx_data_len, p);
+
+    l2cble_process_data_length_change_event(handle, tx_data_len, rx_data_len);
+}
+
 /**********************************************
 ** End of BLE Events Handler
 ***********************************************/

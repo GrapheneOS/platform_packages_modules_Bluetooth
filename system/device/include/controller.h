@@ -51,6 +51,7 @@ typedef struct controller_t {
   bool (*supports_master_slave_role_switch)(void);
 
   bool (*supports_ble)(void);
+  bool (*supports_ble_packet_extension)(void);
   bool (*supports_ble_connection_parameters_request)(void);
   bool (*supports_ble_privacy)(void);
 
@@ -63,6 +64,8 @@ typedef struct controller_t {
   // acl data size + size of the acl header.
   uint16_t (*get_acl_packet_size_classic)(void);
   uint16_t (*get_acl_packet_size_ble)(void);
+
+  uint16_t (*get_ble_default_data_packet_length)(void);
 
   // Get the number of acl packets the controller can buffer.
   uint16_t (*get_acl_buffer_count_classic)(void);
