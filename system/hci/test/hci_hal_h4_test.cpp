@@ -25,7 +25,6 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <utils/Log.h>
 
 #include "hci_hal.h"
 #include "osi.h"

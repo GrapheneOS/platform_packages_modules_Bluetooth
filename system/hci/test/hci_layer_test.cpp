@@ -22,7 +22,6 @@
 
 extern "C" {
 #include <stdint.h>
-#include <utils/Log.h>
 
 #include "allocation_tracker.h"
 #include "allocator.h"

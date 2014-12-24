@@ -30,13 +30,13 @@
 #error "LOG_TAG not defined, please add in .c file prior to including bt_common.h"
 #endif
 
-#include <utils/Log.h>
+#include "osi/include/log.h"
 
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
 
-#define ASSERTC(cond, msg, val) if (!(cond)) { ALOGE( \
+#define ASSERTC(cond, msg, val) if (!(cond)) { LOG_ERROR( \
     "### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
 
 /* Calculate start of event enumeration; id is top 8 bits of event */

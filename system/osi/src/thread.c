@@ -24,10 +24,10 @@
 #include <string.h>
 #include <sys/prctl.h>
 #include <sys/types.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "fixed_queue.h"
+#include "log.h"
 #include "reactor.h"
 #include "semaphore.h"
 #include "thread.h"
@@ -138,7 +138,7 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
   // or when the item is removed from the queue for dispatch.
   work_item_t *item = (work_item_t *)osi_malloc(sizeof(work_item_t));
   if (!item) {
-    ALOGE("%s unable to allocate memory: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to allocate memory: %s", __func__, strerror(errno));
     return false;
   }
   item->func = func;
@@ -176,7 +176,7 @@ static void *run_thread(void *start_arg) {
   assert(thread != NULL);
 
   if (prctl(PR_SET_NAME, (unsigned long)thread->name) == -1) {
-    ALOGE("%s unable to set thread name: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to set thread name: %s", __func__, strerror(errno));
     start->error = errno;
     semaphore_post(start->start_sem);
     return NULL;
@@ -205,7 +205,7 @@ static void *run_thread(void *start_arg) {
   }
 
   if (count > fixed_queue_capacity(thread->work_queue))
-    ALOGD("%s growing event queue on shutdown.", __func__);
+    LOG_DEBUG("%s growing event queue on shutdown.", __func__);
 
   return NULL;
 }

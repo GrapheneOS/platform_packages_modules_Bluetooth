@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
-#include <utils/Log.h>
 
 #include "alarm.h"
 #include "bdaddr.h"
@@ -33,6 +32,7 @@
 #include "config.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 #include "bt_types.h"
 
@@ -58,7 +58,7 @@ bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
     if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type))
         return FALSE;
 
-    ALOGD("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
+    LOG_DEBUG("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
     return TRUE;
 }
 
@@ -76,7 +76,7 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     if (!btif_config_get_int(bd_addr_str, "AddrType", p_addr_type))
         return FALSE;
 
-    ALOGD("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
+    LOG_DEBUG("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
     return TRUE;
 }
 
@@ -90,13 +90,13 @@ static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
-    ALOGW("%s unable to load config file; attempting to transcode legacy file.", __func__);
+    LOG_WARN("%s unable to load config file; attempting to transcode legacy file.", __func__);
     config = btif_config_transcode(LEGACY_CONFIG_FILE_PATH);
     if (!config) {
-      ALOGW("%s unable to transcode legacy file, starting unconfigured.", __func__);
+      LOG_WARN("%s unable to transcode legacy file, starting unconfigured.", __func__);
       config = config_new_empty();
       if (!config) {
-        ALOGE("%s unable to allocate a config object.", __func__);
+        LOG_ERROR("%s unable to allocate a config object.", __func__);
         goto error;
       }
     }
@@ -110,7 +110,7 @@ static future_t *init(void) {
   // write back to disk.
   alarm_timer = alarm_new();
   if (!alarm_timer) {
-    ALOGE("%s unable to create alarm.", __func__);
+    LOG_ERROR("%s unable to create alarm.", __func__);
     goto error;
   }
 

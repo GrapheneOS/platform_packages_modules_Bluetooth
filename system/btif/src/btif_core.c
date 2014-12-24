@@ -56,9 +56,10 @@
 #include "fixed_queue.h"
 #include "future.h"
 #include "gki.h"
+#include "osi.h"
+#include "osi/include/log.h"
 #include "stack_manager.h"
 #include "thread.h"
-#include "osi.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -426,7 +427,7 @@ bt_status_t btif_init_bluetooth() {
 
   bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
   if (bt_jni_workqueue_thread == NULL) {
-    ALOGE("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
+    LOG_ERROR("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
     goto error_exit;
   }
 

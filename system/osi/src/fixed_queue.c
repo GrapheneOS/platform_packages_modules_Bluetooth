@@ -19,7 +19,6 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "fixed_queue.h"

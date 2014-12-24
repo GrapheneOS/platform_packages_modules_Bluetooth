@@ -25,6 +25,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "BTLD"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +41,7 @@
 #include "btm_int.h"
 #include "bt_utils.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "hci_layer.h"
 
 // TODO(zachoverflow): remove this horrible hack
@@ -47,16 +50,6 @@ extern fixed_queue_t *btu_hci_msg_queue;
 
 extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
 extern void btm_ble_test_command_complete(UINT8 *p);
-
-// btla-specific ++
-#define LOG_TAG "BTLD"
-#if (defined(ANDROID_APP_INCLUDED) && (ANDROID_APP_INCLUDED == TRUE) && (!defined(LINUX_NATIVE)) )
-#include <cutils/log.h>
-#else
-#define LOGV(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
-#define LOGE(format, ...)  fprintf (stderr, LOG_TAG format"\n", ## __VA_ARGS__)
-#define LOGI(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
-#endif
 
 // btla-specific ++
 /* BTE application task */
@@ -213,11 +206,11 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             btu_hcif_qos_setup_comp_evt (p);
             break;
         case HCI_COMMAND_COMPLETE_EVT:
-            ALOGE("%s should not have received a command complete event. "
+            LOG_ERROR("%s should not have received a command complete event. "
                   "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_COMMAND_STATUS_EVT:
-            ALOGE("%s should not have received a command status event. "
+            LOG_ERROR("%s should not have received a command status event. "
                   "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_HARDWARE_ERROR_EVT:

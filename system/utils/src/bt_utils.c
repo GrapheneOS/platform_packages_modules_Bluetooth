@@ -25,6 +25,8 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "BT_UTILS"
+
 #include <cutils/properties.h>
 #include <cutils/sched_policy.h>
 #include <errno.h>
@@ -35,13 +37,10 @@
 #include <unistd.h>
 #include <utils/ThreadDefs.h>
 
-#define LOG_TAG "BT_UTILS"
-
-#include <utils/Log.h>
-
 #include "bt_types.h"
 #include "bt_utils.h"
 #include "module.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
 **  Type definitions for callback functions
@@ -131,7 +130,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     pthread_mutex_unlock(&gIdxLock);
 
     if (rc) {
-        ALOGW("failed to change sched policy, tid %d, err: %d", tid, errno);
+        LOG_WARN("failed to change sched policy, tid %d, err: %d", tid, errno);
     }
 
     // always use urgent priority for HCI worker thread until we can adjust
@@ -142,7 +141,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
        priority = ANDROID_PRIORITY_URGENT_AUDIO;
 
     if (setpriority(PRIO_PROCESS, tid, priority) < 0) {
-        ALOGW("failed to change priority tid: %d to %d", tid, priority);
+        LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
     }
 }
 
@@ -169,7 +168,7 @@ void adjust_priority_a2dp(int start) {
         {
             if (setpriority(PRIO_PROCESS, tid, priority) < 0)
             {
-                ALOGW("failed to change priority tid: %d to %d", tid, priority);
+                LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
             }
         }
     }

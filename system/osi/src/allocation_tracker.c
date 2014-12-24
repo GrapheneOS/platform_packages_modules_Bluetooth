@@ -21,13 +21,13 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdint.h>
-#include <utils/Log.h>
 
 #include "allocation_tracker.h"
 #include "allocator.h"
 #include "hash_functions.h"
 #include "hash_map.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 typedef struct {
   uint8_t allocator_id;
@@ -166,7 +166,7 @@ static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *contex
   allocation_t *allocation = (allocation_t *)entry->data;
   if (!allocation->freed) {
     *((size_t *)context) += allocation->size; // Report back the unfreed byte count
-    ALOGE("%s found unfreed allocation. address: 0x%x size: %d bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
+    LOG_ERROR("%s found unfreed allocation. address: 0x%x size: %d bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
   }
 
   return true;

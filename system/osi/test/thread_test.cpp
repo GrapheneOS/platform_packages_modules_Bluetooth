@@ -4,7 +4,6 @@
 
 extern "C" {
 #include <sys/select.h>
-#include <utils/Log.h>
 
 #include "reactor.h"
 #include "semaphore.h"

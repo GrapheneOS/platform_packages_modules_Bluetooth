@@ -58,7 +58,6 @@
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
 
-#include <cutils/log.h>
 #define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 #define print_events(events) do { \
     APPL_TRACE_DEBUG("print poll event:%x", events); \

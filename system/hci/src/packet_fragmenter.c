@@ -19,7 +19,6 @@
 #define LOG_TAG "hci_packet_fragmenter"
 
 #include <assert.h>
-#include <utils/Log.h>
 
 #include "buffer_allocator.h"
 #include "device/include/controller.h"
@@ -29,6 +28,7 @@
 #include "hci_layer.h"
 #include "packet_fragmenter.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 #define APPLY_CONTINUATION_FLAG(handle) (((handle) & 0xCFFF) | 0x1000)
 #define APPLY_START_FLAG(handle) (((handle) & 0xCFFF) | 0x2000)
@@ -138,7 +138,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
 
     if (boundary_flag == START_PACKET_BOUNDARY) {
       if (partial_packet) {
-        ALOGW("%s found unfinished packet for handle with start packet. Dropping old.", __func__);
+        LOG_WARN("%s found unfinished packet for handle with start packet. Dropping old.", __func__);
 
         hash_map_erase(partial_packets, (void *)(uintptr_t)handle);
         buffer_allocator->free(partial_packet);
@@ -147,7 +147,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       uint16_t full_length = l2cap_length + L2CAP_HEADER_SIZE + HCI_ACL_PREAMBLE_SIZE;
       if (full_length <= packet->len) {
         if (full_length < packet->len)
-          ALOGW("%s found l2cap full length %d less than the hci length %d.", __func__, l2cap_length, packet->len);
+          LOG_WARN("%s found l2cap full length %d less than the hci length %d.", __func__, l2cap_length, packet->len);
 
         callbacks->reassembled(packet);
         return;
@@ -170,7 +170,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       buffer_allocator->free(packet);
     } else {
       if (!partial_packet) {
-        ALOGW("%s got continuation for unknown packet. Dropping it.", __func__);
+        LOG_WARN("%s got continuation for unknown packet. Dropping it.", __func__);
         buffer_allocator->free(packet);
         return;
       }
@@ -178,7 +178,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       packet->offset = HCI_ACL_PREAMBLE_SIZE;
       uint16_t projected_offset = partial_packet->offset + (packet->len - HCI_ACL_PREAMBLE_SIZE);
       if (projected_offset > partial_packet->len) { // len stores the expected length
-        ALOGW("%s got packet which would exceed expected length of %d. Truncating.", __func__, partial_packet->len);
+        LOG_WARN("%s got packet which would exceed expected length of %d. Truncating.", __func__, partial_packet->len);
         packet->len = partial_packet->len - partial_packet->offset;
         projected_offset = partial_packet->len;
       }

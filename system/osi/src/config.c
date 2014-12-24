@@ -5,11 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "config.h"
 #include "list.h"
+#include "osi/include/log.h"
 
 typedef struct {
   char *key;
@@ -41,13 +41,13 @@ static entry_t *entry_find(const config_t *config, const char *section, const ch
 config_t *config_new_empty(void) {
   config_t *config = osi_calloc(sizeof(config_t));
   if (!config) {
-    ALOGE("%s unable to allocate memory for config_t.", __func__);
+    LOG_ERROR("%s unable to allocate memory for config_t.", __func__);
     goto error;
   }
 
   config->sections = list_new(section_free);
   if (!config->sections) {
-    ALOGE("%s unable to allocate list for sections.", __func__);
+    LOG_ERROR("%s unable to allocate list for sections.", __func__);
     goto error;
   }
 
@@ -67,7 +67,7 @@ config_t *config_new(const char *filename) {
 
   FILE *fp = fopen(filename, "rt");
   if (!fp) {
-    ALOGE("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
+    LOG_ERROR("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
     config_free(config);
     return NULL;
   }
@@ -233,7 +233,7 @@ bool config_save(const config_t *config, const char *filename) {
 
   FILE *fp = fopen(filename, "wt");
   if (!fp) {
-    ALOGE("%s unable to write file '%s': %s", __func__, filename, strerror(errno));
+    LOG_ERROR("%s unable to write file '%s': %s", __func__, filename, strerror(errno));
     return false;
   }
 
@@ -291,7 +291,7 @@ static void config_parse(FILE *fp, config_t *config) {
     if (*line_ptr == '[') {
       size_t len = strlen(line_ptr);
       if (line_ptr[len - 1] != ']') {
-        ALOGD("%s unterminated section name on line %d.", __func__, line_num);
+        LOG_DEBUG("%s unterminated section name on line %d.", __func__, line_num);
         continue;
       }
       strncpy(section, line_ptr + 1, len - 2);
@@ -299,7 +299,7 @@ static void config_parse(FILE *fp, config_t *config) {
     } else {
       char *split = strchr(line_ptr, '=');
       if (!split) {
-        ALOGD("%s no key/value separator found on line %d.", __func__, line_num);
+        LOG_DEBUG("%s no key/value separator found on line %d.", __func__, line_num);
         continue;
       }
 

@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 typedef struct alarm_t alarm_t;
 typedef uint64_t period_ms_t;
 

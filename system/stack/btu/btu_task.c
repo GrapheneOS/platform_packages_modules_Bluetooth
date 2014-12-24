@@ -19,7 +19,6 @@
 #define LOG_TAG "btu_task"
 
 #include <assert.h>
-#include <cutils/log.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -41,6 +40,7 @@
 #include "l2c_int.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "sdpint.h"
 #include "thread.h"
 
@@ -285,7 +285,7 @@ void btu_task_start_up(UNUSED_ATTR void *context) {
   BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
       "btu_task pending for preload complete event");
 
-  ALOGI("Bluetooth chip preload is complete");
+  LOG_INFO("Bluetooth chip preload is complete");
 
   BT_TRACE(TRACE_LAYER_BTU, TRACE_TYPE_API,
       "btu_task received preload complete event");
@@ -494,7 +494,7 @@ void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
 
   alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to create alarm\n", __func__);
+    LOG_ERROR("%s Unable to create alarm\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -539,7 +539,7 @@ void btu_stop_timer(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
+    LOG_WARN("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -589,7 +589,7 @@ void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ti
 
   alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to create alarm\n", __func__);
+    LOG_ERROR("%s Unable to create alarm\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -620,7 +620,7 @@ void btu_stop_quick_timer(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
+    LOG_WARN("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -652,7 +652,7 @@ void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_
 
   alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGE("%s Unable to create alarm\n", __func__);
+    LOG_ERROR("%s Unable to create alarm\n", __func__);
     return;
   }
   alarm_cancel(alarm);
@@ -674,7 +674,7 @@ void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
   // Get the alarm for the timer list entry.
   alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    ALOGW("%s Unable to find expected alarm in hashmap\n", __func__);
+    LOG_WARN("%s Unable to find expected alarm in hashmap\n", __func__);
     return;
   }
   alarm_cancel(alarm);

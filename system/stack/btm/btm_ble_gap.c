@@ -45,6 +45,7 @@
 #include "gatt_int.h"
 
 #include "btm_ble_int.h"
+#include "osi/include/log.h"
 
 #define BTM_BLE_NAME_SHORT                  0x01
 #define BTM_BLE_NAME_CMPL                   0x02
@@ -1476,7 +1477,7 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
     else
         flag &= ~(BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
 
-    BTM_TRACE_DEBUG("disc_mode %04x", disc_mode);
+    LOG_DEBUG("disc_mode %04x", disc_mode);
     /* update discoverable flag */
     if (disc_mode & BTM_BLE_LIMITED_DISCOVERABLE)
     {

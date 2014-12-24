@@ -30,11 +30,11 @@
 
 #define LOG_TAG "bt_pm"
 
-#include <cutils/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
+
 #include "bt_types.h"
 #include "gki.h"
 #include "hcimsgs.h"
@@ -44,6 +44,7 @@
 #include "l2c_int.h"
 #include "hcidefs.h"
 #include "bt_utils.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************/
 /*      to handle different modes                                            */
@@ -623,7 +624,7 @@ static tBTM_STATUS btm_pm_snd_md_req(UINT8 pm_id, int link_ind, tBTM_PM_PWR_MD *
     BTM_TRACE_DEBUG("btm_pm_snd_md_req state:0x%x, link_ind: %d", p_cb->state, link_ind);
 #endif  // BTM_PM_DEBUG
 
-    ALOGD("%s switching from %s to %s.", __func__, mode_to_string(p_cb->state), mode_to_string(md_res.mode));
+    LOG_DEBUG("%s switching from %s to %s.", __func__, mode_to_string(p_cb->state), mode_to_string(md_res.mode));
     switch(md_res.mode)
     {
     case BTM_PM_MD_ACTIVE:

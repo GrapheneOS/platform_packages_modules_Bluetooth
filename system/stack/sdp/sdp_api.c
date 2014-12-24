@@ -37,13 +37,6 @@
 #include "sdpint.h"
 #include "btu.h"
 
-#include <cutils/log.h>
-#define info(fmt, ...)  LOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
-
 /**********************************************************************
 **   C L I E N T    F U N C T I O N    P R O T O T Y P E S            *
 ***********************************************************************/

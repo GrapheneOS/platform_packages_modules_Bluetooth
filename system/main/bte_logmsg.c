@@ -17,7 +17,6 @@
  ******************************************************************************/
 
 #include <assert.h>
-#include <cutils/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,6 +31,7 @@
 #include "config.h"
 #include "gki.h"
 #include "l2c_api.h"
+#include "osi/include/log.h"
 #include "stack_config.h"
 
 #if (RFCOMM_INCLUDED==TRUE)
@@ -247,7 +247,7 @@ static void load_levels_from_config(const config_t *config) {
   assert(config != NULL);
 
   for (tBTTRC_FUNC_MAP *functions = &bttrc_set_level_map[0]; functions->trc_name; ++functions) {
-    ALOGI("BTE_InitTraceLevels -- %s", functions->trc_name);
+    LOG_INFO("BTE_InitTraceLevels -- %s", functions->trc_name);
     int value = config_get_int(config, CONFIG_DEFAULT_SECTION, functions->trc_name, -1);
     if (value != -1)
       functions->trace_level = value;
@@ -260,7 +260,7 @@ static void load_levels_from_config(const config_t *config) {
 static future_t *init(void) {
   const stack_config_t *stack_config = stack_config_get_interface();
   if (!stack_config->get_trace_config_enabled()) {
-    ALOGI("[bttrc] using compile default trace settings");
+    LOG_INFO("[bttrc] using compile default trace settings");
     return NULL;
   }
 

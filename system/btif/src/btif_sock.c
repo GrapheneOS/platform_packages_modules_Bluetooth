@@ -29,6 +29,7 @@
 #include "btif_sock_thread.h"
 #include "btif_util.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "thread.h"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
@@ -56,26 +57,26 @@ bt_status_t btif_sock_init(void) {
   btsock_thread_init();
   thread_handle = btsock_thread_create(btsock_signaled, NULL);
   if (thread_handle == -1) {
-    ALOGE("%s unable to create btsock_thread.", __func__);
+    LOG_ERROR("%s unable to create btsock_thread.", __func__);
     goto error;
   }
 
   bt_status_t status = btsock_rfc_init(thread_handle);
   if (status != BT_STATUS_SUCCESS) {
-    ALOGE("%s error initializing RFCOMM sockets: %d", __func__, status);
+    LOG_ERROR("%s error initializing RFCOMM sockets: %d", __func__, status);
     goto error;
   }
 
   thread = thread_new("btif_sock");
   if (!thread) {
-    ALOGE("%s error creating new thread.", __func__);
+    LOG_ERROR("%s error creating new thread.", __func__);
     btsock_rfc_cleanup();
     goto error;
   }
 
   status = btsock_sco_init(thread);
   if (status != BT_STATUS_SUCCESS) {
-    ALOGE("%s error initializing SCO sockets: %d", __func__, status);
+    LOG_ERROR("%s error initializing SCO sockets: %d", __func__, status);
     btsock_rfc_cleanup();
     goto error;
   }
@@ -122,7 +123,7 @@ static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, c
       break;
 
     default:
-      ALOGE("%s unknown/unsupported socket type: %d", __func__, type);
+      LOG_ERROR("%s unknown/unsupported socket type: %d", __func__, type);
       status = BT_STATUS_UNSUPPORTED;
       break;
   }
@@ -147,7 +148,7 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
       break;
 
     default:
-      ALOGE("%s unknown/unsupported socket type: %d", __func__, type);
+      LOG_ERROR("%s unknown/unsupported socket type: %d", __func__, type);
       status = BT_STATUS_UNSUPPORTED;
       break;
   }

@@ -102,7 +102,7 @@ void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
             break;
 
         default:
-            ALOGE("%s: Unknown UUID length %d!", __FUNCTION__, p_dest->len);
+            LOG_ERROR("%s: Unknown UUID length %d!", __FUNCTION__, p_dest->len);
             break;
     }
 }
@@ -192,7 +192,7 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
             break;
 
         default:
-            ALOGE("%s: Unknown UUID length %d!", __FUNCTION__, p_src->len);
+            LOG_ERROR("%s: Unknown UUID length %d!", __FUNCTION__, p_src->len);
             break;
     }
 }
@@ -258,7 +258,7 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
         default:
             if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
             {
-                ALOGI("%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
+                LOG_INFO("%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
                 p_dest->value.len = p_src->p_value->unformat.len;
                 if ( p_src->p_value->unformat.len > 0  && p_src->p_value->unformat.p_value != NULL )
                 {

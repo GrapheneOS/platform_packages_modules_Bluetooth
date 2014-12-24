@@ -22,7 +22,6 @@
  *
  ******************************************************************************/
 
-#include <cutils/log.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -37,6 +36,7 @@
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
+#include "osi/include/log.h"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -894,7 +894,7 @@ void l2c_init (void)
 
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)
-        ALOGE("%s unable to allocate memory for link layer control block", __func__);
+        LOG_ERROR("%s unable to allocate memory for link layer control block", __func__);
 }
 
 void l2c_free(void) {

@@ -24,13 +24,15 @@
  *
  *
  ***********************************************************************************/
+
+#define LOG_TAG "btif_dm"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
 #include <hardware/bluetooth.h>
 
-#include <utils/Log.h>
 #include <cutils/properties.h>
 #include "gki.h"
 #include "btu.h"
@@ -44,6 +46,8 @@
 #include "btif_config.h"
 
 #include "bta_gatt_api.h"
+#include "include/stack_config.h"
+#include "osi/include/log.h"
 
 /******************************************************************************
 **  Device specific workarounds
@@ -511,7 +515,7 @@ static void btif_update_remote_version_property(bt_bdaddr_t *p_bd)
     btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)p_bd, &lmp_ver,
                           &mfct_set, &lmp_subver);
 
-    ALOGD("remote version info [%s]: %x, %x, %x", bdaddr_to_string(p_bd, bdstr, sizeof(bdstr)),
+    LOG_DEBUG("remote version info [%s]: %x, %x, %x", bdaddr_to_string(p_bd, bdstr, sizeof(bdstr)),
                lmp_ver, mfct_set, lmp_subver);
 
     if (btm_status == BTM_SUCCESS)
@@ -965,7 +969,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
 
     if ( cod == 0) {
-        ALOGD("cod is 0, set as unclassified");
+        LOG_DEBUG("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1000,7 +1004,7 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
     if ( cod == 0) {
-        ALOGD("cod is 0, set as unclassified");
+        LOG_DEBUG("cod is 0, set as unclassified");
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1063,15 +1067,14 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
         if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr, COD_HID_MAJOR))
         {
-            ALOGW("%s:skip SDP",
-                              __FUNCTION__);
+            LOG_WARN("%s:skip SDP", __FUNCTION__);
             skip_sdp = TRUE;
         }
         if(!pairing_cb.is_local_initiated && skip_sdp)
         {
             bond_state_changed(status, &bd_addr, state);
 
-            ALOGW("%s: Incoming HID Connection",__FUNCTION__);
+            LOG_WARN("%s: Incoming HID Connection",__FUNCTION__);
             bt_property_t prop;
             bt_bdaddr_t bd_addr;
             bt_uuid_t  uuid;
@@ -1245,7 +1248,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             cod = devclass2uint (p_search_data->inq_res.dev_class);
 
             if ( cod == 0) {
-                ALOGD("cod is 0, set as unclassified");
+                LOG_DEBUG("cod is 0, set as unclassified");
                 cod = COD_UNCLASSIFIED;
             }
 

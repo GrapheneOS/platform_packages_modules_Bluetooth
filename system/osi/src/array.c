@@ -19,10 +19,10 @@
 #define LOG_TAG "bt_array"
 
 #include <assert.h>
-#include <cutils/log.h>
 
 #include "allocator.h"
 #include "array.h"
+#include "osi/include/log.h"
 
 struct array_t {
   size_t element_size;
@@ -41,7 +41,7 @@ array_t *array_new(size_t element_size) {
 
   array_t *array = osi_calloc(sizeof(array_t) + element_size * INTERNAL_ELEMENTS);
   if (!array) {
-    ALOGE("%s unable to allocate memory for array with elements of size %zu.", __func__, element_size);
+    LOG_ERROR("%s unable to allocate memory for array with elements of size %zu.", __func__, element_size);
     return NULL;
   }
 
@@ -85,7 +85,7 @@ bool array_append_ptr(array_t *array, void *data) {
   assert(data != NULL);
 
   if (array->length == array->capacity && !grow(array)) {
-    ALOGE("%s unable to grow array past current capacity of %zu elements of size %zu.", __func__, array->capacity, array->element_size);
+    LOG_ERROR("%s unable to grow array past current capacity of %zu elements of size %zu.", __func__, array->capacity, array->element_size);
     return false;
   }
 

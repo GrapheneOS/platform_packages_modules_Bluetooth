@@ -47,8 +47,7 @@
 #include "osi.h"
 #include "bta_hh_api.h"
 #include "btif_hh.h"
-
-#include <cutils/log.h>
+#include "osi/include/log.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -1586,7 +1585,7 @@ bt_status_t btif_storage_load_autopair_device_list() {
 
     config_t *config = config_new(BTIF_AUTO_PAIR_CONF_FILE);
     if (!config) {
-        ALOGE("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
+        LOG_ERROR("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
         return BT_STATUS_FAIL;
     }
 

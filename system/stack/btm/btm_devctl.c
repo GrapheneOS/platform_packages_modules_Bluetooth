@@ -28,7 +28,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
-#include <utils/Log.h>
 
 #include "bt_types.h"
 #include "bt_utils.h"

@@ -17,8 +17,8 @@
  ******************************************************************************/
 
 #include <assert.h>
-#include <utils/Log.h>
 #include "gki_int.h"
+#include "osi/include/log.h"
 
 #define GKI_NO_NEW_TMRS_STARTED (0x7fffffffL)   /* Largest signed positive timer count */
 
@@ -235,7 +235,7 @@ void GKI_timer_update (INT32 ticks_since_last_update)
     {
         // When using alarms from AlarmService we should
         // always have work to be done here.
-        ALOGE("%s no work to be done when expected work", __func__);
+        LOG_ERROR("%s no work to be done when expected work", __func__);
         gki_cb.com.timer_nesting = 0;
         return;
     }

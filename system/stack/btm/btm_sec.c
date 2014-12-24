@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btm_sec"
+
 #include <string.h>
 
 #include "bt_types.h"
@@ -31,6 +33,7 @@
 #include "btm_int.h"
 #include "l2c_int.h"
 #include "bt_utils.h"
+#include "osi/include/log.h"
 
 #if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
 /* needed for sprintf() */

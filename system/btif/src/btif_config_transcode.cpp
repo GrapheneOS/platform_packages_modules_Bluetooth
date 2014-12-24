@@ -19,10 +19,10 @@
 #define LOG_TAG "bt_btif_config_transcode"
 
 #include <tinyxml2.h>
-#include <utils/Log.h>
 
 extern "C" {
-#include "config.h"
+#include "osi/include/config.h"
+#include "osi/include/log.h"
 }
 
 using namespace tinyxml2;
@@ -31,19 +31,19 @@ extern "C" config_t *btif_config_transcode(const char *xml_filename) {
   XMLDocument document;
   int error = document.LoadFile(xml_filename);
   if (error != XML_SUCCESS) {
-    ALOGE("%s unable to load XML file '%s': %d", __func__, xml_filename, error);
+    LOG_ERROR("%s unable to load XML file '%s': %d", __func__, xml_filename, error);
     return NULL;
   }
 
   XMLElement *rootElement = document.RootElement();
   if (!rootElement) {
-    ALOGE("%s unable to find root element; assuming corrupted config file.", __func__);
+    LOG_ERROR("%s unable to find root element; assuming corrupted config file.", __func__);
     return NULL;
   }
 
   config_t *config = config_new_empty();
   if (!config) {
-    ALOGE("%s unable to allocate config object.", __func__);
+    LOG_ERROR("%s unable to allocate config object.", __func__);
     return NULL;
   }
 

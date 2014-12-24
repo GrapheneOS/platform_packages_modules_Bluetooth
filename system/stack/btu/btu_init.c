@@ -16,11 +16,11 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_task"
+
 #include <assert.h>
 
 #include "bt_target.h"
-#define LOG_TAG "bt_task"
-#include <cutils/log.h>
 #include <pthread.h>
 #include <string.h>
 #include "dyn_mem.h"
@@ -35,6 +35,7 @@
 #include "sdpint.h"
 #include "thread.h"
 #include "l2c_int.h"
+#include "osi/include/log.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "gatt_api.h"
@@ -197,7 +198,7 @@ void BTU_StartUp(void)
     return;
 
   error_exit:;
-    ALOGE("%s Unable to allocate resources for bt_workqueue", __func__);
+    LOG_ERROR("%s Unable to allocate resources for bt_workqueue", __func__);
     BTU_ShutDown();
 }
 

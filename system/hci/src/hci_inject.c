@@ -20,7 +20,6 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "bt_types.h"
@@ -29,6 +28,7 @@
 #include "hci_layer.h"
 #include "list.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "socket.h"
 #include "thread.h"
 
@@ -109,7 +109,7 @@ static int hci_packet_to_event(hci_packet_t packet) {
     case HCI_PACKET_SCO_DATA:
       return MSG_STACK_TO_HC_HCI_SCO;
     default:
-      ALOGE("%s unsupported packet type: %d", __func__, packet);
+      LOG_ERROR("%s unsupported packet type: %d", __func__, packet);
       return -1;
   }
 }
@@ -124,7 +124,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
 
   client_t *client = (client_t *)osi_calloc(sizeof(client_t));
   if (!client) {
-    ALOGE("%s unable to allocate memory for client.", __func__);
+    LOG_ERROR("%s unable to allocate memory for client.", __func__);
     socket_free(socket);
     return;
   }
@@ -132,7 +132,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
   client->socket = socket;
 
   if (!list_append(clients, client)) {
-    ALOGE("%s unable to add client to list.", __func__);
+    LOG_ERROR("%s unable to add client to list.", __func__);
     client_free(client);
     return;
   }
@@ -175,7 +175,7 @@ static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
       memcpy(buf->data, buffer + 3, packet_len);
       hci->transmit_downward(buf->event, buf);
     } else {
-      ALOGE("%s dropping injected packet of length %zu", __func__, packet_len);
+      LOG_ERROR("%s dropping injected packet of length %zu", __func__, packet_len);
     }
 
     size_t remainder = client->buffer_size - frame_len;

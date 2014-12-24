@@ -22,7 +22,6 @@
 
 extern "C" {
 #include <stdint.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "device/include/controller.h"

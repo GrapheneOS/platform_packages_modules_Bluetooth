@@ -23,7 +23,6 @@
 extern "C" {
 #include <stdint.h>
 #include <unistd.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "eager_reader.h"

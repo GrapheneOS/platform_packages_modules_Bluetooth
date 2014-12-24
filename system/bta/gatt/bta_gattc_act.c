@@ -22,6 +22,7 @@
  *  machine.
  *
  ******************************************************************************/
+#define LOG_TAG "bta_gattc_act"
 
 #include "bt_target.h"
 
@@ -37,6 +38,8 @@
 #endif
 
 #include <string.h>
+
+#include "osi/include/log.h"
 
 #if BTA_GATT_INCLUDED && BLE_INCLUDED == TRUE
 
@@ -2303,7 +2306,7 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
                 /* if listen to all */
                 else
                 {
-                    APPL_TRACE_ERROR("Listen For All now");
+                    LOG_DEBUG("Listen For All now");
                     /* go through all connected device and send
                     callback for all connected slave connection */
                     bta_gattc_process_listen_all(p_msg->api_listen.client_if);

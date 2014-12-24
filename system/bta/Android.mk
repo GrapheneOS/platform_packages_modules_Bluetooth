@@ -93,6 +93,7 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \
                    $(LOCAL_PATH)/hh \
+                   $(LOCAL_PATH)/../ \
                    $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \

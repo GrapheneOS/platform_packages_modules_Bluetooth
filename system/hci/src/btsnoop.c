@@ -19,7 +19,6 @@
 #define LOG_TAG "btsnoop"
 
 #include <assert.h>
-#include <cutils/log.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -32,6 +31,7 @@
 #include "btsnoop.h"
 #include "bt_types.h"
 #include "hci_layer.h"
+#include "osi/include/log.h"
 #include "stack_config.h"
 
 typedef enum {
@@ -145,7 +145,7 @@ static void update_logging() {
     logfile_fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
 
     if (logfile_fd == INVALID_FD) {
-      ALOGE("%s unable to open '%s': %s", __func__, path, strerror(errno));
+      LOG_ERROR("%s unable to open '%s': %s", __func__, path, strerror(errno));
       return;
     }
 

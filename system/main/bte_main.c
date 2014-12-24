@@ -23,6 +23,9 @@
  *  Description:   Contains BTE core stack initialization and shutdown code
  *
  ******************************************************************************/
+
+#define LOG_TAG "bt_main"
+
 #include <assert.h>
 #include <cutils/properties.h>
 #include <fcntl.h>
@@ -31,7 +34,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <time.h>
-#include <utils/Log.h>
 
 #include "alarm.h"
 #include "bta_api.h"
@@ -50,6 +52,7 @@
 #include "hci_layer.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "stack_config.h"
 #include "thread.h"
 
@@ -97,11 +100,11 @@ void bte_main_boot_entry(void)
 
     hci = hci_layer_get_interface();
     if (!hci)
-      ALOGE("%s could not get hci layer interface.", __func__);
+      LOG_ERROR("%s could not get hci layer interface.", __func__);
 
     btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
     if (btu_hci_msg_queue == NULL) {
-      ALOGE("%s unable to allocate hci message queue.", __func__);
+      LOG_ERROR("%s unable to allocate hci message queue.", __func__);
       return;
     }
 

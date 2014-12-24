@@ -32,13 +32,13 @@
 #include <hardware/bluetooth.h>
 #include <sys/prctl.h>
 #include <sys/times.h>
-#include <utils/Log.h>
 
 #include "alarm.h"
 #include "bt_utils.h"
 #include "gki_int.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -88,7 +88,7 @@ void alarm_service_reschedule() {
     if (alarm_ticks > 0)
         alarm_set(alarm_timer, GKI_TICKS_TO_MS(alarm_ticks), bt_alarm_cb, NULL);
     else
-        ALOGV("%s no more alarms.", __func__);
+        LOG_VERBOSE("%s no more alarms.", __func__);
 }
 
 static future_t *init(void)
@@ -395,20 +395,20 @@ void GKI_disable (void)
 
 void GKI_exception(UINT16 code, char *msg)
 {
-    ALOGE( "GKI_exception(): Task State Table");
+    LOG_ERROR( "GKI_exception(): Task State Table");
 
     for (int task_id = 0; task_id < GKI_MAX_TASKS; task_id++)
     {
-        ALOGE( "TASK ID [%d] task name [%s] state [%d]",
+        LOG_ERROR( "TASK ID [%d] task name [%s] state [%d]",
                          task_id,
                          gki_cb.com.task_name[task_id],
                          gki_cb.com.task_state[task_id]);
     }
 
-    ALOGE("GKI_exception %d %s", code, msg);
-    ALOGE( "********************************************************************");
-    ALOGE( "* GKI_exception(): %d %s", code, msg);
-    ALOGE( "********************************************************************");
+    LOG_ERROR("GKI_exception %d %s", code, msg);
+    LOG_ERROR( "********************************************************************");
+    LOG_ERROR( "* GKI_exception(): %d %s", code, msg);
+    LOG_ERROR( "********************************************************************");
 
     GKI_TRACE("GKI_exception %d %s done", code, msg);
 }

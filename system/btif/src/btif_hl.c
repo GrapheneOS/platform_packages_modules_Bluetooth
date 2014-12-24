@@ -28,7 +28,6 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <cutils/log.h>
 #include <cutils/sockets.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -71,6 +70,7 @@
 #include "gki.h"
 #include "list.h"
 #include "mca_api.h"
+#include "osi/include/log.h"
 
 #define MAX_DATATYPE_SUPPORTED 8
 
@@ -5066,7 +5066,7 @@ void btif_hl_soc_thread_init(void){
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     soc_queue = list_new(NULL);
     if (soc_queue == NULL)
-        ALOGE("%s unable to allocate resources for thread", __func__);
+        LOG_ERROR("%s unable to allocate resources for thread", __func__);
     select_thread_id = create_thread(btif_hl_select_thread, NULL);
 }
 /*******************************************************************************

@@ -60,6 +60,7 @@
 #include "btif_pan_internal.h"
 #include "gki.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 #define FORWARD_IGNORE        1
 #define FORWARD_SUCCESS       0
@@ -446,7 +447,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(packet, &eth_hdr, sizeof(tETH_HDR));
         if(len > 2000)
         {
-            ALOGE("btpan_tap_send eth packet size:%d is exceeded limit!", len);
+            LOG_ERROR("btpan_tap_send eth packet size:%d is exceeded limit!", len);
             return -1;
         }
         memcpy(packet + sizeof(tETH_HDR), buf, len);
@@ -606,7 +607,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 bt_status_t status;
                 btpan_conn_t *conn = btpan_find_conn_handle(p_data->open.handle);
 
-                ALOGV("%s pan connection open status: %d", __func__, p_data->open.status);
+                LOG_VERBOSE("%s pan connection open status: %d", __func__, p_data->open.status);
                 if(p_data->open.status == BTA_PAN_SUCCESS)
                 {
                     state = BTPAN_STATE_CONNECTED;
@@ -630,7 +631,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
 
-                ALOGI("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                LOG_INFO("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
 
                 if(conn && conn->handle >= 0)
                 {

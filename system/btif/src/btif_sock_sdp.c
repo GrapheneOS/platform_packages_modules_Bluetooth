@@ -26,7 +26,6 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
-#include <cutils/log.h>
 
 #include "btif_common.h"
 #include "btif_util.h"

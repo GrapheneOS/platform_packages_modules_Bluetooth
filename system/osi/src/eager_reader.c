@@ -22,12 +22,12 @@
 #include <errno.h>
 #include <stddef.h>
 #include <sys/eventfd.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "eager_reader.h"
 #include "fixed_queue.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "reactor.h"
 #include "thread.h"
 
@@ -77,7 +77,7 @@ eager_reader_t *eager_reader_new(
 
   eager_reader_t *ret = osi_calloc(sizeof(eager_reader_t));
   if (!ret) {
-    ALOGE("%s unable to allocate memory for new eager_reader.", __func__);
+    LOG_ERROR("%s unable to allocate memory for new eager_reader.", __func__);
     goto error;
   }
 
@@ -86,7 +86,7 @@ eager_reader_t *eager_reader_new(
 
   ret->bytes_available_fd = eventfd(0, EFD_SEMAPHORE);
   if (ret->bytes_available_fd == INVALID_FD) {
-    ALOGE("%s unable to create output reading semaphore.", __func__);
+    LOG_ERROR("%s unable to create output reading semaphore.", __func__);
     goto error;
   }
 
@@ -94,13 +94,13 @@ eager_reader_t *eager_reader_new(
 
   ret->buffers = fixed_queue_new(max_buffer_count);
   if (!ret->buffers) {
-    ALOGE("%s unable to create buffers queue.", __func__);
+    LOG_ERROR("%s unable to create buffers queue.", __func__);
     goto error;
   }
 
   ret->inbound_read_thread = thread_new(thread_name);
   if (!ret->inbound_read_thread) {
-    ALOGE("%s unable to make reading thread.", __func__);
+    LOG_ERROR("%s unable to make reading thread.", __func__);
     goto error;
   }
 
@@ -177,7 +177,7 @@ size_t eager_reader_read(eager_reader_t *reader, uint8_t *buffer, size_t max_siz
 
     eventfd_t value;
     if (eventfd_read(reader->bytes_available_fd, &value) == -1)
-      ALOGE("%s unable to read semaphore for output data.", __func__);
+      LOG_ERROR("%s unable to read semaphore for output data.", __func__);
 
     if (!reader->current_buffer)
       reader->current_buffer = fixed_queue_dequeue(reader->buffers);
@@ -217,7 +217,7 @@ static void inbound_data_waiting(void *context) {
 
   data_buffer_t *buffer = (data_buffer_t *)reader->allocator->alloc(reader->buffer_size + sizeof(data_buffer_t));
   if (!buffer) {
-    ALOGE("%s couldn't aquire memory for inbound data buffer.", __func__);
+    LOG_ERROR("%s couldn't aquire memory for inbound data buffer.", __func__);
     return;
   }
 
@@ -235,9 +235,9 @@ static void inbound_data_waiting(void *context) {
     eventfd_write(reader->bytes_available_fd, bytes_read);
   } else {
     if (bytes_read == 0)
-      ALOGW("%s fd said bytes existed, but none were found.", __func__);
+      LOG_WARN("%s fd said bytes existed, but none were found.", __func__);
     else
-      ALOGW("%s unable to read from file descriptor: %s", __func__, strerror(errno));
+      LOG_WARN("%s unable to read from file descriptor: %s", __func__, strerror(errno));
 
     reader->allocator->free(buffer);
   }

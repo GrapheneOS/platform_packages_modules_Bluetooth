@@ -23,12 +23,12 @@
 #include <hardware/bluetooth.h>
 #include <inttypes.h>
 #include <time.h>
-#include <utils/Log.h>
 
 #include "allocator.h"
 #include "alarm.h"
 #include "list.h"
 #include "osi.h"
+#include "osi/include/log.h"
 
 struct alarm_t {
   // The lock is held while the callback for this alarm is being executed.
@@ -75,7 +75,7 @@ alarm_t *alarm_new(void) {
 
   alarm_t *ret = osi_calloc(sizeof(alarm_t));
   if (!ret) {
-    ALOGE("%s unable to allocate memory for alarm.", __func__);
+    LOG_ERROR("%s unable to allocate memory for alarm.", __func__);
     goto error;
   }
 
@@ -83,13 +83,13 @@ alarm_t *alarm_new(void) {
   // within the callback function of the alarm.
   int error = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   if (error) {
-    ALOGE("%s unable to create a recursive mutex: %s", __func__, strerror(error));
+    LOG_ERROR("%s unable to create a recursive mutex: %s", __func__, strerror(error));
     goto error;
   }
 
   error = pthread_mutex_init(&ret->callback_lock, &attr);
   if (error) {
-    ALOGE("%s unable to initialize mutex: %s", __func__, strerror(error));
+    LOG_ERROR("%s unable to initialize mutex: %s", __func__, strerror(error));
     goto error;
   }
 
@@ -178,7 +178,7 @@ static bool lazy_initialize(void) {
 
   alarms = list_new(NULL);
   if (!alarms) {
-    ALOGE("%s unable to allocate alarm list.", __func__);
+    LOG_ERROR("%s unable to allocate alarm list.", __func__);
     return false;
   }
 
@@ -190,7 +190,7 @@ static period_ms_t now(void) {
 
   struct timespec ts;
   if (clock_gettime(CLOCK_ID, &ts) == -1) {
-    ALOGE("%s unable to get current time: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to get current time: %s", __func__, strerror(errno));
     return 0;
   }
 
@@ -251,7 +251,7 @@ static void reschedule(void) {
   if (next_exp < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
     if (status != BT_STATUS_SUCCESS) {
-      ALOGE("%s unable to acquire wake lock: %d", __func__, status);
+      LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
       return;
     }
 
@@ -261,7 +261,7 @@ static void reschedule(void) {
     sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
     sigevent.sigev_value.sival_ptr = next;
     if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
-      ALOGE("%s unable to create timer: %s", __func__, strerror(errno));
+      LOG_ERROR("%s unable to create timer: %s", __func__, strerror(errno));
       return;
     }
 
@@ -270,14 +270,14 @@ static void reschedule(void) {
     wakeup_time.it_value.tv_sec = (next->deadline / 1000);
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
     if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1) {
-      ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
+      LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
       timer_delete(timer);
       return;
     }
     timer_set = true;
   } else {
     if (!bt_os_callouts->set_wake_alarm(next_exp, true, timer_callback, next))
-      ALOGE("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_exp);
+      LOG_ERROR("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_exp);
 
     bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
   }

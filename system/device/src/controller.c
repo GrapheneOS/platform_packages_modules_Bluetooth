@@ -20,7 +20,6 @@
 
 #include <assert.h>
 #include <stdbool.h>
-#include <utils/Log.h>
 
 #include "bdaddr.h"
 #include "bt_types.h"

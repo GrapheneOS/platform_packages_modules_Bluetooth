@@ -34,15 +34,15 @@
 #include "rfc_int.h"
 #include "l2c_api.h"
 #include "sdp_api.h"
+#include "osi/include/log.h"
 
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
 
-#include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  LOG_INFO ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOG_DEBUG ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOG_ERROR ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOG_ERROR ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 /* Mapping from PORT_* result codes to human readable strings. */
 static const char *result_code_strings[] = {

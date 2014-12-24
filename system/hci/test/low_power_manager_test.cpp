@@ -22,7 +22,6 @@
 
 extern "C" {
 #include <stdint.h>
-#include <utils/Log.h>
 
 #include "low_power_manager.h"
 #include "osi.h"

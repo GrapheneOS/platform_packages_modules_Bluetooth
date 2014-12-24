@@ -19,13 +19,13 @@
 #define LOG_TAG "bt_stack_manager"
 
 #include <hardware/bluetooth.h>
-#include <utils/Log.h>
 
 #include "btif_api.h"
 #include "btif_common.h"
 #include "device/include/controller.h"
 #include "module.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "semaphore.h"
 #include "stack_manager.h"
 #include "thread.h"
@@ -107,7 +107,7 @@ static void event_init_stack(void *context) {
 
 static void ensure_stack_is_initialized(void) {
   if (!stack_is_initialized) {
-    ALOGW("%s found the stack was uninitialized. Initializing now.", __func__);
+    LOG_WARN("%s found the stack was uninitialized. Initializing now.", __func__);
     // No semaphore needed since we are calling it directly
     event_init_stack(NULL);
   }
@@ -116,13 +116,13 @@ static void ensure_stack_is_initialized(void) {
 // Synchronous function to start up the stack
 static void event_start_up_stack(UNUSED_ATTR void *context) {
   if (stack_is_running) {
-    ALOGD("%s stack already brought up.", __func__);
+    LOG_DEBUG("%s stack already brought up.", __func__);
     return;
   }
 
   ensure_stack_is_initialized();
 
-  ALOGD("%s is bringing up the stack.", __func__);
+  LOG_DEBUG("%s is bringing up the stack.", __func__);
   hack_future = future_new();
 
   // Include this for now to put btif config into a shutdown-able state
@@ -136,18 +136,18 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   }
 
   stack_is_running = true;
-  ALOGD("%s finished", __func__);
+  LOG_DEBUG("%s finished", __func__);
   btif_thread_post(event_signal_stack_up, NULL);
 }
 
 // Synchronous function to shut down the stack
 static void event_shut_down_stack(UNUSED_ATTR void *context) {
   if (!stack_is_running) {
-    ALOGD("%s stack is already brought down.", __func__);
+    LOG_DEBUG("%s stack is already brought down.", __func__);
     return;
   }
 
-  ALOGD("%s is bringing down the stack.", __func__);
+  LOG_DEBUG("%s is bringing down the stack.", __func__);
   hack_future = future_new();
   stack_is_running = false;
 
@@ -156,13 +156,13 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
 
   future_await(hack_future);
   module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
-  ALOGD("%s finished.", __func__);
+  LOG_DEBUG("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }
 
 static void ensure_stack_is_not_running(void) {
   if (stack_is_running) {
-    ALOGW("%s found the stack was still running. Bringing it down now.", __func__);
+    LOG_WARN("%s found the stack was still running. Bringing it down now.", __func__);
     event_shut_down_stack(NULL);
   }
 }
@@ -170,13 +170,13 @@ static void ensure_stack_is_not_running(void) {
 // Synchronous function to clean up the stack
 static void event_clean_up_stack(UNUSED_ATTR void *context) {
   if (!stack_is_initialized) {
-    ALOGD("%s found the stack already in a clean state.", __func__);
+    LOG_DEBUG("%s found the stack already in a clean state.", __func__);
     return;
   }
 
   ensure_stack_is_not_running();
 
-  ALOGD("%s is cleaning up the stack.", __func__);
+  LOG_DEBUG("%s is cleaning up the stack.", __func__);
   hack_future = future_new();
   stack_is_initialized = false;
 
@@ -186,7 +186,7 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
 
   future_await(hack_future);
   module_management_stop();
-  ALOGD("%s finished.", __func__);
+  LOG_DEBUG("%s finished.", __func__);
 }
 
 static void event_signal_stack_up(UNUSED_ATTR void *context) {
@@ -206,7 +206,7 @@ static void ensure_manager_initialized(void) {
 
   management_thread = thread_new("stack_manager");
   if (!management_thread) {
-    ALOGE("%s unable to create stack management thread.", __func__);
+    LOG_ERROR("%s unable to create stack management thread.", __func__);
     return;
   }
 }

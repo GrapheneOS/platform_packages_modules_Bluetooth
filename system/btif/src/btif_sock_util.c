@@ -63,6 +63,7 @@
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
 #include "port_api.h"
+#include "osi/include/log.h"
 
 #define asrt(s) if(!(s)) BTIF_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
@@ -186,7 +187,7 @@ void dump_bin(const char* title, const char* data, int size)
     char *line;
     int i, j, addr;
     const int width = 16;
-    ALOGD("%s, size:%d, dump started {", title, size);
+    LOG_DEBUG("%s, size:%d, dump started {", title, size);
     if(size <= 0)
         return;
     //write offset
@@ -254,6 +255,6 @@ void dump_bin(const char* title, const char* data, int size)
         //output the line
         PRINT(line_buff);
     }
-    ALOGD("%s, size:%d, dump ended }", title, size);
+    LOG_DEBUG("%s, size:%d, dump ended }", title, size);
 }
 

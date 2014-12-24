@@ -20,7 +20,6 @@
 
 #include <assert.h>
 #include <cutils/properties.h>
-#include <utils/Log.h>
 
 #include "buffer_allocator.h"
 #include "btsnoop.h"
@@ -37,6 +36,7 @@
 #include "module.h"
 #include "non_repeating_timer.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "packet_fragmenter.h"
 #include "reactor.h"
 #include "vendor.h"
@@ -158,7 +158,7 @@ static waiting_command_t *get_waiting_command(command_opcode_t opcode);
 // Module lifecycle functions
 
 static future_t *start_up(void) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
 
   // The host is only allowed to send at most one command initially,
   // as per the Bluetooth spec, Volume 2, Part E, 4.4 (Command Flow Control)
@@ -177,7 +177,7 @@ static future_t *start_up(void) {
 
   startup_timer = non_repeating_timer_new(startup_timeout_ms, startup_timer_expired, NULL);
   if (!startup_timer) {
-    ALOGE("%s unable to create startup timer.", __func__);
+    LOG_ERROR("%s unable to create startup timer.", __func__);
     goto error;
   }
 
@@ -186,37 +186,37 @@ static future_t *start_up(void) {
 
   epilog_timer = non_repeating_timer_new(EPILOG_TIMEOUT_MS, epilog_timer_expired, NULL);
   if (!epilog_timer) {
-    ALOGE("%s unable to create epilog timer.", __func__);
+    LOG_ERROR("%s unable to create epilog timer.", __func__);
     goto error;
   }
 
   command_response_timer = non_repeating_timer_new(COMMAND_PENDING_TIMEOUT, command_timed_out, NULL);
   if (!command_response_timer) {
-    ALOGE("%s unable to create command response timer.", __func__);
+    LOG_ERROR("%s unable to create command response timer.", __func__);
     goto error;
   }
 
   command_queue = fixed_queue_new(SIZE_MAX);
   if (!command_queue) {
-    ALOGE("%s unable to create pending command queue.", __func__);
+    LOG_ERROR("%s unable to create pending command queue.", __func__);
     goto error;
   }
 
   packet_queue = fixed_queue_new(SIZE_MAX);
   if (!packet_queue) {
-    ALOGE("%s unable to create pending packet queue.", __func__);
+    LOG_ERROR("%s unable to create pending packet queue.", __func__);
     goto error;
   }
 
   thread = thread_new("hci_thread");
   if (!thread) {
-    ALOGE("%s unable to create thread.", __func__);
+    LOG_ERROR("%s unable to create thread.", __func__);
     goto error;
   }
 
   commands_pending_response = list_new(NULL);
   if (!commands_pending_response) {
-    ALOGE("%s unable to create list for commands pending response.", __func__);
+    LOG_ERROR("%s unable to create list for commands pending response.", __func__);
     goto error;
   }
 
@@ -241,7 +241,7 @@ static future_t *start_up(void) {
 
   int power_state = BT_VND_PWR_OFF;
 #if (defined (BT_CLEAN_TURN_ON_DISABLED) && BT_CLEAN_TURN_ON_DISABLED == TRUE)
-  ALOGW("%s not turning off the chip before turning on.", __func__);
+  LOG_WARN("%s not turning off the chip before turning on.", __func__);
   // So apparently this hack was needed in the past because a Wingray kernel driver
   // didn't handle power off commands in a powered off state correctly.
 
@@ -256,7 +256,7 @@ static future_t *start_up(void) {
   vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
 
   startup_future = future_new();
-  ALOGD("%s starting async portion", __func__);
+  LOG_DEBUG("%s starting async portion", __func__);
   thread_post(thread, event_finish_startup, NULL);
   return startup_future;
 error:;
@@ -265,7 +265,7 @@ error:;
 }
 
 static future_t *shut_down() {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
 
   hci_inject->close();
 
@@ -325,7 +325,7 @@ const module_t hci_module = {
 // Interface functions
 
 static void do_postload() {
-  ALOGD("%s posting postload work item", __func__);
+  LOG_DEBUG("%s posting postload work item", __func__);
   thread_post(thread, event_postload, NULL);
 }
 
@@ -336,7 +336,7 @@ static void transmit_command(
     void *context) {
   waiting_command_t *wait_entry = osi_calloc(sizeof(waiting_command_t));
   if (!wait_entry) {
-    ALOGE("%s couldn't allocate space for wait entry.", __func__);
+    LOG_ERROR("%s couldn't allocate space for wait entry.", __func__);
     return;
   }
 
@@ -377,7 +377,7 @@ static void transmit_downward(data_dispatcher_type_t type, void *data) {
   if (type == MSG_STACK_TO_HC_HCI_CMD) {
     // TODO(zachoverflow): eliminate this call
     transmit_command((BT_HDR *)data, NULL, NULL, NULL);
-    ALOGW("%s legacy transmit of command. Use transmit_command instead.", __func__);
+    LOG_WARN("%s legacy transmit of command. Use transmit_command instead.", __func__);
   } else {
     fixed_queue_enqueue(packet_queue, data);
   }
@@ -386,13 +386,13 @@ static void transmit_downward(data_dispatcher_type_t type, void *data) {
 // Start up functions
 
 static void event_finish_startup(UNUSED_ATTR void *context) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   hal->open();
   vendor->send_async_command(VENDOR_CONFIGURE_FIRMWARE, NULL);
 }
 
 static void firmware_config_callback(UNUSED_ATTR bool success) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   firmware_is_configured = true;
   non_repeating_timer_cancel(startup_timer);
 
@@ -401,7 +401,7 @@ static void firmware_config_callback(UNUSED_ATTR bool success) {
 }
 
 static void startup_timer_expired(UNUSED_ATTR void *context) {
-  ALOGE("%s", __func__);
+  LOG_ERROR("%s", __func__);
   future_ready(startup_future, FUTURE_FAIL);
   startup_future = NULL;
 }
@@ -409,7 +409,7 @@ static void startup_timer_expired(UNUSED_ATTR void *context) {
 // Postload functions
 
 static void event_postload(UNUSED_ATTR void *context) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   if(vendor->send_async_command(VENDOR_CONFIGURE_SCO, NULL) == -1) {
     // If couldn't configure sco, we won't get the sco configuration callback
     // so go pretend to do it now
@@ -419,7 +419,7 @@ static void event_postload(UNUSED_ATTR void *context) {
 }
 
 static void sco_config_callback(UNUSED_ATTR bool success) {
-  ALOGI("%s postload finished.", __func__);
+  LOG_INFO("%s postload finished.", __func__);
 }
 
 // Epilog functions
@@ -429,12 +429,12 @@ static void event_epilog(UNUSED_ATTR void *context) {
 }
 
 static void epilog_finished_callback(UNUSED_ATTR bool success) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   thread_stop(thread);
 }
 
 static void epilog_timer_expired(UNUSED_ATTR void *context) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   thread_stop(thread);
 }
 
@@ -491,17 +491,17 @@ static void command_timed_out(UNUSED_ATTR void *context) {
   pthread_mutex_lock(&commands_pending_response_lock);
 
   if (list_is_empty(commands_pending_response)) {
-    ALOGE("%s with no commands pending response", __func__);
+    LOG_ERROR("%s with no commands pending response", __func__);
   } else {
     waiting_command_t *wait_entry = list_front(commands_pending_response);
     pthread_mutex_unlock(&commands_pending_response_lock);
 
     // We shouldn't try to recover the stack from this command timeout.
     // If it's caused by a software bug, fix it. If it's a hardware bug, fix it.
-    ALOGE("%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
+    LOG_ERROR("%s hci layer timeout waiting for response to a command. opcode: 0x%x", __func__, wait_entry->opcode);
   }
 
-  ALOGE("%s restarting the bluetooth process.", __func__);
+  LOG_ERROR("%s restarting the bluetooth process.", __func__);
   usleep(10000);
   kill(getpid(), SIGKILL);
 }
@@ -536,7 +536,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
           incoming->buffer = (BT_HDR *)buffer_allocator->alloc(buffer_size);
 
           if (!incoming->buffer) {
-            ALOGE("%s error getting buffer for incoming packet of type %d and size %d", __func__, type, buffer_size);
+            LOG_ERROR("%s error getting buffer for incoming packet of type %d and size %d", __func__, type, buffer_size);
             // Can't read any more of this current packet, so jump out
             incoming->state = incoming->bytes_remaining == 0 ? BRAND_NEW : IGNORE;
             break;
@@ -576,7 +576,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
 
         break;
       case FINISHED:
-        ALOGE("%s the state machine should not have been left in the finished state.", __func__);
+        LOG_ERROR("%s the state machine should not have been left in the finished state.", __func__);
         break;
     }
 
@@ -619,7 +619,7 @@ static bool filter_incoming_event(BT_HDR *packet) {
 
     wait_entry = get_waiting_command(opcode);
     if (!wait_entry)
-      ALOGW("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
+      LOG_WARN("%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
     else if (wait_entry->complete_callback)
       wait_entry->complete_callback(packet, wait_entry->context);
     else if (wait_entry->complete_future)
@@ -636,7 +636,7 @@ static bool filter_incoming_event(BT_HDR *packet) {
 
     wait_entry = get_waiting_command(opcode);
     if (!wait_entry)
-      ALOGW("%s command status event with no matching command. opcode: 0x%x", __func__, opcode);
+      LOG_WARN("%s command status event with no matching command. opcode: 0x%x", __func__, opcode);
     else if (wait_entry->status_callback)
       wait_entry->status_callback(status, wait_entry->command, wait_entry->context);
 
@@ -684,7 +684,7 @@ static serial_data_type_t event_to_data_type(uint16_t event) {
   else if (event == MSG_STACK_TO_HC_HCI_CMD)
     return DATA_TYPE_COMMAND;
   else
-    ALOGE("%s invalid event type, could not translate 0x%x", __func__, event);
+    LOG_ERROR("%s invalid event type, could not translate 0x%x", __func__, event);
 
   return 0;
 }
@@ -719,7 +719,7 @@ static void init_layer_interface() {
     // there's only one instance of the hci interface.
     interface.upward_dispatcher = data_dispatcher_new("hci_layer");
     if (!interface.upward_dispatcher) {
-      ALOGE("%s could not create upward dispatcher.", __func__);
+      LOG_ERROR("%s could not create upward dispatcher.", __func__);
       return;
     }
 

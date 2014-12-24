@@ -20,11 +20,11 @@
 
 #include <assert.h>
 #include <dlfcn.h>
-#include <utils/Log.h>
 
 #include "buffer_allocator.h"
 #include "bt_vendor_lib.h"
 #include "osi.h"
+#include "osi/include/log.h"
 #include "vendor.h"
 
 #define LAST_VENDOR_OPCODE_VALUE VENDOR_DO_EPILOG
@@ -51,21 +51,21 @@ static bool vendor_open(
 
   lib_handle = dlopen(VENDOR_LIBRARY_NAME, RTLD_NOW);
   if (!lib_handle) {
-    ALOGE("%s unable to open %s: %s", __func__, VENDOR_LIBRARY_NAME, dlerror());
+    LOG_ERROR("%s unable to open %s: %s", __func__, VENDOR_LIBRARY_NAME, dlerror());
     goto error;
   }
 
   lib_interface = (bt_vendor_interface_t *)dlsym(lib_handle, VENDOR_LIBRARY_SYMBOL_NAME);
   if (!lib_interface) {
-    ALOGE("%s unable to find symbol %s in %s: %s", __func__, VENDOR_LIBRARY_SYMBOL_NAME, VENDOR_LIBRARY_NAME, dlerror());
+    LOG_ERROR("%s unable to find symbol %s in %s: %s", __func__, VENDOR_LIBRARY_SYMBOL_NAME, VENDOR_LIBRARY_NAME, dlerror());
     goto error;
   }
 
-  ALOGI("alloc value %p", lib_callbacks.alloc);
+  LOG_INFO("alloc value %p", lib_callbacks.alloc);
 
   int status = lib_interface->init(&lib_callbacks, (unsigned char *)local_bdaddr);
   if (status) {
-    ALOGE("%s unable to initialize vendor library: %d", __func__, status);
+    LOG_ERROR("%s unable to initialize vendor library: %d", __func__, status);
     goto error;
   }
 
@@ -109,7 +109,7 @@ static void set_callback(vendor_async_opcode_t opcode, vendor_cb callback) {
 // Called back from vendor library when the firmware configuration
 // completes.
 static void firmware_config_cb(bt_vendor_op_result_t result) {
-  ALOGI("firmware callback");
+  LOG_INFO("firmware callback");
   vendor_cb callback = callbacks[VENDOR_CONFIGURE_FIRMWARE];
   assert(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
@@ -119,7 +119,7 @@ static void firmware_config_cb(bt_vendor_op_result_t result) {
 // SCO configuration request. This should only happen during the
 // postload process.
 static void sco_config_cb(bt_vendor_op_result_t result) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   vendor_cb callback = callbacks[VENDOR_CONFIGURE_SCO];
   assert(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
@@ -128,7 +128,7 @@ static void sco_config_cb(bt_vendor_op_result_t result) {
 // Called back from vendor library to indicate status of previous
 // LPM enable/disable request.
 static void low_power_mode_cb(bt_vendor_op_result_t result) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   vendor_cb callback = callbacks[VENDOR_SET_LPM_MODE];
   assert(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
@@ -149,7 +149,7 @@ static void sco_audiostate_cb(bt_vendor_op_result_t result)
 {
     uint8_t status = (result == BT_VND_OP_RESULT_SUCCESS) ? 0 : 1;
 
-    ALOGI("sco_audiostate_cb(status: %d)",status);
+    LOG_INFO("sco_audiostate_cb(status: %d)",status);
 }
 
 // Called by vendor library when it needs an HCI buffer.
@@ -180,7 +180,7 @@ static uint8_t transmit_cb(UNUSED_ATTR uint16_t opcode, void *buffer, tINT_CMD_C
 // completed. It is safe to call vendor_interface->cleanup() after
 // this callback has been received.
 static void epilog_cb(bt_vendor_op_result_t result) {
-  ALOGI("%s", __func__);
+  LOG_INFO("%s", __func__);
   vendor_cb callback = callbacks[VENDOR_DO_EPILOG];
   assert(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);

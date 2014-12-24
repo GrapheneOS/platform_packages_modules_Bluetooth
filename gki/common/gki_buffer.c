@@ -15,7 +15,6 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include <cutils/log.h>
 
 #include "allocator.h"
 #include "gki_int.h"

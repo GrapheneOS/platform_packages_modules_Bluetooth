@@ -15,6 +15,9 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+
+#define LOG_TAG "BTA_AG_CO"
+
 #include "gki.h"
 #include "bta_api.h"
 #include "bta_sys.h"
@@ -23,11 +26,8 @@
 #include "bte_appl.h"
 #include "bt_utils.h"
 
-#define LOG_TAG "BTA_AG_CO: "
-
 #ifndef LINUX_NATIVE
 #include <cutils/properties.h>
-#include <cutils/log.h>
 #else
 #include <stdio.h>
 #define LOGI(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
