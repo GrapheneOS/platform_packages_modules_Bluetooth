@@ -1335,13 +1335,6 @@ typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 typedef UINT8 (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                    tBTM_BD_NAME bd_name);
 
-
-/* Get Link Key for the connection.  Parameters are
-**              BD Address of remote
-**              Link Key
-*/
-typedef UINT8 (tBTM_LINK_KEY_REQ_CALLBACK) (BD_ADDR bd_addr, LINK_KEY key);
-
 /* New Link Key for the connection.  Parameters are
 **              BD Address of remote
 **              Link Key
@@ -1737,7 +1730,6 @@ typedef struct
     tBTM_AUTHORIZE_CALLBACK     *p_authorize_callback;
     tBTM_PIN_CALLBACK           *p_pin_callback;
     tBTM_LINK_KEY_CALLBACK      *p_link_key_callback;
-    tBTM_LINK_KEY_REQ_CALLBACK  *p_link_key_req_callback;
     tBTM_AUTH_COMPLETE_CALLBACK *p_auth_complete_callback;
     tBTM_ABORT_CALLBACK         *p_abort_callback;
     tBTM_BOND_CANCEL_CMPL_CALLBACK *p_bond_cancel_cmpl_callback;

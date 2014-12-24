@@ -53,7 +53,6 @@ static void bta_dm_discover_next_device(void);
 static void bta_dm_sdp_callback (UINT16 sdp_status);
 static UINT8 bta_dm_authorize_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, UINT8 *service_name, UINT8 service_id, BOOLEAN is_originator);
 static UINT8 bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name);
-static UINT8 bta_dm_link_key_request_cback (BD_ADDR bd_addr, LINK_KEY key);
 static UINT8 bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name, LINK_KEY key, UINT8 key_type);
 static UINT8 bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,BD_NAME bd_name, int result);
 static void bta_dm_local_name_cback(BD_ADDR bd_addr);
@@ -197,7 +196,6 @@ const tBTM_APPL_INFO bta_security =
     &bta_dm_authorize_cback,
     &bta_dm_pin_cback,
     &bta_dm_new_link_key_cback,
-    &bta_dm_link_key_request_cback,
     &bta_dm_authentication_complete_cback,
     NULL,
     &bta_dm_bond_cancel_complete_cback,
@@ -2718,34 +2716,6 @@ static UINT8 bta_dm_pin_cback (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_
     bta_dm_cb.p_sec_cback(BTA_DM_PIN_REQ_EVT, &sec_event);
     return BTM_CMD_STARTED;
 }
-
-
-
-/*******************************************************************************
-**
-** Function         bta_dm_link_key_request_cback
-**
-** Description      Callback requesting linkkey
-**
-** Returns          void
-**
-*******************************************************************************/
-static UINT8  bta_dm_link_key_request_cback (BD_ADDR bd_addr, LINK_KEY key)
-{
-    /* Application passes all link key to
-    BTM during initialization using add_device
-    API. If BTM doesn't have the link key in it's
-    data base, that's because application doesn't
-    it */
-    UNUSED(bd_addr);
-    UNUSED(key);
-
-    return BTM_NOT_AUTHORIZED;
-}
-
-
-
-
 
 /*******************************************************************************
 **

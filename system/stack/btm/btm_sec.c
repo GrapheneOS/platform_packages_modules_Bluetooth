@@ -4772,20 +4772,6 @@ void btm_sec_link_key_request (UINT8 *p_bda)
     /* Notify L2CAP to increase timeout */
     l2c_pin_code_request (p_bda);
 
-    /* Only ask the host for a key if this guy is not already bonding */
-    if ( (btm_cb.pairing_state == BTM_PAIR_STATE_IDLE)
-         || (memcmp (p_bda, btm_cb.pairing_bda, BD_ADDR_LEN) != 0) )
-    {
-        if (btm_cb.api.p_link_key_req_callback)
-        {
-            if ((*btm_cb.api.p_link_key_req_callback)(p_bda, p_dev_rec->link_key) == BTM_SUCCESS)
-            {
-                btsnd_hcic_link_key_req_reply (p_bda, p_dev_rec->link_key);
-                return;
-            }
-        }
-    }
-
     /* The link key is not in the database and it is not known to the manager */
     btsnd_hcic_link_key_neg_reply (p_bda);
 }
