@@ -1362,14 +1362,6 @@ typedef void (tBTM_RMT_NAME_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dc,
 typedef UINT8 (tBTM_AUTH_COMPLETE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                              tBTM_BD_NAME bd_name, int result);
 
-/* Operation abort.  Called by the stack when link goes down during.  Pin code
-** request or authorization.  Parameters are
-**              BD Address of remote
-**
-*/
-typedef UINT8 (tBTM_ABORT_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                     tBTM_BD_NAME bd_name);
-
 enum
 {
     BTM_SP_IO_REQ_EVT,      /* received IO_CAPABILITY_REQUEST event */
@@ -1731,7 +1723,6 @@ typedef struct
     tBTM_PIN_CALLBACK           *p_pin_callback;
     tBTM_LINK_KEY_CALLBACK      *p_link_key_callback;
     tBTM_AUTH_COMPLETE_CALLBACK *p_auth_complete_callback;
-    tBTM_ABORT_CALLBACK         *p_abort_callback;
     tBTM_BOND_CANCEL_CMPL_CALLBACK *p_bond_cancel_cmpl_callback;
     tBTM_SP_CALLBACK            *p_sp_callback;
 #if BLE_INCLUDED == TRUE

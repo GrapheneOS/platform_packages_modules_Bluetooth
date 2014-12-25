@@ -197,7 +197,6 @@ const tBTM_APPL_INFO bta_security =
     &bta_dm_pin_cback,
     &bta_dm_new_link_key_cback,
     &bta_dm_authentication_complete_cback,
-    NULL,
     &bta_dm_bond_cancel_complete_cback,
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
     &bta_dm_sp_cback
