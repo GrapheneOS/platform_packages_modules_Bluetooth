@@ -427,7 +427,7 @@ bt_status_t btif_init_bluetooth() {
 
   bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
   if (bt_jni_workqueue_thread == NULL) {
-    LOG_ERROR("%s Unable to create thread %s\n", __func__, BT_JNI_WORKQUEUE_NAME);
+    LOG_ERROR("%s Unable to create thread %s", __func__, BT_JNI_WORKQUEUE_NAME);
     goto error_exit;
   }
 
