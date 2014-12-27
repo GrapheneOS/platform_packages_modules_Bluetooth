@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "hci_hal_mct"
+#define LOG_TAG "bt_hci_mct"
 
 #include <assert.h>
 

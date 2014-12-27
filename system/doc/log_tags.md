@@ -12,7 +12,11 @@ This document lists all of the log tags used by bluedroid.
 * BtGatt.btif
 * BtGatt.btif_test
 * bt_gki
+* bt_hci
+* bt_hci_h4
 * bt_hci_inject
+* bt_hci_mct
+* bt_hci_packet_fragmenter
 * BTIF_AV
 * BTIF_CORE
 * BTIF_HF
@@ -48,10 +52,6 @@ This document lists all of the log tags used by bluedroid.
 * btu_task
 * BT_UTILS
 * bt_vendor
-* hci_hal_h4
-* hci_hal_mct
-* hci_layer
-* hci_packet_fragmenter
 * osi_eager_reader
 * osi_future
 * osi_semaphore

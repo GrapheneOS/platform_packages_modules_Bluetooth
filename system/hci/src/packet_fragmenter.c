@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "hci_packet_fragmenter"
+#define LOG_TAG "bt_hci_packet_fragmenter"
 
 #include <assert.h>
 

@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "hci_layer"
+#define LOG_TAG "bt_hci"
 
 #include <assert.h>
 #include <cutils/properties.h>
