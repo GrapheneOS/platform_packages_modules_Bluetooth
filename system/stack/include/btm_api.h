@@ -3172,19 +3172,6 @@ extern BOOLEAN BTM_SecRegister (tBTM_APPL_INFO *p_cb_info);
 
 /*******************************************************************************
 **
-** Function         BTM_SecRegisterLinkKeyNotificationCallback
-**
-** Description      Profiles can register to be notified when a new Link Key
-**                  is generated per connection.
-**
-** Returns          TRUE if registered OK, else FALSE
-**
-*******************************************************************************/
-extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_callback);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_SecAddRmtNameNotifyCallback
 **
 ** Description      Profiles can register to be notified when name of the
@@ -3207,19 +3194,6 @@ extern BOOLEAN BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callba
 **
 *******************************************************************************/
 extern BOOLEAN BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback);
-
-
-/*******************************************************************************
-**
-** Function         BTM_GetSecurityMode
-**
-** Description      Get security mode for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-extern UINT8 BTM_GetSecurityMode (void);
-
 
 /*******************************************************************************
 **
@@ -3307,23 +3281,6 @@ extern BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, char *p_name,
 
 /*******************************************************************************
 **
-** Function         BTM_SetUCDSecurityLevel
-**
-** Description      Register UCD service security level with Security Manager.  Each
-**                  service must register its requirements regardless of the
-**                  security level that is used.  This API is called once for originators
-**                  and again for acceptors of connections.
-**
-** Returns          TRUE if registered OK, else FALSE
-**
-*******************************************************************************/
-extern BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name,
-                                        UINT8 service_id, UINT16 sec_level,
-                                        UINT16 psm, UINT32 mx_proto_id,
-                                        UINT32 mx_chan_id);
-
-/*******************************************************************************
-**
 ** Function         BTM_SetOutService
 **
 ** Description      This function is called to set the service for
@@ -3348,20 +3305,6 @@ extern void BTM_SetOutService(BD_ADDR bd_addr, UINT8 service_id, UINT32 mx_chan_
 **
 *******************************************************************************/
 extern UINT8 BTM_SecClrService (UINT8 service_id);
-
-/*******************************************************************************
-**
-** Function         BTM_SecClrUCDService
-**
-** Description
-**
-** Parameters       Service ID - Id of the service to remove. ('0' removes all service
-**                          records.
-**
-** Returns          Number of records that were freed.
-**
-*******************************************************************************/
-extern UINT8 BTM_SecClrUCDService (UINT8 service_id);
 
 /*******************************************************************************
 **
@@ -3391,34 +3334,6 @@ extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **
 *******************************************************************************/
 extern BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr);
-
-
-/*******************************************************************************
-**
-** Function         BTM_SecUseMasterLinkKey
-**
-** Description      This function is called to tell master of the piconet to
-**                  switch to master link key
-**
-** Returns          BTM_SUCCESS if command is successully initiated
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SecUseMasterLinkKey (BOOLEAN use_master_key);
-
-
-/*******************************************************************************
-**
-** Function         BTM_SetMasterKeyCompCback
-**
-** Description      This function is called to register for the master key complete
-**                  status event.
-**
-** Parameters:      mkey_cback - callback registered with the security manager
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_SetMasterKeyCompCback(tBTM_MKEY_CALLBACK *mkey_cback );
 
 
 /*******************************************************************************
@@ -3455,23 +3370,6 @@ extern tBTM_STATUS BTM_SecGetDeviceLinkKey (BD_ADDR bd_addr,
 *******************************************************************************/
 extern void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len,
                               UINT8 *p_pin, UINT32 trusted_mask[]);
-
-
-/*******************************************************************************
-**
-** Function         BTM_DeviceAuthorized
-**
-** Description      This function is called after Security Manager submitted
-**                  authorization request to the UI.
-**
-** Parameters:      bd_addr     - Address of the device for which PIN was requested
-**                  res         - result of the operation BTM_SUCCESS if success
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_DeviceAuthorized (BD_ADDR bd_addr, UINT8 res,
-                                  UINT32 trusted_mask[]);
 
 
 /*******************************************************************************

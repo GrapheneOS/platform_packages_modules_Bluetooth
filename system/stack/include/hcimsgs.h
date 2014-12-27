@@ -187,14 +187,6 @@ extern BOOLEAN btsnd_hcic_set_conn_encrypt (UINT16 handle, BOOLEAN enable);
 #define HCI_SET_ENCRYPT_ENABLE_OFF      2
                                                                     /* Set Connection Encryption */
 
-                                                                    /* Master Link Key */
-extern BOOLEAN btsnd_hcic_master_link_key (BOOLEAN key_flag);
-
-#define HCIC_PARAM_SIZE_MASTER_LINK_KEY 1
-
-#define HCI_MASTER_KEY_FLAG_OFF         0
-                                                                    /* Master Link Key */
-
                                                                     /* Remote Name Request */
 extern BOOLEAN btsnd_hcic_rmt_name_req (BD_ADDR bd_addr,
                                         UINT8 page_scan_rep_mode,

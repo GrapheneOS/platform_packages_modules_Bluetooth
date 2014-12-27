@@ -1049,7 +1049,6 @@ extern void  btm_sec_init (UINT8 sec_mode);
 extern void  btm_sec_dev_reset (void);
 extern void  btm_sec_abort_access_req (BD_ADDR bd_addr);
 extern void  btm_sec_auth_complete (UINT16 handle, UINT8 status);
-extern void  btm_sec_mkey_comp_event (UINT16 handle, UINT8 status, UINT8 key_flg);
 extern void  btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable);
 extern void  btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode);
 extern tBTM_STATUS btm_sec_disconnect (UINT16 handle, UINT8 reason);

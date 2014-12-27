@@ -448,28 +448,6 @@ BOOLEAN btsnd_hcic_set_conn_encrypt (UINT16 handle, BOOLEAN enable)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_master_link_key (BOOLEAN key_flag)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_MASTER_LINK_KEY)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_MASTER_LINK_KEY;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_MASTER_LINK_KEY);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_MASTER_LINK_KEY);
-
-    UINT8_TO_STREAM  (pp, key_flag);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_rmt_name_req (BD_ADDR bd_addr, UINT8 page_scan_rep_mode,
                                  UINT8 page_scan_mode, UINT16 clock_offset)
 {

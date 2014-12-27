@@ -235,25 +235,6 @@ BOOLEAN  BTM_SecRegister (tBTM_APPL_INFO *p_cb_info)
     return(TRUE);
 }
 
-
-/*******************************************************************************
-**
-** Function         BTM_SecRegisterLinkKeyNotificationCallback
-**
-** Description      Application manager calls this function to register for
-**                  link key notification.  When there is nobody registered
-**                  we should avoid changing link key
-**
-** Returns          TRUE if registered OK, else FALSE
-**
-*******************************************************************************/
-BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_callback)
-{
-    btm_cb.api.p_link_key_callback = p_callback;
-    return(TRUE);
-}
-
-
 /*******************************************************************************
 **
 ** Function         BTM_SecAddRmtNameNotifyCallback
@@ -305,20 +286,6 @@ BOOLEAN  BTM_SecDeleteRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
     }
 
     return(FALSE);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_GetSecurityMode
-**
-** Description      Get security mode for the device
-**
-** Returns          void
-**
-*******************************************************************************/
-UINT8 BTM_GetSecurityMode (void)
-{
-    return(btm_cb.security_mode);
 }
 
 /*******************************************************************************
@@ -420,51 +387,6 @@ void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_paired)
 
 
 #define BTM_NO_AVAIL_SEC_SERVICES   ((UINT16) 0xffff)
-
-/*******************************************************************************
-**
-** Function         BTM_SetUCDSecurityLevel
-**
-** Description      Register UCD service security level with Security Manager
-**
-** Parameters:      is_originator - TRUE if originating the connection, FALSE if not
-**                  p_name      - Name of the service relevant only if
-**                                authorization will show this name to user. ignored
-**                                if BTM_SEC_SERVICE_NAME_LEN is 0.
-**                  service_id  - service ID for the service passed to authorization callback
-**                  sec_level   - bit mask of the security features
-**                  psm         - L2CAP PSM
-**                  mx_proto_id - protocol ID of multiplexing proto below
-**                  mx_chan_id  - channel ID of multiplexing proto below
-**
-** Returns          TRUE if registered OK, else FALSE
-**
-*******************************************************************************/
-BOOLEAN BTM_SetUCDSecurityLevel (BOOLEAN is_originator, char *p_name, UINT8 service_id,
-                                 UINT16 sec_level, UINT16 psm, UINT32 mx_proto_id,
-                                 UINT32 mx_chan_id)
-{
-#if (L2CAP_UCD_INCLUDED == TRUE)
-    CONNECTION_TYPE conn_type;
-
-    if (is_originator)
-        conn_type = CONNLESS_ORIG;
-    else
-        conn_type = CONNLESS_TERM;
-
-    return(btm_sec_set_security_level (conn_type, p_name, service_id,
-                                       sec_level, psm, mx_proto_id, mx_chan_id));
-#else
-    UNUSED(is_originator);
-    UNUSED(p_name);
-    UNUSED(service_id);
-    UNUSED(sec_level);
-    UNUSED(psm);
-    UNUSED(mx_proto_id);
-    UNUSED(mx_chan_id);
-    return FALSE;
-#endif
-}
 
 /*******************************************************************************
 **
@@ -840,45 +762,6 @@ void btm_sec_clr_temp_auth_service (BD_ADDR bda)
 
 /*******************************************************************************
 **
-**
-** Function         BTM_SecClrUCDService
-**
-** Description
-**
-** Parameters       Service ID - Id of the service to remove.
-**                               ('0' removes all service records )
-**
-** Returns          Number of records that were cleared.
-**
-*******************************************************************************/
-UINT8 BTM_SecClrUCDService (UINT8 service_id)
-{
-#if (L2CAP_UCD_INCLUDED == TRUE)
-    tBTM_SEC_SERV_REC   *p_srec = &btm_cb.sec_serv_rec[0];
-    UINT8   num_cleared = 0;
-    int     i;
-
-    for (i = 0; i < BTM_SEC_MAX_SERVICE_RECORDS; i++, p_srec++)
-    {
-        /* Delete services with specified name (if in use and not SDP) */
-        if ((p_srec->security_flags & BTM_SEC_IN_USE) &&
-            (!service_id || (service_id == (UINT32)p_srec->service_id)))
-        {
-            BTM_TRACE_API("BTM_UCD_SEC_CLR[%d]: id %d", i, service_id);
-            p_srec->ucd_security_flags = 0;
-            num_cleared++;
-        }
-    }
-
-    return(num_cleared);
-#else
-    UNUSED(service_id);
-    return(0);
-#endif
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_PINCodeReply
 **
 ** Description      This function is called after Security Manager submitted
@@ -998,67 +881,6 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
     btm_cb.pin_code_len_saved = pin_len;
 #endif
     btsnd_hcic_pin_code_req_reply (bd_addr, pin_len, p_pin);
-}
-
-
-/*******************************************************************************
-**
-** Function         BTM_DeviceAuthorized
-**
-** Description      This function is called after Security Manager submitted
-**                  authorization request to the UI.
-**
-** Parameters:      bd_addr     - Address of the device for which PIN was requested
-**                  res         - result of the operation BTM_SUCCESS if success
-**
-*******************************************************************************/
-void BTM_DeviceAuthorized (BD_ADDR bd_addr, UINT8 res, UINT32 trusted_mask[])
-{
-    tBTM_SEC_DEV_REC *p_dev_rec;
-
-    if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
-    {
-        BTM_TRACE_WARNING ("Security Manager: Attempting Authorization of Unknown Device Address [%02x%02x%02x%02x%02x%02x]",
-                            bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
-        return;
-    }
-
-    BTM_TRACE_EVENT ("Security Manager: authorized status:%d State:%d Trusted:%08x %08x",
-                      res, (p_dev_rec) ? p_dev_rec->sec_state : 0, trusted_mask[0], trusted_mask[1]);
-
-    if (res == BTM_SUCCESS)
-    {
-        p_dev_rec->sec_flags   |= BTM_SEC_AUTHORIZED;
-        if (trusted_mask)
-        {
-            BTM_SEC_COPY_TRUSTED_DEVICE(trusted_mask, p_dev_rec->trusted_mask);
-        }
-
-        /* Save the currently authorized service in case we are asked again
-        by another multiplexer layer */
-        if (!p_dev_rec->is_originator)
-        {
-            BTM_TRACE_DEBUG("BTM_DeviceAuthorized: Setting last_author_service_id to %d",
-                             p_dev_rec->p_cur_service->service_id);
-            p_dev_rec->last_author_service_id = p_dev_rec->p_cur_service->service_id;
-        }
-    }
-
-    if (p_dev_rec->sec_state != BTM_SEC_STATE_AUTHORIZING)
-        return;
-
-    p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
-
-    if (res != BTM_SUCCESS)
-    {
-        btm_sec_dev_rec_cback_event (p_dev_rec, res, FALSE);
-        return;
-    }
-
-    if ((res = (UINT8)btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
-    {
-        btm_sec_dev_rec_cback_event (p_dev_rec, res, FALSE);
-    }
 }
 
 /*******************************************************************************
@@ -1384,37 +1206,6 @@ tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr)
     }
 
     return BTM_WRONG_MODE;
-}
-
-/*******************************************************************************
-**
-** Function         BTM_SecUseMasterLinkKey
-**
-** Description      This function is called to tell master of the piconet to
-**                  switch to master link key
-**
-** Parameters:      use_master_key - If true Master Link Key shoul be used
-**
-*******************************************************************************/
-tBTM_STATUS BTM_SecUseMasterLinkKey (BOOLEAN use_master_key)
-{
-    return(btsnd_hcic_master_link_key (use_master_key) ?  BTM_SUCCESS :
-           BTM_NO_RESOURCES);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_SetMasterKeyCompCback
-**
-** Description      This function is called to register for the master key complete
-**                  status event.
-**
-** Parameters:      mkey_cback - callback registered with the security manager
-**
-*******************************************************************************/
-void BTM_SetMasterKeyCompCback( tBTM_MKEY_CALLBACK *mkey_cback )
-{
-    btm_cb.mkey_cback = mkey_cback;
 }
 
 /*******************************************************************************
@@ -3980,35 +3771,6 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
 
 /*******************************************************************************
 **
-** Function         btm_sec_mkey_comp_event
-**
-** Description      This function is when encryption of the connection is
-**                  completed by the LM
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_sec_mkey_comp_event (UINT16 handle, UINT8 status, UINT8 key_flg)
-{
-    tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
-    UINT8 bd_addr[BD_ADDR_LEN] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff} ;
-
-    BTM_TRACE_EVENT ("Security Manager: mkey comp status:%d State:%d",
-                      status, (p_dev_rec) ? p_dev_rec->sec_state : 0);
-
-    /* If encryption setup failed, notify the waiting layer */
-    /* There is no next procedure or start of procedure failed, notify the waiting layer */
-    if (btm_cb.mkey_cback)
-    {
-        if (!p_dev_rec)
-            (btm_cb.mkey_cback)(bd_addr, status, key_flg );
-        else
-            (btm_cb.mkey_cback)(p_dev_rec->bd_addr, status, key_flg );
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         btm_sec_encrypt_change
 **
 ** Description      This function is when encryption of the connection is
@@ -4104,38 +3866,6 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
     /* If there is no next procedure, or procedure failed to start, notify the caller */
     if (status != BTM_CMD_STARTED)
         btm_sec_dev_rec_cback_event (p_dev_rec, status, FALSE);
-}
-
-/*******************************************************************************
-**
-** Function         btm_sec_create_conn
-**
-** Description      This function records current role and forwards request to
-**                  HCI
-**
-** Returns          void
-**
-*******************************************************************************/
-BOOLEAN btm_sec_create_conn (BD_ADDR bda, UINT16 packet_types,
-                             UINT8 page_scan_rep_mode, UINT8 page_scan_mode,
-                             UINT16 clock_offset, UINT8 allow_switch)
-{
-    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_or_alloc_dev (bda);
-
-    memcpy (btm_cb.connecting_bda, p_dev_rec->bd_addr,   BD_ADDR_LEN);
-    memcpy (btm_cb.connecting_dc,  p_dev_rec->dev_class, DEV_CLASS_LEN);
-
-    btm_cb.acl_disc_reason = 0xff ;
-
-    p_dev_rec->sec_state   = BTM_SEC_STATE_IDLE;
-    p_dev_rec->role_master = TRUE;
-
-    /* If any SCO link up, do not allow a switch */
-    if (BTM_GetNumScoLinks() != 0)
-        allow_switch = HCI_CR_CONN_NOT_ALLOW_SWITCH;
-
-    return(btsnd_hcic_create_conn (bda, packet_types, page_scan_rep_mode,
-                                   page_scan_mode, clock_offset, allow_switch));
 }
 
 /*******************************************************************************
@@ -4470,48 +4200,6 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
             btm_sec_dev_rec_cback_event (p_dev_rec, res, FALSE);
     }
     return;
-}
-
-/*******************************************************************************
-**
-** Function         btm_sec_role_changed
-**
-** Description      This function is colled when controller reports role
-**                  changed, or failed command status for Role Change request
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_sec_role_changed (void *p_ref_data)
-{
-    tBTM_SEC_DEV_REC *p_dev_rec = (tBTM_SEC_DEV_REC *)p_ref_data;
-    UINT8 res;
-
-    BTM_TRACE_EVENT ("Security Manager: role changed");
-
-    /* If this role switch was started by peer do not need to do anything */
-    if (p_dev_rec->sec_state != BTM_SEC_STATE_SWITCHING_ROLE)
-        return;
-
-    /* If serurity required was to FORCE switch and it failed, notify the waiting layer */
-    if (((p_dev_rec->security_required & BTM_SEC_FORCE_MASTER) && !p_dev_rec->role_master)
-        || ((p_dev_rec->security_required & BTM_SEC_FORCE_SLAVE)  &&  p_dev_rec->role_master))
-    {
-        btm_sec_dev_rec_cback_event (p_dev_rec, BTM_ERR_PROCESSING, FALSE);
-        return;
-    }
-
-    p_dev_rec->sec_flags |= BTM_SEC_ROLE_SWITCHED;
-
-    p_dev_rec->security_required &= ~(BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER |
-                                      BTM_SEC_FORCE_SLAVE  | BTM_SEC_ATTEMPT_SLAVE);
-
-    p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
-
-    if ((res = (UINT8)btm_sec_execute_procedure (p_dev_rec)) != BTM_CMD_STARTED)
-    {
-        btm_sec_dev_rec_cback_event (p_dev_rec, res, FALSE);
-    }
 }
 
 /*******************************************************************************
@@ -5611,41 +5299,6 @@ tBTM_SEC_DEV_REC *btm_sec_find_dev_by_sec_state (UINT8 state)
             return(p_dev_rec);
     }
     return(NULL);
-}
-
-/*******************************************************************************
-**
-** Function         BTM_snd_conn_encrypt
-**
-** Description      This function is called to start/stop encryption
-**                  Used by JSR-82
-**
-** Returns          TRUE if request started
-**
-*******************************************************************************/
-BOOLEAN BTM_snd_conn_encrypt (UINT16  handle, BOOLEAN enable)
-{
-    tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev_by_handle (handle);
-
-    BTM_TRACE_EVENT ("BTM_snd_conn_encrypt Security Manager: encrypt_change p_dev_rec : 0x%x, enable = %s", p_dev_rec, (enable == TRUE) ? "TRUE" : "FALSE");
-
-    if (!p_dev_rec)
-    {
-        BTM_TRACE_EVENT ("BTM_snd_conn_encrypt Error no  p_dev_rec : 0x%x\n", p_dev_rec);
-        return(FALSE);
-    }
-
-    if ( p_dev_rec->sec_state == BTM_SEC_STATE_IDLE)
-    {
-        if (!btsnd_hcic_set_conn_encrypt (handle, enable))
-            return(FALSE);
-
-        p_dev_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
-
-        return(TRUE);
-    }
-    else
-        return(FALSE);
 }
 
 /*******************************************************************************

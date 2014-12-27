@@ -72,7 +72,6 @@ static void btu_hcif_disconnection_comp_evt (UINT8 *p);
 static void btu_hcif_authentication_comp_evt (UINT8 *p);
 static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len);
 static void btu_hcif_encryption_change_evt (UINT8 *p);
-static void btu_hcif_master_link_key_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_features_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_ext_features_comp_evt (UINT8 *p);
 static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p);
@@ -190,9 +189,6 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             btu_hcif_encryption_key_refresh_cmpl_evt(p);
             break;
 #endif
-        case HCI_MASTER_LINK_KEY_COMP_EVT:
-            btu_hcif_master_link_key_comp_evt (p);
-            break;
         case HCI_READ_RMT_FEATURES_COMP_EVT:
             btu_hcif_read_rmt_features_comp_evt (p);
             break;
@@ -664,29 +660,6 @@ static void btu_hcif_encryption_change_evt (UINT8 *p)
     btm_acl_encrypt_change (handle, status, encr_enable);
     btm_sec_encrypt_change (handle, status, encr_enable);
 }
-
-/*******************************************************************************
-**
-** Function         btu_hcif_master_link_key_comp_evt
-**
-** Description      Process event HCI_MASTER_LINK_KEY_COMP_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btu_hcif_master_link_key_comp_evt (UINT8 *p)
-{
-    UINT8   status;
-    UINT16  handle;
-    UINT8   key_flg;
-
-    STREAM_TO_UINT8  (status, p);
-    STREAM_TO_UINT16 (handle, p);
-    STREAM_TO_UINT8  (key_flg, p);
-
-    btm_sec_mkey_comp_event (handle, status, key_flg);
-}
-
 
 /*******************************************************************************
 **
