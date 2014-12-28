@@ -161,14 +161,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 
 #define BTU_TTYPE_UCD_TO                            108
 
-
-
-/* Define the BTU_TASK APPL events
-*/
-#if (defined(NFC_SHARED_TRANSPORT_ENABLED) && (NFC_SHARED_TRANSPORT_ENABLED==TRUE))
-#define BTU_NFC_AVAILABLE_EVT   EVENT_MASK(APPL_EVT_0)  /* Notifies BTU task that NFC is available (used for shared NFC+BT transport) */
-#endif
-
 /* This is the inquiry response information held by BTU, and available
 ** to applications.
 */
@@ -254,7 +246,6 @@ extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
 extern void btu_process_quick_timer_evt (void);
-extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);
 #endif
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)

@@ -56,7 +56,6 @@ typedef struct
 {
     tBTA_SYS_REG            *reg[BTA_ID_MAX];       /* registration structures */
     BOOLEAN                 is_reg[BTA_ID_MAX];     /* registration structures */
-    UINT8                   task_id;                /* GKI task id */
     tBTA_SYS_HW_STATE state;
     tBTA_SYS_HW_CBACK *sys_hw_cback[BTA_SYS_MAX_HW_MODULES];    /* enable callback for each HW modules */
     UINT32                  sys_hw_module_active;   /* bitmask of all active modules */

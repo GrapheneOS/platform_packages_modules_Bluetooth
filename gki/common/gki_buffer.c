@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
+
 #include "allocator.h"
 #include "gki_int.h"
 
@@ -77,7 +79,6 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
         p_cb->freeq[id]._p_first = hdr;
         for (i = 0; i < total; i++)
         {
-            hdr->task_id = GKI_INVALID_TASK;
             hdr->q_id    = id;
             hdr->status  = BUF_STATUS_FREE;
             magic        = (UINT32 *)((UINT8 *)hdr + BUFFER_HDR_SIZE + tempsize);
@@ -91,7 +92,7 @@ static void gki_init_free_queue (UINT8 id, UINT16 size, UINT16 total, void *p_me
     }
 }
 
-void gki_dealloc_free_queue(void)
+void gki_buffer_cleanup(void)
 {
     UINT8   i;
     tGKI_COM_CB *p_cb = &gki_cb.com;
@@ -142,21 +143,20 @@ void gki_buffer_init(void)
       { GKI_BUF9_SIZE, GKI_BUF9_MAX },
     };
 
-    UINT8   i, tt, mb;
     tGKI_COM_CB *p_cb = &gki_cb.com;
 
-    for (tt = 0; tt < GKI_NUM_TOTAL_BUF_POOLS; tt++)
+    for (int i = 0; i < GKI_NUM_TOTAL_BUF_POOLS; i++)
     {
-        p_cb->pool_start[tt] = NULL;
-        p_cb->pool_end[tt]   = NULL;
-        p_cb->pool_size[tt]  = 0;
+        p_cb->pool_start[i] = NULL;
+        p_cb->pool_end[i]   = NULL;
+        p_cb->pool_size[i]  = 0;
 
-        p_cb->freeq[tt]._p_first = 0;
-        p_cb->freeq[tt]._p_last  = 0;
-        p_cb->freeq[tt].size    = 0;
-        p_cb->freeq[tt].total   = 0;
-        p_cb->freeq[tt].cur_cnt = 0;
-        p_cb->freeq[tt].max_cnt = 0;
+        p_cb->freeq[i]._p_first = 0;
+        p_cb->freeq[i]._p_last  = 0;
+        p_cb->freeq[i].size    = 0;
+        p_cb->freeq[i].total   = 0;
+        p_cb->freeq[i].cur_cnt = 0;
+        p_cb->freeq[i].max_cnt = 0;
     }
 
     /* Use default from target.h */
@@ -201,7 +201,6 @@ void GKI_init_q (BUFFER_Q *p_q)
 void *GKI_getbuf (UINT16 size)
 {
   BUFFER_HDR_T *header = malloc(size + BUFFER_HDR_SIZE);
-  header->task_id = GKI_get_taskid();
   header->status  = BUF_STATUS_UNLINKED;
   header->p_next  = NULL;
   header->Type    = 0;
@@ -266,21 +265,6 @@ UINT16 GKI_get_buf_size (void *p_buf)
 
 /*******************************************************************************
 **
-** Function         gki_chk_buf_damage
-**
-** Description      Called internally by OSS to check for buffer corruption.
-**
-** Returns          TRUE if there is a problem, else FALSE
-**
-*******************************************************************************/
-BOOLEAN gki_chk_buf_damage(void *p_buf)
-{
-    (void)p_buf;
-    return (FALSE);
-}
-
-/*******************************************************************************
-**
 ** Function         GKI_enqueue
 **
 ** Description      Enqueue a buffer at the tail of the queue
@@ -293,23 +277,8 @@ BOOLEAN gki_chk_buf_damage(void *p_buf)
 *******************************************************************************/
 void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
 {
-    BUFFER_HDR_T    *p_hdr;
-
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
-    if (gki_chk_buf_damage(p_buf))
-    {
-        GKI_exception(GKI_ERROR_BUF_CORRUPTED, "Enqueue - Buffer corrupted");
-        return;
-    }
-#endif
-
-    p_hdr = (BUFFER_HDR_T *) ((UINT8 *) p_buf - BUFFER_HDR_SIZE);
-
-    if (p_hdr->status != BUF_STATUS_UNLINKED)
-    {
-        GKI_exception(GKI_ERROR_ENQUEUE_BUF_LINKED, "Eneueue - buf already linked");
-        return;
-    }
+    BUFFER_HDR_T *p_hdr = (BUFFER_HDR_T *) ((UINT8 *) p_buf - BUFFER_HDR_SIZE);
+    assert(p_hdr->status == BUF_STATUS_UNLINKED);
 
     GKI_disable();
 
@@ -330,62 +299,6 @@ void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
 
     GKI_enable();
 }
-
-
-/*******************************************************************************
-**
-** Function         GKI_enqueue_head
-**
-** Description      Enqueue a buffer at the head of the queue
-**
-** Parameters:      p_q  -  (input) pointer to a queue.
-**                  p_buf - (input) address of the buffer to enqueue
-**
-** Returns          void
-**
-*******************************************************************************/
-void GKI_enqueue_head (BUFFER_Q *p_q, void *p_buf)
-{
-    BUFFER_HDR_T    *p_hdr;
-
-#if (GKI_ENABLE_BUF_CORRUPTION_CHECK == TRUE)
-    if (gki_chk_buf_damage(p_buf))
-    {
-        GKI_exception(GKI_ERROR_BUF_CORRUPTED, "Enqueue - Buffer corrupted");
-        return;
-    }
-#endif
-
-    p_hdr = (BUFFER_HDR_T *) ((UINT8 *) p_buf - BUFFER_HDR_SIZE);
-
-    if (p_hdr->status != BUF_STATUS_UNLINKED)
-    {
-        GKI_exception(GKI_ERROR_ENQUEUE_BUF_LINKED, "Eneueue head - buf already linked");
-        return;
-    }
-
-    GKI_disable();
-
-    if (p_q->_p_first)
-    {
-        p_hdr->p_next = (BUFFER_HDR_T *)((UINT8 *)p_q->_p_first - BUFFER_HDR_SIZE);
-        p_q->_p_first = p_buf;
-    }
-    else
-    {
-        p_q->_p_first = p_buf;
-        p_q->_p_last  = p_buf;
-        p_hdr->p_next = NULL;
-    }
-    p_q->_count++;
-
-    p_hdr->status = BUF_STATUS_QUEUED;
-
-    GKI_enable();
-
-    return;
-}
-
 
 /*******************************************************************************
 **

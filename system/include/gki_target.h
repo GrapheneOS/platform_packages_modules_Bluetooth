@@ -15,37 +15,14 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#ifndef GKI_TARGET_H
-#define GKI_TARGET_H
 
-#define GKI_TRACE(fmt, ...)
-
-/******************************************************************************
-**
-** Task configuration
-**
-******************************************************************************/
-
-/* Definitions of task IDs for inter-task messaging */
-#ifndef BTIF_TASK
-#define BTIF_TASK               1
-#endif
-
-/* The number of GKI tasks in the software system. */
-#ifndef GKI_MAX_TASKS
-#define GKI_MAX_TASKS               3
-#endif
+#pragma once
 
 /******************************************************************************
 **
 ** Buffer configuration
 **
 ******************************************************************************/
-
-/* TRUE if GKI uses dynamic buffers. */
-#ifndef GKI_USE_DYNAMIC_BUFFERS
-#define GKI_USE_DYNAMIC_BUFFERS     FALSE
-#endif
 
 /* The size of the buffers in pool 0. */
 #ifndef GKI_BUF0_SIZE
@@ -150,11 +127,6 @@ POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 #define GKI_DEF_BUFPOOL_PERM_MASK   0xfdf0
 #endif
 
-/* The number of fixed and dynamic buffer pools */
-#ifndef GKI_NUM_TOTAL_BUF_POOLS
-#define GKI_NUM_TOTAL_BUF_POOLS     10
-#endif
-
 /* The following is intended to be a reserved pool for L2CAP
 Flow control and retransmissions and intentionally kept out
 of order */
@@ -177,31 +149,6 @@ of order */
 */
 #ifndef GKI_BUF5_SIZE
 #define GKI_BUF5_SIZE               748
-#endif
-
-/* The buffer corruption check flag. */
-#ifndef GKI_ENABLE_BUF_CORRUPTION_CHECK
-#define GKI_ENABLE_BUF_CORRUPTION_CHECK TRUE
-#endif
-
-/* The GKI severe error macro. */
-#ifndef GKI_SEVERE
-#define GKI_SEVERE(code)
-#endif
-
-/* TRUE if GKI includes debug functionality. */
-#ifndef GKI_DEBUG
-#define GKI_DEBUG                   FALSE
-#endif
-
-/* Maximum number of exceptions logged. */
-#ifndef GKI_MAX_EXCEPTION
-#define GKI_MAX_EXCEPTION           8
-#endif
-
-/* Maximum number of chars stored for each exception message. */
-#ifndef GKI_MAX_EXCEPTION_MSGLEN
-#define GKI_MAX_EXCEPTION_MSGLEN    64
 #endif
 
 /* The following is intended to be a reserved pool for SCO
@@ -283,6 +230,9 @@ over HCI data and intentionally kept out of order */
 #define GKI_BUF9_MAX           5
 #endif
 
-void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
+/* The number of fixed and dynamic buffer pools */
+#ifndef GKI_NUM_TOTAL_BUF_POOLS
+#define GKI_NUM_TOTAL_BUF_POOLS     10
+#endif
 
-#endif  /* GKI_TARGET_H */
+void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);

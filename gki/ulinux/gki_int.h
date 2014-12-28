@@ -22,31 +22,10 @@
 
 #include "gki_common.h"
 
-/**********************************************************************
-** OS specific definitions
-*/
-
 typedef struct
 {
-    pthread_mutex_t     GKI_mutex;
-    pthread_t           thread_id[GKI_MAX_TASKS];
-    pthread_mutex_t     thread_evt_mutex[GKI_MAX_TASKS];
-    pthread_cond_t      thread_evt_cond[GKI_MAX_TASKS];
-#if (GKI_DEBUG == TRUE)
-    pthread_mutex_t     GKI_trace_mutex;
-#endif
-} tGKI_OS;
-
-/* Contains common control block as well as OS specific variables */
-typedef struct
-{
-    tGKI_OS     os;
+    pthread_mutex_t lock;
     tGKI_COM_CB com;
 } tGKI_CB;
 
-#if GKI_DYNAMIC_MEMORY == FALSE
-tGKI_CB  gki_cb;
-#else
-tGKI_CB *gki_cb_ptr;
-#define gki_cb (*gki_cb_ptr)
-#endif
+extern tGKI_CB  gki_cb;

@@ -704,15 +704,12 @@ static void btif_a2dp_encoder_update(void)
     btif_media_task_enc_update_req(&msg);
 }
 
-
-int btif_a2dp_start_media_task(void)
+bool btif_a2dp_start_media_task(void)
 {
-    int retval = GKI_SUCCESS;
-
     if (media_task_running != MEDIA_TASK_STATE_OFF)
     {
         APPL_TRACE_ERROR("warning : media task already running");
-        return GKI_FAILURE;
+        return false;
     }
 
     APPL_TRACE_EVENT("## A2DP START MEDIA THREAD ##");
@@ -733,11 +730,11 @@ int btif_a2dp_start_media_task(void)
 
     APPL_TRACE_EVENT("## A2DP MEDIA THREAD STARTED ##");
 
-    return retval;
+    return true;
 
  error_exit:;
     APPL_TRACE_ERROR("%s unable to start up media thread", __func__);
-    return GKI_FAILURE;
+    return false;
 }
 
 void btif_a2dp_stop_media_task(void)

@@ -888,7 +888,7 @@ bt_status_t btif_av_init()
 {
     if (btif_av_cb.sm_handle == NULL)
     {
-        if (btif_a2dp_start_media_task() != GKI_SUCCESS)
+        if (!btif_a2dp_start_media_task())
             return BT_STATUS_FAIL;
 
         btif_enable_service(BTA_A2DP_SOURCE_SERVICE_ID);

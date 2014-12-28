@@ -19,15 +19,6 @@
 #define DYN_MEM_H
 
 /****************************************************************************
-** Define memory usage for GKI (if not defined in bdroid_buildcfg.h)
-**  The default for GKI is to use static memory allocation for its control
-**  block.
-*/
-#ifndef GKI_DYNAMIC_MEMORY
-#define GKI_DYNAMIC_MEMORY  FALSE
-#endif
-
-/****************************************************************************
 ** Define memory usage for each CORE component (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */

@@ -160,16 +160,6 @@ typedef struct
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
 
-/* GKI task mailbox event for BTA. */
-#ifndef BTA_MBOX_EVT
-#define BTA_MBOX_EVT                TASK_MBOX_2_EVT_MASK
-#endif
-
-/* GKI task mailbox for BTA. */
-#ifndef BTA_MBOX
-#define BTA_MBOX                    TASK_MBOX_2
-#endif
-
 /*****************************************************************************
 **  Global data
 *****************************************************************************/

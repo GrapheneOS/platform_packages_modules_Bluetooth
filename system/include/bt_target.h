@@ -108,10 +108,6 @@
 #define BTA_SYS_TIMER_PERIOD  100
 #endif
 
-#ifndef GKI_SHUTDOWN_EVT
-#define GKI_SHUTDOWN_EVT  APPL_EVT_7
-#endif
-
 #ifndef SBC_FOR_EMBEDDED_LINUX
 #define SBC_FOR_EMBEDDED_LINUX TRUE
 #endif
@@ -1510,17 +1506,6 @@ The maximum number of payload octets that the local device can receive in a sing
 /* Shared transport */
 #ifndef NFC_SHARED_TRANSPORT_ENABLED
 #define NFC_SHARED_TRANSPORT_ENABLED    FALSE
-#endif
-
-/******************************************************************************
-**
-** SER
-**
-******************************************************************************/
-
-/* Mailbox used by serial application. */
-#ifndef SER_MBOX
-#define SER_MBOX                    TASK_MBOX_1
 #endif
 
 /******************************************************************************

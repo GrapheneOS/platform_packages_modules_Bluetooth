@@ -187,7 +187,6 @@ void bta_sys_init(void)
         btu_bta_alarm_ready,
         NULL);
 
-    bta_sys_cb.task_id = GKI_get_taskid();
     appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
 
     /* register BTA SYS message handler */

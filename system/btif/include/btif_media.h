@@ -27,6 +27,8 @@
 #ifndef BTIF_MEDIA_H
 #define BTIF_MEDIA_H
 
+#include <stdbool.h>
+
 #include "bta_api.h"
 #include "gki.h"
 #include "btif_av_api.h"
@@ -255,7 +257,7 @@ extern void dump_codec_info(unsigned char *p_codec);
  * Local adaptation helper functions between btif and media task
  */
 
-int btif_a2dp_start_media_task(void);
+bool btif_a2dp_start_media_task(void);
 void btif_a2dp_stop_media_task(void);
 
 void btif_a2dp_on_init(void);
