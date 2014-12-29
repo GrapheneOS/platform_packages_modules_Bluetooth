@@ -33,9 +33,7 @@
 #include "btu.h"
 #include "device/include/controller.h"
 #include "hcimsgs.h"
-#if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
-#endif
 
 #if BLE_INCLUDED == TRUE
 #include "l2c_int.h"

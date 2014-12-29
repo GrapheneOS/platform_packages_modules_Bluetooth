@@ -1031,10 +1031,6 @@ extern "C" {
 **
 ******************************************************************************/
 
-#ifndef RFCOMM_INCLUDED
-#define RFCOMM_INCLUDED             TRUE
-#endif
-
 /* The maximum number of ports supported. */
 #ifndef MAX_RFC_PORTS
 #define MAX_RFC_PORTS               30
@@ -1349,10 +1345,6 @@ extern "C" {
 ** GAP
 **
 ******************************************************************************/
-
-#ifndef GAP_INCLUDED
-#define GAP_INCLUDED                TRUE
-#endif
 
 /* keep the raw data received from SDP server in database. */
 #ifndef SDP_RAW_DATA_INCLUDED

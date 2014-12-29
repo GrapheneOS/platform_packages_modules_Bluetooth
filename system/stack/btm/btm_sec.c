@@ -2627,10 +2627,8 @@ void btm_sec_dev_reset (void)
         /* set the default IO capabilities */
         btm_cb.devcb.loc_io_caps = BTM_LOCAL_IO_CAPS;
         /* add mx service to use no security */
-#if (RFCOMM_INCLUDED == TRUE)
         BTM_SetSecurityLevel(FALSE, "RFC_MUX", BTM_SEC_SERVICE_RFC_MUX,
                              BTM_SEC_NONE, BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, 0);
-#endif
     }
     else
     {

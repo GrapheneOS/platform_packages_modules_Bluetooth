@@ -29,9 +29,7 @@
 #include "gki.h"
 #include "hcidefs.h"
 
-#if RFCOMM_INCLUDED == TRUE
 #include "rfcdefs.h"
-#endif
 
 #include "btm_api.h"
 
@@ -757,9 +755,7 @@ typedef struct
     **      ACL Management
     ****************************************************/
     tACL_CONN   acl_db[MAX_L2CAP_LINKS];
-#if( RFCOMM_INCLUDED==TRUE)
     UINT8       btm_scn[BTM_MAX_SCN];        /* current SCNs: TRUE if SCN is in use */
-#endif
     UINT16      btm_def_link_policy;
     UINT16      btm_def_link_super_tout;
 

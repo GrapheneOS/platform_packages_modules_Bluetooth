@@ -34,9 +34,7 @@
 #include "osi/include/log.h"
 #include "stack_config.h"
 
-#if (RFCOMM_INCLUDED==TRUE)
 #include "port_api.h"
-#endif
 #if (AVCT_INCLUDED==TRUE)
 #include "avct_api.h"
 #endif
@@ -56,9 +54,7 @@
 #include "bnep_api.h"
 #endif
 #include "btm_api.h"
-#if (GAP_INCLUDED==TRUE)
 #include "gap_api.h"
-#endif
 #if (PAN_INCLUDED==TRUE)
 #include "pan_api.h"
 #endif
@@ -146,9 +142,7 @@ static uint8_t BTU_SetTraceLevel(uint8_t new_level);
 static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {BTTRC_ID_STK_BTU, BTTRC_ID_STK_HCI, BTU_SetTraceLevel, "TRC_HCI", DEFAULT_CONF_TRACE_LEVEL},
   {BTTRC_ID_STK_L2CAP, BTTRC_ID_STK_L2CAP, L2CA_SetTraceLevel, "TRC_L2CAP", DEFAULT_CONF_TRACE_LEVEL},
-#if (RFCOMM_INCLUDED==TRUE)
   {BTTRC_ID_STK_RFCOMM, BTTRC_ID_STK_RFCOMM_DATA, PORT_SetTraceLevel, "TRC_RFCOMM", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (AVCT_INCLUDED==TRUE)
   //{BTTRC_ID_STK_AVCT, BTTRC_ID_STK_AVCT, NULL, "TRC_AVCT", DEFAULT_CONF_TRACE_LEVEL},
 #endif
@@ -168,9 +162,7 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {BTTRC_ID_STK_BNEP, BTTRC_ID_STK_BNEP, BNEP_SetTraceLevel, "TRC_BNEP", DEFAULT_CONF_TRACE_LEVEL},
 #endif
   {BTTRC_ID_STK_BTM_ACL, BTTRC_ID_STK_BTM_SEC, BTM_SetTraceLevel, "TRC_BTM", DEFAULT_CONF_TRACE_LEVEL},
-#if (GAP_INCLUDED==TRUE)
   {BTTRC_ID_STK_GAP, BTTRC_ID_STK_GAP, GAP_SetTraceLevel, "TRC_GAP", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (PAN_INCLUDED==TRUE)
   {BTTRC_ID_STK_PAN, BTTRC_ID_STK_PAN, PAN_SetTraceLevel, "TRC_PAN", DEFAULT_CONF_TRACE_LEVEL},
 #endif

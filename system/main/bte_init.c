@@ -31,17 +31,13 @@
 #endif
 
 /* Include initialization functions definitions */
-#if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
 #include "port_api.h"
-#endif
 
 #if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
 #include "bnep_api.h"
 #endif
 
-#if (defined(GAP_INCLUDED) && GAP_INCLUDED == TRUE)
 #include "gap_api.h"
-#endif
 
 #if (defined(PAN_INCLUDED) && PAN_INCLUDED == TRUE)
 #include "pan_api.h"
@@ -143,13 +139,7 @@ tBTA_JV_CB *bta_jv_cb_ptr = NULL;
 void BTE_InitStack(void)
 {
 /* Initialize the optional stack components */
-
-/****************************
-** RFCOMM and its profiles **
-*****************************/
-#if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
     RFCOMM_Init();
-#endif  /* RFCOMM Included */
 
 /**************************
 ** BNEP and its profiles **
@@ -179,9 +169,7 @@ void BTE_InitStack(void)
 /***********
 ** Others **
 ************/
-#if (defined(GAP_INCLUDED) && GAP_INCLUDED == TRUE)
     GAP_Init();
-#endif  /* GAP Included */
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
     HID_HostInit();

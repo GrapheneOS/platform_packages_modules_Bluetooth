@@ -44,18 +44,10 @@
 #include "sdpint.h"
 #include "thread.h"
 
-#if ( defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE )
 #include "port_api.h"
 #include "port_ext.h"
-#endif
 
-#if (defined(EVAL) && EVAL == TRUE)
-#include "btu_eval.h"
-#endif
-
-#if GAP_INCLUDED == TRUE
 #include "gap_int.h"
-#endif
 
 /* BTE application task */
 #if APPL_INCLUDED == TRUE
@@ -96,16 +88,7 @@ extern void avdt_rcv_sync_info (BT_HDR *p_buf); /* this is for hci_test */
 #include "btm_ble_int.h"
 #endif
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 extern void BTE_InitStack(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 /* Define BTU storage area
 */
@@ -118,9 +101,6 @@ extern fixed_queue_t *btu_bta_msg_queue;
 
 // Communication queue between btu_task and hci.
 extern fixed_queue_t *btu_hci_msg_queue;
-
-// Timer queue between btu_task and bta.
-extern fixed_queue_t *btu_bta_alarm_queue;
 
 // General timer queue.
 extern fixed_queue_t *btu_general_alarm_queue;
@@ -386,13 +366,10 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
             btm_inq_rmt_name_failed();
             break;
 
-#if (defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE)
         case BTU_TTYPE_RFCOMM_MFC:
         case BTU_TTYPE_RFCOMM_PORT:
             rfcomm_process_timeout (p_tle);
             break;
-
-#endif /* If defined(RFCOMM_INCLUDED) && RFCOMM_INCLUDED == TRUE */
 
 #if ((defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE))
         case BTU_TTYPE_BNEP:
