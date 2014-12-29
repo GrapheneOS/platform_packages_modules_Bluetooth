@@ -51,13 +51,6 @@ extern fixed_queue_t *btu_hci_msg_queue;
 extern void btm_process_cancel_complete(UINT8 status, UINT8 mode);
 extern void btm_ble_test_command_complete(UINT8 *p);
 
-// btla-specific ++
-/* BTE application task */
-#if APPL_INCLUDED == TRUE
-#include "bte_appl.h"
-#endif
-// btla-specific --
-
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/

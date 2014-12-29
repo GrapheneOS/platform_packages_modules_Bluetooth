@@ -563,12 +563,6 @@ tCONN_CB* sdp_conn_originate (UINT8 *p_bd_addr)
     /* Transition to the next appropriate state, waiting for connection confirm. */
     p_ccb->con_state = SDP_STATE_CONN_SETUP;
 
-// btla-specific ++
-#ifndef ANDROID_APP_INCLUDED  /* Skip for Android: Do not need to set out_service for sdp, since sdp does not use sec. Prevents over-writing service_rec of a connection already in progress */
-    BTM_SetOutService(p_bd_addr, BTM_SEC_SERVICE_SDP_SERVER, 0);
-#endif
-// btla-specific --
-
     cid = L2CA_ConnectReq (SDP_PSM, p_bd_addr);
 
     /* Check if L2CAP started the connection process */

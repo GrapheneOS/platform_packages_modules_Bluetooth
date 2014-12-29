@@ -1635,14 +1635,8 @@ typedef struct
 #define HCI_FEATURE_NON_FLUSHABLE_PB_MASK      0x40
 #define HCI_FEATURE_NON_FLUSHABLE_PB_OFF       6
 
-// btla-specific ++
-#ifdef ANDROID_APP_INCLUDED
 /* This feature is causing frequent link drops when doing call switch with certain av/hfp headsets */
 #define HCI_NON_FLUSHABLE_PB_SUPPORTED(x)      (0)//((x)[HCI_FEATURE_NON_FLUSHABLE_PB_OFF] & HCI_FEATURE_NON_FLUSHABLE_PB_MASK)
-#else
-#define HCI_NON_FLUSHABLE_PB_SUPPORTED(x)      ((x)[HCI_FEATURE_NON_FLUSHABLE_PB_OFF] & HCI_FEATURE_NON_FLUSHABLE_PB_MASK)
-#endif
-// btla-specific --
 
 #define HCI_FEATURE_LINK_SUP_TO_EVT_MASK 0x01
 #define HCI_FEATURE_LINK_SUP_TO_EVT_OFF  7

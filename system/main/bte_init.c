@@ -43,9 +43,7 @@
 #include "pan_api.h"
 #endif
 
-#if (defined(AVRC_INCLUDED) && AVRC_INCLUDED == TRUE)
 #include "avrc_api.h"
-#endif
 
 #if (defined(A2D_INCLUDED) && A2D_INCLUDED == TRUE)
 #include "a2d_api.h"
@@ -71,9 +69,7 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 
-#if BTA_AG_INCLUDED == TRUE
 #include "bta_ag_int.h"
-#endif
 
 #if BTA_HS_INCLUDED == TRUE
 #include "bta_hs_int.h"
@@ -161,9 +157,7 @@ void BTE_InitStack(void)
 #endif  /* AADP */
 
 
-#if (defined(AVRC_INCLUDED) && AVRC_INCLUDED == TRUE)
     AVRC_Init();
-#endif
 
 
 /***********
@@ -188,10 +182,7 @@ void BTE_InitStack(void)
     memset((void*)bta_dm_search_cb_ptr, 0, sizeof(tBTA_DM_SEARCH_CB));
     memset((void*)bta_dm_di_cb_ptr, 0, sizeof(tBTA_DM_DI_CB));
     memset((void*)bta_prm_cb_ptr, 0, sizeof(tBTA_PRM_CB));
-
-#if BTA_AG_INCLUDED == TRUE
     memset((void*)bta_ag_cb_ptr, 0, sizeof(tBTA_AG_CB));
-#endif
 #if BTA_HS_INCLUDED == TRUE
     memset((void*)bta_hs_cb_ptr, 0, sizeof(tBTA_HS_CB));
 #endif

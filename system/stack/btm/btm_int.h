@@ -735,18 +735,6 @@ typedef BOOLEAN CONNECTION_TYPE;
 
 #define BTM_STATE_BUFFER_SIZE  5                  /* size of state buffer */
 
-#if (BTM_PCM2_INCLUDED == TRUE)
-/* Define pcm2_action           */
-enum
-{
-    BTM_PCM2_ACT_NONE,
-    BTM_PCM2_ACT_SENT_ARC,
-    BTM_PCM2_READ_PARAM,
-    BTM_PCM2_WRITE_PARAM,
-};
-typedef UINT8 tBTM_PCM2_ACTION;
-#endif
-
 typedef struct
 {
     tBTM_CFG    cfg;                        /* Device configuration */
@@ -859,12 +847,6 @@ typedef struct
 
 #if  (!defined(BT_TRACE_VERBOSE) || (BT_TRACE_VERBOSE == FALSE))
     char state_temp_buffer[BTM_STATE_BUFFER_SIZE];
-#endif
-
-#if (defined(BTM_PCM2_INCLUDED) && BTM_PCM2_INCLUDED == TRUE)
-    UINT16                  sys_features;
-    UINT8                   pcm2_params[BRCM_PCM2_SETUP_WRITE_SIZE];
-    tBTM_PCM2_ACTION        pcm2_action;
 #endif
 
 } tBTM_CB;

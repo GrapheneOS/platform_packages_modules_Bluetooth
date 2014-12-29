@@ -23,7 +23,6 @@
 #include "bta_sys.h"
 #include "bta_ag_api.h"
 #include "bta_ag_co.h"
-#include "bte_appl.h"
 #include "bt_utils.h"
 
 #ifndef LINUX_NATIVE

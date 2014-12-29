@@ -49,11 +49,6 @@
 
 #include "gap_int.h"
 
-/* BTE application task */
-#if APPL_INCLUDED == TRUE
-#include "bte_appl.h"
-#endif
-
 #if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
 #include "bnep_int.h"
 #endif

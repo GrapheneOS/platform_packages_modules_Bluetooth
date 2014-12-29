@@ -26,7 +26,6 @@
 
 #include "bte.h"
 #include "bta_api.h"
-#include "bte_appl.h"
 #include "btu.h"
 #include "config.h"
 #include "gki.h"
@@ -35,15 +34,10 @@
 #include "stack_config.h"
 
 #include "port_api.h"
-#if (AVCT_INCLUDED==TRUE)
-#include "avct_api.h"
-#endif
 #if (AVDT_INCLUDED==TRUE)
 #include "avdt_api.h"
 #endif
-#if (AVRC_INCLUDED==TRUE)
 #include "avrc_api.h"
-#endif
 #if (AVDT_INCLUDED==TRUE)
 #include "avdt_api.h"
 #endif
@@ -143,15 +137,10 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {BTTRC_ID_STK_BTU, BTTRC_ID_STK_HCI, BTU_SetTraceLevel, "TRC_HCI", DEFAULT_CONF_TRACE_LEVEL},
   {BTTRC_ID_STK_L2CAP, BTTRC_ID_STK_L2CAP, L2CA_SetTraceLevel, "TRC_L2CAP", DEFAULT_CONF_TRACE_LEVEL},
   {BTTRC_ID_STK_RFCOMM, BTTRC_ID_STK_RFCOMM_DATA, PORT_SetTraceLevel, "TRC_RFCOMM", DEFAULT_CONF_TRACE_LEVEL},
-#if (AVCT_INCLUDED==TRUE)
-  //{BTTRC_ID_STK_AVCT, BTTRC_ID_STK_AVCT, NULL, "TRC_AVCT", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (AVDT_INCLUDED==TRUE)
   {BTTRC_ID_STK_AVDT, BTTRC_ID_STK_AVDT, AVDT_SetTraceLevel, "TRC_AVDT", DEFAULT_CONF_TRACE_LEVEL},
 #endif
-#if (AVRC_INCLUDED==TRUE)
   {BTTRC_ID_STK_AVRC, BTTRC_ID_STK_AVRC, AVRC_SetTraceLevel, "TRC_AVRC", DEFAULT_CONF_TRACE_LEVEL},
-#endif
 #if (AVDT_INCLUDED==TRUE)
   //{BTTRC_ID_AVDT_SCB, BTTRC_ID_AVDT_CCB, NULL, "TRC_AVDT_SCB", DEFAULT_CONF_TRACE_LEVEL},
 #endif

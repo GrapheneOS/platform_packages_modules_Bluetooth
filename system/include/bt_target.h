@@ -23,9 +23,6 @@
 #ifndef BUILDCFG
 #define BUILDCFG
 #endif
-#include "bt_types.h"
-
-#ifdef BUILDCFG
 
 #if !defined(HAS_BDROID_BUILDCFG) && !defined(HAS_NO_BDROID_BUILDCFG)
 #error "An Android.mk file did not include bdroid_CFLAGS and possibly not bdorid_C_INCLUDES"
@@ -35,12 +32,10 @@
 #include "bdroid_buildcfg.h"
 #endif
 
-#endif  // BUILDCFG
+#include "bt_types.h"   /* This must be defined AFTER buildcfg.h */
 
 /* Include common GKI definitions used by this platform */
 #include "gki_target.h"
-
-#include "bt_types.h"   /* This must be defined AFTER buildcfg.h */
 #include "dyn_mem.h"    /* defines static and/or dynamic memory for components */
 
 //------------------Added from bdroid_buildcfg.h---------------------
@@ -62,10 +57,6 @@
 
 #ifndef BTA_INCLUDED
 #define BTA_INCLUDED TRUE
-#endif
-
-#ifndef BTA_AG_INCLUDED
-#define BTA_AG_INCLUDED  TRUE
 #endif
 
 #ifndef BTA_PAN_INCLUDED
@@ -102,14 +93,6 @@
 
 #ifndef BTA_DISABLE_DELAY
 #define BTA_DISABLE_DELAY 200 /* in milliseconds */
-#endif
-
-#ifndef ANDROID_APP_INCLUDED
-#define ANDROID_APP_INCLUDED  TRUE
-#endif
-
-#ifndef ANDROID_USE_LOGCAT
-#define ANDROID_USE_LOGCAT  TRUE
 #endif
 
 // If the next wakeup time is less than this threshold, we should acquire
@@ -380,13 +363,6 @@
 ** HCI Services (H4)
 **
 ******************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
 
 /* Use 2 second for low-resolution systems, override to 1 for high-resolution systems */
 #ifndef BT_1SEC_TIMEOUT
@@ -405,10 +381,6 @@ extern "C" {
 ** BTM
 **
 ******************************************************************************/
-/* Include inquiry code. */
-#ifndef BTM_INQUIRY_INCLUDED
-#define BTM_INQUIRY_INCLUDED        TRUE
-#endif
 
 /* Cancel Inquiry on incoming SSP */
 #ifndef BTM_NO_SSP_ON_INQUIRY
@@ -428,11 +400,6 @@ extern "C" {
 /* Includes WBS if TRUE */
 #ifndef BTM_WBS_INCLUDED
 #define BTM_WBS_INCLUDED            FALSE       /* TRUE includes WBS code */
-#endif
-
-/* Includes PCM2 support if TRUE */
-#ifndef BTM_PCM2_INCLUDED
-#define BTM_PCM2_INCLUDED           FALSE
 #endif
 
 /*  This is used to work around a controller bug that doesn't like Disconnect
@@ -635,12 +602,6 @@ extern "C" {
 ** L2CAP
 **
 ******************************************************************************/
-
-/* Flow control and retransmission mode */
-
-#ifndef L2CAP_FCR_INCLUDED
-#define L2CAP_FCR_INCLUDED TRUE
-#endif
 
 /* The maximum number of simultaneous links that L2CAP can support. */
 #ifndef MAX_ACL_CONNECTIONS
@@ -1362,10 +1323,6 @@ extern "C" {
 **
 ******************************************************************************/
 
-#ifndef HID_DEV_PM_INCLUDED
-#define HID_DEV_PM_INCLUDED         TRUE
-#endif
-
 #ifndef HID_DEV_SUBCLASS
 #define HID_DEV_SUBCLASS            COD_MINOR_POINTING
 #endif
@@ -1420,16 +1377,6 @@ extern "C" {
 #define HID_HOST_REPAGE_WIN          (2)
 #endif
 
-/******************************************************************************
-**
-** PAN
-**
-******************************************************************************/
-
-#ifndef PAN_INCLUDED
-#define PAN_INCLUDED                FALSE
-#endif
-
 /*************************************************************************
  * A2DP Definitions
  */
@@ -1437,20 +1384,11 @@ extern "C" {
 #define A2D_INCLUDED            TRUE
 #endif
 
-/* TRUE to include SBC utility functions */
-#ifndef A2D_SBC_INCLUDED
-#define A2D_SBC_INCLUDED        A2D_INCLUDED
-#endif
-
 /******************************************************************************
 **
 ** AVCTP
 **
 ******************************************************************************/
-
-#ifndef AVCT_INCLUDED
-#define AVCT_INCLUDED               TRUE
-#endif
 
 /* Number of simultaneous ACL links to different peer devices. */
 #ifndef AVCT_NUM_LINKS
@@ -1467,10 +1405,6 @@ extern "C" {
 ** AVRCP
 **
 ******************************************************************************/
-
-#ifndef AVRC_INCLUDED
-#define AVRC_INCLUDED               TRUE
-#endif
 
 #ifndef AVRC_METADATA_INCLUDED
 #define AVRC_METADATA_INCLUDED      TRUE
@@ -1603,10 +1537,6 @@ The maximum number of payload octets that the local device can receive in a sing
 **
 ******************************************************************************/
 
-#ifndef SER_INCLUDED
-#define SER_INCLUDED                FALSE
-#endif
-
 /* Mailbox used by serial application. */
 #ifndef SER_MBOX
 #define SER_MBOX                    TASK_MBOX_1
@@ -1624,23 +1554,9 @@ The maximum number of payload octets that the local device can receive in a sing
 
 /******************************************************************************
 **
-** SAP - Sample applications
-**
-******************************************************************************/
-
-#ifndef MMI_INCLUDED
-#define MMI_INCLUDED                FALSE
-#endif
-
-/******************************************************************************
-**
 ** APPL - Application Task
 **
 ******************************************************************************/
-/* When TRUE indicates that an application task is to be run */
-#ifndef APPL_INCLUDED
-#define APPL_INCLUDED                TRUE
-#endif
 
 #define L2CAP_FEATURE_REQ_ID      73
 #define L2CAP_FEATURE_RSP_ID     173
