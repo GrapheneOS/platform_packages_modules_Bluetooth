@@ -21,12 +21,12 @@
  *  Interface to AVRCP mandatory commands
  *
  ******************************************************************************/
+#include <assert.h>
 #include <string.h>
 
 #include "gki.h"
 #include "avrc_api.h"
 #include "avrc_int.h"
-#include "wcassert.h"
 
 /*****************************************************************************
 **  Global data
@@ -805,8 +805,8 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
     BT_HDR  *p_cmd = NULL;
     UINT8   *p_data;
 
-    WC_ASSERT(p_msg != NULL);
-    WC_ASSERT(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
+    assert(p_msg != NULL);
+    assert(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
 
     if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
     {
@@ -1084,7 +1084,7 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
 UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg)
 {
     BT_HDR *p_buf;
-    WC_ASSERT(p_msg != NULL);
+    assert(p_msg != NULL);
     if (p_msg)
     {
         p_msg->hdr.ctype    = AVRC_CMD_CTRL;
@@ -1123,7 +1123,7 @@ UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg)
 UINT16 AVRC_PassRsp(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg)
 {
     BT_HDR *p_buf;
-    WC_ASSERT(p_msg != NULL);
+    assert(p_msg != NULL);
     if (p_msg)
     {
         p_buf = avrc_pass_msg(p_msg);

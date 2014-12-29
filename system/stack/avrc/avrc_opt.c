@@ -21,14 +21,12 @@
  *  Interface to AVRCP optional commands
  *
  ******************************************************************************/
+#include <assert.h>
 #include <string.h>
 
 #include "gki.h"
 #include "avrc_api.h"
 #include "avrc_int.h"
-
-#include "wcassert.h"
-
 
 /******************************************************************************
 **
@@ -51,13 +49,13 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
     BT_HDR  *p_cmd;
     UINT8   *p_data;
 
-    WC_ASSERT(p_msg != NULL);
+    assert(p_msg != NULL);
 
 #if AVRC_METADATA_INCLUDED == TRUE
-    WC_ASSERT(AVRC_META_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
+    assert(AVRC_META_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
     if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_META_CMD_POOL_ID)) != NULL)
 #else
-    WC_ASSERT(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
+    assert(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
     if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
 #endif
     {

@@ -22,6 +22,7 @@
  *  Protocol (MCAP).
  *
  ******************************************************************************/
+#include <assert.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -31,7 +32,6 @@
 #include "mca_defs.h"
 #include "mca_int.h"
 
-#include "wcassert.h"
 #include "btu.h"
 
 
@@ -125,8 +125,8 @@ tMCA_HANDLE MCA_Register(tMCA_REG *p_reg, tMCA_CTRL_CBACK *p_cback)
     tL2CAP_APPL_INFO l2c_cacp_appl;
     tL2CAP_APPL_INFO l2c_dacp_appl;
 
-    WC_ASSERT(p_reg != NULL );
-    WC_ASSERT(p_cback != NULL );
+    assert(p_reg != NULL );
+    assert(p_cback != NULL );
 
     MCA_TRACE_API ("MCA_Register: ctrl_psm:0x%x, data_psm:0x%x", p_reg->ctrl_psm, p_reg->data_psm);
 
@@ -221,9 +221,9 @@ tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP *p_dep, tMCA_CS *p_cs)
     tMCA_RCB *p_rcb = mca_rcb_by_handle(handle);
     tMCA_CS  *p_depcs;
 
-    WC_ASSERT(p_dep != NULL );
-    WC_ASSERT(p_cs != NULL );
-    WC_ASSERT(p_cs->p_data_cback != NULL );
+    assert(p_dep != NULL );
+    assert(p_cs != NULL );
+    assert(p_cs->p_data_cback != NULL );
 
     MCA_TRACE_API ("MCA_CreateDep: %d", handle);
     if (p_rcb)
@@ -508,7 +508,7 @@ tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
     tMCA_DCB        *p_dcb;
 
     MCA_TRACE_API ("MCA_CreateMdlRsp: %d dep=%d mdl_id=%d cfg=%d rsp_code=%d", mcl, dep, mdl_id, cfg, rsp_code);
-    WC_ASSERT(p_chnl_cfg != NULL );
+    assert(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->cong)
@@ -605,7 +605,7 @@ tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
     tMCA_DCB        *p_dcb;
 
     MCA_TRACE_API ("MCA_ReconnectMdl: %d ", mcl);
-    WC_ASSERT(p_chnl_cfg != NULL );
+    assert(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->p_tx_req || p_ccb->p_rx_msg || p_ccb->cong)
@@ -674,7 +674,7 @@ tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep,
     tMCA_DCB        *p_dcb;
 
     MCA_TRACE_API ("MCA_ReconnectMdlRsp: %d ", mcl);
-    WC_ASSERT(p_chnl_cfg != NULL );
+    assert(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         if (p_ccb->cong)
@@ -739,7 +739,7 @@ tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG *p_chnl_cfg)
     tMCA_TC_TBL *p_tbl;
 
     MCA_TRACE_API ("MCA_DataChnlCfg: %d ", mcl);
-    WC_ASSERT(p_chnl_cfg != NULL );
+    assert(p_chnl_cfg != NULL );
     if (p_ccb)
     {
         result = MCA_NO_RESOURCES;

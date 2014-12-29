@@ -22,6 +22,7 @@
  *  Utility functions.
  *
  ******************************************************************************/
+#include <assert.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -29,7 +30,6 @@
 #include "mca_api.h"
 #include "mca_defs.h"
 #include "mca_int.h"
-#include "wcassert.h"
 #include "l2c_api.h"
 
 /* Main Control block for MCA */
@@ -134,7 +134,7 @@ tMCA_TC_TBL * mca_tc_tbl_calloc(tMCA_CCB *p_ccb)
     }
 
     /* sanity check */
-    WC_ASSERT(i != MCA_NUM_TC_TBL);
+    assert(i != MCA_NUM_TC_TBL);
 
     /* initialize entry */
     p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
@@ -175,7 +175,7 @@ tMCA_TC_TBL * mca_tc_tbl_dalloc(tMCA_DCB *p_dcb)
     }
 
     /* sanity check */
-    WC_ASSERT(i != MCA_NUM_TC_TBL);
+    assert(i != MCA_NUM_TC_TBL);
 
     /* initialize entry */
     p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;

@@ -22,7 +22,9 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <string.h>
+
 #include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
@@ -31,7 +33,6 @@
 #include "avdt_int.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "wcassert.h"
 
 
 /*******************************************************************************
@@ -245,7 +246,7 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_by_type(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_
         }
     }
 
-    WC_ASSERT(i != AVDT_NUM_TC_TBL);
+    assert(i != AVDT_NUM_TC_TBL);
 
     return p_tbl;
 }
@@ -276,7 +277,7 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
     }
 
     /* sanity check */
-    WC_ASSERT(i != AVDT_NUM_TC_TBL);
+    assert(i != AVDT_NUM_TC_TBL);
 
     /* initialize entry */
     p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
