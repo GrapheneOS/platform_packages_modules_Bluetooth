@@ -141,7 +141,6 @@ typedef struct
 typedef struct
 {
     UINT32         di_primary_handle;       /* Device ID Primary record or NULL if nonexistent */
-    BOOLEAN        brcm_di_registered;
     UINT16         num_records;
     tSDP_RECORD    record[SDP_MAX_RECORDS];
 } tSDP_DB;

@@ -35,7 +35,6 @@
 #include "btu.h"
 #include "sdp_api.h"
 #include "l2c_api.h"
-#include "wbt_api.h"
 #include "utl.h"
 #include "gap_api.h"    /* For GAP_BleReadPeerPrefConnParams */
 #include <string.h>
@@ -1471,7 +1470,6 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 
     tSDP_DISC_REC   *p_sdp_rec = NULL;
     tBTA_DM_MSG     *p_msg;
-    BOOLEAN          service_found = FALSE;
     BOOLEAN          scn_found = FALSE;
     UINT16           service = 0xFFFF;
     tSDP_PROTOCOL_ELEM  pe;
@@ -1493,7 +1491,6 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
         do
         {
 
-            service_found = FALSE;
             p_sdp_rec = NULL;
             if( bta_dm_search_cb.service_index == (BTA_USER_SERVICE_ID+1) )
             {
@@ -1556,23 +1553,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                     bta_dm_search_cb.services != BTA_ALL_SERVICE_MASK) ||
                     (p_sdp_rec  != NULL))
             {
-                /* If Plug and Play service record, check to see if Broadcom stack */
-                if (service == UUID_SERVCLASS_PNP_INFORMATION)
-                {
-                    if (p_sdp_rec)
-                    {
-                        if (SDP_FindAttributeInRec (p_sdp_rec, ATTR_ID_EXT_BRCM_VERSION))
-                        {
-                            service_found = TRUE;
-                        }
-                    }
-                }
-                else
-                {
-                    service_found = TRUE;
-                }
-
-                if (service_found)
+                if (service != UUID_SERVCLASS_PNP_INFORMATION)
                 {
                     UINT16 tmp_svc = 0xFFFF;
                     bta_dm_search_cb.services_found |=
@@ -2026,7 +2007,6 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
 {
 
     tSDP_UUID    uuid;
-    UINT16       attr_list[] = {ATTR_ID_SERVICE_CLASS_ID_LIST, ATTR_ID_EXT_BRCM_VERSION};
     UINT16       num_attrs = 1;
     tBTA_DM_MSG *p_msg;
 
