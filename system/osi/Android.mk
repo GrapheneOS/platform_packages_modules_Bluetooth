@@ -76,7 +76,7 @@ LOCAL_SRC_FILES := \
     ./test/thread_test.cpp
 
 LOCAL_CFLAGS := -Wall -Werror
-LOCAL_MODULE := ositests
+LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libosi

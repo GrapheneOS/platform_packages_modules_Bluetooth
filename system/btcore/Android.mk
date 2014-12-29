@@ -53,7 +53,7 @@ LOCAL_SRC_FILES := \
     ../osi/test/AllocationTestHarness.cpp
 
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
-LOCAL_MODULE := btcoretests
+LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbtcore libosi

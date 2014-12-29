@@ -64,8 +64,7 @@ static void *watchdog_fn(void *arg) {
   return NULL;
 }
 
-// Is shell still running? bdtest must run with shell stopped.
-static bool is_shell_running() {
+static bool is_shell_running(void) {
   char property_str[100];
   property_get("init.svc.zygote", property_str, NULL);
   if (!strcmp("running", property_str)) {
