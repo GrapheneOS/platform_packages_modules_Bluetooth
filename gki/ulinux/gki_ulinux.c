@@ -27,6 +27,7 @@
 #include "bt_target.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <sys/times.h>
 
 #include "gki_int.h"
