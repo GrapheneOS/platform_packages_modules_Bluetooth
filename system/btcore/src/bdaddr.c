@@ -37,6 +37,13 @@ bool bdaddr_equals(const bt_bdaddr_t *first, const bt_bdaddr_t *second) {
   return memcmp(first, second, sizeof(bt_bdaddr_t)) == 0;
 }
 
+bt_bdaddr_t *bdaddr_copy(bt_bdaddr_t *dest, const bt_bdaddr_t *src) {
+  assert(dest != NULL);
+  assert(src != NULL);
+
+  return (bt_bdaddr_t *)memcpy(dest, src, sizeof(bt_bdaddr_t));
+}
+
 const char *bdaddr_to_string(const bt_bdaddr_t *addr, char *string, size_t size) {
   assert(addr != NULL);
   assert(string != NULL);

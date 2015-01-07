@@ -38,6 +38,10 @@ bool bdaddr_is_empty(const bt_bdaddr_t *addr);
 // may be NULL.
 bool bdaddr_equals(const bt_bdaddr_t *first, const bt_bdaddr_t *second);
 
+// Returns destination bdaddr |dest| after copying |src| to |dest|.
+// |dest| and |src| must not be NULL.
+bt_bdaddr_t *bdaddr_copy(bt_bdaddr_t *dest, const bt_bdaddr_t *src);
+
 // Makes a string representation of |addr| and places it into |string|. |size|
 // refers to the size of |string|'s buffer and must be >= 18. On success, this
 // function returns |string|, otherwise it returns NULL. Neither |addr| nor |string|
