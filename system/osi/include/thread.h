@@ -19,7 +19,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <stdlib.h>
 
 #define THREAD_NAME_MAX 16
 
