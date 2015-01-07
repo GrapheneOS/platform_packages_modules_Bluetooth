@@ -19,18 +19,27 @@
 #pragma once
 
 #include <hardware/bluetooth.h>
+#include <stdint.h>
 #include <stdlib.h>
 
+#include "btcore/include/device_class.h"
+
 bt_property_t *property_copy_array(const bt_property_t *properties, size_t count);
-bt_property_t *property_new_discovery_timeout(uint32_t timeout);
+bt_property_t *property_copy(bt_property_t *dest, const bt_property_t *src);
+
+bt_property_t *property_new_addr(const bt_bdaddr_t *addr);
+bt_property_t *property_new_device_class(const bt_device_class_t *dc);
+bt_property_t *property_new_device_type(bt_device_type_t *device_type);
+bt_property_t *property_new_discovery_timeout(uint32_t *timeout);
 bt_property_t *property_new_name(const char *name);
+bt_property_t *property_new_rssi(int8_t *rssi);
 bt_property_t *property_new_scan_mode(bt_scan_mode_t scan_mode);
 
 const char *property_extract_name(const bt_property_t *property);
 
 const bt_bdaddr_t *property_extract_bdaddr(const bt_property_t *property);
 const bt_bdname_t *property_extract_bdname(const bt_property_t *property);
-uint32_t property_extract_device_class(const bt_property_t *property);
+const bt_device_class_t *property_extract_device_class(const bt_property_t *property);
 const bt_device_type_t *property_extract_device_type(const bt_property_t *property);
 int32_t property_extract_remote_rssi(const bt_property_t *property);
 const bt_uuid_t *property_extract_uuid(const bt_property_t *property);

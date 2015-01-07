@@ -53,6 +53,7 @@ LOCAL_SRC_FILES := \
     ./test/bdaddr_test.cpp \
     ./test/counter_test.cpp \
     ./test/device_class_test.cpp \
+    ./test/property_test.cpp \
     ./test/uuid_test.cpp \
     ../osi/test/AllocationTestHarness.cpp
 

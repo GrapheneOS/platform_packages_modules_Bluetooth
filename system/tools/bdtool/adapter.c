@@ -259,14 +259,15 @@ static void parse_properties(int num_properties, bt_property_t *property) {
 
       case BT_PROPERTY_CLASS_OF_DEVICE:
         {
-          const uint32_t device_class = property_extract_device_class(property);
-          fprintf(stdout, " device_class:%u\n", device_class);
+          const bt_device_class_t *dc = property_extract_device_class(property);
+          int dc_int = device_class_to_int(dc);
+          fprintf(stdout, " device_class:0x%x\n", dc_int);
         }
         break;
 
       case BT_PROPERTY_REMOTE_RSSI:
         {
-          const int32_t rssi = property_extract_remote_rssi(property);
+          const int8_t rssi = property_extract_remote_rssi(property);
           fprintf(stdout, " rssi:%d\n", rssi);
         }
         break;
