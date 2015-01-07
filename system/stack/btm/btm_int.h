@@ -769,8 +769,6 @@ typedef struct
     tBTM_BL_EVENT_MASK     bl_evt_mask;
     tBTM_BL_CHANGE_CB     *p_bl_changed_cb;    /* Callback for when Busy Level changed */
 
-    tBTM_LSTO_CBACK       *p_lsto_cback;  /* for link supervision timeout change event */
-
     /****************************************************
     **      Power Management
     ****************************************************/
@@ -1042,7 +1040,6 @@ extern tBTM_STATUS  btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOL
                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
 extern void  btm_sec_conn_req (UINT8 *bda, UINT8 *dc);
 extern void btm_create_conn_cancel_complete (UINT8 *p);
-extern void btm_proc_lsto_evt(UINT16 handle, UINT16 timeout);
 extern void btm_read_linq_tx_power_complete (UINT8 *p);
 
 extern void  btm_sec_init (UINT8 sec_mode);

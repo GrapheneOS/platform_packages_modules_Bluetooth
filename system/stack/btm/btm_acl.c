@@ -1478,33 +1478,6 @@ tBTM_STATUS BTM_SetLinkSuperTout (BD_ADDR remote_bda, UINT16 timeout)
 
 /*******************************************************************************
 **
-** Function         btm_proc_lsto_evt
-**
-** Description      process the HCI "Link Supervision Timeout Change" event
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_proc_lsto_evt(UINT16 handle, UINT16 timeout)
-{
-    UINT8 xx;
-
-    BTM_TRACE_DEBUG ("btm_proc_lsto_evt");
-    if (btm_cb.p_lsto_cback)
-    {
-        /* Look up the connection by handle and set the current mode */
-        xx = btm_handle_to_acl_index(handle);
-
-        /* don't assume that we can never get a bad hci_handle */
-        if (xx < MAX_L2CAP_LINKS)
-        {
-            (*btm_cb.p_lsto_cback)(btm_cb.acl_db[xx].remote_addr, timeout);
-        }
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         BTM_SetPacketTypes
 **
 ** Description      This function is set the packet types used for a specific

@@ -105,7 +105,6 @@ static void btu_hcif_user_conf_request_evt (UINT8 *p);
 static void btu_hcif_user_passkey_request_evt (UINT8 *p);
 static void btu_hcif_user_passkey_notif_evt (UINT8 *p);
 static void btu_hcif_keypress_notif_evt (UINT8 *p);
-static void btu_hcif_link_super_tout_evt (UINT8 *p);
 
     #if BTM_OOB_INCLUDED == TRUE
 static void btu_hcif_rem_oob_request_evt (UINT8 *p);
@@ -296,9 +295,6 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             break;
         case HCI_KEYPRESS_NOTIFY_EVT:
             btu_hcif_keypress_notif_evt (p);
-            break;
-        case HCI_LINK_SUPER_TOUT_CHANGED_EVT:
-            btu_hcif_link_super_tout_evt (p);
             break;
 #if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
         case HCI_ENHANCED_FLUSH_COMPLETE_EVT:
@@ -1586,24 +1582,6 @@ static void btu_hcif_user_passkey_notif_evt (UINT8 *p)
 static void btu_hcif_keypress_notif_evt (UINT8 *p)
 {
     btm_keypress_notif_evt(p);
-}
-
-/*******************************************************************************
-**
-** Function         btu_hcif_link_super_tout_evt
-**
-** Description      Process event HCI_LINK_SUPER_TOUT_CHANGED_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btu_hcif_link_super_tout_evt (UINT8 *p)
-{
-    UINT16 handle, timeout;
-    STREAM_TO_UINT16 (handle, p);
-    STREAM_TO_UINT16 (timeout, p);
-
-    btm_proc_lsto_evt(handle, timeout);
 }
 
 /*******************************************************************************
