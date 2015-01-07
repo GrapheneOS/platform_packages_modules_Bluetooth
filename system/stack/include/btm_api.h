@@ -2681,32 +2681,6 @@ extern tBTM_STATUS BTM_GetLinkSuperTout (BD_ADDR remote_bda,
 
 /*******************************************************************************
 **
-** Function         BTM_SetPacketTypes
-**
-** Description      This function is set the packet types used for a specific
-**                  ACL connection,
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_SetPacketTypes (BD_ADDR remote_bda, UINT16 pkt_types);
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadPacketTypes
-**
-** Description      This function is set the packet types used for the specified
-**                  ACL connection,
-**
-** Returns          packet types supported for the connection, or 0 if no BD address
-**
-*******************************************************************************/
-extern UINT16 BTM_ReadPacketTypes (BD_ADDR remote_bda);
-
-
-/*******************************************************************************
-**
 ** Function         BTM_IsAclConnectionUp
 **
 ** Description      This function is called to check if an ACL connection exists
@@ -2840,20 +2814,6 @@ extern tBTM_STATUS BTM_AclRegisterForChanges (tBTM_ACL_DB_CHANGE_CB *p_cb);
 **
 *******************************************************************************/
 extern UINT16 BTM_GetNumAclLinks (void);
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadClockOffset
-**
-** Description      This returns the clock offset for a specific
-**                  ACL connection.
-**
-** Returns          clock-offset or 0 if unknown
-**
-*******************************************************************************/
-extern UINT16 BTM_ReadClockOffset (BD_ADDR remote_bda);
-
 
 /*******************************************************************************
 **
