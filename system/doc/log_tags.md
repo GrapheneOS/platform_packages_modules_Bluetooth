@@ -44,6 +44,7 @@ This document lists all of the log tags used by bluedroid.
 * bt_osi_data_dispatcher
 * bt_osi_reactor
 * bt_osi_socket
+* bt_profile_manager
 * bt_sdp_client
 * btsnoop
 * btsnoop_net
