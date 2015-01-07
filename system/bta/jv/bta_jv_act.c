@@ -44,11 +44,11 @@
 #include "gap_api.h"
 
 
-extern void uuid_to_string(bt_uuid_t *p_uuid, char *str);
+extern void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
 static inline void logu(const char* title, const uint8_t * p_uuid)
 {
     char uuids[128];
-    uuid_to_string((bt_uuid_t*)p_uuid, uuids);
+    uuid_to_string_legacy((bt_uuid_t*)p_uuid, uuids);
     APPL_TRACE_DEBUG("%s: %s", title, uuids);
 }
 

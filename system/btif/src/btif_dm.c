@@ -1406,7 +1406,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                  for (i=0; i < p_data->disc_res.num_uuids; i++)
                  {
                       char temp[256];
-                      uuid_to_string((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
+                      uuid_to_string_legacy((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
                       BTIF_TRACE_ERROR("Index: %d uuid:%s", i, temp);
                  }
             }
@@ -1466,7 +1466,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                     j--;
                 }
 
-                uuid_to_string(&uuid, temp);
+                uuid_to_string_legacy(&uuid, temp);
                 BTIF_TRACE_ERROR(" uuid:%s", temp);
 
                 bdcpy(bd_addr.address, p_data->disc_ble_res.bd_addr);

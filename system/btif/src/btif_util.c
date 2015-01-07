@@ -137,7 +137,7 @@ void string_to_uuid(char *str, bt_uuid_t *p_uuid)
 
 }
 
-void uuid_to_string(bt_uuid_t *p_uuid, char *str)
+void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
 {
     uint32_t uuid0, uuid4;
     uint16_t uuid1, uuid2, uuid3, uuid5;
