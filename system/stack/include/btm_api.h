@@ -720,17 +720,6 @@ typedef void (tBTM_INQ_RESULTS_CB) (tBTM_INQ_RESULTS *p_inq_results, UINT8 *p_ei
 **  ACL Types
 ****************/
 
-/* Structure returned with link policy information (in tBTM_CMPL_CB callback function)
-** in response to BTM_ReadLinkPolicy call.
-*/
-typedef struct
-{
-    tBTM_STATUS status;
-    UINT8       hci_status;
-    BD_ADDR     rem_bda;
-    UINT16      settings;
-} tBTM_LNK_POLICY_RESULTS;
-
 /* Structure returned with Role Switch information (in tBTM_CMPL_CB callback function)
 ** in response to BTM_SwitchRole call.
 */
@@ -2640,22 +2629,6 @@ extern void BTM_SetDiscoveryParams (UINT16 num_uuid, tSDP_UUID *p_uuid_list,
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetLinkPolicy (BD_ADDR remote_bda,
                                       UINT16 *settings);
-
-
-/*******************************************************************************
-**
-** Function         BTM_ReadLinkPolicy
-**
-** Description      This function is called to read the link policy settings.
-**                  The address of link policy results are returned in the callback.
-**                  (tBTM_LNK_POLICY_RESULTS)
-**
-** Returns          BTM_CMD_STARTED if successfully initiated, otherwise error
-**
-*******************************************************************************/
-extern tBTM_STATUS BTM_ReadLinkPolicy (BD_ADDR remote_bda,
-                                       tBTM_CMPL_CB *p_cb);
-
 
 /*******************************************************************************
 **

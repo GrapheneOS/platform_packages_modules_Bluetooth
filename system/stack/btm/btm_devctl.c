@@ -87,7 +87,6 @@ void btm_dev_init (void)
 
     btm_cb.devcb.reset_timer.param  = (TIMER_PARAM_TYPE)TT_DEV_RESET;
     btm_cb.devcb.rln_timer.param    = (TIMER_PARAM_TYPE)TT_DEV_RLN;
-    btm_cb.devcb.rlinkp_timer.param = (TIMER_PARAM_TYPE)TT_DEV_RLNKP;
 
     btm_cb.btm_acl_pkt_types_supported = BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
                                          BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
@@ -127,15 +126,6 @@ static void btm_db_reset (void)
 
         if (p_cb)
             (*p_cb)((void *) NULL);
-    }
-
-    if (btm_cb.devcb.p_rlinkp_cmpl_cb)
-    {
-        p_cb = btm_cb.devcb.p_rlinkp_cmpl_cb;
-        btm_cb.devcb.p_rlinkp_cmpl_cb = NULL;
-
-        if (p_cb)
-            (*p_cb)((void *) &status);
     }
 
     if (btm_cb.devcb.p_rssi_cmpl_cb)

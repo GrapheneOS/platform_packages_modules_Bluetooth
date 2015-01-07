@@ -370,10 +370,6 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
             btm_dev_timeout(p_tle);
             break;
 
-        case BTU_TTYPE_BTM_ACL:
-            btm_acl_timeout(p_tle);
-            break;
-
         case BTU_TTYPE_L2CAP_LINK:
         case BTU_TTYPE_L2CAP_CHNL:
         case BTU_TTYPE_L2CAP_HOLD:

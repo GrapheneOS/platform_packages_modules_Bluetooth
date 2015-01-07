@@ -866,28 +866,6 @@ BOOLEAN btsnd_hcic_switch_role (BD_ADDR bd_addr, UINT8 role)
     return (TRUE);
 }
 
-BOOLEAN btsnd_hcic_read_policy_set (UINT16 handle)
-{
-    BT_HDR *p;
-    UINT8 *pp;
-
-    if ((p = HCI_GET_CMD_BUF(HCIC_PARAM_SIZE_CMD_HANDLE)) == NULL)
-        return (FALSE);
-
-    pp = (UINT8 *)(p + 1);
-
-    p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_CMD_HANDLE;
-    p->offset = 0;
-
-    UINT16_TO_STREAM (pp, HCI_READ_POLICY_SETTINGS);
-    UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_CMD_HANDLE);
-
-    UINT16_TO_STREAM (pp, handle);
-
-    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
-    return (TRUE);
-}
-
 BOOLEAN btsnd_hcic_write_policy_set (UINT16 handle, UINT16 settings)
 {
     BT_HDR *p;

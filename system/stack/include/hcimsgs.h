@@ -334,8 +334,6 @@ extern BOOLEAN btsnd_hcic_switch_role (BD_ADDR bd_addr, UINT8 role);
 #define HCI_SWITCH_ROLE_OFF             6
                                                                     /* Switch Role Request */
 
-extern BOOLEAN btsnd_hcic_read_policy_set(UINT16 handle);       /* Read Policy Settings */
-
                                                                     /* Write Policy Settings */
 extern BOOLEAN btsnd_hcic_write_policy_set(UINT16 handle, UINT16 settings);
 

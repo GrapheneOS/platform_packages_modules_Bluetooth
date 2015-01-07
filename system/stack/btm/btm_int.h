@@ -143,9 +143,6 @@ typedef struct
     TIMER_LIST_ENT       rln_timer;
     tBTM_CMPL_CB        *p_rln_cmpl_cb;     /* Callback function to be called when  */
                                             /* read local name function complete    */
-    TIMER_LIST_ENT       rlinkp_timer;
-    tBTM_CMPL_CB        *p_rlinkp_cmpl_cb;  /* Callback function to be called when  */
-                                            /* read link policy function completes  */
     TIMER_LIST_ENT       rssi_timer;
     tBTM_CMPL_CB        *p_rssi_cmpl_cb;    /* Callback function to be called when  */
                                             /* read rssi function completes         */
@@ -924,7 +921,6 @@ extern BOOLEAN btm_lookup_eir(BD_ADDR_PTR p_rem_addr);
 ********************************************
 */
 extern void         btm_acl_init (void);
-extern void         btm_acl_timeout (TIMER_LIST_ENT  *p_tle);
 extern void         btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
                                      UINT16 hci_handle, UINT8 link_role, tBT_TRANSPORT transport);
 extern void         btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport);
