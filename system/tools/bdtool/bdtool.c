@@ -160,9 +160,9 @@ int main(int argc, char **argv) {
       exit(1);
     }
     bt_property_t *property = adapter_get_property(BT_PROPERTY_BDNAME);
-    const bt_bdname_t *bdname = property_extract_bdname(property);
-    if (bdname)
-      printf("Queried bluetooth device name:%s\n", bdname->name);
+    const bt_bdname_t *name = property_as_name(property);
+    if (name)
+      printf("Queried bluetooth device name:%s\n", name->name);
     else
       printf("No name\n");
   }

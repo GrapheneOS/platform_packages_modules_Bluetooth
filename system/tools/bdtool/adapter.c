@@ -209,37 +209,40 @@ static void parse_properties(int num_properties, bt_property_t *property) {
     switch(property->type) {
       case BT_PROPERTY_BDNAME:
         {
-          const bt_bdname_t *bdname = property_extract_bdname(property);
-          if (bdname)
-            fprintf(stdout, " name:%s\n", bdname->name);
+          const bt_bdname_t *name = property_as_name(property);
+          if (name)
+            fprintf(stdout, " name:%s\n", name->name);
         }
         break;
 
       case BT_PROPERTY_BDADDR:
         {
           char buf[18];
-          const bt_bdaddr_t *bdaddr = property_extract_bdaddr(property);
-          if (bdaddr)
-            fprintf(stdout, " addr:%s\n", bdaddr_to_string(bdaddr, buf, sizeof(buf)));
+          const bt_bdaddr_t *addr = property_as_addr(property);
+          if (addr)
+            fprintf(stdout, " addr:%s\n", bdaddr_to_string(addr, buf, sizeof(buf)));
         }
         break;
 
       case BT_PROPERTY_UUIDS:
         {
-          const bt_uuid_t *uuid = property_extract_uuid(property);
+          size_t num_uuid;
+          const bt_uuid_t *uuid = property_as_uuids(property, &num_uuid);
           if (uuid) {
-            fprintf(stdout, " uuid:");
-            for (size_t i = 0; i < sizeof(uuid); i++) {
-              fprintf(stdout, "%02x", uuid->uu[i]);
+            for (size_t i = 0; i < num_uuid; i++) {
+              fprintf(stdout, " uuid:%d: ", i);
+              for (size_t j = 0; j < sizeof(uuid); j++) {
+                fprintf(stdout, "%02x", uuid->uu[j]);
+              }
+              fprintf(stdout, "\n");
             }
-            fprintf(stdout, "\n");
           }
         }
         break;
 
       case BT_PROPERTY_TYPE_OF_DEVICE:
         {
-          const bt_device_type_t *device_type = property_extract_device_type(property);
+          bt_device_type_t device_type = property_as_device_type(property);
           if (device_type) {
             const struct {
               const char * device_type;
@@ -249,7 +252,7 @@ static void parse_properties(int num_properties, bt_property_t *property) {
               { "BLE Only" },
               { "Both Classic and BLE" },
             };
-            bt_device_type_t idx = *device_type;
+            int idx = (int)device_type;
             if (idx > BT_DEVICE_DEVTYPE_DUAL)
               idx = 0;
             fprintf(stdout, " device_type:%s\n", device_type_lookup[idx].device_type);
@@ -259,7 +262,7 @@ static void parse_properties(int num_properties, bt_property_t *property) {
 
       case BT_PROPERTY_CLASS_OF_DEVICE:
         {
-          const bt_device_class_t *dc = property_extract_device_class(property);
+          const bt_device_class_t *dc = property_as_device_class(property);
           int dc_int = device_class_to_int(dc);
           fprintf(stdout, " device_class:0x%x\n", dc_int);
         }
@@ -267,16 +270,16 @@ static void parse_properties(int num_properties, bt_property_t *property) {
 
       case BT_PROPERTY_REMOTE_RSSI:
         {
-          const int8_t rssi = property_extract_remote_rssi(property);
+          int8_t rssi = property_as_rssi(property);
           fprintf(stdout, " rssi:%d\n", rssi);
         }
         break;
 
       case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
         {
-          const bt_bdname_t *bdname = property_extract_bdname(property);
-          if (bdname)
-            fprintf(stdout, " remote_name:%s\n", bdname->name);
+          const bt_bdname_t *name = property_as_name(property);
+          if (name)
+            fprintf(stdout, " remote_name:%s\n", name->name);
         }
         break;
 
