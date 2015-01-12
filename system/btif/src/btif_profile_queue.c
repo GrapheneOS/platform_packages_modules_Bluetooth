@@ -64,11 +64,6 @@ static const size_t MAX_REASONABLE_REQUESTS = 10;
 *******************************************************************************/
 
 static void queue_int_add(connect_node_t *p_param) {
-    connect_node_t *p_node = osi_malloc(sizeof(connect_node_t));
-    assert(p_node != NULL);
-
-    memcpy(p_node, p_param, sizeof(connect_node_t));
-
     if (!connect_queue) {
         connect_queue = list_new(osi_free);
         assert(connect_queue != NULL);
@@ -77,6 +72,16 @@ static void queue_int_add(connect_node_t *p_param) {
     // Sanity check to make sure we're not leaking connection requests
     assert(list_length(connect_queue) < MAX_REASONABLE_REQUESTS);
 
+    for (const list_node_t *node = list_begin(connect_queue); node != list_end(connect_queue); node = list_next(node)) {
+        if (((connect_node_t *)list_node(node))->uuid == p_param->uuid) {
+            LOG_INFO("%s dropping duplicate connect request for uuid: %04x", __func__, p_param->uuid);
+            return;
+        }
+    }
+
+    connect_node_t *p_node = osi_malloc(sizeof(connect_node_t));
+    assert(p_node != NULL);
+    memcpy(p_node, p_param, sizeof(connect_node_t));
     list_append(connect_queue, p_node);
 }
 
