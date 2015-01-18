@@ -419,6 +419,13 @@ extern BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
 extern UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr,
                                            tL2CAP_ERTM_INFO *p_ertm_info);
 
+// This function sets the callback routines for the L2CAP connection referred to by
+// |local_cid|. The callback routines can only be modified for outgoing connections
+// established by |L2CA_ConnectReq| or accepted incoming connections. |callbacks|
+// must not be NULL. This function returns true if the callbacks could be updated,
+// false if not (e.g. |local_cid| was not found).
+bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks);
+
 /*******************************************************************************
 **
 ** Function         L2CA_ErtmConnectRsp

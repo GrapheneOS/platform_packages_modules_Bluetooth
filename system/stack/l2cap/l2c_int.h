@@ -24,6 +24,8 @@
 #ifndef L2C_INT_H
 #define L2C_INT_H
 
+#include <stdbool.h>
+
 #include "btm_api.h"
 #include "gki.h"
 #include "l2c_api.h"
@@ -261,6 +263,7 @@ typedef struct t_l2c_ccb
     TIMER_LIST_ENT      timer_entry;            /* CCB Timer List Entry             */
 
     tL2C_RCB            *p_rcb;                 /* Registration CB for this Channel */
+    bool                should_free_rcb;        /* True if RCB was allocated on the heap */
 
 #define IB_CFG_DONE     0x01
 #define OB_CFG_DONE     0x02

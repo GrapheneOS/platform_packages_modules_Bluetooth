@@ -22,6 +22,9 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_l2cap"
+
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -35,6 +38,8 @@
 #include "l2c_int.h"
 #include "btu.h"
 #include "btm_api.h"
+#include "osi/include/allocator.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
 **
@@ -328,6 +333,44 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     return (p_ccb->local_cid);
 }
 
+bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks) {
+  assert(callbacks != NULL);
+  assert(callbacks->pL2CA_ConnectInd_Cb == NULL);
+  assert(callbacks->pL2CA_ConnectCfm_Cb != NULL);
+  assert(callbacks->pL2CA_ConfigInd_Cb != NULL);
+  assert(callbacks->pL2CA_ConfigCfm_Cb != NULL);
+  assert(callbacks->pL2CA_DisconnectInd_Cb != NULL);
+  assert(callbacks->pL2CA_DisconnectCfm_Cb != NULL);
+  assert(callbacks->pL2CA_CongestionStatus_Cb != NULL);
+  assert(callbacks->pL2CA_DataInd_Cb != NULL);
+  assert(callbacks->pL2CA_TxComplete_Cb != NULL);
+
+  tL2C_CCB *channel_control_block = l2cu_find_ccb_by_cid(NULL, local_cid);
+  if (!channel_control_block) {
+    LOG_ERROR("%s no channel control block found for L2CAP LCID=0x%04x.", __func__, local_cid);
+    return false;
+  }
+
+  // We're making a connection-specific registration control block so we check if
+  // we already have a private one allocated to us on the heap. If not, we make a
+  // new allocation, mark it as heap-allocated, and inherit the fields from the old
+  // control block.
+  tL2C_RCB *registration_control_block = channel_control_block->p_rcb;
+  if (!channel_control_block->should_free_rcb) {
+    registration_control_block = (tL2C_RCB *)osi_calloc(sizeof(tL2C_RCB));
+    if (!registration_control_block) {
+      LOG_ERROR("%s unable to allocate registration control block.", __func__);
+      return false;
+    }
+
+    *registration_control_block = *channel_control_block->p_rcb;
+    channel_control_block->p_rcb = registration_control_block;
+    channel_control_block->should_free_rcb = true;
+  }
+
+  registration_control_block->api = *callbacks;
+  return true;
+}
 
 /*******************************************************************************
 **
