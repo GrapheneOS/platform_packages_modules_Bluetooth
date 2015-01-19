@@ -150,6 +150,7 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2c_csm.c \
     ./l2cap/l2c_link.c \
     ./l2cap/l2c_ble.c \
+    ./l2cap/l2cap_client.c \
     ./gap/gap_api.c \
     ./gap/gap_ble.c \
     ../vnd/ble/vendor_ble.c
