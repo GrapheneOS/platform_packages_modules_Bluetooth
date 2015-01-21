@@ -726,7 +726,6 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
 
         bnepu_release_bcb (p_bcb);
     }
-#if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
     else if (p_bcb->con_flags & BNEP_FLAGS_FILTER_RESP_PEND)
     {
         if (p_bcb->re_transmits++ != BNEP_MAX_RETRANSMITS)
@@ -746,8 +745,6 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
             return;
         }
     }
-#endif
-#if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
     else if (p_bcb->con_flags & BNEP_FLAGS_MULTI_RESP_PEND)
     {
         if (p_bcb->re_transmits++ != BNEP_MAX_RETRANSMITS)
@@ -767,7 +764,6 @@ void bnep_process_timeout (TIMER_LIST_ENT  *p_tle)
             return;
         }
     }
-#endif
 }
 
 

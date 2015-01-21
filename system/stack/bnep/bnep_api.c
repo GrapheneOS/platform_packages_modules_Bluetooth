@@ -150,11 +150,6 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
     if (src_uuid->len != dst_uuid->len)
         return BNEP_CONN_FAILED_UUID_SIZE;
 
-#if (!defined (BNEP_SUPPORTS_ALL_UUID_LENGTHS) || BNEP_SUPPORTS_ALL_UUID_LENGTHS == FALSE)
-    if (src_uuid->len != 2)
-        return BNEP_CONN_FAILED_UUID_SIZE;
-#endif
-
     if (!p_bcb)
     {
         if ((p_bcb = bnepu_allocate_bcb (p_rem_bda)) == NULL)
@@ -585,7 +580,6 @@ tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
                                       UINT16 *p_start_array,
                                       UINT16 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
     UINT16          xx;
     tBNEP_CONN     *p_bcb;
 
@@ -618,9 +612,6 @@ tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
     bnepu_send_peer_our_filters (p_bcb);
 
     return (BNEP_SUCCESS);
-#else
-    return (BNEP_SET_FILTER_FAIL);
-#endif
 }
 
 
@@ -648,7 +639,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
                                        UINT8 *p_start_array,
                                        UINT8 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
     UINT16          xx;
     tBNEP_CONN     *p_bcb;
 
@@ -684,9 +674,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
     bnepu_send_peer_our_multi_filters (p_bcb);
 
     return (BNEP_SUCCESS);
-#else
-    return (BNEP_SET_FILTER_FAIL);
-#endif
 }
 
 /*******************************************************************************

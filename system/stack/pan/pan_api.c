@@ -673,7 +673,6 @@ tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
                                     UINT16 *p_start_array,
                                     UINT16 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
     tPAN_CONN       *pcb;
     tPAN_RESULT     result;
 
@@ -694,9 +693,6 @@ tPAN_RESULT PAN_SetProtocolFilters (UINT16 handle,
 
     PAN_TRACE_API ("PAN successfully sent protocol filters for handle %d", handle);
     return PAN_SUCCESS;
-#else
-    return PAN_FAILURE;
-#endif
 }
 
 
@@ -722,7 +718,6 @@ tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
                                       UINT8 *p_start_array,
                                       UINT8 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
     tPAN_CONN       *pcb;
     tPAN_RESULT     result;
 
@@ -744,9 +739,6 @@ tBNEP_RESULT PAN_SetMulticastFilters (UINT16 handle,
 
     PAN_TRACE_API ("PAN successfully sent multicast filters for handle %d", handle);
     return PAN_SUCCESS;
-#else
-    return PAN_FAILURE;
-#endif
 }
 
 

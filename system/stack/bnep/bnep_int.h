@@ -239,7 +239,6 @@ extern void        bnep_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT trasn
 extern tBNEP_RESULT bnep_is_packet_allowed (tBNEP_CONN *p_bcb, BD_ADDR p_dest_addr, UINT16 protocol,
                                                     BOOLEAN fw_ext_present, UINT8 *p_data);
 extern UINT32      bnep_get_uuid32 (tBT_UUID *src_uuid);
-extern void        bnep_dump_status (void);
 
 
 

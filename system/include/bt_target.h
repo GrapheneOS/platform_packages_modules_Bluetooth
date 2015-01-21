@@ -1091,28 +1091,9 @@
 #define BNEP_INCLUDED               TRUE
 #endif
 
-/* Protocol filtering is an optional feature. Bydefault it will be turned on */
-#ifndef BNEP_SUPPORTS_PROT_FILTERS
-#define BNEP_SUPPORTS_PROT_FILTERS          TRUE
-#endif
-
-/* Multicast filtering is an optional feature. Bydefault it will be turned on */
-#ifndef BNEP_SUPPORTS_MULTI_FILTERS
-#define BNEP_SUPPORTS_MULTI_FILTERS         TRUE
-#endif
-
 /* BNEP status API call is used mainly to get the L2CAP handle */
 #ifndef BNEP_SUPPORTS_STATUS_API
 #define BNEP_SUPPORTS_STATUS_API            TRUE
-#endif
-
-/* This is just a debug function */
-#ifndef BNEP_SUPPORTS_DEBUG_DUMP
-#define BNEP_SUPPORTS_DEBUG_DUMP            TRUE
-#endif
-
-#ifndef BNEP_SUPPORTS_ALL_UUID_LENGTHS
-#define BNEP_SUPPORTS_ALL_UUID_LENGTHS      TRUE    /* Otherwise it will support only 16bit UUIDs */
 #endif
 
 /*
