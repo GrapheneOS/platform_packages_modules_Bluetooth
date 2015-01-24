@@ -27,6 +27,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_pan.h>
 #include <assert.h>
+#include <string.h>
 #include <signal.h>
 #include <ctype.h>
 #include <sys/select.h>
