@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #define LOG_TAG "BTIF_SOCK_SDP"

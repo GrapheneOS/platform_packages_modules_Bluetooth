@@ -29,6 +29,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_mce.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define LOG_TAG "BTIF_MCE"
 #include "btif_common.h"
