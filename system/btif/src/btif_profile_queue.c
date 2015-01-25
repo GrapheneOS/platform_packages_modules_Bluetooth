@@ -25,6 +25,7 @@
  ******************************************************************************/
 
 #include <hardware/bluetooth.h>
+#include <string.h>
 
 #define LOG_TAG "BTIF_QUEUE"
 #include "btif_common.h"

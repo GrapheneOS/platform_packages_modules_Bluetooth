@@ -27,6 +27,7 @@
 
 #include <hardware/bluetooth.h>
 #include <system/audio.h>
+#include <string.h>
 #include "hardware/bt_av.h"
 
 #define LOG_TAG "BTIF_AV"

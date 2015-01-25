@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
