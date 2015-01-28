@@ -801,9 +801,8 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
     old_state       = p_cb->state;
     p_cb->state     = mode;
     p_cb->interval  = interval;
-#if BTM_PM_DEBUG == TRUE
-    BTM_TRACE_DEBUG( "btm_pm_proc_mode_change new state:0x%x (old:0x%x)", p_cb->state, old_state);
-#endif  // BTM_PM_DEBUG
+
+    LOG_DEBUG("%s switched from %s to %s.", __func__, mode_to_string(old_state), mode_to_string(p_cb->state));
 
     if ((p_lcb = l2cu_find_lcb_by_bd_addr(p->remote_addr, BT_TRANSPORT_BR_EDR)) != NULL)
     {
