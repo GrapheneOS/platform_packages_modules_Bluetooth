@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <hardware/bluetooth.h>
 #include <inttypes.h>
+#include <malloc.h>
+#include <string.h>
 #include <time.h>
 #include <utils/Log.h>
 

@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <malloc.h>
 #include <string.h>
 #include <sys/eventfd.h>
 #include <utils/Log.h>
