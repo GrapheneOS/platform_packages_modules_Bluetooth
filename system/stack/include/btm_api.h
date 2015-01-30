@@ -60,8 +60,9 @@ enum
     BTM_DELAY_CHECK,                    /* 15 delay the check on encryption */
     BTM_SCO_BAD_LENGTH,                 /* 16 Bad SCO over HCI data length */
     BTM_SUCCESS_NO_SECURITY,            /* 17 security passed, no security set  */
-    BTM_FAILED_ON_SECURITY ,             /* 18 security failed                   */
-    BTM_REPEATED_ATTEMPTS               /* 19 repeated attempts for LE security requests */
+    BTM_FAILED_ON_SECURITY,             /* 18 security failed                   */
+    BTM_REPEATED_ATTEMPTS,              /* 19 repeated attempts for LE security requests */
+    BTM_MODE4_LEVEL4_NOT_SUPPORTED      /* 20 Secure Connections Only Mode can't be supported */
 };
 typedef UINT8 tBTM_STATUS;
 
@@ -1085,6 +1086,9 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_MODE_SP_DEBUG       5
 #define BTM_SEC_MODE_SC             6
 
+/* Maximum Number of BTM Security Modes */
+#define BTM_SEC_MODES_MAX           7
+
 /* Security Service Levels [bit mask] (BTM_SetSecurityLevel)
 ** Encryption should not be used without authentication
 */
@@ -1095,8 +1099,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_OUT_AUTHORIZE      0x0008 /* Outbound call requires authorization */
 #define BTM_SEC_OUT_AUTHENTICATE   0x0010 /* Outbound call requires authentication */
 #define BTM_SEC_OUT_ENCRYPT        0x0020 /* Outbound call requires encryption */
-#define BTM_SEC_BOND               0x0040 /* Bonding */
-#define BTM_SEC_BOND_CONN          0x0080 /* bond_created_connection */
+#define BTM_SEC_MODE4_LEVEL4       0x0040 /* Secure Connections Only Mode */
 #define BTM_SEC_FORCE_MASTER       0x0100 /* Need to switch connection to be master */
 #define BTM_SEC_ATTEMPT_MASTER     0x0200 /* Try to switch connection to be master */
 #define BTM_SEC_FORCE_SLAVE        0x0400 /* Need to switch connection to be master */
@@ -3212,6 +3215,23 @@ extern void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_pai
 
 /*******************************************************************************
 **
+** Function         BTM_SetSecureConnectionsOnly
+**
+** Description      Enable or disable default treatment for Mode 4 Level 0 services
+**
+** Parameter        secure_connections_only_mode - (TRUE or FALSE)
+**                  TRUE means that the device should treat Mode 4 Level 0 services as
+**                  services of other levels.
+**                  FALSE means that the device should provide default treatment for
+**                  Mode 4 Level 0 services.
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode);
+
+/*******************************************************************************
+**
 ** Function         BTM_SetSecurityLevel
 **
 ** Description      Register service security level with Security Manager.  Each
@@ -3524,15 +3544,34 @@ extern UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
 
 /*******************************************************************************
 **
-** Function         BTM_IsLeScSuppLocally
+** Function         BTM_BothEndsSupportSecureConnections
 **
-** Description      This function is called to check if LE SC is supported.
+** Description      This function is called to check if both the local device and the peer device
+**                   specified by bd_addr support BR/EDR Secure Connections.
 **
-** Parameters:      None.
+** Parameters:      bd_addr - address of the peer
 **
-**  Returns         Boolean - TRUE if LE SC is supported.
+** Returns          TRUE if BR/EDR Secure Connections are supported by both local
+**                  and the remote device.
+**                  else FALSE.
+**
 *******************************************************************************/
-extern BOOLEAN BTM_IsLeScSuppLocally (void);
+extern BOOLEAN BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr);
+
+/*******************************************************************************
+**
+** Function         BTM_PeerSupportsSecureConnections
+**
+** Description      This function is called to check if the peer supports
+**                  BR/EDR Secure Connections.
+**
+** Parameters:      bd_addr - address of the peer
+**
+** Returns          TRUE if BR/EDR Secure Connections are supported by the peer,
+**                  else FALSE.
+**
+*******************************************************************************/
+extern BOOLEAN BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **

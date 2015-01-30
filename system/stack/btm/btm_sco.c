@@ -434,6 +434,29 @@ static tBTM_STATUS btm_send_connect_request(UINT16 acl_handle,
                 temp_pkt_types |= (HCI_ESCO_PKT_TYPES_MASK_NO_3_EV3 |
                                    HCI_ESCO_PKT_TYPES_MASK_NO_3_EV5);
             }
+
+             /* Check to see if BR/EDR Secure Connections is being used
+             ** If so, we cannot use SCO-only packet types (HFP 1.7)
+             */
+            if (BTM_BothEndsSupportSecureConnections(p_acl->remote_addr))
+            {
+                temp_pkt_types &= ~(BTM_SCO_PKT_TYPE_MASK);
+                BTM_TRACE_DEBUG("%s: SCO Conn: pkt_types after removing SCO (0x%04x)", __FUNCTION__,
+                                 temp_pkt_types);
+
+                /* Return error if no packet types left */
+                if (temp_pkt_types == 0)
+                {
+                    BTM_TRACE_ERROR("%s: SCO Conn (BR/EDR SC): No packet types available",
+                                    __FUNCTION__);
+                    return (BTM_WRONG_MODE);
+                }
+            }
+            else
+            {
+                BTM_TRACE_DEBUG("%s: SCO Conn(BR/EDR SC):local or peer does not support BR/EDR SC",
+                                __FUNCTION__);
+            }
         }
 
 

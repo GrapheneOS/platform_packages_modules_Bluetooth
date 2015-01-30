@@ -1401,7 +1401,7 @@ BOOLEAN btsnd_hcic_io_cap_req_reply (BD_ADDR bd_addr, UINT8 capability,
     p->len    = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_IO_CAP_RESP;
     p->offset = 0;
 
-    UINT16_TO_STREAM (pp, HCI_IO_CAPABILITY_RESPONSE);
+    UINT16_TO_STREAM (pp, HCI_IO_CAPABILITY_REQUEST_REPLY);
     UINT8_TO_STREAM  (pp, HCIC_PARAM_SIZE_IO_CAP_RESP);
 
     BDADDR_TO_STREAM (pp, bd_addr);

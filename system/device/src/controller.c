@@ -178,6 +178,12 @@ static future_t *start_up(void) {
     page_number++;
   }
 
+  secure_connections_supported = HCI_SC_CTRLR_SUPPORTED(features_classic[2].as_array);
+  if (secure_connections_supported) {
+    response = AWAIT_COMMAND(packet_factory->make_write_secure_connections_host_support(HCI_SC_MODE_ENABLED));
+    packet_parser->parse_generic_command_complete(response);
+  }
+
 #if (BLE_INCLUDED == TRUE)
   ble_supported = last_features_classic_page_index >= 1 && HCI_LE_HOST_SUPPORTED(features_classic[1].as_array);
   if (ble_supported) {

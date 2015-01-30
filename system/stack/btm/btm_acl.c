@@ -16,12 +16,20 @@
  *
  ******************************************************************************/
 
-/******************************************************************************
- *
- *  This file contains functions that handle ACL connections. This includes
- *  operations such as hold and sniff modes, supported packet types.
- *
- ******************************************************************************/
+/*****************************************************************************
+**
+**  Name:          btm_acl.c
+**
+**  Description:   This file contains functions that handle ACL connections.
+**                 This includes operations such as hold and sniff modes,
+**                 supported packet types.
+**
+**                 This module contains both internal and external (API)
+**                 functions. External (API) functions are distinguishable
+**                 by their names beginning with uppercase BTM.
+**
+**
+******************************************************************************/
 
 #include <stdlib.h>
 #include <string.h>
@@ -42,8 +50,6 @@
 
 static void btm_read_remote_features (UINT16 handle);
 static void btm_read_remote_ext_features (UINT16 handle, UINT8 page_number);
-static void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec,
-                                                  UINT8 page_idx);
 static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages);
 
 #define BTM_DEV_REPLY_TIMEOUT   3       /* 3 second timeout waiting for responses */
@@ -274,23 +280,23 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             {
                 /* If remote features already known, copy them and continue connection setup */
                 if ((p_dev_rec->num_read_pages) &&
-                    (p_dev_rec->num_read_pages <= (HCI_EXT_FEATURES_PAGE_MAX + 1)) /* sanity check */)
+                    (p_dev_rec->num_read_pages <= (HCI_EXT_FEATURES_PAGE_MAX + 1)))
                 {
                     memcpy (p->peer_lmp_features, p_dev_rec->features,
                         (HCI_FEATURE_BYTES_PER_PAGE * p_dev_rec->num_read_pages));
                     p->num_read_pages = p_dev_rec->num_read_pages;
 
-                    if (BTM_SEC_MODE_SP == btm_cb.security_mode
-                        && HCI_SSP_HOST_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1])
-                        && HCI_SIMPLE_PAIRING_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
-                    {
-                        p_dev_rec->sm4 = BTM_SM4_TRUE;
-                    }
-                    else
-                    {
-                        p_dev_rec->sm4 |= BTM_SM4_KNOWN;
-                    }
+                    const UINT8 req_pend = (p_dev_rec->sm4 & BTM_SM4_REQ_PEND);
 
+                    /* Store the Peer Security Capabilites (in SM4 and rmt_sec_caps) */
+                    btm_sec_set_peer_sec_caps(p, p_dev_rec);
+
+                    BTM_TRACE_API("%s: pend:%d", __FUNCTION__, req_pend);
+                    if (req_pend)
+                    {
+                        /* Request for remaining Security Features (if any) */
+                        l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
+                    }
                     btm_establish_continue (p);
                     return;
                 }
@@ -949,82 +955,28 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
     p_acl_cb->num_read_pages = num_read_pages;
     p_dev_rec->num_read_pages = num_read_pages;
 
-    /* Process the pages one by one */
+    /* Move the pages to placeholder */
     for (page_idx = 0; page_idx < num_read_pages; page_idx++)
     {
-        btm_process_remote_ext_features_page (p_acl_cb, p_dev_rec, page_idx);
+        if (page_idx > HCI_EXT_FEATURES_PAGE_MAX)
+        {
+            BTM_TRACE_ERROR("%s: page=%d unexpected", __FUNCTION__, page_idx);
+            break;
+        }
+        memcpy (p_dev_rec->features[page_idx], p_acl_cb->peer_lmp_features[page_idx],
+                HCI_FEATURE_BYTES_PER_PAGE);
     }
-}
 
+    const UINT8 req_pend = (p_dev_rec->sm4 & BTM_SM4_REQ_PEND);
 
-/*******************************************************************************
-**
-** Function         btm_process_remote_ext_features_page
-**
-** Description      Local function called to process the information located
-**                  in the specific extended features page read from a remote device.
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec,
-                                           UINT8 page_idx)
-{
-    UINT8             req_pend;
+    /* Store the Peer Security Capabilites (in SM4 and rmt_sec_caps) */
+    btm_sec_set_peer_sec_caps(p_acl_cb, p_dev_rec);
 
-    memcpy (p_dev_rec->features[page_idx], p_acl_cb->peer_lmp_features[page_idx],
-            HCI_FEATURE_BYTES_PER_PAGE);
-
-    switch (page_idx)
+    BTM_TRACE_API("%s: pend:%d", __FUNCTION__, req_pend);
+    if (req_pend)
     {
-    /* Extended (Legacy) Page 0 */
-    case HCI_EXT_FEATURES_PAGE_0:
-        /* Page 0 indicates Controller support for SSP */
-        if (btm_cb.security_mode < BTM_SEC_MODE_SP ||
-            !HCI_SIMPLE_PAIRING_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
-        {
-            req_pend = (p_dev_rec->sm4 & BTM_SM4_REQ_PEND);
-            p_dev_rec->sm4 = BTM_SM4_KNOWN;
-            if (req_pend)
-            {
-                l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
-            }
-        }
-        break;
-
-    /* Extended Page 1 */
-    case HCI_EXT_FEATURES_PAGE_1:
-        /* Page 1 indicates Host support for SSP and SC */
-        req_pend = (p_dev_rec->sm4 & BTM_SM4_REQ_PEND);
-
-        if (btm_cb.security_mode == BTM_SEC_MODE_SP
-            && HCI_SSP_HOST_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1])
-            && HCI_SIMPLE_PAIRING_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
-        {
-            p_dev_rec->sm4 = BTM_SM4_TRUE;
-        }
-        else
-        {
-            p_dev_rec->sm4 = BTM_SM4_KNOWN;
-        }
-
-        BTM_TRACE_API ("ext_features_complt page_num:%d f[0]:x%02x, sm4:%x, pend:%d",
-                        HCI_EXT_FEATURES_PAGE_1, *(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_1]),
-                        p_dev_rec->sm4, req_pend);
-
-        if (req_pend)
-            l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
-
-        break;
-
-    /* Extended Page 2 */
-    case HCI_EXT_FEATURES_PAGE_2:
-        /* Page 2 indicates Ping support*/
-        break;
-
-    default:
-        BTM_TRACE_ERROR("btm_process_remote_ext_features_page page=%d unexpected", page_idx);
-        break;
+        /* Request for remaining Security Features (if any) */
+        l2cu_resubmit_pending_sec_req (p_dev_rec->bd_addr);
     }
 }
 

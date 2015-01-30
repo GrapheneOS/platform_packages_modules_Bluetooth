@@ -24,6 +24,7 @@
 
 #define LOG_TAG "bt_btm_sec"
 
+#include <stdarg.h>
 #include <string.h>
 
 #include "bt_types.h"
@@ -97,6 +98,8 @@ static BOOLEAN btm_dev_authenticated(tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN btm_dev_encrypted(tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN btm_dev_authorized(tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *p_serv_rec);
+static BOOLEAN btm_sec_is_serv_level0 (UINT16 psm);
+static UINT16  btm_sec_set_serv_level4_flags (UINT16 cur_security, BOOLEAN is_originator);
 
 static BOOLEAN btm_sec_queue_encrypt_request  (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
@@ -391,7 +394,28 @@ void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_paired)
     btm_cb.connect_only_paired = connect_only_paired;
 }
 
+/*******************************************************************************
+**
+** Function         BTM_SetSecureConnectionsOnly
+**
+** Description      Enable or disable default treatment for Mode 4 Level 0 services
+**
+** Parameter        secure_connections_only_mode - (TRUE or FALSE) whether or not the device
+**                  TRUE means that the device should treat Mode 4 Level 0 services as
+**                  services of other levels. (Secure_connections_only_mode)
+**                  FALSE means that the device should provide default treatment for
+**                  Mode 4 Level 0 services.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode)
+{
+    BTM_TRACE_API("%s: Mode : %u", __FUNCTION__,
+                   secure_connections_only_mode);
 
+    btm_cb.devcb.secure_connections_only = secure_connections_only_mode;
+}
 #define BTM_NO_AVAIL_SEC_SERVICES   ((UINT16) 0xffff)
 
 /*******************************************************************************
@@ -562,7 +586,9 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         /* Parameter validation.  Originator should not set requirements for incoming connections */
         sec_level &= ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM);
 
-        if (btm_cb.security_mode == BTM_SEC_MODE_SP)
+        if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
+            btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+            btm_cb.security_mode == BTM_SEC_MODE_SC)
         {
             if (sec_level & BTM_SEC_OUT_AUTHENTICATE)
                 sec_level |= BTM_SEC_OUT_MITM;
@@ -607,7 +633,9 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         /* Parameter validation.  Acceptor should not set requirements for outgoing connections */
         sec_level &= ~(BTM_SEC_OUT_AUTHORIZE | BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_MITM);
 
-        if (btm_cb.security_mode == BTM_SEC_MODE_SP)
+        if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
+            btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+            btm_cb.security_mode == BTM_SEC_MODE_SC)
         {
             if (sec_level & BTM_SEC_IN_AUTHENTICATE)
                 sec_level |= BTM_SEC_IN_MITM;
@@ -1034,9 +1062,12 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
         || (p_dev_rec->sm4 == BTM_SM4_KNOWN))
     {
         if ( btm_sec_check_prefetch_pin (p_dev_rec) )
-	        return(BTM_CMD_STARTED);
+            return (BTM_CMD_STARTED);
     }
-    if (BTM_SEC_MODE_SP == btm_cb.security_mode && BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4))
+    if ((btm_cb.security_mode == BTM_SEC_MODE_SP ||
+         btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+         btm_cb.security_mode == BTM_SEC_MODE_SC) &&
+         BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4))
     {
         /* local is 2.1 and peer is unknown */
         if ((p_dev_rec->sm4 & BTM_SM4_CONN_PEND) == 0)
@@ -1763,21 +1794,50 @@ UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
 
 /*******************************************************************************
 **
-** Function         BTM_IsLeScSuppLocally
+** Function         BTM_BothEndsSupportSecureConnections
 **
-** Description      This function is called to check if LE SC is supported.
+** Description      This function is called to check if both the local device and the peer device
+**                  specified by bd_addr support BR/EDR Secure Connections.
 **
-** Parameters:      None.
+** Parameters:      bd_addr - address of the peer
 **
-** Returns          Boolean - TRUE if LE SC is supported.
+** Returns          TRUE if BR/EDR Secure Connections are supported by both local
+**                  and the remote device.
+**                  else FALSE.
+**
 *******************************************************************************/
-BOOLEAN BTM_IsLeScSuppLocally (void)
+BOOLEAN BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr)
 {
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    return TRUE;
-#else
-    return FALSE;
-#endif
+    return ((controller_get_interface()->supports_secure_connections()) &&
+            (BTM_PeerSupportsSecureConnections(bd_addr)));
+}
+
+/*******************************************************************************
+**
+** Function         BTM_PeerSupportsSecureConnections
+**
+** Description      This function is called to check if the peer supports
+**                  BR/EDR Secure Connections.
+**
+** Parameters:      bd_addr - address of the peer
+**
+** Returns          TRUE if BR/EDR Secure Connections are supported by the peer,
+**                  else FALSE.
+**
+*******************************************************************************/
+BOOLEAN BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr)
+{
+    tBTM_SEC_DEV_REC    *p_dev_rec;
+
+    if ((p_dev_rec = btm_find_dev(bd_addr)) == NULL)
+    {
+        BTM_TRACE_WARNING("%s: unknown BDA: %08x%04x", __FUNCTION__,
+            (bd_addr[0]<<24) + (bd_addr[1]<<16) + (bd_addr[2]<<8) + bd_addr[3],
+            (bd_addr[4]<< 8) + bd_addr[5]);
+        return FALSE;
+    }
+
+    return (p_dev_rec->remote_supports_secure_connections);
 }
 
 /*******************************************************************************
@@ -1923,10 +1983,15 @@ static BOOLEAN btm_sec_is_upgrade_possible(tBTM_SEC_DEV_REC  *p_dev_rec, BOOLEAN
         /* Already have a link key to the connected peer. Is the link key secure enough?
         ** Is a link key upgrade even possible?
         */
-        if ((p_dev_rec->security_required & mtm_check)                          /* needs MITM */
-            && (p_dev_rec->link_key_type == BTM_LKEY_TYPE_UNAUTH_COMB) /* has unauthenticated link key */
-            && (p_dev_rec->rmt_io_caps < BTM_IO_CAP_MAX)                           /* a valid peer IO cap */
-            && (btm_sec_io_map[p_dev_rec->rmt_io_caps][btm_cb.devcb.loc_io_caps])) /* authenticated link key is possible */
+        if ((p_dev_rec->security_required & mtm_check)    /* needs MITM */
+            && ((p_dev_rec->link_key_type == BTM_LKEY_TYPE_UNAUTH_COMB) ||
+                (p_dev_rec->link_key_type == BTM_LKEY_TYPE_UNAUTH_COMB_P_256))
+                                                          /* has unauthenticated
+                                                          link key */
+            && (p_dev_rec->rmt_io_caps < BTM_IO_CAP_MAX)  /* a valid peer IO cap */
+            && (btm_sec_io_map[p_dev_rec->rmt_io_caps][btm_cb.devcb.loc_io_caps]))
+                                                          /* authenticated
+                                                          link key is possible */
         {
             /* upgrade is possible: check if the application wants the upgrade.
              * If the application is configured to use a global MITM flag,
@@ -2004,6 +2069,12 @@ static void btm_sec_check_upgrade(tBTM_SEC_DEV_REC  *p_dev_rec, BOOLEAN is_origi
 #define BTM_SEC_OUT_FLAGS   (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT | BTM_SEC_OUT_AUTHORIZE)
 #define BTM_SEC_IN_FLAGS    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHORIZE)
 
+#define BTM_SEC_OUT_LEVEL4_FLAGS   (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT | \
+                                    BTM_SEC_OUT_MITM | BTM_SEC_MODE4_LEVEL4)
+
+#define BTM_SEC_IN_LEVEL4_FLAGS    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT | \
+                                    BTM_SEC_IN_MITM | BTM_SEC_MODE4_LEVEL4)
+
 tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle,
                                       CONNECTION_TYPE conn_type,
                                       tBTM_SEC_CALLBACK *p_callback,
@@ -2048,8 +2119,8 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
         return(BTM_MODE_UNSUPPORTED);
     }
 
-    /* SDP connection we will always let through */
-    if (BT_PSM_SDP == psm)
+    /* Services level0 by default have no security */
+    if ((btm_sec_is_serv_level0(psm)) && (!btm_cb.devcb.secure_connections_only))
     {
         (*p_callback) (bd_addr,transport, p_ref_data, BTM_SUCCESS_NO_SECURITY);
         return(BTM_SUCCESS);
@@ -2057,7 +2128,15 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( conn_type & CONNECTION_TYPE_CONNLESS_MASK )
     {
-        security_required = p_serv_rec->ucd_security_flags;
+        if (btm_cb.security_mode == BTM_SEC_MODE_SC)
+        {
+            security_required = btm_sec_set_serv_level4_flags (p_serv_rec->ucd_security_flags,
+                                                               is_originator);
+        }
+        else
+        {
+            security_required = p_serv_rec->ucd_security_flags;
+        }
 
         rc = BTM_CMD_STARTED;
         if (is_originator)
@@ -2081,6 +2160,12 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
             }
         }
 
+        if ((rc == BTM_SUCCESS) && (security_required & BTM_SEC_MODE4_LEVEL4) &&
+            (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+        {
+            rc = BTM_CMD_STARTED;
+        }
+
         if (rc == BTM_SUCCESS)
         {
             if (p_callback)
@@ -2092,7 +2177,36 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
     else
 #endif
     {
-        security_required = p_serv_rec->security_flags;
+        if (btm_cb.security_mode == BTM_SEC_MODE_SC)
+        {
+            security_required = btm_sec_set_serv_level4_flags (p_serv_rec->security_flags,
+                                                                is_originator);
+        }
+        else
+        {
+            security_required = p_serv_rec->security_flags;
+        }
+    }
+
+    BTM_TRACE_DEBUG("%s: security_required 0x%04x, is_originator 0x%02x, psm  0x%04x",
+                    __FUNCTION__, security_required, is_originator, psm);
+
+    if ((!is_originator) && (security_required & BTM_SEC_MODE4_LEVEL4))
+    {
+        BOOLEAN local_supports_sc = controller_get_interface()->supports_secure_connections();
+        /* acceptor receives L2CAP Channel Connect Request for Secure Connections Only service */
+        if (!(local_supports_sc) || !(p_dev_rec->remote_supports_secure_connections))
+        {
+            BTM_TRACE_DEBUG("%s: SC only service, local_support_for_sc %d",
+                            "rmt_support_for_sc : %d -> fail pairing", __FUNCTION__,
+                            local_supports_sc,
+                            p_dev_rec->remote_supports_secure_connections);
+            if (p_callback)
+                (*p_callback) (bd_addr, transport, (void *)p_ref_data,
+                                                    BTM_MODE4_LEVEL4_NOT_SUPPORTED);
+
+            return (BTM_MODE4_LEVEL4_NOT_SUPPORTED);
+        }
     }
 
     /* there are some devices (moto KRZR) which connects to several services at the same time */
@@ -2103,10 +2217,12 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
                           psm, btm_pair_state_descr(btm_cb.pairing_state), btm_cb.security_mode, p_dev_rec->sm4);
         BTM_TRACE_EVENT ("security_flags:x%x, sec_flags:x%x", security_required, p_dev_rec->sec_flags);
         rc = BTM_CMD_STARTED;
-        if ((BTM_SEC_MODE_SP != btm_cb.security_mode)
-            || ((BTM_SEC_MODE_SP == btm_cb.security_mode) && (BTM_SM4_KNOWN == p_dev_rec->sm4))
-            || (BTM_SEC_IS_SM4(p_dev_rec->sm4) && (btm_sec_is_upgrade_possible(p_dev_rec, is_originator) == FALSE))
-           )
+        if ((btm_cb.security_mode == BTM_SEC_MODE_UNDEFINED ||
+             btm_cb.security_mode == BTM_SEC_MODE_NONE ||
+             btm_cb.security_mode == BTM_SEC_MODE_SERVICE ||
+             btm_cb.security_mode == BTM_SEC_MODE_LINK) ||
+            (BTM_SM4_KNOWN == p_dev_rec->sm4) || (BTM_SEC_IS_SM4(p_dev_rec->sm4) &&
+            (btm_sec_is_upgrade_possible(p_dev_rec, is_originator) == FALSE)))
         {
             /* legacy mode - local is legacy or local is lisbon/peer is legacy
              * or SM4 with no possibility of link key upgrade */
@@ -2134,6 +2250,12 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
                 }
             }
 
+            if ((rc == BTM_SUCCESS) && (security_required & BTM_SEC_MODE4_LEVEL4) &&
+                (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+            {
+                rc = BTM_CMD_STARTED;
+            }
+
             if (rc == BTM_SUCCESS)
             {
                 if (p_callback)
@@ -2149,49 +2271,34 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
     /* Save pointer to service record */
     p_dev_rec->p_cur_service = p_serv_rec;
 
-    /* mess /w security_required in btm_sec_l2cap_access_req for Lisbon */
-    if (btm_cb.security_mode == BTM_SEC_MODE_SP)
+    /* Modify security_required in btm_sec_l2cap_access_req for Lisbon */
+    if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
+        btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+        btm_cb.security_mode == BTM_SEC_MODE_SC)
     {
-        if (is_originator)
+        if (BTM_SEC_IS_SM4(p_dev_rec->sm4))
         {
-            if (BTM_SEC_IS_SM4(p_dev_rec->sm4))
+            if (is_originator)
             {
                 /* SM4 to SM4 -> always authenticate & encrypt */
                 security_required |= (BTM_SEC_OUT_AUTHENTICATE | BTM_SEC_OUT_ENCRYPT);
             }
-            else
-            {
-                if ( !(BTM_SM4_KNOWN & p_dev_rec->sm4))
-                {
-                    BTM_TRACE_DEBUG ("remote features unknown!!sec_flags:0x%x", p_dev_rec->sec_flags);
-                    /* the remote features are not known yet */
-                    p_dev_rec->sm4          |= BTM_SM4_REQ_PEND;
-
-                    return(BTM_CMD_STARTED);
-                }
-            }
-        }
-        else
-        {
-            /* responder */
-            if (BTM_SEC_IS_SM4(p_dev_rec->sm4))
+            else /* acceptor */
             {
                 /* SM4 to SM4: the acceptor needs to make sure the authentication is already done */
                 chk_acp_auth_done = TRUE;
                 /* SM4 to SM4 -> always authenticate & encrypt */
                 security_required |= (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT);
-            }
-            else
-            {
-                if ( !(BTM_SM4_KNOWN & p_dev_rec->sm4))
-                {
-                    BTM_TRACE_DEBUG ("(rsp) remote features unknown!!sec_flags:0x%x", p_dev_rec->sec_flags);
-                    /* the remote features are not known yet */
-                    p_dev_rec->sm4          |= BTM_SM4_REQ_PEND;
+           }
+        }
+        else if (!(BTM_SM4_KNOWN & p_dev_rec->sm4))
+        {
+            /* the remote features are not known yet */
+            BTM_TRACE_DEBUG("%s: (%s) remote features unknown!!sec_flags:0x%02x", __FUNCTION__,
+                            (is_originator) ? "initiator" : "acceptor", p_dev_rec->sec_flags);
 
-                    return(BTM_CMD_STARTED);
-                }
-            }
+            p_dev_rec->sm4 |= BTM_SM4_REQ_PEND;
+            return (BTM_CMD_STARTED);
         }
     }
 
@@ -2234,9 +2341,15 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
         }
     }
 
-    /* if the originator is using dynamic PSM in legacy mode, do not start any security process now.
-     * The layer above L2CAP needs to carry out the security requirement after L2CAP connect response is received*/
-    if (is_originator && (btm_cb.security_mode != BTM_SEC_MODE_SP || !BTM_SEC_IS_SM4(p_dev_rec->sm4)) && (psm >= 0x1001))
+    /* if the originator is using dynamic PSM in legacy mode, do not start any security process now
+     * The layer above L2CAP needs to carry out the security requirement after L2CAP connect
+     * response is received */
+    if (is_originator &&
+        ((btm_cb.security_mode == BTM_SEC_MODE_UNDEFINED ||
+          btm_cb.security_mode == BTM_SEC_MODE_NONE ||
+          btm_cb.security_mode == BTM_SEC_MODE_SERVICE ||
+          btm_cb.security_mode == BTM_SEC_MODE_LINK) ||
+         !BTM_SEC_IS_SM4(p_dev_rec->sm4)) && (psm >= 0x1001))
     {
         BTM_TRACE_EVENT ("dynamic PSM:0x%x in legacy mode - postponed for upper layer", psm);
         /* restore the old settings */
@@ -2286,8 +2399,23 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
 
     if (BTM_SEC_IS_SM4(p_dev_rec->sm4))
     {
-        /* If we already have a link key to the connected peer, is the link key secure enough ? */
-        btm_sec_check_upgrade(p_dev_rec, is_originator);
+        if ((p_dev_rec->security_required & BTM_SEC_MODE4_LEVEL4) &&
+            (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+        {
+            /* BTM_LKEY_TYPE_AUTH_COMB_P_256 is the only acceptable key in this case */
+            if ((p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN) != 0)
+            {
+                p_dev_rec->sm4 |= BTM_SM4_UPGRADE;
+            }
+            p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LINK_KEY_AUTHED |
+                                      BTM_SEC_AUTHENTICATED);
+            BTM_TRACE_DEBUG ("%s: sec_flags:0x%x", __FUNCTION__, p_dev_rec->sec_flags);
+        }
+        else
+        {
+            /* If we already have a link key to the connected peer, is it secure enough? */
+            btm_sec_check_upgrade(p_dev_rec, is_originator);
+        }
     }
 
     BTM_TRACE_EVENT ("%s() PSM:%d Handle:%d State:%d Flags: 0x%x Required: 0x%x Service ID:%d",
@@ -2354,6 +2482,16 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_o
         return BTM_NO_RESOURCES;
     }
 
+    if ((btm_cb.security_mode == BTM_SEC_MODE_SC) && (!btm_sec_is_serv_level0(psm)))
+    {
+        security_required = btm_sec_set_serv_level4_flags (p_serv_rec->security_flags,
+                                                           is_originator);
+    }
+    else
+    {
+        security_required = p_serv_rec->security_flags;
+    }
+
     /* there are some devices (moto phone) which connects to several services at the same time */
     /* we will process one after another */
     if ( (p_dev_rec->p_callback) || (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE) )
@@ -2362,11 +2500,13 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_o
                           psm, mx_proto_id, mx_chan_id, btm_pair_state_descr(btm_cb.pairing_state));
 
         rc = BTM_CMD_STARTED;
-        security_required = p_serv_rec->security_flags;
-        if ((BTM_SEC_MODE_SP != btm_cb.security_mode)
-            || ((BTM_SEC_MODE_SP == btm_cb.security_mode) && (BTM_SM4_KNOWN == p_dev_rec->sm4))
-            || (BTM_SEC_IS_SM4(p_dev_rec->sm4) && (btm_sec_is_upgrade_possible(p_dev_rec, is_originator) == FALSE))
-           )
+
+        if ((btm_cb.security_mode == BTM_SEC_MODE_UNDEFINED ||
+             btm_cb.security_mode == BTM_SEC_MODE_NONE ||
+             btm_cb.security_mode == BTM_SEC_MODE_SERVICE ||
+             btm_cb.security_mode == BTM_SEC_MODE_LINK) ||
+            (BTM_SM4_KNOWN == p_dev_rec->sm4) || (BTM_SEC_IS_SM4(p_dev_rec->sm4) &&
+            (btm_sec_is_upgrade_possible(p_dev_rec, is_originator) == FALSE)))
         {
             /* legacy mode - local is legacy or local is lisbon/peer is legacy
              * or SM4 with no possibility of link key upgrade */
@@ -2393,23 +2533,100 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_o
                     rc = BTM_SUCCESS;
                 }
             }
+            if ((rc == BTM_SUCCESS) && (security_required & BTM_SEC_MODE4_LEVEL4) &&
+                (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+            {
+                rc = BTM_CMD_STARTED;
+            }
+        }
+
+        if (rc == BTM_SUCCESS)
+        {
+            BTM_TRACE_EVENT("%s: allow to bypass, checking authorization", __FUNCTION__);
+            /* the security in BTM_SEC_IN_FLAGS is fullfilled so far, check the requirements in */
+            /* btm_sec_execute_procedure */
+            if ((is_originator && (p_serv_rec->security_flags & BTM_SEC_OUT_AUTHORIZE)) ||
+                (!is_originator && (p_serv_rec->security_flags & BTM_SEC_IN_AUTHORIZE)))
+            {
+                BTM_TRACE_EVENT("%s: still need authorization", __FUNCTION__);
+                rc = BTM_CMD_STARTED;
+            }
+        }
+
+        /* Check whether there is a pending security procedure, if so we should always queue */
+        /* the new security request */
+        if (p_dev_rec->sec_state != BTM_SEC_STATE_IDLE)
+        {
+            BTM_TRACE_EVENT("%s: There is a pending security procedure", __FUNCTION__);
+            rc = BTM_CMD_STARTED;
         }
         if (rc == BTM_CMD_STARTED)
         {
-            btm_sec_queue_mx_request (bd_addr, psm,  is_originator, mx_proto_id, mx_chan_id, p_callback, p_ref_data);
-            return rc;
+            BTM_TRACE_EVENT("%s: call btm_sec_queue_mx_request", __FUNCTION__);
+            btm_sec_queue_mx_request (bd_addr, psm,  is_originator, mx_proto_id,
+                                      mx_chan_id, p_callback, p_ref_data);
+        }
+        else /* rc == BTM_SUCCESS */
+        {
+            /* access granted */
+             if (p_callback)
+            {
+                (*p_callback) (bd_addr, transport, p_ref_data, (UINT8)rc);
+            }
+        }
+
+        BTM_TRACE_EVENT("%s: return with rc = 0x%02x in delayed state %s", __FUNCTION__, rc,
+                          btm_pair_state_descr(btm_cb.pairing_state));
+        return rc;
+    }
+
+    if ((!is_originator) && ((security_required & BTM_SEC_MODE4_LEVEL4) ||
+        (btm_cb.security_mode == BTM_SEC_MODE_SC)))
+    {
+        BOOLEAN local_supports_sc = controller_get_interface()->supports_secure_connections();
+        /* acceptor receives service connection establishment Request for */
+        /* Secure Connections Only service */
+        if (!(local_supports_sc) || !(p_dev_rec->remote_supports_secure_connections))
+        {
+            BTM_TRACE_DEBUG("%s: SC only service,local_support_for_sc %d,",
+                            "remote_support_for_sc %d: fail pairing",__FUNCTION__,
+                            local_supports_sc, p_dev_rec->remote_supports_secure_connections);
+
+            if (p_callback)
+                (*p_callback) (bd_addr, transport, (void *)p_ref_data,
+                               BTM_MODE4_LEVEL4_NOT_SUPPORTED);
+
+            return (BTM_MODE4_LEVEL4_NOT_SUPPORTED);
         }
     }
 
     p_dev_rec->p_cur_service     = p_serv_rec;
-    p_dev_rec->security_required = p_serv_rec->security_flags;
+    p_dev_rec->security_required = security_required;
 
-    if (BTM_SEC_MODE_SP == btm_cb.security_mode)
+    if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
+        btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+        btm_cb.security_mode == BTM_SEC_MODE_SC)
     {
         if (BTM_SEC_IS_SM4(p_dev_rec->sm4))
         {
-            /* If we already have a link key, check if that link key is good enough */
-            btm_sec_check_upgrade(p_dev_rec, is_originator);
+            if ((p_dev_rec->security_required & BTM_SEC_MODE4_LEVEL4) &&
+                (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+            {
+                /* BTM_LKEY_TYPE_AUTH_COMB_P_256 is the only acceptable key in this case */
+                if ((p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN) != 0)
+                {
+                    p_dev_rec->sm4 |= BTM_SM4_UPGRADE;
+                }
+
+                p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LINK_KEY_AUTHED |
+                                          BTM_SEC_AUTHENTICATED);
+                BTM_TRACE_DEBUG("%s: sec_flags:0x%x", __FUNCTION__, p_dev_rec->sec_flags);
+            }
+            else
+            {
+                /* If we already have a link key, check if that link key is good enough */
+                btm_sec_check_upgrade(p_dev_rec, is_originator);
+            }
         }
     }
 
@@ -3104,51 +3321,94 @@ void btm_io_capabilities_req (UINT8 *p)
     evt_data.oob_data = BTM_OOB_NONE;
     evt_data.auth_req = BTM_DEFAULT_AUTH_REQ;
 
-    BTM_TRACE_EVENT ("btm_io_capabilities_req() State: %s", btm_pair_state_descr(btm_cb.pairing_state));
+    BTM_TRACE_EVENT("%s: State: %s", __FUNCTION__, btm_pair_state_descr(btm_cb.pairing_state));
 
     p_dev_rec = btm_find_or_alloc_dev (evt_data.bd_addr);
+
+    BTM_TRACE_DEBUG("%s:Security mode: %d, Num Read Remote Feat pages: %d", __FUNCTION__,
+                      btm_cb.security_mode, p_dev_rec->num_read_pages);
+
+    if ((btm_cb.security_mode == BTM_SEC_MODE_SC) && (p_dev_rec->num_read_pages == 0))
+    {
+        BTM_TRACE_EVENT("%s: Device security mode is SC only.",
+                         "To continue need to know remote features.", __FUNCTION__);
+
+        p_dev_rec->remote_features_needed = TRUE;
+        return;
+    }
+
     p_dev_rec->sm4 |= BTM_SM4_TRUE;
 
-    BTM_TRACE_EVENT ("btm_io_capabilities_req() State: %s  Flags: 0x%04x  p_cur_service: 0x%08x",
-                      btm_pair_state_descr(btm_cb.pairing_state), btm_cb.pairing_flags, p_dev_rec->p_cur_service);
+    BTM_TRACE_EVENT("%s: State: %s  Flags: 0x%04x  p_cur_service: 0x%08x",
+                     __FUNCTION__, btm_pair_state_descr(btm_cb.pairing_state),
+                     btm_cb.pairing_flags, p_dev_rec->p_cur_service);
 
-    if (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+    if (p_dev_rec->p_cur_service)
     {
-        if (btm_cb.pairing_state == BTM_PAIR_STATE_INCOMING_SSP)
-        {
-            /* received IO capability response already-> not the originator of SSP */
+        BTM_TRACE_EVENT("%s: cur_service psm: 0x%04x, security_flags: 0x%04x",
+                         __FUNCTION__, p_dev_rec->p_cur_service->psm,
+                         p_dev_rec->p_cur_service->security_flags);
+    }
+
+    switch (btm_cb.pairing_state)
+    {
+        /* initiator connecting */
+        case BTM_PAIR_STATE_IDLE:
+            //TODO: Handle Idle pairing state
+            //security_required = p_dev_rec->security_required;
+            break;
+
+        /* received IO capability response already->acceptor */
+        case BTM_PAIR_STATE_INCOMING_SSP:
             is_orig = FALSE;
 
             if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_PEER_STARTED_DD)
-                evt_data.auth_req = BTM_DEFAULT_DD_AUTH_REQ;
-        }
-        /* security is already in progress */
-        else if (btm_cb.pairing_state == BTM_PAIR_STATE_WAIT_PIN_REQ)
-        {
-/* coverity[uninit_use_in_call]
-Event uninit_use_in_call: Using uninitialized element of array "evt_data.bd_addr" in call to function "memcmp"
-False-positive: evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDADDR (evt_data.bd_addr, p);
-*/
-            if (memcmp (evt_data.bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN))
             {
-                /* and it's not the device in bonding -> reject it */
-                err_code = HCI_ERR_HOST_BUSY_PAIRING;
+                /* acceptor in dedicated bonding */
+                evt_data.auth_req = BTM_DEFAULT_DD_AUTH_REQ;
+            }
+            break;
+
+        /* initiator, at this point it is expected to be dedicated bonding
+        initiated by local device */
+        case BTM_PAIR_STATE_WAIT_PIN_REQ:
+            if (!memcmp (evt_data.bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN))
+            {
+                evt_data.auth_req = BTM_DEFAULT_DD_AUTH_REQ;
             }
             else
             {
-                /* local device initiated dedicated bonding */
-                evt_data.auth_req = BTM_DEFAULT_DD_AUTH_REQ;
+                err_code = HCI_ERR_HOST_BUSY_PAIRING;
             }
-        }
-        else
-        {
+            break;
+
+        /* any other state is unexpected */
+        default:
             err_code = HCI_ERR_HOST_BUSY_PAIRING;
-        }
+            BTM_TRACE_ERROR("%s: Unexpected Pairing state received %d", __FUNCTION__,
+                             btm_cb.pairing_state);
+            break;
     }
 
-    /* paring is not allowed */
     if (btm_cb.pairing_disabled)
+    {
+        /* pairing is not allowed */
+        BTM_TRACE_DEBUG("%s: Pairing is not allowed -> fail pairing.", __FUNCTION__);
         err_code = HCI_ERR_PAIRING_NOT_ALLOWED;
+    }
+    else if (btm_cb.security_mode == BTM_SEC_MODE_SC)
+    {
+        BOOLEAN local_supports_sc = controller_get_interface()->supports_secure_connections();
+        /* device in Secure Connections Only mode */
+        if (!(local_supports_sc) || !(p_dev_rec->remote_supports_secure_connections))
+        {
+            BTM_TRACE_DEBUG("%s: SC only service, local_support_for_sc %d,",
+                            " remote_support_for_sc 0x%02x -> fail pairing", __FUNCTION__,
+                            local_supports_sc, p_dev_rec->remote_supports_secure_connections);
+
+            err_code = HCI_ERR_PAIRING_NOT_ALLOWED;
+        }
+    }
 
     if (err_code != 0)
     {
@@ -3169,7 +3429,16 @@ False-positive: evt_data.bd_addr is set at the beginning with:     STREAM_TO_BDA
             p_dev_rec->p_cur_service &&
             (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_AUTHENTICATE))
         {
-            evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags & BTM_SEC_OUT_MITM) ? BTM_AUTH_SP_YES : BTM_AUTH_SP_NO;
+            if (btm_cb.security_mode == BTM_SEC_MODE_SC)
+            {
+                /* SC only mode device requires MITM protection */
+                evt_data.auth_req = BTM_AUTH_SP_YES;
+            }
+            else
+            {
+                evt_data.auth_req = (p_dev_rec->p_cur_service->security_flags &
+                                     BTM_SEC_OUT_MITM)? BTM_AUTH_SP_YES : BTM_AUTH_SP_NO;
+            }
         }
     }
 
@@ -3212,14 +3481,23 @@ False-positive: False-positive: evt_data.bd_addr is set at the beginning with:  
             evt_data.auth_req = (BTM_AUTH_DD_BOND | (evt_data.auth_req & BTM_AUTH_YN_BIT));
         }
 
-        /* if the user does not indicate "reply later" by setting the oob_data to unknown
-         * send the response right now. Save the current IO capability in the control block */
+        if (btm_cb.security_mode == BTM_SEC_MODE_SC)
+        {
+            /* At this moment we know that both sides are SC capable, device in */
+            /* SC only mode requires MITM for any service so let's set MITM bit */
+            evt_data.auth_req |= BTM_AUTH_YN_BIT;
+            BTM_TRACE_DEBUG("%s: for device in \"SC only\" mode set auth_req to 0x%02x",
+                             __FUNCTION__, evt_data.auth_req);
+        }
+
+        /* if the user does not indicate "reply later" by setting the oob_data to unknown */
+        /* send the response right now. Save the current IO capability in the control block */
         btm_cb.devcb.loc_auth_req   = evt_data.auth_req;
         btm_cb.devcb.loc_io_caps    = evt_data.io_cap;
 
-        BTM_TRACE_EVENT ("btm_io_capabilities_req: State: %s  IO_CAP:%d oob_data:%d auth_req:%d",
-                          btm_pair_state_descr(btm_cb.pairing_state), evt_data.io_cap,
-                          evt_data.oob_data, evt_data.auth_req);
+        BTM_TRACE_EVENT("%s: State: %s  IO_CAP:%d oob_data:%d auth_req:%d",
+                         __FUNCTION__, btm_pair_state_descr(btm_cb.pairing_state), evt_data.io_cap,
+                         evt_data.oob_data, evt_data.auth_req);
 
         btsnd_hcic_io_cap_req_reply(evt_data.bd_addr, evt_data.io_cap,
                                     evt_data.oob_data, evt_data.auth_req);
@@ -5042,6 +5320,14 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
         return(BTM_CMD_STARTED);
     }
 
+    if ((p_dev_rec->security_required & BTM_SEC_MODE4_LEVEL4) &&
+        (p_dev_rec->link_key_type != BTM_LKEY_TYPE_AUTH_COMB_P_256))
+    {
+        BTM_TRACE_EVENT("%s: Security Manager: SC only service, but link key type is 0x%02x -",
+                        "security failure", __FUNCTION__, p_dev_rec->link_key_type);
+        return (BTM_FAILED_ON_SECURITY);
+    }
+
     /* If connection is not authorized and authorization is required */
     /* start authorization and return PENDING to the caller */
     if (!(p_dev_rec->sec_flags & BTM_SEC_AUTHORIZED)
@@ -5701,6 +5987,52 @@ static BOOLEAN btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT tra
 
 /*******************************************************************************
 **
+** Function         btm_sec_set_peer_sec_caps
+**
+** Description      This function is called to set sm4 and rmt_sec_caps fields
+**                  based on the available peer device features.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
+{
+    BD_ADDR     rem_bd_addr;
+    UINT8       *p_rem_bd_addr;
+
+    if ((btm_cb.security_mode == BTM_SEC_MODE_SP ||
+         btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
+         btm_cb.security_mode == BTM_SEC_MODE_SC) &&
+        HCI_SSP_HOST_SUPPORTED(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    {
+        p_dev_rec->sm4 = BTM_SM4_TRUE;
+        p_dev_rec->remote_supports_secure_connections =
+            (HCI_SC_HOST_SUPPORTED(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_1]));
+    }
+    else
+    {
+        p_dev_rec->sm4 = BTM_SM4_KNOWN;
+        p_dev_rec->remote_supports_secure_connections = FALSE;
+    }
+
+    BTM_TRACE_API("%s: sm4: 0x%02x, rmt_support_for_secure_connections %d", __FUNCTION__,
+                  p_dev_rec->sm4, p_dev_rec->remote_supports_secure_connections);
+
+
+    if (p_dev_rec->remote_features_needed)
+    {
+        BTM_TRACE_EVENT("%s: Now device in SC Only mode, waiting for peer remote features!",
+                        __FUNCTION__);
+        p_rem_bd_addr = (UINT8*) rem_bd_addr;
+        BDADDR_TO_STREAM(p_rem_bd_addr, p_dev_rec->bd_addr);
+        p_rem_bd_addr = (UINT8*) rem_bd_addr;
+        btm_io_capabilities_req(p_rem_bd_addr);
+        p_dev_rec->remote_features_needed = FALSE;
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         btm_sec_clean_pending_req_queue
 **
 ** Description      This function cleans up the pending security request when the
@@ -5729,7 +6061,26 @@ static void btm_sec_clean_pending_req_queue (BD_ADDR remote_bda, tBT_TRANSPORT t
         }
         p_e = (tBTM_SEC_QUEUE_ENTRY *) GKI_getnext ((void *)p_e);
     }
-    return;
+}
+
+/*******************************************************************************
+**
+** Function         btm_sec_is_serv_level0
+**
+** Description      This function is called to check if the service corresponding
+**                  to PSM is security mode 4 level 0 service.
+**
+** Returns          TRUE if the service is security mode 4 level 0 service
+**
+*******************************************************************************/
+static BOOLEAN btm_sec_is_serv_level0(UINT16 psm)
+{
+    if (psm == BT_PSM_SDP)
+    {
+        BTM_TRACE_DEBUG("%s: PSM: 0x%04x -> mode 4 level 0 service", __FUNCTION__, psm);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /*******************************************************************************
@@ -5776,7 +6127,23 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
         }
         p_e = (tBTM_SEC_QUEUE_ENTRY *) GKI_getnext ((void *)p_e);
     }
-    return;
+}
+
+/*******************************************************************************
+**
+** Function         btm_sec_set_serv_level4_flags
+**
+** Description      This function is called to set security mode 4 level 4 flags.
+**
+** Returns          service security requirements updated to include secure
+**                  connections only mode.
+**
+*******************************************************************************/
+static UINT16 btm_sec_set_serv_level4_flags(UINT16 cur_security, BOOLEAN is_originator)
+{
+    UINT16  sec_level4_flags = is_originator ? BTM_SEC_OUT_LEVEL4_FLAGS : BTM_SEC_IN_LEVEL4_FLAGS;
+
+    return cur_security | sec_level4_flags;
 }
 
 #if (BLE_INCLUDED == TRUE)
@@ -5804,7 +6171,6 @@ void btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec)
 #endif
 #endif
 }
-
 
 /*******************************************************************************
 **
@@ -5893,7 +6259,6 @@ BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_D
 #endif
     return(found);
 }
-
 
 /*******************************************************************************
 **

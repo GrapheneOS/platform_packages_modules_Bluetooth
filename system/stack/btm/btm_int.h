@@ -189,6 +189,9 @@ BT_OCTET16 ble_encryption_key_value; /* BLE encryption key */
 
     tBTM_IO_CAP          loc_io_caps;       /* IO capability of the local device */
     tBTM_AUTH_REQ        loc_auth_req;      /* the auth_req flag  */
+    BOOLEAN              secure_connections_only;    /* Rejects service level 0 connections if */
+                                                     /* itself or peer device doesn't support */
+                                                     /* secure connections */
 } tBTM_DEVCB;
 
 
@@ -565,6 +568,11 @@ typedef struct
     UINT8       sm4;                    /* BTM_SM4_TRUE, if the peer supports SM4 */
     tBTM_IO_CAP rmt_io_caps;            /* IO capability of the peer device */
     tBTM_AUTH_REQ rmt_auth_req;         /* the auth_req flag as in the IO caps rsp evt */
+    BOOLEAN     remote_supports_secure_connections;
+    BOOLEAN     remote_features_needed; /* set to true if the local device is in */
+                                        /* "Secure Connections Only" mode and it receives */
+                                        /* HCI_IO_CAPABILITY_REQUEST_EVT from the peer before */
+                                        /* it knows peer's support for Secure Connections */
 
 #if (BLE_INCLUDED == TRUE)
     UINT16              ble_hci_handle;         /* use in DUMO connection */
@@ -1056,6 +1064,7 @@ extern void  btm_sec_link_key_request (UINT8 *p_bda);
 extern void  btm_sec_pin_code_request (UINT8 *p_bda);
 extern void  btm_sec_update_clock_offset (UINT16 handle, UINT16 clock_offset);
 extern void  btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res, BOOLEAN is_le_trasnport);
+extern void btm_sec_set_peer_sec_caps (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec);
 
 #if BLE_INCLUDED == TRUE
 extern void  btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec);
