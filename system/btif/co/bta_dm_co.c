@@ -31,7 +31,11 @@
 
 tBTE_APPL_CFG bte_appl_cfg =
 {
+#if SMP_INCLUDED == TRUE && SMP_LE_SC_INCLUDED == TRUE
+    BTA_LE_AUTH_REQ_SC_MITM_BOND, //Authentication requirements
+#else
     BTM_AUTH_SPGB_YES,  // Authentication requirements
+#endif
     BTM_LOCAL_IO_CAPS_BLE, // I/O capabilities
     7,                  // Initiaor key size
     7,                  // Responder key size

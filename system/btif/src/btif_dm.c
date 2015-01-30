@@ -140,6 +140,7 @@ typedef struct
     UINT8   sdp_attempts;
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     BOOLEAN          is_le_only;
+    BOOLEAN          is_le_nc;/*LE Numeric comparison*/
     btif_dm_ble_cb_t ble;
 #endif
 } btif_dm_pairing_cb_t;
@@ -2522,14 +2523,18 @@ bt_status_t btif_dm_ssp_reply(const bt_bdaddr_t *bd_addr,
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     if (pairing_cb.is_le_only)
     {
-        if (accept)
-            BTA_DmBleSecurityGrant((UINT8 *)bd_addr->address,BTA_DM_SEC_GRANTED);
-        else
-            BTA_DmBleSecurityGrant((UINT8 *)bd_addr->address,BTA_DM_SEC_PAIR_NOT_SPT);
-    }
-    else
+        if(pairing_cb.is_le_nc)
+        {
+            BTA_DmBleConfirmReply((UINT8 *)bd_addr->address,accept);
+        } else {
+            if (accept)
+                BTA_DmBleSecurityGrant((UINT8 *)bd_addr->address,BTA_DM_SEC_GRANTED);
+            else
+                BTA_DmBleSecurityGrant((UINT8 *)bd_addr->address,BTA_DM_SEC_PAIR_NOT_SPT);
+        }
+    } else {
         BTA_DmConfirm( (UINT8 *)bd_addr->address, accept);
-
+    }
 #else
     BTA_DmConfirm( (UINT8 *)bd_addr->address, accept);
 #endif
@@ -3083,6 +3088,7 @@ void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ *p_ble_req)
 
     pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
     pairing_cb.is_le_only = TRUE;
+    pairing_cb.is_le_nc = FALSE;
     pairing_cb.is_ssp = TRUE;
 
     cod = COD_UNCLASSIFIED;
@@ -3145,6 +3151,8 @@ static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF *p_notif_req)
 
     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
     pairing_cb.is_ssp = FALSE;
+    pairing_cb.is_le_only = TRUE;
+    pairing_cb.is_le_nc = TRUE;
 
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
               COD_UNCLASSIFIED, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
@@ -3203,7 +3211,6 @@ bt_status_t btif_le_test_mode(uint16_t opcode, uint8_t *buf, uint8_t len)
      }
      return BT_STATUS_SUCCESS;
 }
-
 #endif
 
 void btif_dm_on_disable()
