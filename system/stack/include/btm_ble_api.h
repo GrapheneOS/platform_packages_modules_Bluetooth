@@ -451,6 +451,7 @@ typedef void (tBTM_BLE_MULTI_ADV_CBACK)(tBTM_BLE_MULTI_ADV_EVT evt, UINT8 inst_i
 typedef struct
 {
     UINT8                       inst_id;
+    BOOLEAN                     in_use;
     UINT8                       adv_evt;
     BD_ADDR                     rpa;
     TIMER_LIST_ENT              raddr_timer_ent;
