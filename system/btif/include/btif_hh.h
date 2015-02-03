@@ -21,6 +21,7 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hh.h>
+#include <pthread.h>
 #include <stdint.h>
 #include "bta_hh_api.h"
 #include "btu.h"
@@ -63,7 +64,7 @@ typedef struct
     UINT8                         sub_class;
     UINT8                         app_id;
     int                           fd;
-    UINT32                        hh_poll_thread_id;
+    pthread_t                     hh_poll_thread_id;
     UINT8                         hh_keep_polling;
     BOOLEAN                       vup_timer_active;
     TIMER_LIST_ENT                vup_timer;
