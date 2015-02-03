@@ -85,7 +85,7 @@ typedef struct cfg_node_s
     short flag;
 } cfg_node;
 
-static pthread_mutex_t slot_lock;
+static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 static int pth = -1; //poll thread handle
 static cfg_node root;
 static int cached_change;
@@ -133,14 +133,13 @@ int btif_config_init()
         if(stat(CFG_PATH, &st) != 0)
             bdle("%s does not exist, need provision", CFG_PATH);
         btsock_thread_init();
-        init_slot_lock(&slot_lock);
-        lock_slot(&slot_lock);
+        pthread_mutex_lock(&slot_lock);
         root.name = "Bluedroid";
         alloc_node(&root, CFG_GROW_SIZE);
         dump_node("root", &root);
         pth = btsock_thread_create(NULL, cfg_cmd_callback);
         load_cfg();
-        unlock_slot(&slot_lock);
+        pthread_mutex_unlock(&slot_lock);
         #ifdef UNIT_TEST
             cfg_test_write();
             //cfg_test_read();
@@ -176,9 +175,9 @@ int btif_config_exist(const char* section, const char* key, const char* name)
     int ret = FALSE;
     if(section && *section && key && *key)
     {
-        lock_slot(&slot_lock);
+        pthread_mutex_lock(&slot_lock);
         ret = find_node(section, key, name) != NULL;
-        unlock_slot(&slot_lock);
+        pthread_mutex_unlock(&slot_lock);
     }
     return ret;
 }
@@ -190,7 +189,7 @@ int btif_config_get(const char* section, const char* key, const char* name, char
                 section, key, name, value, *bytes, *type);
     if(section && *section && key && *key && name && *name && bytes && type)
     {
-        lock_slot(&slot_lock);
+        pthread_mutex_lock(&slot_lock);
         const cfg_node* node = find_node(section, key, name);
         dump_node("found node", node);
         if(node)
@@ -213,7 +212,7 @@ int btif_config_get(const char* section, const char* key, const char* name, char
                                       name, node->used, *bytes);
             }
         }
-        unlock_slot(&slot_lock);
+        pthread_mutex_unlock(&slot_lock);
     }
     return ret;
 }
@@ -224,11 +223,11 @@ int btif_config_set(const char* section, const char* key, const char* name, cons
     bdla(bytes < MAX_NODE_BYTES);
     if(section && *section && key && *key && name && *name && bytes < MAX_NODE_BYTES)
     {
-        lock_slot(&slot_lock);
+        pthread_mutex_lock(&slot_lock);
         ret = set_node(section, key, name, value, (short)bytes, (short)type);
         if(ret && !(type & BTIF_CFG_TYPE_VOLATILE))
             cached_change++;
-        unlock_slot(&slot_lock);
+        pthread_mutex_unlock(&slot_lock);
     }
     return ret;
 }
@@ -239,11 +238,11 @@ int btif_config_remove(const char* section, const char* key, const char* name)
     int ret = FALSE;
     if(section && *section && key && *key)
     {
-         lock_slot(&slot_lock);
+         pthread_mutex_lock(&slot_lock);
          ret = remove_node(section, key, name);
          if(ret)
             cached_change++;
-         unlock_slot(&slot_lock);
+         pthread_mutex_unlock(&slot_lock);
     }
     return ret;
 }
@@ -256,11 +255,11 @@ int btif_config_filter_remove(const char* section, const char* filter[], int fil
     int ret = FALSE;
     if(section && *section && max_allowed > 0)
     {
-         lock_slot(&slot_lock);
+         pthread_mutex_lock(&slot_lock);
          ret = remove_filter_node(section, filter, filter_count, max_allowed);
          if(ret)
             cached_change++;
-         unlock_slot(&slot_lock);
+         pthread_mutex_unlock(&slot_lock);
     }
     return ret;
 }
@@ -273,20 +272,20 @@ typedef struct {
 short btif_config_next_key(short pos, const char* section, char * name, int* bytes)
 {
     int next = -1;
-    lock_slot(&slot_lock);
+    pthread_mutex_lock(&slot_lock);
     short si = find_inode(&root, section);
     if(si >= 0)
     {
         const cfg_node* section_node = &root.child[si];
         next = find_next_node(section_node, pos, name, bytes);
     }
-    unlock_slot(&slot_lock);
+    pthread_mutex_unlock(&slot_lock);
     return next;
 }
 short btif_config_next_value(short pos, const char* section, const char* key, char* name, int* bytes)
 {
     int next = -1;
-    lock_slot(&slot_lock);
+    pthread_mutex_lock(&slot_lock);
     short si = find_inode(&root, section);
     if(si >= 0)
     {
@@ -298,7 +297,7 @@ short btif_config_next_value(short pos, const char* section, const char* key, ch
             next = find_next_node(key_node, pos, name, bytes);
         }
     }
-    unlock_slot(&slot_lock);
+    pthread_mutex_unlock(&slot_lock);
     return next;
 }
 int btif_config_enum(btif_config_enum_callback cb, void* user_data)
@@ -306,7 +305,7 @@ int btif_config_enum(btif_config_enum_callback cb, void* user_data)
     bdla(cb);
     if(!cb)
         return FALSE;
-    lock_slot(&slot_lock);
+    pthread_mutex_lock(&slot_lock);
     int si, ki, vi;
     cfg_node *section_node, *key_node, *value_node;
     for(si = 0; si < GET_CHILD_COUNT(&root); si++)
@@ -332,13 +331,13 @@ int btif_config_enum(btif_config_enum_callback cb, void* user_data)
             }
         }
     }
-    unlock_slot(&slot_lock);
+    pthread_mutex_unlock(&slot_lock);
     return TRUE;
 }
 int btif_config_save()
 {
     int post_cmd = 0;
-    lock_slot(&slot_lock);
+    pthread_mutex_lock(&slot_lock);
     bdld("save_cmds_queued:%d, cached_change:%d", save_cmds_queued, cached_change);
     if((save_cmds_queued == 0) && (cached_change > 0))
     {
@@ -346,7 +345,7 @@ int btif_config_save()
         save_cmds_queued++;
         bdld("post_cmd set to 1, save_cmds_queued:%d", save_cmds_queued);
     }
-    unlock_slot(&slot_lock);
+    pthread_mutex_unlock(&slot_lock);
     /* don't hold lock when invoking send or else a deadlock could
      * occur when the socket thread tries to do the actual saving.
      */
@@ -357,10 +356,10 @@ int btif_config_save()
 }
 void btif_config_flush()
 {
-    lock_slot(&slot_lock);
+    pthread_mutex_lock(&slot_lock);
     if(cached_change > 0)
         save_cfg();
-    unlock_slot(&slot_lock);
+    pthread_mutex_unlock(&slot_lock);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 static inline short alloc_node(cfg_node* p, short grow)
@@ -798,7 +797,7 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
             int last_cached_change;
 
             // grab lock while accessing cached_change.
-            lock_slot(&slot_lock);
+            pthread_mutex_lock(&slot_lock);
             bdla(save_cmds_queued > 0);
             save_cmds_queued--;
             last_cached_change = cached_change;
@@ -810,9 +809,9 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
                 if(cached_change == 0)
                     break;
                 // release lock during sleep
-                unlock_slot(&slot_lock);
+                pthread_mutex_unlock(&slot_lock);
                 sleep(3);
-                lock_slot(&slot_lock);
+                pthread_mutex_lock(&slot_lock);
                 if(last_cached_change == cached_change)
                     break;
                 last_cached_change = cached_change;
@@ -820,7 +819,7 @@ static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
             bdld("writing the bt_config.xml now, cached change:%d", cached_change);
             if(cached_change > 0)
                 save_cfg();
-            unlock_slot(&slot_lock);
+            pthread_mutex_unlock(&slot_lock);
             break;
         }
     }
