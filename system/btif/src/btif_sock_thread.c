@@ -95,7 +95,7 @@ typedef struct {
     int poll_count;
     poll_slot_t ps[MAX_POLL];
     int psi[MAX_POLL]; //index of poll slot
-    volatile pid_t thread_id;
+    volatile pthread_t thread_id;
     btsock_signaled_cb callback;
     btsock_cmd_cb cmd_callback;
     int used;
@@ -111,18 +111,13 @@ static inline void add_poll(int h, int fd, int type, int flags, uint32_t user_id
 
 static pthread_mutex_t thread_slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
-static inline pthread_t create_thread(void *(*start_routine)(void *), void * arg)
+static inline int create_thread(void *(*start_routine)(void *), void * arg,
+                                pthread_t * thread_id)
 {
     pthread_attr_t thread_attr;
     pthread_attr_init(&thread_attr);
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
-    pthread_t thread_id = -1;
-    if( pthread_create(&thread_id, &thread_attr, start_routine, arg)!=0 )
-    {
-        APPL_TRACE_ERROR("pthread_create : %s", strerror(errno));
-        return -1;
-    }
-    return thread_id;
+    return pthread_create(thread_id, &thread_attr, start_routine, arg);
 }
 static void init_poll(int cmd_fd);
 static int alloc_thread_slot()
@@ -180,17 +175,19 @@ int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback
     if(h >= 0)
     {
         init_poll(h);
-        if((ts[h].thread_id = create_thread(sock_poll_thread, (void*)(uintptr_t)h)) != -1)
+        pthread_t thread;
+        int status = create_thread(sock_poll_thread, (void*)(uintptr_t)h, &thread);
+        if (status)
         {
-            APPL_TRACE_DEBUG("h:%d, thread id:%d", h, ts[h].thread_id);
-            ts[h].callback = callback;
-            ts[h].cmd_callback = cmd_callback;
-        }
-        else
-        {
+            APPL_TRACE_ERROR("create_thread failed: %s", strerror(status));
             free_thread_slot(h);
-            h = -1;
+            return -1;
         }
+
+        ts[h].thread_id = thread;
+        APPL_TRACE_DEBUG("h:%d, thread id:%d", h, ts[h].thread_id);
+        ts[h].callback = callback;
+        ts[h].cmd_callback = cmd_callback;
     }
     return h;
 }
