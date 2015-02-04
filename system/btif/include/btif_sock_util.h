@@ -27,34 +27,7 @@
 #ifndef BTIF_SOCK_UTIL_H
 #define BTIF_SOCK_UTIL_H
 
-#include <pthread.h>
 #include <cutils/log.h>
-
-/*******************************************************************************
-**  Functions
-********************************************************************************/
-
-static inline void init_slot_lock( pthread_mutex_t* mutex)
-{
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-    pthread_mutex_init(mutex, &attr);
-}
-
-static inline void lock_slot(pthread_mutex_t* mutex)
-{
-    if(mutex->value)
-        pthread_mutex_lock(mutex);
-    else ALOGE("mutex: %p is not initialized", mutex);
-}
-
-static inline void unlock_slot(pthread_mutex_t* mutex)
-{
-   if(mutex->value)
-        pthread_mutex_unlock(mutex);
-   else ALOGE("mutex: %p is not initialized", mutex);
-}
 
 void dump_bin(const char* title, const char* data, int size);
 
