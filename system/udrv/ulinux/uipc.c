@@ -208,7 +208,9 @@ static int accept_server_socket(int sfd)
 static int uipc_main_init(void)
 {
     int i;
-    const pthread_mutexattr_t attr = PTHREAD_MUTEX_RECURSIVE;
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&uipc_main.mutex, &attr);
 
     BTIF_TRACE_EVENT("### uipc_main_init ###");
