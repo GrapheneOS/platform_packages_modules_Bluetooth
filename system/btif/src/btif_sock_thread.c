@@ -123,12 +123,15 @@ static inline void set_socket_blocking(int s, int blocking)
     if(blocking)
         opts &= ~O_NONBLOCK;
     else opts |= O_NONBLOCK;
-    fcntl(s, F_SETFL, opts);
+    if (fcntl(s, F_SETFL, opts) < 0)
+        APPL_TRACE_ERROR("set blocking (%s)", strerror(errno));
 }
 
 static inline int create_server_socket(const char* name)
 {
     int s = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if(s < 0)
+        return -1;
     APPL_TRACE_DEBUG("covert name to android abstract name:%s", name);
     if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) >= 0)
     {
@@ -146,6 +149,8 @@ static inline int create_server_socket(const char* name)
 static inline int connect_server_socket(const char* name)
 {
     int s = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if(s < 0)
+        return -1;
     set_socket_blocking(s, TRUE);
     if(socket_local_client_connect(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) >= 0)
     {

@@ -789,7 +789,7 @@ BOOLEAN sdpu_compare_uuid_with_attr (tBT_UUID *p_btuuid, tSDP_DISC_ATTR *p_attr)
        The actual size of tSDP_DISC_ATVAL does not matter.
        If the array size in tSDP_DISC_ATVAL is increase, we would increase the system RAM usage unnecessarily
     */
-    else if (!memcmp (p_btuuid->uu.uuid128, p_attr->attr_value.v.array, MAX_UUID_SIZE))
+    else if (!memcmp (p_btuuid->uu.uuid128,(void*) p_attr->attr_value.v.array, MAX_UUID_SIZE))
         return (TRUE);
 
     return (FALSE);

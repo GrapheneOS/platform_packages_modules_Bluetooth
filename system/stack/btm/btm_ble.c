@@ -1098,24 +1098,12 @@ void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE
 
         if (cur_sec_level >= req_sec_level)
         {
-            if (cur_sec_level == BTM_LE_SEC_NONE)
-            {
-                *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_NONE;
-            }
-            else
-            {
-                /* To avoid re-encryption on an encrypted link for an equal condition encryption */
-                /* if link has been encrypted, do nothing, go straight to furhter action
-                if (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED)
-                    *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_DISCARD;
-                else
-                */
-                *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_ENCRYPT;
-            }
+            /* To avoid re-encryption on an encrypted link for an equal condition encryption */
+            *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_ENCRYPT;
         }
         else
         {
-            *p_sec_req_act =  BTM_BLE_SEC_REQ_ACT_PAIR; /* start the pariring process to upgrade the keys*/
+            *p_sec_req_act = BTM_BLE_SEC_REQ_ACT_PAIR; /* start the pariring process to upgrade the keys*/
         }
     }
 

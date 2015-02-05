@@ -279,13 +279,14 @@ tAVDT_TC_TBL *avdt_ad_tc_tbl_alloc(tAVDT_CCB *p_ccb)
     /* sanity check */
     assert(i != AVDT_NUM_TC_TBL);
 
+
     /* initialize entry */
     p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
     p_tbl->cfg_flags = 0;
     p_tbl->ccb_idx = avdt_ccb_to_idx(p_ccb);
     p_tbl->state = AVDT_AD_ST_IDLE;
-
     return p_tbl;
+
 }
 
 /*******************************************************************************
@@ -538,7 +539,12 @@ void avdt_ad_open_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, UINT8 role
     tAVDT_TC_TBL    *p_tbl;
     UINT16          lcid;
 
-    p_tbl = avdt_ad_tc_tbl_alloc(p_ccb);
+    if((p_tbl = avdt_ad_tc_tbl_alloc(p_ccb)) == NULL)
+    {
+        AVDT_TRACE_ERROR("avdt_ad_open_req: Cannot allocate p_tbl");
+        return;
+    }
+
 
     p_tbl->tcid = avdt_ad_type_to_tcid(type, p_scb);
     AVDT_TRACE_DEBUG("avdt_ad_open_req: type: %d, role: %d, tcid:%d",

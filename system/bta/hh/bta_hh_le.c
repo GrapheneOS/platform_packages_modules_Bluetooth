@@ -2317,11 +2317,12 @@ void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_b
     else
     {
 #if BTA_HH_DEBUG == TRUE
-        APPL_TRACE_ERROR("Unexpected write to %s(0x%04x)",
+            APPL_TRACE_ERROR("Unexpected write to %s(0x%04x)",
                         bta_hh_uuid_to_str(p_data->descr_type.uuid.uu.uuid16),
                         p_data->descr_type.uuid.uu.uuid16);
 #else
-        APPL_TRACE_ERROR("Unexpected write to (0x%04x)", p_data->descr_type.uuid.uu.uuid16);
+            APPL_TRACE_ERROR("Unexpected write to (0x%04x)",
+                        p_data->descr_type.uuid.uu.uuid16);
 #endif
     }
 
