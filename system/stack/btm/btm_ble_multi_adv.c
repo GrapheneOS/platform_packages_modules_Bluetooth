@@ -30,17 +30,29 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 
+/************************************************************************************
+**  Constants & Macros
+************************************************************************************/
 /* length of each multi adv sub command */
 #define BTM_BLE_MULTI_ADV_ENB_LEN                       3
 #define BTM_BLE_MULTI_ADV_SET_PARAM_LEN                 24
 #define BTM_BLE_MULTI_ADV_WRITE_DATA_LEN                (BTM_BLE_AD_DATA_LEN + 3)
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN           8
 
+#define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
+#define BTM_BLE_MULTI_ADV_SUBCODE_MASK  0x0F
+
+/************************************************************************************
+**  Static variables
+************************************************************************************/
 tBTM_BLE_MULTI_ADV_CB  btm_multi_adv_cb;
 tBTM_BLE_MULTI_ADV_INST_IDX_Q btm_multi_adv_idx_q;
 
-#define BTM_BLE_MULTI_ADV_CB_EVT_MASK   0xF0
-#define BTM_BLE_MULTI_ADV_SUBCODE_MASK  0x0F
+/************************************************************************************
+**  Externs
+************************************************************************************/
+extern void btm_ble_update_dmt_flag_bits(UINT8 *flag_value,
+                                               const UINT16 connect_mode, const UINT16 disc_mode);
 
 /*******************************************************************************
 **
@@ -643,7 +655,7 @@ tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_par
 **                  adv data or scan response data.
 **
 ** Parameters       inst_id: adv instance ID
-**                  is_scan_rsp: is this scacn response, if no set as adv data.
+**                  is_scan_rsp: is this scan response. if no, set as adv data.
 **                  data_mask: adv data mask.
 **                  p_data: pointer to the adv data structure.
 **
@@ -669,6 +681,8 @@ tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
         return BTM_ERR_PROCESSING;
     }
 
+    btm_ble_update_dmt_flag_bits(&p_data->flag, btm_cb.btm_inq_vars.connectable_mode,
+                                        btm_cb.btm_inq_vars.discoverable_mode);
 
     BTM_TRACE_EVENT("BTM_BleCfgAdvInstData called with inst_id:%d", inst_id);
     if (inst_id > BTM_BLE_MULTI_ADV_MAX || inst_id == BTM_BLE_MULTI_ADV_DEFAULT_STD)
