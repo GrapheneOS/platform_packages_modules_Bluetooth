@@ -2503,7 +2503,9 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
         case BT_PROPERTY_BDNAME:
         {
             bt_bdname_t *bd_name = (bt_bdname_t*)prop->val;
-            strcpy((char *)bd_name->name, btif_get_default_local_name());
+            strncpy((char *)bd_name->name,btif_get_default_local_name(),
+                   sizeof(bd_name->name) - 1);
+            bd_name->name[sizeof(bd_name->name) - 1] = 0;
             prop->len = strlen((char *)bd_name->name);
         }
         break;

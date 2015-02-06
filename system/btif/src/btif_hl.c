@@ -1840,8 +1840,8 @@ BOOLEAN btif_hl_find_app_idx_using_deleted_mdl_id( UINT8 mdl_id,
     {
         p_acb =BTIF_HL_GET_APP_CB_PTR(i);
         if (p_acb->delete_mdl.active) {
-            BTIF_TRACE_DEBUG("btif_hl_find_app_idx_using_deleted_mdl_id: app_idx=%d,"
-                              "mdl_id=%d mcl_handle=%d",i,mdl_id,p_acb->mcb[i].mcl_handle);
+            BTIF_TRACE_DEBUG("%s: app_idx=%d, mdl_id=%d",
+                             __FUNCTION__,i,mdl_id);
         }
         if (p_acb->delete_mdl.active &&
             (p_acb->delete_mdl.mdl_id == mdl_id))
