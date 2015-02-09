@@ -28,6 +28,7 @@
 #define LOG_TAG "bt_hci_bdroid"
 
 #include <assert.h>
+#include <signal.h>
 #include <utils/Log.h>
 
 #include "btsnoop.h"

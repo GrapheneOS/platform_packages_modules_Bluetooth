@@ -30,7 +30,9 @@
 #include <errno.h>
 #include <malloc.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/times.h>
+#include <time.h>
 
 #include "gki_int.h"
 #include "bt_utils.h"

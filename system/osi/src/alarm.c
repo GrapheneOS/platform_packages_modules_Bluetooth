@@ -24,6 +24,7 @@
 #include <inttypes.h>
 #include <malloc.h>
 #include <string.h>
+#include <signal.h>
 #include <time.h>
 #include <utils/Log.h>
 

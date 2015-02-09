@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#include <stddef.h>
+
 #include "bt_target.h"
 #include "bta_sys.h"
 #include "bta_api.h"
