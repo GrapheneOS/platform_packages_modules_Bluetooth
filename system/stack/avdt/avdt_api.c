@@ -135,11 +135,6 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
     avdt_scb_init();
     avdt_ccb_init();
     avdt_ad_init();
-#if defined(AVDT_INITIAL_TRACE_LEVEL)
-    avdt_cb.trace_level = AVDT_INITIAL_TRACE_LEVEL;
-#else
-    avdt_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
 
     /* copy registration struct */
     memcpy(&avdt_cb.rcb, p_reg, sizeof(tAVDT_REG));
