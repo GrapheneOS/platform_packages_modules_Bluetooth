@@ -136,12 +136,10 @@ typedef struct
 {
     uint8_t  status;
     uint8_t  client_if;
-    uint8_t  filt_index;
-    uint8_t  adv_state;
     uint8_t  action;
     uint8_t  avbl_space;
     uint8_t  lost_timeout;
-    bt_bdaddr_t bd_addr;
+    tBLE_ADDR_TYPE addr_type;
     uint8_t  batch_scan_full_max;
     uint8_t  batch_scan_trunc_max;
     uint8_t  batch_scan_notify_threshold;
@@ -149,9 +147,9 @@ typedef struct
     uint32_t scan_interval;
     uint32_t scan_window;
     tBTA_BLE_DISCARD_RULE discard_rule;
-    tBLE_ADDR_TYPE        addr_type;
-    btgatt_batch_reports read_reports;
+    btgatt_batch_reports  read_reports;
 } btgatt_batch_track_cb_t;
+
 
 typedef tBTA_DM_BLE_PF_FILT_PARAMS btgatt_adv_filt_param_t;
 
@@ -779,10 +777,13 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_ADV_VSC_EVT:
         {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->track_adv_event_cb
-                    ,p_data->client_if, p_data->filt_index, p_data->addr_type, &p_data->bd_addr
-                    ,p_data->adv_state);
+            btgatt_track_adv_info_t *p_data = (btgatt_track_adv_info_t*)p_param;
+            btgatt_track_adv_info_t adv_info_data;
+
+            memset(&adv_info_data, 0, sizeof(btgatt_track_adv_info_t));
+
+            btif_gatt_move_track_adv_data(&adv_info_data, p_data);
+            HAL_CBACK(bt_gatt_callbacks, client->track_adv_event_cb, &adv_info_data);
             break;
         }
 
@@ -995,19 +996,15 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void bta_track_adv_event_cb(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
-                                        int adv_state, tBTA_DM_BLE_REF_VALUE ref_value)
+static void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data)
 {
-    btgatt_batch_track_cb_t btif_scan_track_cb;
-    BTIF_TRACE_DEBUG("%s :%d, %d, %d, %d",
-        __FUNCTION__,filt_index, addr_type, adv_state, ref_value);
-    btif_scan_track_cb.filt_index = filt_index;
-    btif_scan_track_cb.addr_type = addr_type;
-    memcpy(btif_scan_track_cb.bd_addr.address, bda, sizeof(BD_ADDR));
-    btif_scan_track_cb.client_if = ref_value;
-    btif_scan_track_cb.adv_state = adv_state;
+    btgatt_track_adv_info_t btif_scan_track_cb;
+    BTIF_TRACE_DEBUG("%s",__FUNCTION__);
+    btif_gatt_move_track_adv_data(&btif_scan_track_cb,
+                (btgatt_track_adv_info_t*)p_track_adv_data);
+
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_ADV_VSC_EVT,
-                          (char*) &btif_scan_track_cb, sizeof(btgatt_batch_track_cb_t), NULL);
+                          (char*) &btif_scan_track_cb, sizeof(btgatt_track_adv_info_t), NULL);
 }
 
 static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
@@ -1981,26 +1978,26 @@ static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, 
                                  (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_param_setup(int client_if, int action,
-    int filt_index, int feat_seln, int list_logic_type, int filt_logic_type, int rssi_high_thres,
-    int rssi_low_thres, int dely_mode, int found_timeout, int lost_timeout, int found_timeout_cnt)
+static bt_status_t btif_gattc_scan_filter_param_setup(btgatt_filt_param_setup_t
+                                                      filt_param)
 {
     CHECK_BTGATT_INIT();
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
     btgatt_adv_filter_cb_t btif_filt_cb;
     memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
-    btif_filt_cb.action = action;
-    btif_filt_cb.client_if = client_if;
-    btif_filt_cb.filt_index = filt_index;
-    btif_filt_cb.adv_filt_param.feat_seln = feat_seln;
-    btif_filt_cb.adv_filt_param.list_logic_type = list_logic_type;
-    btif_filt_cb.adv_filt_param.filt_logic_type = filt_logic_type;
-    btif_filt_cb.adv_filt_param.rssi_high_thres = rssi_high_thres;
-    btif_filt_cb.adv_filt_param.rssi_low_thres = rssi_low_thres;
-    btif_filt_cb.adv_filt_param.dely_mode = dely_mode;
-    btif_filt_cb.adv_filt_param.found_timeout = found_timeout;
-    btif_filt_cb.adv_filt_param.lost_timeout = lost_timeout;
-    btif_filt_cb.adv_filt_param.found_timeout_cnt = found_timeout_cnt;
+    btif_filt_cb.client_if = filt_param.client_if;
+    btif_filt_cb.action = filt_param.action;
+    btif_filt_cb.filt_index = filt_param.filt_index;
+    btif_filt_cb.adv_filt_param.feat_seln = filt_param.feat_seln;
+    btif_filt_cb.adv_filt_param.list_logic_type = filt_param.list_logic_type;
+    btif_filt_cb.adv_filt_param.filt_logic_type = filt_param.filt_logic_type;
+    btif_filt_cb.adv_filt_param.rssi_high_thres = filt_param.rssi_high_thres;
+    btif_filt_cb.adv_filt_param.rssi_low_thres = filt_param.rssi_low_thres;
+    btif_filt_cb.adv_filt_param.dely_mode = filt_param.dely_mode;
+    btif_filt_cb.adv_filt_param.found_timeout = filt_param.found_timeout;
+    btif_filt_cb.adv_filt_param.lost_timeout = filt_param.lost_timeout;
+    btif_filt_cb.adv_filt_param.found_timeout_cnt = filt_param.found_timeout_cnt;
+    btif_filt_cb.adv_filt_param.num_of_tracking_entries = filt_param.num_of_tracking_entries;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
                                  (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }

@@ -54,6 +54,7 @@
 
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
 #define MIN_ADV_LENGTH                       2
+#define BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN    13
 
 static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
@@ -455,6 +456,12 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
+
+        if (BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN == p_vcs_cplt_params->param_len)
+        {
+            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.version_supported, p);
+            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
+        }
         btm_cb.cmn_ble_vsc_cb.values_read = TRUE;
     }
 

@@ -27,6 +27,7 @@
 
 #include "btm_api.h"
 #include "gki.h"
+#include <hardware/bt_common_types.h>
 
 #define CHNL_MAP_LEN    5
 typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
@@ -335,6 +336,8 @@ typedef struct
     UINT8 max_filter;
     UINT8 energy_support;
     BOOLEAN values_read;
+    UINT16  version_supported;
+    UINT16  total_trackable_advertisers;
 }tBTM_BLE_VSC_CB;
 
 /* slave preferred connection interval range */
@@ -599,6 +602,7 @@ typedef UINT8  tBTM_BLE_PF_RSSI_THRESHOLD;
 typedef UINT8  tBTM_BLE_PF_DELIVERY_MODE;
 typedef UINT16 tBTM_BLE_PF_TIMEOUT;
 typedef UINT8  tBTM_BLE_PF_TIMEOUT_CNT;
+typedef UINT16 tBTM_BLE_PF_ADV_TRACK_ENTRIES;
 
 typedef struct
 {
@@ -611,6 +615,7 @@ typedef struct
     tBTM_BLE_PF_TIMEOUT found_timeout;
     tBTM_BLE_PF_TIMEOUT lost_timeout;
     tBTM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
+    tBTM_BLE_PF_ADV_TRACK_ENTRIES num_of_tracking_entries;
 }tBTM_BLE_PF_FILT_PARAMS;
 
 enum
@@ -632,8 +637,8 @@ typedef UINT8 tBTM_BLE_FILT_CB_EVT;
 
 /* BLE adv payload filtering config complete callback */
 typedef void (tBTM_BLE_PF_CFG_CBACK)(tBTM_BLE_PF_ACTION action, tBTM_BLE_SCAN_COND_OP cfg_op,
-                                      tBTM_BLE_PF_AVBL_SPACE avbl_space, tBTM_STATUS status,
-                                      tBTM_BLE_REF_VALUE ref_value);
+                                     tBTM_BLE_PF_AVBL_SPACE avbl_space, tBTM_STATUS status,
+                                     tBTM_BLE_REF_VALUE ref_value);
 
 typedef void (tBTM_BLE_PF_CMPL_CBACK) (tBTM_BLE_PF_CFG_CBACK);
 
@@ -673,7 +678,8 @@ typedef struct
     UINT8                   data_len;       /* <= 20 bytes */
     UINT8                   *p_pattern;
     UINT16                  company_id_mask; /* UUID value mask */
-    UINT8                   *p_pattern_mask; /* Manufactuer data matching mask, same length as data pattern,
+    UINT8                   *p_pattern_mask; /* Manufacturer data matching mask,
+                                                same length as data pattern,
                                                 set to all 0xff, match exact data */
 }tBTM_BLE_PF_MANU_COND;
 
@@ -742,6 +748,11 @@ typedef struct
 #define BTM_BLE_META_PF_SRVC_DATA       0x07
 #define BTM_BLE_META_PF_ALL             0x08
 
+typedef UINT8 BTM_BLE_ADV_STATE;
+typedef UINT8 BTM_BLE_ADV_INFO_PRESENT;
+typedef UINT8 BTM_BLE_RSSI_VALUE;
+typedef UINT16 BTM_BLE_ADV_INFO_TIMESTAMP;
+
 /* These are the fields returned in each device adv packet.  It
 ** is returned in the results callback if registered.
 */
@@ -764,8 +775,12 @@ enum
 };
 typedef UINT8   tBTM_BLE_CONN_TYPE;
 
-typedef void (tBTM_BLE_TRACK_ADV_CBACK)(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
-                                        int adv_state, tBTM_BLE_REF_VALUE ref_value);
+#define ADV_INFO_PRESENT        0x00
+#define NO_ADV_INFO_PRESENT     0x01
+
+typedef btgatt_track_adv_info_t tBTM_BLE_TRACK_ADV_DATA;
+
+typedef void (tBTM_BLE_TRACK_ADV_CBACK)(tBTM_BLE_TRACK_ADV_DATA *p_track_adv_data);
 
 typedef UINT8 tBTM_BLE_TRACK_ADV_EVT;
 

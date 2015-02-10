@@ -36,6 +36,8 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src);
 uint16_t get_uuid16(tBT_UUID *p_uuid);
 
 void btif_gatt_check_encrypted_link(BD_ADDR bd_addr);
+extern void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t *p_dest,
+                                btgatt_track_adv_info_t *p_src);
 
 #endif
 

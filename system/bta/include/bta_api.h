@@ -992,6 +992,7 @@ typedef UINT8  tBTA_DM_BLE_PF_RSSI_THRESHOLD;
 typedef UINT8  tBTA_DM_BLE_PF_DELIVERY_MODE;
 typedef UINT16 tBTA_DM_BLE_PF_TIMEOUT;
 typedef UINT8  tBTA_DM_BLE_PF_TIMEOUT_CNT;
+typedef UINT16 tBTA_DM_BLE_PF_ADV_TRACK_ENTRIES;
 
 typedef struct
 {
@@ -1004,6 +1005,7 @@ typedef struct
     tBTA_DM_BLE_PF_TIMEOUT found_timeout;
     tBTA_DM_BLE_PF_TIMEOUT lost_timeout;
     tBTA_DM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
+    tBTA_DM_BLE_PF_ADV_TRACK_ENTRIES num_of_tracking_entries;
 } tBTA_DM_BLE_PF_FILT_PARAMS;
 
 /* Search callback events */
@@ -1117,6 +1119,12 @@ typedef tBTM_BLE_ENERGY_USED        tBTA_DM_BLE_ENERGY_USED;
 
 typedef UINT8 tBTA_DM_CONTRL_STATE;
 
+typedef UINT8 tBTA_DM_BLE_ADV_STATE;
+typedef UINT8 tBTA_DM_BLE_ADV_INFO_PRESENT;
+typedef UINT8 tBTA_DM_BLE_RSSI_VALUE;
+typedef UINT16 tBTA_DM_BLE_ADV_INFO_TIMESTAMP;
+
+typedef tBTM_BLE_TRACK_ADV_DATA tBTA_DM_BLE_TRACK_ADV_DATA;
 
 typedef void (tBTA_BLE_SCAN_THRESHOLD_CBACK)(tBTA_DM_BLE_REF_VALUE ref_value);
 
@@ -1132,8 +1140,7 @@ typedef void (tBTA_BLE_TRACK_ADV_CMPL_CBACK)(int action, tBTA_STATUS status,
                                              tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
                                              tBTA_DM_BLE_REF_VALUE ref_value);
 
-typedef void (tBTA_BLE_TRACK_ADV_CBACK)(int filt_index, tBLE_ADDR_TYPE addr_type, BD_ADDR bda,
-                                        int adv_state, tBTA_DM_BLE_REF_VALUE ref_value);
+typedef void (tBTA_BLE_TRACK_ADV_CBACK)(tBTA_DM_BLE_TRACK_ADV_DATA *p_adv_data);
 
 typedef void (tBTA_BLE_ENERGY_INFO_CBACK)(tBTA_DM_BLE_TX_TIME_MS tx_time,
                                           tBTA_DM_BLE_RX_TIME_MS rx_time,
