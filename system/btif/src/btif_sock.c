@@ -94,8 +94,8 @@ bt_status_t btif_sock_init()
 }
 void btif_sock_cleanup()
 {
-    btsock_sco_cleanup();
     btsock_rfc_cleanup();
+    btsock_sco_cleanup();
     BTIF_TRACE_DEBUG("leaving");
 }
 
