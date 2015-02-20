@@ -14,7 +14,7 @@ endif
 bdroid_CFLAGS += -Wall -Werror
 
 # Temporary, remove after cleanup. b/18632512
-bdroid_CFLAGS += -Wno-unused -Wno-typedef-redefinition
+bdroid_CFLAGS += -Wno-unused
 
 ifneq ($(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED),)
   bdroid_CFLAGS += -DHCILP_INCLUDED=$(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED)
