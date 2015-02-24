@@ -130,7 +130,7 @@ void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *
   alarm->data = data;
 
   // Add it into the timer list sorted by deadline (earliest deadline first).
-  if (list_is_empty(alarms))
+  if (list_is_empty(alarms) || ((alarm_t *)list_front(alarms))->deadline >= alarm->deadline)
     list_prepend(alarms, alarm);
   else
     for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
