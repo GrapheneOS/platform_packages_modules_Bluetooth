@@ -508,12 +508,11 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
             ** with unknown control extension headers then those should be processed
             ** according to complain/ignore law
             */
-            UINT8       ext, length, *p_data;
+            UINT8       ext, length;
             UINT16      org_len, new_len;
             /* parse the extension headers and process unknown control headers */
             org_len = rem_len;
             new_len = 0;
-            p_data  = p;
             do {
 
                 ext     = *p++;

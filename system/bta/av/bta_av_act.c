@@ -870,7 +870,6 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     tAVRC_MSG_VENDOR    *p_vendor = &p_data->rc_msg.msg.vendor;
     BOOLEAN is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) || p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
 #if (AVRC_METADATA_INCLUDED == TRUE)
-    tAVRC_STS   res;
     UINT8       ctype = 0;
     tAVRC_RESPONSE  rc_rsp;
 
@@ -998,7 +997,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         if (!p_pkt)
         {
             rc_rsp.rsp.opcode = p_data->rc_msg.opcode;
-            res = AVRC_BldResponse (0, &rc_rsp, &p_pkt);
+            AVRC_BldResponse (0, &rc_rsp, &p_pkt);
         }
         if (p_pkt)
             AVRC_MsgReq (p_data->rc_msg.handle, p_data->rc_msg.label, ctype, p_pkt);

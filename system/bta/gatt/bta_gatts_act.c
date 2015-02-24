@@ -113,7 +113,6 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 {
     UINT8 index=0;
     tBTA_GATTS_HNDL_RANGE handle_range;
-    tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
     if (p_cb->enabled)
     {
@@ -137,7 +136,6 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
         if (!GATTS_NVRegister(&bta_gatts_nv_cback))
         {
             APPL_TRACE_ERROR("BTA GATTS NV register failed.");
-            status = BTA_GATT_ERROR;
         }
     }
 }

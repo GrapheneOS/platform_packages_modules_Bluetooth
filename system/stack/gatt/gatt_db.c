@@ -216,7 +216,6 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     UINT16          len = 0, uuid16 = 0;
     UINT8           *p = *p_data;
     tGATT_STATUS    status;
-    UINT16          read_long_uuid=0;
     tGATT_ATTR16    *p_attr16  = (tGATT_ATTR16  *)p_attr;
 
     GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
@@ -235,12 +234,6 @@ static tGATT_STATUS read_attr_value (void *p_attr,
         uuid16 = p_attr16->uuid;
 
     status = GATT_NO_RESOURCES;
-
-    if (read_long &&
-        (uuid16 == GATT_UUID_CHAR_DESCRIPTION || uuid16 == GATT_UUID_CHAR_AGG_FORMAT))
-    {
-        read_long_uuid = p_attr16->uuid;
-    }
 
     if (uuid16 == GATT_UUID_PRI_SERVICE || uuid16 == GATT_UUID_SEC_SERVICE)
     {

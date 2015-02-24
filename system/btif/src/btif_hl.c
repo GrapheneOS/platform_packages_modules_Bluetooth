@@ -564,7 +564,7 @@ static BOOLEAN btif_hl_find_sdp_idx_using_mdep_filter(UINT8 app_idx, UINT8 mcl_i
 {
     btif_hl_app_cb_t          *p_acb  =BTIF_HL_GET_APP_CB_PTR(app_idx);
     btif_hl_mcl_cb_t          *p_mcb  =BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    UINT8                   i, j, num_recs,num_elems, num_mdeps, mdep_cnt, mdep_idx;
+    UINT8                   i, j, num_recs,num_elems, num_mdeps, mdep_idx;
     tBTA_HL_MDEP_ROLE       peer_mdep_role;
     UINT16                  data_type;
     tBTA_HL_SDP_MDEP_CFG    *p_mdep;
@@ -590,7 +590,6 @@ static BOOLEAN btif_hl_find_sdp_idx_using_mdep_filter(UINT8 app_idx, UINT8 mcl_i
             data_type = p_acb->filter.elem[j].data_type;
             peer_mdep_role = p_acb->filter.elem[j].peer_mdep_role;
             elem_found = FALSE;
-            mdep_cnt =0;
             mdep_idx=0;
             while (!elem_found && mdep_idx < num_mdeps )
             {
@@ -1176,7 +1175,6 @@ static BOOLEAN btif_hl_find_peer_mdep_id(UINT8 app_id, BD_ADDR bd_addr,
                                          UINT16 data_type,
                                          tBTA_HL_MDEP_ID *p_peer_mdep_id){
     UINT8               app_idx, mcl_idx;
-    btif_hl_app_cb_t     *p_acb;
     btif_hl_mcl_cb_t     *p_mcb;
     tBTA_HL_SDP_REC     *p_rec;
     UINT8               i, num_mdeps;
@@ -1203,7 +1201,7 @@ static BOOLEAN btif_hl_find_peer_mdep_id(UINT8 app_id, BD_ADDR bd_addr,
 
     if (btif_hl_find_app_idx(app_id, &app_idx) )
     {
-        p_acb  = BTIF_HL_GET_APP_CB_PTR(app_idx);
+        BTIF_HL_GET_APP_CB_PTR(app_idx);
         if (btif_hl_find_mcl_idx(app_idx, bd_addr, &mcl_idx))
         {
             p_mcb  =BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
@@ -2574,7 +2572,6 @@ BOOLEAN btif_hl_proc_pending_op(UINT8 app_idx, UINT8 mcl_idx)
 static BOOLEAN btif_hl_proc_cch_open_cfm(tBTA_HL *p_data)
 
 {
-    btif_hl_app_cb_t         *p_acb;
     btif_hl_mcl_cb_t         *p_mcb;
     UINT8                    app_idx, mcl_idx;
     BOOLEAN                  status = FALSE;
@@ -2587,7 +2584,7 @@ static BOOLEAN btif_hl_proc_cch_open_cfm(tBTA_HL *p_data)
         BTIF_TRACE_DEBUG("app_idx=%d", app_idx);
         if (btif_hl_find_mcl_idx(app_idx, p_data->cch_open_cfm.bd_addr, &mcl_idx))
         {
-            p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
+            BTIF_HL_GET_APP_CB_PTR(app_idx);
 
             p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
             BTIF_TRACE_DEBUG("mcl_idx=%d, mcl_handle=%d", mcl_idx,p_data->cch_open_cfm.mcl_handle);
@@ -2765,8 +2762,6 @@ static void btif_hl_proc_create_ind(tBTA_HL *p_data){
 static void btif_hl_proc_dch_open_ind(tBTA_HL *p_data)
 
 {
-    btif_hl_app_cb_t         *p_acb;
-    btif_hl_mcl_cb_t         *p_mcb;
     btif_hl_mdl_cb_t         *p_dcb;
     UINT8                    orig_app_idx, mcl_idx, mdl_idx, mdep_cfg_idx;
     UINT8                    dc_cfg;
@@ -2779,8 +2774,8 @@ static void btif_hl_proc_dch_open_ind(tBTA_HL *p_data)
 
     if (btif_hl_find_mcl_idx_using_app_idx(p_data->dch_open_ind.mcl_handle, orig_app_idx, &mcl_idx ))
     {
-        p_acb =BTIF_HL_GET_APP_CB_PTR(orig_app_idx);
-        p_mcb =BTIF_HL_GET_MCL_CB_PTR(orig_app_idx, mcl_idx);
+        BTIF_HL_GET_APP_CB_PTR(orig_app_idx);
+        BTIF_HL_GET_MCL_CB_PTR(orig_app_idx, mcl_idx);
 
         if (btif_hl_find_avail_mdl_idx(orig_app_idx, mcl_idx, &mdl_idx))
         {
@@ -2845,8 +2840,6 @@ static void btif_hl_proc_dch_open_ind(tBTA_HL *p_data)
 static BOOLEAN btif_hl_proc_dch_open_cfm(tBTA_HL *p_data)
 
 {
-    btif_hl_app_cb_t            *p_acb;
-    btif_hl_mcl_cb_t            *p_mcb;
     btif_hl_mdl_cb_t            *p_dcb;
     btif_hl_pending_chan_cb_t   *p_pcb;
     UINT8                    app_idx, mcl_idx, mdl_idx, mdep_cfg_idx;
@@ -2860,8 +2853,8 @@ static BOOLEAN btif_hl_proc_dch_open_cfm(tBTA_HL *p_data)
 
     if (btif_hl_find_mcl_idx_using_app_idx(p_data->dch_open_cfm.mcl_handle, app_idx, &mcl_idx ))
     {
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+        BTIF_HL_GET_APP_CB_PTR(app_idx);
+        BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
         p_pcb = BTIF_HL_GET_PCB_PTR(app_idx, mcl_idx);
 
         if (btif_hl_find_avail_mdl_idx(app_idx, mcl_idx, &mdl_idx))
@@ -2922,8 +2915,6 @@ static BOOLEAN btif_hl_proc_dch_open_cfm(tBTA_HL *p_data)
 *******************************************************************************/
 static BOOLEAN btif_hl_proc_dch_reconnect_cfm(tBTA_HL *p_data)
 {
-    btif_hl_app_cb_t            *p_acb;
-    btif_hl_mcl_cb_t            *p_mcb;
     btif_hl_mdl_cb_t            *p_dcb;
     btif_hl_pending_chan_cb_t   *p_pcb;
     UINT8                    app_idx, mcl_idx, mdl_idx, mdep_cfg_idx;
@@ -2936,8 +2927,8 @@ static BOOLEAN btif_hl_proc_dch_reconnect_cfm(tBTA_HL *p_data)
 
     if (btif_hl_find_mcl_idx_using_app_idx(p_data->dch_reconnect_cfm.mcl_handle, app_idx, &mcl_idx ))
     {
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
-        p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+        BTIF_HL_GET_APP_CB_PTR(app_idx);
+        BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
         p_pcb = BTIF_HL_GET_PCB_PTR(app_idx, mcl_idx);
 
         if (btif_hl_find_avail_mdl_idx(app_idx, mcl_idx, &mdl_idx))
@@ -3001,7 +2992,6 @@ static void btif_hl_proc_dch_reconnect_ind(tBTA_HL *p_data)
 
 {
     btif_hl_app_cb_t        *p_acb;
-    btif_hl_mcl_cb_t        *p_mcb;
     btif_hl_mdl_cb_t        *p_dcb;
     UINT8                   app_idx, mcl_idx, mdl_idx, mdep_cfg_idx, dc_cfg;
     BOOLEAN                 close_dch = FALSE;
@@ -3016,7 +3006,7 @@ static void btif_hl_proc_dch_reconnect_ind(tBTA_HL *p_data)
         p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
         BTIF_TRACE_DEBUG("btif_hl_proc_dch_reconnect_ind: app_idx = %d, mcl_idx = %d",
                                 app_idx, mcl_idx);
-        p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+        BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
 
         if (btif_hl_find_avail_mdl_idx(app_idx, mcl_idx, &mdl_idx))
         {
@@ -3292,7 +3282,6 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
     tBTA_HL_REG_PARAM               reg_param;
     btif_hl_app_cb_t                *p_acb;
     bthl_app_reg_state_t            reg_state = BTHL_APP_REG_STATE_REG_FAILED;
-    int                             app_id;
     UINT8                           preg_idx;
     bt_status_t                     bt_status;
 
@@ -3326,7 +3315,6 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param){
             break;
         case BTIF_HL_REG_APP:
             p_acb  = BTIF_HL_GET_APP_CB_PTR(p_data->reg.app_idx);
-            app_id = (int) p_acb->app_id;
             BTIF_TRACE_DEBUG("Rcv BTIF_HL_REG_APP app_idx=%d reg_pending=%d", p_data->reg.app_idx, p_acb->reg_pending);
             if (btif_hl_get_state() == BTIF_HL_STATE_ENABLED && p_acb->reg_pending)
             {
@@ -4166,7 +4154,6 @@ static bt_status_t destroy_channel(int channel_id){
 **
 *******************************************************************************/
 static bt_status_t unregister_application(int app_id){
-    btif_hl_app_cb_t    *p_acb;
     UINT8               app_idx;
     int                 len;
     bt_status_t         status = BT_STATUS_SUCCESS;
@@ -4179,7 +4166,7 @@ static bt_status_t unregister_application(int app_id){
     if (btif_hl_find_app_idx(((UINT8)app_id), &app_idx))
     {
         evt_param.unreg.app_idx = app_idx;
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
+        BTIF_HL_GET_APP_CB_PTR(app_idx);
         reg_counter --;
         len = sizeof(btif_hl_unreg_t);
         status = btif_transfer_context (btif_hl_proc_cb_evt, BTIF_HL_UNREG_APP,
@@ -4403,7 +4390,6 @@ BOOLEAN  btif_hl_save_mdl_cfg(UINT8 mdep_id, UINT8 item_idx,
 BOOLEAN  btif_hl_delete_mdl_cfg(UINT8 mdep_id, UINT8 item_idx){
     btif_hl_mdl_cfg_t     *p_mdl=NULL;
     BOOLEAN             success = FALSE;
-    btif_hl_app_cb_t      *p_acb;
     UINT8               app_idx, len;
     bt_status_t         bt_status;
     btif_hl_evt_cb_t    evt_param;
@@ -4411,7 +4397,7 @@ BOOLEAN  btif_hl_delete_mdl_cfg(UINT8 mdep_id, UINT8 item_idx){
     if(btif_hl_find_app_idx_using_mdepId(mdep_id,&app_idx))
     {
 
-        p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
+        BTIF_HL_GET_APP_CB_PTR(app_idx);
 
         p_mdl = BTIF_HL_GET_MDL_CFG_PTR(app_idx, item_idx);
         if (p_mdl)

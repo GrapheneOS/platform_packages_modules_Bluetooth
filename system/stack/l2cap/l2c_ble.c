@@ -583,8 +583,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 {
     UINT8           *p_pkt_end;
     UINT8           cmd_code, id;
-    UINT16          cmd_len, rej_reason;
-    UINT16          result;
+    UINT16          cmd_len;
     UINT16          min_interval, max_interval, latency, timeout;
 
     p_pkt_end = p + pkt_len;
@@ -605,7 +604,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         case L2CAP_CMD_REJECT:
         case L2CAP_CMD_ECHO_RSP:
         case L2CAP_CMD_INFO_RSP:
-            STREAM_TO_UINT16 (rej_reason, p);
+            p += 2;
             break;
         case L2CAP_CMD_ECHO_REQ:
         case L2CAP_CMD_INFO_REQ:
@@ -648,7 +647,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             break;
 
         case L2CAP_CMD_BLE_UPDATE_RSP:
-            STREAM_TO_UINT16 (result, p);
+            p += 2;
             break;
 
         default:

@@ -165,7 +165,6 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     BT_HDR  *p_pkt;
     UINT8   *p, *p_start;
     BOOLEAN chk_mdl = FALSE;
-    tMCA_DCB    *p_dcb;
 
     MCA_TRACE_DEBUG ("mca_ccb_snd_rsp cong=%d req=%d", p_ccb->cong, p_msg->op_code);
     /* assume that API functions verified the parameters */
@@ -187,7 +186,7 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 
         if (chk_mdl && p_msg->rsp_code == MCA_RSP_SUCCESS)
         {
-            p_dcb = mca_dcb_by_hdl(p_msg->dcb_idx);
+            mca_dcb_by_hdl(p_msg->dcb_idx);
             BTM_SetSecurityLevel(FALSE, "", BTM_SEC_SERVICE_MCAP_DATA, p_ccb->sec_mask,
                 p_ccb->p_rcb->reg.data_psm, BTM_SEC_PROTO_MCA, p_msg->dcb_idx);
             p_ccb->status = MCA_CCB_STAT_PENDING;

@@ -351,7 +351,6 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
     unsigned int    cpy_len;
     UINT32          list_len;
     UINT8           *p;
-    UINT8           * p_temp;
     UINT8           type;
     UINT32          delta_len = 0;
 
@@ -370,7 +369,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
     {
         cpy_len = p_ccb->p_db->raw_size - p_ccb->p_db->raw_used;
         list_len = p_ccb->list_len;
-        p_temp = p = &p_ccb->rsp_list[0];
+        p = &p_ccb->rsp_list[0];
 
         if(offset)
         {

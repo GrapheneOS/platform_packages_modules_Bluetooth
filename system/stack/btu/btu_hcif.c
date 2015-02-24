@@ -592,11 +592,10 @@ static void btu_hcif_connection_request_evt (UINT8 *p)
 *******************************************************************************/
 static void btu_hcif_disconnection_comp_evt (UINT8 *p)
 {
-    UINT8   status;
     UINT16  handle;
     UINT8   reason;
 
-    STREAM_TO_UINT8  (status, p);
+    ++p;
     STREAM_TO_UINT16 (handle, p);
     STREAM_TO_UINT8  (reason, p);
 

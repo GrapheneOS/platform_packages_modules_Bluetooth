@@ -39,7 +39,7 @@ BOOLEAN bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
                                       tBTA_HL_SUP_FEATURE_LIST_ELEM *p_list)
 {
     tSDP_DISC_ATTR  *p_sattr;
-    UINT8           seq_len, item_cnt;
+    UINT8           item_cnt;
     UINT8           list_cnt=0;
     BOOLEAN         status=TRUE;
 
@@ -50,7 +50,7 @@ BOOLEAN bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
         {
             return(FALSE);
         }
-        seq_len =SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
+        SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         item_cnt=0;
 
         for (p_sattr = p_attr->attr_value.v.p_sub_attr; p_sattr && (item_cnt < 4) ; p_sattr = p_sattr->p_next_attr)

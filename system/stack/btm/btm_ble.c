@@ -1510,13 +1510,13 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 {
     UINT8   *p = (UINT8 *)p_data;
     tBTM_SEC_DEV_REC    *match_rec = (tBTM_SEC_DEV_REC *) p_rec;
-    UINT8       role, status, bda_type;
+    UINT8       role, bda_type;
     UINT16      handle;
     BD_ADDR     bda;
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
 
-    STREAM_TO_UINT8   (status, p);
+    ++p;
     STREAM_TO_UINT16   (handle, p);
     STREAM_TO_UINT8    (role, p);
     STREAM_TO_UINT8    (bda_type, p);

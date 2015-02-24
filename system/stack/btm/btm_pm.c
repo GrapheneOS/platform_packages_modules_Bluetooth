@@ -870,7 +870,7 @@ void btm_pm_proc_ssr_evt (UINT8 *p, UINT16 evt_len)
 {
     UINT8       status;
     UINT16      handle;
-    UINT16      max_tx_lat, max_rx_lat;
+    UINT16      max_rx_lat;
     int         xx, yy;
     tBTM_PM_MCB *p_cb;
     tACL_CONN   *p_acl=NULL;
@@ -884,7 +884,7 @@ void btm_pm_proc_ssr_evt (UINT8 *p, UINT16 evt_len)
     if ((xx = btm_handle_to_acl_index(handle)) >= MAX_L2CAP_LINKS)
         return;
 
-    STREAM_TO_UINT16 (max_tx_lat, p);
+    p += 2;
     STREAM_TO_UINT16 (max_rx_lat, p);
     p_cb = &(btm_cb.pm_mode_db[xx]);
 

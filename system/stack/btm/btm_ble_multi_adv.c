@@ -735,7 +735,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
 void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
 {
     UINT8   sub_event;
-    UINT8   adv_inst, reason, conn_handle, idx;
+    UINT8   adv_inst, conn_handle, idx;
 
     /* Check if this is a BLE RSSI vendor specific event */
     STREAM_TO_UINT8(sub_event, p);
@@ -745,7 +745,7 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
     if ((sub_event == HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG) && (len >= 4))
     {
         STREAM_TO_UINT8(adv_inst, p);
-        STREAM_TO_UINT8(reason, p);
+        ++p;
         STREAM_TO_UINT16(conn_handle, p);
 
         if ((idx = btm_handle_to_acl_index(conn_handle)) != MAX_L2CAP_LINKS)

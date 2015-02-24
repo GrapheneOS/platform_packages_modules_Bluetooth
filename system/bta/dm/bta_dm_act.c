@@ -628,10 +628,7 @@ void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_vendor_spec_command (tBTA_DM_MSG *p_data)
 {
-    tBTM_STATUS status;
-
-    status = BTM_VendorSpecificCommand(p_data->vendor_command.opcode,p_data->vendor_command.param_len,p_data->vendor_command.p_param_buf, p_data->vendor_command.p_cback);
-
+    BTM_VendorSpecificCommand(p_data->vendor_command.opcode,p_data->vendor_command.param_len,p_data->vendor_command.p_param_buf, p_data->vendor_command.p_cback);
 }
 
 

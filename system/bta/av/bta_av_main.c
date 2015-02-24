@@ -1097,7 +1097,6 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 {
     UINT8 role;
     BOOLEAN is_ok = TRUE;
-    BOOLEAN need_timer = FALSE;
 
     if (BTM_GetRole(p_scb->peer_addr, &role) == BTM_SUCCESS)
     {
@@ -1110,7 +1109,6 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
             if (BTM_CMD_STARTED != BTM_SwitchRole(p_scb->peer_addr, BTM_ROLE_MASTER, NULL))
             {
                 /* can not switch role on SCB - start the timer on SCB */
-                need_timer = TRUE;
             }
             is_ok = FALSE;
             p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_START;

@@ -1138,10 +1138,7 @@ void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages)
 void btm_process_remote_ext_features_page (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec,
                                            UINT8 page_idx)
 {
-    UINT16            handle;
     UINT8             req_pend;
-
-    handle = p_acl_cb->hci_handle;
 
     memcpy (p_dev_rec->features[page_idx], p_acl_cb->peer_lmp_features[page_idx],
             HCI_FEATURE_BYTES_PER_PAGE);
@@ -1322,13 +1319,13 @@ void btm_read_remote_features_complete (UINT8 *p)
 void btm_read_remote_ext_features_complete (UINT8 *p)
 {
     tACL_CONN   *p_acl_cb;
-    UINT8       status, page_num, max_page;
+    UINT8       page_num, max_page;
     UINT16      handle;
     UINT8       acl_idx;
 
     BTM_TRACE_DEBUG ("btm_read_remote_ext_features_complete");
 
-    STREAM_TO_UINT8  (status, p);
+    ++p;
     STREAM_TO_UINT16 (handle, p);
     STREAM_TO_UINT8  (page_num, p);
     STREAM_TO_UINT8  (max_page, p);

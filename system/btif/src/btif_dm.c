@@ -435,7 +435,6 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     UINT16 manufacturer = 0;
     UINT8 lmp_ver = 0;
     UINT16 lmp_subver = 0;
-    tBTM_STATUS btm_status;
     bt_property_t prop_name;
     bt_remote_version_t info;
     bt_status_t status;
@@ -445,7 +444,7 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
         return FALSE;
 
 /* fetch additional info about remote device used in iop query */
-    btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)remote_bdaddr, &lmp_ver,
+    BTM_ReadRemoteVersion(*(BD_ADDR*)remote_bdaddr, &lmp_ver,
                     &manufacturer, &lmp_subver);
 
 

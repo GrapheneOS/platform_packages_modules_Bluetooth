@@ -299,7 +299,6 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
     tPAN_CONN       *pcb;
     tBNEP_RESULT    result;
     tBT_UUID        src_uuid, dst_uuid;
-    UINT8           service_id;
     UINT32 mx_chan_id;
 
     /*
@@ -343,17 +342,14 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
         src_uuid.uu.uuid16 = UUID_SERVCLASS_PANU;
         if (dst_role == PAN_ROLE_CLIENT)
         {
-            service_id = BTM_SEC_SERVICE_BNEP_PANU;
             dst_uuid.uu.uuid16 = UUID_SERVCLASS_PANU;
         }
         else if (dst_role == PAN_ROLE_GN_SERVER)
         {
-            service_id = BTM_SEC_SERVICE_BNEP_GN;
             dst_uuid.uu.uuid16 = UUID_SERVCLASS_GN;
         }
         else
         {
-            service_id = BTM_SEC_SERVICE_BNEP_NAP;
             dst_uuid.uu.uuid16 = UUID_SERVCLASS_NAP;
         }
         mx_chan_id = dst_uuid.uu.uuid16;
@@ -370,12 +366,10 @@ tPAN_RESULT PAN_Connect (BD_ADDR rem_bda, UINT8 src_role, UINT8 dst_role, UINT16
         dst_uuid.uu.uuid16 = UUID_SERVCLASS_PANU;
         if (src_role == PAN_ROLE_GN_SERVER)
         {
-            service_id = BTM_SEC_SERVICE_BNEP_GN;
             src_uuid.uu.uuid16 = UUID_SERVCLASS_GN;
         }
         else
         {
-            service_id = BTM_SEC_SERVICE_BNEP_NAP;
             src_uuid.uu.uuid16 = UUID_SERVCLASS_NAP;
         }
         mx_chan_id = src_uuid.uu.uuid16;

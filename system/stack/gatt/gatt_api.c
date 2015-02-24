@@ -1601,7 +1601,6 @@ BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_c
 BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
 {
     tGATT_REG    *p_reg;
-    BOOLEAN status = TRUE;
 
     GATT_TRACE_API ("GATT_Listen gatt_if=%d", gatt_if);
 
@@ -1614,7 +1613,7 @@ BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
 
     if (bd_addr != NULL)
     {
-        status = gatt_update_auto_connect_dev(gatt_if,start, bd_addr, FALSE);
+        gatt_update_auto_connect_dev(gatt_if,start, bd_addr, FALSE);
     }
     else
     {

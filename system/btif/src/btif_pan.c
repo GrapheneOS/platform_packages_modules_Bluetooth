@@ -368,7 +368,7 @@ static int tap_if_up(const char *devname, const bt_bdaddr_t *addr)
 static int tap_if_down(const char *devname)
 {
     struct ifreq ifr;
-    int sk, err;
+    int sk;
 
     sk = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -377,7 +377,7 @@ static int tap_if_down(const char *devname)
 
     ifr.ifr_flags &= ~IFF_UP;
 
-    err = ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
+    ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
 
     close(sk);
 

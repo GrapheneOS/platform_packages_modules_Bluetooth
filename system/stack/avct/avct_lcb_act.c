@@ -674,6 +674,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
     /* parse header byte */
     AVCT_PRS_HDR(p, label, type, cr_ipid);
+    UNUSED(type);
 
     /* check for invalid cr_ipid */
     if (cr_ipid == AVCT_CR_IPID_INVALID)
