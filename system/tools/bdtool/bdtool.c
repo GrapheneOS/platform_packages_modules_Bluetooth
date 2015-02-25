@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
-    int rc = bt_interface->create_bond(&bt_remote_bdaddr);
+    int rc = bt_interface->create_bond(&bt_remote_bdaddr, 0 /* UNKNOWN; Currently not documented :( */);
     fprintf(stdout, "Started bonding:%d for %d seconds\n", rc, timeout_in_sec);
 
     sleep(timeout_in_sec);
@@ -141,8 +141,7 @@ int main(int argc, char **argv) {
   if (get_name) {
     CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
-    int error;
-    CALL_AND_WAIT(error = bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    CALL_AND_WAIT(bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
     bt_property_t *property = adapter_get_property(BT_PROPERTY_BDNAME);
     const bt_bdname_t *bdname = property_extract_bdname(property);
     if (bdname)
@@ -155,11 +154,10 @@ int main(int argc, char **argv) {
     CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
     fprintf(stdout, "BT adapter is up\n");
 
-    int error;
     bt_property_t *property = property_new_name(bd_name);
     printf("Setting bluetooth device name to:%s\n", bd_name);
-    CALL_AND_WAIT(error = bt_interface->set_adapter_property(property), adapter_properties);
-    CALL_AND_WAIT(error = bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
+    CALL_AND_WAIT(bt_interface->set_adapter_property(property), adapter_properties);
+    CALL_AND_WAIT(bt_interface->get_adapter_property(BT_PROPERTY_BDNAME), adapter_properties);
     property_free(property);
     sleep(timeout_in_sec);
   }
