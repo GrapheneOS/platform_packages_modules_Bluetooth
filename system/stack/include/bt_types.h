@@ -126,16 +126,6 @@ typedef bool BOOLEAN;
 /* gap events */
 #define BT_EVT_TO_GAP_MSG           0x3b00
 
-/* start timer */
-#define BT_EVT_TO_START_TIMER       0x3c00
-
-/* stop timer */
-#define BT_EVT_TO_STOP_TIMER        0x3d00
-
-/* start quick timer */
-#define BT_EVT_TO_START_QUICK_TIMER 0x3e00
-
-
 /* for NFC                          */
                                                 /************************************/
 #define BT_EVT_TO_NFC_NCI           0x4000      /* NCI Command, Notification or Data*/
@@ -144,12 +134,6 @@ typedef bool BOOLEAN;
 #define BT_EVT_TO_NFC_ERR           0x4300      /* Error notification to NFC Task */
 
 #define BT_EVT_TO_NFCCSIM_NCI       0x4a00      /* events to NFCC simulation (NCI packets) */
-
-/* start timer */
-#define BT_EVT_TO_START_TIMER_ONESHOT 0x4c00
-
-/* stop timer */
-#define BT_EVT_TO_STOP_TIMER_ONESHOT  0x4d00
 
 /* HCISU Events */
 

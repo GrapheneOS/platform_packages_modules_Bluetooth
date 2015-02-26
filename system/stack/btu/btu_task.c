@@ -239,47 +239,6 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             btu_hcif_send_cmd ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
             break;
 
-            // NOTE: The timer calls below may not be sent by HCI.
-        case BT_EVT_TO_START_TIMER :
-            /* Start free running 1 second timer for list management */
-            GKI_start_timer (TIMER_0, GKI_SECS_TO_TICKS (1), TRUE);
-            GKI_freebuf (p_msg);
-            break;
-
-        case BT_EVT_TO_STOP_TIMER:
-            if (GKI_timer_queue_is_empty(&btu_cb.timer_queue)) {
-                GKI_stop_timer(TIMER_0);
-            }
-            GKI_freebuf (p_msg);
-            break;
-
-                    case BT_EVT_TO_START_TIMER_ONESHOT:
-                        if (!GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                            TIMER_LIST_ENT *tle = GKI_timer_getfirst(&btu_cb.timer_queue_oneshot);
-                            // Start non-repeating timer.
-                            GKI_start_timer(TIMER_3, tle->ticks, FALSE);
-                        } else {
-                            BTM_TRACE_WARNING("Oneshot timer queue empty when received start request");
-                        }
-                        GKI_freebuf(p_msg);
-                        break;
-
-                    case BT_EVT_TO_STOP_TIMER_ONESHOT:
-                        if (GKI_timer_queue_is_empty(&btu_cb.timer_queue_oneshot)) {
-                            GKI_stop_timer(TIMER_3);
-                        } else {
-                            BTM_TRACE_WARNING("Oneshot timer queue not empty when received stop request");
-                        }
-                        GKI_freebuf (p_msg);
-                        break;
-
-#if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-        case BT_EVT_TO_START_QUICK_TIMER :
-            GKI_start_timer (TIMER_2, QUICK_TIMER_TICKS, TRUE);
-            GKI_freebuf (p_msg);
-            break;
-#endif
-
         default:;
             int i = 0;
             uint16_t mask = (UINT16) (p_msg->event & BT_EVT_MASK);
