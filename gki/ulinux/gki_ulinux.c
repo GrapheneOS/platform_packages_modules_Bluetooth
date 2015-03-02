@@ -69,28 +69,6 @@ typedef struct
 
 static gki_pthread_info_t gki_pthread_info[GKI_MAX_TASKS];
 
-// Only a single alarm is used to wake bluedroid.
-// NOTE: Must be manipulated with the GKI_disable() lock held.
-static alarm_t *alarm_timer;
-static int32_t alarm_ticks;
-
-static void bt_alarm_cb(UNUSED_ATTR void *data) {
-    GKI_timer_update(alarm_ticks);
-}
-
-// Schedules the next timer with the alarm timer module.
-// NOTE: Must be called with GKI_disable() lock held.
-void alarm_service_reschedule() {
-    alarm_ticks = GKI_ready_to_sleep();
-
-    assert(alarm_ticks >= 0);
-
-    if (alarm_ticks > 0)
-        alarm_set(alarm_timer, GKI_TICKS_TO_MS(alarm_ticks), bt_alarm_cb, NULL);
-    else
-        LOG_VERBOSE("%s no more alarms.", __func__);
-}
-
 static future_t *init(void)
 {
     pthread_mutexattr_t attr;
@@ -99,16 +77,10 @@ static future_t *init(void)
     memset (&gki_cb, 0, sizeof (gki_cb));
 
     gki_buffer_init();
-    gki_timers_init();
-    alarm_timer = alarm_new();
-
-    gki_cb.com.OSTicks = (UINT32) times(0);
 
     pthread_mutexattr_init(&attr);
 
-#ifndef __CYGWIN__
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-#endif
     p_os = &gki_cb.os;
     pthread_mutex_init(&p_os->GKI_mutex, &attr);
     return NULL;
@@ -126,14 +98,13 @@ static future_t *init(void)
 *******************************************************************************/
 UINT32 GKI_get_os_tick_count(void)
 {
-    return gki_cb.com.OSTicks;
+    struct timespec timespec;
+    clock_gettime(CLOCK_BOOTTIME, &timespec);
+    return (timespec.tv_sec * 1000) + (timespec.tv_nsec / 1000000);
 }
 
 static future_t *clean_up(void)
 {
-    alarm_free(alarm_timer);
-    alarm_timer = NULL;
-
     gki_dealloc_free_queue();
 
     /* Destroy mutex and condition variable objects */

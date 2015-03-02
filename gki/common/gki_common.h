@@ -77,19 +77,6 @@ typedef struct
     UINT16  OSWaitEvt[GKI_MAX_TASKS];       /* events that have to be processed by the task */
     UINT16  OSWaitForEvt[GKI_MAX_TASKS];    /* events the task is waiting for*/
 
-    UINT32  OSTicks;                        /* system ticks from start */
-
-    /* Timer related variables
-    */
-    INT32   OSTicksTilExp;      /* Number of ticks till next timer expires */
-    INT32   OSNumOrigTicks;     /* Number of ticks between last timer expiration to the next one */
-
-    INT32   OSWaitTmr   [GKI_MAX_TASKS];  /* ticks the task has to wait, for specific events */
-
-    /* Only take up space timers used in the system (GKI_NUM_TIMERS defined in target.h) */
-    INT32   OSTaskTmr[GKI_MAX_TASKS][GKI_NUM_TIMERS];
-    INT32   OSTaskTmrR[GKI_MAX_TASKS][GKI_NUM_TIMERS];
-
     /* Define the buffer pool management variables
     */
     FREE_QUEUE_T    freeq[GKI_NUM_TOTAL_BUF_POOLS];
@@ -112,6 +99,5 @@ typedef struct
 */
 BOOLEAN   gki_chk_buf_damage(void *);
 void      gki_buffer_init (void);
-void      gki_timers_init(void);
 void      gki_adjust_timer_count (INT32);
 void      gki_dealloc_free_queue(void);

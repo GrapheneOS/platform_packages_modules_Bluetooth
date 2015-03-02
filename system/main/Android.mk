@@ -127,13 +127,12 @@ LOCAL_SHARED_LIBRARIES := \
     libpower \
 
 LOCAL_STATIC_LIBRARIES := \
-    libbt-brcm_gki \
     libbt-brcm_bta \
+    libbt-brcm_gki \
     libbt-brcm_stack \
     libbtdevice \
     libbt-hci \
     libbt-utils \
-    libbt-qcom_sbc_decoder \
     libbtcore \
     libosi \
     libtinyxml2 \

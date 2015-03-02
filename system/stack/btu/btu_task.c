@@ -447,7 +447,6 @@ void btu_general_alarm_cb(void *data) {
   TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
 
   fixed_queue_enqueue(btu_general_alarm_queue, p_tle);
-  GKI_send_event(BTU_TASK, TIMER_0_EVT_MASK);
 }
 
 void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
@@ -472,20 +471,6 @@ void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
   p_tle->ticks = timeout_sec;
   p_tle->in_use = TRUE;
   alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_general_alarm_cb, (void *)p_tle);
-}
-
-/*******************************************************************************
-**
-** Function         btu_remaining_time
-**
-** Description      Return amount of time to expire
-**
-** Returns          time in second
-**
-*******************************************************************************/
-UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle)
-{
-    return(GKI_get_remaining_ticks (&btu_cb.timer_queue, p_tle));
 }
 
 /*******************************************************************************
@@ -542,7 +527,6 @@ static void btu_l2cap_alarm_cb(void *data) {
   TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
 
   fixed_queue_enqueue(btu_l2cap_alarm_queue, p_tle);
-  GKI_send_event(BTU_TASK, TIMER_2_EVT_MASK);
 }
 
 void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ticks) {
@@ -602,7 +586,6 @@ void btu_oneshot_alarm_cb(void *data) {
   btu_stop_timer_oneshot(p_tle);
 
   fixed_queue_enqueue(btu_oneshot_alarm_queue, p_tle);
-  GKI_send_event(BTU_TASK, TIMER_3_EVT_MASK);
 }
 
 /*

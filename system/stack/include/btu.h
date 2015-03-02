@@ -224,10 +224,6 @@ typedef struct
     tBTU_TIMER_REG   timer_reg[BTU_MAX_REG_TIMER];
     tBTU_EVENT_REG   event_reg[BTU_MAX_REG_EVENT];
 
-    TIMER_LIST_Q  quick_timer_queue;        /* Timer queue for transport level (100/10 msec)*/
-    TIMER_LIST_Q  timer_queue;              /* Timer queue for normal BTU task (1 second)   */
-    TIMER_LIST_Q  timer_queue_oneshot;      /* Timer queue for oneshot BTU tasks */
-
     BOOLEAN     reset_complete;             /* TRUE after first ack from device received */
     UINT8       trace_level;                /* Trace level for HCI layer */
 } tBTU_CB;
@@ -253,16 +249,13 @@ extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout)
 extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
 extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
-extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 
-extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
 extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
 /*
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC)
 extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
 extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
 extern void btu_process_quick_timer_evt (void);

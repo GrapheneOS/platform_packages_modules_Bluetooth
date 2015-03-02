@@ -55,16 +55,8 @@ static const char GKI_MODULE[] = "gki_module";
 #define TASK_MBOX_2_EVT_MASK   0x0004
 #define TASK_MBOX_3_EVT_MASK   0x0008
 
-
-#define TIMER_0             0
-#define TIMER_1             1
-#define TIMER_2             2
-#define TIMER_3             3
-
 #define TIMER_0_EVT_MASK    0x0010
-#define TIMER_1_EVT_MASK    0x0020
 #define TIMER_2_EVT_MASK    0x0040
-#define TIMER_3_EVT_MASK    0x0080
 
 #define APPL_EVT_0          8
 #define APPL_EVT_1          9
@@ -167,12 +159,6 @@ UINT16  GKI_get_pool_bufsize (UINT8);
 /* Timer management
 */
 void    GKI_delay(UINT32);
-UINT32  GKI_get_tick_count(void);
-INT32   GKI_ready_to_sleep (void);
-void    GKI_start_timer(UINT8, INT32, BOOLEAN);
-void    GKI_stop_timer (UINT8);
-void    GKI_timer_update(INT32);
-UINT32  GKI_get_remaining_ticks (TIMER_LIST_Q *, TIMER_LIST_ENT  *);
 UINT16  GKI_wait(UINT16, UINT32);
 extern INT32 GKI_timer_ticks_getinitial(const TIMER_LIST_ENT *tle);
 

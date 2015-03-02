@@ -44,7 +44,7 @@
     #include "gatt_int.h"
 #endif
 
-#define BTM_SEC_MAX_COLLISION_DELAY     (GKI_SECS_TO_TICKS(5))
+#define BTM_SEC_MAX_COLLISION_DELAY     (5000)
 
 #ifdef APPL_AUTH_WRITE_EXCEPTION
 BOOLEAN (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
@@ -3562,9 +3562,9 @@ static void btm_sec_auth_collision (UINT16 handle)
     tBTM_SEC_DEV_REC *p_dev_rec;
 
     if (!btm_cb.collision_start_time)
-        btm_cb.collision_start_time = GKI_get_tick_count ();
+        btm_cb.collision_start_time = GKI_get_os_tick_count();
 
-    if ((GKI_get_tick_count () - btm_cb.collision_start_time) < btm_cb.max_collision_delay)
+    if ((GKI_get_os_tick_count() - btm_cb.collision_start_time) < btm_cb.max_collision_delay)
     {
         if (handle == BTM_SEC_INVALID_HANDLE)
         {

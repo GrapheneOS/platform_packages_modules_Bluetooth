@@ -46,61 +46,6 @@
 
 /******************************************************************************
 **
-** Timer configuration
-**
-******************************************************************************/
-
-/* The number of GKI timers in the software system. */
-#ifndef GKI_NUM_TIMERS
-#define GKI_NUM_TIMERS              4
-#endif
-
-/* A conversion value for translating ticks to calculate GKI timer.  */
-#ifndef TICKS_PER_SEC
-#define TICKS_PER_SEC               100
-#endif
-
-/************************************************************************
-**  Utility macros converting ticks to time with user define OS ticks per sec
-**/
-#ifndef GKI_MS_TO_TICKS
-#define GKI_MS_TO_TICKS(x)   ((x) / (1000 / TICKS_PER_SEC))
-#endif
-
-#ifndef GKI_SECS_TO_TICKS
-#define GKI_SECS_TO_TICKS(x)   ((x) * (TICKS_PER_SEC))
-#endif
-
-#ifndef GKI_TICKS_TO_MS
-#define GKI_TICKS_TO_MS(x)   ((x) * 1000 / TICKS_PER_SEC)
-#endif
-
-#ifndef GKI_TICKS_TO_SECS
-#define GKI_TICKS_TO_SECS(x)   ((x) / TICKS_PER_SEC)
-#endif
-
-
-
-/* TICK per second from OS (OS dependent change this macro accordingly to various OS) */
-#ifndef OS_TICKS_PER_SEC
-#define OS_TICKS_PER_SEC               1000
-#endif
-
-/************************************************************************
-**  Utility macros converting ticks to time with user define OS ticks per sec
-**/
-
-#ifndef GKI_OS_TICKS_TO_MS
-#define GKI_OS_TICKS_TO_MS(x)   ((x) * 1000 / OS_TICKS_PER_SEC)
-#endif
-
-
-#ifndef GKI_OS_TICKS_TO_SECS
-#define GKI_OS_TICKS_TO_SECS(x)   ((x) / OS_TICKS_PER_SEC))
-#endif
-
-/******************************************************************************
-**
 ** Buffer configuration
 **
 ******************************************************************************/

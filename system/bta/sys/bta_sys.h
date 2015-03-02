@@ -170,11 +170,6 @@ typedef struct
 #define BTA_MBOX                    TASK_MBOX_2
 #endif
 
-/* GKI timer id used for protocol timer for BTA. */
-#ifndef BTA_TIMER
-#define BTA_TIMER                   TIMER_1
-#endif
-
 /*****************************************************************************
 **  Global data
 *****************************************************************************/

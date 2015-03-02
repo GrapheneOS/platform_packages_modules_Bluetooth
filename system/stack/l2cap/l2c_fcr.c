@@ -243,7 +243,6 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
         UINT16  i;
         UINT32  throughput_avg, ack_delay_avg, ack_q_count_avg;
 
-        dur = GKI_OS_TICKS_TO_MS(dur);
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "---  L2CAP ERTM  Stats for CID: 0x%04x   Duration: %08ums", p_ccb->local_cid, dur);
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,

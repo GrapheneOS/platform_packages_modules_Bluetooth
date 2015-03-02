@@ -26,6 +26,7 @@
  **
  ******************************************************************************/
 
+#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
@@ -56,6 +57,9 @@
 #include "btif_av_co.h"
 #include "btif_media.h"
 
+#include "osi/include/alarm.h"
+#include "osi/include/thread.h"
+
 #if (BTA_AV_INCLUDED == TRUE)
 #include "sbc_encoder.h"
 #endif
@@ -81,7 +85,6 @@ OI_CODEC_SBC_DECODER_CONTEXT context;
 OI_UINT32 contextData[CODEC_DATA_WORDS(2, SBC_CODEC_FAST_FILTER_BUFFERS)];
 OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 #endif
-#include "thread.h"
 
 /*****************************************************************************
  **  Constants
@@ -97,21 +100,13 @@ OI_INT16 pcmData[15*SBC_MAX_SAMPLES_PER_FRAME*SBC_MAX_CHANNELS];
 
 /* BTIF media task gki event definition */
 #define BTIF_MEDIA_TASK_CMD TASK_MBOX_0_EVT_MASK
-#define BTIF_MEDIA_TASK_DATA TASK_MBOX_1_EVT_MASK
 
 #define BTIF_MEDIA_TASK_KILL EVENT_MASK(GKI_SHUTDOWN_EVT)
 
-#define BTIF_MEDIA_AA_TASK_TIMER_ID TIMER_0
-#define BTIF_MEDIA_AV_TASK_TIMER_ID TIMER_1
-#define BTIF_MEDIA_AVK_TASK_TIMER_ID TIMER_2
-
 #define BTIF_MEDIA_AA_TASK_TIMER TIMER_0_EVT_MASK
-#define BTIF_MEDIA_AV_TASK_TIMER TIMER_1_EVT_MASK
 #define BTIF_MEDIA_AVK_TASK_TIMER TIMER_2_EVT_MASK
 
-
 #define BTIF_MEDIA_TASK_CMD_MBOX        TASK_MBOX_0     /* cmd mailbox  */
-#define BTIF_MEDIA_TASK_DATA_MBOX       TASK_MBOX_1     /* data mailbox  */
 
 /* BTIF media cmd event definition : BTIF_MEDIA_TASK_CMD */
 enum
@@ -129,8 +124,6 @@ enum
     BTIF_MEDIA_AUDIO_FEEDING_INIT,
     BTIF_MEDIA_AUDIO_RECEIVING_INIT,
     BTIF_MEDIA_AUDIO_SINK_CFG_UPDATE,
-    BTIF_MEDIA_AUDIO_SINK_START_DECODING,
-    BTIF_MEDIA_AUDIO_SINK_STOP_DECODING,
     BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK
 };
 
@@ -275,6 +268,8 @@ typedef struct
 
     UINT32  sample_rate;
     UINT8   channel_count;
+    alarm_t *media_alarm;
+    alarm_t *decode_alarm;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -295,8 +290,7 @@ static tBTIF_MEDIA_CB btif_media_cb;
 static int media_task_running = MEDIA_TASK_STATE_OFF;
 static UINT64 last_frame_us = 0;
 
-fixed_queue_t *btif_media_cmd_msg_queue;
-fixed_queue_t *btif_media_data_msg_queue;
+static fixed_queue_t *btif_media_cmd_msg_queue;
 
 /*****************************************************************************
  **  Local functions
@@ -322,14 +316,12 @@ extern OI_STATUS OI_CODEC_SBC_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT *context
 static void btif_media_flush_q(BUFFER_Q *p_q);
 static void btif_media_task_aa_handle_stop_decoding(void );
 static void btif_media_task_aa_rx_flush(void);
-static BOOLEAN btif_media_task_stop_decoding_req(void);
 
 /*****************************************************************************
  **  Externs
  *****************************************************************************/
 
 static void btif_media_task_handle_cmd(BT_HDR *p_msg);
-static void btif_media_task_handle_media(BT_HDR*p_msg);
 /* Handle incoming media packets A2DP SINK streaming*/
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg);
@@ -349,9 +341,8 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame);
 static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg);
 static void btif_media_task_aa_handle_clear_track(void);
 #endif
-static void btif_media_task_aa_handle_start_decoding(void );
+static void btif_media_task_aa_handle_start_decoding(void);
 #endif
-BOOLEAN btif_media_task_start_decoding_req(void);
 BOOLEAN btif_media_task_clear_track(void);
 
 static const char *BT_MEDIA_WORKQUEUE_NAME = "bt_media_workqueue";
@@ -395,8 +386,6 @@ const char* dump_media_event(UINT16 event)
         CASE_RETURN_STR(BTIF_MEDIA_AUDIO_FEEDING_INIT)
         CASE_RETURN_STR(BTIF_MEDIA_AUDIO_RECEIVING_INIT)
         CASE_RETURN_STR(BTIF_MEDIA_AUDIO_SINK_CFG_UPDATE)
-        CASE_RETURN_STR(BTIF_MEDIA_AUDIO_SINK_START_DECODING)
-        CASE_RETURN_STR(BTIF_MEDIA_AUDIO_SINK_STOP_DECODING)
         CASE_RETURN_STR(BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK)
 
         default:
@@ -774,7 +763,6 @@ int btif_a2dp_start_media_task(void)
     APPL_TRACE_EVENT("## A2DP START MEDIA THREAD ##");
 
     btif_media_cmd_msg_queue = fixed_queue_new(SIZE_MAX);
-    btif_media_data_msg_queue = fixed_queue_new(SIZE_MAX);
 
     /* start a2dp media task */
     bt_media_workqueue_thread = thread_new(BT_MEDIA_WORKQUEUE_NAME);
@@ -810,13 +798,11 @@ void btif_a2dp_stop_media_task(void)
 {
     APPL_TRACE_EVENT("## A2DP STOP MEDIA THREAD ##");
     fixed_queue_free(btif_media_cmd_msg_queue, NULL);
-    fixed_queue_free(btif_media_data_msg_queue, NULL);
 
     thread_free(bt_media_workqueue_thread);
 
     bt_media_workqueue_thread = NULL;
     btif_media_cmd_msg_queue = NULL;
-    btif_media_data_msg_queue = NULL;
 }
 
 /*****************************************************************************
@@ -903,7 +889,7 @@ void btif_a2dp_on_idle(void)
     {
         btif_media_cb.rx_flush = TRUE;
         btif_media_task_aa_rx_flush_req();
-        btif_media_task_stop_decoding_req();
+        btif_media_task_aa_handle_stop_decoding();
         btif_media_task_clear_track();
         APPL_TRACE_DEBUG("Stopped BT track");
     }
@@ -947,63 +933,6 @@ BOOLEAN btif_media_task_clear_track(void)
     }
 
     p_buf->event = BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK;
-
-    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
-    // Signal the target thread work is ready.
-    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
-    return TRUE;
-}
-/*******************************************************************************
- **
- ** Function         btif_media_task_stop_decoding_req
- **
- ** Description
- **
- ** Returns          TRUE is success
- **
- *******************************************************************************/
-BOOLEAN btif_media_task_stop_decoding_req(void)
-{
-    BT_HDR *p_buf;
-
-    if (!btif_media_cb.is_rx_timer)
-        return TRUE;   /*  if timer is not running no need to send message */
-
-    if (NULL == (p_buf = GKI_getbuf(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
-
-    p_buf->event = BTIF_MEDIA_AUDIO_SINK_STOP_DECODING;
-
-    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
-    // Signal the target thread work is ready.
-    GKI_send_event(BT_MEDIA_TASK, (UINT16)EVENT_MASK(BTIF_MEDIA_TASK_CMD_MBOX));
-    return TRUE;
-}
-
-/*******************************************************************************
- **
- ** Function         btif_media_task_start_decoding_req
- **
- ** Description
- **
- ** Returns          TRUE is success
- **
- *******************************************************************************/
-BOOLEAN btif_media_task_start_decoding_req(void)
-{
-    BT_HDR *p_buf;
-
-    if(btif_media_cb.is_rx_timer)
-        return FALSE;   /*  if timer is already running no need to send message */
-
-    if (NULL == (p_buf = GKI_getbuf(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
-
-    p_buf->event = BTIF_MEDIA_AUDIO_SINK_START_DECODING;
 
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
     // Signal the target thread work is ready.
@@ -1132,7 +1061,7 @@ void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av)
     {
         btif_media_cb.rx_flush = TRUE;
         btif_media_task_aa_rx_flush_req();
-        btif_media_task_stop_decoding_req();
+        btif_media_task_aa_handle_stop_decoding();
         UIPC_Close(UIPC_CH_ID_AV_AUDIO);
         btif_media_cb.data_channel_open = FALSE;
         return;
@@ -1178,7 +1107,7 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av)
     {
         btif_media_cb.rx_flush = TRUE;
         btif_media_task_aa_rx_flush_req();
-        btif_media_task_stop_decoding_req();
+        btif_media_task_aa_handle_stop_decoding();
         return;
     }
 
@@ -1397,11 +1326,6 @@ void btif_media_thread(UNUSED_ATTR void *context)
             btif_media_task_handle_cmd(p_msg);
         }
 
-        /* Process all messages in the queue */
-        while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(btif_media_data_msg_queue)) != NULL) {
-            btif_media_task_handle_media(p_msg);
-        }
-
         if (event & BTIF_MEDIA_AA_TASK_TIMER)
         {
             /* advance audio timer expiration */
@@ -1525,16 +1449,10 @@ static void btif_media_task_handle_cmd(BT_HDR *p_msg)
         btif_media_task_aa_handle_decoder_reset(p_msg);
 #endif
         break;
-    case BTIF_MEDIA_AUDIO_SINK_START_DECODING:
-        btif_media_task_aa_handle_start_decoding();
-        break;
     case BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK:
 #if (BTA_AV_SINK_INCLUDED == TRUE)
         btif_media_task_aa_handle_clear_track();
 #endif
-        break;
-    case BTIF_MEDIA_AUDIO_SINK_STOP_DECODING:
-        btif_media_task_aa_handle_stop_decoding();
         break;
      case BTIF_MEDIA_FLUSH_AA_RX:
         btif_media_task_aa_rx_flush();
@@ -1601,20 +1519,6 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
 }
 #endif
 
-/*******************************************************************************
- **
- ** Function         btif_media_task_handle_media
- **
- ** Description
- **
- ** Returns          void
- **
- *******************************************************************************/
-static void btif_media_task_handle_media(BT_HDR*p_msg)
-{
-    APPL_TRACE_DEBUG(" btif_media_task_handle_media ");
-    GKI_freebuf(p_msg);
-}
 #if (BTA_AV_INCLUDED == TRUE)
 /*******************************************************************************
  **
@@ -2190,36 +2094,27 @@ void btif_a2dp_set_peer_sep(UINT8 sep) {
     btif_media_cb.peer_sep = sep;
 }
 
-/*******************************************************************************
- **
- ** Function         btif_media_task_aa_handle_stop_decoding
- **
- ** Description
- **
- ** Returns          void
- **
- *******************************************************************************/
-static void btif_media_task_aa_handle_stop_decoding(void )
-{
-    btif_media_cb.is_rx_timer = FALSE;
-    GKI_stop_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID);
+static void btif_decode_alarm_cb(UNUSED_ATTR void *context) {
+  GKI_send_event(BT_MEDIA_TASK, BTIF_MEDIA_AVK_TASK_TIMER);
+  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
 }
 
-/*******************************************************************************
- **
- ** Function         btif_media_task_aa_handle_start_decoding
- **
- ** Description
- **
- ** Returns          void
- **
- *******************************************************************************/
-static void btif_media_task_aa_handle_start_decoding(void )
-{
-    if(btif_media_cb.is_rx_timer == TRUE)
-        return;
-    btif_media_cb.is_rx_timer = TRUE;
-    GKI_start_timer(BTIF_MEDIA_AVK_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_SINK_MEDIA_TIME_TICK), TRUE);
+static void btif_media_task_aa_handle_stop_decoding(void) {
+  alarm_cancel(btif_media_cb.decode_alarm);
+  btif_media_cb.decode_alarm = NULL;
+}
+
+static void btif_media_task_aa_handle_start_decoding(void) {
+  if (btif_media_cb.decode_alarm)
+    return;
+
+  btif_media_cb.decode_alarm = alarm_new();
+  if (!btif_media_cb.decode_alarm) {
+    LOG_ERROR("%s unable to allocate decode alarm.", __func__);
+    return;
+  }
+
+  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
@@ -2397,6 +2292,12 @@ static void btif_media_task_feeding_state_reset(void)
                             (int)btif_media_cb.media_feeding_state.pcm.bytes_per_tick);
     }
 }
+
+static void btif_media_task_alarm_cb(UNUSED_ATTR void *context) {
+  GKI_send_event(BT_MEDIA_TASK, BTIF_MEDIA_AA_TASK_TIMER);
+  alarm_set(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK, btif_media_task_alarm_cb, NULL);
+}
+
 /*******************************************************************************
  **
  ** Function         btif_media_task_aa_start_tx
@@ -2420,10 +2321,17 @@ static void btif_media_task_aa_start_tx(void)
     /* Reset the media feeding state */
     btif_media_task_feeding_state_reset();
 
-    APPL_TRACE_EVENT("starting timer %d ticks (%d)",
-                  GKI_MS_TO_TICKS(BTIF_MEDIA_TIME_TICK), TICKS_PER_SEC);
+    APPL_TRACE_EVENT("starting timer %dms", BTIF_MEDIA_TIME_TICK);
 
-    GKI_start_timer(BTIF_MEDIA_AA_TASK_TIMER_ID, GKI_MS_TO_TICKS(BTIF_MEDIA_TIME_TICK), TRUE);
+    assert(btif_media_cb.media_alarm == NULL);
+
+    btif_media_cb.media_alarm = alarm_new();
+    if (!btif_media_cb.media_alarm) {
+      LOG_ERROR("%s unable to allocate media alarm.", __func__);
+      return;
+    }
+
+    alarm_set(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK, btif_media_task_alarm_cb, NULL);
 }
 
 /*******************************************************************************
@@ -2440,7 +2348,8 @@ static void btif_media_task_aa_stop_tx(void)
     APPL_TRACE_DEBUG("btif_media_task_aa_stop_tx is timer: %d", btif_media_cb.is_tx_timer);
 
     /* Stop the timer first */
-    GKI_stop_timer(BTIF_MEDIA_AA_TASK_TIMER_ID);
+    alarm_free(btif_media_cb.media_alarm);
+    btif_media_cb.media_alarm = NULL;
     btif_media_cb.is_tx_timer = FALSE;
 
     UIPC_Close(UIPC_CH_ID_AV_AUDIO);
@@ -2545,7 +2454,7 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
         if(GKI_queue_length(&btif_media_cb.RxSbcQ) == MAX_A2DP_DELAYED_START_FRAME_COUNT)
         {
             BTIF_TRACE_DEBUG(" Initiate Decoding ");
-            btif_media_task_start_decoding_req();
+            btif_media_task_aa_handle_start_decoding();
         }
     }
     else

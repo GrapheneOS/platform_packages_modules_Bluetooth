@@ -23,7 +23,6 @@ endif
 LOCAL_PRELINK_MODULE := false
 LOCAL_SRC_FILES := \
 	./common/gki_buffer.c \
-	./common/gki_time.c \
 	./ulinux/gki_ulinux.c
 
 LOCAL_MODULE := libbt-brcm_gki
