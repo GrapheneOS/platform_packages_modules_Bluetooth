@@ -31,10 +31,6 @@
 #define BTIF_TASK               1
 #endif
 
-#ifndef A2DP_MEDIA_TASK
-#define A2DP_MEDIA_TASK         2
-#endif
-
 /* The number of GKI tasks in the software system. */
 #ifndef GKI_MAX_TASKS
 #define GKI_MAX_TASKS               3
