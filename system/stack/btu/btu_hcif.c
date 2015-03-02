@@ -940,7 +940,6 @@ static void btu_hcif_command_complete_evt(BT_HDR *response, void *context)
     event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
 
     fixed_queue_enqueue(btu_hci_msg_queue, event);
-    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
 }
 
 
@@ -1140,7 +1139,6 @@ static void btu_hcif_command_status_evt(uint8_t status, BT_HDR *command, void *c
     event->event = BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK;
 
     fixed_queue_enqueue(btu_hci_msg_queue, event);
-    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTU_HCI_RCV_MBOX));
 }
 
 /*******************************************************************************

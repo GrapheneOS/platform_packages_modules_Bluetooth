@@ -599,8 +599,6 @@ BOOLEAN bta_sys_is_register(UINT8 id)
 void bta_sys_sendmsg(void *p_msg)
 {
     fixed_queue_enqueue(btu_bta_msg_queue, p_msg);
-    // Signal the target thread work is ready.
-    GKI_send_event(BTU_TASK, (UINT16)EVENT_MASK(BTA_MBOX));
 }
 
 /*******************************************************************************
@@ -618,7 +616,6 @@ void bta_alarm_cb(void *data) {
   TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
 
   fixed_queue_enqueue(btu_bta_alarm_queue, p_tle);
-  GKI_send_event(BTU_TASK, TASK_MBOX_0_EVT_MASK);
 }
 
 void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms) {
