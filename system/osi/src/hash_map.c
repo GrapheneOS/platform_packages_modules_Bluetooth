@@ -79,15 +79,6 @@ hash_map_t *hash_map_new_internal(
   return hash_map;
 }
 
-// Returns a new, empty hash_map. Returns NULL if not enough memory could be allocated
-// for the hash_map structure. The returned hash_map must be freed with |hash_map_free|.
-// The |num_bucket| specifies the number of hashable buckets for the map and must not
-// be zero.  The |hash_fn| specifies a hash function to be used and must not be NULL.
-// The |key_fn| and |data_fn| are called whenever a hash_map element is removed from
-// the hash_map. They can be used to release resources held by the hash_map element,
-// e.g.  memory or file descriptor.  |key_fn| and |data_fn| may be NULL if no cleanup
-// is necessary on element removal. |equality_fn| is used to check for key equality.
-// If |equality_fn| is NULL, default pointer equality is used.
 hash_map_t *hash_map_new(
     size_t num_bucket,
     hash_index_fn hash_fn,
@@ -97,8 +88,6 @@ hash_map_t *hash_map_new(
   return hash_map_new_internal(num_bucket, hash_fn, key_fn, data_fn, equality_fn, &allocator_calloc);
 }
 
-// Frees the hash_map. This function accepts NULL as an argument, in which case it
-// behaves like a no-op.
 void hash_map_free(hash_map_t *hash_map) {
   if (hash_map == NULL)
     return;
@@ -107,30 +96,21 @@ void hash_map_free(hash_map_t *hash_map) {
   hash_map->allocator->free(hash_map);
 }
 
-// Returns true if the hash_map is empty (has no elements), false otherwise.
-// Note that a NULL |hash_map| is not the same as an empty |hash_map|. This function
-// does not accept a NULL |hash_map|.
 bool hash_map_is_empty(const hash_map_t *hash_map) {
   assert(hash_map != NULL);
   return (hash_map->hash_size == 0);
 }
 
-// Returns the number of elements in the hash map.  This function does not accept a
-// NULL |hash_map|.
 size_t hash_map_size(const hash_map_t *hash_map) {
   assert(hash_map != NULL);
   return hash_map->hash_size;
 }
 
-// Returns the number of buckets in the hash map.  This function does not accept a
-// NULL |hash_map|.
 size_t hash_map_num_buckets(const hash_map_t *hash_map) {
   assert(hash_map != NULL);
   return hash_map->num_bucket;
 }
 
-// Returns true if the hash_map has a valid entry for the presented key.
-// This function does not accept a NULL |hash_map|.
 bool hash_map_has_key(const hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
 
@@ -141,11 +121,6 @@ bool hash_map_has_key(const hash_map_t *hash_map, const void *key) {
   return (hash_map_entry != NULL);
 }
 
-// Sets the value |data| indexed by |key| into the |hash_map|. Neither |data| nor
-// |hash_map| may be NULL.  This function does not make copies of |data| nor |key|
-// so the pointers must remain valid at least until the element is removed from the
-// hash_map or the hash_map is freed.  Returns true if |data| could be set, false
-// otherwise (e.g. out of memory).
 bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   assert(hash_map != NULL);
   assert(data != NULL);
@@ -179,10 +154,6 @@ bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
   return list_append(hash_bucket_list, hash_map_entry);
 }
 
-// Removes data indexed by |key| from the hash_map. |hash_map| may not be NULL.
-// If |key_fn| or |data_fn| functions were specified in |hash_map_new|, they
-// will be called back with |key| or |data| respectively. This function returns true
-// if |key| was found in the hash_map and removed, false otherwise.
 bool hash_map_erase(hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
 
@@ -199,9 +170,7 @@ bool hash_map_erase(hash_map_t *hash_map, const void *key) {
   return list_remove(hash_bucket_list, hash_map_entry);
 }
 
-// Returns the element indexed by |key| in the hash_map without removing it. |hash_map|
-// may not be NULL.  Returns NULL if no entry indexed by |key|.
-void * hash_map_get(const hash_map_t *hash_map, const void *key) {
+void *hash_map_get(const hash_map_t *hash_map, const void *key) {
   assert(hash_map != NULL);
 
   hash_index_t hash_key = hash_map->hash_fn(key) % hash_map->num_bucket;
@@ -214,8 +183,6 @@ void * hash_map_get(const hash_map_t *hash_map, const void *key) {
   return NULL;
 }
 
-// Removes all elements in the hash_map. Calling this function will return the hash_map
-// to the same state it was in after |hash_map_new|. |hash_map| may not be NULL.
 void hash_map_clear(hash_map_t *hash_map) {
   assert(hash_map != NULL);
 
@@ -227,11 +194,6 @@ void hash_map_clear(hash_map_t *hash_map) {
   }
 }
 
-// Iterates through the entire |hash_map| and calls |callback| for each data
-// element and passes through the |context| argument. If the hash_map is
-// empty, |callback| will never be called. It is not safe to mutate the
-// hash_map inside the callback. Neither |hash_map| nor |callback| may be NULL.
-// If |callback| returns false, the iteration loop will immediately exit.
 void hash_map_foreach(hash_map_t *hash_map, hash_map_iter_cb callback, void *context) {
   assert(hash_map != NULL);
   assert(callback != NULL);
