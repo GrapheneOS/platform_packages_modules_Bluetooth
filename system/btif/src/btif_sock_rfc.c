@@ -776,7 +776,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
                 }
                 else
                 {
-                    APPL_TRACE_ERROR("DISCOVERY_COMP_EVT slot id:%d, failed to find channle, \
+                    APPL_TRACE_ERROR("DISCOVERY_COMP_EVT slot id:%d, failed to find channel, \
                                       status:%d, scn:%d", id, p_data->disc_comp.status,
                                       p_data->disc_comp.scn);
                     rs = find_rfc_slot_by_id(id);
