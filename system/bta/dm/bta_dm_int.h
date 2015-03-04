@@ -592,7 +592,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT16                  data_mask;
+    UINT32                  data_mask;
     tBTA_BLE_ADV_DATA       *p_adv_cfg;
     tBTA_SET_ADV_DATA_CMPL_CBACK    *p_adv_data_cback;
 }tBTA_DM_API_SET_ADV_CONFIG;
@@ -1263,4 +1263,3 @@ extern void bta_dm_execute_callback(tBTA_DM_MSG *p_data);
 extern void bta_dm_set_afh_channel_assesment(tBTA_DM_MSG *p_data);
 
 #endif /* BTA_DM_INT_H */
-
