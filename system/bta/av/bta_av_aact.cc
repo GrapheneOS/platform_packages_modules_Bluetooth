@@ -516,8 +516,14 @@ static void bta_av_proc_stream_evt(uint8_t handle, BD_ADDR bd_addr, uint8_t even
                     memcpy(p_msg->msg.security_cfm.p_data, p_data->security_cfm.p_data, sec_len);
                 }
                 break;
+
             case AVDT_SUSPEND_IND_EVT:
                     p_msg->msg.hdr.err_code = 0;
+                break;
+
+            case AVDT_CONNECT_IND_EVT:
+                    p_scb->recfg_sup = true;
+                    p_scb->suspend_sup = true;
                 break;
 
             default:
