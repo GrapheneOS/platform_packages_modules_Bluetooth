@@ -23,6 +23,7 @@
 #include "allocator.h"
 #include "bt_types.h"
 #include "data_dispatcher.h"
+#include "fixed_queue.h"
 #include "future.h"
 #include "osi.h"
 
@@ -79,8 +80,11 @@ typedef struct hci_t {
   // Do the postload sequence (call after the rest of the BT stack initializes).
   void (*do_postload)(void);
 
-  // Register with this data dispatcher to receive data flowing upward out of the HCI layer
-  data_dispatcher_t *upward_dispatcher;
+  // Register with this data dispatcher to receive events flowing upward out of the HCI layer
+  data_dispatcher_t *event_dispatcher;
+
+  // Set the queue to receive ACL data in
+  void (*set_data_queue)(fixed_queue_t *queue);
 
   // Send a command through the HCI layer
   void (*transmit_command)(

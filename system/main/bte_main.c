@@ -108,7 +108,8 @@ void bte_main_boot_entry(void)
       return;
     }
 
-    data_dispatcher_register_default(hci->upward_dispatcher, btu_hci_msg_queue);
+    data_dispatcher_register_default(hci->event_dispatcher, btu_hci_msg_queue);
+    hci->set_data_queue(btu_hci_msg_queue);
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
@@ -127,7 +128,8 @@ void bte_main_boot_entry(void)
 ******************************************************************************/
 void bte_main_shutdown()
 {
-    data_dispatcher_register_default(hci_layer_get_interface()->upward_dispatcher, NULL);
+    data_dispatcher_register_default(hci_layer_get_interface()->event_dispatcher, NULL);
+    hci->set_data_queue(NULL);
     fixed_queue_free(btu_hci_msg_queue, NULL);
 
     btu_hci_msg_queue = NULL;

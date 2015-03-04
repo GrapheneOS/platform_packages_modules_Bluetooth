@@ -132,6 +132,9 @@ static list_t *commands_pending_response;
 static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 
+// The hand-off point for data going to a higher layer, set by the higher layer
+static fixed_queue_t *upwards_data_queue;
+
 static future_t *shut_down();
 
 static void event_finish_startup(void *context);
@@ -329,6 +332,10 @@ static void do_postload() {
   thread_post(thread, event_postload, NULL);
 }
 
+static void set_data_queue(fixed_queue_t *queue) {
+  upwards_data_queue = queue;
+}
+
 static void transmit_command(
     BT_HDR *command,
     command_complete_cb complete_callback,
@@ -481,10 +488,14 @@ static void transmit_fragment(BT_HDR *packet, bool send_transmit_finished) {
 }
 
 static void fragmenter_transmit_finished(BT_HDR *packet, bool all_fragments_sent) {
-  if (all_fragments_sent)
+  if (all_fragments_sent) {
     buffer_allocator->free(packet);
-  else
-    data_dispatcher_dispatch(interface.upward_dispatcher, packet->event & MSG_EVT_MASK, packet);
+  } else {
+    // This is kind of a weird case, since we're dispatching a partially sent packet
+    // up to a higher layer.
+    // TODO(zachoverflow): rework upper layer so this isn't necessary.
+    data_dispatcher_dispatch(interface.event_dispatcher, packet->event & MSG_EVT_MASK, packet);
+  }
 }
 
 static void command_timed_out(UNUSED_ATTR void *context) {
@@ -584,8 +595,19 @@ static void hal_says_data_ready(serial_data_type_t type) {
       incoming->buffer->len = incoming->index;
       btsnoop->capture(incoming->buffer, true);
 
-      if (type != DATA_TYPE_EVENT || !filter_incoming_event(incoming->buffer)) {
+      if (type != DATA_TYPE_EVENT) {
         packet_fragmenter->reassemble_and_dispatch(incoming->buffer);
+      } else if (!filter_incoming_event(incoming->buffer)) {
+        // Dispatch the event by event code
+        uint8_t *stream = incoming->buffer->data;
+        uint8_t event_code;
+        STREAM_TO_UINT8(event_code, stream);
+
+        data_dispatcher_dispatch(
+          interface.event_dispatcher,
+          event_code,
+          incoming->buffer
+        );
       }
 
       // We don't control the buffer anymore
@@ -666,11 +688,16 @@ intercepted:;
 
 // Callback for the fragmenter to dispatch up a completely reassembled packet
 static void dispatch_reassembled(BT_HDR *packet) {
-  data_dispatcher_dispatch(
-    interface.upward_dispatcher,
-    packet->event & MSG_EVT_MASK,
-    packet
-  );
+  // Events should already have been dispatched before this point
+  assert((packet->event & MSG_EVT_MASK) != MSG_HC_TO_STACK_HCI_EVT);
+  assert(upwards_data_queue != NULL);
+
+  if (upwards_data_queue) {
+    fixed_queue_enqueue(upwards_data_queue, packet);
+  } else {
+    LOG_ERROR("%s had no queue to place upwards data packet in. Dropping it on the floor.", __func__);
+    buffer_allocator->free(packet);
+  }
 }
 
 // Misc internal functions
@@ -717,12 +744,13 @@ static void init_layer_interface() {
 
     // It's probably ok for this to live forever. It's small and
     // there's only one instance of the hci interface.
-    interface.upward_dispatcher = data_dispatcher_new("hci_layer");
-    if (!interface.upward_dispatcher) {
+    interface.event_dispatcher = data_dispatcher_new("hci_layer");
+    if (!interface.event_dispatcher) {
       LOG_ERROR("%s could not create upward dispatcher.", __func__);
       return;
     }
 
+    interface.set_data_queue = set_data_queue;
     interface.transmit_command = transmit_command;
     interface.transmit_command_futured = transmit_command_futured;
     interface.transmit_downward = transmit_downward;
