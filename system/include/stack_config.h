@@ -28,6 +28,7 @@ static const char STACK_CONFIG_MODULE[] = "stack_config_module";
 typedef struct {
   const char *(*get_btsnoop_log_path)(void);
   bool (*get_btsnoop_turned_on)(void);
+  bool (*get_btsnoop_should_save_last)(void);
   bool (*get_trace_config_enabled)(void);
   config_t *(*get_all)(void);
 } stack_config_t;

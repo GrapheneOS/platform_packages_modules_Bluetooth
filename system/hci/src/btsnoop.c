@@ -141,11 +141,20 @@ static void update_logging() {
   if (should_log) {
     btsnoop_net_open();
 
-    const char *path = stack_config->get_btsnoop_log_path();
-    logfile_fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+    const char *log_path = stack_config->get_btsnoop_log_path();
 
+    // Save the old log if configured to do so
+    if (stack_config->get_btsnoop_should_save_last()) {
+      char last_log_path[PATH_MAX];
+      snprintf(last_log_path, PATH_MAX, "%s.last", log_path);
+      if (!rename(log_path, last_log_path) && errno != ENOENT)
+        LOG_ERROR("%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
+    }
+
+    logfile_fd = open(log_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     if (logfile_fd == INVALID_FD) {
-      LOG_ERROR("%s unable to open '%s': %s", __func__, path, strerror(errno));
+      LOG_ERROR("%s unable to open '%s': %s", __func__, log_path, strerror(errno));
+      is_logging = false;
       return;
     }
 
