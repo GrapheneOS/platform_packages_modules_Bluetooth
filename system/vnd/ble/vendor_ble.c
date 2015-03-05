@@ -718,9 +718,6 @@ void btm_ble_vendor_init(UINT8 max_irk_list_sz)
     }
 
     btm_ble_vendor_cb.irk_avail_size = max_irk_list_sz;
-
-    if (!controller_get_interface()->supports_ble())
-        return;
 #endif
 }
 

@@ -1302,9 +1302,6 @@ void btm_ble_adv_filter_init(void)
         btm_ble_adv_filt_cb.p_addr_filter_count =
             (tBTM_BLE_PF_COUNT*) GKI_getbuf( sizeof(tBTM_BLE_PF_COUNT) * cmn_ble_vsc_cb.max_filter);
     }
-
-    if (!controller_get_interface()->supports_ble())
-        return;
 }
 
 /*******************************************************************************
