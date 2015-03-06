@@ -1167,6 +1167,10 @@ void GATT_SetIdleTimeout (BD_ADDR bd_addr, UINT16 idle_tout, tBT_TRANSPORT trans
         if (p_tcb->att_lcid == L2CAP_ATT_CID)
         {
             status = L2CA_SetFixedChannelTout (bd_addr, L2CAP_ATT_CID, idle_tout);
+
+            if (idle_tout == GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP)
+                L2CA_SetIdleTimeoutByBdAddr(p_tcb->peer_bda,
+                                            GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP, BT_TRANSPORT_LE);
         }
         else
         {

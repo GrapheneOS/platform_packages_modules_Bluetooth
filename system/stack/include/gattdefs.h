@@ -47,14 +47,13 @@
 
 /* GAP Profile Attributes
 */
-#define GATT_UUID_GAP_DEVICE_NAME       0x2A00
-#define GATT_UUID_GAP_ICON              0x2A01
-#define GATT_UUID_GAP_PRIVACY_FLAG      0x2A02
-#define GATT_UUID_GAP_RECONN_ADDR       0x2A03
-#define GATT_UUID_GAP_PREF_CONN_PARAM   0x2A04
+#define GATT_UUID_GAP_DEVICE_NAME        0x2A00
+#define GATT_UUID_GAP_ICON               0x2A01
+#define GATT_UUID_GAP_PREF_CONN_PARAM    0x2A04
+#define GATT_UUID_GAP_CENTRAL_ADDR_RESOL 0x2A05
 
 /* Attribute Profile Attribute UUID */
-#define GATT_UUID_GATT_SRV_CHGD         0x2A05
+#define GATT_UUID_GATT_SRV_CHGD          0x2A05
 /* Attribute Protocol Test */
 
 /* Link Loss Service */
@@ -72,8 +71,8 @@
 #define GATT_UUID_NW_TRIGGER            0x2A1A      /* Network availability trigger */
 
 /* phone alert */
-#define GATT_UUID_ALERT_STATUS          0x2A40    /* alert status */
-#define GATT_UUID_RINGER_CP             0x2A42    /* ringer control point */
+#define GATT_UUID_ALERT_STATUS          0x2A3F    /* alert status */
+#define GATT_UUID_RINGER_CP             0x2A40    /* ringer control point */
 #define GATT_UUID_RINGER_SETTING        0x2A41    /* ringer setting */
 
 /* Glucose Service */

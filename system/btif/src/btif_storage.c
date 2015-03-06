@@ -970,6 +970,9 @@ bt_status_t btif_storage_add_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
         case BTIF_DM_LE_KEY_LCSRK:
             name = "LE_KEY_LCSRK";
             break;
+        case BTIF_DM_LE_KEY_LID:
+            name = "LE_KEY_LID";
+            break;
         default:
             return BT_STATUS_FAIL;
     }
@@ -1013,6 +1016,8 @@ bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
         case BTIF_DM_LE_KEY_LCSRK:
             name = "LE_KEY_LCSRK";
             break;
+        case BTIF_DM_LE_KEY_LID:
+            name =  "LE_KEY_LID";
         default:
             return BT_STATUS_FAIL;
     }
@@ -1232,6 +1237,28 @@ bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr,int add, 
                     }
 
                     BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_PID);
+                }
+                key_found = TRUE;
+            }
+
+            if (btif_storage_get_ble_bonding_key(&bd_addr, BTIF_DM_LE_KEY_LID, buf,
+                                    sizeof(btif_dm_ble_pid_keys_t))== BT_STATUS_SUCCESS)
+            {
+                if(add)
+                {
+                    if (!is_device_added)
+                    {
+                        BTA_DmAddBleDevice(bta_bd_addr, addr_type, BT_DEVICE_TYPE_BLE);
+                        is_device_added = TRUE;
+                    }
+                    p = (tBTA_LE_KEY_VALUE *)buf;
+                    for (i=0; i<BD_ADDR_LEN; i++)
+                    {
+                        BTIF_TRACE_DEBUG("p->pid_key.static_addr[%d]=%02x"
+                                            ,i,p->pid_key.static_addr[i]);
+                    }
+
+                    BTA_DmAddBleKey (bta_bd_addr, (tBTA_LE_KEY_VALUE *)buf, BTIF_DM_LE_KEY_LID);
                 }
                 key_found = TRUE;
             }

@@ -120,13 +120,12 @@ typedef union
     BD_ADDR                 reconn_bda;
     UINT16                  icon;
     UINT8                   *p_dev_name;
-    UINT8                   privacy;
+    UINT8                   addr_resolution;
 
 }tGAP_BLE_ATTR_VALUE;
 
-typedef void (tGAP_BLE_DEV_NAME_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, char *p_name);
+typedef void (tGAP_BLE_CMPL_CBACK)(BOOLEAN status, BD_ADDR addr, UINT16 length, char *p_name);
 
-typedef void (tGAP_BLE_RECONN_ADDR_CBACK)(BOOLEAN status, BD_ADDR addr, BD_ADDR reconn_bda);
 
 /*****************************************************************************
 **  External Function Declarations
@@ -362,8 +361,20 @@ extern BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda);
 ** Returns          TRUE if request accepted
 **
 *******************************************************************************/
-extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback);
+extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback);
 
+
+/*******************************************************************************
+**
+** Function         GAP_BleReadPeerAddressResolutionCap
+**
+** Description      Start a process to read peer address resolution capability
+**
+** Returns          TRUE if request accepted
+**
+*******************************************************************************/
+extern BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
+                                                    tGAP_BLE_CMPL_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -376,19 +387,6 @@ extern BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK
 *******************************************************************************/
 extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 
-/*******************************************************************************
-**
-** Function         GAP_BleUpdateReconnectAddr
-**
-** Description      Start a process to udpate the reconnect address if remote devive
-**                  has privacy enabled.
-**
-** Returns          TRUE if read started, else FALSE if GAP is busy
-**
-*******************************************************************************/
-extern BOOLEAN GAP_BleUpdateReconnectAddr (BD_ADDR peer_bda,
-                                           BD_ADDR reconn_addr,
-                                           tGAP_BLE_RECONN_ADDR_CBACK *p_cback);
 
 #endif
 

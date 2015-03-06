@@ -330,6 +330,9 @@ typedef UINT8 BT_OCTET16[BT_OCTET16_LEN];   /* octet array: size 16 */
 typedef UINT8 PIN_CODE[PIN_CODE_LEN];       /* Pin Code (upto 128 bits) MSB is 0 */
 typedef UINT8 *PIN_CODE_PTR;                /* Pointer to Pin Code */
 
+#define BT_OCTET32_LEN    32
+typedef UINT8 BT_OCTET32[BT_OCTET32_LEN];   /* octet array: size 32 */
+
 #define DEV_CLASS_LEN   3
 typedef UINT8 DEV_CLASS[DEV_CLASS_LEN];     /* Device class */
 typedef UINT8 *DEV_CLASS_PTR;               /* Pointer to Device class */
@@ -500,8 +503,11 @@ typedef struct
 */
 #define BLE_ADDR_PUBLIC         0x00
 #define BLE_ADDR_RANDOM         0x01
-#define BLE_ADDR_TYPE_MASK      (BLE_ADDR_RANDOM | BLE_ADDR_PUBLIC)
+#define BLE_ADDR_PUBLIC_ID      0x02
+#define BLE_ADDR_RANDOM_ID      0x03
 typedef UINT8 tBLE_ADDR_TYPE;
+#define BLE_ADDR_TYPE_MASK      (BLE_ADDR_RANDOM | BLE_ADDR_PUBLIC)
+
 
 #define BT_TRANSPORT_BR_EDR    1
 #define BT_TRANSPORT_LE        2

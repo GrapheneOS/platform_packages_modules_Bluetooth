@@ -82,6 +82,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_add_blekey,          /*  BTA_DM_API_ADD_BLEKEY_EVT           */
     bta_dm_add_ble_device,      /*  BTA_DM_API_ADD_BLEDEVICE_EVT        */
     bta_dm_ble_passkey_reply,   /*  BTA_DM_API_BLE_PASSKEY_REPLY_EVT    */
+    bta_dm_ble_confirm_reply,   /*  BTA_DM_API_BLE_CONFIRM_REPLY_EVT    */
     bta_dm_security_grant,
     bta_dm_ble_set_bg_conn_type,
     bta_dm_ble_set_conn_params,      /* BTA_DM_API_BLE_CONN_PARAM_EVT */

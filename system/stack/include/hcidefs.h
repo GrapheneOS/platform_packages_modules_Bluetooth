@@ -42,7 +42,7 @@
 #define HCI_OCF(p)  ( 0x3FF & (p))
 
 /*
-**  Defentions for Link Control Commands
+**  Definitions for Link Control Commands
 */
 /* Following opcode is used only in command complete event for flow control */
 #define HCI_COMMAND_NONE                0x0000
@@ -237,6 +237,8 @@
 #define HCI_READ_SYNC_TRAIN_PARAM               (0x0077 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_WRITE_SYNC_TRAIN_PARAM              (0x0078 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 
+#define HCI_READ_SECURE_CONNS_SUPPORT           (0x0079 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
+#define HCI_WRITE_SECURE_CONNS_SUPPORT          (0x007A | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_CONT_BASEBAND_CMDS_FIRST    HCI_SET_EVENT_MASK
 #define HCI_CONT_BASEBAND_CMDS_LAST     HCI_READ_SYNC_TRAIN_PARAM
 
@@ -324,15 +326,22 @@
 #define HCI_BLE_LTK_REQ_NEG_REPLY       (0x001B | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_READ_SUPPORTED_STATES   (0x001C | HCI_GRP_BLE_CMDS)
                             /*0x001D, 0x001E and 0x001F are reserved*/
-
+#define HCI_BLE_RECEIVER_TEST           (0x001D | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_TRANSMITTER_TEST        (0x001E | HCI_GRP_BLE_CMDS)
+/* BLE TEST COMMANDS */
+#define HCI_BLE_TEST_END                (0x001F | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_RC_PARAM_REQ_REPLY      (0x0020 | HCI_GRP_BLE_CMDS)
 #define HCI_BLE_RC_PARAM_REQ_NEG_REPLY  (0x0021 | HCI_GRP_BLE_CMDS)
 
+#define HCI_BLE_ADD_DEV_RESOLVING_LIST      (0x0027 | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_RM_DEV_RESOLVING_LIST       (0x0028 | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_CLEAR_RESOLVING_LIST        (0x0029 | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_READ_RESOLVING_LIST_SIZE    (0x002A | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_READ_RESOLVABLE_ADDR_PEER   (0x002B | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_READ_RESOLVABLE_ADDR_LOCAL  (0x002C | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_SET_ADDR_RESOLUTION_ENABLE  (0x002D | HCI_GRP_BLE_CMDS)
+#define HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT   (0x002E | HCI_GRP_BLE_CMDS)
 
-/* BLE TEST COMMANDS */
-#define HCI_BLE_RECEIVER_TEST           (0x001D | HCI_GRP_BLE_CMDS)
-#define HCI_BLE_TRANSMITTER_TEST        (0x001E | HCI_GRP_BLE_CMDS)
-#define HCI_BLE_TEST_END                (0x001F | HCI_GRP_BLE_CMDS)
 
 /* LE Get Vendor Capabilities Command OCF */
 #define HCI_BLE_VENDOR_CAP_OCF    (0x0153 | HCI_GRP_VENDOR_SPECIFIC)
@@ -536,6 +545,21 @@
 #define HCI_SUPP_LE_STATES_INIT_MASTER_OFF           3
 #define HCI_LE_STATES_INIT_MASTER_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_INIT_MASTER_OFF] & HCI_SUPP_LE_STATES_INIT_MASTER_MASK)
 
+/*Low Duty Cycle Directed Advertising State . 0x0000000020000000 */
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_MASK          0x20
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_OFF           3
+#define HCI_LE_STATES_LOW_DUTY_DIR_ADV_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LOW_DUTY_DIR_ADV_OFF] & HCI_SUPP_LE_STATES_LOW_DUTY_DIR_ADV_MASK)
+
+/*Low Duty Cycle Directed Advertising State and Passive scan combination. 0x0000000040000000 */
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_MASK          0x40
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_OFF           3
+#define HCI_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_PASS_SCAN_MASK)
+
+/*Low Duty Cycle Directed Advertising State and Active scan combination . 0x0000000080000000 */
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_MASK          0x80
+#define HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_OFF           3
+#define HCI_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_OFF] & HCI_SUPP_LE_STATES_LO_DUTY_DIR_ADV_ACTIVE_SCAN_MASK)
+
 /* Connectable Advertising State and Initiating State combination supported. 0x0000000100000000 */
 #define HCI_SUPP_LE_STATES_CONN_ADV_INIT_MASK          0x01
 #define HCI_SUPP_LE_STATES_CONN_ADV_INIT_OFF           4
@@ -658,7 +682,7 @@
 #define HCI_SET_TRIGGERED_CLOCK_CAPTURE_EVT 0x4E
 
 /* ULP HCI Event */
-#define HCI_BLE_EVENT                   0x03E
+#define HCI_BLE_EVENT                       0x3e
 /* ULP Event sub code */
 #define HCI_BLE_CONN_COMPLETE_EVT           0x01
 #define HCI_BLE_ADV_PKT_RPT_EVT             0x02
@@ -666,6 +690,9 @@
 #define HCI_BLE_READ_REMOTE_FEAT_CMPL_EVT   0x04
 #define HCI_BLE_LTK_REQ_EVT                 0x05
 #define HCI_BLE_RC_PARAM_REQ_EVT            0x06
+#define HCI_BLE_DATA_LENGTH_CHANGE_EVT      0x07
+#define HCI_BLE_ENHANCED_CONN_COMPLETE_EVT  0x0a
+#define HCI_BLE_DIRECT_ADV_EVT              0x0b
 
 /* Definitions for LE Channel Map */
 #define HCI_BLE_CHNL_MAP_SIZE               5
@@ -678,11 +705,6 @@
 #define HCI_NAP_TRACE_EVT               0xFF  /* was define 0xFE, 0xFD, change to 0xFF
                                                  because conflict w/ TCI_EVT and per
                                                  specification compliant */
-
-/* the event mask for BLE event mask */
-#define HCI_BLE_EVENT_MASK_DEF               "\x00\x00\x00\x00\x00\x00\x00\x3f"
-
-
 
 /*
 **  Defentions for HCI Error Codes that are past in the events
@@ -863,7 +885,12 @@
     0x0000000000200000 Connectionless Broadcast Channel Map Change Event
     0x0000000000400000 Inquiry Response Notification Event
 */
-
+#if BLE_PRIVACY_SPT == TRUE
+/* BLE event mask */
+#define HCI_BLE_EVENT_MASK_DEF               "\x00\x00\x00\x00\x00\x00\x07\xff"
+#else
+#define HCI_BLE_EVENT_MASK_DEF              "\x00\x00\x00\x00\x00\x00\x00\x7f"
+#endif
 /*
 ** Definitions for packet type masks (BT1.2 and BT2.0 definitions)
 */
@@ -1065,6 +1092,10 @@
 #define HCI_SPD_MODE_DISABLED           0x00
 #define HCI_SPD_MODE_ENABLED            0x01
 
+/* Definitions for Write Secure Connections Host Support */
+#define HCI_SC_MODE_DISABLED            0x00
+#define HCI_SC_MODE_ENABLED             0x01
+
 /* Definitions for IO Capability Response/Command */
 #define HCI_IO_CAP_DISPLAY_ONLY         0x00
 #define HCI_IO_CAP_DISPLAY_YESNO        0x01
@@ -1230,6 +1261,8 @@
 #define HCI_LKEY_TYPE_UNAUTH_COMB       0x04
 #define HCI_LKEY_TYPE_AUTH_COMB         0x05
 #define HCI_LKEY_TYPE_CHANGED_COMB      0x06
+#define HCI_LKEY_TYPE_UNAUTH_COMB_P_256 0x07
+#define HCI_LKEY_TYPE_AUTH_COMB_P_256   0x08
 
 /* Internal definitions - not used over HCI */
 #define HCI_LKEY_TYPE_AMP_WIFI          0x80
@@ -1722,6 +1755,17 @@ typedef struct
 #define HCI_LE_FEATURE_SLAVE_INIT_FEAT_EXC_MASK       0x08
 #define HCI_LE_FEATURE_SLAVE_INIT_FEAT_EXC_OFF        0
 #define HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(x) ((x)[HCI_LE_FEATURE_SLAVE_INIT_FEAT_EXC_OFF] & HCI_LE_FEATURE_SLAVE_INIT_FEAT_EXC_MASK)
+
+/* Enhanced privacy Feature: bit 6 */
+#define HCI_LE_FEATURE_ENHANCED_PRIVACY_MASK       0x40
+#define HCI_LE_FEATURE_ENHANCED_PRIVACY_OFF        0
+#define HCI_LE_ENHANCED_PRIVACY_SUPPORTED(x) ((x)[HCI_LE_FEATURE_ENHANCED_PRIVACY_OFF] & HCI_LE_FEATURE_ENHANCED_PRIVACY_MASK)
+
+
+/* Extended scanner filter policy : 7 */
+#define HCI_LE_FEATURE_EXT_SCAN_FILTER_POLICY_MASK       0x80
+#define HCI_LE_FEATURE_EXT_SCAN_FILTER_POLICY_OFF        0
+#define HCI_LE_EXT_SCAN_FILTER_POLICY_SUPPORTED(x) ((x)[HCI_LE_FEATURE_EXT_SCAN_FILTER_POLICY_OFF] & HCI_LE_FEATURE_EXT_SCAN_FILTER_POLICY_MASK)
 
 /*
 **   Local Supported Commands encoding

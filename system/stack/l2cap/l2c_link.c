@@ -385,6 +385,11 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
         /* Just in case app decides to try again in the callback context */
         p_lcb->link_state = LST_DISCONNECTING;
 
+#if (BLE_INCLUDED == TRUE)
+        /* Check for BLE and handle that differently */
+        if (p_lcb->transport == BT_TRANSPORT_LE)
+            btm_ble_update_link_topology_mask(p_lcb->link_role, FALSE);
+#endif
         /* Link is disconnected. For all channels, send the event through */
         /* their FSMs. The CCBs should remove themselves from the LCB     */
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; )
@@ -1142,20 +1147,17 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++)
         {
             /* If controller window is full, nothing to do */
+            if (((l2cb.controller_xmit_window == 0 ||
+                  (l2cb.round_robin_unacked >= l2cb.round_robin_quota))
 #if (BLE_INCLUDED == TRUE)
-              if ( (l2cb.controller_xmit_window == 0 
-                && (p_lcb->transport == BT_TRANSPORT_BR_EDR))
-                || (p_lcb->transport == BT_TRANSPORT_LE 
-                  && l2cb.controller_le_xmit_window == 0 )
-                || (l2cb.round_robin_unacked >= l2cb.round_robin_quota
-                  && (p_lcb->transport == BT_TRANSPORT_BR_EDR))
-                || ((p_lcb->transport == BT_TRANSPORT_LE) 
-                  && (l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota)))
-#else 
-            if ((l2cb.controller_xmit_window == 0) 
-              || (l2cb.round_robin_unacked >= l2cb.round_robin_quota))
+                && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
 #endif
-                break;
+                )
+              || (p_lcb->transport == BT_TRANSPORT_LE &&
+                 (l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota ||
+                  l2cb.controller_le_xmit_window == 0 )))
+            break;
+
 
             /* Check for wraparound */
             if (p_lcb == &l2cb.lcb_pool[MAX_L2CAP_LINKS])

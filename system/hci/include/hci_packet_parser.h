@@ -81,6 +81,12 @@ typedef struct {
     BT_HDR *response,
     bt_device_features_t *supported_features
   );
+
+  void (*parse_ble_read_resolving_list_size_response) (
+    BT_HDR *response,
+    uint8_t *resolving_list_size_ptr
+  );
+
 } hci_packet_parser_t;
 
 const hci_packet_parser_t *hci_packet_parser_get_interface();

@@ -97,7 +97,7 @@ typedef struct
 
 
 #if BLE_INCLUDED == TRUE
-#define GAP_MAX_CHAR_NUM          5
+#define GAP_MAX_CHAR_NUM          4
 
 typedef struct
 {
@@ -114,27 +114,20 @@ typedef struct
 
 typedef struct
 {
-    union
-    {
-        BD_ADDR         reconn_addr;
-        UINT8           privacy_flag;
-    }                   pending_data;
-    UINT8               op;
-    void                *p_pending_cback;
-}tGAP_BLE_PENDING_OP;
+    UINT16 uuid;
+    tGAP_BLE_CMPL_CBACK *p_cback;
+} tGAP_BLE_REQ;
 
 typedef struct
 {
     BD_ADDR                 bda;
-    BD_ADDR                 reconn_addr;
-    void                    * p_cback;
+    tGAP_BLE_CMPL_CBACK     *p_cback;
     UINT16                  conn_id;
     UINT16                  cl_op_uuid;
-    UINT16                  disc_handle;
     BOOLEAN                 in_use;
     BOOLEAN                 connected;
-    UINT8                   privacy_flag;
-    BUFFER_Q                pending_op_q;
+    BUFFER_Q                pending_req_q;
+
 }tGAP_CLCB;
 
 typedef struct
@@ -152,9 +145,7 @@ typedef struct
     /* LE GAP attribute database */
 #if BLE_INCLUDED == TRUE
     tGAP_ATTR               gatt_attr[GAP_MAX_CHAR_NUM];
-    BD_ADDR                 reconn_bda;
     tGAP_CLCB               clcb[GAP_MAX_CL]; /* connection link*/
-
     tGATT_IF                gatt_if;
 #endif
 } tGAP_CB;

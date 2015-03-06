@@ -266,8 +266,8 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     UINT16_TO_STREAM (pp, p_params->adv_int_max);
     UINT8_TO_STREAM  (pp, p_params->adv_type);
 
-#if BLE_PRIVACY_SPT
-    if (btm_cb.ble_ctr_cb.privacy)
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+    if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
     {
         UINT8_TO_STREAM  (pp, BLE_ADDR_RANDOM);
         BDADDR_TO_STREAM (pp, p_inst->rpa);
@@ -310,8 +310,8 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
     {
         p_inst->adv_evt = p_params->adv_type;
 
-#if BLE_PRIVACY_SPT
-        if (btm_cb.ble_ctr_cb.privacy)
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+        if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
         {
             /* start timer */
             p_inst->raddr_timer_ent.param = (TIMER_PARAM_TYPE) p_inst;
@@ -773,12 +773,14 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
 
         if ((idx = btm_handle_to_acl_index(conn_handle)) != MAX_L2CAP_LINKS)
         {
-            if (btm_cb.ble_ctr_cb.privacy &&
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+            if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE &&
                 adv_inst <= BTM_BLE_MULTI_ADV_MAX && adv_inst !=  BTM_BLE_MULTI_ADV_DEFAULT_STD)
             {
                 memcpy(btm_cb.acl_db[idx].conn_addr, btm_multi_adv_cb.p_adv_inst[adv_inst - 1].rpa,
                                 BD_ADDR_LEN);
             }
+#endif
         }
 
         if (adv_inst < BTM_BleMaxMultiAdvInstanceCount() &&

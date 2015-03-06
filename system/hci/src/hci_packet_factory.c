@@ -85,6 +85,15 @@ static BT_HDR *make_write_simple_pairing_mode(uint8_t mode) {
   return packet;
 }
 
+static BT_HDR *make_write_secure_connections_host_support(uint8_t mode) {
+  uint8_t *stream;
+  const uint8_t parameter_size = 1;
+  BT_HDR *packet = make_command(HCI_WRITE_SECURE_CONNS_SUPPORT, parameter_size, &stream);
+
+  UINT8_TO_STREAM(stream, mode);
+  return packet;
+}
+
 static BT_HDR *make_set_event_mask(const bt_event_mask_t *event_mask) {
   uint8_t *stream;
   uint8_t parameter_size = sizeof(bt_event_mask_t);
@@ -118,6 +127,10 @@ static BT_HDR *make_ble_read_supported_states(void) {
 
 static BT_HDR *make_ble_read_local_supported_features(void) {
   return make_command_no_params(HCI_BLE_READ_LOCAL_SPT_FEAT);
+}
+
+static BT_HDR *make_ble_read_resolving_list_size(void) {
+  return make_command_no_params(HCI_BLE_READ_RESOLVING_LIST_SIZE);
 }
 
 static BT_HDR *make_ble_set_event_mask(const bt_event_mask_t *event_mask) {
@@ -167,12 +180,14 @@ static const hci_packet_factory_t interface = {
   make_read_local_supported_commands,
   make_read_local_extended_features,
   make_write_simple_pairing_mode,
+  make_write_secure_connections_host_support,
   make_set_event_mask,
   make_ble_write_host_support,
   make_ble_read_white_list_size,
   make_ble_read_buffer_size,
   make_ble_read_supported_states,
   make_ble_read_local_supported_features,
+  make_ble_read_resolving_list_size,
   make_ble_set_event_mask
 };
 

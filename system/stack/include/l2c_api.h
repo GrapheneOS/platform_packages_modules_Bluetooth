@@ -567,7 +567,8 @@ extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
 ** NOTE             This timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout);
+extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout,
+                                           tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -964,6 +965,7 @@ typedef struct
     tL2CAP_FCR_OPTS         fixed_chnl_opts;
 
     UINT16                  default_idle_tout;
+    tL2CA_TX_COMPLETE_CB    *pL2CA_FixedTxComplete_Cb; /* fixed channel tx complete callback */
 } tL2CAP_FIXED_CHNL_REG;
 
 

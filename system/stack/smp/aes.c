@@ -45,6 +45,9 @@
 
 #include <stdlib.h>
 
+/* add the target configuration to allow using internal data types and compilation options */
+#include "bt_target.h"
+
 /* define if you have fast 32-bit types on your system */
 #if 1
 #  define HAVE_UINT_32T
@@ -65,7 +68,7 @@
 #include "aes.h"
 
 #if defined( HAVE_UINT_32T )
-  typedef unsigned long uint_32t;
+  typedef UINT32 uint_32t;
 #endif
 
 /* functions for finite field multiplication in the AES Galois field    */
@@ -494,6 +497,11 @@ static void inv_shift_sub_rows( uint_8t st[N_BLOCK] )
 #if defined( AES_ENC_PREKEYED ) || defined( AES_DEC_PREKEYED )
 
 /*  Set the cipher key for the pre-keyed version */
+/*  NOTE: If the length_type used for the key length is an
+    unsigned 8-bit character, a key length of 256 bits must
+    be entered as a length in bytes (valid inputs are hence
+    128, 192, 16, 24 and 32).
+*/
 
 return_type aes_set_key( const unsigned char key[], length_type keylen, aes_context ctx[1] )
 {
@@ -502,15 +510,15 @@ return_type aes_set_key( const unsigned char key[], length_type keylen, aes_cont
     switch( keylen )
     {
     case 16:
-    case 128:
+    case 128:           /* length in bits (128 = 8*16) */
         keylen = 16;
         break;
     case 24:
-    case 192:
+    case 192:           /* length in bits (192 = 8*24) */
         keylen = 24;
         break;
     case 32:
-    /*    case 256:           length in bits (256 = 8*32) */
+/*    case 256:           length in bits (256 = 8*32) */
         keylen = 32;
         break;
     default:

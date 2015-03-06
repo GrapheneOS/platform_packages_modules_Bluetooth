@@ -109,6 +109,7 @@ typedef struct
     btif_dm_ble_lenc_keys_t   lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
     BOOLEAN                   is_lcsrk_key_rcvd;
     btif_dm_ble_lcsrk_keys_t  lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
+    BOOLEAN                   is_lidk_key_rcvd;   /* local identity key received */
 } btif_dm_ble_cb_t;
 
 #define BTIF_DM_LE_KEY_PENC        BTA_LE_KEY_PENC

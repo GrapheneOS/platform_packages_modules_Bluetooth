@@ -66,12 +66,14 @@ static uint16_t acl_buffer_count_classic;
 static uint8_t acl_buffer_count_ble;
 
 static uint8_t ble_white_list_size;
+static uint8_t ble_resolving_list_max_size;
 static uint8_t ble_supported_states[BLE_SUPPORTED_STATES_SIZE];
 static bt_device_features_t features_ble;
 
 static bool readable;
 static bool ble_supported;
 static bool simple_pairing_supported;
+static bool secure_connections_supported;
 
 #define AWAIT_COMMAND(command) future_await(hci->transmit_command_futured(command))
 
@@ -143,6 +145,12 @@ static future_t *start_up(void) {
     packet_parser->parse_generic_command_complete(response);
   }
 
+  secure_connections_supported = HCI_SC_CTRLR_SUPPORTED(features_classic[2].as_array);
+  if (secure_connections_supported) {
+    response = AWAIT_COMMAND(packet_factory->make_write_secure_connections_host_support(HCI_SC_MODE_ENABLED));
+    packet_parser->parse_generic_command_complete(response);
+  }
+
 #if (BLE_INCLUDED == TRUE)
   if (HCI_LE_SPT_SUPPORTED(features_classic[0].as_array)) {
     uint8_t simultaneous_le_host = HCI_SIMUL_LE_BREDR_SUPPORTED(features_classic[0].as_array) ? BTM_BLE_SIMULTANEOUS_HOST : 0;
@@ -203,6 +211,13 @@ static future_t *start_up(void) {
       response,
       &features_ble
     );
+
+    if (HCI_LE_ENHANCED_PRIVACY_SUPPORTED(features_ble.as_array)) {
+        response = AWAIT_COMMAND(packet_factory->make_ble_read_resolving_list_size());
+        packet_parser->parse_ble_read_resolving_list_size_response(
+            response,
+            &ble_resolving_list_max_size);
+    }
 
     // Set the ble event mask next
     response = AWAIT_COMMAND(packet_factory->make_ble_set_event_mask(&BLE_EVENT_MASK));
@@ -281,6 +296,11 @@ static bool supports_simple_pairing(void) {
   return simple_pairing_supported;
 }
 
+static bool supports_secure_connections(void) {
+  assert(readable);
+  return secure_connections_supported;
+}
+
 static bool supports_simultaneous_le_bredr(void) {
   assert(readable);
   return HCI_SIMUL_LE_BREDR_SUPPORTED(features_classic[0].as_array);
@@ -314,6 +334,12 @@ static bool supports_master_slave_role_switch(void) {
 static bool supports_ble(void) {
   assert(readable);
   return ble_supported;
+}
+
+static bool supports_ble_privacy(void) {
+  assert(readable);
+  assert(ble_supported);
+  return HCI_LE_ENHANCED_PRIVACY_SUPPORTED(features_ble.as_array);
 }
 
 static bool supports_ble_connection_parameters_request(void) {
@@ -354,6 +380,18 @@ static uint8_t get_acl_buffer_count_ble(void) {
   return acl_buffer_count_ble;
 }
 
+static uint8_t get_ble_resolving_list_max_size(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_resolving_list_max_size;
+}
+
+static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
+  assert(readable);
+  assert(ble_supported);
+  ble_resolving_list_max_size = resolving_list_max_size;
+}
+
 static const controller_t interface = {
   get_is_ready,
 
@@ -367,6 +405,7 @@ static const controller_t interface = {
   get_ble_supported_states,
 
   supports_simple_pairing,
+  supports_secure_connections,
   supports_simultaneous_le_bredr,
   supports_reading_remote_extended_features,
   supports_interlaced_inquiry_scan,
@@ -376,6 +415,7 @@ static const controller_t interface = {
 
   supports_ble,
   supports_ble_connection_parameters_request,
+  supports_ble_privacy,
 
   get_acl_data_size_classic,
   get_acl_data_size_ble,
@@ -384,7 +424,10 @@ static const controller_t interface = {
   get_acl_packet_size_ble,
 
   get_acl_buffer_count_classic,
-  get_acl_buffer_count_ble
+  get_acl_buffer_count_ble,
+
+  get_ble_resolving_list_max_size,
+  set_ble_resolving_list_max_size
 };
 
 const controller_t *controller_get_interface() {

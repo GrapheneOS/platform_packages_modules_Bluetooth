@@ -96,6 +96,7 @@ void gatt_init (void)
     GATT_TRACE_DEBUG("gatt_init()");
 
     memset (&gatt_cb, 0, sizeof(tGATT_CB));
+    memset (&fixed_reg, 0, sizeof(tL2CAP_FIXED_CHNL_REG));
 
 #if defined(GATT_INITIAL_TRACE_LEVEL)
     gatt_cb.trace_level = GATT_INITIAL_TRACE_LEVEL;
@@ -1017,20 +1018,18 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
 *******************************************************************************/
 void gatt_add_a_bonded_dev_for_srv_chg (BD_ADDR bda)
 {
-    tGATTS_SRV_CHG *p_buf;
     tGATTS_SRV_CHG_REQ req;
     tGATTS_SRV_CHG srv_chg_clt;
 
     memcpy(srv_chg_clt.bda, bda, BD_ADDR_LEN);
     srv_chg_clt.srv_changed = FALSE;
-    if ((p_buf = gatt_add_srv_chg_clt(&srv_chg_clt)) != NULL)
+    if (gatt_add_srv_chg_clt(&srv_chg_clt) != NULL)
     {
         memcpy(req.srv_chg.bda, bda, BD_ADDR_LEN);
         req.srv_chg.srv_changed = FALSE;
         if (gatt_cb.cb_info.p_srv_chg_callback)
             (*gatt_cb.cb_info.p_srv_chg_callback)(GATTS_SRV_CHG_CMD_ADD_CLIENT, &req, NULL);
     }
-
 }
 
 /*******************************************************************************

@@ -413,7 +413,8 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     UNUSED(p_data);
 
     /* Set l2cap idle timeout to 0 (so BTE immediately disconnects ACL link after last channel is closed) */
-    L2CA_SetIdleTimeoutByBdAddr((UINT8 *)BT_BD_ANY, 0);
+    L2CA_SetIdleTimeoutByBdAddr((UINT8 *)BT_BD_ANY, 0, BT_TRANSPORT_BR_EDR);
+    L2CA_SetIdleTimeoutByBdAddr((UINT8 *)BT_BD_ANY, 0, BT_TRANSPORT_LE);
 
     /* disable all active subsystems */
     bta_sys_disable(BTA_SYS_HW_BLUETOOTH);
@@ -4301,10 +4302,9 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
 {
     tBTM_STATUS status = BTM_SUCCESS;
     tBTA_DM_SEC sec_event;
-    char* p_name = NULL;
+    char *p_name = NULL;
     UINT8 i;
-
-    APPL_TRACE_DEBUG("bta_dm_ble_smp_cback");
+    tBT_DEVICE_TYPE dev_type;
 
     if (!bta_dm_cb.p_sec_cback)
         return BTM_NOT_AUTHORIZED;
@@ -4371,31 +4371,24 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
             bta_dm_cb.p_sec_cback(BTA_DM_BLE_OOB_REQ_EVT, &sec_event);
             break;
 
+        case BTM_LE_NC_REQ_EVT:
+            bdcpy(sec_event.key_notif.bd_addr, bda);
+            BCM_STRNCPY_S((char*)sec_event.key_notif.bd_name, sizeof(BD_NAME), bta_dm_get_remname(), (BD_NAME_LEN));
+            sec_event.ble_req.bd_name[BD_NAME_LEN] = 0;
+            sec_event.key_notif.passkey = p_data->key_notif;
+            bta_dm_cb.p_sec_cback(BTA_DM_BLE_NC_REQ_EVT, &sec_event);
+            break;
+
         case BTM_LE_KEY_EVT:
             bdcpy(sec_event.ble_key.bd_addr, bda);
             sec_event.ble_key.key_type = p_data->key.key_type;
-
-            if (p_data->key.key_type == BTM_LE_KEY_PID)
-            {
-                for (i=0; i<BT_OCTET16_LEN; i++ )
-                {
-                    sec_event.ble_key.key_value.pid_key.irk[i] = p_data->key.p_key_value->pid_key.irk[i];
-                }
-                sec_event.ble_key.key_value.pid_key.addr_type = p_data->key.p_key_value->pid_key.addr_type;
-                memcpy( &(sec_event.ble_key.key_value.pid_key.static_addr),
-                        &(p_data->key.p_key_value->pid_key.static_addr),
-                        sizeof (BD_ADDR));
-            }
-            else
-            {
-                memcpy(&sec_event.ble_key.key_value, p_data->key.p_key_value, sizeof(tBTM_LE_KEY_VALUE));
-            }
-            // memcpy(&sec_event.ble_key.key_value, p_data->key.p_key_value, sizeof(tBTM_LE_KEY_VALUE)); todo will crash
+            sec_event.ble_key.p_key_value = p_data->key.p_key_value;
             bta_dm_cb.p_sec_cback(BTA_DM_BLE_KEY_EVT, &sec_event);
             break;
 
         case BTM_LE_COMPLT_EVT:
             bdcpy(sec_event.auth_cmpl.bd_addr, bda);
+            BTM_ReadDevInfo(bda, &dev_type, &sec_event.auth_cmpl.addr_type);
             p_name = BTM_SecReadDevName(bda);
             if (p_name != NULL)
             {
@@ -4417,6 +4410,7 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
                 sec_event.auth_cmpl.success = TRUE;
                 GATT_ConfigServiceChangeCCC(bda, TRUE, BT_TRANSPORT_LE);
             }
+
             if (bta_dm_cb.p_sec_cback)
             {
                 //bta_dm_cb.p_sec_cback(BTA_DM_AUTH_CMPL_EVT, &sec_event);
@@ -4541,6 +4535,28 @@ void bta_dm_ble_passkey_reply (tBTA_DM_MSG *p_data)
         BTM_BlePasskeyReply(p_data->ble_passkey_reply.bd_addr, BTM_NOT_AUTHORIZED, p_data->ble_passkey_reply.passkey);
     }
 
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_confirm_reply
+**
+** Description      This is response to SM numeric comparison request submitted
+**                  to application.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_confirm_reply (tBTA_DM_MSG *p_data)
+{
+    if (p_data->confirm.accept)
+    {
+        BTM_BleConfirmReply(p_data->confirm.bd_addr, BTM_SUCCESS);
+    }
+    else
+    {
+        BTM_BleConfirmReply(p_data->ble_passkey_reply.bd_addr, BTM_NOT_AUTHORIZED);
+    }
 }
 
 /*******************************************************************************

@@ -234,30 +234,20 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             p->hci_handle        = hci_handle;
             p->link_role         = link_role;
             p->link_up_issued    = FALSE;
+            memcpy (p->remote_addr, bda, BD_ADDR_LEN);
 
 #if BLE_INCLUDED == TRUE
             p->transport = transport;
-            if (transport == BT_TRANSPORT_LE)
-            {
 #if BLE_PRIVACY_SPT == TRUE
-                if (btm_cb.ble_ctr_cb.privacy)
-                {
-                    p->conn_addr_type = btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type;
-                    memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr, BD_ADDR_LEN);
-                }
-                else
+            if (transport == BT_TRANSPORT_LE)
+                btm_ble_refresh_local_resolvable_private_addr(bda,
+                                                    btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr);
 #endif
-                {
-                    p->conn_addr_type = BLE_ADDR_PUBLIC;
-                    memcpy(p->conn_addr, controller_get_interface()->get_address()->address, BD_ADDR_LEN);
-                }
-            }
 #endif
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
 
             btm_pm_sm_alloc(xx);
 
-            memcpy (p->remote_addr, bda, BD_ADDR_LEN);
 
             if (dc)
                 memcpy (p->remote_dc, dc, DEV_CLASS_LEN);

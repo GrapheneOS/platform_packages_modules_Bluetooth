@@ -1120,7 +1120,10 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
                 sr_data.write_req.need_rsp = TRUE;
             sr_data.write_req.handle = handle;
             sr_data.write_req.len = len;
-            memcpy (sr_data.write_req.value, p, len);
+            if (len != 0 && p != NULL)
+            {
+                memcpy (sr_data.write_req.value, p, len);
+            }
             break;
     }
 

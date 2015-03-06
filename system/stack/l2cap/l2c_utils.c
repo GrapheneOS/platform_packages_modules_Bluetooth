@@ -2815,13 +2815,15 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
 #if (BLE_INCLUDED == TRUE)
-    /* always exclude LE fixed channel on BR/EDR fix channel capability */
-    if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-        p_lcb->peer_chnl_mask[0] &= ~(L2CAP_FIXED_CHNL_ATT_BIT| \
-                                      L2CAP_FIXED_CHNL_BLE_SIG_BIT| \
-                                      L2CAP_FIXED_CHNL_SMP_BIT);
-    else
-        p_lcb->peer_chnl_mask[0] = l2cb.l2c_ble_fixed_chnls_mask;
+     if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
+     {
+         /* ignore all not assigned BR/EDR channels */
+         p_lcb->peer_chnl_mask[0] &= (L2CAP_FIXED_CHNL_SIG_BIT| \
+                                      L2CAP_FIXED_CHNL_CNCTLESS_BIT| \
+                                      L2CAP_FIXED_CHNL_SMP_BR_BIT);
+     }
+     else
+         p_lcb->peer_chnl_mask[0] = l2cb.l2c_ble_fixed_chnls_mask;
 #endif
 
     /* Tell all registered fixed channels about the connection */
@@ -3305,6 +3307,10 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                     L2CAP_TRACE_ERROR("l2cu_get_buffer_to_send: No data to be sent");
                     return (NULL);
                 }
+                /* send tx complete */
+                if (l2cb.fixed_reg[xx].pL2CA_FixedTxComplete_Cb)
+                    (*l2cb.fixed_reg[xx].pL2CA_FixedTxComplete_Cb)(p_ccb->local_cid, 1);
+
                 l2cu_check_channel_congestion (p_ccb);
                 l2cu_set_acl_hci_header (p_buf, p_ccb);
                 return (p_buf);
@@ -3433,9 +3439,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
         q_count += p_ccb->p_lcb->ucd_out_sec_pending_q.count;
     }
 #endif
-
     /* If the CCB queue limit is subject to a quota, check for congestion */
-
     /* if this channel has outgoing traffic */
     if (p_ccb->buff_quota != 0)
     {

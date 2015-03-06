@@ -833,17 +833,22 @@ BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout, BOOLEAN is_global)
 ** NOTE             This timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout)
+BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout, tBT_TRANSPORT transport)
 {
     tL2C_LCB        *p_lcb;
 
     if (memcmp (BT_BD_ANY, bd_addr, BD_ADDR_LEN))
     {
-        p_lcb = l2cu_find_lcb_by_bd_addr( bd_addr, BT_TRANSPORT_BR_EDR);
+        p_lcb = l2cu_find_lcb_by_bd_addr( bd_addr, transport);
         if ((p_lcb) && (p_lcb->in_use) && (p_lcb->link_state == LST_CONNECTED))
+        {
             p_lcb->idle_timeout = timeout;
+
+            if (!p_lcb->ccb_queue.p_first_ccb)
+                l2cu_no_dynamic_ccbs (p_lcb);
+        }
         else
-            return (FALSE);
+            return FALSE;
     }
     else
     {
@@ -855,11 +860,14 @@ BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout)
             if ((p_lcb->in_use) && (p_lcb->link_state == LST_CONNECTED))
             {
                 p_lcb->idle_timeout = timeout;
+
+                if (!p_lcb->ccb_queue.p_first_ccb)
+                    l2cu_no_dynamic_ccbs (p_lcb);
             }
         }
     }
 
-    return (TRUE);
+    return TRUE;
 }
 
 /*******************************************************************************
@@ -1639,18 +1647,6 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL] = NULL;
     p_lcb->disc_reason = HCI_ERR_CONN_CAUSE_LOCAL_HOST;
 
-#if BLE_INCLUDED == TRUE
-    /* retain the link for a few more seconds after SMP pairing is done, since Android
-    platformalways do service discovery after pairing complete. This way would avoid
-    the link down (pairing is complete) and an immediate reconnection for service
-    discovery. Some devices do not do auto advertising when link is dropped, thus fail
-    the second connection and service discovery.
-    BEFORE :if ((fixed_cid == L2CAP_ATT_CID || fixed_cid == L2CAP_SMP_CID)
-                       && !p_lcb->ccb_queue.p_first_ccb)*/
-    if ((fixed_cid == L2CAP_ATT_CID ) && !p_lcb->ccb_queue.p_first_ccb)
-        p_lcb->idle_timeout = 0;
-#endif
-
     l2cu_release_ccb (p_ccb);
 
     return (TRUE);
@@ -1700,7 +1696,7 @@ BOOLEAN L2CA_SetFixedChannelTout (BD_ADDR rem_bda, UINT16 fixed_cid, UINT16 idle
         l2cu_no_dynamic_ccbs (p_lcb);
     }
 
-    return (TRUE);
+    return TRUE;
 }
 
 #endif /* #if (L2CAP_NUM_FIXED_CHNLS > 0) */

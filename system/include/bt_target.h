@@ -711,7 +711,7 @@
 
 /* First fixed channel supported */
 #ifndef L2CAP_FIRST_FIXED_CHNL
-#define L2CAP_FIRST_FIXED_CHNL              3
+#define L2CAP_FIRST_FIXED_CHNL              4
 #endif
 
 #ifndef L2CAP_LAST_FIXED_CHNL
@@ -904,11 +904,17 @@
 #define SMP_MIN_ENC_KEY_SIZE    7
 #endif
 
-/* Used for conformance testing ONLY */
-#ifndef SMP_CONFORMANCE_TESTING
-#define SMP_CONFORMANCE_TESTING           FALSE
+/* minimum link timeout after SMP pairing is done, leave room for key exchange
+   and racing condition for the following service connection.
+   Prefer greater than 0 second, and no less than default inactivity link idle
+   timer(L2CAP_LINK_INACTIVITY_TOUT) in l2cap) */
+#ifndef SMP_LINK_TOUT_MIN
+#if (L2CAP_LINK_INACTIVITY_TOUT > 0)
+#define SMP_LINK_TOUT_MIN               L2CAP_LINK_INACTIVITY_TOUT
+#else
+#define SMP_LINK_TOUT_MIN               2
 #endif
-
+#endif
 /******************************************************************************
 **
 ** SDP

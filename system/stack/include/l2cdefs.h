@@ -122,7 +122,7 @@
 #define L2CAP_CMD_REJ_INVALID_CID       2
 
 
-/* L2CAP Predefined CIDs  (0x0004-0x003E Reserved)
+/* L2CAP Predefined CIDs
 */
 #define L2CAP_SIGNALLING_CID            1
 #define L2CAP_CONNECTIONLESS_CID        2
@@ -130,17 +130,33 @@
 #define L2CAP_ATT_CID                   4
 #define L2CAP_BLE_SIGNALLING_CID        5
 #define L2CAP_SMP_CID                   6
+#define L2CAP_SMP_BR_CID                7
 #define L2CAP_AMP_TEST_CID              0x003F
 #define L2CAP_BASE_APPL_CID             0x0040
+#define L2CAP_BLE_CONN_MAX_CID          0x007F
 
-/* Fixed Channels mask bits
-*/
-#define L2CAP_FIXED_CHNL_SIG_BIT        (1 << L2CAP_SIGNALLING_CID)     /* Signal Channel Supported (Mandatory) */
-#define L2CAP_FIXED_CHNL_CNCTLESS_BIT   (1 << L2CAP_CONNECTIONLESS_CID) /* Connectionless Reception             */
-#define L2CAP_FIXED_CHNL_AMP_BIT        (1 << L2CAP_AMP_CID)            /* AMP Manager Supported                */
-#define L2CAP_FIXED_CHNL_ATT_BIT        (1 << L2CAP_ATT_CID)            /* Attribute protocol Supported         */
-#define L2CAP_FIXED_CHNL_BLE_SIG_BIT    (1 << L2CAP_BLE_SIGNALLING_CID) /* BLE Signalling Supported             */
-#define L2CAP_FIXED_CHNL_SMP_BIT        (1 << L2CAP_SMP_CID)            /* BLE Security Manager Supported       */
+/* Fixed Channels mask bits */
+
+/* Signal channel supported (Mandatory) */
+#define L2CAP_FIXED_CHNL_SIG_BIT     (1 << L2CAP_SIGNALLING_CID)
+
+/* Connectionless reception */
+#define L2CAP_FIXED_CHNL_CNCTLESS_BIT (1 << L2CAP_CONNECTIONLESS_CID)
+
+/* AMP Manager supported */
+#define L2CAP_FIXED_CHNL_AMP_BIT      (1 << L2CAP_AMP_CID)
+
+/* Attribute protocol supported */
+#define L2CAP_FIXED_CHNL_ATT_BIT      (1 << L2CAP_ATT_CID)
+
+/* BLE Signalling supported */
+#define L2CAP_FIXED_CHNL_BLE_SIG_BIT  (1 << L2CAP_BLE_SIGNALLING_CID)
+
+/* BLE Security Mgr supported */
+#define L2CAP_FIXED_CHNL_SMP_BIT      (1 << L2CAP_SMP_CID)
+
+/* Security Mgr over BR supported */
+#define L2CAP_FIXED_CHNL_SMP_BR_BIT   (1 << L2CAP_SMP_BR_CID)
 
 
 

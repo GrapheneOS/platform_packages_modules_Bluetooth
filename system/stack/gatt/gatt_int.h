@@ -296,8 +296,6 @@ typedef struct
 #define     GATT_CH_CONN                2
 #define     GATT_CH_CFG                 3
 #define     GATT_CH_OPEN                4
-#define     GATT_CH_W4_SEC_COMP         5
-#define     GATT_CH_W4_DATA_SIGN_COMP   6
 
 typedef UINT8 tGATT_CH_STATE;
 
