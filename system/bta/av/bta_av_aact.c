@@ -27,6 +27,7 @@
 #include "bt_target.h"
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
+#include <assert.h>
 #include <string.h>
 #include "bta_av_int.h"
 #include "avdt_api.h"
@@ -55,6 +56,8 @@
 #ifndef BTA_AV_RECONFIG_RETRY
 #define BTA_AV_RECONFIG_RETRY       6
 #endif
+
+static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 
 /* state machine states */
 enum
@@ -234,7 +237,7 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 **
 ** Returns          void
 ***********************************************/
-UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 local_sep )
+static UINT8 bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, UINT8 local_sep)
 {
     UINT8 xx =0;
     for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
@@ -256,7 +259,7 @@ UINT8  bta_av_get_scb_handle ( tBTA_AV_SCB *p_scb, UINT8 local_sep )
 **
 ** Returns          void
 ***********************************************/
-UINT8  bta_av_get_scb_sep_type ( tBTA_AV_SCB *p_scb, UINT8 tavdt_handle)
+static UINT8 bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, UINT8 tavdt_handle)
 {
     UINT8 xx =0;
     for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
@@ -328,7 +331,7 @@ static void notify_start_failed(tBTA_AV_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_data);
 
@@ -424,7 +427,7 @@ static BOOLEAN bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data, int index)
+static void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data, int index)
 {
     tBTA_AV_STR_MSG     *p_msg;
     UINT16              sec_len = 0;
@@ -2038,7 +2041,7 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
     bta_sys_set_policy(BTA_ID_AV, policy, p_scb->peer_addr);
 
-    if(p_scb->co_started)
+    if (p_scb->co_started)
     {
         bta_av_stream_chg(p_scb, FALSE);
         p_scb->co_started = FALSE;
@@ -2048,15 +2051,16 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     }
 
     /* if q_info.a2d_list is not empty, drop it now */
-    if(BTA_AV_CHNL_AUDIO == p_scb->chnl) {
-      while (!list_is_empty(p_scb->q_info.a2d_list)) {
-        p_buf = (BT_HDR*)list_front(p_scb->q_info.a2d_list);
-        list_remove(p_scb->q_info.a2d_list, p_buf);
-        GKI_freebuf(p_buf);
-      }
+    if (BTA_AV_CHNL_AUDIO == p_scb->chnl) {
+        while (!list_is_empty(p_scb->a2d_list))
+        {
+            p_buf = (BT_HDR *)list_front(p_scb->a2d_list);
+            list_remove(p_scb->a2d_list, p_buf);
+            GKI_freebuf(p_buf);
+        }
 
     /* drop the audio buffers queued in L2CAP */
-        if(p_data && p_data->api_stop.flush)
+        if (p_data && p_data->api_stop.flush)
             L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
     }
 
@@ -2191,7 +2195,7 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = NULL;
     UINT32  data_len;
     UINT32  timestamp;
     BOOLEAN new_buf = FALSE;
@@ -2199,80 +2203,82 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     tAVDT_DATA_OPT_MASK     opt;
     UNUSED(p_data);
 
-    if (!p_scb->cong)
+    if (p_scb->cong)
     {
-        /*
-        APPL_TRACE_ERROR("q: %d", p_scb->l2c_bufs);
-        */
-        //Always get the current number of bufs que'd up
-        p_scb->l2c_bufs = (UINT8)L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_GET);
+        return;
+    }
 
-       if (!list_is_empty(p_scb->q_info.a2d_list)) {
-            p_buf = (BT_HDR *)list_front(p_scb->q_info.a2d_list);
-            list_remove(p_scb->q_info.a2d_list, p_buf);
-             /* use q_info.a2d data, read the timestamp */
-            timestamp = *(UINT32 *)(p_buf + 1);
+    /*
+    APPL_TRACE_ERROR("q: %d", p_scb->l2c_bufs);
+    */
+    //Always get the current number of bufs que'd up
+    p_scb->l2c_bufs = (UINT8)L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_GET);
+
+    if (!list_is_empty(p_scb->a2d_list)) {
+        p_buf = (BT_HDR *)list_front(p_scb->a2d_list);
+        list_remove(p_scb->a2d_list, p_buf);
+         /* use q_info.a2d data, read the timestamp */
+        timestamp = *(UINT32 *)(p_buf + 1);
+    }
+    else
+    {
+        new_buf = TRUE;
+        /* a2d_list empty, call co_data, dup data to other channels */
+        p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->codec_type, &data_len,
+                                         &timestamp);
+
+        if (p_buf)
+        {
+            /* use the offset area for the time stamp */
+            *(UINT32 *)(p_buf + 1) = timestamp;
+
+            /* dup the data to other channels */
+            bta_av_dup_audio_buf(p_scb, p_buf);
+        }
+    }
+
+    if(p_buf)
+    {
+        if(p_scb->l2c_bufs < (BTA_AV_QUEUE_DATA_CHK_NUM))
+        {
+            /* there's a buffer, just queue it to L2CAP */
+            /*  There's no need to increment it here, it is always read from L2CAP see above */
+            /* p_scb->l2c_bufs++; */
+            /*
+            APPL_TRACE_ERROR("qw: %d", p_scb->l2c_bufs);
+            */
+
+            /* opt is a bit mask, it could have several options set */
+            opt = AVDT_DATA_OPT_NONE;
+            if (p_scb->no_rtp_hdr)
+            {
+                opt |= AVDT_DATA_OPT_NO_RTP;
+            }
+
+            AVDT_WriteReqOpt(p_scb->avdt_handle, p_buf, timestamp, m_pt, opt);
+            p_scb->cong = TRUE;
         }
         else
         {
-            new_buf = TRUE;
-            /* q_info.a2d_list empty, call co_data, dup data to other channels */
-            p_buf = (BT_HDR *)p_scb->p_cos->data(p_scb->codec_type, &data_len,
-                                             &timestamp);
-
-            if (p_buf)
+            /* there's a buffer, but L2CAP does not seem to be moving data */
+            if(new_buf)
             {
-                /* use the offset area for the time stamp */
-                *(UINT32 *)(p_buf + 1) = timestamp;
-
-                /* dup the data to other channels */
-                bta_av_dup_audio_buf(p_scb, p_buf);
-            }
-        }
-
-        if(p_buf)
-        {
-            if(p_scb->l2c_bufs < (BTA_AV_QUEUE_DATA_CHK_NUM))
-            {
-                /* there's a buffer, just queue it to L2CAP */
-                /*  There's no need to increment it here, it is always read from L2CAP see above */
-                /* p_scb->l2c_bufs++; */
-                /*
-                APPL_TRACE_ERROR("qw: %d", p_scb->l2c_bufs);
-                */
-
-                /* opt is a bit mask, it could have several options set */
-                opt = AVDT_DATA_OPT_NONE;
-                if (p_scb->no_rtp_hdr)
-                {
-                    opt |= AVDT_DATA_OPT_NO_RTP;
-                }
-
-                AVDT_WriteReqOpt(p_scb->avdt_handle, p_buf, timestamp, m_pt, opt);
-                p_scb->cong = TRUE;
+                /* just got this buffer from co_data,
+                 * put it in queue */
+                list_append(p_scb->a2d_list, p_buf);
             }
             else
             {
-                /* there's a buffer, but L2CAP does not seem to be moving data */
-                if(new_buf)
-                {
-                    /* just got this buffer from co_data,
-                     * put it in queue */
-                    list_append(p_scb->q_info.a2d_list, p_buf);
+                /* just dequeue it from the a2d_list */
+                if (list_length(p_scb->a2d_list) < 3) {
+                    /* put it back to the queue */
+                    list_prepend(p_scb->a2d_list, p_buf);
                 }
                 else
                 {
-                    /* just dequeue it from the q_info.a2d_list */
-                    if (list_length(p_scb->q_info.a2d_list) < 3) {
-                        /* put it back to the queue */
-                        list_prepend(p_scb->q_info.a2d_list, p_buf);
-                    }
-                    else
-                    {
-                        /* too many buffers in q_info.a2d_list, drop it. */
-                        bta_av_co_audio_drop(p_scb->hndl);
-                        GKI_freebuf(p_buf);
-                    }
+                    /* too many buffers in a2d_list, drop it. */
+                    bta_av_co_audio_drop(p_scb->hndl);
+                    GKI_freebuf(p_buf);
                 }
             }
         }

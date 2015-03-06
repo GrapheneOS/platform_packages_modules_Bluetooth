@@ -1980,11 +1980,11 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
             }
             p_cb->conn_audio &= ~mask;
 
-            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM) {
-                /* make sure no buffers are in q_info.a2d */
-                while (!list_is_empty(p_scb->q_info.a2d_list)) {
-                    p_buf = (BT_HDR*)list_front(p_scb->q_info.a2d_list);
-                    list_remove(p_scb->q_info.a2d_list, p_buf);
+            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM && p_scb->a2d_list) {
+                /* make sure no buffers are in a2d_list */
+                while (!list_is_empty(p_scb->a2d_list)) {
+                    p_buf = (BT_HDR*)list_front(p_scb->a2d_list);
+                    list_remove(p_scb->a2d_list, p_buf);
                     GKI_freebuf(p_buf);
                 }
             }

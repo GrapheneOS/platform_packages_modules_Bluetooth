@@ -25,6 +25,7 @@
 #include "bt_target.h"
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
+#include <assert.h>
 #include <string.h>
 #include "bta_av_int.h"
 #include "utl.h"
@@ -383,6 +384,7 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
                     p_ret->chnl = chnl;
                     p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
                     p_ret->hdi  = xx;
+                    p_ret->a2d_list = list_new(NULL);
                     bta_av_cb.p_scb[xx] = p_ret;
                 }
                 break;
@@ -390,6 +392,25 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
         }
     }
     return p_ret;
+}
+
+/*******************************************************************************
+**
+** Function         bta_av_free_scb
+**
+** Description      free stream control block,
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_av_free_scb(tBTA_AV_SCB *p_scb)
+{
+    // NOTE(google) This free currently is not called
+    assert(p_scb != NULL);
+
+    list_free(p_scb->a2d_list);
+    GKI_freebuf(p_scb);
 }
 
 /*******************************************************************************
@@ -1200,11 +1221,12 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
                 if(p_new)
                 {
                     memcpy(p_new, p_buf, copy_size);
-                    list_append(p_scbi->q_info.a2d_list, p_new);
-                    if (list_length(p_scbi->q_info.a2d_list) >  p_bta_av_cfg->audio_mqs) {
+                    list_append(p_scbi->a2d_list, p_new);
+                    if (list_length(p_scbi->a2d_list) >  p_bta_av_cfg->audio_mqs) {
+                        // Drop the oldest packet
                         bta_av_co_audio_drop(p_scbi->hndl);
-                        BT_HDR *p_buf = list_front(p_scbi->q_info.a2d_list);
-                        list_remove(p_scbi->q_info.a2d_list, p_buf);
+                        BT_HDR *p_buf = list_front(p_scbi->a2d_list);
+                        list_remove(p_scbi->a2d_list, p_buf);
                         GKI_freebuf(p_buf);
                     }
                 }
