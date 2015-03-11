@@ -1899,11 +1899,10 @@ void btif_a2dp_set_peer_sep(UINT8 sep) {
 
 static void btif_decode_alarm_cb(UNUSED_ATTR void *context) {
   thread_post(worker_thread, btif_media_task_avk_handle_timer, NULL);
-  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
 }
 
 static void btif_media_task_aa_handle_stop_decoding(void) {
-  alarm_cancel(btif_media_cb.decode_alarm);
+  alarm_free(btif_media_cb.decode_alarm);
   btif_media_cb.decode_alarm = NULL;
 }
 
@@ -1917,7 +1916,7 @@ static void btif_media_task_aa_handle_start_decoding(void) {
     return;
   }
 
-  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
+  alarm_set_periodic(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
@@ -2098,7 +2097,6 @@ static void btif_media_task_feeding_state_reset(void)
 
 static void btif_media_task_alarm_cb(UNUSED_ATTR void *context) {
   thread_post(worker_thread, btif_media_task_aa_handle_timer, NULL);
-  alarm_set(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK, btif_media_task_alarm_cb, NULL);
 }
 
 /*******************************************************************************
@@ -2134,7 +2132,7 @@ static void btif_media_task_aa_start_tx(void)
       return;
     }
 
-    alarm_set(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK, btif_media_task_alarm_cb, NULL);
+    alarm_set_periodic(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK, btif_media_task_alarm_cb, NULL);
 }
 
 /*******************************************************************************

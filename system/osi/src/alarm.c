@@ -39,6 +39,8 @@ struct alarm_t {
   pthread_mutex_t callback_lock;
   period_ms_t deadline;
   alarm_callback_t callback;
+  bool periodic;
+  period_ms_t period;
   void *data;
 };
 
@@ -62,6 +64,8 @@ static bool timer_set;
 
 static bool lazy_initialize(void);
 static period_ms_t now(void);
+static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic);
+static void schedule(alarm_t *alarm, period_ms_t deadline);
 static void timer_callback(void *data);
 static void reschedule(void);
 
@@ -111,39 +115,28 @@ void alarm_free(alarm_t *alarm) {
   osi_free(alarm);
 }
 
-// Runs in exclusion with alarm_cancel and timer_callback.
 void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data) {
+  alarm_set_internal(alarm, deadline, cb, data, false);
+}
+
+void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data) {
+  alarm_set_internal(alarm, period, cb, data, true);
+}
+
+// Runs in exclusion with alarm_cancel and timer_callback.
+static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic) {
   assert(alarms != NULL);
   assert(alarm != NULL);
   assert(cb != NULL);
 
   pthread_mutex_lock(&monitor);
 
-  // If the alarm is currently set and it's at the start of the list,
-  // we'll need to re-schedule since we've adjusted the earliest deadline.
-  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
-  if (alarm->callback)
-    list_remove(alarms, alarm);
-
-  alarm->deadline = now() + deadline;
+  alarm->periodic = is_periodic;
+  alarm->period = deadline;
   alarm->callback = cb;
   alarm->data = data;
 
-  // Add it into the timer list sorted by deadline (earliest deadline first).
-  if (list_is_empty(alarms) || ((alarm_t *)list_front(alarms))->deadline >= alarm->deadline)
-    list_prepend(alarms, alarm);
-  else
-    for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
-      list_node_t *next = list_next(node);
-      if (next == list_end(alarms) || ((alarm_t *)list_node(next))->deadline >= alarm->deadline) {
-        list_insert_after(alarms, node, alarm);
-        break;
-      }
-    }
-
-  // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
-  if (needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
-    reschedule();
+  schedule(alarm, deadline);
 
   pthread_mutex_unlock(&monitor);
 }
@@ -197,6 +190,33 @@ static period_ms_t now(void) {
   return (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
 }
 
+// Must be called with monitor held
+static void schedule(alarm_t *alarm, period_ms_t deadline) {
+  // If the alarm is currently set and it's at the start of the list,
+  // we'll need to re-schedule since we've adjusted the earliest deadline.
+  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
+  if (alarm->callback)
+    list_remove(alarms, alarm);
+
+  alarm->deadline = now() + deadline;
+
+  // Add it into the timer list sorted by deadline (earliest deadline first).
+  if (list_is_empty(alarms) || ((alarm_t *)list_front(alarms))->deadline >= alarm->deadline)
+    list_prepend(alarms, alarm);
+  else
+    for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
+      list_node_t *next = list_next(node);
+      if (next == list_end(alarms) || ((alarm_t *)list_node(next))->deadline >= alarm->deadline) {
+        list_insert_after(alarms, node, alarm);
+        break;
+      }
+    }
+
+  // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
+  if (needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
+    reschedule();
+}
+
 // Warning: this function is called in the context of an unknown thread.
 // As a result, it must be thread-safe relative to other operations on
 // the alarm list.
@@ -207,11 +227,11 @@ static void timer_callback(void *ptr) {
   pthread_mutex_lock(&monitor);
 
   bool alarm_valid = list_remove(alarms, alarm);
-  reschedule();
 
   // The alarm was cancelled before we got to it. Release the monitor
   // lock and exit right away since there's nothing left to do.
   if (!alarm_valid) {
+    reschedule();
     pthread_mutex_unlock(&monitor);
     return;
   }
@@ -219,9 +239,15 @@ static void timer_callback(void *ptr) {
   alarm_callback_t callback = alarm->callback;
   void *data = alarm->data;
 
-  alarm->deadline = 0;
-  alarm->callback = NULL;
-  alarm->data = NULL;
+  if (alarm->periodic) {
+    schedule(alarm, alarm->period);
+  } else {
+    reschedule();
+
+    alarm->deadline = 0;
+    alarm->callback = NULL;
+    alarm->data = NULL;
+  }
 
   // Downgrade lock.
   pthread_mutex_lock(&alarm->callback_lock);
@@ -236,6 +262,7 @@ static void timer_callback(void *ptr) {
 static void reschedule(void) {
   assert(alarms != NULL);
 
+  bool timer_was_set = timer_set;
   if (timer_set) {
     timer_delete(timer);
     timer_set = false;
@@ -249,10 +276,12 @@ static void reschedule(void) {
   alarm_t *next = list_front(alarms);
   int64_t next_exp = next->deadline - now();
   if (next_exp < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
-    int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-    if (status != BT_STATUS_SUCCESS) {
-      LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
-      return;
+    if (!timer_was_set) {
+      int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
+      if (status != BT_STATUS_SUCCESS) {
+        LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
+        return;
+      }
     }
 
     struct sigevent sigevent;

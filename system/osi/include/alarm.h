@@ -42,6 +42,10 @@ void alarm_free(alarm_t *alarm);
 // |alarm| and |cb| may not be NULL.
 void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data);
 
+// Like alarm_set, except the alarm repeats every |period| ms until it is cancelled or
+// freed or |alarm_set| is called to set it non-periodically.
+void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data);
+
 // This function cancels the |alarm| if it was previously set. When this call
 // returns, the caller has a guarantee that the callback is not in progress and
 // will not be called if it hasn't already been called. This function is idempotent.
