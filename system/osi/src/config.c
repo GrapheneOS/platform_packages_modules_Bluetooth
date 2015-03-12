@@ -1,3 +1,21 @@
+/******************************************************************************
+ *
+ *  Copyright (C) 2014 Google, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
 #define LOG_TAG "bt_osi_config"
 
 #include <assert.h>
@@ -231,10 +249,19 @@ bool config_save(const config_t *config, const char *filename) {
   assert(filename != NULL);
   assert(*filename != '\0');
 
-  FILE *fp = fopen(filename, "wt");
-  if (!fp) {
-    LOG_ERROR("%s unable to write file '%s': %s", __func__, filename, strerror(errno));
+  char *temp_filename = osi_calloc(strlen(filename) + 5);
+  if (!temp_filename) {
+    LOG_ERROR("%s unable to allocate memory for filename.", __func__);
     return false;
+  }
+
+  strcpy(temp_filename, filename);
+  strcat(temp_filename, ".new");
+
+  FILE *fp = fopen(temp_filename, "wt");
+  if (!fp) {
+    LOG_ERROR("%s unable to write file '%s': %s", __func__, temp_filename, strerror(errno));
+    goto error;
   }
 
   for (const list_node_t *node = list_begin(config->sections); node != list_end(config->sections); node = list_next(node)) {
@@ -253,7 +280,19 @@ bool config_save(const config_t *config, const char *filename) {
 
   fflush(fp);
   fclose(fp);
+
+  if (rename(temp_filename, filename) == -1) {
+    LOG_ERROR("%s unable to commit file '%s': %s", __func__, filename, strerror(errno));
+    goto error;
+  }
+
+  osi_free(temp_filename);
   return true;
+
+error:;
+  unlink(temp_filename);
+  osi_free(temp_filename);
+  return false;
 }
 
 static char *trim(char *str) {
