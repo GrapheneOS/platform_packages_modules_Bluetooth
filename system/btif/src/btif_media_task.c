@@ -26,7 +26,7 @@
  **
  ******************************************************************************/
 
-#define LOG_TAG "btif-media"
+#define LOG_TAG "bt_btif_media"
 
 #include <assert.h>
 #include <string.h>

@@ -46,7 +46,7 @@
 #include "audio_a2dp_hw.h"
 #include "bt_utils.h"
 
-#define LOG_TAG "audio_a2dp_hw"
+#define LOG_TAG "bt_a2dp_hw"
 #include "osi/include/log.h"
 
 /*****************************************************************************

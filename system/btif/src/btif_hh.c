@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_HH"
+#define LOG_TAG "bt_btif_hh"
 
 #include "bta_api.h"
 #include "bta_hh_api.h"

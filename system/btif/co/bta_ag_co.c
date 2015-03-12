@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "BTA_AG_CO"
+#define LOG_TAG "bt_btif_bta_ag"
 
 #include "gki.h"
 #include "bta_api.h"

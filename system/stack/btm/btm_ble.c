@@ -39,6 +39,8 @@
 #include "bt_utils.h"
 
 #include "vendor_ble.h"
+#define LOG_TAG "bt_btm_ble"
+#include "osi/include/log.h"
 
 #if SMP_INCLUDED == TRUE
 extern BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length, UINT16 tlen, UINT8 *p_signature);
@@ -1527,11 +1529,11 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 
     handle = HCID_GET_HANDLE (handle);
 
-    BTM_TRACE_EVENT ("btm_ble_resolve_random_addr_master_cmpl");
+    BTM_TRACE_EVENT ("%s", __func__);
 
     if (match_rec)
     {
-        BTM_TRACE_ERROR("Random match");
+        LOG_INFO("%s matched and resolved random address", __func__);
         match = TRUE;
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
@@ -1539,7 +1541,7 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
     }
     else
     {
-        BTM_TRACE_ERROR("Random unmatch");
+        LOG_INFO("%s unable to match and resolve random address", __func__);
     }
 
     btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);

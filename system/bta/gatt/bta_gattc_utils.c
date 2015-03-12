@@ -33,6 +33,7 @@
 #include "bta_gattc_int.h"
 #include "l2c_api.h"
 
+#define LOG_TAG "bt_bta_gattc"
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -709,7 +710,10 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
     }
     if (!add)
     {
-        APPL_TRACE_ERROR("Do not find the bg connection mask for the remote device");
+        uint8_t *bda = (uint8_t *)remote_bda_ptr;
+        APPL_TRACE_ERROR("%s unable to find the bg connection mask for"
+            " bd_addr:%02x:%02x:%02x:%02x:%02x:%02x", __func__,
+            bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
         return FALSE;
     }
     else /* adding a new device mask */

@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <cutils/properties.h>
 
-#define LOG_TAG "BTIF_HF_CLIENT"
+#define LOG_TAG "bt_btif_hfc"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"

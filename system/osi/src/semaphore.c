@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "osi_semaphore"
+#define LOG_TAG "bt_osi_semaphore"
 
 #include <assert.h>
 #include <errno.h>

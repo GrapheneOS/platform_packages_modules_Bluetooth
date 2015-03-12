@@ -43,6 +43,7 @@
 #include "gatt_int.h"
 
 #include "btm_ble_int.h"
+#define LOG_TAG "bt_btm_ble"
 #include "osi/include/log.h"
 
 #define BTM_BLE_NAME_SHORT                  0x01
@@ -2529,7 +2530,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
     if ((result = btm_ble_is_discoverable(bda, evt_type, p)) == 0)
     {
-        BTM_TRACE_ERROR("discard adv pkt");
+      LOG_WARN("%s device is no longer discoverable so discarding advertising packet pkt",
+          __func__);
         return;
     }
     if (!update)

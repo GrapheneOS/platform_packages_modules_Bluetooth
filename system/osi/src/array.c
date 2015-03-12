@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_array"
+#define LOG_TAG "bt_osi_array"
 
 #include <assert.h>
 

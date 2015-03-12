@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "btsnoop"
+#define LOG_TAG "bt_snoop"
 
 #include <assert.h>
 #include <errno.h>

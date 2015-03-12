@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "osi_thread"
+#define LOG_TAG "bt_osi_thread"
 
 #include <assert.h>
 #include <errno.h>

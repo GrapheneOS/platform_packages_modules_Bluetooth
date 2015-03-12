@@ -29,7 +29,7 @@
 #include <hardware/bt_hf.h>
 #include <stdlib.h>
 
-#define LOG_TAG "BTIF_HF"
+#define LOG_TAG "bt_btif_hf"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"

@@ -22,7 +22,7 @@
  *  machine.
  *
  ******************************************************************************/
-#define LOG_TAG "bta_gattc_act"
+#define LOG_TAG "bt_bta_gattc"
 
 #include "bt_target.h"
 
@@ -565,8 +565,11 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg
         /* always call open to hold a connection */
         if (!GATT_Connect(p_data->client_if, p_data->remote_bda, FALSE, p_data->transport))
         {
+            uint8_t *bda = (uint8_t *)p_data->remote_bda;
             status = BTA_GATT_ERROR;
-            APPL_TRACE_ERROR("bta_gattc_init_bk_conn failed");
+            APPL_TRACE_ERROR("%s unable to connect to remote bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                __func__, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+
         }
         else
         {

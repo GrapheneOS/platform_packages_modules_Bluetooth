@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_buffer"
+#define LOG_TAG "bt_osi_buffer"
 
 #include <assert.h>
 #include <stdint.h>

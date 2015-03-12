@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BtGatt.btif"
+#define LOG_TAG "bt_btif_gatt"
 
 #include "btcore/include/bdaddr.h"
 #include "bta_api.h"

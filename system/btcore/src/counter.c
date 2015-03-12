@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_counter"
+#define LOG_TAG "bt_core_counter"
 
 #include <assert.h>
 #include <errno.h>

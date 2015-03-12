@@ -27,7 +27,7 @@
 #include <assert.h>
 #include <hardware/bluetooth.h>
 
-#define LOG_TAG "BTIF_QUEUE"
+#define LOG_TAG "bt_btif_queue"
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "gki.h"

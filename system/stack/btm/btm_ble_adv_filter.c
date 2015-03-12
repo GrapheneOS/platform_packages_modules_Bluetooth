@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btm_ble"
+
 #include <string.h>
 #include "bt_target.h"
 
@@ -254,7 +256,8 @@ void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 
     if (evt_len < 3 || evt_len > 4)
     {
-        BTM_TRACE_ERROR("cannot interpret APCF callback status = %d, length = %d", status, evt_len);
+      BTM_TRACE_ERROR("%s cannot interpret APCF callback status = %d, length = %d",
+          __func__, status, evt_len);
         btm_ble_advfilt_deq_op_q(&action, &ocf, &cb_evt, &ref_value, &p_scan_cfg_cback,
                                  &p_filt_param_cback);
         return;

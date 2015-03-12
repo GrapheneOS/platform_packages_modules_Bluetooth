@@ -25,7 +25,7 @@
  *
  ***********************************************************************************/
 
-#define LOG_TAG "btif_dm"
+#define LOG_TAG "bt_btif_dm"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,6 +47,7 @@
 
 #include "bta_gatt_api.h"
 #include "include/stack_config.h"
+
 #include "osi/include/log.h"
 
 /******************************************************************************
@@ -373,7 +374,7 @@ BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
                                sizeof(uint32_t), &remote_cod);
     if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr, &prop_name) == BT_STATUS_SUCCESS)
     {
-        BTIF_TRACE_ERROR("%s: remote_cod = 0x%06x", __FUNCTION__, remote_cod);
+        LOG_INFO("%s remote_cod = 0x%08x cod = 0x%08x", __func__, remote_cod, cod);
         if ((remote_cod & 0x7ff) == cod)
             return TRUE;
     }
@@ -559,16 +560,16 @@ static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
 
     /* class of device */
     cod = devclass2uint(dev_class);
-    BTIF_TRACE_DEBUG("%s():cod is 0x%06x", __FUNCTION__, cod);
+    BTIF_TRACE_DEBUG("%s cod is 0x%06x", __func__, cod);
     if ( cod == 0) {
        /* Try to retrieve cod from storage */
-        BTIF_TRACE_DEBUG("%s():cod is 0, checking cod from storage", __FUNCTION__);
+        BTIF_TRACE_DEBUG("%s cod is 0, checking cod from storage", __func__);
         BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
             BT_PROPERTY_CLASS_OF_DEVICE, sizeof(cod), &cod);
         status = btif_storage_get_remote_device_property(&bdaddr, &properties[num_properties]);
-        BTIF_TRACE_DEBUG("%s():cod retreived from storage is 0x%06x", __FUNCTION__, cod);
+        BTIF_TRACE_DEBUG("%s cod retrieved from storage is 0x%06x", __func__, cod);
         if ( cod == 0) {
-            BTIF_TRACE_DEBUG("%s():cod is again 0, set as unclassified", __FUNCTION__);
+            BTIF_TRACE_DEBUG("%s cod is again 0, set as unclassified", __func__);
             cod = COD_UNCLASSIFIED;
         }
     }
@@ -848,8 +849,8 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
 
     cod = devclass2uint(p_pin_req->dev_class);
 
-    if ( cod == 0) {
-        BTIF_TRACE_DEBUG("%s():cod is 0, set as unclassified", __FUNCTION__);
+    if (cod == 0) {
+        BTIF_TRACE_DEBUG("%s cod is 0, set as unclassified", __func__);
         cod = COD_UNCLASSIFIED;
     }
 
@@ -968,8 +969,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
 
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
 
-    if ( cod == 0) {
-        LOG_DEBUG("cod is 0, set as unclassified");
+    if (cod == 0) {
+        LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1003,8 +1004,8 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     pairing_cb.is_ssp = TRUE;
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
-    if ( cod == 0) {
-        LOG_DEBUG("cod is 0, set as unclassified");
+    if (cod == 0) {
+        LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1247,8 +1248,8 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
 
             cod = devclass2uint (p_search_data->inq_res.dev_class);
 
-            if ( cod == 0) {
-                LOG_DEBUG("cod is 0, set as unclassified");
+            if (cod == 0) {
+                LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
                 cod = COD_UNCLASSIFIED;
             }
 
@@ -1407,7 +1408,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                  {
                       char temp[256];
                       uuid_to_string_legacy((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
-                      BTIF_TRACE_ERROR("Index: %d uuid:%s", i, temp);
+                      LOG_INFO("%s index:%d uuid:%s", __func__, i, temp);
                  }
             }
 
@@ -1467,7 +1468,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 }
 
                 uuid_to_string_legacy(&uuid, temp);
-                BTIF_TRACE_ERROR(" uuid:%s", temp);
+                LOG_INFO("%s uuid:%s", __func__, temp);
 
                 bdcpy(bd_addr.address, p_data->disc_ble_res.bd_addr);
                 prop.type = BT_PROPERTY_UUIDS;

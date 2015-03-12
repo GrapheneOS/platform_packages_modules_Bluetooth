@@ -25,7 +25,7 @@
  *
  *****************************************************************************/
 
-#define LOG_TAG "BTIF_SM"
+#define LOG_TAG "bt_btif"
 
 #include <hardware/bluetooth.h>
 

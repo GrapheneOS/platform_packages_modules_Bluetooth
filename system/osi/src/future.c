@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "osi_future"
+#define LOG_TAG "bt_osi_future"
 
 #include <assert.h>
 

@@ -24,7 +24,7 @@
  *
  *
  ***********************************************************************************/
-#define LOG_TAG "BTIF_HL"
+#define LOG_TAG "bt_btif_hl"
 
 #include <assert.h>
 #include <ctype.h>

@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "BTIF_SOCK_SDP"
+#define LOG_TAG "bt_btif_sock_sdp"
 
 #include <stdint.h>
 #include <stdbool.h>

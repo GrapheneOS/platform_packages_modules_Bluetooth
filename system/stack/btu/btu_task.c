@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "btu_task"
+#define LOG_TAG "bt_btu_task"
 
 #include <assert.h>
 #include <stdlib.h>

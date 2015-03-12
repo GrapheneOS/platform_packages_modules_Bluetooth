@@ -31,7 +31,7 @@
 #include "avrc_defs.h"
 #include "gki.h"
 
-#define LOG_TAG "BTIF_RC"
+#define LOG_TAG "bt_btif_avrc"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_av.h"

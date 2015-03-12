@@ -25,7 +25,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "BTLD"
+#define LOG_TAG "bt_btu_hcif"
 
 #include <assert.h>
 #include <stdlib.h>

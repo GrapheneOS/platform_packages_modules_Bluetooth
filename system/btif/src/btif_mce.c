@@ -30,7 +30,7 @@
 #include <hardware/bt_mce.h>
 #include <stdlib.h>
 
-#define LOG_TAG "BTIF_MCE"
+#define LOG_TAG "bt_btif_mce"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"

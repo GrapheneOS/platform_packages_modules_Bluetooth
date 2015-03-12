@@ -28,7 +28,7 @@
  *
  *****************************************************************************/
 
-#define LOG_TAG "bt_pm"
+#define LOG_TAG "bt_btm_pm"
 
 #include <stdlib.h>
 #include <string.h>

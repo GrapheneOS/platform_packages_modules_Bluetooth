@@ -46,7 +46,7 @@
 #include <linux/if_tun.h>
 #include <linux/if_ether.h>
 
-#define LOG_TAG "BTIF_PAN"
+#define LOG_TAG "bt_btif_pan"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btm_api.h"

@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "osi_eager_reader"
+#define LOG_TAG "bt_osi_eager_reader"
 
 #include <assert.h>
 #include <errno.h>

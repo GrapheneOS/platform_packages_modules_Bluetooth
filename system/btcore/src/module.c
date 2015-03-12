@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_module"
+#define LOG_TAG "bt_core_module"
 
 #include <assert.h>
 #include <dlfcn.h>

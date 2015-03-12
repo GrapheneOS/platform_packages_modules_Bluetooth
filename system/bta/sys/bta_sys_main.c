@@ -21,7 +21,7 @@
  *  This is the main implementation file for the BTA system manager.
  *
  ******************************************************************************/
-#define LOG_TAG "bta_sys_main"
+#define LOG_TAG "bt_bta_sys_main"
 
 #include <assert.h>
 #include <string.h>
@@ -652,7 +652,7 @@ void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle) {
 
   alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    LOG_ERROR("%s expected alarm was not in bta alarm hash map.", __func__);
+    LOG_DEBUG("%s expected alarm was not in bta alarm hash map.", __func__);
     return;
   }
   alarm_cancel(alarm);

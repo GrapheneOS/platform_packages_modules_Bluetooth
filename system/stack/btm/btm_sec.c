@@ -195,43 +195,39 @@ static BOOLEAN btm_serv_trusted(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_SEC_SERV_REC *
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-BOOLEAN  BTM_SecRegister (tBTM_APPL_INFO *p_cb_info)
+BOOLEAN BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
 {
 #if BLE_INCLUDED == TRUE
     BT_OCTET16      temp_value = {0};
 #endif
 
-    BTM_TRACE_EVENT ("BTM_Sec: application registered");
+    BTM_TRACE_EVENT("%s application registered", __func__);
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+    LOG_INFO("%s p_cb_info->p_le_callback == 0x%p", __func__, p_cb_info->p_le_callback);
     if (p_cb_info->p_le_callback)
     {
-        BTM_TRACE_ERROR ("BTM_SecRegister:p_cb_info->p_le_callback == 0x%x ", p_cb_info->p_le_callback);
-
-        if (p_cb_info->p_le_callback)
-        {
-    #if SMP_INCLUDED == TRUE
-            BTM_TRACE_EVENT ("BTM_Sec: SMP_Register( btm_proc_smp_cback )");
-            SMP_Register(btm_proc_smp_cback);
-    #endif
-            /* if no IR is loaded, need to regenerate all the keys */
-            if (memcmp(btm_cb.devcb.id_keys.ir, &temp_value, sizeof(BT_OCTET16)) == 0)
-            {
-                btm_ble_reset_id();
-            }
-        }
-        else
-        {
-            BTM_TRACE_ERROR ("BTM_SecRegister:p_cb_info->p_le_callback == NULL ");
-        }
+#if SMP_INCLUDED == TRUE
+      BTM_TRACE_EVENT("%s SMP_Register( btm_proc_smp_cback )", __func__);
+      SMP_Register(btm_proc_smp_cback);
+#endif
+      /* if no IR is loaded, need to regenerate all the keys */
+      if (memcmp(btm_cb.devcb.id_keys.ir, &temp_value, sizeof(BT_OCTET16)) == 0)
+      {
+        btm_ble_reset_id();
+      }
+    }
+    else
+    {
+      LOG_WARN("%s p_cb_info->p_le_callback == NULL", __func__);
     }
 #endif
 
     btm_cb.api = *p_cb_info;
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-     BTM_TRACE_ERROR ("BTM_SecRegister: btm_cb.api.p_le_callback = 0x%x ", btm_cb.api.p_le_callback);
+     LOG_INFO("%s btm_cb.api.p_le_callback = 0x%p ", __func__, btm_cb.api.p_le_callback);
 #endif
-    BTM_TRACE_EVENT ("BTM_Sec: application registered");
+    BTM_TRACE_EVENT("%s application registered", __func__);
     return(TRUE);
 }
 
@@ -2194,7 +2190,7 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
             2046 may report HCI_Encryption_Change and L2C Connection Request out of sequence
             because of data path issues. Delay this disconnect a little bit
             */
-            BTM_TRACE_ERROR ("peer should have initiated security process by now (SM4 to SM4)");
+            LOG_INFO("%s peer should have initiated security process by now (SM4 to SM4)", __func__);
             p_dev_rec->p_callback        = p_callback;
             p_dev_rec->sec_state         = BTM_SEC_STATE_DELAY_FOR_ENC;
             (*p_callback) (bd_addr, transport, p_ref_data, rc);
@@ -4264,18 +4260,19 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
 
 #if BTM_DISC_DURING_RS == TRUE
-    BTM_TRACE_ERROR("btm_sec_disconnected - Clearing Pending flag");
+    LOG_INFO("%s clearing pending flag handle:%d reason:%d", __func__, handle, reason);
     p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
 #endif
 
     /* clear unused flags */
     p_dev_rec->sm4 &= BTM_SM4_TRUE;
 
-    BTM_TRACE_EVENT("btm_sec_disconnected() sec_req:x%x  State: %s   reason:%d bda:%04x%08x RName:%s",
-                     p_dev_rec->security_required, btm_pair_state_descr(btm_cb.pairing_state), reason,  (p_dev_rec->bd_addr[0]<<8)+p_dev_rec->bd_addr[1],
-                     (p_dev_rec->bd_addr[2]<<24)+(p_dev_rec->bd_addr[3]<<16)+(p_dev_rec->bd_addr[4]<<8)+p_dev_rec->bd_addr[5], p_dev_rec->sec_bd_name);
+    uint8_t *bd_addr = (uint8_t *)p_dev_rec->bd_addr;
+    BTM_TRACE_EVENT("%s sec_req:x%x state:%s reason:%d bd_addr:%02x:%02x:%02x:%02x:%02x:%02x"
+            "  remote_name:%s", __func__, p_dev_rec->security_required, btm_pair_state_descr(btm_cb.pairing_state),
+            reason, bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5], p_dev_rec->sec_bd_name);
 
-    BTM_TRACE_EVENT("before Update sec_flags=0x%x", p_dev_rec->sec_flags);
+    BTM_TRACE_EVENT("%s before update sec_flags=0x%x", __func__, p_dev_rec->sec_flags);
 
     /* If we are in the process of bonding we need to tell client that auth failed */
     if ( (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
@@ -4332,7 +4329,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
         (*p_callback) (p_dev_rec->bd_addr, transport, p_dev_rec->p_ref_data, BTM_ERR_PROCESSING);
     }
 
-    BTM_TRACE_EVENT("after Update sec_flags=0x%x", p_dev_rec->sec_flags);
+    BTM_TRACE_EVENT("%s after update sec_flags=0x%x", __func__, p_dev_rec->sec_flags);
 }
 
 /*******************************************************************************

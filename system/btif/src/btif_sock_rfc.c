@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "btif_sock_rfcomm"
+#define LOG_TAG "bt_btif_sock_rfcomm"
 
 #include <assert.h>
 #include <errno.h>

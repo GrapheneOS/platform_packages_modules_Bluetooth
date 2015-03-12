@@ -25,7 +25,7 @@
  *
  ***********************************************************************************/
 
-#define LOG_TAG "BT_UTILS"
+#define LOG_TAG "bt_utils"
 
 #include <cutils/properties.h>
 #include <cutils/sched_policy.h>

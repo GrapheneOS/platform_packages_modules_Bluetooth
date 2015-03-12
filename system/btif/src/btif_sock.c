@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "btif_sock"
+#define LOG_TAG "bt_btif_sock"
 
 #include <assert.h>
 #include <hardware/bluetooth.h>

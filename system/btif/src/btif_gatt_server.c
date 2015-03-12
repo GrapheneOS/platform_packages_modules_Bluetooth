@@ -32,7 +32,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BtGatt.btif"
+#define LOG_TAG "bt_btif_gatt"
 
 #include "btif_common.h"
 #include "btif_util.h"

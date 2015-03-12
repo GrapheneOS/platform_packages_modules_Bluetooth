@@ -37,6 +37,9 @@
 #include "btm_api.h"
 #include "btm_ble_api.h"
 
+#define LOG_TAG "bt_bta_gattc"
+#include "osi/include/log.h"
+
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
 
@@ -598,7 +601,7 @@ static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
         }
     }
     /* no service found at all, the end of server discovery*/
-    APPL_TRACE_ERROR("No More Service found");
+    LOG_WARN("%s no more services found", __func__);
 
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
     bta_gattc_display_cache_server(p_srvc_cb->p_srvc_cache);

@@ -48,7 +48,7 @@
 #include <cutils/sockets.h>
 #include <alloca.h>
 
-#define LOG_TAG "BTIF_SOCK"
+#define LOG_TAG "bt_btif_sock"
 #include "btif_common.h"
 #include "btif_util.h"
 

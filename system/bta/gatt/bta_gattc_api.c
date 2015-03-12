@@ -976,7 +976,7 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
 
     if (!p_char_id)
     {
-        APPL_TRACE_ERROR("deregistration failed, unknow char id");
+        APPL_TRACE_ERROR("%s deregistration failed, unknown char id", __func__);
         return status;
     }
 
@@ -988,7 +988,8 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
                 !memcmp(p_clreg->notif_reg[i].remote_bda, bda, BD_ADDR_LEN) &&
                 bta_gattc_charid_compare(&p_clreg->notif_reg[i].char_id, p_char_id))
             {
-                APPL_TRACE_DEBUG("Deregistered.");
+                APPL_TRACE_DEBUG("%s deregistered bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                    __func__, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
                 memset(&p_clreg->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
                 status = BTA_GATT_OK;
                 break;
@@ -997,13 +998,14 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
         if (i == BTA_GATTC_NOTIF_REG_MAX)
         {
             status = BTA_GATT_ERROR;
-
-            APPL_TRACE_ERROR("registration not found");
+            APPL_TRACE_ERROR("%s registration not found bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                __func__, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
         }
     }
     else
     {
-        APPL_TRACE_ERROR("Client_if: %d Not Registered", client_if);
+        APPL_TRACE_ERROR("%s client_if: %d not registered bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+            __func__, client_if, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
     }
 
     return status;

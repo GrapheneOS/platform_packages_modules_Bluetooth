@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BtGatt.btif"
+#define LOG_TAG "bt_btif_gattc"
 
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"

@@ -41,7 +41,7 @@
 #include <hardware/bt_rc.h>
 
 #define LOG_NDDEBUG 0
-#define LOG_TAG "bluedroid"
+#define LOG_TAG "bt_bluedroid"
 
 #include "btif_api.h"
 #include "btsnoop.h"

@@ -36,8 +36,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#define LOG_TAG "BTIF_CORE"
+#define LOG_TAG "bt_btif_core"
 #include "btcore/include/bdaddr.h"
+
+#include "bdaddr.h"
 #include "bt_utils.h"
 #include "bta_api.h"
 #include "bte.h"

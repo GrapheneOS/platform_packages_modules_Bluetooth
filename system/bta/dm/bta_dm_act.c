@@ -39,6 +39,9 @@
 #include "gap_api.h"    /* For GAP_BleReadPeerPrefConnParams */
 #include <string.h>
 
+#define LOG_TAG "bt_bta_dm"
+#include "osi/include/log.h"
+
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
 #endif
@@ -1133,7 +1136,7 @@ void bta_dm_discover (tBTA_DM_MSG *p_data)
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     UINT16 len = (UINT16)(sizeof(tBT_UUID) * p_data->discover.num_uuid);
 #endif
-    APPL_TRACE_EVENT("bta_dm_discover services_to_search=0x%04X, sdp_search=%d",
+    APPL_TRACE_EVENT("%s services_to_search=0x%04X, sdp_search=%d", __func__,
                       p_data->discover.services, p_data->discover.sdp_search);
 
     /* save the search condition */
@@ -2023,7 +2026,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
                 /* try to search all services by search based on L2CAP UUID */
                 if(bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK )
                 {
-                    APPL_TRACE_ERROR("services_to_search = %08x",bta_dm_search_cb.services_to_search);
+                    LOG_INFO("%s services_to_search=%08x", __func__, bta_dm_search_cb.services_to_search);
                     if (bta_dm_search_cb.services_to_search & BTA_RES_SERVICE_MASK)
                     {
                         uuid.uu.uuid16 = bta_service_id_to_uuid_lkup_tbl[0];
@@ -2070,25 +2073,15 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
                 }
 
                 if (uuid.len == 0)
-                uuid.len = LEN_UUID_16;
-
-#if 0
-                if (uuid.uu.uuid16 == UUID_SERVCLASS_PNP_INFORMATION)
-                {
-                    num_attrs = 2;
-                }
-#endif
+                    uuid.len = LEN_UUID_16;
 
                 if (bta_dm_search_cb.service_index == BTA_USER_SERVICE_ID)
                 {
                     memcpy(&uuid, &bta_dm_search_cb.uuid, sizeof(tSDP_UUID));
                 }
 
-
-                APPL_TRACE_ERROR("****************search UUID = %04x***********", uuid.uu.uuid16);
-                //SDP_InitDiscoveryDb (bta_dm_search_cb.p_sdp_db, BTA_DM_SDP_DB_SIZE, 1, &uuid, num_attrs, attr_list);
+                LOG_INFO("%s search UUID = %04x", __func__, uuid.uu.uuid16);
                 SDP_InitDiscoveryDb (bta_dm_search_cb.p_sdp_db, BTA_DM_SDP_DB_SIZE, 1, &uuid, 0, NULL);
-
 
                 memset(g_disc_raw_data_buf, 0, sizeof(g_disc_raw_data_buf));
                 bta_dm_search_cb.p_sdp_db->raw_data = g_disc_raw_data_buf;
@@ -5349,7 +5342,7 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
         APPL_TRACE_ERROR("%s out of room to accomodate more service ids ble_raw_size = %d ble_raw_used = %d", __FUNCTION__,bta_dm_search_cb.ble_raw_size, bta_dm_search_cb.ble_raw_used );
     }
 
-    APPL_TRACE_ERROR("bta_dm_gatt_disc_result serivce_id len=%d ", service_id.uuid.len);
+    LOG_INFO("%s service_id_uuid_len=%d ", __func__, service_id.uuid.len);
     if ( bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE)
     {
 

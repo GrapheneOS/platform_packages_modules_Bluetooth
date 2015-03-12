@@ -36,7 +36,7 @@
 
 #include <hardware/bluetooth.h>
 #include "btif_config.h"
-#define LOG_TAG "BTIF_STORAGE"
+#define LOG_TAG "bt_btif_storage"
 
 #include "btif_api.h"
 #include "btif_storage.h"
@@ -606,7 +606,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         uint32_t i;
 
         tBTA_SERVICE_MASK service_mask = btif_get_enabled_services_mask();
-        BTIF_TRACE_ERROR("%s service_mask:0x%x", __FUNCTION__, service_mask);
+        LOG_INFO("%s service_mask:0x%x", __FUNCTION__, service_mask);
         for (i=0; i < BTA_MAX_SERVICE_ID; i++)
         {
             /* This should eventually become a function when more services are enabled */

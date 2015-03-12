@@ -36,7 +36,7 @@
 #include <ctype.h>
 
 
-#define LOG_TAG "BTIF_UTIL"
+#define LOG_TAG "bt_btif_util"
 #include "btif_common.h"
 #include "bta_api.h"
 #include "gki.h"

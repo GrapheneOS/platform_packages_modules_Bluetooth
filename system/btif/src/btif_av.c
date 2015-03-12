@@ -29,7 +29,7 @@
 #include <system/audio.h>
 #include "hardware/bt_av.h"
 
-#define LOG_TAG "BTIF_AV"
+#define LOG_TAG "bt_btif_av"
 
 #include "btif_av.h"
 #include "btif_util.h"
