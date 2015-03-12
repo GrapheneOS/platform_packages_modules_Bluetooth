@@ -22,11 +22,11 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include "allocation_tracker.h"
-#include "allocator.h"
-#include "hash_functions.h"
-#include "hash_map.h"
-#include "osi.h"
+#include "osi/include/allocation_tracker.h"
+#include "osi/include/allocator.h"
+#include "osi/include/hash_functions.h"
+#include "osi/include/hash_map.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 typedef struct {

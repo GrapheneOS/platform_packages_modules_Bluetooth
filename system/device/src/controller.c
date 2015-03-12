@@ -25,7 +25,7 @@
 #include "bt_types.h"
 #include "device/include/controller.h"
 #include "event_mask.h"
-#include "future.h"
+#include "osi/include/future.h"
 #include "hcimsgs.h"
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"

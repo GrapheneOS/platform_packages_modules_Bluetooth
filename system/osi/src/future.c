@@ -20,11 +20,11 @@
 
 #include <assert.h>
 
-#include "allocator.h"
-#include "future.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/future.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "semaphore.h"
+#include "osi/include/semaphore.h"
 
 struct future_t {
   bool ready_can_be_called;

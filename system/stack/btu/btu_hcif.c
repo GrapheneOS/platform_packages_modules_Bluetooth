@@ -40,7 +40,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "bt_utils.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "hci_layer.h"
 

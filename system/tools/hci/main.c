@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "osi.h"
+#include "osi/include/osi.h"
 
 typedef int (*handler_t)(int argc, char **argv);
 

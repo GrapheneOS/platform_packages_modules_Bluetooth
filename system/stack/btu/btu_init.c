@@ -25,15 +25,15 @@
 #include <string.h>
 #include "dyn_mem.h"
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "device/include/controller.h"
-#include "fixed_queue.h"
-#include "hash_map.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/hash_map.h"
 #include "btu.h"
 #include "btm_int.h"
 #include "osi/include/hash_functions.h"
 #include "sdpint.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 #include "l2c_int.h"
 #include "osi/include/log.h"
 

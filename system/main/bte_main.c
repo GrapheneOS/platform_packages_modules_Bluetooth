@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "bta_api.h"
 #include "bt_hci_bdroid.h"
 #include "bte.h"
@@ -44,17 +44,17 @@
 #include "btsnoop.h"
 #include "bt_utils.h"
 #include "counter.h"
-#include "fixed_queue.h"
-#include "future.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/future.h"
 #include "gki.h"
-#include "hash_functions.h"
-#include "hash_map.h"
+#include "osi/include/hash_functions.h"
+#include "osi/include/hash_map.h"
 #include "hci_layer.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "stack_config.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 /*******************************************************************************
 **  Constants & Macros

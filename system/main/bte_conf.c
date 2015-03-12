@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "bta_api.h"
-#include "config.h"
+#include "osi/include/config.h"
 #include "osi/include/log.h"
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))

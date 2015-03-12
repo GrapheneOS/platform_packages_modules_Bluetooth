@@ -20,8 +20,8 @@
 
 #include <assert.h>
 
-#include "allocator.h"
-#include "array.h"
+#include "osi/include/allocator.h"
+#include "osi/include/array.h"
 #include "osi/include/log.h"
 
 struct array_t {

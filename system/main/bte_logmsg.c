@@ -27,7 +27,7 @@
 #include "bte.h"
 #include "bta_api.h"
 #include "btu.h"
-#include "config.h"
+#include "osi/include/config.h"
 #include "gki.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"

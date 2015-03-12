@@ -28,7 +28,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 static void safe_close_(int *fd);

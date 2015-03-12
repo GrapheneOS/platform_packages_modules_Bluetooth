@@ -22,10 +22,10 @@
 #include <dlfcn.h>
 #include <pthread.h>
 
-#include "allocator.h"
-#include "hash_map.h"
+#include "osi/include/allocator.h"
+#include "osi/include/hash_map.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
 

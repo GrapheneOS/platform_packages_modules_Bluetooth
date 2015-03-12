@@ -21,11 +21,11 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "low_power_manager.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 #include "vendor.h"
 
 typedef enum {

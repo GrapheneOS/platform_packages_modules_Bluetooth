@@ -21,16 +21,16 @@
 #include <assert.h>
 #include <errno.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "bt_types.h"
 #include "buffer_allocator.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
-#include "list.h"
-#include "osi.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "socket.h"
-#include "thread.h"
+#include "osi/include/socket.h"
+#include "osi/include/thread.h"
 
 typedef enum {
   HCI_PACKET_COMMAND  = 1,

@@ -18,7 +18,7 @@
 
 #include <assert.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "gki_int.h"
 
 #if (GKI_NUM_TOTAL_BUF_POOLS > 16)

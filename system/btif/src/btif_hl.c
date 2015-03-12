@@ -68,7 +68,7 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "gki.h"
-#include "list.h"
+#include "osi/include/list.h"
 #include "mca_api.h"
 #include "osi/include/log.h"
 

@@ -24,14 +24,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "bdaddr.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
-#include "config.h"
+#include "osi/include/config.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 #include "bt_types.h"

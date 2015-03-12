@@ -23,7 +23,7 @@
 
 #include "buffer_allocator.h"
 #include "bt_vendor_lib.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "vendor.h"
 

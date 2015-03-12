@@ -46,7 +46,7 @@
 #include "btif_api.h"
 #include "btsnoop.h"
 #include "bt_utils.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/log.h"
 #include "stack_manager.h"

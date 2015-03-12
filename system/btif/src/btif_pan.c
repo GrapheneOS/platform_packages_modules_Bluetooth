@@ -59,7 +59,7 @@
 #include "btif_sock_util.h"
 #include "btif_pan_internal.h"
 #include "gki.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 #define FORWARD_IGNORE        1

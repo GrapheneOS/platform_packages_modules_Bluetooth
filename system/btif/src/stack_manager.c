@@ -24,11 +24,11 @@
 #include "btif_common.h"
 #include "device/include/controller.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "semaphore.h"
+#include "osi/include/semaphore.h"
 #include "stack_manager.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 // Temp includes
 #include "btif_config.h"

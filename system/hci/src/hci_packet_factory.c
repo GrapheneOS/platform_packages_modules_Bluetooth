@@ -18,7 +18,7 @@
 
 #include <assert.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "bt_types.h"
 #include "buffer_allocator.h"
 #include "hcidefs.h"

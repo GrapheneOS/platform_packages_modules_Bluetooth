@@ -28,9 +28,9 @@
 #include "btif_sock_sco.h"
 #include "btif_sock_thread.h"
 #include "btif_util.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
 static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags);

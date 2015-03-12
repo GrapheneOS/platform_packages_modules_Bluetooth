@@ -41,7 +41,7 @@
 #include <errno.h>
 
 #include "bt_target.h"
-#include "fixed_queue.h"
+#include "osi/include/fixed_queue.h"
 #include "gki.h"
 #include "bta_api.h"
 #include "btu.h"

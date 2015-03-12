@@ -25,11 +25,11 @@
 #include <sys/types.h>
 
 #include "btif_common.h"
-#include "list.h"
-#include "osi.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "socket.h"
-#include "thread.h"
+#include "osi/include/socket.h"
+#include "osi/include/thread.h"
 
 // This module provides a socket abstraction for SCO connections to a higher
 // layer. It returns file descriptors representing two types of sockets:

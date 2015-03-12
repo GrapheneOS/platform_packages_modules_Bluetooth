@@ -24,17 +24,17 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
-#include "allocator.h"
-#include "atomic.h"
+#include "osi/include/allocator.h"
+#include "osi/include/atomic.h"
 #include "counter.h"
-#include "hash_map.h"
-#include "list.h"
+#include "osi/include/hash_map.h"
+#include "osi/include/list.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
-#include "socket.h"
-#include "thread.h"
+#include "osi/include/socket.h"
+#include "osi/include/thread.h"
 
 typedef int (*handler_t)(socket_t * socket);
 

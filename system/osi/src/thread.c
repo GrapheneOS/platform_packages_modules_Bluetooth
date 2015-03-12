@@ -25,12 +25,12 @@
 #include <sys/prctl.h>
 #include <sys/types.h>
 
-#include "allocator.h"
-#include "fixed_queue.h"
-#include "log.h"
-#include "reactor.h"
-#include "semaphore.h"
-#include "thread.h"
+#include "osi/include/allocator.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/log.h"
+#include "osi/include/reactor.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 
 struct thread_t {
   bool is_joined;

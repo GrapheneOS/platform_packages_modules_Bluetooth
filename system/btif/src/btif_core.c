@@ -53,13 +53,13 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/controller.h"
-#include "fixed_queue.h"
-#include "future.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/future.h"
 #include "gki.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "stack_manager.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 /************************************************************************************
 **  Constants & Macros

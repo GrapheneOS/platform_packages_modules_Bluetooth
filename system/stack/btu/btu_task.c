@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "bt_target.h"
 #include "bt_trace.h"
 #include "bt_types.h"
@@ -32,17 +32,17 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "fixed_queue.h"
-#include "future.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/future.h"
 #include "gki.h"
-#include "hash_map.h"
+#include "osi/include/hash_map.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "module.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "sdpint.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 #include "port_api.h"
 #include "port_ext.h"

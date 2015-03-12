@@ -26,19 +26,19 @@
 #include <assert.h>
 #include <string.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 #include "btm_api.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
 
-#include "fixed_queue.h"
+#include "osi/include/fixed_queue.h"
 #include "gki.h"
-#include "hash_map.h"
-#include "osi.h"
+#include "osi/include/hash_map.h"
+#include "osi/include/osi.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif

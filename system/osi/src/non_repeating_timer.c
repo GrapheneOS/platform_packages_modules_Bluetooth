@@ -18,9 +18,9 @@
 
 #include <assert.h>
 
-#include "allocator.h"
-#include "osi.h"
-#include "non_repeating_timer.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"
+#include "osi/include/non_repeating_timer.h"
 
 struct non_repeating_timer_t {
   alarm_t *alarm;

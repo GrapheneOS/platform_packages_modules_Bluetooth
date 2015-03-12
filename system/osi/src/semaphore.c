@@ -24,10 +24,10 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
-#include "allocator.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "semaphore.h"
+#include "osi/include/semaphore.h"
 
 #if !defined(EFD_SEMAPHORE)
 #  define EFD_SEMAPHORE (1 << 0)

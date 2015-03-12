@@ -20,7 +20,7 @@
 #include <list.h>
 #include <hash_map.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 
 struct hash_map_t;
 

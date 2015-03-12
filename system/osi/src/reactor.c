@@ -25,10 +25,10 @@
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 
-#include "allocator.h"
-#include "list.h"
+#include "osi/include/allocator.h"
+#include "osi/include/list.h"
 #include "osi/include/log.h"
-#include "reactor.h"
+#include "osi/include/reactor.h"
 
 #if !defined(EFD_SEMAPHORE)
 #  define EFD_SEMAPHORE (1 << 0)

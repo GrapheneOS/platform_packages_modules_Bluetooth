@@ -38,7 +38,7 @@
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "module.h"
-#include "thread.h"
+#include "osi/include/thread.h"
 
 #if BLE_INCLUDED == TRUE
 #include "gatt_int.h"

@@ -23,13 +23,13 @@
 #include <stddef.h>
 #include <sys/eventfd.h>
 
-#include "allocator.h"
-#include "eager_reader.h"
-#include "fixed_queue.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/eager_reader.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "reactor.h"
-#include "thread.h"
+#include "osi/include/reactor.h"
+#include "osi/include/thread.h"
 
 #if !defined(EFD_SEMAPHORE)
 #  define EFD_SEMAPHORE (1 << 0)

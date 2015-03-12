@@ -31,7 +31,7 @@
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "gki.h"
-#include "list.h"
+#include "osi/include/list.h"
 #include "osi/include/allocator.h"
 #include "stack_manager.h"
 

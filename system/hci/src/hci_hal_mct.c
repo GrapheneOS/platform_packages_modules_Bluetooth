@@ -21,11 +21,11 @@
 #include <assert.h>
 
 #include "bt_vendor_lib.h"
-#include "eager_reader.h"
+#include "osi/include/eager_reader.h"
 #include "hci_hal.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "reactor.h"
+#include "osi/include/reactor.h"
 #include "vendor.h"
 
 #define HCI_HAL_SERIAL_BUFFER_SIZE 1026

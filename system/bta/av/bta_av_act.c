@@ -32,7 +32,7 @@
 #include "avdt_api.h"
 #include "utl.h"
 #include "l2c_api.h"
-#include "list.h"
+#include "osi/include/list.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif

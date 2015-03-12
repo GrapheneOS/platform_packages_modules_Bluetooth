@@ -1,8 +1,8 @@
 #include <assert.h>
 
-#include "allocator.h"
-#include "list.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
 
 typedef struct list_node_t {
   struct list_node_t *next;

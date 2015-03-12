@@ -28,11 +28,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "allocator.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "reactor.h"
-#include "socket.h"
+#include "osi/include/reactor.h"
+#include "osi/include/socket.h"
 
 struct socket_t {
   int fd;

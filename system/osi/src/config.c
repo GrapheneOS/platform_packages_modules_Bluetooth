@@ -24,9 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "allocator.h"
-#include "config.h"
-#include "list.h"
+#include "osi/include/allocator.h"
+#include "osi/include/config.h"
+#include "osi/include/list.h"
 #include "osi/include/log.h"
 
 typedef struct {

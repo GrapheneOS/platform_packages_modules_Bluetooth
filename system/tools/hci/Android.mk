@@ -24,6 +24,6 @@ LOCAL_MODULE := net_hci
 LOCAL_SRC_FILES := main.c
 LOCAL_STATIC_LIBRARIES := libosi
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../osi/include
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../
 
 include $(BUILD_EXECUTABLE)

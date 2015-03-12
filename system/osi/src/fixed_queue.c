@@ -20,12 +20,12 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "allocator.h"
-#include "fixed_queue.h"
-#include "list.h"
-#include "osi.h"
-#include "semaphore.h"
-#include "reactor.h"
+#include "osi/include/allocator.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/reactor.h"
 
 typedef struct fixed_queue_t {
   list_t *list;

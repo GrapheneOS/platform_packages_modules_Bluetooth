@@ -29,7 +29,7 @@
 
 #include <hardware/bluetooth.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "btif_common.h"
 #include "btif_sm.h"
 #include "gki.h"

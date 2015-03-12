@@ -20,7 +20,7 @@
 
 #include <assert.h>
 
-#include "future.h"
+#include "osi/include/future.h"
 #include "stack_config.h"
 #include "osi/include/log.h"
 

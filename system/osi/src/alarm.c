@@ -24,10 +24,10 @@
 #include <inttypes.h>
 #include <time.h>
 
-#include "allocator.h"
-#include "alarm.h"
-#include "list.h"
-#include "osi.h"
+#include "osi/include/allocator.h"
+#include "osi/include/alarm.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 struct alarm_t {
