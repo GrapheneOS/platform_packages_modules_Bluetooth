@@ -38,7 +38,7 @@
 #include "bta_mce_api.h"
 
 #include "bt_types.h"
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 
 /*****************************************************************************
 **  Static variables

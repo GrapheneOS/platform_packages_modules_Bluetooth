@@ -37,7 +37,7 @@
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/thread.h"
 
 #if BLE_INCLUDED == TRUE

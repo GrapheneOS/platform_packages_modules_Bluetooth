@@ -31,7 +31,7 @@
 
 #include "gki.h"
 #include "bt_types.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2cdefs.h"

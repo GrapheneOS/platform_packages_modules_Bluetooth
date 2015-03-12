@@ -24,7 +24,7 @@
 
 #include <string.h>
 #include "bt_target.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "gki.h"
 #include "rfcdefs.h"
 #include "port_api.h"

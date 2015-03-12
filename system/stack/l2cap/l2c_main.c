@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 #include "device/include/controller.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "bt_target.h"
 #include "btm_int.h"
 #include "btu.h"

@@ -33,7 +33,7 @@
 
 #define LOG_TAG "BtGatt.btif"
 
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 #include "btif_common.h"
 #include "btif_util.h"
 

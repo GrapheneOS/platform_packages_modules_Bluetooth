@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 
 bool bdaddr_is_empty(const bt_bdaddr_t *addr) {
   assert(addr != NULL);

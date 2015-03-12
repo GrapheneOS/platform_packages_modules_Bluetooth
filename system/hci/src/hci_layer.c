@@ -33,7 +33,7 @@
 #include "hci_layer.h"
 #include "osi/include/list.h"
 #include "low_power_manager.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/non_repeating_timer.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"

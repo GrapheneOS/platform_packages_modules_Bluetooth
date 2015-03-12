@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include "device/include/controller.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "gki.h"
 #include "bt_types.h"
 #include "bt_utils.h"

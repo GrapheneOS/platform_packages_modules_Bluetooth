@@ -25,12 +25,12 @@
 #include <string.h>
 
 #include "osi/include/alarm.h"
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "osi/include/config.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
 

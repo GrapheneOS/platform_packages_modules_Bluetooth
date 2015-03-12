@@ -26,10 +26,10 @@
 
 #include "osi/include/allocator.h"
 #include "osi/include/atomic.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "osi/include/hash_map.h"
 #include "osi/include/list.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/osi.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/log.h"

@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-#include "counter.h"
+#include "btcore/include/counter.h"
 #include "gki.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"

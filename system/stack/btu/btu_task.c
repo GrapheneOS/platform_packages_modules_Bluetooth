@@ -38,7 +38,7 @@
 #include "osi/include/hash_map.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "sdpint.h"

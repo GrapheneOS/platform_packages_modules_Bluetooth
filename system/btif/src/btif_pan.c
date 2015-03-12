@@ -50,7 +50,7 @@
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btm_api.h"
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 #include "device/include/controller.h"
 
 #include "bta_api.h"

@@ -21,18 +21,18 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 #include "bt_types.h"
 #include "device/include/controller.h"
-#include "event_mask.h"
+#include "btcore/include/event_mask.h"
 #include "osi/include/future.h"
 #include "hcimsgs.h"
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"
 #include "hci/include/hci_packet_parser.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "stack/include/btm_ble_api.h"
-#include "version.h"
+#include "btcore/include/version.h"
 
 const bt_event_mask_t BLE_EVENT_MASK = { "\x00\x00\x00\x00\x00\x00\x00\x3f" };
 #if (BLE_INCLUDED)

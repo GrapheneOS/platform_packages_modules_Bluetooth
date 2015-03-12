@@ -24,7 +24,7 @@
 
 #include "osi/include/allocator.h"
 #include "osi/include/hash_map.h"
-#include "module.h"
+#include "btcore/include/module.h"
 #include "osi/include/osi.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/log.h"

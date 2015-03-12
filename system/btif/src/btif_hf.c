@@ -34,7 +34,7 @@
 #include "btif_util.h"
 #include "btif_profile_queue.h"
 
-#include "bdaddr.h"
+#include "btcore/include/bdaddr.h"
 #include "bta_ag_api.h"
 
 /************************************************************************************
