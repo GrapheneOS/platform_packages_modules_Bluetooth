@@ -79,6 +79,14 @@ Variadic functions are dangerous and should be avoided for most code. The
 exception is when implementing logging since the benefits of readability
 outweigh the cost of safety.
 
+### Functions with zero arguments
+Functions that do not take any arguments (0 arity) should be declared like so:
+```
+void function(void);
+```
+Note that the function explicitly includes `void` in its parameter list to
+indicate to the compiler that it takes no arguments.
+
 ### Zero-length arrays
 Use zero-length arrays as the last member of a struct if the array needs to be
 allocated in contiguous memory with its containing struct. For example:
@@ -108,6 +116,11 @@ uint8_t *data = (uint8_t *)(my_buffer + 1);
 ```
 Instead, use zero-length arrays as described above to avoid pointer arithmetic
 and array indexing entirely.
+
+### Boolean type
+Use the C99 `bool` type with values `true` and `false` defined in `stdbool.h`.
+Not only is this a standardized type, it is also safer and provides more
+compile-time checks.
 
 ## Header files
 In general, every source file (`.c` or `.cpp`) in a `src/` directory should
@@ -172,3 +185,70 @@ After the license header, each header file must contain the include guard:
 This form is used over traditional `#define`-based include guards as it is less
 error-prone, doesn't pollute the global namespace, is more compact, and can
 result in faster compilation.
+
+## Formatting
+Code formatting is pretty arbitrary, but the codebase is easier to follow if
+everyone uses the same style. Individuals may not agree with every aspect of
+the formatting rules, and some of the rules may take some getting used to,
+but it is important that all engineers follow the formatting rules so we can all
+understand and read the code easily.
+
+### White space
+* use only spaces, indent 2 spaces at a time
+* no trailing whitespaces at the end of a line
+* no tab characters
+* use one blank line to separate logical code blocks, function definitions,
+  and sections of a file
+
+```
+// Space after keyword in conditionals and loops.
+// No space immeidately before or after parentheses.
+if (foo)
+
+// Space surrounding binary operators.
+if (foo < 5)
+
+// Space after comma.
+for (int x = 0, y = 0; x; ++y)
+
+// No space between unary operators and their argument.
+++x;
+z = -y;
+
+// No space between function name and open parenthesis.
+call_my_fn(arg1, arg2);
+
+// Space before * in variable declaration.
+int *x = NULL;
+
+// Space after // beginning a comment.
+// Notice the space between "//" and "N".
+```
+
+Use only spaces, and indent 2 spaces at a time. Do not use tab characters in the
+codebase.
+
+Use a single blank line to separate logical code blocks, function definitions,
+and sections of a file.
+
+### Brace style
+```
+// Open curly braces are never on a line by themselves.
+void my_function(void) {
+  // Conditional statements with only one child statement should elide braces.
+  // The child statement must be on a new line, indented by 2 spaces.
+  if (foo)
+    do_bar();
+  else
+    do_baz();
+
+  // Conditionals with a branch containing more than one child statement forces
+  // braces on both branches.
+  if (foo) {
+    do_bar();
+  } else {
+    do_baz();
+    ++var1;
+  }
+}
+```
