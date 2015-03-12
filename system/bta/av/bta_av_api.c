@@ -257,6 +257,7 @@ void BTA_AvStart(void)
 void BTA_AvEnable_Sink(int enable)
 {
 #if (BTA_AV_SINK_INCLUDED == TRUE)
+    BT_HDR  *p_buf;
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AV_API_SINK_ENABLE_EVT;
