@@ -1378,25 +1378,24 @@ BOOLEAN  L2CA_RegisterFixedChannel (UINT16 fixed_cid, tL2CAP_FIXED_CHNL_REG *p_f
 *******************************************************************************/
 BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 {
-    tL2C_LCB        *p_lcb;
-    tBT_TRANSPORT   transport = BT_TRANSPORT_BR_EDR;
-    UINT16          reason;
+    tL2C_LCB *p_lcb;
+    tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
 
-    L2CAP_TRACE_API  ("L2CA_ConnectFixedChnl()  CID: 0x%04x  BDA: %08x%04x", fixed_cid,
-                    (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
+    L2CAP_TRACE_API  ("%s() CID: 0x%04x  BDA: %08x%04x", __func__, fixed_cid,
+          (rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3], (rem_bda[4]<<8)+rem_bda[5]);
 
-    /* Check CID is valid and registered */
+    // Check CID is valid and registered
     if ( (fixed_cid < L2CAP_FIRST_FIXED_CHNL) || (fixed_cid > L2CAP_LAST_FIXED_CHNL)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
-        L2CAP_TRACE_ERROR ("L2CA_ConnectFixedChnl()  Invalid CID: 0x%04x", fixed_cid);
+        L2CAP_TRACE_ERROR ("%s() Invalid CID: 0x%04x", __func__, fixed_cid);
         return (FALSE);
     }
 
-    /* Fail if BT is not yet up */
+    // Fail if BT is not yet up
     if (!BTM_IsDeviceUp())
     {
-        L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl(0x%04x) - BTU not ready", fixed_cid);
+        L2CAP_TRACE_WARNING ("%s(0x%04x) - BTU not ready", __func__, fixed_cid);
         return (FALSE);
     }
 
@@ -1405,31 +1404,43 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         transport = BT_TRANSPORT_LE;
 #endif
 
-    /* If we already have a link to the remote, check if it supports that CID */
+    tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
+
+    // If we already have a link to the remote, check if it supports that CID
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, transport)) != NULL)
     {
-        if (!(p_lcb->peer_chnl_mask[0] & (1 << fixed_cid)))
+        // Fixed channels are mandatory on LE transports so ignore the received
+        // channel mask and use the locally cached LE channel mask.
+
+        if (transport == BT_TRANSPORT_LE)
+            peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
+        else
+            peer_channel_mask = p_lcb->peer_chnl_mask[0];
+
+        // Check for supported channel
+        if (!(peer_channel_mask & (1 << fixed_cid)))
         {
-            L2CAP_TRACE_EVENT  ("L2CA_ConnectFixedChnl() CID:0x%04x  BDA: %08x%04x not supported",
+            L2CAP_TRACE_EVENT  ("%s() CID:0x%04x  BDA: %08x%04x not supported", __func__,
                 fixed_cid,(rem_bda[0]<<24)+(rem_bda[1]<<16)+(rem_bda[2]<<8)+rem_bda[3],
                 (rem_bda[4]<<8)+rem_bda[5]);
-            return (FALSE);
+            return FALSE;
         }
-        /* Get a CCB and link the lcb to it */
+
+        // Get a CCB and link the lcb to it
         if (!l2cu_initialize_fixed_ccb (p_lcb, fixed_cid,
             &l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
-            L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl(0x%04x) - LCB but no CCB", fixed_cid);
-            return (FALSE);
+            L2CAP_TRACE_WARNING ("%s(0x%04x) - LCB but no CCB", __func__, fixed_cid);
+            return FALSE;
         }
 
-        /* racing with disconnecting, queue the connection request */
+        // racing with disconnecting, queue the connection request
         if (p_lcb->link_state == LST_DISCONNECTING)
         {
-            L2CAP_TRACE_DEBUG ("L2CAP API - link disconnecting: RETRY LATER");
+            L2CAP_TRACE_DEBUG ("$s() - link disconnecting: RETRY LATER", __func__);
             /* Save ccb so it can be started after disconnect is finished */
             p_lcb->p_pending_ccb = p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL];
-            return (TRUE);
+            return TRUE;
         }
 
 #if BLE_INCLUDED == TRUE
@@ -1439,33 +1450,33 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
         (p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
 #endif
-        return (TRUE);
+        return TRUE;
     }
 
-    /* No link. Get an LCB and start link establishment */
+    // No link. Get an LCB and start link establishment
     if ((p_lcb = l2cu_allocate_lcb (rem_bda, FALSE, transport)) == NULL)
     {
-        L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl(0x%04x) - no LCB", fixed_cid);
-        return (FALSE);
+        L2CAP_TRACE_WARNING ("%s(0x%04x) - no LCB", __func__, fixed_cid);
+        return FALSE;
     }
 
-    /* Get a CCB and link the lcb to it */
+    // Get a CCB and link the lcb to it
     if (!l2cu_initialize_fixed_ccb (p_lcb, fixed_cid,
         &l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
     {
         p_lcb->disc_reason = L2CAP_CONN_NO_RESOURCES;
-        L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl(0x%04x) - no CCB", fixed_cid);
+        L2CAP_TRACE_WARNING ("%s(0x%04x) - no CCB", __func__, fixed_cid);
         l2cu_release_lcb (p_lcb);
-        return (FALSE);
+        return FALSE;
     }
 
     if (!l2cu_create_conn(p_lcb, transport))
     {
-        L2CAP_TRACE_WARNING ("L2CA_ConnectFixedChnl create_conn failed");
+        L2CAP_TRACE_WARNING ("%s() - create_conn failed", __func__);
         l2cu_release_lcb (p_lcb);
-        return (FALSE);
+        return FALSE;
     }
-    return (TRUE);
+    return TRUE;
 }
 
 /*******************************************************************************
@@ -1495,7 +1506,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         transport = BT_TRANSPORT_LE;
 #endif
 
-    /* Check CID is valid and registered */
+    // Check CID is valid and registered
     if ( (fixed_cid < L2CAP_FIRST_FIXED_CHNL) || (fixed_cid > L2CAP_LAST_FIXED_CHNL)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
@@ -1504,7 +1515,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         return (L2CAP_DW_FAILED);
     }
 
-    /* Fail if BT is not yet up */
+    // Fail if BT is not yet up
     if (!BTM_IsDeviceUp())
     {
         L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData(0x%04x) - BTU not ready", fixed_cid);
@@ -1512,7 +1523,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         return (L2CAP_DW_FAILED);
     }
 
-    /* We need to have a link up */
+    // We need to have a link up
     if ((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, transport)) == NULL ||
         /* if link is disconnecting, also report data sending failure */
         p_lcb->link_state == LST_DISCONNECTING)
@@ -1522,7 +1533,15 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         return (L2CAP_DW_FAILED);
     }
 
-    if ((p_lcb->peer_chnl_mask[0] & (1 << fixed_cid)) == 0)
+    tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
+
+    // Select peer channels mask to use depending on transport
+    if (transport == BT_TRANSPORT_LE)
+        peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
+    else
+        peer_channel_mask = p_lcb->peer_chnl_mask[0];
+
+    if ((peer_channel_mask & (1 << fixed_cid)) == 0)
     {
         L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData() - peer does not support fixed chnl: 0x%04x", fixed_cid);
         GKI_freebuf (p_buf);
@@ -1542,7 +1561,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         }
     }
 
-    /* If already congested, do not accept any more packets */
+    // If already congested, do not accept any more packets
     if (p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->cong_sent)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested \
@@ -1557,7 +1576,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
 
     l2c_link_check_send_pkts (p_lcb, NULL, NULL);
 
-    /* If there is no dynamic CCB on the link, restart the idle timer each time something is sent */
+    // If there is no dynamic CCB on the link, restart the idle timer each time something is sent
     if (p_lcb->in_use && p_lcb->link_state == LST_CONNECTED && !p_lcb->ccb_queue.p_first_ccb)
     {
         l2cu_no_dynamic_ccbs (p_lcb);

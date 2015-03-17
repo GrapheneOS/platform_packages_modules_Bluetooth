@@ -892,6 +892,9 @@ void l2c_init (void)
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
 
+    l2cb.l2c_ble_fixed_chnls_mask =
+         L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
+
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)
         LOG_ERROR("%s unable to allocate memory for link layer control block", __func__);

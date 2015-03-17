@@ -183,22 +183,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 #endif
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
-    {
-        int         xx;
-
-        for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
-        {
-            if (p_lcb->p_fixed_ccbs[xx])
-            {
-                l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
-                p_lcb->p_fixed_ccbs[xx] = NULL;
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
-            }
-            else if ( (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
-                   && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
-                    (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
-        }
-    }
+    l2cu_process_fixed_disc_cback(p_lcb);
 #endif
 
     /* Ensure no CCBs left on this LCB */
@@ -2829,17 +2814,18 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 *******************************************************************************/
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
-    int     xx;
 #if (BLE_INCLUDED == TRUE)
     /* always exclude LE fixed channel on BR/EDR fix channel capability */
     if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
         p_lcb->peer_chnl_mask[0] &= ~(L2CAP_FIXED_CHNL_ATT_BIT| \
                                       L2CAP_FIXED_CHNL_BLE_SIG_BIT| \
                                       L2CAP_FIXED_CHNL_SMP_BIT);
+    else
+        p_lcb->peer_chnl_mask[0] = l2cb.l2c_ble_fixed_chnls_mask;
 #endif
 
     /* Tell all registered fixed channels about the connection */
-    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+    for (int xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
 #if BLE_INCLUDED == TRUE
         /* skip sending LE fix channel callbacks on BR/EDR links */
@@ -2893,16 +2879,24 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
-    int         xx;
 
-    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+    /* Select peer channels mask to use depending on transport */
+    UINT8 peer_channel_mask = p_lcb->peer_chnl_mask[0];
+
+    // For LE, reset the stored peer channel mask
+    if (p_lcb->transport == BT_TRANSPORT_LE)
+        p_lcb->peer_chnl_mask[0] = 0;
+
+    for (int xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
         if (p_lcb->p_fixed_ccbs[xx])
         {
             if (p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
             {
-                l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
+                tL2C_CCB *p_l2c_chnl_ctrl_block;
+                p_l2c_chnl_ctrl_block = p_lcb->p_fixed_ccbs[xx];
                 p_lcb->p_fixed_ccbs[xx] = NULL;
+                l2cu_release_ccb(p_l2c_chnl_ctrl_block);
 #if BLE_INCLUDED == TRUE
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
@@ -2910,7 +2904,7 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 #endif
            }
         }
-        else if ( (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
+        else if ( (peer_channel_mask & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
                && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
 #if BLE_INCLUDED == TRUE
             (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
