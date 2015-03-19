@@ -927,9 +927,9 @@ BOOLEAN btm_pm_device_in_active_or_sniff_mode(void)
     /* The active state is the highest state-includes connected device and sniff mode*/
 
     /* Covers active and sniff modes */
-    if (btm_cb.num_acl > 0)
+    if (BTM_GetNumAclLinks() > 0)
     {
-        BTM_TRACE_DEBUG("btm_pm_device_in_active_or_sniff_mode-acl:%d", btm_cb.num_acl);
+        BTM_TRACE_DEBUG("%s - ACL links: %d", __func__, BTM_GetNumAclLinks());
         return TRUE;
     }
 
@@ -937,8 +937,7 @@ BOOLEAN btm_pm_device_in_active_or_sniff_mode(void)
     /* Check BLE states */
     if (btm_ble_get_conn_st() != BLE_CONN_IDLE)
     {
-        BTM_TRACE_DEBUG("btm_pm_device_in_active_or_sniff_mode- BLE state: %x",
-                        btm_ble_get_conn_st());
+        BTM_TRACE_DEBUG("%s - BLE state: %x", __func__, btm_ble_get_conn_st());
         return TRUE;
     }
 #endif
