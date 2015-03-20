@@ -916,7 +916,6 @@ typedef struct
     UINT8                   acl_disc_reason;
     UINT8                   trace_level;
 #if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
-    UINT8                   num_acl;    /* num of active ACL links */
     UINT8                   busy_level; /* the current busy level */
     BOOLEAN                 is_paging;  /* TRUE, if paging is in progess */
     BOOLEAN                 is_inquiry; /* TRUE, if inquiry is in progess */
