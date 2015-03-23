@@ -501,18 +501,9 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
     {
         case BTM_BLI_ACL_UP_EVT:
             BTM_TRACE_DEBUG ("BTM_BLI_ACL_UP_EVT");
-            btm_cb.num_acl++;
             break;
         case BTM_BLI_ACL_DOWN_EVT:
-            if (btm_cb.num_acl)
-            {
-                btm_cb.num_acl--;
-                BTM_TRACE_DEBUG ("BTM_BLI_ACL_DOWN_EVT", btm_cb.num_acl);
-            }
-            else
-            {
-                BTM_TRACE_ERROR ("BTM_BLI_ACL_DOWN_EVT issued, but num_acl already zero !!!");
-            }
+            BTM_TRACE_DEBUG ("BTM_BLI_ACL_DOWN_EVT");
             break;
         case BTM_BLI_PAGE_EVT:
             BTM_TRACE_DEBUG ("BTM_BLI_PAGE_EVT");
@@ -544,7 +535,7 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
     if (btm_cb.is_paging || btm_cb.is_inquiry)
         busy_level = 10;
     else
-        busy_level = (UINT8)btm_cb.num_acl;
+        busy_level = BTM_GetNumAclLinks();
 
     if ((busy_level != btm_cb.busy_level) ||(old_inquiry_state != btm_cb.is_inquiry))
     {
@@ -1416,7 +1407,15 @@ BOOLEAN BTM_IsAclConnectionUp (BD_ADDR remote_bda, tBT_TRANSPORT transport)
 *******************************************************************************/
 UINT16 BTM_GetNumAclLinks (void)
 {
-    return(UINT16)btm_cb.num_acl;
+    uint16_t num_acl = 0;
+
+    for (uint16_t i = 0; i < MAX_L2CAP_LINKS; ++i)
+    {
+        if (btm_cb.acl_db[i].in_use)
+            ++num_acl;
+    }
+
+    return num_acl;
 }
 
 /*******************************************************************************
