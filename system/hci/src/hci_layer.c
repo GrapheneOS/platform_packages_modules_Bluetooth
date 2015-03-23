@@ -93,7 +93,7 @@ typedef struct {
 } waiting_command_t;
 
 // Using a define here, because it can be stringified for the property lookup
-#define DEFAULT_STARTUP_TIMEOUT_MS 3000
+#define DEFAULT_STARTUP_TIMEOUT_MS 8000
 #define STRING_VALUE_OF(x) #x
 
 static const uint32_t EPILOG_TIMEOUT_MS = 3000;
