@@ -37,10 +37,11 @@ struct alarm_t {
   // a guarantee to its caller that the callback will not be in progress when it
   // returns.
   pthread_mutex_t callback_lock;
-  period_ms_t deadline;
-  alarm_callback_t callback;
-  bool periodic;
+  period_ms_t created;
   period_ms_t period;
+  period_ms_t deadline;
+  bool is_periodic;
+  alarm_callback_t callback;
   void *data;
 };
 
@@ -65,9 +66,9 @@ static bool timer_set;
 static bool lazy_initialize(void);
 static period_ms_t now(void);
 static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic);
-static void schedule(alarm_t *alarm, period_ms_t deadline);
+static void schedule_next_instance(alarm_t *alarm);
 static void timer_callback(void *data);
-static void reschedule(void);
+static void reschedule_root_alarm(void);
 
 alarm_t *alarm_new(void) {
   // Make sure we have a list we can insert alarms into.
@@ -124,19 +125,20 @@ void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb,
 }
 
 // Runs in exclusion with alarm_cancel and timer_callback.
-static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic) {
+static void alarm_set_internal(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data, bool is_periodic) {
   assert(alarms != NULL);
   assert(alarm != NULL);
   assert(cb != NULL);
 
   pthread_mutex_lock(&monitor);
 
-  alarm->periodic = is_periodic;
-  alarm->period = deadline;
+  alarm->created = now();
+  alarm->is_periodic = is_periodic;
+  alarm->period = period;
   alarm->callback = cb;
   alarm->data = data;
 
-  schedule(alarm, deadline);
+  schedule_next_instance(alarm);
 
   pthread_mutex_unlock(&monitor);
 }
@@ -155,7 +157,7 @@ void alarm_cancel(alarm_t *alarm) {
   alarm->data = NULL;
 
   if (needs_reschedule)
-    reschedule();
+    reschedule_root_alarm();
 
   pthread_mutex_unlock(&monitor);
 
@@ -191,14 +193,17 @@ static period_ms_t now(void) {
 }
 
 // Must be called with monitor held
-static void schedule(alarm_t *alarm, period_ms_t deadline) {
+static void schedule_next_instance(alarm_t *alarm) {
   // If the alarm is currently set and it's at the start of the list,
   // we'll need to re-schedule since we've adjusted the earliest deadline.
   bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
   if (alarm->callback)
     list_remove(alarms, alarm);
 
-  alarm->deadline = now() + deadline;
+  // Calculate the next deadline for this alarm
+  period_ms_t just_now = now();
+  period_ms_t ms_into_period = alarm->is_periodic ? ((just_now - alarm->created) % alarm->period) : 0;
+  alarm->deadline = just_now + (alarm->period - ms_into_period);
 
   // Add it into the timer list sorted by deadline (earliest deadline first).
   if (list_is_empty(alarms) || ((alarm_t *)list_front(alarms))->deadline >= alarm->deadline)
@@ -214,7 +219,7 @@ static void schedule(alarm_t *alarm, period_ms_t deadline) {
 
   // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
   if (needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
-    reschedule();
+    reschedule_root_alarm();
 }
 
 // Warning: this function is called in the context of an unknown thread.
@@ -231,7 +236,7 @@ static void timer_callback(void *ptr) {
   // The alarm was cancelled before we got to it. Release the monitor
   // lock and exit right away since there's nothing left to do.
   if (!alarm_valid) {
-    reschedule();
+    reschedule_root_alarm();
     pthread_mutex_unlock(&monitor);
     return;
   }
@@ -239,10 +244,10 @@ static void timer_callback(void *ptr) {
   alarm_callback_t callback = alarm->callback;
   void *data = alarm->data;
 
-  if (alarm->periodic) {
-    schedule(alarm, alarm->period);
+  if (alarm->is_periodic) {
+    schedule_next_instance(alarm);
   } else {
-    reschedule();
+    reschedule_root_alarm();
 
     alarm->deadline = 0;
     alarm->callback = NULL;
@@ -259,7 +264,7 @@ static void timer_callback(void *ptr) {
 }
 
 // NOTE: must be called with monitor lock.
-static void reschedule(void) {
+static void reschedule_root_alarm(void) {
   assert(alarms != NULL);
 
   bool timer_was_set = timer_set;
