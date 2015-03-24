@@ -43,12 +43,12 @@ const tSDP_PROTOCOL_ELEM  avrc_proto_list [] =
 {
     {UUID_PROTOCOL_L2CAP, 1, {AVCT_PSM, 0} },
 #if SDP_AVRCP_1_4 == TRUE
-    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_3, 0}  }
+    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV(1,4), 0}  }
 #else
 #if AVRC_METADATA_INCLUDED == TRUE
-    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_2, 0}  }
+    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV(1,4), 0}  }
 #else
-    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_0, 0}  }
+    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV(1,0), 0}  }
 #endif
 #endif
 };
@@ -59,7 +59,7 @@ const tSDP_PROTO_LIST_ELEM  avrc_add_proto_list [] =
     {AVRC_NUM_PROTO_ELEMS,
     {
     {UUID_PROTOCOL_L2CAP, 1, {AVCT_BR_PSM, 0} },
-    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV_1_3, 0}  }}}
+    {UUID_PROTOCOL_AVCTP, 1, {AVCT_REV(1,4), 0}  }}}
 };
 #endif
 
