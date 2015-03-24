@@ -177,6 +177,15 @@ static bool lazy_initialize(void) {
     return false;
   }
 
+  struct sigevent sigevent;
+  memset(&sigevent, 0, sizeof(sigevent));
+  sigevent.sigev_notify = SIGEV_THREAD;
+  sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
+  if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
+    LOG_ERROR("%s unable to create timer: %s", __func__, strerror(errno));
+    return false;
+  }
+
   return true;
 }
 
@@ -225,21 +234,22 @@ static void schedule_next_instance(alarm_t *alarm) {
 // Warning: this function is called in the context of an unknown thread.
 // As a result, it must be thread-safe relative to other operations on
 // the alarm list.
-static void timer_callback(void *ptr) {
-  alarm_t *alarm = (alarm_t *)ptr;
-  assert(alarm != NULL);
-
+static void timer_callback(UNUSED_ATTR void *ptr) {
   pthread_mutex_lock(&monitor);
 
-  bool alarm_valid = list_remove(alarms, alarm);
+  alarm_t *alarm;
 
-  // The alarm was cancelled before we got to it. Release the monitor
-  // lock and exit right away since there's nothing left to do.
-  if (!alarm_valid) {
+  // Take into account that the alarm may get cancelled before we get to it.
+  // We're done here if there are no alarms or the alarm at the front is in
+  // the future. Release the monitor lock and exit right away since there's
+  // nothing left to do.
+  if (list_is_empty(alarms) || (alarm = list_front(alarms))->deadline > now()) {
     reschedule_root_alarm();
     pthread_mutex_unlock(&monitor);
     return;
   }
+
+  list_remove(alarms, alarm);
 
   alarm_callback_t callback = alarm->callback;
   void *data = alarm->data;
@@ -267,52 +277,37 @@ static void timer_callback(void *ptr) {
 static void reschedule_root_alarm(void) {
   assert(alarms != NULL);
 
-  bool timer_was_set = timer_set;
-  if (timer_set) {
-    timer_delete(timer);
-    timer_set = false;
-  }
+  // If used in a zeroed state, disarms the timer
+  struct itimerspec wakeup_time;
+  memset(&wakeup_time, 0, sizeof(wakeup_time));
 
-  if (list_is_empty(alarms)) {
-    bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
-    return;
-  }
+  if (list_is_empty(alarms))
+    goto done;
 
   alarm_t *next = list_front(alarms);
-  int64_t next_exp = next->deadline - now();
-  if (next_exp < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
-    if (!timer_was_set) {
+  int64_t next_expiration = next->deadline - now();
+  if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
+    if (!timer_set) {
       int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
       if (status != BT_STATUS_SUCCESS) {
         LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
-        return;
+        goto done;
       }
     }
 
-    struct sigevent sigevent;
-    memset(&sigevent, 0, sizeof(sigevent));
-    sigevent.sigev_notify = SIGEV_THREAD;
-    sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
-    sigevent.sigev_value.sival_ptr = next;
-    if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
-      LOG_ERROR("%s unable to create timer: %s", __func__, strerror(errno));
-      return;
-    }
-
-    struct itimerspec wakeup_time;
-    memset(&wakeup_time, 0, sizeof(wakeup_time));
     wakeup_time.it_value.tv_sec = (next->deadline / 1000);
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
-    if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1) {
-      LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
-      timer_delete(timer);
-      return;
-    }
-    timer_set = true;
   } else {
-    if (!bt_os_callouts->set_wake_alarm(next_exp, true, timer_callback, next))
-      LOG_ERROR("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_exp);
+    if (!bt_os_callouts->set_wake_alarm(next_expiration, true, timer_callback, NULL))
+      LOG_ERROR("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_expiration);
+  }
 
+done:
+  timer_set = wakeup_time.it_value.tv_sec != 0 || wakeup_time.it_value.tv_nsec != 0;
+  if (!timer_set) {
     bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
   }
+
+  if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
+    LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
 }
