@@ -87,13 +87,15 @@ void function(void);
 Note that the function explicitly includes `void` in its parameter list to
 indicate to the compiler that it takes no arguments.
 
-### Zero-length arrays
-Use zero-length arrays as the last member of a struct if the array needs to be
-allocated in contiguous memory with its containing struct. For example:
+### Contiguous memory structs
+Use C99 flexible arrays as the last member of a struct if the array needs
+to be allocated in contiguous memory with its containing struct.
+A flexible array member is writen as array_name[] without a specific size.  
+For example:
 ```
 typedef struct {
   size_t length;
-  uint8_t data[0];
+  uint8_t data[];
 } buffer_t;
 
 // Allocate a buffer with 128 bytes available for my_buffer->data.
