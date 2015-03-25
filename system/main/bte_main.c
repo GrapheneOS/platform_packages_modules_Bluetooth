@@ -55,6 +55,7 @@
 #include "osi/include/log.h"
 #include "stack_config.h"
 #include "osi/include/thread.h"
+#include "vendor.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -290,7 +291,7 @@ int set_audio_state(UINT16 handle, UINT16 codec, UINT8 state, void *param)
     /* layer_specific shall contain return path event! for BTA events!
      * 0 means no return message is expected. */
     p_msg->hdr.layer_specific = 0;
-    hci->transmit_downward(MSG_STACK_TO_HC_HCI_CMD, p_msg);
+    vendor_get_interface()->send_command(VENDOR_SET_AUDIO_STATE, &(p_msg->audio));
     return result;
 }
 
