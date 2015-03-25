@@ -230,7 +230,7 @@ static void parse_properties(int num_properties, bt_property_t *property) {
           const bt_uuid_t *uuid = property_as_uuids(property, &num_uuid);
           if (uuid) {
             for (size_t i = 0; i < num_uuid; i++) {
-              fprintf(stdout, " uuid:%d: ", i);
+              fprintf(stdout, " uuid:%zd: ", i);
               for (size_t j = 0; j < sizeof(uuid); j++) {
                 fprintf(stdout, "%02x", uuid->uu[j]);
               }
