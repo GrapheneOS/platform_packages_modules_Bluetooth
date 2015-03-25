@@ -1445,10 +1445,10 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
 
 #if BLE_INCLUDED == TRUE
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
-        (p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
+        (fixed_cid,p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
 #else
         (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedConn_Cb)
-        (p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
+        (fixed_cid, p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
 #endif
         return TRUE;
     }

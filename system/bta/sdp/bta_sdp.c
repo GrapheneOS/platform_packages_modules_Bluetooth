@@ -1,7 +1,7 @@
 /******************************************************************************
  *
- *  Copyright (C) 2007-2012 Broadcom Corporation
- *
+ *  Copyright (C) 2014 The Android Open Source Project
+
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at:
@@ -18,36 +18,58 @@
 
 /******************************************************************************
  *
- *  This is the interface file for java interface call-out functions.
+ *  This is the main implementation file for the BTA MCE I/F
  *
  ******************************************************************************/
-#ifndef BTA_JV_CO_H
-#define BTA_JV_CO_H
 
-#include "bta_jv_api.h"
+#include "bta_api.h"
+#include "bta_sys.h"
+#include "bta_sdp_api.h"
+#include "bta_sdp_int.h"
 
 /*****************************************************************************
-**  Function Declarations
+** Constants and types
 *****************************************************************************/
 
+#if BTA_DYNAMIC_MEMORY == FALSE
+tBTA_SDP_CB bta_sdp_cb;
+#endif
+
+/* state machine action enumeration list */
+#define BTA_SDP_NUM_ACTIONS  (BTA_SDP_MAX_INT_EVT & 0x00ff)
+
+/* type for action functions */
+typedef void (*tBTA_SDP_ACTION)(tBTA_SDP_MSG *p_data);
+
+/* action function list */
+const tBTA_SDP_ACTION bta_sdp_action[] =
+{
+    bta_sdp_enable,  /* BTA_SDP_API_ENABLE_EVT */
+    bta_sdp_search,  /* BTA_SDP_API_SEARCH_EVT */
+    bta_sdp_create_record,  /* BTA_SDP_API_CREATE_RECORD_USER_EVT */
+    bta_sdp_remove_record,  /* BTA_SDP_API_REMOVE_RECORD_USER_EVT */
+};
 
 /*******************************************************************************
+** Function         bta_sdp_sm_execute
 **
-** Function         bta_jv_co_rfc_data
-**
-** Description      This function is called by JV to send data to the java glue
-**                  code when the RX data path is configured to use a call-out
+** Description      State machine event handling function for SDP search
 **
 ** Returns          void
-**
 *******************************************************************************/
+BOOLEAN bta_sdp_sm_execute(BT_HDR *p_msg)
+{
+    if(p_msg == NULL) return FALSE;
 
-extern int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf);
-extern int bta_co_rfc_data_outgoing_size(void *user_data, int *size);
-extern int bta_co_rfc_data_outgoing(void *user_data, UINT8* buf, UINT16 size);
+    BOOLEAN ret = FALSE;
+    UINT16 action = (p_msg->event & 0x00ff);
 
-extern int bta_co_l2cap_data_incoming(void *user_data, BT_HDR *p_buf);
-extern int bta_co_l2cap_data_outgoing_size(void *user_data, int *size);
-extern int bta_co_l2cap_data_outgoing(void *user_data, UINT8* buf, UINT16 size);
+    /* execute action functions */
+    if(action < BTA_SDP_NUM_ACTIONS)
+    {
+        (*bta_sdp_action[action])((tBTA_SDP_MSG*)p_msg);
+        ret = TRUE;
+    }
 
-#endif /* BTA_DG_CO_H */
+    return(ret);
+}

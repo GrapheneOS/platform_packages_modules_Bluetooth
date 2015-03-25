@@ -34,8 +34,9 @@
 
 
 
-static void smp_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason, tBT_TRANSPORT transport);
-static void smp_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf);
+static void smp_connect_cback (UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected,
+        UINT16 reason, tBT_TRANSPORT transport);
+static void smp_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf);
 
 /*******************************************************************************
 **
@@ -74,7 +75,7 @@ void smp_l2cap_if_init (void)
 **                      connected (conn = TRUE)/disconnected (conn = FALSE).
 **
 *******************************************************************************/
-static void smp_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
+static void smp_connect_cback (UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
                                     tBT_TRANSPORT transport)
 {
     tSMP_CB   *p_cb = &smp_cb;
@@ -129,7 +130,7 @@ static void smp_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason
 ** Returns          void
 **
 *******************************************************************************/
-static void smp_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf)
+static void smp_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tSMP_CB *p_cb = &smp_cb;
     UINT8   *p = (UINT8 *)(p_buf + 1) + p_buf->offset;

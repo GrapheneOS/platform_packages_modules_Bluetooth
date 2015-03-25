@@ -70,17 +70,17 @@ LOCAL_SRC_FILES:= \
     ./hl/bta_hl_utils.c \
     ./hl/bta_hl_sdp.c \
     ./hl/bta_hl_ci.c \
-    ./mce/bta_mce_api.c \
-    ./mce/bta_mce_main.c \
-    ./mce/bta_mce_act.c \
-    ./mce/bta_mce_cfg.c \
+    ./sdp/bta_sdp_api.c \
+    ./sdp/bta_sdp_act.c \
+    ./sdp/bta_sdp.c \
+    ./sdp/bta_sdp_cfg.c \
     ./sys/bta_sys_main.c \
     ./sys/bta_sys_conn.c \
     ./sys/utl.c \
     ./jv/bta_jv_act.c \
     ./jv/bta_jv_cfg.c \
     ./jv/bta_jv_main.c \
-    ./jv/bta_jv_api.c \
+    ./jv/bta_jv_api.c
 
 LOCAL_MODULE := libbt-brcm_bta
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES

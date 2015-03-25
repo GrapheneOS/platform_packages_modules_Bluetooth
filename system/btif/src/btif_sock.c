@@ -27,9 +27,9 @@
 #include "btif_sock_rfc.h"
 #include "btif_sock_sco.h"
 #include "btif_sock_thread.h"
+#include "btif_sock_l2cap.h"
+#include "btif_sock_sdp.h"
 #include "btif_util.h"
-#include "osi/include/osi.h"
-#include "osi/include/log.h"
 #include "osi/include/thread.h"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
@@ -46,6 +46,7 @@ btsock_interface_t *btif_sock_get_interface(void) {
     btsock_listen,
     btsock_connect
   };
+
 
   return &interface;
 }
@@ -64,6 +65,12 @@ bt_status_t btif_sock_init(void) {
   bt_status_t status = btsock_rfc_init(thread_handle);
   if (status != BT_STATUS_SUCCESS) {
     LOG_ERROR("%s error initializing RFCOMM sockets: %d", __func__, status);
+    goto error;
+  }
+
+  status = btsock_l2cap_init(thread_handle);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG_ERROR("%s error initializing L2CAP sockets: %d", __func__, status);
     goto error;
   }
 
@@ -101,14 +108,17 @@ void btif_sock_cleanup(void) {
   btsock_thread_exit(thread_handle);
   btsock_rfc_cleanup();
   btsock_sco_cleanup();
+  btsock_l2cap_cleanup();
   thread_free(thread);
   thread_handle = -1;
   thread = NULL;
 }
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
-  assert(service_uuid != NULL || channel > 0);
-  assert(sock_fd != NULL);
+  if((flags & BTSOCK_FLAG_NO_SDP) == 0) {
+      assert(service_uuid != NULL || channel > 0);
+      assert(sock_fd != NULL);
+  }
 
   *sock_fd = INVALID_FD;
   bt_status_t status = BT_STATUS_FAIL;
@@ -116,6 +126,9 @@ static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, c
   switch (type) {
     case BTSOCK_RFCOMM:
       status = btsock_rfc_listen(service_name, service_uuid, channel, sock_fd, flags);
+      break;
+    case BTSOCK_L2CAP:
+      status = btsock_l2cap_listen(service_name, channel, sock_fd, flags);
       break;
 
     case BTSOCK_SCO:
@@ -143,6 +156,10 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
       status = btsock_rfc_connect(bd_addr, uuid, channel, sock_fd, flags);
       break;
 
+    case BTSOCK_L2CAP:
+      status = btsock_l2cap_connect(bd_addr, channel, sock_fd, flags);
+      break;
+
     case BTSOCK_SCO:
       status = btsock_sco_connect(bd_addr, sock_fd, flags);
       break;
@@ -160,7 +177,9 @@ static void btsock_signaled(int fd, int type, int flags, uint32_t user_id) {
     case BTSOCK_RFCOMM:
       btsock_rfc_signaled(fd, flags, user_id);
       break;
-
+    case BTSOCK_L2CAP:
+      btsock_l2cap_signaled(fd, flags, user_id);
+      break;
     default:
       assert(false && "Invalid socket type");
       break;

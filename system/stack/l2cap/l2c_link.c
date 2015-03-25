@@ -442,11 +442,11 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
               if (p_lcb->p_fixed_ccbs[xx] && p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
               {
 #if BLE_INCLUDED == TRUE
-                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
-                       p_lcb->disc_reason, p_lcb->transport);
+                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                          p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE,
-                       p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+                  (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                          p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
                     l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
 

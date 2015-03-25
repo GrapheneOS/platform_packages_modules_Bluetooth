@@ -85,19 +85,19 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_MN_SERVICE_ID       26          /* Message Notification Service */
 #define BTA_HDP_SERVICE_ID      27          /* Health Device Profile */
 #define BTA_PCE_SERVICE_ID      28          /* PhoneBook Access Client*/
-
+#define BTA_SDP_SERVICE_ID      29          /* SDP Search*/
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
 /* BLE profile service ID */
-#define BTA_BLE_SERVICE_ID      29          /* GATT profile */
+#define BTA_BLE_SERVICE_ID      30          /* GATT profile */
 
 // btla-specific ++
-#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_USER_SERVICE_ID     31          /* User requested UUID */
 
-#define BTA_MAX_SERVICE_ID      31
+#define BTA_MAX_SERVICE_ID      32
 // btla-specific --
 #else
-#define BTA_USER_SERVICE_ID     29          /* User requested UUID */
-#define BTA_MAX_SERVICE_ID      30
+#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_MAX_SERVICE_ID      31
 #endif
 /* service IDs (BTM_SEC_SERVICE_FIRST_EMPTY + 1) to (BTM_SEC_MAX_SERVICES - 1)
  * are used by BTA JV */
@@ -214,7 +214,7 @@ typedef tBT_TRANSPORT tBTA_TRANSPORT;
 #define BTA_DM_CONN_PAIRED      1
 
 /* Inquiry Modes */
-#define BTA_DM_INQUIRY_NONE		BTM_INQUIRY_NONE            /*No BR inquiry. */
+#define BTA_DM_INQUIRY_NONE     BTM_INQUIRY_NONE            /*No BR inquiry. */
 #define BTA_DM_GENERAL_INQUIRY  BTM_GENERAL_INQUIRY         /* Perform general inquiry. */
 #define BTA_DM_LIMITED_INQUIRY  BTM_LIMITED_INQUIRY         /* Perform limited inquiry. */
 
@@ -497,10 +497,10 @@ typedef tBTM_BLE_TRACK_ADV_ACTION tBTA_BLE_TRACK_ADV_ACTION;
 #define BTA_BLE_RSSI_ALERT_LO        2
 typedef UINT8 tBTA_DM_BLE_RSSI_ALERT_TYPE;
 
-#define BTA_BLE_RSSI_ALERT_NONE		    BTM_BLE_RSSI_ALERT_NONE		/*	(0) */
-#define BTA_BLE_RSSI_ALERT_HI_BIT		BTM_BLE_RSSI_ALERT_HI_BIT		/*	(1) */
-#define BTA_BLE_RSSI_ALERT_RANGE_BIT	BTM_BLE_RSSI_ALERT_RANGE_BIT	/*	(1 << 1) */
-#define BTA_BLE_RSSI_ALERT_LO_BIT		BTM_BLE_RSSI_ALERT_LO_BIT		/*	(1 << 2) */
+#define BTA_BLE_RSSI_ALERT_NONE         BTM_BLE_RSSI_ALERT_NONE         /*    (0) */
+#define BTA_BLE_RSSI_ALERT_HI_BIT       BTM_BLE_RSSI_ALERT_HI_BIT       /*    (1) */
+#define BTA_BLE_RSSI_ALERT_RANGE_BIT    BTM_BLE_RSSI_ALERT_RANGE_BIT    /*    (1 << 1) */
+#define BTA_BLE_RSSI_ALERT_LO_BIT       BTM_BLE_RSSI_ALERT_LO_BIT       /*    (1 << 2) */
 typedef UINT8     tBTA_DM_BLE_RSSI_ALERT_MASK;
 
 
@@ -510,7 +510,7 @@ typedef void (tBTA_DM_BLE_RSSI_CBACK) (BD_ADDR bd_addr, tBTA_DM_BLE_RSSI_ALERT_T
 #define BTA_DM_BLE_MAX_UUID_FILTER     BTM_BLE_MAX_UUID_FILTER    /* 8 */
 #define BTA_DM_BLE_MAX_ADDR_FILTER     BTM_BLE_MAX_ADDR_FILTER    /* 8 */
 #define BTA_DM_BLE_PF_STR_COND_MAX     BTM_BLE_PF_STR_COND_MAX    /* 4    apply to manu data , or local name */
-#define BTA_DM_BLE_PF_STR_LEN_MAX      BTM_BLE_PF_STR_LEN_MAX  /* match for first 20 bytes */
+#define BTA_DM_BLE_PF_STR_LEN_MAX      BTM_BLE_PF_STR_LEN_MAX     /* match for first 20 bytes */
 
 #define BTA_DM_BLE_PF_LOGIC_OR              0
 #define BTA_DM_BLE_PF_LOGIC_AND             1

@@ -47,6 +47,7 @@
 #include "btif_storage.h"
 #include "btif_hh.h"
 #include "btif_config.h"
+#include "btif_sdp.h"
 
 #include "bta_gatt_api.h"
 #include "include/stack_config.h"
@@ -242,7 +243,7 @@ extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hh_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable);
-extern bt_status_t btif_mce_execute_service(BOOLEAN b_enable);
+extern bt_status_t btif_sdp_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
 
@@ -254,6 +255,7 @@ extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UIN
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
                                                 BOOLEAN b_enable)
 {
+    BTIF_TRACE_DEBUG("%s service_id: %d", __FUNCTION__, service_id);
     /* Check the service_ID and invoke the profile's BT state changed API */
     switch (service_id)
     {
@@ -274,9 +276,9 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
          {
              btif_hf_client_execute_service(b_enable);
          }break;
-         case BTA_MAP_SERVICE_ID:
+         case BTA_SDP_SERVICE_ID:
          {
-             btif_mce_execute_service(b_enable);
+             btif_sdp_execute_service(b_enable);
          }break;
          default:
               BTIF_TRACE_ERROR("%s: Unknown service being enabled", __FUNCTION__);

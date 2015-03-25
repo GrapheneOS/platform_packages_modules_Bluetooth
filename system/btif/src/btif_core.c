@@ -47,7 +47,6 @@
 #include "btif_av.h"
 #include "btif_config.h"
 #include "btif_pan.h"
-#include "btif_mce.h"
 #include "btif_profile_queue.h"
 #include "btif_config.h"
 #include "btif_sock.h"

@@ -1216,7 +1216,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
 
             for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
                 if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
-                    p[0] |= 1 << (xx + L2CAP_FIRST_FIXED_CHNL);
+                   p[(xx + L2CAP_FIRST_FIXED_CHNL) / 8] |= 1 << ((xx + L2CAP_FIRST_FIXED_CHNL) % 8);
         }
 #endif
     }
@@ -2836,22 +2836,27 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 #endif
         if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
         {
-            if (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
+            if (p_lcb->peer_chnl_mask[(xx + L2CAP_FIRST_FIXED_CHNL) / 8]
+                    & (1 << ((xx + L2CAP_FIRST_FIXED_CHNL) % 8)))
             {
                 if (p_lcb->p_fixed_ccbs[xx])
                     p_lcb->p_fixed_ccbs[xx]->chnl_state = CST_OPEN;
 #if BLE_INCLUDED == TRUE
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
 #else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
 #endif
             }
             else
             {
 #if BLE_INCLUDED == TRUE
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
 
                 if (p_lcb->p_fixed_ccbs[xx])
@@ -2898,18 +2903,22 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
                 p_lcb->p_fixed_ccbs[xx] = NULL;
                 l2cu_release_ccb(p_l2c_chnl_ctrl_block);
 #if BLE_INCLUDED == TRUE
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
            }
         }
         else if ( (peer_channel_mask & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
                && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
 #if BLE_INCLUDED == TRUE
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
     }
 #endif
@@ -2926,7 +2935,8 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 ** Returns          void
 **
 *******************************************************************************/
-void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int, UINT16 latency, UINT16 timeout)
+void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int,
+        UINT16 latency, UINT16 timeout)
 {
     BT_HDR  *p_buf;
     UINT8   *p;
@@ -2935,7 +2945,8 @@ void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int
     p_lcb->id++;
     l2cu_adj_id (p_lcb, L2CAP_ADJ_ID);
 
-    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_REQ_LEN, L2CAP_CMD_BLE_UPDATE_REQ, p_lcb->id)) == NULL )
+    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_REQ_LEN,
+                    L2CAP_CMD_BLE_UPDATE_REQ, p_lcb->id)) == NULL )
     {
         L2CAP_TRACE_WARNING ("l2cu_send_peer_ble_par_req - no buffer");
         return;
@@ -2967,7 +2978,8 @@ void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, UINT16 reason, UINT8 rem_id)
     BT_HDR  *p_buf;
     UINT8   *p;
 
-    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_RSP_LEN, L2CAP_CMD_BLE_UPDATE_RSP, rem_id)) == NULL )
+    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_RSP_LEN,
+                    L2CAP_CMD_BLE_UPDATE_RSP, rem_id)) == NULL )
     {
         L2CAP_TRACE_WARNING ("l2cu_send_peer_ble_par_rsp - no buffer");
         return;

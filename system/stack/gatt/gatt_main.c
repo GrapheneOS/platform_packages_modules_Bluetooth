@@ -44,11 +44,13 @@
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
-static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason, tBT_TRANSPORT transport);
-static void gatt_le_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf);
+static void gatt_le_connect_cback (UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected,
+        UINT16 reason, tBT_TRANSPORT transport);
+static void gatt_le_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf);
 static void gatt_le_cong_cback(BD_ADDR remote_bda, BOOLEAN congest);
 
-static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UINT8 l2cap_id);
+static void gatt_l2cif_connect_ind_cback (BD_ADDR  bd_addr, UINT16 l2cap_cid,
+        UINT16 psm, UINT8 l2cap_id);
 static void gatt_l2cif_connect_cfm_cback (UINT16 l2cap_cid, UINT16 result);
 static void gatt_l2cif_config_ind_cback (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
 static void gatt_l2cif_config_cfm_cback (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg);
@@ -399,7 +401,7 @@ BOOLEAN gatt_act_connect (tGATT_REG *p_reg, BD_ADDR bd_addr, tBT_TRANSPORT trans
 **                      connected (conn = TRUE)/disconnected (conn = FALSE).
 **
 *******************************************************************************/
-static void gatt_le_connect_cback (BD_ADDR bd_addr, BOOLEAN connected,
+static void gatt_le_connect_cback (UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected,
                                    UINT16 reason, tBT_TRANSPORT transport)
 {
 
@@ -544,7 +546,7 @@ static void gatt_le_cong_cback(BD_ADDR remote_bda, BOOLEAN congested)
 ** Returns          void
 **
 *******************************************************************************/
-static void gatt_le_data_ind (BD_ADDR bd_addr, BT_HDR *p_buf)
+static void gatt_le_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tGATT_TCB    *p_tcb;
 

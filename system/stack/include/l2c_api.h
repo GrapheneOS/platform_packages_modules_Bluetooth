@@ -931,18 +931,20 @@ extern BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY pri
 *******************************************************************************/
 
 /* Fixed channel connected and disconnected. Parameters are
+**      channel
 **      BD Address of remote
 **      TRUE if channel is connected, FALSE if disconnected
 **      Reason for connection failure
 **      transport : physical transport, BR/EDR or LE
 */
-typedef void (tL2CA_FIXED_CHNL_CB) (BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
+typedef void (tL2CA_FIXED_CHNL_CB) (UINT16, BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
 
 /* Signalling data received. Parameters are
+**      channel
 **      BD Address of remote
 **      Pointer to buffer with data
 */
-typedef void (tL2CA_FIXED_DATA_CB) (BD_ADDR, BT_HDR *);
+typedef void (tL2CA_FIXED_DATA_CB) (UINT16, BD_ADDR, BT_HDR *);
 
 /* Congestion status callback protype. This callback is optional. If
 ** an application tries to send data when the transmit queue is full,

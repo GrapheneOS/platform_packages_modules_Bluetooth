@@ -274,7 +274,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE)
                 l2c_fcr_proc_pdu (p_ccb, p_msg);
             else
-                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_lcb->remote_bd_addr, p_msg);
+                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)
+                    (rcv_cid, p_lcb->remote_bd_addr, p_msg);
         }
         else
             GKI_freebuf (p_msg);

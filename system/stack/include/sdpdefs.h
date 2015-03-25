@@ -64,13 +64,14 @@
 
 #define  ATTR_ID_IP_SUBNET                      0x0200 /* PAN Profile (***) */
 #define  ATTR_ID_VERSION_NUMBER_LIST            0x0200
+#define  ATTR_ID_GOEP_L2CAP_PSM                 0x0200
 #define  ATTR_ID_GROUP_ID                       0x0200
 #define  ATTR_ID_SERVICE_DATABASE_STATE         0x0201
 #define  ATTR_ID_SERVICE_VERSION                0x0300
 #define  ATTR_ID_HCRP_1284ID                    0x0300
 
 #define  ATTR_ID_SUPPORTED_DATA_STORES          0x0301
-#define  ATTR_ID_NETWORK				        0x0301
+#define  ATTR_ID_NETWORK                        0x0301
 #define  ATTR_ID_EXTERNAL_NETWORK               0x0301
 #define  ATTR_ID_FAX_CLASS_1_SUPPORT            0x0302
 #define  ATTR_ID_REMOTE_AUDIO_VOLUME_CONTROL    0x0302
@@ -92,6 +93,9 @@
 #define  ATTR_ID_SUPPORTED_REPOSITORIES         0x0314 /* Phone book access Profile */
 #define  ATTR_ID_MAS_INSTANCE_ID                0x0315 /* MAP profile */
 #define  ATTR_ID_SUPPORTED_MSG_TYPE             0x0316 /* MAP profile */
+#define  ATTR_ID_MAP_SUPPORTED_FEATURES         0x0317 /* MAP profile */
+#define  ATTR_ID_PBAP_SUPPORTED_FEATURES        0x0317 /* PBAP profile */
+
 
 /* These values are for the BPP profile */
 #define ATTR_ID_DOCUMENT_FORMATS_SUPPORTED      0x0350

@@ -31,6 +31,7 @@
 #include "port_api.h"
 #include "sdp_api.h"
 #include "utl.h"
+#include "gap_api.h"
 
 /*****************************************************************************
 **  Constants
@@ -150,6 +151,78 @@ BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr)
     }
     return is_encrypted;
 }
+/*******************************************************************************
+**
+** Function         BTA_JvGetChannelId
+**
+** Description      This function reserves a SCN (server channel number) for
+**                  applications running over RFCOMM, L2CAP of L2CAP_LE.
+**                  It is primarily called by server profiles/applications to
+**                  register their SCN into the SDP database. The SCN is reported
+**                  by the tBTA_JV_DM_CBACK callback with a BTA_JV_GET_SCN_EVT
+**                  for RFCOMM channels and BTA_JV_GET_PSM_EVT for L2CAP and LE.
+**                  If the SCN/PSM reported is 0, that means all resources are
+**                  exhausted.
+** Parameters
+**   conn_type      one of BTA_JV_CONN_TYPE_
+**   user_data      Any uservalue - will be returned in the resulting event.
+**   channel        Only used for RFCOMM - to try to allocate a specific RFCOMM
+**                  channel.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, void* user_data, INT32 channel)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_ALLOC_CHANNEL *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    if ((p_msg = (tBTA_JV_API_ALLOC_CHANNEL *)GKI_getbuf(sizeof(tBTA_JV_API_ALLOC_CHANNEL))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_GET_CHANNEL_EVT;
+        p_msg->type      = conn_type;
+        p_msg->channel   = channel;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvFreeChannel
+**
+** Description      This function frees a server channel number that was used
+**                  by an application running over RFCOMM.
+** Parameters
+**   channel        The channel to free
+**   conn_type      one of BTA_JV_CONN_TYPE_
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvFreeChannel(UINT16 channel, int conn_type)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_FREE_CHANNEL *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    if ((p_msg = (tBTA_JV_API_FREE_CHANNEL *)GKI_getbuf(sizeof(tBTA_JV_API_FREE_CHANNEL))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_FREE_SCN_EVT;
+        p_msg->scn       = channel;
+        p_msg->type      = conn_type;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
 
 /*******************************************************************************
 **
@@ -238,6 +311,537 @@ tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle)
         bta_sys_sendmsg(p_msg);
         status = BTA_JV_SUCCESS;
     }
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capConnectLE
+**
+** Description      Initiate an LE connection as a L2CAP client to the given BD
+**                  Address.
+**                  When the connection is initiated or failed to initiate,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_CL_INIT_EVT
+**                  When the connection is established or failed,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info, UINT16 remote_chan,
+                           UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_CONNECT *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (p_cback &&
+        (p_msg =
+         (tBTA_JV_API_L2CAP_CONNECT *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CONNECT))) != NULL)
+    {
+        p_msg->hdr.event    = BTA_JV_API_L2CAP_CONNECT_LE_EVT;
+        p_msg->sec_mask     = sec_mask;
+        p_msg->role         = role;
+        p_msg->remote_chan  = remote_chan;
+        p_msg->rx_mtu       = rx_mtu;
+        if(cfg != NULL) {
+            p_msg->has_cfg = TRUE;
+            p_msg->cfg = *cfg;
+        } else {
+            p_msg->has_cfg = FALSE;
+        }
+        if(ertm_info != NULL) {
+            p_msg->has_ertm_info = TRUE;
+            p_msg->ertm_info = *ertm_info;
+        } else {
+            p_msg->has_ertm_info = FALSE;
+        }
+        memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
+        p_msg->p_cback      = p_cback;
+        p_msg->user_data    = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capConnect
+**
+** Description      Initiate a connection as a L2CAP client to the given BD
+**                  Address.
+**                  When the connection is initiated or failed to initiate,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_CL_INIT_EVT
+**                  When the connection is established or failed,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info, UINT16 remote_psm,
+                           UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_CONNECT *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (p_cback &&
+        (p_msg = (tBTA_JV_API_L2CAP_CONNECT *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CONNECT))) != NULL)
+    {
+        p_msg->hdr.event    = BTA_JV_API_L2CAP_CONNECT_EVT;
+        p_msg->sec_mask     = sec_mask;
+        p_msg->role         = role;
+        p_msg->remote_psm   = remote_psm;
+        p_msg->rx_mtu       = rx_mtu;
+        if(cfg != NULL) {
+            p_msg->has_cfg = TRUE;
+            p_msg->cfg = *cfg;
+        } else {
+            p_msg->has_cfg = FALSE;
+        }
+        if(ertm_info != NULL) {
+            p_msg->has_ertm_info = TRUE;
+            p_msg->ertm_info = *ertm_info;
+        } else {
+            p_msg->has_ertm_info = FALSE;
+        }
+        memcpy(p_msg->peer_bd_addr, peer_bd_addr, sizeof(BD_ADDR));
+        p_msg->p_cback      = p_cback;
+        p_msg->user_data    = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capClose
+**
+** Description      This function closes an L2CAP client connection
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_CLOSE *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback &&
+        (p_msg = (tBTA_JV_API_L2CAP_CLOSE *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CLOSE))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_CLOSE_EVT;
+        p_msg->handle = handle;
+        p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capCloseLE
+**
+** Description      This function closes an L2CAP client connection for Fixed Channels
+**                  Function is idempotent and no callbacks are called!
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capCloseLE(UINT32 handle)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_CLOSE *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if ((p_msg = (tBTA_JV_API_L2CAP_CLOSE *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_CLOSE))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_CLOSE_FIXED_EVT;
+        p_msg->handle = handle;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStartServer
+**
+** Description      This function starts an L2CAP server and listens for an L2CAP
+**                  connection from a remote Bluetooth device.  When the server
+**                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
+**                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+        const tL2CAP_ERTM_INFO *ertm_info,UINT16 local_psm, UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+        tBTA_JV_L2CAP_CBACK *p_cback, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_SERVER *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (p_cback &&
+        (p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_START_SERVER_EVT;
+        p_msg->sec_mask = sec_mask;
+        p_msg->role = role;
+        p_msg->local_psm = local_psm;
+        p_msg->rx_mtu = rx_mtu;
+        if(cfg != NULL) {
+            p_msg->has_cfg = TRUE;
+            p_msg->cfg = *cfg;
+        } else {
+            p_msg->has_cfg = FALSE;
+        }
+        if(ertm_info != NULL) {
+            p_msg->has_ertm_info = TRUE;
+            p_msg->ertm_info = *ertm_info;
+        } else {
+            p_msg->has_ertm_info = FALSE;
+        }
+        p_msg->p_cback = p_cback;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStartServerLE
+**
+** Description      This function starts an LE L2CAP server and listens for an L2CAP
+**                  connection from a remote Bluetooth device.  When the server
+**                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
+**                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+        const tL2CAP_ERTM_INFO *ertm_info,UINT16 local_chan, UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+        tBTA_JV_L2CAP_CBACK *p_cback, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_SERVER *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (p_cback &&
+        (p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_START_SERVER_LE_EVT;
+        p_msg->sec_mask = sec_mask;
+        p_msg->role = role;
+        p_msg->local_chan = local_chan;
+        p_msg->rx_mtu = rx_mtu;
+        if(cfg != NULL) {
+            p_msg->has_cfg = TRUE;
+            p_msg->cfg = *cfg;
+        } else {
+            p_msg->has_cfg = FALSE;
+        }
+        if(ertm_info != NULL) {
+            p_msg->has_ertm_info = TRUE;
+            p_msg->ertm_info = *ertm_info;
+        } else {
+            p_msg->has_ertm_info = FALSE;
+        }
+        p_msg->p_cback = p_cback;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStopServer
+**
+** Description      This function stops the L2CAP server. If the server has an
+**                  active connection, it would be closed.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_SERVER *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if ((p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_EVT;
+        p_msg->local_psm = local_psm;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStopServerLE
+**
+** Description      This function stops the LE L2CAP server. If the server has an
+**                  active connection, it would be closed.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capStopServerLE(UINT16 local_chan, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_SERVER *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if ((p_msg = (tBTA_JV_API_L2CAP_SERVER *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_SERVER))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_STOP_SERVER_LE_EVT;
+        p_msg->local_chan = local_chan;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capRead
+**
+** Description      This function reads data from an L2CAP connecti;
+    tBTA_JV_RFC_CB  *p_cb = rc->p_cb;
+on
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_READ_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_L2CAP_READ evt_data;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+
+    if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
+    {
+        status = BTA_JV_SUCCESS;
+        evt_data.status = BTA_JV_FAILURE;
+        evt_data.handle = handle;
+        evt_data.req_id = req_id;
+        evt_data.p_data = p_data;
+        evt_data.len    = 0;
+
+        if (BT_PASS == GAP_ConnReadData((UINT16)handle, p_data, len, &evt_data.len))
+        {
+            evt_data.status = BTA_JV_SUCCESS;
+        }
+        bta_jv_cb.l2c_cb[handle].p_cback(
+                BTA_JV_L2CAP_READ_EVT, (tBTA_JV *)&evt_data, bta_jv_cb.l2c_cb[handle].user_data);
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capReceive
+**
+** Description      This function reads data from an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_RECEIVE_EVT.
+**                  If there are more data queued in L2CAP than len, the extra data will be discarded.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_L2CAP_RECEIVE evt_data;
+    UINT32  left_over = 0;
+    UINT16  max_len, read_len;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+
+    if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
+    {
+        status = BTA_JV_SUCCESS;
+        evt_data.status = BTA_JV_FAILURE;
+        evt_data.handle = handle;
+        evt_data.req_id = req_id;
+        evt_data.p_data = p_data;
+        evt_data.len    = 0;
+
+        if (BT_PASS == GAP_ConnReadData((UINT16)handle, p_data, len, &evt_data.len))
+        {
+            evt_data.status = BTA_JV_SUCCESS;
+            GAP_GetRxQueueCnt ((UINT16)handle, &left_over);
+            while (left_over)
+            {
+                max_len = (left_over > 0xFFFF)?0xFFFF:left_over;
+                GAP_ConnReadData ((UINT16)handle, NULL, max_len, &read_len);
+                left_over -= read_len;
+            }
+        }
+        bta_jv_cb.l2c_cb[handle].p_cback(
+            BTA_JV_L2CAP_RECEIVE_EVT, (tBTA_JV *)&evt_data, bta_jv_cb.l2c_cb[handle].user_data);
+    }
+
+    return(status);
+}
+/*******************************************************************************
+**
+** Function         BTA_JvL2capReady
+**
+** Description      This function determined if there is data to read from
+**                    an L2CAP connection
+**
+** Returns          BTA_JV_SUCCESS, if data queue size is in *p_data_size.
+**                  BTA_JV_FAILURE, if error.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+
+    APPL_TRACE_API( "%s: %d", __func__, handle);
+    if (p_data_size && handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
+    {
+        *p_data_size = 0;
+        if(BT_PASS == GAP_GetRxQueueCnt((UINT16)handle, p_data_size) )
+        {
+            status = BTA_JV_SUCCESS;
+        }
+    }
+
+    return(status);
+}
+
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capWrite
+**
+** Description      This function writes data to an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_WRITE_EVT. Works for
+**                  PSM-based connections
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id, UINT8 *p_data,
+        UINT16 len, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_WRITE *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback &&
+        (p_msg = (tBTA_JV_API_L2CAP_WRITE *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_WRITE))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_WRITE_EVT;
+        p_msg->handle = handle;
+        p_msg->req_id = req_id;
+        p_msg->p_data = p_data;
+        p_msg->p_cb = &bta_jv_cb.l2c_cb[handle];
+        p_msg->len = len;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
+    return(status);
+}
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capWriteFixed
+**
+** Description      This function writes data to an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_WRITE_EVT. Works for
+**                  fixed-channel connections
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+tBTA_JV_STATUS BTA_JvL2capWriteFixed(UINT16 channel, BD_ADDR *addr, UINT32 req_id,
+        tBTA_JV_L2CAP_CBACK *p_cback, UINT8 *p_data, UINT16 len, void *user_data)
+{
+    tBTA_JV_STATUS status = BTA_JV_FAILURE;
+    tBTA_JV_API_L2CAP_WRITE_FIXED *p_msg;
+
+    APPL_TRACE_API( "%s", __func__);
+    
+    if ((p_msg =
+        (tBTA_JV_API_L2CAP_WRITE_FIXED *)GKI_getbuf(sizeof(tBTA_JV_API_L2CAP_WRITE_FIXED))) != NULL)
+    {
+        p_msg->hdr.event = BTA_JV_API_L2CAP_WRITE_FIXED_EVT;
+        p_msg->channel = channel;
+        memcpy(p_msg->addr, addr, sizeof(p_msg->addr));
+        p_msg->req_id = req_id;
+        p_msg->p_data = p_data;
+        p_msg->p_cback = p_cback;
+        p_msg->len = len;
+        p_msg->user_data = user_data;
+        bta_sys_sendmsg(p_msg);
+        status = BTA_JV_SUCCESS;
+    }
+
     return(status);
 }
 

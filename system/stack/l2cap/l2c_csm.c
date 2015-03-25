@@ -103,6 +103,7 @@ void l2c_csm_execute (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     default:
+        L2CAP_TRACE_DEBUG("Unhandled event! event = %d",event);
         break;
     }
 }
@@ -890,7 +891,8 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             if (p_ccb->local_cid < L2CAP_BASE_APPL_CID)
             {
                 if (l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)
-                    (*l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_ccb->p_lcb->remote_bd_addr,(BT_HDR *)p_data);
+                    (*l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)
+                        (p_ccb->local_cid, p_ccb->p_lcb->remote_bd_addr,(BT_HDR *)p_data);
                 else
                     GKI_freebuf (p_data);
             break;
@@ -909,7 +911,8 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_TIMEOUT:
         l2cu_send_peer_disc_req (p_ccb);
-        L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  No Conf Needed", p_ccb->local_cid);
+        L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  No Conf Needed",
+                p_ccb->local_cid);
         l2cu_release_ccb (p_ccb);
         (*disconnect_ind)(local_cid, FALSE);
         break;
@@ -936,7 +939,8 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
     UINT8                   cfg_result;
 
 #if (BT_TRACE_VERBOSE == TRUE)
-    L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: OPEN  evt: %s", p_ccb->local_cid, l2c_csm_get_event_name (event));
+    L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: OPEN  evt: %s",
+            p_ccb->local_cid, l2c_csm_get_event_name (event));
 #else
     L2CAP_TRACE_EVENT ("L2CAP - st: OPEN evt: %d", event);
 #endif
@@ -956,7 +960,8 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
     switch (event)
     {
     case L2CEVT_LP_DISCONNECT_IND:                  /* Link was disconnected */
-        L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  No Conf Needed", p_ccb->local_cid);
+        L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  No Conf Needed",
+                p_ccb->local_cid);
         l2cu_release_ccb (p_ccb);
         if (p_ccb->p_rcb)
             (*p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb)(local_cid, FALSE);
