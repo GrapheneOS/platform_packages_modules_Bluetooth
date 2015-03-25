@@ -26,7 +26,7 @@
 #define DISPATCHER_NAME_MAX 16
 
 typedef struct data_dispatcher_t data_dispatcher_t;
-typedef uint32_t data_dispatcher_type_t;
+typedef uintptr_t data_dispatcher_type_t;
 
 // Creates a new data dispatcher object, with the given name.
 // The returned object must be freed by calling |data_dispatcher_free|.

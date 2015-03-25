@@ -547,7 +547,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
           incoming->buffer = (BT_HDR *)buffer_allocator->alloc(buffer_size);
 
           if (!incoming->buffer) {
-            LOG_ERROR("%s error getting buffer for incoming packet of type %d and size %d", __func__, type, buffer_size);
+            LOG_ERROR("%s error getting buffer for incoming packet of type %d and size %zd", __func__, type, buffer_size);
             // Can't read any more of this current packet, so jump out
             incoming->state = incoming->bytes_remaining == 0 ? BRAND_NEW : IGNORE;
             break;
