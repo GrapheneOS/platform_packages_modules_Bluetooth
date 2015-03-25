@@ -6,6 +6,7 @@ LOCAL_SRC_FILES := \
     src/btsnoop.c \
     src/btsnoop_net.c \
     src/buffer_allocator.c \
+    src/hci_audio.c \
     src/hci_hal.c \
     src/hci_hal_h4.c \
     src/hci_hal_mct.c \

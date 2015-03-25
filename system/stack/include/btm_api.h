@@ -941,6 +941,8 @@ typedef UINT8 tBTM_SCO_ROUTE_TYPE;
 /*******************
 ** SCO Codec Types
 ********************/
+// TODO(google) This should use common definitions
+// in hci/include/hci_audio.h
 #define BTM_SCO_CODEC_NONE          0x0000
 #define BTM_SCO_CODEC_CVSD          0x0001
 #define BTM_SCO_CODEC_MSBC          0x0002
