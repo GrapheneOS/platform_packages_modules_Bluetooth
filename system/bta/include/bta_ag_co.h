@@ -25,12 +25,7 @@
 #define BTA_AG_CO_H
 
 #include "bta_ag_api.h"
-
-/* Definitions for audio state callout function "state" parameter */
-#define BTA_AG_CO_AUD_STATE_OFF         0
-#define BTA_AG_CO_AUD_STATE_OFF_XFER    1   /* Closed pending transfer of audio */
-#define BTA_AG_CO_AUD_STATE_ON          2
-#define BTA_AG_CO_AUD_STATE_SETUP       3
+#include "hci/include/hci_audio.h"
 
 /*******************************************************************************
 **
@@ -56,12 +51,8 @@ extern void bta_ag_co_init(void);
 **
 ** Parameters       handle - handle of the AG instance
 **                  state - Audio state
-**                      BTA_AG_CO_AUD_STATE_OFF      - Audio has been turned off
-**                      BTA_AG_CO_AUD_STATE_OFF_XFER - Audio is closed pending transfer
-**                      BTA_AG_CO_AUD_STATE_ON       - Audio has been turned on
-**                      BTA_AG_CO_AUD_STATE_SETUP    - Audio is about to be turned on
 **                  codec - if WBS support is compiled in, codec to going to be used is provided
-**                      and when in BTA_AG_CO_AUD_STATE_SETUP, BTM_I2SPCMConfig() must be called with
+**                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be called with
 **                      the correct platform parameters.
 **                      in the other states codec type should not be ignored
 **

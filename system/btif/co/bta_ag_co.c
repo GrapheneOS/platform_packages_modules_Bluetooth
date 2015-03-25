@@ -18,28 +18,10 @@
 
 #define LOG_TAG "bt_btif_bta_ag"
 
-#include "gki.h"
-#include "bta_api.h"
-#include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_co.h"
-#include "bt_utils.h"
-
-#ifndef LINUX_NATIVE
 #include <cutils/properties.h>
-#else
-#include <stdio.h>
-#define LOGI(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
-#define LOGD(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
-#define LOGV(format, ...)  fprintf (stdout, LOG_TAG format"\n", ## __VA_ARGS__)
-#define LOGE(format, ...)  fprintf (stderr, LOG_TAG format"\n", ## __VA_ARGS__)
-#endif
 
-
-/************************************************************************************
-**  Externs
-************************************************************************************/
-extern int set_audio_state(UINT16 handle, UINT16 codec, UINT8 state, void *param);
+#include "hci/include/hci_audio.h"
+#include "osi/include/osi.h"
 
 /*******************************************************************************
 **
@@ -69,12 +51,8 @@ void bta_ag_co_init(void)
 **
 ** Parameters       handle - handle of the AG instance
 **                  state - Audio state
-**                      BTA_AG_CO_AUD_STATE_OFF     - Audio has been turned off
-**                      BTA_AG_CO_AUD_STATE_OFF_XFER - Audio has been turned off (xfer)
-**                      BTA_AG_CO_AUD_STATE_ON      - Audio has been turned on
-**                      BTA_AG_CO_AUD_STATE_SETUP   - Audio is about to be turned on
 **                  codec - if WBS support is compiled in, codec to going to be used is provided
-**                      and when in BTA_AG_CO_AUD_STATE_SETUP, BTM_I2SPCMConfig() must be called with
+**                      and when in SCO_STATE_SETUP, BTM_I2SPCMConfig() must be called with
 **                      the correct platform parameters.
 **                      in the other states codec type should not be ignored
 **
@@ -90,24 +68,24 @@ void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state)
     BTIF_TRACE_DEBUG("bta_ag_co_audio_state: handle %d, state %d", handle, state);
     switch (state)
     {
-    case BTA_AG_CO_AUD_STATE_OFF:
+    case SCO_STATE_OFF:
 #if (BTM_WBS_INCLUDED == TRUE )
         BTIF_TRACE_DEBUG("bta_ag_co_audio_state(handle %d)::Closed (OFF), codec: 0x%x",
                         handle, codec);
-        set_audio_state(handle, codec, state, NULL);
+        set_audio_state(handle, codec, state);
 #else
         BTIF_TRACE_DEBUG("bta_ag_co_audio_state(handle %d)::Closed (OFF)",
                         handle);
 #endif
         break;
-    case BTA_AG_CO_AUD_STATE_OFF_XFER:
+    case SCO_STATE_OFF_TRANSFER:
         BTIF_TRACE_DEBUG("bta_ag_co_audio_state(handle %d)::Closed (XFERRING)", handle);
         break;
-    case BTA_AG_CO_AUD_STATE_SETUP:
+    case SCO_STATE_SETUP:
 #if (BTM_WBS_INCLUDED == TRUE )
-        set_audio_state(handle, codec, state, NULL);
+        set_audio_state(handle, codec, state);
 #else
-        set_audio_state(handle, BTA_AG_CODEC_CVSD, state, NULL);
+        set_audio_state(handle, BTA_AG_CODEC_CVSD, state);
 #endif
         break;
     default:
@@ -170,9 +148,7 @@ void bta_ag_co_data_close(UINT16 handle)
  ** Returns          void
  **
  *******************************************************************************/
-void bta_ag_co_tx_write(UINT16 handle, UINT8 * p_data, UINT16 len)
+void bta_ag_co_tx_write(UINT16 handle, UNUSED_ATTR UINT8 * p_data, UINT16 len)
 {
-    UNUSED(p_data);
     BTIF_TRACE_DEBUG( "bta_ag_co_tx_write: handle: %d, len: %d", handle, len );
 }
-

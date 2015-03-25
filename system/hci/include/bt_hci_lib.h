@@ -58,11 +58,6 @@ typedef enum {
     BT_HC_LOGGING_ON,
 } bt_hc_logging_state_t;
 
-/* commands to be used in LSB with MSG_CTRL_TO_HC_CMD */
-typedef enum {
-    BT_HC_AUDIO_STATE = 0,
-    BT_HC_CMD_MAX
-} bt_hc_tx_cmd_t;
 /** Result of write request */
 typedef enum {
     BT_HC_TX_SUCCESS,  /* a buffer is fully processed and can be released */
