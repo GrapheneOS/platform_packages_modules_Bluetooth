@@ -22,11 +22,13 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
-#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
-
 #include <assert.h>
 #include <string.h>
+
+#include "bt_target.h"
+#include "osi/include/log.h"
+
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 #include "bta_av_int.h"
 #include "utl.h"
 #include "l2c_api.h"
@@ -1120,7 +1122,9 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 
     if (BTM_GetRole(p_scb->peer_addr, &role) == BTM_SUCCESS)
     {
-        APPL_TRACE_ERROR("bta_av_link_role_ok hndl:x%x role:%d, conn_audio:x%x, bits:%d, features:x%x", p_scb->hndl, role, bta_av_cb.conn_audio, bits, bta_av_cb.features);
+        LOG_INFO("%s hndl:x%x role:%d conn_audio:x%x bits:%d features:x%x",
+                __func__, p_scb->hndl, role, bta_av_cb.conn_audio, bits,
+                bta_av_cb.features);
         if (BTM_ROLE_MASTER != role && (A2D_BitsSet(bta_av_cb.conn_audio) > bits || (bta_av_cb.features & BTA_AV_FEAT_MASTER)))
         {
             if (bta_av_cb.features & BTA_AV_FEAT_MASTER)
