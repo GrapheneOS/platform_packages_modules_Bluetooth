@@ -72,7 +72,7 @@ static semaphore_t *alarm_expired;
 static bool lazy_initialize(void);
 static period_ms_t now(void);
 static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic);
-static void schedule_next_instance(alarm_t *alarm);
+static void schedule_next_instance(alarm_t *alarm, bool force_reschedule);
 static void reschedule_root_alarm(void);
 static void timer_callback(void *data);
 static void callback_dispatch(void *context);
@@ -145,7 +145,7 @@ static void alarm_set_internal(alarm_t *alarm, period_ms_t period, alarm_callbac
   alarm->callback = cb;
   alarm->data = data;
 
-  schedule_next_instance(alarm);
+  schedule_next_instance(alarm, false);
 
   pthread_mutex_unlock(&monitor);
 }
@@ -222,7 +222,7 @@ static period_ms_t now(void) {
 }
 
 // Must be called with monitor held
-static void schedule_next_instance(alarm_t *alarm) {
+static void schedule_next_instance(alarm_t *alarm, bool force_reschedule) {
   // If the alarm is currently set and it's at the start of the list,
   // we'll need to re-schedule since we've adjusted the earliest deadline.
   bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
@@ -247,7 +247,7 @@ static void schedule_next_instance(alarm_t *alarm) {
     }
 
   // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
-  if (needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
+  if (force_reschedule || needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
     reschedule_root_alarm();
 }
 
@@ -338,7 +338,7 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
     void *data = alarm->data;
 
     if (alarm->is_periodic) {
-      schedule_next_instance(alarm);
+      schedule_next_instance(alarm, true);
     } else {
       reschedule_root_alarm();
 
