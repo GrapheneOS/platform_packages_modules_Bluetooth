@@ -29,8 +29,6 @@
 
 #pragma once
 
-#include "bt_hci_lib.h"
-
 #ifdef HAS_BDROID_BUILDCFG
 #include "bdroid_buildcfg.h"
 #endif
@@ -112,8 +110,6 @@ typedef struct _hc_buffer_hdr
 /******************************************************************************
 **  Extern variables and functions
 ******************************************************************************/
-
-extern bt_hc_callbacks_t *bt_hc_cbacks;
 
 /******************************************************************************
 **  Functions
