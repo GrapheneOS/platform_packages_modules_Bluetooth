@@ -124,6 +124,10 @@ Use the C99 `bool` type with values `true` and `false` defined in `stdbool.h`.
 Not only is this a standardized type, it is also safer and provides more
 compile-time checks.
 
+### Booleans instead of bitfields
+Use booleans to represent boolean state, instead of a set of masks into an
+integer. It's more transparent and readable, and less error prone.
+
 ## Header files
 In general, every source file (`.c` or `.cpp`) in a `src/` directory should
 have a corresponding header (`.h`) in the `include/` directory.
