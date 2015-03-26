@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "hci_audio"
+#define LOG_TAG "bt_hci_audio"
 
 #include <stdint.h>
 
