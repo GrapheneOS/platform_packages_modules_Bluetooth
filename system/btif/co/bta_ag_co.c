@@ -20,6 +20,7 @@
 
 #include <cutils/properties.h>
 
+#include "bta/include/bta_ag_api.h"
 #include "hci/include/hci_audio.h"
 #include "osi/include/osi.h"
 
