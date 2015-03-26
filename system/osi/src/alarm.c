@@ -24,11 +24,13 @@
 #include <inttypes.h>
 #include <time.h>
 
-#include "osi/include/allocator.h"
 #include "osi/include/alarm.h"
+#include "osi/include/allocator.h"
 #include "osi/include/list.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 
 struct alarm_t {
   // The lock is held while the callback for this alarm is being executed.
@@ -63,12 +65,17 @@ static list_t *alarms;
 static timer_t timer;
 static bool timer_set;
 
+// All alarm callbacks are dispatched from |callback_thread|
+static thread_t *callback_thread;
+static semaphore_t *alarm_expired;
+
 static bool lazy_initialize(void);
 static period_ms_t now(void);
 static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic);
 static void schedule_next_instance(alarm_t *alarm);
-static void timer_callback(void *data);
 static void reschedule_root_alarm(void);
+static void timer_callback(void *data);
+static void callback_dispatch(void *context);
 
 alarm_t *alarm_new(void) {
   // Make sure we have a list we can insert alarms into.
@@ -186,6 +193,19 @@ static bool lazy_initialize(void) {
     return false;
   }
 
+  alarm_expired = semaphore_new(0);
+  if (!alarm_expired) {
+    LOG_ERROR("%s unable to create alarm expired semaphore", __func__);
+    return false;
+  }
+
+  callback_thread = thread_new("alarm_callbacks");
+  if (!callback_thread) {
+    LOG_ERROR("%s unable to create alarm callback thread.", __func__);
+    return false;
+  }
+
+  thread_post(callback_thread, callback_dispatch, NULL);
   return true;
 }
 
@@ -231,48 +251,6 @@ static void schedule_next_instance(alarm_t *alarm) {
     reschedule_root_alarm();
 }
 
-// Warning: this function is called in the context of an unknown thread.
-// As a result, it must be thread-safe relative to other operations on
-// the alarm list.
-static void timer_callback(UNUSED_ATTR void *ptr) {
-  pthread_mutex_lock(&monitor);
-
-  alarm_t *alarm;
-
-  // Take into account that the alarm may get cancelled before we get to it.
-  // We're done here if there are no alarms or the alarm at the front is in
-  // the future. Release the monitor lock and exit right away since there's
-  // nothing left to do.
-  if (list_is_empty(alarms) || (alarm = list_front(alarms))->deadline > now()) {
-    reschedule_root_alarm();
-    pthread_mutex_unlock(&monitor);
-    return;
-  }
-
-  list_remove(alarms, alarm);
-
-  alarm_callback_t callback = alarm->callback;
-  void *data = alarm->data;
-
-  if (alarm->is_periodic) {
-    schedule_next_instance(alarm);
-  } else {
-    reschedule_root_alarm();
-
-    alarm->deadline = 0;
-    alarm->callback = NULL;
-    alarm->data = NULL;
-  }
-
-  // Downgrade lock.
-  pthread_mutex_lock(&alarm->callback_lock);
-  pthread_mutex_unlock(&monitor);
-
-  callback(data);
-
-  pthread_mutex_unlock(&alarm->callback_lock);
-}
-
 // NOTE: must be called with monitor lock.
 static void reschedule_root_alarm(void) {
   assert(alarms != NULL);
@@ -310,4 +288,71 @@ done:
 
   if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
     LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
+
+  // If next expiration was in the past (e.g. short timer that got context switched)
+  // then the timer might have diarmed itself. Detect this case and work around it
+  // by manually signalling the |alarm_expired| semaphore.
+  //
+  // It is possible that the timer was actually super short (a few milliseconds)
+  // and the timer expired normally before we called |timer_gettime|. Worst case,
+  // |alarm_expired| is signaled twice for that alarm. Nothing bad should happen in
+  // that case though since the callback dispatch function checks to make sure the
+  // timer at the head of the list actually expired.
+  if (timer_set) {
+    struct itimerspec time_to_expire;
+    timer_gettime(timer, &time_to_expire);
+    if (time_to_expire.it_value.tv_sec == 0 && time_to_expire.it_value.tv_nsec == 0) {
+      LOG_ERROR("%s alarm expiration too close for posix timers, switching to guns", __func__);
+      semaphore_post(alarm_expired);
+    }
+  }
+}
+
+// Callback function for wake alarms and our posix timer
+static void timer_callback(UNUSED_ATTR void *ptr) {
+  semaphore_post(alarm_expired);
+}
+
+// Function running on |callback_thread| that dispatches alarm callbacks upon
+// alarm expiration, which is signaled using |alarm_expired|.
+static void callback_dispatch(UNUSED_ATTR void *context) {
+  while (true) {
+    semaphore_wait(alarm_expired);
+    pthread_mutex_lock(&monitor);
+
+    alarm_t *alarm;
+
+    // Take into account that the alarm may get cancelled before we get to it.
+    // We're done here if there are no alarms or the alarm at the front is in
+    // the future. Release the monitor lock and exit right away since there's
+    // nothing left to do.
+    if (list_is_empty(alarms) || (alarm = list_front(alarms))->deadline > now()) {
+      reschedule_root_alarm();
+      pthread_mutex_unlock(&monitor);
+      continue;
+    }
+
+    list_remove(alarms, alarm);
+
+    alarm_callback_t callback = alarm->callback;
+    void *data = alarm->data;
+
+    if (alarm->is_periodic) {
+      schedule_next_instance(alarm);
+    } else {
+      reschedule_root_alarm();
+
+      alarm->deadline = 0;
+      alarm->callback = NULL;
+      alarm->data = NULL;
+    }
+
+    // Downgrade lock.
+    pthread_mutex_lock(&alarm->callback_lock);
+    pthread_mutex_unlock(&monitor);
+
+    callback(data);
+
+    pthread_mutex_unlock(&alarm->callback_lock);
+  }
 }
