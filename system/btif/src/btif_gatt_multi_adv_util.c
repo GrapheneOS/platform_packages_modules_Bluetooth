@@ -473,9 +473,6 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
         }
     }
 
-#if (defined(BLE_PERIPHERAL_ADV_NAME) && (BLE_PERIPHERAL_ADV_NAME == TRUE))
-     p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_DEV_NAME;
-#endif
      return true;
 }
 
