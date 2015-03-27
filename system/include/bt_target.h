@@ -818,10 +818,6 @@
 #define BLE_PERIPHERAL_MODE_SUPPORT  TRUE
 #endif
 
-#ifndef BLE_PERIPHERAL_ADV_NAME
-#define BLE_PERIPHERAL_ADV_NAME      FALSE
-#endif
-
 #ifndef BLE_DELAY_REQUEST_ENC
 /* This flag is to work around IPHONE problem, We need to wait for iPhone ready
    before send encryption request to iPhone */
