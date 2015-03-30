@@ -39,6 +39,6 @@ LOCAL_C_INCLUDES := \
   $(LOCAL_PATH)/../..
 
 LOCAL_SHARED_LIBRARIES += \
-  libhardware
+  libhardware liblog
 
 include $(BUILD_EXECUTABLE)
