@@ -30,6 +30,7 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "hcimsgs.h"
+#include "device/include/controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
@@ -416,7 +417,7 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
-    if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(btm_cb.devcb.local_le_features))
+    if (!HCI_LE_SLAVE_INIT_FEAT_EXC_SUPPORTED(controller_get_interface()->get_features_ble()->as_array))
     {
         p_lcb->link_state = LST_CONNECTED;
         l2cu_process_fixed_chnl_resp (p_lcb);
@@ -488,7 +489,7 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
             /* if both side 4.1, or we are master device, send HCI command */
             if (p_lcb->link_role == HCI_ROLE_MASTER
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
-                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(btm_cb.devcb.local_le_features) &&
+                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(controller_get_interface()->get_features_ble()->as_array) &&
                     HCI_LE_CONN_PARAM_REQ_SUPPORTED(p_acl_cb->peer_le_features))
 #endif
                  )
@@ -513,7 +514,7 @@ static void l2cble_start_conn_update (tL2C_LCB *p_lcb)
              /* if both side 4.1, or we are master device, send HCI command */
             if (p_lcb->link_role == HCI_ROLE_MASTER
 #if (defined BLE_LLT_INCLUDED) && (BLE_LLT_INCLUDED == TRUE)
-                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(btm_cb.devcb.local_le_features) &&
+                || (HCI_LE_CONN_PARAM_REQ_SUPPORTED(controller_get_interface()->get_features_ble()->as_array) &&
                     HCI_LE_CONN_PARAM_REQ_SUPPORTED(p_acl_cb->peer_le_features))
 #endif
                  )
@@ -582,8 +583,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 {
     UINT8           *p_pkt_end;
     UINT8           cmd_code, id;
-    UINT16          cmd_len, rej_reason;
-    UINT16          result;
+    UINT16          cmd_len;
     UINT16          min_interval, max_interval, latency, timeout;
 
     p_pkt_end = p + pkt_len;
@@ -604,7 +604,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
         case L2CAP_CMD_REJECT:
         case L2CAP_CMD_ECHO_RSP:
         case L2CAP_CMD_INFO_RSP:
-            STREAM_TO_UINT16 (rej_reason, p);
+            p += 2;
             break;
         case L2CAP_CMD_ECHO_REQ:
         case L2CAP_CMD_INFO_REQ:
@@ -647,7 +647,7 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             break;
 
         case L2CAP_CMD_BLE_UPDATE_RSP:
-            STREAM_TO_UINT16 (result, p);
+            p += 2;
             break;
 
         default:
@@ -915,7 +915,7 @@ void l2c_ble_link_adjust_allocation (void)
             /* this link may have sent anything but some other link sent packets so  */
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
-              && (p_lcb->link_xmit_data_q.count)
+              && (!list_is_empty(p_lcb->link_xmit_data_q))
               && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
                 btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
         }

@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 typedef struct alarm_t alarm_t;
 typedef uint64_t period_ms_t;
 
@@ -39,6 +41,10 @@ void alarm_free(alarm_t *alarm);
 // unspecified thread (i.e. it will not be called back in the same thread as the caller).
 // |alarm| and |cb| may not be NULL.
 void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data);
+
+// Like alarm_set, except the alarm repeats every |period| ms until it is cancelled or
+// freed or |alarm_set| is called to set it non-periodically.
+void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data);
 
 // This function cancels the |alarm| if it was previously set. When this call
 // returns, the caller has a guarantee that the callback is not in progress and

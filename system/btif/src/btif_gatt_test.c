@@ -24,7 +24,7 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BtGatt.btif_test"
+#define LOG_TAG "bt_btif_gatt"
 
 #include "btif_common.h"
 #include "btif_util.h"
@@ -33,7 +33,6 @@
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"
-#include "bd.h"
 #include "btif_storage.h"
 #include "bte_appl.h"
 
@@ -42,6 +41,7 @@
 #include "btif_dm.h"
 
 #include "gatt_api.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
  * Typedefs & Macros
@@ -108,14 +108,14 @@ static void btif_test_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_i
     UNUSED(reason);
     UNUSED (transport);
 
-    ALOGD("%s: conn_id=%d, connected=%d", __FUNCTION__, conn_id, connected);
+    LOG_DEBUG("%s: conn_id=%d, connected=%d", __FUNCTION__, conn_id, connected);
     test_cb.conn_id = connected ? conn_id : 0;
 }
 
 static void btif_test_command_complete_cback(UINT16 conn_id, tGATTC_OPTYPE op,
                                 tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 {
-    ALOGD ("%s: op_code=0x%02x, conn_id=0x%x. status=0x%x",
+    LOG_DEBUG ("%s: op_code=0x%02x, conn_id=0x%x. status=0x%x",
             __FUNCTION__, op, conn_id, status);
 
     switch (op)
@@ -132,7 +132,7 @@ static void btif_test_command_complete_cback(UINT16 conn_id, tGATTC_OPTYPE op,
             break;
 
         default:
-            ALOGD ("%s: Unknown op_code (0x%02x)", __FUNCTION__, op);
+            LOG_DEBUG ("%s: Unknown op_code (0x%02x)", __FUNCTION__, op);
             break;
     }
 }
@@ -144,50 +144,50 @@ static void btif_test_discovery_result_cback(UINT16 conn_id, tGATT_DISC_TYPE dis
     char    str_buf[50];
     UNUSED(conn_id);
 
-    ALOGD("------ GATT Discovery result %-22s -------", disc_name[disc_type]);
-    ALOGD("      Attribute handle: 0x%04x (%d)", p_data->handle, p_data->handle);
+    LOG_DEBUG("------ GATT Discovery result %-22s -------", disc_name[disc_type]);
+    LOG_DEBUG("      Attribute handle: 0x%04x (%d)", p_data->handle, p_data->handle);
 
     if (disc_type != GATT_DISC_CHAR_DSCPT) {
-        ALOGD("        Attribute type: %s", format_uuid(p_data->type, str_buf));
+        LOG_DEBUG("        Attribute type: %s", format_uuid(p_data->type, str_buf));
     }
 
     switch (disc_type)
     {
         case GATT_DISC_SRVC_ALL:
-            ALOGD("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
+            LOG_DEBUG("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
                   p_data->handle, p_data->value.group_value.e_handle,
                   p_data->handle, p_data->value.group_value.e_handle);
-            ALOGD("          Service UUID: %s",
+            LOG_DEBUG("          Service UUID: %s",
                     format_uuid(p_data->value.group_value.service_type, str_buf));
             break;
 
         case GATT_DISC_SRVC_BY_UUID:
-            ALOGD("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
+            LOG_DEBUG("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
                   p_data->handle, p_data->value.handle,
                   p_data->handle, p_data->value.handle);
             break;
 
         case GATT_DISC_INC_SRVC:
-            ALOGD("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
+            LOG_DEBUG("          Handle range: 0x%04x ~ 0x%04x (%d ~ %d)",
                   p_data->value.incl_service.s_handle, p_data->value.incl_service.e_handle,
                   p_data->value.incl_service.s_handle, p_data->value.incl_service.e_handle);
-            ALOGD("          Service UUID: %s",
+            LOG_DEBUG("          Service UUID: %s",
                   format_uuid(p_data->value.incl_service.service_type, str_buf));
             break;
 
         case GATT_DISC_CHAR:
-            ALOGD("            Properties: 0x%02x",
+            LOG_DEBUG("            Properties: 0x%02x",
                   p_data->value.dclr_value.char_prop);
-            ALOGD("   Characteristic UUID: %s",
+            LOG_DEBUG("   Characteristic UUID: %s",
                   format_uuid(p_data->value.dclr_value.char_uuid, str_buf));
             break;
 
         case GATT_DISC_CHAR_DSCPT:
-            ALOGD("       Descriptor UUID: %s", format_uuid(p_data->type, str_buf));
+            LOG_DEBUG("       Descriptor UUID: %s", format_uuid(p_data->type, str_buf));
             break;
     }
 
-    ALOGD("-----------------------------------------------------------");
+    LOG_DEBUG("-----------------------------------------------------------");
 }
 
 static void btif_test_discovery_complete_cback(UINT16 conn_id,
@@ -196,7 +196,7 @@ static void btif_test_discovery_complete_cback(UINT16 conn_id,
 {
     UNUSED(conn_id);
     UNUSED(disc_type);
-    ALOGD("%s: status=%d", __FUNCTION__, status);
+    LOG_DEBUG("%s: status=%d", __FUNCTION__, status);
 }
 
 static tGATT_CBACK btif_test_callbacks =
@@ -219,7 +219,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
     switch(command) {
         case 0x01: /* Enable */
         {
-            ALOGD("%s: ENABLE - enable=%d", __FUNCTION__, params->u1);
+            LOG_DEBUG("%s: ENABLE - enable=%d", __FUNCTION__, params->u1);
             if (params->u1)
             {
                 tBT_UUID app_uuid = {LEN_UUID_128,{0xAE}};
@@ -234,7 +234,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
 
         case 0x02: /* Connect */
         {
-            ALOGD("%s: CONNECT - device=%02x:%02x:%02x:%02x:%02x:%02x (dev_type=%d, addr_type=%d)",
+            LOG_DEBUG("%s: CONNECT - device=%02x:%02x:%02x:%02x:%02x:%02x (dev_type=%d, addr_type=%d)",
                 __FUNCTION__,
                 params->bda1->address[0], params->bda1->address[1],
                 params->bda1->address[2], params->bda1->address[3],
@@ -246,14 +246,14 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
 
             if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, TRUE, BT_TRANSPORT_LE) )
             {
-                ALOGE("%s: GATT_Connect failed!", __FUNCTION__);
+                LOG_ERROR("%s: GATT_Connect failed!", __FUNCTION__);
             }
             break;
         }
 
         case 0x03: /* Disconnect */
         {
-            ALOGD("%s: DISCONNECT - conn_id=%d", __FUNCTION__, test_cb.conn_id);
+            LOG_DEBUG("%s: DISCONNECT - conn_id=%d", __FUNCTION__, test_cb.conn_id);
             GATT_Disconnect(test_cb.conn_id);
             break;
         }
@@ -266,7 +266,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
 
             if (params->u1 >= GATT_DISC_MAX)
             {
-                ALOGE("%s: DISCOVER - Invalid type (%d)!", __FUNCTION__, params->u1);
+                LOG_ERROR("%s: DISCOVER - Invalid type (%d)!", __FUNCTION__, params->u1);
                 return 0;
             }
 
@@ -274,7 +274,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
             param.e_handle = params->u3;
             btif_to_bta_uuid(&param.service, params->uuid1);
 
-            ALOGD("%s: DISCOVER (%s), conn_id=%d, uuid=%s, handles=0x%04x-0x%04x",
+            LOG_DEBUG("%s: DISCOVER (%s), conn_id=%d, uuid=%s, handles=0x%04x-0x%04x",
                   __FUNCTION__, disc_name[params->u1], test_cb.conn_id,
                   format_uuid(param.service, buf), params->u2, params->u3);
             GATTC_Discover(test_cb.conn_id, params->u1, &param);
@@ -282,7 +282,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
         }
 
         case 0xF0: /* Pairing configuration */
-            ALOGD("%s: Setting pairing config auth=%d, iocaps=%d, keys=%d/%d/%d",
+            LOG_DEBUG("%s: Setting pairing config auth=%d, iocaps=%d, keys=%d/%d/%d",
                   __FUNCTION__, params->u1, params->u2, params->u3, params->u4,
                   params->u5);
 
@@ -294,7 +294,7 @@ bt_status_t btif_gattc_test_command_impl(uint16_t command, btgatt_test_params_t*
             break;
 
         default:
-            ALOGE("%s: UNKNOWN TEST COMMAND 0x%02x", __FUNCTION__, command);
+            LOG_ERROR("%s: UNKNOWN TEST COMMAND 0x%02x", __FUNCTION__, command);
             break;
     }
     return 0;

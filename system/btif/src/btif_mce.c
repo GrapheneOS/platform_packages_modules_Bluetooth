@@ -31,14 +31,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_MCE"
+#define LOG_TAG "bt_btif_mce"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"
 #include "bta_api.h"
 #include "bta_mce_api.h"
 
-#include "bd.h"
+#include "bt_types.h"
+#include "btcore/include/bdaddr.h"
 
 /*****************************************************************************
 **  Static variables
@@ -134,7 +135,7 @@ static bt_status_t get_remote_mas_instances(bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bd2str(bd_addr, &bdstr));
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
 
     BTA_MceGetRemoteMasInstances(bd_addr->address);
 

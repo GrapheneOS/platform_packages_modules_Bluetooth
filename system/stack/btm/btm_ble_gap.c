@@ -31,10 +31,9 @@
 #include "btm_int.h"
 #include "btm_ble_api.h"
 #include "btu.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
-#if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
-#endif
 
 #if BLE_INCLUDED == TRUE
 #include "l2c_int.h"
@@ -44,6 +43,8 @@
 #include "gatt_int.h"
 
 #include "btm_ble_int.h"
+#define LOG_TAG "bt_btm_ble"
+#include "osi/include/log.h"
 
 #define BTM_BLE_NAME_SHORT                  0x01
 #define BTM_BLE_NAME_CMPL                   0x02
@@ -255,7 +256,7 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 
     BTM_TRACE_EVENT ("BTM_BleUpdateAdvFilterPolicy");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return;
 
     if (p_cb->afp != adv_policy)
@@ -306,7 +307,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
 
     BTM_TRACE_EVENT ("BTM_BleObserve : scan_type:%d",btm_cb.btm_inq_vars.scan_type);
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     if (start)
@@ -380,7 +381,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
     UINT8 evt_type = p_cb->scan_rsp ? BTM_BLE_DISCOVER_EVT: BTM_BLE_NON_CONNECT_EVT;
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
 #ifdef  BTM_BLE_PC_ADV_TEST_MODE
@@ -494,7 +495,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
+extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 {
     BTM_TRACE_DEBUG("BTM_BleGetVendorCapabilities");
 
@@ -515,7 +516,7 @@ BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb)
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
+extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback)
 {
     if (TRUE == btm_cb.cmn_ble_vsc_cb.values_read)
         return;
@@ -610,7 +611,7 @@ void BTM_BleConfigPrivacy(BOOLEAN enable)
 ** Returns          Max multi adv instance count
 **
 *******************************************************************************/
-BTM_API extern UINT8  BTM_BleMaxMultiAdvInstanceCount()
+extern UINT8  BTM_BleMaxMultiAdvInstanceCount()
 {
     return btm_cb.cmn_ble_vsc_cb.adv_inst_max < BTM_BLE_MULTI_ADV_MAX ?
         btm_cb.cmn_ble_vsc_cb.adv_inst_max : BTM_BLE_MULTI_ADV_MAX;
@@ -693,7 +694,7 @@ BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   bg_conn_type,
     BOOLEAN started = TRUE;
 
     BTM_TRACE_EVENT ("BTM_BleSetBgConnType ");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return FALSE;
 
     if (btm_cb.ble_ctr_cb.bg_conn_type != bg_conn_type)
@@ -802,7 +803,7 @@ tBTM_STATUS BTM_BleSetConnMode(BOOLEAN is_directed)
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT ("BTM_BleSetConnMode is_directed = %d ", is_directed);
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     p_cb->directed_conn = is_directed;
@@ -882,7 +883,7 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
 
     BTM_TRACE_EVENT ("BTM_BleSetAdvParams");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     if (!BTM_BLE_VALID_PRAM(adv_int_min, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX) ||
@@ -943,7 +944,7 @@ void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT ("BTM_BleReadAdvParams ");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return ;
 
     *adv_int_min = p_cb->adv_interval_min;
@@ -976,7 +977,7 @@ void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCA
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
     BTM_TRACE_EVENT (" BTM_BleSetScanParams");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return ;
 
     if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
@@ -1018,7 +1019,7 @@ tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     BTM_TRACE_EVENT (" BTM_BleWriteScanRsp");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     memset(rsp_data, 0, BTM_BLE_AD_DATA_LEN);
@@ -1058,7 +1059,7 @@ tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK data_mask, tBTM_BLE_ADV_DATA *p
 
     BTM_TRACE_EVENT ("BTM_BleWriteAdvData ");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     memset(p_cb_data, 0, sizeof(tBTM_BLE_LOCAL_ADV_DATA));
@@ -1468,12 +1469,12 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
         flag &= ~BTM_BLE_BREDR_NOT_SPT;
 
     /* if local controller support, mark both controller and host support in flag */
-    if (HCI_SIMUL_LE_BREDR_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (controller_get_interface()->supports_simultaneous_le_bredr())
         flag |= (BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
     else
         flag &= ~(BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
 
-    BTM_TRACE_DEBUG("disc_mode %04x", disc_mode);
+    LOG_DEBUG("disc_mode %04x", disc_mode);
     /* update discoverable flag */
     if (disc_mode & BTM_BLE_LIMITED_DISCOVERABLE)
     {
@@ -1783,7 +1784,7 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, t
 {
     tBTM_INQUIRY_VAR_ST      *p_inq = &btm_cb.btm_inq_vars;
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ERR_PROCESSING;
 
     if (p_cur &&
@@ -2527,12 +2528,12 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
     if ((result = btm_ble_is_discoverable(bda, evt_type, p)) == 0)
     {
-        BTM_TRACE_ERROR("discard adv pkt");
+      LOG_WARN("%s device is no longer discoverable so discarding advertising packet pkt",
+          __func__);
         return;
     }
     if (!update)
         result &= ~BTM_BLE_INQ_RESULT;
-#if BTM_USE_INQ_RESULTS_FILTER == TRUE
     /* If the number of responses found and limited, issue a cancel inquiry */
     if (p_inq->inqparms.max_resps &&
         p_inq->inq_cmpl_info.num_resp == p_inq->inqparms.max_resps)
@@ -2551,12 +2552,9 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
             btm_ble_stop_inquiry();
 
-#if BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE
             btm_acl_update_busy_level (BTM_BLI_INQ_DONE_EVT);
-#endif
         }
     }
-#endif
     /* background connection in selective connection mode */
     if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
     {
@@ -3134,7 +3132,9 @@ BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
     mask = btm_le_state_combo_tbl[0][request_state - 1][0];
     offset = btm_le_state_combo_tbl[0][request_state-1][1];
 
-    if (!BTM_LE_STATES_SUPPORTED(btm_cb.devcb.le_supported_states, mask, offset))
+    const uint8_t *ble_supported_states = controller_get_interface()->get_ble_supported_states();
+
+    if (!BTM_LE_STATES_SUPPORTED(ble_supported_states, mask, offset))
     {
         BTM_TRACE_ERROR("state requested not supported: %d", request_state);
         return rt;
@@ -3152,7 +3152,7 @@ BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
 
             if (mask != 0 && offset != 0)
             {
-                if (!BTM_LE_STATES_SUPPORTED(btm_cb.devcb.le_supported_states, mask, offset))
+                if (!BTM_LE_STATES_SUPPORTED(ble_supported_states, mask, offset))
                 {
                     rt = FALSE;
                     break;

@@ -28,6 +28,7 @@
 #include <stddef.h>
 
 #include "bt_types.h"
+#include "device/include/controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "btu.h"
@@ -295,15 +296,6 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
         /* update conn params, use default value for background connection params */
         memset(&p_dev_rec->conn_params, 0xff, sizeof(tBTM_LE_CONN_PRAMS));
 #endif
-
-#if BTM_INQ_GET_REMOTE_NAME == TRUE
-        if (p_inq_info->remote_name_state == BTM_INQ_RMT_NAME_DONE)
-        {
-            BCM_STRNCPY_S ((char *)p_dev_rec->sec_bd_name, sizeof (p_dev_rec->sec_bd_name),
-                     (char *)p_inq_info->remote_name, BTM_MAX_REM_BD_NAME_LEN);
-            p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
-        }
-#endif
     }
     else
     {
@@ -371,7 +363,7 @@ BOOLEAN btm_dev_support_switch (BD_ADDR bd_addr)
         return(FALSE);
 #endif
     p_dev_rec = btm_find_dev (bd_addr);
-    if (p_dev_rec && HCI_SWITCH_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (p_dev_rec && controller_get_interface()->supports_master_slave_role_switch())
     {
         if (HCI_SWITCH_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0]))
         {

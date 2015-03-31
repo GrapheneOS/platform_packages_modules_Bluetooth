@@ -83,7 +83,6 @@ tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info)
         return BNEP_SECURITY_FAIL;
 
     bnep_cb.profile_registered  = TRUE;
-    BTM_GetLocalDeviceAddr (bnep_cb.my_bda);
     return BNEP_SUCCESS;
 }
 
@@ -150,11 +149,6 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
     /* Both source and destination UUID lengths should be same */
     if (src_uuid->len != dst_uuid->len)
         return BNEP_CONN_FAILED_UUID_SIZE;
-
-#if (!defined (BNEP_SUPPORTS_ALL_UUID_LENGTHS) || BNEP_SUPPORTS_ALL_UUID_LENGTHS == FALSE)
-    if (src_uuid->len != 2)
-        return BNEP_CONN_FAILED_UUID_SIZE;
-#endif
 
     if (!p_bcb)
     {
@@ -432,7 +426,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     }
 
     /* Check transmit queue */
-    if (p_bcb->xmit_q.count >= BNEP_MAX_XMITQ_DEPTH)
+    if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
     {
         GKI_freebuf (p_buf);
         return (BNEP_Q_SIZE_EXCEEDED);
@@ -538,7 +532,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
     }
 
     /* Check transmit queue */
-    if (p_bcb->xmit_q.count >= BNEP_MAX_XMITQ_DEPTH)
+    if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
         return (BNEP_Q_SIZE_EXCEEDED);
 
     /* Get a buffer to copy teh data into */
@@ -586,7 +580,6 @@ tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
                                       UINT16 *p_start_array,
                                       UINT16 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
     UINT16          xx;
     tBNEP_CONN     *p_bcb;
 
@@ -619,9 +612,6 @@ tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
     bnepu_send_peer_our_filters (p_bcb);
 
     return (BNEP_SUCCESS);
-#else
-    return (BNEP_SET_FILTER_FAIL);
-#endif
 }
 
 
@@ -649,7 +639,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
                                        UINT8 *p_start_array,
                                        UINT8 *p_end_array)
 {
-#if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
     UINT16          xx;
     tBNEP_CONN     *p_bcb;
 
@@ -685,28 +674,6 @@ tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
     bnepu_send_peer_our_multi_filters (p_bcb);
 
     return (BNEP_SUCCESS);
-#else
-    return (BNEP_SET_FILTER_FAIL);
-#endif
-}
-
-
-/*******************************************************************************
-**
-** Function         BNEP_GetMyBdAddr
-**
-** Description      This function returns a pointer to the local device BD address.
-**                  If the BD address has not been read yet, it returns NULL.
-**
-** Returns          the BD address
-**
-*******************************************************************************/
-UINT8 *BNEP_GetMyBdAddr (void)
-{
-    if (bnep_cb.got_my_bd_addr)
-        return (bnep_cb.my_bda);
-    else
-        return (NULL);
 }
 
 /*******************************************************************************
@@ -762,7 +729,7 @@ tBNEP_RESULT BNEP_GetStatus (UINT16 handle, tBNEP_STATUS *p_status)
     p_status->con_status            = BNEP_STATUS_CONNECTED;
     p_status->l2cap_cid             = p_bcb->l2cap_cid;
     p_status->rem_mtu_size          = p_bcb->rem_mtu_size;
-    p_status->xmit_q_depth          = p_bcb->xmit_q.count;
+    p_status->xmit_q_depth          = GKI_queue_length(&p_bcb->xmit_q);
     p_status->sent_num_filters      = p_bcb->sent_num_filters;
     p_status->sent_mcast_filters    = p_bcb->sent_mcast_filters;
     p_status->rcvd_num_filters      = p_bcb->rcvd_num_filters;

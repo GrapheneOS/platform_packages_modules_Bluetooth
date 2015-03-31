@@ -22,12 +22,12 @@
  *  machine.
  *
  ******************************************************************************/
+#define LOG_TAG "bt_bta_gattc"
 
 #include "bt_target.h"
 
 #include "utl.h"
 #include "gki.h"
-#include "bd.h"
 #include "bta_sys.h"
 
 #include "bta_gattc_int.h"
@@ -38,6 +38,8 @@
 #endif
 
 #include <string.h>
+
+#include "osi/include/log.h"
 
 #if BTA_GATT_INCLUDED && BLE_INCLUDED == TRUE
 
@@ -563,8 +565,11 @@ void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *p_clreg
         /* always call open to hold a connection */
         if (!GATT_Connect(p_data->client_if, p_data->remote_bda, FALSE, p_data->transport))
         {
+            uint8_t *bda = (uint8_t *)p_data->remote_bda;
             status = BTA_GATT_ERROR;
-            APPL_TRACE_ERROR("bta_gattc_init_bk_conn failed");
+            APPL_TRACE_ERROR("%s unable to connect to remote bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
+                __func__, bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+
         }
         else
         {
@@ -1025,7 +1030,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* clean up cache */
         if(p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_cache)
         {
-            while (p_clcb->p_srcb->cache_buffer.p_first)
+            while (!GKI_queue_is_empty(&p_clcb->p_srcb->cache_buffer))
             {
                 GKI_freebuf (GKI_dequeue (&p_clcb->p_srcb->cache_buffer));
             }
@@ -1898,7 +1903,7 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
         /* in all other cases, mark it and delete the cache */
         if (p_srvc_cb->p_srvc_cache != NULL)
         {
-            while (p_srvc_cb->cache_buffer.p_first)
+            while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
                 GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
 
             p_srvc_cb->p_srvc_cache = NULL;
@@ -2304,7 +2309,7 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
                 /* if listen to all */
                 else
                 {
-                    APPL_TRACE_ERROR("Listen For All now");
+                    LOG_DEBUG("Listen For All now");
                     /* go through all connected device and send
                     callback for all connected slave connection */
                     bta_gattc_process_listen_all(p_msg->api_listen.client_if);

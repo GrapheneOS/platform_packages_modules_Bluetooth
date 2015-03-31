@@ -339,7 +339,7 @@ BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info, UINT8 *p_
  ** Returns          void.
  **
  *******************************************************************************/
-BTA_API void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps, UINT8 num_snk,
+void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps, UINT8 num_snk,
         UINT8 num_src, BD_ADDR addr, UINT16 uuid_local)
 {
     tBTA_AV_CO_PEER *p_peer;
@@ -589,9 +589,9 @@ UINT8 bta_av_audio_sink_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          Stream codec and content protection configuration info.
  **
  *******************************************************************************/
-BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-        UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid, UINT8 *p_num_protect,
-        UINT8 *p_protect_info)
+UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+                                UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid, UINT8 *p_num_protect,
+                                UINT8 *p_protect_info)
 
 {
     UINT8 result = A2D_FAIL;
@@ -748,10 +748,9 @@ BTA_API UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_t
  ** Returns          void
  **
  *******************************************************************************/
-BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
         UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr, UINT8 num_protect, UINT8 *p_protect_info,
         UINT8 t_local_sep, UINT8 avdt_handle)
-
 {
     tBTA_AV_CO_PEER *p_peer;
     UINT8 status = A2D_SUCCESS;
@@ -905,8 +904,8 @@ BTA_API void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
  ** Returns          void
  **
  *******************************************************************************/
-BTA_API void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
-        UINT16 mtu)
+void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
+                          UINT16 mtu)
 {
     tBTA_AV_CO_PEER *p_peer;
     UNUSED(p_codec_info);
@@ -939,7 +938,7 @@ BTA_API void bta_av_co_audio_open(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, U
  ** Returns          void
  **
  *******************************************************************************/
-BTA_API void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT16 mtu)
+void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, UINT16 mtu)
 
 {
     tBTA_AV_CO_PEER *p_peer;
@@ -977,8 +976,8 @@ BTA_API void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type, 
  ** Returns          void
  **
  *******************************************************************************/
-BTA_API void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-        UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr)
+void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+                           UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr)
 {
     UNUSED(hndl);
     UNUSED(codec_type);
@@ -1002,7 +1001,7 @@ BTA_API void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
  ** Returns          void
  **
  *******************************************************************************/
-BTA_API extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type)
+extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type)
 {
     UNUSED(hndl);
     UNUSED(codec_type);
@@ -1022,8 +1021,8 @@ BTA_API extern void bta_av_co_audio_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_
  ** Returns          Pointer to the GKI buffer to send, NULL if no buffer to send
  **
  *******************************************************************************/
-BTA_API void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type, UINT32 *p_len,
-        UINT32 *p_timestamp)
+void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type, UINT32 *p_len,
+                                     UINT32 *p_timestamp)
 {
     BT_HDR *p_buf;
     UNUSED(p_len);
@@ -1853,5 +1852,3 @@ BOOLEAN bta_av_co_get_remote_bitpool_pref(UINT8 *min, UINT8 *max)
 
     return TRUE;
 }
-
-

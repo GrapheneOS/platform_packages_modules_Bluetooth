@@ -420,7 +420,7 @@ UINT32 port_flow_control_user (tPORT *p_port)
               || !p_port->rfc.p_mcb
               || !p_port->rfc.p_mcb->peer_ready
               || (p_port->tx.queue_size > PORT_TX_HIGH_WM)
-              || (p_port->tx.queue.count > PORT_TX_BUF_HIGH_WM);
+              || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM);
 
     if (p_port->tx.user_fc == fc)
         return (0);
@@ -536,7 +536,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
                 p_port->rx.peer_fc = TRUE;
             }
             /* if queue count reached credit rx max, set peer fc */
-            else if (p_port->rx.queue.count >= p_port->credit_rx_max)
+            else if (GKI_queue_length(&p_port->rx.queue) >= p_port->credit_rx_max)
             {
                 p_port->rx.peer_fc = TRUE;
             }
@@ -552,7 +552,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* check if it can be resumed now */
             if (p_port->rx.peer_fc
              && (p_port->rx.queue_size < PORT_RX_LOW_WM)
-             && (p_port->rx.queue.count < PORT_RX_BUF_LOW_WM))
+             && (GKI_queue_length(&p_port->rx.queue) < PORT_RX_BUF_LOW_WM))
             {
                 p_port->rx.peer_fc = FALSE;
 
@@ -573,7 +573,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* Check the size of the rx queue.  If it exceeds certain */
             /* level and flow control has not been sent to the peer do it now */
             else if ( ((p_port->rx.queue_size > PORT_RX_HIGH_WM)
-                     || (p_port->rx.queue.count > PORT_RX_BUF_HIGH_WM))
+                     || (GKI_queue_length(&p_port->rx.queue) > PORT_RX_BUF_HIGH_WM))
                      && !p_port->rx.peer_fc)
             {
                 RFCOMM_TRACE_EVENT ("PORT_DataInd Data reached HW. Sending FC set.");

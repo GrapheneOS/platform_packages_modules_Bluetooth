@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2014 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,69 +16,38 @@
  *
  ******************************************************************************/
 
-/*******************************************************************************
- *
- *  Filename:      btif_config.h
- *
- *  Description:   Bluetooth configuration Interface
- *
- *******************************************************************************/
+#pragma once
 
-#ifndef BTIF_CONFIG_H
-#define BTIF_CONFIG_H
+#include <stdbool.h>
+#include <stddef.h>
 
-#include "data_types.h"
 #include "bt_types.h"
 
-#ifdef __cplusplus
-#include <stdint.h>
-extern "C" {
-#endif
+static const char BTIF_CONFIG_MODULE[] = "btif_config_module";
 
-/*******************************************************************************
-** Constants & Macros
-********************************************************************************/
+typedef struct btif_config_section_iter_t btif_config_section_iter_t;
 
-#define BTIF_CFG_TYPE_INVALID   0
-#define BTIF_CFG_TYPE_STR       1
-#define BTIF_CFG_TYPE_INT      (1 << 1)
-#define BTIF_CFG_TYPE_BIN      (1 << 2)
-#define BTIF_CFG_TYPE_VOLATILE (1 << 15)
+bool btif_config_has_section(const char *section);
+bool btif_config_exist(const char *section, const char *key);
+bool btif_config_get_int(const char *section, const char *key, int *value);
+bool btif_config_set_int(const char *section, const char *key, int value);
+bool btif_config_get_str(const char *section, const char *key, char *value, int *size_bytes);
+bool btif_config_set_str(const char *section, const char *key, const char *value);
+bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, size_t *length);
+bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length);
+bool btif_config_remove(const char *section, const char *key);
 
+size_t btif_config_get_bin_length(const char *section, const char *key);
 
-/*******************************************************************************
-**  Functions
-********************************************************************************/
+const btif_config_section_iter_t *btif_config_section_begin(void);
+const btif_config_section_iter_t *btif_config_section_end(void);
+const btif_config_section_iter_t *btif_config_section_next(const btif_config_section_iter_t *section);
+const char *btif_config_section_name(const btif_config_section_iter_t *section);
 
-int btif_config_init();
+void btif_config_save(void);
+void btif_config_flush(void);
 
-int btif_config_exist(const char* section, const char* key, const char* name);
-int btif_config_get_int(const char* section, const char* key, const char* name, int* value);
-int btif_config_set_int(const char* section, const char* key, const char* name, int value);
-int btif_config_get_str(const char* section, const char* key, const char* name, char* value, int* bytes);
-int btif_config_set_str(const char* section, const char* key, const char* name, const char* value);
+// TODO(zachoverflow): Eww...we need to move these out. These are peer specific, not config general.
+bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type);
+bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type);
 
-int btif_config_get(const char* section, const char* key, const char* name, char* value, int* bytes, int* type);
-int btif_config_set(const char* section, const char* key, const char* name, const char*  value, int bytes, int type);
-
-int btif_config_remove(const char* section, const char* key, const char* name);
-int btif_config_filter_remove(const char* section, const char* filter[], int filter_count, int max_allowed);
-
-short btif_config_next_key(short current_key_pos, const char* section, char * key_name, int* key_name_bytes);
-short btif_config_next_value(short pos, const char* section, const char* key, char* value_name, int* value_name_bytes);
-
-typedef void (*btif_config_enum_callback)(void* user_data, const char* section, const char* key, const char* name,
-                                          const char*  value, int bytes, int type);
-int btif_config_enum(btif_config_enum_callback cb, void* user_data);
-
-int btif_config_save();
-void btif_config_flush();
-
-BOOLEAN btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type);
-BOOLEAN btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

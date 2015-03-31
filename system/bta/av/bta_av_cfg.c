@@ -48,7 +48,6 @@ const UINT32  bta_av_meta_caps_co_ids[] = {
 **	3. GetCapabilities supported event_ids list
 **	4. GetCapabilities supported event_ids count
 */
-#ifdef ANDROID_APP_INCLUDED
 /* Flushing partial avdtp packets can cause some headsets to disconnect the link
    if receiving partial a2dp frames */
 const UINT16  bta_av_audio_flush_to[] = {
@@ -81,8 +80,6 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 #ifndef BTA_AV_NUM_RC_EVT_IDS
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
 #endif /* BTA_AV_NUM_RC_EVT_IDS */
-
-#endif /* ANDROID_APP_INCLUDED */
 
 /* the MTU for the AVRCP browsing channel */
 #ifndef BTA_AV_MAX_RC_BR_MTU

@@ -321,9 +321,7 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 {
     tHID_HOST_DEV_CTB *p_dev = (tHID_HOST_DEV_CTB *) p_ref_data;
     UINT8 dhandle;
-#if (HID_HOST_MAX_CONN_RETRY > 0)
-    UINT32 cb_res = HID_ERR_AUTH_FAILED;
-#endif
+    UINT32 reason;
     UNUSED(bd_addr);
     UNUSED (transport);
 
@@ -350,8 +348,6 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
                 hidh_conn_retry (dhandle);
                 return;
             }
-            else
-                cb_res = HID_L2CAP_CONN_FAIL | HCI_ERR_PAGE_TIMEOUT ;
         }
 #endif
         p_dev->conn.disc_reason = HID_ERR_AUTH_FAILED;      /* Save reason for disconnecting */
@@ -456,13 +452,11 @@ static void hidh_l2cif_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 {
     UINT8 dhandle;
     tHID_CONN    *p_hcon = NULL;
-    tHID_HOST_DEV_CTB *p_dev;
     UINT32  reason;
 
     /* Find CCB based on CID */
     if( (dhandle = find_conn_by_cid(l2cap_cid)) < HID_HOST_MAX_DEVICES )
     {
-        p_dev = &hh_cb.devices[dhandle];
         p_hcon = &hh_cb.devices[dhandle].conn;
     }
 

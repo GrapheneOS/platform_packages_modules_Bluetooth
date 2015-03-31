@@ -33,7 +33,6 @@
 #include "port_api.h"
 #include "rfcdefs.h"
 #include "gki.h"
-#include "bd.h"
 #include "utl.h"
 
 /* Event mask for RfCOMM port callback */
@@ -430,17 +429,5 @@ void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         }
         */
     }
-
-#ifdef _WIN32_WCE
-    {
-        /* Windows versions of RFCOMM does NOT generate a closed callback when we close */
-        tPORT_CALLBACK *rfc_mgmt_cback = bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1];
-
-        if (rfc_mgmt_cback)
-        {
-            (rfc_mgmt_cback)(PORT_CLOSED, p_scb->conn_handle);
-        }
-    }
-#endif
 }
 

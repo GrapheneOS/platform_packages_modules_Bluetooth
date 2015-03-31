@@ -22,10 +22,9 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
-#include <utils/Log.h>
+#include <stdbool.h>
 #include <sys/time.h>
 
-#include "data_types.h"
 #include "bt_types.h"
 #include "bt_utils.h"
 
@@ -65,14 +64,11 @@ const char* dump_rc_event(UINT8 event);
 const char* dump_rc_notification_event_id(UINT8 event_id);
 const char* dump_rc_pdu(UINT8 pdu);
 
-int str2bd(char *str, bt_bdaddr_t *addr);
-char *bd2str(const bt_bdaddr_t *addr, bdstr_t *bdstr);
-
 UINT32 devclass2uint(DEV_CLASS dev_class);
 void uint2devclass(UINT32 dev, DEV_CLASS dev_class);
 void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
 
-void uuid_to_string(bt_uuid_t *p_uuid, char *str);
+void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
 void string_to_uuid(char *str, bt_uuid_t *p_uuid);
 int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex);
 

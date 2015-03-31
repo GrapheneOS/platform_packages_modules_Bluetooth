@@ -69,9 +69,9 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
-                                     tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
-                                     BOOLEAN is_orig);
+extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
+                             tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
+                             BOOLEAN is_orig);
 
 /*******************************************************************************
 **
@@ -88,8 +88,8 @@ BTA_API extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
-                                     tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req);
+extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
+                             tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -104,7 +104,7 @@ BTA_API extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade );
+extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade );
 
 /*******************************************************************************
 **
@@ -120,7 +120,7 @@ BTA_API extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade );
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
+extern void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
 
 /*******************************************************************************
 **
@@ -134,7 +134,7 @@ BTA_API extern void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
+extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
 
 /*****************************************************************************
 **  SCO over HCI Function Declarations
@@ -151,8 +151,8 @@ BTA_API extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
 ** Returns          Void.
 **
 *******************************************************************************/
-BTA_API extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
-                                                         tBTA_CODEC_INFO *p_codec_info, UINT8 app_id);
+extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
+                                                 tBTA_CODEC_INFO *p_codec_info, UINT8 app_id);
 
 
 /*******************************************************************************
@@ -165,7 +165,7 @@ BTA_API extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event);
+extern void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event);
 
 /*******************************************************************************
 **
@@ -177,7 +177,7 @@ BTA_API extern void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 eve
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_sco_co_close(void);
+extern void bta_dm_sco_co_close(void);
 
 /*******************************************************************************
 **
@@ -188,7 +188,7 @@ BTA_API extern void bta_dm_sco_co_close(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
+extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
 
 /*******************************************************************************
 **
@@ -199,7 +199,7 @@ BTA_API extern void bta_dm_sco_co_out_data(BT_HDR  **p_buf);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
+extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
 
 
 
@@ -221,12 +221,12 @@ BTA_API extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG sta
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
-                                        tBTA_OOB_DATA *p_oob_data,
-                                        tBTA_LE_AUTH_REQ *p_auth_req,
-                                        UINT8 *p_max_key_size,
-                                        tBTA_LE_KEY_TYPE *p_init_key,
-                                        tBTA_LE_KEY_TYPE  *p_resp_key );
+extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
+                                 tBTA_OOB_DATA *p_oob_data,
+                                 tBTA_LE_AUTH_REQ *p_auth_req,
+                                 UINT8 *p_max_key_size,
+                                 tBTA_LE_KEY_TYPE *p_init_key,
+                                 tBTA_LE_KEY_TYPE  *p_resp_key );
 
 
 /*******************************************************************************
@@ -241,8 +241,8 @@ BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
-                                                   tBTA_BLE_LOCAL_ID_KEYS *p_id_keys);
+extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OCTET16 er,
+                                           tBTA_BLE_LOCAL_ID_KEYS *p_id_keys);
 
 // btla-specific ++
 /*******************************************************************************
@@ -263,12 +263,12 @@ BTA_API extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
-                         tBTA_OOB_DATA *p_oob_data,
-                         tBTA_LE_AUTH_REQ *p_auth_req,
-                         UINT8 *p_max_key_size,
-                         tBTA_LE_KEY_TYPE *p_init_key,
-                         tBTA_LE_KEY_TYPE  *p_resp_key );
+extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
+                                 tBTA_OOB_DATA *p_oob_data,
+                                 tBTA_LE_AUTH_REQ *p_auth_req,
+                                 UINT8 *p_max_key_size,
+                                 tBTA_LE_KEY_TYPE *p_init_key,
+                                 tBTA_LE_KEY_TYPE  *p_resp_key );
 // btla-specific --
 
 #endif

@@ -52,10 +52,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_disable,           /* 1  BTA_DM_API_DISABLE_EVT */
     bta_dm_set_dev_name,      /* 2  BTA_DM_API_SET_NAME_EVT */
     bta_dm_set_visibility,    /* 3  BTA_DM_API_SET_VISIBILITY_EVT */
-    bta_dm_set_afhchannels,   /* 4  BTA_DM_API_SET_AFH_CHANNELS_EVT */
-    bta_dm_signal_strength,   /* 5  BTA_API_DM_SIG_STRENGTH_EVT */
-    bta_dm_vendor_spec_command,/* 6  BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT */
-    bta_dm_tx_inqpower,       /* 7  BTA_DM_API_SIG_STRENGTH_EVT */
     bta_dm_acl_change,        /* 8  BTA_DM_ACL_CHANGE_EVT */
     bta_dm_add_device,        /* 9  BTA_DM_API_ADD_DEVICE_EVT */
     bta_dm_close_acl,         /* 10 BTA_DM_API_ADD_DEVICE_EVT */
@@ -64,8 +60,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_bond,              /* 11  BTA_DM_API_BOND_EVT */
     bta_dm_bond_cancel,       /* 12  BTA_DM_API_BOND_CANCEL_EVT */
     bta_dm_pin_reply,         /* 13 BTA_DM_API_PIN_REPLY_EVT */
-    bta_dm_link_policy,       /* 14 BTA_DM_API_LINK_POLICY_EVT */
-    bta_dm_auth_reply,        /* 15 BTA_DM_API_AUTH_REPLY_EVT */
 
     /* power manger events */
     bta_dm_pm_btm_status,     /* 16 BTA_DM_PM_BTM_STATUS_EVT */
@@ -76,9 +70,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
 
     bta_dm_set_encryption,    /* BTA_DM_API_SET_ENCRYPTION_EVT */
 
-#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
-    bta_dm_passkey_cancel,    /* 19 BTA_DM_API_PASKY_CANCEL_EVT */
-#endif
 #if (BTM_OOB_INCLUDED == TRUE)
     bta_dm_loc_oob,           /* 20 BTA_DM_API_LOC_OOB_EVT */
     bta_dm_ci_io_req_act,     /* 21 BTA_DM_CI_IO_REQ_EVT */
@@ -121,17 +112,9 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ble_get_energy_info,    /* BTA_DM_API_BLE_ENERGY_INFO_EVT */
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    bta_dm_update_eir_uuid,     /*  BTA_DM_API_UPDATE_EIR_UUID_EVT      */
-#endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    bta_dm_set_eir_config,      /*  BTA_DM_API_SET_EIR_CONFIG_EVT       */
-#endif
-
     bta_dm_enable_test_mode,    /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */
     bta_dm_disable_test_mode,   /*  BTA_DM_API_DISABLE_TEST_MODE_EVT    */
     bta_dm_execute_callback,     /*  BTA_DM_API_EXECUTE_CBACK_EVT        */
-    bta_dm_set_afh_channel_assesment      /* BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT */
 };
 
 

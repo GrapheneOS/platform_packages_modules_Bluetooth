@@ -82,7 +82,6 @@ typedef struct
     tPAN_MFILTER_IND_CB         *pan_mfilt_ind_cb;      /* multicast filter indication callback */
     tPAN_TX_DATA_FLOW_CB        *pan_tx_data_flow_cb;
 
-    BD_ADDR                     my_bda;                 /* BD Address of this device    */
     char                        *user_service_name;
     char                        *gn_service_name;
     char                        *nap_service_name;
@@ -101,9 +100,9 @@ extern "C" {
 /* Global PAN data
 */
 #if PAN_DYNAMIC_MEMORY == FALSE
-PAN_API extern tPAN_CB  pan_cb;
+extern tPAN_CB  pan_cb;
 #else
-PAN_API extern tPAN_CB  *pan_cb_ptr;
+extern tPAN_CB  *pan_cb_ptr;
 #define pan_cb (*pan_cb_ptr)
 #endif
 
@@ -155,4 +154,3 @@ extern void pan_dump_status (void);
 #endif
 
 #endif
-

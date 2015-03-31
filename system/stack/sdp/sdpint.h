@@ -141,7 +141,6 @@ typedef struct
 typedef struct
 {
     UINT32         di_primary_handle;       /* Device ID Primary record or NULL if nonexistent */
-    BOOLEAN        brcm_di_registered;
     UINT16         num_records;
     tSDP_RECORD    record[SDP_MAX_RECORDS];
 } tSDP_DB;
@@ -150,7 +149,6 @@ enum
 {
     SDP_IS_SEARCH,
     SDP_IS_ATTR_SEARCH,
-    SDP_IS_PASS_THRU    /* only when SDP_FOR_JV_INCLUDED == TRUE */
 };
 
 #if SDP_SERVER_ENABLED == TRUE
@@ -204,7 +202,6 @@ typedef struct
 #define SDP_DISC_WAIT_HANDLES       1
 #define SDP_DISC_WAIT_ATTR          2
 #define SDP_DISC_WAIT_SEARCH_ATTR   3
-#define SDP_DISC_WAIT_PASS_THRU     4    /* only when SDP_FOR_JV_INCLUDED == TRUE */
 #define SDP_DISC_WAIT_CANCEL        5
 
     UINT8             disc_state;
@@ -238,9 +235,9 @@ extern "C" {
 #endif
 /* Global SDP data */
 #if SDP_DYNAMIC_MEMORY == FALSE
-SDP_API extern tSDP_CB  sdp_cb;
+extern tSDP_CB  sdp_cb;
 #else
-SDP_API extern tSDP_CB *sdp_cb_ptr;
+extern tSDP_CB *sdp_cb_ptr;
 #define sdp_cb (*sdp_cb_ptr)
 #endif
 
@@ -249,11 +246,11 @@ SDP_API extern tSDP_CB *sdp_cb_ptr;
 #endif
 
 /* Functions provided by sdp_main.c */
-SDP_API extern void     sdp_init (void);
+extern void     sdp_init (void);
 extern void     sdp_disconnect (tCONN_CB*p_ccb, UINT16 reason);
 
 #if (defined(SDP_DEBUG) && SDP_DEBUG == TRUE)
-SDP_API extern UINT16 sdp_set_max_attr_list_size (UINT16 max_size);
+extern UINT16 sdp_set_max_attr_list_size (UINT16 max_size);
 #endif
 
 /* Functions provided by sdp_conn.c
@@ -285,10 +282,10 @@ extern void      sdpu_build_n_send_error (tCONN_CB *p_ccb, UINT16 trans_num, UIN
 extern UINT8    *sdpu_extract_attr_seq (UINT8 *p, UINT16 param_len, tSDP_ATTR_SEQ *p_seq);
 extern UINT8    *sdpu_extract_uid_seq (UINT8 *p, UINT16 param_len, tSDP_UUID_SEQ *p_seq);
 
-SDP_API extern UINT8    *sdpu_get_len_from_type (UINT8 *p, UINT8 type, UINT32 *p_len);
+extern UINT8    *sdpu_get_len_from_type (UINT8 *p, UINT8 type, UINT32 *p_len);
 extern BOOLEAN  sdpu_is_base_uuid (UINT8 *p_uuid);
 extern BOOLEAN  sdpu_compare_uuid_arrays (UINT8 *p_uuid1, UINT32 len1, UINT8 *p_uuid2, UINT16 len2);
-SDP_API extern BOOLEAN  sdpu_compare_bt_uuids (tBT_UUID *p_uuid1, tBT_UUID *p_uuid2);
+extern BOOLEAN  sdpu_compare_bt_uuids (tBT_UUID *p_uuid1, tBT_UUID *p_uuid2);
 extern BOOLEAN  sdpu_compare_uuid_with_attr (tBT_UUID *p_btuuid, tSDP_DISC_ATTR *p_attr);
 
 extern void     sdpu_sort_attr_list( UINT16 num_attr, tSDP_DISCOVERY_DB *p_db );
@@ -326,4 +323,3 @@ extern void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg);
 
 
 #endif
-

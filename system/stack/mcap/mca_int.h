@@ -347,9 +347,9 @@ extern "C"
 ** Main Control Block
 *******************************************************************************/
 #if MCA_DYNAMIC_MEMORY == FALSE
-MCA_API extern tMCA_CB  mca_cb;
+extern tMCA_CB  mca_cb;
 #else
-MCA_API extern tMCA_CB *mca_cb_ptr;
+extern tMCA_CB *mca_cb_ptr;
 #define mca_cb (*mca_cb_ptr)
 #endif
 

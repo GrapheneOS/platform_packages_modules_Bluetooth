@@ -24,13 +24,12 @@
  ******************************************************************************/
 
 #include "bt_target.h"
+
 #include <string.h>
 #include "a2d_api.h"
 #include "a2d_int.h"
 #include "a2d_sbc.h"
 #include "bt_utils.h"
-
-#if (A2D_SBC_INCLUDED == TRUE)
 
 /*************************************************************************************************
  * SBC descramble code
@@ -280,14 +279,13 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info, BOOLEAN for_caps)
 {
     tA2D_STATUS status;
     UINT8   losc;
-    UINT8   mt;
 
     if( p_ie == NULL || p_info == NULL)
         status = A2D_INVALID_PARAMS;
     else
     {
         losc    = *p_info++;
-        mt      = *p_info++;
+        *p_info++;
         /* If the function is called for the wrong Media Type or Media Codec Type */
         if(losc != A2D_SBC_INFO_LEN || *p_info != A2D_MEDIA_CT_SBC)
             status = A2D_WRONG_CODEC;
@@ -399,57 +397,3 @@ void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag, BOOLEAN *p_start, BOOLEAN 
     }
 }
 
-#else /* A2D_SBC_INCLUDED == TRUE */
-
-void A2D_SbcChkFrInit(UINT8 *p_pkt)
-{
-    UNUSED(p_pkt);
-}
-
-void A2D_SbcDescramble(UINT8 *p_pkt, UINT16 len)
-{
-    UNUSED(p_pkt);
-    UNUSED(len);
-}
-
-tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie,
-                           UINT8 *p_result)
-{
-    UNUSED(media_type);
-    UNUSED(p_ie);
-    UNUSED(p_result);
-    return A2D_FAIL;
-}
-
-tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info,
-                            BOOLEAN for_caps)
-{
-    UNUSED(p_ie);
-    UNUSED(p_info);
-    UNUSED(for_caps);
-    return A2D_FAIL;
-}
-
-void A2D_BldSbcMplHdr(UINT8 *p_dst, BOOLEAN frag, BOOLEAN start,
-                      BOOLEAN last, UINT8 num)
-{
-    UNUSED(p_dst);
-    UNUSED(frag);
-    UNUSED(start);
-    UNUSED(last);
-    UNUSED(num);
-}
-
-void A2D_ParsSbcMplHdr(UINT8 *p_src, BOOLEAN *p_frag,
-                       BOOLEAN *p_start, BOOLEAN *p_last,
-                       UINT8 *p_num)
-{
-    UNUSED(p_src);
-    UNUSED(p_frag);
-    UNUSED(p_start);
-    UNUSED(p_last);
-    UNUSED(p_num);
-}
-
-
-#endif /* A2D_SBC_INCLUDED == TRUE */

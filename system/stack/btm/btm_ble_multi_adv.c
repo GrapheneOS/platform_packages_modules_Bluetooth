@@ -17,7 +17,9 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "bt_target.h"
+#include "device/include/controller.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "bt_types.h"
@@ -125,12 +127,14 @@ void btm_ble_multi_adv_vsc_cmpl_cback (tBTM_VSC_CMPL *p_params)
     switch (subcode)
     {
         case BTM_BLE_MULTI_ADV_ENB:
-        BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_ENB status = %d", status);
-        if (status != HCI_SUCCESS)
         {
-            btm_multi_adv_cb.p_adv_inst[inst_id-1].inst_id = 0;
+            BTM_TRACE_DEBUG("BTM_BLE_MULTI_ADV_ENB status = %d", status);
+
+            /* Mark as not in use here, if instance cannot be enabled */
+            if (HCI_SUCCESS != status && BTM_BLE_MULTI_ADV_ENB_EVT == cb_evt)
+                btm_multi_adv_cb.p_adv_inst[inst_id-1].in_use = FALSE;
+            break;
         }
-        break;
 
         case BTM_BLE_MULTI_ADV_SET_PARAM:
         {
@@ -260,7 +264,7 @@ tBTM_STATUS btm_ble_multi_adv_set_params (tBTM_BLE_MULTI_ADV_INST *p_inst,
 #endif
     {
         UINT8_TO_STREAM  (pp, BLE_ADDR_PUBLIC);
-        BDADDR_TO_STREAM (pp, btm_cb.devcb.local_addr);
+        BDADDR_TO_STREAM (pp, controller_get_interface()->get_address()->address);
     }
 
     BTM_TRACE_EVENT (" btm_ble_multi_adv_set_params,Min %d, Max %d,adv_type %d",
@@ -325,7 +329,9 @@ tBTM_STATUS btm_ble_multi_adv_write_rpa (tBTM_BLE_MULTI_ADV_INST *p_inst, BD_ADD
     UINT8           param[BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN], *pp = param;
     tBTM_STATUS     rt;
 
-    BTM_TRACE_EVENT (" btm_ble_multi_adv_set_random_addr");
+    BTM_TRACE_EVENT ("%s-BD_ADDR:%02x-%02x-%02x-%02x-%02x-%02x,inst_id:%d",
+                      __FUNCTION__, random_addr[5], random_addr[4], random_addr[3], random_addr[2],
+                      random_addr[1], random_addr[0], p_inst->inst_id);
 
     memset(param, 0, BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN);
 
@@ -408,12 +414,13 @@ void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC *p)
             p_inst->rpa[5] = output.param_buf[0];
             p_inst->rpa[4] = output.param_buf[1];
             p_inst->rpa[3] = output.param_buf[2];
+        }
 
-            if (p_inst->inst_id != 0 && (p_inst->inst_id < BTM_BleMaxMultiAdvInstanceCount()))
-            {
-                /* set it to controller */
-                btm_ble_multi_adv_write_rpa(p_inst, p_inst->rpa);
-            }
+        if (p_inst->inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD &&
+            p_inst->inst_id < BTM_BleMaxMultiAdvInstanceCount())
+        {
+            /* set it to controller */
+            btm_ble_multi_adv_write_rpa(p_inst, p_inst->rpa);
         }
     }
 #endif
@@ -468,7 +475,7 @@ void btm_ble_multi_adv_reenable(UINT8 inst_id)
 {
     tBTM_BLE_MULTI_ADV_INST *p_inst = &btm_multi_adv_cb.p_adv_inst[inst_id - 1];
 
-    if (p_inst->inst_id != 0)
+    if (TRUE == p_inst->in_use)
     {
         if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT)
             btm_ble_enable_multi_adv (TRUE, p_inst->inst_id, 0);
@@ -476,7 +483,7 @@ void btm_ble_multi_adv_reenable(UINT8 inst_id)
           /* mark directed adv as disabled if adv has been stopped */
         {
             (p_inst->p_cback)(BTM_BLE_MULTI_ADV_DISABLE_EVT,p_inst->inst_id,p_inst->p_ref,0);
-             p_inst->inst_id = 0;
+             p_inst->in_use = FALSE;
         }
      }
 }
@@ -499,8 +506,13 @@ void btm_ble_multi_adv_enb_privacy(BOOLEAN enable)
 
     for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
     {
+        p_inst->in_use = FALSE;
         if (enable)
+        {
+            /* Setup the instance ID before configuring the RPA */
+            p_inst->inst_id = i + 1;
             btm_ble_multi_adv_configure_rpa (p_inst);
+        }
         else
             btu_stop_timer_oneshot(&p_inst->raddr_timer_ent);
     }
@@ -544,10 +556,9 @@ tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
 
     for (i = 0; i <  BTM_BleMaxMultiAdvInstanceCount() - 1; i ++, p_inst++)
     {
-        if (p_inst->inst_id == 0)
+        if (FALSE == p_inst->in_use)
         {
-            p_inst->inst_id = i + 1;
-
+            p_inst->in_use = TRUE;
             /* configure adv parameter */
             if (p_params)
                 rt = btm_ble_multi_adv_set_params(p_inst, p_params, 0);
@@ -570,7 +581,7 @@ tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
 
             if (BTM_CMD_STARTED != rt)
             {
-                p_inst->inst_id = 0;
+                p_inst->in_use = FALSE;
                 BTM_TRACE_ERROR("BTM_BleEnableAdvInstance failed");
             }
             break;
@@ -609,7 +620,7 @@ tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_par
         inst_id != BTM_BLE_MULTI_ADV_DEFAULT_STD &&
         p_params != NULL)
     {
-        if (p_inst->inst_id == 0)
+        if (FALSE == p_inst->in_use)
         {
             BTM_TRACE_DEBUG("adv instance %d is not active", inst_id);
             return BTM_WRONG_MODE;
@@ -715,7 +726,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
          {
             btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.p_adv_inst[inst_id-1]);
             btu_stop_timer(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
-            btm_multi_adv_cb.p_adv_inst[inst_id-1].inst_id = 0;
+            btm_multi_adv_cb.p_adv_inst[inst_id-1].in_use = FALSE;
          }
      }
     return rt;
@@ -732,7 +743,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
 void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
 {
     UINT8   sub_event;
-    UINT8   adv_inst, reason, conn_handle, idx;
+    UINT8   adv_inst, conn_handle, idx;
 
     /* Check if this is a BLE RSSI vendor specific event */
     STREAM_TO_UINT8(sub_event, p);
@@ -742,7 +753,7 @@ void btm_ble_multi_adv_vse_cback(UINT8 len, UINT8 *p)
     if ((sub_event == HCI_VSE_SUBCODE_BLE_MULTI_ADV_ST_CHG) && (len >= 4))
     {
         STREAM_TO_UINT8(adv_inst, p);
-        STREAM_TO_UINT8(reason, p);
+        ++p;
         STREAM_TO_UINT16(conn_handle, p);
 
         if ((idx = btm_handle_to_acl_index(conn_handle)) != MAX_L2CAP_LINKS)

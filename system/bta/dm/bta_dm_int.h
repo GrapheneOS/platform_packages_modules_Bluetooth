@@ -54,10 +54,6 @@ enum
     BTA_DM_API_DISABLE_EVT,
     BTA_DM_API_SET_NAME_EVT,
     BTA_DM_API_SET_VISIBILITY_EVT,
-    BTA_DM_API_SET_AFH_CHANNELS_EVT,
-    BTA_API_DM_SIG_STRENGTH_EVT,
-    BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT,
-    BTA_DM_API_TX_INQPWR_EVT,
     BTA_DM_ACL_CHANGE_EVT,
     BTA_DM_API_ADD_DEVICE_EVT,
     BTA_DM_API_REMOVE_ACL_EVT,
@@ -66,8 +62,6 @@ enum
     BTA_DM_API_BOND_EVT,
     BTA_DM_API_BOND_CANCEL_EVT,
     BTA_DM_API_PIN_REPLY_EVT,
-    BTA_DM_API_LINK_POLICY_EVT,
-    BTA_DM_API_AUTH_REPLY_EVT,
 
     /* power manger events */
     BTA_DM_PM_BTM_STATUS_EVT,
@@ -79,9 +73,6 @@ enum
     BTA_DM_API_SET_ENCRYPTION_EVT,
 
 
-#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
-    BTA_DM_API_PASKY_CANCEL_EVT,
-#endif
 #if (BTM_OOB_INCLUDED == TRUE)
     BTA_DM_API_LOC_OOB_EVT,
     BTA_DM_CI_IO_REQ_EVT,
@@ -125,17 +116,9 @@ enum
     BTA_DM_API_BLE_ENERGY_INFO_EVT,
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    BTA_DM_API_UPDATE_EIR_UUID_EVT,
-#endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    BTA_DM_API_SET_EIR_CONFIG_EVT,
-#endif
-
     BTA_DM_API_ENABLE_TEST_MODE_EVT,
     BTA_DM_API_DISABLE_TEST_MODE_EVT,
     BTA_DM_API_EXECUTE_CBACK_EVT,
-    BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT,
     BTA_DM_MAX_EVT
 };
 
@@ -179,25 +162,6 @@ typedef struct
     UINT8           pair_mode;
     UINT8           conn_paired_only;
 } tBTA_DM_API_SET_VISIBILITY;
-
-/* data type for BTA_DM_API_SET_AFH_CHANNELS_EVT */
-typedef struct
-{
-    BT_HDR              hdr;
-    UINT8           first;
-    UINT8           last;
-} tBTA_DM_API_SET_AFH_CHANNELS_EVT;
-
-/* data type for BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT */
-typedef struct
-{
-    BT_HDR              hdr;
-    UINT16              opcode;
-    UINT8               param_len;
-    UINT8               *p_param_buf;
-    tBTA_VENDOR_CMPL_CBACK *p_cback;
-
-} tBTA_DM_API_VENDOR_SPECIFIC_COMMAND;
 
 enum
 {
@@ -273,24 +237,6 @@ typedef struct
     UINT8 p_pin[PIN_CODE_LEN];
 } tBTA_DM_API_PIN_REPLY;
 
-/* data type for BTA_DM_API_LINK_POLICY_EVT */
-typedef struct
-{
-    BT_HDR      hdr;
-    BD_ADDR     bd_addr;
-    UINT16      policy_mask;
-    BOOLEAN     set;
-} tBTA_DM_API_LINK_POLICY;
-
-/* data type for BTA_DM_API_AUTH_REPLY_EVT */
-typedef struct
-{
-    BT_HDR      hdr;
-    BD_ADDR bd_addr;
-    tBTA_SERVICE_ID service;
-    tBTA_AUTH_RESP response;
-} tBTA_DM_API_AUTH_REPLY;
-
 /* data type for BTA_DM_API_LOC_OOB_EVT */
 typedef struct
 {
@@ -304,13 +250,6 @@ typedef struct
     BD_ADDR     bd_addr;
     BOOLEAN     accept;
 } tBTA_DM_API_CONFIRM;
-
-/* data type for BTA_DM_API_PASKY_CANCEL_EVT*/
-typedef struct
-{
-    BT_HDR      hdr;
-    BD_ADDR     bd_addr;
-} tBTA_DM_API_PASKY_CANCEL;
 
 /* data type for BTA_DM_CI_IO_REQ_EVT */
 typedef struct
@@ -360,22 +299,6 @@ typedef struct
     BT_HDR      hdr;
     UINT16 sdp_result;
 } tBTA_DM_SDP_RESULT;
-
-/* data type for BTA_API_DM_SIG_STRENGTH_EVT */
-typedef struct
-{
-    BT_HDR      hdr;
-    tBTA_SIG_STRENGTH_MASK mask;
-    UINT16 period;
-    BOOLEAN start;
-} tBTA_API_DM_SIG_STRENGTH;
-
-/* data type for tBTA_API_DM_TX_INQPWR */
-typedef struct
-{
-    BT_HDR      hdr;
-    INT8        tx_power;
-}tBTA_API_DM_TX_INQPWR;
 
 /* data type for BTA_DM_ACL_CHANGE_EVT */
 typedef struct
@@ -648,31 +571,6 @@ typedef struct
 
 #endif /* BLE_INCLUDED */
 
-typedef struct
-{
-    BT_HDR                  hdr;
-    BOOLEAN                 enable_or_disable;
-}tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT;
-
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-/* data type for BTA_DM_API_UPDATE_EIR_UUID_EVT */
-typedef struct
-{
-    BT_HDR          hdr;
-    BOOLEAN         is_add;
-    tBT_UUID        uuid;
-}tBTA_DM_API_UPDATE_EIR_UUID;
-#endif
-
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-/* data type for BTA_DM_API_SET_EIR_CONFIG_EVT */
-typedef struct
-{
-    BT_HDR              hdr;
-    tBTA_DM_EIR_CONF    *p_eir_cfg;
-}tBTA_DM_API_SET_EIR_CONFIG;
-#endif
-
 /* data type for BTA_DM_API_REMOVE_ACL_EVT */
 typedef struct
 {
@@ -735,10 +633,6 @@ typedef union
 
     tBTA_DM_API_SET_VISIBILITY set_visibility;
 
-    tBTA_DM_API_SET_AFH_CHANNELS_EVT set_afhchannels;
-
-    tBTA_DM_API_VENDOR_SPECIFIC_COMMAND vendor_command;
-
     tBTA_DM_API_ADD_DEVICE  add_dev;
 
     tBTA_DM_API_REMOVE_DEVICE remove_dev;
@@ -752,15 +646,11 @@ typedef union
     tBTA_DM_API_BOND_CANCEL bond_cancel;
 
     tBTA_DM_API_PIN_REPLY pin_reply;
-    tBTA_DM_API_LINK_POLICY link_policy;
 
     tBTA_DM_API_LOC_OOB     loc_oob;
     tBTA_DM_API_CONFIRM     confirm;
-    tBTA_DM_API_PASKY_CANCEL passkey_cancel;
     tBTA_DM_CI_IO_REQ       ci_io_req;
     tBTA_DM_CI_RMT_OOB      ci_rmt_oob;
-
-    tBTA_DM_API_AUTH_REPLY auth_reply;
 
     tBTA_DM_REM_NAME rem_name;
 
@@ -769,10 +659,6 @@ typedef union
     tBTA_DM_INQUIRY_CMPL inq_cmpl;
 
     tBTA_DM_SDP_RESULT sdp_event;
-
-    tBTA_API_DM_SIG_STRENGTH sig_strength;
-
-    tBTA_API_DM_TX_INQPWR   tx_inq_pwr;
 
     tBTA_DM_ACL_CHANGE  acl_change;
 
@@ -818,14 +704,6 @@ typedef union
     tBTA_DM_API_ENERGY_INFO             ble_energy_info;
 #endif
 
-    tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT set_afh_channel_assessment;
-
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    tBTA_DM_API_UPDATE_EIR_UUID     update_eir_uuid;
-#endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    tBTA_DM_API_SET_EIR_CONFIG          set_eir_cfg;
-#endif
     tBTA_DM_API_REMOVE_ACL              remove_acl;
 
 } tBTA_DM_MSG;
@@ -926,10 +804,7 @@ typedef struct
     tBTA_BLE_MULTI_ADV_CBACK     *p_multi_adv_cback;
     tBTA_BLE_ENERGY_INFO_CBACK   *p_energy_info_cback;
 #endif
-    TIMER_LIST_ENT              signal_strength_timer;
-    tBTA_SIG_STRENGTH_MASK      signal_strength_mask;
     UINT16                      state;
-    UINT16                      signal_strength_period;
     BOOLEAN                     disabling;
     TIMER_LIST_ENT              disable_timer;
     UINT32                      wbt_sdp_handle;          /* WIDCOMM Extensions SDP record handle */
@@ -955,7 +830,7 @@ typedef struct
     tBTA_DM_SEC_EVT             pin_evt;
     UINT32          num_val;        /* the numeric value for comparison. If just_works, do not show this number to UI */
     BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )
+#if ( BTA_EIR_CANNED_UUID_LIST != TRUE )
     /* store UUID list for EIR */
     TIMER_LIST_ENT              app_ready_timer;
     UINT32                      eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
@@ -1113,11 +988,9 @@ extern tBTM_PM_PWR_MD *p_bta_dm_pm_md;
 extern tBTA_DM_SSR_SPEC *p_bta_dm_ssr_spec;
 #endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
 /* update dynamic BRCM Aware EIR data */
 extern const tBTA_DM_EIR_CONF bta_dm_eir_cfg;
 extern tBTA_DM_EIR_CONF *p_bta_dm_eir_cfg;
-#endif
 
 /* DM control block */
 #if BTA_DYNAMIC_MEMORY == FALSE
@@ -1153,15 +1026,9 @@ extern void bta_dm_enable (tBTA_DM_MSG *p_data);
 extern void bta_dm_disable (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_dev_name (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_visibility (tBTA_DM_MSG *p_data);
-extern void bta_dm_set_afhchannels (tBTA_DM_MSG *p_data);
-extern void bta_dm_vendor_spec_command(tBTA_DM_MSG *p_data);
 extern void bta_dm_bond (tBTA_DM_MSG *p_data);
 extern void bta_dm_bond_cancel (tBTA_DM_MSG *p_data);
 extern void bta_dm_pin_reply (tBTA_DM_MSG *p_data);
-extern void bta_dm_link_policy (tBTA_DM_MSG *p_data);
-extern void bta_dm_auth_reply (tBTA_DM_MSG *p_data);
-extern void bta_dm_signal_strength(tBTA_DM_MSG *p_data);
-extern void bta_dm_tx_inqpower(tBTA_DM_MSG *p_data);
 extern void bta_dm_acl_change(tBTA_DM_MSG *p_data);
 extern void bta_dm_add_device (tBTA_DM_MSG *p_data);
 extern void bta_dm_remove_device (tBTA_DM_MSG *p_data);
@@ -1209,7 +1076,6 @@ extern void bta_dm_ble_get_energy_info(tBTA_DM_MSG *p_data);
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);
 extern void bta_dm_confirm(tBTA_DM_MSG *p_data);
-extern void bta_dm_passkey_cancel(tBTA_DM_MSG *p_data);
 #if (BTM_OOB_INCLUDED == TRUE)
 extern void bta_dm_loc_oob(tBTA_DM_MSG *p_data);
 extern void bta_dm_ci_io_req_act(tBTA_DM_MSG *p_data);
@@ -1244,22 +1110,10 @@ extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
 
 extern void bta_dm_pm_active(BD_ADDR peer_addr);
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
 void bta_dm_eir_update_uuid(UINT16 uuid16, BOOLEAN adding);
-#else
-#define bta_dm_eir_update_uuid(x, y)
-#endif
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-extern void bta_dm_update_eir_uuid (tBTA_DM_MSG *p_data);
-#endif
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-extern void bta_dm_set_eir_config (tBTA_DM_MSG *p_data);
-#endif
 extern void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_disable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_execute_callback(tBTA_DM_MSG *p_data);
-
-extern void bta_dm_set_afh_channel_assesment(tBTA_DM_MSG *p_data);
 
 #endif /* BTA_DM_INT_H */

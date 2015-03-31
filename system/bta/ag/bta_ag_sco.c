@@ -561,8 +561,8 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
 
 #if (BTM_WBS_INCLUDED == TRUE )
         /* Allow any platform specific pre-SCO set up to take place */
-        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP,\
-        esco_codec);
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_SETUP,
+                esco_codec);
 
         /* This setting may not be necessary */
         /* To be verified with stable 2049 boards */
@@ -574,7 +574,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB *p_scb, BOOLEAN is_orig)
         p_scb->inuse_codec = esco_codec;
 #else
         /* Allow any platform specific pre-SCO set up to take place */
-        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP);
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_SETUP);
 #endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
@@ -1458,10 +1458,10 @@ void bta_ag_sco_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     bta_sys_sco_open(BTA_ID_AG, p_scb->app_id, p_scb->peer_addr);
 
 #if (BTM_WBS_INCLUDED == TRUE)
-    bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_ON,
+    bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_ON,
                           p_scb->inuse_codec);
 #else
-    bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_ON);
+    bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_ON);
 #endif
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE )
@@ -1521,14 +1521,13 @@ void bta_ag_sco_conn_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 #endif
     else
     {
+        sco_state_t sco_state = bta_ag_cb.sco.p_xfer_scb ? SCO_STATE_OFF_TRANSFER : SCO_STATE_OFF;
 #if (BTM_WBS_INCLUDED == TRUE)
         /* Indicate if the closing of audio is because of transfer */
-        bta_ag_co_audio_state(handle, p_scb->app_id,(bta_ag_cb.sco.p_xfer_scb)?\
-        BTA_AG_CO_AUD_STATE_OFF_XFER:BTA_AG_CO_AUD_STATE_OFF,p_scb->inuse_codec);
+        bta_ag_co_audio_state(handle, p_scb->app_id, sco_state, p_scb->inuse_codec);
 #else
         /* Indicate if the closing of audio is because of transfer */
-        bta_ag_co_audio_state(handle, p_scb->app_id,(bta_ag_cb.sco.p_xfer_scb)?\
-        BTA_AG_CO_AUD_STATE_OFF_XFER:BTA_AG_CO_AUD_STATE_OFF);
+        bta_ag_co_audio_state(handle, p_scb->app_id, sco_state);
 #endif
         bta_ag_sco_event(p_scb, BTA_AG_SCO_CONN_CLOSE_E);
 
@@ -1608,11 +1607,11 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB *p_scb, tBTM_ESCO_CONN_REQ_EVT_DATA *p_data
 
 #if (BTM_WBS_INCLUDED == FALSE )
         /* Allow any platform specific pre-SCO set up to take place */
-        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP);
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_SETUP);
 #else
         /* When HS initiated SCO, it cannot be WBS. */
         /* Allow any platform specific pre-SCO set up to take place */
-        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, BTA_AG_CO_AUD_STATE_SETUP,
+        bta_ag_co_audio_state(bta_ag_scb_to_idx(p_scb), p_scb->app_id, SCO_STATE_SETUP,
                               BTA_AG_CODEC_CVSD);
 #endif
 

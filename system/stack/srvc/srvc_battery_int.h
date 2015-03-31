@@ -60,9 +60,9 @@ extern "C" {
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE
-GATT_API extern tBATTERY_CB battery_cb;
+extern tBATTERY_CB battery_cb;
 #else
-GATT_API extern tBATTERY_CB *battery_cb_ptr;
+extern tBATTERY_CB *battery_cb_ptr;
 #define battery_cb (*battery_cb_ptr)
 #endif
 

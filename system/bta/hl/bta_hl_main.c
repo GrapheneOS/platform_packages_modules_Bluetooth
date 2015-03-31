@@ -33,7 +33,6 @@
 #include "bta_hl_int.h"
 #include "gki.h"
 #include "utl.h"
-#include "bd.h"
 #include "l2c_api.h"
 #include "mca_defs.h"
 
@@ -1565,13 +1564,11 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR( app_idx);
     tBTA_HL_MCL_CB      *p_mcb =  BTA_HL_GET_MCL_CB_PTR( app_idx,  mcl_idx);
     tBTA_HL_SDP         *p_sdp=NULL;
-    tBTA_HL_SDP_OPER    sdp_oper;
     UINT16              event;
     BOOLEAN             release_sdp_buf=FALSE;
     UNUSED(p_cb);
 
     event = p_data->hdr.event;
-    sdp_oper = p_mcb->sdp_oper;
 
     if ( event == BTA_HL_SDP_QUERY_OK_EVT)
     {

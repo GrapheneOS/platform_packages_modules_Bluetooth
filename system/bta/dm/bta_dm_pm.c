@@ -24,7 +24,6 @@
  ******************************************************************************/
 
 #include "gki.h"
-#include "bd.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"
@@ -154,8 +153,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 {
 
     UINT8 i,j;
-    tBTM_STATUS btm_status;
-    tBTM_VERSION_INFO vers;
+    UINT16 policy_setting;
 #if (BTM_SSR_INCLUDED == TRUE)
     int               index = BTA_DM_PM_SSR0;
 #endif
@@ -163,20 +161,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 
     APPL_TRACE_DEBUG("bta_dm_pm_cback: st(%d), id(%d), app(%d)", status, id, app_id);
 
-    btm_status = BTM_ReadLocalVersion (&vers);
     p_dev = bta_dm_find_peer_device(peer_addr);
-
-    /* Disable/Enable sniff policy on the SCO link if sco Up/Down. Will be removed in 2.2*/
-    if ((p_dev) &&
-        ((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) )
-    {
-        if ((btm_status == BTM_SUCCESS) &&
-            (vers.manufacturer ==  LMP_COMPID_BROADCOM) &&
-            (vers.hci_version < HCI_PROTO_VERSION_2_0))
-        {
-            bta_dm_pm_set_sniff_policy(p_dev, (status == BTA_SYS_SCO_OPEN));
-        }
-    }
 
     /* find if there is an power mode entry for the service */
     for(i=1; i<=p_bta_dm_pm_cfg[0].app_id; i++)
@@ -293,7 +278,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
     ** 2. If HID connection open is received and SCO is already active.
     **     This will handle the case where HID connects when SCO already active
     */
-    if ( (btm_status == BTM_SUCCESS) &&
+    if ( BTM_IsDeviceUp() &&
          ( ((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) ||
            ((status == BTA_SYS_CONN_OPEN) && (id == BTA_ID_HH) && bta_dm_pm_is_sco_active()) ) )
     {

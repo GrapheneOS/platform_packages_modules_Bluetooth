@@ -89,6 +89,9 @@
  * send messages. */
 #define AVRC_BROWSE_UNCONG_IND_EVT     7
 
+/* AVRC_CMD_TIMEOUT_EVT event indicates timeout waiting for AVRC command response from the peer */
+#define AVRC_CMD_TIMEOUT_EVT           8
+
 /* Supported categories */
 #define AVRC_SUPF_CT_CAT1               0x0001      /* Category 1 */
 #define AVRC_SUPF_CT_CAT2               0x0002      /* Category 2 */
@@ -200,7 +203,7 @@ extern "C"
 **                  AVRC_NO_RESOURCES if not enough resources to build the SDP record.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
+extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
                 char *p_provider_name, UINT16 categories, UINT32 sdp_handle);
 
 /******************************************************************************
@@ -240,8 +243,8 @@ AVRC_API extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
 **                                    perform the service search.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
-                tAVRC_SDP_DB_PARAMS *p_db, tAVRC_FIND_CBACK *p_cback);
+extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
+                               tAVRC_SDP_DB_PARAMS *p_db, tAVRC_FIND_CBACK *p_cback);
 
 /******************************************************************************
 **
@@ -288,8 +291,8 @@ AVRC_API extern UINT16 AVRC_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 **                  the connection.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb,
-                                 BD_ADDR_PTR peer_addr);
+extern UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb,
+                        BD_ADDR_PTR peer_addr);
 
 /******************************************************************************
 **
@@ -309,7 +312,7 @@ AVRC_API extern UINT16 AVRC_Open(UINT8 *p_handle, tAVRC_CONN_CB *p_ccb,
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_Close(UINT8 handle);
+extern UINT16 AVRC_Close(UINT8 handle);
 
 /******************************************************************************
 **
@@ -325,7 +328,7 @@ AVRC_API extern UINT16 AVRC_Close(UINT8 handle);
 **                  the connection.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_OpenBrowse(UINT8 handle, UINT8 conn_role);
+extern UINT16 AVRC_OpenBrowse(UINT8 handle, UINT8 conn_role);
 
 /******************************************************************************
 **
@@ -339,7 +342,7 @@ AVRC_API extern UINT16 AVRC_OpenBrowse(UINT8 handle, UINT8 conn_role);
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_CloseBrowse(UINT8 handle);
+extern UINT16 AVRC_CloseBrowse(UINT8 handle);
 
 /******************************************************************************
 **
@@ -357,7 +360,7 @@ AVRC_API extern UINT16 AVRC_CloseBrowse(UINT8 handle);
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt);
+extern UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt);
 
 /******************************************************************************
 **
@@ -380,7 +383,7 @@ AVRC_API extern UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_H
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label);
+extern UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label);
 
 /******************************************************************************
 **
@@ -407,7 +410,7 @@ AVRC_API extern UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label);
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page);
+extern UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page);
 
 
 /******************************************************************************
@@ -433,7 +436,7 @@ AVRC_API extern UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page);
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg);
+extern UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg);
 
 /******************************************************************************
 **
@@ -460,7 +463,7 @@ AVRC_API extern UINT16 AVRC_PassCmd(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_PassRsp(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg);
+extern UINT16 AVRC_PassRsp(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p_msg);
 
 
 /******************************************************************************
@@ -486,7 +489,7 @@ AVRC_API extern UINT16 AVRC_PassRsp(UINT8 handle, UINT8 label, tAVRC_MSG_PASS *p
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_VendorCmd(UINT8  handle, UINT8  label, tAVRC_MSG_VENDOR *p_msg);
+extern UINT16 AVRC_VendorCmd(UINT8  handle, UINT8  label, tAVRC_MSG_VENDOR *p_msg);
 
 
 /******************************************************************************
@@ -514,7 +517,7 @@ AVRC_API extern UINT16 AVRC_VendorCmd(UINT8  handle, UINT8  label, tAVRC_MSG_VEN
 **                  AVRC_BAD_HANDLE if handle is invalid.
 **
 ******************************************************************************/
-AVRC_API extern UINT16 AVRC_VendorRsp(UINT8  handle, UINT8  label, tAVRC_MSG_VENDOR *p_msg);
+extern UINT16 AVRC_VendorRsp(UINT8  handle, UINT8  label, tAVRC_MSG_VENDOR *p_msg);
 
 
 /******************************************************************************
@@ -538,7 +541,7 @@ AVRC_API extern UINT16 AVRC_VendorRsp(UINT8  handle, UINT8  label, tAVRC_MSG_VEN
 **                  the input parameter is 0xff.
 **
 ******************************************************************************/
-AVRC_API extern UINT8 AVRC_SetTraceLevel (UINT8 new_level);
+extern UINT8 AVRC_SetTraceLevel (UINT8 new_level);
 
 /*******************************************************************************
 **
@@ -551,7 +554,7 @@ AVRC_API extern UINT8 AVRC_SetTraceLevel (UINT8 new_level);
 ** Returns          void
 **
 *******************************************************************************/
-AVRC_API extern void AVRC_Init(void);
+extern void AVRC_Init(void);
 
 /*******************************************************************************
 **
@@ -563,8 +566,8 @@ AVRC_API extern void AVRC_Init(void);
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-AVRC_API extern tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result,
-    UINT8 *p_buf, UINT16 buf_len);
+extern tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result,
+                                   UINT8 *p_buf, UINT16 buf_len);
 
 /*******************************************************************************
 **
@@ -576,8 +579,8 @@ AVRC_API extern tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_r
 **                  Otherwise, the error code defined by AVRCP 1.4
 **
 *******************************************************************************/
-AVRC_API extern tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result,
-    UINT8 *p_buf, UINT16 buf_len);
+extern tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result,
+                                    UINT8 *p_buf, UINT16 buf_len);
 
 /*******************************************************************************
 **
@@ -590,7 +593,7 @@ AVRC_API extern tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-AVRC_API extern tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt);
+extern tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt);
 
 /*******************************************************************************
 **
@@ -603,7 +606,7 @@ AVRC_API extern tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt
 **                  Otherwise, the error code.
 **
 *******************************************************************************/
-AVRC_API extern tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt);
+extern tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt);
 
 /**************************************************************************
 **
@@ -615,7 +618,7 @@ AVRC_API extern tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp,
 **
 **
 *******************************************************************************/
-AVRC_API extern BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type);
+extern BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type);
 
 /*******************************************************************************
 **
@@ -627,7 +630,7 @@ AVRC_API extern BOOLEAN AVRC_IsValidAvcType(UINT8 pdu_id, UINT8 avc_type);
 ** Returns          returns TRUE if it is valid
 **
 *******************************************************************************/
-AVRC_API extern BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr);
+extern BOOLEAN AVRC_IsValidPlayerAttr(UINT8 attr);
 
 #ifdef __cplusplus
 }

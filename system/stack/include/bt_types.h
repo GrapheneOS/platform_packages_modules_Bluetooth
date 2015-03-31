@@ -19,13 +19,37 @@
 #ifndef BT_TYPES_H
 #define BT_TYPES_H
 
-#include "data_types.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-#ifdef _WIN32
-#ifdef BLUESTACK_TESTER
-    #include "bte_stack_entry.h"
+#ifndef FALSE
+#  define FALSE  false
 #endif
+
+#ifndef TRUE
+#  define TRUE   true
 #endif
+
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
+
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef bool BOOLEAN;
+
+#ifdef __arm
+#  define PACKED  __packed
+#  define INLINE  __inline
+#else
+#  define PACKED
+#  define INLINE
+#endif
+
+#define BCM_STRCPY_S(x1,x2,x3)      strcpy((x1),(x3))
+#define BCM_STRNCPY_S(x1,x2,x3,x4)  strncpy((x1),(x3),(x4))
 
 /* READ WELL !!
 **
@@ -87,14 +111,7 @@
 
 #define BT_EVT_TO_TCS_CMDS          0x3000
 
-#define BT_EVT_TO_OBX_CL_MSG        0x3100
-#define BT_EVT_TO_OBX_SR_MSG        0x3200
-
 #define BT_EVT_TO_CTP_CMDS          0x3300
-
-/* Obex Over L2CAP */
-#define BT_EVT_TO_OBX_CL_L2C_MSG    0x3400
-#define BT_EVT_TO_OBX_SR_L2C_MSG    0x3500
 
 /* ftp events */
 #define BT_EVT_TO_FTP_SRVR_CMDS     0x3600
@@ -109,16 +126,6 @@
 /* gap events */
 #define BT_EVT_TO_GAP_MSG           0x3b00
 
-/* start timer */
-#define BT_EVT_TO_START_TIMER       0x3c00
-
-/* stop timer */
-#define BT_EVT_TO_STOP_TIMER        0x3d00
-
-/* start quick timer */
-#define BT_EVT_TO_START_QUICK_TIMER 0x3e00
-
-
 /* for NFC                          */
                                                 /************************************/
 #define BT_EVT_TO_NFC_NCI           0x4000      /* NCI Command, Notification or Data*/
@@ -127,12 +134,6 @@
 #define BT_EVT_TO_NFC_ERR           0x4300      /* Error notification to NFC Task */
 
 #define BT_EVT_TO_NFCCSIM_NCI       0x4a00      /* events to NFCC simulation (NCI packets) */
-
-/* start timer */
-#define BT_EVT_TO_START_TIMER_ONESHOT 0x4c00
-
-/* stop timer */
-#define BT_EVT_TO_STOP_TIMER_ONESHOT  0x4d00
 
 /* HCISU Events */
 
@@ -195,11 +196,6 @@
 /* BTIF Events */
 #define BT_EVT_BTIF                 0xA000
 #define BT_EVT_CONTEXT_SWITCH_EVT  (0x0001 | BT_EVT_BTIF)
-
-#define BT_EVT_TRIGGER_STACK_INIT   EVENT_MASK(APPL_EVT_0)
-#define BT_EVT_HARDWARE_INIT_FAIL   EVENT_MASK(APPL_EVT_1)
-
-#define BT_EVT_PRELOAD_CMPL         EVENT_MASK(APPL_EVT_6)
 
 /* Define the header of each buffer used in the Bluetooth stack.
 */
@@ -268,6 +264,9 @@ typedef struct
 #define STREAM_TO_LAP(a, p)      {register int ijk; register UINT8 *plap = (UINT8 *)a + LAP_LEN - 1; for (ijk = 0; ijk < LAP_LEN; ijk++) *plap-- = *p++;}
 #define STREAM_TO_ARRAY(a, p, len) {register int ijk; for (ijk = 0; ijk < len; ijk++) ((UINT8 *) a)[ijk] = *p++;}
 #define REVERSE_STREAM_TO_ARRAY(a, p, len) {register int ijk; register UINT8 *_pa = (UINT8 *)a + len - 1; for (ijk = 0; ijk < len; ijk++) *_pa-- = *p++;}
+
+#define STREAM_SKIP_UINT8(p)  do { (p) += 1; } while (0)
+#define STREAM_SKIP_UINT16(p) do { (p) += 2; } while (0)
 
 /********************************************************************************
 ** Macros to get and put bytes to and from a field (Little Endian format).
@@ -568,8 +567,6 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_LAYER_OBEX            0x000c0000
 #define TRACE_LAYER_BTM             0x000d0000
 #define TRACE_LAYER_GAP             0x000e0000
-#define TRACE_LAYER_DUN             0x000f0000
-#define TRACE_LAYER_GOEP            0x00100000
 #define TRACE_LAYER_ICP             0x00110000
 #define TRACE_LAYER_HSP2            0x00120000
 #define TRACE_LAYER_SPP             0x00130000
@@ -702,5 +699,99 @@ typedef UINT8 tBT_DEVICE_TYPE;
 /* Define a function for logging */
 typedef void (BT_LOG_FUNC) (int trace_type, const char *fmt_str, ...);
 
+/* bd addr length and type */
+#ifndef BD_ADDR_LEN
+#define BD_ADDR_LEN     6
+typedef uint8_t BD_ADDR[BD_ADDR_LEN];
 #endif
+
+// From bd.c
+
+/*****************************************************************************
+**  Constants
+*****************************************************************************/
+
+/* global constant for "any" bd addr */
+static const BD_ADDR bd_addr_any = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+static const BD_ADDR bd_addr_null= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+/*****************************************************************************
+**  Functions
+*****************************************************************************/
+
+/*******************************************************************************
+**
+** Function         bdcpy
+**
+** Description      Copy bd addr b to a.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+inline void bdcpy(BD_ADDR a, const BD_ADDR b)
+{
+    int i;
+
+    for (i = BD_ADDR_LEN; i != 0; i--)
+    {
+        *a++ = *b++;
+    }
+}
+
+/*******************************************************************************
+**
+** Function         bdcmp
+**
+** Description      Compare bd addr b to a.
+**
+**
+** Returns          Zero if b==a, nonzero otherwise (like memcmp).
+**
+*******************************************************************************/
+inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
+{
+    int i;
+
+    for (i = BD_ADDR_LEN; i != 0; i--)
+    {
+        if (*a++ != *b++)
+        {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+/*******************************************************************************
+**
+** Function         bdcmpany
+**
+** Description      Compare bd addr to "any" bd addr.
+**
+**
+** Returns          Zero if a equals bd_addr_any.
+**
+*******************************************************************************/
+static inline int bdcmpany(const BD_ADDR a)
+{
+    return bdcmp(a, bd_addr_any);
+}
+
+/*******************************************************************************
+**
+** Function         bdsetany
+**
+** Description      Set bd addr to "any" bd addr.
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static inline void bdsetany(BD_ADDR a)
+{
+    bdcpy(a, bd_addr_any);
+}
+#endif
+
 

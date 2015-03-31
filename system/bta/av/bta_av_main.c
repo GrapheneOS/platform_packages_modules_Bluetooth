@@ -22,13 +22,15 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
-#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
-
+#include <assert.h>
 #include <string.h>
+
+#include "bt_target.h"
+#include "osi/include/log.h"
+
+#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 #include "bta_av_int.h"
 #include "utl.h"
-#include "bd.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "bta_av_co.h"
@@ -384,6 +386,7 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
                     p_ret->chnl = chnl;
                     p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
                     p_ret->hdi  = xx;
+                    p_ret->a2d_list = list_new(NULL);
                     bta_av_cb.p_scb[xx] = p_ret;
                 }
                 break;
@@ -391,6 +394,25 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
         }
     }
     return p_ret;
+}
+
+/*******************************************************************************
+**
+** Function         bta_av_free_scb
+**
+** Description      free stream control block,
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_av_free_scb(tBTA_AV_SCB *p_scb)
+{
+    // NOTE(google) This free currently is not called
+    assert(p_scb != NULL);
+
+    list_free(p_scb->a2d_list);
+    GKI_freebuf(p_scb);
 }
 
 /*******************************************************************************
@@ -1097,11 +1119,12 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 {
     UINT8 role;
     BOOLEAN is_ok = TRUE;
-    BOOLEAN need_timer = FALSE;
 
     if (BTM_GetRole(p_scb->peer_addr, &role) == BTM_SUCCESS)
     {
-        APPL_TRACE_ERROR("bta_av_link_role_ok hndl:x%x role:%d, conn_audio:x%x, bits:%d, features:x%x", p_scb->hndl, role, bta_av_cb.conn_audio, bits, bta_av_cb.features);
+        LOG_INFO("%s hndl:x%x role:%d conn_audio:x%x bits:%d features:x%x",
+                __func__, p_scb->hndl, role, bta_av_cb.conn_audio, bits,
+                bta_av_cb.features);
         if (BTM_ROLE_MASTER != role && (A2D_BitsSet(bta_av_cb.conn_audio) > bits || (bta_av_cb.features & BTA_AV_FEAT_MASTER)))
         {
             if (bta_av_cb.features & BTA_AV_FEAT_MASTER)
@@ -1110,7 +1133,6 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
             if (BTM_CMD_STARTED != BTM_SwitchRole(p_scb->peer_addr, BTM_ROLE_MASTER, NULL))
             {
                 /* can not switch role on SCB - start the timer on SCB */
-                need_timer = TRUE;
             }
             is_ok = FALSE;
             p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_START;
@@ -1179,7 +1201,6 @@ UINT16 bta_av_chk_mtu(tBTA_AV_SCB *p_scb, UINT16 mtu)
 void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 {
     tBTA_AV_SCB *p_scbi;
-    BUFFER_Q    *pq;
     int     i;
     UINT16  size, copy_size;
     BT_HDR *p_new;
@@ -1204,12 +1225,13 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
                 if(p_new)
                 {
                     memcpy(p_new, p_buf, copy_size);
-                    pq = &p_scbi->q_info.a2d;
-                    GKI_enqueue(pq, p_new);
-                    if(pq->count > p_bta_av_cfg->audio_mqs)
-                    {
+                    list_append(p_scbi->a2d_list, p_new);
+                    if (list_length(p_scbi->a2d_list) >  p_bta_av_cfg->audio_mqs) {
+                        // Drop the oldest packet
                         bta_av_co_audio_drop(p_scbi->hndl);
-                        GKI_freebuf(GKI_dequeue(pq));
+                        BT_HDR *p_buf = list_front(p_scbi->a2d_list);
+                        list_remove(p_scbi->a2d_list, p_buf);
+                        GKI_freebuf(p_buf);
                     }
                 }
             }

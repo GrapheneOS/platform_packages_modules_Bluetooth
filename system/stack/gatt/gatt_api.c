@@ -1323,7 +1323,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
 **
 ** Parameter        gatt_if: applicaiton interface.
 **
-** Returns          0 for error, otherwise the index of the client registered with GATT
+** Returns          None.
 **
 *******************************************************************************/
 void GATT_StartIf (tGATT_IF gatt_if)
@@ -1338,7 +1338,6 @@ void GATT_StartIf (tGATT_IF gatt_if)
     GATT_TRACE_API ("GATT_StartIf gatt_if=%d", gatt_if);
     if ((p_reg = gatt_get_regcb(gatt_if)) != NULL)
     {
-        p_reg = &gatt_cb.cl_rcb[gatt_if - 1];
         start_idx = 0;
         while (gatt_find_the_connected_bda(start_idx, bda, &found_idx, &transport))
         {
@@ -1602,7 +1601,6 @@ BOOLEAN GATT_GetConnIdIfConnected(tGATT_IF gatt_if, BD_ADDR bd_addr, UINT16 *p_c
 BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
 {
     tGATT_REG    *p_reg;
-    BOOLEAN status = TRUE;
 
     GATT_TRACE_API ("GATT_Listen gatt_if=%d", gatt_if);
 
@@ -1615,7 +1613,7 @@ BOOLEAN GATT_Listen (tGATT_IF gatt_if, BOOLEAN start, BD_ADDR_PTR bd_addr)
 
     if (bd_addr != NULL)
     {
-        status = gatt_update_auto_connect_dev(gatt_if,start, bd_addr, FALSE);
+        gatt_update_auto_connect_dev(gatt_if,start, bd_addr, FALSE);
     }
     else
     {

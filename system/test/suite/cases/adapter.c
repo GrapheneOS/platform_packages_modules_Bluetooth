@@ -19,7 +19,7 @@
 #include "base.h"
 #include "support/adapter.h"
 #include "support/callbacks.h"
-#include "support/property.h"
+#include "btcore/include/property.h"
 
 bool adapter_enable_disable() {
   int error;
@@ -52,7 +52,7 @@ bool adapter_set_name() {
   TASSERT(error == BT_STATUS_SUCCESS, "Error setting device name.");
   TASSERT(adapter_get_property_count() == 1, "Expected 1 adapter property change, found %d instead.", adapter_get_property_count());
   TASSERT(adapter_get_property(BT_PROPERTY_BDNAME), "The Bluetooth name property did not change.");
-  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME)));
+  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_as_name(adapter_get_property(BT_PROPERTY_BDNAME))->name);
 
   property_free(name);
 
@@ -68,7 +68,7 @@ bool adapter_get_name() {
   TASSERT(error == BT_STATUS_SUCCESS, "Error getting device name.");
   TASSERT(adapter_get_property_count() == 1, "Expected 1 adapter property change, found %d instead.", adapter_get_property_count());
   TASSERT(adapter_get_property(BT_PROPERTY_BDNAME), "The Bluetooth name property did not change.");
-  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_extract_name(adapter_get_property(BT_PROPERTY_BDNAME)));
+  TASSERT(property_equals(adapter_get_property(BT_PROPERTY_BDNAME), name), "Bluetooth name '%s' does not match test value", property_as_name(adapter_get_property(BT_PROPERTY_BDNAME))->name);
 
   property_free(name);
   return true;

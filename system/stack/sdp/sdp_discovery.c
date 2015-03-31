@@ -194,23 +194,6 @@ static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * 
 *******************************************************************************/
 void sdp_disc_connected (tCONN_CB *p_ccb)
 {
-
-#if SDP_FOR_JV_INCLUDED == TRUE
-    if (SDP_IS_PASS_THRU == p_ccb->is_attr_search)
-    {
-        tSDP_DISC_RES_CB *p_rcb = (tSDP_DISC_RES_CB *) p_ccb->p_db;
-        tSDP_DR_OPEN    evt_data;
-        /* report connected */
-        p_ccb->disc_state = SDP_DISC_WAIT_PASS_THRU;
-        if (p_rcb)
-        {
-            memcpy(evt_data.peer_addr, p_ccb->device_address, BD_ADDR_LEN);
-            evt_data.peer_mtu = p_ccb->rem_mtu_size;
-            (*p_rcb)(SDP_EVT_OPEN, (void *)&evt_data);
-        }
-    }
-    else
-#endif
     if (p_ccb->is_attr_search)
     {
         p_ccb->disc_state = SDP_DISC_WAIT_SEARCH_ATTR;
@@ -250,21 +233,6 @@ void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg)
 
     /* stop inactivity timer when we receive a response */
     btu_stop_timer (&p_ccb->timer_entry);
-
-#if SDP_FOR_JV_INCLUDED == TRUE
-    if(SDP_IS_PASS_THRU == p_ccb->is_attr_search)
-    {
-        tSDP_DISC_RES_CB    *p_rcb = (tSDP_DISC_RES_CB *) p_ccb->p_db;
-        tSDP_DR_DATA        data;
-        if (p_rcb)
-        {
-            data.p_data   = (UINT8 *)(p_msg + 1) + p_msg->offset;
-            data.data_len = p_msg->len;
-            (*p_rcb)(SDP_EVT_DATA_IND, (void *)&data);
-        }
-        return;
-    }
-#endif
 
     /* Got a reply!! Check what we got back */
     p = (UINT8 *)(p_msg + 1) + p_msg->offset;
@@ -383,7 +351,6 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
     unsigned int    cpy_len;
     UINT32          list_len;
     UINT8           *p;
-    UINT8           * p_temp;
     UINT8           type;
 
 #if (SDP_DEBUG_RAW == TRUE)
@@ -401,7 +368,7 @@ static void sdp_copy_raw_data (tCONN_CB *p_ccb, BOOLEAN offset)
     {
         cpy_len = p_ccb->p_db->raw_size - p_ccb->p_db->raw_used;
         list_len = p_ccb->list_len;
-        p_temp = p = &p_ccb->rsp_list[0];
+        p = &p_ccb->rsp_list[0];
 
         if(offset)
         {

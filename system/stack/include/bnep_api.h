@@ -242,7 +242,7 @@ extern "C" {
 **                  BNEP_FAILURE        if connection state callback is missing
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
+extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
 
 /*******************************************************************************
 **
@@ -257,7 +257,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Register (tBNEP_REGISTER *p_reg_info);
 ** Returns          void
 **
 *******************************************************************************/
-BNEP_API extern void BNEP_Deregister (void);
+extern void BNEP_Deregister (void);
 
 
 /*******************************************************************************
@@ -276,10 +276,10 @@ BNEP_API extern void BNEP_Deregister (void);
 **                  BNEP_NO_RESOURCES           if no resources
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
-                                         tBT_UUID *src_uuid,
-                                         tBT_UUID *dst_uuid,
-                                         UINT16 *p_handle);
+extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
+                                  tBT_UUID *src_uuid,
+                                  tBT_UUID *dst_uuid,
+                                  UINT16 *p_handle);
 
 /*******************************************************************************
 **
@@ -296,7 +296,7 @@ BNEP_API extern tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
 **                  BNEP_WRONG_STATE            if the responce is not expected
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp);
+extern tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp);
 
 /*******************************************************************************
 **
@@ -310,7 +310,7 @@ BNEP_API extern tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
 **                  BNEP_WRONG_HANDLE           if no connection is not found
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_Disconnect (UINT16 handle);
+extern tBNEP_RESULT BNEP_Disconnect (UINT16 handle);
 
 /*******************************************************************************
 **
@@ -333,12 +333,12 @@ BNEP_API extern tBNEP_RESULT BNEP_Disconnect (UINT16 handle);
 **                  BNEP_SUCCESS            - If written successfully
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
-                                          UINT8 *p_dest_addr,
-                                          BT_HDR *p_buf,
-                                          UINT16 protocol,
-                                          UINT8 *p_src_addr,
-                                          BOOLEAN fw_ext_present);
+extern tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
+                                   UINT8 *p_dest_addr,
+                                   BT_HDR *p_buf,
+                                   UINT16 protocol,
+                                   UINT8 *p_src_addr,
+                                   BOOLEAN fw_ext_present);
 
 /*******************************************************************************
 **
@@ -362,13 +362,13 @@ BNEP_API extern tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 **                  BNEP_SUCCESS            - If written successfully
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT  BNEP_Write (UINT16 handle,
-                                        UINT8 *p_dest_addr,
-                                        UINT8 *p_data,
-                                        UINT16 len,
-                                        UINT16 protocol,
-                                        UINT8 *p_src_addr,
-                                        BOOLEAN fw_ext_present);
+extern tBNEP_RESULT  BNEP_Write (UINT16 handle,
+                                 UINT8 *p_dest_addr,
+                                 UINT8 *p_data,
+                                 UINT16 len,
+                                 UINT16 protocol,
+                                 UINT8 *p_src_addr,
+                                 BOOLEAN fw_ext_present);
 
 /*******************************************************************************
 **
@@ -387,10 +387,10 @@ BNEP_API extern tBNEP_RESULT  BNEP_Write (UINT16 handle,
 **                  BNEP_SUCCESS                - if request sent successfully
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
-                                                    UINT16 num_filters,
-                                                    UINT16 *p_start_array,
-                                                    UINT16 *p_end_array);
+extern tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
+                                             UINT16 num_filters,
+                                             UINT16 *p_start_array,
+                                             UINT16 *p_end_array);
 
 /*******************************************************************************
 **
@@ -411,22 +411,10 @@ BNEP_API extern tBNEP_RESULT BNEP_SetProtocolFilters (UINT16 handle,
 **                  BNEP_SUCCESS                - if request sent successfully
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
-                                                     UINT16 num_filters,
-                                                     UINT8 *p_start_array,
-                                                     UINT8 *p_end_array);
-
-/*******************************************************************************
-**
-** Function         BNEP_GetMyBdAddr
-**
-** Description      This function returns a pointer to the local device BD address.
-**                  If the BD address has not been read yet, it returns NULL.
-**
-** Returns          the BD address
-**
-*******************************************************************************/
-BNEP_API extern UINT8 *BNEP_GetMyBdAddr (void);
+extern tBNEP_RESULT BNEP_SetMulticastFilters (UINT16 handle,
+                                              UINT16 num_filters,
+                                              UINT8 *p_start_array,
+                                              UINT8 *p_end_array);
 
 /*******************************************************************************
 **
@@ -438,7 +426,7 @@ BNEP_API extern UINT8 *BNEP_GetMyBdAddr (void);
 ** Returns          the new (current) trace level
 **
 *******************************************************************************/
-BNEP_API extern UINT8 BNEP_SetTraceLevel (UINT8 new_level);
+extern UINT8 BNEP_SetTraceLevel (UINT8 new_level);
 
 /*******************************************************************************
 **
@@ -450,7 +438,7 @@ BNEP_API extern UINT8 BNEP_SetTraceLevel (UINT8 new_level);
 ** Returns          void
 **
 *******************************************************************************/
-BNEP_API extern void BNEP_Init (void);
+extern void BNEP_Init (void);
 
 /*******************************************************************************
 **
@@ -464,7 +452,7 @@ BNEP_API extern void BNEP_Init (void);
 **                  BNEP_WRONG_STATE        - if not in connected state
 **
 *******************************************************************************/
-BNEP_API extern tBNEP_RESULT BNEP_GetStatus (UINT16 handle, tBNEP_STATUS *p_status);
+extern tBNEP_RESULT BNEP_GetStatus (UINT16 handle, tBNEP_STATUS *p_status);
 
 
 

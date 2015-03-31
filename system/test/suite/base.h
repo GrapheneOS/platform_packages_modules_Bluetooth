@@ -24,7 +24,9 @@
 #include <string.h>
 
 #include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 #include <hardware/bt_pan.h>
+#include <hardware/bt_sock.h>
 #include <hardware/hardware.h>
 
 #ifndef ARRAY_SIZE

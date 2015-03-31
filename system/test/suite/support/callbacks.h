@@ -49,4 +49,5 @@ void callbacks_cleanup();
 
 bt_callbacks_t *callbacks_get_adapter_struct();
 btpan_callbacks_t *callbacks_get_pan_struct();
+btgatt_callbacks_t *callbacks_get_gatt_struct();
 sem_t *callbacks_get_semaphore(const char *name);

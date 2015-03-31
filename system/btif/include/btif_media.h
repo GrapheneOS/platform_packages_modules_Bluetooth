@@ -27,8 +27,9 @@
 #ifndef BTIF_MEDIA_H
 #define BTIF_MEDIA_H
 
+#include <stdbool.h>
+
 #include "bta_api.h"
-#include "bd.h"
 #include "gki.h"
 #include "btif_av_api.h"
 #include "audio_a2dp_hw.h"
@@ -111,7 +112,7 @@ typedef struct
  ** Returns          void
  **
  *******************************************************************************/
-extern int btif_media_task(void *p);
+extern void btif_media_task(void);
 
 /*******************************************************************************
  **
@@ -256,7 +257,7 @@ extern void dump_codec_info(unsigned char *p_codec);
  * Local adaptation helper functions between btif and media task
  */
 
-int btif_a2dp_start_media_task(void);
+bool btif_a2dp_start_media_task(void);
 void btif_a2dp_stop_media_task(void);
 
 void btif_a2dp_on_init(void);
@@ -273,7 +274,6 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable);
 void btif_a2dp_set_rx_flush(BOOLEAN enable);
 void btif_media_check_iop_exceptions(UINT8 *peer_bda);
 void btif_reset_decoder(UINT8 *p_av);
-BOOLEAN btif_media_task_start_decoding_req(void);
 
 int btif_a2dp_get_track_frequency(UINT8 frequency);
 int btif_a2dp_get_track_channel_count(UINT8 channeltype);

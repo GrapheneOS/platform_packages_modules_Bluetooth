@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "avdt_api.h"
@@ -247,7 +247,6 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     UINT8   marker;
     UINT16  seq;
     UINT32  time_stamp;
-    UINT32  ssrc;
     UINT16  offset;
     UINT16  ex_len;
     UINT8   pad_len = 0;
@@ -259,7 +258,9 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     AVDT_MSG_PRS_M_PT(p, m_pt, marker);
     BE_STREAM_TO_UINT16(seq, p);
     BE_STREAM_TO_UINT32(time_stamp, p);
-    BE_STREAM_TO_UINT32(ssrc, p);
+    p += 4;
+
+    UNUSED(o_v);
 
     /* skip over any csrc's in packet */
     p += o_cc * 4;
@@ -336,7 +337,6 @@ UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
     UINT8   *p_start = p;
     UINT32  ssrc;
     UINT8   o_v, o_p, o_cc;
-    UINT16  pkt_len;
     AVDT_REPORT_TYPE    pt;
     tAVDT_REPORT_DATA   report, *p_rpt;
 
@@ -347,8 +347,11 @@ UINT8 * avdt_scb_hdl_report(tAVDT_SCB *p_scb, UINT8 *p, UINT16 len)
         /* parse report packet header */
         AVDT_MSG_PRS_RPT_OCTET1(p, o_v, o_p, o_cc);
         pt = *p++;
-        BE_STREAM_TO_UINT16(pkt_len, p);
+        p += 2;
         BE_STREAM_TO_UINT32(ssrc, p);
+
+        UNUSED(o_p);
+        UNUSED(o_v);
 
         switch(pt)
         {
@@ -572,6 +575,9 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             BE_STREAM_TO_UINT16(seq, p_payload);
             BE_STREAM_TO_UINT32(time_stamp, p_payload);
             BE_STREAM_TO_UINT32(ssrc, p_payload);
+
+            UNUSED(o_v);
+            UNUSED(ssrc);
 
             /* skip over any csrc's in packet */
             p_payload += o_cc * 4;
@@ -1421,7 +1427,7 @@ void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     BT_HDR          *p_frag;
 
     AVDT_TRACE_WARNING("avdt_scb_snd_stream_close c:%d, off:%d",
-        p_scb->frag_q.count, p_scb->frag_off);
+        GKI_queue_length(&p_scb->frag_q), p_scb->frag_off);
     /* clean fragments queue */
     while((p_frag = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
          GKI_freebuf(p_frag);

@@ -32,8 +32,8 @@
 #include "bta_sys.h"
 #include "bta_gattc_int.h"
 #include "l2c_api.h"
-#include "bd.h"
 
+#define LOG_TAG "bt_bta_gattc"
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -410,7 +410,7 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 
     if (p_tcb != NULL)
     {
-        while (p_tcb->cache_buffer.p_first)
+        while (!GKI_queue_is_empty(&p_tcb->cache_buffer))
             GKI_freebuf (GKI_dequeue (&p_tcb->cache_buffer));
 
         utl_freebuf((void **)&p_tcb->p_srvc_list);
@@ -710,7 +710,10 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
     }
     if (!add)
     {
-        APPL_TRACE_ERROR("Do not find the bg connection mask for the remote device");
+        uint8_t *bda = (uint8_t *)remote_bda_ptr;
+        APPL_TRACE_ERROR("%s unable to find the bg connection mask for"
+            " bd_addr:%02x:%02x:%02x:%02x:%02x:%02x", __func__,
+            bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
         return FALSE;
     }
     else /* adding a new device mask */

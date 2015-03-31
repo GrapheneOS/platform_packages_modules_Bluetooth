@@ -30,12 +30,15 @@
 #include "bta_av_api.h"
 #include "bta_av_int.h"
 #include "avdt_api.h"
-#include "bd.h"
 #include "utl.h"
 #include "l2c_api.h"
+#include "osi/include/list.h"
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
+
+#define LOG_TAG "bt_bta_av"
+#include "osi/include/log.h"
 
 /*****************************************************************************
 **  Constants
@@ -500,7 +503,7 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             p_scb->rc_handle = p_data->rc_conn_chg.handle;
             APPL_TRACE_DEBUG("bta_av_rc_opened shdl:%d, srch %d", i + 1, p_scb->rc_handle);
             shdl = i+1;
-            APPL_TRACE_ERROR("use_rc:%d", p_scb->use_rc);
+            LOG_INFO("%s allow incoming AVRCP connections:%d", __func__, p_scb->use_rc);
             bta_sys_stop_timer(&p_scb->timer);
             disc = p_scb->hndl;
             break;
@@ -869,7 +872,6 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     tAVRC_MSG_VENDOR    *p_vendor = &p_data->rc_msg.msg.vendor;
     BOOLEAN is_inquiry = ((p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_SPEC_INQ) || p_data->rc_msg.msg.hdr.ctype == AVRC_CMD_GEN_INQ);
 #if (AVRC_METADATA_INCLUDED == TRUE)
-    tAVRC_STS   res;
     UINT8       ctype = 0;
     tAVRC_RESPONSE  rc_rsp;
 
@@ -997,7 +999,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         if (!p_pkt)
         {
             rc_rsp.rsp.opcode = p_data->rc_msg.opcode;
-            res = AVRC_BldResponse (0, &rc_rsp, &p_pkt);
+            AVRC_BldResponse (0, &rc_rsp, &p_pkt);
         }
         if (p_pkt)
             AVRC_MsgReq (p_data->rc_msg.handle, p_data->rc_msg.label, ctype, p_pkt);
@@ -1981,11 +1983,13 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
             }
             p_cb->conn_audio &= ~mask;
 
-            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM)
-            {
-            /* make sure no buffers are in q_info.a2d */
-            while((p_buf = (BT_HDR*)GKI_dequeue (&p_scb->q_info.a2d)) != NULL)
-                GKI_freebuf(p_buf);
+            if (p_scb->q_tag == BTA_AV_Q_TAG_STREAM && p_scb->a2d_list) {
+                /* make sure no buffers are in a2d_list */
+                while (!list_is_empty(p_scb->a2d_list)) {
+                    p_buf = (BT_HDR*)list_front(p_scb->a2d_list);
+                    list_remove(p_scb->a2d_list, p_buf);
+                    GKI_freebuf(p_buf);
+                }
             }
 
             /* remove the A2DP SDP record, if no more audio stream is left */

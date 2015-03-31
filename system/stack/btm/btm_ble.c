@@ -39,6 +39,8 @@
 #include "bt_utils.h"
 
 #include "vendor_ble.h"
+#define LOG_TAG "bt_btm_ble"
+#include "osi/include/log.h"
 
 #if SMP_INCLUDED == TRUE
 extern BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length, UINT16 tlen, UINT8 *p_signature);
@@ -1509,13 +1511,13 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 {
     UINT8   *p = (UINT8 *)p_data;
     tBTM_SEC_DEV_REC    *match_rec = (tBTM_SEC_DEV_REC *) p_rec;
-    UINT8       role, status, bda_type;
+    UINT8       role, bda_type;
     UINT16      handle;
     BD_ADDR     bda;
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
 
-    STREAM_TO_UINT8   (status, p);
+    ++p;
     STREAM_TO_UINT16   (handle, p);
     STREAM_TO_UINT8    (role, p);
     STREAM_TO_UINT8    (bda_type, p);
@@ -1526,11 +1528,11 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 
     handle = HCID_GET_HANDLE (handle);
 
-    BTM_TRACE_EVENT ("btm_ble_resolve_random_addr_master_cmpl");
+    BTM_TRACE_EVENT ("%s", __func__);
 
     if (match_rec)
     {
-        BTM_TRACE_ERROR("Random match");
+        LOG_INFO("%s matched and resolved random address", __func__);
         match = TRUE;
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
@@ -1538,7 +1540,7 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
     }
     else
     {
-        BTM_TRACE_ERROR("Random unmatch");
+        LOG_INFO("%s unable to match and resolve random address", __func__);
     }
 
     btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);
@@ -1746,6 +1748,11 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                 p_dev_rec->sec_flags |= BTM_SEC_LE_AUTHENTICATED;
 
             case SMP_SEC_REQUEST_EVT:
+                if (event == SMP_SEC_REQUEST_EVT && btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
+                {
+                    BTM_TRACE_DEBUG("%s: Ignoring SMP Security request", __func__);
+                    break;
+                }
                 memcpy (btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN);
                 p_dev_rec->sec_state = BTM_SEC_STATE_AUTHENTICATING;
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_LE_ACTIVE;
@@ -1800,10 +1807,13 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
                     BTM_TRACE_DEBUG ("btm_cb.pairing_bda %02x:%02x:%02x:%02x:%02x:%02x",
                                       btm_cb.pairing_bda[0], btm_cb.pairing_bda[1], btm_cb.pairing_bda[2],
                                       btm_cb.pairing_bda[3], btm_cb.pairing_bda[4], btm_cb.pairing_bda[5]);
-
-                    memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
-                    btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
-                    btm_cb.pairing_flags = 0;
+                    /* Reset btm state only if the callback address matches pairing address*/
+                    if(memcmp(bd_addr, btm_cb.pairing_bda, BD_ADDR_LEN) == 0)
+                    {
+                        memset (btm_cb.pairing_bda, 0xff, BD_ADDR_LEN);
+                        btm_cb.pairing_state = BTM_PAIR_STATE_IDLE;
+                        btm_cb.pairing_flags = 0;
+                    }
                 }
                 break;
 

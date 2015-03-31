@@ -31,8 +31,9 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BtGatt.btif"
+#define LOG_TAG "bt_btif_gattc"
 
+#include "btcore/include/bdaddr.h"
 #include "btif_common.h"
 #include "btif_util.h"
 
@@ -42,7 +43,6 @@
 #include <hardware/bt_gatt.h>
 #include "bta_api.h"
 #include "bta_gatt_api.h"
-#include "bd.h"
 #include "btif_storage.h"
 #include "btif_config.h"
 
@@ -51,6 +51,7 @@
 #include "btif_dm.h"
 #include "btif_storage.h"
 
+#include "osi/include/log.h"
 #include "vendor_api.h"
 
 /*******************************************************************************
@@ -59,10 +60,10 @@
 
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
-        BTIF_TRACE_WARNING("%s: BTGATT not initialized", __FUNCTION__);\
+        LOG_WARN("%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        BTIF_TRACE_DEBUG("%s", __FUNCTION__);\
+        LOG_DEBUG("%s", __FUNCTION__);\
     }
 
 #define BLE_RESOLVE_ADDR_MSB                 0x40   /* bit7, bit6 is 01 to be resolvable random */
@@ -345,7 +346,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
             memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
             p_dev_cb->addr_type = addr_type;
             p_dev_cb->remote_dev[i].in_use = TRUE;
-            BTIF_TRACE_DEBUG("%s device added idx=%d", __FUNCTION__, i  );
+            LOG_DEBUG("%s device added idx=%d", __FUNCTION__, i  );
             break;
         }
     }
@@ -356,7 +357,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
         memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
         p_dev_cb->addr_type = addr_type;
         p_dev_cb->remote_dev[i].in_use = TRUE;
-        BTIF_TRACE_DEBUG("%s device overwrite idx=%d", __FUNCTION__, i  );
+        LOG_DEBUG("%s device overwrite idx=%d", __FUNCTION__, i  );
         p_dev_cb->next_storage_idx++;
         if (p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
                p_dev_cb->next_storage_idx = 0;
@@ -383,12 +384,12 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
     uint8_t *p_eir_remote_name=NULL;
     bt_bdname_t bdname;
 
-    p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+    p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
     if (p_eir_remote_name == NULL)
     {
-        p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+        p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
     }
 
@@ -397,7 +398,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len]='\0';
 
-        BTIF_TRACE_DEBUG("%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
+        LOG_DEBUG("%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
               remote_name_len, p_btif_cb->device_type  );
         btif_dm_update_ble_remote_properties( p_btif_cb->bd_addr.address,   bdname.name,
                                                p_btif_cb->device_type);
@@ -408,7 +409,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
 
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
-    BTIF_TRACE_EVENT("%s: Event %d", __FUNCTION__, event);
+    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTC *p_data = (tBTA_GATTC*) p_param;
     switch (event)
@@ -550,7 +551,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         case BTA_GATTC_ACL_EVT:
-            BTIF_TRACE_EVENT("BTA_GATTC_ACL_EVT: status = %d", p_data->status);
+            LOG_DEBUG("BTA_GATTC_ACL_EVT: status = %d", p_data->status);
             /* Ignore for now */
             break;
 
@@ -565,12 +566,12 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             bt_device_type_t dev_type;
             bt_property_t properties;
 
-            p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+            p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
             if (p_eir_remote_name == NULL)
             {
-                p_eir_remote_name = BTA_CheckEirData(p_btif_cb->value,
+                p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
                                 BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
             }
 
@@ -578,13 +579,9 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             {
                if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
                {
-                  static const char* exclude_filter[] =
-                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
-
                   btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
                   btif_gattc_update_properties(p_btif_cb);
-                  btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
-                  BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
+
                }
 
             }
@@ -789,7 +786,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         default:
-            BTIF_TRACE_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
+            LOG_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
 
@@ -973,7 +970,7 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
             if (p_data->inq_res.p_eir)
             {
                 memcpy(btif_cb.value, p_data->inq_res.p_eir, 62);
-                if (BTA_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
+                if (BTM_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
                                       &len))
                 {
                     p_data->inq_res.remt_name_not_required  = TRUE;
@@ -1081,7 +1078,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
     if (!p_cb) return;
 
-    BTIF_TRACE_EVENT("%s: Event %d", __FUNCTION__, event);
+    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {
@@ -1475,7 +1472,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 }
 
                 default:
-                    BTIF_TRACE_ERROR("%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
+                    LOG_ERROR("%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
                     break;
             }
             break;
@@ -1669,7 +1666,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         }
 
         default:
-            BTIF_TRACE_ERROR("%s: Unknown event (%d)!", __FUNCTION__, event);
+            LOG_ERROR("%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
 }
@@ -2095,8 +2092,8 @@ static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
     int device_type = 0;
     char bd_addr_str[18] = {0};
 
-    bd2str(bd_addr, &bd_addr_str);
-    if (btif_config_get_int("Remote", bd_addr_str, "DevType", &device_type))
+    bdaddr_to_string(bd_addr, bd_addr_str, sizeof(bd_addr_str));
+    if (btif_config_get_int(bd_addr_str, "DevType", &device_type))
         return device_type;
     return 0;
 }

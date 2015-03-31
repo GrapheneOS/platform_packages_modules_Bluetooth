@@ -32,8 +32,6 @@
 
 #include "gki.h"
 #include "utl.h"
-#include "bd.h"
-#include "bta_fs_api.h"
 #include "bta_hl_int.h"
 #include "bta_hl_co.h"
 #include "mca_defs.h"
@@ -147,7 +145,7 @@ UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size)
 {
     UINT8 pool_id;
 
-    if (max_tx_size > GKI_get_pool_bufsize (OBX_FCR_TX_POOL_ID))
+    if (max_tx_size > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
     {
         pool_id = BTA_HL_LRG_DATA_POOL_ID;
     }
@@ -158,7 +156,7 @@ UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size)
 
 #if BTA_HL_DEBUG == TRUE
     APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d max_tx_size=%d default_ertm_pool_size=%d",
-                      pool_id, max_tx_size, GKI_get_pool_bufsize (OBX_FCR_TX_POOL_ID));
+                      pool_id, max_tx_size, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
 #endif
 
     return pool_id;
@@ -178,7 +176,7 @@ UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu)
 {
     UINT8 pool_id;
 
-    if (mtu > GKI_get_pool_bufsize (OBX_FCR_RX_POOL_ID))
+    if (mtu > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
     {
         pool_id = BTA_HL_LRG_DATA_POOL_ID;
     }
@@ -189,7 +187,7 @@ UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu)
 
 #if BTA_HL_DEBUG == TRUE
     APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d mtu=%d default_ertm_pool_size=%d",
-                      pool_id, mtu, GKI_get_pool_bufsize (OBX_FCR_RX_POOL_ID));
+                      pool_id, mtu, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
 #endif
 
     return pool_id;
@@ -1169,11 +1167,10 @@ BOOLEAN bta_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx)
 {
     BOOLEAN found=FALSE;
     UINT8 i;
-    tBTA_HL_MCL_CB  *p_mcb;
 
     for (i=0; i < BTA_HL_NUM_MCLS ; i ++)
     {
-        p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, i);
+        BTA_HL_GET_MCL_CB_PTR(app_idx, i);
 
         if (bta_hl_cb.acb[app_idx].mcb[i].in_use &&
             (!memcmp (bta_hl_cb.acb[app_idx].mcb[i].bd_addr, p_bd_addr, BD_ADDR_LEN)))

@@ -112,7 +112,6 @@ void pan_conn_ind_cb (UINT16 handle,
     ** is for NAP
     */
     wrong_uuid = FALSE;
-#if (defined (BNEP_SUPPORTS_ALL_UUID_LENGTHS) && BNEP_SUPPORTS_ALL_UUID_LENGTHS == TRUE)
     if (remote_uuid->len == 16)
     {
         /*
@@ -189,7 +188,6 @@ void pan_conn_ind_cb (UINT16 handle,
         BNEP_ConnectResp (handle, BNEP_CONN_FAILED_UUID_SIZE);
         return;
     }
-#endif
 
     /* Check if the source UUID is a valid one */
     if (remote_uuid->uu.uuid16 != UUID_SERVCLASS_PANU &&
@@ -681,15 +679,11 @@ void pan_proto_filt_ind_cb (UINT16 handle,
                             UINT16 num_filters,
                             UINT8 *p_filters)
 {
-#if (defined (BNEP_SUPPORTS_PROT_FILTERS) && BNEP_SUPPORTS_PROT_FILTERS == TRUE)
     PAN_TRACE_EVENT ("pan_proto_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);
 
     if (pan_cb.pan_pfilt_ind_cb)
         (*pan_cb.pan_pfilt_ind_cb) (handle, indication, result, num_filters, p_filters);
-#endif
-
-    return;
 }
 
 
@@ -719,14 +713,9 @@ void pan_mcast_filt_ind_cb (UINT16 handle,
                             UINT16 num_filters,
                             UINT8 *p_filters)
 {
-#if (defined (BNEP_SUPPORTS_MULTI_FILTERS) && BNEP_SUPPORTS_MULTI_FILTERS == TRUE)
     PAN_TRACE_EVENT ("pan_mcast_filt_ind_cb - called for handle %d with ind %d, result %d, num %d",
                             handle, indication, result, num_filters);
 
     if (pan_cb.pan_mfilt_ind_cb)
         (*pan_cb.pan_mfilt_ind_cb) (handle, indication, result, num_filters, p_filters);
-#endif
-
-    return;
 }
-

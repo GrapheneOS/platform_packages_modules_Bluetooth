@@ -105,9 +105,9 @@ extern "C"
 #endif
 
 #if VENDOR_DYNAMIC_MEMORY == FALSE
-BTM_API extern tBTM_BLE_VENDOR_CB  btm_ble_vendor_cb;
+extern tBTM_BLE_VENDOR_CB  btm_ble_vendor_cb;
 #else
-BTM_API extern tBTM_BLE_VENDOR_CB *btm_ble_vendor_ptr;
+extern tBTM_BLE_VENDOR_CB *btm_ble_vendor_ptr;
 #define btm_ble_vendor_cb (*btm_ble_vendor_ptr)
 #endif
 
@@ -128,5 +128,3 @@ extern tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable);
 #endif
 
 #endif
-
-

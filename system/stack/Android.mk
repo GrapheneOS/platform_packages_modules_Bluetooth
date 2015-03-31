@@ -17,11 +17,15 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/sdp \
                    $(LOCAL_PATH)/smp \
                    $(LOCAL_PATH)/srvc \
+                   $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../vnd/ble \
+                   $(LOCAL_PATH)/../btif/include \
+                   $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
+                   $(LOCAL_PATH)/../osi/include \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../rpc/include \
                    $(LOCAL_PATH)/../hcis \
@@ -29,6 +33,7 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/../bta/include \
                    $(LOCAL_PATH)/../bta/sys \
                    $(LOCAL_PATH)/../utils/include \
+                   $(LOCAL_PATH)/../ \
                    $(bdroid_C_INCLUDES) \
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
@@ -144,15 +149,15 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2c_csm.c \
     ./l2cap/l2c_link.c \
     ./l2cap/l2c_ble.c \
+    ./l2cap/l2cap_client.c \
     ./gap/gap_api.c \
     ./gap/gap_ble.c \
-    ./gap/gap_conn.c \
-    ./gap/gap_utils.c \
     ../vnd/ble/vendor_ble.c
 
 LOCAL_MODULE := libbt-brcm_stack
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+LOCAL_STATIC_LIBRARIES := libbt-hci
 LOCAL_SHARED_LIBRARIES := libcutils libc
 LOCAL_MULTILIB := 32
 # gnu-variable-sized-type-not-at-end is needed for a variable-size header in

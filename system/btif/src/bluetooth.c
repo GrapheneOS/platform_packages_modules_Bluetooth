@@ -42,20 +42,21 @@
 #include <hardware/bt_rc.h>
 
 #define LOG_NDDEBUG 0
-#define LOG_TAG "bluedroid"
+#define LOG_TAG "bt_bluedroid"
 
 #include "btif_api.h"
+#include "btsnoop.h"
 #include "bt_utils.h"
+#include "osi/include/osi.h"
+#include "osi/include/allocation_tracker.h"
+#include "osi/include/log.h"
+#include "stack_manager.h"
 
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
 
 #define is_profile(profile, str) ((strlen(str) == strlen(profile)) && strncmp((const char *)profile, str, strlen(str)) == 0)
-
-/************************************************************************************
-**  Local type definitions
-************************************************************************************/
 
 /************************************************************************************
 **  Static variables
@@ -65,10 +66,6 @@ bt_callbacks_t *bt_hal_cbacks = NULL;
 
 /** Operating System specific callouts for resource management */
 bt_os_callouts_t *bt_os_callouts = NULL;
-
-/************************************************************************************
-**  Static functions
-************************************************************************************/
 
 /************************************************************************************
 **  Externs
@@ -106,15 +103,9 @@ extern btrc_interface_t *btif_rc_ctrl_get_interface();
 **  Functions
 ************************************************************************************/
 
-static uint8_t interface_ready(void)
-{
-    /* add checks here that would prevent API calls other than init to be executed */
-    if (bt_hal_cbacks == NULL)
-        return FALSE;
-
-    return TRUE;
+static bool interface_ready(void) {
+  return bt_hal_cbacks != NULL;
 }
-
 
 /*****************************************************************************
 **
@@ -122,58 +113,41 @@ static uint8_t interface_ready(void)
 **
 *****************************************************************************/
 
-static int init(bt_callbacks_t* callbacks )
-{
-    ALOGI("init");
+static int init(bt_callbacks_t *callbacks) {
+  LOG_INFO("%s", __func__);
 
-    /* sanity check */
-    if (interface_ready() == TRUE)
-        return BT_STATUS_DONE;
+  if (interface_ready())
+    return BT_STATUS_DONE;
 
-    /* store reference to user callbacks */
-    bt_hal_cbacks = callbacks;
+#ifdef BLUEDROID_DEBUG
+  allocation_tracker_init();
+#endif
 
-    /* add checks for individual callbacks ? */
-
-    bt_utils_init();
-
-    /* init btif */
-    btif_init_bluetooth();
-
-    return BT_STATUS_SUCCESS;
+  bt_hal_cbacks = callbacks;
+  stack_manager_get_interface()->init_stack();
+  return BT_STATUS_SUCCESS;
 }
 
-static int enable( void )
-{
-    ALOGI("enable");
+static int enable(void) {
+  LOG_INFO("%s", __func__);
 
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return BT_STATUS_NOT_READY;
+  if (!interface_ready())
+    return BT_STATUS_NOT_READY;
 
-    return btif_enable_bluetooth();
+  stack_manager_get_interface()->start_up_stack_async();
+  return BT_STATUS_SUCCESS;
 }
 
-static int disable(void)
-{
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return BT_STATUS_NOT_READY;
+static int disable(void) {
+  if (!interface_ready())
+    return BT_STATUS_NOT_READY;
 
-    return btif_disable_bluetooth();
+  stack_manager_get_interface()->shut_down_stack_async();
+  return BT_STATUS_SUCCESS;
 }
 
-static void cleanup( void )
-{
-    /* sanity check */
-    if (interface_ready() == FALSE)
-        return;
-
-    btif_shutdown_bluetooth();
-
-    /* hal callbacks reset upon shutdown complete callback */
-
-    return;
+static void cleanup(void) {
+  stack_manager_get_interface()->clean_up_stack_async();
 }
 
 static int get_adapter_properties(void)
@@ -332,7 +306,7 @@ static int read_energy_info()
 
 static const void* get_profile_interface (const char *profile_id)
 {
-    ALOGI("get_profile_interface %s", profile_id);
+    LOG_INFO("get_profile_interface %s", profile_id);
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -382,7 +356,7 @@ static const void* get_profile_interface (const char *profile_id)
 
 int dut_mode_configure(uint8_t enable)
 {
-    ALOGI("dut_mode_configure");
+    LOG_INFO("dut_mode_configure");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -393,7 +367,7 @@ int dut_mode_configure(uint8_t enable)
 
 int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
-    ALOGI("dut_mode_send");
+    LOG_INFO("dut_mode_send");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -405,7 +379,7 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
 #if BLE_INCLUDED == TRUE
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
-    ALOGI("le_test_mode");
+    LOG_INFO("le_test_mode");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -417,13 +391,13 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 
 int config_hci_snoop_log(uint8_t enable)
 {
-    ALOGI("config_hci_snoop_log");
+    LOG_INFO("config_hci_snoop_log");
 
-    /* sanity check */
-    if (interface_ready() == FALSE)
+    if (!interface_ready())
         return BT_STATUS_NOT_READY;
 
-    return btif_config_hci_snoop_log(enable);
+    btsnoop_get_interface()->set_api_wants_to_log(enable);
+    return BT_STATUS_SUCCESS;
 }
 
 static int set_os_callouts(bt_os_callouts_t *callouts) {
@@ -480,20 +454,19 @@ static int close_bluetooth_stack(struct hw_device_t* device)
     return 0;
 }
 
-static int open_bluetooth_stack (const struct hw_module_t* module, char const* name,
-                                 struct hw_device_t** abstraction)
-{
-    UNUSED(name);
+static int open_bluetooth_stack(const struct hw_module_t *module, UNUSED_ATTR char const *name, struct hw_device_t **abstraction) {
+  static bluetooth_device_t device = {
+    .common = {
+      .tag = HARDWARE_DEVICE_TAG,
+      .version = 0,
+      .close = close_bluetooth_stack,
+    },
+    .get_bluetooth_interface = bluetooth__get_bluetooth_interface
+  };
 
-    bluetooth_device_t *stack = malloc(sizeof(bluetooth_device_t) );
-    memset(stack, 0, sizeof(bluetooth_device_t) );
-    stack->common.tag = HARDWARE_DEVICE_TAG;
-    stack->common.version = 0;
-    stack->common.module = (struct hw_module_t*)module;
-    stack->common.close = close_bluetooth_stack;
-    stack->get_bluetooth_interface = bluetooth__get_bluetooth_interface;
-    *abstraction = (struct hw_device_t*)stack;
-    return 0;
+  device.common.module = (struct hw_module_t *)module;
+  *abstraction = (struct hw_device_t *)&device;
+  return 0;
 }
 
 
@@ -510,4 +483,3 @@ struct hw_module_t HAL_MODULE_INFO_SYM = {
     .author = "The Android Open Source Project",
     .methods = &bt_stack_module_methods
 };
-

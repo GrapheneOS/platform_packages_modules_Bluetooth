@@ -192,7 +192,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
             gatt_sec_check_complete(status , p_buf->p_clcb, p_tcb->sec_act);
             GKI_freebuf(p_buf);
             /* start all other pending operation in queue */
-            count = p_tcb->pending_enc_clcb.count;
+            count = GKI_queue_length(&p_tcb->pending_enc_clcb);
             for (; count > 0; count --)
             {
                 if ((p_buf = (tGATT_PENDING_ENC_CLCB *)GKI_dequeue (&p_tcb->pending_enc_clcb)) != NULL)
@@ -246,7 +246,7 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
         {
             gatt_set_sec_act(p_tcb, GATT_SEC_NONE);
 
-            count = p_tcb->pending_enc_clcb.count;
+            count = GKI_queue_length(&p_tcb->pending_enc_clcb);
 
             for (; count > 0; count --)
             {

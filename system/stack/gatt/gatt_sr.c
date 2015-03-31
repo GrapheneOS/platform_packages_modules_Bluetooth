@@ -106,7 +106,7 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
         GKI_freebuf (p_tcb->sr_cmd.p_rsp_msg);
     }
 
-    while (p_tcb->sr_cmd.multi_rsp_q.p_first)
+    while (GKI_getfirst(&p_tcb->sr_cmd.multi_rsp_q))
         GKI_freebuf (GKI_dequeue (&p_tcb->sr_cmd.multi_rsp_q));
     memset( &p_tcb->sr_cmd, 0, sizeof(tGATT_SR_CMD));
 }
@@ -145,9 +145,9 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
     if (status == GATT_SUCCESS)
     {
         GATT_TRACE_DEBUG ("Multi read count=%d num_hdls=%d",
-                           p_cmd->multi_rsp_q.count, p_cmd->multi_req.num_handles);
+                           GKI_queue_length(&p_cmd->multi_rsp_q), p_cmd->multi_req.num_handles);
         /* Wait till we get all the responses */
-        if (p_cmd->multi_rsp_q.count == p_cmd->multi_req.num_handles)
+        if (GKI_queue_length(&p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)
         {
             len = sizeof(BT_HDR) + L2CAP_MIN_OFFSET + mtu;
             if ((p_buf = (BT_HDR *)GKI_getbuf(len)) == NULL)

@@ -413,11 +413,11 @@ extern BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_stati
 extern void btm_ble_refresh_rra(BD_ADDR pseudo_bda, BD_ADDR rra);
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
-BT_API extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);
-BT_API extern void btm_ble_set_test_mac_value (BOOLEAN enable, UINT8 *p_test_mac_val);
-BT_API extern void btm_ble_set_test_local_sign_cntr_value(BOOLEAN enable, UINT32 test_local_sign_cntr);
-BT_API extern void btm_set_random_address(BD_ADDR random_bda);
-BT_API extern void btm_ble_set_keep_rfu_in_auth_req(BOOLEAN keep_rfu);
+extern void btm_ble_set_no_disc_if_pair_fail (BOOLEAN disble_disc);
+extern void btm_ble_set_test_mac_value (BOOLEAN enable, UINT8 *p_test_mac_val);
+extern void btm_ble_set_test_local_sign_cntr_value(BOOLEAN enable, UINT32 test_local_sign_cntr);
+extern void btm_set_random_address(BD_ADDR random_bda);
+extern void btm_ble_set_keep_rfu_in_auth_req(BOOLEAN keep_rfu);
 #endif
 
 

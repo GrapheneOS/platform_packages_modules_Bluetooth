@@ -183,7 +183,6 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_L2CA_CONNECT_REQ:                       /* API connect request  */
         /* Cancel sniff mode if needed */
-#if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
 // btla-specific ++
@@ -199,9 +198,6 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 */
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
-#else
-        BTM_CancelSniffMode (p_ccb->p_lcb->remote_bd_addr);
-#endif
 
         /* If sec access does not result in started SEC_COM or COMP_NEG are already processed */
         if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
@@ -240,7 +236,6 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
         btu_stop_timer (&p_ccb->p_lcb->timer_entry);
 
         /* Cancel sniff mode if needed */
-#if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
 // btla-specific ++
@@ -256,9 +251,6 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 */
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
-#else
-        BTM_CancelSniffMode (p_ccb->p_lcb->remote_bd_addr);
-#endif
 
         p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
         if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
@@ -789,7 +781,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                 p_ccb->fcrb.connect_tick_count = GKI_get_os_tick_count();
 #endif
                 /* See if we can forward anything on the hold queue */
-                if (p_ccb->xmit_hold_q.count)
+                if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                 {
                     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
                 }
@@ -872,7 +864,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #endif
 
         /* See if we can forward anything on the hold queue */
-        if ( (p_ccb->chnl_state == CST_OPEN) && (p_ccb->xmit_hold_q.count) )
+        if ( (p_ccb->chnl_state == CST_OPEN) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
         {
             l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
         }
@@ -1012,16 +1004,12 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
     case L2CEVT_L2CAP_DISCONNECT_REQ:                  /* Peer disconnected request */
 // btla-specific ++
         /* Make sure we are not in sniff mode */
-#if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
             memset((void*)&settings, 0, sizeof(settings));
             settings.mode = BTM_PM_MD_ACTIVE;
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
-#else
-        BTM_CancelSniffMode (p_ccb->p_lcb->remote_bd_addr);
-#endif
 // btla-specific --
 
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
@@ -1036,16 +1024,12 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
         /* Make sure we are not in sniff mode */
-#if BTM_PWR_MGR_INCLUDED == TRUE
         {
             tBTM_PM_PWR_MD settings;
             memset((void*)&settings, 0, sizeof(settings));
             settings.mode = BTM_PM_MD_ACTIVE;
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
-#else
-        BTM_CancelSniffMode (p_ccb->p_lcb->remote_bd_addr);
-#endif
 
         l2cu_send_peer_disc_req (p_ccb);
         p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;

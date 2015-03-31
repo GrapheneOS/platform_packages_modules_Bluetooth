@@ -36,7 +36,6 @@
 
 #include "sdp_api.h"
 #include "sdpint.h"
-#include "wbt_api.h"
 
 #if SDP_SERVER_ENABLED == TRUE
 /********************************************************************************/
@@ -340,7 +339,6 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
 
         /* require new DI record to be created in SDP_SetLocalDiRecord */
         sdp_cb.server_db.di_primary_handle = 0;
-        sdp_cb.server_db.brcm_di_registered = 0;
 
         return (TRUE);
     }
@@ -369,7 +367,6 @@ BOOLEAN SDP_DeleteRecord (UINT32 handle)
                 if( sdp_cb.server_db.di_primary_handle == handle )
                 {
                     sdp_cb.server_db.di_primary_handle = 0;
-                    sdp_cb.server_db.brcm_di_registered = 0;
                 }
 
                 return (TRUE);
@@ -505,12 +502,6 @@ BOOLEAN SDP_AddAttribute (UINT32 handle, UINT16 attr_id, UINT8 attr_type,
                 return (FALSE);
             }
             p_rec->num_attributes++;
-
-            /*** Mark DI record as used by Broadcom ***/
-            if (handle == sdp_cb.server_db.di_primary_handle &&
-                attr_id == ATTR_ID_EXT_BRCM_VERSION)
-                sdp_cb.server_db.brcm_di_registered = TRUE;
-
             return (TRUE);
         }
     }
@@ -1023,6 +1014,3 @@ INT32 SDP_ReadRecord(UINT32 handle, UINT8 *p_data, INT32 *p_data_len)
     return (offset);
 }
 #endif
-
-
-

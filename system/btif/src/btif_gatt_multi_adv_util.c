@@ -31,7 +31,7 @@
 #include "btu.h"
 #include "bt_target.h"
 
-#define LOG_TAG "BtGatt.btif"
+#define LOG_TAG "bt_btif_gatt"
 #if (BLE_INCLUDED == TRUE)
 
 #include "btif_gatt_multi_adv_util.h"

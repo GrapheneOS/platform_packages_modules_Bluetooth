@@ -29,7 +29,7 @@
 #include "bt_target.h"
 #endif
 
-#include "data_types.h"
+#include "bt_types.h"
 
 typedef short SINT16;
 typedef long SINT32;

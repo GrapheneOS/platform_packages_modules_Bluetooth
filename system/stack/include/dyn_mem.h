@@ -19,15 +19,6 @@
 #define DYN_MEM_H
 
 /****************************************************************************
-** Define memory usage for GKI (if not defined in bdroid_buildcfg.h)
-**  The default for GKI is to use static memory allocation for its control
-**  block.
-*/
-#ifndef GKI_DYNAMIC_MEMORY
-#define GKI_DYNAMIC_MEMORY  FALSE
-#endif
-
-/****************************************************************************
 ** Define memory usage for each CORE component (if not defined in bdroid_buildcfg.h)
 **  The default for each component is to use static memory allocations.
 */
@@ -53,10 +44,6 @@
 
 #ifndef TCS_DYNAMIC_MEMORY
 #define TCS_DYNAMIC_MEMORY  FALSE
-#endif
-
-#ifndef OBX_DYNAMIC_MEMORY
-#define OBX_DYNAMIC_MEMORY  FALSE
 #endif
 
 #ifndef BNEP_DYNAMIC_MEMORY
@@ -111,20 +98,8 @@
 #define CTP_DYNAMIC_MEMORY  FALSE
 #endif
 
-#ifndef DUN_DYNAMIC_MEMORY
-#define DUN_DYNAMIC_MEMORY  FALSE
-#endif
-
 #ifndef FTP_DYNAMIC_MEMORY
 #define FTP_DYNAMIC_MEMORY  FALSE
-#endif
-
-#ifndef GAP_DYNAMIC_MEMORY
-#define GAP_DYNAMIC_MEMORY  FALSE
-#endif
-
-#ifndef GOEP_DYNAMIC_MEMORY
-#define GOEP_DYNAMIC_MEMORY FALSE
 #endif
 
 #ifndef HCRP_DYNAMIC_MEMORY
@@ -173,14 +148,6 @@
 */
 #ifndef BTA_DYNAMIC_MEMORY
 #define BTA_DYNAMIC_MEMORY FALSE
-#endif
-
-/****************************************************************************
-** Define memory usage for BT Trace (if not defined in bdroid_buildcfg.h)
-**  The default is to use static memory allocations.
-*/
-#ifndef BTTRC_DYNAMIC_MEMORY
-#define BTTRC_DYNAMIC_MEMORY FALSE
 #endif
 
 #endif  /* #ifdef DYN_MEM_H */

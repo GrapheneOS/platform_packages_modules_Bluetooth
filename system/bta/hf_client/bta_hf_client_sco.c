@@ -19,7 +19,6 @@
 
 #include "bta_hf_client_int.h"
 #include <bt_trace.h>
-#include <bd.h>
 #include <string.h>
 #include "bt_utils.h"
 

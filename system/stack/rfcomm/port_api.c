@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include "bt_target.h"
+#include "btcore/include/counter.h"
 #include "gki.h"
 #include "rfcdefs.h"
 #include "port_api.h"
@@ -33,15 +34,46 @@
 #include "rfc_int.h"
 #include "l2c_api.h"
 #include "sdp_api.h"
+#include "osi/include/log.h"
 
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
 
-#include <cutils/log.h>
-#define info(fmt, ...)  ALOGI ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) ALOGD ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) ALOGE ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) ALOGE ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define info(fmt, ...)  LOG_INFO ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOG_DEBUG ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOG_ERROR ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOG_ERROR ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+
+/* Mapping from PORT_* result codes to human readable strings. */
+static const char *result_code_strings[] = {
+  "Success",
+  "Unknown error",
+  "Already opened",
+  "Command pending",
+  "App not registered",
+  "No memory",
+  "No resources",
+  "Bad BD address",
+  "Unspecified error",
+  "Bad handle",
+  "Not opened",
+  "Line error",
+  "Start failed",
+  "Parameter negotiation failed",
+  "Port negotiation failed",
+  "Sec failed",
+  "Peer connection failed",
+  "Peer failed",
+  "Peer timeout",
+  "Closed",
+  "TX full",
+  "Local closed",
+  "Local timeout",
+  "TX queue disabled",
+  "Page timeout",
+  "Invalid SCN",
+  "Unknown result code"
+};
 
 /*******************************************************************************
 **
@@ -83,6 +115,8 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     UINT8      dlci;
     tRFC_MCB   *p_mcb = port_find_mcb (bd_addr);
     UINT16     rfcomm_mtu;
+
+    counter_add("rfcomm.conn.created", 1);
 
     RFCOMM_TRACE_API ("RFCOMM_CreateConnection()  BDA: %02x-%02x-%02x-%02x-%02x-%02x",
                        bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
@@ -208,6 +242,8 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
 int RFCOMM_RemoveConnection (UINT16 handle)
 {
     tPORT      *p_port;
+
+    counter_add("rfcomm.conn.destroyed", 1);
 
     RFCOMM_TRACE_API ("RFCOMM_RemoveConnection() handle:%d", handle);
 
@@ -1132,7 +1168,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
     {
         PORT_SCHEDULE_LOCK;  /* to prevent missing credit */
 
-        count = p_port->rx.queue.count;
+        count = GKI_queue_length(&p_port->rx.queue);
 
         while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue)) != NULL)
             GKI_freebuf (p_buf);
@@ -1368,7 +1404,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
                               (PORT_CTRL_REQ_SENT | PORT_CTRL_IND_RECEIVED)))
     {
         if ((p_port->tx.queue_size  > PORT_TX_CRITICAL_WM)
-         || (p_port->tx.queue.count > PORT_TX_BUF_CRITICAL_WM))
+         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_CRITICAL_WM))
         {
             RFCOMM_TRACE_WARNING ("PORT_Write: Queue size: %d",
                                    p_port->tx.queue_size);
@@ -1525,7 +1561,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     /* data fits into the end of the queue */
     PORT_SCHEDULE_LOCK;
 
-    if (((p_buf = (BT_HDR *)p_port->tx.queue.p_last) != NULL)
+    if (((p_buf = (BT_HDR *)GKI_getlast(&p_port->tx.queue)) != NULL)
      && (((int)p_buf->len + available) <= (int)p_port->peer_mtu)
      && (((int)p_buf->len + available) <= (int)length))
     {
@@ -1559,12 +1595,12 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     {
         /* if we're over buffer high water mark, we're done */
         if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
-         || (p_port->tx.queue.count > PORT_TX_BUF_HIGH_WM))
+         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
         {
             port_flow_control_user(p_port);
             event |= PORT_EV_FC;
             debug("tx queue is full,tx.queue_size:%d,tx.queue.count:%d,available:%d",
-                    p_port->tx.queue_size, p_port->tx.queue.count, available);
+                    p_port->tx.queue_size, GKI_queue_length(&p_port->tx.queue), available);
             break;
          }
 
@@ -1676,7 +1712,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     /* data fits into the end of the queue */
     PORT_SCHEDULE_LOCK;
 
-    if (((p_buf = (BT_HDR *)p_port->tx.queue.p_last) != NULL)
+    if (((p_buf = (BT_HDR *)GKI_getlast(&p_port->tx.queue)) != NULL)
      && ((p_buf->len + max_len) <= p_port->peer_mtu)
      && ((p_buf->len + max_len) <= length))
     {
@@ -1697,7 +1733,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     {
         /* if we're over buffer high water mark, we're done */
         if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
-         || (p_port->tx.queue.count > PORT_TX_BUF_HIGH_WM))
+         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
             break;
 
         /* continue with rfcomm data write */
@@ -1840,3 +1876,20 @@ UINT8 PORT_SetTraceLevel (UINT8 new_level)
     return (rfc_cb.trace_level);
 }
 
+/*******************************************************************************
+**
+** Function         PORT_GetResultString
+**
+** Description      This function returns the human-readable string for a given
+**                  result code.
+**
+** Returns          a pointer to the human-readable string for the given result.
+**
+*******************************************************************************/
+const char *PORT_GetResultString (const uint8_t result_code) {
+  if (result_code > PORT_ERR_MAX) {
+    return result_code_strings[PORT_ERR_MAX];
+  }
+
+  return result_code_strings[result_code];
+}

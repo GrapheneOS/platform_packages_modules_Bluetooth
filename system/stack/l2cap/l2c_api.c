@@ -22,18 +22,24 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_l2cap"
+
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "gki.h"
 #include "bt_types.h"
+#include "btcore/include/counter.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2cdefs.h"
 #include "l2c_int.h"
 #include "btu.h"
 #include "btm_api.h"
+#include "osi/include/allocator.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
 **
@@ -236,6 +242,7 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
 
+    counter_add("l2cap.conn.req", 1);
     L2CAP_TRACE_API ("L2CA_ErtmConnectReq()  PSM: 0x%04x  BDA: %08x%04x  p_ertm_info: 0x%08x allowed:0x%x preferred:%d", psm,
                       (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info,
@@ -326,6 +333,44 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     return (p_ccb->local_cid);
 }
 
+bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *callbacks) {
+  assert(callbacks != NULL);
+  assert(callbacks->pL2CA_ConnectInd_Cb == NULL);
+  assert(callbacks->pL2CA_ConnectCfm_Cb != NULL);
+  assert(callbacks->pL2CA_ConfigInd_Cb != NULL);
+  assert(callbacks->pL2CA_ConfigCfm_Cb != NULL);
+  assert(callbacks->pL2CA_DisconnectInd_Cb != NULL);
+  assert(callbacks->pL2CA_DisconnectCfm_Cb != NULL);
+  assert(callbacks->pL2CA_CongestionStatus_Cb != NULL);
+  assert(callbacks->pL2CA_DataInd_Cb != NULL);
+  assert(callbacks->pL2CA_TxComplete_Cb != NULL);
+
+  tL2C_CCB *channel_control_block = l2cu_find_ccb_by_cid(NULL, local_cid);
+  if (!channel_control_block) {
+    LOG_ERROR("%s no channel control block found for L2CAP LCID=0x%04x.", __func__, local_cid);
+    return false;
+  }
+
+  // We're making a connection-specific registration control block so we check if
+  // we already have a private one allocated to us on the heap. If not, we make a
+  // new allocation, mark it as heap-allocated, and inherit the fields from the old
+  // control block.
+  tL2C_RCB *registration_control_block = channel_control_block->p_rcb;
+  if (!channel_control_block->should_free_rcb) {
+    registration_control_block = (tL2C_RCB *)osi_calloc(sizeof(tL2C_RCB));
+    if (!registration_control_block) {
+      LOG_ERROR("%s unable to allocate registration control block.", __func__);
+      return false;
+    }
+
+    *registration_control_block = *channel_control_block->p_rcb;
+    channel_control_block->p_rcb = registration_control_block;
+    channel_control_block->should_free_rcb = true;
+  }
+
+  registration_control_block->api = *callbacks;
+  return true;
+}
 
 /*******************************************************************************
 **
@@ -362,6 +407,7 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
 
+    counter_add("l2cap.conn.rsp", 1);
     L2CAP_TRACE_API ("L2CA_ErtmConnectRsp()  CID: 0x%04x  Result: %d  Status: %d  BDA: %08x%04x  p_ertm_info:0x%08x",
                       lcid, result, status,
                       (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
@@ -445,6 +491,7 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
+    counter_add("l2cap.cfg.req", 1);
     L2CAP_TRACE_API ("L2CA_ConfigReq()  CID 0x%04x: fcr_present:%d (mode %d) mtu_present:%d (%d)",
         cid, p_cfg->fcr_present, p_cfg->fcr.mode, p_cfg->mtu_present, p_cfg->mtu);
 
@@ -496,6 +543,7 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
+    counter_add("l2cap.cfg.rsp", 1);
     L2CAP_TRACE_API ("L2CA_ConfigRsp()  CID: 0x%04x  Result: %d MTU present:%d Flush TO:%d FCR:%d FCS:%d",
         cid, p_cfg->result, p_cfg->mtu_present, p_cfg->flush_to_present, p_cfg->fcr_present, p_cfg->fcs_present);
 
@@ -540,6 +588,7 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
+    counter_add("l2cap.disconn.req", 1);
     L2CAP_TRACE_API ("L2CA_DisconnectReq()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
@@ -568,6 +617,7 @@ BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
+    counter_add("l2cap.disconn.rsp", 1);
     L2CAP_TRACE_API ("L2CA_DisconnectRsp()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
@@ -701,6 +751,19 @@ BOOLEAN  L2CA_Echo (BD_ADDR p_bd_addr, BT_HDR *p_data, tL2CA_ECHO_DATA_CB *p_cal
 
     return (TRUE);
 
+}
+
+bool L2CA_GetIdentifiers(uint16_t lcid, uint16_t *rcid, uint16_t *handle) {
+  tL2C_CCB *control_block = l2cu_find_ccb_by_cid(NULL, lcid);
+  if (!control_block)
+    return false;
+
+  if (rcid)
+    *rcid = control_block->remote_cid;
+  if (handle)
+    *handle = control_block->p_lcb->handle;
+
+  return true;
 }
 
 /*******************************************************************************
@@ -1483,7 +1546,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested \
             xmit_hold_q.count: %u buff_quota: %u", fixed_cid,
-            p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q.count,
+            GKI_queue_length(&p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q),
             p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->buff_quota);
         GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
@@ -1796,7 +1859,6 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     UINT16          num_left = 0,
                     num_flushed1 = 0,
                     num_flushed2 = 0;
-    BT_HDR          *p_buf1, *p_buf;
 
     p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);
 
@@ -1809,7 +1871,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     if (num_to_flush != L2CAP_FLUSH_CHANS_GET)
     {
         L2CAP_TRACE_API ("L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %u  pFirst: 0x%08x",
-                           lcid, num_to_flush, p_ccb->xmit_hold_q.count, p_ccb->xmit_hold_q.p_first);
+                           lcid, num_to_flush, GKI_queue_length(&p_ccb->xmit_hold_q), GKI_getfirst(&p_ccb->xmit_hold_q));
     }
     else
     {
@@ -1837,31 +1899,26 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         }
 #endif
 
-        p_buf = (BT_HDR *)p_lcb->link_xmit_data_q.p_first;
+        // Iterate though list and flush the amount requested from
+        // the transmit data queue that satisfy the layer and event conditions.
+        for (const list_node_t *node = list_begin(p_lcb->link_xmit_data_q);
+            (num_to_flush > 0) && node != list_end(p_lcb->link_xmit_data_q);) {
+          BT_HDR *p_buf = (BT_HDR *)list_node(node);
+          node = list_next(node);
+          if ((p_buf->layer_specific == 0) && (p_buf->event == lcid)) {
+            num_to_flush--;
+            num_flushed1++;
 
-        /* First flush the number we are asked to flush */
-        while ((p_buf != NULL) && (num_to_flush != 0))
-        {
-            /* Do not flush other CIDs or partial segments */
-            if ( (p_buf->layer_specific == 0) && (p_buf->event == lcid) )
-            {
-                p_buf1 = p_buf;
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
-                num_to_flush--;
-                num_flushed1++;
-
-                GKI_remove_from_queue (&p_lcb->link_xmit_data_q, p_buf1);
-                GKI_freebuf (p_buf1);
-            }
-            else
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
+            list_remove(p_lcb->link_xmit_data_q, p_buf);
+            GKI_freebuf(p_buf);
+          }
         }
     }
 
     /* If needed, flush buffers in the CCB xmit hold queue */
-    while ( (num_to_flush != 0) && (p_ccb->xmit_hold_q.count != 0) )
+    while ( (num_to_flush != 0) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
     {
-        p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+        BT_HDR *p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
         if (p_buf)
             GKI_freebuf (p_buf);
         num_to_flush--;
@@ -1873,18 +1930,17 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
         (*p_ccb->p_rcb->api.pL2CA_TxComplete_Cb)(p_ccb->local_cid, num_flushed2);
 
     /* Now count how many are left */
-    p_buf = (BT_HDR *)p_lcb->link_xmit_data_q.p_first;
+    for (const list_node_t *node = list_begin(p_lcb->link_xmit_data_q);
+        node != list_end(p_lcb->link_xmit_data_q);
+        node = list_next(node)) {
 
-    while (p_buf != NULL)
-    {
-        if (p_buf->event == lcid)
-            num_left++;
-
-        p_buf = (BT_HDR *)GKI_getnext (p_buf);
+      BT_HDR *p_buf = (BT_HDR *)list_node(node);
+      if (p_buf->event == lcid)
+        num_left++;
     }
 
     /* Add in the number in the CCB xmit queue */
-    num_left += p_ccb->xmit_hold_q.count;
+    num_left += GKI_queue_length(&p_ccb->xmit_hold_q);
 
     /* Return the local number of buffers left for the CID */
     L2CAP_TRACE_DEBUG ("L2CA_FlushChannel()  flushed: %u + %u,  num_left: %u", num_flushed1, num_flushed2, num_left);

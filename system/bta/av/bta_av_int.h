@@ -29,6 +29,7 @@
 #include "bta_av_api.h"
 #include "avdt_api.h"
 #include "bta_av_co.h"
+#include "list.h"
 
 #define BTA_AV_DEBUG TRUE
 /*****************************************************************************
@@ -437,7 +438,6 @@ typedef struct
 
 typedef union
 {
-    BUFFER_Q            a2d;            /* used for audio channels only */
     tBTA_AV_VF_INFO     vdp;            /* used for video channels only */
     tBTA_AV_API_OPEN    open;           /* used only before open and role switch
                                            is needed on another AV channel */
@@ -470,6 +470,7 @@ typedef struct
     tSDP_DISCOVERY_DB   *p_disc_db;     /* pointer to discovery database */
     tBTA_AV_SEP         seps[BTA_AV_MAX_SEPS];
     tAVDT_CFG           *p_cap;         /* buffer used for get capabilities */
+    list_t              *a2d_list;      /* used for audio channels only */
     tBTA_AV_Q_INFO      q_info;
     tAVDT_SEP_INFO      sep_info[BTA_AV_NUM_SEPS];      /* stream discovery results */
     tAVDT_CFG           cfg;            /* local SEP configuration */
@@ -625,7 +626,6 @@ extern void bta_av_restore_switch (void);
 extern UINT16 bta_av_chk_mtu(tBTA_AV_SCB *p_scb, UINT16 mtu);
 extern void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data);
 extern UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx);
-extern void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data, int index);
 extern void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started);
 extern BOOLEAN bta_av_is_scb_opening (tBTA_AV_SCB *p_scb);
 extern BOOLEAN bta_av_is_scb_incoming (tBTA_AV_SCB *p_scb);
@@ -682,7 +682,6 @@ extern void bta_av_disconnect_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_security_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_security_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-extern void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_security_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_security_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);

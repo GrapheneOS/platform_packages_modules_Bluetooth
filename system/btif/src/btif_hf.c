@@ -30,12 +30,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_HF"
+#define LOG_TAG "bt_btif_hf"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"
 
-#include "bd.h"
+#include "btcore/include/bdaddr.h"
 #include "bta_ag_api.h"
 
 /************************************************************************************
@@ -422,7 +422,7 @@ static void btif_hf_upstreams_evt(UINT16 event, char* p_param)
             {
                 BTIF_TRACE_WARNING("%s: AG open failed, but another device connected. status=%d state=%d connected device=%s",
                         __FUNCTION__, p_data->open.status, btif_hf_cb[idx].state,
-                                 bd2str(&btif_hf_cb[idx].connected_bda, &bdstr));
+                                 bdaddr_to_string(&btif_hf_cb[idx].connected_bda, bdstr, sizeof(bdstr)));
                 break;
             }
 

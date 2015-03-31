@@ -451,6 +451,7 @@ typedef void (tBTM_BLE_MULTI_ADV_CBACK)(tBTM_BLE_MULTI_ADV_EVT evt, UINT8 inst_i
 typedef struct
 {
     UINT8                       inst_id;
+    BOOLEAN                     in_use;
     UINT8                       adv_evt;
     BD_ADDR                     rpa;
     TIMER_LIST_ENT              raddr_timer_ent;
@@ -843,7 +844,7 @@ extern "C" {
 ** Returns          TRUE if added OK, else FALSE
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name,
+extern BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name,
                                            tBT_DEVICE_TYPE dev_type, tBLE_ADDR_TYPE addr_type);
 
 /*******************************************************************************
@@ -861,8 +862,8 @@ BTM_API extern BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name,
 ** Returns          TRUE if added OK, else FALSE
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_le_key,
-                                         tBTM_LE_KEY_TYPE key_type);
+extern BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_le_key,
+                                 tBTM_LE_KEY_TYPE key_type);
 
 /*******************************************************************************
 **
@@ -875,8 +876,8 @@ BTM_API extern BOOLEAN BTM_SecAddBleKey (BD_ADDR bd_addr, tBTM_LE_KEY_VALUE *p_l
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
-                                tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP chnl_map);
+extern tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
+                                       tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP chnl_map);
 
 /*******************************************************************************
 **
@@ -889,8 +890,8 @@ BTM_API extern tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_in
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
-                                               tBTM_BLE_ADV_DATA *p_data);
+extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
+                                       tBTM_BLE_ADV_DATA *p_data);
 
 /*******************************************************************************
 **
@@ -906,8 +907,8 @@ BTM_API extern tBTM_STATUS BTM_BleWriteAdvData(tBTM_BLE_AD_MASK  data_mask,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
-                            tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP *p_chnl_map);
+extern void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
+                                  tBLE_BD_ADDR *p_dir_bda, tBTM_BLE_ADV_CHNL_MAP *p_chnl_map);
 
 /*******************************************************************************
 **
@@ -935,8 +936,8 @@ extern void BTM_BleObtainVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window,
-                                         tBTM_BLE_SCAN_MODE scan_type);
+extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window,
+                                 tBTM_BLE_SCAN_MODE scan_type);
 /*******************************************************************************
 **
 ** Function         BTM_BleGetVendorCapabilities
@@ -948,7 +949,7 @@ BTM_API extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_windo
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
+extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 /*******************************************************************************
 **
 ** Function         BTM_BleSetStorageConfig
@@ -965,7 +966,7 @@ BTM_API extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max,
+extern tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max,
                                         UINT8 batch_scan_trunc_max,
                                         UINT8 batch_scan_notify_threshold,
                                         tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback,
@@ -988,7 +989,7 @@ BTM_API extern tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max,
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
+extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
                                         UINT32 scan_interval, UINT32 scan_window,
                                         tBTM_BLE_DISCARD_RULE discard_rule,
                                         tBLE_ADDR_TYPE addr_type,
@@ -1005,7 +1006,7 @@ BTM_API extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
+extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
 **
@@ -1019,7 +1020,7 @@ BTM_API extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value)
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
+extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
                                                   tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
@@ -1034,7 +1035,7 @@ BTM_API extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
+extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
                                                   tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
@@ -1048,8 +1049,8 @@ BTM_API extern tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_tr
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
-                                               tBTM_BLE_ADV_DATA *p_data);
+extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
+                                       tBTM_BLE_ADV_DATA *p_data);
 
 /*******************************************************************************
 **
@@ -1063,8 +1064,8 @@ BTM_API extern tBTM_STATUS BTM_BleWriteScanRsp(tBTM_BLE_AD_MASK data_mask,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
-                           tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb);
+extern tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
+                                  tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb);
 
 
 /*******************************************************************************
@@ -1078,7 +1079,7 @@ BTM_API extern tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
 **                  the local device ER is copied into er
 **
 *******************************************************************************/
-BTM_API extern void BTM_GetDeviceIDRoot (BT_OCTET16 ir);
+extern void BTM_GetDeviceIDRoot (BT_OCTET16 ir);
 
 /*******************************************************************************
 **
@@ -1091,7 +1092,7 @@ BTM_API extern void BTM_GetDeviceIDRoot (BT_OCTET16 ir);
 **                  the local device ER is copied into er
 **
 *******************************************************************************/
-BTM_API extern void BTM_GetDeviceEncRoot (BT_OCTET16 er);
+extern void BTM_GetDeviceEncRoot (BT_OCTET16 er);
 
 /*******************************************************************************
 **
@@ -1103,7 +1104,7 @@ BTM_API extern void BTM_GetDeviceEncRoot (BT_OCTET16 er);
 **                  the local device DHK is copied into dhk
 **
 *******************************************************************************/
-BTM_API extern void BTM_GetDeviceDHK (BT_OCTET16 dhk);
+extern void BTM_GetDeviceDHK (BT_OCTET16 dhk);
 
 /*******************************************************************************
 **
@@ -1118,7 +1119,7 @@ BTM_API extern void BTM_GetDeviceDHK (BT_OCTET16 dhk);
 ** Returns          None
 **
 *******************************************************************************/
-BTM_API extern void BTM_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
+extern void BTM_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
 
 /*******************************************************************************
 **
@@ -1133,7 +1134,7 @@ BTM_API extern void BTM_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
 **                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
 **
 *******************************************************************************/
-BTM_API extern void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
+extern void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
 
 /*******************************************************************************
 **
@@ -1147,7 +1148,7 @@ BTM_API extern void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 pass
 **                  p_data      - simple pairing Randomizer  C.
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data);
+extern void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data);
 
 
 /*******************************************************************************
@@ -1166,8 +1167,8 @@ BTM_API extern void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, U
 ** Returns          TRUE if signing sucessul, otherwise FALSE.
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
-                                             BLE_SIGNATURE signature);
+extern BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
+                                     BLE_SIGNATURE signature);
 
 /*******************************************************************************
 **
@@ -1184,9 +1185,9 @@ BTM_API extern BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UIN
 ** Returns          TRUE if signature verified correctly; otherwise FALSE.
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig,
-                                            UINT16 len, UINT32 counter,
-                                            UINT8 *p_comp);
+extern BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig,
+                                       UINT16 len, UINT32 counter,
+                                       UINT8 *p_comp);
 
 /*******************************************************************************
 **
@@ -1198,7 +1199,7 @@ BTM_API extern BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr,
+extern void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_conn_addr,
                                             tBLE_ADDR_TYPE *p_addr_type);
 
 
@@ -1213,7 +1214,7 @@ BTM_API extern void BTM_ReadConnectionAddr (BD_ADDR remote_bda, BD_ADDR local_co
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr,
+extern BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr,
                                                     BD_ADDR conn_addr,
                                                     tBLE_ADDR_TYPE *p_addr_type);
 
@@ -1230,7 +1231,7 @@ BTM_API extern BOOLEAN BTM_ReadRemoteConnectionAddr(BD_ADDR pseudo_addr,
 ** Returns          non2.
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleLoadLocalKeys(UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key);
+extern void BTM_BleLoadLocalKeys(UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_key);
 
 
 /*******************************************************************************
@@ -1247,7 +1248,7 @@ BTM_API extern void BTM_BleLoadLocalKeys(UINT8 key_type, tBTM_BLE_LOCAL_KEYS *p_
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   conn_type,
+extern BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   conn_type,
                                     tBTM_BLE_SEL_CBACK   *p_select_cback);
 
 /*******************************************************************************
@@ -1265,7 +1266,7 @@ BTM_API extern BOOLEAN BTM_BleSetBgConnType(tBTM_BLE_CONN_TYPE   conn_type,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda);
+extern BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda);
 
 /*******************************************************************************
 **
@@ -1280,7 +1281,7 @@ BTM_API extern BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remo
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleClearBgConnDev(void);
+extern void BTM_BleClearBgConnDev(void);
 
 /********************************************************
 **
@@ -1300,7 +1301,7 @@ BTM_API extern void BTM_BleClearBgConnDev(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
+extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
                                                UINT16 min_conn_int,  UINT16 max_conn_int,
                                                UINT16 slave_latency, UINT16 supervision_tout);
 
@@ -1316,7 +1317,7 @@ BTM_API extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window);
+extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window);
 
 /******************************************************************************
 **
@@ -1329,7 +1330,7 @@ BTM_API extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback);
+extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_cback);
 
 /*******************************************************************************
 **
@@ -1344,7 +1345,7 @@ BTM_API extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  
 ** Returns          pointer of ADV data
 **
 *******************************************************************************/
-BTM_API extern  UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length);
+extern  UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length);
 
 /*******************************************************************************
 **
@@ -1358,7 +1359,7 @@ BTM_API extern  UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_leng
 **                  p_addr_type: output parameter to read the address type.
 **
 *******************************************************************************/
-BTM_API extern void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type,
+extern void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type,
                                      tBLE_ADDR_TYPE *p_addr_type);
 
 /*******************************************************************************
@@ -1372,7 +1373,7 @@ BTM_API extern void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_
 ** Returns          status.
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleBroadcast(BOOLEAN start);
+extern tBTM_STATUS BTM_BleBroadcast(BOOLEAN start);
 
 /*******************************************************************************
 **
@@ -1387,7 +1388,7 @@ BTM_API extern tBTM_STATUS BTM_BleBroadcast(BOOLEAN start);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback);
+extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback);
 
 /*******************************************************************************
 **
@@ -1401,7 +1402,7 @@ BTM_API extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_c
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleConfigPrivacy(BOOLEAN enable);
+extern void BTM_BleConfigPrivacy(BOOLEAN enable);
 
 /*******************************************************************************
 **
@@ -1412,7 +1413,7 @@ BTM_API extern void BTM_BleConfigPrivacy(BOOLEAN enable);
 ** Returns          Return TRUE if local privacy is enabled else FALSE
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleLocalPrivacyEnabled();
+extern BOOLEAN BTM_BleLocalPrivacyEnabled();
 
 /*******************************************************************************
 **
@@ -1423,7 +1424,7 @@ BTM_API extern BOOLEAN BTM_BleLocalPrivacyEnabled();
 ** Returns          Max multi adv instance count
 **
 *******************************************************************************/
-BTM_API extern UINT8  BTM_BleMaxMultiAdvInstanceCount();
+extern UINT8  BTM_BleMaxMultiAdvInstanceCount();
 
 /*******************************************************************************
 **
@@ -1438,7 +1439,7 @@ BTM_API extern UINT8  BTM_BleMaxMultiAdvInstanceCount();
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
+extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
 
 /*******************************************************************************
 **
@@ -1453,7 +1454,7 @@ BTM_API extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
+extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
                                                  BOOLEAN privacy_on);
 
 
@@ -1466,7 +1467,7 @@ BTM_API extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_BleUpdateAdvWhitelist(BOOLEAN add_remove, BD_ADDR emote_bda);
+extern BOOLEAN BTM_BleUpdateAdvWhitelist(BOOLEAN add_remove, BD_ADDR emote_bda);
 
 /*******************************************************************************
 **
@@ -1478,7 +1479,7 @@ BTM_API extern BOOLEAN BTM_BleUpdateAdvWhitelist(BOOLEAN add_remove, BD_ADDR emo
 **
 ** Return           void
 *******************************************************************************/
-BTM_API extern void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy);
+extern void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy);
 
 /*******************************************************************************
 **
@@ -1528,7 +1529,7 @@ void BTM_BleTestEnd(tBTM_CMPL_CB *p_cmd_cmpl_cback);
 ** Returns          TRUE to use LE, FALSE use BR/EDR.
 **
 *******************************************************************************/
-BTM_API extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
+extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -1542,7 +1543,7 @@ BTM_API extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
 ** Returns          TRUE if added OK, else FALSE
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
+extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
 
 /*******************************************************************************/
 /*                          Multi ADV API                                      */
@@ -1561,7 +1562,7 @@ BTM_API extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
+extern tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_params,
                                       tBTM_BLE_MULTI_ADV_CBACK *p_cback,
                                       void *p_ref);
 
@@ -1578,7 +1579,7 @@ BTM_API extern tBTM_STATUS BTM_BleEnableAdvInstance (tBTM_BLE_ADV_PARAMS *p_para
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_params);
+extern tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_ADV_PARAMS *p_params);
 
 /*******************************************************************************
 **
@@ -1595,7 +1596,7 @@ BTM_API extern tBTM_STATUS BTM_BleUpdateAdvInstParam (UINT8 inst_id, tBTM_BLE_AD
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+extern tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                                     tBTM_BLE_AD_MASK data_mask,
                                     tBTM_BLE_ADV_DATA *p_data);
 
@@ -1610,7 +1611,7 @@ BTM_API extern tBTM_STATUS BTM_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id);
+extern tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id);
 
 /*******************************************************************************
 **
@@ -1626,7 +1627,7 @@ BTM_API extern tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id);
 ** Returns          void
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
+extern tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
                                 tBTM_BLE_PF_FILT_INDEX filt_index,
                                 tBTM_BLE_PF_FILT_PARAMS *p_filt_params,
                                 tBLE_BD_ADDR *p_target, tBTM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
@@ -1646,7 +1647,7 @@ BTM_API extern tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
+extern tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
                                       tBTM_BLE_PF_COND_TYPE cond_type,
                                       tBTM_BLE_PF_FILT_INDEX filt_index,
                                       tBTM_BLE_PF_COND_PARAM *p_cond,
@@ -1665,7 +1666,7 @@ BTM_API extern tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP actio
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
+extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
                                                tBTM_BLE_PF_STATUS_CBACK *p_stat_cback,
                                                tBTM_BLE_REF_VALUE ref_value);
 
@@ -1680,7 +1681,7 @@ BTM_API extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(UINT8 enable,
 ** Returns          status
 **
 *******************************************************************************/
-BTM_API extern tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback);
+extern tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK *p_ener_cback);
 
 #ifdef __cplusplus
 }

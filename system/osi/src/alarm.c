@@ -26,11 +26,14 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
-#include <utils/Log.h>
 
-#include "alarm.h"
-#include "list.h"
-#include "osi.h"
+#include "osi/include/alarm.h"
+#include "osi/include/allocator.h"
+#include "osi/include/list.h"
+#include "osi/include/log.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 
 struct alarm_t {
   // The lock is held while the callback for this alarm is being executed.
@@ -39,7 +42,10 @@ struct alarm_t {
   // a guarantee to its caller that the callback will not be in progress when it
   // returns.
   pthread_mutex_t callback_lock;
+  period_ms_t created;
+  period_ms_t period;
   period_ms_t deadline;
+  bool is_periodic;
   alarm_callback_t callback;
   void *data;
 };
@@ -62,10 +68,17 @@ static list_t *alarms;
 static timer_t timer;
 static bool timer_set;
 
+// All alarm callbacks are dispatched from |callback_thread|
+static thread_t *callback_thread;
+static semaphore_t *alarm_expired;
+
 static bool lazy_initialize(void);
 static period_ms_t now(void);
+static void alarm_set_internal(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data, bool is_periodic);
+static void schedule_next_instance(alarm_t *alarm, bool force_reschedule);
+static void reschedule_root_alarm(void);
 static void timer_callback(void *data);
-static void reschedule(void);
+static void callback_dispatch(void *context);
 
 alarm_t *alarm_new(void) {
   // Make sure we have a list we can insert alarms into.
@@ -75,9 +88,9 @@ alarm_t *alarm_new(void) {
   pthread_mutexattr_t attr;
   pthread_mutexattr_init(&attr);
 
-  alarm_t *ret = calloc(1, sizeof(alarm_t));
+  alarm_t *ret = osi_calloc(sizeof(alarm_t));
   if (!ret) {
-    ALOGE("%s unable to allocate memory for alarm.", __func__);
+    LOG_ERROR("%s unable to allocate memory for alarm.", __func__);
     goto error;
   }
 
@@ -85,13 +98,13 @@ alarm_t *alarm_new(void) {
   // within the callback function of the alarm.
   int error = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   if (error) {
-    ALOGE("%s unable to create a recursive mutex: %s", __func__, strerror(error));
+    LOG_ERROR("%s unable to create a recursive mutex: %s", __func__, strerror(error));
     goto error;
   }
 
   error = pthread_mutex_init(&ret->callback_lock, &attr);
   if (error) {
-    ALOGE("%s unable to initialize mutex: %s", __func__, strerror(error));
+    LOG_ERROR("%s unable to initialize mutex: %s", __func__, strerror(error));
     goto error;
   }
 
@@ -100,7 +113,7 @@ alarm_t *alarm_new(void) {
 
 error:;
   pthread_mutexattr_destroy(&attr);
-  free(ret);
+  osi_free(ret);
   return NULL;
 }
 
@@ -110,42 +123,32 @@ void alarm_free(alarm_t *alarm) {
 
   alarm_cancel(alarm);
   pthread_mutex_destroy(&alarm->callback_lock);
-  free(alarm);
+  osi_free(alarm);
+}
+
+void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data) {
+  alarm_set_internal(alarm, deadline, cb, data, false);
+}
+
+void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data) {
+  alarm_set_internal(alarm, period, cb, data, true);
 }
 
 // Runs in exclusion with alarm_cancel and timer_callback.
-void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data) {
+static void alarm_set_internal(alarm_t *alarm, period_ms_t period, alarm_callback_t cb, void *data, bool is_periodic) {
   assert(alarms != NULL);
   assert(alarm != NULL);
   assert(cb != NULL);
 
   pthread_mutex_lock(&monitor);
 
-  // If the alarm is currently set and it's at the start of the list,
-  // we'll need to re-schedule since we've adjusted the earliest deadline.
-  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
-  if (alarm->callback)
-    list_remove(alarms, alarm);
-
-  alarm->deadline = now() + deadline;
+  alarm->created = now();
+  alarm->is_periodic = is_periodic;
+  alarm->period = period;
   alarm->callback = cb;
   alarm->data = data;
 
-  // Add it into the timer list sorted by deadline (earliest deadline first).
-  if (list_is_empty(alarms))
-    list_prepend(alarms, alarm);
-  else
-    for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
-      list_node_t *next = list_next(node);
-      if (next == list_end(alarms) || ((alarm_t *)list_node(next))->deadline >= alarm->deadline) {
-        list_insert_after(alarms, node, alarm);
-        break;
-      }
-    }
-
-  // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
-  if (needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
-    reschedule();
+  schedule_next_instance(alarm, false);
 
   pthread_mutex_unlock(&monitor);
 }
@@ -164,7 +167,7 @@ void alarm_cancel(alarm_t *alarm) {
   alarm->data = NULL;
 
   if (needs_reschedule)
-    reschedule();
+    reschedule_root_alarm();
 
   pthread_mutex_unlock(&monitor);
 
@@ -180,10 +183,32 @@ static bool lazy_initialize(void) {
 
   alarms = list_new(NULL);
   if (!alarms) {
-    ALOGE("%s unable to allocate alarm list.", __func__);
+    LOG_ERROR("%s unable to allocate alarm list.", __func__);
     return false;
   }
 
+  struct sigevent sigevent;
+  memset(&sigevent, 0, sizeof(sigevent));
+  sigevent.sigev_notify = SIGEV_THREAD;
+  sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
+  if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
+    LOG_ERROR("%s unable to create timer: %s", __func__, strerror(errno));
+    return false;
+  }
+
+  alarm_expired = semaphore_new(0);
+  if (!alarm_expired) {
+    LOG_ERROR("%s unable to create alarm expired semaphore", __func__);
+    return false;
+  }
+
+  callback_thread = thread_new("alarm_callbacks");
+  if (!callback_thread) {
+    LOG_ERROR("%s unable to create alarm callback thread.", __func__);
+    return false;
+  }
+
+  thread_post(callback_thread, callback_dispatch, NULL);
   return true;
 }
 
@@ -192,95 +217,145 @@ static period_ms_t now(void) {
 
   struct timespec ts;
   if (clock_gettime(CLOCK_ID, &ts) == -1) {
-    ALOGE("%s unable to get current time: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to get current time: %s", __func__, strerror(errno));
     return 0;
   }
 
   return (ts.tv_sec * 1000LL) + (ts.tv_nsec / 1000000LL);
 }
 
-// Warning: this function is called in the context of an unknown thread.
-// As a result, it must be thread-safe relative to other operations on
-// the alarm list.
-static void timer_callback(void *ptr) {
-  alarm_t *alarm = (alarm_t *)ptr;
-  assert(alarm != NULL);
+// Must be called with monitor held
+static void schedule_next_instance(alarm_t *alarm, bool force_reschedule) {
+  // If the alarm is currently set and it's at the start of the list,
+  // we'll need to re-schedule since we've adjusted the earliest deadline.
+  bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
+  if (alarm->callback)
+    list_remove(alarms, alarm);
 
-  pthread_mutex_lock(&monitor);
+  // Calculate the next deadline for this alarm
+  period_ms_t just_now = now();
+  period_ms_t ms_into_period = alarm->is_periodic ? ((just_now - alarm->created) % alarm->period) : 0;
+  alarm->deadline = just_now + (alarm->period - ms_into_period);
 
-  bool alarm_valid = list_remove(alarms, alarm);
-  alarm_callback_t callback = alarm->callback;
-  void *data = alarm->data;
+  // Add it into the timer list sorted by deadline (earliest deadline first).
+  if (list_is_empty(alarms) || ((alarm_t *)list_front(alarms))->deadline >= alarm->deadline)
+    list_prepend(alarms, alarm);
+  else
+    for (list_node_t *node = list_begin(alarms); node != list_end(alarms); node = list_next(node)) {
+      list_node_t *next = list_next(node);
+      if (next == list_end(alarms) || ((alarm_t *)list_node(next))->deadline >= alarm->deadline) {
+        list_insert_after(alarms, node, alarm);
+        break;
+      }
+    }
 
-  alarm->deadline = 0;
-  alarm->callback = NULL;
-  alarm->data = NULL;
-
-  reschedule();
-
-  // The alarm was cancelled before we got to it. Release the monitor
-  // lock and exit right away since there's nothing left to do.
-  if (!alarm_valid) {
-    pthread_mutex_unlock(&monitor);
-    return;
-  }
-
-  // Downgrade lock.
-  pthread_mutex_lock(&alarm->callback_lock);
-  pthread_mutex_unlock(&monitor);
-
-  callback(data);
-
-  pthread_mutex_unlock(&alarm->callback_lock);
+  // If the new alarm has the earliest deadline, we need to re-evaluate our schedule.
+  if (force_reschedule || needs_reschedule || (!list_is_empty(alarms) && list_front(alarms) == alarm))
+    reschedule_root_alarm();
 }
 
 // NOTE: must be called with monitor lock.
-static void reschedule(void) {
+static void reschedule_root_alarm(void) {
   assert(alarms != NULL);
 
-  if (timer_set) {
-    timer_delete(timer);
-    timer_set = false;
-  }
+  // If used in a zeroed state, disarms the timer
+  struct itimerspec wakeup_time;
+  memset(&wakeup_time, 0, sizeof(wakeup_time));
 
-  if (list_is_empty(alarms)) {
-    bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
-    return;
-  }
+  if (list_is_empty(alarms))
+    goto done;
 
   alarm_t *next = list_front(alarms);
-  int64_t next_exp = next->deadline - now();
-  if (next_exp < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
-    int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-    if (status != BT_STATUS_SUCCESS) {
-      ALOGE("%s unable to acquire wake lock: %d", __func__, status);
-      return;
+  int64_t next_expiration = next->deadline - now();
+  if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
+    if (!timer_set) {
+      int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
+      if (status != BT_STATUS_SUCCESS) {
+        LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
+        goto done;
+      }
     }
 
-    struct sigevent sigevent;
-    memset(&sigevent, 0, sizeof(sigevent));
-    sigevent.sigev_notify = SIGEV_THREAD;
-    sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
-    sigevent.sigev_value.sival_ptr = next;
-    if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
-      ALOGE("%s unable to create timer: %s", __func__, strerror(errno));
-      return;
-    }
-
-    struct itimerspec wakeup_time;
-    memset(&wakeup_time, 0, sizeof(wakeup_time));
     wakeup_time.it_value.tv_sec = (next->deadline / 1000);
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
-    if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1) {
-      ALOGE("%s unable to set timer: %s", __func__, strerror(errno));
-      timer_delete(timer);
-      return;
-    }
-    timer_set = true;
   } else {
-    if (!bt_os_callouts->set_wake_alarm(next_exp, true, timer_callback, next))
-      ALOGE("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_exp);
+    if (!bt_os_callouts->set_wake_alarm(next_expiration, true, timer_callback, NULL))
+      LOG_ERROR("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_expiration);
+  }
 
+done:
+  timer_set = wakeup_time.it_value.tv_sec != 0 || wakeup_time.it_value.tv_nsec != 0;
+  if (!timer_set) {
     bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+  }
+
+  if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
+    LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
+
+  // If next expiration was in the past (e.g. short timer that got context switched)
+  // then the timer might have diarmed itself. Detect this case and work around it
+  // by manually signalling the |alarm_expired| semaphore.
+  //
+  // It is possible that the timer was actually super short (a few milliseconds)
+  // and the timer expired normally before we called |timer_gettime|. Worst case,
+  // |alarm_expired| is signaled twice for that alarm. Nothing bad should happen in
+  // that case though since the callback dispatch function checks to make sure the
+  // timer at the head of the list actually expired.
+  if (timer_set) {
+    struct itimerspec time_to_expire;
+    timer_gettime(timer, &time_to_expire);
+    if (time_to_expire.it_value.tv_sec == 0 && time_to_expire.it_value.tv_nsec == 0) {
+      LOG_ERROR("%s alarm expiration too close for posix timers, switching to guns", __func__);
+      semaphore_post(alarm_expired);
+    }
+  }
+}
+
+// Callback function for wake alarms and our posix timer
+static void timer_callback(UNUSED_ATTR void *ptr) {
+  semaphore_post(alarm_expired);
+}
+
+// Function running on |callback_thread| that dispatches alarm callbacks upon
+// alarm expiration, which is signaled using |alarm_expired|.
+static void callback_dispatch(UNUSED_ATTR void *context) {
+  while (true) {
+    semaphore_wait(alarm_expired);
+    pthread_mutex_lock(&monitor);
+
+    alarm_t *alarm;
+
+    // Take into account that the alarm may get cancelled before we get to it.
+    // We're done here if there are no alarms or the alarm at the front is in
+    // the future. Release the monitor lock and exit right away since there's
+    // nothing left to do.
+    if (list_is_empty(alarms) || (alarm = list_front(alarms))->deadline > now()) {
+      reschedule_root_alarm();
+      pthread_mutex_unlock(&monitor);
+      continue;
+    }
+
+    list_remove(alarms, alarm);
+
+    alarm_callback_t callback = alarm->callback;
+    void *data = alarm->data;
+
+    if (alarm->is_periodic) {
+      schedule_next_instance(alarm, true);
+    } else {
+      reschedule_root_alarm();
+
+      alarm->deadline = 0;
+      alarm->callback = NULL;
+      alarm->data = NULL;
+    }
+
+    // Downgrade lock.
+    pthread_mutex_lock(&alarm->callback_lock);
+    pthread_mutex_unlock(&monitor);
+
+    callback(data);
+
+    pthread_mutex_unlock(&alarm->callback_lock);
   }
 }

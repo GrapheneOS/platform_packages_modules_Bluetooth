@@ -27,7 +27,6 @@
 #include <string.h>
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
-#include "bd.h"
 
 /*****************************************************************************
 **  Constants and data types
@@ -56,7 +55,7 @@ static const tBTA_SYS_REG bta_hf_client_reg =
 ** Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
 **
 *******************************************************************************/
-BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
+tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
 {
     tBTA_HF_CLIENT_API_ENABLE  *p_buf;
 
@@ -89,7 +88,7 @@ BTA_API tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientDisable(void)
+void BTA_HfClientDisable(void)
 {
     BT_HDR  *p_buf;
 
@@ -110,8 +109,8 @@ BTA_API void BTA_HfClientDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                                                        char *p_service_name)
+void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
+                          char *p_service_name)
 {
     tBTA_HF_CLIENT_API_REGISTER    *p_buf;
 
@@ -143,7 +142,7 @@ BTA_API void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT feature
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientDeregister(UINT16 handle)
+void BTA_HfClientDeregister(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
@@ -168,7 +167,7 @@ BTA_API void BTA_HfClientDeregister(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
+void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 {
     tBTA_HF_CLIENT_API_OPEN  *p_buf;
 
@@ -193,7 +192,7 @@ BTA_API void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientClose(UINT16 handle)
+void BTA_HfClientClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
@@ -216,7 +215,7 @@ BTA_API void BTA_HfClientClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientAudioOpen(UINT16 handle)
+void BTA_HfClientAudioOpen(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
@@ -239,7 +238,7 @@ BTA_API void BTA_HfClientAudioOpen(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientAudioClose(UINT16 handle)
+void BTA_HfClientAudioClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
@@ -261,7 +260,7 @@ BTA_API void BTA_HfClientAudioClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val1, UINT32 val2, const char *str)
+void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val1, UINT32 val2, const char *str)
 {
     tBTA_HF_CLIENT_DATA_VAL  *p_buf;
 

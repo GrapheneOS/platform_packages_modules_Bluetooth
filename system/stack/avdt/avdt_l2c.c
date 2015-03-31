@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "avdt_api.h"
@@ -356,6 +356,8 @@ void avdt_l2c_config_cfm_cback(UINT16 lcid, tL2CAP_CFG_INFO *p_cfg)
     /* look up info for this channel */
     if ((p_tbl = avdt_ad_tc_tbl_by_lcid(lcid)) != NULL)
     {
+        p_tbl->lcid = lcid;
+
         /* if in correct state */
         if (p_tbl->state == AVDT_AD_ST_CFG)
         {

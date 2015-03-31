@@ -45,11 +45,6 @@ typedef void (tBTA_SYS_DISABLE)(void);
 enum
 {
     BTA_SYS_HW_BLUETOOTH,
-    BTA_SYS_HW_FMRX,
-    BTA_SYS_HW_FMTX,
-    BTA_SYS_HW_GPS,
-    BTA_SYS_HW_SENSOR,
-    BTA_SYS_HW_NFC,
     BTA_SYS_HW_RT,
 
     BTA_SYS_MAX_HW_MODULES
@@ -97,16 +92,6 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 #define BTA_ID_GATTC        31           /* GATT Client */
 #define BTA_ID_GATTS        32           /* GATT Client */
 #define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */
-
-/* FM */
-#define BTA_ID_FM           34           /* FM  */
-#define BTA_ID_FMTX         35           /* FM TX */
-
-/* SENSOR */
-#define BTA_ID_SSR          36           /* Sensor  */
-
-/* GPS */
-#define BTA_ID_GPS          37           /* GPS  */
 
 /* GENERIC */
 #define BTA_ID_PRM          38
@@ -156,7 +141,7 @@ typedef void (tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 a
 /* conn callback for role / low power manager*/
 typedef void (tBTA_SYS_SSR_CFG_CBACK)(UINT8 id, UINT8 app_id, UINT16 latency, UINT16 tout);
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
+#if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /* eir callback for adding/removeing UUID */
 typedef void (tBTA_SYS_EIR_CBACK)(UINT16 uuid16, BOOLEAN adding);
 #endif
@@ -168,23 +153,12 @@ typedef struct
     tBTA_SYS_DISABLE    *disable;
 } tBTA_SYS_REG;
 
-/* system manager configuration structure */
-typedef struct
-{
-    UINT16          mbox_evt;                       /* GKI mailbox event */
-    UINT8           mbox;                           /* GKI mailbox id */
-    UINT8           timer;                          /* GKI timer id */
-    UINT8           trace_level;                    /* initial trace level */
-} tBTA_SYS_CFG;
-
 /* data type to send events to BTA SYS HW manager */
 typedef struct
 {
     BT_HDR                hdr;
     tBTA_SYS_HW_MODULE   hw_module;
 } tBTA_SYS_HW_MSG;
-
-
 
 /*****************************************************************************
 **  Global data
@@ -243,17 +217,16 @@ typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 extern "C" {
 #endif
 
-BTA_API extern void bta_sys_init(void);
-BTA_API extern void bta_sys_event(BT_HDR *p_msg);
-BTA_API extern void bta_sys_timer_update(void);
-BTA_API extern void bta_sys_disable_timers(void);
-BTA_API extern void bta_sys_set_trace_level(UINT8 level);
+extern void bta_sys_init(void);
+extern void bta_sys_free(void);
+extern void bta_sys_event(BT_HDR *p_msg);
+extern void bta_sys_set_trace_level(UINT8 level);
 extern void bta_sys_register(UINT8 id, const tBTA_SYS_REG *p_reg);
 extern void bta_sys_deregister(UINT8 id);
 extern BOOLEAN bta_sys_is_register(UINT8 id);
 extern UINT16 bta_sys_get_sys_features(void);
 extern void bta_sys_sendmsg(void *p_msg);
-extern void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout);
+extern void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms);
 extern void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle);
 extern void bta_sys_disable(tBTA_SYS_HW_MODULE module);
 
@@ -289,7 +262,7 @@ extern void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, UINT8 new_role, UINT8 hci
 extern void bta_sys_collision_register(UINT8 bta_id, tBTA_SYS_CONN_CBACK *p_cback);
 extern void bta_sys_notify_collision (BD_ADDR_PTR p_bda);
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
+#if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 extern void bta_sys_eir_register(tBTA_SYS_EIR_CBACK * p_cback);
 extern void bta_sys_add_uuid(UINT16 uuid16);
 extern void bta_sys_remove_uuid(UINT16 uuid16);

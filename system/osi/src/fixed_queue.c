@@ -20,10 +20,12 @@
 #include <pthread.h>
 #include <stdlib.h>
 
-#include "fixed_queue.h"
-#include "list.h"
-#include "osi.h"
-#include "semaphore.h"
+#include "osi/include/allocator.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/reactor.h"
 
 struct fixed_queue_t {
   list_t *list;
@@ -31,12 +33,21 @@ struct fixed_queue_t {
   semaphore_t *dequeue_sem;
   pthread_mutex_t lock;
   size_t capacity;
-};
+
+  reactor_object_t *dequeue_object;
+  fixed_queue_cb dequeue_ready;
+  void *dequeue_context;
+} fixed_queue_t;
+
+static void internal_dequeue_ready(void *context);
 
 fixed_queue_t *fixed_queue_new(size_t capacity) {
-  fixed_queue_t *ret = calloc(1, sizeof(fixed_queue_t));
+  fixed_queue_t *ret = osi_calloc(sizeof(fixed_queue_t));
   if (!ret)
     goto error;
+
+  pthread_mutex_init(&ret->lock, NULL);
+  ret->capacity = capacity;
 
   ret->list = list_new(NULL);
   if (!ret->list)
@@ -50,25 +61,18 @@ fixed_queue_t *fixed_queue_new(size_t capacity) {
   if (!ret->dequeue_sem)
     goto error;
 
-  pthread_mutex_init(&ret->lock, NULL);
-  ret->capacity = capacity;
-
   return ret;
 
 error:;
-  if (ret) {
-    list_free(ret->list);
-    semaphore_free(ret->enqueue_sem);
-    semaphore_free(ret->dequeue_sem);
-  }
-
-  free(ret);
+  fixed_queue_free(ret, NULL);
   return NULL;
 }
 
 void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
   if (!queue)
     return;
+
+  fixed_queue_unregister_dequeue(queue);
 
   if (free_cb)
     for (const list_node_t *node = list_begin(queue->list); node != list_end(queue->list); node = list_next(node))
@@ -78,7 +82,23 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
   semaphore_free(queue->enqueue_sem);
   semaphore_free(queue->dequeue_sem);
   pthread_mutex_destroy(&queue->lock);
-  free(queue);
+  osi_free(queue);
+}
+
+bool fixed_queue_is_empty(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  bool is_empty = list_is_empty(queue->list);
+  pthread_mutex_unlock(&queue->lock);
+
+  return is_empty;
+}
+
+size_t fixed_queue_capacity(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  return queue->capacity;
 }
 
 void fixed_queue_enqueue(fixed_queue_t *queue, void *data) {
@@ -140,6 +160,17 @@ void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
   return ret;
 }
 
+void *fixed_queue_try_peek(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  // Because protected by the lock, the empty and front calls are atomic and not a race condition
+  void *ret = list_is_empty(queue->list) ? NULL : list_front(queue->list);
+  pthread_mutex_unlock(&queue->lock);
+
+  return ret;
+}
+
 int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue) {
   assert(queue != NULL);
   return semaphore_get_fd(queue->dequeue_sem);
@@ -148,4 +179,39 @@ int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue) {
 int fixed_queue_get_enqueue_fd(const fixed_queue_t *queue) {
   assert(queue != NULL);
   return semaphore_get_fd(queue->enqueue_sem);
+}
+
+void fixed_queue_register_dequeue(fixed_queue_t *queue, reactor_t *reactor, fixed_queue_cb ready_cb, void *context) {
+  assert(queue != NULL);
+  assert(reactor != NULL);
+  assert(ready_cb != NULL);
+
+  // Make sure we're not already registered
+  fixed_queue_unregister_dequeue(queue);
+
+  queue->dequeue_ready = ready_cb;
+  queue->dequeue_context = context;
+  queue->dequeue_object = reactor_register(
+    reactor,
+    fixed_queue_get_dequeue_fd(queue),
+    queue,
+    internal_dequeue_ready,
+    NULL
+  );
+}
+
+void fixed_queue_unregister_dequeue(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  if (queue->dequeue_object) {
+    reactor_unregister(queue->dequeue_object);
+    queue->dequeue_object = NULL;
+  }
+}
+
+static void internal_dequeue_ready(void *context) {
+  assert(context != NULL);
+
+  fixed_queue_t *queue = context;
+  queue->dequeue_ready(queue, queue->dequeue_context);
 }

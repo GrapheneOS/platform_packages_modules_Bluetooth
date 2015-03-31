@@ -141,7 +141,7 @@ extern "C"
 **                  as for a central service management.
 **
 *******************************************************************************/
-    GATT_API extern tGATT_STATUS srvc_eng_init (void);
+extern tGATT_STATUS srvc_eng_init (void);
 
 
 /*****************************************************************************
@@ -155,7 +155,7 @@ extern "C"
 ** Description      Initializa the Device Information Service Server.
 **
 *******************************************************************************/
-    GATT_API extern tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask);
+extern tDIS_STATUS DIS_SrInit (tDIS_ATTR_MASK dis_attr_mask);
 /*******************************************************************************
 **
 ** Function         DIS_SrUpdate
@@ -163,7 +163,7 @@ extern "C"
 ** Description      Update the DIS server attribute values
 **
 *******************************************************************************/
-    GATT_API extern tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR *p_info);
+extern tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR *p_info);
 /*****************************************************************************
 **  DIS Client Function
 *****************************************************************************/
@@ -176,8 +176,8 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    GATT_API extern BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback,
-            tDIS_ATTR_MASK mask);
+extern BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback,
+                               tDIS_ATTR_MASK mask);
 
 /*******************************************************************************
 **      BATTERY SERVICE API
@@ -189,7 +189,7 @@ extern "C"
 ** Description      Instantiate a Battery service
 **
 *******************************************************************************/
-    GATT_API extern UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info);
+extern UINT16 Battery_Instantiate (UINT8 app_id, tBA_REG_INFO *p_reg_info);
 
 /*******************************************************************************
 **
@@ -198,7 +198,7 @@ extern "C"
 ** Description      Respond to a battery service request
 **
 *******************************************************************************/
-    GATT_API extern void Battery_Rsp (UINT8 app_id, tGATT_STATUS st, UINT8 event, tBA_RSP_DATA *p_rsp);
+extern void Battery_Rsp (UINT8 app_id, tGATT_STATUS st, UINT8 event, tBA_RSP_DATA *p_rsp);
 /*******************************************************************************
 **
 ** Function         Battery_Notify
@@ -206,7 +206,7 @@ extern "C"
 ** Description      Send battery level notification
 **
 *******************************************************************************/
-    GATT_API extern void Battery_Notify (UINT8 app_id, BD_ADDR remote_bda, UINT8 battery_level);
+extern void Battery_Notify (UINT8 app_id, BD_ADDR remote_bda, UINT8 battery_level);
 
 
 #ifdef __cplusplus
@@ -215,5 +215,3 @@ extern "C"
 #endif
 
 #endif
-
-

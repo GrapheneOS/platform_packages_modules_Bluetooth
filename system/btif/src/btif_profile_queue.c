@@ -24,14 +24,17 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <hardware/bluetooth.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_QUEUE"
+#define LOG_TAG "bt_btif_queue"
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "gki.h"
-#include "list.h"
+#include "osi/include/list.h"
+#include "osi/include/allocator.h"
+#include "stack_manager.h"
 
 /*******************************************************************************
 **  Local type definitions
@@ -55,42 +58,37 @@ typedef struct {
 
 static list_t *connect_queue;
 
+static const size_t MAX_REASONABLE_REQUESTS = 10;
+
 /*******************************************************************************
 **  Queue helper functions
 *******************************************************************************/
 
 static void queue_int_add(connect_node_t *p_param) {
-    connect_node_t *p_node = GKI_getbuf(sizeof(connect_node_t));
-    ASSERTC(p_node != NULL, "Failed to allocate new list node", 0);
-
-    memcpy(p_node, p_param, sizeof(connect_node_t));
-
     if (!connect_queue) {
-        connect_queue = list_new(GKI_freebuf);
-        ASSERTC(connect_queue != NULL, "Failed to allocate list", 0);
+        connect_queue = list_new(osi_free);
+        assert(connect_queue != NULL);
     }
 
+    // Sanity check to make sure we're not leaking connection requests
+    assert(list_length(connect_queue) < MAX_REASONABLE_REQUESTS);
+
+    for (const list_node_t *node = list_begin(connect_queue); node != list_end(connect_queue); node = list_next(node)) {
+        if (((connect_node_t *)list_node(node))->uuid == p_param->uuid) {
+            LOG_INFO("%s dropping duplicate connect request for uuid: %04x", __func__, p_param->uuid);
+            return;
+        }
+    }
+
+    connect_node_t *p_node = osi_malloc(sizeof(connect_node_t));
+    assert(p_node != NULL);
+    memcpy(p_node, p_param, sizeof(connect_node_t));
     list_append(connect_queue, p_node);
 }
 
 static void queue_int_advance() {
     if (connect_queue && !list_is_empty(connect_queue))
         list_remove(connect_queue, list_front(connect_queue));
-}
-
-static bt_status_t queue_int_connect_next() {
-    if (!connect_queue || list_is_empty(connect_queue))
-        return BT_STATUS_FAIL;
-
-    connect_node_t *p_head = list_front(connect_queue);
-
-    // If the queue is currently busy, we return success anyway,
-    // since the connection has been queued...
-    if (p_head->busy)
-        return BT_STATUS_SUCCESS;
-
-    p_head->busy = true;
-    return p_head->connect_cb(&p_head->bda, p_head->uuid);
 }
 
 static void queue_int_handle_evt(UINT16 event, char *p_param) {
@@ -104,7 +102,8 @@ static void queue_int_handle_evt(UINT16 event, char *p_param) {
             break;
     }
 
-    queue_int_connect_next();
+    if (stack_manager_get_interface()->get_stack_is_running())
+        btif_queue_connect_next();
 }
 
 /*******************************************************************************
@@ -142,6 +141,24 @@ void btif_queue_advance() {
     btif_transfer_context(queue_int_handle_evt, BTIF_QUEUE_ADVANCE_EVT,
                           NULL, 0, NULL);
 }
+
+// This function dispatches the next pending connect request. It is called from
+// stack_manager when the stack comes up.
+bt_status_t btif_queue_connect_next(void) {
+    if (!connect_queue || list_is_empty(connect_queue))
+        return BT_STATUS_FAIL;
+
+    connect_node_t *p_head = list_front(connect_queue);
+
+    // If the queue is currently busy, we return success anyway,
+    // since the connection has been queued...
+    if (p_head->busy)
+        return BT_STATUS_SUCCESS;
+
+    p_head->busy = true;
+    return p_head->connect_cb(&p_head->bda, p_head->uuid);
+}
+
 
 /*******************************************************************************
 **

@@ -1,39 +1,38 @@
 #include <gtest/gtest.h>
 
+#include "AllocationTestHarness.h"
+
 extern "C" {
 #include "list.h"
 #include "osi.h"
 }
 
-TEST(ListTest, test_new_simple) {
+class ListTest : public AllocationTestHarness {};
+
+TEST_F(ListTest, test_new_free_simple) {
   list_t *list = list_new(NULL);
   ASSERT_TRUE(list != NULL);
-}
-
-TEST(ListTest, test_free_simple) {
-  // In this test we just verify that list_free is callable with a valid list.
-  list_t *list = list_new(NULL);
   list_free(list);
 }
 
-TEST(ListTest, test_free_null) {
+TEST_F(ListTest, test_free_null) {
   // In this test we just verify that list_free is callable with NULL.
   list_free(NULL);
 }
 
-TEST(ListTest, test_empty_list_is_empty) {
+TEST_F(ListTest, test_empty_list_is_empty) {
   list_t *list = list_new(NULL);
   EXPECT_TRUE(list_is_empty(list));
   list_free(list);
 }
 
-TEST(ListTest, test_empty_list_has_no_length) {
+TEST_F(ListTest, test_empty_list_has_no_length) {
   list_t *list = list_new(NULL);
   EXPECT_EQ(list_length(list), 0U);
   list_free(list);
 }
 
-TEST(ListTest, test_simple_list_prepend) {
+TEST_F(ListTest, test_simple_list_prepend) {
   list_t *list = list_new(NULL);
   EXPECT_TRUE(list_prepend(list, &list));
   EXPECT_FALSE(list_is_empty(list));
@@ -41,7 +40,7 @@ TEST(ListTest, test_simple_list_prepend) {
   list_free(list);
 }
 
-TEST(ListTest, test_simple_list_append) {
+TEST_F(ListTest, test_simple_list_append) {
   list_t *list = list_new(NULL);
   EXPECT_TRUE(list_append(list, &list));
   EXPECT_FALSE(list_is_empty(list));
@@ -49,7 +48,7 @@ TEST(ListTest, test_simple_list_append) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_remove_found) {
+TEST_F(ListTest, test_list_remove_found) {
   list_t *list = list_new(NULL);
   list_append(list, &list);
   EXPECT_TRUE(list_remove(list, &list));
@@ -58,7 +57,7 @@ TEST(ListTest, test_list_remove_found) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_remove_not_found) {
+TEST_F(ListTest, test_list_remove_not_found) {
   int x;
   list_t *list = list_new(NULL);
   list_append(list, &list);
@@ -68,7 +67,7 @@ TEST(ListTest, test_list_remove_not_found) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_front) {
+TEST_F(ListTest, test_list_front) {
   int x[] = { 1, 2, 3, 4, 5 };
   list_t *list = list_new(NULL);
 
@@ -80,7 +79,7 @@ TEST(ListTest, test_list_front) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_back) {
+TEST_F(ListTest, test_list_back) {
   int x[] = { 1, 2, 3, 4, 5 };
   list_t *list = list_new(NULL);
 
@@ -92,7 +91,7 @@ TEST(ListTest, test_list_back) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_clear) {
+TEST_F(ListTest, test_list_clear) {
   int x[] = { 1, 2, 3, 4, 5 };
   list_t *list = list_new(NULL);
 
@@ -106,7 +105,7 @@ TEST(ListTest, test_list_clear) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_append_multiple) {
+TEST_F(ListTest, test_list_append_multiple) {
   int x[] = { 1, 2, 3, 4, 5 };
   list_t *list = list_new(NULL);
 
@@ -120,7 +119,7 @@ TEST(ListTest, test_list_append_multiple) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_prepend_multiple) {
+TEST_F(ListTest, test_list_prepend_multiple) {
   int x[] = { 1, 2, 3, 4, 5 };
   list_t *list = list_new(NULL);
 
@@ -134,13 +133,13 @@ TEST(ListTest, test_list_prepend_multiple) {
   list_free(list);
 }
 
-TEST(ListTest, test_list_begin_empty_list) {
+TEST_F(ListTest, test_list_begin_empty_list) {
   list_t *list = list_new(NULL);
   EXPECT_EQ(list_begin(list), list_end(list));
   list_free(list);
 }
 
-TEST(ListTest, test_list_next) {
+TEST_F(ListTest, test_list_next) {
   list_t *list = list_new(NULL);
   list_append(list, &list);
   EXPECT_NE(list_begin(list), list_end(list));

@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "bta_api.h"
-#include "bd.h"
 #include "bta_sys.h"
 #include "bta_ag_api.h"
 #include "bta_ag_co.h"
@@ -410,12 +409,6 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     tBTA_SERVICE_MASK services;
     int i, num_active_conn = 0;
     UNUSED(p_data);
-
-#ifdef  _WIN32_WCE
-    /* The BTE RFCOMM automatically removes the connection when closed, but BTW does not */
-    if (p_scb->conn_handle != 0)
-        RFCOMM_RemoveConnection (p_scb->conn_handle);
-#endif
 
     /* reinitialize stuff */
     p_scb->conn_service = 0;

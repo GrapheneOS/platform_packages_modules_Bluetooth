@@ -19,22 +19,34 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := bdtest
+LOCAL_MODULE := net_test_bluedroid
+
+LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH)/../../
 
 LOCAL_SRC_FILES := \
-	cases/adapter.c \
-	cases/cases.c \
-	cases/pan.c \
-	support/adapter.c \
-	support/callbacks.c \
-	support/hal.c \
-	support/pan.c \
-	support/property.c \
-	main.c
+    cases/adapter.c \
+    cases/cases.c \
+    cases/gatt.c \
+    cases/pan.c \
+    cases/rfcomm.c \
+    support/adapter.c \
+    support/callbacks.c \
+    support/gatt.c \
+    support/hal.c \
+    support/pan.c \
+    support/rfcomm.c \
+    main.c
 
 LOCAL_SHARED_LIBRARIES += \
-	libhardware \
-	libhardware_legacy
+    liblog \
+    libhardware \
+    libhardware_legacy \
+    libcutils
+
+LOCAL_STATIC_LIBRARIES += \
+  libbtcore \
+  libosi
 
 LOCAL_CFLAGS += -std=c99 -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 

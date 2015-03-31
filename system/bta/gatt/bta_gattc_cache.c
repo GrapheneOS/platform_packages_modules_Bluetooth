@@ -37,6 +37,9 @@
 #include "btm_api.h"
 #include "btm_ble_api.h"
 
+#define LOG_TAG "bt_bta_gattc"
+#include "osi/include/log.h"
+
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
 
@@ -171,7 +174,7 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    while (p_srvc_cb->cache_buffer.p_first)
+    while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
         GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
 
     utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
@@ -598,7 +601,7 @@ static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
         }
     }
     /* no service found at all, the end of server discovery*/
-    APPL_TRACE_ERROR("No More Service found");
+    LOG_WARN("%s no more services found", __func__);
 
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
     bta_gattc_display_cache_server(p_srvc_cb->p_srvc_cache);
@@ -1495,7 +1498,7 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
     APPL_TRACE_ERROR("bta_gattc_rebuild_cache");
     if (attr_index == 0)
     {
-        while (p_srvc_cb->cache_buffer.p_first)
+        while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
             GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
 
         if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)

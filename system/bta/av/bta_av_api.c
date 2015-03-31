@@ -28,7 +28,6 @@
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
 #include "bta_api.h"
-#include "bd.h"
 #include "bta_sys.h"
 #include "bta_av_api.h"
 #include "bta_av_int.h"

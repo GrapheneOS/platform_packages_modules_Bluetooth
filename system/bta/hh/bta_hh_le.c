@@ -31,6 +31,9 @@
 #include "btm_int.h"
 #include "utl.h"
 
+#define LOG_TAG "bt_bta_hh"
+#include "osi/include/log.h"
+
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
 #endif
@@ -594,7 +597,7 @@ tBTA_HH_LE_RPT * bta_hh_le_find_alloc_report_entry(tBTA_HH_DEV_CB *p_cb,
 **
 ** Function         bta_hh_le_read_char_dscrpt
 **
-** Description      read cahracteristic descriptor
+** Description      read characteristic descriptor
 **
 *******************************************************************************/
 tBTA_HH_STATUS bta_hh_le_read_char_dscrpt(tBTA_HH_DEV_CB *p_cb, UINT16 srvc_uuid, UINT8 srvc_inst_id,
@@ -626,8 +629,8 @@ tBTA_HH_STATUS bta_hh_le_read_char_dscrpt(tBTA_HH_DEV_CB *p_cb, UINT16 srvc_uuid
     else
     {
 #if BTA_HH_DEBUG == TRUE
-        APPL_TRACE_ERROR("bta_hh_le_read_char_dscrpt: No such descrpt exists: %s(0x%04x)",
-            bta_hh_uuid_to_str(char_descp_uuid), char_descp_uuid);
+      LOG_WARN("%s No descriptor exists: %s(0x%04x)", __func__,
+          bta_hh_uuid_to_str(char_descp_uuid), char_descp_uuid);
 #endif
     }
     return status;
@@ -1139,7 +1142,7 @@ void bta_hh_le_expl_rpt(tBTA_HH_DEV_CB *p_dev_cb,
     }
     while (1);
 
-    APPL_TRACE_ERROR("all report searched");
+    LOG_INFO("%s all BLE reports searched", __func__);
     bta_hh_le_read_rpt_ref_descr(p_dev_cb,
                                  &p_dev_cb->hid_srvc[p_dev_cb->cur_srvc_index].report[0]);
 
@@ -2666,7 +2669,8 @@ void bta_hh_le_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             break;
 
         default:
-            APPL_TRACE_ERROR("unsupported trsanction for LE HID device: %d", p_data->api_sndcmd.t_type);
+            APPL_TRACE_ERROR("%s unsupported transaction for BLE HID device: %d",
+                __func__, p_data->api_sndcmd.t_type);
             break;
     }
 }

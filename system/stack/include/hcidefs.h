@@ -218,8 +218,8 @@
 #define HCI_READ_BE_FLUSH_TOUT                (0x0069 | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_WRITE_BE_FLUSH_TOUT               (0x006A | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 #define HCI_SHORT_RANGE_MODE                  (0x006B | HCI_GRP_HOST_CONT_BASEBAND_CMDS) /* 802.11 only */
-#define HCI_READ_LE_HOST_SUPPORTED              (0x006C | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
-#define HCI_WRITE_LE_HOST_SUPPORTED             (0x006D | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
+#define HCI_READ_LE_HOST_SUPPORT              (0x006C | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
+#define HCI_WRITE_LE_HOST_SUPPORT             (0x006D | HCI_GRP_HOST_CONT_BASEBAND_CMDS)
 
 
 /* MWS coexistence */
@@ -587,14 +587,6 @@
 #define HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_MASK          0x02
 #define HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_OFF           5
 #define HCI_LE_STATES_INIT_MASTER_SLAVE_SUPPORTED(x)      ((x)[HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_OFF] & HCI_SUPP_LE_STATES_INIT_MASTER_SLAVE_MASK)
-
-#define HCI_BRCM_ENABLE_WBS_MODIFIED        (0x0102 | HCI_GRP_VENDOR_SPECIFIC)
-
-/* ConnectionLess Broadcast Stream VSC */
-#define HCI_BRCM_SET_CLB_STREAM             (0x0111 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_BRCM_RECEIVE_CLB_STREAM         (0x0112 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_BRCM_WRITE_CLB_STREAM_DATA      (0x0113 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_BRCM_CLB_STREAM_FLUSH           (0x0114 | HCI_GRP_VENDOR_SPECIFIC)
 
 /*
 **  Definitions for HCI Events
@@ -1351,164 +1343,9 @@ typedef struct
 #define LMP_TESTCTL_POWCTL_FIXEDTX_OP   0
 #define LMP_TESTCTL_POWCTL_ADAPTIVE     1
 
-
-/*
-** Define company IDs (from Bluetooth Assigned Numbers v1.1, section 2.2)
-*/
-#define LMP_COMPID_ERICSSON             0
-#define LMP_COMPID_NOKIA                1
-#define LMP_COMPID_INTEL                2
-#define LMP_COMPID_IBM                  3
-#define LMP_COMPID_TOSHIBA              4
-#define LMP_COMPID_3COM                 5
-#define LMP_COMPID_MICROSOFT            6
-#define LMP_COMPID_LUCENT               7
-#define LMP_COMPID_MOTOROLA             8
-#define LMP_COMPID_INFINEON             9
-#define LMP_COMPID_CSR                  10
-#define LMP_COMPID_SILICON_WAVE         11
-#define LMP_COMPID_DIGIANSWER           12
-#define LMP_COMPID_TEXAS_INSTRUMENTS    13
-#define LMP_COMPID_PARTHUS              14
+// TODO(zachoverflow): remove this once broadcom specific hacks are removed
 #define LMP_COMPID_BROADCOM             15
-#define LMP_COMPID_MITEL_SEMI           16
-#define LMP_COMPID_WIDCOMM              17
-#define LMP_COMPID_ZEEVO                18
-#define LMP_COMPID_ATMEL                19
-#define LMP_COMPID_MITSUBISHI           20
-#define LMP_COMPID_RTX_TELECOM          21
-#define LMP_COMPID_KC_TECH              22
-#define LMP_COMPID_NEWLOGIC             23
-#define LMP_COMPID_TRANSILICA           24
-#define LMP_COMPID_ROHDE_SCHWARZ        25
-#define LMP_COMPID_TTPCOM               26
-#define LMP_COMPID_SIGNIA               27
-#define LMP_COMPID_CONEXANT             28
-#define LMP_COMPID_QUALCOMM             29
-#define LMP_COMPID_INVENTEL             30
-#define LMP_COMPID_AVM                  31
-#define LMP_COMPID_BANDSPEED            32
-#define LMP_COMPID_MANSELLA             33
-#define LMP_COMPID_NEC_CORP             34
-#define LMP_COMPID_WAVEPLUS             35
-#define LMP_COMPID_ALCATEL              36
-#define LMP_COMPID_PHILIPS              37
-#define LMP_COMPID_C_TECHNOLOGIES       38
-#define LMP_COMPID_OPEN_INTERFACE       39
-#define LMP_COMPID_RF_MICRO             40
-#define LMP_COMPID_HITACHI              41
-#define LMP_COMPID_SYMBOL_TECH          42
-#define LMP_COMPID_TENOVIS              43
-#define LMP_COMPID_MACRONIX             44
-#define LMP_COMPID_GCT_SEMI             45
-#define LMP_COMPID_NORWOOD_SYSTEMS      46
-#define LMP_COMPID_MEWTEL_TECH          47
-#define LMP_COMPID_STM                  48
-#define LMP_COMPID_SYNOPSYS             49
-#define LMP_COMPID_RED_M_LTD            50
-#define LMP_COMPID_COMMIL_LTD           51
-#define LMP_COMPID_CATC                 52
-#define LMP_COMPID_ECLIPSE              53
-#define LMP_COMPID_RENESAS_TECH         54
-#define LMP_COMPID_MOBILIAN_CORP        55
-#define LMP_COMPID_TERAX                56
-#define LMP_COMPID_ISSC                 57
-#define LMP_COMPID_MATSUSHITA           58
-#define LMP_COMPID_GENNUM_CORP          59
-#define LMP_COMPID_RESEARCH_IN_MOTION   60
-#define LMP_COMPID_IPEXTREME            61
-#define LMP_COMPID_SYSTEMS_AND_CHIPS    62
-#define LMP_COMPID_BLUETOOTH_SIG        63
-#define LMP_COMPID_SEIKO_EPSON_CORP     64
-#define LMP_COMPID_ISS_TAIWAN           65
-#define LMP_COMPID_CONWISE_TECHNOLOGIES 66
-#define LMP_COMPID_PARROT_SA            67
-#define LMP_COMPID_SOCKET_COMM          68
-#define LMP_COMPID_ALTHEROS             69
-#define LMP_COMPID_MEDIATEK             70
-#define LMP_COMPID_BLUEGIGA             71
-#define LMP_COMPID_MARVELL              72
-#define LMP_COMPID_3DSP_CORP            73
-#define LMP_COMPID_ACCEL_SEMICONDUCTOR  74
-#define LMP_COMPID_CONTINENTAL_AUTO     75
-#define LMP_COMPID_APPLE                76
-#define LMP_COMPID_STACCATO             77
-#define LMP_COMPID_AVAGO_TECHNOLOGIES   78
-#define LMP_COMPID_APT_LTD              79
-#define LMP_COMPID_SIRF_TECHNOLOGY      80
-#define LMP_COMPID_TZERO_TECHNOLOGY     81
-#define LMP_COMPID_J_AND_M_CORP         82
-#define LMP_COMPID_FREE_2_MOVE          83
-#define LMP_COMPID_3DIJOY_CORP          84
-#define LMP_COMPID_PLANTRONICS          85
-#define LMP_COMPID_SONY_ERICSSON_MOBILE 86
-#define LMP_COMPID_HARMON_INTL_IND      87
-#define LMP_COMPID_VIZIO                88
-#define LMP_COMPID_NORDIC SEMI          89
-#define LMP_COMPID_EM MICRO             90
-#define LMP_COMPID_RALINK TECH          91
-#define LMP_COMPID_BELKIN INC           92
-#define LMP_COMPID_REALTEK SEMI         93
-#define LMP_COMPID_STONESTREET ONE      94
-#define LMP_COMPID_WICENTRIC            95
-#define LMP_COMPID_RIVIERAWAVES         96
-#define LMP_COMPID_RDA MICRO            97
-#define LMP_COMPID_GIBSON GUITARS       98
-#define LMP_COMPID_MICOMMAND INC        99
-#define LMP_COMPID_BAND XI              100
-#define LMP_COMPID_HP COMPANY           101
-#define LMP_COMPID_9SOLUTIONS OY        102
-#define LMP_COMPID_GN NETCOM            103
-#define LMP_COMPID_GENERAL MOTORS       104
-#define LMP_COMPID_AD ENGINEERING       105
-#define LMP_COMPID_MINDTREE LTD         106
-#define LMP_COMPID_POLAR ELECTRO        107
-#define LMP_COMPID_BEAUTIFUL ENTERPRISE 108
-#define LMP_COMPID_BRIARTEK             109
-#define LMP_COMPID_SUMMIT DATA COMM     110
-#define LMP_COMPID_SOUND ID             111
-#define LMP_COMPID_MONSTER LLC          112
-#define LMP_COMPID_CONNECTBLU           113
 
-#define LMP_COMPID_SHANGHAI_SSE         114
-#define LMP_COMPID_GROUP_SENSE          115
-#define LMP_COMPID_ZOMM                 116
-#define LMP_COMPID_SAMSUNG              117
-#define LMP_COMPID_CREATIVE_TECH        118
-#define LMP_COMPID_LAIRD_TECH           119
-#define LMP_COMPID_NIKE                 120
-#define LMP_COMPID_LESSWIRE             121
-#define LMP_COMPID_MSTAR_SEMI           122
-#define LMP_COMPID_HANLYNN_TECH         123
-#define LMP_COMPID_AR_CAMBRIDGE         124
-#define LMP_COMPID_SEERS_TECH           125
-#define LMP_COMPID_SPORTS_TRACKING      126
-#define LMP_COMPID_AUTONET_MOBILE       127
-#define LMP_COMPID_DELORME_PUBLISH      128
-#define LMP_COMPID_WUXI_VIMICRO         129
-#define LMP_COMPID_SENNHEISER           130
-#define LMP_COMPID_TIME_KEEPING_SYS     131
-#define LMP_COMPID_LUDUS_HELSINKI       132
-#define LMP_COMPID_BLUE_RADIOS          133
-#define LMP_COMPID_EQUINUX              134
-#define LMP_COMPID_GARMIN_INTL          135
-#define LMP_COMPID_ECOTEST              136
-#define LMP_COMPID_GN_RESOUND           137
-#define LMP_COMPID_JAWBONE              138
-#define LMP_COMPID_TOPCON_POSITIONING   139
-#define LMP_COMPID_QUALCOMM_LABS        140
-#define LMP_COMPID_ZSCAN_SOFTWARE       141
-#define LMP_COMPID_QUINTIC              142
-#define LMP_COMPID_STOLLMAN_EV          143
-#define LMP_COMPID_FUNAI_ELECTRONIC     144
-#define LMP_COMPID_ADV_PANMOBILE        145
-#define LMP_COMPID_THINK_OPTICS         146
-#define LMP_COMPID_UNIVERSAL_ELEC       147
-#define LMP_COMPID_AIROHA_TECH          148
-#define LMP_COMPID_MAX_ID               149 /* this is a place holder */
-#define LMP_COMPID_INTERNAL             65535
-
-#define MAX_LMP_COMPID                  (LMP_COMPID_MAX_ID)
 /*
 ** Define the packet types in the packet header, and a couple extra
 */
@@ -1798,14 +1635,8 @@ typedef struct
 #define HCI_FEATURE_NON_FLUSHABLE_PB_MASK      0x40
 #define HCI_FEATURE_NON_FLUSHABLE_PB_OFF       6
 
-// btla-specific ++
-#ifdef ANDROID_APP_INCLUDED
 /* This feature is causing frequent link drops when doing call switch with certain av/hfp headsets */
 #define HCI_NON_FLUSHABLE_PB_SUPPORTED(x)      (0)//((x)[HCI_FEATURE_NON_FLUSHABLE_PB_OFF] & HCI_FEATURE_NON_FLUSHABLE_PB_MASK)
-#else
-#define HCI_NON_FLUSHABLE_PB_SUPPORTED(x)      ((x)[HCI_FEATURE_NON_FLUSHABLE_PB_OFF] & HCI_FEATURE_NON_FLUSHABLE_PB_MASK)
-#endif
-// btla-specific --
 
 #define HCI_FEATURE_LINK_SUP_TO_EVT_MASK 0x01
 #define HCI_FEATURE_LINK_SUP_TO_EVT_OFF  7
@@ -2713,99 +2544,6 @@ typedef struct
 #define HCI_SUPP_COMMANDS_RLE_RC_CONN_PARAM_UPD_NEG_RPY_MASK          0x20
 #define HCI_SUPP_COMMANDS_LE_RC_CONN_PARAM_UPD_NEG_RPY_OFF           33
 #define HCI_LE_RC_CONN_PARAM_UPD_NEG_RPY_SUPPORTED(x)      ((x)[HCI_SUPP_COMMANDS_LE_RC_CONN_PARAM_UPD_NEG_RPY_OFF] & HCI_SUPP_COMMANDS_RLE_RC_CONN_PARAM_UPD_NEG_RPY_MASK)
-
-/*
-Commands of HCI_GRP_VENDOR_SPECIFIC group for WIDCOMM SW LM Simulator
-*/
-#ifdef _WIDCOMM
-
-#define HCI_SET_HCI_TRACE               (0x0001 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_SET_LM_TRACE                (0x0002 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_WRITE_COUNTRY_CODE          (0x0004 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_READ_LM_HISTORY             (0x0005 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_WRITE_BD_ADDR               (0x0006 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DISABLE_ENCRYPTION          (0x0007 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DISABLE_AUTHENTICATION      (0x0008 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_GENERIC_LC_CMD              (0x000A | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_INCR_POWER                  (0x000B | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DECR_POWER                  (0x000C | HCI_GRP_VENDOR_SPECIFIC)
-
-/* Definitions for the local transactions */
-#define LM_DISCONNECT                  (0x00D0 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_AUTHENTICATION_REQUESTED    (0x00D1 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_SET_CONN_ENCRYPTION         (0x00D2 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_START_ENCRYPT_KEY_SIZE      (0x00D3 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_START_ENCRYPTION            (0x00D4 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_STOP_ENCRYPTION             (0x00D5 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_CHANGE_CONN_PACKET_TYPE     (0x00D6 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_RMT_NAME_REQUEST            (0x00D7 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_READ_RMT_FEATURES           (0x00D8 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_READ_RMT_VERSION_INFO       (0x00D9 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_READ_RMT_TIMING_INFO        (0x00DA | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_READ_RMT_CLOCK_OFFSET       (0x00DB | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HOLD_MODE                   (0x00DC | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_EXIT_PARK_MODE              (0x00DD | HCI_GRP_VENDOR_SPECIFIC)
-
-#define LM_SCO_LINK_REQUEST            (0x00E0 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_SCO_CHANGE                  (0x00E4 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_SCO_REMOVE                  (0x00E8 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_MAX_SLOTS                   (0x00F1 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_MAX_SLOTS_REQUEST           (0x00F2 | HCI_GRP_VENDOR_SPECIFIC)
-
-#ifdef INCLUDE_OPTIONAL_PAGING_SCHEME
-#define LM_OPTIONAL_PAGE_REQUEST       (0x00F3 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_OPTIONAL_PAGESCAN_REQUEST   (0x00F4 | HCI_GRP_VENDOR_SPECIFIC)
-#endif
-
-#define LM_SETUP_COMPLETE              (0x00FF | HCI_GRP_VENDOR_SPECIFIC)
-
-#define LM_HIST_SEND_LMP_FRAME         (0x0100 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_RECV_LMP_FRAME         (0x0101 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_HCIT_ERROR             (0x0102 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_PER_INQ_TOUT           (0x0103 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_INQ_SCAN_TOUT          (0x0104 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_PAGE_SCAN_TOUT         (0x0105 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_RESET_TOUT             (0x0106 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_MANDAT_PSCAN_TOUT      (0x0107 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_START_TRANS        (0x0108 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_HOST_REPLY         (0x0109 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_TIMEOUT            (0x010A | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_TX_COMP            (0x010B | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_HCID_SUSPENDED     (0x010C | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_ACL_FAILED             (0x010D | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_HCI_COMMAND            (0x010E | HCI_GRP_VENDOR_SPECIFIC)
-
-#define LM_HIST_HCI_EVENT              (0x010F | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_HCI_UPDATA             (0x0110 | HCI_GRP_VENDOR_SPECIFIC)
-#define LM_HIST_HCI_DNDATA             (0x0111 | HCI_GRP_VENDOR_SPECIFIC)
-
-#define HCI_ENTER_TEST_MODE            (0x0300 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_LMP_TEST_CNTRL             (0x0301 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DEBUG_LC_CMD_MIN           (0x0300 | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DEBUG_LC_CMD_MAX           (0x03FF | HCI_GRP_VENDOR_SPECIFIC)
-#define HCI_DEBUG_LC_COMMAND           HCI_DEBUG_LC_CMD_MAX
-
-#endif
-
-
-/* AMP VSE events
-*/
-#define AMP_VSE_CHANSPEC_CHAN_MASK      0x00ff
-
-#define AMP_VSE_CHANSPEC_CTL_SB_MASK    0x0300
-#define AMP_VSE_CHANSPEC_CTL_SB_LOWER   0x0100
-#define AMP_VSE_CHANSPEC_CTL_SB_UPPER   0x0200
-#define AMP_VSE_CHANSPEC_CTL_SB_NONE    0x0300
-
-#define AMP_VSE_CHANSPEC_BW_MASK        0x0C00
-#define AMP_VSE_CHANSPEC_BW_10          0x0400
-#define AMP_VSE_CHANSPEC_BW_20          0x0800
-#define AMP_VSE_CHANSPEC_BW_40          0x0C00
-
-#define AMP_VSE_CHANSPEC_BAND_MASK      0xf000
-#define AMP_VSE_CHANSPEC_BAND_5G        0x1000
-#define AMP_VSE_CHANSPEC_BAND_2G        0x2000
-
 
 #endif
 

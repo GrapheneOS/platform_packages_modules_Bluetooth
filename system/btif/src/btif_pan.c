@@ -46,11 +46,12 @@
 #include <linux/if_tun.h>
 #include <linux/if_ether.h>
 
-#define LOG_TAG "BTIF_PAN"
+#define LOG_TAG "bt_btif_pan"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btm_api.h"
-#include "bd.h"
+#include "btcore/include/bdaddr.h"
+#include "device/include/controller.h"
 
 #include "bta_api.h"
 #include "bta_pan_api.h"
@@ -58,6 +59,8 @@
 #include "btif_sock_util.h"
 #include "btif_pan_internal.h"
 #include "gki.h"
+#include "osi/include/osi.h"
+#include "osi/include/log.h"
 
 #define FORWARD_IGNORE        1
 #define FORWARD_SUCCESS       0
@@ -81,7 +84,6 @@
 
 btpan_cb_t btpan_cb;
 
-BD_ADDR local_addr;
 static int jni_initialized, stack_initialized;
 static bt_status_t btpan_jni_init(const btpan_callbacks_t* callbacks);
 static void btpan_jni_cleanup();
@@ -304,7 +306,7 @@ void destroy_tap_read_thread(void)
     }
 }
 
-static int tap_if_up(const char *devname, BD_ADDR addr)
+static int tap_if_up(const char *devname, const bt_bdaddr_t *addr)
 {
     struct ifreq ifr;
     int sk, err;
@@ -321,14 +323,9 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
         close(sk);
         return -1;
     }
-    /* debug("found mac address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname, */
-    /*         ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2], */
-    /*         ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]); */
+
     strncpy(ifr.ifr_name, devname, IFNAMSIZ - 1);
-    memcpy(ifr.ifr_hwaddr.sa_data, addr, 6);
-    /* debug("setting bt address for interface:%s = %02x:%02x:%02x:%02x:%02x:%02x", devname, */
-    /*         ifr.ifr_hwaddr.sa_data[0], ifr.ifr_hwaddr.sa_data[1], ifr.ifr_hwaddr.sa_data[2], */
-    /*         ifr.ifr_hwaddr.sa_data[3], ifr.ifr_hwaddr.sa_data[4], ifr.ifr_hwaddr.sa_data[5]); */
+    memcpy(ifr.ifr_hwaddr.sa_data, addr->address, 6);
 
     /* The IEEE has specified that the most significant bit of the most significant byte is used to
      * determine a multicast address. If its a 1, that means multicast, 0 means unicast.
@@ -371,7 +368,7 @@ static int tap_if_up(const char *devname, BD_ADDR addr)
 static int tap_if_down(const char *devname)
 {
     struct ifreq ifr;
-    int sk, err;
+    int sk;
 
     sk = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -380,7 +377,7 @@ static int tap_if_down(const char *devname)
 
     ifr.ifr_flags &= ~IFF_UP;
 
-    err = ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
+    ioctl(sk, SIOCSIFFLAGS, (caddr_t) &ifr);
 
     close(sk);
 
@@ -406,7 +403,6 @@ int btpan_tap_open()
 
     /* open the clone device */
 
-    //system("insmod /system/lib/modules/tun.ko");
     if( (fd = open(clonedev, O_RDWR)) < 0 ) {
 
         BTIF_TRACE_DEBUG("could not open %s, err:%d", clonedev, errno);
@@ -419,14 +415,13 @@ int btpan_tap_open()
     strncpy(ifr.ifr_name, TAP_IF_NAME, IFNAMSIZ);
 
     /* try to create the device */
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )//|| tap_setup_ip(TAP_IF_NAME) == FALSE)
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )
     {
         BTIF_TRACE_DEBUG("ioctl error:%d, errno:%s", err, strerror(errno));
         close(fd);
         return err;
     }
-    BTM_GetLocalDeviceAddr (local_addr);
-    if(tap_if_up(TAP_IF_NAME, local_addr) == 0)
+    if(tap_if_up(TAP_IF_NAME, controller_get_interface()->get_address()) == 0)
     {
         int flags = fcntl(fd, F_GETFL, 0);
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
@@ -445,9 +440,6 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
     if(tap_fd != -1)
     {
         tETH_HDR eth_hdr;
-        //if(is_empty_eth_addr(dst))
-        //    memcpy(&eth_hdr.h_dest, local_addr, ETH_ADDR_LEN);
-        //else
         memcpy(&eth_hdr.h_dest, dst, ETH_ADDR_LEN);
         memcpy(&eth_hdr.h_src, src, ETH_ADDR_LEN);
         eth_hdr.h_proto = htons(proto);
@@ -455,14 +447,12 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(packet, &eth_hdr, sizeof(tETH_HDR));
         if(len > 2000)
         {
-            ALOGE("btpan_tap_send eth packet size:%d is exceeded limit!", len);
+            LOG_ERROR("btpan_tap_send eth packet size:%d is exceeded limit!", len);
             return -1;
         }
         memcpy(packet + sizeof(tETH_HDR), buf, len);
 
         /* Send data to network interface */
-        //btnet_send(btpan_cb.conn[i].sock.sock, &buffer, (len + sizeof(tETH_HDR)));
-        //dump_bin("packet to network", packet, len + sizeof(tETH_HDR));
         int ret = write(tap_fd, packet, len + sizeof(tETH_HDR));
         BTIF_TRACE_DEBUG("ret:%d", ret);
         return ret;
@@ -594,7 +584,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn;
                 bdstr_t bds;
-                bd2str((bt_bdaddr_t*)p_data->opening.bd_addr, &bds);
+                bdaddr_to_string((bt_bdaddr_t *)p_data->opening.bd_addr, bds, sizeof(bds));
                 BTIF_TRACE_DEBUG("BTA_PAN_OPENING_EVT handle %d, addr: %s", p_data->opening.handle, bds);
                 conn = btpan_find_conn_addr(p_data->opening.bd_addr);
 
@@ -613,15 +603,11 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             }
         case BTA_PAN_OPEN_EVT:
             {
-                /* debug("BTA_PAN_OPEN_EVT, open status:%d, bd_addr = [%02X:%02X:%02X:%02X:%02X:%02X]", */
-                /*         p_data->open.status, */
-                /*         p_data->open.bd_addr[0], p_data->open.bd_addr[1], p_data->open.bd_addr[2], */
-                /*         p_data->open.bd_addr[3], p_data->open.bd_addr[4], p_data->open.bd_addr[5]); */
                 btpan_connection_state_t state;
                 bt_status_t status;
                 btpan_conn_t *conn = btpan_find_conn_handle(p_data->open.handle);
 
-                ALOGV("%s pan connection open status: %d", __func__, p_data->open.status);
+                LOG_VERBOSE("%s pan connection open status: %d", __func__, p_data->open.status);
                 if(p_data->open.status == BTA_PAN_SUCCESS)
                 {
                     state = BTPAN_STATE_CONNECTED;
@@ -636,7 +622,6 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 /* debug("BTA_PAN_OPEN_EVT handle:%d, conn:%p",  p_data->open.handle, conn); */
                 /* debug("conn bta local_role:%d, bta remote role:%d", conn->local_role, conn->remote_role); */
                 int btpan_conn_local_role = bta_role_to_btpan(p_data->open.local_role);
-                /* debug("bta local_role:%d, bta remote role:%d", p_data->open.local_role, p_data->open.peer_role); */
                 int btpan_remote_role = bta_role_to_btpan(p_data->open.peer_role);
                 callback.connection_state_cb(state, status, (const bt_bdaddr_t*)p_data->open.bd_addr,
                         btpan_conn_local_role, btpan_remote_role);
@@ -646,11 +631,10 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
 
-                ALOGI("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                LOG_INFO("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
 
                 if(conn && conn->handle >= 0)
                 {
-                    /* debug("BTA_PAN_CLOSE_EVT, conn local_role:%d, remote_role:%d", conn->local_role, conn->remote_role); */
                     int btpan_conn_local_role = bta_role_to_btpan(conn->local_role);
                     int btpan_remote_role = bta_role_to_btpan(conn->remote_role);
                     callback.connection_state_cb(BTPAN_STATE_DISCONNECTED, 0, (const bt_bdaddr_t*)conn->peer,
@@ -760,10 +744,13 @@ static void btif_pan_close_all_conns() {
 }
 
 static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id) {
-    assert(btpan_cb.tap_fd == fd);
+    assert(btpan_cb.tap_fd == INVALID_FD || btpan_cb.tap_fd == fd);
 
-    if (btpan_cb.tap_fd != fd)
+    if (btpan_cb.tap_fd != fd) {
+        BTIF_TRACE_WARNING("%s Signaled on mismatched fds exp:%d act:%d\n",
+                __func__, btpan_cb.tap_fd, fd);
         return;
+    }
 
     if(flags & SOCK_THREAD_FD_EXCEPTION) {
         btpan_cb.tap_fd = -1;

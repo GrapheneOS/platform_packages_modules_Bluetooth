@@ -786,6 +786,27 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     len_to_send = (UINT16) (p_rsp - &p_ccb->rsp_list[0]);
     cont_offset = 0;
 
+    // The current SDP server design has a critical flaw where it can run into an infinite
+    // request/response loop with the client. Here's the scenario:
+    // - client makes SDP request
+    // - server returns the first fragment of the response with a continuation token
+    // - an SDP record is deleted from the server
+    // - client issues another request with previous continuation token
+    // - server has nothing to send back because the record is unavailable but in the
+    //   first fragment, it had specified more response bytes than are now available
+    // - server sends back no additional response bytes and returns the same continuation token
+    // - client issues another request with the continuation token, and the process repeats
+    //
+    // We work around this design flaw here by checking if we will make forward progress
+    // (i.e. we will send > 0 response bytes) on a continued request. If not, we must have
+    // run into the above situation and we tell the peer an error occurred.
+    //
+    // TODO(sharvil): rewrite SDP server.
+    if (is_cont && len_to_send == 0) {
+      sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE, NULL);
+      return;
+    }
+
     /* If first response, insert sequence header */
     if (!is_cont)
     {

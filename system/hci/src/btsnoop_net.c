@@ -16,10 +16,9 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "btsnoop_net"
+#define LOG_TAG "bt_snoop_net"
 
 #include <assert.h>
-#include <cutils/log.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -29,7 +28,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "osi.h"
+#include "osi/include/osi.h"
+#include "osi/include/log.h"
 
 static void safe_close_(int *fd);
 static void *listen_fn_(void *context);
@@ -47,9 +47,9 @@ static int client_socket_ = -1;
 void btsnoop_net_open() {
   listen_thread_valid_ = (pthread_create(&listen_thread_, NULL, listen_fn_, NULL) == 0);
   if (!listen_thread_valid_) {
-    ALOGE("%s pthread_create failed: %s", __func__, strerror(errno));
+    LOG_ERROR("%s pthread_create failed: %s", __func__, strerror(errno));
   } else {
-    ALOGD("initialized");
+    LOG_DEBUG("initialized");
   }
 }
 
@@ -78,13 +78,13 @@ static void *listen_fn_(UNUSED_ATTR void *context) {
 
   listen_socket_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (listen_socket_ == -1) {
-    ALOGE("%s socket creation failed: %s", __func__, strerror(errno));
+    LOG_ERROR("%s socket creation failed: %s", __func__, strerror(errno));
     goto cleanup;
   }
 
   int enable = 1;
   if (setsockopt(listen_socket_, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
-    ALOGE("%s unable to set SO_REUSEADDR: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to set SO_REUSEADDR: %s", __func__, strerror(errno));
     goto cleanup;
   }
 
@@ -93,29 +93,27 @@ static void *listen_fn_(UNUSED_ATTR void *context) {
   addr.sin_addr.s_addr = htonl(LOCALHOST_);
   addr.sin_port = htons(LISTEN_PORT_);
   if (bind(listen_socket_, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-    ALOGE("%s unable to bind listen socket: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to bind listen socket: %s", __func__, strerror(errno));
     goto cleanup;
   }
 
   if (listen(listen_socket_, 10) == -1) {
-    ALOGE("%s unable to listen: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to listen: %s", __func__, strerror(errno));
     goto cleanup;
   }
 
   for (;;) {
-    ALOGD("waiting for client connection");
     int client_socket = accept(listen_socket_, NULL, NULL);
     if (client_socket == -1) {
       if (errno == EINVAL || errno == EBADF) {
         break;
       }
-      ALOGW("%s error accepting socket: %s", __func__, strerror(errno));
+      LOG_WARN("%s error accepting socket: %s", __func__, strerror(errno));
       continue;
     }
 
     /* When a new client connects, we have to send the btsnoop file header. This allows
        a decoder to treat the session as a new, valid btsnoop file. */
-    ALOGI("client connected");
     pthread_mutex_lock(&client_socket_lock_);
     safe_close_(&client_socket_);
     client_socket_ = client_socket;

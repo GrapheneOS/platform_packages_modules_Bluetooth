@@ -30,10 +30,24 @@
 #include "bt_target.h"
 #include "gki.h"
 
-/* Define the BTU mailbox usage
-*/
-#define BTU_HCI_RCV_MBOX        TASK_MBOX_0     /* Messages from HCI  */
-#define BTU_BTIF_MBOX           TASK_MBOX_1     /* Messages to BTIF   */
+// HACK(zachoverflow): temporary dark magic
+#define BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK 0x1700 // didn't look used in bt_types...here goes nothing
+typedef struct {
+  void (*callback)(BT_HDR *);
+} post_to_task_hack_t;
+
+typedef struct {
+  void (*callback)(BT_HDR *);
+  BT_HDR *response;
+  void *context;
+} command_complete_hack_t;
+
+typedef struct {
+  void (*callback)(BT_HDR *);
+  uint8_t status;
+  BT_HDR *command;
+  void *context;
+} command_status_hack_t;
 
 /* callbacks
 */
@@ -99,12 +113,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 /* BNEP Timers */
 #define BTU_TTYPE_BNEP              50
 
-/* OBX */
-#define BTU_TTYPE_OBX_CLIENT_TO     51
-#define BTU_TTYPE_OBX_SERVER_TO     52
-#define BTU_TTYPE_OBX_SVR_SESS_TO   53
-
-
 #define BTU_TTYPE_HSP2_SDP_FAIL_TO  55
 #define BTU_TTYPE_HSP2_SDP_RTRY_TO  56
 
@@ -136,12 +144,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 #define BTU_TTYPE_L2CAP_FCR_ACK     78
 #define BTU_TTYPE_L2CAP_INFO        79
 
-/* BTU internal for BR/EDR and AMP HCI command timeout (reserve up to 3 AMP controller) */
-#define BTU_TTYPE_BTU_CMD_CMPL                      80
-#define BTU_TTYPE_BTU_AMP1_CMD_CMPL                 81
-#define BTU_TTYPE_BTU_AMP2_CMD_CMPL                 82
-#define BTU_TTYPE_BTU_AMP3_CMD_CMPL                 83
-
 #define BTU_TTYPE_MCA_CCB_RSP                       98
 
 /* BTU internal timer for BLE activity */
@@ -158,14 +160,6 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 
 
 #define BTU_TTYPE_UCD_TO                            108
-
-
-
-/* Define the BTU_TASK APPL events
-*/
-#if (defined(NFC_SHARED_TRANSPORT_ENABLED) && (NFC_SHARED_TRANSPORT_ENABLED==TRUE))
-#define BTU_NFC_AVAILABLE_EVT   EVENT_MASK(APPL_EVT_0)  /* Notifies BTU task that NFC is available (used for shared NFC+BT transport) */
-#endif
 
 /* This is the inquiry response information held by BTU, and available
 ** to applications.
@@ -210,18 +204,6 @@ typedef struct
 #define NFC_CONTROLLER_ID       (1)
 #define BTU_MAX_LOCAL_CTRLS     (1 + NFC_MAX_LOCAL_CTRLS) /* only BR/EDR */
 
-/* AMP HCI control block */
-typedef struct
-{
-    BUFFER_Q         cmd_xmit_q;
-    BUFFER_Q         cmd_cmpl_q;
-    UINT16           cmd_window;
-    TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
-#if (defined(BTU_CMD_CMPL_TOUT_DOUBLE_CHECK) && BTU_CMD_CMPL_TOUT_DOUBLE_CHECK == TRUE)
-    BOOLEAN          checked_hcisu;
-#endif
-} tHCI_CMD_CB;
-
 /* Define structure holding BTU variables
 */
 typedef struct
@@ -229,26 +211,8 @@ typedef struct
     tBTU_TIMER_REG   timer_reg[BTU_MAX_REG_TIMER];
     tBTU_EVENT_REG   event_reg[BTU_MAX_REG_EVENT];
 
-    TIMER_LIST_Q  quick_timer_queue;        /* Timer queue for transport level (100/10 msec)*/
-    TIMER_LIST_Q  timer_queue;              /* Timer queue for normal BTU task (1 second)   */
-    TIMER_LIST_Q  timer_queue_oneshot;      /* Timer queue for oneshot BTU tasks */
-
-    TIMER_LIST_ENT   cmd_cmpl_timer;        /* Command complete timer */
-
-    UINT16    hcit_acl_data_size;           /* Max ACL data size across HCI transport    */
-    UINT16    hcit_acl_pkt_size;            /* Max ACL packet size across HCI transport  */
-                                            /* (this is data size plus 4 bytes overhead) */
-
-#if BLE_INCLUDED == TRUE
-    UINT16    hcit_ble_acl_data_size;           /* Max BLE ACL data size across HCI transport    */
-    UINT16    hcit_ble_acl_pkt_size;            /* Max BLE ACL packet size across HCI transport  */
-                                            /* (this is data size plus 4 bytes overhead) */
-#endif
-
     BOOLEAN     reset_complete;             /* TRUE after first ack from device received */
     UINT8       trace_level;                /* Trace level for HCI layer */
-
-    tHCI_CMD_CB hci_cmd_cb[BTU_MAX_LOCAL_CTRLS]; /* including BR/EDR */
 } tBTU_CB;
 
 #ifdef __cplusplus
@@ -257,57 +221,55 @@ extern "C" {
 
 /* Global BTU data */
 #if BTU_DYNAMIC_MEMORY == FALSE
-BTU_API extern tBTU_CB  btu_cb;
+extern tBTU_CB  btu_cb;
 #else
-BTU_API extern tBTU_CB *btu_cb_ptr;
+extern tBTU_CB *btu_cb_ptr;
 #define btu_cb (*btu_cb_ptr)
 #endif
 
-BTU_API extern const BD_ADDR        BT_BD_ANY;
+extern const BD_ADDR        BT_BD_ANY;
 
 /* Functions provided by btu_task.c
 ************************************
 */
-BTU_API extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
+extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
+extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
 
-BTU_API extern UINT32 btu_remaining_time (TIMER_LIST_ENT *p_tle);
+extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
-BTU_API extern void btu_uipc_rx_cback(BT_HDR *p_msg);
-
-BTU_API extern void btu_hcif_flush_cmd_queue(void);
 /*
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-#define QUICK_TIMER_TICKS (GKI_SECS_TO_TICKS (1)/QUICK_TIMER_TICKS_PER_SEC)
-BTU_API extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-BTU_API extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
-BTU_API extern void btu_process_quick_timer_evt (void);
-BTU_API extern void process_quick_timer_evt (TIMER_LIST_Q *p_tlq);
+extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
+extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
+extern void btu_process_quick_timer_evt (void);
 #endif
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
-BTU_API extern void btu_check_bt_sleep (void);
+extern void btu_check_bt_sleep (void);
 #endif
 
 /* Functions provided by btu_hcif.c
 ************************************
 */
-BTU_API extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
-BTU_API extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
-BTU_API extern void  btu_hcif_send_host_rdy_for_data(void);
-BTU_API extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
+extern void  btu_hcif_process_event (UINT8 controller_id, BT_HDR *p_buf);
+extern void  btu_hcif_send_cmd (UINT8 controller_id, BT_HDR *p_msg);
+extern void  btu_hcif_send_host_rdy_for_data(void);
+extern void  btu_hcif_cmd_timeout (UINT8 controller_id);
 
 /* Functions provided by btu_core.c
 ************************************
 */
-BTU_API extern void  btu_init_core(void);
-BTU_API extern void  BTE_Init(void);
-BTU_API extern UINT16 BTU_AclPktSize(void);
-BTU_API extern UINT16 BTU_BleAclPktSize(void);
+extern void  btu_init_core(void);
+extern void  btu_free_core(void);
+
+void BTU_StartUp(void);
+void BTU_ShutDown(void);
+
+extern UINT16 BTU_BleAclPktSize(void);
 
 #ifdef __cplusplus
 }

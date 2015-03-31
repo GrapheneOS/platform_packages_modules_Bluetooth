@@ -36,13 +36,12 @@
 #include <ctype.h>
 
 
-#define LOG_TAG "BTIF_UTIL"
+#define LOG_TAG "bt_btif_util"
 #include "btif_common.h"
 #include "bta_api.h"
 #include "gki.h"
 #include "btu.h"
 #include "bte.h"
-#include "bd.h"
 #include "btif_dm.h"
 #include "btif_util.h"
 #include "bta_ag_api.h"
@@ -80,26 +79,6 @@
 /*****************************************************************************
 **   Logging helper functions
 *****************************************************************************/
-
-int str2bd(char *str, bt_bdaddr_t *addr)
-{
-    int32_t i = 0;
-    for (i = 0; i < 6; i++) {
-       addr->address[i] = (uint8_t)strtoul(str, &str, 16);
-       str++;
-    }
-    return 0;
-}
-
-char *bd2str(const bt_bdaddr_t *bdaddr, bdstr_t *bdstr)
-{
-    const uint8_t *addr = bdaddr->address;
-
-    sprintf(*bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
-             addr[0], addr[1], addr[2],
-             addr[3], addr[4], addr[5]);
-    return *bdstr;
-}
 
 UINT32 devclass2uint(DEV_CLASS dev_class)
 {
@@ -158,7 +137,7 @@ void string_to_uuid(char *str, bt_uuid_t *p_uuid)
 
 }
 
-void uuid_to_string(bt_uuid_t *p_uuid, char *str)
+void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
 {
     uint32_t uuid0, uuid4;
     uint16_t uuid1, uuid2, uuid3, uuid5;

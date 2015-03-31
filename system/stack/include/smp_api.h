@@ -184,7 +184,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    SMP_API extern void SMP_Init(void);
+extern void SMP_Init(void);
 
 /*******************************************************************************
 **
@@ -196,7 +196,7 @@ extern "C"
 ** Returns          The new or current trace level
 **
 *******************************************************************************/
-    SMP_API extern UINT8 SMP_SetTraceLevel (UINT8 new_level);
+extern UINT8 SMP_SetTraceLevel (UINT8 new_level);
 
 /*******************************************************************************
 **
@@ -207,7 +207,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-    SMP_API extern BOOLEAN SMP_Register (tSMP_CALLBACK *p_cback);
+extern BOOLEAN SMP_Register (tSMP_CALLBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -218,7 +218,7 @@ extern "C"
 ** Returns          SMP_STARTED if bond started, else otherwise exception.
 **
 *******************************************************************************/
-    SMP_API extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
+extern tSMP_STATUS SMP_Pair (BD_ADDR bd_addr);
 /*******************************************************************************
 **
 ** Function         SMP_PairCancel
@@ -228,7 +228,7 @@ extern "C"
 ** Returns          TRUE - pairing cancelled
 **
 *******************************************************************************/
-    SMP_API extern  BOOLEAN SMP_PairCancel (BD_ADDR bd_addr);
+extern  BOOLEAN SMP_PairCancel (BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
@@ -243,7 +243,7 @@ extern "C"
 ** Returns          None
 **
 *******************************************************************************/
-    SMP_API extern void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
+extern void SMP_SecurityGrant(BD_ADDR bd_addr, UINT8 res);
 
 /*******************************************************************************
 **
@@ -258,7 +258,7 @@ extern "C"
 **                  BTM_MIN_PASSKEY_VAL(0) - BTM_MAX_PASSKEY_VAL(999999(0xF423F)).
 **
 *******************************************************************************/
-    SMP_API extern void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
+extern void SMP_PasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
 
 /*******************************************************************************
 **
@@ -272,8 +272,8 @@ extern "C"
 **                  p_data      - simple pairing Randomizer  C.
 **
 *******************************************************************************/
-    SMP_API extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len,
-                                         UINT8 *p_data);
+extern void SMP_OobDataReply(BD_ADDR bd_addr, tSMP_STATUS res, UINT8 len,
+                             UINT8 *p_data);
 
 /*******************************************************************************
 **
@@ -291,9 +291,9 @@ extern "C"
 **
 **  Returns         Boolean - TRUE: encryption is successful
 *******************************************************************************/
-    SMP_API extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
-                                        UINT8 *plain_text, UINT8 pt_len,
-                                        tSMP_ENC *p_out);
+extern BOOLEAN SMP_Encrypt (UINT8 *key, UINT8 key_len,
+                            UINT8 *plain_text, UINT8 pt_len,
+                            tSMP_ENC *p_out);
 
 #ifdef __cplusplus
 }

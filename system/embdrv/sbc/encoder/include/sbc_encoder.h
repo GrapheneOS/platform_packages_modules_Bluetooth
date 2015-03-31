@@ -194,8 +194,8 @@ typedef struct SBC_ENC_PARAMS_TAG
 extern "C"
 {
 #endif
-SBC_API extern void SBC_Encoder(SBC_ENC_PARAMS *strEncParams);
-SBC_API extern void SBC_Encoder_Init(SBC_ENC_PARAMS *strEncParams);
+extern void SBC_Encoder(SBC_ENC_PARAMS *strEncParams);
+extern void SBC_Encoder_Init(SBC_ENC_PARAMS *strEncParams);
 #ifdef __cplusplus
 }
 #endif

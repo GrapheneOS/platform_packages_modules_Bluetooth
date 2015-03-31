@@ -81,12 +81,17 @@ void RFCOMM_StartRsp (tRFC_MCB *p_mcb, UINT16 result)
 *******************************************************************************/
 void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UNUSED(mtu);
-
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
         PORT_DlcEstablishCnf (p_mcb, dlci, 0, RFCOMM_ERROR);
+        return;
+    }
+
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
         return;
     }
 
@@ -104,15 +109,19 @@ void RFCOMM_DlcEstablishReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 *******************************************************************************/
 void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 result)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UNUSED(mtu);
-
     if ((p_mcb->state != RFC_MX_STATE_CONNECTED) && (result == RFCOMM_SUCCESS))
     {
         PORT_DlcReleaseInd (p_mcb, dlci);
         return;
     }
 
+    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
+        return;
+    }
     rfc_port_sm_execute(p_port, RFC_EVENT_ESTABLISH_RSP, &result);
 }
 
@@ -130,10 +139,16 @@ void RFCOMM_DlcEstablishRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT16 res
 *******************************************************************************/
 void RFCOMM_ParNegReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
     UINT8 flow;
     UINT8 cl;
     UINT8 k;
+
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
+        return;
+    }
 
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
@@ -199,11 +214,16 @@ void RFCOMM_ParNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, UINT16 mtu, UINT8 cl, UINT8 
 *******************************************************************************/
 void RFCOMM_PortNegReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
-
     if (p_mcb->state != RFC_MX_STATE_CONNECTED)
     {
         PORT_PortNegCnf (p_mcb, dlci, NULL, RFCOMM_ERROR);
+        return;
+    }
+
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
         return;
     }
 
@@ -247,7 +267,12 @@ void RFCOMM_PortNegRsp (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_STATE *p_pars,
 *******************************************************************************/
 void RFCOMM_ControlReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
+        return;
+    }
 
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))
@@ -274,7 +299,12 @@ void RFCOMM_ControlReq (tRFC_MCB *p_mcb, UINT8 dlci, tPORT_CTRL *p_pars)
 *******************************************************************************/
 void RFCOMM_FlowReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 enable)
 {
-    tPORT      *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
+        return;
+    }
 
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))
@@ -300,7 +330,12 @@ void RFCOMM_FlowReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 enable)
 *******************************************************************************/
 void RFCOMM_LineStatusReq (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 status)
 {
-    tPORT *p_port = port_find_mcb_dlci_port (p_mcb, dlci);
+    tPORT *p_port = port_find_mcb_dlci_port(p_mcb, dlci);
+    if (p_port == NULL) {
+        RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__,
+                dlci);
+        return;
+    }
 
     if ((p_port->state != PORT_STATE_OPENED)
      || (p_port->rfc.state  != RFC_STATE_OPENED))

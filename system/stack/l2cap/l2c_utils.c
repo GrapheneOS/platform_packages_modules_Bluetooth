@@ -26,6 +26,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "device/include/controller.h"
+#include "btcore/include/counter.h"
 #include "gki.h"
 #include "bt_types.h"
 #include "hcimsgs.h"
@@ -36,8 +38,8 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "hcidefs.h"
-#include "bd.h"
 #include "bt_utils.h"
+#include "osi/include/allocator.h"
 
 /*******************************************************************************
 **
@@ -84,6 +86,7 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
                 l2cb.num_links_active++;
                 l2c_link_adjust_allocation();
             }
+            p_lcb->link_xmit_data_q = list_new(NULL);
             return (p_lcb);
         }
     }
@@ -174,7 +177,9 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     }
 
 #if (BLE_INCLUDED == TRUE)
-    l2cb.is_ble_connecting = FALSE;
+    // Reset BLE connecting flag only if the address matches
+    if (!memcmp(l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN))
+        l2cb.is_ble_connecting = FALSE;
 #endif
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
@@ -210,8 +215,13 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
 #endif
     /* Release any held buffers */
-    while (p_lcb->link_xmit_data_q.p_first)
-        GKI_freebuf (GKI_dequeue (&p_lcb->link_xmit_data_q));
+    while (!list_is_empty(p_lcb->link_xmit_data_q)) {
+        BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
+        list_remove(p_lcb->link_xmit_data_q, p_buf);
+        GKI_freebuf(p_buf);
+    }
+    list_free(p_lcb->link_xmit_data_q);
+    p_lcb->link_xmit_data_q = NULL;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     /* clean up any security pending UCD */
@@ -376,11 +386,16 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
 #if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
+        counter_add("l2cap.ble.tx.bytes", p_buf->len);
+        counter_add("l2cap.ble.tx.pkts", 1);
+
         UINT16_TO_STREAM (p, L2CAP_BLE_SIGNALLING_CID);
     }
     else
 #endif
     {
+        counter_add("l2cap.sig.tx.bytes", p_buf->len);
+        counter_add("l2cap.sig.tx.pkts", 1);
         UINT16_TO_STREAM (p, L2CAP_SIGNALLING_CID);
     }
 
@@ -934,7 +949,7 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
     */
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
     {
-        while (p_ccb->xmit_hold_q.p_first)
+        while (GKI_getfirst(&p_ccb->xmit_hold_q))
         {
             p_buf2 = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
             l2cu_set_acl_hci_header (p_buf2, p_ccb);
@@ -1048,9 +1063,11 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
         return;
     }
 
+    uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
+    uint16_t acl_packet_size = controller_get_interface()->get_acl_packet_size_classic();
     /* Don't return data if it does not fit in ACL and L2CAP MTU */
-    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > btu_cb.hcit_acl_pkt_size) ?
-               btu_cb.hcit_acl_data_size : (UINT16)GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID);
+    maxlen = (GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID) > acl_packet_size) ?
+               acl_data_size : (UINT16)GKI_get_pool_bufsize(L2CAP_CMD_POOL_ID);
     maxlen -= (UINT16)(BT_HDR_SIZE + HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD +
                 L2CAP_CMD_OVERHEAD + L2CAP_ECHO_RSP_LEN);
 
@@ -1514,6 +1531,7 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
 
     p_ccb->p_lcb = p_lcb;
     p_ccb->p_rcb = NULL;
+    p_ccb->should_free_rcb = false;
 
     /* Set priority then insert ccb into LCB queue (if we have an LCB) */
     p_ccb->ccb_priority = L2CAP_CHNL_PRIORITY_LOW;
@@ -1680,12 +1698,19 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
         btm_sec_clr_service_by_psm(p_rcb->psm);
     }
 
+    if (p_ccb->should_free_rcb)
+    {
+        osi_free(p_rcb);
+        p_ccb->p_rcb = NULL;
+        p_ccb->should_free_rcb = false;
+    }
+
     btm_sec_clr_temp_auth_service (p_lcb->remote_bd_addr);
 
     /* Stop the timer */
     btu_stop_timer (&p_ccb->timer_entry);
 
-    while (p_ccb->xmit_hold_q.p_first)
+    while (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
         GKI_freebuf (GKI_dequeue (&p_ccb->xmit_hold_q));
 
     l2c_fcr_cleanup (p_ccb);
@@ -2197,10 +2222,6 @@ void l2cu_device_reset (void)
 #endif
 }
 
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-extern UINT16 tcs_wug_get_clk_offset( BD_ADDR addr ) ;
-#endif
-
 /*******************************************************************************
 **
 ** Function         l2cu_create_conn
@@ -2227,7 +2248,7 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 
     if (transport == BT_TRANSPORT_LE)
     {
-        if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+        if (!controller_get_interface()->supports_ble())
             return FALSE;
 
         p_lcb->ble_addr_type = addr_type;
@@ -2347,35 +2368,21 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 
     p_lcb->link_state = LST_CONNECTING;
 
-
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-    if ( (clock_offset = tcs_wug_get_clk_offset( p_lcb->remote_bd_addr )) != 0 )
+    /* Check with the BT manager if details about remote device are known */
+    if ((p_inq_info = BTM_InqDbRead(p_lcb->remote_bd_addr)) != NULL)
     {
-        page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R0;
-        page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
+        page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
+        page_scan_mode = p_inq_info->results.page_scan_mode;
+        clock_offset = (UINT16)(p_inq_info->results.clock_offset);
     }
     else
     {
-#endif
+        /* No info known. Use default settings */
+        page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
+        page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
 
-        /* Check with the BT manager if details about remote device are known */
-        if ((p_inq_info = BTM_InqDbRead(p_lcb->remote_bd_addr)) != NULL)
-        {
-            page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
-            page_scan_mode = p_inq_info->results.page_scan_mode;
-            clock_offset = (UINT16)(p_inq_info->results.clock_offset);
-        }
-        else
-        {
-            /* No info known. Use default settings */
-            page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
-            page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
-
-            clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
-        }
-#if (TCS_WUG_MEMBER_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
+        clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
     }
-#endif
 
     if (!btsnd_hcic_create_conn (p_lcb->remote_bd_addr,
                                  ( HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1
@@ -2392,9 +2399,7 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
         return (FALSE);
     }
 
-#if (defined(BTM_BUSY_LEVEL_CHANGE_INCLUDED) && BTM_BUSY_LEVEL_CHANGE_INCLUDED == TRUE)
     btm_acl_update_busy_level (BTM_BLI_PAGE_EVT);
-#endif
 
     btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK,
                      L2CAP_LINK_CONNECT_TOUT);
@@ -3108,7 +3113,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
 
             L2CAP_TRACE_DEBUG("RR scan pri=%d, lcid=0x%04x, q_cout=%d",
-                                p_ccb->ccb_priority, p_ccb->local_cid, p_ccb->xmit_hold_q.count );
+                                p_ccb->ccb_priority, p_ccb->local_cid, GKI_queue_length(&p_ccb->xmit_hold_q));
 
             /* store the next serving channel */
             /* this channel is the last channel of its priority group */
@@ -3133,9 +3138,9 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
                 if (p_ccb->fcrb.wait_ack || p_ccb->fcrb.remote_busy)
                     continue;
 
-                if ( p_ccb->fcrb.retrans_q.count == 0 )
+                if ( GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
                 {
-                    if ( p_ccb->xmit_hold_q.count == 0 )
+                    if ( GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                         continue;
 
                     /* If using the common pool, should be at least 10% free. */
@@ -3149,7 +3154,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
             else
             {
-                if (p_ccb->xmit_hold_q.count == 0)
+                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                     continue;
             }
 
@@ -3259,9 +3264,9 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                 continue;
 
             /* No more checks needed if sending from the reatransmit queue */
-            if (p_ccb->fcrb.retrans_q.count == 0)
+            if (GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
             {
-                if (p_ccb->xmit_hold_q.count == 0)
+                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                     continue;
 
                 /* If using the common pool, should be at least 10% free. */
@@ -3282,7 +3287,7 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
         }
         else
         {
-            if (p_ccb->xmit_hold_q.count != 0)
+            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
             {
                 p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
                 if(NULL == p_buf)
@@ -3356,10 +3361,11 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
     {
         UINT16_TO_STREAM (p, p_ccb->p_lcb->handle | (L2CAP_PKT_START_NON_FLUSHABLE << L2CAP_PKT_TYPE_SHIFT));
 
+        uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_ble();
         /* The HCI transport will segment the buffers. */
-        if (p_buf->len > btu_cb.hcit_ble_acl_data_size)
+        if (p_buf->len > acl_data_size)
         {
-            UINT16_TO_STREAM (p, btu_cb.hcit_ble_acl_data_size);
+            UINT16_TO_STREAM (p, acl_data_size);
         }
         else
         {
@@ -3383,10 +3389,11 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
         UINT16_TO_STREAM (p, p_ccb->p_lcb->handle | (L2CAP_PKT_START << L2CAP_PKT_TYPE_SHIFT));
 #endif
 
+        uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
         /* The HCI transport will segment the buffers. */
-        if (p_buf->len > btu_cb.hcit_acl_data_size)
+        if (p_buf->len > acl_data_size)
         {
-            UINT16_TO_STREAM (p, btu_cb.hcit_acl_data_size);
+            UINT16_TO_STREAM (p, acl_data_size);
         }
         else
         {
@@ -3408,7 +3415,7 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
 *******************************************************************************/
 void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
 {
-    UINT16 q_count = p_ccb->xmit_hold_q.count;
+    UINT16 q_count = GKI_queue_length(&p_ccb->xmit_hold_q);
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )

@@ -30,7 +30,7 @@
 #include <string.h>
 #include "hardware/bt_av.h"
 
-#define LOG_TAG "BTIF_AV"
+#define LOG_TAG "bt_btif_av"
 
 #include "btif_av.h"
 #include "btif_util.h"
@@ -39,7 +39,6 @@
 #include "btif_media.h"
 #include "bta_av_api.h"
 #include "gki.h"
-#include "bd.h"
 #include "btu.h"
 #include "bt_utils.h"
 
@@ -890,10 +889,10 @@ bt_status_t btif_av_init()
 {
     if (btif_av_cb.sm_handle == NULL)
     {
-        if (btif_a2dp_start_media_task() != GKI_SUCCESS)
+        if (!btif_a2dp_start_media_task())
             return BT_STATUS_FAIL;
 
-        btif_enable_service(BTA_A2DP_SERVICE_ID);
+        btif_enable_service(BTA_A2DP_SOURCE_SERVICE_ID);
 
         /* Also initialize the AV state machine */
         btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);

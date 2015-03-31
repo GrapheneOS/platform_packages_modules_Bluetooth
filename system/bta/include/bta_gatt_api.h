@@ -648,7 +648,7 @@ extern "C"
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Disable(void);
+extern void BTA_GATTC_Disable(void);
 
 /*******************************************************************************
 **
@@ -663,7 +663,7 @@ BTA_API extern void BTA_GATTC_Disable(void);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb);
+extern void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb);
 
 /*******************************************************************************
 **
@@ -677,7 +677,7 @@ BTA_API extern void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
+extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
 
 /*******************************************************************************
 **
@@ -693,8 +693,8 @@ BTA_API extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
-                                   BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
+extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
+                           BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -710,7 +710,7 @@ BTA_API extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct);
 
 /*******************************************************************************
 **
@@ -723,7 +723,7 @@ BTA_API extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Close(UINT16 conn_id);
+extern void BTA_GATTC_Close(UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -741,7 +741,7 @@ BTA_API extern void BTA_GATTC_Close(UINT16 conn_id);
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_srvc_uuid);
+extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_srvc_uuid);
 
 /*******************************************************************************
 **
@@ -761,11 +761,11 @@ BTA_API extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_s
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16              conn_id,
-                                                         tBTA_GATT_SRVC_ID   *p_srvc_id,
-                                                         tBT_UUID            *p_char_uuid_cond,
-                                                         tBTA_GATTC_CHAR_ID  *p_char_result,
-                                                         tBTA_GATT_CHAR_PROP *p_property);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16              conn_id,
+                                                 tBTA_GATT_SRVC_ID   *p_srvc_id,
+                                                 tBT_UUID            *p_char_uuid_cond,
+                                                 tBTA_GATTC_CHAR_ID  *p_char_result,
+                                                 tBTA_GATT_CHAR_PROP *p_property);
 
 /*******************************************************************************
 **
@@ -786,11 +786,11 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16              con
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
-                                                        tBTA_GATTC_CHAR_ID  *p_start_char_id,
-                                                        tBT_UUID            *p_char_uuid_cond,
-                                                        tBTA_GATTC_CHAR_ID  *p_char_result,
-                                                        tBTA_GATT_CHAR_PROP *p_property);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
+                                                tBTA_GATTC_CHAR_ID  *p_start_char_id,
+                                                tBT_UUID            *p_char_uuid_cond,
+                                                tBTA_GATTC_CHAR_ID  *p_char_result,
+                                                tBTA_GATT_CHAR_PROP *p_property);
 
 /*******************************************************************************
 **
@@ -809,9 +809,9 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
-                                                tBT_UUID *p_descr_uuid_cond,
-                                                tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
+                                                      tBT_UUID *p_descr_uuid_cond,
+                                                      tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
 
 /*******************************************************************************
 **
@@ -831,10 +831,10 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tB
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextCharDescr (UINT16 conn_id,
-                                             tBTA_GATTC_CHAR_DESCR_ID *p_start_descr_id,
-                                             tBT_UUID           *p_descr_uuid_cond,
-                                             tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetNextCharDescr (UINT16 conn_id,
+                                                     tBTA_GATTC_CHAR_DESCR_ID *p_start_descr_id,
+                                                     tBT_UUID           *p_descr_uuid_cond,
+                                                     tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
 
 
 /*******************************************************************************
@@ -854,10 +854,10 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextCharDescr (UINT16 conn_id,
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id,
-                                                                   tBTA_GATT_SRVC_ID    *p_srvc_id,
-                                                                   tBT_UUID               *p_uuid_cond,
-                                                                   tBTA_GATTC_INCL_SVC_ID *p_result);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id,
+                                                           tBTA_GATT_SRVC_ID    *p_srvc_id,
+                                                           tBT_UUID               *p_uuid_cond,
+                                                           tBTA_GATTC_INCL_SVC_ID *p_result);
 
 /*******************************************************************************
 **
@@ -877,10 +877,10 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_i
 ** Returns          returns status.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
-                                                                  tBTA_GATTC_INCL_SVC_ID *p_start_id,
-                                                                  tBT_UUID             *p_uuid_cond,
-                                                                  tBTA_GATTC_INCL_SVC_ID *p_result);
+extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
+                                                          tBTA_GATTC_INCL_SVC_ID *p_start_id,
+                                                          tBT_UUID             *p_uuid_cond,
+                                                          tBTA_GATTC_INCL_SVC_ID *p_result);
 
 /*******************************************************************************
 **
@@ -895,9 +895,9 @@ BTA_API extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ReadCharacteristic (UINT16 conn_id,
-                                                  tBTA_GATTC_CHAR_ID *p_char_id,
-                                                  tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_ReadCharacteristic (UINT16 conn_id,
+                                          tBTA_GATTC_CHAR_ID *p_char_id,
+                                          tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -911,9 +911,9 @@ BTA_API extern void BTA_GATTC_ReadCharacteristic (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
-                                             tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
-                                             tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
+                                     tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
+                                     tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -930,12 +930,12 @@ BTA_API extern void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_WriteCharValue (UINT16 conn_id,
-                                              tBTA_GATTC_CHAR_ID *p_char_id,
-                                              tBTA_GATTC_WRITE_TYPE  write_type,
-                                              UINT16 len,
-                                              UINT8 *p_value,
-                                              tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_WriteCharValue (UINT16 conn_id,
+                                      tBTA_GATTC_CHAR_ID *p_char_id,
+                                      tBTA_GATTC_WRITE_TYPE  write_type,
+                                      UINT16 len,
+                                      UINT8 *p_value,
+                                      tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -951,11 +951,11 @@ BTA_API extern void BTA_GATTC_WriteCharValue (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
-                                              tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
-                                              tBTA_GATTC_WRITE_TYPE  write_type,
-                                              tBTA_GATT_UNFMT   *p_data,
-                                              tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
+                                      tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
+                                      tBTA_GATTC_WRITE_TYPE  write_type,
+                                      tBTA_GATT_UNFMT   *p_data,
+                                      tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -969,7 +969,7 @@ BTA_API extern void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id);
+extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id);
 
 /*******************************************************************************
 **
@@ -984,9 +984,9 @@ BTA_API extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID
 ** Returns          OK if registration succeed, otherwise failed.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
-                                                                    BD_ADDR            remote_bda,
-                                                                    tBTA_GATTC_CHAR_ID *p_char_id);
+extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
+                                                            BD_ADDR            remote_bda,
+                                                            tBTA_GATTC_CHAR_ID *p_char_id);
 
 
 /*******************************************************************************
@@ -1002,9 +1002,9 @@ BTA_API extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_I
 ** Returns          OK if deregistration succeed, otherwise failed.
 **
 *******************************************************************************/
-BTA_API extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
-                                                                      BD_ADDR            remote_bda,
-                                                                      tBTA_GATTC_CHAR_ID *p_char_id);
+extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
+                                                              BD_ADDR            remote_bda,
+                                                              tBTA_GATTC_CHAR_ID *p_char_id);
 
 /*******************************************************************************
 **
@@ -1021,12 +1021,12 @@ BTA_API extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
-                                             tBTA_GATTC_CHAR_ID *p_char_id,
-                                             UINT16 offset,
-                                             UINT16 len,
-                                             UINT8 *p_value,
-                                             tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
+                                     tBTA_GATTC_CHAR_ID *p_char_id,
+                                     UINT16 offset,
+                                     UINT16 len,
+                                     UINT8 *p_value,
+                                     tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -1040,7 +1040,7 @@ BTA_API extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute);
+extern void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute);
 
 /*******************************************************************************
 **
@@ -1055,8 +1055,8 @@ BTA_API extern void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute)
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
-                                           tBTA_GATT_AUTH_REQ auth_req);
+extern void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
+                                   tBTA_GATT_AUTH_REQ auth_req);
 
 
 /*******************************************************************************
@@ -1070,7 +1070,7 @@ BTA_API extern void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_r
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
+extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
 
 
 /*******************************************************************************
@@ -1087,7 +1087,7 @@ BTA_API extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda);
+extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda);
 
 /*******************************************************************************
 **
@@ -1101,7 +1101,7 @@ BTA_API extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
+extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
 
 
 /*******************************************************************************
@@ -1117,7 +1117,7 @@ BTA_API extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
+extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 
 /*******************************************************************************
 **  BTA GATT Server API
@@ -1134,7 +1134,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Init();
+extern void BTA_GATTS_Init();
 
 /*******************************************************************************
 **
@@ -1147,7 +1147,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Disable(void);
+extern void BTA_GATTS_Disable(void);
 
 /*******************************************************************************
 **
@@ -1162,7 +1162,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback);
+extern void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback);
 
 
 /*******************************************************************************
@@ -1176,7 +1176,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if);
+extern void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if);
 
 /*******************************************************************************
 **
@@ -1197,8 +1197,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid,
-                                                UINT8 inst, UINT16 num_handle, BOOLEAN is_primary);
+extern void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid,
+                                    UINT8 inst, UINT16 num_handle, BOOLEAN is_primary);
 
 /*******************************************************************************
 **
@@ -1215,7 +1215,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id);
+extern void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id);
 
 /*******************************************************************************
 **
@@ -1232,8 +1232,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID   *p_char_uuid,
-                                                     tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property);
+extern void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID   *p_char_uuid,
+                                         tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property);
 
 /*******************************************************************************
 **
@@ -1252,9 +1252,9 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          returns status.
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
-                                                     tBTA_GATT_PERM perm,
-                                                     tBT_UUID  * p_descr_uuid);
+extern void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
+                                         tBTA_GATT_PERM perm,
+                                         tBT_UUID  * p_descr_uuid);
 
 /*******************************************************************************
 **
@@ -1268,7 +1268,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          returns none.
 **
 *******************************************************************************/
-    BTA_API extern void  BTA_GATTS_DeleteService(UINT16 service_id);
+extern void  BTA_GATTS_DeleteService(UINT16 service_id);
 
 /*******************************************************************************
 **
@@ -1282,7 +1282,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None.
 **
 *******************************************************************************/
-    BTA_API extern void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport);
+extern void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport);
 
 /*******************************************************************************
 **
@@ -1295,7 +1295,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_StopService(UINT16 service_id);
+extern void BTA_GATTS_StopService(UINT16 service_id);
 
 /*******************************************************************************
 **
@@ -1312,10 +1312,10 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
-                                                         UINT16 data_len,
-                                                         UINT8 *p_data,
-                                                         BOOLEAN need_confirm);
+extern void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
+                                             UINT16 data_len,
+                                             UINT8 *p_data,
+                                             BOOLEAN need_confirm);
 
 /*******************************************************************************
 **
@@ -1331,10 +1331,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          None
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
-                                           tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg);
-
-
+extern void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
+                               tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg);
 
 
 /*******************************************************************************
@@ -1351,8 +1349,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
-                                        BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
+extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
+                           BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1369,7 +1367,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct);
 
 
 /*******************************************************************************
@@ -1383,7 +1381,7 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Close(UINT16 conn_id);
+extern void BTA_GATTS_Close(UINT16 conn_id);
 
 /*******************************************************************************
 **
@@ -1400,8 +1398,8 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 ** Returns          void
 **
 *******************************************************************************/
-    BTA_API extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start,
-                                        BD_ADDR_PTR target_bda);
+extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start,
+                             BD_ADDR_PTR target_bda);
 
 
 #ifdef __cplusplus
@@ -1411,4 +1409,3 @@ BTA_API extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
 
 
 #endif /* BTA_GATT_API_H */
-

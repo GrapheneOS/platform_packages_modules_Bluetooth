@@ -30,10 +30,9 @@
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "avrc_defs.h"
-#include "bd.h"
 #include "gki.h"
 
-#define LOG_TAG "BTIF_RC"
+#define LOG_TAG "bt_btif_avrc"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_av.h"
@@ -668,7 +667,6 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
     UINT8             scratch_buf[512] = {0};
     tAVRC_COMMAND    avrc_command = {0};
     tAVRC_STS status;
-    int param_len;
 
     BTIF_TRACE_EVENT("+ %s", __FUNCTION__);
 
@@ -728,7 +726,6 @@ void handle_rc_metamsg_cmd (tBTA_AV_META_MSG *pmeta_msg)
         if (avrc_command.cmd.pdu == AVRC_PDU_REGISTER_NOTIFICATION)
         {
             UINT8 event_id = avrc_command.reg_notif.event_id;
-            param_len = sizeof(tAVRC_REG_NOTIF_CMD);
             BTIF_TRACE_EVENT("%s:New register notification received.event_id:%s,label:0x%x,code:%x",
             __FUNCTION__,dump_rc_notification_event_id(event_id), pmeta_msg->label,pmeta_msg->code);
             btif_rc_cb.rc_notif[event_id-1].bNotify = TRUE;

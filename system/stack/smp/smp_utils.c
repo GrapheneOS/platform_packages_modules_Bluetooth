@@ -34,6 +34,7 @@
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "smp_int.h"
+#include "device/include/controller.h"
 
 
 #define SMP_PAIRING_REQ_SIZE    7
@@ -349,7 +350,6 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 {
     BT_HDR      *p_buf = NULL ;
     UINT8       *p;
-    BD_ADDR     static_addr;
     UNUSED(cmd_code);
     UNUSED(p_cb);
 
@@ -360,8 +360,7 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 
         UINT8_TO_STREAM (p, SMP_OPCODE_ID_ADDR);
         UINT8_TO_STREAM (p, 0);     /* TODO: update with local address type */
-        BTM_GetLocalDeviceAddr(static_addr);
-        BDADDR_TO_STREAM (p, static_addr);
+        BDADDR_TO_STREAM (p, controller_get_interface()->get_address()->address);
 
         p_buf->offset = L2CAP_MIN_OFFSET;
         p_buf->len = SMP_ID_ADDR_SIZE;

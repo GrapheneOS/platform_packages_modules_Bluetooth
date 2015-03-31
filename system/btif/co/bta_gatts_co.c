@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gki.h"
-#include "bd.h"
 #include "bta_gatts_co.h"
 #include "btif_util.h"
 

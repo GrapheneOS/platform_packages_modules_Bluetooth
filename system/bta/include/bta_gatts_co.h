@@ -39,7 +39,7 @@
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range);
+extern void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range);
 
 /*******************************************************************************
 **
@@ -58,9 +58,9 @@ BTA_API extern void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_
 **                  FASLE - if the request can not be processed
 **
 *******************************************************************************/
-BTA_API extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
-                                            tBTA_GATTS_SRV_CHG_REQ *p_req,
-                                            tBTA_GATTS_SRV_CHG_RSP *p_rsp);
+extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
+                                    tBTA_GATTS_SRV_CHG_REQ *p_req,
+                                    tBTA_GATTS_SRV_CHG_RSP *p_rsp);
 
 /*******************************************************************************
 **
@@ -74,9 +74,8 @@ BTA_API extern BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern  BOOLEAN bta_gatts_co_load_handle_range(UINT8 index,
-                                                       tBTA_GATTS_HNDL_RANGE *p_handle);
+extern  BOOLEAN bta_gatts_co_load_handle_range(UINT8 index,
+                                               tBTA_GATTS_HNDL_RANGE *p_handle);
 
 
 #endif /* BTA_GATTS_CO_H */
-

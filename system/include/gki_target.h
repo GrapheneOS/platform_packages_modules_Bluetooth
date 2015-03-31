@@ -15,130 +15,14 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#ifndef GKI_TARGET_H
-#define GKI_TARGET_H
 
-/* Operating System Selection */
-#ifndef BTE_SIM_APP
-#define _GKI_ARM
-#define _GKI_STANDALONE
-#else
-#define _BT_WIN32
-#endif
-
-/* define prefix for exporting APIs from libraries */
-#define EXPORT_API
-
-#ifndef BTE_BSE_WRAPPER
-#ifdef  BTE_SIM_APP
-#undef  EXPORT_API
-#define EXPORT_API  __declspec(dllexport)
-#endif
-#endif
-
-#define GKI_API EXPORT_API
-#define UDRV_API EXPORT_API
-
-#ifndef GKI_DEBUG
-#define GKI_DEBUG FALSE
-#endif
-
-
-#if defined (GKI_DEBUG) && (GKI_DEBUG == TRUE)
-#define GKI_TRACE(fmt, ...)     ALOGI ("%s: " fmt, __FUNCTION__, ## __VA_ARGS__)
-#else
-#define GKI_TRACE(fmt, ...)
-#endif
-
-/******************************************************************************
-**
-** Task configuration
-**
-******************************************************************************/
-
-/* Definitions of task IDs for inter-task messaging */
-#ifndef BTU_TASK
-#define BTU_TASK                0
-#endif
-
-#ifndef BTIF_TASK
-#define BTIF_TASK               1
-#endif
-
-#ifndef A2DP_MEDIA_TASK
-#define A2DP_MEDIA_TASK         2
-#endif
-
-/* The number of GKI tasks in the software system. */
-#ifndef GKI_MAX_TASKS
-#define GKI_MAX_TASKS               3
-#endif
-
-/******************************************************************************
-**
-** Timer configuration
-**
-******************************************************************************/
-
-/* The number of GKI timers in the software system. */
-#ifndef GKI_NUM_TIMERS
-#define GKI_NUM_TIMERS              4
-#endif
-
-/* A conversion value for translating ticks to calculate GKI timer.  */
-#ifndef TICKS_PER_SEC
-#define TICKS_PER_SEC               100
-#endif
-
-/************************************************************************
-**  Utility macros converting ticks to time with user define OS ticks per sec
-**/
-#ifndef GKI_MS_TO_TICKS
-#define GKI_MS_TO_TICKS(x)   ((x) / (1000 / TICKS_PER_SEC))
-#endif
-
-#ifndef GKI_SECS_TO_TICKS
-#define GKI_SECS_TO_TICKS(x)   ((x) * (TICKS_PER_SEC))
-#endif
-
-#ifndef GKI_TICKS_TO_MS
-#define GKI_TICKS_TO_MS(x)   ((x) * 1000 / TICKS_PER_SEC)
-#endif
-
-#ifndef GKI_TICKS_TO_SECS
-#define GKI_TICKS_TO_SECS(x)   ((x) / TICKS_PER_SEC)
-#endif
-
-
-
-/* TICK per second from OS (OS dependent change this macro accordingly to various OS) */
-#ifndef OS_TICKS_PER_SEC
-#define OS_TICKS_PER_SEC               1000
-#endif
-
-/************************************************************************
-**  Utility macros converting ticks to time with user define OS ticks per sec
-**/
-
-#ifndef GKI_OS_TICKS_TO_MS
-#define GKI_OS_TICKS_TO_MS(x)   ((x) * 1000 / OS_TICKS_PER_SEC)
-#endif
-
-
-#ifndef GKI_OS_TICKS_TO_SECS
-#define GKI_OS_TICKS_TO_SECS(x)   ((x) / OS_TICKS_PER_SEC))
-#endif
+#pragma once
 
 /******************************************************************************
 **
 ** Buffer configuration
 **
 ******************************************************************************/
-
-/* TRUE if GKI uses dynamic buffers. */
-#ifndef GKI_USE_DYNAMIC_BUFFERS
-#define GKI_USE_DYNAMIC_BUFFERS     FALSE
-#endif
 
 /* The size of the buffers in pool 0. */
 #ifndef GKI_BUF0_SIZE
@@ -147,7 +31,7 @@
 
 /* The number of buffers in buffer pool 0. */
 #ifndef GKI_BUF0_MAX
-#define GKI_BUF0_MAX                48
+#define GKI_BUF0_MAX                96
 #endif
 
 /* The ID of buffer pool 0. */
@@ -162,7 +46,7 @@
 
 /* The number of buffers in buffer pool 1. */
 #ifndef GKI_BUF1_MAX
-#define GKI_BUF1_MAX                26
+#define GKI_BUF1_MAX                52
 #endif
 
 /* The ID of buffer pool 1. */
@@ -177,7 +61,7 @@
 
 /* The number of buffers in buffer pool 2. */
 #ifndef GKI_BUF2_MAX
-#define GKI_BUF2_MAX                45
+#define GKI_BUF2_MAX                90
 #endif
 
 /* The ID of buffer pool 2. */
@@ -192,7 +76,7 @@
 
 /* The number of buffers in buffer pool 3. */
 #ifndef GKI_BUF3_MAX
-#define GKI_BUF3_MAX                200
+#define GKI_BUF3_MAX                400
 #endif
 
 /* The ID of buffer pool 3. */
@@ -210,13 +94,7 @@
 #define GKI_MAX_BUF_SIZE_POOL_ID    GKI_POOL_ID_3
 #endif
 
-/* RESERVED buffer pool for OBX */
-/* Ideally there should be 1 buffer for each instance for RX data, and some number
-of TX buffers based on active instances. OBX will only use these if packet size
-requires it. In most cases the large packets are used in only one direction so
-the other direction will use smaller buffers.
-Devices with small amount of RAM should limit the number of active obex objects.
-*/
+/* Pool 4 is unused */
 /* The size of the buffers in pool 4. */
 #ifndef GKI_BUF4_SIZE
 #define GKI_BUF4_SIZE               (8080+26)
@@ -224,7 +102,7 @@ Devices with small amount of RAM should limit the number of active obex objects.
 
 /* The number of buffers in buffer pool 4. */
 #ifndef GKI_BUF4_MAX
-#define GKI_BUF4_MAX                (OBX_NUM_SERVERS + OBX_NUM_CLIENTS)
+#define GKI_BUF4_MAX                0
 #endif
 
 /* The ID of buffer pool 4. */
@@ -239,7 +117,6 @@ If BTA_HL_INCLUDED is FALSE then Pool ID 7 is uncessary and set the following to
 If BLE_INCLUDED is FALSE then Pool ID 8 is uncessary and set the following to 8, otherwise set to 9
 POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 */
-// btla-specific ++
 #ifndef GKI_NUM_FIXED_BUF_POOLS
 #define GKI_NUM_FIXED_BUF_POOLS     10
 #endif
@@ -248,12 +125,6 @@ POOL_ID 9 is a public pool meant for large buffer needs such as SDP_DB
 #ifndef GKI_DEF_BUFPOOL_PERM_MASK
 /* Setting POOL_ID 9 as a public pool meant for large buffers such as SDP_DB */
 #define GKI_DEF_BUFPOOL_PERM_MASK   0xfdf0
-#endif
-// btla-specific --
-
-/* The number of fixed and dynamic buffer pools */
-#ifndef GKI_NUM_TOTAL_BUF_POOLS
-#define GKI_NUM_TOTAL_BUF_POOLS     10
 #endif
 
 /* The following is intended to be a reserved pool for L2CAP
@@ -278,31 +149,6 @@ of order */
 */
 #ifndef GKI_BUF5_SIZE
 #define GKI_BUF5_SIZE               748
-#endif
-
-/* The buffer corruption check flag. */
-#ifndef GKI_ENABLE_BUF_CORRUPTION_CHECK
-#define GKI_ENABLE_BUF_CORRUPTION_CHECK TRUE
-#endif
-
-/* The GKI severe error macro. */
-#ifndef GKI_SEVERE
-#define GKI_SEVERE(code)
-#endif
-
-/* TRUE if GKI includes debug functionality. */
-#ifndef GKI_DEBUG
-#define GKI_DEBUG                   FALSE
-#endif
-
-/* Maximum number of exceptions logged. */
-#ifndef GKI_MAX_EXCEPTION
-#define GKI_MAX_EXCEPTION           8
-#endif
-
-/* Maximum number of chars stored for each exception message. */
-#ifndef GKI_MAX_EXCEPTION_MSGLEN
-#define GKI_MAX_EXCEPTION_MSGLEN    64
 #endif
 
 /* The following is intended to be a reserved pool for SCO
@@ -371,7 +217,6 @@ over HCI data and intentionally kept out of order */
 #define GKI_BUF8_MAX                30
 #endif
 
-// btla-specific ++
 /* The following pool is  meant for large allocations such as SDP_DB */
 #ifndef GKI_POOL_ID_9
 #define GKI_POOL_ID_9              9
@@ -384,17 +229,10 @@ over HCI data and intentionally kept out of order */
 #ifndef GKI_BUF9_MAX
 #define GKI_BUF9_MAX           5
 #endif
-// btla-specific --
 
-#ifdef __cplusplus
-extern "C"
-{
+/* The number of fixed and dynamic buffer pools */
+#ifndef GKI_NUM_TOTAL_BUF_POOLS
+#define GKI_NUM_TOTAL_BUF_POOLS     10
 #endif
 
-EXPORT_API extern void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  /* GKI_TARGET_H */
+void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);

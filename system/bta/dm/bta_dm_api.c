@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include "gki.h"
-#include "bd.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"
@@ -167,21 +166,6 @@ void BTA_DisableTestMode(void)
 
 /*******************************************************************************
 **
-** Function         BTA_DmIsDeviceUp
-**
-** Description      Called during startup to check whether the bluetooth module
-**                  is up and ready
-**
-** Returns          BOOLEAN
-**
-*******************************************************************************/
-BOOLEAN BTA_DmIsDeviceUp(void)
-{
-    return BTM_IsDeviceUp();
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_DmSetDeviceName
 **
 ** Description      This function sets the Bluetooth name of local device
@@ -239,129 +223,6 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 
 }
 
-/*******************************************************************************
-**
-** Function         BTA_DmSetScanParam
-**
-** Description      This function sets the parameters for page scan and
-**                  inquiry scan.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmSetScanParam (UINT16 page_scan_interval, UINT16 page_scan_window,
-                                  UINT16 inquiry_scan_interval, UINT16 inquiry_scan_window)
-{
-    APPL_TRACE_API ("BTA_DmSetScanParam: %d, %d, %d, %d",
-            page_scan_interval, page_scan_window,
-            inquiry_scan_interval, inquiry_scan_window);
-
-    bta_dm_cb.page_scan_interval = page_scan_interval;
-    bta_dm_cb.page_scan_window = page_scan_window;
-    bta_dm_cb.inquiry_scan_interval = inquiry_scan_interval;
-    bta_dm_cb.inquiry_scan_window = inquiry_scan_window;
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmSetAfhChannels
-**
-** Description      This function sets the AFH first and
-**                  last disable channel, so channels within
-**                  that range are disabled.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmSetAfhChannels(UINT8 first, UINT8 last)
-{
-
-    tBTA_DM_API_SET_AFH_CHANNELS_EVT    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_SET_AFH_CHANNELS_EVT *) GKI_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_SET_AFH_CHANNELS_EVT;
-        p_msg->first = first;
-        p_msg->last = last;
-        bta_sys_sendmsg(p_msg);
-    }
-
-
-}
-
-/*******************************************************************************
-**
-** Function         BTA_SetAfhChannelAssessment
-**
-** Description      This function is called to set the channel assessment mode on or off
-**
-** Returns          status
-**
-*******************************************************************************/
-void BTA_DmSetAfhChannelAssessment (BOOLEAN enable_or_disable)
-{
-    tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT *) GKI_getbuf(sizeof(tBTA_DM_API_SET_AFH_CHANNEL_ASSESSMENT))) != NULL)
-    {
-        p_msg->hdr.event    = BTA_DM_API_SET_AFH_CHANNEL_ASSESMENT_EVT;
-        p_msg->enable_or_disable = enable_or_disable;
-        bta_sys_sendmsg(p_msg);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmVendorSpecificCommand
-**
-** Description      This function sends the vendor specific command
-**                  to the controller
-**
-**
-** Returns          tBTA_STATUS
-**
-*******************************************************************************/
-tBTA_STATUS BTA_DmVendorSpecificCommand (UINT16 opcode, UINT8 param_len,
-                                         UINT8 *p_param_buf,
-                                         tBTA_VENDOR_CMPL_CBACK *p_cback)
-{
-
-    tBTA_DM_API_VENDOR_SPECIFIC_COMMAND    *p_msg;
-    UINT16 size;
-
-    /* If p_cback is NULL, Notify application */
-    if (p_cback == NULL)
-    {
-        return (BTA_FAILURE);
-    }
-    else
-    {
-        size = sizeof (tBTA_DM_API_VENDOR_SPECIFIC_COMMAND) + param_len;
-        if ((p_msg = (tBTA_DM_API_VENDOR_SPECIFIC_COMMAND *) GKI_getbuf(size)) != NULL)
-        {
-            p_msg->hdr.event = BTA_DM_API_VENDOR_SPECIFIC_COMMAND_EVT;
-            p_msg->opcode = opcode;
-            p_msg->p_param_buf = (UINT8 *)(p_msg + 1);
-            p_msg->p_cback = p_cback;
-
-            if (p_param_buf && param_len)
-            {
-                memcpy (p_msg->p_param_buf, p_param_buf, param_len);
-                p_msg->param_len = param_len;
-            }
-            else
-            {
-                p_msg->param_len = 0;
-                p_msg->p_param_buf = NULL;
-
-            }
-
-            bta_sys_sendmsg(p_msg);
-        }
-        return (BTA_SUCCESS);
-    }
-}
 /*******************************************************************************
 **
 ** Function         BTA_DmSearch
@@ -479,30 +340,6 @@ void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
     }
 
 }
-/*******************************************************************************
-**
-** Function         BTA_DmIsMaster
-**
-** Description      This function checks if the local device is the master of
-**                  the link to the given device
-**
-** Returns          TRUE if master.
-**                  FALSE if not.
-**
-*******************************************************************************/
-BOOLEAN BTA_DmIsMaster(BD_ADDR bd_addr)
-{
-    BOOLEAN is_master = FALSE;
-    UINT8 link_role;
-
-    BTM_GetRole(bd_addr, &link_role);
-    APPL_TRACE_API("BTA_DmIsMaster role:x%x", link_role);
-    if(link_role == BTM_ROLE_MASTER)
-    {
-        is_master = TRUE;
-    }
-    return is_master;
-}
 
 /*******************************************************************************
 **
@@ -602,34 +439,6 @@ void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin
 
 }
 
-/*******************************************************************************
-**
-** Function         BTA_DmLinkPolicy
-**
-** Description      This function sets/clears the link policy mask to the given
-**                  bd_addr.
-**                  If clearing the sniff or park mode mask, the link is put
-**                  in active mode.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmLinkPolicy(BD_ADDR bd_addr, tBTA_DM_LP_MASK policy_mask,
-                      BOOLEAN set)
-{
-    tBTA_DM_API_LINK_POLICY    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_LINK_POLICY *) GKI_getbuf(sizeof(tBTA_DM_API_LINK_POLICY))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_LINK_POLICY_EVT;
-        bdcpy(p_msg->bd_addr, bd_addr);
-        p_msg->policy_mask = policy_mask;
-        p_msg->set = set;
-        bta_sys_sendmsg(p_msg);
-    }
-}
-
-
 #if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
@@ -674,32 +483,6 @@ void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
         bta_sys_sendmsg(p_msg);
     }
 }
-
-/*******************************************************************************
-**
-** Function         BTA_DmPasskeyCancel
-**
-** Description      This function is called to cancel the simple pairing process
-**                  reported by BTA_DM_SP_KEY_NOTIF_EVT
-**
-** Returns          void
-**
-*******************************************************************************/
-#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
-void BTA_DmPasskeyCancel(BD_ADDR bd_addr)
-{
-    tBTA_DM_API_PASKY_CANCEL    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_PASKY_CANCEL *) \
-        GKI_getbuf(sizeof(tBTA_DM_API_PASKY_CANCEL))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_PASKY_CANCEL_EVT;
-        bdcpy(p_msg->bd_addr, bd_addr);
-        bta_sys_sendmsg(p_msg);
-    }
-}
-#endif
-
 
 /*******************************************************************************
 **
@@ -784,248 +567,6 @@ tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 
 /*******************************************************************************
 **
-** Function         BTA_DmAddDevWithName
-**
-** Description      This function is newer version of  BTA_DmAddDevice()
-**                  which added bd_name and features as input parameters.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmAddDevWithName (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                      BD_NAME bd_name, UINT8 *features,
-                                      LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
-                                      BOOLEAN is_trusted, UINT8 key_type, tBTA_IO_CAP io_cap)
-{
-    tBTA_DM_API_ADD_DEVICE *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_ADD_DEVICE *) GKI_getbuf(sizeof(tBTA_DM_API_ADD_DEVICE))) != NULL)
-    {
-        memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_DEVICE));
-
-        p_msg->hdr.event = BTA_DM_API_ADD_DEVICE_EVT;
-        bdcpy(p_msg->bd_addr, bd_addr);
-        p_msg->tm = trusted_mask;
-        p_msg->is_trusted = is_trusted;
-        p_msg->io_cap = io_cap;
-
-        if (link_key)
-        {
-            p_msg->link_key_known = TRUE;
-            p_msg->key_type = key_type;
-            memcpy(p_msg->link_key, link_key, LINK_KEY_LEN);
-        }
-
-        /* Load device class if specified */
-        if (dev_class)
-        {
-            p_msg->dc_known = TRUE;
-            memcpy (p_msg->dc, dev_class, DEV_CLASS_LEN);
-        }
-
-        if (bd_name)
-            memcpy(p_msg->bd_name, bd_name, BD_NAME_LEN);
-
-        if (features)
-            memcpy(p_msg->features, features, sizeof(p_msg->features));
-
-        bta_sys_sendmsg(p_msg);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmAuthorizeReply
-**
-** Description      This function provides an authorization reply when authorization
-**                  is requested by BTA through BTA_DM_AUTHORIZE_EVT
-**
-**
-** Returns          tBTA_STATUS
-**
-*******************************************************************************/
-void BTA_DmAuthorizeReply(BD_ADDR bd_addr, tBTA_SERVICE_ID service, tBTA_AUTH_RESP response)
-{
-
-    tBTA_DM_API_AUTH_REPLY    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_AUTH_REPLY *) GKI_getbuf(sizeof(tBTA_DM_API_AUTH_REPLY))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_AUTH_REPLY_EVT;
-        bdcpy(p_msg->bd_addr, bd_addr);
-        p_msg->service = service;
-        p_msg->response = response;
-
-        bta_sys_sendmsg(p_msg);
-    }
-
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmSignalStrength
-**
-** Description      This function initiates RSSI and channnel quality
-**                  measurments. BTA_DM_SIG_STRENGTH_EVT is sent to
-**                  application with the values of RSSI and channel
-**                  quality
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmSignalStrength(tBTA_SIG_STRENGTH_MASK mask, UINT16 period, BOOLEAN start)
-{
-
-    tBTA_API_DM_SIG_STRENGTH    *p_msg;
-
-    if ((p_msg = (tBTA_API_DM_SIG_STRENGTH *) GKI_getbuf(sizeof(tBTA_API_DM_SIG_STRENGTH))) != NULL)
-    {
-        p_msg->hdr.event = BTA_API_DM_SIG_STRENGTH_EVT;
-        p_msg->mask = mask;
-        p_msg->period = period;
-        p_msg->start = start;
-
-        bta_sys_sendmsg(p_msg);
-    }
-
-
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmWriteInqTxPower
-**
-** Description      This command is used to write the inquiry transmit power level
-**                  used to transmit the inquiry (ID) data packets.
-**
-** Parameters       tx_power - tx inquiry power to use, valid value is -70 ~ 20
-
-** Returns          void
-**
-*******************************************************************************/
-void BTA_DmWriteInqTxPower(INT8 tx_power)
-{
-
-    tBTA_API_DM_TX_INQPWR    *p_msg;
-
-    if ((p_msg = (tBTA_API_DM_TX_INQPWR *) GKI_getbuf(sizeof(tBTA_API_DM_TX_INQPWR))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_TX_INQPWR_EVT;
-        p_msg->tx_power = tx_power;
-
-        bta_sys_sendmsg(p_msg);
-    }
-}
-
-
-/*******************************************************************************
-**
-** Function         BTA_DmEirAddUUID
-**
-** Description      This function is called to add UUID into EIR.
-**
-** Parameters       tBT_UUID - UUID
-**
-** Returns          None
-**
-*******************************************************************************/
-void BTA_DmEirAddUUID (tBT_UUID *p_uuid)
-{
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_UPDATE_EIR_UUID_EVT;
-        p_msg->is_add    = TRUE;
-        memcpy (&(p_msg->uuid), p_uuid, sizeof(tBT_UUID));
-
-        bta_sys_sendmsg(p_msg);
-    }
-#endif
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmEirRemoveUUID
-**
-** Description      This function is called to remove UUID from EIR.
-**
-** Parameters       tBT_UUID - UUID
-**
-** Returns          None
-**
-*******************************************************************************/
-void BTA_DmEirRemoveUUID (tBT_UUID *p_uuid)
-{
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&( BTA_EIR_CANNED_UUID_LIST != TRUE )&&(BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
-    tBTA_DM_API_UPDATE_EIR_UUID    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_UPDATE_EIR_UUID *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_EIR_UUID))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_UPDATE_EIR_UUID_EVT;
-        p_msg->is_add    = FALSE;
-        memcpy (&(p_msg->uuid), p_uuid, sizeof(tBT_UUID));
-
-        bta_sys_sendmsg(p_msg);
-    }
-#endif
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmSetEIRConfig
-**
-** Description      This function is called to override the BTA default EIR parameters.
-**                  This funciton is only valid in a system where BTU & App task
-**                  are in the same memory space.
-**
-** Parameters       Pointer to User defined EIR config
-**
-** Returns          None
-**
-*******************************************************************************/
-void BTA_DmSetEIRConfig (tBTA_DM_EIR_CONF *p_eir_cfg)
-{
-#if (BTM_EIR_SERVER_INCLUDED == TRUE)
-    tBTA_DM_API_SET_EIR_CONFIG  *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_SET_EIR_CONFIG *) GKI_getbuf(sizeof(tBTA_DM_API_SET_EIR_CONFIG))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_SET_EIR_CONFIG_EVT;
-        p_msg->p_eir_cfg = p_eir_cfg;
-
-        bta_sys_sendmsg(p_msg);
-    }
-#endif
-}
-
-/*******************************************************************************
-**
-** Function         BTA_CheckEirData
-**
-** Description      This function is called to get EIR data from significant part.
-**
-** Parameters       p_eir - pointer of EIR significant part
-**                  type   - finding EIR data type
-**                  p_length - return the length of EIR data
-**
-** Returns          pointer of EIR data
-**
-*******************************************************************************/
-UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
-{
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
-    return BTM_CheckEirData( p_eir, type, p_length );
-#else
-    return NULL;
-#endif
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_GetEirService
 **
 ** Description      This function is called to get BTA service mask from EIR.
@@ -1039,7 +580,6 @@ UINT8 *BTA_CheckEirData( UINT8 *p_eir, UINT8 type, UINT8 *p_length )
 extern const UINT16 bta_service_id_to_uuid_lkup_tbl [];
 void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
 {
-#if ( BTM_EIR_CLIENT_INCLUDED == TRUE )
     UINT8 xx, yy;
     UINT8 num_uuid, max_num_uuid = 32;
     UINT8 uuid_list[32*LEN_UUID_16];
@@ -1070,26 +610,6 @@ void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
         if (*(p_uuid16 + xx) == UUID_SERVCLASS_HDP_SINK)
             *p_services |= BTA_HL_SERVICE_MASK;
     }
-#endif
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmUseSsr
-**
-** Description      This function is called to check if the connected peer device
-**                  supports SSR or not.
-**
-** Returns          TRUE, if SSR is supported
-**
-*******************************************************************************/
-BOOLEAN BTA_DmUseSsr( BD_ADDR bd_addr )
-{
-    BOOLEAN use_ssr = FALSE;
-    tBTA_DM_PEER_DEVICE * p_dev = bta_dm_find_peer_device(bd_addr);
-    if(p_dev && (p_dev->info & BTA_DM_DI_USE_SSR) )
-        use_ssr = TRUE;
-    return use_ssr;
 }
 
 /*******************************************************************************
@@ -1141,100 +661,6 @@ tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
     }
 
     return status;
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmGetLocalDiRecord
-**
-** Description      Get a specified DI record to the local SDP database. If no
-**                  record handle is provided, the primary DI record will be
-**                  returned.
-**
-**                  Fills in the device information of the record
-**                  p_handle - if p_handle == 0, the primary record is returned
-**
-** Returns          BTA_SUCCESS if record set sucessfully, otherwise error code.
-**
-*******************************************************************************/
-tBTA_STATUS BTA_DmGetLocalDiRecord( tBTA_DI_GET_RECORD *p_device_info,
-                              UINT32 *p_handle )
-{
-    UINT16  status;
-
-    status = SDP_GetLocalDiRecord(p_device_info, p_handle);
-
-    if (status == SDP_SUCCESS)
-        return BTA_SUCCESS;
-    else
-        return BTA_FAILURE;
-
-}
-
-/*******************************************************************************
-**                   Device Identification (DI) Client Functions
-*******************************************************************************/
-/*******************************************************************************
-**
-** Function         BTA_DmDiDiscover
-**
-** Description      This function queries a remote device for DI information.
-**
-**
-** Returns          None.
-**
-*******************************************************************************/
-void BTA_DmDiDiscover( BD_ADDR remote_device, tBTA_DISCOVERY_DB *p_db,
-                       UINT32 len, tBTA_DM_SEARCH_CBACK *p_cback )
-{
-    tBTA_DM_API_DI_DISC    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_DI_DISC *) GKI_getbuf(sizeof(tBTA_DM_API_DI_DISC))) != NULL)
-    {
-        bdcpy(p_msg->bd_addr, remote_device);
-        p_msg->hdr.event    = BTA_DM_API_DI_DISCOVER_EVT;
-        p_msg->p_sdp_db     = p_db;
-        p_msg->len          = len;
-        p_msg->p_cback      = p_cback;
-
-        bta_sys_sendmsg(p_msg);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         BTA_DmGetDiRecord
-**
-** Description      This function retrieves a remote device's DI record from
-**                  the specified database.
-**
-** Returns          BTA_SUCCESS if Get DI record is succeed.
-**                  BTA_FAILURE if Get DI record failed.
-**
-*******************************************************************************/
-tBTA_STATUS BTA_DmGetDiRecord( UINT8 get_record_index, tBTA_DI_GET_RECORD *p_device_info,
-                        tBTA_DISCOVERY_DB *p_db )
-{
-    if (SDP_GetDiRecord(get_record_index, p_device_info, p_db) != SDP_SUCCESS)
-        return BTA_FAILURE;
-    else
-        return BTA_SUCCESS;
-}
-
-/*******************************************************************************
-**
-** Function         BTA_SysFeatures
-**
-** Description      This function is called to set system features.
-**
-** Returns          void
-**
-*******************************************************************************/
-void BTA_SysFeatures (UINT16 sys_features)
-{
-    bta_sys_cb.sys_features = sys_features;
-
-    APPL_TRACE_API("BTA_SysFeatures: sys_features = %d", sys_features);
 }
 
 /*******************************************************************************
@@ -1557,8 +983,8 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
-                        tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
+extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
+                                 tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
     tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
 
@@ -1591,7 +1017,7 @@ BTA_API extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_AD
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
+extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
                                          UINT8 batch_scan_trunc_max,
                                          UINT8 batch_scan_notify_threshold,
                                          tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
@@ -1632,7 +1058,7 @@ BTA_API extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
                                          UINT32 scan_interval, UINT32 scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
@@ -1664,7 +1090,7 @@ BTA_API extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
+extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 {
     tBTA_DM_API_DISABLE_SCAN  *p_msg;
 
@@ -1689,7 +1115,7 @@ BTA_API extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value)
 {
     tBTA_DM_API_READ_SCAN_REPORTS  *p_msg;
@@ -1716,7 +1142,7 @@ BTA_API extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
+extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
                             tBTA_BLE_TRACK_ADV_CBACK *p_track_adv_cback)
 {
     tBTA_DM_API_TRACK_ADVERTISER  *p_msg;
@@ -1742,7 +1168,7 @@ BTA_API extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 ** Returns          None
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleBroadcast (BOOLEAN start)
+extern void BTA_DmBleBroadcast (BOOLEAN start)
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 
@@ -2526,8 +1952,8 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 ** Returns          void.
 **
 *******************************************************************************/
-BTA_API extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
-                                     tBTA_DM_SEARCH_CBACK *p_results_cb)
+extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
+                             tBTA_DM_SEARCH_CBACK *p_results_cb)
 {
     tBTA_DM_API_BLE_OBSERVE   *p_msg;
 

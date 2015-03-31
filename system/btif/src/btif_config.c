@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright (C) 2014 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,358 +16,35 @@
  *
  ******************************************************************************/
 
-/************************************************************************************
- *
- *  Filename:      btif_config.c
- *
- *  Description:   Stores the local BT adapter and remote device properties in
- *                 NVRAM storage, typically as xml file in the
- *                 mobile's filesystem
- *
- *
- ***********************************************************************************/
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
+#define LOG_TAG "bt_btif_config"
+
+#include <assert.h>
 #include <ctype.h>
+#include <pthread.h>
 #include <stdio.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <stdlib.h>
-#include <private/android_filesystem_config.h>
+#include <string.h>
 
-#define LOG_TAG "btif_config"
-
-#include <hardware/bluetooth.h>
-#include "data_types.h"
-#include "bd.h"
-#include "btif_api.h"
+#include "osi/include/alarm.h"
+#include "btcore/include/bdaddr.h"
 #include "btif_config.h"
-#include "btif_config_util.h"
-#include "btif_sock_thread.h"
-#include "btif_sock_util.h"
+#include "btif_config_transcode.h"
 #include "btif_util.h"
+#include "osi/include/config.h"
+#include "btcore/include/module.h"
+#include "osi/include/osi.h"
+#include "osi/include/log.h"
 
-//#define UNIT_TEST
-#define CFG_PATH "/data/misc/bluedroid/"
-#define CFG_FILE_NAME "bt_config"
-#define CFG_FILE_EXT ".xml"
-#define CFG_FILE_EXT_OLD ".old"
-#define CFG_FILE_EXT_NEW ".new"
-#define CFG_GROW_SIZE (10*sizeof(cfg_node))
-#define GET_CHILD_MAX_COUNT(node) (short)((int)(node)->bytes / sizeof(cfg_node))
-#define GET_CHILD_COUNT(p) (short)((int)(p)->used / sizeof(cfg_node))
-#define ADD_CHILD_COUNT(p, c) (p)->used += (short)((c)*sizeof(cfg_node))
-#define DEC_CHILD_COUNT(p, c) (p)->used -= (short)((c)*sizeof(cfg_node))
-#define GET_NODE_COUNT(bytes) (bytes / sizeof(cfg_node))
-#define GET_NODE_BYTES(c) (c * sizeof(cfg_node))
-#define MAX_NODE_BYTES 32000
-#define CFG_CMD_SAVE 1
+#include "bt_types.h"
 
-#ifndef FALSE
-#define TRUE 1
-#define FALSE 0
-#endif
-typedef struct cfg_node_s
-{
-    const char* name;
-    union
-    {
-        struct cfg_node_s* child;
-        char* value;
-    };
-    short bytes;
-    short type;
-    short used;
-    short flag;
-} cfg_node;
+static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
+static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
+static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
-static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-static int pth = -1; //poll thread handle
-static cfg_node root;
-static int cached_change;
-static int save_cmds_queued;
-static void cfg_cmd_callback(int cmd_fd, int type, int flags, uint32_t user_id);
-static inline short alloc_node(cfg_node* p, short grow);
-static inline void free_node(cfg_node* p);
-static inline short find_inode(const cfg_node* p, const char* name);
-static cfg_node* find_node(const char* section, const char* key, const char* name);
-static int remove_node(const char* section, const char* key, const char* name);
-static int remove_filter_node(const char* section, const char* filter[], int filter_count, int max_allowed);
-static inline cfg_node* find_free_node(cfg_node* p);
-static int set_node(const char* section, const char* key, const char* name,
-                        const char* value, short bytes, short type);
-static int save_cfg();
-static void load_cfg();
-static short find_next_node(const cfg_node* p, short start, char* name, int* bytes);
-#ifdef UNIT_TEST
-static void cfg_test_load();
-static void cfg_test_write();
-static void cfg_test_read();
-#endif
-#define MY_LOG_LEVEL appl_trace_level
-#define MY_LOG_LAYER TRACE_LAYER_NONE | TRACE_ORG_APPL
+static void timer_config_save(void *data);
 
-static inline void dump_node(const char* title, const cfg_node* p)
-{
-    if(p) {
-        bdld("%s, p->name:%s, child/value:%p, bytes:%d",
-                          title, p->name, p->child, p->bytes);
-        bdld("p->used:%d, type:%x, p->flag:%d",
-                          p->used, p->type, p->flag);
-    } else bdld("%s is NULL", title);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int btif_config_init()
-{
-    static int initialized;
-    bdld("in initialized:%d", initialized);
-    if(!initialized)
-    {
-        initialized = 1;
-        struct stat st;
-        if(stat(CFG_PATH, &st) != 0)
-            bdle("%s does not exist, need provision", CFG_PATH);
-        btsock_thread_init();
-        pthread_mutex_lock(&slot_lock);
-        root.name = "Bluedroid";
-        alloc_node(&root, CFG_GROW_SIZE);
-        dump_node("root", &root);
-        pth = btsock_thread_create(NULL, cfg_cmd_callback);
-        load_cfg();
-        pthread_mutex_unlock(&slot_lock);
-        #ifdef UNIT_TEST
-            cfg_test_write();
-            //cfg_test_read();
-            exit(0);
-        #endif
-    }
-    return pth >= 0;
-}
-int btif_config_get_int(const char* section, const char* key, const char* name, int* value)
-{
-    int size = sizeof(*value);
-    int type = BTIF_CFG_TYPE_INT;
-    return btif_config_get(section, key, name, (char*)value, &size, &type);
-}
-int btif_config_set_int(const char* section, const char* key, const char* name, int value)
-{
-    return btif_config_set(section, key, name, (char*)&value, sizeof(value), BTIF_CFG_TYPE_INT);
-}
-int btif_config_get_str(const char* section, const char* key, const char* name, char* value, int* size)
-{
-    int type = BTIF_CFG_TYPE_STR;
-    if(value)
-        *value = 0;
-    return btif_config_get(section, key, name, value, size, &type);
-}
-int btif_config_set_str(const char* section, const char* key, const char* name, const char* value)
-{
-   value = value ? value : "";
-   return btif_config_set(section, key, name, value, strlen(value) + 1, BTIF_CFG_TYPE_STR);
-}
-int btif_config_exist(const char* section, const char* key, const char* name)
-{
-    int ret = FALSE;
-    if(section && *section && key && *key)
-    {
-        pthread_mutex_lock(&slot_lock);
-        ret = find_node(section, key, name) != NULL;
-        pthread_mutex_unlock(&slot_lock);
-    }
-    return ret;
-}
-int btif_config_get(const char* section, const char* key, const char* name, char* value, int* bytes, int* type)
-{
-    int ret = FALSE;
-    bdla(section && *section && key && *key && name && *name && bytes && type);
-    bdld("section:%s, key:%s, name:%s, value:%p, bytes:%d, type:%d",
-                section, key, name, value, *bytes, *type);
-    if(section && *section && key && *key && name && *name && bytes && type)
-    {
-        pthread_mutex_lock(&slot_lock);
-        const cfg_node* node = find_node(section, key, name);
-        dump_node("found node", node);
-        if(node)
-        {
-            if(*type == node->type && value && *bytes >= node->used)
-            {
-                if(node->used > 0)
-                    memcpy(value, node->value, node->used);
-                ret = TRUE;
-            }
-            *type = node->type;
-            *bytes = node->used;
-            if(ret != TRUE)
-            {
-                if(*type != node->type)
-                    bdle("value:%s, wrong type:%d, need to be type: %d",
-                                      name, *type, node->type);
-                if(value && *bytes < node->used)
-                    bdle("value:%s, not enough size: %d bytes, need %d bytes",
-                                      name, node->used, *bytes);
-            }
-        }
-        pthread_mutex_unlock(&slot_lock);
-    }
-    return ret;
-}
-int btif_config_set(const char* section, const char* key, const char* name, const char*  value, int bytes, int type)
-{
-    int ret = FALSE;
-    bdla(section && *section && key && *key && name && *name);
-    bdla(bytes < MAX_NODE_BYTES);
-    if(section && *section && key && *key && name && *name && bytes < MAX_NODE_BYTES)
-    {
-        pthread_mutex_lock(&slot_lock);
-        ret = set_node(section, key, name, value, (short)bytes, (short)type);
-        if(ret && !(type & BTIF_CFG_TYPE_VOLATILE))
-            cached_change++;
-        pthread_mutex_unlock(&slot_lock);
-    }
-    return ret;
-}
-int btif_config_remove(const char* section, const char* key, const char* name)
-{
-    bdla(section && *section && key && *key);
-    bdld("section:%s, key:%s, name:%s", section, key, name);
-    int ret = FALSE;
-    if(section && *section && key && *key)
-    {
-         pthread_mutex_lock(&slot_lock);
-         ret = remove_node(section, key, name);
-         if(ret)
-            cached_change++;
-         pthread_mutex_unlock(&slot_lock);
-    }
-    return ret;
-}
-
-int btif_config_filter_remove(const char* section, const char* filter[], int filter_count, int max_allowed)
-{
-    bdla(section && *section && max_allowed > 0);
-    bdld("section:%s, filter:%s, filter count:%d, max allowed:%d",
-                section, filter[0], filter_count, max_allowed);
-    int ret = FALSE;
-    if(section && *section && max_allowed > 0)
-    {
-         pthread_mutex_lock(&slot_lock);
-         ret = remove_filter_node(section, filter, filter_count, max_allowed);
-         if(ret)
-            cached_change++;
-         pthread_mutex_unlock(&slot_lock);
-    }
-    return ret;
-}
-typedef struct {
-    short si;
-    short ki;
-    short vi;
-    short reserved;
-} cfg_node_pos;
-short btif_config_next_key(short pos, const char* section, char * name, int* bytes)
-{
-    int next = -1;
-    pthread_mutex_lock(&slot_lock);
-    short si = find_inode(&root, section);
-    if(si >= 0)
-    {
-        const cfg_node* section_node = &root.child[si];
-        next = find_next_node(section_node, pos, name, bytes);
-    }
-    pthread_mutex_unlock(&slot_lock);
-    return next;
-}
-short btif_config_next_value(short pos, const char* section, const char* key, char* name, int* bytes)
-{
-    int next = -1;
-    pthread_mutex_lock(&slot_lock);
-    short si = find_inode(&root, section);
-    if(si >= 0)
-    {
-        const cfg_node* section_node = &root.child[si];
-        short ki = find_inode(section_node, key);
-        if(ki >= 0)
-        {
-            const cfg_node* key_node = &section_node->child[ki];
-            next = find_next_node(key_node, pos, name, bytes);
-        }
-    }
-    pthread_mutex_unlock(&slot_lock);
-    return next;
-}
-int btif_config_enum(btif_config_enum_callback cb, void* user_data)
-{
-    bdla(cb);
-    if(!cb)
-        return FALSE;
-    pthread_mutex_lock(&slot_lock);
-    int si, ki, vi;
-    cfg_node *section_node, *key_node, *value_node;
-    for(si = 0; si < GET_CHILD_COUNT(&root); si++)
-    {
-        section_node = &root.child[si];
-        if(section_node->name && *section_node->name)
-        {
-            for(ki = 0; ki < GET_CHILD_COUNT(section_node); ki++)
-            {
-                key_node = &section_node->child[ki];
-                if(key_node->name && *key_node->name)
-                {
-                    for(vi = 0; vi < GET_CHILD_COUNT(key_node); vi++)
-                    {
-                        value_node = &key_node->child[vi];
-                        if(value_node->name && *value_node->name)
-                        {
-                            cb(user_data, section_node->name, key_node->name, value_node->name,
-                                            value_node->value, value_node->used, value_node->type);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    pthread_mutex_unlock(&slot_lock);
-    return TRUE;
-}
-int btif_config_save()
-{
-    int post_cmd = 0;
-    pthread_mutex_lock(&slot_lock);
-    bdld("save_cmds_queued:%d, cached_change:%d", save_cmds_queued, cached_change);
-    if((save_cmds_queued == 0) && (cached_change > 0))
-    {
-        post_cmd = 1;
-        save_cmds_queued++;
-        bdld("post_cmd set to 1, save_cmds_queued:%d", save_cmds_queued);
-    }
-    pthread_mutex_unlock(&slot_lock);
-    /* don't hold lock when invoking send or else a deadlock could
-     * occur when the socket thread tries to do the actual saving.
-     */
-    if (post_cmd)
-        btsock_thread_post_cmd(pth, CFG_CMD_SAVE, NULL, 0, 0);
-
-    return TRUE;
-}
-void btif_config_flush()
-{
-    pthread_mutex_lock(&slot_lock);
-    if(cached_change > 0)
-        save_cfg();
-    pthread_mutex_unlock(&slot_lock);
-}
-
-/*******************************************************************************
- * Device information
- *******************************************************************************/
-BOOLEAN btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
+// TODO(zachoverflow): Move these two functions out, because they are too specific for this file
+// {grumpy-cat/no, monty-python/you-make-me-sad}
+bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
 {
     if (p_device_type == NULL)
         return FALSE;
@@ -375,17 +52,17 @@ BOOLEAN btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
 
-    char bd_addr_str[18] = {0};
-    bd2str(&bda, &bd_addr_str);
+    bdstr_t bd_addr_str;
+    bdaddr_to_string(&bda, bd_addr_str, sizeof(bd_addr_str));
 
-    if (!btif_config_get_int("Remote", bd_addr_str, "DevType", p_device_type))
+    if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type))
         return FALSE;
 
-    ALOGD("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
+    LOG_DEBUG("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
     return TRUE;
 }
 
-BOOLEAN btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
+bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
 {
     if (p_addr_type == NULL)
         return FALSE;
@@ -393,594 +70,331 @@ BOOLEAN btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
 
-    char bd_addr_str[18] = {0};
-    bd2str(&bda, &bd_addr_str);
+    bdstr_t bd_addr_str;
+    bdaddr_to_string(&bda, bd_addr_str, sizeof(bd_addr_str));
 
-    if (!btif_config_get_int("Remote", bd_addr_str, "AddrType", p_addr_type))
+    if (!btif_config_get_int(bd_addr_str, "AddrType", p_addr_type))
         return FALSE;
 
-    ALOGD("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
+    LOG_DEBUG("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
     return TRUE;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-static inline short alloc_node(cfg_node* p, short grow)
-{
-    int new_bytes = p->bytes + grow;
-    if(grow > 0 && new_bytes < MAX_NODE_BYTES)
-    {
-        char* value = (char*)realloc(p->value, new_bytes);
-        if(value)
-        {
-            short old_bytes = p->bytes;
-            //clear to zero
-            memset(value + old_bytes, 0, grow);
-            p->bytes = old_bytes + grow;
-            p->value = value;
-            return old_bytes;//return the previous size
-        }
-        else bdle("realloc failed, old_bytes:%d, grow:%d, total:%d", p->bytes, grow,  p->bytes + grow);
-    }
-    return -1;
-}
-static inline void free_node(cfg_node* p)
-{
-    if(p)
-    {
-        if(p->child)
-        {
-            free(p->child);
-            p->child = NULL;
-        }
-        if(p->name)
-        {
-            free((void*)p->name);
-            p->name = 0;
-        }
-        p->used = p->bytes = p->flag = p->type = 0;
-    }
-}
-static inline short find_inode(const cfg_node* p, const char* name)
-{
-    if(p && p->child && name && *name)
-    {
-        int i;
-        int count = GET_CHILD_COUNT(p);
-        //bdld("parent name:%s, child name:%s, child count:%d", p->name, name, count);
-        for(i = 0; i < count; i++)
-        {
-            if(p->child[i].name && *p->child[i].name &&
-                strcmp(p->child[i].name, name) == 0)
-            {
-                  return (short)i;
-            }
-        }
-    }
-    return -1;
-}
-static inline cfg_node* find_free_node(cfg_node* p)
-{
-    if(p && p->child)
-    {
-        int count = GET_CHILD_COUNT(p);
-        if(count < GET_CHILD_MAX_COUNT(p))
-            return  p->child + count;
-    }
-    return NULL;
-}
-static cfg_node* find_add_node(cfg_node* p, const char* name)
-{
-    int i = -1;
-    cfg_node* node = NULL;
-    if((i = find_inode(p, name)) < 0)
-    {
-        if(!(node = find_free_node(p)))
-        {
-            int old_size = alloc_node(p, CFG_GROW_SIZE);
-            if(old_size >= 0)
-            {
-                i = GET_NODE_COUNT(old_size);
-                node = &p->child[i];
-                ADD_CHILD_COUNT(p, 1);
-            }
-        } else ADD_CHILD_COUNT(p, 1);
-    }
-    else node = &p->child[i];
-    if(node && (!node->name))
-        node->name = strdup(name);
-    return node;
-}
-static int set_node(const char* section, const char* key, const char* name,
-                    const char* value, short bytes, short type)
-{
-    cfg_node* section_node = NULL;
-    if((section_node = find_add_node(&root, section)))
-    {
-        cfg_node* key_node;
-        if((key_node = find_add_node(section_node, key)))
-        {
-            cfg_node* value_node;
-            if((value_node = find_add_node(key_node, name)))
-            {
-                if(value_node->bytes < bytes)
-                {
-                    if(value_node->value)
-                        free(value_node->value);
-                    value_node->value = (char*)malloc(bytes);
-                    if(value_node->value)
-                        value_node->bytes = bytes;
-                    else
-                    {
-                        bdle("not enough memory!");
-                        value_node->bytes = 0;
-                        return FALSE;
-                    }
-                }
-                if(value_node->value && value != NULL && bytes > 0)
-                    memcpy(value_node->value, value, bytes);
-                value_node->type = type;
-                value_node->used = bytes;
-                return TRUE;
-            }
-        }
-    }
-    return FALSE;
-}
-static cfg_node* find_node(const char* section, const char* key, const char* name)
-{
-    int si = -1, ki = -1, vi = -1;
-    if((si = find_inode(&root, section)) >= 0)
-    {
-        cfg_node* section_node = &root.child[si];
-        if(key)
-        {
-            if((ki = find_inode(section_node, key)) >= 0)
-            {
-                cfg_node* key_node = &section_node->child[ki];
-                if(name)
-                {
-                    if((vi = find_inode(key_node, name)) >= 0)
-                    {
-                        return &key_node->child[vi];
-                    }
-                    return NULL;
-                }
-                return key_node;
-            }
-            return NULL;
-        }
-        return section_node;
-    }
-    return NULL;
-}
-static short find_next_node(const cfg_node* p, short start, char* name, int* bytes)
-{
-    bdla(0 <= start && start < GET_CHILD_COUNT(p));
-    bdld("in, start:%d, child count:%d, max count:%d", start, GET_CHILD_COUNT(p), GET_CHILD_MAX_COUNT(p));
-    short next = -1;
-    if(name) *name = 0;
-    if(0 <= start && start < GET_CHILD_COUNT(p))
-    {
-        int i;
-        for(i = start; i < GET_CHILD_COUNT(p); i++)
-        {
-            cfg_node* child = &p->child[i];
-            if(child->name)
-            {
-                int name_bytes = strlen(child->name) + 1;
-                if(name && bytes && *bytes >= name_bytes)
-                {
-                    memcpy(name, child->name, name_bytes);
-                    if(i + 1 < GET_CHILD_COUNT(p))
-                        next = (short)(i + 1);
-                    *bytes = name_bytes;
-                }
-                else if(bytes)
-                {
-                    *bytes = name_bytes;
-                }
-                break;
-            }
-        }
-    }
-    return next;
-}
-static void free_child(cfg_node* p, int ichild, int count)
-{
-    int child_count = GET_CHILD_COUNT(p);
-    bdla(p && ichild + count <= child_count && count > 0);
-    int icount = ichild + count;
-    icount = icount <= child_count ? icount : child_count;
-    int i;
-    for(i = ichild; i < icount; i++)
-        free_node(p->child + i);
-    if(i < child_count)
-    {
-        int mv_count = child_count - i;
-        memmove(p->child + ichild, p->child + i, GET_NODE_BYTES(mv_count));
-        //cleanup the buffer of already moved children
-        memset(p->child + i, 0, GET_NODE_BYTES(mv_count));
-    }
-    DEC_CHILD_COUNT(p, i - ichild);
-}
-static int remove_node(const char* section, const char* key, const char* name)
-{
-    short  si = -1, ki = -1, vi = -1;
-    if((si = find_inode(&root, section)) >= 0)
-    {
-        cfg_node* section_node = &root.child[si];
-        if((ki = find_inode(section_node, key)) >= 0)
-        {
-            cfg_node* key_node = &section_node->child[ki];
-            if(name == NULL)
-            {
-                int count = GET_CHILD_COUNT(key_node);
-                free_child(key_node, 0, count);
-                free_child(section_node, ki, 1);
-                return TRUE;
-            }
-            else if((vi = find_inode(key_node, name)) >= 0)
-            {
-                free_child(key_node, vi, 1);
-                return TRUE;
-            }
-        }
-    }
-    return FALSE;
-}
-static inline int find_first_empty(cfg_node*p, int start, int count)
-{
-    int i;
-    for(i = start; i < count; i++)
-    {
-        if(p->child[i].name == NULL)
-            return i;
-    }
-    return -1;
-}
-static inline int find_first_occupy(cfg_node*p, int start, int count)
-{
-    int i;
-    for(i = start; i < count; i++)
-        if(p->child[i].name)
-            return i;
-    return -1;
-}
+static pthread_mutex_t lock;  // protects operations on |config|.
+static config_t *config;
+static alarm_t *alarm_timer;
 
-static void pack_child(cfg_node* p)
-{
-    int child_count = GET_CHILD_COUNT(p);
-    int occupy = 1;
-    int empty = 0;
-    for(;;)
-    {
-        empty = find_first_empty(p, empty, child_count);
-        if(empty >= 0)
-        {
-            if(occupy <= empty)
-                occupy = empty + 1;
-            occupy = find_first_occupy(p, occupy, child_count);
-            bdla(occupy != 0);
-            if(occupy > 0)
-            {//move
-                p->child[empty] = p->child[occupy];
-                memset(&p->child[occupy], 0, sizeof(cfg_node));
-                empty++;
-                occupy++;
-            }
-            else break;
-        }
-        else break;
-    }
-}
-static inline int value_in_filter(cfg_node* key, const char* filter[], int filter_count)
-{
-    int i, j;
-    int child_count = GET_CHILD_COUNT(key);
-    for(i = 0; i < child_count; i++)
-    {
-        if(key->child[i].name && *key->child[i].name)
-        {
-            for(j = 0; j < filter_count; j++)
-                if(strcmp(filter[j], key->child[i].name) == 0)
-                    return TRUE;
-        }
-    }
-    return FALSE;
-}
-static int remove_filter_node(const char* section, const char* filter[], int filter_count, int max_allowed)
-{
-    int  si = -1;
-    if((si = find_inode(&root, section)) < 0)
-    {
-        bdle("cannot find section:%s", section);
-        return FALSE;
-    }
-    cfg_node* s = &root.child[si];
-    int child_count = GET_CHILD_COUNT(s);
-    bdld("section:%s, curr child count:%d, filter count:%d", section, child_count, filter_count);
-    if(child_count < max_allowed)
-        return FALSE;
-    //remove until half of max allowance left
-    int total_rm = child_count - max_allowed / 2;
-    int rm_count = 0;
-    int i;
-    for(i = 0; i < child_count; i++)
-    {
-        if(!value_in_filter(&s->child[i], filter, filter_count))
-        {
-            free_child(&s->child[i], 0, GET_CHILD_COUNT(&s->child[i]));
-            free_node(&s->child[i]);
-            rm_count++;
-            if(rm_count >= total_rm)
-                break;
-        }
-    }
-    if(rm_count)
-    {
-        pack_child(s);
-        DEC_CHILD_COUNT(s, rm_count);
-        return TRUE;
-    }
-    return FALSE;
-}
+// Module lifecycle functions
 
-static int save_cfg()
-{
-    const char* file_name = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT;
-    const char* file_name_new = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_NEW;
-    const char* file_name_old = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_OLD;
-    int ret = FALSE;
-    if(access(file_name_old,  F_OK) == 0)
-        unlink(file_name_old);
-    if(access(file_name_new, F_OK) == 0)
-        unlink(file_name_new);
-   if(btif_config_save_file(file_name_new))
-    {
-        cached_change = 0;
-        chown(file_name_new, -1, AID_NET_BT_STACK);
-        chmod(file_name_new, 0660);
-        rename(file_name, file_name_old);
-        rename(file_name_new, file_name);
-        ret = TRUE;
-    }
-    else bdle("btif_config_save_file failed");
-    return ret;
-}
-
-static int load_bluez_cfg()
-{
-    char adapter_path[256];
-    if(load_bluez_adapter_info(adapter_path, sizeof(adapter_path)))
-    {
-        if(load_bluez_linkkeys(adapter_path))
-            return TRUE;
-    }
-    return FALSE;
-}
-static void remove_bluez_cfg()
-{
-    rename(BLUEZ_PATH, BLUEZ_PATH_BAK);
-}
-static void clean_newline_char()
-{
-    char kname[128], vname[128];
-    short kpos = 0;
-    int kname_size, vname_size;
-    vname[0] = 0;
-    vname_size = sizeof(vname);
-    //bdld("removing newline at the end of the adapter and device name");
-    if(btif_config_get_str("Local", "Adapter", "Name", vname, &vname_size) &&
-        vname_size > 2)
-    {
-        if(vname[vname_size - 2] == '\n')
-        {
-            bdld("remove newline at the end of the adapter name:%s", vname);
-            vname[vname_size - 2] = 0;
-            btif_config_set_str("Local", "Adapter", "Name", vname);
-        }
-    }
-    do
-    {
-        kname_size = sizeof(kname);
-        kname[0] = 0;
-        kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
-        //bdld("Remote device:%s, size:%d", kname, kname_size);
-        vname_size = sizeof(vname);
-        vname[0] = 0;
-        if(btif_config_get_str("Remote", kname, "Name", vname, &vname_size) &&
-            vname_size > 2)
-        {
-            bdld("remote device name:%s", vname);
-            if(vname[vname_size - 2] == '\n')
-            {
-                bdld("remove newline at the end of the device name:%s", vname);
-                vname[vname_size - 2] = 0;
-                btif_config_set_str("Remote", kname, "Name", vname);
-            }
-        }
-     } while(kpos != -1);
-}
-static void load_cfg()
-{
-    const char* file_name = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT;
-    const char* file_name_old = CFG_PATH CFG_FILE_NAME CFG_FILE_EXT_OLD;
-    if(!btif_config_load_file(file_name))
-    {
-        unlink(file_name);
-        if(!btif_config_load_file(file_name_old))
-        {
-            unlink(file_name_old);
-            if(load_bluez_cfg() && save_cfg())
-                remove_bluez_cfg();
-        }
-    }
-    int bluez_migration_done = 0;
-    btif_config_get_int("Local", "Adapter", "BluezMigrationDone", &bluez_migration_done);
-    if(!bluez_migration_done)
-    {
-        //clean the new line char at the end of the device name. Caused by bluez config import bug
-        clean_newline_char();
-        btif_config_set_int("Local", "Adapter", "BluezMigrationDone", 1);
-        btif_config_save();
-    }
-}
-static void cfg_cmd_callback(int cmd_fd, int type, int size, uint32_t user_id)
-{
-    UNUSED(cmd_fd);
-    UNUSED(size);
-    UNUSED(user_id);
-
-    switch(type)
-    {
-        case CFG_CMD_SAVE:
-        {
-            int i;
-            int last_cached_change;
-
-            // grab lock while accessing cached_change.
-            pthread_mutex_lock(&slot_lock);
-            bdla(save_cmds_queued > 0);
-            save_cmds_queued--;
-            last_cached_change = cached_change;
-            //hold the file saving until no more change in last 3 seconds.
-            bdld("wait until no more changes in short time, cached change:%d", cached_change);
-            for(i = 0; i < 100; i ++) //5 minutes max waiting
-            {
-                // don't sleep if there is nothing to do
-                if(cached_change == 0)
-                    break;
-                // release lock during sleep
-                pthread_mutex_unlock(&slot_lock);
-                sleep(3);
-                pthread_mutex_lock(&slot_lock);
-                if(last_cached_change == cached_change)
-                    break;
-                last_cached_change = cached_change;
-            }
-            bdld("writing the bt_config.xml now, cached change:%d", cached_change);
-            if(cached_change > 0)
-                save_cfg();
-            pthread_mutex_unlock(&slot_lock);
-            break;
-        }
-    }
-}
-#ifdef UNIT_TEST
-static void cfg_test_load()
-{
-    load_cfg();
-    char kname[128], vname[128];
-    short kpos, vpos;
-    int kname_size, vname_size;
-    bdld("list all remote devices values:");
-    kname_size = sizeof(kname);
-    kname[0] = 0;
-    kpos = 0;
-    do
-    {
-        kpos = btif_config_next_key(kpos, "Remote Devices", kname, &kname_size);
-        bdld("Remote devices:%s, size:%d", kname, kname_size);
-        vpos = 0;
-        vname[0] = 0;
-        vname_size = sizeof(vname);
-        while((vpos = btif_config_next_value(vpos, "Remote Devices", kname, vname, &vname_size)) != -1)
-        {
-            char v[128] = {0};
-            int vtype = BTIF_CFG_TYPE_STR;
-            int vsize = sizeof(v);
-            int ret = btif_config_get("Remote Devices", kname, vname, v, &vsize, &vtype);
-            bdld("btif_config_get return:%d, Remote devices:%s, value name:%s, value:%s, value size:%d, type:0x%x",
-                              ret, kname, vname, v, vsize, vtype);
-
-            vname[0] = 0;
-            vname_size = sizeof(vname);
-        }
-        kname[0] = 0;
-        kname_size = sizeof(kname);
-    } while(kpos != -1);
-}
-static void cfg_test_write()
-{
-    int i;
-
-    char key[128];
-    const char* section = "Remote";
-    char link_key[64];
-    for(i = 0; i < (int)sizeof(link_key); i++)
-        link_key[i] = i;
-    bdld("[start write testing");
-    if(btif_config_exist("test", "test cfg", "write"))
-        return;
-    btif_config_set_int("test", "test cfg", "write", 1);
-    for(i = 0; i < 50; i++)
-    {
-        if(i % 3 == 0)
-            sprintf(key, "Remote paired %d", i);
-        else sprintf(key, "Remote %d", i);
-        link_key[0] = i;
-        btif_config_set_str(section, key, "class", "smart phone");
-        if(i % 3 == 0)
-        {
-            if(i % 6 == 0)
-                btif_config_set(section, key, "LinkKey", link_key, sizeof(link_key), BTIF_CFG_TYPE_BIN);
-            else btif_config_set(section, key, "LE_KEY_LCSRK", link_key, sizeof(link_key), BTIF_CFG_TYPE_BIN);
-        }
-        btif_config_set_int(section, key, "count", i);
-        if(!btif_config_exist(section, key, "time stamp"))
-            btif_config_set_int(section, key, "time stamp", time(NULL));
-    }
-    static const char* exclude_filter[] =
-    {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
-    const int max_allowed_remote_device = 40;
-    btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
-            max_allowed_remote_device);
-    bdld("]end write testing");
-    btif_config_flush();
-}
-static void cfg_test_read()
-{
-    //debug("in");
-    char class[128] = {0};
-    char link_key[128] = {0};
-    int size, type;
-    char key[128];
-    const char* section;
-    int ret, i;
-    for(i = 0; i < 100; i++)
-    {
-        sprintf(key, "00:22:5F:97:56:%02d", i);
-        section = "Remote";
-        size = sizeof(class);
-        ret = btif_config_get_str(section, key, "class", class, &size);
-        bdld("btif_config_get_str return:%d, Remote devices:%s, class:%s", ret, key, class);
-
-        size = sizeof(link_key);
-        type = BTIF_CFG_TYPE_BIN;
-        ret = btif_config_get(section, key, "link keys", link_key, &size, &type);
-        //debug("btif_config_get return:%d, Remote devices:%s, link key:%x, %x",
-        //            ret, key, *(int *)link_key, *((int *)link_key + 1));
-
-        int timeout;
-        ret = btif_config_get_int(section, key, "connect time out", &timeout);
-        //debug("btif_config_get_int return:%d, Remote devices:%s, connect time out:%d", ret, key, timeout);
+static future_t *init(void) {
+  pthread_mutex_init(&lock, NULL);
+  config = config_new(CONFIG_FILE_PATH);
+  if (!config) {
+    LOG_WARN("%s unable to load config file; attempting to transcode legacy file.", __func__);
+    config = btif_config_transcode(LEGACY_CONFIG_FILE_PATH);
+    if (!config) {
+      LOG_WARN("%s unable to transcode legacy file, starting unconfigured.", __func__);
+      config = config_new_empty();
+      if (!config) {
+        LOG_ERROR("%s unable to allocate a config object.", __func__);
+        goto error;
+      }
     }
 
-    // debug("testing btif_config_remove");
-    size = sizeof(class);
-    type = BTIF_CFG_TYPE_STR;
-    btif_config_set("Remote", "00:22:5F:97:56:04", "Class Delete", class, strlen(class) + 1, BTIF_CFG_TYPE_STR);
+    if (config_save(config, CONFIG_FILE_PATH))
+      unlink(LEGACY_CONFIG_FILE_PATH);
+  }
 
-    btif_config_get("Remote", "00:22:5F:97:56:04", "Class Delete", class, &size, &type);
-    // debug("Remote devices, 00:22:5F:97:56:04 Class Delete:%s", class);
-    btif_config_remove("Remote", "00:22:5F:97:56:04", "Class Delete");
+  // TODO(sharvil): use a non-wake alarm for this once we have
+  // API support for it. There's no need to wake the system to
+  // write back to disk.
+  alarm_timer = alarm_new();
+  if (!alarm_timer) {
+    LOG_ERROR("%s unable to create alarm.", __func__);
+    goto error;
+  }
 
-    size = sizeof(class);
-    type = BTIF_CFG_TYPE_STR;
-    ret = btif_config_get("Remote", "00:22:5F:97:56:04", "Class Delete", class, &size, &type);
-    // debug("after removed, btif_config_get ret:%d, Remote devices, 00:22:5F:97:56:04 Class Delete:%s", ret, class);
-    // debug("out");
+  return future_new_immediate(FUTURE_SUCCESS);
+
+error:;
+  alarm_free(alarm_timer);
+  config_free(config);
+  pthread_mutex_destroy(&lock);
+  alarm_timer = NULL;
+  config = NULL;
+  return future_new_immediate(FUTURE_FAIL);
 }
 
+static future_t *shut_down(void) {
+  btif_config_flush();
+  return future_new_immediate(FUTURE_SUCCESS);
+}
 
-#endif
+static future_t *clean_up(void) {
+  btif_config_flush();
+
+  alarm_free(alarm_timer);
+  config_free(config);
+  pthread_mutex_destroy(&lock);
+  alarm_timer = NULL;
+  config = NULL;
+  return future_new_immediate(FUTURE_SUCCESS);
+}
+
+const module_t btif_config_module = {
+  .name = BTIF_CONFIG_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = shut_down,
+  .clean_up = clean_up,
+  .dependencies = {
+    NULL
+  }
+};
+
+bool btif_config_has_section(const char *section) {
+  assert(config != NULL);
+  assert(section != NULL);
+
+  pthread_mutex_lock(&lock);
+  bool ret = config_has_section(config, section);
+  pthread_mutex_unlock(&lock);
+
+  return ret;
+}
+
+bool btif_config_exist(const char *section, const char *key) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+
+  pthread_mutex_lock(&lock);
+  bool ret = config_has_key(config, section, key);
+  pthread_mutex_unlock(&lock);
+
+  return ret;
+}
+
+bool btif_config_get_int(const char *section, const char *key, int *value) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+
+  pthread_mutex_lock(&lock);
+  bool ret = config_has_key(config, section, key);
+  if (ret)
+    *value = config_get_int(config, section, key, *value);
+  pthread_mutex_unlock(&lock);
+
+  return ret;
+}
+
+bool btif_config_set_int(const char *section, const char *key, int value) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+
+  pthread_mutex_lock(&lock);
+  config_set_int(config, section, key, value);
+  pthread_mutex_unlock(&lock);
+
+  return true;
+}
+
+bool btif_config_get_str(const char *section, const char *key, char *value, int *size_bytes) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+  assert(size_bytes != NULL);
+
+  pthread_mutex_lock(&lock);
+  const char *stored_value = config_get_string(config, section, key, NULL);
+  pthread_mutex_unlock(&lock);
+
+  if (!stored_value)
+    return false;
+
+  strlcpy(value, stored_value, *size_bytes);
+  *size_bytes = strlen(value) + 1;
+
+  return true;
+}
+
+bool btif_config_set_str(const char *section, const char *key, const char *value) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+
+  pthread_mutex_lock(&lock);
+  config_set_string(config, section, key, value);
+  pthread_mutex_unlock(&lock);
+
+  return true;
+}
+
+bool btif_config_get_bin(const char *section, const char *key, uint8_t *value, size_t *length) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+  assert(length != NULL);
+
+  pthread_mutex_lock(&lock);
+  const char *value_str = config_get_string(config, section, key, NULL);
+  pthread_mutex_unlock(&lock);
+
+  if (!value_str)
+    return false;
+
+  size_t value_len = strlen(value_str);
+  if ((value_len % 2) != 0 || *length < (value_len / 2))
+    return false;
+
+  for (size_t i = 0; i < value_len; ++i)
+    if (!isxdigit(value_str[i]))
+      return false;
+
+  for (*length = 0; *value_str; value_str += 2, *length += 1)
+    sscanf(value_str, "%02hhx", &value[*length]);
+
+  return true;
+}
+
+size_t btif_config_get_bin_length(const char *section, const char *key) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+
+  pthread_mutex_lock(&lock);
+  const char *value_str = config_get_string(config, section, key, NULL);
+  pthread_mutex_unlock(&lock);
+
+  if (!value_str)
+    return 0;
+
+  size_t value_len = strlen(value_str);
+  return ((value_len % 2) != 0) ? 0 : (value_len / 2);
+}
+
+bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length) {
+  static const char *lookup = "0123456789abcdef";
+
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+  assert(value != NULL);
+
+  char *str = (char *)calloc(length * 2 + 1, 1);
+  if (!str)
+    return false;
+
+  for (size_t i = 0; i < length; ++i) {
+    str[(i * 2) + 0] = lookup[(value[i] >> 4) & 0x0F];
+    str[(i * 2) + 1] = lookup[(value[i] >> 0) & 0x0F];
+  }
+
+  pthread_mutex_lock(&lock);
+  config_set_string(config, section, key, str);
+  pthread_mutex_unlock(&lock);
+
+  free(str);
+  return true;
+}
+
+const btif_config_section_iter_t *btif_config_section_begin(void) {
+  assert(config != NULL);
+  return (const btif_config_section_iter_t *)config_section_begin(config);
+}
+
+const btif_config_section_iter_t *btif_config_section_end(void) {
+  assert(config != NULL);
+  return (const btif_config_section_iter_t *)config_section_end(config);
+}
+
+const btif_config_section_iter_t *btif_config_section_next(const btif_config_section_iter_t *section) {
+  assert(config != NULL);
+  assert(section != NULL);
+  return (const btif_config_section_iter_t *)config_section_next((const config_section_node_t *)section);
+}
+
+const char *btif_config_section_name(const btif_config_section_iter_t *section) {
+  assert(config != NULL);
+  assert(section != NULL);
+  return config_section_name((const config_section_node_t *)section);
+}
+
+bool btif_config_remove(const char *section, const char *key) {
+  assert(config != NULL);
+  assert(section != NULL);
+  assert(key != NULL);
+
+  pthread_mutex_lock(&lock);
+  bool ret = config_remove_key(config, section, key);
+  pthread_mutex_unlock(&lock);
+
+  return ret;
+}
+
+void btif_config_save(void) {
+  assert(alarm_timer != NULL);
+  assert(config != NULL);
+
+  alarm_set(alarm_timer, CONFIG_SETTLE_PERIOD_MS, timer_config_save, NULL);
+}
+
+void btif_config_flush(void) {
+  assert(config != NULL);
+  assert(alarm_timer != NULL);
+
+  alarm_cancel(alarm_timer);
+
+  pthread_mutex_lock(&lock);
+  config_save(config, CONFIG_FILE_PATH);
+  pthread_mutex_unlock(&lock);
+}
+
+static void timer_config_save(UNUSED_ATTR void *data) {
+  assert(config != NULL);
+  assert(alarm_timer != NULL);
+
+  // Garbage collection process: the config file accumulates
+  // cached information about remote devices during regular
+  // inquiry scans. We remove some of these junk entries
+  // so the file doesn't grow indefinitely. We have to take care
+  // to make sure we don't remove information about bonded
+  // devices (hence the check for link keys).
+  static const size_t CACHE_MAX = 256;
+  const char *keys[CACHE_MAX];
+  size_t num_keys = 0;
+  size_t total_candidates = 0;
+
+  pthread_mutex_lock(&lock);
+  for (const config_section_node_t *snode = config_section_begin(config); snode != config_section_end(config); snode = config_section_next(snode)) {
+    const char *section = config_section_name(snode);
+    if (!string_is_bdaddr(section))
+      continue;
+
+    if (config_has_key(config, section, "LinkKey") ||
+        config_has_key(config, section, "LE_KEY_PENC") ||
+        config_has_key(config, section, "LE_KEY_PID") ||
+        config_has_key(config, section, "LE_KEY_PCSRK") ||
+        config_has_key(config, section, "LE_KEY_LENC") ||
+        config_has_key(config, section, "LE_KEY_LCSRK"))
+      continue;
+
+    if (num_keys < CACHE_MAX)
+      keys[num_keys++] = section;
+
+    ++total_candidates;
+  }
+
+  if (total_candidates > CACHE_MAX * 2)
+    while (num_keys > 0)
+      config_remove_section(config, keys[--num_keys]);
+
+  config_save(config, CONFIG_FILE_PATH);
+  pthread_mutex_unlock(&lock);
+}

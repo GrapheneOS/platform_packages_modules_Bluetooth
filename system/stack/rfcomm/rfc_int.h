@@ -235,9 +235,9 @@ typedef struct
 
 
 #if RFC_DYNAMIC_MEMORY == FALSE
-RFC_API extern tRFC_CB  rfc_cb;
+extern tRFC_CB  rfc_cb;
 #else
-RFC_API extern tRFC_CB *rfc_cb_ptr;
+extern tRFC_CB *rfc_cb_ptr;
 #define rfc_cb (*rfc_cb_ptr)
 #endif
 
@@ -384,4 +384,3 @@ extern void PORT_LineStatusInd (tRFC_MCB *p_mcb, UINT8 dlci, UINT8 line_status);
 #endif
 
 #endif
-

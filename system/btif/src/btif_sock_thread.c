@@ -48,18 +48,16 @@
 #include <cutils/sockets.h>
 #include <alloca.h>
 
-#define LOG_TAG "BTIF_SOCK"
+#define LOG_TAG "bt_btif_sock"
 #include "btif_common.h"
 #include "btif_util.h"
 
-#include "bd.h"
 
 #include "bta_api.h"
 #include "btif_sock.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
 
-#include <cutils/log.h>
 #define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 #define print_events(events) do { \
     APPL_TRACE_DEBUG("print poll event:%x", events); \
@@ -82,7 +80,8 @@
 #define CMD_WAKEUP       1
 #define CMD_EXIT         2
 #define CMD_ADD_FD       3
-#define CMD_USER_PRIVATE 4
+#define CMD_REMOVE_FD    4
+#define CMD_USER_PRIVATE 5
 
 typedef struct {
     struct pollfd pfd;
@@ -254,6 +253,24 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     APPL_TRACE_DEBUG("adding fd:%d, flags:0x%x", fd, flags);
     return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
 }
+
+bool btsock_thread_remove_fd_and_close(int thread_handle, int fd)
+{
+    if (thread_handle < 0 || thread_handle >= MAX_THREAD)
+    {
+        APPL_TRACE_ERROR("%s invalid thread handle: %d", __func__, thread_handle);
+        return false;
+    }
+    if (fd == -1)
+    {
+        APPL_TRACE_ERROR("%s invalid file descriptor.", __func__);
+        return false;
+    }
+
+    sock_cmd_t cmd = {CMD_REMOVE_FD, fd, 0, 0, 0};
+    return send(ts[thread_handle].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+}
+
 int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size, uint32_t user_id)
 {
     if(h < 0 || h >= MAX_THREAD)
@@ -420,6 +437,18 @@ static int process_cmd_sock(int h)
     {
         case CMD_ADD_FD:
             add_poll(h, cmd.fd, cmd.type, cmd.flags, cmd.user_id);
+            break;
+        case CMD_REMOVE_FD:
+            for (int i = 1; i < MAX_POLL; ++i)
+            {
+                poll_slot_t *poll_slot = &ts[h].ps[i];
+                if (poll_slot->pfd.fd == cmd.fd)
+                {
+                    remove_poll(h, poll_slot, poll_slot->flags);
+                    break;
+                }
+            }
+            close(cmd.fd);
             break;
         case CMD_WAKEUP:
             break;

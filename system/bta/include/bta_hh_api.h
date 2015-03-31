@@ -330,7 +330,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback);
+extern void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -341,7 +341,7 @@ BTA_API extern void BTA_HhEnable(tBTA_SEC sec_mask, tBTA_HH_CBACK *p_cback);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhDisable(void);
+extern void BTA_HhDisable(void);
 
 /*******************************************************************************
 **
@@ -354,8 +354,8 @@ BTA_API extern void BTA_HhDisable(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
-                                tBTA_SEC sec_mask);
+extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
+                        tBTA_SEC sec_mask);
 
 /*******************************************************************************
 **
@@ -366,7 +366,7 @@ BTA_API extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhClose(UINT8 dev_handle);
+extern void BTA_HhClose(UINT8 dev_handle);
 
 /*******************************************************************************
 **
@@ -377,7 +377,7 @@ BTA_API extern void BTA_HhClose(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSetProtoMode(UINT8 handle, tBTA_HH_PROTO_MODE t_type);
+extern void BTA_HhSetProtoMode(UINT8 handle, tBTA_HH_PROTO_MODE t_type);
 
 /*******************************************************************************
 **
@@ -388,7 +388,7 @@ BTA_API extern void BTA_HhSetProtoMode(UINT8 handle, tBTA_HH_PROTO_MODE t_type);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetProtoMode(UINT8 dev_handle);
+extern void BTA_HhGetProtoMode(UINT8 dev_handle);
 /*******************************************************************************
 **
 ** Function         BTA_HhSetReport
@@ -398,8 +398,8 @@ BTA_API extern void BTA_HhGetProtoMode(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
-                                        BT_HDR *p_data);
+extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
+                            BT_HDR *p_data);
 
 /*******************************************************************************
 **
@@ -410,8 +410,8 @@ BTA_API extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
-                                    UINT8 rpt_id, UINT16 buf_size);
+extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
+                            UINT8 rpt_id, UINT16 buf_size);
 /*******************************************************************************
 **
 ** Function         BTA_HhSetIdle
@@ -421,7 +421,7 @@ BTA_API extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 
 /*******************************************************************************
 **
@@ -432,7 +432,7 @@ BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
+extern void BTA_HhGetIdle(UINT8 dev_handle);
 
 /*******************************************************************************
 **
@@ -443,8 +443,8 @@ BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSendCtrl(UINT8 dev_handle,
-                                   tBTA_HH_TRANS_CTRL_TYPE c_type);
+extern void BTA_HhSendCtrl(UINT8 dev_handle,
+                           tBTA_HH_TRANS_CTRL_TYPE c_type);
 
 /*******************************************************************************
 **
@@ -455,7 +455,7 @@ BTA_API extern void BTA_HhSendCtrl(UINT8 dev_handle,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 
 
 /*******************************************************************************
@@ -467,7 +467,7 @@ BTA_API extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
+extern void BTA_HhGetIdle(UINT8 dev_handle);
 
 /*******************************************************************************
 **
@@ -478,7 +478,7 @@ BTA_API extern void BTA_HhGetIdle(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
+extern void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
 
 /*******************************************************************************
 **
@@ -489,7 +489,7 @@ BTA_API extern void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
+extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
 
 /*******************************************************************************
 ** Function         BTA_HhAddDev
@@ -502,9 +502,9 @@ BTA_API extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
-                                 UINT8 sub_class, UINT8 app_id,
-                                 tBTA_HH_DEV_DSCP_INFO dscp_info);
+extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
+                         UINT8 sub_class, UINT8 app_id,
+                         tBTA_HH_DEV_DSCP_INFO dscp_info);
 /*******************************************************************************
 **
 ** Function         BTA_HhRemoveDev
@@ -514,7 +514,7 @@ BTA_API extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
+extern void BTA_HhRemoveDev(UINT8 dev_handle );
 
 /*******************************************************************************
 **
@@ -530,8 +530,8 @@ BTA_API extern void BTA_HhRemoveDev(UINT8 dev_handle );
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
-                                       UINT16 report_len);
+extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
+                               UINT16 report_len);
 
 #if BTA_HH_LE_INCLUDED == TRUE
 /*******************************************************************************
@@ -544,10 +544,10 @@ BTA_API extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, UINT16 scan_win);
+extern void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, UINT16 scan_win);
 #endif
 /* test commands */
-BTA_API extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
+extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
 
 
 

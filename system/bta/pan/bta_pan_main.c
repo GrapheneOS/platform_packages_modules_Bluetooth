@@ -33,7 +33,6 @@
 #include "pan_api.h"
 #include "bta_pan_api.h"
 #include "bta_pan_int.h"
-#include "bd.h"
 #include "utl.h"
 
 /*****************************************************************************

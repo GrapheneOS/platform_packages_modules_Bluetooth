@@ -40,7 +40,6 @@ extern "C" {
 ******************************************************************************/
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
 
-
 #endif
 
 #ifdef __cplusplus

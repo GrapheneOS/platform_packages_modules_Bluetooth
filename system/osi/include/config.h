@@ -14,6 +14,7 @@
 //   not exist. In other words, |config_has_section| will return false for
 //   empty sections.
 // - Duplicate keys in a section will overwrite previous values.
+// - All strings are case sensitive.
 
 #include <stdbool.h>
 
@@ -21,8 +22,13 @@
 // a section.
 #define CONFIG_DEFAULT_SECTION "Global"
 
-struct config_t;
 typedef struct config_t config_t;
+typedef struct config_section_node_t config_section_node_t;
+
+// Creates a new config object with no entries (i.e. not backed by a file).
+// This function returns a config object or NULL on error. Clients must call
+// |config_free| on the returned handle when it is no longer required.
+config_t *config_new_empty(void);
 
 // Loads the specified file and returns a handle to the config file. If there
 // was a problem loading the file or allocating memory, this function returns
@@ -76,3 +82,46 @@ void config_set_bool(config_t *config, const char *section, const char *key, boo
 // not already exist, this function creates them. |config|, |section|, |key|, and
 // |value| must not be NULL.
 void config_set_string(config_t *config, const char *section, const char *key, const char *value);
+
+// Removes |section| from the |config| (and, as a result, all keys in the section).
+// Returns true if |section| was found and removed from |config|, false otherwise.
+// Neither |config| nor |section| may be NULL.
+bool config_remove_section(config_t *config, const char *section);
+
+// Removes one specific |key| residing in |section| of the |config|. Returns true
+// if the section and key were found and the key was removed, false otherwise.
+// None of |config|, |section|, or |key| may be NULL.
+bool config_remove_key(config_t *config, const char *section, const char *key);
+
+// Returns an iterator to the first section in the config file. If there are no
+// sections, the iterator will equal the return value of |config_section_end|.
+// The returned pointer must be treated as an opaque handle and must not be freed.
+// The iterator is invalidated on any config mutating operation. |config| may not
+// be NULL.
+const config_section_node_t *config_section_begin(const config_t *config);
+
+// Returns an iterator to one past the last section in the config file. It does not
+// represent a valid section, but can be used to determine if all sections have been
+// iterated over. The returned pointer must be treated as an opaque handle and must
+// not be freed and must not be iterated on (must not call |config_section_next| on
+// it). |config| may not be NULL.
+const config_section_node_t *config_section_end(const config_t *config);
+
+// Moves |iter| to the next section. If there are no more sections, |iter| will
+// equal the value of |config_section_end|. |iter| may not be NULL and must be
+// a pointer returned by either |config_section_begin| or |config_section_next|.
+const config_section_node_t *config_section_next(const config_section_node_t *iter);
+
+// Returns the name of the section referred to by |iter|. The returned pointer is
+// owned by the config module and must not be freed by the caller. The pointer will
+// remain valid until |config_free| is called. |iter| may not be NULL and must not
+// equal the value returned by |config_section_end|.
+const char *config_section_name(const config_section_node_t *iter);
+
+// Saves |config| to a file given by |filename|. Note that this could be a destructive
+// operation: if |filename| already exists, it will be overwritten. The config
+// module does not preserve comments or formatting so if a config file was opened
+// with |config_new| and subsequently overwritten with |config_save|, all comments
+// and special formatting in the original file will be lost. Neither |config| nor
+// |filename| may be NULL.
+bool config_save(const config_t *config, const char *filename);

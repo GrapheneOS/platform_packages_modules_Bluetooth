@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
@@ -33,10 +33,6 @@
 #include "btm_api.h"
 #include "btu.h"
 
-
-#if (defined BTTRC_INCLUDED && BTTRC_INCLUDED == TRUE)
-#include "bttrc_str_ids.h"
-#endif
 
 /* Control block for AVDT */
 #if AVDT_DYNAMIC_MEMORY == FALSE
@@ -112,9 +108,6 @@ void avdt_process_timeout(TIMER_LIST_ENT *p_tle)
 *******************************************************************************/
 void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 {
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_REGISTER);
-
     /* register PSM with L2CAP */
     L2CA_Register(AVDT_PSM, (tL2CAP_APPL_INFO *) &avdt_l2c_appl);
 
@@ -142,11 +135,6 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
     avdt_scb_init();
     avdt_ccb_init();
     avdt_ad_init();
-#if defined(AVDT_INITIAL_TRACE_LEVEL)
-    avdt_cb.trace_level = AVDT_INITIAL_TRACE_LEVEL;
-#else
-    avdt_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
 
     /* copy registration struct */
     memcpy(&avdt_cb.rcb, p_reg, sizeof(tAVDT_REG));
@@ -168,8 +156,6 @@ void AVDT_Register(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback)
 *******************************************************************************/
 void AVDT_Deregister(void)
 {
-    BTTRC_AVDT_API0(AVDT_TRACE_API_DEREGISTER);
-
     /* deregister PSM with L2CAP */
     L2CA_Deregister(AVDT_PSM);
 }
@@ -255,8 +241,6 @@ UINT16 AVDT_CreateStream(UINT8 *p_handle, tAVDT_CS *p_cs)
     UINT16      result = AVDT_SUCCESS;
     tAVDT_SCB   *p_scb;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_CREATESTREAM);
-
     /* Verify parameters; if invalid, return failure */
     if (((p_cs->cfg.psc_mask & (~AVDT_PSC)) != 0) || (p_cs->p_ctrl_cback == NULL))
     {
@@ -292,9 +276,6 @@ UINT16 AVDT_RemoveStream(UINT8 handle)
 {
     UINT16      result = AVDT_SUCCESS;
     tAVDT_SCB   *p_scb;
-
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_REMOVESTREAM);
 
     /* look up scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -341,8 +322,6 @@ UINT16 AVDT_DiscoverReq(BD_ADDR bd_addr, tAVDT_SEP_INFO *p_sep_info,
     tAVDT_CCB       *p_ccb;
     UINT16          result = AVDT_SUCCESS;
     tAVDT_CCB_EVT   evt;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_DISCOVER_REQ);
 
     /* find channel control block for this bd addr; if none, allocate one */
     if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
@@ -448,8 +427,6 @@ UINT16 AVDT_GetCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg, tAVDT_CTRL_
 {
     tAVDT_CCB_API_GETCAP    getcap;
 
-    BTTRC_AVDT_API1(AVDT_TRACE_API_GETCAP_REQ, BTTRC_PARAM_UINT8, seid);
-
     getcap.single.seid = seid;
     getcap.single.sig_id = AVDT_SIG_GETCAP;
     getcap.p_cfg = p_cfg;
@@ -485,8 +462,6 @@ UINT16 AVDT_GetAllCapReq(BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg, tAVDT_CT
 {
     tAVDT_CCB_API_GETCAP    getcap;
 
-    BTTRC_AVDT_API1(AVDT_TRACE_API_GET_ALLCAP_REQ, BTTRC_PARAM_UINT8, seid);
-
     getcap.single.seid = seid;
     getcap.single.sig_id = AVDT_SIG_GET_ALLCAP;
     getcap.p_cfg = p_cfg;
@@ -510,8 +485,6 @@ UINT16 AVDT_DelayReport(UINT8 handle, UINT8 seid, UINT16 delay)
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_SUCCESS;
     tAVDT_SCB_EVT   evt;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_DELAY_REPORT);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -548,9 +521,6 @@ UINT16 AVDT_OpenReq(UINT8 handle, BD_ADDR bd_addr, UINT8 seid, tAVDT_CFG *p_cfg)
     tAVDT_SCB       *p_scb = NULL;
     UINT16          result = AVDT_SUCCESS;
     tAVDT_SCB_EVT   evt;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_OPEN_REQ);
-
 
     /* verify SEID */
     if ((seid < AVDT_SEID_MIN) || (seid > AVDT_SEID_MAX))
@@ -602,8 +572,6 @@ UINT16 AVDT_ConfigRsp(UINT8 handle, UINT8 label, UINT8 error_code, UINT8 categor
     tAVDT_SCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
     UINT8           event_code;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_CONFIG_RSP);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -657,8 +625,6 @@ UINT16 AVDT_StartReq(UINT8 *p_handles, UINT8 num_handles)
     tAVDT_CCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
     int             i;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_START_REQ);
 
     if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
     {
@@ -716,8 +682,6 @@ UINT16 AVDT_SuspendReq(UINT8 *p_handles, UINT8 num_handles)
     UINT16          result = AVDT_SUCCESS;
     int             i;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_SUSPEND_REQ);
-
     if ((num_handles == 0) || (num_handles > AVDT_NUM_SEPS))
     {
         result = AVDT_BAD_PARAMS;
@@ -772,8 +736,6 @@ UINT16 AVDT_CloseReq(UINT8 handle)
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_SUCCESS;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_CLOSE_REQ);
-
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
     {
@@ -810,8 +772,6 @@ UINT16 AVDT_ReconfigReq(UINT8 handle, tAVDT_CFG *p_cfg)
     UINT16          result = AVDT_SUCCESS;
     tAVDT_SCB_EVT   evt;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_RECONFIG_REQ);
-
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
     {
@@ -846,8 +806,6 @@ UINT16 AVDT_ReconfigRsp(UINT8 handle, UINT8 label, UINT8 error_code, UINT8 categ
     tAVDT_SCB       *p_scb;
     tAVDT_SCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_RECONFIG_RSP);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -886,8 +844,6 @@ UINT16 AVDT_SecurityReq(UINT8 handle, UINT8 *p_data, UINT16 len)
     UINT16          result = AVDT_SUCCESS;
     tAVDT_SCB_EVT   evt;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_SECURITY_REQ);
-
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
     {
@@ -923,8 +879,6 @@ UINT16 AVDT_SecurityRsp(UINT8 handle, UINT8 label, UINT8 error_code,
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_SUCCESS;
     tAVDT_SCB_EVT   evt;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_SECURITY_RSP);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -984,8 +938,6 @@ UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UINT8 m_
     tAVDT_SCB       *p_scb;
     tAVDT_SCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_WRITE_REQ);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -1066,8 +1018,6 @@ UINT16 AVDT_ConnectReq(BD_ADDR bd_addr, UINT8 sec_mask, tAVDT_CTRL_CBACK *p_cbac
     UINT16          result = AVDT_SUCCESS;
     tAVDT_CCB_EVT   evt;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_CONNECT_REQ);
-
     /* find channel control block for this bd addr; if none, allocate one */
     if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
     {
@@ -1113,9 +1063,6 @@ UINT16 AVDT_DisconnectReq(BD_ADDR bd_addr, tAVDT_CTRL_CBACK *p_cback)
     UINT16          result = AVDT_SUCCESS;
     tAVDT_CCB_EVT   evt;
 
-    BTTRC_AVDT_API0(AVDT_TRACE_API_DISCONNECT_REQ);
-
-
     /* find channel control block for this bd addr; if none, error */
     if ((p_ccb = avdt_ccb_by_bd(bd_addr)) == NULL)
     {
@@ -1157,8 +1104,6 @@ UINT16 AVDT_GetL2CapChannel(UINT8 handle)
         lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
     }
 
-    BTTRC_AVDT_API1(AVDT_TRACE_API_GET_L2CAP_CHAN, BTTRC_PARAM_UINT16, lcid);
-
     return (lcid);
 }
 
@@ -1189,8 +1134,6 @@ UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr)
         lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_ccb)][tcid].lcid;
     }
 
-    BTTRC_AVDT_API1(AVDT_TRACE_API_GET_SIGNAL_CHAN, BTTRC_PARAM_UINT16, lcid);
-
     return (lcid);
 }
 
@@ -1216,15 +1159,13 @@ UINT16 AVDT_GetSignalChannel(UINT8 handle, BD_ADDR bd_addr)
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
-                                     UINT32 time_stamp, UINT8 m_pt, UINT8 marker)
+extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
+                                UINT32 time_stamp, UINT8 m_pt, UINT8 marker)
 {
 
     tAVDT_SCB       *p_scb;
     tAVDT_SCB_EVT   evt;
     UINT16          result = AVDT_SUCCESS;
-
-    BTTRC_AVDT_API1(AVDT_TRACE_API_WRITE_DATA_REQ, BTTRC_PARAM_UINT32, data_len);
 
     do
     {
@@ -1304,12 +1245,10 @@ AVDT_API extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 dat
 ** Returns          AVDT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVDT_API extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len)
+extern UINT16 AVDT_SetMediaBuf(UINT8 handle, UINT8 *p_buf, UINT32 buf_len)
 {
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_SUCCESS;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_SET_MEDIABUF);
 
     /* map handle to scb */
     if ((p_scb = avdt_scb_by_hdl(handle)) == NULL)
@@ -1356,8 +1295,6 @@ UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
 #endif
     UINT32  ssrc;
     UINT16  len;
-
-    BTTRC_AVDT_API0(AVDT_TRACE_API_SEND_REPORT);
 
     /* map handle to scb && verify parameters */
     if (((p_scb = avdt_scb_by_hdl(handle)) != NULL)
@@ -1484,4 +1421,3 @@ UINT8 AVDT_SetTraceLevel (UINT8 new_level)
 
     return (avdt_cb.trace_level);
 }
-

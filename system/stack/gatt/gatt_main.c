@@ -102,6 +102,8 @@ void gatt_init (void)
 #endif
     gatt_cb.def_mtu_size = GATT_DEF_BLE_MTU_SIZE;
     GKI_init_q (&gatt_cb.sign_op_queue);
+    GKI_init_q (&gatt_cb.srv_chg_clt_q);
+    GKI_init_q (&gatt_cb.pending_new_srv_start_q);
     /* First, register fixed L2CAP channel for ATT over BLE */
     fixed_reg.fixed_chnl_opts.mode         = L2CAP_FCR_BASIC_MODE;
     fixed_reg.fixed_chnl_opts.max_transmit = 0xFF;
@@ -134,6 +136,24 @@ void gatt_init (void)
 }
 
 
+/*******************************************************************************
+**
+** Function         gatt_free
+**
+** Description      This function frees resources used by the GATT profile.
+**
+** Returns          void
+**
+*******************************************************************************/
+void gatt_free(void)
+{
+    int i;
+    GATT_TRACE_DEBUG("gatt_free()");
+    for (i = 0; i < GATT_MAX_SR_PROFILES; i++)
+    {
+        gatt_free_hdl_buffer(&gatt_cb.hdl_list[i]);
+    }
+}
 
 /*******************************************************************************
 **

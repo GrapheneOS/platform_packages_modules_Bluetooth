@@ -45,7 +45,7 @@
 
 
 #include "gki.h"
-#include "data_types.h"
+#include "bt_types.h"
 #include "uipc.h"
 
 #include <cutils/sockets.h>
@@ -581,7 +581,7 @@ void uipc_stop_main_server_thread(void)
  **
  *******************************************************************************/
 
-UDRV_API void UIPC_Init(void *p_data)
+void UIPC_Init(void *p_data)
 {
     UNUSED(p_data);
 
@@ -603,7 +603,7 @@ UDRV_API void UIPC_Init(void *p_data)
  ** Returns          TRUE in case of success, FALSE in case of failure.
  **
  *******************************************************************************/
-UDRV_API BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
+BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
 {
     BTIF_TRACE_DEBUG("UIPC_Open : ch_id %d, p_cback %x", ch_id, p_cback);
 
@@ -648,7 +648,7 @@ UDRV_API BOOLEAN UIPC_Open(tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK *p_cback)
  **
  *******************************************************************************/
 
-UDRV_API void UIPC_Close(tUIPC_CH_ID ch_id)
+void UIPC_Close(tUIPC_CH_ID ch_id)
 {
     BTIF_TRACE_DEBUG("UIPC_Close : ch_id %d", ch_id);
 
@@ -677,7 +677,7 @@ UDRV_API void UIPC_Close(tUIPC_CH_ID ch_id)
  ** Returns          TRUE in case of success, FALSE in case of failure.
  **
  *******************************************************************************/
-UDRV_API BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
+BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
 {
     UNUSED(p_msg);
 
@@ -701,7 +701,7 @@ UDRV_API BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
  ** Returns          TRUE in case of success, FALSE in case of failure.
  **
  *******************************************************************************/
-UDRV_API BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
+BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
         UINT16 msglen)
 {
     UNUSED(msg_evt);
@@ -729,7 +729,7 @@ UDRV_API BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
  ** Returns          void
  **
  *******************************************************************************/
-UDRV_API void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
+void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
 {
     UNUSED(p_msg);
 
@@ -749,7 +749,7 @@ UDRV_API void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
  **
  *******************************************************************************/
 
-UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
+UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 {
     int n;
     int n_read = 0;
@@ -832,7 +832,7 @@ UDRV_API UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UI
 **
 *******************************************************************************/
 
-UDRV_API extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param)
+extern BOOLEAN UIPC_Ioctl(tUIPC_CH_ID ch_id, UINT32 request, void *param)
 {
     BTIF_TRACE_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id, request);
 

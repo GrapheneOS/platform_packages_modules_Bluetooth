@@ -36,7 +36,6 @@
 #include "bta_hl_api.h"
 #include "bta_hl_int.h"
 #include "utl.h"
-#include "bd.h"
 #include "mca_defs.h"
 #include "mca_api.h"
 

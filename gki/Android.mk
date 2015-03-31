@@ -5,9 +5,12 @@ include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/common \
 	$(LOCAL_PATH)/ulinux \
+	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../include \
+	$(LOCAL_PATH)/../osi/include \
 	$(LOCAL_PATH)/../stack/include \
 	$(LOCAL_PATH)/../utils/include \
+	$(LOCAL_PATH)/../ \
 	$(bdroid_C_INCLUDES)
 
 LOCAL_CFLAGS += -Wno-error=unused-parameter $(bdroid_CFLAGS) -std=c99
@@ -19,8 +22,6 @@ endif
 
 LOCAL_SRC_FILES := \
 	./common/gki_buffer.c \
-	./common/gki_debug.c \
-	./common/gki_time.c \
 	./ulinux/gki_ulinux.c
 
 LOCAL_MODULE := libbt-brcm_gki

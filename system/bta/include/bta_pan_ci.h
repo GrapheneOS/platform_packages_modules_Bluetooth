@@ -47,7 +47,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_tx_ready(UINT16 handle);
+extern void bta_pan_ci_tx_ready(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -62,7 +62,7 @@ BTA_API extern void bta_pan_ci_tx_ready(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_rx_ready(UINT16 handle);
+extern void bta_pan_ci_rx_ready(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -79,7 +79,7 @@ BTA_API extern void bta_pan_ci_rx_ready(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
+extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
 
 /*******************************************************************************
 **
@@ -96,7 +96,7 @@ BTA_API extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
 ** Returns          TRUE if flow enabled
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext);
+extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext);
 
 /*******************************************************************************
 **
@@ -111,8 +111,8 @@ BTA_API extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR d
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol,
-                                 BOOLEAN* p_ext, BOOLEAN* p_forward);
+extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol,
+                                   BOOLEAN* p_ext, BOOLEAN* p_forward);
 
 /*******************************************************************************
 **
@@ -124,7 +124,7 @@ BTA_API extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR d
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array);
+extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array);
 
 
 /*******************************************************************************
@@ -137,15 +137,11 @@ BTA_API extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, U
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API extern void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
-                                                    UINT8 *p_end_array);
-
-
-
+extern void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
+                                    UINT8 *p_end_array);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* BTA_PAN_CI_H */
-

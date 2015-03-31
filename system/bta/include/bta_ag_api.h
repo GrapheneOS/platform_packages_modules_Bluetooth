@@ -114,6 +114,8 @@ typedef UINT8 tBTA_AG_RES;
 typedef UINT16 tBTA_AG_PEER_FEAT;
 
 /* HFP peer supported codec masks */
+// TODO(google) This should use common definitions
+// in hci/include/hci_audio.h
 #define BTA_AG_CODEC_NONE           BTM_SCO_CODEC_NONE
 #define BTA_AG_CODEC_CVSD           BTM_SCO_CODEC_CVSD      /* CVSD */
 #define BTA_AG_CODEC_MSBC           BTM_SCO_CODEC_MSBC      /* mSBC */
@@ -397,7 +399,7 @@ extern "C"
 ** Returns          BTA_SUCCESS if OK, BTA_FAILURE otherwise.
 **
 *******************************************************************************/
-BTA_API tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback);
+tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback);
 
 /*******************************************************************************
 **
@@ -409,7 +411,7 @@ BTA_API tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgDisable(void);
+void BTA_AgDisable(void);
 
 /*******************************************************************************
 **
@@ -421,8 +423,8 @@ BTA_API void BTA_AgDisable(void);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
-                tBTA_AG_FEAT features, char *p_service_names[], UINT8 app_id);
+void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
+                    tBTA_AG_FEAT features, char *p_service_names[], UINT8 app_id);
 
 /*******************************************************************************
 **
@@ -434,7 +436,7 @@ BTA_API void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgDeregister(UINT16 handle);
+void BTA_AgDeregister(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -449,7 +451,7 @@ BTA_API void BTA_AgDeregister(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services);
+void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services);
 
 /*******************************************************************************
 **
@@ -462,7 +464,7 @@ BTA_API void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgClose(UINT16 handle);
+void BTA_AgClose(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -475,7 +477,7 @@ BTA_API void BTA_AgClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgAudioOpen(UINT16 handle);
+void BTA_AgAudioOpen(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -488,7 +490,7 @@ BTA_API void BTA_AgAudioOpen(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgAudioClose(UINT16 handle);
+void BTA_AgAudioClose(UINT16 handle);
 
 /*******************************************************************************
 **
@@ -502,7 +504,7 @@ BTA_API void BTA_AgAudioClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
+void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
 
 /*******************************************************************************
 **
@@ -516,12 +518,10 @@ BTA_API void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p
 ** Returns          void
 **
 *******************************************************************************/
-BTA_API void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec);
+void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* BTA_AG_API_H */
-
-

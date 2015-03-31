@@ -23,6 +23,9 @@
 #include "srvc_eng_int.h"
 #include "srvc_dis_int.h"
 
+#define LOG_TAG "bt_srvc"
+#include "osi/include/log.h"
+
 #if BLE_INCLUDED == TRUE
 
 #define DIS_MAX_NUM_INC_SVR       0
@@ -197,9 +200,9 @@ UINT8 dis_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value,
 ** Returns          void
 **
 *******************************************************************************/
-void dis_gatt_c_read_dis_value_cmpl(UINT16 conn_id)
+static void dis_gatt_c_read_dis_value_cmpl(UINT16 conn_id)
 {
-    tSRVC_CLCB *p_clcb =  srvc_eng_find_clcb_by_conn_id(conn_id);
+    tSRVC_CLCB *p_clcb = srvc_eng_find_clcb_by_conn_id(conn_id);
 
     dis_cb.dis_read_uuid_idx = 0xff;
 
@@ -207,13 +210,12 @@ void dis_gatt_c_read_dis_value_cmpl(UINT16 conn_id)
 
     if (dis_cb.p_read_dis_cback && p_clcb)
     {
-        GATT_TRACE_ERROR("dis_gatt_c_read_dis_value_cmpl: attr_mask = 0x%04x", p_clcb->dis_value.attr_mask);
-        GATT_TRACE_EVENT("calling p_read_dis_cbackd");
+        LOG_INFO("%s conn_id:%d attr_mask = 0x%04x", __func__, conn_id,
+                p_clcb->dis_value.attr_mask);
 
         (*dis_cb.p_read_dis_cback)(p_clcb->bda, &p_clcb->dis_value);
-        dis_cb.p_read_dis_cback=NULL;
+        dis_cb.p_read_dis_cback = NULL;
     }
-
 }
 
 /*******************************************************************************

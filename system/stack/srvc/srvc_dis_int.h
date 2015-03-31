@@ -62,9 +62,9 @@ extern "C" {
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE
-GATT_API extern tDIS_CB dis_cb;
+extern tDIS_CB dis_cb;
 #else
-GATT_API extern tDIS_CB *dis_cb_ptr;
+extern tDIS_CB *dis_cb_ptr;
 #define dis_cb (*dis_cb_ptr)
 #endif
 

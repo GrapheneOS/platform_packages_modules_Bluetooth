@@ -258,9 +258,7 @@ void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_nam
             bta_ar_cb.tg_registered = mask;
             bta_ar_cb.sdp_tg_handle = SDP_CreateRecord();
             AVRC_AddRecord(service_uuid, service_name, provider_name, categories, bta_ar_cb.sdp_tg_handle);
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
             bta_sys_add_uuid(service_uuid);
-#endif
         }
         /* only one TG is allowed (first-come, first-served).
          * If sdp_tg_handle is non-0, ignore this request */
@@ -273,9 +271,7 @@ void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_nam
         {
             bta_ar_cb.sdp_ct_handle = SDP_CreateRecord();
             AVRC_AddRecord(service_uuid, service_name, provider_name, categories, bta_ar_cb.sdp_ct_handle);
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
             bta_sys_add_uuid(service_uuid);
-#endif
         }
         else
         {
@@ -314,9 +310,7 @@ void bta_ar_dereg_avrc(UINT16 service_uuid, tBTA_SYS_ID sys_id)
             bta_ar_cb.tg_registered = 0;
             SDP_DeleteRecord(bta_ar_cb.sdp_tg_handle);
             bta_ar_cb.sdp_tg_handle = 0;
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
             bta_sys_remove_uuid(service_uuid);
-#endif
         }
     }
     else if (service_uuid == UUID_SERVCLASS_AV_REMOTE_CONTROL)
@@ -330,9 +324,7 @@ void bta_ar_dereg_avrc(UINT16 service_uuid, tBTA_SYS_ID sys_id)
                 /* no CT is still registered - cleaup */
                 SDP_DeleteRecord(bta_ar_cb.sdp_ct_handle);
                 bta_ar_cb.sdp_ct_handle = 0;
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
                 bta_sys_remove_uuid(service_uuid);
-#endif
             }
             else
             {

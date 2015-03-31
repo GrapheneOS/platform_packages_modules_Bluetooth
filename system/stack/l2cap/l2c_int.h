@@ -24,10 +24,13 @@
 #ifndef L2C_INT_H
 #define L2C_INT_H
 
+#include <stdbool.h>
+
+#include "btm_api.h"
+#include "gki.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "gki.h"
-#include "btm_api.h"
+#include "list.h"
 
 #define L2CAP_MIN_MTU   48      /* Minimum acceptable MTU is 48 bytes */
 
@@ -152,34 +155,6 @@ typedef enum
 
 #define L2CAP_MAX_FCR_CFG_TRIES         2       /* Config attempts before disconnecting */
 
-/* Only compiled in when in test mode. Production devices must not include
-*/
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-
-/* These are used for conformance and corruption testing only */
-typedef struct
-{
-    BOOLEAN in_use;                 /* TRUE if test in progress */
-    UINT8   type;                   /* Type of test to run or turns off random test */
-    UINT8   freq;                   /* One-shot or random */
-    BOOLEAN is_rx;                  /* TRUE if incoming packets */
-    UINT16  count;                  /* How many I-frames to drop in a row; used only with one-shot tests */
-} tL2C_FCR_TEST_CFG;
-
-typedef struct
-{
-    BOOLEAN in_use;                 /* TRUE if test in progress */
-    UINT8   skip_sframe_count;      /* Number of S-Frames to skip sending */
-} tL2C_FCR_CFM_TEST_CB;
-
-typedef struct
-{
-    tL2C_FCR_TEST_CFG       cfg;    /* Current corruption test configuration */
-    tL2C_FCR_CFM_TEST_CB    cfm;    /* Conformance test structure */
-} tL2C_FCR_TEST_CB;
-
-#endif /* L2CAP_CORRUPT_ERTM_PKTS == TRUE */
-
 typedef struct
 {
     UINT8       next_tx_seq;                /* Next sequence number to be Tx'ed         */
@@ -234,11 +209,6 @@ typedef struct
     UINT32      ack_q_count_min[L2CAP_ERTM_STATS_NUM_AVG];
     UINT32      ack_q_count_max[L2CAP_ERTM_STATS_NUM_AVG];
 #endif
-
-#if L2CAP_CORRUPT_ERTM_PKTS == TRUE
-    tL2C_FCR_TEST_CB test_cb;               /* Used for SVT and UPF testing */
-#endif
-
 } tL2C_FCRB;
 
 
@@ -293,6 +263,7 @@ typedef struct t_l2c_ccb
     TIMER_LIST_ENT      timer_entry;            /* CCB Timer List Entry             */
 
     tL2C_RCB            *p_rcb;                 /* Registration CB for this Channel */
+    bool                should_free_rcb;        /* True if RCB was allocated on the heap */
 
 #define IB_CFG_DONE     0x01
 #define OB_CFG_DONE     0x02
@@ -312,7 +283,6 @@ typedef struct t_l2c_ccb
     tL2CAP_CFG_INFO     peer_cfg;               /* Peer's saved configuration options */
 
     BUFFER_Q            xmit_hold_q;            /* Transmit data hold queue         */
-
     BOOLEAN             cong_sent;              /* Set when congested status sent   */
     UINT16              buff_quota;             /* Buffer quota before sending congestion   */
 
@@ -409,18 +379,13 @@ typedef struct t_l2c_linkcb
     BOOLEAN             w4_info_rsp;                /* TRUE when info request is active */
     UINT8               info_rx_bits;               /* set 1 if received info type */
     UINT32              peer_ext_fea;               /* Peer's extended features mask    */
-    BUFFER_Q            link_xmit_data_q;           /* Transmit data buffer queue       */
+    list_t              *link_xmit_data_q;          /* Link transmit data buffer queue  */
 
     UINT8               peer_chnl_mask[L2CAP_FIXED_CHNL_ARRAY_SIZE];
 #if (L2CAP_UCD_INCLUDED == TRUE)
     UINT16              ucd_mtu;                    /* peer MTU on UCD */
     BUFFER_Q            ucd_out_sec_pending_q;      /* Security pending outgoing UCD packet  */
     BUFFER_Q            ucd_in_sec_pending_q;       /* Security pending incoming UCD packet  */
-#endif
-
-#if (L2CAP_HOST_FLOW_CTRL == TRUE)
-    UINT16              link_pkts_unacked;          /* Packets received but not acked   */
-    UINT16              link_ack_thresh;            /* Threshold at which to ack pkts   */
 #endif
 
     BT_HDR              *p_hcit_rcv_acl;            /* Current HCIT ACL buf being rcvd  */
@@ -484,7 +449,7 @@ typedef struct
     UINT16          num_lm_acl_bufs;                /* # of ACL buffers on controller   */
     UINT16          idle_timeout;                   /* Idle timeout                     */
 
-    BUFFER_Q        rcv_hold_q;                     /* Recv pending queue               */
+    list_t          *rcv_pending_q;                 /* Recv pending queue               */
     TIMER_LIST_ENT  rcv_hold_tle;                   /* Timer list entry for rcv hold    */
 
     tL2C_LCB        *p_cur_hcit_lcb;                /* Current HCI Transport buffer     */
@@ -565,9 +530,9 @@ extern "C" {
 ************************************
 */
 #if (!defined L2C_DYNAMIC_MEMORY) || (L2C_DYNAMIC_MEMORY == FALSE)
-L2C_API extern tL2C_CB  l2cb;
+extern tL2C_CB  l2cb;
 #else
-L2C_API extern tL2C_CB *l2c_cb_ptr;
+extern tL2C_CB *l2c_cb_ptr;
 #define l2cb (*l2c_cb_ptr)
 #endif
 
@@ -575,7 +540,9 @@ L2C_API extern tL2C_CB *l2c_cb_ptr;
 /* Functions provided by l2c_main.c
 ************************************
 */
-extern void     l2c_init (void);
+void l2c_init(void);
+void l2c_free(void);
+
 extern void     l2c_process_timeout (TIMER_LIST_ENT *p_tle);
 extern UINT8    l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flag);
 extern void     l2c_rcv_acl_data (BT_HDR *p_msg);
@@ -715,16 +682,16 @@ extern void     l2c_link_adjust_chnl_allocation (void);
 extern void     l2c_link_processs_ble_num_bufs (UINT16 num_lm_acl_bufs);
 #endif
 
-#if ((BTM_PWR_MGR_INCLUDED == TRUE) && L2CAP_WAKE_PARKED_LINK == TRUE)
+#if L2CAP_WAKE_PARKED_LINK == TRUE
 extern BOOLEAN  l2c_link_check_power_mode ( tL2C_LCB *p_lcb );
 #define L2C_LINK_CHECK_POWER_MODE(x) l2c_link_check_power_mode ((x))
-#else
+#else  // L2CAP_WAKE_PARKED_LINK
 #define L2C_LINK_CHECK_POWER_MODE(x) (FALSE)
-#endif
+#endif  // L2CAP_WAKE_PARKED_LINK
 
 #if L2CAP_CONFORMANCE_TESTING == TRUE
 /* Used only for conformance testing */
-L2C_API extern void l2cu_set_info_rsp_mask (UINT32 mask);
+extern void l2cu_set_info_rsp_mask (UINT32 mask);
 #endif
 
 /* Functions provided by l2c_csm.c
@@ -732,10 +699,7 @@ L2C_API extern void l2cu_set_info_rsp_mask (UINT32 mask);
 */
 extern void l2c_csm_execute (tL2C_CCB *p_ccb, UINT16 event, void *p_data);
 
-L2C_API extern BT_HDR   *l2cap_link_chk_pkt_start(BT_HDR *);    /* Called at start of rcv to check L2CAP segmentation */
-L2C_API extern BOOLEAN   l2cap_link_chk_pkt_end (void);         /* Called at end   of rcv to check L2CAP segmentation */
-
-L2C_API extern void     l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
+extern void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 
 
 /* Functions provided by l2c_fcr.c

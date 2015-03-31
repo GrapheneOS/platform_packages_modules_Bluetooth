@@ -36,19 +36,18 @@
 
 #include <hardware/bluetooth.h>
 #include "btif_config.h"
-#define LOG_TAG "BTIF_STORAGE"
+#define LOG_TAG "bt_btif_storage"
 
 #include "btif_api.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "bd.h"
-#include "config.h"
+#include "btcore/include/bdaddr.h"
+#include "osi/include/config.h"
 #include "gki.h"
-#include "osi.h"
+#include "osi/include/osi.h"
 #include "bta_hh_api.h"
 #include "btif_hh.h"
-
-#include <cutils/log.h>
+#include "osi/include/log.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -175,7 +174,7 @@ extern void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda);
 **  Internal Functions
 ************************************************************************************/
 
-bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add,
+bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr,int add,
                                               btif_bonded_devices_t *p_bonded_devices);
 bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
                                               int *addr_type);
@@ -219,7 +218,7 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 {
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
-        bd2str(remote_bd_addr, &bdstr);
+        bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     BTIF_TRACE_DEBUG("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
     char value[1024];
     if(prop->len <= 0 || prop->len > (int)sizeof(value) - 1)
@@ -230,20 +229,16 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
     switch(prop->type)
     {
        case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVTIME, (int)time(NULL));
-            static const char* exclude_filter[] =
-                        {"LinkKey", "LE_KEY_PENC", "LE_KEY_PID", "LE_KEY_PCSRK", "LE_KEY_LENC", "LE_KEY_LCSRK"};
-            btif_config_filter_remove("Remote", exclude_filter, sizeof(exclude_filter)/sizeof(char*),
-                        BTIF_STORAGE_MAX_ALLOWED_REMOTE_DEVICE);
             break;
         case BT_PROPERTY_BDNAME:
             strncpy(value, (char*)prop->val, prop->len);
             value[prop->len]='\0';
             if(remote_bd_addr)
-                btif_config_set_str("Remote", bdstr,
+                btif_config_set_str(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_NAME, value);
-            else btif_config_set_str("Local", "Adapter",
+            else btif_config_set_str("Adapter",
                                 BTIF_STORAGE_KEY_ADAPTER_NAME, value);
             /* save name immediately */
             btif_config_save();
@@ -251,24 +246,24 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
             strncpy(value, (char*)prop->val, prop->len);
             value[prop->len]='\0';
-            btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE, value);
+            btif_config_set_str(bdstr, BTIF_STORAGE_PATH_REMOTE_ALIASE, value);
             /* save friendly name immediately */
             btif_config_save();
             break;
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
-            btif_config_set_int("Local", "Adapter",
+            btif_config_set_int("Adapter",
                                 BTIF_STORAGE_KEY_ADAPTER_SCANMODE, *(int*)prop->val);
             break;
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
-            btif_config_set_int("Local", "Adapter",
+            btif_config_set_int("Adapter",
                                 BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT, *(int*)prop->val);
             break;
         case BT_PROPERTY_CLASS_OF_DEVICE:
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVCLASS, *(int*)prop->val);
             break;
         case BT_PROPERTY_TYPE_OF_DEVICE:
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVTYPE, *(int*)prop->val);
             break;
         case BT_PROPERTY_UUIDS:
@@ -280,12 +275,12 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             {
                 bt_uuid_t *p_uuid = (bt_uuid_t*)prop->val + i;
                 memset(buf, 0, sizeof(buf));
-                uuid_to_string(p_uuid, buf);
+                uuid_to_string_legacy(p_uuid, buf);
                 strcat(value, buf);
                 //strcat(value, ";");
                 strcat(value, " ");
             }
-            btif_config_set_str("Remote", bdstr, BTIF_STORAGE_PATH_REMOTE_SERVICE, value);
+            btif_config_set_str(bdstr, BTIF_STORAGE_PATH_REMOTE_SERVICE, value);
             btif_config_save();
             break;
         }
@@ -296,11 +291,11 @@ static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
             if (!info)
                 return FALSE;
 
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_MFCT, info->manufacturer);
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_VER, info->version);
-            btif_config_set_int("Remote", bdstr,
+            btif_config_set_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_SUBVER, info->sub_ver);
             btif_config_save();
          } break;
@@ -315,7 +310,7 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 {
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
-        bd2str(remote_bd_addr, &bdstr);
+        bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     BTIF_TRACE_DEBUG("in, bd addr:%s, prop type:%d, len:%d", bdstr, prop->type, prop->len);
     if(prop->len <= 0)
     {
@@ -327,16 +322,16 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
     {
        case BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP:
             if(prop->len >= (int)sizeof(int))
-                ret = btif_config_get_int("Remote", bdstr,
+                ret = btif_config_get_int(bdstr,
                                         BTIF_STORAGE_PATH_REMOTE_DEVTIME, (int*)prop->val);
             break;
         case BT_PROPERTY_BDNAME:
         {
             int len = prop->len;
             if(remote_bd_addr)
-                ret = btif_config_get_str("Remote", bdstr,
+                ret = btif_config_get_str(bdstr,
                                         BTIF_STORAGE_PATH_REMOTE_NAME, (char*)prop->val, &len);
-            else ret = btif_config_get_str("Local", "Adapter",
+            else ret = btif_config_get_str("Adapter",
                                         BTIF_STORAGE_KEY_ADAPTER_NAME, (char*)prop->val, &len);
             if(ret && len && len <= prop->len)
                 prop->len = len - 1;
@@ -350,7 +345,7 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
         case BT_PROPERTY_REMOTE_FRIENDLY_NAME:
         {
             int len = prop->len;
-            ret = btif_config_get_str("Remote", bdstr,
+            ret = btif_config_get_str(bdstr,
                                        BTIF_STORAGE_PATH_REMOTE_ALIASE, (char*)prop->val, &len);
             if(ret && len && len <= prop->len)
                 prop->len = len - 1;
@@ -363,29 +358,28 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
         }
         case BT_PROPERTY_ADAPTER_SCAN_MODE:
            if(prop->len >= (int)sizeof(int))
-                ret = btif_config_get_int("Local", "Adapter",
+                ret = btif_config_get_int("Adapter",
                                           BTIF_STORAGE_KEY_ADAPTER_SCANMODE, (int*)prop->val);
            break;
         case BT_PROPERTY_ADAPTER_DISCOVERY_TIMEOUT:
            if(prop->len >= (int)sizeof(int))
-                ret = btif_config_get_int("Local", "Adapter",
+                ret = btif_config_get_int("Adapter",
                                           BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT, (int*)prop->val);
             break;
         case BT_PROPERTY_CLASS_OF_DEVICE:
             if(prop->len >= (int)sizeof(int))
-                ret = btif_config_get_int("Remote", bdstr,
+                ret = btif_config_get_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_DEVCLASS, (int*)prop->val);
             break;
         case BT_PROPERTY_TYPE_OF_DEVICE:
             if(prop->len >= (int)sizeof(int))
-                ret = btif_config_get_int("Remote",
-                                    bdstr, BTIF_STORAGE_PATH_REMOTE_DEVTYPE, (int*)prop->val);
+                ret = btif_config_get_int(bdstr, BTIF_STORAGE_PATH_REMOTE_DEVTYPE, (int*)prop->val);
             break;
         case BT_PROPERTY_UUIDS:
         {
             char value[1280];
             int size = sizeof(value);
-            if(btif_config_get_str("Remote", bdstr,
+            if(btif_config_get_str(bdstr,
                                     BTIF_STORAGE_PATH_REMOTE_SERVICE, value, &size))
             {
                 bt_uuid_t *p_uuid = (bt_uuid_t*)prop->val;
@@ -407,15 +401,15 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 
             if(prop->len >= (int)sizeof(bt_remote_version_t))
             {
-                ret = btif_config_get_int("Remote", bdstr,
+                ret = btif_config_get_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_MFCT, &info->manufacturer);
 
                 if (ret == TRUE)
-                    ret = btif_config_get_int("Remote", bdstr,
+                    ret = btif_config_get_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_VER, &info->version);
 
                 if (ret == TRUE)
-                    ret = btif_config_get_int("Remote", bdstr,
+                    ret = btif_config_get_int(bdstr,
                                 BTIF_STORAGE_PATH_REMOTE_VER_SUBVER, &info->sub_ver);
             }
          } break;
@@ -437,17 +431,16 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 ** Returns          BT_STATUS_SUCCESS if successful, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
+static bt_status_t btif_in_fetch_bonded_device(const char *bdstr)
 {
     BOOLEAN bt_linkkey_file_found=FALSE;
 
-        int type = BTIF_CFG_TYPE_BIN;
         LINK_KEY link_key;
-        int size = sizeof(link_key);
-        if(btif_config_get("Remote", bdstr, "LinkKey", (char*)link_key, &size, &type))
+        size_t size = sizeof(link_key);
+        if(btif_config_get_bin(bdstr, "LinkKey", (uint8_t *)link_key, &size))
         {
             int linkkey_type;
-            if(btif_config_get_int("Remote", bdstr, "LinkKeyType", &linkkey_type))
+            if(btif_config_get_int(bdstr, "LinkKeyType", &linkkey_type))
             {
                 bt_linkkey_file_found = TRUE;
             }
@@ -485,44 +478,38 @@ static bt_status_t btif_in_fetch_bonded_device(char *bdstr)
 *******************************************************************************/
 static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_devices, int add)
 {
-    BTIF_TRACE_DEBUG("in add:%d", add);
     memset(p_bonded_devices, 0, sizeof(btif_bonded_devices_t));
 
-    char kname[128];
-    short kpos;
-    int kname_size;
-    kname_size = sizeof(kname);
-    kname[0] = 0;
-    kpos = 0;
     BOOLEAN bt_linkkey_file_found=FALSE;
     int device_type;
 
-    do
-    {
-        kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
-        BTIF_TRACE_DEBUG("Remote device:%s, size:%d", kname, kname_size);
-        int type = BTIF_CFG_TYPE_BIN;
+    for (const btif_config_section_iter_t *iter = btif_config_section_begin(); iter != btif_config_section_end(); iter = btif_config_section_next(iter)) {
+        const char *name = btif_config_section_name(iter);
+        if (!string_is_bdaddr(name))
+            continue;
+
+        BTIF_TRACE_DEBUG("Remote device:%s", name);
         LINK_KEY link_key;
-        int size = sizeof(link_key);
-        if(btif_config_get("Remote", kname, "LinkKey", (char*)link_key, &size, &type))
+        size_t size = sizeof(link_key);
+        if(btif_config_get_bin(name, "LinkKey", link_key, &size))
         {
             int linkkey_type;
-            if(btif_config_get_int("Remote", kname, "LinkKeyType", &linkkey_type))
+            if(btif_config_get_int(name, "LinkKeyType", &linkkey_type))
             {
                 //int pin_len;
-                //btif_config_get_int("Remote", kname, "PinLength", &pin_len))
+                //btif_config_get_int(name, "PinLength", &pin_len))
                 bt_bdaddr_t bd_addr;
-                str2bd(kname, &bd_addr);
+                string_to_bdaddr(name, &bd_addr);
                 if(add)
                 {
                     DEV_CLASS dev_class = {0, 0, 0};
                     int cod;
-                    if(btif_config_get_int("Remote", kname, "DevClass", &cod))
+                    if(btif_config_get_int(name, "DevClass", &cod))
                         uint2devclass((UINT32)cod, dev_class);
                     BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0, (UINT8)linkkey_type, 0);
 
 #if BLE_INCLUDED == TRUE
-                    if (btif_config_get_int("Remote", kname, "DevType", &device_type) &&
+                    if (btif_config_get_int(name, "DevType", &device_type) &&
                        (device_type == BT_DEVICE_TYPE_DUMO) )
                     {
                         btif_gatts_add_bonded_dev_from_nv(bd_addr.address);
@@ -537,23 +524,20 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
 #if (BLE_INCLUDED == TRUE)
                 bt_linkkey_file_found = FALSE;
 #else
-                BTIF_TRACE_ERROR("bounded device:%s, LinkKeyType or PinLength is invalid", kname);
+                BTIF_TRACE_ERROR("bounded device:%s, LinkKeyType or PinLength is invalid", name);
 #endif
             }
         }
 #if (BLE_INCLUDED == TRUE)
-            if(!(btif_in_fetch_bonded_ble_device(kname,add, p_bonded_devices)) && (!bt_linkkey_file_found))
+            if(!(btif_in_fetch_bonded_ble_device(name, add, p_bonded_devices)) && (!bt_linkkey_file_found))
             {
-                BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", kname);
+                BTIF_TRACE_DEBUG("Remote device:%s, no link key or ble key found", name);
             }
 #else
             if(!bt_linkkey_file_found)
-                BTIF_TRACE_DEBUG("Remote device:%s, no link key", kname);
+                BTIF_TRACE_DEBUG("Remote device:%s, no link key", name);
 #endif
-        kname_size = sizeof(kname);
-        kname[0] = 0;
-    } while(kpos != -1);
-    BTIF_TRACE_DEBUG("out");
+    }
     return BT_STATUS_SUCCESS;
 }
 
@@ -620,7 +604,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         uint32_t i;
 
         tBTA_SERVICE_MASK service_mask = btif_get_enabled_services_mask();
-        BTIF_TRACE_ERROR("%s service_mask:0x%x", __FUNCTION__, service_mask);
+        LOG_INFO("%s service_mask:0x%x", __FUNCTION__, service_mask);
         for (i=0; i < BTA_MAX_SERVICE_ID; i++)
         {
             /* This should eventually become a function when more services are enabled */
@@ -642,7 +626,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
                                               p_uuid+num_uuids);
                             num_uuids++;
                         }break;
-                    case BTA_A2DP_SERVICE_ID:
+                    case BTA_A2DP_SOURCE_SERVICE_ID:
                         {
                             uuid16_to_uuid128(UUID_SERVCLASS_AUDIO_SOURCE,
                                               p_uuid+num_uuids);
@@ -781,10 +765,10 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
                                            uint8_t pin_length)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
-    int ret = btif_config_set_int("Remote", bdstr, "LinkKeyType", (int)key_type);
-    ret &= btif_config_set_int("Remote", bdstr, "PinLength", (int)pin_length);
-    ret &= btif_config_set("Remote", bdstr, "LinkKey", (const char*)link_key, sizeof(LINK_KEY), BTIF_CFG_TYPE_BIN);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
+    int ret = btif_config_set_int(bdstr, "LinkKeyType", (int)key_type);
+    ret &= btif_config_set_int(bdstr, "PinLength", (int)pin_length);
+    ret &= btif_config_set_bin(bdstr, "LinkKey", link_key, sizeof(LINK_KEY));
     /* write bonded info immediately */
     btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
@@ -803,15 +787,15 @@ bt_status_t btif_storage_add_bonded_device(bt_bdaddr_t *remote_bd_addr,
 bt_status_t btif_storage_remove_bonded_device(bt_bdaddr_t *remote_bd_addr)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     BTIF_TRACE_DEBUG("in bd addr:%s", bdstr);
     int ret = 1;
-    if(btif_config_exist("Remote", bdstr, "LinkKeyType"))
-        ret &= btif_config_remove("Remote", bdstr, "LinkKeyType");
-    if(btif_config_exist("Remote", bdstr, "PinLength"))
-        ret &= btif_config_remove("Remote", bdstr, "PinLength");
-    if(btif_config_exist("Remote", bdstr, "LinkKey"))
-        ret &= btif_config_remove("Remote", bdstr, "LinkKey");
+    if(btif_config_exist(bdstr, "LinkKeyType"))
+        ret &= btif_config_remove(bdstr, "LinkKeyType");
+    if(btif_config_exist(bdstr, "PinLength"))
+        ret &= btif_config_remove(bdstr, "PinLength");
+    if(btif_config_exist(bdstr, "LinkKey"))
+        ret &= btif_config_remove(bdstr, "LinkKey");
     /* write bonded info immediately */
     btif_config_flush();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
@@ -963,7 +947,7 @@ bt_status_t btif_storage_add_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
                                            UINT8 key_length)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     const char* name;
     switch(key_type)
     {
@@ -985,7 +969,7 @@ bt_status_t btif_storage_add_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
         default:
             return BT_STATUS_FAIL;
     }
-    int ret = btif_config_set("Remote", bdstr, name, (const char*)key, (int)key_length, BTIF_CFG_TYPE_BIN);
+    int ret = btif_config_set_bin(bdstr, name, (const uint8_t *)key, key_length);
     btif_config_save();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
@@ -1006,9 +990,8 @@ bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
                                              int key_length)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     const char* name;
-    int type = BTIF_CFG_TYPE_BIN;
     switch(key_type)
     {
         case BTIF_DM_LE_KEY_PENC:
@@ -1029,7 +1012,8 @@ bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
         default:
             return BT_STATUS_FAIL;
     }
-    int ret = btif_config_get("Remote", bdstr, name, key_value, &key_length, &type);
+    size_t length = key_length;
+    int ret = btif_config_get_bin(bdstr, name, (uint8_t *)key_value, &length);
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 
 }
@@ -1047,19 +1031,19 @@ bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
 bt_status_t btif_storage_remove_ble_bonding_keys(bt_bdaddr_t *remote_bd_addr)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     BTIF_TRACE_DEBUG(" %s in bd addr:%s",__FUNCTION__, bdstr);
     int ret = 1;
-    if(btif_config_exist("Remote", bdstr, "LE_KEY_PENC"))
-        ret &= btif_config_remove("Remote", bdstr, "LE_KEY_PENC");
-    if(btif_config_exist("Remote", bdstr, "LE_KEY_PID"))
-        ret &= btif_config_remove("Remote", bdstr, "LE_KEY_PID");
-    if(btif_config_exist("Remote", bdstr, "LE_KEY_PCSRK"))
-        ret &= btif_config_remove("Remote", bdstr, "LE_KEY_PCSRK");
-    if(btif_config_exist("Remote", bdstr, "LE_KEY_LENC"))
-        ret &= btif_config_remove("Remote", bdstr, "LE_KEY_LENC");
-    if(btif_config_exist("Remote", bdstr, "LE_KEY_LCSRK"))
-        ret &= btif_config_remove("Remote", bdstr, "LE_KEY_LCSRK");
+    if(btif_config_exist(bdstr, "LE_KEY_PENC"))
+        ret &= btif_config_remove(bdstr, "LE_KEY_PENC");
+    if(btif_config_exist(bdstr, "LE_KEY_PID"))
+        ret &= btif_config_remove(bdstr, "LE_KEY_PID");
+    if(btif_config_exist(bdstr, "LE_KEY_PCSRK"))
+        ret &= btif_config_remove(bdstr, "LE_KEY_PCSRK");
+    if(btif_config_exist(bdstr, "LE_KEY_LENC"))
+        ret &= btif_config_remove(bdstr, "LE_KEY_LENC");
+    if(btif_config_exist(bdstr, "LE_KEY_LCSRK"))
+        ret &= btif_config_remove(bdstr, "LE_KEY_LCSRK");
     btif_config_save();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
@@ -1096,7 +1080,7 @@ bt_status_t btif_storage_add_ble_local_key(char *key,
         default:
             return BT_STATUS_FAIL;
     }
-    int ret = btif_config_set("Local", "Adapter", name, (const char*)key, key_length, BTIF_CFG_TYPE_BIN);
+    int ret = btif_config_set_bin("Adapter", name, (const uint8_t *)key, key_length);
     btif_config_save();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
@@ -1116,7 +1100,6 @@ bt_status_t btif_storage_get_ble_local_key(UINT8 key_type,
                                            int key_length)
 {
     const char* name;
-    int type = BTIF_CFG_TYPE_BIN;
     switch(key_type)
     {
         case BTIF_DM_LE_LOCAL_KEY_IR:
@@ -1134,9 +1117,9 @@ bt_status_t btif_storage_get_ble_local_key(UINT8 key_type,
         default:
             return BT_STATUS_FAIL;
     }
-    int ret = btif_config_get("Local", "Adapter", name, key_value, &key_length, &type);
+    size_t length = key_length;
+    int ret = btif_config_get_bin("Adapter", name, (uint8_t *)key_value, &length);
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
-
 }
 
 /*******************************************************************************
@@ -1152,19 +1135,19 @@ bt_status_t btif_storage_get_ble_local_key(UINT8 key_type,
 bt_status_t btif_storage_remove_ble_local_keys(void)
 {
     int ret = 1;
-    if(btif_config_exist("Local", "Adapter", "LE_LOCAL_KEY_IR"))
-        ret &= btif_config_remove("Local", "Adapter", "LE_LOCAL_KEY_IR");
-    if(btif_config_exist("Local", "Adapter", "LE_LOCAL_KEY_IRK"))
-        ret &= btif_config_remove("Local", "Adapter", "LE_LOCAL_KEY_IRK");
-    if(btif_config_exist("Local", "Adapter", "LE_LOCAL_KEY_DHK"))
-        ret &= btif_config_remove("Local", "Adapter", "LE_LOCAL_KEY_DHK");
-    if(btif_config_exist("Local", "Adapter", "LE_LOCAL_KEY_ER"))
-        ret &= btif_config_remove("Local", "Adapter", "LE_LOCAL_KEY_ER");
+    if(btif_config_exist("Adapter", "LE_LOCAL_KEY_IR"))
+        ret &= btif_config_remove("Adapter", "LE_LOCAL_KEY_IR");
+    if(btif_config_exist("Adapter", "LE_LOCAL_KEY_IRK"))
+        ret &= btif_config_remove("Adapter", "LE_LOCAL_KEY_IRK");
+    if(btif_config_exist("Adapter", "LE_LOCAL_KEY_DHK"))
+        ret &= btif_config_remove("Adapter", "LE_LOCAL_KEY_DHK");
+    if(btif_config_exist("Adapter", "LE_LOCAL_KEY_ER"))
+        ret &= btif_config_remove("Adapter", "LE_LOCAL_KEY_ER");
     btif_config_save();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
-bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_bonded_devices_t *p_bonded_devices)
+bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr,int add, btif_bonded_devices_t *p_bonded_devices)
 {
     int device_type;
     int addr_type;
@@ -1176,12 +1159,12 @@ bt_status_t btif_in_fetch_bonded_ble_device(char *remote_bd_addr,int add, btif_b
     BOOLEAN key_found = FALSE;
     tBTA_LE_KEY_VALUE *p;
 
-    if(!btif_config_get_int("Remote", remote_bd_addr,"DevType", &device_type))
+    if(!btif_config_get_int(remote_bd_addr,"DevType", &device_type))
         return BT_STATUS_FAIL;
     if(device_type == BT_DEVICE_TYPE_BLE)
     {
             BTIF_TRACE_DEBUG("%s %s found a BLE device", __FUNCTION__,remote_bd_addr);
-            str2bd(remote_bd_addr, &bd_addr);
+            string_to_bdaddr(remote_bd_addr, &bd_addr);
             bdcpy(bta_bd_addr, bd_addr.address);
             if (btif_storage_get_remote_addr_type(&bd_addr, &addr_type) != BT_STATUS_SUCCESS)
             {
@@ -1341,8 +1324,8 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
                                               UINT8 addr_type)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
-    int ret = btif_config_set_int("Remote", bdstr, "AddrType", (int)addr_type);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
+    int ret = btif_config_set_int(bdstr, "AddrType", (int)addr_type);
     btif_config_save();
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
@@ -1361,8 +1344,8 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
                                               int*addr_type)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
-    int ret = btif_config_get_int("Remote", bdstr, "AddrType", addr_type);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
+    int ret = btif_config_get_int(bdstr, "AddrType", addr_type);
     return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 #endif
@@ -1386,19 +1369,18 @@ bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
 {
     bdstr_t bdstr;
     BTIF_TRACE_DEBUG("btif_storage_add_hid_device_info:");
-    bd2str(remote_bd_addr, &bdstr);
-    btif_config_set_int("Remote", bdstr, "HidAttrMask", attr_mask);
-    btif_config_set_int("Remote", bdstr, "HidSubClass", sub_class);
-    btif_config_set_int("Remote", bdstr, "HidAppId", app_id);
-    btif_config_set_int("Remote", bdstr, "HidVendorId", vendor_id);
-    btif_config_set_int("Remote", bdstr, "HidProductId", product_id);
-    btif_config_set_int("Remote", bdstr, "HidVersion", version);
-    btif_config_set_int("Remote", bdstr, "HidCountryCode", ctry_code);
-    btif_config_set_int("Remote", bdstr, "HidSSRMaxLatency", ssr_max_latency);
-    btif_config_set_int("Remote", bdstr, "HidSSRMinTimeout", ssr_min_tout);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
+    btif_config_set_int(bdstr, "HidAttrMask", attr_mask);
+    btif_config_set_int(bdstr, "HidSubClass", sub_class);
+    btif_config_set_int(bdstr, "HidAppId", app_id);
+    btif_config_set_int(bdstr, "HidVendorId", vendor_id);
+    btif_config_set_int(bdstr, "HidProductId", product_id);
+    btif_config_set_int(bdstr, "HidVersion", version);
+    btif_config_set_int(bdstr, "HidCountryCode", ctry_code);
+    btif_config_set_int(bdstr, "HidSSRMaxLatency", ssr_max_latency);
+    btif_config_set_int(bdstr, "HidSSRMinTimeout", ssr_min_tout);
     if(dl_len > 0)
-        btif_config_set("Remote", bdstr, "HidDescriptor", (const char*)dsc_list, dl_len,
-                        BTIF_CFG_TYPE_BIN);
+        btif_config_set_bin(bdstr, "HidDescriptor", dsc_list, dl_len);
     btif_config_save();
     return BT_STATUS_SUCCESS;
 }
@@ -1421,60 +1403,54 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
     uint8_t  sub_class;
     uint8_t  app_id;
 
-    char kname[128];
-    short kpos;
-    int kname_size;
-    kname_size = sizeof(kname);
-    kname[0] = 0;
-    kpos = 0;
     memset(&dscp_info, 0, sizeof(dscp_info));
-    do
-    {
-        kpos = btif_config_next_key(kpos, "Remote", kname, &kname_size);
-        BTIF_TRACE_DEBUG("Remote device:%s, size:%d", kname, kname_size);
+    for (const btif_config_section_iter_t *iter = btif_config_section_begin(); iter != btif_config_section_end(); iter = btif_config_section_next(iter)) {
+        const char *name = btif_config_section_name(iter);
+        if (!string_is_bdaddr(name))
+            continue;
+
+        BTIF_TRACE_DEBUG("Remote device:%s", name);
         int value;
-        if(btif_in_fetch_bonded_device(kname) == BT_STATUS_SUCCESS)
+        if(btif_in_fetch_bonded_device(name) == BT_STATUS_SUCCESS)
         {
-            if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
+            if(btif_config_get_int(name, "HidAttrMask", &value))
             {
                 attr_mask = (uint16_t)value;
 
-                btif_config_get_int("Remote", kname, "HidSubClass", &value);
+                btif_config_get_int(name, "HidSubClass", &value);
                 sub_class = (uint8_t)value;
 
-                btif_config_get_int("Remote", kname, "HidAppId", &value);
+                btif_config_get_int(name, "HidAppId", &value);
                 app_id = (uint8_t)value;
 
-                btif_config_get_int("Remote", kname, "HidVendorId", &value);
+                btif_config_get_int(name, "HidVendorId", &value);
                 dscp_info.vendor_id = (uint16_t) value;
 
-                btif_config_get_int("Remote", kname, "HidProductId", &value);
+                btif_config_get_int(name, "HidProductId", &value);
                 dscp_info.product_id = (uint16_t) value;
 
-                btif_config_get_int("Remote", kname, "HidVersion", &value);
+                btif_config_get_int(name, "HidVersion", &value);
                 dscp_info.version = (uint8_t) value;
 
-                btif_config_get_int("Remote", kname, "HidCountryCode", &value);
+                btif_config_get_int(name, "HidCountryCode", &value);
                 dscp_info.ctry_code = (uint8_t) value;
 
                 value = 0;
-                btif_config_get_int("Remote", kname, "HidSSRMaxLatency", &value);
+                btif_config_get_int(name, "HidSSRMaxLatency", &value);
                 dscp_info.ssr_max_latency = (uint16_t) value;
 
                 value = 0;
-                btif_config_get_int("Remote", kname, "HidSSRMinTimeout", &value);
+                btif_config_get_int(name, "HidSSRMinTimeout", &value);
                 dscp_info.ssr_min_tout = (uint16_t) value;
 
-                int len = 0;
-                int type;
-                btif_config_get("Remote", kname, "HidDescriptor", NULL, &len, &type);
+                size_t len = btif_config_get_bin_length(name, "HidDescriptor");
                 if(len > 0)
                 {
                     dscp_info.descriptor.dl_len = (uint16_t)len;
                     dscp_info.descriptor.dsc_list = (uint8_t*)alloca(len);
-                    btif_config_get("Remote", kname, "HidDescriptor", (char*)dscp_info.descriptor.dsc_list, &len, &type);
+                    btif_config_get_bin(name, "HidDescriptor", (uint8_t *)dscp_info.descriptor.dsc_list, &len);
                 }
-                str2bd(kname, &bd_addr);
+                string_to_bdaddr(name, &bd_addr);
                 // add extracted information to BTA HH
                 if (btif_hh_add_added_dev(bd_addr,attr_mask))
                 {
@@ -1485,13 +1461,13 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
         }
         else
         {
-            if(btif_config_get_int("Remote", kname, "HidAttrMask", &value))
+            if(btif_config_get_int(name, "HidAttrMask", &value))
             {
                 btif_storage_remove_hid_info(&bd_addr);
-                str2bd(kname, &bd_addr);
+                string_to_bdaddr(name, &bd_addr);
             }
         }
-    } while(kpos != -1);
+    }
 
     return BT_STATUS_SUCCESS;
 }
@@ -1509,18 +1485,18 @@ bt_status_t btif_storage_load_bonded_hid_info(void)
 bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
 {
     bdstr_t bdstr;
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
 
-    btif_config_remove("Remote", bdstr, "HidAttrMask");
-    btif_config_remove("Remote", bdstr, "HidSubClass");
-    btif_config_remove("Remote", bdstr, "HidAppId");
-    btif_config_remove("Remote", bdstr, "HidVendorId");
-    btif_config_remove("Remote", bdstr, "HidProductId");
-    btif_config_remove("Remote", bdstr, "HidVersion");
-    btif_config_remove("Remote", bdstr, "HidCountryCode");
-    btif_config_remove("Remote", bdstr, "HidSSRMaxLatency");
-    btif_config_remove("Remote", bdstr, "HidSSRMinTimeout");
-    btif_config_remove("Remote", bdstr, "HidDescriptor");
+    btif_config_remove(bdstr, "HidAttrMask");
+    btif_config_remove(bdstr, "HidSubClass");
+    btif_config_remove(bdstr, "HidAppId");
+    btif_config_remove(bdstr, "HidVendorId");
+    btif_config_remove(bdstr, "HidProductId");
+    btif_config_remove(bdstr, "HidVersion");
+    btif_config_remove(bdstr, "HidCountryCode");
+    btif_config_remove(bdstr, "HidSSRMaxLatency");
+    btif_config_remove(bdstr, "HidSSRMinTimeout");
+    btif_config_remove(bdstr, "HidDescriptor");
     btif_config_save();
     return BT_STATUS_SUCCESS;
 }
@@ -1538,13 +1514,12 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
 bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 {
     bt_status_t bt_status = BT_STATUS_SUCCESS;
-    int read_size=value_size, read_type=BTIF_CFG_TYPE_BIN;
 
-    if (!btif_config_exist("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB))
+    if (!btif_config_exist(BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB))
     {
         memset(value, 0, value_size);
-        if (!btif_config_set("Local", BTIF_STORAGE_HL_APP,BTIF_STORAGE_HL_APP_CB,
-                             value, value_size, BTIF_CFG_TYPE_BIN))
+        if (!btif_config_set_bin(BTIF_STORAGE_HL_APP,BTIF_STORAGE_HL_APP_CB,
+                             (const uint8_t *)value, value_size))
         {
             bt_status = BT_STATUS_FAIL;
         }
@@ -1555,17 +1530,18 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
     }
     else
     {
-        if (!btif_config_get("Local", BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB,
-                             value, &read_size, &read_type))
+        size_t read_size = value_size;
+        if (!btif_config_get_bin(BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB,
+                             (uint8_t *)value, &read_size))
         {
             bt_status = BT_STATUS_FAIL;
         }
         else
         {
-            if ((read_size != value_size) || (read_type != BTIF_CFG_TYPE_BIN) )
+            if (read_size != (size_t)value_size)
             {
-                BTIF_TRACE_ERROR("%s  value_size=%d read_size=%d read_type=%d",
-                                  __FUNCTION__, value_size, read_size, read_type);
+                BTIF_TRACE_ERROR("%s  value_size=%d read_size=%d",
+                                  __FUNCTION__, value_size, read_size);
                 bt_status = BT_STATUS_FAIL;
             }
         }
@@ -1589,7 +1565,7 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
 *******************************************************************************/
 bt_status_t btif_storage_load_autopair_device_list() {
     // Configuration has already been loaded. No need to reload.
-    if (btif_config_exist("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, NULL)) {
+    if (btif_config_has_section(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST)) {
         return BT_STATUS_SUCCESS;
     }
 
@@ -1603,14 +1579,14 @@ bt_status_t btif_storage_load_autopair_device_list() {
 
     config_t *config = config_new(BTIF_AUTO_PAIR_CONF_FILE);
     if (!config) {
-        ALOGE("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
+        LOG_ERROR("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
         return BT_STATUS_FAIL;
     }
 
     for (size_t i = 0; i < ARRAY_SIZE(key_names); ++i) {
         const char *value = config_get_string(config, CONFIG_DEFAULT_SECTION, key_names[i], NULL);
         if (value) {
-            btif_config_set_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, key_names[i], value);
+            btif_config_set_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST, key_names[i], value);
         }
     }
 
@@ -1636,12 +1612,12 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_bd_addr
     char value[BTIF_STORAGE_MAX_LINE_SZ];
     int value_size = sizeof(value);
 
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
 
     /* Consider only  Lower Address Part from BD Address */
     bdstr[8] = '\0';
 
-    if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+    if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                 BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR, value, &value_size))
     {
         if (strcasestr(value,bdstr) != NULL)
@@ -1653,14 +1629,14 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_bd_addr
     if (dev_name_str != NULL)
     {
         value_size = sizeof(value);
-        if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+        if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                     BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME, value, &value_size))
         {
             if (strstr(value,dev_name_str) != NULL)
                 return TRUE;
         }
         value_size = sizeof(value);
-        if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+        if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                     BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_PARTIALNAME, value, &value_size))
         {
             token = strtok(value, BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR);
@@ -1673,7 +1649,7 @@ BOOLEAN  btif_storage_is_device_autopair_blacklisted(bt_bdaddr_t *remote_bd_addr
             }
         }
     }
-    if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+    if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                 BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR, value, &value_size))
     {
         if (strstr(value,bdstr) != NULL)
@@ -1699,12 +1675,12 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_bd
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ+20];
     char input_value [20];
 
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     strlcpy(input_value, (char*)bdstr, sizeof(input_value));
     strlcat(input_value,BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR, sizeof(input_value));
 
     int line_size = sizeof(linebuf);
-    if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+    if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                             BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR, linebuf, &line_size))
     {
          /* Append this address to the dynamic List of BD address  */
@@ -1716,7 +1692,7 @@ bt_status_t btif_storage_add_device_to_autopair_blacklist(bt_bdaddr_t *remote_bd
     }
 
     /* Write back the key value */
-    ret = btif_config_set_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+    ret = btif_config_set_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                         BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR, linebuf);
 
     return ret ? BT_STATUS_SUCCESS:BT_STATUS_FAIL;
@@ -1737,13 +1713,13 @@ BOOLEAN btif_storage_is_fixed_pin_zeros_keyboard(bt_bdaddr_t *remote_bd_addr)
     bdstr_t bdstr;
     char linebuf[BTIF_STORAGE_MAX_LINE_SZ];
 
-    bd2str(remote_bd_addr, &bdstr);
+    bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
 
     /*consider on LAP part of BDA string*/
     bdstr[8] = '\0';
 
     int line_size = sizeof(linebuf);
-    if(btif_config_get_str("Local", BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
+    if(btif_config_get_str(BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST,
                             BTIF_STORAGE_KEY_AUTOPAIR_FIXPIN_KBLIST, linebuf, &line_size))
     {
         if (strcasestr(linebuf,bdstr) != NULL)
@@ -1771,7 +1747,7 @@ bt_status_t btif_storage_set_dmt_support_type(const bt_bdaddr_t *remote_bd_addr,
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
     {
-        bd2str(remote_bd_addr, &bdstr);
+        bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     }
     else
     {
@@ -1779,7 +1755,7 @@ bt_status_t btif_storage_set_dmt_support_type(const bt_bdaddr_t *remote_bd_addr,
         return BT_STATUS_FAIL;
     }
 
-   ret = btif_config_set_int("Remote", bdstr,"DMTSupported", (int)dmt_supported);
+   ret = btif_config_set_int(bdstr,"DMTSupported", (int)dmt_supported);
    return ret ? BT_STATUS_SUCCESS:BT_STATUS_FAIL;
 
 }
@@ -1799,11 +1775,11 @@ BOOLEAN btif_storage_is_dmt_supported_device(const bt_bdaddr_t *remote_bd_addr)
     int    dmt_supported = 0;
     bdstr_t bdstr = {0};
     if(remote_bd_addr)
-        bd2str(remote_bd_addr, &bdstr);
+        bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
 
     if(remote_bd_addr)
     {
-        bd2str(remote_bd_addr, &bdstr);
+        bdaddr_to_string(remote_bd_addr, bdstr, sizeof(bdstr));
     }
     else
     {
@@ -1811,7 +1787,7 @@ BOOLEAN btif_storage_is_dmt_supported_device(const bt_bdaddr_t *remote_bd_addr)
         return FALSE;
     }
 
-    btif_config_get_int("Remote", bdstr,"DMTSupported", &dmt_supported);
+    btif_config_get_int(bdstr,"DMTSupported", &dmt_supported);
 
     return dmt_supported == 1 ? TRUE:FALSE;
 }

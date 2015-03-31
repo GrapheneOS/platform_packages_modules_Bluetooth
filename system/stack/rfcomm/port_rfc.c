@@ -865,7 +865,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 
     /* Check if rx queue exceeds the limit */
     if ((p_port->rx.queue_size + p_buf->len > PORT_RX_CRITICAL_WM)
-     || (p_port->rx.queue.count + 1 > p_port->rx_buf_critical))
+     || (GKI_queue_length(&p_port->rx.queue) + 1 > p_port->rx_buf_critical))
     {
         RFCOMM_TRACE_EVENT ("PORT_DataInd. Buffer over run. Dropping the buffer");
         GKI_freebuf (p_buf);
@@ -1095,6 +1095,9 @@ void port_rfc_closed (tPORT *p_port, UINT8 res)
 
     p_port->rfc.state = RFC_STATE_CLOSED;
 
+    RFCOMM_TRACE_WARNING ("%s RFCOMM connection in state %d closed: %s (res: %d)",
+                          __func__, p_port->state, PORT_GetResultString(res), res);
+
     port_release_port (p_port);
 }
 
@@ -1115,6 +1118,3 @@ void port_get_credits (tPORT *p_port, UINT8 k)
     if (p_port->credit_tx == 0)
         p_port->tx.peer_fc = TRUE;
 }
-
-
-

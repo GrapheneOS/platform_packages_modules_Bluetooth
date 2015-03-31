@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "osi_thread"
+#define LOG_TAG "bt_osi_thread"
 
 #include <assert.h>
 #include <errno.h>
@@ -25,14 +25,16 @@
 #include <string.h>
 #include <sys/prctl.h>
 #include <sys/types.h>
-#include <utils/Log.h>
 
-#include "fixed_queue.h"
-#include "reactor.h"
-#include "semaphore.h"
-#include "thread.h"
+#include "osi/include/allocator.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/log.h"
+#include "osi/include/reactor.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 
 struct thread_t {
+  bool is_joined;
   pthread_t pthread;
   pid_t tid;
   char name[THREAD_NAME_MAX + 1];
@@ -54,13 +56,13 @@ typedef struct {
 static void *run_thread(void *start_arg);
 static void work_queue_read_cb(void *context);
 
-static const size_t WORK_QUEUE_CAPACITY = 128;
+static const size_t DEFAULT_WORK_QUEUE_CAPACITY = 128;
 
-thread_t *thread_new(const char *name) {
+thread_t *thread_new_sized(const char *name, size_t work_queue_capacity) {
   assert(name != NULL);
+  assert(work_queue_capacity != 0);
 
-  // Start is on the stack, but we use a semaphore, so it's safe
-  thread_t *ret = calloc(1, sizeof(thread_t));
+  thread_t *ret = osi_calloc(sizeof(thread_t));
   if (!ret)
     goto error;
 
@@ -68,10 +70,11 @@ thread_t *thread_new(const char *name) {
   if (!ret->reactor)
     goto error;
 
-  ret->work_queue = fixed_queue_new(WORK_QUEUE_CAPACITY);
+  ret->work_queue = fixed_queue_new(work_queue_capacity);
   if (!ret->work_queue)
     goto error;
 
+  // Start is on the stack, but we use a semaphore, so it's safe
   struct start_arg start;
   start.start_sem = semaphore_new(0);
   if (!start.start_sem)
@@ -83,17 +86,23 @@ thread_t *thread_new(const char *name) {
   pthread_create(&ret->pthread, NULL, run_thread, &start);
   semaphore_wait(start.start_sem);
   semaphore_free(start.start_sem);
+
   if (start.error)
     goto error;
+
   return ret;
 
 error:;
   if (ret) {
-    fixed_queue_free(ret->work_queue, free);
+    fixed_queue_free(ret->work_queue, osi_free);
     reactor_free(ret->reactor);
   }
-  free(ret);
+  osi_free(ret);
   return NULL;
+}
+
+thread_t *thread_new(const char *name) {
+  return thread_new_sized(name, DEFAULT_WORK_QUEUE_CAPACITY);
 }
 
 void thread_free(thread_t *thread) {
@@ -101,10 +110,21 @@ void thread_free(thread_t *thread) {
     return;
 
   thread_stop(thread);
-  pthread_join(thread->pthread, NULL);
-  fixed_queue_free(thread->work_queue, free);
+  thread_join(thread);
+
+  fixed_queue_free(thread->work_queue, osi_free);
   reactor_free(thread->reactor);
-  free(thread);
+  osi_free(thread);
+}
+
+void thread_join(thread_t *thread) {
+  assert(thread != NULL);
+
+  // TODO(zachoverflow): use a compare and swap when ready
+  if (!thread->is_joined) {
+    thread->is_joined = true;
+    pthread_join(thread->pthread, NULL);
+  }
 }
 
 bool thread_post(thread_t *thread, thread_fn func, void *context) {
@@ -117,9 +137,9 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
 
   // Queue item is freed either when the queue itself is destroyed
   // or when the item is removed from the queue for dispatch.
-  work_item_t *item = (work_item_t *)malloc(sizeof(work_item_t));
+  work_item_t *item = (work_item_t *)osi_malloc(sizeof(work_item_t));
   if (!item) {
-    ALOGE("%s unable to allocate memory: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to allocate memory: %s", __func__, strerror(errno));
     return false;
   }
   item->func = func;
@@ -131,6 +151,16 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
 void thread_stop(thread_t *thread) {
   assert(thread != NULL);
   reactor_stop(thread->reactor);
+}
+
+bool thread_is_self(const thread_t *thread) {
+  assert(thread != NULL);
+  return !!pthread_equal(pthread_self(), thread->pthread);
+}
+
+reactor_t *thread_get_reactor(const thread_t *thread) {
+  assert(thread != NULL);
+  return thread->reactor;
 }
 
 const char *thread_name(const thread_t *thread) {
@@ -147,7 +177,7 @@ static void *run_thread(void *start_arg) {
   assert(thread != NULL);
 
   if (prctl(PR_SET_NAME, (unsigned long)thread->name) == -1) {
-    ALOGE("%s unable to set thread name: %s", __func__, strerror(errno));
+    LOG_ERROR("%s unable to set thread name: %s", __func__, strerror(errno));
     start->error = errno;
     semaphore_post(start->start_sem);
     return NULL;
@@ -156,29 +186,27 @@ static void *run_thread(void *start_arg) {
 
   semaphore_post(start->start_sem);
 
-  reactor_object_t work_queue_object;
-  work_queue_object.context = thread->work_queue;
-  work_queue_object.fd = fixed_queue_get_dequeue_fd(thread->work_queue);
-  work_queue_object.interest = REACTOR_INTEREST_READ;
-  work_queue_object.read_ready = work_queue_read_cb;
+  int fd = fixed_queue_get_dequeue_fd(thread->work_queue);
+  void *context = thread->work_queue;
 
-  reactor_register(thread->reactor, &work_queue_object);
+  reactor_object_t *work_queue_object = reactor_register(thread->reactor, fd, context, work_queue_read_cb, NULL);
   reactor_start(thread->reactor);
+  reactor_unregister(work_queue_object);
 
   // Make sure we dispatch all queued work items before exiting the thread.
   // This allows a caller to safely tear down by enqueuing a teardown
   // work item and then joining the thread.
   size_t count = 0;
   work_item_t *item = fixed_queue_try_dequeue(thread->work_queue);
-  while (item && count <= WORK_QUEUE_CAPACITY) {
+  while (item && count <= fixed_queue_capacity(thread->work_queue)) {
     item->func(item->context);
-    free(item);
+    osi_free(item);
     item = fixed_queue_try_dequeue(thread->work_queue);
     ++count;
   }
 
-  if (count > WORK_QUEUE_CAPACITY)
-    ALOGD("%s growing event queue on shutdown.", __func__);
+  if (count > fixed_queue_capacity(thread->work_queue))
+    LOG_DEBUG("%s growing event queue on shutdown.", __func__);
 
   return NULL;
 }
@@ -189,5 +217,5 @@ static void work_queue_read_cb(void *context) {
   fixed_queue_t *queue = (fixed_queue_t *)context;
   work_item_t *item = fixed_queue_dequeue(queue);
   item->func(item->context);
-  free(item);
+  osi_free(item);
 }

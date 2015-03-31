@@ -25,7 +25,7 @@
 
 #include "gki.h"
 #include "bta_api.h"
-#include "bd.h"
+#include "bt_types.h"
 #include "bta_mce_api.h"
 
 #ifndef BTA_MCE_SDP_DB_SIZE

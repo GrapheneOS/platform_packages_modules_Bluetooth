@@ -24,7 +24,6 @@
  ******************************************************************************/
 
 #include "bta_api.h"
-#include "bd.h"
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
 #include "bta_dm_int.h"

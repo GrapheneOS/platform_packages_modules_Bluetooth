@@ -51,9 +51,6 @@ LOCAL_SRC_FILES:= \
     ./hh/bta_hh_le.c \
     ./hh/bta_hh_utils.c \
     ./hh/bta_hh_main.c \
-    ./pb/bta_pbs_cfg.c \
-    ./fs/bta_fs_ci.c \
-    ./fs/bta_fs_cfg.c \
     ./pan/bta_pan_main.c \
     ./pan/bta_pan_ci.c \
     ./pan/bta_pan_act.c \
@@ -78,11 +75,7 @@ LOCAL_SRC_FILES:= \
     ./mce/bta_mce_act.c \
     ./mce/bta_mce_cfg.c \
     ./sys/bta_sys_main.c \
-    ./sys/bta_sys_ci.c \
     ./sys/bta_sys_conn.c \
-    ./sys/bta_sys_cfg.c \
-    ./sys/ptim.c \
-    ./sys/bd.c \
     ./sys/utl.c \
     ./jv/bta_jv_act.c \
     ./jv/bta_jv_cfg.c \
@@ -100,13 +93,15 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \
                    $(LOCAL_PATH)/hh \
+                   $(LOCAL_PATH)/../ \
+                   $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../gki/ulinux \
+                   $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \
                    $(LOCAL_PATH)/../stack/btm \
-                   $(LOCAL_PATH)/../hcis \
-                   $(LOCAL_PATH)/../hcis/patchram \
+                   $(LOCAL_PATH)/../osi/include \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../utils/include \

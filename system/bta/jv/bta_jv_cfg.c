@@ -26,7 +26,6 @@
 
 #include "gki.h"
 #include "bta_api.h"
-#include "bd.h"
 #include "bta_jv_api.h"
 
 #ifndef BTA_JV_SDP_DB_SIZE

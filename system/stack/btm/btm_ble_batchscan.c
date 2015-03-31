@@ -25,6 +25,7 @@
 #include "bt_utils.h"
 #include "btu.h"
 #include "btm_int.h"
+#include "device/include/controller.h"
 #include "hcimsgs.h"
 
 #if (BLE_INCLUDED == TRUE)
@@ -612,7 +613,7 @@ tBTM_STATUS BTM_BleSetStorageConfig(UINT8 batch_scan_full_max, UINT8 batch_scan_
         ble_batchscan_cb.cur_state, ref_value, batch_scan_full_max, batch_scan_trunc_max,
         batch_scan_notify_threshold);
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -685,7 +686,7 @@ tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
     BTM_TRACE_EVENT (" BTM_BleEnableBatchScan: %d, %d, %d, %d, %d, %d",
         scan_mode, scan_interval, scan_window, addr_type, discard_rule, ref_value);
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -759,7 +760,7 @@ tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value)
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     BTM_TRACE_EVENT (" BTM_BleDisableBatchScan");
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -805,7 +806,7 @@ tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 
     BTM_TRACE_EVENT (" BTM_BleReadScanReports; %d, %d", scan_mode, ref_value);
 
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
@@ -863,7 +864,7 @@ tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
 {
     tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     BTM_TRACE_EVENT (" BTM_BleTrackAdvertiser");
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
+    if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
     BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);

@@ -527,7 +527,7 @@ void bta_sys_busy(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
     }
 }
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )&&(BTA_EIR_CANNED_UUID_LIST != TRUE)
+#if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /*******************************************************************************
 **
 ** Function         bta_sys_eir_register

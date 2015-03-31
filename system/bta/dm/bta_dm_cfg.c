@@ -513,7 +513,6 @@ tBTM_PM_PWR_MD *p_bta_dm_pm_md = (tBTM_PM_PWR_MD *)&bta_dm_pm_md;
 ** 184 to 240 bytes, DH5 is used but it not recommended.
 */
 
-#if ( BTM_EIR_SERVER_INCLUDED == TRUE )
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
                                             /* for example */
 const UINT8 bta_dm_eir_uuid16_list[] = {    0x08, 0x11, /* Headset */
@@ -521,7 +520,7 @@ const UINT8 bta_dm_eir_uuid16_list[] = {    0x08, 0x11, /* Headset */
                                             0x0E, 0x11, /* AV Remote Control */
                                             0x0B, 0x11, /* Audio Sink */
 };
-#endif
+#endif  // BTA_EIR_CANNED_UUID_LIST
 
 /* Extended Inquiry Response */
 const tBTA_DM_EIR_CONF bta_dm_eir_cfg =
@@ -532,13 +531,13 @@ const tBTA_DM_EIR_CONF bta_dm_eir_cfg =
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
     8,
     (UINT8 *)bta_dm_eir_uuid16_list,
-#else
+#else // BTA_EIR_CANNED_UUID_LIST
     {   /* mask of UUID list in EIR */
         0xFFFFFFFF, /* LSB is the first UUID of the first 32 UUIDs in BTM_EIR_UUID_LKUP_TBL */
         0xFFFFFFFF  /* LSB is the first UUID of the next 32 UUIDs in BTM_EIR_UUID_LKUP_TBL */
         /* BTM_EIR_UUID_LKUP_TBL can be overrided */
     },
-#endif
+#endif  // BTA_EIR_CANNED_UUID_LIST
     NULL,   /* Inquiry TX power         */
     0,      /* length of flags in bytes */
     NULL,   /* flags for EIR */
@@ -548,4 +547,3 @@ const tBTA_DM_EIR_CONF bta_dm_eir_cfg =
     NULL    /* additional data */
 };
 tBTA_DM_EIR_CONF *p_bta_dm_eir_cfg = (tBTA_DM_EIR_CONF*)&bta_dm_eir_cfg;
-#endif

@@ -24,9 +24,12 @@
  *  Description:   Generic BTIF state machine API
  *
  *****************************************************************************/
+
+#define LOG_TAG "bt_btif"
+
 #include <hardware/bluetooth.h>
 
-#define LOG_TAG "BTIF_SM"
+#include "osi/include/allocator.h"
 #include "btif_common.h"
 #include "btif_sm.h"
 #include "gki.h"
@@ -83,7 +86,7 @@ btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state
         return NULL;
     }
 
-    p_cb = (btif_sm_cb_t*) GKI_os_malloc(sizeof(btif_sm_cb_t));
+    p_cb = (btif_sm_cb_t *)osi_malloc(sizeof(btif_sm_cb_t));
     p_cb->state = initial_state;
     p_cb->p_handlers = (btif_sm_handler_t*)p_handlers;
 
@@ -111,7 +114,7 @@ void btif_sm_shutdown(btif_sm_handle_t handle)
         BTIF_TRACE_ERROR("%s : Invalid handle", __FUNCTION__);
         return;
     }
-    GKI_os_free((void*)p_cb);
+    osi_free(p_cb);
 }
 
 /*****************************************************************************

@@ -22,18 +22,21 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
+#include "device/include/controller.h"
+#include "btcore/include/counter.h"
+#include "bt_target.h"
+#include "btm_int.h"
+#include "btu.h"
 #include "gki.h"
 #include "hcimsgs.h"
-#include "l2cdefs.h"
-#include "l2c_int.h"
 #include "l2c_api.h"
-#include "btu.h"
-#include "btm_int.h"
+#include "l2c_int.h"
+#include "l2cdefs.h"
+#include "osi/include/log.h"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -47,10 +50,6 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len);
 tL2C_CB l2cb;
 #endif
 
-/* Temporary - until l2cap implements group management */
-#if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-extern void tcs_proc_bcst_msg( BD_ADDR addr, BT_HDR *p_msg ) ;
-#endif
 /*******************************************************************************
 **
 ** Function         l2c_bcst_msg
@@ -82,10 +81,11 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
     /* First, the HCI transport header */
     UINT16_TO_STREAM (p, 0x0050 | (L2CAP_PKT_START << 12) | (2 << 14));
 
+    uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
     /* The HCI transport will segment the buffers. */
-    if (p_buf->len > btu_cb.hcit_acl_data_size)
+    if (p_buf->len > acl_data_size)
     {
-        UINT16_TO_STREAM (p, btu_cb.hcit_acl_data_size);
+        UINT16_TO_STREAM (p, acl_data_size);
     }
     else
     {
@@ -99,9 +99,12 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
 
     p_buf->len += HCI_DATA_PREAMBLE_SIZE;
 
-    if (p_buf->len <= btu_cb.hcit_acl_pkt_size)
+    if (p_buf->len <= controller_get_interface()->get_acl_packet_size_classic())
     {
-        HCI_ACL_DATA_TO_LOWER (p_buf);
+        counter_add("l2cap.ch2.tx.bytes", p_buf->len);
+        counter_add("l2cap.ch2.tx.pkts", 1);
+
+        bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
     }
 }
 
@@ -148,23 +151,21 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             STREAM_TO_UINT8  (cmd_code, p);
 
             if ((p_msg->layer_specific == 0) && (rcv_cid == L2CAP_SIGNALLING_CID)
-                && (cmd_code == L2CAP_CMD_INFO_REQ || cmd_code == L2CAP_CMD_CONN_REQ))
-            {
-                L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
-                                    handle, p_msg->layer_specific, rcv_cid, cmd_code,
-                                    l2cb.rcv_hold_q.count);
+                    && (cmd_code == L2CAP_CMD_INFO_REQ || cmd_code == L2CAP_CMD_CONN_REQ)) {
+                L2CAP_TRACE_WARNING ("L2CAP - holding ACL for unknown handle:%d ls:%d"
+                        "  cid:%d opcode:%d cur count:%d", handle, p_msg->layer_specific,
+                        rcv_cid, cmd_code, list_length(l2cb.rcv_pending_q));
                 p_msg->layer_specific = 2;
-                GKI_enqueue (&l2cb.rcv_hold_q, p_msg);
+                list_append(l2cb.rcv_pending_q, p_msg);
 
-                if (l2cb.rcv_hold_q.count == 1)
+                if (list_length(l2cb.rcv_pending_q) == 1)
                     btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 
                 return;
-            }
-            else
-            {
-                L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d opcode:%d cur count:%d",
-                                    handle, p_msg->layer_specific, rcv_cid, cmd_code, l2cb.rcv_hold_q.count);
+            } else {
+                L2CAP_TRACE_ERROR ("L2CAP - rcvd ACL for unknown handle:%d ls:%d cid:%d"
+                        " opcode:%d cur count:%d", handle, p_msg->layer_specific, rcv_cid,
+                        cmd_code, list_length(l2cb.rcv_pending_q));
             }
             GKI_freebuf (p_msg);
             return;
@@ -180,12 +181,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     /* Extract the length and update the buffer header */
     STREAM_TO_UINT16 (hci_len, p);
     p_msg->offset += 4;
-
-#if (L2CAP_HOST_FLOW_CTRL == TRUE)
-    /* Send ack if we hit the threshold */
-    if (++p_lcb->link_pkts_unacked >= p_lcb->link_ack_thresh)
-        btu_hcif_send_host_rdy_for_data();
-#endif
 
     /* Extract the length and CID */
     STREAM_TO_UINT16 (l2cap_len, p);
@@ -226,24 +221,18 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     /* Send the data through the channel state machine */
     if (rcv_cid == L2CAP_SIGNALLING_CID)
     {
+        counter_add("l2cap.sig.rx.bytes", l2cap_len);
+        counter_add("l2cap.sig.rx.pkts", 1);
         process_l2cap_cmd (p_lcb, p, l2cap_len);
         GKI_freebuf (p_msg);
     }
     else if (rcv_cid == L2CAP_CONNECTIONLESS_CID)
     {
+        counter_add("l2cap.ch2.rx.bytes", l2cap_len);
+        counter_add("l2cap.ch2.rx.pkts", 1);
         /* process_connectionless_data (p_lcb); */
         STREAM_TO_UINT16 (psm, p);
         L2CAP_TRACE_DEBUG( "GOT CONNECTIONLESS DATA PSM:%d", psm ) ;
-#if (TCS_BCST_SETUP_INCLUDED == TRUE && TCS_INCLUDED == TRUE)
-        if (psm == TCS_PSM_INTERCOM || psm == TCS_PSM_CORDLESS)
-        {
-            p_msg->offset += L2CAP_BCST_OVERHEAD;
-            p_msg->len -= L2CAP_BCST_OVERHEAD;
-            tcs_proc_bcst_msg( p_lcb->remote_bd_addr, p_msg ) ;
-            GKI_freebuf (p_msg);
-        }
-        else
-#endif
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
         /* if it is not broadcast, check UCD registration */
@@ -258,6 +247,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 #if (BLE_INCLUDED == TRUE)
     else if (rcv_cid == L2CAP_BLE_SIGNALLING_CID)
     {
+        counter_add("l2cap.ble.rx.bytes", l2cap_len);
+        counter_add("l2cap.ble.rx.pkts", 1);
         l2cble_process_sig_cmd (p_lcb, p, l2cap_len);
         GKI_freebuf (p_msg);
     }
@@ -266,6 +257,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     else if ((rcv_cid >= L2CAP_FIRST_FIXED_CHNL) && (rcv_cid <= L2CAP_LAST_FIXED_CHNL) &&
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
+        counter_add("l2cap.fix.rx.bytes", l2cap_len);
+        counter_add("l2cap.fix.rx.pkts", 1);
         /* If no CCB for this channel, allocate one */
         if (p_lcb &&
             /* discard fixed channel data when link is disconnecting */
@@ -290,6 +283,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 
     else
     {
+        counter_add("l2cap.dyn.rx.bytes", l2cap_len);
+        counter_add("l2cap.dyn.rx.pkts", 1);
         if (p_ccb == NULL)
             GKI_freebuf (p_msg);
         else
@@ -811,38 +806,30 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_process_held_packets (BOOLEAN timed_out)
-{
-    BT_HDR      *p_buf, *p_buf1;
-    BUFFER_Q    *p_rcv_hold_q = &l2cb.rcv_hold_q;
-
-    if (!p_rcv_hold_q->count)
+void l2c_process_held_packets(BOOLEAN timed_out) {
+    if (list_is_empty(l2cb.rcv_pending_q))
         return;
 
-    if (!timed_out)
-    {
+    if (!timed_out) {
         btu_stop_timer(&l2cb.rcv_hold_tle);
         L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
-    }
-    else
-    {
+    } else {
         L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
     }
 
-    /* Update the timeouts in the hold queue */
-    for (p_buf = (BT_HDR *)GKI_getfirst (p_rcv_hold_q); p_buf; p_buf = p_buf1)
-    {
-        p_buf1 = (BT_HDR *)GKI_getnext (p_buf);
-        if (!timed_out || (!p_buf->layer_specific) || (--p_buf->layer_specific == 0))
-        {
-            GKI_remove_from_queue (p_rcv_hold_q, p_buf);
+    for (const list_node_t *node = list_begin(l2cb.rcv_pending_q);
+        node != list_end(l2cb.rcv_pending_q);)  {
+        BT_HDR *p_buf = list_node(node);
+        node = list_next(node);
+        if (!timed_out || (!p_buf->layer_specific) || (--p_buf->layer_specific == 0)) {
+            list_remove(l2cb.rcv_pending_q, p_buf);
             p_buf->layer_specific = 0xFFFF;
-            l2c_rcv_acl_data (p_buf);
+            l2c_rcv_acl_data(p_buf);
         }
     }
 
     /* If anyone still in the queue, restart the timeout */
-    if (p_rcv_hold_q->count)
+    if (!list_is_empty(l2cb.rcv_pending_q))
         btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 }
 
@@ -905,6 +892,13 @@ void l2c_init (void)
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
 
+    l2cb.rcv_pending_q = list_new(NULL);
+    if (l2cb.rcv_pending_q == NULL)
+        LOG_ERROR("%s unable to allocate memory for link layer control block", __func__);
+}
+
+void l2c_free(void) {
+    list_free(l2cb.rcv_pending_q);
 }
 
 /*******************************************************************************
@@ -984,11 +978,14 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
     if (p_ccb->cong_sent)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested  xmit_hold_q.count: %u  buff_quota: %u",
-                            p_ccb->local_cid, p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
+                            p_ccb->local_cid, GKI_queue_length(&p_ccb->xmit_hold_q), p_ccb->buff_quota);
 
         GKI_freebuf (p_data);
         return (L2CAP_DW_FAILED);
     }
+
+    counter_add("l2cap.dyn.tx.bytes", p_data->len);
+    counter_add("l2cap.dyn.tx.pkts", 1);
 
     l2c_csm_execute (p_ccb, L2CEVT_L2CA_DATA_WRITE, p_data);
 

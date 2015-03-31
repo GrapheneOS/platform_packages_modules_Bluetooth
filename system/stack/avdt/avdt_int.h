@@ -32,11 +32,7 @@
 #include "btm_api.h"
 
 #ifndef AVDT_DEBUG
-#if (!defined BTTRC_INCLUDED || BTTRC_INCLUDED == FALSE)
-#define AVDT_DEBUG  TRUE
-#else
 #define AVDT_DEBUG  FALSE
-#endif
 #endif
 
 /*****************************************************************************
@@ -727,9 +723,9 @@ extern "C"
 ** Main Control Block
 *******************************************************************************/
 #if AVDT_DYNAMIC_MEMORY == FALSE
-AVDT_API extern tAVDT_CB  avdt_cb;
+extern tAVDT_CB  avdt_cb;
 #else
-AVDT_API extern tAVDT_CB *avdt_cb_ptr;
+extern tAVDT_CB *avdt_cb_ptr;
 #define avdt_cb (*avdt_cb_ptr)
 #endif
 

@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#include <stdio.h>
+#include <unistd.h>
 
 #include "gki.h"
 #include "bta_gattc_co.h"

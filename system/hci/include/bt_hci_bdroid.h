@@ -29,8 +29,6 @@
 
 #pragma once
 
-#include "bt_hci_lib.h"
-
 #ifdef HAS_BDROID_BUILDCFG
 #include "bdroid_buildcfg.h"
 #endif
@@ -64,8 +62,6 @@ typedef enum {
   HC_EVENT_LPM_IDLE_TIMEOUT,
 } bthc_event_t;
 
-#define MSG_CTRL_TO_HC_CMD             0x0100 /* evt mask used by HC_EVENT_TX_CMD */
-
 /* Message event mask across Host/Controller lib and stack */
 #define MSG_EVT_MASK                    0xFF00 /* eq. BT_EVT_MASK */
 #define MSG_SUB_EVT_MASK                0x00FF /* eq. BT_SUB_EVT_MASK */
@@ -84,13 +80,6 @@ typedef enum {
 
 /* Local Bluetooth Controller ID for BR/EDR */
 #define LOCAL_BR_EDR_CONTROLLER_ID      0
-
-/* Definitions of audio codec type
- *      inherited from AG callout function "codec" parameter
- */
-#define SCO_CODEC_NONE      0x0000 /* BTA_AG_CODEC_NONE/BTM_SCO_CODEC_NONE */
-#define SCO_CODEC_CVSD      0x0001 /* BTA_AG_CODEC_CVSD/BTM_SCO_CODEC_CVSD */
-#define SCO_CODEC_MSBC      0x0002 /* BTA_AG_CODEC_MSBC/BTM_SCO_CODEC_MSBC */
 
 /******************************************************************************
 **  Type definitions and return values
@@ -121,8 +110,6 @@ typedef struct _hc_buffer_hdr
 /******************************************************************************
 **  Extern variables and functions
 ******************************************************************************/
-
-extern bt_hc_callbacks_t *bt_hc_cbacks;
 
 /******************************************************************************
 **  Functions

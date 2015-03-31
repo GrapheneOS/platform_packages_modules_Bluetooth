@@ -183,8 +183,6 @@ typedef struct
     TIMER_LIST_ENT          bnep_tle;
     BOOLEAN                 profile_registered;             /* TRUE when we got our BD addr */
     UINT8                   trace_level;
-    BOOLEAN                 got_my_bd_addr;         /* TRUE when we got our BD addr */
-    BD_ADDR                 my_bda;                 /* BD Address of this device    */
 
 } tBNEP_CB;
 
@@ -195,9 +193,9 @@ extern "C" {
 /* Global BNEP data
 */
 #if BNEP_DYNAMIC_MEMORY == FALSE
-BNEP_API extern tBNEP_CB  bnep_cb;
+extern tBNEP_CB  bnep_cb;
 #else
-BNEP_API extern tBNEP_CB  *bnep_cb_ptr;
+extern tBNEP_CB  *bnep_cb_ptr;
 #define bnep_cb (*bnep_cb_ptr)
 #endif
 
@@ -241,7 +239,6 @@ extern void        bnep_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT trasn
 extern tBNEP_RESULT bnep_is_packet_allowed (tBNEP_CONN *p_bcb, BD_ADDR p_dest_addr, UINT16 protocol,
                                                     BOOLEAN fw_ext_present, UINT8 *p_data);
 extern UINT32      bnep_get_uuid32 (tBT_UUID *src_uuid);
-extern void        bnep_dump_status (void);
 
 
 
@@ -251,4 +248,3 @@ extern void        bnep_dump_status (void);
 
 
 #endif
-

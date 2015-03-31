@@ -16,44 +16,15 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bte_conf"
+#define LOG_TAG "bt_bte_conf"
 
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <utils/Log.h>
 
 #include "bta_api.h"
-#include "config.h"
-
-// TODO: eliminate these global variables.
-extern char hci_logfile[256];
-extern BOOLEAN hci_logging_enabled;
-extern BOOLEAN hci_save_log;
-extern BOOLEAN trace_conf_enabled;
-void bte_trace_conf_config(const config_t *config);
-
-// Reads the stack configuration file and populates global variables with
-// the contents of the file.
-void bte_load_conf(const char *path) {
-  assert(path != NULL);
-
-  ALOGI("%s attempt to load stack conf from %s", __func__, path);
-
-  config_t *config = config_new(path);
-  if (!config) {
-    ALOGI("%s file >%s< not found", __func__, path);
-    return;
-  }
-
-  strlcpy(hci_logfile, config_get_string(config, CONFIG_DEFAULT_SECTION, "BtSnoopFileName", ""), sizeof(hci_logfile));
-  hci_logging_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopLogOutput", false);
-  hci_save_log = config_get_bool(config, CONFIG_DEFAULT_SECTION, "BtSnoopSaveLog", false);
-  trace_conf_enabled = config_get_bool(config, CONFIG_DEFAULT_SECTION, "TraceConf", false);
-
-  bte_trace_conf_config(config);
-  config_free(config);
-}
+#include "osi/include/config.h"
+#include "osi/include/log.h"
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 extern int btm_ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1];
@@ -61,11 +32,11 @@ void bte_load_ble_conf(const char* path)
 {
   assert(path != NULL);
 
-  ALOGI("%s attempt to load ble stack conf from %s", __func__, path);
+  LOG_INFO("%s attempt to load ble stack conf from %s", __func__, path);
 
   config_t *config = config_new(path);
   if (!config) {
-    ALOGI("%s file >%s< not found", __func__, path);
+    LOG_INFO("%s file >%s< not found", __func__, path);
     return;
   }
 
@@ -73,7 +44,7 @@ void bte_load_ble_conf(const char* path)
   if(*ble_adv_tx_power) {
     sscanf(ble_adv_tx_power, "%d,%d,%d,%d,%d", btm_ble_tx_power, btm_ble_tx_power + 1, btm_ble_tx_power + 2,
                                                btm_ble_tx_power + 3, btm_ble_tx_power + 4);
-    ALOGI("loaded btm_ble_tx_power: %d, %d, %d, %d, %d", (char)btm_ble_tx_power[0], (char)btm_ble_tx_power[1],
+    LOG_INFO("loaded btm_ble_tx_power: %d, %d, %d, %d, %d", (char)btm_ble_tx_power[0], (char)btm_ble_tx_power[1],
                                         btm_ble_tx_power[2], btm_ble_tx_power[3], btm_ble_tx_power[4]);
   }
   config_free(config);
@@ -87,7 +58,7 @@ void bte_load_did_conf(const char *p_path) {
 
     config_t *config = config_new(p_path);
     if (!config) {
-        ALOGE("%s unable to load DID config '%s'.", __func__, p_path);
+        LOG_ERROR("%s unable to load DID config '%s'.", __func__, p_path);
         return;
     }
 
@@ -96,7 +67,7 @@ void bte_load_did_conf(const char *p_path) {
         snprintf(section_name, sizeof(section_name), "DID%d", i);
 
         if (!config_has_section(config, section_name)) {
-            ALOGD("%s no section named %s.", __func__, section_name);
+            LOG_DEBUG("%s no section named %s.", __func__, section_name);
             break;
         }
 
@@ -112,23 +83,23 @@ void bte_load_did_conf(const char *p_path) {
 
         if (record.vendor_id_source != DI_VENDOR_ID_SOURCE_BTSIG &&
             record.vendor_id_source != DI_VENDOR_ID_SOURCE_USBIF) {
-            ALOGE("%s invalid vendor id source %d; ignoring DID record %d.", __func__, record.vendor_id_source, i);
+            LOG_ERROR("%s invalid vendor id source %d; ignoring DID record %d.", __func__, record.vendor_id_source, i);
             continue;
         }
 
-        ALOGD("Device ID record %d : %s", i, (record.primary_record ? "primary" : "not primary"));
-        ALOGD("  vendorId            = %04x", record.vendor);
-        ALOGD("  vendorIdSource      = %04x", record.vendor_id_source);
-        ALOGD("  product             = %04x", record.product);
-        ALOGD("  version             = %04x", record.version);
-        ALOGD("  clientExecutableURL = %s", record.client_executable_url);
-        ALOGD("  serviceDescription  = %s", record.service_description);
-        ALOGD("  documentationURL    = %s", record.documentation_url);
+        LOG_DEBUG("Device ID record %d : %s", i, (record.primary_record ? "primary" : "not primary"));
+        LOG_DEBUG("  vendorId            = %04x", record.vendor);
+        LOG_DEBUG("  vendorIdSource      = %04x", record.vendor_id_source);
+        LOG_DEBUG("  product             = %04x", record.product);
+        LOG_DEBUG("  version             = %04x", record.version);
+        LOG_DEBUG("  clientExecutableURL = %s", record.client_executable_url);
+        LOG_DEBUG("  serviceDescription  = %s", record.service_description);
+        LOG_DEBUG("  documentationURL    = %s", record.documentation_url);
 
         uint32_t record_handle;
         tBTA_STATUS status = BTA_DmSetLocalDiRecord(&record, &record_handle);
         if (status != BTA_SUCCESS) {
-            ALOGE("%s unable to set device ID record %d: error %d.", __func__, i, status);
+            LOG_ERROR("%s unable to set device ID record %d: error %d.", __func__, i, status);
         }
     }
 

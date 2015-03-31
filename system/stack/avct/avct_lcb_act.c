@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "avct_api.h"
@@ -636,7 +636,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             pkt_type = AVCT_PKT_TYPE_END;
         }
     }
-    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", p_lcb->tx_q.count);
+    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", GKI_queue_length(&p_lcb->tx_q));
     return;
 }
 
@@ -692,6 +692,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
     /* parse header byte */
     AVCT_PRS_HDR(p, label, type, cr_ipid);
+    UNUSED(type);
 
     /* check for invalid cr_ipid */
     if (cr_ipid == AVCT_CR_IPID_INVALID)

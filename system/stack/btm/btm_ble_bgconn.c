@@ -705,7 +705,7 @@ BOOLEAN btm_send_pending_direct_conn(void )
     tBTM_BLE_CONN_REQ *p_req;
     BOOLEAN     rt = FALSE;
 
-    if ( btm_cb.ble_ctr_cb.conn_pending_q.count )
+    if (!GKI_queue_is_empty(&btm_cb.ble_ctr_cb.conn_pending_q))
     {
         p_req = (tBTM_BLE_CONN_REQ*)GKI_dequeue (&btm_cb.ble_ctr_cb.conn_pending_q);
 

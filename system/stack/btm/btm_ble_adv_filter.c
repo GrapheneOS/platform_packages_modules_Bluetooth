@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btm_ble"
+
 #include <string.h>
 #include "bt_target.h"
 
@@ -28,6 +30,7 @@
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 #include "vendor_ble.h"
+#include "device/include/controller.h"
 
 #define BTM_BLE_ADV_FILT_META_HDR_LENGTH 3
 #define BTM_BLE_ADV_FILT_FEAT_SELN_LEN 13
@@ -253,7 +256,8 @@ void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL *p_params)
 
     if (evt_len < 3 || evt_len > 4)
     {
-        BTM_TRACE_ERROR("cannot interpret APCF callback status = %d, length = %d", status, evt_len);
+      BTM_TRACE_ERROR("%s cannot interpret APCF callback status = %d, length = %d",
+          __func__, status, evt_len);
         btm_ble_advfilt_deq_op_q(&action, &ocf, &cb_evt, &ref_value, &p_scan_cfg_cback,
                                  &p_filt_param_cback);
         return;
@@ -1301,9 +1305,6 @@ void btm_ble_adv_filter_init(void)
         btm_ble_adv_filt_cb.p_addr_filter_count =
             (tBTM_BLE_PF_COUNT*) GKI_getbuf( sizeof(tBTM_BLE_PF_COUNT) * cmn_ble_vsc_cb.max_filter);
     }
-
-    if (!HCI_LE_HOST_SUPPORTED(btm_cb.devcb.local_lmp_features[HCI_EXT_FEATURES_PAGE_1]))
-        return;
 }
 
 /*******************************************************************************

@@ -25,6 +25,8 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "bt_utils"
+
 #include <cutils/properties.h>
 #include <cutils/sched_policy.h>
 #include <errno.h>
@@ -35,13 +37,10 @@
 #include <unistd.h>
 #include <utils/ThreadDefs.h>
 
-#define LOG_TAG "BT_UTILS"
-
-#include <utils/Log.h>
-
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_utils.h"
-
+#include "btcore/include/module.h"
+#include "osi/include/log.h"
 
 /*******************************************************************************
 **  Type definitions for callback functions
@@ -53,40 +52,37 @@ static int g_TaskIdx;
 static int g_TaskIDs[TASK_HIGH_MAX];
 #define INVALID_TASK_ID  (-1)
 
-/*****************************************************************************
-**
-** Function        bt_utils_init
-**
-** Description     Initialize bluedroid util
-**
-** Returns         void
-**
-*******************************************************************************/
-void bt_utils_init() {
-    int i;
-    pthread_mutexattr_t lock_attr;
+static future_t *init(void) {
+  int i;
+  pthread_mutexattr_t lock_attr;
 
-    for(i = 0; i < TASK_HIGH_MAX; i++) {
-        g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
-        g_DoSchedulingGroup[i] = TRUE;
-        g_TaskIDs[i] = INVALID_TASK_ID;
-    }
-    pthread_mutexattr_init(&lock_attr);
-    pthread_mutex_init(&gIdxLock, &lock_attr);
+  for(i = 0; i < TASK_HIGH_MAX; i++) {
+    g_DoSchedulingGroupOnce[i] = PTHREAD_ONCE_INIT;
+    g_DoSchedulingGroup[i] = TRUE;
+    g_TaskIDs[i] = INVALID_TASK_ID;
+  }
+
+  pthread_mutexattr_init(&lock_attr);
+  pthread_mutex_init(&gIdxLock, &lock_attr);
+  return NULL;
 }
 
-/*****************************************************************************
-**
-** Function        bt_utils_cleanup
-**
-** Description     Clean up bluedroid util
-**
-** Returns         void
-**
-*******************************************************************************/
-void bt_utils_cleanup() {
-    pthread_mutex_destroy(&gIdxLock);
+static future_t *clean_up(void) {
+  pthread_mutex_destroy(&gIdxLock);
+  return NULL;
 }
+
+const module_t bt_utils_module = {
+  .name = BT_UTILS_MODULE,
+  .init = init,
+  .start_up = NULL,
+  .shut_down = NULL,
+  .clean_up = clean_up,
+  .dependencies = {
+    NULL
+  }
+};
+
 
 /*****************************************************************************
 **
@@ -134,7 +130,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     pthread_mutex_unlock(&gIdxLock);
 
     if (rc) {
-        ALOGW("failed to change sched policy, tid %d, err: %d", tid, errno);
+        LOG_WARN("failed to change sched policy, tid %d, err: %d", tid, errno);
     }
 
     // always use urgent priority for HCI worker thread until we can adjust
@@ -145,7 +141,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
        priority = ANDROID_PRIORITY_URGENT_AUDIO;
 
     if (setpriority(PRIO_PROCESS, tid, priority) < 0) {
-        ALOGW("failed to change priority tid: %d to %d", tid, priority);
+        LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
     }
 }
 
@@ -172,7 +168,7 @@ void adjust_priority_a2dp(int start) {
         {
             if (setpriority(PRIO_PROCESS, tid, priority) < 0)
             {
-                ALOGW("failed to change priority tid: %d to %d", tid, priority);
+                LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
             }
         }
     }

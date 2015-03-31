@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "data_types.h"
+#include "bt_types.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "avdt_api.h"
@@ -304,14 +304,12 @@ void avdt_ccb_event(tAVDT_CCB *p_ccb, UINT8 event, tAVDT_CCB_EVT *p_data)
 #if AVDT_DEBUG == TRUE
     AVDT_TRACE_EVENT("CCB ccb=%d event=%s state=%s", avdt_ccb_to_idx(p_ccb), avdt_ccb_evt_str[event], avdt_ccb_st_str[p_ccb->state]);
 #endif
-    BTTRC_AVDT_CCB_EVENT(event, p_ccb->state);
 
     /* look up the state table for the current state */
     state_table = avdt_ccb_st_tbl[p_ccb->state];
 
     /* set next state */
     if (p_ccb->state != state_table[event][AVDT_CCB_NEXT_STATE]) {
-        BTTRC_AVDT_CCB_STATE(state_table[event][AVDT_CCB_NEXT_STATE]);
         p_ccb->state = state_table[event][AVDT_CCB_NEXT_STATE];
     }
 
@@ -320,7 +318,6 @@ void avdt_ccb_event(tAVDT_CCB *p_ccb, UINT8 event, tAVDT_CCB_EVT *p_data)
     {
         if ((action = state_table[event][i]) != AVDT_CCB_IGNORE)
         {
-            BTTRC_AVDT_CCB_ACTION(action);
             (*avdt_cb.p_ccb_act[action])(p_ccb, p_data);
         }
         else

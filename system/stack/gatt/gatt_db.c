@@ -62,6 +62,8 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  BOOLEAN is_pri,
                                UINT16 s_hdl, UINT16 num_handle)
 {
+    GKI_init_q(&p_db->svc_buffer);
+
     if (!allocate_svc_db_buf(p_db))
     {
         GATT_TRACE_ERROR("gatts_init_service_db failed, no resources");
@@ -214,7 +216,6 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     UINT16          len = 0, uuid16 = 0;
     UINT8           *p = *p_data;
     tGATT_STATUS    status;
-    UINT16          read_long_uuid=0;
     tGATT_ATTR16    *p_attr16  = (tGATT_ATTR16  *)p_attr;
 
     GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
@@ -233,12 +234,6 @@ static tGATT_STATUS read_attr_value (void *p_attr,
         uuid16 = p_attr16->uuid;
 
     status = GATT_NO_RESOURCES;
-
-    if (read_long &&
-        (uuid16 == GATT_UUID_CHAR_DESCRIPTION || uuid16 == GATT_UUID_CHAR_AGG_FORMAT))
-    {
-        read_long_uuid = p_attr16->uuid;
-    }
 
     if (uuid16 == GATT_UUID_PRI_SERVICE || uuid16 == GATT_UUID_SEC_SERVICE)
     {

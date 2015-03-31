@@ -138,7 +138,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-AVCT_API extern void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask);
+extern void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask);
 
 /*******************************************************************************
 **
@@ -154,7 +154,7 @@ AVCT_API extern void AVCT_Register(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask);
 ** Returns          void
 **
 *******************************************************************************/
-AVCT_API extern void AVCT_Deregister(void);
+extern void AVCT_Deregister(void);
 
 /*******************************************************************************
 **
@@ -172,8 +172,8 @@ AVCT_API extern void AVCT_Deregister(void);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc,
-                                       BD_ADDR peer_addr);
+extern UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc,
+                              BD_ADDR peer_addr);
 
 /*******************************************************************************
 **
@@ -188,7 +188,7 @@ AVCT_API extern UINT16 AVCT_CreateConn(UINT8 *p_handle, tAVCT_CC *p_cc,
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_RemoveConn(UINT8 handle);
+extern UINT16 AVCT_RemoveConn(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -206,7 +206,7 @@ AVCT_API extern UINT16 AVCT_RemoveConn(UINT8 handle);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_CreateBrowse(UINT8 handle, UINT8 role);
+extern UINT16 AVCT_CreateBrowse(UINT8 handle, UINT8 role);
 
 /*******************************************************************************
 **
@@ -221,7 +221,7 @@ AVCT_API extern UINT16 AVCT_CreateBrowse(UINT8 handle, UINT8 role);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_RemoveBrowse(UINT8 handle);
+extern UINT16 AVCT_RemoveBrowse(UINT8 handle);
 
 /*******************************************************************************
 **
@@ -233,7 +233,7 @@ AVCT_API extern UINT16 AVCT_RemoveBrowse(UINT8 handle);
 ** Returns          the peer browsing channel MTU.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_GetBrowseMtu (UINT8 handle);
+extern UINT16 AVCT_GetBrowseMtu (UINT8 handle);
 
 /*******************************************************************************
 **
@@ -245,7 +245,7 @@ AVCT_API extern UINT16 AVCT_GetBrowseMtu (UINT8 handle);
 ** Returns          the peer MTU size.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
+extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
 
 /*******************************************************************************
 **
@@ -268,7 +268,7 @@ AVCT_API extern UINT16 AVCT_GetPeerMtu (UINT8 handle);
 ** Returns          AVCT_SUCCESS if successful, otherwise error.
 **
 *******************************************************************************/
-AVCT_API extern UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg);
+extern UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *p_msg);
 
 #ifdef __cplusplus
 }
@@ -276,4 +276,3 @@ AVCT_API extern UINT16 AVCT_MsgReq(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR *
 
 
 #endif /* AVCT_API_H */
-

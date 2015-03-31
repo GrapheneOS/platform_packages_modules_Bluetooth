@@ -7,9 +7,10 @@ LOCAL_SRC_FILES := \
 
 LOCAL_C_INCLUDES += \
 	. \
+	$(LOCAL_PATH)/../ \
 	$(LOCAL_PATH)/../utils/include
 
-LOCAL_CFLAGS += -std=c99
+LOCAL_CFLAGS += -std=c99 $(bdroid_CFLAGS)
 
 LOCAL_MODULE := audio.a2dp.default
 LOCAL_MODULE_RELATIVE_PATH := hw

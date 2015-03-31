@@ -31,11 +31,10 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_HH"
+#define LOG_TAG "bt_btif_hh"
 
 #include "bta_api.h"
 #include "bta_hh_api.h"
-#include "bd.h"
 #include "btif_storage.h"
 
 #include "btif_common.h"
@@ -43,7 +42,7 @@
 #include "btif_hh.h"
 #include "gki.h"
 #include "l2c_api.h"
-
+#include "osi/include/log.h"
 
 #define BTIF_HH_APP_ID_MI       0x01
 #define BTIF_HH_APP_ID_KB       0x02
@@ -502,7 +501,7 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     btif_hh_device_t       *p_dev;
     btif_hh_added_device_t *p_added_dev;
 
-    ALOGI("%s: bda = %02x:%02x:%02x:%02x:%02x:%02x", __FUNCTION__,
+    LOG_INFO("%s: bda = %02x:%02x:%02x:%02x:%02x:%02x", __FUNCTION__,
          bd_addr.address[0], bd_addr.address[1], bd_addr.address[2], bd_addr.address[3], bd_addr.address[4], bd_addr.address[5]);
 
     for (i = 0; i < BTIF_HH_MAX_ADDED_DEV; i++) {
@@ -923,7 +922,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 return;
             }
             if (p_dev->fd < 0) {
-                ALOGE("BTA_HH_GET_DSCP_EVT: Error, failed to find the uhid driver...");
+                LOG_ERROR("BTA_HH_GET_DSCP_EVT: Error, failed to find the uhid driver...");
                 return;
             }
             {
@@ -1065,7 +1064,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 break;
 
         case BTA_HH_API_ERR_EVT  :
-                ALOGI("BTA_HH API_ERR");
+                LOG_INFO("BTA_HH API_ERR");
                 break;
 
 
@@ -1358,7 +1357,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
     dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
     if (dscp_info.descriptor.dsc_list == NULL)
     {
-        ALOGE("%s: Failed to allocate DSCP for CB", __FUNCTION__);
+        LOG_ERROR("%s: Failed to allocate DSCP for CB", __FUNCTION__);
         return BT_STATUS_FAIL;
     }
     memcpy(dscp_info.descriptor.dsc_list, &(hid_info.dsc_list), hid_info.dl_len);
@@ -1552,7 +1551,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         memset(hexbuf, 0, len);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
-        BTIF_TRACE_DEBUG("Hex bytes filled, hex value: %d", hex_bytes_filled);
+        LOG_INFO("Hex bytes filled, hex value: %d", hex_bytes_filled);
         if (hex_bytes_filled) {
             BT_HDR* p_buf = create_pbuf(hex_bytes_filled, hexbuf);
             if (p_buf == NULL) {

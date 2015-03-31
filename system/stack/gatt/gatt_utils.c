@@ -93,7 +93,7 @@ void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 {
     GATT_TRACE_DEBUG("gatt_free_pending_ind");
     /* release all queued indications */
-    while (p_tcb->pending_ind_q.p_first)
+    while (!GKI_queue_is_empty(&p_tcb->pending_ind_q))
         GKI_freebuf (GKI_dequeue (&p_tcb->pending_ind_q));
 }
 
@@ -110,7 +110,7 @@ void gatt_free_pending_enc_queue(tGATT_TCB *p_tcb)
 {
     GATT_TRACE_DEBUG("gatt_free_pending_enc_queue");
     /* release all queued indications */
-    while (p_tcb->pending_enc_clcb.p_first)
+    while (!GKI_queue_is_empty(&p_tcb->pending_enc_clcb))
         GKI_freebuf (GKI_dequeue (&p_tcb->pending_enc_clcb));
 }
 
@@ -373,7 +373,7 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
 
     if (p)
     {
-        while (p->svc_db.svc_buffer.p_first)
+        while (!GKI_queue_is_empty(&p->svc_db.svc_buffer))
             GKI_freebuf (GKI_dequeue (&p->svc_db.svc_buffer));
         memset(p, 0, sizeof(tGATT_HDL_LIST_ELEM));
     }
@@ -397,7 +397,7 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
     {
         if (memcmp(p_app_id, &p_elem->asgn_range.app_uuid128, sizeof(tBT_UUID)) == 0)
         {
-            while (p_elem->svc_db.svc_buffer.p_first)
+            while (!GKI_queue_is_empty(&p_elem->svc_db.svc_buffer))
                 GKI_freebuf (GKI_dequeue (&p_elem->svc_db.svc_buffer));
 
             p_elem->svc_db.mem_free = 0;
@@ -1363,7 +1363,7 @@ UINT8 gatt_sr_alloc_rcb(tGATT_HDL_LIST_ELEM *p_list )
             p_sreg->e_hdl               = p_list->asgn_range.e_handle;
             p_sreg->p_db                = &p_list->svc_db;
 
-            GATT_TRACE_DEBUG ("total GKI buffer in db [%d]",p_sreg->p_db->svc_buffer.count);
+            GATT_TRACE_DEBUG ("total GKI buffer in db [%d]",GKI_queue_length(&p_sreg->p_db->svc_buffer));
             break;
         }
     }
@@ -1562,15 +1562,20 @@ tGATT_REG *gatt_get_regcb (tGATT_IF gatt_if)
     UINT8           ii = (UINT8)gatt_if;
     tGATT_REG       *p_reg = NULL;
 
-    if (ii)
-    {
-        ii--; /* convert from one based to zero based */
-        p_reg = &gatt_cb.cl_rcb[ii];
-        if ( (ii < GATT_MAX_APPS)  && (p_reg->in_use) )
-            return(p_reg);
+    if (ii < 1 || ii > GATT_MAX_APPS) {
+        GATT_TRACE_WARNING("gatt_if out of range [ = %d]", ii);
+        return NULL;
     }
 
-    return NULL;
+    // Index for cl_rcb is always 1 less than gatt_if.
+    p_reg = &gatt_cb.cl_rcb[ii - 1];
+
+    if (!p_reg->in_use) {
+        GATT_TRACE_WARNING("gatt_if found but not in use.");
+        return NULL;
+    }
+
+    return p_reg;
 }
 
 
