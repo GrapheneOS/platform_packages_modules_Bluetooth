@@ -85,14 +85,15 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ble_confirm_reply,   /*  BTA_DM_API_BLE_CONFIRM_REPLY_EVT    */
     bta_dm_security_grant,
     bta_dm_ble_set_bg_conn_type,
-    bta_dm_ble_set_conn_params,      /* BTA_DM_API_BLE_CONN_PARAM_EVT */
-    bta_dm_ble_set_scan_params,      /* BTA_DM_API_BLE_SCAN_PARAM_EVT */
+    bta_dm_ble_set_conn_params,  /* BTA_DM_API_BLE_CONN_PARAM_EVT */
+    bta_dm_ble_set_scan_params,  /* BTA_DM_API_BLE_SCAN_PARAM_EVT */
+    bta_dm_ble_set_conn_scan_params,  /* BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT */
     bta_dm_ble_observe,
     bta_dm_ble_update_conn_params,   /* BTA_DM_API_UPDATE_CONN_PARAM_EVT */
 #if BLE_PRIVACY_SPT == TRUE
     bta_dm_ble_config_local_privacy,   /* BTA_DM_API_LOCAL_PRIVACY_EVT */
 #endif
-    bta_dm_ble_set_adv_params,     /* BTA_DM_API_BLE_SCAN_PARAM_EVT */
+    bta_dm_ble_set_adv_params,     /* BTA_DM_API_BLE_ADV_PARAM_EVT */
     bta_dm_ble_set_adv_config,     /* BTA_DM_API_BLE_SET_ADV_CONFIG_EVT */
     bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSP_EVT */
     bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */

@@ -903,23 +903,52 @@ void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBleConnScanParams(UINT16 scan_interval, UINT16 scan_window )
+void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 {
-#if BLE_INCLUDED == TRUE
-    tBTA_DM_API_BLE_SCAN_PARAMS    *p_msg;
-
-    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *) GKI_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
+    tBTA_DM_API_BLE_SCAN_PARAMS  *p_msg;
+    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)GKI_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
-
-        p_msg->hdr.event = BTA_DM_API_BLE_SCAN_PARAM_EVT;
-
+        p_msg->hdr.event = BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT;
         p_msg->scan_int         = scan_interval;
         p_msg->scan_window      = scan_window;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBleScanParams
+**
+** Description      This function is called to set scan parameters
+**
+** Parameters:      client_if - Client IF
+**                  scan_interval - scan interval
+**                  scan_window - scan window
+**                  scan_mode - scan mode
+**                  scan_param_setup_status_cback - Set scan param status callback
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
+                            UINT32 scan_window, tBLE_SCAN_MODE scan_mode,
+                            tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback)
+{
+    tBTA_DM_API_BLE_SCAN_PARAMS *p_msg;
+
+    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)GKI_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
+        p_msg->hdr.event = BTA_DM_API_BLE_SCAN_PARAM_EVT;
+        p_msg->client_if = client_if;
+        p_msg->scan_int = scan_interval;
+        p_msg->scan_window = scan_window;
+        p_msg->scan_mode = scan_mode;
+        p_msg->scan_param_setup_cback = scan_param_setup_cback;
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 }
 
 /*******************************************************************************
@@ -1084,7 +1113,7 @@ extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                          UINT32 scan_interval, UINT32 scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
@@ -1141,7 +1170,7 @@ extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value)
 {
     tBTA_DM_API_READ_SCAN_REPORTS  *p_msg;
