@@ -4612,12 +4612,30 @@ void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data)
 **
 ** Function         bta_dm_ble_set_scan_params
 **
+** Description      This function sets BLE scan parameters.
+**
+** Parameters:
+**
+*******************************************************************************/
+void bta_dm_ble_set_scan_params(tBTA_DM_MSG *p_data)
+{
+    BTM_BleSetScanParams(p_data->ble_set_scan_params.client_if,
+                         p_data->ble_set_scan_params.scan_int,
+                         p_data->ble_set_scan_params.scan_window,
+                         p_data->ble_set_scan_params.scan_mode,
+                         p_data->ble_set_scan_params.scan_param_setup_cback);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_ble_set_conn_scan_params
+**
 ** Description      This function set the preferred connection scan parameters.
 **
 ** Parameters:
 **
 *******************************************************************************/
-void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data)
+void bta_dm_ble_set_conn_scan_params (tBTA_DM_MSG *p_data)
 {
     BTM_BleSetConnScanParams(p_data->ble_set_scan_params.scan_int,
                              p_data->ble_set_scan_params.scan_window);
@@ -4694,7 +4712,7 @@ void bta_dm_ble_observe (tBTA_DM_MSG *p_data)
 }
 /*******************************************************************************
 **
-** Function         bta_dm_ble_set_scan_params
+** Function         bta_dm_ble_set_adv_params
 **
 ** Description      This function set the adv parameters.
 **

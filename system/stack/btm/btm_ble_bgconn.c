@@ -112,21 +112,33 @@ static bool background_connections_pending() {
 **
 ** Function         btm_update_scanner_filter_policy
 **
-** Description      This function update the filter policy of scnner or advertiser.
+** Description      This function updates the filter policy of scanner
 *******************************************************************************/
 void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
-    BTM_TRACE_EVENT ("btm_update_scanner_filter_policy");
+
+    UINT32 scan_interval = !p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval;
+    UINT32 scan_window = !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
+
+    BTM_TRACE_EVENT ("%s", __func__);
 
     p_inq->sfp = scan_policy;
-    p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
+    p_inq->scan_type = p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE ? BTM_BLE_SCAN_MODE_ACTI : p_inq->scan_type;
 
-    btsnd_hcic_ble_set_scan_params (p_inq->scan_type,
-                                    (UINT16)(!p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval),
-                                    (UINT16)(!p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window),
-                                     btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
-                                     scan_policy);
+    if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
+    {
+        btsnd_hcic_ble_set_scan_params(p_inq->scan_type, (UINT16)scan_interval,
+                                       (UINT16)scan_window,
+                                       btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                       scan_policy);
+    }
+    else
+    {
+        btm_ble_send_extended_scan_params(p_inq->scan_type, scan_interval, scan_window,
+                                          btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                          scan_policy);
+    }
 }
 /*******************************************************************************
 **
@@ -451,15 +463,13 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
 ** Returns          BOOLEAN: selective connectino procedure is started.
 **
 *******************************************************************************/
-BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_cback)
+BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cback)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT16 scan_int, scan_win;
+    UINT32 scan_int = p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
+    UINT32 scan_win = p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
 
-    BTM_TRACE_EVENT ("btm_ble_start_select_conn");
-
-    scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
-    scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
+    BTM_TRACE_EVENT ("%s", __func__);
 
     if (start)
     {
@@ -473,13 +483,30 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
             btm_update_scanner_filter_policy(SP_ADV_WL);
             btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_PASS;
 
-            if (!btsnd_hcic_ble_set_scan_params(BTM_BLE_SCAN_MODE_PASS,  /* use passive scan by default */
-                                                scan_int, /* scan interval */
-                                                scan_win,    /* scan window */
-                                                p_cb->addr_mgnt_cb.own_addr_type,
-                                                SP_ADV_WL)              /* process advertising packets only from devices in the White List */
-               )
-               return FALSE;
+            /* Process advertising packets only from devices in the white list */
+            if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
+            {
+                /* use passive scan by default */
+                if (!btsnd_hcic_ble_set_scan_params(BTM_BLE_SCAN_MODE_PASS,
+                                                    scan_int,
+                                                    scan_win,
+                                                    p_cb->addr_mgnt_cb.own_addr_type,
+                                                    SP_ADV_WL))
+                {
+                    return FALSE;
+                }
+            }
+            else
+            {
+                if (!btm_ble_send_extended_scan_params(BTM_BLE_SCAN_MODE_PASS,
+                                                       scan_int,
+                                                       scan_win,
+                                                       p_cb->addr_mgnt_cb.own_addr_type,
+                                                       SP_ADV_WL))
+                {
+                    return FALSE;
+                }
+            }
 
             if (!btm_ble_topology_check(BTM_BLE_STATE_PASSIVE_SCAN))
             {
@@ -490,7 +517,6 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
             {
                 if (!btsnd_hcic_ble_set_scan_enable(TRUE, TRUE)) /* duplicate filtering enabled */
                     return FALSE;
-
                 /* mark up inquiry status flag */
                 p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;
                 p_cb->wl_state |= BTM_BLE_WL_SCAN;

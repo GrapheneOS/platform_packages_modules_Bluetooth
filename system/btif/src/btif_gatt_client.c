@@ -116,7 +116,8 @@ typedef enum {
 
 #define BTIF_GATT_OBSERVE_EVT   0x1000
 #define BTIF_GATTC_RSSI_EVT     0x1001
-#define BTIF_GATTC_SCAN_FILTER_EVT   0x1003
+#define BTIF_GATTC_SCAN_FILTER_EVT  0x1003
+#define BTIF_GATTC_SCAN_PARAM_EVT   0x1004
 
 #define ENABLE_BATCH_SCAN 1
 #define DISABLE_BATCH_SCAN 0
@@ -143,7 +144,7 @@ typedef struct
     uint8_t  batch_scan_full_max;
     uint8_t  batch_scan_trunc_max;
     uint8_t  batch_scan_notify_threshold;
-    tBTA_BLE_SCAN_MODE scan_mode;
+    tBTA_BLE_BATCH_SCAN_MODE scan_mode;
     uint32_t scan_interval;
     uint32_t scan_window;
     tBTA_BLE_DISCARD_RULE discard_rule;
@@ -190,8 +191,8 @@ typedef struct
     uint16_t    conn_id;
     uint16_t    len;
     uint16_t    mask;
-    uint16_t    scan_interval;
-    uint16_t    scan_window;
+    uint32_t    scan_interval;
+    uint32_t    scan_window;
     uint8_t     client_if;
     uint8_t     action;
     uint8_t     is_direct;
@@ -248,6 +249,62 @@ static void btif_multi_adv_stop_cb(void *p_tle)
 {
     int client_if = ((TIMER_LIST_ENT*)p_tle)->data;
     btif_gattc_multi_adv_disable(client_if); // Does context switch
+}
+
+static btgattc_error_t btif_gattc_translate_btm_status(tBTM_STATUS status)
+{
+    switch(status)
+    {
+       case BTM_SUCCESS:
+       case BTM_SUCCESS_NO_SECURITY:
+            return BT_GATTC_COMMAND_SUCCESS;
+
+       case BTM_CMD_STARTED:
+            return BT_GATTC_COMMAND_STARTED;
+
+       case BTM_BUSY:
+            return BT_GATTC_COMMAND_BUSY;
+
+       case BTM_CMD_STORED:
+            return BT_GATTC_COMMAND_STORED;
+
+       case BTM_NO_RESOURCES:
+            return BT_GATTC_NO_RESOURCES;
+
+       case BTM_MODE_UNSUPPORTED:
+       case BTM_WRONG_MODE:
+       case BTM_MODE4_LEVEL4_NOT_SUPPORTED:
+            return BT_GATTC_MODE_UNSUPPORTED;
+
+       case BTM_ILLEGAL_VALUE:
+       case BTM_SCO_BAD_LENGTH:
+            return BT_GATTC_ILLEGAL_VALUE;
+
+       case BTM_UNKNOWN_ADDR:
+            return BT_GATTC_UNKNOWN_ADDR;
+
+       case BTM_DEVICE_TIMEOUT:
+            return BT_GATTC_DEVICE_TIMEOUT;
+
+       case BTM_FAILED_ON_SECURITY:
+       case BTM_REPEATED_ATTEMPTS:
+       case BTM_NOT_AUTHORIZED:
+            return BT_GATTC_SECURITY_ERROR;
+
+       case BTM_DEV_RESET:
+       case BTM_ILLEGAL_ACTION:
+            return BT_GATTC_INCORRECT_STATE;
+
+       case BTM_BAD_VALUE_RET:
+            return BT_GATTC_INVALID_CONTROLLER_OUTPUT;
+
+       case BTM_DELAY_CHECK:
+            return BT_GATTC_DELAYED_ENCRYPTION_CHECK;
+
+       case BTM_ERR_PROCESSING:
+       default:
+          return BT_GATTC_ERR_PROCESSING;
+    }
 }
 
 static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
@@ -779,6 +836,14 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
+        case BTIF_GATTC_SCAN_PARAM_EVT:
+        {
+            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t *)p_param;
+            HAL_CBACK(bt_gatt_callbacks, client->scan_parameter_setup_completed_cb,
+                      p_btif_cb->client_if, btif_gattc_translate_btm_status(p_btif_cb->status));
+            break;
+        }
+
         default:
             LOG_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
@@ -1009,6 +1074,16 @@ static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
     btif_cb.client_if = rssi_request_client_if;
     btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATTC_RSSI_EVT,
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+}
+
+static void bta_scan_param_setup_cb(tGATT_IF client_if, tBTM_STATUS status)
+{
+    btif_gattc_cb_t btif_cb;
+
+    btif_cb.status = status;
+    btif_cb.client_if = client_if;
+    btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATTC_SCAN_PARAM_EVT,
+                          (char *)&btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
 static void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action, tBTA_DM_BLE_SCAN_COND_OP cfg_op,
@@ -1641,8 +1716,11 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         }
 
         case BTIF_GATTC_SET_SCAN_PARAMS:
-            BTM_BleSetScanParams(p_cb->scan_interval, p_cb->scan_window, BTM_BLE_SCAN_MODE_ACTI);
+        {
+            BTA_DmSetBleScanParams(p_cb->client_if, p_cb->scan_interval, p_cb->scan_window,
+                                   BTM_BLE_SCAN_MODE_ACTI, bta_scan_param_setup_cb);
             break;
+        }
 
         case BTIF_GATTC_CONFIG_STORAGE_PARAMS:
         {
@@ -2118,10 +2196,12 @@ static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
                                  (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_set_scan_parameters(int scan_interval, int scan_window)
+static bt_status_t btif_gattc_set_scan_parameters(int client_if, int scan_interval,
+                                                  int scan_window)
 {
     CHECK_BTGATT_INIT();
     btif_gattc_cb_t btif_cb;
+    btif_cb.client_if = client_if;
     btif_cb.scan_interval = scan_interval;
     btif_cb.scan_window = scan_window;
     return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_SCAN_PARAMS,

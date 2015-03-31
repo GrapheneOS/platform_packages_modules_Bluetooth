@@ -874,6 +874,9 @@ static void execute_storage_request(UINT16 event, char *p_param)
                 local_le_features.version_supported = cmn_vsc_cb.version_supported;
                 local_le_features.total_trackable_advertisers =
                     cmn_vsc_cb.total_trackable_advertisers;
+
+                local_le_features.extended_scan_support = cmn_vsc_cb.extended_scan_support > 0;
+                local_le_features.debug_logging_supported = cmn_vsc_cb.debug_logging_supported > 0;
                 memcpy(prop.val, &local_le_features, prop.len);
                 #endif
             }
