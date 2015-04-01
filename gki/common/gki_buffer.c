@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <stdlib.h>
 
 #include "osi/include/allocator.h"
 #include "gki_int.h"

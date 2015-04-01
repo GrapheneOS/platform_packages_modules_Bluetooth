@@ -21,6 +21,8 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"

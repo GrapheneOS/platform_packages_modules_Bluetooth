@@ -45,16 +45,22 @@ static inline void init_slot_lock( pthread_mutex_t* mutex)
 
 static inline void lock_slot(pthread_mutex_t* mutex)
 {
-    if(mutex->value)
+    // TODO: Commented out since definition of pthread_mutext_t changed to remove value.
+    // Check is for a programming error - however, should re-implement if there's a 
+    // solution.
+    //if(mutex->value)
         pthread_mutex_lock(mutex);
-    else LOG_ERROR("mutex: %p is not initialized", mutex);
+    //else LOG_ERROR("mutex: %p is not initialized", mutex);
 }
 
 static inline void unlock_slot(pthread_mutex_t* mutex)
 {
-   if(mutex->value)
+    // TODO: Commented out since definition of pthread_mutext_t changed to remove value.
+    // Check is for a programming error - however, should re-implement if there's a 
+    // solution.
+    //if(mutex->value)
         pthread_mutex_unlock(mutex);
-   else LOG_ERROR("mutex: %p is not initialized", mutex);
+    //else LOG_ERROR("mutex: %p is not initialized", mutex);
 }
 
 void dump_bin(const char* title, const char* data, int size);

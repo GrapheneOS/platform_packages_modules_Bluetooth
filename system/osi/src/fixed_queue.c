@@ -27,7 +27,7 @@
 #include "osi/include/semaphore.h"
 #include "osi/include/reactor.h"
 
-struct fixed_queue_t {
+typedef struct fixed_queue_t {
   list_t *list;
   semaphore_t *enqueue_sem;
   semaphore_t *dequeue_sem;

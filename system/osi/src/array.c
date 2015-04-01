@@ -19,6 +19,8 @@
 #define LOG_TAG "bt_osi_array"
 
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/array.h"

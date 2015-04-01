@@ -9,7 +9,7 @@ struct list_node_t {
   void *data;
 };
 
-struct list_t {
+typedef struct list_t {
   list_node_t *head;
   list_node_t *tail;
   size_t length;

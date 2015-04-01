@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 
 #include "osi/include/allocator.h"
 #include "bt_types.h"

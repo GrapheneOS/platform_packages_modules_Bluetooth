@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <cutils/properties.h>
+#include <string.h>
 
 #include "buffer_allocator.h"
 #include "btsnoop.h"

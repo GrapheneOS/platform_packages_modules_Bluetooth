@@ -19,6 +19,7 @@
 #define LOG_TAG "bt_l2cap_client"
 
 #include <assert.h>
+#include <string.h>
 
 #include "btcore/include/bdaddr.h"
 #include "gki/common/gki.h"
