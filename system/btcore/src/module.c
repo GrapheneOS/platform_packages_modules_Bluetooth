@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <dlfcn.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/hash_map.h"
@@ -66,8 +67,32 @@ void module_management_stop(void) {
   pthread_mutex_destroy(&metadata_lock);
 }
 
+/* TODO: remove these externs and explicit checks once dlsym is fixed */
+extern module_t bt_utils_module;
+extern module_t btif_config_module;
+extern module_t controller_module;
+extern module_t gki_module;
+extern module_t counter_module;
+extern module_t stack_config_module;
+extern module_t btsnoop_module;
+extern module_t hci_module;
+extern module_t bte_logmsg_module;
+
 const module_t *get_module(const char *name) {
-  return (module_t *)dlsym(RTLD_DEFAULT, name);
+  module_t* module = (module_t *)dlsym(RTLD_DEFAULT, name);
+  if (module) return module;
+
+  if (!strcmp(name, "bt_utils_module")) return &bt_utils_module;
+  if (!strcmp(name, "btif_config_module")) return &btif_config_module;
+  if (!strcmp(name, "controller_module")) return &controller_module;
+  if (!strcmp(name, "gki_module")) return &gki_module;
+  if (!strcmp(name, "counter_module")) return &counter_module;
+  if (!strcmp(name, "stack_config_module")) return &stack_config_module;
+  if (!strcmp(name, "btsnoop_module")) return &btsnoop_module;
+  if (!strcmp(name, "hci_module")) return &hci_module;
+  if (!strcmp(name, "bte_logmsg_module")) return &bte_logmsg_module;
+
+  return NULL;
 }
 
 bool module_init(const module_t *module) {
