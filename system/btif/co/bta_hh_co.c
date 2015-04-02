@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 #include <linux/uhid.h>
 #include "btif_hh.h"
 #include "bta_api.h"

@@ -29,6 +29,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf_client.h>
 #include <stdlib.h>
+#include <string.h>
 #include <cutils/properties.h>
 
 #define LOG_TAG "bt_btif_hfc"

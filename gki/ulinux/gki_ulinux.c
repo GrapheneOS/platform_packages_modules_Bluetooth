@@ -19,7 +19,9 @@
 #define LOG_TAG "bt_gki"
 
 #include <assert.h>
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 #include <time.h>
 
 #include "btcore/include/module.h"

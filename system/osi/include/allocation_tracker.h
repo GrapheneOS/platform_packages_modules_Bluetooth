@@ -20,6 +20,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct allocation_tracker_t allocation_tracker_t;
 typedef uint8_t allocator_id_t;

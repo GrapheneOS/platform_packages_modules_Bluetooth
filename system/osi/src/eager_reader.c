@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stddef.h>
+#include <string.h>
 #include <sys/eventfd.h>
 
 #include "osi/include/allocator.h"

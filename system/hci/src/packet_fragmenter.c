@@ -19,6 +19,7 @@
 #define LOG_TAG "bt_hci_packet_fragmenter"
 
 #include <assert.h>
+#include <string.h>
 
 #include "buffer_allocator.h"
 #include "device/include/controller.h"

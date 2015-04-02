@@ -28,6 +28,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define LOG_TAG "bt_btif_hf"
 #include "btif_common.h"

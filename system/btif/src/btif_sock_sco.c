@@ -19,8 +19,10 @@
 #define LOG_TAG "bt_btif_sock_sco"
 
 #include <assert.h>
+#include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 

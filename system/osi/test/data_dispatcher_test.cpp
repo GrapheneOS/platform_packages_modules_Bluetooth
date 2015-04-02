@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <climits>
+
 #include "AllocationTestHarness.h"
 
 extern "C" {

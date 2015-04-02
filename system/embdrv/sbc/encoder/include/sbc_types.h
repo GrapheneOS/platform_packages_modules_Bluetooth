@@ -25,6 +25,8 @@
 #ifndef SBC_TYPES_H
 #define SBC_TYPES_H
 
+#include <stdint.h>
+
 #ifdef BUILDCFG
 #include "bt_target.h"
 #endif

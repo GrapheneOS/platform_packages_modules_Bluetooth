@@ -26,6 +26,7 @@
  *****************************************************************************/
 #include <hardware/bluetooth.h>
 #include <fcntl.h>
+#include <string.h>
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "avrc_defs.h"

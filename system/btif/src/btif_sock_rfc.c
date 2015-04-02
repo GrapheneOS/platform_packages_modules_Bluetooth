@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>

@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <string.h>
 #include "btcore/include/bdaddr.h"
 #include "btcore/include/device_class.h"
 #include "btcore/include/property.h"

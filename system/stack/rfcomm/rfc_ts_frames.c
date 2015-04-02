@@ -21,6 +21,7 @@
  *  This file contains functions to send TS 07.10 frames
  *
  ******************************************************************************/
+#include <stddef.h>
 #include "bt_target.h"
 #include "btcore/include/counter.h"
 #include "gki.h"

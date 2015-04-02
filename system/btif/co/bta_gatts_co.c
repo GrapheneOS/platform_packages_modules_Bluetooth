@@ -22,6 +22,7 @@
 #if( defined BTA_GATT_INCLUDED ) && (BTA_GATT_INCLUDED == TRUE)
 
 #include <stdlib.h>
+#include <string.h>
 #include "gki.h"
 #include "bta_gatts_co.h"
 #include "btif_util.h"

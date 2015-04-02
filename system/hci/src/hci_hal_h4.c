@@ -19,6 +19,8 @@
 #define LOG_TAG "bt_hci_h4"
 
 #include <assert.h>
+#include <errno.h>
+#include <string.h>
 
 #include "osi/include/eager_reader.h"
 #include "hci_hal.h"
