@@ -371,7 +371,9 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
       btu_hcif_command_status_evt,
       vsc_callback);
 
+#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
     btu_check_bt_sleep ();
+#endif
 }
 
 
