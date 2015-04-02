@@ -1086,7 +1086,7 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context)
     int num_sbc_frames;
     int num_frames_to_process;
 
-    count = btif_media_cb.RxSbcQ.count;
+    count = btif_media_cb.RxSbcQ._count;
     if (0 == count)
     {
         APPL_TRACE_DEBUG("  QUE  EMPTY ");
@@ -1110,7 +1110,7 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context)
             num_sbc_frames  = p_msg->num_frames_to_be_processed; /* num of frames in Que Packets */
             APPL_TRACE_DEBUG(" Frames left in topmost packet %d", num_sbc_frames);
             APPL_TRACE_DEBUG(" Remaining frames to process in tick %d", num_frames_to_process);
-            APPL_TRACE_DEBUG(" Num of Packets in Que %d", btif_media_cb.RxSbcQ.count);
+            APPL_TRACE_DEBUG(" Num of Packets in Que %d", btif_media_cb.RxSbcQ._count);
 
             if ( num_sbc_frames > num_frames_to_process) /*  Que Packet has more frames*/
             {
