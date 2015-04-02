@@ -25,6 +25,7 @@ LOCAL_SRC_FILES := \
   adapter.c \
   bdtool.c \
   ../../test/suite/support/callbacks.c \
+  ../../test/suite/support/gatt.c \
   ../../test/suite/support/hal.c \
   ../../test/suite/support/pan.c
 

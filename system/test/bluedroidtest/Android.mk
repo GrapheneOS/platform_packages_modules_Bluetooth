@@ -33,7 +33,6 @@ LOCAL_MODULE_TAGS := eng
 LOCAL_MODULE:= bdt
 
 LOCAL_SHARED_LIBRARIES += libcutils   \
-                          libutils    \
                           libhardware \
                           libhardware_legacy
 
