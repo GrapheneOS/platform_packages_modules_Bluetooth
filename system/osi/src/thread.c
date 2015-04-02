@@ -26,6 +26,7 @@
 #include <sys/types.h>
 
 #include "osi/include/allocator.h"
+#include "osi/include/compat.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/reactor.h"

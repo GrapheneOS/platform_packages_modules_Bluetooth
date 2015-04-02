@@ -42,6 +42,7 @@
 #include "btu.h"
 #include "gki.h"
 #include "hcimsgs.h"
+#include "osi/include/compat.h"
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
