@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <features.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 #include <string.h>
@@ -81,7 +82,11 @@ typedef struct {
 static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
 static uint32_t rfc_slot_id;
 static volatile int pth = -1; // poll thread handle
-static pthread_mutex_t slot_lock;
+#if __GLIBC__
+static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+#else
+static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
+#endif
 
 static rfc_slot_t *find_free_slot(void);
 static void cleanup_rfc_slot(rfc_slot_t *rs);
@@ -107,7 +112,6 @@ bt_status_t btsock_rfc_init(int poll_thread_handle) {
   }
 
   BTA_JvEnable(jv_dm_cback);
-  init_slot_lock(&slot_lock);
 
   return BT_STATUS_SUCCESS;
 }
@@ -115,13 +119,13 @@ bt_status_t btsock_rfc_init(int poll_thread_handle) {
 void btsock_rfc_cleanup(void) {
   pth = -1;
 
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i) {
     if (rfc_slots[i].id)
       cleanup_rfc_slot(&rfc_slots[i]);
     list_free(rfc_slots[i].incoming_queue);
   }
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static rfc_slot_t *find_free_slot(void) {
@@ -255,7 +259,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
   }
 
   int status = BT_STATUS_FAIL;
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = alloc_rfc_slot(NULL, service_name, service_uuid, channel, flags, true);
   if (!slot) {
@@ -271,7 +275,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
   status = BT_STATUS_SUCCESS;
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return status;
 }
 
@@ -287,7 +291,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
     return BT_STATUS_NOT_READY;
 
   int status = BT_STATUS_FAIL;
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = alloc_rfc_slot(bd_addr, NULL, service_uuid, channel, flags, false);
   if (!slot) {
@@ -329,7 +333,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
   status = BT_STATUS_SUCCESS;
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return status;
 }
 
@@ -410,7 +414,7 @@ static bool send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int channel
 }
 
 static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
@@ -422,11 +426,11 @@ static void on_cl_rfc_init(tBTA_JV_RFCOMM_CL_INIT *p_init, uint32_t id) {
     cleanup_rfc_slot(slot);
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static void on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
@@ -443,12 +447,12 @@ static void on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t id
     cleanup_rfc_slot(slot);
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id) {
   uint32_t new_listen_slot_id = 0;
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *srv_rs = find_rfc_slot_by_id(id);
   if (!srv_rs)
@@ -466,12 +470,12 @@ static uint32_t on_srv_rfc_connect(tBTA_JV_RFCOMM_SRV_OPEN *p_open, uint32_t id)
   new_listen_slot_id = srv_rs->id;
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return new_listen_slot_id;
 }
 
 static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
@@ -491,32 +495,32 @@ static void on_cli_rfc_connect(tBTA_JV_RFCOMM_OPEN *p_open, uint32_t id) {
     LOG_ERROR("%s unable to send connect completion signal to caller.", __func__);
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static void on_rfc_close(UNUSED_ATTR tBTA_JV_RFCOMM_CLOSE *p_close, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   // rfc_handle already closed when receiving rfcomm close event from stack.
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot)
     cleanup_rfc_slot(slot);
 
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static void on_rfc_write_done(UNUSED_ATTR tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot && !slot->f.outgoing_congest)
     btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
 
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (slot) {
@@ -525,7 +529,7 @@ static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id) {
       btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
   }
 
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
@@ -569,7 +573,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
       break;
 
     default:
-      LOG_ERROR("%s unhandled event %d, slot id: %d", __func__, event, (uintptr_t)user_data);
+      LOG_ERROR("%s unhandled event %d, slot id: %zi", __func__, event, (uintptr_t)user_data);
       break;
   }
   return new_user_data;
@@ -579,7 +583,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
   uint32_t id = (uintptr_t)user_data;
   switch(event) {
     case BTA_JV_CREATE_RECORD_EVT: {
-      lock_slot(&slot_lock);
+      pthread_mutex_lock(&slot_lock);
 
       rfc_slot_t *slot = find_rfc_slot_by_id(id);
       if (slot && create_server_sdp_record(slot)) {
@@ -590,12 +594,12 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
         cleanup_rfc_slot(slot);
       }
 
-      unlock_slot(&slot_lock);
+      pthread_mutex_unlock(&slot_lock);
       break;
     }
 
     case BTA_JV_DISCOVERY_COMP_EVT: {
-      lock_slot(&slot_lock);
+      pthread_mutex_lock(&slot_lock);
       rfc_slot_t *slot = find_rfc_slot_by_id(id);
       if (p_data->disc_comp.status == BTA_JV_SUCCESS && p_data->disc_comp.scn) {
         if (slot && slot->f.doing_sdp_request) {
@@ -627,7 +631,7 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
         slot->f.doing_sdp_request = true;
       }
 
-      unlock_slot(&slot_lock);
+      pthread_mutex_unlock(&slot_lock);
       break;
     }
 
@@ -698,7 +702,7 @@ static bool flush_incoming_que_on_wr_signal(rfc_slot_t *slot) {
 }
 
 void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(user_id);
   if (!slot)
@@ -735,11 +739,11 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
   }
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
 }
 
 int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   int ret = 0;
   uint32_t id = (uintptr_t)user_data;
@@ -770,12 +774,12 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
   }
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return ret;  // Return 0 to disable data flow.
 }
 
 int bta_co_rfc_data_outgoing_size(void *user_data, int *size) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   uint32_t id = (uintptr_t)user_data;
   int ret = false;
@@ -792,12 +796,12 @@ int bta_co_rfc_data_outgoing_size(void *user_data, int *size) {
   }
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return ret;
 }
 
 int bta_co_rfc_data_outgoing(void *user_data, uint8_t *buf, uint16_t size) {
-  lock_slot(&slot_lock);
+  pthread_mutex_lock(&slot_lock);
 
   uint32_t id = (uintptr_t)user_data;
   int ret = false;
@@ -814,6 +818,6 @@ int bta_co_rfc_data_outgoing(void *user_data, uint8_t *buf, uint16_t size) {
   }
 
 out:;
-  unlock_slot(&slot_lock);
+  pthread_mutex_unlock(&slot_lock);
   return ret;
 }
