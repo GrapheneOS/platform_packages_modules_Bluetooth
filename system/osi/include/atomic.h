@@ -53,48 +53,48 @@
 typedef struct atomic_##name atomic_##name##_t;
 
 #define ATOMIC_STORE(name, type, sz) \
-inline void atomic_store_##name(volatile atomic_##name##_t *atomic, type val) { \
+static inline void atomic_store_##name(volatile atomic_##name##_t *atomic, type val) { \
   __atomic_store_##sz(&atomic->_val, val, __ATOMIC_SEQ_CST); \
 }
 
 #define ATOMIC_LOAD(name, type, sz) \
-inline type atomic_load_##name(volatile atomic_##name##_t *atomic) { \
+static inline type atomic_load_##name(volatile atomic_##name##_t *atomic) { \
   return __atomic_load_##sz(&atomic->_val, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value after operation, e.g. new value
 #define ATOMIC_INC_PREFIX(name, type, sz) \
-inline type atomic_inc_prefix_##name(volatile atomic_##name##_t *atomic) { \
+static inline type atomic_inc_prefix_##name(volatile atomic_##name##_t *atomic) { \
   return __atomic_add_fetch_##sz(atomic, 1, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value after operation, e.g. new value
 #define ATOMIC_DEC_PREFIX(name, type, sz) \
-inline type atomic_dec_prefix_##name(volatile atomic_##name##_t *atomic) { \
+static inline type atomic_dec_prefix_##name(volatile atomic_##name##_t *atomic) { \
   return __atomic_sub_fetch_##sz(atomic, 1, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value before operation, e.g. old value
 #define ATOMIC_INC_POSTFIX(name, type, sz) \
-inline type atomic_inc_postfix_##name(volatile atomic_##name##_t *atomic) { \
+static inline type atomic_inc_postfix_##name(volatile atomic_##name##_t *atomic) { \
   return __atomic_fetch_add_##sz(atomic, 1, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value before operation, e.g. old value
 #define ATOMIC_DEC_POSTFIX(name, type, sz) \
-inline type atomic_dec_postfix_##name(volatile atomic_##name##_t *atomic) { \
+static inline type atomic_dec_postfix_##name(volatile atomic_##name##_t *atomic) { \
   return __atomic_fetch_sub_##sz(atomic, 1, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value after operation, e.g. new value
 #define ATOMIC_ADD(name, type, sz) \
-inline type atomic_add_##name(volatile atomic_##name##_t *atomic, type val) { \
+static inline type atomic_add_##name(volatile atomic_##name##_t *atomic, type val) { \
   return __atomic_add_fetch_##sz(atomic, val, __ATOMIC_SEQ_CST); \
 }
 
 // Returns value after operation, e.g. new value
 #define ATOMIC_SUB(name, type, sz) \
-inline type atomic_sub_##name(volatile atomic_##name##_t *atomic, type val) { \
+static inline type atomic_sub_##name(volatile atomic_##name##_t *atomic, type val) { \
   return __atomic_sub_fetch_##sz(atomic, val, __ATOMIC_SEQ_CST); \
 }
 
