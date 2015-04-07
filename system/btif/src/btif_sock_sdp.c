@@ -366,6 +366,77 @@ error:
   return 0;
 }
 
+#define BTA_SAPS_DEFAULT_VERSION 0x0102 /* SAP 1.02 (actual version 1.1) */
+static int add_saps_sdp(const char* p_service_name, int scn)
+{
+
+    tSDP_PROTOCOL_ELEM  protoList [2];
+    UINT16              services[2];
+    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    BOOLEAN             status = FALSE;
+    UINT32              sdp_handle = 0;
+
+    APPL_TRACE_DEBUG("add_sap_sdd:scn %d, service name %s", scn, p_service_name);
+
+    if ((sdp_handle = SDP_CreateRecord()) == 0)
+    {
+        APPL_TRACE_ERROR("MAPS SDP: Unable to register MAPS Service");
+        return sdp_handle;
+    }
+    services[0] = UUID_SERVCLASS_SAP;
+    services[1] = UUID_SERVCLASS_GENERIC_TELEPHONY;
+
+    /* add service class */
+    if (SDP_AddServiceClassIdList(sdp_handle, 2, services))
+    {
+        memset( protoList, 0 , 2*sizeof(tSDP_PROTOCOL_ELEM) );
+        /* add protocol list, including RFCOMM scn */
+        protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+        protoList[0].num_params = 0;
+        protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+        protoList[1].num_params = 1;
+        protoList[1].params[0] = scn;
+
+        if (SDP_AddProtocolList(sdp_handle, 2, protoList))
+        {
+            status = TRUE;  /* All mandatory fields were successful */
+
+            /* Add in the Bluetooth Profile Descriptor List */
+            SDP_AddProfileDescriptorList(sdp_handle,
+                                             UUID_SERVCLASS_SAP,
+                                             BTA_SAPS_DEFAULT_VERSION);
+            /* Add the name. */
+            SDP_AddAttribute(sdp_handle,
+                            (UINT16)ATTR_ID_SERVICE_NAME,
+                            (UINT8)TEXT_STR_DESC_TYPE,
+                            (UINT32)(strlen(p_service_name) + 1),
+                            (UINT8 *)p_service_name);
+
+        } /* end of setting mandatory protocol list */
+    } /* end of setting mandatory service class */
+
+    /* add supported feature and repositories */
+    if (status)
+    {
+        /* Make the service browseable */
+        SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+    }
+
+    if (!status)
+    {
+        SDP_DeleteRecord(sdp_handle);
+        sdp_handle = 0;
+        APPL_TRACE_ERROR("bta_mass_sdp_register FAILED");
+    }
+    else
+    {
+        bta_sys_add_uuid(services[0]);  /* UUID_SERVCLASS_SIM_ACCESS */
+        APPL_TRACE_DEBUG("SAPS:  SDP Registered (handle 0x%08x)", sdp_handle);
+    }
+
+    return sdp_handle;
+}
+
 // Adds an RFCOMM SDP record for a service with the given |name|, |uuid|, and
 // |channel|. This function attempts to identify the type of the service based
 // upon its |uuid|, and will override the |channel| with a reserved channel
@@ -403,8 +474,10 @@ static int add_rfc_sdp_by_uuid(const char *name, const uint8_t *uuid,
   } else if (UUID_MATCHES(UUID_SPP, uuid)) {
     handle = add_spp_sdp(name, final_channel);
   } else if (UUID_MATCHES(UUID_MAP_MAS,uuid)) {
-        // Record created by new SDP create record interface
-        handle = 0xff;
+    // Record created by new SDP create record interface
+    handle = 0xff;
+  } else if (UUID_MATCHES(UUID_SAP,uuid)) {
+    handle = add_saps_sdp(name, final_channel);
   } else {
     handle = add_sdp_by_uuid(name, uuid, final_channel);
   }
