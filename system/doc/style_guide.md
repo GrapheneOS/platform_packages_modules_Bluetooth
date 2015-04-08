@@ -87,6 +87,30 @@ void function(void);
 Note that the function explicitly includes `void` in its parameter list to
 indicate to the compiler that it takes no arguments.
 
+### Variable declarations
+Variables should be declared one per line as close to initialization as possible.
+In nearly all cases, variables should be declared and initialized on the same line.
+Variable declarations should not include extra whitespace to line up fields. For
+example, the following style is preferred:
+```
+  int my_long_variable_name = 0;
+  int x = 5;
+```
+whereas this code is not acceptable:
+```
+  int my_long_variable_name = 0;
+  int                     x = 5;
+```
+
+As a result of the above rule to declare and initialize variables together,
+`for` loops should declare and initialize their iterator variable in the
+initializer statement:
+```
+  for (int i = 0; i < 10; ++i) {
+    // use i
+  }
+```
+
 ### Contiguous memory structs
 Use C99 flexible arrays as the last member of a struct if the array needs
 to be allocated in contiguous memory with its containing struct.
