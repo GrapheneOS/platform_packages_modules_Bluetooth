@@ -90,7 +90,7 @@ indicate to the compiler that it takes no arguments.
 ### Contiguous memory structs
 Use C99 flexible arrays as the last member of a struct if the array needs
 to be allocated in contiguous memory with its containing struct.
-A flexible array member is writen as array_name[] without a specific size.  
+A flexible array member is writen as `array_name[]` without a specified size.
 For example:
 ```
 typedef struct {
