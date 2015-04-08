@@ -893,9 +893,13 @@ bt_status_t btif_av_init()
             return BT_STATUS_FAIL;
 
         btif_enable_service(BTA_A2DP_SOURCE_SERVICE_ID);
+#if (BTA_AV_SINK_INCLUDED == TRUE)
+        btif_enable_service(BTA_A2DP_SINK_SERVICE_ID);
+#endif
 
         /* Also initialize the AV state machine */
-        btif_av_cb.sm_handle = btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
+        btif_av_cb.sm_handle =
+                btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
 
         btif_a2dp_on_init();
 
@@ -960,7 +964,6 @@ static bt_status_t init_sink(btav_callbacks_t* callbacks)
 
     if (status == BT_STATUS_SUCCESS) {
         bt_av_sink_callbacks = callbacks;
-        BTA_AvEnable_Sink(TRUE);
     }
 
     return status;
@@ -1039,7 +1042,10 @@ static void cleanup(void)
 
     btif_a2dp_stop_media_task();
 
-    btif_disable_service(BTA_A2DP_SERVICE_ID);
+    btif_disable_service(BTA_A2DP_SOURCE_SERVICE_ID);
+#if (BTA_AV_SINK_INCLUDED == TRUE)
+    btif_disable_service(BTA_A2DP_SINK_SERVICE_ID);
+#endif
 
     /* Also shut down the AV state machine */
     btif_sm_shutdown(btif_av_cb.sm_handle);
@@ -1212,6 +1218,23 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
          BTA_AvDisable();
      }
      return BT_STATUS_SUCCESS;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_sink_execute_service
+**
+** Description      Initializes/Shuts down the service
+**
+** Returns          BT_STATUS_SUCCESS on success, BT_STATUS_FAIL otherwise
+**
+*******************************************************************************/
+bt_status_t btif_av_sink_execute_service(BOOLEAN b_enable)
+{
+#if (BTA_AV_SINK_INCLUDED == TRUE)
+    BTA_AvEnable_Sink(b_enable);
+#endif
+    return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
