@@ -152,6 +152,22 @@ compile-time checks.
 Use booleans to represent boolean state, instead of a set of masks into an
 integer. It's more transparent and readable, and less error prone.
 
+## Bluedroid conventions
+This section describes coding conventions that are specific to Bluedroid.
+Whereas the _Language_ section describes the use of language features, this
+section describes idioms, best practices, and conventions that are independent
+of language features.
+
+### Memory management
+Use `osi_malloc` or `osi_calloc` to allocate bytes instead of plain `malloc`.
+Likewise, use `osi_free` over `free`. These wrapped functions provide additional
+lightweight memory bounds checks that can help track down memory errors.
+
+By convention, functions that contain `*_new` in their name are allocation
+routines and objects returned from those functions must be freed with the
+corresponding `*_free` function. For example, list objects returned from
+`list_new` should be freed with `list_free` and no other freeing routine.
+
 ## Header files
 In general, every source file (`.c` or `.cpp`) in a `src/` directory should
 have a corresponding header (`.h`) in the `include/` directory.
