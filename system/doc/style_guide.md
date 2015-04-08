@@ -168,6 +168,25 @@ routines and objects returned from those functions must be freed with the
 corresponding `*_free` function. For example, list objects returned from
 `list_new` should be freed with `list_free` and no other freeing routine.
 
+### Asserts
+Use `assert` liberally throughout the code to enforce invariants. Assertions
+should not have any side-effects and should be used to detect programming logic
+errors.
+
+At minimum, every function should assert expectations on its arguments. The
+following example demonstrates the kinds of assertions one should make on
+function arguments.
+```
+  size_t open_and_read_file(const char *filename, void *target_buffer, size_t max_bytes) {
+    assert(filename != NULL);
+    assert(filename[0] != '\0');
+    assert(target_buffer != NULL);
+    assert(max_bytes > 0);
+
+    // function implementation begins here
+  }
+```
+
 ## Header files
 In general, every source file (`.c` or `.cpp`) in a `src/` directory should
 have a corresponding header (`.h`) in the `include/` directory.
