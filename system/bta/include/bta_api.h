@@ -74,7 +74,7 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_NAP_SERVICE_ID      15          /* PAN Network access point */
 #define BTA_GN_SERVICE_ID       16          /* PAN Group Ad-hoc networks */
 #define BTA_SAP_SERVICE_ID      17          /* SIM Access profile */
-#define BTA_A2DP_SERVICE_ID     18          /* A2DP Sink */
+#define BTA_A2DP_SINK_SERVICE_ID        18  /* A2DP Sink */
 #define BTA_AVRCP_SERVICE_ID    19          /* A/V remote control */
 #define BTA_HID_SERVICE_ID      20          /* HID */
 #define BTA_VDP_SERVICE_ID      21          /* Video distribution */
