@@ -214,14 +214,18 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 #else
         btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
 #endif
+
     /* Release any held buffers */
-    while (!list_is_empty(p_lcb->link_xmit_data_q)) {
-        BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
-        list_remove(p_lcb->link_xmit_data_q, p_buf);
-        GKI_freebuf(p_buf);
+    if (p_lcb->link_xmit_data_q)
+    {
+        while (!list_is_empty(p_lcb->link_xmit_data_q)) {
+            BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
+            list_remove(p_lcb->link_xmit_data_q, p_buf);
+            GKI_freebuf(p_buf);
+        }
+        list_free(p_lcb->link_xmit_data_q);
+        p_lcb->link_xmit_data_q = NULL;
     }
-    list_free(p_lcb->link_xmit_data_q);
-    p_lcb->link_xmit_data_q = NULL;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     /* clean up any security pending UCD */
