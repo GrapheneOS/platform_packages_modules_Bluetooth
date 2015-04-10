@@ -40,6 +40,7 @@
 #include "bt_types.h"
 #include "bt_utils.h"
 #include "btcore/include/module.h"
+#include "osi/include/compat.h"
 #include "osi/include/log.h"
 
 /*******************************************************************************

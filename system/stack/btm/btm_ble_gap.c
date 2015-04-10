@@ -54,6 +54,7 @@
 
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
 #define MIN_ADV_LENGTH                       2
+#define BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN    13
 
 #if BLE_VND_INCLUDED == TRUE
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
@@ -456,6 +457,12 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
+
+        if (BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN == p_vcs_cplt_params->param_len)
+        {
+            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.version_supported, p);
+            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
+        }
         btm_cb.cmn_ble_vsc_cb.values_read = TRUE;
     }
 
@@ -1446,9 +1453,44 @@ void btm_ble_select_adv_interval(tBTM_BLE_INQ_CB *p_cb, UINT8 evt_type, UINT16 *
 }
 /*******************************************************************************
 **
+** Function         btm_ble_update_dmt_flag_bits
+**
+** Description      Obtain updated adv flag value based on connect and discoverability mode.
+**                  Also, setup DMT support value in the flag based on whether the controller
+**                  supports both LE and BR/EDR.
+**
+** Parameters:      flag_value (Input / Output) - flag value
+**                  connect_mode (Input) - Connect mode value
+**                  disc_mode (Input) - discoverability mode
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_ble_update_dmt_flag_bits(UINT8 *adv_flag_value, const UINT16 connect_mode,
+                                   const UINT16 disc_mode)
+{
+    /* BR/EDR non-discoverable , non-connectable */
+    if ((disc_mode & BTM_DISCOVERABLE_MASK) == 0 &&
+        (connect_mode & BTM_CONNECTABLE_MASK) == 0)
+        *adv_flag_value |= BTM_BLE_BREDR_NOT_SPT;
+    else
+        *adv_flag_value &= ~BTM_BLE_BREDR_NOT_SPT;
+
+    /* if local controller support, mark both controller and host support in flag */
+    if (controller_get_interface()->supports_simultaneous_le_bredr())
+        *adv_flag_value |= (BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
+    else
+        *adv_flag_value &= ~(BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_ble_set_adv_flag
 **
 ** Description      Set adv flag in adv data.
+**
+** Parameters:      connect_mode (Input)- Connect mode value
+**                  disc_mode (Input) - discoverability mode
 **
 ** Returns          void
 **
@@ -1461,25 +1503,14 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
     if (p_adv_data->p_flags != NULL)
         flag = old_flag = *(p_adv_data->p_flags);
 
-    /* BR/EDR non-discoverable , non-connectable */
-    if ((disc_mode & BTM_DISCOVERABLE_MASK) == 0 &&
-        (connect_mode & BTM_CONNECTABLE_MASK) == 0)
-        flag |= BTM_BLE_BREDR_NOT_SPT;
-    else
-        flag &= ~BTM_BLE_BREDR_NOT_SPT;
-
-    /* if local controller support, mark both controller and host support in flag */
-    if (controller_get_interface()->supports_simultaneous_le_bredr())
-        flag |= (BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
-    else
-        flag &= ~(BTM_BLE_DMT_CONTROLLER_SPT|BTM_BLE_DMT_HOST_SPT);
+    btm_ble_update_dmt_flag_bits (&flag, connect_mode, disc_mode);
 
     LOG_DEBUG("disc_mode %04x", disc_mode);
     /* update discoverable flag */
     if (disc_mode & BTM_BLE_LIMITED_DISCOVERABLE)
     {
         flag &= ~BTM_BLE_GEN_DISC_FLAG;
-        flag |= BTM_BLE_LIMIT_DISC_FLAG ;
+        flag |= BTM_BLE_LIMIT_DISC_FLAG;
     }
     else if (disc_mode & BTM_BLE_GENERAL_DISCOVERABLE)
     {

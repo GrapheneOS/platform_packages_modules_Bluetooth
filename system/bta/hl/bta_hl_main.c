@@ -938,11 +938,9 @@ static void bta_hl_api_cch_close(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                 APPL_TRACE_ERROR("bta_hl_api_cch_close Null Callback");
             }
             break;
-
         default:
             APPL_TRACE_ERROR("status code=%d", status);
             break;
-
     }
 
 }

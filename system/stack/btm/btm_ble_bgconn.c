@@ -324,7 +324,8 @@ BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr)
             {
                 memset(p_bg_dev, 0, sizeof(tBTM_LE_BG_CONN_DEV));
                 if (p_cb->bg_dev_num < BTM_BLE_MAX_BG_CONN_DEV_NUM)
-                {/* The entry being removed is not at the highest index of the array: shift */
+                {
+                    /* The entry being removed is not at the highest index of the array: shift */
                     p_cur = p_bg_dev;
                     p_next = p_bg_dev + 1;
                     for (j = i + 1 ;j < BTM_BLE_MAX_BG_CONN_DEV_NUM && p_next->in_use ;

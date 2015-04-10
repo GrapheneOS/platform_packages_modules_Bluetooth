@@ -145,8 +145,8 @@ tMCA_TC_TBL * mca_tc_tbl_calloc(tMCA_CCB *p_ccb)
     p_tbl->state    = MCA_TC_ST_IDLE;
     p_tbl->lcid     = p_ccb->lcid;
     mca_cb.tc.lcid_tbl[p_ccb->lcid - L2CAP_BASE_APPL_CID] = i;
-    MCA_TRACE_DEBUG("mca_tc_tbl_calloc cb_idx: %d", p_tbl->cb_idx);
 
+    MCA_TRACE_DEBUG("%s() - cb_idx: %d", __func__, p_tbl->cb_idx);
     return p_tbl;
 }
 
@@ -186,8 +186,8 @@ tMCA_TC_TBL * mca_tc_tbl_dalloc(tMCA_DCB *p_dcb)
     p_tbl->state    = MCA_TC_ST_IDLE;
     p_tbl->lcid     = p_dcb->lcid;
     mca_cb.tc.lcid_tbl[p_dcb->lcid - L2CAP_BASE_APPL_CID] = i;
-    MCA_TRACE_DEBUG("mca_tc_tbl_dalloc tcid: %d, cb_idx: %d", p_tbl->tcid, p_tbl->cb_idx);
 
+    MCA_TRACE_DEBUG("%s() - tcid: %d, cb_idx: %d", __func__, p_tbl->tcid, p_tbl->cb_idx);
     return p_tbl;
 }
 
@@ -265,8 +265,11 @@ void mca_set_cfg_by_tbl(tL2CAP_CFG_INFO *p_cfg, tMCA_TC_TBL *p_tbl)
     else
     {
         p_dcb = mca_dcb_by_hdl(p_tbl->cb_idx);
-        p_opt = &p_dcb->p_chnl_cfg->fcr_opt;
-        fcs   = p_dcb->p_chnl_cfg->fcs;
+        if (p_dcb)
+        {
+            p_opt = &p_dcb->p_chnl_cfg->fcr_opt;
+            fcs   = p_dcb->p_chnl_cfg->fcs;
+        }
     }
     memset(p_cfg, 0, sizeof(tL2CAP_CFG_INFO));
     p_cfg->mtu_present = TRUE;
@@ -303,7 +306,7 @@ void mca_tc_close_ind(tMCA_TC_TBL *p_tbl, UINT16 reason)
     close.reason = reason;
     close.lcid   = p_tbl->lcid;
 
-    MCA_TRACE_DEBUG("mca_tc_close_ind tcid: %d, cb_idx:%d, old: %d",
+    MCA_TRACE_DEBUG("%s() - tcid: %d, cb_idx:%d, old: %d", __func__, 
                      p_tbl->tcid, p_tbl->cb_idx, p_tbl->state);
 
     /* Check if the transport channel is in use */
@@ -406,7 +409,8 @@ void mca_tc_cong_ind(tMCA_TC_TBL *p_tbl, BOOLEAN is_congested)
     tMCA_CCB   *p_ccb;
     tMCA_DCB   *p_dcb;
 
-    MCA_TRACE_DEBUG("mca_tc_cong_ind tcid: %d, cb_idx: %d", p_tbl->tcid, p_tbl->cb_idx);
+    MCA_TRACE_DEBUG("%s() - tcid: %d, cb_idx: %d", __func__, p_tbl->tcid, p_tbl->cb_idx);
+
     /* if control channel, notify ccb of congestion */
     if (p_tbl->tcid == MCA_CTRL_TCID)
     {
@@ -445,8 +449,7 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
     UINT8       *p;
     UINT8       rej_rsp_code = MCA_RSP_SUCCESS;
 
-    MCA_TRACE_DEBUG("mca_tc_data_ind tcid: %d, cb_idx: %d", p_tbl->tcid, p_tbl->cb_idx);
-
+    MCA_TRACE_DEBUG("%s() - tcid: %d, cb_idx: %d", __func__, p_tbl->tcid, p_tbl->cb_idx);
 
     /* if control channel, handle control message */
     if (p_tbl->tcid == MCA_CTRL_TCID)
@@ -463,19 +466,21 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
             {
                 if (p_buf->len != mca_std_msg_len[*p])
                 {
-                    MCA_TRACE_ERROR ("opcode: %d required len:%d, got len:%d", *p, mca_std_msg_len[*p], p_buf->len);
+                    MCA_TRACE_ERROR ("$s() - opcode: %d required len: %d, got len: %d"
+                      , __func__, *p, mca_std_msg_len[*p], p_buf->len);
                     rej_rsp_code = MCA_RSP_BAD_PARAM;
                 }
             }
             else if ((*p >= MCA_FIRST_SYNC_OP) && (*p <= MCA_LAST_SYNC_OP))
             {
-                MCA_TRACE_ERROR ("unsupported SYNC opcode: %d len:%d", *p, p_buf->len);
+                MCA_TRACE_ERROR ("%s() - unsupported SYNC opcode: %d len:%d"
+                    , __func__, *p, p_buf->len);
                 /* reject unsupported request */
                 rej_rsp_code = MCA_RSP_NO_SUPPORT;
             }
             else
             {
-                MCA_TRACE_ERROR ("bad opcode: %d len:%d", *p, p_buf->len);
+                MCA_TRACE_ERROR ("%s() - bad opcode: %d len:%d", __func__, *p, p_buf->len);
                 /* reject unsupported request */
                 rej_rsp_code = MCA_RSP_BAD_OPCODE;
             }
@@ -563,7 +568,7 @@ void mca_rcb_dealloc(tMCA_HANDLE handle)
             if (done)
             {
                 memset (p_rcb, 0, sizeof(tMCA_RCB));
-                MCA_TRACE_DEBUG("Reset MCA_RCB index=%d",handle);
+                MCA_TRACE_DEBUG("%s() - reset MCA_RCB index=%d", __func__, handle);
             }
         }
     }

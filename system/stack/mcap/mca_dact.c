@@ -24,7 +24,6 @@
  ******************************************************************************/
 
 #include <stddef.h>
-
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "gki.h"

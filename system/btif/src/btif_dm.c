@@ -27,9 +27,11 @@
 
 #define LOG_TAG "bt_btif_dm"
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <hardware/bluetooth.h>
@@ -1903,11 +1905,11 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             local_le_features.max_adv_instance = cmn_vsc_cb.adv_inst_max;
             local_le_features.max_irk_list_size = cmn_vsc_cb.max_irk_list_sz;
             local_le_features.rpa_offload_supported = cmn_vsc_cb.rpa_offloading;
-            local_le_features.scan_result_storage_size_hibyte =
-                (cmn_vsc_cb.tot_scan_results_strg >> 8) & (0xFF);
-            local_le_features.scan_result_storage_size_lobyte =
-                (cmn_vsc_cb.tot_scan_results_strg) & (0xFF);
             local_le_features.activity_energy_info_supported = cmn_vsc_cb.energy_support;
+            local_le_features.scan_result_storage_size = cmn_vsc_cb.tot_scan_results_strg;
+            local_le_features.version_supported = cmn_vsc_cb.version_supported;
+            local_le_features.total_trackable_advertisers =
+                        cmn_vsc_cb.total_trackable_advertisers;
             memcpy(prop.val, &local_le_features, prop.len);
             HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1, &prop);
             break;
@@ -2506,7 +2508,7 @@ bt_status_t btif_dm_get_adapter_property(bt_property_t *prop)
         case BT_PROPERTY_BDNAME:
         {
             bt_bdname_t *bd_name = (bt_bdname_t*)prop->val;
-            strncpy((char *)bd_name->name,btif_get_default_local_name(),
+            strncpy((char *)bd_name->name, (char *)btif_get_default_local_name(),
                    sizeof(bd_name->name) - 1);
             bd_name->name[sizeof(bd_name->name) - 1] = 0;
             prop->len = strlen((char *)bd_name->name);

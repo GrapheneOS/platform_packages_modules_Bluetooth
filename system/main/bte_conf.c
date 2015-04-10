@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "bta_api.h"
+#include "osi/include/compat.h"
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 

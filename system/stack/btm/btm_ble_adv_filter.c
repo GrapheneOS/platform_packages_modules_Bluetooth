@@ -33,7 +33,8 @@
 #include "device/include/controller.h"
 
 #define BTM_BLE_ADV_FILT_META_HDR_LENGTH 3
-#define BTM_BLE_ADV_FILT_FEAT_SELN_LEN 13
+#define BTM_BLE_ADV_FILT_FEAT_SELN_LEN  13
+#define BTM_BLE_ADV_FILT_TRACK_NUM       2
 
 #define BTM_BLE_PF_BIT_TO_MASK(x)          (UINT16)(1 << (x))
 
@@ -1045,16 +1046,17 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
                                 tBLE_BD_ADDR *p_target, tBTM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
                                 tBTM_BLE_REF_VALUE ref_value)
 {
-    UINT8           param[20], *p;
-    tBTM_STATUS     st = BTM_WRONG_MODE;
+    tBTM_STATUS st = BTM_WRONG_MODE;
     tBTM_BLE_PF_COUNT *p_bda_filter = NULL;
-    UINT8 len =0;
+    UINT8 len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +
+                BTM_BLE_ADV_FILT_TRACK_NUM;
+    UINT8 param[len], *p;
 
     if (BTM_SUCCESS  != btm_ble_obtain_vsc_details())
         return st;
 
     p = param;
-    memset(param, 0, 20);
+    memset(param, 0, len);
     BTM_TRACE_EVENT (" BTM_BleAdvFilterParamSetup");
 
     if (BTM_BLE_SCAN_COND_ADD == action)
@@ -1095,9 +1097,16 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
             UINT8_TO_STREAM(p, p_filt_params->rssi_low_thres);
             /* set onlost timeout */
             UINT16_TO_STREAM(p, p_filt_params->lost_timeout);
+            /* set num_of_track_entries for firmware supporting v0.90 spec and greater */
+            if (cmn_ble_vsc_cb.version_supported > 0)
+                UINT16_TO_STREAM(p, p_filt_params->num_of_tracking_entries);
         }
 
-        len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN;
+        if (0 == cmn_ble_vsc_cb.version_supported)
+            len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN;
+        else
+            len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +
+                  BTM_BLE_ADV_FILT_TRACK_NUM;
 
         if ((st = BTM_VendorSpecificCommand (HCI_BLE_ADV_FILTER_OCF,
                                 (UINT8)len,

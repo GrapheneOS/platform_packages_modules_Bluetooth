@@ -25,6 +25,7 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <string.h>
 #include <hardware/bluetooth.h>
 #include <string.h>
 

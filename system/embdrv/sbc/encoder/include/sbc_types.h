@@ -25,6 +25,8 @@
 #ifndef SBC_TYPES_H
 #define SBC_TYPES_H
 
+#include <stdint.h>
+
 #ifdef BUILDCFG
 #include "bt_target.h"
 #endif
@@ -39,7 +41,7 @@ typedef long SINT32;
 #if (SBC_FOR_EMBEDDED_LINUX == TRUE)
 typedef long long SINT64;
 #else
-typedef __int64 SINT64;
+typedef int64_t SINT64;
 #endif
 
 #elif (SBC_IS_64_MULT_IN_WINDOW_ACCU == TRUE) || (SBC_IS_64_MULT_IN_IDCT == TRUE)
@@ -47,7 +49,7 @@ typedef __int64 SINT64;
 #if (SBC_FOR_EMBEDDED_LINUX == TRUE)
 typedef long long SINT64;
 #else
-typedef __int64 SINT64;
+typedef int64_t SINT64;
 #endif
 
 #endif

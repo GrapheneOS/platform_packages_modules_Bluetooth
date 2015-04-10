@@ -29,6 +29,7 @@
 #include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
+#include "osi/include/compat.h"
 #include "osi/include/config.h"
 #include "btcore/include/module.h"
 #include "osi/include/osi.h"

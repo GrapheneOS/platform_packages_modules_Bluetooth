@@ -36,6 +36,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -129,7 +130,7 @@ void btif_pan_init()
     {
         BTIF_TRACE_DEBUG("Enabling PAN....");
         memset(&btpan_cb, 0, sizeof(btpan_cb));
-        btpan_cb.tap_fd = -1;
+        btpan_cb.tap_fd = INVALID_FD;
         btpan_cb.flow = 1;
         int i;
         for(i = 0; i < MAX_PAN_CONNS; i++)
@@ -142,14 +143,14 @@ void btif_pan_init()
 
 static void pan_disable()
 {
-    if(btpan_cb.enabled)
+    if (btpan_cb.enabled)
     {
         btpan_cb.enabled = 0;
         BTA_PanDisable();
-        if(btpan_cb.tap_fd != -1)
+        if (btpan_cb.tap_fd != INVALID_FD)
         {
             btpan_tap_close(btpan_cb.tap_fd);
-            btpan_cb.tap_fd = -1;
+            btpan_cb.tap_fd = INVALID_FD;
         }
     }
 }
@@ -311,6 +312,8 @@ static int tap_if_up(const char *devname, const bt_bdaddr_t *addr)
     int sk, err;
 
     sk = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sk < 0)
+        return -1 ;
 
     //set mac addr
     memset(&ifr, 0, sizeof(ifr));
@@ -370,6 +373,8 @@ static int tap_if_down(const char *devname)
     int sk;
 
     sk = socket(AF_INET, SOCK_DGRAM, 0);
+    if(sk < 0)
+        return -1 ;
 
     memset(&ifr, 0, sizeof(ifr));
     strncpy(ifr.ifr_name, devname, IF_NAMESIZE - 1);
@@ -428,7 +433,7 @@ int btpan_tap_open()
     }
     BTIF_TRACE_ERROR("can not bring up tap interface:%s", TAP_IF_NAME);
     close(fd);
-    return -1;
+    return INVALID_FD;
 }
 
 int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 proto, const char* buf,
@@ -436,7 +441,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
 {
     UNUSED(ext);
     UNUSED(forward);
-    if(tap_fd != -1)
+    if(tap_fd != INVALID_FD)
     {
         tETH_HDR eth_hdr;
         memcpy(&eth_hdr.h_dest, dst, ETH_ADDR_LEN);
@@ -462,8 +467,8 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
 
 int btpan_tap_close(int fd)
 {
-    tap_if_down(TAP_IF_NAME);
-    close(fd);
+    if(tap_if_down(TAP_IF_NAME) == 0)
+        close(fd);
     if(pan_pth >= 0)
         btsock_thread_wakeup(pan_pth);
     return 0;
@@ -660,7 +665,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
     struct pollfd ufd;
     int fd = (int)p_param;
 
-    if (fd == -1 || fd != btpan_cb.tap_fd)
+    if (fd == INVALID_FD || fd != btpan_cb.tap_fd)
         return;
 
     // Don't occupy BTU context too long, avoid GKI buffer overruns and
@@ -752,7 +757,7 @@ static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id)
     }
 
     if(flags & SOCK_THREAD_FD_EXCEPTION) {
-        btpan_cb.tap_fd = -1;
+        btpan_cb.tap_fd = INVALID_FD;
         btpan_tap_close(fd);
         btif_pan_close_all_conns();
     } else if(flags & SOCK_THREAD_FD_RD)

@@ -43,8 +43,6 @@ tBTM_BLE_ADV_TRACK_CB ble_advtrack_cb;
 #define BTM_BLE_BATCH_SCAN_CB_EVT_MASK       0xF0
 #define BTM_BLE_BATCH_SCAN_SUBCODE_MASK      0x0F
 
-#define BTM_BLE_TRACK_ADV_CMD_LEN               9
-
 /*******************************************************************************
 **  Local functions
 *******************************************************************************/
@@ -62,8 +60,10 @@ void btm_ble_batchscan_cleanup(void);
 *******************************************************************************/
 void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
 {
-    UINT8   sub_event = 0, filt_index = 0, addr_type = 0, adv_state = 0;
-    BD_ADDR bd_addr;
+    tBTM_BLE_TRACK_ADV_DATA adv_data;
+
+    UINT8   sub_event = 0;
+    tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
     STREAM_TO_UINT8(sub_event, p);
 
     BTM_TRACE_EVENT("btm_ble_batchscan_filter_track_adv_vse_cback called with event:%x", sub_event);
@@ -78,13 +78,53 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
     {
         if (len < 10)
             return;
-        STREAM_TO_UINT8(filt_index, p);
-        STREAM_TO_UINT8(addr_type, p);
-        STREAM_TO_BDADDR(bd_addr, p);
-        STREAM_TO_UINT8(adv_state, p);
-        BTM_TRACE_EVENT("track_adv_vse_cback called: %d, %d, %d", filt_index, addr_type, adv_state);
-        ble_advtrack_cb.p_track_cback(filt_index, addr_type, bd_addr, adv_state,
-            ble_advtrack_cb.ref_value);
+
+        memset(&adv_data, 0 , sizeof(tBTM_BLE_TRACK_ADV_DATA));
+        BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
+        adv_data.client_if = (UINT8)ble_advtrack_cb.ref_value;
+        if (cmn_ble_vsc_cb.version_supported > 0)
+        {
+            /* Based on spec v0.90 */
+            STREAM_TO_UINT8(adv_data.filt_index, p);
+            STREAM_TO_UINT8(adv_data.advertiser_state, p);
+            STREAM_TO_UINT8(adv_data.advertiser_info_present, p);
+            STREAM_TO_BDADDR(adv_data.bd_addr.address, p);
+            STREAM_TO_UINT8(adv_data.addr_type, p);
+
+            /* Extract the adv info details */
+            if (ADV_INFO_PRESENT == adv_data.advertiser_info_present)
+            {
+                STREAM_TO_UINT8(adv_data.tx_power, p);
+                STREAM_TO_UINT8(adv_data.rssi_value, p);
+                STREAM_TO_UINT16(adv_data.time_stamp, p);
+
+                STREAM_TO_UINT8(adv_data.adv_pkt_len, p);
+                if (adv_data.adv_pkt_len > 0)
+                {
+                    adv_data.p_adv_pkt_data = GKI_getbuf(adv_data.adv_pkt_len);
+                    memcpy(adv_data.p_adv_pkt_data, p, adv_data.adv_pkt_len);
+                }
+
+                STREAM_TO_UINT8(adv_data.scan_rsp_len, p);
+                if (adv_data.scan_rsp_len > 0)
+                {
+                    adv_data.p_scan_rsp_data = GKI_getbuf(adv_data.scan_rsp_len);
+                    memcpy(adv_data.p_scan_rsp_data, p, adv_data.scan_rsp_len);
+                }
+            }
+        }
+        else
+        {
+            /* Based on spec v0.52 */
+            STREAM_TO_UINT8(adv_data.filt_index, p);
+            STREAM_TO_UINT8(adv_data.addr_type, p);
+            STREAM_TO_BDADDR(adv_data.bd_addr.address, p);
+            STREAM_TO_UINT8(adv_data.advertiser_state, p);
+        }
+
+        BTM_TRACE_EVENT("track_adv_vse_cback called: %d, %d, %d", adv_data.filt_index,
+                         adv_data.addr_type, adv_data.advertiser_state);
+        ble_advtrack_cb.p_track_cback(&adv_data);
         return;
     }
 }
@@ -877,7 +917,7 @@ tBTM_STATUS BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK *p_track_cback,
 
     ble_advtrack_cb.p_track_cback = p_track_cback;
     ble_advtrack_cb.ref_value = ref_value;
-    return BTM_SUCCESS;
+    return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************

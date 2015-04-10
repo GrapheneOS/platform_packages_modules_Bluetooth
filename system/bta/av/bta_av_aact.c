@@ -2172,6 +2172,7 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         /* close the stream */
         APPL_TRACE_DEBUG("close/open num_protect: %d", p_cfg->num_protect);
         if(p_scb->started)
+        {
             bta_av_str_stopped(p_scb, NULL);
             p_scb->started = FALSE;
 
@@ -2179,7 +2180,7 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             L2CA_FlushChannel (p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
 
             AVDT_CloseReq(p_scb->avdt_handle);
-
+        }
     }
 }
 

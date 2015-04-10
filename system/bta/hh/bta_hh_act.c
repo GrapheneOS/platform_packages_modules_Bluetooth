@@ -165,15 +165,15 @@ void bta_hh_disc_cmpl(void)
     tBTA_HH_STATUS  status = BTA_HH_OK;
 
     /* Deregister with lower layer */
-    if (HID_HostDeregister()!= HID_SUCCESS)
+    if (HID_HostDeregister() != HID_SUCCESS)
         status = BTA_HH_ERR;
 
 #if (BTA_HH_LE_INCLUDED == TRUE)
     bta_hh_le_deregister();
-    return;
-#endif
-
+    UNUSED(status);
+#else
     bta_hh_cleanup_disable(status);
+#endif
 }
 
 /*******************************************************************************
@@ -189,7 +189,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
                                   tHID_DEV_SDP_INFO *sdp_rec )
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
-    UINT8              hdl;
+    UINT8              hdl = 0;
     tBTA_HH_STATUS    status = BTA_HH_ERR_SDP;
 
     /* make sure sdp succeeded and hh has not been disabled */

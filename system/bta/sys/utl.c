@@ -22,7 +22,6 @@
  *
  ******************************************************************************/
 #include <stddef.h>
-
 #include "utl.h"
 #include "gki.h"
 #include "btm_api.h"

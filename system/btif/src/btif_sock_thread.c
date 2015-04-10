@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <features.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -110,6 +111,61 @@ static inline void add_poll(int h, int fd, int type, int flags, uint32_t user_id
 
 static pthread_mutex_t thread_slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
+static inline void set_socket_blocking(int s, int blocking)
+{
+    int opts;
+    opts = fcntl(s, F_GETFL);
+    if (opts<0) APPL_TRACE_ERROR("set blocking (%s)", strerror(errno));
+    if(blocking)
+        opts &= ~O_NONBLOCK;
+    else opts |= O_NONBLOCK;
+    if (fcntl(s, F_SETFL, opts) < 0)
+        APPL_TRACE_ERROR("set blocking (%s)", strerror(errno));
+}
+
+static inline int create_server_socket(const char* name)
+{
+    int s = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if(s < 0)
+        return -1;
+    APPL_TRACE_DEBUG("covert name to android abstract name:%s", name);
+    if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) >= 0)
+    {
+        if(listen(s, 5) == 0)
+        {
+            APPL_TRACE_DEBUG("listen to local socket:%s, fd:%d", name, s);
+            return s;
+        }
+        else APPL_TRACE_ERROR("listen to local socket:%s, fd:%d failed, errno:%d", name, s, errno);
+    }
+    else APPL_TRACE_ERROR("create local socket:%s fd:%d, failed, errno:%d", name, s, errno);
+    close(s);
+    return -1;
+}
+static inline int connect_server_socket(const char* name)
+{
+    int s = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if(s < 0)
+        return -1;
+    set_socket_blocking(s, TRUE);
+    if(socket_local_client_connect(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) >= 0)
+    {
+        APPL_TRACE_DEBUG("connected to local socket:%s, fd:%d", name, s);
+        return s;
+    }
+    else APPL_TRACE_ERROR("connect to local socket:%s, fd:%d failed, errno:%d", name, s, errno);
+    close(s);
+    return -1;
+}
+static inline int accept_server_socket(int s)
+{
+    struct sockaddr_un client_address;
+    socklen_t clen;
+    int fd = accept(s, (struct sockaddr*)&client_address, &clen);
+    APPL_TRACE_DEBUG("accepted fd:%d for server fd:%d", fd, s);
+    return fd;
+}
+
 static inline int create_thread(void *(*start_routine)(void *), void * arg,
                                 pthread_t * thread_id)
 {
@@ -118,6 +174,7 @@ static inline int create_thread(void *(*start_routine)(void *), void * arg,
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
     return pthread_create(thread_id, &thread_attr, start_routine, arg);
 }
+
 static void init_poll(int cmd_fd);
 static int alloc_thread_slot()
 {
@@ -564,4 +621,3 @@ static void *sock_poll_thread(void *arg)
     APPL_TRACE_DEBUG("socket poll thread exiting, h:%d", h);
     return 0;
 }
-

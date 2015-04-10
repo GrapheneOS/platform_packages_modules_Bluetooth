@@ -23,7 +23,6 @@
  ******************************************************************************/
 
 #include <stddef.h>
-
 #include "bt_target.h"
 #include "btcore/include/counter.h"
 #include "gki.h"

@@ -42,6 +42,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btcore/include/bdaddr.h"
+#include "osi/include/compat.h"
 #include "osi/include/config.h"
 #include "gki.h"
 #include "osi/include/osi.h"

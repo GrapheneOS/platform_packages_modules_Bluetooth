@@ -284,7 +284,7 @@ int uinput_create(char *name)
     }
     memset(&dev, 0, sizeof(dev));
     if (name)
-        strncpy(dev.name, name, UINPUT_MAX_NAME_SIZE);
+        strncpy(dev.name, name, UINPUT_MAX_NAME_SIZE-1);
 
     dev.id.bustype = BUS_BLUETOOTH;
     dev.id.vendor  = 0x0000;

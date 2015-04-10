@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2009-2012 Broadcom Corporation
+ *  Copyright 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,23 +16,20 @@
  *
  ******************************************************************************/
 
-/*******************************************************************************
- *
- *  Filename:      btif_sock_util.h
- *
- *  Description:   Bluetooth socket Interface Helper functions
- *
- *******************************************************************************/
+#pragma once
 
-#ifndef BTIF_SOCK_UTIL_H
-#define BTIF_SOCK_UTIL_H
+#include <features.h>
+#include <sys/types.h>
 
-#include "osi/include/log.h"
+#if __GLIBC__
 
-void dump_bin(const char* title, const char* data, int size);
+/* Get thread identification. */
+pid_t gettid(void);
 
-int sock_send_fd(int sock_fd, const uint8_t* buffer, int len, int send_fd);
-int sock_send_all(int sock_fd, const uint8_t* buf, int len);
-int sock_recv_all(int sock_fd, uint8_t* buf, int len);
+/* Copy src to string dst of size siz. */
+size_t strlcpy(char *dst, const char *src, size_t siz);
+
+/* Appends src to string dst of size siz. */
+size_t strlcat(char *dst, const char *src, size_t siz);
 
 #endif

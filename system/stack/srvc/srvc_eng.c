@@ -439,7 +439,7 @@ tGATT_STATUS srvc_eng_init (void)
     }
     else
     {
-        memset(&srvc_eng_cb, 0, sizeof(tDIS_CB));
+        memset(&srvc_eng_cb, 0, sizeof(tSRVC_ENG_CB));
 
         /* Create a GATT profile service */
         srvc_eng_cb.gatt_if = GATT_Register(&app_uuid, &srvc_gatt_cback);

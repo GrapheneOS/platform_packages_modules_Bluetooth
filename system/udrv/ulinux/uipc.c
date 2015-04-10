@@ -148,6 +148,8 @@ const char* dump_uipc_event(tUIPC_EVENT event)
 static inline int create_server_socket(const char* name)
 {
     int s = socket(AF_LOCAL, SOCK_STREAM, 0);
+    if (s < 0)
+        return -1;
 
     BTIF_TRACE_EVENT("create_server_socket %s", name);
 
