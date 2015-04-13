@@ -1101,6 +1101,17 @@
 **
 ******************************************************************************/
 #define OBX_14_INCLUDED             FALSE
+
+/* The maximum number of registered servers. */
+#ifndef OBX_NUM_SERVERS
+#define OBX_NUM_SERVERS             12
+#endif
+
+/* The maximum number of active clients. */
+#ifndef OBX_NUM_CLIENTS
+#define OBX_NUM_CLIENTS             8
+#endif
+
 /* This option is application when OBX_14_INCLUDED=TRUE
    Pool ID where to reassemble the SDU.
    This Pool will allow buffers to be used that are larger than

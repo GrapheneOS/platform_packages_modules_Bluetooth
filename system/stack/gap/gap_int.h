@@ -152,7 +152,9 @@ typedef struct
 
 
 extern tGAP_CB  gap_cb;
-
+#if (GAP_CONN_INCLUDED == TRUE)
+    extern void gap_conn_init(void);
+#endif
 #if (BLE_INCLUDED == TRUE)
     extern void gap_attr_db_init(void);
 #endif
