@@ -36,6 +36,11 @@
 #include "btif_sock_sdp.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
+/* The JV interface can have only one user, hence we need to call a few
+ * L2CAP functions from this file. */
+#include "btif_sock_l2cap.h"
+
+
 #include "btif_util.h"
 #include "btm_api.h"
 #include "btm_int.h"
@@ -66,7 +71,9 @@ typedef struct {
   uint32_t id;  // Non-zero indicates a valid (in-use) slot.
   int security;
   int scn;      // Server channel number
+  int scn_notified;
   bt_bdaddr_t addr;
+  int is_service_uuid_valid;
   uint8_t service_uuid[16];
   char service_name[256];
   int fd;
@@ -89,7 +96,7 @@ static rfc_slot_t *find_free_slot(void);
 static void cleanup_rfc_slot(rfc_slot_t *rs);
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
 static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
-static bool send_app_scn(const rfc_slot_t *rs);
+static bool send_app_scn(rfc_slot_t *rs);
 
 static bool is_init_done(void) {
   return pth != -1;
@@ -190,14 +197,18 @@ static rfc_slot_t *alloc_rfc_slot(const bt_bdaddr_t *addr, const char *name, con
   slot->security = security;
   slot->scn = channel;
 
-  if (uuid)
+  if(!is_uuid_empty(uuid)) {
     memcpy(slot->service_uuid, uuid, sizeof(slot->service_uuid));
-  else
-    memset(&slot->service_uuid, 0, sizeof(slot->service_uuid));
-
-  if (name)
+    slot->is_service_uuid_valid = true;
+  } else {
+    memset(slot->service_uuid, 0, sizeof(slot->service_uuid));
+    slot->is_service_uuid_valid = false;
+  }
+  if(name && *name) {
     strlcpy(slot->service_name, name, sizeof(slot->service_name));
-
+  } else {
+    memset(slot->service_name, 0, sizeof(slot->service_name));
+  }
   if (addr)
     slot->addr = *addr;
 
@@ -237,7 +248,9 @@ static rfc_slot_t *create_srv_accept_rfc_slot(rfc_slot_t *srv_rs, const bt_bdadd
 
 bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
   assert(sock_fd != NULL);
-  assert(service_uuid != NULL || (channel >= 1 && channel <= MAX_RFC_CHANNEL));
+  assert((service_uuid != NULL)
+    || (channel >= 1 && channel <= MAX_RFC_CHANNEL)
+	|| ((flags & BTSOCK_FLAG_NO_SDP) != 0));
 
   *sock_fd = INVALID_FD;
 
@@ -246,13 +259,18 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
   if (!is_init_done())
     return BT_STATUS_NOT_READY;
 
-  if (!is_uuid_empty(service_uuid)) {
-    // Use a pre-defined channel # if the UUID is reserved.
-    int reserved_channel = get_reserved_rfc_channel(service_uuid);
-    if (reserved_channel != -1)
-      channel = reserved_channel;
-  } else {
-    service_uuid = UUID_SPP;  // Use serial port profile to listen to specified channel
+  if((flags & BTSOCK_FLAG_NO_SDP) == 0) {
+    if(is_uuid_empty(service_uuid)) {
+      APPL_TRACE_DEBUG("BTA_JvGetChannelId: service_uuid not set AND "
+              "BTSOCK_FLAG_NO_SDP is not set - changing to SPP");
+      service_uuid = UUID_SPP;  // Use serial port profile to listen to specified channel
+    } else {
+      //Check the service_uuid. overwrite the channel # if reserved
+      int reserved_channel = get_reserved_rfc_channel(service_uuid);
+      if (reserved_channel > 0) {
+            channel = reserved_channel;
+      }
+    }
   }
 
   int status = BT_STATUS_FAIL;
@@ -263,9 +281,16 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
     LOG_ERROR("%s unable to allocate RFCOMM slot.", __func__);
     goto out;
   }
-
-  BTA_JvCreateRecordByUser((void *)(uintptr_t)slot->id);
+  APPL_TRACE_DEBUG("BTA_JvGetChannelId: service_name: %s - channel: %d", service_name, channel);
+  BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, (void*) slot->id, channel);
   *sock_fd = slot->app_fd;    // Transfer ownership of fd to caller.
+  /*TODO:
+   * We are leaking one of the app_fd's - either the listen socket, or the connection socket.
+   * WE need to close this in native, as the FD might belong to another process
+    - This is the server socket FD
+    - For accepted connections, we close the FD after passing it to JAVA.
+    - Try to simply remove the = -1 to free the FD at rs cleanup.*/
+//        close(rs->app_fd);
   slot->app_fd = INVALID_FD;  // Drop our reference to the fd.
   btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, slot->id);
 
@@ -335,16 +360,9 @@ out:;
 }
 
 static int create_server_sdp_record(rfc_slot_t *slot) {
-  if (slot->scn > 0) {
-    if (!BTM_TryAllocateSCN(slot->scn)) {
-      LOG_ERROR("%s attempting to allocate fixed channel %d which is already in use.", __func__, slot->scn);
-      return false;
+    if(slot->scn == 0) {
+        return false;
     }
-  } else if ((slot->scn = BTM_AllocateSCN()) == 0) {
-    LOG_ERROR("%s unable to allocate RFCOMM server channel.", __func__);
-    return false;
-  }
-
   slot->sdp_handle = add_rfc_sdp_rec(slot->service_name, slot->service_uuid, slot->scn);
   return (slot->sdp_handle > 0);
 }
@@ -391,9 +409,15 @@ static void cleanup_rfc_slot(rfc_slot_t *slot) {
   slot->rfc_port_handle = 0;
   memset(&slot->f, 0, sizeof(slot->f));
   slot->id = 0;
+  slot->scn_notified = false;
 }
 
-static bool send_app_scn(const rfc_slot_t *slot) {
+static bool send_app_scn(rfc_slot_t *slot) {
+  if(slot->scn_notified == true) {
+    //already send, just return success.
+    return true;
+  }
+  slot->scn_notified = true;
   return sock_send_all(slot->fd, (const uint8_t*)&slot->scn, sizeof(slot->scn)) == sizeof(slot->scn);
 }
 
@@ -403,7 +427,8 @@ static bool send_app_connect_signal(int fd, const bt_bdaddr_t* addr, int channel
   cs.bd_addr = *addr;
   cs.channel = channel;
   cs.status = status;
-
+  cs.max_rx_packet_size = 0; // not used for RFCOMM
+  cs.max_tx_packet_size = 0; // not used for RFCOMM
   if (send_fd == INVALID_FD)
     return sock_send_all(fd, (const uint8_t *)&cs, sizeof(cs)) == sizeof(cs);
 
@@ -435,11 +460,6 @@ static void on_srv_rfc_listen_started(tBTA_JV_RFCOMM_START *p_start, uint32_t id
 
   if (p_start->status == BTA_JV_SUCCESS) {
     slot->rfc_handle = p_start->handle;
-
-    if (!send_app_scn(slot)) {
-      LOG_ERROR("%s unable to send server channel number for slot %d.", __func__, slot->id);
-      cleanup_rfc_slot(slot);
-    }
   } else
     cleanup_rfc_slot(slot);
 
@@ -579,6 +599,52 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
   uint32_t id = (uintptr_t)user_data;
   switch(event) {
+    case BTA_JV_GET_SCN_EVT:
+    {
+      pthread_mutex_lock(&slot_lock);
+      rfc_slot_t* rs = find_rfc_slot_by_id(id);
+      int new_scn = p_data->scn;
+
+      if(rs && (new_scn != 0))
+      {
+        rs->scn = new_scn;
+        /* BTA_JvCreateRecordByUser will only create a record if a UUID is specified,
+         * else it just allocate a RFC channel and start the RFCOMM thread - needed
+         * for the java
+         * layer to get a RFCOMM channel.
+         * If uuid is null the create_sdp_record() will be called from Java when it
+         * has received the RFCOMM and L2CAP channel numbers through the sockets.*/
+
+        // Send channel ID to java layer
+        if(!send_app_scn(rs)){
+          //closed
+          APPL_TRACE_DEBUG("send_app_scn() failed, close rs->id:%d", rs->id);
+          cleanup_rfc_slot(rs);
+        } else {
+          if(rs->is_service_uuid_valid == true) {
+            // We already have data for SDP record, create it (RFC-only profiles)
+            BTA_JvCreateRecordByUser((void *)rs->id);
+          } else {
+            APPL_TRACE_DEBUG("is_service_uuid_valid==false - don't set SDP-record, "
+                    "just start the RFCOMM server", rs->id);
+            //now start the rfcomm server after sdp & channel # assigned
+            BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn, MAX_RFC_SESSION,
+                    rfcomm_cback, (void*)rs->id);
+          }
+        }
+      } else if(rs) {
+        APPL_TRACE_ERROR("jv_dm_cback: Error: allocate channel %d, slot found:%p", rs->scn, rs);
+        cleanup_rfc_slot(rs);
+      }
+      pthread_mutex_unlock(&slot_lock);
+      break;
+    }
+    case BTA_JV_GET_PSM_EVT:
+    {
+      APPL_TRACE_DEBUG("Received PSM: 0x%04x", p_data->psm);
+      on_l2cap_psm_assigned(id, p_data->psm);
+      break;
+    }
     case BTA_JV_CREATE_RECORD_EVT: {
       pthread_mutex_lock(&slot_lock);
 
@@ -713,6 +779,9 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
       // Make sure there's data pending in case the peer closed the socket.
       int size = 0;
       if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(slot->fd, FIONREAD, &size) == 0 && size))
+        //unlock before BTA_JvRfcommWrite to avoid deadlock on concurrnet multi rfcomm connectoins
+        //concurrnet multi rfcomm connectoins
+        pthread_mutex_unlock(&slot_lock);
         BTA_JvRfcommWrite(slot->rfc_handle, slot->id);
     } else {
       LOG_ERROR("%s socket signaled for read while disconnected, slot: %d, channel: %d", __func__, slot->id, slot->scn);

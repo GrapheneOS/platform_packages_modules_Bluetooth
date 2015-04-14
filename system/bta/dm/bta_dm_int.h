@@ -85,6 +85,7 @@ enum
     BTA_DM_API_ADD_BLEKEY_EVT,
     BTA_DM_API_ADD_BLEDEVICE_EVT,
     BTA_DM_API_BLE_PASSKEY_REPLY_EVT,
+    BTA_DM_API_BLE_CONFIRM_REPLY_EVT,
     BTA_DM_API_BLE_SEC_GRANT_EVT,
     BTA_DM_API_BLE_SET_BG_CONN_TYPE,
     BTA_DM_API_BLE_CONN_PARAM_EVT,
@@ -1043,6 +1044,7 @@ extern void bta_dm_add_ampkey (tBTA_DM_MSG *p_data);
 extern void bta_dm_add_blekey (tBTA_DM_MSG *p_data);
 extern void bta_dm_add_ble_device (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_passkey_reply (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_confirm_reply (tBTA_DM_MSG *p_data);
 extern void bta_dm_security_grant (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data);
@@ -1105,8 +1107,6 @@ extern void bta_dm_search_cancel_notify (tBTA_DM_MSG *p_data);
 extern void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data);
 extern void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data);
 extern tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(BD_ADDR peer_addr);
-
-extern void bta_dm_ble_config_local_privacy (tBTA_DM_MSG *p_data);
 
 extern void bta_dm_pm_active(BD_ADDR peer_addr);
 

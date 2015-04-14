@@ -257,6 +257,13 @@
 #define BTM_CMD_POOL_ID             GKI_POOL_ID_2
 #endif
 
+#ifndef OBX_LRG_DATA_POOL_SIZE
+#define OBX_LRG_DATA_POOL_SIZE      GKI_BUF4_SIZE
+#endif
+
+#ifndef OBX_LRG_DATA_POOL_ID
+#define OBX_LRG_DATA_POOL_ID        GKI_POOL_ID_4
+#endif
 /* Used to send data to L2CAP. */
 #ifndef GAP_DATA_POOL_ID
 #define GAP_DATA_POOL_ID            GKI_POOL_ID_3
@@ -699,12 +706,12 @@
 /* Used for features using fixed channels; set to zero if no fixed channels supported (BLE, etc.) */
 /* Excluding L2CAP signaling channel and UCD */
 #ifndef L2CAP_NUM_FIXED_CHNLS
-#define L2CAP_NUM_FIXED_CHNLS               4
+#define L2CAP_NUM_FIXED_CHNLS               32
 #endif
 
 /* First fixed channel supported */
 #ifndef L2CAP_FIRST_FIXED_CHNL
-#define L2CAP_FIRST_FIXED_CHNL              3
+#define L2CAP_FIRST_FIXED_CHNL              4
 #endif
 
 #ifndef L2CAP_LAST_FIXED_CHNL
@@ -730,6 +737,15 @@
 #ifndef L2CAP_CONFORMANCE_TESTING
 #define L2CAP_CONFORMANCE_TESTING           FALSE
 #endif
+
+/*
+ * Max bytes per connection to buffer locally before dropping the
+ * connection if local client does not receive it  - default is 1MB
+ */
+#ifndef L2CAP_MAX_RX_BUFFER
+#define L2CAP_MAX_RX_BUFFER                 0x100000
+#endif
+
 
 #ifndef TIMER_PARAM_TYPE
 #define TIMER_PARAM_TYPE    UINT32
@@ -888,11 +904,17 @@
 #define SMP_MIN_ENC_KEY_SIZE    7
 #endif
 
-/* Used for conformance testing ONLY */
-#ifndef SMP_CONFORMANCE_TESTING
-#define SMP_CONFORMANCE_TESTING           FALSE
+/* minimum link timeout after SMP pairing is done, leave room for key exchange
+   and racing condition for the following service connection.
+   Prefer greater than 0 second, and no less than default inactivity link idle
+   timer(L2CAP_LINK_INACTIVITY_TOUT) in l2cap) */
+#ifndef SMP_LINK_TOUT_MIN
+#if (L2CAP_LINK_INACTIVITY_TOUT > 0)
+#define SMP_LINK_TOUT_MIN               L2CAP_LINK_INACTIVITY_TOUT
+#else
+#define SMP_LINK_TOUT_MIN               2
 #endif
-
+#endif
 /******************************************************************************
 **
 ** SDP
@@ -906,7 +928,7 @@
 
 /* The maximum number of SDP records the server can support. */
 #ifndef SDP_MAX_RECORDS
-#define SDP_MAX_RECORDS             20
+#define SDP_MAX_RECORDS             30
 #endif
 
 /* The maximum number of attributes in each record. */
@@ -1072,6 +1094,104 @@
 #ifndef PORT_SCHEDULE_UNLOCK
 #define PORT_SCHEDULE_UNLOCK        GKI_enable()
 #endif
+
+/******************************************************************************
+**
+** OBEX
+**
+******************************************************************************/
+#define OBX_14_INCLUDED             FALSE
+
+/* The maximum number of registered servers. */
+#ifndef OBX_NUM_SERVERS
+#define OBX_NUM_SERVERS             12
+#endif
+
+/* The maximum number of active clients. */
+#ifndef OBX_NUM_CLIENTS
+#define OBX_NUM_CLIENTS             8
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+   Pool ID where to reassemble the SDU.
+   This Pool will allow buffers to be used that are larger than
+   the L2CAP_MAX_MTU. */
+#ifndef OBX_USER_RX_POOL_ID
+#define OBX_USER_RX_POOL_ID     OBX_LRG_DATA_POOL_ID
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+   Pool ID where to hold the SDU.
+   This Pool will allow buffers to be used that are larger than
+   the L2CAP_MAX_MTU. */
+#ifndef OBX_USER_TX_POOL_ID
+#define OBX_USER_TX_POOL_ID     OBX_LRG_DATA_POOL_ID
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
+*/
+#ifndef OBX_FCR_RX_POOL_ID
+#define OBX_FCR_RX_POOL_ID      HCI_ACL_POOL_ID
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+GKI Buffer Pool ID used to hold MPS segments used in (re)transmissions.
+L2CAP_DEFAULT_ERM_POOL_ID is specified to use the HCI ACL data pool.
+Note:  This pool needs to have enough buffers to hold two times the window size negotiated
+ in the L2CA_SetFCROptions (2 * tx_win_size)  to allow for retransmissions.
+ The size of each buffer must be able to hold the maximum MPS segment size passed in
+ L2CA_SetFCROptions plus BT_HDR (8) + HCI preamble (4) + L2CAP_MIN_OFFSET (11 - as of BT 2.1 + EDR Spec).
+*/
+#ifndef OBX_FCR_TX_POOL_ID
+#define OBX_FCR_TX_POOL_ID      HCI_ACL_POOL_ID
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+Size of the transmission window when using enhanced retransmission mode. Not used
+in basic and streaming modes. Range: 1 - 63
+*/
+#ifndef OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR
+#define OBX_FCR_OPT_TX_WINDOW_SIZE_BR_EDR       20
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+Number of transmission attempts for a single I-Frame before taking
+Down the connection. Used In ERTM mode only. Value is Ignored in basic and
+Streaming modes.
+Range: 0, 1-0xFF
+0 - infinite retransmissions
+1 - single transmission
+*/
+#ifndef OBX_FCR_OPT_MAX_TX_B4_DISCNT
+#define OBX_FCR_OPT_MAX_TX_B4_DISCNT    20
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+Retransmission Timeout
+Range: Minimum 2000 (2 secs) on BR/EDR when supporting PBF.
+ */
+#ifndef OBX_FCR_OPT_RETX_TOUT
+#define OBX_FCR_OPT_RETX_TOUT           2000
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+Monitor Timeout
+Range: Minimum 12000 (12 secs) on BR/EDR when supporting PBF.
+*/
+#ifndef OBX_FCR_OPT_MONITOR_TOUT
+#define OBX_FCR_OPT_MONITOR_TOUT        12000
+#endif
+
+/* This option is application when OBX_14_INCLUDED=TRUE
+Maximum PDU payload size.
+Suggestion: The maximum amount of data that will fit into a 3-DH5 packet.
+Range: 2 octets
+*/
+#ifndef OBX_FCR_OPT_MAX_PDU_SIZE
+#define OBX_FCR_OPT_MAX_PDU_SIZE        L2CAP_MPS_OVER_BR_EDR
+#endif
+
 
 /******************************************************************************
 **
@@ -1279,6 +1399,25 @@
 ** GAP
 **
 ******************************************************************************/
+
+#ifndef GAP_INCLUDED
+#define GAP_INCLUDED                TRUE
+#endif
+
+/* This is set to enable use of GAP L2CAP connections. */
+#ifndef GAP_CONN_INCLUDED
+#define GAP_CONN_INCLUDED           TRUE
+#endif
+
+/* This is set to enable posting event for data write */
+#ifndef GAP_CONN_POST_EVT_INCLUDED
+#define GAP_CONN_POST_EVT_INCLUDED  FALSE
+#endif
+
+/* The maximum number of simultaneous GAP L2CAP connections. */
+#ifndef GAP_MAX_CONNECTIONS
+#define GAP_MAX_CONNECTIONS         30
+#endif
 
 /* keep the raw data received from SDP server in database. */
 #ifndef SDP_RAW_DATA_INCLUDED

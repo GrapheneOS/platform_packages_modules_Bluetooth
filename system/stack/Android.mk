@@ -73,6 +73,7 @@ LOCAL_SRC_FILES:= \
     ./btm/btm_ble_multi_adv.c \
     ./btm/btm_ble_batchscan.c \
     ./btm/btm_ble_cont_energy.c \
+    ./btm/btm_ble_privacy.c \
     ./btm/btm_acl.c \
     ./btm/btm_sco.c \
     ./btm/btm_pm.c \
@@ -115,6 +116,10 @@ LOCAL_SRC_FILES:= \
     ./smp/smp_keys.c \
     ./smp/smp_api.c \
     ./smp/aes.c \
+    ./smp/smp_br_main.c\
+    ./smp/p_256_curvepara.c \
+    ./smp/p_256_ecc_pp.c \
+    ./smp/p_256_multprecision.c \
     ./avdt/avdt_ccb.c \
     ./avdt/avdt_scb_act.c \
     ./avdt/avdt_msg.c \
@@ -152,7 +157,8 @@ LOCAL_SRC_FILES:= \
     ./l2cap/l2cap_client.c \
     ./gap/gap_api.c \
     ./gap/gap_ble.c \
-    ../vnd/ble/vendor_ble.c
+    ./gap/gap_conn.c \
+    ./gap/gap_utils.c
 
 LOCAL_MODULE := libbt-brcm_stack
 LOCAL_MODULE_TAGS := optional

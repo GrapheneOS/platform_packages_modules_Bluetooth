@@ -80,7 +80,7 @@ BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_bda)
 BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
                                        UINT8 adv_type, UINT8 addr_type_own,
                                        UINT8 addr_type_dir, BD_ADDR direct_bda,
-                                       UINT8 channel_map, UINT8 scan_filter_policy)
+                                       UINT8 channel_map, UINT8 adv_filter_policy)
 {
     BT_HDR *p;
     UINT8 *pp;
@@ -103,7 +103,7 @@ BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
     UINT8_TO_STREAM (pp, addr_type_dir);
     BDADDR_TO_STREAM (pp, direct_bda);
     UINT8_TO_STREAM (pp, channel_map);
-    UINT8_TO_STREAM (pp, scan_filter_policy);
+    UINT8_TO_STREAM (pp, adv_filter_policy);
 
     btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID,  p);
     return (TRUE);
@@ -767,6 +767,168 @@ BOOLEAN btsnd_hcic_ble_rc_param_req_neg_reply(UINT16 handle, UINT8 reason)
     return (TRUE);
 }
 #endif
+
+BOOLEAN btsnd_hcic_ble_add_device_resolving_list (UINT8 addr_type_peer, BD_ADDR bda_peer,
+    UINT8 irk_peer[HCIC_BLE_IRK_SIZE],
+    UINT8 irk_local[HCIC_BLE_IRK_SIZE])
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_ADD_DEV_RESOLVING_LIST)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_ADD_DEV_RESOLVING_LIST;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_ADD_DEV_RESOLVING_LIST);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_ADD_DEV_RESOLVING_LIST);
+    UINT8_TO_STREAM (pp, addr_type_peer);
+    BDADDR_TO_STREAM (pp, bda_peer);
+    ARRAY_TO_STREAM (pp, irk_peer, HCIC_BLE_ENCRYT_KEY_SIZE);
+    ARRAY_TO_STREAM (pp, irk_local, HCIC_BLE_ENCRYT_KEY_SIZE);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_rm_device_resolving_list (UINT8 addr_type_peer, BD_ADDR bda_peer)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_RM_DEV_RESOLVING_LIST)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_RM_DEV_RESOLVING_LIST;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_RM_DEV_RESOLVING_LIST);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_RM_DEV_RESOLVING_LIST);
+    UINT8_TO_STREAM (pp, addr_type_peer);
+    BDADDR_TO_STREAM (pp, bda_peer);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_clear_resolving_list (void)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_CLEAR_RESOLVING_LIST)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_CLEAR_RESOLVING_LIST;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_CLEAR_RESOLVING_LIST);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_CLEAR_RESOLVING_LIST);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_read_resolvable_addr_peer (UINT8 addr_type_peer, BD_ADDR bda_peer)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_PEER)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_PEER;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_READ_RESOLVABLE_ADDR_PEER);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_PEER);
+    UINT8_TO_STREAM (pp, addr_type_peer);
+    BDADDR_TO_STREAM (pp, bda_peer);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_read_resolvable_addr_local (UINT8 addr_type_peer, BD_ADDR bda_peer)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_LOCAL)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_LOCAL;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_READ_RESOLVABLE_ADDR_LOCAL);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_LOCAL);
+    UINT8_TO_STREAM (pp, addr_type_peer);
+    BDADDR_TO_STREAM (pp, bda_peer);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_set_addr_resolution_enable (UINT8 addr_resolution_enable)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_SET_ADDR_RESOLUTION_ENABLE)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_SET_ADDR_RESOLUTION_ENABLE;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_SET_ADDR_RESOLUTION_ENABLE);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_SET_ADDR_RESOLUTION_ENABLE);
+    UINT8_TO_STREAM (pp, addr_resolution_enable);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
+BOOLEAN btsnd_hcic_ble_set_rand_priv_addr_timeout (UINT16 rpa_timout)
+{
+    BT_HDR *p;
+    UINT8 *pp;
+
+    if ((p = HCI_GET_CMD_BUF (HCIC_PARAM_SIZE_BLE_SET_RAND_PRIV_ADDR_TIMOUT)) == NULL)
+        return (FALSE);
+
+    pp = (UINT8 *)(p + 1);
+
+    p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_SET_RAND_PRIV_ADDR_TIMOUT;
+    p->offset = 0;
+
+    UINT16_TO_STREAM (pp, HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT);
+    UINT8_TO_STREAM (pp, HCIC_PARAM_SIZE_BLE_SET_RAND_PRIV_ADDR_TIMOUT);
+    UINT16_TO_STREAM (pp, rpa_timout);
+
+    btu_hcif_send_cmd (LOCAL_BR_EDR_CONTROLLER_ID, p);
+
+    return (TRUE);
+}
+
 
 #endif
 

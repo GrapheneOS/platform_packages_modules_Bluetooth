@@ -138,7 +138,7 @@ tHID_STATUS hidh_conn_disconnect (UINT8 dhandle)
 
         /* Set l2cap idle timeout to 0 (so ACL link is disconnected
          * immediately after last channel is closed) */
-        L2CA_SetIdleTimeoutByBdAddr(hh_cb.devices[dhandle].addr, 0);
+        L2CA_SetIdleTimeoutByBdAddr(hh_cb.devices[dhandle].addr, 0, BT_TRANSPORT_BR_EDR);
         /* Disconnect both interrupt and control channels */
         if (p_hcon->intr_cid)
             L2CA_DisconnectReq (p_hcon->intr_cid);

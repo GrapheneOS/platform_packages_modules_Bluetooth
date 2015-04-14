@@ -87,10 +87,34 @@ void function(void);
 Note that the function explicitly includes `void` in its parameter list to
 indicate to the compiler that it takes no arguments.
 
+### Variable declarations
+Variables should be declared one per line as close to initialization as possible.
+In nearly all cases, variables should be declared and initialized on the same line.
+Variable declarations should not include extra whitespace to line up fields. For
+example, the following style is preferred:
+```
+  int my_long_variable_name = 0;
+  int x = 5;
+```
+whereas this code is not acceptable:
+```
+  int my_long_variable_name = 0;
+  int                     x = 5;
+```
+
+As a result of the above rule to declare and initialize variables together,
+`for` loops should declare and initialize their iterator variable in the
+initializer statement:
+```
+  for (int i = 0; i < 10; ++i) {
+    // use i
+  }
+```
+
 ### Contiguous memory structs
 Use C99 flexible arrays as the last member of a struct if the array needs
 to be allocated in contiguous memory with its containing struct.
-A flexible array member is writen as array_name[] without a specific size.  
+A flexible array member is writen as `array_name[]` without a specified size.
 For example:
 ```
 typedef struct {
@@ -127,6 +151,41 @@ compile-time checks.
 ### Booleans instead of bitfields
 Use booleans to represent boolean state, instead of a set of masks into an
 integer. It's more transparent and readable, and less error prone.
+
+## Bluedroid conventions
+This section describes coding conventions that are specific to Bluedroid.
+Whereas the _Language_ section describes the use of language features, this
+section describes idioms, best practices, and conventions that are independent
+of language features.
+
+### Memory management
+Use `osi_malloc` or `osi_calloc` to allocate bytes instead of plain `malloc`.
+Likewise, use `osi_free` over `free`. These wrapped functions provide additional
+lightweight memory bounds checks that can help track down memory errors.
+
+By convention, functions that contain `*_new` in their name are allocation
+routines and objects returned from those functions must be freed with the
+corresponding `*_free` function. For example, list objects returned from
+`list_new` should be freed with `list_free` and no other freeing routine.
+
+### Asserts
+Use `assert` liberally throughout the code to enforce invariants. Assertions
+should not have any side-effects and should be used to detect programming logic
+errors.
+
+At minimum, every function should assert expectations on its arguments. The
+following example demonstrates the kinds of assertions one should make on
+function arguments.
+```
+  size_t open_and_read_file(const char *filename, void *target_buffer, size_t max_bytes) {
+    assert(filename != NULL);
+    assert(filename[0] != '\0');
+    assert(target_buffer != NULL);
+    assert(max_bytes > 0);
+
+    // function implementation begins here
+  }
+```
 
 ## Header files
 In general, every source file (`.c` or `.cpp`) in a `src/` directory should

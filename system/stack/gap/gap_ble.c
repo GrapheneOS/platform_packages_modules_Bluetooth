@@ -31,8 +31,6 @@
 
 #define GAP_CHAR_ICON_SIZE          2
 #define GAP_CHAR_DEV_NAME_SIZE      248
-#define GAP_BLE_PRIVACY_FLAG_SIZE    1
-
 #define GAP_MAX_NUM_INC_SVR       0
 #define GAP_MAX_ATTR_NUM          (2 * GAP_MAX_CHAR_NUM + GAP_MAX_NUM_INC_SVR + 1)
 #define GAP_MAX_CHAR_VALUE_SIZE   (30 + GAP_CHAR_DEV_NAME_SIZE)
@@ -41,18 +39,6 @@
 #ifndef GAP_ATTR_DB_SIZE
 #define GAP_ATTR_DB_SIZE      GATT_DB_MEM_SIZE(GAP_MAX_NUM_INC_SVR, GAP_MAX_CHAR_NUM, GAP_MAX_CHAR_VALUE_SIZE)
 #endif
-
-/* privacy flag readable and writable with encryption on */
-#ifndef GAP_BLE_PRIVACY_FLAG_PERM
-#define GAP_BLE_PRIVACY_FLAG_PERM       (GATT_PERM_READ|GATT_PERM_WRITE)
-#endif
-
-#define GATT_READ_GAP_PRIVACY_FLAG      1
-#define GATT_SET_GAP_PRIVACY_FLAG       2
-#define GATT_READ_GAP_REMOTE_NAME       3
-#define GATT_UPDATE_RECONN_ADDR         4
-
-#define GAP_BLE_PRIVACY_UNKNOWN         0xff
 
 static void gap_ble_s_attr_request_cback (UINT16 conn_id, UINT32 trans_id, tGATTS_REQ_TYPE op_code, tGATTS_DATA *p_data);
 
@@ -133,7 +119,7 @@ tGAP_CLCB *gap_ble_find_clcb_by_conn_id(UINT16 conn_id)
 ** Returns           NULL if not found. Otherwise pointer to the connection link block.
 **
 *******************************************************************************/
-tGAP_CLCB *gap_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
+tGAP_CLCB *gap_clcb_alloc (BD_ADDR bda)
 {
     UINT8         i_clcb = 0;
     tGAP_CLCB    *p_clcb = NULL;
@@ -142,9 +128,8 @@ tGAP_CLCB *gap_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
     {
         if (!p_clcb->in_use)
         {
-            p_clcb->in_use      = TRUE;
-            p_clcb->conn_id     = conn_id;
-            p_clcb->connected   = TRUE;
+            memset(p_clcb, 0, sizeof(tGAP_CLCB));
+            p_clcb->in_use = TRUE;
             memcpy (p_clcb->bda, bda, BD_ADDR_LEN);
             break;
         }
@@ -154,67 +139,75 @@ tGAP_CLCB *gap_clcb_alloc (UINT16 conn_id, BD_ADDR bda)
 
 /*******************************************************************************
 **
-** Function         gap_find_alloc_clcb
+** Function         gap_ble_dealloc_clcb
 **
-** Description      The function find or allocates a GAP  connection link control block
+** Description      The function clean up the pending request queue in GAP
 **
-** Returns           NULL if not found. Otherwise pointer to the connection link block.
+** Returns          none
 **
 *******************************************************************************/
-tGAP_CLCB *gap_find_alloc_clcb (UINT16 conn_id, BD_ADDR bda)
+void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
 {
-    UINT8         i_clcb = 0;
-    tGAP_CLCB    *p_clcb = NULL;
+    tGAP_BLE_REQ    *p_q;
 
-    for (i_clcb = 0, p_clcb= gap_cb.clcb; i_clcb < GAP_MAX_CL; i_clcb++, p_clcb++)
+    while((p_q = (tGAP_BLE_REQ *)GKI_dequeue(&p_clcb->pending_req_q)) != NULL)
     {
-        if (!p_clcb->in_use)
-        {
-            p_clcb->in_use      = TRUE;
-            p_clcb->conn_id     = conn_id;
-            p_clcb->connected   = TRUE;
-            memcpy (p_clcb->bda, bda, BD_ADDR_LEN);
-            break;
-        }
+         /* send callback to all pending requests if being removed*/
+         if (p_q->p_cback != NULL)
+            (*p_q->p_cback)(FALSE, p_clcb->bda, 0, NULL);
+
+         GKI_freebuf (p_q);
     }
-    return p_clcb;
+
+    memset(p_clcb, 0, sizeof(tGAP_CLCB));
 }
 
 /*******************************************************************************
 **
-** Function         gap_get_conn_id_if_connected
+** Function         gap_ble_enqueue_request
 **
-** Description      This function returns a connecttion handle to a ATT server
-**                  if the server is already connected
+** Description      The function enqueue a GAP client request
 **
-** Parameters       client_if: client interface.
-**                  bd_addr: peer device address.
-**
-** Returns          Connection handle or invalid handle value
+** Returns           TRUE is successul; FALSE otherwise
 **
 *******************************************************************************/
-UINT16 gap_get_conn_id_if_connected (BD_ADDR bd_addr)
+BOOLEAN gap_ble_enqueue_request (tGAP_CLCB *p_clcb, UINT16 uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
-    tGAP_CLCB       *p_clcb;
-    UINT16          i;
+    tGAP_BLE_REQ  *p_q = (tGAP_BLE_REQ *)GKI_getbuf(sizeof(tGAP_BLE_REQ));
 
-    GAP_TRACE_EVENT ("gap_get_conn_id_if_connected() - BDA: %08x%04x ",
-                      (bd_addr[0]<<24)+(bd_addr[1]<<16)+(bd_addr[2]<<8)+bd_addr[3],
-                      (bd_addr[4]<<8)+bd_addr[5]);
-
-    for (i = 0, p_clcb = gap_cb.clcb; i < GAP_MAX_CL; i++, p_clcb++)
+    if (p_q != NULL)
     {
-        if (p_clcb->in_use && p_clcb->connected && !memcmp(p_clcb->bda, bd_addr,  BD_ADDR_LEN) )
-        {
-            return(p_clcb->conn_id);
-        }
+        p_q->p_cback = p_cback;
+        p_q->uuid = uuid;
+        GKI_enqueue(&p_clcb->pending_req_q, p_q);
+        return TRUE;
     }
 
-    /* If here, failed to allocate a client control block */
-    GATT_TRACE_DEBUG ("gap_get_conn_id_if_connected: not connected");
-    return(GATT_INVALID_CONN_ID);
+    return FALSE;
 }
+/*******************************************************************************
+**
+** Function         gap_ble_dequeue_request
+**
+** Description      The function dequeue a GAP client request if any
+**
+** Returns           TRUE is successul; FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN gap_ble_dequeue_request (tGAP_CLCB *p_clcb, UINT16 * p_uuid, tGAP_BLE_CMPL_CBACK **p_cback)
+{
+    tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)GKI_dequeue(&p_clcb->pending_req_q);;
 
+    if (p_q != NULL)
+    {
+        *p_cback    = p_q->p_cback;
+        *p_uuid     = p_q->uuid;
+        GKI_freebuf((void *)p_q);
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 /*******************************************************************************
 **   GAP Attributes Database Request callback
@@ -265,6 +258,12 @@ tGATT_STATUS gap_read_attr_value (UINT16 handle, tGATT_VALUE *p_value, BOOLEAN i
                     UINT16_TO_STREAM(p, p_db_attr->attr_value.conn_param.latency); /* latency */
                     UINT16_TO_STREAM(p, p_db_attr->attr_value.conn_param.sp_tout);  /* sp_tout */
                     p_value->len =8;
+                    break;
+
+                /* address resolution */
+                case GATT_UUID_GAP_CENTRAL_ADDR_RESOL:
+                    UINT8_TO_STREAM(p, p_db_attr->attr_value.addr_resolution);
+                    p_value->len =1;
                     break;
             }
             return GATT_SUCCESS;
@@ -430,6 +429,14 @@ void gap_attr_db_init(void)
     p_db_attr ++;
 #endif
 
+    /* add Central address resolution Characteristic */
+    uuid.len = LEN_UUID_16;
+    uuid.uu.uuid16 = p_db_attr->uuid = GATT_UUID_GAP_CENTRAL_ADDR_RESOL;
+    p_db_attr->handle = GATTS_AddCharacteristic(service_handle, &uuid,
+                                                GATT_PERM_READ, GATT_CHAR_PROP_BIT_READ);
+    p_db_attr->attr_value.addr_resolution = 0;
+    p_db_attr++;
+
     /* start service now */
     memset (&app_uuid.uu.uuid128, 0x81, LEN_UUID_128);
 
@@ -471,11 +478,16 @@ void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
                 break;
 
             case GATT_UUID_GAP_PREF_CONN_PARAM:
-                memcpy((void *)&p_db_attr->attr_value.conn_param, (const void *)&p_value->conn_param, sizeof(tGAP_BLE_PREF_PARAM));
+                memcpy((void *)&p_db_attr->attr_value.conn_param,
+                       (const void *)&p_value->conn_param, sizeof(tGAP_BLE_PREF_PARAM));
                 break;
 
             case GATT_UUID_GAP_DEVICE_NAME:
                 BTM_SetLocalDeviceName((char *)p_value->p_dev_name);
+                break;
+
+            case GATT_UUID_GAP_CENTRAL_ADDR_RESOL:
+                p_db_attr->attr_value.addr_resolution = p_value->addr_resolution;
                 break;
 
             }
@@ -484,6 +496,41 @@ void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
     }
 
     return;
+}
+
+/*******************************************************************************
+**
+** Function         gap_ble_send_cl_read_request
+**
+** Description      utility function to send a read request for a GAP charactersitic
+**
+** Returns          TRUE if read started, else FALSE if GAP is busy
+**
+*******************************************************************************/
+BOOLEAN gap_ble_send_cl_read_request(tGAP_CLCB *p_clcb)
+{
+    tGATT_READ_PARAM        param;
+    UINT16                  uuid = 0;
+    BOOLEAN                 started = FALSE;
+
+    if (gap_ble_dequeue_request(p_clcb, &uuid, &p_clcb->p_cback))
+    {
+        memset(&param, 0, sizeof(tGATT_READ_PARAM));
+
+        param.service.uuid.len       = LEN_UUID_16;
+        param.service.uuid.uu.uuid16 = uuid;
+        param.service.s_handle       = 1;
+        param.service.e_handle       = 0xFFFF;
+        param.service.auth_req       = 0;
+
+        if (GATTC_Read(p_clcb->conn_id, GATT_READ_BY_TYPE, &param) == GATT_SUCCESS)
+        {
+            p_clcb->cl_op_uuid = uuid;
+            started = TRUE;
+        }
+    }
+
+    return started;
 }
 
 /*******************************************************************************
@@ -497,7 +544,7 @@ void GAP_BleAttrDBUpdate(UINT16 attr_uuid, tGAP_BLE_ATTR_VALUE *p_value)
 *******************************************************************************/
 void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_name)
 {
-    tGAP_BLE_DEV_NAME_CBACK *p_dev_name_cback = (tGAP_BLE_DEV_NAME_CBACK *)(p_clcb->p_cback);
+    tGAP_BLE_CMPL_CBACK *p_cback = p_clcb->p_cback;
     UINT16                  op = p_clcb->cl_op_uuid;
 
     GAP_TRACE_EVENT("gap_ble_cl_op_cmpl status: %d", status);
@@ -505,15 +552,21 @@ void gap_ble_cl_op_cmpl(tGAP_CLCB *p_clcb, BOOLEAN status, UINT16 len, UINT8 *p_
     p_clcb->cl_op_uuid = 0;
     p_clcb->p_cback=NULL;
 
-    if (p_dev_name_cback)
+    if (p_cback && op)
     {
         GAP_TRACE_EVENT("calling gap_ble_cl_op_cmpl");
-
-        if (op == GATT_UUID_GAP_DEVICE_NAME)
-            (* p_dev_name_cback)(status, p_clcb->bda, len, (char *)p_name);
+        (* p_cback)(status, p_clcb->bda, len, (char *)p_name);
     }
 
-
+    /* if no further activity is requested in callback, drop the link */
+    if (p_clcb->connected)
+    {
+        if (!gap_ble_send_cl_read_request(p_clcb))
+        {
+            GATT_Disconnect(p_clcb->conn_id);
+            gap_ble_dealloc_clcb(p_clcb);
+        }
+    }
 }
 
 /*******************************************************************************
@@ -530,62 +583,27 @@ static void gap_ble_c_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_
                                      tGATT_TRANSPORT transport)
 {
     tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (bda);
-    UINT16      cl_op_uuid;
 
     UNUSED(gatt_if);
     UNUSED(transport);
 
-    GAP_TRACE_EVENT ("gap_ble_c_connect_cback: from %08x%04x connected:%d conn_id=%d reason = 0x%04x",
-                      (bda[0]<<24)+(bda[1]<<16)+(bda[2]<<8)+bda[3],
-                      (bda[4]<<8)+bda[5], connected, conn_id, reason);
-
-
-    if (connected)
+    if (p_clcb != NULL)
     {
-        if (p_clcb == NULL)
+        if (connected)
         {
-            if ((p_clcb = gap_clcb_alloc(conn_id, bda))== NULL)
-            {
-                GAP_TRACE_ERROR ("gap_ble_c_connect_cback: no_resource");
-                return;
-            }
+            p_clcb->conn_id = conn_id;
+            p_clcb->connected = TRUE;
+            /* start operation is pending */
+            gap_ble_send_cl_read_request(p_clcb);
         }
-        p_clcb->conn_id = conn_id;
-        p_clcb->connected = TRUE;
-
-    }
-    else
-    {
-        if (p_clcb != NULL)
-            p_clcb->connected = FALSE;
-    }
-
-    if (p_clcb)
-    {
-        cl_op_uuid = p_clcb->cl_op_uuid;
-
-        GAP_TRACE_EVENT ("cl_op_uuid=0x%04x", cl_op_uuid  );
-
-        if (p_clcb->connected)
-        {
-            p_clcb->cl_op_uuid = 0;
-            if (cl_op_uuid == GATT_UUID_GAP_DEVICE_NAME)
-            {
-                GAP_BleReadPeerDevName (bda, (tGAP_BLE_DEV_NAME_CBACK *)p_clcb->p_cback);
-            }
-            else if (cl_op_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
-            {
-                 GAP_BleReadPeerPrefConnParams(bda);
-            }
-        }
-        /* current link disconnect */
         else
         {
+            p_clcb->connected = FALSE;
             gap_ble_cl_op_cmpl(p_clcb, FALSE, 0, NULL);
-            memset(p_clcb, 0, sizeof(tGAP_CLCB));
+            /* clean up clcb */
+            gap_ble_dealloc_clcb(p_clcb);
         }
     }
-
 }
 
 /*******************************************************************************
@@ -647,48 +665,62 @@ static void gap_ble_c_cmpl_cback (UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
                 len = GAP_CHAR_DEV_NAME_SIZE;
             gap_ble_cl_op_cmpl(p_clcb, TRUE, len, pp);
             break;
-        case GATT_UUID_GAP_ICON:
+
+        case GATT_UUID_GAP_CENTRAL_ADDR_RESOL:
+            gap_ble_cl_op_cmpl(p_clcb, TRUE, 1, pp);
             break;
     }
 }
 
+
 /*******************************************************************************
 **
-** Function         gap_ble_cl_read_request
+** Function         gap_ble_accept_cl_operation
 **
-** Description      utility function to start a read request for a GAP charactersitic
+** Description      Start a process to read peer address resolution capability
 **
-** Returns          TRUE if read started, else FALSE if GAP is busy
+** Returns          TRUE if request accepted
 **
 *******************************************************************************/
-BOOLEAN gap_ble_cl_read_request(tGAP_CLCB *p_clcb, UINT16 uuid, void * p_cback)
+BOOLEAN gap_ble_accept_cl_operation(BD_ADDR peer_bda, UINT16 uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
-    tGATT_READ_PARAM   param;
+    tGAP_CLCB *p_clcb;
+    BOOLEAN started = FALSE;
 
-    memset(&param, 0, sizeof(tGATT_READ_PARAM));
+    if (p_cback == NULL && uuid != GATT_UUID_GAP_PREF_CONN_PARAM)
+        return(started);
 
-    param.service.uuid.len       = LEN_UUID_16;
-    param.service.uuid.uu.uuid16 = uuid;
-    param.service.s_handle       = 1;
-    param.service.e_handle       = 0xFFFF;
-    param.service.auth_req       = 0;
-
-    if (GATTC_Read(p_clcb->conn_id, GATT_READ_BY_TYPE, &param) != GATT_SUCCESS)
+    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL)
     {
-        GAP_TRACE_ERROR ("GAP_BleReadPeerPrefConnParams: GATT_Read Failed");
-        /* release the link here */
-        GATT_Disconnect(p_clcb->conn_id);
-        return(FALSE);
-    }
-    else
-    {
-        p_clcb->p_cback = p_cback;
-        p_clcb->cl_op_uuid = uuid;
-        return TRUE;
+        if ((p_clcb = gap_clcb_alloc(peer_bda)) == NULL)
+        {
+            GAP_TRACE_ERROR("gap_ble_accept_cl_operation max connection reached");
+            return started;
+        }
     }
 
+    GAP_TRACE_EVENT ("%s() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
+                      __FUNCTION__,
+                      (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
+                      (peer_bda[4]<<8)+peer_bda[5], uuid);
+
+    if (GATT_GetConnIdIfConnected(gap_cb.gatt_if, peer_bda, &p_clcb->conn_id, BT_TRANSPORT_LE))
+        p_clcb->connected = TRUE;
+
+    /* hold the link here */
+    if (!GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
+        return started;
+
+    /* enqueue the request */
+    gap_ble_enqueue_request(p_clcb, uuid, p_cback);
+
+    if (p_clcb->connected && p_clcb->cl_op_uuid == 0)
+        started = gap_ble_send_cl_read_request(p_clcb);
+    else /* wait for connection up or pending operation to finish */
+        started = TRUE;
+
+   return started;
 }
-
 /*******************************************************************************
 **
 ** Function         GAP_BleReadPeerPrefConnParams
@@ -701,42 +733,7 @@ BOOLEAN gap_ble_cl_read_request(tGAP_CLCB *p_clcb, UINT16 uuid, void * p_cback)
 *******************************************************************************/
 BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 {
-
-    tGAP_CLCB   *p_clcb = gap_find_clcb_by_bd_addr (peer_bda);
-
-    if (p_clcb == NULL)
-    {
-        if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
-        {
-            GAP_TRACE_ERROR("GAP_BleReadPeerPrefConnParams max connection reached");
-            return FALSE;
-        }
-        p_clcb->connected = FALSE;
-    }
-
-    GAP_TRACE_API ("GAP_BleReadPeerPrefConnParams() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
-                    (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
-                    (peer_bda[4]<<8)+peer_bda[5], p_clcb->cl_op_uuid);
-
-    /* For now we only handle one at a time */
-    if (p_clcb->cl_op_uuid != 0)
-        return(FALSE);
-
-    /* hold the link here */
-    if (GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
-    {
-
-        if (p_clcb->connected)
-        {
-            return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
-        }
-        /* Mark currently active operation */
-        p_clcb->cl_op_uuid = GATT_UUID_GAP_PREF_CONN_PARAM;
-
-        return(TRUE);
-    }
-    else
-        return FALSE;
+    return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_PREF_CONN_PARAM, NULL);
 }
 
 /*******************************************************************************
@@ -748,51 +745,24 @@ BOOLEAN GAP_BleReadPeerPrefConnParams (BD_ADDR peer_bda)
 ** Returns          TRUE if request accepted
 **
 *******************************************************************************/
-BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_DEV_NAME_CBACK *p_cback)
+BOOLEAN GAP_BleReadPeerDevName (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
 {
-    tGAP_CLCB   *p_clcb = NULL;
-
-    if (p_cback == NULL)
-        return(FALSE);
-
-    if ((p_clcb = gap_find_clcb_by_bd_addr (peer_bda)) == NULL)
-    {
-        if ((p_clcb = gap_clcb_alloc(0, peer_bda)) == NULL)
-        {
-            GAP_TRACE_ERROR("GAP_BleReadPeerDevName max connection reached");
-            return FALSE;
-        }
-        p_clcb->connected = FALSE;
-    }
-
-    GAP_TRACE_EVENT ("GAP_BleReadPeerDevName() - BDA: %08x%04x  cl_op_uuid: 0x%04x",
-                      (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
-                      (peer_bda[4]<<8)+peer_bda[5], p_clcb->cl_op_uuid);
-
-    /* For now we only handle one at a time */
-    if (p_clcb->cl_op_uuid != 0)
-        return(FALSE);
-
-    /* hold the link here */
-
-    if (GATT_Connect(gap_cb.gatt_if, p_clcb->bda, TRUE, BT_TRANSPORT_LE))
-    {
-        if (p_clcb->connected)
-        {
-            return gap_ble_cl_read_request(p_clcb, GATT_UUID_GAP_DEVICE_NAME, (void *)p_cback);
-        }
-
-        p_clcb->p_cback = (void *)p_cback;
-        /* Mark currently active operation */
-        p_clcb->cl_op_uuid = GATT_UUID_GAP_DEVICE_NAME;
-
-
-        return(TRUE);
-    }
-    else
-        return FALSE;
+    return gap_ble_accept_cl_operation (peer_bda, GATT_UUID_GAP_DEVICE_NAME, p_cback);
 }
 
+/*******************************************************************************
+**
+** Function         GAP_BleReadPeerAddressResolutionCap
+**
+** Description      Start a process to read peer address resolution capability
+**
+** Returns          TRUE if request accepted
+**
+*******************************************************************************/
+BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda, tGAP_BLE_CMPL_CBACK *p_cback)
+{
+    return gap_ble_accept_cl_operation(peer_bda, GATT_UUID_GAP_CENTRAL_ADDR_RESOL, p_cback);
+}
 
 /*******************************************************************************
 **
@@ -811,7 +781,7 @@ BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda)
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], (p_clcb == NULL)? 0 : p_clcb->cl_op_uuid);
 
-    if (p_clcb == NULL || p_clcb->cl_op_uuid != GATT_UUID_GAP_DEVICE_NAME)
+    if (p_clcb == NULL)
     {
         GAP_TRACE_ERROR ("Cannot cancel current op is not get dev name");
         return FALSE;

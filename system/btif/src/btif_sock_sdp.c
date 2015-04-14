@@ -30,6 +30,7 @@
 
 #include "btif_common.h"
 #include "btif_util.h"
+#include "btif_sock_util.h"
 #include "bta_api.h"
 #include "bt_target.h"
 #include "gki.h"
@@ -92,35 +93,7 @@ static const tBTA_OP_FMT bta_ops_obj_fmt[OBEX_PUSH_NUM_FORMATS] = {
                           | BTA_OP_ANY_MASK)
 #endif
 
-/*
- * This is horrible design - to reserve channel ID's and use them to magically
- * link a channel number to a hard coded SDP entry.
- *
- * TODO: expose a prober SDP API, to avoid hacks like this, and make it possible
- * to set useful names for the ServiceName
- */
-#define BTA_MAP_MSG_TYPE_EMAIL    0x01
-#define BTA_MAP_MSG_TYPE_SMS_GSM  0x02
-#define BTA_MAP_MSG_TYPE_SMS_CDMA 0x04
-#define BTA_MAP_MSG_TYPE_MMS      0x08
 
-#define BTA_MAP_MAS_ID_SMSMMS 0
-#define BTA_MAP_MAS_ID_EMAIL 1
-
-// MAP 1.1
-#define BTA_MAP_DEFAULT_VERSION 0x0101
-
-typedef struct {
-  uint8_t mas_id;                  // the MAS instance id
-  const char *service_name;      // Description of the MAS instance
-  uint8_t supported_message_types; // Server supported message types - SMS/MMS/EMAIL
-} tBTA_MAP_CFG;
-
-const tBTA_MAP_CFG bta_map_cfg_sms = {
-  BTA_MAP_MAS_ID_SMSMMS,
-  "MAP SMS",
-  BTA_MAP_MSG_TYPE_SMS_GSM | BTA_MAP_MSG_TYPE_SMS_CDMA
-};
 
 #define RESERVED_SCN_PBS 19
 #define RESERVED_SCN_OPS 12
@@ -290,67 +263,6 @@ error:
                    "service_name: %s", stage, name);
   return 0;
 }
-
-// Registers a service with the given |name| and |channel| in the SDP database
-// as a MAP protocol.
-static int add_maps_sdp(const char *name, const int channel) {
-  APPL_TRACE_DEBUG("add_maps_sdp: scn %d, service_name %s", channel,
-                   name);
-
-  uint32_t handle = SDP_CreateRecord();
-  if (handle == 0) {
-    APPL_TRACE_ERROR("add_maps_sdp: failed to create sdp record, "
-                     "service_name: %s", name);
-    return 0;
-  }
-
-  // Create the base SDP record.
-  char *stage = "create_base_record";
-  if (!create_base_record(handle, name, channel, TRUE /* with_obex */))
-    goto error;
-
-  // add service class
-  uint16_t service = UUID_SERVCLASS_MESSAGE_ACCESS;
-  stage = "service_class";
-  if (!SDP_AddServiceClassIdList(handle, 1, &service))
-    goto error;
-
-  // TODO: To add support for EMAIL set below depending on the scn to either
-  // SMS or Email
-  const tBTA_MAP_CFG *bta_map_cfg = &bta_map_cfg_sms;
-
-  // Add in the Bluetooth Profile Descriptor List
-  stage = "profile_descriptor_list";
-  if (!SDP_AddProfileDescriptorList(handle,
-                                    UUID_SERVCLASS_MAP_PROFILE,
-                                    BTA_MAP_DEFAULT_VERSION))
-    goto error;
-
-  stage = "mas_instance_id";
-  if (!SDP_AddAttribute(handle, ATTR_ID_MAS_INSTANCE_ID, UINT_DESC_TYPE,
-                        (uint32_t)1, (uint8_t*)(&bta_map_cfg->mas_id)))
-    goto error;
-
-  stage = "support_message_types";
-  if (!SDP_AddAttribute(handle, ATTR_ID_SUPPORTED_MSG_TYPE, UINT_DESC_TYPE,
-                        (uint32_t)1,
-                        (uint8_t*)(&bta_map_cfg->supported_message_types)))
-    goto error;
-
-  // Notify the system that we've got a new service class UUID.
-  bta_sys_add_uuid(service);  // UUID_SERVCLASS_MESSAGE_ACCESS
-  APPL_TRACE_DEBUG("ad_maps_sdp: service registered successfully, "
-                   "service_name: %s, handle 0x%08x)", name, handle);
-
-  return handle;
-
-error:
-  SDP_DeleteRecord(handle);
-  APPL_TRACE_ERROR("add_maps_sdp: failed to register MAP service, stage: %s, "
-                   "service_name: %s", stage, name);
-  return 0;
-}
-
 // Registers a service with the given |name| and |channel| as an OBEX Push
 // protocol.
 static int add_ops_sdp(const char *name, const int channel) {
@@ -490,9 +402,9 @@ static int add_rfc_sdp_by_uuid(const char *name, const uint8_t *uuid,
     handle = add_pbap_sdp(name, final_channel);
   } else if (UUID_MATCHES(UUID_SPP, uuid)) {
     handle = add_spp_sdp(name, final_channel);
-  } else if (UUID_MATCHES(UUID_MAPS_MAS,uuid)) {
-    // MAP Server is always channel 19
-    handle = add_maps_sdp(name, final_channel);
+  } else if (UUID_MATCHES(UUID_MAP_MAS,uuid)) {
+        // Record created by new SDP create record interface
+        handle = 0xff;
   } else {
     handle = add_sdp_by_uuid(name, uuid, final_channel);
   }

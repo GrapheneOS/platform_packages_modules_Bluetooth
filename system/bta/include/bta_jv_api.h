@@ -28,6 +28,8 @@
 #include "bt_types.h"
 #include "bta_api.h"
 #include "btm_api.h"
+#include "l2c_api.h"
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -44,6 +46,7 @@ typedef UINT8 tBTA_JV_STATUS;
 #define BTA_JV_MAX_UUIDS        SDP_MAX_UUID_FILTERS
 #define BTA_JV_MAX_ATTRS        SDP_MAX_ATTR_FILTERS
 #define BTA_JV_MAX_SDP_REC      SDP_MAX_RECORDS
+#define BTA_JV_MAX_L2C_CONN     GAP_MAX_CONNECTIONS /* GAP handle is used as index, hence do not change this value */
 #define BTA_JV_MAX_SCN          PORT_MAX_RFC_PORTS /* same as BTM_MAX_SCN (in btm_int.h) */
 #define BTA_JV_MAX_RFC_CONN     MAX_RFC_PORTS
 
@@ -51,7 +54,6 @@ typedef UINT8 tBTA_JV_STATUS;
 #define BTA_JV_DEF_RFC_MTU      (3*330)
 #endif
 
-/* */
 #ifndef BTA_JV_MAX_RFC_SR_SESSION
 #define BTA_JV_MAX_RFC_SR_SESSION   MAX_BD_CONNECTIONS
 #endif
@@ -118,23 +120,41 @@ enum
 };
 typedef UINT8 tBTA_JV_CONN_STATE;
 
+/* JV Connection types */
+#define BTA_JV_CONN_TYPE_RFCOMM    0
+#define BTA_JV_CONN_TYPE_L2CAP     1
+#define BTA_JV_CONN_TYPE_L2CAP_LE  2
+
 /* Java I/F callback events */
 /* events received by tBTA_JV_DM_CBACK */
 #define BTA_JV_ENABLE_EVT           0  /* JV enabled */
+#define BTA_JV_GET_SCN_EVT          6  /* Reserved an SCN */
+#define BTA_JV_GET_PSM_EVT          7  /* Reserved a PSM */
 #define BTA_JV_DISCOVERY_COMP_EVT   8  /* SDP discovery complete */
 #define BTA_JV_CREATE_RECORD_EVT    11 /* the result for BTA_JvCreateRecord */
+/* events received by tBTA_JV_L2CAP_CBACK */
+#define BTA_JV_L2CAP_OPEN_EVT       16 /* open status of L2CAP connection */
+#define BTA_JV_L2CAP_CLOSE_EVT      17 /* L2CAP connection closed */
+#define BTA_JV_L2CAP_START_EVT      18 /* L2CAP server started */
+#define BTA_JV_L2CAP_CL_INIT_EVT    19 /* L2CAP client initiated a connection */
+#define BTA_JV_L2CAP_DATA_IND_EVT   20 /* L2CAP connection received data */
+#define BTA_JV_L2CAP_CONG_EVT       21 /* L2CAP connection congestion status changed */
+#define BTA_JV_L2CAP_READ_EVT       22 /* the result for BTA_JvL2capRead */
+#define BTA_JV_L2CAP_RECEIVE_EVT    23 /* the result for BTA_JvL2capReceive*/
+#define BTA_JV_L2CAP_WRITE_EVT      24 /* the result for BTA_JvL2capWrite*/
+#define BTA_JV_L2CAP_WRITE_FIXED_EVT 25 /* the result for BTA_JvL2capWriteFixed */
 
 /* events received by tBTA_JV_RFCOMM_CBACK */
-#define BTA_JV_RFCOMM_OPEN_EVT      25 /* open status of RFCOMM Client connection */
-#define BTA_JV_RFCOMM_CLOSE_EVT     26 /* RFCOMM connection closed */
-#define BTA_JV_RFCOMM_START_EVT     27 /* RFCOMM server started */
-#define BTA_JV_RFCOMM_CL_INIT_EVT   28 /* RFCOMM client initiated a connection */
-#define BTA_JV_RFCOMM_DATA_IND_EVT  29 /* RFCOMM connection received data */
-#define BTA_JV_RFCOMM_CONG_EVT      30 /* RFCOMM connection congestion status changed */
-#define BTA_JV_RFCOMM_READ_EVT      31 /* the result for BTA_JvRfcommRead */
-#define BTA_JV_RFCOMM_WRITE_EVT     32 /* the result for BTA_JvRfcommWrite*/
-#define BTA_JV_RFCOMM_SRV_OPEN_EVT  33 /* open status of Server RFCOMM connection */
-#define BTA_JV_MAX_EVT              34 /* max number of JV events */
+#define BTA_JV_RFCOMM_OPEN_EVT      26 /* open status of RFCOMM Client connection */
+#define BTA_JV_RFCOMM_CLOSE_EVT     27 /* RFCOMM connection closed */
+#define BTA_JV_RFCOMM_START_EVT     28 /* RFCOMM server started */
+#define BTA_JV_RFCOMM_CL_INIT_EVT   29 /* RFCOMM client initiated a connection */
+#define BTA_JV_RFCOMM_DATA_IND_EVT  30 /* RFCOMM connection received data */
+#define BTA_JV_RFCOMM_CONG_EVT      31 /* RFCOMM connection congestion status changed */
+#define BTA_JV_RFCOMM_READ_EVT      32 /* the result for BTA_JvRfcommRead */
+#define BTA_JV_RFCOMM_WRITE_EVT     33 /* the result for BTA_JvRfcommWrite*/
+#define BTA_JV_RFCOMM_SRV_OPEN_EVT  34 /* open status of Server RFCOMM connection */
+#define BTA_JV_MAX_EVT              35 /* max number of JV events */
 
 typedef UINT16 tBTA_JV_EVT;
 
@@ -157,6 +177,104 @@ typedef struct
 {
    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
 } tBTA_JV_CREATE_RECORD;
+
+/* data associated with BTA_JV_L2CAP_OPEN_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    BD_ADDR         rem_bda;    /* The peer address */
+    INT32           tx_mtu;     /* The transmit MTU */
+} tBTA_JV_L2CAP_OPEN;
+
+/* data associated with BTA_JV_L2CAP_OPEN_EVT for LE sockets */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    BD_ADDR         rem_bda;    /* The peer address */
+    INT32           tx_mtu;     /* The transmit MTU */
+    void          **p_p_cback;  /* set them for new socket */
+    void          **p_user_data;/* set them for new socket */
+
+} tBTA_JV_L2CAP_LE_OPEN;
+
+
+/* data associated with BTA_JV_L2CAP_CLOSE_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    BOOLEAN         async;      /* FALSE, if local initiates disconnect */
+} tBTA_JV_L2CAP_CLOSE;
+
+/* data associated with BTA_JV_L2CAP_START_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    UINT8           sec_id;     /* security ID used by this server */
+} tBTA_JV_L2CAP_START;
+
+/* data associated with BTA_JV_L2CAP_CL_INIT_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    UINT8           sec_id;     /* security ID used by this client */
+} tBTA_JV_L2CAP_CL_INIT;
+
+/* data associated with BTA_JV_L2CAP_CONG_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    BOOLEAN         cong;       /* TRUE, congested. FALSE, uncongested */
+} tBTA_JV_L2CAP_CONG;
+
+/* data associated with BTA_JV_L2CAP_READ_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capRead() */
+    UINT8           *p_data;    /* This points the same location as the p_data
+                                 * parameter in BTA_JvL2capRead () */
+    UINT16          len;        /* The length of the data read. */
+} tBTA_JV_L2CAP_READ;
+
+/* data associated with BTA_JV_L2CAP_RECEIVE_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capReceive() */
+    UINT8           *p_data;    /* This points the same location as the p_data
+                                 * parameter in BTA_JvL2capReceive () */
+    UINT16          len;        /* The length of the data read. */
+} tBTA_JV_L2CAP_RECEIVE;
+
+/* data associated with BTA_JV_L2CAP_WRITE_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT32          handle;     /* The connection handle */
+    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capWrite() */
+    UINT16          len;        /* The length of the data written. */
+    BOOLEAN         cong;       /* congestion status */
+} tBTA_JV_L2CAP_WRITE;
+
+
+/* data associated with BTA_JV_L2CAP_WRITE_FIXED_EVT */
+typedef struct
+{
+    tBTA_JV_STATUS  status;     /* Whether the operation succeeded or failed. */
+    UINT16          channel;    /* The connection channel */
+    BD_ADDR         addr;       /* The peer address */
+    UINT32          req_id;     /* The req_id in the associated BTA_JvL2capWrite() */
+    UINT16          len;        /* The length of the data written. */
+    BOOLEAN         cong;       /* congestion status */
+} tBTA_JV_L2CAP_WRITE_FIXED;
 
 /* data associated with BTA_JV_RFCOMM_OPEN_EVT */
 typedef struct
@@ -206,6 +324,14 @@ typedef struct
 {
     UINT32          handle;     /* The connection handle */
 } tBTA_JV_DATA_IND;
+
+/*data associated with BTA_JV_L2CAP_DATA_IND_EVT if used for LE */
+typedef struct
+{
+    UINT32          handle;     /* The connection handle */
+    BT_HDR         *p_buf;      /* The incoming data */
+} tBTA_JV_LE_DATA_IND;
+
 
 /* data associated with BTA_JV_RFCOMM_CONG_EVT */
 typedef struct
@@ -258,7 +384,16 @@ typedef union
     tBTA_JV_STATUS          status;         /* BTA_JV_ENABLE_EVT */
     tBTA_JV_DISCOVERY_COMP  disc_comp;      /* BTA_JV_DISCOVERY_COMP_EVT */
     tBTA_JV_SET_DISCOVER    set_discover;   /* BTA_JV_SET_DISCOVER_EVT */
+    UINT8                   scn;            /* BTA_JV_GET_SCN_EVT */
+    UINT16                  psm;            /* BTA_JV_GET_PSM_EVT */
     tBTA_JV_CREATE_RECORD   create_rec;     /* BTA_JV_CREATE_RECORD_EVT */
+    tBTA_JV_L2CAP_OPEN      l2c_open;       /* BTA_JV_L2CAP_OPEN_EVT */
+    tBTA_JV_L2CAP_CLOSE     l2c_close;      /* BTA_JV_L2CAP_CLOSE_EVT */
+    tBTA_JV_L2CAP_START     l2c_start;      /* BTA_JV_L2CAP_START_EVT */
+    tBTA_JV_L2CAP_CL_INIT   l2c_cl_init;    /* BTA_JV_L2CAP_CL_INIT_EVT */
+    tBTA_JV_L2CAP_CONG      l2c_cong;       /* BTA_JV_L2CAP_CONG_EVT */
+    tBTA_JV_L2CAP_READ      l2c_read;       /* BTA_JV_L2CAP_READ_EVT */
+    tBTA_JV_L2CAP_WRITE     l2c_write;      /* BTA_JV_L2CAP_WRITE_EVT */
     tBTA_JV_RFCOMM_OPEN     rfc_open;       /* BTA_JV_RFCOMM_OPEN_EVT */
     tBTA_JV_RFCOMM_SRV_OPEN rfc_srv_open;   /* BTA_JV_RFCOMM_SRV_OPEN_EVT */
     tBTA_JV_RFCOMM_CLOSE    rfc_close;      /* BTA_JV_RFCOMM_CLOSE_EVT */
@@ -267,8 +402,11 @@ typedef union
     tBTA_JV_RFCOMM_CONG     rfc_cong;       /* BTA_JV_RFCOMM_CONG_EVT */
     tBTA_JV_RFCOMM_READ     rfc_read;       /* BTA_JV_RFCOMM_READ_EVT */
     tBTA_JV_RFCOMM_WRITE    rfc_write;      /* BTA_JV_RFCOMM_WRITE_EVT */
-    tBTA_JV_DATA_IND        data_ind;    /* BTA_JV_L2CAP_DATA_IND_EVT
+    tBTA_JV_DATA_IND        data_ind;       /* BTA_JV_L2CAP_DATA_IND_EVT
                                                BTA_JV_RFCOMM_DATA_IND_EVT */
+    tBTA_JV_LE_DATA_IND      le_data_ind;   /* BTA_JV_L2CAP_LE_DATA_IND_EVT */
+    tBTA_JV_L2CAP_LE_OPEN      l2c_le_open;       /* BTA_JV_L2CAP_OPEN_EVT */
+    tBTA_JV_L2CAP_WRITE_FIXED  l2c_write_fixed;      /* BTA_JV_L2CAP_WRITE_FIXED_EVT */
 } tBTA_JV;
 
 /* JAVA DM Interface callback */
@@ -276,6 +414,9 @@ typedef void (tBTA_JV_DM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void * user_
 
 /* JAVA RFCOMM interface callback */
 typedef void* (tBTA_JV_RFCOMM_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data);
+
+/* JAVA L2CAP interface callback */
+typedef void (tBTA_JV_L2CAP_CBACK)(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_Data);
 
 /* JV configuration structure */
 typedef struct
@@ -338,6 +479,43 @@ extern BOOLEAN BTA_JvIsEncrypted(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **
+** Function         BTA_JvGetChannelId
+**
+** Description      This function reserves a SCN/PSM for applications running
+**                  over RFCOMM or L2CAP. It is primarily called by
+**                  server profiles/applications to register their SCN/PSM into the
+**                  SDP database. The SCN is reported by the tBTA_JV_DM_CBACK
+**                  callback with a BTA_JV_GET_SCN_EVT.
+**                  If the SCN/PSM reported is 0, that means all SCN resources are
+**                  exhausted.
+**                  The channel parameter can be used to request a specific
+**                  channel. If the request on the specific channel fails, the
+**                  SCN/PSM returned in the EVT will be 0 - no attempt to request
+**                  a new channel will be made. set channel to <= 0 to automatically
+**                  assign an channel ID.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvGetChannelId(int conn_type, void* user_data,
+                                                 INT32 channel);
+
+/*******************************************************************************
+**
+** Function         BTA_JvFreeChannel
+**
+** Description      This function frees a SCN/PSM that was used
+**                  by an application running over RFCOMM or L2CAP.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvFreeChannel(UINT16 channel, int conn_type);
+
+/*******************************************************************************
+**
 ** Function         BTA_JvStartDiscovery
 **
 ** Description      This function performs service discovery for the services
@@ -376,6 +554,214 @@ extern tBTA_JV_STATUS BTA_JvCreateRecordByUser(void* user_data);
 **
 *******************************************************************************/
 extern tBTA_JV_STATUS BTA_JvDeleteRecord(UINT32 handle);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capConnectLE
+**
+** Description      Initiate a connection as an LE L2CAP client to the given BD
+**                  Address.
+**                  When the connection is initiated or failed to initiate,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_CL_INIT_EVT
+**                  When the connection is established or failed,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info, UINT16 remote_chan,
+                           UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capConnect
+**
+** Description      Initiate a connection as a L2CAP client to the given BD
+**                  Address.
+**                  When the connection is initiated or failed to initiate,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_CL_INIT_EVT
+**                  When the connection is established or failed,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info, UINT16 remote_psm,
+                           UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capClose
+**
+** Description      This function closes an L2CAP client connection
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capClose(UINT32 handle);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capCloseLE
+**
+** Description      This function closes an L2CAP client connection for Fixed Channels
+**                  Function is idempotent and no callbacks are called!
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capCloseLE(UINT32 handle);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStartServer
+**
+** Description      This function starts an L2CAP server and listens for an L2CAP
+**                  connection from a remote Bluetooth device.  When the server
+**                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
+**                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info,
+                           UINT16 local_psm, UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStartServerLE
+**
+** Description      This function starts an LE L2CAP server and listens for an L2CAP
+**                  connection from a remote Bluetooth device on a fixed channel
+**                  over an LE link.  When the server
+**                  is started successfully, tBTA_JV_L2CAP_CBACK is called with
+**                  BTA_JV_L2CAP_START_EVT.  When the connection is established,
+**                  tBTA_JV_L2CAP_CBACK is called with BTA_JV_L2CAP_OPEN_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capStartServerLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+                           const tL2CAP_ERTM_INFO *ertm_info,
+                           UINT16 local_chan, UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
+                           tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStopServerLE
+**
+** Description      This function stops the LE L2CAP server. If the server has an
+**                  active connection, it would be closed.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capStopServerLE(UINT16 local_chan, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capStopServerLE
+**
+** Description      This function stops the LE L2CAP server. If the server has an
+**                  active connection, it would be closed.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capStopServer(UINT16 local_psm, void *user_data);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capRead
+**
+** Description      This function reads data from an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_READ_EVT.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id,
+                                              UINT8 *p_data, UINT16 len);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capReceive
+**
+** Description      This function reads data from an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_RECEIVE_EVT.
+**                  If there are more data queued in L2CAP than len, the extra data will be discarded.
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id,
+                                              UINT8 *p_data, UINT16 len);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capReady
+**
+** Description      This function determined if there is data to read from
+**                  an L2CAP connection
+**
+** Returns          BTA_JV_SUCCESS, if data queue size is in *p_data_size.
+**                  BTA_JV_FAILURE, if error.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capReady(UINT32 handle, UINT32 *p_data_size);
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capWrite
+**
+** Description      This function writes data to an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_WRITE_EVT. Works for
+**                  PSM-based connections
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capWrite(UINT32 handle, UINT32 req_id,
+                                               UINT8 *p_data, UINT16 len, void *user_data);
+
+
+/*******************************************************************************
+**
+** Function         BTA_JvL2capWriteFixed
+**
+** Description      This function writes data to an L2CAP connection
+**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
+**                  called with BTA_JV_L2CAP_WRITE_FIXED_EVT. Works for
+**                  fixed-channel connections
+**
+** Returns          BTA_JV_SUCCESS, if the request is being processed.
+**                  BTA_JV_FAILURE, otherwise.
+**
+*******************************************************************************/
+extern tBTA_JV_STATUS BTA_JvL2capWriteFixed(UINT16 channel, BD_ADDR *addr, UINT32 req_id,
+                                               tBTA_JV_L2CAP_CBACK *p_cback,
+                                               UINT8 *p_data, UINT16 len, void *user_data);
 
 /*******************************************************************************
 **

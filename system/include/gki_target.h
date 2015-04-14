@@ -94,7 +94,7 @@
 #define GKI_MAX_BUF_SIZE_POOL_ID    GKI_POOL_ID_3
 #endif
 
-/* Pool 4 is unused */
+/* Pool 4 is used for BluetoothSocket L2CAP connections */
 /* The size of the buffers in pool 4. */
 #ifndef GKI_BUF4_SIZE
 #define GKI_BUF4_SIZE               (8080+26)
@@ -102,7 +102,7 @@
 
 /* The number of buffers in buffer pool 4. */
 #ifndef GKI_BUF4_MAX
-#define GKI_BUF4_MAX                0
+#define GKI_BUF4_MAX                (OBX_NUM_SERVERS + OBX_NUM_CLIENTS)
 #endif
 
 /* The ID of buffer pool 4. */
@@ -142,7 +142,7 @@ of order */
 #endif
 
 /* The size of the buffers in pool 5
-** Special pool used by l2cap retransmissions only.  This size based on segment
+** Special pool used by L2CAP retransmissions only.  This size based on segment
 ** that will fit into both DH5 and 2-DH3 packet types after accounting for GKI
 ** header.  13 bytes of max headers allows us a 339 payload max. (in btui_app.txt)
 ** Note: 748 used for insight scriptwrapper with CAT-2 scripts.

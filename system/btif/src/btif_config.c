@@ -281,12 +281,14 @@ size_t btif_config_get_bin_length(const char *section, const char *key) {
 }
 
 bool btif_config_set_bin(const char *section, const char *key, const uint8_t *value, size_t length) {
-  static const char *lookup = "0123456789abcdef";
+  const char *lookup = "0123456789abcdef";
 
   assert(config != NULL);
   assert(section != NULL);
   assert(key != NULL);
-  assert(value != NULL);
+
+  if (length > 0)
+      assert(value != NULL);
 
   char *str = (char *)calloc(length * 2 + 1, 1);
   if (!str)
@@ -294,7 +296,7 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
 
   for (size_t i = 0; i < length; ++i) {
     str[(i * 2) + 0] = lookup[(value[i] >> 4) & 0x0F];
-    str[(i * 2) + 1] = lookup[(value[i] >> 0) & 0x0F];
+    str[(i * 2) + 1] = lookup[value[i] & 0x0F];
   }
 
   pthread_mutex_lock(&lock);

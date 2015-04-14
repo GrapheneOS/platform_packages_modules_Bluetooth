@@ -155,6 +155,8 @@ typedef enum
 
 #define L2CAP_MAX_FCR_CFG_TRIES         2       /* Config attempts before disconnecting */
 
+typedef uint8_t tL2C_BLE_FIXED_CHNLS_MASK;
+
 typedef struct
 {
     UINT8       next_tx_seq;                /* Next sequence number to be Tx'ed         */
@@ -474,6 +476,7 @@ typedef struct
     BOOLEAN                  is_ble_connecting;
     BD_ADDR                  ble_connecting_bda;
     UINT16                   controller_le_xmit_window;         /* Total ACL window for all links   */
+    tL2C_BLE_FIXED_CHNLS_MASK l2c_ble_fixed_chnls_mask;         // LE fixed channels mask
     UINT16                   num_lm_ble_bufs;                   /* # of ACL buffers on controller   */
     UINT16                   ble_round_robin_quota;              /* Round-robin link quota           */
     UINT16                   ble_round_robin_unacked;            /* Round-robin unacked              */

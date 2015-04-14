@@ -2125,15 +2125,16 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 
     GATT_TRACE_DEBUG ("gatt_end_operation status=%d op=%d subtype=%d",
                        status, p_clcb->operation, p_clcb->op_subtype);
+    memset(&cb_data.att_value, 0, sizeof(tGATT_VALUE));
 
     if (p_cmpl_cb != NULL && p_clcb->operation != 0)
     {
         if (p_clcb->operation == GATTC_OPTYPE_READ)
         {
-            memset(&cb_data.att_value, 0, sizeof(tGATT_VALUE));
             cb_data.att_value.handle   = p_clcb->s_handle;
             cb_data.att_value.len      = p_clcb->counter;
-            if (p_data)
+
+            if (p_data && p_clcb->counter)
                 memcpy (cb_data.att_value.value, p_data, cb_data.att_value.len);
         }
 

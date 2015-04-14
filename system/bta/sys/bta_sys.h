@@ -91,7 +91,8 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 #define BTA_ID_HL           30           /* Health Device Profile*/
 #define BTA_ID_GATTC        31           /* GATT Client */
 #define BTA_ID_GATTS        32           /* GATT Client */
-#define BTA_ID_BLUETOOTH_MAX   33        /* last BT profile */
+#define BTA_ID_SDP          33           /* SDP Client */
+#define BTA_ID_BLUETOOTH_MAX   34        /* last BT profile */
 
 /* GENERIC */
 #define BTA_ID_PRM          38
@@ -102,10 +103,10 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 
 
 /* JV */
-#define BTA_ID_JV1          43           /* JV1 */
-#define BTA_ID_JV2          44           /* JV2 */
+#define BTA_ID_JV1          44           /* JV1 */
+#define BTA_ID_JV2          45           /* JV2 */
 
-#define BTA_ID_MAX          (43 + BTA_DM_NUM_JV_ID)
+#define BTA_ID_MAX          (44 + BTA_DM_NUM_JV_ID)
 
 typedef UINT8 tBTA_SYS_ID;
 

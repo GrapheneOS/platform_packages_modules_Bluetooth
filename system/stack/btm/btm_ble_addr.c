@@ -29,12 +29,12 @@
 #include "btu.h"
 #include "btm_int.h"
 #include "gap_api.h"
+#include "device/include/controller.h"
 
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
 #include "btm_ble_int.h"
 #include "smp_api.h"
 
-#include "vendor_ble.h"
 
 /*******************************************************************************
 **
@@ -199,7 +199,8 @@ void btm_gen_non_resolvable_private_addr (tBTM_BLE_ADDR_CBACK *p_cback, void *p)
     }
 
 }
-    #if SMP_INCLUDED == TRUE
+
+#if SMP_INCLUDED == TRUE
 /*******************************************************************************
 **  Utility functions for Random address resolving
 *******************************************************************************/
@@ -352,7 +353,8 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
     else
         (*p_cback)(NULL, p);
 }
-    #endif
+#endif
+
 /*******************************************************************************
 **  address mapping between pseudo address and real connection address
 *******************************************************************************/
@@ -382,62 +384,62 @@ tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
 
 /*******************************************************************************
 **
-** Function         btm_find_dev_by_public_static_addr
+** Function         btm_find_dev_by_identity_addr
 **
 ** Description      find the security record whose LE static address is matching
 **
 *******************************************************************************/
-tBTM_SEC_DEV_REC* btm_find_dev_by_public_static_addr(BD_ADDR bd_addr)
+tBTM_SEC_DEV_REC* btm_find_dev_by_identity_addr(BD_ADDR bd_addr, UINT8 addr_type)
 {
-    UINT8               i;
-    tBTM_SEC_DEV_REC    *p_dev_rec = &btm_cb.sec_dev_rec[0];
 #if BLE_PRIVACY_SPT == TRUE
+    UINT8 i;
+    tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
+
     for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i ++, p_dev_rec ++)
     {
-        if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM &&
-            BTM_BLE_IS_RESOLVE_BDA(p_dev_rec->bd_addr))
+        if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE) &&
+            memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) == 0)
         {
-            if ( memcmp(p_dev_rec->ble.static_addr, bd_addr, BD_ADDR_LEN) == 0)
+            if ((p_dev_rec->ble.static_addr_type & (~BLE_ADDR_TYPE_ID_BIT)) !=
+                (addr_type & (~BLE_ADDR_TYPE_ID_BIT)))
             {
-                p_dev_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
-                /* found the match */
-                return p_dev_rec;
+                BTM_TRACE_WARNING("%s find pseudo->random match with diff addr type: %d vs %d",
+                    __func__, p_dev_rec->ble.static_addr_type, addr_type);
             }
+
+            /* found the match */
+            return p_dev_rec;
         }
     }
 #endif
+
     return NULL;
 }
 
 /*******************************************************************************
 **
-** Function         btm_public_addr_to_random_pseudo
+** Function         btm_identity_addr_to_random_pseudo
 **
 ** Description      This function map a static BD address to a pseudo random address
 **                  in security database.
 **
 *******************************************************************************/
-BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
+BOOLEAN btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, BOOLEAN refresh)
 {
 #if BLE_PRIVACY_SPT == TRUE
-    tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_public_static_addr(bd_addr);
+    tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev_by_identity_addr(bd_addr, *p_addr_type);
 
-    BTM_TRACE_EVENT ("btm_public_addr_to_random_pseudo");
-
+    BTM_TRACE_EVENT ("%s", __func__);
     /* evt reported on static address, map static address to random pseudo */
-    if (p_dev_rec  != NULL &&
-        /* static address is not static address */
-        memcmp(p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN) != 0)
-        /* update current random */
-        btm_ble_read_irk_entry(p_dev_rec->ble.static_addr);
     if (p_dev_rec != NULL)
     {
-        /* assign the orginal random to be the current report address */
-        memcpy(bd_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
-        /* always be a resolvable random if a match is found */
-        *p_addr_type = BLE_ADDR_RANDOM;
+        /* if RPA offloading is supported, or 4.2 controller, do RPA refresh */
+        if (refresh && controller_get_interface()->get_ble_resolving_list_max_size() != 0)
+            btm_ble_read_resolving_list_entry(p_dev_rec);
 
-        BTM_TRACE_ERROR("matched a public/reconnect address and map to random pseudo");
+        /* assign the original address to be the current report address */
+        memcpy(bd_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
+        *p_addr_type = p_dev_rec->ble.ble_addr_type;
 
         return TRUE;
     }
@@ -447,26 +449,25 @@ BOOLEAN btm_public_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type)
 
 /*******************************************************************************
 **
-** Function         btm_random_pseudo_to_public
+** Function         btm_random_pseudo_to_identity_addr
 **
 ** Description      This function map a random pseudo address to a public address
 **                  random_pseudo is input and output parameter
 **
 *******************************************************************************/
-BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_type)
+BOOLEAN btm_random_pseudo_to_identity_addr(BD_ADDR random_pseudo, UINT8 *p_static_addr_type)
 {
 #if BLE_PRIVACY_SPT == TRUE
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (random_pseudo);
 
     if (p_dev_rec != NULL)
     {
-        if (p_dev_rec->ble.ble_addr_type == BLE_ADDR_RANDOM &&
-            BTM_BLE_IS_RESOLVE_BDA(p_dev_rec->bd_addr) &&
-            (p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0)
+        if (p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT)
         {
-            BTM_TRACE_EVENT ("btm_random_pseudo_to_public found the puclic static address!");
             * p_static_addr_type = p_dev_rec->ble.static_addr_type;
             memcpy(random_pseudo, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
+            if (controller_get_interface()->supports_ble_privacy())
+                *p_static_addr_type |= BLE_ADDR_TYPE_ID_BIT;
             return TRUE;
         }
     }
@@ -476,49 +477,106 @@ BOOLEAN btm_random_pseudo_to_public(BD_ADDR random_pseudo, UINT8 *p_static_addr_
 
 /*******************************************************************************
 **
-** Function         btm_ble_refresh_rra
+** Function         btm_ble_refresh_peer_resolvable_private_addr
 **
-** Description      This function refresh the currently used RRA into security
+** Description      This function refresh the currently used resolvable remote private address into security
 **                  database and set active connection address.
 **
 *******************************************************************************/
-void btm_ble_refresh_rra(BD_ADDR static_bda, BD_ADDR rra)
+void btm_ble_refresh_peer_resolvable_private_addr(BD_ADDR pseudo_bda, BD_ADDR rpa,
+                                                  UINT8 rra_type)
 {
 #if BLE_PRIVACY_SPT == TRUE
-    tBTM_SEC_DEV_REC    *p_sec_rec = btm_find_dev_by_public_static_addr(static_bda);
-    tACL_CONN           *p_acl = btm_bda_to_acl (p_sec_rec->bd_addr, BT_TRANSPORT_LE);
     UINT8               rra_dummy = FALSE;
     BD_ADDR             dummy_bda = {0};
 
-    BTM_TRACE_ERROR("btm_ble_refresh_rra");
-
-    if (memcmp(dummy_bda, rra, BD_ADDR_LEN) == 0)
+    if (memcmp(dummy_bda, rpa, BD_ADDR_LEN) == 0)
         rra_dummy = TRUE;
 
-    /* connection refresh RRA */
-    if (p_acl != NULL /* && memcmp(p_acl->active_remote_addr, dummy_bda, BD_ADDR_LEN) == 0 */)
-    {
-        /* use static address, rra is empty */
-        if (rra_dummy)
-        {
-            p_acl->active_remote_addr_type = p_sec_rec->ble.static_addr_type;
-            memcpy(p_acl->active_remote_addr, p_sec_rec->ble.static_addr, BD_ADDR_LEN);
-        }
-        else
-        {
-            p_acl->active_remote_addr_type = BLE_ADDR_RANDOM;
-            memcpy(p_acl->active_remote_addr, rra, BD_ADDR_LEN);
-        }
-    }
     /* update security record here, in adv event or connection complete process */
+    tBTM_SEC_DEV_REC *p_sec_rec = btm_find_dev(pseudo_bda);
     if (p_sec_rec != NULL)
     {
-        memcpy(p_sec_rec->ble.cur_rand_addr, rra, BD_ADDR_LEN);
-        p_sec_rec->ble.active_addr_type = rra_dummy ? BTM_BLE_ADDR_STATIC: BTM_BLE_ADDR_RRA;
+        memcpy(p_sec_rec->ble.cur_rand_addr, rpa, BD_ADDR_LEN);
+
+        /* unknown, if dummy address, set to static */
+        if (rra_type == BTM_BLE_ADDR_PSEUDO)
+            p_sec_rec->ble.active_addr_type = rra_dummy ? BTM_BLE_ADDR_STATIC: BTM_BLE_ADDR_RRA;
+        else
+            p_sec_rec->ble.active_addr_type = rra_type;
     }
     else
     {
         BTM_TRACE_ERROR("No matching known device in record");
+        return;
+    }
+
+    BTM_TRACE_DEBUG("%s: active_addr_type: %d ",
+                    __func__, p_sec_rec->ble.active_addr_type);
+
+    /* connection refresh remote address */
+    tACL_CONN *p_acl = p_acl = btm_bda_to_acl(p_sec_rec->bd_addr, BT_TRANSPORT_LE);
+    if (p_acl != NULL)
+    {
+        if (rra_type == BTM_BLE_ADDR_PSEUDO)
+        {
+            /* use static address, resolvable_private_addr is empty */
+            if (rra_dummy)
+            {
+                p_acl->active_remote_addr_type = p_sec_rec->ble.static_addr_type;
+                memcpy(p_acl->active_remote_addr, p_sec_rec->ble.static_addr, BD_ADDR_LEN);
+            }
+            else
+            {
+                p_acl->active_remote_addr_type = BLE_ADDR_RANDOM;
+                memcpy(p_acl->active_remote_addr, rpa, BD_ADDR_LEN);
+            }
+        }
+        else
+        {
+              p_acl->active_remote_addr_type = rra_type;
+              memcpy(p_acl->active_remote_addr, rpa, BD_ADDR_LEN);
+        }
+
+        BTM_TRACE_DEBUG("p_acl->active_remote_addr_type: %d ", p_acl->active_remote_addr_type);
+        BTM_TRACE_DEBUG("%s conn_addr: %02x:%02x:%02x:%02x:%02x:%02x",
+                __func__,p_acl->active_remote_addr[0], p_acl->active_remote_addr[1],
+                p_acl->active_remote_addr[2], p_acl->active_remote_addr[3],
+                p_acl->active_remote_addr[4], p_acl->active_remote_addr[5]);
+    }
+#endif
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_refresh_local_resolvable_private_addr
+**
+** Description      This function refresh the currently used resolvable private address for the
+**                  active link to the remote device
+**
+*******************************************************************************/
+void btm_ble_refresh_local_resolvable_private_addr(BD_ADDR pseudo_addr,
+                                                   BD_ADDR local_rpa)
+{
+#if BLE_PRIVACY_SPT == TRUE
+    tACL_CONN *p = btm_bda_to_acl(pseudo_addr, BT_TRANSPORT_LE);
+    BD_ADDR     dummy_bda = {0};
+
+    if (p != NULL)
+    {
+        if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
+        {
+            p->conn_addr_type = BLE_ADDR_RANDOM;
+            if (memcmp(local_rpa, dummy_bda, BD_ADDR_LEN))
+                memcpy(p->conn_addr, local_rpa, BD_ADDR_LEN);
+            else
+                memcpy(p->conn_addr, btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr, BD_ADDR_LEN);
+        }
+        else
+        {
+            p->conn_addr_type = BLE_ADDR_PUBLIC;
+            memcpy(p->conn_addr,&controller_get_interface()->get_address()->address, BD_ADDR_LEN);
+        }
     }
 #endif
 }

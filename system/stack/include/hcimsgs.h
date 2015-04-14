@@ -639,6 +639,10 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode,
 ** BLE Commands
 **      Note: "local_controller_id" is for transport, not counted in HCI message size
 *********************************************************************************/
+#define HCIC_BLE_RAND_DI_SIZE                   8
+#define HCIC_BLE_ENCRYT_KEY_SIZE                16
+#define HCIC_BLE_IRK_SIZE                       16
+
 #define HCIC_PARAM_SIZE_SET_USED_FEAT_CMD       8
 #define HCIC_PARAM_SIZE_WRITE_RANDOM_ADDR_CMD    6
 #define HCIC_PARAM_SIZE_BLE_WRITE_ADV_PARAMS    15
@@ -667,6 +671,15 @@ extern void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode,
 #define HCIC_BLE_CHNL_MAP_SIZE                  5
 #define HCIC_PARAM_SIZE_BLE_WRITE_ADV_DATA      31
 
+#define HCIC_PARAM_SIZE_BLE_ADD_DEV_RESOLVING_LIST      (7 + HCIC_BLE_IRK_SIZE * 2)
+#define HCIC_PARAM_SIZE_BLE_RM_DEV_RESOLVING_LIST       7
+#define HCIC_PARAM_SIZE_BLE_CLEAR_RESOLVING_LIST        0
+#define HCIC_PARAM_SIZE_BLE_READ_RESOLVING_LIST_SIZE    0
+#define HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_PEER   7
+#define HCIC_PARAM_SIZE_BLE_READ_RESOLVABLE_ADDR_LOCAL  7
+#define HCIC_PARAM_SIZE_BLE_SET_ADDR_RESOLUTION_ENABLE  1
+#define HCIC_PARAM_SIZE_BLE_SET_RAND_PRIV_ADDR_TIMOUT   2
+
 /* ULP HCI command */
 extern BOOLEAN btsnd_hcic_ble_set_evt_mask (BT_EVENT_MASK event_mask);
 
@@ -681,7 +694,7 @@ extern BOOLEAN btsnd_hcic_ble_set_random_addr (BD_ADDR random_addr);
 extern BOOLEAN btsnd_hcic_ble_write_adv_params (UINT16 adv_int_min, UINT16 adv_int_max,
                                                 UINT8 adv_type, UINT8 addr_type_own,
                                                 UINT8 addr_type_dir, BD_ADDR direct_bda,
-                                                UINT8 channel_map, UINT8 scan_filter_policy);
+                                                UINT8 channel_map, UINT8 adv_filter_policy);
 
 extern BOOLEAN btsnd_hcic_ble_read_adv_chnl_tx_power (void);
 
@@ -759,6 +772,36 @@ extern BOOLEAN btsnd_hcic_ble_rc_param_req_neg_reply(UINT16 handle, UINT8 reason
 #endif /* BLE_LLT_INCLUDED */
 
 
+extern BOOLEAN btsnd_hcic_ble_add_device_resolving_list (UINT8 addr_type_peer,
+                                                               BD_ADDR bda_peer,
+                                                               UINT8 irk_peer[HCIC_BLE_IRK_SIZE],
+                                                               UINT8 irk_local[HCIC_BLE_IRK_SIZE]);
+
+extern BOOLEAN btsnd_hcic_ble_rm_device_resolving_list (UINT8 addr_type_peer,
+                                                                BD_ADDR bda_peer);
+
+extern BOOLEAN btsnd_hcic_ble_clear_resolving_list (void);
+
+extern BOOLEAN btsnd_hcic_ble_read_resolvable_addr_peer (UINT8 addr_type_peer,
+                                                                 BD_ADDR bda_peer);
+
+extern BOOLEAN btsnd_hcic_ble_read_resolvable_addr_local (UINT8 addr_type_peer,
+                                                                 BD_ADDR bda_peer);
+
+extern BOOLEAN btsnd_hcic_ble_set_addr_resolution_enable (UINT8 addr_resolution_enable);
+
+extern BOOLEAN btsnd_hcic_ble_set_rand_priv_addr_timeout (UINT16 rpa_timout);
+
 #endif /* BLE_INCLUDED */
+
+extern BOOLEAN btsnd_hcic_read_authenticated_payload_tout(UINT16 handle);
+
+extern BOOLEAN btsnd_hcic_write_authenticated_payload_tout(UINT16 handle,
+                                                                   UINT16 timeout);
+
+#define HCIC_PARAM_SIZE_WRITE_AUTHENT_PAYLOAD_TOUT  4
+
+#define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_HANDLE_OFF  0
+#define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_TOUT_OFF    2
 
 #endif

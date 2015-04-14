@@ -171,8 +171,11 @@ typedef struct
 
     BD_ADDR                 read_tx_pwr_addr;   /* read TX power target address     */
 
-    tBTM_BLE_LOCAL_ID_KEYS  id_keys;        /* local BLE ID keys                    */
-    BT_OCTET16              er;             /* BLE encryption key                   */
+#define BTM_LE_SUPPORT_STATE_SIZE   8
+UINT8                   le_supported_states[BTM_LE_SUPPORT_STATE_SIZE];
+
+tBTM_BLE_LOCAL_ID_KEYS id_keys; /* local BLE ID keys */
+BT_OCTET16 ble_encryption_key_value; /* BLE encryption key */
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
     BOOLEAN                 no_disc_if_pair_fail;
@@ -182,11 +185,13 @@ typedef struct
     UINT32                  test_local_sign_cntr;
 #endif
 
-
 #endif  /* BLE_INCLUDED */
 
     tBTM_IO_CAP          loc_io_caps;       /* IO capability of the local device */
     tBTM_AUTH_REQ        loc_auth_req;      /* the auth_req flag  */
+    BOOLEAN              secure_connections_only;    /* Rejects service level 0 connections if */
+                                                     /* itself or peer device doesn't support */
+                                                     /* secure connections */
 } tBTM_DEVCB;
 
 
@@ -440,6 +445,11 @@ typedef struct
 typedef struct
 {
     BT_OCTET16          irk;            /* peer diverified identity root */
+    BT_OCTET16          pltk;           /* peer long term key */
+    BT_OCTET16          pcsrk;          /* peer SRK peer device used to secured sign local data  */
+
+    BT_OCTET16          lltk;           /* local long term key */
+    BT_OCTET16          lcsrk;          /* local SRK peer device used to secured sign local data  */
     BT_OCTET16          ltk;            /* peer long term key */
     BT_OCTET16          csrk;           /* peer SRK peer device used to secured sign local data  */
 
@@ -460,16 +470,18 @@ typedef struct
     tBLE_ADDR_TYPE      ble_addr_type;  /* LE device type: public or random address */
     tBLE_ADDR_TYPE      static_addr_type;   /* static address type */
     BD_ADDR             static_addr;    /* static address */
+
+#define BTM_WHITE_LIST_BIT          0x01
+#define BTM_RESOLVING_LIST_BIT      0x02
+    UINT8               in_controller_list;   /* in controller resolving list or not */
+    UINT8               resolving_list_index;
 #if BLE_PRIVACY_SPT == TRUE
     BD_ADDR             cur_rand_addr;  /* current random address */
 
 #define BTM_BLE_ADDR_PSEUDO         0   /* address index device record */
 #define BTM_BLE_ADDR_RRA            1   /* cur_rand_addr */
-#define BTM_BLE_ADDR_RECONN         2   /* reconnection address */
-#define BTM_BLE_ADDR_STATIC         3   /* static_addr  */
+#define BTM_BLE_ADDR_STATIC         2   /* static_addr  */
     UINT8               active_addr_type;
-
-    BOOLEAN             privacy_enabled;   /* remote device privacy enabled or not */
 #endif
 
 #if SMP_INCLUDED == TRUE
@@ -503,15 +515,15 @@ typedef struct
 #define BTM_SEC_ENCRYPTED       BTM_SEC_FLAG_ENCRYPTED      /* 0x04 */
 #define BTM_SEC_NAME_KNOWN      0x08
 #define BTM_SEC_LINK_KEY_KNOWN  BTM_SEC_FLAG_LKEY_KNOWN /* 0x10 */
-#define BTM_SEC_LINK_KEY_AUTHED 0x20
+#define BTM_SEC_LINK_KEY_AUTHED BTM_SEC_FLAG_LKEY_AUTHED    /* 0x20 */
 #define BTM_SEC_ROLE_SWITCHED   0x40
 #define BTM_SEC_IN_USE          0x80
     /* LE link security flag */
-#define BTM_SEC_LE_AUTHENTICATED   0x0200       /* 0x0200 */
-#define BTM_SEC_LE_ENCRYPTED       0x0400      /* 0x04 */
-#define BTM_SEC_LE_NAME_KNOWN      0x0800
-#define BTM_SEC_LE_LINK_KEY_KNOWN  0x1000       /* 0x10 */
-#define BTM_SEC_LE_LINK_KEY_AUTHED 0x2000
+#define BTM_SEC_LE_AUTHENTICATED   0x0200   /* LE link is encrypted after pairing with MITM */
+#define BTM_SEC_LE_ENCRYPTED       0x0400   /* LE link is encrypted */
+#define BTM_SEC_LE_NAME_KNOWN      0x0800   /* not used */
+#define BTM_SEC_LE_LINK_KEY_KNOWN  0x1000   /* bonded with peer (peer LTK and/or SRK is saved) */
+#define BTM_SEC_LE_LINK_KEY_AUTHED 0x2000   /* pairing is done with MITM */
 
     UINT16           sec_flags;          /* Current device security state      */
 
@@ -519,14 +531,17 @@ typedef struct
     BD_FEATURES     features[HCI_EXT_FEATURES_PAGE_MAX + 1];           /* Features supported by the device */
     UINT8           num_read_pages;
 
-#define BTM_SEC_STATE_IDLE              0
-#define BTM_SEC_STATE_AUTHENTICATING    1
-#define BTM_SEC_STATE_ENCRYPTING        2
-#define BTM_SEC_STATE_GETTING_NAME      3
-#define BTM_SEC_STATE_AUTHORIZING       4
-#define BTM_SEC_STATE_SWITCHING_ROLE    5
-#define BTM_SEC_STATE_DISCONNECTING     6
-#define BTM_SEC_STATE_DELAY_FOR_ENC     7   /* delay to check for encryption to work around controller problems */
+#define BTM_SEC_STATE_IDLE               0
+#define BTM_SEC_STATE_AUTHENTICATING     1
+#define BTM_SEC_STATE_ENCRYPTING         2
+#define BTM_SEC_STATE_GETTING_NAME       3
+#define BTM_SEC_STATE_AUTHORIZING        4
+#define BTM_SEC_STATE_SWITCHING_ROLE     5
+#define BTM_SEC_STATE_DISCONNECTING      6 /* disconnecting BR/EDR */
+#define BTM_SEC_STATE_DELAY_FOR_ENC      7 /* delay to check for encryption to work around */
+                                           /* controller problems */
+#define BTM_SEC_STATE_DISCONNECTING_BLE  8 /* disconnecting BLE */
+#define BTM_SEC_STATE_DISCONNECTING_BOTH 9 /* disconnecting BR/EDR and BLE */
 
     UINT8       sec_state;              /* Operating state                    */
     BOOLEAN     is_originator;          /* TRUE if device is originating connection */
@@ -553,6 +568,11 @@ typedef struct
     UINT8       sm4;                    /* BTM_SM4_TRUE, if the peer supports SM4 */
     tBTM_IO_CAP rmt_io_caps;            /* IO capability of the peer device */
     tBTM_AUTH_REQ rmt_auth_req;         /* the auth_req flag as in the IO caps rsp evt */
+    BOOLEAN     remote_supports_secure_connections;
+    BOOLEAN     remote_features_needed; /* set to true if the local device is in */
+                                        /* "Secure Connections Only" mode and it receives */
+                                        /* HCI_IO_CAPABILITY_REQUEST_EVT from the peer before */
+                                        /* it knows peer's support for Secure Connections */
 
 #if (BLE_INCLUDED == TRUE)
     UINT16              ble_hci_handle;         /* use in DUMO connection */
@@ -560,6 +580,11 @@ typedef struct
     tBTM_SEC_BLE        ble;
     tBT_DEVICE_TYPE     device_type;
     tBTM_LE_CONN_PRAMS  conn_params;
+    BOOLEAN             new_encryption_key_is_p256; /* Set to TRUE when the newly generated LK
+                                                    ** is generated from P-256.
+                                                    ** Link encrypted with such LK can be used
+                                                    ** for SM over BR/EDR.
+                                                    */
 #endif
 
 // btla-specific ++
@@ -710,6 +735,7 @@ typedef struct
     void                *p_ref_data;
     UINT32              mx_proto_id;
     UINT32              mx_chan_id;
+    tBT_TRANSPORT       transport;
 } tBTM_SEC_QUEUE_ENTRY;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
@@ -847,7 +873,6 @@ typedef struct
 #if  (!defined(BT_TRACE_VERBOSE) || (BT_TRACE_VERBOSE == FALSE))
     char state_temp_buffer[BTM_STATE_BUFFER_SIZE];
 #endif
-
 } tBTM_CB;
 
 
@@ -979,6 +1004,10 @@ extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
 extern void btm_ble_add_2_white_list_complete(UINT8 status);
 extern void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_clear_white_list_complete(UINT8 *p, UINT16 evt_len);
+extern tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec);
+extern BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec);
+extern void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec);
+extern tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec);
 #endif  /* BLE_INCLUDED */
 
 /* Vendor Specific Command complete evt handler */
@@ -1035,6 +1064,7 @@ extern void  btm_sec_link_key_request (UINT8 *p_bda);
 extern void  btm_sec_pin_code_request (UINT8 *p_bda);
 extern void  btm_sec_update_clock_offset (UINT16 handle, UINT16 clock_offset);
 extern void  btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res, BOOLEAN is_le_trasnport);
+extern void btm_sec_set_peer_sec_caps (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec);
 
 #if BLE_INCLUDED == TRUE
 extern void  btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec);

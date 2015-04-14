@@ -36,7 +36,6 @@
 #include "btm_int.h"
 #include "hcidefs.h"
 #include "l2c_api.h"
-#include "vendor_ble.h"
 
 static tBTM_SEC_DEV_REC *btm_find_oldest_dev (void);
 
@@ -185,9 +184,6 @@ BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr)
     if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
         return(FALSE);
 
-#if BLE_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE
-    btm_ble_vendor_irk_list_remove_dev(p_dev_rec);
-#endif
     btm_sec_free_dev (p_dev_rec);
 
     /* Tell controller to get rid of the link key if it has one stored */

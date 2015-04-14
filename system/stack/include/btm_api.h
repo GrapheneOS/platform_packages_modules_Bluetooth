@@ -29,9 +29,7 @@
 #include "sdp_api.h"
 #include "hcidefs.h"
 
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
 #include "smp_api.h"
-#endif
 /*****************************************************************************
 **  DEVICE CONTROL and COMMON
 *****************************************************************************/
@@ -62,8 +60,9 @@ enum
     BTM_DELAY_CHECK,                    /* 15 delay the check on encryption */
     BTM_SCO_BAD_LENGTH,                 /* 16 Bad SCO over HCI data length */
     BTM_SUCCESS_NO_SECURITY,            /* 17 security passed, no security set  */
-    BTM_FAILED_ON_SECURITY ,             /* 18 security failed                   */
-    BTM_REPEATED_ATTEMPTS               /* 19 repeated attempts for LE security requests */
+    BTM_FAILED_ON_SECURITY,             /* 18 security failed                   */
+    BTM_REPEATED_ATTEMPTS,              /* 19 repeated attempts for LE security requests */
+    BTM_MODE4_LEVEL4_NOT_SUPPORTED      /* 20 Secure Connections Only Mode can't be supported */
 };
 typedef UINT8 tBTM_STATUS;
 
@@ -206,8 +205,6 @@ typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_SSP_INQUIRY_ACTIVE      0x4     /* SSP is active, so inquiry is disallowed (work around for FW bug) */
 #define BTM_LE_GENERAL_INQUIRY_ACTIVE  BTM_BLE_GENERAL_INQUIRY     /* a general inquiry is in progress */
 #define BTM_LE_LIMITED_INQUIRY_ACTIVE  BTM_BLE_LIMITED_INQUIRY      /* a limited inquiry is in progress */
-#define BTM_LE_SELECT_CONN_ACTIVE   0x40     /* selection connection is in progress */
-#define BTM_LE_OBSERVE_ACTIVE       0x80     /* selection connection is in progress */
 
 /* inquiry activity mask */
 #define BTM_BR_INQ_ACTIVE_MASK        (BTM_GENERAL_INQUIRY_ACTIVE|BTM_LIMITED_INQUIRY_ACTIVE|BTM_PERIODIC_INQUIRY_ACTIVE) /* BR/EDR inquiry activity mask */
@@ -1087,6 +1084,10 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_MODE_LINK           3
 #define BTM_SEC_MODE_SP             4
 #define BTM_SEC_MODE_SP_DEBUG       5
+#define BTM_SEC_MODE_SC             6
+
+/* Maximum Number of BTM Security Modes */
+#define BTM_SEC_MODES_MAX           7
 
 /* Security Service Levels [bit mask] (BTM_SetSecurityLevel)
 ** Encryption should not be used without authentication
@@ -1098,8 +1099,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_OUT_AUTHORIZE      0x0008 /* Outbound call requires authorization */
 #define BTM_SEC_OUT_AUTHENTICATE   0x0010 /* Outbound call requires authentication */
 #define BTM_SEC_OUT_ENCRYPT        0x0020 /* Outbound call requires encryption */
-#define BTM_SEC_BOND               0x0040 /* Bonding */
-#define BTM_SEC_BOND_CONN          0x0080 /* bond_created_connection */
+#define BTM_SEC_MODE4_LEVEL4       0x0040 /* Secure Connections Only Mode */
 #define BTM_SEC_FORCE_MASTER       0x0100 /* Need to switch connection to be master */
 #define BTM_SEC_ATTEMPT_MASTER     0x0200 /* Try to switch connection to be master */
 #define BTM_SEC_FORCE_SLAVE        0x0400 /* Need to switch connection to be master */
@@ -1129,8 +1129,15 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_LKEY_TYPE_UNAUTH_COMB   HCI_LKEY_TYPE_UNAUTH_COMB
 #define BTM_LKEY_TYPE_AUTH_COMB     HCI_LKEY_TYPE_AUTH_COMB
 #define BTM_LKEY_TYPE_CHANGED_COMB  HCI_LKEY_TYPE_CHANGED_COMB
+
+#define BTM_LKEY_TYPE_UNAUTH_COMB_P_256 HCI_LKEY_TYPE_UNAUTH_COMB_P_256
+#define BTM_LKEY_TYPE_AUTH_COMB_P_256   HCI_LKEY_TYPE_AUTH_COMB_P_256
+
+#define BTM_LTK_DERIVED_LKEY_OFFSET 0x20    /* "easy" requirements for LK derived from LTK */
 #define BTM_LKEY_TYPE_IGNORE        0xff    /* used when event is response from
                                                hci return link keys request */
+
+typedef UINT8 tBTM_LINK_KEY_TYPE;
 
 /* Protocol level security (BTM_SetSecurityLevel) */
 #define BTM_SEC_PROTO_L2CAP         0
@@ -1456,11 +1463,12 @@ typedef struct
 
 enum
 {
-    BTM_SP_KEY_STARTED,         /* passkey entry started */
-    BTM_SP_KEY_ENTERED,         /* passkey digit entered */
-    BTM_SP_KEY_ERASED,          /* passkey digit erased */
-    BTM_SP_KEY_CLEARED,         /* passkey cleared */
-    BTM_SP_KEY_COMPLT           /* passkey entry completed */
+    BTM_SP_KEY_STARTED,         /* 0 - passkey entry started */
+    BTM_SP_KEY_ENTERED,         /* 1 - passkey digit entered */
+    BTM_SP_KEY_ERASED,          /* 2 - passkey digit erased */
+    BTM_SP_KEY_CLEARED,         /* 3 - passkey cleared */
+    BTM_SP_KEY_COMPLT,          /* 4 - passkey entry completed */
+    BTM_SP_KEY_OUT_OF_RANGE     /* 5 - out of range */
 };
 typedef UINT8   tBTM_SP_KEY_TYPE;
 
@@ -1543,32 +1551,46 @@ typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 
 /* LE related event and data structure
 */
-enum
-{
-    BTM_LE_IO_REQ_EVT = 1,      /* received IO_CAPABILITY_REQUEST event */
-    BTM_LE_SEC_REQUEST_EVT, /* security request event */
-    BTM_LE_KEY_NOTIF_EVT,   /* received USER_PASSKEY_NOTIFY event */
-    BTM_LE_KEY_REQ_EVT,     /* received USER_PASSKEY_REQUEST event */
-    BTM_LE_OOB_REQ_EVT,     /* OOB data request event */
-    BTM_LE_COMPLT_EVT,      /* received SIMPLE_PAIRING_COMPLETE event */
-    BTM_LE_KEY_EVT         /* KEY update event */
-};
+#define BTM_LE_IO_REQ_EVT       SMP_IO_CAP_REQ_EVT     /* received IO_CAPABILITY_REQUEST event */
+#define BTM_LE_SEC_REQUEST_EVT  SMP_SEC_REQUEST_EVT    /* security request event */
+#define BTM_LE_KEY_NOTIF_EVT    SMP_PASSKEY_NOTIF_EVT  /* received USER_PASSKEY_NOTIFY event */
+#define BTM_LE_KEY_REQ_EVT      SMP_PASSKEY_REQ_EVT    /* received USER_PASSKEY_REQUEST event */
+#define BTM_LE_OOB_REQ_EVT      SMP_OOB_REQ_EVT        /* OOB data request event */
+#define BTM_LE_NC_REQ_EVT       SMP_NC_REQ_EVT          /* Numeric Comparison request event */
+#define BTM_LE_PR_KEYPR_NOT_EVT SMP_PEER_KEYPR_NOT_EVT /* Peer keypress notification recd event */
+/* SC OOB request event (both local and peer OOB data) can be expected in response */
+#define BTM_LE_SC_OOB_REQ_EVT   SMP_SC_OOB_REQ_EVT
+/* SC OOB local data set is created (as result of SMP_CrLocScOobData(...)) */
+#define BTM_LE_SC_LOC_OOB_EVT   SMP_SC_LOC_OOB_DATA_UP_EVT
+#define BTM_LE_BR_KEYS_REQ_EVT  SMP_BR_KEYS_REQ_EVT     /* SMP over BR keys request event */
+#define BTM_LE_COMPLT_EVT       SMP_COMPLT_EVT         /* SMP complete event */
+#define BTM_LE_LAST_FROM_SMP    BTM_LE_BR_KEYS_REQ_EVT
+#define BTM_LE_KEY_EVT          BTM_LE_LAST_FROM_SMP + 1 /* KEY update event */
 typedef UINT8 tBTM_LE_EVT;
 
+#define BTM_LE_KEY_NONE           0
 #define BTM_LE_KEY_PENC      SMP_SEC_KEY_TYPE_ENC        /* encryption information of peer device */
 #define BTM_LE_KEY_PID       SMP_SEC_KEY_TYPE_ID         /* identity key of the peer device */
-#define BTM_LE_KEY_PCSRK      SMP_SEC_KEY_TYPE_CSRK        /* peer SRK */
-#define BTM_LE_KEY_LENC      (SMP_SEC_KEY_TYPE_ENC << 3)       /* master role security information:div */
-#define BTM_LE_KEY_LID       (SMP_SEC_KEY_TYPE_ID << 3)        /* master device ID key */
-#define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 3)       /* local CSRK has been deliver to peer */
+#define BTM_LE_KEY_PCSRK     SMP_SEC_KEY_TYPE_CSRK      /* peer SRK */
+#define BTM_LE_KEY_PLK       SMP_SEC_KEY_TYPE_LK
+#define BTM_LE_KEY_LLK       (SMP_SEC_KEY_TYPE_LK << 4)
+#define BTM_LE_KEY_LENC      (SMP_SEC_KEY_TYPE_ENC << 4)  /* master role security information:div */
+#define BTM_LE_KEY_LID       (SMP_SEC_KEY_TYPE_ID << 4)   /* master device ID key */
+#define BTM_LE_KEY_LCSRK     (SMP_SEC_KEY_TYPE_CSRK << 4) /* local CSRK has been deliver to peer */
 typedef UINT8 tBTM_LE_KEY_TYPE;
 
 #define BTM_LE_AUTH_REQ_NO_BOND SMP_AUTH_NO_BOND   /* 0 */
 #define BTM_LE_AUTH_REQ_BOND    SMP_AUTH_GEN_BOND  /* 1 << 0 */
 #define BTM_LE_AUTH_REQ_MITM    SMP_AUTH_YN_BIT    /* 1 << 2 */
 typedef UINT8 tBTM_LE_AUTH_REQ;
+#define BTM_LE_SC_SUPPORT_BIT           SMP_SC_SUPPORT_BIT     /* (1 << 3) */
+#define BTM_LE_KP_SUPPORT_BIT           SMP_KP_SUPPORT_BIT     /* (1 << 4) */
 
-#define BTM_LE_AUTH_REQ_MASK SMP_AUTH_MASK  /* 0x03*/
+#define BTM_LE_AUTH_REQ_SC_ONLY         SMP_AUTH_SC_ENC_ONLY    /* 1 << 3 */
+#define BTM_LE_AUTH_REQ_SC_BOND         SMP_AUTH_SC_GB          /* 1001 */
+#define BTM_LE_AUTH_REQ_SC_MITM         SMP_AUTH_SC_MITM_NB     /* 1100 */
+#define BTM_LE_AUTH_REQ_SC_MITM_BOND    SMP_AUTH_SC_MITM_GB     /* 1101 */
+#define BTM_LE_AUTH_REQ_MASK            SMP_AUTH_MASK           /* 0x1D */
 
 /* LE security level */
 #define BTM_LE_SEC_NONE             SMP_SEC_NONE
@@ -1593,7 +1615,6 @@ typedef struct
 {
     UINT8       reason;
     UINT8       sec_level;
-    BOOLEAN     privacy_supported;
     BOOLEAN     is_pair_cancel;
 }tBTM_LE_COMPLT;
 #endif
@@ -1619,6 +1640,7 @@ typedef struct
 /* BLE Encryption reproduction keys */
 typedef struct
 {
+    BT_OCTET16  ltk;
     UINT16      div;
     UINT8       key_size;
     UINT8       sec_level;
@@ -1630,7 +1652,7 @@ typedef struct
     UINT32          counter;
     UINT16          div;
     UINT8           sec_level;
-
+    BT_OCTET16      csrk;
 }tBTM_LE_LCSRK_KEYS;
 
 typedef struct
@@ -1643,10 +1665,10 @@ typedef struct
 typedef union
 {
     tBTM_LE_PENC_KEYS   penc_key;       /* received peer encryption key */
-    tBTM_LE_PCSRK_KEYS  pcsrk_key;       /* received peer device SRK */
+    tBTM_LE_PCSRK_KEYS  pcsrk_key;      /* received peer device SRK */
     tBTM_LE_PID_KEYS    pid_key;        /* peer device ID key */
     tBTM_LE_LENC_KEYS   lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
-    tBTM_LE_LCSRK_KEYS   lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
+    tBTM_LE_LCSRK_KEYS   lcsrk_key;     /* local device CSRK = d1(ER,DIV,1)*/
 }tBTM_LE_KEY_VALUE;
 
 typedef struct
@@ -1659,9 +1681,12 @@ typedef union
 {
     tBTM_LE_IO_REQ      io_req;     /* BTM_LE_IO_REQ_EVT      */
     UINT32              key_notif;  /* BTM_LE_KEY_NOTIF_EVT   */
-                                    /* no callback dta for BTM_LE_KEY_REQ_EVT & BTM_LE_OOB_REQ_EVT  */
+                                    /* BTM_LE_NC_REQ_EVT */
+                                    /* no callback data for BTM_LE_KEY_REQ_EVT */
+                                    /* and BTM_LE_OOB_REQ_EVT  */
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
     tBTM_LE_COMPLT      complt;     /* BTM_LE_COMPLT_EVT      */
+    tSMP_OOB_DATA_TYPE  req_oob_type;
 #endif
     tBTM_LE_KEY         key;
 } tBTM_LE_EVT_DATA;
@@ -3190,6 +3215,23 @@ extern void BTM_SetPairableMode (BOOLEAN allow_pairing, BOOLEAN connect_only_pai
 
 /*******************************************************************************
 **
+** Function         BTM_SetSecureConnectionsOnly
+**
+** Description      Enable or disable default treatment for Mode 4 Level 0 services
+**
+** Parameter        secure_connections_only_mode - (TRUE or FALSE)
+**                  TRUE means that the device should treat Mode 4 Level 0 services as
+**                  services of other levels.
+**                  FALSE means that the device should provide default treatment for
+**                  Mode 4 Level 0 services.
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode);
+
+/*******************************************************************************
+**
 ** Function         BTM_SetSecurityLevel
 **
 ** Description      Register service security level with Security Manager.  Each
@@ -3276,6 +3318,23 @@ extern BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr);
 *******************************************************************************/
 extern tBTM_STATUS BTM_SecGetDeviceLinkKey (BD_ADDR bd_addr,
                                             LINK_KEY link_key);
+
+
+/*******************************************************************************
+**
+** Function         BTM_SecGetDeviceLinkKeyType
+**
+** Description      This function is called to obtain link key type for the
+**                  device.
+**                  it returns BTM_SUCCESS if link key is available, or
+**                  BTM_UNKNOWN_ADDR if Security Manager does not know about
+**                  the device or device record does not contain link key info
+**
+** Returns          BTM_LKEY_TYPE_IGNORE if link key is unknown, link type
+**                  otherwise.
+**
+*******************************************************************************/
+extern tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr);
 
 
 /*******************************************************************************
@@ -3482,6 +3541,37 @@ extern void BTM_RemoteOobDataReply(tBTM_STATUS res, BD_ADDR bd_addr,
 *******************************************************************************/
 extern UINT16 BTM_BuildOobData(UINT8 *p_data, UINT16 max_len, BT_OCTET16 c,
                                BT_OCTET16 r, UINT8 name_len);
+
+/*******************************************************************************
+**
+** Function         BTM_BothEndsSupportSecureConnections
+**
+** Description      This function is called to check if both the local device and the peer device
+**                   specified by bd_addr support BR/EDR Secure Connections.
+**
+** Parameters:      bd_addr - address of the peer
+**
+** Returns          TRUE if BR/EDR Secure Connections are supported by both local
+**                  and the remote device.
+**                  else FALSE.
+**
+*******************************************************************************/
+extern BOOLEAN BTM_BothEndsSupportSecureConnections(BD_ADDR bd_addr);
+
+/*******************************************************************************
+**
+** Function         BTM_PeerSupportsSecureConnections
+**
+** Description      This function is called to check if the peer supports
+**                  BR/EDR Secure Connections.
+**
+** Parameters:      bd_addr - address of the peer
+**
+** Returns          TRUE if BR/EDR Secure Connections are supported by the peer,
+**                  else FALSE.
+**
+*******************************************************************************/
+extern BOOLEAN BTM_PeerSupportsSecureConnections(BD_ADDR bd_addr);
 
 /*******************************************************************************
 **

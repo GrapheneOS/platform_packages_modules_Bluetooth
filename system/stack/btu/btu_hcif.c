@@ -122,6 +122,10 @@ static void btu_hcif_encryption_key_refresh_cmpl_evt (UINT8 *p);
 #if (BLE_LLT_INCLUDED == TRUE)
 static void btu_ble_rc_param_req_evt(UINT8 *p);
 #endif
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+static void btu_ble_proc_enhanced_conn_cmpl (UINT8 *p, UINT16 evt_len);
+#endif
+
     #endif
 
 /*******************************************************************************
@@ -318,6 +322,11 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
                 case HCI_BLE_LTK_REQ_EVT: /* received only at slave device */
                     btu_ble_proc_ltk_req(p);
                     break;
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+                case HCI_BLE_ENHANCED_CONN_COMPLETE_EVT:
+                    btu_ble_proc_enhanced_conn_cmpl(p, hci_evt_len);
+                    break;
+#endif
 #if (BLE_LLT_INCLUDED == TRUE)
                case HCI_BLE_RC_PARAM_REQ_EVT:
                     btu_ble_rc_param_req_evt(p);
@@ -894,6 +903,29 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
         case HCI_BLE_TEST_END:
             btm_ble_test_command_complete(p);
             break;
+
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+        case HCI_BLE_ADD_DEV_RESOLVING_LIST:
+            btm_ble_add_resolving_list_entry_complete(p, evt_len);
+            break;
+
+        case HCI_BLE_RM_DEV_RESOLVING_LIST:
+            btm_ble_remove_resolving_list_entry_complete(p, evt_len);
+            break;
+
+        case HCI_BLE_CLEAR_RESOLVING_LIST:
+            btm_ble_clear_resolving_list_complete(p, evt_len);
+            break;
+
+        case HCI_BLE_READ_RESOLVABLE_ADDR_PEER:
+             btm_ble_read_resolving_list_entry_complete(p, evt_len);
+             break;
+
+        case HCI_BLE_READ_RESOLVABLE_ADDR_LOCAL:
+        case HCI_BLE_SET_ADDR_RESOLUTION_ENABLE:
+        case HCI_BLE_SET_RAND_PRIV_ADDR_TIMOUT:
+            break;
+#endif
 #endif /* (BLE_INCLUDED == TRUE) */
 
         default:
@@ -1650,9 +1682,14 @@ static void btu_ble_process_adv_pkt (UINT8 *p)
 
 static void btu_ble_ll_conn_complete_evt ( UINT8 *p, UINT16 evt_len)
 {
-    btm_ble_conn_complete(p, evt_len);
+    btm_ble_conn_complete(p, evt_len, FALSE);
 }
-
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+static void btu_ble_proc_enhanced_conn_cmpl( UINT8 *p, UINT16 evt_len)
+{
+    btm_ble_conn_complete(p, evt_len, TRUE);
+}
+#endif
 static void btu_ble_ll_conn_param_upd_evt (UINT8 *p, UINT16 evt_len)
 {
     /* LE connection update has completed successfully as a master. */

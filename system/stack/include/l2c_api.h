@@ -567,7 +567,8 @@ extern BOOLEAN L2CA_SetIdleTimeout (UINT16 cid, UINT16 timeout,
 ** NOTE             This timeout applies to all logical channels active on the
 **                  ACL link.
 *******************************************************************************/
-extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout);
+extern BOOLEAN L2CA_SetIdleTimeoutByBdAddr(BD_ADDR bd_addr, UINT16 timeout,
+                                           tBT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -931,18 +932,20 @@ extern BOOLEAN L2CA_UCDSetTxPriority ( BD_ADDR rem_bda, tL2CAP_CHNL_PRIORITY pri
 *******************************************************************************/
 
 /* Fixed channel connected and disconnected. Parameters are
+**      channel
 **      BD Address of remote
 **      TRUE if channel is connected, FALSE if disconnected
 **      Reason for connection failure
 **      transport : physical transport, BR/EDR or LE
 */
-typedef void (tL2CA_FIXED_CHNL_CB) (BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
+typedef void (tL2CA_FIXED_CHNL_CB) (UINT16, BD_ADDR, BOOLEAN, UINT16, tBT_TRANSPORT);
 
 /* Signalling data received. Parameters are
+**      channel
 **      BD Address of remote
 **      Pointer to buffer with data
 */
-typedef void (tL2CA_FIXED_DATA_CB) (BD_ADDR, BT_HDR *);
+typedef void (tL2CA_FIXED_DATA_CB) (UINT16, BD_ADDR, BT_HDR *);
 
 /* Congestion status callback protype. This callback is optional. If
 ** an application tries to send data when the transmit queue is full,
@@ -962,6 +965,7 @@ typedef struct
     tL2CAP_FCR_OPTS         fixed_chnl_opts;
 
     UINT16                  default_idle_tout;
+    tL2CA_TX_COMPLETE_CB    *pL2CA_FixedTxComplete_Cb; /* fixed channel tx complete callback */
 } tL2CAP_FIXED_CHNL_REG;
 
 

@@ -274,7 +274,8 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             if (p_ccb->peer_cfg.fcr.mode != L2CAP_FCR_BASIC_MODE)
                 l2c_fcr_proc_pdu (p_ccb, p_msg);
             else
-                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)(p_lcb->remote_bd_addr, p_msg);
+                (*l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)
+                    (rcv_cid, p_lcb->remote_bd_addr, p_msg);
         }
         else
             GKI_freebuf (p_msg);
@@ -891,6 +892,9 @@ void l2c_init (void)
 #if (defined(L2CAP_HIGH_PRI_CHAN_QUOTA_IS_CONFIGURABLE) && (L2CAP_HIGH_PRI_CHAN_QUOTA_IS_CONFIGURABLE == TRUE))
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
+
+    l2cb.l2c_ble_fixed_chnls_mask =
+         L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)

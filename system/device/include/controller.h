@@ -42,6 +42,7 @@ typedef struct controller_t {
   const uint8_t *(*get_ble_supported_states)(void);
 
   bool (*supports_simple_pairing)(void);
+  bool (*supports_secure_connections)(void);
   bool (*supports_simultaneous_le_bredr)(void);
   bool (*supports_reading_remote_extended_features)(void);
   bool (*supports_interlaced_inquiry_scan)(void);
@@ -51,6 +52,7 @@ typedef struct controller_t {
 
   bool (*supports_ble)(void);
   bool (*supports_ble_connection_parameters_request)(void);
+  bool (*supports_ble_privacy)(void);
 
   // Get the cached acl data sizes for the controller.
   uint16_t (*get_acl_data_size_classic)(void);
@@ -65,6 +67,9 @@ typedef struct controller_t {
   // Get the number of acl packets the controller can buffer.
   uint16_t (*get_acl_buffer_count_classic)(void);
   uint8_t (*get_acl_buffer_count_ble)(void);
+
+  uint8_t (*get_ble_resolving_list_max_size)(void);
+  void (*set_ble_resolving_list_max_size)(int resolving_list_max_size);
 } controller_t;
 
 const controller_t *controller_get_interface();

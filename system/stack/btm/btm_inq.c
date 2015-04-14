@@ -2149,6 +2149,9 @@ void btm_process_inq_complete (UINT8 status, UINT8 mode)
         /* Notify caller that the inquiry has completed; (periodic inquiries do not send completion events */
         if (!(p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE) && p_inq->inqparms.mode == 0)
         {
+#if BLE_INCLUDED == TRUE
+            btm_clear_all_pending_le_entry();
+#endif
             p_inq->state = BTM_INQ_INACTIVE_STATE;
 
             /* Increment so the start of a next inquiry has a new count */

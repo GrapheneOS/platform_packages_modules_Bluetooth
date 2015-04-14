@@ -35,7 +35,6 @@
 #if (BLE_INCLUDED == TRUE)
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
 
-#include "vendor_ble.h"
 /*******************************************************************************
 **
 **  Function        L2CA_CancelBleConnectReq
@@ -264,6 +263,7 @@ void l2cble_notify_le_connection (BD_ADDR bda)
 void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
                                UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout)
 {
+    int i;
     tL2C_LCB            *p_lcb;
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_or_alloc_dev (bda);
 
@@ -352,6 +352,14 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
+    /*
+     * This is wrong. However, querying the other side is wrong too, since as per spec they
+     * cannot really tell us when they have fixed channels open. Yes, bluedroid breaks the
+     * spec in EDR mode in that respect, but that it a whole new story.
+     */
+    for(i = 0; i < L2CAP_FIXED_CHNL_ARRAY_SIZE; i++)
+        p_lcb->peer_chnl_mask[i] = 0xFF;
+    l2cu_process_fixed_chnl_resp (p_lcb);
 }
 
 
@@ -368,6 +376,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
 void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
                                   UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout)
 {
+    int i;
     tL2C_LCB            *p_lcb;
     tBTM_SEC_DEV_REC    *p_dev_rec;
     UNUSED(type);
@@ -430,6 +439,14 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
     {
         L2CA_CancelBleConnectReq(bda);
     }
+    /*
+     * This is wrong. However, querying the other side is wrong too, since as per spec they
+     * cannot really tell us when they have fixed channels open. Yes, bluedroid breaks the
+     * spec in EDR mode in that respect, but that it a whole new story.
+     */
+    for(i = 0; i < L2CAP_FIXED_CHNL_ARRAY_SIZE; i++)
+        p_lcb->peer_chnl_mask[i] = 0xFF;
+    l2cu_process_fixed_chnl_resp (p_lcb);
 }
 
 /*******************************************************************************
@@ -445,6 +462,8 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
 void l2cble_conn_comp(UINT16 handle, UINT8 role, BD_ADDR bda, tBLE_ADDR_TYPE type,
                       UINT16 conn_interval, UINT16 conn_latency, UINT16 conn_timeout)
 {
+    btm_ble_update_link_topology_mask(role, TRUE);
+
     if (role == HCI_ROLE_MASTER)
     {
         l2cble_scanner_conn_comp(handle, bda, type, conn_interval, conn_latency, conn_timeout);
@@ -670,12 +689,13 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 *******************************************************************************/
 BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
 {
-    tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_or_alloc_dev (p_lcb->remote_bd_addr);
-    tBTM_BLE_CB         *p_cb = &btm_cb.ble_ctr_cb;
-    UINT16               scan_int, scan_win;
-    BD_ADDR         init_addr;
-    UINT8           init_addr_type = BLE_ADDR_PUBLIC,
-                    own_addr_type = BLE_ADDR_PUBLIC;
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_or_alloc_dev (p_lcb->remote_bd_addr);
+    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
+    UINT16 scan_int;
+    UINT16 scan_win;
+    BD_ADDR peer_addr;
+    UINT8 peer_addr_type = BLE_ADDR_PUBLIC;
+    UINT8 own_addr_type = BLE_ADDR_PUBLIC;
 
     /* There can be only one BLE connection request outstanding at a time */
     if (p_dev_rec == NULL)
@@ -687,22 +707,21 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
     scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
 
-    init_addr_type = p_lcb->ble_addr_type;
-    memcpy(init_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
+    peer_addr_type = p_lcb->ble_addr_type;
+    memcpy(peer_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
 
-#if BLE_PRIVACY_SPT == TRUE
-    /* if RPA offloading supported */
-    if (btm_ble_vendor_irk_list_load_dev(p_dev_rec))
-        btm_random_pseudo_to_public(init_addr, &init_addr_type);
-    /* otherwise, if remote is RPA enabled, use latest RPA */
-    else if (p_dev_rec->ble.active_addr_type == BTM_BLE_ADDR_RRA)
+#if ( (defined BLE_PRIVACY_SPT) && (BLE_PRIVACY_SPT == TRUE))
+    own_addr_type = btm_cb.ble_ctr_cb.privacy_mode ? BLE_ADDR_RANDOM : BLE_ADDR_PUBLIC;
+    if (p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT)
     {
-        init_addr_type = BLE_ADDR_RANDOM;
-        memcpy(init_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
+        if (btm_cb.ble_ctr_cb.privacy_mode >=  BTM_PRIVACY_1_2)
+            own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
+
+        btm_ble_enable_resolving_list();
+        btm_random_pseudo_to_identity_addr(peer_addr, &peer_addr_type);
     }
-    /* if privacy is on and current do not consider using reconnection address */
-    if (btm_cb.ble_ctr_cb.privacy ) /* && p_dev_rec->ble.use_reconn_addr */
-        own_addr_type = BLE_ADDR_RANDOM;
+    else
+        btm_ble_disable_resolving_list();
 #endif
 
     if (!btm_ble_topology_check(BTM_BLE_STATE_INIT))
@@ -715,8 +734,8 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
     if (!btsnd_hcic_ble_create_ll_conn (scan_int,/* UINT16 scan_int      */
                                         scan_win, /* UINT16 scan_win      */
                                         FALSE,                   /* UINT8 white_list     */
-                                        init_addr_type,          /* UINT8 addr_type_peer */
-                                        init_addr,               /* BD_ADDR bda_peer     */
+                                        peer_addr_type,          /* UINT8 addr_type_peer */
+                                        peer_addr,               /* BD_ADDR bda_peer     */
                                         own_addr_type,         /* UINT8 addr_type_own  */
         (UINT16) ((p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ?
         p_dev_rec->conn_params.min_conn_int : BTM_BLE_CONN_INT_MIN_DEF),  /* UINT16 conn_int_min  */
@@ -861,7 +880,7 @@ void l2c_ble_link_adjust_allocation (void)
     if (num_lowpri_links > low_quota)
     {
         l2cb.ble_round_robin_quota = low_quota;
-        qq = qq_remainder = 1;
+        qq = qq_remainder = 0;
     }
     /* If each low priority link can have at least one buffer */
     else if (num_lowpri_links > 0)
@@ -876,7 +895,7 @@ void l2c_ble_link_adjust_allocation (void)
     {
         l2cb.ble_round_robin_quota = 0;
         l2cb.ble_round_robin_unacked = 0;
-        qq = qq_remainder = 1;
+        qq = qq_remainder = 0;
     }
     L2CAP_TRACE_EVENT ("l2c_ble_link_adjust_allocation  num_hipri: %u  num_lowpri: %u  low_quota: %u  round_robin_quota: %u  qq: %u",
                         num_hipri_links, num_lowpri_links, low_quota,

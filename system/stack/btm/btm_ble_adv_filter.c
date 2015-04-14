@@ -29,12 +29,21 @@
 #include "bt_utils.h"
 #include "hcidefs.h"
 #include "btm_ble_api.h"
-#include "vendor_ble.h"
 #include "device/include/controller.h"
 
 #define BTM_BLE_ADV_FILT_META_HDR_LENGTH 3
 #define BTM_BLE_ADV_FILT_FEAT_SELN_LEN  13
 #define BTM_BLE_ADV_FILT_TRACK_NUM       2
+
+#define BTM_BLE_PF_SELECT_NONE              0
+
+/* BLE meta vsc header: 1 bytes of sub_code, 1 byte of PCF action */
+#define BTM_BLE_META_HDR_LENGTH     3
+#define BTM_BLE_PF_FEAT_SEL_LEN     18
+#define BTM_BLE_PCF_ENABLE_LEN      2
+
+#define BTM_BLE_META_ADDR_LEN       7
+#define BTM_BLE_META_UUID_LEN       40
 
 #define BTM_BLE_PF_BIT_TO_MASK(x)          (UINT16)(1 << (x))
 

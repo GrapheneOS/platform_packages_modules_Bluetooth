@@ -31,7 +31,6 @@
 #include "btm_int.h"
 #include <string.h>
 #include "utl.h"
-#include "vendor_ble.h"
 
 /*****************************************************************************
 **  Constants
@@ -791,6 +790,31 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
     }
 #endif
 }
+/*******************************************************************************
+**
+** Function         BTA_DmBleConfirmReply
+**
+** Description      Send BLE SMP SC user confirmation reply.
+**
+** Parameters:      bd_addr          - BD address of the peer
+**                  accept           - numbers to compare are the same or different.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
+{
+    tBTA_DM_API_CONFIRM *p_msg = (tBTA_DM_API_CONFIRM *)GKI_getbuf(sizeof(tBTA_DM_API_CONFIRM));
+    if (p_msg != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_CONFIRM));
+        p_msg->hdr.event = BTA_DM_API_BLE_CONFIRM_REPLY_EVT;
+        bdcpy(p_msg->bd_addr, bd_addr);
+        p_msg->accept = accept;
+        bta_sys_sendmsg(p_msg);
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         BTA_DmBleSecurityGrant
@@ -2004,7 +2028,9 @@ void BTA_VendorCleanup (void)
     if (cmn_ble_vsc_cb.max_filter > 0)
     {
         btm_ble_adv_filter_cleanup();
-        btm_ble_vendor_cleanup();
+#if BLE_PRIVACY_SPT == TRUE
+        btm_ble_resolving_list_cleanup ();
+#endif
     }
 
     if (cmn_ble_vsc_cb.tot_scan_results_strg > 0)

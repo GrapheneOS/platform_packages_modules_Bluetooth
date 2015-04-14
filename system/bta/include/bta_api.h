@@ -85,19 +85,19 @@ typedef UINT8 tBTA_STATUS;
 #define BTA_MN_SERVICE_ID       26          /* Message Notification Service */
 #define BTA_HDP_SERVICE_ID      27          /* Health Device Profile */
 #define BTA_PCE_SERVICE_ID      28          /* PhoneBook Access Client*/
-
+#define BTA_SDP_SERVICE_ID      29          /* SDP Search*/
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
 /* BLE profile service ID */
-#define BTA_BLE_SERVICE_ID      29          /* GATT profile */
+#define BTA_BLE_SERVICE_ID      30          /* GATT profile */
 
 // btla-specific ++
-#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_USER_SERVICE_ID     31          /* User requested UUID */
 
-#define BTA_MAX_SERVICE_ID      31
+#define BTA_MAX_SERVICE_ID      32
 // btla-specific --
 #else
-#define BTA_USER_SERVICE_ID     29          /* User requested UUID */
-#define BTA_MAX_SERVICE_ID      30
+#define BTA_USER_SERVICE_ID     30          /* User requested UUID */
+#define BTA_MAX_SERVICE_ID      31
 #endif
 /* service IDs (BTM_SEC_SERVICE_FIRST_EMPTY + 1) to (BTM_SEC_MAX_SERVICES - 1)
  * are used by BTA JV */
@@ -169,6 +169,7 @@ typedef struct
 #define BTA_SEC_AUTHORIZE       (BTM_SEC_IN_AUTHORIZE )                              /* Authorization required (only needed for out going connection )*/
 #define BTA_SEC_AUTHENTICATE    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_OUT_AUTHENTICATE) /* Authentication required. */
 #define BTA_SEC_ENCRYPT         (BTM_SEC_IN_ENCRYPT | BTM_SEC_OUT_ENCRYPT)           /* Encryption required. */
+#define BTA_SEC_MODE4_LEVEL4    (BTM_SEC_MODE4_LEVEL4)                               /* Mode 4 level 4 service, i.e. incoming/outgoing MITM and P-256 encryption */
 
 typedef UINT8 tBTA_SEC;
 
@@ -214,7 +215,7 @@ typedef tBT_TRANSPORT tBTA_TRANSPORT;
 #define BTA_DM_CONN_PAIRED      1
 
 /* Inquiry Modes */
-#define BTA_DM_INQUIRY_NONE		BTM_INQUIRY_NONE            /*No BR inquiry. */
+#define BTA_DM_INQUIRY_NONE     BTM_INQUIRY_NONE            /*No BR inquiry. */
 #define BTA_DM_GENERAL_INQUIRY  BTM_GENERAL_INQUIRY         /* Perform general inquiry. */
 #define BTA_DM_LIMITED_INQUIRY  BTM_LIMITED_INQUIRY         /* Perform limited inquiry. */
 
@@ -497,10 +498,10 @@ typedef tBTM_BLE_TRACK_ADV_ACTION tBTA_BLE_TRACK_ADV_ACTION;
 #define BTA_BLE_RSSI_ALERT_LO        2
 typedef UINT8 tBTA_DM_BLE_RSSI_ALERT_TYPE;
 
-#define BTA_BLE_RSSI_ALERT_NONE		    BTM_BLE_RSSI_ALERT_NONE		/*	(0) */
-#define BTA_BLE_RSSI_ALERT_HI_BIT		BTM_BLE_RSSI_ALERT_HI_BIT		/*	(1) */
-#define BTA_BLE_RSSI_ALERT_RANGE_BIT	BTM_BLE_RSSI_ALERT_RANGE_BIT	/*	(1 << 1) */
-#define BTA_BLE_RSSI_ALERT_LO_BIT		BTM_BLE_RSSI_ALERT_LO_BIT		/*	(1 << 2) */
+#define BTA_BLE_RSSI_ALERT_NONE         BTM_BLE_RSSI_ALERT_NONE         /*    (0) */
+#define BTA_BLE_RSSI_ALERT_HI_BIT       BTM_BLE_RSSI_ALERT_HI_BIT       /*    (1) */
+#define BTA_BLE_RSSI_ALERT_RANGE_BIT    BTM_BLE_RSSI_ALERT_RANGE_BIT    /*    (1 << 1) */
+#define BTA_BLE_RSSI_ALERT_LO_BIT       BTM_BLE_RSSI_ALERT_LO_BIT       /*    (1 << 2) */
 typedef UINT8     tBTA_DM_BLE_RSSI_ALERT_MASK;
 
 
@@ -510,7 +511,7 @@ typedef void (tBTA_DM_BLE_RSSI_CBACK) (BD_ADDR bd_addr, tBTA_DM_BLE_RSSI_ALERT_T
 #define BTA_DM_BLE_MAX_UUID_FILTER     BTM_BLE_MAX_UUID_FILTER    /* 8 */
 #define BTA_DM_BLE_MAX_ADDR_FILTER     BTM_BLE_MAX_ADDR_FILTER    /* 8 */
 #define BTA_DM_BLE_PF_STR_COND_MAX     BTM_BLE_PF_STR_COND_MAX    /* 4    apply to manu data , or local name */
-#define BTA_DM_BLE_PF_STR_LEN_MAX      BTM_BLE_PF_STR_LEN_MAX  /* match for first 20 bytes */
+#define BTA_DM_BLE_PF_STR_LEN_MAX      BTM_BLE_PF_STR_LEN_MAX     /* match for first 20 bytes */
 
 #define BTA_DM_BLE_PF_LOGIC_OR              0
 #define BTA_DM_BLE_PF_LOGIC_AND             1
@@ -626,13 +627,15 @@ typedef UINT8 tBTA_SIG_STRENGTH_MASK;
 #define BTA_DM_BLE_OOB_REQ_EVT          19      /* SMP OOB request event */
 #define BTA_DM_BLE_LOCAL_IR_EVT         20      /* BLE local IR event */
 #define BTA_DM_BLE_LOCAL_ER_EVT         21      /* BLE local ER event */
+#define BTA_DM_BLE_NC_REQ_EVT           22      /* SMP Numeric Comparison request event */
 // btla-specific ++
-#define BTA_DM_BLE_AUTH_CMPL_EVT        22      /* BLE Auth complete */
+#define BTA_DM_SP_RMT_OOB_EXT_EVT       23      /* Simple Pairing Remote OOB Extended Data request. */
+#define BTA_DM_BLE_AUTH_CMPL_EVT        24      /* BLE Auth complete */
 // btla-specific --
-#define BTA_DM_DEV_UNPAIRED_EVT         23
-#define BTA_DM_HW_ERROR_EVT             24      /* BT Chip H/W error */
-#define BTA_DM_LE_FEATURES_READ         25      /* Cotroller specific LE features are read */
-#define BTA_DM_ENER_INFO_READ           26      /* Energy info read */
+#define BTA_DM_DEV_UNPAIRED_EVT         25
+#define BTA_DM_HW_ERROR_EVT             26      /* BT Chip H/W error */
+#define BTA_DM_LE_FEATURES_READ         27      /* Cotroller specific LE features are read */
+#define BTA_DM_ENER_INFO_READ           28      /* Energy info read */
 typedef UINT8 tBTA_DM_SEC_EVT;
 
 /* Structure associated with BTA_DM_ENABLE_EVT */
@@ -663,6 +666,7 @@ typedef struct
 #define BTA_DM_AUTH_SMP_INVALID_CMD             (BTA_DM_AUTH_FAIL_BASE + SMP_INVALID_CMD)
 #define BTA_DM_AUTH_SMP_UNKNOWN_ERR             (BTA_DM_AUTH_FAIL_BASE + SMP_PAIR_FAIL_UNKNOWN)
 #define BTA_DM_AUTH_SMP_REPEATED_ATTEMPT        (BTA_DM_AUTH_FAIL_BASE + SMP_REPEATED_ATTEMPTS)
+#define BTA_DM_AUTH_SMP_INVALID_PARAMETERS      (BTA_DM_AUTH_FAIL_BASE + SMP_INVALID_PARAMETERS)
 #define BTA_DM_AUTH_SMP_INTERNAL_ERR            (BTA_DM_AUTH_FAIL_BASE + SMP_PAIR_INTERNAL_ERR)
 #define BTA_DM_AUTH_SMP_UNKNOWN_IO              (BTA_DM_AUTH_FAIL_BASE + SMP_UNKNOWN_IO_CAP)
 #define BTA_DM_AUTH_SMP_INIT_FAIL               (BTA_DM_AUTH_FAIL_BASE + SMP_INIT_FAIL)
@@ -706,6 +710,7 @@ typedef union
     tBTA_LE_PID_KEYS    pid_key;        /* peer device ID key */
     tBTA_LE_LENC_KEYS   lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
     tBTA_LE_LCSRK_KEYS  lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
+    tBTA_LE_PID_KEYS    lid_key;        /* local device ID key for the particular remote */
 }tBTA_LE_KEY_VALUE;
 
 #define BTA_BLE_LOCAL_KEY_TYPE_ID         1
@@ -743,7 +748,7 @@ typedef struct
 {
     BD_ADDR                 bd_addr;        /* peer address */
     tBTM_LE_KEY_TYPE        key_type;
-    tBTM_LE_KEY_VALUE       key_value;
+    tBTM_LE_KEY_VALUE       *p_key_value;
 }tBTA_DM_BLE_KEY;
 
 /* Structure associated with BTA_DM_AUTH_CMPL_EVT */
@@ -756,7 +761,9 @@ typedef struct
     UINT8           key_type;           /* The type of Link Key */
     BOOLEAN         success;            /* TRUE of authentication succeeded, FALSE if failed. */
     UINT8           fail_reason;        /* The HCI reason/error code for when success=FALSE */
-
+#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+    tBLE_ADDR_TYPE  addr_type;      /* peer device address type */
+#endif
 } tBTA_DM_AUTH_CMPL;
 
 
@@ -806,10 +813,13 @@ typedef struct
     UINT8           level_flags; /* indicates individual flags */
 } tBTA_DM_BUSY_LEVEL;
 
-#define BTA_IO_CAP_OUT      BTM_IO_CAP_OUT      /* DisplayOnly */
-#define BTA_IO_CAP_IO       BTM_IO_CAP_IO       /* DisplayYesNo */
-#define BTA_IO_CAP_IN       BTM_IO_CAP_IN       /* KeyboardOnly */
-#define BTA_IO_CAP_NONE     BTM_IO_CAP_NONE     /* NoInputNoOutput */
+#define BTA_IO_CAP_OUT      BTM_IO_CAP_OUT      /* 0 DisplayOnly */
+#define BTA_IO_CAP_IO       BTM_IO_CAP_IO       /* 1 DisplayYesNo */
+#define BTA_IO_CAP_IN       BTM_IO_CAP_IN       /* 2 KeyboardOnly */
+#define BTA_IO_CAP_NONE     BTM_IO_CAP_NONE     /* 3 NoInputNoOutput */
+#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
+#define BTA_IO_CAP_KBDISP   BTM_IO_CAP_KBDISP   /* 4 Keyboard display */
+#endif
 typedef tBTM_IO_CAP     tBTA_IO_CAP;
 
 #define BTA_AUTH_SP_NO    BTM_AUTH_SP_NO      /* 0 MITM Protection Not Required - Single Profile/non-bonding
@@ -833,6 +843,11 @@ typedef tBTM_AUTH_REQ   tBTA_AUTH_REQ;
 #define BTA_LE_AUTH_NO_BOND    BTM_LE_AUTH_REQ_NO_BOND  /* 0*/
 #define BTA_LE_AUTH_BOND       BTM_LE_AUTH_REQ_BOND     /* 1 << 0 */
 #define BTA_LE_AUTH_REQ_MITM   BTM_LE_AUTH_REQ_MITM    /* 1 << 2 */
+
+#define BTA_LE_AUTH_REQ_SC_ONLY         BTM_LE_AUTH_REQ_SC_ONLY         /* 1 << 3 */
+#define BTA_LE_AUTH_REQ_SC_BOND         BTM_LE_AUTH_REQ_SC_BOND      /* 1001 */
+#define BTA_LE_AUTH_REQ_SC_MITM         BTM_LE_AUTH_REQ_SC_MITM      /* 1100 */
+#define BTA_LE_AUTH_REQ_SC_MITM_BOND    BTM_LE_AUTH_REQ_SC_MITM_BOND /* 1101 */
 typedef tBTM_LE_AUTH_REQ       tBTA_LE_AUTH_REQ;       /* combination of the above bit pattern */
 
 #define BTA_OOB_NONE        BTM_OOB_NONE
@@ -1766,6 +1781,20 @@ extern void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passke
 
 /*******************************************************************************
 **
+** Function         BTA_DmBleConfirmReply
+**
+** Description      Send BLE SMP SC user confirmation reply.
+**
+** Parameters:      bd_addr          - BD address of the peer
+**                  accept           - numbers to compare are the same or different.
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept);
+
+/*******************************************************************************
+**
 ** Function         BTA_DmAddBleDevice
 **
 ** Description      Add a BLE device.  This function will be normally called
@@ -1830,8 +1859,7 @@ extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 ** Description      This function is called to set scan parameters used in
 **                  BLE connection request
 **
-** Parameters:      bd_addr          - BD address of the peripheral
-**                  scan_interval    - scan interval
+** Parameters:      scan_interval    - scan interval
 **                  scan_window      - scan window
 **
 ** Returns          void

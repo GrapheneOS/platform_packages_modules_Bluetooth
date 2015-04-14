@@ -49,7 +49,7 @@ BT_OCTET16 const_Rb = {
 
 void print128(BT_OCTET16 x, const UINT8 *key_name)
 {
-#if SMP_DEBUG == TRUE
+#if SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE
     UINT8  *p = (UINT8 *)x;
     UINT8  i;
 
@@ -278,7 +278,7 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
 }
 /*******************************************************************************
 **
-** Function         AES_CMAC
+** Function         aes_cipher_msg_auth_code
 **
 ** Description      This is the AES-CMAC Generation Function with tlen implemented.
 **
@@ -288,17 +288,17 @@ static BOOLEAN cmac_generate_subkey(BT_OCTET16 key)
 **                  tlen - lenth of mac desired
 **                  p_signature - data pointer to where signed data to be stored, tlen long.
 **
-** Returns          void
+** Returns          FALSE if out of resources, TRUE in other cases.
 **
 *******************************************************************************/
-BOOLEAN AES_CMAC ( BT_OCTET16 key, UINT8 *input, UINT16 length,
-                UINT16 tlen, UINT8 *p_signature)
+BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
+                                 UINT16 tlen, UINT8 *p_signature)
 {
     UINT16  len, diff;
     UINT16  n = (length + BT_OCTET16_LEN - 1) / BT_OCTET16_LEN;       /* n is number of rounds */
     BOOLEAN ret = FALSE;
 
-    SMP_TRACE_EVENT ("AES_CMAC  ");
+    SMP_TRACE_EVENT ("%s", __func__);
 
     if (n == 0)  n = 1;
     len = n * BT_OCTET16_LEN;
@@ -380,7 +380,7 @@ void test_cmac(void)
 
     SMP_TRACE_WARNING("\n Example 1: len = %d\n", len);
 
-    AES_CMAC(key, M, len, 128, test_cmac_cback, 0);
+    aes_cipher_msg_auth_code(key, M, len, 128, test_cmac_cback, 0);
 
 }
     #endif

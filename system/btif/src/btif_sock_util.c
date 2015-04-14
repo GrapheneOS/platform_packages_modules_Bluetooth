@@ -157,6 +157,8 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
         memset(&msg, 0, sizeof(msg));
     }
     BTIF_TRACE_DEBUG("close fd:%d after sent", send_fd);
+    // TODO: This seems wrong - if the FD is not opened in JAVA before this is called
+    //       we get a "socket closed" exception in java, when reading from the socket...
     close(send_fd);
     return ret_len;
 }

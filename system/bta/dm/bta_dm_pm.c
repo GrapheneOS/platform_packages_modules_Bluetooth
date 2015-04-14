@@ -124,6 +124,7 @@ void bta_dm_disable_pm(void)
 static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
 {
     UINT8 i;
+    APPL_TRACE_DEBUG("%s: ", __func__);
 
     for(i=0; i<BTA_DM_NUM_PM_TIMER; i++)
     {
@@ -448,8 +449,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, BOOLEAN timed_out )
         /* dont initiate SNIFF, if link_policy has it disabled */
         if (p_peer_device->link_policy & HCI_ENABLE_SNIFF_MODE)
         {
-	        p_peer_device->pm_mode_attempted = BTA_DM_PM_SNIFF;
-    	    bta_dm_pm_sniff(p_peer_device, (UINT8)(pm_action & 0x0F) );
+            p_peer_device->pm_mode_attempted = BTA_DM_PM_SNIFF;
+            bta_dm_pm_sniff(p_peer_device, (UINT8)(pm_action & 0x0F) );
         }
         else
         {

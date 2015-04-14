@@ -47,6 +47,9 @@ typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
 #define BTM_BLE_UNKNOWN_EVT     0xff
 
+typedef UINT8 tBTM_BLE_EVT;
+typedef UINT8 tBTM_BLE_CONN_MODE;
+
 typedef UINT32 tBTM_BLE_REF_VALUE;
 
 #define BTM_BLE_SCAN_MODE_PASS      0
@@ -86,8 +89,15 @@ typedef UINT8   tBTM_BLE_AFP;
 #endif
 
 /* scanning filter policy */
-#define SP_ADV_ALL     0x00     /* accept adv pakt from all, directed adv pkt not directed to me is ignored */
-#define SP_ADV_WL      0x01     /* accept adv pakt from device in white list, directed adv pkt not directed to me is ignored */
+#define SP_ADV_ALL     0x00     /* 0: accept adv packet from all, directed adv pkt not directed */
+                                /* to local device is ignored */
+#define SP_ADV_WL      0x01     /* 1: accept adv packet from device in white list, directed adv */
+                                /* packet not directed to local device is ignored */
+#define SP_ADV_ALL_RPA_DIR_ADV 0x02  /* 2: accept adv packet from all, directed adv pkt */
+                                     /* not directed to me is ignored except direct adv with RPA */
+#define SP_ADV_WL_RPA_DIR_ADV  0x03  /* 3: accept adv packet from device in white list, directed */
+                                     /* adv pkt not directed to me is ignored except direct adv */
+                                     /* with RPA */
 typedef UINT8   tBTM_BLE_SFP;
 
 #ifndef BTM_BLE_DEFAULT_SFP
@@ -317,6 +327,10 @@ typedef  UINT32  tBTM_BLE_AD_MASK;
 #define BTM_BLE_AD_TYPE_MANU            HCI_EIR_MANUFACTURER_SPECIFIC_TYPE      /* 0xff */
 typedef UINT8   tBTM_BLE_AD_TYPE;
 
+/* security settings used with L2CAP LE COC */
+#define BTM_SEC_LE_LINK_ENCRYPTED           0x01
+#define BTM_SEC_LE_LINK_PAIRED_WITHOUT_MITM 0x02
+#define BTM_SEC_LE_LINK_PAIRED_WITH_MITM    0x04
 /* adv tx power level */
 #define BTM_BLE_ADV_TX_POWER_MIN        0           /* minimum tx power */
 #define BTM_BLE_ADV_TX_POWER_LOW        1           /* low tx power     */
@@ -1153,6 +1167,20 @@ extern void BTM_BlePasskeyReply (BD_ADDR bd_addr, UINT8 res, UINT32 passkey);
 
 /*******************************************************************************
 **
+** Function         BTM_BleConfirmReply
+**
+** Description      This function is called after Security Manager submitted
+**                  numeric comparison request to the application.
+**
+** Parameters:      bd_addr      - Address of the device with which numeric
+**                                 comparison was requested
+**                  res          - comparison result BTM_SUCCESS if success
+**
+*******************************************************************************/
+extern void BTM_BleConfirmReply (BD_ADDR bd_addr, UINT8 res);
+
+/*******************************************************************************
+**
 ** Function         BTM_LeOobDataReply
 **
 ** Description      This function is called to provide the OOB data for
@@ -1392,21 +1420,6 @@ extern tBTM_STATUS BTM_BleBroadcast(BOOLEAN start);
 
 /*******************************************************************************
 **
-** Function         BTM_RegisterScanReqEvt
-**
-** Description      This function is called to register a scan request callback
-**                  on the advertiser.
-**
-** Parameters       p_scan_req_cback: scan request callback.  If NULL, remove the
-**                                    registration.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback);
-
-/*******************************************************************************
-**
 ** Function         BTM_BleConfigPrivacy
 **
 ** Description      This function is called to enable or disable the privacy in
@@ -1414,10 +1427,10 @@ extern void BTM_RegisterScanReqEvt(tBTM_BLE_SCAN_REQ_CBACK *p_scan_req_cback);
 **
 ** Parameters       enable: TRUE to enable it; FALSE to disable it.
 **
-** Returns          void
+** Returns          BOOLEAN privacy mode set success; otherwise failed.
 **
 *******************************************************************************/
-extern void BTM_BleConfigPrivacy(BOOLEAN enable);
+extern BOOLEAN BTM_BleConfigPrivacy(BOOLEAN enable);
 
 /*******************************************************************************
 **
@@ -1428,7 +1441,21 @@ extern void BTM_BleConfigPrivacy(BOOLEAN enable);
 ** Returns          Return TRUE if local privacy is enabled else FALSE
 **
 *******************************************************************************/
-extern BOOLEAN BTM_BleLocalPrivacyEnabled();
+extern BOOLEAN BTM_BleLocalPrivacyEnabled(void);
+
+/*******************************************************************************
+**
+** Function         BTM_BleEnableMixedPrivacyMode
+**
+** Description      This function is called to enabled Mixed mode if privacy 1.2
+**                  is applicable in controller.
+**
+** Parameters       mixed_on:  mixed mode to be used or not.
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTM_BleEnableMixedPrivacyMode(BOOLEAN mixed_on);
 
 /*******************************************************************************
 **
@@ -1443,18 +1470,20 @@ extern UINT8  BTM_BleMaxMultiAdvInstanceCount();
 
 /*******************************************************************************
 **
-** Function         BTM_BleSetConnMode
+** Function         BTM_BleSetConnectableMode
 **
 ** Description      This function is called to set BLE connectable mode for a
 **                  peripheral device.
 **
-** Parameters       directed: is directed connectable mode, or non-directed.
-**                  p_dir_bda: connectable direct initiator's LE device address
+** Parameters       connectable_mode:  directed connectable mode, or non-directed.It can
+**                              be BTM_BLE_CONNECT_EVT, BTM_BLE_CONNECT_DIR_EVT or
+**                              BTM_BLE_CONNECT_LO_DUTY_DIR_EVT
 **
-** Returns          void
+** Returns          BTM_ILLEGAL_VALUE if controller does not support BLE.
+**                  BTM_SUCCESS is status set successfully; otherwise failure.
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
+extern tBTM_STATUS BTM_BleSetConnectableMode(tBTM_BLE_CONN_MODE connectable_mode);
 
 /*******************************************************************************
 **
@@ -1471,7 +1500,6 @@ extern tBTM_STATUS BTM_BleSetConnMode(BOOLEAN directed);
 *******************************************************************************/
 extern void BTM_BleTurnOnPrivacyOnRemote(BD_ADDR bd_addr,
                                                  BOOLEAN privacy_on);
-
 
 /*******************************************************************************
 **
@@ -1559,6 +1587,45 @@ extern BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr);
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_BleStackEnable (BOOLEAN enable);
+
+/*******************************************************************************
+**
+** Function         BTM_GetLeSecurityState
+**
+** Description      This function is called to get security mode 1 flags and
+**                  encryption key size for LE peer.
+**
+** Returns          BOOLEAN TRUE if LE device is found, FALSE otherwise.
+**
+*******************************************************************************/
+extern BOOLEAN BTM_GetLeSecurityState (BD_ADDR bd_addr,
+                                               UINT8 *p_le_dev_sec_flags,
+                                               UINT8 *p_le_key_size);
+
+/*******************************************************************************
+**
+** Function         BTM_BleSecurityProcedureIsRunning
+**
+** Description      This function indicates if LE security procedure is
+**                  currently running with the peer.
+**
+** Returns          BOOLEAN TRUE if security procedure is running, FALSE otherwise.
+**
+*******************************************************************************/
+extern BOOLEAN BTM_BleSecurityProcedureIsRunning (BD_ADDR bd_addr);
+
+/*******************************************************************************
+**
+** Function         BTM_BleGetSupportedKeySize
+**
+** Description      This function gets the maximum encryption key size in bytes
+**                  the local device can suport.
+**                  record.
+**
+** Returns          the key size or 0 if the size can't be retrieved.
+**
+*******************************************************************************/
+extern UINT8 BTM_BleGetSupportedKeySize (BD_ADDR bd_addr);
 
 /*******************************************************************************/
 /*                          Multi ADV API                                      */

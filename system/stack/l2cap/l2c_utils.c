@@ -183,22 +183,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 #endif
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
-    {
-        int         xx;
-
-        for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
-        {
-            if (p_lcb->p_fixed_ccbs[xx])
-            {
-                l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
-                p_lcb->p_fixed_ccbs[xx] = NULL;
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
-            }
-            else if ( (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
-                   && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
-                    (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
-        }
-    }
+    l2cu_process_fixed_disc_cback(p_lcb);
 #endif
 
     /* Ensure no CCBs left on this LCB */
@@ -214,14 +199,18 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
 #else
         btm_acl_removed (p_lcb->remote_bd_addr, BT_TRANSPORT_BR_EDR);
 #endif
+
     /* Release any held buffers */
-    while (!list_is_empty(p_lcb->link_xmit_data_q)) {
-        BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
-        list_remove(p_lcb->link_xmit_data_q, p_buf);
-        GKI_freebuf(p_buf);
+    if (p_lcb->link_xmit_data_q)
+    {
+        while (!list_is_empty(p_lcb->link_xmit_data_q)) {
+            BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
+            list_remove(p_lcb->link_xmit_data_q, p_buf);
+            GKI_freebuf(p_buf);
+        }
+        list_free(p_lcb->link_xmit_data_q);
+        p_lcb->link_xmit_data_q = NULL;
     }
-    list_free(p_lcb->link_xmit_data_q);
-    p_lcb->link_xmit_data_q = NULL;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     /* clean up any security pending UCD */
@@ -1227,7 +1216,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
 
             for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
                 if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
-                    p[0] |= 1 << (xx + L2CAP_FIRST_FIXED_CHNL);
+                   p[(xx + L2CAP_FIRST_FIXED_CHNL) / 8] |= 1 << ((xx + L2CAP_FIRST_FIXED_CHNL) % 8);
         }
 #endif
     }
@@ -2825,17 +2814,20 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 *******************************************************************************/
 void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 {
-    int     xx;
 #if (BLE_INCLUDED == TRUE)
-    /* always exclude LE fixed channel on BR/EDR fix channel capability */
-    if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-        p_lcb->peer_chnl_mask[0] &= ~(L2CAP_FIXED_CHNL_ATT_BIT| \
-                                      L2CAP_FIXED_CHNL_BLE_SIG_BIT| \
-                                      L2CAP_FIXED_CHNL_SMP_BIT);
+     if (p_lcb->transport == BT_TRANSPORT_BR_EDR)
+     {
+         /* ignore all not assigned BR/EDR channels */
+         p_lcb->peer_chnl_mask[0] &= (L2CAP_FIXED_CHNL_SIG_BIT| \
+                                      L2CAP_FIXED_CHNL_CNCTLESS_BIT| \
+                                      L2CAP_FIXED_CHNL_SMP_BR_BIT);
+     }
+     else
+         p_lcb->peer_chnl_mask[0] = l2cb.l2c_ble_fixed_chnls_mask;
 #endif
 
     /* Tell all registered fixed channels about the connection */
-    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+    for (int xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
 #if BLE_INCLUDED == TRUE
         /* skip sending LE fix channel callbacks on BR/EDR links */
@@ -2846,22 +2838,27 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 #endif
         if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
         {
-            if (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
+            if (p_lcb->peer_chnl_mask[(xx + L2CAP_FIRST_FIXED_CHNL) / 8]
+                    & (1 << ((xx + L2CAP_FIRST_FIXED_CHNL) % 8)))
             {
                 if (p_lcb->p_fixed_ccbs[xx])
                     p_lcb->p_fixed_ccbs[xx]->chnl_state = CST_OPEN;
 #if BLE_INCLUDED == TRUE
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, TRUE, 0, p_lcb->transport);
 #else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, TRUE, 0, BT_TRANSPORT_BR_EDR);
 #endif
             }
             else
             {
 #if BLE_INCLUDED == TRUE
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+                (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                        p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
 
                 if (p_lcb->p_fixed_ccbs[xx])
@@ -2889,29 +2886,41 @@ void l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb)
 void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 {
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
-    int         xx;
 
-    for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+    /* Select peer channels mask to use depending on transport */
+    UINT8 peer_channel_mask = p_lcb->peer_chnl_mask[0];
+
+    // For LE, reset the stored peer channel mask
+    if (p_lcb->transport == BT_TRANSPORT_LE)
+        p_lcb->peer_chnl_mask[0] = 0;
+
+    for (int xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
         if (p_lcb->p_fixed_ccbs[xx])
         {
             if (p_lcb->p_fixed_ccbs[xx] != p_lcb->p_pending_ccb)
             {
-                l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
+                tL2C_CCB *p_l2c_chnl_ctrl_block;
+                p_l2c_chnl_ctrl_block = p_lcb->p_fixed_ccbs[xx];
                 p_lcb->p_fixed_ccbs[xx] = NULL;
+                l2cu_release_ccb(p_l2c_chnl_ctrl_block);
 #if BLE_INCLUDED == TRUE
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
            }
         }
-        else if ( (p_lcb->peer_chnl_mask[0] & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
+        else if ( (peer_channel_mask & (1 << (xx + L2CAP_FIRST_FIXED_CHNL)))
                && (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL) )
 #if BLE_INCLUDED == TRUE
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, p_lcb->transport);
 #else
-            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
+            (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
+                    p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
     }
 #endif
@@ -2928,7 +2937,8 @@ void l2cu_process_fixed_disc_cback (tL2C_LCB *p_lcb)
 ** Returns          void
 **
 *******************************************************************************/
-void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int, UINT16 latency, UINT16 timeout)
+void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int,
+        UINT16 latency, UINT16 timeout)
 {
     BT_HDR  *p_buf;
     UINT8   *p;
@@ -2937,7 +2947,8 @@ void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int
     p_lcb->id++;
     l2cu_adj_id (p_lcb, L2CAP_ADJ_ID);
 
-    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_REQ_LEN, L2CAP_CMD_BLE_UPDATE_REQ, p_lcb->id)) == NULL )
+    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_REQ_LEN,
+                    L2CAP_CMD_BLE_UPDATE_REQ, p_lcb->id)) == NULL )
     {
         L2CAP_TRACE_WARNING ("l2cu_send_peer_ble_par_req - no buffer");
         return;
@@ -2969,7 +2980,8 @@ void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, UINT16 reason, UINT8 rem_id)
     BT_HDR  *p_buf;
     UINT8   *p;
 
-    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_RSP_LEN, L2CAP_CMD_BLE_UPDATE_RSP, rem_id)) == NULL )
+    if ((p_buf = l2cu_build_header (p_lcb, L2CAP_CMD_BLE_UPD_RSP_LEN,
+                    L2CAP_CMD_BLE_UPDATE_RSP, rem_id)) == NULL )
     {
         L2CAP_TRACE_WARNING ("l2cu_send_peer_ble_par_rsp - no buffer");
         return;
@@ -3295,6 +3307,10 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                     L2CAP_TRACE_ERROR("l2cu_get_buffer_to_send: No data to be sent");
                     return (NULL);
                 }
+                /* send tx complete */
+                if (l2cb.fixed_reg[xx].pL2CA_FixedTxComplete_Cb)
+                    (*l2cb.fixed_reg[xx].pL2CA_FixedTxComplete_Cb)(p_ccb->local_cid, 1);
+
                 l2cu_check_channel_congestion (p_ccb);
                 l2cu_set_acl_hci_header (p_buf, p_ccb);
                 return (p_buf);
@@ -3423,9 +3439,7 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
         q_count += p_ccb->p_lcb->ucd_out_sec_pending_q.count;
     }
 #endif
-
     /* If the CCB queue limit is subject to a quota, check for congestion */
-
     /* if this channel has outgoing traffic */
     if (p_ccb->buff_quota != 0)
     {
