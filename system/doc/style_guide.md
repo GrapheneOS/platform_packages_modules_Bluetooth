@@ -152,6 +152,12 @@ compile-time checks.
 Use booleans to represent boolean state, instead of a set of masks into an
 integer. It's more transparent and readable, and less error prone.
 
+### Function names as strings
+C99 defines `__func__` as an identifier that represents the function's name
+in which it is used. The magic identifier `__FUNCTION__` should not be used
+as it is a non-standard language extension and an equivalent standardized
+mechanism exists. In other words, use `__func__` over `__FUNCTION__`.
+
 ## Bluedroid conventions
 This section describes coding conventions that are specific to Bluedroid.
 Whereas the _Language_ section describes the use of language features, this
