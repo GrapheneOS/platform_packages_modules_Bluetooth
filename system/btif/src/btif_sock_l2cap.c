@@ -51,11 +51,7 @@
 #define asrt(s) if (!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, \
         #s, __LINE__)
 
-#if __GLIBC__
 static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-#else
-static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
-#endif
 
 
 struct packet {

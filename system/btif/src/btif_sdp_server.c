@@ -28,6 +28,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sdp.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define LOG_TAG "BTIF_SDP_SERVER"
 #include "btif_common.h"
@@ -37,11 +38,7 @@
 #include "utl.h"
 #include "btif_sock_util.h"
 
-#if __GLIBC__
 static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-#else
-static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER;
-#endif
 
 
 /**

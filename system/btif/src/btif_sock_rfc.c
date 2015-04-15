@@ -27,6 +27,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <pthread.h>
 
 #include "bta_api.h"
 #include "bt_target.h"

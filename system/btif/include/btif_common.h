@@ -20,6 +20,7 @@
 #ifndef BTIF_COMMON_H
 #define BTIF_COMMON_H
 
+#include <stdlib.h>
 #include <hardware/bluetooth.h>
 
 #include "bt_types.h"

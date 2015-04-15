@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdlib.h>
 
 typedef void *(*alloc_fn)(size_t size);
 typedef void (*free_fn)(void *ptr);
