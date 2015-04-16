@@ -51,7 +51,8 @@ static const uint8_t  UUID_MAP_MNS[] = {0x00, 0x00, 0x11, 0x33, 0x00, 0x00, 0x10
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_SPP[] = {0x00, 0x00, 0x11, 0x01, 0x00, 0x00, 0x10, 0x00,
                                     0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-
+static const uint8_t  UUID_SAP[] = {0x00, 0x00, 0x11, 0x2D, 0x00, 0x00, 0x10, 0x00,
+                                    0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 // TODO:
 // Both the fact that the UUIDs are declared in multiple places, plus the fact
 // that there is a mess of UUID comparison and shortening methods will have to
@@ -66,7 +67,7 @@ static inline tBT_UUID shorten_sdp_uuid(const tBT_UUID* u)
     static uint8_t bt_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                                      0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB };
 
-    APPL_TRACE_DEBUG("uuid len:%d", u->len);
+    APPL_TRACE_DEBUG("%s() - uuid len:%d", __func__, u->len);
     if(u->len != 16)
         return *u;
 
@@ -108,32 +109,27 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES)) != NULL)
     {
         record->mns.supported_features = p_attr->attr_value.v.u32;
-        APPL_TRACE_DEBUG("Found supported_features: %d",  record->mns.supported_features );
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL)
     {
         record->mns.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         record->mns.hdr.service_name = (char *)p_attr->attr_value.v.array;
-        APPL_TRACE_DEBUG("Found service name with length: %d", record->mns.hdr.service_name_length);
     }
 
     if (SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_MAP_PROFILE, &pversion))
     {
         record->mns.hdr.profile_version = pversion;
-        APPL_TRACE_DEBUG("Found profile_version: %d", record->mns.hdr.profile_version);
     }
 
     if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
     {
         record->mns.hdr.rfcomm_channel_number = pe.params[0];
-        APPL_TRACE_DEBUG("Found rfcomm_channel_number: %d", record->mns.hdr.rfcomm_channel_number);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) != NULL)
     {
         record->mns.hdr.l2cap_psm = p_attr->attr_value.v.u16;
-        APPL_TRACE_DEBUG("Found l2cap_psm: %d", record->mns.hdr.l2cap_psm);
     }
 }
 
@@ -157,45 +153,37 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAS_INSTANCE_ID)) != NULL)
     {
         record->mas.mas_instance_id = p_attr->attr_value.v.u8;
-        APPL_TRACE_DEBUG("Found mas_instance_id: %d", record->mas.mas_instance_id);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_MSG_TYPE)) != NULL)
     {
         record->mas.supported_message_types = p_attr->attr_value.v.u8;
-        APPL_TRACE_DEBUG("Found supported_message_types: %d", record->mas.supported_message_types);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_MAP_SUPPORTED_FEATURES)) != NULL)
     {
         record->mas.supported_features = p_attr->attr_value.v.u32;
-        APPL_TRACE_DEBUG("Found supported_features: %d", record->mas.supported_features);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL)
     {
         record->mas.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         record->mas.hdr.service_name = (char *)p_attr->attr_value.v.array;
-        APPL_TRACE_DEBUG("Found service name with length: %d", record->mas.hdr.service_name_length);
     }
 
     if (SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_MAP_PROFILE, &pversion))
     {
         record->mas.hdr.profile_version = pversion;
-        APPL_TRACE_DEBUG("Found profile_version: %d", record->mas.hdr.profile_version);
     }
 
     if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
     {
         record->mas.hdr.rfcomm_channel_number = pe.params[0];
-        APPL_TRACE_DEBUG("Found rfcomm_channel_number: %d", record->mas.hdr.rfcomm_channel_number);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) != NULL)
     {
         record->mas.hdr.l2cap_psm = p_attr->attr_value.v.u16;
-        APPL_TRACE_DEBUG("Found l2cap_psm: %d", record->mas.hdr.l2cap_psm);
-
     }
 }
 
@@ -218,39 +206,32 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_REPOSITORIES)) != NULL)
     {
         record->pse.supported_repositories = p_attr->attr_value.v.u8;
-        APPL_TRACE_DEBUG("Found supported_repositories: %d", record->pse.supported_repositories);
     }
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_PBAP_SUPPORTED_FEATURES)) != NULL)
     {
         record->pse.supported_features = p_attr->attr_value.v.u32;
-        APPL_TRACE_DEBUG("Found supported_features: %d", record->pse.supported_features);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL)
     {
         record->pse.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         record->pse.hdr.service_name = (char *)p_attr->attr_value.v.array;
-        APPL_TRACE_DEBUG("Found service name with length: %d", record->pse.hdr.service_name_length);
     }
 
     if (SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_PHONE_ACCESS, &pversion))
     {
         record->pse.hdr.profile_version = pversion;
-        APPL_TRACE_DEBUG("Found profile_version: %d", record->pse.hdr.profile_version);
     }
 
     if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
     {
         record->pse.hdr.rfcomm_channel_number = pe.params[0];
-        APPL_TRACE_DEBUG("Found rfcomm_channel_number: %d", record->pse.hdr.rfcomm_channel_number);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) != NULL)
     {
         record->pse.hdr.l2cap_psm = p_attr->attr_value.v.u16;
-        APPL_TRACE_DEBUG("Found l2cap_psm: %d", record->pse.hdr.l2cap_psm);
     }
-
 }
 
 static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
@@ -272,34 +253,29 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
     {
         record->ops.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         record->ops.hdr.service_name = (char *)p_attr->attr_value.v.array;
-        APPL_TRACE_DEBUG("Found service name with length: %d", record->ops.hdr.service_name_length);
     }
 
     if (SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_OBEX_OBJECT_PUSH, &pversion))
     {
         record->ops.hdr.profile_version = pversion;
-        APPL_TRACE_DEBUG("Found profile_version: %d", record->ops.hdr.profile_version);
     }
 
     if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
     {
         record->ops.hdr.rfcomm_channel_number = pe.params[0];
-        APPL_TRACE_DEBUG("Found rfcomm_channel_number: %d", record->ops.hdr.rfcomm_channel_number);
     }
 
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_GOEP_L2CAP_PSM)) != NULL)
     {
         record->ops.hdr.l2cap_psm = p_attr->attr_value.v.u16;
-        APPL_TRACE_DEBUG("Found l2cap_psm: %d", record->ops.hdr.l2cap_psm);
-
     }
     if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SUPPORTED_FORMATS_LIST)) != NULL)
     {
         /* Safety check - each entry should itself be a sequence */
         if (SDP_DISC_ATTR_TYPE(p_attr->attr_len_type) != DATA_ELE_SEQ_DESC_TYPE) {
             record->ops.supported_formats_list_len = 0;
-            APPL_TRACE_ERROR("supported_formats_list - wrong attribute length/type:"
-                    " 0x%02x - expected 0x06",p_attr->attr_len_type);
+            APPL_TRACE_ERROR("%s() - supported_formats_list - wrong attribute length/type:"
+                    " 0x%02x - expected 0x06", __func__, p_attr->attr_len_type);
         } else {
             int count = 0;
             /* 1 byte for type/length 1 byte for value */
@@ -312,9 +288,9 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
                 if ((SDP_DISC_ATTR_TYPE(p_sattr->attr_len_type) == UINT_DESC_TYPE)
                     && (SDP_DISC_ATTR_LEN(p_sattr->attr_len_type) == 1))
                 {
-                    if(count == sizeof(record->ops.supported_formats_list)) {
-                        APPL_TRACE_ERROR("supported_formats_list - count overflow - "
-                                "too many sub attributes!!");
+                    if (count == sizeof(record->ops.supported_formats_list)) {
+                        APPL_TRACE_ERROR("%s() - supported_formats_list - count overflow - "
+                                "too many sub attributes!!", __func__);
                         /* If you hit this, new formats have been added,
                          * update SDP_OPP_SUPPORTED_FORMATS_MAX_LENGTH */
                         break;
@@ -322,24 +298,52 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
                     record->ops.supported_formats_list[count] = p_sattr->attr_value.v.u8;
                     count++;
                 } else {
-                    APPL_TRACE_ERROR("supported_formats_list - wrong sub attribute "
-                            "length/type: 0x%02x - expected 0x80"
-                            ,p_sattr->attr_len_type);
+                    APPL_TRACE_ERROR("%s() - supported_formats_list - wrong sub attribute "
+                                "length/type: 0x%02x - expected 0x80", __func__,
+                                p_sattr->attr_len_type);
                     break;
                 }
             }
-            if(record->ops.supported_formats_list_len != count) {
-                APPL_TRACE_WARNING("supported_formats_list - Length of attribute different "
+            if (record->ops.supported_formats_list_len != count) {
+                APPL_TRACE_WARNING("%s() - supported_formats_list - Length of attribute different "
                         "from the actual number of sub-attributes in the sequence "
-                        "att-length: %d - number of elements: %d"
-                        ,record->ops.supported_formats_list_len , count);
+                        "att-length: %d - number of elements: %d", __func__,
+                        record->ops.supported_formats_list_len , count);
 
             }
             record->ops.supported_formats_list_len = count;
         }
+    }
+}
 
-        APPL_TRACE_DEBUG("Found supported_formats_list - length: %d",
-                record->ops.supported_formats_list_len);
+static void bta_create_sap_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
+{
+    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
+    tSDP_DISC_ATTR *p_attr;
+    tSDP_PROTOCOL_ELEM pe;
+    UINT16 pversion = -1;
+
+    record->sap.hdr.type = SDP_TYPE_MAP_MAS;
+    record->sap.hdr.service_name_length = 0;
+    record->sap.hdr.service_name = NULL;
+    record->sap.hdr.rfcomm_channel_number = 0;
+    record->sap.hdr.l2cap_psm = -1;
+    record->sap.hdr.profile_version = 0;
+
+    if ((p_attr = SDP_FindAttributeInRec(p_rec, ATTR_ID_SERVICE_NAME)) != NULL)
+    {
+        record->sap.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
+        record->sap.hdr.service_name = (char *)p_attr->attr_value.v.array;
+    }
+
+    if (SDP_FindProfileVersionInRec(p_rec, UUID_SERVCLASS_SAP, &pversion))
+    {
+        record->sap.hdr.profile_version = pversion;
+    }
+
+    if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
+    {
+        record->sap.hdr.rfcomm_channel_number = pe.params[0];
     }
 }
 
@@ -362,14 +366,12 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
     {
         record->pse.hdr.service_name_length = SDP_DISC_ATTR_LEN(p_attr->attr_len_type);
         record->pse.hdr.service_name = (char *)p_attr->attr_value.v.array;
-        APPL_TRACE_DEBUG("Found service name with length: %d", record->pse.hdr.service_name_length);
     }
 
     /* Try to extract an RFCOMM channel */
     if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
     {
         record->pse.hdr.rfcomm_channel_number = pe.params[0];
-        APPL_TRACE_DEBUG("Found rfcomm_channel_number: %d", record->pse.hdr.rfcomm_channel_number);
     }
     record->hdr.user1_ptr_len = p_bta_sdp_cfg->p_sdp_db->raw_size;
     record->hdr.user1_ptr = p_bta_sdp_cfg->p_sdp_db->raw_data;
@@ -393,7 +395,7 @@ static void bta_sdp_search_cback(UINT16 result, void * user_data)
     UINT16 uuid16 = 0;
     int count = 0;
     tBT_UUID su;
-    APPL_TRACE_DEBUG("bta_sdp_search_cback res: 0x%x", result);
+    APPL_TRACE_DEBUG("%s() -  res: 0x%x", __func__, result);
 
     bta_sdp_cb.sdp_active = BTA_SDP_ACTIVE_NONE;
 
@@ -414,18 +416,19 @@ static void bta_sdp_search_cback(UINT16 result, void * user_data)
                 if (IS_UUID(UUID_MAP_MAS,uuid->uu.uuid128)) {
                     APPL_TRACE_DEBUG("%s() - found MAP (MAS) uuid", __func__);
                     bta_create_mas_sdp_record(&evt_data.records[count], p_rec);
-
-                }else if (IS_UUID(UUID_MAP_MNS,uuid->uu.uuid128)) {
+                } else if (IS_UUID(UUID_MAP_MNS,uuid->uu.uuid128)) {
                     APPL_TRACE_DEBUG("%s() - found MAP (MNS) uuid", __func__);
                     bta_create_mns_sdp_record(&evt_data.records[count], p_rec);
-
-                }else if(IS_UUID(UUID_PBAP_PSE,uuid->uu.uuid128)){
+                } else if (IS_UUID(UUID_PBAP_PSE,uuid->uu.uuid128)){
                     APPL_TRACE_DEBUG("%s() - found PBAP (PSE) uuid", __func__);
                     bta_create_pse_sdp_record(&evt_data.records[count], p_rec);
-                }else if(IS_UUID(UUID_OBEX_OBJECT_PUSH,uuid->uu.uuid128)){
+                } else if (IS_UUID(UUID_OBEX_OBJECT_PUSH,uuid->uu.uuid128)){
                     APPL_TRACE_DEBUG("%s() - found Object Push Server (OPS) uuid", __func__);
                     bta_create_ops_sdp_record(&evt_data.records[count], p_rec);
-                }else {
+                } else if (IS_UUID(UUID_SAP,uuid->uu.uuid128)) {
+                    APPL_TRACE_DEBUG("%s() - found SAP uuid", __func__);
+                    bta_create_sap_sdp_record(&evt_data.records[count], p_rec);
+                } else {
 
                     /* we do not have specific structure for this */
                     APPL_TRACE_DEBUG("%s() - profile not identified. using raw data", __func__);
