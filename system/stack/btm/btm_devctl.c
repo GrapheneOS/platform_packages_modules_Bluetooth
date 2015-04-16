@@ -175,6 +175,7 @@ static void reset_complete(void *result) {
   l2c_link_processs_num_bufs(controller->get_acl_buffer_count_classic());
 #if (BLE_INCLUDED == TRUE)
 
+#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
   /* Set up the BLE privacy settings */
   if (controller->supports_ble() && controller->supports_ble_privacy() &&
       controller->get_ble_resolving_list_max_size() > 0) {
@@ -182,6 +183,7 @@ static void reset_complete(void *result) {
       /* set the default random private address timeout */
       btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT);
   }
+#endif
 
   if (controller->supports_ble()) {
     l2c_link_processs_ble_num_bufs(controller->get_acl_buffer_count_ble());
