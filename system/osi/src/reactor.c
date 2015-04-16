@@ -87,7 +87,8 @@ reactor_t *reactor_new(void) {
     goto error;
   }
 
-  struct epoll_event event = { 0 };
+  struct epoll_event event;
+  memset(&event, 0, sizeof(event));
   event.events = EPOLLIN;
   event.data.ptr = NULL;
   if (epoll_ctl(ret->epoll_fd, EPOLL_CTL_ADD, ret->event_fd, &event) == -1) {
@@ -148,8 +149,8 @@ reactor_object_t *reactor_register(reactor_t *reactor,
   object->write_ready = write_ready;
   pthread_mutex_init(&object->lock, NULL);
 
-  struct epoll_event event = { 0 };
-  event.events = 0;
+  struct epoll_event event;
+  memset(&event, 0, sizeof(event));
   if (read_ready)
     event.events |= (EPOLLIN | EPOLLRDHUP);
   if (write_ready)
@@ -171,8 +172,8 @@ bool reactor_change_registration(reactor_object_t *object,
     void (*write_ready)(void *context)) {
   assert(object != NULL);
 
-  struct epoll_event event = { 0 };
-  event.events = 0;
+  struct epoll_event event;
+  memset(&event, 0, sizeof(event));
   if (read_ready)
     event.events |= (EPOLLIN | EPOLLRDHUP);
   if (write_ready)
