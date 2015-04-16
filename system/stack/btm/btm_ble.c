@@ -1740,9 +1740,9 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
 void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
 {
 #if (BLE_PRIVACY_SPT == TRUE )
-    UINT8       *p_data = p;
+    UINT8       *p_data = p, peer_addr_type;
 #endif
-    UINT8       role, status, bda_type, peer_addr_type;
+    UINT8       role, status, bda_type;
     UINT16      handle;
     BD_ADDR     bda, local_rpa, peer_rpa;
     UINT16      conn_interval, conn_latency, conn_timeout;
@@ -1753,12 +1753,12 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
     STREAM_TO_UINT16   (handle, p);
     STREAM_TO_UINT8    (role, p);
     STREAM_TO_UINT8    (bda_type, p);
-    peer_addr_type = bda_type ;
     STREAM_TO_BDADDR   (bda, p);
 
     if (status == 0)
     {
 #if (BLE_PRIVACY_SPT == TRUE )
+        peer_addr_type = bda_type;
         match = btm_identity_addr_to_random_pseudo (bda, &bda_type, TRUE);
 
         if (enhanced)
