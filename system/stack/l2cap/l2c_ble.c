@@ -352,14 +352,6 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
-    /*
-     * This is wrong. However, querying the other side is wrong too, since as per spec they
-     * cannot really tell us when they have fixed channels open. Yes, bluedroid breaks the
-     * spec in EDR mode in that respect, but that it a whole new story.
-     */
-    for(i = 0; i < L2CAP_FIXED_CHNL_ARRAY_SIZE; i++)
-        p_lcb->peer_chnl_mask[i] = 0xFF;
-    l2cu_process_fixed_chnl_resp (p_lcb);
 }
 
 
@@ -439,14 +431,6 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
     {
         L2CA_CancelBleConnectReq(bda);
     }
-    /*
-     * This is wrong. However, querying the other side is wrong too, since as per spec they
-     * cannot really tell us when they have fixed channels open. Yes, bluedroid breaks the
-     * spec in EDR mode in that respect, but that it a whole new story.
-     */
-    for(i = 0; i < L2CAP_FIXED_CHNL_ARRAY_SIZE; i++)
-        p_lcb->peer_chnl_mask[i] = 0xFF;
-    l2cu_process_fixed_chnl_resp (p_lcb);
 }
 
 /*******************************************************************************
