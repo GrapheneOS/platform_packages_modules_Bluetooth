@@ -735,7 +735,7 @@ static const BD_ADDR bd_addr_null= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 ** Returns          void
 **
 *******************************************************************************/
-inline void bdcpy(BD_ADDR a, const BD_ADDR b)
+static inline void bdcpy(BD_ADDR a, const BD_ADDR b)
 {
     int i;
 
@@ -755,7 +755,7 @@ inline void bdcpy(BD_ADDR a, const BD_ADDR b)
 ** Returns          Zero if b==a, nonzero otherwise (like memcmp).
 **
 *******************************************************************************/
-inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
+static inline int bdcmp(const BD_ADDR a, const BD_ADDR b)
 {
     int i;
 
@@ -799,5 +799,3 @@ static inline void bdsetany(BD_ADDR a)
     bdcpy(a, bd_addr_any);
 }
 #endif
-
-
