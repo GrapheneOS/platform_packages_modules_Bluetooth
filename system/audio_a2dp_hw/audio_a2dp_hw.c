@@ -1003,13 +1003,14 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
                                    audio_output_flags_t flags,
                                    struct audio_config *config,
                                    struct audio_stream_out **stream_out,
-                                   const char *address __unused)
+                                   const char *address)
 
 {
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_out *out;
     int ret = 0;
     int i;
+    UNUSED(address);
     UNUSED(handle);
     UNUSED(devices);
     UNUSED(flags);
@@ -1202,16 +1203,19 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
                                   audio_devices_t devices,
                                   struct audio_config *config,
                                   struct audio_stream_in **stream_in,
-                                  audio_input_flags_t flags __unused,
-                                  const char *address __unused,
-                                  audio_source_t source __unused)
+                                  audio_input_flags_t flags,
+                                  const char *address,
+                                  audio_source_t source)
 {
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_in *in;
     int ret;
-    UNUSED(handle);
-    UNUSED(devices);
+    UNUSED(address);
     UNUSED(config);
+    UNUSED(devices);
+    UNUSED(flags);
+    UNUSED(handle);
+    UNUSED(source);
 
     FNLOG();
 
@@ -1367,4 +1371,3 @@ struct audio_module HAL_MODULE_INFO_SYM = {
         .methods = &hal_module_methods,
     },
 };
-
