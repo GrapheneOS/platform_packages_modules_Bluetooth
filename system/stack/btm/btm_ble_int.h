@@ -304,11 +304,8 @@ typedef struct
     tBTM_BLE_SEL_CBACK  *p_select_cback;
 
     /* white list information */
-    UINT8                   num_empty_filter;      /* Number of entries in white list */
-    UINT8                   max_filter_entries;    /* Maximum number of entries that can be stored */
+    UINT8                   white_list_avail_size;
     tBTM_BLE_WL_STATE       wl_state;
-    UINT8                   bg_dev_num;
-    tBTM_LE_BG_CONN_DEV     bg_dev_list[BTM_BLE_MAX_BG_CONN_DEV_NUM];
 
     BUFFER_Q                conn_pending_q;
     tBTM_BLE_CONN_ST        conn_state;
@@ -392,7 +389,6 @@ extern UINT8 btm_ble_read_sec_key_size(BD_ADDR bd_addr);
 
 /* white list function */
 extern BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr);
-extern BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr);
 extern void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy);
 extern void btm_update_adv_filter_policy(tBTM_BLE_AFP adv_policy);
 extern void btm_ble_clear_white_list (void);
@@ -400,6 +396,7 @@ extern void btm_read_white_list_size_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_add_2_white_list_complete(UINT8 status);
 extern void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_clear_white_list_complete(UINT8 *p, UINT16 evt_len);
+extern void btm_ble_white_list_init(UINT8 white_list_size);
 
 /* background connection function */
 extern void btm_ble_suspend_bg_conn(void);
@@ -408,7 +405,6 @@ extern void btm_ble_initiate_select_conn(BD_ADDR bda);
 extern BOOLEAN btm_ble_start_auto_conn(BOOLEAN start);
 extern BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_cback);
 extern BOOLEAN btm_ble_renew_bg_conn_params(BOOLEAN add, BD_ADDR bd_addr);
-extern UINT8 btm_ble_count_unconn_dev_in_whitelist(void);
 extern void btm_write_dir_conn_wl(BD_ADDR target_addr);
 extern void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bda, UINT8 status);
 extern BOOLEAN btm_execute_wl_dev_operation(void);

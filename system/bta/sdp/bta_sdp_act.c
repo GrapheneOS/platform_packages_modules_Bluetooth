@@ -23,6 +23,8 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sdp.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "bt_types.h"
 #include "gki.h"
@@ -34,7 +36,6 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "sdp_api.h"
-#include <string.h>
 
 /*****************************************************************************
 **  Constants

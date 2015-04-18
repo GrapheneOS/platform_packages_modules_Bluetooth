@@ -407,6 +407,12 @@ static uint8_t get_acl_buffer_count_ble(void) {
   return acl_buffer_count_ble;
 }
 
+static uint8_t get_ble_white_list_size(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_white_list_size;
+}
+
 static uint8_t get_ble_resolving_list_max_size(void) {
   assert(readable);
   assert(ble_supported);
@@ -454,6 +460,8 @@ static const controller_t interface = {
 
   get_acl_buffer_count_classic,
   get_acl_buffer_count_ble,
+
+  get_ble_white_list_size,
 
   get_ble_resolving_list_max_size,
   set_ble_resolving_list_max_size
