@@ -230,6 +230,7 @@ extern void bta_sys_sendmsg(void *p_msg);
 extern void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms);
 extern void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle);
 extern void bta_sys_disable(tBTA_SYS_HW_MODULE module);
+extern UINT32 bta_sys_get_remaining_ticks(TIMER_LIST_ENT *p_target_tle);
 
 extern void bta_sys_hw_register( tBTA_SYS_HW_MODULE module, tBTA_SYS_HW_CBACK *cback);
 extern void bta_sys_hw_unregister( tBTA_SYS_HW_MODULE module );
