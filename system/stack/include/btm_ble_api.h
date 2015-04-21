@@ -1428,6 +1428,23 @@ extern  UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length);
 extern void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type,
                                      tBLE_ADDR_TYPE *p_addr_type);
 
+
+/*******************************************************************************
+**
+** Function         BTM_ReadConnectedTransportAddress
+**
+** Description      This function is called to read the paired device/address type of other device paired
+**                  corresponding to the BD_address
+**
+** Parameter        remote_bda: remote device address, carry out the transport address
+**                  transport: active transport
+**
+** Return           TRUE if an active link is identified; FALSE otherwise
+**
+*******************************************************************************/
+extern BOOLEAN BTM_ReadConnectedTransportAddress(BD_ADDR remote_bda,
+                                                 tBT_TRANSPORT transport);
+
 /*******************************************************************************
 **
 ** Function         BTM_BleBroadcast

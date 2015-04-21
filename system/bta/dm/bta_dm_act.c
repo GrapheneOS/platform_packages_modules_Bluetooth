@@ -583,57 +583,118 @@ void bta_dm_set_visibility (tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_dm_remove_device
+** Function         bta_dm_process_remove_device
 **
 ** Description      Removes device, Disconnects ACL link if required.
 ****
 *******************************************************************************/
-void bta_dm_remove_device (tBTA_DM_MSG *p_data)
+void bta_dm_process_remove_device(BD_ADDR bd_addr)
 {
-    tBTA_DM_API_REMOVE_DEVICE *p_dev = &p_data->remove_dev;
-    int i;
-    tBTA_DM_SEC sec_event;
-
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    /* need to remove all pending background connection before unpair */
-    BTA_GATTC_CancelOpen(0, p_dev->bd_addr, FALSE);
+     /* need to remove all pending background connection before unpair */
+     BTA_GATTC_CancelOpen(0, bd_addr, FALSE);
 #endif
 
-    if ( BTM_IsAclConnectionUp(p_dev->bd_addr, BT_TRANSPORT_LE) ||
-         BTM_IsAclConnectionUp(p_dev->bd_addr, BT_TRANSPORT_BR_EDR))
-    {
-           APPL_TRACE_DEBUG("%s: ACL Up count  %d", __FUNCTION__,bta_dm_cb.device_list.count);
-        /* Take the link down first, and mark the device for removal when disconnected */
+     BTM_SecDeleteDevice(bd_addr);
 
-        for(i=0; i<bta_dm_cb.device_list.count; i++)
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
+      /* remove all cached GATT information */
+      BTA_GATTC_Refresh(bd_addr);
+#endif
+
+      if (bta_dm_cb.p_sec_cback)
+      {
+         tBTA_DM_SEC sec_event;
+         bdcpy(sec_event.link_down.bd_addr, bd_addr);
+         /* No connection, set status to success (acl disc code not valid) */
+         sec_event.link_down.status = HCI_SUCCESS;
+         bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
+      }
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_remove_device
+**
+** Description      Removes device, disconnects ACL link if required.
+****
+*******************************************************************************/
+void bta_dm_remove_device(tBTA_DM_MSG *p_data)
+{
+    tBTA_DM_API_REMOVE_DEVICE *p_dev = &p_data->remove_dev;
+    if (p_dev == NULL)
+        return;
+
+    BD_ADDR other_address;
+    bdcpy(other_address, p_dev->bd_addr);
+
+    /* If ACL exists for the device in the remove_bond message*/
+    BOOLEAN continue_delete_dev = FALSE;
+    UINT8 other_transport = BT_TRANSPORT_INVALID;
+
+    if (BTM_IsAclConnectionUp(p_dev->bd_addr, BT_TRANSPORT_LE) ||
+        BTM_IsAclConnectionUp(p_dev->bd_addr, BT_TRANSPORT_BR_EDR))
+    {
+        APPL_TRACE_DEBUG("%s: ACL Up count  %d", __func__, bta_dm_cb.device_list.count);
+        continue_delete_dev = FALSE;
+
+        /* Take the link down first, and mark the device for removal when disconnected */
+        for(int i=0; i < bta_dm_cb.device_list.count; i++)
         {
-            if(!bdcmp( bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_dev->bd_addr))
+            if (!bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, p_dev->bd_addr))
             {
                 bta_dm_cb.device_list.peer_device[i].conn_state = BTA_DM_UNPAIRING;
-                btm_remove_acl( p_dev->bd_addr,bta_dm_cb.device_list.peer_device[i].transport);
-                APPL_TRACE_DEBUG("%s:transport = %d", __FUNCTION__,
-                                   bta_dm_cb.device_list.peer_device[i].transport);
+                btm_remove_acl( p_dev->bd_addr, bta_dm_cb.device_list.peer_device[i].transport);
+                APPL_TRACE_DEBUG("%s:transport = %d", __func__,
+                                  bta_dm_cb.device_list.peer_device[i].transport);
+
+                /* save the other transport to check if device is connected on other_transport */
+                if(bta_dm_cb.device_list.peer_device[i].transport == BT_TRANSPORT_LE)
+                   other_transport = BT_TRANSPORT_BR_EDR;
+                else
+                   other_transport = BT_TRANSPORT_LE;
                 break;
             }
         }
     }
-
-    else    /* Ok to remove the device in application layer */
+    else
     {
-        BTM_SecDeleteDevice(p_dev->bd_addr);
-#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-        /* remove all cached GATT information */
-        BTA_GATTC_Refresh(p_dev->bd_addr);
-#endif
+        continue_delete_dev = TRUE;
+    }
 
-        if( bta_dm_cb.p_sec_cback )
+    // If it is DUMO device and device is paired as different address, unpair that device
+    // if different address
+    BOOLEAN continue_delete_other_dev = FALSE;
+    if ((other_transport && (BTM_ReadConnectedTransportAddress(other_address, other_transport))) ||
+      (!other_transport && (BTM_ReadConnectedTransportAddress(other_address, BT_TRANSPORT_BR_EDR) ||
+       BTM_ReadConnectedTransportAddress(other_address, BT_TRANSPORT_LE))))
+    {
+        continue_delete_other_dev = FALSE;
+        /* Take the link down first, and mark the device for removal when disconnected */
+        for(int i=0; i < bta_dm_cb.device_list.count; i++)
         {
-            bdcpy(sec_event.link_down.bd_addr, p_dev->bd_addr);
-            /* No connection, set status to success (acl disc code not valid) */
-            sec_event.link_down.status = HCI_SUCCESS;
-            bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &sec_event);
+            if (!bdcmp(bta_dm_cb.device_list.peer_device[i].peer_bdaddr, other_address))
+            {
+                bta_dm_cb.device_list.peer_device[i].conn_state = BTA_DM_UNPAIRING;
+                btm_remove_acl(other_address,bta_dm_cb.device_list.peer_device[i].transport);
+                break;
+            }
         }
     }
+    else
+    {
+        APPL_TRACE_DEBUG("%s: continue to delete the other dev ", __func__);
+        continue_delete_other_dev = TRUE;
+    }
+
+    /* Delete the device mentioned in the msg */
+    if (continue_delete_dev)
+        bta_dm_process_remove_device(p_dev->bd_addr);
+
+    /* Delete the other paired device too */
+    BD_ADDR dummy_bda = {0};
+    if (continue_delete_other_dev && (bdcmp(other_address, dummy_bda) != 0))
+        bta_dm_process_remove_device(other_address);
 }
 
 /*******************************************************************************
