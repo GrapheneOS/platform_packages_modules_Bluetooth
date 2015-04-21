@@ -652,6 +652,57 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
     BTM_TRACE_DEBUG ("btm_find_dev_type - device_type = %d addr_type = %d", *p_dev_type , *p_addr_type);
 }
 
+
+/*******************************************************************************
+**
+** Function         BTM_ReadConnectedTransportAddress
+**
+** Description      This function is called to read the paired device/address type of other device paired
+**                  corresponding to the BD_address
+**
+** Parameter        remote_bda: remote device address, carry out the transport address
+**                  transport: active transport
+**
+** Return           TRUE if an active link is identified; FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN BTM_ReadConnectedTransportAddress(BD_ADDR remote_bda, tBT_TRANSPORT transport)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(remote_bda);
+    tACL_CONN *p = btm_bda_to_acl(remote_bda, transport);
+
+    /* if no device can be located, return */
+    if (p_dev_rec == NULL)
+        return FALSE;
+
+    if (transport == BT_TRANSPORT_BR_EDR)
+    {
+        if (btm_bda_to_acl(p_dev_rec->bd_addr, transport) != NULL)
+        {
+            memcpy(remote_bda, p_dev_rec->bd_addr, BD_ADDR_LEN);
+            return TRUE;
+        }
+        else if (p_dev_rec->device_type & BT_DEVICE_TYPE_BREDR)
+        {
+            memcpy(remote_bda, p_dev_rec->bd_addr, BD_ADDR_LEN);
+        }
+        else
+            memset(remote_bda, 0, BD_ADDR_LEN);
+        return FALSE;
+    }
+
+    if (transport == BT_TRANSPORT_LE)
+    {
+        memcpy(remote_bda, p_dev_rec->ble.pseudo_addr, BD_ADDR_LEN);
+        if (btm_bda_to_acl(p_dev_rec->ble.pseudo_addr, transport) != NULL)
+            return TRUE;
+        else
+            return FALSE;
+    }
+
+    return FALSE;
+}
+
 /*******************************************************************************
 **
 ** Function         BTM_BleReceiverTest

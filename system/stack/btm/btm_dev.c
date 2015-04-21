@@ -174,23 +174,23 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
 *******************************************************************************/
 BOOLEAN BTM_SecDeleteDevice (BD_ADDR bd_addr)
 {
-    tBTM_SEC_DEV_REC  *p_dev_rec;
+    tBTM_SEC_DEV_REC *p_dev_rec;
 
-    if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) || BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR))
+    if (BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) ||
+        BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR))
     {
-        BTM_TRACE_WARNING("BTM_SecDeleteDevice FAILED: Cannot Delete when connection is active");
-        return(FALSE);
+        BTM_TRACE_WARNING("%s FAILED: Cannot Delete when connection is active", __func__);
+        return FALSE;
     }
 
-    if ((p_dev_rec = btm_find_dev (bd_addr)) == NULL)
-        return(FALSE);
+    if ((p_dev_rec = btm_find_dev(bd_addr)) != NULL)
+    {
+        btm_sec_free_dev(p_dev_rec);
+        /* Tell controller to get rid of the link key, if it has one stored */
+        BTM_DeleteStoredLinkKey (p_dev_rec->bd_addr, NULL);
+    }
 
-    btm_sec_free_dev (p_dev_rec);
-
-    /* Tell controller to get rid of the link key if it has one stored */
-    BTM_DeleteStoredLinkKey (bd_addr, NULL);
-
-    return(TRUE);
+    return TRUE;
 }
 
 /*******************************************************************************

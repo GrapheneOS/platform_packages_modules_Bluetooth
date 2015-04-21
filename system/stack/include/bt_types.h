@@ -508,7 +508,7 @@ typedef struct
 typedef UINT8 tBLE_ADDR_TYPE;
 #define BLE_ADDR_TYPE_MASK      (BLE_ADDR_RANDOM | BLE_ADDR_PUBLIC)
 
-
+#define BT_TRANSPORT_INVALID   0
 #define BT_TRANSPORT_BR_EDR    1
 #define BT_TRANSPORT_LE        2
 typedef UINT8 tBT_TRANSPORT;
