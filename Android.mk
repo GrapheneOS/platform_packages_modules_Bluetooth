@@ -19,7 +19,6 @@ endif
 
 bdroid_CFLAGS += \
   -Wall \
-#  -Werror \
   -Wno-unused-parameter \
   -Wunused-but-set-variable \
   -UNDEBUG \

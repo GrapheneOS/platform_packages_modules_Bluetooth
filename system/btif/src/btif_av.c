@@ -98,7 +98,7 @@ typedef struct
 ******************************************************************************/
 static btav_callbacks_t *bt_av_src_callbacks = NULL;
 static btav_callbacks_t *bt_av_sink_callbacks = NULL;
-static btif_av_cb_t btif_av_cb;
+static btif_av_cb_t btif_av_cb = {0};
 static TIMER_LIST_ENT tle_av_open_on_rc;
 
 /* both interface and media task needs to be ready to alloc incoming request */
@@ -904,11 +904,9 @@ bt_status_t btif_av_init()
                 btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
 
         btif_a2dp_on_init();
-
-       return BT_STATUS_SUCCESS;
     }
 
-    return BT_STATUS_DONE;
+    return BT_STATUS_SUCCESS;
 }
 
 /*******************************************************************************
@@ -923,20 +921,11 @@ bt_status_t btif_av_init()
 
 static bt_status_t init_src(btav_callbacks_t* callbacks)
 {
-    bt_status_t status;
+    BTIF_TRACE_EVENT("%s()", __func__);
 
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
-
-    if (bt_av_sink_callbacks != NULL) {
-        // already did btif_av_init()
-        status = BT_STATUS_SUCCESS;
-    } else {
-        status = btif_av_init();
-    }
-
-    if (status == BT_STATUS_SUCCESS) {
+    bt_status_t status = btif_av_init();
+    if (status == BT_STATUS_SUCCESS)
         bt_av_src_callbacks = callbacks;
-    }
 
     return status;
 }
@@ -953,20 +942,11 @@ static bt_status_t init_src(btav_callbacks_t* callbacks)
 
 static bt_status_t init_sink(btav_callbacks_t* callbacks)
 {
-    bt_status_t status;
+    BTIF_TRACE_EVENT("%s()", __func__);
 
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
-
-    if (bt_av_src_callbacks != NULL) {
-        // already did btif_av_init()
-        status = BT_STATUS_SUCCESS;
-    } else {
-        status = btif_av_init();
-    }
-
-    if (status == BT_STATUS_SUCCESS) {
+    bt_status_t status = btif_av_init();
+    if (status == BT_STATUS_SUCCESS)
         bt_av_sink_callbacks = callbacks;
-    }
 
     return status;
 }
