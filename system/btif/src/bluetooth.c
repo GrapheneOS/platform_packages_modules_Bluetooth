@@ -477,7 +477,7 @@ static struct hw_module_methods_t bt_stack_module_methods = {
     .open = open_bluetooth_stack,
 };
 
-struct hw_module_t HAL_MODULE_INFO_SYM = {
+EXPORT_SYMBOL struct hw_module_t HAL_MODULE_INFO_SYM = {
     .tag = HARDWARE_MODULE_TAG,
     .version_major = 1,
     .version_minor = 0,

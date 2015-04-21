@@ -142,7 +142,7 @@ static future_t *clean_up(void) {
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-const module_t btif_config_module = {
+EXPORT_SYMBOL const module_t btif_config_module = {
   .name = BTIF_CONFIG_MODULE,
   .init = init,
   .start_up = NULL,

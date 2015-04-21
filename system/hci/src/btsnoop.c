@@ -79,7 +79,7 @@ static future_t *shut_down(void) {
   return NULL;
 }
 
-const module_t btsnoop_module = {
+EXPORT_SYMBOL const module_t btsnoop_module = {
   .name = BTSNOOP_MODULE,
   .init = NULL,
   .start_up = start_up,

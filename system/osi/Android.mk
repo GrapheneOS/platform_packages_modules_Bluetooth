@@ -47,7 +47,7 @@ LOCAL_SRC_FILES := \
     ./src/socket.c \
     ./src/thread.c
 
-LOCAL_CFLAGS := -std=c99 -Wall -Werror
+LOCAL_CFLAGS := -std=c99 -Wall -Werror -fvisibility=hidden
 # Many .h files have redefined typedefs
 LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi

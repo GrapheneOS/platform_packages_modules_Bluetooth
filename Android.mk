@@ -17,7 +17,10 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 bdroid_CFLAGS += -DBLUEDROID_DEBUG
 endif
 
+bdroid_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
+
 bdroid_CFLAGS += \
+  -fvisibility=hidden \
   -Wall \
   -Wno-unused-parameter \
   -Wunused-but-set-variable \

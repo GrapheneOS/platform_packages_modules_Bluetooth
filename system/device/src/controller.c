@@ -254,7 +254,7 @@ static future_t *shut_down(void) {
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-const module_t controller_module = {
+EXPORT_SYMBOL const module_t controller_module = {
   .name = CONTROLLER_MODULE,
   .init = NULL,
   .start_up = start_up,

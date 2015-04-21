@@ -51,7 +51,7 @@ static future_t *clean_up(void) {
 }
 
 // Temp module until GKI dies
-const module_t gki_module = {
+EXPORT_SYMBOL const module_t gki_module = {
   .name = GKI_MODULE,
   .init = init,
   .start_up = NULL,
