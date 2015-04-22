@@ -177,53 +177,50 @@ void btm_enq_wl_dev_operation(BOOLEAN to_add, BD_ADDR bd_addr)
     }
     return;
 }
+
 /*******************************************************************************
 **
 ** Function         btm_update_dev_to_white_list
 **
-** Description      This function adds a device into white list.
+** Description      This function adds or removes a device into/from
+**                  the white list.
+**
 *******************************************************************************/
 BOOLEAN btm_update_dev_to_white_list(BOOLEAN to_add, BD_ADDR bd_addr)
 {
-    /* look up the sec device record, and find the address */
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT8       wl_state = p_cb->wl_state;
 
-    if ((to_add && p_cb->num_empty_filter == 0) ||
-        (!to_add && p_cb->num_empty_filter == p_cb->max_filter_entries))
+    if (to_add && p_cb->white_list_avail_size == 0)
     {
-        BTM_TRACE_ERROR("WL full or empty, unable to update to WL. num_entry available: %d",
-                          p_cb->num_empty_filter);
+        BTM_TRACE_ERROR("%s Whitelist full, unable to add device", __func__);
         return FALSE;
     }
 
-    btm_suspend_wl_activity(wl_state);
-
-    /* enq pending WL device operation */
+    btm_suspend_wl_activity(p_cb->wl_state);
     btm_enq_wl_dev_operation(to_add, bd_addr);
-
-    btm_resume_wl_activity(wl_state);
-
+    btm_resume_wl_activity(p_cb->wl_state);
     return TRUE;
 }
+
 /*******************************************************************************
 **
 ** Function         btm_ble_clear_white_list
 **
 ** Description      This function clears the white list.
+**
 *******************************************************************************/
 void btm_ble_clear_white_list (void)
 {
     BTM_TRACE_EVENT ("btm_ble_clear_white_list");
     btsnd_hcic_ble_clear_white_list();
-    memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
 }
 
 /*******************************************************************************
 **
 ** Function         btm_ble_clear_white_list_complete
 **
-** Description      This function clears the white list complete.
+** Description      Indicates white list cleared.
+**
 *******************************************************************************/
 void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
 {
@@ -235,125 +232,57 @@ void btm_ble_clear_white_list_complete(UINT8 *p_data, UINT16 evt_len)
     STREAM_TO_UINT8  (status, p_data);
 
     if (status == HCI_SUCCESS)
-        p_cb->num_empty_filter = p_cb->max_filter_entries;
-
+        p_cb->white_list_avail_size = controller_get_interface()->get_ble_white_list_size();
 }
+
+/*******************************************************************************
+**
+** Function         btm_ble_white_list_init
+**
+** Description      Initialize white list size
+**
+*******************************************************************************/
+void btm_ble_white_list_init(UINT8 white_list_size)
+{
+    BTM_TRACE_DEBUG("%s white_list_size = %d", __func__, white_list_size);
+    btm_cb.ble_ctr_cb.white_list_avail_size = white_list_size;
+}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_add_2_white_list_complete
 **
-** Description      This function read the current white list size.
+** Description      White list element added
+**
 *******************************************************************************/
 void btm_ble_add_2_white_list_complete(UINT8 status)
 {
-    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BTM_TRACE_EVENT ("btm_ble_add_2_white_list_complete");
-
+    BTM_TRACE_EVENT("%s status=%d", __func__, status);
     if (status == HCI_SUCCESS)
-    {
-        p_cb->num_empty_filter --;
-    }
+        --btm_cb.ble_ctr_cb.white_list_avail_size;
 }
+
 /*******************************************************************************
 **
 ** Function         btm_ble_remove_from_white_list_complete
 **
-** Description      This function remove the white list element complete.
+** Description      White list element removal complete
+**
 *******************************************************************************/
 void btm_ble_remove_from_white_list_complete(UINT8 *p, UINT16 evt_len)
 {
-    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
     UNUSED(evt_len);
-
-    BTM_TRACE_EVENT ("btm_ble_remove_from_white_list_complete");
+    BTM_TRACE_EVENT ("%s status=%d", __func__, *p);
     if (*p == HCI_SUCCESS)
-    {
-        p_cb->num_empty_filter ++;
-    }
+        ++btm_cb.ble_ctr_cb.white_list_avail_size;
 }
-/*******************************************************************************
-**
-** Function         btm_ble_count_unconn_dev_in_whitelist
-**
-** Description      This function find the number of un-connected background device
-*******************************************************************************/
-UINT8 btm_ble_count_unconn_dev_in_whitelist(void)
+
+static UINT8 btm_ble_count_dev_in_whitelist(void)
 {
-    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT8 i, count = 0;
-
-    for (i = 0; i < BTM_BLE_MAX_BG_CONN_DEV_NUM; i ++)
-    {
-        if (p_cb->bg_dev_list[i].in_use &&
-            !BTM_IsAclConnectionUp(p_cb->bg_dev_list[i].bd_addr, BT_TRANSPORT_LE))
-        {
-            count ++;
-        }
-    }
-    return count;
-
-}
-/*******************************************************************************
-**
-** Function         btm_update_bg_conn_list
-**
-** Description      This function update the local background connection device list.
-*******************************************************************************/
-BOOLEAN btm_update_bg_conn_list(BOOLEAN to_add, BD_ADDR bd_addr)
-{
-    tBTM_BLE_CB             *p_cb = &btm_cb.ble_ctr_cb;
-    tBTM_LE_BG_CONN_DEV     *p_bg_dev = &p_cb->bg_dev_list[0], *p_next, *p_cur;
-    UINT8                   i, j;
-    BOOLEAN             ret = FALSE;
-
-    BTM_TRACE_EVENT ("btm_update_bg_conn_list");
-
-    if ((to_add && (p_cb->bg_dev_num == BTM_BLE_MAX_BG_CONN_DEV_NUM || p_cb->num_empty_filter == 0)))
-    {
-        BTM_TRACE_DEBUG("num_empty_filter = %d", p_cb->num_empty_filter);
-        return ret;
-    }
-
-    /* Look for existing device to add/remove attribute */
-    for (i = 0; i < BTM_BLE_MAX_BG_CONN_DEV_NUM; i ++, p_bg_dev ++)
-    {
-        if (p_bg_dev->in_use && memcmp(p_bg_dev->bd_addr, bd_addr, BD_ADDR_LEN) == 0)
-        {
-            if (!to_add)
-            {
-                memset(p_bg_dev, 0, sizeof(tBTM_LE_BG_CONN_DEV));
-                if (p_cb->bg_dev_num < BTM_BLE_MAX_BG_CONN_DEV_NUM)
-                {
-                    /* The entry being removed is not at the highest index of the array: shift */
-                    p_cur = p_bg_dev;
-                    p_next = p_bg_dev + 1;
-                    for (j = i + 1 ;j < BTM_BLE_MAX_BG_CONN_DEV_NUM && p_next->in_use ;
-                                            j ++, p_cur ++, p_next ++ )
-                    {
-                        memcpy(p_cur, p_next, sizeof(tBTM_LE_BG_CONN_DEV));
-                        memset(p_next, 0, sizeof(tBTM_LE_BG_CONN_DEV));
-                    }
-                }
-                p_cb->bg_dev_num --;
-            }
-            ret = TRUE;
-            break;
-        }
-        else if (!p_bg_dev->in_use && to_add)
-        {
-            BTM_TRACE_DEBUG("add new WL entry in bg_dev_list");
-
-            memcpy(p_bg_dev->bd_addr, bd_addr, BD_ADDR_LEN);
-            p_bg_dev->in_use = TRUE;
-            p_cb->bg_dev_num ++;
-
-            ret = TRUE;
-            break;
-        }
-    }
-
-
-    return ret;
+    const uint8_t white_list_size = controller_get_interface()->get_ble_white_list_size();
+    if (white_list_size == 0)
+        return 0;
+    return white_list_size - btm_cb.ble_ctr_cb.white_list_avail_size;
 }
 
 /*******************************************************************************
@@ -379,7 +308,7 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
 
     if (start)
     {
-        if (p_cb->conn_state == BLE_CONN_IDLE && btm_ble_count_unconn_dev_in_whitelist() > 0
+        if (p_cb->conn_state == BLE_CONN_IDLE && btm_ble_count_dev_in_whitelist() > 0
             && btm_ble_topology_check(BTM_BLE_STATE_INIT))
         {
             p_cb->wl_state  |= BTM_BLE_WL_INIT;
@@ -493,7 +422,7 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
                 BTM_TRACE_ERROR("peripheral device cannot initiate passive scan for a selective connection");
                 return FALSE;
             }
-            else if (p_cb->bg_dev_num > 0 && btm_ble_count_unconn_dev_in_whitelist() > 0 )
+            else if (btm_ble_count_dev_in_whitelist() > 0)
             {
 
                 if (!btsnd_hcic_ble_set_scan_enable(TRUE, TRUE)) /* duplicate filtering enabled */
@@ -701,7 +630,7 @@ void btm_ble_enqueue_direct_conn_req(void *p_param)
 ** Returns          TRUE if started, FALSE otherwise
 **
 *******************************************************************************/
-BOOLEAN btm_send_pending_direct_conn(void )
+BOOLEAN btm_send_pending_direct_conn(void)
 {
     tBTM_BLE_CONN_REQ *p_req;
     BOOLEAN     rt = FALSE;

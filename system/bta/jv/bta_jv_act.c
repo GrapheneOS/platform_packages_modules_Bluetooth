@@ -24,6 +24,7 @@
 #include <hardware/bluetooth.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include "bt_types.h"
 #include "gki.h"

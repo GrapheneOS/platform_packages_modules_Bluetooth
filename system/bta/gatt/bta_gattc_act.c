@@ -811,6 +811,7 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     else if (p_data->hdr.event == BTA_GATTC_INT_DISCONN_EVT)
     {
         cb_data.close.status = p_data->int_conn.reason;
+        cb_data.close.reason = p_data->int_conn.reason;
     }
 
     if(p_cback)

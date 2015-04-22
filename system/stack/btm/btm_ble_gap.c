@@ -800,14 +800,8 @@ void BTM_BleClearBgConnDev(void)
 *******************************************************************************/
 BOOLEAN BTM_BleUpdateBgConnDev(BOOLEAN add_remove, BD_ADDR   remote_bda)
 {
-    BOOLEAN ret = FALSE;
-    BTM_TRACE_EVENT (" BTM_BleUpdateBgConnDev");
-
-    /* update white list */
-    if (btm_update_bg_conn_list(add_remove, remote_bda))
-        ret = btm_update_dev_to_white_list(add_remove, remote_bda);
-
-    return ret;
+    BTM_TRACE_EVENT("%s() add=%d", __func__, add_remove);
+    return btm_update_dev_to_white_list(add_remove, remote_bda);
 }
 
 /*******************************************************************************

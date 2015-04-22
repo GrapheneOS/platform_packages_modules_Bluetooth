@@ -162,10 +162,8 @@ static void reset_complete(void *result) {
 
 #if (BLE_INCLUDED == TRUE)
   btm_cb.ble_ctr_cb.conn_state = BLE_CONN_IDLE;
-  btm_cb.ble_ctr_cb.bg_dev_num = 0;
   btm_cb.ble_ctr_cb.bg_conn_type = BTM_BLE_CONN_NONE;
   btm_cb.ble_ctr_cb.p_select_cback = NULL;
-  memset(&btm_cb.ble_ctr_cb.bg_dev_list, 0, (sizeof(tBTM_LE_BG_CONN_DEV)*BTM_BLE_MAX_BG_CONN_DEV_NUM));
   gatt_reset_bgdev_list();
   btm_ble_multi_adv_init();
 #endif
@@ -179,13 +177,14 @@ static void reset_complete(void *result) {
   /* Set up the BLE privacy settings */
   if (controller->supports_ble() && controller->supports_ble_privacy() &&
       controller->get_ble_resolving_list_max_size() > 0) {
-      btm_ble_resolving_list_init (controller->get_ble_resolving_list_max_size());
+      btm_ble_resolving_list_init(controller->get_ble_resolving_list_max_size());
       /* set the default random private address timeout */
       btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT);
   }
 #endif
 
   if (controller->supports_ble()) {
+    btm_ble_white_list_init(controller->get_ble_white_list_size());
     l2c_link_processs_ble_num_bufs(controller->get_acl_buffer_count_ble());
   }
 #endif

@@ -71,6 +71,8 @@ typedef struct controller_t {
   uint16_t (*get_acl_buffer_count_classic)(void);
   uint8_t (*get_acl_buffer_count_ble)(void);
 
+  uint8_t (*get_ble_white_list_size)(void);
+
   uint8_t (*get_ble_resolving_list_max_size)(void);
   void (*set_ble_resolving_list_max_size)(int resolving_list_max_size);
 } controller_t;
