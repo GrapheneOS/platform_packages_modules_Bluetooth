@@ -1599,7 +1599,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         {
             port_flow_control_user(p_port);
             event |= PORT_EV_FC;
-            debug("tx queue is full,tx.queue_size:%d,tx.queue.count:%d,available:%d",
+            RFCOMM_TRACE_EVENT ("tx queue is full,tx.queue_size:%d,tx.queue.count:%d,available:%d",
                     p_port->tx.queue_size, GKI_queue_length(&p_port->tx.queue), available);
             break;
          }
