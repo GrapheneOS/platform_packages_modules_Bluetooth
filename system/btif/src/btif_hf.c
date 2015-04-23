@@ -697,10 +697,8 @@ static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
 *******************************************************************************/
 static bt_status_t init( bthf_callbacks_t* callbacks, int max_hf_clients)
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
-
     btif_max_hf_clients = max_hf_clients;
-    BTIF_TRACE_DEBUG("%s - max_hf_clients=%d", btif_max_hf_clients);
+    BTIF_TRACE_DEBUG("%s - max_hf_clients=%d", __func__, btif_max_hf_clients);
 
     bt_hf_callbacks = callbacks;
     memset(&btif_hf_cb, 0, sizeof(btif_hf_cb));
