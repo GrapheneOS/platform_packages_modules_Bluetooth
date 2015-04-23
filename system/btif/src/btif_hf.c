@@ -698,9 +698,12 @@ static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
 static bt_status_t init( bthf_callbacks_t* callbacks, int max_hf_clients)
 {
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
-    int i;
+
+    btif_max_hf_clients = max_hf_clients;
+    BTIF_TRACE_DEBUG("%s - max_hf_clients=%d", btif_max_hf_clients);
 
     bt_hf_callbacks = callbacks;
+    memset(&btif_hf_cb, 0, sizeof(btif_hf_cb));
 
     /* Invoke the enable service API to the core to set the appropriate service_id
      * Internally, the HSP_SERVICE_ID shall also be enabled if HFP is enabled (phone)
@@ -712,13 +715,8 @@ static bt_status_t init( bthf_callbacks_t* callbacks, int max_hf_clients)
     btif_enable_service(BTA_HSP_SERVICE_ID);
 #endif
 
-    memset(&btif_hf_cb, 0, sizeof(btif_hf_cb));
-    btif_max_hf_clients = max_hf_clients;
-    BTIF_TRACE_DEBUG("btif_max_hf_clients = %d", btif_max_hf_clients);
-    for (i = 0; i < btif_max_hf_clients; i++)
-    {
+    for (int i = 0; i < btif_max_hf_clients; i++)
         clear_phone_state_multihf(i);
-    }
 
     return BT_STATUS_SUCCESS;
 }
