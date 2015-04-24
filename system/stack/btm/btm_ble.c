@@ -1798,10 +1798,16 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
     else
     {
         role = HCI_ROLE_UNKNOWN;
-
         if (status != HCI_ERR_DIRECTED_ADVERTISING_TIMEOUT)
+        {
             btm_ble_set_conn_st(BLE_CONN_IDLE);
+            btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, TRUE);
         }
+        else
+        {
+            btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
+        }
+    }
 
     btm_ble_update_mode_operation(role, bda, status);
 }

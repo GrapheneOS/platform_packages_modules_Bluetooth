@@ -246,6 +246,23 @@ BOOLEAN BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
 
 /*******************************************************************************
 **
+** Function         BTM_SecRegisterLinkKeyNotificationCallback
+**
+** Description      Application manager calls this function to register for
+**                  link key notification.  When there is nobody registered
+**                  we should avoid changing link key
+**
+** Returns          TRUE if registered OK, else FALSE
+**
+*******************************************************************************/
+BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback (tBTM_LINK_KEY_CALLBACK *p_callback)
+{
+    btm_cb.api.p_link_key_callback = p_callback;
+    return TRUE;
+}
+
+/*******************************************************************************
+**
 ** Function         BTM_SecAddRmtNameNotifyCallback
 **
 ** Description      Any profile can register to be notified when name of the
