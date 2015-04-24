@@ -122,45 +122,42 @@ typedef struct
 
 #define BTM_BLE_ISVALID_PARAM(x, min, max)  (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
 
-#define BTM_BLE_PRIVATE_ADDR_INT    900           /* 15 minutes minimum for
-                                                   random address refreshing */
+#define BTM_BLE_PRIVATE_ADDR_INT    900  /* 15 minutes minimum for random address refreshing */
 
 typedef struct
 {
+    UINT16 discoverable_mode;
+    UINT16 connectable_mode;
+    UINT32 scan_window;
+    UINT32 scan_interval;
+    UINT8 scan_type; /* current scan type: active or passive */
+    UINT8 scan_duplicate_filter; /* duplicate filter enabled for scan */
+    UINT16 adv_interval_min;
+    UINT16 adv_interval_max;
+    tBTM_BLE_AFP afp; /* advertising filter policy */
+    tBTM_BLE_SFP sfp; /* scanning filter policy */
 
-    UINT16           discoverable_mode;
-    UINT16           connectable_mode;
-    UINT32           scan_window;
-    UINT32           scan_interval;
-    UINT8            scan_type;        /* current scan type: active or passive */
-    UINT16           adv_interval_min;
-    UINT16           adv_interval_max;
-    tBTM_BLE_AFP     afp;               /* advertising filter policy */
-    tBTM_BLE_SFP     sfp;               /* scanning filter policy */
+    tBLE_ADDR_TYPE adv_addr_type;
+    UINT8 evt_type;
+    UINT8 adv_mode;
+    tBLE_BD_ADDR direct_bda;
+    tBTM_BLE_EVT directed_conn;
+    BOOLEAN fast_adv_on;
+    TIMER_LIST_ENT fast_adv_timer;
 
-    tBLE_ADDR_TYPE   adv_addr_type;
-    UINT8            evt_type;
-    UINT8            adv_mode;
-    tBLE_BD_ADDR     direct_bda;
-    tBTM_BLE_EVT     directed_conn;
-    BOOLEAN          fast_adv_on;
-    TIMER_LIST_ENT   fast_adv_timer;
-
-    UINT8            adv_len;
-    UINT8            adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
+    UINT8 adv_len;
+    UINT8 adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
 
     /* inquiry BD addr database */
-    UINT8               num_bd_entries;
-    UINT8               max_bd_entries;
+    UINT8 num_bd_entries;
+    UINT8 max_bd_entries;
+    tBTM_BLE_LOCAL_ADV_DATA adv_data;
+    tBTM_BLE_ADV_CHNL_MAP adv_chnl_map;
 
-
-    tBTM_BLE_LOCAL_ADV_DATA   adv_data;
-    tBTM_BLE_ADV_CHNL_MAP     adv_chnl_map;
-
-    TIMER_LIST_ENT   inq_timer_ent;
-    BOOLEAN          scan_rsp;
-    UINT8            state;             /* Current state that the inquiry process is in */
-    INT8             tx_power;
+    TIMER_LIST_ENT inq_timer_ent;
+    BOOLEAN scan_rsp;
+    UINT8 state; /* Current state that the inquiry process is in */
+    INT8 tx_power;
 } tBTM_BLE_INQ_CB;
 
 
@@ -209,6 +206,13 @@ typedef struct
 #define BTM_BLE_WL_SCAN         2
 #define BTM_BLE_WL_ADV          4
 typedef UINT8 tBTM_BLE_WL_STATE;
+
+/* resolving list using state as a bit mask */
+#define BTM_BLE_RL_IDLE         0
+#define BTM_BLE_RL_INIT         1
+#define BTM_BLE_RL_SCAN         2
+#define BTM_BLE_RL_ADV          4
+typedef UINT8 tBTM_BLE_RL_STATE;
 
 /* BLE connection state */
 #define BLE_CONN_IDLE    0
@@ -288,7 +292,7 @@ typedef void (tBTM_DATA_LENGTH_CHANGE_CBACK) (UINT16 max_tx_length, UINT16 max_r
 */
 typedef struct
 {
-    UINT8            scan_activity;         /* LE scan activity mask */
+    UINT8 scan_activity;         /* LE scan activity mask */
 
     /*****************************************************
     **      BLE Inquiry
@@ -301,14 +305,14 @@ typedef struct
     TIMER_LIST_ENT obs_timer_ent;
 
     /* background connection procedure cb value */
-    tBTM_BLE_CONN_TYPE  bg_conn_type;
-    UINT32              scan_int;
-    UINT32              scan_win;
-    tBTM_BLE_SEL_CBACK  *p_select_cback;
+    tBTM_BLE_CONN_TYPE bg_conn_type;
+    UINT32 scan_int;
+    UINT32 scan_win;
+    tBTM_BLE_SEL_CBACK *p_select_cback;
 
     /* white list information */
-    UINT8                   white_list_avail_size;
-    tBTM_BLE_WL_STATE       wl_state;
+    UINT8 white_list_avail_size;
+    tBTM_BLE_WL_STATE wl_state;
 
     BUFFER_Q conn_pending_q;
     tBTM_BLE_CONN_ST conn_state;
@@ -320,16 +324,19 @@ typedef struct
 
 #if BLE_PRIVACY_SPT == TRUE
     BOOLEAN mixed_mode; /* privacy 1.2 mixed mode is on or not */
-    tBTM_PRIVACY_MODE privacy_mode;               /* privacy mode */
-    UINT8 resolving_list_avail_size;     /* resolving list available size */
-    UINT8 *irk_list_mask;     /* IRK list availability mask, up to max entry bits */
-    tBTM_BLE_RESOLVE_Q resolving_list_pend_q;
+    tBTM_PRIVACY_MODE privacy_mode; /* privacy mode */
+    UINT8 resolving_list_avail_size; /* resolving list available size */
+    tBTM_BLE_RESOLVE_Q resolving_list_pend_q; /* Resolving list queue */
+    tBTM_BLE_RL_STATE suspended_rl_state; /* Suspended resolving list state */
+    UINT8 *irk_list_mask; /* IRK list availability mask, up to max entry bits */
+    tBTM_BLE_RL_STATE rl_state; /* Resolving list state */
 #endif
+
     tBTM_BLE_WL_OP wl_op_q[BTM_BLE_MAX_BG_CONN_DEV_NUM];
 
     /* current BLE link state */
-    tBTM_BLE_STATE_MASK cur_states;  /* bit mask of tBTM_BLE_STATE */
-    UINT8 link_count[2];    /* total link count master and slave*/
+    tBTM_BLE_STATE_MASK cur_states; /* bit mask of tBTM_BLE_STATE */
+    UINT8 link_count[2]; /* total link count master and slave*/
 } tBTM_BLE_CB;
 
 #ifdef __cplusplus
@@ -365,7 +372,7 @@ extern UINT8 *btm_ble_build_adv_data(tBTM_BLE_AD_MASK *p_data_mask, UINT8 **p_ds
                                      tBTM_BLE_ADV_DATA *p_data);
 extern tBTM_STATUS btm_ble_start_adv(void);
 extern tBTM_STATUS btm_ble_stop_adv(void);
-extern tBTM_STATUS btm_ble_start_scan (UINT8 filter_enb);
+extern tBTM_STATUS btm_ble_start_scan(void);
 extern void btm_ble_create_ll_conn_complete (UINT8 status);
 
 /* LE security function from btm_sec.c */
@@ -406,7 +413,7 @@ extern void btm_ble_clear_white_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_white_list_init(UINT8 white_list_size);
 
 /* background connection function */
-extern void btm_ble_suspend_bg_conn(void);
+extern BOOLEAN btm_ble_suspend_bg_conn(void);
 extern BOOLEAN btm_ble_resume_bg_conn(void);
 extern void btm_ble_initiate_select_conn(BD_ADDR bda);
 extern BOOLEAN btm_ble_start_auto_conn(BOOLEAN start);
@@ -439,9 +446,9 @@ extern void btm_ble_remove_resolving_list_entry_complete(UINT8 *p, UINT16 evt_le
 extern void btm_ble_add_resolving_list_entry_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_ble_clear_resolving_list_complete(UINT8 *p, UINT16 evt_len);
 extern void btm_read_ble_resolving_list_size_complete (UINT8 *p, UINT16 evt_len);
-extern void btm_ble_enable_resolving_list(void);
-extern void btm_ble_disable_resolving_list(void);
-extern void btm_ble_enable_resolving_list_for_platform (void);
+extern void btm_ble_enable_resolving_list(UINT8);
+extern BOOLEAN btm_ble_disable_resolving_list(UINT8 rl_mask, BOOLEAN to_resume);
+extern void btm_ble_enable_resolving_list_for_platform (UINT8 rl_mask);
 extern void btm_ble_resolving_list_init(UINT8 max_irk_list_sz);
 extern void btm_ble_resolving_list_cleanup(void);
 #endif

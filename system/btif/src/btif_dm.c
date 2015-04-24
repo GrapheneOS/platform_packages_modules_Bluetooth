@@ -1689,6 +1689,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
              }
              /* clear control blocks */
              memset(&pairing_cb, 0, sizeof(btif_dm_pairing_cb_t));
+             pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
 
              /* This function will also trigger the adapter_properties_cb
              ** and bonded_devices_info_cb

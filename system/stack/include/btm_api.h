@@ -3126,6 +3126,18 @@ extern UINT8 BTM_GetNumScoLinks (void);
 *******************************************************************************/
 extern BOOLEAN BTM_SecRegister (tBTM_APPL_INFO *p_cb_info);
 
+/*******************************************************************************
+**
+** Function         BTM_SecRegisterLinkKeyNotificationCallback
+**
+** Description      Profiles can register to be notified when a new Link Key
+**                  is generated per connection.
+**
+** Returns          TRUE if registered OK, else FALSE
+**
+*******************************************************************************/
+extern BOOLEAN BTM_SecRegisterLinkKeyNotificationCallback(
+                                                        tBTM_LINK_KEY_CALLBACK *p_callback);
 
 /*******************************************************************************
 **

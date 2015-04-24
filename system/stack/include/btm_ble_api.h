@@ -133,6 +133,7 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_CONN_SUP_TOUT_MIN       0x000A
 #define BTM_BLE_CONN_SUP_TOUT_MAX       0x0C80
 #define BTM_BLE_CONN_PARAM_UNDEF        0xffff      /* use this value when a specific value not to be overwritten */
+#define BTM_BLE_SCAN_PARAM_UNDEF        0xffffffff
 
 /* default connection parameters if not configured, use GAP recommend value for auto/selective connection */
 /* default scan interval */
