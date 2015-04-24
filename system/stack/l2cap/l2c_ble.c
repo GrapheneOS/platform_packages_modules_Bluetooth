@@ -352,6 +352,8 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
     btm_ble_set_conn_st(BLE_CONN_IDLE);
+
+    btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, TRUE);
 }
 
 
@@ -417,6 +419,8 @@ void l2cble_advertiser_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE typ
     p_dev_rec = btm_find_or_alloc_dev (bda);
 
     btm_acl_created (bda, NULL, p_dev_rec->sec_bd_name, handle, p_lcb->link_role, BT_TRANSPORT_LE);
+
+    btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
 
     p_lcb->peer_chnl_mask[0] = L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
 
@@ -688,8 +692,8 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         return(FALSE);
     }
 
-    scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
-    scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
+    scan_int = (p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
+    scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
 
     peer_addr_type = p_lcb->ble_addr_type;
     memcpy(peer_addr, p_lcb->remote_bd_addr, BD_ADDR_LEN);
@@ -701,11 +705,11 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         if (btm_cb.ble_ctr_cb.privacy_mode >=  BTM_PRIVACY_1_2)
             own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
 
-        btm_ble_enable_resolving_list();
+        btm_ble_enable_resolving_list(BTM_BLE_RL_INIT);
         btm_random_pseudo_to_identity_addr(peer_addr, &peer_addr_type);
     }
     else
-        btm_ble_disable_resolving_list();
+        btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, TRUE);
 #endif
 
     if (!btm_ble_topology_check(BTM_BLE_STATE_INIT))

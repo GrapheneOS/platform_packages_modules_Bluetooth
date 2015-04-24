@@ -178,10 +178,6 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
                         p_cb->local_r_key &= ~SMP_SEC_KEY_TYPE_LK;
                     }
 
-                    SMP_TRACE_WARNING ("Cross transport key derivation is not supported");
-                    p_cb->local_i_key &= ~SMP_SEC_KEY_TYPE_LK;
-                    p_cb->local_r_key &= ~SMP_SEC_KEY_TYPE_LK;
-
                     SMP_TRACE_WARNING("set auth_req: 0x%02x, local_i_key: 0x%02x, local_r_key: 0x%02x",
                         p_cb->loc_auth_req, p_cb->local_i_key, p_cb->local_r_key);
 
@@ -2024,10 +2020,6 @@ void smp_derive_link_key_from_long_term_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
         return;
     }
-
-    smp_update_key_mask (p_cb, SMP_SEC_KEY_TYPE_LK, FALSE);
-    SMP_TRACE_DEBUG("%s successfully completed", __FUNCTION__);
-    smp_key_distribution(p_cb, NULL);
 }
 
 /*******************************************************************************
