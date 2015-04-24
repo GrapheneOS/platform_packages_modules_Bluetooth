@@ -247,6 +247,10 @@ void btm_acl_created (BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
             if (transport == BT_TRANSPORT_LE)
                 btm_ble_refresh_local_resolvable_private_addr(bda,
                                                     btm_cb.ble_ctr_cb.addr_mgnt_cb.private_addr);
+#else
+            p->conn_addr_type = BLE_ADDR_PUBLIC;
+            memcpy(p->conn_addr, &controller_get_interface()->get_address()->address, BD_ADDR_LEN);
+
 #endif
 #endif
             p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
