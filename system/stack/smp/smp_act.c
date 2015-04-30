@@ -810,7 +810,8 @@ void smp_br_process_pairing_command(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     if (p_cb->role == HCI_ROLE_SLAVE)
     {
         p_dev_rec->new_encryption_key_is_p256 = FALSE;
-        p_cb->cb_evt = SMP_SEC_REQUEST_EVT;
+        /* shortcut to skip Security Grant step */
+        p_cb->cb_evt = SMP_BR_KEYS_REQ_EVT;
     }
     else /* Master receives pairing response */
     {

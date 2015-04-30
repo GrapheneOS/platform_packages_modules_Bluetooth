@@ -1985,6 +1985,7 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
 
                     if (res == BTM_SUCCESS)
                     {
+                        p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
                         p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
                         /* add all bonded device into resolving list if IRK is available*/
