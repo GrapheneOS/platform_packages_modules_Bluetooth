@@ -27,6 +27,7 @@
 
 #define LOG_TAG "bt_btif_dm"
 
+#include <assert.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +54,7 @@
 #include "include/stack_config.h"
 
 #include "osi/include/log.h"
+#include "osi/include/allocator.h"
 
 /******************************************************************************
 **  Device specific workarounds
@@ -254,6 +256,32 @@ extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UIN
 /******************************************************************************
 **  Functions
 ******************************************************************************/
+
+static void btif_dm_data_copy(uint16_t event, char *dst, char *src)
+{
+    tBTA_DM_SEC *dst_dm_sec = (tBTA_DM_SEC*)dst;
+    tBTA_DM_SEC *src_dm_sec = (tBTA_DM_SEC*)src;
+
+    if (!src_dm_sec)
+        return;
+
+    assert(dst_dm_sec);
+    memcpy(dst_dm_sec, src_dm_sec, sizeof(tBTA_DM_SEC));
+
+    if (event == BTA_DM_BLE_KEY_EVT)
+    {
+        dst_dm_sec->ble_key.p_key_value = osi_malloc(sizeof(tBTM_LE_KEY_VALUE));
+        assert(src_dm_sec->ble_key.p_key_value);
+        assert(dst_dm_sec->ble_key.p_key_value);
+        memcpy(dst_dm_sec->ble_key.p_key_value, src_dm_sec->ble_key.p_key_value, sizeof(tBTM_LE_KEY_VALUE));
+    }
+}
+
+static void btif_dm_data_free(uint16_t event, tBTA_DM_SEC *dm_sec)
+{
+    if (event == BTA_DM_BLE_KEY_EVT)
+        osi_free(dm_sec->ble_key.p_key_value);
+}
 
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
                                                 BOOLEAN b_enable)
@@ -2016,8 +2044,9 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             BTIF_TRACE_WARNING( "btif_dm_cback : unhandled event (%d)", event );
             break;
     }
-} /* btui_security_cback() */
 
+    btif_dm_data_free(event, p_data);
+}
 
 /*******************************************************************************
 **
@@ -2104,10 +2133,9 @@ static void btif_dm_generic_evt(UINT16 event, char* p_param)
 
 void bte_dm_evt(tBTA_DM_SEC_EVT event, tBTA_DM_SEC *p_data)
 {
-    bt_status_t status;
-
     /* switch context to btif task context (copy full union size for convenience) */
-    status = btif_transfer_context(btif_dm_upstreams_evt, (uint16_t)event, (void*)p_data, sizeof(tBTA_DM_SEC), NULL);
+    bt_status_t status = btif_transfer_context(btif_dm_upstreams_evt, (uint16_t)event,
+                                (void*)p_data, sizeof(tBTA_DM_SEC), btif_dm_data_copy);
 
     /* catch any failed context transfers */
     ASSERTC(status == BT_STATUS_SUCCESS, "context transfer failed", status);

@@ -445,8 +445,6 @@ typedef struct
 typedef struct
 {
     BT_OCTET16          irk;            /* peer diverified identity root */
-    BT_OCTET16          pltk;           /* peer long term key */
-    BT_OCTET16          pcsrk;          /* peer SRK peer device used to secured sign local data  */
 
     BT_OCTET16          lltk;           /* local long term key */
     BT_OCTET16          lcsrk;          /* local SRK peer device used to secured sign local data  */
