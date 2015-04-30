@@ -967,7 +967,7 @@ void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY
         switch (key_type)
         {
             case BTM_LE_KEY_PENC:
-                memcpy(p_rec->ble.keys.ltk, p_keys->penc_key.ltk, BT_OCTET16_LEN);
+                memcpy(p_rec->ble.keys.pltk, p_keys->penc_key.ltk, BT_OCTET16_LEN);
                 memcpy(p_rec->ble.keys.rand, p_keys->penc_key.rand, BT_OCTET8_LEN);
                 p_rec->ble.keys.sec_level = p_keys->penc_key.sec_level;
                 p_rec->ble.keys.ediv = p_keys->penc_key.ediv;
@@ -998,7 +998,7 @@ void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY
                 break;
 
             case BTM_LE_KEY_PCSRK:
-                memcpy(p_rec->ble.keys.csrk, p_keys->pcsrk_key.csrk, BT_OCTET16_LEN);
+                memcpy(p_rec->ble.keys.pcsrk, p_keys->pcsrk_key.csrk, BT_OCTET16_LEN);
                 p_rec->ble.keys.srk_sec_level = p_keys->pcsrk_key.sec_level;
                 p_rec->ble.keys.counter  = p_keys->pcsrk_key.counter;
                 p_rec->ble.key_type |= BTM_LE_KEY_PCSRK;
@@ -1337,7 +1337,7 @@ tBTM_STATUS btm_ble_start_encrypt(BD_ADDR bda, BOOLEAN use_stk, BT_OCTET16 stk)
     else if (p_rec->ble.key_type & BTM_LE_KEY_PENC)
     {
         if (btsnd_hcic_ble_start_enc(p_rec->ble_hci_handle, p_rec->ble.keys.rand,
-                                     p_rec->ble.keys.ediv, p_rec->ble.keys.ltk))
+                                     p_rec->ble.keys.ediv, p_rec->ble.keys.pltk))
             rt = BTM_CMD_STARTED;
     }
     else
@@ -2058,7 +2058,7 @@ BOOLEAN BTM_BleVerifySignature (BD_ADDR bd_addr, UINT8 *p_orig, UINT16 len, UINT
         BTM_TRACE_DEBUG ("%s rcv_cnt=%d >= expected_cnt=%d", __func__, counter,
                           p_rec->ble.keys.counter);
 
-        if (aes_cipher_msg_auth_code(p_rec->ble.keys.csrk, p_orig, len, BTM_CMAC_TLEN_SIZE, p_mac))
+        if (aes_cipher_msg_auth_code(p_rec->ble.keys.pcsrk, p_orig, len, BTM_CMAC_TLEN_SIZE, p_mac))
         {
             if (memcmp(p_mac, p_comp, BTM_CMAC_TLEN_SIZE) == 0)
             {
