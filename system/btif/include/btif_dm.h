@@ -61,54 +61,16 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
 
 typedef struct
 {
-    UINT8       ltk[BT_OCTET16_LEN];
-    UINT8       rand[BT_OCTET8_LEN];
-    UINT16      ediv;
-    UINT8       sec_level;
-    UINT8       key_size;
-}btif_dm_ble_penc_keys_t;
-
-typedef struct
-{
-    UINT32          counter;
-    UINT8           csrk[BT_OCTET16_LEN];
-    UINT8           sec_level;
-}btif_dm_ble_pcsrk_keys_t;
-
-typedef struct
-{
-    UINT16      div;
-    UINT8       key_size;
-    UINT8       sec_level;
-}btif_dm_ble_lenc_keys_t;
-
-typedef struct
-{
-    UINT32          counter;
-    UINT16          div;
-    UINT8           sec_level;
-
-}btif_dm_ble_lcsrk_keys_t;
-
-typedef struct
-{
-    BT_OCTET16          irk;
-    tBLE_ADDR_TYPE      addr_type;
-    BD_ADDR             static_addr;
-}btif_dm_ble_pid_keys_t;
-
-typedef struct
-{
     BOOLEAN                   is_penc_key_rcvd;
-    btif_dm_ble_penc_keys_t   penc_key;       /* received peer encryption key */
+    tBTM_LE_PENC_KEYS         penc_key;       /* received peer encryption key */
     BOOLEAN                   is_pcsrk_key_rcvd;
-    btif_dm_ble_pcsrk_keys_t  pcsrk_key;       /* received peer device SRK */
+    tBTM_LE_PCSRK_KEYS        pcsrk_key;       /* received peer device SRK */
     BOOLEAN                   is_pid_key_rcvd;
-    btif_dm_ble_pid_keys_t    pid_key;        /* peer device ID key */
+    tBTM_LE_PID_KEYS          pid_key;        /* peer device ID key */
     BOOLEAN                   is_lenc_key_rcvd;
-    btif_dm_ble_lenc_keys_t   lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
+    tBTM_LE_LENC_KEYS         lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
     BOOLEAN                   is_lcsrk_key_rcvd;
-    btif_dm_ble_lcsrk_keys_t  lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
+    tBTM_LE_LCSRK_KEYS        lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
     BOOLEAN                   is_lidk_key_rcvd;   /* local identity key received */
 } btif_dm_ble_cb_t;
 

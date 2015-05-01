@@ -1211,22 +1211,22 @@ bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr, int add,
             btif_storage_set_remote_addr_type(&bd_addr, BLE_ADDR_PUBLIC);
         }
 
-        btif_read_le_key(BTIF_DM_LE_KEY_PENC, sizeof(btif_dm_ble_penc_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_PENC, sizeof(tBTM_LE_PENC_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
-        btif_read_le_key(BTIF_DM_LE_KEY_PID, sizeof(btif_dm_ble_pid_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_PID, sizeof(tBTM_LE_PID_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
-        btif_read_le_key(BTIF_DM_LE_KEY_LID, sizeof(btif_dm_ble_pid_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_LID, sizeof(tBTM_LE_PID_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
-        btif_read_le_key(BTIF_DM_LE_KEY_PCSRK, sizeof(btif_dm_ble_pcsrk_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_PCSRK, sizeof(tBTM_LE_PCSRK_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
-        btif_read_le_key(BTIF_DM_LE_KEY_LENC, sizeof(btif_dm_ble_lenc_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_LENC, sizeof(tBTM_LE_LENC_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
-        btif_read_le_key(BTIF_DM_LE_KEY_LCSRK, sizeof(btif_dm_ble_lcsrk_keys_t),
+        btif_read_le_key(BTIF_DM_LE_KEY_LCSRK, sizeof(tBTM_LE_LCSRK_KEYS),
                          bd_addr, addr_type, add, &device_added, &key_found);
 
         // Fill in the bonded devices

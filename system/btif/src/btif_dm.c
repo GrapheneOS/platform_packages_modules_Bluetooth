@@ -143,7 +143,7 @@ typedef struct
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     BOOLEAN is_le_only;
     BOOLEAN is_le_nc; /* LE Numeric comparison */
-    BD_ADDR static_bdaddr;
+    bt_bdaddr_t static_bdaddr;
     btif_dm_ble_cb_t ble;
 #endif
 } btif_dm_pairing_cb_t;
@@ -518,8 +518,10 @@ static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond
     if ((pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING))
     {
         // Cross key pairing so send callback for static address
-        if (pairing_cb.static_bdaddr != NULL)
+        if (!bdaddr_is_empty(&pairing_cb.static_bdaddr))
+        {
             HAL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, bd_addr, state);
+        }
         return;
     }
 
@@ -1156,7 +1158,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             {
                 BTIF_TRACE_DEBUG("%s: bonding initiated due to cross key, adding static address",
                                  __func__);
-                bdcpy(pairing_cb.static_bdaddr, p_auth_cmpl->bd_addr);
+                bdcpy(pairing_cb.static_bdaddr.address, p_auth_cmpl->bd_addr);
             }
 
             if(btif_dm_inquiry_in_progress)
@@ -1483,7 +1485,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
             */
             if ((pairing_cb.state == BT_BOND_STATE_BONDING) &&
                 ((bdcmp(p_data->disc_res.bd_addr, pairing_cb.bd_addr) == 0) ||
-                 (bdcmp(p_data->disc_res.bd_addr, pairing_cb.static_bdaddr) == 0)) &&
+                 (bdcmp(p_data->disc_res.bd_addr, pairing_cb.static_bdaddr.address) == 0)) &&
                   pairing_cb.sdp_attempts > 0)
             {
                  BTIF_TRACE_DEBUG("%s Remote Service SDP done. Call bond_state_changed_cb BONDED",
@@ -1492,7 +1494,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
 
                  // If bonding occured due to cross-key pairing, send bonding callback
                  // for static address now
-                 if (bdcmp(p_data->disc_res.bd_addr, pairing_cb.static_bdaddr) == 0)
+                 if (bdcmp(p_data->disc_res.bd_addr, pairing_cb.static_bdaddr.address) == 0)
                     bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
 
                  bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDED);
@@ -1818,110 +1820,31 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                 case BTA_LE_KEY_PENC:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_PENC");
                     pairing_cb.ble.is_penc_key_rcvd = TRUE;
-                    memcpy(pairing_cb.ble.penc_key.ltk,
-                           p_data->ble_key.p_key_value->penc_key.ltk, 16);
-                    memcpy(pairing_cb.ble.penc_key.rand,
-                           p_data->ble_key.p_key_value->penc_key.rand,8);
-                    pairing_cb.ble.penc_key.ediv = p_data->ble_key.p_key_value->penc_key.ediv;
-                    pairing_cb.ble.penc_key.sec_level =
-                           p_data->ble_key.p_key_value->penc_key.sec_level;
-
-                    for (i=0; i<16; i++)
-                    {
-                        BTIF_TRACE_DEBUG("pairing_cb.ble.penc_key.ltk[%d]=0x%02x",
-                                          i,pairing_cb.ble.penc_key.ltk[i]);
-                    }
-                    for (i=0; i<8; i++)
-                    {
-                        BTIF_TRACE_DEBUG("pairing_cb.ble.penc_key.rand[%d]=0x%02x",
-                                          i,pairing_cb.ble.penc_key.rand[i]);
-                    }
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.penc_key.ediv=0x%04x",
-                        pairing_cb.ble.penc_key.ediv);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.penc_key.sec_level=0x%02x",
-                        pairing_cb.ble.penc_key.sec_level);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.penc_key.key_size=0x%02x",
-                        pairing_cb.ble.penc_key.key_size);
+                    pairing_cb.ble.penc_key = p_data->ble_key.p_key_value->penc_key;
                     break;
 
                 case BTA_LE_KEY_PID:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_PID");
                     pairing_cb.ble.is_pid_key_rcvd = TRUE;
-                    pairing_cb.ble.pid_key.addr_type =
-                           p_data->ble_key.p_key_value->pid_key.addr_type;
-                    memcpy(pairing_cb.ble.pid_key.irk,
-                           p_data->ble_key.p_key_value->pid_key.irk, 16);
-                    memcpy(pairing_cb.ble.pid_key.static_addr,
-                           p_data->ble_key.p_key_value->pid_key.static_addr,BD_ADDR_LEN);
-                    for (i=0; i<16; i++)
-                    {
-                        BTIF_TRACE_DEBUG("pairing_cb.ble.pid_key.irk[%d]=0x%02x"
-                                            ,i,pairing_cb.ble.pid_key.irk[i]);
-                    }
-                    for (i=0; i<BD_ADDR_LEN; i++)
-                    {
-                        BTIF_TRACE_DEBUG("piaring_cb.ble.pid_address[%d] = %x"
-                                            ,i, pairing_cb.ble.pid_key.static_addr[i]);
-                    }
+                    pairing_cb.ble.pid_key = p_data->ble_key.p_key_value->pid_key;
                     break;
 
                 case BTA_LE_KEY_PCSRK:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_PCSRK");
                     pairing_cb.ble.is_pcsrk_key_rcvd = TRUE;
-                    pairing_cb.ble.pcsrk_key.counter =
-                           p_data->ble_key.p_key_value->pcsrk_key.counter;
-                    pairing_cb.ble.pcsrk_key.sec_level =
-                           p_data->ble_key.p_key_value->pcsrk_key.sec_level;
-                    memcpy(pairing_cb.ble.pcsrk_key.csrk,
-                           p_data->ble_key.p_key_value->pcsrk_key.csrk,16);
-
-                    for (i=0; i<16; i++)
-                    {
-                        BTIF_TRACE_DEBUG("pairing_cb.ble.pcsrk_key.csrk[%d]=0x%02x",
-                                          i,pairing_cb.ble.pcsrk_key.csrk[i]);
-                    }
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.pcsrk_key.counter=0x%08x",
-                                      pairing_cb.ble.pcsrk_key.counter);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.pcsrk_key.sec_level=0x%02x",
-                                      pairing_cb.ble.pcsrk_key.sec_level);
+                    pairing_cb.ble.pcsrk_key = p_data->ble_key.p_key_value->pcsrk_key;
                     break;
 
                 case BTA_LE_KEY_LENC:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_LENC");
                     pairing_cb.ble.is_lenc_key_rcvd = TRUE;
-                    pairing_cb.ble.lenc_key.div = p_data->ble_key.p_key_value->lenc_key.div;
-                    pairing_cb.ble.lenc_key.key_size =
-                           p_data->ble_key.p_key_value->lenc_key.key_size;
-                    pairing_cb.ble.lenc_key.sec_level =
-                           p_data->ble_key.p_key_value->lenc_key.sec_level;
-
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lenc_key.div=0x%04x",
-                                      pairing_cb.ble.lenc_key.div);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lenc_key.key_size=0x%02x",
-                                      pairing_cb.ble.lenc_key.key_size);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lenc_key.sec_level=0x%02x",
-                                      pairing_cb.ble.lenc_key.sec_level);
+                    pairing_cb.ble.lenc_key = p_data->ble_key.p_key_value->lenc_key;
                     break;
-
-
 
                 case BTA_LE_KEY_LCSRK:
                     BTIF_TRACE_DEBUG("Rcv BTA_LE_KEY_LCSRK");
                     pairing_cb.ble.is_lcsrk_key_rcvd = TRUE;
-                    pairing_cb.ble.lcsrk_key.counter =
-                        p_data->ble_key.p_key_value->lcsrk_key.counter;
-                    pairing_cb.ble.lcsrk_key.div =
-                        p_data->ble_key.p_key_value->lcsrk_key.div;
-                    pairing_cb.ble.lcsrk_key.sec_level =
-                        p_data->ble_key.p_key_value->lcsrk_key.sec_level;
-
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lcsrk_key.div=0x%04x",
-                        pairing_cb.ble.lcsrk_key.div);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lcsrk_key.counter=0x%08x",
-                        pairing_cb.ble.lcsrk_key.counter);
-                    BTIF_TRACE_DEBUG("pairing_cb.ble.lcsrk_key.sec_level=0x%02x",
-                        pairing_cb.ble.lcsrk_key.sec_level);
-
+                    pairing_cb.ble.lcsrk_key = p_data->ble_key.p_key_value->lcsrk_key;
                     break;
 
                 case BTA_LE_KEY_LID:
@@ -1933,7 +1856,6 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
                     BTIF_TRACE_ERROR("unknown BLE key type (0x%02x)", p_data->ble_key.key_type);
                     break;
             }
-
             break;
         case BTA_DM_BLE_SEC_REQ_EVT:
             BTIF_TRACE_DEBUG("BTA_DM_BLE_SEC_REQ_EVT. ");
@@ -3044,7 +2966,7 @@ void btif_dm_save_ble_bonding_keys(void)
         btif_storage_add_ble_bonding_key(&bd_addr,
                                          (char *) &pairing_cb.ble.penc_key,
                                          BTIF_DM_LE_KEY_PENC,
-                                         sizeof(btif_dm_ble_penc_keys_t));
+                                         sizeof(tBTM_LE_PENC_KEYS));
     }
 
     if (pairing_cb.ble.is_pid_key_rcvd)
@@ -3052,7 +2974,7 @@ void btif_dm_save_ble_bonding_keys(void)
         btif_storage_add_ble_bonding_key(&bd_addr,
                                          (char *) &pairing_cb.ble.pid_key,
                                          BTIF_DM_LE_KEY_PID,
-                                         sizeof(btif_dm_ble_pid_keys_t));
+                                         sizeof(tBTM_LE_PID_KEYS));
     }
 
 
@@ -3061,7 +2983,7 @@ void btif_dm_save_ble_bonding_keys(void)
         btif_storage_add_ble_bonding_key(&bd_addr,
                                          (char *) &pairing_cb.ble.pcsrk_key,
                                          BTIF_DM_LE_KEY_PCSRK,
-                                         sizeof(btif_dm_ble_pcsrk_keys_t));
+                                         sizeof(tBTM_LE_PCSRK_KEYS));
     }
 
 
@@ -3070,7 +2992,7 @@ void btif_dm_save_ble_bonding_keys(void)
         btif_storage_add_ble_bonding_key(&bd_addr,
                                          (char *) &pairing_cb.ble.lenc_key,
                                          BTIF_DM_LE_KEY_LENC,
-                                         sizeof(btif_dm_ble_lenc_keys_t));
+                                         sizeof(tBTM_LE_LENC_KEYS));
     }
 
     if (pairing_cb.ble.is_lcsrk_key_rcvd)
@@ -3078,7 +3000,7 @@ void btif_dm_save_ble_bonding_keys(void)
         btif_storage_add_ble_bonding_key(&bd_addr,
                                          (char *) &pairing_cb.ble.lcsrk_key,
                                          BTIF_DM_LE_KEY_LCSRK,
-                                         sizeof(btif_dm_ble_lcsrk_keys_t));
+                                         sizeof(tBTM_LE_LCSRK_KEYS));
     }
 
     if (pairing_cb.ble.is_lidk_key_rcvd)
