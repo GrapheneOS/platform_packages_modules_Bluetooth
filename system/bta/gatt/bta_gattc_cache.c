@@ -746,10 +746,8 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
     {
         p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->next_avail_idx;
 
-        p_srvc_cb->total_srvc ++;
-
-        APPL_TRACE_DEBUG("bta_gattc_add_srvc_to_list handle = %d, service type = 0x%04x",
-            s_handle, uuid.uu.uuid16);
+        APPL_TRACE_DEBUG("%s handle=%d, service type=0x%04x",
+                            __func__, s_handle, uuid.uu.uuid16);
 
         p_rec->s_handle     = s_handle;
         p_rec->e_handle     = e_handle;
@@ -757,8 +755,8 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
         p_rec->srvc_inst_id = bta_gattc_get_srvc_inst_id(p_srvc_cb, uuid);
         memcpy(&p_rec->uuid, &uuid, sizeof(tBT_UUID));
 
+        p_srvc_cb->total_srvc ++;
         p_srvc_cb->next_avail_idx ++;
-
     }
     else
     {   /* allocate bigger buffer ?? */
