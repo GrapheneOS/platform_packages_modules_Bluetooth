@@ -113,7 +113,6 @@ bool gatt_server_build() {
   TASSERT(gatt_get_status() == BT_STATUS_SUCCESS, "Error adding characteristics.");
 
   // Adds descriptor.
-  int char_handle = gatt_get_characteristic_handle();
   CALL_AND_WAIT(gatt_interface->server->add_descriptor(server_if, srvc_handle, &desc_uuid, 0x01), btgatts_descriptor_added_cb);
   TASSERT(gatt_get_status() == BT_STATUS_SUCCESS, "Error adding descriptor.");
 
