@@ -20,6 +20,9 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/..
@@ -45,6 +48,8 @@ LOCAL_SRC_FILES := \
     ./src/thread.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror
+# Many .h files have redefined typedefs
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libc liblog
@@ -55,6 +60,9 @@ include $(BUILD_STATIC_LIBRARY)
 #####################################################
 
 include $(CLEAR_VARS)
+
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \

@@ -60,10 +60,7 @@ static const char *command_sample_data = "that thou art not used to this busines
 static const char *ignored_data = "and if thou art afraid, away with thee out of this and betake thyself to prayer";
 static const char *unignored_data = "while I engage them in fierce and unequal combat";
 
-static const char *logging_path = "this/is/a/test/logging/path";
-
 static const hci_t *hci;
-static bdaddr_t test_addr = (bdaddr_t)"testaddress123";
 static const hci_hal_callbacks_t *hal_callbacks;
 static thread_t *internal_thread;
 static vendor_cb firmware_config_callback;
@@ -367,7 +364,7 @@ STUB_FUNCTION(void, low_power_transmit_done, ())
 
 STUB_FUNCTION(bool, vendor_open, (UNUSED_ATTR const uint8_t *addr, const hci_t *hci_interface))
   DURING(start_up_async) AT_CALL(0) {
-    //EXPECT_EQ(test_addr, addr); // TODO(zachoverflow): reinstate when address put into module
+    // TODO(zachoverflow): check address value when it gets put into a module
     EXPECT_EQ(hci, hci_interface);
     return true;
   }

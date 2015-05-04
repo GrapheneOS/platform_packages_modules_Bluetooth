@@ -27,7 +27,6 @@ extern module_t counter_module;
 }  // "C"
 
 static const uint64_t COUNTER_TEST_TEN = 10;
-static const uint64_t COUNTER_TEST_ZERO = 0;
 
 typedef struct mycounter_t {
   const char *name;
