@@ -146,3 +146,56 @@ TEST_F(ListTest, test_list_next) {
   EXPECT_EQ(list_next(list_begin(list)), list_end(list));
   list_free(list);
 }
+
+bool iterate_increment_items(void *data) {
+  int *data_cast = (int *)data;
+  *data_cast += 1;
+  return true;
+}
+
+TEST_F(ListTest, test_list_foreach) {
+  list_t *list = list_new(NULL);
+  int item1 = 1;
+  int item2 = 2;
+  list_append(list, &item1);
+  list_append(list, &item2);
+
+  // Increment the items using foreach.
+  list_foreach(list, iterate_increment_items);
+
+  // Check the values to be incremented.
+  // Since we inserted values *1* and *2* in that order we should get *2* and
+  // *3* in that order.
+  const void *node1 = list_node(list_begin(list));
+  EXPECT_EQ(*((int*)(node1)), 2);  /* item1 + 1 = 2 */
+  const void *node2 = list_node(list_next(list_begin(list)));
+  EXPECT_EQ(*((int*)(node2)), 3);  /* item2 + 1 = 3 */
+  list_free(list);
+}
+
+bool iterate_increment_items_with_data(void *data, void *cb_data) {
+  int *data_cast = (int *)data;
+  int *cb_data_cast = (int *)cb_data;
+  // Multiply them.
+  *data_cast = (*data_cast) * (*cb_data_cast);
+  return true;
+}
+
+TEST_F(ListTest, test_list_foreach_ext) {
+  list_t *list = list_new(NULL);
+  int item1 = 10;
+  int item2 = 20;
+  list_append(list, &item1);
+  list_append(list, &item2);
+
+  // Increment the items using foreach.
+  int m_factor = 2;
+  list_foreach_ext(list, iterate_increment_items_with_data, &m_factor);
+
+  // Check that values get multiplied correctly.
+  const void *node1 = list_node(list_begin(list));
+  EXPECT_EQ(*((int*)(node1)), 20);  /* item1 * m_factor = 20 */
+  const void *node2 = list_node(list_next(list_begin(list)));
+  EXPECT_EQ(*((int*)(node2)), 40);  /* item2 * m_factor = 40 */
+  list_free(list);
+}

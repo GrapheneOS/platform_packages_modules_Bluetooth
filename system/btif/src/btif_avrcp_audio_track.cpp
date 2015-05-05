@@ -1,0 +1,125 @@
+/*
+ * Copyright (C) 2015 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//#define LOG_NDEBUG 0
+#include "btif_avrcp_audio_track.h"
+
+#include <media/AudioTrack.h>
+#include <utils/StrongPointer.h>
+
+#include "osi/include/log.h"
+
+using namespace android;
+
+typedef struct {
+    android::sp<android::AudioTrack> track;
+} BtifAvrcpAudioTrack;
+
+//#define DUMP_PCM_DATA TRUE
+#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+FILE *outputPcmSampleFile;
+char outputFilename[50] = "/data/misc/bluedroid/output_sample.pcm";
+#endif
+
+void *BtifAvrcpAudioTrackCreate(int trackFreq, int channelType)
+{
+    LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btCreateTrack freq %d  channel %d ",
+                     __func__, trackFreq, channelType);
+    int ret = -1;
+    sp<android::AudioTrack> track =
+        new android::AudioTrack(AUDIO_STREAM_MUSIC, trackFreq, AUDIO_FORMAT_PCM_16_BIT,
+                                channelType, (int)0, (audio_output_flags_t)AUDIO_OUTPUT_FLAG_FAST,
+                                NULL, NULL, 0, 0, android::AudioTrack::TRANSFER_SYNC);
+    assert(track != NULL);
+
+    BtifAvrcpAudioTrack *trackHolder = new BtifAvrcpAudioTrack;
+    assert(trackHolder);
+    trackHolder->track = track;
+
+    if (trackHolder->track->initCheck() != 0)
+    {
+        return nullptr;
+    }
+
+#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+    outputPcmSampleFile = fopen(outputFilename, "ab");
+#endif
+    trackHolder->track->setVolume(1, 1);
+    return (void *)trackHolder;
+}
+
+void BtifAvrcpAudioTrackStart(void *handle)
+{
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    assert(trackHolder);
+    assert(trackHolder->track != NULL);
+    LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
+    trackHolder->track->start();
+}
+
+void BtifAvrcpAudioTrackStop(void *handle)
+{
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    if (trackHolder != NULL && trackHolder->track != NULL) {
+        LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
+        trackHolder->track->stop();
+    }
+}
+
+void BtifAvrcpAudioTrackDelete(void *handle)
+{
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    if (trackHolder != NULL && trackHolder->track != NULL) {
+        LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
+        delete trackHolder;
+    }
+
+#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+    if (outputPcmSampleFile)
+    {
+        fclose(outputPcmSampleFile);
+    }
+    outputPcmSampleFile = NULL;
+#endif
+}
+
+void BtifAvrcpAudioTrackPause(void *handle)
+{
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    if (trackHolder != NULL && trackHolder->track != NULL) {
+        LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
+        trackHolder->track->pause();
+        trackHolder->track->flush();
+    }
+}
+
+int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen)
+{
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    assert(trackHolder);
+    assert(trackHolder->track != NULL);
+    int retval = -1;
+#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+    if (outputPcmSampleFile)
+    {
+        fwrite ((audioBuffer), 1, (size_t)bufferlen, outputPcmSampleFile);
+    }
+#endif
+    retval = trackHolder->track->write(audioBuffer, (size_t)bufferlen);
+    LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btWriteData len = %d ret = %d",
+                     __func__, bufferlen, retval);
+    return retval;
+}

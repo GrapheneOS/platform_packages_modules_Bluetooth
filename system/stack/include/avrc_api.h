@@ -98,6 +98,7 @@
 #define AVRC_SUPF_CT_CAT3               0x0004      /* Category 3 */
 #define AVRC_SUPF_CT_CAT4               0x0008      /* Category 4 */
 #define AVRC_SUPF_CT_BROWSE             0x0040      /* Browsing */
+#define AVRC_SUPF_CT_APP_SETTINGS       0x0010      /* Player Application Settings */
 
 #define AVRC_SUPF_TG_CAT1               0x0001      /* Category 1 */
 #define AVRC_SUPF_TG_CAT2               0x0002      /* Category 2 */
@@ -204,7 +205,7 @@ extern "C"
 **
 ******************************************************************************/
 extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
-                char *p_provider_name, UINT16 categories, UINT32 sdp_handle);
+                char *p_provider_name, UINT16 categories, UINT32 sdp_handle, BOOLEAN browse_supported);
 
 /******************************************************************************
 **
@@ -558,6 +559,19 @@ extern void AVRC_Init(void);
 
 /*******************************************************************************
 **
+** Function         AVRC_Ctrl_ParsCommand
+**
+** Description      This function is used to parse cmds received for CTRL
+**                  Currently it is for SetAbsVolume and Volume Change Notification..
+**
+** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+**                  Otherwise, the error code defined by AVRCP 1.4
+**
+*******************************************************************************/
+extern tAVRC_STS AVRC_Ctrl_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result);
+
+/*******************************************************************************
+**
 ** Function         AVRC_ParsCommand
 **
 ** Description      This function is used to parse the received command.
@@ -581,6 +595,19 @@ extern tAVRC_STS AVRC_ParsCommand (tAVRC_MSG *p_msg, tAVRC_COMMAND *p_result,
 *******************************************************************************/
 extern tAVRC_STS AVRC_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result,
                                     UINT8 *p_buf, UINT16 buf_len);
+
+/*******************************************************************************
+**
+** Function         AVRC_Ctrl_ParsResponse
+**
+** Description      This function is a parse response for AVRCP Controller.
+**
+** Returns          AVRC_STS_NO_ERROR, if the message in p_data is parsed successfully.
+**                  Otherwise, the error code defined by AVRCP 1.4
+**
+*******************************************************************************/
+extern tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result,
+   UINT8 *p_buf, UINT16* buf_len);
 
 /*******************************************************************************
 **

@@ -179,6 +179,18 @@ void list_foreach(const list_t *list, list_iter_cb callback) {
   }
 }
 
+void list_foreach_ext(const list_t *list, list_iter_cb_ext callback, void *cb_data) {
+  list_node_t *node;
+
+  assert(list != NULL);
+  assert(callback != NULL);
+  for (node = list->head; node; ) {
+    list_node_t *next = node->next;
+    callback(node->data, cb_data);
+    node = next;
+  }
+}
+
 list_node_t *list_begin(const list_t *list) {
   assert(list != NULL);
   return list->head;
