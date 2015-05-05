@@ -249,41 +249,37 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 *******************************************************************************/
 static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_MSG *p_msg)
 {
-    tBTA_AV_RC_MSG  *p_buf;
-    UINT8           *p_data = NULL;
-    UINT8           **p_p_data = NULL;
+    UINT8           *p_data_src = NULL;
     UINT16          data_len = 0;
 
-#if (defined(BTA_AV_MIN_DEBUG_TRACES) && BTA_AV_MIN_DEBUG_TRACES == TRUE)
-    APPL_TRACE_ERROR("rc_msg handle: %d opcode=0x%x", handle, opcode);
-#else
-    APPL_TRACE_EVENT("bta_av_rc_msg_cback handle: %d opcode=0x%x", handle, opcode);
-#endif
-    /* determine size of buffer we need */
-    if (opcode == AVRC_OP_VENDOR && p_msg->vendor.p_vendor_data != NULL)
-    {
-        p_data = p_msg->vendor.p_vendor_data;
-        p_p_data = &p_msg->vendor.p_vendor_data;
+    APPL_TRACE_DEBUG("%s handle: %u opcode=0x%x", __func__, handle, opcode);
+
+    /* Determine the size of the buffer we need */
+    if (opcode == AVRC_OP_VENDOR && p_msg->vendor.p_vendor_data != NULL) {
+        p_data_src = p_msg->vendor.p_vendor_data;
         data_len = (UINT16) p_msg->vendor.vendor_len;
-    }
-    else if (opcode == AVRC_OP_PASS_THRU && p_msg->pass.p_pass_data != NULL)
-    {
-        p_data = p_msg->pass.p_pass_data;
-        p_p_data = &p_msg->pass.p_pass_data;
+    } else if (opcode == AVRC_OP_PASS_THRU && p_msg->pass.p_pass_data != NULL) {
+        p_data_src = p_msg->pass.p_pass_data;
         data_len = (UINT16) p_msg->pass.pass_len;
     }
 
-    if ((p_buf = (tBTA_AV_RC_MSG *) GKI_getbuf((UINT16) (sizeof(tBTA_AV_RC_MSG) + data_len))) != NULL)
-    {
+    /* Create a copy of the message */
+    tBTA_AV_RC_MSG *p_buf =
+        (tBTA_AV_RC_MSG *)GKI_getbuf((UINT16)(sizeof(tBTA_AV_RC_MSG) + data_len));
+    if (p_buf != NULL) {
         p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
         p_buf->handle = handle;
         p_buf->label = label;
         p_buf->opcode = opcode;
         memcpy(&p_buf->msg, p_msg, sizeof(tAVRC_MSG));
-        if (p_data != NULL)
-        {
-            memcpy((UINT8 *)(p_buf + 1), p_data, data_len);
-            *p_p_data = (UINT8 *)(p_buf + 1);
+        /* Copy the data payload, and set the pointer to it */
+        if (p_data_src != NULL) {
+            UINT8 *p_data_dst = (UINT8 *)(p_buf + 1);
+            memcpy(p_data_dst, p_data_src, data_len);
+            if (opcode == AVRC_OP_VENDOR)
+                p_buf->msg.vendor.p_vendor_data = p_data_dst;
+            else if (opcode == AVRC_OP_PASS_THRU)
+                p_buf->msg.pass.p_pass_data = p_data_dst;
         }
         bta_sys_sendmsg(p_buf);
     }
