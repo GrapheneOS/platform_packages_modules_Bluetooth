@@ -64,6 +64,7 @@ typedef UINT8 tBTA_AV_STATUS;
 #define BTA_AV_FEAT_ADV_CTRL    0x0200  /* remote control Advanced Control command/response */
 #define BTA_AV_FEAT_DELAY_RPT   0x0400  /* allow delay reporting */
 #define BTA_AV_FEAT_ACP_START   0x0800  /* start stream when 2nd SNK was accepted   */
+#define BTA_AV_FEAT_APP_SETTING 0x2000  /* Player app setting support */
 
 /* Internal features */
 #define BTA_AV_FEAT_NO_SCO_SSPD 0x8000  /* Do not suspend av streaming as to AG events(SCO or Call) */
@@ -363,6 +364,7 @@ typedef struct
 {
     UINT8           rc_handle;
     tBTA_AV_FEAT    peer_features;
+    BD_ADDR         peer_addr;
 } tBTA_AV_RC_FEAT;
 
 /* data associated with BTA_AV_REMOTE_CMD_EVT */
@@ -452,11 +454,17 @@ typedef union
     tBTA_AV_STATUS      status;
 } tBTA_AV;
 
+typedef struct
+{
+    UINT8 *codec_info;
+    BD_ADDR bd_addr;;
+} tBTA_AVK_CONFIG;
+
 /* union of data associated with AV Media callback */
 typedef union
 {
     BT_HDR     *p_data;
-    UINT8      *codec_info;
+    tBTA_AVK_CONFIG avk_config;
 } tBTA_AV_MEDIA;
 
 
@@ -562,7 +570,7 @@ void BTA_AvDisable(void);
 **
 *******************************************************************************/
 void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
-                            UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback);
+                    UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback, UINT16 service_uuid);
 
 /*******************************************************************************
 **
@@ -701,6 +709,20 @@ void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data,
 *******************************************************************************/
 void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
                              tBTA_AV_STATE key_state);
+
+/*******************************************************************************
+**
+** Function         BTA_AvRemoteVendorUniqueCmd
+**
+** Description      Send a remote control command with Vendor Unique rc_id.
+**                  This function can only be used if AV is enabled with
+**                  feature BTA_AV_FEAT_RCCT.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_STATE key_state,
+                                         UINT8* p_msg, UINT8 buf_len);
 
 /*******************************************************************************
 **

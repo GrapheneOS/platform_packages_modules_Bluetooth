@@ -24,6 +24,8 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
+
 #include "bt_target.h"
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
 
@@ -110,7 +112,8 @@ void BTA_AvDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback)
+void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id,
+                    tBTA_AV_DATA_CBACK  *p_data_cback, UINT16 service_uuid)
 {
     tBTA_AV_API_REG  *p_buf;
 
@@ -121,7 +124,9 @@ void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id,
         p_buf->hdr.event = BTA_AV_API_REGISTER_EVT;
         if(p_service_name)
         {
-            BCM_STRNCPY_S(p_buf->p_service_name, sizeof(p_buf->p_service_name), p_service_name, BTA_SERVICE_NAME_LEN);
+            BCM_STRNCPY_S(
+                p_buf->p_service_name, sizeof(p_buf->p_service_name), p_service_name,
+                BTA_SERVICE_NAME_LEN);
             p_buf->p_service_name[BTA_SERVICE_NAME_LEN-1] = 0;
         }
         else
@@ -130,6 +135,7 @@ void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id,
         }
         p_buf->app_id = app_id;
         p_buf->p_app_data_cback = p_data_cback;
+        p_buf->service_uuid = service_uuid;
         bta_sys_sendmsg(p_buf);
     }
 }
@@ -459,6 +465,32 @@ void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id, tBTA_AV_STA
         p_buf->label = label;
         bta_sys_sendmsg(p_buf);
     }
+}
+
+/*******************************************************************************
+**
+** Function         BTA_AvRemoteVendorUniqueCmd
+**
+** Description      Send a remote control command with Vendor Unique rc_id. This function can only
+**                  be used if AV is enabled with feature BTA_AV_FEAT_RCCT.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_STATE key_state,
+                                 UINT8* p_msg, UINT8 buf_len)
+{
+    tBTA_AV_API_REMOTE_CMD  *p_buf =
+        (tBTA_AV_API_REMOTE_CMD *) osi_getbuf(sizeof(tBTA_AV_API_REMOTE_CMD));
+    assert(p_buf);
+    p_buf->hdr.event = BTA_AV_API_REMOTE_CMD_EVT;
+    p_buf->hdr.layer_specific   = rc_handle;
+    p_buf->msg.op_id = AVRC_ID_VENDOR;
+    p_buf->msg.state = key_state;
+    p_buf->msg.p_pass_data = p_msg;
+    p_buf->msg.pass_len = buf_len;
+    p_buf->label = label;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************

@@ -30,6 +30,8 @@
 #ifndef BTIF_API_H
 #define BTIF_API_H
 
+#include <hardware/bluetooth.h>
+
 #include "btif_common.h"
 #include "btif_dm.h"
 

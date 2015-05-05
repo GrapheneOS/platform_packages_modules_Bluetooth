@@ -238,6 +238,8 @@ typedef struct
 /********************************************************************************
 ** Macros to get and put bytes to and from a stream (Little Endian format).
 */
+#define UINT64_TO_BE_STREAM(p, u64) {*(p)++ = (UINT8)((u64) >> 56);  *(p)++ = (UINT8)((u64) >> 48); *(p)++ = (UINT8)((u64) >> 40); *(p)++ = (UINT8)((u64) >> 32); \
+                                     *(p)++ = (UINT8)((u64) >> 24);  *(p)++ = (UINT8)((u64) >> 16); *(p)++ = (UINT8)((u64) >> 8); *(p)++ = (UINT8)(u64); }
 #define UINT32_TO_STREAM(p, u32) {*(p)++ = (UINT8)(u32); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 24);}
 #define UINT24_TO_STREAM(p, u24) {*(p)++ = (UINT8)(u24); *(p)++ = (UINT8)((u24) >> 8); *(p)++ = (UINT8)((u24) >> 16);}
 #define UINT16_TO_STREAM(p, u16) {*(p)++ = (UINT8)(u16); *(p)++ = (UINT8)((u16) >> 8);}
@@ -292,6 +294,11 @@ typedef struct
 #define BE_STREAM_TO_UINT16(u16, p) {u16 = (UINT16)(((UINT16)(*(p)) << 8) + (UINT16)(*((p) + 1))); (p) += 2;}
 #define BE_STREAM_TO_UINT24(u32, p) {u32 = (((UINT32)(*((p) + 2))) + ((UINT32)(*((p) + 1)) << 8) + ((UINT32)(*(p)) << 16)); (p) += 3;}
 #define BE_STREAM_TO_UINT32(u32, p) {u32 = ((UINT32)(*((p) + 3)) + ((UINT32)(*((p) + 2)) << 8) + ((UINT32)(*((p) + 1)) << 16) + ((UINT32)(*(p)) << 24)); (p) += 4;}
+#define BE_STREAM_TO_UINT64(u64, p) {u64 = ((UINT64)(*((p) + 7)) + ((UINT64)(*((p) + 6)) << 8) + \
+                                    ((UINT64)(*((p) + 5)) << 16) + ((UINT64)(*((p) + 4)) << 24) + \
+                                    ((UINT64)(*((p) + 3)) << 32) + ((UINT64)(*((p) + 2)) << 40) + \
+                                    ((UINT64)(*((p) + 1)) << 48) + ((UINT64)(*(p)) << 56)); \
+                                    (p) += 8;}
 #define BE_STREAM_TO_ARRAY(p, a, len) {register int ijk; for (ijk = 0; ijk < len; ijk++) ((UINT8 *) a)[ijk] = *p++;}
 
 

@@ -21,6 +21,7 @@ LOCAL_SRC_FILES+= \
 # BTIF
 LOCAL_SRC_FILES += \
     ../btif/src/btif_av.c \
+    ../btif/src/btif_avrcp_audio_track.cpp \
     ../btif/src/btif_config.c \
     ../btif/src/btif_config_transcode.cpp \
     ../btif/src/btif_core.c \
@@ -127,7 +128,10 @@ LOCAL_SHARED_LIBRARIES := \
     libcutils \
     libdl \
     liblog \
-    libz
+    libz \
+    libpower \
+    libmedia \
+    libutils
 
 LOCAL_STATIC_LIBRARIES := \
     libtinyxml2 \

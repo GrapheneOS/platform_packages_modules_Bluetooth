@@ -212,6 +212,7 @@ typedef struct
     char                p_service_name[BTA_SERVICE_NAME_LEN+1];
     UINT8               app_id;
     tBTA_AV_DATA_CBACK       *p_app_data_cback;
+    UINT16              service_uuid;
 } tBTA_AV_API_REG;
 
 
@@ -617,6 +618,8 @@ extern tBTA_AV_CB *bta_av_cb_ptr;
 
 /* config struct */
 extern tBTA_AV_CFG *p_bta_av_cfg;
+extern const tBTA_AV_CFG bta_avk_cfg;
+extern const tBTA_AV_CFG bta_av_cfg;
 
 /* rc id config struct */
 extern UINT16 *p_bta_av_rc_id;
