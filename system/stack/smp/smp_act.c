@@ -907,8 +907,13 @@ void smp_br_select_next_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     if (!p_cb->local_i_key && !p_cb->local_r_key)
     {
         /* state check to prevent re-entrance */
-        if (p_cb->smp_over_br)
-            smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &reason);
+        if (smp_get_br_state() == SMP_BR_STATE_BOND_PENDING)
+        {
+            if (p_cb->total_tx_unacked == 0)
+                smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &reason);
+            else
+                p_cb->wait_for_authorization_complete = TRUE;
+        }
     }
 }
 
@@ -2077,8 +2082,12 @@ void smp_key_distribution_by_transport(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
-    /* process the pairing complete */
-    smp_proc_pairing_cmpl(p_cb);
+
+    if (p_cb->total_tx_unacked == 0)
+    {
+        /* process the pairing complete */
+        smp_proc_pairing_cmpl(p_cb);
+    }
 }
 
 #endif
