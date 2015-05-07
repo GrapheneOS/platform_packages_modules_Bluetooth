@@ -20,6 +20,9 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/../osi/include \
@@ -44,6 +47,9 @@ include $(BUILD_STATIC_LIBRARY)
 #####################################################
 
 include $(CLEAR_VARS)
+
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
