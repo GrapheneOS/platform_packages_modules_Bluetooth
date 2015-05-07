@@ -584,13 +584,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
             }
 
-            if (( p_btif_cb->device_type == BT_DEVICE_TYPE_DUMO)&&
-               (p_btif_cb->flag & BTA_BLE_DMT_CONTROLLER_SPT) &&
-               (p_btif_cb->flag & BTA_BLE_DMT_HOST_SPT))
-             {
-                btif_storage_set_dmt_support_type (&(p_btif_cb->bd_addr), TRUE);
-             }
-
              dev_type =  p_btif_cb->device_type;
              BTIF_STORAGE_FILL_PROPERTY(&properties,
                         BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
@@ -1163,8 +1156,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     break;
 
                 case BT_DEVICE_TYPE_DUMO:
-                    if ((p_cb->transport == GATT_TRANSPORT_LE) &&
-                        (btif_storage_is_dmt_supported_device(&(p_cb->bd_addr)) == TRUE))
+                    if (p_cb->transport == GATT_TRANSPORT_LE)
                         transport = BTA_GATT_TRANSPORT_LE;
                     else
                         transport = BTA_GATT_TRANSPORT_BR_EDR;

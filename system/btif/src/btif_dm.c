@@ -1388,12 +1388,6 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote device (inquiry)", status);
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
                 status = btif_storage_set_remote_addr_type(&bdaddr, addr_type);
-                if (( dev_type == BT_DEVICE_TYPE_DUMO)&&
-                   (p_search_data->inq_res.flag & BTA_BLE_DMT_CONTROLLER_SPT) &&
-                   (p_search_data->inq_res.flag & BTA_BLE_DMT_HOST_SPT))
-                 {
-                    btif_storage_set_dmt_support_type (&bdaddr, TRUE);
-                 }
                 ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote addr type (inquiry)", status);
 #endif
                 /* Callback to notify upper layer of device */
@@ -2918,7 +2912,11 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     {
         status = BT_STATUS_SUCCESS;
         state = BT_BOND_STATE_BONDED;
-
+        int addr_type;
+        bt_bdaddr_t bdaddr;
+        bdcpy(bdaddr.address, p_auth_cmpl->bd_addr);
+        if (btif_storage_get_remote_addr_type(&bdaddr, &addr_type) != BT_STATUS_SUCCESS)
+            btif_storage_set_remote_addr_type(&bdaddr, p_auth_cmpl->addr_type);
         btif_dm_save_ble_bonding_keys();
         BTA_GATTC_Refresh(bd_addr.address);
         btif_dm_get_remote_services(&bd_addr);
