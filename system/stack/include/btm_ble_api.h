@@ -441,7 +441,7 @@ typedef struct
 }tBTM_BLE_ADV_DATA;
 
 #ifndef BTM_BLE_MULTI_ADV_MAX
-#define BTM_BLE_MULTI_ADV_MAX   10 /* controller returned adv_inst_max should be less
+#define BTM_BLE_MULTI_ADV_MAX   16 /* controller returned adv_inst_max should be less
                                       than this number */
 #endif
 
