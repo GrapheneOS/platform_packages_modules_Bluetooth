@@ -804,6 +804,7 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 *******************************************************************************/
 void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
 {
+#if BLE_INCLUDED == TRUE
     tBTA_DM_API_CONFIRM *p_msg = (tBTA_DM_API_CONFIRM *)GKI_getbuf(sizeof(tBTA_DM_API_CONFIRM));
     if (p_msg != NULL)
     {
@@ -813,6 +814,7 @@ void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
         p_msg->accept = accept;
         bta_sys_sendmsg(p_msg);
     }
+#endif
 }
 
 /*******************************************************************************

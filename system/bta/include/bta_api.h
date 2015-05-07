@@ -761,10 +761,8 @@ typedef struct
     UINT8           key_type;           /* The type of Link Key */
     BOOLEAN         success;            /* TRUE of authentication succeeded, FALSE if failed. */
     UINT8           fail_reason;        /* The HCI reason/error code for when success=FALSE */
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    tBLE_ADDR_TYPE  addr_type;      /* peer device address type */
+    tBLE_ADDR_TYPE  addr_type;          /* Peer device address type */
     tBT_DEVICE_TYPE dev_type;
-#endif
 } tBTA_DM_AUTH_CMPL;
 
 
