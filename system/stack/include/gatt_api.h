@@ -20,7 +20,6 @@
 
 #include "bt_target.h"
 #include "gattdefs.h"
-#include "btm_ble_api.h"
 
 /*****************************************************************************
 **  Constants
@@ -549,6 +548,7 @@ typedef struct
 } tGATT_DISC_RES;
 
 
+typedef UINT8 tGATT_IF;
 #define GATT_LINK_IDLE_TIMEOUT_WHEN_NO_APP    0 /* start a idle timer for this duration
                                                  when no application need to use the link */
 
