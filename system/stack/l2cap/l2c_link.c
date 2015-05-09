@@ -1156,11 +1156,13 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
                   (l2cb.round_robin_unacked >= l2cb.round_robin_quota))
 #if (BLE_INCLUDED == TRUE)
                 && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-#endif
                 )
               || (p_lcb->transport == BT_TRANSPORT_LE &&
                  (l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota ||
                   l2cb.controller_le_xmit_window == 0 )))
+#else
+                ))
+#endif
             break;
 
 

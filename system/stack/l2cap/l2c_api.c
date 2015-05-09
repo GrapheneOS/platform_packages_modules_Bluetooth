@@ -1420,9 +1420,11 @@ BOOLEAN L2CA_ConnectFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
         // Fixed channels are mandatory on LE transports so ignore the received
         // channel mask and use the locally cached LE channel mask.
 
+#if BLE_INCLUDED == TRUE
         if (transport == BT_TRANSPORT_LE)
             peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
         else
+#endif
             peer_channel_mask = p_lcb->peer_chnl_mask[0];
 
         // Check for supported channel
@@ -1544,9 +1546,11 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     tL2C_BLE_FIXED_CHNLS_MASK peer_channel_mask;
 
     // Select peer channels mask to use depending on transport
+#if BLE_INCLUDED == TRUE
     if (transport == BT_TRANSPORT_LE)
         peer_channel_mask = l2cb.l2c_ble_fixed_chnls_mask;
     else
+#endif
         peer_channel_mask = p_lcb->peer_chnl_mask[0];
 
     if ((peer_channel_mask & (1 << fixed_cid)) == 0)

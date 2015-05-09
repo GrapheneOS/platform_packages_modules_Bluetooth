@@ -24,6 +24,8 @@
 #ifndef  SMP_INT_H
 #define  SMP_INT_H
 
+#if BLE_INCLUDED == TRUE
+
 #include "btu.h"
 #include "btm_ble_api.h"
 #include "btm_api.h"
@@ -535,5 +537,7 @@ extern void smp_debug_print_nbyte_little_endian (UINT8 *p, const UINT8 *key_name
 extern BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
                                                  UINT16 tlen, UINT8 *p_signature);
 extern void print128(BT_OCTET16 x, const UINT8 *key_name);
+
+#endif
 
 #endif /* SMP_INT_H */

@@ -186,10 +186,12 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     STREAM_TO_UINT16 (l2cap_len, p);
     STREAM_TO_UINT16 (rcv_cid, p);
 
+#if BLE_INCLUDED == TRUE
    /* for BLE channel, always notify connection when ACL data received on the link */
    if (p_lcb && p_lcb->transport == BT_TRANSPORT_LE && p_lcb->link_state != LST_DISCONNECTING)
       /* only process fixed channel data as channel open indication when link is not in disconnecting mode */
         l2cble_notify_le_connection(p_lcb->remote_bd_addr);
+#endif
 
     /* Find the CCB for this CID */
     if (rcv_cid >= L2CAP_BASE_APPL_CID)
@@ -894,8 +896,10 @@ void l2c_init (void)
     l2cb.high_pri_min_xmit_quota = L2CAP_HIGH_PRI_MIN_XMIT_QUOTA;
 #endif
 
+#if BLE_INCLUDED == TRUE
     l2cb.l2c_ble_fixed_chnls_mask =
          L2CAP_FIXED_CHNL_ATT_BIT | L2CAP_FIXED_CHNL_BLE_SIG_BIT | L2CAP_FIXED_CHNL_SMP_BIT;
+#endif
 
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)
