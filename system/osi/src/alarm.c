@@ -257,6 +257,7 @@ static void schedule_next_instance(alarm_t *alarm, bool force_reschedule) {
 
 // NOTE: must be called with monitor lock.
 static void reschedule_root_alarm(void) {
+  bool timer_was_set = timer_set;
   assert(alarms != NULL);
 
   // If used in a zeroed state, disarms the timer
@@ -286,7 +287,7 @@ static void reschedule_root_alarm(void) {
 
 done:
   timer_set = wakeup_time.it_value.tv_sec != 0 || wakeup_time.it_value.tv_nsec != 0;
-  if (!timer_set) {
+  if (timer_was_set && !timer_set) {
     bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
   }
 
