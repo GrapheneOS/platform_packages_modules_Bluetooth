@@ -130,6 +130,7 @@ BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
 typedef struct
 {
     bt_bond_state_t state;
+    bt_bdaddr_t static_bdaddr;
     BD_ADDR bd_addr;
     UINT8 bond_type;
     UINT8 pin_code_len;
@@ -143,7 +144,6 @@ typedef struct
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     BOOLEAN is_le_only;
     BOOLEAN is_le_nc; /* LE Numeric comparison */
-    bt_bdaddr_t static_bdaddr;
     btif_dm_ble_cb_t ble;
 #endif
 } btif_dm_pairing_cb_t;
@@ -1115,7 +1115,9 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     // Skip SDP for certain  HID Devices
     if (p_auth_cmpl->success)
     {
+#if BLE_INCLUDED == TRUE
         btif_storage_set_remote_addr_type(&bd_addr, p_auth_cmpl->addr_type);
+#endif
         btif_update_remote_properties(p_auth_cmpl->bd_addr,
                                       p_auth_cmpl->bd_name, NULL, p_auth_cmpl->dev_type);
         pairing_cb.timeout_retries = 0;
@@ -1152,6 +1154,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         {
             /* Trigger SDP on the device */
             pairing_cb.sdp_attempts = 1;;
+
+#if BLE_INCLUDED == TRUE
             /* If bonded due to cross-key, save the static address too*/
             if(pairing_cb.state == BT_BOND_STATE_BONDING &&
               (bdcmp(p_auth_cmpl->bd_addr, pairing_cb.bd_addr) != 0))
@@ -1160,6 +1164,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                                  __func__);
                 bdcpy(pairing_cb.static_bdaddr.address, p_auth_cmpl->bd_addr);
             }
+#endif
 
             if(btif_dm_inquiry_in_progress)
                 btif_dm_cancel_discovery();

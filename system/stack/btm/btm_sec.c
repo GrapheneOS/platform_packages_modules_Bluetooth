@@ -5873,9 +5873,11 @@ void btm_sec_dev_rec_cback_event (tBTM_SEC_DEV_REC *p_dev_rec, UINT8 res, BOOLEA
     {
         p_dev_rec->p_callback = NULL;
 
+#if BLE_INCLUDED == TRUE
         if (is_le_transport)
            (*p_callback) (p_dev_rec->ble.pseudo_addr, BT_TRANSPORT_LE, p_dev_rec->p_ref_data, res);
         else
+#endif
            (*p_callback) (p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, p_dev_rec->p_ref_data, res);
     }
 
@@ -6131,7 +6133,6 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
     tBTM_SEC_QUEUE_ENTRY    *p_e;
     BUFFER_Q                *bq = &btm_cb.sec_pending_q;
     UINT8                   res = encr_enable ? BTM_SUCCESS : BTM_ERR_PROCESSING;
-    UINT8                   sec_act ;
 
     p_e = (tBTM_SEC_QUEUE_ENTRY *)GKI_getfirst(bq);
 
@@ -6143,7 +6144,9 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
 #endif
             )
         {
-            sec_act = *(UINT8 *)(p_e->p_ref_data);
+#if BLE_INCLUDED == TRUE
+            UINT8 sec_act = *(UINT8 *)(p_e->p_ref_data);
+#endif
 
             if (encr_enable == 0 || transport == BT_TRANSPORT_BR_EDR
 #if BLE_INCLUDED == TRUE
@@ -6178,7 +6181,6 @@ static UINT16 btm_sec_set_serv_level4_flags(UINT16 cur_security, BOOLEAN is_orig
     return cur_security | sec_level4_flags;
 }
 
-#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btm_sec_clear_ble_keys
@@ -6220,8 +6222,10 @@ BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda)
     BOOLEAN is_bonded= FALSE;
 
     if (p_dev_rec &&
-#if (SMP_INCLUDED== TRUE)
+#if (SMP_INCLUDED == TRUE)
         ((p_dev_rec->ble.key_type && (p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_KNOWN))||
+#else
+        (
 #endif
          (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)))
     {
@@ -6339,6 +6343,4 @@ static BOOLEAN btm_sec_is_master(tBTM_SEC_DEV_REC *p_dev_rec)
     tACL_CONN *p= btm_bda_to_acl(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR);
     return (p && (p->link_role == BTM_ROLE_MASTER));
 }
-
-#endif /* BLE_INCLUDED */
 

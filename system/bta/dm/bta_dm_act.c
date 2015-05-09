@@ -2728,9 +2728,10 @@ static UINT8  bta_dm_new_link_key_cback(BD_ADDR bd_addr, DEV_CLASS dev_class,
         memcpy(p_auth_cmpl->key, key, LINK_KEY_LEN);
         sec_event.auth_cmpl.fail_reason = HCI_SUCCESS;
 
+#if BLE_INCLUDED == TRUE
         // Report the BR link key based on the BR/EDR address and type
         BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type, &sec_event.auth_cmpl.addr_type);
-
+#endif
         if(bta_dm_cb.p_sec_cback)
             bta_dm_cb.p_sec_cback(event, &sec_event);
     }
@@ -2765,8 +2766,10 @@ static UINT8 bta_dm_authentication_complete_cback(BD_ADDR bd_addr, DEV_CLASS dev
         memcpy(sec_event.auth_cmpl.bd_name, bd_name, (BD_NAME_LEN-1));
         sec_event.auth_cmpl.bd_name[BD_NAME_LEN-1] = 0;
 
+#if BLE_INCLUDED == TRUE
         // Report the BR link key based on the BR/EDR address and type
         BTM_ReadDevInfo(bd_addr, &sec_event.auth_cmpl.dev_type, &sec_event.auth_cmpl.addr_type);
+#endif
         sec_event.auth_cmpl.fail_reason = (UINT8)result;
 
         if(bta_dm_cb.p_sec_cback)
@@ -4385,7 +4388,9 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
 
         case BTM_LE_COMPLT_EVT:
             bdcpy(sec_event.auth_cmpl.bd_addr, bda);
+#if BLE_INCLUDED == TRUE
             BTM_ReadDevInfo(bda, &sec_event.auth_cmpl.dev_type, &sec_event.auth_cmpl.addr_type);
+#endif
             p_name = BTM_SecReadDevName(bda);
             if (p_name != NULL)
             {
