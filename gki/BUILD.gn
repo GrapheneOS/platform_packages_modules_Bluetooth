@@ -1,0 +1,17 @@
+source_set("gki") {
+  sources = [
+    "common/gki_buffer.c",
+    "ulinux/gki_ulinux.c",
+  ]
+
+  include_dirs = [
+    "common",
+    "ulinux",
+    "//btcore/include",
+    "//include",
+    "//osi/include",
+    "//stack/include",
+    "//utils/include",
+    "//",
+  ]
+}
