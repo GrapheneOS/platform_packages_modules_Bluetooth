@@ -569,7 +569,10 @@ void uipc_stop_main_server_thread(void)
     UIPC_UNLOCK();
 
     /* wait until read thread is fully terminated */
-    if (uipc_main.tid > 0)
+    /* tid might hold pointer value where it's value
+       is negative vaule with singed bit is set, so
+       corrected the logic to check zero or non zero */
+    if (uipc_main.tid)
         pthread_join(uipc_main.tid, NULL);
 }
 
