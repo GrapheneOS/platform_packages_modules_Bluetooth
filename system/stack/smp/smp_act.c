@@ -23,6 +23,7 @@
 #include "l2c_api.h"
 #include "smp_int.h"
 
+#if SMP_INCLUDED == TRUE
 const UINT8 smp_association_table[2][SMP_IO_CAP_MAX][SMP_IO_CAP_MAX] =
 {
     /* initiator */
@@ -2088,4 +2089,4 @@ void smp_br_pairing_complete(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
     smp_proc_pairing_cmpl(p_cb);
 }
 
-
+#endif

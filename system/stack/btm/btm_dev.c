@@ -441,12 +441,14 @@ tBTM_SEC_DEV_REC *btm_find_dev(BD_ADDR bd_addr)
                 if (!memcmp (p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN))
                     return(p_dev_rec);
 
+#if BLE_INCLUDED == TRUE
                 // If a LE random address is looking for device record
                 if (!memcmp(p_dev_rec->ble.pseudo_addr, bd_addr, BD_ADDR_LEN))
                     return (p_dev_rec);
 
                 if (btm_ble_addr_resolvable(bd_addr, p_dev_rec))
                     return(p_dev_rec);
+#endif
             }
         }
     }
@@ -464,6 +466,7 @@ tBTM_SEC_DEV_REC *btm_find_dev(BD_ADDR bd_addr)
 *******************************************************************************/
 void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
 {
+#if BLE_INCLUDED == TRUE
     tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
     tBTM_SEC_DEV_REC temp_rec = *p_target_rec;
     BD_ADDR dummy_bda = {0};
@@ -478,8 +481,8 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
             {
                 memcpy(p_target_rec, p_dev_rec, sizeof(tBTM_SEC_DEV_REC));
                 p_target_rec->ble = temp_rec.ble;
-                p_target_rec->enc_key_size = temp_rec.enc_key_size;
                 p_target_rec->ble_hci_handle = temp_rec.ble_hci_handle;
+                p_target_rec->enc_key_size = temp_rec.enc_key_size;
                 p_target_rec->conn_params = temp_rec.conn_params;
                 p_target_rec->device_type |= temp_rec.device_type;
                 p_target_rec->sec_flags |= temp_rec.sec_flags;
@@ -504,6 +507,7 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
             }
         }
     }
+#endif
 }
 
 /*******************************************************************************

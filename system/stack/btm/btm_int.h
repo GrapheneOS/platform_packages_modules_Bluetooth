@@ -573,12 +573,9 @@ typedef struct
                                         /* HCI_IO_CAPABILITY_REQUEST_EVT from the peer before */
                                         /* it knows peer's support for Secure Connections */
 
-#if (BLE_INCLUDED == TRUE)
     UINT16              ble_hci_handle;         /* use in DUMO connection */
     UINT8               enc_key_size;           /* current link encryption key size */
-    tBTM_SEC_BLE        ble;
     tBT_DEVICE_TYPE     device_type;
-    tBTM_LE_CONN_PRAMS  conn_params;
     BOOLEAN             new_encryption_key_is_p256; /* Set to TRUE when the newly generated LK
                                                     ** is generated from P-256.
                                                     ** Link encrypted with such LK can be used
@@ -587,6 +584,10 @@ typedef struct
     BOOLEAN no_smp_on_br;       /* if set to TRUE then SMP on BR/EDR doesn't */
                                 /* work, i.e. link keys crosspairing */
                                 /* SC BR/EDR->SC LE doesn't happen */
+
+#if BLE_INCLUDED == TRUE
+    tBTM_SEC_BLE        ble;
+    tBTM_LE_CONN_PRAMS  conn_params;
 #endif
 
 // btla-specific ++
