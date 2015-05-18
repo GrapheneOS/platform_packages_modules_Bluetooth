@@ -37,6 +37,7 @@
 #include "btif_util.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+#include "gki.h"
 
 #if BTA_GATT_INCLUDED == TRUE
 
