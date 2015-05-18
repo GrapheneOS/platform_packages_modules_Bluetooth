@@ -70,6 +70,7 @@ static bool timer_set;
 
 // All alarm callbacks are dispatched from |callback_thread|
 static thread_t *callback_thread;
+static bool callback_thread_active;
 static semaphore_t *alarm_expired;
 
 static bool lazy_initialize(void);
@@ -176,6 +177,22 @@ void alarm_cancel(alarm_t *alarm) {
   pthread_mutex_unlock(&alarm->callback_lock);
 }
 
+void alarm_shutdown(void) {
+  callback_thread_active = false;
+  semaphore_post(alarm_expired);
+  thread_free(callback_thread);
+  callback_thread = NULL;
+
+  semaphore_free(alarm_expired);
+  alarm_expired = NULL;
+  timer_delete(&timer);
+
+  list_free(alarms);
+  alarms = NULL;
+
+  pthread_mutex_destroy(&monitor);
+}
+
 static bool lazy_initialize(void) {
   assert(alarms == NULL);
 
@@ -202,6 +219,7 @@ static bool lazy_initialize(void) {
     return false;
   }
 
+  callback_thread_active = true;
   callback_thread = thread_new("alarm_callbacks");
   if (!callback_thread) {
     LOG_ERROR("%s unable to create alarm callback thread.", __func__);
@@ -322,8 +340,10 @@ static void timer_callback(UNUSED_ATTR void *ptr) {
 static void callback_dispatch(UNUSED_ATTR void *context) {
   while (true) {
     semaphore_wait(alarm_expired);
-    pthread_mutex_lock(&monitor);
+    if (!callback_thread_active)
+      break;
 
+    pthread_mutex_lock(&monitor);
     alarm_t *alarm;
 
     // Take into account that the alarm may get cancelled before we get to it.
@@ -359,4 +379,6 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
 
     pthread_mutex_unlock(&alarm->callback_lock);
   }
+
+  LOG_DEBUG("%s Callback thread exited", __func__);
 }

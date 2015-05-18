@@ -51,3 +51,7 @@ void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb,
 // will not be called if it hasn't already been called. This function is idempotent.
 // |alarm| may not be NULL.
 void alarm_cancel(alarm_t *alarm);
+
+// Shuts down the alarm dispatch callback. To be called during module/stack
+// shutdown only.
+void alarm_shutdown(void);
