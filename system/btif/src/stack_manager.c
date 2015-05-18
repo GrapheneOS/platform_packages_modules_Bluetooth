@@ -24,6 +24,7 @@
 #include "btif_common.h"
 #include "device/include/controller.h"
 #include "btcore/include/module.h"
+#include "btcore/include/osi_module.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "osi/include/semaphore.h"
@@ -125,6 +126,7 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   LOG_DEBUG("%s is bringing up the stack.", __func__);
   hack_future = future_new();
 
+  module_start_up(get_module(OSI_MODULE));
   // Include this for now to put btif config into a shutdown-able state
   module_start_up(get_module(BTIF_CONFIG_MODULE));
   bte_main_enable();
@@ -156,6 +158,8 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
 
   future_await(hack_future);
   module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
+  module_shut_down(get_module(OSI_MODULE));
+
   LOG_DEBUG("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }

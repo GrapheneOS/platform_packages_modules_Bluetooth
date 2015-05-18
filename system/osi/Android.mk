@@ -48,7 +48,7 @@ LOCAL_SRC_FILES := \
     ./src/socket.c \
     ./src/thread.c
 
-LOCAL_CFLAGS := -std=c99 -Wall -Werror
+LOCAL_CFLAGS := -std=c99 -Wall -Werror -UNDEBUG
 # Many .h files have redefined typedefs
 LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
@@ -86,7 +86,7 @@ LOCAL_SRC_FILES := \
     ./test/ringbuffer_test.cpp \
     ./test/thread_test.cpp
 
-LOCAL_CFLAGS := -Wall
+LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
