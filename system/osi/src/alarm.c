@@ -179,6 +179,10 @@ void alarm_cancel(alarm_t *alarm) {
 }
 
 void alarm_shutdown(void) {
+  // If lazy_initialize never ran there is nothing to do
+  if (!alarms)
+    return;
+
   callback_thread_active = false;
   semaphore_post(alarm_expired);
   thread_free(callback_thread);
