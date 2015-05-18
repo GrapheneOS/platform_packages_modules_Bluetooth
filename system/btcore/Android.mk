@@ -33,6 +33,7 @@ LOCAL_SRC_FILES := \
     src/counter.c \
     src/device_class.c \
     src/module.c \
+    src/osi_module.c \
     src/property.c \
     src/uuid.c
 
