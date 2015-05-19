@@ -141,7 +141,7 @@ void btif_debug_btsnoop_dump(int fd) {
     if (i > 0 && i % MAX_LINE_LENGTH == 0)
       dprintf(fd, "\n");
     i += b64_ntop(b64_in, read, b64_out, 5);
-    dprintf(fd, b64_out);
+    dprintf(fd, "%s", b64_out);
   }
 
   dprintf(fd, "\n--- END:BTSNOOP_LOG_SUMMARY (%zu bytes out) ---\n", i);
