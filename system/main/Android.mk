@@ -134,6 +134,10 @@ LOCAL_SHARED_LIBRARIES := \
     libz
 
 LOCAL_STATIC_LIBRARIES := \
+    libtinyxml2 \
+    libbt-qcom_sbc_decoder
+
+LOCAL_WHOLE_STATIC_LIBRARIES := \
     libbt-brcm_bta \
     libbt-brcm_gki \
     libbt-brcm_stack \
@@ -141,9 +145,7 @@ LOCAL_STATIC_LIBRARIES := \
     libbt-hci \
     libbt-utils \
     libbtcore \
-    libosi \
-    libtinyxml2 \
-    libbt-qcom_sbc_decoder
+    libosi
 
 LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_RELATIVE_PATH := hw
