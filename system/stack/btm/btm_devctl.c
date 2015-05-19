@@ -393,7 +393,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
             btm_cb.btm_def_link_policy &= ~HCI_ENABLE_PARK_MODE;
 
         btm_sec_dev_reset ();
-#if ((BTM_EIR_SERVER_INCLUDED == TRUE)||(BTM_EIR_CLIENT_INCLUDED == TRUE))
+
         if (HCI_LMP_INQ_RSSI_SUPPORTED(p_features))
         {
             if (HCI_EXT_INQ_RSP_SUPPORTED(p_features))
@@ -401,10 +401,7 @@ static void btm_decode_ext_features_page (UINT8 page_number, const UINT8 *p_feat
             else
                 BTM_SetInquiryMode (BTM_INQ_RESULT_WITH_RSSI);
         }
-#else
-        if (HCI_LMP_INQ_RSSI_SUPPORTED(p_features))
-            BTM_SetInquiryMode (BTM_INQ_RESULT_WITH_RSSI);
-#endif
+
 #if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
         if( HCI_NON_FLUSHABLE_PB_SUPPORTED(p_features))
             l2cu_set_non_flushable_pbf(TRUE);
