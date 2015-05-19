@@ -621,11 +621,11 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
     tBTM_SEC_DEV_REC  *p_dev_rec = btm_find_dev (remote_bda);
     tBTM_INQ_INFO     *p_inq_info = BTM_InqDbRead(remote_bda);
 
-    *p_dev_type = BT_DEVICE_TYPE_BREDR;
     *p_addr_type = BLE_ADDR_PUBLIC;
 
     if (!p_dev_rec)
     {
+        *p_dev_type = BT_DEVICE_TYPE_BREDR;
         /* Check with the BT manager if details about remote device are known */
         if (p_inq_info != NULL)
         {
@@ -644,8 +644,22 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
             p_dev_rec->device_type          = p_inq_info->results.device_type;
             p_dev_rec->ble.ble_addr_type    = p_inq_info->results.ble_addr_type;
         }
-        *p_dev_type = p_dev_rec->device_type;
-        *p_addr_type = p_dev_rec->ble.ble_addr_type;
+        if (memcmp(p_dev_rec->bd_addr, remote_bda, BD_ADDR_LEN) == 0 &&
+            memcmp(p_dev_rec->ble.pseudo_addr, remote_bda, BD_ADDR_LEN) == 0)
+        {
+            *p_dev_type = p_dev_rec->device_type;
+            *p_addr_type = p_dev_rec->ble.ble_addr_type;
+        }
+        else if (memcmp(p_dev_rec->ble.pseudo_addr, remote_bda, BD_ADDR_LEN) == 0)
+        {
+            *p_dev_type = BT_DEVICE_TYPE_BLE;
+            *p_addr_type = p_dev_rec->ble.ble_addr_type;
+        }
+        else  /* matching static adddress only */
+        {
+            *p_dev_type = BT_DEVICE_TYPE_BREDR;
+            *p_addr_type = BLE_ADDR_PUBLIC;
+        }
 
     }
 
@@ -1046,6 +1060,10 @@ void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY
                 p_rec->ble.static_addr_type = p_keys->pid_key.addr_type;
                 p_rec->ble.key_type |= BTM_LE_KEY_PID;
                 BTM_TRACE_DEBUG("BTM_LE_KEY_PID key_type=0x%x save peer IRK",  p_rec->ble.key_type);
+                 /* update device record address as static address */
+                memcpy(p_rec->bd_addr, p_keys->pid_key.static_addr, BD_ADDR_LEN);
+                /* combine DUMO device security record if needed */
+                btm_consolidate_dev(p_rec);
                 break;
 
             case BTM_LE_KEY_PCSRK:
@@ -1751,7 +1769,8 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
     if (!p_dev_rec)
     {
         /* There is no device record for new connection.  Allocate one */
-        p_dev_rec = btm_sec_alloc_dev (bda);
+        if ((p_dev_rec = btm_sec_alloc_dev (bda)) == NULL)
+            return;
     }
     else    /* Update the timestamp for this device */
     {
@@ -1762,6 +1781,8 @@ void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role,
     p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
     p_dev_rec->ble_hci_handle = handle;
     p_dev_rec->ble.ble_addr_type = addr_type;
+    /* update pseudo address */
+    memcpy(p_dev_rec->ble.pseudo_addr, bda, BD_ADDR_LEN);
 
     p_dev_rec->role_master = FALSE;
     if (role == HCI_ROLE_MASTER)
@@ -2386,6 +2407,12 @@ static void btm_ble_process_irk(tSMP_ENC *p)
     {
         memcpy(btm_cb.devcb.id_keys.irk, p->param_buf, BT_OCTET16_LEN);
         btm_notify_new_key(BTM_BLE_KEY_TYPE_ID);
+
+        /* if privacy is enabled, new RPA should be calculated */
+        if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
+        {
+            btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
+        }
     }
     else
     {

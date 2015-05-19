@@ -138,18 +138,14 @@ BOOLEAN btm_ble_deq_resolving_pending(BD_ADDR pseudo_addr)
 *******************************************************************************/
 void btm_ble_clear_irk_index(UINT8 index)
 {
-    tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
     UINT8 byte;
     UINT8 bit;
 
-    for (UINT8 i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i ++, p_dev_rec++)
+    if (index < controller_get_interface()->get_ble_resolving_list_max_size())
     {
-        if (index < controller_get_interface()->get_ble_resolving_list_max_size())
-        {
-            byte = index / 8;
-            bit = index % 8;
-            btm_cb.ble_ctr_cb.irk_list_mask[byte] &= (~(1 << bit));
-        }
+         byte = index / 8;
+         bit = index % 8;
+         btm_cb.ble_ctr_cb.irk_list_mask[byte] &= (~(1 << bit));
     }
 }
 
@@ -773,10 +769,9 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 
     /* only add RPA enabled device into resolving list */
     if (p_dev_rec != NULL && /* RPA is being used and PID is known */
-        p_dev_rec->sec_flags & BTM_SEC_IN_USE &&
-        ((p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0 ||
-        ((p_dev_rec->ble.key_type & BTM_LE_KEY_LID) != 0 &&
-          btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)))
+       (p_dev_rec->sec_flags & BTM_SEC_IN_USE) != 0 &&
+       ((p_dev_rec->ble.key_type & BTM_LE_KEY_PID) != 0 ||
+       (p_dev_rec->ble.key_type & BTM_LE_KEY_LID) != 0))
     {
         if (!(p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
             btm_ble_brcm_find_resolving_pending_entry(p_dev_rec->bd_addr,
@@ -793,33 +788,10 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                 btm_ble_update_resolving_list(p_dev_rec->bd_addr, TRUE);
                 if (controller_get_interface()->supports_ble_privacy())
                 {
-                    UINT8 dummy_irk[HCIC_BLE_IRK_SIZE];
-                    memset(dummy_irk, 0,  HCIC_BLE_IRK_SIZE);
-
-                    UINT8 *peer_irk;
-                    if (BTM_BLE_IS_RESOLVE_BDA(p_dev_rec->bd_addr))
-                         peer_irk = p_dev_rec->ble.keys.irk;
-                    else
-                         peer_irk = dummy_irk;
-
-                    UINT8 *local_irk;
-                    if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE)
-                        local_irk = btm_cb.devcb.id_keys.irk;
-                    else
-                        local_irk = dummy_irk;
-
                     BD_ADDR dummy_bda = {0};
-                    /* for device not assigning static address, use pseudo address as identity */
-                    peer_irk = p_dev_rec->ble.keys.irk;
-                    local_irk = btm_cb.devcb.id_keys.irk;
+                    UINT8 *peer_irk = p_dev_rec->ble.keys.irk;
+                    UINT8 *local_irk = btm_cb.devcb.id_keys.irk;
 
-                    // do not enter IRK if peer or local device does not have privacy turned on
-                    // disable, assume IRK indicate privacy could be enabled at any point,
-                    // warning: this could take up unnecessary spot in controller resolving list,
-                    // and could possible degrade performance; this could prevent conneccting
-                    // to peripheral device which has privacy disabled but IRK delivered per
-                    // standard privacy 1.2 requirement. Need FW mixed mode support to connect
-                    // to both RPA and static address.
                     if (memcmp(p_dev_rec->ble.static_addr, dummy_bda, BD_ADDR_LEN) == 0)
                     {
                         memcpy(p_dev_rec->ble.static_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
