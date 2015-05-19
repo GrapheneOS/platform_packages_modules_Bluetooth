@@ -1899,10 +1899,10 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             memcpy(&ble_local_key_cb.id_keys.dhk[0],
                    &p_data->ble_id_keys.dhk[0], sizeof(BT_OCTET16));
             btif_storage_add_ble_local_key( (char *)&ble_local_key_cb.id_keys.irk[0],
-                                            BTIF_DM_LE_LOCAL_KEY_IR,
+                                            BTIF_DM_LE_LOCAL_KEY_IRK,
                                             BT_OCTET16_LEN);
             btif_storage_add_ble_local_key( (char *)&ble_local_key_cb.id_keys.ir[0],
-                                            BTIF_DM_LE_LOCAL_KEY_IRK,
+                                            BTIF_DM_LE_LOCAL_KEY_IR,
                                             BT_OCTET16_LEN);
             btif_storage_add_ble_local_key( (char *)&ble_local_key_cb.id_keys.dhk[0],
                                             BTIF_DM_LE_LOCAL_KEY_DHK,
