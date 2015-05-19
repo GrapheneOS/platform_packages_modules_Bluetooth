@@ -24,10 +24,11 @@
 #include <dlfcn.h>
 
 #include "buffer_allocator.h"
+#include "bt_vendor_lib.h"
+#include "bta_av_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-#define LAST_VENDOR_OPCODE_VALUE VENDOR_DO_EPILOG
 
 static const char *VENDOR_LIBRARY_NAME = "libbt-vendor.so";
 static const char *VENDOR_LIBRARY_SYMBOL_NAME = "BLUETOOTH_VENDOR_LIB_INTERFACE";
@@ -35,7 +36,7 @@ static const char *VENDOR_LIBRARY_SYMBOL_NAME = "BLUETOOTH_VENDOR_LIB_INTERFACE"
 static const vendor_t interface;
 static const allocator_t *buffer_allocator;
 static const hci_t *hci;
-static vendor_cb callbacks[LAST_VENDOR_OPCODE_VALUE + 1];
+static vendor_cb callbacks[VENDOR_LAST_OP];
 
 static void *lib_handle;
 static bt_vendor_interface_t *lib_interface;
@@ -186,6 +187,16 @@ static void epilog_cb(bt_vendor_op_result_t result) {
   callback(result == BT_VND_OP_RESULT_SUCCESS);
 }
 
+// Called back from vendor library when the a2dp offload machine has to report status of
+// an a2dp offload command.
+static void a2dp_offload_cb(bt_vendor_op_result_t result, bt_vendor_opcode_t op, uint8_t bta_av_handle) {
+  tBTA_AV_STATUS status = (result == BT_VND_OP_RESULT_SUCCESS) ? BTA_AV_SUCCESS : BTA_AV_FAIL_RESOURCES;
+
+  if (op == BT_VND_OP_A2DP_OFFLOAD_START) {
+      BTA_AvOffloadStartRsp(bta_av_handle, status);
+  }
+}
+
 static const bt_vendor_callbacks_t lib_callbacks = {
   sizeof(lib_callbacks),
   firmware_config_cb,
@@ -195,7 +206,8 @@ static const bt_vendor_callbacks_t lib_callbacks = {
   buffer_alloc_cb,
   buffer_free_cb,
   transmit_cb,
-  epilog_cb
+  epilog_cb,
+  a2dp_offload_cb
 };
 
 static const vendor_t interface = {
