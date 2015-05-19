@@ -20,10 +20,12 @@
 #include <string.h>
 #include <time.h>
 
+#include "btcore/include/bdaddr.h"
 #include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_conn.h"
 
 #define NUM_CONNECTION_EVENTS  16
+#define TEMP_BUFFER_SIZE       30
 
 typedef struct conn_event_t {
   uint64_t ts;
@@ -76,7 +78,8 @@ void btif_debug_conn_state(const bt_bdaddr_t bda, const btif_debug_conn_state_t 
 void btif_debug_conn_dump(int fd) {
   const uint8_t current_event_local = current_event; // Cache to avoid threading issues
   uint8_t dump_event = current_event_local;
-  char buffer[30] = {0};
+  char ts_buffer[TEMP_BUFFER_SIZE] = {0};
+  char name_buffer[TEMP_BUFFER_SIZE] = {0};
 
   dprintf(fd, "\nConnection Events:\n");
   if (connection_events[dump_event].ts == 0)
@@ -84,16 +87,14 @@ void btif_debug_conn_dump(int fd) {
 
   while (connection_events[dump_event].ts) {
     conn_event_t *evt = &connection_events[dump_event];
-    dprintf(fd, "  %s %s %%s",
-            format_ts(evt->ts, buffer, sizeof(buffer)),
+    dprintf(fd, "  %s %s %s",
+            format_ts(evt->ts, ts_buffer, sizeof(ts_buffer)),
             format_state(evt->state),
-            bdaddr_to_string(&evt->bda, buffer, sizeof(buffer))
+            bdaddr_to_string(&evt->bda, name_buffer, sizeof(name_buffer))
         );
-    if (evt->state == BTIF_DEBUG_DISCONNECTED) {
-        dprintf(fd," reason=%d\n", evt->disconnect_reason);
-    } else {
-        dprintf(fd,"\n");
-    }
+    if (evt->state == BTIF_DEBUG_DISCONNECTED)
+      dprintf(fd, " reason=%d", evt->disconnect_reason);
+    dprintf(fd,"\n");
 
     // Go to previous event; wrap if needed
     if (dump_event > 0)
