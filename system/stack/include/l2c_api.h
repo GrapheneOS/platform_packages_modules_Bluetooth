@@ -1067,6 +1067,18 @@ extern BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
                                       tL2CAP_CFG_INFO **pp_our_cfg,  tL2CAP_CH_CFG_BITS *p_our_cfg_bits,
                                       tL2CAP_CFG_INFO **pp_peer_cfg, tL2CAP_CH_CFG_BITS *p_peer_cfg_bits);
 
+/*******************************************************************************
+**
+** Function     L2CA_GetConnectionConfig
+**
+** Description  This function polulates the mtu, remote cid & lm_handle for
+**              a given local L2CAP channel
+**
+** Returns      TRUE if successful
+**
+*******************************************************************************/
+extern BOOLEAN L2CA_GetConnectionConfig(UINT16 lcid, UINT16 *mtu, UINT16 *rcid, UINT16 *handle);
+
 #if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
