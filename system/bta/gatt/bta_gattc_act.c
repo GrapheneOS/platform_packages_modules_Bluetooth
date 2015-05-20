@@ -1364,7 +1364,7 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 **
 ** Function         bta_gattc_write_cmpl
 **
-** Description      read complete
+** Description      write complete
 **
 ** Returns          None.
 **
@@ -1380,7 +1380,7 @@ void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 
     if (p_data->p_cmpl != NULL)
     {
-        bta_gattc_handle2id(p_clcb->p_srcb, p_data->p_cmpl->handle,
+        bta_gattc_handle2id(p_clcb->p_srcb, p_data->p_cmpl->att_value.handle,
                             &cb_data.write.srvc_id, &cb_data.write.char_id,
                             &cb_data.write.descr_type);
     }
