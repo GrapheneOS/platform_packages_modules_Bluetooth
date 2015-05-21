@@ -429,30 +429,6 @@ void btm_ble_resolve_random_addr(BD_ADDR random_bda, tBTM_BLE_RESOLVE_CBACK * p_
 *******************************************************************************/
 /*******************************************************************************
 **
-** Function         btm_ble_map_bda_to_conn_bda
-**
-** Description      This function map a BD address to the real connection address
-**                  and return the connection address type.
-*******************************************************************************/
-tBLE_ADDR_TYPE btm_ble_map_bda_to_conn_bda(BD_ADDR bd_addr)
-{
-    tBTM_SEC_DEV_REC    *p_dev_rec = NULL;
-    BTM_TRACE_EVENT ("btm_ble_map_bda_to_conn_bda");
-    if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL &&
-        (p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE)
-    {
-        if (p_dev_rec->ble.ble_addr_type != BLE_ADDR_PUBLIC)
-        {
-            memcpy(bd_addr, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
-        }
-        return p_dev_rec->ble.ble_addr_type;
-    }
-    else
-        return BLE_ADDR_PUBLIC;
-}
-
-/*******************************************************************************
-**
 ** Function         btm_find_dev_by_identity_addr
 **
 ** Description      find the security record whose LE static address is matching
@@ -505,9 +481,6 @@ BOOLEAN btm_identity_addr_to_random_pseudo(BD_ADDR bd_addr, UINT8 *p_addr_type, 
         /* if RPA offloading is supported, or 4.2 controller, do RPA refresh */
         if (refresh && controller_get_interface()->get_ble_resolving_list_max_size() != 0)
             btm_ble_read_resolving_list_entry(p_dev_rec);
-
-        /* assign the original address to be the current report address */
-        memcpy(bd_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
 
         /* assign the original address to be the current report address */
         if (!btm_ble_init_pseudo_addr (p_dev_rec, bd_addr))

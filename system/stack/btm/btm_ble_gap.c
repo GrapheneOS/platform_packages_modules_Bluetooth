@@ -303,9 +303,13 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                            tBTM_INQ_RESULTS_CB *p_results_cb, tBTM_CMPL_CB *p_cmpl_cb)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
-    tBTM_STATUS     status = BTM_WRONG_MODE;
+    tBTM_STATUS status = BTM_WRONG_MODE;
 
-    BTM_TRACE_EVENT ("BTM_BleObserve : scan_type:%d",btm_cb.btm_inq_vars.scan_type);
+    UINT32 scan_interval = !p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval;
+    UINT32 scan_window = !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
+
+    BTM_TRACE_EVENT ("%s : scan_type:%d, %d, %d", __func__, btm_cb.btm_inq_vars.scan_type,
+                      p_inq->scan_interval, p_inq->scan_window);
 
     if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
@@ -315,7 +319,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
         /* shared inquiry database, do not allow observe if any inquiry is active */
         if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
         {
-            BTM_TRACE_ERROR("Observe Already Active");
+            BTM_TRACE_ERROR("%s Observe Already Active", __func__);
             return status;
         }
 
@@ -326,24 +330,36 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
         /* scan is not started */
         if (!BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
         {
-            p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ? BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
-            /* allow config scanning type */
-            btsnd_hcic_ble_set_scan_params (p_inq->scan_type,
-                                            (UINT16)(!p_inq->scan_interval ? BTM_BLE_GAP_DISC_SCAN_INT : p_inq->scan_interval),
-                                            (UINT16)(!p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window),
-                                            btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
-                                            BTM_BLE_DEFAULT_SFP); /* assume observe always not using white list */
+            /* allow config of scan type */
+            p_inq->scan_type = (p_inq->scan_type == BTM_BLE_SCAN_MODE_NONE) ?
+                                                    BTM_BLE_SCAN_MODE_ACTI: p_inq->scan_type;
+            /* assume observe always not using white list */
+            #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+                /* enable resolving list */
+                btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
+            #endif
 
-#if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-            /* enable resolving list */
-            btm_ble_enable_resolving_list_for_platform();
-#endif
-            status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
+            if (cmn_ble_vsc_cb.extended_scan_support == 0)
+            {
+                btsnd_hcic_ble_set_scan_params(p_inq->scan_type, (UINT16)scan_interval,
+                                               (UINT16)scan_window,
+                                               btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                               BTM_BLE_DEFAULT_SFP);
+            }
+            else
+            {
+                btm_ble_send_extended_scan_params(p_inq->scan_type, scan_interval, scan_window,
+                                                  btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type,
+                                                  BTM_BLE_DEFAULT_SFP);
+            }
+
+            p_inq->scan_duplicate_filter = BTM_BLE_DUPLICATE_DISABLE;
+            status = btm_ble_start_scan();
         }
+
         if (status == BTM_CMD_STARTED)
         {
             btm_cb.ble_ctr_cb.scan_activity |= BTM_LE_OBSERVE_ACTIVE;
-
             if (duration != 0)
                 /* start observer timer */
                 btu_start_timer (&btm_cb.ble_ctr_cb.obs_timer_ent, BTU_TTYPE_BLE_OBSERVE, duration);
@@ -356,7 +372,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
     }
     else
     {
-        BTM_TRACE_ERROR("Observe not active");
+        BTM_TRACE_ERROR("%s Observe not active", __func__);
     }
 
     return status;
@@ -414,6 +430,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     else if (!start)
     {
         status = btm_ble_stop_adv();
+        btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
     }
     else
     {
@@ -870,13 +887,17 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                  if ((p_dev_rec = btm_find_or_alloc_dev (p_cb->direct_bda.bda)) != NULL &&
                       p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT)
                  {
-                     btm_ble_enable_resolving_list();
+                     btm_ble_enable_resolving_list(BTM_BLE_RL_ADV);
                      memcpy(p_peer_addr_ptr, p_dev_rec->ble.static_addr, BD_ADDR_LEN);
                      *p_peer_addr_type = p_dev_rec->ble.static_addr_type;
                      *p_own_addr_type = BLE_ADDR_RANDOM_ID;
                      return evt_type;
                  }
                  /* otherwise fall though as normal directed adv */
+                 else
+                 {
+                    btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
+                 }
             }
 #endif
             /* direct adv mode does not have privacy, if privacy is not enabled  */
@@ -910,13 +931,11 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
             /* resolving list is empty, not enabled */
             *p_own_addr_type = BLE_ADDR_RANDOM;
     }
-
     /* privacy 1.1, or privacy 1.2, general discoverable/connectable mode, disable privacy in */
     /* controller fall back to host based privacy */
     else if (btm_cb.ble_ctr_cb.privacy_mode !=  BTM_PRIVACY_NONE)
     {
         *p_own_addr_type = BLE_ADDR_RANDOM;
-        btm_ble_disable_resolving_list ();
     }
 #endif
 
@@ -1673,12 +1692,17 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
         else
             status = btm_ble_stop_adv();
     }
+
     if (p_cb->adv_mode == BTM_BLE_ADV_ENABLE)
     {
         p_cb->fast_adv_on = TRUE;
         /* start initial GAP mode adv timer */
         btu_start_timer (&p_cb->fast_adv_timer, BTU_TTYPE_BLE_GAP_FAST_ADV,
                           BTM_BLE_GAP_FAST_ADV_TOUT);
+    }
+    else
+    {
+        btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
     }
 
     /* set up stop advertising timer */
@@ -1776,6 +1800,10 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
         btu_start_timer (&p_cb->fast_adv_timer, BTU_TTYPE_BLE_GAP_FAST_ADV,
                              BTM_BLE_GAP_FAST_ADV_TOUT);
     }
+    else
+    {
+        btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
+    }
     return status;
 }
 
@@ -1821,9 +1849,10 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
 
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
         /* enable IRK list */
-        btm_ble_enable_resolving_list_for_platform();
+        btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
 #endif
-        status = btm_ble_start_scan(BTM_BLE_DUPLICATE_DISABLE);
+        p_ble_cb->inq_var.scan_duplicate_filter  = BTM_BLE_DUPLICATE_DISABLE;
+        status = btm_ble_start_scan();
     }
 
     if (status == BTM_CMD_STARTED)
@@ -2704,13 +2733,13 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 ** Returns          void
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_start_scan (UINT8 filter_enable)
+tBTM_STATUS btm_ble_start_scan(void)
 {
     tBTM_BLE_INQ_CB *p_inq = &btm_cb.ble_ctr_cb.inq_var;
     tBTM_STATUS status = BTM_CMD_STARTED;
 
     /* start scan, disable duplicate filtering */
-    if (!btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, filter_enable))
+    if (!btsnd_hcic_ble_set_scan_enable (BTM_BLE_SCAN_ENABLE, p_inq->scan_duplicate_filter))
     {
         status = BTM_NO_RESOURCES;
     }
@@ -2865,15 +2894,12 @@ tBTM_STATUS btm_ble_start_adv(void)
         return BTM_WRONG_MODE;
 
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
-    /* When privacy 1.2 goes into general connection/discoverable mode, */
-    /* disable controller privacy */
-    if (p_cb->afp == AP_SCAN_CONN_ALL && btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2)
-       btm_ble_disable_resolving_list();
-    else
-        /* enable resolving list is desired*/
-        btm_ble_enable_resolving_list_for_platform();
+    /* To relax resolving list,  always have resolving list enabled, unless directed adv */
+    if (p_cb->evt_type != BTM_BLE_CONNECT_LO_DUTY_DIR_EVT &&
+        p_cb->evt_type != BTM_BLE_CONNECT_DIR_EVT)
+        /* enable resolving list is desired */
+        btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_ADV);
 #endif
-
     if (p_cb->afp != AP_SCAN_CONN_ALL)
     {
         btm_execute_wl_dev_operation();
@@ -3230,7 +3256,7 @@ void btm_ble_init (void)
     p_cb->inq_var.discoverable_mode = BTM_BLE_NON_DISCOVERABLE;
 
     /* for background connection, reset connection params to be undefined */
-    p_cb->scan_int = p_cb->scan_win = BTM_BLE_CONN_PARAM_UNDEF;
+    p_cb->scan_int = p_cb->scan_win = BTM_BLE_SCAN_PARAM_UNDEF;
 
     p_cb->inq_var.evt_type = BTM_BLE_NON_CONNECT_EVT;
 

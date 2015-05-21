@@ -560,6 +560,191 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
     return st;
 }
 
+
+/*******************************************************************************
+**
+** Function         btm_ble_suspend_resolving_list_activity
+**
+** Description      This function suspends all resolving list activity, including
+**                  scan, initiating, and advertising, if resolving list is being
+**                  enabled.
+**
+** Parameters
+**
+** Returns          TRUE if suspended; FALSE otherwise
+**
+*******************************************************************************/
+BOOLEAN btm_ble_suspend_resolving_list_activity(void)
+{
+    tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
+
+    /* if resolving list is not enabled, do not need to terminate any activity */
+    /* if asking for stop all activity */
+    /* if already suspended */
+    if (p_ble_cb->suspended_rl_state != BTM_BLE_RL_IDLE)
+        return TRUE;
+
+    /* direct connection active, wait until it completed */
+    if (btm_ble_get_conn_st() == BLE_DIR_CONN)
+    {
+        BTM_TRACE_ERROR("resolving list can not be edited, EnQ now");
+        return FALSE;
+    }
+
+    p_ble_cb->suspended_rl_state = BTM_BLE_RL_IDLE;
+
+    if (p_ble_cb->inq_var.adv_mode == BTM_BLE_ADV_ENABLE)
+    {
+        btm_ble_stop_adv();
+        p_ble_cb->suspended_rl_state |= BTM_BLE_RL_ADV;
+    }
+
+    if (BTM_BLE_IS_SCAN_ACTIVE(p_ble_cb->scan_activity))
+    {
+        btm_ble_stop_scan();
+        p_ble_cb->suspended_rl_state |= BTM_BLE_RL_SCAN;
+    }
+
+    if (btm_ble_suspend_bg_conn())
+        p_ble_cb->suspended_rl_state |= BTM_BLE_RL_INIT;
+
+    return TRUE;
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_resume_resolving_list_activity
+**
+** Description      This function resumes the resolving list activity, including
+**                  scanning, initiating, and advertising, if any of these
+**                  activities has been suspended earlier.
+**
+** Returns          none
+**
+*******************************************************************************/
+void btm_ble_resume_resolving_list_activity(void)
+{
+    tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
+
+    if (p_ble_cb->suspended_rl_state & BTM_BLE_RL_ADV)
+        btm_ble_start_adv();
+
+    if (p_ble_cb->suspended_rl_state & BTM_BLE_RL_SCAN)
+        btm_ble_start_scan();
+
+    if  (p_ble_cb->suspended_rl_state & BTM_BLE_RL_INIT)
+        btm_ble_resume_bg_conn();
+
+    p_ble_cb->suspended_rl_state = BTM_BLE_RL_IDLE;
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_vendor_enable_irk_feature
+**
+** Description      This function is called to enable or disable the RRA
+**                  offloading feature.
+**
+** Parameters       enable: enable or disable the RRA offloading feature
+**
+** Returns          BTM_SUCCESS if successful
+**
+*******************************************************************************/
+tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
+{
+    UINT8           param[20], *p;
+    tBTM_STATUS     st = BTM_MODE_UNSUPPORTED;
+
+    p = param;
+    memset(param, 0, 20);
+
+    /* select feature based on control block settings */
+    UINT8_TO_STREAM(p, BTM_BLE_META_IRK_ENABLE);
+    UINT8_TO_STREAM(p, enable ? 0x01 : 0x00);
+
+    st = BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
+                                    param, btm_ble_resolving_list_vsc_op_cmpl);
+
+    return st;
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_exe_disable_resolving_list
+**
+** Description      execute resolving list disable
+**
+** Returns          none
+**
+*******************************************************************************/
+BOOLEAN btm_ble_exe_disable_resolving_list(void)
+{
+    if (!btm_ble_suspend_resolving_list_activity())
+        return FALSE;
+
+    if (!controller_get_interface()->supports_ble_privacy())
+        btm_ble_vendor_enable_irk_feature(FALSE);
+    else
+        btsnd_hcic_ble_set_addr_resolution_enable(FALSE);
+
+    return TRUE;
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_exe_enable_resolving_list
+**
+** Description      enable LE resolve address list
+**
+** Returns          none
+**
+*******************************************************************************/
+void btm_ble_exe_enable_resolving_list(void)
+{
+    if (!btm_ble_suspend_resolving_list_activity())
+        return;
+
+    if (!controller_get_interface()->supports_ble_privacy())
+        btm_ble_vendor_enable_irk_feature(TRUE);
+    else
+        btsnd_hcic_ble_set_addr_resolution_enable(TRUE);
+}
+
+/*******************************************************************************
+**
+** Function         btm_ble_disable_resolving_list
+**
+** Description      Disable LE Address resolution
+**
+** Returns          none
+**
+*******************************************************************************/
+BOOLEAN btm_ble_disable_resolving_list(UINT8 rl_mask, BOOLEAN to_resume )
+{
+    UINT8 rl_state = btm_cb.ble_ctr_cb.rl_state;
+
+    /* if controller does not support RPA offloading or privacy 1.2, skip */
+    if (controller_get_interface()->get_ble_resolving_list_max_size()== 0)
+        return FALSE;
+
+    btm_cb.ble_ctr_cb.rl_state &= ~rl_mask;
+
+    if (rl_state != BTM_BLE_RL_IDLE && btm_cb.ble_ctr_cb.rl_state == BTM_BLE_RL_IDLE)
+    {
+        if (btm_ble_exe_disable_resolving_list())
+        {
+            if (to_resume)
+                btm_ble_resume_resolving_list_activity();
+
+            return TRUE;
+        }
+        else
+            return FALSE;
+    }
+
+    return TRUE;
+}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_resolving_list_load_dev
@@ -574,6 +759,8 @@ tBTM_STATUS btm_ble_read_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     BOOLEAN rt = FALSE;
+    UINT8 rl_mask = btm_cb.ble_ctr_cb.rl_state;
+
     BTM_TRACE_DEBUG("%s btm_cb.ble_ctr_cb.privacy_mode = %d", __func__,
                                 btm_cb.ble_ctr_cb.privacy_mode);
 
@@ -597,6 +784,12 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
         {
             if (btm_cb.ble_ctr_cb.resolving_list_avail_size > 0)
             {
+                if (rl_mask)
+                {
+                    if (!btm_ble_disable_resolving_list (rl_mask, FALSE))
+                        return FALSE;
+                }
+
                 btm_ble_update_resolving_list(p_dev_rec->bd_addr, TRUE);
                 if (controller_get_interface()->supports_ble_privacy())
                 {
@@ -659,6 +852,10 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                if (rt)
                    btm_ble_enq_resolving_list_pending(p_dev_rec->bd_addr,
                                                       BTM_BLE_META_ADD_IRK_ENTRY);
+
+                /* if resolving list has been turned on, re-enable it */
+                if (rl_mask)
+                    btm_ble_enable_resolving_list(rl_mask);
             }
         }
         else
@@ -687,7 +884,14 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 *******************************************************************************/
 void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
 {
-    btm_ble_update_resolving_list(p_dev_rec->bd_addr, FALSE);
+    UINT8 rl_mask = btm_cb.ble_ctr_cb.rl_state;
+
+    BTM_TRACE_EVENT ("%s", __func__);
+    if (rl_mask)
+    {
+        if (!btm_ble_disable_resolving_list (rl_mask, FALSE))
+             return;
+    }
 
     if ((p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
         btm_ble_brcm_find_resolving_pending_entry(p_dev_rec->bd_addr,
@@ -700,57 +904,10 @@ void btm_ble_resolving_list_remove_dev(tBTM_SEC_DEV_REC *p_dev_rec)
     {
         BTM_TRACE_DEBUG("Device not in resolving list");
     }
-}
 
-/*******************************************************************************
-**
-** Function         btm_ble_vendor_enable_irk_feature
-**
-** Description      This function is called to enable or disable the RRA
-**                  offloading feature.
-**
-** Parameters       enable: enable or disable the RRA offloading feature
-**
-** Returns          BTM_SUCCESS if successful
-**
-*******************************************************************************/
-tBTM_STATUS btm_ble_vendor_enable_irk_feature(BOOLEAN enable)
-{
-    UINT8 param[20] = {0};
-    UINT8 *p = param;
-
-    /* select feature based on control block settings */
-    UINT8_TO_STREAM(p, BTM_BLE_META_IRK_ENABLE);
-    UINT8_TO_STREAM(p, enable ? 0x01 : 0x00);
-
-    return BTM_VendorSpecificCommand (HCI_VENDOR_BLE_RPA_VSC, BTM_BLE_IRK_ENABLE_LEN,
-                                    param, btm_ble_resolving_list_vsc_op_cmpl);
-}
-
-/*******************************************************************************
-**
-** Function         btm_ble_disable_resolving_list
-**
-** Description      disable LE resolve address feature
-**
-** Returns          none
-**
-*******************************************************************************/
-void btm_ble_disable_resolving_list(void)
-{
-    /* if controller does not support RPA offloading or privacy 1.2, skip */
-    if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
-        return;
-
-    if (btm_cb.ble_ctr_cb.enabled)
-    {
-        if (!controller_get_interface()->supports_ble_privacy())
-            btm_ble_vendor_enable_irk_feature(FALSE);
-        else
-            btsnd_hcic_ble_set_addr_resolution_enable(FALSE);
-
-        btm_cb.ble_ctr_cb.enabled = FALSE;
-    }
+    /* if resolving list has been turned on, re-enable it */
+    if (rl_mask)
+        btm_ble_enable_resolving_list(rl_mask);
 }
 
 /*******************************************************************************
@@ -762,17 +919,17 @@ void btm_ble_disable_resolving_list(void)
 ** Returns          none
 **
 *******************************************************************************/
-void btm_ble_enable_resolving_list(void)
+void btm_ble_enable_resolving_list(UINT8 rl_mask)
 {
-    if (!btm_cb.ble_ctr_cb.enabled &&
+    UINT8 rl_state = btm_cb.ble_ctr_cb.rl_state;
+
+    btm_cb.ble_ctr_cb.rl_state |= rl_mask;
+    if (rl_state == BTM_BLE_RL_IDLE &&
+        btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE &&
         controller_get_interface()->get_ble_resolving_list_max_size() != 0)
     {
-        if (!controller_get_interface()->supports_ble_privacy())
-            btm_ble_vendor_enable_irk_feature(TRUE);
-        else
-            btsnd_hcic_ble_set_addr_resolution_enable(TRUE);
-
-        btm_cb.ble_ctr_cb.enabled = TRUE;
+        btm_ble_exe_enable_resolving_list();
+        btm_ble_resume_resolving_list_activity();
     }
 }
 
@@ -802,7 +959,7 @@ BOOLEAN btm_ble_resolving_list_empty(void)
 ** Returns          none
 **
 *******************************************************************************/
-void btm_ble_enable_resolving_list_for_platform (void)
+void btm_ble_enable_resolving_list_for_platform (UINT8 rl_mask)
 {
     /* if controller does not support, skip */
     if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
@@ -811,10 +968,10 @@ void btm_ble_enable_resolving_list_for_platform (void)
     if (btm_cb.ble_ctr_cb.wl_state == BTM_BLE_WL_IDLE)
     {
         if (controller_get_interface()->get_ble_resolving_list_max_size() >
-                                              btm_cb.ble_ctr_cb.resolving_list_avail_size)
-            btm_ble_enable_resolving_list();
+                                        btm_cb.ble_ctr_cb.resolving_list_avail_size)
+            btm_ble_enable_resolving_list(rl_mask);
         else
-            btm_ble_disable_resolving_list();
+            btm_ble_disable_resolving_list(rl_mask, TRUE);
         return;
     }
 
@@ -824,11 +981,11 @@ void btm_ble_enable_resolving_list_for_platform (void)
         if ((p_dev->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) &&
             (p_dev->ble.in_controller_list & BTM_WHITE_LIST_BIT))
         {
-            btm_ble_enable_resolving_list();
+            btm_ble_enable_resolving_list(rl_mask);
             return;
         }
     }
-    btm_ble_disable_resolving_list();
+    btm_ble_disable_resolving_list(rl_mask, TRUE);
 }
 
 /*******************************************************************************
@@ -862,6 +1019,7 @@ void btm_ble_resolving_list_init(UINT8 max_irk_list_sz)
 
     controller_get_interface()->set_ble_resolving_list_max_size(max_irk_list_sz);
     btm_ble_clear_resolving_list();
+    btm_cb.ble_ctr_cb.resolving_list_avail_size = max_irk_list_sz;
 }
 
 /*******************************************************************************

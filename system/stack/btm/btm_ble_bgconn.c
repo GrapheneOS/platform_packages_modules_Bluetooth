@@ -380,13 +380,14 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
             btm_execute_wl_dev_operation();
 
 #if BLE_PRIVACY_SPT == TRUE
-            btm_ble_enable_resolving_list_for_platform();
+            btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_INIT);
 #endif
-            scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ?
+            scan_int = (p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF) ?
                                           BTM_BLE_SCAN_SLOW_INT_1 : p_cb->scan_int;
-            scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ?
+            scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF) ?
                                           BTM_BLE_SCAN_SLOW_WIN_1 : p_cb->scan_win;
-            if (btm_cb.ble_ctr_cb.enabled)
+
+            if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE)
             {
                 own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
                 peer_addr_type |= BLE_ADDR_TYPE_ID_BIT;
@@ -429,10 +430,8 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
         }
         else
         {
-#if 0
-            BTM_TRACE_ERROR("conn_st = %d, not in auto conn state, can not stop.", p_cb->conn_state);
+            BTM_TRACE_DEBUG("conn_st = %d, not in auto conn state, cannot stop", p_cb->conn_state);
             exec = FALSE;
-#endif
         }
     }
     return exec;
@@ -454,9 +453,8 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
 BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_cback)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    UINT16 scan_int, scan_win;
-
-    BTM_TRACE_EVENT ("btm_ble_start_select_conn");
+    UINT32 scan_int = p_cb->scan_int == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
+    UINT32 scan_win = p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
 
     scan_int = (p_cb->scan_int == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_INT : p_cb->scan_int;
     scan_win = (p_cb->scan_win == BTM_BLE_CONN_PARAM_UNDEF) ? BTM_BLE_SCAN_FAST_WIN : p_cb->scan_win;
@@ -488,6 +486,9 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start,tBTM_BLE_SEL_CBACK   *p_select_c
             }
             else if (background_connections_pending())
             {
+#if BLE_PRIVACY_SPT == TRUE
+                btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
+#endif
                 if (!btsnd_hcic_ble_set_scan_enable(TRUE, TRUE)) /* duplicate filtering enabled */
                     return FALSE;
 
@@ -549,19 +550,16 @@ void btm_ble_initiate_select_conn(BD_ADDR bda)
 ** Returns          none.
 **
 *******************************************************************************/
-void btm_ble_suspend_bg_conn(void)
+BOOLEAN btm_ble_suspend_bg_conn(void)
 {
-    tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
-    BTM_TRACE_EVENT ("btm_ble_suspend_bg_conn");
+    BTM_TRACE_EVENT ("%s", __func__);
 
-    if (p_cb->bg_conn_type == BTM_BLE_CONN_AUTO)
-    {
-        btm_ble_start_auto_conn(FALSE);
-    }
-    else if (p_cb->bg_conn_type == BTM_BLE_CONN_SELECTIVE)
-    {
-        btm_ble_start_select_conn(FALSE, NULL);
-    }
+    if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_AUTO)
+        return btm_ble_start_auto_conn(FALSE);
+    else if (btm_cb.ble_ctr_cb.bg_conn_type == BTM_BLE_CONN_SELECTIVE)
+        return btm_ble_start_select_conn(FALSE, NULL);
+
+    return FALSE;
 }
 /*******************************************************************************
 **
