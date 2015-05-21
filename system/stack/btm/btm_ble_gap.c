@@ -457,7 +457,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
         STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
 
-        if (BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN == p_vcs_cplt_params->param_len)
+        if (btm_cb.cmn_ble_vsc_cb.version_supported == BTM_VSC_CHIP_CAPABILITY_M_VERSION)
         {
             STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.version_supported, p);
             STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
@@ -465,9 +465,10 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         btm_cb.cmn_ble_vsc_cb.values_read = TRUE;
     }
 
-    BTM_TRACE_DEBUG("btm_ble_vnd_cap_vsc_cmpl_cback: stat=%d, irk=%d, ADV ins:%d, rpa=%d, ener=%d",
-         status,btm_cb.cmn_ble_vsc_cb.max_irk_list_sz, btm_cb.cmn_ble_vsc_cb.adv_inst_max,
-         btm_cb.cmn_ble_vsc_cb.rpa_offloading, btm_cb.cmn_ble_vsc_cb.energy_support);
+    BTM_TRACE_DEBUG("%s: stat=%d, irk=%d, ADV ins:%d, rpa=%d, ener=%d, ext_scan=%d",
+         __func__, status, btm_cb.cmn_ble_vsc_cb.max_irk_list_sz,
+         btm_cb.cmn_ble_vsc_cb.adv_inst_max, btm_cb.cmn_ble_vsc_cb.rpa_offloading,
+         btm_cb.cmn_ble_vsc_cb.energy_support, btm_cb.cmn_ble_vsc_cb.extended_scan_support);
 
     if (BTM_BleMaxMultiAdvInstanceCount() > 0)
         btm_ble_multi_adv_init();
@@ -3213,7 +3214,7 @@ void btm_ble_init (void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
 
-    BTM_TRACE_EVENT ("btm_ble_init ");
+    BTM_TRACE_DEBUG("%s", __func__);
 
     memset(p_cb, 0, sizeof(tBTM_BLE_CB));
     memset(&(btm_cb.cmn_ble_vsc_cb), 0 , sizeof(tBTM_BLE_VSC_CB));
