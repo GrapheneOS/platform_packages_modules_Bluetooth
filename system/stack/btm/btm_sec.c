@@ -4218,7 +4218,7 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
             p_dev_rec->sec_flags &= ~ (BTM_SEC_LE_LINK_KEY_KNOWN);
             p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
         }
-        btm_ble_link_encrypted(p_dev_rec->bd_addr, encr_enable);
+        btm_ble_link_encrypted(p_dev_rec->ble.pseudo_addr, encr_enable);
         return;
     }
     else
