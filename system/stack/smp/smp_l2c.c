@@ -216,11 +216,16 @@ static void smp_tx_complete_callback (UINT16 cid, UINT16 num_pkt)
     if (p_cb->total_tx_unacked >= num_pkt)
         p_cb->total_tx_unacked -= num_pkt;
     else
-        SMP_TRACE_ERROR("Unexpected %s: num_pkt = %d", __FUNCTION__,num_pkt);
+        SMP_TRACE_ERROR("Unexpected %s: num_pkt = %d", __func__,num_pkt);
 
     UINT8 reason = SMP_SUCCESS;
     if (p_cb->total_tx_unacked == 0 && p_cb->wait_for_authorization_complete)
-        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+    {
+        if (cid == L2CAP_SMP_CID)
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+        else
+            smp_br_state_machine_event(p_cb, SMP_BR_AUTH_CMPL_EVT, &reason);
+    }
 }
 
 /*******************************************************************************
