@@ -1,0 +1,13 @@
+set_default_toolchain("//build/toolchain/gcc")
+
+set_defaults("executable") {
+  configs = [ "//build:linux", "//build:gc" ]
+}
+
+set_defaults("shared_library") {
+  configs = [ "//build:linux", "//build:pic" ]
+}
+
+set_defaults("source_set") {
+  configs = [ "//build:linux", "//build:pic" ]
+}
