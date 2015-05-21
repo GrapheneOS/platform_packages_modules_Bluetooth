@@ -170,8 +170,10 @@ typedef struct
 #define BTA_SEC_AUTHENTICATE    (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_OUT_AUTHENTICATE) /* Authentication required. */
 #define BTA_SEC_ENCRYPT         (BTM_SEC_IN_ENCRYPT | BTM_SEC_OUT_ENCRYPT)           /* Encryption required. */
 #define BTA_SEC_MODE4_LEVEL4    (BTM_SEC_MODE4_LEVEL4)                               /* Mode 4 level 4 service, i.e. incoming/outgoing MITM and P-256 encryption */
+#define BTA_SEC_MITM            (BTM_SEC_IN_MITM | BTM_SEC_OUT_MITM)                 /* Man-In-The_Middle protection */
+#define BTA_SEC_IN_16_DIGITS    (BTM_SEC_IN_MIN_16_DIGIT_PIN)                        /* Min 16 digit for pin code */
 
-typedef UINT8 tBTA_SEC;
+typedef UINT16 tBTA_SEC;
 
 /* Ignore for Discoverable, Connectable, Pairable and Connectable Paired only device modes */
 
@@ -651,6 +653,7 @@ typedef struct
     BD_ADDR         bd_addr;            /* BD address peer device. */
     DEV_CLASS       dev_class;          /* Class of Device */
     BD_NAME         bd_name;            /* Name of peer device. */
+    BOOLEAN         min_16_digit;       /* TRUE if the pin returned must be at least 16 digits */
 } tBTA_DM_PIN_REQ;
 
 /* BLE related definition */
@@ -1606,7 +1609,7 @@ extern void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept);
 extern void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class,
                             LINK_KEY link_key, tBTA_SERVICE_MASK trusted_mask,
                             BOOLEAN is_trusted, UINT8 key_type,
-                            tBTA_IO_CAP io_cap);
+                            tBTA_IO_CAP io_cap, UINT8 pin_length);
 
 /*******************************************************************************
 **
