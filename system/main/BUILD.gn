@@ -1,0 +1,129 @@
+shared_library("bluetooth.default") {
+  # HAL layer
+  sources = [
+    "//btif/src/bluetooth.c",
+  ]
+
+  # platform specific
+  sources += [
+    "bte_main.c",
+    "bte_init.c",
+    "bte_logmsg.c",
+    "bte_conf.c",
+    "stack_config.c",
+  ]
+
+  # BTIF
+  sources += [
+    "//btif/src/btif_av.c",
+    "//btif/src/btif_config.c",
+    "//btif/src/btif_config_transcode.cpp",
+    "//btif/src/btif_core.c",
+    "//btif/src/btif_dm.c",
+    "//btif/src/btif_gatt.c",
+    "//btif/src/btif_gatt_client.c",
+    "//btif/src/btif_gatt_multi_adv_util.c",
+    "//btif/src/btif_gatt_server.c",
+    "//btif/src/btif_gatt_test.c",
+    "//btif/src/btif_gatt_util.c",
+    "//btif/src/btif_hf.c",
+    "//btif/src/btif_hf_client.c",
+    "//btif/src/btif_hh.c",
+    "//btif/src/btif_hl.c",
+    "//btif/src/btif_mce.c",
+    "//btif/src/btif_media_task.c",
+    "//btif/src/btif_pan.c",
+    "//btif/src/btif_profile_queue.c",
+    "//btif/src/btif_rc.c",
+    "//btif/src/btif_sm.c",
+    "//btif/src/btif_sock.c",
+    "//btif/src/btif_sock_rfc.c",
+    "//btif/src/btif_sock_sco.c",
+    "//btif/src/btif_sock_sdp.c",
+    "//btif/src/btif_sock_thread.c",
+    "//btif/src/btif_sock_util.c",
+    "//btif/src/btif_storage.c",
+    "//btif/src/btif_util.c",
+    "//btif/src/stack_manager",
+  ]
+
+  # callouts
+  sources += [
+    "//btif/co/bta_ag_co.c",
+    "//btif/co/bta_dm_co.c",
+    "//btif/co/bta_av_co.c",
+    "//btif/co/bta_hh_co.c",
+    "//btif/co/bta_hl_co.c",
+    "//btif/co/bta_pan_co.c",
+    "//btif/co/bta_gattc_co.c",
+    "//btif/co/bta_gatts_co.c",
+  ]
+
+  # sbc encoder
+  sources += [
+    "//embdrv/sbc/encoder/srce/sbc_analysis.c",
+    "//embdrv/sbc/encoder/srce/sbc_dct.c",
+    "//embdrv/sbc/encoder/srce/sbc_dct_coeffs.c",
+    "//embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c",
+    "//embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c",
+    "//embdrv/sbc/encoder/srce/sbc_enc_coeffs.c",
+    "//embdrv/sbc/encoder/srce/sbc_encoder.c",
+    "//embdrv/sbc/encoder/srce/sbc_packing.c",
+  ]
+
+  sources += [
+    "//udrv/ulinux/uipc.c",
+  ]
+
+  include_dirs = [
+    "//",
+    "//bta/include",
+    "//bta/sys",
+    "//bta/dm",
+    "//btcore/include",
+    "//osi/include",
+    "//gki/common",
+    "//gki/ulinux",
+    "//include",
+    "//stack/include",
+    "//stack/l2cap",
+    "//stack/a2dp",
+    "//stack/btm",
+    "//stack/avdt",
+    "//hci",
+    "//hci/include",
+    "//udrv/include",
+    "//btif/include",
+    "//btif/co",
+    "//hci/includ",
+    "//vnd/include",
+    "//brcm/include",
+    "//embdrv/sbc/encoder/include",
+    "//embdrv/sbc/decoder/include",
+    "//audio_a2dp_hw",
+    "//utils/include",
+  ]
+
+  deps = [
+    "//bta",
+    "//gki",
+    "//stack",
+    "//device",
+    "//hci",
+    "//utils",
+    "//btcore",
+    "//osi",
+    # TODO tinyxml2
+    # TODO qcom sbc decoder
+  ]
+
+  cflags = [
+    "-Wno-unused-variable",
+    "-Wno-unused-value",
+    "-Wno-unused-function",
+    "-Wno-int-to-pointer-cast",
+  ]
+  cflags_c = [
+    "-Wno-pointer-to-int-cast",
+  ]
+}

@@ -1,0 +1,58 @@
+source_set("osi") {
+  sources = [
+    "src/alarm.c",
+    "src/allocation_tracker.c",
+    "src/allocator.c",
+    "src/array.c",
+    "src/buffer.c",
+    "src/compat.c",
+    "src/config.c",
+    "src/data_dispatcher.c",
+    "src/eager_reader.c",
+    "src/fixed_queue.c",
+    "src/future.c",
+    "src/hash_functions.c",
+    "src/hash_map.c",
+    "src/list.c",
+    "src/non_repeating_timer.c",
+    "src/reactor.c",
+    "src/semaphore.c",
+    "src/socket.c",
+    "src/thread.c",
+  ]
+
+  include_dirs = [
+    "include",
+    "//"
+  ]
+}
+
+executable("net_test_osi") {
+  sources = [
+    "test/AlarmTestHarness.cpp",
+    "test/AllocationTestHarness.cpp",
+    "test/alarm_test.cpp",
+    "test/allocation_tracker_test.cpp",
+    "test/array_test.cpp",
+    "test/atomic_test.cpp",
+    "test/config_test.cpp",
+    "test/data_dispatcher_test.cpp",
+    "test/eager_reader_test.cpp",
+    "test/future_test.cpp",
+    "test/hash_map_test.cpp",
+    "test/list_test.cpp",
+    "test/reactor_test.cpp",
+    "test/thread_test.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "//",
+  ]
+
+  deps = [
+    "//osi",
+  ]
+
+  libs = [ "-lpthread", "-lrt" ]
+}

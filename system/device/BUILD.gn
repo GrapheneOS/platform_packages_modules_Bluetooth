@@ -1,0 +1,37 @@
+source_set("device") {
+  sources = [
+    "src/classic/peer.c",
+    "src/controller.c"
+  ]
+
+  include_dirs = [
+    "//",
+    "include",
+    "//btcore/include",
+    "//gki/common",
+    "//hci/include",
+    "//include",
+    "//osi/include",
+    "//stack/include",
+  ]
+}
+
+executable("net_test_device") {
+  sources = [
+    "//osi/test/AllocationTestHarness.cpp",
+    "test/classic/peer_test.cpp",
+  ]
+
+  include_dirs = [
+    "//",
+    "//osi/include",
+  ]
+
+  deps = [
+    "//device",
+    "//btcore",
+    "//osi",
+  ]
+
+  libs = [ "-lpthread", "-lrt", "-ldl" ]
+}
