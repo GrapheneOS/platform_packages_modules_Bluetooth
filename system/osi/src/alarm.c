@@ -26,6 +26,7 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
