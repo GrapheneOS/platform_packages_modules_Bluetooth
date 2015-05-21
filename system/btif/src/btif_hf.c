@@ -1342,7 +1342,8 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
     }
 
     /* Held Changed? */
-    if (num_held != btif_hf_cb[idx].num_held)
+    if (num_held != btif_hf_cb[idx].num_held  ||
+        ((num_active == 0) && ((num_held + btif_hf_cb[idx].num_held) > 1)))
     {
         BTIF_TRACE_DEBUG("%s: Held call states changed. old: %d new: %d",
                         __FUNCTION__, btif_hf_cb[idx].num_held, num_held);
