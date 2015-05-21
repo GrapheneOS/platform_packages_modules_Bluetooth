@@ -1,0 +1,39 @@
+source_set("btcore") {
+  sources = [
+    "src/bdaddr.c",
+    "src/counter.c",
+    "src/device_class.c",
+    "src/module.c",
+    "src/property.c",
+    "src/uuid.c",
+  ]
+
+  include_dirs = [
+    "include",
+    "//osi/include",
+    "//",
+  ]
+}
+
+executable("net_test_btcore") {
+  sources = [
+    "test/bdaddr_test.cpp",
+    "test/counter_test.cpp",
+    "test/device_class_test.cpp",
+    "test/property_test.cpp",
+    "test/uuid_test.cpp",
+    "//osi/test/AllocationTestHarness.cpp",
+  ]
+
+  include_dirs = [
+    "include",
+    "//",
+  ]
+
+  deps = [
+    "//btcore",
+    "//osi",
+  ]
+
+  libs = [ "-lpthread", "-lrt", "-ldl" ]
+}

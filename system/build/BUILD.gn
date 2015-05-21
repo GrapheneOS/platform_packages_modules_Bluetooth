@@ -1,0 +1,31 @@
+config("linux") {
+  # TODO: include from system/core, libhardware
+  # TODO: AndroidConfig.h or equivalent
+  # TODO: gtest
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g",
+    "-O0",
+  ]
+
+  cflags_c = [
+    "-std=c99"
+  ]
+
+  defines = [
+    "_FORTIFY_SOURCE=2",
+    "_GNU_SOURCE",
+    "HAS_NO_BDROID_BUILDCFG",
+    "LOG_NDEBUG=1",
+  ]
+}
+
+config("pic") {
+  cflags = [ "-fPIC" ]
+}
+
+config("gc") {
+  ldflags = [ "-Wl,--gc-sections" ]
+}

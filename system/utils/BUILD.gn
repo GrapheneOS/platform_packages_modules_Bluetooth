@@ -1,0 +1,13 @@
+source_set("utils") {
+  sources = [
+    "src/bt_utils.c"
+  ]
+
+  include_dirs = [
+    "include",
+    "//btcore/include",
+    "//osi/include",
+    "//stack/include",
+    "//",
+  ]
+}
