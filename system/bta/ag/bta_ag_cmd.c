@@ -1552,6 +1552,18 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             }
             break;
 
+        case BTA_AG_MULTI_CALL_RES:
+            /* open SCO at SLC for this three way call */
+            APPL_TRACE_DEBUG("Headset Connected in three way call");
+            if (!(p_scb->features & BTA_AG_FEAT_NOSCO))
+            {
+                if (p_result->data.audio_handle == bta_ag_scb_to_idx(p_scb))
+                    bta_ag_sco_open(p_scb, (tBTA_AG_DATA *) p_result);
+                else if (p_result->data.audio_handle == BTA_AG_HANDLE_NONE)
+                    bta_ag_sco_close(p_scb, (tBTA_AG_DATA *) p_result);
+            }
+            break;
+
         case BTA_AG_OUT_CALL_CONN_RES:
             /* send indicators */
             bta_ag_send_call_inds(p_scb, p_result->result);
