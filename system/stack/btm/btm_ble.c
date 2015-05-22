@@ -500,14 +500,14 @@ void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window)
+void BTM_BleSetConnScanParams (UINT32 scan_interval, UINT32 scan_window)
 {
 #if SMP_INCLUDED == TRUE
     tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
     BOOLEAN     new_param = FALSE;
 
-    if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
-        BTM_BLE_VALID_PRAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX))
+    if (BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
+        BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX))
     {
         if (p_ble_cb->scan_int != scan_interval)
         {
@@ -560,9 +560,9 @@ void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
                     tout: %u",
                     min_conn_int, max_conn_int, slave_latency, supervision_tout);
 
-    if (BTM_BLE_VALID_PRAM(min_conn_int, BTM_BLE_CONN_INT_MIN, BTM_BLE_CONN_INT_MAX) &&
-        BTM_BLE_VALID_PRAM(max_conn_int, BTM_BLE_CONN_INT_MIN, BTM_BLE_CONN_INT_MAX) &&
-        BTM_BLE_VALID_PRAM(supervision_tout, BTM_BLE_CONN_SUP_TOUT_MIN, BTM_BLE_CONN_SUP_TOUT_MAX) &&
+    if (BTM_BLE_ISVALID_PARAM(min_conn_int, BTM_BLE_CONN_INT_MIN, BTM_BLE_CONN_INT_MAX) &&
+        BTM_BLE_ISVALID_PARAM(max_conn_int, BTM_BLE_CONN_INT_MIN, BTM_BLE_CONN_INT_MAX) &&
+        BTM_BLE_ISVALID_PARAM(supervision_tout, BTM_BLE_CONN_SUP_TOUT_MIN, BTM_BLE_CONN_SUP_TOUT_MAX) &&
         (slave_latency <= BTM_BLE_CONN_LATENCY_MAX || slave_latency == BTM_BLE_CONN_PARAM_UNDEF))
     {
         if (p_dev_rec)

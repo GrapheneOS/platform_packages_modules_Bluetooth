@@ -96,6 +96,9 @@ typedef UINT8   tBTM_BLE_SEC_REQ_ACT;
 /* BLE ADDR type ID bit */
 #define BLE_ADDR_TYPE_ID_BIT 0x02
 
+#define BTM_VSC_CHIP_CAPABILITY_L_VERSION 55
+#define BTM_VSC_CHIP_CAPABILITY_M_VERSION 95
+
 typedef struct
 {
     UINT16              data_mask;
@@ -117,7 +120,7 @@ typedef struct
 #define BTM_BLE_ADV_DATA_LEN_MAX        31
 #define BTM_BLE_CACHE_ADV_DATA_MAX      62
 
-#define BTM_BLE_VALID_PRAM(x, min, max)  (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
+#define BTM_BLE_ISVALID_PARAM(x, min, max)  (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
 
 #define BTM_BLE_PRIVATE_ADDR_INT    900  /* 15 minutes minimum for random address refreshing */
 
@@ -353,6 +356,9 @@ extern void btm_ble_stop_scan(void);
 extern void btm_clear_all_pending_le_entry(void);
 
 extern void btm_ble_stop_scan();
+extern BOOLEAN btm_ble_send_extended_scan_params(UINT8 scan_type, UINT32 scan_int,
+                                                 UINT32 scan_win, UINT8 addr_type_own,
+                                                 UINT8 scan_filter_policy);
 extern void btm_ble_stop_inquiry(void);
 extern void btm_ble_init (void);
 extern void btm_ble_connected (UINT8 *bda, UINT16 handle, UINT8 enc_mode, UINT8 role, tBLE_ADDR_TYPE addr_type, BOOLEAN addr_matched);

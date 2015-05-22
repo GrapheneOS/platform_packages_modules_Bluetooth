@@ -64,7 +64,8 @@ enum
     BTM_REPEATED_ATTEMPTS,              /* 19 repeated attempts for LE security requests */
     BTM_MODE4_LEVEL4_NOT_SUPPORTED      /* 20 Secure Connections Only Mode can't be supported */
 };
-typedef UINT8 tBTM_STATUS;
+
+typedef uint8_t tBTM_STATUS;
 
 #if (defined(BTA_HOST_INTERLEAVE_SEARCH) && BTA_HOST_INTERLEAVE_SEARCH == TRUE)
 typedef enum

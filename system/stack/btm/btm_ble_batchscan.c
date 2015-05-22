@@ -82,9 +82,8 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
         memset(&adv_data, 0 , sizeof(tBTM_BLE_TRACK_ADV_DATA));
         BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
         adv_data.client_if = (UINT8)ble_advtrack_cb.ref_value;
-        if (cmn_ble_vsc_cb.version_supported > 0)
+        if (cmn_ble_vsc_cb.version_supported > BTM_VSC_CHIP_CAPABILITY_L_VERSION)
         {
-            /* Based on spec v0.90 */
             STREAM_TO_UINT8(adv_data.filt_index, p);
             STREAM_TO_UINT8(adv_data.advertiser_state, p);
             STREAM_TO_UINT8(adv_data.advertiser_info_present, p);
@@ -115,7 +114,7 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
         }
         else
         {
-            /* Based on spec v0.52 */
+            /* Based on L-release version */
             STREAM_TO_UINT8(adv_data.filt_index, p);
             STREAM_TO_UINT8(adv_data.addr_type, p);
             STREAM_TO_BDADDR(adv_data.bd_addr.address, p);
@@ -742,8 +741,8 @@ tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
 
     /* Only 16 bits will be used for scan interval and scan window as per agreement with Google */
     /* So the standard LE range would suffice for scan interval and scan window */
-    if ((BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) ||
-        BTM_BLE_VALID_PRAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX))
+    if ((BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) ||
+        BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX))
         && (BTM_BLE_BATCH_SCAN_MODE_PASS == scan_mode || BTM_BLE_BATCH_SCAN_MODE_ACTI == scan_mode
         || BTM_BLE_BATCH_SCAN_MODE_PASS_ACTI == scan_mode)
         && (BTM_BLE_DISCARD_OLD_ITEMS == discard_rule ||

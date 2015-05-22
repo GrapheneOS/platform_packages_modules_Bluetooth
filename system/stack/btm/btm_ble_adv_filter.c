@@ -1106,12 +1106,12 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action, tBTM_BLE_PF_FILT_INDEX filt_i
             UINT8_TO_STREAM(p, p_filt_params->rssi_low_thres);
             /* set onlost timeout */
             UINT16_TO_STREAM(p, p_filt_params->lost_timeout);
-            /* set num_of_track_entries for firmware supporting v0.90 spec and greater */
-            if (cmn_ble_vsc_cb.version_supported > 0)
+            /* set num_of_track_entries for firmware greater than L-release version */
+            if (cmn_ble_vsc_cb.version_supported > BTM_VSC_CHIP_CAPABILITY_L_VERSION)
                 UINT16_TO_STREAM(p, p_filt_params->num_of_tracking_entries);
         }
 
-        if (0 == cmn_ble_vsc_cb.version_supported)
+        if (cmn_ble_vsc_cb.version_supported == BTM_VSC_CHIP_CAPABILITY_L_VERSION)
             len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN;
         else
             len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +

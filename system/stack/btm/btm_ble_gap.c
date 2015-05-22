@@ -53,7 +53,9 @@
 
 #define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
 #define MIN_ADV_LENGTH                       2
-#define BTM_NEW_VSC_CHIP_CAPBLTY_RSP_LEN    13
+#define BTM_VSC_CHIP_CAPABILITY_RSP_LEN_L_RELEASE 9
+
+static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
 #if BLE_VND_INCLUDED == TRUE
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
@@ -286,6 +288,47 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy)
 
     }
 }
+
+/*******************************************************************************
+**
+** Function         btm_ble_send_extended_scan_params
+**
+** Description      This function sends out the extended scan parameters command to the controller
+**
+** Parameters       scan_type - Scan type
+**                  scan_int - Scan interval
+**                  scan_win - Scan window
+**                  addr_type_own - Own address type
+**                  scan_filter_policy - Scan filter policy
+**
+** Returns          TRUE or FALSE
+**
+*******************************************************************************/
+BOOLEAN btm_ble_send_extended_scan_params(UINT8 scan_type, UINT32 scan_int,
+                                          UINT32 scan_win, UINT8 addr_type_own,
+                                          UINT8 scan_filter_policy)
+{
+    UINT8 scan_param[HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM];
+    UINT8 *pp_scan = scan_param;
+
+    memset(scan_param, 0, HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM);
+
+    UINT8_TO_STREAM(pp_scan, scan_type);
+    UINT32_TO_STREAM(pp_scan, scan_int);
+    UINT32_TO_STREAM(pp_scan, scan_win);
+    UINT8_TO_STREAM(pp_scan, addr_type_own);
+    UINT8_TO_STREAM(pp_scan, scan_filter_policy);
+
+    BTM_TRACE_DEBUG("%s, %d, %d", __func__, scan_int, scan_win);
+    if ((BTM_VendorSpecificCommand(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF,
+         HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM, scan_param, NULL)) != BTM_SUCCESS)
+    {
+        BTM_TRACE_ERROR("%s error sending extended scan parameters", __func__);
+        return FALSE;
+    }
+    return TRUE;
+}
+
 /*******************************************************************************
 **
 ** Function         BTM_BleObserve
@@ -443,7 +486,6 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     return status;
 }
 
-#if BLE_VND_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         btm_vsc_brcm_features_complete
@@ -455,31 +497,44 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 *******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
 {
-    UINT8  status = 0xFF, *p;
+#if BLE_VND_INCLUDED == TRUE
+    UINT8 status = 0xFF;
+    UINT8 *p;
 
-    BTM_TRACE_DEBUG("btm_ble_vendor_capability_vsc_cmpl_cback");
+    BTM_TRACE_DEBUG("%s", __func__);
 
     /* Check status of command complete event */
-    if ((p_vcs_cplt_params->opcode == HCI_BLE_VENDOR_CAP_OCF) &&(p_vcs_cplt_params->param_len > 0))
+    if ((p_vcs_cplt_params->opcode == HCI_BLE_VENDOR_CAP_OCF) &&
+        (p_vcs_cplt_params->param_len > 0))
     {
         p = p_vcs_cplt_params->p_param_buf;
-        STREAM_TO_UINT8  (status, p);
+        STREAM_TO_UINT8(status, p);
     }
 
     if (status == HCI_SUCCESS)
     {
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.adv_inst_max, p);
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.rpa_offloading, p);
-        STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.tot_scan_results_strg, p);
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz, p);
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.filter_support, p);
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.max_filter, p);
-        STREAM_TO_UINT8  (btm_cb.cmn_ble_vsc_cb.energy_support, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.adv_inst_max, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.rpa_offloading, p);
+        STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.tot_scan_results_strg, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.max_irk_list_sz, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.filter_support, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.max_filter, p);
+        STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.energy_support, p);
+
+        if (p_vcs_cplt_params->param_len > BTM_VSC_CHIP_CAPABILITY_RSP_LEN_L_RELEASE)
+        {
+            STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.version_supported, p);
+        }
+        else
+        {
+            btm_cb.cmn_ble_vsc_cb.version_supported = BTM_VSC_CHIP_CAPABILITY_L_VERSION;
+        }
 
         if (btm_cb.cmn_ble_vsc_cb.version_supported == BTM_VSC_CHIP_CAPABILITY_M_VERSION)
         {
-            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.version_supported, p);
-            STREAM_TO_UINT16 (btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
+            STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
+            STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.extended_scan_support, p);
+            STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.debug_logging_supported, p);
         }
         btm_cb.cmn_ble_vsc_cb.values_read = TRUE;
     }
@@ -493,17 +548,13 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
         btm_ble_multi_adv_init();
 
     if (btm_cb.cmn_ble_vsc_cb.max_filter > 0)
-    {
         btm_ble_adv_filter_init();
-    }
 
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
     /* VS capability included and non-4.2 device */
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz > 0 &&
         controller_get_interface()->get_ble_resolving_list_max_size() == 0)
-    {
         btm_ble_resolving_list_init(btm_cb.cmn_ble_vsc_cb.max_irk_list_sz);
-    }
 #endif
 
     if (btm_cb.cmn_ble_vsc_cb.tot_scan_results_strg > 0)
@@ -511,8 +562,8 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
 
     if (p_ctrl_le_feature_rd_cmpl_cback != NULL)
         p_ctrl_le_feature_rd_cmpl_cback(status);
-}
 #endif
+}
 
 /*******************************************************************************
 **
@@ -977,8 +1028,8 @@ tBTM_STATUS BTM_BleSetAdvParams(UINT16 adv_int_min, UINT16 adv_int_max,
     if (!controller_get_interface()->supports_ble())
         return BTM_ILLEGAL_VALUE;
 
-    if (!BTM_BLE_VALID_PRAM(adv_int_min, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX) ||
-        !BTM_BLE_VALID_PRAM(adv_int_max, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX))
+    if (!BTM_BLE_ISVALID_PARAM(adv_int_min, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX) ||
+        !BTM_BLE_ISVALID_PARAM(adv_int_max, BTM_BLE_ADV_INT_MIN, BTM_BLE_ADV_INT_MAX))
     {
         return BTM_ILLEGAL_VALUE;
     }
@@ -1052,39 +1103,58 @@ void BTM_BleReadAdvParams (UINT16 *adv_int_min, UINT16 *adv_int_max,
 **
 ** Function         BTM_BleSetScanParams
 **
-** Description      This function is called to set Scan parameters.
+** Description      This function is called to set scan parameters.
 **
-** Parameters       adv_int_min: minimum advertising interval
-**                  adv_int_max: maximum advertising interval
-**                  p_dir_bda: connectable direct initiator's LE device address
-**                  chnl_map: advertising channel map.
-**                  scan_type: active scan or passive scan
+** Parameters       client_if - Client IF
+**                  scan_interval - Scan interval
+**                  scan_window - Scan window
+**                  scan_mode -    Scan mode
+**                  scan_setup_status_cback - Scan param setup status callback
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window, tBTM_BLE_SCAN_MODE scan_mode)
+void BTM_BleSetScanParams(tGATT_IF client_if, UINT32 scan_interval, UINT32 scan_window,
+                          tBLE_SCAN_MODE scan_mode,
+                          tBLE_SCAN_PARAM_SETUP_CBACK scan_setup_status_cback)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
+    UINT32 max_scan_interval;
+    UINT32 max_scan_window;
 
-    BTM_TRACE_EVENT (" BTM_BleSetScanParams");
+    BTM_TRACE_EVENT ("%s", __func__);
     if (!controller_get_interface()->supports_ble())
-        return ;
+        return;
 
-    if (BTM_BLE_VALID_PRAM(scan_interval, BTM_BLE_SCAN_INT_MIN, BTM_BLE_SCAN_INT_MAX) &&
-        BTM_BLE_VALID_PRAM(scan_window, BTM_BLE_SCAN_WIN_MIN, BTM_BLE_SCAN_WIN_MAX) &&
-        (scan_mode == BTM_BLE_SCAN_MODE_ACTI || scan_mode == BTM_BLE_SCAN_MODE_PASS))
+    /* If not supporting extended scan support, use the older range for checking */
+    if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
     {
-        p_cb->scan_type     = scan_mode;
-
-        if (BTM_BLE_CONN_PARAM_UNDEF != scan_interval)
-            p_cb->scan_interval = scan_interval;
-
-        if (BTM_BLE_CONN_PARAM_UNDEF != scan_window)
-            p_cb->scan_window   = scan_window;
+        max_scan_interval = BTM_BLE_SCAN_INT_MAX;
+        max_scan_window = BTM_BLE_SCAN_WIN_MAX;
     }
     else
     {
+        /* If supporting extended scan support, use the new extended range for checking */
+        max_scan_interval = BTM_BLE_EXT_SCAN_INT_MAX;
+        max_scan_window = BTM_BLE_EXT_SCAN_WIN_MAX;
+    }
+
+    if (BTM_BLE_ISVALID_PARAM(scan_interval, BTM_BLE_SCAN_INT_MIN, max_scan_interval) &&
+        BTM_BLE_ISVALID_PARAM(scan_window, BTM_BLE_SCAN_WIN_MIN, max_scan_window) &&
+       (scan_mode == BTM_BLE_SCAN_MODE_ACTI || scan_mode == BTM_BLE_SCAN_MODE_PASS))
+    {
+        p_cb->scan_type = scan_mode;
+        p_cb->scan_interval = scan_interval;
+        p_cb->scan_window = scan_window;
+
+        if (scan_setup_status_cback != NULL)
+            scan_setup_status_cback(client_if, BTM_SUCCESS);
+    }
+    else
+    {
+        if (scan_setup_status_cback != NULL)
+            scan_setup_status_cback(client_if, BTM_ILLEGAL_VALUE);
+
         BTM_TRACE_ERROR("Illegal params: scan_interval = %d scan_window = %d",
                         scan_interval, scan_window);
     }
