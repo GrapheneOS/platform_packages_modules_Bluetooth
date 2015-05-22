@@ -445,7 +445,7 @@ void btm_ble_resolving_list_vsc_op_cmpl (tBTM_VSC_CMPL *p_params)
 tBTM_STATUS btm_ble_remove_resolving_list_entry(tBTM_SEC_DEV_REC *p_dev_rec)
 {
     /* if controller does not support RPA offloading or privacy 1.2, skip */
-    if (controller_get_interface()->get_ble_resolving_list_max_size())
+    if (controller_get_interface()->get_ble_resolving_list_max_size() == 0)
         return BTM_WRONG_MODE;
 
     tBTM_STATUS st = BTM_NO_RESOURCES;
