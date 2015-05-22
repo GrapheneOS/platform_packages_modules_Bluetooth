@@ -740,7 +740,7 @@ tBTM_STATUS BTM_BleDisableAdvInstance (UINT8 inst_id)
          {
             btm_ble_multi_adv_configure_rpa(&btm_multi_adv_cb.p_adv_inst[inst_id-1]);
             btu_stop_timer_oneshot(&btm_multi_adv_cb.p_adv_inst[inst_id-1].raddr_timer_ent);
-            btm_multi_adv_cb.p_adv_inst[inst_id-1].inst_id = 0;
+            btm_multi_adv_cb.p_adv_inst[inst_id-1].in_use = FALSE;
          }
      }
     return rt;
