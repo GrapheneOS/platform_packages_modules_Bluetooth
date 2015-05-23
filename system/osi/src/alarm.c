@@ -191,6 +191,12 @@ void alarm_shutdown(void) {
   semaphore_free(alarm_expired);
   alarm_expired = NULL;
   timer_delete(&timer);
+}
+
+void alarm_cleanup(void) {
+  // If lazy_initialize never ran there is nothing to do
+  if (!alarms)
+    return;
 
   list_free(alarms);
   alarms = NULL;

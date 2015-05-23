@@ -34,11 +34,16 @@ future_t *osi_shut_down(void) {
   return NULL;
 }
 
+future_t *osi_clean_up(void) {
+  alarm_cleanup();
+  return NULL;
+}
+
 const module_t osi_module = {
   .name = OSI_MODULE,
   .init = NULL,
   .start_up = osi_start_up,
   .shut_down = osi_shut_down,
-  .clean_up = NULL,
+  .clean_up = osi_clean_up,
   .dependencies = {NULL}
 };

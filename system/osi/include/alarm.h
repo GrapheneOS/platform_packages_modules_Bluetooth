@@ -55,3 +55,6 @@ void alarm_cancel(alarm_t *alarm);
 // Shuts down the alarm dispatch callback. To be called during module/stack
 // shutdown only.
 void alarm_shutdown(void);
+
+// Alarm-related state cleanup
+void alarm_cleanup(void);

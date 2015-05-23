@@ -53,6 +53,7 @@ void AlarmTestHarness::SetUp() {
 
 void AlarmTestHarness::TearDown() {
   alarm_shutdown();
+  alarm_cleanup();
   timer_delete(timer);
   AllocationTestHarness::TearDown();
 }
