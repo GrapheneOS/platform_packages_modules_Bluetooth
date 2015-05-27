@@ -41,9 +41,12 @@ source_set("osi") {
     "include",
     "//"
   ]
+
+  libs = [ "-lpthread", "-lrt" ]
 }
 
 executable("net_test_osi") {
+  testonly = true
   sources = [
     "test/AlarmTestHarness.cpp",
     "test/AllocationTestHarness.cpp",
@@ -68,6 +71,7 @@ executable("net_test_osi") {
 
   deps = [
     "//osi",
+    "//testing/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt" ]

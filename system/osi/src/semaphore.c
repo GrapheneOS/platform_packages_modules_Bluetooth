@@ -24,6 +24,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <sys/eventfd.h>
+#include <unistd.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
