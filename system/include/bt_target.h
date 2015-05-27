@@ -595,6 +595,11 @@
 ** End of Lisbon Features
 **************************/
 
+/* 4.1/4.2 secure connections feature */
+#ifndef SC_MODE_INCLUDED
+#define SC_MODE_INCLUDED                TRUE
+#endif
+
 /* Used for conformance testing ONLY */
 #ifndef BTM_BLE_CONFORMANCE_TESTING
 #define BTM_BLE_CONFORMANCE_TESTING           FALSE

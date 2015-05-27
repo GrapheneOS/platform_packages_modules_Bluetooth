@@ -147,12 +147,6 @@ static future_t *start_up(void) {
     packet_parser->parse_generic_command_complete(response);
   }
 
-  secure_connections_supported = HCI_SC_CTRLR_SUPPORTED(features_classic[2].as_array);
-  if (secure_connections_supported) {
-    response = AWAIT_COMMAND(packet_factory->make_write_secure_connections_host_support(HCI_SC_MODE_ENABLED));
-    packet_parser->parse_generic_command_complete(response);
-  }
-
 #if (BLE_INCLUDED == TRUE)
   if (HCI_LE_SPT_SUPPORTED(features_classic[0].as_array)) {
     uint8_t simultaneous_le_host = HCI_SIMUL_LE_BREDR_SUPPORTED(features_classic[0].as_array) ? BTM_BLE_SIMULTANEOUS_HOST : 0;
@@ -180,11 +174,13 @@ static future_t *start_up(void) {
     page_number++;
   }
 
+#if (SC_MODE_INCLUDED == TRUE)
   secure_connections_supported = HCI_SC_CTRLR_SUPPORTED(features_classic[2].as_array);
   if (secure_connections_supported) {
     response = AWAIT_COMMAND(packet_factory->make_write_secure_connections_host_support(HCI_SC_MODE_ENABLED));
     packet_parser->parse_generic_command_complete(response);
   }
+#endif
 
 #if (BLE_INCLUDED == TRUE)
   ble_supported = last_features_classic_page_index >= 1 && HCI_LE_HOST_SUPPORTED(features_classic[1].as_array);
