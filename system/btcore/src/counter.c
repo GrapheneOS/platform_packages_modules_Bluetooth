@@ -21,6 +21,8 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <stdarg.h>
 #include <string.h>
 #include <sys/eventfd.h>
 
