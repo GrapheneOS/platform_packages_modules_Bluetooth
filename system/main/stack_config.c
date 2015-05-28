@@ -53,7 +53,7 @@ static future_t *clean_up() {
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-const module_t stack_config_module = {
+EXPORT_SYMBOL const module_t stack_config_module = {
   .name = STACK_CONFIG_MODULE,
   .init = init,
   .start_up = NULL,
