@@ -249,7 +249,7 @@ static future_t *init(void) {
   return NULL;
 }
 
-const module_t bte_logmsg_module = {
+EXPORT_SYMBOL const module_t bte_logmsg_module = {
   .name = BTE_LOGMSG_MODULE,
   .init = init,
   .start_up = NULL,

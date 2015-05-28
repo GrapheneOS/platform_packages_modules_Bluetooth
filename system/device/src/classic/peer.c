@@ -68,7 +68,7 @@ static future_t *clean_up(void) {
   return NULL;
 }
 
-const module_t classic_peer_module = {
+EXPORT_SYMBOL const module_t classic_peer_module = {
   .name = CLASSIC_PEER_MODULE,
   .init = init,
   .start_up = NULL,

@@ -317,7 +317,7 @@ static future_t *shut_down() {
   return NULL;
 }
 
-const module_t hci_module = {
+EXPORT_SYMBOL const module_t hci_module = {
   .name = HCI_MODULE,
   .init = NULL,
   .start_up = start_up,

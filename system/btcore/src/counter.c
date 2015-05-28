@@ -142,7 +142,7 @@ static future_t *counter_clean_up(void) {
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
-module_t counter_module = {
+EXPORT_SYMBOL module_t counter_module = {
   .name = COUNTER_MODULE,
   .init = counter_init,
   .start_up = NULL,
