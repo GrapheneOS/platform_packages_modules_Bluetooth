@@ -59,7 +59,7 @@
         LOG_WARN("%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        LOG_DEBUG("%s", __FUNCTION__);\
+        LOG_VERBOSE("%s", __FUNCTION__);\
     }
 
 
@@ -169,7 +169,7 @@ static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
 
 static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
 {
-    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTS *p_data = (tBTA_GATTS*)p_param;
     switch (event)
@@ -368,7 +368,7 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
     btif_gatts_cb_t* p_cb = (btif_gatts_cb_t*)p_param;
     if (!p_cb) return;
 
-    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {

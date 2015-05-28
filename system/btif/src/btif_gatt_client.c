@@ -63,7 +63,7 @@
         LOG_WARN("%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        LOG_DEBUG("%s", __FUNCTION__);\
+        LOG_VERBOSE("%s", __FUNCTION__);\
     }
 
 #define BLE_RESOLVE_ADDR_MSB                 0x40   /* bit7, bit6 is 01 to be resolvable random */
@@ -401,7 +401,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
             memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
             p_dev_cb->addr_type = addr_type;
             p_dev_cb->remote_dev[i].in_use = TRUE;
-            LOG_DEBUG("%s device added idx=%d", __FUNCTION__, i  );
+            LOG_VERBOSE("%s device added idx=%d", __FUNCTION__, i  );
             break;
         }
     }
@@ -412,7 +412,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
         memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
         p_dev_cb->addr_type = addr_type;
         p_dev_cb->remote_dev[i].in_use = TRUE;
-        LOG_DEBUG("%s device overwrite idx=%d", __FUNCTION__, i  );
+        LOG_VERBOSE("%s device overwrite idx=%d", __FUNCTION__, i  );
         p_dev_cb->next_storage_idx++;
         if (p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
                p_dev_cb->next_storage_idx = 0;
@@ -464,7 +464,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
 
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
-    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTC *p_data = (tBTA_GATTC*) p_param;
     switch (event)
@@ -1160,7 +1160,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
     if (!p_cb) return;
 
-    LOG_DEBUG("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {
