@@ -163,8 +163,14 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
     return ret_len;
 }
 
-
+// TODO(armansito): I'm not sure why the osi log macros aren't being used here,
+// but for now just redefine PRINT for non-Android platforms.
+#if defined(OS_GENERIC)
+#define PRINT(s) fprintf(stderr, "%s\n", s)
+#else  // !defined(OS_GENERIC)
 #define PRINT(s) __android_log_write(ANDROID_LOG_DEBUG, NULL, s)
+#endif  // defined(OS_GENERIC)
+
 static const char* hex_table = "0123456789abcdef";
 static inline void byte2hex(const char* data, char** str)
 {

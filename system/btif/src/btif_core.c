@@ -27,7 +27,6 @@
  ***********************************************************************************/
 
 #include <ctype.h>
-#include <cutils/properties.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <hardware/bluetooth.h>
@@ -35,6 +34,16 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
+
+/**
+ * TODO(armansito): On OSs other than Android, the sys/properties.h system
+ * does not exist. Remove this conditional include once we have a generic way
+ * to obtain system properties.
+ */
+#if !defined(OS_GENERIC)
+#include <cutils/properties.h>
+#endif  /* !defined(OS_GENERIC) */
 
 #define LOG_TAG "bt_btif_core"
 #include "btcore/include/bdaddr.h"
@@ -321,6 +330,13 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     char val[256];
     uint8_t valid_bda = FALSE;
     int val_size = 0;
+
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
     const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 
     /* Get local bdaddr storage path from property */
@@ -369,6 +385,7 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
             local_addr->address[0], local_addr->address[1], local_addr->address[2],
             local_addr->address[3], local_addr->address[4], local_addr->address[5]);
     }
+#endif  /* !defined(OS_GENERIC) */
 
     /* Generate new BDA if necessary */
     if (!valid_bda)
@@ -391,8 +408,16 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         BTIF_TRACE_DEBUG("No preset BDA. Generating BDA: %s for prop %s",
              (char*)bdstr, PERSIST_BDADDR_PROPERTY);
 
+
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
         if (property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
             BTIF_TRACE_ERROR("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
+#endif  /* !defined(OS_GENERIC) */
     }
 
     //save the bd address to config file
