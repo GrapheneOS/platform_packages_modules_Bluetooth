@@ -27,7 +27,13 @@
 
 #define LOG_TAG "bt_utils"
 
+// TODO(armansito): cutils/properties.h is only being used to pull-in runtime
+// settings on Android. Remove this conditional include once we have a generic
+// way to obtain system properties.
+#if !defined(OS_GENERIC)
 #include <cutils/properties.h>
+#endif  // !defined(OS_GENERIC)
+
 #include <cutils/sched_policy.h>
 #include <errno.h>
 #include <pthread.h>
@@ -84,7 +90,10 @@ EXPORT_SYMBOL const module_t bt_utils_module = {
   }
 };
 
-
+// TODO(armansito): Remove this conditional code once there is a generic way
+// to obtain system properties. System properties are only available on
+// Android. Don't do the following check if this is a generic build.
+#if !defined(OS_GENERIC)
 /*****************************************************************************
 **
 ** Function        check_do_scheduling_group
@@ -104,6 +113,7 @@ static void check_do_scheduling_group(void) {
         }
     }
 }
+#endif  // !defined(OS_GENERIC)
 
 /*****************************************************************************
 **
@@ -122,11 +132,18 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     pthread_mutex_lock(&gIdxLock);
     g_TaskIdx = high_task;
 
+    // TODO(armansito): Remove this conditional check once we find a solution
+    // for system/core on non-Android platforms.
+#if defined(OS_GENERIC)
+    rc = -1;
+#else  // !defined(OS_GENERIC)
     pthread_once(&g_DoSchedulingGroupOnce[g_TaskIdx], check_do_scheduling_group);
     if (g_DoSchedulingGroup[g_TaskIdx]) {
         // set_sched_policy does not support tid == 0
         rc = set_sched_policy(tid, SP_AUDIO_SYS);
     }
+#endif  // defined(OS_GENERIC)
+
     g_TaskIDs[high_task] = tid;
     pthread_mutex_unlock(&gIdxLock);
 
