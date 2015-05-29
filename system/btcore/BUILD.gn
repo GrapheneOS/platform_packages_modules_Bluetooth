@@ -32,6 +32,7 @@ source_set("btcore") {
 }
 
 executable("net_test_btcore") {
+  testonly = true
   sources = [
     "test/bdaddr_test.cpp",
     "test/counter_test.cpp",
@@ -49,6 +50,7 @@ executable("net_test_btcore") {
   deps = [
     "//btcore",
     "//osi",
+    "//testing/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt", "-ldl" ]
