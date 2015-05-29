@@ -39,6 +39,10 @@ config("linux") {
     "-Werror",
     "-g",
     "-O0",
+    "-fpic",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fvisibility=hidden",
   ]
 
   cflags_c = [
@@ -50,6 +54,7 @@ config("linux") {
     "_GNU_SOURCE",
     "HAS_NO_BDROID_BUILDCFG",
     "LOG_NDEBUG=1",
+    "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
 
     # This is a macro to that can be used by source code to detect if the
     # current build is done by GN or via Android.mk. This is a temporary
