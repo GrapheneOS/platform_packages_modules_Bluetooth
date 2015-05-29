@@ -14,16 +14,14 @@
 #  limitations under the License.
 #
 
-source_set("utils") {
+static_library("utils") {
   sources = [
     "src/bt_utils.c"
   ]
 
   include_dirs = [
     "include",
-    "//btcore/include",
-    "//osi/include",
-    "//stack/include",
     "//",
+    "//stack/include",
   ]
 }

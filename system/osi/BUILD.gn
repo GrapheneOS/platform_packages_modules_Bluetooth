@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-source_set("osi") {
+static_library("osi") {
   sources = [
     "src/alarm.c",
     "src/allocation_tracker.c",
@@ -41,8 +41,6 @@ source_set("osi") {
     "include",
     "//"
   ]
-
-  libs = [ "-lpthread", "-lrt" ]
 }
 
 executable("net_test_osi") {

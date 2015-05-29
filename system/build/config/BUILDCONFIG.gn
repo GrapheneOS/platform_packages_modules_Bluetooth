@@ -39,3 +39,11 @@ set_defaults("source_set") {
     "//build:default_include_dirs",
   ]
 }
+
+set_defaults("static_library") {
+  configs = [
+    "//build:linux",
+    "//build:gc",
+    "//build:default_include_dirs",
+  ]
+}
