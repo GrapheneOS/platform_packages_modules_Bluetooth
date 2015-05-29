@@ -27,7 +27,6 @@
 #define LOG_TAG "bt_main"
 
 #include <assert.h>
-#include <cutils/properties.h>
 #include <fcntl.h>
 #include <hardware/bluetooth.h>
 #include <pthread.h>
