@@ -1,5 +1,3 @@
 buildtools
 out
-# TODO(armansito): Remove this, once we resolve the gtest dependencies
-# from outside the build system.
-testing
+third_party
