@@ -49,6 +49,7 @@
 #define SCO_ST_DISCONNECTING    5
 #define SCO_ST_PEND_UNPARK      6
 #define SCO_ST_PEND_ROLECHANGE  7
+#define SCO_ST_PEND_MODECHANGE  8
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -793,6 +794,37 @@ void btm_sco_chk_pend_rolechange (UINT16 hci_handle)
 
 /*******************************************************************************
 **
+** Function        btm_sco_disc_chk_pend_for_modechange
+**
+** Description     This function is called by btm when there is a mode change
+**                 event to see if there are SCO  disconnect commands waiting for the mode change.
+**
+** Returns         void
+**
+*******************************************************************************/
+void btm_sco_disc_chk_pend_for_modechange (UINT16 hci_handle)
+{
+#if (BTM_MAX_SCO_LINKS>0)
+    tSCO_CONN   *p = &btm_cb.sco_cb.sco_db[0];
+
+    BTM_TRACE_DEBUG("%s: hci_handle 0x%04x, p->state 0x%02x", __func__,
+                     hci_handle, p->state);
+
+    for (UINT16 xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++)
+    {
+        if ((p->state == SCO_ST_PEND_MODECHANGE) &&
+            (BTM_GetHCIConnHandle (p->esco.data.bd_addr, BT_TRANSPORT_BR_EDR)) == hci_handle)
+
+        {
+            BTM_TRACE_DEBUG("%s: SCO Link handle 0x%04x", __func__, p->hci_handle);
+            BTM_RemoveSco(xx);
+        }
+    }
+#endif
+}
+
+/*******************************************************************************
+**
 ** Function         btm_sco_conn_req
 **
 ** Description      This function is called by BTIF when an SCO connection
@@ -1029,6 +1061,9 @@ tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx)
 #if (BTM_MAX_SCO_LINKS>0)
     tSCO_CONN   *p = &btm_cb.sco_cb.sco_db[sco_inx];
     UINT16       tempstate;
+    tBTM_PM_STATE   state = BTM_PM_ST_INVALID;
+
+    BTM_TRACE_DEBUG("%s", __func__);
 
     /* Validity check */
     if ((sco_inx >= BTM_MAX_SCO_LINKS) || (p->state == SCO_ST_UNUSED))
@@ -1041,6 +1076,15 @@ tBTM_STATUS BTM_RemoveSco (UINT16 sco_inx)
         p->state = SCO_ST_UNUSED;
         p->esco.p_esco_cback = NULL;    /* Deregister the eSCO event callback */
         return (BTM_SUCCESS);
+    }
+
+    if ((btm_read_power_mode_state(p->esco.data.bd_addr, &state) == BTM_SUCCESS)
+        && state == BTM_PM_ST_PENDING)
+    {
+        BTM_TRACE_DEBUG("%s: BTM_PM_ST_PENDING for ACL mapped with SCO Link 0x%04x",
+                          __func__, p->hci_handle);
+        p->state = SCO_ST_PEND_MODECHANGE;
+        return (BTM_CMD_STARTED);
     }
 
     tempstate = p->state;
