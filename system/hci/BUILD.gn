@@ -44,6 +44,7 @@ static_library("hci") {
 }
 
 executable("net_test_hci") {
+  testonly = true
   sources = [
     "//osi/test/AllocationTestHarness.cpp",
     "//osi/test/AlarmTestHarness.cpp",
@@ -54,19 +55,14 @@ executable("net_test_hci") {
     "test/packet_fragmenter_test.cpp",
   ]
 
-  sources += [ "//main/stack_config.c" ]
-
   include_dirs = [
-    "include",
     "//",
     "//include",
     "//btcore/include",
-    "//gki/common",
-    "//gki/ulinux",
+    "//hci/include",
     "//osi/include",
     "//osi/test",
     "//stack/include",
-    "//utils/include",
   ]
 
   cflags = [
@@ -77,11 +73,7 @@ executable("net_test_hci") {
     "//hci",
     "//osi",
     "//btcore",
-  ]
-
-  deps += [
-    "//gki",
-    "//device",
+    "//third_party/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt", "-ldl" ]

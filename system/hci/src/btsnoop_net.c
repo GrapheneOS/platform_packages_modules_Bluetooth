@@ -27,6 +27,7 @@
 #include <sys/prctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "osi/include/osi.h"
 #include "osi/include/log.h"

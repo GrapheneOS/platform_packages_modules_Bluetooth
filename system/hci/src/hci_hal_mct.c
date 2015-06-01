@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "bt_vendor_lib.h"
 #include "osi/include/eager_reader.h"
