@@ -71,7 +71,7 @@ executable("net_test_osi") {
 
   deps = [
     "//osi",
-    "//testing/gtest:gtest_main",
+    "//third_party/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt" ]
