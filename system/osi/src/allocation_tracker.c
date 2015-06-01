@@ -69,6 +69,8 @@ void allocation_tracker_init(void) {
   canary_size = strlen(canary);
 
   pthread_mutex_init(&lock, NULL);
+
+  pthread_mutex_lock(&lock);
   allocations = hash_map_new_internal(
     allocation_hash_map_size,
     hash_function_pointer,
@@ -76,19 +78,27 @@ void allocation_tracker_init(void) {
     free,
     NULL,
     &untracked_calloc_allocator);
+  pthread_mutex_unlock(&lock);
 }
 
 // Test function only. Do not call in the normal course of operations.
 void allocation_tracker_uninit(void) {
+  if (!allocations)
+    return;
+
+  pthread_mutex_lock(&lock);
   hash_map_free(allocations);
   allocations = NULL;
+  pthread_mutex_unlock(&lock);
 }
 
 void allocation_tracker_reset(void) {
   if (!allocations)
     return;
 
+  pthread_mutex_lock(&lock);
   hash_map_clear(allocations);
+  pthread_mutex_unlock(&lock);
 }
 
 size_t allocation_tracker_expect_no_allocations(void) {
