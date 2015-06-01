@@ -178,7 +178,7 @@ void alarm_cancel(alarm_t *alarm) {
   pthread_mutex_unlock(&alarm->callback_lock);
 }
 
-void alarm_shutdown(void) {
+void alarm_cleanup(void) {
   // If lazy_initialize never ran there is nothing to do
   if (!alarms)
     return;
@@ -191,13 +191,6 @@ void alarm_shutdown(void) {
   semaphore_free(alarm_expired);
   alarm_expired = NULL;
   timer_delete(&timer);
-}
-
-void alarm_cleanup(void) {
-  // If lazy_initialize never ran there is nothing to do
-  if (!alarms)
-    return;
-
   list_free(alarms);
   alarms = NULL;
 

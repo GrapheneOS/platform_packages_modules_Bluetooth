@@ -25,15 +25,6 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-future_t *osi_start_up(void) {
-  return NULL;
-}
-
-future_t *osi_shut_down(void) {
-  alarm_shutdown();
-  return NULL;
-}
-
 future_t *osi_clean_up(void) {
   alarm_cleanup();
   return NULL;
@@ -42,8 +33,8 @@ future_t *osi_clean_up(void) {
 const module_t osi_module = {
   .name = OSI_MODULE,
   .init = NULL,
-  .start_up = osi_start_up,
-  .shut_down = osi_shut_down,
+  .start_up = NULL,
+  .shut_down = NULL,
   .clean_up = osi_clean_up,
   .dependencies = {NULL}
 };
