@@ -52,9 +52,5 @@ void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb,
 // |alarm| may not be NULL.
 void alarm_cancel(alarm_t *alarm);
 
-// Shuts down the alarm dispatch callback. To be called during module/stack
-// shutdown only.
-void alarm_shutdown(void);
-
 // Alarm-related state cleanup
 void alarm_cleanup(void);
