@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-source_set("btcore") {
+static_library("btcore") {
   sources = [
     "src/bdaddr.c",
     "src/counter.c",
@@ -50,7 +50,7 @@ executable("net_test_btcore") {
   deps = [
     "//btcore",
     "//osi",
-    "//testing/gtest:gtest_main",
+    "//third_party/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt", "-ldl" ]

@@ -47,8 +47,7 @@ toolchain("gcc") {
     ]
     default_output_extension = ".a"
 
-    # TODO(armansito): is the following needed?
-    #output_prefix = "lib"
+    output_prefix = "lib"
   }
 
   tool("solink") {
@@ -71,8 +70,7 @@ toolchain("gcc") {
     link_output = soname
     depend_output = soname
 
-    # TODO(armansito): is the following needed?
-    #output_prefix = "lib"
+    output_prefix = "lib"
   }
 
   tool("link") {
