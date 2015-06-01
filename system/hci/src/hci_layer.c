@@ -19,11 +19,19 @@
 #define LOG_TAG "bt_hci"
 
 #include <assert.h>
-#include <cutils/properties.h>
+#include <pthread.h>
 #include <string.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
+
+// TODO(armansito): cutils/properties.h is only being used to pull-in runtime
+// settings on Android. Remove this conditional include once we have a generic
+// way to obtain system properties.
+#if !defined(OS_GENERIC)
+#include <cutils/properties.h>
+#endif  // !defined(OS_GENERIC)
 
 #include "buffer_allocator.h"
 #include "btsnoop.h"
@@ -175,12 +183,19 @@ static future_t *start_up(void) {
 
   pthread_mutex_init(&commands_pending_response_lock, NULL);
 
+  // TODO(armansito): cutils/properties.h is only being used to pull-in runtime
+  // settings on Android. Remove this conditional include once we have a generic
+  // way to obtain system properties. For now, always use the default timeout on
+  // non-Android builds.
+  period_ms_t startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
+
+#if !defined(OS_GENERIC)
   // Grab the override startup timeout ms, if present.
-  period_ms_t startup_timeout_ms;
   char timeout_prop[PROPERTY_VALUE_MAX];
   if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, STRING_VALUE_OF(DEFAULT_STARTUP_TIMEOUT_MS))
       || (startup_timeout_ms = atoi(timeout_prop)) < 100)
     startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
+#endif  // !defined(OS_GENERIC)
 
   startup_timer = non_repeating_timer_new(startup_timeout_ms, startup_timer_expired, NULL);
   if (!startup_timer) {
