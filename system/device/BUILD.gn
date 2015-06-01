@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-source_set("device") {
+static_library("device") {
   sources = [
     "src/classic/peer.c",
     "src/controller.c"
@@ -22,7 +22,6 @@ source_set("device") {
 
   include_dirs = [
     "//",
-    "include",
     "//btcore/include",
     "//gki/common",
     "//hci/include",

@@ -14,7 +14,7 @@
 #  limitations under the License.
 #
 
-source_set("gki") {
+static_library("gki") {
   sources = [
     "common/gki_buffer.c",
     "ulinux/gki_ulinux.c",
@@ -23,11 +23,8 @@ source_set("gki") {
   include_dirs = [
     "common",
     "ulinux",
-    "//btcore/include",
-    "//include",
-    "//osi/include",
-    "//stack/include",
-    "//utils/include",
     "//",
+    "//include",
+    "//stack/include",
   ]
 }
