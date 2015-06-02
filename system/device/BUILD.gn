@@ -32,6 +32,7 @@ static_library("device") {
 }
 
 executable("net_test_device") {
+  testonly = true
   sources = [
     "//osi/test/AllocationTestHarness.cpp",
     "test/classic/peer_test.cpp",
@@ -46,6 +47,7 @@ executable("net_test_device") {
     "//device",
     "//btcore",
     "//osi",
+    "//third_party/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt", "-ldl" ]
