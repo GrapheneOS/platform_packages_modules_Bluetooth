@@ -24,9 +24,4 @@ shared_library("audio.a2dp.default") {
     "//",
     "//utils/include",
   ]
-
-  # TODO(armansito): Fix the warnings and remove the flag below.
-  cflags = [
-    "-Wno-unused-variable",
-  ]
 }

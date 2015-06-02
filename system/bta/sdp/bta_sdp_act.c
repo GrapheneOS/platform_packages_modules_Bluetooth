@@ -93,11 +93,9 @@ static inline tBT_UUID shorten_sdp_uuid(const tBT_UUID* u)
 
 static void bta_create_mns_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
     UINT16 pversion = 0;
-    UINT8 offset = 0;
     record->mns.hdr.type = SDP_TYPE_MAP_MNS;
     record->mns.hdr.service_name_length = 0;
     record->mns.hdr.service_name = NULL;
@@ -140,7 +138,6 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 static void bta_create_mas_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
     UINT16 pversion = -1;
@@ -202,7 +199,6 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 static void bta_create_pse_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr;
     UINT16 pversion;
     tSDP_PROTOCOL_ELEM pe;
@@ -256,7 +252,6 @@ static void bta_create_pse_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr, *p_sattr;
     tSDP_PROTOCOL_ELEM pe;
     UINT16 pversion = -1;
@@ -346,9 +341,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 static void bta_create_raw_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr;
-    UINT16 pversion;
     tSDP_PROTOCOL_ELEM pe;
 
     record->hdr.type = SDP_TYPE_RAW;
@@ -391,7 +384,6 @@ static void bta_sdp_search_cback(UINT16 result, void * user_data)
     tSDP_DISC_REC *p_rec = NULL;
     tBTA_SDP_SEARCH_COMP evt_data = {0}; // We need to zero-initialize
     tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
-    UINT16 uuid16 = 0;
     int count = 0;
     tBT_UUID su;
     APPL_TRACE_DEBUG("bta_sdp_search_cback res: 0x%x", result);

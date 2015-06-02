@@ -53,9 +53,6 @@
 #define asrt(s) if (!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, \
         #s, __LINE__)
 
-static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
-
 struct packet {
     struct packet *next, *prev;
     uint32_t len;
@@ -290,13 +287,6 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
     osi_free(sock);
 }
 
-static void btsock_l2cap_free(l2cap_socket *sock)
-{
-    pthread_mutex_lock(&state_lock);
-    btsock_l2cap_free_l(sock);
-    pthread_mutex_unlock(&state_lock);
-}
-
 static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *addr,
         char is_server, int flags)
 {
@@ -363,18 +353,6 @@ fail_sockpair:
 
 fail_alloc:
     return NULL;
-}
-
-static l2cap_socket *btsock_l2cap_alloc(const char *name, const bt_bdaddr_t *addr,
-        char is_server, int flags)
-{
-    l2cap_socket *ret;
-
-    pthread_mutex_lock(&state_lock);
-    ret = btsock_l2cap_alloc_l(name, addr, is_server, flags);
-    pthread_mutex_unlock(&state_lock);
-
-    return ret;
 }
 
 bt_status_t btsock_l2cap_init(int handle)
@@ -716,7 +694,6 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
 
         } else {
 
-            tBTA_JV_DATA_IND *p_data_ind = &evt->data_ind;
             UINT8 buffer[L2CAP_MAX_SDU_LENGTH];
             UINT32  count;
 
@@ -740,8 +717,6 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
 
 static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
-    int rc;
-
     switch (event) {
     case BTA_JV_L2CAP_START_EVT:
         on_srv_l2cap_listen_started(&p_data->l2c_start, (uint32_t)user_data);

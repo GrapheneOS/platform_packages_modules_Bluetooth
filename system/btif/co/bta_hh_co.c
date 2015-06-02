@@ -518,8 +518,6 @@ tBTA_HH_RPT_CACHE_ENTRY * bta_hh_le_co_cache_load (BD_ADDR remote_bda,
 {
     UNUSED(app_id);
 
-    unsigned idx = 0;
-
     bdstr_t bdstr;
     sprintf(bdstr, "%02x:%02x:%02x:%02x:%02x:%02x",
         remote_bda[0], remote_bda[1], remote_bda[2],

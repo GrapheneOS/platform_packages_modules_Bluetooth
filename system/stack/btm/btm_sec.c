@@ -103,10 +103,8 @@ static UINT16  btm_sec_set_serv_level4_flags (UINT16 cur_security, BOOLEAN is_or
 
 static BOOLEAN btm_sec_queue_encrypt_request  (BD_ADDR bd_addr, tBT_TRANSPORT transport,
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
-static void btm_sec_clean_pending_req_queue (BD_ADDR remote_bda, tBT_TRANSPORT transport) ;
 static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRANSPORT transport,
                                             UINT8 encr_enable);
-static BOOLEAN btm_sec_acceptor_rejects_bonding (tBTM_SEC_DEV_REC *p_dev_rec);
 
 static BOOLEAN btm_sec_use_smp_br_chnl(tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN btm_sec_is_master(tBTM_SEC_DEV_REC *p_dev_rec);
@@ -6082,38 +6080,6 @@ void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
         p_rem_bd_addr = (UINT8*) rem_bd_addr;
         btm_io_capabilities_req(p_rem_bd_addr);
         p_dev_rec->remote_features_needed = FALSE;
-    }
-}
-
-/*******************************************************************************
-**
-** Function         btm_sec_clean_pending_req_queue
-**
-** Description      This function cleans up the pending security request when the
-**                  link to the target device dropped.
-**
-** Returns          void
-**
-*******************************************************************************/
-static void btm_sec_clean_pending_req_queue (BD_ADDR remote_bda, tBT_TRANSPORT transport)
-{
-    tBTM_SEC_QUEUE_ENTRY    *p_e;
-    BUFFER_Q                *bq = &btm_cb.sec_pending_q;
-
-    p_e = (tBTM_SEC_QUEUE_ENTRY *)GKI_getfirst(bq);
-
-    if (p_e != NULL)
-    {
-        if (memcmp(p_e->bd_addr, remote_bda, BD_ADDR_LEN) == 0
-#if BLE_INCLUDED == TRUE
-            && p_e->transport == transport
-#endif
-            )
-        {
-            (*p_e->p_callback) (remote_bda, transport, p_e->p_ref_data, BTM_ERR_PROCESSING);
-            GKI_remove_from_queue(bq, (void *)p_e);
-        }
-        p_e = (tBTM_SEC_QUEUE_ENTRY *) GKI_getnext ((void *)p_e);
     }
 }
 

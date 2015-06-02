@@ -1170,8 +1170,6 @@ BOOLEAN bta_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx)
 
     for (i=0; i < BTA_HL_NUM_MCLS ; i ++)
     {
-        BTA_HL_GET_MCL_CB_PTR(app_idx, i);
-
         if (bta_hl_cb.acb[app_idx].mcb[i].in_use &&
             (!memcmp (bta_hl_cb.acb[app_idx].mcb[i].bd_addr, p_bd_addr, BD_ADDR_LEN)))
         {

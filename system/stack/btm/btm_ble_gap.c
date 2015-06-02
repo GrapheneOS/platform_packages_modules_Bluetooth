@@ -486,6 +486,7 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
     return status;
 }
 
+#if BLE_VND_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         btm_vsc_brcm_features_complete
@@ -497,7 +498,6 @@ tBTM_STATUS BTM_BleBroadcast(BOOLEAN start)
 *******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_params)
 {
-#if BLE_VND_INCLUDED == TRUE
     UINT8 status = 0xFF;
     UINT8 *p;
 
@@ -555,15 +555,15 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
     if (btm_cb.cmn_ble_vsc_cb.max_irk_list_sz > 0 &&
         controller_get_interface()->get_ble_resolving_list_max_size() == 0)
         btm_ble_resolving_list_init(btm_cb.cmn_ble_vsc_cb.max_irk_list_sz);
-#endif
+#endif  /* (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE) */
 
     if (btm_cb.cmn_ble_vsc_cb.tot_scan_results_strg > 0)
         btm_ble_batchscan_init();
 
     if (p_ctrl_le_feature_rd_cmpl_cback != NULL)
         p_ctrl_le_feature_rd_cmpl_cback(status);
-#endif
 }
+#endif  /* BLE_VND_INCLUDED == TRUE */
 
 /*******************************************************************************
 **
