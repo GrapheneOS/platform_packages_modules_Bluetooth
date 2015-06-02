@@ -529,7 +529,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     UINT8       *p_data;
     UINT8       *p_begin;
     UINT8       drop = 0;
-    BOOLEAN     free = TRUE;
+    BOOLEAN     do_free = TRUE;
     BT_HDR      *p_rsp = NULL;
     UINT8       *p_rsp_data;
     int         xx;
@@ -580,7 +580,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             if (cr == AVCT_CMD)
             {
                 /* send the response to the peer */
-                p_rsp           = p_pkt; /* this also sets free = FALSE, drop = TRUE */
+                p_rsp           = p_pkt; /* this also sets do_free = FALSE, drop = TRUE */
                 /* check & set the offset. set response code, set subunit_type & subunit_id,
                    set AVRC_OP_UNIT_INFO */
                 /* 3 bytes: ctype, subunit*, opcode */
@@ -610,7 +610,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             if (cr == AVCT_CMD)
             {
                 /* send the response to the peer */
-                p_rsp           = p_pkt; /* this also sets free = FALSE, drop = TRUE */
+                p_rsp           = p_pkt; /* this also sets do_free = FALSE, drop = TRUE */
                 /* check & set the offset. set response code, set (subunit_type & subunit_id),
                    set AVRC_OP_SUB_INFO, set (page & extention code) */
                 p_rsp_data      = avrc_get_data_ptr(p_pkt) + 4;
@@ -674,9 +674,9 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             }
             if (drop)
             {
-                free = FALSE;
+                do_free = FALSE;
                 if (drop == 4)
-                    free = TRUE;
+                    do_free = TRUE;
 #if (BT_USE_TRACES == TRUE)
                 switch (drop)
                 {
@@ -744,7 +744,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     if (reject)
     {
         /* reject unsupported opcode */
-        p_rsp           = p_pkt; /* this also sets free = FALSE, drop = TRUE */
+        p_rsp           = p_pkt; /* this also sets do_free = FALSE, drop = TRUE */
         p_rsp_data      = avrc_get_data_ptr(p_pkt);
         *p_rsp_data     = AVRC_RSP_REJ;
 #if (BT_USE_TRACES == TRUE)
@@ -758,7 +758,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     {
         /* set to send response right away */
         AVCT_MsgReq( handle, label, cr, p_rsp);
-        free = FALSE;
+        do_free = FALSE;
         drop = TRUE;
     }
 
@@ -777,7 +777,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
 #endif
 
 
-    if (free)
+    if (do_free)
         GKI_freebuf(p_pkt);
 }
 

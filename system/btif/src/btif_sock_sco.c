@@ -180,7 +180,7 @@ error:;
 }
 
 static sco_socket_t *sco_socket_new(void) {
-  sco_socket_t *sco_socket = (sco_socket_t *)calloc(1, sizeof(sco_socket_t));
+  sco_socket_t *sco_socket = (sco_socket_t *)osi_calloc(sizeof(sco_socket_t));
   if (sco_socket)
     sco_socket->sco_handle = BTM_INVALID_SCO_INDEX;
   return sco_socket;
@@ -195,7 +195,7 @@ static void sco_socket_free_locked(sco_socket_t *sco_socket) {
   if (sco_socket->sco_handle != BTM_INVALID_SCO_INDEX)
     BTM_RemoveSco(sco_socket->sco_handle);
   socket_free(sco_socket->socket);
-  free(sco_socket);
+  osi_free(sco_socket);
 }
 
 // Must be called with |lock| held.

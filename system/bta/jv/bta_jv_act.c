@@ -26,6 +26,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+#include "osi/include/allocator.h"
 #include "bt_types.h"
 #include "gki.h"
 #include "utl.h"
@@ -2336,14 +2337,14 @@ static struct fc_channel *fcchan_get(uint16_t chan, char create)
     else if (!create)
         return NULL; /* we cannot alloc a struct if not asked to */
 
-    t = calloc(sizeof(*t), 1);
+    t = osi_calloc(sizeof(*t));
     if (!t)
         return NULL;
 
     t->chan = chan;
 
     if (!L2CA_RegisterFixedChannel(chan, &fcr)) {
-        free(t);
+        osi_free(t);
         return NULL;
     }
 
@@ -2402,7 +2403,7 @@ static struct fc_client *fcclient_alloc(uint16_t chan, char server, const uint8_
     else
         sec_id = bta_jv_alloc_sec_id();
 
-    t = calloc(sizeof(*t), 1);
+    t = osi_calloc(sizeof(*t));
     if (t) {
         //allocate it a unique ID
         do {
@@ -2470,7 +2471,7 @@ static void fcclient_free(struct fc_client *fc)
     //free security id
     bta_jv_free_sec_id(&fc->sec_id);
 
-    free(fc);
+    osi_free(fc);
 }
 
 static void fcchan_conn_chng_cbk(UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason, tBT_TRANSPORT transport)
