@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "osi/include/alarm.h"
+#include "osi/include/allocator.h"
 #include "btcore/include/bdaddr.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
@@ -291,7 +292,7 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
   if (length > 0)
       assert(value != NULL);
 
-  char *str = (char *)calloc(length * 2 + 1, 1);
+  char *str = (char *)osi_calloc(length * 2 + 1);
   if (!str)
     return false;
 
@@ -304,7 +305,7 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
   config_set_string(config, section, key, str);
   pthread_mutex_unlock(&lock);
 
-  free(str);
+  osi_free(str);
   return true;
 }
 

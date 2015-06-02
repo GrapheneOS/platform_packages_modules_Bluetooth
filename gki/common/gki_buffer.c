@@ -201,7 +201,7 @@ void GKI_init_q (BUFFER_Q *p_q)
 *******************************************************************************/
 void *GKI_getbuf (UINT16 size)
 {
-  BUFFER_HDR_T *header = malloc(size + BUFFER_HDR_SIZE);
+  BUFFER_HDR_T *header = osi_malloc(size + BUFFER_HDR_SIZE);
   header->status  = BUF_STATUS_UNLINKED;
   header->p_next  = NULL;
   header->Type    = 0;
@@ -243,7 +243,7 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 *******************************************************************************/
 void GKI_freebuf (void *p_buf)
 {
-  free((BUFFER_HDR_T *)p_buf - 1);
+  osi_free((BUFFER_HDR_T *)p_buf - 1);
 }
 
 

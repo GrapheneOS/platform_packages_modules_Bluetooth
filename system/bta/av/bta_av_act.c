@@ -657,7 +657,7 @@ void bta_av_rc_vendor_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_RCB *p_rcb;
-    BOOLEAN         free = TRUE;
+    BOOLEAN         do_free = TRUE;
 
     if ((p_cb->features & BTA_AV_FEAT_METADATA) && (p_data->hdr.layer_specific < BTA_AV_NUM_RCB))
     {
@@ -669,12 +669,12 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                 AVRC_MsgReq(p_rcb->handle, p_data->api_meta_rsp.label,
                             p_data->api_meta_rsp.rsp_code,
                             p_data->api_meta_rsp.p_pkt);
-                free = FALSE;
+                do_free = FALSE;
             }
         }
     }
 
-    if (free)
+    if (do_free)
         GKI_freebuf (p_data->api_meta_rsp.p_pkt);
 }
 

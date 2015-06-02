@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "osi/include/allocator.h"
 #include "bt_types.h"
 #include "gki.h"
 #include "utl.h"
@@ -448,7 +449,7 @@ static void bta_sdp_search_cback(UINT16 result, void * user_data)
     evt_data.status = status;
 
     bta_sdp_cb.p_dm_cback(BTA_SDP_SEARCH_COMP_EVT, (tBTA_SDP*) &evt_data, (void*)&uuid->uu.uuid128);
-    free(user_data); // We no longer need the user data to track the search
+    osi_free(user_data); // We no longer need the user data to track the search
 }
 
 /*******************************************************************************
@@ -481,7 +482,7 @@ void bta_sdp_search(tBTA_SDP_MSG *p_data)
 {
     int x=0;
     // TODO: Leaks!!! but needed as user-data pointer
-    tBT_UUID *bta_sdp_search_uuid = malloc(sizeof(tBT_UUID));
+    tBT_UUID *bta_sdp_search_uuid = osi_malloc(sizeof(tBT_UUID));
     if(p_data == NULL)
     {
         APPL_TRACE_DEBUG("SDP control block handle is null");

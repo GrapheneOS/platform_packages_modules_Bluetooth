@@ -25,6 +25,7 @@
 #include <pthread.h>
 
 #define LOG_TAG "BTIF_SOCK"
+#include "osi/include/allocator.h"
 #include "btif_common.h"
 #include "btif_util.h"
 
@@ -125,15 +126,15 @@ static char packet_get_head_l(l2cap_socket *sock, uint8_t **data, uint32_t *len)
     if(len)
         sock->bytes_buffered -= *len;
 
-    free(p);
+    osi_free(p);
 
     return TRUE;
 }
 
 static struct packet *packet_alloc(const uint8_t *data, uint32_t len)
 {
-    struct packet *p = calloc(1, sizeof(*p));
-    uint8_t *buf = malloc(len);
+    struct packet *p = osi_calloc(sizeof(*p));
+    uint8_t *buf = osi_malloc(len);
 
     if (p && buf) {
 
@@ -143,9 +144,9 @@ static struct packet *packet_alloc(const uint8_t *data, uint32_t len)
         return p;
 
     } else if (p)
-       free(p);
+       osi_free(p);
     else if (buf)
-       free(buf);
+       osi_free(buf);
 
     return NULL;
 }
@@ -267,7 +268,7 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
     }
 
     while (packet_get_head_l(sock, &buf, NULL))
-        free(buf);
+        osi_free(buf);
 
     //lower-level close() should be idempotent... so let's call it and see...
     // Only call if we are non server connections
@@ -286,7 +287,7 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
     }
 
     APPL_TRACE_DEBUG("SOCK_LIST: free(id = %d)", sock->id);
-    free(sock);
+    osi_free(sock);
 }
 
 static void btsock_l2cap_free(l2cap_socket *sock)
@@ -308,7 +309,7 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
     if (flags & BTSOCK_FLAG_AUTH)
         security |= is_server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
 
-    sock = calloc(1, sizeof(*sock));
+    sock = osi_calloc(sizeof(*sock));
     if (!sock) {
         APPL_TRACE_ERROR("alloc failed");
         goto fail_alloc;
@@ -358,7 +359,7 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
     return sock;
 
 fail_sockpair:
-    free(sock);
+    osi_free(sock);
 
 fail_alloc:
     return NULL;
@@ -659,7 +660,7 @@ static void on_l2cap_write_done(void* req_id, uint32_t id)
     l2cap_socket *sock;
 
     if (req_id != NULL) {
-        free(req_id); //free the buffer
+        osi_free(req_id); //free the buffer
     }
 
     pthread_mutex_lock(&state_lock);
@@ -677,7 +678,7 @@ static void on_l2cap_write_fixed_done(void* req_id, uint32_t id)
     l2cap_socket *sock;
 
     if (req_id != NULL) {
-        free(req_id); //free the buffer
+        osi_free(req_id); //free the buffer
     }
 
     pthread_mutex_lock(&state_lock);
@@ -966,16 +967,16 @@ static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
         int sent = send(sock->our_fd, buf, len, MSG_DONTWAIT);
 
         if (sent == (signed)len)
-            free(buf);
+            osi_free(buf);
         else if (sent >= 0) {
             packet_put_head_l(sock, buf + sent, len - sent);
-            free(buf);
+            osi_free(buf);
             if (!sent) /* special case if other end not keeping up */
                 return TRUE;
         }
         else {
             packet_put_head_l(sock, buf, len);
-            free(buf);
+            osi_free(buf);
             return errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN;
         }
     }
@@ -999,7 +1000,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
 
                 if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(sock->our_fd, FIONREAD, &size)
                         == 0 && size)) {
-                    uint8_t *buffer = malloc(L2CAP_MAX_SDU_LENGTH);
+                    uint8_t *buffer = osi_malloc(L2CAP_MAX_SDU_LENGTH);
                     //uint8_t *buffer = (uint8_t*)GKI_getbuf(L2CAP_MAX_SDU_LENGTH);
                     /* Apparently we hijack the req_id (UINT32) to pass the pointer to the buffer to
                      * the write complete callback, which call a free... wonder if this works on a
