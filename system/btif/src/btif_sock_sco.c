@@ -22,9 +22,11 @@
 #include <errno.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "btif_common.h"
 #include "osi/include/list.h"
