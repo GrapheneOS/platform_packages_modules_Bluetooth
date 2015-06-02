@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #define LOG_TAG "bt_btif_hh"
 

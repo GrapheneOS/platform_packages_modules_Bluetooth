@@ -37,7 +37,15 @@
 
 #include <hardware/bluetooth.h>
 
+/**
+ * TODO(armansito): cutils/properties.h is only being used to pull-in runtime
+ * settings on Android. Remove this conditional include once we have a generic
+ * way to obtain system properties.
+ */
+#if !defined(OS_GENERIC)
 #include <cutils/properties.h>
+#endif  /* !defined(OS_GENERIC) */
+
 #include "gki.h"
 #include "btu.h"
 #include "btcore/include/bdaddr.h"
@@ -2716,6 +2724,12 @@ void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data)
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void)
 {
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
     char prop_oob[PROPERTY_VALUE_MAX];
     property_get("service.brcm.bt.oob", prop_oob, "3");
     BTIF_TRACE_DEBUG("btif_dm_load_local_oob prop_oob = %s",prop_oob);
@@ -2728,14 +2742,21 @@ void btif_dm_load_local_oob(void)
             BTIF_TRACE_DEBUG("btif_dm_load_local_oob: read OOB, call BTA_DmLocalOob()");
             BTA_DmLocalOob();
         }
-#else
+#else  /* (BTM_OOB_INCLUDED != TRUE) */
         BTIF_TRACE_ERROR("BTM_OOB_INCLUDED is FALSE!!(btif_dm_load_local_oob)");
-#endif
+#endif  /* (BTM_OOB_INCLUDED == TRUE) */
     }
+#endif  /* !defined(OS_GENERIC) */
 }
 
 void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 {
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
     FILE *fp;
     char *path_a = "/data/misc/bluedroid/LOCAL/a.key";
     char *path_b = "/data/misc/bluedroid/LOCAL/b.key";
@@ -2771,9 +2792,17 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
             }
         }
     }
+#endif  /* !defined(OS_GENERIC) */
 }
+
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
 {
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
     char t[128];
     FILE *fp;
     char *path_a = "/data/misc/bluedroid/LOCAL/a.key";
@@ -2824,6 +2853,9 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
     }
     BTIF_TRACE_DEBUG("btif_dm_proc_rmt_oob result=%d",result);
     return result;
+#else  /* defined(OS_GENERIC) */
+    return FALSE;
+#endif  /* !defined(OS_GENERIC) */
 }
 #endif /*  BTIF_DM_OOB_TEST */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -3223,6 +3255,12 @@ void btif_dm_read_energy_info()
 }
 
 static char* btif_get_default_local_name() {
+  /**
+   * TODO(armansito): On OSs other than Android, the sys/properties.h system
+   * does not exist. Remove this conditional include once we have a generic way
+   * to obtain system properties.
+   */
+#if !defined(OS_GENERIC)
     if (btif_default_local_name[0] == '\0')
     {
         int max_len = sizeof(btif_default_local_name) - 1;
@@ -3238,5 +3276,6 @@ static char* btif_get_default_local_name() {
         }
         btif_default_local_name[max_len] = '\0';
     }
+#endif  /* !defined(OS_GENERIC) */
     return btif_default_local_name;
 }

@@ -46,6 +46,7 @@
 #include <sys/prctl.h>
 #include <linux/if_tun.h>
 #include <linux/if_ether.h>
+#include <unistd.h>
 
 #define LOG_TAG "bt_btif_pan"
 #include "btif_common.h"

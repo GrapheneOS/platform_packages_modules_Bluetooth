@@ -23,11 +23,12 @@
 #include <features.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <pthread.h>
+#include <unistd.h>
 
 #include "bta_api.h"
 #include "bt_target.h"
