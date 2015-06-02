@@ -126,7 +126,6 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   LOG_DEBUG("%s is bringing up the stack.", __func__);
   hack_future = future_new();
 
-  module_start_up(get_module(OSI_MODULE));
   // Include this for now to put btif config into a shutdown-able state
   module_start_up(get_module(BTIF_CONFIG_MODULE));
   bte_main_enable();
@@ -158,7 +157,6 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
 
   future_await(hack_future);
   module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
-  module_shut_down(get_module(OSI_MODULE));
 
   LOG_DEBUG("%s finished.", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
@@ -186,10 +184,10 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
 
   btif_shutdown_bluetooth();
   module_clean_up(get_module(BTIF_CONFIG_MODULE));
-  module_clean_up(get_module(OSI_MODULE));
   module_clean_up(get_module(BT_UTILS_MODULE));
 
   future_await(hack_future);
+  module_clean_up(get_module(OSI_MODULE));
   module_management_stop();
   LOG_DEBUG("%s finished.", __func__);
 }
