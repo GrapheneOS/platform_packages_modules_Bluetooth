@@ -59,10 +59,19 @@
 #include "smp_api.h"
 #endif
 
+// TODO(armansito): Work-around until we figure out a way to generate logs in a
+// platform-independent manner.
+#if defined(OS_GENERIC)
+#define LOGI0(t,s) fprintf(stderr, "%s\n", s)
+#define LOGD0(t,s) fprintf(stderr, "%s\n", s)
+#define LOGW0(t,s) fprintf(stderr, "%s\n", s)
+#define LOGE0(t,s) fprintf(stderr, "%s\n", s)
+#else  // !defined(OS_GENERIC)
 #define LOGI0(t,s) __android_log_write(ANDROID_LOG_INFO, t, s)
 #define LOGD0(t,s) __android_log_write(ANDROID_LOG_DEBUG, t, s)
 #define LOGW0(t,s) __android_log_write(ANDROID_LOG_WARN, t, s)
 #define LOGE0(t,s) __android_log_write(ANDROID_LOG_ERROR, t, s)
+#endif  // defined(OS_GENERIC)
 
 #ifndef DEFAULT_CONF_TRACE_LEVEL
 #define DEFAULT_CONF_TRACE_LEVEL BT_TRACE_LEVEL_WARNING
