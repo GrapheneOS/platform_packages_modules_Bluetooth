@@ -43,6 +43,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btcore/include/bdaddr.h"
+#include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/config.h"
 #include "gki.h"
@@ -897,7 +898,7 @@ bt_status_t btif_storage_load_bonded_devices(void)
         num_props++;
 
         /* BONDED_DEVICES */
-        devices_list = (bt_bdaddr_t*)malloc(sizeof(bt_bdaddr_t)*bonded_devices.num_devices);
+        devices_list = (bt_bdaddr_t*)osi_malloc(sizeof(bt_bdaddr_t)*bonded_devices.num_devices);
         adapter_props[num_props].type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
         adapter_props[num_props].len = bonded_devices.num_devices * sizeof(bt_bdaddr_t);
         adapter_props[num_props].val = devices_list;
@@ -915,7 +916,7 @@ bt_status_t btif_storage_load_bonded_devices(void)
 
         btif_adapter_properties_evt(BT_STATUS_SUCCESS, num_props, adapter_props);
 
-        free(devices_list);
+        osi_free(devices_list);
     }
 
     BTIF_TRACE_EVENT("%s: %d bonded devices found", __FUNCTION__, bonded_devices.num_devices);

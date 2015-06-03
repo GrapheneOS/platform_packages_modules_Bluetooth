@@ -185,7 +185,7 @@ static int alloc_sdp_slot(bluetooth_sdp_record* in_record) {
     int i;
     char* tmp_ptr = NULL;
     int record_size = get_sdp_records_size(in_record, 1);
-    bluetooth_sdp_record* record = malloc(record_size);
+    bluetooth_sdp_record* record = osi_malloc(record_size);
 
     copy_sdp_records(in_record, record, 1);
 
@@ -204,7 +204,7 @@ static int alloc_sdp_slot(bluetooth_sdp_record* in_record) {
     if(i >= MAX_SDP_SLOTS) {
         APPL_TRACE_ERROR("%s() failed - no more free slots!", __func__);
         /* Rearly the optimist is too optimistic, and cleanup is needed...*/
-        free(record);
+        osi_free(record);
         return -1;
     }
     return i;
@@ -229,7 +229,7 @@ static int free_sdp_slot(int id) {
     pthread_mutex_unlock(&sdp_lock);
 
     if(record != NULL) {
-        free(record);
+        osi_free(record);
     } else {
         // Record have already been freed
         handle = -1;
