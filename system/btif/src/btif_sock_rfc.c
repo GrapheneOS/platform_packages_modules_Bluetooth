@@ -177,6 +177,8 @@ static rfc_slot_t *alloc_rfc_slot(const bt_bdaddr_t *addr, const char *name, con
       security |= server ? BTM_SEC_IN_ENCRYPT : BTM_SEC_OUT_ENCRYPT;
   if(flags & BTSOCK_FLAG_AUTH)
       security |= server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
+  if(flags & BTSOCK_FLAG_AUTH_MITM)
+      security |= server ? BTM_SEC_IN_MITM : BTM_SEC_OUT_MITM;
 
   rfc_slot_t *slot = find_free_slot();
   if (!slot) {
@@ -252,7 +254,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
   assert(sock_fd != NULL);
   assert((service_uuid != NULL)
     || (channel >= 1 && channel <= MAX_RFC_CHANNEL)
-	|| ((flags & BTSOCK_FLAG_NO_SDP) != 0));
+    || ((flags & BTSOCK_FLAG_NO_SDP) != 0));
 
   *sock_fd = INVALID_FD;
 
