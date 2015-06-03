@@ -41,7 +41,6 @@
 
 static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
-
 /**
  * The need for a state variable have been reduced to two states.
  * The remaining state control is handled by program flow
@@ -67,6 +66,7 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec);
 static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec);
 static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec);
 static int add_opps_sdp(const bluetooth_sdp_ops_record* rec);
+static int add_saps_sdp(const bluetooth_sdp_sap_record* rec);
 bt_status_t remove_sdp_record(int record_id);
 static int free_sdp_slot(int id);
 
@@ -116,7 +116,6 @@ void sdp_server_cleanup()
     }
     pthread_mutex_unlock(&sdp_lock);
 }
-
 
 int get_sdp_records_size(bluetooth_sdp_record* in_record, int count) {
     bluetooth_sdp_record* record = in_record;
@@ -203,7 +202,7 @@ static int alloc_sdp_slot(bluetooth_sdp_record* in_record) {
     }
     pthread_mutex_unlock(&sdp_lock);
     if(i >= MAX_SDP_SLOTS) {
-        APPL_TRACE_ERROR("alloc_sdp_slot failed - no more free slots!");
+        APPL_TRACE_ERROR("%s() failed - no more free slots!", __func__);
         /* Rearly the optimist is too optimistic, and cleanup is needed...*/
         free(record);
         return -1;
@@ -215,7 +214,7 @@ static int free_sdp_slot(int id) {
     int handle = -1;
     bluetooth_sdp_record* record = NULL;
     if(id >= MAX_SDP_SLOTS) {
-        APPL_TRACE_ERROR("free_sdp_slot failed - id %d is invalid", id);
+        APPL_TRACE_ERROR("%s() failed - id %d is invalid", __func__, id);
         return handle;
     }
     pthread_mutex_lock(&sdp_lock);
@@ -245,7 +244,7 @@ static int free_sdp_slot(int id) {
 static const sdp_slot_t* start_create_sdp(int id) {
     sdp_slot_t* sdp_slot;
     if(id >= MAX_SDP_SLOTS) {
-        APPL_TRACE_ERROR("start_create_sdp failed - id %d is invalid", id);
+        APPL_TRACE_ERROR("%s() failed - id %d is invalid", __func__, id);
         return NULL;
     }
     pthread_mutex_lock(&sdp_lock);
@@ -257,8 +256,8 @@ static const sdp_slot_t* start_create_sdp(int id) {
     }
     pthread_mutex_unlock(&sdp_lock);
     if(sdp_slot == NULL) {
-        APPL_TRACE_ERROR("start_create_sdp failed - state for id %d is "
-                "sdp_slots[id].state = %d expected %d",
+        APPL_TRACE_ERROR("%s() failed - state for id %d is "
+                "sdp_slots[id].state = %d expected %d", __func__,
                 id, sdp_slots[id].state, SDP_RECORD_ALLOCED);
     }
     return sdp_slot;
@@ -268,9 +267,7 @@ static void set_sdp_handle(int id, int handle) {
     pthread_mutex_lock(&sdp_lock);
     sdp_slots[id].sdp_handle = handle;
     pthread_mutex_unlock(&sdp_lock);
-    BTIF_TRACE_DEBUG("Sdp Server %s id=%d to handle=0x%08x",
-            __FUNCTION__, id, handle);
-
+    BTIF_TRACE_DEBUG("%s() id=%d to handle=0x%08x", __FUNCTION__, id, handle);
 }
 
 
@@ -278,7 +275,7 @@ bt_status_t create_sdp_record(bluetooth_sdp_record *record, int* record_handle) 
     int handle;
 
     handle = alloc_sdp_slot(record);
-    BTIF_TRACE_DEBUG("Sdp Server %s handle = 0x%08x", __FUNCTION__, handle);
+    BTIF_TRACE_DEBUG("%s() handle = 0x%08x", __FUNCTION__, handle);
 
     if(handle < 0)
         return BT_STATUS_FAIL;
@@ -339,6 +336,9 @@ void on_create_record_event(int id) {
         case SDP_TYPE_OPP_SERVER:
             handle = add_opps_sdp(&record->ops);
             break;
+        case SDP_TYPE_SAP_SERVER:
+            handle = add_saps_sdp(&record->sap);
+            break;
         case SDP_TYPE_PBAP_PCE:
     //        break; not yet supported
         default:
@@ -380,7 +380,7 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
     UINT8               temp[4];
     UINT8*              p_temp = temp;
 
-    APPL_TRACE_DEBUG("add_mas_sdp: MASID = 0x%02x, scn 0x%02x, psm = 0x%04x\n  service name %s",
+    APPL_TRACE_DEBUG("%s(): MASID = 0x%02x, scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->mas_instance_id, rec->hdr.rfcomm_channel_number,
             rec->hdr.l2cap_psm, rec->hdr.service_name);
 
@@ -389,7 +389,7 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR("MAPS SDP: Unable to register MAPS Service");
+        APPL_TRACE_ERROR("%s() - Unable to register MAPS Service", __func__);
         return sdp_handle;
     }
 
@@ -447,12 +447,12 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR("add_maps_sdp FAILED");
+        APPL_TRACE_ERROR("%s() FAILED", __func__);
     }
     else
     {
         bta_sys_add_uuid(service);  /* UUID_SERVCLASS_MESSAGE_ACCESS */
-        APPL_TRACE_DEBUG("MAPS:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("%s():  SDP Registered (handle 0x%08x)", __func__, sdp_handle);
     }
     return sdp_handle;
 }
@@ -469,14 +469,14 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec)
     UINT8               temp[4];
     UINT8*              p_temp = temp;
 
-    APPL_TRACE_DEBUG("add_mas_sdp: scn 0x%02x, psm = 0x%04x\n  service name %s",
+    APPL_TRACE_DEBUG("%s(): scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm, rec->hdr.service_name);
 
     APPL_TRACE_DEBUG("  feature_bits: 0x%08x", rec->supported_features);
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR("add_mapc_sdp: Unable to register MAP Notification Service");
+        APPL_TRACE_ERROR("%s(): Unable to register MAP Notification Service", __func__);
         return sdp_handle;
     }
 
@@ -526,12 +526,12 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR("add_mapc_sdp FAILED");
+        APPL_TRACE_ERROR("%s() FAILED", __func__);
     }
     else
     {
         bta_sys_add_uuid(service);  /* UUID_SERVCLASS_MESSAGE_ACCESS */
-        APPL_TRACE_DEBUG("MAPC:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("%s():  SDP Registered (handle 0x%08x)", __func__, sdp_handle);
     }
     return sdp_handle;
 }
@@ -548,7 +548,7 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
     UINT8               temp[4];
     UINT8*              p_temp = temp;
 
-    APPL_TRACE_DEBUG("add_pbaps_sdp: scn 0x%02x, psm = 0x%04x\n  service name %s",
+    APPL_TRACE_DEBUG("%s(): scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm, rec->hdr.service_name);
 
     APPL_TRACE_DEBUG("  supported_repositories: 0x%08x, feature_bits: 0x%08x",
@@ -556,7 +556,7 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR("add_pbaps_sdp: Unable to register PBAP Server Service");
+        APPL_TRACE_ERROR("%s(): Unable to register PBAP Server Service", __func__);
         return sdp_handle;
     }
 
@@ -610,12 +610,12 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR("add_pbaps_sdp FAILED");
+        APPL_TRACE_ERROR("%s() FAILED", __func__);
     }
     else
     {
         bta_sys_add_uuid(service);  /* UUID_SERVCLASS_MESSAGE_ACCESS */
-        APPL_TRACE_DEBUG("PBAPS:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("%s():  SDP Registered (handle 0x%08x)", __func__, sdp_handle);
     }
     return sdp_handle;
 }
@@ -638,7 +638,7 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
     tBTA_UTL_COD        cod;
     int i,j;
 
-    APPL_TRACE_DEBUG("add_opps_sdp: scn 0x%02x, psm = 0x%04x\n  service name %s",
+    APPL_TRACE_DEBUG("%s(): scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm, rec->hdr.service_name);
 
     APPL_TRACE_DEBUG("  supported formats count: %d",
@@ -646,7 +646,7 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
 
     if ((sdp_handle = SDP_CreateRecord()) == 0)
     {
-        APPL_TRACE_ERROR("add_opps_sdp: Unable to register Object Push Server Service");
+        APPL_TRACE_ERROR("%s(): Unable to register Object Push Server Service", __func__);
         return sdp_handle;
     }
 
@@ -702,7 +702,7 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
     {
         SDP_DeleteRecord(sdp_handle);
         sdp_handle = 0;
-        APPL_TRACE_ERROR("add_opps_sdp FAILED");
+        APPL_TRACE_ERROR("%s() FAILED", __func__);
     }
     else
     {
@@ -711,9 +711,70 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
         utl_set_device_class(&cod, BTA_UTL_SET_COD_SERVICE_CLASS);
 
         bta_sys_add_uuid(service);  /* UUID_SERVCLASS_OBEX_OBJECT_PUSH */
-        APPL_TRACE_DEBUG("OPPS:  SDP Registered (handle 0x%08x)", sdp_handle);
+        APPL_TRACE_DEBUG("%s():  SDP Registered (handle 0x%08x)", __func__, sdp_handle);
     }
     return sdp_handle;
 }
 
+// Create a Sim Access Profile SDP record based on information stored in a bluetooth_sdp_sap_record.
+static int add_saps_sdp(const bluetooth_sdp_sap_record* rec)
+{
+    tSDP_PROTOCOL_ELEM  protoList [2];
+    UINT16              services[2];
+    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    BOOLEAN             status = TRUE;
+    UINT32              sdp_handle = 0;
+
+    APPL_TRACE_DEBUG("%s(): scn 0x%02x, service name %s", __func__,
+            rec->hdr.rfcomm_channel_number, rec->hdr.service_name);
+
+    if ((sdp_handle = SDP_CreateRecord()) == 0)
+    {
+        APPL_TRACE_ERROR("%s(): Unable to register SAPS Service", __func__);
+        return sdp_handle;
+    }
+
+    services[0] = UUID_SERVCLASS_SAP;
+    services[1] = UUID_SERVCLASS_GENERIC_TELEPHONY;
+
+    // add service class
+    status &= SDP_AddServiceClassIdList(sdp_handle, 2, services);
+    memset(protoList, 0, 2 * sizeof(tSDP_PROTOCOL_ELEM));
+
+    // add protocol list, including RFCOMM scn
+    protoList[0].protocol_uuid = UUID_PROTOCOL_L2CAP;
+    protoList[0].num_params = 0;
+    protoList[1].protocol_uuid = UUID_PROTOCOL_RFCOMM;
+    protoList[1].num_params = 1;
+    protoList[1].params[0] = rec->hdr.rfcomm_channel_number;
+    status &= SDP_AddProtocolList(sdp_handle, 2, protoList);
+
+    // Add a name entry
+    status &= SDP_AddAttribute(sdp_handle,
+                    (UINT16)ATTR_ID_SERVICE_NAME,
+                    (UINT8)TEXT_STR_DESC_TYPE,
+                    (UINT32)(rec->hdr.service_name_length + 1),
+                    (UINT8 *)rec->hdr.service_name);
+
+    // Add in the Bluetooth Profile Descriptor List
+    status &= SDP_AddProfileDescriptorList(sdp_handle,
+            UUID_SERVCLASS_SAP,
+            rec->hdr.profile_version);
+
+    // Make the service browseable
+    status &= SDP_AddUuidSequence (sdp_handle, ATTR_ID_BROWSE_GROUP_LIST, 1, &browse);
+
+    if (!status)
+    {
+        SDP_DeleteRecord(sdp_handle);
+        sdp_handle = 0;
+        APPL_TRACE_ERROR("%s(): FAILED deleting record", __func__);
+    }
+    else
+    {
+        bta_sys_add_uuid(UUID_SERVCLASS_SAP);
+        APPL_TRACE_DEBUG("%s(): SDP Registered (handle 0x%08x)", __func__, sdp_handle);
+    }
+    return sdp_handle;
+}
 
