@@ -283,7 +283,7 @@ bt_status_t create_sdp_record(bluetooth_sdp_record *record, int* record_handle) 
     if(handle < 0)
         return BT_STATUS_FAIL;
 
-    BTA_SdpCreateRecordByUser((void*) handle);
+    BTA_SdpCreateRecordByUser(INT_TO_PTR(handle));
 
     *record_handle = handle;
 
@@ -300,7 +300,7 @@ bt_status_t remove_sdp_record(int record_id) {
 
     /* Pass the actual record handle */
     if(handle > 0) {
-        BTA_SdpRemoveRecordByUser((void*) handle);
+        BTA_SdpRemoveRecordByUser(INT_TO_PTR(handle));
         return BT_STATUS_SUCCESS;
     }
     BTIF_TRACE_DEBUG("Sdp Server %s - record already removed - or never created", __FUNCTION__);

@@ -74,15 +74,5 @@ shared_library("bluetooth.default") {
     "//utils",
   ]
 
-  # TODO(armansito): Remove all of the flags below, as we want to be able to
-  # compile the source code with as many warnings enabled as possible.
-  cflags = [
-    "-Wno-int-to-pointer-cast",
-  ]
-
-  cflags_c = [
-    "-Wno-pointer-to-int-cast",
-  ]
-
   libs = [ "-lpthread", "-lrt", "-ldl" ]
 }

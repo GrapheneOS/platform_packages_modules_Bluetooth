@@ -120,7 +120,7 @@ tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
         {
             memset ((UINT8 *)p_bcb, 0, sizeof (tBNEP_CONN));
 
-            p_bcb->conn_tle.param = (UINT32) p_bcb;
+            p_bcb->conn_tle.param = p_bcb;
 
             memcpy ((UINT8 *)(p_bcb->rem_bda), (UINT8 *)p_rem_bda, BD_ADDR_LEN);
             p_bcb->handle = xx + 1;

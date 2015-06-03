@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "osi/include/allocator.h"
 #include "bt_types.h"
@@ -40,12 +41,13 @@
 #include "sdp_api.h"
 #include "l2c_api.h"
 #include "port_api.h"
-#include <string.h>
 #include "rfcdefs.h"
 #include "avct_api.h"
 #include "avdt_api.h"
 #include "gap_api.h"
 #include "l2c_api.h"
+
+#include "osi/include/osi.h"
 
 
 /* one of these exists for each client */
@@ -1650,7 +1652,7 @@ static int find_rfc_pcb(void* user_data, tBTA_JV_RFC_CB **cb, tBTA_JV_PCB **pcb)
             return 1;
         }
     }
-    APPL_TRACE_DEBUG("find_rfc_pcb: cannot find rfc_cb from user data:%d", (UINT32)user_data);
+    APPL_TRACE_DEBUG("find_rfc_pcb: cannot find rfc_cb from user data: %u", PTR_TO_UINT(user_data));
     return 0;
 }
 

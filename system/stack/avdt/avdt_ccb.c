@@ -386,7 +386,7 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
             memcpy(p_ccb->peer_addr, bd_addr, BD_ADDR_LEN);
             GKI_init_q(&p_ccb->cmd_q);
             GKI_init_q(&p_ccb->rsp_q);
-            p_ccb->timer_entry.param = (UINT32) p_ccb;
+            p_ccb->timer_entry.param = p_ccb;
             AVDT_TRACE_DEBUG("avdt_ccb_alloc %d", i);
             break;
         }

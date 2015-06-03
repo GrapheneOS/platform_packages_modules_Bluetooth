@@ -390,7 +390,7 @@ void btpan_set_flow_control(BOOLEAN enable) {
     btpan_cb.flow = enable;
     if (enable) {
         btsock_thread_add_fd(pan_pth, btpan_cb.tap_fd, 0, SOCK_THREAD_FD_RD, 0);
-        bta_dmexecutecallback(btu_exec_tap_fd_read, (void *)btpan_cb.tap_fd);
+        bta_dmexecutecallback(btu_exec_tap_fd_read, INT_TO_PTR(btpan_cb.tap_fd));
     }
 }
 
@@ -660,7 +660,7 @@ static void bta_pan_callback(tBTA_PAN_EVT event, tBTA_PAN *p_data)
 #define IS_EXCEPTION(e) ((e) & (POLLHUP | POLLRDHUP | POLLERR | POLLNVAL))
 static void btu_exec_tap_fd_read(void *p_param) {
     struct pollfd ufd;
-    int fd = (int)p_param;
+    int fd = PTR_TO_INT(p_param);
 
     if (fd == INVALID_FD || fd != btpan_cb.tap_fd)
         return;
@@ -759,5 +759,5 @@ static void btpan_tap_fd_signaled(int fd, int type, int flags, uint32_t user_id)
         btpan_tap_close(fd);
         btif_pan_close_all_conns();
     } else if (flags & SOCK_THREAD_FD_RD)
-        bta_dmexecutecallback(btu_exec_tap_fd_read, (void *)fd);
+        bta_dmexecutecallback(btu_exec_tap_fd_read, INT_TO_PTR(fd));
 }

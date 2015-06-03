@@ -37,6 +37,8 @@
 #include "sdpint.h"
 #include "btu.h"
 
+#include "osi/include/osi.h"
+
 /**********************************************************************
 **   C L I E N T    F U N C T I O N    P R O T O T Y P E S            *
 ***********************************************************************/
@@ -73,7 +75,7 @@ BOOLEAN SDP_InitDiscoveryDb (tSDP_DISCOVERY_DB *p_db, UINT32 len, UINT16 num_uui
         num_attr > SDP_MAX_ATTR_FILTERS || num_uuid > SDP_MAX_UUID_FILTERS)
     {
         SDP_TRACE_ERROR("SDP_InitDiscoveryDb Illegal param: p_db 0x%x, len %d, num_uuid %d, num_attr %d",
-                         (UINT32)p_db, len, num_uuid, num_attr);
+                        PTR_TO_UINT(p_db), len, num_uuid, num_attr);
 
         return(FALSE);
     }

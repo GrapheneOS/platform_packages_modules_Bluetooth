@@ -108,12 +108,12 @@ static void sdp_dm_cback(tBTA_SDP_EVT event, tBTA_SDP *p_data, void *user_data)
         }
         case BTA_SDP_CREATE_RECORD_USER_EVT:
         {
-            on_create_record_event((int)user_data);
+            on_create_record_event(PTR_TO_INT(user_data));
             break;
         }
         case BTA_SDP_REMOVE_RECORD_USER_EVT:
         {
-            on_remove_record_event((int)user_data);
+            on_remove_record_event(PTR_TO_INT(user_data));
             break;
         }
         default:

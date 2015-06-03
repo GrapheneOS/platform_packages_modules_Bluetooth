@@ -358,7 +358,7 @@ void btif_hl_start_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
     {
         BTIF_TRACE_DEBUG("Start CCH timer ");
         memset(&p_mcb->cch_timer, 0, sizeof(TIMER_LIST_ENT));
-        p_mcb->cch_timer.param = (UINT32)btif_hl_tmr_hdlr;
+        p_mcb->cch_timer.param = btif_hl_tmr_hdlr;
         btu_start_timer(&p_mcb->cch_timer, BTU_TTYPE_USER_FUNC,
                         BTIF_TIMEOUT_CCH_NO_DCH_SECS);
     }

@@ -284,7 +284,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
     goto out;
   }
   APPL_TRACE_DEBUG("BTA_JvGetChannelId: service_name: %s - channel: %d", service_name, channel);
-  BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, (void*) slot->id, channel);
+  BTA_JvGetChannelId(BTA_JV_CONN_TYPE_RFCOMM, UINT_TO_PTR(slot->id), channel);
   *sock_fd = slot->app_fd;    // Transfer ownership of fd to caller.
   /*TODO:
    * We are leaking one of the app_fd's - either the listen socket, or the connection socket.
@@ -599,7 +599,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
 }
 
 static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
-  uint32_t id = (uintptr_t)user_data;
+  uint32_t id = PTR_TO_UINT(user_data);
   switch(event) {
     case BTA_JV_GET_SCN_EVT:
     {
@@ -625,13 +625,13 @@ static void jv_dm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
         } else {
           if(rs->is_service_uuid_valid == true) {
             // We already have data for SDP record, create it (RFC-only profiles)
-            BTA_JvCreateRecordByUser((void *)rs->id);
+            BTA_JvCreateRecordByUser(UINT_TO_PTR(rs->id));
           } else {
             APPL_TRACE_DEBUG("is_service_uuid_valid==false - don't set SDP-record, "
                     "just start the RFCOMM server", rs->id);
             //now start the rfcomm server after sdp & channel # assigned
             BTA_JvRfcommStartServer(rs->security, rs->role, rs->scn, MAX_RFC_SESSION,
-                    rfcomm_cback, (void*)rs->id);
+                    rfcomm_cback, UINT_TO_PTR(rs->id));
           }
         }
       } else if(rs) {
