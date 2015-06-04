@@ -155,6 +155,7 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 
     UINT8 i,j;
     UINT16 policy_setting;
+    UINT8 *p = NULL;
 #if (BTM_SSR_INCLUDED == TRUE)
     int               index = BTA_DM_PM_SSR0;
 #endif
@@ -269,6 +270,24 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
        )
     {
         bta_dm_pm_ssr(peer_addr);
+    }
+    else
+    {
+        if( ((NULL != (p = BTM_ReadLocalFeatures ())) && HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
+            ((NULL != (p = BTM_ReadRemoteFeatures (peer_addr))) && HCI_SNIFF_SUB_RATE_SUPPORTED(p)) &&
+            (index == BTA_DM_PM_SSR0))
+        {
+            if (status == BTA_SYS_SCO_OPEN)
+            {
+                APPL_TRACE_DEBUG("%s: SCO inactive, reset SSR to zero", __func__);
+                BTM_SetSsrParams (peer_addr, 0,0,0 );
+            }
+            else if (status == BTA_SYS_SCO_CLOSE)
+            {
+                APPL_TRACE_DEBUG("%s: SCO active, back to old SSR", __func__);
+                bta_dm_pm_ssr(peer_addr);
+            }
+        }
     }
 #endif
 
