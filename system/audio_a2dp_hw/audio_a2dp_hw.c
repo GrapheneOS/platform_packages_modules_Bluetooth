@@ -547,9 +547,12 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     DEBUG("write %zu bytes (fd %d)", bytes, out->common.audio_fd);
 
+    pthread_mutex_lock(&out->common.lock);
+
     if (out->common.state == AUDIO_A2DP_STATE_SUSPENDED)
     {
         DEBUG("stream suspended");
+        pthread_mutex_unlock(&out->common.lock);
         return -1;
     }
 
@@ -557,8 +560,6 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if ((out->common.state == AUDIO_A2DP_STATE_STOPPED) ||
         (out->common.state == AUDIO_A2DP_STATE_STANDBY))
     {
-        pthread_mutex_lock(&out->common.lock);
-
         if (start_audio_datapath(&out->common) < 0)
         {
             /* emulate time this write represents to avoid very fast write
@@ -572,22 +573,25 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
             pthread_mutex_unlock(&out->common.lock);
             return -1;
         }
-
-        pthread_mutex_unlock(&out->common.lock);
     }
     else if (out->common.state != AUDIO_A2DP_STATE_STARTED)
     {
         ERROR("stream not in stopped or standby");
+        pthread_mutex_unlock(&out->common.lock);
         return -1;
     }
 
+    pthread_mutex_unlock(&out->common.lock);
     sent = skt_write(out->common.audio_fd, buffer,  bytes);
 
     if (sent == -1)
     {
         skt_disconnect(out->common.audio_fd);
         out->common.audio_fd = AUDIO_SKT_DISCONNECTED;
-        out->common.state = AUDIO_A2DP_STATE_STOPPED;
+        if (out->common.state != AUDIO_A2DP_STATE_SUSPENDED)
+            out->common.state = AUDIO_A2DP_STATE_STOPPED;
+        else
+            ERROR("write failed : stream suspended, avoid resetting state");
     }
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
@@ -690,8 +694,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     INFO("state %d", out->common.state);
 
-    pthread_mutex_lock(&out->common.lock);
-
     parms = str_parms_create_str(kvpairs);
 
     /* dump params */
@@ -704,7 +706,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         if (strcmp(keyval, "true") == 0)
         {
             DEBUG("stream closing, disallow any writes");
+            pthread_mutex_lock(&out->common.lock);
             out->common.state = AUDIO_A2DP_STATE_STOPPING;
+            pthread_mutex_unlock(&out->common.lock);
         }
     }
 
@@ -712,6 +716,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     if (retval >= 0)
     {
+        pthread_mutex_lock(&out->common.lock);
         if (strcmp(keyval, "true") == 0)
         {
             if (out->common.state == AUDIO_A2DP_STATE_STARTED)
@@ -726,9 +731,9 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
                 out->common.state = AUDIO_A2DP_STATE_STANDBY;
             /* Irrespective of the state, return 0 */
         }
+        pthread_mutex_unlock(&out->common.lock);
     }
 
-    pthread_mutex_unlock(&out->common.lock);
     str_parms_destroy(parms);
 
     return status;
