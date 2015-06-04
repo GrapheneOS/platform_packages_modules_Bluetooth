@@ -1230,7 +1230,6 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, UINT8 event)
                        then create listen sco connection for it as scb still open */
                     if (bta_ag_scb_open(p_scb))
                     {
-                        APPL_TRACE_DEBUG0("create sco listen connection if scb still open");
                         bta_ag_create_sco(p_scb, FALSE);
                         p_sco->state = BTA_AG_SCO_LISTEN_ST;
                     }
