@@ -1310,13 +1310,15 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                 }
                 break;
             case BTHF_CALL_STATE_DIALING:
-                ag_res.audio_handle = btif_hf_cb[idx].handle;
+                if (!(num_active + num_held))
+                    ag_res.audio_handle = btif_hf_cb[idx].handle;
                 res = BTA_AG_OUT_CALL_ORIG_RES;
                 break;
             case BTHF_CALL_STATE_ALERTING:
                 /* if we went from idle->alert, force SCO setup here. dialing usually triggers it */
-                if (btif_hf_cb[idx].call_setup_state == BTHF_CALL_STATE_IDLE)
-                ag_res.audio_handle = btif_hf_cb[idx].handle;
+                if ((btif_hf_cb[idx].call_setup_state == BTHF_CALL_STATE_IDLE) &&
+                        !(num_active + num_held))
+                    ag_res.audio_handle = btif_hf_cb[idx].handle;
                 res = BTA_AG_OUT_CALL_ALERT_RES;
                 break;
             default:
