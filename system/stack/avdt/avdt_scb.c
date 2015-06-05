@@ -740,7 +740,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
       nsc_mask = AVDT_NSC_SUSPEND;
 
     /* verify every scb */
-    for (i = 0, *p_err_code = 0; i < num_seid && *p_err_code == 0; i++)
+    for (i = 0, *p_err_code = 0; (i < num_seid) && (*p_err_code == 0) && (i < AVDT_NUM_SEPS); i++)
     {
         if ((p_scb = avdt_scb_by_hdl(p_seid[i])) == NULL)
             *p_err_code = AVDT_ERR_BAD_STATE;
@@ -764,7 +764,7 @@ UINT8 avdt_scb_verify(tAVDT_CCB *p_ccb, UINT8 state, UINT8 *p_seid, UINT16 num_s
         }
     }
 
-    if (i != num_seid)
+    if ((i != num_seid) && (i < AVDT_NUM_SEPS))
     {
         ret = p_seid[i];
     }
