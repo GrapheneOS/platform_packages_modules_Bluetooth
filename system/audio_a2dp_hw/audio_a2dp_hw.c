@@ -107,7 +107,6 @@ struct a2dp_stream_common {
 struct a2dp_stream_out {
     struct audio_stream_out stream;
     struct a2dp_stream_common common;
-    uint64_t frames_written;
 };
 
 struct a2dp_stream_in {
@@ -584,12 +583,11 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 
     sent = skt_write(out->common.audio_fd, buffer,  bytes);
 
-    if (sent == -1) {
+    if (sent == -1)
+    {
         skt_disconnect(out->common.audio_fd);
         out->common.audio_fd = AUDIO_SKT_DISCONNECTED;
         out->common.state = AUDIO_A2DP_STATE_STOPPED;
-    } else {
-        out->frames_written += (uint64_t)bytes / audio_stream_out_frame_size(stream);
     }
 
     DEBUG("wrote %d bytes out of %zu bytes", sent, bytes);
@@ -669,7 +667,6 @@ static int out_standby(struct audio_stream *stream)
         retVal =  suspend_audio_datapath(&out->common, true);
     else
         retVal = 0;
-    out->frames_written = 0;
     pthread_mutex_unlock(&out->common.lock);
 
     return retVal;
@@ -779,44 +776,16 @@ static int out_set_volume(struct audio_stream_out *stream, float left,
     return -ENOSYS;
 }
 
-static int  out_get_presentation_position(const struct audio_stream_out *stream,
-                           uint64_t *frames, struct timespec *timestamp)
-{
-    struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
 
-    FNLOG();
-
-    if (stream == NULL || frames == NULL || timestamp == NULL)
-        return -EINVAL;
-
-    *frames = 0;
-    pthread_mutex_lock(&out->common.lock);
-    uint64_t latency_frames = ((uint64_t)out_get_latency(stream) *  out->common.cfg.rate) / 1000;
-    if (out->frames_written >= latency_frames) {
-        *frames = out->frames_written - latency_frames;
-    }
-    clock_gettime(CLOCK_MONOTONIC, timestamp);
-    pthread_mutex_unlock(&out->common.lock);
-    return 0;
-}
 
 static int out_get_render_position(const struct audio_stream_out *stream,
                                    uint32_t *dsp_frames)
 {
-    struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    struct timespec timestamp;
-    uint64_t frames;
-    int ret;
+    UNUSED(stream);
+    UNUSED(dsp_frames);
 
     FNLOG();
-
-    if (stream == NULL || dsp_frames == NULL)
-        return -EINVAL;
-    *dsp_frames = 0;
-    ret = out_get_presentation_position(stream, &frames, &timestamp);
-    if (ret == 0)
-        *dsp_frames = (uint32_t)frames;
-    return ret;
+    return -EINVAL;
 }
 
 static int out_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
@@ -1069,8 +1038,6 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     out->stream.set_volume = out_set_volume;
     out->stream.write = out_write;
     out->stream.get_render_position = out_get_render_position;
-    out->stream.get_presentation_position = out_get_presentation_position;
-
 
     /* initialize a2dp specifics */
     a2dp_stream_common_init(&out->common);
