@@ -33,6 +33,8 @@
 #include "utl.h"
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+
 
 /*****************************************************************************
 **  Constants
@@ -43,7 +45,8 @@
 
 #define BTA_AG_CMD_MAX_VAL      32767  /* Maximum value is signed 16-bit value */
 
-
+/* Invalid Chld command */
+#define BTA_AG_INVALID_CHLD        255
 
 /* clip type constants */
 #define BTA_AG_CLIP_TYPE_MIN        128
@@ -626,7 +629,8 @@ static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
 ** Description      Parse AT+CHLD parameter string.
 **
 **
-** Returns          Returns idx (1-7), or 0 if ECC not enabled or idx doesn't exist
+** Returns          Returns idx (1-7), 0 if ECC not enabled or BTA_AG_INVALID_CHLD
+                    if idx doesn't exist/1st character of argument is not a digit
 **
 *******************************************************************************/
 static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
@@ -635,12 +639,23 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
     INT16   idx = -1;
     UNUSED(p_scb);
 
+    if (!isdigit(p_s[0]))
+    {
+        return BTA_AG_INVALID_CHLD;
+    }
+
     if (p_s[1] != 0)
     {
         /* p_idxstr++;  point to beginning of call number */
         idx = utl_str2int(&p_s[1]);
         if (idx != -1 && idx < 255)
+        {
             retval = (UINT8)idx;
+        }
+        else
+        {
+            retval = BTA_AG_INVALID_CHLD;
+        }
     }
 
     return (retval);
@@ -959,6 +974,12 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             {
                 val.idx = bta_ag_parse_chld(p_scb, val.str);
 
+                if (val.idx == BTA_AG_INVALID_CHLD)
+                {
+                    event = 0;
+                    bta_ag_send_error(p_scb, BTA_AG_ERR_OP_NOT_SUPPORTED);
+                    break;
+                }
                 if(val.idx && !((p_scb->features & BTA_AG_FEAT_ECC) && (p_scb->peer_features & BTA_AG_PEER_FEAT_ECC)))
                 {
                     /* we do not support ECC, but HF is sending us a CHLD with call index*/
