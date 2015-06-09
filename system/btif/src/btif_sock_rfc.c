@@ -179,6 +179,8 @@ static rfc_slot_t *alloc_rfc_slot(const bt_bdaddr_t *addr, const char *name, con
       security |= server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
   if(flags & BTSOCK_FLAG_AUTH_MITM)
       security |= server ? BTM_SEC_IN_MITM : BTM_SEC_OUT_MITM;
+  if(flags & BTSOCK_FLAG_AUTH_16_DIGIT)
+      security |= BTM_SEC_IN_MIN_16_DIGIT_PIN;
 
   rfc_slot_t *slot = find_free_slot();
   if (!slot) {

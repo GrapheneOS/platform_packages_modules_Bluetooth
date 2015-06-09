@@ -915,7 +915,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     }
 
     /* check for auto pair possiblity only if bond was initiated by local device */
-    if (pairing_cb.is_local_initiated)
+    if (pairing_cb.is_local_initiated && (p_pin_req->min_16_digit == FALSE))
     {
         if (check_cod(&bd_addr, COD_AV_HEADSETS) ||
             check_cod(&bd_addr, COD_AV_HANDSFREE) ||
@@ -959,7 +959,7 @@ static void btif_dm_pin_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
         }
     }
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
-                     &bd_addr, &bd_name, cod);
+                     &bd_addr, &bd_name, cod, p_pin_req->min_16_digit);
 }
 
 /*******************************************************************************
@@ -3148,7 +3148,7 @@ static void btif_dm_ble_passkey_req_evt(tBTA_DM_PIN_REQ *p_pin_req)
     cod = COD_UNCLASSIFIED;
 
     HAL_CBACK(bt_hal_cbacks, pin_request_cb,
-              &bd_addr, &bd_name, cod);
+              &bd_addr, &bd_name, cod, FALSE);
 }
 static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF *p_notif_req)
 {
