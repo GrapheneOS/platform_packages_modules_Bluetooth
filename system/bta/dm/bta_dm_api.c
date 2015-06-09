@@ -496,7 +496,7 @@ void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
 *******************************************************************************/
 void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
                      tBTA_SERVICE_MASK trusted_mask, BOOLEAN is_trusted,
-                     UINT8 key_type, tBTA_IO_CAP io_cap)
+                     UINT8 key_type, tBTA_IO_CAP io_cap, UINT8 pin_length)
 {
 
     tBTA_DM_API_ADD_DEVICE *p_msg;
@@ -527,6 +527,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 
         memset (p_msg->bd_name, 0, BD_NAME_LEN);
         memset (p_msg->features, 0, sizeof (p_msg->features));
+        p_msg->pin_length = pin_length;
 
         bta_sys_sendmsg(p_msg);
     }

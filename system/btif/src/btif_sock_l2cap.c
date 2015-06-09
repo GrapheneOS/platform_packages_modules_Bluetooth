@@ -308,6 +308,10 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
         security |= is_server ? BTM_SEC_IN_ENCRYPT : BTM_SEC_OUT_ENCRYPT;
     if (flags & BTSOCK_FLAG_AUTH)
         security |= is_server ? BTM_SEC_IN_AUTHENTICATE : BTM_SEC_OUT_AUTHENTICATE;
+    if (flags & BTSOCK_FLAG_AUTH_MITM)
+        security |= is_server ? BTM_SEC_IN_MITM : BTM_SEC_OUT_MITM;
+    if (flags & BTSOCK_FLAG_AUTH_16_DIGIT)
+        security |= BTM_SEC_IN_MIN_16_DIGIT_PIN;
 
     sock = osi_calloc(sizeof(*sock));
     if (!sock) {

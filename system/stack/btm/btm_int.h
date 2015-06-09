@@ -400,7 +400,7 @@ typedef struct
     tBTM_SCO_PCM_PARAM   sco_pcm_param;
     tBTM_SCO_CODEC_TYPE  codec_in_use;      /* None, CVSD, MSBC, etc. */
 #if BTM_SCO_HCI_INCLUDED == TRUE
-	tBTM_SCO_ROUTE_TYPE	 sco_path;
+    tBTM_SCO_ROUTE_TYPE  sco_path;
 #endif
 
 } tSCO_CB;
@@ -508,6 +508,7 @@ typedef struct
     BD_ADDR              bd_addr;           /* BD_ADDR of the device              */
     DEV_CLASS            dev_class;         /* DEV_CLASS of the device            */
     LINK_KEY             link_key;          /* Device link key                    */
+    UINT8                pin_code_length;   /* Length of the pin_code used for paring */
 
 #define BTM_SEC_AUTHORIZED      BTM_SEC_FLAG_AUTHORIZED     /* 0x01 */
 #define BTM_SEC_AUTHENTICATED   BTM_SEC_FLAG_AUTHENTICATED  /* 0x02 */
@@ -523,6 +524,7 @@ typedef struct
 #define BTM_SEC_LE_NAME_KNOWN      0x0800   /* not used */
 #define BTM_SEC_LE_LINK_KEY_KNOWN  0x1000   /* bonded with peer (peer LTK and/or SRK is saved) */
 #define BTM_SEC_LE_LINK_KEY_AUTHED 0x2000   /* pairing is done with MITM */
+#define BTM_SEC_16_DIGIT_PIN_AUTHED 0x4000   /* pairing is done with 16 digit pin */
 
     UINT16           sec_flags;          /* Current device security state      */
 

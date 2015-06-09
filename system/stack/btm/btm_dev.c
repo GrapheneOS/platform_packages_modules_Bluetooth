@@ -60,7 +60,8 @@ static tBTM_SEC_DEV_REC *btm_find_oldest_dev (void);
 *******************************************************************************/
 BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
                           UINT8 *features, UINT32 trusted_mask[],
-                          LINK_KEY link_key, UINT8 key_type, tBTM_IO_CAP io_cap)
+                          LINK_KEY link_key, UINT8 key_type, tBTM_IO_CAP io_cap,
+                          UINT8 pin_length)
 {
     tBTM_SEC_DEV_REC  *p_dev_rec;
     int               i, j;
@@ -145,6 +146,15 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
         p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
         memcpy (p_dev_rec->link_key, link_key, LINK_KEY_LEN);
         p_dev_rec->link_key_type = key_type;
+        p_dev_rec->pin_code_length = pin_length;
+
+        if (pin_length >= 16 ||
+            key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+            key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+            // Set the fiag if the link key was made by using either a 16 digit
+            // pin or MITM.
+            p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+        }
     }
 
 #if defined(BTIF_MIXED_MODE_INCLUDED) && (BTIF_MIXED_MODE_INCLUDED == TRUE)

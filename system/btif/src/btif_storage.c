@@ -509,9 +509,12 @@ static bt_status_t btif_in_fetch_bonded_devices(btif_bonded_devices_t *p_bonded_
                 {
                     DEV_CLASS dev_class = {0, 0, 0};
                     int cod;
+                    int pin_length = 0;
                     if(btif_config_get_int(name, "DevClass", &cod))
                         uint2devclass((UINT32)cod, dev_class);
-                    BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0, (UINT8)linkkey_type, 0);
+                    btif_config_get_int(name, "PinLength", &pin_length);
+                    BTA_DmAddDevice(bd_addr.address, dev_class, link_key, 0, 0,
+                            (UINT8)linkkey_type, 0, pin_length);
 
 #if BLE_INCLUDED == TRUE
                     if (btif_config_get_int(name, "DevType", &device_type) &&

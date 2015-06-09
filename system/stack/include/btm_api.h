@@ -1106,6 +1106,7 @@ typedef void (tBTM_ESCO_CBACK) (tBTM_ESCO_EVT event, tBTM_ESCO_EVT_DATA *p_data)
 #define BTM_SEC_ATTEMPT_SLAVE      0x0800 /* Try to switch connection to be slave */
 #define BTM_SEC_IN_MITM            0x1000 /* inbound Do man in the middle protection */
 #define BTM_SEC_OUT_MITM           0x2000 /* outbound Do man in the middle protection */
+#define BTM_SEC_IN_MIN_16_DIGIT_PIN 0x4000 /* enforce a minimum of 16 digit for sec mode 2 */
 
 /* Security Flags [bit mask] (BTM_GetSecurityFlags)
 */
@@ -1320,9 +1321,10 @@ typedef UINT8 (tBTM_AUTHORIZE_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
 **              BD Address of remote
 **              Device Class of remote
 **              BD Name of remote
+**              Flag indicating the minimum pin code length to be 16 digits
 */
 typedef UINT8 (tBTM_PIN_CALLBACK) (BD_ADDR bd_addr, DEV_CLASS dev_class,
-                                   tBTM_BD_NAME bd_name);
+                                   tBTM_BD_NAME bd_name, BOOLEAN min_16_digit);
 
 /* New Link Key for the connection.  Parameters are
 **              BD Address of remote
@@ -3306,7 +3308,7 @@ extern UINT8 BTM_SecClrService (UINT8 service_id);
 extern BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class,
                                  BD_NAME bd_name, UINT8 *features,
                                  UINT32 trusted_mask[], LINK_KEY link_key,
-                                 UINT8 key_type, tBTM_IO_CAP io_cap);
+                                 UINT8 key_type, tBTM_IO_CAP io_cap, UINT8 pin_length);
 
 
 /*******************************************************************************

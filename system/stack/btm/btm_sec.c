@@ -181,6 +181,25 @@ static BOOLEAN btm_dev_authorized (tBTM_SEC_DEV_REC *p_dev_rec)
 
 /*******************************************************************************
 **
+** Function         btm_dev_16_digit_authenticated
+**
+** Description      check device is authenticated by using 16 digit pin or MITM
+**
+** Returns          BOOLEAN TRUE or FALSE
+**
+*******************************************************************************/
+static BOOLEAN btm_dev_16_digit_authenticated(tBTM_SEC_DEV_REC *p_dev_rec)
+{
+    // BTM_SEC_16_DIGIT_PIN_AUTHED is set if MITM or 16 digit pin is used
+    if(p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED)
+    {
+        return(TRUE);
+    }
+    return(FALSE);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_serv_trusted
 **
 ** Description      check service is trusted
@@ -522,6 +541,8 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
     is_originator = conn_type;
 #endif
 
+    BTM_TRACE_API("%s : sec: 0x%x", __func__, sec_level);
+
     /* See if the record can be reused (same service name, psm, mx_proto_id,
        service_id, and mx_chan_id), or obtain the next unused record */
 
@@ -601,7 +622,8 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         }
 
         /* Parameter validation.  Originator should not set requirements for incoming connections */
-        sec_level &= ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM);
+        sec_level &= ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHENTICATE
+                | BTM_SEC_IN_MITM | BTM_SEC_IN_MIN_16_DIGIT_PIN );
 
         if (btm_cb.security_mode == BTM_SEC_MODE_SP ||
             btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
@@ -637,14 +659,16 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
         {
             p_srec->ucd_security_flags &=
             ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT     | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+              | BTM_SEC_IN_MIN_16_DIGIT_PIN);
         }
         else
 #endif
         {
             p_srec->security_flags &=
             ~(BTM_SEC_IN_AUTHORIZE | BTM_SEC_IN_ENCRYPT     | BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_MITM |
-              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE);
+              BTM_SEC_FORCE_MASTER | BTM_SEC_ATTEMPT_MASTER | BTM_SEC_FORCE_SLAVE | BTM_SEC_ATTEMPT_SLAVE
+              | BTM_SEC_IN_MIN_16_DIGIT_PIN);
         }
 
         /* Parameter validation.  Acceptor should not set requirements for outgoing connections */
@@ -877,6 +901,9 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
     if (trusted_mask)
         BTM_SEC_COPY_TRUSTED_DEVICE(trusted_mask, p_dev_rec->trusted_mask);
     p_dev_rec->sec_flags   |= BTM_SEC_LINK_KEY_AUTHED;
+    if (pin_len >= 16) {
+        p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+    }
 
     if ( (btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)
          &&  (p_dev_rec->hci_handle == BTM_SEC_INVALID_HANDLE)
@@ -884,6 +911,7 @@ void BTM_PINCodeReply (BD_ADDR bd_addr, UINT8 res, UINT8 pin_len, UINT8 *p_pin, 
     {
         /* This is start of the dedicated bonding if local device is 2.0 */
         btm_cb.pin_code_len = pin_len;
+        p_dev_rec->pin_code_length = pin_len;
         memcpy (btm_cb.pin_code, p_pin, pin_len);
 
         btm_cb.security_mode_changed = TRUE;
@@ -997,6 +1025,7 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
     if (p_pin && (pin_len <= PIN_CODE_LEN) && (pin_len != 0))
     {
         btm_cb.pin_code_len = pin_len;
+        p_dev_rec->pin_code_length = pin_len;
         memcpy (btm_cb.pin_code, p_pin, PIN_CODE_LEN);
     }
 
@@ -1527,6 +1556,7 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, BD_ADDR bd_addr)
         {
             if ((p_dev_rec = btm_find_dev (bd_addr)) != NULL)
                 p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_AUTHED;
+                p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
         }
 
         btsnd_hcic_user_conf_reply (bd_addr, TRUE);
@@ -2174,7 +2204,12 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
                 ((((security_required & BTM_SEC_IN_FLAGS) == (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT)) && (p_dev_rec->sec_flags & BTM_SEC_ENCRYPTED))) ||
                 ((((security_required & BTM_SEC_IN_FLAGS) == BTM_SEC_IN_FLAGS) && (p_dev_rec->sec_flags & BTM_SEC_AUTHORIZED))) )
             {
-                rc = BTM_SUCCESS;
+                // Check for 16 digits (or MITM)
+                if (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == 0) ||
+                    (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == BTM_SEC_IN_MIN_16_DIGIT_PIN) &&
+                     btm_dev_16_digit_authenticated(p_dev_rec))) {
+                    rc = BTM_SUCCESS;
+                }
             }
         }
 
@@ -2264,7 +2299,11 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
                 (((security_required & BTM_SEC_IN_FLAGS) == (BTM_SEC_IN_ENCRYPT | BTM_SEC_IN_AUTHORIZE)) && ((btm_dev_authorized(p_dev_rec)||btm_serv_trusted(p_dev_rec, p_serv_rec)) && btm_dev_encrypted(p_dev_rec))) ||
                 (((security_required & BTM_SEC_IN_FLAGS) == BTM_SEC_IN_FLAGS)  && btm_dev_encrypted(p_dev_rec) && (btm_dev_authorized(p_dev_rec)||btm_serv_trusted(p_dev_rec, p_serv_rec))))
                 {
-                    rc = BTM_SUCCESS;
+                    // Check for 16 digits (or MITM)
+                    if (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == 0) ||
+                       (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == BTM_SEC_IN_MIN_16_DIGIT_PIN) && btm_dev_16_digit_authenticated(p_dev_rec))) {
+                        rc = BTM_SUCCESS;
+                    }
                 }
             }
 
@@ -2548,7 +2587,11 @@ tBTM_STATUS btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOLEAN is_o
                     ((((security_required & BTM_SEC_IN_FLAGS) == (BTM_SEC_IN_AUTHENTICATE | BTM_SEC_IN_ENCRYPT)) && btm_dev_encrypted(p_dev_rec)))
                     )
                 {
-                    rc = BTM_SUCCESS;
+                    // Check for 16 digits (or MITM)
+                    if (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == 0) ||
+                       (((security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN) == BTM_SEC_IN_MIN_16_DIGIT_PIN) && btm_dev_16_digit_authenticated(p_dev_rec))) {
+                        rc = BTM_SUCCESS;
+                    }
                 }
             }
             if ((rc == BTM_SUCCESS) && (security_required & BTM_SEC_MODE4_LEVEL4) &&
@@ -3137,7 +3180,9 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
         {
             BTM_TRACE_EVENT ("btm_sec_rmt_name_request_complete() calling pin_callback");
             btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-            (*btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name);
+            (*btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_bd_name,
+                    (p_dev_rec->p_cur_service==NULL) ? FALSE
+                     : (p_dev_rec->p_cur_service->security_flags & BTM_SEC_IN_MIN_16_DIGIT_PIN));
         }
 
         /* Set the same state again to force the timer to be restarted */
@@ -4144,6 +4189,14 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
 
     p_dev_rec->sec_flags |= BTM_SEC_AUTHENTICATED;
 
+    if (p_dev_rec->pin_code_length >= 16 ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+        // If we have MITM protection we have a higher level of security than
+        // provided by 16 digits PIN
+        p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+    }
+
     /* Authentication succeeded, execute the next security procedure, if any */
     status = btm_sec_execute_procedure (p_dev_rec);
 
@@ -4188,10 +4241,18 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
 
     if ((status == HCI_SUCCESS) && encr_enable)
     {
-        if (p_dev_rec->hci_handle == handle)
+        if (p_dev_rec->hci_handle == handle) {
             p_dev_rec->sec_flags |= (BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED);
+            if (p_dev_rec->pin_code_length >= 16 ||
+                p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+                p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+                p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+            }
+        }
         else
+        {
             p_dev_rec->sec_flags |= (BTM_SEC_LE_AUTHENTICATED | BTM_SEC_LE_ENCRYPTED);
+        }
     }
 
     /* It is possible that we decrypted the link to perform role switch */
@@ -4628,6 +4689,12 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
     if (btm_cb.security_mode == BTM_SEC_MODE_LINK)
         p_dev_rec->sec_flags |= (BTM_SEC_AUTHENTICATED << bit_shift);
 
+    if (p_dev_rec->pin_code_length >= 16 ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+        p_dev_rec->sec_flags |= (BTM_SEC_16_DIGIT_PIN_AUTHED << bit_shift);
+    }
+
     p_dev_rec->link_key_changed = FALSE;
 
     /* After connection is established we perform security if we do not know */
@@ -4759,7 +4826,8 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
 #endif
     {
         p_dev_rec->hci_handle = BTM_SEC_INVALID_HANDLE;
-        p_dev_rec->sec_flags &= ~(BTM_SEC_AUTHORIZED | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED | BTM_SEC_ROLE_SWITCHED);
+        p_dev_rec->sec_flags &= ~(BTM_SEC_AUTHORIZED | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED
+                | BTM_SEC_ROLE_SWITCHED | BTM_SEC_16_DIGIT_PIN_AUTHED);
     }
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
@@ -4819,6 +4887,17 @@ void btm_sec_link_key_notification (UINT8 *p_bda, UINT8 *p_link_key, UINT8 key_t
         p_dev_rec->link_key_type = key_type;
 
     p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
+
+    /*
+     * Until this point in time, we do not know if MITM was enabled, hence we
+     * add the extended security flag here.
+     */
+    if (p_dev_rec->pin_code_length >= 16 ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB ||
+        p_dev_rec->link_key_type == BTM_LKEY_TYPE_AUTH_COMB_P_256) {
+        p_dev_rec->sec_flags |= BTM_SEC_16_DIGIT_PIN_AUTHED;
+    }
+
 #if (BLE_INCLUDED == TRUE)
     /* BR/EDR connection, update the encryption key size to be 16 as always */
     p_dev_rec->enc_key_size = 16;
@@ -5119,7 +5198,7 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
              else
              {
                  btsnd_hcic_pin_code_req_reply (p_bda, btm_cb.pin_code_len_saved, p_cb->pin_code);
-      	         return;
+                 return;
              }
         }
         else if ((btm_cb.pairing_state != BTM_PAIR_STATE_WAIT_PIN_REQ)
@@ -5230,8 +5309,12 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
             BTM_TRACE_EVENT ("btm_sec_pin_code_request going for callback");
 
             btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-            if (p_cb->api.p_pin_callback)
-                (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+            if (p_cb->api.p_pin_callback) {
+                (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name,
+                        (p_dev_rec->p_cur_service == NULL) ? FALSE
+                                : (p_dev_rec->p_cur_service->security_flags
+                                   & BTM_SEC_IN_MIN_16_DIGIT_PIN));
+            }
         }
         else
         {
@@ -5251,7 +5334,10 @@ void btm_sec_pin_code_request (UINT8 *p_bda)
 
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
                 if (p_cb->api.p_pin_callback)
-                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+                    (*p_cb->api.p_pin_callback) (p_bda, p_dev_rec->dev_class,
+                            p_dev_rec->sec_bd_name, (p_dev_rec->p_cur_service == NULL) ? FALSE
+                                    : (p_dev_rec->p_cur_service->security_flags
+                                       & BTM_SEC_IN_MIN_16_DIGIT_PIN));
             }
         }
     }
@@ -5327,11 +5413,21 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
 
     /* If connection is not authenticated and authentication is required */
     /* start authentication and return PENDING to the caller */
-    if ((!(p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED))
+    if ((((!(p_dev_rec->sec_flags & BTM_SEC_AUTHENTICATED))
         && (( p_dev_rec->is_originator && (p_dev_rec->security_required & BTM_SEC_OUT_AUTHENTICATE))
-            || (!p_dev_rec->is_originator && (p_dev_rec->security_required & BTM_SEC_IN_AUTHENTICATE)))
+            || (!p_dev_rec->is_originator && (p_dev_rec->security_required & BTM_SEC_IN_AUTHENTICATE))))
+        || (!(p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED)
+            && (!p_dev_rec->is_originator
+                    && (p_dev_rec->security_required & BTM_SEC_IN_MIN_16_DIGIT_PIN))))
         && (p_dev_rec->hci_handle != BTM_SEC_INVALID_HANDLE))
     {
+        /*
+         * We rely on BTM_SEC_16_DIGIT_PIN_AUTHED being set if MITM is in use,
+         * as 16 DIGIT is only needed if MITM is not used. Unfortunately, the
+         * BTM_SEC_AUTHENTICATED is used for both MITM and non-MITM
+         * authenticated connections, hence we cannot distinguish here.
+         */
+
 #if (L2CAP_UCD_INCLUDED == TRUE)
         /* if incoming UCD packet, discard it */
         if ( !p_dev_rec->is_originator && (p_dev_rec->is_ucd == TRUE ))
@@ -5339,6 +5435,25 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
 #endif
 
         BTM_TRACE_EVENT ("Security Manager: Start authentication");
+
+        /*
+         * If we do have a link-key, but we end up here because we need an
+         * upgrade, then clear the link-key known and authenticated flag before
+         * restarting authentication.
+         * WARNING: If the controller has link-key, it is optional and
+         * recommended for the controller to send a Link_Key_Request.
+         * In case we need an upgrade, the only alternative would be to delete
+         * the existing link-key. That could lead to very bad user experience
+         * or even IOP issues, if a reconnect causes a new connection that
+         * requires an upgrade.
+         */
+        if ((p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)
+                && (!(p_dev_rec->sec_flags & BTM_SEC_16_DIGIT_PIN_AUTHED)
+                    && (!p_dev_rec->is_originator && (p_dev_rec->security_required
+                            & BTM_SEC_IN_MIN_16_DIGIT_PIN)))) {
+            p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_LINK_KEY_AUTHED
+                    | BTM_SEC_AUTHENTICATED);
+        }
 
         if (!btm_sec_start_authentication (p_dev_rec))
         {
@@ -5978,7 +6093,10 @@ static BOOLEAN btm_sec_check_prefetch_pin (tBTM_SEC_DEV_REC  *p_dev_rec)
                 BTM_TRACE_DEBUG("%s() PIN code callback called", __func__);
                 if (btm_bda_to_acl(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR) == NULL)
                 btm_cb.pairing_flags |= BTM_PAIR_FLAGS_PIN_REQD;
-                (btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name);
+                (btm_cb.api.p_pin_callback) (p_dev_rec->bd_addr, p_dev_rec->dev_class,
+                        p_dev_rec->sec_bd_name, (p_dev_rec->p_cur_service == NULL) ? FALSE
+                                : (p_dev_rec->p_cur_service->security_flags
+                                   & BTM_SEC_IN_MIN_16_DIGIT_PIN));
             }
         }
 
