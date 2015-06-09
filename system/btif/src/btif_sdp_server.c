@@ -32,6 +32,7 @@
 #include <pthread.h>
 
 #define LOG_TAG "BTIF_SDP_SERVER"
+#include "allocator.h"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "bta_sdp_api.h"
