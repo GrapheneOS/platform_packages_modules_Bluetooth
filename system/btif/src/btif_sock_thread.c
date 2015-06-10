@@ -28,36 +28,33 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
-//bta_jv_co_rfc_data
+#include <alloca.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <features.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <features.h>
 #include <string.h>
-#include <sys/types.h>
+#include <sys/poll.h>
+#include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <time.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <signal.h>
-#include <pthread.h>
-#include <ctype.h>
-
-#include <sys/select.h>
-#include <sys/poll.h>
-#include <cutils/sockets.h>
-#include <alloca.h>
 
 #define LOG_TAG "bt_btif_sock"
-#include "btif_common.h"
-#include "btif_util.h"
-
 
 #include "bta_api.h"
+#include "btif_common.h"
 #include "btif_sock.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
+#include "btif_util.h"
+#include "osi/include/socket_utils/sockets.h"
 
 #define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 #define print_events(events) do { \
@@ -129,7 +126,7 @@ static inline int create_server_socket(const char* name)
     if(s < 0)
         return -1;
     APPL_TRACE_DEBUG("covert name to android abstract name:%s", name);
-    if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) >= 0)
+    if(osi_socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) >= 0)
     {
         if(listen(s, 5) == 0)
         {
@@ -148,7 +145,7 @@ static inline int connect_server_socket(const char* name)
     if(s < 0)
         return -1;
     set_socket_blocking(s, TRUE);
-    if(socket_local_client_connect(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) >= 0)
+    if(osi_socket_local_client_connect(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) >= 0)
     {
         APPL_TRACE_DEBUG("connected to local socket:%s, fd:%d", name, s);
         return s;

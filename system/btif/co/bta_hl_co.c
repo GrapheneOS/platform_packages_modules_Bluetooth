@@ -23,26 +23,25 @@
  *
  ******************************************************************************/
 
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <time.h>
-#include <fcntl.h>
-#include <ctype.h>
-#include <cutils/sockets.h>
+
 #include "bta_api.h"
-#include "btm_api.h"
-#include "bta_sys.h"
 #include "bta_hl_api.h"
-#include "bta_hl_co.h"
 #include "bta_hl_ci.h"
+#include "bta_hl_co.h"
+#include "bta_sys.h"
 #include "btif_hl.h"
 #include "btif_util.h"
-
+#include "btm_api.h"
 
 /*****************************************************************************
 **  Constants and Data Types

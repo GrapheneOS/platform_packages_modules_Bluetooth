@@ -24,33 +24,28 @@
  *
  *****************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <signal.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
-#include <sys/select.h>
-#include <sys/poll.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
+#include <sys/poll.h>
 #include <sys/prctl.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/un.h>
+#include <unistd.h>
 
-
-#include "gki.h"
-#include "bt_types.h"
-#include "uipc.h"
-
-#include <cutils/sockets.h>
 #include "audio_a2dp_hw.h"
+#include "bt_types.h"
 #include "bt_utils.h"
+#include "gki.h"
+#include "osi/include/socket_utils/sockets.h"
+#include "uipc.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -153,7 +148,7 @@ static inline int create_server_socket(const char* name)
 
     BTIF_TRACE_EVENT("create_server_socket %s", name);
 
-    if(socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) < 0)
+    if(osi_socket_local_server_bind(s, name, ANDROID_SOCKET_NAMESPACE_ABSTRACT) < 0)
     {
         BTIF_TRACE_EVENT("socket failed to create (%s)", strerror(errno));
         close(s);

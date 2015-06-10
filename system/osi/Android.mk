@@ -27,6 +27,8 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/..
 
+# TODO(mcchou): Remove socket_utils sources after platform specific
+# dependencies are abstracted.
 LOCAL_SRC_FILES := \
     ./src/alarm.c \
     ./src/allocation_tracker.c \
@@ -46,6 +48,8 @@ LOCAL_SRC_FILES := \
     ./src/ringbuffer.c \
     ./src/semaphore.c \
     ./src/socket.c \
+    ./src/socket_utils/socket_local_client.c \
+    ./src/socket_utils/socket_local_server.c \
     ./src/thread.c
 
 LOCAL_CFLAGS := -std=c99 -Wall -Werror -fvisibility=hidden
