@@ -90,6 +90,8 @@ UINT32 service_index = 0;
 BOOLEAN service_availability = TRUE;
 /* helper functions for handling AT commands queueing */
 
+static void bta_hf_client_handle_ok();
+
 static void bta_hf_client_clear_queued_at(void)
 {
     tBTA_HF_CLIENT_AT_QCMD *cur = bta_hf_client_cb.scb.at_cb.queued_cmd;
@@ -179,6 +181,15 @@ static void bta_hf_client_send_at(tBTA_HF_CLIENT_AT_CMD cmd, char *buf, UINT16 b
 #endif
 
         bta_hf_client_cb.scb.at_cb.current_cmd = cmd;
+        /* Generate fake responses for these because they won't reliably work */
+        if (!service_availability &&
+                (cmd == BTA_HF_CLIENT_AT_CNUM || cmd == BTA_HF_CLIENT_AT_COPS))
+        {
+            APPL_TRACE_WARNING("%s: No service, skipping %d command", __FUNCTION__, cmd);
+            bta_hf_client_handle_ok();
+            return;
+        }
+
         PORT_WriteData(bta_hf_client_cb.scb.conn_handle, buf, buf_len, &len);
 
         bta_hf_client_start_at_resp_timer();
@@ -192,19 +203,16 @@ static void bta_hf_client_send_at(tBTA_HF_CLIENT_AT_CMD cmd, char *buf, UINT16 b
 static void bta_hf_client_send_queued_at(void)
 {
     tBTA_HF_CLIENT_AT_QCMD *cur = bta_hf_client_cb.scb.at_cb.queued_cmd;
-    tBTA_HF_CLIENT_AT_QCMD *next;
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (cur != NULL)
     {
-        next = cur->next;
+        bta_hf_client_cb.scb.at_cb.queued_cmd = cur->next;
 
         bta_hf_client_send_at(cur->cmd, cur->buf, cur->buf_len);
 
         GKI_freebuf(cur);
-
-        bta_hf_client_cb.scb.at_cb.queued_cmd = next;
     }
 }
 
@@ -429,9 +437,14 @@ static void bta_hf_client_handle_ciev(UINT32 index, UINT32 value)
 
     APPL_TRACE_DEBUG("%s index: %u value: %u", __FUNCTION__, index, value);
 
-    if(index == 0 || index >= BTA_HF_CLIENT_AT_INDICATOR_COUNT)
+    if(index == 0 || index > BTA_HF_CLIENT_AT_INDICATOR_COUNT)
     {
         return;
+    }
+
+    if (service_index == index - 1)
+    {
+        service_availability = value == 0 ? FALSE : TRUE;
     }
 
     realind = bta_hf_client_cb.scb.at_cb.indicator_lookup[index - 1];
@@ -1575,11 +1588,6 @@ void bta_hf_client_send_at_cops(BOOLEAN query)
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (!service_availability)
-    {
-        APPL_TRACE_DEBUG("Skip AT+COPS no service");
-        return;
-    }
     if (query)
         buf = "AT+COPS?\r";
     else
@@ -1737,11 +1745,6 @@ void bta_hf_client_send_at_cnum(void)
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (!service_availability)
-    {
-        APPL_TRACE_DEBUG("Skip AT+CNUM no Service");
-        return;
-    }
     buf = "AT+CNUM\r";
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_CNUM, buf, strlen(buf));
@@ -1755,7 +1758,7 @@ void bta_hf_client_send_at_nrec(void)
 
     if (!(bta_hf_client_cb.scb.peer_features & BTA_HF_CLIENT_PEER_FEAT_ECNR))
     {
-        APPL_TRACE_DEBUG("Remote does not support NREC.");
+        APPL_TRACE_ERROR("%s: Remote does not support NREC.", __FUNCTION__);
         return;
     }
 
