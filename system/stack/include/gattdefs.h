@@ -50,7 +50,7 @@
 #define GATT_UUID_GAP_DEVICE_NAME        0x2A00
 #define GATT_UUID_GAP_ICON               0x2A01
 #define GATT_UUID_GAP_PREF_CONN_PARAM    0x2A04
-#define GATT_UUID_GAP_CENTRAL_ADDR_RESOL 0x2A05
+#define GATT_UUID_GAP_CENTRAL_ADDR_RESOL 0x2AA6
 
 /* Attribute Profile Attribute UUID */
 #define GATT_UUID_GATT_SRV_CHGD          0x2A05
