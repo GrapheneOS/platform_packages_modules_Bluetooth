@@ -32,13 +32,13 @@
 #include <pthread.h>
 
 #define LOG_TAG "BTIF_SDP_SERVER"
-#include "allocator.h"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "bta_sdp_api.h"
 #include "bta_sys.h"
-#include "utl.h"
 #include "btif_sock_util.h"
+#include "osi/include/allocator.h"
+#include "utl.h"
 
 static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 

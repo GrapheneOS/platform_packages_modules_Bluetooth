@@ -29,9 +29,10 @@
 #include <unistd.h>
 
 #include "btif_common.h"
+#include "osi/include/allocator.h"
 #include "osi/include/list.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
 
