@@ -662,9 +662,10 @@ void bta_dm_remove_device(tBTA_DM_MSG *p_data)
         continue_delete_dev = TRUE;
     }
 
+    BOOLEAN continue_delete_other_dev = FALSE;
+#if BLE_INCLUDED == TRUE
     // If it is DUMO device and device is paired as different address, unpair that device
     // if different address
-    BOOLEAN continue_delete_other_dev = FALSE;
     if ((other_transport && (BTM_ReadConnectedTransportAddress(other_address, other_transport))) ||
       (!other_transport && (BTM_ReadConnectedTransportAddress(other_address, BT_TRANSPORT_BR_EDR) ||
        BTM_ReadConnectedTransportAddress(other_address, BT_TRANSPORT_LE))))
@@ -682,6 +683,7 @@ void bta_dm_remove_device(tBTA_DM_MSG *p_data)
         }
     }
     else
+#endif
     {
         APPL_TRACE_DEBUG("%s: continue to delete the other dev ", __func__);
         continue_delete_other_dev = TRUE;

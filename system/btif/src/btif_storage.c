@@ -555,6 +555,7 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len, bt_bd
     char buffer[100];
     memset(buffer, 0, sizeof(buffer));
 
+#if (BLE_INCLUDED == TRUE)
     if (btif_storage_get_ble_bonding_key(&bd_addr, key_type, buffer, key_len) == BT_STATUS_SUCCESS)
     {
         if (add_key)
@@ -576,6 +577,7 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len, bt_bd
 
         *key_found = true;
     }
+#endif
 }
 
 /*******************************************************************************

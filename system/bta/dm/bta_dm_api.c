@@ -905,6 +905,7 @@ void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 *******************************************************************************/
 void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 {
+#if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_SCAN_PARAMS  *p_msg;
     if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)GKI_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
@@ -914,8 +915,10 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
         p_msg->scan_window      = scan_window;
         bta_sys_sendmsg(p_msg);
     }
+#endif
 }
 
+#if BLE_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTA_DmSetBleScanParams
@@ -966,7 +969,6 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
 void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
                            tBLE_BD_ADDR *p_dir_bda)
 {
-#if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_ADV_PARAMS    *p_msg;
 
     APPL_TRACE_API ("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
@@ -988,8 +990,9 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 
         bta_sys_sendmsg(p_msg);
     }
-#endif
 }
+#endif
+
 /*******************************************************************************
 **                      BLE ADV data management API
 ********************************************************************************/
