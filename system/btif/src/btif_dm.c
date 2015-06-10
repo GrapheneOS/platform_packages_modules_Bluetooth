@@ -1009,12 +1009,14 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     if (p_ssp_cfm_req->just_works)
     {
         /* Pairing consent for JustWorks needed if:
-         * 1. Incoming pairing is detected AND
+         * 1. Incoming (non-temporary) pairing is detected AND
          * 2. local IO capabilities are DisplayYesNo AND
          * 3. remote IO capabiltiies are DisplayOnly or NoInputNoOutput;
          */
-        if ((is_incoming) && ((p_ssp_cfm_req->loc_io_caps == 0x01) &&
-                (p_ssp_cfm_req->rmt_io_caps == 0x00 || p_ssp_cfm_req->rmt_io_caps == 0x03)))
+        if (is_incoming && pairing_cb.bond_type != BOND_TYPE_TEMPORARY &&
+               ((p_ssp_cfm_req->loc_io_caps == HCI_IO_CAP_DISPLAY_YESNO) &&
+                (p_ssp_cfm_req->rmt_io_caps == HCI_IO_CAP_DISPLAY_ONLY ||
+                 p_ssp_cfm_req->rmt_io_caps == HCI_IO_CAP_NO_IO)))
         {
             BTIF_TRACE_EVENT("%s: User consent needed for incoming pairing request. loc_io_caps: %d, rmt_io_caps: %d",
                 __FUNCTION__, p_ssp_cfm_req->loc_io_caps, p_ssp_cfm_req->rmt_io_caps);
