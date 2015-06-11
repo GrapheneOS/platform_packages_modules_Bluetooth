@@ -27,6 +27,7 @@
 #include <sys/types.h>
 
 #include "btif_common.h"
+#include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
