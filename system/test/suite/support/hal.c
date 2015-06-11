@@ -16,13 +16,17 @@
  *
  ******************************************************************************/
 
+#include <dlfcn.h>
+#include <errno.h>
 #include <signal.h>
 #include <time.h>
 
 #include "base.h"
+#include "btcore/include/hal_util.h"
 #include "support/hal.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
+#include "osi/include/log.h"
 
 #define TIMER_BUCKET_COUNT 4
 
@@ -41,7 +45,7 @@ static bt_os_callouts_t callouts = {
 
 bool hal_open(bt_callbacks_t *callbacks) {
   hw_module_t *module;
-  if (hw_get_module(BT_STACK_MODULE_ID, (hw_module_t const **)&module)) {
+  if (hal_util_load_bt_library((const struct hw_module_t **)&module)) {
     return false;
   }
 

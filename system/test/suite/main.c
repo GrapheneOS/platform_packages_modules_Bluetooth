@@ -16,7 +16,11 @@
  *
  ******************************************************************************/
 
+// TODO(jamuraa): cutils/properties used to find if zygote is running and could
+// clobber our tests.  Do something useful and similar for non-Android systems.
+#if !defined(OS_GENERIC)
 #include <cutils/properties.h>
+#endif // !defined(OS_GENERIC)
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -66,11 +70,13 @@ static void *watchdog_fn(void *arg) {
 }
 
 static bool is_shell_running(void) {
+#if !defined(OS_GENERIC)
   char property_str[100];
   property_get("init.svc.zygote", property_str, NULL);
   if (!strcmp("running", property_str)) {
     return true;
   }
+#endif // !defined(OS_GENERIC)
   return false;
 }
 
@@ -106,6 +112,7 @@ static bool is_valid(const char *test_name) {
 
 int main(int argc, char **argv) {
   const char *test_name = NULL;
+  const char *config_path = CONFIG_FILE_PATH;
   bool skip_sanity_suite = false;
 
   for (int i = 1; i < argc; ++i) {
@@ -116,6 +123,17 @@ int main(int argc, char **argv) {
 
     if (!strcmp("--insanity", argv[i])) {
       skip_sanity_suite = true;
+      continue;
+    }
+
+    if (!strcmp("--config", argv[i])) {
+      ++i;
+      if (i == argc) {
+        printf("Error: --config requires an argument.\n");
+        print_usage(argv[0]);
+        return -1;
+      }
+      config_path = argv[i];
       continue;
     }
 
@@ -139,7 +157,7 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  config_t *config = config_new(CONFIG_FILE_PATH);
+  config_t *config = config_new(config_path);
   if (!config) {
     printf("Error: unable to open stack config file.\n");
     print_usage(argv[0]);
@@ -193,9 +211,9 @@ int main(int argc, char **argv) {
     DEFAULT = GREEN = RED = "";
   }
 
-  int pass = 0;
-  int fail = 0;
-  int case_num = 0;
+  size_t pass = 0;
+  size_t fail = 0;
+  size_t case_num = 0;
 
   // If test name is specified, run that specific test.
   // Otherwise run through the sanity suite.
@@ -204,10 +222,10 @@ int main(int argc, char **argv) {
       if (!test_name || !strcmp(test_name, sanity_suite[i].function_name)) {
         callbacks_init();
         if (sanity_suite[i].function()) {
-          printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
+          printf("[%4zd] %-64s [%sPASS%s]\n", ++case_num, sanity_suite[i].function_name, GREEN, DEFAULT);
           ++pass;
         } else {
-          printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
+          printf("[%4zd] %-64s [%sFAIL%s]\n", ++case_num, sanity_suite[i].function_name, RED, DEFAULT);
           ++fail;
         }
         callbacks_cleanup();
@@ -218,7 +236,7 @@ int main(int argc, char **argv) {
 
   // If there was a failure in the sanity suite, don't bother running the rest of the tests.
   if (fail) {
-    printf("\n%sSanity suite failed with %d errors.%s\n", RED, fail, DEFAULT);
+    printf("\n%sSanity suite failed with %zu errors.%s\n", RED, fail, DEFAULT);
     hal_close();
     return 4;
   }
@@ -230,10 +248,10 @@ int main(int argc, char **argv) {
       callbacks_init();
       CALL_AND_WAIT(bt_interface->enable(), adapter_state_changed);
       if (test_suite[i].function()) {
-        printf("[%4d] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, DEFAULT);
+        printf("[%4zd] %-64s [%sPASS%s]\n", ++case_num, test_suite[i].function_name, GREEN, DEFAULT);
         ++pass;
       } else {
-        printf("[%4d] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, DEFAULT);
+        printf("[%4zd] %-64s [%sFAIL%s]\n", ++case_num, test_suite[i].function_name, RED, DEFAULT);
         ++fail;
       }
       CALL_AND_WAIT(bt_interface->disable(), adapter_state_changed);
@@ -245,7 +263,7 @@ int main(int argc, char **argv) {
   printf("\n");
 
   if (fail) {
-    printf("%d/%d tests failed. See above for failed test cases.\n", fail, sanity_suite_size + test_suite_size);
+    printf("%zd/%zd tests failed. See above for failed test cases.\n", fail, sanity_suite_size + test_suite_size);
   } else {
     printf("All tests passed!\n");
   }

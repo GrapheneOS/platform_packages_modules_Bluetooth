@@ -28,3 +28,15 @@ group("bluetooth") {
     "//vendor_libs:vendor-libs"
   ]
 }
+
+group("bluetooth_tests") {
+  testonly = true
+
+  deps = [
+    "//test/suite:net_test_bluedroid",
+    "//btcore:net_test_btcore",
+    "//hci:net_test_hci",
+    "//osi:net_test_osi",
+    "//device:net_test_device",
+  ]
+}
