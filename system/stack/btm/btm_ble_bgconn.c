@@ -520,11 +520,11 @@ BOOLEAN btm_ble_start_select_conn(BOOLEAN start, tBTM_BLE_SEL_CBACK *p_select_cb
                 btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
 #endif
                 if (!btsnd_hcic_ble_set_scan_enable(TRUE, TRUE)) /* duplicate filtering enabled */
-                    return FALSE;
+                     return FALSE;
 
-                /* mark up inquiry status flag */
-                p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;
-                p_cb->wl_state |= BTM_BLE_WL_SCAN;
+                 /* mark up inquiry status flag */
+                 p_cb->scan_activity |= BTM_LE_SELECT_CONN_ACTIVE;
+                 p_cb->wl_state |= BTM_BLE_WL_SCAN;
             }
         }
         else
