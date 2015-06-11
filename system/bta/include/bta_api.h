@@ -459,11 +459,11 @@ typedef struct
 
 enum
 {
-    BTA_BLE_SCAN_MODE_PASS=1,
-    BTA_BLE_SCAN_MODE_ACTI=2,
-    BTA_BLE_SCAN_MODE_PASS_ACTI=3
+    BTA_BLE_BATCH_SCAN_MODE_PASS = 1,
+    BTA_BLE_BATCH_SCAN_MODE_ACTI = 2,
+    BTA_BLE_BATCH_SCAN_MODE_PASS_ACTI = 3
 };
-typedef UINT8 tBTA_BLE_SCAN_MODE;
+typedef UINT8 tBTA_BLE_BATCH_SCAN_MODE;
 
 enum
 {
@@ -1867,8 +1867,27 @@ extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_DmSetBleConnScanParams(UINT16 scan_interval,
-                                       UINT16 scan_window );
+extern void BTA_DmSetBleConnScanParams(UINT32 scan_interval,
+                                       UINT32 scan_window);
+
+/*******************************************************************************
+**
+** Function         BTA_DmSetBleScanParams
+**
+** Description      This function is called to set scan parameters
+**
+** Parameters:      client_if - Client IF
+**                  scan_interval - scan interval
+**                  scan_window - scan window
+**                  scan_mode - scan mode
+**                  scan_param_setup_status_cback - Set scan param status callback
+**
+** Returns          void
+**
+*******************************************************************************/
+extern void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
+                                   UINT32 scan_window, tBLE_SCAN_MODE scan_mode,
+                                   tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_status_cback);
 
 /*******************************************************************************
 **
@@ -2199,7 +2218,7 @@ extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 ** Returns           None
 **
 *******************************************************************************/
-extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
+extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                          UINT32 scan_interval, UINT32 scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
@@ -2217,7 +2236,7 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_SCAN_MODE scan_mode,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_DmBleReadScanReports(tBTA_BLE_SCAN_MODE scan_type,
+extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
                                              tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************

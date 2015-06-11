@@ -55,7 +55,7 @@ typedef UINT32 tBTM_BLE_REF_VALUE;
 #define BTM_BLE_SCAN_MODE_PASS      0
 #define BTM_BLE_SCAN_MODE_ACTI      1
 #define BTM_BLE_SCAN_MODE_NONE      0xff
-typedef UINT8 tBTM_BLE_SCAN_MODE;
+typedef UINT8 tBLE_SCAN_MODE;
 
 #define BTM_BLE_BATCH_SCAN_MODE_DISABLE 0
 #define BTM_BLE_BATCH_SCAN_MODE_PASS  1
@@ -364,8 +364,10 @@ typedef struct
     UINT8 max_filter;
     UINT8 energy_support;
     BOOLEAN values_read;
-    UINT16  version_supported;
-    UINT16  total_trackable_advertisers;
+    UINT16 version_supported;
+    UINT16 total_trackable_advertisers;
+    UINT8 extended_scan_support;
+    UINT8 debug_logging_supported;
 }tBTM_BLE_VSC_CB;
 
 /* slave preferred connection interval range */
@@ -503,6 +505,8 @@ typedef struct
     tBTM_BLE_MULTI_ADV_INST *p_adv_inst; /* dynamic array to store adv instance */
     tBTM_BLE_MULTI_ADV_OPQ  op_q;
 }tBTM_BLE_MULTI_ADV_CB;
+
+typedef UINT8 tGATT_IF;
 
 typedef void (tBTM_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
 typedef void (tBTM_BLE_SCAN_REP_CBACK)(tBTM_BLE_REF_VALUE ref_value, UINT8 report_format,
@@ -862,6 +866,7 @@ typedef void (tBTM_BLE_VERIFY_CBACK)(void *p_ref_data, BOOLEAN match);
 typedef void (tBTM_BLE_RANDOM_SET_CBACK) (BD_ADDR random_bda);
 
 typedef void (tBTM_BLE_SCAN_REQ_CBACK)(BD_ADDR remote_bda, tBLE_ADDR_TYPE addr_type, UINT8 adv_evt);
+typedef void (*tBLE_SCAN_PARAM_SETUP_CBACK)(tGATT_IF client_if, tBTM_STATUS status);
 
 tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
 
@@ -972,15 +977,19 @@ extern void BTM_BleObtainVendorCapabilities(tBTM_BLE_VSC_CB *p_cmn_vsc_cb);
 **
 ** Description      This function is called to set Scan parameters.
 **
-** Parameters       adv_int_min: minimum advertising interval
-**                  adv_int_max: maximum advertising interval
-**                  scan_type: scan mode.
+** Parameters       client_if - Client IF value
+**                  scan_interval - Scan interval
+**                  scan_window - Scan window
+**                  scan_type - Scan type
+**                  scan_setup_status_cback - Scan setup status callback
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTM_BleSetScanParams(UINT16 scan_interval, UINT16 scan_window,
-                                 tBTM_BLE_SCAN_MODE scan_type);
+extern void BTM_BleSetScanParams(tGATT_IF client_if, UINT32 scan_interval,
+                                 UINT32 scan_window, tBLE_SCAN_MODE scan_type,
+                                 tBLE_SCAN_PARAM_SETUP_CBACK scan_setup_status_cback);
+
 /*******************************************************************************
 **
 ** Function         BTM_BleGetVendorCapabilities
@@ -1057,13 +1066,13 @@ extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 **
 ** Description      This function is called to read batch scan reports
 **
-** Parameters       tBTM_BLE_SCAN_MODE scan_mode - Scan mode report to be read out
+** Parameters       tBLE_SCAN_MODE scan_mode - Scan mode report to be read out
                     tBTM_BLE_SCAN_REP_CBACK* p_cback - Reports callback
 **
 ** Returns          tBTM_STATUS
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_BleReadScanReports(tBTM_BLE_SCAN_MODE scan_mode,
+extern tBTM_STATUS BTM_BleReadScanReports(tBLE_SCAN_MODE scan_mode,
                                                   tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
@@ -1374,7 +1383,7 @@ extern  void BTM_BleSetPrefConnParams (BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-extern  void BTM_BleSetConnScanParams (UINT16 scan_interval, UINT16 scan_window);
+extern  void BTM_BleSetConnScanParams (UINT32 scan_interval, UINT32 scan_window);
 
 /******************************************************************************
 **

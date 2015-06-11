@@ -90,6 +90,7 @@ enum
     BTA_DM_API_BLE_SET_BG_CONN_TYPE,
     BTA_DM_API_BLE_CONN_PARAM_EVT,
     BTA_DM_API_BLE_SCAN_PARAM_EVT,
+    BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_OBSERVE_EVT,
     BTA_DM_API_UPDATE_CONN_PARAM_EVT,
 #if BLE_PRIVACY_SPT == TRUE
@@ -454,9 +455,12 @@ typedef struct
 /* set scan parameter for BLE connections */
 typedef struct
 {
-    BT_HDR                  hdr;
-    UINT16                  scan_int;
-    UINT16                  scan_window;
+    BT_HDR hdr;
+    tBTA_GATTC_IF client_if;
+    UINT32 scan_int;
+    UINT32 scan_window;
+    tBLE_SCAN_MODE scan_mode;
+    tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback;
 }tBTA_DM_API_BLE_SCAN_PARAMS;
 
 /* Data type for start/stop observe */
@@ -545,7 +549,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    tBTA_BLE_SCAN_MODE      scan_mode;
+    tBTA_BLE_BATCH_SCAN_MODE  scan_mode;
     UINT32                  scan_int;
     UINT32                  scan_window;
     tBTA_BLE_DISCARD_RULE   discard_rule;
@@ -562,7 +566,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    tBTA_BLE_SCAN_MODE scan_type;
+    tBTA_BLE_BATCH_SCAN_MODE scan_type;
     tBTA_DM_BLE_REF_VALUE    ref_value;
 } tBTA_DM_API_READ_SCAN_REPORTS;
 
@@ -1060,6 +1064,7 @@ extern void bta_dm_security_grant (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_set_conn_scan_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_observe (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_update_conn_params (tBTA_DM_MSG *p_data);
