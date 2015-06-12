@@ -151,6 +151,16 @@ LOCAL_MODULE := bluetooth.default
 LOCAL_MODULE_RELATIVE_PATH := hw
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+
+#
+# Shared library link options.
+# References to global symbols and functions should bind to the library
+# itself. This is to avoid issues with some of the unit/system tests
+# that might link statically with some of the code in the library, and
+# also dlopen(3) the shared library.
+#
+LOCAL_LDLIBS := -Wl,-Bsymbolic,-Bsymbolic-functions
+
 LOCAL_REQUIRED_MODULES := \
     auto_pair_devlist.conf \
     bt_did.conf \
