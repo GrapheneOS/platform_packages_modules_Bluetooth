@@ -124,17 +124,9 @@ static int init(bt_callbacks_t *callbacks) {
   if (interface_ready())
     return BT_STATUS_DONE;
 
-  /*
-   * TODO: Temporary disable the allocation tracker initialization, and
-   * effectively the allocation tracker itself.
-   * This is a short-term workaround solution for several issues related to
-   * the usage of the allocation tracker.
-   */
-/*
 #ifdef BLUEDROID_DEBUG
   allocation_tracker_init();
 #endif
-*/
 
   bt_hal_cbacks = callbacks;
   stack_manager_get_interface()->init_stack();
