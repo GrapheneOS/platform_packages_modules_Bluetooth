@@ -683,7 +683,6 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
 BOOLEAN BTM_ReadConnectedTransportAddress(BD_ADDR remote_bda, tBT_TRANSPORT transport)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(remote_bda);
-    tACL_CONN *p = btm_bda_to_acl(remote_bda, transport);
 
     /* if no device can be located, return */
     if (p_dev_rec == NULL)
@@ -1467,61 +1466,6 @@ void btm_ble_link_encrypted(BD_ADDR bd_addr, UINT8 encr_enable)
 }
 
 /*******************************************************************************
-** Function         btm_enc_proc_ltk
-** Description      send LTK reply when it's ready.
-*******************************************************************************/
-static void btm_enc_proc_ltk(tSMP_ENC *p)
-{
-    UINT8   i;
-    BTM_TRACE_DEBUG ("btm_enc_proc_ltk");
-    if (p && p->param_len == BT_OCTET16_LEN)
-    {
-        for (i = 0; i < (BT_OCTET16_LEN - btm_cb.key_size); i ++)
-            p->param_buf[BT_OCTET16_LEN - i - 1] = 0;
-        btsnd_hcic_ble_ltk_req_reply(btm_cb.enc_handle, p->param_buf);
-    }
-}
-
-/*******************************************************************************
-** Function         btm_enc_proc_slave_y
-** Description      calculate LTK when Y is ready
-*******************************************************************************/
-static void btm_enc_proc_slave_y(tSMP_ENC *p)
-{
-    UINT16  div, y;
-    UINT8   *pp = p->param_buf;
-    tBTM_CB *p_cb = &btm_cb;
-    tSMP_ENC output;
-    tBTM_SEC_DEV_REC *p_dev_rec;
-
-    BTM_TRACE_DEBUG ("btm_enc_proc_slave_y");
-    if (p != NULL)
-    {
-        STREAM_TO_UINT16(y, pp);
-
-        div = p_cb->ediv ^ y;
-        p_dev_rec = btm_find_dev_by_handle (p_cb->enc_handle);
-
-        if ( p_dev_rec &&
-             p_dev_rec->ble.keys.div == div )
-        {
-            BTM_TRACE_DEBUG ("LTK request OK");
-            /* calculating LTK , LTK = E er(div) */
-            SMP_Encrypt(p_cb->devcb.ble_encryption_key_value, BT_OCTET16_LEN, (UINT8 *)&div, 2, &output);
-            btm_enc_proc_ltk(&output);
-        }
-        else
-        {
-            BTM_TRACE_DEBUG ("LTK request failed - send negative reply");
-            btsnd_hcic_ble_ltk_req_neg_reply(p_cb->enc_handle);
-            if (p_dev_rec)
-                btm_ble_link_encrypted(p_dev_rec->bd_addr, 0);
-
-        }
-    }
-}
-
-/*******************************************************************************
 **
 ** Function         btm_ble_ltk_request_reply
 **
@@ -1535,7 +1479,6 @@ void btm_ble_ltk_request_reply(BD_ADDR bda,  BOOLEAN use_stk, BT_OCTET16 stk)
 {
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bda);
     tBTM_CB *p_cb = &btm_cb;
-    tSMP_ENC output;
 
     if (p_rec == NULL)
     {

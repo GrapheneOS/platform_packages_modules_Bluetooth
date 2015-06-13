@@ -75,22 +75,6 @@ struct fc_channel {
 static struct fc_client *fc_clients;
 static struct fc_channel *fc_channels;
 static uint32_t fc_next_id;
-static pthread_once_t fc_init_once = PTHREAD_ONCE_INIT;
-
-
-static void fc_init_work(void)
-{
-    fc_clients = NULL;
-    fc_channels = NULL;
-    fc_next_id = 0;
-
-    //more init here if needed...
-}
-
-static void fc_init(void)
-{
-    pthread_once(&fc_init_once,  fc_init_work);
-}
 
 
 static void fcchan_conn_chng_cbk(UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected,
@@ -543,8 +527,6 @@ static tBTA_JV_PM_CB *bta_jv_alloc_set_pm_profile_cb(UINT32 jv_handle, tBTA_JV_P
             /* rfc handle bd addr retrieval requires core stack handle */
             if (bRfcHandle)
             {
-                UINT32 hi = ((jv_handle & BTA_JV_RFC_HDL_MASK) & ~BTA_JV_RFCOMM_MASK) - 1;
-                UINT32 si = BTA_JV_RFC_HDL_TO_SIDX(jv_handle);
                 for (j = 0; j < BTA_JV_MAX_RFC_CONN; j++)
                 {
                     if (jv_handle == bta_jv_cb.port_cb[j].handle)
@@ -869,7 +851,6 @@ static inline tBT_UUID shorten_sdp_uuid(const tBT_UUID* u)
 static void bta_jv_start_discovery_cback(UINT16 result, void * user_data)
 {
     tBTA_JV_STATUS status;
-    UINT8          old_sdp_act = bta_jv_cb.sdp_active;
 
     APPL_TRACE_DEBUG("bta_jv_start_discovery_cback res: 0x%x", result);
 
@@ -1229,7 +1210,6 @@ void bta_jv_l2cap_start_server(tBTA_JV_MSG *p_data)
     tL2CAP_CFG_INFO cfg;
     tBTA_JV_L2CAP_START evt_data;
     tBTA_JV_API_L2CAP_SERVER *ls = &(p_data->l2cap_server);
-    INT32   use_etm = FALSE;
     UINT8 chan_mode_mask = GAP_FCR_CHAN_OPT_BASIC;
     tL2CAP_ERTM_INFO    *ertm_info = NULL;
 
@@ -1701,38 +1681,6 @@ void bta_jv_rfcomm_close(tBTA_JV_MSG *p_data)
     bta_jv_free_rfc_cb(p_cb, p_pcb);
     APPL_TRACE_DEBUG("bta_jv_rfcomm_close: sec id in use:%d, rfc_cb in use:%d",
                 get_sec_id_used(), get_rfc_cb_used());
-}
-
-/*******************************************************************************
-**
-** Function     bta_jv_get_num_rfc_listen
-**
-** Description  when a RFCOMM connection goes down, make sure that there's only
-**              one port stays listening on this scn.
-**
-** Returns
-**
-*******************************************************************************/
-static UINT8 bta_jv_get_num_rfc_listen(tBTA_JV_RFC_CB *p_cb)
-{
-    UINT8   listen=1;
-
-    if (p_cb->max_sess > 1)
-    {
-        listen = 0;
-        for (UINT8 i=0; i<p_cb->max_sess; i++)
-        {
-            if (p_cb->rfc_hdl[i] != 0)
-            {
-                const tBTA_JV_PCB *p_pcb = &bta_jv_cb.port_cb[p_cb->rfc_hdl[i] - 1];
-                if (BTA_JV_ST_SR_LISTEN == p_pcb->state)
-                {
-                    listen++;
-                }
-            }
-        }
-    }
-    return listen;
 }
 
 /*******************************************************************************
@@ -2555,7 +2503,6 @@ static void fcchan_conn_chng_cbk(UINT16 chan, BD_ADDR bd_addr, BOOLEAN connected
 static void fcchan_data_cbk(UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf)
 {
     tBTA_JV evt_data;
-    tBTA_JV evt_open;
     struct fc_channel *tc;
     struct fc_client *t = NULL;
     tBTA_JV_L2CAP_CBACK *sock_cback = NULL;
@@ -2686,7 +2633,6 @@ void bta_jv_l2cap_start_server_le(tBTA_JV_MSG *p_data)
     tBTA_JV_API_L2CAP_SERVER *ss = &(p_data->l2cap_server);
     tBTA_JV_L2CAP_START evt_data;
     struct fc_client *t;
-    uint16_t handle;
 
     evt_data.handle = GAP_INVALID_HANDLE;
     evt_data.status = BTA_JV_FAILURE;

@@ -22,7 +22,6 @@ bdroid_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
 bdroid_CFLAGS += \
   -fvisibility=hidden \
   -Wall \
-  -Wno-unused-parameter \
   -Wunused-but-set-variable \
   -UNDEBUG \
   -DLOG_NDEBUG=1

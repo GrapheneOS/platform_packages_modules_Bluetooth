@@ -115,9 +115,6 @@ static_library("bta") {
   # TODO(armansito): Remove all of the flags below, since we want to enable all
   # warnings.
   cflags = [
-    "-Wno-unused-variable",
-    "-Wno-unused-value",
-    "-Wno-unused-function",
     "-Wno-int-to-pointer-cast",
   ]
 

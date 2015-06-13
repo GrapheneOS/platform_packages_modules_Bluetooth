@@ -321,7 +321,6 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
 {
     tHID_HOST_DEV_CTB *p_dev = (tHID_HOST_DEV_CTB *) p_ref_data;
     UINT8 dhandle;
-    UINT32 reason;
     UNUSED(bd_addr);
     UNUSED (transport);
 

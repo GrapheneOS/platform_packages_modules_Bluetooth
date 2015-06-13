@@ -319,8 +319,8 @@ typedef struct
 
 #define L2CA_REGISTER(a,b,c)        L2CA_Register(a,(tL2CAP_APPL_INFO *)b)
 #define L2CA_DEREGISTER(a)          L2CA_Deregister(a)
-#define L2CA_CONNECT_REQ(a,b,c,d)   L2CA_ErtmConnectReq(a,b,c)
-#define L2CA_CONNECT_RSP(a,b,c,d,e,f,g) L2CA_ErtmConnectRsp(a,b,c,d,e,f)
+#define L2CA_CONNECT_REQ(a,b,c)   L2CA_ErtmConnectReq(a,b,c)
+#define L2CA_CONNECT_RSP(a,b,c,d,e,f) L2CA_ErtmConnectRsp(a,b,c,d,e,f)
 #define L2CA_CONFIG_REQ(a,b)        L2CA_ConfigReq(a,b)
 #define L2CA_CONFIG_RSP(a,b)        L2CA_ConfigRsp(a,b)
 #define L2CA_DISCONNECT_REQ(a)      L2CA_DisconnectReq(a)

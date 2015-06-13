@@ -90,9 +90,6 @@ static_library("btif") {
   # TODO(armansito): Remove all of these flags below. We want to enable all
   # warnings that we can.
   cflags = [
-    "-Wno-unused-variable",
-    "-Wno-unused-value",
-    "-Wno-unused-function",
     "-Wno-int-to-pointer-cast",
   ]
 

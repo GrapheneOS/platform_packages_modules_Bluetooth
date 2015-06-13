@@ -127,7 +127,6 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
 {
     tGAP_CCB    *p_ccb;
     UINT16       cid;
-    tBT_UUID    bt_uuid = {2, {GAP_PROTOCOL_ID}};
 
     GAP_TRACE_EVENT ("GAP_CONN - Open Request");
 
@@ -235,7 +234,7 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
             p_ccb->con_flags |= GAP_CCB_FLAGS_SEC_DONE;
 
         /* Check if L2CAP started the connection process */
-        if (p_rem_bda && ((cid = L2CA_CONNECT_REQ (p_ccb->psm, p_rem_bda, &p_ccb->ertm_info, &bt_uuid)) != 0))
+        if (p_rem_bda && ((cid = L2CA_CONNECT_REQ (p_ccb->psm, p_rem_bda, &p_ccb->ertm_info)) != 0))
         {
             p_ccb->connection_id = cid;
             return (p_ccb->gap_handle);
@@ -739,7 +738,6 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
 {
     UINT16       xx;
     tGAP_CCB     *p_ccb;
-    tBT_UUID    bt_uuid = {2, {GAP_PROTOCOL_ID}};
 
     /* See if we have a CCB listening for the connection */
     for (xx = 0, p_ccb = gap_cb.conn.ccb_pool; xx < GAP_MAX_CONNECTIONS; xx++, p_ccb++)
@@ -770,7 +768,7 @@ static void gap_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 psm, UIN
     p_ccb->connection_id = l2cap_cid;
 
     /* Send response to the L2CAP layer. */
-    L2CA_CONNECT_RSP (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK, &p_ccb->ertm_info, &bt_uuid);
+    L2CA_CONNECT_RSP (bd_addr, l2cap_id, l2cap_cid, L2CAP_CONN_OK, L2CAP_CONN_OK, &p_ccb->ertm_info);
 
     GAP_TRACE_EVENT("GAP_CONN - Rcvd L2CAP conn ind, CID: 0x%x", p_ccb->connection_id);
 

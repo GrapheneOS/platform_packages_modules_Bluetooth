@@ -199,7 +199,6 @@ static int skt_connect(char *path, size_t buffer_sz)
 {
     int ret;
     int skt_fd;
-    struct sockaddr_un remote;
     int len;
 
     INFO("connect to %s (sz %zu)", path, buffer_sz);
@@ -235,8 +234,6 @@ static int skt_connect(char *path, size_t buffer_sz)
 static int skt_read(int fd, void *p, size_t len)
 {
     int read;
-    struct pollfd pfd;
-    struct timespec ts;
 
     FNLOG();
 
@@ -366,7 +363,6 @@ static int check_a2dp_ready(struct a2dp_stream_common *common)
 
 static int a2dp_read_audio_config(struct a2dp_stream_common *common)
 {
-    char cmd = A2DP_CTRL_GET_AUDIO_CONFIG;
     uint32_t sample_rate;
     uint8_t channel_count;
 
@@ -648,8 +644,8 @@ static audio_format_t out_get_format(const struct audio_stream *stream)
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
+    UNUSED(stream);
     UNUSED(format);
-    struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     DEBUG("setting format not yet supported (0x%x)", format);
     return -ENOSYS;
 }
@@ -674,8 +670,8 @@ static int out_standby(struct audio_stream *stream)
 
 static int out_dump(const struct audio_stream *stream, int fd)
 {
+    UNUSED(stream);
     UNUSED(fd);
-    struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     FNLOG();
     return 0;
 }
@@ -736,9 +732,8 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
 static char * out_get_parameters(const struct audio_stream *stream, const char *keys)
 {
+    UNUSED(stream);
     UNUSED(keys);
-    struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-
     FNLOG();
 
     /* add populating param here */
@@ -1009,7 +1004,6 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device *)dev;
     struct a2dp_stream_out *out;
     int ret = 0;
-    int i;
     UNUSED(address);
     UNUSED(handle);
     UNUSED(devices);
@@ -1130,8 +1124,7 @@ static char * adev_get_parameters(const struct audio_hw_device *dev,
 
 static int adev_init_check(const struct audio_hw_device *dev)
 {
-    struct a2dp_audio_device *a2dp_dev = (struct a2dp_audio_device*)dev;
-
+    UNUSED(dev);
     FNLOG();
 
     return 0;
@@ -1312,7 +1305,6 @@ static int adev_open(const hw_module_t* module, const char* name,
                      hw_device_t** device)
 {
     struct a2dp_audio_device *adev;
-    int ret;
 
     INFO(" adev_open in A2dp_hw module");
     FNLOG();

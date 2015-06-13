@@ -66,10 +66,6 @@ executable("net_test_hci") {
     "//stack/include",
   ]
 
-  cflags = [
-    "-Wno-unused-variable",
-  ]
-
   deps = [
     "//hci",
     "//osi",
