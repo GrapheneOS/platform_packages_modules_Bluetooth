@@ -35,7 +35,7 @@
 #define LOG_WARN(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_ERROR(...) LOGWRAPPER(__VA_ARGS__)
 
-#else
+#else  /* !defined(OS_GENERIC) */
 
 #include <cutils/log.h>
 
@@ -46,4 +46,4 @@
 #define LOG_ERROR(...)   ALOGE(__VA_ARGS__)
 
 
-#endif
+#endif  /* defined(OS_GENERIC) */
