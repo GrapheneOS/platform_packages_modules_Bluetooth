@@ -397,25 +397,6 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 }
 
 /*******************************************************************************
-**
-** Function         bta_av_free_scb
-**
-** Description      free stream control block,
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_av_free_scb(tBTA_AV_SCB *p_scb)
-{
-    // NOTE(google) This free currently is not called
-    assert(p_scb != NULL);
-
-    list_free(p_scb->a2d_list);
-    GKI_freebuf(p_scb);
-}
-
-/*******************************************************************************
 *******************************************************************************/
 void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data)
 {

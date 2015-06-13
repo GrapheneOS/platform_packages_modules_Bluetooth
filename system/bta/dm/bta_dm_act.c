@@ -2076,7 +2076,6 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
 {
 
     tSDP_UUID    uuid;
-    UINT16       num_attrs = 1;
     tBTA_DM_MSG *p_msg;
 
     memset (&uuid, 0, sizeof(tSDP_UUID));
@@ -4367,8 +4366,6 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
     tBTM_STATUS status = BTM_SUCCESS;
     tBTA_DM_SEC sec_event;
     char *p_name = NULL;
-    UINT8 i;
-    tBT_DEVICE_TYPE dev_type;
 
     if (!bta_dm_cb.p_sec_cback)
         return BTM_NOT_AUTHORIZED;

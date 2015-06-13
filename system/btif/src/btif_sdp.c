@@ -147,7 +147,6 @@ static bt_status_t deinit()
 
 static bt_status_t search(bt_bdaddr_t *bd_addr, const uint8_t *uuid)
 {
-    bdstr_t bdstr;
     tSDP_UUID sdp_uuid;
     sdp_uuid.len = 16;
     memcpy(sdp_uuid.uu.uuid128, uuid, sizeof(sdp_uuid.uu.uuid128));

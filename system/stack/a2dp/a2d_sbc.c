@@ -284,8 +284,9 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info, BOOLEAN for_caps)
         status = A2D_INVALID_PARAMS;
     else
     {
-        losc    = *p_info++;
-        *p_info++;
+        losc    = *p_info;
+        *p_info += 2;
+
         /* If the function is called for the wrong Media Type or Media Codec Type */
         if(losc != A2D_SBC_INFO_LEN || *p_info != A2D_MEDIA_CT_SBC)
             status = A2D_WRONG_CODEC;

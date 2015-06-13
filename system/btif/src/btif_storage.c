@@ -1193,7 +1193,6 @@ bt_status_t btif_in_fetch_bonded_ble_device(const char *remote_bd_addr, int add,
 {
     int device_type;
     int addr_type;
-    UINT32 i;
     bt_bdaddr_t bd_addr;
     BD_ADDR bta_bd_addr;
     bool device_added = false;

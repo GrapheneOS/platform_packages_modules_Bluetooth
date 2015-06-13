@@ -184,7 +184,6 @@ void copy_sdp_records(bluetooth_sdp_record* in_records,
  *   user2_ptr. */
 static int alloc_sdp_slot(bluetooth_sdp_record* in_record) {
     int i;
-    char* tmp_ptr = NULL;
     int record_size = get_sdp_records_size(in_record, 1);
     bluetooth_sdp_record* record = osi_malloc(record_size);
 

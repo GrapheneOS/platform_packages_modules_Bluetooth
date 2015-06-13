@@ -77,9 +77,6 @@ shared_library("bluetooth.default") {
   # TODO(armansito): Remove all of the flags below, as we want to be able to
   # compile the source code with as many warnings enabled as possible.
   cflags = [
-    "-Wno-unused-variable",
-    "-Wno-unused-value",
-    "-Wno-unused-function",
     "-Wno-int-to-pointer-cast",
   ]
 
