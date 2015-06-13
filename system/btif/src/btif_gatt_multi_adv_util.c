@@ -623,8 +623,8 @@ void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb)
                 btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer);
 
             memset(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer, 0, sizeof(TIMER_LIST_ENT));
-            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.param = (UINT32)cb;
-            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.data = (UINT32)client_if;
+            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.param = cb;
+            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.data = INT_TO_PTR(client_if);
             btu_start_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer,
                     BTU_TTYPE_USER_FUNC, p_multi_adv_data_cb->inst_cb[cbindex].timeout_s);
         }

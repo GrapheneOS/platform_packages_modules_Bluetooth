@@ -41,6 +41,7 @@
 
 #define LOG_TAG "bt_bta_dm"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
@@ -451,7 +452,7 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     else
     {
         bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
-        bta_dm_cb.disable_timer.param = 0;
+        bta_dm_cb.disable_timer.param = INT_TO_PTR(0);
         bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 5000);
     }
 
@@ -479,7 +480,7 @@ static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
 
     APPL_TRACE_EVENT(" bta_dm_disable_timer_cback trial %d ", p_tle->param);
 
-    if(BTM_GetNumAclLinks() && p_tle->param == 0)
+    if(BTM_GetNumAclLinks() && PTR_TO_INT(p_tle->param) == 0)
     {
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
@@ -495,7 +496,7 @@ static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
         if (trigger_disc)
         {
             bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
-            bta_dm_cb.disable_timer.param = 1;
+            bta_dm_cb.disable_timer.param = INT_TO_PTR(1);
             bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1500);
         }
     }

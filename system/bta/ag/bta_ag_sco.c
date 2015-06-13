@@ -693,7 +693,7 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
 
         /* Start timer to handle timeout */
         p_scb->cn_timer.p_cback = (TIMER_CBACK*)&bta_ag_cn_timer_cback;
-        p_scb->cn_timer.param = (INT32)p_scb;
+        p_scb->cn_timer.param = p_scb;
         bta_sys_start_timer(&p_scb->cn_timer, 0, BTA_AG_CODEC_NEGO_TIMEOUT);
     }
     else

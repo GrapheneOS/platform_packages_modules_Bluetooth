@@ -795,7 +795,7 @@ void btm_acl_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
                 btsnd_hcic_disconnect(p_dev_rec->hci_handle, HCI_ERR_PEER_USER);
             }
             BTM_TRACE_ERROR("btm_acl_encrypt_change: tBTM_SEC_DEV:0x%x rs_disc_pending=%d",
-                (UINT32)p_dev_rec, p_dev_rec->rs_disc_pending);
+                            PTR_TO_UINT(p_dev_rec), p_dev_rec->rs_disc_pending);
             p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
         }
 #endif
@@ -1528,7 +1528,7 @@ void btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role)
             btsnd_hcic_disconnect(p_dev_rec->hci_handle, HCI_ERR_PEER_USER);
         }
         BTM_TRACE_ERROR("tBTM_SEC_DEV:0x%x rs_disc_pending=%d",
-                         (UINT32)p_dev_rec, p_dev_rec->rs_disc_pending);
+                        PTR_TO_UINT(p_dev_rec), p_dev_rec->rs_disc_pending);
         p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
     }
 

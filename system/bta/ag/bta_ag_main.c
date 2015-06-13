@@ -321,7 +321,7 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
             p_scb->codec_updated = FALSE;
 #endif
             /* set up timers */
-            p_scb->act_timer.param = (UINT32) p_scb;
+            p_scb->act_timer.param = p_scb;
             p_scb->act_timer.p_cback = bta_ag_timer_cback;
 #if (BTM_WBS_INCLUDED == TRUE)
             /* set eSCO mSBC setting to T2 as the preferred */
@@ -650,7 +650,7 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
 
         /* Start timer to han */
         p_scb->colli_timer.p_cback = (TIMER_CBACK*)&bta_ag_colli_timer_cback;
-        p_scb->colli_timer.param = (INT32)p_scb;
+        p_scb->colli_timer.param = p_scb;
         bta_sys_start_timer(&p_scb->colli_timer, 0, BTA_AG_COLLISION_TIMER);
         p_scb->colli_tmr_on = TRUE;
     }
