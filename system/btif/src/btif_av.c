@@ -324,7 +324,7 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 
             BTIF_TRACE_DEBUG("BTA_AV_RC_OPEN_EVT received w/o AV");
             memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
-            tle_av_open_on_rc.param = (UINT32)btif_initiate_av_open_tmr_hdlr;
+            tle_av_open_on_rc.param = btif_initiate_av_open_tmr_hdlr;
             btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
                             BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
             btif_rc_handler(event, p_data);

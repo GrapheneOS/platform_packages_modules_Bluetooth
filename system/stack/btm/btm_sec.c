@@ -3989,7 +3989,7 @@ static void btm_sec_auth_collision (UINT16 handle)
                 p_dev_rec->sec_state = 0;
 
             btm_cb.p_collided_dev_rec = p_dev_rec;
-            btm_cb.sec_collision_tle.param = (UINT32) btm_sec_collision_timeout;
+            btm_cb.sec_collision_tle.param = UINT_TO_PTR(btm_sec_collision_timeout);
             btu_start_timer (&btm_cb.sec_collision_tle, BTU_TTYPE_USER_FUNC, BT_1SEC_TIMEOUT);
         }
     }
@@ -4476,7 +4476,7 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                         /* Start timer with 0 to initiate connection with new LCB */
                         /* because L2CAP will delete current LCB with this event  */
                         btm_cb.p_collided_dev_rec = p_dev_rec;
-                        btm_cb.sec_collision_tle.param = (UINT32) btm_sec_connect_after_reject_timeout;
+                        btm_cb.sec_collision_tle.param = UINT_TO_PTR(btm_sec_connect_after_reject_timeout);
                         btu_start_timer (&btm_cb.sec_collision_tle, BTU_TTYPE_USER_FUNC, 0);
                     }
                     else
@@ -4534,7 +4534,7 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                 /* Start timer with 0 to initiate connection with new LCB */
                 /* because L2CAP will delete current LCB with this event  */
                 btm_cb.p_collided_dev_rec = p_dev_rec;
-                btm_cb.sec_collision_tle.param = (UINT32) btm_sec_connect_after_reject_timeout;
+                btm_cb.sec_collision_tle.param = UINT_TO_PTR(btm_sec_connect_after_reject_timeout);
                 btu_start_timer (&btm_cb.sec_collision_tle, BTU_TTYPE_USER_FUNC, 0);
             }
 

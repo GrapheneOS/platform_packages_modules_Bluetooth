@@ -166,10 +166,4 @@ static_library("stack") {
     "//utils/include",
     "//",
   ]
-
-  # TODO(armansito): Remove all of these flags.
-  cflags = [
-    "-Wno-pointer-to-int-cast",
-    "-Wno-int-to-pointer-cast",
-  ]
 }

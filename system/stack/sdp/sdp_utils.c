@@ -122,7 +122,7 @@ tCONN_CB *sdpu_allocate_ccb (void)
         {
             memset (p_ccb, 0, sizeof (tCONN_CB));
 
-            p_ccb->timer_entry.param = (UINT32) p_ccb;
+            p_ccb->timer_entry.param = p_ccb;
 
             return (p_ccb);
         }

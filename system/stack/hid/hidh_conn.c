@@ -43,6 +43,8 @@
 #include "hidh_int.h"
 #include "bt_utils.h"
 
+#include "osi/include/osi.h"
+
 static UINT8 find_conn_by_cid (UINT16 cid);
 static void hidh_conn_retry (UINT8 dhandle);
 
@@ -301,10 +303,16 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 *******************************************************************************/
 void hidh_proc_repage_timeout (TIMER_LIST_ENT *p_tle)
 {
-    hidh_conn_initiate( (UINT8) p_tle->param ) ;
-    hh_cb.devices[p_tle->param].conn_tries++;
-    hh_cb.callback( (UINT8) p_tle->param, hh_cb.devices[p_tle->param].addr,
-                    HID_HDEV_EVT_RETRYING, hh_cb.devices[p_tle->param].conn_tries, NULL ) ;
+    tHID_HOST_DEV_CTB *device;
+    UINT8 dhandle = PTR_TO_UINT(p_tle->param);
+
+    hidh_conn_initiate(dhandle);
+
+    device = &hh_cb.devices[dhandle];
+    device->conn_tries++;
+
+    hh_cb.callback(dhandle, device->addr, HID_HDEV_EVT_RETRYING,
+                   device->conn_tries, NULL ) ;
 }
 
 /*******************************************************************************
@@ -324,7 +332,9 @@ void hidh_sec_check_complete_orig (BD_ADDR bd_addr, tBT_TRANSPORT transport, voi
     UNUSED(bd_addr);
     UNUSED (transport);
 
-    dhandle = ((UINT32)p_dev - (UINT32)&(hh_cb.devices[0]))/ sizeof(tHID_HOST_DEV_CTB);
+    // TODO(armansito): This kind of math to determine a device handle is way
+    // too dirty and unnecessary. Why can't |p_dev| store it's handle?
+    dhandle = (PTR_TO_UINT(p_dev) - PTR_TO_UINT(&(hh_cb.devices[0])))/ sizeof(tHID_HOST_DEV_CTB);
     if( res == BTM_SUCCESS && p_dev->conn.conn_state == HID_CONN_STATE_SECURITY )
     {
         HIDH_TRACE_EVENT ("HID-Host Originator security pass.");
@@ -652,7 +662,7 @@ static void hidh_l2cif_disconnect_ind (UINT16 l2cap_cid, BOOLEAN ack_needed)
             (hh_cb.devices[dhandle].attr_mask & HID_NORMALLY_CONNECTABLE))
         {
             hh_cb.devices[dhandle].conn_tries = 0;
-            hh_cb.devices[dhandle].conn.timer_entry.param = (UINT32) dhandle;
+            hh_cb.devices[dhandle].conn.timer_entry.param = UINT_TO_PTR(dhandle);
             btu_start_timer (&(hh_cb.devices[dhandle].conn.timer_entry), BTU_TTYPE_HID_HOST_REPAGE_TO, HID_HOST_REPAGE_WIN);
             hh_cb.callback( dhandle,  hh_cb.devices[dhandle].addr, HID_HDEV_EVT_CLOSE, disc_res, NULL);
         }
@@ -1085,7 +1095,7 @@ static void hidh_conn_retry(  UINT8 dhandle )
     tHID_HOST_DEV_CTB *p_dev = &hh_cb.devices[dhandle];
 
     p_dev->conn.conn_state = HID_CONN_STATE_UNUSED;
-    p_dev->conn.timer_entry.param = (UINT32) dhandle;
+    p_dev->conn.timer_entry.param = UINT_TO_PTR(dhandle);
 #if (HID_HOST_REPAGE_WIN > 0)
     btu_start_timer (&(p_dev->conn.timer_entry), BTU_TTYPE_HID_HOST_REPAGE_TO, HID_HOST_REPAGE_WIN);
 #else

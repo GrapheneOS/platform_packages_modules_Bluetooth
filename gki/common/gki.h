@@ -27,7 +27,7 @@ static const char GKI_MODULE[] = "gki_module";
 */
 typedef void (TIMER_CBACK)(void *p_tle);
 #ifndef TIMER_PARAM_TYPE
-#define TIMER_PARAM_TYPE    UINT32
+#define TIMER_PARAM_TYPE void*
 #endif
 /* Define a timer list entry
 */

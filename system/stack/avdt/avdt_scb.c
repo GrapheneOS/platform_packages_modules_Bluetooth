@@ -620,7 +620,7 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 #endif
             }
 #endif
-            p_scb->timer_entry.param = (UINT32) p_scb;
+            p_scb->timer_entry.param = p_scb;
             AVDT_TRACE_DEBUG("avdt_scb_alloc hdl=%d, psc_mask:0x%x", i+1, p_cs->cfg.psc_mask);
             break;
         }

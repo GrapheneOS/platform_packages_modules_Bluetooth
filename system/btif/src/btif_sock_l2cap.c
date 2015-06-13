@@ -517,7 +517,7 @@ static void on_srv_l2cap_le_connect_l(tBTA_JV_L2CAP_LE_OPEN *p_open, l2cap_socke
 
         //if we do not set a callback, this socket will be dropped */
         *(p_open->p_p_cback) = (void*)btsock_l2cap_cbk;
-        *(p_open->p_user_data) = (void*)accept_rs->id;
+        *(p_open->p_user_data) = UINT_TO_PTR(accept_rs->id);
 
         //start monitor the socket
         btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_EXCEPTION, sock->id);
@@ -721,27 +721,29 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
 
 static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data)
 {
+    uint32_t sock_id = PTR_TO_UINT(user_data);
+
     switch (event) {
     case BTA_JV_L2CAP_START_EVT:
-        on_srv_l2cap_listen_started(&p_data->l2c_start, (uint32_t)user_data);
+        on_srv_l2cap_listen_started(&p_data->l2c_start, sock_id);
         break;
 
     case BTA_JV_L2CAP_CL_INIT_EVT:
-        on_cl_l2cap_init(&p_data->l2c_cl_init, (uint32_t)user_data);
+        on_cl_l2cap_init(&p_data->l2c_cl_init, sock_id);
         break;
 
     case BTA_JV_L2CAP_OPEN_EVT:
-        on_l2cap_connect(p_data, (uint32_t)user_data);
-        BTA_JvSetPmProfile(p_data->l2c_open.handle,BTA_JV_PM_ID_1,BTA_JV_CONN_OPEN);
+        on_l2cap_connect(p_data, sock_id);
+        BTA_JvSetPmProfile(p_data->l2c_open.handle, BTA_JV_PM_ID_1,BTA_JV_CONN_OPEN);
         break;
 
     case BTA_JV_L2CAP_CLOSE_EVT:
-        APPL_TRACE_DEBUG("BTA_JV_L2CAP_CLOSE_EVT: user_data:%d", (uint32_t)user_data);
-        on_l2cap_close(&p_data->l2c_close, (uint32_t)user_data);
+        APPL_TRACE_DEBUG("BTA_JV_L2CAP_CLOSE_EVT: id: %u", sock_id);
+        on_l2cap_close(&p_data->l2c_close, sock_id);
         break;
 
     case BTA_JV_L2CAP_DATA_IND_EVT:
-        on_l2cap_data_ind(p_data, (uint32_t)user_data);
+        on_l2cap_data_ind(p_data, sock_id);
         APPL_TRACE_DEBUG("BTA_JV_L2CAP_DATA_IND_EVT");
         break;
 
@@ -754,21 +756,21 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data
         break;
 
     case BTA_JV_L2CAP_WRITE_EVT:
-        APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT id: %d", (int)user_data);
-        on_l2cap_write_done((void*)p_data->l2c_write.req_id, (uint32_t)user_data);
+        APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", sock_id);
+        on_l2cap_write_done(UINT_TO_PTR(p_data->l2c_write.req_id), sock_id);
         break;
 
     case BTA_JV_L2CAP_WRITE_FIXED_EVT:
-        APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_FIXED_EVT id: %d", (int)user_data);
-        on_l2cap_write_fixed_done((void*)p_data->l2c_write_fixed.req_id, (uint32_t)user_data);
+        APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_FIXED_EVT: id: %u", sock_id);
+        on_l2cap_write_fixed_done(UINT_TO_PTR(p_data->l2c_write_fixed.req_id), sock_id);
         break;
 
     case BTA_JV_L2CAP_CONG_EVT:
-        on_l2cap_outgoing_congest(&p_data->l2c_cong, (uint32_t)user_data);
+        on_l2cap_outgoing_congest(&p_data->l2c_cong, sock_id);
         break;
 
     default:
-        APPL_TRACE_ERROR("unhandled event %d, slot id:%d", event, (uint32_t)user_data);
+        APPL_TRACE_ERROR("unhandled event %d, slot id: %u", event, sock_id);
         break;
     }
 }
@@ -827,7 +829,7 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock) {
     if (sock->fixed_chan) {
 
         if (BTA_JvL2capStartServerLE(sock->security, 0, NULL, sock->channel,
-                L2CAP_DEFAULT_MTU, NULL, btsock_l2cap_cbk, (void*)sock->id)
+                L2CAP_DEFAULT_MTU, NULL, btsock_l2cap_cbk, UINT_TO_PTR(sock->id))
                 != BTA_JV_SUCCESS)
             stat = BT_STATUS_FAIL;
 
@@ -835,12 +837,12 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock) {
         /* If we have a channel specified in the request, just start the server,
          * else we request a PSM and start the server after we receive a PSM. */
         if(sock->channel < 0) {
-            if(BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, (void*)sock->id, 0)
+            if(BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, UINT_TO_PTR(sock->id), 0)
                     != BTA_JV_SUCCESS)
                 stat = BT_STATUS_FAIL;
         } else {
             if (BTA_JvL2capStartServer(sock->security, 0, &obex_l2c_etm_opt,
-                    sock->channel, L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk, (void*)sock->id)
+                    sock->channel, L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk, UINT_TO_PTR(sock->id))
                     != BTA_JV_SUCCESS)
                 stat = BT_STATUS_FAIL;
         }
@@ -896,13 +898,13 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
         if (fixed_chan) {
             if (BTA_JvL2capConnectLE(sock->security, 0, NULL, channel,
                     L2CAP_DEFAULT_MTU, NULL, sock->addr.address, btsock_l2cap_cbk,
-                    (void*)sock->id) != BTA_JV_SUCCESS)
+                    UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
                 stat = BT_STATUS_FAIL;
 
         } else {
             if (BTA_JvL2capConnect(sock->security, 0, &obex_l2c_etm_opt,
                     channel, L2CAP_MAX_SDU_LENGTH, &cfg, sock->addr.address,
-                    btsock_l2cap_cbk, (void*)sock->id) != BTA_JV_SUCCESS)
+                    btsock_l2cap_cbk, UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
                 stat = BT_STATUS_FAIL;
         }
     }
@@ -1002,21 +1004,28 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                          * be wrong
                          * UPDATE: Since we are responsible for freeing the buffer in the
                          * write_complete_ind, it is OK to use malloc. */
-
                         int count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
                                 MSG_NOSIGNAL | MSG_DONTWAIT);
                         APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
                                 count);
+
+                        // TODO(armansito): |buffer|, which is created above via
+                        // malloc, is being cast below to UINT32 to be used as
+                        // the |req_id| parameter of BTA_JvL2capWriteFixed and
+                        // BTA_JvL2capWrite. The "id" then gets freed in an
+                        // obscure callback elsewhere. We need to watch out for
+                        // this type of unsafe practice, as this is error prone
+                        // and difficult to follow.
                         if (sock->fixed_chan) {
                             if(BTA_JvL2capWriteFixed(sock->channel, (BD_ADDR*)&sock->addr,
-                                    (UINT32)buffer, btsock_l2cap_cbk, buffer, count,
-                                    (void *)user_id) != BTA_JV_SUCCESS) {
+                                    PTR_TO_UINT(buffer), btsock_l2cap_cbk, buffer, count,
+                                    UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
                                 // On fail, free the buffer
                                 on_l2cap_write_fixed_done(buffer, user_id);
                             }
                         } else {
-                            if(BTA_JvL2capWrite(sock->handle, (UINT32)buffer, buffer, count,
-                                    (void *)user_id) != BTA_JV_SUCCESS) {
+                            if(BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer), buffer, count,
+                                    UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
                                 // On fail, free the buffer
                                 on_l2cap_write_done(buffer, user_id);
                             }

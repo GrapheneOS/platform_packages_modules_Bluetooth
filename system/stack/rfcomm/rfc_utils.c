@@ -224,7 +224,7 @@ void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
 
     RFCOMM_TRACE_EVENT ("rfc_timer_start - timeout:%d", timeout);
 
-    p_tle->param = (UINT32)p_mcb;
+    p_tle->param = p_mcb;
 
     btu_start_timer (p_tle, BTU_TTYPE_RFCOMM_MFC, timeout);
 }
@@ -258,7 +258,7 @@ void rfc_port_timer_start (tPORT *p_port, UINT16 timeout)
 
     RFCOMM_TRACE_EVENT ("rfc_port_timer_start - timeout:%d", timeout);
 
-    p_tle->param = (UINT32)p_port;
+    p_tle->param = p_port;
 
     btu_start_timer (p_tle, BTU_TTYPE_RFCOMM_PORT, timeout);
 }

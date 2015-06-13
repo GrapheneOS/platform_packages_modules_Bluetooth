@@ -86,14 +86,4 @@ static_library("btif") {
     "//utils/include",
     "//vnd/include",
   ]
-
-  # TODO(armansito): Remove all of these flags below. We want to enable all
-  # warnings that we can.
-  cflags = [
-    "-Wno-int-to-pointer-cast",
-  ]
-
-  cflags_c = [
-    "-Wno-pointer-to-int-cast",
-  ]
 }

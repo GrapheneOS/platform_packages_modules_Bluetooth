@@ -111,14 +111,4 @@ static_library("bta") {
     "//utils/include",
     "//vnd/include",
   ]
-
-  # TODO(armansito): Remove all of the flags below, since we want to enable all
-  # warnings.
-  cflags = [
-    "-Wno-int-to-pointer-cast",
-  ]
-
-  cflags_c = [
-    "-Wno-pointer-to-int-cast",
-  ]
 }
