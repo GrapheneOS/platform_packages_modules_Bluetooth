@@ -43,7 +43,7 @@ struct alarm_t {
   // a guarantee to its caller that the callback will not be in progress when it
   // returns.
   pthread_mutex_t callback_lock;
-  period_ms_t created;
+  period_ms_t creation_time;
   period_ms_t period;
   period_ms_t deadline;
   bool is_periodic;
@@ -144,7 +144,7 @@ static void alarm_set_internal(alarm_t *alarm, period_ms_t period, alarm_callbac
 
   pthread_mutex_lock(&monitor);
 
-  alarm->created = now();
+  alarm->creation_time = now();
   alarm->is_periodic = is_periodic;
   alarm->period = period;
   alarm->callback = cb;
@@ -256,7 +256,7 @@ static void schedule_next_instance(alarm_t *alarm, bool force_reschedule) {
 
   // Calculate the next deadline for this alarm
   period_ms_t just_now = now();
-  period_ms_t ms_into_period = alarm->is_periodic ? ((just_now - alarm->created) % alarm->period) : 0;
+  period_ms_t ms_into_period = alarm->is_periodic ? ((just_now - alarm->creation_time) % alarm->period) : 0;
   alarm->deadline = just_now + (alarm->period - ms_into_period);
 
   // Add it into the timer list sorted by deadline (earliest deadline first).
