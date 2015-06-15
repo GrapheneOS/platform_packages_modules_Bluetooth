@@ -167,7 +167,7 @@ static void read_ready(UNUSED_ATTR socket_t *socket, void *context) {
     // TODO(sharvil): once we have an HCI parser, we can eliminate
     //   the 2-byte size field since it will be contained in the packet.
 
-    BT_HDR *buf = (BT_HDR *)buffer_allocator->alloc(packet_len);
+    BT_HDR *buf = (BT_HDR *)buffer_allocator->alloc(BT_HDR_SIZE + packet_len);
     if (buf) {
       buf->event = hci_packet_to_event(packet_type);
       buf->offset = 0;
