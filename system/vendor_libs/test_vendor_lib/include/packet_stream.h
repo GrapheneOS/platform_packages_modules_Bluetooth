@@ -41,15 +41,15 @@ class PacketStream {
 
   // Reads a command packet and returns the packet back to the caller, along
   // with the responsibility of managing the packet's memory.
-  std::unique_ptr<CommandPacket> ReceiveCommand();
+  std::unique_ptr<CommandPacket> ReceiveCommand() const;
 
   // Reads and interprets a single octet as a packet type octet. Validates the
   // type octet for correctness.
-  serial_data_type_t ReceivePacketType();
+  serial_data_type_t ReceivePacketType() const;
 
   // Sends an event to the HCI. The memory management and ownership of the event
   // is left with the caller.
-  void SendEvent(const EventPacket& event);
+  bool SendEvent(const EventPacket& event) const;
 
   // Sets the file descriptor used in reading and writing. The PacketStream
   // takes ownership of the descriptor at |fd| and closes it during destruction.
@@ -62,15 +62,15 @@ class PacketStream {
   // DATA_TYPE_SCO.
   bool ValidateTypeOctet(serial_data_type_t type) const;
 
-  // Attempts to receive |num_octets_to_receive| into |buffer|, returning
+  // Attempts to receive |num_octets_to_receive| into |destination|, returning
   // false if an error occurs.
-  bool ReceiveData(std::vector<std::uint8_t>& buffer,
-                  size_t num_octets_to_receive);
+  bool ReceiveAll(std::vector<std::uint8_t>& destination,
+                  size_t num_octets_to_receive) const;
 
   // Attempts to send |num_octets_to_send| from |source|, returning false if an
   // error occurs.
-  bool SendData(const std::vector<std::uint8_t>& source,
-               size_t num_octets_to_send);
+  bool SendAll(const std::vector<std::uint8_t>& source,
+               size_t num_octets_to_send) const;
 
   // File descriptor to read from and write to. This is the descriptor given to
   // the HCI from the HciTransport.

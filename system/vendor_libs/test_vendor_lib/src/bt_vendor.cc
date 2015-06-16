@@ -61,17 +61,23 @@ static int TestVendorInitialize(const bt_vendor_callbacks_t* p_cb,
   test_vendor_lib::HciHandler::Initialize();
   test_vendor_lib::BREDRController::Initialize();
 
-  // Create the connection to be used for communication between the HCI and
-  // the HciTransport object.
+  // Configure the global HciTransport object.
   HciTransport* transporter = HciTransport::Get();
   if (!transporter->Connect()) {
     LOG_ERROR(LOG_TAG, "Error connecting HciTransport object to HCI.");
     return -1;
   }
 
+  HciHandler* handler = HciHandler::Get();
+  handler->RegisterTransportCallbacks();
+
+  BREDRController* controller = BREDRController::Get();
+  controller->RegisterHandlerCallbacks();
+
   // Start HciTransport listening on its own thread.
   pthread_t transporter_thread;
-  pthread_create(&transporter_thread, NULL, &ListenEntryPoint, transporter);
+  pthread_create(&transporter_thread, NULL, &ListenEntryPoint,
+                 HciTransport::Get());
   return 0;
 }
 

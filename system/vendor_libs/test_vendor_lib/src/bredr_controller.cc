@@ -51,12 +51,12 @@ void SendCommandComplete(uint16_t command_opcode,
       test_vendor_lib::EventPacket::CreateCommandCompleteEvent(
           kNumHciCommandPackets, command_opcode, return_parameters);
   // TODO(dennischeng): Should this dependency on HciTransport be removed?
-  test_vendor_lib::HciTransport::Get()->SendEvent(*command_complete);
+  test_vendor_lib::HciTransport::Get()->SendEvent(std::move(command_complete));
 }
 
 // Sends a command complete event with no return parameters. This event is
 // typically sent for commands that can be completed immediately.
-void SendCommandCompleteSuccess(uint16_t command_opcode) {
+void SendEmptySuccessCommandComplete(uint16_t command_opcode) {
   SendCommandComplete(command_opcode, {kReturnStatusSuccess});
 }
 
@@ -78,13 +78,10 @@ BREDRController* BREDRController::Get() {
 
 // static
 void BREDRController::Initialize() {
-  // Multiple calls to Initialize() should not be made and the HciHandler should
-  // already be initialized.
+  // Multiple calls to Initialize should not be made.
   // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
   assert(!g_controller);
-  assert(HciHandler::Get());
   g_controller = new BREDRController();
-  g_controller->RegisterHandlerCallbacks();
 }
 
 // static
@@ -109,8 +106,8 @@ void BREDRController::RegisterHandlerCallbacks() {
 }
 
 void BREDRController::HciReset(const std::vector<uint8_t>& /* args */) {
-  LOG_INFO(LOG_TAG, "%s", __func__);
-  SendCommandCompleteSuccess(HCI_RESET);
+  LOG_INFO(LOG_TAG, "Performing Reset command in controller.");
+  SendEmptySuccessCommandComplete(HCI_RESET);
 }
 
 }  // namespace test_vendor_lib

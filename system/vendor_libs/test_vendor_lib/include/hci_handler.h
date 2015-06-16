@@ -35,6 +35,10 @@ namespace test_vendor_lib {
 // object and called when commands and data are sent by the host.
 class HciHandler {
  public:
+  // Sets the command and data callbacks for when packets are received from the
+  // HCI.
+  void RegisterTransportCallbacks();
+
   // Functions that operate on the global handler instance. Initialize()
   // is called by the vendor library's Init() function to create the global
   // handler and must be called before Get() and CleanUp().
@@ -68,10 +72,6 @@ class HciHandler {
   // The destructor can only be indirectly accessed through the static
   // CleanUp() method that destructs the global handler.
   ~HciHandler() = default;
-
-  // Sets the command and data callbacks for when packets are received from the
-  // HCI.
-  void RegisterTransportCallbacks();
 
   // Disallow any copies of the singleton to be made.
   DISALLOW_COPY_AND_ASSIGN(HciHandler);
