@@ -1651,6 +1651,17 @@ BOOLEAN L2CA_RemoveFixedChnl (UINT16 fixed_cid, BD_ADDR rem_bda)
     p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL] = NULL;
     p_lcb->disc_reason = HCI_ERR_CONN_CAUSE_LOCAL_HOST;
 
+#if BLE_INCLUDED == TRUE
+    // Retain the link for a few more seconds after SMP pairing is done, since the Android
+    // platform always does service discovery after pairing is complete. This will avoid
+    // the link down (pairing is complete) and an immediate re-connection for service
+    // discovery.
+    // Some devices do not do auto advertising when link is dropped, thus fail the second
+    // connection and service discovery.
+    if ((fixed_cid == L2CAP_ATT_CID ) && !p_lcb->ccb_queue.p_first_ccb)
+        p_lcb->idle_timeout = 0;
+#endif
+
     l2cu_release_ccb (p_ccb);
 
     return (TRUE);
