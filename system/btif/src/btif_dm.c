@@ -1061,8 +1061,11 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
     if ( (p_auth_cmpl->success == TRUE) && (p_auth_cmpl->key_present) )
     {
-        if ((p_auth_cmpl->key_type < HCI_LKEY_TYPE_DEBUG_COMB)  || (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
-            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) || pairing_cb.bond_type == BOND_TYPE_PERSISTENT)
+        if ((p_auth_cmpl->key_type < HCI_LKEY_TYPE_DEBUG_COMB) ||
+            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB) ||
+            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_CHANGED_COMB) ||
+            (p_auth_cmpl->key_type == HCI_LKEY_TYPE_AUTH_COMB_P_256) ||
+            pairing_cb.bond_type == BOND_TYPE_PERSISTENT)
         {
             bt_status_t ret;
             BTIF_TRACE_DEBUG("%s: Storing link key. key_type=0x%x, bond_type=%d",
