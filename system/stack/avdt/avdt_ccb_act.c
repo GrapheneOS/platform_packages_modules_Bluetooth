@@ -270,18 +270,16 @@ void avdt_ccb_hdl_getcap_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 *******************************************************************************/
 void avdt_ccb_hdl_start_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
-    UINT8   seid;
-    UINT8   err_code;
+    UINT8   err_code = 0;
 
     /* verify all streams in the right state */
-    if ((seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_START, p_data->msg.multi.seid_list,
-                                p_data->msg.multi.num_seps, &err_code)) == 0)
+    UINT8 seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_START, p_data->msg.multi.seid_list,
+                                 p_data->msg.multi.num_seps, &err_code);
+    if (seid == 0 && err_code == 0)
     {
         /* we're ok, send response */
         avdt_ccb_event(p_ccb, AVDT_CCB_API_START_RSP_EVT, p_data);
-    }
-    else
-    {
+    } else {
         /* not ok, send reject */
         p_data->msg.hdr.err_code = err_code;
         p_data->msg.hdr.err_param = seid;
@@ -343,11 +341,12 @@ void avdt_ccb_hdl_start_rsp(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_hdl_suspend_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UINT8   seid;
-    UINT8   err_code;
+    UINT8   err_code = 0;
 
     /* verify all streams in the right state */
     if ((seid = avdt_scb_verify(p_ccb, AVDT_VERIFY_SUSPEND, p_data->msg.multi.seid_list,
-                                p_data->msg.multi.num_seps, &err_code)) == 0)
+                                p_data->msg.multi.num_seps, &err_code)) == 0 &&
+                                err_code == 0)
     {
         /* we're ok, send response */
         avdt_ccb_event(p_ccb, AVDT_CCB_API_SUSPEND_RSP_EVT, p_data);
