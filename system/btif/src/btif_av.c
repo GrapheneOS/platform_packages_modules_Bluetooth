@@ -25,10 +25,13 @@
  *
  *****************************************************************************/
 
+#include <assert.h>
+#include <string.h>
+
 #include <hardware/bluetooth.h>
 #include <system/audio.h>
-#include <string.h>
 #include "hardware/bt_av.h"
+#include "osi/include/allocator.h"
 
 #define LOG_TAG "bt_btif_av"
 
@@ -140,6 +143,8 @@ static const btif_sm_handler_t btif_av_state_handlers[] =
     btif_av_state_started_handler,
     btif_av_state_closing_handler
 };
+
+static void btif_av_event_free_data(btif_sm_event_t event, void *p_data);
 
 /*************************************************************************
 ** Extern functions
@@ -352,6 +357,9 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             return FALSE;
 
     }
+
+    btif_av_event_free_data(event, p_data);
+
     return TRUE;
 }
 /*****************************************************************************
@@ -833,11 +841,76 @@ static void btif_av_handle_event(UINT16 event, char* p_param)
     btif_sm_dispatch(btif_av_cb.sm_handle, event, (void*)p_param);
 }
 
+void btif_av_event_deep_copy(UINT16 event, char *p_dest, char *p_src)
+{
+    tBTA_AV *av_src = (tBTA_AV *)p_src;
+    tBTA_AV *av_dest = (tBTA_AV *)p_dest;
+
+    // First copy the structure
+    memcpy(p_dest, p_src, sizeof(tBTA_AV));
+
+    switch (event)
+    {
+        case BTA_AV_META_MSG_EVT:
+            if (av_src->meta_msg.p_data && av_src->meta_msg.len)
+            {
+                av_dest->meta_msg.p_data = osi_calloc(av_src->meta_msg.len);
+                assert(av_dest->meta_msg.p_data);
+                memcpy(av_dest->meta_msg.p_data, av_src->meta_msg.p_data, av_src->meta_msg.len);
+            }
+
+            if (av_src->meta_msg.p_msg)
+            {
+                av_dest->meta_msg.p_msg = osi_calloc(sizeof(tAVRC_MSG));
+                assert(av_dest->meta_msg.p_msg);
+                memcpy(av_dest->meta_msg.p_msg, av_src->meta_msg.p_msg, sizeof(tAVRC_MSG));
+
+                if (av_src->meta_msg.p_msg->vendor.p_vendor_data &&
+                    av_src->meta_msg.p_msg->vendor.vendor_len)
+                {
+                    av_dest->meta_msg.p_msg->vendor.p_vendor_data = osi_calloc(
+                        av_src->meta_msg.p_msg->vendor.vendor_len);
+                    assert(av_dest->meta_msg.p_msg->vendor.p_vendor_data);
+                    memcpy(av_dest->meta_msg.p_msg->vendor.p_vendor_data,
+                        av_src->meta_msg.p_msg->vendor.p_vendor_data,
+                        av_src->meta_msg.p_msg->vendor.vendor_len);
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+static void btif_av_event_free_data(btif_sm_event_t event, void *p_data)
+{
+    switch (event)
+    {
+        case BTA_AV_META_MSG_EVT:
+            {
+                tBTA_AV *av = (tBTA_AV*)p_data;
+                if (av->meta_msg.p_data)
+                    osi_free(av->meta_msg.p_data);
+
+                if (av->meta_msg.p_msg)
+                {
+                    if (av->meta_msg.p_msg->vendor.p_vendor_data)
+                        osi_free(av->meta_msg.p_msg->vendor.p_vendor_data);
+                    osi_free(av->meta_msg.p_msg);
+                }
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
 static void bte_av_callback(tBTA_AV_EVT event, tBTA_AV *p_data)
 {
-    /* Switch to BTIF context */
     btif_transfer_context(btif_av_handle_event, event,
-                          (char*)p_data, sizeof(tBTA_AV), NULL);
+                          (char*)p_data, sizeof(tBTA_AV), btif_av_event_deep_copy);
 }
 
 static void bte_av_media_callback(tBTA_AV_EVT event, tBTA_AV_MEDIA *p_data)
