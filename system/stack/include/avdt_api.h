@@ -485,6 +485,18 @@ extern void AVDT_SINK_Deactivate(void);
 
 /*******************************************************************************
 **
+** Function         AVDT_AbortReq
+**
+** Description      Trigger Abort request to pass AVDTP Abort related mandatory
+**                  PTS Test case.
+**
+** Returns          void.
+**
+*******************************************************************************/
+extern void AVDT_AbortReq(UINT8 handle);
+
+/*******************************************************************************
+**
 ** Function         AVDT_CreateStream
 **
 ** Description      Create a stream endpoint.  After a stream endpoint is

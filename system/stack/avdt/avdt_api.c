@@ -222,6 +222,19 @@ void AVDT_SINK_Deactivate()
     }
 }
 
+void AVDT_AbortReq(UINT8 handle)
+{
+    AVDT_TRACE_ERROR("%s", __func__);
+
+    tAVDT_SCB *p_scb = avdt_scb_by_hdl(handle);
+    if (p_scb != NULL)
+    {
+        avdt_scb_event(p_scb, AVDT_SCB_API_ABORT_REQ_EVT, NULL);
+    } else {
+        AVDT_TRACE_ERROR("%s Improper SCB, can not abort the stream", __func__);
+    }
+}
+
 /*******************************************************************************
 **
 ** Function         AVDT_CreateStream

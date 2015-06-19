@@ -29,6 +29,9 @@
 
 #include <assert.h>
 #include <string.h>
+
+#include <cutils/properties.h>
+
 #include "bta_av_int.h"
 #include "avdt_api.h"
 #include "utl.h"
@@ -1434,6 +1437,15 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         {
             bta_av_ssm_execute(p_scb, BTA_AV_AP_START_EVT, NULL);
         }
+    }
+
+    // This code is used to pass PTS TC for AVDTP ABORT
+    char value[PROPERTY_VALUE_MAX] = {0};
+    if ((property_get("bluetooth.pts.force_a2dp_abort", value, "false"))
+        && (!strcmp(value, "true")))
+    {
+        APPL_TRACE_ERROR ("%s: Calling AVDT_AbortReq", __func__);
+        AVDT_AbortReq(p_scb->avdt_handle);
     }
 }
 
