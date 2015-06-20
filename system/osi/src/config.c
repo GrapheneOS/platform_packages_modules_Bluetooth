@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/config.h"
@@ -281,6 +282,12 @@ bool config_save(const config_t *config, const char *filename) {
 
   fflush(fp);
   fclose(fp);
+
+  // Change the file's permissions to Read/Write by User and Group
+  if (chmod(temp_filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) == -1) {
+    LOG_ERROR("%s unable to change file permissions '%s': %s", __func__, filename, strerror(errno));
+    goto error;
+  }
 
   if (rename(temp_filename, filename) == -1) {
     LOG_ERROR("%s unable to commit file '%s': %s", __func__, filename, strerror(errno));
