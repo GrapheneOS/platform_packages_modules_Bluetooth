@@ -449,6 +449,7 @@ void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode)
                    secure_connections_only_mode);
 
     btm_cb.devcb.secure_connections_only = secure_connections_only_mode;
+    btm_cb.security_mode = BTM_SEC_MODE_SC;
 }
 #define BTM_NO_AVAIL_SEC_SERVICES   ((UINT16) 0xffff)
 
