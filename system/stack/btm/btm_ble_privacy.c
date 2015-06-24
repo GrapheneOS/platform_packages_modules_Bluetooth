@@ -828,6 +828,8 @@ BOOLEAN btm_ble_resolving_list_load_dev(tBTM_SEC_DEV_REC *p_dev_rec)
                 /* if resolving list has been turned on, re-enable it */
                 if (rl_mask)
                     btm_ble_enable_resolving_list(rl_mask);
+                else
+                    btm_ble_enable_resolving_list(BTM_BLE_RL_INIT);
             }
         }
         else
