@@ -456,7 +456,7 @@ static const UINT8 smp_slave_entry_map[][SMP_STATE_MAX] =
 /* PAIR_PUBLIC_KEY      */{ 0,    0,     0,      5,     0,   0,    0,   2,      0,      0,    0,    0,      0,     0,     0,    0,     0   },
 /* PAIR_DHKEY_CHCK      */{ 0,    5,     0,      0,     0,   0,    0,   0,      0,      0,    0,    2,      1,     2,     0,    0,     0   },
 /* PAIR_KEYPR_NOTIF     */{ 0,    9,     0,      0,     0,   0,    0,   0,      5,      2,    0,    0,      0,     0,     0,    0,     0   },
-/* PAIR_COMMITM         */{ 0,    8,     0,      0,     0,   0,    0,   0,      0,      1,    0,    0,      0,     0,     0,    0,     0   },
+/* PAIR_COMMITM         */{ 0,    8,     0,      0,     0,   0,    0,   0,      6,      1,    0,    0,      0,     0,     0,    0,     0   },
 /* KEY_READY            */{ 0,    3,     0,      3,     2,   2,    1,   0,      4,      0,    0,    0,      0,     0,     2,    1,     0   },
 /* ENC_CMPL             */{ 0,    0,     2,      0,     0,   0,    0,   0,      0,      0,    0,    0,      0,     0,     3,    0,     0   },
 /* L2C_CONN             */{ 1,    0,     0,      0,     0,   0,    0,   0,      0,      0,    0,    0,      0,     0,     0,    0,     0   },
@@ -573,6 +573,7 @@ static const UINT8 smp_slave_sec_conn_phs1_start_table[][SMP_SM_NUM_COLS] =
 /* commitment calculation */
 /* KEY_READY */{ SMP_START_PASSKEY_VERIFICATION, SMP_SM_NO_ACTION, SMP_STATE_SEC_CONN_PHS1_START},
 /* PAIR_KEYPR_NOTIF  */{ SMP_PROCESS_KEYPRESS_NOTIFICATION,SMP_SEND_APP_CBACK, SMP_STATE_SEC_CONN_PHS1_START},
+/*COMMIT*/{SMP_PROCESS_PAIRING_COMMITMENT, SMP_SM_NO_ACTION, SMP_STATE_SEC_CONN_PHS1_START},
 };
 
 static const UINT8 smp_slave_wait_commitment_table[][SMP_SM_NUM_COLS] =
