@@ -549,10 +549,21 @@ void smp_proc_pair_cmd(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         }
         else /* update local i/r key according to pairing request */
         {
-            /* paring started with this side (slave) sending Security Request */
+            /* pairing started with this side (slave) sending Security Request */
             p_cb->local_i_key &= p_cb->peer_i_key;
             p_cb->local_r_key &= p_cb->peer_r_key;
             p_cb->selected_association_model = smp_select_association_model(p_cb);
+
+            if (p_cb->secure_connections_only_mode_required &&
+                (!(p_cb->le_secure_connections_mode_is_used) ||
+               (p_cb->selected_association_model == SMP_MODEL_SEC_CONN_JUSTWORKS)))
+            {
+                SMP_TRACE_ERROR("%s pairing failed - slave requires secure connection only mode",
+                    __func__);
+                reason = SMP_PAIR_AUTH_FAIL;
+                smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+                return;
+            }
 
             if (p_cb->selected_association_model == SMP_MODEL_SEC_CONN_OOB)
             {
