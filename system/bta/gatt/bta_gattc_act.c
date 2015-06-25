@@ -2043,19 +2043,25 @@ void bta_gattc_process_indicate(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_CL_COMPL
 
     if (!GATT_GetConnectionInfor(conn_id, &gatt_if, remote_bda, &transport))
     {
-        APPL_TRACE_ERROR("indication/notif for unknown app");
+        APPL_TRACE_ERROR("%s indication/notif for unknown app", __func__);
+        if (op == GATTC_OPTYPE_INDICATION)
+            GATTC_SendHandleValueConfirm(conn_id, handle);
         return;
     }
 
     if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) == NULL)
     {
-        APPL_TRACE_ERROR("indication/notif for unregistered app");
+        APPL_TRACE_ERROR("%s indication/notif for unregistered app", __func__);
+        if (op == GATTC_OPTYPE_INDICATION)
+            GATTC_SendHandleValueConfirm(conn_id, handle);
         return;
     }
 
     if ((p_srcb = bta_gattc_find_srcb(remote_bda)) == NULL)
     {
-        APPL_TRACE_ERROR("indication/notif for unknown device, ignore");
+        APPL_TRACE_ERROR("%s indication/notif for unknown device, ignore", __func__);
+        if (op == GATTC_OPTYPE_INDICATION)
+            GATTC_SendHandleValueConfirm(conn_id, handle);
         return;
     }
 
@@ -2094,15 +2100,17 @@ void bta_gattc_process_indicate(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_CL_COMPL
             /* no one intersted and need ack? */
             else if (op == GATTC_OPTYPE_INDICATION)
             {
-                APPL_TRACE_DEBUG("no one interested, ack now");
+                APPL_TRACE_DEBUG("%s no one interested, ack now", __func__);
                 GATTC_SendHandleValueConfirm(conn_id, handle);
             }
         }
     }
     else
     {
-        APPL_TRACE_ERROR("Indi/Notif for Unknown handle[0x%04x], can not find in local cache.",
-                          handle);
+        APPL_TRACE_ERROR("%s Indi/Notif for Unknown handle[0x%04x], can not find in local cache.",
+                         __func__, handle);
+        if (op == GATTC_OPTYPE_INDICATION)
+            GATTC_SendHandleValueConfirm(conn_id, handle);
     }
 }
 /*******************************************************************************
