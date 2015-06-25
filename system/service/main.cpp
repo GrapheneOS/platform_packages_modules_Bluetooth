@@ -18,16 +18,14 @@
 #include <stdlib.h>
 
 #define LOG_TAG "BtHost"
-#include "osi/include/log.h"
 // For system properties
 // TODO(icoolidge): abstraction or non-cutils stub.
 #include <cutils/properties.h>
-// For init socket environment variable decode
-// TODO(icoolidge): abstraction or remove.
-#include <cutils/sockets.h>
 
 #include "core_stack.h"
 #include "host.h"
+#include "osi/include/log.h"
+#include "osi/include/socket_utils/sockets.h"
 
 namespace {
 
@@ -44,7 +42,7 @@ int main() {
     return EXIT_SUCCESS;
   }
 
-  int server_socket = android_get_control_socket(kSocketFromInit);
+  int server_socket = osi_android_get_control_socket(kSocketFromInit);
   if (server_socket == -1) {
     LOG_ERROR("failed to get socket from init");
     return EXIT_FAILURE;

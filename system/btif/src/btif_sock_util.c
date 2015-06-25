@@ -25,45 +25,40 @@
  *
  *
  ***********************************************************************************/
+#include <arpa/inet.h>
+#include <errno.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <unistd.h>
+
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-#include <sys/ioctl.h>
-
-#include <cutils/sockets.h>
-#include <netinet/tcp.h>
-
 
 #define LOG_TAG "bt_btif_sock"
-#include "btif_common.h"
-#include "btif_util.h"
-
-#include "bta_api.h"
-#include "btif_sock_thread.h"
-#include "btif_sock_sdp.h"
 
 #include "bt_target.h"
-#include "gki.h"
-#include "hcimsgs.h"
-#include "sdp_api.h"
-#include "btu.h"
-#include "btm_api.h"
-#include "btm_int.h"
+#include "bta_api.h"
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
-#include "port_api.h"
+#include "btif_common.h"
+#include "btif_sock_sdp.h"
+#include "btif_sock_thread.h"
+#include "btif_util.h"
+#include "btm_api.h"
+#include "btm_int.h"
+#include "btu.h"
+#include "gki.h"
+#include "hcimsgs.h"
 #include "osi/include/log.h"
+#include "port_api.h"
+#include "sdp_api.h"
 
 #define asrt(s) if(!(s)) BTIF_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
