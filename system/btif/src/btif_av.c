@@ -980,14 +980,14 @@ bt_status_t btif_av_init()
         if (!btif_a2dp_start_media_task())
             return BT_STATUS_FAIL;
 
+        /* Also initialize the AV state machine */
+        btif_av_cb.sm_handle =
+                btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
+
         btif_enable_service(BTA_A2DP_SOURCE_SERVICE_ID);
 #if (BTA_AV_SINK_INCLUDED == TRUE)
         btif_enable_service(BTA_A2DP_SINK_SERVICE_ID);
 #endif
-
-        /* Also initialize the AV state machine */
-        btif_av_cb.sm_handle =
-                btif_sm_init((const btif_sm_handler_t*)btif_av_state_handlers, BTIF_AV_STATE_IDLE);
 
         btif_a2dp_on_init();
     }
