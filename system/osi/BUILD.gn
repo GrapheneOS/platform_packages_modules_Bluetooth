@@ -34,6 +34,12 @@ static_library("osi") {
     "src/reactor.c",
     "src/semaphore.c",
     "src/socket.c",
+
+    # TODO(mcchou): Remove these sources after platform specific
+    # dependencies are abstracted.
+    "src/socket_utils/socket_local_client.c",
+    "src/socket_utils/socket_local_server.c",
+
     "src/thread.c",
   ]
 

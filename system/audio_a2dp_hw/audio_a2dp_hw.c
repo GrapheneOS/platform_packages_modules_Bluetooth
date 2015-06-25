@@ -25,29 +25,29 @@
  *****************************************************************************/
 
 #include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdint.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/poll.h>
 #include <sys/errno.h>
+#include <sys/poll.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/un.h>
 #include <unistd.h>
-#include <fcntl.h>
+
 #include <cutils/str_parms.h>
-#include <cutils/sockets.h>
-
-#include <system/audio.h>
 #include <hardware/audio.h>
-
 #include <hardware/hardware.h>
-#include "audio_a2dp_hw.h"
-#include "bt_utils.h"
+#include <system/audio.h>
 
 #define LOG_TAG "bt_a2dp_hw"
+
+#include "audio_a2dp_hw.h"
+#include "bt_utils.h"
 #include "osi/include/log.h"
+#include "osi/include/socket_utils/sockets.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -205,7 +205,7 @@ static int skt_connect(char *path, size_t buffer_sz)
 
     skt_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 
-    if(socket_local_client_connect(skt_fd, path,
+    if(osi_socket_local_client_connect(skt_fd, path,
             ANDROID_SOCKET_NAMESPACE_ABSTRACT, SOCK_STREAM) < 0)
     {
         ERROR("failed to connect (%s)", strerror(errno));

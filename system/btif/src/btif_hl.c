@@ -28,38 +28,25 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <cutils/sockets.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hl.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/poll.h>
+#include <sys/prctl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
-#include <ctype.h>
-#include <sys/select.h>
-#include <sys/poll.h>
-#include <sys/prctl.h>
-#include <cutils/sockets.h>
-#include <cutils/log.h>
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hl.h>
 
-#include "btif_common.h"
-#include "btif_util.h"
-#include "gki.h"
 #include "bta_api.h"
 #include "bta_hl_api.h"
 #include "btif_common.h"
@@ -68,8 +55,8 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "gki.h"
-#include "osi/include/list.h"
 #include "mca_api.h"
+#include "osi/include/list.h"
 #include "osi/include/log.h"
 
 #define MAX_DATATYPE_SUPPORTED 8
