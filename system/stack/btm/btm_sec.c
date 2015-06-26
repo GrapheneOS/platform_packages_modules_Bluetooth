@@ -215,7 +215,7 @@ BOOLEAN BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
     BTM_TRACE_EVENT("%s application registered", __func__);
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    LOG_INFO("%s p_cb_info->p_le_callback == 0x%p", __func__, p_cb_info->p_le_callback);
+    LOG_INFO(LOG_TAG, "%s p_cb_info->p_le_callback == 0x%p", __func__, p_cb_info->p_le_callback);
     if (p_cb_info->p_le_callback)
     {
 #if SMP_INCLUDED == TRUE
@@ -230,13 +230,13 @@ BOOLEAN BTM_SecRegister(tBTM_APPL_INFO *p_cb_info)
     }
     else
     {
-      LOG_WARN("%s p_cb_info->p_le_callback == NULL", __func__);
+      LOG_WARN(LOG_TAG, "%s p_cb_info->p_le_callback == NULL", __func__);
     }
 #endif
 
     btm_cb.api = *p_cb_info;
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-     LOG_INFO("%s btm_cb.api.p_le_callback = 0x%p ", __func__, btm_cb.api.p_le_callback);
+     LOG_INFO(LOG_TAG, "%s btm_cb.api.p_le_callback = 0x%p ", __func__, btm_cb.api.p_le_callback);
 #endif
     BTM_TRACE_EVENT("%s application registered", __func__);
     return(TRUE);
@@ -2391,7 +2391,7 @@ tBTM_STATUS btm_sec_l2cap_access_req (BD_ADDR bd_addr, UINT16 psm, UINT16 handle
             2046 may report HCI_Encryption_Change and L2C Connection Request out of sequence
             because of data path issues. Delay this disconnect a little bit
             */
-            LOG_INFO("%s peer should have initiated security process by now (SM4 to SM4)", __func__);
+            LOG_INFO(LOG_TAG, "%s peer should have initiated security process by now (SM4 to SM4)", __func__);
             p_dev_rec->p_callback        = p_callback;
             p_dev_rec->sec_state         = BTM_SEC_STATE_DELAY_FOR_ENC;
             (*p_callback) (bd_addr, transport, p_ref_data, rc);
@@ -4704,7 +4704,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
 
 #if BTM_DISC_DURING_RS == TRUE
-    LOG_INFO("%s clearing pending flag handle:%d reason:%d", __func__, handle, reason);
+    LOG_INFO(LOG_TAG, "%s clearing pending flag handle:%d reason:%d", __func__, handle, reason);
     p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING;     /* reset flag */
 #endif
 

@@ -1662,7 +1662,7 @@ void btm_ble_set_adv_flag(UINT16 connect_mode, UINT16 disc_mode)
 
     btm_ble_update_dmt_flag_bits (&flag, connect_mode, disc_mode);
 
-    LOG_DEBUG("disc_mode %04x", disc_mode);
+    LOG_DEBUG(LOG_TAG, "disc_mode %04x", disc_mode);
     /* update discoverable flag */
     if (disc_mode & BTM_BLE_LIMITED_DISCOVERABLE)
     {
@@ -2748,7 +2748,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, UINT8 addr_type, UINT8 evt
 
     if ((result = btm_ble_is_discoverable(bda, evt_type, p)) == 0)
     {
-      LOG_WARN("%s device is no longer discoverable so discarding advertising packet pkt",
+      LOG_WARN(LOG_TAG, "%s device is no longer discoverable so discarding advertising packet pkt",
           __func__);
         return;
     }

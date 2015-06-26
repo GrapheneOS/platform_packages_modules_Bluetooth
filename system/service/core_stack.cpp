@@ -91,7 +91,7 @@ void GenericDevicePropertiesCallback(bt_status_t status,
                                      int num_properties,
                                      bt_property_t *properties) {
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s: %s", __func__, BtStatusText(status));
+    LOG_ERROR(LOG_TAG, "%s: %s", __func__, BtStatusText(status));
     return;
   }
 
@@ -133,7 +133,7 @@ void GenericDevicePropertiesCallback(bt_status_t status,
 void AclStateChangedCallback(bt_status_t status, bt_bdaddr_t *remote_bd_addr,
                              bt_acl_state_t state) {
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s: %s", __func__, BtStatusText(status));
+    LOG_ERROR(LOG_TAG, "%s: %s", __func__, BtStatusText(status));
     return;
   }
 
@@ -187,7 +187,7 @@ bool CoreStack::Initialize() {
   const hw_module_t *module;
   int status = hw_get_module(BT_HARDWARE_MODULE_ID, &module);
   if (status) {
-    LOG_ERROR("Error getting bluetooth module");
+    LOG_ERROR(LOG_TAG, "Error getting bluetooth module");
     return false;
   }
 
@@ -195,7 +195,7 @@ bool CoreStack::Initialize() {
   hw_device_t *device;
   status = module->methods->open(module, BT_HARDWARE_MODULE_ID, &device);
   if (status) {
-    LOG_ERROR("Error opening bluetooth module");
+    LOG_ERROR(LOG_TAG, "Error opening bluetooth module");
     return false;
   }
 
@@ -206,19 +206,19 @@ bool CoreStack::Initialize() {
   // Bind module callbacks to local handlers.
   status = hal_->init(&bt_callbacks);
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Error binding callbacks");
+    LOG_ERROR(LOG_TAG, "Error binding callbacks");
     return false;
   }
 
   status = hal_->set_os_callouts(&callouts);
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Error binding OS callbacks");
+    LOG_ERROR(LOG_TAG, "Error binding OS callbacks");
     return false;
   }
 
   status = hal_->enable();
   if (status) {
-    LOG_ERROR("Enable failed: %d", status);
+    LOG_ERROR(LOG_TAG, "Enable failed: %d", status);
     return false;
   }
 
@@ -240,7 +240,7 @@ bool CoreStack::SetAdapterName(const std::string &name) {
 
   int status = hal_->set_adapter_property(&prop);
   if (status) {
-    LOG_ERROR("%s: prop change failed: %d", __func__, status);
+    LOG_ERROR(LOG_TAG, "%s: prop change failed: %d", __func__, status);
     return false;
   }
 
@@ -259,7 +259,7 @@ bool CoreStack::SetClassicDiscoverable() {
 
   int status = hal_->set_adapter_property(&disc);
   if (status) {
-    LOG_ERROR("Prop change failed: %d", status);
+    LOG_ERROR(LOG_TAG, "Prop change failed: %d", status);
     return false;
   }
 
@@ -272,7 +272,7 @@ const void *CoreStack::GetInterface(const char *profile) {
   // Get the interface to the GATT profile.
   const void *interface = hal_->get_profile_interface(profile);
   if (!interface) {
-    LOG_ERROR("Error getting %s interface", profile);
+    LOG_ERROR(LOG_TAG, "Error getting %s interface", profile);
     return nullptr;
   }
   return interface;

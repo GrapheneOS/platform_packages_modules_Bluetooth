@@ -21,29 +21,30 @@
  *  This is the main implementation file for the BTA system manager.
  *
  ******************************************************************************/
-#define LOG_TAG "bt_bta_sys_main"
 
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
 
-#include "osi/include/alarm.h"
-#include "btm_api.h"
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
-
-#include "osi/include/fixed_queue.h"
+#include "btm_api.h"
 #include "gki.h"
-#include "osi/include/hash_map.h"
-#include "osi/include/osi.h"
+#include "osi/include/alarm.h"
+#include "osi/include/fixed_queue.h"
 #include "osi/include/hash_functions.h"
+#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
+#include "utl.h"
+
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
-#include "utl.h"
+
+#define LOG_TAG "bt_bta_sys_main"
 
 /* system manager control block definition */
 #if BTA_DYNAMIC_MEMORY == FALSE
@@ -630,7 +631,7 @@ void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms) {
 
   alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    LOG_ERROR("%s unable to create alarm.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create alarm.", __func__);
     return;
   }
 
@@ -653,7 +654,7 @@ void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle) {
 
   alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
   if (alarm == NULL) {
-    LOG_DEBUG("%s expected alarm was not in bta alarm hash map.", __func__);
+    LOG_DEBUG(LOG_TAG, "%s expected alarm was not in bta alarm hash map.", __func__);
     return;
   }
   alarm_cancel(alarm);

@@ -16,15 +16,8 @@
  *
  ******************************************************************************/
 
+#include "btif_sock_util.h"
 
-/************************************************************************************
- *
- *  Filename:      btif_hf.c
- *
- *  Description:   Handsfree Profile Bluetooth Interface
- *
- *
- ***********************************************************************************/
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -158,14 +151,6 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
     return ret_len;
 }
 
-// TODO(armansito): I'm not sure why the osi log macros aren't being used here,
-// but for now just redefine PRINT for non-Android platforms.
-#if defined(OS_GENERIC)
-#define PRINT(s) fprintf(stderr, "%s\n", s)
-#else  // !defined(OS_GENERIC)
-#define PRINT(s) __android_log_write(ANDROID_LOG_DEBUG, NULL, s)
-#endif  // defined(OS_GENERIC)
-
 static const char* hex_table = "0123456789abcdef";
 static inline void byte2hex(const char* data, char** str)
 {
@@ -190,7 +175,7 @@ void dump_bin(const char* title, const char* data, int size)
     char *line;
     int i, j, addr;
     const int width = 16;
-    LOG_DEBUG("%s, size:%d, dump started {", title, size);
+    LOG_DEBUG(LOG_TAG, "%s, size:%d, dump started {", title, size);
     if(size <= 0)
         return;
     //write offset
@@ -207,7 +192,7 @@ void dump_bin(const char* title, const char* data, int size)
         *line++ = ' ';
     }
     *line = 0;
-    PRINT(line_buff);
+    LOG_DEBUG(LOG_TAG, "%s", line_buff);
 
     for(i = 0; i < size / width; i++)
     {
@@ -228,7 +213,7 @@ void dump_bin(const char* title, const char* data, int size)
         //wirte the end of line
         *line = 0;
         //output the line
-        PRINT(line_buff);
+        LOG_DEBUG(LOG_TAG, "%s", line_buff);
     }
     //last line of left over if any
     int leftover = size % width;
@@ -256,8 +241,8 @@ void dump_bin(const char* title, const char* data, int size)
         //write the end of line
         *line = 0;
         //output the line
-        PRINT(line_buff);
+        LOG_DEBUG(LOG_TAG, "%s", line_buff);
     }
-    LOG_DEBUG("%s, size:%d, dump ended }", title, size);
+    LOG_DEBUG(LOG_TAG, "%s, size:%d, dump ended }", title, size);
 }
 

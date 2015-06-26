@@ -16,17 +16,18 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_low_power_manager"
+#include "low_power_manager.h"
 
 #include <assert.h>
 #include <stdint.h>
 
 #include "osi/include/alarm.h"
-#include "low_power_manager.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
 #include "vendor.h"
+
+#define LOG_TAG "bt_low_power_manager"
 
 typedef enum {
   LPM_DISABLED = 0,
@@ -83,7 +84,7 @@ static void init(thread_t *post_thread) {
 
   idle_alarm = alarm_new();
   if (!idle_alarm) {
-    LOG_ERROR("%s could not create idle alarm.", __func__);
+    LOG_ERROR(LOG_TAG, "%s could not create idle alarm.", __func__);
   }
 
   reset_state();
@@ -97,7 +98,7 @@ static void cleanup() {
 
 static void post_command(low_power_command_t command) {
   if (command > LPM_WAKE_DEASSERT) {
-    LOG_ERROR("%s unknown low power command %d", __func__, command);
+    LOG_ERROR(LOG_TAG, "%s unknown low power command %d", __func__, command);
     return;
   }
 
@@ -132,18 +133,18 @@ static void transmit_done() {
 static void enable(bool enable) {
   if (state == LPM_DISABLING) {
     if (enable)
-      LOG_ERROR("%s still processing prior disable request, cannot enable.", __func__);
+      LOG_ERROR(LOG_TAG, "%s still processing prior disable request, cannot enable.", __func__);
     else
-      LOG_WARN("%s still processing prior disable request, ignoring new request to disable.", __func__);
+      LOG_WARN(LOG_TAG, "%s still processing prior disable request, ignoring new request to disable.", __func__);
   } else if (state == LPM_ENABLING) {
     if (enable)
-      LOG_ERROR("%s still processing prior enable request, ignoring new request to enable.", __func__);
+      LOG_ERROR(LOG_TAG, "%s still processing prior enable request, ignoring new request to enable.", __func__);
     else
-      LOG_WARN("%s still processing prior enable request, cannot disable.", __func__);
+      LOG_WARN(LOG_TAG, "%s still processing prior enable request, cannot disable.", __func__);
   } else if (state == LPM_ENABLED && enable) {
-    LOG_INFO("%s already enabled.", __func__);
+    LOG_INFO(LOG_TAG, "%s already enabled.", __func__);
   } else if (state == LPM_DISABLED && !enable) {
-    LOG_INFO("%s already disabled.", __func__);
+    LOG_INFO(LOG_TAG, "%s already disabled.", __func__);
   } else {
     uint8_t command = enable ? BT_VND_LPM_ENABLE : BT_VND_LPM_DISABLE;
     state = enable ? LPM_ENABLING : LPM_DISABLING;

@@ -22,26 +22,24 @@
  *  machine.
  *
  ******************************************************************************/
-#define LOG_TAG "bt_bta_gattc"
+
+#include <string.h>
 
 #include "bt_target.h"
 
-#include "utl.h"
-#include "gki.h"
-#include "bta_sys.h"
-
 #include "bta_gattc_int.h"
+#include "bta_sys.h"
+#include "btif/include/btif_debug_conn.h"
+#include "gki.h"
 #include "l2c_api.h"
+#include "osi/include/log.h"
+#include "utl.h"
 
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
 #include "bta_hh_int.h"
 #endif
 
-#include "btif/include/btif_debug_conn.h"
-
-#include <string.h>
-
-#include "osi/include/log.h"
+#define LOG_TAG "bt_bta_gattc"
 
 #if BTA_GATT_INCLUDED && BLE_INCLUDED == TRUE
 
@@ -2319,7 +2317,7 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
                 /* if listen to all */
                 else
                 {
-                    LOG_DEBUG("Listen For All now");
+                    LOG_DEBUG(LOG_TAG, "Listen For All now");
                     /* go through all connected device and send
                     callback for all connected slave connection */
                     bta_gattc_process_listen_all(p_msg->api_listen.client_if);

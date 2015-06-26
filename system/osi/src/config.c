@@ -61,13 +61,13 @@ static entry_t *entry_find(const config_t *config, const char *section, const ch
 config_t *config_new_empty(void) {
   config_t *config = osi_calloc(sizeof(config_t));
   if (!config) {
-    LOG_ERROR("%s unable to allocate memory for config_t.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for config_t.", __func__);
     goto error;
   }
 
   config->sections = list_new(section_free);
   if (!config->sections) {
-    LOG_ERROR("%s unable to allocate list for sections.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate list for sections.", __func__);
     goto error;
   }
 
@@ -87,7 +87,7 @@ config_t *config_new(const char *filename) {
 
   FILE *fp = fopen(filename, "rt");
   if (!fp) {
-    LOG_ERROR("%s unable to open file '%s': %s", __func__, filename, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to open file '%s': %s", __func__, filename, strerror(errno));
     config_free(config);
     return NULL;
   }
@@ -253,7 +253,7 @@ bool config_save(const config_t *config, const char *filename) {
 
   char *temp_filename = osi_calloc(strlen(filename) + 5);
   if (!temp_filename) {
-    LOG_ERROR("%s unable to allocate memory for filename.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for filename.", __func__);
     return false;
   }
 
@@ -262,7 +262,7 @@ bool config_save(const config_t *config, const char *filename) {
 
   FILE *fp = fopen(temp_filename, "wt");
   if (!fp) {
-    LOG_ERROR("%s unable to write file '%s': %s", __func__, temp_filename, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to write file '%s': %s", __func__, temp_filename, strerror(errno));
     goto error;
   }
 
@@ -284,7 +284,7 @@ bool config_save(const config_t *config, const char *filename) {
   fclose(fp);
 
   if (rename(temp_filename, filename) == -1) {
-    LOG_ERROR("%s unable to commit file '%s': %s", __func__, filename, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to commit file '%s': %s", __func__, filename, strerror(errno));
     goto error;
   }
 
@@ -332,7 +332,7 @@ static void config_parse(FILE *fp, config_t *config) {
     if (*line_ptr == '[') {
       size_t len = strlen(line_ptr);
       if (line_ptr[len - 1] != ']') {
-        LOG_DEBUG("%s unterminated section name on line %d.", __func__, line_num);
+        LOG_DEBUG(LOG_TAG, "%s unterminated section name on line %d.", __func__, line_num);
         continue;
       }
       strncpy(section, line_ptr + 1, len - 2);
@@ -340,7 +340,7 @@ static void config_parse(FILE *fp, config_t *config) {
     } else {
       char *split = strchr(line_ptr, '=');
       if (!split) {
-        LOG_DEBUG("%s no key/value separator found on line %d.", __func__, line_num);
+        LOG_DEBUG(LOG_TAG, "%s no key/value separator found on line %d.", __func__, line_num);
         continue;
       }
 

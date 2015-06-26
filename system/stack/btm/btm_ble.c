@@ -1650,7 +1650,7 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
 
     if (match_rec)
     {
-        LOG_INFO("%s matched and resolved random address", __func__);
+        LOG_INFO(LOG_TAG, "%s matched and resolved random address", __func__);
         match = TRUE;
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
@@ -1658,7 +1658,7 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
     }
     else
     {
-        LOG_INFO("%s unable to match and resolve random address", __func__);
+        LOG_INFO(LOG_TAG, "%s unable to match and resolve random address", __func__);
     }
 
     btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type, match);

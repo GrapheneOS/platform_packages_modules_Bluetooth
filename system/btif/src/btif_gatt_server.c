@@ -25,41 +25,41 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "bt_btif_gatt"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 
 #include "btif_common.h"
 #include "btif_util.h"
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
-#include "gki.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
-#include "btif_dm.h"
-#include "btif_storage.h"
 #include "btif_config.h"
-
+#include "btif_dm.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+#include "btif_storage.h"
+#include "gki.h"
 #include "osi/include/log.h"
 
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
 
+#define LOG_TAG "bt_btif_gatt"
+
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
-        LOG_WARN("%s: BTGATT not initialized", __FUNCTION__);\
+        LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        LOG_VERBOSE("%s", __FUNCTION__);\
+        LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);\
     }
 
 
@@ -169,7 +169,7 @@ static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
 
 static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
 {
-    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTS *p_data = (tBTA_GATTS*)p_param;
     switch (event)
@@ -344,11 +344,11 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
         case BTA_GATTS_OPEN_EVT:
         case BTA_GATTS_CANCEL_OPEN_EVT:
         case BTA_GATTS_CLOSE_EVT:
-            LOG_DEBUG("%s: Empty event (%d)!", __FUNCTION__, event);
+            LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __FUNCTION__, event);
             break;
 
         default:
-            LOG_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
+            LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
 
@@ -368,7 +368,7 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
     btif_gatts_cb_t* p_cb = (btif_gatts_cb_t*)p_param;
     if (!p_cb) return;
 
-    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {
@@ -508,7 +508,7 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
         }
 
         default:
-            LOG_ERROR("%s: Unknown event (%d)!", __FUNCTION__, event);
+            LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
 }

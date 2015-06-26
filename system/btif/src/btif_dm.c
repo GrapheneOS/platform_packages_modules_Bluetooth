@@ -25,8 +25,6 @@
  *
  ***********************************************************************************/
 
-#define LOG_TAG "bt_btif_dm"
-
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
@@ -46,23 +44,23 @@
 #include <cutils/properties.h>
 #endif  /* !defined(OS_GENERIC) */
 
-#include "gki.h"
-#include "btu.h"
-#include "btcore/include/bdaddr.h"
+#include "bdaddr.h"
 #include "bta_api.h"
-#include "btif_api.h"
-#include "btif_util.h"
-#include "btif_dm.h"
-#include "btif_storage.h"
-#include "btif_hh.h"
-#include "btif_config.h"
-#include "btif_sdp.h"
-
 #include "bta_gatt_api.h"
-#include "include/stack_config.h"
-
-#include "osi/include/log.h"
+#include "btif_api.h"
+#include "btif_config.h"
+#include "btif_dm.h"
+#include "btif_hh.h"
+#include "btif_sdp.h"
+#include "btif_storage.h"
+#include "btif_util.h"
+#include "btu.h"
+#include "gki.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
+#include "stack_config.h"
+
+#define LOG_TAG "bt_btif_dm"
 
 /******************************************************************************
 **  Device specific workarounds
@@ -422,7 +420,7 @@ BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
                                sizeof(uint32_t), &remote_cod);
     if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr, &prop_name) == BT_STATUS_SUCCESS)
     {
-        LOG_INFO("%s remote_cod = 0x%08x cod = 0x%08x", __func__, remote_cod, cod);
+        LOG_INFO(LOG_TAG, "%s remote_cod = 0x%08x cod = 0x%08x", __func__, remote_cod, cod);
         if ((remote_cod & 0x7ff) == cod)
             return TRUE;
     }
@@ -569,7 +567,7 @@ static void btif_update_remote_version_property(bt_bdaddr_t *p_bd)
     btm_status = BTM_ReadRemoteVersion(*(BD_ADDR*)p_bd, &lmp_ver,
                           &mfct_set, &lmp_subver);
 
-    LOG_DEBUG("remote version info [%s]: %x, %x, %x", bdaddr_to_string(p_bd, bdstr, sizeof(bdstr)),
+    LOG_DEBUG(LOG_TAG, "remote version info [%s]: %x, %x, %x", bdaddr_to_string(p_bd, bdstr, sizeof(bdstr)),
                lmp_ver, mfct_set, lmp_subver);
 
     if (btm_status == BTM_SUCCESS)
@@ -1030,7 +1028,7 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     cod = devclass2uint(p_ssp_cfm_req->dev_class);
 
     if (cod == 0) {
-        LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
+        LOG_DEBUG(LOG_TAG, "%s cod is 0, set as unclassified", __func__);
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1065,7 +1063,7 @@ static void btif_dm_ssp_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif)
     cod = devclass2uint(p_ssp_key_notif->dev_class);
 
     if (cod == 0) {
-        LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
+        LOG_DEBUG(LOG_TAG, "%s cod is 0, set as unclassified", __func__);
         cod = COD_UNCLASSIFIED;
     }
 
@@ -1135,14 +1133,14 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
 
         if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr, COD_HID_MAJOR))
         {
-            LOG_WARN("%s:skip SDP", __FUNCTION__);
+            LOG_WARN(LOG_TAG, "%s:skip SDP", __FUNCTION__);
             skip_sdp = TRUE;
         }
         if(!pairing_cb.is_local_initiated && skip_sdp)
         {
             bond_state_changed(status, &bd_addr, state);
 
-            LOG_WARN("%s: Incoming HID Connection",__FUNCTION__);
+            LOG_WARN(LOG_TAG, "%s: Incoming HID Connection",__FUNCTION__);
             bt_property_t prop;
             bt_bdaddr_t bd_addr;
             bt_uuid_t  uuid;
@@ -1325,7 +1323,7 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             cod = devclass2uint (p_search_data->inq_res.dev_class);
 
             if (cod == 0) {
-                LOG_DEBUG("%s cod is 0, set as unclassified", __func__);
+                LOG_DEBUG(LOG_TAG, "%s cod is 0, set as unclassified", __func__);
                 cod = COD_UNCLASSIFIED;
             }
 
@@ -1483,7 +1481,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                  {
                       char temp[256];
                       uuid_to_string_legacy((bt_uuid_t*)(p_data->disc_res.p_uuid_list + (i*MAX_UUID_SIZE)), temp);
-                      LOG_INFO("%s index:%d uuid:%s", __func__, i, temp);
+                      LOG_INFO(LOG_TAG, "%s index:%d uuid:%s", __func__, i, temp);
                  }
             }
 
@@ -1550,7 +1548,7 @@ static void btif_dm_search_services_evt(UINT16 event, char *p_param)
                 }
 
                 uuid_to_string_legacy(&uuid, temp);
-                LOG_INFO("%s uuid:%s", __func__, temp);
+                LOG_INFO(LOG_TAG, "%s uuid:%s", __func__, temp);
 
                 bdcpy(bd_addr.address, p_data->disc_ble_res.bd_addr);
                 prop.type = BT_PROPERTY_UUIDS;

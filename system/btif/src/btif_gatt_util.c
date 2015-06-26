@@ -16,28 +16,28 @@
  *
  ******************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "bt_btif_gatt"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 
-#include "btcore/include/bdaddr.h"
+#include "bdaddr.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bta_jv_api.h"
-#include "btif_storage.h"
-#include "btif_config.h"
-
 #include "btif_common.h"
+#include "btif_config.h"
 #include "btif_dm.h"
-#include "btif_util.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
+#include "btif_storage.h"
+#include "btif_util.h"
 #include "gki.h"
+
+#define LOG_TAG "bt_btif_gatt"
 
 #if BTA_GATT_INCLUDED == TRUE
 
@@ -103,7 +103,7 @@ void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
             break;
 
         default:
-            LOG_ERROR("%s: Unknown UUID length %d!", __FUNCTION__, p_dest->len);
+            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __FUNCTION__, p_dest->len);
             break;
     }
 }
@@ -193,7 +193,7 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
             break;
 
         default:
-            LOG_ERROR("%s: Unknown UUID length %d!", __FUNCTION__, p_src->len);
+            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __FUNCTION__, p_src->len);
             break;
     }
 }
@@ -258,7 +258,7 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
         default:
             if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
             {
-                LOG_INFO("%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
+                LOG_INFO(LOG_TAG, "%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
                 p_dest->value.len = p_src->p_value->unformat.len;
                 if ( p_src->p_value->unformat.len > 0  && p_src->p_value->unformat.p_value != NULL )
                 {

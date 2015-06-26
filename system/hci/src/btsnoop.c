@@ -16,8 +16,6 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_snoop"
-
 #include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
@@ -32,12 +30,14 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include "bt_types.h"
 #include "hci/include/btsnoop.h"
 #include "hci/include/btsnoop_mem.h"
-#include "bt_types.h"
 #include "hci_layer.h"
 #include "osi/include/log.h"
 #include "stack_config.h"
+
+#define LOG_TAG "bt_snoop"
 
 typedef enum {
   kCommandPacket = 1,
@@ -155,12 +155,12 @@ static void update_logging() {
       char last_log_path[PATH_MAX];
       snprintf(last_log_path, PATH_MAX, "%s.last", log_path);
       if (!rename(log_path, last_log_path) && errno != ENOENT)
-        LOG_ERROR("%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
+        LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
     }
 
     logfile_fd = open(log_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     if (logfile_fd == INVALID_FD) {
-      LOG_ERROR("%s unable to open '%s': %s", __func__, log_path, strerror(errno));
+      LOG_ERROR(LOG_TAG, "%s unable to open '%s': %s", __func__, log_path, strerror(errno));
       is_logging = false;
       return;
     }

@@ -23,29 +23,30 @@
  *
  ******************************************************************************/
 
+#include <string.h>
+
 #include "bt_target.h"
 #include "bt_types.h"
-#include "gki.h"
-#include "bta_sys.h"
 #include "bta_api.h"
-#include "bta_dm_int.h"
 #include "bta_dm_co.h"
+#include "bta_dm_int.h"
+#include "bta_sys.h"
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "sdp_api.h"
-#include "l2c_api.h"
-#include "utl.h"
 #include "gap_api.h"    /* For GAP_BleReadPeerPrefConnParams */
-#include <string.h>
-
-#define LOG_TAG "bt_bta_dm"
+#include "gki.h"
+#include "l2c_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "sdp_api.h"
+#include "utl.h"
 
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
 #endif
+
+#define LOG_TAG "bt_bta_dm"
 
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);
@@ -2093,7 +2094,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
                 /* try to search all services by search based on L2CAP UUID */
                 if(bta_dm_search_cb.services == BTA_ALL_SERVICE_MASK )
                 {
-                    LOG_INFO("%s services_to_search=%08x", __func__, bta_dm_search_cb.services_to_search);
+                    LOG_INFO(LOG_TAG, "%s services_to_search=%08x", __func__, bta_dm_search_cb.services_to_search);
                     if (bta_dm_search_cb.services_to_search & BTA_RES_SERVICE_MASK)
                     {
                         uuid.uu.uuid16 = bta_service_id_to_uuid_lkup_tbl[0];
@@ -2147,7 +2148,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
                     memcpy(&uuid, &bta_dm_search_cb.uuid, sizeof(tSDP_UUID));
                 }
 
-                LOG_INFO("%s search UUID = %04x", __func__, uuid.uu.uuid16);
+                LOG_INFO(LOG_TAG, "%s search UUID = %04x", __func__, uuid.uu.uuid16);
                 SDP_InitDiscoveryDb (bta_dm_search_cb.p_sdp_db, BTA_DM_SDP_DB_SIZE, 1, &uuid, 0, NULL);
 
                 memset(g_disc_raw_data_buf, 0, sizeof(g_disc_raw_data_buf));
@@ -5443,7 +5444,7 @@ static void bta_dm_gatt_disc_result(tBTA_GATT_ID service_id)
         APPL_TRACE_ERROR("%s out of room to accomodate more service ids ble_raw_size = %d ble_raw_used = %d", __FUNCTION__,bta_dm_search_cb.ble_raw_size, bta_dm_search_cb.ble_raw_used );
     }
 
-    LOG_INFO("%s service_id_uuid_len=%d ", __func__, service_id.uuid.len);
+    LOG_INFO(LOG_TAG, "%s service_id_uuid_len=%d ", __func__, service_id.uuid.len);
     if ( bta_dm_search_cb.state != BTA_DM_SEARCH_IDLE)
     {
 
