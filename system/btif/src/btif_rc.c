@@ -457,7 +457,9 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
         bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
         /* report connection state if device is AVRCP target */
         if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG) {
-            HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, TRUE, &rc_addr);
+            if (bt_rc_ctrl_callbacks != NULL) {
+                HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, TRUE, &rc_addr);
+            }
         }
 #endif
     }
@@ -510,7 +512,9 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 #if (AVRC_CTLR_INCLUDED == TRUE)
     /* report connection state if device is AVRCP target */
     if (features & BTA_AV_FEAT_RCTG) {
-        HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, FALSE, &rc_addr);
+        if (bt_rc_ctrl_callbacks != NULL) {
+            HAL_CBACK(bt_rc_ctrl_callbacks, connection_state_cb, FALSE, &rc_addr);
+        }
     }
 #endif
 }
@@ -651,7 +655,9 @@ void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
         BTIF_TRACE_DEBUG("%s: rc_id=%d status=%s", __FUNCTION__, p_remote_rsp->rc_id, status);
 
         release_transaction(p_remote_rsp->label);
-        HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
+        if (bt_rc_ctrl_callbacks != NULL) {
+            HAL_CBACK(bt_rc_ctrl_callbacks, passthrough_rsp_cb, p_remote_rsp->rc_id, key_state);
+        }
     }
     else
     {
