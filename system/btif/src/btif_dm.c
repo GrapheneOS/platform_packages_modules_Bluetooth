@@ -1314,9 +1314,9 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
             {
                 bt_property_t properties[5];
                 bt_device_type_t dev_type;
-                UINT8 addr_type;
                 uint32_t num_properties = 0;
                 bt_status_t status;
+                int addr_type = 0;
 
                 memset(properties, 0, sizeof(properties));
                 /* BD_ADDR */
@@ -1340,8 +1340,21 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 /* DEV_TYPE */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
                 /* FixMe: Assumption is that bluetooth.h and BTE enums match */
-                dev_type = p_search_data->inq_res.device_type;
-                addr_type = p_search_data->inq_res.ble_addr_type;
+
+                /* Verify if the device is dual mode in NVRAM */
+                int stored_device_type = 0;
+                if (btif_get_device_type(bdaddr.address, &stored_device_type) &&
+                    ((stored_device_type == BT_DEVICE_TYPE_BLE &&
+                        p_search_data->inq_res.device_type == BT_DEVICE_TYPE_BREDR) ||
+                     (stored_device_type == BT_DEVICE_TYPE_BREDR &&
+                        p_search_data->inq_res.device_type == BT_DEVICE_TYPE_BLE))) {
+                    dev_type = BT_DEVICE_TYPE_DUMO;
+                } else {
+                    dev_type = p_search_data->inq_res.device_type;
+                }
+
+                if (p_search_data->inq_res.device_type == BT_DEVICE_TYPE_BLE)
+                    addr_type = p_search_data->inq_res.ble_addr_type;
 #else
                 dev_type = BT_DEVICE_TYPE_BREDR;
 #endif
