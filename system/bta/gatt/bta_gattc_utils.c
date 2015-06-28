@@ -27,8 +27,11 @@
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
-#include "utl.h"
+
+#include "btcore/include/bdaddr.h"
+#include "btif/include/btif_util.h"
 #include "gki.h"
+#include "utl.h"
 #include "bta_sys.h"
 #include "bta_gattc_int.h"
 #include "l2c_api.h"
@@ -710,10 +713,12 @@ BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda
     }
     if (!add)
     {
-        uint8_t *bda = (uint8_t *)remote_bda_ptr;
-        APPL_TRACE_ERROR("%s unable to find the bg connection mask for"
-            " bd_addr:%02x:%02x:%02x:%02x:%02x:%02x", __func__,
-            bda[0], bda[1], bda[2], bda[3], bda[4], bda[5]);
+        if (remote_bda_ptr)
+        {
+            bdstr_t bdstr = {0};
+            APPL_TRACE_ERROR("%s unable to find the bg connection mask for: %s", __func__,
+                bdaddr_to_string((bt_bdaddr_t *)remote_bda_ptr, bdstr, sizeof(bdstr)));
+        }
         return FALSE;
     }
     else /* adding a new device mask */
