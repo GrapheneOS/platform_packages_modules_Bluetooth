@@ -1385,13 +1385,8 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
         return(BTM_WRONG_MODE);
     }
 
-    if ((transport == BT_TRANSPORT_BR_EDR &&
+    if (transport == BT_TRANSPORT_BR_EDR &&
          (p_dev_rec->sec_flags &  BTM_SEC_ENCRYPTED))
-#if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-         || (transport == BT_TRANSPORT_LE &&
-           (p_dev_rec->sec_flags & BTM_SEC_LE_ENCRYPTED))
-#endif
-          )
     {
         BTM_TRACE_EVENT ("Security Manager: BTM_SetEncryption already encrypted");
 
