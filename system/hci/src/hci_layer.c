@@ -287,7 +287,7 @@ static future_t *shut_down() {
     thread_join(thread);
   }
 
-  fixed_queue_free(command_queue, buffer_allocator->free);
+  fixed_queue_free(command_queue, osi_free);
   fixed_queue_free(packet_queue, buffer_allocator->free);
   list_free(commands_pending_response);
 
