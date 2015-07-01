@@ -400,7 +400,8 @@ BOOLEAN btm_ble_start_auto_conn(BOOLEAN start)
                                           BTM_BLE_SCAN_SLOW_WIN_1 : p_cb->scan_win;
 
 #if BLE_PRIVACY_SPT == TRUE
-            if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE)
+            if (btm_cb.ble_ctr_cb.rl_state != BTM_BLE_RL_IDLE
+                    && controller_get_interface()->supports_ble_privacy())
             {
                 own_addr_type |= BLE_ADDR_TYPE_ID_BIT;
                 peer_addr_type |= BLE_ADDR_TYPE_ID_BIT;
