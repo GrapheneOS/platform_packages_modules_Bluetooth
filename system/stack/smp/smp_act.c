@@ -17,11 +17,12 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "bt_target.h"
-#include "bt_utils.h"
-#include "btm_int.h"
-#include "l2c_api.h"
-#include "smp_int.h"
+#include "device/include/interop.h"
+#include "include/bt_target.h"
+#include "stack/btm/btm_int.h"
+#include "stack/include/l2c_api.h"
+#include "stack/smp/smp_int.h"
+#include "utils/include/bt_utils.h"
 
 #if SMP_INCLUDED == TRUE
 const UINT8 smp_association_table[2][SMP_IO_CAP_MAX][SMP_IO_CAP_MAX] =
@@ -171,7 +172,9 @@ void smp_send_app_cback(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
                         p_cb->loc_auth_req |= SMP_SC_SUPPORT_BIT;
                     }
 
-                    if (!(p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT))
+                    if (!(p_cb->loc_auth_req & SMP_SC_SUPPORT_BIT)
+                        || interop_match(INTEROP_DISABLE_LE_SECURE_CONNECTIONS,
+                            (const bt_bdaddr_t *)&p_cb->pairing_bda))
                     {
                         p_cb->loc_auth_req &= ~SMP_KP_SUPPORT_BIT;
                         p_cb->local_i_key &= ~SMP_SEC_KEY_TYPE_LK;
@@ -2022,9 +2025,17 @@ void smp_derive_link_key_from_long_term_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
     SMP_TRACE_DEBUG("%s", __func__);
     if (!smp_calculate_link_key_from_long_term_key(p_cb))
     {
-        SMP_TRACE_ERROR ("%s failed", __FUNCTION__);
+        SMP_TRACE_ERROR("%s failed", __FUNCTION__);
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
         return;
+    }
+
+    if (interop_match(INTEROP_DISABLE_LE_SECURE_CONNECTIONS,
+                      (const bt_bdaddr_t *)&p_cb->pairing_bda))
+    {
+        smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_LK, FALSE);
+        SMP_TRACE_DEBUG("%s successfully completed", __FUNCTION__);
+        smp_key_distribution(p_cb, NULL);
     }
 }
 
