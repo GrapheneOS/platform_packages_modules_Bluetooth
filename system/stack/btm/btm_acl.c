@@ -450,7 +450,8 @@ void btm_acl_removed (BD_ADDR bda, tBT_TRANSPORT transport)
         }
 #endif
 
-        return;
+        /* Clear the ACL connection data */
+        memset(p, 0, sizeof(tACL_CONN));
     }
 }
 
