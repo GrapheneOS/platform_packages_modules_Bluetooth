@@ -137,6 +137,17 @@ const btsnoop_t *btsnoop_get_interface() {
 
 // Internal functions
 
+static uint64_t btsnoop_timestamp(void) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+
+  // Timestamp is in microseconds.
+  uint64_t timestamp = tv.tv_sec * 1000 * 1000LL;
+  timestamp += tv.tv_usec;
+  timestamp += BTSNOOP_EPOCH_DELTA;
+  return timestamp;
+}
+
 static void update_logging() {
   bool should_log = module_started &&
     (logging_enabled_via_api || stack_config->get_btsnoop_turned_on());
@@ -153,7 +164,7 @@ static void update_logging() {
     // Save the old log if configured to do so
     if (stack_config->get_btsnoop_should_save_last()) {
       char last_log_path[PATH_MAX];
-      snprintf(last_log_path, PATH_MAX, "%s.last", log_path);
+      snprintf(last_log_path, PATH_MAX, "%s.%llu", log_path, btsnoop_timestamp());
       if (!rename(log_path, last_log_path) && errno != ENOENT)
         LOG_ERROR("%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
     }
@@ -173,17 +184,6 @@ static void update_logging() {
     logfile_fd = INVALID_FD;
     btsnoop_net_close();
   }
-}
-
-static uint64_t btsnoop_timestamp(void) {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-
-  // Timestamp is in microseconds.
-  uint64_t timestamp = tv.tv_sec * 1000 * 1000LL;
-  timestamp += tv.tv_usec;
-  timestamp += BTSNOOP_EPOCH_DELTA;
-  return timestamp;
 }
 
 static void btsnoop_write(const void *data, size_t length) {
