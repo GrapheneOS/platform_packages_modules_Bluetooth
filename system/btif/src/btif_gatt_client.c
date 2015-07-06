@@ -592,7 +592,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             }
 
             if (p_data->open.status == BTA_GATT_OK)
-                btif_gatt_check_encrypted_link(p_data->open.remote_bda);
+                btif_gatt_check_encrypted_link(p_data->open.remote_bda, p_data->open.transport);
             break;
         }
 

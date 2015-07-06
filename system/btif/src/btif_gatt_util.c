@@ -304,41 +304,20 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transpo
     }
 }
 
-void btif_gatt_check_encrypted_link (BD_ADDR bd_addr)
+void btif_gatt_check_encrypted_link (BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport_link)
 {
     char buf[100];
 
     bt_bdaddr_t bda;
     bdcpy(bda.address, bd_addr);
-    int device_type = 0;
 
 #if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
     if ((btif_storage_get_ble_bonding_key(&bda, BTIF_DM_LE_KEY_PENC,
                     buf, sizeof(tBTM_LE_PENC_KEYS)) == BT_STATUS_SUCCESS)
         && !btif_gatt_is_link_encrypted(bd_addr))
     {
-        tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
-
-        btif_get_device_type(bd_addr, &device_type);
-        switch(device_type)
-        {
-            case BT_DEVICE_TYPE_BREDR:
-                transport = BTA_GATT_TRANSPORT_BR_EDR;
-                break;
-
-            case BT_DEVICE_TYPE_BLE:
-                transport = BTA_GATT_TRANSPORT_LE;
-                break;
-
-            case BT_DEVICE_TYPE_DUMO:
-                transport = BTA_GATT_TRANSPORT_LE_BR_EDR;
-                break;
-
-            default:
-                BTIF_TRACE_ERROR (" GATT Encrypt :Invalid device type %d",device_type);
-                return;
-        }
-        BTA_DmSetEncryption(bd_addr,transport,
+        BTIF_TRACE_DEBUG ("%s: transport = %d", __func__, transport_link);
+        BTA_DmSetEncryption(bd_addr,transport_link,
                             &btif_gatt_set_encryption_cb, BTM_BLE_SEC_ENCRYPT);
     }
 #endif
