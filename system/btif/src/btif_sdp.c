@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_TAG "BTIF_SDP"
+#define LOG_TAG "bt_btif_sdp"
 #include "btif_common.h"
 #include "btif_util.h"
 #include "btif_profile_queue.h"

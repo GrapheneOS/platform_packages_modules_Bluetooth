@@ -25,6 +25,8 @@
  *
  *******************************************************************************/
 
+#define LOG_TAG "bt_btif_gattc"
+
 #include <hardware/bluetooth.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,8 +56,6 @@
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
-
-#define LOG_TAG "bt_btif_gattc"
 
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\

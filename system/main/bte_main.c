@@ -24,6 +24,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_main"
+
 #include <assert.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -57,8 +59,6 @@
 /*******************************************************************************
 **  Constants & Macros
 *******************************************************************************/
-
-#define LOG_TAG "bt_main"
 
 /* Run-time configuration file for BLE*/
 #ifndef BTE_BLE_STACK_CONF_FILE

@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bte_logmsg"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,8 +57,6 @@
 #include "gatt_api.h"
 #include "smp_api.h"
 #endif
-
-#define LOG_TAG "bte_logmsg"
 
 #ifndef DEFAULT_CONF_TRACE_LEVEL
 #define DEFAULT_CONF_TRACE_LEVEL BT_TRACE_LEVEL_WARNING

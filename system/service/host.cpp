@@ -26,7 +26,7 @@
 
 #include <algorithm>
 
-#define LOG_TAG "BluetoothHost"
+#define LOG_TAG "bt_bluetooth_host"
 #include "osi/include/log.h"
 
 #include "base/base64.h"

@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_sock_sco"
+
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
@@ -34,8 +36,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
-
-#define LOG_TAG "bt_btif_sock_sco"
 
 // This module provides a socket abstraction for SCO connections to a higher
 // layer. It returns file descriptors representing two types of sockets:

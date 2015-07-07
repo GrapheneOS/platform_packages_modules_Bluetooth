@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "l2c_main"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,8 +39,6 @@
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "osi/include/log.h"
-
-#define LOG_TAG "l2c_main"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */

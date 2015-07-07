@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_hci_packet_fragmenter"
+
 #include "packet_fragmenter.h"
 
 #include <assert.h>
@@ -29,8 +31,6 @@
 #include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-
-#define LOG_TAG "bt_hci_packet_fragmenter"
 
 #define APPLY_CONTINUATION_FLAG(handle) (((handle) & 0xCFFF) | 0x1000)
 #define APPLY_START_FLAG(handle) (((handle) & 0xCFFF) | 0x2000)

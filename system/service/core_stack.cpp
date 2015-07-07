@@ -23,7 +23,7 @@
 #include <mutex>
 #include <string>
 
-#define LOG_TAG "BluetoothBase"
+#define LOG_TAG "bt_bluetooth_base"
 #include "osi/include/log.h"
 
 #include "hardware/bluetooth.h"
@@ -38,13 +38,13 @@ std::condition_variable synchronize;
 bool instantiated = false;
 
 void AdapterStateChangedCallback(bt_state_t state) {
-  LOG_INFO("Bluetooth state:%s", BtStateText(state));
+  LOG_INFO(LOG_TAG, "Bluetooth state:%s", BtStateText(state));
   if (state == BT_STATE_ON)
     synchronize.notify_one();
 }
 
 void CallbackThreadCallback(bt_cb_thread_evt evt) {
-  LOG_INFO("%s: %s", __func__, BtEventText(evt));
+  LOG_INFO(LOG_TAG, "%s: %s", __func__, BtEventText(evt));
 }
 
 // TODO(icoolidge): Audit how these os callouts should be
@@ -96,7 +96,7 @@ void GenericDevicePropertiesCallback(bt_status_t status,
   }
 
   if (!remote_address) {
-    LOG_INFO("Local adapter properties:");
+    LOG_INFO(LOG_TAG, "%s", "Local adapter properties:");
   }
 
   for (int i = 0; i < num_properties; ++i) {
@@ -105,26 +105,26 @@ void GenericDevicePropertiesCallback(bt_status_t status,
       case BT_PROPERTY_BDADDR: {
         std::string text =
             BtAddrString(reinterpret_cast<bt_bdaddr_t *>(prop->val));
-        LOG_INFO("%s: %s", BtPropertyText(prop->type), text.c_str());
+        LOG_INFO(LOG_TAG, "%s: %s", BtPropertyText(prop->type), text.c_str());
         break;
       }
       case BT_PROPERTY_ADAPTER_SCAN_MODE: {
         bt_scan_mode_t *mode = reinterpret_cast<bt_scan_mode_t *>(prop->val);
-        LOG_INFO("%s: %s", BtPropertyText(prop->type), BtScanModeText(*mode));
+        LOG_INFO(LOG_TAG, "%s: %s", BtPropertyText(prop->type), BtScanModeText(*mode));
         std::lock_guard<std::mutex> lock(mutex);
         synchronize.notify_one();
         break;
       }
       case BT_PROPERTY_BDNAME: {
         bt_bdname_t *name = reinterpret_cast<bt_bdname_t *>(prop->val);
-        LOG_INFO("%s: %s", BtPropertyText(prop->type),
+        LOG_INFO(LOG_TAG, "%s: %s", BtPropertyText(prop->type),
                  reinterpret_cast<char *>(name->name));
         std::lock_guard<std::mutex> lock(mutex);
         synchronize.notify_one();
         break;
       }
       default:
-        LOG_INFO("%s: %s", __func__, BtPropertyText(prop->type));
+        LOG_INFO(LOG_TAG, "%s: %s", __func__, BtPropertyText(prop->type));
         break;
     }
   }
@@ -138,7 +138,7 @@ void AclStateChangedCallback(bt_status_t status, bt_bdaddr_t *remote_bd_addr,
   }
 
   std::string text = BtAddrString(remote_bd_addr);
-  LOG_INFO("%s: %s: %s", __func__, text.c_str(), BtAclText(state));
+  LOG_INFO(LOG_TAG, "%s: %s: %s", __func__, text.c_str(), BtAclText(state));
 }
 
 void LocalAdapterPropertiesCallback(bt_status_t status, int num_properties,
@@ -223,7 +223,7 @@ bool CoreStack::Initialize() {
   }
 
   synchronize.wait(lock);
-  LOG_INFO("CoreStack::Initialize success");
+  LOG_INFO(LOG_TAG, "%s", "CoreStack::Initialize success");
   return true;
 }
 

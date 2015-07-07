@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_gatt"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -36,8 +38,6 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "gki.h"
-
-#define LOG_TAG "bt_btif_gatt"
 
 #if BTA_GATT_INCLUDED == TRUE
 

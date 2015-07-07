@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_config"
+
 #include <assert.h>
 #include <ctype.h>
 #include <pthread.h>
@@ -35,8 +37,6 @@
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-
-#define LOG_TAG "bt_btif_config"
 
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";

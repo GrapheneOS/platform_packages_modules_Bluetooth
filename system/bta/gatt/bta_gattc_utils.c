@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_gattc"
+
 #include "bt_target.h"
 
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
@@ -35,8 +37,6 @@
 #include "bta_sys.h"
 #include "bta_gattc_int.h"
 #include "l2c_api.h"
-
-#define LOG_TAG "bt_bta_gattc"
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
