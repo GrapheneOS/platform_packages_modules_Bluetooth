@@ -2029,14 +2029,6 @@ void smp_derive_link_key_from_long_term_key(tSMP_CB *p_cb, tSMP_INT_DATA *p_data
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
         return;
     }
-
-    if (interop_match(INTEROP_DISABLE_LE_SECURE_CONNECTIONS,
-                      (const bt_bdaddr_t *)&p_cb->pairing_bda))
-    {
-        smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_LK, FALSE);
-        SMP_TRACE_DEBUG("%s successfully completed", __FUNCTION__);
-        smp_key_distribution(p_cb, NULL);
-    }
 }
 
 /*******************************************************************************
