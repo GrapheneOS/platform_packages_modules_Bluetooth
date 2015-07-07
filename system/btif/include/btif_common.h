@@ -21,23 +21,19 @@
 #define BTIF_COMMON_H
 
 #include <stdlib.h>
+
 #include <hardware/bluetooth.h>
 
 #include "bt_types.h"
 #include "bta_api.h"
 #include "osi.h"
-
-#ifndef LOG_TAG
-#error "LOG_TAG not defined, please add in .c file prior to including bt_common.h"
-#endif
-
 #include "osi/include/log.h"
 
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
 
-#define ASSERTC(cond, msg, val) if (!(cond)) { LOG_ERROR( \
+#define ASSERTC(cond, msg, val) if (!(cond)) { LOG_ERROR(LOG_TAG, \
     "### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
 
 /* Calculate start of event enumeration; id is top 8 bits of event */

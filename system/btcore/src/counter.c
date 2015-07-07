@@ -26,15 +26,15 @@
 #include <string.h>
 #include <sys/eventfd.h>
 
+#include "btcore/include/counter.h"
+#include "btcore/include/module.h"
 #include "osi/include/allocator.h"
 #include "osi/include/atomic.h"
-#include "btcore/include/counter.h"
+#include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
 #include "osi/include/list.h"
-#include "btcore/include/module.h"
-#include "osi/include/osi.h"
-#include "osi/include/hash_functions.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
 
@@ -125,12 +125,12 @@ static future_t *counter_init(void) {
   hash_map_counter_ = hash_map_new(COUNTER_NUM_BUCKETS, hash_function_string,
       NULL, hash_element_free_, NULL);
   if (hash_map_counter_ == NULL) {
-    LOG_ERROR("%s unable to allocate resources", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate resources", __func__);
     return future_new_immediate(FUTURE_FAIL);
   }
 
   if (!counter_socket_open()) {
-    LOG_ERROR("%s unable to open counter port", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open counter port", __func__);
     return future_new_immediate(FUTURE_FAIL);
   }
   return future_new_immediate(FUTURE_SUCCESS);
@@ -223,13 +223,13 @@ static counter_t *name_to_counter_(const char *name) {
 
   counter = counter_new_(0);
   if (!counter) {
-    LOG_ERROR("%s unable to create new counter name:%s", __func__, name);
+    LOG_ERROR(LOG_TAG, "%s unable to create new counter name:%s", __func__, name);
     goto exit;
   }
 
   hash_element_t *element = hash_element_new_();
   if (!element) {
-    LOG_ERROR("%s unable to create counter element name:%s", __func__, name);
+    LOG_ERROR(LOG_TAG, "%s unable to create counter element name:%s", __func__, name);
     counter_free_(counter);
     counter = NULL;
     goto exit;
@@ -238,7 +238,7 @@ static counter_t *name_to_counter_(const char *name) {
   element->key = name;
   element->val = counter;
   if (!hash_map_set(hash_map_counter_, name, counter)) {
-    LOG_ERROR("%s unable to set new counter into hash map name:%s", __func__, name);
+    LOG_ERROR(LOG_TAG, "%s unable to set new counter into hash map name:%s", __func__, name);
     hash_element_free_(element);
     counter_free_(counter);
     counter = NULL;
@@ -265,28 +265,28 @@ static bool counter_socket_open(void) {
 
   clients_ = list_new(client_free);
   if (!clients_) {
-    LOG_ERROR("%s unable to create counter clients list", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create counter clients list", __func__);
     goto error;
   }
 
   thread_ = thread_new("counter_socket");
   if (!thread_) {
-    LOG_ERROR("%s unable to create counter thread", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create counter thread", __func__);
     goto error;
   }
 
   listen_socket_ = socket_new();
   if (!listen_socket_) {
-    LOG_ERROR("%s unable to create listen socket", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create listen socket", __func__);
     goto error;
   }
 
   if (!socket_listen(listen_socket_, LISTEN_PORT)) {
-    LOG_ERROR("%s unable to setup listen socket", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to setup listen socket", __func__);
     goto error;
   }
 
-  LOG_INFO("%s opened counter server socket", __func__);
+  LOG_INFO(LOG_TAG, "%s opened counter server socket", __func__);
   socket_register(listen_socket_, thread_get_reactor(thread_), NULL, accept_ready, NULL);
   return true;
 
@@ -304,7 +304,7 @@ static void counter_socket_close(void) {
   thread_ = NULL;
   clients_ = NULL;
 
-  LOG_INFO("%s closed counter server socket", __func__);
+  LOG_INFO(LOG_TAG, "%s closed counter server socket", __func__);
 }
 
 static bool monitor_counter_iter_cb(const char *name, counter_data_t val, void *context) {
@@ -326,14 +326,14 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
   assert(socket != NULL);
   assert(socket == listen_socket_);
 
-  LOG_INFO("%s accepted OSI monitor socket", __func__);
+  LOG_INFO(LOG_TAG, "%s accepted OSI monitor socket", __func__);
   socket = socket_accept(socket);
   if (!socket)
     return;
 
   client_t *client = (client_t *)osi_calloc(sizeof(client_t));
   if (!client) {
-    LOG_ERROR("%s unable to allocate memory for client", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for client", __func__);
     socket_free(socket);
     return;
   }
@@ -341,7 +341,7 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
   client->socket = socket;
 
   if (!list_append(clients_, client)) {
-    LOG_ERROR("%s unable to add client to list", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to add client to list", __func__);
     client_free(client);
     return;
   }

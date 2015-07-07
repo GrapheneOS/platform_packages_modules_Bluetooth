@@ -22,21 +22,23 @@
  *
  ******************************************************************************/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "device/include/controller.h"
-#include "btcore/include/counter.h"
 #include "bt_target.h"
+#include "btcore/include/counter.h"
 #include "btm_int.h"
 #include "btu.h"
+#include "device/include/controller.h"
 #include "gki.h"
 #include "hcimsgs.h"
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "osi/include/log.h"
+
+#define LOG_TAG "l2c_main"
 
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
@@ -903,7 +905,7 @@ void l2c_init (void)
 
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)
-        LOG_ERROR("%s unable to allocate memory for link layer control block", __func__);
+        LOG_ERROR(LOG_TAG, "%s unable to allocate memory for link layer control block", __func__);
 }
 
 void l2c_free(void) {

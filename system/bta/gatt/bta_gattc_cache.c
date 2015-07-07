@@ -28,22 +28,23 @@
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
-#include "utl.h"
-#include "gki.h"
-#include "bta_sys.h"
-#include "sdp_api.h"
-#include "sdpdefs.h"
+
 #include "bta_gattc_int.h"
+#include "bta_sys.h"
 #include "btm_api.h"
 #include "btm_ble_api.h"
-
-#define LOG_TAG "bt_bta_gattc"
+#include "gki.h"
 #include "osi/include/log.h"
+#include "sdp_api.h"
+#include "sdpdefs.h"
+#include "utl.h"
 
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
 
 #define BTA_GATT_SDP_DB_SIZE 4096
+
+#define LOG_TAG "bt_bta_gattc"
 
 /*****************************************************************************
 **  Constants
@@ -601,7 +602,7 @@ static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
         }
     }
     /* no service found at all, the end of server discovery*/
-    LOG_WARN("%s no more services found", __func__);
+    LOG_WARN(LOG_TAG, "%s no more services found", __func__);
 
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
     bta_gattc_display_cache_server(p_srvc_cb->p_srvc_cache);

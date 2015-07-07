@@ -180,7 +180,7 @@ static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *contex
   allocation_t *allocation = (allocation_t *)entry->data;
   if (!allocation->freed) {
     *((size_t *)context) += allocation->size; // Report back the unfreed byte count
-    LOG_ERROR("%s found unfreed allocation. address: 0x%zx size: %zd bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
+    LOG_ERROR(LOG_TAG, "%s found unfreed allocation. address: 0x%zx size: %zd bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
   }
 
   return true;

@@ -40,19 +40,19 @@ data_dispatcher_t *data_dispatcher_new(const char *name) {
 
   data_dispatcher_t *ret = osi_calloc(sizeof(data_dispatcher_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for new data dispatcher.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for new data dispatcher.", __func__);
     goto error;
   }
 
   ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL, NULL);
   if (!ret->dispatch_table) {
-    LOG_ERROR("%s unable to create dispatch table.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create dispatch table.", __func__);
     goto error;
   }
 
   ret->name = osi_strdup(name);
   if (!ret->name) {
-    LOG_ERROR("%s unable to duplicate provided name.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to duplicate provided name.", __func__);
     goto error;
   }
 
@@ -100,7 +100,7 @@ bool data_dispatcher_dispatch(data_dispatcher_t *dispatcher, data_dispatcher_typ
   if (queue)
     fixed_queue_enqueue(queue, data);
   else
-    LOG_WARN("%s has no handler for type (%zd) in data dispatcher named: %s", __func__, type, dispatcher->name);
+    LOG_WARN(LOG_TAG, "%s has no handler for type (%zd) in data dispatcher named: %s", __func__, type, dispatcher->name);
 
   return queue != NULL;
 }

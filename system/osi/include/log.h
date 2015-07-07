@@ -27,7 +27,7 @@
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <stdio.h>
 
-#define LOGWRAPPER(fmt, args...) fprintf(stderr, fmt "\n", ## args)
+#define LOGWRAPPER(tag, fmt, args...) fprintf(stderr, "%s: " fmt "\n", tag, ## args)
 
 #define LOG_VERBOSE(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_DEBUG(...) LOGWRAPPER(__VA_ARGS__)
@@ -39,11 +39,10 @@
 
 #include <cutils/log.h>
 
-#define LOG_VERBOSE(...) ALOGV(__VA_ARGS__)
-#define LOG_DEBUG(...)   ALOGD(__VA_ARGS__)
-#define LOG_INFO(...)    ALOGI(__VA_ARGS__)
-#define LOG_WARN(...)    ALOGW(__VA_ARGS__)
-#define LOG_ERROR(...)   ALOGE(__VA_ARGS__)
-
+#define LOG_VERBOSE(tag, fmt, args...) ALOG(LOG_VERBOSE, tag, fmt, ## args)
+#define LOG_DEBUG(tag, fmt, args...)   ALOG(LOG_DEBUG, tag, fmt, ## args )
+#define LOG_INFO(tag, fmt, args...)    ALOG(LOG_INFO, tag, fmt, ## args)
+#define LOG_WARN(tag, fmt, args...)    ALOG(LOG_WARN, tag, fmt, ## args)
+#define LOG_ERROR(tag, fmt, args...)   ALOG(LOG_ERROR, tag, fmt, ## args)
 
 #endif  /* defined(OS_GENERIC) */

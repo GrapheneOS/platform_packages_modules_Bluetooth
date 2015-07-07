@@ -29,11 +29,12 @@
 #include "osi/include/log.h"
 
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
+#include "bta_av_co.h"
 #include "bta_av_int.h"
-#include "utl.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "bta_av_co.h"
+#include "utl.h"
+
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
@@ -42,8 +43,11 @@
 ** Constants and types
 *****************************************************************************/
 
+#define LOG_TAG "bta_av"
+
 /* AVDTP protocol timeout values */
 #define BTIF_AVK_SERVICE_NAME "Advanced Audio Sink"
+
 
 #ifndef BTA_AV_RET_TOUT
 #define BTA_AV_RET_TOUT     4
@@ -1106,7 +1110,7 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 
     if (BTM_GetRole(p_scb->peer_addr, &role) == BTM_SUCCESS)
     {
-        LOG_INFO("%s hndl:x%x role:%d conn_audio:x%x bits:%d features:x%x",
+        LOG_INFO(LOG_TAG, "%s hndl:x%x role:%d conn_audio:x%x bits:%d features:x%x",
                 __func__, p_scb->hndl, role, bta_av_cb.conn_audio, bits,
                 bta_av_cb.features);
         if (BTM_ROLE_MASTER != role && (A2D_BitsSet(bta_av_cb.conn_audio) > bits || (bta_av_cb.features & BTA_AV_FEAT_MASTER)))

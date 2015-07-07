@@ -119,7 +119,7 @@ static bool interface_ready(void) {
 *****************************************************************************/
 
 static int init(bt_callbacks_t *callbacks) {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   if (interface_ready())
     return BT_STATUS_DONE;
@@ -135,7 +135,7 @@ static int init(bt_callbacks_t *callbacks) {
 }
 
 static int enable(void) {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   if (!interface_ready())
     return BT_STATUS_NOT_READY;
@@ -317,7 +317,7 @@ static void dump(int fd)
 
 static const void* get_profile_interface (const char *profile_id)
 {
-    LOG_INFO("get_profile_interface %s", profile_id);
+    LOG_INFO(LOG_TAG, "get_profile_interface %s", profile_id);
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -367,7 +367,7 @@ static const void* get_profile_interface (const char *profile_id)
 
 int dut_mode_configure(uint8_t enable)
 {
-    LOG_INFO("dut_mode_configure");
+    LOG_INFO(LOG_TAG, "dut_mode_configure");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -378,7 +378,7 @@ int dut_mode_configure(uint8_t enable)
 
 int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
-    LOG_INFO("dut_mode_send");
+    LOG_INFO(LOG_TAG, "dut_mode_send");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -390,7 +390,7 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
 #if BLE_INCLUDED == TRUE
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
-    LOG_INFO("le_test_mode");
+    LOG_INFO(LOG_TAG, "le_test_mode");
 
     /* sanity check */
     if (interface_ready() == FALSE)
@@ -402,7 +402,7 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 
 int config_hci_snoop_log(uint8_t enable)
 {
-    LOG_INFO("config_hci_snoop_log");
+    LOG_INFO(LOG_TAG, "config_hci_snoop_log");
 
     if (!interface_ready())
         return BT_STATUS_NOT_READY;

@@ -45,9 +45,6 @@
 #include <cutils/properties.h>
 #endif  /* !defined(OS_GENERIC) */
 
-#define LOG_TAG "bt_btif_core"
-#include "btcore/include/bdaddr.h"
-
 #include "bdaddr.h"
 #include "bt_utils.h"
 #include "bta_api.h"
@@ -55,21 +52,21 @@
 #include "btif_api.h"
 #include "btif_av.h"
 #include "btif_config.h"
+#include "btif_config.h"
 #include "btif_pan.h"
 #include "btif_profile_queue.h"
-#include "btif_config.h"
 #include "btif_sock.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/controller.h"
+#include "gki.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
-#include "gki.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "stack_manager.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
+#include "stack_manager.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -78,6 +75,8 @@
 #ifndef BTE_DID_CONF_FILE
 #define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
 #endif
+
+#define LOG_TAG "bt_btif_core"
 
 /************************************************************************************
 **  Local type definitions
@@ -453,7 +452,7 @@ bt_status_t btif_init_bluetooth() {
 
   bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
   if (bt_jni_workqueue_thread == NULL) {
-    LOG_ERROR("%s Unable to create thread %s", __func__, BT_JNI_WORKQUEUE_NAME);
+    LOG_ERROR(LOG_TAG, "%s Unable to create thread %s", __func__, BT_JNI_WORKQUEUE_NAME);
     goto error_exit;
   }
 

@@ -16,21 +16,22 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_btif_sock"
-
 #include <assert.h>
+
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
 #include "bta_api.h"
 #include "btif_common.h"
+#include "btif_sock_l2cap.h"
 #include "btif_sock_rfc.h"
 #include "btif_sock_sco.h"
-#include "btif_sock_thread.h"
-#include "btif_sock_l2cap.h"
 #include "btif_sock_sdp.h"
+#include "btif_sock_thread.h"
 #include "btif_util.h"
 #include "osi/include/thread.h"
+
+#define LOG_TAG "bt_btif_sock"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
 static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags);
@@ -58,32 +59,32 @@ bt_status_t btif_sock_init(void) {
   btsock_thread_init();
   thread_handle = btsock_thread_create(btsock_signaled, NULL);
   if (thread_handle == -1) {
-    LOG_ERROR("%s unable to create btsock_thread.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create btsock_thread.", __func__);
     goto error;
   }
 
   bt_status_t status = btsock_rfc_init(thread_handle);
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s error initializing RFCOMM sockets: %d", __func__, status);
+    LOG_ERROR(LOG_TAG, "%s error initializing RFCOMM sockets: %d", __func__, status);
     goto error;
   }
 
   status = btsock_l2cap_init(thread_handle);
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s error initializing L2CAP sockets: %d", __func__, status);
+    LOG_ERROR(LOG_TAG, "%s error initializing L2CAP sockets: %d", __func__, status);
     goto error;
   }
 
   thread = thread_new("btif_sock");
   if (!thread) {
-    LOG_ERROR("%s error creating new thread.", __func__);
+    LOG_ERROR(LOG_TAG, "%s error creating new thread.", __func__);
     btsock_rfc_cleanup();
     goto error;
   }
 
   status = btsock_sco_init(thread);
   if (status != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s error initializing SCO sockets: %d", __func__, status);
+    LOG_ERROR(LOG_TAG, "%s error initializing SCO sockets: %d", __func__, status);
     btsock_rfc_cleanup();
     goto error;
   }
@@ -136,7 +137,7 @@ static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, c
       break;
 
     default:
-      LOG_ERROR("%s unknown/unsupported socket type: %d", __func__, type);
+      LOG_ERROR(LOG_TAG, "%s unknown/unsupported socket type: %d", __func__, type);
       status = BT_STATUS_UNSUPPORTED;
       break;
   }
@@ -165,7 +166,7 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
       break;
 
     default:
-      LOG_ERROR("%s unknown/unsupported socket type: %d", __func__, type);
+      LOG_ERROR(LOG_TAG, "%s unknown/unsupported socket type: %d", __func__, type);
       status = BT_STATUS_UNSUPPORTED;
       break;
   }
