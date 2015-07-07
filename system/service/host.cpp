@@ -80,7 +80,7 @@ bool Host::EventLoop() {
     int status =
         TEMP_FAILURE_RETRY(ppoll(pfds_.data(), pfds_.size(), nullptr, nullptr));
     if (status < 1) {
-      LOG_ERROR("ppoll error");
+      LOG_ERROR(LOG_TAG, "ppoll error");
       return false;
     }
 
@@ -110,7 +110,7 @@ bool Host::OnCreateService(const std::string& service_uuid) {
   bool status =
       gatt_servers_[service_uuid]->Initialize(Uuid(service_uuid), &gattfd, bt_);
   if (!status) {
-    LOG_ERROR("Failed to initialize bluetooth");
+    LOG_ERROR(LOG_TAG, "Failed to initialize bluetooth");
     return false;
   }
   pfds_.resize(kPossibleFds);
@@ -229,7 +229,7 @@ bool Host::OnMessage() {
   std::string ipc_msg;
   int size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0, MSG_PEEK | MSG_TRUNC);
   if (-1 == size) {
-    LOG_ERROR("Error reading datagram size: %s", strerror(errno));
+    LOG_ERROR(LOG_TAG, "Error reading datagram size: %s", strerror(errno));
     return false;
   } else if (0 == size) {
     LOG_INFO("%s:%d: Connection closed", __func__, __LINE__);
@@ -239,7 +239,7 @@ bool Host::OnMessage() {
   ipc_msg.resize(size);
   size = read(pfds_[kFdIpc].fd, &ipc_msg[0], ipc_msg.size());
   if (-1 == size) {
-    LOG_ERROR("Error reading IPC: %s", strerror(errno));
+    LOG_ERROR(LOG_TAG, "Error reading IPC: %s", strerror(errno));
     return false;
   } else if (0 == size) {
     LOG_INFO("%s:%d: Connection closed", __func__, __LINE__);
@@ -276,7 +276,7 @@ bool Host::OnMessage() {
       break;
   }
 
-  LOG_ERROR("Malformed IPC message: %s", ipc_msg.c_str());
+  LOG_ERROR(LOG_TAG, "Malformed IPC message: %s", ipc_msg.c_str());
   return false;
 }
 
@@ -284,7 +284,7 @@ bool Host::OnGattWrite() {
   Uuid::Uuid128Bit id;
   int r = read(pfds_[kFdGatt].fd, id.data(), id.size());
   if (r != id.size()) {
-    LOG_ERROR("Error reading GATT attribute ID");
+    LOG_ERROR(LOG_TAG, "Error reading GATT attribute ID");
     return false;
   }
 
@@ -303,7 +303,7 @@ bool Host::OnGattWrite() {
 
   r = write(pfds_[kFdIpc].fd, transmit.data(), transmit.size());
   if (-1 == r) {
-    LOG_ERROR("Error replying to IPC: %s", strerror(errno));
+    LOG_ERROR(LOG_TAG, "Error replying to IPC: %s", strerror(errno));
     return false;
   }
 

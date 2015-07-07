@@ -37,13 +37,13 @@ static void future_free(future_t *future);
 future_t *future_new(void) {
   future_t *ret = osi_calloc(sizeof(future_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for return value.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for return value.", __func__);
     goto error;
   }
 
   ret->semaphore = semaphore_new(0);
   if (!ret->semaphore) {
-    LOG_ERROR("%s unable to allocate memory for the semaphore.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for the semaphore.", __func__);
     goto error;
   }
 
@@ -57,7 +57,7 @@ error:;
 future_t *future_new_immediate(void *value) {
   future_t *ret = osi_calloc(sizeof(future_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for return value.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for return value.", __func__);
     goto error;
   }
 

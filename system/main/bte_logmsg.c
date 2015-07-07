@@ -24,20 +24,21 @@
 #include <sys/time.h>
 #include <time.h>
 
-#include "bte.h"
+#include "avrc_api.h"
 #include "bta_api.h"
+#include "bte.h"
+#include "btm_api.h"
 #include "btu.h"
-#include "osi/include/config.h"
+#include "gap_api.h"
 #include "gki.h"
 #include "l2c_api.h"
+#include "osi/include/config.h"
 #include "osi/include/log.h"
+#include "osi/include/log.h"
+#include "port_api.h"
+#include "sdp_api.h"
 #include "stack_config.h"
 
-#include "port_api.h"
-#if (AVDT_INCLUDED==TRUE)
-#include "avdt_api.h"
-#endif
-#include "avrc_api.h"
 #if (AVDT_INCLUDED==TRUE)
 #include "avdt_api.h"
 #endif
@@ -47,31 +48,15 @@
 #if (BNEP_INCLUDED==TRUE)
 #include "bnep_api.h"
 #endif
-#include "btm_api.h"
-#include "gap_api.h"
 #if (PAN_INCLUDED==TRUE)
 #include "pan_api.h"
 #endif
-#include "sdp_api.h"
-
 #if (BLE_INCLUDED==TRUE)
 #include "gatt_api.h"
 #include "smp_api.h"
 #endif
 
-// TODO(armansito): Work-around until we figure out a way to generate logs in a
-// platform-independent manner.
-#if defined(OS_GENERIC)
-#define LOGI0(t,s) fprintf(stderr, "%s\n", s)
-#define LOGD0(t,s) fprintf(stderr, "%s\n", s)
-#define LOGW0(t,s) fprintf(stderr, "%s\n", s)
-#define LOGE0(t,s) fprintf(stderr, "%s\n", s)
-#else  // !defined(OS_GENERIC)
-#define LOGI0(t,s) __android_log_write(ANDROID_LOG_INFO, t, s)
-#define LOGD0(t,s) __android_log_write(ANDROID_LOG_DEBUG, t, s)
-#define LOGW0(t,s) __android_log_write(ANDROID_LOG_WARN, t, s)
-#define LOGE0(t,s) __android_log_write(ANDROID_LOG_ERROR, t, s)
-#endif  // defined(OS_GENERIC)
+#define LOG_TAG "bte_logmsg"
 
 #ifndef DEFAULT_CONF_TRACE_LEVEL
 #define DEFAULT_CONF_TRACE_LEVEL BT_TRACE_LEVEL_WARNING
@@ -193,20 +178,20 @@ void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {
 
   switch ( TRACE_GET_TYPE(trace_set_mask) ) {
     case TRACE_TYPE_ERROR:
-      LOGE0(bt_layer_tags[trace_layer], buffer);
+      LOG_ERROR(bt_layer_tags[trace_layer], "%s", buffer);
       break;
     case TRACE_TYPE_WARNING:
-      LOGW0(bt_layer_tags[trace_layer], buffer);
+      LOG_WARN(bt_layer_tags[trace_layer], "%s", buffer);
       break;
     case TRACE_TYPE_API:
     case TRACE_TYPE_EVENT:
-      LOGI0(bt_layer_tags[trace_layer], buffer);
+      LOG_INFO(bt_layer_tags[trace_layer], "%s", buffer);
       break;
     case TRACE_TYPE_DEBUG:
-      LOGD0(bt_layer_tags[trace_layer], buffer);
+      LOG_DEBUG(bt_layer_tags[trace_layer], "%s", buffer);
       break;
     default:
-      LOGE0(bt_layer_tags[trace_layer], buffer);      /* we should never get this */
+      LOG_ERROR(bt_layer_tags[trace_layer], "%s", buffer);      /* we should never get this */
       break;
   }
 }
@@ -237,7 +222,7 @@ static void load_levels_from_config(const config_t *config) {
   assert(config != NULL);
 
   for (tBTTRC_FUNC_MAP *functions = &bttrc_set_level_map[0]; functions->trc_name; ++functions) {
-    LOG_INFO("BTE_InitTraceLevels -- %s", functions->trc_name);
+    LOG_INFO(LOG_TAG, "BTE_InitTraceLevels -- %s", functions->trc_name);
     int value = config_get_int(config, CONFIG_DEFAULT_SECTION, functions->trc_name, -1);
     if (value != -1)
       functions->trace_level = value;
@@ -250,7 +235,7 @@ static void load_levels_from_config(const config_t *config) {
 static future_t *init(void) {
   const stack_config_t *stack_config = stack_config_get_interface();
   if (!stack_config->get_trace_config_enabled()) {
-    LOG_INFO("[bttrc] using compile default trace settings");
+    LOG_INFO(LOG_TAG, "using compile default trace settings");
     return NULL;
   }
 

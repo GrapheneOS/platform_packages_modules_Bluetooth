@@ -48,19 +48,19 @@ static void internal_write_ready(void *context);
 socket_t *socket_new(void) {
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for socket.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
     goto error;
   }
 
   ret->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (ret->fd == INVALID_FD) {
-    LOG_ERROR("%s unable to create socket: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to create socket: %s", __func__, strerror(errno));
     goto error;
   }
 
   int enable = 1;
   if (setsockopt(ret->fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) == -1) {
-    LOG_ERROR("%s unable to set SO_REUSEADDR: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to set SO_REUSEADDR: %s", __func__, strerror(errno));
     goto error;
   }
 
@@ -78,7 +78,7 @@ socket_t *socket_new_from_fd(int fd) {
 
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for socket.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
     return NULL;
   }
 
@@ -103,12 +103,12 @@ bool socket_listen(const socket_t *socket, port_t port) {
   addr.sin_addr.s_addr = 0;
   addr.sin_port = htons(port);
   if (bind(socket->fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
-    LOG_ERROR("%s unable to bind socket to port %u: %s", __func__, port, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to bind socket to port %u: %s", __func__, port, strerror(errno));
     return false;
   }
 
   if (listen(socket->fd, 10) == -1) {
-    LOG_ERROR("%s unable to listen on port %u: %s", __func__, port, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to listen on port %u: %s", __func__, port, strerror(errno));
     return false;
   }
 
@@ -120,14 +120,14 @@ socket_t *socket_accept(const socket_t *socket) {
 
   int fd = accept(socket->fd, NULL, NULL);
   if (fd == INVALID_FD) {
-    LOG_ERROR("%s unable to accept socket: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to accept socket: %s", __func__, strerror(errno));
     return NULL;
   }
 
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
   if (!ret) {
     close(fd);
-    LOG_ERROR("%s unable to allocate memory for socket.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
     return NULL;
   }
 

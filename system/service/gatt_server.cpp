@@ -204,7 +204,7 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
     int status = write(internal->pipefd[kPipeWriteEnd], attr_uuid.data(),
                        attr_uuid.size());
     if (-1 == status)
-      LOG_ERROR("%s: write failed: %s", __func__, strerror(errno));
+      LOG_ERROR(LOG_TAG, "%s: write failed: %s", __func__, strerror(errno));
   } else {
     // This is a multi-frame characteristic write.
     // Wait for an 'RequestExecWriteCallback' to notify completion.
@@ -237,7 +237,7 @@ void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
       internal->last_write.GetFullBigEndian();
   int status = write(internal->pipefd[kPipeWriteEnd], uuid.data(), uuid.size());
   if (-1 == status)
-    LOG_ERROR("%s: write failed: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s: write failed: %s", __func__, strerror(errno));
 }
 
 void ConnectionCallback(int conn_id, int server_if, int connected,
@@ -289,7 +289,7 @@ void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
 
   bt_status_t btstat = internal->gatt->client->register_client(&client_id);
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("%s: Failed to register client", __func__);
+    LOG_ERROR(LOG_TAG, "%s: Failed to register client", __func__);
   }
 }
 
@@ -309,7 +309,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
       0, nullptr,       /* no service data */
       0, nullptr /* no service id yet */);
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to set advertising data");
+    LOG_ERROR(LOG_TAG, "Failed to set advertising data");
     return;
   }
 
@@ -317,7 +317,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
   // This calls back to ListenCallback.
   btstat = internal->gatt->client->listen(client_if, true);
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to start listening");
+    LOG_ERROR(LOG_TAG, "Failed to start listening");
   }
 }
 
@@ -444,19 +444,19 @@ int ServerInternals::Initialize(CoreStack *bt) {
   gatt = reinterpret_cast<const btgatt_interface_t *>(
       bt->GetInterface(BT_PROFILE_GATT_ID));
   if (!gatt) {
-    LOG_ERROR("Error getting GATT interface");
+    LOG_ERROR(LOG_TAG, "Error getting GATT interface");
     return -1;
   }
 
   bt_status_t btstat = gatt->init(&gatt_callbacks);
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to initialize gatt interface");
+    LOG_ERROR(LOG_TAG, "Failed to initialize gatt interface");
     return -1;
   }
 
   int status = pipe(pipefd);
   if (status == -1) {
-    LOG_ERROR("pipe creation failed: %s", strerror(errno));
+    LOG_ERROR(LOG_TAG, "pipe creation failed: %s", strerror(errno));
     return -1;
   }
 
@@ -484,7 +484,7 @@ Server::~Server() {}
 bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
   internal_.reset(new ServerInternals);
   if (!internal_) {
-    LOG_ERROR("Error creating internals");
+    LOG_ERROR(LOG_TAG, "Error creating internals");
     return false;
   }
   internal = internal_.get();
@@ -492,7 +492,7 @@ bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
   std::unique_lock<std::mutex> lock(internal_->lock);
   int status = internal_->Initialize(bt);
   if (status) {
-    LOG_ERROR("Error initializing internals");
+    LOG_ERROR(LOG_TAG, "Error initializing internals");
     return false;
   }
 
@@ -500,14 +500,14 @@ bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
 
   bt_status_t btstat = internal_->gatt->server->register_server(&uuid);
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to register server");
+    LOG_ERROR(LOG_TAG, "Failed to register server");
     return false;
   }
 
   internal_->api_synchronize.wait(lock);
   // TODO(icoolidge): Better error handling.
   if (internal_->server_if == 0) {
-    LOG_ERROR("Initialization of server failed");
+    LOG_ERROR(LOG_TAG, "Initialization of server failed");
     return false;
   }
 
@@ -541,7 +541,7 @@ bool Server::SetAdvertisement(const std::vector<Uuid> &ids,
       reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
       reinterpret_cast<char *>(id_data.data()));
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to set advertising data");
+    LOG_ERROR(LOG_TAG, "Failed to set advertising data");
     return false;
   }
   return true;
@@ -572,7 +572,7 @@ bool Server::SetScanResponse(const std::vector<Uuid> &ids,
       reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
       reinterpret_cast<char *>(id_data.data()));
   if (btstat != BT_STATUS_SUCCESS) {
-    LOG_ERROR("Failed to set scan response data");
+    LOG_ERROR(LOG_TAG, "Failed to set scan response data");
     return false;
   }
   return true;
@@ -649,7 +649,7 @@ bool Server::Stop() {
 bool Server::ScanEnable() {
   bt_status_t btstat = internal_->gatt->client->scan(true);
   if (btstat) {
-    LOG_ERROR("Enable scan failed: %d", btstat);
+    LOG_ERROR(LOG_TAG, "Enable scan failed: %d", btstat);
     return false;
   }
   return true;
@@ -658,7 +658,7 @@ bool Server::ScanEnable() {
 bool Server::ScanDisable() {
   bt_status_t btstat = internal_->gatt->client->scan(false);
   if (btstat) {
-    LOG_ERROR("Disable scan failed: %d", btstat);
+    LOG_ERROR(LOG_TAG, "Disable scan failed: %d", btstat);
     return false;
   }
   return true;

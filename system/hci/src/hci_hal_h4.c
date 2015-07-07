@@ -16,19 +16,19 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_hci_h4"
-
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "osi/include/eager_reader.h"
 #include "hci_hal.h"
-#include "osi/include/osi.h"
+#include "osi/include/eager_reader.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "vendor.h"
+
+#define LOG_TAG "bt_hci_h4"
 
 #define HCI_HAL_SERIAL_BUFFER_SIZE 1026
 
@@ -58,26 +58,26 @@ static bool hal_init(const hci_hal_callbacks_t *upper_callbacks, thread_t *upper
 }
 
 static bool hal_open() {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
   // TODO(zachoverflow): close if already open / or don't reopen (maybe at the hci layer level)
 
   int fd_array[CH_MAX];
   int number_of_ports = vendor->send_command(VENDOR_OPEN_USERIAL, &fd_array);
 
   if (number_of_ports != 1) {
-    LOG_ERROR("%s opened the wrong number of ports: got %d, expected 1.", __func__, number_of_ports);
+    LOG_ERROR(LOG_TAG, "%s opened the wrong number of ports: got %d, expected 1.", __func__, number_of_ports);
     goto error;
   }
 
   uart_fd = fd_array[0];
   if (uart_fd == INVALID_FD) {
-    LOG_ERROR("%s unable to open the uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open the uart serial port.", __func__);
     goto error;
   }
 
   uart_stream = eager_reader_new(uart_fd, &allocator_malloc, HCI_HAL_SERIAL_BUFFER_SIZE, SIZE_MAX, "hci_single_channel");
   if (!uart_stream) {
-    LOG_ERROR("%s unable to create eager reader for the uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create eager reader for the uart serial port.", __func__);
     goto error;
   }
 
@@ -92,7 +92,7 @@ error:
 }
 
 static void hal_close() {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   eager_reader_free(uart_stream);
   vendor->send_command(VENDOR_CLOSE_USERIAL, NULL);
@@ -101,13 +101,13 @@ static void hal_close() {
 
 static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size, bool block) {
   if (type < DATA_TYPE_ACL || type > DATA_TYPE_EVENT) {
-    LOG_ERROR("%s invalid data type: %d", __func__, type);
+    LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);
     return 0;
   } else if (!stream_has_interpretation) {
-    LOG_ERROR("%s with no valid stream intepretation.", __func__);
+    LOG_ERROR(LOG_TAG, "%s with no valid stream intepretation.", __func__);
     return 0;
   } else if (current_data_type != type) {
-    LOG_ERROR("%s with different type than existing interpretation.", __func__);
+    LOG_ERROR(LOG_TAG, "%s with different type than existing interpretation.", __func__);
     return 0;
   }
 
@@ -116,9 +116,9 @@ static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_siz
 
 static void packet_finished(serial_data_type_t type) {
   if (!stream_has_interpretation)
-    LOG_ERROR("%s with no existing stream interpretation.", __func__);
+    LOG_ERROR(LOG_TAG, "%s with no existing stream interpretation.", __func__);
   else if (current_data_type != type)
-    LOG_ERROR("%s with different type than existing interpretation.", __func__);
+    LOG_ERROR(LOG_TAG, "%s with different type than existing interpretation.", __func__);
 
   stream_has_interpretation = false;
 }
@@ -128,7 +128,7 @@ static uint16_t transmit_data(serial_data_type_t type, uint8_t *data, uint16_t l
   assert(length > 0);
 
   if (type < DATA_TYPE_COMMAND || type > DATA_TYPE_SCO) {
-    LOG_ERROR("%s invalid data type: %d", __func__, type);
+    LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);
     return 0;
   }
 
@@ -143,7 +143,7 @@ static uint16_t transmit_data(serial_data_type_t type, uint8_t *data, uint16_t l
     ssize_t ret = write(uart_fd, data + transmitted_length, length);
     switch (ret) {
       case -1:
-        LOG_ERROR("In %s, error writing to the uart serial port: %s", __func__, strerror(errno));
+        LOG_ERROR(LOG_TAG, "In %s, error writing to the uart serial port: %s", __func__, strerror(errno));
         goto done;
       case 0:
         // If we wrote nothing, don't loop more because we
@@ -177,7 +177,7 @@ static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *conte
     uint8_t type_byte;
     eager_reader_read(reader, &type_byte, 1, true);
     if (type_byte < DATA_TYPE_ACL || type_byte > DATA_TYPE_EVENT) {
-      LOG_ERROR("[h4] Unknown HCI message type. Dropping this byte 0x%x, min %x, max %x", type_byte, DATA_TYPE_ACL, DATA_TYPE_EVENT);
+      LOG_ERROR(LOG_TAG, "[h4] Unknown HCI message type. Dropping this byte 0x%x, min %x, max %x", type_byte, DATA_TYPE_ACL, DATA_TYPE_EVENT);
       return;
     }
 

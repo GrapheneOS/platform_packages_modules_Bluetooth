@@ -200,11 +200,11 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
             btu_hcif_qos_setup_comp_evt (p);
             break;
         case HCI_COMMAND_COMPLETE_EVT:
-            LOG_ERROR("%s should not have received a command complete event. "
+            LOG_ERROR(LOG_TAG, "%s should not have received a command complete event. "
                   "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_COMMAND_STATUS_EVT:
-            LOG_ERROR("%s should not have received a command status event. "
+            LOG_ERROR(LOG_TAG, "%s should not have received a command status event. "
                   "Someone didn't go through the hci transmit_command function.", __func__);
             break;
         case HCI_HARDWARE_ERROR_EVT:

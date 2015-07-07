@@ -39,10 +39,12 @@
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
 
-#define info(fmt, ...)  LOG_INFO ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define debug(fmt, ...) LOG_DEBUG ("%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
-#define error(fmt, ...) LOG_ERROR ("## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
-#define asrt(s) if(!(s)) LOG_ERROR ("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define LOG_TAG "port_api"
+
+#define info(fmt, ...)  LOG_INFO(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define debug(fmt, ...) LOG_DEBUG(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
+#define error(fmt, ...) LOG_ERROR(LOG_TAG, "## ERROR : %s: " fmt "##",__FUNCTION__,  ## __VA_ARGS__)
+#define asrt(s) if(!(s)) LOG_ERROR(LOG_TAG, "## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 
 /* Mapping from PORT_* result codes to human readable strings. */
 static const char *result_code_strings[] = {

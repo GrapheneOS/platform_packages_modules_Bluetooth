@@ -148,7 +148,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
     pthread_mutex_unlock(&gIdxLock);
 
     if (rc) {
-        LOG_WARN("failed to change sched policy, tid %d, err: %d", tid, errno);
+        LOG_WARN(LOG_TAG, "failed to change sched policy, tid %d, err: %d", tid, errno);
     }
 
     // always use urgent priority for HCI worker thread until we can adjust
@@ -159,7 +159,7 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
        priority = ANDROID_PRIORITY_URGENT_AUDIO;
 
     if (setpriority(PRIO_PROCESS, tid, priority) < 0) {
-        LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
+        LOG_WARN(LOG_TAG, "failed to change priority tid: %d to %d", tid, priority);
     }
 }
 
@@ -186,7 +186,7 @@ void adjust_priority_a2dp(int start) {
         {
             if (setpriority(PRIO_PROCESS, tid, priority) < 0)
             {
-                LOG_WARN("failed to change priority tid: %d to %d", tid, priority);
+                LOG_WARN(LOG_TAG, "failed to change priority tid: %d to %d", tid, priority);
             }
         }
     }

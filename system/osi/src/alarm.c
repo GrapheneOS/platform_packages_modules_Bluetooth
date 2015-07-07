@@ -92,7 +92,7 @@ alarm_t *alarm_new(void) {
 
   alarm_t *ret = osi_calloc(sizeof(alarm_t));
   if (!ret) {
-    LOG_ERROR("%s unable to allocate memory for alarm.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for alarm.", __func__);
     goto error;
   }
 
@@ -100,13 +100,13 @@ alarm_t *alarm_new(void) {
   // within the callback function of the alarm.
   int error = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
   if (error) {
-    LOG_ERROR("%s unable to create a recursive mutex: %s", __func__, strerror(error));
+    LOG_ERROR(LOG_TAG, "%s unable to create a recursive mutex: %s", __func__, strerror(error));
     goto error;
   }
 
   error = pthread_mutex_init(&ret->callback_lock, &attr);
   if (error) {
-    LOG_ERROR("%s unable to initialize mutex: %s", __func__, strerror(error));
+    LOG_ERROR(LOG_TAG, "%s unable to initialize mutex: %s", __func__, strerror(error));
     goto error;
   }
 
@@ -204,7 +204,7 @@ static bool lazy_initialize(void) {
 
   alarms = list_new(NULL);
   if (!alarms) {
-    LOG_ERROR("%s unable to allocate alarm list.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate alarm list.", __func__);
     return false;
   }
 
@@ -213,20 +213,20 @@ static bool lazy_initialize(void) {
   sigevent.sigev_notify = SIGEV_THREAD;
   sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
   if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
-    LOG_ERROR("%s unable to create timer: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to create timer: %s", __func__, strerror(errno));
     return false;
   }
 
   alarm_expired = semaphore_new(0);
   if (!alarm_expired) {
-    LOG_ERROR("%s unable to create alarm expired semaphore", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create alarm expired semaphore", __func__);
     return false;
   }
 
   callback_thread_active = true;
   callback_thread = thread_new("alarm_callbacks");
   if (!callback_thread) {
-    LOG_ERROR("%s unable to create alarm callback thread.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create alarm callback thread.", __func__);
     return false;
   }
 
@@ -239,7 +239,7 @@ static period_ms_t now(void) {
 
   struct timespec ts;
   if (clock_gettime(CLOCK_ID, &ts) == -1) {
-    LOG_ERROR("%s unable to get current time: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to get current time: %s", __func__, strerror(errno));
     return 0;
   }
 
@@ -294,7 +294,7 @@ static void reschedule_root_alarm(void) {
     if (!timer_set) {
       int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
       if (status != BT_STATUS_SUCCESS) {
-        LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
+        LOG_ERROR(LOG_TAG, "%s unable to acquire wake lock: %d", __func__, status);
         goto done;
       }
     }
@@ -303,7 +303,7 @@ static void reschedule_root_alarm(void) {
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
   } else {
     if (!bt_os_callouts->set_wake_alarm(next_expiration, true, timer_callback, NULL))
-      LOG_ERROR("%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_expiration);
+      LOG_ERROR(LOG_TAG, "%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_expiration);
   }
 
 done:
@@ -313,7 +313,7 @@ done:
   }
 
   if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
-    LOG_ERROR("%s unable to set timer: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to set timer: %s", __func__, strerror(errno));
 
   // If next expiration was in the past (e.g. short timer that got context switched)
   // then the timer might have diarmed itself. Detect this case and work around it
@@ -328,7 +328,7 @@ done:
     struct itimerspec time_to_expire;
     timer_gettime(timer, &time_to_expire);
     if (time_to_expire.it_value.tv_sec == 0 && time_to_expire.it_value.tv_nsec == 0) {
-      LOG_ERROR("%s alarm expiration too close for posix timers, switching to guns", __func__);
+      LOG_ERROR(LOG_TAG, "%s alarm expiration too close for posix timers, switching to guns", __func__);
       semaphore_post(alarm_expired);
     }
   }
@@ -384,5 +384,5 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
     pthread_mutex_unlock(&alarm->callback_lock);
   }
 
-  LOG_DEBUG("%s Callback thread exited", __func__);
+  LOG_DEBUG(LOG_TAG, "%s Callback thread exited", __func__);
 }

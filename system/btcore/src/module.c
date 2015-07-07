@@ -23,12 +23,12 @@
 #include <pthread.h>
 #include <string.h>
 
-#include "osi/include/allocator.h"
-#include "osi/include/hash_map.h"
 #include "btcore/include/module.h"
-#include "osi/include/osi.h"
+#include "osi/include/allocator.h"
 #include "osi/include/hash_functions.h"
+#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 typedef enum {
   MODULE_STATE_NONE = 0,
@@ -79,7 +79,7 @@ bool module_init(const module_t *module) {
   assert(get_module_state(module) == MODULE_STATE_NONE);
 
   if (!call_lifecycle_function(module->init)) {
-    LOG_ERROR("%s failed to initialize \"%s\"", __func__, module->name);
+    LOG_ERROR(LOG_TAG, "%s failed to initialize \"%s\"", __func__, module->name);
     return false;
   }
 
@@ -96,7 +96,7 @@ bool module_start_up(const module_t *module) {
   assert(get_module_state(module) == MODULE_STATE_INITIALIZED || module->init == NULL);
 
   if (!call_lifecycle_function(module->start_up)) {
-    LOG_ERROR("%s failed to start up \"%s\"", __func__, module->name);
+    LOG_ERROR(LOG_TAG, "%s failed to start up \"%s\"", __func__, module->name);
     return false;
   }
 
@@ -115,7 +115,7 @@ void module_shut_down(const module_t *module) {
     return;
 
   if (!call_lifecycle_function(module->shut_down))
-    LOG_ERROR("%s found \"%s\" reported failure during shutdown. Continuing anyway.", __func__, module->name);
+    LOG_ERROR(LOG_TAG, "%s found \"%s\" reported failure during shutdown. Continuing anyway.", __func__, module->name);
 
   set_module_state(module, MODULE_STATE_INITIALIZED);
 }
@@ -131,7 +131,7 @@ void module_clean_up(const module_t *module) {
     return;
 
   if (!call_lifecycle_function(module->clean_up))
-    LOG_ERROR("%s found \"%s\" reported failure during cleanup. Continuing anyway.", __func__, module->name);
+    LOG_ERROR(LOG_TAG, "%s found \"%s\" reported failure during cleanup. Continuing anyway.", __func__, module->name);
 
   set_module_state(module, MODULE_STATE_NONE);
 }
