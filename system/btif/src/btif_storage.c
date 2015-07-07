@@ -28,6 +28,8 @@
  *
  */
 
+#define LOG_TAG "bt_btif_storage"
+
 #include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
@@ -54,8 +56,6 @@
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
-
-#define LOG_TAG "bt_btif_storage"
 
 #define BTIF_STORAGE_PATH_BLUEDROID "/data/misc/bluedroid"
 

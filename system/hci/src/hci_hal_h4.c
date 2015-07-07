@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_hci_h4"
+
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
@@ -27,8 +29,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "vendor.h"
-
-#define LOG_TAG "bt_hci_h4"
 
 #define HCI_HAL_SERIAL_BUFFER_SIZE 1026
 

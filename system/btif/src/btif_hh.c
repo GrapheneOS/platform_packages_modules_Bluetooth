@@ -25,6 +25,8 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "bt_btif_hh"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -43,8 +45,6 @@
 #include "gki.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
-
-#define LOG_TAG "bt_btif_hh"
 
 #define BTIF_HH_APP_ID_MI       0x01
 #define BTIF_HH_APP_ID_KB       0x02

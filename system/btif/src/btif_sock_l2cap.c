@@ -26,7 +26,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
-#define LOG_TAG "BTIF_SOCK"
+#define LOG_TAG "bt_btif_sock"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 

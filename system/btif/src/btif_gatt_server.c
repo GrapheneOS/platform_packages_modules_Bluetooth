@@ -38,6 +38,8 @@
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
+#define LOG_TAG "bt_btif_gatt"
+
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"
@@ -51,8 +53,6 @@
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
-
-#define LOG_TAG "bt_btif_gatt"
 
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\

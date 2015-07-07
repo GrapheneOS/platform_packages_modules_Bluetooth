@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_hh"
+
 #include "bta_api.h"
 #include "bta_hh_int.h"
 
@@ -32,8 +34,6 @@
 #include "osi/include/log.h"
 #include "srvc_api.h"
 #include "utl.h"
-
-#define LOG_TAG "bt_bta_hh"
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE

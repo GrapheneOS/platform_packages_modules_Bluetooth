@@ -26,6 +26,8 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "bt_btif_core"
+
 #include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -75,8 +77,6 @@
 #ifndef BTE_DID_CONF_FILE
 #define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
 #endif
-
-#define LOG_TAG "bt_btif_core"
 
 /************************************************************************************
 **  Local type definitions

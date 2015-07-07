@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_sock_rfcomm"
+
 #include <assert.h>
 #include <errno.h>
 #include <features.h>
@@ -53,9 +55,6 @@
 /* The JV interface can have only one user, hence we need to call a few
  * L2CAP functions from this file. */
 #include "btif_sock_l2cap.h"
-
-#define LOG_TAG "bt_btif_sock_rfcomm"
-
 
 #define MAX_RFC_CHANNEL 30  // Maximum number of RFCOMM channels (1-30 inclusive).
 #define MAX_RFC_SESSION 7   // Maximum number of devices we can have an RFCOMM connection with.

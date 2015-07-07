@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_snoop"
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
@@ -36,8 +38,6 @@
 #include "hci_layer.h"
 #include "osi/include/log.h"
 #include "stack_config.h"
-
-#define LOG_TAG "bt_snoop"
 
 typedef enum {
   kCommandPacket = 1,

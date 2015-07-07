@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_gattc"
+
 #include <string.h>
 
 #include "bt_target.h"
@@ -38,8 +40,6 @@
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
 #include "bta_hh_int.h"
 #endif
-
-#define LOG_TAG "bt_bta_gattc"
 
 #if BTA_GATT_INCLUDED && BLE_INCLUDED == TRUE
 

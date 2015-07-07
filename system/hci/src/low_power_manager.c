@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_low_power_manager"
+
 #include "low_power_manager.h"
 
 #include <assert.h>
@@ -26,8 +28,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 #include "vendor.h"
-
-#define LOG_TAG "bt_low_power_manager"
 
 typedef enum {
   LPM_DISABLED = 0,

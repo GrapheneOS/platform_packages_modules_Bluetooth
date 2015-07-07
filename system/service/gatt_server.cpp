@@ -30,7 +30,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define LOG_TAG "GattServer"
+#define LOG_TAG "bt_gatt_server"
 #include "osi/include/log.h"
 
 #include "core_stack.h"
@@ -103,7 +103,7 @@ namespace {
 
 /** Callback invoked in response to register_server */
 void RegisterServerCallback(int status, int server_if, bt_uuid_t *app_uuid) {
-  LOG_INFO("%s: status:%d server_if:%d app_uuid:%p", __func__, status,
+  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d app_uuid:%p", __func__, status,
            server_if, app_uuid);
 
   internal->server_if = server_if;
@@ -119,7 +119,7 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t *app_uuid) {
 
 void ServiceAddedCallback(int status, int server_if, btgatt_srvc_id_t *srvc_id,
                           int srvc_handle) {
-  LOG_INFO("%s: status:%d server_if:%d gatt_srvc_id:%u srvc_handle:%d",
+  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d gatt_srvc_id:%u srvc_handle:%d",
            __func__, status, server_if, srvc_id->id.inst_id, srvc_handle);
 
   std::lock_guard<std::mutex> lock(internal->lock);
@@ -150,7 +150,7 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   const size_t attribute_size = std::min(kMaxGattAttributeSize, blob_remaining);
 
   std::string addr(BtAddrString(bda));
-  LOG_INFO(
+  LOG_INFO(LOG_TAG,
       "%s: connection:%d (%s) reading attr:%d attribute_offset_octets:%d "
       "blob_section:%u (is_long:%u)",
       __func__, conn_id, addr.c_str(), attr_handle, attribute_offset_octets,
@@ -176,7 +176,7 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
                           int attr_handle, int attribute_offset, int length,
                           bool need_rsp, bool is_prep, uint8_t *value) {
   std::string addr(BtAddrString(bda));
-  LOG_INFO(
+  LOG_INFO(LOG_TAG,
       "%s: connection:%d (%s:trans:%d) write attr:%d attribute_offset:%d "
       "length:%d "
       "need_resp:%u is_prep:%u",
@@ -195,8 +195,8 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   // If this is a control attribute, adjust offset of the target blob.
   if (target_blob != internal->controlled_blobs.end() && ch.blob.size() == 1u) {
     internal->characteristics[target_blob->second].blob_section = ch.blob[0];
-    LOG_INFO("%s: updating attribute %d blob_section to %u", __func__,
-             target_blob->second, ch.blob[0]);
+    LOG_INFO(LOG_TAG, "%s: updating attribute %d blob_section to %u", __func__,
+        target_blob->second, ch.blob[0]);
   } else if (!is_prep) {
     // This is a single frame characteristic write.
     // Notify upwards because we're done now.
@@ -225,8 +225,8 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
 void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
                               int exec_write) {
   std::string addr(BtAddrString(bda));
-  LOG_INFO("%s: connection:%d (%s:trans:%d) exec_write:%d", __func__, conn_id,
-           addr.c_str(), trans_id, exec_write);
+  LOG_INFO(LOG_TAG, "%s: connection:%d (%s:trans:%d) exec_write:%d", __func__,
+      conn_id, addr.c_str(), trans_id, exec_write);
 
   if (!exec_write)
     return;
@@ -243,8 +243,8 @@ void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
 void ConnectionCallback(int conn_id, int server_if, int connected,
                         bt_bdaddr_t *bda) {
   std::string addr(BtAddrString(bda));
-  LOG_INFO("%s: connection:%d server_if:%d connected:%d addr:%s", __func__,
-           conn_id, server_if, connected, addr.c_str());
+  LOG_INFO(LOG_TAG, "%s: connection:%d server_if:%d connected:%d addr:%s",
+      __func__, conn_id, server_if, connected, addr.c_str());
   if (connected == 1) {
     internal->connections.insert(conn_id);
   } else if (connected == 0) {
@@ -254,8 +254,9 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
 
 void CharacteristicAddedCallback(int status, int server_if, bt_uuid_t *uuid,
                                  int srvc_handle, int char_handle) {
-  LOG_INFO("%s: status:%d server_if:%d service_handle:%d char_handle:%d",
-           __func__, status, server_if, srvc_handle, char_handle);
+  LOG_INFO(LOG_TAG,
+      "%s: status:%d server_if:%d service_handle:%d char_handle:%d", __func__, 
+      status, server_if, srvc_handle, char_handle);
 
   bluetooth::Uuid id(*uuid);
 
@@ -271,15 +272,15 @@ void CharacteristicAddedCallback(int status, int server_if, bt_uuid_t *uuid,
 
 void DescriptorAddedCallback(int status, int server_if, bt_uuid_t *uuid,
                              int srvc_handle, int descr_handle) {
-  LOG_INFO(
+  LOG_INFO(LOG_TAG,
       "%s: status:%d server_if:%d service_handle:%d uuid[0]:%u "
       "descr_handle:%d",
       __func__, status, server_if, srvc_handle, uuid->uu[0], descr_handle);
 }
 
 void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
-  LOG_INFO("%s: status:%d server_if:%d srvc_handle:%d", __func__, status,
-           server_if, srvc_handle);
+  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d srvc_handle:%d", __func__,
+      status, server_if, srvc_handle);
 
   // The UUID provided here is unimportant, and is only used to satisfy
   // BlueDroid.
@@ -294,8 +295,8 @@ void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
 }
 
 void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
-  LOG_INFO("%s: status:%d client_if:%d uuid[0]:%u", __func__, status,
-           client_if, app_uuid->uu[0]);
+  LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d uuid[0]:%u", __func__, status,
+      client_if, app_uuid->uu[0]);
   internal->client_if = client_if;
 
   // Setup our advertisement. This has no callback.
@@ -322,15 +323,15 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
 }
 
 void ListenCallback(int status, int client_if) {
-  LOG_INFO("%s: status:%d client_if:%d", __func__, status, client_if);
+  LOG_INFO(LOG_TAG, "%s: status:%d client_if:%d", __func__, status, client_if);
   // This terminates a Start call.
   std::lock_guard<std::mutex> lock(internal->lock);
   internal->api_synchronize.notify_one();
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
-  LOG_INFO("%s: status:%d server_if:%d srvc_handle:%d", __func__, status,
-           server_if, srvc_handle);
+  LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d srvc_handle:%d", __func__, 
+      status, server_if, srvc_handle);
   // This terminates a Stop call.
   // TODO(icoolidge): make this symmetric with start
   std::lock_guard<std::mutex> lock(internal->lock);
@@ -347,15 +348,15 @@ void ScanResultCallback(bt_bdaddr_t *bda, int rssi, uint8_t *adv_data) {
 void ClientConnectCallback(int conn_id, int status, int client_if,
                            bt_bdaddr_t *bda) {
   std::string addr(BtAddrString(bda));
-  LOG_INFO("%s: conn_id:%d status:%d client_if:%d %s", __func__, conn_id,
-           status, client_if, addr.c_str());
+  LOG_INFO(LOG_TAG, "%s: conn_id:%d status:%d client_if:%d %s", __func__, 
+      conn_id, status, client_if, addr.c_str());
 }
 
 void ClientDisconnectCallback(int conn_id, int status, int client_if,
                               bt_bdaddr_t *bda) {
   std::string addr(BtAddrString(bda));
-  LOG_INFO("%s: conn_id:%d status:%d client_if:%d %s", __func__, conn_id,
-           status, client_if, addr.c_str());
+  LOG_INFO(LOG_TAG, "%s: conn_id:%d status:%d client_if:%d %s", __func__,
+      conn_id, status, client_if, addr.c_str());
 }
 
 void IndicationSentCallback(UNUSED_ATTR int conn_id,
@@ -512,7 +513,7 @@ bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
   }
 
   *gatt_pipe = internal_->pipefd[kPipeReadEnd];
-  LOG_INFO("Server Initialize succeeded");
+  LOG_INFO(LOG_TAG, "Server Initialize succeeded");
   return true;
 }
 

@@ -24,6 +24,8 @@
  *
  *****************************************************************************/
 
+#define LOG_TAG "bt_a2dp_hw"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -55,8 +57,6 @@
 #define USEC_PER_SEC 1000000L
 
 #define CASE_RETURN_STR(const) case const: return #const;
-
-#define LOG_TAG "bt_a2dp_hw"
 
 #define FNLOG()             LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);
 #define DEBUG(fmt, ...)     LOG_VERBOSE(LOG_TAG, "%s: " fmt,__FUNCTION__, ## __VA_ARGS__)

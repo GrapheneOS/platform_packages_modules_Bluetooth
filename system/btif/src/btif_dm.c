@@ -25,6 +25,8 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "bt_btif_dm"
+
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
@@ -59,8 +61,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack_config.h"
-
-#define LOG_TAG "bt_btif_dm"
 
 /******************************************************************************
 **  Device specific workarounds

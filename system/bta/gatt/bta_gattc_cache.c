@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_gattc"
+
 #include "bt_target.h"
 
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
@@ -43,8 +45,6 @@ static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
 
 #define BTA_GATT_SDP_DB_SIZE 4096
-
-#define LOG_TAG "bt_bta_gattc"
 
 /*****************************************************************************
 **  Constants
