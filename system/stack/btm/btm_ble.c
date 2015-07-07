@@ -1028,6 +1028,8 @@ void btm_sec_save_le_key(BD_ADDR bd_addr, tBTM_LE_KEY_TYPE key_type, tBTM_LE_KEY
 
     if ((p_rec = btm_find_dev (bd_addr)) != NULL && (p_keys || key_type== BTM_LE_KEY_LID))
     {
+        btm_ble_init_pseudo_addr (p_rec, bd_addr);
+
         switch (key_type)
         {
             case BTM_LE_KEY_PENC:
@@ -1654,7 +1656,15 @@ static void btm_ble_resolve_random_addr_on_conn_cmpl(void * p_rec, void *p_data)
         match = TRUE;
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
-        memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+        if (!btm_ble_init_pseudo_addr (match_rec, bda))
+        {
+            /* assign the original address to be the current report address */
+            memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
+        }
+        else
+        {
+            memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+        }
     }
     else
     {
@@ -1823,6 +1833,7 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
         else
         {
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
+            btm_cb.ble_ctr_cb.inq_var.adv_mode  = BTM_BLE_ADV_DISABLE;
             btm_ble_disable_resolving_list(BTM_BLE_RL_ADV, TRUE);
 #endif
         }
@@ -1953,7 +1964,6 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
 
                     if (res == BTM_SUCCESS)
                     {
-                        p_dev_rec->device_type |= BT_DEVICE_TYPE_BLE;
                         p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
 #if (defined BLE_PRIVACY_SPT && BLE_PRIVACY_SPT == TRUE)
                         /* add all bonded device into resolving list if IRK is available*/
