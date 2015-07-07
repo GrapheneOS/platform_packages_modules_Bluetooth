@@ -1466,6 +1466,29 @@ update_call_states:
     return status;
 }
 
+/*******************************************************************************
+**
+** Function         btif_hf_is_call_idle
+**
+** Description      returns true if no call is in progress
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+BOOLEAN btif_hf_is_call_idle()
+{
+    if (bt_hf_callbacks == NULL)
+        return TRUE;
+
+    for (int i = 0; i < btif_max_hf_clients; ++i)
+    {
+        if ((btif_hf_cb[i].call_setup_state != BTHF_CALL_STATE_IDLE)
+            || ((btif_hf_cb[i].num_held + btif_hf_cb[i].num_active) > 0))
+            return FALSE;
+    }
+
+    return TRUE;
+}
 
 /*******************************************************************************
 **
