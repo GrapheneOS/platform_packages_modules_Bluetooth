@@ -16,16 +16,16 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_hci"
+#include "hci_packet_parser.h"
 
 #include <assert.h>
 
 #include "buffer_allocator.h"
-#include "bt_types.h"
-#include "hcimsgs.h"
 #include "hci_layer.h"
-#include "hci_packet_parser.h"
+#include "hcimsgs.h"
 #include "osi/include/log.h"
+
+#define LOG_TAG "bt_hci"
 
 static const command_opcode_t NO_OPCODE_CHECKING = 0;
 
@@ -109,7 +109,7 @@ static void parse_read_local_extended_features_response(
     assert(*page_number_ptr < feature_pages_count);
     STREAM_TO_ARRAY(feature_pages[*page_number_ptr].as_array, stream, (int)sizeof(bt_device_features_t));
   } else {
-    LOG_ERROR("%s() - WARNING: READING EXTENDED FEATURES FAILED. "
+    LOG_ERROR(LOG_TAG, "%s() - WARNING: READING EXTENDED FEATURES FAILED. "
                 "THIS MAY INDICATE A FIRMWARE/CONTROLLER ISSUE.", __func__);
   }
 

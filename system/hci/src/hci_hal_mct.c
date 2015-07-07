@@ -16,20 +16,20 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_hci_mct"
-
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "bt_vendor_lib.h"
-#include "osi/include/eager_reader.h"
 #include "hci_hal.h"
-#include "osi/include/osi.h"
+#include "osi/include/eager_reader.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "vendor.h"
+
+#define LOG_TAG "bt_hci_mct"
 
 #define HCI_HAL_SERIAL_BUFFER_SIZE 1026
 
@@ -60,48 +60,48 @@ static bool hal_init(const hci_hal_callbacks_t *upper_callbacks, thread_t *upper
 }
 
 static bool hal_open() {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
   // TODO(zachoverflow): close if already open / or don't reopen (maybe at the hci layer level)
 
   int number_of_ports = vendor->send_command(VENDOR_OPEN_USERIAL, &uart_fds);
 
   if (number_of_ports != 2 && number_of_ports != 4) {
-    LOG_ERROR("%s opened the wrong number of ports: got %d, expected 2 or 4.", __func__, number_of_ports);
+    LOG_ERROR(LOG_TAG, "%s opened the wrong number of ports: got %d, expected 2 or 4.", __func__, number_of_ports);
     goto error;
   }
 
-  LOG_INFO("%s got uart fds: CMD=%d, EVT=%d, ACL_OUT=%d, ACL_IN=%d",
+  LOG_INFO(LOG_TAG, "%s got uart fds: CMD=%d, EVT=%d, ACL_OUT=%d, ACL_IN=%d",
       __func__, uart_fds[CH_CMD], uart_fds[CH_EVT], uart_fds[CH_ACL_OUT], uart_fds[CH_ACL_IN]);
 
   if (uart_fds[CH_CMD] == INVALID_FD) {
-    LOG_ERROR("%s unable to open the command uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open the command uart serial port.", __func__);
     goto error;
   }
 
   if (uart_fds[CH_EVT] == INVALID_FD) {
-    LOG_ERROR("%s unable to open the event uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open the event uart serial port.", __func__);
     goto error;
   }
 
   if (uart_fds[CH_ACL_OUT] == INVALID_FD) {
-    LOG_ERROR("%s unable to open the acl-out uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open the acl-out uart serial port.", __func__);
     goto error;
   }
 
   if (uart_fds[CH_ACL_IN] == INVALID_FD) {
-    LOG_ERROR("%s unable to open the acl-in uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to open the acl-in uart serial port.", __func__);
     goto error;
   }
 
   event_stream = eager_reader_new(uart_fds[CH_EVT], &allocator_malloc, HCI_HAL_SERIAL_BUFFER_SIZE, SIZE_MAX, "hci_mct");
   if (!event_stream) {
-    LOG_ERROR("%s unable to create eager reader for the event uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create eager reader for the event uart serial port.", __func__);
     goto error;
   }
 
   acl_stream = eager_reader_new(uart_fds[CH_ACL_IN], &allocator_malloc, HCI_HAL_SERIAL_BUFFER_SIZE, SIZE_MAX, "hci_mct");
   if (!event_stream) {
-    LOG_ERROR("%s unable to create eager reader for the acl-in uart serial port.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create eager reader for the acl-in uart serial port.", __func__);
     goto error;
   }
 
@@ -116,7 +116,7 @@ error:;
 }
 
 static void hal_close() {
-  LOG_INFO("%s", __func__);
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   eager_reader_free(event_stream);
   eager_reader_free(acl_stream);
@@ -133,7 +133,7 @@ static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_siz
     return eager_reader_read(event_stream, buffer, max_size, block);
   }
 
-  LOG_ERROR("%s invalid data type: %d", __func__, type);
+  LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);
   return 0;
 }
 
@@ -148,7 +148,7 @@ static uint16_t transmit_data(serial_data_type_t type, uint8_t *data, uint16_t l
     return transmit_data_on(uart_fds[CH_CMD], data, length);
   }
 
-  LOG_ERROR("%s invalid data type: %d", __func__, type);
+  LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);
   return 0;
 }
 
@@ -163,7 +163,7 @@ static uint16_t transmit_data_on(int fd, uint8_t *data, uint16_t length) {
     ssize_t ret = write(fd, data + transmitted_length, length);
     switch (ret) {
       case -1:
-        LOG_ERROR("In %s, error writing to the serial port with fd %d: %s", __func__, fd, strerror(errno));
+        LOG_ERROR(LOG_TAG, "In %s, error writing to the serial port with fd %d: %s", __func__, fd, strerror(errno));
         return transmitted_length;
       case 0:
         // If we wrote nothing, don't loop more because we

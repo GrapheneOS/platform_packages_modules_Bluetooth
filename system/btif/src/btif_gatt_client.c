@@ -31,26 +31,23 @@
 #include <errno.h>
 #include <string.h>
 
-#define LOG_TAG "bt_btif_gattc"
-
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"
 #include "btif_util.h"
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
-#include "btif_gatt_multi_adv_util.h"
 #include <hardware/bt_gatt.h>
+
 #include "bta_api.h"
 #include "bta_gatt_api.h"
-#include "btif_storage.h"
 #include "btif_config.h"
-
-#include "btif_gatt.h"
-#include "btif_gatt_util.h"
 #include "btif_dm.h"
+#include "btif_gatt.h"
+#include "btif_gatt_multi_adv_util.h"
+#include "btif_gatt_util.h"
 #include "btif_storage.h"
-
+#include "btif_storage.h"
 #include "osi/include/log.h"
 #include "vendor_api.h"
 
@@ -58,12 +55,14 @@
 **  Constants & Macros
 ********************************************************************************/
 
+#define LOG_TAG "bt_btif_gattc"
+
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
-        LOG_WARN("%s: BTGATT not initialized", __FUNCTION__);\
+        LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __FUNCTION__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        LOG_VERBOSE("%s", __FUNCTION__);\
+        LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);\
     }
 
 #define BLE_RESOLVE_ADDR_MSB                 0x40   /* bit7, bit6 is 01 to be resolvable random */
@@ -401,7 +400,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
             memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
             p_dev_cb->addr_type = addr_type;
             p_dev_cb->remote_dev[i].in_use = TRUE;
-            LOG_VERBOSE("%s device added idx=%d", __FUNCTION__, i  );
+            LOG_VERBOSE(LOG_TAG, "%s device added idx=%d", __FUNCTION__, i  );
             break;
         }
     }
@@ -412,7 +411,7 @@ static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
         memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
         p_dev_cb->addr_type = addr_type;
         p_dev_cb->remote_dev[i].in_use = TRUE;
-        LOG_VERBOSE("%s device overwrite idx=%d", __FUNCTION__, i  );
+        LOG_VERBOSE(LOG_TAG, "%s device overwrite idx=%d", __FUNCTION__, i  );
         p_dev_cb->next_storage_idx++;
         if (p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
                p_dev_cb->next_storage_idx = 0;
@@ -453,7 +452,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len]='\0';
 
-        LOG_DEBUG("%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
+        LOG_DEBUG(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
               remote_name_len, p_btif_cb->device_type  );
         btif_dm_update_ble_remote_properties( p_btif_cb->bd_addr.address,   bdname.name,
                                                p_btif_cb->device_type);
@@ -464,7 +463,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
 
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
-    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
 
     tBTA_GATTC *p_data = (tBTA_GATTC*) p_param;
     switch (event)
@@ -606,7 +605,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         case BTA_GATTC_ACL_EVT:
-            LOG_DEBUG("BTA_GATTC_ACL_EVT: status = %d", p_data->status);
+            LOG_DEBUG(LOG_TAG, "BTA_GATTC_ACL_EVT: status = %d", p_data->status);
             /* Ignore for now */
             break;
 
@@ -843,7 +842,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
         }
 
         default:
-            LOG_ERROR("%s: Unhandled event (%d)!", __FUNCTION__, event);
+            LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
     }
 
@@ -1141,7 +1140,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
     if (!p_cb) return;
 
-    LOG_VERBOSE("%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
 
     switch (event)
     {
@@ -1534,7 +1533,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 }
 
                 default:
-                    LOG_ERROR("%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
+                    LOG_ERROR(LOG_TAG, "%s: Unknown filter type (%d)!", __FUNCTION__, p_cb->action);
                     break;
             }
             break;
@@ -1731,7 +1730,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         }
 
         default:
-            LOG_ERROR("%s: Unknown event (%d)!", __FUNCTION__, event);
+            LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
 }

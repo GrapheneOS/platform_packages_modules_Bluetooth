@@ -198,7 +198,7 @@ void BTU_StartUp(void)
     return;
 
   error_exit:;
-    LOG_ERROR("%s Unable to allocate resources for bt_workqueue", __func__);
+    LOG_ERROR(LOG_TAG, "%s Unable to allocate resources for bt_workqueue", __func__);
     BTU_ShutDown();
 }
 

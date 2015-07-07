@@ -26,40 +26,42 @@
  **
  ******************************************************************************/
 
-#define LOG_TAG "bt_btif_media"
-
 #include <assert.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <dlfcn.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/stat.h>
 #include <sys/time.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
 
+#include <hardware/bluetooth.h>
+
+#include "a2d_api.h"
+#include "a2d_int.h"
+#include "a2d_sbc.h"
+#include "audio_a2dp_hw.h"
 #include "bt_target.h"
-#include "osi/include/fixed_queue.h"
-#include "gki.h"
 #include "bta_api.h"
-#include "btu.h"
+#include "bta_av_api.h"
+#include "bta_av_ci.h"
+#include "bta_av_sbc.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
-
-#include "bta_av_api.h"
-#include "a2d_api.h"
-#include "a2d_sbc.h"
-#include "a2d_int.h"
-#include "bta_av_sbc.h"
-#include "bta_av_ci.h"
-#include "l2c_api.h"
-
+#include "btif_av.h"
 #include "btif_av_co.h"
 #include "btif_media.h"
-
+#include "btif_sm.h"
+#include "btif_util.h"
+#include "btu.h"
+#include "gki.h"
+#include "l2c_api.h"
 #include "osi/include/alarm.h"
+#include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/thread.h"
 
@@ -67,17 +69,12 @@
 #include "sbc_encoder.h"
 #endif
 
-#include <hardware/bluetooth.h>
-#include "audio_a2dp_hw.h"
-#include "btif_av.h"
-#include "btif_sm.h"
-#include "btif_util.h"
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 #include "oi_codec_sbc.h"
 #include "oi_status.h"
 #endif
-#include "stdio.h"
-#include <dlfcn.h>
+
+#define LOG_TAG "bt_btif_media"
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 OI_CODEC_SBC_DECODER_CONTEXT context;
@@ -1180,7 +1177,7 @@ static void btif_media_task_aa_handle_uipc_rx_rdy(void)
     btif_media_aa_prep_2_send(0xFF);
 
     /* send it */
-    LOG_VERBOSE("btif_media_task_aa_handle_uipc_rx_rdy calls bta_av_ci_src_data_ready");
+    LOG_VERBOSE(LOG_TAG, "btif_media_task_aa_handle_uipc_rx_rdy calls bta_av_ci_src_data_ready");
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 #endif
@@ -1251,7 +1248,7 @@ static void btif_media_flush_q(BUFFER_Q *p_q)
 static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void *context)
 {
     BT_HDR *p_msg = (BT_HDR *)fixed_queue_dequeue(queue);
-    LOG_VERBOSE("btif_media_thread_handle_cmd : %d %s", p_msg->event,
+    LOG_VERBOSE(LOG_TAG, "btif_media_thread_handle_cmd : %d %s", p_msg->event,
              dump_media_event(p_msg->event));
 
     switch (p_msg->event)
@@ -1296,7 +1293,7 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void 
         APPL_TRACE_ERROR("ERROR in %s unknown event %d", __func__, p_msg->event);
     }
     GKI_freebuf(p_msg);
-    LOG_VERBOSE("%s: %s DONE", __func__, dump_media_event(p_msg->event));
+    LOG_VERBOSE(LOG_TAG, "%s: %s DONE", __func__, dump_media_event(p_msg->event));
 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
@@ -1925,7 +1922,7 @@ static void btif_media_task_aa_handle_start_decoding(void) {
 
   btif_media_cb.decode_alarm = alarm_new();
   if (!btif_media_cb.decode_alarm) {
-    LOG_ERROR("%s unable to allocate decode alarm.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate decode alarm.", __func__);
     return;
   }
 
@@ -2141,7 +2138,7 @@ static void btif_media_task_aa_start_tx(void)
 
     btif_media_cb.media_alarm = alarm_new();
     if (!btif_media_cb.media_alarm) {
-      LOG_ERROR("%s unable to allocate media alarm.", __func__);
+      LOG_ERROR(LOG_TAG, "%s unable to allocate media alarm.", __func__);
       return;
     }
 
@@ -2234,7 +2231,7 @@ static UINT8 btif_get_num_aa_frame(void)
             }
             btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
 
-            LOG_VERBOSE("WRITE %d FRAMES", result);
+            LOG_VERBOSE(LOG_TAG, "WRITE %d FRAMES", result);
         }
         break;
 
@@ -2633,7 +2630,7 @@ static void btif_media_send_aa_frame(void)
     }
 
     /* send it */
-    LOG_VERBOSE("btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
+    LOG_VERBOSE(LOG_TAG, "btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 

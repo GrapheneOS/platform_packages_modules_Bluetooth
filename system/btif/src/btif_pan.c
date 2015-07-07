@@ -24,45 +24,46 @@
  *
  *
  ***********************************************************************************/
-#include <hardware/bluetooth.h>
-#include <hardware/bt_pan.h>
 #include <assert.h>
-#include <string.h>
-#include <signal.h>
 #include <ctype.h>
-#include <sys/select.h>
-#include <sys/poll.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/if_ether.h>
+#include <linux/if_tun.h>
+#include <linux/sockios.h>
+#include <net/if.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <stdio.h>
+#include <string.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/poll.h>
+#include <sys/prctl.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
-#include <net/if.h>
-#include <linux/sockios.h>
-#include <sys/prctl.h>
-#include <linux/if_tun.h>
-#include <linux/if_ether.h>
 #include <unistd.h>
 
-#define LOG_TAG "bt_btif_pan"
-#include "btif_common.h"
-#include "btif_util.h"
-#include "btm_api.h"
-#include "btcore/include/bdaddr.h"
-#include "device/include/controller.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_pan.h>
 
 #include "bta_api.h"
 #include "bta_pan_api.h"
+#include "btcore/include/bdaddr.h"
+#include "btif_common.h"
+#include "btif_pan_internal.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
-#include "btif_pan_internal.h"
+#include "btif_util.h"
+#include "btm_api.h"
+#include "device/include/controller.h"
 #include "gki.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
+
+#define LOG_TAG "bt_btif_pan"
 
 #define FORWARD_IGNORE        1
 #define FORWARD_SUCCESS       0
@@ -446,7 +447,7 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(packet, &eth_hdr, sizeof(tETH_HDR));
         if (len > TAP_MAX_PKT_WRITE_LEN)
         {
-            LOG_ERROR("btpan_tap_send eth packet size:%d is exceeded limit!", len);
+            LOG_ERROR(LOG_TAG, "btpan_tap_send eth packet size:%d is exceeded limit!", len);
             return -1;
         }
         memcpy(packet + sizeof(tETH_HDR), buf, len);
@@ -608,7 +609,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
                 bt_status_t status;
                 btpan_conn_t *conn = btpan_find_conn_handle(p_data->open.handle);
 
-                LOG_VERBOSE("%s pan connection open status: %d", __func__, p_data->open.status);
+                LOG_VERBOSE(LOG_TAG, "%s pan connection open status: %d", __func__, p_data->open.status);
                 if (p_data->open.status == BTA_PAN_SUCCESS)
                 {
                     state = BTPAN_STATE_CONNECTED;
@@ -632,7 +633,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             {
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
 
-                LOG_INFO("%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                LOG_INFO(LOG_TAG, "%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
 
                 if (conn && conn->handle >= 0)
                 {

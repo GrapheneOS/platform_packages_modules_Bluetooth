@@ -16,8 +16,6 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_btif_config"
-
 #include <assert.h>
 #include <ctype.h>
 #include <pthread.h>
@@ -25,19 +23,20 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "osi/include/alarm.h"
-#include "osi/include/allocator.h"
+#include "bt_types.h"
 #include "btcore/include/bdaddr.h"
+#include "btcore/include/module.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
+#include "osi/include/alarm.h"
+#include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/config.h"
-#include "btcore/include/module.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
-#include "bt_types.h"
+#define LOG_TAG "bt_btif_config"
 
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
@@ -61,7 +60,7 @@ bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
     if (!btif_config_get_int(bd_addr_str, "DevType", p_device_type))
         return FALSE;
 
-    LOG_DEBUG("%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
+    LOG_DEBUG(LOG_TAG, "%s: Device [%s] type %d", __FUNCTION__, bd_addr_str, *p_device_type);
     return TRUE;
 }
 
@@ -79,7 +78,7 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
     if (!btif_config_get_int(bd_addr_str, "AddrType", p_addr_type))
         return FALSE;
 
-    LOG_DEBUG("%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
+    LOG_DEBUG(LOG_TAG, "%s: Device [%s] address type %d", __FUNCTION__, bd_addr_str, *p_addr_type);
     return TRUE;
 }
 
@@ -93,13 +92,13 @@ static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
-    LOG_WARN("%s unable to load config file; attempting to transcode legacy file.", __func__);
+    LOG_WARN(LOG_TAG, "%s unable to load config file; attempting to transcode legacy file.", __func__);
     config = btif_config_transcode(LEGACY_CONFIG_FILE_PATH);
     if (!config) {
-      LOG_WARN("%s unable to transcode legacy file, starting unconfigured.", __func__);
+      LOG_WARN(LOG_TAG, "%s unable to transcode legacy file, starting unconfigured.", __func__);
       config = config_new_empty();
       if (!config) {
-        LOG_ERROR("%s unable to allocate a config object.", __func__);
+        LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
         goto error;
       }
     }
@@ -113,7 +112,7 @@ static future_t *init(void) {
   // write back to disk.
   alarm_timer = alarm_new();
   if (!alarm_timer) {
-    LOG_ERROR("%s unable to create alarm.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create alarm.", __func__);
     goto error;
   }
 

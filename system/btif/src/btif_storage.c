@@ -27,34 +27,35 @@
  *
  *
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <ctype.h>
-#include <alloca.h>
 
+#include <alloca.h>
+#include <assert.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #include <hardware/bluetooth.h>
-#include "btif_config.h"
-#define LOG_TAG "bt_btif_storage"
 
+#include "bta_hh_api.h"
+#include "btcore/include/bdaddr.h"
 #include "btif_api.h"
+#include "btif_config.h"
+#include "btif_hh.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "btcore/include/bdaddr.h"
+#include "gki.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/config.h"
-#include "gki.h"
-#include "osi/include/osi.h"
-#include "bta_hh_api.h"
-#include "btif_hh.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
+
+#define LOG_TAG "bt_btif_storage"
 
 #define BTIF_STORAGE_PATH_BLUEDROID "/data/misc/bluedroid"
 
@@ -658,7 +659,7 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t *property)
         uint32_t i;
 
         tBTA_SERVICE_MASK service_mask = btif_get_enabled_services_mask();
-        LOG_INFO("%s service_mask:0x%x", __FUNCTION__, service_mask);
+        LOG_INFO(LOG_TAG, "%s service_mask:0x%x", __FUNCTION__, service_mask);
         for (i=0; i < BTA_MAX_SERVICE_ID; i++)
         {
             /* This should eventually become a function when more services are enabled */
@@ -1521,7 +1522,7 @@ bt_status_t btif_storage_load_autopair_device_list() {
 
     config_t *config = config_new(BTIF_AUTO_PAIR_CONF_FILE);
     if (!config) {
-        LOG_ERROR("%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
+        LOG_ERROR(LOG_TAG, "%s failed to open auto pair blacklist conf file '%s'.", __func__, BTIF_AUTO_PAIR_CONF_FILE);
         return BT_STATUS_FAIL;
     }
 

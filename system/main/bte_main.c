@@ -24,40 +24,41 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_main"
-
 #include <assert.h>
 #include <fcntl.h>
-#include <hardware/bluetooth.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "osi/include/alarm.h"
-#include "bta_api.h"
+#include <hardware/bluetooth.h>
+
 #include "bt_hci_bdroid.h"
-#include "bte.h"
-#include "btif_common.h"
-#include "btu.h"
-#include "btsnoop.h"
 #include "bt_utils.h"
+#include "bta_api.h"
 #include "btcore/include/counter.h"
 #include "btcore/include/module.h"
+#include "bte.h"
+#include "btif_common.h"
+#include "btsnoop.h"
+#include "btu.h"
+#include "gki.h"
+#include "hci_layer.h"
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
-#include "gki.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
-#include "hci_layer.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "stack_config.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
+#include "stack_config.h"
 
 /*******************************************************************************
 **  Constants & Macros
 *******************************************************************************/
+
+#define LOG_TAG "bt_main"
 
 /* Run-time configuration file for BLE*/
 #ifndef BTE_BLE_STACK_CONF_FILE
@@ -99,11 +100,11 @@ void bte_main_boot_entry(void)
 
     hci = hci_layer_get_interface();
     if (!hci)
-      LOG_ERROR("%s could not get hci layer interface.", __func__);
+      LOG_ERROR(LOG_TAG, "%s could not get hci layer interface.", __func__);
 
     btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
     if (btu_hci_msg_queue == NULL) {
-      LOG_ERROR("%s unable to allocate hci message queue.", __func__);
+      LOG_ERROR(LOG_TAG, "%s unable to allocate hci message queue.", __func__);
       return;
     }
 

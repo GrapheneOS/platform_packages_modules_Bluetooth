@@ -140,7 +140,7 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
   // or when the item is removed from the queue for dispatch.
   work_item_t *item = (work_item_t *)osi_malloc(sizeof(work_item_t));
   if (!item) {
-    LOG_ERROR("%s unable to allocate memory: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to allocate memory: %s", __func__, strerror(errno));
     return false;
   }
   item->func = func;
@@ -178,7 +178,7 @@ static void *run_thread(void *start_arg) {
   assert(thread != NULL);
 
   if (prctl(PR_SET_NAME, (unsigned long)thread->name) == -1) {
-    LOG_ERROR("%s unable to set thread name: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to set thread name: %s", __func__, strerror(errno));
     start->error = errno;
     semaphore_post(start->start_sem);
     return NULL;
@@ -207,7 +207,7 @@ static void *run_thread(void *start_arg) {
   }
 
   if (count > fixed_queue_capacity(thread->work_queue))
-    LOG_DEBUG("%s growing event queue on shutdown.", __func__);
+    LOG_DEBUG(LOG_TAG, "%s growing event queue on shutdown.", __func__);
 
   return NULL;
 }

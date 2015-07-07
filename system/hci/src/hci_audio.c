@@ -27,7 +27,7 @@
 
 void set_audio_state(uint16_t handle, sco_codec_t codec, sco_state_t state)
 {
-    LOG_INFO("%s handle:%d codec:0x%x state:%d", __func__, handle, codec, state);
+    LOG_INFO(LOG_TAG, "%s handle:%d codec:0x%x state:%d", __func__, handle, codec, state);
 
     bt_vendor_op_audio_state_t audio_state;
 

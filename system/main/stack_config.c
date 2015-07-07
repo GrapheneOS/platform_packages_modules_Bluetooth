@@ -16,13 +16,14 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bt_stack_config"
+#include "stack_config.h"
 
 #include <assert.h>
 
 #include "osi/include/future.h"
-#include "stack_config.h"
 #include "osi/include/log.h"
+
+#define LOG_TAG "bt_stack_config"
 
 const char *BTSNOOP_LOG_PATH_KEY = "BtSnoopFileName";
 const char *BTSNOOP_TURNED_ON_KEY = "BtSnoopLogOutput";
@@ -37,11 +38,11 @@ static future_t *init() {
   const char *path = "/etc/bluetooth/bt_stack.conf";
   assert(path != NULL);
 
-  LOG_INFO("%s attempt to load stack conf from %s", __func__, path);
+  LOG_INFO(LOG_TAG, "%s attempt to load stack conf from %s", __func__, path);
 
   config = config_new(path);
   if (!config) {
-    LOG_INFO("%s file >%s< not found", __func__, path);
+    LOG_INFO(LOG_TAG, "%s file >%s< not found", __func__, path);
     return future_new_immediate(FUTURE_FAIL);
   }
 

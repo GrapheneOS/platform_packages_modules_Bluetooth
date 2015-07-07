@@ -15,41 +15,41 @@
 * limitations under the License.
 */
 
+#include <errno.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <pthread.h>
 
 #define LOG_TAG "BTIF_SOCK"
 #include "osi/include/allocator.h"
-#include "btif_common.h"
-#include "btif_util.h"
-
-#include "bta_api.h"
-#include "btif_sock_thread.h"
-#include "btif_sock_sdp.h"
-#include "btif_sock_util.h"
-#include "btif_sock_l2cap.h"
-#include "l2cdefs.h"
+#include "osi/include/log.h"
 
 #include "bt_target.h"
-#include "gki.h"
-#include "hcimsgs.h"
-#include "sdp_api.h"
-#include "btu.h"
-#include "btm_api.h"
-#include "btm_int.h"
+#include "bta_api.h"
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
-#include "port_api.h"
+#include "btif_common.h"
+#include "btif_sock_l2cap.h"
+#include "btif_sock_sdp.h"
+#include "btif_sock_thread.h"
+#include "btif_sock_util.h"
+#include "btif_util.h"
+#include "btm_api.h"
+#include "btm_int.h"
+#include "btu.h"
+#include "gki.h"
+#include "hcimsgs.h"
 #include "l2c_api.h"
+#include "l2cdefs.h"
+#include "port_api.h"
+#include "sdp_api.h"
 
-#include <cutils/log.h>
-#include <hardware/bluetooth.h>
 #define asrt(s) if (!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, \
         #s, __LINE__)
 
@@ -82,7 +82,7 @@ typedef struct l2cap_socket {
     unsigned               connected        :1;  //is connected?
     unsigned               outgoing_congest :1;  //should we hold?
     unsigned               server_psm_sent  :1;  //The server shall only send PSM once.
-}l2cap_socket;
+} l2cap_socket;
 
 static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock);
 
@@ -182,12 +182,12 @@ static char packet_put_tail_l(l2cap_socket *sock, const void *data, uint32_t len
     struct packet *p = packet_alloc((const uint8_t*)data, len);
 
     if (sock->bytes_buffered >= L2CAP_MAX_RX_BUFFER) {
-        ALOGE("packet_put_tail_l: buffer overflow");
+        LOG_ERROR(LOG_TAG, "packet_put_tail_l: buffer overflow");
         return FALSE;
     }
 
     if (!p) {
-        ALOGE("packet_put_tail_l: unable to allocate packet...");
+        LOG_ERROR(LOG_TAG, "packet_put_tail_l: unable to allocate packet...");
         return FALSE;
     }
 

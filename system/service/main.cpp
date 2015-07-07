@@ -44,13 +44,13 @@ int main() {
 
   int server_socket = osi_android_get_control_socket(kSocketFromInit);
   if (server_socket == -1) {
-    LOG_ERROR("failed to get socket from init");
+    LOG_ERROR(LOG_TAG, "failed to get socket from init");
     return EXIT_FAILURE;
   }
 
   status = listen(server_socket, SOMAXCONN);
   if (status == -1) {
-    LOG_ERROR("listen failed: %s", strerror(errno));
+    LOG_ERROR(LOG_TAG, "listen failed: %s", strerror(errno));
     return EXIT_FAILURE;
   }
 
@@ -61,7 +61,7 @@ int main() {
   while (true) {
     int client_socket = accept4(server_socket, nullptr, nullptr, SOCK_NONBLOCK);
     if (status == -1) {
-      LOG_ERROR("accept failed: %s", strerror(errno));
+      LOG_ERROR(LOG_TAG, "accept failed: %s", strerror(errno));
       return EXIT_FAILURE;
     }
 

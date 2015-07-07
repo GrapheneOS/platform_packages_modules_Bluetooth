@@ -58,7 +58,7 @@ int A2dpSource::Start() {
   // Get the interface to the a2dp source profile.
   const void *interface = bt_->GetInterface(BT_PROFILE_ADVANCED_AUDIO_ID);
   if (!interface) {
-    LOG_ERROR("Error getting audio source interface");
+    LOG_ERROR(LOG_TAG, "Error getting audio source interface");
     return -1;
   }
 
@@ -66,7 +66,7 @@ int A2dpSource::Start() {
 
   bt_status_t btstat = av_->init(&av_callbacks);
   if (btstat != BT_STATUS_SUCCESS && btstat != BT_STATUS_DONE) {
-    LOG_ERROR("Failed to initialize audio source interface: %s %d",
+    LOG_ERROR(LOG_TAG, "Failed to initialize audio source interface: %s %d",
               BtStatusText(btstat), btstat);
     return -1;
   }
