@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bta_av"
+
 #include <assert.h>
 #include <string.h>
 
@@ -42,8 +44,6 @@
 /*****************************************************************************
 ** Constants and types
 *****************************************************************************/
-
-#define LOG_TAG "bta_av"
 
 /* AVDTP protocol timeout values */
 #define BTIF_AVK_SERVICE_NAME "Advanced Audio Sink"

@@ -24,6 +24,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_queue"
+
 #include <assert.h>
 #include <string.h>
 
@@ -35,8 +37,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "stack_manager.h"
-
-#define LOG_TAG "bt_btif_queue"
 
 /*******************************************************************************
 **  Local type definitions

@@ -30,6 +30,8 @@
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
+#define LOG_TAG "bt_btif_gatt"
+
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bte_appl.h"
@@ -39,8 +41,6 @@
 #include "btif_storage.h"
 #include "gatt_api.h"
 #include "osi/include/log.h"
-
-#define LOG_TAG "bt_btif_gatt"
 
 /*******************************************************************************
  * Typedefs & Macros

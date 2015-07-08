@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_hci_inject"
+
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
@@ -30,8 +32,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/socket.h"
 #include "osi/include/thread.h"
-
-#define LOG_TAG "bt_hci_inject"
 
 typedef enum {
   HCI_PACKET_COMMAND  = 1,

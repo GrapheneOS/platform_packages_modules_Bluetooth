@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_hci"
+
 #include "hci_packet_parser.h"
 
 #include <assert.h>
@@ -24,8 +26,6 @@
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "osi/include/log.h"
-
-#define LOG_TAG "bt_hci"
 
 static const command_opcode_t NO_OPCODE_CHECKING = 0;
 

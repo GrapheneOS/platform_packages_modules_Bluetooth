@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_dm"
+
 #include <string.h>
 
 #include "bt_target.h"
@@ -45,8 +47,6 @@
 #if (GAP_INCLUDED == TRUE)
 #include "gap_api.h"
 #endif
-
-#define LOG_TAG "bt_bta_dm"
 
 static void bta_dm_inq_results_cb (tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_inq_cmpl_cb (void * p_result);

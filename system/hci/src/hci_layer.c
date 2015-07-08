@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_hci"
+
 #include <assert.h>
 #include <pthread.h>
 #include <signal.h>
@@ -49,8 +51,6 @@
 #include "osi/include/reactor.h"
 #include "packet_fragmenter.h"
 #include "vendor.h"
-
-#define LOG_TAG "bt_hci"
 
 // TODO(zachoverflow): remove this hack extern
 #include <hardware/bluetooth.h>
