@@ -53,7 +53,10 @@ const int kPropertyExtendedProps = 0x80;
 // A mapping from string bluetooth addresses to RSSI measurements.
 typedef std::unordered_map<std::string, int> ScanResults;
 
-class ServerInternals;
+// TODO(armansito): This should be a private internal class though I don't see
+// why we even need this class. Instead it should probably be merged into
+// Server.
+struct ServerInternals;
 
 // Server is threadsafe and internally locked.
 // Asynchronous IO is identified via a gatt_pipe FD,

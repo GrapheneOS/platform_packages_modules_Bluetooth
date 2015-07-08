@@ -18,18 +18,25 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <condition_variable>
 #include <mutex>
 #include <string>
 
-#define LOG_TAG "bt_bluetooth_base"
-#include "osi/include/log.h"
+#include <hardware/bluetooth.h>
+#include <hardware/hardware.h>
 
-#include "hardware/bluetooth.h"
-#include "hardware/hardware.h"
+// TODO(armansito): Remove this line and use base/logging.h instead.
+#define LOG_TAG "bluetooth_daemon"
+
 #include "logging_helpers.h"
+
+extern "C" {
+#include "btcore/include/hal_util.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
+}  // extern "C"
 
 namespace {
 
@@ -185,7 +192,7 @@ bool CoreStack::Initialize() {
 
   // Load the bluetooth module.
   const hw_module_t *module;
-  int status = hw_get_module(BT_HARDWARE_MODULE_ID, &module);
+  int status = hal_util_load_bt_library(&module);
   if (status) {
     LOG_ERROR(LOG_TAG, "Error getting bluetooth module");
     return false;

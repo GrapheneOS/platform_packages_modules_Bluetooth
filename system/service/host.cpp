@@ -26,12 +26,12 @@
 
 #include <algorithm>
 
+#include <base/base64.h>
+#include <base/strings/string_number_conversions.h>
+#include <base/strings/string_split.h>
+
 #define LOG_TAG "bt_bluetooth_host"
 #include "osi/include/log.h"
-
-#include "base/base64.h"
-#include "base/strings/string_number_conversions.h"
-#include "base/strings/string_split.h"
 #include "core_stack.h"
 #include "gatt_server.h"
 #include "uuid.h"
@@ -178,7 +178,7 @@ bool Host::OnSetAdvertisement(const std::string& service_uuid,
                               const std::string& advertise_uuids,
                               const std::string& advertise_data,
                               const std::string& transmit_name) {
-  LOG_INFO("%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
+  LOG_INFO(LOG_TAG, "%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
            advertise_uuids.c_str(), advertise_data.c_str());
 
   std::vector<std::string> advertise_uuid_tokens;
@@ -232,7 +232,7 @@ bool Host::OnMessage() {
     LOG_ERROR(LOG_TAG, "Error reading datagram size: %s", strerror(errno));
     return false;
   } else if (0 == size) {
-    LOG_INFO("%s:%d: Connection closed", __func__, __LINE__);
+    LOG_INFO(LOG_TAG, "%s:%d: Connection closed", __func__, __LINE__);
     return false;
   }
 
@@ -242,7 +242,7 @@ bool Host::OnMessage() {
     LOG_ERROR(LOG_TAG, "Error reading IPC: %s", strerror(errno));
     return false;
   } else if (0 == size) {
-    LOG_INFO("%s:%d: Connection closed", __func__, __LINE__);
+    LOG_INFO(LOG_TAG, "%s:%d: Connection closed", __func__, __LINE__);
     return false;
   }
 
