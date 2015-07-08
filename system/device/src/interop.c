@@ -46,8 +46,9 @@ bool interop_match(const interop_feature_t feature, const bt_bdaddr_t *addr) {
     if (feature == interop_database[i].feature &&
         memcmp(addr, &interop_database[i].addr, interop_database[i].len) == 0) {
       char bdstr[20] = {0};
-      LOG_WARN("%s() Device %s is a match for interop workaround %s", __func__,
-          bdaddr_to_string(addr, bdstr, sizeof(bdstr)), interop_feature_string(feature));
+      LOG_WARN(LOG_TAG, "%s() Device %s is a match for interop workaround %s",
+          __func__, bdaddr_to_string(addr, bdstr, sizeof(bdstr)),
+                        interop_feature_string(feature));
       return true;
     }
   }
