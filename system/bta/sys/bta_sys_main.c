@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_sys_main"
+
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
@@ -43,8 +45,6 @@
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
-
-#define LOG_TAG "bt_bta_sys_main"
 
 /* system manager control block definition */
 #if BTA_DYNAMIC_MEMORY == FALSE

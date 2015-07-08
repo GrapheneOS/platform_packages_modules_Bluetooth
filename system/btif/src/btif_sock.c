@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_sock"
+
 #include <assert.h>
 
 #include <hardware/bluetooth.h>
@@ -30,8 +32,6 @@
 #include "btif_sock_thread.h"
 #include "btif_util.h"
 #include "osi/include/thread.h"
-
-#define LOG_TAG "bt_btif_sock"
 
 static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
 static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags);

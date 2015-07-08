@@ -24,6 +24,9 @@
  *
  *
  ***********************************************************************************/
+
+#define LOG_TAG "bt_btif_pan"
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -62,8 +65,6 @@
 #include "gki.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-
-#define LOG_TAG "bt_btif_pan"
 
 #define FORWARD_IGNORE        1
 #define FORWARD_SUCCESS       0

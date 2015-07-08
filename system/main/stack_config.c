@@ -16,14 +16,14 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_stack_config"
+
 #include "stack_config.h"
 
 #include <assert.h>
 
 #include "osi/include/future.h"
 #include "osi/include/log.h"
-
-#define LOG_TAG "bt_stack_config"
 
 const char *BTSNOOP_LOG_PATH_KEY = "BtSnoopFileName";
 const char *BTSNOOP_TURNED_ON_KEY = "BtSnoopLogOutput";

@@ -15,7 +15,7 @@
 //
 #include "a2dp_source.h"
 
-#define LOG_TAG "A2dpSource"
+#define LOG_TAG "bt_a2dp_source"
 #include "osi/include/log.h"
 
 #include "core_stack.h"

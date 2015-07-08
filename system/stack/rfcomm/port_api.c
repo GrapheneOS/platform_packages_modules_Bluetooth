@@ -22,6 +22,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "port_api"
+
 #include <string.h>
 #include "bt_target.h"
 #include "btcore/include/counter.h"
@@ -38,8 +40,6 @@
 
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
-
-#define LOG_TAG "port_api"
 
 #define info(fmt, ...)  LOG_INFO(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)
 #define debug(fmt, ...) LOG_DEBUG(LOG_TAG, "%s: " fmt,__FUNCTION__,  ## __VA_ARGS__)

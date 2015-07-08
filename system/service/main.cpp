@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define LOG_TAG "BtHost"
+#define LOG_TAG "bt_host"
 // For system properties
 // TODO(icoolidge): abstraction or non-cutils stub.
 #include <cutils/properties.h>
@@ -38,7 +38,7 @@ int main() {
   char disable_value[PROPERTY_VALUE_MAX];
   int status = property_get(kDisableProperty, disable_value, nullptr);
   if (status && !strcmp(disable_value, "1")) {
-    LOG_INFO("service disabled");
+    LOG_INFO(LOG_TAG, "%s", "service disabled");
     return EXIT_SUCCESS;
   }
 
@@ -65,7 +65,7 @@ int main() {
       return EXIT_FAILURE;
     }
 
-    LOG_INFO("client connected: %d", client_socket);
+    LOG_INFO(LOG_TAG, "client connected: %d", client_socket);
     bluetooth::Host bluetooth_host(client_socket, &bt);
     bluetooth_host.EventLoop();
   }

@@ -26,6 +26,8 @@
  **
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_media"
+
 #include <assert.h>
 #include <dlfcn.h>
 #include <errno.h>
@@ -73,8 +75,6 @@
 #include "oi_codec_sbc.h"
 #include "oi_status.h"
 #endif
-
-#define LOG_TAG "bt_btif_media"
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 OI_CODEC_SBC_DECODER_CONTEXT context;

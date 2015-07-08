@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_stack_manager"
+
 #include <hardware/bluetooth.h>
 
 #include "btcore/include/module.h"
@@ -33,8 +35,6 @@
 #include "btif_config.h"
 #include "btif_profile_queue.h"
 #include "bt_utils.h"
-
-#define LOG_TAG "bt_stack_manager"
 
 static thread_t *management_thread;
 
