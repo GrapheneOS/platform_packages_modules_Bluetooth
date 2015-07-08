@@ -25,19 +25,20 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hf.h>
+#define LOG_TAG "bt_btif_hf"
+
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#define LOG_TAG "bt_btif_hf"
-#include "btif_common.h"
-#include "btif_util.h"
-#include "btif_profile_queue.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_hf.h>
 
-#include "btcore/include/bdaddr.h"
 #include "bta_ag_api.h"
+#include "btcore/include/bdaddr.h"
+#include "btif_common.h"
+#include "btif_profile_queue.h"
+#include "btif_util.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -163,7 +164,6 @@ typedef struct _btif_hf_cb
 } btif_hf_cb_t;
 
 static btif_hf_cb_t btif_hf_cb[BTIF_HF_NUM_CB];
-
 
 /************************************************************************************
 **  Static functions
@@ -375,7 +375,6 @@ static bt_status_t btif_hf_check_if_slc_connected()
 **   btif hf api functions (no context switch)
 **
 *****************************************************************************/
-
 
 /*******************************************************************************
 **
@@ -662,7 +661,6 @@ static void bte_hf_evt(tBTA_AG_EVT event, tBTA_AG *p_data)
     ASSERTC(status == BT_STATUS_SUCCESS, "context transfer failed", status);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btif_in_hf_generic_evt
@@ -698,7 +696,6 @@ static void btif_in_hf_generic_evt(UINT16 event, char *p_param)
         break;
     }
 }
-
 
 /*******************************************************************************
 **
@@ -1175,7 +1172,6 @@ static bt_status_t at_response(bthf_at_response_t response_code,
         return BT_STATUS_SUCCESS;
     }
 
-
     return BT_STATUS_FAIL;
 }
 
@@ -1465,7 +1461,6 @@ update_call_states:
     }
     return status;
 }
-
 
 /*******************************************************************************
 **

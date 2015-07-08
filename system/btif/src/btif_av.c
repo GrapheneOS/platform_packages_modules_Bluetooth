@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 /*****************************************************************************
  *
  *  Filename:      btif_av.c
@@ -25,22 +24,23 @@
  *
  *****************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <system/audio.h>
-#include <string.h>
-#include "hardware/bt_av.h"
-
 #define LOG_TAG "bt_btif_av"
 
 #include "btif_av.h"
-#include "btif_util.h"
-#include "btif_profile_queue.h"
+
+#include <system/audio.h>
+#include <string.h>
+
+#include <hardware/bluetooth.h>
+#include <hardware/bt_av.h>
+
+#include "bt_utils.h"
 #include "bta_api.h"
 #include "btif_media.h"
-#include "bta_av_api.h"
-#include "gki.h"
+#include "btif_profile_queue.h"
+#include "btif_util.h"
 #include "btu.h"
-#include "bt_utils.h"
+#include "gki.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -456,7 +456,6 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
    return TRUE;
 }
 
-
 /*****************************************************************************
 **
 ** Function        btif_av_state_closing_handler
@@ -526,7 +525,6 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
    }
    return TRUE;
 }
-
 
 /*****************************************************************************
 **

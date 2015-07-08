@@ -18,17 +18,19 @@
 
 #define LOG_TAG "bt_osi_alarm"
 
+#include "osi/include/alarm.h"
+
 #include <assert.h>
 #include <errno.h>
-#include <hardware/bluetooth.h>
 #include <inttypes.h>
 #include <malloc.h>
-#include <string.h>
-#include <signal.h>
-#include <time.h>
 #include <pthread.h>
+#include <signal.h>
+#include <string.h>
+#include <time.h>
 
-#include "osi/include/alarm.h"
+#include <hardware/bluetooth.h>
+
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"

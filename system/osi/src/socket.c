@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_osi_socket"
 
+#include "osi/include/socket.h"
+
 #include <asm/ioctls.h>
 #include <assert.h>
 #include <errno.h>
@@ -25,14 +27,12 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/reactor.h"
-#include "osi/include/socket.h"
 
 struct socket_t {
   int fd;

@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_osi_config"
 
+#include "osi/include/config.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -27,7 +29,6 @@
 #include <unistd.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/config.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 

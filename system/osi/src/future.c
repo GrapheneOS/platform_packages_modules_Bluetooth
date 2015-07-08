@@ -18,12 +18,13 @@
 
 #define LOG_TAG "bt_osi_future"
 
+#include "osi/include/future.h"
+
 #include <assert.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/future.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
 
 struct future_t {

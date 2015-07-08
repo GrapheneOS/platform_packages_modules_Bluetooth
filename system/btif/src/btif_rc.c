@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 /*****************************************************************************
  *
  *  Filename:      btif_rc.c
@@ -24,22 +23,24 @@
  *  Description:   Bluetooth AVRC implementation
  *
  *****************************************************************************/
-#include <hardware/bluetooth.h>
+
+#define LOG_TAG "bt_btif_avrc"
+
 #include <fcntl.h>
 #include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 
+#include <hardware/bluetooth.h>
+#include <hardware/bt_rc.h>
+
+#include "avrc_defs.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
-#include "avrc_defs.h"
-#include "gki.h"
-
-#define LOG_TAG "bt_btif_avrc"
+#include "btif_av.h"
 #include "btif_common.h"
 #include "btif_util.h"
-#include "btif_av.h"
-#include "hardware/bt_rc.h"
+#include "gki.h"
 #include "uinput.h"
 
 /*****************************************************************************
@@ -133,7 +134,6 @@ typedef struct
     rc_transaction_t transaction[MAX_TRANSACTIONS_PER_SESSION];
 } rc_device_t;
 
-
 rc_device_t device;
 
 #define MAX_UINPUT_PATHS 3
@@ -218,7 +218,6 @@ static btrc_ctrl_callbacks_t *bt_rc_ctrl_callbacks = NULL;
 ******************************************************************************/
 extern BOOLEAN btif_hf_call_terminated_recently();
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
-
 
 /*****************************************************************************
 **  Functions
@@ -403,7 +402,6 @@ void handle_rc_features()
        }
 #endif
 }
-
 
 /***************************************************************************
  *  Function       handle_rc_connect
@@ -676,7 +674,6 @@ void handle_uid_changed_notification(tBTA_AV_META_MSG *pmeta_msg, tAVRC_COMMAND 
     send_metamsg_rsp(pmeta_msg->rc_handle, pmeta_msg->label, AVRC_RSP_CHANGED, &avrc_rsp);
 
 }
-
 
 /***************************************************************************
  *  Function       handle_rc_metamsg_cmd
@@ -1180,7 +1177,6 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
 
 }
 
-
 /*******************************************************************************
 **
 ** Function         btif_rc_upstreams_rsp_evt
@@ -1473,7 +1469,6 @@ static bt_status_t set_volume(uint8_t volume)
     return status;
 }
 
-
 /***************************************************************************
 **
 ** Function         register_volumechange
@@ -1517,7 +1512,6 @@ static void register_volumechange (UINT8 lbl)
     else
         BTIF_TRACE_ERROR("%s failed to build command:%d",__FUNCTION__,BldResp);
 }
-
 
 /***************************************************************************
 **
@@ -1594,7 +1588,6 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
      btif_rc_upstreams_rsp_evt((uint16_t)avrc_response.rsp.pdu, &avrc_response, pmeta_msg->code,
                                 pmeta_msg->label);
 }
-
 
 /***************************************************************************
 **
@@ -1844,7 +1837,6 @@ bt_status_t  get_transaction(rc_transaction_t **ptransaction)
     pthread_mutex_unlock(&device.lbllock);
     return result;
 }
-
 
 /*******************************************************************************
 **

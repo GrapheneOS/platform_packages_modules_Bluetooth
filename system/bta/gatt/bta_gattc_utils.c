@@ -29,15 +29,16 @@
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
-#include "utl.h"
-#include "gki.h"
-#include "bta_sys.h"
+
 #include "bta_gattc_int.h"
+#include "bta_sys.h"
+#include "gki.h"
 #include "l2c_api.h"
+#include "utl.h"
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
-
 
 static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -855,7 +856,6 @@ tBTA_GATTC_CONN * bta_gattc_conn_find(BD_ADDR remote_bda)
     }
     return NULL;
 }
-
 
 /*******************************************************************************
 **

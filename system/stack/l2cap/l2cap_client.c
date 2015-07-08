@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_l2cap_client"
 
+#include "stack/include/l2cap_client.h"
+
 #include <assert.h>
 #include <string.h>
 
@@ -28,7 +30,6 @@
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "stack/include/l2cap_client.h"
 #include "stack/include/l2c_api.h"
 
 struct l2cap_client_t {

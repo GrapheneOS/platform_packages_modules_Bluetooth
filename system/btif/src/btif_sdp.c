@@ -25,17 +25,19 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sdp.h>
+#define LOG_TAG "bt_btif_sdp"
+
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_TAG "bt_btif_sdp"
-#include "btif_common.h"
-#include "btif_util.h"
-#include "btif_profile_queue.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_sdp.h>
+
 #include "bta_api.h"
 #include "bta_sdp_api.h"
+#include "btif_common.h"
+#include "btif_profile_queue.h"
+#include "btif_util.h"
 
 /*****************************************************************************
 **  Functions implemented in sdp_server.c
@@ -51,7 +53,6 @@ void on_remove_record_event(int handle);
 int get_sdp_records_size(bluetooth_sdp_record* in_record, int count);
 void copy_sdp_records(bluetooth_sdp_record* in_records,
         bluetooth_sdp_record* out_records, int count);
-
 
 /*****************************************************************************
 **  Static variables
@@ -143,7 +144,6 @@ static bt_status_t deinit()
 
     return BT_STATUS_SUCCESS;
 }
-
 
 static bt_status_t search(bt_bdaddr_t *bd_addr, const uint8_t *uuid)
 {

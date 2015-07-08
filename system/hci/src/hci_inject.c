@@ -18,13 +18,14 @@
 
 #define LOG_TAG "bt_hci_inject"
 
+#include "hci_inject.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <string.h>
 
 #include "bt_types.h"
 #include "buffer_allocator.h"
-#include "hci_inject.h"
 #include "hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"

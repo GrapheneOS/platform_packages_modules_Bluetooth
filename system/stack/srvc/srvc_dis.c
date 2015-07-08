@@ -16,15 +16,15 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_srvc"
+
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
-#include "srvc_eng_int.h"
-#include "srvc_dis_int.h"
-
-#define LOG_TAG "bt_srvc"
 #include "osi/include/log.h"
+#include "srvc_dis_int.h"
+#include "srvc_eng_int.h"
 
 #if BLE_INCLUDED == TRUE
 
@@ -41,8 +41,6 @@
 
 #define STREAM_TO_UINT64(u64, p) {u64 = (((UINT64)(*(p))) + ((((UINT64)(*((p) + 1)))) << 8) + ((((UINT64)(*((p) + 2)))) << 16) + ((((UINT64)(*((p) + 3)))) << 24) \
                                   + ((((UINT64)(*((p) + 4)))) << 32) + ((((UINT64)(*((p) + 5)))) << 40) + ((((UINT64)(*((p) + 6)))) << 48) + ((((UINT64)(*((p) + 7)))) << 56)); (p) += 8;}
-
-
 
 static const UINT16  dis_attr_uuid[DIS_MAX_CHAR_NUM] =
 {
@@ -168,7 +166,6 @@ UINT8 dis_read_attr_value (UINT8 clcb_idx, UINT16 handle, tGATT_VALUE *p_value,
                         GATT_TRACE_EVENT("GATT_UUID_MANU_NAME len=0x%04x", p_value->len);
                     }
                     break;
-
 
                 case GATT_UUID_SYSTEM_ID:
                     UINT64_TO_STREAM(p, dis_cb.dis_value.system_id); /* int_min */
@@ -339,7 +336,6 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
     dis_gatt_c_read_dis_req(conn_id);
 }
 
-
 /*******************************************************************************
 **
 ** Function         DIS_SrInit
@@ -478,7 +474,6 @@ BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback, tDIS_ATTR_MA
                       (peer_bda[0]<<24)+(peer_bda[1]<<16)+(peer_bda[2]<<8)+peer_bda[3],
                       (peer_bda[4]<<8)+peer_bda[5], dis_attr_uuid[dis_cb.dis_read_uuid_idx]);
 
-
     GATT_GetConnIdIfConnected(srvc_eng_cb.gatt_if, peer_bda, &conn_id, BT_TRANSPORT_LE);
 
     /* need to enhance it as multiple service is needed */
@@ -493,5 +488,4 @@ BOOLEAN DIS_ReadDISInfo(BD_ADDR peer_bda, tDIS_READ_CBACK *p_cback, tDIS_ATTR_MA
 
 }
 #endif  /* BLE_INCLUDED */
-
 

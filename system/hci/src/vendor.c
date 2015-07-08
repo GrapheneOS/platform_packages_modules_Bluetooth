@@ -18,14 +18,14 @@
 
 #define LOG_TAG "bt_vendor"
 
+#include "vendor.h"
+
 #include <assert.h>
 #include <dlfcn.h>
 
 #include "buffer_allocator.h"
-#include "bt_vendor_lib.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "vendor.h"
+#include "osi/include/osi.h"
 
 #define LAST_VENDOR_OPCODE_VALUE VENDOR_DO_EPILOG
 

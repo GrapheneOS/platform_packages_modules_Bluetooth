@@ -28,12 +28,12 @@
 #include <string.h>
 
 #include "bt_types.h"
+#include "bt_utils.h"
+#include "btm_int.h"
+#include "btu.h"
 #include "device/include/controller.h"
 #include "hcimsgs.h"
-#include "btu.h"
-#include "btm_int.h"
 #include "l2c_int.h"
-#include "bt_utils.h"
 #include "osi/include/log.h"
 
 #if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
@@ -50,7 +50,6 @@
 #ifdef APPL_AUTH_WRITE_EXCEPTION
 BOOLEAN (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
 #endif
-
 
 /********************************************************************************
 **              L O C A L    F U N C T I O N     P R O T O T Y P E S            *
@@ -284,7 +283,6 @@ BOOLEAN  BTM_SecAddRmtNameNotifyCallback (tBTM_RMT_NAME_CALLBACK *p_callback)
 
     return(FALSE);
 }
-
 
 /*******************************************************************************
 **
@@ -525,7 +523,6 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
 
     p_srec = &btm_cb.sec_serv_rec[0];
 
-
     for (index = 0; index < BTM_SEC_MAX_SERVICE_RECORDS; index++, p_srec++)
     {
         /* Check if there is already a record for this service */
@@ -693,7 +690,6 @@ static BOOLEAN btm_sec_set_security_level (CONNECTION_TYPE conn_type, char *p_na
                    p_srec->security_flags, p_name, BTM_SEC_SERVICE_NAME_LEN);
 #endif
 #endif
-
 
     return(record_allocated);
 }
@@ -958,7 +954,6 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
 
     BTM_TRACE_DEBUG("btm_sec_bond_by_transport: Transport used %d" , transport);
 
-
     /* Other security process is in progress */
     if (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE)
     {
@@ -1028,7 +1023,6 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
 
     p_dev_rec->sec_flags &= ~(BTM_SEC_LINK_KEY_KNOWN | BTM_SEC_AUTHENTICATED | BTM_SEC_ENCRYPTED
                                   | BTM_SEC_ROLE_SWITCHED  | BTM_SEC_LINK_KEY_AUTHED);
-
 
     BTM_TRACE_DEBUG ("after update sec_flags=0x%x", p_dev_rec->sec_flags);
     if (!controller_get_interface()->supports_simple_pairing())
@@ -3060,7 +3054,6 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
             p_dev_rec = NULL;
     }
 
-
     /* Commenting out trace due to obf/compilation problems.
     */
 #if (BT_USE_TRACES == TRUE)
@@ -4531,7 +4524,6 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
             p_dev_rec->security_required &= ~BTM_SEC_OUT_AUTHENTICATE;
             p_dev_rec->sec_flags &= ~ (BTM_SEC_LE_LINK_KEY_KNOWN << bit_shift);
 
-
 #ifdef BRCM_NOT_4_BTE
             /* If we rejected pairing, pass this special result code */
             if (btm_cb.acl_disc_reason == HCI_ERR_HOST_REJECT_SECURITY)
@@ -5282,7 +5274,6 @@ void btm_sec_update_clock_offset (UINT16 handle, UINT16 clock_offset)
     p_inq_info->results.clock_offset = clock_offset | BTM_CLOCK_OFFSET_VALID;
 }
 
-
 /******************************************************************
 ** S T A T I C     F U N C T I O N S
 *******************************************************************/
@@ -5408,7 +5399,6 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec)
     return(BTM_SUCCESS);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_sec_start_get_name
@@ -5469,7 +5459,6 @@ static BOOLEAN btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec)
     p_dev_rec->sec_state = BTM_SEC_STATE_ENCRYPTING;
     return(TRUE);
 }
-
 
 /*******************************************************************************
 **
@@ -5603,7 +5592,6 @@ static tBTM_SEC_SERV_REC *btm_sec_find_first_serv (CONNECTION_TYPE conn_type, UI
     return(NULL);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_sec_find_next_serv
@@ -5632,7 +5620,6 @@ static tBTM_SEC_SERV_REC *btm_sec_find_next_serv (tBTM_SEC_SERV_REC *p_cur)
     }
     return(NULL);
 }
-
 
 /*******************************************************************************
 **
@@ -5675,7 +5662,6 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (UINT8 is_originator, UINT16 psm,
     }
     return(NULL);
 }
-
 
 /*******************************************************************************
 **
@@ -5768,7 +5754,6 @@ static void btm_restore_mode(void)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_sec_find_dev_by_sec_state
@@ -5836,7 +5821,6 @@ static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
         btu_start_timer (&btm_cb.pairing_tle, BTU_TTYPE_USER_FUNC, BTM_SEC_TIMEOUT_VALUE);
     }
 }
-
 
 /*******************************************************************************
 **
@@ -6069,7 +6053,6 @@ void btm_sec_set_peer_sec_caps(tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_dev_rec)
 
     BTM_TRACE_API("%s: sm4: 0x%02x, rmt_support_for_secure_connections %d", __FUNCTION__,
                   p_dev_rec->sm4, p_dev_rec->remote_supports_secure_connections);
-
 
     if (p_dev_rec->remote_features_needed)
     {

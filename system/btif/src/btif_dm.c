@@ -27,6 +27,8 @@
 
 #define LOG_TAG "bt_btif_dm"
 
+#include "btif_dm.h"
+
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
@@ -47,11 +49,9 @@
 #endif  /* !defined(OS_GENERIC) */
 
 #include "bdaddr.h"
-#include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "btif_api.h"
 #include "btif_config.h"
-#include "btif_dm.h"
 #include "btif_hh.h"
 #include "btif_sdp.h"
 #include "btif_storage.h"
@@ -104,7 +104,6 @@ BOOLEAN blacklistPairingRetries(BD_ADDR bd_addr)
 #define COD_AV_PORTABLE_AUDIO               0x041C
 #define COD_AV_HIFI_AUDIO                   0x0428
 
-
 #define BTIF_DM_DEFAULT_INQ_MAX_RESULTS     0
 #define BTIF_DM_DEFAULT_INQ_MAX_DURATION    10
 #define BTIF_DM_MAX_SDP_ATTEMPTS_AFTER_PAIRING 2
@@ -153,7 +152,6 @@ typedef struct
     btif_dm_ble_cb_t ble;
 #endif
 } btif_dm_pairing_cb_t;
-
 
 typedef struct
 {
@@ -215,8 +213,6 @@ static skip_sdp_entry_t sdp_blacklist[] = {{76}}; //Apple Mouse and Keyboard
 /* This flag will be true if HCI_Inquiry is in progress */
 static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
 
-
-
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
@@ -257,7 +253,6 @@ extern bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_sdp_execute_service(BOOLEAN b_enable);
 extern int btif_hh_connect(bt_bdaddr_t *bd_addr);
 extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16);
-
 
 /******************************************************************************
 **  Functions
@@ -487,15 +482,12 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     bt_property_t prop_name;
     bt_remote_version_t info;
 
-
     if (remote_bdaddr == NULL)
         return FALSE;
 
 /* fetch additional info about remote device used in iop query */
     BTM_ReadRemoteVersion(*(BD_ADDR*)remote_bdaddr, &lmp_ver,
                     &manufacturer, &lmp_subver);
-
-
 
  /* if not available yet, try fetching from config database */
     BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_REMOTE_VERSION_INFO,
@@ -516,7 +508,6 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     }
     return FALSE;
 }
-
 
 static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
 {
@@ -583,7 +574,6 @@ static void btif_update_remote_version_property(bt_bdaddr_t *p_bd)
         ASSERTC(status == BT_STATUS_SUCCESS, "failed to save remote version", status);
     }
 }
-
 
 static void btif_update_remote_properties(BD_ADDR bd_addr, BD_NAME bd_name,
                                           DEV_CLASS dev_class, tBT_DEVICE_TYPE device_type)
@@ -1337,7 +1327,6 @@ static void btif_dm_search_devices_evt (UINT16 event, char *p_param)
                 BTIF_TRACE_DEBUG("%s()EIR BTA services = %08X", __FUNCTION__, (UINT32)services);
                 /* TODO:  Get the service list and check to see which uuids we got and send it back to the client. */
             }
-
 
             {
                 bt_property_t properties[5];
@@ -2665,7 +2654,6 @@ void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *
     UNUSED (p_io_cap);
     UNUSED (p_oob_data);
 
-
     BTIF_TRACE_DEBUG("+%s: p_auth_req=%d", __FUNCTION__, *p_auth_req);
     if(pairing_cb.is_local_initiated)
     {
@@ -2946,8 +2934,6 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     bond_state_changed(status, &bd_addr, state);
 }
 
-
-
 void    btif_dm_load_ble_local_keys(void)
 {
     memset(&ble_local_key_cb, 0, sizeof(btif_dm_local_key_cb_t));
@@ -3015,7 +3001,6 @@ void btif_dm_save_ble_bonding_keys(void)
                                          sizeof(tBTM_LE_PID_KEYS));
     }
 
-
     if (pairing_cb.ble.is_pcsrk_key_rcvd)
     {
         btif_storage_add_ble_bonding_key(&bd_addr,
@@ -3023,7 +3008,6 @@ void btif_dm_save_ble_bonding_keys(void)
                                          BTIF_DM_LE_KEY_PCSRK,
                                          sizeof(tBTM_LE_PCSRK_KEYS));
     }
-
 
     if (pairing_cb.ble.is_lenc_key_rcvd)
     {
@@ -3051,7 +3035,6 @@ void btif_dm_save_ble_bonding_keys(void)
 
 }
 
-
 void btif_dm_remove_ble_bonding_keys(void)
 {
     bt_bdaddr_t bd_addr;
@@ -3061,7 +3044,6 @@ void btif_dm_remove_ble_bonding_keys(void)
     bdcpy(bd_addr.address, pairing_cb.bd_addr);
     btif_storage_remove_ble_bonding_keys(&bd_addr);
 }
-
 
 /*******************************************************************************
 **
@@ -3110,8 +3092,6 @@ void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ *p_ble_req)
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name, cod,
               BT_SSP_VARIANT_CONSENT, 0);
 }
-
-
 
 /*******************************************************************************
 **

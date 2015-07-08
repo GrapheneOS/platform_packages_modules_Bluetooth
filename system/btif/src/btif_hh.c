@@ -27,19 +27,16 @@
 
 #define LOG_TAG "bt_btif_hh"
 
+#include "btif_hh.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hh.h>
-
 #include "bta_api.h"
-#include "bta_hh_api.h"
 #include "btif_common.h"
-#include "btif_hh.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "gki.h"
@@ -76,7 +73,6 @@ static int btif_hh_keylockstates=0; //The current key state of each key
 
 #define BTIF_TIMEOUT_VUP_SECS   3
 
-
 #ifndef BTUI_HH_SECURITY
 #define BTUI_HH_SECURITY (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
 #endif
@@ -93,13 +89,10 @@ typedef enum
     BTIF_HH_VUP_REQ_EVT
 } btif_hh_req_evt_t;
 
-
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
 #define BTIF_HH_SERVICES    (BTA_HID_SERVICE_MASK)
-
-
 
 /************************************************************************************
 **  Local type definitions
@@ -129,7 +122,6 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] =
     "Logitech MX5500 Keyboard"}
 };
 
-
 #define CHECK_BTHH_INIT() if (bt_hh_callbacks == NULL)\
     {\
         BTIF_TRACE_WARNING("BTHH: %s: BTHH not initialized", __FUNCTION__);\
@@ -139,8 +131,6 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] =
     {\
         BTIF_TRACE_EVENT("BTHH: %s", __FUNCTION__);\
     }
-
-
 
 /************************************************************************************
 **  Static functions
@@ -169,7 +159,6 @@ static void toggle_os_keylockstates(int fd, int changedkeystates);
 static void sync_lockstate_on_connect(btif_hh_device_t *p_dev);
 //static void hh_update_keyboard_lockstates(btif_hh_device_t *p_dev);
 void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle);
-
 
 /************************************************************************************
 **  Functions
@@ -545,7 +534,6 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
     }
 }
 
-
 BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INFO* src)
 {
     dest->descriptor.dl_len = 0;
@@ -568,7 +556,6 @@ BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INF
     dest->ssr_min_tout = src->ssr_min_tout;
     return TRUE;
 }
-
 
 /*******************************************************************************
 **
@@ -726,7 +713,6 @@ void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type, UINT1
 **   btif hh api functions (no context switch)
 **
 *****************************************************************************/
-
 
 /*******************************************************************************
 **
@@ -1043,7 +1029,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                      p_data->dev_info.bda[3], p_data->dev_info.bda[4], p_data->dev_info.bda[5]);
                 break;
 
-
         case BTA_HH_VC_UNPLUG_EVT:
                 BTIF_TRACE_DEBUG("BTA_HH_VC_UNPLUG_EVT: status = %d, handle = %d",
                      p_data->dev_status.status, p_data->dev_status.handle);
@@ -1080,8 +1065,6 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
         case BTA_HH_API_ERR_EVT  :
                 LOG_INFO(LOG_TAG, "BTA_HH API_ERR");
                 break;
-
-
 
             default:
                 BTIF_TRACE_WARNING("%s: Unhandled event: %d", __FUNCTION__, event);
@@ -1332,7 +1315,6 @@ static bt_status_t virtual_unplug (bt_bdaddr_t *bd_addr)
     return BT_STATUS_SUCCESS;
 }
 
-
 /*******************************************************************************
 **
 ** Function         set_info
@@ -1462,7 +1444,6 @@ static bt_status_t set_protocol (bt_bdaddr_t *bd_addr, bthh_protocol_mode_t prot
         BTA_HhSetProtoMode(p_dev->dev_handle, protocolMode);
     }
 
-
     return BT_STATUS_SUCCESS;
 }
 
@@ -1491,7 +1472,6 @@ static bt_status_t get_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         BTIF_TRACE_ERROR("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
         return BT_STATUS_FAIL;
     }
-
 
     p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
     if (p_dev == NULL) {
@@ -1531,7 +1511,6 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
 
     BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X",
          (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
-
 
     if (btif_hh_cb.status == BTIF_HH_DISABLED) {
         BTIF_TRACE_ERROR("%s: Error, HH status = %d", __FUNCTION__, btif_hh_cb.status);
@@ -1649,7 +1628,6 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
         return BT_STATUS_FAIL;
     }
 }
-
 
 /*******************************************************************************
 **

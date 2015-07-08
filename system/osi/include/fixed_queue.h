@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 struct fixed_queue_t;
 typedef struct fixed_queue_t fixed_queue_t;

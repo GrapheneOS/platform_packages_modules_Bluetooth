@@ -25,19 +25,19 @@
 #define LOG_TAG "bt_l2cap"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "gki.h"
 #include "bt_types.h"
 #include "btcore/include/counter.h"
+#include "btm_api.h"
+#include "btu.h"
+#include "gki.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
-#include "l2cdefs.h"
 #include "l2c_int.h"
-#include "btu.h"
-#include "btm_api.h"
+#include "l2cdefs.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
@@ -111,8 +111,6 @@ UINT16 L2CA_Register (UINT16 psm, tL2CAP_APPL_INFO *p_cb_info)
 
     return (vpsm);
 }
-
-
 
 /*******************************************************************************
 **
@@ -389,7 +387,6 @@ BOOLEAN L2CA_ConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid,
     return L2CA_ErtmConnectRsp (p_bd_addr, id, lcid, result, status, NULL);
 }
 
-
 /*******************************************************************************
 **
 ** Function         L2CA_ErtmConnectRsp
@@ -475,7 +472,6 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     return (TRUE);
 }
 
-
 /*******************************************************************************
 **
 ** Function         L2CA_ConfigReq
@@ -528,7 +524,6 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
     return (TRUE);
 }
 
-
 /*******************************************************************************
 **
 ** Function         L2CA_ConfigRsp
@@ -573,7 +568,6 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 
     return (TRUE);
 }
-
 
 /*******************************************************************************
 **
@@ -888,7 +882,6 @@ UINT8 L2CA_SetTraceLevel (UINT8 new_level)
     return (l2cb.l2cap_trace_level);
 }
 
-
 /*******************************************************************************
 **
 ** Function     L2CA_SetDesireRole
@@ -1083,7 +1076,6 @@ BOOLEAN L2CA_SendTestSFrame (UINT16 cid, UINT8 sup_type, UINT8 back_track)
 
     return (TRUE);
 }
-
 
 /*******************************************************************************
 **

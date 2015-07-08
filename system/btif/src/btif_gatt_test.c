@@ -16,10 +16,11 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_gatt"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include <hardware/bluetooth.h>
@@ -30,9 +31,6 @@
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
 
-#define LOG_TAG "bt_btif_gatt"
-
-#include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bte_appl.h"
 #include "btif_dm.h"
@@ -135,7 +133,6 @@ static void btif_test_command_complete_cback(UINT16 conn_id, tGATTC_OPTYPE op,
             break;
     }
 }
-
 
 static void btif_test_discovery_result_cback(UINT16 conn_id, tGATT_DISC_TYPE disc_type,
                                            tGATT_DISC_RES *p_data)

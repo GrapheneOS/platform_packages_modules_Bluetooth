@@ -24,35 +24,35 @@
  *
  ***********************************************************************************/
 
+#define LOG_NDDEBUG 0
+#define LOG_TAG "bt_bluedroid"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <hardware/bluetooth.h>
+#include <hardware/bt_av.h>
+#include <hardware/bt_gatt.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_hf_client.h>
-#include <hardware/bt_av.h>
-#include <hardware/bt_sock.h>
 #include <hardware/bt_hh.h>
 #include <hardware/bt_hl.h>
-#include <hardware/bt_pan.h>
 #include <hardware/bt_mce.h>
-#include <hardware/bt_gatt.h>
+#include <hardware/bt_pan.h>
 #include <hardware/bt_rc.h>
 #include <hardware/bt_sdp.h>
+#include <hardware/bt_sock.h>
 
-#define LOG_NDDEBUG 0
-#define LOG_TAG "bt_bluedroid"
-
+#include "bt_utils.h"
 #include "btif_api.h"
 #include "btif_debug.h"
 #include "btsnoop.h"
 #include "btsnoop_mem.h"
-#include "bt_utils.h"
-#include "osi/include/osi.h"
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "stack_manager.h"
 
 /************************************************************************************
@@ -488,7 +488,6 @@ static int open_bluetooth_stack(const struct hw_module_t *module, UNUSED_ATTR ch
   *abstraction = (struct hw_device_t *)&device;
   return 0;
 }
-
 
 static struct hw_module_methods_t bt_stack_module_methods = {
     .open = open_bluetooth_stack,

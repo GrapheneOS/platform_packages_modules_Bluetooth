@@ -26,13 +26,12 @@
 
 #define LOG_TAG "bt_btif_queue"
 
+#include "btif_profile_queue.h"
+
 #include <assert.h>
 #include <string.h>
 
-#include <hardware/bluetooth.h>
-
 #include "btif_common.h"
-#include "btif_profile_queue.h"
 #include "gki.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
@@ -160,7 +159,6 @@ bt_status_t btif_queue_connect_next(void) {
     p_head->busy = true;
     return p_head->connect_cb(&p_head->bda, p_head->uuid);
 }
-
 
 /*******************************************************************************
 **

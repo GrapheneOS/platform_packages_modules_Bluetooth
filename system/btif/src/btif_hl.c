@@ -26,6 +26,8 @@
  ***********************************************************************************/
 #define LOG_TAG "bt_btif_hl"
 
+#include "btif_hl.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
@@ -50,7 +52,6 @@
 #include "bta_api.h"
 #include "bta_hl_api.h"
 #include "btif_common.h"
-#include "btif_hl.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btu.h"
@@ -115,7 +116,6 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param);
         ASSERTC(0, "Callback is NULL", 0);  \
     }
 
-
 #define BTIF_HL_CALL_CBACK(P_CB, P_CBACK, ...)\
      if((p_btif_hl_cb->state != BTIF_HL_STATE_DISABLING) &&\
          (p_btif_hl_cb->state != BTIF_HL_STATE_DISABLED))  \
@@ -128,7 +128,6 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param);
         }                                                  \
     }
 
-
 #define CHECK_BTHL_INIT() if (bt_hl_callbacks == NULL)\
     {\
         BTIF_TRACE_WARNING("BTHL: %s: BTHL not initialized", __FUNCTION__);\
@@ -138,7 +137,6 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param);
     {\
         BTIF_TRACE_EVENT("BTHL: %s", __FUNCTION__);\
     }
-
 
 static const btif_hl_data_type_cfg_t data_type_table[] = {
     /* Data Specilization                   Ntx     Nrx (from Bluetooth SIG's HDP whitepaper)*/
@@ -499,7 +497,6 @@ static void btif_hl_clean_pcb(btif_hl_pending_chan_cb_t *p_pcb)
     memset(p_pcb, 0 , sizeof(btif_hl_pending_chan_cb_t));
 }
 
-
 /*******************************************************************************
 **
 ** Function      btif_hl_clean_mdl_cb
@@ -517,7 +514,6 @@ static void btif_hl_clean_mdl_cb(btif_hl_mdl_cb_t *p_dcb)
     memset(p_dcb, 0 , sizeof(btif_hl_mdl_cb_t));
 }
 
-
 /*******************************************************************************
 **
 ** Function      btif_hl_reset_mcb
@@ -534,7 +530,6 @@ static void btif_hl_clean_mcl_cb(UINT8 app_idx, UINT8 mcl_idx)
     p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     memset(p_mcb, 0, sizeof(btif_hl_mcl_cb_t));
 }
-
 
 /*******************************************************************************
 **
@@ -655,7 +650,6 @@ BOOLEAN btif_hl_is_reconnect_possible(UINT8 app_idx, UINT8 mcl_idx,  int mdep_cf
     UINT16               data_type = p_acb->sup_feature.mdep[mdep_cfg_idx].mdep_cfg.data_cfg[0].data_type;
     tBTA_HL_MDEP_ID      peer_mdep_id = p_dch_open_api->peer_mdep_id;
     UINT8                mdl_idx;
-
 
     BTIF_TRACE_DEBUG("%s app_idx=%d mcl_idx=%d mdep_cfg_idx=%d",
                       __FUNCTION__, app_idx, mcl_idx, mdep_cfg_idx  );
@@ -985,7 +979,6 @@ BOOLEAN btif_hl_cch_open(UINT8 app_id, BD_ADDR bd_addr, UINT16 ctrl_psm,
     return status;
 }
 
-
 /*******************************************************************************
 **
 ** Function      btif_hl_find_mdl_idx_using_handle
@@ -1110,7 +1103,6 @@ BOOLEAN btif_hl_find_channel_id_using_mdl_id(UINT8 app_idx, tBTA_HL_MDL_ID mdl_i
     return found;
 }
 
-
 /*******************************************************************************
 **
 ** Function      btif_hl_find_mdl_idx_using_handle
@@ -1156,7 +1148,6 @@ BOOLEAN btif_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
         }
     }
 
-
     BTIF_TRACE_EVENT("%s found=%d app_idx=%d mcl_idx=%d mdl_idx=%d  ",
                       __FUNCTION__,found,i,j,k );
     return found;
@@ -1181,7 +1172,6 @@ static BOOLEAN btif_hl_find_peer_mdep_id(UINT8 app_id, BD_ADDR bd_addr,
     BOOLEAN             found = FALSE;
     tBTA_HL_MDEP_ROLE   peer_mdep_role;
 
-
     BTIF_TRACE_DEBUG("%s app_id=%d local_mdep_role=%d, data_type=%d",
                       __FUNCTION__, app_id, local_mdep_role, data_type);
 
@@ -1189,7 +1179,6 @@ static BOOLEAN btif_hl_find_peer_mdep_id(UINT8 app_id, BD_ADDR bd_addr,
                       bd_addr[0],  bd_addr[1],
                       bd_addr[2],  bd_addr[3],
                       bd_addr[4],  bd_addr[5]);
-
 
     BTIF_TRACE_DEBUG("local_mdep_role=%d", local_mdep_role);
     BTIF_TRACE_DEBUG("data_type=%d", data_type);
@@ -1267,8 +1256,6 @@ static  BOOLEAN btif_hl_find_mdep_cfg_idx(UINT8 app_idx,  tBTA_HL_MDEP_ID local_
     return found;
 }
 
-
-
 /*******************************************************************************
 **
 ** Function      btif_hl_find_mcl_idx
@@ -1295,7 +1282,6 @@ BOOLEAN btif_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx)
             break;
         }
     }
-
 
     BTIF_TRACE_DEBUG("%s found=%d idx=%d",__FUNCTION__, found, i);
     return found;
@@ -1470,14 +1456,12 @@ UINT16  btif_hl_get_max_tx_apdu_size(tBTA_HL_MDEP_ROLE mdep_role,
             max_tx_apdu_size = BTIF_HL_DEFAULT_SRC_RX_APDU_SIZE;
         }
 
-
     }
 
     BTIF_TRACE_DEBUG("%s mdep_role=%d data_type=0x%4x size=%d",
                       __FUNCTION__, mdep_role, data_type, max_tx_apdu_size);
     return max_tx_apdu_size;
 }
-
 
 /*******************************************************************************
 **
@@ -1516,7 +1500,6 @@ UINT16  btif_hl_get_max_rx_apdu_size(tBTA_HL_MDEP_ROLE mdep_role,
             max_rx_apdu_size = BTIF_HL_DEFAULT_SRC_TX_APDU_SIZE;
         }
     }
-
 
     BTIF_TRACE_DEBUG("%s mdep_role=%d data_type=0x%4x size=%d",
                       __FUNCTION__, mdep_role, data_type, max_rx_apdu_size);
@@ -1658,7 +1641,6 @@ static void btif_hl_init_next_app_id(void){
 static void btif_hl_init_next_channel_id(void){
     btif_hl_cb.next_channel_id = 1;
 }
-
 
 /*******************************************************************************
 **
@@ -2088,7 +2070,6 @@ static BOOLEAN btif_hl_find_avail_app_idx(UINT8 *p_idx){
     return found;
 }
 
-
 /*******************************************************************************
 **
 ** Function         btif_hl_proc_dereg_cfm
@@ -2184,7 +2165,6 @@ void btif_hl_set_chan_cb_state(UINT8 app_idx, UINT8 mcl_idx, btif_hl_chan_cb_sta
         p_pcb->cb_state = state;
         BTIF_TRACE_DEBUG("%s state %d--->%d",__FUNCTION__, cur_state, state);
     }
-
 
 }
 /*******************************************************************************
@@ -2433,7 +2413,6 @@ static BOOLEAN btif_hl_proc_sdp_query_cfm(tBTA_HL *p_data){
     return status;
 }
 
-
 /*******************************************************************************
 **
 ** Function         btif_hl_proc_cch_open_ind
@@ -2640,7 +2619,6 @@ static void btif_hl_proc_cch_close_ind(tBTA_HL *p_data)
 
     btif_hl_clean_mcb_using_handle(p_data->cch_close_ind.mcl_handle);
 }
-
 
 /*******************************************************************************
 **
@@ -3095,7 +3073,6 @@ static void btif_hl_proc_dch_close_cfm(tBTA_HL *p_data)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         btif_hl_proc_abort_ind
@@ -3205,7 +3182,6 @@ static void btif_hl_proc_dch_cong_ind(tBTA_HL *p_data)
 
     BTIF_TRACE_DEBUG("btif_hl_proc_dch_cong_ind");
 
-
     if (btif_hl_find_mdl_idx_using_handle(p_data->dch_cong_ind.mdl_handle, &app_idx, &mcl_idx, &mdl_idx))
     {
         p_dcb =BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
@@ -3237,7 +3213,6 @@ static void btif_hl_proc_reg_request(UINT8 app_idx, UINT8  app_id,
     else
         BTA_HlRegister(app_id, p_reg_param, btif_hl_cback);
 }
-
 
 /*******************************************************************************
 **
@@ -3426,7 +3401,6 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
 
             break;
 
-
         case BTA_HL_CCH_OPEN_CFM_EVT:
             BTIF_TRACE_DEBUG("Rcv BTA_HL_CCH_OPEN_CFM_EVT");
             BTIF_TRACE_DEBUG("app_id=%d,app_handle=%d mcl_handle=%d status =%d",
@@ -3515,7 +3489,6 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
             }
             break;
 
-
         case BTA_HL_CCH_OPEN_IND_EVT:
             BTIF_TRACE_DEBUG("Rcv BTA_HL_CCH_OPEN_IND_EVT");
             BTIF_TRACE_DEBUG("app_handle=%d mcl_handle=%d",
@@ -3589,7 +3562,6 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
                               p_data->dch_reconnect_cfm.dch_mode,
                               p_data->dch_reconnect_cfm.mdl_id,
                               p_data->dch_reconnect_cfm.mtu);
-
 
             if (p_data->dch_reconnect_cfm.status == BTA_HL_STATUS_OK)
             {
@@ -3669,7 +3641,6 @@ static void btif_hl_upstreams_evt(UINT16 event, char* p_param){
                               p_data->echo_test_cfm.status );
             /* not supported */
             break;
-
 
         case BTA_HL_DCH_RECONNECT_IND_EVT:
             BTIF_TRACE_DEBUG("Rcv BTA_HL_DCH_RECONNECT_IND_EVT");
@@ -3856,7 +3827,6 @@ static void btif_hl_upstreams_ctrl_evt(UINT16 event, char* p_param){
             {
                 btif_hl_set_state(BTIF_HL_STATE_ENABLED);
 
-
                 for (i=0; i < BTA_HL_NUM_APPS ; i ++)
                 {
                     p_acb = BTIF_HL_GET_APP_CB_PTR(i);
@@ -3944,7 +3914,6 @@ static bt_status_t connect_channel(int app_id, bt_bdaddr_t *bd_addr, int mdep_cf
     CHECK_BTHL_INIT();
     BTIF_TRACE_EVENT("%s", __FUNCTION__);
     btif_hl_display_calling_process_name();
-
 
     for (i=0; i<6; i++)
     {
@@ -4043,7 +4012,6 @@ static bt_status_t destroy_channel(int channel_id){
     CHECK_BTHL_INIT();
     BTIF_TRACE_EVENT("%s channel_id=0x%08x", __FUNCTION__, channel_id);
     btif_hl_display_calling_process_name();
-
 
     if (btif_hl_if_channel_setup_pending(channel_id, &app_idx, &mcl_idx))
     {
@@ -4189,7 +4157,6 @@ static bt_status_t register_application(bthl_reg_param_t *p_reg_param, int *app_
 
     p_acb = BTIF_HL_GET_APP_CB_PTR(app_idx);
     p_acb->in_use = TRUE;
-
 
     p_acb->app_id = btif_hl_get_next_app_id();
 
@@ -4437,7 +4404,6 @@ static const bthl_interface_t bthlInterface = {
     destroy_channel,
     cleanup,
 };
-
 
 /*******************************************************************************
 **

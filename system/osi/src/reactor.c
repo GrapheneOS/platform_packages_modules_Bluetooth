@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_osi_reactor"
 
+#include "osi/include/reactor.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
@@ -30,7 +32,6 @@
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
-#include "osi/include/reactor.h"
 
 #if !defined(EFD_SEMAPHORE)
 #  define EFD_SEMAPHORE (1 << 0)

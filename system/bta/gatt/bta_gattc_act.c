@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
 #include "btif/include/btif_debug_conn.h"
@@ -120,7 +119,6 @@ static void bta_gattc_enable(tBTA_GATTC_CB *p_cb)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         bta_gattc_disable
@@ -184,7 +182,6 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
     tBT_UUID                 *p_app_uuid = &p_data->api_reg.app_uuid;
     tBTA_GATTC_INT_START_IF  *p_buf;
     tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
-
 
     APPL_TRACE_DEBUG("bta_gattc_register state %d",p_cb->state);
     memset(&cb_data, 0, sizeof(cb_data));
@@ -771,7 +768,6 @@ void bta_gattc_close_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         bdcpy(cb_data.close.remote_bda, p_clcb->bda);
         cb_data.close.status    = BTA_GATT_ERROR;
         cb_data.close.reason    = BTA_GATT_CONN_NONE;
-
 
         (*p_clcb->p_rcb->p_cback)(BTA_GATTC_CLOSE_EVT, &cb_data);
     }
@@ -1450,7 +1446,6 @@ void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     tBTA_GATTC          cb_data;
 
     utl_freebuf((void **)&p_clcb->p_q_cmd);
-
 
     if (p_data->p_cmpl  &&  p_data->status == BTA_GATT_OK)
         p_clcb->p_srcb->mtu  = p_data->p_cmpl->mtu;

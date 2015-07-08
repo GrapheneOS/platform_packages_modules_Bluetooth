@@ -27,6 +27,18 @@
 
 #define LOG_TAG "bt_utils"
 
+#include "bt_utils.h"
+
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/resource.h>
+#include <unistd.h>
+
+#include <utils/ThreadDefs.h>
+#include <cutils/sched_policy.h>
+
 // TODO(armansito): cutils/properties.h is only being used to pull-in runtime
 // settings on Android. Remove this conditional include once we have a generic
 // way to obtain system properties.
@@ -34,17 +46,7 @@
 #include <cutils/properties.h>
 #endif  // !defined(OS_GENERIC)
 
-#include <cutils/sched_policy.h>
-#include <errno.h>
-#include <pthread.h>
-#include <sys/resource.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <utils/ThreadDefs.h>
-
 #include "bt_types.h"
-#include "bt_utils.h"
 #include "btcore/include/module.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"

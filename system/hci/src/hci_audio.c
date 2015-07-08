@@ -18,10 +18,9 @@
 
 #define LOG_TAG "bt_hci_audio"
 
-#include <stdint.h>
+#include "hci/include/hci_audio.h"
 
 #include "hci/include/bt_vendor_lib.h"
-#include "hci/include/hci_audio.h"
 #include "hci/include/vendor.h"
 #include "osi/include/log.h"
 

@@ -25,23 +25,24 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sdp.h>
+#define LOG_TAG "bt_btif_sdp_server"
+
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
-#define LOG_TAG "bt_btif_sdp_server"
-#include "btif_common.h"
-#include "btif_util.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_sdp.h>
+
 #include "bta_sdp_api.h"
 #include "bta_sys.h"
+#include "btif_common.h"
 #include "btif_sock_util.h"
+#include "btif_util.h"
 #include "osi/include/allocator.h"
 #include "utl.h"
 
 static pthread_mutex_t sdp_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
-
 
 /**
  * The need for a state variable have been reduced to two states.
@@ -117,7 +118,6 @@ void sdp_server_cleanup()
     }
     pthread_mutex_unlock(&sdp_lock);
 }
-
 
 int get_sdp_records_size(bluetooth_sdp_record* in_record, int count) {
     bluetooth_sdp_record* record = in_record;
@@ -273,7 +273,6 @@ static void set_sdp_handle(int id, int handle) {
 
 }
 
-
 bt_status_t create_sdp_record(bluetooth_sdp_record *record, int* record_handle) {
     int handle;
 
@@ -306,7 +305,6 @@ bt_status_t remove_sdp_record(int record_id) {
     BTIF_TRACE_DEBUG("Sdp Server %s - record already removed - or never created", __FUNCTION__);
     return BT_STATUS_FAIL;
 }
-
 
 /******************************************************************************
  * CALLBACK FUNCTIONS
@@ -620,7 +618,6 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
     return sdp_handle;
 }
 
-
 /* Create a OPP Server SDP record based on information stored in a bluetooth_sdp_ops_record */
 static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
 {
@@ -715,5 +712,4 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
     }
     return sdp_handle;
 }
-
 
