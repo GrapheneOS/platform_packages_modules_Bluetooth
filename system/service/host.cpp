@@ -30,8 +30,8 @@
 #include "osi/include/log.h"
 
 #include "base/base64.h"
-#include "base/string_number_conversions.h"
-#include "base/string_split.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_split.h"
 #include "core_stack.h"
 #include "gatt_server.h"
 #include "uuid.h"
@@ -129,8 +129,8 @@ bool Host::OnAddCharacteristic(const std::string& service_uuid,
                                const std::string& characteristic_uuid,
                                const std::string& control_uuid,
                                const std::string& options) {
-  const std::vector<std::string> option_tokens(
-      base::SplitString(options, '.'));
+  std::vector<std::string> option_tokens;
+  base::SplitString(options, '.', &option_tokens);
 
   int properties_mask = 0;
   int permissions_mask = 0;
@@ -181,8 +181,8 @@ bool Host::OnSetAdvertisement(const std::string& service_uuid,
   LOG_INFO("%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
            advertise_uuids.c_str(), advertise_data.c_str());
 
-  const std::vector<std::string> advertise_uuid_tokens(
-      base::SplitString(advertise_uuids, '.'));
+  std::vector<std::string> advertise_uuid_tokens;
+  base::SplitString(advertise_uuids, '.', &advertise_uuid_tokens);
 
   // string -> vector<Uuid>
   std::vector<Uuid> ids;
@@ -201,8 +201,8 @@ bool Host::OnSetScanResponse(const std::string& service_uuid,
                              const std::string& scan_response_uuids,
                              const std::string& scan_response_data,
                              const std::string& transmit_name) {
-  const std::vector<std::string> scan_response_uuid_tokens(
-      base::SplitString(scan_response_uuids, '.'));
+  std::vector<std::string> scan_response_uuid_tokens;
+  base::SplitString(scan_response_uuids, '.', &scan_response_uuid_tokens);
 
   // string -> vector<Uuid>
   std::vector<Uuid> ids;
@@ -246,7 +246,8 @@ bool Host::OnMessage() {
     return false;
   }
 
-  const std::vector<std::string> tokens(base::SplitString(ipc_msg, '|'));
+  std::vector<std::string> tokens;
+  base::SplitString(ipc_msg, '|', &tokens);
   switch (tokens.size()) {
     case 2:
       if (tokens[0] == kSetAdapterNameCommand)
