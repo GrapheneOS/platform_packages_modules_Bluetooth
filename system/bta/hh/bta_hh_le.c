@@ -1897,6 +1897,7 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
         return;
     }
 
+    memset(&hs_data, 0, sizeof(hs_data));
     hs_data.status  = BTA_HH_ERR;
     hs_data.handle  = p_dev_cb->hid_handle;
 
