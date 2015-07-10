@@ -127,7 +127,7 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_SCAN_WIN_MAX            0x4000
 #define BTM_BLE_EXT_SCAN_INT_MAX        0x00FFFFFF
 #define BTM_BLE_EXT_SCAN_WIN_MAX        0xFFFF
-#define BTM_BLE_CONN_INT_MIN            0x0009
+#define BTM_BLE_CONN_INT_MIN            0x0006
 #define BTM_BLE_CONN_INT_MAX            0x0C80
 #define BTM_BLE_CONN_LATENCY_MAX        500
 #define BTM_BLE_CONN_SUP_TOUT_MIN       0x000A
@@ -165,17 +165,25 @@ typedef UINT8   tBTM_BLE_SFP;
 #ifndef BTM_BLE_CONN_INT_MIN_DEF
 #define BTM_BLE_CONN_INT_MIN_DEF     24      /* recommended min: 30ms  = 24 * 1.25 */
 #endif
+
 /* default connectino interval max */
 #ifndef BTM_BLE_CONN_INT_MAX_DEF
 #define BTM_BLE_CONN_INT_MAX_DEF     40      /* recommended max: 50 ms = 56 * 1.25 */
 #endif
+
 /* default slave latency */
 #ifndef BTM_BLE_CONN_SLAVE_LATENCY_DEF
 #define BTM_BLE_CONN_SLAVE_LATENCY_DEF  0      /* 0 */
 #endif
+
 /* default supervision timeout */
 #ifndef BTM_BLE_CONN_TIMEOUT_DEF
 #define BTM_BLE_CONN_TIMEOUT_DEF    2000
+#endif
+
+/* minimum acceptable connection interval */
+#ifndef BTM_BLE_CONN_INT_MIN_LIMIT
+#define BTM_BLE_CONN_INT_MIN_LIMIT     0x0009
 #endif
 
 #define BTM_BLE_DIR_CONN_FALLBACK_UNDIR         1
