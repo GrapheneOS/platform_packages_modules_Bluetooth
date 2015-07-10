@@ -598,7 +598,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             {
                 /* send the response to the peer */
                 p_rsp = avrc_copy_packet(p_pkt);
-                p_rsp_data = avrc_get_data_ptr(p_pkt);
+                p_rsp_data = avrc_get_data_ptr(p_rsp);
                 *p_rsp_data = AVRC_RSP_IMPL_STBL;
                 /* check & set the offset. set response code, set subunit_type & subunit_id,
                    set AVRC_OP_UNIT_INFO */
@@ -630,7 +630,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             {
                 /* send the response to the peer */
                 p_rsp = avrc_copy_packet(p_pkt);
-                p_rsp_data = avrc_get_data_ptr(p_pkt);
+                p_rsp_data = avrc_get_data_ptr(p_rsp);
                 *p_rsp_data = AVRC_RSP_IMPL_STBL;
                 /* check & set the offset. set response code, set (subunit_type & subunit_id),
                    set AVRC_OP_SUB_INFO, set (page & extention code) */
@@ -768,7 +768,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     {
         /* reject unsupported opcode */
         p_rsp = avrc_copy_packet(p_pkt);
-        p_rsp_data = avrc_get_data_ptr(p_pkt);
+        p_rsp_data = avrc_get_data_ptr(p_rsp);
         *p_rsp_data = AVRC_RSP_REJ;
 #if (BT_USE_TRACES == TRUE)
         p_drop_msg = "rejected";
