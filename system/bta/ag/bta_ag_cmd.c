@@ -21,19 +21,20 @@
  *  This file contains functions for processing AT commands and results.
  *
  ******************************************************************************/
-#include "bt_target.h"
-#include "bt_types.h"
-#include "gki.h"
-#include "bta_api.h"
-#include "bta_sys.h"
-#include "bta_ag_api.h"
-#include "bta_ag_int.h"
-#include "bta_ag_at.h"
-#include "port_api.h"
-#include "utl.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+
+#include "bt_target.h"
+#include "bt_types.h"
+#include "bta_ag_api.h"
+#include "bta_ag_at.h"
+#include "bta_ag_int.h"
+#include "bta_api.h"
+#include "bta_sys.h"
+#include "gki.h"
+#include "port_api.h"
+#include "utl.h"
 
 
 /*****************************************************************************
@@ -1484,7 +1485,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             APPL_TRACE_DEBUG("CLIP type :%d", p_result->data.num);
             p_scb->clip[0] = 0;
             if (p_result->data.str[0] != 0)
-                sprintf(p_scb->clip,"%s,%d", p_result->data.str, p_result->data.num);
+                snprintf(p_scb->clip, sizeof(p_scb->clip), "%s,%d", p_result->data.str, p_result->data.num);
 
             /* send callsetup indicator */
             if (p_scb->post_sco == BTA_AG_POST_SCO_CALL_END)
