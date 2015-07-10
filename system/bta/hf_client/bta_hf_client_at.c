@@ -16,9 +16,10 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <errno.h>
+
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
 #include "port_api.h"
@@ -29,10 +30,10 @@
 /* minimum length of AT event */
 #define BTA_HF_CLIENT_AT_EVENT_MIN_LEN 3
 
-/* timeout for AT response  */
+/* timeout for AT response */
 #define BTA_HF_CLIENT_AT_TIMEOUT 29989
 
-/* timeout for AT hold timer  */
+/* timeout for AT hold timer */
 #define BTA_HF_CLIENT_AT_HOLD_TIMEOUT 41
 
 /******************************************************************************
@@ -47,7 +48,7 @@ extern tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 **       SUPPORTED EVENT MESSAGES
 *******************************************************************************/
 
-/* CIND: supported indicator names                        */
+/* CIND: supported indicator names */
 #define BTA_HF_CLIENT_INDICATOR_BATTERYCHG  "battchg"
 #define BTA_HF_CLIENT_INDICATOR_SIGNAL      "signal"
 #define BTA_HF_CLIENT_INDICATOR_SERVICE     "service"
@@ -55,6 +56,9 @@ extern tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 #define BTA_HF_CLIENT_INDICATOR_ROAM        "roam"
 #define BTA_HF_CLIENT_INDICATOR_CALLSETUP   "callsetup"
 #define BTA_HF_CLIENT_INDICATOR_CALLHELD    "callheld"
+
+#define MIN(a, b) \
+    ({ __typeof__(a) _a = (a); __typeof__(b) _b = (b); (_a < _b) ? _a : _b; })
 
 /* CIND: represents each indicators boundaries */
 typedef struct
@@ -1652,14 +1656,13 @@ void bta_hf_client_send_at_atd(char *number, UINT32 memory)
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (number[0] != '\0')
-    {
+    if (number[0] != '\0') {
         at_len = snprintf(buf, sizeof(buf), "ATD%s;\r", number);
-    }
-    else
-    {
+    } else {
         at_len = snprintf(buf, sizeof(buf), "ATD>%u;\r", memory);
     }
+
+    at_len = MIN(at_len, sizeof(buf));
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_ATD, buf, at_len);
 }
