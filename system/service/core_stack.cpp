@@ -39,8 +39,8 @@ bool instantiated = false;
 
 void AdapterStateChangedCallback(bt_state_t state) {
   LOG_INFO(LOG_TAG, "Bluetooth state:%s", BtStateText(state));
-  if (state == BT_STATE_ON)
-    synchronize.notify_one();
+  std::lock_guard<std::mutex> lock(mutex);
+  synchronize.notify_one();
 }
 
 void CallbackThreadCallback(bt_cb_thread_evt evt) {

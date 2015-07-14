@@ -219,6 +219,9 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   response.attr_value.offset = attribute_offset;
   response.attr_value.len = length;
   response.attr_value.auth_req = 0;
+  // Provide written data back to sender for the response.
+  // Remote stacks use this to validate the success of the write.
+  std::copy(value, value + length, response.attr_value.value);
   internal->gatt->server->send_response(conn_id, trans_id, 0, &response);
 }
 
@@ -227,6 +230,11 @@ void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   std::string addr(BtAddrString(bda));
   LOG_INFO(LOG_TAG, "%s: connection:%d (%s:trans:%d) exec_write:%d", __func__,
       conn_id, addr.c_str(), trans_id, exec_write);
+
+  // This 'response' data is unused for ExecWriteResponses.
+  // It is only used to pass BlueDroid argument validation.
+  btgatt_response_t response = {};
+  internal->gatt->server->send_response(conn_id, trans_id, 0, &response);
 
   if (!exec_write)
     return;
@@ -476,6 +484,10 @@ ServerInternals::~ServerInternals() {
     close(pipefd[0]);
   if (pipefd[1] != INVALID_FD)
     close(pipefd[1]);
+
+  gatt->server->delete_service(server_if, service_handle);
+  gatt->server->unregister_server(server_if);
+  gatt->client->unregister_client(client_if);
 }
 
 Server::Server() : internal_(nullptr) {}
