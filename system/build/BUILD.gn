@@ -49,6 +49,10 @@ config("linux") {
     "-std=c99"
   ]
 
+  cflags_cc = [
+    "-std=c++11"
+  ]
+
   defines = [
     "_FORTIFY_SOURCE=2",
     "_GNU_SOURCE",
