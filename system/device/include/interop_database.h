@@ -29,9 +29,13 @@ typedef struct {
 static const interop_entry_t interop_database[] = {
   // Nexus Remote (Spike)
   // Note: May affect other Asus brand devices
-  {{0x38, 0x2c, 0x4a, 0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
-  {{0x08, 0x62, 0x66, 0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0x08, 0x62, 0x66,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0x38, 0x2c, 0x4a, 0xc9,   0,0}, 4, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0x38, 0x2c, 0x4a, 0xe6,   0,0}, 4, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0x54, 0xa0, 0x50, 0xd9,   0,0}, 4, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0xac, 0x9e, 0x17,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+  {{0xf0, 0x79, 0x59,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
 
   // BMW car kits (Harman/Becker)
-  {{0x9c, 0xdf, 0x03, 0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING}
+  {{0x9c, 0xdf, 0x03,       0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING}
 };
