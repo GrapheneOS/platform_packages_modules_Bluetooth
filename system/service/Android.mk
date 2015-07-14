@@ -16,19 +16,6 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-BASE_SRC := \
-	base/base64.cpp \
-	base/string_split.cpp \
-	base/string_number_conversions.cpp \
-	modp_b64/modp_b64.cpp
-
-CORE_SRC := \
-	a2dp_source.cpp \
-	logging_helpers.cpp \
-	core_stack.cpp \
-	uuid.cpp \
-	gatt_server.cpp
-
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := uuid_test.cpp uuid.cpp
 LOCAL_CFLAGS += -std=c++11
@@ -39,10 +26,13 @@ include $(BUILD_HOST_NATIVE_TEST)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
-    $(BASE_SRC) \
-    $(CORE_SRC) \
-    host.cpp \
-    main.cpp
+	a2dp_source.cpp \
+	core_stack.cpp \
+	gatt_server.cpp \
+	host.cpp \
+	logging_helpers.cpp \
+	main.cpp \
+	uuid.cpp
 
 LOCAL_C_INCLUDES += \
         $(LOCAL_PATH)/../
@@ -52,8 +42,9 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bthost
 LOCAL_REQUIRED_MODULES = bluetooth.default
 LOCAL_SHARED_LIBRARIES += \
-    libhardware \
-    libcutils \
-    liblog
+	libchrome \
+	libcutils \
+	libhardware \
+	liblog
 
 include $(BUILD_EXECUTABLE)
