@@ -53,8 +53,9 @@ void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb,
 void alarm_cancel(alarm_t *alarm);
 
 // Figure out how much time until next expiration.
-// Returns 0 if not armed.
-period_ms_t alarm_get_remaining_ms(alarm_t *alarm);
+// Returns 0 if not armed. |alarm| may not be NULL.
+// TODO: Remove this function once PM timers can be re-factored
+period_ms_t alarm_get_remaining_ms(const alarm_t *alarm);
 
 // Alarm-related state cleanup
 void alarm_cleanup(void);
