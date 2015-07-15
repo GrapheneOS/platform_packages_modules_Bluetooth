@@ -52,5 +52,9 @@ void alarm_set_periodic(alarm_t *alarm, period_ms_t period, alarm_callback_t cb,
 // |alarm| may not be NULL.
 void alarm_cancel(alarm_t *alarm);
 
+// Figure out how much time until next expiration.
+// Returns 0 if not armed.
+period_ms_t alarm_get_remaining_ms(alarm_t *alarm);
+
 // Alarm-related state cleanup
 void alarm_cleanup(void);

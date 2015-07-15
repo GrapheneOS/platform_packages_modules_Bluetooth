@@ -198,11 +198,11 @@ typedef UINT8   tBTM_BLE_SFP;
 typedef UINT8 BLE_SIGNATURE[BTM_BLE_AUTH_SIGN_LEN];         /* Device address */
 
 #ifndef BTM_BLE_HOST_SUPPORT
-#define BTM_BLE_HOST_SUPPORT		0x01
+#define BTM_BLE_HOST_SUPPORT        0x01
 #endif
 
 #ifndef BTM_BLE_SIMULTANEOUS_HOST
-#define BTM_BLE_SIMULTANEOUS_HOST	0x01
+#define BTM_BLE_SIMULTANEOUS_HOST   0x01
 #endif
 
 /* Appearance Values Reported with BTM_BLE_AD_TYPE_APPEARANCE */
@@ -1420,6 +1420,31 @@ extern void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK  *p_vsc_c
 **
 *******************************************************************************/
 extern  UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length);
+
+/*******************************************************************************
+**
+** Function         BTM__BLEReadDiscoverability
+**
+** Description      This function is called to read the current LE discoverability
+**                  mode of the device.
+**
+** Returns          BTM_BLE_NON_DISCOVERABLE ,BTM_BLE_LIMITED_DISCOVERABLE or
+**                     BTM_BLE_GENRAL_DISCOVERABLE
+**
+*******************************************************************************/
+UINT16 BTM_BleReadDiscoverability();
+
+/*******************************************************************************
+**
+** Function         BTM__BLEReadConnectability
+**
+** Description      This function is called to read the current LE connectibility
+**                  mode of the device.
+**
+** Returns          BTM_BLE_NON_CONNECTABLE or BTM_BLE_CONNECTABLE
+**
+*******************************************************************************/
+extern UINT16 BTM_BleReadConnectability ();
 
 /*******************************************************************************
 **
