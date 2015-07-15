@@ -549,6 +549,10 @@ tBTM_STATUS btm_ble_set_batchscan_param(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
     pp_scan = scan_param;
     memset(scan_param, 0, BTM_BLE_BATCH_SCAN_PARAM_CONFIG_LEN);
 
+    // Override param and decide addr_type based on own addr type
+    // TODO: Remove upper layer parameter?
+    addr_type = btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type;
+
     UINT8_TO_STREAM (pp_scan, BTM_BLE_BATCH_SCAN_SET_PARAMS);
     UINT8_TO_STREAM (pp_scan, scan_mode);
     UINT32_TO_STREAM (pp_scan, scan_window);
