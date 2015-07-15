@@ -128,6 +128,13 @@ void alarm_free(alarm_t *alarm) {
   osi_free(alarm);
 }
 
+period_ms_t alarm_get_remaining_ms(alarm_t *alarm) {
+  assert(alarm != NULL);
+  if (alarm->deadline)
+    return (alarm->deadline - now());
+  return 0;
+}
+
 void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data) {
   alarm_set_internal(alarm, deadline, cb, data, false);
 }

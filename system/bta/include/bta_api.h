@@ -176,8 +176,10 @@ typedef struct
 typedef UINT16 tBTA_SEC;
 
 /* Ignore for Discoverable, Connectable, Pairable and Connectable Paired only device modes */
+#define BTA_DM_IGNORE           0x00FF
 
-#define BTA_DM_IGNORE           0xFF
+/* Ignore for Discoverable, Connectable only for LE modes */
+#define BTA_DM_LE_IGNORE           0xFF00
 
 #define BTA_ALL_APP_ID          0xFF
 
@@ -1188,9 +1190,10 @@ typedef UINT16 tBTA_DM_LP_MASK;
 #define BTA_DM_PM_SNIFF_USER1  0x29       /* prefers user-defined sniff1 mode (testtool only) */
 #define BTA_DM_PM_ACTIVE       0x40       /* prefers active mode */
 #define BTA_DM_PM_RETRY        0x80       /* retry power mode based on current settings */
+#define BTA_DM_PM_SUSPEND      0x04       /* prefers suspend mode */
 #define BTA_DM_PM_NO_PREF      0x01       /* service has no prefernce on power mode setting. eg. connection to service got closed */
 
-typedef UINT8 tBTA_DM_PM_ACTTION;
+typedef UINT8 tBTA_DM_PM_ACTION;
 
 /* index to bta_dm_ssr_spec */
 #define BTA_DM_PM_SSR0          0

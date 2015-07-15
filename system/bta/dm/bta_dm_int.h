@@ -54,6 +54,7 @@ enum
     BTA_DM_API_DISABLE_EVT,
     BTA_DM_API_SET_NAME_EVT,
     BTA_DM_API_SET_VISIBILITY_EVT,
+
     BTA_DM_ACL_CHANGE_EVT,
     BTA_DM_API_ADD_DEVICE_EVT,
     BTA_DM_API_REMOVE_ACL_EVT,
@@ -72,14 +73,12 @@ enum
 
     BTA_DM_API_SET_ENCRYPTION_EVT,
 
-
 #if (BTM_OOB_INCLUDED == TRUE)
     BTA_DM_API_LOC_OOB_EVT,
     BTA_DM_CI_IO_REQ_EVT,
     BTA_DM_CI_RMT_OOB_EVT,
 #endif /* BTM_OOB_INCLUDED */
 
-    BTA_DM_API_REMOVE_DEVICE_EVT,
 
 #if BLE_INCLUDED == TRUE
     BTA_DM_API_ADD_BLEKEY_EVT,
@@ -89,8 +88,8 @@ enum
     BTA_DM_API_BLE_SEC_GRANT_EVT,
     BTA_DM_API_BLE_SET_BG_CONN_TYPE,
     BTA_DM_API_BLE_CONN_PARAM_EVT,
-    BTA_DM_API_BLE_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT,
+    BTA_DM_API_BLE_SCAN_PARAM_EVT,
     BTA_DM_API_BLE_OBSERVE_EVT,
     BTA_DM_API_UPDATE_CONN_PARAM_EVT,
 #if BLE_PRIVACY_SPT == TRUE
@@ -117,11 +116,14 @@ enum
     BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT,
     BTA_DM_API_BLE_TRACK_ADVERTISER_EVT,
     BTA_DM_API_BLE_ENERGY_INFO_EVT,
+
 #endif
 
     BTA_DM_API_ENABLE_TEST_MODE_EVT,
     BTA_DM_API_DISABLE_TEST_MODE_EVT,
     BTA_DM_API_EXECUTE_CBACK_EVT,
+    BTA_DM_API_REMOVE_ALL_ACL_EVT,
+    BTA_DM_API_REMOVE_DEVICE_EVT,
     BTA_DM_MAX_EVT
 };
 
@@ -140,6 +142,7 @@ enum
     BTA_DM_DISCOVERY_RESULT_EVT,
     BTA_DM_API_DI_DISCOVER_EVT,
     BTA_DM_DISC_CLOSE_TOUT_EVT
+
 };
 
 /* data type for BTA_DM_API_ENABLE_EVT */
@@ -337,7 +340,7 @@ typedef struct
 {
     BT_HDR          hdr;
     BD_ADDR         bd_addr;
-
+    tBTA_DM_PM_ACTION  pm_request;
 } tBTA_DM_PM_TIMER;
 
 
@@ -462,6 +465,14 @@ typedef struct
     tBLE_SCAN_MODE scan_mode;
     tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback;
 }tBTA_DM_API_BLE_SCAN_PARAMS;
+
+/* set scan parameter for BLE connections */
+typedef struct
+{
+    BT_HDR                  hdr;
+    UINT16                  scan_int;
+    UINT16                  scan_window;
+} tBTA_DM_API_BLE_CONN_SCAN_PARAMS;
 
 /* Data type for start/stop observe */
 typedef struct
@@ -594,6 +605,14 @@ typedef struct
     tBTA_TRANSPORT transport;
 
 }tBTA_DM_API_REMOVE_ACL;
+
+/* data type for BTA_DM_API_REMOVE_ALL_ACL_EVT */
+typedef struct
+{
+    BT_HDR      hdr;
+    tBTA_DM_LINK_TYPE link_type;
+
+} tBTA_DM_API_REMOVE_ALL_ACL;
 typedef struct
 {
     BT_HDR      hdr;
@@ -693,6 +712,7 @@ typedef union
     tBTA_DM_API_BLE_SEC_GRANT           ble_sec_grant;
     tBTA_DM_API_BLE_SET_BG_CONN_TYPE    ble_set_bd_conn_type;
     tBTA_DM_API_BLE_CONN_PARAMS         ble_set_conn_params;
+    tBTA_DM_API_BLE_CONN_SCAN_PARAMS    ble_set_conn_scan_params;
     tBTA_DM_API_BLE_SCAN_PARAMS         ble_set_scan_params;
     tBTA_DM_API_BLE_OBSERVE             ble_observe;
     tBTA_DM_API_ENABLE_PRIVACY          ble_remote_privacy;
@@ -721,6 +741,7 @@ typedef union
 #endif
 
     tBTA_DM_API_REMOVE_ACL              remove_acl;
+    tBTA_DM_API_REMOVE_ALL_ACL          remove_all_acl;
 
 } tBTA_DM_MSG;
 
@@ -741,6 +762,12 @@ typedef UINT8 tBTA_DM_CONN_STATE;
 #define BTA_DM_DI_ACP_SNIFF     0x04       /* set this bit if peer init sniff */
 typedef UINT8 tBTA_DM_DEV_INFO;
 
+/* set power mode request type */
+#define BTA_DM_PM_RESTART       1
+#define BTA_DM_PM_NEW_REQ       2
+#define BTA_DM_PM_EXECUTE       3
+typedef UINT8   tBTA_DM_PM_REQ;
+
 typedef struct
 {
     BD_ADDR                     peer_bdaddr;
@@ -753,11 +780,13 @@ typedef struct
 #if (BTM_SSR_INCLUDED == TRUE)
     tBTM_PM_STATUS              prev_low;   /* previous low power mode used */
 #endif
-    tBTA_DM_PM_ACTTION          pm_mode_attempted;
-    tBTA_DM_PM_ACTTION          pm_mode_failed;
+    tBTA_DM_PM_ACTION           pm_mode_attempted;
+    tBTA_DM_PM_ACTION           pm_mode_failed;
     BOOLEAN                     remove_dev_pending;
+#if BLE_INCLUDED == TRUE
     UINT16                      conn_handle;
     tBT_TRANSPORT               transport;
+#endif
 } tBTA_DM_PEER_DEVICE;
 
 
@@ -780,11 +809,13 @@ typedef struct
     tBTA_SYS_ID             id;
     UINT8                   app_id;
     tBTA_SYS_CONN_STATUS    state;
-
+    BOOLEAN                 new_request;
 
 } tBTA_DM_SRVCS;
 
-#define BTA_DM_NUM_CONN_SRVS   5
+#ifndef BTA_DM_NUM_CONN_SRVS
+#define BTA_DM_NUM_CONN_SRVS   10
+#endif
 
 typedef struct
 {
@@ -796,15 +827,27 @@ typedef struct
 
 typedef struct
 {
-    TIMER_LIST_ENT          timer;
+#define BTA_DM_PM_SNIFF_TIMER_IDX   0
+#define BTA_DM_PM_PARK_TIMER_IDX    1
+#define BTA_DM_PM_SUSPEND_TIMER_IDX 2
+#define BTA_DM_PM_MODE_TIMER_MAX    3
+    /*
+     * Keep three different timers for PARK, SNIFF and SUSPEND if TBFC is
+     * supported.
+     */
+    TIMER_LIST_ENT          timer[BTA_DM_PM_MODE_TIMER_MAX];
+
+    UINT8                   srvc_id[BTA_DM_PM_MODE_TIMER_MAX];
+    UINT8                   pm_action[BTA_DM_PM_MODE_TIMER_MAX];
+    UINT8                   active;     /* number of active timer */
+
     BD_ADDR                 peer_bdaddr;
     BOOLEAN                 in_use;
-
 } tBTA_PM_TIMER;
 
 extern tBTA_DM_CONNECTED_SRVCS bta_dm_conn_srvcs;
 
-#define BTA_DM_NUM_PM_TIMER 3
+#define BTA_DM_NUM_PM_TIMER 7
 
 /* DM control block */
 typedef struct
@@ -856,6 +899,8 @@ typedef struct
 
 #endif
 
+
+    tBTA_DM_ENCRYPT_CBACK      *p_encrypt_cback;
     TIMER_LIST_ENT              switch_delay_timer;
 
 } tBTA_DM_CB;
@@ -886,6 +931,7 @@ typedef struct
     tSDP_UUID              uuid;
     UINT8                  peer_scn;
     BOOLEAN                sdp_search;
+    BOOLEAN                cancel_pending; /* inquiry cancel is pending */
     tBTA_TRANSPORT         transport;
 #if ((defined BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
     tBTA_DM_SEARCH_CBACK * p_scan_cback;
@@ -899,8 +945,8 @@ typedef struct
     UINT8 *                 p_ble_rawdata;
     UINT32                 ble_raw_size;
     UINT32                 ble_raw_used;
-    TIMER_LIST_ENT         gatt_close_timer;
-    BD_ADDR                pending_close_bda;
+    TIMER_LIST_ENT         gatt_close_timer; /* GATT channel close delay timer */
+    BD_ADDR                pending_close_bda; /* pending GATT channel remote device address */
 #endif
 #endif
 
@@ -940,8 +986,6 @@ typedef struct
 
 extern const UINT32 bta_service_id_to_btm_srv_id_lkup_tbl[];
 
-extern const tBTA_DM_CFG bta_dm_cfg;
-
 
 typedef struct
 {
@@ -967,7 +1011,7 @@ typedef struct
 typedef struct
 {
 
-  tBTA_DM_PM_ACTTION  power_mode;
+  tBTA_DM_PM_ACTION   power_mode;
   UINT16              timeout;
 
 } tBTA_DM_PM_ACTN;
@@ -1042,6 +1086,9 @@ extern void bta_dm_enable (tBTA_DM_MSG *p_data);
 extern void bta_dm_disable (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_dev_name (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_visibility (tBTA_DM_MSG *p_data);
+
+extern void bta_dm_set_scan_config(tBTA_DM_MSG *p_data);
+extern void bta_dm_vendor_spec_command(tBTA_DM_MSG *p_data);
 extern void bta_dm_bond (tBTA_DM_MSG *p_data);
 extern void bta_dm_bond_cancel (tBTA_DM_MSG *p_data);
 extern void bta_dm_pin_reply (tBTA_DM_MSG *p_data);
@@ -1063,7 +1110,7 @@ extern void bta_dm_ble_confirm_reply (tBTA_DM_MSG *p_data);
 extern void bta_dm_security_grant (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_bg_conn_type (tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_conn_params (tBTA_DM_MSG *p_data);
-extern void bta_dm_ble_set_scan_params (tBTA_DM_MSG *p_data);
+extern void bta_dm_ble_set_scan_params(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_set_conn_scan_params (tBTA_DM_MSG *p_data);
 extern void bta_dm_close_gatt_conn(tBTA_DM_MSG *p_data);
 extern void bta_dm_ble_observe (tBTA_DM_MSG *p_data);
@@ -1104,6 +1151,7 @@ extern void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data);
 extern void bta_dm_init_pm(void);
 extern void bta_dm_disable_pm(void);
 
+extern UINT8 bta_dm_get_av_count(void);
 extern void bta_dm_search_start (tBTA_DM_MSG *p_data);
 extern void bta_dm_search_cancel (tBTA_DM_MSG *p_data);
 extern void bta_dm_discover (tBTA_DM_MSG *p_data);
@@ -1133,4 +1181,6 @@ extern void bta_dm_enable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_disable_test_mode(tBTA_DM_MSG *p_data);
 extern void bta_dm_execute_callback(tBTA_DM_MSG *p_data);
 
+
+extern void bta_dm_remove_all_acl(tBTA_DM_MSG *p_data);
 #endif /* BTA_DM_INT_H */

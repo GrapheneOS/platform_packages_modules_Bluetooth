@@ -54,7 +54,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_set_visibility,    /* 3  BTA_DM_API_SET_VISIBILITY_EVT */
     bta_dm_acl_change,        /* 8  BTA_DM_ACL_CHANGE_EVT */
     bta_dm_add_device,        /* 9  BTA_DM_API_ADD_DEVICE_EVT */
-    bta_dm_close_acl,         /* 10 BTA_DM_API_ADD_DEVICE_EVT */
+    bta_dm_close_acl,        /* 10  BTA_DM_API_ADD_DEVICE_EVT */
 
     /* security API events */
     bta_dm_bond,              /* 11  BTA_DM_API_BOND_EVT */
@@ -76,7 +76,6 @@ const tBTA_DM_ACTION bta_dm_action[] =
     bta_dm_ci_rmt_oob_act,    /* 22 BTA_DM_CI_RMT_OOB_EVT */
 #endif /* BTM_OOB_INCLUDED */
 
-    bta_dm_remove_device,      /*  BTA_DM_API_REMOVE_DEVICE_EVT */
 
 #if BLE_INCLUDED == TRUE
     bta_dm_add_blekey,          /*  BTA_DM_API_ADD_BLEKEY_EVT           */
@@ -95,7 +94,7 @@ const tBTA_DM_ACTION bta_dm_action[] =
 #endif
     bta_dm_ble_set_adv_params,     /* BTA_DM_API_BLE_ADV_PARAM_EVT */
     bta_dm_ble_set_adv_config,     /* BTA_DM_API_BLE_SET_ADV_CONFIG_EVT */
-    bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSP_EVT */
+    bta_dm_ble_set_scan_rsp,       /* BTA_DM_API_BLE_SET_SCAN_RSPT */
     bta_dm_ble_broadcast,          /* BTA_DM_API_BLE_BROADCAST_EVT */
     bta_dm_ble_set_data_length,    /* BTA_DM_API_SET_DATA_LENGTH_EVT */
 #if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
@@ -117,7 +116,10 @@ const tBTA_DM_ACTION bta_dm_action[] =
 
     bta_dm_enable_test_mode,    /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */
     bta_dm_disable_test_mode,   /*  BTA_DM_API_DISABLE_TEST_MODE_EVT    */
-    bta_dm_execute_callback,     /*  BTA_DM_API_EXECUTE_CBACK_EVT        */
+    bta_dm_execute_callback,    /*  BTA_DM_API_EXECUTE_CBACK_EVT        */
+
+    bta_dm_remove_all_acl,      /* BTA_DM_API_REMOVE_ALL_ACL_EVT */
+    bta_dm_remove_device,       /* BTA_DM_API_REMOVE_DEVICE_EVT */
 };
 
 
@@ -202,7 +204,6 @@ const UINT8 bta_dm_search_idle_st_table[][BTA_DM_SEARCH_NUM_COLS] =
 #if BLE_INCLUDED == TRUE
 /* DISC_CLOSE_TOUT_EVT */   ,{BTA_DM_CLOSE_GATT_CONN,           BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_IDLE}
 #endif
-
 };
 const UINT8 bta_dm_search_search_active_st_table[][BTA_DM_SEARCH_NUM_COLS] =
 {
@@ -217,9 +218,8 @@ const UINT8 bta_dm_search_search_active_st_table[][BTA_DM_SEARCH_NUM_COLS] =
 /* SEARCH_CMPL_EVT */       {BTA_DM_SEARCH_CMPL,               BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_IDLE},
 /* DISCV_RES_EVT */         {BTA_DM_SEARCH_RESULT,             BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_ACTIVE},
 /* API_DI_DISCOVER_EVT */   {BTA_DM_SEARCH_IGNORE,             BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_ACTIVE}
-
 #if BLE_INCLUDED == TRUE
-/* DISC_CLOSE_TOUT_EVT */   ,{BTA_DM_SEARCH_IGNORE,             BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_ACTIVE}
+/* DISC_CLOSE_TOUT_EVT */   ,{BTA_DM_CLOSE_GATT_CONN,          BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_ACTIVE}
 #endif
 
 };
@@ -237,7 +237,6 @@ const UINT8 bta_dm_search_search_cancelling_st_table[][BTA_DM_SEARCH_NUM_COLS] =
 /* SEARCH_CMPL_EVT */       {BTA_DM_SEARCH_CANCEL_TRANSAC_CMPL, BTA_DM_SEARCH_CANCEL_CMPL,     BTA_DM_SEARCH_IDLE},
 /* DISCV_RES_EVT */         {BTA_DM_SEARCH_CANCEL_TRANSAC_CMPL, BTA_DM_SEARCH_CANCEL_CMPL,     BTA_DM_SEARCH_IDLE},
 /* API_DI_DISCOVER_EVT */   {BTA_DM_SEARCH_IGNORE,              BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_CANCELLING}
-
 #if BLE_INCLUDED == TRUE
 /* DISC_CLOSE_TOUT_EVT */   ,{BTA_DM_SEARCH_IGNORE,              BTA_DM_SEARCH_IGNORE,          BTA_DM_SEARCH_CANCELLING}
 #endif
@@ -261,7 +260,6 @@ const UINT8 bta_dm_search_disc_active_st_table[][BTA_DM_SEARCH_NUM_COLS] =
 #if BLE_INCLUDED == TRUE
 /* DISC_CLOSE_TOUT_EVT */   ,{BTA_DM_SEARCH_IGNORE,             BTA_DM_SEARCH_IGNORE,          BTA_DM_DISCOVER_ACTIVE}
 #endif
-
 };
 
 typedef const UINT8 (*tBTA_DM_ST_TBL)[BTA_DM_SEARCH_NUM_COLS];
