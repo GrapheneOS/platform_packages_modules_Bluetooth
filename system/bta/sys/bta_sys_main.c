@@ -640,6 +640,25 @@ void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms) {
   alarm_set(alarm, (period_ms_t)timeout_ms, bta_alarm_cb, p_tle);
 }
 
+bool hash_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context)
+{
+    alarm_t *alarm = (alarm_t *)hash_map_entry->data;
+    period_ms_t *p_remaining_ms = (period_ms_t*)context;
+    *p_remaining_ms += alarm_get_remaining_ms(alarm);
+    return true;
+}
+
+UINT32 bta_sys_get_remaining_ticks(TIMER_LIST_ENT *p_target_tle)
+{
+    period_ms_t remaining_ms = 0;
+    pthread_mutex_lock(&bta_alarm_lock);
+    // Get the alarm for this p_tle
+    hash_map_foreach(bta_alarm_hash_map, hash_iter_ro_cb, &remaining_ms);
+    pthread_mutex_unlock(&bta_alarm_lock);
+    return remaining_ms;
+}
+
+
 /*******************************************************************************
 **
 ** Function         bta_sys_stop_timer

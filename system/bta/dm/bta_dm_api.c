@@ -182,7 +182,7 @@ void BTA_DmSetDeviceName(char *p_name)
     {
         p_msg->hdr.event = BTA_DM_API_SET_NAME_EVT;
         /* truncate the name if needed */
-        BCM_STRNCPY_S((char *)p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
+        BCM_STRNCPY_S((char*)p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
         p_msg->name[BD_NAME_LEN-1]=0;
 
         bta_sys_sendmsg(p_msg);
@@ -353,7 +353,16 @@ void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
 *******************************************************************************/
 void BTA_DmBond(BD_ADDR bd_addr)
 {
-    BTA_DmBondByTransport (bd_addr, BTA_TRANSPORT_UNKNOWN);
+    tBTA_DM_API_BOND    *p_msg;
+
+    p_msg = (tBTA_DM_API_BOND *) GKI_getbuf(sizeof(tBTA_DM_API_BOND));
+    if (p_msg != NULL)
+    {
+        p_msg->hdr.event = BTA_DM_API_BOND_EVT;
+        bdcpy(p_msg->bd_addr, bd_addr);
+        p_msg->transport = BTA_TRANSPORT_UNKNOWN;
+        bta_sys_sendmsg(p_msg);
+    }
 }
 
 /*******************************************************************************
@@ -444,7 +453,10 @@ void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin
 ** Function         BTA_DmLocalOob
 **
 ** Description      This function retrieves the OOB data from local controller.
-**                  The result is reported by bta_dm_co_loc_oob().
+**                  The result is reported by:
+**                  - bta_dm_co_loc_oob_ext() if device supports secure
+**                    connections (SC)
+**                  - bta_dm_co_loc_oob() if device doesn't support SC
 **
 ** Returns          void
 **
@@ -525,7 +537,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
             memcpy (p_msg->dc, dev_class, DEV_CLASS_LEN);
         }
 
-        memset (p_msg->bd_name, 0, BD_NAME_LEN);
+        memset (p_msg->bd_name, 0, BD_NAME_LEN + 1);
         memset (p_msg->features, 0, sizeof (p_msg->features));
         p_msg->pin_length = pin_length;
 
@@ -539,7 +551,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 ** Function         BTA_DmRemoveDevice
 **
 ** Description      This function removes a device fromthe security database list of
-**                  peer device
+**                  peer device. It manages unpairing even while connected.
 **
 **
 ** Returns          void
@@ -699,7 +711,8 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
 **                  p_le_key         - LE key values.
 **                  key_type         - LE SMP key type.
 **
-** Returns          void
+** Returns          BTA_SUCCESS if successful
+**                  BTA_FAIL if operation failed.
 **
 *******************************************************************************/
 void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_TYPE key_type)
@@ -1213,6 +1226,13 @@ extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
     }
 }
 
+#endif
+
+/*******************************************************************************
+**                      BLE ADV data management API
+********************************************************************************/
+#if BLE_INCLUDED == TRUE
+
 /*******************************************************************************
 **
 ** Function         BTA_DmBleBroadcast
@@ -1283,6 +1303,7 @@ void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_
 ** Returns          void
 **
 *******************************************************************************/
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
 static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                     tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
                     tBTA_TRANSPORT transport)
@@ -1318,7 +1339,7 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
         bta_sys_sendmsg(p_msg);
     }
 }
-
+#endif
 /*******************************************************************************
 **
 ** Function         BTA_DmDiscoverByTransport
@@ -1330,21 +1351,18 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
 **                  UUID of interested services should be provided through
 **                  p_services->p_uuid.
 **
-** Parameters       bd_addr: Bluetooth address of remote device
-**                  p_services :bit mask of the list of services to be discovered
-**                  p_cback : Callback on which result will be received
-**                  sdp_search: if TRUE SDP search will be initiated, else services present in
-**                                     EIR structure of remote device will be returned.
-**                  transport : Physical transport BR/EDR or LE
+**
+**
 ** Returns          void
 **
 *******************************************************************************/
-
 void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                     tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
                     tBTA_TRANSPORT transport)
 {
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     bta_dm_discover_send_msg(bd_addr, p_services, p_cback, sdp_search, transport);
+#endif
 }
 
 
@@ -1358,11 +1376,7 @@ void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_service
 **                  UUID of interested services should be provided through
 **                  p_services->p_uuid.
 **
-** Parameters       bd_addr: Bluetooth address of remote device
-**                  p_services :bit mask of the list of services to be discovered
-**                  p_cback : Callback on which result will be received
-**                  sdp_search: if TRUE SDP search will be initiated, else services present in
-**                                     EIR structure of remote device will be returned.
+**
 **
 ** Returns          void
 **
@@ -1370,7 +1384,9 @@ void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_service
 void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
                     tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
 {
+#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     bta_dm_discover_send_msg(bd_addr, p_services, p_cback, sdp_search, BTA_TRANSPORT_UNKNOWN);
+#endif
 
 }
 
@@ -1432,26 +1448,44 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
     UNUSED(p_cback);
 #endif
 }
-
 /*******************************************************************************
 **
-** Function         BTA_DmBleEnableRemotePrivacy
+** Function         BTA_DmBleUpdateConnectionParam
 **
-** Description      Enable/disable privacy on a remote device
+** Description      Update connection parameters, can only be used when connection is up.
 **
 ** Parameters:      bd_addr          - BD address of the peer
-**                  privacy_enable   - enable/disabe privacy on remote device.
+**                  min_int   -     minimum connection interval, [0x0004~ 0x4000]
+**                  max_int   -     maximum connection interval, [0x0004~ 0x4000]
+**                  latency   -     slave latency [0 ~ 500]
+**                  timeout   -     supervision timeout [0x000a ~ 0xc80]
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleEnableRemotePrivacy(BD_ADDR bd_addr, BOOLEAN privacy_enable)
+void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, UINT16 min_int,
+                                    UINT16 max_int, UINT16 latency,
+                                    UINT16 timeout)
 {
-    UNUSED(bd_addr);
-    UNUSED(privacy_enable);
+#if BLE_INCLUDED == TRUE
+    tBTA_DM_API_UPDATE_CONN_PARAM *p_msg;
+
+    p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) GKI_getbuf(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
+    if (p_msg != NULL)
+    {
+        memset(p_msg, 0, sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
+
+        p_msg->hdr.event = BTA_DM_API_UPDATE_CONN_PARAM_EVT;
+        bdcpy(p_msg->bd_addr, bd_addr);
+        p_msg->min_int   = min_int;
+        p_msg->max_int   = max_int;
+        p_msg->latency   = latency;
+        p_msg->timeout   = timeout;
+
+        bta_sys_sendmsg(p_msg);
+    }
+#endif
 }
-
-
 /*******************************************************************************
 **
 ** Function         BTA_DmBleConfigLocalPrivacy
@@ -1680,13 +1714,13 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
     if ((p_msg = (tBTA_DM_API_CFG_FILTER_COND *) GKI_getbuf(len)) != NULL)
     {
         memset (p_msg, 0, len);
+
         p_msg->hdr.event        = BTA_DM_API_CFG_FILTER_COND_EVT;
         p_msg->action           = action;
         p_msg->cond_type        = cond_type;
         p_msg->filt_index       = filt_index;
         p_msg->p_filt_cfg_cback = p_cmpl_cback;
         p_msg->ref_value        = ref_value;
-
         if (p_cond)
         {
             p_msg->p_cond_param = (tBTA_DM_BLE_PF_COND_PARAM *)(p_msg + 1);

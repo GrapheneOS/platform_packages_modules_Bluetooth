@@ -629,6 +629,13 @@ typedef struct
     BOOLEAN             appl_knows_rem_name;    /* set by application if it knows the remote name of the peer device.
                                                    This is later used by application to determine if remote name request is
                                                    required to be done. Having the flag here avoid duplicate store of inquiry results */
+#if ( BLE_INCLUDED == TRUE)
+    UINT16          remote_name_len;
+    tBTM_BD_NAME    remote_name;
+    UINT8           remote_name_state;
+    UINT8           remote_name_type;
+#endif
+
 } tBTM_INQ_INFO;
 
 

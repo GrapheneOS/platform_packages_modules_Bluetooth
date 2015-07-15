@@ -1288,6 +1288,41 @@ UINT8 *BTM_CheckAdvData( UINT8 *p_adv, UINT8 type, UINT8 *p_length)
 
 /*******************************************************************************
 **
+** Function         BTM__BLEReadDiscoverability
+**
+** Description      This function is called to read the current LE discoverability
+**                  mode of the device.
+**
+** Returns          BTM_BLE_NON_DISCOVERABLE ,BTM_BLE_LIMITED_DISCOVERABLE or
+**                     BTM_BLE_GENRAL_DISCOVERABLE
+**
+*******************************************************************************/
+UINT16 BTM_BleReadDiscoverability()
+{
+    BTM_TRACE_API("%s", __FUNCTION__);
+
+    return (btm_cb.ble_ctr_cb.inq_var.discoverable_mode);
+}
+
+/*******************************************************************************
+**
+** Function         BTM__BLEReadConnectability
+**
+** Description      This function is called to read the current LE connectibility
+**                  mode of the device.
+**
+** Returns          BTM_BLE_NON_CONNECTABLE or BTM_BLE_CONNECTABLE
+**
+*******************************************************************************/
+UINT16 BTM_BleReadConnectability()
+{
+    BTM_TRACE_API ("%s", __FUNCTION__);
+
+    return (btm_cb.ble_ctr_cb.inq_var.connectable_mode);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_ble_build_adv_data
 **
 ** Description      This function is called build the adv data and rsp data.
