@@ -127,11 +127,16 @@ void alarm_free(alarm_t *alarm) {
   osi_free(alarm);
 }
 
-period_ms_t alarm_get_remaining_ms(alarm_t *alarm) {
+period_ms_t alarm_get_remaining_ms(const alarm_t *alarm) {
   assert(alarm != NULL);
+  period_ms_t remaining_ms = 0;
+
+  pthread_mutex_lock(&monitor);
   if (alarm->deadline)
-    return (alarm->deadline - now());
-  return 0;
+    remaining_ms = alarm->deadline - now();
+  pthread_mutex_unlock(&monitor);
+
+  return remaining_ms;
 }
 
 void alarm_set(alarm_t *alarm, period_ms_t deadline, alarm_callback_t cb, void *data) {
