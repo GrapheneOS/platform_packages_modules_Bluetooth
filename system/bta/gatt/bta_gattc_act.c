@@ -856,11 +856,23 @@ void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS statu
 *******************************************************************************/
 void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    APPL_TRACE_DEBUG("Discovery cancel conn_id=%d",p_clcb->bta_conn_id);
+    APPL_TRACE_DEBUG("%s: Discovery cancel conn_id=%d", __func__,
+                     p_clcb->bta_conn_id);
+
     if (p_clcb->disc_active)
         bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_ERROR);
     else
         p_clcb->state = BTA_GATTC_CONN_ST;
+
+    // This function only gets called as the result of a BTA_GATTC_API_CLOSE_EVT
+    // while in the BTA_GATTC_DISCOVER_ST state. Once the state changes, the
+    // connection itself still needs to be closed to resolve the original event.
+    if (p_clcb->state == BTA_GATTC_CONN_ST)
+    {
+        APPL_TRACE_DEBUG("State is back to BTA_GATTC_CONN_ST. "
+                         "Trigger connection close");
+        bta_gattc_close(p_clcb, p_data);
+    }
 }
 /*******************************************************************************
 **
