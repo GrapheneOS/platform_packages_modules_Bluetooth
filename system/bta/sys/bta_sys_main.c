@@ -599,7 +599,12 @@ BOOLEAN bta_sys_is_register(UINT8 id)
 *******************************************************************************/
 void bta_sys_sendmsg(void *p_msg)
 {
-    fixed_queue_enqueue(btu_bta_msg_queue, p_msg);
+    // There is a race condition that occurs if the stack is shut down while
+    // there is a procedure in progress that can schedule a task via this
+    // message queue. This causes |btu_bta_msg_queue| to get cleaned up before
+    // it gets used here; hence we check for NULL before using it.
+    if (btu_bta_msg_queue)
+        fixed_queue_enqueue(btu_bta_msg_queue, p_msg);
 }
 
 /*******************************************************************************
