@@ -98,6 +98,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
             return(FALSE);
     }
 
+    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;           /* Default value */
     p_dev_rec->timestamp = btm_cb.dev_rec_count++;
 
     if (dev_class)
@@ -288,6 +289,7 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
 
     }
 
+    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;           /* Default value */
     p_dev_rec->sec_flags = BTM_SEC_IN_USE;
 
     /* Check with the BT manager if details about remote device are known */
@@ -336,6 +338,7 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
 *******************************************************************************/
 void btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec)
 {
+    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
     p_dev_rec->sec_flags = 0;
 
 #if BLE_INCLUDED == TRUE
@@ -499,8 +502,10 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
 
                 p_target_rec->new_encryption_key_is_p256 = temp_rec.new_encryption_key_is_p256;
                 p_target_rec->no_smp_on_br = temp_rec.no_smp_on_br;
+                p_target_rec->bond_type = temp_rec.bond_type;
                 /* mark the combined record as unused */
                 p_dev_rec->sec_flags &= ~BTM_SEC_IN_USE;
+                p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
                 break;
             }
 
@@ -512,6 +517,7 @@ void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
                     p_target_rec->ble.ble_addr_type = p_dev_rec->ble.ble_addr_type;
                     p_target_rec->device_type |= p_dev_rec->device_type;
                     p_dev_rec->sec_flags &= ~BTM_SEC_IN_USE;
+                    p_dev_rec->bond_type = BOND_TYPE_UNKNOWN;
                 }
                 break;
             }
@@ -594,4 +600,43 @@ tBTM_SEC_DEV_REC *btm_find_oldest_dev (void)
     return(p_oldest);
 }
 
+/*******************************************************************************
+**
+** Function         btm_get_bond_type_dev
+**
+** Description      Get the bond type for a device in the device database
+**                  with specified BD address
+**
+** Returns          The device bond type if known, otherwise BOND_TYPE_UNKNOWN
+**
+*******************************************************************************/
+tBTM_BOND_TYPE btm_get_bond_type_dev(BD_ADDR bd_addr)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bd_addr);
 
+    if (p_dev_rec == NULL)
+        return BOND_TYPE_UNKNOWN;
+
+    return p_dev_rec->bond_type;
+}
+
+/*******************************************************************************
+**
+** Function         btm_set_bond_type_dev
+**
+** Description      Set the bond type for a device in the device database
+**                  with specified BD address
+**
+** Returns          TRUE on success, otherwise FALSE
+**
+*******************************************************************************/
+BOOLEAN btm_set_bond_type_dev(BD_ADDR bd_addr, tBTM_BOND_TYPE bond_type)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bd_addr);
+
+    if (p_dev_rec == NULL)
+        return FALSE;
+
+    p_dev_rec->bond_type = bond_type;
+    return TRUE;
+}
