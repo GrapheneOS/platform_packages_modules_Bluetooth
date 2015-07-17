@@ -36,6 +36,9 @@ static const interop_entry_t interop_database[] = {
   {{0xac, 0x9e, 0x17,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
   {{0xf0, 0x79, 0x59,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
 
+  // Motorola Key Link
+  {{0x1c, 0x96, 0x5a,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+
   // BMW car kits (Harman/Becker)
   {{0x9c, 0xdf, 0x03,       0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING}
 };
