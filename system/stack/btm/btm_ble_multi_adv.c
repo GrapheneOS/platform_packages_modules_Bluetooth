@@ -520,11 +520,7 @@ void btm_ble_multi_adv_enb_privacy(BOOLEAN enable)
     {
         p_inst->in_use = FALSE;
         if (enable)
-        {
-            /* Setup the instance ID before configuring the RPA */
-            p_inst->inst_id = i + 1;
             btm_ble_multi_adv_configure_rpa (p_inst);
-        }
         else
             btu_stop_timer_oneshot(&p_inst->raddr_timer_ent);
     }
@@ -837,8 +833,11 @@ void btm_ble_multi_adv_init()
                sizeof(UINT8)*(btm_cb.cmn_ble_vsc_cb.adv_inst_max));
     }
 
-    for (i = 0; i < btm_cb.cmn_ble_vsc_cb.adv_inst_max ; i ++)
+    /* Initialize adv instance indices and IDs. */
+    for (i = 0; i < btm_cb.cmn_ble_vsc_cb.adv_inst_max; i++) {
         btm_multi_adv_cb.p_adv_inst[i].index = i;
+        btm_multi_adv_cb.p_adv_inst[i].inst_id = i + 1;
+    }
 
     BTM_RegisterForVSEvents(btm_ble_multi_adv_vse_cback, TRUE);
 }
