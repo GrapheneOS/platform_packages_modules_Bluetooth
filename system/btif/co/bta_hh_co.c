@@ -50,11 +50,12 @@ static int uhid_write(int fd, const struct uhid_event *ev)
     ret = write(fd, ev, sizeof(*ev));
     if (ret < 0){
         int rtn = -errno;
-        APPL_TRACE_ERROR("%s: Cannot write to uhid:%s", __FUNCTION__, strerror(errno));
+        APPL_TRACE_ERROR("%s: Cannot write to uhid:%s",
+                         __FUNCTION__, strerror(errno));
         return rtn;
-    } else if (ret != sizeof(*ev)) {
-        APPL_TRACE_ERROR("%s: Wrong size written to uhid: %ld != %lu",
-                                                    __FUNCTION__, ret, sizeof(*ev));
+    } else if (ret != (ssize_t)sizeof(*ev)) {
+        APPL_TRACE_ERROR("%s: Wrong size written to uhid: %zd != %zu",
+                         __FUNCTION__, ret, sizeof(*ev));
         return -EFAULT;
     } else {
         return 0;
@@ -78,12 +79,12 @@ static int uhid_event(btif_hh_device_t *p_dev)
                                                  strerror(errno));
         return -EFAULT;
     } else if (ret < 0) {
-        APPL_TRACE_ERROR("%s:Cannot read uhid-cdev: %s", __FUNCTION__,
+        APPL_TRACE_ERROR("%s: Cannot read uhid-cdev: %s", __FUNCTION__,
                                                 strerror(errno));
         return -errno;
-    } else if (ret != sizeof(ev)) {
-        APPL_TRACE_ERROR("%s:Invalid size read from uhid-dev: %ld != %lu",
-                            __FUNCTION__, ret, sizeof(ev));
+    } else if (ret < (ssize_t)sizeof(ev.type)) {
+        APPL_TRACE_ERROR("%s: Invalid size read from uhid-dev: %zd < %zu",
+                         __FUNCTION__, ret, sizeof(ev.type));
         return -EFAULT;
     }
 
@@ -101,15 +102,25 @@ static int uhid_event(btif_hh_device_t *p_dev)
         APPL_TRACE_DEBUG("UHID_CLOSE from uhid-dev\n");
         break;
     case UHID_OUTPUT:
+        if (ret < (ssize_t)(sizeof(ev.type) + sizeof(ev.u.output))) {
+            APPL_TRACE_ERROR("%s: Invalid size read from uhid-dev: %zd < %zu",
+                             __FUNCTION__, ret,
+                             sizeof(ev.type) + sizeof(ev.u.output));
+            return -EFAULT;
+        }
+
         APPL_TRACE_DEBUG("UHID_OUTPUT: Report type = %d, report_size = %d"
                             ,ev.u.output.rtype, ev.u.output.size);
         //Send SET_REPORT with feature report if the report type in output event is FEATURE
         if(ev.u.output.rtype == UHID_FEATURE_REPORT)
-            btif_hh_setreport(p_dev,BTHH_FEATURE_REPORT,ev.u.output.size,ev.u.output.data);
+            btif_hh_setreport(p_dev, BTHH_FEATURE_REPORT,
+                              ev.u.output.size, ev.u.output.data);
         else if(ev.u.output.rtype == UHID_OUTPUT_REPORT)
-            btif_hh_setreport(p_dev,BTHH_OUTPUT_REPORT,ev.u.output.size,ev.u.output.data);
+            btif_hh_setreport(p_dev, BTHH_OUTPUT_REPORT,
+                              ev.u.output.size, ev.u.output.data);
         else
-            btif_hh_setreport(p_dev,BTHH_INPUT_REPORT,ev.u.output.size,ev.u.output.data);
+            btif_hh_setreport(p_dev, BTHH_INPUT_REPORT,
+                              ev.u.output.size, ev.u.output.data);
            break;
     case UHID_OUTPUT_EV:
         APPL_TRACE_DEBUG("UHID_OUTPUT_EV from uhid-dev\n");
@@ -207,7 +218,7 @@ void bta_hh_co_destroy(int fd)
     memset(&ev, 0, sizeof(ev));
     ev.type = UHID_DESTROY;
     uhid_write(fd, &ev);
-    APPL_TRACE_DEBUG("%s: closing fd=%d", __func__, fd);
+    APPL_TRACE_DEBUG("%s: Closing fd=%d", __func__, fd);
     close(fd);
 }
 
@@ -219,7 +230,8 @@ int bta_hh_co_write(int fd, UINT8* rpt, UINT16 len)
     ev.type = UHID_INPUT;
     ev.u.input.size = len;
     if(len > sizeof(ev.u.input.data)){
-        APPL_TRACE_WARNING("%s:report size greater than allowed size",__FUNCTION__);
+        APPL_TRACE_WARNING("%s: Report size greater than allowed size",
+                           __FUNCTION__);
         return -1;
     }
     memcpy(ev.u.input.data, rpt, len);
@@ -244,13 +256,15 @@ void bta_hh_co_open(UINT8 dev_handle, UINT8 sub_class, tBTA_HH_ATTR_MASK attr_ma
     btif_hh_device_t *p_dev = NULL;
 
     if (dev_handle == BTA_HH_INVALID_HANDLE) {
-        APPL_TRACE_WARNING("%s: Oops, dev_handle (%d) is invalid...", __FUNCTION__, dev_handle);
+        APPL_TRACE_WARNING("%s: Oops, dev_handle (%d) is invalid...",
+                           __FUNCTION__, dev_handle);
         return;
     }
 
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
         p_dev = &btif_hh_cb.devices[i];
-        if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN && p_dev->dev_handle == dev_handle) {
+        if (p_dev->dev_status != BTHH_CONN_STATE_UNKNOWN &&
+            p_dev->dev_handle == dev_handle) {
             // We found a device with the same handle. Must be a device reconnected.
             APPL_TRACE_WARNING("%s: Found an existing device with the same handle "
                                                                 "dev_status = %d",__FUNCTION__,
