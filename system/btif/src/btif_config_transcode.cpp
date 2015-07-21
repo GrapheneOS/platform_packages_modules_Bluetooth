@@ -53,7 +53,8 @@ extern "C" config_t *btif_config_transcode(const char *xml_filename) {
       for (XMLElement *k = j->FirstChildElement(); k != NULL; k = k->NextSiblingElement()) {
         const char *key = k->Attribute("Tag");
         const char *value = k->GetText();
-        config_set_string(config, section, key, value);
+        if (section && key && value)
+          config_set_string(config, section, key, value);
       }
     }
 
