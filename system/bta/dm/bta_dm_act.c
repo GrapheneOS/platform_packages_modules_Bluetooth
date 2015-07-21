@@ -2277,38 +2277,42 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 {
     tBTA_DM_MSG * p_msg;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
+
 #if BLE_INCLUDED == TRUE
+    if (bta_dm_search_cb.transport == BTA_TRANSPORT_UNKNOWN)
+    {
         tBT_DEVICE_TYPE dev_type;
         tBLE_ADDR_TYPE  addr_type;
 
-    if (bta_dm_search_cb.transport == BTA_TRANSPORT_UNKNOWN)
-    {
         BTM_ReadDevInfo(remote_bd_addr, &dev_type, &addr_type);
-        if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM )
+        if (dev_type == BT_DEVICE_TYPE_BLE || addr_type == BLE_ADDR_RANDOM)
             transport = BT_TRANSPORT_LE;
-    }
-    else
+    } else {
         transport = bta_dm_search_cb.transport;
+    }
 #endif
 
+    /* Reset transport state for next discovery */
+    bta_dm_search_cb.transport = BTA_TRANSPORT_UNKNOWN;
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device, BDA:0x%02X%02X%02X%02X%02X%02X",
+    APPL_TRACE_DEBUG("%s BDA:0x%02X%02X%02X%02X%02X%02X", __func__,
                         remote_bd_addr[0],remote_bd_addr[1],
                         remote_bd_addr[2],remote_bd_addr[3],
                         remote_bd_addr[4],remote_bd_addr[5]);
 
     bdcpy(bta_dm_search_cb.peer_bdaddr, remote_bd_addr);
 
-    APPL_TRACE_DEBUG("bta_dm_discover_device name_discover_done = %d p_btm_inq_info 0x%x state = %d",
+    APPL_TRACE_DEBUG("%s name_discover_done = %d p_btm_inq_info 0x%x state = %d, transport=%d",
+                        __func__,
                         bta_dm_search_cb.name_discover_done,
                         bta_dm_search_cb.p_btm_inq_info,
-                        bta_dm_search_cb.state
-                        );
+                        bta_dm_search_cb.state,
+                        transport);
+
     if (bta_dm_search_cb.p_btm_inq_info)
     {
-        APPL_TRACE_DEBUG("bta_dm_discover_device appl_knows_rem_name %d",
-                            bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name
-                            );
+        APPL_TRACE_DEBUG("%s appl_knows_rem_name %d", __func__,
+                            bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name);
     }
 
     if((bta_dm_search_cb.p_btm_inq_info)
@@ -2324,15 +2328,11 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
        && (( bta_dm_search_cb.p_btm_inq_info == NULL )
             ||(bta_dm_search_cb.p_btm_inq_info && (!bta_dm_search_cb.p_btm_inq_info->appl_knows_rem_name))))
     {
-            if(bta_dm_read_remote_device_name(bta_dm_search_cb.peer_bdaddr, transport) == TRUE)
-        {
+        if (bta_dm_read_remote_device_name(bta_dm_search_cb.peer_bdaddr, transport) == TRUE)
             return;
-        }
-        else
-        {
-            /* starting name discovery failed */
-            bta_dm_search_cb.name_discover_done = TRUE;
-        }
+
+        /* starting name discovery failed */
+        bta_dm_search_cb.name_discover_done = TRUE;
     }
 
     /* if application wants to discover service */
@@ -2369,11 +2369,11 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
 #if (BLE_INCLUDED == TRUE && (defined BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE))
             if ( bta_dm_search_cb.p_btm_inq_info )
             {
-                APPL_TRACE_DEBUG("bta_dm_discover_device p_btm_inq_info 0x%x results.device_type 0x%x services_to_search 0x%x",
+                APPL_TRACE_DEBUG("%s p_btm_inq_info 0x%x results.device_type 0x%x services_to_search 0x%x",
+                                    __func__,
                                     bta_dm_search_cb.p_btm_inq_info,
                                     bta_dm_search_cb.p_btm_inq_info->results.device_type,
-                                    bta_dm_search_cb.services_to_search
-                                    );
+                                    bta_dm_search_cb.services_to_search);
             }
 
             if (transport == BT_TRANSPORT_LE)
