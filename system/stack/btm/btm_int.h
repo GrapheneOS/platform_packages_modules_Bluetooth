@@ -492,6 +492,15 @@ typedef struct
 
 #endif  /* BLE_INCLUDED */
 
+/* Peering bond type */
+enum
+{
+    BOND_TYPE_UNKNOWN,
+    BOND_TYPE_PERSISTENT,
+    BOND_TYPE_TEMPORARY
+};
+typedef UINT8 tBTM_BOND_TYPE;
+
 /*
 ** Define structure for Security Device Record.
 ** A record exists for each device authenticated with this device
@@ -586,6 +595,7 @@ typedef struct
     BOOLEAN no_smp_on_br;       /* if set to TRUE then SMP on BR/EDR doesn't */
                                 /* work, i.e. link keys crosspairing */
                                 /* SC BR/EDR->SC LE doesn't happen */
+    tBTM_BOND_TYPE bond_type;   /* peering bond type */
 
 #if BLE_INCLUDED == TRUE
     tBTM_SEC_BLE        ble;
@@ -1034,6 +1044,9 @@ extern void               btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec);
 extern tBTM_SEC_DEV_REC  *btm_find_dev (BD_ADDR bd_addr);
 extern tBTM_SEC_DEV_REC  *btm_find_or_alloc_dev (BD_ADDR bd_addr);
 extern tBTM_SEC_DEV_REC  *btm_find_dev_by_handle (UINT16 handle);
+extern tBTM_BOND_TYPE     btm_get_bond_type_dev(BD_ADDR bd_addr);
+extern BOOLEAN            btm_set_bond_type_dev(BD_ADDR bd_addr,
+                                                tBTM_BOND_TYPE bond_type);
 
 /* Internal functions provided by btm_sec.c
 **********************************************

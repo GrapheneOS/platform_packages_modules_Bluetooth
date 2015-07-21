@@ -54,6 +54,7 @@
 #include "include/stack_config.h"
 #include "osi/include/log.h"
 #include "osi/include/allocator.h"
+#include "stack/btm/btm_int.h"
 
 /******************************************************************************
 **  Constants & Macros
@@ -92,10 +93,6 @@
 
 #define MAX_SDP_BL_ENTRIES 3
 
-#define BOND_TYPE_UNKNOWN     0
-#define BOND_TYPE_PERSISTENT  1
-#define BOND_TYPE_TEMPORARY   2
-
 #define ENCRYPTED_BREDR       2
 #define ENCRYPTED_LE          4
 
@@ -104,7 +101,7 @@ typedef struct
     bt_bond_state_t state;
     bt_bdaddr_t static_bdaddr;
     BD_ADDR bd_addr;
-    UINT8 bond_type;
+    tBTM_BOND_TYPE bond_type;
     UINT8 pin_code_len;
     UINT8 is_ssp;
     UINT8 auth_req;
@@ -967,6 +964,8 @@ static void btif_dm_ssp_cfm_req_evt(tBTA_DM_SP_CFM_REQ *p_ssp_cfm_req)
     else
         pairing_cb.bond_type = BOND_TYPE_PERSISTENT;
 
+    btm_set_bond_type_dev(p_ssp_cfm_req->bd_addr, pairing_cb.bond_type);
+
     pairing_cb.is_ssp = TRUE;
 
     /* If JustWorks auto-accept */
@@ -1083,9 +1082,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             {
                 BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
                         __FUNCTION__);
-                if (btif_storage_is_device_bonded(&bd_addr) == TRUE) {
-                    btif_storage_remove_bonded_device(&bd_addr);
-                }
+                btif_storage_remove_bonded_device(&bd_addr);
                 bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
                 return;
             }
@@ -1702,6 +1699,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             if (pairing_cb.state == BT_BOND_STATE_BONDING)
             {
                 bdcpy(bd_addr.address, pairing_cb.bd_addr);
+                btm_set_bond_type_dev(pairing_cb.bd_addr, BOND_TYPE_UNKNOWN);
                 bond_state_changed(p_data->bond_cancel_cmpl.result, &bd_addr, BT_BOND_STATE_NONE);
             }
             break;
@@ -1715,13 +1713,11 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_DEV_UNPAIRED_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
 
             /*special handling for HID devices */
             #if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
             btif_hh_remove_device(bd_addr);
-            #endif
-            #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
-            btif_storage_remove_ble_bonding_keys(&bd_addr);
             #endif
             btif_storage_remove_bonded_device(&bd_addr);
             bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_NONE);
@@ -1763,6 +1759,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
 
         case BTA_DM_LINK_DOWN_EVT:
             bdcpy(bd_addr.address, p_data->link_down.bd_addr);
+            btm_set_bond_type_dev(p_data->link_down.bd_addr, BOND_TYPE_UNKNOWN);
             BTIF_TRACE_DEBUG("BTA_DM_LINK_DOWN_EVT. Sending BT_ACL_STATE_DISCONNECTED");
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, BT_STATUS_SUCCESS,
                       &bd_addr, BT_ACL_STATE_DISCONNECTED);
@@ -2871,7 +2868,16 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         bdcpy(bdaddr.address, p_auth_cmpl->bd_addr);
         if (btif_storage_get_remote_addr_type(&bdaddr, &addr_type) != BT_STATUS_SUCCESS)
             btif_storage_set_remote_addr_type(&bdaddr, p_auth_cmpl->addr_type);
-        btif_dm_save_ble_bonding_keys();
+
+        /* Test for temporary bonding */
+        if (btm_get_bond_type_dev(p_auth_cmpl->bd_addr) == BOND_TYPE_TEMPORARY) {
+            BTIF_TRACE_DEBUG("%s: sending BT_BOND_STATE_NONE for Temp pairing",
+                             __func__);
+            btif_storage_remove_bonded_device(&bdaddr);
+            state = BT_BOND_STATE_NONE;
+        } else {
+            btif_dm_save_ble_bonding_keys();
+        }
         BTA_GATTC_Refresh(bd_addr.address);
         btif_dm_get_remote_services(&bd_addr);
     }
@@ -3055,6 +3061,7 @@ void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ *p_ble_req)
     pairing_cb.is_le_only = TRUE;
     pairing_cb.is_le_nc = FALSE;
     pairing_cb.is_ssp = TRUE;
+    btm_set_bond_type_dev(p_ble_req->bd_addr, pairing_cb.bond_type);
 
     cod = COD_UNCLASSIFIED;
 
