@@ -1968,11 +1968,25 @@ void smp_link_encrypted(BD_ADDR bda, UINT8 encr_enable)
 BOOLEAN smp_proc_ltk_request(BD_ADDR bda)
 {
     SMP_TRACE_DEBUG("%s state = %d",  __func__, smp_cb.state);
-    if ( smp_cb.state == SMP_STATE_ENCRYPTION_PENDING &&
-         !memcmp(bda, smp_cb.pairing_bda, BD_ADDR_LEN))
+    BOOLEAN match = FALSE;
+
+    if (!memcmp(bda, smp_cb.pairing_bda, BD_ADDR_LEN))
+    {
+        match = TRUE;
+    } else {
+        BD_ADDR dummy_bda = {0};
+        tBTM_SEC_DEV_REC *p_dev_rec = btm_find_dev(bda);
+        if (p_dev_rec != NULL &&
+            0 == memcmp(p_dev_rec->ble.pseudo_addr, smp_cb.pairing_bda, BD_ADDR_LEN) &&
+            0 != memcmp(p_dev_rec->ble.pseudo_addr, dummy_bda, BD_ADDR_LEN))
+        {
+            match = TRUE;
+        }
+    }
+
+    if (match && smp_cb.state == SMP_STATE_ENCRYPTION_PENDING)
     {
         smp_sm_event(&smp_cb, SMP_ENC_REQ_EVT, NULL);
-
         return TRUE;
     }
 
