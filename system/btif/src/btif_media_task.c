@@ -1507,15 +1507,26 @@ BOOLEAN btif_media_task_aa_rx_flush_req(void)
  *******************************************************************************/
 BOOLEAN btif_media_task_aa_tx_flush_req(void)
 {
-    BT_HDR *p_buf;
-    if (NULL == (p_buf = GKI_getbuf(sizeof(BT_HDR))))
-    {
+    BT_HDR *p_buf = GKI_getbuf(sizeof(BT_HDR));
+
+    if (p_buf == NULL)
         return FALSE;
-    }
 
     p_buf->event = BTIF_MEDIA_FLUSH_AA_TX;
 
-    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    /*
+     * Explicitly check whether the btif_media_cmd_msg_queue is not NULL to
+     * avoid a race condition during shutdown of the Bluetooth stack.
+     * This race condition is triggered when A2DP audio is streaming on
+     * shutdown:
+     * "btif_a2dp_on_stopped() -> btif_media_task_aa_tx_flush_req()" is called
+     * to stop the particular audio stream, and this happens right after
+     * the "cleanup() -> btif_a2dp_stop_media_task()" processing during
+     * the shutdown of the Bluetooth stack.
+     */
+    if (btif_media_cmd_msg_queue != NULL)
+        fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 /*******************************************************************************
