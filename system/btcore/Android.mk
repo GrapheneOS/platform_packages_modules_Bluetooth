@@ -32,6 +32,7 @@ LOCAL_SRC_FILES := \
     src/bdaddr.c \
     src/counter.c \
     src/device_class.c \
+    src/hal_util.c \
     src/module.c \
     src/osi_module.c \
     src/property.c \

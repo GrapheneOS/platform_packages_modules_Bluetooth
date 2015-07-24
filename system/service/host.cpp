@@ -26,12 +26,12 @@
 
 #include <algorithm>
 
+#include <base/base64.h>
+#include <base/strings/string_number_conversions.h>
+#include <base/strings/string_split.h>
+
 #define LOG_TAG "bt_bluetooth_host"
 #include "osi/include/log.h"
-
-#include "base/base64.h"
-#include "base/strings/string_number_conversions.h"
-#include "base/strings/string_split.h"
 #include "core_stack.h"
 #include "gatt_server.h"
 #include "uuid.h"
