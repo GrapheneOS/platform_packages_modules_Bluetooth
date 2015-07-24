@@ -189,11 +189,13 @@ static void avrc_send_continue_frag(UINT8 handle, UINT8 label)
     p_fcb = &avrc_cb.fcb[handle];
     p_pkt = p_fcb->p_fmsg;
 
-    AVRC_TRACE_DEBUG ("avrc_send_continue_frag len(%d) / AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
+    AVRC_TRACE_DEBUG("%s handle = %u label = %u len = %d",
+                     __func__, handle, label, p_pkt->len);
     if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
     {
+        int offset_len = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
         p_pkt_old = p_fcb->p_fmsg;
-        p_pkt = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + AVCT_MSG_OFFSET + BT_HDR_SIZE));
+        p_pkt = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + offset_len + BT_HDR_SIZE));
         if (p_pkt)
         {
             p_pkt->len          = AVRC_MAX_CTRL_DATA_LEN;
@@ -988,6 +990,9 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
     if (!p_pkt)
         return AVRC_BAD_PARAM;
 
+    AVRC_TRACE_DEBUG("%s handle = %u label = %u ctype = %u len = %d",
+                     __func__, handle, label, ctype, p_pkt->len);
+
     if (ctype >= AVRC_RSP_NOT_IMPL)
         cr = AVCT_RSP;
 
@@ -1035,8 +1040,8 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
     {
         if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
         {
-            AVRC_TRACE_DEBUG ("p_pkt->len(%d) > AVRC_MAX_CTRL_DATA_LEN", p_pkt->len );
-            p_pkt_new = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + AVCT_MSG_OFFSET
+            int offset_len = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
+            p_pkt_new = (BT_HDR *)GKI_getbuf((UINT16)(AVRC_PACKET_LEN + offset_len
                 + BT_HDR_SIZE));
             if (p_pkt_new && (p_start != NULL))
             {
