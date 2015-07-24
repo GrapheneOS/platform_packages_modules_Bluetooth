@@ -2596,14 +2596,21 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
 static void btif_media_aa_prep_2_send(UINT8 nb_frame)
 {
-    while (GKI_queue_length(&btif_media_cb.TxAaQ) >= (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ-nb_frame))
+    // Check for TX queue overflow
+
+    if (nb_frame > MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
+        nb_frame = MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ;
+
+    if (GKI_queue_length(&btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame))
     {
-        APPL_TRACE_WARNING("%s() - TX queue buffer count %d",
-            __FUNCTION__, GKI_queue_length(&btif_media_cb.TxAaQ));
-        GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
+        APPL_TRACE_WARNING("%s() - TX queue buffer count %d/%d", __func__,
+            GKI_queue_length(&btif_media_cb.TxAaQ), MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame);
     }
 
-    if (GKI_queue_length(&btif_media_cb.TxAaQ)) --nb_frame;
+    while (GKI_queue_length(&btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame))
+        GKI_freebuf(GKI_dequeue(&(btif_media_cb.TxAaQ)));
+
+    // Transcode frame
 
     switch (btif_media_cb.TxTranscoding)
     {
@@ -2611,9 +2618,8 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
         btif_media_aa_prep_sbc_2_send(nb_frame);
         break;
 
-
     default:
-        APPL_TRACE_ERROR("ERROR btif_media_aa_prep_2_send unsupported transcoding format 0x%x",btif_media_cb.TxTranscoding);
+        APPL_TRACE_ERROR("%s unsupported transcoding format 0x%x", __func__, btif_media_cb.TxTranscoding);
         break;
     }
 }
