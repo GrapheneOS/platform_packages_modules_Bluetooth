@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "uuid.h"
+#include "service/uuid.h"
 
 using namespace bluetooth;
 
