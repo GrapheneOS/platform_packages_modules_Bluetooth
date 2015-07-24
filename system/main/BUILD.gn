@@ -74,5 +74,5 @@ shared_library("bluetooth.default") {
     "//utils",
   ]
 
-  libs = [ "-lpthread", "-lrt", "-ldl" ]
+  libs = [ "-ldl", "-lpthread", "-lresolv", "-lrt", "-lz" ]
 }

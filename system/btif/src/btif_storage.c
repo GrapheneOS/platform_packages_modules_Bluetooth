@@ -57,6 +57,7 @@
 **  Constants & Macros
 ************************************************************************************/
 
+// TODO(armansito): Find a better way than using a hardcoded path.
 #define BTIF_STORAGE_PATH_BLUEDROID "/data/misc/bluedroid"
 
 //#define BTIF_STORAGE_PATH_ADAPTER_INFO "adapter_info"
@@ -78,7 +79,12 @@
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "DiscoveryTimeout"
 
 
-#define BTIF_AUTO_PAIR_CONF_FILE  "/etc/bluetooth/auto_pair_devlist.conf"
+#if defined(OS_GENERIC)
+// TODO(armansito): Find a better way than searching by a hardcoded path.
+#define BTIF_AUTO_PAIR_CONF_FILE "auto_pair_devlist.conf"
+#else  // !defined(OS_GENERIC)
+#define BTIF_AUTO_PAIR_CONF_FILE "/etc/bluetooth/auto_pair_devlist.conf"
+#endif  // defined(OS_GENERIC)
 #define BTIF_STORAGE_PATH_AUTOPAIR_BLACKLIST "AutoPairBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_ADDR "AddressBlacklist"
 #define BTIF_STORAGE_KEY_AUTOPAIR_BLACKLIST_EXACTNAME "ExactNameBlacklist"

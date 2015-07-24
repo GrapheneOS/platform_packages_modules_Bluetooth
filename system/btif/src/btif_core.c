@@ -75,8 +75,13 @@
 ************************************************************************************/
 
 #ifndef BTE_DID_CONF_FILE
+// TODO(armansito): Find a better way than searching by a hardcoded path.
+#if defined(OS_GENERIC)
+#define BTE_DID_CONF_FILE "bt_did.conf"
+#else  // !defined(OS_GENERIC)
 #define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
-#endif
+#endif  // defined(OS_GENERIC)
+#endif  // BTE_DID_CONF_FILE
 
 /************************************************************************************
 **  Local type definitions

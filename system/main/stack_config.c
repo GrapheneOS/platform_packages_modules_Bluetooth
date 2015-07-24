@@ -35,7 +35,12 @@ static config_t *config;
 // Module lifecycle functions
 
 static future_t *init() {
+// TODO(armansito): Find a better way than searching by a hardcoded path.
+#if defined(OS_GENERIC)
+  const char *path = "bt_stack.conf";
+#else  // !defined(OS_GENERIC)
   const char *path = "/etc/bluetooth/bt_stack.conf";
+#endif  // defined(OS_GENERIC)
   assert(path != NULL);
 
   LOG_INFO(LOG_TAG, "%s attempt to load stack conf from %s", __func__, path);

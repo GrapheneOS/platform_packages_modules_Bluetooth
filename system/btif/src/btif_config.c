@@ -38,7 +38,12 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+// TODO(armansito): Find a better way than searching by a hardcoded path.
+#if defined(OS_GENERIC)
+static const char *CONFIG_FILE_PATH = "bt_config.conf";
+#else  // !defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
+#endif  // defined(OS_GENERIC)
 static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
 static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
