@@ -14,15 +14,48 @@
 #  limitations under the License.
 #
 
-executable("bluetoothtbd") {
+source_set("service") {
   sources = [
     "a2dp_source.cpp",
     "core_stack.cpp",
     "gatt_server.cpp",
     "host.cpp",
     "logging_helpers.cpp",
-    "main.cpp",
+    "settings.cpp",
     "uuid.cpp"
+  ]
+
+  include_dirs = [
+    "//",
+    "//third_party/libchrome"
+  ]
+}
+
+executable("bluetoothtbd") {
+  sources = [
+    "main.cpp"
+  ]
+
+  deps = [
+    ":service",
+    "//btcore",
+    "//third_party/libchrome:base",
+    "//third_party/modp_b64"
+  ]
+
+  include_dirs = [
+    "//",
+    "//third_party/libchrome"
+  ]
+
+  libs = [ "-ldl", "-lpthread", "-lrt" ]
+}
+
+executable("service_unittests") {
+  testonly = true
+  sources = [
+    "test/settings_unittest.cpp",
+    "test/uuid_unittest.cpp",
   ]
 
   include_dirs = [
@@ -31,10 +64,9 @@ executable("bluetoothtbd") {
   ]
 
   deps = [
-    "//btcore",
+    ":service",
+    "//third_party/gtest:gtest_main",
     "//third_party/libchrome:base",
     "//third_party/modp_b64",
   ]
-
-  libs = [ "-ldl", "-lpthread", "-lrt" ]
 }

@@ -17,10 +17,17 @@
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := uuid_test.cpp uuid.cpp
+LOCAL_SRC_FILES := \
+	settings.cpp \
+	test/settings_unittest.cpp \
+	test/uuid_unittest.cpp \
+	uuid.cpp
+LOCAL_C_INCLUDES += \
+	$(LOCAL_PATH)/../
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := uuid_test_bd
+LOCAL_MODULE := bt_service_unittests
+LOCAL_SHARED_LIBRARIES += libchrome-host
 include $(BUILD_HOST_NATIVE_TEST)
 
 include $(CLEAR_VARS)
@@ -32,6 +39,7 @@ LOCAL_SRC_FILES := \
 	host.cpp \
 	logging_helpers.cpp \
 	main.cpp \
+	settings.cpp \
 	uuid.cpp
 
 LOCAL_C_INCLUDES += \
