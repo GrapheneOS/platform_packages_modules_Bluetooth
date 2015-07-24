@@ -39,8 +39,9 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := bthost
+LOCAL_MODULE := bluetoothtbd
 LOCAL_REQUIRED_MODULES = bluetooth.default
+LOCAL_STATIC_LIBRARIES += libbtcore
 LOCAL_SHARED_LIBRARIES += \
 	libchrome \
 	libcutils \

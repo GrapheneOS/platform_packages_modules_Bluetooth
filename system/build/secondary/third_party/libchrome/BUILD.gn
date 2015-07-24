@@ -224,5 +224,5 @@ static_library("base") {
     "-Wno-sign-promo",
   ]
 
-  libs = [ "-levent", "-levent_core" ]
+  libs = [ "-levent", "-levent_core", "-lpthread" ]
 }

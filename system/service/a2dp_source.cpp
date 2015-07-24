@@ -26,12 +26,12 @@ namespace {
 
 void ConnectionStateCallback(btav_connection_state_t state,
                              UNUSED_ATTR bt_bdaddr_t *bd_addr) {
-  LOG_INFO("%s: %s", __func__, BtAvConnectionStateText(state));
+  LOG_INFO(LOG_TAG, "%s: %s", __func__, BtAvConnectionStateText(state));
 }
 
 void AudioStateCallback(btav_audio_state_t state,
                         UNUSED_ATTR bt_bdaddr_t *bd_addr) {
-  LOG_INFO("%s: %s", __func__, BtAvAudioStateText(state));
+  LOG_INFO(LOG_TAG, "%s: %s", __func__, BtAvAudioStateText(state));
 }
 
 void AudioConfigCallback(UNUSED_ATTR bt_bdaddr_t *bd_addr,
