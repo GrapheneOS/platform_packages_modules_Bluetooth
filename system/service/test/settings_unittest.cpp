@@ -35,32 +35,50 @@ class SettingsTest : public ::testing::Test {
     base::CommandLine::Reset();
   }
 
- private:
-  base::AtExitManager exit_manager;
+ protected:
+  base::AtExitManager exit_manager_;
+  Settings settings_;
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(SettingsTest);
 };
 
 TEST_F(SettingsTest, EmptyCommandLine) {
   const base::CommandLine::CharType* argv[] = { "program" };
   base::CommandLine::Init(arraysize(argv), argv);
-  EXPECT_FALSE(Settings::Initialize());
+  EXPECT_TRUE(settings_.Init());
 }
 
-TEST_F(SettingsTest, UnexpectedSwitches) {
+TEST_F(SettingsTest, UnexpectedSwitches1) {
   const base::CommandLine::CharType* argv[] = {
     "program", "--ipc-socket-path=foobar", "--foobarbaz"
   };
   base::CommandLine::Init(arraysize(argv), argv);
-  EXPECT_FALSE(Settings::Initialize());
+  EXPECT_FALSE(settings_.Init());
 }
 
-TEST_F(SettingsTest, UnexpectedArguments) {
+TEST_F(SettingsTest, UnexpectedSwitches2) {
+  const base::CommandLine::CharType* argv[] = {
+    "program", "--foobarbaz"
+  };
+  base::CommandLine::Init(arraysize(argv), argv);
+  EXPECT_FALSE(settings_.Init());
+}
+
+TEST_F(SettingsTest, UnexpectedArguments1) {
+  const base::CommandLine::CharType* argv[] = {
+    "program", "foobarbaz"
+  };
+  base::CommandLine::Init(arraysize(argv), argv);
+  EXPECT_FALSE(settings_.Init());
+}
+
+TEST_F(SettingsTest, UnexpectedArguments2) {
   const base::CommandLine::CharType* argv[] = {
     "program", "--ipc-socket-path=foobar", "foobarbaz"
   };
   base::CommandLine::Init(arraysize(argv), argv);
-  EXPECT_FALSE(Settings::Initialize());
+  EXPECT_FALSE(settings_.Init());
 }
 
 TEST_F(SettingsTest, GoodArguments) {
@@ -68,7 +86,7 @@ TEST_F(SettingsTest, GoodArguments) {
     "program", "--ipc-socket=foobar"
   };
   base::CommandLine::Init(arraysize(argv), argv);
-  EXPECT_TRUE(Settings::Initialize());
+  EXPECT_TRUE(settings_.Init());
 }
 
 }  // namespace

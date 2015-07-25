@@ -21,22 +21,24 @@
 #include <string>
 #include <unordered_map>
 
-#include "gatt_server.h"
-#include "uuid.h"
+#include "service/gatt_server.h"
+#include "service/uuid.h"
 
 namespace bluetooth {
-
 class CoreStack;
+}  // namespace bluetooth
+
+namespace ipc {
 
 // This implements a single threaded event loop which dispatches
 // reads from a set of FDs (pfds_) to a set of handlers.
 // Reads from the GATT pipe read end will result in a write to
 // to the IPC socket, and vise versa.
-class Host {
+class UnixIPCHost {
  public:
-  // Host owns the passed sockfd.
-  Host(int sockfd, CoreStack* bt);
-  ~Host();
+  // UnixIPCHost owns the passed sockfd.
+  UnixIPCHost(int sockfd, bluetooth::CoreStack* bt);
+  ~UnixIPCHost();
 
   // Synchronously handle all events on input FDs.
   bool EventLoop();
@@ -89,14 +91,15 @@ class Host {
   bool OnStopService(const std::string& service_uuid);
 
   // weak reference.
-  CoreStack *bt_;
+  bluetooth::CoreStack *bt_;
 
   // File descripters that we will block against.
   std::vector<struct pollfd> pfds_;
 
   // Container for multiple GATT servers. Currently only one is supported.
   // TODO(icoolidge): support many to one for real.
-  std::unordered_map<std::string, std::unique_ptr<gatt::Server>> gatt_servers_;
+  std::unordered_map<std::string, std::unique_ptr<bluetooth::gatt::Server>>
+      gatt_servers_;
 };
 
-}  // namespace bluetooth
+}  // namespace ipc
