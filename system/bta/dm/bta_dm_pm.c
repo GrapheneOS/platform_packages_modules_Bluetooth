@@ -23,13 +23,14 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
+#include <string.h>
+
 #include "gki.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"
 #include "btm_api.h"
-
-#include <string.h>
 
 
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
@@ -42,6 +43,8 @@ static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index);
 static BOOLEAN bta_dm_pm_is_sco_active ();
 static void bta_dm_pm_hid_check(BOOLEAN bScoActive);
 static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisable);
+static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
+                                          UINT8 timer_idx);
 
 #if (BTM_SSR_INCLUDED == TRUE)
 #if (defined BTA_HH_INCLUDED && BTA_HH_INCLUDED == TRUE)
@@ -110,18 +113,10 @@ void bta_dm_disable_pm(void)
     /* Need to stop all active timers. */
     for (int i = 0; i < BTA_DM_NUM_PM_TIMER; i++)
     {
-        if (bta_dm_cb.pm_timer[i].in_use)
+        for (int j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++)
         {
-            APPL_TRACE_DEBUG("%s stopping dm_pm_timer: %d", __func__, i);
-            for (int j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++)
-            {
-                bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer[j]);
-                bta_dm_cb.pm_timer[i].srvc_id[j] = BTA_ID_MAX;
-                bta_dm_cb.pm_timer[i].pm_action[j] = 0;
-            }
-
-            bta_dm_cb.pm_timer[i].active = 0;
-            bta_dm_cb.pm_timer[i].in_use = FALSE;
+            bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i], j);
+            bta_dm_cb.pm_timer[i].pm_action[j] = BTA_DM_PM_NO_ACTION;
         }
     }
 }
@@ -167,10 +162,18 @@ static void bta_dm_pm_stop_timer(BD_ADDR peer_addr)
         {
             for (int j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++)
             {
-                APPL_TRACE_DEBUG("%s, Stopping BD address timer_index: [%d][%d]", __func__, i, j);
-                bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer[j]);
+                bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i], j);
+                /*
+                 * TODO: For now, stopping the timer does not reset
+                 * pm_action[j].
+                 * The reason is because some of the internal logic that
+                 * (re)assigns the pm_action[] values is taking into account
+                 * the older value; e.g., see the pm_action[] assignment in
+                 * function bta_dm_pm_start_timer().
+                 * Such subtlety in the execution logic is error prone, and
+                 * should be eliminiated in the future.
+                 */
             }
-            bta_dm_cb.pm_timer[i].in_use = FALSE;
             break;
         }
     }
@@ -219,16 +222,16 @@ static void bta_dm_pm_stop_timer_by_mode(BD_ADDR peer_addr, UINT8 power_mode)
     {
         if (bta_dm_cb.pm_timer[i].in_use && !bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr))
         {
-            bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer[timer_idx]);
-
             if (bta_dm_cb.pm_timer[i].srvc_id[timer_idx] != BTA_ID_MAX)
             {
-                bta_dm_cb.pm_timer[i].srvc_id[timer_idx] = BTA_ID_MAX;
+                bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i], timer_idx);
+                /*
+                 * TODO: Intentionally setting pm_action[timer_idx].
+                 * This assignment should be eliminated in the future - see the
+                 * pm_action[] related comment inside function
+                 * bta_dm_pm_stop_timer().
+                 */
                 bta_dm_cb.pm_timer[i].pm_action[timer_idx] = power_mode;
-                bta_dm_cb.pm_timer[i].active--;
-
-                if (bta_dm_cb.pm_timer[i].active == 0)
-                    bta_dm_cb.pm_timer[i].in_use = FALSE;
             }
             break;
         }
@@ -255,13 +258,8 @@ static void bta_dm_pm_stop_timer_by_srvc_id(BD_ADDR peer_addr, UINT8 srvc_id)
             {
                 if (bta_dm_cb.pm_timer[i].srvc_id[j] == srvc_id)
                 {
-                    bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer[j]);
-                    bta_dm_cb.pm_timer[i].active--;
+                    bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i], j);
                     bta_dm_cb.pm_timer[i].pm_action[j] = BTA_DM_PM_NO_ACTION;
-                    bta_dm_cb.pm_timer[i].srvc_id[j] = BTA_ID_MAX;
-
-                    if (bta_dm_cb.pm_timer[i].active == 0)
-                        bta_dm_cb.pm_timer[i].in_use = FALSE;
                     break;
                 }
             }
@@ -294,6 +292,36 @@ static void bta_dm_pm_start_timer(tBTA_PM_TIMER *p_timer, UINT8 timer_idx,
     p_timer->srvc_id[timer_idx] = srvc_id;
 
     bta_sys_start_timer(&p_timer->timer[timer_idx], 0, timeout);
+}
+
+/*******************************************************************************
+**
+** Function         bta_dm_pm_stop_timer_by_index
+**
+** Description      stop a PM timer
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
+                                          UINT8 timer_idx)
+{
+    if ((p_timer == NULL) || (timer_idx >= BTA_DM_PM_MODE_TIMER_MAX))
+        return;
+
+    if (p_timer->srvc_id[timer_idx] == BTA_ID_MAX)
+        return;                 /* The timer was not scheduled */
+
+    assert(p_timer->in_use && (p_timer->active > 0));
+
+    bta_sys_stop_timer(&p_timer->timer[timer_idx]);
+    p_timer->srvc_id[timer_idx] = BTA_ID_MAX;
+    /* NOTE: pm_action[timer_idx] intentionally not reset */
+
+    p_timer->active--;
+    if (p_timer->active == 0)
+        p_timer->in_use = FALSE;
 }
 
 UINT32 bta_dm_pm_get_remaining_ticks (TIMER_LIST_ENT  *p_target_tle)
@@ -608,7 +636,16 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                     remaining_ticks = bta_dm_pm_get_remaining_ticks(&bta_dm_cb.pm_timer[i].timer[timer_idx]);
                     if (remaining_ticks < timeout)
                     {
-                        bta_sys_stop_timer(&bta_dm_cb.pm_timer[i].timer[timer_idx]);
+                        /* Cancel and restart the timer */
+                        /*
+                         * TODO: The value of pm_action[timer_idx] is
+                         * conditionally updated between the two function
+                         * calls below when the timer is restarted.
+                         * This logic is error-prone and should be eliminated
+                         * in the future.
+                         */
+                        bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i],
+                                                      timer_idx);
                         bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[i], timer_idx, timeout, p_srvcs->id, pm_action);
                     }
                     timer_started = TRUE;
