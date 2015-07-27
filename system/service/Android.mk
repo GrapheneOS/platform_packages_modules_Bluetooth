@@ -16,6 +16,7 @@
 
 LOCAL_PATH:= $(call my-dir)
 
+ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	settings.cpp \
@@ -29,6 +30,7 @@ LOCAL_MODULE_TAGS := tests
 LOCAL_MODULE := bt_service_unittests
 LOCAL_SHARED_LIBRARIES += libchrome-host
 include $(BUILD_HOST_NATIVE_TEST)
+endif
 
 include $(CLEAR_VARS)
 
