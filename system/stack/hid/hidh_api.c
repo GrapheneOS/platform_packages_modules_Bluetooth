@@ -397,7 +397,7 @@ tHID_STATUS HID_HostRemoveDev ( UINT8 dev_handle )
     hh_cb.devices[dev_handle].in_use = FALSE;
     hh_cb.devices[dev_handle].conn.conn_state = HID_CONN_STATE_UNUSED;
     hh_cb.devices[dev_handle].conn.ctrl_cid = hh_cb.devices[dev_handle].conn.intr_cid = 0;
-
+    hh_cb.devices[dev_handle].attr_mask = 0;
     return HID_SUCCESS;
 }
 
