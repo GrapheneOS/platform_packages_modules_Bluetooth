@@ -19,7 +19,9 @@ shared_library("test_vendor_lib") {
     "//stack/include",
   ]
 
-  # TODO(dennischeng): Add libchrome as a dependency.
+  deps = [
+    "//third_party/libchrome",
+  ]
 }
 
 # TODO(dennischeng): Add a unit test target.

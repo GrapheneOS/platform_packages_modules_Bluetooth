@@ -18,11 +18,13 @@
 
 #include "vendor_libs/test_vendor_lib/include/packet_stream.h"
 
-extern "C" {
-#include "osi/include/log.h"
+#include "base/logging.h"
 
+extern "C" {
 #include <errno.h>
 #include <unistd.h>
+
+#include "osi/include/log.h"
 }  // extern "C"
 
 namespace test_vendor_lib {
@@ -130,8 +132,7 @@ bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
 
 bool PacketStream::SendAll(const std::vector<uint8_t>& source,
                            size_t num_octets_to_send) const {
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(source.size() >= num_octets_to_send);
+  CHECK(source.size() >= num_octets_to_send);
   size_t octets_remaining = num_octets_to_send;
   do {
     int num_octets_sent = write(

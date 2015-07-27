@@ -18,16 +18,17 @@
 
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
-extern "C" {
-#include "stack/include/hcidefs.h"
-#include "osi/include/log.h"
+#include "base/logging.h"
 
+extern "C" {
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include "stack/include/hcidefs.h"
+#include "osi/include/log.h"
 }  // extern "C"
 
 namespace {
@@ -62,16 +63,14 @@ int HciTransport::GetHciFd() const {
 // static
 HciTransport* HciTransport::Get() {
   // Initialize should have been called already.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(g_transporter);
+  CHECK(g_transporter);
   return g_transporter;
 }
 
 // static
 void HciTransport::Initialize() {
   // Multiple calls to Initialize should not be made.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(!g_transporter);
+  CHECK(!g_transporter);
   g_transporter = new HciTransport();
 }
 
