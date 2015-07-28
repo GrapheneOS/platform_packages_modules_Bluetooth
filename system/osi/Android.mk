@@ -25,7 +25,8 @@ LOCAL_CLANG := false
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/..
+    $(LOCAL_PATH)/.. \
+    $(LOCAL_PATH)/../utils/include
 
 # TODO(mcchou): Remove socket_utils sources after platform specific
 # dependencies are abstracted.
@@ -42,6 +43,7 @@ LOCAL_SRC_FILES := \
     ./src/future.c \
     ./src/hash_functions.c \
     ./src/hash_map.c \
+    ./src/hash_map_utils.c \
     ./src/list.c \
     ./src/non_repeating_timer.c \
     ./src/reactor.c \
@@ -78,6 +80,7 @@ LOCAL_SRC_FILES := \
     ./test/AllocationTestHarness.cpp \
     ./test/alarm_test.cpp \
     ./test/allocation_tracker_test.cpp \
+    ./test/allocator_test.cpp \
     ./test/array_test.cpp \
     ./test/atomic_test.cpp \
     ./test/config_test.cpp \
@@ -85,6 +88,7 @@ LOCAL_SRC_FILES := \
     ./test/eager_reader_test.cpp \
     ./test/future_test.cpp \
     ./test/hash_map_test.cpp \
+    ./test/hash_map_utils_test.cpp \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/ringbuffer_test.cpp \
