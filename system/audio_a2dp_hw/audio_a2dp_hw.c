@@ -692,13 +692,13 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     INFO("state %d", out->common.state);
 
-    pthread_mutex_lock(&out->common.lock);
-
     hash_map_t *params = hash_map_utils_new_from_string_params(kvpairs);
-
     int status = 0;
+
     if (!params)
       return status;
+
+    pthread_mutex_lock(&out->common.lock);
 
     /* dump params */
     hash_map_utils_dump_string_keys_string_values(params);
