@@ -4827,7 +4827,6 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     }
 
 #if BLE_INCLUDED == TRUE && SMP_INCLUDED == TRUE
-    p_dev_rec->enc_key_size = 0;
     btm_ble_update_mode_operation(HCI_ROLE_UNKNOWN, p_dev_rec->bd_addr, HCI_SUCCESS);
     /* see sec_flags processing in btm_acl_removed */
 
@@ -4835,6 +4834,7 @@ void btm_sec_disconnected (UINT16 handle, UINT8 reason)
     {
         p_dev_rec->ble_hci_handle = BTM_SEC_INVALID_HANDLE;
         p_dev_rec->sec_flags &= ~(BTM_SEC_LE_AUTHENTICATED|BTM_SEC_LE_ENCRYPTED);
+        p_dev_rec->enc_key_size = 0;
     }
     else
 #endif
