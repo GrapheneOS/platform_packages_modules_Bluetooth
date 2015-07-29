@@ -4277,7 +4277,8 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
     if (acl_idx != MAX_L2CAP_LINKS)
         p_acl = &btm_cb.acl_db[acl_idx];
 
-    btm_sec_check_pending_enc_req (p_dev_rec, p_acl->transport, encr_enable);
+    if (p_acl != NULL)
+        btm_sec_check_pending_enc_req(p_dev_rec, p_acl->transport, encr_enable);
 
     if (p_acl && p_acl->transport == BT_TRANSPORT_LE)
     {
