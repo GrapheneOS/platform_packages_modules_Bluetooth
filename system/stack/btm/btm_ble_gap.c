@@ -743,8 +743,14 @@ static void btm_ble_resolve_random_addr_on_adv(void * p_rec, void *p)
         BTM_TRACE_DEBUG("Random match");
         match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
         memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
-        memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
-        addr_type = match_rec->ble.ble_addr_type;
+
+        if (btm_ble_init_pseudo_addr(match_rec, bda))
+        {
+            memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+        } else {
+            // Assign the original address to be the current report address
+            memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
+        }
     }
 
     btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pp);
