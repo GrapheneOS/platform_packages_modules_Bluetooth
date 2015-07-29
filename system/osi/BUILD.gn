@@ -29,6 +29,7 @@ static_library("osi") {
     "src/future.c",
     "src/hash_functions.c",
     "src/hash_map.c",
+    "src/hash_map_utils.c",
     "src/list.c",
     "src/non_repeating_timer.c",
     "src/reactor.c",
@@ -46,7 +47,8 @@ static_library("osi") {
 
   include_dirs = [
     "include",
-    "//"
+    "//",
+    "//utils/include",
   ]
 }
 
@@ -57,6 +59,7 @@ executable("net_test_osi") {
     "test/AllocationTestHarness.cpp",
     "test/alarm_test.cpp",
     "test/allocation_tracker_test.cpp",
+    "test/allocator_test.cpp",
     "test/array_test.cpp",
     "test/atomic_test.cpp",
     "test/config_test.cpp",
@@ -64,6 +67,7 @@ executable("net_test_osi") {
     "test/eager_reader_test.cpp",
     "test/future_test.cpp",
     "test/hash_map_test.cpp",
+    "test/hash_map_utils_test.cpp",
     "test/list_test.cpp",
     "test/reactor_test.cpp",
     "test/ringbuffer_test.cpp",
