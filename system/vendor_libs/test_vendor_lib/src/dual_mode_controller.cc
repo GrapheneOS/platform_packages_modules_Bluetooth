@@ -14,9 +14,9 @@
 // limitations under the License.
 //
 
-#define LOG_TAG "bredr_controller"
+#define LOG_TAG "dual_mode_controller"
 
-#include "vendor_libs/test_vendor_lib/include/bredr_controller.h"
+#include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
 
 #include "base/logging.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
@@ -113,63 +113,6 @@ const std::vector<uint8_t> kPageScanMode = {0};
 const std::vector<uint8_t> kClassOfDevice = {1, 2, 3};
 const std::vector<uint8_t> kClockOffset = {1, 2};
 
-// Creates a command complete event and sends it back to the HCI.
-void SendCommandComplete(uint16_t command_opcode,
-                         const std::vector<uint8_t>& return_parameters) {
-  std::unique_ptr<test_vendor_lib::EventPacket> command_complete =
-      test_vendor_lib::EventPacket::CreateCommandCompleteEvent(
-          kNumHciCommandPackets, command_opcode, return_parameters);
-  // TODO(dennischeng): Should this dependency on HciTransport be removed?
-  test_vendor_lib::HciTransport::Get()->SendEvent(std::move(command_complete));
-}
-
-// Sends a command complete event with no return parameters. This event is
-// typically sent for commands that can be completed immediately.
-void SendEmptySuccessCommandComplete(uint16_t command_opcode) {
-  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
-}
-
-// Creates a command status event and sends it back to the HCI.
-void SendCommandStatus(uint16_t command_opcode) {
-  std::unique_ptr<test_vendor_lib::EventPacket> command_status =
-      test_vendor_lib::EventPacket::CreateCommandStatusEvent(
-          kNumHciCommandPackets, command_opcode);
-  // TODO(dennischeng): Should this dependency on HciTransport be removed?
-  test_vendor_lib::HciTransport::Get()->SendEvent(std::move(command_status));
-}
-
-void SendEmptySuccessCommandStatus(uint16_t command_opcode) {
-  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
-}
-
-// Sends an inquiry response for a fake device.
-void SendInquiryResult() {
-  std::unique_ptr<test_vendor_lib::EventPacket> inquiry_result =
-      test_vendor_lib::EventPacket::CreateInquiryResultEvent(
-          1, kOtherDeviceBdAddress, kPageScanRepetitionMode,
-          kPageScanPeriodMode, kPageScanMode, kClassOfDevice, kClockOffset);
-  // TODO(dennischeng): Should this dependency on HciTransport be removed?
-  test_vendor_lib::HciTransport::Get()->SendEvent(std::move(inquiry_result));
-}
-
-// Sends an extended inquiry response for a fake device.
-void SendExtendedInquiryResult() {
-  std::vector<uint8_t> rssi = {0};
-  std::vector<uint8_t> extended_inquiry_data = {7, 0x09,
-                                                'F', 'o', 'o', 'B', 'a', 'r'};
-  // TODO(dennischeng): Use constants for parameter sizes, here and elsewhere.
-  while (extended_inquiry_data.size() < 240) {
-    extended_inquiry_data.push_back(0);
-  }
-  std::unique_ptr<test_vendor_lib::EventPacket> extended_inquiry_result =
-      test_vendor_lib::EventPacket::CreateExtendedInquiryResultEvent(
-          kOtherDeviceBdAddress, kPageScanRepetitionMode, kPageScanPeriodMode,
-          kClassOfDevice, kClockOffset, rssi, extended_inquiry_data);
-  // TODO(dennischeng): Should this dependency on HciTransport be removed?
-  test_vendor_lib::HciTransport::Get()->SendEvent(
-      std::move(extended_inquiry_result));
-}
-
 void LogCommand(const char* command) {
   LOG_INFO(LOG_TAG, "Controller performing command: %s", command);
 }
@@ -178,34 +121,59 @@ void LogCommand(const char* command) {
 
 namespace test_vendor_lib {
 
-// Global controller instance used in the vendor library.
-// TODO(dennischeng): Should this be moved to an unnamed namespace?
-BREDRController* g_controller = nullptr;
-
-// static
-BREDRController* BREDRController::Get() {
-  // Initialize should have been called already.
-  CHECK(g_controller);
-  return g_controller;
+void DualModeController::SendCommandComplete(
+    uint16_t command_opcode,
+    const std::vector<uint8_t>& return_parameters) const {
+  std::unique_ptr<EventPacket> command_complete =
+      EventPacket::CreateCommandCompleteEvent(
+          kNumHciCommandPackets, command_opcode, return_parameters);
+  send_event_(std::move(command_complete));
 }
 
-// static
-void BREDRController::Initialize() {
-  // Multiple calls to Initialize should not be made.
-  CHECK(!g_controller);
-  g_controller = new BREDRController();
+void DualModeController::SendCommandCompleteSuccess(
+    uint16_t command_opcode) const {
+  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
 }
 
-// static
-void BREDRController::CleanUp() {
-  delete g_controller;
-  g_controller = nullptr;
+void DualModeController::SendCommandStatus(uint16_t command_opcode) const {
+  std::unique_ptr<EventPacket> command_status =
+      EventPacket::CreateCommandStatusEvent(kNumHciCommandPackets,
+                                            command_opcode);
+  send_event_(std::move(command_status));
 }
 
-BREDRController::BREDRController() {
+void DualModeController::SendCommandStatusSuccess(
+    uint16_t command_opcode) const {
+  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
+}
+
+void DualModeController::SendInquiryResult() const {
+  std::unique_ptr<EventPacket> inquiry_result =
+      EventPacket::CreateInquiryResultEvent(
+          1, kOtherDeviceBdAddress, kPageScanRepetitionMode,
+          kPageScanPeriodMode, kPageScanMode, kClassOfDevice, kClockOffset);
+  send_event_(std::move(inquiry_result));
+}
+
+void DualModeController::SendExtendedInquiryResult() const {
+  std::vector<uint8_t> rssi = {0};
+  std::vector<uint8_t> extended_inquiry_data = {7, 0x09,
+                                                'F', 'o', 'o', 'B', 'a', 'r'};
+  // TODO(dennischeng): Use constants for parameter sizes, here and elsewhere.
+  while (extended_inquiry_data.size() < 240) {
+    extended_inquiry_data.push_back(0);
+  }
+  std::unique_ptr<EventPacket> extended_inquiry_result =
+      EventPacket::CreateExtendedInquiryResultEvent(
+          kOtherDeviceBdAddress, kPageScanRepetitionMode, kPageScanPeriodMode,
+          kClassOfDevice, kClockOffset, rssi, extended_inquiry_data);
+  send_event_(std::move(extended_inquiry_result));
+}
+
+DualModeController::DualModeController() {
 #define SET_HANDLER(opcode, command) \
   active_commands_[opcode] =         \
-      std::bind(&BREDRController::command, this, std::placeholders::_1);
+      std::bind(&DualModeController::command, this, std::placeholders::_1);
   SET_HANDLER(HCI_RESET, HciReset);
   SET_HANDLER(HCI_READ_BUFFER_SIZE, HciReadBufferSize);
   SET_HANDLER(HCI_HOST_BUFFER_SIZE, HciHostBufferSize);
@@ -234,45 +202,49 @@ BREDRController::BREDRController() {
 #undef SET_HANDLER
 }
 
-void BREDRController::RegisterHandlerCallbacks() {
-  HciHandler* handler = HciHandler::Get();
+void DualModeController::RegisterCommandsWithHandler(HciHandler& handler) {
   for (auto it = active_commands_.begin(); it != active_commands_.end(); ++it) {
-    handler->RegisterControllerCallback(it->first, it->second);
+    handler.RegisterControllerCommand(it->first, it->second);
   }
+}
+
+void DualModeController::RegisterEventChannel(
+    std::function<void(std::unique_ptr<EventPacket>)> callback) {
+  send_event_ = callback;
 }
 
 // TODO(dennischeng): Store relevant arguments from commands as attributes of
 // the controller.
 
-void BREDRController::HciReset(const std::vector<uint8_t>& /* args */) {
+void DualModeController::HciReset(const std::vector<uint8_t>& /* args */) {
   LogCommand("Reset");
-  SendEmptySuccessCommandComplete(HCI_RESET);
+  SendCommandCompleteSuccess(HCI_RESET);
 }
 
-void BREDRController::HciReadBufferSize(
+void DualModeController::HciReadBufferSize(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Buffer Size");
   SendCommandComplete(HCI_READ_BUFFER_SIZE, kBufferSize);
 }
 
-void BREDRController::HciHostBufferSize(
+void DualModeController::HciHostBufferSize(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Host Buffer Size");
-  SendEmptySuccessCommandComplete(HCI_HOST_BUFFER_SIZE);
+  SendCommandCompleteSuccess(HCI_HOST_BUFFER_SIZE);
 }
 
-void BREDRController::HciReadLocalVersionInformation(
+void DualModeController::HciReadLocalVersionInformation(
                  const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Version Information");
   SendCommandComplete(HCI_READ_LOCAL_VERSION_INFO, kLocalVersionInformation);
 }
 
-void BREDRController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
+void DualModeController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Bd Addr");
   SendCommandComplete(HCI_READ_BD_ADDR, kBdAddress);
 }
 
-void BREDRController::HciReadLocalSupportedCommands(
+void DualModeController::HciReadLocalSupportedCommands(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Supported Commands");
   std::vector<uint8_t> return_parameters;
@@ -284,67 +256,69 @@ void BREDRController::HciReadLocalSupportedCommands(
   SendCommandComplete(HCI_READ_LOCAL_SUPPORTED_CMDS, return_parameters);
 }
 
-void BREDRController::HciReadLocalExtendedFeatures(
+void DualModeController::HciReadLocalExtendedFeatures(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Extended Features");
   SendCommandComplete(HCI_READ_LOCAL_EXT_FEATURES, kLocalExtendedFeatures);
 }
 
-void BREDRController::HciWriteSimplePairingMode(
+void DualModeController::HciWriteSimplePairingMode(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Simple Pairing Mode");
-  SendEmptySuccessCommandComplete(HCI_WRITE_SIMPLE_PAIRING_MODE);
+  SendCommandCompleteSuccess(HCI_WRITE_SIMPLE_PAIRING_MODE);
 }
 
-void BREDRController::HciWriteLeHostSupport(
+void DualModeController::HciWriteLeHostSupport(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Le Host Support");
-  SendEmptySuccessCommandComplete(HCI_WRITE_LE_HOST_SUPPORT);
+  SendCommandCompleteSuccess(HCI_WRITE_LE_HOST_SUPPORT);
 }
 
-void BREDRController::HciSetEventMask(const std::vector<uint8_t>& /* args */) {
+void DualModeController::HciSetEventMask(
+    const std::vector<uint8_t>& /* args */) {
   LogCommand("Set Event Mask");
-  SendEmptySuccessCommandComplete(HCI_SET_EVENT_MASK);
+  SendCommandCompleteSuccess(HCI_SET_EVENT_MASK);
 }
 
-void BREDRController::HciWriteInquiryMode(const std::vector<uint8_t>& args) {
+void DualModeController::HciWriteInquiryMode(const std::vector<uint8_t>& args) {
   LogCommand("Write Inquiry Mode");
   CHECK(args.size() == 1);
   inquiry_mode_ = args[0];
-  SendEmptySuccessCommandComplete(HCI_WRITE_INQUIRY_MODE);
+  SendCommandCompleteSuccess(HCI_WRITE_INQUIRY_MODE);
 }
 
-void BREDRController::HciWritePageScanType(
+void DualModeController::HciWritePageScanType(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Page Scan Type");
-  SendEmptySuccessCommandComplete(HCI_WRITE_PAGESCAN_TYPE);
+  SendCommandCompleteSuccess(HCI_WRITE_PAGESCAN_TYPE);
 }
 
-void BREDRController::HciWriteInquiryScanType(
+void DualModeController::HciWriteInquiryScanType(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Inquiry Scan Type");
-  SendEmptySuccessCommandComplete(HCI_WRITE_INQSCAN_TYPE);
+  SendCommandCompleteSuccess(HCI_WRITE_INQSCAN_TYPE);
 }
 
-void BREDRController::HciWriteClassOfDevice(
+void DualModeController::HciWriteClassOfDevice(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Class Of Device");
-  SendEmptySuccessCommandComplete(HCI_WRITE_CLASS_OF_DEVICE);
+  SendCommandCompleteSuccess(HCI_WRITE_CLASS_OF_DEVICE);
 }
 
-void BREDRController::HciWritePageTimeout(
+void DualModeController::HciWritePageTimeout(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Page Timeout");
-  SendEmptySuccessCommandComplete(HCI_WRITE_PAGE_TOUT);
+  SendCommandCompleteSuccess(HCI_WRITE_PAGE_TOUT);
 }
 
-void BREDRController::HciWriteDefaultLinkPolicySettings(
+void DualModeController::HciWriteDefaultLinkPolicySettings(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Default Link Policy Settings");
-  SendEmptySuccessCommandComplete(HCI_WRITE_DEF_POLICY_SETTINGS);
+  SendCommandCompleteSuccess(HCI_WRITE_DEF_POLICY_SETTINGS);
 }
 
-void BREDRController::HciReadLocalName(const std::vector<uint8_t>& /* args */) {
+void DualModeController::HciReadLocalName(
+    const std::vector<uint8_t>& /* args */) {
   LogCommand("Get Local Name");
   std::vector<uint8_t> return_parameters;
   return_parameters.reserve(249);
@@ -355,51 +329,51 @@ void BREDRController::HciReadLocalName(const std::vector<uint8_t>& /* args */) {
   SendCommandComplete(HCI_READ_LOCAL_NAME, return_parameters);
 }
 
-void BREDRController::HciWriteLocalName(
+void DualModeController::HciWriteLocalName(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Local Name");
-  SendEmptySuccessCommandComplete(HCI_CHANGE_LOCAL_NAME);
+  SendCommandCompleteSuccess(HCI_CHANGE_LOCAL_NAME);
 }
 
-void BREDRController::HciWriteExtendedInquiryResponse(
+void DualModeController::HciWriteExtendedInquiryResponse(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Extended Inquiry Response");
-  SendEmptySuccessCommandComplete(HCI_WRITE_EXT_INQ_RESPONSE);
+  SendCommandCompleteSuccess(HCI_WRITE_EXT_INQ_RESPONSE);
 }
 
-void BREDRController::HciWriteVoiceSetting(
+void DualModeController::HciWriteVoiceSetting(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Voice Setting");
-  SendEmptySuccessCommandComplete(HCI_WRITE_VOICE_SETTINGS);
+  SendCommandCompleteSuccess(HCI_WRITE_VOICE_SETTINGS);
 }
 
-void BREDRController::HciWriteCurrentIacLap(
+void DualModeController::HciWriteCurrentIacLap(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Current IAC LAP");
-  SendEmptySuccessCommandComplete(HCI_WRITE_CURRENT_IAC_LAP);
+  SendCommandCompleteSuccess(HCI_WRITE_CURRENT_IAC_LAP);
 }
 
-void BREDRController::HciWriteInquiryScanActivity(
+void DualModeController::HciWriteInquiryScanActivity(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Inquiry Scan Activity");
-  SendEmptySuccessCommandComplete(HCI_WRITE_INQUIRYSCAN_CFG);
+  SendCommandCompleteSuccess(HCI_WRITE_INQUIRYSCAN_CFG);
 }
 
-void BREDRController::HciWriteScanEnable(
+void DualModeController::HciWriteScanEnable(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Scan Enable");
-  SendEmptySuccessCommandComplete(HCI_WRITE_SCAN_ENABLE);
+  SendCommandCompleteSuccess(HCI_WRITE_SCAN_ENABLE);
 }
 
-void BREDRController::HciSetEventFilter(
+void DualModeController::HciSetEventFilter(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Set Event Filter");
-  SendEmptySuccessCommandComplete(HCI_SET_EVENT_FILTER);
+  SendCommandCompleteSuccess(HCI_SET_EVENT_FILTER);
 }
 
-void BREDRController::HciInquiry(const std::vector<uint8_t>& /* args */) {
+void DualModeController::HciInquiry(const std::vector<uint8_t>& /* args */) {
   LogCommand("Inquiry");
-  SendEmptySuccessCommandStatus(HCI_INQUIRY);
+  SendCommandStatusSuccess(HCI_INQUIRY);
   switch (inquiry_mode_) {
     case (kStandardInquiry):
       SendInquiryResult();
