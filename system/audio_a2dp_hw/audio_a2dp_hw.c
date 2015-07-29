@@ -39,13 +39,14 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include <cutils/str_parms.h>
 #include <hardware/audio.h>
 #include <hardware/hardware.h>
 #include <system/audio.h>
 
 #include "audio_a2dp_hw.h"
 #include "bt_utils.h"
+#include "osi/include/hash_map.h"
+#include "osi/include/hash_map_utils.h"
 #include "osi/include/log.h"
 #include "osi/include/socket_utils/sockets.h"
 
@@ -688,54 +689,48 @@ static int out_dump(const struct audio_stream *stream, int fd)
 static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
-    struct str_parms *parms;
-    char keyval[16];
-    int retval;
-    int status = 0;
 
     INFO("state %d", out->common.state);
 
-    parms = str_parms_create_str(kvpairs);
+
+    hash_map_t *params = hash_map_utils_new_from_string_params(kvpairs);
+    int status = 0;
+
+    if (!params)
+      return status;
+
+    pthread_mutex_lock(&out->common.lock);
 
     /* dump params */
-    str_parms_dump(parms);
+    hash_map_utils_dump_string_keys_string_values(params);
 
-    retval = str_parms_get_str(parms, "closing", keyval, sizeof(keyval));
+    char *keyval = (char *)hash_map_get(params, "closing");
 
-    if (retval >= 0)
+    if (keyval && strcmp(keyval, "true") == 0)
     {
-        if (strcmp(keyval, "true") == 0)
-        {
-            DEBUG("stream closing, disallow any writes");
-            pthread_mutex_lock(&out->common.lock);
-            out->common.state = AUDIO_A2DP_STATE_STOPPING;
-            pthread_mutex_unlock(&out->common.lock);
-        }
+        DEBUG("stream closing, disallow any writes");
+        out->common.state = AUDIO_A2DP_STATE_STOPPING;
     }
 
-    retval = str_parms_get_str(parms, "A2dpSuspended", keyval, sizeof(keyval));
+    keyval = (char *)hash_map_get(params, "A2dpSuspended");
 
-    if (retval >= 0)
+    if (keyval && strcmp(keyval, "true") == 0)
     {
-        pthread_mutex_lock(&out->common.lock);
-        if (strcmp(keyval, "true") == 0)
-        {
-            if (out->common.state == AUDIO_A2DP_STATE_STARTED)
-                status = suspend_audio_datapath(&out->common, false);
-        }
-        else
-        {
-            /* Do not start the streaming automatically. If the phone was streaming
-             * prior to being suspended, the next out_write shall trigger the
-             * AVDTP start procedure */
-            if (out->common.state == AUDIO_A2DP_STATE_SUSPENDED)
-                out->common.state = AUDIO_A2DP_STATE_STANDBY;
-            /* Irrespective of the state, return 0 */
-        }
-        pthread_mutex_unlock(&out->common.lock);
+        if (out->common.state == AUDIO_A2DP_STATE_STARTED)
+            status = suspend_audio_datapath(&out->common, false);
+    }
+    else
+    {
+        /* Do not start the streaming automatically. If the phone was streaming
+         * prior to being suspended, the next out_write shall trigger the
+         * AVDTP start procedure */
+        if (out->common.state == AUDIO_A2DP_STATE_SUSPENDED)
+            out->common.state = AUDIO_A2DP_STATE_STANDBY;
+        /* Irrespective of the state, return 0 */
     }
 
-    str_parms_destroy(parms);
+    pthread_mutex_unlock(&out->common.lock);
+    hash_map_free(params);
 
     return status;
 }
@@ -1121,16 +1116,13 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 static char * adev_get_parameters(const struct audio_hw_device *dev,
                                   const char *keys)
 {
-    struct str_parms *parms;
     UNUSED(dev);
 
     FNLOG();
 
-    parms = str_parms_create_str(keys);
-
-    str_parms_dump(parms);
-
-    str_parms_destroy(parms);
+    hash_map_t *params = hash_map_utils_new_from_string_params(keys);
+    hash_map_utils_dump_string_keys_string_values(params);
+    hash_map_free(params);
 
     return strdup("");
 }
