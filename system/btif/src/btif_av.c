@@ -358,8 +358,6 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
 
     }
 
-    btif_av_event_free_data(event, p_data);
-
     return TRUE;
 }
 /*****************************************************************************
@@ -899,6 +897,7 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
 static void btif_av_handle_event(UINT16 event, char* p_param)
 {
     btif_sm_dispatch(btif_av_cb.sm_handle, event, (void*)p_param);
+    btif_av_event_free_data(event, p_param);
 }
 
 void btif_av_event_deep_copy(UINT16 event, char *p_dest, char *p_src)
