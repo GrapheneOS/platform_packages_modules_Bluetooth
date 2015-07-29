@@ -15,7 +15,7 @@ LOCAL_CFLAGS += -std=c99 $(bdroid_CFLAGS)
 LOCAL_MODULE := audio.a2dp.default
 LOCAL_MODULE_RELATIVE_PATH := hw
 
-LOCAL_SHARED_LIBRARIES := libcutils liblog
+LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libosi
 
 LOCAL_MODULE_TAGS := optional
