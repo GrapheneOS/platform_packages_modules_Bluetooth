@@ -18,8 +18,6 @@
 
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 
-#include "base/logging.h"
-
 extern "C" {
 #include "osi/include/log.h"
 }  // extern "C"

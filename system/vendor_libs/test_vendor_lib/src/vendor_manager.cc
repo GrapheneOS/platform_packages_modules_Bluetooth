@@ -18,6 +18,7 @@
 
 #include "vendor_manager.h"
 
+#include "base/bind.h"
 #include "base/logging.h"
 
 extern "C" {
@@ -48,7 +49,7 @@ void VendorManager::Initialize() {
 }
 
 VendorManager::VendorManager()
-    : running_(false), thread_("TestVendorLibrary") {}
+    : running_(false), thread_("TestVendorLibrary"), weak_ptr_factory_(this) {}
 
 bool VendorManager::Run() {
   CHECK(!running_);
@@ -61,7 +62,7 @@ bool VendorManager::Run() {
   handler_.RegisterHandlersWithTransport(transport_);
   controller_.RegisterCommandsWithHandler(handler_);
   controller_.RegisterEventChannel(
-      std::bind(&HciTransport::SendEvent, transport_, std::placeholders::_1));
+      std::bind(&HciTransport::SendEvent, &transport_, std::placeholders::_1));
 
   running_ = true;
   if (!thread_.StartWithOptions(
@@ -71,8 +72,9 @@ bool VendorManager::Run() {
     return false;
   }
 
-  // TODO(dennischeng): Use PostTask() + base::Bind() to call
-  // StartWatchingOnThread().
+  thread_.task_runner()->PostTask(
+      FROM_HERE, base::Bind(&VendorManager::StartWatchingOnThread,
+                            weak_ptr_factory_.GetWeakPtr()));
   return true;
 }
 
@@ -90,6 +92,10 @@ void VendorManager::SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks) {
 
 const bt_vendor_callbacks_t& VendorManager::GetVendorCallbacks() const {
   return vendor_callbacks_;
+}
+
+void VendorManager::CloseHciFd() {
+  transport_.CloseHciFd();
 }
 
 int VendorManager::GetHciFd() const {

@@ -355,6 +355,8 @@ class DualModeController {
   // 0x02 Inquiry Result with RSSI format or Extended Inquiry Result format.
   // 0x03-0xFF: Reserved.
   std::uint8_t inquiry_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(DualModeController);
 };
 
 }  // namespace test_vendor_lib

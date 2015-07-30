@@ -24,6 +24,7 @@ extern "C" {
 #include <sys/epoll.h>
 }  // extern "C"
 
+#include "base/files/scoped_file.h"
 #include "base/message_loop/message_loop.h"
 #include "vendor_libs/test_vendor_lib/include/command_packet.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
@@ -40,12 +41,15 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
 
   virtual ~HciTransport() = default;
 
+  void CloseHciFd();
+
   int GetHciFd() const;
 
   int GetVendorFd() const;
 
   // Creates the underlying socketpair to be used as a communication channel
-  // between the HCI and the vendor library/controller.
+  // between the HCI and the vendor library/controller. Returns false if an
+  // error occurs.
   bool SetUp();
 
   // Sets the callback that is run when command packets are received.
@@ -62,29 +66,32 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
 
   void OnFileCanWriteWithoutBlocking(int fd) override;
 
-  // Reads in a command packet and calls the HciHandler's command ready
-  // callback, passing owernship of the command packet to the HciHandler.
+  // Reads in a command packet and calls the command ready callback,
+  // |command_handler_|, passing ownership of the command packet to the handler.
   void ReceiveReadyCommand() const;
 
   // Write queue for sending events to the HCI. Event packets are removed from
   // the queue and written when write-readiness is signalled by the message
   // loop.
-  // TODO(dennischeng): Use std::unique_ptr here.
-  std::queue<EventPacket*> outgoing_events_;
+  std::queue<std::unique_ptr<EventPacket>> outgoing_events_;
 
   // Callback executed in ReceiveReadyCommand() to pass the incoming command
-  // over to the HciHandler for further processing.
+  // over to the handler for further processing.
   std::function<void(std::unique_ptr<CommandPacket>)> command_handler_;
 
   // For performing packet-based IO.
   PacketStream packet_stream_;
 
-  // The two ends of the socket pair used to communicate with the HCI.
-  // |socketpair_fds_[0]| is the end that is handed back to the HCI in
-  // bt_vendor.cc. It is also closed in bt_vendor.cc by the HCI.
-  // |socketpair_fds_[1]| is the vendor end, used to receive and send data in
-  // the vendor library and controller. It is closed by |packet_stream_|.
-  int socketpair_fds_[2];
+  // The two ends of the socketpair. |hci_fd_| is handed back to the HCI in
+  // bt_vendor.cc and |vendor_fd_| is used by |packet_stream_| to receive/send
+  // data from/to the HCI. Both file descriptors are owned and managed by the
+  // transport object, although |hci_fd_| can be closed by the HCI in
+  // TestVendorOp().
+  std::unique_ptr<base::ScopedFD> hci_fd_;
+
+  std::unique_ptr<base::ScopedFD> vendor_fd_;
+
+  DISALLOW_COPY_AND_ASSIGN(HciTransport);
 };
 
 }  // namespace test_vendor_lib

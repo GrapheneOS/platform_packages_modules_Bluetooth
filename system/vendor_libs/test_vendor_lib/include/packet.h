@@ -25,9 +25,9 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-// Abstract base class that manages a contiguous block of data and is
-// subclassed to provide type-specifc accessors on said data. Manages the data's
-// memory and guarantees the data's persistence for IO operations.
+// Abstract base class that is subclassed to provide type-specifc accessors on
+// data. Manages said data's memory and guarantees the data's persistence for IO
+// operations.
 class Packet {
  public:
   virtual ~Packet() = default;

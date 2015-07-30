@@ -62,6 +62,8 @@ class HciHandler {
   std::unordered_map<std::uint16_t,
                      std::function<void(const std::vector<std::uint8_t> args)> >
       commands_;
+
+  DISALLOW_COPY_AND_ASSIGN(HciHandler);
 };
 
 }  // namespace test_vendor_lib
