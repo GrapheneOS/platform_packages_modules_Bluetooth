@@ -92,9 +92,9 @@ bool Daemon::Init() {
 
   ipc_manager_.reset(new ipc::IPCManager(core_stack_.get()));
 
-  // If an IPC socket path was given, initialize the UNIX domain socket based
-  // IPC layer.
-  if (!settings_->ipc_socket_path().empty() &&
+  // If an IPC socket path was given, initialize IPC with it.
+  if ((!settings_->create_ipc_socket_path().empty() ||
+       !settings_->android_ipc_socket_suffix().empty()) &&
       !ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX)) {
     LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
     return false;
