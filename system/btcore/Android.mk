@@ -18,17 +18,9 @@
 
 LOCAL_PATH := $(call my-dir)
 
-include $(CLEAR_VARS)
-
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
-
-LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/../osi/include \
-    $(LOCAL_PATH)/..
-
-LOCAL_SRC_FILES := \
+# Common variables
+# ========================================================
+btcoreCommonSrc := \
     src/bdaddr.c \
     src/counter.c \
     src/device_class.c \
@@ -38,26 +30,7 @@ LOCAL_SRC_FILES := \
     src/property.c \
     src/uuid.c
 
-LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
-LOCAL_MODULE := libbtcore
-LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
-LOCAL_MODULE_CLASS := STATIC_LIBRARIES
-
-include $(BUILD_STATIC_LIBRARY)
-
-#####################################################
-
-include $(CLEAR_VARS)
-
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
-
-LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/..
-
-LOCAL_SRC_FILES := \
+btcoreCommonTestSrc := \
     ./test/bdaddr_test.cpp \
     ./test/counter_test.cpp \
     ./test/device_class_test.cpp \
@@ -65,11 +38,73 @@ LOCAL_SRC_FILES := \
     ./test/uuid_test.cpp \
     ../osi/test/AllocationTestHarness.cpp
 
+btcoreCommonIncludes := \
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/../osi/include \
+    $(LOCAL_PATH)/..
+
+# libbtcore static library for target
+# ========================================================
+include $(CLEAR_VARS)
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
+LOCAL_SRC_FILES := $(btcoreCommonSrc)
+LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
+LOCAL_MODULE := libbtcore
+LOCAL_MODULE_TAGS := optional
+LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+include $(BUILD_STATIC_LIBRARY)
+
+# libbtcore static library for host
+# ========================================================
+ifeq ($(HOST_OS),linux)
+include $(CLEAR_VARS)
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
+LOCAL_SRC_FILES := $(btcoreCommonSrc)
+# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
+# should be compatible for a Linux host OS. We should figure out what to do for
+# a non-Linux host OS.
+LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS) -D_GNU_SOURCE
+LOCAL_MODULE := libbtcore-host
+LOCAL_MODULE_TAGS := optional
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+include $(BUILD_HOST_STATIC_LIBRARY)
+endif
+
+# Note: It's good to get the tests compiled both for the host and the target so
+# we get to test with both Bionic libc and glibc
+
+# libbtcore unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
+LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
 LOCAL_MODULE := net_test_btcore
-
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbtcore libosi
-
 include $(BUILD_NATIVE_TEST)
+
+# libbtcore unit tests for host
+# ========================================================
+ifeq ($(HOST_OS),linux)
+include $(CLEAR_VARS)
+# osi/include/atomic.h depends on gcc atomic functions
+LOCAL_CLANG := false
+LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
+LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
+LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
+LOCAL_MODULE := net_test_btcore
+LOCAL_MODULE_TAGS := tests
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_STATIC_LIBRARIES := libbtcore-host libosi-host
+include $(BUILD_HOST_NATIVE_TEST)
+endif
