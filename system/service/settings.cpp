@@ -17,36 +17,11 @@
 #include "service/settings.h"
 
 #include <base/command_line.h>
-#include <base/lazy_instance.h>
 #include <base/logging.h>
 
 #include "service/switches.h"
 
 namespace bluetooth {
-
-namespace {
-
-// The global settings instance. We use a LazyInstance here so that we can
-// lazily initialize the instance AND guarantee that it will be cleaned up at
-// exit time without violating the Google C++ style guide.
-base::LazyInstance<Settings> g_settings = LAZY_INSTANCE_INITIALIZER;
-
-void LogRequiredOption(const std::string& option) {
-  LOG(ERROR) << "Required option: \"" << option << "\"";
-}
-
-}  // namespace
-
-// static
-bool Settings::Initialize() {
-  return g_settings.Get().Init();
-}
-
-// static
-const Settings& Settings::Get() {
-  CHECK(g_settings.Get().initialized_);
-  return g_settings.Get();
-}
 
 Settings::Settings() : initialized_(false) {
 }
@@ -57,25 +32,24 @@ Settings::~Settings() {
 bool Settings::Init() {
   CHECK(!initialized_);
   auto command_line = base::CommandLine::ForCurrentProcess();
+  const auto& switches = command_line->GetSwitches();
 
-  // Since we have only one meaningful command-line flag for now, it's OK to
-  // hard-code this here. As we add more switches, we should process this in a
-  // more meaningful way.
-  if (command_line->GetSwitches().size() > 1) {
-    LOG(ERROR) << "Unexpected command-line switches found";
-    return false;
-  }
+  for (const auto& iter : switches) {
+    if (iter.first == switches::kIPCSocketPath) {
+      // kIPCSocketPath: An optional argument that initializes an IPC socket
+      // path for IPC. If this is not present, the daemon will default to Binder
+      // for the IPC mechanism.
+      base::FilePath path(iter.second);
+      if (path.empty() || path.EndsWithSeparator()) {
+        LOG(ERROR) << "Invalid IPC socket path";
+        return false;
+      }
 
-  if (!command_line->HasSwitch(switches::kIPCSocketPath)) {
-    LogRequiredOption(switches::kIPCSocketPath);
-    return false;
-  }
-
-  base::FilePath path = command_line->GetSwitchValuePath(
-      switches::kIPCSocketPath);
-  if (path.value().empty() || path.EndsWithSeparator()) {
-    LOG(ERROR) << "Invalid IPC socket path";
-    return false;
+      ipc_socket_path_ = path;
+    } else {
+      LOG(ERROR) << "Unexpected command-line switches found";
+      return false;
+    }
   }
 
   // The daemon has no arguments
@@ -83,8 +57,6 @@ bool Settings::Init() {
     LOG(ERROR) << "Unexpected command-line arguments found";
     return false;
   }
-
-  ipc_socket_path_ = path;
 
   initialized_ = true;
   return true;

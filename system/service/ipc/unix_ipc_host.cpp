@@ -13,7 +13,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-#include "host.h"
+
+#include "service/ipc/unix_ipc_host.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -32,9 +33,14 @@
 
 #define LOG_TAG "bt_bluetooth_host"
 #include "osi/include/log.h"
-#include "core_stack.h"
-#include "gatt_server.h"
-#include "uuid.h"
+#include "service/core_stack.h"
+#include "service/gatt_server.h"
+#include "service/uuid.h"
+
+using bluetooth::CoreStack;
+using bluetooth::Uuid;
+
+using namespace bluetooth::gatt;
 
 namespace {
 
@@ -51,9 +57,9 @@ const char kStartServiceCommand[] = "start-service";
 const char kStopServiceCommand[] = "stop-service";
 const char kWriteCharacteristicCommand[] = "write-characteristic";
 
-// Useful values for indexing Host::pfds_
+// Useful values for indexing UnixIPCHost::pfds_
 // Not super general considering that we should be able to support
-// many GATT FDs owned by one Host.
+// many GATT FDs owned by one UnixIPCHost.
 enum {
   kFdIpc = 0,
   kFdGatt = 1,
@@ -66,16 +72,16 @@ bool TokenBool(const std::string& text) {
 
 }  // namespace
 
-namespace bluetooth {
+namespace ipc {
 
-Host::Host(int sockfd, CoreStack* bt)
+UnixIPCHost::UnixIPCHost(int sockfd, CoreStack* bt)
     : bt_(bt), pfds_(1, {sockfd, POLLIN, 0}) {}
 
-Host::~Host() {
+UnixIPCHost::~UnixIPCHost() {
   close(pfds_[0].fd);
 }
 
-bool Host::EventLoop() {
+bool UnixIPCHost::EventLoop() {
   while (true) {
     int status =
         TEMP_FAILURE_RETRY(ppoll(pfds_.data(), pfds_.size(), nullptr, nullptr));
@@ -97,14 +103,14 @@ bool Host::EventLoop() {
   return true;
 }
 
-bool Host::OnSetAdapterName(const std::string& name) {
+bool UnixIPCHost::OnSetAdapterName(const std::string& name) {
   std::string decoded_data;
   base::Base64Decode(name, &decoded_data);
   return bt_->SetAdapterName(decoded_data);
 }
 
-bool Host::OnCreateService(const std::string& service_uuid) {
-  gatt_servers_[service_uuid] = std::unique_ptr<gatt::Server>(new gatt::Server);
+bool UnixIPCHost::OnCreateService(const std::string& service_uuid) {
+  gatt_servers_[service_uuid] = std::unique_ptr<Server>(new Server);
 
   int gattfd;
   bool status =
@@ -118,14 +124,14 @@ bool Host::OnCreateService(const std::string& service_uuid) {
   return true;
 }
 
-bool Host::OnDestroyService(const std::string& service_uuid) {
+bool UnixIPCHost::OnDestroyService(const std::string& service_uuid) {
   gatt_servers_.erase(service_uuid);
   close(pfds_[1].fd);
   pfds_.resize(1);
   return true;
 }
 
-bool Host::OnAddCharacteristic(const std::string& service_uuid,
+bool UnixIPCHost::OnAddCharacteristic(const std::string& service_uuid,
                                const std::string& characteristic_uuid,
                                const std::string& control_uuid,
                                const std::string& options) {
@@ -137,19 +143,19 @@ bool Host::OnAddCharacteristic(const std::string& service_uuid,
 
   if (std::find(option_tokens.begin(), option_tokens.end(), "notify") !=
       option_tokens.end()) {
-    permissions_mask |= gatt::kPermissionRead;
-    properties_mask |= gatt::kPropertyRead;
-    properties_mask |= gatt::kPropertyNotify;
+    permissions_mask |= kPermissionRead;
+    properties_mask |= kPropertyRead;
+    properties_mask |= kPropertyNotify;
   }
   if (std::find(option_tokens.begin(), option_tokens.end(), "read") !=
       option_tokens.end()) {
-    permissions_mask |= gatt::kPermissionRead;
-    properties_mask |= gatt::kPropertyRead;
+    permissions_mask |= kPermissionRead;
+    properties_mask |= kPropertyRead;
   }
   if (std::find(option_tokens.begin(), option_tokens.end(), "write") !=
       option_tokens.end()) {
-    permissions_mask |= gatt::kPermissionWrite;
-    properties_mask |= gatt::kPropertyWrite;
+    permissions_mask |= kPermissionWrite;
+    properties_mask |= kPropertyWrite;
   }
 
   if (control_uuid.empty()) {
@@ -163,7 +169,7 @@ bool Host::OnAddCharacteristic(const std::string& service_uuid,
   return true;
 }
 
-bool Host::OnSetCharacteristicValue(const std::string& service_uuid,
+bool UnixIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
                                     const std::string& characteristic_uuid,
                                     const std::string& value) {
   std::string decoded_data;
@@ -174,7 +180,7 @@ bool Host::OnSetCharacteristicValue(const std::string& service_uuid,
   return true;
 }
 
-bool Host::OnSetAdvertisement(const std::string& service_uuid,
+bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
                               const std::string& advertise_uuids,
                               const std::string& advertise_data,
                               const std::string& transmit_name) {
@@ -197,7 +203,7 @@ bool Host::OnSetAdvertisement(const std::string& service_uuid,
   return true;
 }
 
-bool Host::OnSetScanResponse(const std::string& service_uuid,
+bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
                              const std::string& scan_response_uuids,
                              const std::string& scan_response_data,
                              const std::string& transmit_name) {
@@ -217,15 +223,15 @@ bool Host::OnSetScanResponse(const std::string& service_uuid,
   return true;
 }
 
-bool Host::OnStartService(const std::string& service_uuid) {
+bool UnixIPCHost::OnStartService(const std::string& service_uuid) {
   return gatt_servers_[service_uuid]->Start();
 }
 
-bool Host::OnStopService(const std::string& service_uuid) {
+bool UnixIPCHost::OnStopService(const std::string& service_uuid) {
   return gatt_servers_[service_uuid]->Stop();
 }
 
-bool Host::OnMessage() {
+bool UnixIPCHost::OnMessage() {
   std::string ipc_msg;
   int size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0, MSG_PEEK | MSG_TRUNC);
   if (-1 == size) {
@@ -281,7 +287,7 @@ bool Host::OnMessage() {
   return false;
 }
 
-bool Host::OnGattWrite() {
+bool UnixIPCHost::OnGattWrite() {
   Uuid::Uuid128Bit id;
   int r = read(pfds_[kFdGatt].fd, id.data(), id.size());
   if (r != id.size()) {
@@ -311,4 +317,4 @@ bool Host::OnGattWrite() {
   return true;
 }
 
-}  // namespace bluetooth
+}  // namespace ipc

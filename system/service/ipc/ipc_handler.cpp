@@ -14,24 +14,18 @@
 //  limitations under the License.
 //
 
-#pragma once
+#include "service/ipc/ipc_handler.h"
 
-#include <string>
+#include <base/logging.h>
 
-namespace bluetooth {
-namespace switches {
+namespace ipc {
 
-// List of command-line switches used by the daemon.
-const char kHelpLong[] = "help";
-const char kHelpShort[] = "h";
-const char kIPCSocketPath[] = "ipc-socket";
+IPCHandler::IPCHandler(bluetooth::CoreStack* core_stack)
+    : core_stack_(core_stack) {
+  CHECK(core_stack_);
+}
 
-const char kHelpMessage[] =
-    "\nBluetooth System Service\n"
-    "\n"
-    "Usage:\n"
-    "\t--help,-h\tShow this help message\n"
-    "\t--ipc-socket\tSocket path used for domain socket based IPC";
+IPCHandler::~IPCHandler() {
+}
 
-}  // namespace switches
-}  // namespace bluetooth
+}  // namespace ipc
