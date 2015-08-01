@@ -365,6 +365,9 @@ static tBTA_JV_STATUS bta_jv_free_rfc_cb(tBTA_JV_RFC_CB *p_cb, tBTA_JV_PCB *p_pc
             p_cb->handle = 0;
             p_cb->curr_sess = -1;
         }
+        if (remove_server) {
+            bta_jv_free_sec_id(&p_cb->sec_id);
+        }
     }
     return status;
 }
