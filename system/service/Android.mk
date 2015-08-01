@@ -37,8 +37,12 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	a2dp_source.cpp \
 	core_stack.cpp \
+	daemon.cpp \
 	gatt_server.cpp \
-	host.cpp \
+	ipc/ipc_handler.cpp \
+	ipc/ipc_handler_unix.cpp \
+	ipc/ipc_manager.cpp \
+	ipc/unix_ipc_host.cpp \
 	logging_helpers.cpp \
 	main.cpp \
 	settings.cpp \

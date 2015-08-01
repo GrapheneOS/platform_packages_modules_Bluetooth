@@ -14,29 +14,17 @@
 //  limitations under the License.
 //
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-
 #include <base/at_exit.h>
 #include <base/command_line.h>
 #include <base/files/scoped_file.h>
 
-#define LOG_TAG "bt_host"
 // For system properties
 // TODO(icoolidge): abstraction or non-cutils stub.
 #if !defined(OS_GENERIC)
 #include <cutils/properties.h>
 #endif  // !defined(OS_GENERIC)
 
-#include "osi/include/log.h"
-#include "osi/include/socket_utils/sockets.h"
-#include "service/core_stack.h"
-#include "service/host.h"
-#include "service/settings.h"
+#include "service/daemon.h"
 #include "service/switches.h"
 
 namespace {
@@ -65,78 +53,27 @@ int main(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if (!bluetooth::Settings::Initialize()) {
-    LOG(ERROR) << "Failed to parse the command-line.";
-    return EXIT_FAILURE;
-  }
-
-  // TODO(armansito): Move all of the IPC connection establishment into its own
-  // class. Here we should only need to initialize and start the main
-  // MessageLoop and the CoreStack instance.
-  int status;
-
 #if !defined(OS_GENERIC)
   // TODO(armansito): Remove Chromecast specific property out of here. This
   // should just be obtained from global config.
   char disable_value[PROPERTY_VALUE_MAX];
-  status = property_get(kDisableProperty, disable_value, nullptr);
+  int status = property_get(kDisableProperty, disable_value, nullptr);
   if (status && !strcmp(disable_value, "1")) {
     LOG(INFO) << "service disabled";
     return EXIT_SUCCESS;
   }
 #endif  // !defined(OS_GENERIC)
 
-  base::ScopedFD server_socket(socket(PF_UNIX, SOCK_SEQPACKET, 0));
-  if (!server_socket.is_valid()) {
-    LOG(ERROR) << "failed to open domain socket for IPC";
+  if (!bluetooth::Daemon::Initialize()) {
+    LOG(ERROR) << "Failed to initialize Daemon";
     return EXIT_FAILURE;
   }
 
-  // TODO(armansito): This is opens the door to potentially unlinking files in
-  // the current directory that we're not supposed to. For now we will have an
-  // assumption that the daemon runs in a sandbox but we should generally do
-  // this properly.
-  //
-  // Also, the daemon should clean this up properly as it shuts down.
-  unlink(bluetooth::Settings::Get().ipc_socket_path().value().c_str());
+  // Start the main event loop.
+  bluetooth::Daemon::Get()->StartMainLoop();
 
-  struct sockaddr_un address;
-  memset(&address, 0, sizeof(address));
-  address.sun_family = AF_UNIX;
-  strncpy(address.sun_path,
-          bluetooth::Settings::Get().ipc_socket_path().value().c_str(),
-          sizeof(address.sun_path) - 1);
-  if (bind(server_socket.get(), (struct sockaddr*)&address,
-           sizeof(address)) < 0) {
-    LOG(ERROR) << "Failed to bind IPC socket to address: " << strerror(errno);
-    return EXIT_FAILURE;
-  }
-
-  status = listen(server_socket.get(), SOMAXCONN);
-  if (status < 0) {
-    LOG(ERROR) << "Failed to listen on IPC socket: " << strerror(errno);
-    return EXIT_FAILURE;
-  }
-
-  bluetooth::CoreStack bt;
-  if (!bt.Initialize()) {
-    LOG(ERROR) << "Failed to initialize the Bluetooth stack";
-    return EXIT_FAILURE;
-  }
-
-  // TODO(icoolidge): accept simultaneous clients
-  while (true) {
-    int client_socket = accept4(server_socket.get(), nullptr,
-                                nullptr, SOCK_NONBLOCK);
-    if (status == -1) {
-      LOG(ERROR) << "accept failed: %s" << strerror(errno);
-      return EXIT_FAILURE;
-    }
-
-    LOG(INFO) << "client connected: %d" << client_socket;
-    bluetooth::Host bluetooth_host(client_socket, &bt);
-    bluetooth_host.EventLoop();
-  }
+  // The main message loop has exited; clean up the Daemon.
+  bluetooth::Daemon::Get()->ShutDown();
 
   return EXIT_SUCCESS;
 }
