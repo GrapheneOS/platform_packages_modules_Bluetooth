@@ -35,21 +35,37 @@ bool Settings::Init() {
   const auto& switches = command_line->GetSwitches();
 
   for (const auto& iter : switches) {
-    if (iter.first == switches::kIPCSocketPath) {
-      // kIPCSocketPath: An optional argument that initializes an IPC socket
-      // path for IPC. If this is not present, the daemon will default to Binder
-      // for the IPC mechanism.
+    if (iter.first == switches::kCreateIPCSocketPath) {
+      // kCreateIPCSocketPath: An optional argument that initializes an IPC
+      // socket path for IPC.
       base::FilePath path(iter.second);
       if (path.empty() || path.EndsWithSeparator()) {
-        LOG(ERROR) << "Invalid IPC socket path";
+        LOG(ERROR) << "Invalid IPC create socket path";
         return false;
       }
 
-      ipc_socket_path_ = path;
+      create_ipc_socket_path_ = path;
+    } else if (iter.first == switches::kAndroidIPCSocketSuffix) {
+      // kAndroidIPCSocketSuffix: An optional argument used to express
+      // a socket that Android init created for us. We bind to this.
+      const std::string& suffix = iter.second;
+      if (suffix.empty()) {
+        LOG(ERROR) << "Invalid Android socket suffix";
+        return false;
+      }
+
+      android_ipc_socket_suffix_ = suffix;
     } else {
       LOG(ERROR) << "Unexpected command-line switches found";
       return false;
     }
+  }
+
+  // Two IPC methods/paths were provided.
+  if (!android_ipc_socket_suffix_.empty() &&
+      !create_ipc_socket_path_.empty()) {
+    LOG(ERROR) << "Too many IPC methods provided";
+    return false;
   }
 
   // The daemon has no arguments

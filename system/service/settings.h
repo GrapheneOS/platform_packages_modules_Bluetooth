@@ -42,17 +42,21 @@ class Settings {
   // if there is an error, e.g. if the parameters/switches are malformed.
   bool Init();
 
-  // Path to the unix domain socket for Bluetooth IPC. On Android, this needs to
-  // match the init provided socket domain prefix. Outside Android, this will be
-  // the path for the traditional Unix domain socket that the daemon will
-  // create.
-  const base::FilePath& ipc_socket_path() const {
-    return ipc_socket_path_;
+  // If Android init created a server socket for the daemon,
+  // we can retrieve it through this suffix.
+  const std::string& android_ipc_socket_suffix() const {
+    return android_ipc_socket_suffix_;
+  }
+
+  // Path to create a Unix domain socket server for Bluetooth IPC.
+  const base::FilePath& create_ipc_socket_path() const {
+    return create_ipc_socket_path_;
   }
 
  private:
   bool initialized_;
-  base::FilePath ipc_socket_path_;
+  std::string android_ipc_socket_suffix_;
+  base::FilePath create_ipc_socket_path_;
 
   DISALLOW_COPY_AND_ASSIGN(Settings);
 };

@@ -21,6 +21,7 @@
 
 #include <base/bind.h>
 
+#include "osi/include/socket_utils/sockets.h"
 #include "service/daemon.h"
 #include "service/ipc/unix_ipc_host.h"
 #include "service/settings.h"
@@ -39,9 +40,14 @@ IPCHandlerUnix::~IPCHandlerUnix() {
 bool IPCHandlerUnix::Run() {
   CHECK(!running_);
 
+  const std::string& android_suffix =
+      bluetooth::Daemon::Get()->settings()->android_ipc_socket_suffix();
   const base::FilePath& path =
-      bluetooth::Daemon::Get()->settings()->ipc_socket_path();
-  if (path.empty()) {
+      bluetooth::Daemon::Get()->settings()->create_ipc_socket_path();
+
+  // Both flags cannot be set at the same time.
+  CHECK(android_suffix.empty() || path.empty());
+  if (android_suffix.empty() && path.empty()) {
     LOG(ERROR) << "No domain socket path provided";
     return false;
   }
@@ -49,31 +55,47 @@ bool IPCHandlerUnix::Run() {
   CHECK(base::MessageLoop::current());  // An origin event loop is required.
   origin_task_runner_ = base::MessageLoop::current()->task_runner();
 
-  // TODO(armansito): This is opens the door to potentially unlinking files in
-  // the current directory that we're not supposed to. For now we will have an
-  // assumption that the daemon runs in a sandbox but we should generally do
-  // this properly.
-  //
-  // Also, the daemon should clean this up properly as it shuts down.
-  unlink(path.value().c_str());
+  if (!android_suffix.empty()) {
+    int server_fd = osi_android_get_control_socket(android_suffix.c_str());
+    if (server_fd == -1) {
+      LOG(ERROR) << "Unable to get Android socket from: " << android_suffix;
+      return false;
+    }
+    LOG(INFO) << "Binding to Android server socket:" << android_suffix;
+    socket_.reset(server_fd);
+  } else {
+    LOG(INFO) << "Creating a Unix domain socket:" << path.value();
 
-  base::ScopedFD server_socket(socket(PF_UNIX, SOCK_SEQPACKET, 0));
-  if (!server_socket.is_valid()) {
-    LOG(ERROR) << "Failed to open domain socket for IPC";
-    return false;
+    // TODO(armansito): This is opens the door to potentially unlinking files in
+    // the current directory that we're not supposed to. For now we will have an
+    // assumption that the daemon runs in a sandbox but we should generally do
+    // this properly.
+    //
+    // Also, the daemon should clean this up properly as it shuts down.
+    unlink(path.value().c_str());
+
+    base::ScopedFD server_socket(socket(PF_UNIX, SOCK_SEQPACKET, 0));
+    if (!server_socket.is_valid()) {
+      LOG(ERROR) << "Failed to open domain socket for IPC";
+      return false;
+    }
+
+    struct sockaddr_un address;
+    memset(&address, 0, sizeof(address));
+    address.sun_family = AF_UNIX;
+    strncpy(address.sun_path, path.value().c_str(),
+            sizeof(address.sun_path) - 1);
+    if (bind(server_socket.get(), (struct sockaddr*)&address, sizeof(address)) <
+        0) {
+      LOG(ERROR) << "Failed to bind IPC socket to address: " << strerror(errno);
+      return false;
+    }
+
+    socket_.swap(server_socket);
   }
 
-  struct sockaddr_un address;
-  memset(&address, 0, sizeof(address));
-  address.sun_family = AF_UNIX;
-  strncpy(address.sun_path, path.value().c_str(), sizeof(address.sun_path) - 1);
-  if (bind(server_socket.get(), (struct sockaddr*)&address,
-           sizeof(address)) < 0) {
-    LOG(ERROR) << "Failed to bind IPC socket to address: " << strerror(errno);
-    return false;
-  }
+  CHECK(socket_.is_valid());
 
-  socket_.swap(server_socket);
   running_ = true;  // Set this here before launching the thread.
 
   // Start an IO thread and post the listening task.

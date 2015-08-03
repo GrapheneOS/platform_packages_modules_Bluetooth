@@ -24,14 +24,18 @@ namespace switches {
 // List of command-line switches used by the daemon.
 const char kHelpLong[] = "help";
 const char kHelpShort[] = "h";
-const char kIPCSocketPath[] = "ipc-socket";
+const char kAndroidIPCSocketSuffix[] = "android-ipc-socket-suffix";
+const char kCreateIPCSocketPath[] = "create-ipc-socket";
 
 const char kHelpMessage[] =
     "\nBluetooth System Service\n"
     "\n"
     "Usage:\n"
     "\t--help,-h\tShow this help message\n"
-    "\t--ipc-socket\tSocket path used for domain socket based IPC";
+    "\t--android-ipc-socket-suffix\tSuffix of socket created by Android init. "
+    "Mutually exclusive with --create-ipc-socket.\n"
+    "\t--create-ipc-socket\tSocket path created for Unix domain socket based "
+    "IPC. Mutually exclusive with --android-ipc-socket-suffix.";
 
 }  // namespace switches
 }  // namespace bluetooth
