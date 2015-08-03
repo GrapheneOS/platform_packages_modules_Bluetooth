@@ -51,7 +51,7 @@ TEST_F(SettingsTest, EmptyCommandLine) {
 
 TEST_F(SettingsTest, UnexpectedSwitches1) {
   const base::CommandLine::CharType* argv[] = {
-    "program", "--ipc-socket-path=foobar", "--foobarbaz"
+    "program", "--create-ipc-socket=foobar", "--foobarbaz"
   };
   base::CommandLine::Init(arraysize(argv), argv);
   EXPECT_FALSE(settings_.Init());
@@ -75,15 +75,31 @@ TEST_F(SettingsTest, UnexpectedArguments1) {
 
 TEST_F(SettingsTest, UnexpectedArguments2) {
   const base::CommandLine::CharType* argv[] = {
-    "program", "--ipc-socket-path=foobar", "foobarbaz"
+    "program", "--create-ipc-socket=foobar", "foobarbaz"
   };
   base::CommandLine::Init(arraysize(argv), argv);
   EXPECT_FALSE(settings_.Init());
 }
 
-TEST_F(SettingsTest, GoodArguments) {
+TEST_F(SettingsTest, TooManyIpcOptions) {
   const base::CommandLine::CharType* argv[] = {
-    "program", "--ipc-socket=foobar"
+      "program", "--create-ipc-socket=foobar",
+      "--android-ipc-socket-suffix=foobar"};
+  base::CommandLine::Init(arraysize(argv), argv);
+  EXPECT_FALSE(settings_.Init());
+}
+
+TEST_F(SettingsTest, GoodArgumentsCreateIpc) {
+  const base::CommandLine::CharType* argv[] = {
+    "program", "--create-ipc-socket=foobar"
+  };
+  base::CommandLine::Init(arraysize(argv), argv);
+  EXPECT_TRUE(settings_.Init());
+}
+
+TEST_F(SettingsTest, GoodArgumentsAndroidIpc) {
+  const base::CommandLine::CharType* argv[] = {
+    "program", "--android-ipc-socket-suffix=foobar"
   };
   base::CommandLine::Init(arraysize(argv), argv);
   EXPECT_TRUE(settings_.Init());
