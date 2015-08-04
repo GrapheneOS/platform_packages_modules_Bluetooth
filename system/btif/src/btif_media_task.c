@@ -1469,7 +1469,19 @@ BOOLEAN btif_media_task_stop_aa_req(void)
 
     p_buf->event = BTIF_MEDIA_STOP_AA_TX;
 
-    fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+    /*
+     * Explicitly check whether the btif_media_cmd_msg_queue is not NULL to
+     * avoid a race condition during shutdown of the Bluetooth stack.
+     * This race condition is triggered when A2DP audio is streaming on
+     * shutdown:
+     * "btif_a2dp_on_stopped() -> btif_media_task_stop_aa_req()" is called
+     * to stop the particular audio stream, and this happens right after
+     * the "cleanup() -> btif_a2dp_stop_media_task()" processing during
+     * the shutdown of the Bluetooth stack.
+     */
+    if (btif_media_cmd_msg_queue != NULL)
+        fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 /*******************************************************************************
