@@ -50,7 +50,7 @@ HciTransport::~HciTransport() {
 bool HciTransport::ConfigEpoll() {
   epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);
   epoll_event event;
-  event.events = EPOLLIN;
+  event.events = EPOLLIN | EPOLLOUT;
   event.data.fd = socketpair_fds_[0];
   return epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socketpair_fds_[0], &event) >= 0;
 }
@@ -118,48 +118,66 @@ bool HciTransport::Listen() {
      return false;
   }
 
-  return ReceiveReadyPackets(*event_buffer, num_ready);
+  return CheckReadyEpollEvents(*event_buffer, num_ready);
 }
 
-bool HciTransport::ReceiveReadyPackets(const epoll_event& event_buffer,
-                                       int num_ready) {
+bool HciTransport::CheckReadyEpollEvents(const epoll_event& event_buffer,
+                                         int num_ready) {
   for (int i = 0; i < num_ready; ++i) {
+    epoll_event event = (&event_buffer)[i];
     // Event has data ready to be read.
-    if ((&event_buffer)[i].events & EPOLLIN) {
-      LOG_INFO(LOG_TAG, "Event ready in HciTransport.");
-      serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
-
-      switch (packet_type) {
-        case (DATA_TYPE_COMMAND): {
-          ReceiveReadyCommand();
-          return true;
-        }
-
-        case (DATA_TYPE_ACL): {
-          LOG_INFO(LOG_TAG, "ACL data packets not currently supported.");
-          return true;
-        }
-
-        case (DATA_TYPE_SCO): {
-          LOG_INFO(LOG_TAG, "SCO data packets not currently supported.");
-          return true;
-        }
-
-        // TODO(dennischeng): Add debug level assert here.
-        default: {
-          LOG_INFO(LOG_TAG,
-                   "Error received an invalid packet type from the HCI.");
-          return false;
-        }
+    if (event.events & EPOLLIN) {
+      return ReceiveReadyPacket();
+    }
+    if (event.events & EPOLLOUT) {
+      if (!outgoing_events_.empty()) {
+        return SendReadyEvent();
       }
+      return true;
     }
   }
   return false;
 }
 
-void HciTransport::ReceiveReadyCommand() {
+bool HciTransport::SendReadyEvent() {
+  bool send_successful = packet_stream_.SendEvent(*outgoing_events_.front());
+  outgoing_events_.pop();
+  return send_successful;
+}
+
+bool HciTransport::ReceiveReadyPacket() const {
+  LOG_INFO(LOG_TAG, "Event ready in HciTransport.");
+  serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
+
+  switch (packet_type) {
+    case (DATA_TYPE_COMMAND): {
+      ReceiveReadyCommand();
+      return true;
+    }
+
+    case (DATA_TYPE_ACL): {
+      LOG_INFO(LOG_TAG, "ACL data packets not currently supported.");
+      return true;
+    }
+
+    case (DATA_TYPE_SCO): {
+      LOG_INFO(LOG_TAG, "SCO data packets not currently supported.");
+      return true;
+    }
+
+    // TODO(dennischeng): Add debug level assert here.
+    default: {
+      LOG_INFO(LOG_TAG,
+               "Error received an invalid packet type from the HCI.");
+      return false;
+    }
+  }
+}
+
+void HciTransport::ReceiveReadyCommand() const {
   std::unique_ptr<CommandPacket> command =
       packet_stream_.ReceiveCommand();
+  LOG_INFO(LOG_TAG, "Received command packet.");
   command_callback_(std::move(command));
 }
 
@@ -168,8 +186,8 @@ void HciTransport::RegisterCommandCallback(
   command_callback_ = callback;
 }
 
-void HciTransport::SendEvent(const EventPacket& event) {
-  packet_stream_.SendEvent(event);
+void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
+  outgoing_events_.push(std::move(event));
 }
 
 }  // namespace test_vendor_lib

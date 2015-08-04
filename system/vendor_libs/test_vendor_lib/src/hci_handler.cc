@@ -48,13 +48,10 @@ HciHandler* HciHandler::Get() {
 
 // static
 void HciHandler::Initialize() {
-  // Multiple calls to Initialize() should not be made and the HciTransport
-  // should already be initialized.
+  // Multiple calls to Initialize should not be made.
   // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
   assert(!g_handler);
-  assert(HciTransport::Get());
   g_handler = new HciHandler();
-  g_handler->RegisterTransportCallbacks();
 }
 
 // static
@@ -64,9 +61,12 @@ void HciHandler::CleanUp() {
 }
 
 void HciHandler::HandleCommand(std::unique_ptr<CommandPacket> command) {
+  LOG_INFO(LOG_TAG, "Handling command packet in HciHandler.");
+
   uint16_t opcode = command->GetOpcode();
-  LOG_INFO(LOG_TAG, "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X", opcode,
-           command->GetOGF(), command->GetOCF());
+  LOG_INFO(LOG_TAG, "Command packet opcode: 0x%04X", opcode);
+  LOG_INFO(LOG_TAG, "Command packet OGF: 0x%04X", command->GetOGF());
+  LOG_INFO(LOG_TAG, "Command packet OCF: 0x%04X", command->GetOCF());
 
   // The command hasn't been registered with the handler yet. There is nothing
   // to do.

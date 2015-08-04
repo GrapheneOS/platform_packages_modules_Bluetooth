@@ -34,6 +34,12 @@ namespace test_vendor_lib {
 // controller object) instead of registering its methods as callbacks?
 class BREDRController {
  public:
+  // Registers command callbacks with the HciHandler instance so that they are
+  // fired when the corresponding opcode is received from the HCI. For now, each
+  // command must be individually registered. This allows for some flexibility
+  // in which commands are made available by which controller.
+  void RegisterHandlerCallbacks();
+
   // Functions that operate on the global controller instance. Initialize()
   // is called by the vendor library's Init() function to create the global
   // controller and must be called before Get() and CleanUp().
@@ -65,12 +71,6 @@ class BREDRController {
   // The destructor can only be indirectly accessed through the static
   // CleanUp() method that destructs the global controller.
   ~BREDRController() = default;
-
-  // Registers command callbacks with the HciHandler instance so that they are
-  // fired when the corresponding opcode is received from the HCI. For now, each
-  // command must be individually registered. This allows for some flexibility
-  // in which commands are made available by which controller.
-  void RegisterHandlerCallbacks();
 
   // Maintains the commands to be registered and used in the HciHandler object.
   // Keys are command opcodes and values are the callbacks to handle each

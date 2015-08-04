@@ -7,8 +7,7 @@
 //
 // http://www.apache.org/licenses/LICENSE-2.0
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// Unless required by applicable law or agreed to in writing, software // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -23,6 +22,7 @@
 
 #include <functional>
 #include <memory>
+#include <queue>
 
 #include <base/macros.h>
 
@@ -69,19 +69,25 @@ class HciTransport {
   void RegisterCommandCallback(
       std::function<void(std::unique_ptr<CommandPacket>)> callback);
 
-  // TODO(dennischeng): Determine correct management of event object, what if
-  // write doesn't finish before destruction?
-  void SendEvent(const EventPacket& event);
+  // Posts the event onto |outgoing_events_| to be written whenever the HCI file
+  // descriptor is ready for writing.
+  void SendEvent(std::unique_ptr<EventPacket> event);
 
  private:
   // Loops through the epoll event buffer and receives packets if they are
   // ready. Fires the corresponding handler callback for each received packet.
-  bool ReceiveReadyPackets(const epoll_event& event_buffer,
-                          int num_ready);
+  bool CheckReadyEpollEvents(const epoll_event& event_buffer, int num_ready);
+
+  // Receives a packet from the HCI whenever the event loop signals that there
+  // is data to be received.
+  bool ReceiveReadyPacket() const;
 
   // Reads in a command packet and calls the handler's command ready callback,
   // passing owernship of the command packet to the handler.
-  void ReceiveReadyCommand();
+  void ReceiveReadyCommand() const;
+
+  // Sends the event at the front of |outgoing_events_| to the HCI.
+  bool SendReadyEvent();
 
   // There will only be one global instance of the HCI transport used by
   // bt_vendor.cc and accessed via the static GetInstance() function.
@@ -96,8 +102,9 @@ class HciTransport {
   // TODO(dennischeng): import base/ and use a MessageLoopForIO for event loop.
   bool ConfigEpoll();
 
-  // Disallow any copies of the singleton to be made.
-  DISALLOW_COPY_AND_ASSIGN(HciTransport);
+  // Write queue for sending events to the HCI. Event packets are removed from
+  // the queue and written when write-readiness is signalled.
+  std::queue<std::unique_ptr<EventPacket>> outgoing_events_;
 
   // Callback executed in Listen() for command packets.
   std::function<void(std::unique_ptr<CommandPacket>)> command_callback_;
@@ -115,6 +122,9 @@ class HciTransport {
   // |socketpair_fds_[0]| is the listener end and is closed in the PacketStream
   // object. |socketpair_fds_[1]| is the HCI end and is closed in bt_vendor.cc.
   int socketpair_fds_[2];
+
+  // Disallow any copies of the singleton to be made.
+  DISALLOW_COPY_AND_ASSIGN(HciTransport);
 };
 
 }  // namespace test_vendor_lib
