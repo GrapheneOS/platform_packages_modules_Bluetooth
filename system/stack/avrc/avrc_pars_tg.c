@@ -42,7 +42,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
                                       UINT8 *p_buf, UINT16 buf_len)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
-    UINT8   *p = p_msg->p_vendor_data;
+    UINT8   *p;
     UINT16  len;
     UINT8   xx, yy;
     UINT8   *p_u8;
@@ -51,6 +51,13 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     tAVRC_APP_SETTING       *p_app_set;
     UINT16  size_needed;
 
+    /* Check the vendor data */
+    if (p_msg->vendor_len == 0)
+        return AVRC_STS_NO_ERROR;
+    if (p_msg->p_vendor_data == NULL)
+        return AVRC_STS_INTERNAL_ERR;
+
+    p = p_msg->p_vendor_data;
     p_result->pdu = *p++;
     AVRC_TRACE_DEBUG("avrc_pars_vendor_cmd() pdu:0x%x", p_result->pdu);
     if (!AVRC_IsValidAvcType (p_result->pdu, p_msg->hdr.ctype))
