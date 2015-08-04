@@ -35,10 +35,12 @@ Usage:
     the port, also from step 1, as arguments.
 """
 
-#!/usr/bin/env python
+#!/ usr / bin / env python
 
 import cmd
+import random
 import socket
+import string
 import struct
 import sys
 
@@ -57,21 +59,59 @@ class Connection(object):
     self._socket.close()
 
   def send(self, data):
-    self._socket.send(data)
+    self._socket.sendall(data)
 
-class TestChannel(cmd.Cmd):
-  """Shell for sending test channel data to controller.
-
-  Manages the connection for the test channel to the controller and defines a
-  set of commands the user can send to the controller as well. These commands
-  are processed parallel to commands sent from the device stack and used to
-  provide additional debugging/testing capabilities.
+class TestChannel(object):
+  """Checks outgoing commands and sends them once verified.
 
   Attributes:
-    connection: The communication channel to send data to the controller.
+    connection: The connection to the test vendor library that commands are sent
+    on.
   """
 
   def __init__(self, address, port):
+    self._connection = Connection(address, port)
+
+  def close(self):
+    self._connection.close()
+
+  def send_command(self, name, args):
+    name_size = len(name)
+    args_size = len(args)
+    self.lint_command(name, args, name_size, args_size)
+    encoded_name = chr(name_size) + name
+    encoded_args = chr(args_size) + ''.join(chr(len(arg)) + arg for arg in args)
+    command = encoded_name + encoded_args
+    self._connection.send(command)
+
+  def lint_command(self, name, args, name_size, args_size):
+    assert name_size == len(name) and args_size == len(args)
+    try:
+      name.encode('utf-8')
+      for arg in args:
+        arg.encode('utf-8')
+    except UnicodeError:
+      print 'Unrecognized characters.'
+      raise
+    if name_size > 255 or args_size > 255:
+      raise ValueError  # Size must be encodable in one octet.
+    for arg in args:
+      if len(arg) > 255:
+        raise ValueError  # Size must be encodable in one octet.
+
+class TestChannelShell(cmd.Cmd):
+  """Shell for sending test channel data to controller.
+
+  Manages the test channel to the controller and defines a set of commands the
+  user can send to the controller as well. These commands are processed parallel
+  to commands sent from the device stack and used to provide additional
+  debugging/testing capabilities.
+
+  Attributes:
+    test_channel: The communication channel to send data to the controller.
+  """
+
+  def __init__(self, test_channel):
     print 'Type \'help\' for more information.'
     cmd.Cmd.__init__(self)
     self._connection = Connection(address, port)
@@ -83,6 +123,49 @@ class TestChannel(cmd.Cmd):
   def do_quit(self, arg):
     """Exits the test channel."""
     self._connection.close()
+    self._test_channel = test_channel
+
+  def do_timeout_all(self, args):
+    """
+    Arguments: None.
+    Causes all HCI commands to timeout.
+    """
+    self._test_channel.send_command('TIMEOUT_ALL', [])
+
+  def do_discover(self, args):
+    """
+    Arguments: name_1 name_2 ...
+    Sends an inquiry result for device(s) |name|. If no names are provided, a
+    random name is used instead.
+    """
+    if len(args) == 0:
+      # TODO(dennischeng): Generate device properties more robustly.
+      args = ''.join(random.SystemRandom().choice(string.ascii_uppercase + \
+      string.digits) for _ in range(6))
+    self._test_channel.send_command('DISCOVER', args.split())
+
+  def do_discover_interval(self, args):
+    """
+    Arguments: interval_in_ms
+    Sends an inquiry result for a device with a random name on the interval
+    specified by |interval_in_ms|.
+    """
+    self._test_channel.send_command('DISCOVER_INTERVAL', args.split())
+
+  def do_clear(self, args):
+    """
+    Arguments: None.
+    Resets the controller to its original, unmodified state.
+    """
+    self._test_channel.send_command('CLEAR', [])
+
+  def do_quit(self, args):
+    """
+    Arguments: None.
+    Exits the test channel.
+    """
+    self._test_channel.send_command('CLOSE_TEST_CHANNEL', [])
+    self._test_channel.close()
     print 'Goodbye.'
     return True
 

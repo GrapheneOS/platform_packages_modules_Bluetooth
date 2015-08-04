@@ -13,6 +13,8 @@ LOCAL_SRC_FILES := \
     src/hci_transport.cc \
     src/packet.cc \
     src/packet_stream.cc \
+    src/test_channel_handler.cc \
+    src/test_channel_transport.cc \
     src/vendor_manager.cc \
 
 LOCAL_C_INCLUDES := \

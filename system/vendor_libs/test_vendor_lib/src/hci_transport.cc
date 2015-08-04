@@ -54,6 +54,7 @@ bool HciTransport::SetUp() {
 }
 
 void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
+  CHECK(fd == GetVendorFd());
   LOG_INFO(LOG_TAG, "Event ready in HciTransport on fd: %d.", fd);
 
   const serial_data_type_t packet_type = packet_stream_.ReceivePacketType(fd);
@@ -98,6 +99,7 @@ void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
 }
 
 void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
+  CHECK(fd == GetVendorFd());
   if (!outgoing_events_.empty()) {
     packet_stream_.SendEvent(*outgoing_events_.front(), fd);
     outgoing_events_.pop();

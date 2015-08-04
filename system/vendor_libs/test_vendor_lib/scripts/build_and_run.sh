@@ -19,7 +19,9 @@
 # Builds and pushes the test vendor library to a connected device and starts
 # logcat with project-specific tag filters. If the --test-channel flag is set,
 # logcat is started in a separate process and the test channel is run in the
-# current shell.
+# current shell. The kTestChannelEnabled flag must be set in the vendor manager
+# if the test channel is to be used. Also ensure that 'lunch' has been run for
+# the appropriate device.
 
 if [[ "$#" -ne 2 && "$#" -ne 4 ]]; then
   echo "Usage:"
@@ -115,5 +117,6 @@ else
   # Run logcat with filters.
   adb logcat bt_btif:D bt_btif_core:D bt_hci:D bt_main:D bt_vendor:D \
    bte_logmsg:D command_packet:D dual_mode_controller:D event_packet:D \
-   hci_transport:D hci_handler:D packet:D packet_stream:D vendor_manager:D *:S
+   hci_transport:D hci_handler:D packet:D packet_stream:D \
+   test_channel_transport:D vendor_manager:D *:S
 fi
