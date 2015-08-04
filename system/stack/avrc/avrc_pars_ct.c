@@ -43,10 +43,17 @@
 static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p_result)
 {
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
-    UINT8   *p = p_msg->p_vendor_data;
+    UINT8   *p;
     UINT16  len;
     UINT8 eventid=0;
 
+    /* Check the vendor data */
+    if (p_msg->vendor_len == 0)
+        return AVRC_STS_NO_ERROR;
+    if (p_msg->p_vendor_data == NULL)
+        return AVRC_STS_INTERNAL_ERR;
+
+    p = p_msg->p_vendor_data;
     BE_STREAM_TO_UINT8 (p_result->pdu, p);
     p++; /* skip the reserved/packe_type byte */
     BE_STREAM_TO_UINT16 (len, p);
