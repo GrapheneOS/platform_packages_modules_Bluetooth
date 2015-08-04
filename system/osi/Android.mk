@@ -18,24 +18,18 @@
 
 LOCAL_PATH := $(call my-dir)
 
-include $(CLEAR_VARS)
-
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
-
-LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/.. \
-    $(LOCAL_PATH)/../utils/include
+# Common variables
+# ========================================================
 
 # TODO(mcchou): Remove socket_utils sources after platform specific
 # dependencies are abstracted.
-LOCAL_SRC_FILES := \
+btosiCommonSrc := \
     ./src/alarm.c \
     ./src/allocation_tracker.c \
     ./src/allocator.c \
     ./src/array.c \
     ./src/buffer.c \
+    ./src/compat.c \
     ./src/config.c \
     ./src/data_dispatcher.c \
     ./src/eager_reader.c \
@@ -54,28 +48,7 @@ LOCAL_SRC_FILES := \
     ./src/socket_utils/socket_local_server.c \
     ./src/thread.c
 
-LOCAL_CFLAGS := -std=c99 -Wall -Werror -UNDEBUG -fvisibility=hidden
-# Many .h files have redefined typedefs
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
-LOCAL_MODULE := libosi
-LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
-LOCAL_MODULE_CLASS := STATIC_LIBRARIES
-
-include $(BUILD_STATIC_LIBRARY)
-
-#####################################################
-
-include $(CLEAR_VARS)
-
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
-
-LOCAL_C_INCLUDES := \
-    $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/..
-
-LOCAL_SRC_FILES := \
+btosiCommonTestSrc := \
     ./test/AlarmTestHarness.cpp \
     ./test/AllocationTestHarness.cpp \
     ./test/alarm_test.cpp \
@@ -94,10 +67,78 @@ LOCAL_SRC_FILES := \
     ./test/ringbuffer_test.cpp \
     ./test/thread_test.cpp
 
+btosiCommonIncludes := \
+    $(LOCAL_PATH)/include \
+    $(LOCAL_PATH)/.. \
+    $(LOCAL_PATH)/../utils/include
+
+btosiCommonCFlags := -std=c99 -Wall -Werror -UNDEBUG -fvisibility=hidden
+
+# libosi static library for target
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
+LOCAL_C_INCLUDES := $(btosiCommonIncludes)
+LOCAL_SRC_FILES := $(btosiCommonSrc)
+LOCAL_CFLAGS := $(btosiCommonCFlags)
+# Many .h files have redefined typedefs
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
+LOCAL_MODULE := libosi
+LOCAL_MODULE_TAGS := optional
+LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+include $(BUILD_STATIC_LIBRARY)
+
+# libosi static library for host
+# ========================================================
+ifeq ($(HOST_OS),linux)
+include $(CLEAR_VARS)
+LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
+LOCAL_C_INCLUDES := $(btosiCommonIncludes)
+LOCAL_SRC_FILES := $(btosiCommonSrc)
+# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
+# should be compatible for a Linux host OS. We should figure out what to do for
+# a non-Linux host OS.
+LOCAL_CFLAGS := \
+	$(btosiCommonCFlags) \
+	-D_GNU_SOURCE
+# Many .h files have redefined typedefs
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
+LOCAL_MODULE := libosi-host
+LOCAL_MODULE_TAGS := optional
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+include $(BUILD_HOST_STATIC_LIBRARY)
+endif
+
+# Note: It's good to get the tests compiled both for the host and the target so
+# we get to test with both Bionic libc and glibc
+
+# libosi unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
+LOCAL_C_INCLUDES := $(btosiCommonIncludes)
+LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libosi
-
 include $(BUILD_NATIVE_TEST)
+
+# libosi unit tests for host
+# ========================================================
+ifeq ($(HOST_OS),linux)
+include $(CLEAR_VARS)
+LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
+LOCAL_C_INCLUDES := $(btosiCommonIncludes)
+LOCAL_SRC_FILES := $(btosiCommonTestSrc)
+LOCAL_CFLAGS := -Wall -UNDEBUG
+LOCAL_LDLIBS := -lrt -lpthread
+LOCAL_MODULE := net_test_osi
+LOCAL_MODULE_TAGS := tests
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_STATIC_LIBRARIES := libosi-host
+include $(BUILD_HOST_NATIVE_TEST)
+endif
