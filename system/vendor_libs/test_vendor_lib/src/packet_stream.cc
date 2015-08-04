@@ -33,17 +33,20 @@ PacketStream::~PacketStream() {
   close(fd_);
 }
 
-std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand() {
+std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand() const {
   std::vector<uint8_t> header;
-  if (!ReceiveData(header, CommandPacket::kCommandHeaderSize)) {
+
+  if (!ReceiveAll(header, CommandPacket::kCommandHeaderSize)) {
     LOG_ERROR(LOG_TAG, "Error: receiving command header.");
     return std::unique_ptr<CommandPacket>(nullptr);
   }
+
   std::vector<uint8_t> payload;
-  if (!ReceiveData(payload, header.back())) {
+  if (!ReceiveAll(payload, header.back())) {
     LOG_ERROR(LOG_TAG, "Error: receiving command payload.");
     return std::unique_ptr<CommandPacket>(nullptr);
   }
+
   std::unique_ptr<CommandPacket> command(new CommandPacket());
   if (!command->Encode(header, payload)) {
     LOG_ERROR(LOG_TAG, "Error: encoding command packet.");
@@ -52,11 +55,11 @@ std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand() {
   return command;
 }
 
-serial_data_type_t PacketStream::ReceivePacketType() {
+serial_data_type_t PacketStream::ReceivePacketType() const {
   LOG_INFO(LOG_TAG, "Receiving packet type.");
-
   std::vector<uint8_t> raw_type_octet;
-  if (!ReceiveData(raw_type_octet, 1)) {
+
+  if (!ReceiveAll(raw_type_octet, 1)) {
     // TODO(dennischeng): Proper error handling.
     LOG_ERROR(LOG_TAG, "Error: Could not receive packet type.");
   }
@@ -68,33 +71,31 @@ serial_data_type_t PacketStream::ReceivePacketType() {
     // TODO(dennischeng): Proper error handling.
     LOG_ERROR(LOG_TAG, "Error: Received invalid packet type.");
   }
-
   return type;
 }
 
-void PacketStream::SendEvent(const EventPacket& event) {
+bool PacketStream::SendEvent(const EventPacket& event) const {
   LOG_INFO(LOG_TAG, "Sending event with event code: 0x%04X",
            event.GetEventCode());
   LOG_INFO(LOG_TAG, "Sending event with size: %zu octets",
            event.GetPacketSize());
 
   // TODO(dennischeng): Decide if three separate writes is necessary here.
-  if (!SendData({event.GetType()}, 1)) {
-    // TODO(dennischeng): Proper error handling.
+  if (!SendAll({event.GetType()}, 1)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event type.");
-    return;
+    return false;
   }
-  if (!SendData(event.GetHeader(), event.GetHeaderSize())) {
-    // TODO(dennischeng): Proper error handling.
+
+  if (!SendAll(event.GetHeader(), event.GetHeaderSize())) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event header.");
-    return;
+    return false;
   }
-  if (!SendData(event.GetPayload(), event.GetPayloadSize())) {
-    // TODO(dennischeng): Proper error handling.
+
+  if (!SendAll(event.GetPayload(), event.GetPayloadSize())) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event payload.");
-    return;
+    return false;
   }
-  LOG_INFO(LOG_TAG, "Event sent.");
+  return true;
 }
 
 void PacketStream::SetFd(int fd) {
@@ -110,14 +111,14 @@ bool PacketStream::ValidateTypeOctet(serial_data_type_t type) const {
   return (type >= DATA_TYPE_COMMAND) && (type <= DATA_TYPE_SCO);
 }
 
-bool PacketStream::ReceiveData(std::vector<uint8_t>& buffer,
-                              size_t num_octets_to_receive) {
-  buffer.resize(num_octets_to_receive);
+bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
+                              size_t num_octets_to_receive) const {
+  destination.resize(num_octets_to_receive);
   size_t octets_remaining = num_octets_to_receive;
   do {
     int num_octets_received = read(
         fd_,
-        &buffer[num_octets_to_receive - octets_remaining],
+        &destination[num_octets_to_receive - octets_remaining],
         octets_remaining);
     if (num_octets_received < 0) {
       return false;
@@ -127,8 +128,8 @@ bool PacketStream::ReceiveData(std::vector<uint8_t>& buffer,
   return true;
 }
 
-bool PacketStream::SendData(const std::vector<uint8_t>& source,
-                           size_t num_octets_to_send) {
+bool PacketStream::SendAll(const std::vector<uint8_t>& source,
+                           size_t num_octets_to_send) const {
   // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
   assert(source.size() >= num_octets_to_send);
   size_t octets_remaining = num_octets_to_send;
