@@ -13,11 +13,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
 #pragma once
 
+#include <memory>
 #include <string>
 
-#include "hardware/bluetooth.h"
+#include <base/macros.h>
 
 namespace bluetooth {
 
@@ -26,32 +28,30 @@ namespace bluetooth {
 // It is also used to access profile interfaces.
 class CoreStack {
  public:
-  CoreStack();
-  ~CoreStack();
+  virtual ~CoreStack() = default;
 
   // Initialize the bluetooth stack and device.
-  bool Initialize();
+  virtual bool Initialize() = 0;
 
   // Set the device name.
   // This can be referenced in BLE GAP advertisements.
-  bool SetAdapterName(const std::string& name);
+  virtual bool SetAdapterName(const std::string& name) = 0;
 
   // Allow activated classic profiles to be discovered.
-  bool SetClassicDiscoverable();
+  virtual bool SetClassicDiscoverable() = 0;
 
   // Get an interface for a profile (BLE GATT, A2DP, etc).
-  const void *GetInterface(const char* profile);
+  virtual const void* GetInterface(const char* profile) = 0;
+
+  // Factory method that creates a real CoreStack instance. This should be used
+  // in production code.
+  static std::unique_ptr<CoreStack> Create();
+
+ protected:
+  CoreStack() = default;
 
  private:
-  // Prevent copy and assignment.
-  CoreStack& operator=(const CoreStack& rhs) = delete;
-  CoreStack(const CoreStack& rhs) = delete;
-
-  // Our libhardware handle.
-  bluetooth_device_t *adapter_;
-
-  // Common bluetooth interface handle.
-  const bt_interface_t *hal_;
+  DISALLOW_COPY_AND_ASSIGN(CoreStack);
 };
 
 }  // namespace bluetooth

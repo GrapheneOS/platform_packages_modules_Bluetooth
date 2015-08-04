@@ -16,6 +16,8 @@
 
 #include "service/daemon.h"
 
+#include <memory>
+
 #include <base/logging.h>
 
 #include "service/core_stack.h"
@@ -29,13 +31,67 @@ namespace {
 // The global Daemon instance.
 Daemon* g_daemon = nullptr;
 
+class DaemonImpl : public Daemon {
+ public:
+  DaemonImpl() = default;
+  ~DaemonImpl() override = default;
+
+  void StartMainLoop() override {
+    message_loop_->Run();
+  }
+
+  Settings* GetSettings() const override {
+    return settings_.get();
+  }
+
+  base::MessageLoop* GetMessageLoop() const override {
+    return message_loop_.get();
+  }
+
+ private:
+  bool Init() override {
+    message_loop_.reset(new base::MessageLoop());
+
+    settings_.reset(new Settings());
+    if (!settings_->Init()) {
+      LOG(ERROR) << "Failed to set up Settings";
+      return false;
+    }
+
+    core_stack_ = CoreStack::Create();
+    if (!core_stack_->Initialize()) {
+      LOG(ERROR) << "Failed to set up CoreStack";
+      return false;
+    }
+
+    ipc_manager_.reset(new ipc::IPCManager(core_stack_.get()));
+
+    // If an IPC socket path was given, initialize IPC with it.
+    if ((!settings_->create_ipc_socket_path().empty() ||
+         !settings_->android_ipc_socket_suffix().empty()) &&
+        !ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX)) {
+      LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
+      return false;
+    }
+
+    return true;
+  }
+
+  std::unique_ptr<base::MessageLoop> message_loop_;
+  std::unique_ptr<Settings> settings_;
+  std::unique_ptr<CoreStack> core_stack_;
+  std::unique_ptr<ipc::IPCManager> ipc_manager_;
+
+  DISALLOW_COPY_AND_ASSIGN(DaemonImpl);
+};
+
 }  // namespace
 
 // static
 bool Daemon::Initialize() {
   CHECK(!g_daemon);
 
-  g_daemon = new Daemon();
+  g_daemon = new DaemonImpl();
   if (g_daemon->Init())
     return true;
 
@@ -50,59 +106,22 @@ bool Daemon::Initialize() {
 // static
 void Daemon::ShutDown() {
   CHECK(g_daemon);
-  CHECK(g_daemon->initialized_);
-
   delete g_daemon;
-  g_daemon = NULL;
+  g_daemon = nullptr;
+}
+
+// static
+void Daemon::InitializeForTesting(Daemon* test_daemon) {
+  CHECK(test_daemon);
+  CHECK(!g_daemon);
+
+  g_daemon = test_daemon;
 }
 
 // static
 Daemon* Daemon::Get() {
   CHECK(g_daemon);
   return g_daemon;
-}
-
-Daemon::Daemon() : initialized_(false) {
-}
-
-Daemon::~Daemon() {
-}
-
-void Daemon::StartMainLoop() {
-  CHECK(initialized_);
-  message_loop_->Run();
-}
-
-bool Daemon::Init() {
-  CHECK(!initialized_);
-
-  message_loop_.reset(new base::MessageLoop());
-
-  settings_.reset(new Settings());
-  if (!settings_->Init()) {
-    LOG(ERROR) << "Failed to set up Settings";
-    return false;
-  }
-
-  core_stack_.reset(new CoreStack());
-  if (!core_stack_->Initialize()) {
-    LOG(ERROR) << "Failed to set up CoreStack";
-    return false;
-  }
-
-  ipc_manager_.reset(new ipc::IPCManager(core_stack_.get()));
-
-  // If an IPC socket path was given, initialize IPC with it.
-  if ((!settings_->create_ipc_socket_path().empty() ||
-       !settings_->android_ipc_socket_suffix().empty()) &&
-      !ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX)) {
-    LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
-    return false;
-  }
-
-  initialized_ = true;
-
-  return true;
 }
 
 }  // namespace bluetooth
