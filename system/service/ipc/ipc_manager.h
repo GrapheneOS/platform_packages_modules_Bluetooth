@@ -41,6 +41,25 @@ class IPCManager {
     TYPE_BINDER  // IPC based on the Binder
   };
 
+  // Interface for observing events from an IPC mechanism. These methods will be
+  // called on the thread that started the particular IPC type.
+  class Delegate {
+   public:
+    Delegate() = default;
+    virtual ~Delegate() = default;
+
+    // Called when an IPC mechanism has successfully started and is ready for
+    // client connections.
+    virtual void OnIPCHandlerStarted(Type type) = 0;
+
+    // Called when an IPC mechanism has stopped. This may happen due to an error
+    // in initialization or due to a regular shut down routine.
+    virtual void OnIPCHandlerStopped(Type type) = 0;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(Delegate);
+  };
+
   explicit IPCManager(bluetooth::CoreStack* core_stack);
   ~IPCManager();
 
@@ -51,7 +70,13 @@ class IPCManager {
   // If TYPE_UNIX is given, the file path to use for the domain socket will be
   // obtained from the global Settings object. Hence, the Settings object must
   // have been initialized before calling this method.
-  bool Start(Type type);
+  //
+  // |delegate| must out-live the IPCManager and the underlying handler. Users
+  // can guarantee proper clean up by deallocating |delegate| when or after
+  // Delegate::OnIPCHandlerStopped is called. It is safe to destroy |delegate|
+  // after destroying the IPCManager instance, as the destructor will join and
+  // clean up all underlying threads.
+  bool Start(Type type, Delegate* delegate);
 
   // Returns true if an IPC type has been initialized.
   bool BinderStarted() const;

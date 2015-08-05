@@ -16,11 +16,15 @@
 
 #pragma once
 
+#include <atomic>
+
+#include <base/files/file_path.h>
 #include <base/files/scoped_file.h>
 #include <base/macros.h>
 #include <base/threading/thread.h>
 
 #include "service/ipc/ipc_handler.h"
+#include "service/ipc/ipc_manager.h"
 
 namespace base {
 class SingleThreadTaskRunner;
@@ -35,11 +39,13 @@ namespace ipc {
 // Implements a UNIX domain-socket based IPCHandler
 class IPCHandlerUnix : public IPCHandler {
  public:
-  explicit IPCHandlerUnix(bluetooth::CoreStack* core_stack);
+  IPCHandlerUnix(bluetooth::CoreStack* core_stack,
+                 IPCManager::Delegate* delegate);
   ~IPCHandlerUnix() override;
 
-  // IPCHandler override:
+  // IPCHandler overrides:
   bool Run() override;
+  void Stop() override;
 
  private:
   IPCHandlerUnix() = default;
@@ -51,15 +57,29 @@ class IPCHandlerUnix : public IPCHandler {
   // threads to be stopped on the thread that started them.
   void ShutDownOnOriginThread();
 
+  // Notifies the delegate that we started or stoppedlistening for incoming
+  // connections.
+  void NotifyStartedOnOriginThread();
+  void NotifyStartedOnCurrentThread();
+  void NotifyStoppedOnOriginThread();
+  void NotifyStoppedOnCurrentThread();
+
   // True, if the IPC mechanism is running.
   bool running_;
 
   // The server socket on which we listen to incoming connections.
   base::ScopedFD socket_;
 
+  // The file path to |socket_|. This is only set if we create and manage the
+  // life time of the socket.
+  base::FilePath socket_path_;
+
   // We use a dedicated thread for listening to incoming connections and
   // polling from the socket to avoid blocking the main thread.
   base::Thread thread_;
+
+  // Whether or not the listening thread should continue to run.
+  std::atomic<bool> keep_running_;
 
   // The origin thread's task runner.
   scoped_refptr<base::SingleThreadTaskRunner> origin_task_runner_;
