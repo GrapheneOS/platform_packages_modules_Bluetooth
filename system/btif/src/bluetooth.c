@@ -54,6 +54,7 @@
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/log.h"
 #include "stack_manager.h"
+#include "btif_config.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -416,6 +417,11 @@ static int set_os_callouts(bt_os_callouts_t *callouts) {
     return BT_STATUS_SUCCESS;
 }
 
+static int config_clear(void) {
+    LOG_INFO("%s", __func__);
+    return btif_config_clear();
+}
+
 static const bt_interface_t bluetoothInterface = {
     sizeof(bluetoothInterface),
     init,
@@ -449,7 +455,8 @@ static const bt_interface_t bluetoothInterface = {
     config_hci_snoop_log,
     set_os_callouts,
     read_energy_info,
-    dump
+    dump,
+    config_clear
 };
 
 const bt_interface_t* bluetooth__get_bluetooth_interface ()
