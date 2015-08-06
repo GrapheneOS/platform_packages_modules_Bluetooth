@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include <base/macros.h>
 #include <base/message_loop/message_loop.h>
 
@@ -43,33 +41,32 @@ class Daemon {
   // Cleans up all the resources associated with the global Daemon object.
   static void ShutDown();
 
+  // Assigns the global Daemon instance for testing. Should only be called from
+  // test code.
+  static void InitializeForTesting(Daemon* test_daemon);
+
   // Returns the singleton Daemon instance. All classes can interact with the
   // Daemon, obtain its resources etc using this getter.
   static Daemon* Get();
 
   // The global Settings object. All classes have direct access to this through
   // the Daemon object.
-  Settings* settings() const { return settings_.get(); }
+  virtual Settings* GetSettings() const  = 0;
 
   // The main event loop. This should be used for any events and delayed tasks
   // that should be executed on the daemon's main thread.
-  base::MessageLoop* message_loop() const { return message_loop_.get(); }
+  virtual base::MessageLoop* GetMessageLoop() const = 0;
 
   // Starts the daemon's main loop.
-  void StartMainLoop();
+  virtual void StartMainLoop() = 0;
+
+ protected:
+  Daemon() = default;
+  virtual ~Daemon() = default;
 
  private:
-  Daemon();
-  ~Daemon();
-
-  // Private instance helper for Initialize().
-  bool Init();
-
-  bool initialized_;
-  std::unique_ptr<base::MessageLoop> message_loop_;
-  std::unique_ptr<Settings> settings_;
-  std::unique_ptr<CoreStack> core_stack_;
-  std::unique_ptr<ipc::IPCManager> ipc_manager_;
+  // Internal instance helper called by Initialize().
+  virtual bool Init() = 0;
 
   DISALLOW_COPY_AND_ASSIGN(Daemon);
 };

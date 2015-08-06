@@ -181,13 +181,35 @@ bt_os_callouts_t callouts = {
 
 namespace bluetooth {
 
-CoreStack::CoreStack() : adapter_(nullptr), hal_(nullptr) {
+// The real CoreStack implementation to be used in production code.
+class CoreStackImpl : public CoreStack {
+ public:
+  CoreStackImpl();
+  ~CoreStackImpl() override;
+
+  // CoreStack overrides.
+  bool Initialize() override;
+  bool SetAdapterName(const std::string& name) override;
+  bool SetClassicDiscoverable() override;
+  const void* GetInterface(const char* profile) override;
+
+ private:
+  // Our libhardware handle.
+  bluetooth_device_t *adapter_;
+
+  // Common Bluetooth interface handle.
+  const bt_interface_t *hal_;
+
+  DISALLOW_COPY_AND_ASSIGN(CoreStackImpl);
+};
+
+CoreStackImpl::CoreStackImpl() : adapter_(nullptr), hal_(nullptr) {
   std::lock_guard<std::mutex> lock(mutex);
   // TODO(icoolidge): DCHECK(!instantiated);
   instantiated = true;
 }
 
-bool CoreStack::Initialize() {
+bool CoreStackImpl::Initialize() {
   std::unique_lock<std::mutex> lock(mutex);
 
   // Load the bluetooth module.
@@ -230,11 +252,11 @@ bool CoreStack::Initialize() {
   }
 
   synchronize.wait(lock);
-  LOG_INFO(LOG_TAG, "%s", "CoreStack::Initialize success");
+  LOG_INFO(LOG_TAG, "%s", "CoreStackImpl::Initialize success");
   return true;
 }
 
-bool CoreStack::SetAdapterName(const std::string &name) {
+bool CoreStackImpl::SetAdapterName(const std::string &name) {
   bt_bdname_t n;
   snprintf(reinterpret_cast<char *>(n.name), sizeof(n.name), "%s",
            name.c_str());
@@ -255,7 +277,7 @@ bool CoreStack::SetAdapterName(const std::string &name) {
   return true;
 }
 
-bool CoreStack::SetClassicDiscoverable() {
+bool CoreStackImpl::SetClassicDiscoverable() {
   bt_scan_mode_t mode = BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE;
   bt_property_t disc;
   disc.len = sizeof(mode);
@@ -274,7 +296,7 @@ bool CoreStack::SetClassicDiscoverable() {
   return true;
 }
 
-const void *CoreStack::GetInterface(const char *profile) {
+const void* CoreStackImpl::GetInterface(const char *profile) {
   std::unique_lock<std::mutex> lock(mutex);
   // Get the interface to the GATT profile.
   const void *interface = hal_->get_profile_interface(profile);
@@ -285,10 +307,15 @@ const void *CoreStack::GetInterface(const char *profile) {
   return interface;
 }
 
-CoreStack::~CoreStack() {
+CoreStackImpl::~CoreStackImpl() {
   // TODO(icoolidge): Disable bluetooth hardware, clean up library state.
   std::lock_guard<std::mutex> lock(mutex);
   instantiated = false;
+}
+
+// static
+std::unique_ptr<CoreStack> CoreStack::Create() {
+  return std::unique_ptr<CoreStack>(new CoreStackImpl());
 }
 
 }  // namespace bluetooth
