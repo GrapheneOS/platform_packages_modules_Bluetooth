@@ -18,6 +18,8 @@
 
 #include "vendor_libs/test_vendor_lib/include/packet.h"
 
+#include "base/logging.h"
+
 #include <algorithm>
 
 extern "C" {
@@ -40,7 +42,7 @@ bool Packet::Encode(const std::vector<uint8_t>& header,
 
 const std::vector<uint8_t>& Packet::GetHeader() const {
   // Every packet must have a header.
-  assert(GetHeaderSize() > 0);
+  CHECK(GetHeaderSize() > 0);
   return header_;
 }
 

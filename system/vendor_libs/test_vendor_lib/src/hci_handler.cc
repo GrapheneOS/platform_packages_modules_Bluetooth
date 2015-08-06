@@ -17,12 +17,12 @@
 #define LOG_TAG "hci_handler"
 
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
+
+#include "base/logging.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 extern "C" {
 #include "osi/include/log.h"
-
-#include <assert.h>
 }  // extern "C"
 
 namespace test_vendor_lib {
@@ -41,16 +41,14 @@ void HciHandler::RegisterTransportCallbacks() {
 // static
 HciHandler* HciHandler::Get() {
   // Initialize should have been called already.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(g_handler);
+  CHECK(g_handler);
   return g_handler;
 }
 
 // static
 void HciHandler::Initialize() {
   // Multiple calls to Initialize should not be made.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(!g_handler);
+  CHECK(!g_handler);
   g_handler = new HciHandler();
 }
 

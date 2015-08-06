@@ -16,13 +16,13 @@
 
 #pragma once
 
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/packet.h"
-
 #include <cstdint>
 #include <vector>
 #include <memory>
+
+#include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "vendor_libs/test_vendor_lib/include/event_packet.h"
+#include "vendor_libs/test_vendor_lib/include/packet.h"
 
 namespace test_vendor_lib {
 
