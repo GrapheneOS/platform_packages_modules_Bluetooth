@@ -34,27 +34,20 @@ class PacketStream {
   // before use.
   PacketStream();
 
-  // Closes |fd_|. Careful attention must be paid to when PacketStream objects
-  // are destructed because other objects may rely on the PacketStream's
-  // file descriptor.
-  virtual ~PacketStream();
+  virtual ~PacketStream() = default;
 
   // Reads a command packet and returns the packet back to the caller, along
-  // with the responsibility of managing the packet's memory.
+  // with the responsibility of managing the packet.
   std::unique_ptr<CommandPacket> ReceiveCommand() const;
 
   // Reads and interprets a single octet as a packet type octet. Validates the
   // type octet for correctness.
   serial_data_type_t ReceivePacketType() const;
 
-  // Sends an event to the HCI. The memory management and ownership of the event
-  // is left with the caller.
+  // Sends an event to the HCI. The ownership of the event is left with the
+  // caller.
   bool SendEvent(const EventPacket& event) const;
 
-  // Sets the file descriptor used in reading and writing. The PacketStream
-  // takes ownership of the descriptor at |fd| and closes it during destruction.
-  // This (as opposed to initializing fd_ in a constructor) helps prevent
-  // premature closing of the descriptor.
   void SetFd(int fd);
 
  private:
@@ -72,8 +65,7 @@ class PacketStream {
   bool SendAll(const std::vector<std::uint8_t>& source,
                size_t num_octets_to_send) const;
 
-  // File descriptor to read from and write to. This is the descriptor given to
-  // the HCI from the HciTransport.
+  // PacketStream does not take ownership of the file descriptor it uses.
   int fd_;
 };
 

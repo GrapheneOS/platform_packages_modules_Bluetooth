@@ -76,7 +76,7 @@ static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
     case BT_VND_OP_USERIAL_CLOSE:
       LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
       LOG_INFO(LOG_TAG, "Closing HCI's fd (fd: %d)", manager->GetHciFd());
-      close(manager->GetHciFd());
+      manager->CloseHciFd();
       return 1;
 
     case BT_VND_OP_FW_CFG:
