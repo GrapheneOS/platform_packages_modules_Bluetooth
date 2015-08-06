@@ -17,6 +17,8 @@
 #define LOG_TAG "bredr_controller"
 
 #include "vendor_libs/test_vendor_lib/include/bredr_controller.h"
+
+#include "base/logging.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
@@ -24,8 +26,6 @@
 extern "C" {
 #include "stack/include/hcidefs.h"
 #include "osi/include/log.h"
-
-#include <assert.h>
 }  // extern "C"
 
 namespace {
@@ -185,16 +185,14 @@ BREDRController* g_controller = nullptr;
 // static
 BREDRController* BREDRController::Get() {
   // Initialize should have been called already.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(g_controller);
+  CHECK(g_controller);
   return g_controller;
 }
 
 // static
 void BREDRController::Initialize() {
   // Multiple calls to Initialize should not be made.
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(!g_controller);
+  CHECK(!g_controller);
   g_controller = new BREDRController();
 }
 
@@ -311,7 +309,7 @@ void BREDRController::HciSetEventMask(const std::vector<uint8_t>& /* args */) {
 
 void BREDRController::HciWriteInquiryMode(const std::vector<uint8_t>& args) {
   LogCommand("Write Inquiry Mode");
-  assert(args.size() == 1);
+  CHECK(args.size() == 1);
   inquiry_mode_ = args[0];
   SendEmptySuccessCommandComplete(HCI_WRITE_INQUIRY_MODE);
 }

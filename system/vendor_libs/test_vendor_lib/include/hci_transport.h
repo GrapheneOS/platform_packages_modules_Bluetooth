@@ -16,20 +16,19 @@
 
 #pragma once
 
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
-#include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/packet.h"
-#include "vendor_libs/test_vendor_lib/include/packet_stream.h"
-
 #include <functional>
 #include <memory>
 #include <queue>
 
-#include <base/macros.h>
-
 extern "C" {
 #include <sys/epoll.h>
 }  // extern "C"
+
+#include "base/macros.h"
+#include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "vendor_libs/test_vendor_lib/include/event_packet.h"
+#include "vendor_libs/test_vendor_lib/include/packet.h"
+#include "vendor_libs/test_vendor_lib/include/packet_stream.h"
 
 namespace test_vendor_lib {
 
