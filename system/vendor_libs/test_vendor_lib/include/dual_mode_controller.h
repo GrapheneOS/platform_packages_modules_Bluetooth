@@ -20,37 +20,37 @@
 #include <vector>
 #include <unordered_map>
 
-#include "base/macros.h"
+#include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 
 namespace test_vendor_lib {
 
-// Emulates a BR/EDR controller by maintaining the link layer state machine
-// detailed in the Bluetooth Core Specification Version 4.2, Volume 2, Part B,
-// Section 8 (page 159). Provides actions corresponding to commands sent by the
-// HCI. These actions will be registered from a single global controller
-// instance as callbacks and called from the HciHandler.
-// TODO(dennischeng): Should the controller implement an interface provided by
-// the HciHandler and be used as a delegate (i.e. the HciHandler would hold a
-// controller object) instead of registering its methods as callbacks?
-class BREDRController {
+// Emulates a dual mode BR/EDR + LE controller by maintaining the link layer
+// state machine detailed in the Bluetooth Core Specification Version 4.2,
+// Volume 6, Part B, Section 1.1 (page 30). Provides methods corresponding to
+// commands sent by the HCI. These methods will be registered as callbacks from
+// a controller instance with the HciHandler. To implement a new Bluetooth
+// command, simply add the method declaration below, with return type void and a
+// single const std::vector<std::uint8_t>& argument. After implementing the
+// method, simply register it with the HciHandler using the SET_HANDLER macro in
+// the controller's default constructor. Be sure to name your method after the
+// corresponding Bluetooth command in the Core Specification with the prefix
+// "Hci" to distinguish it as a controller command.
+class DualModeController {
  public:
+  // Sets all of the methods to be used as callbacks in the HciHandler.
+  DualModeController();
+
+  ~DualModeController() = default;
+
   // Registers command callbacks with the HciHandler instance so that they are
   // fired when the corresponding opcode is received from the HCI. For now, each
   // command must be individually registered. This allows for some flexibility
   // in which commands are made available by which controller.
-  void RegisterHandlerCallbacks();
+  void RegisterCommandsWithHandler(HciHandler& handler);
 
-  // Functions that operate on the global controller instance. Initialize()
-  // is called by the vendor library's Init() function to create the global
-  // controller and must be called before Get() and CleanUp().
-  // CleanUp() should be called when a call to TestVendorCleanUp() is made
-  // since the global controller should live throughout the entire time the test
-  // vendor library is in use.
-  static BREDRController* Get();
-
-  static void Initialize();
-
-  static void CleanUp();
+  // Sets the callback to be used for sending events back to the HCI.
+  void RegisterEventChannel(
+      std::function<void(std::unique_ptr<EventPacket>)> send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -318,12 +318,28 @@ class BREDRController {
   void HciInquiry(const std::vector<std::uint8_t>& args);
 
  private:
-  // There will only be a single global instance of this class.
-  BREDRController();
+  // Creates a command complete event and sends it back to the HCI.
+  void SendCommandComplete(uint16_t command_opcode,
+                           const std::vector<uint8_t>& return_parameters) const;
 
-  // The destructor can only be indirectly accessed through the static
-  // CleanUp() method that destructs the global controller.
-  ~BREDRController() = default;
+  // Sends a command complete event with no return parameters. This event is
+  // typically sent for commands that can be completed immediately.
+  void SendCommandCompleteSuccess(uint16_t command_opcode) const;
+
+  // Creates a command status event and sends it back to the HCI.
+  void SendCommandStatus(uint16_t command_opcode) const;
+
+  // Sends a command status event with default event parameters.
+  void SendCommandStatusSuccess(uint16_t command_opcode) const;
+
+  // Sends an inquiry response for a fake device.
+  void SendInquiryResult() const;
+
+  // Sends an extended inquiry response for a fake device.
+  void SendExtendedInquiryResult() const;
+
+  // Callback provided to send events from the controller back to the HCI.
+  std::function<void(std::unique_ptr<EventPacket>)> send_event_;
 
   // Maintains the commands to be registered and used in the HciHandler object.
   // Keys are command opcodes and values are the callbacks to handle each
@@ -331,9 +347,6 @@ class BREDRController {
   std::unordered_map<std::uint16_t,
                      std::function<void(const std::vector<std::uint8_t>&)>>
       active_commands_;
-
-  // Disallow any copies of the singleton to be made.
-  DISALLOW_COPY_AND_ASSIGN(BREDRController);
 
   // Specifies the format of Inquiry Result events to be returned during the
   // Inquiry command.
