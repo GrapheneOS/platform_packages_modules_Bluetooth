@@ -15,6 +15,7 @@
 //
 
 #include "base/macros.h"
+#include "base/memory/weak_ptr.h"
 #include "base/threading/thread.h"
 #include "hci/include/bt_vendor_lib.h"
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
@@ -25,9 +26,15 @@
 
 namespace test_vendor_lib {
 
+// Contains the three core objects that make up the test vendor library: the
+// HciTransport for communication, the HciHandler for processing commands, and
+// the Controller for actual command implementations. The VendorManager shall
+// operate as a global singleton and be used in bt_vendor.cc to perform vendor
+// specific operations, via |vendor_callbacks_|, and to provide access to the
+// test controller by setting up a message loop (on another thread) that the HCI
+// will talk to and controller methods will execute on.
 class VendorManager {
  public:
-
   // Functions that operate on the global manager instance. Initialize()
   // is called by the vendor library's TestVendorInitialize() function to create
   // the global manager and must be called before Get() and CleanUp().
@@ -40,14 +47,15 @@ class VendorManager {
 
   static void Initialize();
 
-  // Stores a copy of the vendor specific configuration callbacks passed into
-  // the vendor library from the HCI in TestVendorInit().
-  void SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks);
+  void CloseHciFd();
+
+  int GetHciFd() const;
 
   const bt_vendor_callbacks_t& GetVendorCallbacks() const;
 
-  // Returns the HCI's file descriptor as allocated by |transport_|.
-  int GetHciFd() const;
+  // Stores a copy of the vendor specific configuration callbacks passed into
+  // the vendor library from the HCI in TestVendorInit().
+  void SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks);
 
   // Returns true if |thread_| is able to be started and the
   // StartingWatchingOnThread() task has been posted to the task runner.
@@ -86,7 +94,10 @@ class VendorManager {
   // WatchFileDescriptor() is called.
   base::MessageLoopForIO::FileDescriptorWatcher manager_watcher_;
 
-  // Prevent any copies of the singleton to be made.
+  // This should remain the last member so it'll be destroyed and invalidate
+  // its weak pointers before any other members are destroyed.
+  base::WeakPtrFactory<VendorManager> weak_ptr_factory_;
+
   DISALLOW_COPY_AND_ASSIGN(VendorManager);
 };
 

@@ -21,11 +21,7 @@
 #include "base/logging.h"
 
 extern "C" {
-#include <sys/ioctl.h>
 #include <sys/socket.h>
-#include <sys/un.h>
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "stack/include/hcidefs.h"
 #include "osi/include/log.h"
@@ -33,24 +29,36 @@ extern "C" {
 
 namespace test_vendor_lib {
 
+void HciTransport::CloseHciFd() {
+  hci_fd_.reset();
+}
+
 int HciTransport::GetHciFd() const {
-  return socketpair_fds_[0];
+  return hci_fd_->get();
 }
 
 int HciTransport::GetVendorFd() const {
-  return socketpair_fds_[1];
+  return vendor_fd_->get();
 }
 
 bool HciTransport::SetUp() {
+  int socketpair_fds[2];
   // TODO(dennischeng): Use SOCK_SEQPACKET here.
-  return socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds_) >= 0;
+  const int success = socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds);
+  if (success < 0) {
+    return false;
+  }
+  hci_fd_.reset(new base::ScopedFD(socketpair_fds[0]));
+  vendor_fd_.reset(new base::ScopedFD(socketpair_fds[1]));
+  packet_stream_.SetFd(vendor_fd_->get());
+  return true;
 }
 
 void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
   CHECK(fd == GetVendorFd());
-
   LOG_INFO(LOG_TAG, "Event ready in HciTransport.");
-  serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
+
+  const serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
 
   switch (packet_type) {
     case (DATA_TYPE_COMMAND): {
@@ -71,6 +79,7 @@ void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
     // TODO(dennischeng): Add debug level assert here.
     default: {
       LOG_INFO(LOG_TAG, "Error received an invalid packet type from the HCI.");
+      break;
     }
   }
 }
@@ -87,9 +96,8 @@ void HciTransport::RegisterCommandHandler(
   command_handler_ = callback;
 }
 
-// TODO(dennischeng): Use std::move() semantics here.
 void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
-  outgoing_events_.push(event.get());
+  outgoing_events_.push(std::move(event));
 }
 
 void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {

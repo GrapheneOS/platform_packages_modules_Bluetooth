@@ -31,19 +31,15 @@ namespace test_vendor_lib {
 
 PacketStream::PacketStream() : fd_(-1) {}
 
-PacketStream::~PacketStream() {
-  close(fd_);
-}
-
 std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand() const {
   std::vector<uint8_t> header;
+  std::vector<uint8_t> payload;
 
   if (!ReceiveAll(header, CommandPacket::kCommandHeaderSize)) {
     LOG_ERROR(LOG_TAG, "Error: receiving command header.");
     return std::unique_ptr<CommandPacket>(nullptr);
   }
 
-  std::vector<uint8_t> payload;
   if (!ReceiveAll(payload, header.back())) {
     LOG_ERROR(LOG_TAG, "Error: receiving command payload.");
     return std::unique_ptr<CommandPacket>(nullptr);
@@ -52,7 +48,7 @@ std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand() const {
   std::unique_ptr<CommandPacket> command(new CommandPacket());
   if (!command->Encode(header, payload)) {
     LOG_ERROR(LOG_TAG, "Error: encoding command packet.");
-    return std::unique_ptr<CommandPacket>(nullptr);
+    command.reset(nullptr);
   }
   return command;
 }
@@ -117,16 +113,15 @@ bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
                               size_t num_octets_to_receive) const {
   destination.resize(num_octets_to_receive);
   size_t octets_remaining = num_octets_to_receive;
-  do {
-    int num_octets_received = read(
-        fd_,
-        &destination[num_octets_to_receive - octets_remaining],
-        octets_remaining);
+  while (octets_remaining > 0) {
+    const int num_octets_received =
+        read(fd_, &destination[num_octets_to_receive - octets_remaining],
+             octets_remaining);
     if (num_octets_received < 0) {
       return false;
     }
     octets_remaining -= num_octets_received;
-  } while (octets_remaining > 0);
+  }
   return true;
 }
 
@@ -134,14 +129,14 @@ bool PacketStream::SendAll(const std::vector<uint8_t>& source,
                            size_t num_octets_to_send) const {
   CHECK(source.size() >= num_octets_to_send);
   size_t octets_remaining = num_octets_to_send;
-  do {
-    int num_octets_sent = write(
+  while (octets_remaining > 0) {
+    const int num_octets_sent = write(
         fd_, &source[num_octets_to_send - octets_remaining], octets_remaining);
     if (num_octets_sent < 0) {
       return false;
     }
     octets_remaining -= num_octets_sent;
-  } while (octets_remaining > 0);
+  }
   return true;
 }
 
