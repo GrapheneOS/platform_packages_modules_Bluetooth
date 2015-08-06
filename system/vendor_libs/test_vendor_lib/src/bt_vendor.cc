@@ -16,13 +16,9 @@
 
 #define LOG_TAG "bt_vendor"
 
-#include <pthread.h>
+#include "vendor_manager.h"
 
 #include "base/logging.h"
-#include "hci/include/bt_vendor_lib.h"
-#include "vendor_libs/test_vendor_lib/include/bredr_controller.h"
-#include "vendor_libs/test_vendor_lib/include/hci_handler.h"
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 extern "C" {
 #include "osi/include/log.h"
@@ -30,54 +26,20 @@ extern "C" {
 #include <unistd.h>
 }  // extern "C"
 
-namespace {
-bt_vendor_callbacks_t* vendor_callbacks;
-
-// Wrapper for kicking off HciTransport listening on its own thread.
-void* ListenEntryPoint(void* context) {
-  while ((static_cast<test_vendor_lib::HciTransport*>(context))->Listen());
-  LOG_INFO(LOG_TAG, "HciTransport stopped listening.");
-  return NULL;
-}
-}  // namespace
-
 namespace test_vendor_lib {
 
-// Initializes event handler for test device. |p_cb| are the callbacks to be
-// used by event handler. |local_bdaddr| points to the address of the Bluetooth
+// Initializes vendor manager for test controller. |p_cb| are the callbacks to
+// be in TestVendorOp(). |local_bdaddr| points to the address of the Bluetooth
 // device. Returns 0 on success, -1 on error.
 static int TestVendorInitialize(const bt_vendor_callbacks_t* p_cb,
-                          unsigned char* /* local_bdaddr */) {
+                                unsigned char* /* local_bdaddr */) {
   LOG_INFO(LOG_TAG, "Initializing test controller.");
-
   CHECK(p_cb);
-  vendor_callbacks = const_cast<bt_vendor_callbacks_t*>(p_cb);
 
-  // Initialize global objects. The order of initialization does not matter,
-  // however all global objects should be initialized before any other work is
-  // done by the vendor library.
-  test_vendor_lib::HciTransport::Initialize();
-  test_vendor_lib::HciHandler::Initialize();
-  test_vendor_lib::BREDRController::Initialize();
-
-  // Configure the global HciTransport object.
-  HciTransport* transporter = HciTransport::Get();
-  if (!transporter->Connect()) {
-    LOG_ERROR(LOG_TAG, "Error connecting HciTransport object to HCI.");
-    return -1;
-  }
-
-  HciHandler* handler = HciHandler::Get();
-  handler->RegisterTransportCallbacks();
-
-  BREDRController* controller = BREDRController::Get();
-  controller->RegisterHandlerCallbacks();
-
-  // Start HciTransport listening on its own thread.
-  pthread_t transporter_thread;
-  pthread_create(&transporter_thread, NULL, &ListenEntryPoint,
-                 HciTransport::Get());
-  return 0;
+  VendorManager::Initialize();
+  VendorManager* manager = VendorManager::Get();
+  manager->SetVendorCallbacks(*(const_cast<bt_vendor_callbacks_t*>(p_cb)));
+  return manager->Run() ? 0 : -1;
 }
 
 // Vendor specific operations. |opcode| is the opcode for Bluedroid's vendor op
@@ -86,11 +48,8 @@ static int TestVendorInitialize(const bt_vendor_callbacks_t* p_cb,
 static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
   LOG_INFO(LOG_TAG, "Opcode received in vendor library: %d", opcode);
 
-  HciTransport* transporter = HciTransport::Get();
-  if (!transporter) {
-    LOG_ERROR(LOG_TAG, "HciTransport was not initialized");
-    return -1;
-  }
+  VendorManager* manager = VendorManager::Get();
+  CHECK(manager);
 
   switch (opcode) {
     case BT_VND_OP_POWER_CTRL: {
@@ -107,22 +66,22 @@ static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
     // Give the HCI its fd to communicate with the HciTransport.
     case BT_VND_OP_USERIAL_OPEN: {
       LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_OPEN");
-      int* transporter_fd = static_cast<int*>(param);
-      transporter_fd[0] = transporter->GetHciFd();
-      LOG_INFO(LOG_TAG, "Setting HCI's fd to: %d", transporter_fd[0]);
+      int* fd_list = static_cast<int*>(param);
+      fd_list[0] = manager->GetHciFd();
+      LOG_INFO(LOG_TAG, "Setting HCI's fd to: %d", fd_list[0]);
       return 1;
     }
 
     // Close the HCI's file descriptor.
     case BT_VND_OP_USERIAL_CLOSE:
       LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
-      LOG_INFO(LOG_TAG, "Closing HCI's fd (fd: %d)", transporter->GetHciFd());
-      close(transporter->GetHciFd());
+      LOG_INFO(LOG_TAG, "Closing HCI's fd (fd: %d)", manager->GetHciFd());
+      close(manager->GetHciFd());
       return 1;
 
     case BT_VND_OP_FW_CFG:
       LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_FW_CFG");
-      vendor_callbacks->fwcfg_cb(BT_VND_OP_RESULT_FAIL);
+      manager->GetVendorCallbacks().fwcfg_cb(BT_VND_OP_RESULT_FAIL);
       return -1;
 
     default:
@@ -132,12 +91,10 @@ static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
   return 0;
 }
 
-// Closes the vendor interface and destroys global objects.
+// Closes the vendor interface and cleans up the global vendor manager object.
 static void TestVendorCleanUp(void) {
   LOG_INFO(LOG_TAG, "Cleaning up vendor library.");
-  test_vendor_lib::BREDRController::CleanUp();
-  test_vendor_lib::HciHandler::CleanUp();
-  test_vendor_lib::HciTransport::CleanUp();
+  VendorManager::CleanUp();
 }
 
 }  // namespace test_vendor_lib

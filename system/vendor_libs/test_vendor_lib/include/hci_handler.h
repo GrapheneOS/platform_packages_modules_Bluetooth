@@ -21,8 +21,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/macros.h"
 #include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 #include "vendor_libs/test_vendor_lib/include/packet.h"
 
 namespace test_vendor_lib {
@@ -30,56 +30,38 @@ namespace test_vendor_lib {
 // Dispatches packets to the appropriate controller handler. These handlers
 // must be registered by controller objects in order for commands to be
 // processed. Unregistered commands will perform no operations. Exposes two
-// callbacks, HandleCommand() and HandleData(), to be registered with a listener
-// object and called when commands and data are sent by the host.
+// callbacks, HandleCommand() and HandleData(), to be registered with a
+// HciTransport object and called when commands and data are sent by the host.
 class HciHandler {
  public:
-  // Sets the command and data callbacks for when packets are received from the
-  // HCI.
-  void RegisterTransportCallbacks();
+  HciHandler() = default;
 
-  // Functions that operate on the global handler instance. Initialize()
-  // is called by the vendor library's Init() function to create the global
-  // handler and must be called before Get() and CleanUp().
-  // CleanUp() should be called when a call to TestVendorCleanUp() is made
-  // since the global handler should live throughout the entire time the test
-  // vendor library is in use.
-  static HciHandler* Get();
-
-  static void Initialize();
-
-  static void CleanUp();
+  ~HciHandler() = default;
 
   // Callback to be fired when a command packet is received from the HCI. Takes
   // ownership of the packet and dispatches work to the controller through the
   // callback registered with the command's opcode. After the controller
   // finishes processing the command and the callback returns, the command
   // packet is destroyed.
-  void HandleCommand(std::unique_ptr<CommandPacket> command);
+  void HandleCommand(std::unique_ptr<CommandPacket> command_packet);
 
   // Creates the mapping from the opcode to the method |callback|.
   // |callback|, which is provided by the controller, will be fired when its
   // command opcode is received from the HCI.
-  void RegisterControllerCallback(
+  void RegisterControllerCommand(
       std::uint16_t opcode,
       std::function<void(const std::vector<std::uint8_t> args)> callback);
 
+  // Sets the command and data callbacks for when packets are received from the
+  // HCI.
+  void RegisterHandlersWithTransport(HciTransport& transport);
+
  private:
-  // There will only be a single global instance of this class.
-  HciHandler() = default;
-
-  // The destructor can only be indirectly accessed through the static
-  // CleanUp() method that destructs the global handler.
-  ~HciHandler() = default;
-
-  // Disallow any copies of the singleton to be made.
-  DISALLOW_COPY_AND_ASSIGN(HciHandler);
-
   // Controller callbacks to be executed in handlers and registered in
   // RegisterControllerCallback().
   std::unordered_map<std::uint16_t,
                      std::function<void(const std::vector<std::uint8_t> args)> >
-      callbacks_;
+      commands_;
 };
 
 }  // namespace test_vendor_lib

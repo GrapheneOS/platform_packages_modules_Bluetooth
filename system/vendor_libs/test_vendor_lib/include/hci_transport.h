@@ -24,7 +24,7 @@ extern "C" {
 #include <sys/epoll.h>
 }  // extern "C"
 
-#include "base/macros.h"
+#include "base/message_loop/message_loop.h"
 #include "vendor_libs/test_vendor_lib/include/command_packet.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/packet.h"
@@ -32,99 +32,59 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-// Manages communication channel between HCI and the controller. Listens for
-// available events from the host and receives packeted data when it is ready.
-// Also exposes a single send method for the controller to pass events back to
-// the HCI.
-// TODO(dennischeng): Create a nested delegate interface and have the HciHandler
-// subclass that interface instead of using callbacks.
-class HciTransport {
+// Manages communication channel between HCI and the controller by providing the
+// socketing mechanisms for reading/writing between the HCI and the controller.
+class HciTransport : public base::MessageLoopForIO::Watcher {
  public:
-  // Returns the HCI's file descriptor for sending commands and data to the
-  // controller and for receiving events back.
+  HciTransport() = default;
+
+  virtual ~HciTransport() = default;
+
   int GetHciFd() const;
 
-  // Functions that operate on the global transport instance. Initialize()
-  // is called by the vendor library's Init() function to create the global
-  // transport and must be called before Get() and CleanUp().
-  // CleanUp() should be called when a call to TestVendorCleanUp() is made
-  // since the global transport should live throughout the entire time the test
-  // vendor library is in use.
-  static HciTransport* Get();
+  int GetVendorFd() const;
 
-  static void Initialize();
+  // Creates the underlying socketpair to be used as a communication channel
+  // between the HCI and the vendor library/controller.
+  bool SetUp();
 
-  static void CleanUp();
-
-  // Creates the underlying socketpair and packet stream object. Returns true if
-  // the connection was successfully made.
-  bool Connect();
-
-  // Waits for events on the listener end of the socketpair. Fires the
-  // associated callback for each type of packet when data is received via
-  // |packet_stream_|. Returns false if an error occurs.
-  bool Listen();
-
-  // Sets the callback that is run when command packets are sent by the HCI.
-  void RegisterCommandCallback(
+  // Sets the callback that is run when command packets are received.
+  void RegisterCommandHandler(
       std::function<void(std::unique_ptr<CommandPacket>)> callback);
 
-  // Posts the event onto |outgoing_events_| to be written whenever the HCI file
-  // descriptor is ready for writing.
+  // Posts the event onto |outgoing_events_| to be written sometime in the
+  // future when the vendor file descriptor is ready for writing.
   void SendEvent(std::unique_ptr<EventPacket> event);
 
  private:
-  // Loops through the epoll event buffer and receives packets if they are
-  // ready. Fires the corresponding handler callback for each received packet.
-  bool CheckReadyEpollEvents(const epoll_event& event_buffer, int num_ready);
+  // base::MessageLoopForIO::Watcher overrides:
+  void OnFileCanReadWithoutBlocking(int fd) override;
 
-  // Receives a packet from the HCI whenever the event loop signals that there
-  // is data to be received.
-  bool ReceiveReadyPacket() const;
+  void OnFileCanWriteWithoutBlocking(int fd) override;
 
-  // Reads in a command packet and calls the handler's command ready callback,
-  // passing owernship of the command packet to the handler.
+  // Reads in a command packet and calls the HciHandler's command ready
+  // callback, passing owernship of the command packet to the HciHandler.
   void ReceiveReadyCommand() const;
 
-  // Sends the event at the front of |outgoing_events_| to the HCI.
-  bool SendReadyEvent();
-
-  // There will only be one global instance of the HCI transport used by
-  // bt_vendor.cc and accessed via the static GetInstance() function.
-  HciTransport();
-
-  // The destructor can only be indirectly accessed through the static
-  // CleanUp() method that destructs the global transport.
-  ~HciTransport();
-
-  // Sets up the epoll instance and registers the listener fd. Returns true on
-  // success.
-  // TODO(dennischeng): import base/ and use a MessageLoopForIO for event loop.
-  bool ConfigEpoll();
-
   // Write queue for sending events to the HCI. Event packets are removed from
-  // the queue and written when write-readiness is signalled.
-  std::queue<std::unique_ptr<EventPacket>> outgoing_events_;
+  // the queue and written when write-readiness is signalled by the message
+  // loop.
+  // TODO(dennischeng): Use std::unique_ptr here.
+  std::queue<EventPacket*> outgoing_events_;
 
-  // Callback executed in Listen() for command packets.
-  std::function<void(std::unique_ptr<CommandPacket>)> command_callback_;
+  // Callback executed in ReceiveReadyCommand() to pass the incoming command
+  // over to the HciHandler for further processing.
+  std::function<void(std::unique_ptr<CommandPacket>)> command_handler_;
 
-  // File descriptor for epoll instance. Closed in the HciTransport destructor.
-  int epoll_fd_;
-
-  // Used to guard against multiple calls to Connect().
-  bool connected_;
-
-  // For performing packet IO.
+  // For performing packet-based IO.
   PacketStream packet_stream_;
 
   // The two ends of the socket pair used to communicate with the HCI.
-  // |socketpair_fds_[0]| is the listener end and is closed in the PacketStream
-  // object. |socketpair_fds_[1]| is the HCI end and is closed in bt_vendor.cc.
+  // |socketpair_fds_[0]| is the end that is handed back to the HCI in
+  // bt_vendor.cc. It is also closed in bt_vendor.cc by the HCI.
+  // |socketpair_fds_[1]| is the vendor end, used to receive and send data in
+  // the vendor library and controller. It is closed by |packet_stream_|.
   int socketpair_fds_[2];
-
-  // Disallow any copies of the singleton to be made.
-  DISALLOW_COPY_AND_ASSIGN(HciTransport);
 };
 
 }  // namespace test_vendor_lib
