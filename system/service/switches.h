@@ -31,11 +31,11 @@ const char kHelpMessage[] =
     "\nBluetooth System Service\n"
     "\n"
     "Usage:\n"
-    "\t--help,-h\tShow this help message\n"
+    "\t--help,-h\t\t\tShow this help message\n"
     "\t--android-ipc-socket-suffix\tSuffix of socket created by Android init. "
     "Mutually exclusive with --create-ipc-socket.\n"
-    "\t--create-ipc-socket\tSocket path created for Unix domain socket based "
-    "IPC. Mutually exclusive with --android-ipc-socket-suffix.";
+    "\t--create-ipc-socket\t\tSocket path created for Unix domain socket based "
+    "IPC. Mutually exclusive with --android-ipc-socket-suffix.\n";
 
 }  // namespace switches
 }  // namespace bluetooth

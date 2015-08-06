@@ -30,10 +30,6 @@ namespace base {
 class SingleThreadTaskRunner;
 }  // namespace base
 
-namespace bluetooth {
-class CoreStack;
-}  // namespace bluetooth
-
 namespace ipc {
 
 // Implements a UNIX domain-socket based IPCHandler

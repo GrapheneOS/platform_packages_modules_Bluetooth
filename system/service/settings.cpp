@@ -23,7 +23,8 @@
 
 namespace bluetooth {
 
-Settings::Settings() : initialized_(false) {
+Settings::Settings()
+    : initialized_(false) {
 }
 
 Settings::~Settings() {
