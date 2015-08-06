@@ -41,9 +41,9 @@ bool IPCHandlerUnix::Run() {
   CHECK(!running_);
 
   const std::string& android_suffix =
-      bluetooth::Daemon::Get()->settings()->android_ipc_socket_suffix();
+      bluetooth::Daemon::Get()->GetSettings()->android_ipc_socket_suffix();
   const base::FilePath& path =
-      bluetooth::Daemon::Get()->settings()->create_ipc_socket_path();
+      bluetooth::Daemon::Get()->GetSettings()->create_ipc_socket_path();
 
   // Both flags cannot be set at the same time.
   CHECK(android_suffix.empty() || path.empty());
