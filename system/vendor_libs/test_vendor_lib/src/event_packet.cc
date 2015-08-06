@@ -24,8 +24,6 @@
 extern "C" {
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
-
-#include <assert.h>
 }  // extern "C"
 
 namespace test_vendor_lib {

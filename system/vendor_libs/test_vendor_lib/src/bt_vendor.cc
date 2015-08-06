@@ -16,17 +16,17 @@
 
 #define LOG_TAG "bt_vendor"
 
+#include <pthread.h>
+
+#include "base/logging.h"
 #include "hci/include/bt_vendor_lib.h"
 #include "vendor_libs/test_vendor_lib/include/bredr_controller.h"
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
-#include <pthread.h>
-
 extern "C" {
 #include "osi/include/log.h"
 
-#include <assert.h>
 #include <unistd.h>
 }  // extern "C"
 
@@ -50,8 +50,7 @@ static int TestVendorInitialize(const bt_vendor_callbacks_t* p_cb,
                           unsigned char* /* local_bdaddr */) {
   LOG_INFO(LOG_TAG, "Initializing test controller.");
 
-  // TODO(dennischeng): use CHECK and DCHECK when libbase is imported.
-  assert(p_cb);
+  CHECK(p_cb);
   vendor_callbacks = const_cast<bt_vendor_callbacks_t*>(p_cb);
 
   // Initialize global objects. The order of initialization does not matter,
