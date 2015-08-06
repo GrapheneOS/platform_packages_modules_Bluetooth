@@ -16,25 +16,9 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-ifeq ($(HOST_OS),linux)
-include $(CLEAR_VARS)
-LOCAL_SRC_FILES := \
-	settings.cpp \
-	test/settings_unittest.cpp \
-	test/uuid_unittest.cpp \
-	uuid.cpp
-LOCAL_C_INCLUDES += \
-	$(LOCAL_PATH)/../
-LOCAL_CFLAGS += -std=c++11
-LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := bt_service_unittests
-LOCAL_SHARED_LIBRARIES += libchrome-host
-include $(BUILD_HOST_NATIVE_TEST)
-endif
-
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := \
+# Common variables
+# ========================================================
+btserviceCommonSrc := \
 	a2dp_source.cpp \
 	core_stack.cpp \
 	daemon.cpp \
@@ -44,13 +28,18 @@ LOCAL_SRC_FILES := \
 	ipc/ipc_manager.cpp \
 	ipc/unix_ipc_host.cpp \
 	logging_helpers.cpp \
-	main.cpp \
 	settings.cpp \
 	uuid.cpp
 
-LOCAL_C_INCLUDES += \
-        $(LOCAL_PATH)/../
+btserviceCommonIncludes := $(LOCAL_PATH)/../
 
+# Native system service for target
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+	$(btserviceCommonSrc) \
+	main.cpp
+LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
@@ -61,5 +50,24 @@ LOCAL_SHARED_LIBRARIES += \
 	libcutils \
 	libhardware \
 	liblog
-
 include $(BUILD_EXECUTABLE)
+
+# Native system service unittests for host
+# ========================================================
+ifeq ($(HOST_OS),linux)
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+	$(btserviceCommonSrc) \
+	test/fake_hal_util.cpp \
+	test/ipc_unix_unittest.cpp \
+	test/settings_unittest.cpp \
+	test/uuid_unittest.cpp
+LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_CFLAGS += -std=c++11
+LOCAL_LDLIBS += -lrt
+LOCAL_MODULE_TAGS := tests
+LOCAL_MODULE := bt_service_unittests
+LOCAL_SHARED_LIBRARIES += libchrome-host
+LOCAL_STATIC_LIBRARIES += libgmock_host liblog
+include $(BUILD_HOST_NATIVE_TEST)
+endif

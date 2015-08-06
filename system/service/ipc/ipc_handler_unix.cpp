@@ -28,13 +28,19 @@
 
 namespace ipc {
 
-IPCHandlerUnix::IPCHandlerUnix(bluetooth::CoreStack* core_stack)
-    : IPCHandler(core_stack),
+IPCHandlerUnix::IPCHandlerUnix(bluetooth::CoreStack* core_stack,
+                               IPCManager::Delegate* delegate)
+    : IPCHandler(core_stack, delegate),
       running_(false),
-      thread_("IPCHandlerUnix") {
+      thread_("IPCHandlerUnix"),
+      keep_running_(true) {
 }
 
 IPCHandlerUnix::~IPCHandlerUnix() {
+  // This will only be set if the Settings::create_ipc_socket_path() was
+  // originally provided.
+  if (!socket_path_.empty())
+    unlink(socket_path_.value().c_str());
 }
 
 bool IPCHandlerUnix::Run() {
@@ -70,8 +76,6 @@ bool IPCHandlerUnix::Run() {
     // the current directory that we're not supposed to. For now we will have an
     // assumption that the daemon runs in a sandbox but we should generally do
     // this properly.
-    //
-    // Also, the daemon should clean this up properly as it shuts down.
     unlink(path.value().c_str());
 
     base::ScopedFD server_socket(socket(PF_UNIX, SOCK_SEQPACKET, 0));
@@ -92,6 +96,7 @@ bool IPCHandlerUnix::Run() {
     }
 
     socket_.swap(server_socket);
+    socket_path_ = path;
   }
 
   CHECK(socket_.is_valid());
@@ -113,9 +118,26 @@ bool IPCHandlerUnix::Run() {
   return true;
 }
 
+void IPCHandlerUnix::Stop() {
+  keep_running_ = false;
+
+  // At this moment the listening thread might be blocking on the accept
+  // syscall. Shutdown and close the server socket before joining the thread to
+  // interrupt accept so that the main thread doesn't keep blocking.
+  shutdown(socket_.get(), SHUT_RDWR);
+  socket_.reset();
+
+  // Join and clean up the thread.
+  thread_.Stop();
+
+  // Thread exited. Notify the delegate. Post this on the event loop so that the
+  // callback isn't reentrant.
+  NotifyStoppedOnOriginThread();
+}
+
 void IPCHandlerUnix::StartListeningOnThread() {
   CHECK(socket_.is_valid());
-  CHECK(core_stack_);
+  CHECK(core_stack());
   CHECK(running_);
 
   LOG(INFO) << "Listening to incoming connections";
@@ -129,16 +151,23 @@ void IPCHandlerUnix::StartListeningOnThread() {
     return;
   }
 
+  NotifyStartedOnOriginThread();
+
+  // TODO(armansito): The code below can cause the daemon to run indefinitely if
+  // the thread is joined while it's in the middle of the EventLoop() call. The
+  // EventLoop() won't exit until a client terminates the connection, however
+  // this can be fixed by using the |thread_|'s MessageLoopForIO instead (since
+  // it gets stopped along with the thread).
   // TODO(icoolidge): accept simultaneous clients
-  while (true) {
+  while (keep_running_.load()) {
     int client_socket = accept4(socket_.get(), nullptr, nullptr, SOCK_NONBLOCK);
-    if (status == -1) {
+    if (client_socket < 0) {
       LOG(ERROR) << "Failed to accept client connection: " << strerror(errno);
       continue;
     }
 
     LOG(INFO) << "Established client connection: fd=" << client_socket;
-    UnixIPCHost ipc_host(client_socket, core_stack_);
+    UnixIPCHost ipc_host(client_socket, core_stack());
     // TODO(armansito): Use |thread_|'s MessageLoopForIO instead of using a
     // custom event loop to poll from the socket.
     ipc_host.EventLoop();
@@ -150,8 +179,35 @@ void IPCHandlerUnix::ShutDownOnOriginThread() {
   thread_.Stop();
   running_ = false;
 
-  // TODO(armansito): Notify the upper layer so that they can perform clean-up
-  // tasks on unexpected shut-down.
+  NotifyStoppedOnCurrentThread();
+}
+
+void IPCHandlerUnix::NotifyStartedOnOriginThread() {
+  if (!delegate())
+    return;
+
+  origin_task_runner_->PostTask(
+      FROM_HERE,
+      base::Bind(&IPCHandlerUnix::NotifyStartedOnCurrentThread, this));
+}
+
+void IPCHandlerUnix::NotifyStartedOnCurrentThread() {
+  if (delegate())
+    delegate()->OnIPCHandlerStarted(IPCManager::TYPE_UNIX);
+}
+
+void IPCHandlerUnix::NotifyStoppedOnOriginThread() {
+  if (!delegate())
+    return;
+
+  origin_task_runner_->PostTask(
+      FROM_HERE,
+      base::Bind(&IPCHandlerUnix::NotifyStoppedOnCurrentThread, this));
+}
+
+void IPCHandlerUnix::NotifyStoppedOnCurrentThread() {
+  if (delegate())
+    delegate()->OnIPCHandlerStopped(IPCManager::TYPE_UNIX);
 }
 
 }  // namespace ipc
