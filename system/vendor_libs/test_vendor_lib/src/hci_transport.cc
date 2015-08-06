@@ -31,144 +31,46 @@ extern "C" {
 #include "osi/include/log.h"
 }  // extern "C"
 
-namespace {
-// The maximum number of events in the epoll event buffer.
-const int kMaxEpollEvents = 10;
-}  // namespace
-
 namespace test_vendor_lib {
 
-// Global HciTransport instance used in the vendor library.
-// TODO(dennischeng): Should this be moved to an unnamed namespace?
-HciTransport* g_transporter = nullptr;
-
-HciTransport::HciTransport() : epoll_fd_(-1), connected_(false) {}
-
-HciTransport::~HciTransport() {
-  close(epoll_fd_);
-}
-
-bool HciTransport::ConfigEpoll() {
-  epoll_fd_ = epoll_create1(EPOLL_CLOEXEC);
-  epoll_event event;
-  event.events = EPOLLIN | EPOLLOUT;
-  event.data.fd = socketpair_fds_[0];
-  return epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, socketpair_fds_[0], &event) >= 0;
-}
-
 int HciTransport::GetHciFd() const {
+  return socketpair_fds_[0];
+}
+
+int HciTransport::GetVendorFd() const {
   return socketpair_fds_[1];
 }
 
-// static
-HciTransport* HciTransport::Get() {
-  // Initialize should have been called already.
-  CHECK(g_transporter);
-  return g_transporter;
-}
-
-// static
-void HciTransport::Initialize() {
-  // Multiple calls to Initialize should not be made.
-  CHECK(!g_transporter);
-  g_transporter = new HciTransport();
-}
-
-// static
-void HciTransport::CleanUp() {
-  delete g_transporter;
-  g_transporter = nullptr;
-}
-
-bool HciTransport::Connect() {
-  if (connected_) {
-    LOG_ERROR(LOG_TAG, "Error: transporter is already connected.");
-    return false;
-  }
-
+bool HciTransport::SetUp() {
   // TODO(dennischeng): Use SOCK_SEQPACKET here.
-  if (socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds_) < 0) {
-    LOG_ERROR(LOG_TAG, "Error: creating socketpair in HciTransport.");
-    return false;
-  }
-
-  // Set the descriptor for the packet stream object. |packet_stream_| will take
-  // ownership of the descriptor.
-  packet_stream_.SetFd(socketpair_fds_[0]);
-
-  // Initialize epoll instance and set the file descriptor to listen on.
-  if (ConfigEpoll() < 0) {
-    LOG_ERROR(LOG_TAG, "Error: registering hci listener with epoll instance.");
-    return false;
-  }
-
-  connected_ = true;
-  return true;
+  return socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds_) >= 0;
 }
 
-bool HciTransport::Listen() {
-  epoll_event event_buffer[kMaxEpollEvents];
-  int num_ready;
+void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
+  CHECK(fd == GetVendorFd());
 
-  // Check for ready events.
-  if ((num_ready = epoll_wait(epoll_fd_, event_buffer, kMaxEpollEvents, -1)) <
-      0) {
-     LOG_ERROR(LOG_TAG, "Error: epoll wait.");
-     return false;
-  }
-
-  return CheckReadyEpollEvents(*event_buffer, num_ready);
-}
-
-bool HciTransport::CheckReadyEpollEvents(const epoll_event& event_buffer,
-                                         int num_ready) {
-  for (int i = 0; i < num_ready; ++i) {
-    epoll_event event = (&event_buffer)[i];
-    // Event has data ready to be read.
-    if (event.events & EPOLLIN) {
-      return ReceiveReadyPacket();
-    }
-    if (event.events & EPOLLOUT) {
-      if (!outgoing_events_.empty()) {
-        return SendReadyEvent();
-      }
-      return true;
-    }
-  }
-  return false;
-}
-
-bool HciTransport::SendReadyEvent() {
-  bool send_successful = packet_stream_.SendEvent(*outgoing_events_.front());
-  outgoing_events_.pop();
-  return send_successful;
-}
-
-bool HciTransport::ReceiveReadyPacket() const {
   LOG_INFO(LOG_TAG, "Event ready in HciTransport.");
   serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
 
   switch (packet_type) {
     case (DATA_TYPE_COMMAND): {
       ReceiveReadyCommand();
-      return true;
+      break;
     }
 
     case (DATA_TYPE_ACL): {
       LOG_INFO(LOG_TAG, "ACL data packets not currently supported.");
-      return true;
+      break;
     }
 
     case (DATA_TYPE_SCO): {
       LOG_INFO(LOG_TAG, "SCO data packets not currently supported.");
-      return true;
+      break;
     }
 
     // TODO(dennischeng): Add debug level assert here.
     default: {
-      LOG_INFO(LOG_TAG,
-               "Error received an invalid packet type from the HCI.");
-      return false;
+      LOG_INFO(LOG_TAG, "Error received an invalid packet type from the HCI.");
     }
   }
 }
@@ -177,16 +79,25 @@ void HciTransport::ReceiveReadyCommand() const {
   std::unique_ptr<CommandPacket> command =
       packet_stream_.ReceiveCommand();
   LOG_INFO(LOG_TAG, "Received command packet.");
-  command_callback_(std::move(command));
+  command_handler_(std::move(command));
 }
 
-void HciTransport::RegisterCommandCallback(
+void HciTransport::RegisterCommandHandler(
     std::function<void(std::unique_ptr<CommandPacket>)> callback) {
-  command_callback_ = callback;
+  command_handler_ = callback;
 }
 
+// TODO(dennischeng): Use std::move() semantics here.
 void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
-  outgoing_events_.push(std::move(event));
+  outgoing_events_.push(event.get());
+}
+
+void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
+  CHECK(fd == GetVendorFd());
+  if (!outgoing_events_.empty()) {
+    packet_stream_.SendEvent(*outgoing_events_.front());
+    outgoing_events_.pop();
+  }
 }
 
 }  // namespace test_vendor_lib

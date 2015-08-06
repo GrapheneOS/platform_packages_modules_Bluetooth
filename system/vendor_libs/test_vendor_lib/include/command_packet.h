@@ -44,7 +44,7 @@ class CommandPacket : public Packet {
  public:
   CommandPacket();
 
-  ~CommandPacket() override = default;
+  virtual ~CommandPacket() override = default;
 
   // Returns the command opcode as defined in stack/include/hcidefs.h.
   // See the Bluetooth Core Specification Version 4.2, Volume 2, Part E,

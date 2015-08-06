@@ -19,7 +19,6 @@
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 
 #include "base/logging.h"
-#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 extern "C" {
 #include "osi/include/log.h"
@@ -27,59 +26,31 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-// Global HciHandler instance used in the vendor library.
-// TODO(dennischeng): Should this be moved to an unnamed namespace?
-HciHandler* g_handler = nullptr;
-
-void HciHandler::RegisterTransportCallbacks() {
-  HciTransport* transporter = HciTransport::Get();
+void HciHandler::RegisterHandlersWithTransport(HciTransport& transport) {
   // Register the command packet callback with the HciTransport.
-  transporter->RegisterCommandCallback(
+  transport.RegisterCommandHandler(
       std::bind(&HciHandler::HandleCommand, this, std::placeholders::_1));
 }
 
-// static
-HciHandler* HciHandler::Get() {
-  // Initialize should have been called already.
-  CHECK(g_handler);
-  return g_handler;
-}
-
-// static
-void HciHandler::Initialize() {
-  // Multiple calls to Initialize should not be made.
-  CHECK(!g_handler);
-  g_handler = new HciHandler();
-}
-
-// static
-void HciHandler::CleanUp() {
-  delete g_handler;
-  g_handler = nullptr;
-}
-
-void HciHandler::HandleCommand(std::unique_ptr<CommandPacket> command) {
-  LOG_INFO(LOG_TAG, "Handling command packet in HciHandler.");
-
-  uint16_t opcode = command->GetOpcode();
-  LOG_INFO(LOG_TAG, "Command packet opcode: 0x%04X", opcode);
-  LOG_INFO(LOG_TAG, "Command packet OGF: 0x%04X", command->GetOGF());
-  LOG_INFO(LOG_TAG, "Command packet OCF: 0x%04X", command->GetOCF());
+void HciHandler::HandleCommand(std::unique_ptr<CommandPacket> command_packet) {
+  uint16_t opcode = command_packet->GetOpcode();
+  LOG_INFO(LOG_TAG, "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X", opcode,
+           command_packet->GetOGF(), command_packet->GetOCF());
 
   // The command hasn't been registered with the handler yet. There is nothing
   // to do.
-  if (callbacks_.count(opcode) == 0) {
+  if (commands_.count(opcode) == 0) {
     return;
   }
-  std::function<void(const std::vector<uint8_t> args)> callback =
-      callbacks_[opcode];
-  callback(command->GetPayload());
+  std::function<void(const std::vector<uint8_t> args)> command =
+      commands_[opcode];
+  command(command_packet->GetPayload());
 }
 
-void HciHandler::RegisterControllerCallback(
+void HciHandler::RegisterControllerCommand(
     uint16_t opcode,
     std::function<void(const std::vector<uint8_t> args)> callback) {
-  callbacks_[opcode] = callback;
+  commands_[opcode] = callback;
 }
 
 }  // namespace test_vendor_lib

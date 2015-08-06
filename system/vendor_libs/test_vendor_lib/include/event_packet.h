@@ -20,6 +20,7 @@
 #include <memory>
 #include <vector>
 
+#include "base/logging.h"
 #include "vendor_libs/test_vendor_lib/include/packet.h"
 
 namespace test_vendor_lib {

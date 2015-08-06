@@ -1,8 +1,8 @@
 shared_library("test_vendor_lib") {
   sources = [
-    "src/bredr_controller.cc",
     "src/bt_vendor.cc",
     "src/command_packet.cc",
+    "src/dual_mode__controller.cc",
     "src/event_packet.cc",
     "src/hci_handler.cc",
     "src/hci_transport.cc",
