@@ -58,17 +58,21 @@ executable("bluetoothtbd") {
 executable("service_unittests") {
   testonly = true
   sources = [
+    "test/fake_hal_util.cpp",
+    "test/ipc_unix_unittest.cpp",
     "test/settings_unittest.cpp",
     "test/uuid_unittest.cpp",
   ]
 
   include_dirs = [
     "//",
+    "//third_party/gmock/include",
     "//third_party/libchrome"
   ]
 
   deps = [
     ":service",
+    "//third_party/gmock:gmock_main",
     "//third_party/gtest:gtest_main",
     "//third_party/libchrome:base",
     "//third_party/modp_b64",

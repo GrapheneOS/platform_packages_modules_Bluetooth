@@ -14,20 +14,16 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/ipc_handler.h"
+extern "C" {
 
-#include <base/logging.h>
-
-namespace ipc {
-
-IPCHandler::IPCHandler(bluetooth::CoreStack* core_stack,
-                       IPCManager::Delegate* delegate)
-    : core_stack_(core_stack),
-      delegate_(delegate) {
-  CHECK(core_stack_);
+// TODO(armansito): This provides a fake implementation of the function defined
+// in btcore/include/hal_util.h. We have to provide this to prevent having to
+// pull in libbtcore and transitively libhardware as dependencies for the unit
+// tests. Instead of doing it this way, however, we should instead provide a C++
+// class abstraction for this (and all other btif interfaces) that we can mock
+// for testing.
+int hal_util_load_bt_library(const struct hw_module_t** module) {
+  return -1;
 }
 
-IPCHandler::~IPCHandler() {
-}
-
-}  // namespace ipc
+}  // extern "C"

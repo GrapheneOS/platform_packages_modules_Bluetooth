@@ -26,13 +26,23 @@ IPCManager::IPCManager(bluetooth::CoreStack* core_stack)
 }
 
 IPCManager::~IPCManager() {
+  // Don't rely on the handlers getting destroyed since another thread might be
+  // holding a reference to them. Instead, explicitly stop them here.
+  if (BinderStarted())
+    binder_handler_->Stop();
+  if (UnixStarted())
+    unix_handler_->Stop();
 }
 
-bool IPCManager::Start(Type type) {
+bool IPCManager::Start(Type type, Delegate* delegate) {
   switch (type) {
   case TYPE_UNIX:
-    unix_handler_ = new IPCHandlerUnix(core_stack_);
-    return unix_handler_->Run();
+    unix_handler_ = new IPCHandlerUnix(core_stack_, delegate);
+    if (!unix_handler_->Run()) {
+      unix_handler_ = nullptr;
+      return false;
+    }
+    return true;
   case TYPE_BINDER:
     // TODO(armansito): Support Binder
   default:
