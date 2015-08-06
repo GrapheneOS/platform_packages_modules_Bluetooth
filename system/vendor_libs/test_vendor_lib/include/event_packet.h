@@ -49,17 +49,103 @@ class EventPacket : public Packet {
   // Creates and returns a command complete event packet. See the Bluetooth
   // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.14 (page 861)
   // for more information about the command complete event.
-  // |num_hci_command_packets| indicates the number of HCI command packets the
-  // host can send to the controller. If |num_hci_command_packets| is 0, the
-  // controller would like to stop receiving commands from the host (to indicate
-  // readiness again, the controller sends a command complete event with
-  // |command_opcode| to 0x0000 (no op) and |num_hci_command_packets| > 1).
-  // |command_opcode| is the opcode of the command that caused this event.
-  // |return_parameters| will contain any event specific parameters that should
-  // be sent to the host.
+  // Event Parameters:
+  //   |num_hci_command_packets|
+  //     Indicates the number of HCI command packets the host can send to the
+  //     controller. If |num_hci_command_packets| is 0, the controller would
+  //     like to stop receiving commands from the host (to indicate
+  //     readiness again, the controller sends a command complete event with
+  //     |command_opcode| to 0x0000 (no op) and |num_hci_command_packets| > 1).
+  //   |command_opcode|
+  //     The opcode of the command that caused this event.
+  //   |return_parameters|
+  //     Contains any event specific parameters that should
+  //     be sent to the host.
   static std::unique_ptr<EventPacket> CreateCommandCompleteEvent(
       std::uint8_t num_hci_command_packets, std::uint16_t command_opcode,
       const std::vector<std::uint8_t>& event_return_parameters);
+
+  // Creates and returns a command complete event packet. See the Bluetooth
+  // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.15 (page 862)
+  // for more information about the command complete event.
+  // Event Parameters:
+  //   Status
+  //     0x00: Command currently in pending.
+  //     0x01-0xFF: Command failed.
+  //   |num_hci_command_packets|
+  //     Indicates the number of HCI command packets the host can send to the
+  //     controller. If |num_hci_command_packets| is 0, the controller would
+  //     like to stop receiving commands from the host (to indicate
+  //     readiness again, the controller sends a command complete event with
+  //     |command_opcode| to 0x0000 (no op) and |num_hci_command_packets| > 1).
+  //   |command_opcode|
+  //     The opcode of the command that caused this event.
+  static std::unique_ptr<EventPacket> CreateCommandStatusEvent(
+      std::uint8_t num_hci_command_packets, std::uint16_t command_opcode);
+
+  // Creates and returns an inquiry result event packet. See the Bluetooth
+  // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.2 (page 844)
+  // for more information about the command complete event.
+  // Event Parameters:
+  //   Num Responses (1 octet)
+  //     0xXX: Number of responses from the inquiry.
+  //   Bd Addresses (6 octets * Num Responses)
+  //     0xXXXXXXXXXXX: Bd Address for each device which responded.
+  //   Page Scan Repetition Mode (1 octet * Num Responses)
+  //     0x00: R0
+  //     0x01: R1
+  //     0x02: R2
+  //     0x03-0xFF: Reserved.
+  //   Reserved 1 (1 octet * Num Responses)
+  //     Originally Page Scan Period Mode parameter. No longer in use.
+  //   Reserved 2 (1 octet * Num Responses)
+  //     Originally Page Scan Mode parameter. No longer in use.
+  //   Class of Device (3 octet * Num Responses)
+  //     0xXXXXXX: Class of device.
+  //   Clock Offset (2 octet * Num Responses)
+  //     Bits 14-0: Bits 16-2 of CLKNslave-CLK.
+  //     Bits 15: Reserved.
+  static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
+      std::uint8_t num_responses, const std::vector<std::uint8_t>& bd_addresses,
+      const std::vector<std::uint8_t>& page_scan_repetition_mode,
+      const std::vector<std::uint8_t>& page_scan_period_mode,
+      const std::vector<std::uint8_t>& page_scan_mode,
+      const std::vector<std::uint8_t>& class_of_device,
+      const std::vector<std::uint8_t>& clock_offset);
+
+  // Creates and returns an inquiry result event packet. See the Bluetooth
+  // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.38 (page 896)
+  // for more information about the command complete event.
+  // Event Parameters:
+  //   Num Responses (1 octet)
+  //     0x01: Always contains a single response.
+  //   Bd Addresses (6 octets * Num Responses)
+  //     0xXXXXXXXXXXX: Bd Address for each device which responded.
+  //   Page Scan Repetition Mode (1 octet * Num Responses)
+  //     0x00: R0
+  //     0x01: R1
+  //     0x02: R2
+  //     0x03-0xFF: Reserved.
+  //   Reserved 1 (1 octet * Num Responses)
+  //     Originally Page Scan Period Mode parameter. No longer in use.
+  //   Class of Device (3 octet * Num Responses)
+  //     0xXXXXXX: Class of device.
+  //   Clock Offset (2 octet * Num Responses)
+  //     Bits 14-0: Bits 16-2 of CLKNslave-CLK.
+  //     Bits 15: Reserved.
+  //   RSSI (1 octet)
+  //     0xXX: Ranges from -127 to +20. Units are dBm.
+  //  Extended Inquiry Response (240 octets)
+  //    Defined in Volumne 2, Part C, Section 8. Also see the Supplement to the
+  //    Bluetooth Core Specificiation for data type definitions and formats.
+  static std::unique_ptr<EventPacket> CreateExtendedInquiryResultEvent(
+      const std::vector<std::uint8_t>& bd_address,
+      const std::vector<std::uint8_t>& page_scan_repetition_mode,
+      const std::vector<std::uint8_t>& page_scan_period_mode,
+      const std::vector<std::uint8_t>& class_of_device,
+      const std::vector<std::uint8_t>& clock_offset,
+      const std::vector<std::uint8_t>& rssi,
+      const std::vector<std::uint8_t>& extended_inquiry_response);
 
   // Size in octets of a data packet header, which consists of a 1 octet
   // event code and a 1 octet payload size.

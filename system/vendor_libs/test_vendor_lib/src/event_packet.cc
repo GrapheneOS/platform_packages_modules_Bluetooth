@@ -16,6 +16,9 @@
 
 #define LOG_TAG "event_packet"
 
+#define VECTOR_COPY_TO_END(source, destination) \
+  std::copy(source.begin(), source.end(), std::back_inserter(destination));
+
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 
 extern "C" {
@@ -49,11 +52,81 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteEvent(
   payload.push_back(num_hci_command_packets);
   payload.push_back(command_opcode);
   payload.push_back(command_opcode >> 8);
-  std::copy(event_return_parameters.begin(), event_return_parameters.end(),
-            std::back_inserter(payload));
+  VECTOR_COPY_TO_END(event_return_parameters, payload);
 
   return std::unique_ptr<EventPacket>(
       new EventPacket(HCI_COMMAND_COMPLETE_EVT, payload));
+}
+
+// static
+std::unique_ptr<EventPacket> EventPacket::CreateCommandStatusEvent(
+    std::uint8_t num_hci_command_packets, std::uint16_t command_opcode) {
+  size_t payload_size =
+      sizeof(num_hci_command_packets) + sizeof(command_opcode);
+
+  std::vector<uint8_t> payload;
+  payload.reserve(payload_size);
+  payload.push_back(num_hci_command_packets);
+  payload.push_back(command_opcode);
+  payload.push_back(command_opcode >> 8);
+
+  return std::unique_ptr<EventPacket>(
+      new EventPacket(HCI_COMMAND_STATUS_EVT, payload));
+}
+
+//static
+std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
+    std::uint8_t num_responses, const std::vector<std::uint8_t>& bd_addresses,
+    const std::vector<std::uint8_t>& page_scan_repetition_mode,
+    const std::vector<std::uint8_t>& page_scan_period_mode,
+    const std::vector<std::uint8_t>& page_scan_mode,
+    const std::vector<std::uint8_t>& class_of_device,
+    const std::vector<std::uint8_t>& clock_offset) {
+  size_t payload_size = sizeof(num_responses) + bd_addresses.size() +
+                        page_scan_repetition_mode.size() +
+                        page_scan_period_mode.size() + page_scan_mode.size() +
+                        class_of_device.size() + clock_offset.size();
+
+  std::vector<uint8_t> payload;
+  payload.reserve(payload_size);
+  payload.push_back(num_responses);
+  VECTOR_COPY_TO_END(bd_addresses, payload);
+  VECTOR_COPY_TO_END(page_scan_repetition_mode, payload);
+  VECTOR_COPY_TO_END(page_scan_mode, payload);
+  VECTOR_COPY_TO_END(class_of_device, payload);
+  VECTOR_COPY_TO_END(clock_offset, payload);
+
+  return std::unique_ptr<EventPacket>(
+      new EventPacket(HCI_INQUIRY_RESULT_EVT, payload));
+}
+
+//static
+std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
+    const std::vector<std::uint8_t>& bd_address,
+    const std::vector<std::uint8_t>& page_scan_repetition_mode,
+    const std::vector<std::uint8_t>& page_scan_period_mode,
+    const std::vector<std::uint8_t>& class_of_device,
+    const std::vector<std::uint8_t>& clock_offset,
+    const std::vector<std::uint8_t>& rssi,
+    const std::vector<std::uint8_t>& extended_inquiry_response) {
+  size_t payload_size =
+      1 + bd_address.size() + page_scan_repetition_mode.size() +
+      page_scan_period_mode.size() + class_of_device.size() +
+      clock_offset.size() + rssi.size() + extended_inquiry_response.size();
+
+  std::vector<uint8_t> payload;
+  payload.reserve(payload_size);
+  payload.push_back(1);  // Each extended inquiry result contains one device.
+  VECTOR_COPY_TO_END(bd_address, payload);
+  VECTOR_COPY_TO_END(page_scan_repetition_mode, payload);
+  VECTOR_COPY_TO_END(page_scan_period_mode, payload);
+  VECTOR_COPY_TO_END(class_of_device, payload);
+  VECTOR_COPY_TO_END(clock_offset, payload);
+  VECTOR_COPY_TO_END(rssi, payload);
+  VECTOR_COPY_TO_END(extended_inquiry_response, payload);
+
+  return std::unique_ptr<EventPacket>(
+      new EventPacket(HCI_EXTENDED_INQUIRY_RESULT_EVT, payload));
 }
 
 }  // namespace test_vendor_lib
