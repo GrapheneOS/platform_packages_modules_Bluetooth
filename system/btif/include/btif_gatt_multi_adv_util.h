@@ -16,11 +16,10 @@
  *
  ******************************************************************************/
 
-
-#ifndef BTIF_GATT_MULTI_ADV_UTIL_H
-#define BTIF_GATT_MULTI_ADV_UTIL_H
+#pragma once
 
 #include <hardware/bluetooth.h>
+
 #include "bta_api.h"
 
 #define CLNT_IF_IDX 0
@@ -50,6 +49,7 @@ typedef struct
     uint8_t* p_service_uuid;
 } btif_adv_data_t;
 
+
 typedef struct
 {
     BOOLEAN is_scan_rsp;
@@ -60,17 +60,18 @@ typedef struct
     tBTA_BLE_ADV_PARAMS param;
     TIMER_LIST_ENT tle_limited_timer;
     int timeout_s;
-}btgatt_multi_adv_inst_cb;
+} btgatt_multi_adv_inst_cb;
 
 typedef struct
 {
-     INT8 *clntif_map;
+    INT8 *clntif_map;
     // Includes the stored data for standard LE instance
     btgatt_multi_adv_inst_cb *inst_cb;
 
 } btgatt_multi_adv_common_data;
 
 extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
+
 extern void btif_gattc_incr_app_count(void);
 extern void btif_gattc_decr_app_count(void);
 extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
@@ -92,6 +93,4 @@ extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
 extern void btif_gattc_adv_data_cleanup(const btif_adv_data_t* adv);
 void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb);
-#endif
-
 
