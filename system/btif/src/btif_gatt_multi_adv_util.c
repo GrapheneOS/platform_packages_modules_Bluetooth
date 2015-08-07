@@ -36,6 +36,7 @@
 
 #if (BLE_INCLUDED == TRUE)
 
+#include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
 
 #include "bta_gatt_api.h"
