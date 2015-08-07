@@ -1661,9 +1661,9 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     p_buf->len = (UINT16) (p - p_start);
 
     /* stash sig, label, and message type in buf */
-    p_buf->event = 0;
-    AVDT_BLD_LAYERSPEC(p_buf->layer_specific, 0, p_params->hdr.label);
-    AVDT_TRACE_DEBUG("avdt_msg_send_grej");
+    p_buf->event = sig_id;
+    AVDT_BLD_LAYERSPEC(p_buf->layer_specific, AVDT_MSG_TYPE_GRJ, p_params->hdr.label);
+    AVDT_TRACE_DEBUG(__func__);
 
     /* queue message and trigger ccb to send it */
     fixed_queue_enqueue(p_ccb->rsp_q, p_buf);
