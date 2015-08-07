@@ -19,8 +19,10 @@
 #ifndef BTIF_HL_H
 #define BTIF_HL_H
 
-#include "bt_types.h"
+#include <hardware/bluetooth.h>
+
 #include "bta_hl_api.h"
+#include "gki.h"
 
 /*******************************************************************************
 **  Constants & Macros
