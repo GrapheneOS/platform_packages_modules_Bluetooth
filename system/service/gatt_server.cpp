@@ -13,6 +13,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
+#define LOG_TAG "bt_gatts"
+
 #include "gatt_server.h"
 
 #include <stdio.h>
@@ -30,13 +33,11 @@
 #include <unordered_map>
 #include <vector>
 
-#define LOG_TAG "bt_gatt_server"
-#include "osi/include/log.h"
-
 #include "core_stack.h"
 #include "hardware/bluetooth.h"
 #include "hardware/bt_gatt.h"
 #include "logging_helpers.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "uuid.h"
 

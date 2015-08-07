@@ -30,6 +30,8 @@
 
 #define LOG_TAG "bt_btif_storage"
 
+#include "btif_storage.h"
+
 #include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
@@ -37,14 +39,11 @@
 #include <string.h>
 #include <time.h>
 
-#include <hardware/bluetooth.h>
-
 #include "bta_hh_api.h"
 #include "btcore/include/bdaddr.h"
 #include "btif_api.h"
 #include "btif_config.h"
 #include "btif_hh.h"
-#include "btif_storage.h"
 #include "btif_util.h"
 #include "gki.h"
 #include "osi/include/allocator.h"
@@ -78,7 +77,6 @@
 #define BTIF_STORAGE_KEY_ADAPTER_SCANMODE "ScanMode"
 #define BTIF_STORAGE_KEY_ADAPTER_DISC_TIMEOUT "DiscoveryTimeout"
 
-
 #if defined(OS_GENERIC)
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #define BTIF_AUTO_PAIR_CONF_FILE "auto_pair_devlist.conf"
@@ -93,7 +91,6 @@
 #define BTIF_STORAGE_KEY_AUTOPAIR_DYNAMIC_BLACKLIST_ADDR "DynamicAddressBlacklist"
 
 #define BTIF_AUTO_PAIR_CONF_VALUE_SEPARATOR ","
-
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -143,16 +140,13 @@
                                          STORAGE_HID_DESC_LEN_SIZE+ 1 +\
                                          STORAGE_HID_DESC_MAX_SIZE+ 1 )
 
-
 /* currently remote services is the potentially largest entry */
 #define BTIF_STORAGE_MAX_LINE_SZ BTIF_REMOTE_SERVICES_ENTRY_SIZE_MAX
-
 
 /* check against unv max entry size at compile time */
 #if (BTIF_STORAGE_ENTRY_MAX_SIZE > UNV_MAXLINE_LENGTH)
     #error "btif storage entry size exceeds unv max line size"
 #endif
-
 
 #define BTIF_STORAGE_HL_APP          "hl_app"
 #define BTIF_STORAGE_HL_APP_CB       "hl_app_cb"
@@ -1488,7 +1482,6 @@ bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
     BTIF_TRACE_DEBUG("%s  status=%d value_size=%d", __FUNCTION__, bt_status, value_size);
     return bt_status;
 }
-
 
 /*******************************************************************************
 **

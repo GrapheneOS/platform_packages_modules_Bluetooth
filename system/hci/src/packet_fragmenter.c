@@ -26,7 +26,6 @@
 #include "buffer_allocator.h"
 #include "device/include/controller.h"
 #include "hci_internals.h"
-#include "hci_layer.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
 #include "osi/include/log.h"

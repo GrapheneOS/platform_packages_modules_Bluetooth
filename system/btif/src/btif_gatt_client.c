@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 /*******************************************************************************
  *
  *  Filename:      btif_gatt_client.c
@@ -27,10 +26,10 @@
 
 #define LOG_TAG "bt_btif_gattc"
 
+#include <errno.h>
 #include <hardware/bluetooth.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include "btcore/include/bdaddr.h"
@@ -149,7 +148,6 @@ typedef struct
     tBTA_BLE_DISCARD_RULE discard_rule;
     btgatt_batch_reports  read_reports;
 } btgatt_batch_track_cb_t;
-
 
 typedef tBTA_DM_BLE_PF_FILT_PARAMS btgatt_adv_filt_param_t;
 
@@ -2348,7 +2346,6 @@ static bt_status_t btif_gattc_test_command(int command, btgatt_test_params_t* pa
 {
     return btif_gattc_test_command_impl(command, params);
 }
-
 
 const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_register_app,

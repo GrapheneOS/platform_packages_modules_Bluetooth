@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 /************************************************************************************
  *
  *  Filename:      btif_gatt_server.c
@@ -25,9 +24,11 @@
  *
  ***********************************************************************************/
 
+#define LOG_TAG "bt_btif_gatt"
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include <hardware/bluetooth.h>
@@ -37,8 +38,6 @@
 #include "btif_util.h"
 
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
-
-#define LOG_TAG "bt_btif_gatt"
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"
@@ -61,7 +60,6 @@
     } else {\
         LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);\
     }
-
 
 typedef enum {
     BTIF_GATTS_REGISTER_APP = 2000,
@@ -107,13 +105,11 @@ typedef struct
 
 } __attribute__((packed)) btif_gatts_cb_t;
 
-
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
 
 extern const btgatt_callbacks_t *bt_gatt_callbacks;
-
 
 /************************************************************************************
 **  Static functions

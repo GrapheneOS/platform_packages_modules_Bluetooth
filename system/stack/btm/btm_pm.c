@@ -30,20 +30,20 @@
 
 #define LOG_TAG "bt_btm_pm"
 
+#include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <stddef.h>
 
 #include "bt_types.h"
-#include "gki.h"
-#include "hcimsgs.h"
-#include "btu.h"
+#include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
-#include "l2c_int.h"
+#include "btu.h"
+#include "gki.h"
 #include "hcidefs.h"
-#include "bt_utils.h"
+#include "hcimsgs.h"
+#include "l2c_int.h"
 #include "osi/include/log.h"
 
 /*****************************************************************************/
@@ -184,7 +184,6 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
     tBTM_PM_MODE        mode;
     int                 temp_pm_id;
 
-
     if(pm_id >= BTM_MAX_PM_RECORDS)
         pm_id = BTM_PM_SET_ONLY_ID;
 
@@ -258,8 +257,6 @@ tBTM_STATUS BTM_SetPowerMode (UINT8 pm_id, BD_ADDR remote_bda, tBTM_PM_PWR_MD *p
         }
         return BTM_CMD_STORED;
     }
-
-
 
     return btm_pm_snd_md_req(pm_id, acl_ind, p_mode);
 }
@@ -362,7 +359,6 @@ void btm_pm_reset(void)
     {
         cb = btm_cb.pm_reg_db[btm_cb.pm_pend_id].cback;
     }
-
 
     /* clear the register record */
     for(xx=0; xx<BTM_MAX_PM_RECORDS; xx++)
@@ -715,7 +711,6 @@ static void btm_pm_check_stored(void)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_pm_proc_cmd_status
@@ -845,7 +840,6 @@ void btm_pm_proc_mode_change (UINT8 hci_status, UINT16 hci_handle, UINT8 mode, U
             }
         }
     }
-
 
     /* notify registered parties */
     for(yy=0; yy<BTM_MAX_PM_RECORDS; yy++)

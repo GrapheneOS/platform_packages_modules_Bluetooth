@@ -22,6 +22,9 @@
  *  security functions.
  *
  ******************************************************************************/
+
+#define LOG_TAG "bt_btm_ble"
+
 #include "bt_target.h"
 
 #if BLE_INCLUDED == TRUE
@@ -29,18 +32,16 @@
 #include <string.h>
 
 #include "bt_types.h"
-#include "hcimsgs.h"
-#include "btu.h"
-#include "btm_int.h"
-#include "btm_ble_api.h"
-#include "smp_api.h"
-#include "l2c_int.h"
-#include "gap_api.h"
 #include "bt_utils.h"
+#include "btm_ble_api.h"
+#include "btm_int.h"
+#include "btu.h"
 #include "device/include/controller.h"
-
-#define LOG_TAG "bt_btm_ble"
+#include "gap_api.h"
+#include "hcimsgs.h"
+#include "l2c_int.h"
 #include "osi/include/log.h"
+#include "smp_api.h"
 
 #if SMP_INCLUDED == TRUE
 extern BOOLEAN aes_cipher_msg_auth_code(BT_OCTET16 key, UINT8 *input, UINT16 length,
@@ -666,7 +667,6 @@ void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type, tBLE_ADDR
     BTM_TRACE_DEBUG ("btm_find_dev_type - device_type = %d addr_type = %d", *p_dev_type , *p_addr_type);
 }
 
-
 /*******************************************************************************
 **
 ** Function         BTM_ReadConnectedTransportAddress
@@ -824,7 +824,6 @@ BOOLEAN BTM_UseLeLink (BD_ADDR bd_addr)
     return use_le;
 }
 
-
 /*******************************************************************************
 **
 ** Function         BTM_SetBleDataLength
@@ -912,7 +911,6 @@ void btm_ble_rand_enc_complete (UINT8 *p, UINT16 op_code, tBTM_RAND_ENC_CB *p_en
             (*p_enc_cplt_cback)(&params);  /* Call the Encryption complete callback function */
     }
 }
-
 
     #if (SMP_INCLUDED == TRUE)
 
@@ -1842,8 +1840,6 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
     btm_ble_update_mode_operation(role, bda, status);
 }
 
-
-
 /*****************************************************************************
 ** Function btm_ble_create_ll_conn_complete
 **
@@ -1978,7 +1974,6 @@ UINT8 btm_proc_smp_cback(tSMP_EVT event, BD_ADDR bd_addr, tSMP_EVT_DATA *p_data)
             default:
                 BTM_TRACE_DEBUG ("unknown event = %d", event);
                 break;
-
 
         }
     }
@@ -2454,7 +2449,6 @@ static void btm_ble_process_ir2(tBTM_RAND_ENC *p)
         memcpy(&btm_cb.devcb.id_keys.ir[8], p->param_buf, BT_OCTET8_LEN);
         /* generate DHK= Eir({0x03, 0x00, 0x00 ...}) */
 
-
         SMP_Encrypt(btm_cb.devcb.id_keys.ir, BT_OCTET16_LEN, &btm_ble_dhk_pt,
                     1, &output);
         btm_ble_process_dhk(&output);
@@ -2590,7 +2584,6 @@ void btm_set_random_address(BD_ADDR random_bda)
 
     if (adv_mode  == BTM_BLE_ADV_ENABLE)
         btsnd_hcic_ble_set_adv_enable (BTM_BLE_ADV_ENABLE);
-
 
 }
 

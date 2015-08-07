@@ -26,29 +26,29 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hf.h>
-#include <hardware/bt_av.h>
+#define LOG_TAG "bt_btif_util"
+
+#include "btif_util.h"
+
+#include <ctype.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
+#include <hardware/bt_av.h>
 
-#define LOG_TAG "bt_btif_util"
-#include "btif_common.h"
-#include "bta_api.h"
-#include "gki.h"
-#include "btu.h"
-#include "bte.h"
-#include "btif_dm.h"
-#include "btif_util.h"
-#include "bta_ag_api.h"
-#include "bta_av_api.h"
-#include "bta_hh_api.h"
-#include "bta_hf_client_api.h"
 #include "avrc_defs.h"
+#include "bta_ag_api.h"
+#include "bta_api.h"
+#include "bta_av_api.h"
+#include "bta_hf_client_api.h"
+#include "bta_hh_api.h"
+#include "bte.h"
+#include "btif_common.h"
+#include "btif_dm.h"
+#include "btu.h"
+#include "gki.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -191,7 +191,6 @@ int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex)
     return (x);
 }
 
-
 const char* dump_dm_search_event(UINT16 event)
 {
     switch(event)
@@ -208,7 +207,6 @@ const char* dump_dm_search_event(UINT16 event)
             return "UNKNOWN MSG ID";
      }
 }
-
 
 const char* dump_property_type(bt_property_type_t type)
 {
@@ -364,7 +362,6 @@ const char* dump_hh_event(UINT16 event)
      }
 }
 
-
 const char* dump_hf_conn_state(UINT16 event)
 {
     switch(event)
@@ -406,7 +403,6 @@ const char* dump_thread_evt(bt_cb_thread_evt evt)
             return "unknown thread evt";
     }
 }
-
 
 const char* dump_hf_audio_state(UINT16 event)
 {

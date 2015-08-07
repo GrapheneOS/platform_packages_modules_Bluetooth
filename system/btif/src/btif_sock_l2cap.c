@@ -15,6 +15,10 @@
 * limitations under the License.
 */
 
+#define LOG_TAG "bt_btif_sock"
+
+#include "btif_sock_l2cap.h"
+
 #include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -23,10 +27,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
-#define LOG_TAG "bt_btif_sock"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
@@ -35,7 +37,6 @@
 #include "bta_jv_api.h"
 #include "bta_jv_co.h"
 #include "btif_common.h"
-#include "btif_sock_l2cap.h"
 #include "btif_sock_sdp.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
@@ -217,7 +218,6 @@ static inline void bd_copy(UINT8* dest, UINT8* src, BOOLEAN swap)
 static char is_inited(void)
 {
     char ret;
-
 
     pthread_mutex_lock(&state_lock);
     ret = pth != -1;
@@ -672,8 +672,6 @@ static void on_l2cap_write_fixed_done(void* req_id, uint32_t id)
     pthread_mutex_unlock(&state_lock);
 }
 
-
-
 static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
 {
     l2cap_socket *sock;
@@ -1051,6 +1049,4 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
     }
     pthread_mutex_unlock(&state_lock);
 }
-
-
 

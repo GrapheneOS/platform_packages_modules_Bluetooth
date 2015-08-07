@@ -13,6 +13,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
+#define LOG_TAG "bluetooth_daemon"
+
 #include "core_stack.h"
 
 #include <signal.h>
@@ -26,9 +29,6 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/hardware.h>
-
-// TODO(armansito): Remove this line and use base/logging.h instead.
-#define LOG_TAG "bluetooth_daemon"
 
 #include "logging_helpers.h"
 

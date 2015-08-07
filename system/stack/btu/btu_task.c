@@ -20,35 +20,33 @@
 
 #include <assert.h>
 #include <pthread.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "osi/include/alarm.h"
 #include "bt_target.h"
 #include "bt_trace.h"
 #include "bt_types.h"
 #include "bt_utils.h"
+#include "btcore/include/module.h"
 #include "btif_common.h"
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/future.h"
+#include "gap_int.h"
 #include "gki.h"
-#include "osi/include/hash_map.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "btcore/include/module.h"
-#include "osi/include/osi.h"
+#include "osi/include/alarm.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/future.h"
+#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
-#include "sdpint.h"
+#include "osi/include/osi.h"
 #include "osi/include/thread.h"
-
 #include "port_api.h"
 #include "port_ext.h"
-
-#include "gap_int.h"
+#include "sdpint.h"
 
 #if (defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE)
 #include "bnep_int.h"
@@ -372,7 +370,6 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
             bnep_process_timeout(p_tle);
             break;
 #endif
-
 
 #if (defined(AVDT_INCLUDED) && AVDT_INCLUDED == TRUE)
         case BTU_TTYPE_AVDT_CCB_RET:

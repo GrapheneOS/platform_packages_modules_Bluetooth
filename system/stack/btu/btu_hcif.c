@@ -28,22 +28,22 @@
 #define LOG_TAG "bt_btu_hcif"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "gki.h"
 #include "bt_types.h"
-#include "hcimsgs.h"
-#include "btu.h"
-#include "l2c_int.h"
+#include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
-#include "bt_utils.h"
+#include "btu.h"
 #include "device/include/controller.h"
+#include "gki.h"
+#include "hci_layer.h"
+#include "hcimsgs.h"
+#include "l2c_int.h"
 #include "osi.h"
 #include "osi/include/log.h"
-#include "hci_layer.h"
 
 // TODO(zachoverflow): remove this horrible hack
 #include "btu.h"
@@ -346,7 +346,6 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_send_cmd
@@ -388,7 +387,6 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
     btu_check_bt_sleep ();
 #endif
 }
-
 
 /*******************************************************************************
 **
@@ -437,7 +435,6 @@ static void btu_hcif_inquiry_comp_evt (UINT8 *p)
     /* Tell inquiry processing that we are done */
     btm_process_inq_complete(status, BTM_BR_INQUIRY_MASK);
 }
-
 
 /*******************************************************************************
 **
@@ -529,7 +526,6 @@ static void btu_hcif_connection_comp_evt (UINT8 *p)
 #endif /* BTM_SCO_INCLUDED */
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_connection_request_evt
@@ -562,7 +558,6 @@ static void btu_hcif_connection_request_evt (UINT8 *p)
     }
 #endif /* BTM_SCO_INCLUDED */
 }
-
 
 /*******************************************************************************
 **
@@ -616,7 +611,6 @@ static void btu_hcif_authentication_comp_evt (UINT8 *p)
     btm_sec_auth_complete (handle, status);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_rmt_name_request_comp_evt
@@ -640,7 +634,6 @@ static void btu_hcif_rmt_name_request_comp_evt (UINT8 *p, UINT16 evt_len)
 
     btm_sec_rmt_name_request_complete (bd_addr, p, status);
 }
-
 
 /*******************************************************************************
 **
@@ -719,7 +712,6 @@ static void btu_hcif_read_rmt_version_comp_evt (UINT8 *p)
     btm_read_remote_version_complete (p);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_qos_setup_comp_evt
@@ -746,7 +738,6 @@ static void btu_hcif_qos_setup_comp_evt (UINT8 *p)
 
     btm_qos_setup_complete(status, handle, &flow);
 }
-
 
 /*******************************************************************************
 **
@@ -780,7 +771,6 @@ static void btu_hcif_esco_connection_comp_evt (UINT8 *p)
     btm_sco_connected (status, bda, handle, &data);
 #endif
 }
-
 
 /*******************************************************************************
 **
@@ -865,7 +855,6 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             btm_read_local_oob_complete(p);
 #endif
             break;
-
 
         case HCI_READ_INQ_TX_POWER_LEVEL:
             btm_read_linq_tx_power_complete (p);
@@ -979,7 +968,6 @@ static void btu_hcif_command_complete_evt(BT_HDR *response, void *context)
 
     fixed_queue_enqueue(btu_hci_msg_queue, event);
 }
-
 
 /*******************************************************************************
 **
@@ -1200,7 +1188,6 @@ static void btu_hcif_hardware_error_evt (UINT8 *p)
         BTM_DeviceReset (NULL);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_flush_occured_evt
@@ -1213,7 +1200,6 @@ static void btu_hcif_hardware_error_evt (UINT8 *p)
 static void btu_hcif_flush_occured_evt (void)
 {
 }
-
 
 /*******************************************************************************
 **
@@ -1237,7 +1223,6 @@ static void btu_hcif_role_change_evt (UINT8 *p)
     l2c_link_role_changed (bda, role, status);
     btm_acl_role_changed(status, bda, role);
 }
-
 
 /*******************************************************************************
 **
@@ -1326,7 +1311,6 @@ static void btu_hcif_pin_code_request_evt (UINT8 *p)
     btm_sec_pin_code_request (bda);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_link_key_request_evt
@@ -1343,7 +1327,6 @@ static void btu_hcif_link_key_request_evt (UINT8 *p)
     STREAM_TO_BDADDR (bda, p);
     btm_sec_link_key_request (bda);
 }
-
 
 /*******************************************************************************
 **
@@ -1367,7 +1350,6 @@ static void btu_hcif_link_key_notification_evt (UINT8 *p)
     btm_sec_link_key_notification (bda, key, key_type);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_loopback_command_evt
@@ -1380,7 +1362,6 @@ static void btu_hcif_link_key_notification_evt (UINT8 *p)
 static void btu_hcif_loopback_command_evt (void)
 {
 }
-
 
 /*******************************************************************************
 **
@@ -1395,7 +1376,6 @@ static void btu_hcif_data_buf_overflow_evt (void)
 {
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_max_slots_changed_evt
@@ -1408,7 +1388,6 @@ static void btu_hcif_data_buf_overflow_evt (void)
 static void btu_hcif_max_slots_changed_evt (void)
 {
 }
-
 
 /*******************************************************************************
 **
@@ -1440,7 +1419,6 @@ static void btu_hcif_read_clock_off_comp_evt (UINT8 *p)
     btm_sec_update_clock_offset (handle, clock_offset);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_conn_pkt_type_change_evt
@@ -1453,7 +1431,6 @@ static void btu_hcif_read_clock_off_comp_evt (UINT8 *p)
 static void btu_hcif_conn_pkt_type_change_evt (void)
 {
 }
-
 
 /*******************************************************************************
 **
@@ -1472,10 +1449,8 @@ static void btu_hcif_qos_violation_evt (UINT8 *p)
 
     handle = HCID_GET_HANDLE (handle);
 
-
     l2c_link_hci_qos_violation (handle);
 }
-
 
 /*******************************************************************************
 **
@@ -1489,7 +1464,6 @@ static void btu_hcif_qos_violation_evt (UINT8 *p)
 static void btu_hcif_page_scan_mode_change_evt (void)
 {
 }
-
 
 /*******************************************************************************
 **
@@ -1536,7 +1510,6 @@ static void btu_hcif_io_cap_request_evt (UINT8 *p)
     btm_io_capabilities_req(p);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_io_cap_response_evt
@@ -1551,7 +1524,6 @@ static void btu_hcif_io_cap_response_evt (UINT8 *p)
     btm_io_capabilities_rsp(p);
 }
 
-
 /*******************************************************************************
 **
 ** Function         btu_hcif_user_conf_request_evt
@@ -1565,7 +1537,6 @@ static void btu_hcif_user_conf_request_evt (UINT8 *p)
 {
     btm_proc_sp_req_evt(BTM_SP_CFM_REQ_EVT, p);
 }
-
 
 /*******************************************************************************
 **
@@ -1657,7 +1628,6 @@ static void btu_hcif_enhanced_flush_complete_evt (void)
 /**********************************************
 ** End of Simple Pairing Events
 ***********************************************/
-
 
 /**********************************************
 ** BLE Events

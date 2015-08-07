@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "l2c_main"
+#define LOG_TAG "bt_l2c_main"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,7 +109,6 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
         bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
     }
 }
-
 
 /*******************************************************************************
 **
@@ -680,7 +679,6 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             }
             break;
 
-
         case L2CAP_CMD_DISC_REQ:
             STREAM_TO_UINT16 (lcid, p);
             STREAM_TO_UINT16 (rcid, p);
@@ -763,7 +761,6 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
 #endif
             }
 
-
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
             if (info_type == L2CAP_FIXED_CHANNELS_INFO_TYPE)
             {
@@ -839,7 +836,6 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
         btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 }
 
-
 /*******************************************************************************
 **
 ** Function         l2c_init
@@ -868,7 +864,6 @@ void l2c_init (void)
     /* it will be set to L2CAP_PKT_START_NON_FLUSHABLE if controller supports */
     l2cb.non_flushable_pbf = L2CAP_PKT_START << L2CAP_PKT_TYPE_SHIFT;
 #endif
-
 
     l2cb.p_free_ccb_first = &l2cb.ccb_pool[0];
     l2cb.p_free_ccb_last  = &l2cb.ccb_pool[MAX_L2CAP_CHANNELS - 1];
