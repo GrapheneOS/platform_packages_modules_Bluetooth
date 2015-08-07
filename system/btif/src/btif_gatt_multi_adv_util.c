@@ -26,7 +26,6 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
-#include "btif_gatt_multi_adv_util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +40,7 @@
 
 #include "bta_gatt_api.h"
 #include "btif_common.h"
+#include "btif_gatt_multi_adv_util.h"
 #include "btif_gatt_util.h"
 
 /*******************************************************************************
