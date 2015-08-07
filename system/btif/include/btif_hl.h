@@ -19,6 +19,9 @@
 #ifndef BTIF_HL_H
 #define BTIF_HL_H
 
+#include "bt_types.h"
+#include "bta_hl_api.h"
+
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -38,8 +41,6 @@
 
 #define BTIF_HL_CCH_NUM_FILTER_ELEMS            3
 #define BTIF_HL_APPLICATION_NAME_LEN          512
-
-
 
 /*******************************************************************************
 **  Type definitions and return values
@@ -277,7 +278,6 @@ typedef struct
     int                     fd;
 } btif_hl_send_chan_state_cb_t;
 
-
 typedef struct
 {
     UINT8 app_idx;
@@ -293,7 +293,6 @@ typedef union
     btif_hl_unreg_t         unreg;
     btif_hl_update_mdl_t    update_mdl;
 } btif_hl_evt_cb_t;
-
 
 /*******************************************************************************
 **  Functions

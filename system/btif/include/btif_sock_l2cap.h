@@ -5,10 +5,9 @@
 #ifndef BTIF_SOCK_L2CAP_H
 #define BTIF_SOCK_L2CAP_H
 
-
+#include <hardware/bluetooth.h>
 
 #define L2CAP_MASK_FIXED_CHANNEL    0x10000
-
 
 bt_status_t btsock_l2cap_init(int handle);
 bt_status_t btsock_l2cap_cleanup();

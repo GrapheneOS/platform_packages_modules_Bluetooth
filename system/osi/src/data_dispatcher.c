@@ -18,10 +18,11 @@
 
 #define LOG_TAG "bt_osi_data_dispatcher"
 
+#include "osi/include/data_dispatcher.h"
+
 #include <assert.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/data_dispatcher.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
 #include "osi/include/osi.h"

@@ -22,21 +22,22 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "port_api"
+#define LOG_TAG "bt_port_api"
+
+#include "port_api.h"
 
 #include <string.h>
-#include "bt_target.h"
+
 #include "btcore/include/counter.h"
-#include "gki.h"
-#include "rfcdefs.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "btm_int.h"
 #include "btm_api.h"
-#include "rfc_int.h"
+#include "btm_int.h"
+#include "gki.h"
 #include "l2c_api.h"
-#include "sdp_api.h"
 #include "osi/include/log.h"
+#include "port_int.h"
+#include "rfc_int.h"
+#include "rfcdefs.h"
+#include "sdp_api.h"
 
 /* duration of break in 200ms units */
 #define PORT_BREAK_DURATION     1
@@ -230,7 +231,6 @@ int RFCOMM_CreateConnection (UINT16 uuid, UINT8 scn, BOOLEAN is_server,
     /* Open will be continued after security checks are passed */
     return port_open_continue (p_port);
 }
-
 
 /*******************************************************************************
 **
@@ -447,8 +447,6 @@ int PORT_SetDataCOCallback (UINT16 port_handle, tPORT_DATA_CO_CALLBACK *p_port_c
     return (PORT_SUCCESS);
 }
 
-
-
 /*******************************************************************************
 **
 ** Function         PORT_SetEventMask
@@ -482,7 +480,6 @@ int PORT_SetEventMask (UINT16 port_handle, UINT32 mask)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -719,7 +716,6 @@ int PORT_GetState (UINT16 handle, tPORT_STATE *p_settings)
     return (PORT_SUCCESS);
 }
 
-
 /*******************************************************************************
 **
 ** Function         PORT_Control
@@ -804,7 +800,6 @@ int PORT_Control (UINT16 handle, UINT8 signal)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -963,7 +958,6 @@ int PORT_FlowControl_MaxCredit (UINT16 handle, BOOLEAN enable)
     return (PORT_SUCCESS);
 }
 
-
 /*******************************************************************************
 **
 ** Function         PORT_GetModemStatus
@@ -999,7 +993,6 @@ int PORT_GetModemStatus (UINT16 handle, UINT8 *p_signal)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -1045,7 +1038,6 @@ int PORT_ClearError (UINT16 handle, UINT16 *p_errors, tPORT_STATUS *p_status)
     return (PORT_SUCCESS);
 }
 
-
 /*******************************************************************************
 **
 ** Function         PORT_SendError
@@ -1082,7 +1074,6 @@ int PORT_SendError (UINT16 handle, UINT8 errors)
     RFCOMM_LineStatusReq (p_port->rfc.p_mcb, p_port->dlci, errors);
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -1131,7 +1122,6 @@ int PORT_GetQueueStatus (UINT16 handle, tPORT_STATUS *p_status)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -1207,7 +1197,6 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -1316,7 +1305,6 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     return (PORT_SUCCESS);
 }
 
-
 /*******************************************************************************
 **
 ** Function         PORT_Read
@@ -1373,7 +1361,6 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
     *pp_buf = p_buf;
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **
@@ -1630,7 +1617,6 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
             return (PORT_UNKNOWN_ERROR);
         }
 
-
         RFCOMM_TRACE_EVENT ("PORT_WriteData %d bytes", length);
 
         rc = port_write (p_port, p_buf);
@@ -1659,8 +1645,6 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
     return (PORT_SUCCESS);
 }
-
-
 
 /*******************************************************************************
 **
@@ -1785,7 +1769,6 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
     return (PORT_SUCCESS);
 }
-
 
 /*******************************************************************************
 **

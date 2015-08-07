@@ -23,6 +23,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_av"
+
 #include "bt_target.h"
 
 #if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
@@ -41,7 +43,6 @@
 #include "bta_ar_api.h"
 #endif
 
-#define LOG_TAG "bt_bta_av"
 #include "osi/include/log.h"
 
 /*****************************************************************************
@@ -141,7 +142,6 @@ void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
             p_rcb->handle, p_rcb->status, bta_av_cb.rc_acp_handle, p_rcb->lidx);
     }
 }
-
 
 /*******************************************************************************
 **
@@ -334,7 +334,6 @@ UINT8 bta_av_rc_create(tBTA_AV_CB *p_cb, UINT8 role, UINT8 shdl, UINT8 lidx)
     /* note: BTA_AV_FEAT_RCTG = AVRC_CT_TARGET, BTA_AV_FEAT_RCCT = AVRC_CT_CONTROL */
     ccb.control = p_cb->features & (BTA_AV_FEAT_RCTG | BTA_AV_FEAT_RCCT | AVRC_CT_PASSIVE);
 
-
     if (AVRC_Open(&rc_handle, &ccb, bda) != AVRC_SUCCESS)
         return BTA_AV_RC_HANDLE_NONE;
 
@@ -522,7 +521,6 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         return;
     }
 
-
     if (p_cb->rcb[i].lidx == (BTA_AV_NUM_LINKS + 1) && shdl != 0)
     {
         /* rc is opened on the RC only ACP channel, but is for a specific
@@ -580,7 +578,6 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     (*p_cb->p_cback)(BTA_AV_RC_OPEN_EVT, (tBTA_AV *) &rc_open);
 
 }
-
 
 /*******************************************************************************
 **
@@ -718,8 +715,6 @@ void bta_av_rc_free_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     UNUSED(p_data);
 }
 
-
-
 /*******************************************************************************
 **
 ** Function         bta_av_chk_notif_evt_id
@@ -839,7 +834,6 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
             }
             break;
 
-
         case AVRC_PDU_REGISTER_NOTIFICATION:
             /* make sure the event_id is implemented */
             p_rc_rsp->rsp.status = bta_av_chk_notif_evt_id (p_vendor);
@@ -858,7 +852,6 @@ tBTA_AV_EVT bta_av_proc_meta_cmd(tAVRC_RESPONSE  *p_rc_rsp, tBTA_AV_RC_MSG *p_ms
 
     return evt;
 }
-
 
 /*******************************************************************************
 **
@@ -1155,7 +1148,6 @@ void bta_av_stream_chg(tBTA_AV_SCB *p_scb, BOOLEAN started)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         bta_av_conn_chg
@@ -1225,7 +1217,6 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
                 /* increase the audio open count, if not set yet */
                 bta_av_cb.audio_open_cnt++;
             }
-
 
             APPL_TRACE_DEBUG("rc_acp_handle:%d rc_acp_idx:%d", p_cb->rc_acp_handle, p_cb->rc_acp_idx);
             /* check if the AVRCP ACP channel is already connected */
@@ -1470,7 +1461,6 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 
                         /* Possible collision : need to avoid outgoing processing while the timer is running */
                         p_cb->p_scb[xx]->coll_mask = BTA_AV_COLL_INC_TMR;
-
 
                         // TODO(armansito): Why is this variable called "xx" and
                         // why is it a signed integer? The callback reinterprets

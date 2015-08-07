@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bte_logmsg"
+#define LOG_TAG "bt_bte"
 
 #include <assert.h>
 #include <stdio.h>

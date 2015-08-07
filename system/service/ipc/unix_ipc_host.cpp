@@ -14,6 +14,8 @@
 //  limitations under the License.
 //
 
+#define LOG_TAG "bt_bluetooth_host"
+
 #include "service/ipc/unix_ipc_host.h"
 
 #include <errno.h>
@@ -31,7 +33,6 @@
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 
-#define LOG_TAG "bt_bluetooth_host"
 #include "osi/include/log.h"
 #include "service/core_stack.h"
 #include "service/gatt_server.h"

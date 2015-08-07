@@ -13,13 +13,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-#include "a2dp_source.h"
 
 #define LOG_TAG "bt_a2dp_source"
-#include "osi/include/log.h"
+
+#include "a2dp_source.h"
 
 #include "core_stack.h"
 #include "logging_helpers.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 
 namespace {

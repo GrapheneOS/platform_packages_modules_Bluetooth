@@ -18,9 +18,11 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
+#include "btif_gatt_util.h"
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
 
 #include <hardware/bluetooth.h>
@@ -34,7 +36,6 @@
 #include "btif_config.h"
 #include "btif_dm.h"
 #include "btif_gatt.h"
-#include "btif_gatt_util.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "gki.h"
@@ -198,7 +199,6 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
     }
 }
 
-
 void bta_to_btif_gatt_id(btgatt_gatt_id_t *p_dest, tBTA_GATT_ID *p_src)
 {
     p_dest->inst_id = p_src->inst_id;
@@ -211,7 +211,6 @@ void bta_to_btif_srvc_id(btgatt_srvc_id_t *p_dest, tBTA_GATT_SRVC_ID *p_src)
     bta_to_btif_uuid(&p_dest->id.uuid, &p_src->id.uuid);
     p_dest->is_primary = p_src->is_primary;
 }
-
 
 /*******************************************************************************
  * Utility functions

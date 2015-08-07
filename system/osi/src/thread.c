@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_osi_thread"
 
+#include "osi/include/thread.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <malloc.h>
@@ -32,7 +34,6 @@
 #include "osi/include/log.h"
 #include "osi/include/reactor.h"
 #include "osi/include/semaphore.h"
-#include "osi/include/thread.h"
 
 struct thread_t {
   bool is_joined;

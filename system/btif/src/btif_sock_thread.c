@@ -25,8 +25,9 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_sock.h>
+#define LOG_TAG "bt_btif_sock"
+
+#include "btif_sock_thread.h"
 
 #include <alloca.h>
 #include <ctype.h>
@@ -46,12 +47,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#define LOG_TAG "bt_btif_sock"
-
 #include "bta_api.h"
 #include "btif_common.h"
 #include "btif_sock.h"
-#include "btif_sock_thread.h"
 #include "btif_sock_util.h"
 #include "btif_util.h"
 #include "osi/include/socket_utils/sockets.h"
@@ -98,8 +96,6 @@ typedef struct {
     int used;
 } thread_slot_t;
 static thread_slot_t ts[MAX_THREAD];
-
-
 
 static void *sock_poll_thread(void *arg);
 static inline void close_cmd_fd(int h);

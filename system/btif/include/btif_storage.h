@@ -19,6 +19,9 @@
 #ifndef BTIF_STORAGE_H
 #define BTIF_STORAGE_H
 
+#include <hardware/bluetooth.h>
+
+#include "bt_target.h"
 #include "bt_types.h"
 
 /*******************************************************************************

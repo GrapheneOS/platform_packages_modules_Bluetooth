@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_btif_config"
 
+#include "btif_config.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <pthread.h>
@@ -28,7 +30,6 @@
 #include "bt_types.h"
 #include "btcore/include/bdaddr.h"
 #include "btcore/include/module.h"
-#include "btif_config.h"
 #include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "osi/include/alarm.h"

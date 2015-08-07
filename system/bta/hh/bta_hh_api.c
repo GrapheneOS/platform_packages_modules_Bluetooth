@@ -22,6 +22,10 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_bta_hh"
+
+#include "bta_hh_api.h"
+
 #include "bt_target.h"
 
 #if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
@@ -30,13 +34,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bta_hh_api.h"
 #include "bta_hh_int.h"
 #include "l2c_api.h"
-#include "utl.h"
-
-#define LOG_TAG "bt_bta_hh"
 #include "osi/include/log.h"
+#include "utl.h"
 
 /*****************************************************************************
 **  Constants

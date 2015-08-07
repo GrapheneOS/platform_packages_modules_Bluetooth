@@ -19,23 +19,22 @@
 #define LOG_TAG "bt_task"
 
 #include <assert.h>
-
-#include "bt_target.h"
 #include <pthread.h>
 #include <string.h>
-#include "dyn_mem.h"
 
-#include "osi/include/alarm.h"
-#include "device/include/controller.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/hash_map.h"
-#include "btu.h"
+#include "bt_target.h"
 #include "btm_int.h"
-#include "osi/include/hash_functions.h"
-#include "sdpint.h"
-#include "osi/include/thread.h"
+#include "btu.h"
+#include "device/include/controller.h"
+#include "dyn_mem.h"
 #include "l2c_int.h"
+#include "osi/include/alarm.h"
+#include "osi/include/fixed_queue.h"
+#include "osi/include/hash_functions.h"
+#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
+#include "osi/include/thread.h"
+#include "sdpint.h"
 
 #if (BLE_INCLUDED == TRUE)
 #include "gatt_api.h"

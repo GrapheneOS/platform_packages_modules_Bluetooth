@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_osi_semaphore"
 
+#include "osi/include/semaphore.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -27,9 +29,8 @@
 #include <unistd.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
-#include "osi/include/semaphore.h"
+#include "osi/include/osi.h"
 
 #if !defined(EFD_SEMAPHORE)
 #  define EFD_SEMAPHORE (1 << 0)

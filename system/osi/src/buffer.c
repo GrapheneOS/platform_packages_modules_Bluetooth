@@ -18,11 +18,12 @@
 
 #define LOG_TAG "bt_osi_buffer"
 
+#include "osi/include/buffer.h"
+
 #include <assert.h>
 #include <stdint.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/buffer.h"
 #include "osi/include/log.h"
 
 struct buffer_t {
