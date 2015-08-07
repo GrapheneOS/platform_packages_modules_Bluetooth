@@ -31,12 +31,16 @@ btserviceCommonSrc := \
 	settings.cpp \
 	uuid.cpp
 
+btserviceBinderSrc := \
+	ipc/binder/IBluetooth.cpp
+
 btserviceCommonIncludes := $(LOCAL_PATH)/../
 
 # Native system service for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
+	$(btserviceBinderSrc) \
 	$(btserviceCommonSrc) \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
@@ -46,10 +50,12 @@ LOCAL_MODULE := bluetoothtbd
 LOCAL_REQUIRED_MODULES = bluetooth.default
 LOCAL_STATIC_LIBRARIES += libbtcore
 LOCAL_SHARED_LIBRARIES += \
+	libbinder \
 	libchrome \
 	libcutils \
 	libhardware \
-	liblog
+	liblog \
+	libutils
 include $(BUILD_EXECUTABLE)
 
 # Native system service unittests for host
