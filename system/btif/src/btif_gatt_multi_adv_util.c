@@ -273,11 +273,12 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
     if (NULL == p_multi_adv_data_cb || cbindex < 0)
        return false;
 
-    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-    memset(&p_multi_adv_data_cb->inst_cb[cbindex].data, 0, sizeof(tBTA_BLE_ADV_DATA));
+    BTIF_TRACE_DEBUG("%s", __func__);
+
+    memset(&p_multi_adv_data_cb->inst_cb[cbindex].data, 0,
+           sizeof(p_multi_adv_data_cb->inst_cb[cbindex].data));
     p_multi_adv_data_cb->inst_cb[cbindex].mask = 0;
 
-    p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp = p_adv_data->set_scan_rsp ? 1 : 0;
     if (!p_adv_data->set_scan_rsp)
     {
          p_multi_adv_data_cb->inst_cb[cbindex].mask = BTM_BLE_AD_BIT_FLAGS;
@@ -333,63 +334,32 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
         p_multi_adv_data_cb->inst_cb[cbindex].data.appearance = p_adv_data->appearance;
     }
 
-    if (p_adv_data->manufacturer_len > 0 && p_adv_data->p_manufacturer_data != NULL)
+    if (p_adv_data->manufacturer_len > 0 &&
+        p_adv_data->p_manufacturer_data != NULL &&
+        p_adv_data->manufacturer_len < MAX_SIZE_MANUFACTURER_DATA)
     {
-         p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu =
-                            GKI_getbuf(sizeof(tBTA_BLE_MANU));
-         if (p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu != NULL)
-         {
-            p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu->p_val =
-                            GKI_getbuf(p_adv_data->manufacturer_len);
-            if (p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu->p_val != NULL)
-            {
-                 p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_MANU;
-                 p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu->len =
-                                p_adv_data->manufacturer_len;
-                 memcpy(p_multi_adv_data_cb->inst_cb[cbindex].data.p_manu->p_val,
-                    p_adv_data->p_manufacturer_data, p_adv_data->manufacturer_len);
-            }
-         }
+      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_MANU;
+      p_multi_adv_data_cb->inst_cb[cbindex].data.manu.len =
+          p_adv_data->manufacturer_len;
+      memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].data.manu.val,
+             p_adv_data->p_manufacturer_data, p_adv_data->manufacturer_len);
     }
 
-    tBTA_BLE_PROP_ELEM *p_elem_service_data = NULL;
-    if (p_adv_data->service_data_len > 0 && p_adv_data->p_service_data != NULL)
+    if (p_adv_data->service_data_len > 0 &&
+        p_adv_data->p_service_data != NULL &&
+        p_adv_data->service_data_len < MAX_SIZE_PROPRIETARY_ELEMENT)
     {
-         BTIF_TRACE_DEBUG("%s - In service_data", __FUNCTION__);
-         p_elem_service_data = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM));
-         if (p_elem_service_data != NULL)
-         {
-             p_elem_service_data->p_val = GKI_getbuf(p_adv_data->service_data_len);
-             if (p_elem_service_data->p_val != NULL)
-             {
-                 p_elem_service_data->adv_type = BTM_BLE_AD_TYPE_SERVICE_DATA;
-                 p_elem_service_data->len = p_adv_data->service_data_len;
-                 memcpy(p_elem_service_data->p_val, p_adv_data->p_service_data,
-                             p_adv_data->service_data_len);
-             } else {
-                     GKI_freebuf(p_elem_service_data);
-                     p_elem_service_data = NULL;
-               }
-         }
-    }
+      BTIF_TRACE_DEBUG("%s - In service_data", __func__);
+      tBTA_BLE_PROPRIETARY *p_prop = &p_multi_adv_data_cb->inst_cb[cbindex].data.proprietary;
+      p_prop->num_elem = 1;
 
-    if (NULL != p_elem_service_data)
-    {
-        p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary =
-                                                   GKI_getbuf(sizeof(tBTA_BLE_PROPRIETARY));
-        if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary)
-        {
-            tBTA_BLE_PROP_ELEM *p_elem = NULL;
-            tBTA_BLE_PROPRIETARY *p_prop = p_multi_adv_data_cb->inst_cb[cbindex].data.p_proprietary;
-            p_prop->num_elem = 0;
-            p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
-            p_prop->num_elem = 1;
-            p_prop->p_elem = GKI_getbuf(sizeof(tBTA_BLE_PROP_ELEM) * p_prop->num_elem);
-            p_elem = p_prop->p_elem;
-            if (NULL != p_elem)
-                memcpy(p_elem++, p_elem_service_data, sizeof(tBTA_BLE_PROP_ELEM));
-            GKI_freebuf(p_elem_service_data);
-        }
+      tBTA_BLE_PROP_ELEM *p_elem = &p_prop->elem[0];
+      p_elem->adv_type = BTM_BLE_AD_TYPE_SERVICE_DATA;
+      p_elem->len = p_adv_data->service_data_len;
+      memcpy(p_elem->val, p_adv_data->p_service_data,
+             p_adv_data->service_data_len);
+
+      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
     }
 
     if (p_adv_data->service_uuid_len && p_adv_data->p_service_uuid)
@@ -410,22 +380,17 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
              {
                 case (LEN_UUID_16):
                 {
-                  if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_services)
+                  if (p_multi_adv_data_cb->inst_cb[cbindex].data.services.num_service == 0)
                   {
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services =
-                                                          GKI_getbuf(sizeof(tBTA_BLE_SERVICE));
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->list_cmpl = FALSE;
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service = 0;
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid =
-                              GKI_getbuf(p_adv_data->service_uuid_len / LEN_UUID_128 * LEN_UUID_16);
-                      p_uuid_out16 = p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.services.list_cmpl = FALSE;
+                      p_uuid_out16 = p_multi_adv_data_cb->inst_cb[cbindex].data.services.uuid;
                   }
 
-                  if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->p_uuid)
+                  if (p_multi_adv_data_cb->inst_cb[cbindex].data.services.num_service < MAX_16BIT_SERVICES)
                   {
-                     BTIF_TRACE_DEBUG("%s - In 16-UUID_data", __FUNCTION__);
+                     BTIF_TRACE_DEBUG("%s - In 16-UUID_data", __func__);
                      p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE;
-                     ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_services->num_service;
+                     ++p_multi_adv_data_cb->inst_cb[cbindex].data.services.num_service;
                      *p_uuid_out16++ = bt_uuid.uu.uuid16;
                   }
                   break;
@@ -433,22 +398,17 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
 
                 case (LEN_UUID_32):
                 {
-                   if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b)
+                   if (p_multi_adv_data_cb->inst_cb[cbindex].data.service_32b.num_service == 0)
                    {
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b =
-                                                          GKI_getbuf(sizeof(tBTA_BLE_32SERVICE));
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->list_cmpl = FALSE;
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->num_service = 0;
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid =
-                             GKI_getbuf(p_adv_data->service_uuid_len / LEN_UUID_128 * LEN_UUID_32);
-                      p_uuid_out32 = p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid;
+                      p_multi_adv_data_cb->inst_cb[cbindex].data.service_32b.list_cmpl = FALSE;
+                      p_uuid_out32 = p_multi_adv_data_cb->inst_cb[cbindex].data.service_32b.uuid;
                    }
 
-                   if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->p_uuid)
+                   if (p_multi_adv_data_cb->inst_cb[cbindex].data.service_32b.num_service < MAX_32BIT_SERVICES)
                    {
-                      BTIF_TRACE_DEBUG("%s - In 32-UUID_data", __FUNCTION__);
+                      BTIF_TRACE_DEBUG("%s - In 32-UUID_data", __func__);
                       p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE_32;
-                      ++p_multi_adv_data_cb->inst_cb[cbindex].data.p_service_32b->num_service;
+                      ++p_multi_adv_data_cb->inst_cb[cbindex].data.service_32b.num_service;
                       *p_uuid_out32++ = bt_uuid.uu.uuid32;
                    }
                    break;
@@ -457,24 +417,28 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
                 case (LEN_UUID_128):
                 {
                    /* Currently, only one 128-bit UUID is supported */
-                   if (NULL == p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b)
+                   if (p_multi_adv_data_cb->inst_cb[cbindex].data.services_128b.num_service == 0)
                    {
-                      p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b =
-                                                          GKI_getbuf(sizeof(tBTA_BLE_128SERVICE));
-                      if (NULL != p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b)
-                      {
-                         BTIF_TRACE_DEBUG("%s - In 128-UUID_data", __FUNCTION__);
-                         p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_SERVICE_128;
-                         memcpy(p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b->uuid128,
-                                                         bt_uuid.uu.uuid128, LEN_UUID_128);
-                         BTIF_TRACE_DEBUG("%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x", bt_uuid.uu.uuid128[0],
-                            bt_uuid.uu.uuid128[1],bt_uuid.uu.uuid128[2], bt_uuid.uu.uuid128[3],
-                            bt_uuid.uu.uuid128[4],bt_uuid.uu.uuid128[5],bt_uuid.uu.uuid128[6],
-                            bt_uuid.uu.uuid128[7],bt_uuid.uu.uuid128[8],bt_uuid.uu.uuid128[9],
-                            bt_uuid.uu.uuid128[10],bt_uuid.uu.uuid128[11],bt_uuid.uu.uuid128[12],
-                            bt_uuid.uu.uuid128[13],bt_uuid.uu.uuid128[14],bt_uuid.uu.uuid128[15]);
-                         p_multi_adv_data_cb->inst_cb[cbindex].data.p_services_128b->list_cmpl = TRUE;
-                      }
+                     BTIF_TRACE_DEBUG("%s - In 128-UUID_data", __FUNCTION__);
+                     p_multi_adv_data_cb->inst_cb[cbindex].mask |=
+                         BTM_BLE_AD_BIT_SERVICE_128;
+                     memcpy(p_multi_adv_data_cb->inst_cb[cbindex]
+                                .data.services_128b.uuid128,
+                            bt_uuid.uu.uuid128, LEN_UUID_128);
+                     BTIF_TRACE_DEBUG(
+                         "%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x",
+                         bt_uuid.uu.uuid128[0], bt_uuid.uu.uuid128[1],
+                         bt_uuid.uu.uuid128[2], bt_uuid.uu.uuid128[3],
+                         bt_uuid.uu.uuid128[4], bt_uuid.uu.uuid128[5],
+                         bt_uuid.uu.uuid128[6], bt_uuid.uu.uuid128[7],
+                         bt_uuid.uu.uuid128[8], bt_uuid.uu.uuid128[9],
+                         bt_uuid.uu.uuid128[10], bt_uuid.uu.uuid128[11],
+                         bt_uuid.uu.uuid128[12], bt_uuid.uu.uuid128[13],
+                         bt_uuid.uu.uuid128[14], bt_uuid.uu.uuid128[15]);
+                     ++p_multi_adv_data_cb->inst_cb[cbindex]
+                           .data.services_128b.num_service;
+                     p_multi_adv_data_cb->inst_cb[cbindex]
+                         .data.services_128b.list_cmpl = TRUE;
                    }
                    break;
                 }
@@ -525,7 +489,7 @@ void btif_gattc_cleanup_inst_cb(int inst_id, BOOLEAN stop_timer)
         STD_ADV_INSTID : btif_gattc_obtain_idx_for_datacb(inst_id, INST_ID_IDX);
     if (cbindex < 0) return;
 
-    BTIF_TRACE_DEBUG("Cleaning up multi_inst_cb for inst_id %d, cbindex %d", inst_id, cbindex);
+    BTIF_TRACE_DEBUG("%s: inst_id %d, cbindex %d", __func__, inst_id, cbindex);
     btif_gattc_cleanup_multi_inst_cb(&p_multi_adv_data_cb->inst_cb[cbindex], stop_timer);
 }
 
@@ -543,64 +507,7 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
         p_multi_inst_cb->tle_limited_timer.in_use = 0;
     }
 
-    // Manufacturer data cleanup
-    if (p_multi_inst_cb->data.p_manu != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_manu->p_val);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_manu);
-    }
-
-    // Proprietary data cleanup
-    if (p_multi_inst_cb->data.p_proprietary != NULL)
-    {
-        int i = 0;
-        tBTA_BLE_PROP_ELEM *p_elem = p_multi_inst_cb->data.p_proprietary->p_elem;
-        while (i++ != p_multi_inst_cb->data.p_proprietary->num_elem
-            && p_elem)
-        {
-            btif_gattc_cleanup((void**) &p_elem->p_val);
-            ++p_elem;
-        }
-
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_proprietary->p_elem);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_proprietary);
-    }
-
-    // Service list cleanup
-    if (p_multi_inst_cb->data.p_services != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services->p_uuid);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services);
-    }
-
-    // Service data cleanup
-    if (p_multi_inst_cb->data.p_service_data != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_data->p_val);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_data);
-    }
-
-    btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_services_128b);
-
-    if (p_multi_inst_cb->data.p_service_32b != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_32b->p_uuid);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_service_32b);
-    }
-
-    if (p_multi_inst_cb->data.p_sol_services != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_services->p_uuid);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_services);
-    }
-
-    if (p_multi_inst_cb->data.p_sol_service_32b != NULL)
-    {
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_32b->p_uuid);
-        btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_32b);
-    }
-
-    btif_gattc_cleanup((void**) &p_multi_inst_cb->data.p_sol_service_128b);
+    memset(&p_multi_inst_cb->data, 0, sizeof(p_multi_inst_cb->data));
 }
 
 void btif_gattc_cleanup(void** buf)

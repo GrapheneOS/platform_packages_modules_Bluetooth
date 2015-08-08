@@ -338,67 +338,28 @@ typedef struct
 #define BTA_DM_BLE_AD_BIT_RANDOM_ADDR     BTM_BLE_AD_BIT_RANDOM_ADDR
 #define BTA_DM_BLE_AD_BIT_SERVICE_128     BTM_BLE_AD_BIT_SERVICE_128      /*128-bit Service UUIDs*/
 
-typedef  tBTM_BLE_AD_MASK  tBTA_BLE_AD_MASK;
-
-/* slave preferred connection interval range */
-typedef struct
-{
-    UINT16  low;
-    UINT16  hi;
-
-}tBTA_BLE_INT_RANGE;
-
-/* Service tag supported in the device */
-typedef struct
-{
-    UINT8       num_service;
-    BOOLEAN     list_cmpl;
-    UINT16      *p_uuid;
-}tBTA_BLE_SERVICE;
-
-
-typedef struct
-{
-    UINT8       len;
-    UINT8      *p_val;
-}tBTA_BLE_MANU;
-
-typedef struct
-{
-    UINT8       adv_type;
-    UINT8       len;
-    UINT8       *p_val;     /* number of len byte */
-}tBTA_BLE_PROP_ELEM;
-
-/* vendor proprietary adv type */
-typedef struct
-{
-    UINT8                   num_elem;
-    tBTA_BLE_PROP_ELEM      *p_elem;
-}tBTA_BLE_PROPRIETARY;
-
-typedef struct
-{
-    tBT_UUID    service_uuid;
-    UINT8       len;
-    UINT8      *p_val;
-}tBTA_BLE_SERVICE_DATA;
-
+typedef tBTM_BLE_AD_MASK tBTA_BLE_AD_MASK;
+typedef tBTM_BLE_INT_RANGE tBTA_BLE_INT_RANGE;
+typedef tBTM_BLE_SERVICE tBTA_BLE_SERVICE;
+typedef tBTM_BLE_PROP_ELEM tBTA_BLE_PROP_ELEM;
+typedef tBTM_BLE_PROPRIETARY tBTA_BLE_PROPRIETARY;
+typedef tBTM_BLE_MANU tBTA_BLE_MANU;
+typedef tBTM_BLE_SERVICE_DATA tBTA_BLE_SERVICE_DATA;
 typedef tBTM_BLE_128SERVICE tBTA_BLE_128SERVICE;
 typedef tBTM_BLE_32SERVICE  tBTA_BLE_32SERVICE;
 
 typedef struct
 {
     tBTA_BLE_INT_RANGE      int_range;          /* slave prefered conn interval range */
-    tBTA_BLE_MANU           *p_manu;            /* manufacturer data */
-    tBTA_BLE_SERVICE        *p_services;        /* 16 bits services */
-    tBTA_BLE_128SERVICE     *p_services_128b;   /* 128 bits service */
-    tBTA_BLE_32SERVICE      *p_service_32b;     /* 32 bits Service UUID */
-    tBTA_BLE_SERVICE        *p_sol_services;    /* 16 bits services Solicitation UUIDs */
-    tBTA_BLE_32SERVICE      *p_sol_service_32b; /* List of 32 bit Service Solicitation UUIDs */
-    tBTA_BLE_128SERVICE     *p_sol_service_128b;/* List of 128 bit Service Solicitation UUIDs */
-    tBTA_BLE_PROPRIETARY    *p_proprietary;     /* proprietary data */
-    tBTA_BLE_SERVICE_DATA   *p_service_data;    /* service data */
+    tBTA_BLE_MANU           manu;            /* manufacturer data */
+    tBTA_BLE_SERVICE        services;        /* 16 bits services */
+    tBTA_BLE_128SERVICE     services_128b;   /* 128 bits service */
+    tBTA_BLE_32SERVICE      service_32b;     /* 32 bits Service UUID */
+    tBTA_BLE_SERVICE        sol_services;    /* 16 bits services Solicitation UUIDs */
+    tBTA_BLE_32SERVICE      sol_service_32b; /* List of 32 bit Service Solicitation UUIDs */
+    tBTA_BLE_128SERVICE     sol_service_128b;/* List of 128 bit Service Solicitation UUIDs */
+    tBTA_BLE_PROPRIETARY    proprietary;     /* proprietary data */
+    tBTA_BLE_SERVICE_DATA   service_data;    /* service data */
     UINT16                  appearance;         /* appearance data */
     UINT8                   flag;
     UINT8                   tx_power;
