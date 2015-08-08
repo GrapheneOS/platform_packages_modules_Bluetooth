@@ -26,20 +26,21 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_mce.h>
+#define LOG_TAG "bt_btif_mce"
+
 #include <stdlib.h>
 #include <string.h>
 
-#define LOG_TAG "bt_btif_mce"
-#include "btif_common.h"
-#include "btif_util.h"
-#include "btif_profile_queue.h"
-#include "bta_api.h"
-#include "bta_mce_api.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_mce.h>
 
 #include "bt_types.h"
+#include "bta_api.h"
+#include "bta_mce_api.h"
 #include "btcore/include/bdaddr.h"
+#include "btif_common.h"
+#include "btif_profile_queue.h"
+#include "btif_util.h"
 
 /*****************************************************************************
 **  Static variables

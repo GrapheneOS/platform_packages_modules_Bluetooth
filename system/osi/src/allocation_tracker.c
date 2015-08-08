@@ -18,18 +18,18 @@
 
 #define LOG_TAG "bt_osi_allocation_tracker"
 
+#include "osi/include/allocation_tracker.h"
+
 #include <assert.h>
 #include <pthread.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 typedef struct {
   uint8_t allocator_id;

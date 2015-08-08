@@ -18,7 +18,6 @@
 
 #include <assert.h>
 #include <pthread.h>
-#include <stdlib.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"

@@ -26,10 +26,13 @@
  *
  ***********************************************************************************/
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_hf_client.h>
+#define LOG_TAG "bt_btif_hfc"
+
 #include <stdlib.h>
 #include <string.h>
+
+#include <hardware/bluetooth.h>
+#include <hardware/bt_hf_client.h>
 
 /**
  * TODO(armansito): On OSs other than Android, the sys/properties.h system
@@ -40,13 +43,12 @@
 #include <cutils/properties.h>
 #endif  /* !defined(OS_GENERIC) */
 
-#define LOG_TAG "bt_btif_hfc"
-#include "btif_common.h"
-#include "btif_util.h"
-#include "btif_profile_queue.h"
 #include "bt_utils.h"
-#include "btcore/include/bdaddr.h"
 #include "bta_hf_client_api.h"
+#include "btcore/include/bdaddr.h"
+#include "btif_common.h"
+#include "btif_profile_queue.h"
+#include "btif_util.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -132,7 +134,6 @@ typedef struct
 } btif_hf_client_cb_t;
 
 static btif_hf_client_cb_t btif_hf_client_cb;
-
 
 /************************************************************************************
 **  Static functions

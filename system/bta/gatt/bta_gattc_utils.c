@@ -30,17 +30,17 @@
 
 #include <string.h>
 
+#include "bta_gattc_int.h"
+#include "bta_sys.h"
 #include "btcore/include/bdaddr.h"
 #include "btif/include/btif_util.h"
 #include "gki.h"
-#include "utl.h"
-#include "bta_sys.h"
-#include "bta_gattc_int.h"
 #include "l2c_api.h"
+#include "utl.h"
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
-
 
 static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -860,7 +860,6 @@ tBTA_GATTC_CONN * bta_gattc_conn_find(BD_ADDR remote_bda)
     }
     return NULL;
 }
-
 
 /*******************************************************************************
 **

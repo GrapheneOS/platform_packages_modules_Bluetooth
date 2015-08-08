@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#define LOG_TAG "bta_av"
+#define LOG_TAG "bt_bta_av"
 
 #include <assert.h>
 #include <string.h>
@@ -47,7 +47,6 @@
 
 /* AVDTP protocol timeout values */
 #define BTIF_AVK_SERVICE_NAME "Advanced Audio Sink"
-
 
 #ifndef BTA_AV_RET_TOUT
 #define BTA_AV_RET_TOUT     4
@@ -170,7 +169,6 @@ static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data);
 static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
                                  app_id, BD_ADDR peer_addr);
 static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-
 
 /* action functions */
 const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
@@ -1266,7 +1264,6 @@ void bta_av_sm_execute(tBTA_AV_CB *p_cb, UINT16 event, tBTA_AV_DATA *p_data)
     }
 }
 
-
 /*******************************************************************************
 **
 ** Function         bta_av_hdl_event
@@ -1316,7 +1313,6 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
     }
     return TRUE;
 }
-
 
 /*****************************************************************************
 **  Debug Functions

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "future.h"
+#include <stdbool.h>
 
 typedef struct {
   void (*init_stack)(void);

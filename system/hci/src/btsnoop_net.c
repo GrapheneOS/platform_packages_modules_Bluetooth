@@ -29,8 +29,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 static void safe_close_(int *fd);
 static void *listen_fn_(void *context);

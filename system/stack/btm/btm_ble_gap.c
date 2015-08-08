@@ -22,27 +22,27 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btm_ble"
+
 #include <string.h>
 #include <stdio.h>
 #include <stddef.h>
 
 #include "bt_types.h"
 #include "bt_utils.h"
-#include "btm_int.h"
 #include "btm_ble_api.h"
+#include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
-#include "hcimsgs.h"
 #include "gap_api.h"
+#include "hcimsgs.h"
 
 #if BLE_INCLUDED == TRUE
-#include "l2c_int.h"
-
-#include "gattdefs.h"
-#include "gatt_int.h"
 
 #include "btm_ble_int.h"
-#define LOG_TAG "bt_btm_ble"
+#include "gatt_int.h"
+#include "gattdefs.h"
+#include "l2c_int.h"
 #include "osi/include/log.h"
 
 #define BTM_BLE_NAME_SHORT                  0x01
@@ -220,7 +220,6 @@ const UINT8 btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
 };
 /* check LE combo state supported */
 #define BTM_LE_STATES_SUPPORTED(x, y, z)      ((x)[(z)] & (y))
-
 
 /*******************************************************************************
 **
@@ -1924,7 +1923,6 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
     return status;
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_ble_start_inquiry
@@ -3013,7 +3011,6 @@ static BOOLEAN btm_ble_adv_states_operation(BTM_TOPOLOGY_FUNC_PTR *p_handler, UI
     return rt;
 }
 
-
 /*******************************************************************************
 **
 ** Function         btm_ble_start_adv
@@ -3088,7 +3085,6 @@ tBTM_STATUS btm_ble_stop_adv(void)
     }
     return rt;
 }
-
 
 /*******************************************************************************
 **
@@ -3179,7 +3175,6 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
 
     }
 }
-
 
 /*******************************************************************************
 **
@@ -3473,6 +3468,5 @@ BOOLEAN btm_ble_topology_check(tBTM_BLE_STATE_MASK request_state_mask)
     }
     return rt;
 }
-
 
 #endif  /* BLE_INCLUDED */

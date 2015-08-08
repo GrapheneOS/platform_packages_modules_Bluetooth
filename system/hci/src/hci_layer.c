@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_hci"
 
+#include "hci_layer.h"
+
 #include <assert.h>
 #include <pthread.h>
 #include <signal.h>
@@ -38,16 +40,12 @@
 #include "hci_hal.h"
 #include "hci_inject.h"
 #include "hci_internals.h"
-#include "hci_layer.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "low_power_manager.h"
-#include "osi/include/fixed_queue.h"
-#include "osi/include/future.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 #include "osi/include/non_repeating_timer.h"
-#include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "packet_fragmenter.h"
 #include "vendor.h"

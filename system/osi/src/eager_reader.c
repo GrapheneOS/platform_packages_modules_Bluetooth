@@ -18,18 +18,17 @@
 
 #define LOG_TAG "bt_osi_eager_reader"
 
+#include "osi/include/eager_reader.h"
+
 #include <assert.h>
 #include <errno.h>
-#include <stddef.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/eventfd.h>
+#include <unistd.h>
 
-#include "osi/include/allocator.h"
-#include "osi/include/eager_reader.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "osi/include/reactor.h"
 #include "osi/include/thread.h"
 

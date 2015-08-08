@@ -16,11 +16,13 @@
  *
  ******************************************************************************/
 
-
 #ifndef BTIF_GATT_UTIL_H
 #define BTIF_GATT_UTIL_H
 
-#include "bta_api.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
+
+#include "bta/include/bta_gatt_api.h"
 
 void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src);
 void btif_to_bta_gatt_id(tBTA_GATT_ID *p_dest, btgatt_gatt_id_t *p_src);

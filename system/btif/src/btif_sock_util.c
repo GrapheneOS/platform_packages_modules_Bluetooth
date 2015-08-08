@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#define LOG_TAG "bt_btif_sock"
+
 #include "btif_sock_util.h"
 
 #include <arpa/inet.h>
@@ -33,8 +35,6 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
-
-#define LOG_TAG "bt_btif_sock"
 
 #include "bt_target.h"
 #include "bta_api.h"
@@ -54,7 +54,6 @@
 #include "sdp_api.h"
 
 #define asrt(s) if(!(s)) BTIF_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
-
 
 int sock_send_all(int sock_fd, const uint8_t* buf, int len)
 {

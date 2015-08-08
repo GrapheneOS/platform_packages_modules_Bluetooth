@@ -16,7 +16,6 @@
  *
  ******************************************************************************/
 
-
 /*******************************************************************************
  *
  *  Filename:      btif_gatt_multi_adv_util.c
@@ -25,19 +24,23 @@
  *
  *******************************************************************************/
 
+#define LOG_TAG "bt_btif_gatt"
+
+#include "btif_gatt_multi_adv_util.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "btu.h"
 #include "bt_target.h"
 
-#define LOG_TAG "bt_btif_gatt"
 #if (BLE_INCLUDED == TRUE)
 
-#include "btif_gatt_multi_adv_util.h"
-#include "btif_common.h"
 #include <hardware/bt_gatt.h>
+
 #include "bta_gatt_api.h"
+#include "btif_common.h"
 #include "btif_gatt_util.h"
 
 /*******************************************************************************
@@ -212,7 +215,6 @@ int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index)
     BTIF_TRACE_DEBUG("%s Invalid instance",__FUNCTION__);
     return INVALID_ADV_INST;
 }
-
 
 void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
