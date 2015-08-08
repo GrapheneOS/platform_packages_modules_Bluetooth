@@ -46,16 +46,13 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <hardware/bluetooth.h>
 #include <hardware/bt_hl.h>
 
 #include "bta_api.h"
-#include "bta_hl_api.h"
 #include "btif_common.h"
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "btu.h"
-#include "gki.h"
 #include "mca_api.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
