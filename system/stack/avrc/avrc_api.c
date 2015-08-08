@@ -58,6 +58,10 @@ static const UINT8 avrc_ctrl_event_map[] =
 #define AVRC_OP_DROP        0xFE    /* use this unused opcode to indication no need to call the callback function */
 #define AVRC_OP_DROP_N_FREE 0xFD    /* use this unused opcode to indication no need to call the callback function & free buffer */
 
+#define AVRC_OP_UNIT_INFO_RSP_LEN       8
+#define AVRC_OP_SUB_UNIT_INFO_RSP_LEN   8
+#define AVRC_OP_REJ_MSG_LEN            11
+
 /******************************************************************************
 **
 ** Function         avrc_ctrl_cback
@@ -110,11 +114,12 @@ static UINT8 * avrc_get_data_ptr(BT_HDR *p_pkt)
 ** Returns          The buffer with the copied data.
 **
 ******************************************************************************/
-static BT_HDR * avrc_copy_packet(BT_HDR *p_pkt)
+static BT_HDR * avrc_copy_packet(BT_HDR *p_pkt, int rsp_pkt_len)
 {
     const int offset = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
+    const int pkt_len = MAX(rsp_pkt_len, p_pkt->len);
     BT_HDR *p_pkt_copy =
-        (BT_HDR *)GKI_getbuf((UINT16)(BT_HDR_SIZE + offset + p_pkt->len));
+        (BT_HDR *)GKI_getbuf((UINT16)(BT_HDR_SIZE + offset + pkt_len));
 
     /* Copy the packet header, set the new offset, and copy the payload */
     if (p_pkt_copy != NULL) {
@@ -599,7 +604,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             if (cr == AVCT_CMD)
             {
                 /* send the response to the peer */
-                p_rsp = avrc_copy_packet(p_pkt);
+                p_rsp = avrc_copy_packet(p_pkt, AVRC_OP_UNIT_INFO_RSP_LEN);
                 p_rsp_data = avrc_get_data_ptr(p_rsp);
                 *p_rsp_data = AVRC_RSP_IMPL_STBL;
                 /* check & set the offset. set response code, set subunit_type & subunit_id,
@@ -631,7 +636,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
             if (cr == AVCT_CMD)
             {
                 /* send the response to the peer */
-                p_rsp = avrc_copy_packet(p_pkt);
+                p_rsp = avrc_copy_packet(p_pkt, AVRC_OP_SUB_UNIT_INFO_RSP_LEN);
                 p_rsp_data = avrc_get_data_ptr(p_rsp);
                 *p_rsp_data = AVRC_RSP_IMPL_STBL;
                 /* check & set the offset. set response code, set (subunit_type & subunit_id),
@@ -769,7 +774,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
     if (reject)
     {
         /* reject unsupported opcode */
-        p_rsp = avrc_copy_packet(p_pkt);
+        p_rsp = avrc_copy_packet(p_pkt, AVRC_OP_REJ_MSG_LEN);
         p_rsp_data = avrc_get_data_ptr(p_rsp);
         *p_rsp_data = AVRC_RSP_REJ;
 #if (BT_USE_TRACES == TRUE)
@@ -1067,14 +1072,15 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
 
                 /* prepare the left over for as an end fragment */
                 avrc_prep_end_frag (handle);
-                AVRC_TRACE_DEBUG ("p_pkt len:%d/%d, next len:%d", p_pkt->len, len, p_fcb->p_fmsg->len );
+                AVRC_TRACE_DEBUG ("%s p_pkt len:%d/%d, next len:%d", __func__,
+                                  p_pkt->len, len, p_fcb->p_fmsg->len );
             }
             else
             {
                 AVRC_TRACE_ERROR ("AVRC_MsgReq no buffers for fragmentation" );
                 GKI_freebuf(p_pkt);
-    return AVRC_NO_RESOURCES;
-}
+                return AVRC_NO_RESOURCES;
+            }
         }
     }
 
