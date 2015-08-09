@@ -66,21 +66,18 @@ bool VendorManager::Run() {
     LOG_INFO(LOG_TAG, "Test channel is enabled.");
 
     if (test_channel_transport_.SetUp()) {
-      test_channel_handler_.RegisterHandlersWithTransport(
+      controller_.RegisterHandlersWithTestChannelTransport(
           test_channel_transport_);
-      controller_.RegisterCommandsWithTestChannelHandler(test_channel_handler_);
     } else {
       LOG_ERROR(LOG_TAG,
                 "Error setting up test channel object, continuing without it.");
       test_channel_transport_.Disable();
     }
-
   } else {
     LOG_INFO(LOG_TAG, "Test channel is disabled.");
   }
 
-  handler_.RegisterHandlersWithTransport(transport_);
-  controller_.RegisterCommandsWithHandler(handler_);
+  controller_.RegisterHandlersWithHciTransport(transport_);
   controller_.RegisterEventChannel(
       std::bind(&HciTransport::SendEvent, &transport_, std::placeholders::_1));
 
@@ -92,9 +89,14 @@ bool VendorManager::Run() {
     return false;
   }
 
-  thread_.task_runner()->PostTask(
-      FROM_HERE, base::Bind(&VendorManager::StartWatchingOnThread,
-                            weak_ptr_factory_.GetWeakPtr()));
+  if (!thread_.task_runner()->PostTask(
+          FROM_HERE, base::Bind(&VendorManager::StartWatchingOnThread,
+                                weak_ptr_factory_.GetWeakPtr()))) {
+    LOG_ERROR(LOG_TAG, "Error posting StartWatchingOnThread to task runner.");
+    running_ = false;
+    return false;
+  }
+
   return true;
 }
 

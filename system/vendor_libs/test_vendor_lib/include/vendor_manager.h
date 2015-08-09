@@ -19,9 +19,7 @@
 #include "base/threading/thread.h"
 #include "hci/include/bt_vendor_lib.h"
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
-#include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
-#include "vendor_libs/test_vendor_lib/include/test_channel_handler.h"
 #include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
 
 #include <memory>
@@ -75,16 +73,12 @@ class VendorManager {
   // receive and send packets.
   HciTransport transport_;
 
-  // Multiplexes incoming requests to the appropriate methods in |controller_|.
-  HciHandler handler_;
-
   // The controller object that provides implementations of Bluetooth commands.
   DualModeController controller_;
 
   // The two test channel objects that perform functions corresponding to the
   // HciTransport and HciHandler.
   TestChannelTransport test_channel_transport_;
-  TestChannelHandler test_channel_handler_;
 
   // Configuration callbacks provided by the HCI for use in TestVendorOp().
   bt_vendor_callbacks_t vendor_callbacks_;
