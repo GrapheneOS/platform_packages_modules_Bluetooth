@@ -120,7 +120,10 @@ void bta_gattc_co_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 start_index,
     if (sCacheFD && (0 == fseek(sCacheFD, start_index * sizeof(tBTA_GATTC_NV_ATTR), SEEK_SET)))
     {
         num_attr = fread(attr, sizeof(tBTA_GATTC_NV_ATTR), BTA_GATTC_NV_LOAD_MAX, sCacheFD);
-        status = (num_attr < BTA_GATTC_NV_LOAD_MAX ? BTA_GATT_OK : BTA_GATT_MORE);
+        if (start_index == 0 && num_attr < 1)
+            status = BTA_GATT_ERROR; // Cache truncated
+        else
+            status = (num_attr < BTA_GATTC_NV_LOAD_MAX ? BTA_GATT_OK : BTA_GATT_MORE);
     }
 
     BTIF_TRACE_DEBUG("%s() - sCacheFD=%p, start_index=%d, read=%d, status=%d",
