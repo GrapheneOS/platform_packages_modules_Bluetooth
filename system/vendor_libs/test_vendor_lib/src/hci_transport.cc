@@ -19,6 +19,8 @@
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 #include "base/logging.h"
+#include "base/bind.h"
+#include "base/thread_task_runner_handle.h"
 
 extern "C" {
 #include <sys/socket.h>
@@ -28,6 +30,8 @@ extern "C" {
 }  // extern "C"
 
 namespace test_vendor_lib {
+
+HciTransport::HciTransport() : weak_ptr_factory_(this) {}
 
 void HciTransport::CloseHciFd() {
   hci_fd_.reset(nullptr);
@@ -94,15 +98,34 @@ void HciTransport::RegisterCommandHandler(
   command_handler_ = callback;
 }
 
-void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
-  outgoing_events_.push(std::move(event));
-}
-
 void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
   CHECK(fd == GetVendorFd());
-  if (!outgoing_events_.empty()) {
-    packet_stream_.SendEvent(*outgoing_events_.front(), fd);
-    outgoing_events_.pop();
+  if (!outbound_events_.empty()) {
+    CHECK(outbound_events_.front().unique());
+    packet_stream_.SendEvent(*(outbound_events_.front()), fd);
+    outbound_events_.pop();
+  }
+}
+
+void HciTransport::PostEventResponse(std::shared_ptr<EventPacket> event) {
+  outbound_events_.push(event);
+}
+
+void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
+                                            base::TimeDelta delay) {
+  CHECK(base::MessageLoop::current());
+  CHECK(base::ThreadTaskRunnerHandle::Get()->BelongsToCurrentThread());
+  CHECK(base::ThreadTaskRunnerHandle::Get()->RunsTasksOnCurrentThread());
+
+  LOG_INFO(LOG_TAG, "Posting event response with delay of %lld ms.",
+           delay.InMilliseconds());
+
+  if (!base::ThreadTaskRunnerHandle::Get()->PostDelayedTask(
+          FROM_HERE, base::Bind(&HciTransport::PostEventResponse,
+                                weak_ptr_factory_.GetWeakPtr(),
+                                std::shared_ptr<EventPacket>(std::move(event))),
+          delay)) {
+    LOG_ERROR(LOG_TAG, "Couldn't post event response.");
   }
 }
 

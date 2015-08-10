@@ -22,6 +22,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "base/json/json_value_converter.h"
+#include "base/time/time.h"
 #include "vendor_libs/test_vendor_lib/include/command_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 #include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
@@ -41,24 +43,88 @@ namespace test_vendor_lib {
 // "Hci" to distinguish it as a controller command.
 class DualModeController {
  public:
+  class Properties {
+   public:
+    // TODO(dennischeng): Add default initialization and use that to instantiate
+    // a default configured controller if the config file is invalid or not
+    // provided.
+    Properties(const std::string& file_name);
+
+    // Aggregates and returns the result for the Read Buffer Size command. This
+    // result consists of the |acl_data_packet_size_|, |sco_data_packet_size_|,
+    // |num_acl_data_packets_|, and |num_sco_data_packets_| properties. See the
+    // Bluetooth Core Specification Version 4.2, Volume 2, Part E, Section 7.4.5
+    // (page 794).
+    const std::vector<std::uint8_t> GetBufferSize();
+
+    // Aggregates and returns the Read Local Version Information result. This
+    // consists of the |version_|, |revision_|, |lmp_pal_version_|,
+    // |manufacturer_name_|, and |lmp_pal_subversion_|. See the Bluetooth Core
+    // Specification Version 4.2, Volume 2, Part E, Section 7.4.1 (page 788).
+    const std::vector<std::uint8_t> GetLocalVersionInformation();
+
+    // Aggregates and returns the result for the Read Local Extended Features
+    // command. This result contains the |maximum_page_number_| property (among
+    // other things not in the Properties object). See the Bluetooth Core
+    // Specification Version 4.2, Volume 2, Part E, Section 7.4.4 (page 792).
+    const std::vector<std::uint8_t> GetBdAddress();
+
+    // Returns the result for the Read BD_ADDR command. This result is the
+    // |bd_address_| property. See the Bluetooth Core Specification Version
+    // 4.2, Volume 2, Part E, Section 7.4.6 (page 796).
+    const std::vector<std::uint8_t> GetLocalExtendedFeatures(
+        std::uint8_t page_number);
+
+    static void RegisterJSONConverter(
+        base::JSONValueConverter<Properties>* converter);
+
+   private:
+    std::uint16_t acl_data_packet_size_;
+    std::uint8_t sco_data_packet_size_;
+    std::uint16_t num_acl_data_packets_;
+    std::uint16_t num_sco_data_packets_;
+    std::uint8_t version_;
+    std::uint16_t revision_;
+    std::uint8_t lmp_pal_version_;
+    std::uint16_t manufacturer_name_;
+    std::uint16_t lmp_pal_subversion_;
+    std::uint8_t maximum_page_number_;
+    std::vector<std::uint8_t> bd_address_;
+  };
+
   // Sets all of the methods to be used as callbacks in the HciHandler.
   DualModeController();
 
   ~DualModeController() = default;
 
+  // Preprocesses the command, primarily checking testh channel hooks. If
+  // possible, dispatches the corresponding controller method corresponding to
+  // carry out the command.
   void HandleCommand(std::unique_ptr<CommandPacket> command_packet);
 
+  // Dispatches the test channel action corresponding to the command specified
+  // by |name|.
   void HandleTestChannelCommand(const std::string& name,
                                 const std::vector<std::string>& args);
 
+  // Sets the controller Handle* methods as callbacks for the transport to call
+  // when data is received.
   void RegisterHandlersWithHciTransport(HciTransport& transport);
 
+  // Sets the test channel handler with the transport dedicated to test channel
+  // communications.
   void RegisterHandlersWithTestChannelTransport(
       TestChannelTransport& transport);
 
   // Sets the callback to be used for sending events back to the HCI.
+  // TODO(dennischeng): Once PostDelayedTask works, get rid of this and only use
+  // |RegisterDelayedEventChannel|.
   void RegisterEventChannel(
       std::function<void(std::unique_ptr<EventPacket>)> send_event);
+
+  void RegisterDelayedEventChannel(
+      std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
+          send_event);
 
   // Controller commands. For error codes, see the Bluetooth Core Specification,
   // Version 4.2, Volume 2, Part D (page 370).
@@ -328,18 +394,25 @@ class DualModeController {
   // Test Channel commands:
 
   // Clears all test channel modifications.
-  void UciClear(const std::vector<std::string>& args);
+  void TestChannelClear(const std::vector<std::string>& args);
 
   // Discovers a fake device.
-  void UciDiscover(const std::vector<std::string>& args);
+  void TestChannelDiscover(const std::vector<std::string>& args);
 
   // Discovers a fake device on the specified interval (in ms).
-  void UciDiscoverInterval(const std::vector<std::string>& args);
+  void TestChannelDiscoverInterval(const std::vector<std::string>& args);
 
   // Causes all future HCI commands to timeout.
-  void UciTimeoutAll(const std::vector<std::string>& args);
+  void TestChannelTimeoutAll(const std::vector<std::string>& args);
+
+  // Causes events to be sent after a delay.
+  void TestChannelSetEventDelay(const std::vector<std::string>& args);
+
+  // Sets the response delay for events to 0.
+  void TestChannelClearEventDelay(const std::vector<std::string>& args);
 
  private:
+  // Current link layer state of the controller.
   enum State {
     kStandby,  // Not receiving/transmitting any packets from/to other devices.
     kAdvertising,  // Transmitting advertising packets.
@@ -351,6 +424,7 @@ class DualModeController {
   enum TestChannelState {
     kNone,  // The controller is running normally.
     kTimeoutAll,  // All commands should time out, i.e. send no response.
+    kDelayedResponse,  // Event responses are sent after a delay.
   };
 
   // Creates a command complete event and sends it back to the HCI.
@@ -374,8 +448,13 @@ class DualModeController {
   void SendExtendedInquiryResult(const std::string& name,
                                  const std::string& address) const;
 
+  void SetEventDelay(std::int64_t delay);
+
   // Callback provided to send events from the controller back to the HCI.
   std::function<void(std::unique_ptr<EventPacket>)> send_event_;
+
+  std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
+      send_delayed_event_;
 
   // Maintains the commands to be registered and used in the HciHandler object.
   // Keys are command opcodes and values are the callbacks to handle each
@@ -396,8 +475,9 @@ class DualModeController {
   // 0x03-0xFF: Reserved.
   std::uint8_t inquiry_mode_;
 
-  // Current link layer state of the controller.
   State state_;
+
+  Properties properties_;
 
   TestChannelState test_channel_state_;
 

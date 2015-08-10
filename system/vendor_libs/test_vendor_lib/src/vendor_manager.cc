@@ -78,8 +78,10 @@ bool VendorManager::Run() {
   }
 
   controller_.RegisterHandlersWithHciTransport(transport_);
+  // TODO(dennischeng): Register PostDelayedEventResponse instead.
   controller_.RegisterEventChannel(
-      std::bind(&HciTransport::SendEvent, &transport_, std::placeholders::_1));
+      std::bind(&HciTransport::PostEventResponse, &transport_,
+                std::placeholders::_1));
 
   running_ = true;
   if (!thread_.StartWithOptions(
@@ -89,9 +91,8 @@ bool VendorManager::Run() {
     return false;
   }
 
-  if (!thread_.task_runner()->PostTask(
-          FROM_HERE, base::Bind(&VendorManager::StartWatchingOnThread,
-                                weak_ptr_factory_.GetWeakPtr()))) {
+  if (!PostTask(base::Bind(&VendorManager::StartWatchingOnThread,
+                           weak_ptr_factory_.GetWeakPtr()))) {
     LOG_ERROR(LOG_TAG, "Error posting StartWatchingOnThread to task runner.");
     running_ = false;
     return false;
@@ -119,6 +120,15 @@ void VendorManager::StartWatchingOnThread() {
       LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
     }
   }
+}
+
+bool VendorManager::PostTask(const base::Closure& task) {
+  return PostDelayedTask(task, base::TimeDelta::FromMilliseconds(0));
+}
+
+bool VendorManager::PostDelayedTask(const base::Closure& task,
+                                    base::TimeDelta delay) {
+  return thread_.task_runner()->PostDelayedTask(FROM_HERE, task, delay);
 }
 
 void VendorManager::SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks) {
