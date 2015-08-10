@@ -714,9 +714,14 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
 
         btm_ble_enable_resolving_list(BTM_BLE_RL_INIT);
         btm_random_pseudo_to_identity_addr(peer_addr, &peer_addr_type);
-    }
-    else
+    } else {
         btm_ble_disable_resolving_list(BTM_BLE_RL_INIT, TRUE);
+
+        // If we have a current RPA, use that instead.
+        if (!bdaddr_is_empty((const bt_bdaddr_t *)p_dev_rec->ble.cur_rand_addr)) {
+            memcpy(peer_addr, p_dev_rec->ble.cur_rand_addr, BD_ADDR_LEN);
+        }
+    }
 #endif
 
     if (!btm_ble_topology_check(BTM_BLE_STATE_INIT))
