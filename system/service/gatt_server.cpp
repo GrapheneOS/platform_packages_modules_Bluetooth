@@ -663,8 +663,8 @@ bool Server::AddBlob(const Uuid &id, const Uuid &control_id, int properties,
   // Control attributes have fixed permissions/properties.
   btstat = internal_->AddCharacteristic(
       control_id,
-      kPermissionRead | kPermissionWrite,
-      kPropertyRead | kPropertyWrite);
+      kPropertyRead | kPropertyWrite,
+      kPermissionRead | kPermissionWrite);
   internal_->api_synchronize.wait(lock);
 
   // Finally, associate the control attribute with the value attribute.
