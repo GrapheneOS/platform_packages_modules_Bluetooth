@@ -76,12 +76,14 @@ class UnixIPCHost {
   bool OnSetAdvertisement(const std::string& service_uuid,
                           const std::string& advertise_uuids,
                           const std::string& advertise_data,
+                          const std::string& manufacturer_data,
                           const std::string& transmit_name);
 
   // Applies settings to scan response.
   bool OnSetScanResponse(const std::string& service_uuid,
                          const std::string& advertise_uuids,
                          const std::string& advertise_data,
+                         const std::string& manufacturer_data,
                          const std::string& transmit_name);
 
   // Starts service (advertisement and connections)
