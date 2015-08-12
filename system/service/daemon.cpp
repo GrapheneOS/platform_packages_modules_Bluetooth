@@ -66,11 +66,15 @@ class DaemonImpl : public Daemon {
 
     ipc_manager_.reset(new ipc::IPCManager(core_stack_.get()));
 
-    // If an IPC socket path was given, initialize IPC with it.
-    if ((!settings_->create_ipc_socket_path().empty() ||
-         !settings_->android_ipc_socket_suffix().empty()) &&
-        !ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, nullptr)) {
-      LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
+    // If an IPC socket path was given, initialize IPC with it. Otherwise
+    // initialize Binder IPC.
+    if (settings_->UseSocketIPC()) {
+      if (!ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, nullptr)) {
+        LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
+        return false;
+      }
+    } else if (!ipc_manager_->Start(ipc::IPCManager::TYPE_BINDER, nullptr)) {
+      LOG(ERROR) << "Failed to set up Binder IPCManager";
       return false;
     }
 

@@ -32,7 +32,9 @@ btserviceCommonSrc := \
 	uuid.cpp
 
 btserviceBinderSrc := \
-	ipc/binder/IBluetooth.cpp
+	ipc/binder/IBluetooth.cpp \
+	ipc/binder/bluetooth_binder_server.cpp \
+	ipc/binder/ipc_handler_binder.cpp
 
 btserviceCommonIncludes := $(LOCAL_PATH)/../
 
@@ -67,6 +69,7 @@ LOCAL_SRC_FILES := \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \
 	test/settings_unittest.cpp \
+	test/stub_ipc_handler_binder.cpp \
 	test/uuid_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11

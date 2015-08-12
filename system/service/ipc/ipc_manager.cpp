@@ -16,6 +16,7 @@
 
 #include "service/ipc/ipc_manager.h"
 
+#include "service/ipc/binder/ipc_handler_binder.h"
 #include "service/ipc/ipc_handler_unix.h"
 
 namespace ipc {
@@ -37,14 +38,31 @@ IPCManager::~IPCManager() {
 bool IPCManager::Start(Type type, Delegate* delegate) {
   switch (type) {
   case TYPE_UNIX:
+    if (UnixStarted()) {
+      LOG(ERROR) << "IPCManagerUnix already started.";
+      return false;
+    }
+
     unix_handler_ = new IPCHandlerUnix(core_stack_, delegate);
     if (!unix_handler_->Run()) {
       unix_handler_ = nullptr;
       return false;
     }
     return true;
+
   case TYPE_BINDER:
-    // TODO(armansito): Support Binder
+    if (BinderStarted()) {
+      LOG(ERROR) << "IPCManagerBinder already started.";
+      return false;
+    }
+
+    binder_handler_ = new IPCHandlerBinder(core_stack_, delegate);
+    if (!binder_handler_->Run()) {
+      binder_handler_ = nullptr;
+      return false;
+    }
+    return true;
+
   default:
     LOG(ERROR) << "Unsupported IPC type given: " << type;
   }
