@@ -53,6 +53,13 @@ class Settings {
     return create_ipc_socket_path_;
   }
 
+  // Returns true if domain-socket based IPC should be used. If false, then
+  // Binder IPC must be used.
+  inline bool UseSocketIPC() const {
+    return !android_ipc_socket_suffix().empty() ||
+        !create_ipc_socket_path().empty();
+  }
+
  private:
   bool initialized_;
   std::string android_ipc_socket_suffix_;
