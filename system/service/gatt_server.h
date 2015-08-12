@@ -71,13 +71,15 @@ class Server {
   bool Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt);
 
   // Control the content of service advertisement.
-  bool SetAdvertisement(const std::vector<Uuid> &ids,
-                        const std::vector<uint8_t> &service_data,
+  bool SetAdvertisement(const std::vector<Uuid>& ids,
+                        const std::vector<uint8_t>& service_data,
+                        const std::vector<uint8_t>& manufacturer_data,
                         bool transmit_name);
 
   // Control the content of service scan response.
-  bool SetScanResponse(const std::vector<Uuid> &ids,
-                       const std::vector<uint8_t> &service_data,
+  bool SetScanResponse(const std::vector<Uuid>& ids,
+                       const std::vector<uint8_t>& service_data,
+                       const std::vector<uint8_t>& manufacturer_data,
                        bool transmit_name);
 
   // Add an ordinary characteristic for reading and/or writing.

@@ -184,6 +184,7 @@ bool UnixIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
 bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
                               const std::string& advertise_uuids,
                               const std::string& advertise_data,
+                              const std::string& manufacturer_data,
                               const std::string& transmit_name) {
   LOG_INFO(LOG_TAG, "%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
            advertise_uuids.c_str(), advertise_data.c_str());
@@ -198,8 +199,15 @@ bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
 
   std::string decoded_data;
   base::Base64Decode(advertise_data, &decoded_data);
-  std::vector<uint8_t> blob_data(decoded_data.begin(), decoded_data.end());
-  gatt_servers_[service_uuid]->SetAdvertisement(ids, blob_data,
+  std::vector<uint8_t> decoded_advertise_data(decoded_data.begin(),
+                                              decoded_data.end());
+
+  base::Base64Decode(manufacturer_data, &decoded_data);
+  std::vector<uint8_t> decoded_manufacturer_data(decoded_data.begin(),
+                                                 decoded_data.end());
+
+  gatt_servers_[service_uuid]->SetAdvertisement(ids, decoded_advertise_data,
+                                                decoded_manufacturer_data,
                                                 TokenBool(transmit_name));
   return true;
 }
@@ -207,6 +215,7 @@ bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
 bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
                              const std::string& scan_response_uuids,
                              const std::string& scan_response_data,
+                             const std::string& manufacturer_data,
                              const std::string& transmit_name) {
   std::vector<std::string> scan_response_uuid_tokens;
   base::SplitString(scan_response_uuids, '.', &scan_response_uuid_tokens);
@@ -218,8 +227,15 @@ bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
 
   std::string decoded_data;
   base::Base64Decode(scan_response_data, &decoded_data);
-  std::vector<uint8_t> blob_data(decoded_data.begin(), decoded_data.end());
-  gatt_servers_[service_uuid]->SetScanResponse(ids, blob_data,
+  std::vector<uint8_t> decoded_advertise_data(decoded_data.begin(),
+                                              decoded_data.end());
+
+  base::Base64Decode(manufacturer_data, &decoded_data);
+  std::vector<uint8_t> decoded_manufacturer_data(decoded_data.begin(),
+                                                 decoded_data.end());
+
+  gatt_servers_[service_uuid]->SetScanResponse(ids, decoded_advertise_data,
+                                               decoded_manufacturer_data,
                                                TokenBool(transmit_name));
   return true;
 }
@@ -273,12 +289,14 @@ bool UnixIPCHost::OnMessage() {
         return OnSetCharacteristicValue(tokens[1], tokens[2], tokens[3]);
       break;
     case 5:
-      if (tokens[0] == kSetAdvertisementCommand)
-        return OnSetAdvertisement(tokens[1], tokens[2], tokens[3], tokens[4]);
-      if (tokens[0] == kSetScanResponseCommand)
-        return OnSetScanResponse(tokens[1], tokens[2], tokens[3], tokens[4]);
       if (tokens[0] == kAddCharacteristicCommand)
         return OnAddCharacteristic(tokens[1], tokens[2], tokens[3], tokens[4]);
+      break;
+    case 6:
+      if (tokens[0] == kSetAdvertisementCommand)
+        return OnSetAdvertisement(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+      if (tokens[0] == kSetScanResponseCommand)
+        return OnSetScanResponse(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
       break;
     default:
       break;

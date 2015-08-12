@@ -567,10 +567,12 @@ bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
   return true;
 }
 
-bool Server::SetAdvertisement(const std::vector<Uuid> &ids,
-                              const std::vector<uint8_t> &service_data,
+bool Server::SetAdvertisement(const std::vector<Uuid>& ids,
+                              const std::vector<uint8_t>& service_data,
+                              const std::vector<uint8_t>& manufacturer_data,
                               bool transmit_name) {
   std::vector<uint8_t> id_data;
+  auto mutable_manufacturer_data = manufacturer_data;
   auto mutable_service_data = service_data;
 
   for (const Uuid &id : ids) {
@@ -587,7 +589,8 @@ bool Server::SetAdvertisement(const std::vector<Uuid> &ids,
       false,                       /* no txpower */
       2, 2,                        /* interval */
       0,                           /* appearance */
-      0, nullptr,                  /* no mfg data */
+      mutable_manufacturer_data.size(),
+      reinterpret_cast<char *>(mutable_manufacturer_data.data()),
       mutable_service_data.size(),
       reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
       reinterpret_cast<char *>(id_data.data()));
@@ -598,10 +601,12 @@ bool Server::SetAdvertisement(const std::vector<Uuid> &ids,
   return true;
 }
 
-bool Server::SetScanResponse(const std::vector<Uuid> &ids,
-                            const std::vector<uint8_t> &service_data,
-                            bool transmit_name) {
+bool Server::SetScanResponse(const std::vector<Uuid>& ids,
+                             const std::vector<uint8_t>& service_data,
+                             const std::vector<uint8_t>& manufacturer_data,
+                             bool transmit_name) {
   std::vector<uint8_t> id_data;
+  auto mutable_manufacturer_data = manufacturer_data;
   auto mutable_service_data = service_data;
 
   for (const Uuid &id : ids) {
@@ -618,7 +623,8 @@ bool Server::SetScanResponse(const std::vector<Uuid> &ids,
       false,                      /* no txpower */
       2, 2,                       /* interval */
       0,                          /* appearance */
-      0, nullptr,                 /* no mfg data */
+      mutable_manufacturer_data.size(),
+      reinterpret_cast<char *>(mutable_manufacturer_data.data()),
       mutable_service_data.size(),
       reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
       reinterpret_cast<char *>(id_data.data()));
