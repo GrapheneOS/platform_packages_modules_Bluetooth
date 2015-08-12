@@ -80,3 +80,18 @@ LOCAL_SHARED_LIBRARIES += libchrome-host
 LOCAL_STATIC_LIBRARIES += libgmock_host liblog
 include $(BUILD_HOST_NATIVE_TEST)
 endif
+
+# Native system service CLI for target
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+	$(btserviceBinderSrc) \
+	client/main.cpp
+LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_CFLAGS += -std=c++11
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := bluetooth-cli
+LOCAL_SHARED_LIBRARIES += \
+	libbinder \
+	libchrome \
+	libutils
+include $(BUILD_EXECUTABLE)
