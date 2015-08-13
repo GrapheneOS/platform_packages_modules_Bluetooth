@@ -23,6 +23,7 @@ btserviceCommonSrc := \
 	core_stack.cpp \
 	daemon.cpp \
 	gatt_server.cpp \
+	hal/bluetooth_interface.cpp \
 	ipc/ipc_handler.cpp \
 	ipc/ipc_handler_unix.cpp \
 	ipc/ipc_manager.cpp \
@@ -66,6 +67,7 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
+	test/fake_hal_bluetooth_interface.cpp \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \
 	test/settings_unittest.cpp \
