@@ -39,7 +39,11 @@
 
 #include <cutils/log.h>
 
+#if LOG_NDEBUG
+#define LOG_VERBOSE(...) ((void)0)
+#else  // LOG_NDEBUG
 #define LOG_VERBOSE(tag, fmt, args...) ALOG(LOG_VERBOSE, tag, fmt, ## args)
+#endif  // !LOG_NDEBUG
 #define LOG_DEBUG(tag, fmt, args...)   ALOG(LOG_DEBUG, tag, fmt, ## args )
 #define LOG_INFO(tag, fmt, args...)    ALOG(LOG_INFO, tag, fmt, ## args)
 #define LOG_WARN(tag, fmt, args...)    ALOG(LOG_WARN, tag, fmt, ## args)
