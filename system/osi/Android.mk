@@ -55,7 +55,6 @@ btosiCommonTestSrc := \
     ./test/allocation_tracker_test.cpp \
     ./test/allocator_test.cpp \
     ./test/array_test.cpp \
-    ./test/atomic_test.cpp \
     ./test/config_test.cpp \
     ./test/data_dispatcher_test.cpp \
     ./test/eager_reader_test.cpp \
@@ -77,7 +76,6 @@ btosiCommonCFlags := -std=c99 -Wall -Werror -fvisibility=hidden
 # libosi static library for target
 # ========================================================
 include $(CLEAR_VARS)
-LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 LOCAL_CFLAGS := $(btosiCommonCFlags)
@@ -93,7 +91,6 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 # TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
@@ -117,7 +114,6 @@ endif
 # libosi unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
-LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall
@@ -131,7 +127,6 @@ include $(BUILD_NATIVE_TEST)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-LOCAL_CLANG := false  # osi/include/atomic.h depends on gcc atomic functions
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall

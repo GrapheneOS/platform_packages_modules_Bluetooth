@@ -21,6 +21,7 @@
 #include <hash_map.h>
 
 #include "osi/include/allocator.h"
+#include "osi/include/osi.h"
 
 struct hash_map_t;
 
@@ -138,7 +139,7 @@ bool hash_map_set(hash_map_t *hash_map, const void *key, void *data) {
 
   if (hash_map_entry) {
     // Calls hash_map callback to delete the hash_map_entry.
-    bool rc = list_remove(hash_bucket_list, hash_map_entry);
+    UNUSED_ATTR bool rc = list_remove(hash_bucket_list, hash_map_entry);
     assert(rc == true);
   } else {
     hash_map->hash_size++;
