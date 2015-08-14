@@ -62,6 +62,25 @@ class VendorManager {
   bool Run();
 
  private:
+  // Test hook object for receiving run-time parameters and commands.
+  class TestChannel {
+   public:
+    TestChannel() = default;
+
+    ~TestChannel();
+
+    // Waits for a connection request from the test channel program and
+    // allocates the file descriptor to receive run-time parameters. This file
+    // descriptor gets stored in |fd_|.
+    bool SetUp();
+
+    int GetFd();
+
+   private:
+    // File descriptor to watch for test hook data.
+    int fd_;
+  };
+
   VendorManager();
 
   ~VendorManager() = default;
@@ -90,9 +109,12 @@ class VendorManager {
   // descriptor.
   base::Thread thread_;
 
-  // Used to handle further watching of the vendor's file descriptor after
-  // WatchFileDescriptor() is called.
-  base::MessageLoopForIO::FileDescriptorWatcher manager_watcher_;
+  // Used to handle further watching of the vendor's/test channel's file
+  // descriptor after WatchFileDescriptor() is called.
+  base::MessageLoopForIO::FileDescriptorWatcher hci_watcher_;
+  base::MessageLoopForIO::FileDescriptorWatcher test_channel_watcher_;
+
+  TestChannel test_channel_;
 
   // This should remain the last member so it'll be destroyed and invalidate
   // its weak pointers before any other members are destroyed.

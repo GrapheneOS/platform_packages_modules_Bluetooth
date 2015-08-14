@@ -88,7 +88,6 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   // transport object, although |hci_fd_| can be closed by the HCI in
   // TestVendorOp().
   std::unique_ptr<base::ScopedFD> hci_fd_;
-
   std::unique_ptr<base::ScopedFD> vendor_fd_;
 
   DISALLOW_COPY_AND_ASSIGN(HciTransport);
