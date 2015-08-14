@@ -396,20 +396,17 @@ class DualModeController {
   // Clears all test channel modifications.
   void TestChannelClear(const std::vector<std::string>& args);
 
+  // Sets the response delay for events to 0.
+  void TestChannelClearEventDelay(const std::vector<std::string>& args);
+
   // Discovers a fake device.
   void TestChannelDiscover(const std::vector<std::string>& args);
-
-  // Discovers a fake device on the specified interval (in ms).
-  void TestChannelDiscoverInterval(const std::vector<std::string>& args);
-
-  // Causes all future HCI commands to timeout.
-  void TestChannelTimeoutAll(const std::vector<std::string>& args);
 
   // Causes events to be sent after a delay.
   void TestChannelSetEventDelay(const std::vector<std::string>& args);
 
-  // Sets the response delay for events to 0.
-  void TestChannelClearEventDelay(const std::vector<std::string>& args);
+  // Causes all future HCI commands to timeout.
+  void TestChannelTimeoutAll(const std::vector<std::string>& args);
 
  private:
   // Current link layer state of the controller.
