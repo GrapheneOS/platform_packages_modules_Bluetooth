@@ -529,7 +529,7 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback (tBTM_VSC_CMPL *p_vcs_cplt_
             btm_cb.cmn_ble_vsc_cb.version_supported = BTM_VSC_CHIP_CAPABILITY_L_VERSION;
         }
 
-        if (btm_cb.cmn_ble_vsc_cb.version_supported == BTM_VSC_CHIP_CAPABILITY_M_VERSION)
+        if (btm_cb.cmn_ble_vsc_cb.version_supported >= BTM_VSC_CHIP_CAPABILITY_M_VERSION)
         {
             STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
             STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.extended_scan_support, p);
