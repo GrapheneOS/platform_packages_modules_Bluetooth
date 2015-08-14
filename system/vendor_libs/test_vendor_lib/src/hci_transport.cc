@@ -30,7 +30,7 @@ extern "C" {
 namespace test_vendor_lib {
 
 void HciTransport::CloseHciFd() {
-  hci_fd_.reset();
+  hci_fd_.reset(nullptr);
 }
 
 int HciTransport::GetHciFd() const {
@@ -50,16 +50,13 @@ bool HciTransport::SetUp() {
   }
   hci_fd_.reset(new base::ScopedFD(socketpair_fds[0]));
   vendor_fd_.reset(new base::ScopedFD(socketpair_fds[1]));
-  packet_stream_.SetFd(vendor_fd_->get());
   return true;
 }
 
 void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
-  CHECK(fd == GetVendorFd());
-  LOG_INFO(LOG_TAG, "Event ready in HciTransport.");
+  LOG_INFO(LOG_TAG, "Event ready in HciTransport on fd: %d.", fd);
 
-  const serial_data_type_t packet_type = packet_stream_.ReceivePacketType();
-
+  const serial_data_type_t packet_type = packet_stream_.ReceivePacketType(fd);
   switch (packet_type) {
     case (DATA_TYPE_COMMAND): {
       ReceiveReadyCommand();
@@ -86,7 +83,7 @@ void HciTransport::OnFileCanReadWithoutBlocking(int fd) {
 
 void HciTransport::ReceiveReadyCommand() const {
   std::unique_ptr<CommandPacket> command =
-      packet_stream_.ReceiveCommand();
+      packet_stream_.ReceiveCommand(GetVendorFd());
   LOG_INFO(LOG_TAG, "Received command packet.");
   command_handler_(std::move(command));
 }
@@ -101,9 +98,8 @@ void HciTransport::SendEvent(std::unique_ptr<EventPacket> event) {
 }
 
 void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
-  CHECK(fd == GetVendorFd());
   if (!outgoing_events_.empty()) {
-    packet_stream_.SendEvent(*outgoing_events_.front());
+    packet_stream_.SendEvent(*outgoing_events_.front(), fd);
     outgoing_events_.pop();
   }
 }

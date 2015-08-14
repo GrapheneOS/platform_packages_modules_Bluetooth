@@ -30,43 +30,37 @@ namespace test_vendor_lib {
 // and data from the HCI and to send controller events back to the host.
 class PacketStream {
  public:
-  // Constructs an invalid PacketStream object whose file descriptor must be set
-  // before use.
-  PacketStream();
+  PacketStream() = default;
 
   virtual ~PacketStream() = default;
 
-  // Reads a command packet and returns the packet back to the caller, along
-  // with the responsibility of managing the packet.
-  std::unique_ptr<CommandPacket> ReceiveCommand() const;
+  // Reads a command packet from the file descriptor at |fd| and returns the
+  // packet back to the caller, along with the responsibility of managing the
+  // packet.
+  std::unique_ptr<CommandPacket> ReceiveCommand(int fd) const;
 
-  // Reads and interprets a single octet as a packet type octet. Validates the
-  // type octet for correctness.
-  serial_data_type_t ReceivePacketType() const;
+  // Reads a single octet from |fd| and interprets it as a packet type octet.
+  // Validates the type octet for correctness.
+  serial_data_type_t ReceivePacketType(int fd) const;
 
-  // Sends an event to the HCI. The ownership of the event is left with the
-  // caller.
-  bool SendEvent(const EventPacket& event) const;
-
-  void SetFd(int fd);
+  // Sends an event to file descriptor |fd|. The ownership of the event is left
+  // with the caller.
+  bool SendEvent(const EventPacket& event, int fd) const;
 
  private:
   // Checks if |type| is in the valid range from DATA_TYPE_COMMAND to
   // DATA_TYPE_SCO.
   bool ValidateTypeOctet(serial_data_type_t type) const;
 
-  // Attempts to receive |num_octets_to_receive| into |destination|, returning
-  // false if an error occurs.
+  // Attempts to receive |num_octets_to_receive| into |destination| from |fd|,
+  // returning false if an error occurs.
   bool ReceiveAll(std::vector<std::uint8_t>& destination,
-                  size_t num_octets_to_receive) const;
+                  size_t num_octets_to_receive, int fd) const;
 
-  // Attempts to send |num_octets_to_send| from |source|, returning false if an
-  // error occurs.
+  // Attempts to send |num_octets_to_send| from |source| to |fd|, returning
+  // false if an error occurs.
   bool SendAll(const std::vector<std::uint8_t>& source,
-               size_t num_octets_to_send) const;
-
-  // PacketStream does not take ownership of the file descriptor it uses.
-  int fd_;
+               size_t num_octets_to_send, int fd) const;
 };
 
 }  // namespace test_vendor_lib
