@@ -25,7 +25,7 @@
 #include "service/uuid.h"
 
 namespace bluetooth {
-class CoreStack;
+class Adapter;
 }  // namespace bluetooth
 
 namespace ipc {
@@ -37,7 +37,7 @@ namespace ipc {
 class UnixIPCHost {
  public:
   // UnixIPCHost owns the passed sockfd.
-  UnixIPCHost(int sockfd, bluetooth::CoreStack* bt);
+  UnixIPCHost(int sockfd, bluetooth::Adapter* adapter);
   ~UnixIPCHost();
 
   // Synchronously handle all events on input FDs.
@@ -93,7 +93,7 @@ class UnixIPCHost {
   bool OnStopService(const std::string& service_uuid);
 
   // weak reference.
-  bluetooth::CoreStack *bt_;
+  bluetooth::Adapter *adapter_;
 
   // File descripters that we will block against.
   std::vector<struct pollfd> pfds_;

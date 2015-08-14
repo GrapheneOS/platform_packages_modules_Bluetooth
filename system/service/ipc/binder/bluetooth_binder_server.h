@@ -21,7 +21,7 @@
 #include "service/ipc/binder/IBluetooth.h"
 
 namespace bluetooth {
-class CoreStack;
+class Adapter;
 }  // namespace bluetooth
 
 namespace ipc {
@@ -29,7 +29,7 @@ namespace ipc {
 // Implements the server side of the IBluetooth Binder interface.
 class BluetoothBinderServer : public binder::BnBluetooth {
  public:
-  explicit BluetoothBinderServer(bluetooth::CoreStack* core_stack);
+  explicit BluetoothBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothBinderServer() override;
 
   // binder::BnBluetooth overrides:
@@ -40,8 +40,8 @@ class BluetoothBinderServer : public binder::BnBluetooth {
   bool Disable() override;
 
  private:
-  // Weak handle on the CoreStack.
-  bluetooth::CoreStack* core_stack_;
+  // Weak handle on the Adapter.
+  bluetooth::Adapter* adapter_;
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothBinderServer);
 };

@@ -26,9 +26,10 @@
 #include <base/strings/stringprintf.h>
 #include <gtest/gtest.h>
 
+#include "service/adapter.h"
 #include "service/settings.h"
 #include "service/ipc/ipc_manager.h"
-#include "service/test/mock_core_stack.h"
+#include "service/test/fake_hal_bluetooth_interface.h"
 #include "service/test/mock_daemon.h"
 
 
@@ -54,13 +55,18 @@ class IPCUnixTest : public ::testing::Test {
         .WillByDefault(Return(&message_loop_));
 
     bluetooth::Daemon::InitializeForTesting(mock_daemon);
+    bluetooth::hal::BluetoothInterface::InitializeForTesting(
+        new bluetooth::testing::FakeHALBluetoothInterface(nullptr));
 
-    ipc_manager_.reset(new ipc::IPCManager(&core_stack_));
+    adapter_.reset(new bluetooth::Adapter());
+    ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
   }
 
   void TearDown() override {
     client_fd_.reset();
     ipc_manager_.reset();
+    adapter_.reset();
+    bluetooth::hal::BluetoothInterface::CleanUp();
     bluetooth::Daemon::ShutDown();
     base::CommandLine::Reset();
   }
@@ -92,8 +98,8 @@ class IPCUnixTest : public ::testing::Test {
   base::AtExitManager exit_manager_;
   base::MessageLoop message_loop_;
   bluetooth::Settings settings_;
-  bluetooth::testing::MockCoreStack core_stack_;
 
+  std::unique_ptr<bluetooth::Adapter> adapter_;
   std::unique_ptr<ipc::IPCManager> ipc_manager_;
   base::ScopedFD client_fd_;
 

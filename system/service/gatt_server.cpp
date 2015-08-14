@@ -33,13 +33,17 @@
 #include <unordered_map>
 #include <vector>
 
-#include "core_stack.h"
-#include "hardware/bluetooth.h"
-#include "hardware/bt_gatt.h"
-#include "logging_helpers.h"
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
+
+#include "service/hal/bluetooth_interface.h"
+#include "service/logging_helpers.h"
+#include "service/uuid.h"
+
+extern "C" {
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-#include "uuid.h"
+}  // extern "C"
 
 namespace {
 
@@ -91,7 +95,7 @@ struct Characteristic {
 struct ServerInternals {
   ServerInternals();
   ~ServerInternals();
-  int Initialize(CoreStack *bt);
+  int Initialize();
   bt_status_t AddCharacteristic(
       const Uuid& uuid,
       int properties,
@@ -477,10 +481,12 @@ const btgatt_callbacks_t gatt_callbacks = {
 namespace bluetooth {
 namespace gatt {
 
-int ServerInternals::Initialize(CoreStack *bt) {
+int ServerInternals::Initialize() {
   // Get the interface to the GATT profile.
+  const bt_interface_t* bt_iface =
+      hal::BluetoothInterface::Get()->GetHALInterface();
   gatt = reinterpret_cast<const btgatt_interface_t *>(
-      bt->GetInterface(BT_PROFILE_GATT_ID));
+      bt_iface->get_profile_interface(BT_PROFILE_GATT_ID));
   if (!gatt) {
     LOG_ERROR(LOG_TAG, "Error getting GATT interface");
     return -1;
@@ -532,7 +538,7 @@ Server::Server() : internal_(nullptr) {}
 
 Server::~Server() {}
 
-bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
+bool Server::Initialize(const Uuid& service_id, int* gatt_pipe) {
   internal_.reset(new ServerInternals);
   if (!internal_) {
     LOG_ERROR(LOG_TAG, "Error creating internals");
@@ -541,7 +547,7 @@ bool Server::Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt) {
   g_internal = internal_.get();
 
   std::unique_lock<std::mutex> lock(internal_->lock);
-  int status = internal_->Initialize(bt);
+  int status = internal_->Initialize();
   if (status) {
     LOG_ERROR(LOG_TAG, "Error initializing internals");
     return false;

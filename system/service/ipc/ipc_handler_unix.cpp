@@ -28,9 +28,9 @@
 
 namespace ipc {
 
-IPCHandlerUnix::IPCHandlerUnix(bluetooth::CoreStack* core_stack,
+IPCHandlerUnix::IPCHandlerUnix(bluetooth::Adapter* adapter,
                                IPCManager::Delegate* delegate)
-    : IPCHandler(core_stack, delegate),
+    : IPCHandler(adapter, delegate),
       running_(false),
       thread_("IPCHandlerUnix"),
       keep_running_(true) {
@@ -137,7 +137,7 @@ void IPCHandlerUnix::Stop() {
 
 void IPCHandlerUnix::StartListeningOnThread() {
   CHECK(socket_.is_valid());
-  CHECK(core_stack());
+  CHECK(adapter());
   CHECK(running_);
 
   LOG(INFO) << "Listening to incoming connections";
@@ -167,7 +167,9 @@ void IPCHandlerUnix::StartListeningOnThread() {
     }
 
     LOG(INFO) << "Established client connection: fd=" << client_socket;
-    UnixIPCHost ipc_host(client_socket, core_stack());
+
+    UnixIPCHost ipc_host(client_socket, adapter());
+
     // TODO(armansito): Use |thread_|'s MessageLoopForIO instead of using a
     // custom event loop to poll from the socket.
     ipc_host.EventLoop();

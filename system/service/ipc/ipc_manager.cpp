@@ -21,9 +21,9 @@
 
 namespace ipc {
 
-IPCManager::IPCManager(bluetooth::CoreStack* core_stack)
-    : core_stack_(core_stack) {
-  CHECK(core_stack_);
+IPCManager::IPCManager(bluetooth::Adapter* adapter)
+    : adapter_(adapter) {
+  CHECK(adapter_);
 }
 
 IPCManager::~IPCManager() {
@@ -43,7 +43,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
 
-    unix_handler_ = new IPCHandlerUnix(core_stack_, delegate);
+    unix_handler_ = new IPCHandlerUnix(adapter_, delegate);
     if (!unix_handler_->Run()) {
       unix_handler_ = nullptr;
       return false;
@@ -56,7 +56,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
 
-    binder_handler_ = new IPCHandlerBinder(core_stack_, delegate);
+    binder_handler_ = new IPCHandlerBinder(adapter_, delegate);
     if (!binder_handler_->Run()) {
       binder_handler_ = nullptr;
       return false;

@@ -20,11 +20,11 @@
 
 namespace ipc {
 
-IPCHandler::IPCHandler(bluetooth::CoreStack* core_stack,
+IPCHandler::IPCHandler(bluetooth::Adapter* adapter,
                        IPCManager::Delegate* delegate)
-    : core_stack_(core_stack),
+    : adapter_(adapter),
       delegate_(delegate) {
-  CHECK(core_stack_);
+  CHECK(adapter_);
 }
 
 IPCHandler::~IPCHandler() {
