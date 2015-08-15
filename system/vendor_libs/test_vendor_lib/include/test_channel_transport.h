@@ -52,7 +52,7 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
   // Sets the callback that fires when data is read in
   // |OnFileCanReadWithoutBlocking|.
   void RegisterCommandHandler(
-      std::function<void(std::string, std::vector<std::uint8_t>)> callback);
+      std::function<void(std::string, std::vector<std::string>)> callback);
 
  private:
   // base::MessageLoopForIO::Watcher overrides:
@@ -60,7 +60,7 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
 
   void OnFileCanWriteWithoutBlocking(int fd) override;
 
-  std::function<void(std::string, std::vector<std::uint8_t>)>
+  std::function<void(std::string, std::vector<std::string>)>
       command_handler_;
 
   // File descriptor to watch for test hook data.

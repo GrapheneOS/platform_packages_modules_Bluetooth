@@ -37,14 +37,14 @@ class TestChannelHandler {
 
   // Callback to be fired when a command is received from the test channel.
   void HandleTestCommand(std::string command_name,
-                         std::vector<std::uint8_t> args);
+                         std::vector<std::string> args);
 
   // Creates the mapping from the |command_name| to the method |callback|,
   // which is provided by the controller and will be fired when its command is
   // received from the test channel.
   void RegisterControllerCommand(
       std::string command_name,
-      std::function<void(const std::vector<std::uint8_t> args)> callback);
+      std::function<void(const std::vector<std::string> args)> callback);
 
   void RegisterHandlersWithTransport(TestChannelTransport& transport);
 
@@ -52,7 +52,7 @@ class TestChannelHandler {
   // Controller callbacks to be executed in handlers and registered in
   // RegisterControllerCommand().
   std::unordered_map<std::string,
-                     std::function<void(const std::vector<std::uint8_t> args)> >
+                     std::function<void(const std::vector<std::string> args)> >
       commands_;
 
   DISALLOW_COPY_AND_ASSIGN(TestChannelHandler);
