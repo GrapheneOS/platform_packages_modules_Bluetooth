@@ -65,34 +65,34 @@ class Server {
 
   // Register GATT interface, initialize internal state,
   // and open a pipe for characteristic write notification.
-  bool Initialize(const Uuid& service_id, int* gatt_pipe);
+  bool Initialize(const UUID& service_id, int* gatt_pipe);
 
   // Control the content of service advertisement.
-  bool SetAdvertisement(const std::vector<Uuid>& ids,
+  bool SetAdvertisement(const std::vector<UUID>& ids,
                         const std::vector<uint8_t>& service_data,
                         const std::vector<uint8_t>& manufacturer_data,
                         bool transmit_name);
 
   // Control the content of service scan response.
-  bool SetScanResponse(const std::vector<Uuid>& ids,
+  bool SetScanResponse(const std::vector<UUID>& ids,
                        const std::vector<uint8_t>& service_data,
                        const std::vector<uint8_t>& manufacturer_data,
                        bool transmit_name);
 
   // Add an ordinary characteristic for reading and/or writing.
-  bool AddCharacteristic(const Uuid &id, int properties, int permissions);
+  bool AddCharacteristic(const UUID &id, int properties, int permissions);
 
   // Add a special 'blob' characteristic with a corresponding control
   // attribute to manipulate which part of the blob the attribute represents.
-  bool AddBlob(const Uuid &id, const Uuid &control_id, int properties,
+  bool AddBlob(const UUID &id, const UUID &control_id, int properties,
                int permissions);
 
   // Put a new value into a characeteristic.
   // It will be read from a client starting at the next 0-offset read.
-  bool SetCharacteristicValue(const Uuid &id, const std::vector<uint8_t> &value);
+  bool SetCharacteristicValue(const UUID &id, const std::vector<uint8_t> &value);
 
   // Get the current value of a characteristic.
-  bool GetCharacteristicValue(const Uuid &id, std::vector<uint8_t> *value);
+  bool GetCharacteristicValue(const UUID &id, std::vector<uint8_t> *value);
 
   // Start this service. Activate advertisements, allow connections.
   // Characteristics should all be created before this.

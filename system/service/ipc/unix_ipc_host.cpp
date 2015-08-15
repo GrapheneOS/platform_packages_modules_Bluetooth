@@ -39,7 +39,7 @@
 #include "service/uuid.h"
 
 using bluetooth::Adapter;
-using bluetooth::Uuid;
+using bluetooth::UUID;
 
 using namespace bluetooth::gatt;
 
@@ -115,7 +115,7 @@ bool UnixIPCHost::OnCreateService(const std::string& service_uuid) {
 
   int gattfd;
   bool status = gatt_servers_[service_uuid]->Initialize(
-          Uuid(service_uuid), &gattfd);
+          UUID(service_uuid), &gattfd);
   if (!status) {
     LOG_ERROR(LOG_TAG, "Failed to initialize bluetooth");
     return false;
@@ -161,10 +161,10 @@ bool UnixIPCHost::OnAddCharacteristic(const std::string& service_uuid,
 
   if (control_uuid.empty()) {
     gatt_servers_[service_uuid]->AddCharacteristic(
-        Uuid(characteristic_uuid), properties_mask, permissions_mask);
+        UUID(characteristic_uuid), properties_mask, permissions_mask);
   } else {
-    gatt_servers_[service_uuid]->AddBlob(Uuid(characteristic_uuid),
-                                         Uuid(control_uuid), properties_mask,
+    gatt_servers_[service_uuid]->AddBlob(UUID(characteristic_uuid),
+                                         UUID(control_uuid), properties_mask,
                                          permissions_mask);
   }
   return true;
@@ -176,7 +176,7 @@ bool UnixIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
   std::string decoded_data;
   base::Base64Decode(value, &decoded_data);
   std::vector<uint8_t> blob_data(decoded_data.begin(), decoded_data.end());
-  gatt_servers_[service_uuid]->SetCharacteristicValue(Uuid(characteristic_uuid),
+  gatt_servers_[service_uuid]->SetCharacteristicValue(UUID(characteristic_uuid),
                                                       blob_data);
   return true;
 }
@@ -192,8 +192,8 @@ bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
   std::vector<std::string> advertise_uuid_tokens;
   base::SplitString(advertise_uuids, '.', &advertise_uuid_tokens);
 
-  // string -> vector<Uuid>
-  std::vector<Uuid> ids;
+  // string -> vector<UUID>
+  std::vector<UUID> ids;
   for (const auto& uuid_token : advertise_uuid_tokens)
     ids.emplace_back(uuid_token);
 
@@ -220,8 +220,8 @@ bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
   std::vector<std::string> scan_response_uuid_tokens;
   base::SplitString(scan_response_uuids, '.', &scan_response_uuid_tokens);
 
-  // string -> vector<Uuid>
-  std::vector<Uuid> ids;
+  // string -> vector<UUID>
+  std::vector<UUID> ids;
   for (const auto& uuid_token : scan_response_uuid_tokens)
     ids.emplace_back(uuid_token);
 
@@ -307,7 +307,7 @@ bool UnixIPCHost::OnMessage() {
 }
 
 bool UnixIPCHost::OnGattWrite() {
-  Uuid::Uuid128Bit id;
+  UUID::UUID128Bit id;
   int r = read(pfds_[kFdGatt].fd, id.data(), id.size());
   if (r != id.size()) {
     LOG_ERROR(LOG_TAG, "Error reading GATT attribute ID");
@@ -317,7 +317,7 @@ bool UnixIPCHost::OnGattWrite() {
   std::vector<uint8_t> value;
   // TODO(icoolidge): Generalize this for multiple clients.
   auto server = gatt_servers_.begin();
-  server->second->GetCharacteristicValue(Uuid(id), &value);
+  server->second->GetCharacteristicValue(UUID(id), &value);
   const std::string value_string(value.begin(), value.end());
   std::string encoded_value;
   base::Base64Encode(value_string, &encoded_value);

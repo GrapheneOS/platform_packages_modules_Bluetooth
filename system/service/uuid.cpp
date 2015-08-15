@@ -13,7 +13,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
-#include "uuid.h"
+
+#include "service/uuid.h"
 
 #include <algorithm>
 #include <array>
@@ -22,17 +23,17 @@
 
 namespace bluetooth {
 
-void Uuid::InitializeDefault() {
+void UUID::InitializeDefault() {
   // Initialize to base bluetooth UUID.
   id_ = {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
          0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb}};
 }
 
-Uuid::Uuid() {
+UUID::UUID() {
   InitializeDefault();
 }
 
-Uuid::Uuid(const std::string& uuid) {
+UUID::UUID(const std::string& uuid) {
   InitializeDefault();
   const int start_index = uuid.size() == 4 ? 2 : 0;
   const size_t copy_size = std::min(id_.size(), uuid.size() / 2);
@@ -42,44 +43,44 @@ Uuid::Uuid(const std::string& uuid) {
   }
 }
 
-Uuid::Uuid(const bt_uuid_t& uuid) {
+UUID::UUID(const bt_uuid_t& uuid) {
   std::reverse_copy(uuid.uu, uuid.uu + sizeof(uuid.uu), id_.begin());
 }
 
-Uuid::Uuid(const Uuid::Uuid16Bit& uuid) {
+UUID::UUID(const UUID::UUID16Bit& uuid) {
   InitializeDefault();
-  std::copy(uuid.begin(), uuid.end(), id_.begin() + kUuid16Octets);
+  std::copy(uuid.begin(), uuid.end(), id_.begin() + kUUID16Octets);
 }
 
-Uuid::Uuid(const Uuid::Uuid32Bit& uuid) {
+UUID::UUID(const UUID::UUID32Bit& uuid) {
   InitializeDefault();
   std::copy(uuid.begin(), uuid.end(), id_.begin());
 }
 
-Uuid::Uuid(const Uuid::Uuid128Bit& uuid) : id_(uuid) {}
+UUID::UUID(const UUID::UUID128Bit& uuid) : id_(uuid) {}
 
-const Uuid::Uuid128Bit Uuid::GetFullBigEndian() const {
+const UUID::UUID128Bit UUID::GetFullBigEndian() const {
   return id_;
 }
 
-const Uuid::Uuid128Bit Uuid::GetFullLittleEndian() const {
-  Uuid::Uuid128Bit ret;
+const UUID::UUID128Bit UUID::GetFullLittleEndian() const {
+  UUID::UUID128Bit ret;
   std::reverse_copy(id_.begin(), id_.end(), ret.begin());
   return ret;
 }
 
-const bt_uuid_t Uuid::GetBlueDroid() const {
+const bt_uuid_t UUID::GetBlueDroid() const {
   bt_uuid_t ret;
   std::reverse_copy(id_.begin(), id_.end(), ret.uu);
   return ret;
 }
 
-bool Uuid::operator<(const Uuid& rhs) const {
+bool UUID::operator<(const UUID& rhs) const {
   return std::lexicographical_compare(id_.begin(), id_.end(), rhs.id_.begin(),
                                       rhs.id_.end());
 }
 
-bool Uuid::operator==(const Uuid& rhs) const {
+bool UUID::operator==(const UUID& rhs) const {
   return std::equal(id_.begin(), id_.end(), rhs.id_.begin());
 }
 
