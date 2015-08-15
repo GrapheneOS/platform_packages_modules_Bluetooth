@@ -324,7 +324,19 @@ class DualModeController {
   //           is halted.
   void HciInquiry(const std::vector<std::uint8_t>& args);
 
-  void UciTimeoutAll(const std::vector<std::uint8_t>& args);
+  // Test Channel commands:
+
+  // Clears all test channel modifications.
+  void UciClear(const std::vector<std::string>& args);
+
+  // Discovers a fake device.
+  void UciDiscover(const std::vector<std::string>& args);
+
+  // Discovers a fake device on the specified interval (in ms).
+  void UciDiscoverInterval(const std::vector<std::string>& args);
+
+  // Causes all future HCI commands to timeout.
+  void UciTimeoutAll(const std::vector<std::string>& args);
 
  private:
   enum State {
@@ -333,6 +345,11 @@ class DualModeController {
     kScanning,  // Listening for advertising packets.
     kInitiating,  // Listening for advertising packets from a specific device.
     kConnection,  // In a connection.
+  };
+
+  enum TestChannelState {
+    kNone,  // The controller is running normally.
+    kTimeoutAll,  // All commands should time out, i.e. send no response.
   };
 
   // Creates a command complete event and sends it back to the HCI.
@@ -353,7 +370,8 @@ class DualModeController {
   void SendInquiryResult() const;
 
   // Sends an extended inquiry response for a fake device.
-  void SendExtendedInquiryResult() const;
+  void SendExtendedInquiryResult(const std::string& name,
+                                 const std::string& address) const;
 
   // Callback provided to send events from the controller back to the HCI.
   std::function<void(std::unique_ptr<EventPacket>)> send_event_;
@@ -366,7 +384,7 @@ class DualModeController {
       active_commands_;
 
   std::unordered_map<std::string,
-                     std::function<void(const std::vector<std::uint8_t>&)>>
+                     std::function<void(const std::vector<std::string>&)>>
       test_channel_active_commands_;
 
   // Specifies the format of Inquiry Result events to be returned during the
@@ -379,6 +397,8 @@ class DualModeController {
 
   // Current link layer state of the controller.
   State state_;
+
+  TestChannelState test_channel_state_;
 
   DISALLOW_COPY_AND_ASSIGN(DualModeController);
 };

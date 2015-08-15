@@ -32,7 +32,7 @@ void TestChannelHandler::RegisterHandlersWithTransport(
 }
 
 void TestChannelHandler::HandleTestCommand(std::string command_name,
-                                           std::vector<uint8_t> args) {
+                                           std::vector<std::string> args) {
   LOG_INFO(LOG_TAG, "Test Channel command: %s", command_name.c_str());
 
   // The command hasn't been registered with the handler yet. There is nothing
@@ -40,14 +40,14 @@ void TestChannelHandler::HandleTestCommand(std::string command_name,
   if (commands_.count(command_name) == 0) {
     return;
   }
-  std::function<void(const std::vector<uint8_t> args)> command =
+  std::function<void(const std::vector<std::string> args)> command =
       commands_[command_name];
   command(args);
 }
 
 void TestChannelHandler::RegisterControllerCommand(
     std::string command_name,
-    std::function<void(const std::vector<uint8_t> args)> callback) {
+    std::function<void(const std::vector<std::string> args)> callback) {
   commands_[command_name] = callback;
 }
 

@@ -35,7 +35,7 @@ Usage:
     the port, also from step 1, as arguments.
 """
 
-#!/ usr / bin / env python
+#!/usr/bin/env python
 
 import cmd
 import random
@@ -43,6 +43,18 @@ import socket
 import string
 import struct
 import sys
+
+DEVICE_NAME_LENGTH = 6
+DEVICE_ADDRESS_LENGTH = 6
+
+# Used to generate fake device names and addresses during discovery.
+def generate_random_name():
+  return ''.join(random.SystemRandom().choice(string.ascii_uppercase + \
+    string.digits) for _ in range(DEVICE_NAME_LENGTH))
+
+def generate_random_address():
+  return ''.join(random.SystemRandom().choice(string.digits) for _ in \
+    range(DEVICE_ADDRESS_LENGTH))
 
 class Connection(object):
   """Simple wrapper class for a socket object.
@@ -71,6 +83,12 @@ class TestChannel(object):
 
   def __init__(self, address, port):
     self._connection = Connection(address, port)
+    self._discovered_devices = DeviceManager()
+
+  def discover_new_device(self, name=None, address=None):
+    device = Device(name, address)
+    self._discovered_devices.add_device(device)
+    return device
 
   def close(self):
     self._connection.close()
@@ -98,6 +116,40 @@ class TestChannel(object):
     for arg in args:
       if len(arg) > 255:
         raise ValueError  # Size must be encodable in one octet.
+
+class DeviceManager(object):
+  """Maintains the active fake devices that have been "discovered".
+
+  Attributes:
+    device_list: Maps device addresses (keys) to devices (values).
+  """
+
+  def __init__(self):
+    self.device_list = {}
+
+  def add_device(self, device):
+    self.device_list[device.get_address()] = device
+
+class Device(object):
+  """A fake device to be returned in inquiry and scan results. Note that if an
+  explicit name or address is not provided, a random string of characters
+  is used.
+
+  Attributes:
+    name: The device name for use in extended results.
+    address: The BD address of the device.
+  """
+
+  def __init__(self, name=None, address=None):
+    # TODO(dennischeng): Generate device properties more robustly.
+    self.name = generate_random_name() if name is None else name
+    self.address = generate_random_address() if address is None else address
+
+  def get_name(self):
+    return self.name
+
+  def get_address(self):
+    return self.address
 
 class TestChannelShell(cmd.Cmd):
   """Shell for sending test channel data to controller.
@@ -139,10 +191,14 @@ class TestChannelShell(cmd.Cmd):
     random name is used instead.
     """
     if len(args) == 0:
-      # TODO(dennischeng): Generate device properties more robustly.
-      args = ''.join(random.SystemRandom().choice(string.ascii_uppercase + \
-      string.digits) for _ in range(6))
-    self._test_channel.send_command('DISCOVER', args.split())
+      args = generate_random_name()
+    device_list = [self.test_channel.discover_new_device(arg) for arg in \
+                   args.split()]
+    device_names_and_addresses = []
+    for device in device_list:
+      device_names_and_addresses.append(device.get_name())
+      device_names_and_addresses.append(device.get_address())
+    self._test_channel.send_command('DISCOVER', device_names_and_addresses)
 
   def do_discover_interval(self, args):
     """
@@ -150,6 +206,8 @@ class TestChannelShell(cmd.Cmd):
     Sends an inquiry result for a device with a random name on the interval
     specified by |interval_in_ms|.
     """
+    args.append(generate_random_name())
+    args.append(generate_random_address())
     self._test_channel.send_command('DISCOVER_INTERVAL', args.split())
 
   def do_clear(self, args):

@@ -156,22 +156,26 @@ void DualModeController::SendInquiryResult() const {
   send_event_(std::move(inquiry_result));
 }
 
-void DualModeController::SendExtendedInquiryResult() const {
+void DualModeController::SendExtendedInquiryResult(
+    const std::string& name, const std::string& address) const {
   std::vector<uint8_t> rssi = {0};
-  std::vector<uint8_t> extended_inquiry_data = {7, 0x09,
-                                                'F', 'o', 'o', 'B', 'a', 'r'};
+  std::vector<uint8_t> extended_inquiry_data = {name.length() + 1, 0x09};
+  std::copy(name.begin(), name.end(),
+            std::back_inserter(extended_inquiry_data));
+  std::vector<uint8_t> bd_address(address.begin(), address.end());
   // TODO(dennischeng): Use constants for parameter sizes, here and elsewhere.
   while (extended_inquiry_data.size() < 240) {
     extended_inquiry_data.push_back(0);
   }
   std::unique_ptr<EventPacket> extended_inquiry_result =
       EventPacket::CreateExtendedInquiryResultEvent(
-          kOtherDeviceBdAddress, kPageScanRepetitionMode, kPageScanPeriodMode,
-          kClassOfDevice, kClockOffset, rssi, extended_inquiry_data);
+          bd_address, kPageScanRepetitionMode, kPageScanPeriodMode, kClassOfDevice,
+          kClockOffset, rssi, extended_inquiry_data);
   send_event_(std::move(extended_inquiry_result));
 }
 
-DualModeController::DualModeController() : state_(kStandby) {
+DualModeController::DualModeController()
+    : state_(kStandby), test_channel_state_(kNone) {
 #define SET_HANDLER(opcode, method) \
   active_commands_[opcode] =        \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
@@ -205,7 +209,10 @@ DualModeController::DualModeController() : state_(kStandby) {
 #define SET_TEST_HANDLER(command_name, method)  \
   test_channel_active_commands_[command_name] = \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
-  SET_TEST_HANDLER("TimeoutAll", UciTimeoutAll);
+  SET_TEST_HANDLER("CLEAR", UciTimeoutAll);
+  SET_TEST_HANDLER("DISCOVER", UciDiscover);
+  SET_TEST_HANDLER("DISCOVER_INTERVAL", UciTimeoutAll);
+  SET_TEST_HANDLER("TIMEOUT_ALL", UciTimeoutAll);
 #undef SET_TEST_HANDLER
 }
 
@@ -228,8 +235,26 @@ void DualModeController::RegisterEventChannel(
   send_event_ = callback;
 }
 
-void DualModeController::UciTimeoutAll(const std::vector<std::uint8_t>& args) {
+void DualModeController::UciClear(const std::vector<std::string>& args) {
+  LogCommand("Uci Clear");
+  test_channel_state_ = kNone;
+}
+
+void DualModeController::UciDiscover(const std::vector<std::string>& args) {
+  LogCommand("Uci Discover");
+  for (size_t i = 0; i < args.size()-1; i+=2) {
+    SendExtendedInquiryResult(args[i], args[i+1]);
+  }
+}
+
+void DualModeController::UciDiscoverInterval(
+    const std::vector<std::string>& args) {
   LogCommand("Uci Timeout All");
+}
+
+void DualModeController::UciTimeoutAll(const std::vector<std::string>& args) {
+  LogCommand("Uci Timeout All");
+  test_channel_state_ = kTimeoutAll;
 }
 
 // TODO(dennischeng): Store relevant arguments from commands as attributes of
@@ -405,7 +430,7 @@ void DualModeController::HciInquiry(const std::vector<uint8_t>& /* args */) {
       break;
 
     case (kExtendedOrRssiInquiry):
-      SendExtendedInquiryResult();
+      SendExtendedInquiryResult("FooBar", "123456");
       break;
   }
 }
