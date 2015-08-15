@@ -23,15 +23,7 @@
 
 extern "C" {
 #include "osi/include/log.h"
-
-#include <sys/socket.h>
-#include <netinet/in.h>
 }  // extern "C"
-
-namespace {
-// TODO(dennischeng): Get port from a config file.
-const uint16_t kTestChannelPort = 6111;
-}  // namespace
 
 namespace test_vendor_lib {
 
@@ -57,7 +49,10 @@ void VendorManager::Initialize() {
 }
 
 VendorManager::VendorManager()
-    : running_(false), thread_("TestVendorLibrary"), weak_ptr_factory_(this) {}
+    : running_(false),
+      test_channel_transport_(true, 6111),
+      thread_("TestVendorLibrary"),
+      weak_ptr_factory_(this) {}
 
 bool VendorManager::Run() {
   CHECK(!running_);
@@ -67,9 +62,21 @@ bool VendorManager::Run() {
     return false;
   }
 
-  if (!test_channel_.SetUp()) {
-    LOG_ERROR(LOG_TAG, "Error setting up test channel object.");
-    return false;
+  if (test_channel_transport_.IsEnabled()) {
+    LOG_INFO(LOG_TAG, "Test channel is enabled.");
+
+    if (test_channel_transport_.SetUp()) {
+      test_channel_handler_.RegisterHandlersWithTransport(
+          test_channel_transport_);
+      controller_.RegisterCommandsWithTestChannelHandler(test_channel_handler_);
+    } else {
+      LOG_ERROR(LOG_TAG,
+                "Error setting up test channel object, continuing without it.");
+      test_channel_transport_.Disable();
+    }
+
+  } else {
+    LOG_INFO(LOG_TAG, "Test channel is disabled.");
   }
 
   handler_.RegisterHandlersWithTransport(transport_);
@@ -94,18 +101,23 @@ bool VendorManager::Run() {
 void VendorManager::StartWatchingOnThread() {
   CHECK(running_);
   CHECK(base::MessageLoopForIO::IsCurrent());
+
   if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
       transport_.GetVendorFd(), true, base::MessageLoopForIO::WATCH_READ_WRITE,
       &hci_watcher_, &transport_)) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
     return;
   }
-  if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-      test_channel_.GetFd(), true, base::MessageLoopForIO::WATCH_READ,
-      &test_channel_watcher_, &transport_)) {
-    LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
+
+  if (test_channel_transport_.IsEnabled()) {
+    if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
+            test_channel_transport_.GetFd(), true,
+            base::MessageLoopForIO::WATCH_READ, &test_channel_watcher_,
+            &test_channel_transport_)) {
+      LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
+    }
   }
- }
+}
 
 void VendorManager::SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks) {
   vendor_callbacks_ = callbacks;
@@ -121,43 +133,6 @@ void VendorManager::CloseHciFd() {
 
 int VendorManager::GetHciFd() const {
   return transport_.GetHciFd();
-}
-
-bool VendorManager::TestChannel::SetUp() {
-  struct sockaddr_in listen_address, test_channel_address;
-  int sockaddr_in_size = sizeof(struct sockaddr_in);
-  int listen_fd = -1;
-  memset(&listen_address, 0, sockaddr_in_size);
-  memset(&test_channel_address, 0, sockaddr_in_size);
-  if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    LOG_INFO(LOG_TAG, "Error creating socket for test channel.");
-    return false;
-  }
-  listen_address.sin_family = AF_INET;
-  listen_address.sin_port = htons(kTestChannelPort);
-  listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(listen_fd, reinterpret_cast<sockaddr*>(&listen_address),
-           sockaddr_in_size) < 0) {
-    LOG_INFO(LOG_TAG, "Error binding test channel listener socket to address.");
-    close(listen_fd);
-    return false;
-  }
-  if (listen(listen_fd, 1) < 0) {
-    LOG_INFO(LOG_TAG, "Error listening for test channel.");
-    close(listen_fd);
-    return false;
-  }
-  fd_ = accept(listen_fd, reinterpret_cast<sockaddr*>(&test_channel_address),
-               &sockaddr_in_size);
-  return fd_ >= 0;
-}
-
-int VendorManager::TestChannel::GetFd() {
-  return fd_;
-}
-
-VendorManager::TestChannel::~TestChannel() {
-  close(fd_);
 }
 
 }  // namespace test_vendor_lib

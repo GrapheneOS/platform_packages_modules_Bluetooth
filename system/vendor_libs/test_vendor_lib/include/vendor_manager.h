@@ -21,6 +21,8 @@
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
+#include "vendor_libs/test_vendor_lib/include/test_channel_handler.h"
+#include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
 
 #include <memory>
 
@@ -62,25 +64,6 @@ class VendorManager {
   bool Run();
 
  private:
-  // Test hook object for receiving run-time parameters and commands.
-  class TestChannel {
-   public:
-    TestChannel() = default;
-
-    ~TestChannel();
-
-    // Waits for a connection request from the test channel program and
-    // allocates the file descriptor to receive run-time parameters. This file
-    // descriptor gets stored in |fd_|.
-    bool SetUp();
-
-    int GetFd();
-
-   private:
-    // File descriptor to watch for test hook data.
-    int fd_;
-  };
-
   VendorManager();
 
   ~VendorManager() = default;
@@ -98,6 +81,11 @@ class VendorManager {
   // The controller object that provides implementations of Bluetooth commands.
   DualModeController controller_;
 
+  // The two test channel objects that perform functions corresponding to the
+  // HciTransport and HciHandler.
+  TestChannelTransport test_channel_transport_;
+  TestChannelHandler test_channel_handler_;
+
   // Configuration callbacks provided by the HCI for use in TestVendorOp().
   bt_vendor_callbacks_t vendor_callbacks_;
 
@@ -112,9 +100,10 @@ class VendorManager {
   // Used to handle further watching of the vendor's/test channel's file
   // descriptor after WatchFileDescriptor() is called.
   base::MessageLoopForIO::FileDescriptorWatcher hci_watcher_;
-  base::MessageLoopForIO::FileDescriptorWatcher test_channel_watcher_;
 
-  TestChannel test_channel_;
+  // Used to handle further watching of the test channel's file descriptor after
+  // WatchFileDescriptor() is called.
+  base::MessageLoopForIO::FileDescriptorWatcher test_channel_watcher_;
 
   // This should remain the last member so it'll be destroyed and invalidate
   // its weak pointers before any other members are destroyed.
