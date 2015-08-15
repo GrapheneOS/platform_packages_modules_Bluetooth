@@ -127,7 +127,8 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
 void TestChannelTransport::OnFileCanWriteWithoutBlocking(int fd) {}
 
 void TestChannelTransport::RegisterCommandHandler(
-    std::function<void(std::string, std::vector<std::string>)> callback) {
+    std::function<void(const std::string&, const std::vector<std::string>&)>
+        callback) {
   command_handler_ = callback;
 }
 

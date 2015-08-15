@@ -20,7 +20,6 @@
 
 #include "base/logging.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
-#include "vendor_libs/test_vendor_lib/include/hci_handler.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 extern "C" {
@@ -177,7 +176,7 @@ void DualModeController::SendExtendedInquiryResult(
 DualModeController::DualModeController()
     : state_(kStandby), test_channel_state_(kNone) {
 #define SET_HANDLER(opcode, method) \
-  active_commands_[opcode] =        \
+  active_hci_commands_[opcode] =    \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
   SET_HANDLER(HCI_RESET, HciReset);
   SET_HANDLER(HCI_READ_BUFFER_SIZE, HciReadBufferSize);
@@ -207,7 +206,7 @@ DualModeController::DualModeController()
 #undef SET_HANDLER
 
 #define SET_TEST_HANDLER(command_name, method)  \
-  test_channel_active_commands_[command_name] = \
+  active_test_channel_commands_[command_name] = \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
   SET_TEST_HANDLER("CLEAR", UciTimeoutAll);
   SET_TEST_HANDLER("DISCOVER", UciDiscover);
@@ -216,18 +215,43 @@ DualModeController::DualModeController()
 #undef SET_TEST_HANDLER
 }
 
-void DualModeController::RegisterCommandsWithHandler(HciHandler& handler) {
-  for (auto it = active_commands_.begin(); it != active_commands_.end(); ++it) {
-    handler.RegisterControllerCommand(it->first, it->second);
-  }
+void DualModeController::RegisterHandlersWithHciTransport(
+    HciTransport& transport) {
+  transport.RegisterCommandHandler(std::bind(&DualModeController::HandleCommand,
+                                             this, std::placeholders::_1));
 }
 
-void DualModeController::RegisterCommandsWithTestChannelHandler(
-    TestChannelHandler& handler) {
-  for (auto it = test_channel_active_commands_.begin();
-       it != test_channel_active_commands_.end(); ++it) {
-    handler.RegisterControllerCommand(it->first, it->second);
+void DualModeController::RegisterHandlersWithTestChannelTransport(
+    TestChannelTransport& transport) {
+  transport.RegisterCommandHandler(
+      std::bind(&DualModeController::HandleTestChannelCommand, this,
+                std::placeholders::_1, std::placeholders::_2));
+}
+
+void DualModeController::HandleTestChannelCommand(
+    const std::string& name, const std::vector<std::string>& args) {
+  if (active_test_channel_commands_.count(name) == 0) {
+    return;
   }
+  std::function<void(const std::vector<std::string>& args)> command =
+      active_test_channel_commands_[name];
+  command(args);
+}
+
+void DualModeController::HandleCommand(
+    std::unique_ptr<CommandPacket> command_packet) {
+  uint16_t opcode = command_packet->GetOpcode();
+  LOG_INFO(LOG_TAG, "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X", opcode,
+           command_packet->GetOGF(), command_packet->GetOCF());
+
+  // The command hasn't been registered with the handler yet. There is nothing
+  // to do.
+  if (active_hci_commands_.count(opcode) == 0) {
+    return;
+  }
+  std::function<void(const std::vector<uint8_t>& args)> command =
+      active_hci_commands_[opcode];
+  command(command_packet->GetPayload());
 }
 
 void DualModeController::RegisterEventChannel(
