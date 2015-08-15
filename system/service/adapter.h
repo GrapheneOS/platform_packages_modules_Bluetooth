@@ -22,6 +22,7 @@
 
 #include <base/macros.h>
 
+#include "service/adapter_state.h"
 #include "service/hal/bluetooth_interface.h"
 
 namespace bluetooth {
@@ -30,10 +31,13 @@ namespace bluetooth {
 class Adapter : hal::BluetoothInterface::Observer {
  public:
   Adapter();
-  ~Adapter();
+  ~Adapter() override;
+
+  // Returns the current Adapter state.
+  AdapterState GetState() const;
 
   // Returns true, if the adapter radio is current powered.
-  bool IsEnabled();
+  bool IsEnabled() const;
 
   // Enables Bluetooth. This method will send a request to the Bluetooth adapter
   // to power up its radio. Returns true, if the request was successfully sent
@@ -60,8 +64,8 @@ class Adapter : hal::BluetoothInterface::Observer {
   // Sends a request to set the given HAL adapter property type and value.
   bool SetAdapterProperty(bt_property_type_t type, void* value, int length);
 
-  // True if the adapter radio is currently powered.
-  std::atomic_bool enabled_;
+  // The current adapter state.
+  std::atomic<AdapterState> state_;
 
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };

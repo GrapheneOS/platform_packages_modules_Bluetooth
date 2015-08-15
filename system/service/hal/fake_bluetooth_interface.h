@@ -20,12 +20,27 @@
 #include <base/observer_list.h>
 
 namespace bluetooth {
-namespace testing {
+namespace hal {
 
-class FakeHALBluetoothInterface : public hal::BluetoothInterface {
+class FakeBluetoothInterface : public BluetoothInterface {
  public:
-  FakeHALBluetoothInterface(bt_interface_t* hal_iface);
-  ~FakeHALBluetoothInterface() override = default;
+  // A Fake HAL Bluetooth interface. This is kept as a global singleton as the
+  // Bluetooth HAL doesn't support anything otherwise.
+  struct Manager {
+    Manager();
+    ~Manager() = default;
+
+    // Values that should be returned from bt_interface_t methods.
+    bool enable_succeed;
+    bool disable_succeed;
+    bool set_property_succeed;
+  };
+
+  // Returns the global Manager.
+  static Manager* GetManager();
+
+  FakeBluetoothInterface() = default;
+  ~FakeBluetoothInterface() override = default;
 
   // Notifies the observers that the adapter state changed to |state|.
   void NotifyAdapterStateChanged(bt_state_t state);
@@ -38,9 +53,9 @@ class FakeHALBluetoothInterface : public hal::BluetoothInterface {
 
  private:
   base::ObserverList<Observer> observers_;
-  bt_interface_t* hal_iface_;
-  DISALLOW_COPY_AND_ASSIGN(FakeHALBluetoothInterface);
+
+  DISALLOW_COPY_AND_ASSIGN(FakeBluetoothInterface);
 };
 
-}  // namespace testing
+}  // namespace hal
 }  // namespace bluetooth

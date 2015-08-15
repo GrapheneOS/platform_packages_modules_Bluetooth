@@ -19,6 +19,7 @@
 
 #include <base/logging.h>
 
+#include "service/adapter_state.h"
 #include "service/ipc/binder/IBluetooth.h"
 
 using namespace std;
@@ -27,14 +28,17 @@ using android::sp;
 
 using ipc::binder::IBluetooth;
 
-#define COLOR_OFF       "\x1B[0m"
-#define COLOR_RED       "\x1B[0;91m"
-#define COLOR_GREEN     "\x1B[0;92m"
-#define COLOR_YELLOW    "\x1B[0;93m"
-#define COLOR_BLUE      "\x1B[0;94m"
-#define COLOR_MAGENTA   "\x1B[0;95m"
-#define COLOR_BOLDGRAY  "\x1B[1;30m"
-#define COLOR_BOLDWHITE "\x1B[1;37m"
+namespace {
+
+#define COLOR_OFF         "\x1B[0m"
+#define COLOR_RED         "\x1B[0;91m"
+#define COLOR_GREEN       "\x1B[0;92m"
+#define COLOR_YELLOW      "\x1B[0;93m"
+#define COLOR_BLUE        "\x1B[0;94m"
+#define COLOR_MAGENTA     "\x1B[0;95m"
+#define COLOR_BOLDGRAY    "\x1B[1;30m"
+#define COLOR_BOLDWHITE   "\x1B[1;37m"
+#define COLOR_BOLDYELLOW  "\x1B[1;93m"
 
 const char kCommandDisable[] = "disable";
 const char kCommandEnable[] = "enable";
@@ -56,26 +60,43 @@ void HandleEnable(IBluetooth* bt_iface) {
 }
 
 void HandleGetState(IBluetooth* bt_iface) {
-  // TODO(armansito): Implement.
+  bluetooth::AdapterState state = static_cast<bluetooth::AdapterState>(
+      bt_iface->GetState());
+  cout << COLOR_BOLDWHITE "Adapter state: " COLOR_OFF
+       << COLOR_BOLDYELLOW << bluetooth::AdapterStateToString(state)
+       << COLOR_OFF << endl << endl;
 }
 
 void HandleIsEnabled(IBluetooth* bt_iface) {
   bool enabled = bt_iface->IsEnabled();
-  cout << COLOR_BOLDWHITE "Adapter power state: " COLOR_OFF
-       << (enabled ? "enabled" : "disabled") << endl
+  cout << COLOR_BOLDWHITE "Adapter enabled: " COLOR_OFF
+       << (enabled ? "true" : "false") << endl
        << endl;
 }
+
+void HandleHelp(IBluetooth* bt_iface);
 
 struct {
   string command;
   void (*func)(IBluetooth*);
+  string help;
 } kCommandMap[] = {
-  { "disable", HandleDisable },
-  { "enable", HandleEnable },
-  { "get-state", HandleGetState },
-  { "is-enabled", HandleIsEnabled },
+  { "help", HandleHelp, "\t\tDisplay this message" },
+  { "disable", HandleDisable, "\t\tDisable Bluetooth" },
+  { "enable", HandleEnable, "\t\tEnable Bluetooth" },
+  { "get-state", HandleGetState, "\tGet the current adapter state" },
+  { "is-enabled", HandleIsEnabled, "\tReturn if Bluetooth is enabled" },
   {},
 };
+
+void HandleHelp(IBluetooth* /* bt_iface */) {
+  cout << endl;
+  for (int i = 0; kCommandMap[i].func; i++)
+    cout << "\t" << kCommandMap[i].command << kCommandMap[i].help << endl;
+  cout << endl;
+}
+
+}  // namespace
 
 int main() {
   sp<IBluetooth> bt_iface = IBluetooth::getClientInterface();
@@ -85,6 +106,8 @@ int main() {
   }
 
   cout << COLOR_BOLDWHITE << "Fluoride Command-Line Interface\n" << COLOR_OFF
+       << endl
+       << "Type \"help\" to see possible commands.\n"
        << endl;
 
   while (true) {
@@ -93,7 +116,7 @@ int main() {
     getline(cin, command);
 
     bool command_handled = false;
-    for (int i = 0; kCommandMap[i].func; i++) {
+    for (int i = 0; kCommandMap[i].func && !command_handled; i++) {
       if (command == kCommandMap[i].command) {
         kCommandMap[i].func(bt_iface.get());
         command_handled = true;

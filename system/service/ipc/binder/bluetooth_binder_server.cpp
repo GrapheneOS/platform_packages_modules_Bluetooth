@@ -38,8 +38,7 @@ bool BluetoothBinderServer::IsEnabled() {
 
 int BluetoothBinderServer::GetState() {
   VLOG(2) << __func__;
-  // TODO(armansito): Implement.
-  return -1;
+  return adapter_->GetState();
 }
 
 bool BluetoothBinderServer::Enable() {

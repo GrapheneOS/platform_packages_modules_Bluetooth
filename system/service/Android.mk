@@ -20,6 +20,7 @@ LOCAL_PATH:= $(call my-dir)
 # ========================================================
 btserviceCommonSrc := \
 	adapter.cpp \
+	adapter_state.cpp \
 	daemon.cpp \
 	gatt_server.cpp \
 	hal/bluetooth_interface.cpp \
@@ -66,8 +67,8 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
+	hal/fake_bluetooth_interface.cpp \
 	test/adapter_unittest.cpp \
-	test/fake_hal_bluetooth_interface.cpp \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \
 	test/settings_unittest.cpp \
@@ -87,6 +88,7 @@ endif
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBinderSrc) \
+	adapter_state.cpp \
 	client/main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
