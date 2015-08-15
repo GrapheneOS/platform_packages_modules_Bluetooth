@@ -58,7 +58,7 @@ class HciHandler {
 
  private:
   // Controller callbacks to be executed in handlers and registered in
-  // RegisterControllerCallback().
+  // RegisterControllerCommand().
   std::unordered_map<std::uint16_t,
                      std::function<void(const std::vector<std::uint8_t> args)> >
       commands_;
