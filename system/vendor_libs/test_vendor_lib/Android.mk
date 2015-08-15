@@ -9,11 +9,9 @@ LOCAL_SRC_FILES := \
     src/command_packet.cc \
     src/dual_mode_controller.cc \
     src/event_packet.cc \
-    src/hci_handler.cc \
     src/hci_transport.cc \
     src/packet.cc \
     src/packet_stream.cc \
-    src/test_channel_handler.cc \
     src/test_channel_transport.cc \
     src/vendor_manager.cc \
 

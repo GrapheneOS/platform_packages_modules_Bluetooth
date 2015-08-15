@@ -17,12 +17,14 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 #include <unordered_map>
 
-#include "vendor_libs/test_vendor_lib/include/hci_handler.h"
-#include "vendor_libs/test_vendor_lib/include/test_channel_handler.h"
+#include "vendor_libs/test_vendor_lib/include/command_packet.h"
+#include "vendor_libs/test_vendor_lib/include/hci_transport.h"
+#include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
 
 namespace test_vendor_lib {
 
@@ -44,16 +46,15 @@ class DualModeController {
 
   ~DualModeController() = default;
 
-  // Registers command callbacks with the HciHandler instance so that they are
-  // fired when the corresponding opcode is received from the HCI. For now, each
-  // command must be individually registered. This allows for some flexibility
-  // in which commands are made available by which controller.
-  void RegisterCommandsWithHandler(HciHandler& handler);
+  void HandleCommand(std::unique_ptr<CommandPacket> command_packet);
 
-  // Registers test channel command callbacks with the TestChannelHandler
-  // instance so that they are fired when the corresponding command name is
-  // received from the test channel.
-  void RegisterCommandsWithTestChannelHandler(TestChannelHandler& handler);
+  void HandleTestChannelCommand(const std::string& name,
+                                const std::vector<std::string>& args);
+
+  void RegisterHandlersWithHciTransport(HciTransport& transport);
+
+  void RegisterHandlersWithTestChannelTransport(
+      TestChannelTransport& transport);
 
   // Sets the callback to be used for sending events back to the HCI.
   void RegisterEventChannel(
@@ -381,11 +382,11 @@ class DualModeController {
   // command.
   std::unordered_map<std::uint16_t,
                      std::function<void(const std::vector<std::uint8_t>&)>>
-      active_commands_;
+      active_hci_commands_;
 
   std::unordered_map<std::string,
                      std::function<void(const std::vector<std::string>&)>>
-      test_channel_active_commands_;
+      active_test_channel_commands_;
 
   // Specifies the format of Inquiry Result events to be returned during the
   // Inquiry command.
