@@ -51,6 +51,7 @@ const uint8_t kNumHciCommandPackets = 1;
 // that the controller can accept.
 const uint16_t kHciAclDataPacketSize = 1024;
 const uint8_t kHciScoDataPacketSize = 255;
+
 // Total number of HCI ACL/SCO data packets that can be stored in the data
 // buffers of the controller.
 const uint16_t kHciTotalNumAclDataPackets = 10;
@@ -170,10 +171,10 @@ void DualModeController::SendExtendedInquiryResult() const {
   send_event_(std::move(extended_inquiry_result));
 }
 
-DualModeController::DualModeController() {
-#define SET_HANDLER(opcode, command) \
-  active_commands_[opcode] =         \
-      std::bind(&DualModeController::command, this, std::placeholders::_1);
+DualModeController::DualModeController() : state_(kStandby) {
+#define SET_HANDLER(opcode, method) \
+  active_commands_[opcode] =        \
+      std::bind(&DualModeController::method, this, std::placeholders::_1);
   SET_HANDLER(HCI_RESET, HciReset);
   SET_HANDLER(HCI_READ_BUFFER_SIZE, HciReadBufferSize);
   SET_HANDLER(HCI_HOST_BUFFER_SIZE, HciHostBufferSize);
@@ -200,10 +201,24 @@ DualModeController::DualModeController() {
   SET_HANDLER(HCI_SET_EVENT_FILTER, HciSetEventFilter);
   SET_HANDLER(HCI_INQUIRY, HciInquiry);
 #undef SET_HANDLER
+
+#define SET_TEST_HANDLER(command_name, method)  \
+  test_channel_active_commands_[command_name] = \
+      std::bind(&DualModeController::method, this, std::placeholders::_1);
+  SET_TEST_HANDLER("TimeoutAll", UciTimeoutAll);
+#undef SET_TEST_HANDLER
 }
 
 void DualModeController::RegisterCommandsWithHandler(HciHandler& handler) {
   for (auto it = active_commands_.begin(); it != active_commands_.end(); ++it) {
+    handler.RegisterControllerCommand(it->first, it->second);
+  }
+}
+
+void DualModeController::RegisterCommandsWithTestChannelHandler(
+    TestChannelHandler& handler) {
+  for (auto it = test_channel_active_commands_.begin();
+       it != test_channel_active_commands_.end(); ++it) {
     handler.RegisterControllerCommand(it->first, it->second);
   }
 }
@@ -213,11 +228,16 @@ void DualModeController::RegisterEventChannel(
   send_event_ = callback;
 }
 
+void DualModeController::UciTimeoutAll(const std::vector<std::uint8_t>& args) {
+  LogCommand("Uci Timeout All");
+}
+
 // TODO(dennischeng): Store relevant arguments from commands as attributes of
 // the controller.
 
 void DualModeController::HciReset(const std::vector<uint8_t>& /* args */) {
   LogCommand("Reset");
+  state_ = kStandby;
   SendCommandCompleteSuccess(HCI_RESET);
 }
 
@@ -362,6 +382,7 @@ void DualModeController::HciWriteInquiryScanActivity(
 void DualModeController::HciWriteScanEnable(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Scan Enable");
+  state_ = kScanning;
   SendCommandCompleteSuccess(HCI_WRITE_SCAN_ENABLE);
 }
 

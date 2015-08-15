@@ -17,10 +17,12 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 #include <unordered_map>
 
 #include "vendor_libs/test_vendor_lib/include/hci_handler.h"
+#include "vendor_libs/test_vendor_lib/include/test_channel_handler.h"
 
 namespace test_vendor_lib {
 
@@ -47,6 +49,11 @@ class DualModeController {
   // command must be individually registered. This allows for some flexibility
   // in which commands are made available by which controller.
   void RegisterCommandsWithHandler(HciHandler& handler);
+
+  // Registers test channel command callbacks with the TestChannelHandler
+  // instance so that they are fired when the corresponding command name is
+  // received from the test channel.
+  void RegisterCommandsWithTestChannelHandler(TestChannelHandler& handler);
 
   // Sets the callback to be used for sending events back to the HCI.
   void RegisterEventChannel(
@@ -317,7 +324,17 @@ class DualModeController {
   //           is halted.
   void HciInquiry(const std::vector<std::uint8_t>& args);
 
+  void UciTimeoutAll(const std::vector<std::uint8_t>& args);
+
  private:
+  enum State {
+    kStandby,  // Not receiving/transmitting any packets from/to other devices.
+    kAdvertising,  // Transmitting advertising packets.
+    kScanning,  // Listening for advertising packets.
+    kInitiating,  // Listening for advertising packets from a specific device.
+    kConnection,  // In a connection.
+  };
+
   // Creates a command complete event and sends it back to the HCI.
   void SendCommandComplete(uint16_t command_opcode,
                            const std::vector<uint8_t>& return_parameters) const;
@@ -348,6 +365,10 @@ class DualModeController {
                      std::function<void(const std::vector<std::uint8_t>&)>>
       active_commands_;
 
+  std::unordered_map<std::string,
+                     std::function<void(const std::vector<std::uint8_t>&)>>
+      test_channel_active_commands_;
+
   // Specifies the format of Inquiry Result events to be returned during the
   // Inquiry command.
   // 0x00: Standard Inquiry Result event format (default).
@@ -355,6 +376,9 @@ class DualModeController {
   // 0x02 Inquiry Result with RSSI format or Extended Inquiry Result format.
   // 0x03-0xFF: Reserved.
   std::uint8_t inquiry_mode_;
+
+  // Current link layer state of the controller.
+  State state_;
 
   DISALLOW_COPY_AND_ASSIGN(DualModeController);
 };
