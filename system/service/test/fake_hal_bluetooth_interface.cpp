@@ -19,17 +19,24 @@
 namespace bluetooth {
 namespace testing {
 
+FakeHALBluetoothInterface::FakeHALBluetoothInterface(bt_interface_t* hal_iface)
+    : hal_iface_(hal_iface) {
+}
+
+void FakeHALBluetoothInterface::NotifyAdapterStateChanged(bt_state_t state) {
+  FOR_EACH_OBSERVER(Observer, observers_, AdapterStateChangedCallback(state));
+}
+
 void FakeHALBluetoothInterface::AddObserver(Observer* observer) {
-  // TODO(armansito): Do something meaningful here to simulate test behavior.
+  observers_.AddObserver(observer);
 }
 
 void FakeHALBluetoothInterface::RemoveObserver(Observer* observer) {
-  // TODO(armansito): Do something meaningful here to simulate test behavior.
+  observers_.RemoveObserver(observer);
 }
 
 const bt_interface_t* FakeHALBluetoothInterface::GetHALInterface() const {
-  // TODO(armansito): Do something meaningful here to simulate test behavior.
-  return nullptr;
+  return hal_iface_;
 }
 
 const bluetooth_device_t* FakeHALBluetoothInterface::GetHALAdapter() const {
