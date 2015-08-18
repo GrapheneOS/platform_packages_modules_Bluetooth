@@ -20,6 +20,7 @@ LOCAL_PATH:= $(call my-dir)
 # ========================================================
 btserviceCommonSrc := \
 	a2dp_source.cpp \
+	adapter.cpp \
 	core_stack.cpp \
 	daemon.cpp \
 	gatt_server.cpp \
@@ -67,6 +68,7 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
+	test/adapter_unittest.cpp \
 	test/fake_hal_bluetooth_interface.cpp \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \

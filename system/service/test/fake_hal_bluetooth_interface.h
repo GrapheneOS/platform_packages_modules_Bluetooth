@@ -17,16 +17,18 @@
 #include "service/hal/bluetooth_interface.h"
 
 #include <base/macros.h>
+#include <base/observer_list.h>
 
 namespace bluetooth {
 namespace testing {
 
 class FakeHALBluetoothInterface : public hal::BluetoothInterface {
  public:
-  FakeHALBluetoothInterface() = default;
+  FakeHALBluetoothInterface(bt_interface_t* hal_iface);
   ~FakeHALBluetoothInterface() override = default;
 
-  // TODO(armansito): Add hooks here to simulate test behavior.
+  // Notifies the observers that the adapter state changed to |state|.
+  void NotifyAdapterStateChanged(bt_state_t state);
 
   // hal::BluetoothInterface overrides:
   void AddObserver(Observer* observer) override;
@@ -35,6 +37,8 @@ class FakeHALBluetoothInterface : public hal::BluetoothInterface {
   const bluetooth_device_t* GetHALAdapter() const override;
 
  private:
+  base::ObserverList<Observer> observers_;
+  bt_interface_t* hal_iface_;
   DISALLOW_COPY_AND_ASSIGN(FakeHALBluetoothInterface);
 };
 
