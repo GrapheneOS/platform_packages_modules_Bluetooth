@@ -56,6 +56,8 @@ class IBluetooth : public android::IInterface {
   DISALLOW_COPY_AND_ASSIGN(IBluetooth);
 };
 
+// TODO(armansito): Implement notification for when the process dies.
+
 // The Binder server interface to IBluetooth. A class that implements IBluetooth
 // must inherit from this class.
 class BnBluetooth : public android::BnInterface<IBluetooth> {

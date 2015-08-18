@@ -18,6 +18,8 @@
 
 #include <base/logging.h>
 
+#include "service/adapter.h"
+
 namespace ipc {
 
 BluetoothBinderServer::BluetoothBinderServer(bluetooth::Adapter* adapter)
@@ -30,29 +32,30 @@ BluetoothBinderServer::~BluetoothBinderServer() {
 
 // binder::BnBluetooth overrides:
 bool BluetoothBinderServer::IsEnabled() {
-  // TODO(armansito): Implement.
   VLOG(2) << __func__;
-  return false;
+  return adapter_->IsEnabled();
 }
 
 int BluetoothBinderServer::GetState() {
+  VLOG(2) << __func__;
   // TODO(armansito): Implement.
   return -1;
 }
 
 bool BluetoothBinderServer::Enable() {
-  // TODO(armansito): Implement.
-  return false;
+  VLOG(2) << __func__;
+  return adapter_->Enable();
 }
 
 bool BluetoothBinderServer::EnableNoAutoConnect() {
+  VLOG(2) << __func__;
   // TODO(armansito): Implement.
   return false;
 }
 
 bool BluetoothBinderServer::Disable() {
-  // TODO(armansito): Implement.
-  return false;
+  VLOG(2) << __func__;
+  return adapter_->Disable();
 }
 
 }  // namespace ipc

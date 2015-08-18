@@ -14,17 +14,68 @@
 //  limitations under the License.
 //
 
+#include <iostream>
+#include <string>
+
 #include <base/logging.h>
 
 #include "service/ipc/binder/IBluetooth.h"
+
+using namespace std;
 
 using android::sp;
 
 using ipc::binder::IBluetooth;
 
-// TODO(armansito): Build a REPL into this client so that we make Binder calls
-// based on user input. For now this just tests the IsEnabled() method and
-// exits.
+#define COLOR_OFF       "\x1B[0m"
+#define COLOR_RED       "\x1B[0;91m"
+#define COLOR_GREEN     "\x1B[0;92m"
+#define COLOR_YELLOW    "\x1B[0;93m"
+#define COLOR_BLUE      "\x1B[0;94m"
+#define COLOR_MAGENTA   "\x1B[0;95m"
+#define COLOR_BOLDGRAY  "\x1B[1;30m"
+#define COLOR_BOLDWHITE "\x1B[1;37m"
+
+const char kCommandDisable[] = "disable";
+const char kCommandEnable[] = "enable";
+const char kCommandGetState[] = "get-state";
+const char kCommandIsEnabled[] = "is-enabled";
+
+void PrintCommandStatus(bool status) {
+  cout << COLOR_BOLDWHITE "Command status: " COLOR_OFF
+       << (status ? (COLOR_GREEN "success") : (COLOR_RED "failure"))
+       << COLOR_OFF << endl << endl;
+}
+
+void HandleDisable(IBluetooth* bt_iface) {
+  PrintCommandStatus(bt_iface->Disable());
+}
+
+void HandleEnable(IBluetooth* bt_iface) {
+  PrintCommandStatus(bt_iface->Enable());
+}
+
+void HandleGetState(IBluetooth* bt_iface) {
+  // TODO(armansito): Implement.
+}
+
+void HandleIsEnabled(IBluetooth* bt_iface) {
+  bool enabled = bt_iface->IsEnabled();
+  cout << COLOR_BOLDWHITE "Adapter power state: " COLOR_OFF
+       << (enabled ? "enabled" : "disabled") << endl
+       << endl;
+}
+
+struct {
+  string command;
+  void (*func)(IBluetooth*);
+} kCommandMap[] = {
+  { "disable", HandleDisable },
+  { "enable", HandleEnable },
+  { "get-state", HandleGetState },
+  { "is-enabled", HandleIsEnabled },
+  {},
+};
 
 int main() {
   sp<IBluetooth> bt_iface = IBluetooth::getClientInterface();
@@ -33,8 +84,25 @@ int main() {
     return EXIT_FAILURE;
   }
 
-  bool enabled = bt_iface->IsEnabled();
-  LOG(INFO) << "IsEnabled(): " << enabled;
+  cout << COLOR_BOLDWHITE << "Fluoride Command-Line Interface\n" << COLOR_OFF
+       << endl;
+
+  while (true) {
+    string command;
+    cout << COLOR_BLUE << "[FCLI] " << COLOR_OFF;
+    getline(cin, command);
+
+    bool command_handled = false;
+    for (int i = 0; kCommandMap[i].func; i++) {
+      if (command == kCommandMap[i].command) {
+        kCommandMap[i].func(bt_iface.get());
+        command_handled = true;
+      }
+    }
+
+    if (!command_handled)
+      cout << "Unrecognized command: " << command << endl;
+  }
 
   return EXIT_SUCCESS;
 }
