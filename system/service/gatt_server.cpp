@@ -82,7 +82,7 @@ namespace bluetooth {
 namespace gatt {
 
 struct Characteristic {
-  Uuid uuid;
+  UUID uuid;
   int blob_section;
   std::vector<uint8_t> blob;
 
@@ -97,12 +97,12 @@ struct ServerInternals {
   ~ServerInternals();
   int Initialize();
   bt_status_t AddCharacteristic(
-      const Uuid& uuid,
+      const UUID& uuid,
       int properties,
       int permissions);
 
   // This maps API attribute UUIDs to BlueDroid handles.
-  std::map<Uuid, int> uuid_to_attribute;
+  std::map<UUID, int> uuid_to_attribute;
 
   // The attribute cache, indexed by BlueDroid handles.
   std::unordered_map<int, Characteristic> characteristics;
@@ -112,7 +112,7 @@ struct ServerInternals {
 
   ScanResults scan_results;
 
-  Uuid last_write;
+  UUID last_write;
   const btgatt_interface_t *gatt;
   int server_if;
   int client_if;
@@ -231,7 +231,7 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   } else if (!is_prep) {
     // This is a single frame characteristic write.
     // Notify upwards because we're done now.
-    const bluetooth::Uuid::Uuid128Bit &attr_uuid = ch.uuid.GetFullBigEndian();
+    const bluetooth::UUID::UUID128Bit &attr_uuid = ch.uuid.GetFullBigEndian();
     int status = write(g_internal->pipefd[kPipeWriteEnd], attr_uuid.data(),
                        attr_uuid.size());
     if (-1 == status)
@@ -272,7 +272,7 @@ void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
   // Communicate the attribute UUID as notification of a write update.
-  const bluetooth::Uuid::Uuid128Bit uuid =
+  const bluetooth::UUID::UUID128Bit uuid =
       g_internal->last_write.GetFullBigEndian();
   int status = write(g_internal->pipefd[kPipeWriteEnd],
                      uuid.data(), uuid.size());
@@ -298,7 +298,7 @@ void CharacteristicAddedCallback(int status, int server_if, bt_uuid_t *uuid,
       "%s: status:%d server_if:%d service_handle:%d char_handle:%d", __func__,
       status, server_if, srvc_handle, char_handle);
 
-  bluetooth::Uuid id(*uuid);
+  bluetooth::UUID id(*uuid);
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
 
@@ -508,7 +508,7 @@ int ServerInternals::Initialize() {
 }
 
 bt_status_t ServerInternals::AddCharacteristic(
-    const Uuid& uuid,
+    const UUID& uuid,
     int properties,
     int permissions) {
   bt_uuid_t c_uuid = uuid.GetBlueDroid();
@@ -538,7 +538,7 @@ Server::Server() : internal_(nullptr) {}
 
 Server::~Server() {}
 
-bool Server::Initialize(const Uuid& service_id, int* gatt_pipe) {
+bool Server::Initialize(const UUID& service_id, int* gatt_pipe) {
   internal_.reset(new ServerInternals);
   if (!internal_) {
     LOG_ERROR(LOG_TAG, "Error creating internals");
@@ -573,7 +573,7 @@ bool Server::Initialize(const Uuid& service_id, int* gatt_pipe) {
   return true;
 }
 
-bool Server::SetAdvertisement(const std::vector<Uuid>& ids,
+bool Server::SetAdvertisement(const std::vector<UUID>& ids,
                               const std::vector<uint8_t>& service_data,
                               const std::vector<uint8_t>& manufacturer_data,
                               bool transmit_name) {
@@ -581,7 +581,7 @@ bool Server::SetAdvertisement(const std::vector<Uuid>& ids,
   auto mutable_manufacturer_data = manufacturer_data;
   auto mutable_service_data = service_data;
 
-  for (const Uuid &id : ids) {
+  for (const UUID &id : ids) {
     const auto le_id = id.GetFullLittleEndian();
     id_data.insert(id_data.end(), le_id.begin(), le_id.end());
   }
@@ -607,7 +607,7 @@ bool Server::SetAdvertisement(const std::vector<Uuid>& ids,
   return true;
 }
 
-bool Server::SetScanResponse(const std::vector<Uuid>& ids,
+bool Server::SetScanResponse(const std::vector<UUID>& ids,
                              const std::vector<uint8_t>& service_data,
                              const std::vector<uint8_t>& manufacturer_data,
                              bool transmit_name) {
@@ -615,7 +615,7 @@ bool Server::SetScanResponse(const std::vector<Uuid>& ids,
   auto mutable_manufacturer_data = manufacturer_data;
   auto mutable_service_data = service_data;
 
-  for (const Uuid &id : ids) {
+  for (const UUID &id : ids) {
     const auto le_id = id.GetFullLittleEndian();
     id_data.insert(id_data.end(), le_id.begin(), le_id.end());
   }
@@ -642,7 +642,7 @@ bool Server::SetScanResponse(const std::vector<Uuid>& ids,
 }
 
 bool Server::AddCharacteristic(
-    const Uuid &id, int properties, int permissions) {
+    const UUID &id, int properties, int permissions) {
   std::unique_lock<std::mutex> lock(internal_->lock);
   bt_status_t btstat = internal_->AddCharacteristic(
       id, properties, permissions);
@@ -657,7 +657,7 @@ bool Server::AddCharacteristic(
   return true;
 }
 
-bool Server::AddBlob(const Uuid &id, const Uuid &control_id, int properties,
+bool Server::AddBlob(const UUID &id, const UUID &control_id, int properties,
                     int permissions) {
   std::unique_lock<std::mutex> lock(internal_->lock);
 
@@ -746,7 +746,7 @@ bool Server::GetScanResults(ScanResults *results) {
   return true;
 }
 
-bool Server::SetCharacteristicValue(const Uuid &id,
+bool Server::SetCharacteristicValue(const UUID &id,
                               const std::vector<uint8_t> &value) {
   std::lock_guard<std::mutex> lock(internal_->lock);
   const int attribute_id = internal_->uuid_to_attribute[id];
@@ -769,7 +769,7 @@ bool Server::SetCharacteristicValue(const Uuid &id,
   return true;
 }
 
-bool Server::GetCharacteristicValue(const Uuid &id, std::vector<uint8_t> *value) {
+bool Server::GetCharacteristicValue(const UUID &id, std::vector<uint8_t> *value) {
   std::lock_guard<std::mutex> lock(internal_->lock);
   const int attribute_id = internal_->uuid_to_attribute[id];
   *value = internal_->characteristics[attribute_id].blob;
