@@ -109,6 +109,15 @@ TEST_F(AdapterTest, Disable) {
   EXPECT_FALSE(adapter_->Disable());
 }
 
+TEST_F(AdapterTest, GetName) {
+  EXPECT_EQ(bluetooth::Adapter::kDefaultName, adapter_->GetName());
+
+  const char kTestAdapterName[] = "Test Adapter Name";
+
+  fake_hal_iface_->NotifyAdapterNamePropertyChanged(kTestAdapterName);
+  EXPECT_EQ(kTestAdapterName, adapter_->GetName());
+}
+
 TEST_F(AdapterTest, SetName) {
   bt_bdname_t hal_name;
 
@@ -119,6 +128,18 @@ TEST_F(AdapterTest, SetName) {
   EXPECT_FALSE(adapter_->SetName("Test Name"));
   fake_hal_manager_->set_property_succeed = true;
   EXPECT_TRUE(adapter_->SetName("Test Name"));
+}
+
+TEST_F(AdapterTest, GetAddress) {
+  EXPECT_EQ(bluetooth::Adapter::kDefaultAddress, adapter_->GetAddress());
+
+  const bt_bdaddr_t kTestAdapterInput = {
+    { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc }
+  };
+  const char kTestAdapterAddressOutput[] = "12:34:56:78:9A:BC";
+
+  fake_hal_iface_->NotifyAdapterAddressPropertyChanged(&kTestAdapterInput);
+  EXPECT_EQ(kTestAdapterAddressOutput, adapter_->GetAddress());
 }
 
 }  // namespace
