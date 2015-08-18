@@ -17,19 +17,25 @@
 #pragma once
 
 #include <atomic>
-#include <memory>
 #include <string>
 
 #include <base/macros.h>
 
 #include "service/adapter_state.h"
 #include "service/hal/bluetooth_interface.h"
+#include "service/util/atomic_string.h"
 
 namespace bluetooth {
 
 // Represents the local Bluetooth adapter.
 class Adapter : hal::BluetoothInterface::Observer {
  public:
+  // The default values returned before the Adapter is fully initialized and
+  // powered. The complete values for these fields are obtained following a
+  // successful call to "Enable".
+  static const char kDefaultAddress[];
+  static const char kDefaultName[];
+
   Adapter();
   ~Adapter() override;
 
@@ -50,9 +56,15 @@ class Adapter : hal::BluetoothInterface::Observer {
   // successfully sent to the Bluetooth controller.
   bool Disable();
 
+  // Returns the name currently assigned to the local adapter.
+  std::string GetName() const;
+
   // Sets the name assigned to the local Bluetooth adapter. This is the name
   // that the local controller will present to remote devices.
   bool SetName(const std::string& name);
+
+  // Returns the local adapter addess in string form (XX:XX:XX:XX:XX:XX).
+  std::string GetAddress() const;
 
  private:
   // hal::BluetoothInterface::Observer overrides.
@@ -66,6 +78,13 @@ class Adapter : hal::BluetoothInterface::Observer {
 
   // The current adapter state.
   std::atomic<AdapterState> state_;
+
+  // The Bluetooth device address of the local adapter in string from
+  // (i.e.. XX:XX:XX:XX:XX:XX)
+  util::AtomicString address_;
+
+  // The current local adapter name.
+  util::AtomicString name_;
 
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };

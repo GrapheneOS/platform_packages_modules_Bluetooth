@@ -45,6 +45,12 @@ class FakeBluetoothInterface : public BluetoothInterface {
   // Notifies the observers that the adapter state changed to |state|.
   void NotifyAdapterStateChanged(bt_state_t state);
 
+  // Triggers an adapter property change event.
+  void NotifyAdapterPropertiesChanged(int num_properties,
+                                      bt_property_t* properties);
+  void NotifyAdapterNamePropertyChanged(const std::string& name);
+  void NotifyAdapterAddressPropertyChanged(const bt_bdaddr_t* address);
+
   // hal::BluetoothInterface overrides:
   void AddObserver(Observer* observer) override;
   void RemoveObserver(Observer* observer) override;

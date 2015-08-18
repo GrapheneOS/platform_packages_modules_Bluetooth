@@ -30,6 +30,7 @@ btserviceCommonSrc := \
 	ipc/unix_ipc_host.cpp \
 	logging_helpers.cpp \
 	settings.cpp \
+	util/atomic_string.cpp \
 	uuid.cpp
 
 btserviceBinderSrc := \

@@ -58,8 +58,7 @@ bool BluetoothBinderServer::Disable() {
 }
 
 std::string BluetoothBinderServer::GetAddress() {
-  // TODO(armansito): Implement.
-  return "";
+  return adapter_->GetAddress();
 }
 
 std::vector<bluetooth::UUID> BluetoothBinderServer::GetUUIDs() {
@@ -68,13 +67,11 @@ std::vector<bluetooth::UUID> BluetoothBinderServer::GetUUIDs() {
 }
 
 bool BluetoothBinderServer::SetName(const std::string& name) {
-  // TODO(armansito): Implement.
-  return false;
+  return adapter_->SetName(name);
 }
 
 std::string BluetoothBinderServer::GetName() {
-  // TODO(armansito): Implement.
-  return "";
+  return adapter_->GetName();
 }
 
 }  // namespace ipc

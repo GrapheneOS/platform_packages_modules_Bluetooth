@@ -90,6 +90,40 @@ void FakeBluetoothInterface::NotifyAdapterStateChanged(bt_state_t state) {
   FOR_EACH_OBSERVER(Observer, observers_, AdapterStateChangedCallback(state));
 }
 
+void FakeBluetoothInterface::NotifyAdapterPropertiesChanged(
+    int num_properties,
+    bt_property_t* properties) {
+  FOR_EACH_OBSERVER(
+      Observer, observers_,
+      AdapterPropertiesCallback(BT_STATUS_SUCCESS, num_properties, properties));
+}
+
+void FakeBluetoothInterface::NotifyAdapterNamePropertyChanged(
+    const std::string& name) {
+  bt_bdname_t hal_name;
+  strncpy(reinterpret_cast<char*>(hal_name.name),
+          name.c_str(),
+          std::min(sizeof(hal_name)-1, name.length()));
+  reinterpret_cast<char*>(hal_name.name)[name.length()] = '\0';
+
+  bt_property_t property;
+  property.len = sizeof(hal_name);
+  property.val = &hal_name;
+  property.type = BT_PROPERTY_BDNAME;
+
+  NotifyAdapterPropertiesChanged(1, &property);
+}
+
+void FakeBluetoothInterface::NotifyAdapterAddressPropertyChanged(
+    const bt_bdaddr_t* address) {
+  bt_property_t property;
+  property.len = sizeof(bt_bdaddr_t);
+  property.val = (void*)address;
+  property.type = BT_PROPERTY_BDADDR;
+
+  NotifyAdapterPropertiesChanged(1, &property);
+}
+
 void FakeBluetoothInterface::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
 }
