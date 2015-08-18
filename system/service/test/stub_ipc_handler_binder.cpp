@@ -23,9 +23,9 @@
 namespace ipc {
 
 IPCHandlerBinder::IPCHandlerBinder(
-    bluetooth::CoreStack* core_stack,
+    bluetooth::Adapter* adapter,
     IPCManager::Delegate* delegate)
-    : IPCHandler(core_stack, delegate) {
+    : IPCHandler(adapter, delegate) {
   // Stub
 }
 

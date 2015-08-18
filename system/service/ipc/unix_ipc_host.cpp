@@ -34,11 +34,11 @@
 #include <base/strings/string_split.h>
 
 #include "osi/include/log.h"
-#include "service/core_stack.h"
+#include "service/adapter.h"
 #include "service/gatt_server.h"
 #include "service/uuid.h"
 
-using bluetooth::CoreStack;
+using bluetooth::Adapter;
 using bluetooth::Uuid;
 
 using namespace bluetooth::gatt;
@@ -75,8 +75,8 @@ bool TokenBool(const std::string& text) {
 
 namespace ipc {
 
-UnixIPCHost::UnixIPCHost(int sockfd, CoreStack* bt)
-    : bt_(bt), pfds_(1, {sockfd, POLLIN, 0}) {}
+UnixIPCHost::UnixIPCHost(int sockfd, Adapter* adapter)
+    : adapter_(adapter), pfds_(1, {sockfd, POLLIN, 0}) {}
 
 UnixIPCHost::~UnixIPCHost() {
   close(pfds_[0].fd);
@@ -107,15 +107,15 @@ bool UnixIPCHost::EventLoop() {
 bool UnixIPCHost::OnSetAdapterName(const std::string& name) {
   std::string decoded_data;
   base::Base64Decode(name, &decoded_data);
-  return bt_->SetAdapterName(decoded_data);
+  return adapter_->SetName(decoded_data);
 }
 
 bool UnixIPCHost::OnCreateService(const std::string& service_uuid) {
   gatt_servers_[service_uuid] = std::unique_ptr<Server>(new Server);
 
   int gattfd;
-  bool status =
-      gatt_servers_[service_uuid]->Initialize(Uuid(service_uuid), &gattfd, bt_);
+  bool status = gatt_servers_[service_uuid]->Initialize(
+          Uuid(service_uuid), &gattfd);
   if (!status) {
     LOG_ERROR(LOG_TAG, "Failed to initialize bluetooth");
     return false;

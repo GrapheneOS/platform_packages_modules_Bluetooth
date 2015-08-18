@@ -20,9 +20,9 @@
 
 namespace ipc {
 
-BluetoothBinderServer::BluetoothBinderServer(bluetooth::CoreStack* core_stack)
-    : core_stack_(core_stack) {
-  CHECK(core_stack_);
+BluetoothBinderServer::BluetoothBinderServer(bluetooth::Adapter* adapter)
+    : adapter_(adapter) {
+  CHECK(adapter_);
 }
 
 BluetoothBinderServer::~BluetoothBinderServer() {
