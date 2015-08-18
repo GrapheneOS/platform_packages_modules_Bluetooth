@@ -16,9 +16,13 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <base/macros.h>
 
 #include "service/ipc/binder/IBluetooth.h"
+#include "service/uuid.h"
 
 namespace bluetooth {
 class Adapter;
@@ -38,6 +42,10 @@ class BluetoothBinderServer : public binder::BnBluetooth {
   bool Enable() override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
+  std::string GetAddress() override;
+  std::vector<bluetooth::UUID> GetUUIDs() override;
+  bool SetName(const std::string& name) override;
+  std::string GetName() override;
 
  private:
   // Weak handle on the Adapter.
