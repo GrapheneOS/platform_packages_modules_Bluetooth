@@ -75,7 +75,21 @@ android::status_t BnBluetooth::onTransact(
       reply->writeInt32(is_enabled);
       return android::NO_ERROR;
     }
-    // TODO(armansito): Implement other functions here.
+    case GET_STATE_TRANSACTION: {
+      int state = GetState();
+      reply->writeInt32(state);
+      return android::NO_ERROR;
+    }
+    case ENABLE_TRANSACTION: {
+      bool result = Enable();
+      reply->writeInt32(result);
+      return android::NO_ERROR;
+    }
+    case DISABLE_TRANSACTION: {
+      bool result = Disable();
+      reply->writeInt32(result);
+      return android::NO_ERROR;
+    }
     default:
       return BBinder::onTransact(code, data, reply, flags);
   }
