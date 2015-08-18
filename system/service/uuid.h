@@ -13,6 +13,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
 #pragma once
 
 #include <array>
@@ -22,48 +23,48 @@
 
 namespace bluetooth {
 
-class Uuid {
+class UUID {
  public:
   enum Type {
-    kUuid128Octets = 16,
-    kUuid32Octets = 4,
-    kUuid16Octets = 2,
+    kUUID128Octets = 16,
+    kUUID32Octets = 4,
+    kUUID16Octets = 2,
   };
 
-  typedef std::array<uint8_t, Uuid::kUuid16Octets> Uuid16Bit;
-  typedef std::array<uint8_t, Uuid::kUuid32Octets> Uuid32Bit;
-  typedef std::array<uint8_t, Uuid::kUuid128Octets> Uuid128Bit;
+  typedef std::array<uint8_t, UUID::kUUID16Octets> UUID16Bit;
+  typedef std::array<uint8_t, UUID::kUUID32Octets> UUID32Bit;
+  typedef std::array<uint8_t, UUID::kUUID128Octets> UUID128Bit;
 
   // Construct a Bluetooth 'base' UUID.
-  Uuid();
+  UUID();
 
   // BlueDroid constructor.
-  explicit Uuid(const bt_uuid_t& uuid);
+  explicit UUID(const bt_uuid_t& uuid);
 
   // String constructor. Only hex ASCII accepted.
-  explicit Uuid(const std::string& uuid);
+  explicit UUID(const std::string& uuid);
 
   // std::array variants constructors.
-  explicit Uuid(const Uuid::Uuid16Bit& uuid);
-  explicit Uuid(const Uuid::Uuid32Bit& uuid);
-  explicit Uuid(const Uuid::Uuid128Bit& uuid);
+  explicit UUID(const UUID::UUID16Bit& uuid);
+  explicit UUID(const UUID::UUID32Bit& uuid);
+  explicit UUID(const UUID::UUID128Bit& uuid);
 
   // Provide the full network-byte-ordered blob.
-  const Uuid128Bit GetFullBigEndian() const;
+  const UUID128Bit GetFullBigEndian() const;
 
   // Provide blob in Little endian (BlueDroid expects this).
-  const Uuid128Bit GetFullLittleEndian() const;
+  const UUID128Bit GetFullLittleEndian() const;
 
   // Helper for bluedroid LE type.
   const bt_uuid_t GetBlueDroid() const;
 
-  bool operator<(const Uuid& rhs) const;
-  bool operator==(const Uuid& rhs) const;
+  bool operator<(const UUID& rhs) const;
+  bool operator==(const UUID& rhs) const;
 
  private:
   void InitializeDefault();
   // Network-byte-ordered ID.
-  Uuid128Bit id_;
+  UUID128Bit id_;
 };
 
 }  // namespace bluetooth
