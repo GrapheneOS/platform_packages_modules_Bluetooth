@@ -2,11 +2,13 @@ shared_library("test_vendor_lib") {
   sources = [
     "src/bt_vendor.cc",
     "src/command_packet.cc",
-    "src/dual_mode__controller.cc",
+    "src/dual_mode_controller.cc",
     "src/event_packet.cc",
     "src/hci_transport.cc",
     "src/packet.cc",
     "src/packet_stream.cc",
+    "src/test_channel_transport.cc",
+    "src/vendor_manager.cc",
   ]
 
   include_dirs = [
@@ -17,10 +19,37 @@ shared_library("test_vendor_lib") {
     "//osi/include",
     "//stack/include",
   ]
-
-  deps = [
-    "//third_party/libchrome",
-  ]
 }
 
-# TODO(dennischeng): Add a unit test target.
+executable("test_vendor_lib_test") {
+  testonly = true
+  sources = [
+    "src/command_packet.cc",
+    "src/event_packet.cc",
+    "src/packet.cc",
+    "src/packet_stream.cc",
+    "test/hci_transport_unittest.cc",
+    "test/packet_stream_unittest.cc",
+  ]
+
+  include_dirs = [
+    "include",
+    "//",
+    "//btcore/include",
+    "//hci/include",
+    "//osi/include",
+    "//stack/include",
+  ]
+
+  deps = [
+    "//third_party/gtest:gtest_main",
+    "//third_party/libchrome:base",
+    "//vendor_libs/test_vendor_lib",
+  ]
+
+  libs = [
+    "-lpthread",
+    "-lrt",
+    "-ldl",
+  ]
+}

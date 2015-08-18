@@ -106,8 +106,9 @@ void VendorManager::StartWatchingOnThread() {
   CHECK(base::MessageLoopForIO::IsCurrent());
 
   if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-      transport_.GetVendorFd(), true, base::MessageLoopForIO::WATCH_READ_WRITE,
-      &hci_watcher_, &transport_)) {
+          transport_.GetVendorFd(), true,
+          base::MessageLoopForIO::WATCH_READ_WRITE, &hci_watcher_,
+          &transport_)) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
     return;
   }

@@ -36,3 +36,34 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
 include $(BUILD_SHARED_LIBRARY)
+
+ifeq ($(HOST_OS), linux)
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := \
+    src/command_packet.cc \
+    src/event_packet.cc \
+    src/hci_transport.cc \
+    src/packet.cc \
+    src/packet_stream.cc \
+    test/hci_transport_unittest.cc \
+    test/packet_stream_unittest.cc
+
+LOCAL_C_INCLUDES := \
+    $(LOCAL_PATH)/include \
+    $(BT_DIR) \
+    $(BT_DIR)/hci/include \
+    $(BT_DIR)/osi/include \
+    $(BT_DIR)/stack/include
+
+LOCAL_SHARED_LIBRARIES := \
+    liblog \
+    libchrome-host
+
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CFLAGS += -std=c++11
+LOCAL_MODULE := test-vendor_test_host
+LOCAL_MODULE_TAGS := tests
+
+include $(BUILD_HOST_NATIVE_TEST)
+endif

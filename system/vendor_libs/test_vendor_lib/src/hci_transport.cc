@@ -37,6 +37,10 @@ void HciTransport::CloseHciFd() {
   hci_fd_.reset(nullptr);
 }
 
+void HciTransport::CloseVendorFd() {
+  vendor_fd_.reset(nullptr);
+}
+
 int HciTransport::GetHciFd() const {
   return hci_fd_->get();
 }
@@ -124,7 +128,8 @@ void HciTransport::AddEventToOutboundEvents(
 }
 
 void HciTransport::PostEventResponse(std::unique_ptr<EventPacket> event) {
-  AddEventToOutboundEvents(std::make_unique<TimeStampedEvent>(std::move(event)));
+  AddEventToOutboundEvents(
+      std::make_unique<TimeStampedEvent>(std::move(event)));
 }
 
 void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,

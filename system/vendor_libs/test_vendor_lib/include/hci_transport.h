@@ -45,6 +45,8 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
 
   void CloseHciFd();
 
+  void CloseVendorFd();
+
   int GetHciFd() const;
 
   int GetVendorFd() const;

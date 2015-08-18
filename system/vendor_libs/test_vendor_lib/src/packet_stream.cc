@@ -78,7 +78,7 @@ bool PacketStream::SendEvent(const EventPacket& event, int fd) const {
   LOG_INFO(LOG_TAG, "Sending event with size: %zu octets",
            event.GetPacketSize());
 
-  if (!SendAll({event.GetType()}, 1, fd)) {
+  if (!SendAll({static_cast<uint8_t>(event.GetType())}, 1, fd)) {
     LOG_ERROR(LOG_TAG, "Error: Could not send event type.");
     return false;
   }
