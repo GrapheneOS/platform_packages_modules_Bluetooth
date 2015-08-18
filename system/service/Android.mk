@@ -19,9 +19,7 @@ LOCAL_PATH:= $(call my-dir)
 # Common variables
 # ========================================================
 btserviceCommonSrc := \
-	a2dp_source.cpp \
 	adapter.cpp \
-	core_stack.cpp \
 	daemon.cpp \
 	gatt_server.cpp \
 	hal/bluetooth_interface.cpp \

@@ -22,7 +22,7 @@
 #include <base/memory/ref_counted.h>
 
 namespace bluetooth {
-class CoreStack;
+class Adapter;
 }  // namespace bluetooth
 
 namespace ipc {
@@ -60,7 +60,7 @@ class IPCManager {
     DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
 
-  explicit IPCManager(bluetooth::CoreStack* core_stack);
+  explicit IPCManager(bluetooth::Adapter* adapter);
   ~IPCManager();
 
   // Initialize the underlying IPC handler based on |type|, if that type has not
@@ -90,9 +90,9 @@ class IPCManager {
   scoped_refptr<IPCHandler> binder_handler_;
   scoped_refptr<IPCHandler> unix_handler_;
 
-  // The global CoreStack instance that represents the current Bluetooth
-  // adapter.
-  bluetooth::CoreStack* core_stack_;
+  // The Bluetooth adapter instance. This is owned by Daemon so we keep a raw
+  // pointer to it.
+  bluetooth::Adapter* adapter_;
 
   DISALLOW_COPY_AND_ASSIGN(IPCManager);
 };

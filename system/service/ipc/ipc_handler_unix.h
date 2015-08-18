@@ -35,7 +35,7 @@ namespace ipc {
 // Implements a UNIX domain-socket based IPCHandler
 class IPCHandlerUnix : public IPCHandler {
  public:
-  IPCHandlerUnix(bluetooth::CoreStack* core_stack,
+  IPCHandlerUnix(bluetooth::Adapter* adapter,
                  IPCManager::Delegate* delegate);
   ~IPCHandlerUnix() override;
 
