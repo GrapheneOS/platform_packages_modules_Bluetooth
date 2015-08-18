@@ -218,7 +218,7 @@ void bte_main_enable_lpm(BOOLEAN enable)
 **
 ** Function         bte_main_lpm_allow_bt_device_sleep
 **
-** Description      BTE MAIN API - Allow BT controller goest to sleep
+** Description      BTE MAIN API - Allow the BT controller to go to sleep
 **
 ** Returns          None
 **
