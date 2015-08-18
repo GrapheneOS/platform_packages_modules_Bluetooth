@@ -18,72 +18,10 @@
 #include <gtest/gtest.h>
 
 #include "service/adapter.h"
-#include "service/test/fake_hal_bluetooth_interface.h"
+#include "service/hal/fake_bluetooth_interface.h"
 
 namespace bluetooth {
 namespace {
-
-// A Fake HAL Bluetooth interface. This is kept as a global singleton as the
-// Bluetooth HAL doesn't support anything otherwise.
-struct FakeHALManager {
-  FakeHALManager()
-      : enable_succeed(false),
-        disable_succeed(false),
-        set_property_succeed(false) {
-  }
-
-  // Values that should be returned from bt_interface_t methods.
-  bool enable_succeed;
-  bool disable_succeed;
-  bool set_property_succeed;
-};
-FakeHALManager g_hal_manager;
-
-int FakeHALEnable() {
-  return g_hal_manager.enable_succeed ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
-}
-
-int FakeHALDisable() {
-  return g_hal_manager.disable_succeed ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
-}
-
-int FakeHALSetAdapterProperty(const bt_property_t* /* property */) {
-  LOG(INFO) << __func__;
-  return (g_hal_manager.set_property_succeed ? BT_STATUS_SUCCESS :
-          BT_STATUS_FAIL);
-}
-
-bt_interface_t fake_bt_iface = {
-  sizeof(bt_interface_t),
-  nullptr, /* init */
-  FakeHALEnable,
-  FakeHALDisable,
-  nullptr, /* cleanup */
-  nullptr, /* get_adapter_properties */
-  nullptr, /* get_adapter_property */
-  FakeHALSetAdapterProperty,
-  nullptr, /* get_remote_device_properties */
-  nullptr, /* get_remote_device_property */
-  nullptr, /* set_remote_device_property */
-  nullptr, /* get_remote_service_record */
-  nullptr, /* get_remote_services */
-  nullptr, /* start_discovery */
-  nullptr, /* cancel_discovery */
-  nullptr, /* create_bond */
-  nullptr, /* remove_bond */
-  nullptr, /* cancel_bond */
-  nullptr, /* get_connection_state */
-  nullptr, /* pin_reply */
-  nullptr, /* ssp_reply */
-  nullptr, /* get_profile_interface */
-  nullptr, /* dut_mode_configure */
-  nullptr, /* dut_more_send */
-  nullptr, /* le_test_mode */
-  nullptr, /* config_hci_snoop_log */
-  nullptr, /* set_os_callouts */
-  nullptr, /* read_energy_info */
-  nullptr, /* dump */
-};
 
 class AdapterTest : public ::testing::Test {
  public:
@@ -91,7 +29,8 @@ class AdapterTest : public ::testing::Test {
   ~AdapterTest() override = default;
 
   void SetUp() override {
-    fake_hal_iface_ = new testing::FakeHALBluetoothInterface(&fake_bt_iface);
+    fake_hal_manager_ = hal::FakeBluetoothInterface::GetManager();
+    fake_hal_iface_ = new hal::FakeBluetoothInterface();
     hal::BluetoothInterface::InitializeForTesting(fake_hal_iface_);
 
     adapter_.reset(new Adapter());
@@ -103,7 +42,8 @@ class AdapterTest : public ::testing::Test {
   }
 
  protected:
-  testing::FakeHALBluetoothInterface* fake_hal_iface_;
+  hal::FakeBluetoothInterface* fake_hal_iface_;
+  hal::FakeBluetoothInterface::Manager* fake_hal_manager_;
   std::unique_ptr<Adapter> adapter_;
 
  private:
@@ -122,24 +62,50 @@ TEST_F(AdapterTest, IsEnabled) {
 
 TEST_F(AdapterTest, Enable) {
   EXPECT_FALSE(adapter_->IsEnabled());
-  EXPECT_FALSE(adapter_->Enable());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
 
-  g_hal_manager.enable_succeed = true;
+  // Enable fails at HAL level
+  EXPECT_FALSE(adapter_->Enable());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
+
+  // Enable success
+  fake_hal_manager_->enable_succeed = true;
   EXPECT_TRUE(adapter_->Enable());
 
+  // Enable fails because not disabled
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_ON, adapter_->GetState());
+  EXPECT_FALSE(adapter_->Enable());
+
+  // Adapter state updates properly
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, adapter_->GetState());
+
+  // Enable fails because already enabled
   EXPECT_FALSE(adapter_->Enable());
 }
 
 TEST_F(AdapterTest, Disable) {
-  g_hal_manager.disable_succeed = true;
+  fake_hal_manager_->disable_succeed = true;
   EXPECT_FALSE(adapter_->IsEnabled());
-  EXPECT_FALSE(adapter_->Disable());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
 
+  // Disable fails because already disabled
+  EXPECT_FALSE(adapter_->Disable());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
+
+  // Disable success
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
   EXPECT_TRUE(adapter_->Disable());
 
-  g_hal_manager.disable_succeed = false;
+  // Disable fails because not enabled
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_OFF, adapter_->GetState());
+  EXPECT_FALSE(adapter_->Disable());
+
+  fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, adapter_->GetState());
+
+  // Disable fails at HAL level
+  fake_hal_manager_->disable_succeed = false;
   EXPECT_FALSE(adapter_->Disable());
 }
 
@@ -151,7 +117,7 @@ TEST_F(AdapterTest, SetName) {
 
   // Valid length.
   EXPECT_FALSE(adapter_->SetName("Test Name"));
-  g_hal_manager.set_property_succeed = true;
+  fake_hal_manager_->set_property_succeed = true;
   EXPECT_TRUE(adapter_->SetName("Test Name"));
 }
 
