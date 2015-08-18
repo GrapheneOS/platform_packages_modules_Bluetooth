@@ -27,9 +27,9 @@
 #include <gtest/gtest.h>
 
 #include "service/adapter.h"
-#include "service/settings.h"
+#include "service/hal/fake_bluetooth_interface.h"
 #include "service/ipc/ipc_manager.h"
-#include "service/test/fake_hal_bluetooth_interface.h"
+#include "service/settings.h"
 #include "service/test/mock_daemon.h"
 
 
@@ -56,7 +56,7 @@ class IPCUnixTest : public ::testing::Test {
 
     bluetooth::Daemon::InitializeForTesting(mock_daemon);
     bluetooth::hal::BluetoothInterface::InitializeForTesting(
-        new bluetooth::testing::FakeHALBluetoothInterface(nullptr));
+        new bluetooth::hal::FakeBluetoothInterface());
 
     adapter_.reset(new bluetooth::Adapter());
     ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
