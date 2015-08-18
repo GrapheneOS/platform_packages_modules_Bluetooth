@@ -16,9 +16,14 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <base/macros.h>
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
+
+#include "service/uuid.h"
 
 namespace ipc {
 namespace binder {
@@ -39,17 +44,28 @@ class IBluetooth : public android::IInterface {
     ENABLE_TRANSACTION,
     ENABLE_NO_AUTO_CONNECT_TRANSACTION,
     DISABLE_TRANSACTION,
+    GET_ADDRESS_TRANSACTION,
+    GET_UUIDS_TRANSACTION,
+    SET_NAME_TRANSACTION,
+    GET_NAME_TRANSACTION,
   };
 
   // Returns a handle to the IBluetooth Binder from the Android ServiceManager.
   // Binder client code can use this to make calls to the service.
   static android::sp<IBluetooth> getClientInterface();
 
+  // Methods declared in IBluetooth.aidl.
+
   virtual bool IsEnabled() = 0;
   virtual int GetState() = 0;
   virtual bool Enable() = 0;
   virtual bool EnableNoAutoConnect() = 0;
   virtual bool Disable() = 0;
+
+  virtual std::string GetAddress() = 0;
+  virtual std::vector<bluetooth::UUID> GetUUIDs() = 0;
+  virtual bool SetName(const std::string& name) = 0;
+  virtual std::string GetName() = 0;
 
   // TODO(armansito): Complete the API definition.
  private:
@@ -85,6 +101,10 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   bool Enable() override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
+  std::string GetAddress() override;
+  std::vector<bluetooth::UUID> GetUUIDs() override;
+  bool SetName(const std::string& name) override;
+  std::string GetName() override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetooth);
