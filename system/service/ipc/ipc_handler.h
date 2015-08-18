@@ -22,7 +22,7 @@
 #include "service/ipc/ipc_manager.h"
 
 namespace bluetooth {
-class CoreStack;
+class Adapter;
 }  // namespace bluetooth
 
 namespace ipc {
@@ -31,7 +31,7 @@ namespace ipc {
 // must conform to.
 class IPCHandler : public base::RefCountedThreadSafe<IPCHandler> {
  public:
-  IPCHandler(bluetooth::CoreStack* core_stack, IPCManager::Delegate* delegate);
+  IPCHandler(bluetooth::Adapter* adapter, IPCManager::Delegate* delegate);
   virtual ~IPCHandler();
 
   // Initializes and runs the IPC mechanism. Returns true on success, false
@@ -44,14 +44,14 @@ class IPCHandler : public base::RefCountedThreadSafe<IPCHandler> {
  protected:
   // Getters for private members to allow subclasses to access them in read-only
   // fashion.
-  bluetooth::CoreStack* core_stack() const { return core_stack_; }
+  bluetooth::Adapter* adapter() const { return adapter_; }
   IPCManager::Delegate* delegate() const { return delegate_; }
 
  private:
   IPCHandler() = default;
 
-  // Weak reference to the global CoreStack instance.
-  bluetooth::CoreStack* core_stack_;
+  // Weak reference to the global Adapter instance.
+  bluetooth::Adapter* adapter_;
 
   // The delegate that is interested in notifications from us.
   IPCManager::Delegate* delegate_;

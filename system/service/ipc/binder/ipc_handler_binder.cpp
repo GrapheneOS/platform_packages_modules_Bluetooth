@@ -33,20 +33,20 @@ using android::String16;
 namespace ipc {
 
 IPCHandlerBinder::IPCHandlerBinder(
-    bluetooth::CoreStack* core_stack,
+    bluetooth::Adapter* adapter,
     IPCManager::Delegate* delegate)
-    : IPCHandler(core_stack, delegate) {
+    : IPCHandler(adapter, delegate) {
 }
 
 IPCHandlerBinder::~IPCHandlerBinder() {
 }
 
 bool IPCHandlerBinder::Run() {
-  CHECK(core_stack());
+  CHECK(adapter());
 
   // Register the IBluetooth service with the Android ServiceManager.
   android::sp<BluetoothBinderServer> bt_server =
-      new BluetoothBinderServer(core_stack());
+      new BluetoothBinderServer(adapter());
   status_t status = defaultServiceManager()->addService(
       String16(binder::IBluetooth::kBluetoothServiceName),
       bt_server);

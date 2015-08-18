@@ -25,9 +25,6 @@
 #include "uuid.h"
 
 namespace bluetooth {
-
-class CoreStack;
-
 namespace gatt {
 
 // Attribute permission values
@@ -68,7 +65,7 @@ class Server {
 
   // Register GATT interface, initialize internal state,
   // and open a pipe for characteristic write notification.
-  bool Initialize(const Uuid &service_id, int *gatt_pipe, CoreStack *bt);
+  bool Initialize(const Uuid& service_id, int* gatt_pipe);
 
   // Control the content of service advertisement.
   bool SetAdvertisement(const std::vector<Uuid>& ids,

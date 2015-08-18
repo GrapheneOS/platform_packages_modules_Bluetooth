@@ -20,7 +20,8 @@
 
 #include <base/logging.h>
 
-#include "service/core_stack.h"
+#include "service/adapter.h"
+#include "service/hal/bluetooth_interface.h"
 #include "service/ipc/ipc_manager.h"
 #include "service/settings.h"
 
@@ -33,8 +34,15 @@ Daemon* g_daemon = nullptr;
 
 class DaemonImpl : public Daemon {
  public:
-  DaemonImpl() = default;
-  ~DaemonImpl() override = default;
+  DaemonImpl() : initialized_(false) {
+  }
+
+  ~DaemonImpl() override {
+    if (!initialized_)
+      return;
+
+    CleanUpBluetoothStack();
+  }
 
   void StartMainLoop() override {
     message_loop_->Run();
@@ -49,23 +57,14 @@ class DaemonImpl : public Daemon {
   }
 
  private:
-  bool Init() override {
-    message_loop_.reset(new base::MessageLoop());
+  void CleanUpBluetoothStack() {
+    // The Adapter object needs to be cleaned up before the HAL interfaces.
+    ipc_manager_.reset();
+    adapter_.reset();
+    hal::BluetoothInterface::CleanUp();
+  }
 
-    settings_.reset(new Settings());
-    if (!settings_->Init()) {
-      LOG(ERROR) << "Failed to set up Settings";
-      return false;
-    }
-
-    core_stack_ = CoreStack::Create();
-    if (!core_stack_->Initialize()) {
-      LOG(ERROR) << "Failed to set up CoreStack";
-      return false;
-    }
-
-    ipc_manager_.reset(new ipc::IPCManager(core_stack_.get()));
-
+  bool SetUpIPC() {
     // If an IPC socket path was given, initialize IPC with it. Otherwise
     // initialize Binder IPC.
     if (settings_->UseSocketIPC()) {
@@ -81,9 +80,39 @@ class DaemonImpl : public Daemon {
     return true;
   }
 
+  bool Init() override {
+    CHECK(!initialized_);
+    message_loop_.reset(new base::MessageLoop());
+
+    settings_.reset(new Settings());
+    if (!settings_->Init()) {
+      LOG(ERROR) << "Failed to set up Settings";
+      return false;
+    }
+
+    if (!hal::BluetoothInterface::Initialize()) {
+      LOG(ERROR) << "Failed to set up BluetoothInterface";
+      return false;
+    }
+
+    adapter_.reset(new Adapter());
+    ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
+
+    if (!SetUpIPC()) {
+      CleanUpBluetoothStack();
+      return false;
+    }
+
+    initialized_ = true;
+    LOG(INFO) << "Daemon initialized";
+
+    return true;
+  }
+
+  bool initialized_;
   std::unique_ptr<base::MessageLoop> message_loop_;
   std::unique_ptr<Settings> settings_;
-  std::unique_ptr<CoreStack> core_stack_;
+  std::unique_ptr<Adapter> adapter_;
   std::unique_ptr<ipc::IPCManager> ipc_manager_;
 
   DISALLOW_COPY_AND_ASSIGN(DaemonImpl);
