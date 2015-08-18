@@ -90,6 +90,27 @@ android::status_t BnBluetooth::onTransact(
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
+    case GET_ADDRESS_TRANSACTION: {
+      std::string address = GetAddress();
+      reply->writeCString(address.c_str());
+      return android::NO_ERROR;
+    }
+    case GET_UUIDS_TRANSACTION:
+      // TODO(armansito): Figure out how to handle a Java "ParcelUuid" natively.
+      // Should we just change the code to pass strings or byte arrays?
+      return android::INVALID_OPERATION;
+
+    case SET_NAME_TRANSACTION: {
+      std::string name(data.readCString());
+      bool result = SetName(name);
+      reply->writeInt32(result);
+      return android::NO_ERROR;
+    }
+    case GET_NAME_TRANSACTION: {
+      std::string name = GetName();
+      reply->writeCString(name.c_str());
+      return android::NO_ERROR;
+    }
     default:
       return BBinder::onTransact(code, data, reply, flags);
   }
@@ -146,6 +167,39 @@ bool BpBluetooth::Disable() {
   remote()->transact(IBluetooth::DISABLE_TRANSACTION, data, &reply);
 
   return reply.readInt32();
+}
+
+std::string BpBluetooth::GetAddress() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  remote()->transact(IBluetooth::GET_ADDRESS_TRANSACTION, data, &reply);
+
+  return reply.readCString();
+}
+
+std::vector<bluetooth::UUID> BpBluetooth::GetUUIDs() {
+  // TODO(armansito): Figure out what to do here.
+  return std::vector<bluetooth::UUID>();
+}
+
+bool BpBluetooth::SetName(const std::string& name) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  data.writeCString(name.c_str());
+  remote()->transact(IBluetooth::SET_NAME_TRANSACTION, data, &reply);
+
+  return reply.readInt32();
+}
+
+std::string BpBluetooth::GetName() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  remote()->transact(IBluetooth::GET_NAME_TRANSACTION, data, &reply);
+
+  return reply.readCString();
 }
 
 IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kBluetoothServiceName);
