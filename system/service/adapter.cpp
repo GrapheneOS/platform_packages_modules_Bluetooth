@@ -22,7 +22,15 @@
 
 namespace bluetooth {
 
-Adapter::Adapter() : state_(ADAPTER_STATE_OFF) {
+// static
+const char Adapter::kDefaultAddress[] = "00:00:00:00:00:00";
+// static
+const char Adapter::kDefaultName[] = "not-initialized";
+
+Adapter::Adapter()
+    : state_(ADAPTER_STATE_OFF),
+      address_(kDefaultAddress),
+      name_(kDefaultName) {
   hal::BluetoothInterface::Get()->AddObserver(this);
   hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();
 }
@@ -89,6 +97,10 @@ bool Adapter::Disable() {
   return true;
 }
 
+std::string Adapter::GetName() const {
+  return name_.Get();
+}
+
 bool Adapter::SetName(const std::string& name) {
   bt_bdname_t hal_name;
   size_t max_name_len = sizeof(hal_name.name);
@@ -113,6 +125,10 @@ bool Adapter::SetName(const std::string& name) {
   return true;
 }
 
+std::string Adapter::GetAddress() const {
+  return address_.Get();
+}
+
 void Adapter::AdapterStateChangedCallback(bt_state_t state) {
   LOG(INFO) << "Adapter state changed: " << BtStateText(state);
 
@@ -132,10 +148,41 @@ void Adapter::AdapterStateChangedCallback(bt_state_t state) {
   // TODO(armansito): Notify others of the state change.
 }
 
-void Adapter::AdapterPropertiesCallback(bt_status_t /* status */,
-                                        int /* num_properties */,
-                                        bt_property_t* /* properties */) {
-  // TODO(armansito): Do something meaningful here.
+void Adapter::AdapterPropertiesCallback(bt_status_t status,
+                                        int num_properties,
+                                        bt_property_t* properties) {
+  LOG(INFO) << "Adapter properties changed";
+
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "status: " << BtStatusText(status);
+    return;
+  }
+
+  for (int i = 0; i < num_properties; i++) {
+    bt_property_t* property = properties + i;
+    switch (property->type) {
+      case BT_PROPERTY_BDADDR: {
+        std::string address = BtAddrString(reinterpret_cast<bt_bdaddr_t*>(
+            property->val));
+        LOG(INFO) << "Adapter address changed: " << address;
+        address_.Set(address);
+        break;
+      }
+      case BT_PROPERTY_BDNAME: {
+        bt_bdname_t* hal_name = reinterpret_cast<bt_bdname_t*>(property->val);
+        std::string name = reinterpret_cast<char*>(hal_name->name);
+        LOG(INFO) << "Adapter name changed: " << name;
+        name_.Set(name);
+        break;
+      }
+      default:
+        VLOG(1) << "Unhandled adapter property: "
+                << BtPropertyText(property->type);
+        break;
+    }
+
+    // TODO(armansito): notify others of the updated properties
+  }
 }
 
 bool Adapter::SetAdapterProperty(bt_property_type_t type,
