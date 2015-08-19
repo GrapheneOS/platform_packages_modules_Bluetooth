@@ -34,6 +34,9 @@
 #include "osi/include/reactor.h"
 #include "osi/include/socket.h"
 
+// The IPv4 loopback address: 127.0.0.1
+static const in_addr_t LOCALHOST_ = 0x7f000001;
+
 struct socket_t {
   int fd;
   reactor_object_t *reactor_object;
@@ -100,7 +103,7 @@ bool socket_listen(const socket_t *socket, port_t port) {
 
   struct sockaddr_in addr;
   addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = 0;
+  addr.sin_addr.s_addr = htonl(LOCALHOST_);
   addr.sin_port = htons(port);
   if (bind(socket->fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
     LOG_ERROR("%s unable to bind socket to port %u: %s", __func__, port, strerror(errno));
