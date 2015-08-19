@@ -4246,6 +4246,13 @@ void btm_sec_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
 
     if ((status == HCI_SUCCESS) && encr_enable && (p_dev_rec->hci_handle == handle))
     {
+        /* if BR key is temporary no need for LE LTK derivation */
+        bool derive_ltk = true;
+        if(p_dev_rec->rmt_auth_req == BTM_AUTH_SP_NO && btm_cb.devcb.loc_auth_req == BTM_AUTH_SP_NO)
+        {
+            derive_ltk = false;
+            BTM_TRACE_DEBUG("%s: BR key is temporary, skip derivation of LE LTK", __func__);
+        }
         if (p_dev_rec->new_encryption_key_is_p256)
         {
             if (btm_sec_use_smp_br_chnl(p_dev_rec) &&
@@ -4254,7 +4261,7 @@ void btm_sec_encrypt_change (uint16_t handle, uint8_t status, uint8_t encr_enabl
                 (!(p_dev_rec->sec_flags &BTM_SEC_LE_LINK_KEY_KNOWN) ||
                 /* or BR key is higher security than existing LE keys */
                  (!(p_dev_rec->sec_flags & BTM_SEC_LE_LINK_KEY_AUTHED)
-                 && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED))))
+                 && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_AUTHED))) && derive_ltk)
             {
                 /* BR/EDR is encrypted with LK that can be used to derive LE LTK */
                 p_dev_rec->new_encryption_key_is_p256 = false;
