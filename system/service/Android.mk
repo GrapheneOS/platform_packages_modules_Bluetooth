@@ -25,9 +25,9 @@ btserviceCommonSrc := \
 	gatt_server.cpp \
 	hal/bluetooth_interface.cpp \
 	ipc/ipc_handler.cpp \
-	ipc/ipc_handler_unix.cpp \
 	ipc/ipc_manager.cpp \
-	ipc/unix_ipc_host.cpp \
+	ipc/unix/ipc_handler_unix.cpp \
+	ipc/unix/unix_ipc_host.cpp \
 	logging_helpers.cpp \
 	settings.cpp \
 	util/atomic_string.cpp \

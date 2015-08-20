@@ -29,6 +29,7 @@ class Adapter;
 }  // namespace bluetooth
 
 namespace ipc {
+namespace unix {
 
 // This implements a single threaded event loop which dispatches
 // reads from a set of FDs (pfds_) to a set of handlers.
@@ -104,4 +105,5 @@ class UnixIPCHost {
       gatt_servers_;
 };
 
+}  // namespace unix
 }  // namespace ipc

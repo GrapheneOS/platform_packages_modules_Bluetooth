@@ -31,6 +31,7 @@ class SingleThreadTaskRunner;
 }  // namespace base
 
 namespace ipc {
+namespace unix {
 
 // Implements a UNIX domain-socket based IPCHandler
 class IPCHandlerUnix : public IPCHandler {
@@ -83,4 +84,5 @@ class IPCHandlerUnix : public IPCHandler {
   DISALLOW_COPY_AND_ASSIGN(IPCHandlerUnix);
 };
 
+}  // namespace unix
 }  // namespace ipc
