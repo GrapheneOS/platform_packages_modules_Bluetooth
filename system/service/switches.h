@@ -35,7 +35,8 @@ const char kHelpMessage[] =
     "\t--android-ipc-socket-suffix\tSuffix of socket created by Android init. "
     "Mutually exclusive with --create-ipc-socket.\n"
     "\t--create-ipc-socket\t\tSocket path created for Unix domain socket based "
-    "IPC. Mutually exclusive with --android-ipc-socket-suffix.\n";
+    "IPC. Mutually exclusive with --android-ipc-socket-suffix.\n"
+    "\t--v\t\t\t\tLog verbosity level (e.g. -v=1)\n";
 
 }  // namespace switches
 }  // namespace bluetooth

@@ -16,6 +16,7 @@
 
 #include "service/settings.h"
 
+#include <base/base_switches.h>
 #include <base/command_line.h>
 #include <base/logging.h>
 
@@ -56,7 +57,10 @@ bool Settings::Init() {
       }
 
       android_ipc_socket_suffix_ = suffix;
-    } else {
+    }
+    // Check for libbase logging switches. These get processed by
+    // logging::InitLogging directly.
+    else if (iter.first != ::switches::kV) {
       LOG(ERROR) << "Unexpected command-line switches found";
       return false;
     }
