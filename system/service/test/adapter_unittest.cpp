@@ -50,6 +50,39 @@ class AdapterTest : public ::testing::Test {
   DISALLOW_COPY_AND_ASSIGN(AdapterTest);
 };
 
+class TestObserver final : public bluetooth::Adapter::Observer {
+ public:
+  TestObserver(bluetooth::Adapter* adapter)
+      : adapter_(adapter),
+        prev_state_(bluetooth::ADAPTER_STATE_INVALID),
+        cur_state_(bluetooth::ADAPTER_STATE_INVALID) {
+    CHECK(adapter_);
+    adapter_->AddObserver(this);
+  }
+
+  ~TestObserver() override {
+    adapter_->RemoveObserver(this);
+  }
+
+  bluetooth::AdapterState prev_state() const { return prev_state_; }
+  bluetooth::AdapterState cur_state() const { return cur_state_; }
+
+  // bluetooth::Adapter::Observer override:
+  void OnAdapterStateChanged(bluetooth::Adapter* adapter,
+                             bluetooth::AdapterState prev_state,
+                             bluetooth::AdapterState new_state) {
+    ASSERT_EQ(adapter_, adapter);
+    prev_state_ = prev_state;
+    cur_state_ = new_state;
+  }
+
+ private:
+  bluetooth::Adapter* adapter_;
+  bluetooth::AdapterState prev_state_, cur_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(TestObserver);
+};
+
 TEST_F(AdapterTest, IsEnabled) {
   EXPECT_FALSE(adapter_->IsEnabled());
 
@@ -61,6 +94,8 @@ TEST_F(AdapterTest, IsEnabled) {
 }
 
 TEST_F(AdapterTest, Enable) {
+  TestObserver observer(adapter_.get());
+
   EXPECT_FALSE(adapter_->IsEnabled());
   EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
 
@@ -72,6 +107,10 @@ TEST_F(AdapterTest, Enable) {
   fake_hal_manager_->enable_succeed = true;
   EXPECT_TRUE(adapter_->Enable());
 
+  // Should have received a state update.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_ON, observer.cur_state());
+
   // Enable fails because not disabled
   EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_ON, adapter_->GetState());
   EXPECT_FALSE(adapter_->Enable());
@@ -80,11 +119,17 @@ TEST_F(AdapterTest, Enable) {
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
   EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, adapter_->GetState());
 
+  // Should have received a state update.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_ON, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.cur_state());
+
   // Enable fails because already enabled
   EXPECT_FALSE(adapter_->Enable());
 }
 
 TEST_F(AdapterTest, Disable) {
+  TestObserver observer(adapter_.get());
+
   fake_hal_manager_->disable_succeed = true;
   EXPECT_FALSE(adapter_->IsEnabled());
   EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
@@ -95,7 +140,16 @@ TEST_F(AdapterTest, Disable) {
 
   // Disable success
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
+
+  // Should have received a state update.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.cur_state());
+
   EXPECT_TRUE(adapter_->Disable());
+
+  // Should have received a state update.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_OFF, observer.cur_state());
 
   // Disable fails because not enabled
   EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_OFF, adapter_->GetState());
@@ -104,9 +158,24 @@ TEST_F(AdapterTest, Disable) {
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
   EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, adapter_->GetState());
 
+  // Should have received a state update.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_OFF, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.cur_state());
+
   // Disable fails at HAL level
   fake_hal_manager_->disable_succeed = false;
   EXPECT_FALSE(adapter_->Disable());
+
+  // Should have received a state update. In this case we will receive two
+  // updates: one going from OFF to TURNING_OFF, and one going from TURNING_OFF
+  // back to ON since we failed to initiate the disable operation.
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_OFF, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.cur_state());
+
+  // Update state to OFF. Should receive a state update.
+  fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_OFF);
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.prev_state());
+  EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, observer.cur_state());
 }
 
 TEST_F(AdapterTest, GetName) {

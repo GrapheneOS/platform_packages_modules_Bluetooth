@@ -27,6 +27,12 @@ const char Adapter::kDefaultAddress[] = "00:00:00:00:00:00";
 // static
 const char Adapter::kDefaultName[] = "not-initialized";
 
+void Adapter::Observer::OnAdapterStateChanged(Adapter* adapter,
+                                              AdapterState prev_state,
+                                              AdapterState new_state) {
+  // Default implementation does nothing
+}
+
 Adapter::Adapter()
     : state_(ADAPTER_STATE_OFF),
       address_(kDefaultAddress),
@@ -37,6 +43,16 @@ Adapter::Adapter()
 
 Adapter::~Adapter() {
   hal::BluetoothInterface::Get()->RemoveObserver(this);
+}
+
+void Adapter::AddObserver(Observer* observer) {
+  std::lock_guard<std::mutex> lock(observers_lock_);
+  observers_.AddObserver(observer);
+}
+
+void Adapter::RemoveObserver(Observer* observer) {
+  std::lock_guard<std::mutex> lock(observers_lock_);
+  observers_.RemoveObserver(observer);
 }
 
 AdapterState Adapter::GetState() const {
@@ -58,16 +74,16 @@ bool Adapter::Enable() {
   // Set the state before calling enable() as there might be a race between here
   // and the AdapterStateChangedCallback.
   state_ = ADAPTER_STATE_TURNING_ON;
+  NotifyAdapterStateChanged(current_state, state_);
 
   int status = hal::BluetoothInterface::Get()->GetHALInterface()->enable();
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to enable Bluetooth - status: "
                << BtStatusText((const bt_status_t)status);
     state_ = ADAPTER_STATE_OFF;
+    NotifyAdapterStateChanged(ADAPTER_STATE_TURNING_ON, state_);
     return false;
   }
-
-  // TODO(armansito): Notify others of the state change.
 
   return true;
 }
@@ -83,16 +99,16 @@ bool Adapter::Disable() {
   // Set the state before calling enable() as there might be a race between here
   // and the AdapterStateChangedCallback.
   state_ = ADAPTER_STATE_TURNING_OFF;
+  NotifyAdapterStateChanged(current_state, state_);
 
   int status = hal::BluetoothInterface::Get()->GetHALInterface()->disable();
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to disable Bluetooth - status: "
                << BtStatusText((const bt_status_t)status);
     state_ = current_state;
+    NotifyAdapterStateChanged(ADAPTER_STATE_TURNING_OFF, state_);
     return false;
   }
-
-  // TODO(armansito): Notify others of the state change.
 
   return true;
 }
@@ -132,6 +148,8 @@ std::string Adapter::GetAddress() const {
 void Adapter::AdapterStateChangedCallback(bt_state_t state) {
   LOG(INFO) << "Adapter state changed: " << BtStateText(state);
 
+  AdapterState prev_state = GetState();
+
   switch (state) {
   case BT_STATE_OFF:
     state_ = ADAPTER_STATE_OFF;
@@ -145,7 +163,7 @@ void Adapter::AdapterStateChangedCallback(bt_state_t state) {
     NOTREACHED();
   }
 
-  // TODO(armansito): Notify others of the state change.
+  NotifyAdapterStateChanged(prev_state, GetState());
 }
 
 void Adapter::AdapterPropertiesCallback(bt_status_t status,
@@ -203,6 +221,16 @@ bool Adapter::SetAdapterProperty(bt_property_type_t type,
   }
 
   return true;
+}
+
+void Adapter::NotifyAdapterStateChanged(AdapterState prev_state,
+                                        AdapterState new_state) {
+  if (prev_state == new_state)
+    return;
+
+  std::lock_guard<std::mutex> lock(observers_lock_);
+  FOR_EACH_OBSERVER(Observer, observers_,
+                    OnAdapterStateChanged(this, prev_state, new_state));
 }
 
 }  // namespace bluetooth
