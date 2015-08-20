@@ -111,6 +111,16 @@ android::status_t BnBluetooth::onTransact(
       reply->writeCString(name.c_str());
       return android::NO_ERROR;
     }
+    case REGISTER_CALLBACK_TRANSACTION: {
+      sp<IBinder> callback = data.readStrongBinder();
+      RegisterCallback(interface_cast<IBluetoothCallback>(callback));
+      return android::NO_ERROR;
+    }
+    case UNREGISTER_CALLBACK_TRANSACTION: {
+      sp<IBinder> callback = data.readStrongBinder();
+      UnregisterCallback(interface_cast<IBluetoothCallback>(callback));
+      return android::NO_ERROR;
+    }
     default:
       return BBinder::onTransact(code, data, reply, flags);
   }
@@ -201,6 +211,24 @@ std::string BpBluetooth::GetName() {
   remote()->transact(IBluetooth::GET_NAME_TRANSACTION, data, &reply);
 
   return reply.readCString();
+}
+
+void BpBluetooth::RegisterCallback(const sp<IBluetoothCallback>& callback) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  data.writeStrongBinder(IInterface::asBinder(callback.get()));
+
+  remote()->transact(IBluetooth::REGISTER_CALLBACK_TRANSACTION, data, &reply);
+}
+
+void BpBluetooth::UnregisterCallback(const sp<IBluetoothCallback>& callback) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  data.writeStrongBinder(IInterface::asBinder(callback.get()));
+
+  remote()->transact(IBluetooth::UNREGISTER_CALLBACK_TRANSACTION, data, &reply);
 }
 
 IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kBluetoothServiceName);
