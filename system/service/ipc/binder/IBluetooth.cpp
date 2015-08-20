@@ -32,7 +32,7 @@ namespace ipc {
 namespace binder {
 
 // static
-const char IBluetooth::kBluetoothServiceName[] = "bluetoothservice";
+const char IBluetooth::kBluetoothServiceName[] = "bluetooth-service";
 
 // static
 android::sp<IBluetooth> IBluetooth::getClientInterface() {
@@ -97,7 +97,7 @@ android::status_t BnBluetooth::onTransact(
     }
     case GET_UUIDS_TRANSACTION:
       // TODO(armansito): Figure out how to handle a Java "ParcelUuid" natively.
-      // Should we just change the code to pass strings or byte arrays?
+      // (see http://b/23316698).
       return android::INVALID_OPERATION;
 
     case SET_NAME_TRANSACTION: {
@@ -179,7 +179,8 @@ std::string BpBluetooth::GetAddress() {
 }
 
 std::vector<bluetooth::UUID> BpBluetooth::GetUUIDs() {
-  // TODO(armansito): Figure out what to do here.
+  // TODO(armansito): need to deserialize a parceled java.util.ParcelUUID[] to
+  // std::vector<bluetooth::UUID> here (see http://b/23316698).
   return std::vector<bluetooth::UUID>();
 }
 
