@@ -31,7 +31,6 @@ using android::status_t;
 using android::String16;
 
 namespace ipc {
-namespace binder {
 
 IPCHandlerBinder::IPCHandlerBinder(
     bluetooth::Adapter* adapter,
@@ -80,5 +79,4 @@ void IPCHandlerBinder::NotifyStarted() {
     delegate()->OnIPCHandlerStarted(IPCManager::TYPE_BINDER);
 }
 
-}  // namespace binder
 }  // namespace ipc

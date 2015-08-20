@@ -21,7 +21,6 @@
 // unit tests for host.
 
 namespace ipc {
-namespace binder {
 
 IPCHandlerBinder::IPCHandlerBinder(
     bluetooth::Adapter* adapter,
@@ -47,5 +46,4 @@ void IPCHandlerBinder::NotifyStarted() {
   // Stub
 }
 
-}  // namespace binder
-}  // namespace ipc
+}  // namespace
