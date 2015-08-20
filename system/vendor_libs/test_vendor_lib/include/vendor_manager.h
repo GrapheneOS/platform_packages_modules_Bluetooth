@@ -17,8 +17,10 @@
 #include "base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "base/threading/thread.h"
+#include "base/time/time.h"
 #include "hci/include/bt_vendor_lib.h"
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
+#include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 #include "vendor_libs/test_vendor_lib/include/test_channel_transport.h"
 
@@ -65,6 +67,13 @@ class VendorManager {
   VendorManager();
 
   ~VendorManager() = default;
+
+  // Posts a callback to |thread_|'s task runner. Equivalent to calling
+  // |PostDelayedTask| with a delay of 0.
+  bool PostTask(const base::Closure& task);
+
+  // Posts a callback to be run after |delay| ms (or longer) have passed.
+  bool PostDelayedTask(const base::Closure& task, base::TimeDelta delay);
 
   // Starts watching for incoming data from the HCI and the test hook.
   void StartWatchingOnThread();
