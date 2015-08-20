@@ -1788,9 +1788,9 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
             STREAM_TO_BDADDR   (peer_rpa, p);
         }
 
-        /* possiblly receive connection complete with resolvable random on
-           slave role while the device has been paired */
-        if (!match && role == HCI_ROLE_SLAVE && BTM_BLE_IS_RESOLVE_BDA(bda))
+        /* possiblly receive connection complete with resolvable random while
+           the device has been paired */
+        if (!match && BTM_BLE_IS_RESOLVE_BDA(bda))
         {
             btm_ble_resolve_random_addr(bda, btm_ble_resolve_random_addr_on_conn_cmpl, p_data);
         }
