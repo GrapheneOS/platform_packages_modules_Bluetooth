@@ -34,6 +34,7 @@ enum AdapterState {
   ADAPTER_STATE_TURNING_ON = 11,
   ADAPTER_STATE_ON = 12,
   ADAPTER_STATE_TURNING_OFF = 13,
+  ADAPTER_STATE_INVALID = 0xFFFF
 };
 
 // Returns a string for the given Adapter state |state|.

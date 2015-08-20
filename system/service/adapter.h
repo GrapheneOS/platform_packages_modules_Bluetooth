@@ -17,9 +17,11 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 #include <string>
 
 #include <base/macros.h>
+#include <base/observer_list.h>
 
 #include "service/adapter_state.h"
 #include "service/hal/bluetooth_interface.h"
@@ -36,8 +38,24 @@ class Adapter : hal::BluetoothInterface::Observer {
   static const char kDefaultAddress[];
   static const char kDefaultName[];
 
+  // Observer interface allows other classes to receive notifications from us.
+  // All of the methods in this interface are declared as optional to allow
+  // different layers to process only those events that they are interested in.
+  class Observer {
+   public:
+    virtual ~Observer() = default;
+
+    virtual void OnAdapterStateChanged(Adapter* adapter,
+                                       AdapterState prev_state,
+                                       AdapterState new_state);
+  };
+
   Adapter();
   ~Adapter() override;
+
+  // Add or remove an observer.
+  void AddObserver(Observer* observer);
+  void RemoveObserver(Observer* observer);
 
   // Returns the current Adapter state.
   AdapterState GetState() const;
@@ -76,6 +94,10 @@ class Adapter : hal::BluetoothInterface::Observer {
   // Sends a request to set the given HAL adapter property type and value.
   bool SetAdapterProperty(bt_property_type_t type, void* value, int length);
 
+  // Helper for invoking observer method.
+  void NotifyAdapterStateChanged(AdapterState prev_state,
+                                 AdapterState new_state);
+
   // The current adapter state.
   std::atomic<AdapterState> state_;
 
@@ -85,6 +107,10 @@ class Adapter : hal::BluetoothInterface::Observer {
 
   // The current local adapter name.
   util::AtomicString name_;
+
+  // List of observers that are interested in notifications from us.
+  std::mutex observers_lock_;
+  base::ObserverList<Observer> observers_;
 
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };
