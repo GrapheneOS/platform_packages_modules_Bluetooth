@@ -90,27 +90,24 @@ bool SetWakeAlarmCallout(uint64_t /* delay_millis */,
                          bool /* should_wake */,
                          alarm_cb /* cb */,
                          void* /* data */) {
-  // TODO(armansito): Figure out what to do with this callback. It's not being
-  // used by us right now but the code crashes without setting it. The stack
-  // should be refactored to make things optional and definitely not crash.
-  // (See http://b/23315739)
-  return true;
+  // TODO(armansito): According to sharvil@, this interface doesn't even need to
+  // exist and can be done entirely from within osi by interfacing directly with
+  // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
+  return false;
 }
 
 int AcquireWakeLockCallout(const char* /* lock_name */) {
-  // TODO(armansito): Figure out what to do with this callback. It's not being
-  // used by us right now but the code crashes without setting it. The stack
-  // should be refactored to make things optional and definitely not crash.
-  // (See http://b/23315739)
-  return BT_STATUS_SUCCESS;
+  // TODO(armansito): According to sharvil@, this interface doesn't even need to
+  // exist and can be done entirely from within osi by interfacing directly with
+  // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
+  return BT_STATUS_UNSUPPORTED;
 }
 
 int ReleaseWakeLockCallout(const char* /* lock_name */) {
-  // TODO(armansito): Figure out what to do with this callback. It's not being
-  // used by us right now but the code crashes without setting it. The stack
-  // should be refactored to make things optional and definitely not crash.
-  // (See http://b/23315739)
-  return BT_STATUS_SUCCESS;
+  // TODO(armansito): According to sharvil@, this interface doesn't even need to
+  // exist and can be done entirely from within osi by interfacing directly with
+  // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
+  return BT_STATUS_UNSUPPORTED;
 }
 
 // The HAL Bluetooth DM callbacks.
