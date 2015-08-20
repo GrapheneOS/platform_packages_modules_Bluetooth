@@ -38,6 +38,12 @@ int main(int argc, char *argv[]) {
   base::AtExitManager exit_manager;
   base::CommandLine::Init(argc, argv);
 
+  logging::LoggingSettings log_settings;
+  if (!logging::InitLogging(log_settings)) {
+    LOG(ERROR) << "Failed to set up logging";
+    return EXIT_FAILURE;
+  }
+
   // TODO(armansito): Initialize base/logging. By default it will dump to stdout
   // but we might want to change that based on a command-line switch. Figure out
   // how to route the logging to Android's syslog. Once that's done, we won't
