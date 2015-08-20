@@ -18,11 +18,14 @@
 #include <string>
 
 #include <base/logging.h>
+#include <base/macros.h>
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
+#include <binder/ProcessState.h>
 
 #include "service/adapter_state.h"
 #include "service/ipc/binder/IBluetooth.h"
+#include "service/ipc/binder/IBluetoothCallback.h"
 
 using namespace std;
 
@@ -54,6 +57,43 @@ const char kCommandIsEnabled[] = "is-enabled";
   }
 #define CHECK_NO_ARGS(args) \
   CHECK_ARGS_COUNT(args, ==, 0, "Expected no arguments")
+
+// TODO(armansito): Clean up this code. Right now everything is in this
+// monolithic file. We should organize this into different classes for command
+// handling, console output/printing, callback handling, etc.
+// (See http://b/23387611)
+
+// Used to synchronize the printing of the command-line prompt and incoming
+// Binder callbacks.
+std::atomic_bool showing_prompt(false);
+
+void PrintPrompt() {
+  cout << COLOR_BLUE "[FCLI] " COLOR_OFF << flush;
+}
+
+class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
+ public:
+  CLIBluetoothCallback() = default;
+  ~CLIBluetoothCallback() override = default;
+
+  // IBluetoothCallback override:
+  void OnBluetoothStateChange(
+      bluetooth::AdapterState prev_state,
+      bluetooth::AdapterState new_state) override {
+    if (showing_prompt.load())
+      cout << endl;
+    cout << COLOR_BOLDWHITE "Adapter state changed: " COLOR_OFF
+         << COLOR_MAGENTA << AdapterStateToString(prev_state) << COLOR_OFF
+         << COLOR_BOLDWHITE " -> " COLOR_OFF
+         << COLOR_BOLDYELLOW << AdapterStateToString(new_state) << COLOR_OFF
+         << endl << endl;
+    if (showing_prompt.load())
+      PrintPrompt();
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothCallback);
+};
 
 void PrintError(const string& message) {
   cout << COLOR_RED << message << COLOR_OFF << endl;
@@ -168,6 +208,15 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  // Initialize the Binder process thread pool. We have to set this up,
+  // otherwise, incoming callbacks from IBluetoothCallback will block the main
+  // thread (in other words, we have to do this as we are a "Binder server").
+  android::ProcessState::self()->startThreadPool();
+
+  // Register Adapter state-change callback
+  sp<CLIBluetoothCallback> callback = new CLIBluetoothCallback();
+  bt_iface->RegisterCallback(callback);
+
   cout << COLOR_BOLDWHITE << "Fluoride Command-Line Interface\n" << COLOR_OFF
        << endl
        << "Type \"help\" to see possible commands.\n"
@@ -176,8 +225,11 @@ int main() {
   while (true) {
     string command;
 
-    cout << COLOR_BLUE << "[FCLI] " << COLOR_OFF;
+    PrintPrompt();
+
+    showing_prompt = true;
     getline(cin, command);
+    showing_prompt = false;
 
     vector<string> args;
     base::SplitString(command, ' ', &args);
