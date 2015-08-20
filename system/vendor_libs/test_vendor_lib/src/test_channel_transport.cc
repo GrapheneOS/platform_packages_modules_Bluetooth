@@ -97,7 +97,7 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   read(fd, &command_name_raw[0], command_name_size);
   std::string command_name(command_name_raw.begin(), command_name_raw.end());
   LOG_INFO(LOG_TAG, "Received command from test channel: %s",
-           command_name.c_str());
+           command_name.data());
 
   if (command_name == "CLOSE_TEST_CHANNEL") {
     fd_.reset(nullptr);
@@ -118,7 +118,7 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   }
 
   for (size_t i = 0; i < args.size(); ++i) {
-    LOG_INFO(LOG_TAG, "Command argument %d: %s", i, args[i].c_str());
+    LOG_INFO(LOG_TAG, "Command argument %d: %s", i, args[i].data());
   }
 
   command_handler_(command_name, args);

@@ -19,6 +19,9 @@
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
 
 #include "base/logging.h"
+#include "base/files/file_util.h"
+#include "base/json/json_reader.h"
+#include "base/values.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
@@ -29,12 +32,6 @@ extern "C" {
 
 namespace {
 
-// Controller constants and packaged command return parameters.
-// All page numbers refer to the Bluetooth Core Specification, Version 4.2,
-// Volume 2, Part E, Secion 7.1.
-// TODO(dennischeng): Move this into member variables so the controller is
-// configurable.
-
 // Included in certain events to indicate the successful completion of the
 // associated command.
 const uint8_t kReturnStatusSuccess = 0;
@@ -43,67 +40,16 @@ const uint8_t kReturnStatusSuccess = 0;
 // command packets it can send to the controller.
 const uint8_t kNumHciCommandPackets = 1;
 
-// Command: Read Buffer Size (page 794).
-// Tells the host size information for data packets.
-// Opcode: HCI_READ_BUFFER_SIZE.
-// Maximum length in octets of the data portion of each HCI ACL/SCO data packet
-// that the controller can accept.
-const uint16_t kHciAclDataPacketSize = 1024;
-const uint8_t kHciScoDataPacketSize = 255;
-
-// Total number of HCI ACL/SCO data packets that can be stored in the data
-// buffers of the controller.
-const uint16_t kHciTotalNumAclDataPackets = 10;
-const uint16_t kHciTotalNumScoDataPackets = 10;
-const std::vector<uint8_t> kBufferSize = {kReturnStatusSuccess,
-                                          kHciAclDataPacketSize,
-                                          0,
-                                          kHciScoDataPacketSize,
-                                          kHciTotalNumAclDataPackets,
-                                          0,
-                                          kHciTotalNumScoDataPackets,
-                                          0};
-
-// Command: Read Local Version Information (page 788).
-// The values for the version information for the controller.
-// Opcode: HCI_READ_LOCAL_VERSION_INFO.
-const uint8_t kHciVersion = 0;
-const uint16_t kHciRevision = 0;
-const uint8_t kLmpPalVersion = 0;
-const uint16_t kManufacturerName = 0;
-const uint16_t kLmpPalSubversion = 0;
-const std::vector<uint8_t> kLocalVersionInformation = {
-    kReturnStatusSuccess, kHciVersion, kHciRevision,      0, kLmpPalVersion,
-    kManufacturerName,    0,           kLmpPalSubversion, 0};
-
-// Command: Read Local Extended Features (page 792).
-// The requested page of extended LMP features.
-// Opcode: HCI_READ_LOCAL_EXT_FEATURES.
-const uint8_t kPageNumber = 0;
-const uint8_t kMaximumPageNumber = 0;
-const std::vector<uint8_t> kLocalExtendedFeatures = {kReturnStatusSuccess,
-                                                     kPageNumber,
-                                                     kMaximumPageNumber,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF,
-                                                     0xFF};
-// Command: Read BR_ADDR (page 796).
-// The Bluetooth Controller address.
-// Opcode: HCI_READ_BD_ADDR.
-const std::vector<uint8_t> kBdAddress = {
-    kReturnStatusSuccess, 1, 2, 3, 4, 5, 6};
+// The location of the config file loaded to populate controller attributes.
+const std::string kControllerPropertiesFile =
+    "/etc/bluetooth/controller_properties.json";
 
 // Inquiry modes for specifiying inquiry result formats.
 const uint8_t kStandardInquiry = 0x00;
 const uint8_t kRssiInquiry = 0x01;
 const uint8_t kExtendedOrRssiInquiry = 0x02;
 
-// The (fake) bd address of another device.
+// The bd address of another (fake) device.
 const std::vector<uint8_t> kOtherDeviceBdAddress = {6, 5, 4, 3, 2, 1};
 
 // Fake inquiry response for a fake device.
@@ -115,6 +61,26 @@ const std::vector<uint8_t> kClockOffset = {1, 2};
 
 void LogCommand(const char* command) {
   LOG_INFO(LOG_TAG, "Controller performing command: %s", command);
+}
+
+// Functions used by JSONValueConverter to read stringified JSON into Properties
+// object.
+bool ParseUint8t(const base::StringPiece& value, uint8_t* field) {
+  *field = std::stoi(value.as_string());
+  return true;
+}
+
+bool ParseUint16t(const base::StringPiece& value, uint16_t* field) {
+  *field = std::stoi(value.as_string());
+  return true;
+}
+
+bool ParseUint8tVector(const base::StringPiece& value,
+                              std::vector<uint8_t>* field) {
+  for (char& c : value.as_string()) {
+    field->push_back(c - '0');
+  }
+  return true;
 }
 
 }  // namespace
@@ -168,13 +134,15 @@ void DualModeController::SendExtendedInquiryResult(
   }
   std::unique_ptr<EventPacket> extended_inquiry_result =
       EventPacket::CreateExtendedInquiryResultEvent(
-          bd_address, kPageScanRepetitionMode, kPageScanPeriodMode, kClassOfDevice,
-          kClockOffset, rssi, extended_inquiry_data);
+          bd_address, kPageScanRepetitionMode, kPageScanPeriodMode,
+          kClassOfDevice, kClockOffset, rssi, extended_inquiry_data);
   send_event_(std::move(extended_inquiry_result));
 }
 
 DualModeController::DualModeController()
-    : state_(kStandby), test_channel_state_(kNone) {
+    : state_(kStandby),
+      test_channel_state_(kNone),
+      properties_(kControllerPropertiesFile) {
 #define SET_HANDLER(opcode, method) \
   active_hci_commands_[opcode] =    \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
@@ -208,10 +176,12 @@ DualModeController::DualModeController()
 #define SET_TEST_HANDLER(command_name, method)  \
   active_test_channel_commands_[command_name] = \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
-  SET_TEST_HANDLER("CLEAR", UciTimeoutAll);
-  SET_TEST_HANDLER("DISCOVER", UciDiscover);
-  SET_TEST_HANDLER("DISCOVER_INTERVAL", UciTimeoutAll);
-  SET_TEST_HANDLER("TIMEOUT_ALL", UciTimeoutAll);
+  SET_TEST_HANDLER("CLEAR", TestChannelClear);
+  SET_TEST_HANDLER("DISCOVER", TestChannelDiscover);
+  SET_TEST_HANDLER("DISCOVER_INTERVAL", TestChannelDiscoverInterval);
+  SET_TEST_HANDLER("TIMEOUT_ALL", TestChannelTimeoutAll);
+  SET_TEST_HANDLER("SET_EVENT_DELAY", TestChannelSetEventDelay);
+  SET_TEST_HANDLER("CLEAR_EVENT_DELAY", TestChannelClearEventDelay);
 #undef SET_TEST_HANDLER
 }
 
@@ -233,9 +203,7 @@ void DualModeController::HandleTestChannelCommand(
   if (active_test_channel_commands_.count(name) == 0) {
     return;
   }
-  std::function<void(const std::vector<std::string>& args)> command =
-      active_test_channel_commands_[name];
-  command(args);
+  active_test_channel_commands_[name](args);
 }
 
 void DualModeController::HandleCommand(
@@ -249,9 +217,10 @@ void DualModeController::HandleCommand(
   if (active_hci_commands_.count(opcode) == 0) {
     return;
   }
-  std::function<void(const std::vector<uint8_t>& args)> command =
-      active_hci_commands_[opcode];
-  command(command_packet->GetPayload());
+  if (test_channel_state_ == kTimeoutAll) {
+    return;
+  }
+  active_hci_commands_[opcode](command_packet->GetPayload());
 }
 
 void DualModeController::RegisterEventChannel(
@@ -259,26 +228,65 @@ void DualModeController::RegisterEventChannel(
   send_event_ = callback;
 }
 
-void DualModeController::UciClear(const std::vector<std::string>& args) {
-  LogCommand("Uci Clear");
-  test_channel_state_ = kNone;
+void DualModeController::RegisterDelayedEventChannel(
+    std::function<void(std::unique_ptr<EventPacket>, base::TimeDelta)>
+        callback) {
+  send_delayed_event_ = callback;
+  SetEventDelay(0);
 }
 
-void DualModeController::UciDiscover(const std::vector<std::string>& args) {
-  LogCommand("Uci Discover");
+void DualModeController::SetEventDelay(int64_t delay) {
+  if (delay < 0) {
+    delay = 0;
+  }
+  send_event_ = std::bind(send_delayed_event_, std::placeholders::_1,
+                          base::TimeDelta::FromMilliseconds(delay));
+}
+
+void DualModeController::TestChannelClear(
+    const std::vector<std::string>& args) {
+  LogCommand("TestChannel Clear");
+  test_channel_state_ = kNone;
+  SetEventDelay(0);
+}
+
+void DualModeController::TestChannelDiscover(
+    const std::vector<std::string>& args) {
+  LogCommand("TestChannel Discover");
   for (size_t i = 0; i < args.size()-1; i+=2) {
     SendExtendedInquiryResult(args[i], args[i+1]);
   }
 }
 
-void DualModeController::UciDiscoverInterval(
+// TODO(dennischeng): This should discover devices continuously at the specified
+// interval until the user sends an explicit 'stop' command. Each device should
+// have a unique bd address and name?
+void DualModeController::TestChannelDiscoverInterval(
     const std::vector<std::string>& args) {
-  LogCommand("Uci Timeout All");
+  LogCommand("TestChannel Discover Interval");
+  test_channel_state_ = kDelayedResponse;
+  SetEventDelay(std::stoi(args[2]));
+  SendExtendedInquiryResult(args[0], args[1]);
 }
 
-void DualModeController::UciTimeoutAll(const std::vector<std::string>& args) {
-  LogCommand("Uci Timeout All");
+void DualModeController::TestChannelTimeoutAll(
+    const std::vector<std::string>& args) {
+  LogCommand("TestChannel Timeout All");
   test_channel_state_ = kTimeoutAll;
+}
+
+void DualModeController::TestChannelSetEventDelay(
+    const std::vector<std::string>& args) {
+  LogCommand("TestChannel Set Event Delay");
+  test_channel_state_ = kDelayedResponse;
+  SetEventDelay(std::stoi(args[0]));
+}
+
+void DualModeController::TestChannelClearEventDelay(
+    const std::vector<std::string>& args) {
+  LogCommand("TestChannel Clear Event Delay");
+  test_channel_state_ = kNone;
+  SetEventDelay(0);
 }
 
 // TODO(dennischeng): Store relevant arguments from commands as attributes of
@@ -293,7 +301,7 @@ void DualModeController::HciReset(const std::vector<uint8_t>& /* args */) {
 void DualModeController::HciReadBufferSize(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Buffer Size");
-  SendCommandComplete(HCI_READ_BUFFER_SIZE, kBufferSize);
+  SendCommandComplete(HCI_READ_BUFFER_SIZE, properties_.GetBufferSize());
 }
 
 void DualModeController::HciHostBufferSize(
@@ -305,12 +313,16 @@ void DualModeController::HciHostBufferSize(
 void DualModeController::HciReadLocalVersionInformation(
                  const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Version Information");
-  SendCommandComplete(HCI_READ_LOCAL_VERSION_INFO, kLocalVersionInformation);
+  SendCommandComplete(HCI_READ_LOCAL_VERSION_INFO,
+                      properties_.GetLocalVersionInformation());
 }
 
 void DualModeController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Bd Addr");
-  SendCommandComplete(HCI_READ_BD_ADDR, kBdAddress);
+  std::vector<uint8_t> bd_address_with_status = properties_.GetBdAddress();
+  bd_address_with_status.insert(bd_address_with_status.begin(),
+                                kReturnStatusSuccess);
+  SendCommandComplete(HCI_READ_BD_ADDR, bd_address_with_status);
 }
 
 void DualModeController::HciReadLocalSupportedCommands(
@@ -326,9 +338,10 @@ void DualModeController::HciReadLocalSupportedCommands(
 }
 
 void DualModeController::HciReadLocalExtendedFeatures(
-    const std::vector<uint8_t>& /* args */) {
+    const std::vector<uint8_t>& args) {
   LogCommand("Read Local Extended Features");
-  SendCommandComplete(HCI_READ_LOCAL_EXT_FEATURES, kLocalExtendedFeatures);
+  SendCommandComplete(HCI_READ_LOCAL_EXT_FEATURES,
+                      properties_.GetLocalExtendedFeatures(args[0]));
 }
 
 void DualModeController::HciWriteSimplePairingMode(
@@ -457,6 +470,83 @@ void DualModeController::HciInquiry(const std::vector<uint8_t>& /* args */) {
       SendExtendedInquiryResult("FooBar", "123456");
       break;
   }
+}
+
+DualModeController::Properties::Properties(const std::string& file_name) {
+  std::string properties_raw;
+  if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw)) {
+    LOG_INFO(LOG_TAG, "Error reading controller properties from file.");
+  }
+
+  scoped_ptr<base::Value> properties_value_ptr =
+      base::JSONReader::Read(properties_raw);
+  if (properties_value_ptr.get() == nullptr) {
+    LOG_INFO(LOG_TAG,
+             "Error controller properties may consist of ill-formed JSON.");
+  }
+
+  // Get the underlying base::Value object, which is of type
+  // base::Value::TYPE_DICTIONARY, and read it into member variables.
+  base::Value& properties_dictionary = *(properties_value_ptr.get());
+  base::JSONValueConverter<DualModeController::Properties> converter;
+
+  if (!converter.Convert(properties_dictionary, this)) {
+    LOG_INFO(LOG_TAG,
+             "Error converting JSON properties into Properties object.");
+  }
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetBufferSize() {
+  return std::vector<uint8_t>(
+      {kReturnStatusSuccess, acl_data_packet_size_, acl_data_packet_size_ >> 8,
+       sco_data_packet_size_, num_acl_data_packets_, num_acl_data_packets_ >> 8,
+       num_sco_data_packets_, num_sco_data_packets_ >> 8});
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLocalVersionInformation() {
+  return std::vector<uint8_t>({kReturnStatusSuccess, version_, revision_,
+                               revision_ >> 8, lmp_pal_version_,
+                               manufacturer_name_, manufacturer_name_ >> 8,
+                               lmp_pal_subversion_, lmp_pal_subversion_ >> 8});
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetBdAddress() {
+  return bd_address_;
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLocalExtendedFeatures(uint8_t page_number) {
+  return std::vector<uint8_t>({kReturnStatusSuccess, page_number,
+                               maximum_page_number_, 0xFF, 0xFF, 0xFF, 0xFF,
+                               0xFF, 0xFF, 0xFF, 0xFF});
+}
+
+// static
+void DualModeController::Properties::RegisterJSONConverter(
+    base::JSONValueConverter<DualModeController::Properties>* converter) {
+  // TODO(dennischeng): Use RegisterIntField() here?
+#define REGISTER_UINT8_T(field_name, field) \
+  converter->RegisterCustomField<uint8_t>(  \
+      field_name, &DualModeController::Properties::field, &ParseUint8t);
+#define REGISTER_UINT16_T(field_name, field) \
+  converter->RegisterCustomField<uint16_t>(  \
+      field_name, &DualModeController::Properties::field, &ParseUint16t);
+  REGISTER_UINT16_T("AclDataPacketSize", acl_data_packet_size_);
+  REGISTER_UINT8_T("ScoDataPacketSize", sco_data_packet_size_);
+  REGISTER_UINT16_T("NumAclDataPackets", num_acl_data_packets_);
+  REGISTER_UINT16_T("NumScoDataPackets", num_sco_data_packets_);
+  REGISTER_UINT8_T("Version", version_);
+  REGISTER_UINT16_T("Revision", revision_);
+  REGISTER_UINT8_T("LmpPalVersion", lmp_pal_version_);
+  REGISTER_UINT16_T("ManufacturerName", manufacturer_name_);
+  REGISTER_UINT16_T("LmpPalSubversion", lmp_pal_subversion_);
+  REGISTER_UINT8_T("MaximumPageNumber", maximum_page_number_);
+  converter->RegisterCustomField<std::vector<uint8_t>>(
+      "BdAddress", &DualModeController::Properties::bd_address_,
+      &ParseUint8tVector);
+#undef REGISTER_UINT8_T
+#undef REGISTER_UINT16_T
 }
 
 }  // namespace test_vendor_lib

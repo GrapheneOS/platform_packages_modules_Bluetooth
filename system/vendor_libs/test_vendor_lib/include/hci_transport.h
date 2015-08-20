@@ -25,7 +25,9 @@ extern "C" {
 }  // extern "C"
 
 #include "base/files/scoped_file.h"
+#include "base/memory/weak_ptr.h"
 #include "base/message_loop/message_loop.h"
+#include "base/time/time.h"
 #include "vendor_libs/test_vendor_lib/include/command_packet.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/packet.h"
@@ -37,7 +39,7 @@ namespace test_vendor_lib {
 // socketing mechanisms for reading/writing between the HCI and the controller.
 class HciTransport : public base::MessageLoopForIO::Watcher {
  public:
-  HciTransport() = default;
+  HciTransport();
 
   virtual ~HciTransport() = default;
 
@@ -56,9 +58,16 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   void RegisterCommandHandler(
       std::function<void(std::unique_ptr<CommandPacket>)> callback);
 
-  // Posts the event onto |outgoing_events_| to be written sometime in the
-  // future when the vendor file descriptor is ready for writing.
-  void SendEvent(std::unique_ptr<EventPacket> event);
+  // Posts the event onto |outbound_events_| to be written sometime in the
+  // future when the vendor file descriptor is ready for writing. See
+  // |outbound_events_| for why |event| is a shared pointer (as opposed to a
+  // unique pointer).
+  void PostEventResponse(std::shared_ptr<EventPacket> event);
+
+  // Posts the event onto |outbound_events_| after |delay| ms. A call to
+  // |PostEventResponse| with |delay| 0 is equivalent to a call to |PostEvent|.
+  void PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
+                                base::TimeDelta delay);
 
  private:
   // base::MessageLoopForIO::Watcher overrides:
@@ -72,8 +81,12 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
 
   // Write queue for sending events to the HCI. Event packets are removed from
   // the queue and written when write-readiness is signalled by the message
-  // loop.
-  std::queue<std::unique_ptr<EventPacket>> outgoing_events_;
+  // loop. Packets are shared pointers because the bind logic in
+  // PostEventResponse forces copy semantics to be used on the bound arguments.
+  // There will, however, be only a single instance of each EventPacket owned by
+  // the HciTransport (i.e. the shared pointer objects are unique) and this will
+  // be reinforced with CHECK's.
+  std::queue<std::shared_ptr<EventPacket>> outbound_events_;
 
   // Callback executed in ReceiveReadyCommand() to pass the incoming command
   // over to the handler for further processing.
@@ -89,6 +102,10 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   // TestVendorOp().
   std::unique_ptr<base::ScopedFD> hci_fd_;
   std::unique_ptr<base::ScopedFD> vendor_fd_;
+
+  // This should remain the last member so it'll be destroyed and invalidate
+  // its weak pointers before any other members are destroyed.
+  base::WeakPtrFactory<HciTransport> weak_ptr_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(HciTransport);
 };
