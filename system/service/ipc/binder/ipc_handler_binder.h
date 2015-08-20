@@ -22,7 +22,6 @@
 #include "service/ipc/ipc_manager.h"
 
 namespace ipc {
-namespace binder {
 
 // Implements a Binder based IPCHandler.
 class IPCHandlerBinder : public IPCHandler {
@@ -44,5 +43,4 @@ class IPCHandlerBinder : public IPCHandler {
   DISALLOW_COPY_AND_ASSIGN(IPCHandlerBinder);
 };
 
-}  // namespace binder
 }  // namespace ipc
