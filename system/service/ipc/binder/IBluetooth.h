@@ -23,6 +23,7 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
+#include "service/ipc/binder/IBluetoothCallback.h"
 #include "service/uuid.h"
 
 namespace ipc {
@@ -136,6 +137,11 @@ class IBluetooth : public android::IInterface {
   virtual bool SetName(const std::string& name) = 0;
   virtual std::string GetName() = 0;
 
+  virtual void RegisterCallback(
+      const android::sp<IBluetoothCallback>& callback) = 0;
+  virtual void UnregisterCallback(
+      const android::sp<IBluetoothCallback>& callback) = 0;
+
   // TODO(armansito): Complete the API definition.
  private:
   DISALLOW_COPY_AND_ASSIGN(IBluetooth);
@@ -174,6 +180,10 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   std::vector<bluetooth::UUID> GetUUIDs() override;
   bool SetName(const std::string& name) override;
   std::string GetName() override;
+  void RegisterCallback(
+      const android::sp<IBluetoothCallback>& callback) override;
+  void UnregisterCallback(
+      const android::sp<IBluetoothCallback>& callback) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetooth);
