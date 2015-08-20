@@ -31,8 +31,8 @@ Usage:
     using the script mentioned in option A (i.e. without the --test-channel flag
     set).
     3. Once logcat has started, turn Bluetooth on from the device.
-    4. Run this program, in the shell from step 1, with address 'localhost' and
-    the port, also from step 1, as arguments.
+    4. Run this program, in the shell from step 1,  the port, also from step 1,
+    as arguments.
 """
 
 #!/usr/bin/env python
@@ -63,9 +63,9 @@ class Connection(object):
     socket: The underlying socket created for the specified address and port.
   """
 
-  def __init__(self, address, port):
+  def __init__(self, port):
     self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self._socket.connect((address, port))
+    self._socket.connect(('localhost', port))
 
   def close(self):
     self._socket.close()
@@ -81,8 +81,8 @@ class TestChannel(object):
     on.
   """
 
-  def __init__(self, address, port):
-    self._connection = Connection(address, port)
+  def __init__(self, port):
+    self._connection = Connection(port)
     self._discovered_devices = DeviceManager()
 
   def discover_new_device(self, name=None, address=None):
@@ -142,14 +142,14 @@ class Device(object):
 
   def __init__(self, name=None, address=None):
     # TODO(dennischeng): Generate device properties more robustly.
-    self.name = generate_random_name() if name is None else name
-    self.address = generate_random_address() if address is None else address
+    self._name = generate_random_name() if name is None else name
+    self._address = generate_random_address() if address is None else address
 
   def get_name(self):
-    return self.name
+    return self._name
 
   def get_address(self):
-    return self.address
+    return self._address
 
 class TestChannelShell(cmd.Cmd):
   """Shell for sending test channel data to controller.
@@ -166,11 +166,7 @@ class TestChannelShell(cmd.Cmd):
   def __init__(self, test_channel):
     print 'Type \'help\' for more information.'
     cmd.Cmd.__init__(self)
-    self._connection = Connection(address, port)
-
-  def do_hci_reset(self, arg):
-    """Sends an HCIReset command to the controller."""
-    self._connection.send(struct.pack('4b', 1, 3, 0xC, 0))
+    self._test_channel = test_channel
 
   def do_quit(self, arg):
     """Exits the test channel."""
@@ -192,7 +188,7 @@ class TestChannelShell(cmd.Cmd):
     """
     if len(args) == 0:
       args = generate_random_name()
-    device_list = [self.test_channel.discover_new_device(arg) for arg in \
+    device_list = [self._test_channel.discover_new_device(arg) for arg in \
                    args.split()]
     device_names_and_addresses = []
     for device in device_list:
@@ -209,6 +205,21 @@ class TestChannelShell(cmd.Cmd):
     args.append(generate_random_name())
     args.append(generate_random_address())
     self._test_channel.send_command('DISCOVER_INTERVAL', args.split())
+
+  def do_set_event_delay(self, args):
+    """
+    Arguments: interval_in_ms
+    Sets the response delay for all event packets sent from the controller back
+    to the HCI.
+    """
+    self._test_channel.send_command('SET_EVENT_DELAY', args.split())
+
+  def do_clear_event_delay(self, args):
+    """
+    Arguments: None.
+    Clears the response delay set by |do_set_event_delay|.
+    """
+    self._test_channel.send_command('CLEAR_EVENT_DELAY', args.split())
 
   def do_clear(self, args):
     """
@@ -228,24 +239,24 @@ class TestChannelShell(cmd.Cmd):
     return True
 
 def main(argv):
-  if len(argv) != 3:
-    print 'Usage: python test_channel.py [address] [port]'
+  if len(argv) != 2:
+    print 'Usage: python test_channel.py [port]'
     return
   try:
-    address = str(argv[1])
-    port = int(argv[2])
+    port = int(argv[1])
   except ValueError:
-    print 'Error parsing address or port.'
+    print 'Error parsing port.'
   else:
     try:
-      test_channel = TestChannel(address, port)
+      test_channel = TestChannel(port)
     except socket.error, e:
       print 'Error connecting to socket: %s' % e
     except:
-      print 'Error creating test channel (check arguments).'
+      print 'Error creating test channel (check argument).'
     else:
-      test_channel.prompt = '$ '
-      test_channel.cmdloop()
+      test_channel_shell = TestChannelShell(test_channel)
+      test_channel_shell.prompt = '$ '
+      test_channel_shell.cmdloop()
 
 if __name__ == '__main__':
   main(sys.argv)

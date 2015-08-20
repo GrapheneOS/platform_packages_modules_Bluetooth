@@ -56,6 +56,8 @@ VENDOR_SYMBOLS_ABS=${DEVICE_TARGET_ABS}/${DEVICE}/${VENDOR_SYMBOLS_REL}
 TEST_VENDOR_LIB=test-vendor.so
 # The name of the regular vendor object to be replaced by $TEST_VENDOR_LIB.
 VENDOR_LIB=libbt-vendor.so
+# The config file specifying controller properties.
+CONTROLLER_PROPERTIES=controller_properties.json
 
 if [[ "$#" -eq 4 && $3 == "--test-channel" ]]; then
   TEST_CHANNEL_PORT=$4
@@ -104,6 +106,9 @@ else
   # Push the test vendor library to the device.
   echo "Pushing the test vendor library to device: $DEVICE"
   adb push ${VENDOR_SYMBOLS_ABS}/${VENDOR_LIB} /vendor/lib
+
+  echo "Pushing controller properties."
+  adb push ${TEST_VENDOR_LIB_ABS}/data/${CONTROLLER_PROPERTIES} /etc/bluetooth/
 
   echo "Pushing libevent."
   adb push ${DEVICE_TARGET_ABS}/${DEVICE}/system/lib/libevent.so /system/lib/
