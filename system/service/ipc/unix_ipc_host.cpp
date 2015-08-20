@@ -16,7 +16,7 @@
 
 #define LOG_TAG "bt_bluetooth_host"
 
-#include "service/ipc/unix/unix_ipc_host.h"
+#include "service/ipc/unix_ipc_host.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -74,7 +74,6 @@ bool TokenBool(const std::string& text) {
 }  // namespace
 
 namespace ipc {
-namespace unix {
 
 UnixIPCHost::UnixIPCHost(int sockfd, Adapter* adapter)
     : adapter_(adapter), pfds_(1, {sockfd, POLLIN, 0}) {}
@@ -337,5 +336,4 @@ bool UnixIPCHost::OnGattWrite() {
   return true;
 }
 
-}  // namespace unix
 }  // namespace ipc

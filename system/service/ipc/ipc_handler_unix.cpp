@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/unix/ipc_handler_unix.h"
+#include "service/ipc/ipc_handler_unix.h"
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -23,11 +23,10 @@
 
 #include "osi/include/socket_utils/sockets.h"
 #include "service/daemon.h"
-#include "service/ipc/unix/unix_ipc_host.h"
+#include "service/ipc/unix_ipc_host.h"
 #include "service/settings.h"
 
 namespace ipc {
-namespace unix {
 
 IPCHandlerUnix::IPCHandlerUnix(bluetooth::Adapter* adapter,
                                IPCManager::Delegate* delegate)
@@ -213,5 +212,4 @@ void IPCHandlerUnix::NotifyStoppedOnCurrentThread() {
     delegate()->OnIPCHandlerStopped(IPCManager::TYPE_UNIX);
 }
 
-}  // namespace unix
 }  // namespace ipc

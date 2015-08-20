@@ -17,7 +17,7 @@
 #include "service/ipc/ipc_manager.h"
 
 #include "service/ipc/binder/ipc_handler_binder.h"
-#include "service/ipc/unix/ipc_handler_unix.h"
+#include "service/ipc/ipc_handler_unix.h"
 
 namespace ipc {
 
@@ -43,7 +43,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
 
-    unix_handler_ = new unix::IPCHandlerUnix(adapter_, delegate);
+    unix_handler_ = new IPCHandlerUnix(adapter_, delegate);
     if (!unix_handler_->Run()) {
       unix_handler_ = nullptr;
       return false;
@@ -56,7 +56,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
 
-    binder_handler_ = new binder::IPCHandlerBinder(adapter_, delegate);
+    binder_handler_ = new IPCHandlerBinder(adapter_, delegate);
     if (!binder_handler_->Run()) {
       binder_handler_ = nullptr;
       return false;
