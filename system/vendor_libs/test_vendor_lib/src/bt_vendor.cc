@@ -55,11 +55,10 @@ static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
     case BT_VND_OP_POWER_CTRL: {
       LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_POWER_CTRL");
       int* state = static_cast<int*>(param);
-      if (*state == BT_VND_PWR_OFF) {
+      if (*state == BT_VND_PWR_OFF)
         LOG_INFO(LOG_TAG, "Turning Bluetooth off.");
-      } else if (*state == BT_VND_PWR_ON) {
+      else if (*state == BT_VND_PWR_ON)
         LOG_INFO(LOG_TAG, "Turning Bluetooth on.");
-      }
       return 0;
     }
 

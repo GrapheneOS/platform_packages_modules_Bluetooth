@@ -113,14 +113,12 @@ void VendorManager::StartWatchingOnThread() {
     return;
   }
 
-  if (test_channel_transport_.IsEnabled()) {
+  if (test_channel_transport_.IsEnabled())
     if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
             test_channel_transport_.GetFd(), true,
             base::MessageLoopForIO::WATCH_READ, &test_channel_watcher_,
-            &test_channel_transport_)) {
+            &test_channel_transport_))
       LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
-    }
-  }
 }
 
 bool VendorManager::PostTask(const base::Closure& task) {

@@ -32,9 +32,9 @@ extern "C" {
 
 namespace {
 
-// Included in certain events to indicate the successful completion of the
-// associated command.
-const uint8_t kReturnStatusSuccess = 0;
+// Included in certain events to indicate success (specific to the event
+// context).
+const uint8_t kSuccessStatus = 0;
 
 // The default number encoded in event packets to indicate to the HCI how many
 // command packets it can send to the controller.
@@ -77,9 +77,8 @@ bool ParseUint16t(const base::StringPiece& value, uint16_t* field) {
 
 bool ParseUint8tVector(const base::StringPiece& value,
                               std::vector<uint8_t>* field) {
-  for (char& c : value.as_string()) {
+  for (char& c : value.as_string())
     field->push_back(c - '0');
-  }
   return true;
 }
 
@@ -98,19 +97,20 @@ void DualModeController::SendCommandComplete(
 
 void DualModeController::SendCommandCompleteSuccess(
     uint16_t command_opcode) const {
-  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
+  SendCommandComplete(command_opcode, {kSuccessStatus});
 }
 
-void DualModeController::SendCommandStatus(uint16_t command_opcode) const {
+void DualModeController::SendCommandStatus(uint8_t status,
+                                           uint16_t command_opcode) const {
   std::unique_ptr<EventPacket> command_status =
-      EventPacket::CreateCommandStatusEvent(kNumHciCommandPackets,
+      EventPacket::CreateCommandStatusEvent(status, kNumHciCommandPackets,
                                             command_opcode);
   send_event_(std::move(command_status));
 }
 
 void DualModeController::SendCommandStatusSuccess(
     uint16_t command_opcode) const {
-  SendCommandComplete(command_opcode, {kReturnStatusSuccess});
+  SendCommandStatus(kSuccessStatus, command_opcode);
 }
 
 void DualModeController::SendInquiryResult() const {
@@ -171,6 +171,9 @@ DualModeController::DualModeController()
   SET_HANDLER(HCI_WRITE_SCAN_ENABLE, HciWriteScanEnable);
   SET_HANDLER(HCI_SET_EVENT_FILTER, HciSetEventFilter);
   SET_HANDLER(HCI_INQUIRY, HciInquiry);
+  SET_HANDLER(HCI_INQUIRY_CANCEL, HciInquiryCancel);
+  SET_HANDLER(HCI_DELETE_STORED_LINK_KEY, HciDeleteStoredLinkKey);
+  SET_HANDLER(HCI_RMT_NAME_REQUEST, HciRemoteNameRequest);
 #undef SET_HANDLER
 
 #define SET_TEST_HANDLER(command_name, method)  \
@@ -199,9 +202,8 @@ void DualModeController::RegisterHandlersWithTestChannelTransport(
 
 void DualModeController::HandleTestChannelCommand(
     const std::string& name, const std::vector<std::string>& args) {
-  if (active_test_channel_commands_.count(name) == 0) {
+  if (active_test_channel_commands_.count(name) == 0)
     return;
-  }
   active_test_channel_commands_[name](args);
 }
 
@@ -213,12 +215,10 @@ void DualModeController::HandleCommand(
 
   // The command hasn't been registered with the handler yet. There is nothing
   // to do.
-  if (active_hci_commands_.count(opcode) == 0) {
+  if (active_hci_commands_.count(opcode) == 0)
     return;
-  }
-  if (test_channel_state_ == kTimeoutAll) {
+  else if (test_channel_state_ == kTimeoutAll)
     return;
-  }
   active_hci_commands_[opcode](command_packet->GetPayload());
 }
 
@@ -235,9 +235,8 @@ void DualModeController::RegisterDelayedEventChannel(
 }
 
 void DualModeController::SetEventDelay(int64_t delay) {
-  if (delay < 0) {
+  if (delay < 0)
     delay = 0;
-  }
   send_event_ = std::bind(send_delayed_event_, std::placeholders::_1,
                           base::TimeDelta::FromMilliseconds(delay));
 }
@@ -252,9 +251,8 @@ void DualModeController::TestChannelClear(
 void DualModeController::TestChannelDiscover(
     const std::vector<std::string>& args) {
   LogCommand("TestChannel Discover");
-  for (size_t i = 0; i < args.size()-1; i+=2) {
+  for (size_t i = 0; i < args.size()-1; i+=2)
     SendExtendedInquiryResult(args[i], args[i+1]);
-  }
 }
 
 void DualModeController::TestChannelTimeoutAll(
@@ -276,9 +274,6 @@ void DualModeController::TestChannelClearEventDelay(
   test_channel_state_ = kNone;
   SetEventDelay(0);
 }
-
-// TODO(dennischeng): Store relevant arguments from commands as attributes of
-// the controller.
 
 void DualModeController::HciReset(const std::vector<uint8_t>& /* args */) {
   LogCommand("Reset");
@@ -309,20 +304,15 @@ void DualModeController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Bd Addr");
   std::vector<uint8_t> bd_address_with_status = properties_.GetBdAddress();
   bd_address_with_status.insert(bd_address_with_status.begin(),
-                                kReturnStatusSuccess);
+                                kSuccessStatus);
   SendCommandComplete(HCI_READ_BD_ADDR, bd_address_with_status);
 }
 
 void DualModeController::HciReadLocalSupportedCommands(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Supported Commands");
-  std::vector<uint8_t> return_parameters;
-  return_parameters.reserve(65);
-  return_parameters.push_back(kReturnStatusSuccess);
-  for (int i = 0; i < 64; ++i) {
-    return_parameters.push_back(0xFF);
-  }
-  SendCommandComplete(HCI_READ_LOCAL_SUPPORTED_CMDS, return_parameters);
+  SendCommandComplete(HCI_READ_LOCAL_SUPPORTED_CMDS,
+                      properties_.GetLocalSupportedCommands());
 }
 
 void DualModeController::HciReadLocalExtendedFeatures(
@@ -390,13 +380,7 @@ void DualModeController::HciWriteDefaultLinkPolicySettings(
 void DualModeController::HciReadLocalName(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Get Local Name");
-  std::vector<uint8_t> return_parameters;
-  return_parameters.reserve(249);
-  return_parameters.push_back(kReturnStatusSuccess);
-  for (int i = 0; i < 249; ++i) {
-    return_parameters.push_back(0xFF);
-  }
-  SendCommandComplete(HCI_READ_LOCAL_NAME, return_parameters);
+  SendCommandComplete(HCI_READ_LOCAL_NAME, properties_.GetLocalName());
 }
 
 void DualModeController::HciWriteLocalName(
@@ -432,7 +416,6 @@ void DualModeController::HciWriteInquiryScanActivity(
 void DualModeController::HciWriteScanEnable(
     const std::vector<uint8_t>& /* args */) {
   LogCommand("Write Scan Enable");
-  state_ = kScanning;
   SendCommandCompleteSuccess(HCI_WRITE_SCAN_ENABLE);
 }
 
@@ -444,6 +427,7 @@ void DualModeController::HciSetEventFilter(
 
 void DualModeController::HciInquiry(const std::vector<uint8_t>& /* args */) {
   LogCommand("Inquiry");
+  state_ = kInquiry;
   SendCommandStatusSuccess(HCI_INQUIRY);
   switch (inquiry_mode_) {
     case (kStandardInquiry):
@@ -460,40 +444,60 @@ void DualModeController::HciInquiry(const std::vector<uint8_t>& /* args */) {
   }
 }
 
-DualModeController::Properties::Properties(const std::string& file_name) {
+void DualModeController::HciInquiryCancel(
+    const std::vector<uint8_t>& /* args */) {
+  LogCommand("Inquiry Cancel");
+  CHECK(state_ == kInquiry);
+  state_ = kStandby;
+  SendCommandCompleteSuccess(HCI_INQUIRY_CANCEL);
+}
+
+void DualModeController::HciDeleteStoredLinkKey(
+    const std::vector<uint8_t>& args) {
+  LogCommand("Delete Stored Link Key");
+  /* Check the last octect in |args|. If it is 0, delete only the link key for
+   * the given BD_ADDR. If is is 1, delete all stored link keys. */
+  SendCommandComplete(HCI_DELETE_STORED_LINK_KEY, {1});
+}
+
+void DualModeController::HciRemoteNameRequest(
+    const std::vector<uint8_t>& args) {
+  LogCommand("Remote Name Request");
+  SendCommandStatusSuccess(HCI_RMT_NAME_REQUEST);
+}
+
+DualModeController::Properties::Properties(const std::string& file_name)
+    : local_supported_commands_size_(64), local_name_size_(248) {
   std::string properties_raw;
-  if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw)) {
+  if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw))
     LOG_INFO(LOG_TAG, "Error reading controller properties from file.");
-  }
 
   scoped_ptr<base::Value> properties_value_ptr =
       base::JSONReader::Read(properties_raw);
-  if (properties_value_ptr.get() == nullptr) {
+  if (properties_value_ptr.get() == nullptr)
     LOG_INFO(LOG_TAG,
              "Error controller properties may consist of ill-formed JSON.");
-  }
 
   // Get the underlying base::Value object, which is of type
   // base::Value::TYPE_DICTIONARY, and read it into member variables.
   base::Value& properties_dictionary = *(properties_value_ptr.get());
   base::JSONValueConverter<DualModeController::Properties> converter;
 
-  if (!converter.Convert(properties_dictionary, this)) {
+  if (!converter.Convert(properties_dictionary, this))
     LOG_INFO(LOG_TAG,
              "Error converting JSON properties into Properties object.");
-  }
 }
 
 const std::vector<uint8_t> DualModeController::Properties::GetBufferSize() {
   return std::vector<uint8_t>(
-      {kReturnStatusSuccess, acl_data_packet_size_, acl_data_packet_size_ >> 8,
+      {kSuccessStatus, acl_data_packet_size_, acl_data_packet_size_ >> 8,
        sco_data_packet_size_, num_acl_data_packets_, num_acl_data_packets_ >> 8,
        num_sco_data_packets_, num_sco_data_packets_ >> 8});
 }
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalVersionInformation() {
-  return std::vector<uint8_t>({kReturnStatusSuccess, version_, revision_,
+  return std::vector<uint8_t>({kSuccessStatus, version_, revision_,
                                revision_ >> 8, lmp_pal_version_,
                                manufacturer_name_, manufacturer_name_ >> 8,
                                lmp_pal_subversion_, lmp_pal_subversion_ >> 8});
@@ -505,9 +509,26 @@ const std::vector<uint8_t> DualModeController::Properties::GetBdAddress() {
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalExtendedFeatures(uint8_t page_number) {
-  return std::vector<uint8_t>({kReturnStatusSuccess, page_number,
+  return std::vector<uint8_t>({kSuccessStatus, page_number,
                                maximum_page_number_, 0xFF, 0xFF, 0xFF, 0xFF,
                                0xFF, 0xFF, 0xFF, 0xFF});
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLocalSupportedCommands() {
+  std::vector<uint8_t> local_supported_commands;
+  local_supported_commands.push_back(kSuccessStatus);
+  for (uint8_t i = 0; i < local_supported_commands_size_; ++i)
+    local_supported_commands.push_back(0xFF);
+  return local_supported_commands;
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetLocalName() {
+  std::vector<uint8_t> local_name;
+  local_name.push_back(kSuccessStatus);
+  for (uint8_t i = 0; i < local_name_size_; ++i)
+    local_name.push_back(0xFF);
+  return local_name;
 }
 
 // static
