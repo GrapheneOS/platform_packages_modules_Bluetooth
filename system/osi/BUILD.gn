@@ -61,7 +61,6 @@ executable("net_test_osi") {
     "test/allocation_tracker_test.cpp",
     "test/allocator_test.cpp",
     "test/array_test.cpp",
-    "test/atomic_test.cpp",
     "test/config_test.cpp",
     "test/data_dispatcher_test.cpp",
     "test/eager_reader_test.cpp",

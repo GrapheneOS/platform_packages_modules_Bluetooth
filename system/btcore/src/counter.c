@@ -23,13 +23,13 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <string.h>
 #include <sys/eventfd.h>
 
 #include "btcore/include/counter.h"
 #include "btcore/include/module.h"
 #include "osi/include/allocator.h"
-#include "osi/include/atomic.h"
 #include "osi/include/hash_functions.h"
 #include "osi/include/hash_map.h"
 #include "osi/include/list.h"
@@ -41,7 +41,7 @@
 typedef int (*handler_t)(socket_t * socket);
 
 typedef struct counter_t {
-  atomic_s64_t val;
+  _Atomic(int64_t) val;
 } counter_t;
 
 typedef struct hash_element_t {
@@ -157,17 +157,14 @@ void counter_set(const char *name, counter_data_t val) {
   assert(name != NULL);
   counter_t *counter = name_to_counter_(name);
   if (counter)
-    atomic_store_s64(&counter->val, val);
+    atomic_store(&counter->val, val);
 }
 
 void counter_add(const char *name, counter_data_t val) {
   assert(name != NULL);
   counter_t *counter = name_to_counter_(name);
   if (counter) {
-    if (val == 1)
-      atomic_inc_prefix_s64(&counter->val);
-    else
-      atomic_add_s64(&counter->val, val);
+    atomic_fetch_add(&counter->val, val);
   }
 }
 
@@ -187,7 +184,7 @@ static counter_t *counter_new_(counter_data_t initial_val) {
   if (!counter) {
     return NULL;
   }
-  atomic_store_s64(&counter->val, initial_val);
+  atomic_store(&counter->val, initial_val);
   return counter;
 }
 
