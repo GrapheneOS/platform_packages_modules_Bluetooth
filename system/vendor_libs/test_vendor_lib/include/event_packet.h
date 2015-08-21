@@ -43,7 +43,7 @@ class EventPacket : public Packet {
  public:
   virtual ~EventPacket() override = default;
 
-  std::uint8_t GetEventCode() const;
+  uint8_t GetEventCode() const;
 
   // Static functions for creating event packets:
 
@@ -63,8 +63,8 @@ class EventPacket : public Packet {
   //     Contains any event specific parameters that should
   //     be sent to the host.
   static std::unique_ptr<EventPacket> CreateCommandCompleteEvent(
-      std::uint8_t num_hci_command_packets, std::uint16_t command_opcode,
-      const std::vector<std::uint8_t>& event_return_parameters);
+      uint8_t num_hci_command_packets, uint16_t command_opcode,
+      const std::vector<uint8_t>& event_return_parameters);
 
   // Creates and returns a command complete event packet. See the Bluetooth
   // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.15 (page 862)
@@ -82,7 +82,7 @@ class EventPacket : public Packet {
   //   |command_opcode|
   //     The opcode of the command that caused this event.
   static std::unique_ptr<EventPacket> CreateCommandStatusEvent(
-      std::uint8_t num_hci_command_packets, std::uint16_t command_opcode);
+      uint8_t status, uint8_t num_hci_command_packets, uint16_t command_opcode);
 
   // Creates and returns an inquiry result event packet. See the Bluetooth
   // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.2 (page 844)
@@ -107,12 +107,12 @@ class EventPacket : public Packet {
   //     Bits 14-0: Bits 16-2 of CLKNslave-CLK.
   //     Bits 15: Reserved.
   static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
-      std::uint8_t num_responses, const std::vector<std::uint8_t>& bd_addresses,
-      const std::vector<std::uint8_t>& page_scan_repetition_mode,
-      const std::vector<std::uint8_t>& page_scan_period_mode,
-      const std::vector<std::uint8_t>& page_scan_mode,
-      const std::vector<std::uint8_t>& class_of_device,
-      const std::vector<std::uint8_t>& clock_offset);
+      uint8_t num_responses, const std::vector<uint8_t>& bd_addresses,
+      const std::vector<uint8_t>& page_scan_repetition_mode,
+      const std::vector<uint8_t>& page_scan_period_mode,
+      const std::vector<uint8_t>& page_scan_mode,
+      const std::vector<uint8_t>& class_of_device,
+      const std::vector<uint8_t>& clock_offset);
 
   // Creates and returns an inquiry result event packet. See the Bluetooth
   // Core Specification Version 4.2, Volume 2, Part E, Section 7.7.38 (page 896)
@@ -140,13 +140,13 @@ class EventPacket : public Packet {
   //    Defined in Volumne 2, Part C, Section 8. Also see the Supplement to the
   //    Bluetooth Core Specificiation for data type definitions and formats.
   static std::unique_ptr<EventPacket> CreateExtendedInquiryResultEvent(
-      const std::vector<std::uint8_t>& bd_address,
-      const std::vector<std::uint8_t>& page_scan_repetition_mode,
-      const std::vector<std::uint8_t>& page_scan_period_mode,
-      const std::vector<std::uint8_t>& class_of_device,
-      const std::vector<std::uint8_t>& clock_offset,
-      const std::vector<std::uint8_t>& rssi,
-      const std::vector<std::uint8_t>& extended_inquiry_response);
+      const std::vector<uint8_t>& bd_address,
+      const std::vector<uint8_t>& page_scan_repetition_mode,
+      const std::vector<uint8_t>& page_scan_period_mode,
+      const std::vector<uint8_t>& class_of_device,
+      const std::vector<uint8_t>& clock_offset,
+      const std::vector<uint8_t>& rssi,
+      const std::vector<uint8_t>& extended_inquiry_response);
 
   // Size in octets of a data packet header, which consists of a 1 octet
   // event code and a 1 octet payload size.
@@ -155,8 +155,7 @@ class EventPacket : public Packet {
  private:
   // Takes in the event parameters in |payload|. These parameters vary by event
   // and are detailed in the Bluetooth Core Specification.
-  EventPacket(std::uint8_t event_code,
-              const std::vector<std::uint8_t>& payload);
+  EventPacket(uint8_t event_code, const std::vector<uint8_t>& payload);
 };
 
 }  // namespace test_vendor_lib

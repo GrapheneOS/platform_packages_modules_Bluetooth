@@ -54,13 +54,13 @@ class PacketStream {
 
   // Attempts to receive |num_octets_to_receive| into |destination| from |fd|,
   // returning false if an error occurs.
-  bool ReceiveAll(std::vector<std::uint8_t>& destination,
+  bool ReceiveAll(std::vector<uint8_t>& destination,
                   size_t num_octets_to_receive, int fd) const;
 
   // Attempts to send |num_octets_to_send| from |source| to |fd|, returning
   // false if an error occurs.
-  bool SendAll(const std::vector<std::uint8_t>& source,
-               size_t num_octets_to_send, int fd) const;
+  bool SendAll(const std::vector<uint8_t>& source, size_t num_octets_to_send,
+               int fd) const;
 };
 
 }  // namespace test_vendor_lib

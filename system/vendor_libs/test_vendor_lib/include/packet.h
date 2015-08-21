@@ -36,13 +36,13 @@ class Packet {
   // octet, the header, and the payload.
   size_t GetPacketSize() const;
 
-  const std::vector<std::uint8_t>& GetPayload() const;
+  const std::vector<uint8_t>& GetPayload() const;
 
-  std::uint8_t GetPayloadSize() const;
+  uint8_t GetPayloadSize() const;
 
-  const std::vector<std::uint8_t>& GetHeader() const;
+  const std::vector<uint8_t>& GetHeader() const;
 
-  std::uint8_t GetHeaderSize() const;
+  uint8_t GetHeaderSize() const;
 
   serial_data_type_t GetType() const;
 
@@ -53,8 +53,8 @@ class Packet {
   // contents of |header| and |payload| are guaranteed to be preserved. The
   // packet object will assume ownership of the copied data for its entire
   // lifetime.
-  bool Encode(const std::vector<std::uint8_t>& header,
-              const std::vector<std::uint8_t>& payload);
+  bool Encode(const std::vector<uint8_t>& header,
+              const std::vector<uint8_t>& payload);
 
  protected:
   // Constructs an empty packet of type |type|. A call to Encode() shall be made
@@ -66,9 +66,9 @@ class Packet {
   // packet header and the packet payload. Data is copied into the vectors
   // during the constructor and becomes accessible (read only) to children
   // through GetHeader() and GetPayload().
-  std::vector<std::uint8_t> header_;
+  std::vector<uint8_t> header_;
 
-  std::vector<std::uint8_t> payload_;
+  std::vector<uint8_t> payload_;
 
   // The packet type is one of DATA_TYPE_ACL, DATA_TYPE_COMMAND,
   // DATA_TYPE_EVENT, or DATA_TYPE_SCO.
