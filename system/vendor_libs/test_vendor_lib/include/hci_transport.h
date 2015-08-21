@@ -18,7 +18,7 @@
 
 #include <functional>
 #include <memory>
-#include <queue>
+#include <list>
 
 extern "C" {
 #include <sys/epoll.h>
@@ -59,10 +59,8 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
       std::function<void(std::unique_ptr<CommandPacket>)> callback);
 
   // Posts the event onto |outbound_events_| to be written sometime in the
-  // future when the vendor file descriptor is ready for writing. See
-  // |outbound_events_| for why |event| is a shared pointer (as opposed to a
-  // unique pointer).
-  void PostEventResponse(std::shared_ptr<EventPacket> event);
+  // future when the vendor file descriptor is ready for writing.
+  void PostEventResponse(std::unique_ptr<EventPacket> event);
 
   // Posts the event onto |outbound_events_| after |delay| ms. A call to
   // |PostEventResponse| with |delay| 0 is equivalent to a call to |PostEvent|.
@@ -70,6 +68,29 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
                                 base::TimeDelta delay);
 
  private:
+  // Wrapper class for sending events on a delay. The TimeStampedEvent object
+  // takes ownership of a given event packet.
+  class TimeStampedEvent {
+   public:
+    TimeStampedEvent(std::unique_ptr<EventPacket> event, base::TimeDelta delay);
+
+    // Using this constructor is equivalent to calling the 2-argument
+    // constructor with a |delay| of 0. It is used to generate event responses
+    // with no delay.
+    TimeStampedEvent(std::unique_ptr<EventPacket> event);
+
+    const base::TimeTicks& GetTimeStamp() const;
+
+    const EventPacket& GetEvent();
+
+   private:
+    std::shared_ptr<EventPacket> event_;
+
+    // The time associated with the event, indicating the earliest time at which
+    // |event_| will be sent.
+    base::TimeTicks time_stamp_;
+  };
+
   // base::MessageLoopForIO::Watcher overrides:
   void OnFileCanReadWithoutBlocking(int fd) override;
 
@@ -79,14 +100,12 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
   // |command_handler_|, passing ownership of the command packet to the handler.
   void ReceiveReadyCommand() const;
 
+  void AddEventToOutboundEvents(std::unique_ptr<TimeStampedEvent> event);
+
   // Write queue for sending events to the HCI. Event packets are removed from
   // the queue and written when write-readiness is signalled by the message
-  // loop. Packets are shared pointers because the bind logic in
-  // PostEventResponse forces copy semantics to be used on the bound arguments.
-  // There will, however, be only a single instance of each EventPacket owned by
-  // the HciTransport (i.e. the shared pointer objects are unique) and this will
-  // be reinforced with CHECK's.
-  std::queue<std::shared_ptr<EventPacket>> outbound_events_;
+  // loop. After being written, the event packets are destructed.
+  std::list<std::unique_ptr<TimeStampedEvent>> outbound_events_;
 
   // Callback executed in ReceiveReadyCommand() to pass the incoming command
   // over to the handler for further processing.

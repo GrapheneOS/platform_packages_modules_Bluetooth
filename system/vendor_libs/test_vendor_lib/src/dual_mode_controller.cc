@@ -177,11 +177,10 @@ DualModeController::DualModeController()
   active_test_channel_commands_[command_name] = \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
   SET_TEST_HANDLER("CLEAR", TestChannelClear);
-  SET_TEST_HANDLER("DISCOVER", TestChannelDiscover);
-  SET_TEST_HANDLER("DISCOVER_INTERVAL", TestChannelDiscoverInterval);
-  SET_TEST_HANDLER("TIMEOUT_ALL", TestChannelTimeoutAll);
-  SET_TEST_HANDLER("SET_EVENT_DELAY", TestChannelSetEventDelay);
   SET_TEST_HANDLER("CLEAR_EVENT_DELAY", TestChannelClearEventDelay);
+  SET_TEST_HANDLER("DISCOVER", TestChannelDiscover);
+  SET_TEST_HANDLER("SET_EVENT_DELAY", TestChannelSetEventDelay);
+  SET_TEST_HANDLER("TIMEOUT_ALL", TestChannelTimeoutAll);
 #undef SET_TEST_HANDLER
 }
 
@@ -256,17 +255,6 @@ void DualModeController::TestChannelDiscover(
   for (size_t i = 0; i < args.size()-1; i+=2) {
     SendExtendedInquiryResult(args[i], args[i+1]);
   }
-}
-
-// TODO(dennischeng): This should discover devices continuously at the specified
-// interval until the user sends an explicit 'stop' command. Each device should
-// have a unique bd address and name?
-void DualModeController::TestChannelDiscoverInterval(
-    const std::vector<std::string>& args) {
-  LogCommand("TestChannel Discover Interval");
-  test_channel_state_ = kDelayedResponse;
-  SetEventDelay(std::stoi(args[2]));
-  SendExtendedInquiryResult(args[0], args[1]);
 }
 
 void DualModeController::TestChannelTimeoutAll(
