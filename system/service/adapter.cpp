@@ -27,6 +27,15 @@ const char Adapter::kDefaultAddress[] = "00:00:00:00:00:00";
 // static
 const char Adapter::kDefaultName[] = "not-initialized";
 
+// The minimum number of advertising instances required for multi-advertisement
+// support.
+//
+// TODO(armansito): This number comes straight from
+// packages/apps/Bluetooth/src/c/a/b/btservice/AdapterService.java. It would be
+// nice to know if there were a way to obtain this number from the stack instead
+// of hardcoding it here.
+const char kMinAdvInstancesForMultiAdv = 5;
+
 void Adapter::Observer::OnAdapterStateChanged(Adapter* adapter,
                                               AdapterState prev_state,
                                               AdapterState new_state) {
@@ -37,6 +46,7 @@ Adapter::Adapter()
     : state_(ADAPTER_STATE_OFF),
       address_(kDefaultAddress),
       name_(kDefaultName) {
+  memset(&local_le_features_, 0, sizeof(local_le_features_));
   hal::BluetoothInterface::Get()->AddObserver(this);
   hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();
 }
@@ -145,6 +155,10 @@ std::string Adapter::GetAddress() const {
   return address_.Get();
 }
 
+bool Adapter::IsMultiAdvertisementSupported() const {
+  return local_le_features_.max_adv_instance >= kMinAdvInstancesForMultiAdv;
+}
+
 void Adapter::AdapterStateChangedCallback(bt_state_t state) {
   LOG(INFO) << "Adapter state changed: " << BtStateText(state);
 
@@ -191,6 +205,18 @@ void Adapter::AdapterPropertiesCallback(bt_status_t status,
         std::string name = reinterpret_cast<char*>(hal_name->name);
         LOG(INFO) << "Adapter name changed: " << name;
         name_.Set(name);
+        break;
+      }
+      case BT_PROPERTY_LOCAL_LE_FEATURES: {
+        if (property->len != sizeof(bt_local_le_features_t)) {
+          LOG(WARNING) << "Malformed value received for property: "
+                       << "BT_PROPERTY_LOCAL_LE_FEATURES";
+          break;
+        }
+        bt_local_le_features_t* features =
+            reinterpret_cast<bt_local_le_features_t*>(property->val);
+        memcpy(&local_le_features_, features, sizeof(*features));
+        LOG(INFO) << "Supported LE features updated";
         break;
       }
       default:

@@ -124,6 +124,16 @@ void FakeBluetoothInterface::NotifyAdapterAddressPropertyChanged(
   NotifyAdapterPropertiesChanged(1, &property);
 }
 
+void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
+      const bt_local_le_features_t* features) {
+  bt_property_t property;
+  property.len = sizeof(*features);
+  property.val = (void*)features;
+  property.type = BT_PROPERTY_LOCAL_LE_FEATURES;
+
+  NotifyAdapterPropertiesChanged(1, &property);
+}
+
 void FakeBluetoothInterface::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
 }
