@@ -110,9 +110,8 @@ bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
     const int num_octets_received =
         read(fd, &destination[num_octets_to_receive - octets_remaining],
              octets_remaining);
-    if (num_octets_received < 0) {
+    if (num_octets_received < 0)
       return false;
-    }
     octets_remaining -= num_octets_received;
   }
   return true;
@@ -125,9 +124,8 @@ bool PacketStream::SendAll(const std::vector<uint8_t>& source,
   while (octets_remaining > 0) {
     const int num_octets_sent = write(
         fd, &source[num_octets_to_send - octets_remaining], octets_remaining);
-    if (num_octets_sent < 0) {
+    if (num_octets_sent < 0)
       return false;
-    }
     octets_remaining -= num_octets_sent;
   }
   return true;

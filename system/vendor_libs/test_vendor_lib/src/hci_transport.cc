@@ -53,9 +53,8 @@ bool HciTransport::SetUp() {
   int socketpair_fds[2];
   // TODO(dennischeng): Use SOCK_SEQPACKET here.
   const int success = socketpair(AF_LOCAL, SOCK_STREAM, 0, socketpair_fds);
-  if (success < 0) {
+  if (success < 0)
     return false;
-  }
   hci_fd_.reset(new base::ScopedFD(socketpair_fds[0]));
   vendor_fd_.reset(new base::ScopedFD(socketpair_fds[1]));
   return true;
