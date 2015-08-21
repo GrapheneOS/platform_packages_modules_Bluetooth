@@ -101,32 +101,70 @@ void HciTransport::RegisterCommandHandler(
 void HciTransport::OnFileCanWriteWithoutBlocking(int fd) {
   CHECK(fd == GetVendorFd());
   if (!outbound_events_.empty()) {
-    CHECK(outbound_events_.front().unique());
-    packet_stream_.SendEvent(*(outbound_events_.front()), fd);
-    outbound_events_.pop();
+    base::TimeTicks current_time = base::TimeTicks::Now();
+    auto it = outbound_events_.begin();
+    // Check outbound events for events that can be sent, i.e. events with a
+    // timestamp before the current time. Stop sending events when
+    // |packet_stream_| fails writing.
+    for (auto it = outbound_events_.begin(); it != outbound_events_.end();) {
+      if ((*it)->GetTimeStamp() > current_time) {
+        ++it;
+        continue;
+      }
+      if (!packet_stream_.SendEvent((*it)->GetEvent(), fd))
+        return;
+      it = outbound_events_.erase(it);
+    }
   }
 }
 
-void HciTransport::PostEventResponse(std::shared_ptr<EventPacket> event) {
-  outbound_events_.push(event);
+void HciTransport::AddEventToOutboundEvents(
+    std::unique_ptr<TimeStampedEvent> event) {
+  outbound_events_.push_back(std::move(event));
+}
+
+void HciTransport::PostEventResponse(std::unique_ptr<EventPacket> event) {
+  AddEventToOutboundEvents(std::make_unique<TimeStampedEvent>(std::move(event)));
 }
 
 void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
                                             base::TimeDelta delay) {
-  CHECK(base::MessageLoop::current());
-  CHECK(base::ThreadTaskRunnerHandle::Get()->BelongsToCurrentThread());
-  CHECK(base::ThreadTaskRunnerHandle::Get()->RunsTasksOnCurrentThread());
+  // TODO(dennischeng): When it becomes available for MessageLoopForIO, use the
+  // thread's task runner to post |PostEventResponse| as a delayed task, being
+  // sure to CHECK the appropriate task runner attributes using
+  // base::ThreadTaskRunnerHandle.
+
+  // The system does not support high resolution timing and the clock could be
+  // as coarse as ~15.6 ms so the event is sent without a delay to avoid
+  // inconsistent event responses.
+  if (!base::TimeTicks::IsHighResolution()) {
+    LOG_INFO(LOG_TAG,
+              "System does not support high resolution timing. Sending event "
+              "without delay.");
+    PostEventResponse(std::move(event));
+  }
 
   LOG_INFO(LOG_TAG, "Posting event response with delay of %lld ms.",
            delay.InMilliseconds());
 
-  if (!base::ThreadTaskRunnerHandle::Get()->PostDelayedTask(
-          FROM_HERE, base::Bind(&HciTransport::PostEventResponse,
-                                weak_ptr_factory_.GetWeakPtr(),
-                                std::shared_ptr<EventPacket>(std::move(event))),
-          delay)) {
-    LOG_ERROR(LOG_TAG, "Couldn't post event response.");
-  }
+  AddEventToOutboundEvents(
+      std::make_unique<TimeStampedEvent>(std::move(event), delay));
+}
+
+HciTransport::TimeStampedEvent::TimeStampedEvent(
+    std::unique_ptr<EventPacket> event, base::TimeDelta delay)
+    : event_(std::move(event)), time_stamp_(base::TimeTicks::Now() + delay) {}
+
+HciTransport::TimeStampedEvent::TimeStampedEvent(
+    std::unique_ptr<EventPacket> event)
+    : event_(std::move(event)), time_stamp_(base::TimeTicks::UnixEpoch()) {}
+
+const base::TimeTicks& HciTransport::TimeStampedEvent::GetTimeStamp() const {
+  return time_stamp_;
+}
+
+const EventPacket& HciTransport::TimeStampedEvent::GetEvent() {
+  return *(event_.get());
 }
 
 }  // namespace test_vendor_lib
