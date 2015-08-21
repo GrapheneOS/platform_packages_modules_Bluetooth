@@ -50,7 +50,7 @@ class CommandPacket : public Packet {
   // See the Bluetooth Core Specification Version 4.2, Volume 2, Part E,
   // Section 7 for more information about each HCI commands and for a listing
   // of their specific opcodes/OGF and OCF values.
-  std::uint16_t GetOpcode() const;
+  uint16_t GetOpcode() const;
 
   // Returns the 6 bit opcode group field that specifies the general category of
   // the command. The OGF can be one of seven values:
@@ -62,11 +62,11 @@ class CommandPacket : public Packet {
   // - 0x06: Testing commands
   // - 0x08: Low energy controller commands
   // The upper 2 bits will be zero filled.
-  std::uint8_t GetOGF() const;
+  uint8_t GetOGF() const;
 
   // Returns the 10 bit opcode command field that specifies an exact command
   // within an opcode group field. The upper 6 bits will be zero filled.
-  std::uint16_t GetOCF() const;
+  uint16_t GetOCF() const;
 
   // Size in octets of a command packet header, which consists of a 2 octet
   // opcode and a 1 octet payload size.

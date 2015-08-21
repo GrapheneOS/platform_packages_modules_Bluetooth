@@ -32,9 +32,8 @@ Packet::Packet(serial_data_type_t type) : type_(type) {}
 
 bool Packet::Encode(const std::vector<uint8_t>& header,
                     const std::vector<uint8_t>& payload) {
-  if (header.back() != payload.size()) {
+  if (header.back() != payload.size())
     return false;
-  }
   header_ = header;
   payload_ = payload;
   return true;

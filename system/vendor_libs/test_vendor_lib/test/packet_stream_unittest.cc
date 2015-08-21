@@ -64,9 +64,8 @@ class PacketStreamTest : public ::testing::Test {
     packet.push_back(payload_size);
 
     // Set the packet's payload.
-    for (int i = 0; i < payload_size; ++i) {
+    for (int i = 0; i < payload_size; ++i)
       packet.push_back(payload[i]);
-    }
 
     // Send the packet to |packet_stream_|.
     write(socketpair_fds_[1], &packet[1], packet.size());
@@ -83,9 +82,8 @@ class PacketStreamTest : public ::testing::Test {
     EXPECT_EQ(DATA_TYPE_COMMAND, command->GetType());
     EXPECT_EQ(opcode, command->GetOpcode());
     EXPECT_EQ(payload_size, command->GetPayloadSize());
-    for (int i = 0; i < payload_size; ++i) {
+    for (int i = 0; i < payload_size; ++i)
       EXPECT_EQ(packet[4 + i], received_payload[i]);
-    }
   }
 
   void CheckedSendEvent(std::unique_ptr<EventPacket> event) {
@@ -108,9 +106,8 @@ class PacketStreamTest : public ::testing::Test {
     EXPECT_EQ(DATA_TYPE_EVENT, event_header[0]);
     EXPECT_EQ(event->GetEventCode(), event_header[1]);
     EXPECT_EQ(event->GetPayloadSize(), return_parameters_size);
-    for (int i = 0; i < return_parameters_size; ++i) {
+    for (int i = 0; i < return_parameters_size; ++i)
       EXPECT_EQ(expected_payload[i], return_parameters[i]);
-    }
   }
 
  protected:

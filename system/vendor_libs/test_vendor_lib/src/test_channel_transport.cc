@@ -117,9 +117,8 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
     args.push_back(std::string(arg.begin(), arg.end()));
   }
 
-  for (size_t i = 0; i < args.size(); ++i) {
+  for (size_t i = 0; i < args.size(); ++i)
     LOG_INFO(LOG_TAG, "Command argument %d: %s", i, args[i].data());
-  }
 
   command_handler_(command_name, args);
 }

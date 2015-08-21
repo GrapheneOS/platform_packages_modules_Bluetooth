@@ -58,12 +58,13 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteEvent(
 
 // static
 std::unique_ptr<EventPacket> EventPacket::CreateCommandStatusEvent(
-    std::uint8_t num_hci_command_packets, std::uint16_t command_opcode) {
+    uint8_t status, uint8_t num_hci_command_packets, uint16_t command_opcode) {
   size_t payload_size =
-      sizeof(num_hci_command_packets) + sizeof(command_opcode);
+      sizeof(status) + sizeof(num_hci_command_packets) + sizeof(command_opcode);
 
   std::vector<uint8_t> payload;
   payload.reserve(payload_size);
+  payload.push_back(status);
   payload.push_back(num_hci_command_packets);
   payload.push_back(command_opcode);
   payload.push_back(command_opcode >> 8);
@@ -74,12 +75,12 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandStatusEvent(
 
 //static
 std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
-    std::uint8_t num_responses, const std::vector<std::uint8_t>& bd_addresses,
-    const std::vector<std::uint8_t>& page_scan_repetition_mode,
-    const std::vector<std::uint8_t>& page_scan_period_mode,
-    const std::vector<std::uint8_t>& page_scan_mode,
-    const std::vector<std::uint8_t>& class_of_device,
-    const std::vector<std::uint8_t>& clock_offset) {
+    uint8_t num_responses, const std::vector<uint8_t>& bd_addresses,
+    const std::vector<uint8_t>& page_scan_repetition_mode,
+    const std::vector<uint8_t>& page_scan_period_mode,
+    const std::vector<uint8_t>& page_scan_mode,
+    const std::vector<uint8_t>& class_of_device,
+    const std::vector<uint8_t>& clock_offset) {
   size_t payload_size = sizeof(num_responses) + bd_addresses.size() +
                         page_scan_repetition_mode.size() +
                         page_scan_period_mode.size() + page_scan_mode.size() +
@@ -100,13 +101,13 @@ std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
 
 //static
 std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
-    const std::vector<std::uint8_t>& bd_address,
-    const std::vector<std::uint8_t>& page_scan_repetition_mode,
-    const std::vector<std::uint8_t>& page_scan_period_mode,
-    const std::vector<std::uint8_t>& class_of_device,
-    const std::vector<std::uint8_t>& clock_offset,
-    const std::vector<std::uint8_t>& rssi,
-    const std::vector<std::uint8_t>& extended_inquiry_response) {
+    const std::vector<uint8_t>& bd_address,
+    const std::vector<uint8_t>& page_scan_repetition_mode,
+    const std::vector<uint8_t>& page_scan_period_mode,
+    const std::vector<uint8_t>& class_of_device,
+    const std::vector<uint8_t>& clock_offset,
+    const std::vector<uint8_t>& rssi,
+    const std::vector<uint8_t>& extended_inquiry_response) {
   size_t payload_size =
       1 + bd_address.size() + page_scan_repetition_mode.size() +
       page_scan_period_mode.size() + class_of_device.size() +
