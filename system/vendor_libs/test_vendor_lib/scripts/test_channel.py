@@ -168,22 +168,24 @@ class TestChannelShell(cmd.Cmd):
     cmd.Cmd.__init__(self)
     self._test_channel = test_channel
 
-  def do_quit(self, arg):
-    """Exits the test channel."""
-    self._connection.close()
-    self._test_channel = test_channel
-
-  def do_timeout_all(self, args):
+  def do_clear(self, args):
     """
     Arguments: None.
-    Causes all HCI commands to timeout.
+    Resets the controller to its original, unmodified state.
     """
-    self._test_channel.send_command('TIMEOUT_ALL', [])
+    self._test_channel.send_command('CLEAR', [])
+
+  def do_clear_event_delay(self, args):
+    """
+    Arguments: None.
+    Clears the response delay set by set_event_delay.
+    """
+    self._test_channel.send_command('CLEAR_EVENT_DELAY', args.split())
 
   def do_discover(self, args):
     """
     Arguments: name_1 name_2 ...
-    Sends an inquiry result for device(s) |name|. If no names are provided, a
+    Sends an inquiry result for named device(s). If no names are provided, a
     random name is used instead.
     """
     if len(args) == 0:
@@ -196,16 +198,6 @@ class TestChannelShell(cmd.Cmd):
       device_names_and_addresses.append(device.get_address())
     self._test_channel.send_command('DISCOVER', device_names_and_addresses)
 
-  def do_discover_interval(self, args):
-    """
-    Arguments: interval_in_ms
-    Sends an inquiry result for a device with a random name on the interval
-    specified by |interval_in_ms|.
-    """
-    args.append(generate_random_name())
-    args.append(generate_random_address())
-    self._test_channel.send_command('DISCOVER_INTERVAL', args.split())
-
   def do_set_event_delay(self, args):
     """
     Arguments: interval_in_ms
@@ -214,19 +206,12 @@ class TestChannelShell(cmd.Cmd):
     """
     self._test_channel.send_command('SET_EVENT_DELAY', args.split())
 
-  def do_clear_event_delay(self, args):
+  def do_timeout_all(self, args):
     """
     Arguments: None.
-    Clears the response delay set by |do_set_event_delay|.
+    Causes all HCI commands to timeout.
     """
-    self._test_channel.send_command('CLEAR_EVENT_DELAY', args.split())
-
-  def do_clear(self, args):
-    """
-    Arguments: None.
-    Resets the controller to its original, unmodified state.
-    """
-    self._test_channel.send_command('CLEAR', [])
+    self._test_channel.send_command('TIMEOUT_ALL', [])
 
   def do_quit(self, args):
     """
