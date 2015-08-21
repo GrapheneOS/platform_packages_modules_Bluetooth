@@ -147,7 +147,7 @@ void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t re
   return return_ptr;
 }
 
-void *allocation_tracker_notify_free(uint8_t allocator_id, void *ptr) {
+void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr) {
   if (!allocations || !ptr)
     return ptr;
 
@@ -159,8 +159,8 @@ void *allocation_tracker_notify_free(uint8_t allocator_id, void *ptr) {
   assert(allocation->allocator_id == allocator_id); // Must be from the same allocator
   allocation->freed = true;
 
-  const char *beginning_canary = ((char *)ptr) - canary_size;
-  const char *end_canary = ((char *)ptr) + allocation->size;
+  UNUSED_ATTR const char *beginning_canary = ((char *)ptr) - canary_size;
+  UNUSED_ATTR const char *end_canary = ((char *)ptr) + allocation->size;
 
   for (size_t i = 0; i < canary_size; i++) {
     assert(beginning_canary[i] == canary[i]);

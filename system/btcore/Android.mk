@@ -46,8 +46,7 @@ btcoreCommonIncludes := \
 # libbtcore static library for target
 # ========================================================
 include $(CLEAR_VARS)
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
@@ -61,8 +60,7 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 # TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
@@ -82,8 +80,7 @@ endif
 # libbtcore unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
@@ -97,8 +94,7 @@ include $(BUILD_NATIVE_TEST)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-# osi/include/atomic.h depends on gcc atomic functions
-LOCAL_CLANG := false
+LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
