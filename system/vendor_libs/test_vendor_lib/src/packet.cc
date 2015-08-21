@@ -51,7 +51,8 @@ uint8_t Packet::GetHeaderSize() const {
 }
 
 size_t Packet::GetPacketSize() const {
-  return header_.size() + payload_.size() + sizeof(type_);
+  // Add one for the type octet.
+  return 1 + header_.size() + payload_.size();
 }
 
 const std::vector<uint8_t>& Packet::GetPayload() const {
