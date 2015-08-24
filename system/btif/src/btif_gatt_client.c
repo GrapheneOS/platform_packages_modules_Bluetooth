@@ -1640,6 +1640,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
             int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
+
             if (inst_id < 0 || cbindex < 0)
             {
                BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_SETADV_INST_DATA", __FUNCTION__);
@@ -1650,7 +1651,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 return;
 
             btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-            BTA_BleCfgAdvInstData((UINT8)inst_id, p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp,
+            BTA_BleCfgAdvInstData((UINT8)inst_id, p_adv_data->set_scan_rsp,
                       p_multi_adv_data_cb->inst_cb[cbindex].mask,
                       &p_multi_adv_data_cb->inst_cb[cbindex].data);
             break;

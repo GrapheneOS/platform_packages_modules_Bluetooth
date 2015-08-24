@@ -52,9 +52,7 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN is_scan_rsp;
     UINT8 client_if;
-    UINT16 service_uuid_len;
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
