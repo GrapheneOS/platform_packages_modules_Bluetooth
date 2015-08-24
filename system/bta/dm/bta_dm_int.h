@@ -516,7 +516,7 @@ typedef struct
     UINT8                   inst_id;
     BOOLEAN                 is_scan_rsp;
     tBTA_BLE_AD_MASK        data_mask;
-    tBTA_BLE_ADV_DATA      *p_data;
+    tBTA_BLE_ADV_DATA       data;
 }tBTA_DM_API_BLE_MULTI_ADV_DATA;
 
 typedef struct
@@ -529,7 +529,7 @@ typedef struct
 {
     BT_HDR                  hdr;
     UINT32                  data_mask;
-    tBTA_BLE_ADV_DATA       *p_adv_cfg;
+    tBTA_BLE_ADV_DATA       adv_cfg;
     tBTA_SET_ADV_DATA_CMPL_CBACK    *p_adv_data_cback;
 }tBTA_DM_API_SET_ADV_CONFIG;
 
