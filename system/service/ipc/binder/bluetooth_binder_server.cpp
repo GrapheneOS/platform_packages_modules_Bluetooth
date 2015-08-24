@@ -80,12 +80,20 @@ std::string BluetoothBinderServer::GetName() {
 void BluetoothBinderServer::RegisterCallback(
     const android::sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
+  if (!callback.get() ) {
+    LOG(ERROR) << "RegisterCallback called with NULL binder. Ignoring.";
+    return;
+  }
   callbacks_.Register(callback);
 }
 
 void BluetoothBinderServer::UnregisterCallback(
     const android::sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
+  if (!callback.get() ) {
+    LOG(ERROR) << "UnregisterCallback called with NULL binder. Ignoring.";
+    return;
+  }
   callbacks_.Unregister(callback);
 }
 
