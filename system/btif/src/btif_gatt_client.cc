@@ -938,7 +938,7 @@ bt_status_t btif_gattc_scan_filter_add_remove(
 
       if (p_uuid_mask != NULL) {
         tBTA_DM_BLE_PF_COND_MASK *uuid_mask = new tBTA_DM_BLE_PF_COND_MASK;
-        btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask);
+        btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask, p_uuid);
         return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid,
                                      bt_uuid, base::Owned(uuid_mask), action,
                                      filt_type, filt_index, client_if));
