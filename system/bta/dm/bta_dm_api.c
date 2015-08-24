@@ -1027,18 +1027,15 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                             tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-    tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = GKI_getbuf(sizeof(*p_msg));
+  if (!p_msg) return;
 
-    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *)
-        GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
-        p_msg->data_mask = data_mask;
-        p_msg->p_adv_data_cback = p_adv_data_cback;
-        p_msg->p_adv_cfg = p_adv_cfg;
-
-        bta_sys_sendmsg(p_msg);
-    }
+  memset(p_msg, 0, sizeof(*p_msg));
+  p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
+  p_msg->data_mask = data_mask;
+  p_msg->p_adv_data_cback = p_adv_data_cback;
+  memcpy(&p_msg->adv_cfg, p_adv_cfg, sizeof(p_msg->adv_cfg));
+  bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************
@@ -1055,18 +1052,15 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                                  tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-    tBTA_DM_API_SET_ADV_CONFIG  *p_msg;
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = GKI_getbuf(sizeof(*p_msg));
+  if (!p_msg) return;
 
-    if ((p_msg = (tBTA_DM_API_SET_ADV_CONFIG *)
-        GKI_getbuf(sizeof(tBTA_DM_API_SET_ADV_CONFIG))) != NULL)
-    {
-        p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
-        p_msg->data_mask = data_mask;
-        p_msg->p_adv_data_cback = p_adv_data_cback;
-        p_msg->p_adv_cfg = p_adv_cfg;
-
-        bta_sys_sendmsg(p_msg);
-    }
+  memset(p_msg, 0, sizeof(*p_msg));
+  p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
+  p_msg->data_mask = data_mask;
+  p_msg->p_adv_data_cback = p_adv_data_cback;
+  memcpy(&p_msg->adv_cfg, p_adv_cfg, sizeof(p_msg->adv_cfg));
+  bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************
@@ -1609,22 +1603,16 @@ void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
-    tBTA_DM_API_BLE_MULTI_ADV_DATA    *p_msg;
-    UINT16      len =  sizeof(tBTA_DM_API_BLE_MULTI_ADV_DATA) ;
+  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg = GKI_getbuf(sizeof(*p_msg));
+  if (!p_msg) return;
 
-    APPL_TRACE_API ("BTA_BleCfgAdvInstData");
-
-    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DATA *) GKI_getbuf(len)) != NULL)
-    {
-          memset(p_msg, 0, len);
-          p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
-          p_msg->inst_id      = inst_id;
-          p_msg->is_scan_rsp  = is_scan_rsp;
-          p_msg->data_mask     = data_mask;
-          p_msg->p_data        = p_data;
-
-          bta_sys_sendmsg(p_msg);
-    }
+  memset(p_msg, 0, sizeof(*p_msg));
+  p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
+  p_msg->inst_id = inst_id;
+  p_msg->is_scan_rsp = is_scan_rsp;
+  p_msg->data_mask = data_mask;
+  memcpy(&p_msg->data, p_data, sizeof(p_msg->data));
+  bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************

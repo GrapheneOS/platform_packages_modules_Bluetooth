@@ -4849,7 +4849,7 @@ void bta_dm_ble_set_adv_config (tBTA_DM_MSG *p_data)
     tBTA_STATUS status = BTA_FAILURE;
 
     if (BTM_BleWriteAdvData(p_data->ble_set_adv_data.data_mask,
-                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg) == BTM_SUCCESS)
+                        (tBTM_BLE_ADV_DATA *)&p_data->ble_set_adv_data.adv_cfg) == BTM_SUCCESS)
     {
         status = BTA_SUCCESS;
     }
@@ -4872,7 +4872,7 @@ void bta_dm_ble_set_scan_rsp (tBTA_DM_MSG *p_data)
     tBTA_STATUS status = BTA_FAILURE;
 
     if(BTM_BleWriteScanRsp(p_data->ble_set_adv_data.data_mask,
-                        (tBTM_BLE_ADV_DATA *)p_data->ble_set_adv_data.p_adv_cfg) == BTM_SUCCESS)
+                        (tBTM_BLE_ADV_DATA *)&p_data->ble_set_adv_data.adv_cfg) == BTM_SUCCESS)
     {
         status = BTA_SUCCESS;
     }
@@ -4990,7 +4990,7 @@ void bta_dm_ble_multi_adv_data(tBTA_DM_MSG *p_data)
         btm_status = BTM_BleCfgAdvInstData(p_data->ble_multi_adv_data.inst_id,
                         p_data->ble_multi_adv_data.is_scan_rsp,
                         p_data->ble_multi_adv_data.data_mask,
-                        (tBTM_BLE_ADV_DATA*)p_data->ble_multi_adv_data.p_data);
+                        (tBTM_BLE_ADV_DATA*)&p_data->ble_multi_adv_data.data);
     }
 
     if(BTM_CMD_STARTED != btm_status)

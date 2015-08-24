@@ -1665,7 +1665,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     btif_obtain_multi_adv_data_cb();
                 BTA_BleCfgAdvInstData(
                     (UINT8)inst_id,
-                    p_multi_adv_data_cb->inst_cb[cbindex].is_scan_rsp,
+                    p_adv_data->set_scan_rsp,
                     p_multi_adv_data_cb->inst_cb[cbindex].mask,
                     &p_multi_adv_data_cb->inst_cb[cbindex].data);
             }
