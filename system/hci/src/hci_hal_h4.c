@@ -175,9 +175,12 @@ static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *conte
     callbacks->data_ready(current_data_type);
   } else {
     uint8_t type_byte;
-    eager_reader_read(reader, &type_byte, 1, true);
+    if (eager_reader_read(reader, &type_byte, 1, true) == 0) {
+      LOG_ERROR(LOG_TAG, "%s could not read HCI message type", __func__);
+      return;
+    }
     if (type_byte < DATA_TYPE_ACL || type_byte > DATA_TYPE_EVENT) {
-      LOG_ERROR(LOG_TAG, "[h4] Unknown HCI message type. Dropping this byte 0x%x, min %x, max %x", type_byte, DATA_TYPE_ACL, DATA_TYPE_EVENT);
+      LOG_ERROR(LOG_TAG, "%s Unknown HCI message type. Dropping this byte 0x%x, min %x, max %x", __func__, type_byte, DATA_TYPE_ACL, DATA_TYPE_EVENT);
       return;
     }
 
