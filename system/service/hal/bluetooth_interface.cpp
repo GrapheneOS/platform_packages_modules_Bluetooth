@@ -100,14 +100,18 @@ int AcquireWakeLockCallout(const char* /* lock_name */) {
   // TODO(armansito): According to sharvil@, this interface doesn't even need to
   // exist and can be done entirely from within osi by interfacing directly with
   // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
-  return BT_STATUS_UNSUPPORTED;
+  // Lie here and return success so that enabling and disabling the controller
+  // works before this is properly implemented.
+  return BT_STATUS_SUCCESS;
 }
 
 int ReleaseWakeLockCallout(const char* /* lock_name */) {
   // TODO(armansito): According to sharvil@, this interface doesn't even need to
   // exist and can be done entirely from within osi by interfacing directly with
   // the kernel. Remove these stubs once that's fixed. (See http://b/23390297)
-  return BT_STATUS_UNSUPPORTED;
+  // Lie here and return success so that enabling and disabling the controller
+  // works before this is properly implemented.
+  return BT_STATUS_SUCCESS;
 }
 
 // The HAL Bluetooth DM callbacks.
