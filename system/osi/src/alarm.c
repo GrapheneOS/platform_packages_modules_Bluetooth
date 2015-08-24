@@ -24,7 +24,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
-#include <limits.h>
 #include <malloc.h>
 #include <pthread.h>
 #include <signal.h>
@@ -39,6 +38,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
 #include "osi/include/thread.h"
+#include "osi/include/wakelock.h"
 
 // Make callbacks run at high thread priority. Some callbacks are used for audio
 // related timer tasks as well as re-transmissions etc. Since we at this point
@@ -70,15 +70,6 @@ struct alarm_t {
 int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 3000;
 static const clockid_t CLOCK_ID = CLOCK_BOOTTIME;
 static const clockid_t CLOCK_ID_ALARM = CLOCK_BOOTTIME_ALARM;
-static const char *WAKE_LOCK_ID = "bluetooth_timer";
-static char *DEFAULT_WAKE_LOCK_PATH = "/sys/power/wake_lock";
-static char *DEFAULT_WAKE_UNLOCK_PATH = "/sys/power/wake_unlock";
-static char *wake_lock_path = NULL;
-static char *wake_unlock_path = NULL;
-static ssize_t locked_id_len = -1;
-static pthread_once_t wake_fds_initialized = PTHREAD_ONCE_INIT;
-static int wake_lock_fd = INVALID_FD;
-static int wake_unlock_fd = INVALID_FD;
 
 // This mutex ensures that the |alarm_set|, |alarm_cancel|, and alarm callback
 // functions execute serially and not concurrently. As a result, this mutex also
@@ -102,9 +93,6 @@ static void reschedule_root_alarm(void);
 static void timer_callback(void *data);
 static void callback_dispatch(void *context);
 static bool timer_create_internal(const clockid_t clock_id, timer_t *timer);
-static void initialize_wake_fds(void);
-static bool acquire_wake_lock(void);
-static bool release_wake_lock(void);
 
 alarm_t *alarm_new(void) {
   // Make sure we have a list we can insert alarms into.
@@ -217,16 +205,6 @@ void alarm_cancel(alarm_t *alarm) {
 }
 
 void alarm_cleanup(void) {
-  if (wake_lock_path && wake_lock_path != DEFAULT_WAKE_LOCK_PATH) {
-    osi_free(wake_lock_path);
-    wake_lock_path = NULL;
-  }
-
-  if (wake_unlock_path && wake_unlock_path != DEFAULT_WAKE_UNLOCK_PATH) {
-    osi_free(wake_unlock_path);
-    wake_unlock_path = NULL;
-  }
-
   // If lazy_initialize never ran there is nothing else to do
   if (!alarms)
     return;
@@ -242,24 +220,7 @@ void alarm_cleanup(void) {
   list_free(alarms);
   alarms = NULL;
 
-  wake_fds_initialized = PTHREAD_ONCE_INIT;
-
   pthread_mutex_destroy(&monitor);
-}
-
-void alarm_set_wake_lock_paths(const char *lock_path, const char *unlock_path) {
-  if (lock_path) {
-    if (wake_lock_path && wake_lock_path != DEFAULT_WAKE_LOCK_PATH)
-      osi_free(wake_lock_path);
-    wake_lock_path = osi_strndup(lock_path, PATH_MAX);
-  }
-
-  if (unlock_path) {
-    if (wake_unlock_path && wake_unlock_path != DEFAULT_WAKE_UNLOCK_PATH)
-      osi_free(wake_unlock_path);
-    wake_unlock_path = osi_strndup(unlock_path, PATH_MAX);
-  }
-
 }
 
 static bool lazy_initialize(void) {
@@ -385,7 +346,7 @@ static void reschedule_root_alarm(void) {
   const int64_t next_expiration = next->deadline - now();
   if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     if (!timer_set) {
-      if (!acquire_wake_lock()) {
+      if (!wakelock_acquire()) {
         LOG_ERROR(LOG_TAG, "%s unable to acquire wake lock", __func__);
         goto done;
       }
@@ -427,7 +388,7 @@ static void reschedule_root_alarm(void) {
 done:
   timer_set = timer_time.it_value.tv_sec != 0 || timer_time.it_value.tv_nsec != 0;
   if (timer_was_set && !timer_set) {
-    release_wake_lock();
+    wakelock_release();
   }
 
   if (timer_settime(timer, TIMER_ABSTIME, &timer_time, NULL) == -1)
@@ -503,74 +464,6 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
   }
 
   LOG_DEBUG(LOG_TAG, "%s Callback thread exited", __func__);
-}
-
-static void initialize_wake_fds(void) {
-  LOG_DEBUG(LOG_TAG, "%s opening wake locks", __func__);
-
-  if (!wake_lock_path)
-    wake_lock_path = DEFAULT_WAKE_LOCK_PATH;
-
-  wake_lock_fd = open(wake_lock_path, O_RDWR | O_CLOEXEC);
-  if (wake_lock_fd == INVALID_FD) {
-    LOG_ERROR(LOG_TAG, "%s can't open wake lock %s: %s",
-              __func__, wake_lock_path, strerror(errno));
-  }
-
-  if (!wake_unlock_path)
-    wake_unlock_path = DEFAULT_WAKE_UNLOCK_PATH;
-
-  wake_unlock_fd = open(wake_unlock_path, O_RDWR | O_CLOEXEC);
-  if (wake_unlock_fd == INVALID_FD) {
-    LOG_ERROR(LOG_TAG, "%s can't open wake unlock %s: %s",
-              __func__, wake_unlock_path, strerror(errno));
-  }
-}
-
-static bool acquire_wake_lock(void) {
-  pthread_once(&wake_fds_initialized, initialize_wake_fds);
-
-  if (wake_lock_fd == INVALID_FD) {
-    LOG_ERROR(LOG_TAG, "%s lock not acquired, invalid fd", __func__);
-    return false;
-  }
-
-  if (wake_unlock_fd == INVALID_FD) {
-    LOG_ERROR(LOG_TAG, "%s not acquiring lock: can't release lock", __func__);
-    return false;
-  }
-
-  long lock_name_len = strlen(WAKE_LOCK_ID);
-  locked_id_len = write(wake_lock_fd, WAKE_LOCK_ID, lock_name_len);
-  if (locked_id_len == -1) {
-    LOG_ERROR(LOG_TAG, "%s wake lock not acquired: %s",
-              __func__, strerror(errno));
-    return false;
-  } else if (locked_id_len < lock_name_len) {
-    // TODO (jamuraa): this is weird. maybe we should release and retry.
-    LOG_WARN(LOG_TAG, "%s wake lock truncated to %zd chars",
-             __func__, locked_id_len);
-  }
-  return true;
-}
-
-static bool release_wake_lock(void) {
-  pthread_once(&wake_fds_initialized, initialize_wake_fds);
-
-  if (wake_unlock_fd == INVALID_FD) {
-    LOG_ERROR(LOG_TAG, "%s lock not released, invalid fd", __func__);
-    return false;
-  }
-
-  ssize_t wrote_name_len = write(wake_unlock_fd, WAKE_LOCK_ID, locked_id_len);
-  if (wrote_name_len == -1) {
-    LOG_ERROR(LOG_TAG, "%s can't release wake lock: %s",
-              __func__, strerror(errno));
-  } else if (wrote_name_len < locked_id_len) {
-    LOG_ERROR(LOG_TAG, "%s lock release only wrote %zd, assuming released",
-              __func__, wrote_name_len);
-  }
-  return true;
 }
 
 static bool timer_create_internal(const clockid_t clock_id, timer_t *timer) {

@@ -53,6 +53,7 @@
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/wakelock.h"
 #include "stack_manager.h"
 #include "btif_config.h"
 
@@ -67,9 +68,6 @@
 ************************************************************************************/
 
 bt_callbacks_t *bt_hal_cbacks = NULL;
-
-/** Operating System specific callouts for resource management */
-bt_os_callouts_t *bt_os_callouts = NULL;
 
 /************************************************************************************
 **  Externs
@@ -423,7 +421,7 @@ int config_hci_snoop_log(uint8_t enable)
 }
 
 static int set_os_callouts(bt_os_callouts_t *callouts) {
-    bt_os_callouts = callouts;
+    wakelock_set_os_callouts(callouts);
     return BT_STATUS_SUCCESS;
 }
 

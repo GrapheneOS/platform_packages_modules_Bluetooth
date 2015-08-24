@@ -25,6 +25,7 @@
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"
 #include "osi/include/osi.h"
+#include "osi/include/wakelock.h"
 
 future_t *osi_init(void) {
   mutex_init();
@@ -33,6 +34,7 @@ future_t *osi_init(void) {
 
 future_t *osi_clean_up(void) {
   alarm_cleanup();
+  wakelock_cleanup();
   mutex_cleanup();
   return future_new_immediate(FUTURE_SUCCESS);
 }

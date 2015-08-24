@@ -27,6 +27,7 @@
 extern "C" {
 #include "osi/include/alarm.h"
 #include "osi/include/allocation_tracker.h"
+#include "osi/include/wakelock.h"
 }
 
 static timer_t timer;
@@ -71,11 +72,12 @@ void AlarmTestHarness::SetUp() {
   creat(lock_path_.c_str(), S_IRWXU);
   creat(unlock_path_.c_str(), S_IRWXU);
 
-  alarm_set_wake_lock_paths(lock_path_.c_str(), unlock_path_.c_str());
+  wakelock_set_paths(lock_path_.c_str(), unlock_path_.c_str());
 }
 
 void AlarmTestHarness::TearDown() {
   alarm_cleanup();
+  wakelock_cleanup();
 
   // clean up the temp wake lock directory
   unlink(lock_path_.c_str());

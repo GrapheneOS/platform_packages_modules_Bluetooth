@@ -48,7 +48,8 @@ btosiCommonSrc := \
     ./src/socket_utils/socket_local_client.c \
     ./src/socket_utils/socket_local_server.c \
     ./src/thread.c \
-    ./src/time.c
+    ./src/time.c \
+    ./src/wakelock.c
 
 btosiCommonTestSrc := \
     ./test/AlarmTestHarness.cpp \
