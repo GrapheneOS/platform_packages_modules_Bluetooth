@@ -76,7 +76,7 @@ static void background_connection_add(bt_bdaddr_t *address) {
   if (!connection) {
     connection = osi_calloc(sizeof(background_connection_t));
     connection->address = *address;
-    hash_map_set(background_connections, address, connection);
+    hash_map_set(background_connections, &(connection->address), connection);
   }
 }
 
