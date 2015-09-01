@@ -61,6 +61,7 @@ LOCAL_SHARED_LIBRARIES += \
 	libhardware \
 	liblog \
 	libutils
+LOCAL_INIT_RC := bluetoothtbd.rc
 include $(BUILD_EXECUTABLE)
 
 # Native system service unittests for host
