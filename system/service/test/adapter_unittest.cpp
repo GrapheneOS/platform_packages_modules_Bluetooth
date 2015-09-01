@@ -211,5 +211,20 @@ TEST_F(AdapterTest, GetAddress) {
   EXPECT_EQ(kTestAdapterAddressOutput, adapter_->GetAddress());
 }
 
+TEST_F(AdapterTest, IsMultiAdvertisementSupported) {
+  EXPECT_FALSE(adapter_->IsMultiAdvertisementSupported());
+
+  bt_local_le_features_t features;
+  memset(&features, 0, sizeof(features));
+
+  features.max_adv_instance = 10;  // Some high number.
+  fake_hal_iface_->NotifyAdapterLocalLeFeaturesPropertyChanged(&features);
+  EXPECT_TRUE(adapter_->IsMultiAdvertisementSupported());
+
+  features.max_adv_instance = 0;  // Low number.
+  fake_hal_iface_->NotifyAdapterLocalLeFeaturesPropertyChanged(&features);
+  EXPECT_FALSE(adapter_->IsMultiAdvertisementSupported());
+}
+
 }  // namespace
 }  // namespace bluetooth

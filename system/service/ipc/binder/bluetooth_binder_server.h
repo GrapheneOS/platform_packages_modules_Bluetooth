@@ -54,6 +54,8 @@ class BluetoothBinderServer : public BnBluetooth,
   void UnregisterCallback(
       const android::sp<IBluetoothCallback>& callback) override;
 
+  bool IsMultiAdvertisementSupported() override;
+
   // bluetooth::Adapter::Observer overrides:
   void OnAdapterStateChanged(bluetooth::Adapter* adapter,
                              bluetooth::AdapterState prev_state,

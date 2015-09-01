@@ -142,7 +142,10 @@ class IBluetooth : public android::IInterface {
   virtual void UnregisterCallback(
       const android::sp<IBluetoothCallback>& callback) = 0;
 
+  virtual bool IsMultiAdvertisementSupported() = 0;
+
   // TODO(armansito): Complete the API definition.
+
  private:
   DISALLOW_COPY_AND_ASSIGN(IBluetooth);
 };
@@ -162,6 +165,8 @@ class BnBluetooth : public android::BnInterface<IBluetooth> {
       const android::Parcel& data,
       android::Parcel* reply,
       uint32_t flags = 0);
+
+  DISALLOW_COPY_AND_ASSIGN(BnBluetooth);
 };
 
 // The Binder client interface to IBluetooth.
@@ -176,14 +181,18 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   bool Enable() override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
+
   std::string GetAddress() override;
   std::vector<bluetooth::UUID> GetUUIDs() override;
   bool SetName(const std::string& name) override;
   std::string GetName() override;
+
   void RegisterCallback(
       const android::sp<IBluetoothCallback>& callback) override;
   void UnregisterCallback(
       const android::sp<IBluetoothCallback>& callback) override;
+
+  bool IsMultiAdvertisementSupported() override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetooth);

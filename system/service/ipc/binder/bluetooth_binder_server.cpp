@@ -97,6 +97,11 @@ void BluetoothBinderServer::UnregisterCallback(
   callbacks_.Unregister(callback);
 }
 
+bool BluetoothBinderServer::IsMultiAdvertisementSupported() {
+  VLOG(2) << __func__;
+  return adapter_->IsMultiAdvertisementSupported();
+}
+
 void BluetoothBinderServer::OnAdapterStateChanged(
     bluetooth::Adapter* adapter,
     bluetooth::AdapterState prev_state,

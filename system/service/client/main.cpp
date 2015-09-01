@@ -170,6 +170,15 @@ void HandleAdapterInfo(IBluetooth* bt_iface, const vector<string>& args) {
   PrintFieldAndValue("\tState", bluetooth::AdapterStateToString(
       static_cast<bluetooth::AdapterState>(bt_iface->GetState())));
   PrintFieldAndValue("\tName", bt_iface->GetName());
+  PrintFieldAndBoolValue("\tMulti-Adv. supported",
+                         bt_iface->IsMultiAdvertisementSupported());
+}
+
+void HandleSupportsMultiAdv(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  bool status = bt_iface->IsMultiAdvertisementSupported();
+  PrintFieldAndBoolValue("Multi-advertisement support", status);
 }
 
 void HandleHelp(IBluetooth* bt_iface, const vector<string>& args);
@@ -189,6 +198,8 @@ struct {
   { "set-local-name", HandleSetLocalName, "\t\tSet the local adapter name" },
   { "get-local-name", HandleGetLocalName, "\t\tGet the local adapter name" },
   { "adapter-info", HandleAdapterInfo, "\t\tPrint adapter properties" },
+  { "supports-multi-adv", HandleSupportsMultiAdv,
+    "\tWhether multi-advertisement is currently supported" },
   {},
 };
 
