@@ -35,7 +35,7 @@ namespace binder {
 const char IBluetooth::kBluetoothServiceName[] = "bluetooth-service";
 
 // static
-android::sp<IBluetooth> IBluetooth::getClientInterface() {
+sp<IBluetooth> IBluetooth::getClientInterface() {
   sp<IServiceManager> sm = defaultServiceManager();
   if (!sm.get()) {
     LOG(ERROR) << "Failed to obtain a handle to the default Service Manager";
@@ -119,6 +119,11 @@ android::status_t BnBluetooth::onTransact(
     case UNREGISTER_CALLBACK_TRANSACTION: {
       sp<IBinder> callback = data.readStrongBinder();
       UnregisterCallback(interface_cast<IBluetoothCallback>(callback));
+      return android::NO_ERROR;
+    }
+    case IS_MULTI_ADVERTISEMENT_SUPPORTED_TRANSACTION: {
+      bool result = IsMultiAdvertisementSupported();
+      reply->writeInt32(result);
       return android::NO_ERROR;
     }
     default:
@@ -229,6 +234,17 @@ void BpBluetooth::UnregisterCallback(const sp<IBluetoothCallback>& callback) {
   data.writeStrongBinder(IInterface::asBinder(callback.get()));
 
   remote()->transact(IBluetooth::UNREGISTER_CALLBACK_TRANSACTION, data, &reply);
+}
+
+bool BpBluetooth::IsMultiAdvertisementSupported() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+
+  remote()->transact(IBluetooth::IS_MULTI_ADVERTISEMENT_SUPPORTED_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
 }
 
 IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kBluetoothServiceName);

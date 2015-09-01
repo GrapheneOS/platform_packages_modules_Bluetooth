@@ -84,6 +84,10 @@ class Adapter : hal::BluetoothInterface::Observer {
   // Returns the local adapter addess in string form (XX:XX:XX:XX:XX:XX).
   std::string GetAddress() const;
 
+  // Returns true if the local adapter supports the Low-Energy
+  // multi-advertisement feature.
+  bool IsMultiAdvertisementSupported() const;
+
  private:
   // hal::BluetoothInterface::Observer overrides.
   void AdapterStateChangedCallback(bt_state_t state) override;
@@ -107,6 +111,11 @@ class Adapter : hal::BluetoothInterface::Observer {
 
   // The current local adapter name.
   util::AtomicString name_;
+
+  // The current set of supported LE features as obtained from the stack. The
+  // values here are all initially set to 0 and updated when the corresponding
+  // adapter property has been received from the stack.
+  bt_local_le_features_t local_le_features_;
 
   // List of observers that are interested in notifications from us.
   std::mutex observers_lock_;
