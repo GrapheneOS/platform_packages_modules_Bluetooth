@@ -36,7 +36,7 @@ class IBluetoothCallback : public android::IInterface {
  public:
   DECLARE_META_INTERFACE(BluetoothCallback);
 
-  static const char kBluetoothCallbackServiceName[];
+  static const char kServiceName[];
 
   // Transaction codes for interface methods.
   enum {
