@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>
+#include <hardware_legacy/power.h>
 #include <inttypes.h>
 #include <malloc.h>
 #include <string.h>
@@ -303,8 +304,8 @@ static void reschedule_root_alarm(void) {
   int64_t next_expiration = next->deadline - now();
   if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     if (!timer_set) {
-      int status = bt_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
-      if (status != BT_STATUS_SUCCESS) {
+      int status = acquire_wake_lock(PARTIAL_WAKE_LOCK, WAKE_LOCK_ID);
+      if (status != (int) strlen(WAKE_LOCK_ID)) {
         LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
         goto done;
       }
@@ -320,7 +321,7 @@ static void reschedule_root_alarm(void) {
 done:
   timer_set = wakeup_time.it_value.tv_sec != 0 || wakeup_time.it_value.tv_nsec != 0;
   if (timer_was_set && !timer_set) {
-    bt_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+    release_wake_lock(WAKE_LOCK_ID);
   }
 
   if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
