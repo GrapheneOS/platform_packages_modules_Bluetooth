@@ -21,7 +21,16 @@
 #include <stack>
 #include <string>
 
+#include <base/rand_util.h>
+
 namespace bluetooth {
+
+// static
+UUID UUID::GetRandom() {
+  UUID128Bit bytes;
+  base::RandBytes(bytes.data(), bytes.size());
+  return UUID(bytes);
+}
 
 void UUID::InitializeDefault() {
   // Initialize to base bluetooth UUID.
@@ -47,17 +56,17 @@ UUID::UUID(const bt_uuid_t& uuid) {
   std::reverse_copy(uuid.uu, uuid.uu + sizeof(uuid.uu), id_.begin());
 }
 
-UUID::UUID(const UUID::UUID16Bit& uuid) {
+UUID::UUID(const UUID16Bit& uuid) {
   InitializeDefault();
-  std::copy(uuid.begin(), uuid.end(), id_.begin() + kUUID16Octets);
+  std::copy(uuid.begin(), uuid.end(), id_.begin() + kNumBytes16);
 }
 
-UUID::UUID(const UUID::UUID32Bit& uuid) {
+UUID::UUID(const UUID32Bit& uuid) {
   InitializeDefault();
   std::copy(uuid.begin(), uuid.end(), id_.begin());
 }
 
-UUID::UUID(const UUID::UUID128Bit& uuid) : id_(uuid) {}
+UUID::UUID(const UUID128Bit& uuid) : id_(uuid) {}
 
 const UUID::UUID128Bit UUID::GetFullBigEndian() const {
   return id_;
