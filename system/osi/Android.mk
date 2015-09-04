@@ -119,7 +119,7 @@ LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libpower
+LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libosi
 include $(BUILD_NATIVE_TEST)
 
