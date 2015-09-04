@@ -69,7 +69,7 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS := -Wall -Werror $(bdroid_CFLAGS)
 LOCAL_MODULE := net_test_hci
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl libpower
+LOCAL_SHARED_LIBRARIES := liblog libdl
 LOCAL_STATIC_LIBRARIES := libbt-hci libosi libcutils libbtcore
 
 include $(BUILD_NATIVE_TEST)
