@@ -16,10 +16,17 @@
 
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+
 #include <base/macros.h>
 
 #include "service/ipc/binder/IBluetoothLowEnergy.h"
 #include "service/ipc/binder/IBluetoothLowEnergyCallback.h"
+#include "service/ipc/binder/remote_callback_map.h"
+#include "service/low_energy_client.h"
+#include "service/low_energy_constants.h"
+#include "service/uuid.h"
 
 namespace bluetooth {
 class Adapter;
@@ -29,7 +36,9 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothLowEnergy interface.
-class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy {
+class BluetoothLowEnergyBinderServer
+    : public BnBluetoothLowEnergy,
+      public RemoteCallbackMap<int, IBluetoothLowEnergyCallback>::Delegate {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLowEnergyBinderServer() override;
@@ -41,7 +50,27 @@ class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy {
   void UnregisterAll() override;
 
  private:
+  // RemoteCallbackMap<int, IBluetoothLowEnergyCallback>::Delegate override:
+  void OnRemoteCallbackRemoved(const int& key) override;
+
+  // Called as a result of bluetooth::LowEnergyClientFactory::RegisterClient
+  void OnRegisterClient(bluetooth::BLEStatus status,
+                        const bluetooth::UUID& uuid,
+                        std::unique_ptr<bluetooth::LowEnergyClient> client);
+
   bluetooth::Adapter* adapter_;  // weak
+
+  // Clients that are pending registration. Once their registration is complete,
+  // the entry will be removed from this map.
+  RemoteCallbackMap<bluetooth::UUID, IBluetoothLowEnergyCallback>
+      pending_callbacks_;
+
+  // We keep two maps here: one from client_if IDs to callback Binders and one
+  // from client_if IDs to LowEnergyClient instances.
+  std::mutex maps_lock_;  // Needed for |cif_to_client_|.
+  RemoteCallbackMap<int, IBluetoothLowEnergyCallback> cif_to_cb_;
+  std::unordered_map<int, std::shared_ptr<bluetooth::LowEnergyClient>>
+      cif_to_client_;
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothLowEnergyBinderServer);
 };
