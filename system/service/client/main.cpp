@@ -21,17 +21,20 @@
 #include <base/macros.h>
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
+#include <binder/IPCThreadState.h>
 #include <binder/ProcessState.h>
 
 #include "service/adapter_state.h"
 #include "service/ipc/binder/IBluetooth.h"
 #include "service/ipc/binder/IBluetoothCallback.h"
+#include "service/low_energy_constants.h"
 
 using namespace std;
 
 using android::sp;
 
 using ipc::binder::IBluetooth;
+using ipc::binder::IBluetoothLowEnergy;
 
 namespace {
 
@@ -67,8 +70,20 @@ const char kCommandIsEnabled[] = "is-enabled";
 // Binder callbacks.
 std::atomic_bool showing_prompt(false);
 
+// The registered IBluetoothLowEnergy client handle. If |ble_registering| is
+// true then an operation to register the client is in progress.
+std::atomic_bool ble_registering(false);
+std::atomic_int ble_client_if(0);
+
+// True if the remote process has died and we should exit.
+std::atomic_bool should_exit(false);
+
 void PrintPrompt() {
   cout << COLOR_BLUE "[FCLI] " COLOR_OFF << flush;
+}
+
+void PrintError(const string& message) {
+  cout << COLOR_RED << message << COLOR_OFF << endl;
 }
 
 class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
@@ -76,7 +91,7 @@ class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
   CLIBluetoothCallback() = default;
   ~CLIBluetoothCallback() override = default;
 
-  // IBluetoothCallback override:
+  // IBluetoothCallback overrides:
   void OnBluetoothStateChange(
       bluetooth::AdapterState prev_state,
       bluetooth::AdapterState new_state) override {
@@ -95,9 +110,32 @@ class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothCallback);
 };
 
-void PrintError(const string& message) {
-  cout << COLOR_RED << message << COLOR_OFF << endl;
-}
+class CLIBluetoothLowEnergyCallback
+    : public ipc::binder::BnBluetoothLowEnergyCallback {
+ public:
+  CLIBluetoothLowEnergyCallback() = default;
+  ~CLIBluetoothLowEnergyCallback() = default;
+
+  // IBluetoothLowEnergyCallback overrides:
+  void OnClientRegistered(int status, int client_if) override {
+    if (showing_prompt.load())
+      cout << endl;
+    if (status != bluetooth::BLE_STATUS_SUCCESS) {
+      PrintError("Failed to register BLE client");
+    } else {
+      ble_client_if = client_if;
+      cout << COLOR_BOLDWHITE "Registered BLE client with ID: " COLOR_OFF
+           << COLOR_GREEN << client_if << COLOR_OFF << endl << endl;
+    }
+    if (showing_prompt.load())
+      PrintPrompt();
+
+    ble_registering = false;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+};
 
 void PrintCommandStatus(bool status) {
   cout << COLOR_BOLDWHITE "Command status: " COLOR_OFF
@@ -181,6 +219,62 @@ void HandleSupportsMultiAdv(IBluetooth* bt_iface, const vector<string>& args) {
   PrintFieldAndBoolValue("Multi-advertisement support", status);
 }
 
+void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (ble_registering.load()) {
+    PrintError("In progress");
+    return;
+  }
+
+  if (ble_client_if.load()) {
+    PrintError("Already registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  ble_iface->RegisterClient(new CLIBluetoothLowEnergyCallback());
+  ble_registering = true;
+  PrintCommandStatus(true);
+}
+
+void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (!ble_client_if.load()) {
+    PrintError("Not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  ble_iface->UnregisterClient(ble_client_if.load());
+  ble_client_if = 0;
+  PrintCommandStatus(true);
+}
+
+void HandleUnregisterAllBLE(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  ble_iface->UnregisterAll();
+  PrintCommandStatus(true);
+}
+
 void HandleHelp(IBluetooth* bt_iface, const vector<string>& args);
 
 struct {
@@ -200,6 +294,12 @@ struct {
   { "adapter-info", HandleAdapterInfo, "\t\tPrint adapter properties" },
   { "supports-multi-adv", HandleSupportsMultiAdv,
     "\tWhether multi-advertisement is currently supported" },
+  { "register-ble", HandleRegisterBLE,
+    "\t\tRegister with the Bluetooth Low Energy interface" },
+  { "unregister-ble", HandleUnregisterBLE,
+    "\t\tUnregister from the Bluetooth Low Energy interface" },
+  { "unregister-all-ble", HandleUnregisterAllBLE,
+    "\tUnregister all clients from the Bluetooth Low Energy interface" },
   {},
 };
 
@@ -212,10 +312,39 @@ void HandleHelp(IBluetooth* /* bt_iface */, const vector<string>& /* args */) {
 
 }  // namespace
 
+class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
+ public:
+  BluetoothDeathRecipient() = default;
+  ~BluetoothDeathRecipient() override = default;
+
+  // android::IBinder::DeathRecipient override:
+  void binderDied(const android::wp<android::IBinder>& /* who */) override {
+    if (showing_prompt.load())
+      cout << endl;
+    cout << COLOR_BOLDWHITE "The Bluetooth daemon has died" COLOR_OFF << endl;
+    cout << "\nPress 'ENTER' to exit." << endl;
+    if (showing_prompt.load())
+      PrintPrompt();
+
+    android::IPCThreadState::self()->stopProcess();
+    should_exit = true;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BluetoothDeathRecipient);
+};
+
 int main() {
   sp<IBluetooth> bt_iface = IBluetooth::getClientInterface();
   if (!bt_iface.get()) {
     LOG(ERROR) << "Failed to obtain handle on IBluetooth";
+    return EXIT_FAILURE;
+  }
+
+  sp<BluetoothDeathRecipient> dr(new BluetoothDeathRecipient());
+  if (android::IInterface::asBinder(bt_iface.get())->linkToDeath(dr) !=
+      android::NO_ERROR) {
+    LOG(ERROR) << "Failed to register DeathRecipient for IBluetooth";
     return EXIT_FAILURE;
   }
 
@@ -241,6 +370,9 @@ int main() {
     showing_prompt = true;
     getline(cin, command);
     showing_prompt = false;
+
+    if (should_exit.load())
+      return EXIT_SUCCESS;
 
     vector<string> args;
     base::SplitString(command, ' ', &args);
