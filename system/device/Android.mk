@@ -67,7 +67,7 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
 LOCAL_MODULE := net_test_device
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl
+LOCAL_SHARED_LIBRARIES := liblog libdl libpower
 LOCAL_STATIC_LIBRARIES := libbtdevice libbtcore libosi libcutils
 
 include $(BUILD_NATIVE_TEST)

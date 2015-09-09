@@ -40,6 +40,6 @@ LOCAL_C_INCLUDES := \
   $(LOCAL_PATH)/../..
 
 LOCAL_SHARED_LIBRARIES += \
-  libhardware liblog
+  libhardware liblog libpower
 
 include $(BUILD_EXECUTABLE)
