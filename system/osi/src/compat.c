@@ -30,7 +30,9 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include "osi/include/compat.h"
+#include "osi/include/osi.h"
 
 #if __GLIBC__
 pid_t
@@ -128,4 +130,9 @@ strlcat(char *dst, const char *src, size_t siz)
 
   return (dlen + (s - src)); /* count does not include NUL */
 }
+#endif
+
+#if _GNU_SOURCE
+int acquire_wake_lock(UNUSED_ATTR int lock, UNUSED_ATTR const char *id) { return strlen(id); }
+int release_wake_lock(UNUSED_ATTR const char *id) { return 0; }
 #endif
