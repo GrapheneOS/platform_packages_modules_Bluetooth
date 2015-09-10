@@ -42,8 +42,7 @@ LOCAL_SHARED_LIBRARIES += \
     liblog \
     libhardware \
     libhardware_legacy \
-    libcutils \
-    libpower
+    libcutils
 
 LOCAL_STATIC_LIBRARIES += \
   libbtcore \
