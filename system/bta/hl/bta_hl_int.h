@@ -57,6 +57,7 @@ typedef UINT16 (tBTA_HL_ALLOCATE_PSM) (void);
 #define BTA_HL_L2C_USE_FCS              1
 #define BTA_HL_L2C_NO_FCS               0
 #define BTA_HL_DEFAULT_SOURCE_FCS       BTA_HL_L2C_USE_FCS
+#define BTA_HL_MCA_FCS_USE_MASK         MCA_FCS_USE_MASK
 
 /* SDP Operations */
 #define BTA_HL_SDP_OP_NONE                  0
@@ -710,7 +711,7 @@ extern "C"
     extern UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps);
     extern UINT16 bta_hl_set_mps(UINT16 mtu);
     extern void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
-    extern BT_HDR * bta_hl_get_buf(UINT16 data_size);
+    extern BT_HDR * bta_hl_get_buf(UINT16 data_size, BOOLEAN fcs_use);
     extern BOOLEAN bta_hl_find_service_in_db( UINT8 app_idx, UINT8 mcl_idx,
                                               UINT16 service_uuid,
                                               tSDP_DISC_REC **pp_rec );

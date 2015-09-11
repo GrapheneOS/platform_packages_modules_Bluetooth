@@ -499,7 +499,9 @@ void bta_hl_dch_send_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 
     if (!(p_dcb->cout_oper & BTA_HL_CO_GET_TX_DATA_MASK))
     {
-        if ((p_dcb->p_tx_pkt = bta_hl_get_buf(p_data->api_send_data.pkt_size)) != NULL)
+        // p_dcb->chnl_cfg.fcs may be BTA_HL_MCA_USE_FCS (0x11) or BTA_HL_MCA_NO_FCS (0x10) or BTA_HL_DEFAULT_SOURCE_FCS (1)
+        BOOLEAN fcs_use = (BOOLEAN) (p_dcb->chnl_cfg.fcs & BTA_HL_MCA_FCS_USE_MASK);
+        if ((p_dcb->p_tx_pkt = bta_hl_get_buf(p_data->api_send_data.pkt_size, fcs_use)) != NULL)
         {
             bta_hl_co_get_tx_data( p_acb->app_id,
                                    p_dcb->mdl_handle,
