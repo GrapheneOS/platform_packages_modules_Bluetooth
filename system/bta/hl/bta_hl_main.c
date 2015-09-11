@@ -1344,7 +1344,8 @@ static void bta_hl_api_dch_echo_test(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                     if ((p_data->api_dch_echo_test.local_cfg == BTA_HL_DCH_CFG_RELIABLE) ||
                         (p_data->api_dch_echo_test.local_cfg == BTA_HL_DCH_CFG_STREAMING))
                     {
-                        if ((p_dcb->p_echo_tx_pkt = bta_hl_get_buf(p_data->api_dch_echo_test.pkt_size)) != NULL )
+                        BOOLEAN fcs_use = (BOOLEAN) (p_dcb->chnl_cfg.fcs & BTA_HL_MCA_FCS_USE_MASK);
+                        if ((p_dcb->p_echo_tx_pkt = bta_hl_get_buf(p_data->api_dch_echo_test.pkt_size, fcs_use)) != NULL )
                         {
                             if (bta_hl_set_ctrl_psm_for_dch(app_idx, mcl_idx, mdl_idx, p_data->api_dch_open.ctrl_psm))
                             {
