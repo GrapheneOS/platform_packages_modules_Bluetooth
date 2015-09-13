@@ -469,25 +469,28 @@ void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
 *******************************************************************************/
 void rfc_send_test (tRFC_MCB *p_mcb, BOOLEAN is_command, BT_HDR *p_buf)
 {
-    UINT8    *p_data;
-    UINT16   xx;
-    UINT8    *p_src, *p_dest;
-
     /* Shift buffer to give space for header */
     if (p_buf->offset < (L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2))
     {
-        p_src  = (UINT8 *) (p_buf + 1) + p_buf->offset + p_buf->len - 1;
-        p_dest = (UINT8 *) (p_buf + 1) + L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2 + p_buf->len - 1;
+        UINT8 *p_src  = (UINT8 *) (p_buf + 1) + p_buf->offset + p_buf->len - 1;
+        BT_HDR *p_new_buf = (BT_HDR *) osi_malloc(p_buf->len + (L2CAP_MIN_OFFSET +
+                            RFCOMM_MIN_OFFSET + 2 + sizeof(BT_HDR) + 1));
 
-        for (xx = 0; xx < p_buf->len; xx++)
+        p_new_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
+        p_new_buf->len = p_buf->len;
+
+        UINT8 *p_dest = (UINT8 *) (p_new_buf + 1) + p_new_buf->offset + p_new_buf->len - 1;
+
+        for (UINT16 xx = 0; xx < p_buf->len; xx++)
             *p_dest-- = *p_src--;
 
-        p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
+        osi_free(p_buf);
+        p_buf = p_new_buf;
     }
 
     /* Adjust offset by number of bytes we are going to fill */
     p_buf->offset -= 2;
-    p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    UINT8 *p_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
     *p_data++ = RFCOMM_EA | RFCOMM_I_CR(is_command) | RFCOMM_MX_TEST;
     *p_data++ = RFCOMM_EA | (p_buf->len << 1);
