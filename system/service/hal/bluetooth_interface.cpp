@@ -270,6 +270,13 @@ void BluetoothInterface::CleanUp() {
 }
 
 // static
+bool BluetoothInterface::IsInitialized() {
+  lock_guard<mutex> lock(g_instance_lock);
+
+  return g_bluetooth_interface != nullptr;
+}
+
+// static
 BluetoothInterface* BluetoothInterface::Get() {
   lock_guard<mutex> lock(g_instance_lock);
   CHECK(g_bluetooth_interface);

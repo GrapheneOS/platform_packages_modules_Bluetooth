@@ -14,10 +14,10 @@
 //  limitations under the License.
 //
 
-#include "service/hal/bluetooth_interface.h"
-
 #include <base/macros.h>
 #include <base/observer_list.h>
+
+#include "service/hal/bluetooth_interface.h"
 
 namespace bluetooth {
 namespace hal {
@@ -26,6 +26,8 @@ class FakeBluetoothInterface : public BluetoothInterface {
  public:
   // A Fake HAL Bluetooth interface. This is kept as a global singleton as the
   // Bluetooth HAL doesn't support anything otherwise.
+  //
+  // TODO(armansito): Use an abstract "TestHandler" interface instead.
   struct Manager {
     Manager();
     ~Manager() = default;
