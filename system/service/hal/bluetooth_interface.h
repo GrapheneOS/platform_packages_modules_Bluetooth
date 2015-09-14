@@ -57,10 +57,17 @@ class BluetoothInterface {
     // TODO(armansito): Complete the list of callbacks.
   };
 
-  // Initialize and clean up the BluetoothInterface singleton. CleanUp must be
-  // called on the same thread that called Initialize.
+  // Initialize and clean up the BluetoothInterface singleton. Returns false if
+  // the underlying HAL interface failed to initialize, and true on success.
   static bool Initialize();
+
+  // Shuts down and cleans up the interface. CleanUp must be called on the same
+  // thread that called Initialize.
   static void CleanUp();
+
+  // Returns true if the interface was initialized and a global singleton has
+  // been created.
+  static bool IsInitialized();
 
   // Initialize for testing. Use this to inject a test version of
   // BlueoothInterface. To be used from unit tests only.

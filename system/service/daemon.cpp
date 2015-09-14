@@ -21,6 +21,7 @@
 #include <base/logging.h>
 
 #include "service/adapter.h"
+#include "service/hal/bluetooth_gatt_interface.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/ipc/ipc_manager.h"
 #include "service/settings.h"
@@ -57,11 +58,32 @@ class DaemonImpl : public Daemon {
   }
 
  private:
+  bool StartUpBluetoothInterfaces() {
+    if (!hal::BluetoothInterface::Initialize())
+      goto failed;
+
+    if (!hal::BluetoothGattInterface::Initialize())
+      goto failed;
+
+    return true;
+
+  failed:
+    ShutDownBluetoothInterfaces();
+    return false;
+  }
+
+  void ShutDownBluetoothInterfaces() {
+    if (hal::BluetoothGattInterface::IsInitialized())
+      hal::BluetoothGattInterface::CleanUp();
+    if (hal::BluetoothInterface::IsInitialized())
+      hal::BluetoothInterface::CleanUp();
+  }
+
   void CleanUpBluetoothStack() {
     // The Adapter object needs to be cleaned up before the HAL interfaces.
     ipc_manager_.reset();
     adapter_.reset();
-    hal::BluetoothInterface::CleanUp();
+    ShutDownBluetoothInterfaces();
   }
 
   bool SetUpIPC() {
@@ -90,8 +112,8 @@ class DaemonImpl : public Daemon {
       return false;
     }
 
-    if (!hal::BluetoothInterface::Initialize()) {
-      LOG(ERROR) << "Failed to set up BluetoothInterface";
+    if (!StartUpBluetoothInterfaces()) {
+      LOG(ERROR) << "Failed to set up HAL Bluetooth interfaces";
       return false;
     }
 
