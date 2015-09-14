@@ -25,15 +25,16 @@ namespace bluetooth {
 
 class UUID {
  public:
-  enum Type {
-    kUUID128Octets = 16,
-    kUUID32Octets = 4,
-    kUUID16Octets = 2,
-  };
+  static constexpr int kNumBytes128 = 16;
+  static constexpr int kNumBytes32 = 4;
+  static constexpr int kNumBytes16 = 2;
 
-  typedef std::array<uint8_t, UUID::kUUID16Octets> UUID16Bit;
-  typedef std::array<uint8_t, UUID::kUUID32Octets> UUID32Bit;
-  typedef std::array<uint8_t, UUID::kUUID128Octets> UUID128Bit;
+  typedef std::array<uint8_t, kNumBytes16> UUID16Bit;
+  typedef std::array<uint8_t, kNumBytes32> UUID32Bit;
+  typedef std::array<uint8_t, kNumBytes128> UUID128Bit;
+
+  // Creates and returns a random 128-bit UUID.
+  static UUID GetRandom();
 
   // Construct a Bluetooth 'base' UUID.
   UUID();
@@ -45,9 +46,9 @@ class UUID {
   explicit UUID(const std::string& uuid);
 
   // std::array variants constructors.
-  explicit UUID(const UUID::UUID16Bit& uuid);
-  explicit UUID(const UUID::UUID32Bit& uuid);
-  explicit UUID(const UUID::UUID128Bit& uuid);
+  explicit UUID(const UUID16Bit& uuid);
+  explicit UUID(const UUID32Bit& uuid);
+  explicit UUID(const UUID128Bit& uuid);
 
   // Provide the full network-byte-ordered blob.
   const UUID128Bit GetFullBigEndian() const;
