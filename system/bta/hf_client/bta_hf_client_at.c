@@ -1013,39 +1013,33 @@ static char *bta_hf_client_parse_clcc(char *buffer)
     /* check optional part */
     if (*buffer == ',')
     {
-        int res2;
-
-        res2 = sscanf(buffer, ",\"%32[^\"]\",%hu%n", numstr, &type, &offset);
+        int res2 = sscanf(buffer, ",\"%32[^\"]\",%hu%n", numstr, &type, &offset);
         if (res2 < 0)
-        {
             return NULL;
-        }
 
         if (res2 == 0)
         {
             res2 = sscanf(buffer, ",\"\",%hu%n", &type, &offset);
             if (res < 0)
-            {
                 return NULL;
-            }
 
             /* numstr is not matched in second attempt, correct this */
             res2++;
             numstr[0] = '\0';
         }
 
-        if (res2 < 2)
+        if (res2 >= 2)
         {
-            return NULL;
+            res += res2;
+            buffer += offset;
         }
-
-        res += res2;
-        buffer += offset;
     }
 
+    /* Skip any remaing param,as they are not defined by BT HFP spec */
+    AT_SKIP_REST(buffer);
     AT_CHECK_RN(buffer);
 
-    if(res > 6)
+    if (res > 6)
     {
         /* we also have last two optional parameters */
         bta_hf_client_handle_clcc(idx, dir, status, mode, mpty, numstr, type);
