@@ -359,7 +359,7 @@ static void reschedule_root_alarm(void) {
     // timer so we simply cancel it.
     struct itimerspec end_of_time;
     memset(&end_of_time, 0, sizeof(end_of_time));
-    end_of_time.it_value.tv_sec = (time_t)((1LL << (sizeof(time_t) * 8 - 1)) - 1);
+    end_of_time.it_value.tv_sec = (time_t)((1ULL << (sizeof(time_t) * 8 - 1)) - 1);
     timer_settime(wakeup_timer, TIMER_ABSTIME, &end_of_time, NULL);
   } else {
     // WARNING: do not attempt to use relative timers with *_ALARM clock IDs
