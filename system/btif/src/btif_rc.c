@@ -26,9 +26,11 @@
 
 #define LOG_TAG "bt_btif_avrc"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <hardware/bluetooth.h>
@@ -149,6 +151,7 @@ static int  uinput_create(char *name);
 static int  init_uinput (void);
 static void close_uinput (void);
 static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev);
+static void sleep_ms(uint32_t timeout_ms);
 
 static const struct {
     const char *name;
@@ -611,7 +614,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
             send_key(uinput_fd, key_map[i].mapped_id, pressed);
             if ((key_map[i].release_quirk == 1) && (pressed == 1))
             {
-                GKI_delay(30); // 30ms
+                sleep_ms(30);
                 BTIF_TRACE_DEBUG("%s: AVRC %s Release quirk enabled, send release now",
                                   __FUNCTION__, key_map[i].name);
                 send_key(uinput_fd, key_map[i].mapped_id, 0);
@@ -888,12 +891,12 @@ void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp)
              ** which causes the audio to be on th device's speaker. Delay between
              ** OPEN & RC_PLAYs
             */
-            GKI_delay (200);
+            sleep_ms(200);
             /* send to app - both PRESSED & RELEASED */
             remote_cmd.key_state  = AVRC_STATE_PRESS;
             handle_rc_passthrough_cmd( &remote_cmd );
 
-            GKI_delay (100);
+            sleep_ms(100);
 
             remote_cmd.key_state  = AVRC_STATE_RELEASE;
             handle_rc_passthrough_cmd( &remote_cmd );
@@ -1918,4 +1921,23 @@ static BOOLEAN dev_blacklisted_for_absolute_volume(BD_ADDR peer_dev)
     BTIF_TRACE_WARNING("blacklist absolute volume for %02x:%02x:%02x, name = %s",
                         peer_dev[0], peer_dev[1], peer_dev[2], dev_name_str);
     return TRUE;
+}
+
+/*******************************************************************************
+**      Function       sleep_ms
+**
+**      Description    Sleep the calling thread unconditionally for
+**                     |timeout_ms| milliseconds.
+**
+**      Returns        void
+*******************************************************************************/
+static void sleep_ms(uint32_t timeout_ms) {
+    struct timespec delay;
+    delay.tv_sec = timeout_ms / 1000;
+    delay.tv_nsec = 1000 * 1000 * (timeout_ms % 1000);
+
+    int err;
+    do {
+        err = nanosleep(&delay, &delay);
+    } while (err == -1 && errno == EINTR);
 }
