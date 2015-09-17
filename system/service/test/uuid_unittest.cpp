@@ -121,3 +121,10 @@ TEST(UUIDTest, Init128BitString) {
   UUID uuid(uuid_text);
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_128);
 }
+
+TEST(UUIDTest, ToString) {
+  const UUID::UUID16Bit data{{ 0x18, 0x0d }};
+  UUID uuid(data);
+  std::string uuid_string = uuid.ToString();
+  EXPECT_EQ("0000180d-0000-1000-8000-00805f9b34fb", uuid_string);
+}
