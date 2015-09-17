@@ -18,7 +18,9 @@
 
 #include <base/logging.h>
 
-#include "service/adapter.h"
+#include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
+
+using android::sp;
 
 namespace ipc {
 namespace binder {
@@ -61,24 +63,28 @@ bool BluetoothBinderServer::Disable() {
 }
 
 std::string BluetoothBinderServer::GetAddress() {
+  VLOG(2) << __func__;
   return adapter_->GetAddress();
 }
 
 std::vector<bluetooth::UUID> BluetoothBinderServer::GetUUIDs() {
+  VLOG(2) << __func__;
   // TODO(armansito): Implement.
   return std::vector<bluetooth::UUID>();
 }
 
 bool BluetoothBinderServer::SetName(const std::string& name) {
+  VLOG(2) << __func__;
   return adapter_->SetName(name);
 }
 
 std::string BluetoothBinderServer::GetName() {
+  VLOG(2) << __func__;
   return adapter_->GetName();
 }
 
 void BluetoothBinderServer::RegisterCallback(
-    const android::sp<IBluetoothCallback>& callback) {
+    const sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
   if (!callback.get() ) {
     LOG(ERROR) << "RegisterCallback called with NULL binder. Ignoring.";
@@ -88,7 +94,7 @@ void BluetoothBinderServer::RegisterCallback(
 }
 
 void BluetoothBinderServer::UnregisterCallback(
-    const android::sp<IBluetoothCallback>& callback) {
+    const sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
   if (!callback.get() ) {
     LOG(ERROR) << "UnregisterCallback called with NULL binder. Ignoring.";
@@ -100,6 +106,21 @@ void BluetoothBinderServer::UnregisterCallback(
 bool BluetoothBinderServer::IsMultiAdvertisementSupported() {
   VLOG(2) << __func__;
   return adapter_->IsMultiAdvertisementSupported();
+}
+
+sp<IBluetoothLowEnergy>
+BluetoothBinderServer::GetLowEnergyInterface() {
+  VLOG(2) << __func__;
+
+  if (!adapter_->IsEnabled()) {
+    LOG(ERROR) << "Cannot obtain IBluetoothLowEnergy interface while disabled";
+    return nullptr;
+  }
+
+  if (!low_energy_interface_.get())
+    low_energy_interface_ = new BluetoothLowEnergyBinderServer(adapter_);
+
+  return low_energy_interface_;
 }
 
 void BluetoothBinderServer::OnAdapterStateChanged(
