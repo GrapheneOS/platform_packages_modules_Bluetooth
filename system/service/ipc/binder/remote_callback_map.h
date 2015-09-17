@@ -175,7 +175,7 @@ sp<V> RemoteCallbackMap<K, V>::Get(const K& key) {
   if (iter == map_.end())
     return nullptr;
 
-  return iter->second;
+  return iter->second->get_callback();
 }
 
 template<typename K, typename V>
