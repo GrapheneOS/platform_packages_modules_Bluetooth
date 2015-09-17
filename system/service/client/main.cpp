@@ -86,6 +86,12 @@ void PrintError(const string& message) {
   cout << COLOR_RED << message << COLOR_OFF << endl;
 }
 
+void PrintOpStatus(const std::string& op, bool status) {
+  cout << COLOR_BOLDWHITE << op << " status: " COLOR_OFF
+       << (status ? (COLOR_GREEN "success") : (COLOR_RED "failure"))
+       << COLOR_OFF << endl << endl;
+}
+
 class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
  public:
   CLIBluetoothCallback() = default;
@@ -135,9 +141,16 @@ class CLIBluetoothLowEnergyCallback
 
   void OnMultiAdvertiseCallback(
       int status, bool is_start,
-      const bluetooth::AdvertiseSettings& settings) {
-    // TODO(armansito): Implement once there are commands to start and stop
-    // advertising.
+      const bluetooth::AdvertiseSettings& /* settings */) {
+    if (showing_prompt.load())
+      cout << endl;
+
+    std::string op = is_start ? "start" : "stop";
+
+    PrintOpStatus("Advertising " + op, status == bluetooth::BLE_STATUS_SUCCESS);
+
+    if (showing_prompt.load())
+      PrintPrompt();
   }
 
  private:
@@ -145,9 +158,7 @@ class CLIBluetoothLowEnergyCallback
 };
 
 void PrintCommandStatus(bool status) {
-  cout << COLOR_BOLDWHITE "Command status: " COLOR_OFF
-       << (status ? (COLOR_GREEN "success") : (COLOR_RED "failure"))
-       << COLOR_OFF << endl << endl;
+  PrintOpStatus("Command", status);
 }
 
 void PrintFieldAndValue(const string& field, const string& value) {
@@ -282,6 +293,93 @@ void HandleUnregisterAllBLE(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(true);
 }
 
+void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
+  bool include_name = false;
+  bool include_tx_power = false;
+  bool connectable = false;
+  bool set_manufacturer_data = false;
+
+  for (const auto& arg : args) {
+    if (arg == "-n")
+      include_name = true;
+    else if (arg == "-t")
+      include_tx_power = true;
+    else if (arg == "-c")
+      connectable = true;
+    else if (arg == "-m")
+      set_manufacturer_data = true;
+    else if (arg == "-h") {
+      const char* kUsage =
+          "Usage: start-adv [flags]\n"
+          "\n"
+          "Flags\n"
+          "\t-n\tInclude device name\n"
+          "\t-t\tInclude TX power\n"
+          "\t-c\tSend connectable adv. packets (default is non-connectable)\n"
+          "\t-m\tInclude random manufacturer data\n"
+          "\t-h\tShow this help message\n";
+      cout << kUsage << endl;
+      return;
+    }
+    else {
+      PrintError("Unrecognized option: " + arg);
+      return;
+    }
+  }
+
+  if (!ble_client_if.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  std::vector<uint8_t> data;
+  if (set_manufacturer_data) {
+    data = {{
+      0x07, bluetooth::kEIRTypeManufacturerSpecificData,
+      0xe0, 0x00,
+      'T', 'e', 's', 't'
+    }};
+  }
+
+  base::TimeDelta timeout;
+
+  bluetooth::AdvertiseSettings settings(
+      bluetooth::AdvertiseSettings::MODE_LOW_POWER,
+      timeout,
+      bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM,
+      connectable);
+
+  bluetooth::AdvertiseData adv_data(data);
+  adv_data.set_include_device_name(include_name);
+  adv_data.set_include_tx_power_level(include_tx_power);
+
+  bluetooth::AdvertiseData scan_rsp;
+
+  ble_iface->StartMultiAdvertising(ble_client_if.load(),
+                                   adv_data, scan_rsp, settings);
+}
+
+void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
+  if (!ble_client_if.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  ble_iface->StopMultiAdvertising(ble_client_if.load());
+}
+
 void HandleHelp(IBluetooth* bt_iface, const vector<string>& args);
 
 struct {
@@ -307,6 +405,8 @@ struct {
     "\t\tUnregister from the Bluetooth Low Energy interface" },
   { "unregister-all-ble", HandleUnregisterAllBLE,
     "\tUnregister all clients from the Bluetooth Low Energy interface" },
+  { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
+  { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
   {},
 };
 
