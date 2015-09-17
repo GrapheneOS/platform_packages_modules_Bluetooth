@@ -19,6 +19,8 @@
 #include <array>
 #include <string>
 
+#include <base/hash.h>
+
 #include "hardware/bluetooth.h"
 
 namespace bluetooth {
@@ -72,3 +74,21 @@ class UUID {
 };
 
 }  // namespace bluetooth
+
+// Custom std::hash specialization so that bluetooth::UUID can be used as a key
+// in std::unordered_map.
+namespace std {
+
+template<>
+struct hash<bluetooth::UUID> {
+  std::size_t operator()(const bluetooth::UUID& key) const {
+    // Compute individual hash values for each byte and then combine them using
+    // XOR and bitshifting.
+    const auto& uuid_bytes = key.GetFullBigEndian();
+
+    return base::SuperFastHash(reinterpret_cast<const char*>(uuid_bytes.data()),
+                               uuid_bytes.size());
+  }
+};
+
+}  // namespace std
