@@ -17,8 +17,8 @@
 #pragma once
 
 #include <functional>
-#include <map>
 #include <mutex>
+#include <unordered_map>
 
 #include <base/logging.h>
 #include <base/macros.h>
@@ -69,12 +69,12 @@ class RemoteCallbackList final {
  private:
   class CallbackDeathRecipient : public android::IBinder::DeathRecipient {
    public:
-    explicit CallbackDeathRecipient(const android::sp<T>& callback,
-                                    RemoteCallbackList* owner);
+    CallbackDeathRecipient(const android::sp<T>& callback,
+                           RemoteCallbackList* owner);
 
     android::sp<T> get_callback() const { return callback_; }
 
-    // android::DeathRecipient override:
+    // android::IBinder::DeathRecipient override:
     void binderDied(const android::wp<android::IBinder>& who) override;
 
    private:
@@ -84,8 +84,8 @@ class RemoteCallbackList final {
 
   // Typedef for internal map container. This keeps track of a given Binder and
   // a death receiver associated with it.
-  using CallbackMap = std::map<android::sp<android::IBinder>,
-                               android::sp<CallbackDeathRecipient>>;
+  using CallbackMap = std::unordered_map<android::IBinder*,
+                                         android::sp<CallbackDeathRecipient>>;
 
   bool UnregisterInternal(typename CallbackMap::iterator iter);
 
@@ -115,7 +115,7 @@ bool RemoteCallbackList<T>::Register(const sp<T>& callback) {
   std::lock_guard<std::mutex> lock(map_lock_);
 
   sp<IBinder> binder = IInterface::asBinder(callback.get());
-  if (callbacks_.find(binder) != callbacks_.end()) {
+  if (callbacks_.find(binder.get()) != callbacks_.end()) {
     VLOG(1) << "Callback list already contains given callback";
     return false;
   }
@@ -127,9 +127,9 @@ bool RemoteCallbackList<T>::Register(const sp<T>& callback) {
     return false;
   }
 
-  callbacks_[binder] = dr;
+  callbacks_[binder.get()] = dr;
 
-  VLOG(1) << "Callback successfully registered";
+  VLOG(2) << "Callback successfully registered with list";
 
   return true;
 }
@@ -139,9 +139,9 @@ bool RemoteCallbackList<T>::Unregister(const sp<T>& callback) {
   std::lock_guard<std::mutex> lock(map_lock_);
 
   sp<IBinder> binder = IInterface::asBinder(callback.get());
-  auto iter = callbacks_.find(binder);
+  auto iter = callbacks_.find(binder.get());
   if (iter == callbacks_.end()) {
-    VLOG(1) << "Given callback not registered";
+    VLOG(2) << "Given callback not registered with this list";
     return false;
   }
 
@@ -164,10 +164,14 @@ bool RemoteCallbackList<T>::UnregisterInternal(
   if (IInterface::asBinder(dr->get_callback().get())->unlinkToDeath(dr) !=
       android::NO_ERROR) {
     LOG(ERROR) << "Failed to unlink death recipient from binder";
+
+    // We removed the entry from |map_| but unlinkToDeath failed. There isn't
+    // really much we can do here other than deleting the binder and returning
+    // an error.
     return false;
   }
 
-  VLOG(1) << "Callback successfully unregistered";
+  VLOG(2) << "Callback successfully removed from list";
 
   return true;
 }
@@ -192,7 +196,7 @@ void RemoteCallbackList<T>::CallbackDeathRecipient::binderDied(
 
   // Remove the callback but no need to call unlinkToDeath.
   std::lock_guard<std::mutex> lock(owner_->map_lock_);
-  auto iter = owner_->callbacks_.find(binder);
+  auto iter = owner_->callbacks_.find(binder.get());
   CHECK(iter != owner_->callbacks_.end());
   owner_->callbacks_.erase(iter);
 
