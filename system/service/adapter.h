@@ -25,12 +25,13 @@
 
 #include "service/adapter_state.h"
 #include "service/hal/bluetooth_interface.h"
+#include "service/low_energy_client.h"
 #include "service/util/atomic_string.h"
 
 namespace bluetooth {
 
 // Represents the local Bluetooth adapter.
-class Adapter : hal::BluetoothInterface::Observer {
+class Adapter : public hal::BluetoothInterface::Observer {
  public:
   // The default values returned before the Adapter is fully initialized and
   // powered. The complete values for these fields are obtained following a
@@ -88,6 +89,10 @@ class Adapter : hal::BluetoothInterface::Observer {
   // multi-advertisement feature.
   bool IsMultiAdvertisementSupported() const;
 
+  // Returns a pointer to the LowEnergyClientFactory. This can be used to
+  // perform BLE GAP operations.
+  LowEnergyClientFactory* GetLowEnergyClientFactory() const;
+
  private:
   // hal::BluetoothInterface::Observer overrides.
   void AdapterStateChangedCallback(bt_state_t state) override;
@@ -120,6 +125,9 @@ class Adapter : hal::BluetoothInterface::Observer {
   // List of observers that are interested in notifications from us.
   std::mutex observers_lock_;
   base::ObserverList<Observer> observers_;
+
+  // Factory used to create per-app LowEnergyClient instances.
+  std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };

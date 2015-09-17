@@ -59,6 +59,9 @@ class UUID {
   // Helper for bluedroid LE type.
   const bt_uuid_t GetBlueDroid() const;
 
+  // Returns a string representation for the UUID.
+  std::string ToString() const;
+
   bool operator<(const UUID& rhs) const;
   bool operator==(const UUID& rhs) const;
 
