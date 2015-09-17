@@ -100,13 +100,90 @@ void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
     const bluetooth::AdvertiseData& advertise_data,
     const bluetooth::AdvertiseData& scan_response,
     const bluetooth::AdvertiseSettings& settings) {
-  LOG(WARNING) << "Not implemented";
-  // TODO(armansito): implement
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(maps_lock_);
+
+  auto iter = cif_to_client_.find(client_if);
+  if (iter == cif_to_client_.end()) {
+    LOG(ERROR) << "Unknown client_if: " << client_if;
+    return;
+  }
+
+  android::sp<IBluetoothLowEnergyCallback> cb = cif_to_cb_.Get(client_if);
+  if (!cb.get()) {
+    LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
+    return;
+  }
+
+  // Create a weak pointer and pass that to the callback to prevent a potential
+  // use after free.
+  bluetooth::AdvertiseSettings settings_copy = settings;
+  android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
+  auto callback = [&](bluetooth::BLEStatus status) {
+    auto sp_to_this = weak_ptr_to_this.promote();
+    if (!sp_to_this.get()) {
+      VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
+      return;
+    }
+
+    std::lock_guard<std::mutex> lock(maps_lock_);
+
+    cb->OnMultiAdvertiseCallback(status, true /* is_start */, settings_copy);
+  };
+
+  std::shared_ptr<bluetooth::LowEnergyClient> client = iter->second;
+  if (client->StartAdvertising(
+      settings, advertise_data, scan_response, callback))
+    return;
+
+  LOG(ERROR) << "Failed to initiate call to start advertising";
+
+  // Notify error in oneway callback.
+  cb->OnMultiAdvertiseCallback(
+      bluetooth::BLE_STATUS_FAILURE, true /* is_start */, settings_copy);
 }
 
 void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
-  LOG(WARNING) << "Not implemented";
-  // TODO(armansito): implement
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(maps_lock_);
+
+  auto iter = cif_to_client_.find(client_if);
+  if (iter == cif_to_client_.end()) {
+    LOG(ERROR) << "Unknown client_if: " << client_if;
+    return;
+  }
+
+  android::sp<IBluetoothLowEnergyCallback> cb = cif_to_cb_.Get(client_if);
+  if (!cb.get()) {
+    LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
+    return;
+  }
+
+  // Create a weak pointer and pass that to the callback to prevent a potential
+  // use after free.
+  android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
+  std::shared_ptr<bluetooth::LowEnergyClient> client = iter->second;
+  bluetooth::AdvertiseSettings settings_copy = client->settings();
+  auto callback = [&](bluetooth::BLEStatus status) {
+    auto sp_to_this = weak_ptr_to_this.promote();
+    if (!sp_to_this.get()) {
+      VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
+      return;
+    }
+
+    std::lock_guard<std::mutex> lock(maps_lock_);
+
+    cb->OnMultiAdvertiseCallback(status, false /* is_start */, settings_copy);
+  };
+
+  if (client->StopAdvertising(callback))
+    return;
+
+  LOG(ERROR) << "Failed to initiate call to start advertising";
+
+  // Notify error in oneway callback.
+  cb->OnMultiAdvertiseCallback(
+      bluetooth::BLE_STATUS_FAILURE, false/* is_start */, settings_copy);
 }
 
 void BluetoothLowEnergyBinderServer::OnRemoteCallbackRemoved(const int& key) {
