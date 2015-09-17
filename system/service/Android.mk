@@ -30,6 +30,7 @@ btserviceCommonSrc := \
 	ipc/ipc_manager.cpp \
 	ipc/unix_ipc_host.cpp \
 	logging_helpers.cpp \
+	low_energy_client.cpp \
 	settings.cpp \
 	util/atomic_string.cpp \
 	uuid.cpp
@@ -76,6 +77,7 @@ LOCAL_SRC_FILES := \
 	test/adapter_unittest.cpp \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \
+	test/low_energy_client_unittest.cpp \
 	test/settings_unittest.cpp \
 	test/stub_ipc_handler_binder.cpp \
 	test/uuid_unittest.cpp

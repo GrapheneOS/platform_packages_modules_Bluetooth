@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "service/adapter.h"
+#include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/fake_bluetooth_interface.h"
 
 namespace bluetooth {
@@ -33,11 +34,16 @@ class AdapterTest : public ::testing::Test {
     fake_hal_iface_ = new hal::FakeBluetoothInterface();
     hal::BluetoothInterface::InitializeForTesting(fake_hal_iface_);
 
+    // Initialize GATT interface with default handler.
+    hal::BluetoothGattInterface::InitializeForTesting(
+        new hal::FakeBluetoothGattInterface(nullptr));
+
     adapter_.reset(new Adapter());
   }
 
   void TearDown() override {
     adapter_.reset();
+    hal::BluetoothGattInterface::CleanUp();
     hal::BluetoothInterface::CleanUp();
   }
 

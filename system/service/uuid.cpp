@@ -22,6 +22,7 @@
 #include <string>
 
 #include <base/rand_util.h>
+#include <base/strings/stringprintf.h>
 
 namespace bluetooth {
 
@@ -82,6 +83,15 @@ const bt_uuid_t UUID::GetBlueDroid() const {
   bt_uuid_t ret;
   std::reverse_copy(id_.begin(), id_.end(), ret.uu);
   return ret;
+}
+
+std::string UUID::ToString() const {
+  return base::StringPrintf(
+      "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+      id_[0], id_[1], id_[2], id_[3],
+      id_[4], id_[5], id_[6], id_[7],
+      id_[8], id_[9], id_[10], id_[11],
+      id_[12], id_[13], id_[14], id_[15]);
 }
 
 bool UUID::operator<(const UUID& rhs) const {
