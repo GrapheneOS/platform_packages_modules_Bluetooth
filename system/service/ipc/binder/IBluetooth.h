@@ -24,6 +24,7 @@
 #include <binder/IInterface.h>
 
 #include "service/ipc/binder/IBluetoothCallback.h"
+#include "service/ipc/binder/IBluetoothLowEnergy.h"
 #include "service/uuid.h"
 
 namespace ipc {
@@ -39,7 +40,7 @@ class IBluetooth : public android::IInterface {
  public:
   DECLARE_META_INTERFACE(Bluetooth);
 
-  static const char kBluetoothServiceName[];
+  static const char kServiceName[];
 
   // Transaction codes for interface methods.
   enum {
@@ -118,6 +119,8 @@ class IBluetooth : public android::IInterface {
     DUMP_TRANSACTION,
     ON_LE_SERVICE_UP_TRANSACTION,
     ON_BR_EDR_DOWN_TRANSACTION,
+
+    GET_LOW_ENERGY_INTERFACE_TRANSACTION,
   };
 
   // Returns a handle to the IBluetooth Binder from the Android ServiceManager.
@@ -144,13 +147,13 @@ class IBluetooth : public android::IInterface {
 
   virtual bool IsMultiAdvertisementSupported() = 0;
 
+  virtual android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IBluetooth);
 };
-
-// TODO(armansito): Implement notification for when the process dies.
 
 // The Binder server interface to IBluetooth. A class that implements IBluetooth
 // must inherit from this class.
@@ -172,7 +175,7 @@ class BnBluetooth : public android::BnInterface<IBluetooth> {
 // The Binder client interface to IBluetooth.
 class BpBluetooth : public android::BpInterface<IBluetooth> {
  public:
-  BpBluetooth(const android::sp<android::IBinder>& impl);
+  explicit BpBluetooth(const android::sp<android::IBinder>& impl);
   virtual ~BpBluetooth() = default;
 
   // IBluetooth overrides:
@@ -193,6 +196,8 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
       const android::sp<IBluetoothCallback>& callback) override;
 
   bool IsMultiAdvertisementSupported() override;
+
+  android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetooth);

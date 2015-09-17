@@ -24,11 +24,14 @@
 #include "service/adapter.h"
 #include "service/ipc/binder/IBluetooth.h"
 #include "service/ipc/binder/IBluetoothCallback.h"
+#include "service/ipc/binder/IBluetoothLowEnergy.h"
 #include "service/ipc/binder/remote_callback_list.h"
 #include "service/uuid.h"
 
 namespace ipc {
 namespace binder {
+
+class BluetoothLowEnergyBinderServer;
 
 // Implements the server side of the IBluetooth Binder interface.
 class BluetoothBinderServer : public BnBluetooth,
@@ -55,6 +58,7 @@ class BluetoothBinderServer : public BnBluetooth,
       const android::sp<IBluetoothCallback>& callback) override;
 
   bool IsMultiAdvertisementSupported() override;
+  android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
 
   // bluetooth::Adapter::Observer overrides:
   void OnAdapterStateChanged(bluetooth::Adapter* adapter,
@@ -62,9 +66,12 @@ class BluetoothBinderServer : public BnBluetooth,
                              bluetooth::AdapterState new_state) override;
 
  private:
-  // Weak handle on the Adapter.
-  bluetooth::Adapter* adapter_;
+  bluetooth::Adapter* adapter_;  // weak
   RemoteCallbackList<IBluetoothCallback> callbacks_;
+
+  // The IBluetoothLowEnergy interface handle. This is lazily initialized on the
+  // first call to GetLowEnergyInterface().
+  android::sp<IBluetoothLowEnergy> low_energy_interface_;
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothBinderServer);
 };

@@ -37,8 +37,11 @@ btserviceCommonSrc := \
 
 btserviceBinderSrc := \
 	ipc/binder/bluetooth_binder_server.cpp \
+	ipc/binder/bluetooth_low_energy_binder_server.cpp \
 	ipc/binder/IBluetooth.cpp \
 	ipc/binder/IBluetoothCallback.cpp \
+	ipc/binder/IBluetoothLowEnergy.cpp \
+	ipc/binder/IBluetoothLowEnergyCallback.cpp \
 	ipc/binder/ipc_handler_binder.cpp
 
 btserviceCommonIncludes := $(LOCAL_PATH)/../

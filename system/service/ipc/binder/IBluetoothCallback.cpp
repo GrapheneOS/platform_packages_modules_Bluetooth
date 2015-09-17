@@ -22,18 +22,19 @@
 using android::IBinder;
 using android::Parcel;
 using android::sp;
+using android::status_t;
 
 namespace ipc {
 namespace binder {
 
 // static
-const char IBluetoothCallback::kBluetoothCallbackServiceName[] =
+const char IBluetoothCallback::kServiceName[] =
     "bluetooth-callback-service";
 
 // BnBluetoothCallback (server) implementation
 // ========================================================
 
-android::status_t BnBluetoothCallback::onTransact(
+status_t BnBluetoothCallback::onTransact(
     uint32_t code,
     const Parcel& data,
     Parcel* reply,
@@ -79,8 +80,7 @@ void BpBluetoothCallback::OnBluetoothStateChange(
                      data, &reply);
 }
 
-IMPLEMENT_META_INTERFACE(BluetoothCallback,
-                         IBluetoothCallback::kBluetoothCallbackServiceName);
+IMPLEMENT_META_INTERFACE(BluetoothCallback, IBluetoothCallback::kServiceName);
 
 }  // namespace binder
 }  // namespace ipc

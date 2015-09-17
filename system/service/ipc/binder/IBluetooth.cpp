@@ -26,13 +26,14 @@ using android::interface_cast;
 using android::IServiceManager;
 using android::Parcel;
 using android::sp;
+using android::status_t;
 using android::String16;
 
 namespace ipc {
 namespace binder {
 
 // static
-const char IBluetooth::kBluetoothServiceName[] = "bluetooth-service";
+const char IBluetooth::kServiceName[] = "bluetooth-service";
 
 // static
 sp<IBluetooth> IBluetooth::getClientInterface() {
@@ -42,7 +43,7 @@ sp<IBluetooth> IBluetooth::getClientInterface() {
     return nullptr;
   }
 
-  sp<IBinder> binder = sm->getService(String16(kBluetoothServiceName));
+  sp<IBinder> binder = sm->getService(String16(kServiceName));
   if (!binder.get()) {
     LOG(ERROR) << "Failed to obtain a handle to the Bluetooth service";
     return nullptr;
@@ -60,7 +61,7 @@ sp<IBluetooth> IBluetooth::getClientInterface() {
 // BnBluetooth (server) implementation
 // ========================================================
 
-android::status_t BnBluetooth::onTransact(
+status_t BnBluetooth::onTransact(
     uint32_t code,
     const Parcel& data,
     Parcel* reply,
@@ -124,6 +125,11 @@ android::status_t BnBluetooth::onTransact(
     case IS_MULTI_ADVERTISEMENT_SUPPORTED_TRANSACTION: {
       bool result = IsMultiAdvertisementSupported();
       reply->writeInt32(result);
+      return android::NO_ERROR;
+    }
+    case GET_LOW_ENERGY_INTERFACE_TRANSACTION: {
+      sp<IBluetoothLowEnergy> ble_iface = GetLowEnergyInterface();
+      reply->writeStrongBinder(IInterface::asBinder(ble_iface.get()));
       return android::NO_ERROR;
     }
     default:
@@ -247,7 +253,20 @@ bool BpBluetooth::IsMultiAdvertisementSupported() {
   return reply.readInt32();
 }
 
-IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kBluetoothServiceName);
+sp<IBluetoothLowEnergy> BpBluetooth::GetLowEnergyInterface() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+
+  remote()->transact(IBluetooth::GET_LOW_ENERGY_INTERFACE_TRANSACTION,
+                     data, &reply);
+
+  sp<IBinder> ble_iface = reply.readStrongBinder();
+
+  return interface_cast<IBluetoothLowEnergy>(ble_iface);
+}
+
+IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kServiceName);
 
 }  // namespace binder
 }  // namespace ipc
