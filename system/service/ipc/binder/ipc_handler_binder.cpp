@@ -48,7 +48,7 @@ bool IPCHandlerBinder::Run() {
   android::sp<binder::BluetoothBinderServer> bt_server =
       new binder::BluetoothBinderServer(adapter());
   status_t status = defaultServiceManager()->addService(
-      String16(binder::IBluetooth::kBluetoothServiceName),
+      String16(binder::IBluetooth::kServiceName),
       bt_server);
   if (status != android::NO_ERROR) {
     LOG(ERROR) << "Failed to register Bluetooth service with ServiceManager";
