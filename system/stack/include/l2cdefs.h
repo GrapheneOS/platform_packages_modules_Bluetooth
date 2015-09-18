@@ -273,6 +273,7 @@
  * including the l2cap headers in each packet - to match the latter - the -5 is added
  */
 #define L2CAP_MAX_SDU_LENGTH     (GKI_BUF4_SIZE - (L2CAP_MIN_OFFSET + L2CAP_MAX_HEADER_FCS) -5)
+#define L2CAP_MAX_BUF_SIZE      (10240 + 24)
 
 /* Part of L2CAP_MIN_OFFSET that is not part of L2CAP
 */

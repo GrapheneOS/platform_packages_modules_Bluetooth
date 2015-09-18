@@ -207,10 +207,10 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
     if ( sizeof(tBTA_PAN_DATA_PARAMS) > p_buf->offset )
     {
         /* offset smaller than data structure in front of actual data */
-        p_new_buf = (BT_HDR *)GKI_getpoolbuf( PAN_POOL_ID );
+        p_new_buf = (BT_HDR *)GKI_getbuf(PAN_BUF_SIZE);
         if(!p_new_buf)
         {
-            APPL_TRACE_WARNING("Cannot get a PAN GKI buffer");
+            APPL_TRACE_WARNING("Cannot get a PAN buffer");
             GKI_freebuf( p_buf );
             return;
         }

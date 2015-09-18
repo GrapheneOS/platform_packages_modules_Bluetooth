@@ -675,7 +675,6 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     UINT8       label, type, cr_ipid;
     UINT16      pid;
     tAVCT_CCB   *p_ccb;
-    BT_HDR      *p_buf;
 
     /* this p_buf is to be reported through p_msg_cback. The layer_specific
      * needs to be set properly to indicate that it is received through
@@ -720,7 +719,8 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         /* if command send reject */
         if (cr_ipid == AVCT_CMD)
         {
-            if ((p_buf = (BT_HDR *) GKI_getpoolbuf(AVCT_CMD_POOL_ID)) != NULL)
+            BT_HDR *p_buf = (BT_HDR *) GKI_getbuf(AVCT_CMD_BUF_SIZE);
+            if (p_buf != NULL)
             {
                 p_buf->len = AVCT_HDR_LEN_SINGLE;
                 p_buf->offset = AVCT_MSG_OFFSET - AVCT_HDR_LEN_SINGLE;

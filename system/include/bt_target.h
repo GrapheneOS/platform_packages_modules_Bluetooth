@@ -197,7 +197,7 @@
 #define HCI_CMD_POOL_BUF_SIZE       GKI_BUF2_SIZE
 #endif
 
-/* Receives ACL data packets from thelower-layer. */
+/* Receives ACL data packets from the lower-layer. */
 #ifndef HCI_ACL_POOL_ID
 #define HCI_ACL_POOL_ID             GKI_POOL_ID_3
 #endif
@@ -213,16 +213,28 @@
 #endif
 
 /* Sends SDP data packets. */
+#ifndef SDP_DATA_BUF_SIZE
+#define SDP_DATA_BUF_SIZE           (4096+16)
+#endif
+
 #ifndef SDP_POOL_ID
 #define SDP_POOL_ID                 3
 #endif
 
 /* Sends RFCOMM command packets. */
+#ifndef RFCOMM_CMD_BUF_SIZE
+#define RFCOMM_CMD_BUF_SIZE         660
+#endif
+
 #ifndef RFCOMM_CMD_POOL_ID
 #define RFCOMM_CMD_POOL_ID          GKI_POOL_ID_2
 #endif
 
 /* Sends RFCOMM data packets. */
+#ifndef RFCOMM_DATA_BUF_SIZE
+#define RFCOMM_DATA_BUF_SIZE        (4096+16)
+#endif
+
 #ifndef RFCOMM_DATA_POOL_ID
 #define RFCOMM_DATA_POOL_ID         GKI_POOL_ID_3
 #endif
@@ -232,6 +244,10 @@
 #endif
 
 /* Sends L2CAP packets to the peer and HCI messages to the controller. */
+#ifndef L2CAP_CMD_BUF_SIZE
+#define L2CAP_CMD_BUF_SIZE          660
+#endif
+
 #ifndef L2CAP_CMD_POOL_ID
 #define L2CAP_CMD_POOL_ID           GKI_POOL_ID_2
 #endif
@@ -246,6 +262,10 @@
 #define L2CAP_FCR_RX_POOL_ID        HCI_ACL_POOL_ID
 #endif
 
+#ifndef L2CAP_FCR_ERTM_BUF_SIZE
+#define L2CAP_FCR_ERTM_BUF_SIZE         (10240 + 24)
+#endif
+
 /* Number of ACL buffers to assign to LE
    if the HCI buffer pool is shared with BR/EDR */
 #ifndef L2C_DEF_NUM_BLE_BUF_SHARED
@@ -253,6 +273,10 @@
 #endif
 
 /* Used by BTM when it sends HCI commands to the controller. */
+#ifndef BTM_CMD_BUF_SIZE
+#define BTM_CMD_BUF_SIZE            660
+#endif
+
 #ifndef BTM_CMD_POOL_ID
 #define BTM_CMD_POOL_ID             GKI_POOL_ID_2
 #endif
@@ -264,7 +288,12 @@
 #ifndef OBX_LRG_DATA_POOL_ID
 #define OBX_LRG_DATA_POOL_ID        GKI_POOL_ID_4
 #endif
+
 /* Used to send data to L2CAP. */
+#ifndef GAP_DATA_BUF_SIZE
+#define GAP_DATA_BUF_SIZE           (4096+16)
+#endif
+
 #ifndef GAP_DATA_POOL_ID
 #define GAP_DATA_POOL_ID            GKI_POOL_ID_3
 #endif
@@ -274,6 +303,10 @@
 #endif
 
 /* BNEP data and protocol messages. */
+#ifndef BNEP_BUF_SIZE
+#define BNEP_BUF_SIZE               (4096+16)
+#endif
+
 #ifndef BNEP_POOL_ID
 #define BNEP_POOL_ID                GKI_POOL_ID_3
 #endif
@@ -281,6 +314,11 @@
 /* RPC pool for temporary trace message buffers. */
 #ifndef RPC_SCRATCH_POOL_ID
 #define RPC_SCRATCH_POOL_ID         GKI_POOL_ID_2
+#endif
+
+/* AVDTP buffer size for protocol messages */
+#ifndef AVDT_CMD_BUF_SIZE
+#define AVDT_CMD_BUF_SIZE           660
 #endif
 
 /* AVDTP pool for protocol messages */
@@ -293,15 +331,29 @@
 #define AVDT_DATA_POOL_SIZE         GKI_BUF3_SIZE
 #endif
 
+#ifndef PAN_BUF_SIZE
+#define PAN_BUF_SIZE                (4096+16)
+#endif
+
 #ifndef PAN_POOL_ID
 #define PAN_POOL_ID                 GKI_POOL_ID_3
 /* Maximum amount of the shared buffer to allocate for PAN */
 #define PAN_POOL_MAX                (GKI_BUF3_MAX / 4)
 #endif
 
+/* AVCTP buffer size for protocol messages */
+#ifndef AVCT_CMD_BUF_SIZE
+#define AVCT_CMD_BUF_SIZE           288
+#endif
+
 /* AVCTP pool for protocol messages */
 #ifndef AVCT_CMD_POOL_ID
 #define AVCT_CMD_POOL_ID            GKI_POOL_ID_1
+#endif
+
+/* AVRCP buffer size for protocol messages */
+#ifndef AVRC_CMD_BUF_SIZE
+#define AVRC_CMD_BUF_SIZE           288
 #endif
 
 /* AVRCP pool for protocol messages */
@@ -312,6 +364,11 @@
 /* AVRCP pool size for protocol messages */
 #ifndef AVRC_CMD_POOL_SIZE
 #define AVRC_CMD_POOL_SIZE          GKI_BUF1_SIZE
+#endif
+
+/* AVRCP Metadata buffer size for protocol messages */
+#ifndef AVRC_META_CMD_BUF_SIZE
+#define AVRC_META_CMD_BUF_SIZE     660
 #endif
 
 /* AVRCP Metadata pool for protocol messages */
@@ -330,13 +387,27 @@
 #define AVRC_BROWSE_POOL_SIZE     GKI_MAX_BUF_SIZE
 #endif
 
+#ifndef BTA_HL_LRG_DATA_BUF_SIZE
+#define BTA_HL_LRG_DATA_BUF_SIZE       (10240 + 24)
+#endif
+
 #ifndef BTA_HL_LRG_DATA_POOL_ID
 #define BTA_HL_LRG_DATA_POOL_ID        GKI_POOL_ID_7
+#endif
+
+/* GATT Server Database buffer size */
+#ifndef GATT_DB_BUF_SIZE
+#define GATT_DB_BUF_SIZE                128
 #endif
 
 /* GATT Server Database pool ID */
 #ifndef GATT_DB_POOL_ID
 #define GATT_DB_POOL_ID                 GKI_POOL_ID_8
+#endif
+
+/* GATT Data sending buffer size, use default ACL pool for fix channel data */
+#ifndef GATT_DATA_BUF_SIZE
+#define GATT_DATA_BUF_SIZE              (4096+16)
 #endif
 
 /* GATT Data sending buffer pool ID, use default ACL pool for fix channel data */
@@ -354,7 +425,7 @@
 #ifndef HCI_GET_CMD_BUF
 #if (!defined(HCI_USE_VARIABLE_SIZE_CMD_BUF) || (HCI_USE_VARIABLE_SIZE_CMD_BUF == FALSE))
 /* Allocate fixed-size buffer from HCI_CMD_POOL (default case) */
-#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)GKI_getpoolbuf (HCI_CMD_POOL_ID))
+#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)GKI_getbuf (HCI_CMD_POOL_BUF_SIZE))
 #else
 /* Allocate smallest possible buffer (for platforms with limited RAM) */
 #define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)GKI_getbuf ((UINT16)(BT_HDR_SIZE + HCIC_PREAMBLE_SIZE + (paramlen))))
@@ -1444,8 +1515,16 @@ Range: 2 octets
 #define HID_DEV_SUBCLASS            COD_MINOR_POINTING
 #endif
 
+#ifndef HID_CONTROL_BUF_SIZE
+#define HID_CONTROL_BUF_SIZE            (4096+16)
+#endif
+
 #ifndef HID_CONTROL_POOL_ID
 #define HID_CONTROL_POOL_ID             2
+#endif
+
+#ifndef HID_INTERRUPT_BUF_SIZE
+#define HID_INTERRUPT_BUF_SIZE          (4096+16)
 #endif
 
 #ifndef HID_INTERRUPT_POOL_ID

@@ -71,10 +71,10 @@ BT_HDR *attp_build_mtu_cmd(UINT8 op_code, UINT16 rx_mtu)
 *******************************************************************************/
 BT_HDR *attp_build_exec_write_cmd (UINT8 op_code, UINT8 flag)
 {
-    BT_HDR      *p_buf = NULL;
+    BT_HDR      *p_buf = (BT_HDR *)GKI_getbuf(GATT_DATA_BUF_SIZE);
     UINT8       *p;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf(GATT_BUF_POOL_ID)) != NULL)
+    if (p_buf != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 

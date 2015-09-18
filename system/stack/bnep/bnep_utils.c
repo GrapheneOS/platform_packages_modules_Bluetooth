@@ -171,12 +171,12 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8   *p, *p_start;
 
     BNEP_TRACE_DEBUG ("%s: sending setup req with dst uuid %x",
         __func__, p_bcb->dst_uuid.uu.uuid16);
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("%s: not able to send connection request", __func__);
         return;
@@ -233,11 +233,11 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnep_send_conn_responce (tBNEP_CONN *p_bcb, UINT16 resp_code)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_conn_responce for CID: 0x%x", p_bcb->l2cap_cid);
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - not able to send connection response");
         return;
@@ -272,13 +272,13 @@ void bnep_send_conn_responce (tBNEP_CONN *p_bcb, UINT16 resp_code)
 *******************************************************************************/
 void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 {
-    BT_HDR      *p_buf;
+    BT_HDR      *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8       *p;
     UINT16      xx;
 
     BNEP_TRACE_DEBUG ("BNEP sending peer our filters");
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - no buffer send filters");
         return;
@@ -322,13 +322,13 @@ void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 {
-    BT_HDR      *p_buf;
+    BT_HDR      *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8       *p;
     UINT16      xx;
 
     BNEP_TRACE_DEBUG ("BNEP sending peer our multicast filters");
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - no buffer to send multicast filters");
         return;
@@ -374,11 +374,11 @@ void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending filter response");
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - no buffer filter rsp");
         return;
@@ -412,11 +412,11 @@ void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 *******************************************************************************/
 void bnep_send_command_not_understood (tBNEP_CONN *p_bcb, UINT8 cmd_code)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_command_not_understood for CID: 0x%x, cmd 0x%x", p_bcb->l2cap_cid, cmd_code);
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - not able to send connection response");
         return;
@@ -1151,11 +1151,11 @@ void bnepu_process_peer_multicast_filter_set (tBNEP_CONN *p_bcb, UINT8 *p_filter
 *******************************************************************************/
 void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending multicast filter response %d", response_code);
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP - no buffer filter rsp");
         return;

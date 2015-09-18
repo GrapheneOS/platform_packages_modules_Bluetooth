@@ -410,7 +410,7 @@ void * btif_hl_get_buf(UINT16 size)
     else
     {
         BTIF_TRACE_DEBUG("btif_hl_get_buf use HL large data pool");
-        p_new = GKI_getpoolbuf(4);
+        p_new = GKI_getbuf(GKI_BUF4_SIZE);
     }
 
     return p_new;

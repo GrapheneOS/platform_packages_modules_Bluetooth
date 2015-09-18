@@ -3782,7 +3782,6 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
 *******************************************************************************/
 static void bta_dm_set_eir (char *local_name)
 {
-    BT_HDR   *p_buf;
     UINT8    *p;
     UINT8    *p_length;
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
@@ -3821,7 +3820,8 @@ static void bta_dm_set_eir (char *local_name)
 #endif  // BTA_EIR_CANNED_UUID_LIST
 
     /* Allocate a buffer to hold HCI command */
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf(BTM_CMD_POOL_ID)) == NULL)
+    BT_HDR *p_buf = (BT_HDR *)GKI_getbuf(BTM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
     {
         APPL_TRACE_ERROR("bta_dm_set_eir couldn't allocate buffer");
         return;

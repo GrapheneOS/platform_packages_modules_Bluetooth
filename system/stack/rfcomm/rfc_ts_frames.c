@@ -45,7 +45,8 @@ void rfc_send_sabme (tRFC_MCB *p_mcb, UINT8 dlci)
     UINT8   *p_data;
     UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -77,7 +78,8 @@ void rfc_send_ua (tRFC_MCB *p_mcb, UINT8 dlci)
     UINT8   *p_data;
     UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, FALSE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -109,7 +111,8 @@ void rfc_send_dm (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN pf)
     UINT8   *p_data;
     UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, FALSE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -141,7 +144,8 @@ void rfc_send_disc (tRFC_MCB *p_mcb, UINT8 dlci)
     UINT8   *p_data;
     UINT8   cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
@@ -237,7 +241,8 @@ void rfc_send_pn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT16 mtu, U
     BT_HDR   *p_buf;
     UINT8    *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -282,7 +287,8 @@ void rfc_send_fcon (tRFC_MCB *p_mcb, BOOLEAN is_command)
     BT_HDR  *p_buf;
     UINT8   *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -310,7 +316,8 @@ void rfc_send_fcoff (tRFC_MCB *p_mcb, BOOLEAN is_command)
     BT_HDR  *p_buf;
     UINT8   *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -345,7 +352,8 @@ void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
     signals        = p_pars->modem_signal;
     break_duration = p_pars->break_signal;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -389,10 +397,10 @@ void rfc_send_msc (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
 *******************************************************************************/
 void rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -420,10 +428,10 @@ void rfc_send_rls (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command, UINT8 status
 *******************************************************************************/
 void rfc_send_nsc (tRFC_MCB *p_mcb)
 {
-    BT_HDR  *p_buf;
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -453,10 +461,10 @@ void rfc_send_nsc (tRFC_MCB *p_mcb)
 void rfc_send_rpn (tRFC_MCB *p_mcb, UINT8 dlci, BOOLEAN is_command,
                    tPORT_STATE *p_pars, UINT16 mask)
 {
-    BT_HDR   *p_buf;
+    BT_HDR   *p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
     UINT8    *p_data;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET + RFCOMM_CTRL_FRAME_LEN;
@@ -542,11 +550,11 @@ void rfc_send_test (tRFC_MCB *p_mcb, BOOLEAN is_command, BT_HDR *p_buf)
 *******************************************************************************/
 void rfc_send_credit(tRFC_MCB *p_mcb, UINT8 dlci, UINT8 credit)
 {
-    BT_HDR   *p_buf;
     UINT8    *p_data;
     UINT8    cr = RFCOMM_CR(p_mcb->is_initiator, TRUE);
+    BT_HDR   *p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) == NULL)
+    if (p_buf == NULL)
         return;
 
     p_buf->offset = L2CAP_MIN_OFFSET;
