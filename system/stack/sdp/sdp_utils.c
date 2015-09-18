@@ -318,14 +318,14 @@ void sdpu_build_n_send_error (tCONN_CB *p_ccb, UINT16 trans_num, UINT16 error_co
 {
     UINT8           *p_rsp, *p_rsp_start, *p_rsp_param_len;
     UINT16          rsp_param_len;
-    BT_HDR          *p_buf;
+    BT_HDR          *p_buf = (BT_HDR *)GKI_getbuf(SDP_DATA_BUF_SIZE);
 
 
     SDP_TRACE_WARNING ("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x",
                         error_code, p_ccb->connection_id);
 
-    /* Get a buffer to use to build and send the packet to L2CAP */
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
+    /* Check the buffer to use to build and send the packet to L2CAP */
+    if (p_buf == NULL)
     {
         SDP_TRACE_ERROR ("SDP - no buf for err msg");
         return;

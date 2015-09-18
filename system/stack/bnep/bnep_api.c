@@ -535,8 +535,9 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
     if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
         return (BNEP_Q_SIZE_EXCEEDED);
 
-    /* Get a buffer to copy teh data into */
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (BNEP_POOL_ID)) == NULL)
+    /* Get a buffer to copy the data into */
+    p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP_Write() not able to get buffer");
         return (BNEP_NO_RESOURCES);

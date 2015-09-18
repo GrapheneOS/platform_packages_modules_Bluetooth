@@ -41,6 +41,9 @@
 /* Flag passed to retransmit_i_frames() when all packets should be retransmitted */
 #define L2C_FCR_RETX_ALL_PKTS   0xFF
 
+/* this is the minimal offset required by OBX to process incoming packets */
+static const uint16_t OBX_BUF_MIN_OFFSET = 4;
+
 #if BT_TRACE_VERBOSE == TRUE
 static char *SAR_types[] = { "Unsegmented", "Start", "End", "Continuation" };
 static char *SUP_types[] = { "RR", "REJ", "RNR", "SREJ" };
@@ -322,34 +325,14 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 ** Returns          pointer to new buffer
 **
 *******************************************************************************/
-BT_HDR *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes, UINT8 pool)
+BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
 {
     assert(p_buf != NULL);
-    BT_HDR *p_buf2;
+    uint16_t buf_size = no_of_bytes + sizeof(BT_HDR) + new_offset;
+    BT_HDR *p_buf2 = (BT_HDR *)GKI_getbuf(buf_size);
 
-    /* If using the common pool, should be at least 10% free. */
-    if ( (pool == HCI_ACL_POOL_ID) && (GKI_poolutilization (pool) > 90) )
+    if (p_buf2 != NULL)
     {
-        L2CAP_TRACE_ERROR ("L2CAP - failed to clone buffer on HCI_ACL_POOL_ID Utilization: %u", GKI_poolutilization(pool));
-        return (NULL);
-    }
-
-    if ((p_buf2 = (BT_HDR *)GKI_getpoolbuf(pool)) != NULL)
-    {
-        UINT16    pool_buf_size = GKI_get_pool_bufsize (pool);
-
-        /* Make sure buffer fits into buffer pool */
-        if ((no_of_bytes + sizeof(BT_HDR) + new_offset) > pool_buf_size)
-        {
-            L2CAP_TRACE_ERROR("##### l2c_fcr_clone_buf (NumBytes %d) -> Exceeds poolsize %d [bytes %d + BT_HDR %d + offset %d]",
-                               (no_of_bytes + sizeof(BT_HDR) + new_offset),
-                               pool_buf_size, no_of_bytes, sizeof(BT_HDR),
-                               new_offset);
-
-            GKI_freebuf(p_buf2);
-            return (NULL);
-        }
-
         p_buf2->offset = new_offset;
         p_buf2->len    = no_of_bytes;
 
@@ -359,7 +342,8 @@ BT_HDR *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes,
     }
     else
     {
-        L2CAP_TRACE_ERROR ("L2CAP - failed to clone buffer, Pool: %u  Count: %u", pool,  GKI_poolfreecount(pool));
+        L2CAP_TRACE_ERROR("L2CAP - failed to clone buffer, Size: %u",
+                          buf_size);
     }
 
     return (p_buf2);
@@ -538,7 +522,8 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     ctrl_word |= (p_ccb->fcrb.next_seq_expected << L2CAP_FCR_REQ_SEQ_BITS_SHIFT);
     ctrl_word |= pf_bit;
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (L2CAP_CMD_POOL_ID)) != NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(L2CAP_CMD_BUF_SIZE);
+    if (p_buf != NULL)
     {
         p_buf->offset = HCI_DATA_PREAMBLE_SIZE;
         p_buf->len    = L2CAP_PKT_OVERHEAD + L2CAP_FCR_OVERHEAD;
@@ -1115,17 +1100,6 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
         return;
     }
 
-    /* If there are no free buffers in the user Rx queue, drop the  */
-    /* received buffer now before we update any sequence numbers    */
-    if (GKI_poolfreecount (p_ccb->ertm_info.user_rx_pool_id) == 0)
-    {
-        L2CAP_TRACE_WARNING ("L2CAP CID: 0x%04x  Dropping I-Frame seq: %u  User RX Pool: %u  (Size: %u)  has no free buffers!!",
-                              p_ccb->local_cid, tx_seq, p_ccb->ertm_info.user_rx_pool_id,
-                              GKI_poolcount (p_ccb->ertm_info.user_rx_pool_id));
-        GKI_freebuf(p_buf);
-        return;
-    }
-
     /* Check if tx-sequence is the expected one */
     if (tx_seq != p_fcrb->next_seq_expected)
     {
@@ -1159,7 +1133,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                         p_buf->offset -= L2CAP_FCR_OVERHEAD;
                         p_buf->len    += L2CAP_FCR_OVERHEAD;
 
-                        p_buf2 = l2c_fcr_clone_buf (p_buf, p_buf->offset, p_buf->len, p_ccb->ertm_info.fcr_rx_pool_id);
+                        p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
 
                         if (p_buf2)
                         {
@@ -1422,14 +1396,14 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
                 L2CAP_TRACE_WARNING ("SAR - SDU len: %u  larger than MTU: %u", p_fcrb->rx_sdu_len, p_fcrb->rx_sdu_len);
                 packet_ok = FALSE;
             }
-            else if ((p_fcrb->p_rx_sdu = (BT_HDR *)GKI_getpoolbuf (p_ccb->ertm_info.user_rx_pool_id)) == NULL)
+            else if ((p_fcrb->p_rx_sdu = (BT_HDR *)GKI_getbuf(L2CAP_MAX_BUF_SIZE)) == NULL)
             {
-                L2CAP_TRACE_ERROR ("SAR - no buffer for SDU start user_rx_pool_id:%d", p_ccb->ertm_info.user_rx_pool_id);
+                L2CAP_TRACE_ERROR ("SAR - no buffer for SDU start");
                 packet_ok = FALSE;
             }
             else
             {
-                p_fcrb->p_rx_sdu->offset = 4; /* this is the minimal offset required by OBX to process incoming packets */
+                p_fcrb->p_rx_sdu->offset = OBX_BUF_MIN_OFFSET;
                 p_fcrb->p_rx_sdu->len    = 0;
             }
         }
@@ -1570,7 +1544,7 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 
     while (p_buf != NULL)
     {
-        p_buf2 = l2c_fcr_clone_buf (p_buf, p_buf->offset, p_buf->len, p_ccb->ertm_info.fcr_tx_pool_id);
+        p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
 
         if (p_buf2)
         {
@@ -1660,8 +1634,8 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
             mid_seg = TRUE;
 
         /* Get a new buffer and copy the data that can be sent in a PDU */
-        p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET,
-                                    max_pdu, p_ccb->ertm_info.fcr_tx_pool_id);
+        p_xmit = l2c_fcr_clone_buf(p_buf, L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET,
+                                   max_pdu);
 
         if (p_xmit != NULL)
         {
@@ -1676,7 +1650,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         }
         else /* Should never happen if the application has configured buffers correctly */
         {
-            L2CAP_TRACE_ERROR ("L2CAP - cannot get buffer, for segmentation, pool: %u", p_ccb->ertm_info.fcr_tx_pool_id);
+            L2CAP_TRACE_ERROR ("L2CAP - cannot get buffer for segmentation, max_pdu: %u", max_pdu);
             return (NULL);
         }
     }
@@ -1733,12 +1707,12 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
     {
-        BT_HDR *p_wack = l2c_fcr_clone_buf (p_xmit, HCI_DATA_PREAMBLE_SIZE, p_xmit->len, p_ccb->ertm_info.fcr_tx_pool_id);
+        BT_HDR *p_wack = l2c_fcr_clone_buf(p_xmit, HCI_DATA_PREAMBLE_SIZE, p_xmit->len);
 
         if (!p_wack)
         {
-            L2CAP_TRACE_ERROR ("L2CAP - no buffer for xmit cloning, CID: 0x%04x  Pool: %u  Count: %u",
-                                p_ccb->local_cid, p_ccb->ertm_info.fcr_tx_pool_id,  GKI_poolfreecount(p_ccb->ertm_info.fcr_tx_pool_id));
+            L2CAP_TRACE_ERROR("L2CAP - no buffer for xmit cloning, CID: 0x%04x  Length: %u",
+                              p_ccb->local_cid, p_xmit->len);
 
             /* We will not save the FCS in case we reconfigure and change options */
             if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)

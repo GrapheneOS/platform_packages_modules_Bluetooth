@@ -523,9 +523,9 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
         return PAN_SUCCESS;
     }
 
-    buffer = (BT_HDR *)GKI_getpoolbuf(PAN_POOL_ID);
+    buffer = (BT_HDR *)GKI_getbuf(PAN_BUF_SIZE);
     if (!buffer) {
-        PAN_TRACE_ERROR("%s unable to acquire buffer from pool.", __func__);
+        PAN_TRACE_ERROR("%s unable to acquire buffer.", __func__);
         return PAN_NO_RESOURCES;
     }
 

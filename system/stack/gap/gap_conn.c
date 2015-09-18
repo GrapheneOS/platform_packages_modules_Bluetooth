@@ -529,12 +529,14 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
     {
         if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
         {
-            if ((p_buf = (BT_HDR *)GKI_getpoolbuf (p_ccb->ertm_info.user_tx_pool_id)) == NULL)
+            p_buf = (BT_HDR *)GKI_getbuf(L2CAP_FCR_ERTM_BUF_SIZE);
+            if (p_buf == NULL)
                 return (GAP_ERR_CONGESTED);
         }
         else
         {
-            if ((p_buf = (BT_HDR *)GKI_getpoolbuf (GAP_DATA_POOL_ID)) == NULL)
+            p_buf = (BT_HDR *)GKI_getbuf(GAP_DATA_BUF_SIZE);
+            if (p_buf == NULL)
                 return (GAP_ERR_CONGESTED);
         }
 
