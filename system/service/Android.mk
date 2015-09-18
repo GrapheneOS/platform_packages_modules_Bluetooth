@@ -21,6 +21,8 @@ LOCAL_PATH:= $(call my-dir)
 btserviceCommonSrc := \
 	adapter.cpp \
 	adapter_state.cpp \
+	advertise_data.cpp \
+	advertise_settings.cpp \
 	daemon.cpp \
 	gatt_server.cpp \
 	hal/bluetooth_gatt_interface.cpp \
@@ -42,7 +44,8 @@ btserviceBinderSrc := \
 	ipc/binder/IBluetoothCallback.cpp \
 	ipc/binder/IBluetoothLowEnergy.cpp \
 	ipc/binder/IBluetoothLowEnergyCallback.cpp \
-	ipc/binder/ipc_handler_binder.cpp
+	ipc/binder/ipc_handler_binder.cpp \
+	ipc/binder/parcel_helpers.cpp
 
 btserviceCommonIncludes := $(LOCAL_PATH)/../
 
@@ -78,6 +81,7 @@ LOCAL_SRC_FILES := \
 	hal/fake_bluetooth_gatt_interface.cpp \
 	hal/fake_bluetooth_interface.cpp \
 	test/adapter_unittest.cpp \
+	test/advertise_data_unittest.cpp \
 	test/fake_hal_util.cpp \
 	test/ipc_unix_unittest.cpp \
 	test/low_energy_client_unittest.cpp \
@@ -94,7 +98,26 @@ LOCAL_STATIC_LIBRARIES += libgmock_host liblog
 include $(BUILD_HOST_NATIVE_TEST)
 endif
 
+# Native system service unittests for Binder code, for target
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+	$(btserviceBinderSrc) \
+	$(btserviceCommonSrc) \
+	test/parcel_helpers_unittest.cpp
+LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_CFLAGS += -std=c++11
+LOCAL_MODULE_TAGS := tests
+LOCAL_MODULE := bt_service_binder_unittests
+LOCAL_SHARED_LIBRARIES += \
+	libbinder \
+	libchrome \
+	libutils
+LOCAL_STATIC_LIBRARIES += liblog
+include $(BUILD_NATIVE_TEST)
+
 # Native system service CLI for target
+# ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBinderSrc) \
