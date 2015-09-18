@@ -20,6 +20,8 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
+#include "service/advertise_data.h"
+#include "service/advertise_settings.h"
 #include "service/ipc/binder/IBluetoothLowEnergyCallback.h"
 
 namespace ipc {
@@ -68,6 +70,13 @@ class IBluetoothLowEnergy : public android::IInterface {
   virtual void UnregisterClient(int client_if) = 0;
   virtual void UnregisterAll() = 0;
 
+  virtual void StartMultiAdvertising(
+      int client_if,
+      const bluetooth::AdvertiseData& advertise_data,
+      const bluetooth::AdvertiseData& scan_response,
+      const bluetooth::AdvertiseSettings& settings) = 0;
+  virtual void StopMultiAdvertising(int client_if) = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
@@ -102,6 +111,12 @@ class BpBluetoothLowEnergy : public android::BpInterface<IBluetoothLowEnergy> {
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_if) override;
   void UnregisterAll() override;
+  void StartMultiAdvertising(
+      int client_if,
+      const bluetooth::AdvertiseData& advertise_data,
+      const bluetooth::AdvertiseData& scan_response,
+      const bluetooth::AdvertiseSettings& settings) override;
+  void StopMultiAdvertising(int client_if) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothLowEnergy);

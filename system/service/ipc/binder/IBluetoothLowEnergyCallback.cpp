@@ -19,10 +19,15 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
+#include "service/ipc/binder/parcel_helpers.h"
+
 using android::IBinder;
 using android::Parcel;
 using android::sp;
 using android::status_t;
+
+using bluetooth::AdvertiseData;
+using bluetooth::AdvertiseSettings;
 
 namespace ipc {
 namespace binder {
@@ -50,6 +55,14 @@ status_t BnBluetoothLowEnergyCallback::onTransact(
     OnClientRegistered(status, client_if);
     return android::NO_ERROR;
   }
+  case ON_MULTI_ADVERTISE_CALLBACK_TRANSACTION: {
+    int status = data.readInt32();
+    bool is_start = data.readInt32();
+    std::unique_ptr<AdvertiseSettings> settings =
+        CreateAdvertiseSettingsFromParcel(data);
+    OnMultiAdvertiseCallback(status, is_start, *settings);
+    return android::NO_ERROR;
+  }
   default:
     return BBinder::onTransact(code, data, reply, flags);
   }
@@ -74,6 +87,23 @@ void BpBluetoothLowEnergyCallback::OnClientRegistered(
 
   remote()->transact(
       IBluetoothLowEnergyCallback::ON_CLIENT_REGISTERED_TRANSACTION,
+      data, &reply,
+      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothLowEnergyCallback::OnMultiAdvertiseCallback(
+    int status, bool is_start,
+    const AdvertiseSettings& settings) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothLowEnergyCallback::getInterfaceDescriptor());
+  data.writeInt32(status);
+  data.writeInt32(is_start);
+  WriteAdvertiseSettingsToParcel(settings, &data);
+
+  remote()->transact(
+      IBluetoothLowEnergyCallback::ON_MULTI_ADVERTISE_CALLBACK_TRANSACTION,
       data, &reply,
       IBinder::FLAG_ONEWAY);
 }
