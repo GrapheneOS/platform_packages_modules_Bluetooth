@@ -133,6 +133,13 @@ class CLIBluetoothLowEnergyCallback
     ble_registering = false;
   }
 
+  void OnMultiAdvertiseCallback(
+      int status, bool is_start,
+      const bluetooth::AdvertiseSettings& settings) {
+    // TODO(armansito): Implement once there are commands to start and stop
+    // advertising.
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
 };
