@@ -48,6 +48,12 @@ class BluetoothLowEnergyBinderServer
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_if) override;
   void UnregisterAll() override;
+  void StartMultiAdvertising(
+      int client_if,
+      const bluetooth::AdvertiseData& advertise_data,
+      const bluetooth::AdvertiseData& scan_response,
+      const bluetooth::AdvertiseSettings& settings) override;
+  void StopMultiAdvertising(int client_if) override;
 
  private:
   // RemoteCallbackMap<int, IBluetoothLowEnergyCallback>::Delegate override:

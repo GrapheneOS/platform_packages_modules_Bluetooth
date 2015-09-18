@@ -122,6 +122,8 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBinderSrc) \
 	adapter_state.cpp \
+	advertise_data.cpp \
+	advertise_settings.cpp \
 	client/main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11

@@ -20,6 +20,9 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
+#include "service/advertise_data.h"
+#include "service/advertise_settings.h"
+
 namespace ipc {
 namespace binder {
 
@@ -51,6 +54,10 @@ namespace binder {
   };
 
   virtual void OnClientRegistered(int status, int client_if) = 0;
+
+  virtual void OnMultiAdvertiseCallback(
+      int status, bool is_start,
+      const bluetooth::AdvertiseSettings& settings) = 0;
 
   // TODO(armansito): Complete the API definition.
 
@@ -85,6 +92,9 @@ class BpBluetoothLowEnergyCallback
 
   // IBluetoothLowEnergyCallback overrides:
   void OnClientRegistered(int status, int client_if) override;
+  void OnMultiAdvertiseCallback(
+      int status, bool is_start,
+      const bluetooth::AdvertiseSettings& settings) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothLowEnergyCallback);

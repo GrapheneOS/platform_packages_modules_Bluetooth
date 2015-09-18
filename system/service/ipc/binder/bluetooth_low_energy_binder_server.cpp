@@ -95,6 +95,20 @@ void BluetoothLowEnergyBinderServer::UnregisterAll() {
   cif_to_client_.clear();
 }
 
+void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
+    int client_if,
+    const bluetooth::AdvertiseData& advertise_data,
+    const bluetooth::AdvertiseData& scan_response,
+    const bluetooth::AdvertiseSettings& settings) {
+  LOG(WARNING) << "Not implemented";
+  // TODO(armansito): implement
+}
+
+void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
+  LOG(WARNING) << "Not implemented";
+  // TODO(armansito): implement
+}
+
 void BluetoothLowEnergyBinderServer::OnRemoteCallbackRemoved(const int& key) {
   VLOG(2) << __func__ << " client_if: " << key;
   std::lock_guard<std::mutex> lock(maps_lock_);
