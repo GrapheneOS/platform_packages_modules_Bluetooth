@@ -34,6 +34,24 @@ class MockGattHandler : public hal::FakeBluetoothGattInterface::TestHandler {
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
+  MOCK_METHOD7(MultiAdvEnable, bt_status_t(int, int, int, int, int, int, int));
+  MOCK_METHOD10(MultiAdvSetInstDataMock,
+                bt_status_t(bool, bool, bool, int,
+                            int, char*, int, char*, int, char*));
+  MOCK_METHOD1(MultiAdvDisable, bt_status_t(int));
+
+  bt_status_t MultiAdvSetInstData(
+      int client_if, bool set_scan_rsp, bool include_name,
+      bool incl_txpower, int appearance,
+      int manufacturer_len, char* manufacturer_data,
+      int service_data_len, char* service_data,
+      int service_uuid_len, char* service_uuid) override {
+    return MultiAdvSetInstDataMock(
+        set_scan_rsp, include_name, incl_txpower, appearance,
+        manufacturer_len, manufacturer_data,
+        service_data_len, service_data,
+        service_uuid_len, service_uuid);
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
