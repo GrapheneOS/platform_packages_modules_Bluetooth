@@ -81,8 +81,10 @@ class LowEnergyClientFactory
 
  private:
   // BluetoothGattInterface::ClientObserver overrides:
-  void RegisterClientCallback(int status, int client_if,
-                              const bt_uuid_t& app_uuid) override;
+  void RegisterClientCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int status, int client_if,
+      const bt_uuid_t& app_uuid) override;
 
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;
