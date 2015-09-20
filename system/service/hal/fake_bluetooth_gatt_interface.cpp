@@ -39,6 +39,40 @@ bt_status_t FakeUnregisterClient(int client_if) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeMultiAdvEnable(
+    int client_if, int min_interval, int max_interval, int adv_type,
+    int chnl_map, int tx_power, int timeout_s) {
+  if (g_handler.get())
+    return g_handler->MultiAdvEnable(client_if, min_interval, max_interval,
+                                     adv_type, chnl_map, tx_power, timeout_s);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeMultiAdvSetInstData(
+    int client_if, bool set_scan_rsp, bool include_name,
+    bool incl_txpower, int appearance,
+    int manufacturer_len, char* manufacturer_data,
+    int service_data_len, char* service_data,
+    int service_uuid_len, char* service_uuid) {
+  if (g_handler.get())
+    return g_handler->MultiAdvSetInstData(
+        client_if, set_scan_rsp, include_name,
+        incl_txpower, appearance,
+        manufacturer_len, manufacturer_data,
+        service_data_len, service_data,
+        service_uuid_len, service_uuid);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeMultiAdvDisable(int client_if) {
+  if (g_handler.get())
+    return g_handler->MultiAdvDisable(client_if);
+
+  return BT_STATUS_FAIL;
+}
+
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
@@ -68,10 +102,10 @@ btgatt_client_interface_t fake_btgattc_iface = {
   nullptr, /* configure_mtu */
   nullptr, /* conn_parameter_update */
   nullptr, /* set_scan_parameters */
-  nullptr, /* multi_adv_enable */
+  FakeMultiAdvEnable,
   nullptr, /* multi_adv_update */
-  nullptr, /* multi_adv_inst_data */
-  nullptr, /* multi_adv_disable */
+  FakeMultiAdvSetInstData,
+  FakeMultiAdvDisable,
   nullptr, /* batchscan_cfg_storate */
   nullptr, /* batchscan_enb_batch_scan */
   nullptr, /* batchscan_dis_batch_scan */
@@ -102,7 +136,25 @@ void FakeBluetoothGattInterface::NotifyRegisterClientCallback(
     int status, int client_if,
     const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
-                    RegisterClientCallback(status, client_if, app_uuid));
+                    RegisterClientCallback(this, status, client_if, app_uuid));
+}
+
+void FakeBluetoothGattInterface::NotifyMultiAdvEnableCallback(
+    int client_if, int status) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    MultiAdvEnableCallback(this, client_if, status));
+}
+
+void FakeBluetoothGattInterface::NotifyMultiAdvDataCallback(
+    int client_if, int status) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    MultiAdvDataCallback(this, client_if, status));
+}
+
+void FakeBluetoothGattInterface::NotifyMultiAdvDisableCallback(
+    int client_if, int status) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    MultiAdvDisableCallback(this, client_if, status));
 }
 
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {
@@ -114,6 +166,16 @@ void FakeBluetoothGattInterface::RemoveClientObserver(
     ClientObserver* observer) {
   CHECK(observer);
   client_observers_.RemoveObserver(observer);
+}
+
+void FakeBluetoothGattInterface::AddClientObserverUnsafe(
+    ClientObserver* observer) {
+  AddClientObserver(observer);
+}
+
+void FakeBluetoothGattInterface::RemoveClientObserverUnsafe(
+    ClientObserver* observer) {
+  RemoveClientObserver(observer);
 }
 
 const btgatt_client_interface_t*

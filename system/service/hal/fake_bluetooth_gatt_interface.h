@@ -34,6 +34,16 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
 
     virtual bt_status_t RegisterClient(bt_uuid_t* app_uuid) = 0;
     virtual bt_status_t UnregisterClient(int client_if) = 0;
+    virtual bt_status_t MultiAdvEnable(
+        int client_if, int min_interval, int max_interval, int adv_type,
+        int chnl_map, int tx_power, int timeout_s) = 0;
+    virtual bt_status_t MultiAdvSetInstData(
+        int client_if, bool set_scan_rsp, bool include_name,
+        bool incl_txpower, int appearance,
+        int manufacturer_len, char* manufacturer_data,
+        int service_data_len, char* service_data,
+        int service_uuid_len, char* service_uuid) = 0;
+    virtual bt_status_t MultiAdvDisable(int client_if) = 0;
   };
 
   // Constructs the fake with the given handler |handler|. Implementations can
@@ -46,10 +56,15 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // given parameters.
   void NotifyRegisterClientCallback(int status, int client_if,
                                     const bt_uuid_t& app_uuid);
+  void NotifyMultiAdvEnableCallback(int client_if, int status);
+  void NotifyMultiAdvDataCallback(int client_if, int status);
+  void NotifyMultiAdvDisableCallback(int client_if, int status);
 
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override;
   void RemoveClientObserver(ClientObserver* observer) override;
+  void AddClientObserverUnsafe(ClientObserver* observer) override;
+  void RemoveClientObserverUnsafe(ClientObserver* observer) override;
   const btgatt_client_interface_t* GetClientHALInterface() const override;
 
  private:
