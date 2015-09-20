@@ -67,6 +67,7 @@ bool LowEnergyClientFactory::RegisterClient(const UUID& uuid,
 }
 
 void LowEnergyClientFactory::RegisterClientCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
     int status, int client_if,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
