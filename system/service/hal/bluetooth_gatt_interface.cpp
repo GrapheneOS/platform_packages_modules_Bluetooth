@@ -46,22 +46,60 @@ base::ObserverList<BluetoothGattInterface::ClientObserver>*
   FOR_EACH_OBSERVER(BluetoothGattInterface::ClientObserver, \
                     *GetClientObservers(), func)
 
-void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
-  lock_guard<mutex> lock(g_instance_lock);
-  if (!g_interface) {
-    LOG(WARNING) << "Callback received after global instance was destroyed";
-    return;
+#define VERIFY_INTERFACE_OR_RETURN() \
+  if (!g_interface) { \
+    LOG(WARNING) << "Callback received after |g_interface| is NULL"; \
+    return; \
   }
 
-  VLOG(2) << "RegisterClientCallback status: " << status
-          << " client_if: " << client_if;
+void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
   if (!app_uuid) {
     LOG(WARNING) << "|app_uuid| is NULL; ignoring RegisterClientCallback";
     return;
   }
 
   FOR_EACH_CLIENT_OBSERVER(
-      RegisterClientCallback(status, client_if, *app_uuid));
+      RegisterClientCallback(g_interface, status, client_if, *app_uuid));
+}
+
+void MultiAdvEnableCallback(int client_if, int status) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      MultiAdvEnableCallback(g_interface, client_if, status));
+}
+
+void MultiAdvUpdateCallback(int client_if, int status) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      MultiAdvUpdateCallback(g_interface, client_if, status));
+}
+
+void MultiAdvDataCallback(int client_if, int status) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      MultiAdvDataCallback(g_interface, client_if, status));
+}
+
+void MultiAdvDisableCallback(int client_if, int status) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      MultiAdvDisableCallback(g_interface, client_if, status));
 }
 
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
@@ -89,10 +127,10 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // scan_filter_cfg_cb
     nullptr,  // scan_filter_param_cb
     nullptr,  // scan_filter_status_cb
-    nullptr,  // multi_adv_enable_cb
-    nullptr,  // multi_adv_update_cb
-    nullptr,  // multi_adv_data_cb
-    nullptr,  // multi_adv_disable_cb
+    MultiAdvEnableCallback,
+    MultiAdvUpdateCallback,
+    MultiAdvDataCallback,
+    MultiAdvDisableCallback,
     nullptr,  // congestion_cb
     nullptr,  // batchscan_cfg_storage_cb
     nullptr,  // batchscan_enb_disable_cb
@@ -143,11 +181,19 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override {
     lock_guard<mutex> lock(g_instance_lock);
-    client_observers_.AddObserver(observer);
+    AddClientObserverUnsafe(observer);
   }
 
   void RemoveClientObserver(ClientObserver* observer) override {
     lock_guard<mutex> lock(g_instance_lock);
+    RemoveClientObserverUnsafe(observer);
+  }
+
+  void AddClientObserverUnsafe(ClientObserver* observer) override {
+    client_observers_.AddObserver(observer);
+  }
+
+  void RemoveClientObserverUnsafe(ClientObserver* observer) override {
     client_observers_.RemoveObserver(observer);
   }
 
@@ -212,7 +258,34 @@ GetClientObservers() {
 // Default observer implementations. These are provided so that the methods
 // themselves are optional.
 void BluetoothGattInterface::ClientObserver::RegisterClientCallback(
-    int status, int client_if, const bt_uuid_t& app_uuid) {
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */,
+    const bt_uuid_t& /* app_uuid */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::ClientObserver::MultiAdvEnableCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::ClientObserver::MultiAdvUpdateCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::ClientObserver::MultiAdvDataCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */) {
+  // Do nothing.
+}
+void BluetoothGattInterface::ClientObserver::MultiAdvDisableCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */) {
   // Do nothing.
 }
 
