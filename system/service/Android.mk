@@ -39,9 +39,12 @@ btserviceCommonSrc := \
 
 btserviceBinderSrc := \
 	ipc/binder/bluetooth_binder_server.cpp \
+	ipc/binder/bluetooth_gatt_server_binder_server.cpp \
 	ipc/binder/bluetooth_low_energy_binder_server.cpp \
 	ipc/binder/IBluetooth.cpp \
 	ipc/binder/IBluetoothCallback.cpp \
+	ipc/binder/IBluetoothGattServer.cpp \
+	ipc/binder/IBluetoothGattServerCallback.cpp \
 	ipc/binder/IBluetoothLowEnergy.cpp \
 	ipc/binder/IBluetoothLowEnergyCallback.cpp \
 	ipc/binder/interface_with_clients_base.cpp \

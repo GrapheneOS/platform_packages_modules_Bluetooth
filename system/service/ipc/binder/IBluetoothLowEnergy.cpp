@@ -41,10 +41,7 @@ const char IBluetoothLowEnergy::kServiceName[] =
 // ========================================================
 
 status_t BnBluetoothLowEnergy::onTransact(
-    uint32_t code,
-    const Parcel& data,
-    Parcel* reply,
-    uint32_t flags) {
+    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags) {
   VLOG(2) << "IBluetoothLowEnergy: " << code;
   if (!data.checkInterface(this))
     return android::PERMISSION_DENIED;

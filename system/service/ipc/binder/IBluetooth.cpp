@@ -62,10 +62,7 @@ sp<IBluetooth> IBluetooth::getClientInterface() {
 // ========================================================
 
 status_t BnBluetooth::onTransact(
-    uint32_t code,
-    const Parcel& data,
-    Parcel* reply,
-    uint32_t flags) {
+    uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags) {
   VLOG(2) << "IBluetooth transaction: " << code;
   if (!data.checkInterface(this))
     return android::PERMISSION_DENIED;
@@ -130,6 +127,11 @@ status_t BnBluetooth::onTransact(
     case GET_LOW_ENERGY_INTERFACE_TRANSACTION: {
       sp<IBluetoothLowEnergy> ble_iface = GetLowEnergyInterface();
       reply->writeStrongBinder(IInterface::asBinder(ble_iface.get()));
+      return android::NO_ERROR;
+    }
+    case GET_GATT_SERVER_INTERFACE_TRANSACTION: {
+      sp<IBluetoothGattServer> gatt_server_iface = GetGattServerInterface();
+      reply->writeStrongBinder(IInterface::asBinder(gatt_server_iface.get()));
       return android::NO_ERROR;
     }
     default:
@@ -261,9 +263,18 @@ sp<IBluetoothLowEnergy> BpBluetooth::GetLowEnergyInterface() {
   remote()->transact(IBluetooth::GET_LOW_ENERGY_INTERFACE_TRANSACTION,
                      data, &reply);
 
-  sp<IBinder> ble_iface = reply.readStrongBinder();
+  return interface_cast<IBluetoothLowEnergy>(reply.readStrongBinder());
+}
 
-  return interface_cast<IBluetoothLowEnergy>(ble_iface);
+sp<IBluetoothGattServer> BpBluetooth::GetGattServerInterface() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+
+  remote()->transact(IBluetooth::GET_GATT_SERVER_INTERFACE_TRANSACTION,
+                     data, &reply);
+
+  return interface_cast<IBluetoothGattServer>(reply.readStrongBinder());
 }
 
 IMPLEMENT_META_INTERFACE(Bluetooth, IBluetooth::kServiceName);

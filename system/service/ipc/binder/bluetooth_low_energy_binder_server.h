@@ -34,9 +34,8 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothLowEnergy interface.
-class BluetoothLowEnergyBinderServer
-    : public BnBluetoothLowEnergy,
-      public InterfaceWithClientsBase {
+class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
+                                       public InterfaceWithClientsBase {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLowEnergyBinderServer() override;
