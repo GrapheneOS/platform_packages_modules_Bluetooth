@@ -34,65 +34,20 @@ BluetoothLowEnergyBinderServer::~BluetoothLowEnergyBinderServer() {
 void BluetoothLowEnergyBinderServer::RegisterClient(
     const android::sp<IBluetoothLowEnergyCallback>& callback) {
   VLOG(2) << __func__;
-  if (!callback.get()) {
-    LOG(ERROR) << "Cannot register a NULL callback";
-    return;
-  }
-
   bluetooth::LowEnergyClientFactory* ble_factory =
       adapter_->GetLowEnergyClientFactory();
 
-  // Store the callback in the pending list. It will get removed later when the
-  // stack notifies us asynchronously.
-  bluetooth::UUID app_uuid = bluetooth::UUID::GetRandom();
-  if (!pending_callbacks_.Register(app_uuid, callback)) {
-    LOG(ERROR) << "Failed to store |callback| to map";
-    return;
-  }
-
-  // Create a weak pointer and pass that to the callback to prevent an invalid
-  // access later. Since this object is managed using Android's StrongPointer
-  // (sp) we are using a wp here rather than std::weak_ptr.
-  android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-
-  bluetooth::LowEnergyClientFactory::ClientCallback client_cb =
-      [weak_ptr_to_this](bluetooth::BLEStatus status,
-                         const bluetooth::UUID& in_uuid,
-                         std::unique_ptr<bluetooth::LowEnergyClient> client) {
-        // If the weak pointer was invalidated then there's nothing we can do.
-        android::sp<BluetoothLowEnergyBinderServer> strong_ptr_to_this =
-            weak_ptr_to_this.promote();
-        if (!strong_ptr_to_this.get()) {
-          VLOG(2) << "BluetoothLowEnergyBinderServer was deleted before "
-                  << "callback was registered";
-          return;
-        }
-
-        strong_ptr_to_this->OnRegisterClient(
-            status, in_uuid, std::move(client));
-      };
-
-  if (ble_factory->RegisterClient(app_uuid, client_cb))
-    return;
-
-  LOG(ERROR) << "Failed to register client";
-  pending_callbacks_.Remove(app_uuid);
+  RegisterClientBase(callback, ble_factory);
 }
 
 void BluetoothLowEnergyBinderServer::UnregisterClient(int client_if) {
   VLOG(2) << __func__;
-  std::lock_guard<std::mutex> lock(maps_lock_);
-
-  cif_to_cb_.Remove(client_if);
-  cif_to_client_.erase(client_if);
+  UnregisterClientBase(client_if);
 }
 
 void BluetoothLowEnergyBinderServer::UnregisterAll() {
   VLOG(2) << __func__;
-  std::lock_guard<std::mutex> lock(maps_lock_);
-
-  cif_to_cb_.Clear();
-  cif_to_client_.clear();
+  UnregisterAllBase();
 }
 
 void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
@@ -101,15 +56,15 @@ void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
     const bluetooth::AdvertiseData& scan_response,
     const bluetooth::AdvertiseSettings& settings) {
   VLOG(2) << __func__;
-  std::lock_guard<std::mutex> lock(maps_lock_);
+  std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto iter = cif_to_client_.find(client_if);
-  if (iter == cif_to_client_.end()) {
+  auto client = GetLEClient(client_if);
+  if (!client) {
     LOG(ERROR) << "Unknown client_if: " << client_if;
     return;
   }
 
-  android::sp<IBluetoothLowEnergyCallback> cb = cif_to_cb_.Get(client_if);
+  auto cb = GetLECallback(client_if);
   if (!cb.get()) {
     LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
     return;
@@ -126,12 +81,11 @@ void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
       return;
     }
 
-    std::lock_guard<std::mutex> lock(maps_lock_);
+    std::lock_guard<std::mutex> lock(*maps_lock());
 
     cb->OnMultiAdvertiseCallback(status, true /* is_start */, settings_copy);
   };
 
-  std::shared_ptr<bluetooth::LowEnergyClient> client = iter->second;
   if (client->StartAdvertising(
       settings, advertise_data, scan_response, callback))
     return;
@@ -145,15 +99,15 @@ void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
 
 void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
   VLOG(2) << __func__;
-  std::lock_guard<std::mutex> lock(maps_lock_);
+  std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto iter = cif_to_client_.find(client_if);
-  if (iter == cif_to_client_.end()) {
+  auto client = GetLEClient(client_if);
+  if (!client) {
     LOG(ERROR) << "Unknown client_if: " << client_if;
     return;
   }
 
-  android::sp<IBluetoothLowEnergyCallback> cb = cif_to_cb_.Get(client_if);
+  auto cb = GetLECallback(client_if);
   if (!cb.get()) {
     LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
     return;
@@ -162,7 +116,6 @@ void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
   android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-  std::shared_ptr<bluetooth::LowEnergyClient> client = iter->second;
   bluetooth::AdvertiseSettings settings_copy = client->settings();
   auto callback = [&](bluetooth::BLEStatus status) {
     auto sp_to_this = weak_ptr_to_this.promote();
@@ -171,7 +124,7 @@ void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
       return;
     }
 
-    std::lock_guard<std::mutex> lock(maps_lock_);
+    std::lock_guard<std::mutex> lock(*maps_lock());
 
     cb->OnMultiAdvertiseCallback(status, false /* is_start */, settings_copy);
   };
@@ -186,56 +139,29 @@ void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
       bluetooth::BLE_STATUS_FAILURE, false/* is_start */, settings_copy);
 }
 
-void BluetoothLowEnergyBinderServer::OnRemoteCallbackRemoved(const int& key) {
-  VLOG(2) << __func__ << " client_if: " << key;
-  std::lock_guard<std::mutex> lock(maps_lock_);
-
-  // No need to remove from the callback map as the entry should be already
-  // removed when this callback gets called.
-  cif_to_client_.erase(key);
+android::sp<IBluetoothLowEnergyCallback>
+BluetoothLowEnergyBinderServer::GetLECallback(int client_if) {
+  auto cb = GetCallback(client_if);
+  return android::sp<IBluetoothLowEnergyCallback>(
+      static_cast<IBluetoothLowEnergyCallback*>(cb.get()));
 }
 
-void BluetoothLowEnergyBinderServer::OnRegisterClient(
+std::shared_ptr<bluetooth::LowEnergyClient>
+BluetoothLowEnergyBinderServer::GetLEClient(int client_if) {
+  return std::static_pointer_cast<bluetooth::LowEnergyClient>(
+      GetClientInstance(client_if));
+}
+
+void BluetoothLowEnergyBinderServer::OnRegisterClientImpl(
     bluetooth::BLEStatus status,
-    const bluetooth::UUID& uuid,
-    std::unique_ptr<bluetooth::LowEnergyClient> client) {
-  VLOG(2) << __func__ << " - status: " << status;
-
-  // Simply remove the callback from |pending_callbacks_| as it no longer
-  // belongs in there.
-  sp<IBluetoothLowEnergyCallback> callback = pending_callbacks_.Remove(uuid);
-
-  // |callback| might be NULL if it was removed from the pending list, e.g.
-  // because the remote process that owns the callback died.
-  if (!callback.get()) {
-    VLOG(1) << "Callback was removed before the call to \"RegisterClient\" "
-            << "returned; unregistering client";
-    // Simply return here. |client| will unregister itself when it goes out of
-    // scope.
-    return;
-  }
-
-  if (status != bluetooth::BLE_STATUS_SUCCESS) {
-    // The call wasn't successful. Log and return.
-    LOG(ERROR) << "Failed to register Low Energy client: " << status;
-    return;
-  }
-
-  std::lock_guard<std::mutex> lock(maps_lock_);
-  CHECK(client->client_if());
-  int client_if = client->client_if();
-  if (!cif_to_cb_.Register(client_if, callback, this)) {
-    LOG(ERROR) << "Failed to store callback";
-    return;
-  }
-
-  VLOG(1) << "Registered BluetoothLowEnergy client: " << client_if;
-
-  cif_to_client_[client_if] =
-      std::shared_ptr<bluetooth::LowEnergyClient>(client.release());
-
-  // Notify the client.
-  callback->OnClientRegistered(static_cast<int>(status), client_if);
+    android::sp<IInterface> callback,
+    bluetooth::BluetoothClientInstance* client) {
+  VLOG(1) << __func__ << " status: " << status;
+  android::sp<IBluetoothLowEnergyCallback> cb(
+      static_cast<IBluetoothLowEnergyCallback*>(callback.get()));
+  cb->OnClientRegistered(
+      status,
+      (status == bluetooth::BLE_STATUS_SUCCESS) ? client->GetClientId() : -1);
 }
 
 }  // namespace binder
