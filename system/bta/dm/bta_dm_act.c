@@ -3690,7 +3690,8 @@ static void bta_dm_adjust_roles(BOOLEAN delay_role_switch)
                   versions are stored in a blacklist and role switch with these devices are
                   delayed to avoid the collision with link encryption setup */
 
-                    if (delay_role_switch == FALSE)
+                    if (bta_dm_cb.device_list.peer_device[i].pref_role != BTA_SLAVE_ROLE_ONLY &&
+                            delay_role_switch == FALSE)
                     {
                         BTM_SwitchRole (bta_dm_cb.device_list.peer_device[i].peer_bdaddr,
                                         HCI_ROLE_MASTER, NULL);
