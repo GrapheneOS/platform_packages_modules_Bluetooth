@@ -66,7 +66,6 @@ typedef struct
 void    GKI_freebuf (void *);
 void   *GKI_getbuf (UINT16);
 UINT16  GKI_get_buf_size (void *);
-UINT16  GKI_poolcount (UINT8);
 
 
 /* User buffer queue management
