@@ -18,8 +18,16 @@
 
 #include <base/logging.h>
 
+#include "service/adapter.h"
+
 namespace ipc {
 namespace binder {
+
+namespace {
+
+const int kInvalidClientId = -1;
+
+}  // namespace
 
 BluetoothGattServerBinderServer::BluetoothGattServerBinderServer(
     bluetooth::Adapter* adapter) : adapter_(adapter) {
@@ -29,21 +37,34 @@ BluetoothGattServerBinderServer::BluetoothGattServerBinderServer(
 bool BluetoothGattServerBinderServer::RegisterServer(
     const android::sp<IBluetoothGattServerCallback>& callback) {
   VLOG(2) << __func__;
-  // TODO(armansito): Implement.
-  LOG(WARNING) << "Not implemented";
-  return false;
+  bluetooth::GattServerFactory* gatt_server_factory =
+      adapter_->GetGattServerFactory();
+
+  return RegisterClientBase(callback, gatt_server_factory);
 }
 
 void BluetoothGattServerBinderServer::UnregisterServer(int server_if) {
   VLOG(2) << __func__;
-  // TODO(armansito): Implement.
-  LOG(WARNING) << "Not implemented";
+  UnregisterClientBase(server_if);
 }
 
 void BluetoothGattServerBinderServer::UnregisterAll() {
   VLOG(2) << __func__;
-  // TODO(armansito): Implement.
-  LOG(WARNING) << "Not implemented";
+  UnregisterAllBase();
+}
+
+void BluetoothGattServerBinderServer::OnRegisterClientImpl(
+    bluetooth::BLEStatus status,
+    android::sp<IInterface> callback,
+    bluetooth::BluetoothClientInstance* client) {
+  VLOG(1) << __func__ << " client ID: " << client->GetClientId()
+          << " status: " << status;
+  android::sp<IBluetoothGattServerCallback> cb(
+      static_cast<IBluetoothGattServerCallback*>(callback.get()));
+  cb->OnServerRegistered(
+      status,
+      (status == bluetooth::BLE_STATUS_SUCCESS) ?
+          client->GetClientId() : kInvalidClientId);
 }
 
 }  // namespace binder
