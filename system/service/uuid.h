@@ -82,12 +82,10 @@ namespace std {
 template<>
 struct hash<bluetooth::UUID> {
   std::size_t operator()(const bluetooth::UUID& key) const {
-    // Compute individual hash values for each byte and then combine them using
-    // XOR and bitshifting.
     const auto& uuid_bytes = key.GetFullBigEndian();
 
-    return base::SuperFastHash(reinterpret_cast<const char*>(uuid_bytes.data()),
-                               uuid_bytes.size());
+    return base::Hash(reinterpret_cast<const char*>(uuid_bytes.data()),
+                      uuid_bytes.size());
   }
 };
 
