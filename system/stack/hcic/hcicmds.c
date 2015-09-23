@@ -1784,8 +1784,8 @@ BOOLEAN btsnd_hcic_write_pagescan_type (UINT8 type)
 }
 
 /* Must have room to store BT_HDR + max VSC length + callback pointer */
-#if (HCI_CMD_POOL_BUF_SIZE < 268)
-#error "HCI_CMD_POOL_BUF_SIZE must be larger than 268"
+#if (HCI_CMD_BUF_SIZE < 268)
+#error "HCI_CMD_BUF_SIZE must be larger than 268"
 #endif
 
 void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode, UINT8 len,
