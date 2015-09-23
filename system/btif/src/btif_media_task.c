@@ -133,8 +133,7 @@ enum {
 
 
 /* buffer pool */
-#define BTIF_MEDIA_AA_POOL_ID GKI_POOL_ID_3
-#define BTIF_MEDIA_AA_BUF_SIZE GKI_BUF3_SIZE
+#define BTIF_MEDIA_AA_BUF_SIZE  BT_DEFAULT_BUFFER_SIZE
 
 /* offset */
 #if (BTA_AV_CO_CP_SCMS_T == TRUE)

@@ -667,10 +667,10 @@ static void btu_exec_tap_fd_read(void *p_param) {
     if (fd == INVALID_FD || fd != btpan_cb.tap_fd)
         return;
 
-    // Don't occupy BTU context too long, avoid GKI buffer overruns and
+    // Don't occupy BTU context too long, avoid buffer overruns and
     // give other profiles a chance to run by limiting the amount of memory
-    // PAN can use from the shared pool buffer.
-    for (int i = 0; i < PAN_POOL_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
+    // PAN can use.
+    for (int i = 0; i < PAN_BUF_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
         BT_HDR *buffer = (BT_HDR *)GKI_getbuf(PAN_BUF_SIZE);
         if (!buffer) {
             BTIF_TRACE_WARNING("%s unable to allocate buffer for packet.", __func__);
