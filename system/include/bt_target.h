@@ -207,6 +207,10 @@
 #define HCI_ACL_BUF_MAX             GKI_BUF3_MAX
 #endif
 
+#ifndef HCI_ACL_BUF_SIZE
+#define HCI_ACL_BUF_SIZE            (4096+16)
+#endif
+
 /* Receives SCO data packets from the lower-layer. */
 #ifndef HCI_SCO_POOL_ID
 #define HCI_SCO_POOL_ID             GKI_POOL_ID_6
@@ -252,9 +256,25 @@
 #define L2CAP_CMD_POOL_ID           GKI_POOL_ID_2
 #endif
 
+#ifndef L2CAP_USER_TX_BUF_SIZE
+#define L2CAP_USER_TX_BUF_SIZE       (4096+16)
+#endif
+
+#ifndef L2CAP_USER_RX_BUF_SIZE
+#define L2CAP_USER_RX_BUF_SIZE       (4096+16)
+#endif
+
 /* Sends L2CAP segmented packets in ERTM mode */
 #ifndef L2CAP_FCR_TX_POOL_ID
 #define L2CAP_FCR_TX_POOL_ID        HCI_ACL_POOL_ID
+#endif
+
+#ifndef L2CAP_FCR_TX_BUF_SIZE
+#define L2CAP_FCR_TX_BUF_SIZE       (4096+16)
+#endif
+
+#ifndef L2CAP_FCR_RX_BUF_SIZE
+#define L2CAP_FCR_RX_BUF_SIZE       (4096+16)
 #endif
 
 /* Receives L2CAP segmented packets in ERTM mode */
@@ -387,8 +407,12 @@
 #define AVRC_BROWSE_POOL_SIZE     GKI_MAX_BUF_SIZE
 #endif
 
+#ifndef BTA_HL_USER_TX_BUF_SIZE
+#define BTA_HL_USER_TX_BUF_SIZE         (4096+16)
+#endif
+
 #ifndef BTA_HL_LRG_DATA_BUF_SIZE
-#define BTA_HL_LRG_DATA_BUF_SIZE       (10240 + 24)
+#define BTA_HL_LRG_DATA_BUF_SIZE        (10240 + 24)
 #endif
 
 #ifndef BTA_HL_LRG_DATA_POOL_ID
@@ -1658,11 +1682,27 @@ Range: 2 octets
 #define MCA_USER_TX_POOL_ID     HCI_ACL_POOL_ID
 #endif
 
+#ifndef MCA_USER_RX_BUF_SIZE
+#define MCA_USER_RX_BUF_SIZE    (4096+16)
+#endif
+
+#ifndef MCA_USER_TX_BUF_SIZE
+#define MCA_USER_TX_BUF_SIZE    (4096+16)
+#endif
+
 /*
 GKI Buffer Pool ID used to hold MPS segments during SDU reassembly
 */
 #ifndef MCA_FCR_RX_POOL_ID
 #define MCA_FCR_RX_POOL_ID      HCI_ACL_POOL_ID
+#endif
+
+#ifndef MCA_FCR_RX_BUF_SIZE
+#define MCA_FCR_RX_BUF_SIZE     (4096+16)
+#endif
+
+#ifndef MCA_FCR_TX_BUF_SIZE
+#define MCA_FCR_TX_BUF_SIZE     (4096+16)
 #endif
 
 /*

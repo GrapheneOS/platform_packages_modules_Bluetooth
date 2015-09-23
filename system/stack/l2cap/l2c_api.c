@@ -289,19 +289,19 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
         p_ccb->ertm_info  = *p_ertm_info;
 
         /* Replace default indicators with the actual default pool */
-        if (p_ccb->ertm_info.fcr_rx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.fcr_rx_pool_id = L2CAP_FCR_RX_POOL_ID;
+        if (p_ccb->ertm_info.fcr_rx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.fcr_rx_buf_size = L2CAP_FCR_RX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.fcr_tx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.fcr_tx_pool_id = L2CAP_FCR_TX_POOL_ID;
+        if (p_ccb->ertm_info.fcr_tx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.fcr_tx_buf_size = L2CAP_FCR_TX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.user_rx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.user_rx_pool_id = HCI_ACL_POOL_ID;
+        if (p_ccb->ertm_info.user_rx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.user_rx_buf_size = L2CAP_USER_RX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.user_tx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.user_tx_pool_id = HCI_ACL_POOL_ID;
+        if (p_ccb->ertm_info.user_tx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.user_tx_buf_size = L2CAP_USER_TX_BUF_SIZE;
 
-        p_ccb->max_rx_mtu = GKI_get_pool_bufsize (p_ertm_info->user_rx_pool_id) -
+        p_ccb->max_rx_mtu = p_ertm_info->user_rx_buf_size -
             (L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET + L2CAP_FCS_LEN);
     }
 
@@ -437,19 +437,20 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
         p_ccb->ertm_info  = *p_ertm_info;
 
         /* Replace default indicators with the actual default pool */
-        if (p_ccb->ertm_info.fcr_rx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.fcr_rx_pool_id = L2CAP_FCR_RX_POOL_ID;
+        if (p_ccb->ertm_info.fcr_rx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.fcr_rx_buf_size = L2CAP_FCR_RX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.fcr_tx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.fcr_tx_pool_id = L2CAP_FCR_TX_POOL_ID;
+        if (p_ccb->ertm_info.fcr_tx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.fcr_tx_buf_size = L2CAP_FCR_TX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.user_rx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.user_rx_pool_id = HCI_ACL_POOL_ID;
+        if (p_ccb->ertm_info.user_rx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.user_rx_buf_size = L2CAP_USER_RX_BUF_SIZE;
 
-        if (p_ccb->ertm_info.user_tx_pool_id == L2CAP_DEFAULT_ERM_POOL_ID)
-            p_ccb->ertm_info.user_tx_pool_id = HCI_ACL_POOL_ID;
+        if (p_ccb->ertm_info.user_tx_buf_size == L2CAP_INVALID_ERM_BUF_SIZE)
+            p_ccb->ertm_info.user_tx_buf_size = L2CAP_USER_TX_BUF_SIZE;
 
-        p_ccb->max_rx_mtu = GKI_get_pool_bufsize (p_ertm_info->user_rx_pool_id) - (L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET + L2CAP_FCS_LEN);
+        p_ccb->max_rx_mtu = p_ertm_info->user_rx_buf_size -
+            (L2CAP_MIN_OFFSET + L2CAP_SDU_LEN_OFFSET + L2CAP_FCS_LEN);
     }
 
     if (result == L2CAP_CONN_OK)

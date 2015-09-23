@@ -709,8 +709,8 @@ extern "C"
     extern BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
                                                       UINT16 ctrl_psm,
                                                       UINT8 *p_sdp_idx);
-    extern UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size);
-    extern UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu);
+    extern UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size);
+    extern UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu);
     extern UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps);
     extern UINT16 bta_hl_set_mps(UINT16 mtu);
     extern void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
