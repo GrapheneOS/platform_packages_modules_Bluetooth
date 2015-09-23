@@ -257,6 +257,8 @@
 #define L2CAP_BLE_EXTFEA_MASK 0
 #endif
 
+/* Define a value that tells L2CAP to use the default HCI ACL buffer size */
+#define L2CAP_INVALID_ERM_BUF_SIZE      0
 /* Define a value that tells L2CAP to use the default HCI ACL buffer pool */
 #define L2CAP_DEFAULT_ERM_POOL_ID       0xFF
 /* Define a value that tells L2CAP to use the default MPS */
