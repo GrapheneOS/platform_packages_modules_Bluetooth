@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/ipc_handler_unix.h"
+#include "service/ipc/ipc_handler_linux.h"
 
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -23,27 +23,27 @@
 
 #include "osi/include/socket_utils/sockets.h"
 #include "service/daemon.h"
-#include "service/ipc/unix_ipc_host.h"
+#include "service/ipc/linux_ipc_host.h"
 #include "service/settings.h"
 
 namespace ipc {
 
-IPCHandlerUnix::IPCHandlerUnix(bluetooth::Adapter* adapter,
+IPCHandlerLinux::IPCHandlerLinux(bluetooth::Adapter* adapter,
                                IPCManager::Delegate* delegate)
     : IPCHandler(adapter, delegate),
       running_(false),
-      thread_("IPCHandlerUnix"),
+      thread_("IPCHandlerLinux"),
       keep_running_(true) {
 }
 
-IPCHandlerUnix::~IPCHandlerUnix() {
+IPCHandlerLinux::~IPCHandlerLinux() {
   // This will only be set if the Settings::create_ipc_socket_path() was
   // originally provided.
   if (!socket_path_.empty())
     unlink(socket_path_.value().c_str());
 }
 
-bool IPCHandlerUnix::Run() {
+bool IPCHandlerLinux::Run() {
   CHECK(!running_);
 
   const std::string& android_suffix =
@@ -106,19 +106,19 @@ bool IPCHandlerUnix::Run() {
   // Start an IO thread and post the listening task.
   base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
   if (!thread_.StartWithOptions(options)) {
-    LOG(ERROR) << "Failed to start IPCHandlerUnix thread";
+    LOG(ERROR) << "Failed to start IPCHandlerLinux thread";
     running_ = false;
     return false;
   }
 
   thread_.task_runner()->PostTask(
       FROM_HERE,
-      base::Bind(&IPCHandlerUnix::StartListeningOnThread, this));
+      base::Bind(&IPCHandlerLinux::StartListeningOnThread, this));
 
   return true;
 }
 
-void IPCHandlerUnix::Stop() {
+void IPCHandlerLinux::Stop() {
   keep_running_ = false;
 
   // At this moment the listening thread might be blocking on the accept
@@ -135,7 +135,7 @@ void IPCHandlerUnix::Stop() {
   NotifyStoppedOnOriginThread();
 }
 
-void IPCHandlerUnix::StartListeningOnThread() {
+void IPCHandlerLinux::StartListeningOnThread() {
   CHECK(socket_.is_valid());
   CHECK(adapter());
   CHECK(running_);
@@ -147,7 +147,7 @@ void IPCHandlerUnix::StartListeningOnThread() {
     LOG(ERROR) << "Failed to listen on domain socket: " << strerror(errno);
     origin_task_runner_->PostTask(
         FROM_HERE,
-        base::Bind(&IPCHandlerUnix::ShutDownOnOriginThread, this));
+        base::Bind(&IPCHandlerLinux::ShutDownOnOriginThread, this));
     return;
   }
 
@@ -168,7 +168,7 @@ void IPCHandlerUnix::StartListeningOnThread() {
 
     LOG(INFO) << "Established client connection: fd=" << client_socket;
 
-    UnixIPCHost ipc_host(client_socket, adapter());
+    LinuxIPCHost ipc_host(client_socket, adapter());
 
     // TODO(armansito): Use |thread_|'s MessageLoopForIO instead of using a
     // custom event loop to poll from the socket.
@@ -176,40 +176,40 @@ void IPCHandlerUnix::StartListeningOnThread() {
   }
 }
 
-void IPCHandlerUnix::ShutDownOnOriginThread() {
-  LOG(INFO) << "Shutting down IPCHandlerUnix thread";
+void IPCHandlerLinux::ShutDownOnOriginThread() {
+  LOG(INFO) << "Shutting down IPCHandlerLinux thread";
   thread_.Stop();
   running_ = false;
 
   NotifyStoppedOnCurrentThread();
 }
 
-void IPCHandlerUnix::NotifyStartedOnOriginThread() {
+void IPCHandlerLinux::NotifyStartedOnOriginThread() {
   if (!delegate())
     return;
 
   origin_task_runner_->PostTask(
       FROM_HERE,
-      base::Bind(&IPCHandlerUnix::NotifyStartedOnCurrentThread, this));
+      base::Bind(&IPCHandlerLinux::NotifyStartedOnCurrentThread, this));
 }
 
-void IPCHandlerUnix::NotifyStartedOnCurrentThread() {
+void IPCHandlerLinux::NotifyStartedOnCurrentThread() {
   if (delegate())
-    delegate()->OnIPCHandlerStarted(IPCManager::TYPE_UNIX);
+    delegate()->OnIPCHandlerStarted(IPCManager::TYPE_LINUX);
 }
 
-void IPCHandlerUnix::NotifyStoppedOnOriginThread() {
+void IPCHandlerLinux::NotifyStoppedOnOriginThread() {
   if (!delegate())
     return;
 
   origin_task_runner_->PostTask(
       FROM_HERE,
-      base::Bind(&IPCHandlerUnix::NotifyStoppedOnCurrentThread, this));
+      base::Bind(&IPCHandlerLinux::NotifyStoppedOnCurrentThread, this));
 }
 
-void IPCHandlerUnix::NotifyStoppedOnCurrentThread() {
+void IPCHandlerLinux::NotifyStoppedOnCurrentThread() {
   if (delegate())
-    delegate()->OnIPCHandlerStopped(IPCManager::TYPE_UNIX);
+    delegate()->OnIPCHandlerStopped(IPCManager::TYPE_LINUX);
 }
 
 }  // namespace ipc

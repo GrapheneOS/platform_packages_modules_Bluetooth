@@ -28,14 +28,16 @@ btserviceCommonSrc := \
 	hal/bluetooth_gatt_interface.cpp \
 	hal/bluetooth_interface.cpp \
 	ipc/ipc_handler.cpp \
-	ipc/ipc_handler_unix.cpp \
 	ipc/ipc_manager.cpp \
-	ipc/unix_ipc_host.cpp \
 	logging_helpers.cpp \
 	low_energy_client.cpp \
 	settings.cpp \
 	util/atomic_string.cpp \
 	uuid.cpp
+
+btserviceLinuxSrc := \
+	ipc/ipc_handler_linux.cpp \
+	ipc/linux_ipc_host.cpp
 
 btserviceBinderSrc := \
 	ipc/binder/bluetooth_binder_server.cpp \
@@ -58,6 +60,7 @@ btserviceCommonIncludes := $(LOCAL_PATH)/../
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBinderSrc) \
+	$(btserviceLinuxSrc) \
 	$(btserviceCommonSrc) \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
@@ -82,12 +85,13 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
+	$(btserviceLinuxSrc) \
 	hal/fake_bluetooth_gatt_interface.cpp \
 	hal/fake_bluetooth_interface.cpp \
 	test/adapter_unittest.cpp \
 	test/advertise_data_unittest.cpp \
 	test/fake_hal_util.cpp \
-	test/ipc_unix_unittest.cpp \
+	test/ipc_linux_unittest.cpp \
 	test/low_energy_client_unittest.cpp \
 	test/settings_unittest.cpp \
 	test/stub_ipc_handler_binder.cpp \

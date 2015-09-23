@@ -16,7 +16,7 @@
 
 #define LOG_TAG "bt_bluetooth_host"
 
-#include "service/ipc/unix_ipc_host.h"
+#include "service/ipc/linux_ipc_host.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -58,9 +58,9 @@ const char kStartServiceCommand[] = "start-service";
 const char kStopServiceCommand[] = "stop-service";
 const char kWriteCharacteristicCommand[] = "write-characteristic";
 
-// Useful values for indexing UnixIPCHost::pfds_
+// Useful values for indexing LinuxIPCHost::pfds_
 // Not super general considering that we should be able to support
-// many GATT FDs owned by one UnixIPCHost.
+// many GATT FDs owned by one LinuxIPCHost.
 enum {
   kFdIpc = 0,
   kFdGatt = 1,
@@ -75,14 +75,14 @@ bool TokenBool(const std::string& text) {
 
 namespace ipc {
 
-UnixIPCHost::UnixIPCHost(int sockfd, Adapter* adapter)
+LinuxIPCHost::LinuxIPCHost(int sockfd, Adapter* adapter)
     : adapter_(adapter), pfds_(1, {sockfd, POLLIN, 0}) {}
 
-UnixIPCHost::~UnixIPCHost() {
+LinuxIPCHost::~LinuxIPCHost() {
   close(pfds_[0].fd);
 }
 
-bool UnixIPCHost::EventLoop() {
+bool LinuxIPCHost::EventLoop() {
   while (true) {
     int status =
         TEMP_FAILURE_RETRY(ppoll(pfds_.data(), pfds_.size(), nullptr, nullptr));
@@ -104,13 +104,13 @@ bool UnixIPCHost::EventLoop() {
   return true;
 }
 
-bool UnixIPCHost::OnSetAdapterName(const std::string& name) {
+bool LinuxIPCHost::OnSetAdapterName(const std::string& name) {
   std::string decoded_data;
   base::Base64Decode(name, &decoded_data);
   return adapter_->SetName(decoded_data);
 }
 
-bool UnixIPCHost::OnCreateService(const std::string& service_uuid) {
+bool LinuxIPCHost::OnCreateService(const std::string& service_uuid) {
   gatt_servers_[service_uuid] = std::unique_ptr<Server>(new Server);
 
   int gattfd;
@@ -125,14 +125,14 @@ bool UnixIPCHost::OnCreateService(const std::string& service_uuid) {
   return true;
 }
 
-bool UnixIPCHost::OnDestroyService(const std::string& service_uuid) {
+bool LinuxIPCHost::OnDestroyService(const std::string& service_uuid) {
   gatt_servers_.erase(service_uuid);
   close(pfds_[1].fd);
   pfds_.resize(1);
   return true;
 }
 
-bool UnixIPCHost::OnAddCharacteristic(const std::string& service_uuid,
+bool LinuxIPCHost::OnAddCharacteristic(const std::string& service_uuid,
                                const std::string& characteristic_uuid,
                                const std::string& control_uuid,
                                const std::string& options) {
@@ -170,7 +170,7 @@ bool UnixIPCHost::OnAddCharacteristic(const std::string& service_uuid,
   return true;
 }
 
-bool UnixIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
+bool LinuxIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
                                     const std::string& characteristic_uuid,
                                     const std::string& value) {
   std::string decoded_data;
@@ -181,7 +181,7 @@ bool UnixIPCHost::OnSetCharacteristicValue(const std::string& service_uuid,
   return true;
 }
 
-bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
+bool LinuxIPCHost::OnSetAdvertisement(const std::string& service_uuid,
                               const std::string& advertise_uuids,
                               const std::string& advertise_data,
                               const std::string& manufacturer_data,
@@ -212,7 +212,7 @@ bool UnixIPCHost::OnSetAdvertisement(const std::string& service_uuid,
   return true;
 }
 
-bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
+bool LinuxIPCHost::OnSetScanResponse(const std::string& service_uuid,
                              const std::string& scan_response_uuids,
                              const std::string& scan_response_data,
                              const std::string& manufacturer_data,
@@ -240,15 +240,15 @@ bool UnixIPCHost::OnSetScanResponse(const std::string& service_uuid,
   return true;
 }
 
-bool UnixIPCHost::OnStartService(const std::string& service_uuid) {
+bool LinuxIPCHost::OnStartService(const std::string& service_uuid) {
   return gatt_servers_[service_uuid]->Start();
 }
 
-bool UnixIPCHost::OnStopService(const std::string& service_uuid) {
+bool LinuxIPCHost::OnStopService(const std::string& service_uuid) {
   return gatt_servers_[service_uuid]->Stop();
 }
 
-bool UnixIPCHost::OnMessage() {
+bool LinuxIPCHost::OnMessage() {
   std::string ipc_msg;
   int size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0, MSG_PEEK | MSG_TRUNC);
   if (-1 == size) {
@@ -306,7 +306,7 @@ bool UnixIPCHost::OnMessage() {
   return false;
 }
 
-bool UnixIPCHost::OnGattWrite() {
+bool LinuxIPCHost::OnGattWrite() {
   UUID::UUID128Bit id;
   int r = read(pfds_[kFdGatt].fd, id.data(), id.size());
   if (r != id.size()) {

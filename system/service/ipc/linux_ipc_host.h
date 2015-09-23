@@ -34,11 +34,11 @@ namespace ipc {
 // reads from a set of FDs (pfds_) to a set of handlers.
 // Reads from the GATT pipe read end will result in a write to
 // to the IPC socket, and vise versa.
-class UnixIPCHost {
+class LinuxIPCHost {
  public:
-  // UnixIPCHost owns the passed sockfd.
-  UnixIPCHost(int sockfd, bluetooth::Adapter* adapter);
-  ~UnixIPCHost();
+  // LinuxIPCHost owns the passed sockfd.
+  LinuxIPCHost(int sockfd, bluetooth::Adapter* adapter);
+  ~LinuxIPCHost();
 
   // Synchronously handle all events on input FDs.
   bool EventLoop();

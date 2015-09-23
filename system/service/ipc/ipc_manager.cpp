@@ -17,7 +17,7 @@
 #include "service/ipc/ipc_manager.h"
 
 #include "service/ipc/binder/ipc_handler_binder.h"
-#include "service/ipc/ipc_handler_unix.h"
+#include "service/ipc/ipc_handler_linux.h"
 
 namespace ipc {
 
@@ -31,21 +31,21 @@ IPCManager::~IPCManager() {
   // holding a reference to them. Instead, explicitly stop them here.
   if (BinderStarted())
     binder_handler_->Stop();
-  if (UnixStarted())
-    unix_handler_->Stop();
+  if (LinuxStarted())
+    linux_handler_->Stop();
 }
 
 bool IPCManager::Start(Type type, Delegate* delegate) {
   switch (type) {
-  case TYPE_UNIX:
-    if (UnixStarted()) {
-      LOG(ERROR) << "IPCManagerUnix already started.";
+  case TYPE_LINUX:
+    if (LinuxStarted()) {
+      LOG(ERROR) << "IPCManagerLinux already started.";
       return false;
     }
 
-    unix_handler_ = new IPCHandlerUnix(adapter_, delegate);
-    if (!unix_handler_->Run()) {
-      unix_handler_ = nullptr;
+    linux_handler_ = new IPCHandlerLinux(adapter_, delegate);
+    if (!linux_handler_->Run()) {
+      linux_handler_ = nullptr;
       return false;
     }
     return true;
@@ -74,8 +74,8 @@ bool IPCManager::BinderStarted() const {
   return binder_handler_.get();
 }
 
-bool IPCManager::UnixStarted() const {
-  return unix_handler_.get();
+bool IPCManager::LinuxStarted() const {
+  return linux_handler_.get();
 }
 
 }  // namespace ipc
