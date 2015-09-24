@@ -27,9 +27,10 @@ TEST(AdvertiseDataTest, EmptyData) {
   AdvertiseData adv0(data0);
   EXPECT_TRUE(adv0.IsValid());
 
+  // Single empty field not allowed.
   const std::vector<uint8_t> data1{ 0x00 };
   AdvertiseData adv1(data1);
-  EXPECT_TRUE(adv1.IsValid());
+  EXPECT_FALSE(adv1.IsValid());
 }
 
 TEST(AdvertiseDataTest, BadTLV) {

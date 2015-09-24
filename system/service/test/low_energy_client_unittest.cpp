@@ -20,6 +20,8 @@
 
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/low_energy_client.h"
+#include "stack/include/bt_types.h"
+#include "stack/include/hcidefs.h"
 
 using ::testing::_;
 using ::testing::Return;
@@ -35,17 +37,21 @@ class MockGattHandler : public hal::FakeBluetoothGattInterface::TestHandler {
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
   MOCK_METHOD7(MultiAdvEnable, bt_status_t(int, int, int, int, int, int, int));
-  MOCK_METHOD10(MultiAdvSetInstDataMock,
-                bt_status_t(bool, bool, bool, int,
-                            int, char*, int, char*, int, char*));
+  MOCK_METHOD10(
+      MultiAdvSetInstDataMock,
+      bt_status_t(bool, bool, bool, int, int, char*, int, char*, int, char*));
   MOCK_METHOD1(MultiAdvDisable, bt_status_t(int));
 
+  // GMock has macros for up to 10 arguments (11 is really just too many...).
+  // For now we forward this call to a 10 argument mock, omitting the
+  // |client_if| argument.
   bt_status_t MultiAdvSetInstData(
-      int client_if, bool set_scan_rsp, bool include_name,
+      int /* client_if */,
+      bool set_scan_rsp, bool include_name,
       bool incl_txpower, int appearance,
       int manufacturer_len, char* manufacturer_data,
       int service_data_len, char* service_data,
-      int service_uuid_len, char* service_uuid) override {
+      int service_uuid_len, char* service_uuid) {
     return MultiAdvSetInstDataMock(
         set_scan_rsp, include_name, incl_txpower, appearance,
         manufacturer_len, manufacturer_data,
@@ -84,6 +90,82 @@ class LowEnergyClientTest : public ::testing::Test {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClientTest);
+};
+
+// Used for tests that operate on a pre-registered client.
+class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
+ public:
+  LowEnergyClientPostRegisterTest() = default;
+  ~LowEnergyClientPostRegisterTest() override = default;
+
+  void SetUp() override {
+    LowEnergyClientTest::SetUp();
+    UUID uuid = UUID::GetRandom();
+    auto callback = [&](BLEStatus status, const UUID& in_uuid,
+                        std::unique_ptr<LowEnergyClient> in_client) {
+      CHECK(in_uuid == uuid);
+      CHECK(in_client.get());
+      CHECK(status == BLE_STATUS_SUCCESS);
+
+      le_client_ = std::move(in_client);
+    };
+
+    EXPECT_CALL(*mock_handler_, RegisterClient(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+
+    ble_factory_->RegisterClient(uuid, callback);
+
+    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
+    fake_hal_gatt_iface_->NotifyRegisterClientCallback(0, 0, hal_uuid);
+    testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+  }
+
+  void TearDown() override {
+    EXPECT_CALL(*mock_handler_, MultiAdvDisable(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, UnregisterClient(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    le_client_.reset();
+    LowEnergyClientTest::TearDown();
+  }
+
+  void StartAdvertising() {
+    ASSERT_FALSE(le_client_->IsAdvertisingStarted());
+    ASSERT_FALSE(le_client_->IsStartingAdvertising());
+    ASSERT_FALSE(le_client_->IsStoppingAdvertising());
+
+    EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, _, _, _, _, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_,
+                MultiAdvSetInstDataMock(_, _, _, _, _, _, _, _, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+
+    AdvertiseSettings settings;
+    AdvertiseData adv, scan_rsp;
+    ASSERT_TRUE(le_client_->StartAdvertising(
+        settings, adv, scan_rsp, LowEnergyClient::StatusCallback()));
+    ASSERT_TRUE(le_client_->IsStartingAdvertising());
+
+    fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+        le_client_->client_if(), BT_STATUS_SUCCESS);
+    fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+        le_client_->client_if(), BT_STATUS_SUCCESS);
+
+    ASSERT_TRUE(le_client_->IsAdvertisingStarted());
+    ASSERT_FALSE(le_client_->IsStartingAdvertising());
+    ASSERT_FALSE(le_client_->IsStoppingAdvertising());
+  }
+
+ protected:
+  std::unique_ptr<LowEnergyClient> le_client_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LowEnergyClientPostRegisterTest);
 };
 
 TEST_F(LowEnergyClientTest, RegisterClient) {
@@ -151,6 +233,9 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   EXPECT_EQ(uuid0, cb_uuid);
 
   // The client should unregister itself when deleted.
+  EXPECT_CALL(*mock_handler_, MultiAdvDisable(client_if0))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
   EXPECT_CALL(*mock_handler_, UnregisterClient(client_if0))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
@@ -168,7 +253,317 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   ASSERT_TRUE(client.get() == nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
+}
 
+TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+
+  // Use default advertising settings and data.
+  AdvertiseSettings settings;
+  AdvertiseData adv_data, scan_rsp;
+  int callback_count = 0;
+  BLEStatus last_status = BLE_STATUS_FAILURE;
+  auto callback = [&](BLEStatus status) {
+    last_status = status;
+    callback_count++;
+  };
+
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, _, _, _, _, _, _))
+      .Times(5)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  // Stack call returns failure.
+  EXPECT_FALSE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(0, callback_count);
+
+  // Stack call returns success.
+  EXPECT_TRUE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_TRUE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(0, callback_count);
+
+  // Already starting.
+  EXPECT_FALSE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+
+  // Notify failure.
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_FAIL);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(1, callback_count);
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // Try again.
+  EXPECT_TRUE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_TRUE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(1, callback_count);
+
+  // Success notification should trigger advertise data update.
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvSetInstDataMock(
+                  false,  // set_scan_rsp
+                  false,  // include_name
+                  false,  // incl_txpower
+                  _, _, _, _, _, _, _))
+      .Times(3)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  // Notify success for enable. The procedure will fail since setting data will
+  // fail.
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // Try again.
+  EXPECT_TRUE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_TRUE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(2, callback_count);
+
+  // Notify success for enable. the advertise data call should succeed but
+  // operation will remain pending.
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_TRUE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(2, callback_count);
+
+  // Notify failure from advertising call.
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_FAIL);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(3, callback_count);
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // Try again. Make everything succeed.
+  EXPECT_TRUE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_TRUE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(3, callback_count);
+
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(4, callback_count);
+  EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
+
+  // Already started.
+  EXPECT_FALSE(le_client_->StartAdvertising(
+      settings, adv_data, scan_rsp, callback));
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, StopAdvertisingBasic) {
+  AdvertiseSettings settings;
+
+  // Not enabled.
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->StopAdvertising(LowEnergyClient::StatusCallback()));
+
+  // Start advertising for testing.
+  StartAdvertising();
+
+  int callback_count = 0;
+  BLEStatus last_status = BLE_STATUS_FAILURE;
+  auto callback = [&](BLEStatus status) {
+    last_status = status;
+    callback_count++;
+  };
+
+  EXPECT_CALL(*mock_handler_, MultiAdvDisable(_))
+      .Times(3)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  // Stack call returns failure.
+  EXPECT_FALSE(le_client_->StopAdvertising(callback));
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(0, callback_count);
+
+  // Stack returns success.
+  EXPECT_TRUE(le_client_->StopAdvertising(callback));
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_TRUE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(0, callback_count);
+
+  // Already disabling.
+  EXPECT_FALSE(le_client_->StopAdvertising(callback));
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_TRUE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(0, callback_count);
+
+  // Notify failure.
+  fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
+      le_client_->client_if(), BT_STATUS_FAIL);
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(1, callback_count);
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // Try again.
+  EXPECT_TRUE(le_client_->StopAdvertising(callback));
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_TRUE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(1, callback_count);
+
+  // Notify success.
+  fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
+
+  // Already stopped.
+  EXPECT_FALSE(le_client_->StopAdvertising(callback));
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, InvalidAdvertiseData) {
+  const std::vector<uint8_t> data0{ 0x02, HCI_EIR_FLAGS_TYPE, 0x00 };
+  const std::vector<uint8_t> data1{
+      0x04, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE, 0x01, 0x02, 0x00
+  };
+  AdvertiseData invalid_adv(data0);
+  AdvertiseData valid_adv(data1);
+
+  AdvertiseSettings settings;
+
+  EXPECT_FALSE(le_client_->StartAdvertising(
+      settings, valid_adv, invalid_adv, LowEnergyClient::StatusCallback()));
+  EXPECT_FALSE(le_client_->StartAdvertising(
+      settings, invalid_adv, valid_adv, LowEnergyClient::StatusCallback()));
+
+  // Manufacturer data not correctly formatted according to spec. We let the
+  // stack handle this case.
+  const std::vector<uint8_t> data2{ 0x01, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE };
+  AdvertiseData invalid_mfc(data2);
+
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, _, _, _, _, _, _))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(le_client_->StartAdvertising(
+      settings, invalid_mfc, valid_adv, LowEnergyClient::StatusCallback()));
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+  EXPECT_FALSE(le_client_->IsStartingAdvertising());
+  EXPECT_FALSE(le_client_->IsStoppingAdvertising());
+
+  AdvertiseSettings settings(
+      AdvertiseSettings::MODE_LOW_POWER,
+      base::TimeDelta::FromMilliseconds(300),
+      AdvertiseSettings::TX_POWER_LEVEL_MEDIUM,
+      false /* connectable */);
+
+  const std::vector<uint8_t> data0;
+  const std::vector<uint8_t> data1{
+      0x04, HCI_EIR_MANUFACTURER_SPECIFIC_TYPE, 0x01, 0x02, 0x00
+  };
+
+  int callback_count = 0;
+  BLEStatus last_status = BLE_STATUS_FAILURE;
+  auto callback = [&](BLEStatus status) {
+    last_status = status;
+    callback_count++;
+  };
+
+  AdvertiseData adv0(data0);
+  adv0.set_include_tx_power_level(true);
+
+  AdvertiseData adv1(data1);
+  adv1.set_include_device_name(true);
+
+  EXPECT_CALL(*mock_handler_,
+              MultiAdvEnable(le_client_->client_if(), _, _,
+                             kAdvertisingEventTypeScannable,
+                             _, _, _))
+      .Times(2)
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(
+      *mock_handler_,
+      MultiAdvSetInstDataMock(
+          false,  // set_scan_rsp
+          false,  // include_name
+          true,  // incl_txpower,
+          _,
+          0,  // 0 bytes
+          _, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(
+      *mock_handler_,
+      MultiAdvSetInstDataMock(
+          true,  // set_scan_rsp
+          true,  // include_name
+          false,  // incl_txpower,
+          _,
+          data1.size() - 2,  // Mfc. Specific data field bytes.
+          _, _, _, _, _))
+      .Times(2)
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  // Enable success; Adv. data success; Scan rsp. fail.
+  EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_FAIL);
+
+  EXPECT_EQ(1, callback_count);
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+  EXPECT_FALSE(le_client_->IsAdvertisingStarted());
+
+  // Second time everything succeeds.
+  EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+      le_client_->client_if(), BT_STATUS_SUCCESS);
+
+  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
+  EXPECT_TRUE(le_client_->IsAdvertisingStarted());
 }
 
 }  // namespace
