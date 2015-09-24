@@ -55,12 +55,15 @@ class BluetoothGattInterface {
     virtual void MultiAdvEnableCallback(
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
+
     virtual void MultiAdvUpdateCallback(
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
+
     virtual void MultiAdvDataCallback(
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
+
     virtual void MultiAdvDisableCallback(
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
@@ -77,6 +80,22 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
         const bt_uuid_t& app_uuid);
+
+    virtual void ServiceAddedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        const btgatt_srvc_id_t& srvc_id,
+        int srvc_handle);
+
+    virtual void ServiceStartedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        int srvc_handle);
+
+    virtual void ServiceStoppedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        int srvc_handle);
 
     // TODO(armansito): Complete the list of callbacks.
   };
