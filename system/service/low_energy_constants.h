@@ -31,6 +31,12 @@ enum BLEStatus {
   // TODO(armansito): Add ATT protocol error codes
 };
 
+enum Transport {
+  TRANSPORT_AUTO = 0,
+  TRANSPORT_BREDR = 1,
+  TRANSPORT_LE = 2
+};
+
 // Advertising interval for different modes.
 const int kAdvertisingIntervalHighMs = 1000;
 const int kAdvertisingIntervalMediumMs = 250;

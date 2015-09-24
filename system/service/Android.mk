@@ -27,6 +27,7 @@ btserviceCommonSrc := \
 	gatt_identifier.cpp \
 	gatt_server.cpp \
 	gatt_server_old.cpp \
+	hal/gatt_helpers.cpp \
 	hal/bluetooth_gatt_interface.cpp \
 	hal/bluetooth_interface.cpp \
 	ipc/ipc_handler.cpp \
