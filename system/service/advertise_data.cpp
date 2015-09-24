@@ -57,6 +57,11 @@ bool AdvertiseData::IsValid() const {
       return false;
     }
 
+    // A field length of 0 would be invalid as it should at least contain the
+    // EIR field type.
+    if (field_len < 1)
+      return false;
+
     uint8_t type = data_[i + 1];
 
     // Clients are not allowed to set the following EIR fields as these are
