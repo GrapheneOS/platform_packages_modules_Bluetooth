@@ -7,7 +7,6 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/ulinux \
 	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../include \
-	$(LOCAL_PATH)/../osi/include \
 	$(LOCAL_PATH)/../stack/include \
 	$(LOCAL_PATH)/../utils/include \
 	$(LOCAL_PATH)/../ \

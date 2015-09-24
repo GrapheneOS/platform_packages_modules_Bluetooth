@@ -40,7 +40,6 @@ btcoreCommonTestSrc := \
 
 btcoreCommonIncludes := \
     $(LOCAL_PATH)/include \
-    $(LOCAL_PATH)/../osi/include \
     $(LOCAL_PATH)/..
 
 # libbtcore static library for target

@@ -26,7 +26,6 @@ static_library("device") {
     "//gki/common",
     "//hci/include",
     "//include",
-    "//osi/include",
     "//stack/include",
   ]
 }

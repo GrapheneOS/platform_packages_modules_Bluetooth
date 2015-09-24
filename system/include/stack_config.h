@@ -20,7 +20,7 @@
 
 #include <stdbool.h>
 
-#include "config.h"
+#include "osi/include/config.h"
 #include "module.h"
 
 static const char STACK_CONFIG_MODULE[] = "stack_config_module";

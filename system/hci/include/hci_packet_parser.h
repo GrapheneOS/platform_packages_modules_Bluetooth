@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "bdaddr.h"
 #include "bt_types.h"
 #include "device_features.h"

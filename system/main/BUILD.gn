@@ -35,7 +35,6 @@ shared_library("bluetooth.default") {
     "//bta/sys",
     "//bta/dm",
     "//btcore/include",
-    "//osi/include",
     "//gki/common",
     "//gki/ulinux",
     "//include",

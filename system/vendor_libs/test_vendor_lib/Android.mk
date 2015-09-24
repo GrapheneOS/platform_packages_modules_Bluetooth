@@ -21,7 +21,6 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(BT_DIR) \
     $(BT_DIR)/hci/include \
-    $(BT_DIR)/osi/include \
     $(BT_DIR)/stack/include \
     $(BT_DIR)/third_party/gtest/include
 
@@ -53,7 +52,6 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(BT_DIR) \
     $(BT_DIR)/hci/include \
-    $(BT_DIR)/osi/include \
     $(BT_DIR)/stack/include
 
 LOCAL_SHARED_LIBRARIES := \

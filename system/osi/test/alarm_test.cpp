@@ -21,9 +21,9 @@
 #include "AlarmTestHarness.h"
 
 extern "C" {
-#include "alarm.h"
-#include "osi.h"
-#include "semaphore.h"
+#include "osi/include/alarm.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
 }
 
 static semaphore_t *semaphore;

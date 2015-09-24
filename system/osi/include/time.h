@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
 
 #pragma once
 
-#include "osi/include/hash_map.h"
+#include <stdint.h>
 
-hash_index_t hash_function_naive(const void *key);
-
-hash_index_t hash_function_integer(const void *key);
-
-// Hashes a pointer based only on its address value
-hash_index_t hash_function_pointer(const void *key);
-
-hash_index_t hash_function_string(const void *key);
+// Get the OS boot time in milliseconds.
+//
+// NOTE: The return value will rollover every 49.7 days,
+// hence it cannot be used for absolute time comparison.
+// Relative time comparison using 32-bits integers such
+// as (t2_u32 - t1_u32 < delta_u32) should work as expected as long
+// as there is no multiple rollover between t2_u32 and t1_u32.
+uint32_t time_get_os_boottime_ms(void);

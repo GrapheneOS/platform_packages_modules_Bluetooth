@@ -241,7 +241,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 #if (L2CAP_ERTM_STATS == TRUE)
     if ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID) && (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) )
     {
-        UINT32  dur = GKI_get_os_tick_count() - p_ccb->fcrb.connect_tick_count;
+        UINT32  dur = time_get_os_boottime_ms() - p_ccb->fcrb.connect_tick_count;
         char    *p_str = (char *)GKI_getbuf(120);
         UINT16  i;
         UINT32  throughput_avg, ack_delay_avg, ack_q_count_avg;
@@ -1728,7 +1728,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 #if (L2CAP_ERTM_STATS == TRUE)
             /* set timestamp at the end of tx I-frame to get acking delay */
             p = ((UINT8 *) (p_wack+1)) + p_wack->offset + p_wack->len;
-            UINT32_TO_STREAM (p, GKI_get_os_tick_count());
+            UINT32_TO_STREAM (p, time_get_os_boottime_ms());
 #endif
             /* We will not save the FCS in case we reconfigure and change options */
             if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
@@ -2277,8 +2277,8 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
                 p += L2CAP_FCS_LEN;
             }
 
-            STREAM_TO_UINT32 (timestamp, p);
-            delay = GKI_get_os_tick_count() - timestamp;
+            STREAM_TO_UINT32(timestamp, p);
+            delay = time_get_os_boottime_ms() - timestamp;
 
             p_ccb->fcrb.ack_delay_avg[index] += delay;
             if ( delay > p_ccb->fcrb.ack_delay_max[index] )
@@ -2301,8 +2301,8 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
         p_ccb->fcrb.ack_delay_avg[index] /= L2CAP_ERTM_STATS_AVG_NUM_SAMPLES;
 
         /* calculate throughput */
-        timestamp = GKI_get_os_tick_count();
-        if (timestamp - p_ccb->fcrb.throughput_start > 0 )
+        timestamp = time_get_os_boottime_ms();
+        if (timestamp - p_ccb->fcrb.throughput_start > 0)
             p_ccb->fcrb.throughput[index] /= (timestamp - p_ccb->fcrb.throughput_start);
 
         p_ccb->fcrb.throughput_start = timestamp;

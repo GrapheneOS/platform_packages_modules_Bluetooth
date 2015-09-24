@@ -3,8 +3,8 @@
 #include "AllocationTestHarness.h"
 
 extern "C" {
-#include "list.h"
-#include "osi.h"
+#include "osi/include/list.h"
+#include "osi/include/osi.h"
 }
 
 class ListTest : public AllocationTestHarness {};

@@ -24,10 +24,10 @@
 
 #include <hardware/bluetooth.h>
 
+#include "osi/include/osi.h"
+#include "osi/include/log.h"
 #include "bt_types.h"
 #include "bta_api.h"
-#include "osi.h"
-#include "osi/include/log.h"
 
 /*******************************************************************************
 **  Constants & Macros

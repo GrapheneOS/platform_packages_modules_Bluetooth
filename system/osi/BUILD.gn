@@ -43,10 +43,10 @@ static_library("osi") {
     "src/socket_utils/socket_local_server.c",
 
     "src/thread.c",
+    "src/time.c",
   ]
 
   include_dirs = [
-    "include",
     "//",
     "//utils/include",
   ]
@@ -71,10 +71,10 @@ executable("net_test_osi") {
     "test/reactor_test.cpp",
     "test/ringbuffer_test.cpp",
     "test/thread_test.cpp",
+    "test/time_test.cpp",
   ]
 
   include_dirs = [
-    "include",
     "//",
   ]
 
