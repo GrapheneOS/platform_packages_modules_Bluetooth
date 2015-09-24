@@ -18,8 +18,9 @@
 
 #pragma once
 
-#include "future.h"
 #include <stdbool.h>
+
+#include "osi/include/future.h"
 
 typedef struct {
   void (*init_stack)(void);

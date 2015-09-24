@@ -24,12 +24,12 @@
 #ifndef BTA_AV_INT_H
 #define BTA_AV_INT_H
 
+#include "osi/include/list.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "avdt_api.h"
 #include "bta_av_co.h"
-#include "list.h"
 
 #define BTA_AV_DEBUG TRUE
 /*****************************************************************************

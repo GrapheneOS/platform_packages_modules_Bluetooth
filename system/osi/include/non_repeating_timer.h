@@ -20,7 +20,7 @@
 
 #include <stdbool.h>
 
-#include "alarm.h"
+#include "osi/include/alarm.h"
 
 typedef struct non_repeating_timer_t non_repeating_timer_t;
 

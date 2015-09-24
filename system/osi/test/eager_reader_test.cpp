@@ -24,11 +24,11 @@ extern "C" {
 #include <stdint.h>
 #include <unistd.h>
 
-#include "allocator.h"
-#include "eager_reader.h"
-#include "osi.h"
-#include "semaphore.h"
-#include "thread.h"
+#include "osi/include/allocator.h"
+#include "osi/include/eager_reader.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 }
 
 #define BUFFER_SIZE 32

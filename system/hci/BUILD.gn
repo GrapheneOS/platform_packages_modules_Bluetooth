@@ -39,7 +39,6 @@ static_library("hci") {
     "//include",
     "//btcore/include",
     "//gki/common",
-    "//osi/include",
     "//stack/include",
   ]
 }
@@ -61,8 +60,6 @@ executable("net_test_hci") {
     "//include",
     "//btcore/include",
     "//hci/include",
-    "//osi/include",
-    "//osi/test",
     "//stack/include",
   ]
 

@@ -24,10 +24,10 @@ extern "C" {
 #include <stdint.h>
 
 #include "low_power_manager.h"
-#include "osi.h"
-#include "semaphore.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 #include "test_stubs.h"
-#include "thread.h"
 #include "vendor.h"
 }
 

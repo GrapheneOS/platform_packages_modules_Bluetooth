@@ -3968,9 +3968,9 @@ static void btm_sec_auth_collision (UINT16 handle)
     tBTM_SEC_DEV_REC *p_dev_rec;
 
     if (!btm_cb.collision_start_time)
-        btm_cb.collision_start_time = GKI_get_os_tick_count();
+        btm_cb.collision_start_time = time_get_os_boottime_ms();
 
-    if ((GKI_get_os_tick_count() - btm_cb.collision_start_time) < btm_cb.max_collision_delay)
+    if ((time_get_os_boottime_ms() - btm_cb.collision_start_time) < btm_cb.max_collision_delay)
     {
         if (handle == BTM_SEC_INVALID_HANDLE)
         {

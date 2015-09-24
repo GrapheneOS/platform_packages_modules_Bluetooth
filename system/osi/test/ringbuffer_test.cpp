@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "ringbuffer.h"
-#include "osi.h"
+#include "osi/include/ringbuffer.h"
+#include "osi/include/osi.h"
 }
 
 TEST(RingbufferTest, test_new_simple) {
