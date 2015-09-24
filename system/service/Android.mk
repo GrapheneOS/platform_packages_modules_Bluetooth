@@ -35,6 +35,7 @@ btserviceCommonSrc := \
 	logging_helpers.cpp \
 	low_energy_client.cpp \
 	settings.cpp \
+	util/address_helper.cpp \
 	util/atomic_string.cpp \
 	uuid.cpp
 
@@ -97,6 +98,7 @@ LOCAL_SRC_FILES := \
 	test/low_energy_client_unittest.cpp \
 	test/settings_unittest.cpp \
 	test/stub_ipc_handler_binder.cpp \
+	test/util_unittest.cpp \
 	test/uuid_unittest.cpp
 ifeq ($(HOST_OS),linux)
 LOCAL_SRC_FILES += \
