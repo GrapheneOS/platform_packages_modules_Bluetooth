@@ -19,6 +19,8 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
+#include "service/ipc/binder/parcel_helpers.h"
+
 using android::IBinder;
 using android::Parcel;
 using android::sp;
@@ -33,6 +35,7 @@ const char IBluetoothGattServerCallback::kServiceName[] =
 
 // BnBluetoothGattServerCallback (server) implementation
 // ========================================================
+
 status_t BnBluetoothGattServerCallback::onTransact(
     uint32_t code,
     const Parcel& data,
@@ -47,6 +50,13 @@ status_t BnBluetoothGattServerCallback::onTransact(
     int status = data.readInt32();
     int server_if = data.readInt32();
     OnServerRegistered(status, server_if);
+    return android::NO_ERROR;
+  }
+  case ON_SERVICE_ADDED_TRANSACTION: {
+    int status = data.readInt32();
+    auto gatt_id = CreateGattIdentifierFromParcel(data);
+    CHECK(gatt_id);
+    OnServiceAdded(status, *gatt_id);
     return android::NO_ERROR;
   }
   default:
@@ -75,6 +85,21 @@ void BpBluetoothGattServerCallback::OnServerRegistered(
       IBluetoothGattServerCallback::ON_SERVER_REGISTERED_TRANSACTION,
       data, &reply,
       IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothGattServerCallback::OnServiceAdded(
+    int status,
+    const bluetooth::GattIdentifier& service_id) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothGattServerCallback::getInterfaceDescriptor());
+  data.writeInt32(status);
+  WriteGattIdentifierToParcel(service_id, &data);
+
+  remote()->transact(IBluetoothGattServerCallback::ON_SERVICE_ADDED_TRANSACTION,
+                     data, &reply,
+                     IBinder::FLAG_ONEWAY);
 }
 
 IMPLEMENT_META_INTERFACE(BluetoothGattServerCallback,

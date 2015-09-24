@@ -16,10 +16,13 @@
 
 #pragma once
 
+#include <memory>
+
 #include <base/macros.h>
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
+#include "service/gatt_identifier.h"
 #include "service/ipc/binder/IBluetoothGattServerCallback.h"
 
 namespace ipc {
@@ -59,6 +62,11 @@ class IBluetoothGattServer : public android::IInterface {
   virtual void UnregisterServer(int server_if) = 0;
   virtual void UnregisterAll() = 0;
 
+  virtual bool BeginServiceDeclaration(
+      int server_if, bool is_primary, const bluetooth::UUID& uuid,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) = 0;
+  virtual bool EndServiceDeclaration(int server_if) = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
@@ -95,6 +103,10 @@ class BpBluetoothGattServer
       const android::sp<IBluetoothGattServerCallback>& callback) override;
   void UnregisterServer(int server_if) override;
   void UnregisterAll() override;
+  bool BeginServiceDeclaration(
+      int server_if, bool is_primary, const bluetooth::UUID& uuid,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
+  bool EndServiceDeclaration(int server_if) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServer);
