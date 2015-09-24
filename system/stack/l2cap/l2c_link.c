@@ -1111,19 +1111,26 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++)
         {
             /* If controller window is full, nothing to do */
-            if (((l2cb.controller_xmit_window == 0 ||
-                  (l2cb.round_robin_unacked >= l2cb.round_robin_quota))
+            if (p_lcb->transport == BT_TRANSPORT_BR_EDR &&
+                (l2cb.controller_xmit_window == 0 ||
+                 l2cb.round_robin_unacked >= l2cb.round_robin_quota))
+            {
 #if (BLE_INCLUDED == TRUE)
-                && (p_lcb->transport == BT_TRANSPORT_BR_EDR)
-                )
-              || (p_lcb->transport == BT_TRANSPORT_LE &&
-                 (l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota ||
-                  l2cb.controller_le_xmit_window == 0 )))
+                continue;
 #else
-                ))
+                /* No more quota and only BR/EDR supported, so nothing more to do*/
+                break;
 #endif
-            break;
+            }
 
+#if (BLE_INCLUDED == TRUE)
+            if (p_lcb->transport == BT_TRANSPORT_LE &&
+                (l2cb.controller_le_xmit_window == 0 ||
+                 l2cb.ble_round_robin_unacked >= l2cb.ble_round_robin_quota))
+            {
+                continue;
+            }
+#endif
 
             /* Check for wraparound */
             if (p_lcb == &l2cb.lcb_pool[MAX_L2CAP_LINKS])
