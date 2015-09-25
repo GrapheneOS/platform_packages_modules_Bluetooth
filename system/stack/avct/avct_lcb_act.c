@@ -482,9 +482,10 @@ void avct_lcb_cong_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     /* set event */
     event = (p_data->cong) ? AVCT_CONG_IND_EVT : AVCT_UNCONG_IND_EVT;
     p_lcb->cong = p_data->cong;
-    if (p_lcb->cong == FALSE && GKI_getfirst(&p_lcb->tx_q))
+    if (p_lcb->cong == FALSE && !fixed_queue_is_empty(p_lcb->tx_q))
     {
-        while ( !p_lcb->cong  && (p_buf = (BT_HDR *)GKI_dequeue(&p_lcb->tx_q)) != NULL)
+        while (!p_lcb->cong &&
+               (p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_lcb->tx_q)) != NULL)
         {
             if (L2CA_DataWrite(p_lcb->ch_lcid, p_buf) == L2CAP_DW_CONGESTED)
             {
@@ -614,7 +615,7 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
         if (p_lcb->cong == TRUE)
         {
-            GKI_enqueue (&p_lcb->tx_q, p_buf);
+            fixed_queue_enqueue(p_lcb->tx_q, p_buf);
         }
 
         /* send message to L2CAP */
@@ -636,7 +637,8 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
             pkt_type = AVCT_PKT_TYPE_END;
         }
     }
-    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d", GKI_queue_length(&p_lcb->tx_q));
+    AVCT_TRACE_DEBUG ("avct_lcb_send_msg tx_q_count:%d",
+                      fixed_queue_length(p_lcb->tx_q));
     return;
 }
 

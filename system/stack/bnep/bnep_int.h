@@ -134,7 +134,7 @@ typedef struct
     BD_ADDR           rem_bda;
     UINT16            rem_mtu_size;
     TIMER_LIST_ENT    conn_tle;
-    BUFFER_Q          xmit_q;
+    fixed_queue_t     *xmit_q;
 
     UINT16            sent_num_filters;
     UINT16            sent_prot_filter_start[BNEP_MAX_PROT_FILTERS];

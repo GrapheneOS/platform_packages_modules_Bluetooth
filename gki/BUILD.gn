@@ -17,12 +17,10 @@
 static_library("gki") {
   sources = [
     "common/gki_buffer.c",
-    "ulinux/gki_ulinux.c",
   ]
 
   include_dirs = [
     "common",
-    "ulinux",
     "//",
     "//include",
     "//stack/include",

@@ -96,7 +96,6 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../ \
                    $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../gki/common \
-                   $(LOCAL_PATH)/../gki/ulinux \
                    $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \

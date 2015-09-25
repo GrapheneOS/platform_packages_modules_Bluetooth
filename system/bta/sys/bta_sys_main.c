@@ -205,6 +205,7 @@ void bta_sys_init(void)
 
 void bta_sys_free(void) {
     fixed_queue_free(btu_bta_alarm_queue, NULL);
+    btu_bta_alarm_queue = NULL;
     hash_map_free(bta_alarm_hash_map);
     pthread_mutex_destroy(&bta_alarm_lock);
 }

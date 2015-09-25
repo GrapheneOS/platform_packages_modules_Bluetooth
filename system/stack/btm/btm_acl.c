@@ -2394,7 +2394,7 @@ void btm_acl_resubmit_page (void)
     BD_ADDR bda;
     BTM_TRACE_DEBUG ("btm_acl_resubmit_page");
     /* If there were other page request schedule can start the next one */
-    if ((p_buf = (BT_HDR *)GKI_dequeue (&btm_cb.page_queue)) != NULL)
+    if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
     {
         /* skip 3 (2 bytes opcode and 1 byte len) to get to the bd_addr
          * for both create_conn and rmt_name */
@@ -2425,8 +2425,8 @@ void  btm_acl_reset_paging (void)
     BT_HDR *p;
     BTM_TRACE_DEBUG ("btm_acl_reset_paging");
     /* If we sent reset we are definitely not paging any more */
-    while ((p = (BT_HDR *)GKI_dequeue(&btm_cb.page_queue)) != NULL)
-        GKI_freebuf (p);
+    while ((p = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
+        GKI_freebuf(p);
 
     btm_cb.paging = FALSE;
 }
@@ -2448,7 +2448,7 @@ void  btm_acl_paging (BT_HDR *p, BD_ADDR bda)
     if (btm_cb.discing)
     {
         btm_cb.paging = TRUE;
-        GKI_enqueue (&btm_cb.page_queue, p);
+        fixed_queue_enqueue(btm_cb.page_queue, p);
     }
     else
     {
@@ -2462,7 +2462,7 @@ void  btm_acl_paging (BT_HDR *p, BD_ADDR bda)
             if (btm_cb.paging &&
                 memcmp (bda, btm_cb.connecting_bda, BD_ADDR_LEN) != 0)
             {
-                GKI_enqueue (&btm_cb.page_queue, p);
+                fixed_queue_enqueue(btm_cb.page_queue, p);
             }
             else
             {

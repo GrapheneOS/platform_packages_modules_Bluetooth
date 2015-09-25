@@ -43,16 +43,6 @@ typedef struct _tle
 } TIMER_LIST_ENT;
 
 /***********************************************************************
-** This queue is a general purpose buffer queue, for application use.
-*/
-typedef struct
-{
-    void    *_p_first;
-    void    *_p_last;
-    UINT16   _count;
-} BUFFER_Q;
-
-/***********************************************************************
 ** Function prototypes
 */
 
@@ -61,16 +51,3 @@ typedef struct
 void    GKI_freebuf (void *);
 void   *GKI_getbuf (UINT16);
 UINT16  GKI_get_buf_size (void *);
-
-
-/* User buffer queue management
-*/
-void   *GKI_dequeue  (BUFFER_Q *);
-void    GKI_enqueue (BUFFER_Q *, void *);
-void   *GKI_getfirst (BUFFER_Q *);
-void   *GKI_getlast (BUFFER_Q *);
-void   *GKI_getnext (void *);
-void    GKI_init_q (BUFFER_Q *);
-UINT16  GKI_queue_length(BUFFER_Q *);
-BOOLEAN GKI_queue_is_empty(BUFFER_Q *);
-void   *GKI_remove_from_queue (BUFFER_Q *, void *);

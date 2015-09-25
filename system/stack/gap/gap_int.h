@@ -21,6 +21,7 @@
 #define GAP_INT_H
 
 #include "bt_target.h"
+#include "osi/include/fixed_queue.h"
 #include "gap_api.h"
 #include "gki.h"
 #include "gatt_api.h"
@@ -74,8 +75,8 @@ typedef struct
     UINT16            rem_mtu_size;
 
     BOOLEAN           is_congested;
-    BUFFER_Q          tx_queue;             /* Queue of buffers waiting to be sent  */
-    BUFFER_Q          rx_queue;             /* Queue of buffers waiting to be read  */
+    fixed_queue_t     *tx_queue;            /* Queue of buffers waiting to be sent  */
+    fixed_queue_t     *rx_queue;            /* Queue of buffers waiting to be read  */
 
     UINT32            rx_queue_size;        /* Total data count in rx_queue         */
 
@@ -126,7 +127,7 @@ typedef struct
     UINT16                  cl_op_uuid;
     BOOLEAN                 in_use;
     BOOLEAN                 connected;
-    BUFFER_Q                pending_req_q;
+    fixed_queue_t           *pending_req_q;
 
 }tGAP_CLCB;
 

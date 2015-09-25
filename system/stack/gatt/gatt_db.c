@@ -62,7 +62,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 BOOLEAN gatts_init_service_db (tGATT_SVC_DB *p_db, tBT_UUID *p_service,  BOOLEAN is_pri,
                                UINT16 s_hdl, UINT16 num_handle)
 {
-    GKI_init_q(&p_db->svc_buffer);
+    p_db->svc_buffer = fixed_queue_new(SIZE_MAX);
 
     if (!allocate_svc_db_buf(p_db))
     {
@@ -1117,7 +1117,7 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
     p_db->p_free_mem    = (UINT8 *) p_buf;
     p_db->mem_free      = GKI_get_buf_size(p_buf);
 
-    GKI_enqueue(&p_db->svc_buffer, p_buf);
+    fixed_queue_enqueue(p_db->svc_buffer, p_buf);
 
     return TRUE;
 

@@ -594,6 +594,7 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
     {
         if (!p_scb->allocated)
         {
+            fixed_queue_free(p_scb->frag_q, NULL);
             memset(p_scb,0,sizeof(tAVDT_SCB));
             p_scb->allocated = TRUE;
             p_scb->p_ccb = NULL;
@@ -607,7 +608,7 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
             memcpy(&p_scb->cs, p_cs, sizeof(tAVDT_CS));
 #if AVDT_MULTIPLEXING == TRUE
             /* initialize fragments gueue */
-            GKI_init_q(&p_scb->frag_q);
+            p_scb->frag_q = fixed_queue_new(SIZE_MAX);
 
             if(p_cs->cfg.psc_mask & AVDT_PSC_MUX)
             {
@@ -658,8 +659,9 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if AVDT_MULTIPLEXING == TRUE
     /* free fragments we're holding, if any; it shouldn't happen */
-    while ((p_buf = GKI_dequeue (&p_scb->frag_q)) != NULL)
+    while ((p_buf = fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
         GKI_freebuf(p_buf);
+    fixed_queue_free(p_scb->frag_q, NULL);
 #endif
 
     memset(p_scb, 0, sizeof(tAVDT_SCB));

@@ -205,31 +205,27 @@ void BTU_ShutDown(void) {
   btu_task_shut_down(NULL);
 
   fixed_queue_free(btu_bta_msg_queue, NULL);
-
-  hash_map_free(btu_general_alarm_hash_map);
-  pthread_mutex_destroy(&btu_general_alarm_lock);
-  fixed_queue_free(btu_general_alarm_queue, NULL);
-
-  hash_map_free(btu_oneshot_alarm_hash_map);
-  pthread_mutex_destroy(&btu_oneshot_alarm_lock);
-  fixed_queue_free(btu_oneshot_alarm_queue, NULL);
-
-  hash_map_free(btu_l2cap_alarm_hash_map);
-  pthread_mutex_destroy(&btu_l2cap_alarm_lock);
-  fixed_queue_free(btu_l2cap_alarm_queue, NULL);
-
-  thread_free(bt_workqueue_thread);
-
   btu_bta_msg_queue = NULL;
 
+  hash_map_free(btu_general_alarm_hash_map);
   btu_general_alarm_hash_map = NULL;
+  pthread_mutex_destroy(&btu_general_alarm_lock);
+  fixed_queue_free(btu_general_alarm_queue, NULL);
   btu_general_alarm_queue = NULL;
 
+  hash_map_free(btu_oneshot_alarm_hash_map);
   btu_oneshot_alarm_hash_map = NULL;
+  pthread_mutex_destroy(&btu_oneshot_alarm_lock);
+  fixed_queue_free(btu_oneshot_alarm_queue, NULL);
   btu_oneshot_alarm_queue = NULL;
 
+  hash_map_free(btu_l2cap_alarm_hash_map);
   btu_l2cap_alarm_hash_map = NULL;
+  pthread_mutex_destroy(&btu_l2cap_alarm_lock);
+  fixed_queue_free(btu_l2cap_alarm_queue, NULL);
   btu_l2cap_alarm_queue = NULL;
+
+  thread_free(bt_workqueue_thread);
 
   bt_workqueue_thread = NULL;
 }

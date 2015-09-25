@@ -226,14 +226,19 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
     if (p_fcrb->p_rx_sdu)
         GKI_freebuf (p_fcrb->p_rx_sdu);
 
-    while (!GKI_queue_is_empty(&p_fcrb->waiting_for_ack_q))
-        GKI_freebuf (GKI_dequeue (&p_fcrb->waiting_for_ack_q));
+    while (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_fcrb->waiting_for_ack_q));
+    p_fcrb->waiting_for_ack_q = NULL;
 
-    while (!GKI_queue_is_empty(&p_fcrb->srej_rcv_hold_q))
-        GKI_freebuf (GKI_dequeue (&p_fcrb->srej_rcv_hold_q));
+    while (!fixed_queue_is_empty(p_fcrb->srej_rcv_hold_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_fcrb->srej_rcv_hold_q));
+    fixed_queue_free(p_fcrb->srej_rcv_hold_q, NULL);
+    p_fcrb->srej_rcv_hold_q = NULL;
 
-    while (!GKI_queue_is_empty(&p_fcrb->retrans_q))
-        GKI_freebuf (GKI_dequeue (&p_fcrb->retrans_q));
+    while (!fixed_queue_is_empty(p_fcrb->retrans_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_fcrb->retrans_q));
+    fixed_queue_free(p_fcrb->retrans_q, NULL);
+    p_fcrb->retrans_q = NULL;
 
     btu_stop_quick_timer (&p_fcrb->ack_timer);
     btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
@@ -365,10 +370,10 @@ BOOLEAN l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb)
     {
         /* Check if remote side flowed us off or the transmit window is full */
         if ( (p_ccb->fcrb.remote_busy == TRUE)
-         ||  (GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q) >= p_ccb->peer_cfg.fcr.tx_win_sz) )
+         ||  (fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q) >= p_ccb->peer_cfg.fcr.tx_win_sz) )
         {
 #if (L2CAP_ERTM_STATS == TRUE)
-            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+            if (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
             {
                 p_ccb->fcrb.xmit_window_closed++;
 
@@ -668,8 +673,11 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     L2CAP_TRACE_EVENT ("      eRTM Rx Nxt_tx_seq %u, Lst_rx_ack %u, Nxt_seq_exp %u, Lst_ack_snt %u, wt_q.cnt %u, tries %u",
-                        p_ccb->fcrb.next_tx_seq, p_ccb->fcrb.last_rx_ack, p_ccb->fcrb.next_seq_expected,
-                        p_ccb->fcrb.last_ack_sent, GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q), p_ccb->fcrb.num_tries);
+                       p_ccb->fcrb.next_tx_seq, p_ccb->fcrb.last_rx_ack,
+                       p_ccb->fcrb.next_seq_expected,
+                       p_ccb->fcrb.last_ack_sent,
+                       fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q),
+                       p_ccb->fcrb.num_tries);
 
 #endif /* BT_TRACE_VERBOSE */
 
@@ -729,7 +737,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
             ctrl_word &= ~L2CAP_FCR_P_BIT;
 
-        if (GKI_queue_is_empty(&p_ccb->fcrb.waiting_for_ack_q))
+        if (fixed_queue_is_empty(p_ccb->fcrb.waiting_for_ack_q))
             p_ccb->fcrb.num_tries = 0;
 
         l2c_fcr_stop_timer (p_ccb);
@@ -758,13 +766,13 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         return;
 
     /* If we have some buffers held while doing SREJ, and SREJ has cleared, process them now */
-    if ( (!p_ccb->fcrb.local_busy) && (!p_ccb->fcrb.srej_sent) && (!GKI_queue_is_empty(&p_ccb->fcrb.srej_rcv_hold_q)))
+    if ( (!p_ccb->fcrb.local_busy) && (!p_ccb->fcrb.srej_sent) &&
+         (!fixed_queue_is_empty(p_ccb->fcrb.srej_rcv_hold_q)))
     {
-        BUFFER_Q temp_q = p_ccb->fcrb.srej_rcv_hold_q;
+        fixed_queue_t *temp_q = p_ccb->fcrb.srej_rcv_hold_q;
+        p_ccb->fcrb.srej_rcv_hold_q = fixed_queue_new(SIZE_MAX);
 
-        GKI_init_q (&p_ccb->fcrb.srej_rcv_hold_q);
-
-        while ((p_buf = (BT_HDR *)GKI_dequeue (&temp_q)) != NULL)
+        while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(temp_q)) != NULL)
         {
             if (p_ccb->in_use && (p_ccb->chnl_state == CST_OPEN))
             {
@@ -792,6 +800,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_REJ, 0);
             }
         }
+        fixed_queue_free(temp_q, NULL);
 
         /* Now, if needed, send one RR for the whole held queue */
         if ( (!p_ccb->fcrb.local_busy) && (!p_ccb->fcrb.rej_sent) && (!p_ccb->fcrb.srej_sent)
@@ -806,7 +815,8 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     /* If a window has opened, check if we can send any more packets */
-    if ( (!GKI_queue_is_empty(&p_ccb->fcrb.retrans_q) || !GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+    if ( (!fixed_queue_is_empty(p_ccb->fcrb.retrans_q) ||
+          !fixed_queue_is_empty(p_ccb->xmit_hold_q))
       && (p_ccb->fcrb.wait_ack == FALSE)
       && (l2c_fcr_is_flow_controlled (p_ccb) == FALSE) )
     {
@@ -827,8 +837,10 @@ void l2c_fcr_proc_tout (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
     L2CAP_TRACE_DEBUG ("l2c_fcr_proc_tout:  CID: 0x%04x  num_tries: %u (max: %u)  wait_ack: %u  ack_q_count: %u",
-                        p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
-                        p_ccb->fcrb.wait_ack, GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q));
+                       p_ccb->local_cid, p_ccb->fcrb.num_tries,
+                       p_ccb->peer_cfg.fcr.max_transmit,
+                       p_ccb->fcrb.wait_ack,
+                       fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
 
 #if (L2CAP_ERTM_STATS == TRUE)
     p_ccb->fcrb.retrans_touts++;
@@ -903,8 +915,8 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
      &&  ((ctrl_word & L2CAP_FCR_P_BIT) == 0) )
     {
         /* If anything still waiting for ack, restart the timer if it was stopped */
-        if (!GKI_queue_is_empty(&p_fcrb->waiting_for_ack_q))
-            l2c_fcr_start_timer (p_ccb);
+        if (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
+            l2c_fcr_start_timer(p_ccb);
 
         return (TRUE);
     }
@@ -915,11 +927,12 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
     num_bufs_acked = (req_seq - p_fcrb->last_rx_ack) & L2CAP_FCR_SEQ_MODULO;
 
     /* Verify the request sequence is in range before proceeding */
-    if (num_bufs_acked > GKI_queue_length(&p_fcrb->waiting_for_ack_q))
+    if (num_bufs_acked > fixed_queue_length(p_fcrb->waiting_for_ack_q))
     {
         /* The channel is closed if ReqSeq is not in range */
         L2CAP_TRACE_WARNING ("L2CAP eRTM Frame BAD Req_Seq - ctrl_word: 0x%04x  req_seq 0x%02x  last_rx_ack: 0x%02x  QCount: %u",
-                               ctrl_word, req_seq, p_fcrb->last_rx_ack, GKI_queue_length(&p_fcrb->waiting_for_ack_q));
+                             ctrl_word, req_seq, p_fcrb->last_rx_ack,
+                             fixed_queue_length(p_fcrb->waiting_for_ack_q));
 
         l2cu_disconnect_chnl (p_ccb);
         return (FALSE);
@@ -939,12 +952,13 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
 
         for (xx = 0; xx < num_bufs_acked; xx++)
         {
-            ls = ((BT_HDR *)(GKI_getfirst(&p_fcrb->waiting_for_ack_q)))->layer_specific & L2CAP_FCR_SAR_BITS;
+            BT_HDR *p_tmp = (BT_HDR *)fixed_queue_try_dequeue(p_fcrb->waiting_for_ack_q);
+            ls = p_tmp->layer_specific & L2CAP_FCR_SAR_BITS;
 
             if ( (ls == L2CAP_FCR_UNSEG_SDU) || (ls == L2CAP_FCR_END_SDU) )
                 full_sdus_xmitted++;
 
-            GKI_freebuf (GKI_dequeue (&p_fcrb->waiting_for_ack_q));
+            GKI_freebuf(p_tmp);
         }
 
         /* If we are still in a wait_ack state, do not mess with the timer */
@@ -955,17 +969,18 @@ static BOOLEAN process_reqseq (tL2C_CCB *p_ccb, UINT16 ctrl_word)
         if ( (p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_TxComplete_Cb) && (full_sdus_xmitted) )
         {
             /* Special case for eRTM, if all packets sent, send 0xFFFF */
-            if (GKI_queue_is_empty(&p_fcrb->waiting_for_ack_q) && (GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
+            if (fixed_queue_is_empty(p_fcrb->waiting_for_ack_q) &&
+                fixed_queue_is_empty(p_ccb->xmit_hold_q)) {
                 full_sdus_xmitted = 0xFFFF;
+            }
 
             (*p_ccb->p_rcb->api.pL2CA_TxComplete_Cb)(p_ccb->local_cid, full_sdus_xmitted);
         }
     }
 
     /* If anything still waiting for ack, restart the timer if it was stopped */
-    if (!GKI_queue_is_empty(&p_fcrb->waiting_for_ack_q))
-        l2c_fcr_start_timer (p_ccb);
-
+    if (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
+        l2c_fcr_start_timer(p_ccb);
     return (TRUE);
 }
 
@@ -1120,9 +1135,9 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
             if (p_fcrb->srej_sent)
             {
                 /* If SREJ sent, save the frame for later processing as long as it is in sequence */
-                next_srej = (((BT_HDR *)GKI_getlast(&p_fcrb->srej_rcv_hold_q))->layer_specific + 1) & L2CAP_FCR_SEQ_MODULO;
+                next_srej = (((BT_HDR *)fixed_queue_try_peek_last(p_fcrb->srej_rcv_hold_q))->layer_specific + 1) & L2CAP_FCR_SEQ_MODULO;
 
-                if ( (tx_seq == next_srej) && (GKI_queue_length(&p_fcrb->srej_rcv_hold_q) < p_ccb->our_cfg.fcr.tx_win_sz) )
+                if ( (tx_seq == next_srej) && (fixed_queue_length(p_fcrb->srej_rcv_hold_q) < p_ccb->our_cfg.fcr.tx_win_sz) )
                 {
                     /* If user gave us a pool for held rx buffers, use that */
                     /* TODO: Could that happen? Get rid of this code. */
@@ -1148,12 +1163,12 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                                          num_lost, tx_seq, p_fcrb->next_seq_expected, p_fcrb->rej_sent);
 
                     p_buf->layer_specific = tx_seq;
-                    GKI_enqueue (&p_fcrb->srej_rcv_hold_q, p_buf);
+                    fixed_queue_enqueue(p_fcrb->srej_rcv_hold_q, p_buf);
                 }
                 else
                 {
                     L2CAP_TRACE_WARNING ("process_i_frame() CID: 0x%04x  frame dropped in Srej Sent next_srej:%u  hold_q.count:%u  win_sz:%u",
-                                         p_ccb->local_cid, next_srej, GKI_queue_length(&p_fcrb->srej_rcv_hold_q), p_ccb->our_cfg.fcr.tx_win_sz);
+                                         p_ccb->local_cid, next_srej, fixed_queue_length(p_fcrb->srej_rcv_hold_q), p_ccb->our_cfg.fcr.tx_win_sz);
 
                     p_fcrb->rej_after_srej = TRUE;
                     GKI_freebuf (p_buf);
@@ -1181,13 +1196,13 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 }
                 else
                 {
-                    if (!GKI_queue_is_empty(&p_fcrb->srej_rcv_hold_q))
+                    if (!fixed_queue_is_empty(p_fcrb->srej_rcv_hold_q))
                     {
                         L2CAP_TRACE_ERROR ("process_i_frame() CID: 0x%04x  sending SREJ tx_seq:%d hold_q.count:%u",
-                                             p_ccb->local_cid, tx_seq, GKI_queue_length(&p_fcrb->srej_rcv_hold_q));
+                                             p_ccb->local_cid, tx_seq, fixed_queue_length(p_fcrb->srej_rcv_hold_q));
                     }
                     p_buf->layer_specific = tx_seq;
-                    GKI_enqueue (&p_fcrb->srej_rcv_hold_q, p_buf);
+                    fixed_queue_enqueue(p_fcrb->srej_rcv_hold_q, p_buf);
                     p_fcrb->srej_sent = TRUE;
                     l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_SREJ, 0);
                 }
@@ -1231,8 +1246,9 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                                         (L2CAP_FCR_ACK_TOUT*QUICK_TIMER_TICKS_PER_SEC)/1000);
             }
         }
-        else if ( ((GKI_queue_is_empty(&p_ccb->xmit_hold_q)) || (l2c_fcr_is_flow_controlled (p_ccb)))
-               &&  (GKI_queue_is_empty(&p_ccb->fcrb.srej_rcv_hold_q)))
+        else if ((fixed_queue_is_empty(p_ccb->xmit_hold_q) ||
+                  l2c_fcr_is_flow_controlled(p_ccb))
+                 && fixed_queue_is_empty(p_ccb->fcrb.srej_rcv_hold_q))
         {
             if (p_fcrb->local_busy)
                 l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_RNR, 0);
@@ -1477,30 +1493,32 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 {
     assert(p_ccb != NULL);
 
-    BT_HDR      *p_buf, *p_buf2;
+    BT_HDR      *p_buf = NULL;
     UINT8       *p;
     UINT8       buf_seq;
     UINT16      ctrl_word;
 
-    if ( (GKI_getfirst(&p_ccb->fcrb.waiting_for_ack_q))
+    if ( (!fixed_queue_is_empty(p_ccb->fcrb.waiting_for_ack_q))
      &&  (p_ccb->peer_cfg.fcr.max_transmit != 0)
      &&  (p_ccb->fcrb.num_tries >= p_ccb->peer_cfg.fcr.max_transmit) )
     {
         L2CAP_TRACE_EVENT ("Max Tries Exceeded:  (last_acq: %d  CID: 0x%04x  num_tries: %u (max: %u) ack_q_count: %u",
                 p_ccb->fcrb.last_rx_ack, p_ccb->local_cid, p_ccb->fcrb.num_tries, p_ccb->peer_cfg.fcr.max_transmit,
-                GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q));
+                fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
 
         l2cu_disconnect_chnl (p_ccb);
         return (FALSE);
     }
 
     /* tx_seq indicates whether to retransmit a specific sequence or all (if == L2C_FCR_RETX_ALL_PKTS) */
+    list_t *list_ack = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
+    const list_node_t *node_ack = list_begin(list_ack);
     if (tx_seq != L2C_FCR_RETX_ALL_PKTS)
     {
         /* If sending only one, the sequence number tells us which one. Look for it.
         */
-        for (p_buf = (BT_HDR *)GKI_getfirst(&p_ccb->fcrb.waiting_for_ack_q); p_buf; p_buf = (BT_HDR *)GKI_getnext (p_buf))
-        {
+        for ( ; node_ack != list_end(list_ack); node_ack = list_next(node_ack)) {
+            p_buf = (BT_HDR *)list_node(node_ack);
             /* Get the old control word */
             p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
 
@@ -1516,7 +1534,9 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
 
         if (!p_buf)
         {
-            L2CAP_TRACE_ERROR ("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u", tx_seq, GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q));
+            L2CAP_TRACE_ERROR ("retransmit_i_frames() UNKNOWN seq: %u  q_count: %u",
+                               tx_seq,
+                               fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q));
             return (TRUE);
         }
     }
@@ -1524,45 +1544,45 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
     {
         // Iterate though list and flush the amount requested from
         // the transmit data queue that satisfy the layer and event conditions.
-        for (const list_node_t *node = list_begin(p_ccb->p_lcb->link_xmit_data_q);
-            node != list_end(p_ccb->p_lcb->link_xmit_data_q);) {
-          BT_HDR *p_buf = (BT_HDR *)list_node(node);
-          node = list_next(node);
+        for (list_node_t *node_tmp = list_begin(p_ccb->p_lcb->link_xmit_data_q);
+            node_tmp != list_end(p_ccb->p_lcb->link_xmit_data_q);) {
+          BT_HDR *p_tmp = (BT_HDR *)list_node(node_tmp);
+          node_tmp = list_next(node_tmp);
 
             /* Do not flush other CIDs or partial segments */
-          if ((p_buf->layer_specific == 0) && (p_buf->event == p_ccb->local_cid)) {
-            list_remove(p_ccb->p_lcb->link_xmit_data_q, p_buf);
-            GKI_freebuf(p_buf);
+          if ((p_tmp->layer_specific == 0) && (p_tmp->event == p_ccb->local_cid)) {
+            list_remove(p_ccb->p_lcb->link_xmit_data_q, p_tmp);
+            GKI_freebuf(p_tmp);
           }
         }
 
         /* Also flush our retransmission queue */
-        while (!GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
-            GKI_freebuf (GKI_dequeue (&p_ccb->fcrb.retrans_q));
+        while (!fixed_queue_is_empty(p_ccb->fcrb.retrans_q))
+            GKI_freebuf(fixed_queue_try_dequeue(p_ccb->fcrb.retrans_q));
 
-        p_buf = (BT_HDR *)GKI_getfirst(&p_ccb->fcrb.waiting_for_ack_q);
+        node_ack = list_begin(list_ack);
     }
 
-    while (p_buf != NULL)
+    while (node_ack != list_end(list_ack))
     {
-        p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
+        p_buf = (BT_HDR *)list_node(node_ack);
+        node_ack = list_next(node_ack);
 
+        BT_HDR *p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
         if (p_buf2)
         {
             p_buf2->layer_specific = p_buf->layer_specific;
 
-            GKI_enqueue (&p_ccb->fcrb.retrans_q, p_buf2);
+            fixed_queue_enqueue(p_ccb->fcrb.retrans_q, p_buf2);
         }
 
         if ( (tx_seq != L2C_FCR_RETX_ALL_PKTS) || (p_buf2 == NULL) )
             break;
-        else
-            p_buf = (BT_HDR *)GKI_getnext (p_buf);
     }
 
     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
 
-    if (GKI_queue_length(&p_ccb->fcrb.waiting_for_ack_q))
+    if (fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q))
     {
         p_ccb->fcrb.num_tries++;
         l2c_fcr_start_timer (p_ccb);
@@ -1595,10 +1615,9 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
 
     /* If there is anything in the retransmit queue, that goes first
     */
-    if (GKI_getfirst(&p_ccb->fcrb.retrans_q))
+    p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->fcrb.retrans_q);
+    if (p_buf != NULL)
     {
-        p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->fcrb.retrans_q);
-
         /* Update Rx Seq and FCS if we acked some packets while this one was queued */
         prepare_I_frame (p_ccb, p_buf, TRUE);
 
@@ -1620,7 +1639,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         max_pdu = max_packet_length - L2CAP_MAX_HEADER_FCS;
     }
 
-    p_buf = (BT_HDR *)GKI_getfirst(&p_ccb->xmit_hold_q);
+    p_buf = (BT_HDR *)fixed_queue_try_peek_first(p_ccb->xmit_hold_q);
 
     /* If there is more data than the MPS, it requires segmentation */
     if (p_buf->len > max_pdu)
@@ -1657,7 +1676,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     }
     else    /* Use the original buffer if no segmentation, or the last segment */
     {
-        p_xmit = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+        p_xmit = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
 
         if (p_xmit->event != 0)
             last_seg = TRUE;
@@ -1720,7 +1739,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
                 p_xmit->len -= L2CAP_FCS_LEN;
 
             /* Pretend we sent it and it got lost */
-            GKI_enqueue (&p_ccb->fcrb.waiting_for_ack_q, p_xmit);
+            fixed_queue_enqueue(p_ccb->fcrb.waiting_for_ack_q, p_xmit);
             return (NULL);
         }
         else
@@ -1735,7 +1754,7 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
                 p_wack->len -= L2CAP_FCS_LEN;
 
             p_wack->layer_specific = p_xmit->layer_specific;
-            GKI_enqueue (&p_ccb->fcrb.waiting_for_ack_q, p_wack);
+            fixed_queue_enqueue(p_ccb->fcrb.waiting_for_ack_q, p_wack);
         }
 
 #if (L2CAP_ERTM_STATS == TRUE)
@@ -2253,18 +2272,21 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
     index = p_ccb->fcrb.ack_delay_avg_index;
 
     /* update sum, max and min of waiting for ack queue size */
-    p_ccb->fcrb.ack_q_count_avg[index] += p_ccb->fcrb.waiting_for_ack_q.count;
+    p_ccb->fcrb.ack_q_count_avg[index] +=
+        fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q);
 
-    if ( p_ccb->fcrb.waiting_for_ack_q.count > p_ccb->fcrb.ack_q_count_max[index] )
-        p_ccb->fcrb.ack_q_count_max[index] = p_ccb->fcrb.waiting_for_ack_q.count;
+    if (fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q) > p_ccb->fcrb.ack_q_count_max[index])
+        p_ccb->fcrb.ack_q_count_max[index] = fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q);
 
-    if ( p_ccb->fcrb.waiting_for_ack_q.count < p_ccb->fcrb.ack_q_count_min[index] )
-        p_ccb->fcrb.ack_q_count_min[index] = p_ccb->fcrb.waiting_for_ack_q.count;
+    if (fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q) < p_ccb->fcrb.ack_q_count_min[index])
+        p_ccb->fcrb.ack_q_count_min[index] = fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q);
 
     /* update sum, max and min of round trip delay of acking */
-    p_buf = (BT_HDR *)(p_ccb->fcrb.waiting_for_ack_q.p_first);
-    for (xx = 0; (xx < num_bufs_acked)&&(p_buf); xx++)
-    {
+    list_t *list = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
+    for (const list_node_t *node = list_begin(list), xx = 0;
+         (node != list_end(list)) && (xx < num_bufs_acked);
+         node = list_next(node), xx++) {
+        p_buf = list_node(node);
         /* adding up length of acked I-frames to get throughput */
         p_ccb->fcrb.throughput[index] += p_buf->len - 8;
 
@@ -2286,8 +2308,6 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
             if ( delay < p_ccb->fcrb.ack_delay_min[index] )
                 p_ccb->fcrb.ack_delay_min[index] = delay;
         }
-
-        p_buf = GKI_getnext(p_buf);
     }
 
     p_ccb->fcrb.ack_delay_avg_count++;

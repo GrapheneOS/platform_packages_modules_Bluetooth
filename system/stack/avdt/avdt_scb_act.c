@@ -1272,9 +1272,9 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     BT_HDR  *p_frag;
 
     /* free fragments we're holding, if any; it shouldn't happen */
-    if (!GKI_queue_is_empty(&p_scb->frag_q))
+    if (!fixed_queue_is_empty(p_scb->frag_q))
     {
-        while((p_frag = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
+        while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
             GKI_freebuf(p_frag);
 
         /* this shouldn't be happening */
@@ -1287,43 +1287,57 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     ssrc = avdt_scb_gen_ssrc(p_scb);
 
-    /* get first packet */
-    p_frag = (BT_HDR*)GKI_getfirst (&p_data->apiwrite.frag_q);
-    /* posit on Adaptation Layer header */
-    p_frag->len += AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
-    p_frag->offset -= AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
-    p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+    list_t *list = fixed_queue_get_list(p_data->apiwrite.frag_q);
+    const list_node_t *node = list_begin(list);
+    if (node != list_end(list)) {
+        p_frag = (BT_HDR *)list_node(node);
+        node = list_next(node);
 
-    /* Adaptation Layer header */
-    /* TSID, no-fragment bit and coding of length(in 2 length octets following) */
-    *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | AVDT_ALH_LCODE_16BIT;
+        /* get first packet */
+        /* posit on Adaptation Layer header */
+        p_frag->len += AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
+        p_frag->offset -= AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
+        p = (UINT8 *)(p_frag + 1) + p_frag->offset;
 
-    /* length of all remaining transport packet */
-    UINT16_TO_BE_STREAM(p, p_frag->layer_specific+AVDT_MEDIA_HDR_SIZE );
-    /* media header */
-    UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
-    UINT8_TO_BE_STREAM(p, p_data->apiwrite.m_pt);
-    UINT16_TO_BE_STREAM(p, p_scb->media_seq);
-    UINT32_TO_BE_STREAM(p, p_data->apiwrite.time_stamp);
-    UINT32_TO_BE_STREAM(p, ssrc);
-    p_scb->media_seq++;
+        /* Adaptation Layer header */
+        /* TSID, no-fragment bit and coding of length (in 2 length octets
+         * following)
+         */
+        *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | AVDT_ALH_LCODE_16BIT;
 
-    while((p_frag = (BT_HDR*)GKI_getnext (p_frag)) != NULL)
-    {
+        /* length of all remaining transport packet */
+        UINT16_TO_BE_STREAM(p, p_frag->layer_specific + AVDT_MEDIA_HDR_SIZE );
+        /* media header */
+        UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
+        UINT8_TO_BE_STREAM(p, p_data->apiwrite.m_pt);
+        UINT16_TO_BE_STREAM(p, p_scb->media_seq);
+        UINT32_TO_BE_STREAM(p, p_data->apiwrite.time_stamp);
+        UINT32_TO_BE_STREAM(p, ssrc);
+        p_scb->media_seq++;
+    }
+
+    for ( ; node != list_end(list); node = list_next(node)) {
+        p_frag = (BT_HDR *)list_node(node);
+
         /* posit on Adaptation Layer header */
         p_frag->len += AVDT_AL_HDR_SIZE;
         p_frag->offset -= AVDT_AL_HDR_SIZE;
         p = (UINT8 *)(p_frag + 1) + p_frag->offset;
         /* Adaptation Layer header */
-        /* TSID, fragment bit and coding of length(in 2 length octets following) */
-        *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | (AVDT_ALH_FRAG_MASK|AVDT_ALH_LCODE_16BIT);
+        /* TSID, fragment bit and coding of length (in 2 length octets
+         * following)
+         */
+        *p++ = (p_scb->curr_cfg.mux_tsid_media << 3) |
+            (AVDT_ALH_FRAG_MASK | AVDT_ALH_LCODE_16BIT);
 
         /* length of all remaining transport packet */
-        UINT16_TO_BE_STREAM(p, p_frag->layer_specific );
+        UINT16_TO_BE_STREAM(p, p_frag->layer_specific);
     }
 
     /* store it */
     p_scb->frag_q = p_data->apiwrite.frag_q;
+    /* TODO: Assign to NULL or allocate a new queue? */
+    p_data->apiwrite.frag_q = NULL;
 }
 #endif
 
@@ -1341,7 +1355,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
 #if AVDT_MULTIPLEXING == TRUE
-    if (GKI_queue_is_empty(&p_data->apiwrite.frag_q))
+    if (fixed_queue_is_empty(p_data->apiwrite.frag_q))
 #endif
         avdt_scb_hdl_write_req_no_frag(p_scb, p_data);
 #if AVDT_MULTIPLEXING == TRUE
@@ -1427,9 +1441,9 @@ void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     BT_HDR          *p_frag;
 
     AVDT_TRACE_WARNING("avdt_scb_snd_stream_close c:%d, off:%d",
-        GKI_queue_length(&p_scb->frag_q), p_scb->frag_off);
+        fixed_queue_length(p_scb->frag_q), p_scb->frag_off);
     /* clean fragments queue */
-    while((p_frag = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
+    while((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
          GKI_freebuf(p_frag);
     p_scb->frag_off = 0;
 #endif
@@ -1872,7 +1886,7 @@ void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if AVDT_MULTIPLEXING == TRUE
     /* clean fragments queue */
-    while((p_frag = (BT_HDR*)GKI_dequeue (&p_data->apiwrite.frag_q)) != NULL)
+    while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_data->apiwrite.frag_q)) != NULL)
          GKI_freebuf(p_frag);
 #endif
 
@@ -1928,11 +1942,11 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                                   &avdt_ctrl);
     }
 #if AVDT_MULTIPLEXING == TRUE
-    else if(!GKI_queue_is_empty (&p_scb->frag_q))
+    else if (!fixed_queue_is_empty(p_scb->frag_q))
     {
         AVDT_TRACE_DEBUG("Dropped fragments queue");
         /* clean fragments queue */
-        while((p_frag = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
+        while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
              GKI_freebuf(p_frag);
 
         p_scb->frag_off = 0;
@@ -1988,7 +2002,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                 L2CA_FlushChannel(avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_scb->p_ccb)][avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb)].lcid),
                                   L2CAP_FLUSH_CHANS_GET);
 #endif
-            while((p_pkt = (BT_HDR*)GKI_dequeue (&p_scb->frag_q)) != NULL)
+            while ((p_pkt = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
             {
                 sent = TRUE;
                 AVDT_TRACE_DEBUG("Send fragment len=%d",p_pkt->len);
@@ -2005,11 +2019,11 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
             if(p_scb->frag_off)
             {
-                if(AVDT_AD_SUCCESS == res || GKI_queue_is_empty (&p_scb->frag_q))
+                if (AVDT_AD_SUCCESS == res || fixed_queue_is_empty(p_scb->frag_q))
                 {
                     /* all buffers were sent to L2CAP, compose more to queue */
-                    avdt_scb_queue_frags(p_scb, &p_scb->p_next_frag, &p_scb->frag_off, &p_scb->frag_q);
-                    if(!GKI_queue_is_empty (&p_scb->frag_q))
+                    avdt_scb_queue_frags(p_scb, &p_scb->p_next_frag, &p_scb->frag_off, p_scb->frag_q);
+                    if (!fixed_queue_is_empty(p_scb->frag_q))
                     {
                         data.llcong = p_scb->cong;
                         avdt_scb_event(p_scb, AVDT_SCB_TC_CONG_EVT, &data);
@@ -2018,7 +2032,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             }
 
             /* Send event AVDT_WRITE_CFM_EVT if it was last fragment */
-            else if (sent && GKI_queue_is_empty (&p_scb->frag_q))
+            else if (sent && fixed_queue_is_empty(p_scb->frag_q))
             {
                 (*p_scb->cs.p_ctrl_cback)(avdt_scb_to_hdl(p_scb), NULL, AVDT_WRITE_CFM_EVT, &avdt_ctrl);
             }
@@ -2081,7 +2095,8 @@ void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data, UINT32 *p_data_len, BUFFER_Q *pq)
+void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
+                          UINT32 *p_data_len, fixed_queue_t *pq)
 {
     UINT16  lcid;
     UINT16  num_frag;
@@ -2137,7 +2152,8 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data, UINT32 *p_data_len,
         /* allocate buffer for fragment */
         if(NULL == (p_frag = (BT_HDR*)GKI_getbuf(buf_size)))
         {
-            AVDT_TRACE_WARNING("avdt_scb_queue_frags len=%d(out of GKI buffers)",*p_data_len);
+            AVDT_TRACE_WARNING("avdt_scb_queue_frags len=%d(out of buffers)",
+                               *p_data_len);
             break;
         }
         /* fill fragment by chunk of media payload */
@@ -2167,7 +2183,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data, UINT32 *p_data_len,
             UINT16_TO_BE_STREAM(p, p_frag->layer_specific );
         }
         /* put fragment into gueue */
-        GKI_enqueue(pq, p_frag);
+        fixed_queue_enqueue(pq, p_frag);
         num_frag--;
     }
 }

@@ -101,7 +101,6 @@ static_library("bta") {
     "//",
     "//btcore/include",
     "//gki/common",
-    "//gki/ulinux",
     "//hci/include",
     "//include",
     "//stack/include",
