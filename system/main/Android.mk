@@ -88,7 +88,6 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../bta/dm \
 	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../gki/common \
-	$(LOCAL_PATH)/../gki/ulinux \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../stack/include \
 	$(LOCAL_PATH)/../stack/l2cap \

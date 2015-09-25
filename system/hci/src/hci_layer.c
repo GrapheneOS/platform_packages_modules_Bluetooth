@@ -300,7 +300,9 @@ static future_t *shut_down() {
   }
 
   fixed_queue_free(command_queue, osi_free);
+  command_queue = NULL;
   fixed_queue_free(packet_queue, buffer_allocator->free);
+  packet_queue = NULL;
   list_free(commands_pending_response);
 
   pthread_mutex_destroy(&commands_pending_response_lock);

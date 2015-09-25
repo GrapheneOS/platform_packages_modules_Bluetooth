@@ -1160,10 +1160,10 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
     {
         PORT_SCHEDULE_LOCK;  /* to prevent missing credit */
 
-        count = GKI_queue_length(&p_port->rx.queue);
+        count = fixed_queue_length(p_port->rx.queue);
 
-        while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue)) != NULL)
-            GKI_freebuf (p_buf);
+        while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
+            GKI_freebuf(p_buf);
 
         p_port->rx.queue_size = 0;
 
@@ -1178,8 +1178,8 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
     {
         PORT_SCHEDULE_LOCK;  /* to prevent tx.queue_size from being negative */
 
-        while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->tx.queue)) != NULL)
-            GKI_freebuf (p_buf);
+        while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
+            GKI_freebuf(p_buf);
 
         p_port->tx.queue_size = 0;
 
@@ -1240,14 +1240,17 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
         return (PORT_LINE_ERR);
     }
 
-    p_buf = (BT_HDR *)GKI_getfirst (&p_port->rx.queue);
-    if (!p_buf)
+    if (fixed_queue_is_empty(p_port->rx.queue))
         return (PORT_SUCCESS);
 
     count = 0;
 
-    while (max_len && p_buf)
+    while (max_len)
     {
+        p_buf = (BT_HDR *)fixed_queue_try_peek_first(p_port->rx.queue);
+        if (p_buf == NULL)
+            break;
+
         if (p_buf->len > max_len)
         {
             memcpy (p_data, (UINT8 *)(p_buf + 1) + p_buf->offset, max_len);
@@ -1278,10 +1281,9 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
             if (max_len)
             {
                 p_data  += p_buf->len;
-                p_buf = (BT_HDR *)GKI_getnext (p_buf);
             }
 
-            GKI_freebuf (GKI_dequeue (&p_port->rx.queue));
+            GKI_freebuf(fixed_queue_try_dequeue(p_port->rx.queue));
 
             PORT_SCHEDULE_UNLOCK;
 
@@ -1342,7 +1344,7 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
 
     PORT_SCHEDULE_LOCK;
 
-    p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue);
+    p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue);
     if (p_buf)
     {
         p_port->rx.queue_size -= p_buf->len;
@@ -1393,7 +1395,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
                               (PORT_CTRL_REQ_SENT | PORT_CTRL_IND_RECEIVED)))
     {
         if ((p_port->tx.queue_size  > PORT_TX_CRITICAL_WM)
-         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_CRITICAL_WM))
+         || (fixed_queue_length(p_port->tx.queue) > PORT_TX_BUF_CRITICAL_WM))
         {
             RFCOMM_TRACE_WARNING ("PORT_Write: Queue size: %d",
                                    p_port->tx.queue_size);
@@ -1412,7 +1414,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
                              p_port->rfc.state,
                              p_port->port_ctrl);
 
-        GKI_enqueue (&p_port->tx.queue, p_buf);
+        fixed_queue_enqueue(p_port->tx.queue, p_buf);
         p_port->tx.queue_size += p_buf->len;
 
         return (PORT_CMD_PENDING);
@@ -1550,7 +1552,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     /* data fits into the end of the queue */
     PORT_SCHEDULE_LOCK;
 
-    if (((p_buf = (BT_HDR *)GKI_getlast(&p_port->tx.queue)) != NULL)
+    if (((p_buf = (BT_HDR *)fixed_queue_try_peek_last(p_port->tx.queue)) != NULL)
      && (((int)p_buf->len + available) <= (int)p_port->peer_mtu)
      && (((int)p_buf->len + available) <= (int)length))
     {
@@ -1584,12 +1586,12 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     {
         /* if we're over buffer high water mark, we're done */
         if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
-         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
+         || (fixed_queue_length(p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
         {
             port_flow_control_user(p_port);
             event |= PORT_EV_FC;
             RFCOMM_TRACE_EVENT ("tx queue is full,tx.queue_size:%d,tx.queue.count:%d,available:%d",
-                    p_port->tx.queue_size, GKI_queue_length(&p_port->tx.queue), available);
+                    p_port->tx.queue_size, fixed_queue_length(p_port->tx.queue), available);
             break;
          }
 
@@ -1698,7 +1700,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     /* data fits into the end of the queue */
     PORT_SCHEDULE_LOCK;
 
-    if (((p_buf = (BT_HDR *)GKI_getlast(&p_port->tx.queue)) != NULL)
+    if (((p_buf = (BT_HDR *)fixed_queue_try_peek_last(p_port->tx.queue)) != NULL)
      && ((p_buf->len + max_len) <= p_port->peer_mtu)
      && ((p_buf->len + max_len) <= length))
     {
@@ -1719,7 +1721,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     {
         /* if we're over buffer high water mark, we're done */
         if ((p_port->tx.queue_size  > PORT_TX_HIGH_WM)
-         || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
+         || (fixed_queue_length(p_port->tx.queue) > PORT_TX_BUF_HIGH_WM))
             break;
 
         /* continue with rfcomm data write */

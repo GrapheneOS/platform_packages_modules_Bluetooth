@@ -25,6 +25,8 @@
 #include <stddef.h>
 #include "bt_target.h"
 #include "btcore/include/counter.h"
+
+#include "osi/include/time.h"
 #include "gki.h"
 
 #include "rfcdefs.h"

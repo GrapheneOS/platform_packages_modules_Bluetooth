@@ -24,7 +24,6 @@ LOCAL_C_INCLUDES:= . \
                    $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../gki/common \
-                   $(LOCAL_PATH)/../gki/ulinux \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../rpc/include \
                    $(LOCAL_PATH)/../hcis \

@@ -782,7 +782,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                 p_ccb->fcrb.connect_tick_count = time_get_os_boottime_ms();
 #endif
                 /* See if we can forward anything on the hold queue */
-                if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+                if (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
                 {
                     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
                 }
@@ -865,7 +865,8 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 #endif
 
         /* See if we can forward anything on the hold queue */
-        if ( (p_ccb->chnl_state == CST_OPEN) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
+        if ( (p_ccb->chnl_state == CST_OPEN) &&
+             (!fixed_queue_is_empty(p_ccb->xmit_hold_q)))
         {
             l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
         }
@@ -1306,7 +1307,7 @@ void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         UINT16_TO_STREAM (p, p_ccb->remote_cid);
     }
 
-    GKI_enqueue (&p_ccb->xmit_hold_q, p_buf);
+    fixed_queue_enqueue(p_ccb->xmit_hold_q, p_buf);
 
     l2cu_check_channel_congestion (p_ccb);
 

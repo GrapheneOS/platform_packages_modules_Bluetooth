@@ -316,7 +316,7 @@ typedef struct
     UINT8 white_list_avail_size;
     tBTM_BLE_WL_STATE wl_state;
 
-    BUFFER_Q conn_pending_q;
+    fixed_queue_t *conn_pending_q;
     tBTM_BLE_CONN_ST conn_state;
 
     /* random address management control block */

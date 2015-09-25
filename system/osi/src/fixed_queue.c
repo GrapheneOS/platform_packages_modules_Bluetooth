@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
@@ -39,6 +40,36 @@ typedef struct fixed_queue_t {
 } fixed_queue_t;
 
 static void internal_dequeue_ready(void *context);
+
+bool fixed_queue_init(fixed_queue_t *queue, size_t capacity) {
+  if (queue == NULL)
+    return false;
+  memset(queue, 0, sizeof(*queue));
+
+  pthread_mutex_init(&queue->lock, NULL);
+  queue->capacity = capacity;
+
+  queue->list = list_new(NULL);
+  if (!queue->list)
+    goto error;
+
+  queue->enqueue_sem = semaphore_new(capacity);
+  if (!queue->enqueue_sem)
+    goto error;
+
+  queue->dequeue_sem = semaphore_new(0);
+  if (!queue->dequeue_sem)
+    goto error;
+
+  return true;
+
+error:
+  list_free(queue->list);
+  semaphore_free(queue->enqueue_sem);
+  semaphore_free(queue->dequeue_sem);
+  pthread_mutex_destroy(&queue->lock);
+  return false;
+}
 
 fixed_queue_t *fixed_queue_new(size_t capacity) {
   fixed_queue_t *ret = osi_calloc(sizeof(fixed_queue_t));
@@ -62,7 +93,7 @@ fixed_queue_t *fixed_queue_new(size_t capacity) {
 
   return ret;
 
-error:;
+error:
   fixed_queue_free(ret, NULL);
   return NULL;
 }
@@ -92,6 +123,16 @@ bool fixed_queue_is_empty(fixed_queue_t *queue) {
   pthread_mutex_unlock(&queue->lock);
 
   return is_empty;
+}
+
+size_t fixed_queue_length(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  size_t length = list_length(queue->list);
+  pthread_mutex_unlock(&queue->lock);
+
+  return length;
 }
 
 size_t fixed_queue_capacity(fixed_queue_t *queue) {
@@ -159,16 +200,46 @@ void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
   return ret;
 }
 
-void *fixed_queue_try_peek(fixed_queue_t *queue) {
+void *fixed_queue_try_peek_first(fixed_queue_t *queue) {
   assert(queue != NULL);
 
   pthread_mutex_lock(&queue->lock);
-  // Because protected by the lock, the empty and front calls are atomic and not a race condition
   void *ret = list_is_empty(queue->list) ? NULL : list_front(queue->list);
   pthread_mutex_unlock(&queue->lock);
 
   return ret;
 }
+
+void *fixed_queue_try_peek_last(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  void *ret = list_is_empty(queue->list) ? NULL : list_back(queue->list);
+  pthread_mutex_unlock(&queue->lock);
+
+  return ret;
+}
+
+void *fixed_queue_try_remove_from_queue(fixed_queue_t *queue, void *data) {
+  assert(queue != NULL);
+
+  pthread_mutex_lock(&queue->lock);
+  bool removed = list_remove(queue->list, data);
+  pthread_mutex_unlock(&queue->lock);
+
+  if (removed)
+    return data;
+  return NULL;
+}
+
+list_t *fixed_queue_get_list(fixed_queue_t *queue) {
+  assert(queue != NULL);
+
+  // NOTE: This function is not thread safe, and there is no point for
+  // callint pthread_mutex_lock() / pthread_mutex_unlock()
+  return queue->list;
+}
+
 
 int fixed_queue_get_dequeue_fd(const fixed_queue_t *queue) {
   assert(queue != NULL);

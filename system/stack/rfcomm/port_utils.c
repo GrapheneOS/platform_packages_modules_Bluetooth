@@ -73,6 +73,8 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
         p_port = &rfc_cb.port.port[yy];
         if (!p_port->in_use)
         {
+            fixed_queue_free(p_port->tx.queue, NULL);
+            fixed_queue_free(p_port->rx.queue, NULL);
             memset (p_port, 0, sizeof (tPORT));
 
             p_port->in_use = TRUE;
@@ -107,6 +109,9 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
 *******************************************************************************/
 void port_set_defaults (tPORT *p_port)
 {
+    fixed_queue_free(p_port->tx.queue, NULL);
+    fixed_queue_free(p_port->rx.queue, NULL);
+
     p_port->ev_mask        = 0;
     p_port->p_callback     = NULL;
     p_port->port_ctrl      = 0;
@@ -127,6 +132,8 @@ void port_set_defaults (tPORT *p_port)
     memset (&p_port->peer_ctrl, 0, sizeof (p_port->peer_ctrl));
     memset (&p_port->rx, 0, sizeof (p_port->rx));
     memset (&p_port->tx, 0, sizeof (p_port->tx));
+    p_port->rx.queue = fixed_queue_new(SIZE_MAX);
+    p_port->tx.queue = fixed_queue_new(SIZE_MAX);
 }
 
 /*******************************************************************************
@@ -213,13 +220,13 @@ void port_release_port (tPORT *p_port)
 
     PORT_SCHEDULE_LOCK;
     RFCOMM_TRACE_DEBUG("port_release_port, p_port:%p", p_port);
-    while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->rx.queue)) != NULL)
-        GKI_freebuf (p_buf);
+    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
+        GKI_freebuf(p_buf);
 
     p_port->rx.queue_size = 0;
 
-    while ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->tx.queue)) != NULL)
-        GKI_freebuf (p_buf);
+    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
+        GKI_freebuf(p_buf);
 
     p_port->tx.queue_size = 0;
 
@@ -265,7 +272,11 @@ void port_release_port (tPORT *p_port)
         else
         {
             RFCOMM_TRACE_DEBUG ("port_release_port:Clean-up handle:%d", p_port->inx);
+            fixed_queue_free(p_port->tx.queue, NULL);
+            fixed_queue_free(p_port->rx.queue, NULL);
             memset (p_port, 0, sizeof (tPORT));
+            p_port->rx.queue = fixed_queue_new(SIZE_MAX);
+            p_port->tx.queue = fixed_queue_new(SIZE_MAX);
         }
     }
 }
@@ -420,7 +431,7 @@ UINT32 port_flow_control_user (tPORT *p_port)
               || !p_port->rfc.p_mcb
               || !p_port->rfc.p_mcb->peer_ready
               || (p_port->tx.queue_size > PORT_TX_HIGH_WM)
-              || (GKI_queue_length(&p_port->tx.queue) > PORT_TX_BUF_HIGH_WM);
+              || (fixed_queue_length(p_port->tx.queue) > PORT_TX_BUF_HIGH_WM);
 
     if (p_port->tx.user_fc == fc)
         return (0);
@@ -536,7 +547,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
                 p_port->rx.peer_fc = TRUE;
             }
             /* if queue count reached credit rx max, set peer fc */
-            else if (GKI_queue_length(&p_port->rx.queue) >= p_port->credit_rx_max)
+            else if (fixed_queue_length(p_port->rx.queue) >= p_port->credit_rx_max)
             {
                 p_port->rx.peer_fc = TRUE;
             }
@@ -552,7 +563,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* check if it can be resumed now */
             if (p_port->rx.peer_fc
              && (p_port->rx.queue_size < PORT_RX_LOW_WM)
-             && (GKI_queue_length(&p_port->rx.queue) < PORT_RX_BUF_LOW_WM))
+             && (fixed_queue_length(p_port->rx.queue) < PORT_RX_BUF_LOW_WM))
             {
                 p_port->rx.peer_fc = FALSE;
 
@@ -573,7 +584,7 @@ void port_flow_control_peer(tPORT *p_port, BOOLEAN enable, UINT16 count)
             /* Check the size of the rx queue.  If it exceeds certain */
             /* level and flow control has not been sent to the peer do it now */
             else if ( ((p_port->rx.queue_size > PORT_RX_HIGH_WM)
-                     || (GKI_queue_length(&p_port->rx.queue) > PORT_RX_BUF_HIGH_WM))
+                     || (fixed_queue_length(p_port->rx.queue) > PORT_RX_BUF_HIGH_WM))
                      && !p_port->rx.peer_fc)
             {
                 RFCOMM_TRACE_EVENT ("PORT_DataInd Data reached HW. Sending FC set.");
