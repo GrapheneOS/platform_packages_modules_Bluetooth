@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 1999-2012 Broadcom Corporation
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,13 +16,29 @@
  *
  ******************************************************************************/
 
-#pragma once
+#define LOG_TAG "bt_osi_mutex"
 
-#include "gki_common.h"
+#include <pthread.h>
 
-typedef struct
-{
-    tGKI_COM_CB com;
-} tGKI_CB;
+#include "osi/include/mutex.h"
 
-extern tGKI_CB  gki_cb;
+static pthread_mutex_t global_lock;
+
+void mutex_init(void) {
+  pthread_mutexattr_t attr;
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+  pthread_mutex_init(&global_lock, &attr);
+}
+
+void mutex_cleanup(void) {
+  pthread_mutex_destroy(&global_lock);
+}
+
+void mutex_global_lock(void) {
+  pthread_mutex_lock(&global_lock);
+}
+
+void mutex_global_unlock(void) {
+  pthread_mutex_unlock(&global_lock);
+}

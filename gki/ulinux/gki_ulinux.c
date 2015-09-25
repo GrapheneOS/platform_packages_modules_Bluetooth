@@ -19,7 +19,6 @@
 #define LOG_TAG "bt_gki"
 
 #include <assert.h>
-#include <pthread.h>
 #include <string.h>
 
 #include "btcore/include/module.h"
@@ -32,11 +31,6 @@ tGKI_CB gki_cb;
 static future_t *init(void) {
   memset(&gki_cb, 0, sizeof(gki_cb));
 
-  pthread_mutexattr_t attr;
-  pthread_mutexattr_init(&attr);
-  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-  pthread_mutex_init(&gki_cb.lock, &attr);
-
   gki_buffer_init();
   return NULL;
 }
@@ -44,7 +38,6 @@ static future_t *init(void) {
 static future_t *clean_up(void) {
   gki_buffer_cleanup();
 
-  pthread_mutex_destroy(&gki_cb.lock);
   return NULL;
 }
 
@@ -59,11 +52,3 @@ EXPORT_SYMBOL const module_t gki_module = {
     NULL
   }
 };
-
-void GKI_enable(void) {
-  pthread_mutex_unlock(&gki_cb.lock);
-}
-
-void GKI_disable(void) {
-  pthread_mutex_lock(&gki_cb.lock);
-}

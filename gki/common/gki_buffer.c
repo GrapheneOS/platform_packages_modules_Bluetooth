@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 #include "osi/include/allocator.h"
+#include "osi/include/mutex.h"
 #include "gki_int.h"
 
 #if (GKI_NUM_TOTAL_BUF_POOLS > 16)
@@ -190,10 +191,6 @@ void GKI_init_q (BUFFER_Q *p_q)
 ** Description      Called by an application to get a free buffer which
 **                  is of size greater or equal to the requested size.
 **
-**                  Note: This routine only takes buffers from public pools.
-**                        It will not use any buffers from pools
-**                        marked GKI_RESTRICTED_POOL.
-**
 ** Parameters       size - (input) number of bytes needed.
 **
 ** Returns          A pointer to the buffer, or NULL if none available
@@ -261,7 +258,7 @@ void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
     BUFFER_HDR_T *p_hdr = (BUFFER_HDR_T *) ((UINT8 *) p_buf - BUFFER_HDR_SIZE);
     assert(p_hdr->status == BUF_STATUS_UNLINKED);
 
-    GKI_disable();
+    mutex_global_lock();
 
     /* Since the queue is exposed (C vs C++), keep the pointers in exposed format */
     if (p_q->_p_last)
@@ -278,7 +275,7 @@ void GKI_enqueue (BUFFER_Q *p_q, void *p_buf)
     p_hdr->p_next = NULL;
     p_hdr->status = BUF_STATUS_QUEUED;
 
-    GKI_enable();
+    mutex_global_unlock();
 }
 
 /*******************************************************************************
@@ -296,11 +293,11 @@ void *GKI_dequeue (BUFFER_Q *p_q)
 {
     BUFFER_HDR_T    *p_hdr;
 
-    GKI_disable();
+    mutex_global_lock();
 
     if (!p_q || !p_q->_count)
     {
-        GKI_enable();
+        mutex_global_unlock();
         return (NULL);
     }
 
@@ -321,7 +318,7 @@ void *GKI_dequeue (BUFFER_Q *p_q)
     p_hdr->p_next = NULL;
     p_hdr->status = BUF_STATUS_UNLINKED;
 
-    GKI_enable();
+    mutex_global_unlock();
 
     return ((UINT8 *)p_hdr + BUFFER_HDR_SIZE);
 }
@@ -343,11 +340,11 @@ void *GKI_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
     BUFFER_HDR_T    *p_prev;
     BUFFER_HDR_T    *p_buf_hdr;
 
-    GKI_disable();
+    mutex_global_lock();
 
     if (p_buf == p_q->_p_first)
     {
-        GKI_enable();
+        mutex_global_unlock();
         return (GKI_dequeue (p_q));
     }
 
@@ -372,12 +369,12 @@ void *GKI_remove_from_queue (BUFFER_Q *p_q, void *p_buf)
             p_buf_hdr->p_next = NULL;
             p_buf_hdr->status = BUF_STATUS_UNLINKED;
 
-            GKI_enable();
+            mutex_global_unlock();
             return (p_buf);
         }
     }
 
-    GKI_enable();
+    mutex_global_unlock();
     return (NULL);
 }
 
