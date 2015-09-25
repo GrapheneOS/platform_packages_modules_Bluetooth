@@ -36,6 +36,7 @@ class MockGattHandler
   MOCK_METHOD1(RegisterServer, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterServer, bt_status_t(int));
   MOCK_METHOD3(AddService, bt_status_t(int, btgatt_srvc_id_t*, int));
+  MOCK_METHOD5(AddCharacteristic, bt_status_t(int, int, bt_uuid_t*, int, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
 
@@ -355,6 +356,168 @@ TEST_F(GattServerPostRegisterTest, AddServiceFailures) {
   EXPECT_EQ(3, cb_count);
   EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
   EXPECT_TRUE(cb_id == *service_id);
+}
+
+TEST_F(GattServerPostRegisterTest, AddCharacteristic) {
+  // Just pick some values.
+  const int props = bluetooth::kCharacteristicPropertyRead |
+      bluetooth::kCharacteristicPropertyNotify;
+  const int perms = kAttributePermissionReadEncrypted;
+  const UUID char_uuid = UUID::GetRandom();
+  bt_uuid_t hal_char_uuid = char_uuid.GetBlueDroid();
+
+  // Declaration not started.
+  EXPECT_EQ(nullptr, gatt_server_->AddCharacteristic(char_uuid, props, perms));
+
+  // Start a service declaration.
+  const UUID service_uuid = UUID::GetRandom();
+  auto service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  EXPECT_TRUE(service_id != nullptr);
+  btgatt_srvc_id_t hal_id;
+  hal::GetHALServiceId(*service_id, &hal_id);
+
+  // Add two characteristics with the same UUID.
+  auto char_id0 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  auto char_id1 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+
+  EXPECT_TRUE(char_id0 != nullptr);
+  EXPECT_TRUE(char_id1 != nullptr);
+  EXPECT_TRUE(char_id0 != char_id1);
+  EXPECT_TRUE(char_id0->IsCharacteristic());
+  EXPECT_TRUE(char_id1->IsCharacteristic());
+  EXPECT_TRUE(*char_id0->GetOwningServiceId() == *service_id);
+  EXPECT_TRUE(*char_id1->GetOwningServiceId() == *service_id);
+
+  // Expect calls for 5 handles in total as we have 2 characteristics.
+  EXPECT_CALL(*mock_handler_, AddService(kDefaultServerId, _, 5))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  GattIdentifier cb_id;
+  BLEStatus cb_status;
+  int cb_count = 0;
+  auto callback = [&](BLEStatus in_status, const GattIdentifier& in_id) {
+    cb_id = in_id;
+    cb_status = in_status;
+    cb_count++;
+  };
+
+  int srvc_handle = 0x0001;
+  int char_handle0 = 0x0002;
+  int char_handle1 = 0x0004;
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  EXPECT_CALL(*mock_handler_, AddCharacteristic(_, _, _, _, _))
+      .Times(8)
+      .WillOnce(Return(BT_STATUS_FAIL))      // char_id0 - try 1
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // char_id0 - try 2
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // char_id0 - try 3
+      .WillOnce(Return(BT_STATUS_FAIL))      // char_id1 - try 3
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // char_id0 - try 4
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // char_id1 - try 4
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // char_id0 - try 5
+      .WillOnce(Return(BT_STATUS_SUCCESS));  // char_id1 - try 5
+
+  // First AddCharacteristic call will fail.
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart. (try 2)
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(1, cb_count);
+
+  // Report failure for pending AddCharacteristic.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(2, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart. (try 3)
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(2, cb_count);
+
+  // Report success for pending AddCharacteristic we should receive a call for
+  // the second characteristic which will fail.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(3, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart. (try 4)
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(3, cb_count);
+
+  // Report success for pending AddCharacteristic. Second characteristic call
+  // will start normally. We shouldn't receive any new callback.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(3, cb_count);
+
+  // Report failure for pending AddCharacteristic call for second
+  // characteristic.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(4, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart. (try 5)
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid, props, perms);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(4, cb_count);
+
+  // Report success for pending AddCharacteristic. Second characteristic call
+  // will start normally. We shouldn't receive any new callback.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(4, cb_count);
+
+  // Report success for pending AddCharacteristic call for second
+  // characteristic. We shouldn't receive any new callback but we'll get a call
+  // to StartService.
+  EXPECT_CALL(*mock_handler_, StartService(kDefaultServerId, srvc_handle, _))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(4, cb_count);
 }
 
 }  // namespace

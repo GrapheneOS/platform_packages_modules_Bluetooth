@@ -96,6 +96,16 @@ bt_status_t FakeAddService(
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeAddCharacteristic(int server_if, int srvc_handle,
+                                  bt_uuid_t *uuid,
+                                  int properties, int permissions) {
+  if (g_server_handler)
+    return g_server_handler->AddCharacteristic(server_if, srvc_handle, uuid,
+                                               properties, permissions);
+
+  return BT_STATUS_FAIL;
+}
+
 bt_status_t FakeStartService(
     int server_if, int srvc_handle, int transport) {
   if (g_server_handler)
@@ -158,7 +168,7 @@ btgatt_server_interface_t fake_btgatts_iface = {
   nullptr,  // disconnect
   FakeAddService,
   nullptr,  // add_included_service
-  nullptr,  // add_characteristic
+  FakeAddCharacteristic,
   nullptr,  // add_descriptor
   FakeStartService,
   nullptr,  // stop_service
@@ -233,6 +243,16 @@ void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       ServiceAddedCallback(this, status, server_if, srvc_id, srvc_handle));
+}
+
+void FakeBluetoothGattInterface::NotifyCharacteristicAddedCallback(
+    int status, int server_if,
+    const bt_uuid_t& uuid,
+    int srvc_handle, int char_handle) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      CharacteristicAddedCallback(
+          this, status, server_if, uuid, srvc_handle, char_handle));
 }
 
 void FakeBluetoothGattInterface::NotifyServiceStartedCallback(
