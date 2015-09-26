@@ -26,11 +26,12 @@ namespace hal {
 
 class FakeBluetoothGattInterface : public BluetoothGattInterface {
  public:
-  // Handles HAL Bluetooth API calls for testing. Test code can provide a fake
-  // or mock implementation of this and all calls will be routed to it.
-  class TestHandler {
+  // Handles HAL Bluetooth GATT client API calls for testing. Test code can
+  // provide a fake or mock implementation of this and all calls will be routed
+  // to it.
+  class TestClientHandler {
    public:
-    virtual ~TestHandler() = default;
+    virtual ~TestClientHandler() = default;
 
     virtual bt_status_t RegisterClient(bt_uuid_t* app_uuid) = 0;
     virtual bt_status_t UnregisterClient(int client_if) = 0;
@@ -46,10 +47,22 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t MultiAdvDisable(int client_if) = 0;
   };
 
-  // Constructs the fake with the given handler |handler|. Implementations can
+  // Handles HAL Bluetooth GATT server API calls for testing. Test code can
+  // provide a fake or mock implementation of this and all calls will be routed
+  // to it.
+  class TestServerHandler {
+   public:
+    virtual ~TestServerHandler() = default;
+
+    virtual bt_status_t RegisterServer(bt_uuid_t* app_uuid) = 0;
+    virtual bt_status_t UnregisterServer(int server_if) = 0;
+  };
+
+  // Constructs the fake with the given handlers. Implementations can
   // provide their own handlers or simply pass "nullptr" for the default
   // behavior in which BT_STATUS_FAIL will be returned from all calls.
-  FakeBluetoothGattInterface(std::shared_ptr<TestHandler> handler);
+  FakeBluetoothGattInterface(std::shared_ptr<TestClientHandler> client_handler,
+                             std::shared_ptr<TestServerHandler> server_handler);
   ~FakeBluetoothGattInterface();
 
   // The methods below can be used to notify observers with certain events and
@@ -60,16 +73,26 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyMultiAdvDataCallback(int client_if, int status);
   void NotifyMultiAdvDisableCallback(int client_if, int status);
 
+  void NotifyRegisterServerCallback(int status, int server_if,
+                                    const bt_uuid_t& app_uuid);
+
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override;
   void RemoveClientObserver(ClientObserver* observer) override;
   void AddClientObserverUnsafe(ClientObserver* observer) override;
   void RemoveClientObserverUnsafe(ClientObserver* observer) override;
+  void AddServerObserver(ServerObserver* observer) override;
+  void RemoveServerObserver(ServerObserver* observer) override;
+  void AddServerObserverUnsafe(ServerObserver* observer) override;
+  void RemoveServerObserverUnsafe(ServerObserver* observer) override;
   const btgatt_client_interface_t* GetClientHALInterface() const override;
+  const btgatt_server_interface_t* GetServerHALInterface() const override;
 
  private:
   base::ObserverList<ClientObserver> client_observers_;
-  std::shared_ptr<TestHandler> handler_;
+  base::ObserverList<ServerObserver> server_observers_;
+  std::shared_ptr<TestClientHandler> client_handler_;
+  std::shared_ptr<TestServerHandler> server_handler_;
 
   DISALLOW_COPY_AND_ASSIGN(FakeBluetoothGattInterface);
 };

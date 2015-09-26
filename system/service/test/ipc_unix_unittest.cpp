@@ -59,7 +59,7 @@ class IPCUnixTest : public ::testing::Test {
     bluetooth::hal::BluetoothInterface::InitializeForTesting(
         new bluetooth::hal::FakeBluetoothInterface());
     bluetooth::hal::BluetoothGattInterface::InitializeForTesting(
-        new bluetooth::hal::FakeBluetoothGattInterface(nullptr));
+        new bluetooth::hal::FakeBluetoothGattInterface(nullptr, nullptr));
 
     adapter_.reset(new bluetooth::Adapter());
     ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
