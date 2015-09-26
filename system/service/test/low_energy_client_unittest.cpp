@@ -29,7 +29,8 @@ using ::testing::Return;
 namespace bluetooth {
 namespace {
 
-class MockGattHandler : public hal::FakeBluetoothGattInterface::TestHandler {
+class MockGattHandler
+    : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
   MockGattHandler() = default;
   ~MockGattHandler() override = default;
@@ -71,8 +72,9 @@ class LowEnergyClientTest : public ::testing::Test {
   void SetUp() override {
     mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
-        std::dynamic_pointer_cast<hal::FakeBluetoothGattInterface::TestHandler>(
-            mock_handler_));
+        std::static_pointer_cast<
+            hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
+        nullptr);
 
     hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
     ble_factory_.reset(new LowEnergyClientFactory());
@@ -183,7 +185,7 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   int callback_count = 0;
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
-          std::unique_ptr<BluetoothClientInstance> in_client) {
+                      std::unique_ptr<BluetoothClientInstance> in_client) {
         status = in_status;
         cb_uuid = uuid;
         client = std::unique_ptr<LowEnergyClient>(
