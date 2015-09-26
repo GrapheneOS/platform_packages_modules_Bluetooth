@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "service/ipc/binder/bluetooth_gatt_server_binder_server.h"
 #include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 
 using android::sp;
@@ -121,6 +122,21 @@ BluetoothBinderServer::GetLowEnergyInterface() {
     low_energy_interface_ = new BluetoothLowEnergyBinderServer(adapter_);
 
   return low_energy_interface_;
+}
+
+sp<IBluetoothGattServer>
+BluetoothBinderServer::GetGattServerInterface() {
+  VLOG(2) << __func__;
+
+  if (!adapter_->IsEnabled()) {
+    LOG(ERROR) << "Cannot obtain IBluetoothGattServer interface while disabled";
+    return nullptr;
+  }
+
+  if (!gatt_server_interface_.get())
+    gatt_server_interface_ = new BluetoothGattServerBinderServer(adapter_);
+
+  return gatt_server_interface_;
 }
 
 void BluetoothBinderServer::OnAdapterStateChanged(

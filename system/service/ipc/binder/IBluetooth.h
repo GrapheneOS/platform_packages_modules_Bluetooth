@@ -24,6 +24,7 @@
 #include <binder/IInterface.h>
 
 #include "service/ipc/binder/IBluetoothCallback.h"
+#include "service/ipc/binder/IBluetoothGattServer.h"
 #include "service/ipc/binder/IBluetoothLowEnergy.h"
 #include "service/uuid.h"
 
@@ -121,6 +122,7 @@ class IBluetooth : public android::IInterface {
     ON_BR_EDR_DOWN_TRANSACTION,
 
     GET_LOW_ENERGY_INTERFACE_TRANSACTION,
+    GET_GATT_SERVER_INTERFACE_TRANSACTION,
   };
 
   // Returns a handle to the IBluetooth Binder from the Android ServiceManager.
@@ -148,6 +150,7 @@ class IBluetooth : public android::IInterface {
   virtual bool IsMultiAdvertisementSupported() = 0;
 
   virtual android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() = 0;
+  virtual android::sp<IBluetoothGattServer> GetGattServerInterface() = 0;
 
   // TODO(armansito): Complete the API definition.
 
@@ -198,6 +201,7 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   bool IsMultiAdvertisementSupported() override;
 
   android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
+  android::sp<IBluetoothGattServer> GetGattServerInterface() override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetooth);
