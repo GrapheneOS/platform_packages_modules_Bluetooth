@@ -44,6 +44,7 @@ btserviceBinderSrc := \
 	ipc/binder/IBluetoothCallback.cpp \
 	ipc/binder/IBluetoothLowEnergy.cpp \
 	ipc/binder/IBluetoothLowEnergyCallback.cpp \
+	ipc/binder/interface_with_clients_base.cpp \
 	ipc/binder/ipc_handler_binder.cpp \
 	ipc/binder/parcel_helpers.cpp
 

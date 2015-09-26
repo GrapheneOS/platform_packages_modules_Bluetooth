@@ -277,6 +277,14 @@ bool LowEnergyClient::IsStoppingAdvertising() const {
   return IsAdvertisingStarted() && adv_stop_callback_;
 }
 
+const UUID& LowEnergyClient::GetAppIdentifier() const {
+  return app_identifier_;
+}
+
+int LowEnergyClient::GetClientId() const {
+  return client_if_;
+}
+
 void LowEnergyClient::MultiAdvEnableCallback(
     hal::BluetoothGattInterface* gatt_iface,
     int client_if, int status) {
@@ -461,7 +469,7 @@ LowEnergyClientFactory::~LowEnergyClientFactory() {
 }
 
 bool LowEnergyClientFactory::RegisterClient(const UUID& uuid,
-                                            const ClientCallback& callback) {
+                                            const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -513,7 +521,7 @@ void LowEnergyClientFactory::RegisterClientCallback(
     result = BLE_STATUS_SUCCESS;
   }
 
-  // Notify the result via the success callback.
+  // Notify the result via the result callback.
   iter->second(result, uuid, std::move(client));
 
   pending_calls_.erase(iter);
