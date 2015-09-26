@@ -102,12 +102,13 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     LowEnergyClientTest::SetUp();
     UUID uuid = UUID::GetRandom();
     auto callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<LowEnergyClient> in_client) {
+                        std::unique_ptr<BluetoothClientInstance> in_client) {
       CHECK(in_uuid == uuid);
       CHECK(in_client.get());
       CHECK(status == BLE_STATUS_SUCCESS);
 
-      le_client_ = std::move(in_client);
+      le_client_ = std::unique_ptr<LowEnergyClient>(
+          static_cast<LowEnergyClient*>(in_client.release()));
     };
 
     EXPECT_CALL(*mock_handler_, RegisterClient(_))
@@ -152,9 +153,9 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ASSERT_TRUE(le_client_->IsStartingAdvertising());
 
     fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_client_->client_if(), BT_STATUS_SUCCESS);
+        le_client_->GetClientId(), BT_STATUS_SUCCESS);
     fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-        le_client_->client_if(), BT_STATUS_SUCCESS);
+        le_client_->GetClientId(), BT_STATUS_SUCCESS);
 
     ASSERT_TRUE(le_client_->IsAdvertisingStarted());
     ASSERT_FALSE(le_client_->IsStartingAdvertising());
@@ -181,12 +182,12 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   std::unique_ptr<LowEnergyClient> client;
   int callback_count = 0;
 
-  LowEnergyClientFactory::ClientCallback callback =
-      [&](BLEStatus in_status, const UUID& uuid,
-          std::unique_ptr<LowEnergyClient> in_client) {
+  auto callback = [&](BLEStatus in_status, const UUID& uuid,
+          std::unique_ptr<BluetoothClientInstance> in_client) {
         status = in_status;
         cb_uuid = uuid;
-        client = std::move(in_client);
+        client = std::unique_ptr<LowEnergyClient>(
+            static_cast<LowEnergyClient*>(in_client.release()));
         callback_count++;
       };
 
@@ -228,8 +229,8 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(client.get() != nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
-  EXPECT_EQ(client_if0, client->client_if());
-  EXPECT_EQ(uuid0, client->app_identifier());
+  EXPECT_EQ(client_if0, client->GetClientId());
+  EXPECT_EQ(uuid0, client->GetAppIdentifier());
   EXPECT_EQ(uuid0, cb_uuid);
 
   // The client should unregister itself when deleted.
@@ -297,7 +298,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
 
   // Notify failure.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_FAIL);
+      le_client_->GetClientId(), BT_STATUS_FAIL);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -326,7 +327,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   // Notify success for enable. The procedure will fail since setting data will
   // fail.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -344,7 +345,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   // Notify success for enable. the advertise data call should succeed but
   // operation will remain pending.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_TRUE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -352,7 +353,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
 
   // Notify failure from advertising call.
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_FAIL);
+      le_client_->GetClientId(), BT_STATUS_FAIL);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -368,9 +369,9 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(3, callback_count);
 
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   EXPECT_TRUE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -427,7 +428,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StopAdvertisingBasic) {
 
   // Notify failure.
   fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
-      le_client_->client_if(), BT_STATUS_FAIL);
+      le_client_->GetClientId(), BT_STATUS_FAIL);
   EXPECT_TRUE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -443,7 +444,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StopAdvertisingBasic) {
 
   // Notify success.
   fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -511,7 +512,7 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   adv1.set_include_device_name(true);
 
   EXPECT_CALL(*mock_handler_,
-              MultiAdvEnable(le_client_->client_if(), _, _,
+              MultiAdvEnable(le_client_->GetClientId(), _, _,
                              kAdvertisingEventTypeScannable,
                              _, _, _))
       .Times(2)
@@ -542,11 +543,11 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   // Enable success; Adv. data success; Scan rsp. fail.
   EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_FAIL);
+      le_client_->GetClientId(), BT_STATUS_FAIL);
 
   EXPECT_EQ(1, callback_count);
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
@@ -555,11 +556,11 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   // Second time everything succeeds.
   EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->client_if(), BT_STATUS_SUCCESS);
+      le_client_->GetClientId(), BT_STATUS_SUCCESS);
 
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
