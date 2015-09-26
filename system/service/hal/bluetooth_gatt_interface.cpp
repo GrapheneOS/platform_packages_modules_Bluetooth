@@ -37,14 +37,20 @@ BluetoothGattInterface* g_interface = nullptr;
 // Mutex used by callbacks to access |g_interface|.
 mutex g_instance_lock;
 
-// Helper for obtaining the client observer list. This is forward declared here
+// Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
 base::ObserverList<BluetoothGattInterface::ClientObserver>*
     GetClientObservers();
+base::ObserverList<BluetoothGattInterface::ServerObserver>*
+    GetServerObservers();
 
 #define FOR_EACH_CLIENT_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothGattInterface::ClientObserver, \
                     *GetClientObservers(), func)
+
+#define FOR_EACH_SERVER_OBSERVER(func) \
+  FOR_EACH_OBSERVER(BluetoothGattInterface::ServerObserver, \
+                    *GetServerObservers(), func)
 
 #define VERIFY_INTERFACE_OR_RETURN() \
   if (!g_interface) { \
@@ -102,6 +108,20 @@ void MultiAdvDisableCallback(int client_if, int status) {
       MultiAdvDisableCallback(g_interface, client_if, status));
 }
 
+void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  if (!app_uuid) {
+    LOG(WARNING) << "|app_uuid| is NULL; ignoring RegisterServerCallback";
+    return;
+  }
+
+  FOR_EACH_SERVER_OBSERVER(
+      RegisterServerCallback(g_interface, status, server_if, *app_uuid));
+}
+
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
@@ -141,7 +161,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
-    nullptr,  // register_server_cb
+    RegisterServerCallback,
     nullptr,  // connection_cb
     nullptr,  // service_added_cb,
     nullptr,  // included_service_added_cb,
@@ -197,8 +217,30 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     client_observers_.RemoveObserver(observer);
   }
 
+  void AddServerObserver(ServerObserver* observer) override {
+    lock_guard<mutex> lock(g_instance_lock);
+    AddServerObserverUnsafe(observer);
+  }
+
+  void RemoveServerObserver(ServerObserver* observer) override {
+    lock_guard<mutex> lock(g_instance_lock);
+    RemoveServerObserverUnsafe(observer);
+  }
+
+  void AddServerObserverUnsafe(ServerObserver* observer) override {
+    server_observers_.AddObserver(observer);
+  }
+
+  void RemoveServerObserverUnsafe(ServerObserver* observer) override {
+    server_observers_.RemoveObserver(observer);
+  }
+
   const btgatt_client_interface_t* GetClientHALInterface() const override {
     return hal_iface_->client;
+  }
+
+  const btgatt_server_interface_t* GetServerHALInterface() const override {
+    return hal_iface_->server;
   }
 
   // Initialize the interface.
@@ -230,12 +272,17 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     return &client_observers_;
   }
 
+  base::ObserverList<ServerObserver>* server_observers() {
+    return &server_observers_;
+  }
+
  private:
-  // List of observers that are interested in client notifications from us.
+  // List of observers that are interested in notifications from us.
   // We're not using a base::ObserverListThreadSafe, which it posts observer
   // events automatically on the origin threads, as we want to avoid that
   // overhead and simply forward the events to the upper layer.
   base::ObserverList<ClientObserver> client_observers_;
+  base::ObserverList<ServerObserver> server_observers_;
 
   // The HAL handle obtained from the shared library. We hold a weak reference
   // to this since the actual data resides in the shared Bluetooth library.
@@ -251,6 +298,13 @@ GetClientObservers() {
   CHECK(g_interface);
   return static_cast<BluetoothGattInterfaceImpl*>(
       g_interface)->client_observers();
+}
+
+base::ObserverList<BluetoothGattInterface::ServerObserver>*
+GetServerObservers() {
+  CHECK(g_interface);
+  return static_cast<BluetoothGattInterfaceImpl*>(
+      g_interface)->server_observers();
 }
 
 }  // namespace
@@ -286,6 +340,14 @@ void BluetoothGattInterface::ClientObserver::MultiAdvDisableCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* client_if */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::RegisterServerCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    const bt_uuid_t& /* app_uuid */) {
   // Do nothing.
 }
 

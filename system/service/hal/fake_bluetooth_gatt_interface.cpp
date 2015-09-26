@@ -20,21 +20,22 @@ namespace bluetooth {
 namespace hal {
 namespace {
 
-// The global TestHandler instance. We have to use this since the HAL interface
-// methods all have to be global and their signatures don't allow us to pass in
-// user_data.
-std::shared_ptr<FakeBluetoothGattInterface::TestHandler> g_handler;
+// The global test handler instances. We have to have globals since the HAL
+// interface methods all have to be global and their signatures don't allow us
+// to pass in user_data.
+std::shared_ptr<FakeBluetoothGattInterface::TestClientHandler> g_client_handler;
+std::shared_ptr<FakeBluetoothGattInterface::TestServerHandler> g_server_handler;
 
 bt_status_t FakeRegisterClient(bt_uuid_t* app_uuid) {
-  if (g_handler.get())
-    return g_handler->RegisterClient(app_uuid);
+  if (g_client_handler)
+    return g_client_handler->RegisterClient(app_uuid);
 
   return BT_STATUS_FAIL;
 }
 
 bt_status_t FakeUnregisterClient(int client_if) {
-  if (g_handler.get())
-    return g_handler->UnregisterClient(client_if);
+  if (g_client_handler)
+    return g_client_handler->UnregisterClient(client_if);
 
   return BT_STATUS_FAIL;
 }
@@ -42,8 +43,8 @@ bt_status_t FakeUnregisterClient(int client_if) {
 bt_status_t FakeMultiAdvEnable(
     int client_if, int min_interval, int max_interval, int adv_type,
     int chnl_map, int tx_power, int timeout_s) {
-  if (g_handler.get())
-    return g_handler->MultiAdvEnable(client_if, min_interval, max_interval,
+  if (g_client_handler)
+    return g_client_handler->MultiAdvEnable(client_if, min_interval, max_interval,
                                      adv_type, chnl_map, tx_power, timeout_s);
 
   return BT_STATUS_FAIL;
@@ -55,8 +56,8 @@ bt_status_t FakeMultiAdvSetInstData(
     int manufacturer_len, char* manufacturer_data,
     int service_data_len, char* service_data,
     int service_uuid_len, char* service_uuid) {
-  if (g_handler.get())
-    return g_handler->MultiAdvSetInstData(
+  if (g_client_handler)
+    return g_client_handler->MultiAdvSetInstData(
         client_if, set_scan_rsp, include_name,
         incl_txpower, appearance,
         manufacturer_len, manufacturer_data,
@@ -67,8 +68,22 @@ bt_status_t FakeMultiAdvSetInstData(
 }
 
 bt_status_t FakeMultiAdvDisable(int client_if) {
-  if (g_handler.get())
-    return g_handler->MultiAdvDisable(client_if);
+  if (g_client_handler)
+    return g_client_handler->MultiAdvDisable(client_if);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeRegisterServer(bt_uuid_t* app_uuid) {
+  if (g_server_handler)
+    return g_server_handler->RegisterServer(app_uuid);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeUnregisterServer(int server_if) {
+  if (g_server_handler)
+    return g_server_handler->UnregisterServer(server_if);
 
   return BT_STATUS_FAIL;
 }
@@ -76,58 +91,82 @@ bt_status_t FakeMultiAdvDisable(int client_if) {
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
-  nullptr, /* scan */
-  nullptr, /* connect */
-  nullptr, /* disconnect */
-  nullptr, /* listen */
-  nullptr, /* refresh */
-  nullptr, /* search_service */
-  nullptr, /* get_included_service */
-  nullptr, /* get_characteristic */
-  nullptr, /* get_descriptor */
-  nullptr, /* read_characteristic */
-  nullptr, /* write_characteristic */
-  nullptr, /* read_descriptor */
-  nullptr, /* write_descriptor */
-  nullptr, /* execute_write */
-  nullptr, /* register_for_notification */
-  nullptr, /* deregister_for_notification */
-  nullptr, /* read_remote_rssi */
-  nullptr, /* scan_filter_param_setup */
-  nullptr, /* scan_filter_add_remove */
-  nullptr, /* scan_filter_clear */
-  nullptr, /* scan_filter_enable */
-  nullptr, /* get_device_type */
-  nullptr, /* set_adv_data */
-  nullptr, /* configure_mtu */
-  nullptr, /* conn_parameter_update */
-  nullptr, /* set_scan_parameters */
+  nullptr,  // scan
+  nullptr,  // connect
+  nullptr,  // disconnect
+  nullptr,  // listen
+  nullptr,  // refresh
+  nullptr,  // search_service
+  nullptr,  // get_included_service
+  nullptr,  // get_characteristic
+  nullptr,  // get_descriptor
+  nullptr,  // read_characteristic
+  nullptr,  // write_characteristic
+  nullptr,  // read_descriptor
+  nullptr,  // write_descriptor
+  nullptr,  // execute_write
+  nullptr,  // register_for_notification
+  nullptr,  // deregister_for_notification
+  nullptr,  // read_remote_rssi
+  nullptr,  // scan_filter_param_setup
+  nullptr,  // scan_filter_add_remove
+  nullptr,  // scan_filter_clear
+  nullptr,  // scan_filter_enable
+  nullptr,  // get_device_type
+  nullptr,  // set_adv_data
+  nullptr,  // configure_mtu
+  nullptr,  // conn_parameter_update
+  nullptr,  // set_scan_parameters
   FakeMultiAdvEnable,
-  nullptr, /* multi_adv_update */
+  nullptr,  // multi_adv_update
   FakeMultiAdvSetInstData,
   FakeMultiAdvDisable,
-  nullptr, /* batchscan_cfg_storate */
-  nullptr, /* batchscan_enb_batch_scan */
-  nullptr, /* batchscan_dis_batch_scan */
-  nullptr, /* batchscan_read_reports */
-  nullptr, /* test_command */
+  nullptr,  // batchscan_cfg_storate
+  nullptr,  // batchscan_enb_batch_scan
+  nullptr,  // batchscan_dis_batch_scan
+  nullptr,  // batchscan_read_reports
+  nullptr,  // test_command
+};
+
+btgatt_server_interface_t fake_btgatts_iface = {
+  FakeRegisterServer,
+  FakeUnregisterServer,
+  nullptr,  // connect
+  nullptr,  // disconnect
+  nullptr,  // add_service
+  nullptr,  // add_included_service
+  nullptr,  // add_characteristic
+  nullptr,  // add_descriptor
+  nullptr,  // start_service
+  nullptr,  // stop_service
+  nullptr,  // delete_service
+  nullptr,  // send_indication
+  nullptr,  // send_response
 };
 
 }  // namespace
 
 FakeBluetoothGattInterface::FakeBluetoothGattInterface(
-    std::shared_ptr<TestHandler> handler)
-    : handler_(handler) {
-  CHECK(!g_handler.get());
+    std::shared_ptr<TestClientHandler> client_handler,
+    std::shared_ptr<TestServerHandler> server_handler)
+    : client_handler_(client_handler) {
+  CHECK(!g_client_handler);
+  CHECK(!g_server_handler);
 
   // We allow passing NULL. In this case all calls we fail by default.
-  if (handler.get())
-    g_handler = handler;
+  if (client_handler)
+    g_client_handler = client_handler;
+
+  if (server_handler)
+    g_server_handler = server_handler;
 }
 
 FakeBluetoothGattInterface::~FakeBluetoothGattInterface() {
-  if (g_handler.get())
-    g_handler = nullptr;
+  if (g_client_handler)
+    g_client_handler = nullptr;
+
+  if (g_server_handler)
+    g_server_handler = nullptr;
 }
 
 // The methods below can be used to notify observers with certain events and
@@ -157,6 +196,13 @@ void FakeBluetoothGattInterface::NotifyMultiAdvDisableCallback(
                     MultiAdvDisableCallback(this, client_if, status));
 }
 
+void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
+    int status, int server_if,
+    const bt_uuid_t& app_uuid) {
+  FOR_EACH_OBSERVER(ServerObserver, server_observers_,
+                    RegisterServerCallback(this, status, server_if, app_uuid));
+}
+
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {
   CHECK(observer);
   client_observers_.AddObserver(observer);
@@ -178,9 +224,35 @@ void FakeBluetoothGattInterface::RemoveClientObserverUnsafe(
   RemoveClientObserver(observer);
 }
 
+void FakeBluetoothGattInterface::AddServerObserver(ServerObserver* observer) {
+  CHECK(observer);
+  server_observers_.AddObserver(observer);
+}
+
+void FakeBluetoothGattInterface::RemoveServerObserver(
+    ServerObserver* observer) {
+  CHECK(observer);
+  server_observers_.RemoveObserver(observer);
+}
+
+void FakeBluetoothGattInterface::AddServerObserverUnsafe(
+    ServerObserver* observer) {
+  AddServerObserver(observer);
+}
+
+void FakeBluetoothGattInterface::RemoveServerObserverUnsafe(
+    ServerObserver* observer) {
+  RemoveServerObserver(observer);
+}
+
 const btgatt_client_interface_t*
 FakeBluetoothGattInterface::GetClientHALInterface() const {
   return &fake_btgattc_iface;
+}
+
+const btgatt_server_interface_t*
+FakeBluetoothGattInterface::GetServerHALInterface() const {
+  return &fake_btgatts_iface;
 }
 
 }  // namespace hal

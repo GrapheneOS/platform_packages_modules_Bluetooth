@@ -68,6 +68,19 @@ class BluetoothGattInterface {
     // TODO(armansito): Complete the list of callbacks.
   };
 
+  // The standard BT-GATT server callback interface.
+  class ServerObserver {
+   public:
+    virtual ~ServerObserver() = default;
+
+    virtual void RegisterServerCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        const bt_uuid_t& app_uuid);
+
+    // TODO(armansito): Complete the list of callbacks.
+  };
+
   // Initialize and clean up the BluetoothInterface singleton. Returns false if
   // the underlying HAL interface failed to initialize, and true on success.
   static bool Initialize();
@@ -106,6 +119,22 @@ class BluetoothGattInterface {
   virtual void AddClientObserverUnsafe(ClientObserver* observer) = 0;
   virtual void RemoveClientObserverUnsafe(ClientObserver* observer) = 0;
 
+  // Add or remove an observer that is interested in GATT server interface
+  // notifications from us. These methods are thread-safe. This implies that
+  // this cannot be called re-entrantly from a ServerObserver event without
+  // causing a dead-lock. If you must modify the observer list re-entrantly, use
+  // the unsafe variants instead.
+  virtual void AddServerObserver(ServerObserver* observer) = 0;
+  virtual void RemoveServerObserver(ServerObserver* observer) = 0;
+
+  // Unsafe variants of the Add|RemoveServerObserver methods above. The above
+  // methods acquire an internal lock to prevent concurrent access to the
+  // observer list while the unsafe ones don't, so use them wisely. One
+  // recommended use of these methods is from observer methods where the
+  // internal lock is already being held by the executing thread.
+  virtual void AddServerObserverUnsafe(ServerObserver* observer) = 0;
+  virtual void RemoveServerObserverUnsafe(ServerObserver* observer) = 0;
+
   // The HAL module pointer that represents the standard BT-GATT client
   // interface. This is implemented in and provided by the shared Bluetooth
   // library, so this isn't owned by us.
@@ -114,7 +143,13 @@ class BluetoothGattInterface {
   // structure.
   virtual const btgatt_client_interface_t* GetClientHALInterface() const = 0;
 
-  // TODO(armansito): Add getter for server handle.
+  // The HAL module pointer that represents the standard BT-GATT server
+  // interface. This is implemented in and provided by the shared Bluetooth
+  // library, so this isn't owned by us.
+  //
+  // Upper layers can make btgatt_server_interface_t API calls through this
+  // structure.
+  virtual const btgatt_server_interface_t* GetServerHALInterface() const = 0;
 
  protected:
   BluetoothGattInterface() = default;
