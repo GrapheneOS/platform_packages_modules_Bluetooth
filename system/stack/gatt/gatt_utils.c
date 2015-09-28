@@ -27,7 +27,7 @@
 #if BLE_INCLUDED == TRUE
     #include <string.h>
     #include "stdio.h"
-    #include "gki.h"
+    #include "bt_common.h"
 
     #include "l2cdefs.h"
     #include "gatt_int.h"
@@ -98,7 +98,7 @@ void gatt_free_pending_ind(tGATT_TCB *p_tcb)
 
     /* release all queued indications */
     while (!fixed_queue_is_empty(p_tcb->pending_ind_q))
-        GKI_freebuf(fixed_queue_try_dequeue(p_tcb->pending_ind_q));
+        osi_freebuf(fixed_queue_try_dequeue(p_tcb->pending_ind_q));
     fixed_queue_free(p_tcb->pending_ind_q, NULL);
     p_tcb->pending_ind_q = NULL;
 }
@@ -121,7 +121,7 @@ void gatt_free_pending_enc_queue(tGATT_TCB *p_tcb)
 
     /* release all queued indications */
     while (!fixed_queue_is_empty(p_tcb->pending_enc_clcb))
-        GKI_freebuf(fixed_queue_try_dequeue(p_tcb->pending_enc_clcb));
+        osi_freebuf(fixed_queue_try_dequeue(p_tcb->pending_enc_clcb));
     fixed_queue_free(p_tcb->pending_enc_clcb, NULL);
     p_tcb->pending_enc_clcb = NULL;
 }
@@ -149,7 +149,7 @@ void gatt_delete_dev_from_srv_chg_clt_list(BD_ADDR bd_addr)
             memcpy(req.srv_chg.bda, bd_addr, BD_ADDR_LEN);
             (*gatt_cb.cb_info.p_srv_chg_callback)(GATTS_SRV_CHG_CMD_REMOVE_CLIENT,&req, NULL);
         }
-        GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.srv_chg_clt_q,
+        osi_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.srv_chg_clt_q,
                                                       p_buf));
     }
 }
@@ -228,7 +228,7 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 {
     GATT_TRACE_DEBUG("%s", __func__);
 
-    tGATT_VALUE *p_buf = (tGATT_VALUE *)GKI_getbuf((UINT16)sizeof(tGATT_VALUE));
+    tGATT_VALUE *p_buf = (tGATT_VALUE *)osi_getbuf((UINT16)sizeof(tGATT_VALUE));
     if (p_buf != NULL)
     {
         GATT_TRACE_DEBUG("enqueue a pending indication");
@@ -253,7 +253,7 @@ tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *
     GATT_TRACE_DEBUG("%s", __func__);
 
     tGATTS_PENDING_NEW_SRV_START *p_buf =
-        (tGATTS_PENDING_NEW_SRV_START *)GKI_getbuf((UINT16)sizeof(tGATTS_PENDING_NEW_SRV_START));
+        (tGATTS_PENDING_NEW_SRV_START *)osi_getbuf((UINT16)sizeof(tGATTS_PENDING_NEW_SRV_START));
     if (p_buf != NULL)
     {
         GATT_TRACE_DEBUG("enqueue a new pending new srv start");
@@ -277,7 +277,7 @@ tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 {
     GATT_TRACE_DEBUG ("%s", __func__);
 
-    tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)GKI_getbuf((UINT16)sizeof(tGATTS_SRV_CHG));
+    tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)osi_getbuf((UINT16)sizeof(tGATTS_SRV_CHG));
     if (p_buf != NULL)
     {
         GATT_TRACE_DEBUG ("enqueue a srv chg client");
@@ -390,7 +390,7 @@ void gatt_free_hdl_buffer(tGATT_HDL_LIST_ELEM *p)
     if (p)
     {
         while (!fixed_queue_is_empty(p->svc_db.svc_buffer))
-            GKI_freebuf(fixed_queue_try_dequeue(p->svc_db.svc_buffer));
+            osi_freebuf(fixed_queue_try_dequeue(p->svc_db.svc_buffer));
         fixed_queue_free(p->svc_db.svc_buffer, NULL);
         memset(p, 0, sizeof(tGATT_HDL_LIST_ELEM));
     }
@@ -415,7 +415,7 @@ void gatt_free_srvc_db_buffer_app_id(tBT_UUID *p_app_id)
         if (memcmp(p_app_id, &p_elem->asgn_range.app_uuid128, sizeof(tBT_UUID)) == 0)
         {
             while (!fixed_queue_is_empty(p_elem->svc_db.svc_buffer))
-                GKI_freebuf(fixed_queue_try_dequeue(p_elem->svc_db.svc_buffer));
+                osi_freebuf(fixed_queue_try_dequeue(p_elem->svc_db.svc_buffer));
             fixed_queue_free(p_elem->svc_db.svc_buffer, NULL);
             p_elem->svc_db.svc_buffer = NULL;
 
@@ -2191,7 +2191,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 
     if (p_clcb->p_attr_buf)
     {
-        GKI_freebuf(p_clcb->p_attr_buf);
+        osi_freebuf(p_clcb->p_attr_buf);
     }
 
     operation =  p_clcb->operation;
@@ -2765,7 +2765,7 @@ tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGAT
     GATT_TRACE_DEBUG ("gatt_add_pending_new_srv_start");
 
     tGATT_PENDING_ENC_CLCB *p_buf =
-        (tGATT_PENDING_ENC_CLCB *)GKI_getbuf((UINT16)sizeof(tGATT_PENDING_ENC_CLCB));
+        (tGATT_PENDING_ENC_CLCB *)osi_getbuf((UINT16)sizeof(tGATT_PENDING_ENC_CLCB));
     if (p_buf != NULL)
     {
         GATT_TRACE_DEBUG("enqueue a new pending encryption channel clcb");

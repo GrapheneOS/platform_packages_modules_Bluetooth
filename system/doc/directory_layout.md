@@ -16,7 +16,6 @@ of one or more modules.
 * conf - *Configuration* - Various configuration text files.
 * doc - *Documentation* - Stack documentation.
 * embdrv - **Deprecated** - Bluetooth SBC Codec.
-* gki - **Deprecated** *General Kernel Interface* - Eliminate - replaced by osi.
 * hci - *Host Controller Interface* - Communication protocol with bluetooth chip.
 * include - **Deprecated** - System global include files.
 * main - *Main stack entrypoint* - Provides HAL for stack access.

@@ -29,7 +29,7 @@
 
 #include "bt_types.h"
 #include "device/include/controller.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_api.h"

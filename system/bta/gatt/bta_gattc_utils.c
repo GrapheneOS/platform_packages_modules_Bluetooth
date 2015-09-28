@@ -34,7 +34,7 @@
 #include "bta_sys.h"
 #include "btcore/include/bdaddr.h"
 #include "btif/include/btif_util.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "l2c_api.h"
 #include "utl.h"
 
@@ -415,7 +415,7 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
     {
         if (p_tcb->cache_buffer != NULL) {
             while (! fixed_queue_is_empty(p_tcb->cache_buffer))
-                GKI_freebuf(fixed_queue_try_dequeue(p_tcb->cache_buffer));
+                osi_freebuf(fixed_queue_try_dequeue(p_tcb->cache_buffer));
             fixed_queue_free(p_tcb->cache_buffer, NULL);
         }
 

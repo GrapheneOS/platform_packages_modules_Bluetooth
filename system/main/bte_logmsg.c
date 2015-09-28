@@ -32,7 +32,7 @@
 #include "btm_api.h"
 #include "btu.h"
 #include "gap_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "l2c_api.h"
 #include "osi/include/config.h"
 #include "osi/include/log.h"
@@ -98,7 +98,7 @@ static const char * const bt_layer_tags[] = {
   "bt_ftp",
   "bt_opp",
   "bt_btu",
-  "bt_gki",
+  "bt_gki",                             /* OBSOLETED */
   "bt_bnep",
   "bt_pan",
   "bt_hfp",

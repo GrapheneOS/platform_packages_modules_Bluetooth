@@ -27,7 +27,7 @@
 #include "bta_ag_api.h"
 #include "bta_ag_int.h"
 #include "bta_ag_ci.h"
-#include "gki.h"
+#include "bt_common.h"
 
 /******************************************************************************
 **
@@ -54,7 +54,7 @@ void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
         if (len_remaining < len)
             len = len_remaining;
 
-        if ((p_buf = (tBTA_AG_CI_RX_WRITE *) GKI_getbuf((UINT16)(sizeof(tBTA_AG_CI_RX_WRITE) + len + 1))) != NULL)
+        if ((p_buf = (tBTA_AG_CI_RX_WRITE *) osi_getbuf((UINT16)(sizeof(tBTA_AG_CI_RX_WRITE) + len + 1))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_CI_RX_WRITE_EVT;
         p_buf->hdr.layer_specific = handle;
@@ -89,7 +89,7 @@ void bta_ag_ci_slc_ready(UINT16 handle)
 {
     tBTA_AG_DATA *p_buf;
 
-    if ((p_buf = (tBTA_AG_DATA *)GKI_getbuf(sizeof(tBTA_AG_DATA))) != NULL)
+    if ((p_buf = (tBTA_AG_DATA *)osi_getbuf(sizeof(tBTA_AG_DATA))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_CI_SLC_READY_EVT;
         p_buf->hdr.layer_specific = handle;

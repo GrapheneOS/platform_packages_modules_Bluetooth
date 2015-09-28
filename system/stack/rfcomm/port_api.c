@@ -31,7 +31,7 @@
 #include "btcore/include/counter.h"
 #include "btm_api.h"
 #include "btm_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
 #include "port_int.h"
@@ -1163,7 +1163,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
         count = fixed_queue_length(p_port->rx.queue);
 
         while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
 
         p_port->rx.queue_size = 0;
 
@@ -1179,7 +1179,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
         PORT_SCHEDULE_LOCK;  /* to prevent tx.queue_size from being negative */
 
         while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
 
         p_port->tx.queue_size = 0;
 
@@ -1283,7 +1283,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
                 p_data  += p_buf->len;
             }
 
-            GKI_freebuf(fixed_queue_try_dequeue(p_port->rx.queue));
+            osi_freebuf(fixed_queue_try_dequeue(p_port->rx.queue));
 
             PORT_SCHEDULE_UNLOCK;
 
@@ -1380,7 +1380,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
     /* We should not allow to write data in to server port when connection is not opened */
     if (p_port->is_server && (p_port->rfc.state != RFC_STATE_OPENED))
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (PORT_CLOSED);
     }
 
@@ -1400,7 +1400,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
             RFCOMM_TRACE_WARNING ("PORT_Write: Queue size: %d",
                                    p_port->tx.queue_size);
 
-            GKI_freebuf (p_buf);
+            osi_freebuf (p_buf);
 
             if ((p_port->p_callback != NULL) && (p_port->ev_mask & PORT_EV_ERR))
                   p_port->p_callback (PORT_EV_ERR, p_port->inx);
@@ -1450,7 +1450,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
     /* Check if handle is valid to avoid crashing */
     if ((handle == 0) || (handle > MAX_RFC_PORTS))
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (PORT_BAD_HANDLE);
     }
 
@@ -1458,7 +1458,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 
     if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED))
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (PORT_NOT_OPENED);
     }
 
@@ -1466,7 +1466,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
     {
         RFCOMM_TRACE_WARNING ("PORT_Write: Data dropped line_status:0x%x",
                                p_port->line_status);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (PORT_LINE_ERR);
     }
 
@@ -1596,7 +1596,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
          }
 
         /* continue with rfcomm data write */
-        p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_DATA_BUF_SIZE);
+        p_buf = (BT_HDR *)osi_getbuf(RFCOMM_DATA_BUF_SIZE);
         if (!p_buf)
             break;
 
@@ -1725,7 +1725,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
             break;
 
         /* continue with rfcomm data write */
-        p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_DATA_BUF_SIZE);
+        p_buf = (BT_HDR *)osi_getbuf(RFCOMM_DATA_BUF_SIZE);
         if (!p_buf)
             break;
 
@@ -1806,7 +1806,7 @@ int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
         return (PORT_UNKNOWN_ERROR);
     }
 
-    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *)osi_getbuf(RFCOMM_CMD_BUF_SIZE);
     if (p_buf != NULL)
     {
 

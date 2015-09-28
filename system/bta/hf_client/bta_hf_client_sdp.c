@@ -64,7 +64,7 @@ static void bta_hf_client_sdp_cback(UINT16 status)
         event = BTA_HF_CLIENT_DISC_INT_RES_EVT;
     }
 
-    if ((p_buf = (tBTA_HF_CLIENT_DISC_RESULT *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_DISC_RESULT))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_DISC_RESULT *) osi_getbuf(sizeof(tBTA_HF_CLIENT_DISC_RESULT))) != NULL)
     {
         p_buf->hdr.event = event;
         p_buf->status = status;
@@ -332,15 +332,16 @@ void bta_hf_client_do_disc(void)
     }
 
     /* allocate buffer for sdp database */
-    bta_hf_client_cb.scb.p_disc_db = (tSDP_DISCOVERY_DB *) GKI_getbuf(GKI_MAX_BUF_SIZE);
+    bta_hf_client_cb.scb.p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
 
     if (bta_hf_client_cb.scb.p_disc_db)
     {
         /* set up service discovery database; attr happens to be attr_list len */
         uuid_list[0].len = LEN_UUID_16;
         uuid_list[1].len = LEN_UUID_16;
-        db_inited = SDP_InitDiscoveryDb(bta_hf_client_cb.scb.p_disc_db, GKI_MAX_BUF_SIZE, num_uuid,
-                            uuid_list, num_attr, attr_list);
+        db_inited = SDP_InitDiscoveryDb(bta_hf_client_cb.scb.p_disc_db,
+                                        BT_DEFAULT_BUFFER_SIZE, num_uuid,
+                                        uuid_list, num_attr, attr_list);
     }
 
     if (db_inited)
@@ -376,7 +377,7 @@ void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data)
 
     if (bta_hf_client_cb.scb.p_disc_db != NULL)
     {
-        GKI_freebuf(bta_hf_client_cb.scb.p_disc_db);
+        osi_freebuf(bta_hf_client_cb.scb.p_disc_db);
         bta_hf_client_cb.scb.p_disc_db = NULL;
     }
 }

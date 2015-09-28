@@ -32,7 +32,7 @@
 #include "bta_ag_int.h"
 #include "bta_api.h"
 #include "bta_sys.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "port_api.h"
 #include "utl.h"
 

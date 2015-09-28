@@ -24,7 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "gki.h"
+#include "bt_common.h"
 #include "bt_types.h"
 #include "bnep_int.h"
 #include "btu.h"
@@ -156,7 +156,7 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
     /* Free transmit queue */
     while (!fixed_queue_is_empty(p_bcb->xmit_q))
     {
-        GKI_freebuf(fixed_queue_try_dequeue(p_bcb->xmit_q));
+        osi_freebuf(fixed_queue_try_dequeue(p_bcb->xmit_q));
     }
     fixed_queue_free(p_bcb->xmit_q, NULL);
     p_bcb->xmit_q = NULL;
@@ -174,7 +174,7 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8   *p, *p_start;
 
     BNEP_TRACE_DEBUG ("%s: sending setup req with dst uuid %x",
@@ -236,7 +236,7 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnep_send_conn_responce (tBNEP_CONN *p_bcb, UINT16 resp_code)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_conn_responce for CID: 0x%x", p_bcb->l2cap_cid);
@@ -275,7 +275,7 @@ void bnep_send_conn_responce (tBNEP_CONN *p_bcb, UINT16 resp_code)
 *******************************************************************************/
 void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 {
-    BT_HDR      *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR      *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8       *p;
     UINT16      xx;
 
@@ -325,7 +325,7 @@ void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 {
-    BT_HDR      *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR      *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8       *p;
     UINT16      xx;
 
@@ -377,7 +377,7 @@ void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 *******************************************************************************/
 void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending filter response");
@@ -415,7 +415,7 @@ void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 *******************************************************************************/
 void bnep_send_command_not_understood (tBNEP_CONN *p_bcb, UINT8 cmd_code)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_command_not_understood for CID: 0x%x, cmd 0x%x", p_bcb->l2cap_cid, cmd_code);
@@ -463,7 +463,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
         {
             BNEP_TRACE_EVENT ("BNEP - congested, dropping buf, CID: 0x%x", p_bcb->l2cap_cid);
 
-            GKI_freebuf (p_buf);
+            osi_freebuf (p_buf);
         }
         else
         {
@@ -1154,7 +1154,7 @@ void bnepu_process_peer_multicast_filter_set (tBNEP_CONN *p_bcb, UINT8 *p_filter
 *******************************************************************************/
 void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending multicast filter response %d", response_code);

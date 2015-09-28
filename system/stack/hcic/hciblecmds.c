@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "hcidefs.h"

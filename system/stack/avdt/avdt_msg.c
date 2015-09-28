@@ -33,7 +33,7 @@
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btu.h"
 
 /*****************************************************************************
@@ -1243,7 +1243,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                    (p_tbl->peer_mtu - 1) + 2;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
             if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
@@ -1265,7 +1265,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
             hdr_len = AVDT_LEN_TYPE_CONT;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
             if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
@@ -1369,7 +1369,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     /* quick sanity check on length */
     if (p_buf->len < avdt_msg_pkt_type_len[pkt_type])
     {
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
         AVDT_TRACE_WARNING("Bad length during reassembly");
         p_ret = NULL;
     }
@@ -1379,7 +1379,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if reassembly in progress drop message and process new single */
         if (p_ccb->p_rx_msg != NULL)
         {
-            GKI_freebuf(p_ccb->p_rx_msg);
+            osi_freebuf(p_ccb->p_rx_msg);
             p_ccb->p_rx_msg = NULL;
             AVDT_TRACE_WARNING("Got single during reassembly");
         }
@@ -1391,7 +1391,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if reassembly in progress drop message and process new single */
         if (p_ccb->p_rx_msg != NULL)
         {
-            GKI_freebuf(p_ccb->p_rx_msg);
+            osi_freebuf(p_ccb->p_rx_msg);
             AVDT_TRACE_WARNING("Got start during reassembly");
         }
         p_ccb->p_rx_msg = p_buf;
@@ -1413,14 +1413,14 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if no reassembly in progress drop message */
         if (p_ccb->p_rx_msg == NULL)
         {
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
             AVDT_TRACE_WARNING("Pkt type=%d out of order", pkt_type);
             p_ret = NULL;
         }
         else
         {
             /* get size of buffer holding assembled message */
-            buf_len = GKI_get_buf_size(p_ccb->p_rx_msg) - sizeof(BT_HDR);
+            buf_len = osi_get_buf_size(p_ccb->p_rx_msg) - sizeof(BT_HDR);
 
             /* adjust offset and len of fragment for header byte */
             p_buf->offset += AVDT_LEN_TYPE_CONT;
@@ -1430,9 +1430,9 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len)
             {
                 /* won't fit; free everything */
-                GKI_freebuf(p_ccb->p_rx_msg);
+                osi_freebuf(p_ccb->p_rx_msg);
                 p_ccb->p_rx_msg = NULL;
-                GKI_freebuf(p_buf);
+                osi_freebuf(p_buf);
                 p_ret = NULL;
             }
             else
@@ -1454,7 +1454,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
                     p_ccb->p_rx_msg->len += p_buf->len;
                     p_ret = NULL;
                 }
-                GKI_freebuf(p_buf);
+                osi_freebuf(p_buf);
             }
         }
     }
@@ -1483,14 +1483,14 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL)
     {
         AVDT_TRACE_ERROR("avdt_msg_send_cmd out of buffer!!");
         return;
     }
 
-    /* set up gki buf pointer and offset */
+    /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
@@ -1552,10 +1552,10 @@ void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
-    /* set up gki buf pointer and offset */
+    /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
@@ -1597,10 +1597,10 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
-    /* set up gki buf pointer and offset */
+    /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
@@ -1658,10 +1658,10 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
-    /* set up gki buf pointer and offset */
+    /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
     p_start = p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
@@ -1891,7 +1891,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     /* free message buffer */
-    GKI_freebuf(p_buf);
+    osi_freebuf(p_buf);
 
     /* if its a rsp or rej, send event to ccb to free associated
     ** cmd msg buffer and handle cmd queue

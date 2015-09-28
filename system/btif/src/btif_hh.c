@@ -39,7 +39,7 @@
 #include "btif_common.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
 
@@ -245,7 +245,7 @@ static void toggle_os_keylockstates(int fd, int changedlockstates)
 *******************************************************************************/
 static BT_HDR *create_pbuf(UINT16 len, UINT8 *data)
 {
-    BT_HDR* p_buf = GKI_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
+    BT_HDR* p_buf = osi_getbuf((UINT16) (len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR)));
 
     if (p_buf) {
         UINT8* pbuf_data;
@@ -541,7 +541,7 @@ BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INF
     dest->descriptor.dl_len = 0;
     if (src->descriptor.dl_len >0)
     {
-        dest->descriptor.dsc_list = (UINT8 *) GKI_getbuf(src->descriptor.dl_len);
+        dest->descriptor.dsc_list = (UINT8 *) osi_getbuf(src->descriptor.dl_len);
         if (dest->descriptor.dsc_list == NULL)
         {
             BTIF_TRACE_WARNING("%s: Failed to allocate DSCP for CB", __FUNCTION__);
@@ -963,7 +963,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     //Free buffer created for dscp_info;
                     if (dscp_info.descriptor.dl_len >0 && dscp_info.descriptor.dsc_list != NULL)
                     {
-                      GKI_freebuf(dscp_info.descriptor.dsc_list);
+                      osi_freebuf(dscp_info.descriptor.dsc_list);
                       dscp_info.descriptor.dsc_list = NULL;
                       dscp_info.descriptor.dl_len=0;
                     }
@@ -1342,7 +1342,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
     dscp_info.ctry_code  = hid_info.ctry_code;
 
     dscp_info.descriptor.dl_len = hid_info.dl_len;
-    dscp_info.descriptor.dsc_list = (UINT8 *) GKI_getbuf(dscp_info.descriptor.dl_len);
+    dscp_info.descriptor.dsc_list = (UINT8 *) osi_getbuf(dscp_info.descriptor.dl_len);
     if (dscp_info.descriptor.dsc_list == NULL)
     {
         LOG_ERROR(LOG_TAG, "%s: Failed to allocate DSCP for CB", __FUNCTION__);
@@ -1356,7 +1356,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
                      hid_info.app_id, dscp_info);
     }
 
-    GKI_freebuf(dscp_info.descriptor.dsc_list);
+    osi_freebuf(dscp_info.descriptor.dsc_list);
 
     return BT_STATUS_SUCCESS;
 }
@@ -1525,7 +1525,7 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
         UINT8  *hexbuf;
         UINT16 len = (strlen(report) + 1) / 2;
 
-        hexbuf = GKI_getbuf(len);
+        hexbuf = osi_getbuf(len);
         if (hexbuf == NULL) {
             BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
                 __FUNCTION__, len);
@@ -1542,14 +1542,14 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
             if (p_buf == NULL) {
                 BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
                                   __FUNCTION__, hex_bytes_filled);
-                GKI_freebuf(hexbuf);
+                osi_freebuf(hexbuf);
                 return BT_STATUS_FAIL;
             }
             BTA_HhSetReport(p_dev->dev_handle, reportType, p_buf);
-            GKI_freebuf(hexbuf);
+            osi_freebuf(hexbuf);
             return BT_STATUS_SUCCESS;
         }
-        GKI_freebuf(hexbuf);
+        osi_freebuf(hexbuf);
         return BT_STATUS_FAIL;
     }
 }
@@ -1591,7 +1591,7 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
         UINT8  *hexbuf;
         UINT16 len = (strlen(data) + 1) / 2;
 
-        hexbuf = GKI_getbuf(len);
+        hexbuf = osi_getbuf(len);
         if (hexbuf == NULL) {
             BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
                 __FUNCTION__, len);
@@ -1608,15 +1608,15 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
             if (p_buf == NULL) {
                 BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
                                   __FUNCTION__, hex_bytes_filled);
-                GKI_freebuf(hexbuf);
+                osi_freebuf(hexbuf);
                 return BT_STATUS_FAIL;
             }
             p_buf->layer_specific = BTA_HH_RPTT_OUTPUT;
             BTA_HhSendData(p_dev->dev_handle, *bda, p_buf);
-            GKI_freebuf(hexbuf);
+            osi_freebuf(hexbuf);
             return BT_STATUS_SUCCESS;
         }
-        GKI_freebuf(hexbuf);
+        osi_freebuf(hexbuf);
         return BT_STATUS_FAIL;
     }
 }

@@ -39,7 +39,7 @@
 #include "bt_types.h"
 #include "bt_target.h"
 #include "device/include/controller.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_api.h"
@@ -2426,7 +2426,7 @@ void  btm_acl_reset_paging (void)
     BTM_TRACE_DEBUG ("btm_acl_reset_paging");
     /* If we sent reset we are definitely not paging any more */
     while ((p = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
-        GKI_freebuf(p);
+        osi_freebuf(p);
 
     btm_cb.paging = FALSE;
 }

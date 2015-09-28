@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 1999-2012 Broadcom Corporation
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,13 +20,4 @@
 
 #include "bt_target.h"
 #include "bt_types.h"
-
-/***********************************************************************
-** Function prototypes
-*/
-
-/* To get and release buffers, change owner and get size
-*/
-void    GKI_freebuf (void *);
-void   *GKI_getbuf (UINT16);
-UINT16  GKI_get_buf_size (void *);
+#include "osi/include/allocator.h"

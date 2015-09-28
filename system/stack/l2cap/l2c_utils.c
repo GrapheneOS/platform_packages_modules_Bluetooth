@@ -28,7 +28,7 @@
 
 #include "device/include/controller.h"
 #include "btcore/include/counter.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "bt_types.h"
 #include "hcimsgs.h"
 #include "l2cdefs.h"
@@ -147,7 +147,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     /* Release any unfinished L2CAP packet on this link */
     if (p_lcb->p_hcit_rcv_acl)
     {
-        GKI_freebuf(p_lcb->p_hcit_rcv_acl);
+        osi_freebuf(p_lcb->p_hcit_rcv_acl);
         p_lcb->p_hcit_rcv_acl = NULL;
     }
 
@@ -211,7 +211,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         while (!list_is_empty(p_lcb->link_xmit_data_q)) {
             BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
             list_remove(p_lcb->link_xmit_data_q, p_buf);
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
         }
         list_free(p_lcb->link_xmit_data_q);
         p_lcb->link_xmit_data_q = NULL;
@@ -345,7 +345,7 @@ BOOLEAN l2c_is_cmd_rejected (UINT8 cmd_code, UINT8 id, tL2C_LCB *p_lcb)
 *******************************************************************************/
 BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(L2CAP_CMD_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(L2CAP_CMD_BUF_SIZE);
     UINT8   *p;
 
     if (!p_buf)
@@ -805,7 +805,7 @@ void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, UINT8 *p_data, UINT16 data_len,
         return;
     }
 
-    p_buf = (BT_HDR *)GKI_getbuf (len + rej_len);
+    p_buf = (BT_HDR *)osi_getbuf (len + rej_len);
 
     if (!p_buf)
     {
@@ -1701,7 +1701,7 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     btu_stop_timer (&p_ccb->timer_entry);
 
     while (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
-        GKI_freebuf(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
+        osi_freebuf(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
     fixed_queue_free(p_ccb->xmit_hold_q, NULL);
     p_ccb->xmit_hold_q = NULL;
 
@@ -2220,7 +2220,7 @@ void l2cu_device_reset (void)
 **
 ** Description      This function initiates an acl connection via HCI
 **
-** Returns          TRUE if successful, FALSE if gki get buffer fails.
+** Returns          TRUE if successful, FALSE if get buffer fails.
 **
 *******************************************************************************/
 BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
@@ -2329,7 +2329,7 @@ UINT8 l2cu_get_num_hi_priority (void)
 ** Description      This function initiates an acl connection via HCI
 **                  If switch required to create connection it is already done.
 **
-** Returns          TRUE if successful, FALSE if gki get buffer fails.
+** Returns          TRUE if successful, FALSE if get buffer fails.
 **
 *******************************************************************************/
 

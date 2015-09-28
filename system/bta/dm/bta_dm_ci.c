@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#include "gki.h"
+#include "bt_common.h"
 #include "bta_sys.h"
 #include "bta_api.h"
 #include "bta_dm_int.h"
@@ -48,7 +48,7 @@ void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_dat
 {
     tBTA_DM_CI_IO_REQ    *p_msg;
 
-    if ((p_msg = (tBTA_DM_CI_IO_REQ *) GKI_getbuf(sizeof(tBTA_DM_CI_IO_REQ))) != NULL)
+    if ((p_msg = (tBTA_DM_CI_IO_REQ *) osi_getbuf(sizeof(tBTA_DM_CI_IO_REQ))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_CI_IO_REQ_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -74,7 +74,7 @@ void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16
 {
     tBTA_DM_CI_RMT_OOB    *p_msg;
 
-    if ((p_msg = (tBTA_DM_CI_RMT_OOB *) GKI_getbuf(sizeof(tBTA_DM_CI_RMT_OOB))) != NULL)
+    if ((p_msg = (tBTA_DM_CI_RMT_OOB *) osi_getbuf(sizeof(tBTA_DM_CI_RMT_OOB))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_CI_RMT_OOB_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -106,7 +106,7 @@ void bta_dm_sco_ci_data_ready(UINT16 event, UINT16 sco_handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = event;
         p_buf->layer_specific = sco_handle;

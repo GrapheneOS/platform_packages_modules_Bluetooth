@@ -27,7 +27,7 @@
 #define BTM_BLE_INT_H
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcidefs.h"
 #include "btm_ble_api.h"
 #include "btm_int.h"

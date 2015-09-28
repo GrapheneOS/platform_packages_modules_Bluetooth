@@ -30,7 +30,7 @@
 #include "osi/include/list.h"
 #include "osi/include/non_repeating_timer.h"
 #include "btm_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 

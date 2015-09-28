@@ -26,7 +26,7 @@
 #define  BNEP_INT_H
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "bnep_api.h"
 #include "btm_int.h"
 #include "btu.h"
