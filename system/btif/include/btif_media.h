@@ -30,7 +30,7 @@
 #include <stdbool.h>
 
 #include "bta_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btif_av_api.h"
 #include "audio_a2dp_hw.h"
 

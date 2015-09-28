@@ -290,7 +290,7 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
             p = bnep_process_control_packet (p_bcb, p, &rem_len, TRUE);
         }
 
-        GKI_freebuf (p_bcb->p_pending_data);
+        osi_freebuf (p_bcb->p_pending_data);
         p_bcb->p_pending_data = NULL;
     }
     return (BNEP_SUCCESS);
@@ -364,7 +364,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (BNEP_WRONG_HANDLE);
     }
 
@@ -373,7 +373,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     if (p_buf->len > BNEP_MTU_SIZE)
     {
         BNEP_TRACE_ERROR ("BNEP_Write() length %d exceeded MTU %d", p_buf->len, BNEP_MTU_SIZE);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (BNEP_MTU_EXCEDED);
     }
 
@@ -402,7 +402,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 
                 if (new_len > org_len)
                 {
-                    GKI_freebuf (p_buf);
+                    osi_freebuf (p_buf);
                     return BNEP_IGNORE_CMD;
                 }
 
@@ -420,7 +420,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
         }
         else
         {
-            GKI_freebuf (p_buf);
+            osi_freebuf (p_buf);
             return BNEP_IGNORE_CMD;
         }
     }
@@ -428,7 +428,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     /* Check transmit queue */
     if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (BNEP_Q_SIZE_EXCEEDED);
     }
 
@@ -536,7 +536,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
         return (BNEP_Q_SIZE_EXCEEDED);
 
     /* Get a buffer to copy the data into */
-    p_buf = (BT_HDR *)GKI_getbuf(BNEP_BUF_SIZE);
+    p_buf = (BT_HDR *)osi_getbuf(BNEP_BUF_SIZE);
     if (p_buf == NULL)
     {
         BNEP_TRACE_ERROR ("BNEP_Write() not able to get buffer");

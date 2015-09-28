@@ -26,7 +26,7 @@
 #include "bta_api.h"
 #include "bta_sys.h"
 #include "bta_sys_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "utl.h"
 
 /*******************************************************************************

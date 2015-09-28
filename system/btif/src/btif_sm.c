@@ -29,7 +29,7 @@
 #include "btif_sm.h"
 
 #include "btif_common.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/allocator.h"
 
 /*****************************************************************************

@@ -30,7 +30,7 @@
 #if defined(HL_INCLUDED) && (HL_INCLUDED == TRUE)
 
 
-#include "gki.h"
+#include "bt_common.h"
 #include "utl.h"
 #include "bta_hl_int.h"
 #include "bta_hl_co.h"
@@ -271,10 +271,7 @@ BT_HDR * bta_hl_get_buf(UINT16 data_size)
     BT_HDR *p_new;
     UINT16 size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
 
-    if (size >= GKI_MAX_BUF_SIZE)
-        size = BTA_HL_LRG_DATA_BUF_SIZE;
-
-    p_new = (BT_HDR *)GKI_getbuf(size);
+    p_new = (BT_HDR *)osi_getbuf(size);
     if (p_new)
     {
         p_new->len = data_size;

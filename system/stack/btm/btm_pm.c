@@ -40,7 +40,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"

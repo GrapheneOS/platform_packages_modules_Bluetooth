@@ -31,7 +31,7 @@
 #endif
 #include "bta_ag_int.h"
 #include "btm_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "utl.h"
 
 #ifndef BTA_AG_SCO_DEBUG
@@ -172,7 +172,7 @@ static void bta_ag_sco_conn_cback(UINT16 sco_idx)
 
     if (handle != 0)
     {
-        if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+        if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
         {
             p_buf->event = BTA_AG_SCO_OPEN_EVT;
             p_buf->layer_specific = handle;
@@ -258,7 +258,7 @@ static void bta_ag_sco_disc_cback(UINT16 sco_idx)
         bta_ag_cb.sco.p_curr_scb->inuse_codec = BTA_AG_CODEC_NONE;
 #endif
 
-        if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+        if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
         {
             p_buf->event = BTA_AG_SCO_CLOSE_EVT;
             p_buf->layer_specific = handle;
@@ -747,7 +747,7 @@ static void bta_ag_sco_event(tBTA_AG_SCB *p_scb, UINT8 event)
                 if (p_sco->state == BTA_AG_SCO_OPEN_ST)
                     BTM_WriteScoData(p_sco->p_curr_scb->sco_idx, p_buf);
                 else
-                    GKI_freebuf(p_buf);
+                    osi_freebuf(p_buf);
             }
             else
                 break;

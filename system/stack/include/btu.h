@@ -28,7 +28,7 @@
 #define BTU_H
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/non_repeating_timer.h"
 
 // HACK(zachoverflow): temporary dark magic

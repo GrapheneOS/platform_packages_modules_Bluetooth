@@ -26,7 +26,7 @@
 #include <stddef.h>
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "mca_api.h"
 #include "mca_int.h"
 
@@ -104,7 +104,7 @@ void mca_dcb_free_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     UNUSED(p_dcb);
 
-    GKI_freebuf (p_data);
+    osi_freebuf (p_data);
 }
 
 /*******************************************************************************

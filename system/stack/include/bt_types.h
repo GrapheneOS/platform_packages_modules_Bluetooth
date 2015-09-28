@@ -582,7 +582,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_LAYER_FTP             0x00170000
 #define TRACE_LAYER_OPP             0x00180000
 #define TRACE_LAYER_BTU             0x00190000
-#define TRACE_LAYER_GKI             0x001a0000
+#define TRACE_LAYER_GKI             0x001a0000          /* OBSOLETED */
 #define TRACE_LAYER_BNEP            0x001b0000
 #define TRACE_LAYER_PAN             0x001c0000
 #define TRACE_LAYER_HFP             0x001d0000
@@ -617,7 +617,7 @@ typedef UINT8 tBT_DEVICE_TYPE;
 #define TRACE_ORG_HCI_TRANS         0x00000100
 #define TRACE_ORG_PROTO_DISP        0x00000200
 #define TRACE_ORG_RPC               0x00000300
-#define TRACE_ORG_GKI               0x00000400
+#define TRACE_ORG_GKI               0x00000400  /* OBSOLETED */
 #define TRACE_ORG_APPL              0x00000500
 #define TRACE_ORG_SCR_WRAPPER       0x00000600
 #define TRACE_ORG_SCR_ENGINE        0x00000700

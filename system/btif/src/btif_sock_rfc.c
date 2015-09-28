@@ -43,7 +43,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "osi/include/compat.h"
 #include "osi/include/list.h"
@@ -113,7 +113,7 @@ bt_status_t btsock_rfc_init(int poll_thread_handle) {
     rfc_slots[i].sdp_handle = 0;
     rfc_slots[i].fd = INVALID_FD;
     rfc_slots[i].app_fd = INVALID_FD;
-    rfc_slots[i].incoming_queue = list_new(GKI_freebuf);
+    rfc_slots[i].incoming_queue = list_new(osi_freebuf);
     assert(rfc_slots[i].incoming_queue != NULL);
   }
 
@@ -832,12 +832,12 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
         break;
 
       case SENT_ALL:
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
         ret = 1;  // Enable data flow.
         break;
 
       case SENT_FAILED:
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
         cleanup_rfc_slot(slot);
         break;
     }

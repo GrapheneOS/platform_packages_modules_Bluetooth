@@ -26,7 +26,7 @@
 
 #if BLE_INCLUDED == TRUE
 
-#include "gki.h"
+#include "bt_common.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "btm_int.h"
@@ -578,7 +578,7 @@ static void gatt_le_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf)
     }
     else
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
 
         if (p_tcb != NULL)
         {
@@ -902,7 +902,7 @@ static void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
         gatt_data_process(p_tcb, p_buf);
     }
     else /* prevent buffer leak */
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
 }
 
 /*******************************************************************************
@@ -1023,7 +1023,7 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
         GATT_TRACE_ERROR ("invalid data length, ignore");
     }
 
-    GKI_freebuf (p_buf);
+    osi_freebuf (p_buf);
 }
 
 /*******************************************************************************

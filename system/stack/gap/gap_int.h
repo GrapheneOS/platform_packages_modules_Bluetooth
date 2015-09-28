@@ -23,7 +23,7 @@
 #include "bt_target.h"
 #include "osi/include/fixed_queue.h"
 #include "gap_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "gatt_api.h"
 #define GAP_MAX_BLOCKS 2        /* Concurrent GAP commands pending at a time*/
 /* Define the Generic Access Profile control structure */

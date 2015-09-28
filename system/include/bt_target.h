@@ -35,7 +35,6 @@
 #include "bt_types.h"   /* This must be defined AFTER buildcfg.h */
 
 /* Include common GKI definitions used by this platform */
-#include "gki_target.h"
 #include "dyn_mem.h"    /* defines static and/or dynamic memory for components */
 
 //------------------Added from bdroid_buildcfg.h---------------------
@@ -325,10 +324,10 @@
 #ifndef HCI_GET_CMD_BUF
 #if (!defined(HCI_USE_VARIABLE_SIZE_CMD_BUF) || (HCI_USE_VARIABLE_SIZE_CMD_BUF == FALSE))
 /* Allocate fixed-size HCI_CMD buffer (default case) */
-#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)GKI_getbuf (HCI_CMD_BUF_SIZE))
+#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)osi_getbuf (HCI_CMD_BUF_SIZE))
 #else
 /* Allocate smallest possible buffer (for platforms with limited RAM) */
-#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)GKI_getbuf ((UINT16)(BT_HDR_SIZE + HCIC_PREAMBLE_SIZE + (paramlen))))
+#define HCI_GET_CMD_BUF(paramlen)    ((BT_HDR *)osi_getbuf ((UINT16)(BT_HDR_SIZE + HCIC_PREAMBLE_SIZE + (paramlen))))
 #endif
 #endif  /* HCI_GET_CMD_BUF */
 

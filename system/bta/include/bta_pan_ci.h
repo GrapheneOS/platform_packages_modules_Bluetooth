@@ -89,7 +89,7 @@ extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
 **                  the RX path is configured to use a push interface with
 **                  zero copy.  The function sends an event to PAN containing
 **                  the data buffer.  The buffer must be allocated using
-**                  functions GKI_getbuf().  The buffer
+**                  functions osi_getbuf().  The buffer
 **                  will be freed by BTA; the phone must not free the buffer.
 **
 **
@@ -104,7 +104,7 @@ extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT
 **
 ** Description      This function is called by the phone to read data from PAN
 **                  when the TX path is configured to use a pull interface.
-**                  The phone must free the buffer using function GKI_freebuf() when
+**                  The phone must free the buffer using function osi_freebuf() when
 **                  it is through processing the buffer.
 **
 **

@@ -148,12 +148,12 @@ BOOLEAN bta_hl_add_sup_feature_list (UINT32 handle, UINT16 num_elem,
     int         offset;
     BOOLEAN     result = FALSE;
 
-    if ((p_buf = (UINT8 *)GKI_getbuf(BTA_HL_SUP_FEATURE_SDP_BUF_SIZE)) != NULL)
+    if ((p_buf = (UINT8 *)osi_getbuf(BTA_HL_SUP_FEATURE_SDP_BUF_SIZE)) != NULL)
     {
         offset = bta_hl_compose_supported_feature_list(p_buf, num_elem, p_elem_list);
         result = SDP_AddAttribute (handle, ATTR_ID_HDP_SUP_FEAT_LIST,
                                    DATA_ELE_SEQ_DESC_TYPE, (UINT32) offset, p_buf);
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
     }
     return result;
 }

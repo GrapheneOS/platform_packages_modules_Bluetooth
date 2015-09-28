@@ -39,7 +39,7 @@
 #include "btif_profile_queue.h"
 #include "btif_util.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/allocator.h"
 
 /*****************************************************************************

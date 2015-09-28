@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include "bta_gattc_int.h"
-#include "gki.h"
+#include "bt_common.h"
 
 
 /*****************************************************************************

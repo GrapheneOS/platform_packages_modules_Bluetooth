@@ -26,7 +26,7 @@
 
 #include "osi/include/fixed_queue.h"
 #include "osi/include/non_repeating_timer.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_defs.h"

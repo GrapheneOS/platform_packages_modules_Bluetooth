@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "rfcdefs.h"
 #include "port_api.h"
 #include "btm_int.h"
@@ -837,7 +837,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
                         p_buf->len, p_mcb, p_port, dlci);
     if (!p_port)
     {
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return;
     }
     /* If client registered callout callback with flow control we can just deliver receive data */
@@ -848,7 +848,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         if(p_port->p_data_co_callback(p_port->inx, (UINT8*)p_buf, -1, DATA_CO_CALLBACK_TYPE_INCOMING))
             port_flow_control_peer(p_port, TRUE, 1);
         else port_flow_control_peer(p_port, FALSE, 0);
-        //GKI_freebuf (p_buf);
+        //osi_freebuf (p_buf);
         return;
     }
     else RFCOMM_TRACE_ERROR("PORT_DataInd, p_port:%p, p_data_co_callback is null", p_port);
@@ -859,7 +859,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         port_flow_control_peer(p_port, TRUE, 1);
 
         p_port->p_data_callback (p_port->inx, (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return;
     }
 
@@ -868,7 +868,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
      || (fixed_queue_length(p_port->rx.queue) + 1 > p_port->rx_buf_critical))
     {
         RFCOMM_TRACE_EVENT ("PORT_DataInd. Buffer over run. Dropping the buffer");
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
 
         RFCOMM_LineStatusReq (p_mcb, dlci, LINE_STATUS_OVERRUN);
         return;

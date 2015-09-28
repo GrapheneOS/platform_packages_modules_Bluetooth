@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "gki.h"
+#include "bt_common.h"
 #include "bt_types.h"
 #include "hiddefs.h"
 #include "hidh_api.h"
@@ -464,7 +464,7 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
     if (status != HID_SUCCESS)
     {
         if (pbuf)
-            GKI_freebuf ((void *)pbuf);
+            osi_freebuf ((void *)pbuf);
     }
     else
         status = hidh_conn_snd_data( dev_handle, t_type, param, data, report_id, pbuf ) ;

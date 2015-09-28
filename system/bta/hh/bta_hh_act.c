@@ -384,7 +384,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /* GetSDPRecord. at one time only one SDP precedure can be active */
     else if (!bta_hh_cb.p_disc_db)
     {
-        bta_hh_cb.p_disc_db = (tSDP_DISCOVERY_DB *) GKI_getbuf(p_bta_hh_cfg->sdp_db_size);
+        bta_hh_cb.p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(p_bta_hh_cfg->sdp_db_size);
 
         if (bta_hh_cb.p_disc_db == NULL)
         {
@@ -1230,7 +1230,7 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
     }
 
     if (sm_event != BTA_HH_INVALID_EVT &&
-        (p_buf = (tBTA_HH_CBACK_DATA *)GKI_getbuf(sizeof(tBTA_HH_CBACK_DATA) +
+        (p_buf = (tBTA_HH_CBACK_DATA *)osi_getbuf(sizeof(tBTA_HH_CBACK_DATA) +
                     sizeof(BT_HDR))) != NULL)
     {
         p_buf->hdr.event  = sm_event;

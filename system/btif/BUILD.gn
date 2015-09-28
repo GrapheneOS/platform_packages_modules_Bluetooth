@@ -74,7 +74,6 @@ static_library("btif") {
     "//bta/sys",
     "//btcore/include",
     "//embdrv/sbc/encoder/include",
-    "//gki/common",
     "//hci/include",
     "//stack/a2dp",
     "//stack/btm",

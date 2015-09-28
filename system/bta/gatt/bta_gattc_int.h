@@ -32,7 +32,7 @@
 #include "bta_gattc_ci.h"
 #include "bta_gattc_co.h"
 
-#include "gki.h"
+#include "bt_common.h"
 
 /*****************************************************************************
 **  Constants and data types

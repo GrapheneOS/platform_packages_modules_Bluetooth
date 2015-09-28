@@ -457,7 +457,7 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
             /* save the info required by dcb connection */
             p_dcb->p_chnl_cfg       = p_chnl_cfg;
             p_dcb->mdl_id           = mdl_id;
-            p_evt_data = (tMCA_CCB_MSG *)GKI_getbuf (sizeof(tMCA_CCB_MSG));
+            p_evt_data = (tMCA_CCB_MSG *)osi_getbuf (sizeof(tMCA_CCB_MSG));
             if (p_evt_data)
             {
                 if (!p_ccb->data_vpsm)
@@ -475,7 +475,7 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
                     return MCA_SUCCESS;
                 }
                 else
-                    GKI_freebuf (p_evt_data);
+                    osi_freebuf (p_evt_data);
             }
             mca_dcb_dealloc(p_dcb, NULL);
         }
@@ -632,7 +632,7 @@ tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
         {
             p_dcb->p_chnl_cfg       = p_chnl_cfg;
             p_dcb->mdl_id           = mdl_id;
-            p_evt_data = (tMCA_CCB_MSG *)GKI_getbuf (sizeof(tMCA_CCB_MSG));
+            p_evt_data = (tMCA_CCB_MSG *)osi_getbuf (sizeof(tMCA_CCB_MSG));
             if (p_evt_data)
             {
                 if (!p_ccb->data_vpsm)
@@ -804,7 +804,7 @@ tMCA_RESULT MCA_Abort(tMCA_CL mcl)
         }
 
         result = MCA_NO_RESOURCES;
-        p_evt_data = (tMCA_CCB_MSG *)GKI_getbuf (sizeof(tMCA_CCB_MSG));
+        p_evt_data = (tMCA_CCB_MSG *)osi_getbuf (sizeof(tMCA_CCB_MSG));
         if (p_evt_data)
         {
             result = MCA_SUCCESS;
@@ -847,7 +847,7 @@ tMCA_RESULT MCA_Delete(tMCA_CL mcl, UINT16 mdl_id)
             MCA_TRACE_ERROR ("bad mdl id: %d ", mdl_id);
             return MCA_BAD_PARAMS;
         }
-        p_evt_data = (tMCA_CCB_MSG *)GKI_getbuf (sizeof(tMCA_CCB_MSG));
+        p_evt_data = (tMCA_CCB_MSG *)osi_getbuf (sizeof(tMCA_CCB_MSG));
         if (p_evt_data)
         {
             result = MCA_SUCCESS;

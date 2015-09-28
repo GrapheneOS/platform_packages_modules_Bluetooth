@@ -25,7 +25,7 @@
 #include <string.h>
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btm_api.h"
 #include "mca_api.h"
 #include "mca_defs.h"
@@ -81,7 +81,7 @@ void mca_ccb_free_msg(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     UNUSED(p_ccb);
 
-    GKI_freebuf (p_data);
+    osi_freebuf (p_data);
 }
 
 /*******************************************************************************
@@ -121,7 +121,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         p_ccb->p_tx_req = p_msg;
         if (!p_ccb->cong)
         {
-            p_pkt = (BT_HDR *)GKI_getbuf (MCA_CTRL_MTU);
+            p_pkt = (BT_HDR *)osi_getbuf (MCA_CTRL_MTU);
             if (p_pkt)
             {
                 p_pkt->offset = L2CAP_MIN_OFFSET;
@@ -145,7 +145,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     else
     {
         MCA_TRACE_WARNING ("dropping api req");
-        GKI_freebuf (p_data);
+        osi_freebuf (p_data);
     }
 }
 
@@ -168,7 +168,7 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 
     MCA_TRACE_DEBUG ("mca_ccb_snd_rsp cong=%d req=%d", p_ccb->cong, p_msg->op_code);
     /* assume that API functions verified the parameters */
-    p_pkt = (BT_HDR *)GKI_getbuf (MCA_CTRL_MTU);
+    p_pkt = (BT_HDR *)osi_getbuf (MCA_CTRL_MTU);
     if (p_pkt)
     {
         p_pkt->offset = L2CAP_MIN_OFFSET;
@@ -324,7 +324,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         else
         {
             /*  local is initiator, ignore the req */
-            GKI_freebuf (p_pkt);
+            osi_freebuf (p_pkt);
             return;
         }
     }
@@ -409,7 +409,7 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     if (((reject_code != MCA_RSP_SUCCESS) && (evt_data.hdr.op_code != MCA_OP_SYNC_INFO_IND))
         || send_rsp)
     {
-        p_buf = (BT_HDR *)GKI_getbuf (MCA_CTRL_MTU);
+        p_buf = (BT_HDR *)osi_getbuf (MCA_CTRL_MTU);
         if (p_buf)
         {
             p_buf->offset = L2CAP_MIN_OFFSET;
@@ -437,13 +437,13 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         p_ccb->p_rx_msg = p_rx_msg;
         if (send_rsp)
         {
-            GKI_freebuf (p_pkt);
+            osi_freebuf (p_pkt);
             p_ccb->p_rx_msg = NULL;
         }
         mca_ccb_report_event(p_ccb, evt_data.hdr.op_code, &evt_data);
     }
     else
-        GKI_freebuf (p_pkt);
+        osi_freebuf (p_pkt);
 }
 
 /*******************************************************************************
@@ -545,7 +545,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         /* not expecting any response. drop it */
         MCA_TRACE_WARNING ("dropping received rsp (not expecting a response)");
     }
-    GKI_freebuf (p_data);
+    osi_freebuf (p_data);
 }
 
 /*******************************************************************************

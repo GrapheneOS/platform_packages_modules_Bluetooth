@@ -23,7 +23,7 @@
  *****************************************************************************/
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 
 #include "btm_api.h"
 #include "btm_int.h"
@@ -205,7 +205,7 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
     rfc_timer_stop (p_mcb);
 
     while ((p_buf = fixed_queue_try_dequeue(p_mcb->cmd_q)) != NULL)
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
     fixed_queue_free(p_mcb->cmd_q, NULL);
 
     memset (p_mcb, 0, sizeof (tRFC_MCB));

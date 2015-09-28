@@ -323,7 +323,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
 
             if (p_src_data->read.p_value != NULL)
             {
-                p_dest_data->read.p_value = GKI_getbuf(sizeof(tBTA_GATT_READ_VAL));
+                p_dest_data->read.p_value = osi_getbuf(sizeof(tBTA_GATT_READ_VAL));
 
                 if (p_dest_data->read.p_value != NULL)
                 {
@@ -336,7 +336,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
                       && p_src_data->read.p_value->unformat.p_value != NULL)
                     {
                         p_dest_data->read.p_value->unformat.p_value =
-                                       GKI_getbuf(p_src_data->read.p_value->unformat.len);
+                                       osi_getbuf(p_src_data->read.p_value->unformat.len);
                         if (p_dest_data->read.p_value->unformat.p_value != NULL)
                         {
                             memcpy(p_dest_data->read.p_value->unformat.p_value,
@@ -372,9 +372,9 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
                   && p_data->read.p_value->unformat.len > 0
                   && p_data->read.p_value->unformat.p_value != NULL)
                 {
-                    GKI_freebuf(p_data->read.p_value->unformat.p_value);
+                    osi_freebuf(p_data->read.p_value->unformat.p_value);
                 }
-                GKI_freebuf(p_data->read.p_value);
+                osi_freebuf(p_data->read.p_value);
             }
             break;
 
@@ -777,7 +777,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
             if (p_data->read_reports.data_len > 0 && NULL != p_data->read_reports.p_rep_data)
             {
-                p_rep_data = GKI_getbuf(p_data->read_reports.data_len);
+                p_rep_data = osi_getbuf(p_data->read_reports.data_len);
                 memcpy(p_rep_data, p_data->read_reports.p_rep_data, p_data->read_reports.data_len);
             }
 
@@ -785,7 +785,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                     , p_data->client_if, p_data->status, p_data->read_reports.report_format
                     , p_data->read_reports.num_records, p_data->read_reports.data_len, p_rep_data);
             if (NULL != p_rep_data)
-                GKI_freebuf(p_rep_data);
+                osi_freebuf(p_rep_data);
             break;
         }
 
@@ -995,16 +995,16 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
 
     if (data_len > 0)
     {
-        btif_scan_track_cb.read_reports.p_rep_data = GKI_getbuf(data_len);
+        btif_scan_track_cb.read_reports.p_rep_data = osi_getbuf(data_len);
         memcpy(btif_scan_track_cb.read_reports.p_rep_data, p_rep_data, data_len);
-        GKI_freebuf(p_rep_data);
+        osi_freebuf(p_rep_data);
     }
 
     btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_RD_EVT,
         (char*) &btif_scan_track_cb, sizeof(btgatt_batch_track_cb_t), NULL);
 
     if (data_len > 0)
-        GKI_freebuf(btif_scan_track_cb.read_reports.p_rep_data);
+        osi_freebuf(btif_scan_track_cb.read_reports.p_rep_data);
 }
 
 static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
@@ -1818,13 +1818,13 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
                        (char*) &adv_data, sizeof(btif_adv_data_t), NULL);
 
     if (NULL != adv_data.p_service_data)
-        GKI_freebuf(adv_data.p_service_data);
+        osi_freebuf(adv_data.p_service_data);
 
     if (NULL != adv_data.p_service_uuid)
-        GKI_freebuf(adv_data.p_service_uuid);
+        osi_freebuf(adv_data.p_service_uuid);
 
     if (NULL != adv_data.p_manufacturer_data)
-        GKI_freebuf(adv_data.p_manufacturer_data);
+        osi_freebuf(adv_data.p_manufacturer_data);
 
     return status;
 }
@@ -2223,13 +2223,13 @@ static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp
                        (char*) &multi_adv_data_inst, sizeof(btif_adv_data_t), NULL);
 
     if (NULL != multi_adv_data_inst.p_service_data)
-        GKI_freebuf(multi_adv_data_inst.p_service_data);
+        osi_freebuf(multi_adv_data_inst.p_service_data);
 
     if (NULL != multi_adv_data_inst.p_service_uuid)
-        GKI_freebuf(multi_adv_data_inst.p_service_uuid);
+        osi_freebuf(multi_adv_data_inst.p_service_uuid);
 
     if (NULL != multi_adv_data_inst.p_manufacturer_data)
-        GKI_freebuf(multi_adv_data_inst.p_manufacturer_data);
+        osi_freebuf(multi_adv_data_inst.p_manufacturer_data);
 
     return status;
 }

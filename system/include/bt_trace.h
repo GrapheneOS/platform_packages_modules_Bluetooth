@@ -416,3 +416,5 @@ typedef struct {
 
 /* External declaration for appl_trace_level here to avoid to add the declaration in all the files using APPL_TRACExxx macros */
 extern UINT8 appl_trace_level;
+
+void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);

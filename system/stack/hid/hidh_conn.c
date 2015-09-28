@@ -27,7 +27,7 @@
 #include <stdio.h>
 
 
-#include "gki.h"
+#include "bt_common.h"
 #include "bt_types.h"
 
 #include "l2cdefs.h"
@@ -806,7 +806,7 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     if (p_hcon == NULL)
     {
         HIDH_TRACE_WARNING ("HID-Host Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
         return;
     }
 
@@ -824,7 +824,7 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     {
     case HID_TRANS_HANDSHAKE:
         hh_cb.callback(dhandle,  hh_cb.devices[dhandle].addr, HID_HDEV_EVT_HANDSHAKE, param, NULL);
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
         break;
 
     case HID_TRANS_CONTROL:
@@ -839,7 +839,7 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
         default:
             break;
         }
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
         break;
 
 
@@ -856,7 +856,7 @@ static void hidh_l2cif_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
         break;
 
     default:
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
         break;
     }
 
@@ -888,14 +888,14 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     if (!BTM_IsAclConnectionUp(hh_cb.devices[dhandle].addr, BT_TRANSPORT_BR_EDR))
     {
         if (buf)
-            GKI_freebuf ((void *)buf);
+            osi_freebuf ((void *)buf);
         return( HID_ERR_NO_CONNECTION );
     }
 
     if (p_hcon->conn_flags & HID_CONN_FLAGS_CONGESTED)
     {
         if (buf)
-            GKI_freebuf ((void *)buf);
+            osi_freebuf ((void *)buf);
         return( HID_ERR_CONGESTED );
     }
 
@@ -928,7 +928,7 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     {
         if ( buf == NULL || blank_datc )
         {
-            p_buf = (BT_HDR *)GKI_getbuf(buf_size);
+            p_buf = (BT_HDR *)osi_getbuf(buf_size);
             if (p_buf == NULL)
                 return (HID_ERR_NO_RESOURCES);
 
@@ -940,7 +940,7 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         }
         else if ( (buf->len > (p_hcon->rem_mtu_size - 1)))
         {
-            p_buf = (BT_HDR *)GKI_getbuf(buf_size);
+            p_buf = (BT_HDR *)osi_getbuf(buf_size);
             if (p_buf == NULL)
                 return (HID_ERR_NO_RESOURCES);
 

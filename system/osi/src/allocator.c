@@ -15,6 +15,7 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -77,12 +78,44 @@ void osi_free(void *ptr) {
   free(allocation_tracker_notify_free(alloc_allocator_id, ptr));
 }
 
+const allocator_t allocator_calloc = {
+  osi_calloc,
+  osi_free
+};
+
 const allocator_t allocator_malloc = {
   osi_malloc,
   osi_free
 };
 
-const allocator_t allocator_calloc = {
-  osi_calloc,
-  osi_free
-};
+//
+// TODO: Temporary buffer-allocation wrappers: should be removed
+//
+#define MAGIC_NUMBER 0xDDBADDBA
+typedef struct _buffer_hdr
+{
+  uint16_t size;
+  uint32_t magic_number;
+} BUFFER_HDR_T;
+
+void *osi_getbuf(uint16_t size)
+{
+  BUFFER_HDR_T *header = osi_malloc(size + sizeof(BUFFER_HDR_T));
+  header->size = size;
+  header->magic_number = MAGIC_NUMBER;
+  return header + 1;
+}
+
+void osi_freebuf(void *p_buf)
+{
+  BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
+  assert(header->magic_number == MAGIC_NUMBER);
+  osi_free(header);
+}
+
+uint16_t osi_get_buf_size(void *p_buf)
+{
+  BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
+  assert(header->magic_number == MAGIC_NUMBER);
+  return header->size;
+}

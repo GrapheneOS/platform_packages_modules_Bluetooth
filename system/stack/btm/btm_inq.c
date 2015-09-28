@@ -32,7 +32,7 @@
 
 #include "bt_types.h"
 #include "device/include/controller.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "btu.h"
 #include "btm_api.h"
@@ -1479,7 +1479,7 @@ static void btm_clr_inq_result_flt (void)
 
     if (p_inq->p_bd_db)
     {
-        GKI_freebuf(p_inq->p_bd_db);
+        osi_freebuf(p_inq->p_bd_db);
         p_inq->p_bd_db = NULL;
     }
     p_inq->num_bd_entries = 0;
@@ -1818,10 +1818,10 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
         btm_clr_inq_result_flt();
 
         /* Allocate memory to hold bd_addrs responding */
-        if ((p_inq->p_bd_db = (tINQ_BDADDR *)GKI_getbuf(GKI_MAX_BUF_SIZE)) != NULL)
+        if ((p_inq->p_bd_db = (tINQ_BDADDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE)) != NULL)
         {
-            p_inq->max_bd_entries = (UINT16)(GKI_MAX_BUF_SIZE / sizeof(tINQ_BDADDR));
-            memset(p_inq->p_bd_db, 0, GKI_MAX_BUF_SIZE);
+            p_inq->max_bd_entries = (UINT16)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
+            memset(p_inq->p_bd_db, 0, BT_DEFAULT_BUFFER_SIZE);
 /*            BTM_TRACE_DEBUG("btm_initiate_inquiry: memory allocated for %d bdaddrs",
                               p_inq->max_bd_entries); */
         }
@@ -2071,7 +2071,7 @@ void btm_sort_inq_result(void)
     num_resp = (btm_cb.btm_inq_vars.inq_cmpl_info.num_resp<BTM_INQ_DB_SIZE)?
                 btm_cb.btm_inq_vars.inq_cmpl_info.num_resp: BTM_INQ_DB_SIZE;
 
-    if((p_tmp = (tINQ_DB_ENT *)GKI_getbuf(sizeof(tINQ_DB_ENT))) != NULL)
+    if((p_tmp = (tINQ_DB_ENT *)osi_getbuf(sizeof(tINQ_DB_ENT))) != NULL)
     {
         size = sizeof(tINQ_DB_ENT);
         for(xx = 0; xx < num_resp-1; xx++, p_ent++)
@@ -2087,7 +2087,7 @@ void btm_sort_inq_result(void)
             }
         }
 
-        GKI_freebuf(p_tmp);
+        osi_freebuf(p_tmp);
     }
 }
 
@@ -2478,7 +2478,7 @@ tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
     }
     else
     {
-        GKI_freebuf(p_buff);
+        osi_freebuf(p_buff);
         return BTM_MODE_UNSUPPORTED;
     }
 }
