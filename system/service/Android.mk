@@ -81,30 +81,34 @@ include $(BUILD_EXECUTABLE)
 
 # Native system service unittests for host
 # ========================================================
-ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
-	$(btserviceLinuxSrc) \
 	hal/fake_bluetooth_gatt_interface.cpp \
 	hal/fake_bluetooth_interface.cpp \
 	test/adapter_unittest.cpp \
 	test/advertise_data_unittest.cpp \
 	test/fake_hal_util.cpp \
-	test/ipc_linux_unittest.cpp \
 	test/low_energy_client_unittest.cpp \
 	test/settings_unittest.cpp \
 	test/stub_ipc_handler_binder.cpp \
 	test/uuid_unittest.cpp
+ifeq ($(HOST_OS),linux)
+LOCAL_SRC_FILES += \
+	$(btserviceLinuxSrc) \
+	test/ipc_linux_unittest.cpp
+LOCAL_LDLIBS += -lrt
+else
+LOCAL_SRC_FILES += \
+	test/stub_ipc_handler_linux.cpp
+endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
-LOCAL_LDLIBS += -lrt
 LOCAL_MODULE_TAGS := tests
 LOCAL_MODULE := bt_service_unittests
 LOCAL_SHARED_LIBRARIES += libchrome-host
 LOCAL_STATIC_LIBRARIES += libgmock_host liblog
 include $(BUILD_HOST_NATIVE_TEST)
-endif
 
 # Native system service unittests for Binder code, for target
 # ========================================================
