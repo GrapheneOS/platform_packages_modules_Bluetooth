@@ -1158,7 +1158,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 
     if (purge_flags & PORT_PURGE_RXCLEAR)
     {
-        PORT_SCHEDULE_LOCK;  /* to prevent missing credit */
+        mutex_global_lock();    /* to prevent missing credit */
 
         count = fixed_queue_length(p_port->rx.queue);
 
@@ -1167,7 +1167,7 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 
         p_port->rx.queue_size = 0;
 
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
 
         /* If we flowed controlled peer based on rx_queue size enable data again */
         if (count)
@@ -1176,14 +1176,14 @@ int PORT_Purge (UINT16 handle, UINT8 purge_flags)
 
     if (purge_flags & PORT_PURGE_TXCLEAR)
     {
-        PORT_SCHEDULE_LOCK;  /* to prevent tx.queue_size from being negative */
+        mutex_global_lock(); /* to prevent tx.queue_size from being negative */
 
         while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
             osi_freebuf(p_buf);
 
         p_port->tx.queue_size = 0;
 
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
 
         events = PORT_EV_TXEMPTY;
 
@@ -1259,11 +1259,11 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
             *p_len += max_len;
 
-            PORT_SCHEDULE_LOCK;
+            mutex_global_lock();
 
             p_port->rx.queue_size -= max_len;
 
-            PORT_SCHEDULE_UNLOCK;
+            mutex_global_unlock();
 
             break;
         }
@@ -1274,7 +1274,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
             *p_len  += p_buf->len;
             max_len -= p_buf->len;
 
-            PORT_SCHEDULE_LOCK;
+            mutex_global_lock();
 
             p_port->rx.queue_size -= p_buf->len;
 
@@ -1285,7 +1285,7 @@ int PORT_ReadData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
             osi_freebuf(fixed_queue_try_dequeue(p_port->rx.queue));
 
-            PORT_SCHEDULE_UNLOCK;
+            mutex_global_unlock();
 
             count++;
         }
@@ -1342,14 +1342,14 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
         return (PORT_LINE_ERR);
     }
 
-    PORT_SCHEDULE_LOCK;
+    mutex_global_lock();
 
     p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue);
     if (p_buf)
     {
         p_port->rx.queue_size -= p_buf->len;
 
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
 
         /* If rfcomm suspended traffic from the peer based on the rx_queue_size */
         /* check if it can be resumed now */
@@ -1357,7 +1357,7 @@ int PORT_Read (UINT16 handle, BT_HDR **pp_buf)
     }
     else
     {
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
     }
 
     *pp_buf = p_buf;
@@ -1550,7 +1550,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
     /* If there are buffers scheduled for transmission check if requested */
     /* data fits into the end of the queue */
-    PORT_SCHEDULE_LOCK;
+    mutex_global_lock();
 
     if (((p_buf = (BT_HDR *)fixed_queue_try_peek_last(p_port->tx.queue)) != NULL)
      && (((int)p_buf->len + available) <= (int)p_port->peer_mtu)
@@ -1562,7 +1562,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
         {
             error("p_data_co_callback DATA_CO_CALLBACK_TYPE_OUTGOING failed, available:%d", available);
-            PORT_SCHEDULE_UNLOCK;
+            mutex_global_unlock();
             return (PORT_UNKNOWN_ERROR);
         }
         //memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
@@ -1571,12 +1571,12 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
         *p_len = available;
         p_buf->len += (UINT16)available;
 
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
 
         return (PORT_SUCCESS);
     }
 
-    PORT_SCHEDULE_UNLOCK;
+    mutex_global_unlock();
 
     //int max_read = length < p_port->peer_mtu ? length : p_port->peer_mtu;
 
@@ -1698,7 +1698,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
     /* If there are buffers scheduled for transmission check if requested */
     /* data fits into the end of the queue */
-    PORT_SCHEDULE_LOCK;
+    mutex_global_lock();
 
     if (((p_buf = (BT_HDR *)fixed_queue_try_peek_last(p_port->tx.queue)) != NULL)
      && ((p_buf->len + max_len) <= p_port->peer_mtu)
@@ -1710,12 +1710,12 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
         *p_len = max_len;
         p_buf->len += max_len;
 
-        PORT_SCHEDULE_UNLOCK;
+        mutex_global_unlock();
 
         return (PORT_SUCCESS);
     }
 
-    PORT_SCHEDULE_UNLOCK;
+    mutex_global_unlock();
 
     while (max_len)
     {
