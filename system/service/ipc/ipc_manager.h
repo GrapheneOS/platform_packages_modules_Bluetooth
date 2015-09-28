@@ -31,13 +31,13 @@ class IPCHandler;
 
 // IPCManager is a class for initializing and running supported IPC mechanisms.
 // It manages the life-time of different IPC flavors that are available on the
-// system. There are two flavors: a plain UNIX domain socket based system and
-// one based on the Binder-based android.bluetooth framework.
+// system. There are two flavors: a Linux sequential packet domain socket based
+// system and one based on the Binder-based android.bluetooth framework.
 class IPCManager {
  public:
   // Possible IPC types.
   enum Type {
-    TYPE_UNIX,  // IPC based on a UNIX domain socket
+    TYPE_LINUX,  // IPC based on a Linux sequential packet domain socket
     TYPE_BINDER  // IPC based on the Binder
   };
 
@@ -67,7 +67,7 @@ class IPCManager {
   // yet been initialized and returns true on success. Returns false if that
   // type has already been initialized or an error occurs.
   //
-  // If TYPE_UNIX is given, the file path to use for the domain socket will be
+  // If TYPE_LINUX is given, the file path to use for the domain socket will be
   // obtained from the global Settings object. Hence, the Settings object must
   // have been initialized before calling this method.
   //
@@ -80,7 +80,7 @@ class IPCManager {
 
   // Returns true if an IPC type has been initialized.
   bool BinderStarted() const;
-  bool UnixStarted() const;
+  bool LinuxStarted() const;
 
  private:
   IPCManager() = default;
@@ -88,7 +88,7 @@ class IPCManager {
   // Pointers to the different IPC handler classes. These are initialized and
   // owned by us.
   scoped_refptr<IPCHandler> binder_handler_;
-  scoped_refptr<IPCHandler> unix_handler_;
+  scoped_refptr<IPCHandler> linux_handler_;
 
   // The Bluetooth adapter instance. This is owned by Daemon so we keep a raw
   // pointer to it.

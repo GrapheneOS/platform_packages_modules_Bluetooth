@@ -90,7 +90,7 @@ class DaemonImpl : public Daemon {
     // If an IPC socket path was given, initialize IPC with it. Otherwise
     // initialize Binder IPC.
     if (settings_->UseSocketIPC()) {
-      if (!ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, nullptr)) {
+      if (!ipc_manager_->Start(ipc::IPCManager::TYPE_LINUX, nullptr)) {
         LOG(ERROR) << "Failed to set up UNIX domain-socket IPCManager";
         return false;
       }
