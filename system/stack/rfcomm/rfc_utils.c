@@ -222,13 +222,13 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 *******************************************************************************/
 void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
 {
-    TIMER_LIST_ENT *p_tle = &p_mcb->tle;
+    timer_entry_t *p_te = &p_mcb->timer_entry;
 
     RFCOMM_TRACE_EVENT ("rfc_timer_start - timeout:%d", timeout);
 
-    p_tle->param = p_mcb;
+    p_te->param = p_mcb;
 
-    btu_start_timer (p_tle, BTU_TTYPE_RFCOMM_MFC, timeout);
+    btu_start_timer (p_te, BTU_TTYPE_RFCOMM_MFC, timeout);
 }
 
 
@@ -243,7 +243,7 @@ void rfc_timer_stop (tRFC_MCB *p_mcb)
 {
     RFCOMM_TRACE_EVENT ("rfc_timer_stop");
 
-    btu_stop_timer (&p_mcb->tle);
+    btu_stop_timer (&p_mcb->timer_entry);
 }
 
 
@@ -256,13 +256,13 @@ void rfc_timer_stop (tRFC_MCB *p_mcb)
 *******************************************************************************/
 void rfc_port_timer_start (tPORT *p_port, UINT16 timeout)
 {
-    TIMER_LIST_ENT *p_tle = &p_port->rfc.tle;
+    timer_entry_t *p_te = &p_port->rfc.timer_entry;
 
     RFCOMM_TRACE_EVENT ("rfc_port_timer_start - timeout:%d", timeout);
 
-    p_tle->param = p_port;
+    p_te->param = p_port;
 
-    btu_start_timer (p_tle, BTU_TTYPE_RFCOMM_PORT, timeout);
+    btu_start_timer (p_te, BTU_TTYPE_RFCOMM_PORT, timeout);
 }
 
 
@@ -277,7 +277,7 @@ void rfc_port_timer_stop (tPORT *p_port)
 {
     RFCOMM_TRACE_EVENT ("rfc_port_timer_stop");
 
-    btu_stop_timer (&p_port->rfc.tle);
+    btu_stop_timer (&p_port->rfc.timer_entry);
 }
 
 
@@ -324,16 +324,16 @@ void rfc_check_mcb_active (tRFC_MCB *p_mcb)
 ** Returns          void
 **
 *******************************************************************************/
-void rfcomm_process_timeout (TIMER_LIST_ENT  *p_tle)
+void rfcomm_process_timeout (timer_entry_t *p_te)
 {
-    switch (p_tle->event)
+    switch (p_te->event)
     {
     case BTU_TTYPE_RFCOMM_MFC:
-        rfc_mx_sm_execute ((tRFC_MCB *)p_tle->param, RFC_EVENT_TIMEOUT, NULL);
+        rfc_mx_sm_execute ((tRFC_MCB *)p_te->param, RFC_EVENT_TIMEOUT, NULL);
         break;
 
     case BTU_TTYPE_RFCOMM_PORT:
-        rfc_port_sm_execute ((tPORT *)p_tle->param, RFC_EVENT_TIMEOUT, NULL);
+        rfc_port_sm_execute ((tPORT *)p_te->param, RFC_EVENT_TIMEOUT, NULL);
         break;
 
     default:

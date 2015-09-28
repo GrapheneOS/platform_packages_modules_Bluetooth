@@ -26,6 +26,7 @@
 #define  SDP_INT_H
 
 #include "bt_target.h"
+#include "osi/include/non_repeating_timer.h"
 #include "sdp_api.h"
 #include "l2c_api.h"
 
@@ -178,7 +179,7 @@ typedef struct
     UINT8             con_flags;
 
     BD_ADDR           device_address;
-    TIMER_LIST_ENT    timer_entry;
+    timer_entry_t     timer_entry;
     UINT16            rem_mtu_size;
     UINT16            connection_id;
     UINT16            list_len;                 /* length of the response in the GKI buffer */

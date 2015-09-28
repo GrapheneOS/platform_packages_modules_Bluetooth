@@ -85,8 +85,8 @@ void btm_dev_init (void)
     memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
 #endif
 
-    btm_cb.devcb.reset_timer.param  = (TIMER_PARAM_TYPE)TT_DEV_RESET;
-    btm_cb.devcb.rln_timer.param    = (TIMER_PARAM_TYPE)TT_DEV_RLN;
+    btm_cb.devcb.reset_timer.param  = (timer_param_t)TT_DEV_RESET;
+    btm_cb.devcb.rln_timer.param    = (timer_param_t)TT_DEV_RLN;
 
     btm_cb.btm_acl_pkt_types_supported = BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
                                          BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
@@ -231,16 +231,16 @@ BOOLEAN BTM_IsDeviceUp (void)
 **
 ** Function         btm_dev_timeout
 **
-** Description      This function is called when a timer list entry expires.
+** Description      This function is called when a timer entry expires.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void btm_dev_timeout (TIMER_LIST_ENT  *p_tle)
+void btm_dev_timeout (timer_entry_t *p_te)
 {
-    TIMER_PARAM_TYPE timer_type = (TIMER_PARAM_TYPE)p_tle->param;
+    timer_param_t timer_type = (timer_param_t)p_te->param;
 
-    if (timer_type == (TIMER_PARAM_TYPE)TT_DEV_RLN)
+    if (timer_type == (timer_param_t)TT_DEV_RLN)
     {
         tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
 

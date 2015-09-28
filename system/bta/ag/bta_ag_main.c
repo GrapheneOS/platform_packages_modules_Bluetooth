@@ -285,12 +285,12 @@ tBTA_AG_CB  bta_ag_cb;
 static void bta_ag_timer_cback(void *p)
 {
     BT_HDR          *p_buf;
-    TIMER_LIST_ENT  *p_tle = (TIMER_LIST_ENT *) p;
+    timer_entry_t   *p_te = (timer_entry_t *) p;
 
     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
-        p_buf->event = p_tle->event;
-        p_buf->layer_specific = bta_ag_scb_to_idx((tBTA_AG_SCB *) p_tle->param);
+        p_buf->event = p_te->event;
+        p_buf->layer_specific = bta_ag_scb_to_idx((tBTA_AG_SCB *) p_te->param);
         bta_sys_sendmsg(p_buf);
     }
 }
@@ -576,15 +576,15 @@ tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_colli_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_ag_colli_timer_cback (timer_entry_t *p_te)
 {
     tBTA_AG_SCB *p_scb;
 
     APPL_TRACE_DEBUG ("bta_ag_colli_timer_cback");
 
-    if (p_tle)
+    if (p_te)
     {
-        p_scb = (tBTA_AG_SCB *)p_tle->param;
+        p_scb = (tBTA_AG_SCB *)p_te->param;
 
         if (p_scb)
         {
@@ -649,7 +649,8 @@ void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
             bta_ag_start_servers(p_scb, p_scb->reg_services);
 
         /* Start timer to han */
-        p_scb->colli_timer.p_cback = (TIMER_CBACK*)&bta_ag_colli_timer_cback;
+        p_scb->colli_timer.p_cback =
+            (timer_callback_t *)&bta_ag_colli_timer_cback;
         p_scb->colli_timer.param = p_scb;
         bta_sys_start_timer(&p_scb->colli_timer, 0, BTA_AG_COLLISION_TIMER);
         p_scb->colli_tmr_on = TRUE;

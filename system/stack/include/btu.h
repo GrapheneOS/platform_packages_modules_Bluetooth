@@ -29,6 +29,7 @@
 
 #include "bt_target.h"
 #include "gki.h"
+#include "osi/include/non_repeating_timer.h"
 
 // HACK(zachoverflow): temporary dark magic
 #define BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK 0x1700 // didn't look used in bt_types...here goes nothing
@@ -51,7 +52,7 @@ typedef struct {
 
 /* callbacks
 */
-typedef void (*tBTU_TIMER_CALLBACK)(TIMER_LIST_ENT *p_tle);
+typedef void (*tBTU_TIMER_CALLBACK)(timer_entry_t *p_te);
 typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 
 
@@ -187,7 +188,7 @@ typedef struct
 /* structure to hold registered timers */
 typedef struct
 {
-    TIMER_LIST_ENT          *p_tle;      /* timer entry */
+    timer_entry_t           *p_te;       /* timer entry */
     tBTU_TIMER_CALLBACK     timer_cb;    /* callback triggered when timer expires */
 } tBTU_TIMER_REG;
 
@@ -232,10 +233,10 @@ extern const BD_ADDR        BT_BD_ANY;
 /* Functions provided by btu_task.c
 ************************************
 */
-extern void btu_start_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-extern void btu_stop_timer (TIMER_LIST_ENT *p_tle);
-extern void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-extern void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle);
+extern void btu_start_timer (timer_entry_t *p_te, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer (timer_entry_t *p_te);
+extern void btu_start_timer_oneshot(timer_entry_t *p_te, UINT16 type, UINT32 timeout);
+extern void btu_stop_timer_oneshot(timer_entry_t *p_te);
 
 extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 
@@ -243,8 +244,8 @@ extern void btu_uipc_rx_cback(BT_HDR *p_msg);
 ** Quick Timer
 */
 #if defined(QUICK_TIMER_TICKS_PER_SEC) && (QUICK_TIMER_TICKS_PER_SEC > 0)
-extern void btu_start_quick_timer (TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout);
-extern void btu_stop_quick_timer (TIMER_LIST_ENT *p_tle);
+extern void btu_start_quick_timer (timer_entry_t *p_te, UINT16 type, UINT32 timeout);
+extern void btu_stop_quick_timer (timer_entry_t *p_te);
 extern void btu_process_quick_timer_evt (void);
 #endif
 

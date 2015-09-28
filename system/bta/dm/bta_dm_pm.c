@@ -36,7 +36,7 @@
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_mode,
                                tBTA_DM_PM_REQ pm_req);
-static void bta_dm_pm_timer_cback(void *p_tle);
+static void bta_dm_pm_timer_cback(void *p_te);
 static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hci_status);
 static BOOLEAN bta_dm_pm_park(BD_ADDR peer_addr);
 static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index);
@@ -324,9 +324,9 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
         p_timer->in_use = FALSE;
 }
 
-UINT32 bta_dm_pm_get_remaining_ticks (TIMER_LIST_ENT  *p_target_tle)
+UINT32 bta_dm_pm_get_remaining_ticks (timer_entry_t *p_target_te)
 {
-    return bta_sys_get_remaining_ticks(p_target_tle);
+    return bta_sys_get_remaining_ticks(p_target_te);
 }
 
 /*******************************************************************************
@@ -929,7 +929,7 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 v
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_pm_timer_cback(void *p_tle)
+static void bta_dm_pm_timer_cback(void *p_te)
 {
     UINT8 i, j;
 
@@ -940,7 +940,7 @@ static void bta_dm_pm_timer_cback(void *p_tle)
         {
             for (j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++)
             {
-                if(&bta_dm_cb.pm_timer[i].timer[j] == (TIMER_LIST_ENT*) p_tle)
+                if(&bta_dm_cb.pm_timer[i].timer[j] == (timer_entry_t *)p_te)
                 {
                     bta_dm_cb.pm_timer[i].active --;
                     bta_dm_cb.pm_timer[i].srvc_id[j] = BTA_ID_MAX;

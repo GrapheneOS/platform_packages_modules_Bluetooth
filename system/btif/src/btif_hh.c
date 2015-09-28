@@ -158,7 +158,7 @@ static void set_keylockstate(int keymask, BOOLEAN isSet);
 static void toggle_os_keylockstates(int fd, int changedkeystates);
 static void sync_lockstate_on_connect(btif_hh_device_t *p_dev);
 //static void hh_update_keyboard_lockstates(btif_hh_device_t *p_dev);
-void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle);
+void btif_hh_tmr_hdlr(timer_entry_t *p_te);
 
 /************************************************************************************
 **  Functions
@@ -423,7 +423,7 @@ void btif_hh_start_vup_timer(bt_bdaddr_t *bd_addr)
     if (p_dev->vup_timer_active == FALSE)
     {
         BTIF_TRACE_DEBUG("Start VUP timer ");
-        memset(&p_dev->vup_timer, 0, sizeof(TIMER_LIST_ENT));
+        memset(&p_dev->vup_timer, 0, sizeof(timer_entry_t));
         p_dev->vup_timer.param = btif_hh_tmr_hdlr;
         btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
                         BTIF_TIMEOUT_VUP_SECS);
@@ -1164,7 +1164,7 @@ static void btif_hh_handle_evt(UINT16 event, char *p_param)
 **
 ** Returns      void
 *******************************************************************************/
-void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle)
+void btif_hh_tmr_hdlr(timer_entry_t *p_te)
 {
     btif_hh_device_t *p_dev;
     UINT8               i;
@@ -1173,7 +1173,7 @@ void btif_hh_tmr_hdlr(TIMER_LIST_ENT *tle)
     int param_len = 0;
     memset(&p_data, 0, sizeof(tBTA_HH));
 
-    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, tle->in_use );
+    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, p_te->in_use);
 
     for (i = 0; i < BTIF_HH_MAX_HID; i++) {
         if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_CONNECTED)

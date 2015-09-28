@@ -27,6 +27,7 @@
 
 #include "bt_target.h"
 #include "osi/include/fixed_queue.h"
+#include "osi/include/non_repeating_timer.h"
 #include "gki.h"
 #include "rfcdefs.h"
 #include "port_api.h"
@@ -91,7 +92,7 @@ typedef struct
 */
 typedef struct
 {
-    TIMER_LIST_ENT tle;       /* Timer list entry */
+    timer_entry_t timer_entry; /* Timer entry */
     fixed_queue_t *cmd_q;     /* Queue for command messages on this mux */
     UINT8     port_inx[RFCOMM_MAX_DLCI + 1];  /* Array for quick access to  */
                                               /* tPORT based on dlci        */
@@ -135,7 +136,7 @@ struct t_rfc_port
 
     tRFC_MCB *p_mcb;
 
-    TIMER_LIST_ENT tle;       /* Timer list entry */
+    timer_entry_t timer_entry;          /* Timer entry */
 };
 typedef struct t_rfc_port tRFC_PORT;
 

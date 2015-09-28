@@ -21,27 +21,6 @@
 #include "bt_target.h"
 #include "bt_types.h"
 
-static const char GKI_MODULE[] = "gki_module";
-
-/* Timer list entry callback type
-*/
-typedef void (TIMER_CBACK)(void *p_tle);
-#ifndef TIMER_PARAM_TYPE
-#define TIMER_PARAM_TYPE void*
-#endif
-/* Define a timer list entry
-*/
-typedef struct _tle
-{
-    TIMER_CBACK  *p_cback;
-    INT32         ticks;
-    INT32         ticks_initial;
-    TIMER_PARAM_TYPE   param;
-    TIMER_PARAM_TYPE   data;
-    UINT16        event;
-    UINT8         in_use;
-} TIMER_LIST_ENT;
-
 /***********************************************************************
 ** Function prototypes
 */

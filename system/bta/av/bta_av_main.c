@@ -216,10 +216,10 @@ static char *bta_av_st_code(UINT8 state);
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_timer_cback(void *p_tle)
+static void bta_av_timer_cback(void *p_te)
 {
     BT_HDR          *p_buf;
-    TIMER_LIST_ENT  *p = (TIMER_LIST_ENT *)p_tle;
+    timer_entry_t  *p = (timer_entry_t *)p_te;
     int xx;
     tBTA_AV_SCB *p_scb = NULL;
 
@@ -557,7 +557,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         p_scb->app_id   = registr.app_id;
 
         /* initialize the stream control block */
-        p_scb->timer.p_cback = (TIMER_CBACK*)&bta_av_timer_cback;
+        p_scb->timer.p_cback = (timer_callback_t *)&bta_av_timer_cback;
         registr.status = BTA_AV_SUCCESS;
 
         if((bta_av_cb.reg_audio + bta_av_cb.reg_video) == 0)

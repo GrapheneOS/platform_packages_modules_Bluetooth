@@ -268,11 +268,11 @@ UINT8 btif_hl_num_dchs_in_use(UINT8 mcl_handle){
 **
 ** Returns      void
 *******************************************************************************/
-void btif_hl_tmr_hdlr(TIMER_LIST_ENT *tle)
+void btif_hl_tmr_hdlr(timer_entry_t *p_te)
 {
     btif_hl_mcl_cb_t    *p_mcb;
     UINT8               i,j;
-    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, tle->in_use );
+    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, p_te->in_use);
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
@@ -339,7 +339,7 @@ void btif_hl_start_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
     if (!p_mcb->cch_timer.in_use)
     {
         BTIF_TRACE_DEBUG("Start CCH timer ");
-        memset(&p_mcb->cch_timer, 0, sizeof(TIMER_LIST_ENT));
+        memset(&p_mcb->cch_timer, 0, sizeof(timer_entry_t));
         p_mcb->cch_timer.param = btif_hl_tmr_hdlr;
         btu_start_timer(&p_mcb->cch_timer, BTU_TTYPE_USER_FUNC,
                         BTIF_TIMEOUT_CCH_NO_DCH_SECS);

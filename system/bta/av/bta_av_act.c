@@ -59,7 +59,7 @@
 #define BTA_AV_ACP_SIG_TIME_VAL 2000
 #endif
 
-static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle);
+static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te);
 
 /*******************************************************************************
 **
@@ -1467,7 +1467,8 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                         // it as a UINT8 and then reassigns it as param that
                         // way, so should this be unsigned?
                         p_cb->acp_sig_tmr.param = INT_TO_PTR(xx);
-                        p_cb->acp_sig_tmr.p_cback = (TIMER_CBACK*)&bta_av_acp_sig_timer_cback;
+                        p_cb->acp_sig_tmr.p_cback =
+                            (timer_callback_t *)&bta_av_acp_sig_timer_cback;
                         bta_sys_start_timer(&p_cb->acp_sig_tmr, 0, BTA_AV_ACP_SIG_TIME_VAL);
                     }
                     break;
@@ -1561,9 +1562,9 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te)
 {
-    UINT8   inx = PTR_TO_UINT(p_tle->param);
+    UINT8   inx = PTR_TO_UINT(p_te->param);
     tBTA_AV_CB  *p_cb = &bta_av_cb;
     tBTA_AV_SCB *p_scb = NULL;
     tBTA_AV_API_OPEN  *p_buf;
@@ -1587,7 +1588,8 @@ static void bta_av_acp_sig_timer_cback (TIMER_LIST_ENT *p_tle)
                     p_scb->coll_mask |= BTA_AV_COLL_INC_TMR;
 
                     p_cb->acp_sig_tmr.param = UINT_TO_PTR(inx);
-                    p_cb->acp_sig_tmr.p_cback = (TIMER_CBACK *)&bta_av_acp_sig_timer_cback;
+                    p_cb->acp_sig_tmr.p_cback =
+                        (timer_callback_t *)&bta_av_acp_sig_timer_cback;
                     bta_sys_start_timer(&p_cb->acp_sig_tmr, 0, BTA_AV_ACP_SIG_TIME_VAL);
                 }
                 else

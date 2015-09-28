@@ -47,12 +47,12 @@
 ** Returns          void
 **
 *******************************************************************************/
-void mca_process_timeout(TIMER_LIST_ENT *p_tle)
+void mca_process_timeout(timer_entry_t *p_te)
 {
-    if(p_tle->event == BTU_TTYPE_MCA_CCB_RSP)
+    if (p_te->event == BTU_TTYPE_MCA_CCB_RSP)
     {
-        p_tle->event = 0;
-        mca_ccb_event ((tMCA_CCB *) p_tle->param, MCA_CCB_RSP_TOUT_EVT, NULL);
+        p_te->event = 0;
+        mca_ccb_event((tMCA_CCB *) p_te->param, MCA_CCB_RSP_TOUT_EVT, NULL);
     }
 }
 
