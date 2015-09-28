@@ -21,9 +21,9 @@ source_set("service") {
     "daemon.cpp",
     "gatt_server.cpp",
     "ipc/ipc_handler.cpp",
-    "ipc/ipc_handler_unix.cpp",
+    "ipc/ipc_handler_linux.cpp",
     "ipc/ipc_manager.cpp",
-    "ipc/unix_ipc_host.cpp",
+    "ipc/linux_ipc_host.cpp",
     "logging_helpers.cpp",
     "settings.cpp",
     "uuid.cpp"
@@ -59,7 +59,7 @@ executable("service_unittests") {
   testonly = true
   sources = [
     "test/fake_hal_util.cpp",
-    "test/ipc_unix_unittest.cpp",
+    "test/ipc_linux_unittest.cpp",
     "test/settings_unittest.cpp",
     "test/uuid_unittest.cpp",
   ]
