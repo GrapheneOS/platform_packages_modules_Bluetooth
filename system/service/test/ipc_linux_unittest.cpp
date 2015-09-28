@@ -40,10 +40,10 @@ using testing::Return;
 
 const char kTestSocketPath[] = "test_socket_path";
 
-class IPCUnixTest : public ::testing::Test {
+class IPCLinuxTest : public ::testing::Test {
  public:
-  IPCUnixTest() = default;
-  ~IPCUnixTest() override = default;
+  IPCLinuxTest() = default;
+  ~IPCLinuxTest() override = default;
 
   void SetUp() override {
     SetUpCommandLine();
@@ -107,13 +107,13 @@ class IPCUnixTest : public ::testing::Test {
   std::unique_ptr<ipc::IPCManager> ipc_manager_;
   base::ScopedFD client_fd_;
 
-  DISALLOW_COPY_AND_ASSIGN(IPCUnixTest);
+  DISALLOW_COPY_AND_ASSIGN(IPCLinuxTest);
 };
 
-class IPCUnixTestDisabled : public IPCUnixTest {
+class IPCLinuxTestDisabled : public IPCLinuxTest {
  public:
-  IPCUnixTestDisabled() = default;
-  ~IPCUnixTestDisabled() override = default;
+  IPCLinuxTestDisabled() = default;
+  ~IPCLinuxTestDisabled() override = default;
 
   void SetUpCommandLine() override {
     // Set up with no --ipc-socket-path
@@ -122,7 +122,7 @@ class IPCUnixTestDisabled : public IPCUnixTest {
   }
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(IPCUnixTestDisabled);
+  DISALLOW_COPY_AND_ASSIGN(IPCLinuxTestDisabled);
 };
 
 class TestDelegate : public ipc::IPCManager::Delegate,
@@ -132,13 +132,13 @@ class TestDelegate : public ipc::IPCManager::Delegate,
   }
 
   void OnIPCHandlerStarted(ipc::IPCManager::Type type) override {
-    ASSERT_EQ(ipc::IPCManager::TYPE_UNIX, type);
+    ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
     started_count_++;
     base::MessageLoop::current()->Quit();
   }
 
   void OnIPCHandlerStopped(ipc::IPCManager::Type type) override {
-    ASSERT_EQ(ipc::IPCManager::TYPE_UNIX, type);
+    ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
     stopped_count_++;
     base::MessageLoop::current()->Quit();
   }
@@ -153,18 +153,18 @@ class TestDelegate : public ipc::IPCManager::Delegate,
   DISALLOW_COPY_AND_ASSIGN(TestDelegate);
 };
 
-TEST_F(IPCUnixTestDisabled, StartWithNoSocketPath) {
+TEST_F(IPCLinuxTestDisabled, StartWithNoSocketPath) {
   TestDelegate delegate;
-  EXPECT_FALSE(ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, &delegate));
-  EXPECT_FALSE(ipc_manager_->UnixStarted());
+  EXPECT_FALSE(ipc_manager_->Start(ipc::IPCManager::TYPE_LINUX, &delegate));
+  EXPECT_FALSE(ipc_manager_->LinuxStarted());
   EXPECT_EQ(0, delegate.started_count());
   EXPECT_EQ(0, delegate.stopped_count());
 }
 
-TEST_F(IPCUnixTest, BasicStartAndExit) {
+TEST_F(IPCLinuxTest, BasicStartAndExit) {
   TestDelegate delegate;
-  EXPECT_TRUE(ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, &delegate));
-  EXPECT_TRUE(ipc_manager_->UnixStarted());
+  EXPECT_TRUE(ipc_manager_->Start(ipc::IPCManager::TYPE_LINUX, &delegate));
+  EXPECT_TRUE(ipc_manager_->LinuxStarted());
 
   // Run the message loop. We will stop the loop when we receive a delegate
   // event.
@@ -182,10 +182,10 @@ TEST_F(IPCUnixTest, BasicStartAndExit) {
   EXPECT_EQ(1, delegate.stopped_count());
 }
 
-TEST_F(IPCUnixTest, BasicStartAndConnect) {
+TEST_F(IPCLinuxTest, BasicStartAndConnect) {
   TestDelegate delegate;
-  EXPECT_TRUE(ipc_manager_->Start(ipc::IPCManager::TYPE_UNIX, &delegate));
-  EXPECT_TRUE(ipc_manager_->UnixStarted());
+  EXPECT_TRUE(ipc_manager_->Start(ipc::IPCManager::TYPE_LINUX, &delegate));
+  EXPECT_TRUE(ipc_manager_->LinuxStarted());
 
   // Run the message loop. We will stop the loop when we receive a delegate
   // event.

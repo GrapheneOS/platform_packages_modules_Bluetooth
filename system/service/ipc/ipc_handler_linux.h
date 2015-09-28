@@ -32,19 +32,19 @@ class SingleThreadTaskRunner;
 
 namespace ipc {
 
-// Implements a UNIX domain-socket based IPCHandler
-class IPCHandlerUnix : public IPCHandler {
+// Implements a Linux sequential packet domain-socket based IPCHandler
+class IPCHandlerLinux : public IPCHandler {
  public:
-  IPCHandlerUnix(bluetooth::Adapter* adapter,
+  IPCHandlerLinux(bluetooth::Adapter* adapter,
                  IPCManager::Delegate* delegate);
-  ~IPCHandlerUnix() override;
+  ~IPCHandlerLinux() override;
 
   // IPCHandler overrides:
   bool Run() override;
   void Stop() override;
 
  private:
-  IPCHandlerUnix() = default;
+  IPCHandlerLinux() = default;
 
   // Starts listening for incoming connections. Posted on |thread_| by Run().
   void StartListeningOnThread();
@@ -80,7 +80,7 @@ class IPCHandlerUnix : public IPCHandler {
   // The origin thread's task runner.
   scoped_refptr<base::SingleThreadTaskRunner> origin_task_runner_;
 
-  DISALLOW_COPY_AND_ASSIGN(IPCHandlerUnix);
+  DISALLOW_COPY_AND_ASSIGN(IPCHandlerLinux);
 };
 
 }  // namespace ipc
