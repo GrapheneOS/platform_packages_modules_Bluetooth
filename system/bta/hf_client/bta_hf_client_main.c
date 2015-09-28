@@ -302,11 +302,11 @@ void bta_hf_client_resume_open (void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hf_client_colli_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_hf_client_colli_timer_cback (timer_entry_t *p_te)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (p_tle)
+    if (p_te)
     {
         bta_hf_client_cb.scb.colli_tmr_on = FALSE;
 
@@ -361,7 +361,8 @@ void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
         bta_hf_client_start_server();
 
         /* Start timer to handle connection opening restart */
-        bta_hf_client_cb.scb.colli_timer.p_cback = (TIMER_CBACK*)&bta_hf_client_colli_timer_cback;
+        bta_hf_client_cb.scb.colli_timer.p_cback =
+            (timer_callback_t *)&bta_hf_client_colli_timer_cback;
         bta_sys_start_timer(&bta_hf_client_cb.scb.colli_timer, 0, BTA_HF_CLIENT_COLLISION_TIMER);
         bta_hf_client_cb.scb.colli_tmr_on = TRUE;
     }

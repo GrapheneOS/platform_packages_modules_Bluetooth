@@ -68,7 +68,7 @@ typedef struct
     pthread_t                     hh_poll_thread_id;
     UINT8                         hh_keep_polling;
     BOOLEAN                       vup_timer_active;
-    TIMER_LIST_ENT                vup_timer;
+    timer_entry_t                 vup_timer;
     BOOLEAN                       local_vup; // Indicated locally initiated VUP
 } btif_hh_device_t;
 

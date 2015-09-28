@@ -87,8 +87,8 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
                                         tBTA_SERVICE_MASK *p_services_found);
 
-static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle);
-static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle);
+static void bta_dm_search_timer_cback(timer_entry_t *p_te);
+static void bta_dm_disable_conn_down_timer_cback(timer_entry_t *p_te);
 static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 static void bta_dm_adjust_roles(BOOLEAN delay_role_switch);
 static char *bta_dm_get_remname(void);
@@ -125,9 +125,9 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb(void * p_result);
-static void bta_dm_delay_role_switch_cback(TIMER_LIST_ENT *p_tle);
+static void bta_dm_delay_role_switch_cback(timer_entry_t *p_te);
 extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
-static void bta_dm_disable_timer_cback(TIMER_LIST_ENT *p_tle);
+static void bta_dm_disable_timer_cback(timer_entry_t *p_te);
 
 
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
@@ -442,7 +442,8 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
         APPL_TRACE_WARNING("%s BTA_DISABLE_DELAY set to %d ms",
                             __FUNCTION__, BTA_DISABLE_DELAY);
         bta_sys_stop_timer(&bta_dm_cb.disable_timer);
-        bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_conn_down_timer_cback;
+        bta_dm_cb.disable_timer.p_cback =
+            (timer_callback_t *)&bta_dm_disable_conn_down_timer_cback;
         bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, BTA_DISABLE_DELAY);
 #else
         bta_dm_disable_conn_down_timer_cback(NULL);
@@ -450,7 +451,8 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
     }
     else
     {
-        bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
+        bta_dm_cb.disable_timer.p_cback =
+            (timer_callback_t *)&bta_dm_disable_timer_cback;
         bta_dm_cb.disable_timer.param = INT_TO_PTR(0);
         bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 5000);
     }
@@ -469,17 +471,16 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_dm_disable_timer_cback(timer_entry_t *p_te)
 {
-    UNUSED(p_tle);
     UINT8 i;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
     BOOLEAN trigger_disc = FALSE;
 
 
-    APPL_TRACE_EVENT(" bta_dm_disable_timer_cback trial %d ", p_tle->param);
+    APPL_TRACE_EVENT(" bta_dm_disable_timer_cback trial %d ", p_te->param);
 
-    if(BTM_GetNumAclLinks() && PTR_TO_INT(p_tle->param) == 0)
+    if(BTM_GetNumAclLinks() && PTR_TO_INT(p_te->param) == 0)
     {
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
@@ -494,7 +495,8 @@ static void bta_dm_disable_timer_cback (TIMER_LIST_ENT *p_tle)
             to be sent out to avoid jave layer disable timeout */
         if (trigger_disc)
         {
-            bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_timer_cback;
+            bta_dm_cb.disable_timer.p_cback =
+                (timer_callback_t *)&bta_dm_disable_timer_cback;
             bta_dm_cb.disable_timer.param = INT_TO_PTR(1);
             bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1500);
         }
@@ -1907,7 +1909,8 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
     {
         /* wait until link is disconnected or timeout */
         bta_dm_search_cb.sdp_results = TRUE;
-        bta_dm_search_cb.search_timer.p_cback = (TIMER_CBACK*)&bta_dm_search_timer_cback;
+        bta_dm_search_cb.search_timer.p_cback =
+            (timer_callback_t *)&bta_dm_search_timer_cback;
         bta_sys_start_timer(&bta_dm_search_cb.search_timer, 0, 1000*(L2CAP_LINK_INACTIVITY_TOUT+1) );
     }
 
@@ -1923,10 +1926,8 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_search_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_dm_search_timer_cback(timer_entry_t *p_te)
 {
-    UNUSED(p_tle);
-
     APPL_TRACE_EVENT("%s", __func__);
     bta_dm_search_cb.wait_disc = FALSE;
 
@@ -3435,7 +3436,8 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
             if(!BTM_GetNumAclLinks())
             {
                 bta_sys_stop_timer(&bta_dm_cb.disable_timer);
-                bta_dm_cb.disable_timer.p_cback = (TIMER_CBACK*)&bta_dm_disable_conn_down_timer_cback;
+                bta_dm_cb.disable_timer.p_cback =
+                    (timer_callback_t *)&bta_dm_disable_conn_down_timer_cback;
                 /*
                  * Start a timer to make sure that the profiles
                  * get the disconnect event.
@@ -3477,9 +3479,8 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_disable_conn_down_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_dm_disable_conn_down_timer_cback(timer_entry_t *p_te)
 {
-    UNUSED(p_tle);
     tBTA_SYS_HW_MSG *sys_enable_event;
 
     /* disable the power managment module */
@@ -3578,9 +3579,8 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_delay_role_switch_cback(TIMER_LIST_ENT *p_tle)
+static void bta_dm_delay_role_switch_cback(timer_entry_t *p_te)
 {
-    UNUSED(p_tle);
     APPL_TRACE_EVENT("bta_dm_delay_role_switch_cback: initiating Delayed RS");
     bta_dm_adjust_roles (FALSE);
 }
@@ -3699,7 +3699,7 @@ static void bta_dm_adjust_roles(BOOLEAN delay_role_switch)
                     else
                     {
                         bta_dm_cb.switch_delay_timer.p_cback =
-                            (TIMER_CBACK*)&bta_dm_delay_role_switch_cback;
+                            (timer_callback_t *)&bta_dm_delay_role_switch_cback;
                         bta_sys_start_timer(&bta_dm_cb.switch_delay_timer, 0, 500);
                     }
                 }

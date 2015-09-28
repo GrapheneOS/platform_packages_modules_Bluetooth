@@ -301,10 +301,10 @@ static void hidh_l2cif_connect_ind (BD_ADDR  bd_addr, UINT16 l2cap_cid, UINT16 p
 ** Returns          void
 **
 *******************************************************************************/
-void hidh_proc_repage_timeout (TIMER_LIST_ENT *p_tle)
+void hidh_proc_repage_timeout(timer_entry_t *p_te)
 {
     tHID_HOST_DEV_CTB *device;
-    UINT8 dhandle = PTR_TO_UINT(p_tle->param);
+    UINT8 dhandle = PTR_TO_UINT(p_te->param);
 
     hidh_conn_initiate(dhandle);
 

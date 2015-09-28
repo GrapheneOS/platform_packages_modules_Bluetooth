@@ -25,6 +25,7 @@
 #define AVDT_INT_H
 
 #include "osi/include/fixed_queue.h"
+#include "osi/include/non_repeating_timer.h"
 #include "gki.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
@@ -423,7 +424,7 @@ typedef union {
 /* channel control block type */
 typedef struct {
     BD_ADDR             peer_addr;      /* BD address of peer */
-    TIMER_LIST_ENT      timer_entry;    /* CCB timer list entry */
+    timer_entry_t       timer_entry;    /* CCB timer entry */
     fixed_queue_t       *cmd_q;         /* Queue for outgoing command messages */
     fixed_queue_t       *rsp_q;         /* Queue for outgoing response and reject messages */
     tAVDT_CTRL_CBACK    *proc_cback;    /* Procedure callback function */
@@ -482,7 +483,7 @@ typedef struct {
     tAVDT_CS        cs;             /* stream creation struct */
     tAVDT_CFG       curr_cfg;       /* current configuration */
     tAVDT_CFG       req_cfg;        /* requested configuration */
-    TIMER_LIST_ENT  timer_entry;    /* timer entry */
+    timer_entry_t   timer_entry;    /* timer entry */
     BT_HDR          *p_pkt;         /* packet waiting to be sent */
     tAVDT_CCB       *p_ccb;         /* ccb associated with this scb */
     UINT16          media_seq;      /* media packet sequence number */
@@ -697,7 +698,7 @@ extern UINT8 avdt_ad_write_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, B
 extern void avdt_ad_open_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, UINT8 role);
 extern void avdt_ad_close_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb);
 
-extern void avdt_process_timeout(TIMER_LIST_ENT *p_tle);
+extern void avdt_process_timeout(timer_entry_t *p_te);
 
 /*****************************************************************************
 ** macros

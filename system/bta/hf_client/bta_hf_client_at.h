@@ -97,10 +97,10 @@ typedef struct
     tBTA_HF_CLIENT_AT_CMD   current_cmd;
     tBTA_HF_CLIENT_AT_QCMD  *queued_cmd;
 
-    TIMER_LIST_ENT          resp_timer;    /* AT response timer */
+    timer_entry_t           resp_timer;    /* AT response timer */
     BOOLEAN                 resp_timer_on; /* TRUE if AT response timer is active */
 
-    TIMER_LIST_ENT          hold_timer;    /* AT hold timer */
+    timer_entry_t           hold_timer;    /* AT hold timer */
     BOOLEAN                 hold_timer_on; /* TRUE if AT hold timer is active */
 
     /* CIND: lookup table to store the sequence of incoming indicators and their values
