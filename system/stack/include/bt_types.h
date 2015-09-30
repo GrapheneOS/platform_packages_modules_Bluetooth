@@ -437,21 +437,25 @@ typedef struct
 
 } tBT_UUID;
 
-#define BT_EIR_FLAGS_TYPE                   0x01
-#define BT_EIR_MORE_16BITS_UUID_TYPE        0x02
-#define BT_EIR_COMPLETE_16BITS_UUID_TYPE    0x03
-#define BT_EIR_MORE_32BITS_UUID_TYPE        0x04
-#define BT_EIR_COMPLETE_32BITS_UUID_TYPE    0x05
-#define BT_EIR_MORE_128BITS_UUID_TYPE       0x06
-#define BT_EIR_COMPLETE_128BITS_UUID_TYPE   0x07
-#define BT_EIR_SHORTENED_LOCAL_NAME_TYPE    0x08
-#define BT_EIR_COMPLETE_LOCAL_NAME_TYPE     0x09
-#define BT_EIR_TX_POWER_LEVEL_TYPE          0x0A
-#define BT_EIR_OOB_BD_ADDR_TYPE             0x0C
-#define BT_EIR_OOB_COD_TYPE                 0x0D
-#define BT_EIR_OOB_SSP_HASH_C_TYPE          0x0E
-#define BT_EIR_OOB_SSP_RAND_R_TYPE          0x0F
-#define BT_EIR_MANUFACTURER_SPECIFIC_TYPE   0xFF
+#define BT_EIR_FLAGS_TYPE                       0x01
+#define BT_EIR_MORE_16BITS_UUID_TYPE            0x02
+#define BT_EIR_COMPLETE_16BITS_UUID_TYPE        0x03
+#define BT_EIR_MORE_32BITS_UUID_TYPE            0x04
+#define BT_EIR_COMPLETE_32BITS_UUID_TYPE        0x05
+#define BT_EIR_MORE_128BITS_UUID_TYPE           0x06
+#define BT_EIR_COMPLETE_128BITS_UUID_TYPE       0x07
+#define BT_EIR_SHORTENED_LOCAL_NAME_TYPE        0x08
+#define BT_EIR_COMPLETE_LOCAL_NAME_TYPE         0x09
+#define BT_EIR_TX_POWER_LEVEL_TYPE              0x0A
+#define BT_EIR_OOB_BD_ADDR_TYPE                 0x0C
+#define BT_EIR_OOB_COD_TYPE                     0x0D
+#define BT_EIR_OOB_SSP_HASH_C_TYPE              0x0E
+#define BT_EIR_OOB_SSP_RAND_R_TYPE              0x0F
+#define BT_EIR_SERVICE_DATA_TYPE                0x16
+#define BT_EIR_SERVICE_DATA_16BITS_UUID_TYPE    0x16
+#define BT_EIR_SERVICE_DATA_32BITS_UUID_TYPE    0x20
+#define BT_EIR_SERVICE_DATA_128BITS_UUID_TYPE   0x21
+#define BT_EIR_MANUFACTURER_SPECIFIC_TYPE       0xFF
 
 #define BT_OOB_COD_SIZE            3
 #define BT_OOB_HASH_C_SIZE         16
