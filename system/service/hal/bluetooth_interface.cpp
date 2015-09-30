@@ -150,8 +150,9 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
   }
 
   ~BluetoothInterfaceImpl() override {
-    hal_iface_->cleanup();
-  };
+    if (hal_iface_)
+        hal_iface_->cleanup();
+  }
 
   // BluetoothInterface overrides.
   void AddObserver(Observer* observer) override {
@@ -179,7 +180,7 @@ class BluetoothInterfaceImpl : public BluetoothInterface {
     const hw_module_t* module;
     int status = hal_util_load_bt_library(&module);
     if (status) {
-      LOG(ERROR) << "Failed to load Bluetooth library";
+      LOG(ERROR) << "Failed to load Bluetooth library: " << status;
       return false;
     }
 
