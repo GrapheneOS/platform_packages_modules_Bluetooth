@@ -17,18 +17,33 @@
 #include "service/gatt_server.h"
 
 #include "service/hal/gatt_helpers.h"
+#include "service/logging_helpers.h"
+#include "service/util/address_helper.h"
 
 using std::lock_guard;
 using std::mutex;
 
 namespace bluetooth {
 
+namespace {
+
+bool operator==(const bt_bdaddr_t& lhs, const bt_bdaddr_t& rhs) {
+  return memcmp(&lhs, &rhs, sizeof(lhs)) == 0;
+}
+
+bool operator!=(const bt_bdaddr_t& lhs, const bt_bdaddr_t& rhs) {
+  return !(lhs == rhs);
+}
+
+}  // namespace
+
 // GattServer implementation
 // ========================================================
 
 GattServer::GattServer(const UUID& uuid, int server_if)
     : app_identifier_(uuid),
-      server_if_(server_if) {
+      server_if_(server_if),
+      delegate_(nullptr) {
 }
 
 GattServer::~GattServer() {
@@ -43,6 +58,11 @@ GattServer::~GattServer() {
   // should really take care of that.
   hal::BluetoothGattInterface::Get()->
       GetServerHALInterface()->unregister_server(server_if_);
+}
+
+void GattServer::SetDelegate(Delegate* delegate) {
+  lock_guard<mutex> lock(mutex_);
+  delegate_ = delegate;
 }
 
 const UUID& GattServer::GetAppIdentifier() const {
@@ -196,7 +216,7 @@ std::unique_ptr<GattIdentifier> GattServer::GetIdForService(
   // Calculate the instance ID for this service by searching through the handle
   // map to see how many occurrences of the same service UUID we find.
   int inst_id = 0;
-  for (const auto& iter : handle_map_) {
+  for (const auto& iter : id_to_handle_map_) {
     const GattIdentifier* gatt_id = &iter.first;
 
     if (!gatt_id->IsService())
@@ -273,6 +293,121 @@ std::unique_ptr<GattIdentifier> GattServer::GetIdForDescriptor(
   }
 
   return GattIdentifier::CreateDescriptorId(inst_id, uuid, char_id);
+}
+
+bool GattServer::SendResponse(
+    const std::string& device_address, int request_id,
+    GATTError error, int offset,
+    const std::vector<uint8_t>& value) {
+  VLOG(1) << __func__ << " - server_if: " << server_if_
+          << " device_address: " << device_address
+          << " request_id: " << request_id
+          << " error: " << error
+          << " offset: " << offset;
+  lock_guard<mutex> lock(mutex_);
+
+  bt_bdaddr_t addr;
+  if (!util::BdAddrFromString(device_address, &addr)) {
+    LOG(ERROR) << "Invalid device address given: " << device_address;
+    return false;
+  }
+
+  if (value.size() + offset > BTGATT_MAX_ATTR_LEN) {
+    LOG(ERROR) << "Value is too large";
+    return false;
+  }
+
+  // Find the correct connection ID for |device_address| and |request_id|.
+  auto iter = conn_addr_map_.find(device_address);
+  if (iter == conn_addr_map_.end()) {
+    LOG(ERROR) << "No known connections for device address: " << device_address;
+    return false;
+  }
+
+  std::shared_ptr<Connection> connection;
+  for (auto tmp : iter->second) {
+    if (tmp->request_id_to_handle.find(request_id) ==
+        tmp->request_id_to_handle.end())
+      continue;
+
+    connection = tmp;
+  }
+
+  if (!connection) {
+    LOG(ERROR) << "Pending request with ID " << request_id
+               << " not found for device with BD_ADDR: " << device_address;
+    return false;
+  }
+
+  btgatt_response_t response;
+  memset(&response, 0, sizeof(response));
+
+  response.handle = connection->request_id_to_handle[request_id];
+  memcpy(response.attr_value.value, value.data(), value.size());
+  response.attr_value.handle = response.handle;
+  response.attr_value.offset = offset;
+  response.attr_value.len = value.size();
+
+  bt_status_t result = hal::BluetoothGattInterface::Get()->
+      GetServerHALInterface()->send_response(
+          connection->conn_id, request_id, error, &response);
+  if (result != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Failed to initiate call to send GATT response";
+    return false;
+  }
+
+  connection->request_id_to_handle.erase(request_id);
+
+  return true;
+}
+
+void GattServer::ConnectionCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
+    int conn_id, int server_if,
+    int connected,
+    const bt_bdaddr_t& bda) {
+  lock_guard<mutex> lock(mutex_);
+
+  if (server_if != server_if_)
+    return;
+
+  std::string device_address = BtAddrString(&bda);
+
+  VLOG(1) << __func__ << " conn_id: " << conn_id << " connected: " << connected
+          << " BD_ADDR: " << device_address;
+
+  if (!connected) {
+    // Erase the entry if we were connected to it.
+    VLOG(1) << "No longer connected: " << device_address;
+    conn_id_map_.erase(conn_id);
+    auto iter = conn_addr_map_.find(device_address);
+    if (iter == conn_addr_map_.end())
+      return;
+
+    // Remove the appropriate connection objects in the address.
+    for (auto conn_iter = iter->second.begin(); conn_iter != iter->second.end();
+         ++conn_iter) {
+      if ((*conn_iter)->conn_id != conn_id)
+        continue;
+
+      iter->second.erase(conn_iter);
+      break;
+    }
+
+    return;
+  }
+
+  if (conn_id_map_.find(conn_id) != conn_id_map_.end()) {
+    LOG(WARNING) << "Connection entry already exists; "
+                 << "ignoring ConnectionCallback";
+    return;
+  }
+
+  LOG(INFO) << "Added connection entry for conn_id: " << conn_id
+            << " device address: " << device_address;
+  std::shared_ptr<Connection> connection(new Connection(conn_id, bda));
+  conn_id_map_[conn_id] = connection;
+  conn_addr_map_[device_address].push_back(connection);
 }
 
 void GattServer::ServiceAddedCallback(
@@ -412,13 +547,72 @@ void GattServer::ServiceStoppedCallback(
   // TODO(armansito): Support stopping a service.
 }
 
+void GattServer::RequestReadCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
+    int conn_id, int trans_id,
+    const bt_bdaddr_t& bda,
+    int attribute_handle, int offset,
+    bool is_long) {
+  lock_guard<mutex> lock(mutex_);
+
+  // Check to see if we know about this connection. Otherwise ignore the
+  // request.
+  auto conn = GetConnection(conn_id, bda, trans_id);
+  if (!conn)
+    return;
+
+  std::string device_address = BtAddrString(&bda);
+
+  VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " BD_ADDR: " << device_address
+          << " attribute_handle: " << attribute_handle << " offset: " << offset
+          << " is_long: " << is_long;
+
+  // Make sure that the handle is valid.
+  auto iter = handle_to_id_map_.find(attribute_handle);
+  if (iter == handle_to_id_map_.end()) {
+    LOG(ERROR) << "Request received for unknown handle: " << attribute_handle;
+    return;
+  }
+
+  conn->request_id_to_handle[trans_id] = attribute_handle;
+
+  // If there is no delegate then there is nobody to handle request. The request
+  // will eventually timeout and we should get a connection update that
+  // terminates the connection.
+  if (!delegate_) {
+    // TODO(armansito): Require a delegate at server registration so that this
+    // is never possible.
+    LOG(WARNING) << "No delegate was assigned to GattServer. Incoming request "
+                 << "will time out.";
+    return;
+  }
+
+  if (iter->second.IsCharacteristic()) {
+    delegate_->OnCharacteristicReadRequest(
+        this, device_address, trans_id, offset, is_long, iter->second);
+  } else if (iter->second.IsDescriptor()) {
+    delegate_->OnDescriptorReadRequest(
+        this, device_address, trans_id, offset, is_long, iter->second);
+  } else {
+    // Our API only delegates to applications those read requests for
+    // characteristic value and descriptor attributes. Everything else should be
+    // handled by the stack.
+    LOG(WARNING) << "Read request received for unsupported attribute";
+  }
+}
+
 void GattServer::NotifyEndCallbackAndClearData(
     BLEStatus status, const GattIdentifier& id) {
   VLOG(1) << __func__ << " status: " << status;
   CHECK(pending_end_decl_cb_);
 
-  if (status == BLE_STATUS_SUCCESS)
-    handle_map_.insert(pending_handle_map_.begin(), pending_handle_map_.end());
+  if (status == BLE_STATUS_SUCCESS) {
+    id_to_handle_map_.insert(pending_handle_map_.begin(),
+                             pending_handle_map_.end());
+    for (auto& iter : pending_handle_map_)
+      handle_to_id_map_[iter.second] = iter.first;
+  }
 
   pending_end_decl_cb_(status, id);
 
@@ -495,6 +689,31 @@ void GattServer::HandleNextEntry(hal::BluetoothGattInterface* gatt_iface) {
   }
 
   NOTREACHED() << "Unexpected entry type";
+}
+
+std::shared_ptr<GattServer::Connection> GattServer::GetConnection(
+    int conn_id, const bt_bdaddr_t& bda, int request_id) {
+  auto iter = conn_id_map_.find(conn_id);
+  if (iter == conn_id_map_.end()) {
+    VLOG(1) << "Connection doesn't belong to this server";
+    return nullptr;
+  }
+
+  auto conn = iter->second;
+  if (conn->bdaddr != bda) {
+    LOG(WARNING) << "BD_ADDR: " << BtAddrString(&bda) << " doesn't match "
+                 << "connection ID: " << conn_id;
+    return nullptr;
+  }
+
+  if (conn->request_id_to_handle.find(request_id) !=
+      conn->request_id_to_handle.end()) {
+    VLOG(1) << "Request with ID: " << request_id << " already exists for "
+            << " connection: " << conn_id;
+    return nullptr;
+  }
+
+  return conn;
 }
 
 std::unique_ptr<GattServer::AttributeEntry> GattServer::PopNextEntry() {

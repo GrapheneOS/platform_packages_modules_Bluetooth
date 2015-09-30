@@ -169,6 +169,60 @@ bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
   return true;
 }
 
+bool BluetoothGattServerBinderServer::SendResponse(
+    int server_if, const std::string& device_address,
+    int request_id, int status, int offset,
+    const std::vector<uint8_t>& value) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  return gatt_server->SendResponse(
+      device_address, request_id, static_cast<bluetooth::GATTError>(status),
+      offset, value);
+}
+
+void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
+    bluetooth::GattServer* gatt_server,
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& characteristic_id) {
+  VLOG(1) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnCharacteristicReadRequest(
+      device_address, request_id, offset, is_long, characteristic_id);
+}
+
+void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
+    bluetooth::GattServer* gatt_server,
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& descriptor_id) {
+  VLOG(1) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnDescriptorReadRequest(
+      device_address, request_id, offset, is_long, descriptor_id);
+}
+
 android::sp<IBluetoothGattServerCallback>
 BluetoothGattServerBinderServer::GetGattServerCallback(int server_if) {
   auto cb = GetCallback(server_if);
@@ -188,6 +242,10 @@ void BluetoothGattServerBinderServer::OnRegisterClientImpl(
     bluetooth::BluetoothClientInstance* client) {
   VLOG(1) << __func__ << " client ID: " << client->GetClientId()
           << " status: " << status;
+  bluetooth::GattServer* gatt_server =
+      static_cast<bluetooth::GattServer*>(client);
+  gatt_server->SetDelegate(this);
+
   android::sp<IBluetoothGattServerCallback> cb(
       static_cast<IBluetoothGattServerCallback*>(callback.get()));
   cb->OnServerRegistered(

@@ -20,6 +20,7 @@
 #include "service/gatt_server.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/gatt_helpers.h"
+#include "service/util/address_helper.h"
 
 using ::testing::_;
 using ::testing::Return;
@@ -44,6 +45,59 @@ class MockGattHandler
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
+};
+
+class TestDelegate : public GattServer::Delegate {
+ public:
+  TestDelegate() = default;
+  ~TestDelegate() override = default;
+
+  struct RequestData {
+    RequestData() : id(-1), offset(-1), is_long(false), count(0) {}
+    ~RequestData() = default;
+
+    std::string device_address;
+    int id;
+    int offset;
+    bool is_long;
+    GattIdentifier gatt_id;
+    int count;
+  };
+
+  void OnCharacteristicReadRequest(
+      GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& characteristic_id) override {
+    ASSERT_TRUE(gatt_server);
+    char_req_.device_address = device_address;
+    char_req_.id = request_id;
+    char_req_.offset = offset;
+    char_req_.is_long = is_long;
+    char_req_.gatt_id = characteristic_id;
+    char_req_.count++;
+  }
+
+  void OnDescriptorReadRequest(
+      GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& descriptor_id) override {
+    ASSERT_TRUE(gatt_server);
+    desc_req_.device_address = device_address;
+    desc_req_.id = request_id;
+    desc_req_.offset = offset;
+    desc_req_.is_long = is_long;
+    desc_req_.gatt_id = descriptor_id;
+    desc_req_.count++;
+  }
+
+  const RequestData& char_req() const { return char_req_; }
+  const RequestData& desc_req() const { return desc_req_; }
+
+ private:
+  RequestData char_req_;
+  RequestData desc_req_;
 };
 
 class GattServerTest : public ::testing::Test {
@@ -117,8 +171,72 @@ class GattServerPostRegisterTest : public GattServerTest {
     GattServerTest::TearDown();
   }
 
+  void SetUpTestService() {
+    EXPECT_CALL(*mock_handler_, AddService(_, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, AddCharacteristic(_, _, _, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, AddDescriptor(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, StartService(_, _, _))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+
+    UUID uuid0 = UUID::GetRandom();
+    UUID uuid1 = UUID::GetRandom();
+    UUID uuid2 = UUID::GetRandom();
+
+    bool register_success = false;
+
+    // Doesn't matter what the permissions/properties are since this is all
+    // fake.
+    test_service_id_ = *gatt_server_->BeginServiceDeclaration(uuid0, true);
+    test_char_id_ = *gatt_server_->AddCharacteristic(uuid1, 0, 0);
+    test_desc_id_ = *gatt_server_->AddDescriptor(uuid2, 0);
+    ASSERT_TRUE(gatt_server_->EndServiceDeclaration([&](
+        BLEStatus status, const GattIdentifier& gatt_id) {
+      ASSERT_EQ(BLE_STATUS_SUCCESS, status);
+      ASSERT_TRUE(gatt_id == test_service_id_);
+      register_success = true;
+    }));
+
+    btgatt_srvc_id_t hal_srvc_id;
+    hal::GetHALServiceId(test_service_id_, &hal_srvc_id);
+    bt_uuid_t hal_uuid1 = uuid1.GetBlueDroid();
+    bt_uuid_t hal_uuid2 = uuid2.GetBlueDroid();
+
+    srvc_handle_ = 0x0001;
+    char_handle_ = 0x0003;
+    desc_handle_ = 0x0004;
+
+    fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+        BT_STATUS_SUCCESS, kDefaultServerId, hal_srvc_id, srvc_handle_);
+    fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+        BT_STATUS_SUCCESS, kDefaultServerId, hal_uuid1,
+        srvc_handle_, char_handle_);
+    fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+        BT_STATUS_SUCCESS, kDefaultServerId, hal_uuid2,
+        srvc_handle_, desc_handle_);
+    fake_hal_gatt_iface_->NotifyServiceStartedCallback(
+        BT_STATUS_SUCCESS, kDefaultServerId, srvc_handle_);
+
+    testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+
+    ASSERT_TRUE(register_success);
+  }
+
  protected:
   std::unique_ptr<GattServer> gatt_server_;
+
+  GattIdentifier test_service_id_;
+  GattIdentifier test_char_id_;
+  GattIdentifier test_desc_id_;
+  int srvc_handle_;
+  int char_handle_;
+  int desc_handle_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GattServerPostRegisterTest);
@@ -763,6 +881,131 @@ TEST_F(GattServerPostRegisterTest, AddDescriptor) {
       BT_STATUS_SUCCESS, kDefaultServerId, hal_desc_uuid,
       srvc_handle, desc_handle1);
   EXPECT_EQ(0, cb_count);
+}
+
+TEST_F(GattServerPostRegisterTest, RequestRead) {
+  SetUpTestService();
+
+  TestDelegate test_delegate;
+  gatt_server_->SetDelegate(&test_delegate);
+
+  const std::vector<uint8_t> kTestValue = { 0x01, 0x02, 0x03 };
+  const std::vector<uint8_t> kTestValueTooLarge(BTGATT_MAX_ATTR_LEN + 1, 0);
+  const std::string kTestAddress0 = "01:23:45:67:89:AB";
+  const std::string kTestAddress1 = "CD:EF:01:23:45:67";
+  const int kReqId0 = 0;
+  const int kReqId1 = 1;
+  const int kConnId0 = 1;
+
+  // No pending request.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  bt_bdaddr_t hal_addr0, hal_addr1;
+  ASSERT_TRUE(util::BdAddrFromString(kTestAddress0, &hal_addr0));
+  ASSERT_TRUE(util::BdAddrFromString(kTestAddress1, &hal_addr1));
+
+  // Send a connection callback. The GattServer should store the connection
+  // information and be able to process the incoming read requests for this
+  // connection.
+  fake_hal_gatt_iface_->NotifyServerConnectionCallback(
+      kConnId0, kDefaultServerId, true, hal_addr0);
+
+  // Unknown connection ID shouldn't trigger anything.
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0 + 1, kReqId0, hal_addr0, char_handle_, 0, false);
+  EXPECT_EQ(0, test_delegate.char_req().count);
+  EXPECT_EQ(0, test_delegate.desc_req().count);
+
+  // Unknown device address shouldn't trigger anything.
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId0, hal_addr1, char_handle_, 0, false);
+  EXPECT_EQ(0, test_delegate.char_req().count);
+  EXPECT_EQ(0, test_delegate.desc_req().count);
+
+  // Unknown attribute handle shouldn't trigger anything.
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId0, hal_addr0, char_handle_ + 50, 0, false);
+  EXPECT_EQ(0, test_delegate.char_req().count);
+  EXPECT_EQ(0, test_delegate.desc_req().count);
+
+  // Characteristic and descriptor handles should trigger correct callbacks.
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId0, hal_addr0, char_handle_, 0, false);
+  EXPECT_EQ(1, test_delegate.char_req().count);
+  EXPECT_EQ(kTestAddress0, test_delegate.char_req().device_address);
+  EXPECT_EQ(kReqId0, test_delegate.char_req().id);
+  EXPECT_EQ(0, test_delegate.char_req().offset);
+  EXPECT_FALSE(test_delegate.char_req().is_long);
+  EXPECT_TRUE(test_char_id_ == test_delegate.char_req().gatt_id);
+  EXPECT_EQ(0, test_delegate.desc_req().count);
+
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId1, hal_addr0, desc_handle_, 2, true);
+  EXPECT_EQ(1, test_delegate.char_req().count);
+  EXPECT_EQ(1, test_delegate.desc_req().count);
+  EXPECT_EQ(kTestAddress0, test_delegate.desc_req().device_address);
+  EXPECT_EQ(kReqId1, test_delegate.desc_req().id);
+  EXPECT_EQ(2, test_delegate.desc_req().offset);
+  EXPECT_TRUE(test_delegate.desc_req().is_long);
+  EXPECT_TRUE(test_desc_id_ == test_delegate.desc_req().gatt_id);
+
+  // Callback with a pending request ID will be ignored.
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId0, hal_addr0, char_handle_, 0, false);
+  fake_hal_gatt_iface_->NotifyRequestReadCallback(
+      kConnId0, kReqId1, hal_addr0, char_handle_, 0, false);
+  EXPECT_EQ(1, test_delegate.char_req().count);
+  EXPECT_EQ(1, test_delegate.desc_req().count);
+
+  // Send response for wrong device address.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress1, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  // Send response for a value that's too large.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValueTooLarge));
+
+  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId0,
+                                           BT_STATUS_SUCCESS, _))
+      .Times(2)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  // Stack call fails.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  // Successful send response for characteristic.
+  EXPECT_TRUE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  // Characteristic request ID no longer pending.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId0,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  EXPECT_CALL(*mock_handler_, SendResponse(kConnId0, kReqId1,
+                                           BT_STATUS_SUCCESS, _))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  // Successful send response for descriptor.
+  EXPECT_TRUE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId1,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  // Descriptor request ID no longer pending.
+  EXPECT_FALSE(gatt_server_->SendResponse(
+      kTestAddress0, kReqId1,
+      GATT_ERROR_NONE, 0, kTestValue));
+
+  gatt_server_->SetDelegate(nullptr);
 }
 
 }  // namespace
