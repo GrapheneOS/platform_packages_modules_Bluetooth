@@ -145,6 +145,28 @@ status_t BnBluetoothGattServer::onTransact(
 
     return android::NO_ERROR;
   }
+  case SEND_NOTIFICATION_TRANSACTION: {
+    int server_if = data.readInt32();
+    std::string device_address = data.readCString();
+    auto char_id = CreateGattIdentifierFromParcel(data);
+    CHECK(char_id);
+    bool confirm = data.readInt32();
+
+    std::vector<uint8_t> value;
+    int value_len = data.readInt32();
+    if (value_len != -1) {
+      uint8_t bytes[value_len];
+      data.read(bytes, value_len);
+      value.insert(value.begin(), bytes, bytes + value_len);
+    }
+
+    bool result = SendNotification(server_if, device_address, *char_id, confirm,
+                                   value);
+
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
   default:
     return BBinder::onTransact(code, data, reply, flags);
   }
@@ -284,6 +306,27 @@ bool BpBluetoothGattServer::SendResponse(
   data.writeByteArray(value.size(), value.data());
 
   remote()->transact(IBluetoothGattServer::SEND_RESPONSE_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
+}
+
+bool BpBluetoothGattServer::SendNotification(
+    int server_if,
+    const std::string& device_address,
+    const bluetooth::GattIdentifier& characteristic_id,
+    bool confirm,
+    const std::vector<uint8_t>& value) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
+  data.writeInt32(server_if);
+  data.writeCString(device_address.c_str());
+  WriteGattIdentifierToParcel(characteristic_id, &data);
+  data.writeInt32(confirm);
+  data.writeByteArray(value.size(), value.data());
+
+  remote()->transact(IBluetoothGattServer::SEND_NOTIFICATION_TRANSACTION,
                      data, &reply);
 
   return reply.readInt32();

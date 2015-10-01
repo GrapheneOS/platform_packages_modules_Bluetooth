@@ -57,6 +57,12 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
   bool SendResponse(int server_if, const std::string& device_address,
                     int request_id, int status, int offset,
                     const std::vector<uint8_t>& value) override;
+  bool SendNotification(
+      int server_if,
+      const std::string& device_address,
+      const bluetooth::GattIdentifier& characteristic_id,
+      bool confirm,
+      const std::vector<uint8_t>& value) override;
 
   // bluetooth::GattServer::Delegate overrides:
   void OnCharacteristicReadRequest(

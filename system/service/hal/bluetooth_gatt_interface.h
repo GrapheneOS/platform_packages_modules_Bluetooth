@@ -136,6 +136,9 @@ class BluetoothGattInterface {
         int conn_id, int trans_id,
         const bt_bdaddr_t& bda, int exec_write);
 
+    virtual void IndicationSentCallback(
+        BluetoothGattInterface* gatt_iface, int conn_id, int status);
+
     // TODO(armansito): Complete the list of callbacks.
   };
 
