@@ -194,8 +194,8 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
   }
 
   ~BluetoothGattInterfaceImpl() override {
-    CHECK(hal_iface_);
-    hal_iface_->cleanup();
+    if (hal_iface_)
+        hal_iface_->cleanup();
   }
 
   // BluetoothGattInterface overrides:
