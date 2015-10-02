@@ -22,6 +22,8 @@
 
 #include "service/advertise_data.h"
 #include "service/advertise_settings.h"
+#include "service/gatt_identifier.h"
+#include "service/uuid.h"
 
 namespace ipc {
 namespace binder {
@@ -42,6 +44,22 @@ void WriteAdvertiseSettingsToParcel(
     android::Parcel* parcel);
 
 std::unique_ptr<bluetooth::AdvertiseSettings> CreateAdvertiseSettingsFromParcel(
+    const android::Parcel& parcel);
+
+// Helpers for converting bluetooth::UUID to/from Parcel
+
+void WriteUUIDToParcel(const bluetooth::UUID& uuid, android::Parcel* parcel);
+
+std::unique_ptr<bluetooth::UUID> CreateUUIDFromParcel(
+    const android::Parcel& parcel);
+
+// Helpers for converting bluetooth::GattIdentifier to/from Parcel
+
+void WriteGattIdentifierToParcel(
+    const bluetooth::GattIdentifier& gatt_id,
+    android::Parcel* parcel);
+
+std::unique_ptr<bluetooth::GattIdentifier> CreateGattIdentifierFromParcel(
     const android::Parcel& parcel);
 
 }  // namespace binder
