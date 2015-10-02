@@ -24,6 +24,8 @@ using android::Parcel;
 
 using bluetooth::AdvertiseData;
 using bluetooth::AdvertiseSettings;
+using bluetooth::GattIdentifier;
+using bluetooth::UUID;
 
 namespace ipc {
 namespace binder {
@@ -34,8 +36,7 @@ bool TestAdvertiseData(const AdvertiseData &adv_in) {
 
   WriteAdvertiseDataToParcel(adv_in, &parcel);
   parcel.setDataPosition(0);
-  std::unique_ptr<AdvertiseData> adv_out =
-      CreateAdvertiseDataFromParcel(parcel);
+  auto adv_out = CreateAdvertiseDataFromParcel(parcel);
 
   return adv_in == *adv_out;
 }
@@ -45,10 +46,29 @@ bool TestAdvertiseSettings(const AdvertiseSettings &settings_in) {
 
   WriteAdvertiseSettingsToParcel(settings_in, &parcel);
   parcel.setDataPosition(0);
-  std::unique_ptr<AdvertiseSettings> settings_out =
-      CreateAdvertiseSettingsFromParcel(parcel);
+  auto settings_out = CreateAdvertiseSettingsFromParcel(parcel);
 
   return settings_in == *settings_out;
+}
+
+bool TestUUID(const UUID& uuid_in) {
+  Parcel parcel;
+
+  WriteUUIDToParcel(uuid_in, &parcel);
+  parcel.setDataPosition(0);
+  auto uuid_out = CreateUUIDFromParcel(parcel);
+
+  return uuid_in == *uuid_out;
+}
+
+bool TestGattIdentifier(const GattIdentifier& id_in) {
+  Parcel parcel;
+
+  WriteGattIdentifierToParcel(id_in, &parcel);
+  parcel.setDataPosition(0);
+  auto id_out = CreateGattIdentifierFromParcel(parcel);
+
+  return id_in == *id_out;
 }
 
 TEST(ParcelHelpersTest, EmptyAdvertiseData) {
@@ -86,6 +106,29 @@ TEST(ParcelHelpersTest, NonEmptyAdvertiseSettings) {
       AdvertiseSettings::TX_POWER_LEVEL_HIGH,
       false /* connectable */);
   EXPECT_TRUE(TestAdvertiseSettings(settings));
+}
+
+TEST(ParcelHelpersTest, UUID) {
+  // Try a whole bunch of UUIDs.
+  for (int i = 0; i < 10; i++) {
+    UUID uuid = UUID::GetRandom();
+    TestUUID(uuid);
+  }
+}
+
+TEST(ParcelHelpersTest, GattIdentifier) {
+  UUID uuid0 = UUID::GetRandom();
+  UUID uuid1 = UUID::GetRandom();
+  UUID uuid2 = UUID::GetRandom();
+
+  auto service_id = GattIdentifier::CreateServiceId(
+      "01:23:45:67:89:ab", 5, uuid0, false);
+  auto char_id = GattIdentifier::CreateCharacteristicId(3, uuid1, *service_id);
+  auto desc_id = GattIdentifier::CreateDescriptorId(10, uuid2, *char_id);
+
+  TestGattIdentifier(*service_id);
+  TestGattIdentifier(*char_id);
+  TestGattIdentifier(*desc_id);
 }
 
 }  // namespace
