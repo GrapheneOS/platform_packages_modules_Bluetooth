@@ -31,13 +31,13 @@ BluetoothLowEnergyBinderServer::BluetoothLowEnergyBinderServer(
 BluetoothLowEnergyBinderServer::~BluetoothLowEnergyBinderServer() {
 }
 
-void BluetoothLowEnergyBinderServer::RegisterClient(
+bool BluetoothLowEnergyBinderServer::RegisterClient(
     const android::sp<IBluetoothLowEnergyCallback>& callback) {
   VLOG(2) << __func__;
   bluetooth::LowEnergyClientFactory* ble_factory =
       adapter_->GetLowEnergyClientFactory();
 
-  RegisterClientBase(callback, ble_factory);
+  return RegisterClientBase(callback, ble_factory);
 }
 
 void BluetoothLowEnergyBinderServer::UnregisterClient(int client_if) {
@@ -50,31 +50,25 @@ void BluetoothLowEnergyBinderServer::UnregisterAll() {
   UnregisterAllBase();
 }
 
-void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
+bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
     int client_if,
     const bluetooth::AdvertiseData& advertise_data,
     const bluetooth::AdvertiseData& scan_response,
     const bluetooth::AdvertiseSettings& settings) {
-  VLOG(2) << __func__;
+  VLOG(2) << __func__ << " client_if: " << client_if;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_if);
   if (!client) {
     LOG(ERROR) << "Unknown client_if: " << client_if;
-    return;
-  }
-
-  auto cb = GetLECallback(client_if);
-  if (!cb.get()) {
-    LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
-    return;
+    return false;
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
-  bluetooth::AdvertiseSettings settings_copy = settings;
   android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-  auto callback = [&](bluetooth::BLEStatus status) {
+  auto settings_copy = settings;
+  auto callback = [=](bluetooth::BLEStatus status) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {
       VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
@@ -83,44 +77,48 @@ void BluetoothLowEnergyBinderServer::StartMultiAdvertising(
 
     std::lock_guard<std::mutex> lock(*maps_lock());
 
+    auto cb = GetLECallback(client_if);
+    if (!cb.get()) {
+      VLOG(1) << "Client was removed before callback: " << client_if;
+      return;
+    }
+
     cb->OnMultiAdvertiseCallback(status, true /* is_start */, settings_copy);
   };
 
-  if (client->StartAdvertising(
-      settings, advertise_data, scan_response, callback))
-    return;
+  if (!client->StartAdvertising(
+      settings, advertise_data, scan_response, callback)) {
+    LOG(ERROR) << "Failed to initiate call to start advertising";
+    return false;
+  }
 
-  LOG(ERROR) << "Failed to initiate call to start advertising";
-
-  // Notify error in oneway callback.
-  cb->OnMultiAdvertiseCallback(
-      bluetooth::BLE_STATUS_FAILURE, true /* is_start */, settings_copy);
+  return true;
 }
 
-void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
+bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_if);
   if (!client) {
     LOG(ERROR) << "Unknown client_if: " << client_if;
-    return;
-  }
-
-  auto cb = GetLECallback(client_if);
-  if (!cb.get()) {
-    LOG(ERROR) << "Client was unregistered - client_if: " << client_if;
-    return;
+    return false;
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
   android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-  bluetooth::AdvertiseSettings settings_copy = client->settings();
-  auto callback = [&](bluetooth::BLEStatus status) {
+  auto settings_copy = client->settings();
+  auto callback = [=](bluetooth::BLEStatus status) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {
       VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
+      return;
+    }
+
+    auto cb = GetLECallback(client_if);
+    if (!cb.get()) {
+      VLOG(2) << "Client was unregistered - client_if: " << client_if;
       return;
     }
 
@@ -129,14 +127,12 @@ void BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
     cb->OnMultiAdvertiseCallback(status, false /* is_start */, settings_copy);
   };
 
-  if (client->StopAdvertising(callback))
-    return;
+  if (!client->StopAdvertising(callback)) {
+    LOG(ERROR) << "Failed to initiate call to start advertising";
+    return false;
+  }
 
-  LOG(ERROR) << "Failed to initiate call to start advertising";
-
-  // Notify error in oneway callback.
-  cb->OnMultiAdvertiseCallback(
-      bluetooth::BLE_STATUS_FAILURE, false/* is_start */, settings_copy);
+  return true;
 }
 
 android::sp<IBluetoothLowEnergyCallback>

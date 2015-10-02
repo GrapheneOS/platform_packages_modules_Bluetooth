@@ -17,6 +17,8 @@
 #include <iostream>
 #include <string>
 
+#include <base/at_exit.h>
+#include <base/command_line.h>
 #include <base/logging.h>
 #include <base/macros.h>
 #include <base/strings/string_split.h>
@@ -256,9 +258,9 @@ void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  ble_iface->RegisterClient(new CLIBluetoothLowEnergyCallback());
-  ble_registering = true;
-  PrintCommandStatus(true);
+  bool status = ble_iface->RegisterClient(new CLIBluetoothLowEnergyCallback());
+  ble_registering = status;
+  PrintCommandStatus(status);
 }
 
 void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
@@ -361,8 +363,9 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
 
   bluetooth::AdvertiseData scan_rsp;
 
-  ble_iface->StartMultiAdvertising(ble_client_if.load(),
-                                   adv_data, scan_rsp, settings);
+  bool status = ble_iface->StartMultiAdvertising(ble_client_if.load(),
+                                                 adv_data, scan_rsp, settings);
+  PrintCommandStatus(status);
 }
 
 void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
@@ -377,7 +380,8 @@ void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  ble_iface->StopMultiAdvertising(ble_client_if.load());
+  bool status = ble_iface->StopMultiAdvertising(ble_client_if.load());
+  PrintCommandStatus(status);
 }
 
 void HandleHelp(IBluetooth* bt_iface, const vector<string>& args);
@@ -441,7 +445,16 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
   DISALLOW_COPY_AND_ASSIGN(BluetoothDeathRecipient);
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+  base::AtExitManager exit_manager;
+  base::CommandLine::Init(argc, argv);
+  logging::LoggingSettings log_settings;
+
+  if (!logging::InitLogging(log_settings)) {
+    LOG(ERROR) << "Failed to set up logging";
+    return EXIT_FAILURE;
+  }
+
   sp<IBluetooth> bt_iface = IBluetooth::getClientInterface();
   if (!bt_iface.get()) {
     LOG(ERROR) << "Failed to obtain handle on IBluetooth";
