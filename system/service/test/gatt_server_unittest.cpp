@@ -34,6 +34,9 @@ class MockGattHandler
 
   MOCK_METHOD1(RegisterServer, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterServer, bt_status_t(int));
+  MOCK_METHOD3(AddService, bt_status_t(int, btgatt_srvc_id_t*, int));
+  MOCK_METHOD3(StartService, bt_status_t(int, int, int));
+  MOCK_METHOD2(DeleteService, bt_status_t(int, int));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);

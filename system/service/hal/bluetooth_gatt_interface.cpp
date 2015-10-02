@@ -122,6 +122,45 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
       RegisterServerCallback(g_interface, status, server_if, *app_uuid));
 }
 
+void ServiceAddedCallback(
+    int status,
+    int server_if,
+    btgatt_srvc_id_t* srvc_id,
+    int srvc_handle) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
+          << " handle: " << srvc_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  if (!srvc_id) {
+    LOG(WARNING) << "|srvc_id| is NULL; ignoring ServiceAddedCallback";
+    return;
+  }
+
+  FOR_EACH_SERVER_OBSERVER(ServiceAddedCallback(
+      g_interface, status, server_if, *srvc_id, srvc_handle));
+}
+
+void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
+          << " handle: " << srvc_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_SERVER_OBSERVER(ServiceStartedCallback(
+      g_interface, status, server_if, srvc_handle));
+}
+
+void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
+          << " handle: " << srvc_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_SERVER_OBSERVER(ServiceStoppedCallback(
+      g_interface, status, server_if, srvc_handle));
+}
+
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
@@ -163,12 +202,12 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
 const btgatt_server_callbacks_t gatt_server_callbacks = {
     RegisterServerCallback,
     nullptr,  // connection_cb
-    nullptr,  // service_added_cb,
+    ServiceAddedCallback,
     nullptr,  // included_service_added_cb,
     nullptr,  // characteristic_added_cb,
     nullptr,  // descriptor_added_cb,
-    nullptr,  // service_started_cb,
-    nullptr,  // service_stopped_cb,
+    ServiceStartedCallback,
+    ServiceStoppedCallback,
     nullptr,  // service_deleted_cb,
     nullptr,  // request_read_cb,
     nullptr,  // request_write_cb,
@@ -348,6 +387,31 @@ void BluetoothGattInterface::ServerObserver::RegisterServerCallback(
     int /* status */,
     int /* server_if */,
     const bt_uuid_t& /* app_uuid */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::ServiceAddedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    const btgatt_srvc_id_t& /* srvc_id */,
+    int /* srvc_handle */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::ServiceStartedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    int /* srvc_handle */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::ServiceStoppedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    int /* srvc_handle */) {
   // Do nothing.
 }
 
