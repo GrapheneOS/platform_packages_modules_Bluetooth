@@ -24,6 +24,7 @@ btserviceCommonSrc := \
 	advertise_data.cpp \
 	advertise_settings.cpp \
 	daemon.cpp \
+	gatt_identifier.cpp \
 	gatt_server.cpp \
 	gatt_server_old.cpp \
 	hal/bluetooth_gatt_interface.cpp \
@@ -90,6 +91,7 @@ LOCAL_SRC_FILES := \
 	test/adapter_unittest.cpp \
 	test/advertise_data_unittest.cpp \
 	test/fake_hal_util.cpp \
+	test/gatt_identifier_unittest.cpp \
 	test/gatt_server_unittest.cpp \
 	test/low_energy_client_unittest.cpp \
 	test/settings_unittest.cpp \
