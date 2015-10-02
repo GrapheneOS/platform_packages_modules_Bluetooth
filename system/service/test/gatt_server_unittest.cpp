@@ -19,6 +19,7 @@
 
 #include "service/gatt_server.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
+#include "service/hal/gatt_helpers.h"
 
 using ::testing::_;
 using ::testing::Return;
@@ -70,6 +71,54 @@ class GattServerTest : public ::testing::Test {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(GattServerTest);
+};
+
+const int kDefaultServerId = 4;
+
+class GattServerPostRegisterTest : public GattServerTest {
+ public:
+  GattServerPostRegisterTest() = default;
+  ~GattServerPostRegisterTest() override = default;
+
+  void SetUp() override {
+    GattServerTest::SetUp();
+    UUID uuid = UUID::GetRandom();
+    auto callback = [&](BLEStatus status, const UUID& in_uuid,
+                        std::unique_ptr<BluetoothClientInstance> in_client) {
+      CHECK(in_uuid == uuid);
+      CHECK(in_client.get());
+      CHECK(status == BLE_STATUS_SUCCESS);
+
+      gatt_server_ = std::unique_ptr<GattServer>(
+          static_cast<GattServer*>(in_client.release()));
+    };
+
+    EXPECT_CALL(*mock_handler_, RegisterServer(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+
+    factory_->RegisterClient(uuid, callback);
+
+    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
+    fake_hal_gatt_iface_->NotifyRegisterServerCallback(
+        BT_STATUS_SUCCESS,
+        kDefaultServerId,
+        hal_uuid);
+  }
+
+  void TearDown() override {
+    EXPECT_CALL(*mock_handler_, UnregisterServer(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+    gatt_server_ = nullptr;
+    GattServerTest::TearDown();
+  }
+
+ protected:
+  std::unique_ptr<GattServer> gatt_server_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(GattServerPostRegisterTest);
 };
 
 TEST_F(GattServerTest, RegisterServer) {
@@ -154,6 +203,158 @@ TEST_F(GattServerTest, RegisterServer) {
   ASSERT_TRUE(server.get() == nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
+}
+
+TEST_F(GattServerPostRegisterTest, SimpleServiceTest) {
+  // Setup a service callback.
+  GattIdentifier cb_id;
+  BLEStatus cb_status = BLE_STATUS_SUCCESS;
+  int cb_count = 0;
+  auto callback = [&](BLEStatus in_status, const GattIdentifier& in_id) {
+    cb_id = in_id;
+    cb_status = in_status;
+    cb_count++;
+  };
+
+  // Service declaration not started.
+  EXPECT_FALSE(gatt_server_->EndServiceDeclaration(callback));
+
+  const UUID uuid = UUID::GetRandom();
+  auto service_id = gatt_server_->BeginServiceDeclaration(uuid, true);
+  EXPECT_TRUE(service_id != nullptr);
+  EXPECT_TRUE(service_id->IsService());
+
+  // Already started.
+  EXPECT_FALSE(gatt_server_->BeginServiceDeclaration(uuid, false));
+
+  // Callback is NULL.
+  EXPECT_FALSE(
+      gatt_server_->EndServiceDeclaration(GattServer::ResultCallback()));
+
+  // We should get a call for a service with one handle.
+  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetClientId(), _, 1))
+      .Times(2)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  // Stack returns failure. This will cause the entire service declaration to
+  // end and needs to be restarted.
+  EXPECT_FALSE(gatt_server_->EndServiceDeclaration(callback));
+
+  service_id = gatt_server_->BeginServiceDeclaration(uuid, true);
+  EXPECT_TRUE(service_id != nullptr);
+  EXPECT_TRUE(service_id->IsService());
+
+  // Stack returns success.
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  // EndServiceDeclaration already in progress.
+  EXPECT_FALSE(gatt_server_->EndServiceDeclaration(callback));
+
+  EXPECT_EQ(0, cb_count);
+
+  btgatt_srvc_id_t hal_id;
+  hal::GetHALServiceId(*service_id, &hal_id);
+  int srvc_handle = 0x0001;
+
+  // Report success for AddService but for wrong server. Should be ignored.
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId + 1, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+
+  // Report success for AddService.
+  EXPECT_CALL(*mock_handler_, StartService(kDefaultServerId, srvc_handle, _))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+
+  // Report success for StartService but for wrong server. Should be ignored.
+  fake_hal_gatt_iface_->NotifyServiceStartedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId + 1, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+
+  // Report success for StartService.
+  fake_hal_gatt_iface_->NotifyServiceStartedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, srvc_handle);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_EQ(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Start new service declaration with same UUID. We should get a different ID.
+  auto service_id1 = gatt_server_->BeginServiceDeclaration(uuid, true);
+  EXPECT_TRUE(service_id1 != nullptr);
+  EXPECT_TRUE(service_id1->IsService());
+  EXPECT_TRUE(*service_id != *service_id1);
+}
+
+TEST_F(GattServerPostRegisterTest, AddServiceFailures) {
+  // Setup a service callback.
+  GattIdentifier cb_id;
+  BLEStatus cb_status = BLE_STATUS_SUCCESS;
+  int cb_count = 0;
+  auto callback = [&](BLEStatus in_status, const GattIdentifier& in_id) {
+    cb_id = in_id;
+    cb_status = in_status;
+    cb_count++;
+  };
+
+  const UUID uuid = UUID::GetRandom();
+  auto service_id = gatt_server_->BeginServiceDeclaration(uuid, true);
+  btgatt_srvc_id_t hal_id;
+  hal::GetHALServiceId(*service_id, &hal_id);
+  int srvc_handle = 0x0001;
+
+  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetClientId(), _, 1))
+      .Times(3)
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  // Report failure for AddService.
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart. We should get the same ID back.
+  auto service_id1 = gatt_server_->BeginServiceDeclaration(uuid, true);
+  EXPECT_TRUE(*service_id1 == *service_id);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  // Report success for AddService but return failure from StartService.
+  EXPECT_CALL(*mock_handler_, StartService(gatt_server_->GetClientId(), 1, _))
+      .Times(2)
+      .WillOnce(Return(BT_STATUS_FAIL))
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(2, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart.
+  service_id = gatt_server_->BeginServiceDeclaration(uuid, true);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  // Report success for AddService, return success from StartService.
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(2, cb_count);
+
+  // Report failure for StartService. Added service data should get deleted.
+  EXPECT_CALL(*mock_handler_,
+              DeleteService(gatt_server_->GetClientId(), srvc_handle))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  fake_hal_gatt_iface_->NotifyServiceStartedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, srvc_handle);
+  EXPECT_EQ(3, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
 }
 
 }  // namespace
