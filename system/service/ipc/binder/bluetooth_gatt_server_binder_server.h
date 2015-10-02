@@ -18,6 +18,7 @@
 
 #include <base/macros.h>
 
+#include "service/gatt_server.h"
 #include "service/ipc/binder/IBluetoothGattServer.h"
 #include "service/ipc/binder/IBluetoothGattServerCallback.h"
 #include "service/ipc/binder/interface_with_clients_base.h"
@@ -41,8 +42,22 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
       const android::sp<IBluetoothGattServerCallback>& callback) override;
   void UnregisterServer(int server_if) override;
   void UnregisterAll() override;
+  bool BeginServiceDeclaration(
+      int server_if, bool is_primary, const bluetooth::UUID& uuid,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
+  bool EndServiceDeclaration(int server_if) override;
 
  private:
+  // Returns a pointer to the IBluetoothGattServerBinderServer instance
+  // associated with |server_if|. Returns NULL if such a callback cannot be
+  // found.
+  android::sp<IBluetoothGattServerCallback>
+      GetGattServerCallback(int server_if);
+
+  // Returns a pointer to the GattServer instance associated with |server_if|.
+  // Returns NULL if such a client cannot be found.
+  std::shared_ptr<bluetooth::GattServer> GetGattServer(int server_if);
+
   // InterfaceWithClientsBase override:
   void OnRegisterClientImpl(
       bluetooth::BLEStatus status,
