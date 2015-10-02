@@ -88,6 +88,29 @@ bt_status_t FakeUnregisterServer(int server_if) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeAddService(
+    int server_if, btgatt_srvc_id_t* srvc_id, int num_handles) {
+  if (g_server_handler)
+    return g_server_handler->AddService(server_if, srvc_id, num_handles);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeStartService(
+    int server_if, int srvc_handle, int transport) {
+  if (g_server_handler)
+    return g_server_handler->StartService(server_if, srvc_handle, transport);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
+  if (g_server_handler)
+    return g_server_handler->DeleteService(server_if, srvc_handle);
+
+  return BT_STATUS_FAIL;
+}
+
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
@@ -133,13 +156,13 @@ btgatt_server_interface_t fake_btgatts_iface = {
   FakeUnregisterServer,
   nullptr,  // connect
   nullptr,  // disconnect
-  nullptr,  // add_service
+  FakeAddService,
   nullptr,  // add_included_service
   nullptr,  // add_characteristic
   nullptr,  // add_descriptor
-  nullptr,  // start_service
+  FakeStartService,
   nullptr,  // stop_service
-  nullptr,  // delete_service
+  FakeDeleteService,
   nullptr,  // send_indication
   nullptr,  // send_response
 };
@@ -201,6 +224,22 @@ void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
     const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ServerObserver, server_observers_,
                     RegisterServerCallback(this, status, server_if, app_uuid));
+}
+
+void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
+    int status, int server_if,
+    const btgatt_srvc_id_t& srvc_id,
+    int srvc_handle) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      ServiceAddedCallback(this, status, server_if, srvc_id, srvc_handle));
+}
+
+void FakeBluetoothGattInterface::NotifyServiceStartedCallback(
+    int status, int server_if, int srvc_handle) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      ServiceStartedCallback(this, status, server_if, srvc_handle));
 }
 
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {
