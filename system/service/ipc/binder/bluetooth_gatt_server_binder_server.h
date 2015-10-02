@@ -20,6 +20,7 @@
 
 #include "service/ipc/binder/IBluetoothGattServer.h"
 #include "service/ipc/binder/IBluetoothGattServerCallback.h"
+#include "service/ipc/binder/interface_with_clients_base.h"
 
 namespace bluetooth {
 class Adapter;
@@ -29,7 +30,8 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothGattServer interface.
-class BluetoothGattServerBinderServer : public BnBluetoothGattServer {
+class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
+                                        public InterfaceWithClientsBase {
  public:
   explicit BluetoothGattServerBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothGattServerBinderServer() override = default;
@@ -41,6 +43,12 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer {
   void UnregisterAll() override;
 
  private:
+  // InterfaceWithClientsBase override:
+  void OnRegisterClientImpl(
+      bluetooth::BLEStatus status,
+      android::sp<IInterface> callback,
+      bluetooth::BluetoothClientInstance* client) override;
+
   bluetooth::Adapter* adapter_;  // weak
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothGattServerBinderServer);
