@@ -24,6 +24,7 @@
 #include <base/observer_list.h>
 
 #include "service/adapter_state.h"
+#include "service/gatt_server.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/low_energy_client.h"
 #include "service/util/atomic_string.h"
@@ -90,8 +91,13 @@ class Adapter : public hal::BluetoothInterface::Observer {
   bool IsMultiAdvertisementSupported() const;
 
   // Returns a pointer to the LowEnergyClientFactory. This can be used to
-  // perform BLE GAP operations.
+  // register per-application LowEnergyClient instances to perform BLE GAP
+  // operations.
   LowEnergyClientFactory* GetLowEnergyClientFactory() const;
+
+  // Returns a pointer to the GattServerFactory. This can be used to register
+  // per-application GATT server instances.
+  GattServerFactory* GetGattServerFactory() const;
 
  private:
   // hal::BluetoothInterface::Observer overrides.
@@ -128,6 +134,9 @@ class Adapter : public hal::BluetoothInterface::Observer {
 
   // Factory used to create per-app LowEnergyClient instances.
   std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;
+
+  // Factory used to create per-app GattServer instances.
+  std::unique_ptr<GattServerFactory> gatt_server_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };
