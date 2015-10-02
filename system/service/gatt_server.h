@@ -13,107 +13,73 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
 #pragma once
 
-#include <array>
-#include <memory>
-#include <unordered_map>
-#include <vector>
+#include <map>
+#include <mutex>
 
-#include "hardware/bluetooth.h"
-#include "hardware/bt_gatt.h"
-#include "uuid.h"
+#include <base/macros.h>
+
+#include "service/bluetooth_client_instance.h"
+#include "service/hal/bluetooth_gatt_interface.h"
+#include "service/uuid.h"
 
 namespace bluetooth {
-namespace gatt {
 
-// Attribute permission values
-const int kPermissionRead = 0x1;
-const int kPermissionReadEncrypted = 0x2;
-const int kPermissionReadEncryptedMitm = 0x4;
-const int kPermissionWrite = 0x10;
-const int kPermissionWriteEnecrypted = 0x20;
-const int KPermissionWriteEncryptedMitm = 0x40;
-const int kPermissionWriteSigned = 0x80;
-const int kPermissionWriteSignedMitm = 0x100;
-
-// GATT characteristic properties bit-field values
-const int kPropertyBroadcast = 0x1;
-const int kPropertyRead = 0x2;
-const int kPropertyWriteNoResponse = 0x4;
-const int kPropertyWrite = 0x8;
-const int kPropertyNotify = 0x10;
-const int kPropertyIndicate = 0x20;
-const int kPropertySignedWrite = 0x40;
-const int kPropertyExtendedProps = 0x80;
-
-// A mapping from string bluetooth addresses to RSSI measurements.
-typedef std::unordered_map<std::string, int> ScanResults;
-
-// TODO(armansito): This should be a private internal class though I don't see
-// why we even need this class. Instead it should probably be merged into
-// Server.
-struct ServerInternals;
-
-// Server is threadsafe and internally locked.
-// Asynchronous IO is identified via a gatt_pipe FD,
-// and synchronously read with 'GetCharacteristicValue'
-class Server {
+// A GattServer instance represents an application's handle to perform GATT
+// server-role operations. Instances cannot be created directly and should be
+// obtained through the factory.
+class GattServer : public BluetoothClientInstance {
  public:
-  Server();
-  ~Server();
+  // The desctructor automatically unregisters this instance from the stack.
+  ~GattServer() override;
 
-  // Register GATT interface, initialize internal state,
-  // and open a pipe for characteristic write notification.
-  bool Initialize(const UUID& service_id, int* gatt_pipe);
-
-  // Control the content of service advertisement.
-  bool SetAdvertisement(const std::vector<UUID>& ids,
-                        const std::vector<uint8_t>& service_data,
-                        const std::vector<uint8_t>& manufacturer_data,
-                        bool transmit_name);
-
-  // Control the content of service scan response.
-  bool SetScanResponse(const std::vector<UUID>& ids,
-                       const std::vector<uint8_t>& service_data,
-                       const std::vector<uint8_t>& manufacturer_data,
-                       bool transmit_name);
-
-  // Add an ordinary characteristic for reading and/or writing.
-  bool AddCharacteristic(const UUID &id, int properties, int permissions);
-
-  // Add a special 'blob' characteristic with a corresponding control
-  // attribute to manipulate which part of the blob the attribute represents.
-  bool AddBlob(const UUID &id, const UUID &control_id, int properties,
-               int permissions);
-
-  // Put a new value into a characeteristic.
-  // It will be read from a client starting at the next 0-offset read.
-  bool SetCharacteristicValue(const UUID &id, const std::vector<uint8_t> &value);
-
-  // Get the current value of a characteristic.
-  bool GetCharacteristicValue(const UUID &id, std::vector<uint8_t> *value);
-
-  // Start this service. Activate advertisements, allow connections.
-  // Characteristics should all be created before this.
-  bool Start();
-
-  // Cease advertisements and disallow connections.
-  bool Stop();
-
-  // Enable LE scan. Scan results will be cached internally.
-  bool ScanEnable();
-
-  // Disable LE scan.
-  bool ScanDisable();
-
-  // Copy out the cached scan results.
-  bool GetScanResults(ScanResults *results);
+  // BluetoothClientInstace overrides:
+  const UUID& GetAppIdentifier() const override;
+  int GetClientId() const override;
 
  private:
-  // Internal data.
-  std::unique_ptr<ServerInternals> internal_;
+  friend class GattServerFactory;
+
+  // Constructor shouldn't be called directly as instance are meant to be
+  // obtained from the factory.
+  GattServer(const UUID& uuid, int server_if);
+
+  // See getters for documentation.
+  UUID app_identifier_;
+  int server_if_;
+
+  DISALLOW_COPY_AND_ASSIGN(GattServer);
 };
 
-}  // namespace gatt
+// GattServerFactory is used to register and obtain a per-application GattServer
+// instance. Users should call RegisterServer to obtain their own unique
+// GattServer instance that has been registered with the Bluetooth stack.
+class GattServerFactory : public BluetoothClientInstanceFactory,
+                          private hal::BluetoothGattInterface::ServerObserver {
+ public:
+  // Don't construct/destruct directly except in tests. Instead, obtain a handle
+  // from an Adapter instance.
+  GattServerFactory();
+  ~GattServerFactory() override;
+
+  // BluetoothClientInstanceFactory override:
+  bool RegisterClient(const UUID& uuid,
+                      const RegisterCallback& callback) override;
+
+ private:
+  // hal::BluetoothGattInterface::ServerObserver override:
+  void RegisterServerCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int status, int server_if,
+      const bt_uuid_t& app_uuid) override;
+
+  // Map of pending calls to register.
+  std::mutex pending_calls_lock_;
+  std::map<UUID, RegisterCallback> pending_calls_;
+
+  DISALLOW_COPY_AND_ASSIGN(GattServerFactory);
+};
+
 }  // namespace bluetooth
