@@ -41,16 +41,16 @@ class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
   ~BluetoothLowEnergyBinderServer() override;
 
   // IBluetoothLowEnergy overrides:
-  void RegisterClient(
+  bool RegisterClient(
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_if) override;
   void UnregisterAll() override;
-  void StartMultiAdvertising(
+  bool StartMultiAdvertising(
       int client_if,
       const bluetooth::AdvertiseData& advertise_data,
       const bluetooth::AdvertiseData& scan_response,
       const bluetooth::AdvertiseSettings& settings) override;
-  void StopMultiAdvertising(int client_if) override;
+  bool StopMultiAdvertising(int client_if) override;
 
  private:
   // Returns a pointer to the IBluetoothLowEnergyCallback instance associated
