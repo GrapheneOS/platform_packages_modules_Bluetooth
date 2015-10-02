@@ -16,6 +16,8 @@
 
 #include "service/gatt_identifier.h"
 
+#include "service/util/address_helper.h"
+
 namespace bluetooth {
 
 namespace {
@@ -29,7 +31,8 @@ std::unique_ptr<GattIdentifier> GattIdentifier::CreateServiceId(
     const std::string& device_address,
     int id, const UUID& uuid,
     bool is_primary) {
-  if (id < 0)
+  if (id < 0 ||
+      (!device_address.empty() && !util::IsAddressValid(device_address)))
     return nullptr;
 
   std::unique_ptr<GattIdentifier> gatt_id(new GattIdentifier());
