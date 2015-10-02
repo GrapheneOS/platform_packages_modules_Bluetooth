@@ -20,6 +20,8 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
+#include "service/gatt_identifier.h"
+
 namespace ipc {
 namespace binder {
 
@@ -49,6 +51,9 @@ namespace binder {
   };
 
   virtual void OnServerRegistered(int status, int server_if) = 0;
+
+  virtual void OnServiceAdded(
+      int status, const bluetooth::GattIdentifier& service_id) = 0;
 
   // TODO(armansito): Complete the API definition.
 
@@ -84,6 +89,8 @@ class BpBluetoothGattServerCallback
 
   // IBluetoothGattServerCallback overrides:
   void OnServerRegistered(int status, int server_if) override;
+  void OnServiceAdded(int status,
+                      const bluetooth::GattIdentifier& service_id) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServerCallback);

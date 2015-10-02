@@ -53,6 +53,84 @@ void BluetoothGattServerBinderServer::UnregisterAll() {
   UnregisterAllBase();
 }
 
+bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
+    int server_if, bool is_primary, const bluetooth::UUID& uuid,
+    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+  VLOG(2) << __func__;
+  CHECK(out_id);
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  auto service_id = gatt_server->BeginServiceDeclaration(uuid, is_primary);
+  if (!service_id) {
+    LOG(ERROR) << "Failed to begin service declaration - server_if: "
+               << server_if << " UUID: " << uuid.ToString();
+    return false;
+  }
+
+  out_id->swap(service_id);
+
+  return true;
+}
+
+bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  // Create a weak pointer and pass that to the callback to prevent a potential
+  // use after free.
+  android::wp<BluetoothGattServerBinderServer> weak_ptr_to_this(this);
+  auto callback = [=](
+      bluetooth::BLEStatus status, const bluetooth::GattIdentifier& server_id) {
+    auto sp_to_this = weak_ptr_to_this.promote();
+    if (!sp_to_this.get()) {
+      VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
+      return;
+    }
+
+    std::lock_guard<std::mutex> lock(*maps_lock());
+
+    auto gatt_cb = GetGattServerCallback(server_if);
+    if (!gatt_cb.get()) {
+      VLOG(2) << "The callback was deleted";
+      return;
+    }
+
+    gatt_cb->OnServiceAdded(status, server_id);
+  };
+
+  if (!gatt_server->EndServiceDeclaration(callback)) {
+    LOG(ERROR) << "Failed to end service declaration";
+    return false;
+  }
+
+  return true;
+}
+
+android::sp<IBluetoothGattServerCallback>
+BluetoothGattServerBinderServer::GetGattServerCallback(int server_if) {
+  auto cb = GetCallback(server_if);
+  return android::sp<IBluetoothGattServerCallback>(
+      static_cast<IBluetoothGattServerCallback*>(cb.get()));
+}
+
+std::shared_ptr<bluetooth::GattServer>
+BluetoothGattServerBinderServer::GetGattServer(int server_if) {
+  return std::static_pointer_cast<bluetooth::GattServer>(
+      GetClientInstance(server_if));
+}
+
 void BluetoothGattServerBinderServer::OnRegisterClientImpl(
     bluetooth::BLEStatus status,
     android::sp<IInterface> callback,

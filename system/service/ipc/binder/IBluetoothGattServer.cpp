@@ -19,6 +19,8 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
+#include "service/ipc/binder/parcel_helpers.h"
+
 using android::IBinder;
 using android::interface_cast;
 using android::Parcel;
@@ -56,6 +58,31 @@ status_t BnBluetoothGattServer::onTransact(
   }
   case UNREGISTER_ALL_TRANSACTION: {
     UnregisterAll();
+    return android::NO_ERROR;
+  }
+  case BEGIN_SERVICE_DECLARATION_TRANSACTION: {
+    int server_if = data.readInt32();
+    bool is_primary = data.readInt32();
+    auto uuid = CreateUUIDFromParcel(data);
+    CHECK(uuid);
+
+    std::unique_ptr<bluetooth::GattIdentifier> out_id;
+    bool result = BeginServiceDeclaration(
+        server_if, is_primary, *uuid, &out_id);
+
+    reply->writeInt32(result);
+
+    if (result) {
+      CHECK(out_id);
+      WriteGattIdentifierToParcel(*out_id, reply);
+    }
+
+    return android::NO_ERROR;
+  }
+  case END_SERVICE_DECLARATION_TRANSACTION: {
+    int server_if = data.readInt32();
+    bool result = EndServiceDeclaration(server_if);
+    reply->writeInt32(result);
     return android::NO_ERROR;
   }
   default:
@@ -100,6 +127,40 @@ void BpBluetoothGattServer::UnregisterAll() {
 
   remote()->transact(IBluetoothGattServer::UNREGISTER_ALL_TRANSACTION,
                      data, &reply);
+}
+
+bool BpBluetoothGattServer::BeginServiceDeclaration(
+    int server_if, bool is_primary, const bluetooth::UUID& uuid,
+    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+  CHECK(out_id);
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
+  data.writeInt32(server_if);
+  data.writeInt32(is_primary);
+  WriteUUIDToParcel(uuid, &data);
+
+  remote()->transact(
+      IBluetoothGattServer::BEGIN_SERVICE_DECLARATION_TRANSACTION,
+      data, &reply);
+
+  bool result = reply.readInt32();
+  if (result)
+    *out_id = CreateGattIdentifierFromParcel(reply);
+
+  return result;
+}
+
+bool BpBluetoothGattServer::EndServiceDeclaration(int server_if) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
+  data.writeInt32(server_if);
+
+  remote()->transact(IBluetoothGattServer::END_SERVICE_DECLARATION_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
 }
 
 IMPLEMENT_META_INTERFACE(BluetoothGattServer,

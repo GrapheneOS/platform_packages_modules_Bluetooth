@@ -143,7 +143,9 @@ LOCAL_SRC_FILES := \
 	adapter_state.cpp \
 	advertise_data.cpp \
 	advertise_settings.cpp \
-	client/main.cpp
+	client/main.cpp \
+	gatt_identifier.cpp \
+	uuid.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := optional
