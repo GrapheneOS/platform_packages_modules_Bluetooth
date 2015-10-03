@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 namespace bluetooth {
 
 // Defined here are various status codes that can be returned from the stack for
@@ -36,6 +38,29 @@ enum Transport {
   TRANSPORT_BREDR = 1,
   TRANSPORT_LE = 2
 };
+
+// Android attribute permission values
+const uint16_t kAttributePermissionNone = 0x0;
+const uint16_t kAttributePermissionRead = 0x1;
+const uint16_t kAttributePermissionReadEncrypted = 0x2;
+const uint16_t kAttributePermissionReadEncryptedMITM = 0x4;
+const uint16_t kAttributePermissionWrite = 0x10;
+const uint16_t kAttributePermissionWriteEncrypted = 0x20;
+const uint16_t kAttributePermissionWriteEncryptedMITM = 0x40;
+const uint16_t kAttributePermissionWriteSigned = 0x80;
+const uint16_t kAttributePermissionWriteSignedMITM = 0x100;
+
+// GATT characteristic properties bit-field values (not including the
+// characteristic extended properties).
+const uint8_t kCharacteristicPropertyNone = 0x0;
+const uint8_t kCharacteristicPropertyBroadcast = 0x1;
+const uint8_t kCharacteristicPropertyRead = 0x2;
+const uint8_t kCharacteristicPropertyWriteNoResponse = 0x4;
+const uint8_t kCharacteristicPropertyWrite = 0x8;
+const uint8_t kCharacteristicPropertyNotify = 0x10;
+const uint8_t kCharacteristicPropertyIndicate = 0x20;
+const uint8_t kCharacteristicPropertySignedWrite = 0x40;
+const uint8_t kCharacteristicPropertyExtendedProps = 0x80;
 
 // Advertising interval for different modes.
 const int kAdvertisingIntervalHighMs = 1000;

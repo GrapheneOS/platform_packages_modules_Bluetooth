@@ -16,8 +16,8 @@
 
 #pragma once
 
+#include <deque>
 #include <functional>
-#include <queue>
 #include <mutex>
 #include <unordered_map>
 
@@ -60,6 +60,12 @@ class GattServer : public BluetoothClientInstance,
   std::unique_ptr<GattIdentifier> BeginServiceDeclaration(
       const UUID& uuid, bool is_primary);
 
+  // Inserts a new characteristic definition into a previously begun service
+  // declaration. Returns the assigned identifier for the characteristic, or
+  // nullptr in the case of an error.
+  std::unique_ptr<GattIdentifier> AddCharacteristic(
+      const UUID& uuid, int properties, int permissions);
+
   // Ends a previously started service declaration. This method immediately
   // returns false if a service declaration hasn't been started. Otherwise,
   // |callback| will be called asynchronously with the result of the operation.
@@ -74,6 +80,19 @@ class GattServer : public BluetoothClientInstance,
  private:
   friend class GattServerFactory;
 
+  // Internal representation of an attribute entry as part of a service
+  // declaration.
+  struct AttributeEntry {
+    AttributeEntry(const GattIdentifier& id,
+                   int char_properties,
+                   int permissions)
+        : id(id), char_properties(char_properties), permissions(permissions) {}
+
+    GattIdentifier id;
+    int char_properties;
+    int permissions;
+  };
+
   // Internal representation of a GATT service declaration before it has been
   // sent to the stack.
   struct ServiceDeclaration {
@@ -82,7 +101,7 @@ class GattServer : public BluetoothClientInstance,
     size_t num_handles;
     GattIdentifier service_id;
     int service_handle;
-    std::queue<GattIdentifier> attributes;
+    std::deque<AttributeEntry> attributes;
   };
 
   // Constructor shouldn't be called directly as instance are meant to be
@@ -94,23 +113,33 @@ class GattServer : public BluetoothClientInstance,
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
       const btgatt_srvc_id_t& srvc_id,
-      int srvc_handle) override;
+      int service_handle) override;
+  void CharacteristicAddedCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int status, int server_if,
+      const bt_uuid_t& uuid,
+      int service_handle,
+      int char_handle) override;
   void ServiceStartedCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
-      int srvc_handle) override;
+      int service_handle) override;
   void ServiceStoppedCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
-      int srvc_handle) override;
+      int service_handle) override;
 
   // Helper function that notifies and clears the pending callback.
   void NotifyEndCallbackAndClearData(BLEStatus status,
                                      const GattIdentifier& id);
   void CleanUpPendingData();
 
-  // Pops the next GATT ID from the pending service declaration's attribute
-  // list.
+  // Handles the next attribute entry in the pending service declaration.
+  void HandleNextEntry(hal::BluetoothGattInterface* gatt_iface);
+
+  // Pops the next GATT ID or entry from the pending service declaration's
+  // attribute list.
+  std::unique_ptr<AttributeEntry> PopNextEntry();
   std::unique_ptr<GattIdentifier> PopNextId();
 
   // See getters for documentation.
