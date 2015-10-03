@@ -141,6 +141,25 @@ void ServiceAddedCallback(
       g_interface, status, server_if, *srvc_id, srvc_handle));
 }
 
+void CharacteristicAddedCallback(
+    int status, int server_if,
+    bt_uuid_t* uuid,
+    int srvc_handle,
+    int char_handle) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
+          << " srvc_handle: " << srvc_handle << " char_handle: " << char_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  if (!uuid) {
+    LOG(WARNING) << "|uuid| is NULL; ignoring CharacteristicAddedCallback";
+    return;
+  }
+
+  FOR_EACH_SERVER_OBSERVER(CharacteristicAddedCallback(
+      g_interface, status, server_if, *uuid, srvc_handle, char_handle));
+}
+
 void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
   lock_guard<mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
@@ -204,7 +223,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     nullptr,  // connection_cb
     ServiceAddedCallback,
     nullptr,  // included_service_added_cb,
-    nullptr,  // characteristic_added_cb,
+    CharacteristicAddedCallback,
     nullptr,  // descriptor_added_cb,
     ServiceStartedCallback,
     ServiceStoppedCallback,
@@ -396,6 +415,16 @@ void BluetoothGattInterface::ServerObserver::ServiceAddedCallback(
     int /* server_if */,
     const btgatt_srvc_id_t& /* srvc_id */,
     int /* srvc_handle */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::CharacteristicAddedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    const bt_uuid_t& /* uuid */,
+    int /* srvc_handle */,
+    int /* char_handle */) {
   // Do nothing.
 }
 

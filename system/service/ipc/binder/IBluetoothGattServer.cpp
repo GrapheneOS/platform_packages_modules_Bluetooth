@@ -79,6 +79,26 @@ status_t BnBluetoothGattServer::onTransact(
 
     return android::NO_ERROR;
   }
+  case ADD_CHARACTERISTIC_TRANSACTION: {
+    int server_if = data.readInt32();
+    auto uuid = CreateUUIDFromParcel(data);
+    CHECK(uuid);
+    int properties = data.readInt32();
+    int permissions = data.readInt32();
+
+    std::unique_ptr<bluetooth::GattIdentifier> out_id;
+    bool result = AddCharacteristic(
+        server_if, *uuid, properties, permissions, &out_id);
+
+    reply->writeInt32(result);
+
+    if (result) {
+      CHECK(out_id);
+      WriteGattIdentifierToParcel(*out_id, reply);
+    }
+
+    return android::NO_ERROR;
+  }
   case END_SERVICE_DECLARATION_TRANSACTION: {
     int server_if = data.readInt32();
     bool result = EndServiceDeclaration(server_if);
@@ -143,6 +163,29 @@ bool BpBluetoothGattServer::BeginServiceDeclaration(
   remote()->transact(
       IBluetoothGattServer::BEGIN_SERVICE_DECLARATION_TRANSACTION,
       data, &reply);
+
+  bool result = reply.readInt32();
+  if (result)
+    *out_id = CreateGattIdentifierFromParcel(reply);
+
+  return result;
+}
+
+bool BpBluetoothGattServer::AddCharacteristic(
+    int server_if, const bluetooth::UUID& uuid,
+    int properties, int permissions,
+    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+  CHECK(out_id);
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
+  data.writeInt32(server_if);
+  WriteUUIDToParcel(uuid, &data);
+  data.writeInt32(properties);
+  data.writeInt32(permissions);
+
+  remote()->transact(IBluetoothGattServer::ADD_CHARACTERISTIC_TRANSACTION,
+                     data, &reply);
 
   bool result = reply.readInt32();
   if (result)

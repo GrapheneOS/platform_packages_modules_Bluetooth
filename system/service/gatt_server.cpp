@@ -55,7 +55,7 @@ int GattServer::GetClientId() const {
 
 std::unique_ptr<GattIdentifier> GattServer::BeginServiceDeclaration(
     const UUID& uuid, bool is_primary) {
-  VLOG(1) << __func__ << "server_if: " << server_if_
+  VLOG(1) << __func__ << " server_if: " << server_if_
           << " - UUID: " << uuid.ToString()
           << ", is_primary: " << is_primary;
   lock_guard<mutex> lock(mutex_);
@@ -86,16 +86,60 @@ std::unique_ptr<GattIdentifier> GattServer::BeginServiceDeclaration(
   auto service_id = GattIdentifier::CreateServiceId(
       "", inst_id, uuid, is_primary);
 
+  // Pass 0 for permissions and properties as this is a service decl.
+  AttributeEntry entry(
+      *service_id, kCharacteristicPropertyNone, kAttributePermissionNone);
+
   pending_decl_.reset(new ServiceDeclaration());
   pending_decl_->num_handles++;  // 1 handle for the service decl. attribute
   pending_decl_->service_id = *service_id;
-  pending_decl_->attributes.push(*service_id);
+  pending_decl_->attributes.push_back(entry);
 
   return service_id;
 }
 
+std::unique_ptr<GattIdentifier> GattServer::AddCharacteristic(
+      const UUID& uuid, int properties, int permissions) {
+  VLOG(1) << __func__ << " server_if: " << server_if_
+          << " - UUID: " << uuid.ToString()
+          << ", properties: " << properties
+          << ", permissions: " << permissions;
+  lock_guard<mutex> lock(mutex_);
+
+  if (!pending_decl_) {
+    LOG(ERROR) << "Service declaration not begun";
+    return nullptr;
+  }
+
+  // Calculate the instance ID for this characteristic by searching through the
+  // pending entries.
+  int inst_id = 0;
+  for (const auto& entry : pending_decl_->attributes) {
+    const GattIdentifier* gatt_id = &entry.id;
+
+    if (!gatt_id->IsCharacteristic())
+      continue;
+
+    if (gatt_id->characteristic_uuid() == uuid)
+      ++inst_id;
+  }
+
+  CHECK(pending_decl_->service_id.IsService());
+
+  auto char_id = GattIdentifier::CreateCharacteristicId(
+      inst_id, uuid, pending_decl_->service_id);
+
+  AttributeEntry entry(*char_id, properties, permissions);
+
+  // 2 handles for the characteristic declaration and the value attributes.
+  pending_decl_->num_handles += 2;
+  pending_decl_->attributes.push_back(entry);
+
+  return char_id;
+}
+
 bool GattServer::EndServiceDeclaration(const ResultCallback& callback) {
-  VLOG(1) << __func__ << "server_if: " << server_if_;
+  VLOG(1) << __func__ << " server_if: " << server_if_;
   lock_guard<mutex> lock(mutex_);
 
   if (!callback) {
@@ -146,7 +190,7 @@ void GattServer::ServiceAddedCallback(
     hal::BluetoothGattInterface* gatt_iface,
     int status, int server_if,
     const btgatt_srvc_id_t& srvc_id,
-    int srvc_handle) {
+    int service_handle) {
   lock_guard<mutex> lock(mutex_);
 
   if (server_if != server_if_)
@@ -159,8 +203,9 @@ void GattServer::ServiceAddedCallback(
   CHECK(*gatt_id == pending_decl_->service_id);
   CHECK(pending_id_->IsService());
 
-  VLOG(1) << __func__ << " - server_if: " << server_if
-          << " handle: " << srvc_handle
+  VLOG(1) << __func__ << " - status: " << status
+          << " server_if: " << server_if
+          << " handle: " << service_handle
           << " UUID: " << gatt_id->service_uuid().ToString();
 
   if (status != BT_STATUS_SUCCESS) {
@@ -169,26 +214,50 @@ void GattServer::ServiceAddedCallback(
   }
 
   // Add this to the handle map.
-  pending_handle_map_[*gatt_id] = srvc_handle;
+  pending_handle_map_[*gatt_id] = service_handle;
   CHECK(-1 == pending_decl_->service_handle);
-  pending_decl_->service_handle = srvc_handle;
+  pending_decl_->service_handle = service_handle;
 
-  // More entries aren't supported yet.
-  CHECK(pending_decl_->attributes.empty());
+  HandleNextEntry(gatt_iface);
+}
 
-  bt_status_t start_status = gatt_iface->GetServerHALInterface()->start_service(
-      server_if_, srvc_handle, TRANSPORT_BREDR | TRANSPORT_LE);
-  if (start_status == BT_STATUS_SUCCESS)
-    return;  // Wait for the pending call.
+void GattServer::CharacteristicAddedCallback(
+    hal::BluetoothGattInterface* gatt_iface,
+    int status, int server_if,
+    const bt_uuid_t& uuid,
+    int service_handle,
+    int char_handle) {
+  lock_guard<mutex> lock(mutex_);
 
-  // Notify failure.
-  NotifyEndCallbackAndClearData(static_cast<BLEStatus>(start_status), *gatt_id);
+  if (server_if != server_if_)
+    return;
+
+  CHECK(pending_decl_);
+  CHECK(pending_decl_->service_handle == service_handle);
+  CHECK(pending_id_);
+  CHECK(pending_id_->IsCharacteristic());
+  CHECK(pending_id_->characteristic_uuid() == UUID(uuid));
+
+  VLOG(1) << __func__ << " - status: " << status
+          << " server_if: " << server_if
+          << " service_handle: " << service_handle
+          << " char_handle: " << char_handle;
+
+  if (status != BT_STATUS_SUCCESS) {
+    NotifyEndCallbackAndClearData(static_cast<BLEStatus>(status),
+                                  pending_decl_->service_id);
+    return;
+  }
+
+  // Add this to the handle map and continue.
+  pending_handle_map_[*pending_id_] = char_handle;
+  HandleNextEntry(gatt_iface);
 }
 
 void GattServer::ServiceStartedCallback(
     hal::BluetoothGattInterface* gatt_iface,
     int status, int server_if,
-    int srvc_handle) {
+    int service_handle) {
   lock_guard<mutex> lock(mutex_);
 
   if (server_if != server_if_)
@@ -196,16 +265,16 @@ void GattServer::ServiceStartedCallback(
 
   CHECK(pending_id_);
   CHECK(pending_decl_);
-  CHECK(pending_decl_->service_handle == srvc_handle);
+  CHECK(pending_decl_->service_handle == service_handle);
 
   VLOG(1) << __func__ << " - server_if: " << server_if
-          << " handle: " << srvc_handle;
+          << " handle: " << service_handle;
 
   // If we failed to start the service, remove it from the database and ignore
   // the result.
   if (status != BT_STATUS_SUCCESS) {
     gatt_iface->GetServerHALInterface()->delete_service(
-        server_if_, srvc_handle);
+        server_if_, service_handle);
   }
 
   // Complete the operation.
@@ -217,7 +286,7 @@ void GattServer::ServiceStoppedCallback(
     hal::BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* server_if */,
-    int /* srvc_handle */) {
+    int /* service_handle */) {
   // TODO(armansito): Support stopping a service.
 }
 
@@ -241,18 +310,72 @@ void GattServer::CleanUpPendingData() {
   pending_handle_map_.clear();
 }
 
-std::unique_ptr<GattIdentifier> GattServer::PopNextId() {
+void GattServer::HandleNextEntry(hal::BluetoothGattInterface* gatt_iface) {
+  CHECK(pending_decl_);
+  CHECK(gatt_iface);
+
+  auto next_entry = PopNextEntry();
+  if (!next_entry) {
+    // No more entries. Call start_service to finish up.
+    bt_status_t status = gatt_iface->GetServerHALInterface()->start_service(
+        server_if_,
+        pending_decl_->service_handle,
+        TRANSPORT_BREDR | TRANSPORT_LE);
+
+    // Terminate the procedure in the case of an error.
+    if (status != BT_STATUS_SUCCESS) {
+      NotifyEndCallbackAndClearData(static_cast<BLEStatus>(status),
+                                    pending_decl_->service_id);
+    }
+
+    return;
+  }
+
+  if (next_entry->id.IsCharacteristic()) {
+    bt_uuid_t char_uuid = next_entry->id.characteristic_uuid().GetBlueDroid();
+    bt_status_t status = gatt_iface->GetServerHALInterface()->
+        add_characteristic(
+            server_if_,
+            pending_decl_->service_handle,
+            &char_uuid,
+            next_entry->char_properties,
+            next_entry->permissions);
+
+    // Terminate the procedure in the case of an error.
+    if (status != BT_STATUS_SUCCESS) {
+      NotifyEndCallbackAndClearData(static_cast<BLEStatus>(status),
+                                    pending_decl_->service_id);
+      return;
+    }
+
+    pending_id_.reset(new GattIdentifier(next_entry->id));
+
+    return;
+  }
+
+  NOTREACHED() << "Unexpected entry type";
+}
+
+std::unique_ptr<GattServer::AttributeEntry> GattServer::PopNextEntry() {
   CHECK(pending_decl_);
 
   if (pending_decl_->attributes.empty())
     return nullptr;
 
-  const GattIdentifier& next = pending_decl_->attributes.front();
-  std::unique_ptr<GattIdentifier> id(new GattIdentifier(next));
+  const auto& next = pending_decl_->attributes.front();
+  std::unique_ptr<AttributeEntry> entry(new AttributeEntry(next));
 
-  pending_decl_->attributes.pop();
+  pending_decl_->attributes.pop_front();
 
-  return id;
+  return entry;
+}
+
+std::unique_ptr<GattIdentifier> GattServer::PopNextId() {
+  auto entry = PopNextEntry();
+  if (!entry)
+    return nullptr;
+
+  return std::unique_ptr<GattIdentifier>(new GattIdentifier(entry->id));
 }
 
 // GattServerFactory implementation
