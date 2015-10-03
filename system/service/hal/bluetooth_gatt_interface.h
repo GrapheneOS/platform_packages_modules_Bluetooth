@@ -87,6 +87,13 @@ class BluetoothGattInterface {
         const btgatt_srvc_id_t& srvc_id,
         int srvc_handle);
 
+    virtual void CharacteristicAddedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        const bt_uuid_t& uuid,
+        int srvc_handle,
+        int char_handle);
+
     virtual void ServiceStartedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,

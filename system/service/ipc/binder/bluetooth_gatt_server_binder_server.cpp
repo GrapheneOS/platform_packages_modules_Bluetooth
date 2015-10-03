@@ -78,6 +78,32 @@ bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
   return true;
 }
 
+bool BluetoothGattServerBinderServer::AddCharacteristic(
+    int server_if, const bluetooth::UUID& uuid,
+    int properties, int permissions,
+    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+  VLOG(2) << __func__;
+  CHECK(out_id);
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  auto char_id = gatt_server->AddCharacteristic(uuid, properties, permissions);
+  if (!char_id) {
+    LOG(ERROR) << "Failed to add characteristic - server_if: "
+               << server_if << " UUID: " << uuid.ToString();
+    return false;
+  }
+
+  out_id->swap(char_id);
+
+  return true;
+}
+
 bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());

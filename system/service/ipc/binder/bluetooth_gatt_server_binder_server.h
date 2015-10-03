@@ -45,6 +45,10 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
   bool BeginServiceDeclaration(
       int server_if, bool is_primary, const bluetooth::UUID& uuid,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
+  bool AddCharacteristic(
+      int server_if, const bluetooth::UUID& uuid,
+      int properties, int permissions,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool EndServiceDeclaration(int server_if) override;
 
  private:
