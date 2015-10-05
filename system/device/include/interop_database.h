@@ -45,6 +45,9 @@ static const interop_entry_t interop_database[] = {
   // Dialog Keyboard/Mouse
   {{0x80, 0xea, 0xCa,       0,0,0}, 3, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
 
+  // Flic smart button
+  {{0x80, 0xe4, 0xda, 0x70,   0,0}, 4, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
+
   // BMW car kits (Harman/Becker)
   {{0x9c, 0xdf, 0x03,       0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING}
 };
