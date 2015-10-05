@@ -210,4 +210,9 @@ void HeartRateServer::OnExecuteWriteRequest(
   // TODO(armansito): Implement.
 }
 
+void HeartRateServer::OnNotificationSent(
+    const std::string& device_address, int status) {
+  // TODO(armansito): Implement.
+}
+
 }  // namespace heart_rate

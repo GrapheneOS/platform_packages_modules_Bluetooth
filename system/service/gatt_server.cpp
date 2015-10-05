@@ -366,6 +366,85 @@ bool GattServer::SendResponse(
   return true;
 }
 
+bool GattServer::SendNotification(
+    const std::string& device_address,
+    const GattIdentifier& characteristic_id,
+    bool confirm,
+    const std::vector<uint8_t>& value,
+    const GattCallback& callback) {
+  VLOG(1) << " - server_if: " << server_if_
+          << " device_address: " << device_address
+          << " confirm: " << confirm;
+  lock_guard<mutex> lock(mutex_);
+
+  bt_bdaddr_t addr;
+  if (!util::BdAddrFromString(device_address, &addr)) {
+    LOG(ERROR) << "Invalid device address given: " << device_address;
+    return false;
+  }
+
+  // Get the connection IDs for which we will send this notification.
+  auto conn_iter = conn_addr_map_.find(device_address);
+  if (conn_iter == conn_addr_map_.end()) {
+    LOG(ERROR) << "No known connections for device with address: "
+               << device_address;
+    return false;
+  }
+
+  // Make sure that |characteristic_id| matches a valid attribute handle.
+  auto handle_iter = id_to_handle_map_.find(characteristic_id);
+  if (handle_iter == id_to_handle_map_.end()) {
+    LOG(ERROR) << "Unknown characteristic";
+    return false;
+  }
+
+  std::shared_ptr<PendingIndication> pending_ind(
+      new PendingIndication(callback));
+
+  // Send the notification/indication on all matching connections.
+  int send_count = 0;
+  for (auto conn : conn_iter->second) {
+    // Make sure that one isn't already pending for this connection.
+    if (pending_indications_.find(conn->conn_id) !=
+        pending_indications_.end()) {
+      VLOG(1) << "A" << (confirm ? "n indication" : " notification")
+              << " is already pending for connection: " << conn->conn_id;
+      continue;
+    }
+
+    // The HAL API takes char* rather const char* for |value|, so we have to
+    // cast away the const.
+    // TODO(armansito): Make HAL accept const char*.
+    bt_status_t status = hal::BluetoothGattInterface::Get()->
+        GetServerHALInterface()->send_indication(
+            server_if_,
+            handle_iter->second,
+            conn->conn_id,
+            value.size(),
+            confirm,
+            reinterpret_cast<char*>(const_cast<uint8_t*>(value.data())));
+
+    // Increment the send count if this was successful. We don't immediately
+    // fail if the HAL returned an error. It's better to report success as long
+    // as we sent out at least one notification to this device as
+    // multi-transport GATT connections from the same BD_ADDR will be rare
+    // enough already.
+    if (status != BT_STATUS_SUCCESS)
+      continue;
+
+    send_count++;
+    pending_indications_[conn->conn_id] = pending_ind;
+  }
+
+  if (send_count == 0) {
+    LOG(ERROR) << "Failed to send notifications/indications to device: "
+               << device_address;
+    return false;
+  }
+
+  return true;
+}
+
 void GattServer::ConnectionCallback(
     hal::BluetoothGattInterface* /* gatt_iface */,
     int conn_id, int server_if,
@@ -709,6 +788,32 @@ void GattServer::RequestExecWriteCallback(
   }
 
   delegate_->OnExecuteWriteRequest(this, device_address, trans_id, exec_write);
+}
+
+void GattServer::IndicationSentCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
+    int conn_id, int status) {
+  VLOG(1) << __func__ << " conn_id: " << conn_id << " status: " << status;
+  lock_guard<mutex> lock(mutex_);
+
+  const auto& pending_ind_iter = pending_indications_.find(conn_id);
+  if (pending_ind_iter == pending_indications_.end()) {
+    VLOG(1) << "Unknown connection: " << conn_id;
+    return;
+  }
+
+  std::shared_ptr<PendingIndication> pending_ind = pending_ind_iter->second;
+  pending_indications_.erase(pending_ind_iter);
+
+  if (status == BT_STATUS_SUCCESS)
+    pending_ind->has_success = true;
+
+  // Invoke it if this was the last reference to the confirmation callback.
+  if (pending_ind.unique() && pending_ind->callback) {
+    pending_ind->callback(
+        pending_ind->has_success ?
+        GATT_ERROR_NONE : static_cast<GATTError>(status));
+  }
 }
 
 void GattServer::NotifyEndCallbackAndClearData(

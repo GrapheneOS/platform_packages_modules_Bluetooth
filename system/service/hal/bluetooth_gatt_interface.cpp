@@ -233,6 +233,15 @@ void RequestExecWriteCallback(int conn_id, int trans_id,
       g_interface, conn_id, trans_id, *bda, exec_write));
 }
 
+void IndicationSentCallback(int conn_id, int status) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " status: " << status;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_SERVER_OBSERVER(IndicationSentCallback(
+      g_interface, conn_id, status));
+}
+
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
@@ -285,7 +294,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     RequestWriteCallback,
     RequestExecWriteCallback,
     nullptr,  // response_confirmation_cb,
-    nullptr,  // indication_sent_cb
+    IndicationSentCallback,
     nullptr,  // congestion_cb
     nullptr,  // mtu_changed_cb
 };
@@ -542,11 +551,18 @@ void BluetoothGattInterface::ServerObserver::RequestWriteCallback(
 }
 
 void BluetoothGattInterface::ServerObserver::RequestExecWriteCallback(
-    BluetoothGattInterface* gatt_iface,
+    BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* trans_id */,
     const bt_bdaddr_t& /* bda */,
     int /* exec_write */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::IndicationSentCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */) {
   // Do nothing.
 }
 

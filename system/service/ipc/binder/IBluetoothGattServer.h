@@ -83,6 +83,13 @@ class IBluetoothGattServer : public android::IInterface {
       int status, int offset,
       const std::vector<uint8_t>& value) = 0;
 
+  virtual bool SendNotification(
+      int server_if,
+      const std::string& device_address,
+      const bluetooth::GattIdentifier& characteristic_id,
+      bool confirm,
+      const std::vector<uint8_t>& value) = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
@@ -135,6 +142,12 @@ class BpBluetoothGattServer
       const std::string& device_address,
       int request_id,
       int status, int offset,
+      const std::vector<uint8_t>& value) override;
+  bool SendNotification(
+      int server_if,
+      const std::string& device_address,
+      const bluetooth::GattIdentifier& characteristic_id,
+      bool confirm,
       const std::vector<uint8_t>& value) override;
 
  private:

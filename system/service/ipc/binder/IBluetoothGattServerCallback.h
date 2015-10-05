@@ -85,7 +85,8 @@ namespace binder {
       const std::string& device_address,
       int request_id, bool is_execute) = 0;
 
-  // TODO(armansito): Complete the API definition.
+  virtual void OnNotificationSent(const std::string& device_address,
+                                  int status) = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IBluetoothGattServerCallback);
@@ -142,6 +143,8 @@ class BpBluetoothGattServerCallback
   void OnExecuteWriteRequest(
       const std::string& device_address,
       int request_id, bool is_execute) override;
+  void OnNotificationSent(const std::string& device_address,
+                          int status) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServerCallback);
