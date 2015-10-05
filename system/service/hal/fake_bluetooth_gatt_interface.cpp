@@ -306,6 +306,25 @@ void FakeBluetoothGattInterface::NotifyRequestReadCallback(
           this, conn_id, trans_id, bda, attr_handle, offset, is_long));
 }
 
+void FakeBluetoothGattInterface::NotifyRequestWriteCallback(
+    int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int attr_handle,
+    int offset, int length,
+    bool need_rsp, bool is_prep, uint8_t* value) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      RequestWriteCallback(
+          this, conn_id, trans_id, bda, attr_handle, offset, length, need_rsp,
+          is_prep, value));
+}
+
+void FakeBluetoothGattInterface::NotifyRequestExecWriteCallback(
+    int conn_id, int trans_id, const bt_bdaddr_t& bda, int exec_write) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      RequestExecWriteCallback(this, conn_id, trans_id, bda, exec_write));
+}
+
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {
   CHECK(observer);
   client_observers_.AddObserver(observer);

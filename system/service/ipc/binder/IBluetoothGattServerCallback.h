@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 #include <base/macros.h>
 #include <binder/IBinder.h>
@@ -48,7 +50,7 @@ namespace binder {
     ON_DESCRIPTOR_READ_REQUEST_TRANSACTION,
     ON_CHARACTERISTIC_WRITE_REQUEST_TRANSACTION,
     ON_DESCRIPTOR_WRITE_REQUEST_TRANSACTION,
-    ON_EXECUTE_WRITE_TRANSACTION,
+    ON_EXECUTE_WRITE_REQUEST_TRANSACTION,
     ON_NOTIFICATION_SENT_TRANSACTION,
   };
 
@@ -66,6 +68,22 @@ namespace binder {
       const std::string& device_address,
       int request_id, int offset, bool is_long,
       const bluetooth::GattIdentifier& descriptor_id) = 0;
+
+  virtual void OnCharacteristicWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& characteristic_id) = 0;
+
+  virtual void OnDescriptorWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& descriptor_id) = 0;
+
+  virtual void OnExecuteWriteRequest(
+      const std::string& device_address,
+      int request_id, bool is_execute) = 0;
 
   // TODO(armansito): Complete the API definition.
 
@@ -111,6 +129,19 @@ class BpBluetoothGattServerCallback
       const std::string& device_address,
       int request_id, int offset, bool is_long,
       const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnCharacteristicWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnExecuteWriteRequest(
+      const std::string& device_address,
+      int request_id, bool is_execute) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServerCallback);

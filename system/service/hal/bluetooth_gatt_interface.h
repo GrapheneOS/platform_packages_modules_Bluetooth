@@ -124,6 +124,18 @@ class BluetoothGattInterface {
         int attr_handle, int offset,
         bool is_long);
 
+    virtual void RequestWriteCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int trans_id,
+        const bt_bdaddr_t& bda,
+        int attr_handle, int offset, int length,
+        bool need_rsp, bool is_prep, uint8_t* value);
+
+    virtual void RequestExecWriteCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int trans_id,
+        const bt_bdaddr_t& bda, int exec_write);
+
     // TODO(armansito): Complete the list of callbacks.
   };
 

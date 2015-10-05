@@ -69,6 +69,22 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
       const std::string& device_address,
       int request_id, int offset, bool is_long,
       const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnCharacteristicWriteRequest(
+      bluetooth::GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorWriteRequest(
+      bluetooth::GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnExecuteWriteRequest(
+      bluetooth::GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, bool is_execute) override;
 
  private:
   // Returns a pointer to the IBluetoothGattServerBinderServer instance

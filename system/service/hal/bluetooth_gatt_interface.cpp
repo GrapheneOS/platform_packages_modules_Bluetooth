@@ -204,6 +204,35 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
       g_interface, conn_id, trans_id, *bda, attr_handle, offset, is_long));
 }
 
+void RequestWriteCallback(int conn_id, int trans_id,
+                          bt_bdaddr_t* bda,
+                          int attr_handle, int offset, int length,
+                          bool need_rsp, bool is_prep, uint8_t* value) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " attr_handle: " << attr_handle << " offset: " << offset
+          << " length: " << length << " need_rsp: " << need_rsp
+          << " is_prep: " << is_prep;
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  FOR_EACH_SERVER_OBSERVER(RequestWriteCallback(
+      g_interface, conn_id, trans_id, *bda, attr_handle, offset, length,
+      need_rsp, is_prep, value));
+}
+
+void RequestExecWriteCallback(int conn_id, int trans_id,
+                              bt_bdaddr_t* bda, int exec_write) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " exec_write: " << exec_write;
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  FOR_EACH_SERVER_OBSERVER(RequestExecWriteCallback(
+      g_interface, conn_id, trans_id, *bda, exec_write));
+}
+
 // The HAL Bluetooth GATT client interface callbacks. These signal a mixture of
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
@@ -253,8 +282,8 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     ServiceStoppedCallback,
     nullptr,  // service_deleted_cb,
     RequestReadCallback,
-    nullptr,  // request_write_cb,
-    nullptr,  // request_exec_write_cb,
+    RequestWriteCallback,
+    RequestExecWriteCallback,
     nullptr,  // response_confirmation_cb,
     nullptr,  // indication_sent_cb
     nullptr,  // congestion_cb
@@ -495,6 +524,29 @@ void BluetoothGattInterface::ServerObserver::RequestReadCallback(
     int /* attr_handle */,
     int /* offset */,
     bool /* is_long */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::RequestWriteCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* trans_id */,
+    const bt_bdaddr_t& /* bda */,
+    int /* attr_handle */,
+    int /* offset */,
+    int /* length */,
+    bool /* need_rsp */,
+    bool /* is_prep */,
+    uint8_t* /* value */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::RequestExecWriteCallback(
+    BluetoothGattInterface* gatt_iface,
+    int /* conn_id */,
+    int /* trans_id */,
+    const bt_bdaddr_t& /* bda */,
+    int /* exec_write */) {
   // Do nothing.
 }
 
