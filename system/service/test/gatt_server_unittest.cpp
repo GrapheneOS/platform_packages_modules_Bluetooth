@@ -37,6 +37,7 @@ class MockGattHandler
   MOCK_METHOD1(UnregisterServer, bt_status_t(int));
   MOCK_METHOD3(AddService, bt_status_t(int, btgatt_srvc_id_t*, int));
   MOCK_METHOD5(AddCharacteristic, bt_status_t(int, int, bt_uuid_t*, int, int));
+  MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
 
@@ -406,6 +407,10 @@ TEST_F(GattServerPostRegisterTest, AddCharacteristic) {
   int char_handle1 = 0x0004;
   EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
 
+  // Cannot add any more characteristics while EndServiceDeclaration is in
+  // progress.
+  EXPECT_EQ(nullptr, gatt_server_->AddCharacteristic(char_uuid, props, perms));
+
   EXPECT_CALL(*mock_handler_, AddCharacteristic(_, _, _, _, _))
       .Times(8)
       .WillOnce(Return(BT_STATUS_FAIL))      // char_id0 - try 1
@@ -518,6 +523,245 @@ TEST_F(GattServerPostRegisterTest, AddCharacteristic) {
       BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid,
       srvc_handle, char_handle1);
   EXPECT_EQ(4, cb_count);
+}
+
+TEST_F(GattServerPostRegisterTest, AddDescriptor) {
+  // Set up some values for UUIDs, permissions, and properties.
+  const UUID service_uuid = UUID::GetRandom();
+  const UUID char_uuid0 = UUID::GetRandom();
+  const UUID char_uuid1 = UUID::GetRandom();
+  const UUID desc_uuid = UUID::GetRandom();
+  bt_uuid_t hal_char_uuid0 = char_uuid0.GetBlueDroid();
+  bt_uuid_t hal_char_uuid1 = char_uuid1.GetBlueDroid();
+  bt_uuid_t hal_desc_uuid = desc_uuid.GetBlueDroid();
+  const int props = bluetooth::kCharacteristicPropertyRead |
+      bluetooth::kCharacteristicPropertyNotify;
+  const int perms = kAttributePermissionReadEncrypted;
+
+  // Service declaration not started.
+  EXPECT_EQ(nullptr, gatt_server_->AddDescriptor(desc_uuid, perms));
+
+  // Start a service declaration.
+  auto service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  btgatt_srvc_id_t hal_id;
+  hal::GetHALServiceId(*service_id, &hal_id);
+
+  // No characteristic was inserted.
+  EXPECT_EQ(nullptr, gatt_server_->AddDescriptor(desc_uuid, perms));
+
+  // Add two characeristics.
+  auto char_id0 = gatt_server_->AddCharacteristic(char_uuid0, props, perms);
+  auto char_id1 = gatt_server_->AddCharacteristic(char_uuid1, props, perms);
+
+  // Add a descriptor.
+  auto desc_id = gatt_server_->AddDescriptor(desc_uuid, perms);
+  EXPECT_NE(nullptr, desc_id);
+  EXPECT_TRUE(desc_id->IsDescriptor());
+  EXPECT_TRUE(*desc_id->GetOwningCharacteristicId() == *char_id1);
+  EXPECT_TRUE(*desc_id->GetOwningServiceId() == *service_id);
+
+  // Add a second descriptor with the same UUID.
+  auto desc_id1 = gatt_server_->AddDescriptor(desc_uuid, perms);
+  EXPECT_NE(nullptr, desc_id1);
+  EXPECT_TRUE(*desc_id1 != *desc_id);
+  EXPECT_TRUE(desc_id1->IsDescriptor());
+  EXPECT_TRUE(*desc_id1->GetOwningCharacteristicId() == *char_id1);
+  EXPECT_TRUE(*desc_id1->GetOwningServiceId() == *service_id);
+
+  // Expect calls for 7 handles.
+  EXPECT_CALL(*mock_handler_, AddService(kDefaultServerId, _, 7))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, AddCharacteristic(_, _, _, _, _))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  GattIdentifier cb_id;
+  BLEStatus cb_status;
+  int cb_count = 0;
+  auto callback = [&](BLEStatus in_status, const GattIdentifier& in_id) {
+    cb_id = in_id;
+    cb_status = in_status;
+    cb_count++;
+  };
+
+  int srvc_handle = 0x0001;
+  int char_handle0 = 0x0002;
+  int char_handle1 = 0x0004;
+  int desc_handle0 = 0x0005;
+  int desc_handle1 = 0x0006;
+
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  // Cannot add any more descriptors while EndServiceDeclaration is in progress.
+  EXPECT_EQ(nullptr, gatt_server_->AddDescriptor(desc_uuid, perms));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+
+  EXPECT_CALL(*mock_handler_, AddDescriptor(_, _, _, _))
+      .Times(8)
+      .WillOnce(Return(BT_STATUS_FAIL))      // desc_id0 - try 1
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // desc_id0 - try 2
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // desc_id0 - try 3
+      .WillOnce(Return(BT_STATUS_FAIL))      // desc_id1 - try 3
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // desc_id0 - try 4
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // desc_id1 - try 4
+      .WillOnce(Return(BT_STATUS_SUCCESS))   // desc_id0 - try 5
+      .WillOnce(Return(BT_STATUS_SUCCESS));  // desc_id1 - try 5
+
+  // Notify success for both characteristics. First descriptor call will fail.
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid0,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid1,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart (try 2)
+  cb_count = 0;
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid0, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid1, props, perms);
+  desc_id = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id);
+  desc_id1 = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id1);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid0,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid1,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(0, cb_count);
+
+  // Notify failure for first descriptor.
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle0);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart (try 3)
+  cb_count = 0;
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid0, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid1, props, perms);
+  desc_id = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id);
+  desc_id1 = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id1);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid0,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid1,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(0, cb_count);
+
+  // Notify success for first descriptor; the second descriptor will fail
+  // immediately.
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle0);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart (try 4)
+  cb_count = 0;
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid0, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid1, props, perms);
+  desc_id = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id);
+  desc_id1 = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id1);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid0,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid1,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(0, cb_count);
+
+  // Notify success for first first descriptor and failure for second
+  // descriptor.
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle0);
+  EXPECT_EQ(0, cb_count);
+
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_FAIL, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle1);
+  EXPECT_EQ(1, cb_count);
+  EXPECT_NE(BLE_STATUS_SUCCESS, cb_status);
+  EXPECT_TRUE(cb_id == *service_id);
+
+  // Restart (try 5)
+  cb_count = 0;
+  service_id = gatt_server_->BeginServiceDeclaration(service_uuid, true);
+  hal::GetHALServiceId(*service_id, &hal_id);
+  char_id0 = gatt_server_->AddCharacteristic(char_uuid0, props, perms);
+  char_id1 = gatt_server_->AddCharacteristic(char_uuid1, props, perms);
+  desc_id = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id);
+  desc_id1 = gatt_server_->AddDescriptor(desc_uuid, perms);
+  ASSERT_NE(nullptr, desc_id1);
+  EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
+
+  fake_hal_gatt_iface_->NotifyServiceAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_id, srvc_handle);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid0,
+      srvc_handle, char_handle0);
+  EXPECT_EQ(0, cb_count);
+  fake_hal_gatt_iface_->NotifyCharacteristicAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_char_uuid1,
+      srvc_handle, char_handle1);
+  EXPECT_EQ(0, cb_count);
+
+  // Notify success for both descriptors.
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle0);
+  EXPECT_EQ(0, cb_count);
+
+  // The second descriptor callback should trigger the end routine.
+  EXPECT_CALL(*mock_handler_, StartService(kDefaultServerId, srvc_handle, _))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  fake_hal_gatt_iface_->NotifyDescriptorAddedCallback(
+      BT_STATUS_SUCCESS, kDefaultServerId, hal_desc_uuid,
+      srvc_handle, desc_handle1);
+  EXPECT_EQ(0, cb_count);
 }
 
 }  // namespace

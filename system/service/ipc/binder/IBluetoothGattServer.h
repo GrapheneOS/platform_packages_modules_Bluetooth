@@ -69,6 +69,9 @@ class IBluetoothGattServer : public android::IInterface {
       int server_if, const bluetooth::UUID& uuid,
       int properties, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) = 0;
+  virtual bool AddDescriptor(
+      int server_if, const bluetooth::UUID& uuid, int permissions,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) = 0;
   virtual bool EndServiceDeclaration(int server_if) = 0;
 
   // TODO(armansito): Complete the API definition.
@@ -113,6 +116,9 @@ class BpBluetoothGattServer
   bool AddCharacteristic(
       int server_if, const bluetooth::UUID& uuid,
       int properties, int permissions,
+      std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
+  bool AddDescriptor(
+      int server_if, const bluetooth::UUID& uuid, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool EndServiceDeclaration(int server_if) override;
 
