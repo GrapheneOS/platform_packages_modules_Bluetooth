@@ -32,7 +32,8 @@ namespace binder {
 
 // Implements the server side of the IBluetoothGattServer interface.
 class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
-                                        public InterfaceWithClientsBase {
+                                        public InterfaceWithClientsBase,
+                                        public bluetooth::GattServer::Delegate {
  public:
   explicit BluetoothGattServerBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothGattServerBinderServer() override = default;
@@ -53,6 +54,21 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
       int server_if, const bluetooth::UUID& uuid, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool EndServiceDeclaration(int server_if) override;
+  bool SendResponse(int server_if, const std::string& device_address,
+                    int request_id, int status, int offset,
+                    const std::vector<uint8_t>& value) override;
+
+  // bluetooth::GattServer::Delegate overrides:
+  void OnCharacteristicReadRequest(
+      bluetooth::GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorReadRequest(
+      bluetooth::GattServer* gatt_server,
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& descriptor_id) override;
 
  private:
   // Returns a pointer to the IBluetoothGattServerBinderServer instance

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <base/macros.h>
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
@@ -55,6 +57,16 @@ namespace binder {
   virtual void OnServiceAdded(
       int status, const bluetooth::GattIdentifier& service_id) = 0;
 
+  virtual void OnCharacteristicReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& characteristic_id) = 0;
+
+  virtual void OnDescriptorReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& descriptor_id) = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
@@ -91,6 +103,14 @@ class BpBluetoothGattServerCallback
   void OnServerRegistered(int status, int server_if) override;
   void OnServiceAdded(int status,
                       const bluetooth::GattIdentifier& service_id) override;
+  void OnCharacteristicReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& descriptor_id) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServerCallback);

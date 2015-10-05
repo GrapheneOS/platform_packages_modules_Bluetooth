@@ -123,6 +123,28 @@ status_t BnBluetoothGattServer::onTransact(
     reply->writeInt32(result);
     return android::NO_ERROR;
   }
+  case SEND_RESPONSE_TRANSACTION: {
+    int server_if = data.readInt32();
+    std::string device_address = data.readCString();
+    int request_id = data.readInt32();
+    int status = data.readInt32();
+    int offset = data.readInt32();
+
+    std::vector<uint8_t> value;
+    int value_len = data.readInt32();
+    if (value_len != -1) {
+      uint8_t bytes[value_len];
+      data.read(bytes, value_len);
+      value.insert(value.begin(), bytes, bytes + value_len);
+    }
+
+    bool result = SendResponse(
+        server_if, device_address, request_id, status, offset, value);
+
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
   default:
     return BBinder::onTransact(code, data, reply, flags);
   }
@@ -240,6 +262,28 @@ bool BpBluetoothGattServer::EndServiceDeclaration(int server_if) {
   data.writeInt32(server_if);
 
   remote()->transact(IBluetoothGattServer::END_SERVICE_DECLARATION_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
+}
+
+bool BpBluetoothGattServer::SendResponse(
+    int server_if,
+    const std::string& device_address,
+    int request_id,
+    int status, int offset,
+    const std::vector<uint8_t>& value) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
+  data.writeInt32(server_if);
+  data.writeCString(device_address.c_str());
+  data.writeInt32(request_id);
+  data.writeInt32(status);
+  data.writeInt32(offset);
+  data.writeByteArray(value.size(), value.data());
+
+  remote()->transact(IBluetoothGattServer::SEND_RESPONSE_TRANSACTION,
                      data, &reply);
 
   return reply.readInt32();

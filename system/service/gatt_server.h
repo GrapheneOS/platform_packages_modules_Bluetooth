@@ -20,6 +20,8 @@
 #include <functional>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include <base/macros.h>
 
@@ -36,8 +38,43 @@ namespace bluetooth {
 class GattServer : public BluetoothClientInstance,
                    private hal::BluetoothGattInterface::ServerObserver {
  public:
+  // Delegate interface is used to handle incoming requests and confirmations
+  // for a GATT service.
+  class Delegate {
+   public:
+    Delegate() = default;
+    virtual ~Delegate() = default;
+
+    // Called when there is an incoming read request for the characteristic with
+    // ID |characteristic_id| from a remote device with address
+    // |device_address|. |request_id| can be used to respond to this request by
+    // calling SendResponse below.
+    virtual void OnCharacteristicReadRequest(
+        GattServer* gatt_server,
+        const std::string& device_address,
+        int request_id, int offset, bool is_long,
+        const bluetooth::GattIdentifier& characteristic_id) = 0;
+
+    // Called when there is an incoming read request for the descriptor with
+    // ID |descriptor_id| from a remote device with address |device_address|.
+    // |request_id| can be used to respond to this request by
+    // calling SendResponse below.
+    virtual void OnDescriptorReadRequest(
+        GattServer* gatt_server,
+        const std::string& device_address,
+        int request_id, int offset, bool is_long,
+        const bluetooth::GattIdentifier& descriptor_id) = 0;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(Delegate);
+  };
+
   // The desctructor automatically unregisters this instance from the stack.
   ~GattServer() override;
+
+  // Assigns a delegate to this instance. |delegate| must out-live this
+  // GattServer instance.
+  void SetDelegate(Delegate* delegate);
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
@@ -86,6 +123,16 @@ class GattServer : public BluetoothClientInstance,
   // we in a stuck-state where the service declaration hasn't ended?
   bool EndServiceDeclaration(const ResultCallback& callback);
 
+  // Sends a response for a pending notification. |request_id| and
+  // |device_address| should match those that were received through one of the
+  // Delegate callbacks. |value| and |offset| are used for read requests and
+  // prepare write requests and should match the value of the attribute. Returns
+  // false if the pending request could not be resolved using the given
+  // parameters or if the call to the underlying stack fails.
+  bool SendResponse(const std::string& device_address, int request_id,
+                    GATTError error, int offset,
+                    const std::vector<uint8_t>& value);
+
  private:
   friend class GattServerFactory;
 
@@ -113,6 +160,21 @@ class GattServer : public BluetoothClientInstance,
     std::deque<AttributeEntry> attributes;
   };
 
+  // Used for the internal remote connection tracking. Keeps track of the
+  // request ID and the device address for the connection. If |request_id| is -1
+  // then no ATT read/write request is currently pending.
+  struct Connection {
+    Connection(int conn_id, const bt_bdaddr_t& bdaddr)
+        : conn_id(conn_id), bdaddr(bdaddr) {}
+    Connection() : conn_id(-1) {
+      memset(&bdaddr, 0, sizeof(bdaddr));
+    }
+
+    int conn_id;
+    std::unordered_map<int, int> request_id_to_handle;
+    bt_bdaddr_t bdaddr;
+  };
+
   // Constructor shouldn't be called directly as instance are meant to be
   // obtained from the factory.
   GattServer(const UUID& uuid, int server_if);
@@ -125,6 +187,11 @@ class GattServer : public BluetoothClientInstance,
   std::unique_ptr<GattIdentifier> GetIdForDescriptor(const UUID& uuid);
 
   // hal::BluetoothGattInterface::ServerObserver overrides:
+  void ConnectionCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int conn_id, int server_if,
+      int connected,
+      const bt_bdaddr_t& bda) override;
   void ServiceAddedCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
@@ -150,6 +217,12 @@ class GattServer : public BluetoothClientInstance,
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
       int service_handle) override;
+  void RequestReadCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int conn_id, int trans_id,
+      const bt_bdaddr_t& bda,
+      int attribute_handle, int offset,
+      bool is_long) override;
 
   // Helper function that notifies and clears the pending callback.
   void NotifyEndCallbackAndClearData(BLEStatus status,
@@ -158,6 +231,11 @@ class GattServer : public BluetoothClientInstance,
 
   // Handles the next attribute entry in the pending service declaration.
   void HandleNextEntry(hal::BluetoothGattInterface* gatt_iface);
+
+  // Helper method that returns a pointer to an internal Connection instance
+  // that matches the given parameters.
+  std::shared_ptr<Connection> GetConnection(int conn_id, const bt_bdaddr_t& bda,
+                                            int request_id);
 
   // Pops the next GATT ID or entry from the pending service declaration's
   // attribute list.
@@ -176,7 +254,19 @@ class GattServer : public BluetoothClientInstance,
   std::unordered_map<GattIdentifier, int> pending_handle_map_;
 
   // Mapping of handles and GATT identifiers for started services.
-  std::unordered_map<GattIdentifier, int> handle_map_;
+  std::unordered_map<GattIdentifier, int> id_to_handle_map_;
+  std::unordered_map<int, GattIdentifier> handle_to_id_map_;
+
+  // GATT connection mappings from stack-provided "conn_id" IDs and remote
+  // device addresses to Connection structures. The conn_id map is one-to-one
+  // while the conn_addr map is one to many, as a remote device may support
+  // multiple transports (BR/EDR & LE) and use the same device address for both.
+  std::unordered_map<int, std::shared_ptr<Connection>> conn_id_map_;
+  std::unordered_map<std::string, std::vector<std::shared_ptr<Connection>>>
+      conn_addr_map_;
+
+  // Raw handle to the Delegate, which must outlive this GattServer instance.
+  Delegate* delegate_;
 
   DISALLOW_COPY_AND_ASSIGN(GattServer);
 };
