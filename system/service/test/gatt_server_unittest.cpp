@@ -40,6 +40,7 @@ class MockGattHandler
   MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
+  MOCK_METHOD4(SendResponse, bt_status_t(int, int, int, btgatt_response_t*));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);

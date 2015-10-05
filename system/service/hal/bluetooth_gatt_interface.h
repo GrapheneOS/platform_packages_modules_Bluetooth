@@ -81,6 +81,12 @@ class BluetoothGattInterface {
         int status, int server_if,
         const bt_uuid_t& app_uuid);
 
+    virtual void ConnectionCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int server_if,
+        int connected,
+        const bt_bdaddr_t& bda);
+
     virtual void ServiceAddedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
@@ -110,6 +116,13 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
         int srvc_handle);
+
+    virtual void RequestReadCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int trans_id,
+        const bt_bdaddr_t& bda,
+        int attr_handle, int offset,
+        bool is_long);
 
     // TODO(armansito): Complete the list of callbacks.
   };
