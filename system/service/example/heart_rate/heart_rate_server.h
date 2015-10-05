@@ -43,6 +43,14 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
   void OnServiceAdded(
       int status,
       const bluetooth::GattIdentifier& service_id) override;
+  void OnCharacteristicReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorReadRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_long,
+      const bluetooth::GattIdentifier& descriptor_id) override;
 
   std::mutex mutex_;
 

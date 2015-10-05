@@ -59,6 +59,28 @@ status_t BnBluetoothGattServerCallback::onTransact(
     OnServiceAdded(status, *gatt_id);
     return android::NO_ERROR;
   }
+  case ON_CHARACTERISTIC_READ_REQUEST_TRANSACTION: {
+    std::string device_address = data.readCString();
+    int request_id = data.readInt32();
+    int offset = data.readInt32();
+    bool is_long = data.readInt32();
+    auto char_id = CreateGattIdentifierFromParcel(data);
+    CHECK(char_id);
+    OnCharacteristicReadRequest(device_address, request_id, offset, is_long,
+                                *char_id);
+    return android::NO_ERROR;
+  }
+  case ON_DESCRIPTOR_READ_REQUEST_TRANSACTION: {
+    std::string device_address = data.readCString();
+    int request_id = data.readInt32();
+    int offset = data.readInt32();
+    bool is_long = data.readInt32();
+    auto desc_id = CreateGattIdentifierFromParcel(data);
+    CHECK(desc_id);
+    OnDescriptorReadRequest(device_address, request_id, offset, is_long,
+                            *desc_id);
+    return android::NO_ERROR;
+  }
   default:
     return BBinder::onTransact(code, data, reply, flags);
   }
@@ -100,6 +122,46 @@ void BpBluetoothGattServerCallback::OnServiceAdded(
   remote()->transact(IBluetoothGattServerCallback::ON_SERVICE_ADDED_TRANSACTION,
                      data, &reply,
                      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothGattServerCallback::OnCharacteristicReadRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& characteristic_id) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothGattServerCallback::getInterfaceDescriptor());
+  data.writeCString(device_address.c_str());
+  data.writeInt32(request_id);
+  data.writeInt32(offset);
+  data.writeInt32(is_long);
+  WriteGattIdentifierToParcel(characteristic_id, &data);
+
+  remote()->transact(
+      IBluetoothGattServerCallback::ON_CHARACTERISTIC_READ_REQUEST_TRANSACTION,
+      data, &reply,
+      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothGattServerCallback::OnDescriptorReadRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& descriptor_id) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothGattServerCallback::getInterfaceDescriptor());
+  data.writeCString(device_address.c_str());
+  data.writeInt32(request_id);
+  data.writeInt32(offset);
+  data.writeInt32(is_long);
+  WriteGattIdentifierToParcel(descriptor_id, &data);
+
+  remote()->transact(
+      IBluetoothGattServerCallback::ON_DESCRIPTOR_READ_REQUEST_TRANSACTION,
+      data, &reply,
+      IBinder::FLAG_ONEWAY);
 }
 
 IMPLEMENT_META_INTERFACE(BluetoothGattServerCallback,

@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <base/macros.h>
 #include <binder/IBinder.h>
@@ -74,6 +76,13 @@ class IBluetoothGattServer : public android::IInterface {
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) = 0;
   virtual bool EndServiceDeclaration(int server_if) = 0;
 
+  virtual bool SendResponse(
+      int server_if,
+      const std::string& device_address,
+      int request_id,
+      int status, int offset,
+      const std::vector<uint8_t>& value) = 0;
+
   // TODO(armansito): Complete the API definition.
 
  private:
@@ -121,6 +130,12 @@ class BpBluetoothGattServer
       int server_if, const bluetooth::UUID& uuid, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool EndServiceDeclaration(int server_if) override;
+  bool SendResponse(
+      int server_if,
+      const std::string& device_address,
+      int request_id,
+      int status, int offset,
+      const std::vector<uint8_t>& value) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BpBluetoothGattServer);
