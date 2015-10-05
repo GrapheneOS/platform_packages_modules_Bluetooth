@@ -155,3 +155,24 @@ LOCAL_SHARED_LIBRARIES += \
 	libchrome \
 	libutils
 include $(BUILD_EXECUTABLE)
+
+# Heart Rate GATT service example
+# ========================================================
+# TODO(armansito): Move this into a new makefile under examples/ once we build a
+# client static library that the examples can depend on.
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := \
+	$(btserviceBinderSrc) \
+	example/heart_rate/heart_rate_server.cpp \
+	example/heart_rate/server_main.cpp \
+	gatt_identifier.cpp \
+	uuid.cpp
+LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_CFLAGS += -std=c++11
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := bt-example-hr-server
+LOCAL_SHARED_LIBRARIES += \
+	libbinder \
+	libchrome \
+	libutils
+include $(BUILD_EXECUTABLE)
