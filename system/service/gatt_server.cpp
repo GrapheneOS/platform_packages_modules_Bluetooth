@@ -69,22 +69,8 @@ std::unique_ptr<GattIdentifier> GattServer::BeginServiceDeclaration(
   CHECK(!pending_decl_);
   CHECK(!pending_end_decl_cb_);
 
-  // Calculate the instance ID for this service by searching through the handle
-  // map to see how many occurrences of the same service UUID we find.
-  int inst_id = 0;
-  for (const auto& iter : handle_map_) {
-    const GattIdentifier* gatt_id = &iter.first;
-
-    if (!gatt_id->IsService())
-      continue;
-
-    if (gatt_id->service_uuid() == uuid)
-      ++inst_id;
-  }
-
-  // Pass empty string for the address as this is a local service.
-  auto service_id = GattIdentifier::CreateServiceId(
-      "", inst_id, uuid, is_primary);
+  auto service_id = GetIdForService(uuid, is_primary);
+  CHECK(service_id);
 
   // Pass 0 for permissions and properties as this is a service decl.
   AttributeEntry entry(
@@ -111,24 +97,13 @@ std::unique_ptr<GattIdentifier> GattServer::AddCharacteristic(
     return nullptr;
   }
 
-  // Calculate the instance ID for this characteristic by searching through the
-  // pending entries.
-  int inst_id = 0;
-  for (const auto& entry : pending_decl_->attributes) {
-    const GattIdentifier* gatt_id = &entry.id;
-
-    if (!gatt_id->IsCharacteristic())
-      continue;
-
-    if (gatt_id->characteristic_uuid() == uuid)
-      ++inst_id;
+  if (pending_end_decl_cb_) {
+    LOG(ERROR) << "EndServiceDeclaration in progress, cannot modify service";
+    return nullptr;
   }
 
-  CHECK(pending_decl_->service_id.IsService());
-
-  auto char_id = GattIdentifier::CreateCharacteristicId(
-      inst_id, uuid, pending_decl_->service_id);
-
+  auto char_id = GetIdForCharacteristic(uuid);
+  CHECK(char_id);
   AttributeEntry entry(*char_id, properties, permissions);
 
   // 2 handles for the characteristic declaration and the value attributes.
@@ -136,6 +111,36 @@ std::unique_ptr<GattIdentifier> GattServer::AddCharacteristic(
   pending_decl_->attributes.push_back(entry);
 
   return char_id;
+}
+
+std::unique_ptr<GattIdentifier> GattServer::AddDescriptor(
+    const UUID& uuid, int permissions) {
+  VLOG(1) << __func__ << " server_if: " << server_if_
+          << " - UUID: " << uuid.ToString()
+          << ", permissions: " << permissions;
+  lock_guard<mutex> lock(mutex_);
+
+  if (!pending_decl_) {
+    LOG(ERROR) << "Service declaration not begun";
+    return nullptr;
+  }
+
+  if (pending_end_decl_cb_) {
+    LOG(ERROR) << "EndServiceDeclaration in progress, cannot modify service";
+    return nullptr;
+  }
+
+  auto desc_id = GetIdForDescriptor(uuid);
+  if (!desc_id)
+    return nullptr;
+
+  AttributeEntry entry(*desc_id, kCharacteristicPropertyNone, permissions);
+
+  // 1 handle for the descriptor attribute.
+  pending_decl_->num_handles += 1;
+  pending_decl_->attributes.push_back(entry);
+
+  return desc_id;
 }
 
 bool GattServer::EndServiceDeclaration(const ResultCallback& callback) {
@@ -184,6 +189,90 @@ bool GattServer::EndServiceDeclaration(const ResultCallback& callback) {
   pending_end_decl_cb_ = callback;
 
   return true;
+}
+
+std::unique_ptr<GattIdentifier> GattServer::GetIdForService(
+    const UUID& uuid, bool is_primary) {
+  // Calculate the instance ID for this service by searching through the handle
+  // map to see how many occurrences of the same service UUID we find.
+  int inst_id = 0;
+  for (const auto& iter : handle_map_) {
+    const GattIdentifier* gatt_id = &iter.first;
+
+    if (!gatt_id->IsService())
+      continue;
+
+    if (gatt_id->service_uuid() == uuid)
+      ++inst_id;
+  }
+
+  // Pass empty string for the address as this is a local service.
+  return GattIdentifier::CreateServiceId("", inst_id, uuid, is_primary);
+}
+
+std::unique_ptr<GattIdentifier> GattServer::GetIdForCharacteristic(
+    const UUID& uuid) {
+  CHECK(pending_decl_);
+
+  // Calculate the instance ID for this characteristic by searching through the
+  // pending entries.
+  int inst_id = 0;
+  for (const auto& entry : pending_decl_->attributes) {
+    const GattIdentifier& gatt_id = entry.id;
+
+    if (!gatt_id.IsCharacteristic())
+      continue;
+
+    if (gatt_id.characteristic_uuid() == uuid)
+      ++inst_id;
+  }
+
+  CHECK(pending_decl_->service_id.IsService());
+
+  return GattIdentifier::CreateCharacteristicId(
+      inst_id, uuid, pending_decl_->service_id);
+}
+
+std::unique_ptr<GattIdentifier> GattServer::GetIdForDescriptor(
+    const UUID& uuid) {
+  CHECK(pending_decl_);
+
+  // Calculate the instance ID for this descriptor by searching through the
+  // pending entries. We iterate in reverse until we find a characteristic
+  // entry.
+  CHECK(!pending_decl_->attributes.empty());
+  int inst_id = 0;
+  bool char_found = false;
+  GattIdentifier char_id;
+  for (auto iter = pending_decl_->attributes.end() - 1;
+       iter != pending_decl_->attributes.begin();  // Begin is always a service
+       --iter) {
+    const GattIdentifier& gatt_id = iter->id;
+
+    if (gatt_id.IsCharacteristic()) {
+      // Found the owning characteristic.
+      char_found = true;
+      char_id = gatt_id;
+      break;
+    }
+
+    if (!gatt_id.IsDescriptor()) {
+      // A descriptor must be preceded by a descriptor or a characteristic.
+      LOG(ERROR) << "Descriptors must come directly after a characteristic or "
+                 << "another descriptor.";
+      return nullptr;
+    }
+
+    if (gatt_id.descriptor_uuid() == uuid)
+      ++inst_id;
+  }
+
+  if (!char_found) {
+    LOG(ERROR) << "No characteristic found to add the descriptor to.";
+    return nullptr;
+  }
+
+  return GattIdentifier::CreateDescriptorId(inst_id, uuid, char_id);
 }
 
 void GattServer::ServiceAddedCallback(
@@ -251,6 +340,39 @@ void GattServer::CharacteristicAddedCallback(
 
   // Add this to the handle map and continue.
   pending_handle_map_[*pending_id_] = char_handle;
+  HandleNextEntry(gatt_iface);
+}
+
+void GattServer::DescriptorAddedCallback(
+    hal::BluetoothGattInterface* gatt_iface,
+    int status, int server_if,
+    const bt_uuid_t& uuid,
+    int service_handle,
+    int desc_handle) {
+  lock_guard<mutex> lock(mutex_);
+
+  if (server_if != server_if_)
+    return;
+
+  CHECK(pending_decl_);
+  CHECK(pending_decl_->service_handle == service_handle);
+  CHECK(pending_id_);
+  CHECK(pending_id_->IsDescriptor());
+  CHECK(pending_id_->descriptor_uuid() == UUID(uuid));
+
+  VLOG(1) << __func__ << " - status: " << status
+          << " server_if: " << server_if
+          << " service_handle: " << service_handle
+          << " desc_handle: " << desc_handle;
+
+  if (status != BT_STATUS_SUCCESS) {
+    NotifyEndCallbackAndClearData(static_cast<BLEStatus>(status),
+                                  pending_decl_->service_id);
+    return;
+  }
+
+  // Add this to the handle map and contiue.
+  pending_handle_map_[*pending_id_] = desc_handle;
   HandleNextEntry(gatt_iface);
 }
 
@@ -349,7 +471,26 @@ void GattServer::HandleNextEntry(hal::BluetoothGattInterface* gatt_iface) {
     }
 
     pending_id_.reset(new GattIdentifier(next_entry->id));
+    return;
+  }
 
+  if (next_entry->id.IsDescriptor()) {
+    bt_uuid_t desc_uuid = next_entry->id.descriptor_uuid().GetBlueDroid();
+    bt_status_t status = gatt_iface->GetServerHALInterface()->
+        add_descriptor(
+            server_if_,
+            pending_decl_->service_handle,
+            &desc_uuid,
+            next_entry->permissions);
+
+    // Terminate the procedure in the case of an error.
+    if (status != BT_STATUS_SUCCESS) {
+      NotifyEndCallbackAndClearData(static_cast<BLEStatus>(status),
+                                    pending_decl_->service_id);
+      return;
+    }
+
+    pending_id_.reset(new GattIdentifier(next_entry->id));
     return;
   }
 

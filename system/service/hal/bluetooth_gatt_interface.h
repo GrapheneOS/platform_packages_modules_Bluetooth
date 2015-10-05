@@ -94,6 +94,13 @@ class BluetoothGattInterface {
         int srvc_handle,
         int char_handle);
 
+    virtual void DescriptorAddedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        const bt_uuid_t& uuid,
+        int srvc_handle,
+        int desc_handle);
+
     virtual void ServiceStartedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,

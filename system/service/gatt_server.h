@@ -62,9 +62,18 @@ class GattServer : public BluetoothClientInstance,
 
   // Inserts a new characteristic definition into a previously begun service
   // declaration. Returns the assigned identifier for the characteristic, or
-  // nullptr in the case of an error.
+  // nullptr if a service declaration wasn't begun or a call to
+  // EndServiceDeclaration is still in progress.
   std::unique_ptr<GattIdentifier> AddCharacteristic(
       const UUID& uuid, int properties, int permissions);
+
+  // Inserts a new descriptor definition into a previous begun service
+  // declaration. Returns the assigned identifier for the descriptor, or
+  // nullptr if a service declaration wasn't begun, a call to
+  // EndServiceDeclaration is still in progress, or a characteristic definition
+  // doesn't properly precede this definition.
+  std::unique_ptr<GattIdentifier> AddDescriptor(
+      const UUID& uuid, int permissions);
 
   // Ends a previously started service declaration. This method immediately
   // returns false if a service declaration hasn't been started. Otherwise,
@@ -108,6 +117,13 @@ class GattServer : public BluetoothClientInstance,
   // obtained from the factory.
   GattServer(const UUID& uuid, int server_if);
 
+  // Returns a GattIdentifier for the attribute with the given UUID within the
+  // current pending service declaration.
+  std::unique_ptr<GattIdentifier> GetIdForService(const UUID& uuid,
+                                                  bool is_primary);
+  std::unique_ptr<GattIdentifier> GetIdForCharacteristic(const UUID& uuid);
+  std::unique_ptr<GattIdentifier> GetIdForDescriptor(const UUID& uuid);
+
   // hal::BluetoothGattInterface::ServerObserver overrides:
   void ServiceAddedCallback(
       hal::BluetoothGattInterface* gatt_iface,
@@ -120,6 +136,12 @@ class GattServer : public BluetoothClientInstance,
       const bt_uuid_t& uuid,
       int service_handle,
       int char_handle) override;
+  void DescriptorAddedCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int status, int server_if,
+      const bt_uuid_t& uuid,
+      int service_handle,
+      int desc_handle) override;
   void ServiceStartedCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int status, int server_if,
