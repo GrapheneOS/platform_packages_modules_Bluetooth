@@ -16,11 +16,21 @@
 
 #include "service/util/address_helper.h"
 
+#include <cstdlib>
+
+#include <base/logging.h>
 #include <base/strings/string_split.h>
 
 namespace util {
 
 bool IsAddressValid(const std::string& address) {
+  bt_bdaddr_t addr;
+  return BdAddrFromString(address, &addr);
+}
+
+bool BdAddrFromString(const std::string& address, bt_bdaddr_t* out_addr) {
+  CHECK(out_addr);
+
   if (address.length() != 17)
     return false;
 
@@ -30,14 +40,15 @@ bool IsAddressValid(const std::string& address) {
   if (byte_tokens.size() != 6)
     return false;
 
-  for (const auto& token : byte_tokens) {
+  for (int i = 0; i < 6; i++) {
+    const auto& token = byte_tokens[i];
+
     if (token.length() != 2)
       return false;
 
-    if (!std::isalpha(token[0]) && !std::isdigit(token[0]))
-      return false;
-
-    if (!std::isalpha(token[1]) && !std::isdigit(token[1]))
+    char* temp = nullptr;
+    out_addr->address[i] = strtol(token.c_str(), &temp, 16);
+    if (*temp != '\0')
       return false;
   }
 
