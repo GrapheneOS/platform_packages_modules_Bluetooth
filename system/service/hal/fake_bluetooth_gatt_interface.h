@@ -61,6 +61,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t AddCharacteristic(int server_if, int srvc_handle,
                                           bt_uuid_t *uuid,
                                           int properties, int permissions) = 0;
+    virtual bt_status_t AddDescriptor(int server_if, int srvc_handle,
+                                      bt_uuid_t* uuid,
+                                      int permissions) = 0;
     virtual bt_status_t StartService(
         int server_if, int srvc_handle, int transport) = 0;
     virtual bt_status_t DeleteService(int server_if, int srvc_handle) = 0;
@@ -92,6 +95,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyCharacteristicAddedCallback(int status, int server_if,
                                          const bt_uuid_t& uuid,
                                          int srvc_handle, int char_handle);
+  void NotifyDescriptorAddedCallback(int status, int server_if,
+                                     const bt_uuid_t& uuid,
+                                     int srvc_handle, int desc_handle);
   void NotifyServiceStartedCallback(int status, int server_if, int srvc_handle);
 
   // BluetoothGattInterface overrides:

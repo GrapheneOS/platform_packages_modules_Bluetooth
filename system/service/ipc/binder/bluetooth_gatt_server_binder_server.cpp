@@ -104,6 +104,31 @@ bool BluetoothGattServerBinderServer::AddCharacteristic(
   return true;
 }
 
+bool BluetoothGattServerBinderServer::AddDescriptor(
+    int server_if, const bluetooth::UUID& uuid, int permissions,
+    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+  VLOG(2) << __func__;
+  CHECK(out_id);
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  auto desc_id = gatt_server->AddDescriptor(uuid, permissions);
+  if (!desc_id) {
+    LOG(ERROR) << "Failed to add descriptor - server_if: "
+               << server_if << " UUID: " << uuid.ToString();
+    return false;
+  }
+
+  out_id->swap(desc_id);
+
+  return true;
+}
+
 bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
