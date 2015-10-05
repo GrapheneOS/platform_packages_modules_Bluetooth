@@ -174,4 +174,18 @@ void HeartRateServer::OnServiceAdded(
   pending_run_cb_(true);
 }
 
+void HeartRateServer::OnCharacteristicReadRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& characteristic_id) {
+  // TODO(armansito): Implement.
+}
+
+void HeartRateServer::OnDescriptorReadRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_long,
+    const bluetooth::GattIdentifier& descriptor_id) {
+  // TODO(armansito): Implement.
+}
+
 }  // namespace heart_rate
