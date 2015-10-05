@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <hardware/bluetooth.h>
 #include <string>
 
 namespace util {
@@ -27,5 +28,9 @@ namespace util {
 //
 // where X is an alpha-numeric character.
 bool IsAddressValid(const std::string& address);
+
+// Populates a bt_bdaddr_t from a given string. Returns false if the data is
+// invalid.
+bool BdAddrFromString(const std::string& address, bt_bdaddr_t* out_addr);
 
 }  // namespace util
