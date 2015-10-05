@@ -131,6 +131,14 @@ bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeSendResponse(int conn_id, int trans_id, int status,
+                             btgatt_response_t* response) {
+  if (g_server_handler)
+    return g_server_handler->SendResponse(conn_id, trans_id, status, response);
+
+  return BT_STATUS_FAIL;
+}
+
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
@@ -184,7 +192,7 @@ btgatt_server_interface_t fake_btgatts_iface = {
   nullptr,  // stop_service
   FakeDeleteService,
   nullptr,  // send_indication
-  nullptr,  // send_response
+  FakeSendResponse,
 };
 
 }  // namespace
@@ -246,6 +254,13 @@ void FakeBluetoothGattInterface::NotifyRegisterServerCallback(
                     RegisterServerCallback(this, status, server_if, app_uuid));
 }
 
+void FakeBluetoothGattInterface::NotifyServerConnectionCallback(
+    int conn_id, int server_if, int connected, const bt_bdaddr_t& bda) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      ConnectionCallback(this, conn_id, server_if, connected, bda));
+}
+
 void FakeBluetoothGattInterface::NotifyServiceAddedCallback(
     int status, int server_if,
     const btgatt_srvc_id_t& srvc_id,
@@ -280,6 +295,15 @@ void FakeBluetoothGattInterface::NotifyServiceStartedCallback(
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       ServiceStartedCallback(this, status, server_if, srvc_handle));
+}
+
+void FakeBluetoothGattInterface::NotifyRequestReadCallback(
+    int conn_id, int trans_id, const bt_bdaddr_t& bda, int attr_handle,
+    int offset, bool is_long) {
+  FOR_EACH_OBSERVER(
+      ServerObserver, server_observers_,
+      RequestReadCallback(
+          this, conn_id, trans_id, bda, attr_handle, offset, is_long));
 }
 
 void FakeBluetoothGattInterface::AddClientObserver(ClientObserver* observer) {

@@ -67,6 +67,8 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t StartService(
         int server_if, int srvc_handle, int transport) = 0;
     virtual bt_status_t DeleteService(int server_if, int srvc_handle) = 0;
+    virtual bt_status_t SendResponse(int conn_id, int trans_id, int status,
+                                     btgatt_response_t* response) = 0;
   };
 
   // Constructs the fake with the given handlers. Implementations can
@@ -89,6 +91,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // Server callbacks:
   void NotifyRegisterServerCallback(int status, int server_if,
                                     const bt_uuid_t& app_uuid);
+  void NotifyServerConnectionCallback(int conn_id, int server_if,
+                                      int connected,
+                                      const bt_bdaddr_t& bda);
   void NotifyServiceAddedCallback(int status, int server_if,
                                   const btgatt_srvc_id_t& srvc_id,
                                   int srvc_handle);
@@ -99,6 +104,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                                      const bt_uuid_t& uuid,
                                      int srvc_handle, int desc_handle);
   void NotifyServiceStartedCallback(int status, int server_if, int srvc_handle);
+  void NotifyRequestReadCallback(int conn_id, int trans_id,
+                                 const bt_bdaddr_t& bda, int attr_handle,
+                                 int offset, bool is_long);
 
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override;
