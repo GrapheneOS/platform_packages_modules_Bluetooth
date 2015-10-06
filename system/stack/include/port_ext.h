@@ -28,5 +28,5 @@
 #include "gki.h"
 
 /* Port emulation entity Entry Points */
-extern void rfcomm_process_timeout (TIMER_LIST_ENT  *p_tle);
+extern void rfcomm_process_timeout (timer_entry_t *p_te);
 #endif

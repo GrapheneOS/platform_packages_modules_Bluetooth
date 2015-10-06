@@ -47,7 +47,7 @@ void BNEP_Init (void)
 #endif
 
     /* Start a timer to read our BD address */
-    btu_start_timer (&bnep_cb.bnep_tle, BTU_TTYPE_BNEP, 2);
+    btu_start_timer(&bnep_cb.bnep_te, BTU_TTYPE_BNEP, 2);
 }
 
 
@@ -208,7 +208,7 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         }
 
         /* Start timer waiting for connect */
-        btu_start_timer (&p_bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
+        btu_start_timer(&p_bcb->conn_te, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
     }
 
     *p_handle = p_bcb->handle;

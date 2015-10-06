@@ -120,7 +120,7 @@ tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
         {
             memset ((UINT8 *)p_bcb, 0, sizeof (tBNEP_CONN));
 
-            p_bcb->conn_tle.param = p_bcb;
+            p_bcb->conn_te.param = p_bcb;
 
             memcpy ((UINT8 *)(p_bcb->rem_bda), (UINT8 *)p_rem_bda, BD_ADDR_LEN);
             p_bcb->handle = xx + 1;
@@ -147,7 +147,7 @@ tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
 void bnepu_release_bcb (tBNEP_CONN *p_bcb)
 {
     /* Ensure timer is stopped */
-    btu_stop_timer (&p_bcb->conn_tle);
+    btu_stop_timer(&p_bcb->conn_te);
 
     /* Drop any response pointer we may be holding */
     p_bcb->con_state        = BNEP_STATE_IDLE;
@@ -310,7 +310,7 @@ void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
     p_bcb->con_flags |= BNEP_FLAGS_FILTER_RESP_PEND;
 
     /* Start timer waiting for setup response */
-    btu_start_timer (&p_bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_FILTER_SET_TIMEOUT);
+    btu_start_timer(&p_bcb->conn_te, BTU_TTYPE_BNEP, BNEP_FILTER_SET_TIMEOUT);
 }
 
 
@@ -362,7 +362,7 @@ void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
     p_bcb->con_flags |= BNEP_FLAGS_MULTI_RESP_PEND;
 
     /* Start timer waiting for setup response */
-    btu_start_timer (&p_bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_FILTER_SET_TIMEOUT);
+    btu_start_timer(&p_bcb->conn_te, BTU_TTYPE_BNEP, BNEP_FILTER_SET_TIMEOUT);
 }
 
 
@@ -744,7 +744,7 @@ void bnep_process_setup_conn_responce (tBNEP_CONN *p_bcb, UINT8 *p_setup)
             memcpy ((UINT8 *)&(p_bcb->dst_uuid), (UINT8 *)&(p_bcb->prv_dst_uuid), sizeof (tBT_UUID));
 
             /* Ensure timer is stopped */
-            btu_stop_timer (&p_bcb->conn_tle);
+            btu_stop_timer(&p_bcb->conn_te);
             p_bcb->re_transmits = 0;
 
             /* Tell the user if he has a callback */
@@ -1001,7 +1001,7 @@ void bnepu_process_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT8 *p_data)
     }
 
     /* Ensure timer is stopped */
-    btu_stop_timer (&p_bcb->conn_tle);
+    btu_stop_timer(&p_bcb->conn_te);
     p_bcb->con_flags &= ~BNEP_FLAGS_FILTER_RESP_PEND;
     p_bcb->re_transmits = 0;
 
@@ -1047,7 +1047,7 @@ void bnepu_process_multicast_filter_rsp (tBNEP_CONN *p_bcb, UINT8 *p_data)
     }
 
     /* Ensure timer is stopped */
-    btu_stop_timer (&p_bcb->conn_tle);
+    btu_stop_timer(&p_bcb->conn_te);
     p_bcb->con_flags &= ~BNEP_FLAGS_MULTI_RESP_PEND;
     p_bcb->re_transmits = 0;
 
@@ -1245,7 +1245,7 @@ void bnep_sec_check_complete (BD_ADDR bd_addr, tBT_TRANSPORT trasnport,
         p_bcb->con_state = BNEP_STATE_CONN_SETUP;
 
         bnep_send_conn_req (p_bcb);
-        btu_start_timer (&p_bcb->conn_tle, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
+        btu_start_timer(&p_bcb->conn_te, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
         return;
     }
 

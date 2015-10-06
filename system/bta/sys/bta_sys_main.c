@@ -620,30 +620,30 @@ void bta_sys_sendmsg(void *p_msg)
 *******************************************************************************/
 void bta_alarm_cb(void *data) {
   assert(data != NULL);
-  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+  timer_entry_t *p_te = (timer_entry_t *)data;
 
-  fixed_queue_enqueue(btu_bta_alarm_queue, p_tle);
+  fixed_queue_enqueue(btu_bta_alarm_queue, p_te);
 }
 
-void bta_sys_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, INT32 timeout_ms) {
-  assert(p_tle != NULL);
+void bta_sys_start_timer(timer_entry_t *p_te, UINT16 type, INT32 timeout_ms) {
+  assert(p_te != NULL);
 
-  // Get the alarm for this p_tle.
+  // Get the alarm for this p_te.
   pthread_mutex_lock(&bta_alarm_lock);
-  if (!hash_map_has_key(bta_alarm_hash_map, p_tle)) {
-    hash_map_set(bta_alarm_hash_map, p_tle, alarm_new());
+  if (!hash_map_has_key(bta_alarm_hash_map, p_te)) {
+    hash_map_set(bta_alarm_hash_map, p_te, alarm_new());
   }
   pthread_mutex_unlock(&bta_alarm_lock);
 
-  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
+  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_ERROR(LOG_TAG, "%s unable to create alarm.", __func__);
     return;
   }
 
-  p_tle->event = type;
-  p_tle->ticks = timeout_ms;
-  alarm_set(alarm, (period_ms_t)timeout_ms, bta_alarm_cb, p_tle);
+  p_te->event = type;
+  p_te->ticks = timeout_ms;
+  alarm_set(alarm, (period_ms_t)timeout_ms, bta_alarm_cb, p_te);
 }
 
 bool hash_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context)
@@ -654,11 +654,11 @@ bool hash_iter_ro_cb(hash_map_entry_t *hash_map_entry, void *context)
     return true;
 }
 
-UINT32 bta_sys_get_remaining_ticks(TIMER_LIST_ENT *p_target_tle)
+UINT32 bta_sys_get_remaining_ticks(timer_entry_t *p_target_te)
 {
     period_ms_t remaining_ms = 0;
     pthread_mutex_lock(&bta_alarm_lock);
-    // Get the alarm for this p_tle
+    // Get the alarm for this p_te
     hash_map_foreach(bta_alarm_hash_map, hash_iter_ro_cb, &remaining_ms);
     pthread_mutex_unlock(&bta_alarm_lock);
     return remaining_ms;
@@ -674,10 +674,10 @@ UINT32 bta_sys_get_remaining_ticks(TIMER_LIST_ENT *p_target_tle)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_stop_timer(TIMER_LIST_ENT *p_tle) {
-  assert(p_tle != NULL);
+void bta_sys_stop_timer(timer_entry_t *p_te) {
+  assert(p_te != NULL);
 
-  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_tle);
+  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_DEBUG(LOG_TAG, "%s expected alarm was not in bta alarm hash map.", __func__);
     return;

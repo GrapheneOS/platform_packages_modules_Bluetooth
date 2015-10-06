@@ -27,6 +27,7 @@
 
 #include "btm_api.h"
 #include "gki.h"
+#include "osi/include/non_repeating_timer.h"
 #include <hardware/bt_common_types.h>
 
 #define CHNL_MAP_LEN    5
@@ -501,7 +502,7 @@ typedef struct
     BOOLEAN                     in_use;
     UINT8                       adv_evt;
     BD_ADDR                     rpa;
-    TIMER_LIST_ENT              raddr_timer_ent;
+    timer_entry_t               raddr_timer_ent;
     tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
     void                        *p_ref;
     UINT8                       index;

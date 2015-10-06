@@ -160,7 +160,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
                 list_append(l2cb.rcv_pending_q, p_msg);
 
                 if (list_length(l2cb.rcv_pending_q) == 1)
-                    btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
+                    btu_start_timer (&l2cb.rcv_hold_te, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 
                 return;
             } else {
@@ -814,7 +814,7 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
         return;
 
     if (!timed_out) {
-        btu_stop_timer(&l2cb.rcv_hold_tle);
+        btu_stop_timer(&l2cb.rcv_hold_te);
         L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
     } else {
         L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
@@ -833,7 +833,7 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
 
     /* If anyone still in the queue, restart the timeout */
     if (!list_is_empty(l2cb.rcv_pending_q))
-        btu_start_timer (&l2cb.rcv_hold_tle, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
+        btu_start_timer (&l2cb.rcv_hold_te, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
 }
 
 /*******************************************************************************
@@ -916,21 +916,21 @@ void l2c_free(void) {
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_process_timeout (TIMER_LIST_ENT *p_tle)
+void l2c_process_timeout (timer_entry_t *p_te)
 {
     /* What type of timeout ? */
-    switch (p_tle->event)
+    switch (p_te->event)
     {
     case BTU_TTYPE_L2CAP_LINK:
-        l2c_link_timeout ((tL2C_LCB *)p_tle->param);
+        l2c_link_timeout ((tL2C_LCB *)p_te->param);
         break;
 
     case BTU_TTYPE_L2CAP_CHNL:
-        l2c_csm_execute (((tL2C_CCB *)p_tle->param), L2CEVT_TIMEOUT, NULL);
+        l2c_csm_execute (((tL2C_CCB *)p_te->param), L2CEVT_TIMEOUT, NULL);
         break;
 
     case BTU_TTYPE_L2CAP_FCR_ACK:
-        l2c_csm_execute (((tL2C_CCB *)p_tle->param), L2CEVT_ACK_TIMEOUT, NULL);
+        l2c_csm_execute (((tL2C_CCB *)p_te->param), L2CEVT_ACK_TIMEOUT, NULL);
         break;
 
     case BTU_TTYPE_L2CAP_HOLD:
@@ -939,7 +939,7 @@ void l2c_process_timeout (TIMER_LIST_ENT *p_tle)
         break;
 
     case BTU_TTYPE_L2CAP_INFO:
-        l2c_info_timeout((tL2C_LCB *)p_tle->param);
+        l2c_info_timeout((tL2C_LCB *)p_te->param);
         break;
     }
 }

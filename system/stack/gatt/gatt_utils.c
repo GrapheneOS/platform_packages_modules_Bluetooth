@@ -1196,7 +1196,7 @@ void gatt_start_rsp_timer(UINT16 clcb_idx)
 {
     tGATT_CLCB *p_clcb = &gatt_cb.clcb[clcb_idx];
     UINT32 timeout = GATT_WAIT_FOR_RSP_TOUT;
-    p_clcb->rsp_timer_ent.param  = (TIMER_PARAM_TYPE)p_clcb;
+    p_clcb->rsp_timer_ent.param  = (timer_param_t)p_clcb;
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
         p_clcb->op_subtype == GATT_DISC_SRVC_ALL)
     {
@@ -1216,7 +1216,7 @@ void gatt_start_rsp_timer(UINT16 clcb_idx)
 *******************************************************************************/
 void gatt_start_conf_timer(tGATT_TCB    *p_tcb)
 {
-    p_tcb->conf_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
+    p_tcb->conf_timer_ent.param  = (timer_param_t)p_tcb;
     btu_start_timer (&p_tcb->conf_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
                      GATT_WAIT_FOR_RSP_TOUT);
 }
@@ -1231,7 +1231,7 @@ void gatt_start_conf_timer(tGATT_TCB    *p_tcb)
 *******************************************************************************/
 void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 {
-    p_tcb->ind_ack_timer_ent.param  = (TIMER_PARAM_TYPE)p_tcb;
+    p_tcb->ind_ack_timer_ent.param  = (timer_param_t)p_tcb;
     /* start notification cache timer */
     btu_start_timer (&p_tcb->ind_ack_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_IND_ACK,
                      GATT_WAIT_FOR_RSP_TOUT);
@@ -1246,9 +1246,9 @@ void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
+void gatt_rsp_timeout(timer_entry_t *p_te)
 {
-    tGATT_CLCB *p_clcb = (tGATT_CLCB *)p_tle->param;
+    tGATT_CLCB *p_clcb = (tGATT_CLCB *)p_te->param;
     if (p_clcb == NULL || p_clcb->p_tcb == NULL)
     {
         GATT_TRACE_WARNING("gatt_rsp_timeout clcb is already deleted");
@@ -1285,16 +1285,16 @@ void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_ind_ack_timeout(TIMER_LIST_ENT *p_tle)
+void gatt_ind_ack_timeout(timer_entry_t *p_te)
 {
-    tGATT_TCB * p_tcb = (tGATT_TCB *)p_tle->param;
+    tGATT_TCB * p_tcb = (tGATT_TCB *)p_te->param;
 
     GATT_TRACE_WARNING("gatt_ind_ack_timeout send ack now");
 
     if (p_tcb != NULL)
         p_tcb->ind_count = 0;
 
-    attp_send_cl_msg(((tGATT_TCB *)p_tle->param), 0, GATT_HANDLE_VALUE_CONF, NULL);
+    attp_send_cl_msg(((tGATT_TCB *)p_te->param), 0, GATT_HANDLE_VALUE_CONF, NULL);
 }
 /*******************************************************************************
 **

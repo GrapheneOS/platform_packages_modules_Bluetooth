@@ -136,7 +136,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                 p_msg->hdr.layer_specific = TRUE;   /* mark this message as sent */
                 p_pkt->len = p - p_start;
                 L2CA_DataWrite (p_ccb->lcid, p_pkt);
-                p_ccb->timer_entry.param = (TIMER_PARAM_TYPE) p_ccb;
+                p_ccb->timer_entry.param = (timer_param_t)p_ccb;
                 btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_MCA_CCB_RSP, p_ccb->p_rcb->reg.rsp_tout);
             }
         }

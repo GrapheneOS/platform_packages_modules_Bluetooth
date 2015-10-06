@@ -46,3 +46,26 @@ void non_repeating_timer_restart_if(non_repeating_timer_t *timer, bool condition
 // Cancels the non repeating timer if it is currently running. All the semantics of
 // |alarm_cancel| apply here. |timer| may not be NULL.
 void non_repeating_timer_cancel(non_repeating_timer_t *timer);
+
+//
+// TODO: timer_entry_t below should be removed, and its usage everywhere
+// should be replaced by |non_repeating_timer_t| .
+//
+
+// Timer entry callback type
+typedef void (timer_callback_t)(void *p_te);
+typedef void* timer_param_t;
+
+//
+// Define a timer entry
+//
+typedef struct _timer_entry
+{
+    timer_callback_t    *p_cback;
+    int32_t             ticks;
+    int32_t             ticks_initial;
+    timer_param_t       param;
+    timer_param_t       data;
+    uint16_t            event;
+    uint8_t             in_use;
+} timer_entry_t;
