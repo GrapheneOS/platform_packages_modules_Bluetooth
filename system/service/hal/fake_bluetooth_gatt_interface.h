@@ -67,6 +67,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t StartService(
         int server_if, int srvc_handle, int transport) = 0;
     virtual bt_status_t DeleteService(int server_if, int srvc_handle) = 0;
+    virtual bt_status_t SendIndication(int server_if, int attribute_handle,
+                                       int conn_id, int len, int confirm,
+                                       char* value) = 0;
     virtual bt_status_t SendResponse(int conn_id, int trans_id, int status,
                                      btgatt_response_t* response) = 0;
   };
@@ -113,6 +116,7 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                                   bool need_rsp, bool is_prep, uint8_t* value);
   void NotifyRequestExecWriteCallback(int conn_id, int trans_id,
                                       const bt_bdaddr_t& bda, int exec_write);
+  void NotifyIndicationSentCallback(int conn_id, int status);
 
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override;

@@ -64,6 +64,8 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
   void OnExecuteWriteRequest(
       const std::string& device_address,
       int request_id, bool is_execute) override;
+  void OnNotificationSent(const std::string& device_address,
+                          int status) override;
 
   std::mutex mutex_;
 
