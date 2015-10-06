@@ -16,7 +16,12 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include <base/macros.h>
+#include <base/memory/ref_counted.h>
+#include <base/memory/weak_ptr.h>
+#include <base/single_thread_task_runner.h>
 
 #include "service/gatt_identifier.h"
 #include "service/ipc/binder/IBluetooth.h"
@@ -28,7 +33,9 @@ namespace heart_rate {
 // behavior of a heart rate service by sending fake heart-rate pulses.
 class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
  public:
-  explicit HeartRateServer(android::sp<ipc::binder::IBluetooth> bluetooth);
+  HeartRateServer(
+      android::sp<ipc::binder::IBluetooth> bluetooth,
+      scoped_refptr<base::SingleThreadTaskRunner> main_task_runner);
   ~HeartRateServer() override;
 
   // Set up the server and register the GATT services with the stack. This
@@ -38,6 +45,11 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
   bool Run(const RunCallback& callback);
 
  private:
+  // Helpers for posting heart rate measurement notifications.
+  void ScheduleNextMeasurement();
+  void SendHeartRateMeasurement();
+  void BuildHeartRateMeasurementValue(std::vector<uint8_t>* out_value);
+
   // ipc::binder::IBluetoothGattServerCallback override:
   void OnServerRegistered(int status, int server_if) override;
   void OnServiceAdded(
@@ -67,18 +79,59 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
   void OnNotificationSent(const std::string& device_address,
                           int status) override;
 
+  // Single mutex to protect all variables below.
   std::mutex mutex_;
 
+  // This stores whether or not at least one remote device has written to the
+  // CCC descriptor.
+  bool simulation_started_;
+
+  // The IBluetooth and IBluetoothGattServer binders that we use to communicate
+  // with the Bluetooth daemon's GATT server features.
   android::sp<ipc::binder::IBluetooth> bluetooth_;
   android::sp<ipc::binder::IBluetoothGattServer> gatt_;
+
+  // ID assigned to us by the daemon to operate on our dedicated GATT server
+  // instance.
   int server_if_;
+
+  // Callback passed to Run(). We use this to tell main that all attributes have
+  // been registered with the daemon.
   RunCallback pending_run_cb_;
 
+  // Stores whether or not an outgoing notification is still pending. We use
+  // this to throttle notifications so that we don't accidentally congest the
+  // connection.
+  std::unordered_map<std::string, bool> pending_notification_map_;
+
+  // The current HR notification count.
+  int hr_notification_count_;
+
+  // The Energy Expended value we use in our notifications.
+  uint16_t energy_expended_;
+
+  // The unique IDs that refer to each of the Heart Rate Service GATT objects.
+  // These returned to us from the Bluetooth daemon as we populate the database.
   bluetooth::GattIdentifier hr_service_id_;
   bluetooth::GattIdentifier hr_measurement_id_;
   bluetooth::GattIdentifier hr_measurement_cccd_id_;
   bluetooth::GattIdentifier body_sensor_loc_id_;
   bluetooth::GattIdentifier hr_control_point_id_;
+
+  // The daemon itself doesn't maintain a Client Characteristic Configuration
+  // mapping, so we do it ourselves here.
+  std::unordered_map<std::string, uint8_t> device_ccc_map_;
+
+  // libchrome task runner that we use to post heart rate measurement
+  // notifications on the main thread.
+  scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
+
+  // We use this to pass weak_ptr's to base::Bind, which won't execute if the
+  // HeartRateServer object gets deleted. This is a convenience utility from
+  // libchrome and we use it here since base::TaskRunner uses base::Callback.
+  // Note: This should remain the last member so that it'll be destroyed and
+  // invalidate its weak pointers before any other members are destroyed.
+  base::WeakPtrFactory<HeartRateServer> weak_ptr_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(HeartRateServer);
 };
