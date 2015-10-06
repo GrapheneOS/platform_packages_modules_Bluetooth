@@ -125,6 +125,7 @@ class GattServer : public BluetoothClientInstance,
   // operation.
   using ResultCallback =
       std::function<void(BLEStatus status, const GattIdentifier& id)>;
+  using GattCallback = std::function<void(GATTError error)>;
 
   // Starts a new GATT service declaration for the service with the given
   // parameters. In the case of an error, for example If a service declaration
@@ -174,6 +175,22 @@ class GattServer : public BluetoothClientInstance,
                     GATTError error, int offset,
                     const std::vector<uint8_t>& value);
 
+  // Sends an ATT Handle-Value Notification to the device with BD_ADDR
+  // |device_address| for the characteristic with ID |characteristic_id| and
+  // value |value|. If |confirm| is true, then an ATT Handle-Value Indication
+  // will be sent instead, which requires the remote to confirm receipt. Returns
+  // false if there was an immediate error in initiating the notification
+  // procedure. Otherwise, returns true and reports the asynchronous result of
+  // the operation in |callback|.
+  //
+  // If |confirm| is true, then |callback| will be run when the remote device
+  // sends a ATT Handle-Value Confirmation packet. Otherwise, it will be run as
+  // soon as the notification has been sent out.
+  bool SendNotification(const std::string& device_address,
+                        const GattIdentifier& characteristic_id,
+                        bool confirm, const std::vector<uint8_t>& value,
+                        const GattCallback& callback);
+
  private:
   friend class GattServerFactory;
 
@@ -214,6 +231,15 @@ class GattServer : public BluetoothClientInstance,
     int conn_id;
     std::unordered_map<int, int> request_id_to_handle;
     bt_bdaddr_t bdaddr;
+  };
+
+  // Used to keep track of a pending Handle-Value indication.
+  struct PendingIndication {
+    PendingIndication(const GattCallback& callback)
+        : has_success(false), callback(callback) {}
+
+    bool has_success;
+    GattCallback callback;
   };
 
   // Constructor shouldn't be called directly as instance are meant to be
@@ -274,6 +300,9 @@ class GattServer : public BluetoothClientInstance,
       hal::BluetoothGattInterface* gatt_iface,
       int conn_id, int trans_id,
       const bt_bdaddr_t& bda, int exec_write) override;
+  void IndicationSentCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int conn_id, int status) override;
 
   // Helper function that notifies and clears the pending callback.
   void NotifyEndCallbackAndClearData(BLEStatus status,
@@ -315,6 +344,13 @@ class GattServer : public BluetoothClientInstance,
   std::unordered_map<int, std::shared_ptr<Connection>> conn_id_map_;
   std::unordered_map<std::string, std::vector<std::shared_ptr<Connection>>>
       conn_addr_map_;
+
+  // Connections for which a Handle-Value indication is pending. Since there can
+  // be multiple indications to the same device (in the case of a dual-mode
+  // device with simulatenous BR/EDR & LE GATT connections), we also keep track
+  // of whether there has been at least one successful confirmation.
+  std::unordered_map<int, std::shared_ptr<PendingIndication>>
+      pending_indications_;
 
   // Raw handle to the Delegate, which must outlive this GattServer instance.
   Delegate* delegate_;

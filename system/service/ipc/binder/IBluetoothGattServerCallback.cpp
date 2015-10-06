@@ -133,6 +133,13 @@ status_t BnBluetoothGattServerCallback::onTransact(
     OnExecuteWriteRequest(device_address, request_id, is_exec);
     return android::NO_ERROR;
   }
+  case ON_NOTIFICATION_SENT_TRANSACTION: {
+    std::string device_address = data.readCString();
+    int status = data.readInt32();
+
+    OnNotificationSent(device_address, status);
+    return android::NO_ERROR;
+  }
   default:
     return BBinder::onTransact(code, data, reply, flags);
   }
@@ -275,6 +282,22 @@ void BpBluetoothGattServerCallback::OnExecuteWriteRequest(
 
   remote()->transact(
       IBluetoothGattServerCallback::ON_EXECUTE_WRITE_REQUEST_TRANSACTION,
+      data, &reply,
+      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothGattServerCallback::OnNotificationSent(
+    const std::string& device_address,
+    int status) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothGattServerCallback::getInterfaceDescriptor());
+  data.writeCString(device_address.c_str());
+  data.writeInt32(status);
+
+  remote()->transact(
+      IBluetoothGattServerCallback::ON_NOTIFICATION_SENT_TRANSACTION,
       data, &reply,
       IBinder::FLAG_ONEWAY);
 }

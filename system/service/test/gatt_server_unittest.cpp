@@ -41,6 +41,7 @@ class MockGattHandler
   MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
+  MOCK_METHOD6(SendIndication, bt_status_t(int, int, int, int, int, char*));
   MOCK_METHOD4(SendResponse, bt_status_t(int, int, int, btgatt_response_t*));
 
  private:
@@ -1200,6 +1201,135 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
       GATT_ERROR_NONE, 0, kTestValue));
 
   gatt_server_->SetDelegate(nullptr);
+}
+
+TEST_F(GattServerPostRegisterTest, SendNotification) {
+  SetUpTestService();
+
+  const std::string kTestAddress0 = "01:23:45:67:89:AB";
+  const std::string kTestAddress1 = "cd:ef:01:23:45:67";
+  const std::string kInvalidAddress = "thingamajig blabbidyboop";
+  const int kConnId0 = 0;
+  const int kConnId1 = 1;
+  std::vector<uint8_t> value;
+  bt_bdaddr_t hal_addr0;
+  ASSERT_TRUE(util::BdAddrFromString(kTestAddress0, &hal_addr0));
+
+  // Set up two connections with the same address.
+  fake_hal_gatt_iface_->NotifyServerConnectionCallback(
+      kConnId0, kDefaultServerId, true, hal_addr0);
+  fake_hal_gatt_iface_->NotifyServerConnectionCallback(
+      kConnId1, kDefaultServerId, true, hal_addr0);
+
+  // Set up a test callback.
+  GATTError gatt_error;
+  int callback_count = 0;
+  auto callback = [&](GATTError in_error) {
+    gatt_error = in_error;
+    callback_count++;
+  };
+
+  // Bad device address.
+  EXPECT_FALSE(gatt_server_->SendNotification(
+      kInvalidAddress,
+      test_char_id_, false, value, callback));
+
+  // Bad connection.
+  EXPECT_FALSE(gatt_server_->SendNotification(
+      kTestAddress1,
+      test_char_id_, false, value, callback));
+
+  // We should get a HAL call for each connection for this address. The calls
+  // fail.
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId0,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_FAIL));
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId1,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_FAIL));
+  EXPECT_FALSE(gatt_server_->SendNotification(
+      kTestAddress0,
+      test_char_id_, false, value, callback));
+
+  // One of the calls succeeds.
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId0,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId1,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_FAIL));
+  EXPECT_TRUE(gatt_server_->SendNotification(
+      kTestAddress0,
+      test_char_id_, false, value, callback));
+
+  // One of the connections is already pending so there should be only one call.
+  // This one we send with confirm=true.
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId1,
+                             value.size(), 1, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(gatt_server_->SendNotification(
+      kTestAddress0,
+      test_char_id_, true, value, callback));
+
+  // Calls are already pending.
+  EXPECT_FALSE(gatt_server_->SendNotification(
+      kTestAddress0, test_char_id_, true, value, callback));
+
+  // Trigger one confirmation callback. We should get calls for two callbacks
+  // since we have two separate calls pending.
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId0, BT_STATUS_SUCCESS);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId1, BT_STATUS_SUCCESS);
+  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(GATT_ERROR_NONE, gatt_error);
+
+  callback_count = 0;
+
+  // Restart. Both calls succeed now.
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId0,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_,
+              SendIndication(kDefaultServerId, char_handle_, kConnId1,
+                             value.size(), 0, nullptr))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(gatt_server_->SendNotification(
+      kTestAddress0,
+      test_char_id_, false, value, callback));
+
+  // Trigger one confirmation callback. The callback we passed should still be
+  // pending. The first callback is for the wrong connection ID.
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId0 + 50, BT_STATUS_FAIL);
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId0, BT_STATUS_SUCCESS);
+  EXPECT_EQ(0, callback_count);
+
+  // This should be ignored since |kConnId0| was already processed.
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId0, BT_STATUS_SUCCESS);
+  EXPECT_EQ(0, callback_count);
+
+  // Run the callback with failure. Since the previous callback reported
+  // success, we should report success.
+  fake_hal_gatt_iface_->NotifyIndicationSentCallback(
+      kConnId1, BT_STATUS_SUCCESS);
+  EXPECT_EQ(1, callback_count);
+  EXPECT_EQ(GATT_ERROR_NONE, gatt_error);
 }
 
 }  // namespace

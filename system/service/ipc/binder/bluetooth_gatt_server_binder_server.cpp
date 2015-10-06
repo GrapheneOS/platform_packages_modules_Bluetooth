@@ -187,6 +187,51 @@ bool BluetoothGattServerBinderServer::SendResponse(
       offset, value);
 }
 
+bool BluetoothGattServerBinderServer::SendNotification(
+    int server_if,
+    const std::string& device_address,
+    const bluetooth::GattIdentifier& characteristic_id,
+    bool confirm,
+    const std::vector<uint8_t>& value) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_server = GetGattServer(server_if);
+  if (!gatt_server) {
+    LOG(ERROR) << "Unknown server_if: " << server_if;
+    return false;
+  }
+
+  // Create a weak pointer and pass that to the callback to prevent a potential
+  // use after free.
+  android::wp<BluetoothGattServerBinderServer> weak_ptr_to_this(this);
+  auto callback = [=](bluetooth::GATTError error) {
+    auto sp_to_this = weak_ptr_to_this.promote();
+    if (!sp_to_this.get()) {
+      VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
+      return;
+    }
+
+    std::lock_guard<std::mutex> lock(*maps_lock());
+
+    auto gatt_cb = GetGattServerCallback(server_if);
+    if (!gatt_cb.get()) {
+      VLOG(2) << "The callback was deleted";
+      return;
+    }
+
+    gatt_cb->OnNotificationSent(device_address, error);
+  };
+
+  if (!gatt_server->SendNotification(device_address, characteristic_id,
+                                     confirm, value, callback)) {
+    LOG(ERROR) << "Failed to send notification";
+    return false;
+  }
+
+  return true;
+}
+
 void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
     bluetooth::GattServer* gatt_server,
     const std::string& device_address,
