@@ -65,6 +65,47 @@ class GattServer : public BluetoothClientInstance,
         int request_id, int offset, bool is_long,
         const bluetooth::GattIdentifier& descriptor_id) = 0;
 
+    // Called when there is an incoming write request for the characteristic
+    // with ID |characteristic_id| from a remote device with address
+    // |device_address|. |request_id| can be used to respond to this request by
+    // calling SendResponse, if the |need_response| parameter is true. Otherwise
+    // this is a "Write Without Reponse" procedure and SendResponse will fail.
+    // If |is_prepare_write| is true, then the write should not be committed
+    // immediately as this is a "Prepared Write Request". Instead, the Delegate
+    // should hold on to the value and either discard it or complete the write
+    // when it receives the OnExecuteWriteRequest event.
+    virtual void OnCharacteristicWriteRequest(
+        GattServer* gatt_server,
+        const std::string& device_address,
+        int request_id, int offset, bool is_prepare_write, bool need_response,
+        const std::vector<uint8_t>& value,
+        const bluetooth::GattIdentifier& characteristic_id) = 0;
+
+    // Called when there is an incoming write request for the descriptor
+    // with ID |descriptor_id| from a remote device with address
+    // |device_address|. |request_id| can be used to respond to this request by
+    // calling SendResponse, if the |need_response| parameter is true. Otherwise
+    // this is a "Write Without Response" procedure and SendResponse will fail.
+    // If |is_prepare_write| is true, then the write should not be committed
+    // immediately as this is a "Prepared Write Request". Instead, the Delegate
+    // should hold on to the value and either discard it or complete the write
+    // when it receives the OnExecuteWriteRequest event.
+    virtual void OnDescriptorWriteRequest(
+        GattServer* gatt_server,
+        const std::string& device_address,
+        int request_id, int offset, bool is_prepare_write, bool need_response,
+        const std::vector<uint8_t>& value,
+        const bluetooth::GattIdentifier& descriptor_id) = 0;
+
+    // Called when there is an incoming "Execute Write Request". If |is_execute|
+    // is true, then the Delegate should commit all previously prepared writes.
+    // Otherwise, all prepared writes should be aborted. The Delegate should
+    // call "SendResponse" to complete the procedure.
+    virtual void OnExecuteWriteRequest(
+        GattServer* gatt_server,
+        const std::string& device_address,
+        int request_id, bool is_execute) = 0;
+
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
@@ -223,6 +264,16 @@ class GattServer : public BluetoothClientInstance,
       const bt_bdaddr_t& bda,
       int attribute_handle, int offset,
       bool is_long) override;
+  void RequestWriteCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int conn_id, int trans_id,
+      const bt_bdaddr_t& bda,
+      int attr_handle, int offset, int length,
+      bool need_rsp, bool is_prep, uint8_t* value) override;
+  void RequestExecWriteCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      int conn_id, int trans_id,
+      const bt_bdaddr_t& bda, int exec_write) override;
 
   // Helper function that notifies and clears the pending callback.
   void NotifyEndCallbackAndClearData(BLEStatus status,
