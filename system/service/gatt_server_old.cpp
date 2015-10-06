@@ -38,7 +38,6 @@
 
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"
-#include "service/uuid.h"
 
 extern "C" {
 #include "osi/include/log.h"

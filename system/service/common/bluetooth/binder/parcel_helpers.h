@@ -20,10 +20,10 @@
 
 #include <binder/Parcel.h>
 
-#include "service/advertise_data.h"
-#include "service/advertise_settings.h"
-#include "service/gatt_identifier.h"
-#include "service/uuid.h"
+#include <bluetooth/advertise_data.h>
+#include <bluetooth/advertise_settings.h>
+#include <bluetooth/gatt_identifier.h>
+#include <bluetooth/uuid.h>
 
 namespace ipc {
 namespace binder {

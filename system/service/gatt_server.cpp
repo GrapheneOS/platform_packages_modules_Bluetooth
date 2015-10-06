@@ -16,9 +16,9 @@
 
 #include "service/gatt_server.h"
 
+#include "service/common/bluetooth/util/address_helper.h"
 #include "service/hal/gatt_helpers.h"
 #include "service/logging_helpers.h"
-#include "service/util/address_helper.h"
 
 using std::lock_guard;
 using std::mutex;

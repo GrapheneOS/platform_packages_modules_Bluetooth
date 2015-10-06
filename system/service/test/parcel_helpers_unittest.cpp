@@ -16,9 +16,9 @@
 
 #include <gtest/gtest.h>
 
-#include "service/advertise_data.h"
-#include "service/advertise_settings.h"
-#include "service/ipc/binder/parcel_helpers.h"
+#include "service/common/bluetooth/advertise_data.h"
+#include "service/common/bluetooth/advertise_settings.h"
+#include "service/common/bluetooth/binder/parcel_helpers.h"
 
 using android::Parcel;
 

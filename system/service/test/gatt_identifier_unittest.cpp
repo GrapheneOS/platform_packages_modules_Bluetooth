@@ -16,7 +16,8 @@
 
 #include <gtest/gtest.h>
 
-#include "service/gatt_identifier.h"
+#include "service/common/bluetooth/gatt_identifier.h"
+#include "service/common/bluetooth/uuid.h"
 
 namespace bluetooth {
 namespace {

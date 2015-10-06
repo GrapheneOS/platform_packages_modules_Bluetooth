@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/binder/parcel_helpers.h"
+#include "service/common/bluetooth/binder/parcel_helpers.h"
 
 using android::Parcel;
 

@@ -19,7 +19,7 @@
 #include <memory>
 #include <string>
 
-#include "service/uuid.h"
+#include <bluetooth/uuid.h>
 
 namespace bluetooth {
 

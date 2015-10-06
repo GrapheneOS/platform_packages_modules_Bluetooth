@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/util/atomic_string.h"
+#include "service/common/bluetooth/util/atomic_string.h"
 
 namespace util {
 

@@ -22,8 +22,8 @@
 #include <base/macros.h>
 
 #include "service/bluetooth_client_instance.h"
+#include "service/common/bluetooth/uuid.h"
 #include "service/ipc/binder/remote_callback_map.h"
-#include "service/uuid.h"
 
 namespace ipc {
 namespace binder {

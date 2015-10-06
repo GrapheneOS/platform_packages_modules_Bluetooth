@@ -22,12 +22,12 @@
 #include <base/macros.h>
 
 #include "service/adapter.h"
-#include "service/ipc/binder/IBluetooth.h"
-#include "service/ipc/binder/IBluetoothCallback.h"
-#include "service/ipc/binder/IBluetoothGattServer.h"
-#include "service/ipc/binder/IBluetoothLowEnergy.h"
+#include "service/common/bluetooth/binder/IBluetooth.h"
+#include "service/common/bluetooth/binder/IBluetoothCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothGattServer.h"
+#include "service/common/bluetooth/binder/IBluetoothLowEnergy.h"
+#include "service/common/bluetooth/uuid.h"
 #include "service/ipc/binder/remote_callback_list.h"
-#include "service/uuid.h"
 
 namespace ipc {
 namespace binder {

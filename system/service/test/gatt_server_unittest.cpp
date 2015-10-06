@@ -17,10 +17,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "service/common/bluetooth/util/address_helper.h"
 #include "service/gatt_server.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/gatt_helpers.h"
-#include "service/util/address_helper.h"
 
 using ::testing::_;
 using ::testing::Return;

@@ -20,8 +20,7 @@
 #include <string>
 
 #include <base/hash.h>
-
-#include "hardware/bluetooth.h"
+#include <hardware/bluetooth.h>
 
 namespace bluetooth {
 

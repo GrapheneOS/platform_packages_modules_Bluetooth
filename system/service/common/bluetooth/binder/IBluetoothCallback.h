@@ -20,7 +20,7 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
-#include "service/adapter_state.h"
+#include <bluetooth/adapter_state.h>
 
 namespace ipc {
 namespace binder {
