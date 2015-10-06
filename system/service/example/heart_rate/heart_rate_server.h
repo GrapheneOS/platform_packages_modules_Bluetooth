@@ -51,6 +51,19 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
       const std::string& device_address,
       int request_id, int offset, bool is_long,
       const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnCharacteristicWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& characteristic_id) override;
+  void OnDescriptorWriteRequest(
+      const std::string& device_address,
+      int request_id, int offset, bool is_prepare_write, bool need_response,
+      const std::vector<uint8_t>& value,
+      const bluetooth::GattIdentifier& descriptor_id) override;
+  void OnExecuteWriteRequest(
+      const std::string& device_address,
+      int request_id, bool is_execute) override;
 
   std::mutex mutex_;
 

@@ -188,4 +188,26 @@ void HeartRateServer::OnDescriptorReadRequest(
   // TODO(armansito): Implement.
 }
 
+void HeartRateServer::OnCharacteristicWriteRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_prepare_write, bool need_response,
+    const std::vector<uint8_t>& value,
+    const bluetooth::GattIdentifier& characteristic_id)  {
+  // TODO(armansito): Implement.
+}
+
+void HeartRateServer::OnDescriptorWriteRequest(
+    const std::string& device_address,
+    int request_id, int offset, bool is_prepare_write, bool need_response,
+    const std::vector<uint8_t>& value,
+    const bluetooth::GattIdentifier& descriptor_id)  {
+  // TODO(armansito): Implement.
+}
+
+void HeartRateServer::OnExecuteWriteRequest(
+    const std::string& device_address,
+    int request_id, bool is_execute)  {
+  // TODO(armansito): Implement.
+}
+
 }  // namespace heart_rate

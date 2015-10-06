@@ -192,7 +192,7 @@ void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
     const std::string& device_address,
     int request_id, int offset, bool is_long,
     const bluetooth::GattIdentifier& characteristic_id) {
-  VLOG(1) << __func__;
+  VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
@@ -210,7 +210,7 @@ void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
     const std::string& device_address,
     int request_id, int offset, bool is_long,
     const bluetooth::GattIdentifier& descriptor_id) {
-  VLOG(1) << __func__;
+  VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
@@ -252,6 +252,62 @@ void BluetoothGattServerBinderServer::OnRegisterClientImpl(
       status,
       (status == bluetooth::BLE_STATUS_SUCCESS) ?
           client->GetClientId() : kInvalidClientId);
+}
+
+void BluetoothGattServerBinderServer::OnCharacteristicWriteRequest(
+    bluetooth::GattServer* gatt_server,
+    const std::string& device_address,
+    int request_id, int offset, bool is_prepare_write, bool need_response,
+    const std::vector<uint8_t>& value,
+    const bluetooth::GattIdentifier& characteristic_id) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnCharacteristicWriteRequest(
+      device_address, request_id, offset, is_prepare_write, need_response,
+      value, characteristic_id);
+}
+
+void BluetoothGattServerBinderServer::OnDescriptorWriteRequest(
+    bluetooth::GattServer* gatt_server,
+    const std::string& device_address,
+    int request_id, int offset, bool is_prepare_write, bool need_response,
+    const std::vector<uint8_t>& value,
+    const bluetooth::GattIdentifier& descriptor_id) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnDescriptorWriteRequest(
+      device_address, request_id, offset, is_prepare_write, need_response,
+      value, descriptor_id);
+}
+
+void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
+    bluetooth::GattServer* gatt_server,
+    const std::string& device_address,
+    int request_id, bool is_execute) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnExecuteWriteRequest(device_address, request_id, is_execute);
 }
 
 }  // namespace binder

@@ -342,11 +342,16 @@ bool GattServer::SendResponse(
   btgatt_response_t response;
   memset(&response, 0, sizeof(response));
 
-  response.handle = connection->request_id_to_handle[request_id];
-  memcpy(response.attr_value.value, value.data(), value.size());
-  response.attr_value.handle = response.handle;
-  response.attr_value.offset = offset;
-  response.attr_value.len = value.size();
+  // We keep -1 as the handle for "Execute Write Request". In that case,
+  // there is no need to populate the response data. Just send zeros back.
+  int handle = connection->request_id_to_handle[request_id];
+  response.handle = handle;
+  response.attr_value.handle = handle;
+  if (handle != -1) {
+    memcpy(response.attr_value.value, value.data(), value.size());
+    response.attr_value.offset = offset;
+    response.attr_value.len = value.size();
+  }
 
   bt_status_t result = hal::BluetoothGattInterface::Get()->
       GetServerHALInterface()->send_response(
@@ -600,6 +605,110 @@ void GattServer::RequestReadCallback(
     // handled by the stack.
     LOG(WARNING) << "Read request received for unsupported attribute";
   }
+}
+
+void GattServer::RequestWriteCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
+    int conn_id, int trans_id,
+    const bt_bdaddr_t& bda,
+    int attr_handle, int offset, int length,
+    bool need_rsp, bool is_prep, uint8_t* value) {
+  lock_guard<mutex> lock(mutex_);
+
+  if (length < 0) {
+    LOG(WARNING) << "Negative length value received";
+    return;
+  }
+
+  // Check to see if we know about this connection. Otherwise ignore the
+  // request.
+  auto conn = GetConnection(conn_id, bda, trans_id);
+  if (!conn)
+    return;
+
+  std::string device_address = BtAddrString(&bda);
+
+  VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " BD_ADDR: " << device_address
+          << " attr_handle: " << attr_handle << " offset: " << offset
+          << " length: " << length << " need_rsp: " << need_rsp
+          << " is_prep: " << is_prep;
+
+  // Make sure that the handle is valid.
+  auto iter = handle_to_id_map_.find(attr_handle);
+  if (iter == handle_to_id_map_.end()) {
+    LOG(ERROR) << "Request received for unknown handle: " << attr_handle;
+    return;
+  }
+
+  // Store the request ID only if this is not a write-without-response. If
+  // another request occurs after this with the same request ID, then we'll
+  // simply process it normally, though that shouldn't ever happen.
+  if (need_rsp)
+    conn->request_id_to_handle[trans_id] = attr_handle;
+
+  // If there is no delegate then there is nobody to handle request. The request
+  // will eventually timeout and we should get a connection update that
+  // terminates the connection.
+  if (!delegate_) {
+    // TODO(armansito): Require a delegate at server registration so that this
+    // is never possible.
+    LOG(WARNING) << "No delegate was assigned to GattServer. Incoming request "
+                 << "will time out.";
+    return;
+  }
+
+  std::vector<uint8_t> value_vec(value, value + length);
+
+  if (iter->second.IsCharacteristic()) {
+    delegate_->OnCharacteristicWriteRequest(
+        this, device_address, trans_id, offset, is_prep, need_rsp,
+        value_vec, iter->second);
+  } else if (iter->second.IsDescriptor()) {
+    delegate_->OnDescriptorWriteRequest(
+        this, device_address, trans_id, offset, is_prep, need_rsp,
+        value_vec, iter->second);
+  } else {
+    // Our API only delegates to applications those read requests for
+    // characteristic value and descriptor attributes. Everything else should be
+    // handled by the stack.
+    LOG(WARNING) << "Write request received for unsupported attribute";
+  }
+}
+
+void GattServer::RequestExecWriteCallback(
+    hal::BluetoothGattInterface* /* gatt_iface */,
+    int conn_id, int trans_id,
+    const bt_bdaddr_t& bda, int exec_write) {
+  lock_guard<mutex> lock(mutex_);
+
+  // Check to see if we know about this connection. Otherwise ignore the
+  // request.
+  auto conn = GetConnection(conn_id, bda, trans_id);
+  if (!conn)
+    return;
+
+  std::string device_address = BtAddrString(&bda);
+
+  VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
+          << " BD_ADDR: " << device_address << " exec_write: " << exec_write;
+
+  // Just store a dummy invalid handle as this request doesn't apply to a
+  // specific handle.
+  conn->request_id_to_handle[trans_id] = -1;
+
+  // If there is no delegate then there is nobody to handle request. The request
+  // will eventually timeout and we should get a connection update that
+  // terminates the connection.
+  if (!delegate_) {
+    // TODO(armansito): Require a delegate at server registration so that this
+    // is never possible.
+    LOG(WARNING) << "No delegate was assigned to GattServer. Incoming request "
+                 << "will time out.";
+    return;
+  }
+
+  delegate_->OnExecuteWriteRequest(this, device_address, trans_id, exec_write);
 }
 
 void GattServer::NotifyEndCallbackAndClearData(
