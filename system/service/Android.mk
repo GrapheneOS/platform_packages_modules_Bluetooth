@@ -163,6 +163,8 @@ include $(BUILD_EXECUTABLE)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBinderSrc) \
+	advertise_data.cpp \
+	advertise_settings.cpp \
 	example/heart_rate/heart_rate_server.cpp \
 	example/heart_rate/server_main.cpp \
 	gatt_identifier.cpp \
