@@ -44,6 +44,51 @@ struct HALAdvertiseData {
   std::vector<uint8_t> service_uuid;
 };
 
+bool ProcessServiceData(const uint8_t* data,
+        uint8_t uuidlen,
+        HALAdvertiseData* out_data){
+  size_t field_len = data[0];
+
+  // Minimum packet size should be equal to the uuid length + 1 to include
+  // the byte for the type of packet
+  if (field_len < uuidlen + 1) {
+    // Invalid packet size
+    return false;
+  }
+
+  if (!out_data->service_data.empty()) {
+    // More than one Service Data is not allowed due to the limitations
+    // of the HAL API. We error in order to make sure there
+    // is no ambiguity on which data to send.
+    VLOG(1) << "More than one Service Data entry not allowed";
+    return false;
+  }
+
+  const uint8_t* service_uuid = data + 2;
+  const std::vector<uint8_t> temp_uuid(service_uuid, service_uuid + uuidlen);
+
+  // This section is to make sure that there is no UUID conflict
+  if (out_data->service_uuid.empty()) {
+    out_data->service_uuid = temp_uuid;
+  } else if (out_data->service_uuid != temp_uuid) {
+    // Mismatch in uuid passed through service data and uuid passed
+    // through uuid field
+    VLOG(1) << "More than one UUID entry not allowed";
+    return false;
+  } // else do nothing as UUID is already properly assigned
+
+  // Use + uuidlen + 2 here in order to skip over a
+  // uuid contained in the beggining of the field
+  const uint8_t* srv_data = data + uuidlen + 2;
+
+
+  out_data->service_data.insert(
+      out_data->service_data.begin(),
+      srv_data, srv_data + field_len - uuidlen - 1);
+
+  return true;
+}
+
 bool ProcessAdvertiseData(const AdvertiseData& adv,
                           HALAdvertiseData* out_data) {
   CHECK(out_data);
@@ -76,6 +121,43 @@ bool ProcessAdvertiseData(const AdvertiseData& adv,
       out_data->manufacturer_data.insert(
           out_data->manufacturer_data.begin(),
           mnf_data, mnf_data + field_len - 1);
+      break;
+    }
+    case HCI_EIR_MORE_16BITS_UUID_TYPE:
+    case HCI_EIR_COMPLETE_16BITS_UUID_TYPE:
+    case HCI_EIR_MORE_32BITS_UUID_TYPE:
+    case HCI_EIR_COMPLETE_32BITS_UUID_TYPE:
+    case HCI_EIR_MORE_128BITS_UUID_TYPE:
+    case HCI_EIR_COMPLETE_128BITS_UUID_TYPE: {
+      const uint8_t* uuid_data = data.data() + i + 2;
+
+      if (!out_data->service_uuid.empty() &&
+          memcmp(out_data->service_uuid.data(), uuid_data, field_len - 1) != 0) {
+        // More than one UUID is not allowed due to the limitations
+        // of the HAL API. We error in order to make sure there
+        // is no ambiguity on which UUID to send. Also makes sure that
+        // UUID Hasn't been set by service data first
+        VLOG(1) << "More than one UUID entry not allowed";
+        return false;
+      }
+
+      out_data->service_uuid.assign(
+          uuid_data, uuid_data + field_len - 1);
+      break;
+    }
+    case HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE: {
+      if (!ProcessServiceData(data.data() + i, 2, out_data))
+        return false;
+      break;
+    }
+    case HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE: {
+      if (!ProcessServiceData(data.data() + i, 4, out_data))
+        return false;
+      break;
+    }
+    case HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE: {
+      if (!ProcessServiceData(data.data() + i, 16, out_data))
+        return false;
       break;
     }
     // TODO(armansito): Support other fields.
@@ -368,12 +450,12 @@ bt_status_t LowEnergyClient::SetAdvertiseData(
   // into account. At the moment we are skipping this check; this means that if
   // the given data is too long then the stack will truncate it.
   if (!ProcessAdvertiseData(data, &hal_data)) {
-    VLOG(1) << "Malformed advertise data given";
+    LOG(ERROR) << "Malformed advertise data given";
     return BT_STATUS_FAIL;
   }
 
   if (is_setting_adv_data_.load()) {
-    VLOG(1) << "Setting advertising data already in progress.";
+    LOG(ERROR) << "Setting advertising data already in progress.";
     return BT_STATUS_FAIL;
   }
 
@@ -390,7 +472,11 @@ bt_status_t LowEnergyClient::SetAdvertiseData(
           0,  // This is what Bluetooth.apk current hardcodes for "appearance".
           hal_data.manufacturer_data.size(),
           reinterpret_cast<char*>(hal_data.manufacturer_data.data()),
-          0, nullptr, 0, nullptr);  // TODO(armansito): Support the rest.
+          hal_data.service_data.size(),
+          reinterpret_cast<char*>(hal_data.service_data.data()),
+          hal_data.service_uuid.size(),
+          reinterpret_cast<char*>(hal_data.service_uuid.data()));
+
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to set instance advertising data.";
     return status;

@@ -52,7 +52,7 @@ class MockGattHandler
       bool incl_txpower, int appearance,
       int manufacturer_len, char* manufacturer_data,
       int service_data_len, char* service_data,
-      int service_uuid_len, char* service_uuid) {
+      int service_uuid_len, char* service_uuid) override {
     return MultiAdvSetInstDataMock(
         set_scan_rsp, include_name, incl_txpower, appearance,
         manufacturer_len, manufacturer_data,
@@ -64,18 +64,61 @@ class MockGattHandler
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
 
+// Created this class for testing Advertising Data Setting
+// It provides a work around in order to verify the arguments
+// in the arrays passed to MultiAdvSetInstData due to mocks
+// not having an easy way to verify entire arrays
+class AdvertiseDataHandler : public MockGattHandler {
+ public:
+  AdvertiseDataHandler() : call_count_(0) {}
+  ~AdvertiseDataHandler() override = default;
+
+  bt_status_t MultiAdvSetInstData(
+      int /* client_if */,
+      bool set_scan_rsp, bool include_name,
+      bool incl_txpower, int appearance,
+      int manufacturer_len, char* manufacturer_data,
+      int service_data_len, char* service_data,
+      int service_uuid_len, char* service_uuid) override {
+    call_count_++;
+    service_data_.assign(
+        service_data, service_data+service_data_len);
+    manufacturer_data_.assign(
+        manufacturer_data, manufacturer_data+manufacturer_len);
+    uuid_data_.assign(
+        service_uuid, service_uuid+service_uuid_len);
+    return BT_STATUS_SUCCESS;
+  }
+
+  const std::vector<uint8_t>& manufacturer_data() const {
+    return manufacturer_data_;
+  }
+  const std::vector<uint8_t>& service_data() const { return service_data_; }
+  const std::vector<uint8_t>& uuid_data() const { return uuid_data_; }
+  int call_count() const { return call_count_; }
+
+ private:
+  int call_count_;
+  std::vector<uint8_t> manufacturer_data_;
+  std::vector<uint8_t> service_data_;
+  std::vector<uint8_t> uuid_data_;
+
+
+};
+
 class LowEnergyClientTest : public ::testing::Test {
  public:
   LowEnergyClientTest() = default;
   ~LowEnergyClientTest() override = default;
 
   void SetUp() override {
-    mock_handler_.reset(new MockGattHandler());
+    // Only set |mock_handler_| if a test hasn't set it.
+    if (!mock_handler_)
+        mock_handler_.reset(new MockGattHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
         std::static_pointer_cast<
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
         nullptr);
-
     hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
     ble_factory_.reset(new LowEnergyClientFactory());
   }
@@ -164,6 +207,19 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ASSERT_FALSE(le_client_->IsStoppingAdvertising());
   }
 
+  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback){
+    AdvertiseSettings settings;
+    EXPECT_TRUE(le_client_->StartAdvertising(
+        settings, data, AdvertiseData(), callback));
+    fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+    fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
+        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+    EXPECT_TRUE(le_client_->StopAdvertising(LowEnergyClient::StatusCallback()));
+    fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
+        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+  }
+
  protected:
   std::unique_ptr<LowEnergyClient> le_client_;
 
@@ -243,7 +299,6 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   client.reset();
-
   testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // |uuid1| fails.
@@ -567,6 +622,178 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
   EXPECT_TRUE(le_client_->IsAdvertisingStarted());
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
+  // Re-initialize the test with our own custom handler.
+  TearDown();
+  std::shared_ptr<AdvertiseDataHandler> adv_handler(new AdvertiseDataHandler());
+  mock_handler_ = std::static_pointer_cast<MockGattHandler>(adv_handler);
+  SetUp();
+
+  const std::vector<uint8_t> kUUID16BitData{
+    0x03, HCI_EIR_COMPLETE_16BITS_UUID_TYPE, 0xDE, 0xAD,
+  };
+
+  const std::vector<uint8_t> kUUID32BitData{
+    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02
+  };
+
+  const std::vector<uint8_t> kUUID128BitData{
+    0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
+  };
+
+  const std::vector<uint8_t> kMultiUUIDData{
+    0x11, HCI_EIR_COMPLETE_128BITS_UUID_TYPE,
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E,
+    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kServiceData16Bit{
+    0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kServiceData32Bit{
+    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kServiceData128Bit{
+    0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kMultiServiceData{
+    0x13, HCI_EIR_SERVICE_DATA_128BITS_UUID_TYPE,
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0xBE, 0xEF,
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+    0x05, HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE, 0xDE, 0xAD, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kServiceUUIDMatch{
+    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02,
+    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
+  };
+
+  const std::vector<uint8_t> kServiceUUIDMismatch{
+    0x05, HCI_EIR_COMPLETE_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x01,
+    0x07, HCI_EIR_SERVICE_DATA_32BITS_UUID_TYPE, 0xDE, 0xAD, 0x01, 0x02, 0xBE, 0xEF
+  };
+
+  AdvertiseData uuid_16bit_adv(kUUID16BitData);
+  AdvertiseData uuid_32bit_adv(kUUID32BitData);
+  AdvertiseData uuid_128bit_adv(kUUID128BitData);
+  AdvertiseData multi_uuid_adv(kMultiUUIDData);
+
+  AdvertiseData service_16bit_adv(kServiceData16Bit);
+  AdvertiseData service_32bit_adv(kServiceData32Bit);
+  AdvertiseData service_128bit_adv(kServiceData128Bit);
+  AdvertiseData multi_service_adv(kMultiServiceData);
+
+  AdvertiseData service_uuid_match(kServiceUUIDMatch);
+  AdvertiseData service_uuid_mismatch(kServiceUUIDMismatch);
+
+  AdvertiseSettings settings;
+
+  int callback_count = 0;
+  BLEStatus last_status = BLE_STATUS_FAILURE;
+  auto callback = [&](BLEStatus status) {
+    last_status = status;
+    callback_count++;
+  };
+
+  EXPECT_CALL(*mock_handler_, MultiAdvEnable(_, _, _, _, _, _, _))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, MultiAdvDisable(_))
+      .WillRepeatedly(Return(BT_STATUS_SUCCESS));
+
+  // Multiple UUID test, should fail due to only one UUID allowed
+  EXPECT_TRUE(le_client_->StartAdvertising(
+              settings, multi_uuid_adv, AdvertiseData(), callback));
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+  EXPECT_EQ(1, callback_count);
+  EXPECT_EQ(0, adv_handler->call_count());
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // Multiple Service Data test, should fail due to only one service data allowed
+  EXPECT_TRUE(le_client_->StartAdvertising(
+              settings, multi_uuid_adv, AdvertiseData(), callback));
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+  EXPECT_EQ(2, callback_count);
+  EXPECT_EQ(0, adv_handler->call_count());
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+
+  // 16bit uuid test, should succeed with correctly parsed uuid
+  AdvertiseDataTestHelper(uuid_16bit_adv, callback);
+  EXPECT_EQ(3, callback_count);
+  EXPECT_EQ(1, adv_handler->call_count());
+  const std::vector<uint8_t> uuid_16bit{0xDE, 0xAD};
+  EXPECT_EQ(uuid_16bit, adv_handler->uuid_data());
+
+  // 32bit uuid test, should succeed with correctly parsed uuid
+  AdvertiseDataTestHelper(uuid_32bit_adv, callback);
+  EXPECT_EQ(4, callback_count);
+  EXPECT_EQ(2, adv_handler->call_count());
+  const std::vector<uint8_t> uuid_32bit{0xDE, 0xAD, 0x01, 0x02};
+  EXPECT_EQ(uuid_32bit, adv_handler->uuid_data());
+
+  // 128bit uuid test, should succeed with correctly parsed uuid
+  AdvertiseDataTestHelper(uuid_128bit_adv, callback);
+  EXPECT_EQ(5, callback_count);
+  EXPECT_EQ(3, adv_handler->call_count());
+  const std::vector<uint8_t> uuid_128bit{
+    0xDE, 0xAD, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
+    0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E
+  };
+  EXPECT_EQ(uuid_128bit, adv_handler->uuid_data());
+
+  const std::vector<uint8_t> service_data{ 0xBE, 0xEF };
+
+  // Service data with 16bit uuid included, should succede with
+  // uuid and service data parsed out
+  AdvertiseDataTestHelper(service_16bit_adv, callback);
+  EXPECT_EQ(6, callback_count);
+  EXPECT_EQ(4, adv_handler->call_count());
+  EXPECT_EQ(service_data, adv_handler->service_data());
+  EXPECT_EQ(uuid_16bit, adv_handler->uuid_data());
+
+  // Service data with 32bit uuid included, should succede with
+  // uuid and service data parsed out
+  AdvertiseDataTestHelper(service_32bit_adv, callback);
+  EXPECT_EQ(7, callback_count);
+  EXPECT_EQ(5, adv_handler->call_count());
+  EXPECT_EQ(service_data, adv_handler->service_data());
+  EXPECT_EQ(uuid_32bit, adv_handler->uuid_data());
+
+  // Service data with 128bit uuid included, should succede with
+  // uuid and service data parsed out
+  AdvertiseDataTestHelper(service_128bit_adv, callback);
+  EXPECT_EQ(8, callback_count);
+  EXPECT_EQ(6, adv_handler->call_count());
+  EXPECT_EQ(service_data, adv_handler->service_data());
+  EXPECT_EQ(uuid_128bit, adv_handler->uuid_data());
+
+  // Service data and UUID where the UUID for both match, should succede
+  AdvertiseDataTestHelper(service_uuid_match, callback);
+  EXPECT_EQ(9, callback_count);
+  EXPECT_EQ(7, adv_handler->call_count());
+  EXPECT_EQ(service_data, adv_handler->service_data());
+  const std::vector<uint8_t> uuid_32bit_matcher{ 0xDE, 0xAD, 0x01, 0x02 };
+  EXPECT_EQ(uuid_32bit_matcher, adv_handler->uuid_data());
+
+  //Service data and UUID where the UUID for dont match, should fail
+  EXPECT_TRUE(le_client_->StartAdvertising(
+              settings, service_uuid_mismatch, AdvertiseData(), callback));
+  fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
+          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+  EXPECT_EQ(10, callback_count);
+  EXPECT_EQ(7, adv_handler->call_count());
+  EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 }
 
 }  // namespace
