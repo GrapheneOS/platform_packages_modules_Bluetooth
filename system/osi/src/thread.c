@@ -24,6 +24,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <sys/prctl.h>
+#include <sys/resource.h>
 #include <sys/types.h>
 
 #include "osi/include/allocator.h"
@@ -152,6 +153,20 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
 void thread_stop(thread_t *thread) {
   assert(thread != NULL);
   reactor_stop(thread->reactor);
+}
+
+bool thread_set_priority(thread_t *thread, int priority) {
+  if (!thread)
+    return false;
+
+  const int rc = setpriority(PRIO_PROCESS, thread->tid, priority);
+  if (rc < 0) {
+    LOG_ERROR("%s unable to set thread priority %d for tid %d, error %d",
+      __func__, priority, thread->tid, rc);
+    return false;
+  }
+
+  return true;
 }
 
 bool thread_is_self(const thread_t *thread) {
