@@ -59,6 +59,21 @@ btserviceBinderSrc := \
 
 btserviceCommonIncludes := $(LOCAL_PATH)/../
 
+# Main unit test sources. These get built for host and target.
+# ========================================================
+btserviceBaseTestSrc := \
+	hal/fake_bluetooth_gatt_interface.cpp \
+	hal/fake_bluetooth_interface.cpp \
+	test/adapter_unittest.cpp \
+	test/advertise_data_unittest.cpp \
+	test/fake_hal_util.cpp \
+	test/gatt_identifier_unittest.cpp \
+	test/gatt_server_unittest.cpp \
+	test/low_energy_client_unittest.cpp \
+	test/settings_unittest.cpp \
+	test/util_unittest.cpp \
+	test/uuid_unittest.cpp
+
 # Native system service for target
 # ========================================================
 include $(CLEAR_VARS)
@@ -87,19 +102,10 @@ include $(BUILD_EXECUTABLE)
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
+	$(btserviceBaseTestSrc) \
 	$(btserviceCommonSrc) \
-	hal/fake_bluetooth_gatt_interface.cpp \
-	hal/fake_bluetooth_interface.cpp \
-	test/adapter_unittest.cpp \
-	test/advertise_data_unittest.cpp \
-	test/fake_hal_util.cpp \
-	test/gatt_identifier_unittest.cpp \
-	test/gatt_server_unittest.cpp \
-	test/low_energy_client_unittest.cpp \
-	test/settings_unittest.cpp \
-	test/stub_ipc_handler_binder.cpp \
-	test/util_unittest.cpp \
-	test/uuid_unittest.cpp
+	test/main.cpp \
+	test/stub_ipc_handler_binder.cpp
 ifeq ($(HOST_OS),linux)
 LOCAL_SRC_FILES += \
 	$(btserviceLinuxSrc) \
@@ -111,28 +117,32 @@ LOCAL_SRC_FILES += \
 endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
-LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := bt_service_unittests
+LOCAL_MODULE_TAGS := debug tests
+LOCAL_MODULE := bluetoothtbd-host_test
 LOCAL_SHARED_LIBRARIES += libchrome-host
-LOCAL_STATIC_LIBRARIES += libgmock_host liblog
+LOCAL_STATIC_LIBRARIES += libgmock_host libgtest_host liblog
 include $(BUILD_HOST_NATIVE_TEST)
 
-# Native system service unittests for Binder code, for target
+# Native system service unittests for target. This
+# includes Binder related tests that can only be run on
+# target.
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
+	$(btserviceBaseTestSrc) \
 	$(btserviceBinderSrc) \
 	$(btserviceCommonSrc) \
+	test/main.cpp \
 	test/parcel_helpers_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
-LOCAL_MODULE_TAGS := tests
-LOCAL_MODULE := bt_service_binder_unittests
+LOCAL_MODULE_TAGS := debug tests
+LOCAL_MODULE := bluetoothtbd_test
 LOCAL_SHARED_LIBRARIES += \
 	libbinder \
 	libchrome \
 	libutils
-LOCAL_STATIC_LIBRARIES += liblog
+LOCAL_STATIC_LIBRARIES += libgmock libgtest liblog
 include $(BUILD_NATIVE_TEST)
 
 # Native system service CLI for target
