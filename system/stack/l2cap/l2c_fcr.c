@@ -1511,25 +1511,31 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
     }
 
     /* tx_seq indicates whether to retransmit a specific sequence or all (if == L2C_FCR_RETX_ALL_PKTS) */
-    list_t *list_ack = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
-    const list_node_t *node_ack = list_begin(list_ack);
+    list_t *list_ack = NULL;
+    const list_node_t *node_ack = NULL;
+    if (! fixed_queue_is_empty(p_ccb->fcrb.waiting_for_ack_q)) {
+        list_ack = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
+        node_ack = list_begin(list_ack);
+    }
     if (tx_seq != L2C_FCR_RETX_ALL_PKTS)
     {
         /* If sending only one, the sequence number tells us which one. Look for it.
         */
-        for ( ; node_ack != list_end(list_ack); node_ack = list_next(node_ack)) {
-            p_buf = (BT_HDR *)list_node(node_ack);
-            /* Get the old control word */
-            p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
+        if (list_ack != NULL) {
+            for ( ; node_ack != list_end(list_ack); node_ack = list_next(node_ack)) {
+                p_buf = (BT_HDR *)list_node(node_ack);
+                /* Get the old control word */
+                p = ((UINT8 *) (p_buf+1)) + p_buf->offset + L2CAP_PKT_OVERHEAD;
 
-            STREAM_TO_UINT16 (ctrl_word, p);
+                STREAM_TO_UINT16 (ctrl_word, p);
 
-            buf_seq = (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT;
+                buf_seq = (ctrl_word & L2CAP_FCR_TX_SEQ_BITS) >> L2CAP_FCR_TX_SEQ_BITS_SHIFT;
 
-            L2CAP_TRACE_DEBUG ("retransmit_i_frames()   cur seq: %u  looking for: %u", buf_seq, tx_seq);
+                L2CAP_TRACE_DEBUG ("retransmit_i_frames()   cur seq: %u  looking for: %u", buf_seq, tx_seq);
 
-            if (tx_seq == buf_seq)
-                break;
+                if (tx_seq == buf_seq)
+                    break;
+            }
         }
 
         if (!p_buf)
@@ -1560,24 +1566,27 @@ static BOOLEAN retransmit_i_frames (tL2C_CCB *p_ccb, UINT8 tx_seq)
         while (!fixed_queue_is_empty(p_ccb->fcrb.retrans_q))
             osi_freebuf(fixed_queue_try_dequeue(p_ccb->fcrb.retrans_q));
 
-        node_ack = list_begin(list_ack);
+        if (list_ack != NULL)
+            node_ack = list_begin(list_ack);
     }
 
-    while (node_ack != list_end(list_ack))
-    {
-        p_buf = (BT_HDR *)list_node(node_ack);
-        node_ack = list_next(node_ack);
-
-        BT_HDR *p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
-        if (p_buf2)
+    if (list_ack != NULL) {
+        while (node_ack != list_end(list_ack))
         {
-            p_buf2->layer_specific = p_buf->layer_specific;
+            p_buf = (BT_HDR *)list_node(node_ack);
+            node_ack = list_next(node_ack);
 
-            fixed_queue_enqueue(p_ccb->fcrb.retrans_q, p_buf2);
+            BT_HDR *p_buf2 = l2c_fcr_clone_buf(p_buf, p_buf->offset, p_buf->len);
+            if (p_buf2)
+            {
+                p_buf2->layer_specific = p_buf->layer_specific;
+
+                fixed_queue_enqueue(p_ccb->fcrb.retrans_q, p_buf2);
+            }
+
+            if ( (tx_seq != L2C_FCR_RETX_ALL_PKTS) || (p_buf2 == NULL) )
+                break;
         }
-
-        if ( (tx_seq != L2C_FCR_RETX_ALL_PKTS) || (p_buf2 == NULL) )
-            break;
     }
 
     l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
@@ -2282,31 +2291,35 @@ static void l2c_fcr_collect_ack_delay (tL2C_CCB *p_ccb, UINT8 num_bufs_acked)
         p_ccb->fcrb.ack_q_count_min[index] = fixed_queue_length(p_ccb->fcrb.waiting_for_ack_q);
 
     /* update sum, max and min of round trip delay of acking */
-    list_t *list = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
-    for (const list_node_t *node = list_begin(list), xx = 0;
-         (node != list_end(list)) && (xx < num_bufs_acked);
-         node = list_next(node), xx++) {
-        p_buf = list_node(node);
-        /* adding up length of acked I-frames to get throughput */
-        p_ccb->fcrb.throughput[index] += p_buf->len - 8;
+    list_t *list = NULL;
+    if (! fixed_queue_is_empty(p_ccb->fcrb.waiting_for_ack_q))
+        list = fixed_queue_get_list(p_ccb->fcrb.waiting_for_ack_q);
+    if (list != NULL) {
+        for (const list_node_t *node = list_begin(list), xx = 0;
+             (node != list_end(list)) && (xx < num_bufs_acked);
+             node = list_next(node), xx++) {
+            p_buf = list_node(node);
+            /* adding up length of acked I-frames to get throughput */
+            p_ccb->fcrb.throughput[index] += p_buf->len - 8;
 
-        if ( xx == num_bufs_acked - 1 )
-        {
-            /* get timestamp from tx I-frame that receiver is acking */
-            p = ((UINT8 *) (p_buf+1)) + p_buf->offset + p_buf->len;
-            if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
+            if ( xx == num_bufs_acked - 1 )
             {
-                p += L2CAP_FCS_LEN;
+                /* get timestamp from tx I-frame that receiver is acking */
+                p = ((UINT8 *) (p_buf+1)) + p_buf->offset + p_buf->len;
+                if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
+                {
+                    p += L2CAP_FCS_LEN;
+                }
+
+                STREAM_TO_UINT32(timestamp, p);
+                delay = time_get_os_boottime_ms() - timestamp;
+
+                p_ccb->fcrb.ack_delay_avg[index] += delay;
+                if ( delay > p_ccb->fcrb.ack_delay_max[index] )
+                    p_ccb->fcrb.ack_delay_max[index] = delay;
+                if ( delay < p_ccb->fcrb.ack_delay_min[index] )
+                    p_ccb->fcrb.ack_delay_min[index] = delay;
             }
-
-            STREAM_TO_UINT32(timestamp, p);
-            delay = time_get_os_boottime_ms() - timestamp;
-
-            p_ccb->fcrb.ack_delay_avg[index] += delay;
-            if ( delay > p_ccb->fcrb.ack_delay_max[index] )
-                p_ccb->fcrb.ack_delay_max[index] = delay;
-            if ( delay < p_ccb->fcrb.ack_delay_min[index] )
-                p_ccb->fcrb.ack_delay_min[index] = delay;
         }
     }
 
