@@ -23,11 +23,11 @@
 #include <base/macros.h>
 #include <base/observer_list.h>
 
-#include "service/adapter_state.h"
+#include "service/common/bluetooth/adapter_state.h"
+#include "service/common/bluetooth/util/atomic_string.h"
 #include "service/gatt_server.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/low_energy_client.h"
-#include "service/util/atomic_string.h"
 
 namespace bluetooth {
 

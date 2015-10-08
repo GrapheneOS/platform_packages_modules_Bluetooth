@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/binder/IBluetooth.h"
+#include "service/common/bluetooth/binder/IBluetooth.h"
 
 #include <base/logging.h>
 #include <binder/IServiceManager.h>

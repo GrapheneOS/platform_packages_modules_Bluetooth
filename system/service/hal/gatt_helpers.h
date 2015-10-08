@@ -21,7 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt_types.h>
 
-#include "service/gatt_identifier.h"
+#include "service/common/bluetooth/gatt_identifier.h"
 
 // Some utility functions for interacting with GATT HAL interfaces.
 

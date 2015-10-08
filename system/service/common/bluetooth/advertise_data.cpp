@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/advertise_data.h"
+#include "service/common/bluetooth/advertise_data.h"
 
 #include <base/logging.h>
 

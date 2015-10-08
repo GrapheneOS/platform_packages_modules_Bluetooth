@@ -23,10 +23,10 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
-#include "service/ipc/binder/IBluetoothCallback.h"
-#include "service/ipc/binder/IBluetoothGattServer.h"
-#include "service/ipc/binder/IBluetoothLowEnergy.h"
-#include "service/uuid.h"
+#include <bluetooth/binder/IBluetoothCallback.h>
+#include <bluetooth/binder/IBluetoothGattServer.h>
+#include <bluetooth/binder/IBluetoothLowEnergy.h>
+#include <bluetooth/uuid.h>
 
 namespace ipc {
 namespace binder {

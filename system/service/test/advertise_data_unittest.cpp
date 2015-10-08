@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "service/advertise_data.h"
+#include "service/common/bluetooth/advertise_data.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
 

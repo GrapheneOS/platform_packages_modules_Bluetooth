@@ -21,8 +21,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "service/common/bluetooth/uuid.h"
 #include "service/gatt_server_old.h"
-#include "service/uuid.h"
 
 namespace bluetooth {
 class Adapter;

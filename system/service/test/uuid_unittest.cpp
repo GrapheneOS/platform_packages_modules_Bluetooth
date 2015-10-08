@@ -13,13 +13,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 //
+
 #include <algorithm>
 #include <array>
 #include <stdint.h>
 
 #include <gtest/gtest.h>
 
-#include "service/uuid.h"
+#include "service/common/bluetooth/uuid.h"
 
 using namespace bluetooth;
 

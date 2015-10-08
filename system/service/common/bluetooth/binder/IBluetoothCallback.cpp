@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/binder/IBluetoothCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothCallback.h"
 
 #include <base/logging.h>
 #include <binder/Parcel.h>

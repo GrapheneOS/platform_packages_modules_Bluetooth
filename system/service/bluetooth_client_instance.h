@@ -21,8 +21,8 @@
 
 #include <base/macros.h>
 
-#include "service/low_energy_constants.h"
-#include "service/uuid.h"
+#include "service/common/bluetooth/low_energy_constants.h"
+#include "service/common/bluetooth/uuid.h"
 
 namespace bluetooth {
 

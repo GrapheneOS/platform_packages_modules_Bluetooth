@@ -20,9 +20,9 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
-#include "service/advertise_data.h"
-#include "service/advertise_settings.h"
-#include "service/ipc/binder/IBluetoothLowEnergyCallback.h"
+#include <bluetooth/advertise_data.h>
+#include <bluetooth/advertise_settings.h>
+#include <bluetooth/binder/IBluetoothLowEnergyCallback.h>
 
 namespace ipc {
 namespace binder {

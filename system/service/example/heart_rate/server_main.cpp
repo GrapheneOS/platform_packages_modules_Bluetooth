@@ -25,8 +25,9 @@
 #include <binder/IPCThreadState.h>
 #include <binder/ProcessState.h>
 
+#include <bluetooth/binder/IBluetooth.h>
+
 #include "service/example/heart_rate/heart_rate_server.h"
-#include "service/ipc/binder/IBluetooth.h"
 
 using android::sp;
 using ipc::binder::IBluetooth;

@@ -21,8 +21,9 @@
 #include <base/logging.h>
 #include <base/rand_util.h>
 
+#include <bluetooth/low_energy_constants.h>
+
 #include "service/example/heart_rate/constants.h"
-#include "service/low_energy_constants.h"
 
 namespace heart_rate {
 

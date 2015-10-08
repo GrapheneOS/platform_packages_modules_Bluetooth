@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-#include "service/util/address_helper.h"
+#include "service/common/bluetooth/util/address_helper.h"
 
 #include <cstdlib>
 

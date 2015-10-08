@@ -24,8 +24,8 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
-#include "service/gatt_identifier.h"
-#include "service/ipc/binder/IBluetoothGattServerCallback.h"
+#include <bluetooth/gatt_identifier.h>
+#include <bluetooth/binder/IBluetoothGattServerCallback.h>
 
 namespace ipc {
 namespace binder {

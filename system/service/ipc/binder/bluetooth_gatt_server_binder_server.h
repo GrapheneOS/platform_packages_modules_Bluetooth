@@ -19,8 +19,8 @@
 #include <base/macros.h>
 
 #include "service/gatt_server.h"
-#include "service/ipc/binder/IBluetoothGattServer.h"
-#include "service/ipc/binder/IBluetoothGattServerCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothGattServer.h"
+#include "service/common/bluetooth/binder/IBluetoothGattServerCallback.h"
 #include "service/ipc/binder/interface_with_clients_base.h"
 
 namespace bluetooth {

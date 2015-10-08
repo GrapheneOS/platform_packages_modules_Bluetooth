@@ -22,7 +22,7 @@
 
 #include "hardware/bluetooth.h"
 #include "hardware/bt_gatt.h"
-#include "uuid.h"
+#include "service/common/bluetooth/uuid.h"
 
 namespace bluetooth {
 namespace gatt {

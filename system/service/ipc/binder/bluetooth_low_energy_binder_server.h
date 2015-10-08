@@ -20,11 +20,11 @@
 
 #include <base/macros.h>
 
-#include "service/ipc/binder/IBluetoothLowEnergy.h"
-#include "service/ipc/binder/IBluetoothLowEnergyCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothLowEnergy.h"
+#include "service/common/bluetooth/binder/IBluetoothLowEnergyCallback.h"
+#include "service/common/bluetooth/low_energy_constants.h"
 #include "service/ipc/binder/interface_with_clients_base.h"
 #include "service/low_energy_client.h"
-#include "service/low_energy_constants.h"
 
 namespace bluetooth {
 class Adapter;

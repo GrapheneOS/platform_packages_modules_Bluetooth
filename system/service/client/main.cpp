@@ -26,10 +26,10 @@
 #include <binder/IPCThreadState.h>
 #include <binder/ProcessState.h>
 
-#include "service/adapter_state.h"
-#include "service/ipc/binder/IBluetooth.h"
-#include "service/ipc/binder/IBluetoothCallback.h"
-#include "service/low_energy_constants.h"
+#include <bluetooth/adapter_state.h>
+#include <bluetooth/binder/IBluetooth.h>
+#include <bluetooth/binder/IBluetoothCallback.h>
+#include <bluetooth/low_energy_constants.h>
 
 using namespace std;
 
