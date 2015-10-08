@@ -162,7 +162,7 @@ bool thread_set_priority(thread_t *thread, int priority) {
 
   const int rc = setpriority(PRIO_PROCESS, thread->tid, priority);
   if (rc < 0) {
-    LOG_ERROR("%s unable to set thread priority %d for tid %d, error %d",
+    LOG_ERROR(LOG_TAG, "%s unable to set thread priority %d for tid %d, error %d",
       __func__, priority, thread->tid, rc);
     return false;
   }
