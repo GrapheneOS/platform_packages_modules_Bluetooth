@@ -26,9 +26,9 @@
 #include <base/macros.h>
 
 #include "service/bluetooth_client_instance.h"
-#include "service/gatt_identifier.h"
+#include "service/common/bluetooth/gatt_identifier.h"
+#include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
-#include "service/uuid.h"
 
 namespace bluetooth {
 

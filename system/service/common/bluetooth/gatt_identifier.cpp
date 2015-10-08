@@ -14,9 +14,9 @@
 //  limitations under the License.
 //
 
-#include "service/gatt_identifier.h"
+#include "service/common/bluetooth/gatt_identifier.h"
 
-#include "service/util/address_helper.h"
+#include "service/common/bluetooth/util/address_helper.h"
 
 namespace bluetooth {
 

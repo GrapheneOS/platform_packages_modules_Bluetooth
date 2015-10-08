@@ -16,15 +16,29 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-# Common variables
+# Source variables
 # ========================================================
 btserviceCommonSrc := \
+	common/bluetooth/adapter_state.cpp \
+	common/bluetooth/advertise_data.cpp \
+	common/bluetooth/advertise_settings.cpp \
+	common/bluetooth/gatt_identifier.cpp \
+	common/bluetooth/util/address_helper.cpp \
+	common/bluetooth/util/atomic_string.cpp \
+	common/bluetooth/uuid.cpp
+
+btserviceCommonBinderSrc := \
+	common/bluetooth/binder/IBluetooth.cpp \
+	common/bluetooth/binder/IBluetoothCallback.cpp \
+	common/bluetooth/binder/IBluetoothGattServer.cpp \
+	common/bluetooth/binder/IBluetoothGattServerCallback.cpp \
+	common/bluetooth/binder/IBluetoothLowEnergy.cpp \
+	common/bluetooth/binder/IBluetoothLowEnergyCallback.cpp \
+	common/bluetooth/binder/parcel_helpers.cpp
+
+btserviceDaemonSrc := \
 	adapter.cpp \
-	adapter_state.cpp \
-	advertise_data.cpp \
-	advertise_settings.cpp \
 	daemon.cpp \
-	gatt_identifier.cpp \
 	gatt_server.cpp \
 	gatt_server_old.cpp \
 	hal/gatt_helpers.cpp \
@@ -34,30 +48,26 @@ btserviceCommonSrc := \
 	ipc/ipc_manager.cpp \
 	logging_helpers.cpp \
 	low_energy_client.cpp \
-	settings.cpp \
-	util/address_helper.cpp \
-	util/atomic_string.cpp \
-	uuid.cpp
+	settings.cpp
 
 btserviceLinuxSrc := \
 	ipc/ipc_handler_linux.cpp \
 	ipc/linux_ipc_host.cpp
 
-btserviceBinderSrc := \
+btserviceBinderDaemonImplSrc := \
 	ipc/binder/bluetooth_binder_server.cpp \
 	ipc/binder/bluetooth_gatt_server_binder_server.cpp \
 	ipc/binder/bluetooth_low_energy_binder_server.cpp \
-	ipc/binder/IBluetooth.cpp \
-	ipc/binder/IBluetoothCallback.cpp \
-	ipc/binder/IBluetoothGattServer.cpp \
-	ipc/binder/IBluetoothGattServerCallback.cpp \
-	ipc/binder/IBluetoothLowEnergy.cpp \
-	ipc/binder/IBluetoothLowEnergyCallback.cpp \
 	ipc/binder/interface_with_clients_base.cpp \
 	ipc/binder/ipc_handler_binder.cpp \
-	ipc/binder/parcel_helpers.cpp
 
-btserviceCommonIncludes := $(LOCAL_PATH)/../
+btserviceBinderDaemonSrc := \
+	$(btserviceCommonBinderSrc) \
+	$(btserviceBinderDaemonImplSrc)
+
+btserviceCommonIncludes := \
+	$(LOCAL_PATH)/../ \
+	$(LOCAL_PATH)/common
 
 # Main unit test sources. These get built for host and target.
 # ========================================================
@@ -78,9 +88,10 @@ btserviceBaseTestSrc := \
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
-	$(btserviceBinderSrc) \
-	$(btserviceLinuxSrc) \
+	$(btserviceBinderDaemonSrc) \
 	$(btserviceCommonSrc) \
+	$(btserviceLinuxSrc) \
+	$(btserviceDaemonSrc) \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
@@ -104,6 +115,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBaseTestSrc) \
 	$(btserviceCommonSrc) \
+	$(btserviceDaemonSrc) \
 	test/main.cpp \
 	test/stub_ipc_handler_binder.cpp
 ifeq ($(HOST_OS),linux)
@@ -130,8 +142,9 @@ include $(BUILD_HOST_NATIVE_TEST)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBaseTestSrc) \
-	$(btserviceBinderSrc) \
+	$(btserviceBinderDaemonSrc) \
 	$(btserviceCommonSrc) \
+	$(btserviceDaemonSrc) \
 	test/main.cpp \
 	test/parcel_helpers_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
@@ -145,21 +158,27 @@ LOCAL_SHARED_LIBRARIES += \
 LOCAL_STATIC_LIBRARIES += libgmock libgtest liblog
 include $(BUILD_NATIVE_TEST)
 
-# Native system service CLI for target
+# Client library for interacting with Bluetooth daemon
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
-	$(btserviceBinderSrc) \
-	adapter_state.cpp \
-	advertise_data.cpp \
-	advertise_settings.cpp \
-	client/main.cpp \
-	gatt_identifier.cpp \
-	uuid.cpp
+	$(btserviceCommonSrc) \
+	$(btserviceCommonBinderSrc)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
+LOCAL_CFLAGS += -std=c++11
+LOCAL_MODULE := libbluetooth-client
+LOCAL_SHARED_LIBRARIES += libbinder libchrome libutils
+include $(BUILD_STATIC_LIBRARY)
+
+# Native system service CLI for target
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_SRC_FILES := client/main.cpp
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
+LOCAL_STATIC_LIBRARIES += libbluetooth-client
 LOCAL_SHARED_LIBRARIES += \
 	libbinder \
 	libchrome \
@@ -172,17 +191,13 @@ include $(BUILD_EXECUTABLE)
 # client static library that the examples can depend on.
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
-	$(btserviceBinderSrc) \
-	advertise_data.cpp \
-	advertise_settings.cpp \
 	example/heart_rate/heart_rate_server.cpp \
-	example/heart_rate/server_main.cpp \
-	gatt_identifier.cpp \
-	uuid.cpp
-LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
+	example/heart_rate/server_main.cpp
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
+LOCAL_STATIC_LIBRARIES += libbluetooth-client
 LOCAL_SHARED_LIBRARIES += \
 	libbinder \
 	libchrome \

@@ -23,9 +23,9 @@
 #include <base/memory/weak_ptr.h>
 #include <base/single_thread_task_runner.h>
 
-#include "service/gatt_identifier.h"
-#include "service/ipc/binder/IBluetooth.h"
-#include "service/ipc/binder/IBluetoothGattServerCallback.h"
+#include <bluetooth/binder/IBluetooth.h>
+#include <bluetooth/binder/IBluetoothGattServerCallback.h>
+#include <bluetooth/gatt_identifier.h>
 
 namespace heart_rate {
 

@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "service/util/address_helper.h"
+#include "service/common/bluetooth/util/address_helper.h"
 
 namespace util {
 

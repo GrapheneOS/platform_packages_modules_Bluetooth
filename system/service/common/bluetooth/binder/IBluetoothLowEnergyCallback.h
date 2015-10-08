@@ -20,8 +20,8 @@
 #include <binder/IBinder.h>
 #include <binder/IInterface.h>
 
-#include "service/advertise_data.h"
-#include "service/advertise_settings.h"
+#include <bluetooth/advertise_data.h>
+#include <bluetooth/advertise_settings.h>
 
 namespace ipc {
 namespace binder {

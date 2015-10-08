@@ -14,12 +14,12 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/binder/IBluetoothGattServerCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothGattServerCallback.h"
 
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
-#include "service/ipc/binder/parcel_helpers.h"
+#include "service/common/bluetooth/binder/parcel_helpers.h"
 
 using android::IBinder;
 using android::Parcel;

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "service/uuid.h"
+#include <bluetooth/uuid.h>
 
 // This header defines constants specific to the GATT Heart Rate Service.
 

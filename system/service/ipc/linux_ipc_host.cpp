@@ -35,7 +35,6 @@
 
 #include "osi/include/log.h"
 #include "service/adapter.h"
-#include "service/uuid.h"
 
 using bluetooth::Adapter;
 using bluetooth::UUID;

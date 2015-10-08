@@ -23,12 +23,12 @@
 
 #include <base/macros.h>
 
-#include "service/advertise_data.h"
-#include "service/advertise_settings.h"
 #include "service/bluetooth_client_instance.h"
+#include "service/common/bluetooth/advertise_data.h"
+#include "service/common/bluetooth/advertise_settings.h"
+#include "service/common/bluetooth/low_energy_constants.h"
+#include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
-#include "service/low_energy_constants.h"
-#include "service/uuid.h"
 
 namespace bluetooth {
 
