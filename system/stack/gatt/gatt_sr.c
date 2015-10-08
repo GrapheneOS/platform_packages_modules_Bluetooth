@@ -166,18 +166,22 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             p_buf->len = 1;
 
             /* Now walk through the buffers puting the data into the response in order */
-            list_t *list = fixed_queue_get_list(p_cmd->multi_rsp_q);
-            const list_node_t *node;
+            list_t *list = NULL;
+            const list_node_t *node = NULL;
+            if (! fixed_queue_is_empty(p_cmd->multi_rsp_q))
+                list = fixed_queue_get_list(p_cmd->multi_rsp_q);
             for (ii = 0; ii < p_cmd->multi_req.num_handles; ii++)
             {
                 tGATTS_RSP *p_rsp = NULL;
 
-                if (ii == 0)
-                    node = list_begin(list);
-                else
-                    node = list_next(node);
-                if (node != list_end(list))
-                    p_rsp = (tGATTS_RSP *)list_node(node);
+                if (list != NULL) {
+                    if (ii == 0)
+                        node = list_begin(list);
+                    else
+                        node = list_next(node);
+                    if (node != list_end(list))
+                        p_rsp = (tGATTS_RSP *)list_node(node);
+                }
 
                 if (p_rsp != NULL)
                 {

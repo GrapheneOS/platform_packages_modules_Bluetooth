@@ -116,7 +116,8 @@ void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb) {
 }
 
 bool fixed_queue_is_empty(fixed_queue_t *queue) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return true;
 
   pthread_mutex_lock(&queue->lock);
   bool is_empty = list_is_empty(queue->list);
@@ -126,7 +127,8 @@ bool fixed_queue_is_empty(fixed_queue_t *queue) {
 }
 
 size_t fixed_queue_length(fixed_queue_t *queue) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return 0;
 
   pthread_mutex_lock(&queue->lock);
   size_t length = list_length(queue->list);
@@ -185,7 +187,8 @@ bool fixed_queue_try_enqueue(fixed_queue_t *queue, void *data) {
 }
 
 void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return NULL;
 
   if (!semaphore_try_wait(queue->dequeue_sem))
     return NULL;
@@ -201,7 +204,8 @@ void *fixed_queue_try_dequeue(fixed_queue_t *queue) {
 }
 
 void *fixed_queue_try_peek_first(fixed_queue_t *queue) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return NULL;
 
   pthread_mutex_lock(&queue->lock);
   void *ret = list_is_empty(queue->list) ? NULL : list_front(queue->list);
@@ -211,7 +215,8 @@ void *fixed_queue_try_peek_first(fixed_queue_t *queue) {
 }
 
 void *fixed_queue_try_peek_last(fixed_queue_t *queue) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return NULL;
 
   pthread_mutex_lock(&queue->lock);
   void *ret = list_is_empty(queue->list) ? NULL : list_back(queue->list);
@@ -221,7 +226,8 @@ void *fixed_queue_try_peek_last(fixed_queue_t *queue) {
 }
 
 void *fixed_queue_try_remove_from_queue(fixed_queue_t *queue, void *data) {
-  assert(queue != NULL);
+  if (queue == NULL)
+    return NULL;
 
   pthread_mutex_lock(&queue->lock);
   bool removed = list_remove(queue->list, data);
@@ -236,7 +242,7 @@ list_t *fixed_queue_get_list(fixed_queue_t *queue) {
   assert(queue != NULL);
 
   // NOTE: This function is not thread safe, and there is no point for
-  // callint pthread_mutex_lock() / pthread_mutex_unlock()
+  // calling pthread_mutex_lock() / pthread_mutex_unlock()
   return queue->list;
 }
 

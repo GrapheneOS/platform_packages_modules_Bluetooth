@@ -167,6 +167,9 @@ void gatt_set_srv_chg(void)
 {
     GATT_TRACE_DEBUG ("gatt_set_srv_chg");
 
+    if (fixed_queue_is_empty(gatt_cb.srv_chg_clt_q))
+        return;
+
     list_t *list = fixed_queue_get_list(gatt_cb.srv_chg_clt_q);
     for (const list_node_t *node = list_begin(list); node != list_end(list);
          node = list_next(node)) {
@@ -197,6 +200,9 @@ void gatt_set_srv_chg(void)
 tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tBT_UUID *p_svc_uuid, UINT16 svc_inst)
 {
     tGATTS_PENDING_NEW_SRV_START *p_buf = NULL;
+
+    if (fixed_queue_is_empty(gatt_cb.pending_new_srv_start_q))
+        return NULL;
 
     list_t *list = fixed_queue_get_list(gatt_cb.pending_new_srv_start_q);
     for (const list_node_t *node = list_begin(list); node != list_end(list);
@@ -771,7 +777,7 @@ BOOLEAN gatt_is_srv_chg_ind_pending (tGATT_TCB *p_tcb)
     {
         srv_chg_ind_pending = TRUE;
     }
-    else
+    else if (! fixed_queue_is_empty(p_tcb->pending_ind_q))
     {
         list_t *list = fixed_queue_get_list(p_tcb->pending_ind_q);
         for (const list_node_t *node = list_begin(list);
@@ -806,6 +812,9 @@ tGATTS_SRV_CHG *gatt_is_bda_in_the_srv_chg_clt_list (BD_ADDR bda)
 
     GATT_TRACE_DEBUG("gatt_is_bda_in_the_srv_chg_clt_list :%02x-%02x-%02x-%02x-%02x-%02x",
                       bda[0],  bda[1], bda[2],  bda[3], bda[4],  bda[5]);
+
+    if (fixed_queue_is_empty(gatt_cb.srv_chg_clt_q))
+        return NULL;
 
     list_t *list = fixed_queue_get_list(gatt_cb.srv_chg_clt_q);
     for (const list_node_t *node = list_begin(list); node != list_end(list);

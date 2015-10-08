@@ -1287,51 +1287,53 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     ssrc = avdt_scb_gen_ssrc(p_scb);
 
-    list_t *list = fixed_queue_get_list(p_data->apiwrite.frag_q);
-    const list_node_t *node = list_begin(list);
-    if (node != list_end(list)) {
-        p_frag = (BT_HDR *)list_node(node);
-        node = list_next(node);
+    if (! fixed_queue_is_empty(p_data->apiwrite.frag_q)) {
+        list_t *list = fixed_queue_get_list(p_data->apiwrite.frag_q);
+        const list_node_t *node = list_begin(list);
+        if (node != list_end(list)) {
+            p_frag = (BT_HDR *)list_node(node);
+            node = list_next(node);
 
-        /* get first packet */
-        /* posit on Adaptation Layer header */
-        p_frag->len += AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
-        p_frag->offset -= AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
-        p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+            /* get first packet */
+            /* posit on Adaptation Layer header */
+            p_frag->len += AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
+            p_frag->offset -= AVDT_AL_HDR_SIZE + AVDT_MEDIA_HDR_SIZE;
+            p = (UINT8 *)(p_frag + 1) + p_frag->offset;
 
-        /* Adaptation Layer header */
-        /* TSID, no-fragment bit and coding of length (in 2 length octets
-         * following)
-         */
-        *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | AVDT_ALH_LCODE_16BIT;
+            /* Adaptation Layer header */
+            /* TSID, no-fragment bit and coding of length (in 2 length octets
+             * following)
+             */
+            *p++ = (p_scb->curr_cfg.mux_tsid_media<<3) | AVDT_ALH_LCODE_16BIT;
 
-        /* length of all remaining transport packet */
-        UINT16_TO_BE_STREAM(p, p_frag->layer_specific + AVDT_MEDIA_HDR_SIZE );
-        /* media header */
-        UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
-        UINT8_TO_BE_STREAM(p, p_data->apiwrite.m_pt);
-        UINT16_TO_BE_STREAM(p, p_scb->media_seq);
-        UINT32_TO_BE_STREAM(p, p_data->apiwrite.time_stamp);
-        UINT32_TO_BE_STREAM(p, ssrc);
-        p_scb->media_seq++;
-    }
+            /* length of all remaining transport packet */
+            UINT16_TO_BE_STREAM(p, p_frag->layer_specific + AVDT_MEDIA_HDR_SIZE );
+            /* media header */
+            UINT8_TO_BE_STREAM(p, AVDT_MEDIA_OCTET1);
+            UINT8_TO_BE_STREAM(p, p_data->apiwrite.m_pt);
+            UINT16_TO_BE_STREAM(p, p_scb->media_seq);
+            UINT32_TO_BE_STREAM(p, p_data->apiwrite.time_stamp);
+            UINT32_TO_BE_STREAM(p, ssrc);
+            p_scb->media_seq++;
+        }
 
-    for ( ; node != list_end(list); node = list_next(node)) {
-        p_frag = (BT_HDR *)list_node(node);
+        for ( ; node != list_end(list); node = list_next(node)) {
+            p_frag = (BT_HDR *)list_node(node);
 
-        /* posit on Adaptation Layer header */
-        p_frag->len += AVDT_AL_HDR_SIZE;
-        p_frag->offset -= AVDT_AL_HDR_SIZE;
-        p = (UINT8 *)(p_frag + 1) + p_frag->offset;
-        /* Adaptation Layer header */
-        /* TSID, fragment bit and coding of length (in 2 length octets
-         * following)
-         */
-        *p++ = (p_scb->curr_cfg.mux_tsid_media << 3) |
-            (AVDT_ALH_FRAG_MASK | AVDT_ALH_LCODE_16BIT);
+            /* posit on Adaptation Layer header */
+            p_frag->len += AVDT_AL_HDR_SIZE;
+            p_frag->offset -= AVDT_AL_HDR_SIZE;
+            p = (UINT8 *)(p_frag + 1) + p_frag->offset;
+            /* Adaptation Layer header */
+            /* TSID, fragment bit and coding of length (in 2 length octets
+             * following)
+             */
+            *p++ = (p_scb->curr_cfg.mux_tsid_media << 3) |
+                (AVDT_ALH_FRAG_MASK | AVDT_ALH_LCODE_16BIT);
 
-        /* length of all remaining transport packet */
-        UINT16_TO_BE_STREAM(p, p_frag->layer_specific);
+            /* length of all remaining transport packet */
+            UINT16_TO_BE_STREAM(p, p_frag->layer_specific);
+        }
     }
 
     /* store it */
