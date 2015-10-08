@@ -83,7 +83,7 @@ LOCAL_CFLAGS := $(btosiCommonCFlags)
 LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_SHARED_LIBRARIES := libc liblog libpower
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 include $(BUILD_STATIC_LIBRARY)
 
@@ -119,7 +119,7 @@ LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SHARED_LIBRARIES := liblog libpower
 LOCAL_STATIC_LIBRARIES := libosi
 include $(BUILD_NATIVE_TEST)
 

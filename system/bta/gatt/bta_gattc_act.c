@@ -51,6 +51,9 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
 
 static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                                   tGATT_CL_COMPLETE *p_data);
+static void bta_gattc_cmpl_sendmsg(UINT16 conn_id, tGATTC_OPTYPE op,
+                                   tBTA_GATT_STATUS status,
+                                   tGATT_CL_COMPLETE *p_data);
 
 static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg);
 static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda);
@@ -927,7 +930,6 @@ void bta_gattc_restart_discover(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data
 *******************************************************************************/
 void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    tBTA_GATTC_OP_CMPL  op_cmpl;
     tBTA_GATT_STATUS    status;
 
     if (bta_gattc_enqueue(p_clcb, p_data))
@@ -937,13 +939,11 @@ void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* if failed, return callback here */
         if (status != GATT_SUCCESS && status != GATT_CMD_STARTED)
         {
-            memset(&op_cmpl, 0, sizeof(tBTA_GATTC_OP_CMPL));
+            /* Dequeue the data, if it was enqueued */
+            if (p_clcb->p_q_cmd == p_data)
+                p_clcb->p_q_cmd = NULL;
 
-            op_cmpl.status  = status;
-            op_cmpl.op_code = GATTC_OPTYPE_CONFIG;
-            op_cmpl.p_cmpl  = NULL;
-
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_CONFIG, status, NULL);
         }
     }
 }
@@ -1085,10 +1085,9 @@ void bta_gattc_read(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     UINT16 handle = 0;
     tGATT_READ_PARAM    read_param;
-    tBTA_GATTC_OP_CMPL  op_cmpl;
+    tBTA_GATT_STATUS    status;
 
     memset (&read_param, 0 ,sizeof(tGATT_READ_PARAM));
-    memset (&op_cmpl, 0 ,sizeof(tBTA_GATTC_OP_CMPL));
 
     if (bta_gattc_enqueue(p_clcb, p_data))
     {
@@ -1097,23 +1096,24 @@ void bta_gattc_read(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
                                           &p_data->api_read.char_id,
                                           p_data->api_read.p_descr_type)) == 0)
         {
-            op_cmpl.status = BTA_GATT_ERROR;
+            status = BTA_GATT_ERROR;
         }
         else
         {
             read_param.by_handle.handle = handle;
             read_param.by_handle.auth_req = p_data->api_read.auth_req;
 
-            op_cmpl.status = GATTC_Read(p_clcb->bta_conn_id, GATT_READ_BY_HANDLE, &read_param);
+            status = GATTC_Read(p_clcb->bta_conn_id, GATT_READ_BY_HANDLE, &read_param);
         }
 
         /* read fail */
-        if (op_cmpl.status != BTA_GATT_OK)
+        if (status != BTA_GATT_OK)
         {
-            op_cmpl.op_code = GATTC_OPTYPE_READ;
-            op_cmpl.p_cmpl = NULL;
+            /* Dequeue the data, if it was enqueued */
+            if (p_clcb->p_q_cmd == p_data)
+                p_clcb->p_q_cmd = NULL;
 
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_READ, status, NULL);
         }
     }
 }
@@ -1130,7 +1130,6 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     UINT16              i, handle;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
     tGATT_READ_PARAM    read_param;
-    tBTA_GATTC_OP_CMPL  op_cmpl;
     tBTA_GATTC_ATTR_ID  *p_id;
 
     if (bta_gattc_enqueue(p_clcb, p_data))
@@ -1179,13 +1178,11 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* read fail */
         if (status != BTA_GATT_OK)
         {
-            memset(&op_cmpl, 0, sizeof(tBTA_GATTC_OP_CMPL));
+            /* Dequeue the data, if it was enqueued */
+            if (p_clcb->p_q_cmd == p_data)
+                p_clcb->p_q_cmd = NULL;
 
-            op_cmpl.status  = status;
-            op_cmpl.op_code = GATTC_OPTYPE_READ;
-            op_cmpl.p_cmpl  = NULL;
-
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_READ, status, NULL);
         }
     }
 }
@@ -1202,7 +1199,6 @@ void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     UINT16              handle = 0;
     tGATT_VALUE         attr = {0};
-    tBTA_GATTC_OP_CMPL  op_cmpl;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
     if (bta_gattc_enqueue(p_clcb, p_data))
@@ -1230,13 +1226,11 @@ void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* write fail */
         if (status != BTA_GATT_OK)
         {
-            memset(&op_cmpl, 0, sizeof(tBTA_GATTC_OP_CMPL));
+            /* Dequeue the data, if it was enqueued */
+            if (p_clcb->p_q_cmd == p_data)
+                p_clcb->p_q_cmd = NULL;
 
-            op_cmpl.status  = status;
-            op_cmpl.op_code = GATTC_OPTYPE_WRITE;
-            op_cmpl.p_cmpl  = NULL;
-
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_WRITE, status, NULL);
         }
     }
 }
@@ -1250,7 +1244,6 @@ void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *********************************************************************************/
 void bta_gattc_execute(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    tBTA_GATTC_OP_CMPL  op_cmpl;
     tBTA_GATT_STATUS    status;
 
     if (bta_gattc_enqueue(p_clcb, p_data))
@@ -1259,13 +1252,11 @@ void bta_gattc_execute(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
         if (status != BTA_GATT_OK)
         {
-            memset(&op_cmpl, 0, sizeof(tBTA_GATTC_OP_CMPL));
+            /* Dequeue the data, if it was enqueued */
+            if (p_clcb->p_q_cmd == p_data)
+                p_clcb->p_q_cmd = NULL;
 
-            op_cmpl.status  = status;
-            op_cmpl.op_code = GATTC_OPTYPE_EXE_WRITE;
-            op_cmpl.p_cmpl  = NULL;
-
-            bta_gattc_sm_execute(p_clcb, BTA_GATTC_OP_CMPL_EVT, (tBTA_GATTC_DATA *)&op_cmpl);
+            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_EXE_WRITE, status, NULL);
         }
     }
 }
@@ -1791,7 +1782,6 @@ static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg)
 /*******************************************************************************
 **
 ** Function         bta_gattc_conn_cback
-**                  bta_gattc_cmpl_cback
 **
 ** Description      callback functions to GATT client stack.
 **
@@ -2130,10 +2120,7 @@ void bta_gattc_process_indicate(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_CL_COMPL
 static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS status,
                                   tGATT_CL_COMPLETE *p_data)
 {
-    tBTA_GATTC_CLCB     *p_clcb ;
-    tBTA_GATTC_OP_CMPL  *p_buf;
-    UINT16              len = sizeof(tBTA_GATTC_OP_CMPL) + sizeof(tGATT_CL_COMPLETE);
-
+    tBTA_GATTC_CLCB     *p_clcb;
     APPL_TRACE_DEBUG("bta_gattc_cmpl_cback: conn_id = %d op = %d status = %d",
                       conn_id, op, status);
 
@@ -2157,7 +2144,26 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
         bta_sys_idle(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
     }
 
-    if ((p_buf = (tBTA_GATTC_OP_CMPL *) GKI_getbuf(len)) != NULL)
+    bta_gattc_cmpl_sendmsg(conn_id, op, status, p_data);
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_cmpl_sendmsg
+**
+** Description      client operation complete send message
+**
+** Returns          None.
+**
+*******************************************************************************/
+static void bta_gattc_cmpl_sendmsg(UINT16 conn_id, tGATTC_OPTYPE op,
+                                   tBTA_GATT_STATUS status,
+                                   tGATT_CL_COMPLETE *p_data)
+{
+    const UINT16         len = sizeof(tBTA_GATTC_OP_CMPL) + sizeof(tGATT_CL_COMPLETE);
+    tBTA_GATTC_OP_CMPL  *p_buf = (tBTA_GATTC_OP_CMPL *) GKI_getbuf(len);
+
+    if (p_buf != NULL)
     {
         memset(p_buf, 0, len);
         p_buf->hdr.event = BTA_GATTC_OP_CMPL_EVT;
@@ -2173,8 +2179,6 @@ static void  bta_gattc_cmpl_cback(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_STATUS
 
         bta_sys_sendmsg(p_buf);
     }
-
-    return;
 }
 
 /*******************************************************************************

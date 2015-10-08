@@ -23,6 +23,7 @@ LOCAL_MODULE := net_hci
 
 LOCAL_SRC_FILES := main.c
 LOCAL_STATIC_LIBRARIES := libosi
+LOCAL_SHARED_LIBRARIES := libpower
 LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/../../
 
