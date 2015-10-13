@@ -488,11 +488,18 @@ int main(int argc, char* argv[]) {
     PrintPrompt();
 
     showing_prompt = true;
-    getline(cin, command);
+    auto& istream = getline(cin, command);
     showing_prompt = false;
 
-    if (should_exit.load())
+    if (istream.eof() || should_exit.load()) {
+      cout << "\nExiting" << endl;
       return EXIT_SUCCESS;
+    }
+
+    if (!istream.good()) {
+      LOG(ERROR) << "An error occured while reading input";
+      return EXIT_FAILURE;
+    }
 
     vector<string> args;
     base::SplitString(command, ' ', &args);
