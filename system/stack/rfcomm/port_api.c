@@ -24,16 +24,17 @@
 
 #define LOG_TAG "bt_port_api"
 
-#include "port_api.h"
-
 #include <string.h>
 
 #include "btcore/include/counter.h"
+#include "osi/include/log.h"
+#include "osi/include/mutex.h"
+
 #include "btm_api.h"
 #include "btm_int.h"
 #include "bt_common.h"
 #include "l2c_api.h"
-#include "osi/include/log.h"
+#include "port_api.h"
 #include "port_int.h"
 #include "rfc_int.h"
 #include "rfcdefs.h"

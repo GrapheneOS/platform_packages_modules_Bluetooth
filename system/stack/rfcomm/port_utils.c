@@ -23,15 +23,17 @@
  ******************************************************************************/
 #include <string.h>
 
+#include "osi/include/mutex.h"
+
 #include "bt_target.h"
 #include "bt_common.h"
-#include "rfcdefs.h"
+#include "btm_int.h"
+#include "btu.h"
+#include "l2cdefs.h"
 #include "port_api.h"
 #include "port_int.h"
 #include "rfc_int.h"
-#include "l2cdefs.h"
-#include "btm_int.h"
-#include "btu.h"
+#include "rfcdefs.h"
 
 static const tPORT_STATE default_port_pars =
 {

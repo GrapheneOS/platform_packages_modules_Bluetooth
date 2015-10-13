@@ -30,8 +30,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include "bt_types.h"
 #include "device/include/controller.h"
+#include "osi/include/time.h"
+
+#include "bt_types.h"
 #include "bt_common.h"
 #include "hcimsgs.h"
 #include "btu.h"
