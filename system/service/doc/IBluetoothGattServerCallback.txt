@@ -39,9 +39,16 @@ oneway interface IBluetoothGattServerCallback {
   /**
    * Called when there is an incoming read request from the remote device with
    * address |device_address| for the characteristic with identifier
-   * |characteristic_id|. An implementation should handle this request by
-   * calling IBluetoothGattServer.sendResponse with the given |request_id| and
-   * the appropriate characteristic value.
+   * |characteristic_id|. |offset| is the index of the characteristic value that
+   * the remote device wants to read from. If |is_long| is true, then this
+   * request is part of a Long Read procedure. An implementation should handle
+   * this request by calling IBluetoothGattServer.sendResponse with the given
+   * |request_id| and the appropriate characteristic value.
+   *
+   * If |offset| is invalid then sendResponse should be called with
+   * GATT_ERROR_INVALID_OFFSET. If |is_long| is true but this characteristic is
+   * not a long attribute (i.e. its value would fit within the current ATT MTU),
+   * then GATT_ERROR_ATTRIBUTE_NOT_LONG should be returned.
    */
   void onCharacteristicReadRequest(in String device_address, in int request_id,
                                    in int offset, in boolean is_long,
@@ -50,9 +57,16 @@ oneway interface IBluetoothGattServerCallback {
   /**
    * Called when there is an incoming read request from the remote device with
    * address |device_address| for the descriptor with identifier
-   * |descriptor_id|. An implementation should handle this request by
-   * calling IBluetoothGattServer.sendResponse with the given |request_id| and
-   * the appropriate descriptor value.
+   * |descriptor_id|. |offset| is the index of the descriptor value that
+   * the remote device wants to read from. If |is_long| is true, then this
+   * request is part of a Long Read procedure. An implementation should handle
+   * this request by calling IBluetoothGattServer.sendResponse with the given
+   * |request_id| and the appropriate descriptor value.
+   *
+   * If |offset| is invalid then sendResponse should be called with
+   * GATT_ERROR_INVALID_OFFSET. If |is_long| is true but this descriptor is
+   * not a long attribute (i.e. its value would fit within the current ATT MTU),
+   * then GATT_ERROR_ATTRIBUTE_NOT_LONG should be returned.
    */
   void onDescriptorReadRequest(in String device_address, in int request_id,
                                in int offset, in boolean is_long,
@@ -63,10 +77,15 @@ oneway interface IBluetoothGattServerCallback {
    * address |device_address| for the characteristic with identifier
    * |characteristic_id| with the value |value|. An implementation should handle
    * this request by calling IBluetoothGattServer.sendResponse with the given
-   * |request_id|. If |need_response| is false, then this is a "Write Without
+   * |request_id|. |offset| is the index of the characteristic value that the
+   * remote device wants to write to, so the value should be written starting at
+   * |offset|. If |need_response| is false, then this is a "Write Without
    * Response" procedure and sendResponse should not be called. If
    * |is_prepare_write| is true, then the implementation should not commit this
    * write until a call to onExecuteWriteRequest is received.
+   *
+   * If |offset| is invalid, then sendResponse should be called with
+   * GATT_ERROR_INVALID_OFFSET.
    */
   void onCharacteristicWriteRequest(in String device_address, in int request_id,
                                     in int offset, in boolean is_prepare_write,
@@ -78,10 +97,15 @@ oneway interface IBluetoothGattServerCallback {
    * address |device_address| for the descriptor with identifier
    * |descriptor_id| with the value |value|. An implementation should handle
    * this request by calling IBluetoothGattServer.sendResponse with the given
-   * |request_id|. If |need_response| is false, then this is a "Write Without
+   * |request_id|. |offset| is the index of the descriptor value that the
+   * remote device wants to write to, so the value should be written starting at
+   * |offset|. If |need_response| is false, then this is a "Write Without
    * Response" procedure and sendResponse should not be called. If
    * |is_prepare_write| is true, then the implementation should not commit this
    * write until a call to onExecuteWriteRequest is received.
+   *
+   * If |offset| is invalid, then sendResponse should be called with
+   * GATT_ERROR_INVALID_OFFSET.
    */
   void onDescriptorWriteRequest(in String device_address, in int request_id,
                                 in int offset, in boolean is_prepare_write,
@@ -102,9 +126,9 @@ oneway interface IBluetoothGattServerCallback {
   /**
    * Reports the result of a previous call to
    * IBluetoothGattServer.sendNotification. If an indication was sent, this will
-   * be called when the remote end sends a confirmation packet. Otherwise this
-   * will be called as soon as the notification packet is successfully sent out
-   * over the radio.
+   * be called when the remote device sends a confirmation packet. Otherwise
+   * this will be called as soon as the notification packet is successfully sent
+   * out over the radio.
    */
   void onNotificationSent(in String device_address, in int status);
 }
