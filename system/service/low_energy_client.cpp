@@ -44,14 +44,43 @@ struct HALAdvertiseData {
   std::vector<uint8_t> service_uuid;
 };
 
+bool ProcessUUID(const uint8_t* uuid_data, size_t uuid_len, UUID* out_uuid) {
+  // BTIF expects a single 128-bit UUID to be passed in little-endian form, so
+  // we need to convert into that from raw data.
+  // TODO(armansito): We have three repeated if bodies below only because UUID
+  // accepts std::array which requires constexpr lengths. We should just have a
+  // single UUID constructor that takes in an std::vector instead.
+  if (uuid_len == UUID::kNumBytes16) {
+    UUID::UUID16Bit uuid_bytes;
+    for (size_t i = 0; i < uuid_len; ++i)
+      uuid_bytes[uuid_len - i - 1] = uuid_data[i];
+    *out_uuid = UUID(uuid_bytes);
+  } else if (uuid_len == UUID::kNumBytes32) {
+    UUID::UUID32Bit uuid_bytes;
+    for (size_t i = 0; i < uuid_len; ++i)
+      uuid_bytes[uuid_len - i - 1] = uuid_data[i];
+    *out_uuid = UUID(uuid_bytes);
+  } else if (uuid_len == UUID::kNumBytes128) {
+    UUID::UUID128Bit uuid_bytes;
+    for (size_t i = 0; i < uuid_len; ++i)
+      uuid_bytes[uuid_len - i - 1] = uuid_data[i];
+    *out_uuid = UUID(uuid_bytes);
+  } else {
+    LOG(ERROR) << "Invalid UUID length";
+    return false;
+  }
+
+  return true;
+}
+
 bool ProcessServiceData(const uint8_t* data,
-        uint8_t uuidlen,
+        uint8_t uuid_len,
         HALAdvertiseData* out_data){
   size_t field_len = data[0];
 
   // Minimum packet size should be equal to the uuid length + 1 to include
   // the byte for the type of packet
-  if (field_len < uuidlen + 1) {
+  if (field_len < uuid_len + 1) {
     // Invalid packet size
     return false;
   }
@@ -65,7 +94,13 @@ bool ProcessServiceData(const uint8_t* data,
   }
 
   const uint8_t* service_uuid = data + 2;
-  const std::vector<uint8_t> temp_uuid(service_uuid, service_uuid + uuidlen);
+  UUID uuid;
+  if (!ProcessUUID(service_uuid, uuid_len, &uuid))
+    return false;
+
+  UUID::UUID128Bit uuid_bytes = uuid.GetFullLittleEndian();
+  const std::vector<uint8_t> temp_uuid(
+      uuid_bytes.data(), uuid_bytes.data() + uuid_bytes.size());
 
   // This section is to make sure that there is no UUID conflict
   if (out_data->service_uuid.empty()) {
@@ -77,14 +112,14 @@ bool ProcessServiceData(const uint8_t* data,
     return false;
   } // else do nothing as UUID is already properly assigned
 
-  // Use + uuidlen + 2 here in order to skip over a
+  // Use + uuid_len + 2 here in order to skip over a
   // uuid contained in the beggining of the field
-  const uint8_t* srv_data = data + uuidlen + 2;
+  const uint8_t* srv_data = data + uuid_len + 2;
 
 
   out_data->service_data.insert(
       out_data->service_data.begin(),
-      srv_data, srv_data + field_len - uuidlen - 1);
+      srv_data, srv_data + field_len - uuid_len - 1);
 
   return true;
 }
@@ -112,7 +147,7 @@ bool ProcessAdvertiseData(const AdvertiseData& adv,
       // manufacturer-specific data entry. This is something we should fix. For
       // now, fail if more than one entry was set.
       if (!out_data->manufacturer_data.empty()) {
-        VLOG(1) << "More than one Manufacturer Specific Data entry not allowed";
+        LOG(ERROR) << "More than one Manufacturer Specific Data entry not allowed";
         return false;
       }
 
@@ -130,19 +165,26 @@ bool ProcessAdvertiseData(const AdvertiseData& adv,
     case HCI_EIR_MORE_128BITS_UUID_TYPE:
     case HCI_EIR_COMPLETE_128BITS_UUID_TYPE: {
       const uint8_t* uuid_data = data.data() + i + 2;
+      size_t uuid_len = field_len - 1;
+      UUID uuid;
+      if (!ProcessUUID(uuid_data, uuid_len, &uuid))
+        return false;
+
+      UUID::UUID128Bit uuid_bytes = uuid.GetFullLittleEndian();
 
       if (!out_data->service_uuid.empty() &&
-          memcmp(out_data->service_uuid.data(), uuid_data, field_len - 1) != 0) {
+          memcmp(out_data->service_uuid.data(),
+                 uuid_bytes.data(), uuid_bytes.size()) != 0) {
         // More than one UUID is not allowed due to the limitations
         // of the HAL API. We error in order to make sure there
         // is no ambiguity on which UUID to send. Also makes sure that
         // UUID Hasn't been set by service data first
-        VLOG(1) << "More than one UUID entry not allowed";
+        LOG(ERROR) << "More than one UUID entry not allowed";
         return false;
       }
 
       out_data->service_uuid.assign(
-          uuid_data, uuid_data + field_len - 1);
+          uuid_bytes.data(), uuid_bytes.data() + UUID::kNumBytes128);
       break;
     }
     case HCI_EIR_SERVICE_DATA_16BITS_UUID_TYPE: {
