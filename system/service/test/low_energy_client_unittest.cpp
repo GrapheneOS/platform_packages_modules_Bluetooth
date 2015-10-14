@@ -728,19 +728,26 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_EQ(0, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
 
-  // 16bit uuid test, should succeed with correctly parsed uuid
+  // 16bit uuid test, should succeed with correctly parsed uuid in little-endian
+  // 128-bit format.
   AdvertiseDataTestHelper(uuid_16bit_adv, callback);
   EXPECT_EQ(3, callback_count);
   EXPECT_EQ(1, adv_handler->call_count());
-  const std::vector<uint8_t> uuid_16bit{0xDE, 0xAD};
-  EXPECT_EQ(uuid_16bit, adv_handler->uuid_data());
+  const std::vector<uint8_t> uuid_16bit_canonical{
+    0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00,
+    0xDE, 0xAD, 0x00, 0x00
+  };
+  EXPECT_EQ(uuid_16bit_canonical, adv_handler->uuid_data());
 
   // 32bit uuid test, should succeed with correctly parsed uuid
   AdvertiseDataTestHelper(uuid_32bit_adv, callback);
   EXPECT_EQ(4, callback_count);
   EXPECT_EQ(2, adv_handler->call_count());
-  const std::vector<uint8_t> uuid_32bit{0xDE, 0xAD, 0x01, 0x02};
-  EXPECT_EQ(uuid_32bit, adv_handler->uuid_data());
+  const std::vector<uint8_t> uuid_32bit_canonical{
+    0xFB, 0x34, 0x9b, 0x5F, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00,
+    0xDE, 0xAD, 0x01, 0x02
+  };
+  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
 
   // 128bit uuid test, should succeed with correctly parsed uuid
   AdvertiseDataTestHelper(uuid_128bit_adv, callback);
@@ -754,23 +761,23 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
 
   const std::vector<uint8_t> service_data{ 0xBE, 0xEF };
 
-  // Service data with 16bit uuid included, should succede with
+  // Service data with 16bit uuid included, should succeed with
   // uuid and service data parsed out
   AdvertiseDataTestHelper(service_16bit_adv, callback);
   EXPECT_EQ(6, callback_count);
   EXPECT_EQ(4, adv_handler->call_count());
   EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_16bit, adv_handler->uuid_data());
+  EXPECT_EQ(uuid_16bit_canonical, adv_handler->uuid_data());
 
-  // Service data with 32bit uuid included, should succede with
+  // Service data with 32bit uuid included, should succeed with
   // uuid and service data parsed out
   AdvertiseDataTestHelper(service_32bit_adv, callback);
   EXPECT_EQ(7, callback_count);
   EXPECT_EQ(5, adv_handler->call_count());
   EXPECT_EQ(service_data, adv_handler->service_data());
-  EXPECT_EQ(uuid_32bit, adv_handler->uuid_data());
+  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
 
-  // Service data with 128bit uuid included, should succede with
+  // Service data with 128bit uuid included, should succeed with
   // uuid and service data parsed out
   AdvertiseDataTestHelper(service_128bit_adv, callback);
   EXPECT_EQ(8, callback_count);
@@ -778,13 +785,12 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_EQ(service_data, adv_handler->service_data());
   EXPECT_EQ(uuid_128bit, adv_handler->uuid_data());
 
-  // Service data and UUID where the UUID for both match, should succede
+  // Service data and UUID where the UUID for both match, should succeed.
   AdvertiseDataTestHelper(service_uuid_match, callback);
   EXPECT_EQ(9, callback_count);
   EXPECT_EQ(7, adv_handler->call_count());
   EXPECT_EQ(service_data, adv_handler->service_data());
-  const std::vector<uint8_t> uuid_32bit_matcher{ 0xDE, 0xAD, 0x01, 0x02 };
-  EXPECT_EQ(uuid_32bit_matcher, adv_handler->uuid_data());
+  EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
 
   //Service data and UUID where the UUID for dont match, should fail
   EXPECT_TRUE(le_client_->StartAdvertising(
