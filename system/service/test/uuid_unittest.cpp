@@ -37,6 +37,7 @@ const std::array<uint8_t, UUID::kNumBytes128> kBtSigBaseUUID = {
 // To the BT SIG Base UUID.
 TEST(UUIDTest, DefaultUUID) {
   UUID uuid;
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == kBtSigBaseUUID);
 }
 
@@ -47,7 +48,9 @@ TEST(UUIDTest, Init16Bit) {
   my_uuid_16[2] = 0xde;
   my_uuid_16[3] = 0xad;
   UUID uuid(UUID::UUID16Bit({{ 0xde, 0xad }}));
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_16);
+  ASSERT_TRUE(UUID::kNumBytes16 == uuid.GetShortestRepresentationSize());
 }
 
 // Verify that we initialize a 16-bit UUID in a
@@ -57,7 +60,14 @@ TEST(UUIDTest, Init16BitString) {
   my_uuid_16[2] = 0xde;
   my_uuid_16[3] = 0xad;
   UUID uuid("dead");
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_16);
+  ASSERT_TRUE(UUID::kNumBytes16 == uuid.GetShortestRepresentationSize());
+
+  uuid = UUID("0xdead");
+  ASSERT_TRUE(uuid.is_valid());
+  ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_16);
+  ASSERT_TRUE(UUID::kNumBytes16 == uuid.GetShortestRepresentationSize());
 }
 
 
@@ -70,7 +80,9 @@ TEST(UUIDTest, Init32Bit) {
   my_uuid_32[2] = 0xbe;
   my_uuid_32[3] = 0xef;
   UUID uuid(UUID::UUID32Bit({{ 0xde, 0xad, 0xbe, 0xef }}));
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_32);
+  ASSERT_TRUE(UUID::kNumBytes32 == uuid.GetShortestRepresentationSize());
 }
 
 // Verify correct reading of a 32-bit UUID initialized from string.
@@ -81,7 +93,9 @@ TEST(UUIDTest, Init32BitString) {
   my_uuid_32[2] = 0xbe;
   my_uuid_32[3] = 0xef;
   UUID uuid("deadbeef");
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_32);
+  ASSERT_TRUE(UUID::kNumBytes32 == uuid.GetShortestRepresentationSize());
 }
 
 // Verify that we initialize a 128-bit UUID in a
@@ -93,7 +107,9 @@ TEST(UUIDTest, Init128Bit) {
   }
 
   UUID uuid(my_uuid_128);
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_128);
+  ASSERT_TRUE(UUID::kNumBytes128 == uuid.GetShortestRepresentationSize());
 }
 
 // Verify that we initialize a 128-bit UUID in a
@@ -106,21 +122,36 @@ TEST(UUIDTest, Init128BitLittleEndian) {
 
   UUID uuid(my_uuid_128);
   std::reverse(my_uuid_128.begin(), my_uuid_128.end());
+  ASSERT_TRUE(uuid.is_valid());
   ASSERT_TRUE(uuid.GetFullLittleEndian() == my_uuid_128);
 }
 
 // Verify that we initialize a 128-bit UUID in a
 // way consistent with how we read it.
 TEST(UUIDTest, Init128BitString) {
-  auto my_uuid_128 = kBtSigBaseUUID;
-  for (int i = 0; i < static_cast<int>(my_uuid_128.size()); ++i) {
-    my_uuid_128[i] = i;
-  }
+  UUID::UUID128Bit my_uuid{
+    { 7, 1, 6, 8, 14, 255, 16, 2, 3, 4, 5, 6, 7, 8, 9, 10 }
+  };
+  std::string my_uuid_string("07010608-0eff-1002-0304-05060708090a");
 
-  std::string uuid_text("000102030405060708090A0B0C0D0E0F");
-  ASSERT_TRUE(uuid_text.size() == (16 * 2));
-  UUID uuid(uuid_text);
-  ASSERT_TRUE(uuid.GetFullBigEndian() == my_uuid_128);
+  UUID uuid0(my_uuid);
+  UUID uuid1(my_uuid_string);
+
+  ASSERT_TRUE(uuid0.is_valid());
+  ASSERT_TRUE(uuid1.is_valid());
+  ASSERT_TRUE(uuid0 == uuid1);
+  ASSERT_TRUE(UUID::kNumBytes128 == uuid0.GetShortestRepresentationSize());
+}
+
+TEST(UUIDTest, InitInvalid) {
+  UUID uuid0("000102030405060708090A0B0C0D0E0F");
+  ASSERT_FALSE(uuid0.is_valid());
+
+  UUID uuid1("1*90");
+  ASSERT_FALSE(uuid1.is_valid());
+
+  UUID uuid2("109g");
+  ASSERT_FALSE(uuid1.is_valid());
 }
 
 TEST(UUIDTest, ToString) {
