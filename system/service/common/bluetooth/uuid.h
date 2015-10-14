@@ -26,9 +26,9 @@ namespace bluetooth {
 
 class UUID {
  public:
-  static constexpr int kNumBytes128 = 16;
-  static constexpr int kNumBytes32 = 4;
-  static constexpr int kNumBytes16 = 2;
+  static constexpr size_t kNumBytes128 = 16;
+  static constexpr size_t kNumBytes32 = 4;
+  static constexpr size_t kNumBytes16 = 2;
 
   typedef std::array<uint8_t, kNumBytes16> UUID16Bit;
   typedef std::array<uint8_t, kNumBytes32> UUID32Bit;
@@ -44,7 +44,7 @@ class UUID {
   explicit UUID(const bt_uuid_t& uuid);
 
   // String constructor. Only hex ASCII accepted.
-  explicit UUID(const std::string& uuid);
+  explicit UUID(std::string uuid);
 
   // std::array variants constructors.
   explicit UUID(const UUID16Bit& uuid);
@@ -52,24 +52,34 @@ class UUID {
   explicit UUID(const UUID128Bit& uuid);
 
   // Provide the full network-byte-ordered blob.
-  const UUID128Bit GetFullBigEndian() const;
+  UUID128Bit GetFullBigEndian() const;
 
   // Provide blob in Little endian (BlueDroid expects this).
-  const UUID128Bit GetFullLittleEndian() const;
+  UUID128Bit GetFullLittleEndian() const;
 
   // Helper for bluedroid LE type.
-  const bt_uuid_t GetBlueDroid() const;
+  bt_uuid_t GetBlueDroid() const;
 
   // Returns a string representation for the UUID.
   std::string ToString() const;
+
+  // Returns whether or not this UUID was initialized correctly.
+  bool is_valid() const { return is_valid_; }
+
+  // Returns the shortest possible representation of this UUID in bytes.
+  size_t GetShortestRepresentationSize() const;
 
   bool operator<(const UUID& rhs) const;
   bool operator==(const UUID& rhs) const;
 
  private:
   void InitializeDefault();
+
   // Network-byte-ordered ID.
   UUID128Bit id_;
+
+  // True if this UUID was initialized with a correct representation.
+  bool is_valid_;
 };
 
 }  // namespace bluetooth
