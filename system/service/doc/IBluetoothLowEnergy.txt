@@ -38,9 +38,9 @@ interface IBluetoothLowEnergy {
   void unregisterAll();
 
   /**
-   * Starts a multi-advertising instance with the given advertising and scan
-   * response data, both of which can be empty. Each of these parameters must
-   * contain the raw advertising packet. Returns false if there were any
+   * Starts a multi-advertising instance using |advertising_data| and
+   * |scan_response_data|, both of which can be empty. Each of these parameters
+   * must contain the raw advertising packet. Returns false if there were any
    * synchronous failures, e.g. if the advertising or scan response data are
    * incorrectly formatted. Otherwise, the result of the operation will be
    * asynchronously reported in

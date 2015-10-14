@@ -21,9 +21,9 @@
 oneway interface IBluetoothLowEnergyCallback {
   /**
    * Called to report the result of a call to
-   * IBluetoothLowEnergy.registerClient. |status| will be 0 (or
-   * BLE_STATUS_SUCCESS) if the client was successfully registered. |client_if|
-   * is the owning application's unique Low Energy client handle and can be used
+   * IBluetoothLowEnergy.registerClient. |status| will be BLE_STATUS_SUCCESS (0)
+   * if the client was successfully registered. |client_if| is the owning
+   * application's unique Low Energy client handle and can be used
    * to perform further operations on the IBluetoothLowEnergy interface.
    */
   void onClientRegistered(in int status, in int client_if);
