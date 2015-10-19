@@ -200,10 +200,10 @@ UINT16 GAP_ConnOpen (char *p_serv_name, UINT8 service_id, BOOLEAN is_server,
     {
         if(ertm_info == NULL) {
             p_ccb->ertm_info.preferred_mode = p_ccb->cfg.fcr.mode;
-            p_ccb->ertm_info.user_rx_pool_id = GAP_DATA_POOL_ID;
-            p_ccb->ertm_info.user_tx_pool_id = GAP_DATA_POOL_ID;
-            p_ccb->ertm_info.fcr_rx_pool_id = L2CAP_DEFAULT_ERM_POOL_ID;
-            p_ccb->ertm_info.fcr_tx_pool_id = L2CAP_DEFAULT_ERM_POOL_ID;
+            p_ccb->ertm_info.user_rx_buf_size = GAP_DATA_BUF_SIZE;
+            p_ccb->ertm_info.user_tx_buf_size = GAP_DATA_BUF_SIZE;
+            p_ccb->ertm_info.fcr_rx_buf_size = L2CAP_INVALID_ERM_BUF_SIZE;
+            p_ccb->ertm_info.fcr_tx_buf_size = L2CAP_INVALID_ERM_BUF_SIZE;
         } else {
             p_ccb->ertm_info = *ertm_info;
         }
@@ -901,7 +901,7 @@ static void gap_config_ind (UINT16 l2cap_cid, tL2CAP_CFG_INFO *p_cfg)
 
     if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
     {
-        local_mtu_size = GKI_get_pool_bufsize (p_ccb->ertm_info.user_tx_pool_id)
+        local_mtu_size = p_ccb->ertm_info.user_tx_buf_size
                        - sizeof(BT_HDR) - L2CAP_MIN_OFFSET;
     }
     else

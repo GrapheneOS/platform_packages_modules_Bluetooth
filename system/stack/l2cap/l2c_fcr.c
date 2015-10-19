@@ -1125,7 +1125,8 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 if ( (tx_seq == next_srej) && (GKI_queue_length(&p_fcrb->srej_rcv_hold_q) < p_ccb->our_cfg.fcr.tx_win_sz) )
                 {
                     /* If user gave us a pool for held rx buffers, use that */
-                    if (p_ccb->ertm_info.fcr_rx_pool_id != HCI_ACL_POOL_ID)
+                    /* TODO: Could that happen? Get rid of this code. */
+                    if (p_ccb->ertm_info.fcr_rx_buf_size != L2CAP_FCR_RX_BUF_SIZE)
                     {
                         BT_HDR *p_buf2;
 
@@ -2183,7 +2184,7 @@ UINT8 l2c_fcr_process_peer_cfg_req(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
                     p_ccb->bypass_fcs |= L2CAP_CFG_FCS_PEER;
             }
 
-            max_retrans_size = GKI_get_pool_bufsize (p_ccb->ertm_info.fcr_tx_pool_id) - sizeof(BT_HDR)
+            max_retrans_size = p_ccb->ertm_info.fcr_tx_buf_size - sizeof(BT_HDR)
                                             - L2CAP_MIN_OFFSET - L2CAP_SDU_LEN_OFFSET - L2CAP_FCS_LEN;
 
             /* Ensure the MPS is not bigger than the MTU */
