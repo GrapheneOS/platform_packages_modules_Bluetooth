@@ -45,11 +45,12 @@ fixed_queue_t *fixed_queue_new(size_t capacity);
 // blocked on it) results in undefined behaviour.
 void fixed_queue_free(fixed_queue_t *queue, fixed_queue_free_cb free_cb);
 
-// Returns a value indicating whether the given |queue| is empty. |queue| may
-// not be NULL.
+// Returns a value indicating whether the given |queue| is empty. If |queue|
+// is NULL, the return value is true.
 bool fixed_queue_is_empty(fixed_queue_t *queue);
 
-// Returns the length of the |queue|. |queue| may not be NULL.
+// Returns the length of the |queue|. If |queue| is NULL, the return value
+// is 0.
 size_t fixed_queue_length(fixed_queue_t *queue);
 
 // Returns the maximum number of elements this queue may hold. |queue| may
@@ -73,19 +74,18 @@ void *fixed_queue_dequeue(fixed_queue_t *queue);
 bool fixed_queue_try_enqueue(fixed_queue_t *queue, void *data);
 
 // Tries to dequeue an element from |queue|. This function will never block
-// the caller. If the queue is empty, this function returns NULL immediately.
-// Otherwise, the next element in the queue is returned. |queue| may not be
-// NULL.
+// the caller. If the queue is empty or NULL, this function returns NULL
+// immediately. Otherwise, the next element in the queue is returned.
 void *fixed_queue_try_dequeue(fixed_queue_t *queue);
 
 // Returns the first element from |queue|, if present, without dequeuing it.
 // This function will never block the caller. Returns NULL if there are no
-// elements in the queue. |queue| may not be NULL.
+// elements in the queue or |queue| is NULL.
 void *fixed_queue_try_peek_first(fixed_queue_t *queue);
 
 // Returns the last element from |queue|, if present, without dequeuing it.
 // This function will never block the caller. Returns NULL if there are no
-// elements in the queue. |queue| may not be NULL.
+// elements in the queue or |queue| is NULL.
 void *fixed_queue_try_peek_last(fixed_queue_t *queue);
 
 // Tries to remove a |data| element from the middle of the |queue|. This

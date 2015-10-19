@@ -6231,8 +6231,10 @@ static BOOLEAN btm_sec_is_serv_level0(UINT16 psm)
 static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRANSPORT transport,
                                             UINT8 encr_enable)
 {
-    UINT8                   res = encr_enable ? BTM_SUCCESS : BTM_ERR_PROCESSING;
+    if (fixed_queue_is_empty(btm_cb.sec_pending_q))
+        return;
 
+    UINT8 res = encr_enable ? BTM_SUCCESS : BTM_ERR_PROCESSING;
     list_t *list = fixed_queue_get_list(btm_cb.sec_pending_q);
     for (const list_node_t *node = list_begin(list); node != list_end(list); ) {
         tBTM_SEC_QUEUE_ENTRY *p_e = (tBTM_SEC_QUEUE_ENTRY *)list_node(node);
