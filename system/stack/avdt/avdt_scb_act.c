@@ -2127,8 +2127,8 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data, UINT32 *p_data_len,
     AVDT_TRACE_DEBUG("peer_mtu: %d, buf_size: %d num_frag=%d",
         p_tbl->peer_mtu, buf_size, num_frag);
 
-    if(buf_size > AVDT_DATA_POOL_SIZE)
-        buf_size = AVDT_DATA_POOL_SIZE;
+    if (buf_size > AVDT_DATA_BUF_SIZE)
+        buf_size = AVDT_DATA_BUF_SIZE;
 
     mtu_used = buf_size - BT_HDR_SIZE;
 

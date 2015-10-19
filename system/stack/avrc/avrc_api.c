@@ -832,7 +832,7 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
 static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 {
     assert(p_msg != NULL);
-    assert(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
+    assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
 
     BT_HDR  *p_cmd = (BT_HDR *) GKI_getbuf(AVRC_CMD_BUF_SIZE);
     if (p_cmd != NULL)

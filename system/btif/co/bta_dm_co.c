@@ -267,8 +267,6 @@ void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event)
     if (btui_cb.sco_hci)
     {
         BTIF_TRACE_DEBUG("bta_dm_sco_co_open handle:%d pkt_size:%d", handle, pkt_size);
-        /* use dedicated SCO buffer pool for SCO TX data */
-        cfg.pool_id = HCI_SCO_POOL_ID;
         cfg.p_cback = btui_sco_codec_callback;
         cfg.pkt_size = pkt_size;
         cfg.cb_event = event;
