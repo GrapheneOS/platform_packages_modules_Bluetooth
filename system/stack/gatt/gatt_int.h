@@ -368,13 +368,13 @@ typedef struct
     UINT16          indicate_handle;
     fixed_queue_t   *pending_ind_q;
 
-    TIMER_LIST_ENT  conf_timer_ent;     /* peer confirm to indication timer */
+    timer_entry_t    conf_timer_ent;     /* peer confirm to indication timer */
 
     UINT8            prep_cnt[GATT_MAX_APPS];
     UINT8            ind_count;
 
     tGATT_CMD_Q       cl_cmd_q[GATT_CL_MAX_LCB];
-    TIMER_LIST_ENT    ind_ack_timer_ent;    /* local app confirm to indication timer */
+    timer_entry_t     ind_ack_timer_ent;    /* local app confirm to indication timer */
     UINT8             pending_cl_req;
     UINT8             next_slot_inq;    /* index of next available slot in queue */
 
@@ -410,7 +410,7 @@ typedef struct
     BOOLEAN                 first_read_blob_after_read;
     tGATT_READ_INC_UUID128  read_uuid128;
     BOOLEAN                 in_use;
-    TIMER_LIST_ENT          rsp_timer_ent;  /* peer response timer */
+    timer_entry_t           rsp_timer_ent;  /* peer response timer */
     UINT8                   retry_count;
 
 } tGATT_CLCB;
@@ -585,8 +585,8 @@ extern void gatt_convert_uuid32_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT32 
 extern void gatt_sr_get_sec_info(BD_ADDR rem_bda, tBT_TRANSPORT transport, UINT8 *p_sec_flag, UINT8 *p_key_size);
 extern void gatt_start_rsp_timer(UINT16 clcb_idx);
 extern void gatt_start_conf_timer(tGATT_TCB    *p_tcb);
-extern void gatt_rsp_timeout(TIMER_LIST_ENT *p_tle);
-extern void gatt_ind_ack_timeout(TIMER_LIST_ENT *p_tle);
+extern void gatt_rsp_timeout(timer_entry_t *p_te);
+extern void gatt_ind_ack_timeout(timer_entry_t *p_te);
 extern void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb);
 extern tGATT_STATUS gatt_send_error_rsp(tGATT_TCB *p_tcb, UINT8 err_code, UINT8 op_code, UINT16 handle, BOOLEAN deq);
 extern void gatt_dbg_display_uuid(tBT_UUID bt_uuid);

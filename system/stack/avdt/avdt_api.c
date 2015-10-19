@@ -54,12 +54,12 @@ tAVDT_CB avdt_cb;
 ** Returns          void
 **
 *******************************************************************************/
-void avdt_process_timeout(TIMER_LIST_ENT *p_tle)
+void avdt_process_timeout(timer_entry_t *p_te)
 {
     UINT8   event = 0;
     UINT8   err_code = AVDT_ERR_TIMEOUT;
 
-    switch (p_tle->event)
+    switch (p_te->event)
     {
         case BTU_TTYPE_AVDT_CCB_RET:
             event = AVDT_CCB_RET_TOUT_EVT + AVDT_CCB_MKR;
@@ -83,12 +83,12 @@ void avdt_process_timeout(TIMER_LIST_ENT *p_tle)
 
     if (event & AVDT_CCB_MKR)
     {
-        avdt_ccb_event((tAVDT_CCB *) p_tle->param, (UINT8) (event & ~AVDT_CCB_MKR),
+        avdt_ccb_event((tAVDT_CCB *) p_te->param, (UINT8) (event & ~AVDT_CCB_MKR),
                        (tAVDT_CCB_EVT *) &err_code);
     }
     else
     {
-        avdt_scb_event((tAVDT_SCB *) p_tle->param, event, NULL);
+        avdt_scb_event((tAVDT_SCB *) p_te->param, event, NULL);
     }
 }
 

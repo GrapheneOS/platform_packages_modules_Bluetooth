@@ -242,9 +242,9 @@ static uint8_t rssi_request_client_if;
 ********************************************************************************/
 
 static bt_status_t btif_gattc_multi_adv_disable(int client_if);
-static void btif_multi_adv_stop_cb(void *p_tle)
+static void btif_multi_adv_stop_cb(void *p_te)
 {
-    int client_if = PTR_TO_INT(((TIMER_LIST_ENT*)p_tle)->data);
+    int client_if = PTR_TO_INT(((timer_entry_t*)p_te)->data);
     btif_gattc_multi_adv_disable(client_if); // Does context switch
 }
 

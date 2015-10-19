@@ -145,7 +145,7 @@ typedef struct
     tBLE_BD_ADDR direct_bda;
     tBTM_BLE_EVT directed_conn;
     BOOLEAN fast_adv_on;
-    TIMER_LIST_ENT fast_adv_timer;
+    timer_entry_t fast_adv_timer;
 
     UINT8 adv_len;
     UINT8 adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
@@ -156,7 +156,7 @@ typedef struct
     tBTM_BLE_LOCAL_ADV_DATA adv_data;
     tBTM_BLE_ADV_CHNL_MAP adv_chnl_map;
 
-    TIMER_LIST_ENT inq_timer_ent;
+    timer_entry_t inq_timer_ent;
     BOOLEAN scan_rsp;
     UINT8 state; /* Current state that the inquiry process is in */
     INT8 tx_power;
@@ -179,7 +179,7 @@ typedef struct
     tBTM_BLE_RESOLVE_CBACK      *p_resolve_cback;
     tBTM_BLE_ADDR_CBACK         *p_generate_cback;
     void                        *p;
-    TIMER_LIST_ENT              raddr_timer_ent;
+    timer_entry_t               raddr_timer_ent;
 } tBTM_LE_RANDOM_CB;
 
 #define BTM_BLE_MAX_BG_CONN_DEV_NUM    10
@@ -304,7 +304,7 @@ typedef struct
     /* observer callback and timer */
     tBTM_INQ_RESULTS_CB *p_obs_results_cb;
     tBTM_CMPL_CB *p_obs_cmpl_cb;
-    TIMER_LIST_ENT obs_timer_ent;
+    timer_entry_t obs_timer_ent;
 
     /* background connection procedure cb value */
     tBTM_BLE_CONN_TYPE bg_conn_type;
@@ -345,7 +345,7 @@ typedef struct
 extern "C" {
 #endif
 
-extern void btm_ble_timeout(TIMER_LIST_ENT *p_tle);
+extern void btm_ble_timeout(timer_entry_t *p_te);
 extern void btm_ble_process_adv_pkt (UINT8 *p);
 extern void btm_ble_proc_scan_rsp_rpt (UINT8 *p);
 extern tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, tBTM_CMPL_CB *p_cb);

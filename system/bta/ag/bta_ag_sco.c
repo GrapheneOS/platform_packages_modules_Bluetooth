@@ -648,13 +648,13 @@ BOOLEAN bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_cn_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_ag_cn_timer_cback (timer_entry_t *p_te)
 {
     tBTA_AG_SCB *p_scb;
 
-    if (p_tle)
+    if (p_te)
     {
-        p_scb = (tBTA_AG_SCB *)p_tle->param;
+        p_scb = (tBTA_AG_SCB *)p_te->param;
 
         if (p_scb)
         {
@@ -692,7 +692,7 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
         bta_ag_send_bcs(p_scb, NULL);
 
         /* Start timer to handle timeout */
-        p_scb->cn_timer.p_cback = (TIMER_CBACK*)&bta_ag_cn_timer_cback;
+        p_scb->cn_timer.p_cback = (timer_callback_t *)&bta_ag_cn_timer_cback;
         p_scb->cn_timer.param = p_scb;
         bta_sys_start_timer(&p_scb->cn_timer, 0, BTA_AG_CODEC_NEGO_TIMEOUT);
     }

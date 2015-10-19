@@ -215,7 +215,7 @@ typedef struct
     tBTA_HL_SDP             sdp;
     btif_hl_cch_op_t        cch_oper;
     BOOLEAN                 cch_timer_active;
-    TIMER_LIST_ENT          cch_timer;
+    timer_entry_t           cch_timer;
 } btif_hl_mcl_cb_t;
 
 typedef struct

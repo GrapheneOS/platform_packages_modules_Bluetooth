@@ -502,9 +502,9 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
     // Discoverability timer cleanup
     if (stop_timer)
     {
-        if (p_multi_inst_cb->tle_limited_timer.in_use)
-            btu_stop_timer_oneshot(&p_multi_inst_cb->tle_limited_timer);
-        p_multi_inst_cb->tle_limited_timer.in_use = 0;
+        if (p_multi_inst_cb->timer_entry.in_use)
+            btu_stop_timer_oneshot(&p_multi_inst_cb->timer_entry);
+        p_multi_inst_cb->timer_entry.in_use = 0;
     }
 
     memset(&p_multi_inst_cb->data, 0, sizeof(p_multi_inst_cb->data));
@@ -517,7 +517,7 @@ void btif_gattc_cleanup(void** buf)
    *buf = NULL;
 }
 
-void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb)
+void btif_multi_adv_timer_ctrl(int client_if, timer_callback_t cb)
 {
     int inst_id = btif_multi_adv_instid_for_clientif(client_if);
     if (inst_id == INVALID_ADV_INST)
@@ -533,18 +533,18 @@ void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb)
 
     if (cb == NULL)
     {
-        if (p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.in_use)
-            btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer);
+        if (p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.in_use)
+            btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry);
     } else {
         if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s != 0)
         {
-            if (p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.in_use)
-                btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer);
+            if (p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.in_use)
+                btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry);
 
-            memset(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer, 0, sizeof(TIMER_LIST_ENT));
-            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.param = cb;
-            p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer.data = INT_TO_PTR(client_if);
-            btu_start_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].tle_limited_timer,
+            memset(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry, 0, sizeof(timer_entry_t));
+            p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.param = cb;
+            p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.data = INT_TO_PTR(client_if);
+            btu_start_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry,
                     BTU_TTYPE_USER_FUNC, p_multi_adv_data_cb->inst_cb[cbindex].timeout_s);
         }
     }
