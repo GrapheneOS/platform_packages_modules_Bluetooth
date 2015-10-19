@@ -32,18 +32,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "device/include/controller.h"
+#include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "bt_types.h"
 #include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "device/include/controller.h"
 #include "gki.h"
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "osi.h"
-#include "osi/include/log.h"
 
 // TODO(zachoverflow): remove this horrible hack
 #include "btu.h"

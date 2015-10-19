@@ -23,8 +23,8 @@
 #include "AlarmTestHarness.h"
 
 extern "C" {
-#include "alarm.h"
-#include "allocation_tracker.h"
+#include "osi/include/alarm.h"
+#include "osi/include/allocation_tracker.h"
 }
 
 static timer_t timer;

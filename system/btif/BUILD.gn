@@ -76,7 +76,6 @@ static_library("btif") {
     "//embdrv/sbc/encoder/include",
     "//gki/common",
     "//hci/include",
-    "//osi/include",
     "//stack/a2dp",
     "//stack/btm",
     "//stack/include",

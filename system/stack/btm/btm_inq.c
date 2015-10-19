@@ -1988,7 +1988,7 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
             p_cur->dev_class[2]       = dc[2];
             p_cur->clock_offset       = clock_offset  | BTM_CLOCK_OFFSET_VALID;
 
-            p_i->time_of_resp = GKI_get_os_tick_count();
+            p_i->time_of_resp = time_get_os_boottime_ms();
 
             if (p_i->inq_count != p_inq->inq_counter)
                 p_inq->inq_cmpl_info.num_resp++;       /* A new response was found */

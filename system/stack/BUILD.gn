@@ -156,7 +156,6 @@ static_library("stack") {
     "//include",
     "//gki/common",
     "//gki/ulinux",
-    "//osi/include",
     "//udrv/include",
     "//rpc/include",
     "//hcis",

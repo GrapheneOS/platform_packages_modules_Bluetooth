@@ -32,7 +32,6 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../btcore/include \
     $(LOCAL_PATH)/../gki/common \
     $(LOCAL_PATH)/../gki/ulinux \
-    $(LOCAL_PATH)/../osi/include \
     $(LOCAL_PATH)/../stack/include \
     $(LOCAL_PATH)/../utils/include \
     $(bdroid_C_INCLUDES)
@@ -54,7 +53,6 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../btcore/include \
     $(LOCAL_PATH)/../gki/common \
     $(LOCAL_PATH)/../gki/ulinux \
-    $(LOCAL_PATH)/../osi/include \
     $(LOCAL_PATH)/../osi/test \
     $(LOCAL_PATH)/../stack/include \
     $(LOCAL_PATH)/../utils/include \

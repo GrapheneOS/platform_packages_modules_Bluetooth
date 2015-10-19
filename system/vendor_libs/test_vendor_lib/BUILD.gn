@@ -16,7 +16,6 @@ shared_library("test_vendor_lib") {
     "//",
     # TODO(dennischeng): Ideally we should need to have the lines below for
     # indirect includes.
-    "//osi/include",
     "//stack/include",
   ]
 }
@@ -37,7 +36,6 @@ executable("test_vendor_lib_test") {
     "//",
     "//btcore/include",
     "//hci/include",
-    "//osi/include",
     "//stack/include",
   ]
 

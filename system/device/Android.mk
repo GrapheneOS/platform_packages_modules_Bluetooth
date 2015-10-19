@@ -27,7 +27,6 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../gki/common \
     $(LOCAL_PATH)/../hci/include \
     $(LOCAL_PATH)/../include \
-    $(LOCAL_PATH)/../osi/include \
     $(LOCAL_PATH)/../stack/include \
     $(bdroid_C_INCLUDES)
 
@@ -50,7 +49,6 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/.. \
-    $(LOCAL_PATH)/../osi/include \
     $(bdroid_C_INCLUDES)
 
 LOCAL_SRC_FILES := \

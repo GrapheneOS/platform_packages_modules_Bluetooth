@@ -22,7 +22,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "allocator.h"
+#include "osi/include/allocator.h"
 #include "osi/include/thread.h"
 
 typedef struct eager_reader_t eager_reader_t;

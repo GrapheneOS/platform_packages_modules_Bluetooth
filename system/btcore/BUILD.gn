@@ -27,7 +27,6 @@ static_library("btcore") {
 
   include_dirs = [
     "include",
-    "//osi/include",
     "//",
   ]
 }

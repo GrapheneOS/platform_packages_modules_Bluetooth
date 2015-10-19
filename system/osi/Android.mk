@@ -46,7 +46,8 @@ btosiCommonSrc := \
     ./src/socket.c \
     ./src/socket_utils/socket_local_client.c \
     ./src/socket_utils/socket_local_server.c \
-    ./src/thread.c
+    ./src/thread.c \
+    ./src/time.c
 
 btosiCommonTestSrc := \
     ./test/AlarmTestHarness.cpp \
@@ -64,10 +65,10 @@ btosiCommonTestSrc := \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/ringbuffer_test.cpp \
-    ./test/thread_test.cpp
+    ./test/thread_test.cpp \
+    ./test/time_test.cpp
 
 btosiCommonIncludes := \
-    $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/.. \
     $(LOCAL_PATH)/../utils/include
 

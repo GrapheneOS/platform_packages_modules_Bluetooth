@@ -23,19 +23,19 @@
 extern "C" {
 #include <stdint.h>
 
-#include "allocation_tracker.h"
-#include "allocator.h"
-#include "btsnoop.h"
 #include "device/include/controller.h"
+#include "osi/include/allocation_tracker.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
+#include "btsnoop.h"
 #include "hcimsgs.h"
 #include "hci_hal.h"
 #include "hci_inject.h"
 #include "hci_layer.h"
 #include "low_power_manager.h"
 #include "module.h"
-#include "osi.h"
 #include "packet_fragmenter.h"
-#include "semaphore.h"
 #include "test_stubs.h"
 #include "vendor.h"
 
