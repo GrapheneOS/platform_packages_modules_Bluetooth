@@ -24,6 +24,7 @@
 #include "l2cdefs.h"
 #include "l2c_int.h"
 #include <string.h>
+#include "osi/include/mutex.h"
 #if GAP_CONN_INCLUDED == TRUE
 #include "btm_int.h"
 
@@ -314,7 +315,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
     if (!p_buf)
         return (GAP_NO_DATA_AVAIL);
 
-    GKI_disable();
+    mutex_global_lock();
 
     while (max_len && p_buf)
     {
@@ -345,7 +346,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
 
     p_ccb->rx_queue_size -= *p_len;
 
-    GKI_enable();
+    mutex_global_unlock();
 
     GAP_TRACE_EVENT ("GAP_ConnReadData - rx_queue_size left=%d, *p_len=%d",
                                        p_ccb->rx_queue_size, *p_len);

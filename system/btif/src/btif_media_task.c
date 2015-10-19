@@ -65,6 +65,7 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
+#include "osi/include/mutex.h"
 #include "osi/include/thread.h"
 
 #if (BTA_AV_INCLUDED == TRUE)
@@ -794,7 +795,7 @@ void btif_a2dp_setup_codec(void)
 
     APPL_TRACE_EVENT("## A2DP SETUP CODEC ##");
 
-    GKI_disable();
+    mutex_global_lock();
 
     /* for now hardcode 44.1 khz 16 bit stereo PCM format */
     media_feeding.cfg.pcm.sampling_freq = 44100;
@@ -816,7 +817,7 @@ void btif_a2dp_setup_codec(void)
         btif_media_task_audio_feeding_init_req(&mfeed);
     }
 
-    GKI_enable();
+    mutex_global_unlock();
 }
 
 
