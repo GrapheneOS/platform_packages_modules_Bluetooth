@@ -23,7 +23,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "gki.h"
+#include "bt_common.h"
 #include "bta_ag_at.h"
 #include "utl.h"
 
@@ -63,7 +63,7 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 {
     if (p_cb->p_cmd_buf != NULL)
     {
-        GKI_freebuf(p_cb->p_cmd_buf);
+        osi_freebuf(p_cb->p_cmd_buf);
         p_cb->p_cmd_buf = NULL;
     }
     p_cb->cmd_pos = 0;
@@ -192,9 +192,9 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
 
     if (p_cb->p_cmd_buf == NULL)
     {
-        if ((p_cb->p_cmd_buf = (char *) GKI_getbuf(p_cb->cmd_max_len)) == NULL)
+        if ((p_cb->p_cmd_buf = (char *) osi_getbuf(p_cb->cmd_max_len)) == NULL)
         {
-            APPL_TRACE_ERROR("%s: GKI_getbuf() failed allocation", __func__);
+            APPL_TRACE_ERROR("%s: osi_getbuf() failed allocation", __func__);
             return;
         }
         p_cb->cmd_pos = 0;

@@ -30,7 +30,7 @@
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btu.h"
 
 /*****************************************************************************

@@ -33,7 +33,7 @@
 #include "btcore/include/counter.h"
 #include "btm_api.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
@@ -1514,7 +1514,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
      ||  (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb == NULL) )
     {
         L2CAP_TRACE_ERROR ("L2CA_SendFixedChnlData()  Invalid CID: 0x%04x", fixed_cid);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1522,7 +1522,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     if (!BTM_IsDeviceUp())
     {
         L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData(0x%04x) - BTU not ready", fixed_cid);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1532,7 +1532,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         p_lcb->link_state == LST_DISCONNECTING)
     {
         L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData(0x%04x) - no LCB", fixed_cid);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1549,7 +1549,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     if ((peer_channel_mask & (1 << fixed_cid)) == 0)
     {
         L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData() - peer does not support fixed chnl: 0x%04x", fixed_cid);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1561,7 +1561,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
         if (!l2cu_initialize_fixed_ccb (p_lcb, fixed_cid, &l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].fixed_chnl_opts))
         {
             L2CAP_TRACE_WARNING ("L2CA_SendFixedChnlData() - no CCB for chnl: 0x%4x", fixed_cid);
-            GKI_freebuf (p_buf);
+            osi_freebuf (p_buf);
             return (L2CAP_DW_FAILED);
         }
     }
@@ -1573,7 +1573,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
             xmit_hold_q.count: %u buff_quota: %u", fixed_cid,
             fixed_queue_length(p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q),
             p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->buff_quota);
-        GKI_freebuf (p_buf);
+        osi_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -1936,7 +1936,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
             num_flushed1++;
 
             list_remove(p_lcb->link_xmit_data_q, p_buf);
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
           }
         }
     }
@@ -1946,7 +1946,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     {
         BT_HDR *p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
         if (p_buf)
-            GKI_freebuf (p_buf);
+            osi_freebuf (p_buf);
         num_to_flush--;
         num_flushed2++;
     }

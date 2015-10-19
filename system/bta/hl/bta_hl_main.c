@@ -31,7 +31,7 @@
 
 #include "bta_hl_api.h"
 #include "bta_hl_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "utl.h"
 #include "l2c_api.h"
 #include "mca_defs.h"
@@ -1570,7 +1570,7 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
     if ( event == BTA_HL_SDP_QUERY_OK_EVT)
     {
-        if ((p_sdp = (tBTA_HL_SDP *)GKI_getbuf((UINT16)(sizeof(tBTA_HL_SDP)))) != NULL)
+        if ((p_sdp = (tBTA_HL_SDP *)osi_getbuf((UINT16)(sizeof(tBTA_HL_SDP)))) != NULL)
         {
             memcpy(p_sdp, &p_mcb->sdp, sizeof(tBTA_HL_SDP));
             release_sdp_buf = TRUE;

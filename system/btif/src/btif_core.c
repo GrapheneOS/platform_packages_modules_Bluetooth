@@ -62,7 +62,7 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/controller.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
@@ -210,7 +210,7 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
     BTIF_TRACE_VERBOSE("btif_transfer_context event %d, len %d", event, param_len);
 
     /* allocate and send message that will be executed in btif context */
-    if ((p_msg = (tBTIF_CONTEXT_SWITCH_CBACK *) GKI_getbuf(sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len)) != NULL)
+    if ((p_msg = (tBTIF_CONTEXT_SWITCH_CBACK *) osi_getbuf(sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len)) != NULL)
     {
         p_msg->hdr.event = BT_EVT_CONTEXT_SWITCH_EVT; /* internal event */
         p_msg->p_cb = p_cback;
@@ -308,7 +308,7 @@ static void bt_jni_msg_ready(void *context) {
       BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
       break;
   }
-  GKI_freebuf(p_msg);
+  osi_freebuf(p_msg);
 }
 
 /*******************************************************************************

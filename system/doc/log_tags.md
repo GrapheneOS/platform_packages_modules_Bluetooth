@@ -12,7 +12,6 @@ This document lists all of the log tags used by bluedroid.
 * bte_conf
 * BtGatt.btif
 * BtGatt.btif_test
-* bt_gki
 * bt_hci
 * bt_hci_h4
 * bt_hci_inject

@@ -25,7 +25,6 @@ source_set("udrv") {
     "//",
     "//audio_a2dp_hw",
     "//include",
-    "//gki/common",
     "//stack/include",
     "//utils/include",
   ]

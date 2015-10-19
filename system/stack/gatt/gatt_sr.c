@@ -103,11 +103,11 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
     {
         GATT_TRACE_ERROR("free p_tcb->sr_cmd.p_rsp_msg = %d", p_tcb->sr_cmd.p_rsp_msg);
 
-        GKI_freebuf (p_tcb->sr_cmd.p_rsp_msg);
+        osi_freebuf (p_tcb->sr_cmd.p_rsp_msg);
     }
 
     while (!fixed_queue_is_empty(p_tcb->sr_cmd.multi_rsp_q))
-        GKI_freebuf(fixed_queue_try_dequeue(p_tcb->sr_cmd.multi_rsp_q));
+        osi_freebuf(fixed_queue_try_dequeue(p_tcb->sr_cmd.multi_rsp_q));
     fixed_queue_free(p_tcb->sr_cmd.multi_rsp_q, NULL);
     memset( &p_tcb->sr_cmd, 0, sizeof(tGATT_SR_CMD));
 }
@@ -125,7 +125,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                                        tGATTS_RSP *p_msg, UINT16 mtu)
 {
     UINT16          ii, total_len, len;
-    BT_HDR          *p_buf = (BT_HDR *)GKI_getbuf((UINT16)sizeof(tGATTS_RSP));
+    BT_HDR          *p_buf = (BT_HDR *)osi_getbuf((UINT16)sizeof(tGATTS_RSP));
     UINT8           *p;
     BOOLEAN         is_overflow = FALSE;
 
@@ -151,7 +151,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
         if (fixed_queue_length(p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)
         {
             len = sizeof(BT_HDR) + L2CAP_MIN_OFFSET + mtu;
-            if ((p_buf = (BT_HDR *)GKI_getbuf(len)) == NULL)
+            if ((p_buf = (BT_HDR *)osi_getbuf(len)) == NULL)
             {
                 p_cmd->status = GATT_INSUF_RESOURCE;
                 return(TRUE);
@@ -227,12 +227,12 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             {
                 GATT_TRACE_ERROR("process_read_multi_rsp - nothing found!!");
                 p_cmd->status = GATT_NOT_FOUND;
-                GKI_freebuf (p_buf);
-                GATT_TRACE_DEBUG(" GKI_freebuf (p_buf)");
+                osi_freebuf (p_buf);
+                GATT_TRACE_DEBUG(" osi_freebuf (p_buf)");
             }
             else if (p_cmd->p_rsp_msg != NULL)
             {
-                GKI_freebuf (p_buf);
+                osi_freebuf (p_buf);
             }
             else
             {
@@ -470,7 +470,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
 
             for (ll = 0; ll < p_tcb->sr_cmd.multi_req.num_handles; ll ++)
             {
-                if ((p_msg = (tGATTS_RSP *)GKI_getbuf(sizeof(tGATTS_RSP))) != NULL)
+                if ((p_msg = (tGATTS_RSP *)osi_getbuf(sizeof(tGATTS_RSP))) != NULL)
                 {
                     memset(p_msg, 0, sizeof(tGATTS_RSP))
                     ;
@@ -495,7 +495,7 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
                         gatt_sr_process_app_rsp(p_tcb, gatt_cb.sr_reg[i_rcb].gatt_if ,trans_id, op_code, GATT_SUCCESS, p_msg);
                     }
                     /* either not using or done using the buffer, release it now */
-                    GKI_freebuf(p_msg);
+                    osi_freebuf(p_msg);
                 }
                 else
                 {
@@ -785,7 +785,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
 
             if (reason == GATT_SUCCESS)
             {
-                if ((p_msg =  (BT_HDR *)GKI_getbuf(msg_len)) == NULL)
+                if ((p_msg =  (BT_HDR *)osi_getbuf(msg_len)) == NULL)
                 {
                     GATT_TRACE_ERROR("gatts_process_primary_service_req failed. no resources.");
                     reason = GATT_NO_RESOURCES;
@@ -815,7 +815,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg) GKI_freebuf(p_msg);
+        if (p_msg) osi_freebuf(p_msg);
         gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
     }
     else
@@ -848,7 +848,7 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     {
         buf_len = (UINT16)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
 
-        if ((p_msg =  (BT_HDR *)GKI_getbuf(buf_len)) == NULL)
+        if ((p_msg =  (BT_HDR *)osi_getbuf(buf_len)) == NULL)
         {
             reason = GATT_NO_RESOURCES;
         }
@@ -890,7 +890,7 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  GKI_freebuf(p_msg);
+        if (p_msg)  osi_freebuf(p_msg);
         gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
     }
     else
@@ -1005,7 +1005,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
     if (reason == GATT_SUCCESS)
     {
-        if ((p_msg =  (BT_HDR *)GKI_getbuf(msg_len)) == NULL)
+        if ((p_msg =  (BT_HDR *)osi_getbuf(msg_len)) == NULL)
         {
             GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
 
@@ -1071,7 +1071,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     }
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  GKI_freebuf(p_msg);
+        if (p_msg)  osi_freebuf(p_msg);
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)
@@ -1194,7 +1194,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
     UINT16          offset = 0, value_len = 0;
 
     UNUSED (len);
-    if ((p_msg =  (BT_HDR *)GKI_getbuf(buf_len)) == NULL)
+    if ((p_msg =  (BT_HDR *)osi_getbuf(buf_len)) == NULL)
     {
         GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
 
@@ -1233,7 +1233,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  GKI_freebuf(p_msg);
+        if (p_msg)  osi_freebuf(p_msg);
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)
@@ -1375,7 +1375,7 @@ static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
                                     p_buf->handle,
                                     p_buf->len,
                                     p_buf->value);
-        GKI_freebuf(fixed_queue_try_remove_from_queue(p_tcb->pending_ind_q,
+        osi_freebuf(fixed_queue_try_remove_from_queue(p_tcb->pending_ind_q,
                                                       p_buf));
     }
 }

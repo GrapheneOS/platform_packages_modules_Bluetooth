@@ -42,7 +42,7 @@
 #include "btif_av.h"
 #include "btif_common.h"
 #include "btif_util.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "uinput.h"
 
 /*****************************************************************************
@@ -1463,7 +1463,7 @@ static bt_status_t set_volume(uint8_t volume)
             else
             {
                 if(NULL!=p_msg)
-                   GKI_freebuf(p_msg);
+                   osi_freebuf(p_msg);
                 BTIF_TRACE_ERROR("%s: failed to obtain transaction details. status: 0x%02x",
                                     __FUNCTION__, tran_status);
                 status = BT_STATUS_FAIL;
@@ -1517,7 +1517,7 @@ static void register_volumechange (UINT8 lbl)
          else
          {
             if(NULL!=p_msg)
-               GKI_freebuf(p_msg);
+               osi_freebuf(p_msg);
             BTIF_TRACE_ERROR("%s transaction not obtained with label: %d",__FUNCTION__,lbl);
          }
     }

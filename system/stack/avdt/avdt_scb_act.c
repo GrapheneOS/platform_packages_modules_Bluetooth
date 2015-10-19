@@ -30,7 +30,7 @@
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btu.h"
 
 /* This table is used to lookup the callback event that matches a particular
@@ -287,7 +287,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     if ((offset > p_data->p_pkt->len) || ((pad_len + offset) > p_data->p_pkt->len))
     {
         AVDT_TRACE_WARNING("Got bad media packet");
-        GKI_freebuf(p_data->p_pkt);
+        osi_freebuf(p_data->p_pkt);
     }
     /* adjust offset and length and send it up */
     else
@@ -316,7 +316,7 @@ void avdt_scb_hdl_pkt_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                     p_scb->media_buf_len,time_stamp,seq,m_pt,marker);
             }
 #endif
-            GKI_freebuf(p_data->p_pkt);
+            osi_freebuf(p_data->p_pkt);
         }
     }
 }
@@ -630,7 +630,7 @@ void avdt_scb_hdl_pkt_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     {
         AVDT_TRACE_WARNING("*** Got bad media packet");
     }
-    GKI_freebuf(p_data->p_pkt);
+    osi_freebuf(p_data->p_pkt);
 }
 #endif
 
@@ -662,7 +662,7 @@ void avdt_scb_hdl_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     {
         p = (UINT8 *)(p_data->p_pkt + 1) + p_data->p_pkt->offset;
         avdt_scb_hdl_report(p_scb, p, p_data->p_pkt->len);
-        GKI_freebuf(p_data->p_pkt);
+        osi_freebuf(p_data->p_pkt);
     }
     else
 #endif
@@ -683,7 +683,7 @@ void avdt_scb_drop_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_scb);
 
-    GKI_freebuf(p_data->p_pkt);
+    osi_freebuf(p_data->p_pkt);
     AVDT_TRACE_ERROR(" avdt_scb_drop_pkt Dropped incoming media packet");
 }
 
@@ -1016,7 +1016,7 @@ void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* free pkt we're holding, if any */
     if (p_scb->p_pkt != NULL)
     {
-        GKI_freebuf(p_scb->p_pkt);
+        osi_freebuf(p_scb->p_pkt);
         p_scb->p_pkt = NULL;
     }
 
@@ -1226,7 +1226,7 @@ void avdt_scb_hdl_write_req_no_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* free packet we're holding, if any; to be replaced with new */
     if (p_scb->p_pkt != NULL)
     {
-        GKI_freebuf(p_scb->p_pkt);
+        osi_freebuf(p_scb->p_pkt);
 
         /* this shouldn't be happening */
         AVDT_TRACE_WARNING("Dropped media packet; congested");
@@ -1275,7 +1275,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     if (!fixed_queue_is_empty(p_scb->frag_q))
     {
         while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-            GKI_freebuf(p_frag);
+            osi_freebuf(p_frag);
 
         /* this shouldn't be happening */
         AVDT_TRACE_WARNING("*** Dropped media packet; congested");
@@ -1444,12 +1444,12 @@ void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         fixed_queue_length(p_scb->frag_q), p_scb->frag_off);
     /* clean fragments queue */
     while((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-         GKI_freebuf(p_frag);
+         osi_freebuf(p_frag);
     p_scb->frag_off = 0;
 #endif
     if (p_scb->p_pkt)
     {
-        GKI_freebuf(p_scb->p_pkt);
+        osi_freebuf(p_scb->p_pkt);
         p_scb->p_pkt = NULL;
     }
 
@@ -1882,12 +1882,12 @@ void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     /* p_buf can be NULL in case using of fragments queue frag_q */
     if(p_data->apiwrite.p_buf)
-        GKI_freebuf(p_data->apiwrite.p_buf);
+        osi_freebuf(p_data->apiwrite.p_buf);
 
 #if AVDT_MULTIPLEXING == TRUE
     /* clean fragments queue */
     while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_data->apiwrite.frag_q)) != NULL)
-         GKI_freebuf(p_frag);
+         osi_freebuf(p_frag);
 #endif
 
     AVDT_TRACE_WARNING("Dropped media packet");
@@ -1932,7 +1932,7 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     if (p_scb->p_pkt != NULL)
     {
-        GKI_freebuf(p_scb->p_pkt);
+        osi_freebuf(p_scb->p_pkt);
         p_scb->p_pkt = NULL;
 
         AVDT_TRACE_DEBUG("Dropped stored media packet");
@@ -1947,7 +1947,7 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         AVDT_TRACE_DEBUG("Dropped fragments queue");
         /* clean fragments queue */
         while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-             GKI_freebuf(p_frag);
+             osi_freebuf(p_frag);
 
         p_scb->frag_off = 0;
 
@@ -2150,7 +2150,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
     while(*p_data_len && num_frag)
     {
         /* allocate buffer for fragment */
-        if(NULL == (p_frag = (BT_HDR*)GKI_getbuf(buf_size)))
+        if(NULL == (p_frag = (BT_HDR*)osi_getbuf(buf_size)))
         {
             AVDT_TRACE_WARNING("avdt_scb_queue_frags len=%d(out of buffers)",
                                *p_data_len);

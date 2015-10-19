@@ -44,7 +44,7 @@
 #include "btif_common.h"
 #include "btsnoop.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hci_layer.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
@@ -270,6 +270,6 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     else
     {
         APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
-        GKI_freebuf(p_msg);
+        osi_freebuf(p_msg);
     }
 }

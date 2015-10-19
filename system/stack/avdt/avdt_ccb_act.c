@@ -30,7 +30,7 @@
 #include "avdt_api.h"
 #include "avdtc_api.h"
 #include "avdt_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btu.h"
 #include "btm_api.h"
 
@@ -56,21 +56,21 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
     /* free message being fragmented */
     if (p_ccb->p_curr_msg != NULL)
     {
-        GKI_freebuf(p_ccb->p_curr_msg);
+        osi_freebuf(p_ccb->p_curr_msg);
         p_ccb->p_curr_msg = NULL;
     }
 
     /* free message being reassembled */
     if (p_ccb->p_rx_msg != NULL)
     {
-        GKI_freebuf(p_ccb->p_rx_msg);
+        osi_freebuf(p_ccb->p_rx_msg);
         p_ccb->p_rx_msg = NULL;
     }
 
     /* clear out response queue */
     while ((p_buf = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
     {
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
     }
     fixed_queue_free(p_ccb->rsp_q, NULL);
     p_ccb->rsp_q = NULL;
@@ -744,7 +744,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             }
         }
 
-        GKI_freebuf(p_ccb->p_curr_cmd);
+        osi_freebuf(p_ccb->p_curr_cmd);
         p_ccb->p_curr_cmd = NULL;
     }
 }
@@ -766,7 +766,7 @@ void avdt_ccb_free_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 
     if (p_ccb->p_curr_cmd != NULL)
     {
-        GKI_freebuf(p_ccb->p_curr_cmd);
+        osi_freebuf(p_ccb->p_curr_cmd);
         p_ccb->p_curr_cmd = NULL;
     }
 }
@@ -821,7 +821,7 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((!p_ccb->cong) && (p_ccb->p_curr_msg == NULL) && (p_ccb->p_curr_cmd != NULL))
         {
             /* make copy of message in p_curr_cmd and send it */
-            p_msg = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            p_msg = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
             if (p_msg != NULL)
             {
                 memcpy(p_msg, p_ccb->p_curr_cmd,
@@ -859,7 +859,7 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((p_msg = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->cmd_q)) != NULL)
         {
             /* make a copy of buffer in p_curr_cmd */
-            p_ccb->p_curr_cmd = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            p_ccb->p_curr_cmd = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
             if (p_ccb->p_curr_cmd != NULL)
             {
                 memcpy(p_ccb->p_curr_cmd, p_msg, (sizeof(BT_HDR) + p_msg->offset + p_msg->len));

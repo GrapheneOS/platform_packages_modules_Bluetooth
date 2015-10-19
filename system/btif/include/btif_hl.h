@@ -22,7 +22,7 @@
 #include <hardware/bluetooth.h>
 
 #include "bta_hl_api.h"
-#include "gki.h"
+#include "bt_common.h"
 
 /*******************************************************************************
 **  Constants & Macros

@@ -287,7 +287,7 @@ static void bta_ag_timer_cback(void *p)
     BT_HDR          *p_buf;
     timer_entry_t   *p_te = (timer_entry_t *) p;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = p_te->event;
         p_buf->layer_specific = bta_ag_scb_to_idx((tBTA_AG_SCB *) p_te->param);

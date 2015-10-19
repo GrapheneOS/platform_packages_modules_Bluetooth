@@ -154,7 +154,6 @@ static_library("stack") {
     "//btif/include",
     "//hci/include",
     "//include",
-    "//gki/common",
     "//udrv/include",
     "//rpc/include",
     "//hcis",

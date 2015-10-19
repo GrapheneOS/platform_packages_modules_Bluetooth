@@ -17,7 +17,7 @@
  ******************************************************************************/
 #include <string.h>
 
-#include "gki.h"
+#include "bt_common.h"
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
@@ -146,7 +146,7 @@ static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
     }
 
     /* allocate and initialize the buffer */
-    p_pkt = (BT_HDR *)GKI_getbuf(len);
+    p_pkt = (BT_HDR *)osi_getbuf(len);
     if (p_pkt)
     {
         UINT8 *p_data, *p_start;
@@ -241,7 +241,7 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
 
     if (alloc && (status != AVRC_STS_NO_ERROR) )
     {
-        GKI_freebuf(p_pkt);
+        osi_freebuf(p_pkt);
         *pp_pkt = NULL;
     }
     AVRC_TRACE_API("AVRC_BldCommand: returning %d", status);

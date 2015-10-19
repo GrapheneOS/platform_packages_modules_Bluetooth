@@ -30,7 +30,7 @@
 
 #include "device/include/controller.h"
 #include "btcore/include/counter.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "bt_types.h"
 #include "bt_utils.h"
 #include "hcimsgs.h"
@@ -437,7 +437,7 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
                 {
                     p_buf = list_front(p_lcb->link_xmit_data_q);
                     list_remove(p_lcb->link_xmit_data_q, p_buf);
-                    GKI_freebuf(p_buf);
+                    osi_freebuf(p_buf);
                 }
             }
             else
@@ -1497,7 +1497,7 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
     if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - rcvd segment complete, unknown handle: %d", handle);
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
         return;
     }
 
@@ -1512,5 +1512,5 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
         l2c_link_check_send_pkts (p_lcb, NULL, NULL);
     }
     else
-        GKI_freebuf (p_msg);
+        osi_freebuf (p_msg);
 }

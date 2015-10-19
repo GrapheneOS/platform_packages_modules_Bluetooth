@@ -38,7 +38,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "sdp_api.h"
 #include "utl.h"

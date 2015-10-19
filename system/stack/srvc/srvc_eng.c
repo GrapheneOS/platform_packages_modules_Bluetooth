@@ -202,7 +202,7 @@ BOOLEAN srvc_eng_clcb_dealloc (UINT16 conn_id)
             unsigned j;
             for (j = 0; j < ARRAY_SIZE(p_clcb->dis_value.data_string); j++) {
                 if (p_clcb->dis_value.data_string[j]) {
-                    GKI_freebuf(p_clcb->dis_value.data_string[j]);
+                    osi_freebuf(p_clcb->dis_value.data_string[j]);
                 }
             }
             memset(p_clcb, 0, sizeof(tSRVC_CLCB));

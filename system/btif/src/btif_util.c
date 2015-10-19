@@ -48,7 +48,7 @@
 #include "btif_common.h"
 #include "btif_dm.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 
 /************************************************************************************
 **  Constants & Macros
