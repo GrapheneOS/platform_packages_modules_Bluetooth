@@ -133,64 +133,36 @@ BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
 
 /*******************************************************************************
 **
-** Function      bta_hl_set_user_tx_pool_id
+** Function      bta_hl_set_user_tx_buf_size
 **
-** Description  This function sets the user tx pool id
+** Description  This function sets the user tx buffer size
 **
-** Returns      UINT8 pool_id
+** Returns      UINT16 buf_size
 **
 *******************************************************************************/
 
-UINT8 bta_hl_set_user_tx_pool_id(UINT16 max_tx_size)
+UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size)
 {
-    UINT8 pool_id;
-
-    if (max_tx_size > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
-    {
-        pool_id = BTA_HL_LRG_DATA_POOL_ID;
-    }
-    else
-    {
-        pool_id = L2CAP_DEFAULT_ERM_POOL_ID;
-    }
-
-#if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d max_tx_size=%d default_ertm_pool_size=%d",
-                      pool_id, max_tx_size, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
-#endif
-
-    return pool_id;
+    if (max_tx_size > HCI_ACL_BUF_SIZE)
+        return BTA_HL_LRG_DATA_BUF_SIZE;
+    return L2CAP_INVALID_ERM_BUF_SIZE;
 }
 
 /*******************************************************************************
 **
-** Function      bta_hl_set_user_rx_pool_id
+** Function      bta_hl_set_user_rx_buf_size
 **
-** Description  This function sets the user trx pool id
+** Description  This function sets the user rx buffer size
 **
-** Returns      UINT8 pool_id
+** Returns      UINT16 buf_size
 **
 *******************************************************************************/
 
-UINT8 bta_hl_set_user_rx_pool_id(UINT16 mtu)
+UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu)
 {
-    UINT8 pool_id;
-
-    if (mtu > GKI_get_pool_bufsize (HCI_ACL_POOL_ID))
-    {
-        pool_id = BTA_HL_LRG_DATA_POOL_ID;
-    }
-    else
-    {
-        pool_id = L2CAP_DEFAULT_ERM_POOL_ID;
-    }
-
-#if BTA_HL_DEBUG == TRUE
-    APPL_TRACE_DEBUG("bta_hl_set_user_rx_pool_id pool_id=%d mtu=%d default_ertm_pool_size=%d",
-                      pool_id, mtu, GKI_get_pool_bufsize (HCI_ACL_POOL_ID));
-#endif
-
-    return pool_id;
+    if (mtu > HCI_ACL_BUF_SIZE)
+        return BTA_HL_LRG_DATA_BUF_SIZE;
+    return L2CAP_INVALID_ERM_BUF_SIZE;
 }
 
 
@@ -2611,10 +2583,10 @@ void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,tBTA_HL
     p_dcb->chnl_cfg.fcr_opt.rtrans_tout = BTA_HL_L2C_RTRANS_TOUT;
     p_dcb->chnl_cfg.fcr_opt.mon_tout    = BTA_HL_L2C_MON_TOUT;
 
-    p_dcb->chnl_cfg.user_rx_pool_id     = bta_hl_set_user_rx_pool_id(p_dcb->max_rx_apdu_size);
-    p_dcb->chnl_cfg.user_tx_pool_id     = bta_hl_set_user_tx_pool_id(p_dcb->max_tx_apdu_size);
-    p_dcb->chnl_cfg.fcr_rx_pool_id      = BTA_HL_L2C_FCR_RX_POOL_ID;
-    p_dcb->chnl_cfg.fcr_tx_pool_id      = BTA_HL_L2C_FCR_TX_POOL_ID;
+    p_dcb->chnl_cfg.user_rx_buf_size    = bta_hl_set_user_rx_buf_size(p_dcb->max_rx_apdu_size);
+    p_dcb->chnl_cfg.user_tx_buf_size    = bta_hl_set_user_tx_buf_size(p_dcb->max_tx_apdu_size);
+    p_dcb->chnl_cfg.fcr_rx_buf_size     = L2CAP_INVALID_ERM_BUF_SIZE;
+    p_dcb->chnl_cfg.fcr_tx_buf_size     = L2CAP_INVALID_ERM_BUF_SIZE;
     p_dcb->chnl_cfg.data_mtu            = p_dcb->max_rx_apdu_size;
 
     p_dcb->chnl_cfg.fcs = BTA_HL_MCA_NO_FCS;
@@ -2642,11 +2614,11 @@ void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,tBTA_HL
                       p_dcb->chnl_cfg.fcr_opt.mon_tout,
                       p_dcb->chnl_cfg.fcr_opt.mps);
 
-    APPL_TRACE_DEBUG("USER rx_pool_id=%d, tx_pool_id=%d, FCR rx_pool_id=%d, tx_pool_id=%d",
-                      p_dcb->chnl_cfg.user_rx_pool_id,
-                      p_dcb->chnl_cfg.user_tx_pool_id,
-                      p_dcb->chnl_cfg.fcr_rx_pool_id,
-                      p_dcb->chnl_cfg.fcr_tx_pool_id);
+    APPL_TRACE_DEBUG("USER rx_buf_size=%d, tx_buf_size=%d, FCR rx_buf_size=%d, tx_buf_size=%d",
+                      p_dcb->chnl_cfg.user_rx_buf_size,
+                      p_dcb->chnl_cfg.user_tx_buf_size,
+                      p_dcb->chnl_cfg.fcr_rx_buf_size,
+                      p_dcb->chnl_cfg.fcr_tx_buf_size);
 
 #endif
 
