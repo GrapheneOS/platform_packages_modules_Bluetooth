@@ -728,7 +728,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
     // give other profiles a chance to run by limiting the amount of memory
     // PAN can use from the shared pool buffer.
     for (int i = 0; i < PAN_POOL_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
-        BT_HDR *buffer = (BT_HDR *)GKI_getpoolbuf(PAN_POOL_ID);
+        BT_HDR *buffer = (BT_HDR *)GKI_getbuf(PAN_BUF_SIZE);
         if (!buffer) {
             BTIF_TRACE_WARNING("%s unable to allocate buffer for packet.", __func__);
             break;

@@ -2511,7 +2511,8 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
 
     while (nb_frame)
     {
-        if (NULL == (p_buf = GKI_getpoolbuf(BTIF_MEDIA_AA_POOL_ID)))
+        p_buf = GKI_getbuf(BTIF_MEDIA_AA_BUF_SIZE);
+        if (p_buf == NULL)
         {
             APPL_TRACE_ERROR ("ERROR btif_media_aa_prep_sbc_2_send no buffer TxCnt %d ",
                                 GKI_queue_length(&btif_media_cb.TxAaQ));

@@ -140,9 +140,9 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, UINT8 n
 *******************************************************************************/
 BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
 {
-    BT_HDR  *p_buf;
+    BT_HDR *p_buf = (BT_HDR *)GKI_getbuf(GATT_DB_BUF_SIZE);
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf(GATT_DB_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         APPL_TRACE_DEBUG("No resources: GKI buffer allocation failed.");
         utl_freebuf((void **)&p_srvc_cb->p_srvc_list);

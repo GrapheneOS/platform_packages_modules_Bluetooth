@@ -819,7 +819,8 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((!p_ccb->cong) && (p_ccb->p_curr_msg == NULL) && (p_ccb->p_curr_cmd != NULL))
         {
             /* make copy of message in p_curr_cmd and send it */
-            if ((p_msg = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID)) != NULL)
+            p_msg = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            if (p_msg != NULL)
             {
                 memcpy(p_msg, p_ccb->p_curr_cmd,
                        (sizeof(BT_HDR) + p_ccb->p_curr_cmd->offset + p_ccb->p_curr_cmd->len));
@@ -856,7 +857,8 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((p_msg = (BT_HDR *) GKI_dequeue(&p_ccb->cmd_q)) != NULL)
         {
             /* make a copy of buffer in p_curr_cmd */
-            if ((p_ccb->p_curr_cmd = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID)) != NULL)
+            p_ccb->p_curr_cmd = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            if (p_ccb->p_curr_cmd != NULL)
             {
                 memcpy(p_ccb->p_curr_cmd, p_msg, (sizeof(BT_HDR) + p_msg->offset + p_msg->len));
 

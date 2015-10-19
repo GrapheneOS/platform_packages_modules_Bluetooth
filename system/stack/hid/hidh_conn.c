@@ -881,7 +881,7 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     BOOLEAN     seg_req = FALSE;
     UINT16      data_size;
     UINT16      cid;
-    UINT8       pool_id;
+    UINT16      buf_size;
     UINT8       use_data = 0 ;
     BOOLEAN     blank_datc = FALSE;
 
@@ -909,11 +909,11 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     case HID_TRANS_GET_IDLE:
     case HID_TRANS_SET_IDLE:
         cid = p_hcon->ctrl_cid;
-        pool_id = HID_CONTROL_POOL_ID;
+        buf_size = HID_CONTROL_BUF_SIZE;
         break;
     case HID_TRANS_DATA:
         cid = p_hcon->intr_cid;
-        pool_id = HID_INTERRUPT_POOL_ID;
+        buf_size = HID_INTERRUPT_BUF_SIZE;
         break;
     default:
         return (HID_ERR_INVALID_PARAM) ;
@@ -928,7 +928,8 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
     {
         if ( buf == NULL || blank_datc )
         {
-            if((p_buf = (BT_HDR *)GKI_getpoolbuf (pool_id)) == NULL)
+            p_buf = (BT_HDR *)GKI_getbuf(buf_size);
+            if (p_buf == NULL)
                 return (HID_ERR_NO_RESOURCES);
 
             p_buf->offset = L2CAP_MIN_OFFSET;
@@ -939,7 +940,8 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         }
         else if ( (buf->len > (p_hcon->rem_mtu_size - 1)))
         {
-            if((p_buf = (BT_HDR *)GKI_getpoolbuf (pool_id)) == NULL)
+            p_buf = (BT_HDR *)GKI_getbuf(buf_size);
+            if (p_buf == NULL)
                 return (HID_ERR_NO_RESOURCES);
 
             p_buf->offset = L2CAP_MIN_OFFSET;

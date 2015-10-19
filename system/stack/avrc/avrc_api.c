@@ -831,17 +831,16 @@ static void avrc_msg_cback(UINT8 handle, UINT8 label, UINT8 cr,
 ******************************************************************************/
 static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
 {
-    BT_HDR  *p_cmd = NULL;
-    UINT8   *p_data;
-
     assert(p_msg != NULL);
     assert(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
 
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
+    BT_HDR  *p_cmd = (BT_HDR *) GKI_getbuf(AVRC_CMD_BUF_SIZE);
+    if (p_cmd != NULL)
     {
         p_cmd->offset   = AVCT_MSG_OFFSET;
         p_cmd->layer_specific   = AVCT_DATA_CTRL;
-        p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
+
+        UINT8 *p_data   = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
         *p_data++       = (p_msg->hdr.ctype & AVRC_CTYPE_MASK);
         *p_data++       = (AVRC_SUB_PANEL << AVRC_SUBTYPE_SHIFT); /* Panel subunit & id=0 */
         *p_data++       = AVRC_OP_PASS_THRU;

@@ -1103,11 +1103,11 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 *******************************************************************************/
 static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
-    BT_HDR  *p_buf;
+    BT_HDR *p_buf = (BT_HDR *)GKI_getbuf(GATT_DB_BUF_SIZE);
 
     GATT_TRACE_DEBUG("allocate_svc_db_buf allocating extra buffer");
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf(GATT_DB_POOL_ID)) == NULL)
+    if (p_buf == NULL)
     {
         GATT_TRACE_ERROR("allocate_svc_db_buf failed, no resources");
         return FALSE;

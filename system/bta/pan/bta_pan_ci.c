@@ -129,12 +129,10 @@ void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
 void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
                             UINT8 *p_data, UINT16 len, BOOLEAN ext)
 {
-    BT_HDR * p_buf;
+    BT_HDR * p_buf = (BT_HDR *) GKI_getbuf(PAN_BUF_SIZE);
 
-    if((p_buf = (BT_HDR *) GKI_getpoolbuf(PAN_POOL_ID)) != NULL)
+    if (p_buf != NULL)
     {
-
-
         p_buf->offset = PAN_MINIMUM_OFFSET;
 
         /* copy all other params before the data */
@@ -162,7 +160,7 @@ void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoco
 **                  the RX path is configured to use a push interface with
 **                  zero copy.  The function sends an event to PAN containing
 **                  the data buffer.  The buffer must be allocated using
-**                  functions GKI_getbuf() or GKI_getpoolbuf().  The buffer
+**                  functions GKI_getbuf().  The buffer
 **                  will be freed by BTA; the phone must not free the buffer.
 **
 **

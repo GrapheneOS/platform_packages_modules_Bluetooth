@@ -299,15 +299,10 @@ BT_HDR * bta_hl_get_buf(UINT16 data_size)
     BT_HDR *p_new;
     UINT16 size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
 
-    if (size < GKI_MAX_BUF_SIZE)
-    {
-        p_new = (BT_HDR *)GKI_getbuf(size);
-    }
-    else
-    {
-        p_new = (BT_HDR *) GKI_getpoolbuf(BTA_HL_LRG_DATA_POOL_ID);
-    }
+    if (size >= GKI_MAX_BUF_SIZE)
+        size = BTA_HL_LRG_DATA_BUF_SIZE;
 
+    p_new = (BT_HDR *)GKI_getbuf(size);
     if (p_new)
     {
         p_new->len = data_size;
