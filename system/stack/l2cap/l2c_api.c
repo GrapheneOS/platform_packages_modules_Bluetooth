@@ -1571,7 +1571,7 @@ UINT16 L2CA_SendFixedChnlData (UINT16 fixed_cid, BD_ADDR rem_bda, BT_HDR *p_buf)
     {
         L2CAP_TRACE_ERROR ("L2CAP - CID: 0x%04x cannot send, already congested \
             xmit_hold_q.count: %u buff_quota: %u", fixed_cid,
-            GKI_queue_length(&p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q),
+            fixed_queue_length(p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->xmit_hold_q),
             p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL]->buff_quota);
         GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
@@ -1895,7 +1895,9 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     if (num_to_flush != L2CAP_FLUSH_CHANS_GET)
     {
         L2CAP_TRACE_API ("L2CA_FlushChannel (FLUSH)  CID: 0x%04x  NumToFlush: %d  QC: %u  pFirst: 0x%08x",
-                           lcid, num_to_flush, GKI_queue_length(&p_ccb->xmit_hold_q), GKI_getfirst(&p_ccb->xmit_hold_q));
+                         lcid, num_to_flush,
+                         fixed_queue_length(p_ccb->xmit_hold_q),
+                         fixed_queue_try_peek_first(p_ccb->xmit_hold_q));
     }
     else
     {
@@ -1940,9 +1942,9 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     }
 
     /* If needed, flush buffers in the CCB xmit hold queue */
-    while ( (num_to_flush != 0) && (!GKI_queue_is_empty(&p_ccb->xmit_hold_q)))
+    while ( (num_to_flush != 0) && (!fixed_queue_is_empty(p_ccb->xmit_hold_q)))
     {
-        BT_HDR *p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+        BT_HDR *p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
         if (p_buf)
             GKI_freebuf (p_buf);
         num_to_flush--;
@@ -1964,7 +1966,7 @@ UINT16 L2CA_FlushChannel (UINT16 lcid, UINT16 num_to_flush)
     }
 
     /* Add in the number in the CCB xmit queue */
-    num_left += GKI_queue_length(&p_ccb->xmit_hold_q);
+    num_left += fixed_queue_length(p_ccb->xmit_hold_q);
 
     /* Return the local number of buffers left for the CID */
     L2CAP_TRACE_DEBUG ("L2CA_FlushChannel()  flushed: %u + %u,  num_left: %u", num_flushed1, num_flushed2, num_left);

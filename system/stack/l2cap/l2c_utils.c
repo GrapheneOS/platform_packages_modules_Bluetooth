@@ -87,6 +87,10 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
                 l2cb.num_links_active++;
                 l2c_link_adjust_allocation();
             }
+#if (L2CAP_UCD_INCLUDED == TRUE)
+            p_lcb->ucd_out_sec_pending_q = fixed_queue_new(SIZE_MAX);
+            p_lcb->ucd_in_sec_pending_q = fixed_queue_new(SIZE_MAX);
+#endif
             p_lcb->link_xmit_data_q = list_new(NULL);
             return (p_lcb);
         }
@@ -939,9 +943,8 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
     */
     if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
     {
-        while (GKI_getfirst(&p_ccb->xmit_hold_q))
+        while ((p_buf2 = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q)) != NULL)
         {
-            p_buf2 = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
             l2cu_set_acl_hci_header (p_buf2, p_ccb);
             l2c_link_check_send_pkts (p_ccb->p_lcb, p_ccb, p_buf2);
         }
@@ -1571,7 +1574,10 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     p_ccb->max_rx_mtu                = L2CAP_MTU_SIZE;
     p_ccb->tx_mps                    = L2CAP_FCR_TX_BUF_SIZE - 32;
 
-    GKI_init_q (&p_ccb->xmit_hold_q);
+    p_ccb->xmit_hold_q  = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.srej_rcv_hold_q = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.retrans_q = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.waiting_for_ack_q = fixed_queue_new(SIZE_MAX);
 
     p_ccb->cong_sent    = FALSE;
     p_ccb->buff_quota   = 2;                /* This gets set after config */
@@ -1694,8 +1700,10 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     /* Stop the timer */
     btu_stop_timer (&p_ccb->timer_entry);
 
-    while (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
-        GKI_freebuf (GKI_dequeue (&p_ccb->xmit_hold_q));
+    while (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
+    fixed_queue_free(p_ccb->xmit_hold_q, NULL);
+    p_ccb->xmit_hold_q = NULL;
 
     l2c_fcr_cleanup (p_ccb);
 
@@ -2690,7 +2698,10 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
     p_ccb->local_cid  = fixed_cid;
     p_ccb->remote_cid = fixed_cid;
 
-    GKI_init_q (&p_ccb->xmit_hold_q);
+    p_ccb->xmit_hold_q = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.srej_rcv_hold_q = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.retrans_q = fixed_queue_new(SIZE_MAX);
+    p_ccb->fcrb.waiting_for_ack_q = fixed_queue_new(SIZE_MAX);
 
     p_ccb->is_flushable = FALSE;
 
@@ -3120,7 +3131,8 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
 
             L2CAP_TRACE_DEBUG("RR scan pri=%d, lcid=0x%04x, q_cout=%d",
-                                p_ccb->ccb_priority, p_ccb->local_cid, GKI_queue_length(&p_ccb->xmit_hold_q));
+                              p_ccb->ccb_priority, p_ccb->local_cid,
+                              fixed_queue_length(p_ccb->xmit_hold_q));
 
             /* store the next serving channel */
             /* this channel is the last channel of its priority group */
@@ -3145,9 +3157,9 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
                 if (p_ccb->fcrb.wait_ack || p_ccb->fcrb.remote_busy)
                     continue;
 
-                if ( GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
+                if (fixed_queue_is_empty(p_ccb->fcrb.retrans_q))
                 {
-                    if ( GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+                    if (fixed_queue_is_empty(p_ccb->xmit_hold_q))
                         continue;
 
                     /* If in eRTM mode, check for window closure */
@@ -3157,7 +3169,7 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
             }
             else
             {
-                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+                if (fixed_queue_is_empty(p_ccb->xmit_hold_q))
                     continue;
             }
 
@@ -3214,10 +3226,10 @@ static tL2C_CCB *l2cu_get_next_channel(tL2C_LCB *p_lcb)
         if (p_ccb->fcrb.wait_ack || p_ccb->fcrb.remote_busy)
             continue;
 
-        if (p_ccb->fcrb.retrans_q.count != 0)
+        if (!fixed_queue_is_empty(p_ccb->fcrb.retrans_q))
             return p_ccb;
 
-        if (p_ccb->xmit_hold_q.count == 0)
+        if (fixed_queue_is_empty(p_ccb->xmit_hold_q))
             continue;
 
         /* If in eRTM mode, check for window closure */
@@ -3263,9 +3275,9 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
                 continue;
 
             /* No more checks needed if sending from the reatransmit queue */
-            if (GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
+            if (fixed_queue_is_empty(p_ccb->fcrb.retrans_q))
             {
-                if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+                if (fixed_queue_is_empty(p_ccb->xmit_hold_q))
                     continue;
 
                 /* If in eRTM mode, check for window closure */
@@ -3282,9 +3294,9 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
         }
         else
         {
-            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+            if (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
             {
-                p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+                p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
                 if(NULL == p_buf)
                 {
                     L2CAP_TRACE_ERROR("l2cu_get_buffer_to_send: No data to be sent");
@@ -3320,7 +3332,7 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
     }
     else
     {
-        p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_hold_q);
+        p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
         if(NULL == p_buf)
         {
             L2CAP_TRACE_ERROR("l2cu_get_buffer_to_send() #2: No data to be sent");
@@ -3414,12 +3426,12 @@ void l2cu_set_acl_hci_header (BT_HDR *p_buf, tL2C_CCB *p_ccb)
 *******************************************************************************/
 void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
 {
-    UINT16 q_count = GKI_queue_length(&p_ccb->xmit_hold_q);
+    size_t q_count = fixed_queue_length(p_ccb->xmit_hold_q);
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
     if ( p_ccb->local_cid == L2CAP_CONNECTIONLESS_CID )
     {
-        q_count += p_ccb->p_lcb->ucd_out_sec_pending_q.count;
+        q_count += fixed_queue_length(p_ccb->p_lcb->ucd_out_sec_pending_q);
     }
 #endif
     /* If the CCB queue limit is subject to a quota, check for congestion */
@@ -3449,8 +3461,9 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                     if ( p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb )
                     {
                         L2CAP_TRACE_DEBUG ("L2CAP - Calling UCD CongestionStatus_Cb (FALSE), SecPendingQ:%u,XmitQ:%u,Quota:%u",
-                                             p_ccb->p_lcb->ucd_out_sec_pending_q.count,
-                                             p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
+                                           fixed_queue_length(p_ccb->p_lcb->ucd_out_sec_pending_q),
+                                           fixed_queue_length(p_ccb->xmit_hold_q),
+                                           p_ccb->buff_quota);
                         p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb( p_ccb->p_lcb->remote_bd_addr, FALSE );
                     }
                 }
@@ -3490,9 +3503,10 @@ void l2cu_check_channel_congestion (tL2C_CCB *p_ccb)
                 {
                     if ( p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb )
                     {
-                        L2CAP_TRACE_DEBUG ("L2CAP - Calling UCD CongestionStatus_Cb (TRUE), SecPendingQ:%u,XmitQ:%u,Quota:%u",
-                                             p_ccb->p_lcb->ucd_out_sec_pending_q.count,
-                                             p_ccb->xmit_hold_q.count, p_ccb->buff_quota);
+                        L2CAP_TRACE_DEBUG("L2CAP - Calling UCD CongestionStatus_Cb (TRUE), SecPendingQ:%u,XmitQ:%u,Quota:%u",
+                                          fixed_queue_length(p_ccb->p_lcb->ucd_out_sec_pending_q),
+                                          fixed_queue_length(p_ccb->xmit_hold_q),
+                                          p_ccb->buff_quota);
                         p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Congestion_Status_Cb( p_ccb->p_lcb->remote_bd_addr, TRUE );
                     }
                 }

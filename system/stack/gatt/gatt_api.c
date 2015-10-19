@@ -248,7 +248,7 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
         }
 
         if (p_buf)
-            GKI_freebuf (GKI_remove_from_queue (&gatt_cb.pending_new_srv_start_q, p_buf));
+            GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
         return(0);
     }
 
@@ -421,7 +421,7 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
                                          p_list->asgn_range.svc_inst)) != NULL)
     {
         GATT_TRACE_DEBUG ("Delete a new service changed item - the service has not yet started");
-        GKI_freebuf (GKI_remove_from_queue (&gatt_cb.pending_new_srv_start_q, p_buf));
+        GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
     }
     else
     {
@@ -541,7 +541,7 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
         gatt_proc_srv_chg();
         /* remove the new service element after the srv changed processing is completed*/
 
-        GKI_freebuf (GKI_remove_from_queue (&gatt_cb.pending_new_srv_start_q, p_buf));
+        GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
     }
     return GATT_SUCCESS;
 }

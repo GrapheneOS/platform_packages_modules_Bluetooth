@@ -131,8 +131,10 @@ void gatt_verify_signature(tGATT_TCB *p_tcb, BT_HDR *p_buf)
 *******************************************************************************/
 void gatt_sec_check_complete(BOOLEAN sec_check_ok, tGATT_CLCB   *p_clcb, UINT8 sec_act)
 {
-    if (p_clcb && p_clcb->p_tcb && GKI_queue_is_empty(&p_clcb->p_tcb->pending_enc_clcb))
+    if (p_clcb && p_clcb->p_tcb &&
+        fixed_queue_is_empty(p_clcb->p_tcb->pending_enc_clcb)) {
         gatt_set_sec_act(p_clcb->p_tcb, GATT_SEC_NONE);
+    }
 
     if (!sec_check_ok)
     {
@@ -161,8 +163,6 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
     tGATT_TCB   *p_tcb;
     UINT8       sec_flag;
     BOOLEAN     status = FALSE;
-    tGATT_PENDING_ENC_CLCB  *p_buf;
-    UINT16       count;
     UNUSED(p_ref_data);
 
     GATT_TRACE_DEBUG("gatt_enc_cmpl_cback");
@@ -171,7 +171,9 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
         if (gatt_get_sec_act(p_tcb) == GATT_SEC_ENC_PENDING)
             return;
 
-        if ((p_buf = (tGATT_PENDING_ENC_CLCB *)GKI_dequeue (&p_tcb->pending_enc_clcb)) != NULL)
+        tGATT_PENDING_ENC_CLCB *p_buf =
+            (tGATT_PENDING_ENC_CLCB *)fixed_queue_try_dequeue(p_tcb->pending_enc_clcb);
+        if (p_buf != NULL)
         {
             if (result == BTM_SUCCESS)
             {
@@ -189,13 +191,14 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
                     status = TRUE;
                 }
             }
-            gatt_sec_check_complete(status , p_buf->p_clcb, p_tcb->sec_act);
+            gatt_sec_check_complete(status, p_buf->p_clcb, p_tcb->sec_act);
             GKI_freebuf(p_buf);
             /* start all other pending operation in queue */
-            count = GKI_queue_length(&p_tcb->pending_enc_clcb);
-            for (; count > 0; count --)
+            for (size_t count = fixed_queue_length(p_tcb->pending_enc_clcb);
+                 count > 0; count--)
             {
-                if ((p_buf = (tGATT_PENDING_ENC_CLCB *)GKI_dequeue (&p_tcb->pending_enc_clcb)) != NULL)
+                p_buf = (tGATT_PENDING_ENC_CLCB *)fixed_queue_try_dequeue(p_tcb->pending_enc_clcb);
+                if (p_buf != NULL)
                 {
                     gatt_security_check_start(p_buf->p_clcb);
                     GKI_freebuf(p_buf);
@@ -228,8 +231,6 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
 void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
 {
     tGATT_TCB   *p_tcb;
-    tGATT_PENDING_ENC_CLCB  *p_buf;
-    UINT16       count;
     UINT8        i = 0;
 
     if ((p_tcb = gatt_find_tcb_by_addr(bd_addr, BT_TRANSPORT_LE)) != NULL)
@@ -246,11 +247,12 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
         {
             gatt_set_sec_act(p_tcb, GATT_SEC_NONE);
 
-            count = GKI_queue_length(&p_tcb->pending_enc_clcb);
-
-            for (; count > 0; count --)
+            size_t count = fixed_queue_length(p_tcb->pending_enc_clcb);
+            for (; count > 0; count--)
             {
-                if ((p_buf = (tGATT_PENDING_ENC_CLCB *)GKI_dequeue (&p_tcb->pending_enc_clcb)) != NULL)
+                tGATT_PENDING_ENC_CLCB *p_buf =
+                    (tGATT_PENDING_ENC_CLCB *)fixed_queue_try_dequeue(p_tcb->pending_enc_clcb);
+                if (p_buf != NULL)
                 {
                     gatt_security_check_start(p_buf->p_clcb);
                     GKI_freebuf(p_buf);

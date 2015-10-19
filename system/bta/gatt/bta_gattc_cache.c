@@ -155,7 +155,7 @@ BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
         p_srvc_cb->free_byte = GKI_get_buf_size(p_buf);
 
         /* link into buffer queue */
-        GKI_enqueue(&p_srvc_cb->cache_buffer, p_buf);
+        fixed_queue_enqueue(p_srvc_cb->cache_buffer, p_buf);
     }
 #if BTA_GATT_DEBUG== TRUE
     APPL_TRACE_DEBUG("allocating new buffer: free byte = %d", p_srvc_cb->free_byte);
@@ -175,8 +175,12 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
-        GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
+    if (p_srvc_cb->cache_buffer != NULL) {
+        while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
+            GKI_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
+    } else {
+        p_srvc_cb->cache_buffer = fixed_queue_new(SIZE_MAX);
+    }
 
     utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
 
@@ -1497,8 +1501,8 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
     APPL_TRACE_ERROR("bta_gattc_rebuild_cache");
     if (attr_index == 0)
     {
-        while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
-            GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
+        while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
+            GKI_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
 
         if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
         {

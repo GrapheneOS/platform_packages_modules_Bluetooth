@@ -4,7 +4,6 @@ include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/common \
-	$(LOCAL_PATH)/ulinux \
 	$(LOCAL_PATH)/../btcore/include \
 	$(LOCAL_PATH)/../include \
 	$(LOCAL_PATH)/../stack/include \
@@ -20,8 +19,7 @@ LOCAL_CFLAGS += \
 endif
 
 LOCAL_SRC_FILES := \
-	./common/gki_buffer.c \
-	./ulinux/gki_ulinux.c
+	./common/gki_buffer.c
 
 LOCAL_MODULE := libbt-brcm_gki
 LOCAL_MODULE_TAGS := optional

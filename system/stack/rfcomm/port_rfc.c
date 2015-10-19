@@ -865,7 +865,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 
     /* Check if rx queue exceeds the limit */
     if ((p_port->rx.queue_size + p_buf->len > PORT_RX_CRITICAL_WM)
-     || (GKI_queue_length(&p_port->rx.queue) + 1 > p_port->rx_buf_critical))
+     || (fixed_queue_length(p_port->rx.queue) + 1 > p_port->rx_buf_critical))
     {
         RFCOMM_TRACE_EVENT ("PORT_DataInd. Buffer over run. Dropping the buffer");
         GKI_freebuf (p_buf);
@@ -891,7 +891,7 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
 
     PORT_SCHEDULE_LOCK;
 
-    GKI_enqueue (&p_port->rx.queue, p_buf);
+    fixed_queue_enqueue(p_port->rx.queue, p_buf);
     p_port->rx.queue_size += p_buf->len;
 
     PORT_SCHEDULE_UNLOCK;
@@ -1000,7 +1000,7 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
             /* get data from tx queue and send it */
             PORT_SCHEDULE_LOCK;
 
-            if ((p_buf = (BT_HDR *)GKI_dequeue (&p_port->tx.queue)) != NULL)
+            if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
             {
                 p_port->tx.queue_size -= p_buf->len;
 

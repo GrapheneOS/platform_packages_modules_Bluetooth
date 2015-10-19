@@ -987,7 +987,7 @@ BOOLEAN l2c_link_check_power_mode (tL2C_LCB *p_lcb)
     {
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb)
         {
-            if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
+            if (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
             {
                 need_to_active = TRUE;
                 break;

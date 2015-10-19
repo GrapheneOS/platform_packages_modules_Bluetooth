@@ -203,9 +203,8 @@ BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16* p_p
 
     p_scb = bta_pan_scb_by_handle(handle);
 
-    p_buf =  (BT_HDR *)GKI_dequeue(&p_scb->data_queue);
-
-    if(p_buf)
+    p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue);
+    if (p_buf != NULL)
     {
         bdcpy(src,((tBTA_PAN_DATA_PARAMS *)p_buf)->src);
         bdcpy(dst,((tBTA_PAN_DATA_PARAMS *)p_buf)->dst);

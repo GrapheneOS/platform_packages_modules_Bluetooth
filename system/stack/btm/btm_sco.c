@@ -88,10 +88,8 @@ void btm_sco_flush_sco_data(UINT16 sco_inx)
     if (sco_inx < BTM_MAX_SCO_LINKS)
     {
         p = &btm_cb.sco_cb.sco_db[sco_inx];
-        while (p->xmit_data_q.p_first)
-        {
-            if ((p_buf = (BT_HDR *)GKI_dequeue (&p->xmit_data_q)) != NULL)
-                GKI_freebuf (p_buf);
+        while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p->xmit_data_q)) != NULL)
+            GKI_freebuf(p_buf);
         }
     }
 #else
@@ -115,6 +113,12 @@ void btm_sco_init (void)
 #if 0  /* cleared in btm_init; put back in if called from anywhere else! */
     memset (&btm_cb.sco_cb, 0, sizeof(tSCO_CB));
 #endif
+
+#if BTM_SCO_HCI_INCLUDED == TRUE
+    for (int i = 0; i < BTM_MAX_SCO_LINKS; i++)
+        btm_cb.sco_cb.sco_db[i].xmit_data_q = fixed_queue_new(SIZE_MAX);
+#endif
+
     /* Initialize nonzero defaults */
     btm_cb.sco_cb.sco_disc_reason  = BTM_INVALID_SCO_DISC_REASON;
 
@@ -239,21 +243,19 @@ static void btm_esco_conn_rsp (UINT16 sco_inx, UINT8 hci_status, BD_ADDR bda,
 *******************************************************************************/
 void btm_sco_check_send_pkts (UINT16 sco_inx)
 {
-    BT_HDR  *p_buf;
     tSCO_CB  *p_cb = &btm_cb.sco_cb;
     tSCO_CONN   *p_ccb = &p_cb->sco_db[sco_inx];
 
     /* If there is data to send, send it now */
-    while (p_ccb->xmit_data_q.p_first != NULL)
+    BT_HDR  *p_buf;
+    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_data_q)) != NULL)
     {
-        p_buf = NULL;
-
 #if BTM_SCO_HCI_DEBUG
-        BTM_TRACE_DEBUG ("btm: [%d] buf in xmit_data_q", p_ccb->xmit_data_q.count );
+        BTM_TRACE_DEBUG("btm: [%d] buf in xmit_data_q",
+                        fixed_queue_length(p_ccb->xmit_data_q) + 1);
 #endif
-        p_buf = (BT_HDR *)GKI_dequeue (&p_ccb->xmit_data_q);
 
-        HCI_SCO_DATA_TO_LOWER (p_buf);
+        HCI_SCO_DATA_TO_LOWER(p_buf);
     }
 }
 #endif /* BTM_SCO_HCI_INCLUDED == TRUE */
@@ -359,7 +361,7 @@ tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf)
             UINT8_TO_STREAM (p, (UINT8)p_buf->len);
             p_buf->len += HCI_SCO_PREAMBLE_SIZE;
 
-            GKI_enqueue (&p_ccb->xmit_data_q, p_buf);
+            fixed_queue_enqueue(p_ccb->xmit_data_q, p_buf);
 
             btm_sco_check_send_pkts (sco_inx);
         }

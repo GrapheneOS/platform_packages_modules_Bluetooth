@@ -106,8 +106,9 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
         GKI_freebuf (p_tcb->sr_cmd.p_rsp_msg);
     }
 
-    while (GKI_getfirst(&p_tcb->sr_cmd.multi_rsp_q))
-        GKI_freebuf (GKI_dequeue (&p_tcb->sr_cmd.multi_rsp_q));
+    while (!fixed_queue_is_empty(p_tcb->sr_cmd.multi_rsp_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_tcb->sr_cmd.multi_rsp_q));
+    fixed_queue_free(p_tcb->sr_cmd.multi_rsp_q, NULL);
     memset( &p_tcb->sr_cmd, 0, sizeof(tGATT_SR_CMD));
 }
 
@@ -123,7 +124,6 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
 static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
                                        tGATTS_RSP *p_msg, UINT16 mtu)
 {
-    tGATTS_RSP       *p_rsp = NULL;
     UINT16          ii, total_len, len;
     BT_HDR          *p_buf = (BT_HDR *)GKI_getbuf((UINT16)sizeof(tGATTS_RSP));
     UINT8           *p;
@@ -139,15 +139,16 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
 
     /* Enqueue the response */
     memcpy((void *)p_buf, (const void *)p_msg, sizeof(tGATTS_RSP));
-    GKI_enqueue (&p_cmd->multi_rsp_q, p_buf);
+    fixed_queue_enqueue(p_cmd->multi_rsp_q, p_buf);
 
     p_cmd->status = status;
     if (status == GATT_SUCCESS)
     {
-        GATT_TRACE_DEBUG ("Multi read count=%d num_hdls=%d",
-                           GKI_queue_length(&p_cmd->multi_rsp_q), p_cmd->multi_req.num_handles);
+        GATT_TRACE_DEBUG("Multi read count=%d num_hdls=%d",
+                         fixed_queue_length(&p_cmd->multi_rsp_q),
+                         p_cmd->multi_req.num_handles);
         /* Wait till we get all the responses */
-        if (GKI_queue_length(&p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)
+        if (fixed_queue_length(p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)
         {
             len = sizeof(BT_HDR) + L2CAP_MIN_OFFSET + mtu;
             if ((p_buf = (BT_HDR *)GKI_getbuf(len)) == NULL)
@@ -165,16 +166,18 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             p_buf->len = 1;
 
             /* Now walk through the buffers puting the data into the response in order */
+            list_t *list = fixed_queue_get_list(p_cmd->multi_rsp_q);
+            const list_node_t *node;
             for (ii = 0; ii < p_cmd->multi_req.num_handles; ii++)
             {
-                if (ii==0)
-                {
-                    p_rsp = (tGATTS_RSP *)GKI_getfirst (&p_cmd->multi_rsp_q);
-                }
+                tGATTS_RSP *p_rsp = NULL;
+
+                if (ii == 0)
+                    node = list_begin(list);
                 else
-                {
-                    p_rsp = (tGATTS_RSP *)GKI_getnext (p_rsp);
-                }
+                    node = list_next(node);
+                if (node != list_end(list))
+                    p_rsp = (tGATTS_RSP *)list_node(node);
 
                 if (p_rsp != NULL)
                 {
@@ -1363,16 +1366,17 @@ static void gatts_proc_srv_chg_ind_ack(tGATT_TCB *p_tcb )
 *******************************************************************************/
 static void gatts_chk_pending_ind(tGATT_TCB *p_tcb )
 {
-    tGATT_VALUE *p_buf = (tGATT_VALUE *)GKI_getfirst(&p_tcb->pending_ind_q);
-    GATT_TRACE_DEBUG("gatts_chk_pending_ind");
+    GATT_TRACE_DEBUG("%s", __func__);
 
-    if (p_buf )
+    tGATT_VALUE *p_buf = (tGATT_VALUE *)fixed_queue_try_peek_first(p_tcb->pending_ind_q);
+    if (p_buf != NULL)
     {
-        GATTS_HandleValueIndication (p_buf->conn_id,
-                                     p_buf->handle,
-                                     p_buf->len,
-                                     p_buf->value);
-        GKI_freebuf(GKI_remove_from_queue (&p_tcb->pending_ind_q, p_buf));
+        GATTS_HandleValueIndication(p_buf->conn_id,
+                                    p_buf->handle,
+                                    p_buf->len,
+                                    p_buf->value);
+        GKI_freebuf(fixed_queue_try_remove_from_queue(p_tcb->pending_ind_q,
+                                                      p_buf));
     }
 }
 
