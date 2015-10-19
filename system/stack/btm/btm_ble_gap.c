@@ -3121,11 +3121,11 @@ static void btm_ble_start_slow_adv (void)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
+void btm_ble_timeout(timer_entry_t *p_te)
 {
     BTM_TRACE_EVENT ("btm_ble_timeout");
 
-    switch (p_tle->event)
+    switch (p_te->event)
     {
         case BTU_TTYPE_BLE_OBSERVE:
             btm_ble_stop_observe();
@@ -3144,7 +3144,7 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
         case BTU_TTYPE_BLE_RANDOM_ADDR:
             if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM)
             {
-                if (NULL == (void *)(p_tle->param))
+                if (NULL == (void *)(p_te->param))
                 {
                     /* refresh the random addr */
                     btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
@@ -3152,7 +3152,7 @@ void btm_ble_timeout(TIMER_LIST_ENT *p_tle)
                 else
                 {
                     if (BTM_BleMaxMultiAdvInstanceCount() > 0)
-                       btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)p_tle->param);
+                       btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)p_te->param);
                 }
             }
             break;

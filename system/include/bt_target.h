@@ -716,10 +716,6 @@
 #endif
 
 
-#ifndef TIMER_PARAM_TYPE
-#define TIMER_PARAM_TYPE void*
-#endif
-
 /******************************************************************************
 **
 ** BLE

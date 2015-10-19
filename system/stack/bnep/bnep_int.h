@@ -133,7 +133,7 @@ typedef struct
     UINT16            l2cap_cid;
     BD_ADDR           rem_bda;
     UINT16            rem_mtu_size;
-    TIMER_LIST_ENT    conn_tle;
+    timer_entry_t     conn_te;
     fixed_queue_t     *xmit_q;
 
     UINT16            sent_num_filters;
@@ -180,7 +180,7 @@ typedef struct
 
     tL2CAP_APPL_INFO        reg_info;
 
-    TIMER_LIST_ENT          bnep_tle;
+    timer_entry_t           bnep_te;
     BOOLEAN                 profile_registered;             /* TRUE when we got our BD addr */
     UINT8                   trace_level;
 
@@ -204,7 +204,7 @@ extern tBNEP_CB  *bnep_cb_ptr;
 extern tBNEP_RESULT bnep_register_with_l2cap (void);
 extern void        bnep_disconnect (tBNEP_CONN *p_bcb, UINT16 reason);
 extern tBNEP_CONN *bnep_conn_originate (UINT8 *p_bd_addr);
-extern void        bnep_process_timeout (TIMER_LIST_ENT *p_tle);
+extern void        bnep_process_timeout(timer_entry_t *p_te);
 extern void        bnep_connected (tBNEP_CONN *p_bcb);
 
 

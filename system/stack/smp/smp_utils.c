@@ -354,11 +354,11 @@ BOOLEAN smp_send_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_rsp_timeout(TIMER_LIST_ENT *p_tle)
+void smp_rsp_timeout(timer_entry_t *p_te)
 {
     tSMP_CB   *p_cb = &smp_cb;
     UINT8 failure = SMP_RSP_TIMEOUT;
-    UNUSED(p_tle);
+    UNUSED(p_te);
 
     SMP_TRACE_EVENT("%s state:%d br_state:%d", __FUNCTION__, p_cb->state, p_cb->br_state);
 

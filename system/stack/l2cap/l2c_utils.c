@@ -67,8 +67,8 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
             p_lcb->link_state      = LST_DISCONNECTED;
             p_lcb->handle          = HCI_INVALID_HANDLE;
             p_lcb->link_flush_tout = 0xFFFF;
-            p_lcb->timer_entry.param = (TIMER_PARAM_TYPE)p_lcb;
-            p_lcb->info_timer_entry.param = (TIMER_PARAM_TYPE)p_lcb;
+            p_lcb->timer_entry.param = (timer_param_t)p_lcb;
+            p_lcb->info_timer_entry.param = (timer_param_t)p_lcb;
             p_lcb->idle_timeout    = l2cb.idle_timeout;
             p_lcb->id              = 1;                     /* spec does not allow '0' */
             p_lcb->is_bonding      = is_bonding;
@@ -1547,13 +1547,13 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     memset (&p_ccb->ertm_info, 0, sizeof(tL2CAP_ERTM_INFO));
     p_ccb->peer_cfg_already_rejected = FALSE;
     p_ccb->fcr_cfg_tries         = L2CAP_MAX_FCR_CFG_TRIES;
-    p_ccb->fcrb.ack_timer.param  = (TIMER_PARAM_TYPE)p_ccb;
+    p_ccb->fcrb.ack_timer.param  = (timer_param_t)p_ccb;
 
-    /* if timer is running, remove it from timer list */
+    /* if timer is running, stop it */
     if (p_ccb->fcrb.ack_timer.in_use)
         btu_stop_quick_timer (&p_ccb->fcrb.ack_timer);
 
-    p_ccb->fcrb.mon_retrans_timer.param  = (TIMER_PARAM_TYPE)p_ccb;
+    p_ccb->fcrb.mon_retrans_timer.param  = (timer_param_t)p_ccb;
 
 // btla-specific ++
    /*  CSP408639 Fix: When L2CAP send amp move channel request or receive
@@ -1599,7 +1599,7 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     p_ccb->is_flushable = FALSE;
 #endif
 
-    p_ccb->timer_entry.param = (TIMER_PARAM_TYPE)p_ccb;
+    p_ccb->timer_entry.param = (timer_param_t)p_ccb;
     p_ccb->timer_entry.in_use = 0;
 
     l2c_link_adjust_chnl_allocation ();
@@ -2705,7 +2705,7 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
 
     p_ccb->is_flushable = FALSE;
 
-    p_ccb->timer_entry.param  = (TIMER_PARAM_TYPE)p_ccb;
+    p_ccb->timer_entry.param  = (timer_param_t)p_ccb;
 
 
     if (p_fcr)

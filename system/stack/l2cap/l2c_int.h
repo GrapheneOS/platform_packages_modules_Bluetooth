@@ -28,6 +28,7 @@
 
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
+#include "osi/include/non_repeating_timer.h"
 #include "btm_api.h"
 #include "gki.h"
 #include "l2c_api.h"
@@ -183,8 +184,8 @@ typedef struct
     fixed_queue_t *srej_rcv_hold_q;         /* Buffers rcvd but held pending SREJ rsp   */
     fixed_queue_t *retrans_q;               /* Buffers being retransmitted              */
 
-    TIMER_LIST_ENT ack_timer;               /* Timer delaying RR                        */
-    TIMER_LIST_ENT mon_retrans_timer;       /* Timer Monitor or Retransmission          */
+    timer_entry_t ack_timer;                /* Timer delaying RR                        */
+    timer_entry_t mon_retrans_timer;        /* Timer Monitor or Retransmission          */
 
 #if (L2CAP_ERTM_STATS == TRUE)
     UINT32      connect_tick_count;         /* Time channel was established             */
@@ -267,7 +268,7 @@ typedef struct t_l2c_ccb
     UINT16              local_cid;              /* Local CID                        */
     UINT16              remote_cid;             /* Remote CID                       */
 
-    TIMER_LIST_ENT      timer_entry;            /* CCB Timer List Entry             */
+    timer_entry_t       timer_entry;            /* CCB Timer Entry */
 
     tL2C_RCB            *p_rcb;                 /* Registration CB for this Channel */
     bool                should_free_rcb;        /* True if RCB was allocated on the heap */
@@ -360,13 +361,13 @@ typedef struct t_l2c_linkcb
     BOOLEAN             in_use;                     /* TRUE when in use, FALSE when not */
     tL2C_LINK_STATE     link_state;
 
-    TIMER_LIST_ENT      timer_entry;                /* Timer list entry for timeout evt */
+    timer_entry_t       timer_entry;                /* Timer entry for timeout evt */
     UINT16              handle;                     /* The handle used with LM          */
 
     tL2C_CCB_Q          ccb_queue;                  /* Queue of CCBs on this LCB        */
 
     tL2C_CCB            *p_pending_ccb;             /* ccb of waiting channel during link disconnect */
-    TIMER_LIST_ENT      info_timer_entry;           /* Timer entry for info resp timeout evt */
+    timer_entry_t       info_timer_entry;           /* Timer entry for info resp timeout evt */
     BD_ADDR             remote_bd_addr;             /* The BD address of the remote     */
 
     UINT8               link_role;                  /* Master or slave                  */
@@ -458,7 +459,7 @@ typedef struct
     UINT16          idle_timeout;                   /* Idle timeout                     */
 
     list_t          *rcv_pending_q;                 /* Recv pending queue               */
-    TIMER_LIST_ENT  rcv_hold_tle;                   /* Timer list entry for rcv hold    */
+    timer_entry_t   rcv_hold_te;                    /* Timer entry for rcv hold    */
 
     tL2C_LCB        *p_cur_hcit_lcb;                /* Current HCI Transport buffer     */
     UINT16          num_links_active;               /* Number of links active           */
@@ -552,7 +553,7 @@ extern tL2C_CB *l2c_cb_ptr;
 void l2c_init(void);
 void l2c_free(void);
 
-extern void     l2c_process_timeout (TIMER_LIST_ENT *p_tle);
+extern void     l2c_process_timeout(timer_entry_t *p_te);
 extern UINT8    l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flag);
 extern void     l2c_rcv_acl_data (BT_HDR *p_msg);
 extern void     l2c_process_held_packets (BOOLEAN timed_out);

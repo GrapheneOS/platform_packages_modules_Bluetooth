@@ -251,7 +251,7 @@ typedef struct
     char                clip[BTA_AG_AT_MAX_LEN+1]; /* number string used for CLIP */
     UINT16              serv_handle[BTA_AG_NUM_IDX]; /* RFCOMM server handles */
     tBTA_AG_AT_CB       at_cb;          /* AT command interpreter */
-    TIMER_LIST_ENT      act_timer;     /* ring timer */
+    timer_entry_t       act_timer;      /* ring timer */
     BD_ADDR             peer_addr;      /* peer bd address */
     tSDP_DISCOVERY_DB   *p_disc_db;     /* pointer to discovery database */
     tBTA_SERVICE_MASK   reg_services;   /* services specified in register API */
@@ -270,7 +270,7 @@ typedef struct
     BOOLEAN             codec_updated;  /* set to TRUE whenever the app updates codec type */
     BOOLEAN             codec_fallback; /* If sco nego fails for mSBC, fallback to CVSD */
     tBTA_AG_SCO_MSBC_SETTINGS codec_msbc_settings; /* settings to be used for the impending eSCO */
-    TIMER_LIST_ENT      cn_timer;       /* codec negotiation timer */
+    timer_entry_t       cn_timer;       /* codec negotiation timer */
 #endif
     UINT16              sco_idx;        /* SCO handle */
     BOOLEAN             in_use;         /* scb in use */
@@ -281,7 +281,7 @@ typedef struct
     BOOLEAN             cmee_enabled;   /* set to TRUE if HF enables CME ERROR reporting */
     BOOLEAN             inband_enabled; /* set to TRUE if inband ring enabled */
     BOOLEAN             svc_conn;       /* set to TRUE when service level connection up */
-    TIMER_LIST_ENT      colli_timer;    /* Collision timer */
+    timer_entry_t       colli_timer;    /* Collision timer */
     BOOLEAN             colli_tmr_on;   /* TRUE if collision timer is active */
     UINT8               state;          /* state machine state */
     UINT8               conn_service;   /* connected service */

@@ -474,7 +474,7 @@ typedef struct
     tBTA_AV_Q_INFO      q_info;
     tAVDT_SEP_INFO      sep_info[BTA_AV_NUM_SEPS];      /* stream discovery results */
     tAVDT_CFG           cfg;            /* local SEP configuration */
-    TIMER_LIST_ENT      timer;          /* delay timer for AVRC CT */
+    timer_entry_t       timer;          /* delay timer for AVRC CT */
     BD_ADDR             peer_addr;      /* peer BD address */
     UINT16              l2c_cid;        /* L2CAP channel ID */
     UINT16              stream_mtu;     /* MTU of stream */
@@ -561,8 +561,8 @@ typedef struct
     tBTA_AV_CBACK       *p_cback;       /* application callback function */
     tBTA_AV_RCB         rcb[BTA_AV_NUM_RCB];  /* RCB control block */
     tBTA_AV_LCB         lcb[BTA_AV_NUM_LINKS+1];  /* link control block */
-    TIMER_LIST_ENT      sig_tmr;        /* link timer */
-    TIMER_LIST_ENT      acp_sig_tmr;    /* timer to monitor signalling when accepting */
+    timer_entry_t       sig_tmr;        /* link timer */
+    timer_entry_t       acp_sig_tmr;    /* timer to monitor signalling when accepting */
     UINT32              sdp_a2d_handle; /* SDP record handle for audio src */
 #if (BTA_AV_SINK_INCLUDED == TRUE)
     UINT32              sdp_a2d_snk_handle; /* SDP record handle for audio snk */

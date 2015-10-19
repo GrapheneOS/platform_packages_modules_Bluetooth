@@ -117,11 +117,11 @@ extern fixed_queue_t *btif_msg_queue;
 extern thread_t *bt_workqueue_thread;
 
 /* Define a function prototype to allow a generic timeout handler */
-typedef void (tUSER_TIMEOUT_FUNC) (TIMER_LIST_ENT *p_tle);
+typedef void (tUSER_TIMEOUT_FUNC) (timer_entry_t *p_te);
 
-static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle);
-static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle);
-static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle);
+static void btu_l2cap_alarm_process(timer_entry_t *p_te);
+static void btu_general_alarm_process(timer_entry_t *p_te);
+static void btu_bta_alarm_process(timer_entry_t *p_te);
 static void btu_hci_msg_process(BT_HDR *p_msg);
 
 void btu_hci_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
@@ -130,39 +130,39 @@ void btu_hci_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
 }
 
 void btu_general_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
-    btu_general_alarm_process(p_tle);
+    timer_entry_t *p_te = (timer_entry_t *)fixed_queue_dequeue(queue);
+    btu_general_alarm_process(p_te);
 }
 
 void btu_oneshot_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
-    btu_general_alarm_process(p_tle);
+    timer_entry_t *p_te = (timer_entry_t *)fixed_queue_dequeue(queue);
+    btu_general_alarm_process(p_te);
 
-    switch (p_tle->event) {
+    switch (p_te->event) {
 #if (defined(BLE_INCLUDED) && BLE_INCLUDED == TRUE)
         case BTU_TTYPE_BLE_RANDOM_ADDR:
-            btm_ble_timeout(p_tle);
+            btm_ble_timeout(p_te);
             break;
 #endif
 
         case BTU_TTYPE_USER_FUNC:
             {
-                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
-                (*p_uf)(p_tle);
+                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_te->param;
+                (*p_uf)(p_te);
             }
             break;
 
         default:
             // FAIL
             BTM_TRACE_WARNING("Received unexpected oneshot timer event:0x%x\n",
-                p_tle->event);
+                p_te->event);
             break;
     }
 }
 
 void btu_l2cap_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
-    btu_l2cap_alarm_process(p_tle);
+    timer_entry_t *p_te = (timer_entry_t *)fixed_queue_dequeue(queue);
+    btu_l2cap_alarm_process(p_te);
 }
 
 void btu_bta_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
@@ -171,8 +171,8 @@ void btu_bta_msg_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
 }
 
 void btu_bta_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context) {
-    TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)fixed_queue_dequeue(queue);
-    btu_bta_alarm_process(p_tle);
+    timer_entry_t *p_te = (timer_entry_t *)fixed_queue_dequeue(queue);
+    btu_bta_alarm_process(p_te);
 }
 
 static void btu_hci_msg_process(BT_HDR *p_msg) {
@@ -241,14 +241,14 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
 
 }
 
-static void btu_bta_alarm_process(TIMER_LIST_ENT *p_tle) {
+static void btu_bta_alarm_process(timer_entry_t *p_te) {
     /* call timer callback */
-    if (p_tle->p_cback) {
-        (*p_tle->p_cback)(p_tle);
-    } else if (p_tle->event) {
+    if (p_te->p_cback) {
+        (*p_te->p_cback)(p_te);
+    } else if (p_te->event) {
         BT_HDR *p_msg;
         if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL) {
-            p_msg->event = p_tle->event;
+            p_msg->event = p_te->event;
             p_msg->layer_specific = 0;
             bta_sys_sendmsg(p_msg);
         }
@@ -336,12 +336,12 @@ void btu_task_shut_down(UNUSED_ATTR void *context) {
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
-    assert(p_tle != NULL);
+static void btu_general_alarm_process(timer_entry_t *p_te) {
+    assert(p_te != NULL);
 
-    switch (p_tle->event) {
+    switch (p_te->event) {
         case BTU_TTYPE_BTM_DEV_CTL:
-            btm_dev_timeout(p_tle);
+            btm_dev_timeout(p_te);
             break;
 
         case BTU_TTYPE_L2CAP_LINK:
@@ -349,11 +349,11 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
         case BTU_TTYPE_L2CAP_HOLD:
         case BTU_TTYPE_L2CAP_INFO:
         case BTU_TTYPE_L2CAP_FCR_ACK:
-            l2c_process_timeout (p_tle);
+            l2c_process_timeout (p_te);
             break;
 
         case BTU_TTYPE_SDP:
-            sdp_conn_timeout ((tCONN_CB *)p_tle->param);
+            sdp_conn_timeout ((tCONN_CB *)p_te->param);
             break;
 
         case BTU_TTYPE_BTM_RMT_NAME:
@@ -362,12 +362,12 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
 
         case BTU_TTYPE_RFCOMM_MFC:
         case BTU_TTYPE_RFCOMM_PORT:
-            rfcomm_process_timeout (p_tle);
+            rfcomm_process_timeout (p_te);
             break;
 
 #if ((defined(BNEP_INCLUDED) && BNEP_INCLUDED == TRUE))
         case BTU_TTYPE_BNEP:
-            bnep_process_timeout(p_tle);
+            bnep_process_timeout(p_te);
             break;
 #endif
 
@@ -376,13 +376,13 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
         case BTU_TTYPE_AVDT_CCB_RSP:
         case BTU_TTYPE_AVDT_CCB_IDLE:
         case BTU_TTYPE_AVDT_SCB_TC:
-            avdt_process_timeout(p_tle);
+            avdt_process_timeout(p_te);
             break;
 #endif
 
 #if (defined(HID_HOST_INCLUDED) && HID_HOST_INCLUDED == TRUE)
         case BTU_TTYPE_HID_HOST_REPAGE_TO :
-            hidh_proc_repage_timeout(p_tle);
+            hidh_proc_repage_timeout(p_te);
             break;
 #endif
 
@@ -392,19 +392,19 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
         case BTU_TTYPE_BLE_RANDOM_ADDR:
         case BTU_TTYPE_BLE_GAP_FAST_ADV:
         case BTU_TTYPE_BLE_OBSERVE:
-            btm_ble_timeout(p_tle);
+            btm_ble_timeout(p_te);
             break;
 
         case BTU_TTYPE_ATT_WAIT_FOR_RSP:
-            gatt_rsp_timeout(p_tle);
+            gatt_rsp_timeout(p_te);
             break;
 
         case BTU_TTYPE_ATT_WAIT_FOR_IND_ACK:
-            gatt_ind_ack_timeout(p_tle);
+            gatt_ind_ack_timeout(p_te);
             break;
 #if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
         case BTU_TTYPE_SMP_PAIRING_CMD:
-            smp_rsp_timeout(p_tle);
+            smp_rsp_timeout(p_te);
             break;
 #endif
 
@@ -412,13 +412,13 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
 
 #if (MCA_INCLUDED == TRUE)
         case BTU_TTYPE_MCA_CCB_RSP:
-            mca_process_timeout(p_tle);
+            mca_process_timeout(p_te);
             break;
 #endif
         case BTU_TTYPE_USER_FUNC:
             {
-                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_tle->param;
-                (*p_uf)(p_tle);
+                tUSER_TIMEOUT_FUNC  *p_uf = (tUSER_TIMEOUT_FUNC *)p_te->param;
+                (*p_uf)(p_te);
             }
             break;
 
@@ -430,9 +430,9 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
                 {
                     if (btu_cb.timer_reg[i].timer_cb == NULL)
                         continue;
-                    if (btu_cb.timer_reg[i].p_tle == p_tle)
+                    if (btu_cb.timer_reg[i].p_te == p_te)
                     {
-                        btu_cb.timer_reg[i].timer_cb(p_tle);
+                        btu_cb.timer_reg[i].timer_cb(p_te);
                         handled = TRUE;
                     }
                 }
@@ -442,33 +442,33 @@ static void btu_general_alarm_process(TIMER_LIST_ENT *p_tle) {
 
 void btu_general_alarm_cb(void *data) {
   assert(data != NULL);
-  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+  timer_entry_t *p_te = (timer_entry_t *)data;
 
-  fixed_queue_enqueue(btu_general_alarm_queue, p_tle);
+  fixed_queue_enqueue(btu_general_alarm_queue, p_te);
 }
 
-void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
-  assert(p_tle != NULL);
+void btu_start_timer(timer_entry_t *p_te, UINT16 type, UINT32 timeout_sec) {
+  assert(p_te != NULL);
 
-  // Get the alarm for the timer list entry.
+  // Get the alarm for the timer entry.
   pthread_mutex_lock(&btu_general_alarm_lock);
-  if (!hash_map_has_key(btu_general_alarm_hash_map, p_tle)) {
-    hash_map_set(btu_general_alarm_hash_map, p_tle, alarm_new());
+  if (!hash_map_has_key(btu_general_alarm_hash_map, p_te)) {
+    hash_map_set(btu_general_alarm_hash_map, p_te, alarm_new());
   }
   pthread_mutex_unlock(&btu_general_alarm_lock);
 
-  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
+  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_ERROR(LOG_TAG, "%s Unable to create alarm", __func__);
     return;
   }
   alarm_cancel(alarm);
 
-  p_tle->event = type;
+  p_te->event = type;
   // NOTE: This value is in seconds but stored in a ticks field.
-  p_tle->ticks = timeout_sec;
-  p_tle->in_use = TRUE;
-  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_general_alarm_cb, (void *)p_tle);
+  p_te->ticks = timeout_sec;
+  p_te->in_use = TRUE;
+  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_general_alarm_cb, (void *)p_te);
 }
 
 /*******************************************************************************
@@ -480,15 +480,15 @@ void btu_start_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
 ** Returns          void
 **
 *******************************************************************************/
-void btu_stop_timer(TIMER_LIST_ENT *p_tle) {
-  assert(p_tle != NULL);
+void btu_stop_timer(timer_entry_t *p_te) {
+  assert(p_te != NULL);
 
-  if (p_tle->in_use == FALSE)
+  if (p_te->in_use == FALSE)
     return;
-  p_tle->in_use = FALSE;
+  p_te->in_use = FALSE;
 
-  // Get the alarm for the timer list entry.
-  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_tle);
+  // Get the alarm for the timer entry.
+  alarm_t *alarm = hash_map_get(btu_general_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_WARN(LOG_TAG, "%s Unable to find expected alarm in hashmap", __func__);
     return;
@@ -506,13 +506,13 @@ void btu_stop_timer(TIMER_LIST_ENT *p_tle) {
 ** Returns          void
 **
 *******************************************************************************/
-static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle) {
-  assert(p_tle != NULL);
+static void btu_l2cap_alarm_process(timer_entry_t *p_te) {
+  assert(p_te != NULL);
 
-  switch (p_tle->event) {
+  switch (p_te->event) {
     case BTU_TTYPE_L2CAP_CHNL:      /* monitor or retransmission timer */
     case BTU_TTYPE_L2CAP_FCR_ACK:   /* ack timer */
-      l2c_process_timeout (p_tle);
+      l2c_process_timeout(p_te);
       break;
 
     default:
@@ -522,33 +522,33 @@ static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle) {
 
 static void btu_l2cap_alarm_cb(void *data) {
   assert(data != NULL);
-  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+  timer_entry_t *p_te = (timer_entry_t *)data;
 
-  fixed_queue_enqueue(btu_l2cap_alarm_queue, p_tle);
+  fixed_queue_enqueue(btu_l2cap_alarm_queue, p_te);
 }
 
-void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ticks) {
-  assert(p_tle != NULL);
+void btu_start_quick_timer(timer_entry_t *p_te, UINT16 type, UINT32 timeout_ticks) {
+  assert(p_te != NULL);
 
-  // Get the alarm for the timer list entry.
+  // Get the alarm for the timer entry.
   pthread_mutex_lock(&btu_l2cap_alarm_lock);
-  if (!hash_map_has_key(btu_l2cap_alarm_hash_map, p_tle)) {
-    hash_map_set(btu_l2cap_alarm_hash_map, p_tle, alarm_new());
+  if (!hash_map_has_key(btu_l2cap_alarm_hash_map, p_te)) {
+    hash_map_set(btu_l2cap_alarm_hash_map, p_te, alarm_new());
   }
   pthread_mutex_unlock(&btu_l2cap_alarm_lock);
 
-  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
+  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_ERROR(LOG_TAG, "%s Unable to create alarm", __func__);
     return;
   }
   alarm_cancel(alarm);
 
-  p_tle->event = type;
-  p_tle->ticks = timeout_ticks;
-  p_tle->in_use = TRUE;
+  p_te->event = type;
+  p_te->ticks = timeout_ticks;
+  p_te->in_use = TRUE;
   // The quick timer ticks are 100ms long.
-  alarm_set(alarm, (period_ms_t)(timeout_ticks * 100), btu_l2cap_alarm_cb, (void *)p_tle);
+  alarm_set(alarm, (period_ms_t)(timeout_ticks * 100), btu_l2cap_alarm_cb, (void *)p_te);
 }
 
 /*******************************************************************************
@@ -560,15 +560,15 @@ void btu_start_quick_timer(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_ti
 ** Returns          void
 **
 *******************************************************************************/
-void btu_stop_quick_timer(TIMER_LIST_ENT *p_tle) {
-  assert(p_tle != NULL);
+void btu_stop_quick_timer(timer_entry_t *p_te) {
+  assert(p_te != NULL);
 
-  if (p_tle->in_use == FALSE)
+  if (p_te->in_use == FALSE)
     return;
-  p_tle->in_use = FALSE;
+  p_te->in_use = FALSE;
 
-  // Get the alarm for the timer list entry.
-  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_tle);
+  // Get the alarm for the timer entry.
+  alarm_t *alarm = hash_map_get(btu_l2cap_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_WARN(LOG_TAG, "%s Unable to find expected alarm in hashmap", __func__);
     return;
@@ -579,49 +579,49 @@ void btu_stop_quick_timer(TIMER_LIST_ENT *p_tle) {
 
 void btu_oneshot_alarm_cb(void *data) {
   assert(data != NULL);
-  TIMER_LIST_ENT *p_tle = (TIMER_LIST_ENT *)data;
+  timer_entry_t *p_te = (timer_entry_t *)data;
 
-  btu_stop_timer_oneshot(p_tle);
+  btu_stop_timer_oneshot(p_te);
 
-  fixed_queue_enqueue(btu_oneshot_alarm_queue, p_tle);
+  fixed_queue_enqueue(btu_oneshot_alarm_queue, p_te);
 }
 
 /*
  * Starts a oneshot timer with a timeout in seconds.
  */
-void btu_start_timer_oneshot(TIMER_LIST_ENT *p_tle, UINT16 type, UINT32 timeout_sec) {
-  assert(p_tle != NULL);
+void btu_start_timer_oneshot(timer_entry_t *p_te, UINT16 type, UINT32 timeout_sec) {
+  assert(p_te != NULL);
 
-  // Get the alarm for the timer list entry.
+  // Get the alarm for the timer entry.
   pthread_mutex_lock(&btu_oneshot_alarm_lock);
-  if (!hash_map_has_key(btu_oneshot_alarm_hash_map, p_tle)) {
-    hash_map_set(btu_oneshot_alarm_hash_map, p_tle, alarm_new());
+  if (!hash_map_has_key(btu_oneshot_alarm_hash_map, p_te)) {
+    hash_map_set(btu_oneshot_alarm_hash_map, p_te, alarm_new());
   }
   pthread_mutex_unlock(&btu_oneshot_alarm_lock);
 
-  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
+  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_ERROR(LOG_TAG, "%s Unable to create alarm", __func__);
     return;
   }
   alarm_cancel(alarm);
 
-  p_tle->event = type;
-  p_tle->in_use = TRUE;
+  p_te->event = type;
+  p_te->in_use = TRUE;
   // NOTE: This value is in seconds but stored in a ticks field.
-  p_tle->ticks = timeout_sec;
-  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_oneshot_alarm_cb, (void *)p_tle);
+  p_te->ticks = timeout_sec;
+  alarm_set(alarm, (period_ms_t)(timeout_sec * 1000), btu_oneshot_alarm_cb, (void *)p_te);
 }
 
-void btu_stop_timer_oneshot(TIMER_LIST_ENT *p_tle) {
-  assert(p_tle != NULL);
+void btu_stop_timer_oneshot(timer_entry_t *p_te) {
+  assert(p_te != NULL);
 
-  if (p_tle->in_use == FALSE)
+  if (p_te->in_use == FALSE)
     return;
-  p_tle->in_use = FALSE;
+  p_te->in_use = FALSE;
 
-  // Get the alarm for the timer list entry.
-  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_tle);
+  // Get the alarm for the timer entry.
+  alarm_t *alarm = hash_map_get(btu_oneshot_alarm_hash_map, p_te);
   if (alarm == NULL) {
     LOG_WARN(LOG_TAG, "%s Unable to find expected alarm in hashmap", __func__);
     return;

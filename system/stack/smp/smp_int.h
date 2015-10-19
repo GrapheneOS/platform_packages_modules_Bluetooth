@@ -268,7 +268,7 @@ typedef struct
 typedef struct
 {
     tSMP_CALLBACK   *p_callback;
-    TIMER_LIST_ENT  rsp_timer_ent;
+    timer_entry_t   rsp_timer_ent;
     UINT8           trace_level;
     BD_ADDR         pairing_bda;
     tSMP_STATE      state;
@@ -479,7 +479,7 @@ extern void smp_reset_control_value(tSMP_CB *p_cb);
 extern void smp_proc_pairing_cmpl(tSMP_CB *p_cb);
 extern void smp_convert_string_to_tk(BT_OCTET16 tk, UINT32 passkey);
 extern void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data);
-extern void smp_rsp_timeout(TIMER_LIST_ENT *p_tle);
+extern void smp_rsp_timeout(timer_entry_t *p_te);
 extern void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b);
 extern BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
                                  UINT8 *plain_text, UINT8 pt_len,

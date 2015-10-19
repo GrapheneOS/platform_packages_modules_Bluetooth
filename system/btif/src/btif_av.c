@@ -99,7 +99,7 @@ typedef struct
 static btav_callbacks_t *bt_av_src_callbacks = NULL;
 static btav_callbacks_t *bt_av_sink_callbacks = NULL;
 static btif_av_cb_t btif_av_cb = {0};
-static TIMER_LIST_ENT tle_av_open_on_rc;
+static timer_entry_t te_av_open_on_rc;
 
 /* both interface and media task needs to be ready to alloc incoming request */
 #define CHECK_BTAV_INIT() if (((bt_av_src_callbacks == NULL) &&(bt_av_sink_callbacks == NULL)) \
@@ -217,12 +217,11 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
 ** Returns          void
 **
 *******************************************************************************/
-static void btif_initiate_av_open_tmr_hdlr(TIMER_LIST_ENT *tle)
+static void btif_initiate_av_open_tmr_hdlr(timer_entry_t *p_te)
 {
     BD_ADDR peer_addr;
-    UNUSED(tle);
     btif_av_connect_req_t connect_req;
-    UNUSED(tle);
+    UNUSED(p_te);
     /* is there at least one RC connection - There should be */
     if (btif_rc_get_connected_peer(peer_addr)) {
        BTIF_TRACE_DEBUG("%s Issuing connect to the remote RC peer", __FUNCTION__);
@@ -325,9 +324,9 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
              */
 
             BTIF_TRACE_DEBUG("BTA_AV_RC_OPEN_EVT received w/o AV");
-            memset(&tle_av_open_on_rc, 0, sizeof(tle_av_open_on_rc));
-            tle_av_open_on_rc.param = btif_initiate_av_open_tmr_hdlr;
-            btu_start_timer(&tle_av_open_on_rc, BTU_TTYPE_USER_FUNC,
+            memset(&te_av_open_on_rc, 0, sizeof(te_av_open_on_rc));
+            te_av_open_on_rc.param = btif_initiate_av_open_tmr_hdlr;
+            btu_start_timer(&te_av_open_on_rc, BTU_TTYPE_USER_FUNC,
                             BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
             btif_rc_handler(event, p_data);
             break;
@@ -341,9 +340,9 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTA_AV_RC_CLOSE_EVT:
-            if (tle_av_open_on_rc.in_use) {
+            if (te_av_open_on_rc.in_use) {
                 BTIF_TRACE_DEBUG("BTA_AV_RC_CLOSE_EVT: Stopping AV timer.");
-                btu_stop_timer(&tle_av_open_on_rc);
+                btu_stop_timer(&te_av_open_on_rc);
             }
             btif_rc_handler(event, p_data);
             break;

@@ -56,7 +56,7 @@ typedef struct
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
-    TIMER_LIST_ENT tle_limited_timer;
+    timer_entry_t timer_entry;
     int timeout_s;
 } btgatt_multi_adv_inst_cb;
 
@@ -90,5 +90,5 @@ extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 int service_data_len, char* service_data, int service_uuid_len,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
 extern void btif_gattc_adv_data_cleanup(const btif_adv_data_t* adv);
-void btif_multi_adv_timer_ctrl(int client_if, TIMER_CBACK cb);
+void btif_multi_adv_timer_ctrl(int client_if, timer_callback_t cb);
 

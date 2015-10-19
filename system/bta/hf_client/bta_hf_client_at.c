@@ -139,9 +139,9 @@ static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, U
     }
 }
 
-static void bta_hf_client_at_resp_timer_cback (TIMER_LIST_ENT *p_tle)
+static void bta_hf_client_at_resp_timer_cback(timer_entry_t *p_te)
 {
-    if (p_tle)
+    if (p_te)
     {
         bta_hf_client_cb.scb.at_cb.resp_timer_on = FALSE;
 
@@ -167,7 +167,8 @@ static void bta_hf_client_start_at_resp_timer(void)
         bta_sys_stop_timer (&bta_hf_client_cb.scb.at_cb.resp_timer);
     }
 
-    bta_hf_client_cb.scb.at_cb.resp_timer.p_cback = (TIMER_CBACK*)&bta_hf_client_at_resp_timer_cback;
+    bta_hf_client_cb.scb.at_cb.resp_timer.p_cback =
+        (timer_callback_t *)&bta_hf_client_at_resp_timer_cback;
     bta_sys_start_timer(&bta_hf_client_cb.scb.at_cb.resp_timer, 0, BTA_HF_CLIENT_AT_TIMEOUT);
     bta_hf_client_cb.scb.at_cb.resp_timer_on = TRUE;
 }
@@ -220,11 +221,11 @@ static void bta_hf_client_send_queued_at(void)
     }
 }
 
-static void bta_hf_client_at_hold_timer_cback(TIMER_LIST_ENT *p_tle)
+static void bta_hf_client_at_hold_timer_cback(timer_entry_t *p_te)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (p_tle)
+    if (p_te)
     {
         bta_hf_client_cb.scb.at_cb.hold_timer_on = FALSE;
         bta_hf_client_send_queued_at();
@@ -244,17 +245,17 @@ static void bta_hf_client_stop_at_hold_timer(void)
 
 static void bta_hf_client_start_at_hold_timer(void)
 {
-    TIMER_LIST_ENT *timer = &bta_hf_client_cb.scb.at_cb.hold_timer;
+    timer_entry_t *p_te = &bta_hf_client_cb.scb.at_cb.hold_timer;
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     if (bta_hf_client_cb.scb.at_cb.hold_timer_on)
     {
-        bta_sys_stop_timer (timer);
+        bta_sys_stop_timer(p_te);
     }
 
-    timer->p_cback = (TIMER_CBACK*)&bta_hf_client_at_hold_timer_cback;
-    bta_sys_start_timer(timer, 0, BTA_HF_CLIENT_AT_HOLD_TIMEOUT);
+    p_te->p_cback = (timer_callback_t *)&bta_hf_client_at_hold_timer_cback;
+    bta_sys_start_timer(p_te, 0, BTA_HF_CLIENT_AT_HOLD_TIMEOUT);
     bta_hf_client_cb.scb.at_cb.hold_timer_on = TRUE;
 }
 
