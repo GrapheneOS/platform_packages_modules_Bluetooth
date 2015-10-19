@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 1999-2012 Broadcom Corporation
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@
 
 #pragma once
 
-#include "gki_common.h"
+#include <stdint.h>
 
-typedef struct
-{
-    tGKI_COM_CB com;
-} tGKI_CB;
+// Mutex-related state init
+void mutex_init(void);
 
-extern tGKI_CB  gki_cb;
+// Mutex-related state cleanup
+void mutex_cleanup(void);
+
+// Lock the global mutex
+void mutex_global_lock(void);
+
+// Unlock the global mutex
+void mutex_global_unlock(void);

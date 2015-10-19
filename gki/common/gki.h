@@ -33,8 +33,6 @@ typedef void (TIMER_CBACK)(void *p_tle);
 */
 typedef struct _tle
 {
-    struct _tle  *p_next;
-    struct _tle  *p_prev;
     TIMER_CBACK  *p_cback;
     INT32         ticks;
     INT32         ticks_initial;
@@ -53,9 +51,6 @@ typedef struct
     void    *_p_last;
     UINT16   _count;
 } BUFFER_Q;
-
-#define GKI_PUBLIC_POOL         0       /* General pool accessible to GKI_getbuf() */
-#define GKI_RESTRICTED_POOL     1       /* Inaccessible pool to GKI_getbuf() */
 
 /***********************************************************************
 ** Function prototypes
@@ -79,8 +74,3 @@ void    GKI_init_q (BUFFER_Q *);
 UINT16  GKI_queue_length(BUFFER_Q *);
 BOOLEAN GKI_queue_is_empty(BUFFER_Q *);
 void   *GKI_remove_from_queue (BUFFER_Q *, void *);
-
-/* Disable Interrupts, Enable Interrupts
-*/
-void    GKI_enable(void);
-void    GKI_disable(void);

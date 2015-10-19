@@ -1052,16 +1052,21 @@
 #define PORT_CREDIT_RX_LOW          8
 #endif
 
-/* if application like BTA, Java or script test engine is running on other than BTU thread, */
-/* PORT_SCHEDULE_LOCK shall be defined as GKI_sched_lock() or GKI_disable() */
+/*
+ * If an application like BTA, Java or script test engine is running on other
+ * than BTU thread, PORT_SCHEDULE_LOCK shall be defined as mutex_global_lock()
+ */
 #ifndef PORT_SCHEDULE_LOCK
-#define PORT_SCHEDULE_LOCK          GKI_disable()
+#define PORT_SCHEDULE_LOCK          mutex_global_lock()
 #endif
 
-/* if application like BTA, Java or script test engine is running on other than BTU thread, */
-/* PORT_SCHEDULE_LOCK shall be defined as GKI_sched_unlock() or GKI_enable() */
+/*
+ * If an application like BTA, Java or script test engine is running on other 
+ * than BTU thread, PORT_SCHEDULE_UNLOCK shall be defined as
+ * mutex_global_unlock()
+ */
 #ifndef PORT_SCHEDULE_UNLOCK
-#define PORT_SCHEDULE_UNLOCK        GKI_enable()
+#define PORT_SCHEDULE_UNLOCK        mutex_global_unlock()
 #endif
 
 /******************************************************************************
