@@ -889,12 +889,12 @@ void PORT_DataInd (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
         }
     }
 
-    PORT_SCHEDULE_LOCK;
+    mutex_global_lock();
 
     fixed_queue_enqueue(p_port->rx.queue, p_buf);
     p_port->rx.queue_size += p_buf->len;
 
-    PORT_SCHEDULE_UNLOCK;
+    mutex_global_unlock();
 
     /* perform flow control procedures if necessary */
     port_flow_control_peer(p_port, FALSE, 0);
@@ -998,13 +998,13 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
         while (!p_port->tx.peer_fc && p_port->rfc.p_mcb && p_port->rfc.p_mcb->peer_ready)
         {
             /* get data from tx queue and send it */
-            PORT_SCHEDULE_LOCK;
+            mutex_global_lock();
 
             if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
             {
                 p_port->tx.queue_size -= p_buf->len;
 
-                PORT_SCHEDULE_UNLOCK;
+                mutex_global_unlock();
 
                 RFCOMM_TRACE_DEBUG ("Sending RFCOMM_DataReq tx.queue_size=%d", p_port->tx.queue_size);
 
@@ -1021,7 +1021,7 @@ UINT32 port_rfc_send_tx_data (tPORT *p_port)
             /* queue is empty-- all data sent */
             else
             {
-                PORT_SCHEDULE_UNLOCK;
+                mutex_global_unlock();
 
                 events |= PORT_EV_TXEMPTY;
                 break;
