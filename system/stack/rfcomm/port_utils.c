@@ -218,7 +218,7 @@ void port_release_port (tPORT *p_port)
     tPORT_CALLBACK *p_port_cb;
     tPORT_STATE user_port_pars;
 
-    PORT_SCHEDULE_LOCK;
+    mutex_global_lock();
     RFCOMM_TRACE_DEBUG("port_release_port, p_port:%p", p_port);
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
         osi_freebuf(p_buf);
@@ -230,7 +230,7 @@ void port_release_port (tPORT *p_port)
 
     p_port->tx.queue_size = 0;
 
-    PORT_SCHEDULE_UNLOCK;
+    mutex_global_unlock();
 
     p_port->state = PORT_STATE_CLOSED;
 
