@@ -85,10 +85,6 @@ BOOLEAN GKI_queue_is_empty(BUFFER_Q *);
 void   *GKI_remove_from_queue (BUFFER_Q *, void *);
 UINT16  GKI_get_pool_bufsize (UINT8);
 
-/* Timer management
-*/
-void    GKI_delay(UINT32);
-
 /* Disable Interrupts, Enable Interrupts
 */
 void    GKI_enable(void);

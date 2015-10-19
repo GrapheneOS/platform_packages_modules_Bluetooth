@@ -19,10 +19,8 @@
 #define LOG_TAG "bt_gki"
 
 #include <assert.h>
-#include <errno.h>
 #include <pthread.h>
 #include <string.h>
-#include <time.h>
 
 #include "btcore/include/module.h"
 #include "gki/ulinux/gki_int.h"
@@ -66,18 +64,6 @@ UINT32 GKI_get_os_tick_count(void) {
   struct timespec timespec;
   clock_gettime(CLOCK_BOOTTIME, &timespec);
   return (timespec.tv_sec * 1000) + (timespec.tv_nsec / 1000000);
-}
-
-// Sleep the calling thread unconditionally for |timeout_ms| milliseconds.
-void GKI_delay(UINT32 timeout_ms) {
-  struct timespec delay;
-  delay.tv_sec = timeout_ms / 1000;
-  delay.tv_nsec = 1000 * 1000 * (timeout_ms % 1000);
-
-  int err;
-  do {
-    err = nanosleep(&delay, &delay);
-  } while (err == -1 && errno == EINTR);
 }
 
 void GKI_enable(void) {
