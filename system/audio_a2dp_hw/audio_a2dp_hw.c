@@ -698,7 +698,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     INFO("state %d", out->common.state);
 
-
     hash_map_t *params = hash_map_utils_new_from_string_params(kvpairs);
     int status = 0;
 

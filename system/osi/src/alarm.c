@@ -227,7 +227,8 @@ static bool lazy_initialize(void) {
   sigevent.sigev_notify = SIGEV_THREAD;
   sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
   if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
-    LOG_ERROR(LOG_TAG, "%s unable to create timer: %s", __func__, strerror(errno));
+    LOG_ERROR(LOG_TAG, "%s unable to create timer: %s", __func__,
+              strerror(errno));
     return false;
   }
 

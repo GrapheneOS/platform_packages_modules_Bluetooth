@@ -689,9 +689,8 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             }
         case BTA_PAN_CLOSE_EVT:
             {
-                btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
-
                 LOG_INFO(LOG_TAG, "%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
                 btpan_close_conn(conn);
 
                 if (conn && conn->handle >= 0)
