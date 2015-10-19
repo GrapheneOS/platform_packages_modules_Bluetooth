@@ -178,6 +178,7 @@
 #define BT_SMALL_BUFFER_SIZE            660
 #endif
 
+/* Receives HCI events from the lower-layer. */
 #ifndef HCI_CMD_BUF_SIZE
 #define HCI_CMD_BUF_SIZE                BT_SMALL_BUFFER_SIZE
 #endif
@@ -210,25 +211,9 @@
 #define L2CAP_USER_RX_BUF_SIZE          BT_DEFAULT_BUFFER_SIZE
 #endif
 
-#ifndef L2CAP_USER_TX_BUF_SIZE
-#define L2CAP_USER_TX_BUF_SIZE       (4096+16)
-#endif
-
-#ifndef L2CAP_USER_RX_BUF_SIZE
-#define L2CAP_USER_RX_BUF_SIZE       (4096+16)
-#endif
-
 /* Sends L2CAP segmented packets in ERTM mode */
 #ifndef L2CAP_FCR_TX_BUF_SIZE
 #define L2CAP_FCR_TX_BUF_SIZE           BT_DEFAULT_BUFFER_SIZE
-#endif
-
-#ifndef L2CAP_FCR_TX_BUF_SIZE
-#define L2CAP_FCR_TX_BUF_SIZE       (4096+16)
-#endif
-
-#ifndef L2CAP_FCR_RX_BUF_SIZE
-#define L2CAP_FCR_RX_BUF_SIZE       (4096+16)
 #endif
 
 /* Receives L2CAP segmented packets in ERTM mode */
@@ -1535,27 +1520,11 @@
 #define MCA_USER_TX_BUF_SIZE    BT_DEFAULT_BUFFER_SIZE
 #endif
 
-#ifndef MCA_USER_RX_BUF_SIZE
-#define MCA_USER_RX_BUF_SIZE    (4096+16)
-#endif
-
-#ifndef MCA_USER_TX_BUF_SIZE
-#define MCA_USER_TX_BUF_SIZE    (4096+16)
-#endif
-
 /*
  * Buffer size used to hold MPS segments during SDU reassembly
  */
 #ifndef MCA_FCR_RX_BUF_SIZE
 #define MCA_FCR_RX_BUF_SIZE     BT_DEFAULT_BUFFER_SIZE
-#endif
-
-#ifndef MCA_FCR_RX_BUF_SIZE
-#define MCA_FCR_RX_BUF_SIZE     (4096+16)
-#endif
-
-#ifndef MCA_FCR_TX_BUF_SIZE
-#define MCA_FCR_TX_BUF_SIZE     (4096+16)
 #endif
 
 /*
