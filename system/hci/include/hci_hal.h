@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "thread.h"
+#include "osi/include/thread.h"
 #include "vendor.h"
 
 typedef enum {

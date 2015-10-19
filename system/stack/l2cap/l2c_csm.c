@@ -779,7 +779,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                 }
 
 #if (L2CAP_ERTM_STATS == TRUE)
-                p_ccb->fcrb.connect_tick_count = GKI_get_os_tick_count();
+                p_ccb->fcrb.connect_tick_count = time_get_os_boottime_ms();
 #endif
                 /* See if we can forward anything on the hold queue */
                 if (!GKI_queue_is_empty(&p_ccb->xmit_hold_q))
@@ -861,7 +861,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             l2c_fcr_start_timer(p_ccb);
 
 #if (L2CAP_ERTM_STATS == TRUE)
-        p_ccb->fcrb.connect_tick_count = GKI_get_os_tick_count();
+        p_ccb->fcrb.connect_tick_count = time_get_os_boottime_ms();
 #endif
 
         /* See if we can forward anything on the hold queue */

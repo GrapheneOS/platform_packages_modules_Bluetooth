@@ -26,9 +26,9 @@ extern "C" {
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "osi/include/osi.h"
+#include "osi/include/semaphore.h"
 #include "hci_hal.h"
-#include "osi.h"
-#include "semaphore.h"
 #include "test_stubs.h"
 #include "vendor.h"
 }

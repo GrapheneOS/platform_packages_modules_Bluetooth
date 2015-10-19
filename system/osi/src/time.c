@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
  *
  ******************************************************************************/
 
-#pragma once
+#define LOG_TAG "bt_osi_time"
 
-#include "osi/include/hash_map.h"
+#include <time.h>
 
-hash_index_t hash_function_naive(const void *key);
+#include "osi/include/time.h"
 
-hash_index_t hash_function_integer(const void *key);
-
-// Hashes a pointer based only on its address value
-hash_index_t hash_function_pointer(const void *key);
-
-hash_index_t hash_function_string(const void *key);
+uint32_t time_get_os_boottime_ms(void) {
+  struct timespec timespec;
+  clock_gettime(CLOCK_BOOTTIME, &timespec);
+  return (timespec.tv_sec * 1000) + (timespec.tv_nsec / 1000000);
+}

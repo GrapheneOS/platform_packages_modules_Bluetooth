@@ -25,7 +25,6 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(LOCAL_PATH)/../btcore/include \
     $(LOCAL_PATH)/../include \
-    $(LOCAL_PATH)/../osi/include \
     $(bdroid_C_INCLUDES)
 
 LOCAL_SRC_FILES := \

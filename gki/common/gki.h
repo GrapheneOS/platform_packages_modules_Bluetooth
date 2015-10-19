@@ -84,6 +84,3 @@ void   *GKI_remove_from_queue (BUFFER_Q *, void *);
 */
 void    GKI_enable(void);
 void    GKI_disable(void);
-
-/* os timer operation */
-UINT32 GKI_get_os_tick_count(void);

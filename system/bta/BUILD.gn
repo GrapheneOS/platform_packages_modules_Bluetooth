@@ -106,7 +106,6 @@ static_library("bta") {
     "//include",
     "//stack/include",
     "//stack/btm",
-    "//osi/include",
     "//udrv/include",
     "//utils/include",
     "//vnd/include",
