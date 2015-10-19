@@ -25,7 +25,7 @@
 #define AVCT_INT_H
 
 #include "osi/include/fixed_queue.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "avct_api.h"
 #include "avct_defs.h"
 #include "l2c_api.h"

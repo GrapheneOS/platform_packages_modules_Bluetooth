@@ -2911,7 +2911,7 @@ void btm_sec_check_pending_reqs (void)
                 }
             }
 
-            GKI_freebuf(p_e);
+            osi_freebuf(p_e);
         }
         fixed_queue_free(bq, NULL);
     }
@@ -6026,7 +6026,7 @@ static BOOLEAN btm_sec_queue_mx_request (BD_ADDR bd_addr,  UINT16 psm,  BOOLEAN 
                                          UINT32 mx_proto_id, UINT32 mx_chan_id,
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data)
 {
-    tBTM_SEC_QUEUE_ENTRY *p_e = (tBTM_SEC_QUEUE_ENTRY *)GKI_getbuf (sizeof(tBTM_SEC_QUEUE_ENTRY));
+    tBTM_SEC_QUEUE_ENTRY *p_e = (tBTM_SEC_QUEUE_ENTRY *)osi_getbuf (sizeof(tBTM_SEC_QUEUE_ENTRY));
 
     if (p_e)
     {
@@ -6136,7 +6136,7 @@ static BOOLEAN btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT tra
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data)
 {
     tBTM_SEC_QUEUE_ENTRY  *p_e;
-    p_e = (tBTM_SEC_QUEUE_ENTRY *)GKI_getbuf(sizeof(tBTM_SEC_QUEUE_ENTRY) + 1);
+    p_e = (tBTM_SEC_QUEUE_ENTRY *)osi_getbuf(sizeof(tBTM_SEC_QUEUE_ENTRY) + 1);
 
     if (p_e)
     {

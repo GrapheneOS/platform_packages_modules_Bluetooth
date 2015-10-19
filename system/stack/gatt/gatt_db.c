@@ -1103,7 +1103,7 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 *******************************************************************************/
 static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
-    BT_HDR *p_buf = (BT_HDR *)GKI_getbuf(GATT_DB_BUF_SIZE);
+    BT_HDR *p_buf = (BT_HDR *)osi_getbuf(GATT_DB_BUF_SIZE);
 
     GATT_TRACE_DEBUG("allocate_svc_db_buf allocating extra buffer");
 
@@ -1113,9 +1113,9 @@ static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
         return FALSE;
     }
 
-    memset(p_buf, 0, GKI_get_buf_size(p_buf));
+    memset(p_buf, 0, osi_get_buf_size(p_buf));
     p_db->p_free_mem    = (UINT8 *) p_buf;
-    p_db->mem_free      = GKI_get_buf_size(p_buf);
+    p_db->mem_free      = osi_get_buf_size(p_buf);
 
     fixed_queue_enqueue(p_db->svc_buffer, p_buf);
 

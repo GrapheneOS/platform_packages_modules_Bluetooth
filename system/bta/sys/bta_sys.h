@@ -26,7 +26,7 @@
 
 #include "bt_target.h"
 #include "osi/include/non_repeating_timer.h"
-#include "gki.h"
+#include "bt_common.h"
 
 /*****************************************************************************
 **  Constants and data types

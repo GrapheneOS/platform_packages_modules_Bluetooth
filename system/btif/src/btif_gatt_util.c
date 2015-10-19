@@ -38,7 +38,7 @@
 #include "btif_gatt.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "gki.h"
+#include "bt_common.h"
 
 #if BTA_GATT_INCLUDED == TRUE
 
@@ -333,18 +333,18 @@ void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t *p_dest,
 
     if (p_src->adv_pkt_len > 0)
     {
-        p_dest->p_adv_pkt_data = GKI_getbuf(p_src->adv_pkt_len);
+        p_dest->p_adv_pkt_data = osi_getbuf(p_src->adv_pkt_len);
         memcpy(p_dest->p_adv_pkt_data, p_src->p_adv_pkt_data,
                p_src->adv_pkt_len);
-        GKI_freebuf(p_src->p_adv_pkt_data);
+        osi_freebuf(p_src->p_adv_pkt_data);
     }
 
     if (p_src->scan_rsp_len > 0)
     {
-        p_dest->p_scan_rsp_data = GKI_getbuf(p_src->scan_rsp_len);
+        p_dest->p_scan_rsp_data = osi_getbuf(p_src->scan_rsp_len);
         memcpy(p_dest->p_scan_rsp_data, p_src->p_scan_rsp_data,
                p_src->scan_rsp_len);
-        GKI_freebuf(p_src->p_scan_rsp_data);
+        osi_freebuf(p_src->p_scan_rsp_data);
     }
 }
 

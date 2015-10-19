@@ -45,7 +45,7 @@
 #include "btif_config.h"
 #include "btif_hh.h"
 #include "btif_util.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/config.h"

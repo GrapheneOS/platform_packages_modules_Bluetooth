@@ -47,7 +47,7 @@
 #include "btm_api.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "osi/include/log.h"
 #include "port_api.h"

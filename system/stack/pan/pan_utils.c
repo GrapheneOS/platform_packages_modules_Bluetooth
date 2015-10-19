@@ -25,7 +25,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "gki.h"
+#include "bt_common.h"
 #include "bnep_api.h"
 #include "pan_api.h"
 #include "pan_int.h"

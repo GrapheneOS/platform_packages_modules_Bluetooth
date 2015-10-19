@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef void *(*alloc_fn)(size_t size);
@@ -39,3 +40,18 @@ char *osi_strndup(const char *str, size_t len);
 void *osi_malloc(size_t size);
 void *osi_calloc(size_t size);
 void osi_free(void *ptr);
+
+//
+// TODO: Functions osi_getbuf(), osi_freebuf() and osi_get_buf_size() below
+// should be removed.
+//
+
+// Allocate a buffer of size |size|. Return the allocated buffer if there
+// is enough memory, otherwise NULL.
+void *osi_getbuf(uint16_t size);
+
+// Free a buffer that was previously allocated with function |osi_getbuf|.
+void osi_freebuf(void *ptr);
+
+// Get the size of the buffer previously allocated with function |osi_getbuf|
+uint16_t osi_get_buf_size(void *ptr);

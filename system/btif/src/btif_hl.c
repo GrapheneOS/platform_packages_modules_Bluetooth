@@ -398,23 +398,9 @@ static BOOLEAN btif_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
 *******************************************************************************/
 void * btif_hl_get_buf(UINT16 size)
 {
-    void *p_new;
-
-    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-    BTIF_TRACE_DEBUG("ret size=%d GKI_MAX_BUF_SIZE=%d",size, 6000);
-
-    if (size < 6000)
-    {
-        p_new = GKI_getbuf(size);
-    }
-    else
-    {
-        BTIF_TRACE_DEBUG("btif_hl_get_buf use HL large data pool");
-        p_new = GKI_getbuf(GKI_BUF4_SIZE);
-    }
-
-    return p_new;
+    return osi_getbuf(size);
 }
+
 /*******************************************************************************
 **
 ** Function      btif_hl_free_buf
@@ -429,7 +415,7 @@ void btif_hl_free_buf(void **p)
     if (*p != NULL)
     {
         BTIF_TRACE_DEBUG("%s OK", __FUNCTION__ );
-        GKI_freebuf(*p);
+        osi_freebuf(*p);
         *p = NULL;
     }
     else
@@ -4536,7 +4522,7 @@ BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx){
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (p_dcb && ((p_scb = (btif_hl_soc_cb_t *)GKI_getbuf((UINT16)sizeof(btif_hl_soc_cb_t)))!=NULL))
+    if (p_dcb && ((p_scb = (btif_hl_soc_cb_t *)osi_getbuf((UINT16)sizeof(btif_hl_soc_cb_t)))!=NULL))
     {
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, p_scb->socket_id) >= 0)
         {

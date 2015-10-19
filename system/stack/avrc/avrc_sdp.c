@@ -23,7 +23,7 @@
  ******************************************************************************/
 #include <string.h>
 
-#include "gki.h"
+#include "bt_common.h"
 #include "avrc_api.h"
 #include "avrc_int.h"
 

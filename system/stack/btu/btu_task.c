@@ -34,7 +34,7 @@
 #include "btm_int.h"
 #include "btu.h"
 #include "gap_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
 #include "osi/include/alarm.h"
@@ -200,7 +200,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
 
         case BT_EVT_TO_BTU_HCI_EVT:
             btu_hcif_process_event ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
-            GKI_freebuf(p_msg);
+            osi_freebuf(p_msg);
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
             /* If host receives events which it doesn't response to, */
@@ -234,7 +234,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             }
 
             if (handled == FALSE)
-                GKI_freebuf (p_msg);
+                osi_freebuf (p_msg);
 
             break;
     }
@@ -247,7 +247,7 @@ static void btu_bta_alarm_process(timer_entry_t *p_te) {
         (*p_te->p_cback)(p_te);
     } else if (p_te->event) {
         BT_HDR *p_msg;
-        if ((p_msg = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL) {
+        if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL) {
             p_msg->event = p_te->event;
             p_msg->layer_specific = 0;
             bta_sys_sendmsg(p_msg);

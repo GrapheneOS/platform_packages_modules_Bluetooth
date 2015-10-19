@@ -26,7 +26,7 @@
 #define BTM_BLE_API_H
 
 #include "btm_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/non_repeating_timer.h"
 #include <hardware/bt_common_types.h>
 

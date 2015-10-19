@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "gki.h"
+#include "bt_common.h"
 #include "bta_gattc_co.h"
 #include "bta_gattc_ci.h"
 #include "btif_util.h"

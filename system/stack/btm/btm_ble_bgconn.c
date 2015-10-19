@@ -707,7 +707,7 @@ void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st)
 *******************************************************************************/
 void btm_ble_enqueue_direct_conn_req(void *p_param)
 {
-    tBTM_BLE_CONN_REQ   *p = (tBTM_BLE_CONN_REQ *)GKI_getbuf(sizeof(tBTM_BLE_CONN_REQ));
+    tBTM_BLE_CONN_REQ   *p = (tBTM_BLE_CONN_REQ *)osi_getbuf(sizeof(tBTM_BLE_CONN_REQ));
 
     p->p_param = p_param;
 
@@ -731,7 +731,7 @@ BOOLEAN btm_send_pending_direct_conn(void)
     if (p_req != NULL)
     {
         rt = l2cble_init_direct_conn((tL2C_LCB *)(p_req->p_param));
-        GKI_freebuf((void *)p_req);
+        osi_freebuf((void *)p_req);
     }
 
     return rt;

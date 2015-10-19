@@ -35,7 +35,7 @@
 #include "bta_sys.h"
 #include "btm_api.h"
 #include "btm_ble_api.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/log.h"
 #include "sdp_api.h"
 #include "sdpdefs.h"
@@ -140,7 +140,7 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, UINT8 n
 *******************************************************************************/
 BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
 {
-    BT_HDR *p_buf = (BT_HDR *)GKI_getbuf(GATT_DB_BUF_SIZE);
+    BT_HDR *p_buf = (BT_HDR *)osi_getbuf(GATT_DB_BUF_SIZE);
 
     if (p_buf == NULL)
     {
@@ -150,9 +150,9 @@ BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
     }
     else
     {
-        memset(p_buf, 0, GKI_get_buf_size(p_buf));
+        memset(p_buf, 0, osi_get_buf_size(p_buf));
         p_srvc_cb->p_free = (UINT8 *) p_buf;
-        p_srvc_cb->free_byte = GKI_get_buf_size(p_buf);
+        p_srvc_cb->free_byte = osi_get_buf_size(p_buf);
 
         /* link into buffer queue */
         fixed_queue_enqueue(p_srvc_cb->cache_buffer, p_buf);
@@ -177,14 +177,14 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 
     if (p_srvc_cb->cache_buffer != NULL) {
         while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
-            GKI_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
+            osi_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
     } else {
         p_srvc_cb->cache_buffer = fixed_queue_new(SIZE_MAX);
     }
 
     utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
 
-    if ((p_srvc_cb->p_srvc_list = (tBTA_GATTC_ATTR_REC*)GKI_getbuf(BTA_GATTC_ATTR_LIST_SIZE)) == NULL)
+    if ((p_srvc_cb->p_srvc_list = (tBTA_GATTC_ATTR_REC*)osi_getbuf(BTA_GATTC_ATTR_LIST_SIZE)) == NULL)
     {
         APPL_TRACE_DEBUG("No resources: GKI buffer allocation failed.");
         status = GATT_NO_RESOURCES;
@@ -891,7 +891,7 @@ void bta_gattc_sdp_callback (UINT16 sdp_status)
         APPL_TRACE_ERROR("GATT service discovery is done on unknown connection");
     }
 
-    GKI_freebuf(bta_gattc_cb.p_sdp_db);
+    osi_freebuf(bta_gattc_cb.p_sdp_db);
     bta_gattc_cb.p_sdp_db  = NULL;
     bta_gattc_cb.sdp_conn_id = 0;
 }
@@ -916,7 +916,7 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
     uuid.len = LEN_UUID_16;
     uuid.uu.uuid16 = UUID_PROTOCOL_ATT;
 
-     if((bta_gattc_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)GKI_getbuf(BTA_GATT_SDP_DB_SIZE)) != NULL)
+     if((bta_gattc_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_GATT_SDP_DB_SIZE)) != NULL)
     {
         attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
         attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
@@ -927,7 +927,7 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
         if(!SDP_ServiceSearchAttributeRequest (p_server_cb->server_bda,
                                               bta_gattc_cb.p_sdp_db, &bta_gattc_sdp_callback))
         {
-            GKI_freebuf(bta_gattc_cb.p_sdp_db);
+            osi_freebuf(bta_gattc_cb.p_sdp_db);
             bta_gattc_cb.p_sdp_db = NULL;
         }
         else
@@ -1502,7 +1502,7 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
     if (attr_index == 0)
     {
         while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
-            GKI_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
+            osi_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
 
         if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
         {

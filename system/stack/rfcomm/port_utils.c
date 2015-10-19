@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "rfcdefs.h"
 #include "port_api.h"
 #include "port_int.h"
@@ -221,12 +221,12 @@ void port_release_port (tPORT *p_port)
     PORT_SCHEDULE_LOCK;
     RFCOMM_TRACE_DEBUG("port_release_port, p_port:%p", p_port);
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
 
     p_port->rx.queue_size = 0;
 
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
 
     p_port->tx.queue_size = 0;
 

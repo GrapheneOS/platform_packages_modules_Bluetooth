@@ -17,7 +17,7 @@
  ******************************************************************************/
 #include <string.h>
 
-#include "gki.h"
+#include "bt_common.h"
 #include "avrc_api.h"
 #include "avrc_defs.h"
 #include "avrc_int.h"
@@ -312,7 +312,7 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rs
     /* get the existing length, if any, and also the num attributes */
     p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
-    len_left = GKI_get_buf_size(p_pkt) - BT_HDR_SIZE - p_pkt->offset - p_pkt->len;
+    len_left = osi_get_buf_size(p_pkt) - BT_HDR_SIZE - p_pkt->offset - p_pkt->len;
 
     BE_STREAM_TO_UINT16(len, p_data);
     p_count = p_data;
@@ -767,7 +767,7 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
     }
 
     /* allocate and initialize the buffer */
-    p_pkt = (BT_HDR *)GKI_getbuf(len);
+    p_pkt = (BT_HDR *)osi_getbuf(len);
     if (p_pkt)
     {
         UINT8 *p_data, *p_start;
@@ -908,7 +908,7 @@ tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt
 
     if (alloc && (status != AVRC_STS_NO_ERROR) )
     {
-        GKI_freebuf(p_pkt);
+        osi_freebuf(p_pkt);
         *pp_pkt = NULL;
     }
     AVRC_TRACE_API("AVRC_BldResponse: returning %d", status);

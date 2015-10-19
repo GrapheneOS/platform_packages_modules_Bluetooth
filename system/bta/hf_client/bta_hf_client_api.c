@@ -69,7 +69,7 @@ tBTA_STATUS BTA_HfClientEnable(tBTA_HF_CLIENT_CBACK *p_cback)
     /* register with BTA system manager */
     bta_sys_register(BTA_ID_HS, &bta_hf_client_reg);
 
-    if ((p_buf = (tBTA_HF_CLIENT_API_ENABLE *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_ENABLE))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_ENABLE *) osi_getbuf(sizeof(tBTA_HF_CLIENT_API_ENABLE))) != NULL)
     {
         p_buf->hdr.event = BTA_HF_CLIENT_API_ENABLE_EVT;
         p_buf->p_cback = p_cback;
@@ -93,7 +93,7 @@ void BTA_HfClientDisable(void)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_HF_CLIENT_API_DISABLE_EVT;
         bta_sys_sendmsg(p_buf);
@@ -115,7 +115,7 @@ void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
 {
     tBTA_HF_CLIENT_API_REGISTER    *p_buf;
 
-    if ((p_buf = (tBTA_HF_CLIENT_API_REGISTER *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_REGISTER))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_REGISTER *) osi_getbuf(sizeof(tBTA_HF_CLIENT_API_REGISTER))) != NULL)
     {
         p_buf->hdr.event = BTA_HF_CLIENT_API_REGISTER_EVT;
         p_buf->features = features;
@@ -147,7 +147,7 @@ void BTA_HfClientDeregister(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-     if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+     if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
      {
          p_buf->event = BTA_HF_CLIENT_API_DEREGISTER_EVT;
          p_buf->layer_specific = handle;
@@ -172,7 +172,7 @@ void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 {
     tBTA_HF_CLIENT_API_OPEN  *p_buf;
 
-    if ((p_buf = (tBTA_HF_CLIENT_API_OPEN *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_API_OPEN))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_API_OPEN *) osi_getbuf(sizeof(tBTA_HF_CLIENT_API_OPEN))) != NULL)
     {
         p_buf->hdr.event = BTA_HF_CLIENT_API_OPEN_EVT;
         p_buf->hdr.layer_specific = handle;
@@ -197,7 +197,7 @@ void BTA_HfClientClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_HF_CLIENT_API_CLOSE_EVT;
         p_buf->layer_specific = handle;
@@ -220,7 +220,7 @@ void BTA_HfClientAudioOpen(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_HF_CLIENT_API_AUDIO_OPEN_EVT;
         p_buf->layer_specific = handle;
@@ -243,7 +243,7 @@ void BTA_HfClientAudioClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_HF_CLIENT_API_AUDIO_CLOSE_EVT;
         p_buf->layer_specific = handle;
@@ -265,7 +265,7 @@ void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val
 {
     tBTA_HF_CLIENT_DATA_VAL  *p_buf;
 
-    if ((p_buf = (tBTA_HF_CLIENT_DATA_VAL *) GKI_getbuf(sizeof(tBTA_HF_CLIENT_DATA_VAL))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_DATA_VAL *) osi_getbuf(sizeof(tBTA_HF_CLIENT_DATA_VAL))) != NULL)
     {
         p_buf->hdr.event = BTA_HF_CLIENT_SEND_AT_CMD_EVT;
         p_buf->uint8_val = at;

@@ -26,7 +26,7 @@
 
 #if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
 
-#include "gki.h"
+#include "bt_common.h"
 #include <stdio.h>
 #include <string.h>
 #include "gatt_api.h"
@@ -248,7 +248,7 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
         }
 
         if (p_buf)
-            GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
+            osi_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
         return(0);
     }
 
@@ -421,7 +421,7 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
                                          p_list->asgn_range.svc_inst)) != NULL)
     {
         GATT_TRACE_DEBUG ("Delete a new service changed item - the service has not yet started");
-        GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
+        osi_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
     }
     else
     {
@@ -541,7 +541,7 @@ tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
         gatt_proc_srv_chg();
         /* remove the new service element after the srv changed processing is completed*/
 
-        GKI_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
+        osi_freebuf(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
     }
     return GATT_SUCCESS;
 }
@@ -935,7 +935,7 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
             case GATT_READ_MULTIPLE:
                 p_clcb->s_handle = 0;
                 /* copy multiple handles in CB */
-                p_read_multi = (tGATT_READ_MULTI *)GKI_getbuf(sizeof(tGATT_READ_MULTI));
+                p_read_multi = (tGATT_READ_MULTI *)osi_getbuf(sizeof(tGATT_READ_MULTI));
                 p_clcb->p_attr_buf = (UINT8*)p_read_multi;
                 memcpy (p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
             case GATT_READ_BY_HANDLE:
@@ -1009,7 +1009,7 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
         p_clcb->op_subtype = type;
         p_clcb->auth_req = p_write->auth_req;
 
-        if (( p_clcb->p_attr_buf = (UINT8 *)GKI_getbuf((UINT16)sizeof(tGATT_VALUE))) != NULL)
+        if (( p_clcb->p_attr_buf = (UINT8 *)osi_getbuf((UINT16)sizeof(tGATT_VALUE))) != NULL)
         {
             memcpy(p_clcb->p_attr_buf, (void *)p_write, sizeof(tGATT_VALUE));
 

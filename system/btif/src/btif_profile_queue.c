@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "btif_common.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "stack_manager.h"

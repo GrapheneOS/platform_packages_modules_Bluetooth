@@ -28,7 +28,7 @@
 #include "bt_utils.h"
 #include "avct_api.h"
 #include "avct_int.h"
-#include "gki.h"
+#include "bt_common.h"
 #include "btm_api.h"
 
 /* packet header length lookup table */
@@ -64,7 +64,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
     /* quick sanity check on length */
     if (p_buf->len < avct_lcb_pkt_type_len[pkt_type])
     {
-        GKI_freebuf(p_buf);
+        osi_freebuf(p_buf);
         AVCT_TRACE_WARNING("Bad length during reassembly");
         p_ret = NULL;
     }
@@ -74,7 +74,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         /* if reassembly in progress drop message and process new single */
         if (p_lcb->p_rx_msg != NULL)
         {
-            GKI_freebuf(p_lcb->p_rx_msg);
+            osi_freebuf(p_lcb->p_rx_msg);
             p_lcb->p_rx_msg = NULL;
             AVCT_TRACE_WARNING("Got single during reassembly");
         }
@@ -86,25 +86,25 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         /* if reassembly in progress drop message and process new start */
         if (p_lcb->p_rx_msg != NULL)
         {
-            GKI_freebuf(p_lcb->p_rx_msg);
+            osi_freebuf(p_lcb->p_rx_msg);
             AVCT_TRACE_WARNING("Got start during reassembly");
         }
         /* Allocate bigger buffer for reassembly. As lower layers are
          * not aware of possible packet size after reassembly they
          * would have allocated smaller buffer.
          */
-        p_lcb->p_rx_msg = (BT_HDR*)GKI_getbuf(GKI_MAX_BUF_SIZE);
+        p_lcb->p_rx_msg = (BT_HDR*)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
         if (p_lcb->p_rx_msg == NULL)
         {
             AVCT_TRACE_ERROR ("Cannot alloc buffer for reassembly !!");
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
         }
         else
         {
             memcpy (p_lcb->p_rx_msg, p_buf,
                 sizeof(BT_HDR) + p_buf->offset + p_buf->len);
             /* Free original buffer */
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
 
             /* update p to point to new buffer */
             p = (UINT8 *)(p_lcb->p_rx_msg + 1) + p_lcb->p_rx_msg->offset;
@@ -126,14 +126,14 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
         /* if no reassembly in progress drop message */
         if (p_lcb->p_rx_msg == NULL)
         {
-            GKI_freebuf(p_buf);
+            osi_freebuf(p_buf);
             AVCT_TRACE_WARNING("Pkt type=%d out of order", pkt_type);
             p_ret = NULL;
         }
         else
         {
             /* get size of buffer holding assembled message */
-            buf_len = GKI_get_buf_size(p_lcb->p_rx_msg) - sizeof(BT_HDR);
+            buf_len = osi_get_buf_size(p_lcb->p_rx_msg) - sizeof(BT_HDR);
 
             /* adjust offset and len of fragment for header byte */
             p_buf->offset += AVCT_HDR_LEN_CONT;
@@ -143,9 +143,9 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
             if ((p_lcb->p_rx_msg->offset + p_buf->len) > buf_len)
             {
                 /* won't fit; free everything */
-                GKI_freebuf(p_lcb->p_rx_msg);
+                osi_freebuf(p_lcb->p_rx_msg);
                 p_lcb->p_rx_msg = NULL;
-                GKI_freebuf(p_buf);
+                osi_freebuf(p_buf);
                 p_ret = NULL;
                 AVCT_TRACE_WARNING("Fragmented message to big!");
             }
@@ -168,7 +168,7 @@ static BT_HDR *avct_lcb_msg_asmbl(tAVCT_LCB *p_lcb, BT_HDR *p_buf)
                     p_lcb->p_rx_msg->len += p_buf->len;
                     p_ret = NULL;
                 }
-                GKI_freebuf(p_buf);
+                osi_freebuf(p_buf);
             }
         }
     }
@@ -520,7 +520,7 @@ void avct_lcb_discard_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 
     AVCT_TRACE_WARNING("Dropping msg");
 
-    GKI_freebuf(p_data->ul_msg.p_buf);
+    osi_freebuf(p_data->ul_msg.p_buf);
 }
 
 /*******************************************************************************
@@ -572,11 +572,11 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         if (p_data->ul_msg.p_buf->len > (p_lcb->peer_mtu - hdr_len))
         {
             /* get a new buffer for fragment we are sending */
-            if ((p_buf = (BT_HDR *) GKI_getbuf(buf_size)) == NULL)
+            if ((p_buf = (BT_HDR *) osi_getbuf(buf_size)) == NULL)
             {
                 /* whoops; free original msg buf and bail */
                 AVCT_TRACE_ERROR ("avct_lcb_send_msg cannot alloc buffer!!");
-                GKI_freebuf(p_data->ul_msg.p_buf);
+                osi_freebuf(p_data->ul_msg.p_buf);
                 break;
             }
 
@@ -657,7 +657,7 @@ void avct_lcb_free_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     UNUSED(p_lcb);
 
     if (p_data)
-        GKI_freebuf(p_data->p_buf);
+        osi_freebuf(p_data->p_buf);
     return;
 }
 
@@ -699,7 +699,7 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     if (cr_ipid == AVCT_CR_IPID_INVALID)
     {
         AVCT_TRACE_WARNING("Invalid cr_ipid", cr_ipid);
-        GKI_freebuf(p_data->p_buf);
+        osi_freebuf(p_data->p_buf);
         return;
     }
 
@@ -716,12 +716,12 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     {
         /* PID not found; drop message */
         AVCT_TRACE_WARNING("No ccb for PID=%x", pid);
-        GKI_freebuf(p_data->p_buf);
+        osi_freebuf(p_data->p_buf);
 
         /* if command send reject */
         if (cr_ipid == AVCT_CMD)
         {
-            BT_HDR *p_buf = (BT_HDR *) GKI_getbuf(AVCT_CMD_BUF_SIZE);
+            BT_HDR *p_buf = (BT_HDR *) osi_getbuf(AVCT_CMD_BUF_SIZE);
             if (p_buf != NULL)
             {
                 p_buf->len = AVCT_HDR_LEN_SINGLE;

@@ -24,7 +24,6 @@
 #include <string.h>
 
 #include "btcore/include/bdaddr.h"
-#include "gki/common/gki.h"
 #include "osi/include/allocator.h"
 #include "osi/include/buffer.h"
 #include "osi/include/list.h"
@@ -166,7 +165,7 @@ void l2cap_client_disconnect(l2cap_client_t *client) {
   client->is_congested = false;
 
   for (const list_node_t *node = list_begin(client->outbound_fragments); node != list_end(client->outbound_fragments); node = list_next(node))
-    GKI_freebuf(list_node(node));
+    osi_freebuf(list_node(node));
 
   list_clear(client->outbound_fragments);
 }
@@ -356,7 +355,7 @@ static void read_ready_cb(uint16_t local_channel_id, BT_HDR *packet) {
   // TODO(sharvil): eliminate copy from BT_HDR.
   buffer_t *buffer = buffer_new(packet->len);
   memcpy(buffer_ptr(buffer), packet->data + packet->offset, packet->len);
-  GKI_freebuf(packet);
+  osi_freebuf(packet);
 
   client->callbacks.read_ready(client, buffer, client->context);
   buffer_free(buffer);
@@ -373,7 +372,7 @@ static void fragment_packet(l2cap_client_t *client, buffer_t *packet) {
   assert(packet != NULL);
 
   // TODO(sharvil): eliminate copy into BT_HDR.
-  BT_HDR *bt_packet = GKI_getbuf(buffer_length(packet) + L2CAP_MIN_OFFSET);
+  BT_HDR *bt_packet = osi_getbuf(buffer_length(packet) + L2CAP_MIN_OFFSET);
   bt_packet->offset = L2CAP_MIN_OFFSET;
   bt_packet->len = buffer_length(packet);
   memcpy(bt_packet->data + bt_packet->offset, buffer_ptr(packet), buffer_length(packet));
@@ -383,11 +382,11 @@ static void fragment_packet(l2cap_client_t *client, buffer_t *packet) {
       if (bt_packet->len > 0)
         list_append(client->outbound_fragments, bt_packet);
       else
-        GKI_freebuf(bt_packet);
+        osi_freebuf(bt_packet);
       break;
     }
 
-    BT_HDR *fragment = GKI_getbuf(client->remote_mtu + L2CAP_MIN_OFFSET);
+    BT_HDR *fragment = osi_getbuf(client->remote_mtu + L2CAP_MIN_OFFSET);
     fragment->offset = L2CAP_MIN_OFFSET;
     fragment->len = client->remote_mtu;
     memcpy(fragment->data + fragment->offset, bt_packet->data + bt_packet->offset, client->remote_mtu);

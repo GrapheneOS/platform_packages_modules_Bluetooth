@@ -23,7 +23,7 @@
  ******************************************************************************/
 #ifndef MCA_INT_H
 #define MCA_INT_H
-#include "gki.h"
+#include "bt_common.h"
 #include "osi/include/non_repeating_timer.h"
 #include "mca_api.h"
 

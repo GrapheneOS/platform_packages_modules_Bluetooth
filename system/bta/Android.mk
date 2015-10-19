@@ -95,7 +95,6 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/hh \
                    $(LOCAL_PATH)/../ \
                    $(LOCAL_PATH)/../btcore/include \
-                   $(LOCAL_PATH)/../gki/common \
                    $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../stack/include \
