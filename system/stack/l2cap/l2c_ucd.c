@@ -448,9 +448,10 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     if (p_ccb->cong_sent)
     {
         L2CAP_TRACE_ERROR ("L2CAP - Handle: 0x%04x UCD cannot be sent, already congested count: %u  buff_quota: %u",
-                            p_lcb->handle,
-                            (p_ccb->xmit_hold_q.count + p_lcb->ucd_out_sec_pending_q.count),
-                            p_ccb->buff_quota);
+                           p_lcb->handle,
+                           (fixed_queue_length(p_ccb->xmit_hold_q) +
+                            fixed_queue_length(p_lcb->ucd_out_sec_pending_q)),
+                           p_ccb->buff_quota);
 
         GKI_freebuf (p_buf);
         return (L2CAP_DW_FAILED);
@@ -640,11 +641,15 @@ static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda )
 void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb)
 {
     /* clean up any security pending UCD */
-    while (p_lcb->ucd_out_sec_pending_q.p_first)
-        GKI_freebuf (GKI_dequeue (&p_lcb->ucd_out_sec_pending_q));
+    while (! fixed_queue_is_empty(p_lcb->ucd_out_sec_pending_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_lcb->ucd_out_sec_pending_q));
+    fixed_queue_free(p_lcb->ucd_out_sec_pending_q, NULL);
+    p_lcb->ucd_out_sec_pending_q = NULL;
 
-    while (p_lcb->ucd_in_sec_pending_q.p_first)
-        GKI_freebuf (GKI_dequeue (&p_lcb->ucd_in_sec_pending_q));
+    while (! fixed_queue_is_empty(p_lcb->ucd_in_sec_pending_q))
+        GKI_freebuf(fixed_queue_try_dequeue(p_lcb->ucd_in_sec_pending_q));
+    fixed_queue_free(p_lcb->ucd_in_sec_pending_q);
+    p_lcb->ucd_in_sec_pending_q = NULL;
 }
 
 /*******************************************************************************
@@ -736,7 +741,7 @@ BOOLEAN l2c_ucd_check_pending_info_req(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 void l2c_ucd_enqueue_pending_out_sec_q(tL2C_CCB  *p_ccb, void *p_data)
 {
-    GKI_enqueue (&p_ccb->p_lcb->ucd_out_sec_pending_q, p_data);
+    fixed_queue_enqueue(p_ccb->p_lcb->ucd_out_sec_pending_q, p_data);
     l2cu_check_channel_congestion (p_ccb);
 }
 
@@ -751,14 +756,13 @@ void l2c_ucd_enqueue_pending_out_sec_q(tL2C_CCB  *p_ccb, void *p_data)
 *******************************************************************************/
 BOOLEAN l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
-    UINT8 *p;
-    UINT16 psm;
-    BT_HDR *p_buf;
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_peek_first(p_ccb->p_lcb->ucd_out_sec_pending_q);
 
-    if ( p_ccb->p_lcb->ucd_out_sec_pending_q.count )
+    if (p_buf != NULL)
     {
-        p_buf = (BT_HDR*)(p_ccb->p_lcb->ucd_out_sec_pending_q.p_first);
-        p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        UINT16 psm;
+        UINT8 *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+
         STREAM_TO_UINT16(psm, p)
 
         p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
@@ -782,12 +786,10 @@ BOOLEAN l2c_ucd_check_pending_out_sec_q(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 void l2c_ucd_send_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
-    BT_HDR *p_buf;
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_out_sec_pending_q);
 
-    if ( p_ccb->p_lcb->ucd_out_sec_pending_q.count )
+    if (p_buf != NULL)
     {
-        p_buf = (BT_HDR*)GKI_dequeue (&p_ccb->p_lcb->ucd_out_sec_pending_q);
-
         l2c_enqueue_peer_data (p_ccb, (BT_HDR *)p_buf);
         l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
     }
@@ -805,12 +807,9 @@ void l2c_ucd_send_pending_out_sec_q(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
 {
-    BT_HDR *p_buf;
-
-    p_buf = (BT_HDR*)GKI_dequeue (&p_ccb->p_lcb->ucd_out_sec_pending_q);
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_out_sec_pending_q);
 
     /* we may need to report to application */
-
     if (p_buf)
     {
         GKI_freebuf (p_buf);
@@ -828,14 +827,12 @@ void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 BOOLEAN l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
-    UINT8 *p;
-    UINT16 psm;
-    BT_HDR *p_buf;
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
 
-    if ( p_ccb->p_lcb->ucd_in_sec_pending_q.count )
+    if (p_buf != NULL)
     {
-        p_buf = (BT_HDR*)(p_ccb->p_lcb->ucd_in_sec_pending_q.p_first);
-        p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+        UINT16 psm;
+        UINT8 *p = (UINT8 *)(p_buf + 1) + p_buf->offset;
         STREAM_TO_UINT16(psm, p)
 
         p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
@@ -859,12 +856,10 @@ BOOLEAN l2c_ucd_check_pending_in_sec_q(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 void l2c_ucd_send_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
-    BT_HDR *p_buf;
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q)
 
-    if ( p_ccb->p_lcb->ucd_in_sec_pending_q.count )
+    if (p_buf != NULL)
     {
-        p_buf = (BT_HDR*)GKI_dequeue (&p_ccb->p_lcb->ucd_in_sec_pending_q);
-
         p_ccb->p_rcb->ucd.cb_info.pL2CA_UCD_Data_Cb(p_ccb->p_lcb->remote_bd_addr, (BT_HDR *)p_buf);
     }
 }
@@ -881,13 +876,11 @@ void l2c_ucd_send_pending_in_sec_q(tL2C_CCB  *p_ccb)
 *******************************************************************************/
 void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
-    BT_HDR *p_buf;
+    BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
 
-    p_buf = (BT_HDR*)GKI_dequeue (&p_ccb->p_lcb->ucd_in_sec_pending_q);
-
-    if (p_buf)
+    if (p_buf != NULL)
     {
-        GKI_freebuf (p_buf);
+        GKI_freebuf(p_buf);
     }
 }
 
@@ -977,7 +970,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         case L2CEVT_L2CAP_DATA:         /* Peer data packet rcvd    */
-            GKI_enqueue (&p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
+            fixed_queue_enqueue(p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
             break;
 
         case L2CEVT_L2CA_DATA_WRITE:    /* Upper layer data to send */
@@ -1017,7 +1010,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             p_ccb->chnl_state = CST_OPEN;
             l2c_ucd_send_pending_out_sec_q(p_ccb);
 
-            if ( p_ccb->p_lcb->ucd_out_sec_pending_q.count )
+            if (! fixed_queue_is_empty(p_ccb->p_lcb->ucd_out_sec_pending_q))
             {
                 /* start a timer to send next UCD packet in OPEN state */
                 /* it will prevent stack overflow */
@@ -1043,7 +1036,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         case L2CEVT_L2CAP_DATA:         /* Peer data packet rcvd    */
-            GKI_enqueue (&p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
+            fixed_queue_enqueue(p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
             break;
 
         case L2CEVT_L2CAP_INFO_RSP:
@@ -1065,7 +1058,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             p_ccb->chnl_state = CST_OPEN;
             l2c_ucd_send_pending_in_sec_q (p_ccb);
 
-            if ( p_ccb->p_lcb->ucd_in_sec_pending_q.count )
+            if (! fixed_queue_is_empty(p_ccb->p_lcb->ucd_in_sec_pending_q))
             {
                 /* start a timer to check next UCD packet in OPEN state */
                 /* it will prevent stack overflow */
@@ -1096,7 +1089,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             break;
 
         case L2CEVT_L2CAP_DATA:             /* Peer data packet rcvd    */
-            GKI_enqueue (&p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
+            fixed_queue_enqueue(p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
             break;
 
         case L2CEVT_SEC_RE_SEND_CMD:        /* BTM has enough info to proceed */
@@ -1125,7 +1118,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             /* stop idle timer of UCD */
             btu_stop_timer (&p_ccb->timer_entry);
 
-            GKI_enqueue (&p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
+            fixed_queue_enqueue(p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
             l2c_ucd_check_pending_in_sec_q (p_ccb);
             break;
 

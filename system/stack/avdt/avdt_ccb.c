@@ -384,8 +384,8 @@ tAVDT_CCB *avdt_ccb_alloc(BD_ADDR bd_addr)
         {
             p_ccb->allocated = TRUE;
             memcpy(p_ccb->peer_addr, bd_addr, BD_ADDR_LEN);
-            GKI_init_q(&p_ccb->cmd_q);
-            GKI_init_q(&p_ccb->rsp_q);
+            p_ccb->cmd_q = fixed_queue_new(SIZE_MAX);
+            p_ccb->rsp_q = fixed_queue_new(SIZE_MAX);
             p_ccb->timer_entry.param = p_ccb;
             AVDT_TRACE_DEBUG("avdt_ccb_alloc %d", i);
             break;
@@ -417,6 +417,8 @@ void avdt_ccb_dealloc(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 
     AVDT_TRACE_DEBUG("avdt_ccb_dealloc %d", avdt_ccb_to_idx(p_ccb));
     btu_stop_timer(&p_ccb->timer_entry);
+    fixed_queue_free(p_ccb->cmd_q, NULL);
+    fixed_queue_free(p_ccb->rsp_q, NULL);
     memset(p_ccb, 0, sizeof(tAVDT_CCB));
 }
 

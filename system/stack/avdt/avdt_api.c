@@ -964,7 +964,7 @@ UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UINT8 m_
         evt.apiwrite.m_pt = m_pt;
         evt.apiwrite.opt = opt;
 #if AVDT_MULTIPLEXING == TRUE
-        GKI_init_q (&evt.apiwrite.frag_q);
+        evt.apiwrite.frag_q = fixed_queue_new(SIZE_MAX);
 #endif
         avdt_scb_event(p_scb, AVDT_SCB_API_WRITE_REQ_EVT, &evt);
     }
@@ -1198,23 +1198,24 @@ extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
 
         if (p_scb->p_pkt != NULL
             || p_scb->p_ccb == NULL
-            || !GKI_queue_is_empty(&p_scb->frag_q)
+            || !fixed_queue_is_empty(p_scb->frag_q)
             || p_scb->frag_off != 0
             || p_scb->curr_cfg.mux_tsid_media == 0)
         {
             result = AVDT_ERR_BAD_STATE;
             AVDT_TRACE_WARNING("p_scb->p_pkt=%x, p_scb->p_ccb=%x, IsQueueEmpty=%x, p_scb->frag_off=%x",
-                p_scb->p_pkt, p_scb->p_ccb, GKI_queue_is_empty(&p_scb->frag_q), p_scb->frag_off);
+                p_scb->p_pkt, p_scb->p_ccb,
+                fixed_queue_is_empty(p_scb->frag_q), p_scb->frag_off);
             break;
         }
         evt.apiwrite.p_buf = 0; /* it will indicate using of fragments queue frag_q */
         /* create queue of media fragments */
-        GKI_init_q (&evt.apiwrite.frag_q);
+        evt.apiwrite.frag_q = fixed_queue_new(SIZE_MAX);
 
         /* compose fragments from media payload and put fragments into gueue */
-        avdt_scb_queue_frags(p_scb, &p_data, &data_len, &evt.apiwrite.frag_q);
+        avdt_scb_queue_frags(p_scb, &p_data, &data_len, evt.apiwrite.frag_q);
 
-        if(GKI_queue_is_empty(&evt.apiwrite.frag_q))
+        if (fixed_queue_is_empty(evt.apiwrite.frag_q))
         {
             AVDT_TRACE_WARNING("AVDT_WriteDataReq out of GKI buffers");
             result = AVDT_ERR_RESOURCE;

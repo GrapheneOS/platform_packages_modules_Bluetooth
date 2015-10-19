@@ -68,10 +68,12 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
     }
 
     /* clear out response queue */
-    while ((p_buf = (BT_HDR *) GKI_dequeue(&p_ccb->rsp_q)) != NULL)
+    while ((p_buf = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
     {
         GKI_freebuf(p_buf);
     }
+    fixed_queue_free(p_ccb->rsp_q, NULL);
+    p_ccb->rsp_q = NULL;
 }
 
 /*******************************************************************************
@@ -686,7 +688,7 @@ void avdt_ccb_clear_cmds(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         avdt_ccb_cmd_fail(p_ccb, (tAVDT_CCB_EVT *) &err_code);
 
         /* set up next message */
-        p_ccb->p_curr_cmd = (BT_HDR *) GKI_dequeue(&p_ccb->cmd_q);
+        p_ccb->p_curr_cmd = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->cmd_q);
 
     } while (p_ccb->p_curr_cmd != NULL);
 
@@ -854,7 +856,7 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     */
     if ((!p_ccb->cong) && (p_ccb->p_curr_msg == NULL) && (p_ccb->p_curr_cmd == NULL))
     {
-        if ((p_msg = (BT_HDR *) GKI_dequeue(&p_ccb->cmd_q)) != NULL)
+        if ((p_msg = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->cmd_q)) != NULL)
         {
             /* make a copy of buffer in p_curr_cmd */
             p_ccb->p_curr_cmd = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
@@ -892,9 +894,9 @@ void avdt_ccb_snd_msg(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             avdt_msg_send(p_ccb, NULL);
         }
         /* do we have responses to send?  send them */
-        else if (!GKI_queue_is_empty(&p_ccb->rsp_q))
+        else if (!fixed_queue_is_empty(p_ccb->rsp_q))
         {
-            while ((p_msg = (BT_HDR *) GKI_dequeue(&p_ccb->rsp_q)) != NULL)
+            while ((p_msg = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
             {
                 if (avdt_msg_send(p_ccb, p_msg) == TRUE)
                 {

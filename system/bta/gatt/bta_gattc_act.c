@@ -1039,9 +1039,9 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* clean up cache */
         if(p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_cache)
         {
-            while (!GKI_queue_is_empty(&p_clcb->p_srcb->cache_buffer))
+            while (! fixed_queue_is_empty(p_clcb->p_srcb->cache_buffer))
             {
-                GKI_freebuf (GKI_dequeue (&p_clcb->p_srcb->cache_buffer));
+                GKI_freebuf(fixed_queue_try_dequeue(p_clcb->p_srcb->cache_buffer));
             }
             p_clcb->p_srcb->p_srvc_cache = NULL;
         }
@@ -1908,8 +1908,8 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
         /* in all other cases, mark it and delete the cache */
         if (p_srvc_cb->p_srvc_cache != NULL)
         {
-            while (!GKI_queue_is_empty(&p_srvc_cb->cache_buffer))
-                GKI_freebuf (GKI_dequeue (&p_srvc_cb->cache_buffer));
+            while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
+                GKI_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
 
             p_srvc_cb->p_srvc_cache = NULL;
         }

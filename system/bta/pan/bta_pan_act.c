@@ -116,7 +116,7 @@ static void bta_pan_conn_state_cback(UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT
             p_scb->peer_role = dst_role;
             p_scb->pan_flow_enable = TRUE;
             bdcpy(p_scb->bd_addr, bd_addr);
-            GKI_init_q(&p_scb->data_queue);
+            p_scb->data_queue = fixed_queue_new(SIZE_MAX);
 
             if(src_role == PAN_ROLE_CLIENT)
                 p_scb->app_id = bta_pan_cb.app_id[0];
@@ -241,7 +241,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
         return;
     }
 
-    GKI_enqueue(&p_scb->data_queue, p_new_buf);
+    fixed_queue_enqueue(p_scb->data_queue, p_new_buf);
     if ((p_event = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
     {
         p_event->layer_specific = handle;
@@ -486,7 +486,7 @@ void bta_pan_disable(void)
     {
         if (p_scb->in_use)
         {
-            while((p_buf = (BT_HDR *)GKI_dequeue(&p_scb->data_queue)) != NULL)
+            while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue)) != NULL)
                 GKI_freebuf(p_buf);
 
             bta_pan_co_close(p_scb->handle, p_scb->app_id);
@@ -650,10 +650,8 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
     bta_sys_conn_close( BTA_ID_PAN ,p_scb->app_id, p_scb->bd_addr);
 
     /* free all queued up data buffers */
-    while((p_buf = (BT_HDR *)GKI_dequeue(&p_scb->data_queue)) != NULL)
+    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue)) != NULL)
         GKI_freebuf(p_buf);
-
-    GKI_init_q(&p_scb->data_queue);
 
     bta_pan_scb_dealloc(p_scb);
 
@@ -719,8 +717,8 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
         bta_pan_co_tx_path(p_scb->handle, p_scb->app_id);
 
         /* free data that exceeds queue level */
-        while(GKI_queue_length(&p_scb->data_queue) > bta_pan_cb.q_level)
-            GKI_freebuf(GKI_dequeue(&p_scb->data_queue));
+        while (fixed_queue_length(p_scb->data_queue) > bta_pan_cb.q_level)
+            GKI_freebuf(fixed_queue_try_dequeue(p_scb->data_queue));
         bta_pan_pm_conn_idle(p_scb);
     }
     /* if configured for zero copy push */
@@ -730,7 +728,7 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
         if (p_scb->app_flow_enable == TRUE)
         {
             /* read data from the queue */
-            if ((p_buf = (BT_HDR *)GKI_dequeue(&p_scb->data_queue)) != NULL)
+            if ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue)) != NULL)
             {
                 /* send data to application */
                 bta_pan_co_tx_writebuf(p_scb->handle,
@@ -744,12 +742,12 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
             }
             /* free data that exceeds queue level  */
-            while(GKI_queue_length(&p_scb->data_queue) > bta_pan_cb.q_level)
-                GKI_freebuf(GKI_dequeue(&p_scb->data_queue));
+            while (fixed_queue_length(p_scb->data_queue) > bta_pan_cb.q_level)
+                GKI_freebuf(fixed_queue_try_dequeue(p_scb->data_queue));
 
             /* if there is more data to be passed to
             upper layer */
-            if(!GKI_queue_is_empty(&p_scb->data_queue))
+            if (!fixed_queue_is_empty(p_scb->data_queue))
             {
                 if ((p_buf = (BT_HDR *) GKI_getbuf(sizeof(BT_HDR))) != NULL)
                 {

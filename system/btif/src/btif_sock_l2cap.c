@@ -77,7 +77,7 @@ typedef struct l2cap_socket {
     struct packet         *first_packet;         //fist packet to be delivered to app
     struct packet         *last_packet;          //last packet to be delivered to app
 
-    BUFFER_Q               incoming_que;         //data that came in but has not yet been read
+    fixed_queue_t         *incoming_que;         //data that came in but has not yet been read
     unsigned               fixed_chan       :1;  //fixed channel (or psm?)
     unsigned               server           :1;  //is a server? (or connecting?)
     unsigned               connected        :1;  //is connected?

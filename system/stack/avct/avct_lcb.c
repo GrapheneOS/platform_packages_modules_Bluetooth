@@ -324,6 +324,7 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
             p_lcb->allocated = (UINT8)(i + 1);
             memcpy(p_lcb->peer_addr, bd_addr, BD_ADDR_LEN);
             AVCT_TRACE_DEBUG("avct_lcb_alloc %d", p_lcb->allocated);
+            p_lcb->tx_q = fixed_queue_new(SIZE_MAX);
             break;
         }
     }
@@ -379,6 +380,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         {
             GKI_freebuf(p_lcb->p_rx_msg);
         }
+        fixed_queue_free(p_lcb->tx_q, NULL);
         memset(p_lcb, 0, sizeof(tAVCT_LCB));
     }
 }

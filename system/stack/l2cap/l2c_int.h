@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 
+#include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
 #include "btm_api.h"
 #include "gki.h"
@@ -178,9 +179,9 @@ typedef struct
 
     UINT16      rx_sdu_len;                 /* Length of the SDU being received         */
     BT_HDR      *p_rx_sdu;                  /* Buffer holding the SDU being received    */
-    BUFFER_Q    waiting_for_ack_q;          /* Buffers sent and waiting for peer to ack */
-    BUFFER_Q    srej_rcv_hold_q;            /* Buffers rcvd but held pending SREJ rsp   */
-    BUFFER_Q    retrans_q;                  /* Buffers being retransmitted              */
+    fixed_queue_t *waiting_for_ack_q;       /* Buffers sent and waiting for peer to ack */
+    fixed_queue_t *srej_rcv_hold_q;         /* Buffers rcvd but held pending SREJ rsp   */
+    fixed_queue_t *retrans_q;               /* Buffers being retransmitted              */
 
     TIMER_LIST_ENT ack_timer;               /* Timer delaying RR                        */
     TIMER_LIST_ENT mon_retrans_timer;       /* Timer Monitor or Retransmission          */
@@ -288,7 +289,7 @@ typedef struct t_l2c_ccb
     tL2CAP_CH_CFG_BITS  peer_cfg_bits;          /* Store what peer wants to configure */
     tL2CAP_CFG_INFO     peer_cfg;               /* Peer's saved configuration options */
 
-    BUFFER_Q            xmit_hold_q;            /* Transmit data hold queue         */
+    fixed_queue_t       *xmit_hold_q;            /* Transmit data hold queue         */
     BOOLEAN             cong_sent;              /* Set when congested status sent   */
     UINT16              buff_quota;             /* Buffer quota before sending congestion   */
 
@@ -390,8 +391,8 @@ typedef struct t_l2c_linkcb
     UINT8               peer_chnl_mask[L2CAP_FIXED_CHNL_ARRAY_SIZE];
 #if (L2CAP_UCD_INCLUDED == TRUE)
     UINT16              ucd_mtu;                    /* peer MTU on UCD */
-    BUFFER_Q            ucd_out_sec_pending_q;      /* Security pending outgoing UCD packet  */
-    BUFFER_Q            ucd_in_sec_pending_q;       /* Security pending incoming UCD packet  */
+    fixed_queue_t       *ucd_out_sec_pending_q;     /* Security pending outgoing UCD packet  */
+    fixed_queue_t       *ucd_in_sec_pending_q;       /* Security pending incoming UCD packet  */
 #endif
 
     BT_HDR              *p_hcit_rcv_acl;            /* Current HCIT ACL buf being rcvd  */

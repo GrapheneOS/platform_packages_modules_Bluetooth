@@ -124,6 +124,7 @@ tBNEP_CONN *bnepu_allocate_bcb (BD_ADDR p_rem_bda)
 
             memcpy ((UINT8 *)(p_bcb->rem_bda), (UINT8 *)p_rem_bda, BD_ADDR_LEN);
             p_bcb->handle = xx + 1;
+            p_bcb->xmit_q = fixed_queue_new(SIZE_MAX);
 
             return (p_bcb);
         }
@@ -153,10 +154,12 @@ void bnepu_release_bcb (tBNEP_CONN *p_bcb)
     p_bcb->p_pending_data   = NULL;
 
     /* Free transmit queue */
-    while (!GKI_queue_is_empty(&p_bcb->xmit_q))
+    while (!fixed_queue_is_empty(p_bcb->xmit_q))
     {
-        GKI_freebuf (GKI_dequeue (&p_bcb->xmit_q));
+        GKI_freebuf(fixed_queue_try_dequeue(p_bcb->xmit_q));
     }
+    fixed_queue_free(p_bcb->xmit_q, NULL);
+    p_bcb->xmit_q = NULL;
 }
 
 
@@ -456,7 +459,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
     BNEP_TRACE_EVENT ("BNEP - bnepu_check_send_packet for CID: 0x%x", p_bcb->l2cap_cid);
     if (p_bcb->con_flags & BNEP_FLAGS_L2CAP_CONGESTED)
     {
-        if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
+        if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
         {
             BNEP_TRACE_EVENT ("BNEP - congested, dropping buf, CID: 0x%x", p_bcb->l2cap_cid);
 
@@ -464,7 +467,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
         }
         else
         {
-            GKI_enqueue (&p_bcb->xmit_q, p_buf);
+            fixed_queue_enqueue(p_bcb->xmit_q, p_buf);
         }
     }
     else

@@ -426,7 +426,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     }
 
     /* Check transmit queue */
-    if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
+    if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
     {
         GKI_freebuf (p_buf);
         return (BNEP_Q_SIZE_EXCEEDED);
@@ -532,7 +532,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
     }
 
     /* Check transmit queue */
-    if (GKI_queue_length(&p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
+    if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
         return (BNEP_Q_SIZE_EXCEEDED);
 
     /* Get a buffer to copy the data into */
@@ -730,7 +730,7 @@ tBNEP_RESULT BNEP_GetStatus (UINT16 handle, tBNEP_STATUS *p_status)
     p_status->con_status            = BNEP_STATUS_CONNECTED;
     p_status->l2cap_cid             = p_bcb->l2cap_cid;
     p_status->rem_mtu_size          = p_bcb->rem_mtu_size;
-    p_status->xmit_q_depth          = GKI_queue_length(&p_bcb->xmit_q);
+    p_status->xmit_q_depth          = fixed_queue_length(p_bcb->xmit_q);
     p_status->sent_num_filters      = p_bcb->sent_num_filters;
     p_status->sent_mcast_filters    = p_bcb->sent_mcast_filters;
     p_status->rcvd_num_filters      = p_bcb->rcvd_num_filters;

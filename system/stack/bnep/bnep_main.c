@@ -435,7 +435,7 @@ static void bnep_congestion_ind (UINT16 l2cap_cid, BOOLEAN is_congested)
         /* While not congested, send as many buffers as we can */
         while (!(p_bcb->con_flags & BNEP_FLAGS_L2CAP_CONGESTED))
         {
-            BT_HDR   *p_buf = (BT_HDR *)GKI_dequeue (&p_bcb->xmit_q);
+            BT_HDR *p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_bcb->xmit_q);
 
             if (!p_buf)
                 break;
