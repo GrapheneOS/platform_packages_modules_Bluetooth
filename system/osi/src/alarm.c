@@ -62,7 +62,6 @@ extern bt_os_callouts_t *bt_os_callouts;
 // unit tests to run faster. It should not be modified by production code.
 int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 3000;
 static const clockid_t CLOCK_ID = CLOCK_BOOTTIME;
-static const clockid_t CLOCK_ID_ALARM = CLOCK_BOOTTIME_ALARM;
 static const char *WAKE_LOCK_ID = "bluedroid_timer";
 
 // This mutex ensures that the |alarm_set|, |alarm_cancel|, and alarm callback
@@ -71,7 +70,6 @@ static const char *WAKE_LOCK_ID = "bluedroid_timer";
 static pthread_mutex_t monitor;
 static list_t *alarms;
 static timer_t timer;
-static timer_t wakeup_timer;
 static bool timer_set;
 
 // All alarm callbacks are dispatched from |callback_thread|
@@ -86,7 +84,6 @@ static void schedule_next_instance(alarm_t *alarm, bool force_reschedule);
 static void reschedule_root_alarm(void);
 static void timer_callback(void *data);
 static void callback_dispatch(void *context);
-static bool timer_create_internal(const clockid_t clock_id, timer_t *timer);
 
 alarm_t *alarm_new(void) {
   // Make sure we have a list we can insert alarms into.
@@ -218,64 +215,39 @@ void alarm_cleanup(void) {
 static bool lazy_initialize(void) {
   assert(alarms == NULL);
 
-  // timer_t doesn't have an invalid value so we must track whether
-  // the |timer| variable is valid ourselves.
-  bool timer_initialized = false;
-  bool wakeup_timer_initialized = false;
-
   pthread_mutex_init(&monitor, NULL);
 
   alarms = list_new(NULL);
   if (!alarms) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate alarm list.", __func__);
-    goto error;
+    return false;
   }
 
-  if (!timer_create_internal(CLOCK_ID, &timer))
-    goto error;
-  timer_initialized = true;
-
-  if (!timer_create_internal(CLOCK_ID_ALARM, &wakeup_timer))
-    goto error;
-  wakeup_timer_initialized = true;
+  struct sigevent sigevent;
+  memset(&sigevent, 0, sizeof(sigevent));
+  sigevent.sigev_notify = SIGEV_THREAD;
+  sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
+  if (timer_create(CLOCK_ID, &sigevent, &timer) == -1) {
+    LOG_ERROR(LOG_TAG, "%s unable to create timer: %s", __func__,
+              strerror(errno));
+    return false;
+  }
 
   alarm_expired = semaphore_new(0);
   if (!alarm_expired) {
     LOG_ERROR(LOG_TAG, "%s unable to create alarm expired semaphore", __func__);
-    goto error;
+    return false;
   }
 
   callback_thread_active = true;
   callback_thread = thread_new("alarm_callbacks");
   if (!callback_thread) {
     LOG_ERROR(LOG_TAG, "%s unable to create alarm callback thread.", __func__);
-    goto error;
+    return false;
   }
 
   thread_post(callback_thread, callback_dispatch, NULL);
   return true;
-
-error:
-  thread_free(callback_thread);
-  callback_thread = NULL;
-
-  callback_thread_active = false;
-
-  semaphore_free(alarm_expired);
-  alarm_expired = NULL;
-
-  if (wakeup_timer_initialized)
-    timer_delete(wakeup_timer);
-
-  if (timer_initialized)
-    timer_delete(timer);
-
-  list_free(alarms);
-  alarms = NULL;
-
-  pthread_mutex_destroy(&monitor);
-
-  return false;
 }
 
 static period_ms_t now(void) {
@@ -322,19 +294,18 @@ static void schedule_next_instance(alarm_t *alarm, bool force_reschedule) {
 
 // NOTE: must be called with monitor lock.
 static void reschedule_root_alarm(void) {
+  bool timer_was_set = timer_set;
   assert(alarms != NULL);
 
-  const bool timer_was_set = timer_set;
-
-  // If used in a zeroed state, disarms the timer.
-  struct itimerspec timer_time;
-  memset(&timer_time, 0, sizeof(timer_time));
+  // If used in a zeroed state, disarms the timer
+  struct itimerspec wakeup_time;
+  memset(&wakeup_time, 0, sizeof(wakeup_time));
 
   if (list_is_empty(alarms))
     goto done;
 
-  const alarm_t *next = list_front(alarms);
-  const int64_t next_expiration = next->deadline - now();
+  alarm_t *next = list_front(alarms);
+  int64_t next_expiration = next->deadline - now();
   if (next_expiration < TIMER_INTERVAL_FOR_WAKELOCK_IN_MS) {
     if (!timer_set) {
       int status = acquire_wake_lock(PARTIAL_WAKE_LOCK, WAKE_LOCK_ID);
@@ -344,43 +315,20 @@ static void reschedule_root_alarm(void) {
       }
     }
 
-    timer_time.it_value.tv_sec = (next->deadline / 1000);
-    timer_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
-
-    // It is entirely unsafe to call timer_settime(2) with a zeroed timerspec for
-    // timers with *_ALARM clock IDs. Although the man page states that the timer
-    // would be canceled, the current behavior (as of Linux kernel 3.17) is that
-    // the callback is issued immediately. The only way to cancel an *_ALARM timer
-    // is to delete the timer. But unfortunately, deleting and re-creating a timer
-    // is rather expensive; every timer_create(2) spawns a new thread. So we simply
-    // set the timer to fire at the largest possible time.
-    //
-    // If we've reached this code path, we're going to grab a wake lock and wait for
-    // the next timer to fire. In that case, there's no reason to have a pending wakeup
-    // timer so we simply cancel it.
-    struct itimerspec end_of_time;
-    memset(&end_of_time, 0, sizeof(end_of_time));
-    end_of_time.it_value.tv_sec = (time_t)((1ULL << (sizeof(time_t) * 8 - 1)) - 1);
-    timer_settime(wakeup_timer, TIMER_ABSTIME, &end_of_time, NULL);
-  } else {
-    // WARNING: do not attempt to use relative timers with *_ALARM clock IDs
-    // in kernels before 3.17 unless you have the following patch:
-    // https://lkml.org/lkml/2014/7/7/576
-    struct itimerspec wakeup_time;
-    memset(&wakeup_time, 0, sizeof(wakeup_time));
     wakeup_time.it_value.tv_sec = (next->deadline / 1000);
     wakeup_time.it_value.tv_nsec = (next->deadline % 1000) * 1000000LL;
-    if (timer_settime(wakeup_timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
-      LOG_ERROR(LOG_TAG, "%s unable to set wakeup timer: %s", __func__, strerror(errno));
+  } else {
+    if (!bt_os_callouts->set_wake_alarm(next_expiration, true, timer_callback, NULL))
+      LOG_ERROR(LOG_TAG, "%s unable to set wake alarm for %" PRId64 "ms.", __func__, next_expiration);
   }
 
 done:
-  timer_set = timer_time.it_value.tv_sec != 0 || timer_time.it_value.tv_nsec != 0;
+  timer_set = wakeup_time.it_value.tv_sec != 0 || wakeup_time.it_value.tv_nsec != 0;
   if (timer_was_set && !timer_set) {
     release_wake_lock(WAKE_LOCK_ID);
   }
 
-  if (timer_settime(timer, TIMER_ABSTIME, &timer_time, NULL) == -1)
+  if (timer_settime(timer, TIMER_ABSTIME, &wakeup_time, NULL) == -1)
     LOG_ERROR(LOG_TAG, "%s unable to set timer: %s", __func__, strerror(errno));
 
   // If next expiration was in the past (e.g. short timer that got context switched)
@@ -453,19 +401,4 @@ static void callback_dispatch(UNUSED_ATTR void *context) {
   }
 
   LOG_DEBUG(LOG_TAG, "%s Callback thread exited", __func__);
-}
-
-static bool timer_create_internal(const clockid_t clock_id, timer_t *timer) {
-  assert(timer != NULL);
-
-  struct sigevent sigevent;
-  memset(&sigevent, 0, sizeof(sigevent));
-  sigevent.sigev_notify = SIGEV_THREAD;
-  sigevent.sigev_notify_function = (void (*)(union sigval))timer_callback;
-  if (timer_create(clock_id, &sigevent, timer) == -1) {
-    LOG_ERROR(LOG_TAG, "%s unable to create timer with clock %d: %s", __func__, clock_id, strerror(errno));
-    return false;
-  }
-
-  return true;
 }
