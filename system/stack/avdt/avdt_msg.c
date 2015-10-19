@@ -1243,7 +1243,8 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                    (p_tbl->peer_mtu - 1) + 2;
 
             /* get a new buffer for fragment we are sending */
-            if ((p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID)) == NULL)
+            p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
                 by setting retransmission timer */
@@ -1264,7 +1265,8 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
             hdr_len = AVDT_LEN_TYPE_CONT;
 
             /* get a new buffer for fragment we are sending */
-            if ((p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID)) == NULL)
+            p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
+            if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
                 by setting retransmission timer */
@@ -1481,7 +1483,7 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
+    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL)
     {
         AVDT_TRACE_ERROR("avdt_msg_send_cmd out of buffer!!");
@@ -1550,7 +1552,7 @@ void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
+    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up gki buf pointer and offset */
@@ -1595,7 +1597,7 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
+    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up gki buf pointer and offset */
@@ -1656,7 +1658,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) GKI_getpoolbuf(AVDT_CMD_POOL_ID);
+    p_buf = (BT_HDR *) GKI_getbuf(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up gki buf pointer and offset */

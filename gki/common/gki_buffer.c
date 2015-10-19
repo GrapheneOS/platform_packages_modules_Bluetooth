@@ -212,26 +212,6 @@ void *GKI_getbuf (UINT16 size)
 
 /*******************************************************************************
 **
-** Function         GKI_getpoolbuf
-**
-** Description      Called by an application to get a free buffer from
-**                  a specific buffer pool.
-**
-**                  Note: If there are no more buffers available from the pool,
-**                        the public buffers are searched for an available buffer.
-**
-** Parameters       pool_id - (input) pool ID to get a buffer out of.
-**
-** Returns          A pointer to the buffer, or NULL if none available
-**
-*******************************************************************************/
-void *GKI_getpoolbuf (UINT8 pool_id)
-{
-  return GKI_getbuf(gki_cb.com.pool_size[pool_id]);
-}
-
-/*******************************************************************************
-**
 ** Function         GKI_freebuf
 **
 ** Description      Called by an application to return a buffer to the free pool.
@@ -499,30 +479,6 @@ UINT16 GKI_poolcount (UINT8 pool_id)
 
 /*******************************************************************************
 **
-** Function         GKI_poolfreecount
-**
-** Description      Called by an application to get the number of free buffers
-**                  in the specified buffer pool.
-**
-** Parameters       pool_id - (input) pool ID to get the free count of.
-**
-** Returns          the number of free buffers in the pool
-**
-*******************************************************************************/
-UINT16 GKI_poolfreecount (UINT8 pool_id)
-{
-    FREE_QUEUE_T  *Q;
-
-    if (pool_id >= GKI_NUM_TOTAL_BUF_POOLS)
-        return (0);
-
-    Q  = &gki_cb.com.freeq[pool_id];
-
-    return ((UINT16)(Q->total - Q->cur_cnt));
-}
-
-/*******************************************************************************
-**
 ** Function         GKI_get_pool_bufsize
 **
 ** Description      Called by an application to get the size of buffers in a pool
@@ -538,31 +494,4 @@ UINT16 GKI_get_pool_bufsize (UINT8 pool_id)
         return (gki_cb.com.freeq[pool_id].size);
 
     return (0);
-}
-
-/*******************************************************************************
-**
-** Function         GKI_poolutilization
-**
-** Description      Called by an application to get the buffer utilization
-**                  in the specified buffer pool.
-**
-** Parameters       pool_id - (input) pool ID to get the free count of.
-**
-** Returns          % of buffers used from 0 to 100
-**
-*******************************************************************************/
-UINT16 GKI_poolutilization (UINT8 pool_id)
-{
-    FREE_QUEUE_T  *Q;
-
-    if (pool_id >= GKI_NUM_TOTAL_BUF_POOLS)
-        return (100);
-
-    Q  = &gki_cb.com.freeq[pool_id];
-
-    if (Q->total == 0)
-        return (100);
-
-    return ((Q->cur_cnt * 100) / Q->total);
 }

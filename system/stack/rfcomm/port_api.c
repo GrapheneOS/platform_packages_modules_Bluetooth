@@ -1594,7 +1594,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
          }
 
         /* continue with rfcomm data write */
-        p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_DATA_POOL_ID);
+        p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_DATA_BUF_SIZE);
         if (!p_buf)
             break;
 
@@ -1723,7 +1723,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
             break;
 
         /* continue with rfcomm data write */
-        p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_DATA_POOL_ID);
+        p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_DATA_BUF_SIZE);
         if (!p_buf)
             break;
 
@@ -1804,7 +1804,8 @@ int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
         return (PORT_UNKNOWN_ERROR);
     }
 
-    if ((p_buf = (BT_HDR *)GKI_getpoolbuf (RFCOMM_CMD_POOL_ID)) != NULL)
+    p_buf = (BT_HDR *)GKI_getbuf(RFCOMM_CMD_BUF_SIZE);
+    if (p_buf != NULL)
     {
 
         p_buf->offset  = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;

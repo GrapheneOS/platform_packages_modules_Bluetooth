@@ -119,11 +119,11 @@ static UINT8 *sdpu_build_uuid_seq (UINT8 *p_out, UINT16 num_uuids, tSDP_UUID *p_
 static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * p_cont)
 {
     UINT8           *p, *p_start, *p_param_len;
-    BT_HDR          *p_cmd;
+    BT_HDR          *p_cmd = (BT_HDR *) GKI_getbuf(SDP_DATA_BUF_SIZE);
     UINT16          param_len;
 
-    /* Get a buffer to send the packet to L2CAP */
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf (SDP_POOL_ID)) == NULL)
+    /* Check the buffer for sending the packet to L2CAP */
+    if (p_cmd == NULL)
     {
         sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
         return;
@@ -485,7 +485,7 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     /* Now, ask for the next handle. Re-use the buffer we just got. */
     if (p_ccb->cur_handle < p_ccb->num_handles)
     {
-        BT_HDR  *p_msg = (BT_HDR *) GKI_getpoolbuf (SDP_POOL_ID);
+        BT_HDR  *p_msg = (BT_HDR *) GKI_getbuf(SDP_DATA_BUF_SIZE);
         UINT8   *p;
 
         if (!p_msg)
@@ -631,7 +631,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     /* If continuation request (or first time request) */
     if ((cont_request_needed) || (!p_reply))
     {
-        BT_HDR  *p_msg = (BT_HDR *) GKI_getpoolbuf (SDP_POOL_ID);
+        BT_HDR  *p_msg = (BT_HDR *) GKI_getbuf(SDP_DATA_BUF_SIZE);
         UINT8   *p;
 
         if (!p_msg)

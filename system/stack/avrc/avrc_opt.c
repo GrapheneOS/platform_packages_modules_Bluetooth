@@ -52,12 +52,13 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
     assert(p_msg != NULL);
 
 #if AVRC_METADATA_INCLUDED == TRUE
-    assert(AVRC_META_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_META_CMD_POOL_ID)) != NULL)
+    assert(AVRC_META_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
+    p_cmd = (BT_HDR *) GKI_getbuf(AVRC_META_CMD_BUF_SIZE);
 #else
-    assert(AVRC_CMD_POOL_SIZE > (AVRC_MIN_CMD_LEN+p_msg->vendor_len));
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
+    assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
+    p_cmd = (BT_HDR *) GKI_getbuf(AVRC_CMD_BUF_SIZE);
 #endif
+    if (p_cmd != NULL)
     {
         p_cmd->offset   = AVCT_MSG_OFFSET;
         p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
@@ -98,10 +99,10 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
 ******************************************************************************/
 UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label)
 {
-    BT_HDR  *p_cmd;
+    BT_HDR  *p_cmd = (BT_HDR *) GKI_getbuf(AVRC_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
+    if (p_cmd != NULL)
     {
         p_cmd->offset   = AVCT_MSG_OFFSET;
         p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
@@ -143,10 +144,10 @@ UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label)
 ******************************************************************************/
 UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page)
 {
-    BT_HDR  *p_cmd;
+    BT_HDR  *p_cmd = (BT_HDR *) GKI_getbuf(AVRC_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if ((p_cmd = (BT_HDR *) GKI_getpoolbuf(AVRC_CMD_POOL_ID)) != NULL)
+    if (p_cmd != NULL)
     {
         p_cmd->offset   = AVCT_MSG_OFFSET;
         p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;

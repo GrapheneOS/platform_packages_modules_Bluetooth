@@ -341,7 +341,7 @@ BOOLEAN l2c_is_cmd_rejected (UINT8 cmd_code, UINT8 id, tL2C_LCB *p_lcb)
 *******************************************************************************/
 BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
 {
-    BT_HDR  *p_buf = (BT_HDR *)GKI_getpoolbuf (L2CAP_CMD_POOL_ID);
+    BT_HDR  *p_buf = (BT_HDR *)GKI_getbuf(L2CAP_CMD_BUF_SIZE);
     UINT8   *p;
 
     if (!p_buf)
@@ -1046,12 +1046,6 @@ void l2cu_send_peer_echo_rsp (tL2C_LCB *p_lcb, UINT8 id, UINT8 *p_data, UINT16 d
     }
     else
         p_lcb->cur_echo_id = id;
-     /* Don't respond if we more than 10% of our buffers are used */
-    if (GKI_poolutilization (L2CAP_CMD_POOL_ID) > 10)
-    {
-        L2CAP_TRACE_WARNING ("L2CAP gki pool used up to more than 10%%, ignore echo response");
-        return;
-    }
 
     uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
     uint16_t acl_packet_size = controller_get_interface()->get_acl_packet_size_classic();
@@ -3156,10 +3150,6 @@ static tL2C_CCB *l2cu_get_next_channel_in_rr(tL2C_LCB *p_lcb)
                     if ( GKI_queue_is_empty(&p_ccb->xmit_hold_q))
                         continue;
 
-                    /* If using the common pool, should be at least 10% free. */
-                    if ( (p_ccb->ertm_info.fcr_tx_pool_id == HCI_ACL_POOL_ID) && (GKI_poolutilization (HCI_ACL_POOL_ID) > 90) )
-                        continue;
-
                     /* If in eRTM mode, check for window closure */
                     if ( (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) && (l2c_fcr_is_flow_controlled (p_ccb)) )
                         continue;
@@ -3230,10 +3220,6 @@ static tL2C_CCB *l2cu_get_next_channel(tL2C_LCB *p_lcb)
         if (p_ccb->xmit_hold_q.count == 0)
             continue;
 
-        /* If using the common pool, should be at least 10% free. */
-        if ( (p_ccb->ertm_info.fcr_tx_pool_id == HCI_ACL_POOL_ID) && (GKI_poolutilization (HCI_ACL_POOL_ID) > 90) )
-            continue;
-
         /* If in eRTM mode, check for window closure */
         if ( (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) && (l2c_fcr_is_flow_controlled (p_ccb)) )
             continue;
@@ -3280,10 +3266,6 @@ BT_HDR *l2cu_get_next_buffer_to_send (tL2C_LCB *p_lcb)
             if (GKI_queue_is_empty(&p_ccb->fcrb.retrans_q))
             {
                 if (GKI_queue_is_empty(&p_ccb->xmit_hold_q))
-                    continue;
-
-                /* If using the common pool, should be at least 10% free. */
-                if ( (p_ccb->ertm_info.fcr_tx_pool_id == HCI_ACL_POOL_ID) && (GKI_poolutilization (HCI_ACL_POOL_ID) > 90) )
                     continue;
 
                 /* If in eRTM mode, check for window closure */

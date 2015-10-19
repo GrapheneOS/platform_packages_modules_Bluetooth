@@ -714,7 +714,7 @@ extern void     l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf);
 extern void     l2c_fcr_proc_tout (tL2C_CCB *p_ccb);
 extern void     l2c_fcr_proc_ack_tout (tL2C_CCB *p_ccb);
 extern void     l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit);
-extern BT_HDR   *l2c_fcr_clone_buf (BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes, UINT8 pool);
+extern BT_HDR   *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes);
 extern BOOLEAN  l2c_fcr_is_flow_controlled (tL2C_CCB *p_ccb);
 extern BT_HDR   *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length);
 extern void     l2c_fcr_start_timer (tL2C_CCB *p_ccb);
