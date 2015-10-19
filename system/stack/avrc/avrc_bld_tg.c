@@ -738,8 +738,10 @@ static tAVRC_STS avrc_bld_rejected_rsp( tAVRC_RSP *p_rsp, BT_HDR *p_pkt )
 *******************************************************************************/
 static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 {
-    UINT16 offset = AVRC_MSG_PASS_THRU_OFFSET, chnl = AVCT_DATA_CTRL, len=AVRC_META_CMD_POOL_SIZE;
-    BT_HDR *p_pkt=NULL;
+    UINT16 offset = AVRC_MSG_PASS_THRU_OFFSET;
+    UINT16 chnl = AVCT_DATA_CTRL;
+    UINT16 len = AVRC_META_CMD_BUF_SIZE;
+    BT_HDR *p_pkt = NULL;
     UINT8  opcode = avrc_opcode_from_pdu(p_rsp->pdu);
 
     AVRC_TRACE_API("avrc_bld_init_rsp_buffer: pdu=%x, opcode=%x/%x", p_rsp->pdu, opcode,
@@ -754,13 +756,13 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
     switch (opcode)
     {
     case AVRC_OP_PASS_THRU:
-        offset  = AVRC_MSG_PASS_THRU_OFFSET;
+        offset = AVRC_MSG_PASS_THRU_OFFSET;
         break;
 
     case AVRC_OP_VENDOR:
-        offset  = AVRC_MSG_VENDOR_OFFSET;
+        offset = AVRC_MSG_VENDOR_OFFSET;
         if (p_rsp->pdu == AVRC_PDU_GET_ELEMENT_ATTR)
-            len     = AVRC_BROWSE_POOL_SIZE;
+            len = AVRC_BROWSE_BUF_SIZE;
         break;
     }
 

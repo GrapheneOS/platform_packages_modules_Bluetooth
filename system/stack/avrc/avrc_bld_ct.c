@@ -126,11 +126,12 @@ static tAVRC_STS avrc_bld_vol_change_notfn(BT_HDR * p_pkt)
 *******************************************************************************/
 static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
 {
-    UINT16 offset = 0, chnl = AVCT_DATA_CTRL, len=AVRC_META_CMD_POOL_SIZE;
-    BT_HDR *p_pkt=NULL;
-    UINT8  opcode;
+    UINT16 offset = 0;
+    UINT16 chnl = AVCT_DATA_CTRL;
+    UINT16 len = AVRC_META_CMD_BUF_SIZE;
+    BT_HDR *p_pkt = NULL;
+    UINT8  opcode = avrc_opcode_from_pdu(p_cmd->pdu);
 
-    opcode = avrc_opcode_from_pdu(p_cmd->pdu);
     AVRC_TRACE_API("avrc_bld_init_cmd_buffer: pdu=%x, opcode=%x", p_cmd->pdu, opcode);
 
     switch (opcode)

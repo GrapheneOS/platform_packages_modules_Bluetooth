@@ -50,10 +50,6 @@ typedef UINT16 (tBTA_HL_ALLOCATE_PSM) (void);
 #define BTA_HL_L2C_RTRANS_TOUT          2000
 #define BTA_HL_L2C_MON_TOUT             12000
 #define BTA_HL_L2C_MPS                  1017
-#define BTA_HL_L2C_USER_RX_POOL_ID      L2CAP_DEFAULT_ERM_POOL_ID
-#define BTA_HL_L2C_USER_TX_POOL_ID      L2CAP_DEFAULT_ERM_POOL_ID /* todo this should be based on data type */
-#define BTA_HL_L2C_FCR_RX_POOL_ID       L2CAP_DEFAULT_ERM_POOL_ID
-#define BTA_HL_L2C_FCR_TX_POOL_ID       L2CAP_DEFAULT_ERM_POOL_ID
 
 /* L2CAP FCS setting*/
 #define BTA_HL_MCA_USE_FCS              MCA_FCS_USE

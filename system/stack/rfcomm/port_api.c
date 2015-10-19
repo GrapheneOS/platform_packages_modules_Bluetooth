@@ -1543,7 +1543,7 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
     if(available == 0)
         return PORT_SUCCESS;
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
-    length = RFCOMM_DATA_POOL_BUF_SIZE -
+    length = RFCOMM_DATA_BUF_SIZE -
             (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
 
     /* If there are buffers scheduled for transmission check if requested */
@@ -1691,7 +1691,7 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
     }
 
     /* Length for each buffer is the smaller of GKI buffer, peer MTU, or max_len */
-    length = RFCOMM_DATA_POOL_BUF_SIZE -
+    length = RFCOMM_DATA_BUF_SIZE -
             (UINT16)(sizeof(BT_HDR) + L2CAP_MIN_OFFSET + RFCOMM_DATA_OVERHEAD);
 
     /* If there are buffers scheduled for transmission check if requested */

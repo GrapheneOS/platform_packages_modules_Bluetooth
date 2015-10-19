@@ -91,7 +91,7 @@ BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description
 **
-** Returns      UINT8 pool_id
+** Returns      TRUE if found
 **
 *******************************************************************************/
 BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
@@ -143,7 +143,7 @@ BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
 
 UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size)
 {
-    if (max_tx_size > HCI_ACL_BUF_SIZE)
+    if (max_tx_size > BT_DEFAULT_BUFFER_SIZE)
         return BTA_HL_LRG_DATA_BUF_SIZE;
     return L2CAP_INVALID_ERM_BUF_SIZE;
 }
@@ -160,7 +160,7 @@ UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size)
 
 UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu)
 {
-    if (mtu > HCI_ACL_BUF_SIZE)
+    if (mtu > BT_DEFAULT_BUFFER_SIZE)
         return BTA_HL_LRG_DATA_BUF_SIZE;
     return L2CAP_INVALID_ERM_BUF_SIZE;
 }
