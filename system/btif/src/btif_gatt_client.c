@@ -1121,6 +1121,23 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
                           (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
+static void btgattc_free_event_data(UINT16 event, char *event_data)
+{
+    switch (event)
+    {
+        case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
+        case BTIF_GATTC_SET_ADV_DATA:
+        {
+            const btif_adv_data_t *adv_data = (btif_adv_data_t*) event_data;
+            btif_gattc_adv_data_cleanup(adv_data);
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
 static void btgattc_handle_event(uint16_t event, char* p_param)
 {
     tBTA_GATT_STATUS           status;
@@ -1564,14 +1581,11 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_SET_ADV_DATA:
         {
-            btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
-            int cbindex = CLNT_IF_IDX;
-            if (cbindex >= 0 && NULL != p_adv_data)
+            const btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
+            const int cbindex = CLNT_IF_IDX;
+            if (cbindex >= 0 && btif_gattc_copy_datacb(cbindex, p_adv_data, false))
             {
                 btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-                if (!btif_gattc_copy_datacb(cbindex, p_adv_data, false))
-                    return;
-
                 if (!p_adv_data->set_scan_rsp)
                 {
                     BTA_DmBleSetAdvConfig(p_multi_adv_data_cb->inst_cb[cbindex].mask,
@@ -1582,8 +1596,13 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                     BTA_DmBleSetScanRsp(p_multi_adv_data_cb->inst_cb[cbindex].mask,
                         &p_multi_adv_data_cb->inst_cb[cbindex].data, bta_gattc_set_adv_data_cback);
                 }
-                break;
             }
+            else
+            {
+                BTIF_TRACE_ERROR("%s:%s: failed to get instance data cbindex: %d",
+                                 __func__, "BTIF_GATTC_SET_ADV_DATA", cbindex);
+            }
+            break;
         }
 
         case BTIF_GATTC_ADV_INSTANCE_ENABLE:
@@ -1640,20 +1659,23 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
             int cbindex = btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
             int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
-
-            if (inst_id < 0 || cbindex < 0)
+            if (inst_id >= 0 && cbindex >= 0 && btif_gattc_copy_datacb(cbindex, p_adv_data, true))
             {
-               BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_SETADV_INST_DATA", __FUNCTION__);
-               return;
+                btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+                    btif_obtain_multi_adv_data_cb();
+                BTA_BleCfgAdvInstData(
+                    (UINT8)inst_id,
+                    p_adv_data->set_scan_rsp,
+                    p_multi_adv_data_cb->inst_cb[cbindex].mask,
+                    &p_multi_adv_data_cb->inst_cb[cbindex].data);
             }
-
-            if (!btif_gattc_copy_datacb(cbindex, p_adv_data, true))
-                return;
-
-            btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-            BTA_BleCfgAdvInstData((UINT8)inst_id, p_adv_data->set_scan_rsp,
-                      p_multi_adv_data_cb->inst_cb[cbindex].mask,
-                      &p_multi_adv_data_cb->inst_cb[cbindex].data);
+            else
+            {
+                BTIF_TRACE_ERROR(
+                    "%s:%s: failed to get invalid instance data: inst_id:%d "
+                    "cbindex:%d",
+                    __func__, "BTIF_GATTC_ADV_INSTANCE_SET_DATA", inst_id, cbindex);
+            }
             break;
         }
 
@@ -1732,6 +1754,8 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
+
+    btgattc_free_event_data(event, p_param);
 }
 
 /*******************************************************************************
@@ -1798,6 +1822,44 @@ static bt_status_t btif_gattc_listen(int client_if, bool start)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static void btif_gattc_deep_copy(UINT16 event, char *p_dest, char *p_src)
+{
+    switch (event)
+    {
+        case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
+        case BTIF_GATTC_SET_ADV_DATA:
+        {
+            const btif_adv_data_t *src = (btif_adv_data_t*) p_src;
+            btif_adv_data_t *dst = (btif_adv_data_t*) p_dest;
+            memcpy(dst, src, sizeof(*src));
+
+            if (src->p_manufacturer_data)
+            {
+                dst->p_manufacturer_data = osi_getbuf(src->manufacturer_len);
+                memcpy(dst->p_manufacturer_data, src->p_manufacturer_data,
+                       src->manufacturer_len);
+            }
+
+            if (src->p_service_data)
+            {
+                dst->p_service_data = osi_getbuf(src->service_data_len);
+                memcpy(dst->p_service_data, src->p_service_data, src->service_data_len);
+            }
+
+            if (src->p_service_uuid)
+            {
+                dst->p_service_uuid = osi_getbuf(src->service_uuid_len);
+                memcpy(dst->p_service_uuid, src->p_service_uuid, src->service_uuid_len);
+            }
+            break;
+        }
+
+        default:
+            ASSERTC(false, "Unhandled deep copy", event);
+            break;
+    }
+}
+
 static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, bool include_name,
                 bool include_txpower, int min_interval, int max_interval, int appearance,
                 uint16_t manufacturer_len, char* manufacturer_data,
@@ -1805,8 +1867,6 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
                 uint16_t service_uuid_len, char* service_uuid)
 {
     CHECK_BTGATT_INIT();
-    bt_status_t status =0;
-
     btif_adv_data_t adv_data;
 
     btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name,
@@ -1814,18 +1874,9 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
         manufacturer_data, service_data_len, service_data, service_uuid_len, service_uuid,
         &adv_data);
 
-    status = btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_ADV_DATA,
-                       (char*) &adv_data, sizeof(btif_adv_data_t), NULL);
-
-    if (NULL != adv_data.p_service_data)
-        osi_freebuf(adv_data.p_service_data);
-
-    if (NULL != adv_data.p_service_uuid)
-        osi_freebuf(adv_data.p_service_uuid);
-
-    if (NULL != adv_data.p_manufacturer_data)
-        osi_freebuf(adv_data.p_manufacturer_data);
-
+    bt_status_t status = btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_ADV_DATA,
+                       (char*) &adv_data, sizeof(adv_data), btif_gattc_deep_copy);
+    btif_gattc_adv_data_cleanup(&adv_data);
     return status;
 }
 
@@ -2209,28 +2260,21 @@ static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp
 {
     CHECK_BTGATT_INIT();
 
-    int min_interval = 0, max_interval = 0;
-    bt_status_t status =0;
-
     btif_adv_data_t multi_adv_data_inst;
-    memset(&multi_adv_data_inst, 0, sizeof(btif_adv_data_t));
+    memset(&multi_adv_data_inst, 0, sizeof(multi_adv_data_inst));
+
+    const int min_interval = 0;
+    const int max_interval = 0;
 
     btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name, incl_txpower,
         min_interval, max_interval, appearance, manufacturer_len, manufacturer_data,
         service_data_len, service_data, service_uuid_len, service_uuid, &multi_adv_data_inst);
 
-    status = btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_SET_DATA,
-                       (char*) &multi_adv_data_inst, sizeof(btif_adv_data_t), NULL);
-
-    if (NULL != multi_adv_data_inst.p_service_data)
-        osi_freebuf(multi_adv_data_inst.p_service_data);
-
-    if (NULL != multi_adv_data_inst.p_service_uuid)
-        osi_freebuf(multi_adv_data_inst.p_service_uuid);
-
-    if (NULL != multi_adv_data_inst.p_manufacturer_data)
-        osi_freebuf(multi_adv_data_inst.p_manufacturer_data);
-
+    bt_status_t status = btif_transfer_context(
+        btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_SET_DATA,
+        (char *)&multi_adv_data_inst, sizeof(multi_adv_data_inst),
+        btif_gattc_deep_copy);
+    btif_gattc_adv_data_cleanup(&multi_adv_data_inst);
     return status;
 }
 

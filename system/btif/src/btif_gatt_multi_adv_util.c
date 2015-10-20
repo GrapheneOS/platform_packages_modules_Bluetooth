@@ -255,8 +255,20 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
     }
 }
 
-BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN bInstData)
+void btif_gattc_adv_data_cleanup(const btif_adv_data_t* adv)
 {
+    if (adv->p_service_data)
+        osi_freebuf(adv->p_service_data);
+
+    if (adv->p_service_uuid)
+        osi_freebuf(adv->p_service_uuid);
+
+    if (adv->p_manufacturer_data)
+        osi_freebuf(adv->p_manufacturer_data);
+}
+
+BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
+                               BOOLEAN bInstData) {
     btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
     if (NULL == p_multi_adv_data_cb || cbindex < 0)
        return false;
@@ -350,18 +362,18 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
       p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
     }
 
-    if (p_adv_data->service_uuid_len > 0 && NULL != p_adv_data->p_service_uuid)
+    if (p_adv_data->service_uuid_len && p_adv_data->p_service_uuid)
     {
         UINT16 *p_uuid_out16 = NULL;
         UINT32 *p_uuid_out32 = NULL;
-        while (p_adv_data->service_uuid_len >= LEN_UUID_128)
+        for (int position = 0; position < p_adv_data->service_uuid_len; position += LEN_UUID_128)
         {
              bt_uuid_t uuid;
-             memset(&uuid, 0, sizeof(bt_uuid_t));
-             memcpy(&uuid.uu, p_adv_data->p_service_uuid, LEN_UUID_128);
+             memset(&uuid, 0, sizeof(uuid));
+             memcpy(&uuid.uu, p_adv_data->p_service_uuid + position, LEN_UUID_128);
 
              tBT_UUID bt_uuid;
-             memset(&bt_uuid, 0, sizeof(tBT_UUID));
+             memset(&bt_uuid, 0, sizeof(bt_uuid));
              btif_to_bta_uuid(&bt_uuid, &uuid);
 
              switch(bt_uuid.len)
@@ -434,9 +446,6 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, btif_adv_data_t *p_adv_data, BOOLEAN
                 default:
                      break;
              }
-
-             p_adv_data->p_service_uuid += LEN_UUID_128;
-             p_adv_data->service_uuid_len -= LEN_UUID_128;
         }
     }
 
