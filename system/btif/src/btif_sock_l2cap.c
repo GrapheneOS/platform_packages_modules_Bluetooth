@@ -997,7 +997,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                          * typically written to the socket in a tight loop, hence we risk the ioctl
                          * will return the total amount of data in the buffer, which could be
                          * multiple 64kbyte chunks.
-                         * UPDATE: As bluedroid cannot handle 64kbyte buffers, the size is reduced
+                         * UPDATE: As the stack cannot handle 64kbyte buffers, the size is reduced
                          * to around 8kbyte - and using malloc for buffer allocation here seems to
                          * be wrong
                          * UPDATE: Since we are responsible for freeing the buffer in the

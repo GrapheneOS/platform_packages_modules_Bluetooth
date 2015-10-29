@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := net_test_bluedroid
+LOCAL_MODULE := net_test_bluetooth
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
