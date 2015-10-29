@@ -1170,27 +1170,33 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
             }
 
-            switch(device_type)
+            // Determine transport
+            if (p_cb->transport != GATT_TRANSPORT_AUTO)
             {
-                case BT_DEVICE_TYPE_BREDR:
-                    transport = BTA_GATT_TRANSPORT_BR_EDR;
-                    break;
-
-                case BT_DEVICE_TYPE_BLE:
-                    transport = BTA_GATT_TRANSPORT_LE;
-                    break;
-
-                case BT_DEVICE_TYPE_DUMO:
-                    if (p_cb->transport == GATT_TRANSPORT_LE)
-                        transport = BTA_GATT_TRANSPORT_LE;
-                    else
+                transport = p_cb->transport;
+            } else {
+                switch(device_type)
+                {
+                    case BT_DEVICE_TYPE_BREDR:
                         transport = BTA_GATT_TRANSPORT_BR_EDR;
-                    break;
+                        break;
+
+                    case BT_DEVICE_TYPE_BLE:
+                        transport = BTA_GATT_TRANSPORT_LE;
+                        break;
+
+                    case BT_DEVICE_TYPE_DUMO:
+                        if (p_cb->transport == GATT_TRANSPORT_LE)
+                            transport = BTA_GATT_TRANSPORT_LE;
+                        else
+                            transport = BTA_GATT_TRANSPORT_BR_EDR;
+                        break;
+                }
             }
 
             // Connect!
-            BTIF_TRACE_DEBUG ("BTA_GATTC_Open Transport  = %d, dev type = %d",
-                                transport, device_type);
+            BTIF_TRACE_DEBUG ("%s Transport=%d, device type=%d",
+                                __func__, transport, device_type);
             BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct, transport);
             break;
         }
