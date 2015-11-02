@@ -25,7 +25,7 @@
  ***********************************************************************************/
 
 #define LOG_NDDEBUG 0
-#define LOG_TAG "bt_bluedroid"
+#define LOG_TAG "bt_btif"
 
 #include <stdio.h>
 #include <stdlib.h>
