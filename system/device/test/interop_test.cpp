@@ -24,7 +24,7 @@ extern "C" {
 
 TEST(InteropTest, test_lookup_hit) {
   bt_bdaddr_t test_address;
-  string_to_bdaddr("38:2c:4a:59:67:89", &test_address);
+  string_to_bdaddr("38:2c:4a:e6:67:89", &test_address);
   EXPECT_TRUE(interop_match(INTEROP_DISABLE_LE_SECURE_CONNECTIONS, &test_address));
   string_to_bdaddr("9c:df:03:12:34:56", &test_address);
   EXPECT_TRUE(interop_match(INTEROP_AUTO_RETRY_PAIRING, &test_address));
