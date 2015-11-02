@@ -62,7 +62,7 @@ struct alarm_t {
 int64_t TIMER_INTERVAL_FOR_WAKELOCK_IN_MS = 3000;
 static const clockid_t CLOCK_ID = CLOCK_BOOTTIME;
 static const clockid_t CLOCK_ID_ALARM = CLOCK_BOOTTIME_ALARM;
-static const char *WAKE_LOCK_ID = "bluedroid_timer";
+static const char *WAKE_LOCK_ID = "bluetooth_timer";
 static const char *WAKE_LOCK_PATH = "/sys/power/wake_lock";
 static const char *WAKE_UNLOCK_PATH = "/sys/power/wake_unlock";
 static ssize_t locked_id_len = -1;
