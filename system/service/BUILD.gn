@@ -16,16 +16,22 @@
 
 source_set("service") {
   sources = [
-    "a2dp_source.cpp",
-    "core_stack.cpp",
+    "adapter.cpp",
+    "adapter_state.cpp",
     "daemon.cpp",
     "gatt_server.cpp",
+    "hal/bluetooth_interface.cpp",
+    "ipc/binder/bluetooth_binder_server.cpp",
+    "ipc/binder/IBluetooth.cpp",
+    "ipc/binder/IBluetoothCallback.cpp",
+    "ipc/binder/ipc_handler_binder.cpp",
     "ipc/ipc_handler.cpp",
     "ipc/ipc_handler_linux.cpp",
     "ipc/ipc_manager.cpp",
     "ipc/linux_ipc_host.cpp",
     "logging_helpers.cpp",
     "settings.cpp",
+    "util/atomic_string.cpp",
     "uuid.cpp"
   ]
 
