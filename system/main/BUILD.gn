@@ -53,6 +53,7 @@ shared_library("bluetooth.default") {
     "//embdrv/sbc/decoder/include",
     "//audio_a2dp_hw",
     "//utils/include",
+    "//test/suite",
   ]
 
   deps = [
