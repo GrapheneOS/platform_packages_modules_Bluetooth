@@ -85,7 +85,7 @@ LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
 LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libpower
+LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbtcore libosi
 include $(BUILD_NATIVE_TEST)
 
