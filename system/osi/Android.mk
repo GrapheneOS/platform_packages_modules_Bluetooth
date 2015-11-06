@@ -85,7 +85,7 @@ LOCAL_CFLAGS := $(btosiCommonCFlags)
 LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog libpower
+LOCAL_SHARED_LIBRARIES := libc liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 include $(BUILD_STATIC_LIBRARY)
 
