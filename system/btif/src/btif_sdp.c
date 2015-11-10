@@ -87,7 +87,7 @@ static void sdp_search_comp_copy_cb(UINT16 event, char *p_dest, char *p_src)
     if (event != BTA_SDP_SEARCH_COMP_EVT)
         return;
 
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_SDP_SEARCH_COMP));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
 
     copy_sdp_records(p_src_data->records, p_dest_data->records, p_src_data->record_count);
 }

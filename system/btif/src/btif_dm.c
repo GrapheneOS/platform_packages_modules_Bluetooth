@@ -241,7 +241,7 @@ static void btif_dm_data_copy(uint16_t event, char *dst, char *src)
         return;
 
     assert(dst_dm_sec);
-    memcpy(dst_dm_sec, src_dm_sec, sizeof(tBTA_DM_SEC));
+    maybe_non_aligned_memcpy(dst_dm_sec, src_dm_sec, sizeof(*src_dm_sec));
 
     if (event == BTA_DM_BLE_KEY_EVT)
     {
@@ -777,7 +777,7 @@ static void search_devices_copy_cb(UINT16 event, char *p_dest, char *p_src)
         return;
 
     BTIF_TRACE_DEBUG("%s: event=%s", __FUNCTION__, dump_dm_search_event(event));
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_DM_SEARCH));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
     switch (event)
     {
         case BTA_DM_INQ_RES_EVT:
@@ -810,7 +810,7 @@ static void search_services_copy_cb(UINT16 event, char *p_dest, char *p_src)
 
     if (!p_src)
         return;
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_DM_SEARCH));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
     switch (event)
     {
          case BTA_DM_DISC_RES_EVT:
