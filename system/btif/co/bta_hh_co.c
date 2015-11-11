@@ -195,7 +195,7 @@ static inline pthread_t create_thread(void *(*start_routine)(void *), void * arg
 static void *btif_hh_poll_event_thread(void *arg)
 {
     btif_hh_device_t *p_dev = arg;
-    APPL_TRACE_DEBUG("%s: Thread created fd = %d", __FUNCTION__, p_dev->fd);
+    APPL_TRACE_DEBUG("%s: Thread created fd = %d", __func__, p_dev->fd);
     struct pollfd pfds[1];
     int ret;
 
@@ -208,15 +208,14 @@ static void *btif_hh_poll_event_thread(void *arg)
     while(p_dev->hh_keep_polling){
         ret = poll(pfds, 1, 50);
         if (ret < 0) {
-            APPL_TRACE_ERROR("%s: Cannot poll for fds: %s\n", __FUNCTION__, strerror(errno));
+            APPL_TRACE_ERROR("%s: Cannot poll for fds: %s\n", __func__, strerror(errno));
             break;
         }
         if (pfds[0].revents & POLLIN) {
-            APPL_TRACE_DEBUG("btif_hh_poll_event_thread: POLLIN");
+            APPL_TRACE_DEBUG("%s: POLLIN", __func__);
             ret = uhid_event(p_dev);
-            if (ret){
+            if (ret != -EINTR)
                 break;
-            }
         }
     }
 
