@@ -1,5 +1,5 @@
 #
-#  Copyright (C) 2014 Google, Inc.
+#  Copyright (C) 2015 Google, Inc.
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := net_test_bluedroid
+LOCAL_MODULE := net_test_bluetooth
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
@@ -36,7 +36,7 @@ LOCAL_SRC_FILES := \
     support/hal.c \
     support/pan.c \
     support/rfcomm.c \
-    main.c
+    main.cpp
 
 LOCAL_SHARED_LIBRARIES += \
     liblog \
@@ -48,8 +48,8 @@ LOCAL_STATIC_LIBRARIES += \
   libbtcore \
   libosi
 
-LOCAL_CFLAGS += -std=c99 -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
+LOCAL_CFLAGS += -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 
 LOCAL_MULTILIB := 32
 
-include $(BUILD_EXECUTABLE)
+include $(BUILD_NATIVE_TEST)
