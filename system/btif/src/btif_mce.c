@@ -86,7 +86,7 @@ static void mas_discovery_comp_copy_cb(UINT16 event, char *p_dest, char *p_src)
     if (event != BTA_MCE_MAS_DISCOVERY_COMP_EVT)
         return;
 
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_MCE_MAS_DISCOVERY_COMP));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
 
     p_dest_str = p_dest + sizeof(tBTA_MCE_MAS_DISCOVERY_COMP);
 
