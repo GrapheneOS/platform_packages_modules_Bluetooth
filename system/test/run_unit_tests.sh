@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+CR=$'\n'
+
 known_tests=(
   net_test_btcore
   net_test_device
@@ -19,6 +21,7 @@ usage() {
 }
 
 run_tests() {
+  failed_tests=''
   for name in $*
   do
     echo "--- $name ---"
@@ -26,12 +29,19 @@ run_tests() {
     adb push {$ANDROID_PRODUCT_OUT,}/data/nativetest/$name/$name
     echo "running..."
     adb shell data/nativetest/$name/$name
+    if [ $? != 0 ]; then
+      failed_tests="$failed_tests$CR!!! FAILED TEST: $name !!!";
+    fi
   done
+
+  if [ "$failed_tests" != "" ]; then
+    echo "$failed_tests";
+  fi
 }
 
-if [ $# -eq 0 ] || [ $1 == "--help" ]; then
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
   usage
-elif [ $1 == "--all" ]; then
+elif [ $# -eq 0 ] || [ "$1" == "--all" ]; then
   run_tests ${known_tests[*]}
 else
   run_tests $*
