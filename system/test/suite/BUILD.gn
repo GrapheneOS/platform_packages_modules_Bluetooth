@@ -28,7 +28,7 @@ executable("net_test_bluetooth") {
     "support/hal.c",
     "support/pan.c",
     "support/rfcomm.c",
-    "main.c",
+    "main.cpp",
   ]
 
   include_dirs = [
@@ -40,6 +40,7 @@ executable("net_test_bluetooth") {
     "//btcore",
     "//main:bluetooth.default",
     "//osi",
+    "//third_party/gtest:gtest_main",
   ]
 
   libs = [ "-lpthread", "-lrt", "-ldl" ]

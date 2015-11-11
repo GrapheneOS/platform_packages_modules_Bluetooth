@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ int adapter_get_property_count() {
 }
 
 bt_property_t *adapter_get_property(bt_property_type_t type) {
-  for (int i = 0; i < property_count; ++i) {
+  int i;
+  for (i = 0; i < property_count; ++i) {
     if (properties[i].type == type) {
       return &properties[i];
     }

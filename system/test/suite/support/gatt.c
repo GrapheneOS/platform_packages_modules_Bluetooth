@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -155,7 +155,8 @@ void btgatts_register_app_cb(int status, int server_if, bt_uuid_t *uuid) {
 
 void btgatts_connection_cb(int conn_id, int server_if, int connected, bt_bdaddr_t *bda) {
   gatt_connection_id = conn_id;
-  for (int i = 0; i < 6; ++i) {
+  int i;
+  for (i = 0; i < 6; ++i) {
     remote_bd_addr.address[i] = bda->address[i];
   }
   CALLBACK_RET();

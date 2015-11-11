@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -36,7 +36,8 @@ bool adapter_enable_disable() {
 }
 
 bool adapter_repeated_enable_disable() {
-  for (int i = 0; i < 10; ++i) {
+  int i;
+  for (i = 0; i < 10; ++i) {
     if (!adapter_enable_disable()) {
       return false;
     }
