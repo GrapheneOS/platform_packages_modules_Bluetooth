@@ -892,7 +892,7 @@ void btif_av_event_deep_copy(UINT16 event, char *p_dest, char *p_src)
     tBTA_AV *av_dest = (tBTA_AV *)p_dest;
 
     // First copy the structure
-    memcpy(p_dest, p_src, sizeof(tBTA_AV));
+    maybe_non_aligned_memcpy(av_dest, av_src, sizeof(*av_src));
 
     switch (event)
     {

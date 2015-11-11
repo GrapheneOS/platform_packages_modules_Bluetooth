@@ -43,6 +43,22 @@
 #define BTIF_SIG_CB_BIT   (0x8000)
 #define BTIF_SIG_CB_START(id)    (((id) << 8) | BTIF_SIG_CB_BIT)
 
+/*
+ * A memcpy(3) wrapper when copying memory that might not be aligned.
+ *
+ * On certain architectures, if the memcpy(3) arguments appear to be
+ * pointing to aligned memory (e.g., struct pointers), the compiler might
+ * generate optimized memcpy(3) code. However, if the original memory was not
+ * aligned (e.g., because of incorrect "char *" to struct pointer casting),
+ * the result code might trigger SIGBUS crash.
+ *
+ * As a short-term solution, we use the help of the maybe_non_aligned_memcpy()
+ * macro to identify and fix such cases. In the future, we should fix the
+ * problematic "char *" to struct pointer casting, and this macro itself should
+ * be removed.
+ */
+#define maybe_non_aligned_memcpy(_a, _b, _c) memcpy((void *)(_a), (_b), (_c))
+
 /* BTIF sub-systems */
 #define BTIF_CORE           0
 #define BTIF_DM             1
@@ -174,7 +190,7 @@ typedef struct
 
     /* parameters passed to callback */
     UINT16               event;   /* message event id */
-    char                 p_param[0]; /* parameter area needs to be last */
+    char __attribute__ ((aligned)) p_param[]; /* parameter area needs to be last */
 } tBTIF_CONTEXT_SWITCH_CBACK;
 
 
