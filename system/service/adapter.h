@@ -25,6 +25,7 @@
 
 #include "service/common/bluetooth/adapter_state.h"
 #include "service/common/bluetooth/util/atomic_string.h"
+#include "service/gatt_client.h"
 #include "service/gatt_server.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/low_energy_client.h"
@@ -95,6 +96,10 @@ class Adapter : public hal::BluetoothInterface::Observer {
   // operations.
   LowEnergyClientFactory* GetLowEnergyClientFactory() const;
 
+  // Returns a pointer to the GattClientFactory. This can be used to register
+  // per-application GATT server instances.
+  GattClientFactory* GetGattClientFactory() const;
+
   // Returns a pointer to the GattServerFactory. This can be used to register
   // per-application GATT server instances.
   GattServerFactory* GetGattServerFactory() const;
@@ -134,6 +139,9 @@ class Adapter : public hal::BluetoothInterface::Observer {
 
   // Factory used to create per-app LowEnergyClient instances.
   std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;
+
+  // Factory used to create per-app GattClient instances.
+  std::unique_ptr<GattClientFactory> gatt_client_factory_;
 
   // Factory used to create per-app GattServer instances.
   std::unique_ptr<GattServerFactory> gatt_server_factory_;

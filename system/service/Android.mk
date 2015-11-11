@@ -41,6 +41,7 @@ btserviceCommonBinderSrc := \
 btserviceDaemonSrc := \
 	adapter.cpp \
 	daemon.cpp \
+	gatt_client.cpp \
 	gatt_server.cpp \
 	gatt_server_old.cpp \
 	hal/gatt_helpers.cpp \
@@ -80,6 +81,7 @@ btserviceBaseTestSrc := \
 	test/adapter_unittest.cpp \
 	test/advertise_data_unittest.cpp \
 	test/fake_hal_util.cpp \
+	test/gatt_client_unittest.cpp \
 	test/gatt_identifier_unittest.cpp \
 	test/gatt_server_unittest.cpp \
 	test/low_energy_client_unittest.cpp \

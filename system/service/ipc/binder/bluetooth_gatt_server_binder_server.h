@@ -93,7 +93,7 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
       int request_id, bool is_execute) override;
 
  private:
-  // Returns a pointer to the IBluetoothGattServerBinderServer instance
+  // Returns a pointer to the IBluetoothGattServerCallback instance
   // associated with |server_if|. Returns NULL if such a callback cannot be
   // found.
   android::sp<IBluetoothGattServerCallback>
