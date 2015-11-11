@@ -68,7 +68,7 @@ bt_uuid_t *uuid_new(const char *uuid_string) {
 
   const char *s = uuid_string;
   for (size_t i = 0; i < sizeof(bt_uuid_t); ++i, s+=2) {
-    char buf[2];
+    char buf[3] = {0};
     buf[0] = s[0];
     buf[1] = s[1];
     uuid->uu[i] = strtoul(buf, NULL, 16);
