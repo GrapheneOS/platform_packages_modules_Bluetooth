@@ -313,7 +313,7 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
        return;
 
     // Copy basic structure first
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_GATTC));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
 
     // Allocate buffer for request data if necessary
     switch (event)
@@ -1831,7 +1831,7 @@ static void btif_gattc_deep_copy(UINT16 event, char *p_dest, char *p_src)
         {
             const btif_adv_data_t *src = (btif_adv_data_t*) p_src;
             btif_adv_data_t *dst = (btif_adv_data_t*) p_dest;
-            memcpy(dst, src, sizeof(*src));
+            maybe_non_aligned_memcpy(dst, src, sizeof(*src));
 
             if (src->p_manufacturer_data)
             {

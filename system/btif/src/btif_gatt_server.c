@@ -124,7 +124,7 @@ static void btapp_gatts_copy_req_data(UINT16 event, char *p_dest, char *p_src)
         return;
 
     // Copy basic structure first
-    memcpy(p_dest_data, p_src_data, sizeof(tBTA_GATTS));
+    maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
 
     // Allocate buffer for request data if necessary
     switch (event)
