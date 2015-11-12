@@ -29,6 +29,10 @@
 #include <bluetooth/adapter_state.h>
 #include <bluetooth/binder/IBluetooth.h>
 #include <bluetooth/binder/IBluetoothCallback.h>
+#include <bluetooth/binder/IBluetoothGattClient.h>
+#include <bluetooth/binder/IBluetoothGattClientCallback.h>
+#include <bluetooth/binder/IBluetoothLowEnergy.h>
+#include <bluetooth/binder/IBluetoothLowEnergyCallback.h>
 #include <bluetooth/low_energy_constants.h>
 #include <bluetooth/uuid.h>
 
@@ -37,6 +41,7 @@ using namespace std;
 using android::sp;
 
 using ipc::binder::IBluetooth;
+using ipc::binder::IBluetoothGattClient;
 using ipc::binder::IBluetoothLowEnergy;
 
 namespace {
@@ -76,7 +81,12 @@ std::atomic_bool showing_prompt(false);
 // The registered IBluetoothLowEnergy client handle. If |ble_registering| is
 // true then an operation to register the client is in progress.
 std::atomic_bool ble_registering(false);
-std::atomic_int ble_client_if(0);
+std::atomic_int ble_client_id(0);
+
+// The registered IBluetoothGattClient client handle. If |gatt_registering| is
+// true then an operation to register the client is in progress.
+std::atomic_bool gatt_registering(false);
+std::atomic_int gatt_client_id(0);
 
 // True if the remote process has died and we should exit.
 std::atomic_bool should_exit(false);
@@ -123,18 +133,18 @@ class CLIBluetoothLowEnergyCallback
     : public ipc::binder::BnBluetoothLowEnergyCallback {
  public:
   CLIBluetoothLowEnergyCallback() = default;
-  ~CLIBluetoothLowEnergyCallback() = default;
+  ~CLIBluetoothLowEnergyCallback() override = default;
 
   // IBluetoothLowEnergyCallback overrides:
-  void OnClientRegistered(int status, int client_if) override {
+  void OnClientRegistered(int status, int client_id) override {
     if (showing_prompt.load())
       cout << endl;
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       PrintError("Failed to register BLE client");
     } else {
-      ble_client_if = client_if;
+      ble_client_id = client_id;
       cout << COLOR_BOLDWHITE "Registered BLE client with ID: " COLOR_OFF
-           << COLOR_GREEN << client_if << COLOR_OFF << endl << endl;
+           << COLOR_GREEN << client_id << COLOR_OFF << endl << endl;
     }
     if (showing_prompt.load())
       PrintPrompt();
@@ -158,6 +168,33 @@ class CLIBluetoothLowEnergyCallback
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+};
+
+class CLIGattClientCallback
+    : public ipc::binder::BnBluetoothGattClientCallback {
+ public:
+  CLIGattClientCallback() = default;
+  ~CLIGattClientCallback() override = default;
+
+  // IBluetoothGattClientCallback overrides:
+  void OnClientRegistered(int status, int client_id) override {
+    if (showing_prompt.load())
+      cout << endl;
+    if (status != bluetooth::BLE_STATUS_SUCCESS) {
+      PrintError("Failed to register GATT client");
+    } else {
+      gatt_client_id = client_id;
+      cout << COLOR_BOLDWHITE "Registered GATT client with ID: " COLOR_OFF
+           << COLOR_GREEN << client_id << COLOR_OFF << endl << endl;
+    }
+    if (showing_prompt.load())
+      PrintPrompt();
+
+    gatt_registering = false;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CLIGattClientCallback);
 };
 
 void PrintCommandStatus(bool status) {
@@ -248,7 +285,7 @@ void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  if (ble_client_if.load()) {
+  if (ble_client_id.load()) {
     PrintError("Already registered");
     return;
   }
@@ -267,7 +304,7 @@ void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
 void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
-  if (!ble_client_if.load()) {
+  if (!ble_client_id.load()) {
     PrintError("Not registered");
     return;
   }
@@ -278,8 +315,8 @@ void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  ble_iface->UnregisterClient(ble_client_if.load());
-  ble_client_if = 0;
+  ble_iface->UnregisterClient(ble_client_id.load());
+  ble_client_id = 0;
   PrintCommandStatus(true);
 }
 
@@ -293,6 +330,49 @@ void HandleUnregisterAllBLE(IBluetooth* bt_iface, const vector<string>& args) {
   }
 
   ble_iface->UnregisterAll();
+  PrintCommandStatus(true);
+}
+
+void HandleRegisterGATT(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (gatt_registering.load()) {
+    PrintError("In progress");
+    return;
+  }
+
+  if (gatt_client_id.load()) {
+    PrintError("Already registered");
+    return;
+  }
+
+  sp<IBluetoothGattClient> gatt_iface = bt_iface->GetGattClientInterface();
+  if (!gatt_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth GATT Client interface");
+    return;
+  }
+
+  bool status = gatt_iface->RegisterClient(new CLIGattClientCallback());
+  gatt_registering = status;
+  PrintCommandStatus(status);
+}
+
+void HandleUnregisterGATT(IBluetooth* bt_iface, const vector<string>& args) {
+  CHECK_NO_ARGS(args);
+
+  if (!gatt_client_id.load()) {
+    PrintError("Not registered");
+    return;
+  }
+
+  sp<IBluetoothGattClient> gatt_iface = bt_iface->GetGattClientInterface();
+  if (!gatt_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth GATT Client interface");
+    return;
+  }
+
+  gatt_iface->UnregisterClient(gatt_client_id.load());
+  gatt_client_id = 0;
   PrintCommandStatus(true);
 }
 
@@ -350,7 +430,7 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
     }
   }
 
-  if (!ble_client_if.load()) {
+  if (!ble_client_id.load()) {
     PrintError("BLE not registered");
     return;
   }
@@ -406,13 +486,13 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
 
   bluetooth::AdvertiseData scan_rsp;
 
-  bool status = ble_iface->StartMultiAdvertising(ble_client_if.load(),
+  bool status = ble_iface->StartMultiAdvertising(ble_client_id.load(),
                                                  adv_data, scan_rsp, settings);
   PrintCommandStatus(status);
 }
 
 void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
-  if (!ble_client_if.load()) {
+  if (!ble_client_id.load()) {
     PrintError("BLE not registered");
     return;
   }
@@ -423,7 +503,7 @@ void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  bool status = ble_iface->StopMultiAdvertising(ble_client_if.load());
+  bool status = ble_iface->StopMultiAdvertising(ble_client_id.load());
   PrintCommandStatus(status);
 }
 
@@ -452,6 +532,10 @@ struct {
     "\t\tUnregister from the Bluetooth Low Energy interface" },
   { "unregister-all-ble", HandleUnregisterAllBLE,
     "\tUnregister all clients from the Bluetooth Low Energy interface" },
+  { "register-gatt", HandleRegisterGATT,
+    "\t\tRegister with the Bluetooth GATT Client interface" },
+  { "unregister-gatt", HandleUnregisterGATT,
+    "\t\tUnregister from the Bluetooth GATT Client interface" },
   { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
   { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
   {},
