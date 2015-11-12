@@ -30,7 +30,7 @@ using android::status_t;
 namespace ipc {
 namespace binder {
 
-// statuc
+// static
 const char IBluetoothGattServer::kServiceName[] =
     "bluetooth-gatt-server-service";
 
