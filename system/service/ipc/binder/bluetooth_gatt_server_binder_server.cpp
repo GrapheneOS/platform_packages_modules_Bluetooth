@@ -24,9 +24,7 @@ namespace ipc {
 namespace binder {
 
 namespace {
-
 const int kInvalidClientId = -1;
-
 }  // namespace
 
 BluetoothGattServerBinderServer::BluetoothGattServerBinderServer(

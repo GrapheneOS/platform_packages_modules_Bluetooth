@@ -102,8 +102,6 @@ class AdvertiseDataHandler : public MockGattHandler {
   std::vector<uint8_t> manufacturer_data_;
   std::vector<uint8_t> service_data_;
   std::vector<uint8_t> uuid_data_;
-
-
 };
 
 class LowEnergyClientTest : public ::testing::Test {
