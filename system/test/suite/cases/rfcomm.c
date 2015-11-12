@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -67,7 +67,8 @@ bool rfcomm_connect() {
 bool rfcomm_repeated_connect() {
   static const int max_iterations = 128;
 
-  for (int i = 0; i < max_iterations; ++i) {
+  int i;
+  for (i = 0; i < max_iterations; ++i) {
     TASSERT(rfcomm_connect(), "Connection failed on attempt %d/%d", i, max_iterations);
   }
 
