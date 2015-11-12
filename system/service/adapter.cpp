@@ -49,6 +49,7 @@ Adapter::Adapter()
   memset(&local_le_features_, 0, sizeof(local_le_features_));
   hal::BluetoothInterface::Get()->AddObserver(this);
   ble_client_factory_.reset(new LowEnergyClientFactory());
+  gatt_client_factory_.reset(new GattClientFactory());
   gatt_server_factory_.reset(new GattServerFactory());
   hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();
 }
@@ -163,6 +164,10 @@ bool Adapter::IsMultiAdvertisementSupported() const {
 
 LowEnergyClientFactory* Adapter::GetLowEnergyClientFactory() const {
   return ble_client_factory_.get();
+}
+
+GattClientFactory* Adapter::GetGattClientFactory() const {
+  return gatt_client_factory_.get();
 }
 
 GattServerFactory* Adapter::GetGattServerFactory() const {

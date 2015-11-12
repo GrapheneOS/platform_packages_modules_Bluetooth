@@ -242,7 +242,7 @@ class GattServer : public BluetoothClientInstance,
     GattCallback callback;
   };
 
-  // Constructor shouldn't be called directly as instance are meant to be
+  // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
   GattServer(const UUID& uuid, int server_if);
 
@@ -359,7 +359,7 @@ class GattServer : public BluetoothClientInstance,
 };
 
 // GattServerFactory is used to register and obtain a per-application GattServer
-// instance. Users should call RegisterServer to obtain their own unique
+// instance. Users should call RegisterClient to obtain their own unique
 // GattServer instance that has been registered with the Bluetooth stack.
 class GattServerFactory : public BluetoothClientInstanceFactory,
                           private hal::BluetoothGattInterface::ServerObserver {
