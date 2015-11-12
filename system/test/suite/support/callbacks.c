@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2014 Google, Inc.
+ *  Copyright (C) 2015 Google, Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -208,13 +208,15 @@ static btgatt_callbacks_t gatt_callbacks = {
 };
 
 void callbacks_init() {
-  for (size_t i = 0; i < ARRAY_SIZE(callback_data); ++i) {
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(callback_data); ++i) {
     sem_init(&callback_data[i].semaphore, 0, 0);
   }
 }
 
 void callbacks_cleanup() {
-  for (size_t i = 0; i < ARRAY_SIZE(callback_data); ++i) {
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(callback_data); ++i) {
     sem_destroy(&callback_data[i].semaphore);
   }
 }
@@ -232,7 +234,8 @@ btgatt_callbacks_t *callbacks_get_gatt_struct() {
 }
 
 sem_t *callbacks_get_semaphore(const char *name) {
-  for (size_t i = 0; i < ARRAY_SIZE(callback_data); ++i) {
+  size_t i;
+  for (i = 0; i < ARRAY_SIZE(callback_data); ++i) {
     if (callback_data[i].name && !strcmp(name, callback_data[i].name)) {
       return &callback_data[i].semaphore;
     }
