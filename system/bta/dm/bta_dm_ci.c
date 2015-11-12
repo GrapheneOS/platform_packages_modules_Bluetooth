@@ -30,7 +30,6 @@
 #include "bta_dm_ci.h"
 
 
-#if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_dm_ci_io_req
@@ -84,7 +83,6 @@ void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16
         bta_sys_sendmsg(p_msg);
     }
 }
-#endif /* BTM_OOB_INCLUDED */
 
 #if (BTM_SCO_HCI_INCLUDED == TRUE)
 /*******************************************************************************

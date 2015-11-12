@@ -1522,11 +1522,7 @@ UINT8 btm_ble_io_capabilities_req(tBTM_SEC_DEV_REC *p_dev_rec, tBTM_LE_IO_REQ *p
         /* the callback function implementation may change the IO capability... */
         callback_rc = (*btm_cb.api.p_le_callback) (BTM_LE_IO_REQ_EVT, p_dev_rec->bd_addr, (tBTM_LE_EVT_DATA *)p_data);
     }
-#if BTM_OOB_INCLUDED == TRUE
     if ((callback_rc == BTM_SUCCESS) || (BTM_OOB_UNKNOWN != p_data->oob_data))
-#else
-    if (callback_rc == BTM_SUCCESS)
-#endif
     {
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE
         if (btm_cb.devcb.keep_rfu_in_auth_req)

@@ -99,10 +99,7 @@ static void btu_hcif_user_conf_request_evt (UINT8 *p);
 static void btu_hcif_user_passkey_request_evt (UINT8 *p);
 static void btu_hcif_user_passkey_notif_evt (UINT8 *p);
 static void btu_hcif_keypress_notif_evt (UINT8 *p);
-
-    #if BTM_OOB_INCLUDED == TRUE
 static void btu_hcif_rem_oob_request_evt (UINT8 *p);
-    #endif
 
 static void btu_hcif_simple_pair_complete_evt (UINT8 *p);
     #if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
@@ -281,11 +278,9 @@ void btu_hcif_process_event (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_msg)
         case HCI_USER_PASSKEY_REQUEST_EVT:
             btu_hcif_user_passkey_request_evt (p);
             break;
-#if BTM_OOB_INCLUDED == TRUE
         case HCI_REMOTE_OOB_DATA_REQUEST_EVT:
             btu_hcif_rem_oob_request_evt (p);
             break;
-#endif
         case HCI_SIMPLE_PAIRING_COMPLETE_EVT:
             btu_hcif_simple_pair_complete_evt (p);
             break;
@@ -851,9 +846,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             break;
 
         case HCI_READ_LOCAL_OOB_DATA:
-#if BTM_OOB_INCLUDED == TRUE
             btm_read_local_oob_complete(p);
-#endif
             break;
 
         case HCI_READ_INQ_TX_POWER_LEVEL:
@@ -1589,12 +1582,10 @@ static void btu_hcif_keypress_notif_evt (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-    #if BTM_OOB_INCLUDED == TRUE
 static void btu_hcif_rem_oob_request_evt (UINT8 *p)
 {
     btm_rem_oob_req(p);
 }
-    #endif
 
 /*******************************************************************************
 **

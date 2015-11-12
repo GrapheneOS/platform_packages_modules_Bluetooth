@@ -819,9 +819,8 @@ typedef tBTM_LE_AUTH_REQ       tBTA_LE_AUTH_REQ;       /* combination of the abo
 
 #define BTA_OOB_NONE        BTM_OOB_NONE
 #define BTA_OOB_PRESENT     BTM_OOB_PRESENT
-#if BTM_OOB_INCLUDED == TRUE
 #define BTA_OOB_UNKNOWN     BTM_OOB_UNKNOWN
-#endif
+
 typedef tBTM_OOB_DATA   tBTA_OOB_DATA;
 
 /* Structure associated with BTA_DM_SP_CFM_REQ_EVT */
@@ -1540,7 +1539,6 @@ extern void BTA_DmBondCancel(BD_ADDR bd_addr);
 extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len,
                            UINT8 *p_pin);
 
-#if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         BTA_DmLocalOob
@@ -1552,7 +1550,6 @@ extern void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len,
 **
 *******************************************************************************/
 extern void BTA_DmLocalOob(void);
-#endif /* BTM_OOB_INCLUDED */
 
 /*******************************************************************************
 **

@@ -1097,13 +1097,8 @@ extern BOOLEAN btm_ble_init_pseudo_addr (tBTM_SEC_DEV_REC *p_dev_rec, BD_ADDR ne
 
 extern tINQ_DB_ENT *btm_inq_db_new (BD_ADDR p_bda);
 
-#if BTM_OOB_INCLUDED == TRUE
 extern void  btm_rem_oob_req (UINT8 *p);
 extern void  btm_read_local_oob_complete (UINT8 *p);
-#else
-#define btm_rem_oob_req(p)
-#define btm_read_local_oob_complete(p)
-#endif
 
 extern void  btm_acl_resubmit_page (void);
 extern void  btm_acl_reset_paging (void);

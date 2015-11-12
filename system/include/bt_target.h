@@ -551,11 +551,6 @@
 #define BTM_DEFAULT_DD_AUTH_REQ            BTM_AUTH_AP_YES
 #endif
 
-/* Include Out-of-Band implementation for Simple Pairing */
-#ifndef BTM_OOB_INCLUDED
-#define BTM_OOB_INCLUDED                TRUE
-#endif
-
 /* TRUE to include Sniff Subrating */
 #ifndef BTM_SSR_INCLUDED
 #define BTM_SSR_INCLUDED                TRUE
