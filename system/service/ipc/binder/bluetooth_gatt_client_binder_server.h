@@ -18,8 +18,10 @@
 
 #include <base/macros.h>
 
+#include "service/gatt_client.h"
 #include "service/common/bluetooth/binder/IBluetoothGattClient.h"
 #include "service/common/bluetooth/binder/IBluetoothGattClientCallback.h"
+#include "service/ipc/binder/interface_with_clients_base.h"
 
 namespace bluetooth {
 class Adapter;
@@ -29,7 +31,8 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothGattClient interface.
-class BluetoothGattClientBinderServer : public BnBluetoothGattClient {
+class BluetoothGattClientBinderServer : public BnBluetoothGattClient,
+                                        public InterfaceWithClientsBase {
  public:
   explicit BluetoothGattClientBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothGattClientBinderServer() override = default;
@@ -41,6 +44,22 @@ class BluetoothGattClientBinderServer : public BnBluetoothGattClient {
   void UnregisterAll() override;
 
  private:
+  // Returns a pointer to the IBluetoothGattClientCallback instance
+  // associated with |client_id|. Returns NULL if such a callback cannot be
+  // found.
+  android::sp<IBluetoothGattClientCallback>
+      GetGattClientCallback(int client_id);
+
+  // Returns a pointer to the GattClient instance associated with |client_id|.
+  // Returns NULL if such a client cannot be found.
+  std::shared_ptr<bluetooth::GattClient> GetGattClient(int client_id);
+
+  // InterfaceWithClientsBase override:
+  void OnRegisterClientImpl(
+      bluetooth::BLEStatus status,
+      android::sp<IInterface> callback,
+      bluetooth::BluetoothClientInstance* client) override;
+
   bluetooth::Adapter* adapter_;  // weak
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothGattClientBinderServer);
