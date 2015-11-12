@@ -129,6 +129,11 @@ status_t BnBluetooth::onTransact(
       reply->writeStrongBinder(IInterface::asBinder(ble_iface.get()));
       return android::NO_ERROR;
     }
+    case GET_GATT_CLIENT_INTERFACE_TRANSACTION: {
+      sp<IBluetoothGattClient> gatt_client_iface = GetGattClientInterface();
+      reply->writeStrongBinder(IInterface::asBinder(gatt_client_iface.get()));
+      return android::NO_ERROR;
+    }
     case GET_GATT_SERVER_INTERFACE_TRANSACTION: {
       sp<IBluetoothGattServer> gatt_server_iface = GetGattServerInterface();
       reply->writeStrongBinder(IInterface::asBinder(gatt_server_iface.get()));
@@ -264,6 +269,17 @@ sp<IBluetoothLowEnergy> BpBluetooth::GetLowEnergyInterface() {
                      data, &reply);
 
   return interface_cast<IBluetoothLowEnergy>(reply.readStrongBinder());
+}
+
+sp<IBluetoothGattClient> BpBluetooth::GetGattClientInterface() {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+
+  remote()->transact(IBluetooth::GET_GATT_CLIENT_INTERFACE_TRANSACTION,
+                     data, &reply);
+
+  return interface_cast<IBluetoothGattClient>(reply.readStrongBinder());
 }
 
 sp<IBluetoothGattServer> BpBluetooth::GetGattServerInterface() {

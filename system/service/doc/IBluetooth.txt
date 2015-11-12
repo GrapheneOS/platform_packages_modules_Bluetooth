@@ -106,6 +106,12 @@ interface IBluetooth {
   IBluetoothLowEnergy getLowEnergyInterface();
 
   /**
+   * Returns a binder that can be used to interact with GATT client-role
+   * features.
+   */
+  IBluetoothGattClient getGattClientInterface();
+
+  /**
    * Returns a binder that can be used to interact with GATT server-role
    * features.
    */
