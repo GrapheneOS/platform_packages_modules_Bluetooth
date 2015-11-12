@@ -43,7 +43,7 @@ const UUID& GattClient::GetAppIdentifier() const {
   return app_identifier_;
 }
 
-int GattClient::GetClientId() const {
+int GattClient::GetInstanceId() const {
   return client_id_;
 }
 
@@ -58,8 +58,9 @@ GattClientFactory::~GattClientFactory() {
   hal::BluetoothGattInterface::Get()->RemoveClientObserver(this);
 }
 
-bool GattClientFactory::RegisterClient(const UUID& uuid,
-                                       const RegisterCallback& callback) {
+bool GattClientFactory::RegisterInstance(
+    const UUID& uuid,
+    const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 

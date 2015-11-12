@@ -25,7 +25,7 @@
 
 #include <base/macros.h>
 
-#include "service/bluetooth_client_instance.h"
+#include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/gatt_identifier.h"
 #include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
@@ -35,7 +35,7 @@ namespace bluetooth {
 // A GattServer instance represents an application's handle to perform GATT
 // server-role operations. Instances cannot be created directly and should be
 // obtained through the factory.
-class GattServer : public BluetoothClientInstance,
+class GattServer : public BluetoothInstance,
                    private hal::BluetoothGattInterface::ServerObserver {
  public:
   // Delegate interface is used to handle incoming requests and confirmations
@@ -119,7 +119,7 @@ class GattServer : public BluetoothClientInstance,
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
-  int GetClientId() const override;
+  int GetInstanceId() const override;
 
   // Callback type used to report the status of an asynchronous GATT server
   // operation.
@@ -244,7 +244,7 @@ class GattServer : public BluetoothClientInstance,
 
   // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
-  GattServer(const UUID& uuid, int server_if);
+  GattServer(const UUID& uuid, int server_id);
 
   // Returns a GattIdentifier for the attribute with the given UUID within the
   // current pending service declaration.
@@ -256,33 +256,33 @@ class GattServer : public BluetoothClientInstance,
   // hal::BluetoothGattInterface::ServerObserver overrides:
   void ConnectionCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int conn_id, int server_if,
+      int conn_id, int server_id,
       int connected,
       const bt_bdaddr_t& bda) override;
   void ServiceAddedCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       const btgatt_srvc_id_t& srvc_id,
       int service_handle) override;
   void CharacteristicAddedCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       const bt_uuid_t& uuid,
       int service_handle,
       int char_handle) override;
   void DescriptorAddedCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       const bt_uuid_t& uuid,
       int service_handle,
       int desc_handle) override;
   void ServiceStartedCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       int service_handle) override;
   void ServiceStoppedCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       int service_handle) override;
   void RequestReadCallback(
       hal::BluetoothGattInterface* gatt_iface,
@@ -324,7 +324,7 @@ class GattServer : public BluetoothClientInstance,
 
   // See getters for documentation.
   UUID app_identifier_;
-  int server_if_;
+  int server_id_;
 
   // Mutex that synchronizes access to the entries below.
   std::mutex mutex_;
@@ -361,7 +361,7 @@ class GattServer : public BluetoothClientInstance,
 // GattServerFactory is used to register and obtain a per-application GattServer
 // instance. Users should call RegisterClient to obtain their own unique
 // GattServer instance that has been registered with the Bluetooth stack.
-class GattServerFactory : public BluetoothClientInstanceFactory,
+class GattServerFactory : public BluetoothInstanceFactory,
                           private hal::BluetoothGattInterface::ServerObserver {
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
@@ -369,15 +369,15 @@ class GattServerFactory : public BluetoothClientInstanceFactory,
   GattServerFactory();
   ~GattServerFactory() override;
 
-  // BluetoothClientInstanceFactory override:
-  bool RegisterClient(const UUID& uuid,
-                      const RegisterCallback& callback) override;
+  // BluetoothInstanceFactory override:
+  bool RegisterInstance(const UUID& uuid,
+                        const RegisterCallback& callback) override;
 
  private:
   // hal::BluetoothGattInterface::ServerObserver override:
   void RegisterServerCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int server_if,
+      int status, int server_id,
       const bt_uuid_t& app_uuid) override;
 
   // Map of pending calls to register.

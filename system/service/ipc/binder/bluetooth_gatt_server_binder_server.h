@@ -21,7 +21,7 @@
 #include "service/gatt_server.h"
 #include "service/common/bluetooth/binder/IBluetoothGattServer.h"
 #include "service/common/bluetooth/binder/IBluetoothGattServerCallback.h"
-#include "service/ipc/binder/interface_with_clients_base.h"
+#include "service/ipc/binder/interface_with_instances_base.h"
 
 namespace bluetooth {
 class Adapter;
@@ -32,7 +32,7 @@ namespace binder {
 
 // Implements the server side of the IBluetoothGattServer interface.
 class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
-                                        public InterfaceWithClientsBase,
+                                        public InterfaceWithInstancesBase,
                                         public bluetooth::GattServer::Delegate {
  public:
   explicit BluetoothGattServerBinderServer(bluetooth::Adapter* adapter);
@@ -41,24 +41,24 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
   // IBluetoothGattServer overrides:
   bool RegisterServer(
       const android::sp<IBluetoothGattServerCallback>& callback) override;
-  void UnregisterServer(int server_if) override;
+  void UnregisterServer(int server_id) override;
   void UnregisterAll() override;
   bool BeginServiceDeclaration(
-      int server_if, bool is_primary, const bluetooth::UUID& uuid,
+      int server_id, bool is_primary, const bluetooth::UUID& uuid,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool AddCharacteristic(
-      int server_if, const bluetooth::UUID& uuid,
+      int server_id, const bluetooth::UUID& uuid,
       int properties, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
   bool AddDescriptor(
-      int server_if, const bluetooth::UUID& uuid, int permissions,
+      int server_id, const bluetooth::UUID& uuid, int permissions,
       std::unique_ptr<bluetooth::GattIdentifier>* out_id) override;
-  bool EndServiceDeclaration(int server_if) override;
-  bool SendResponse(int server_if, const std::string& device_address,
+  bool EndServiceDeclaration(int server_id) override;
+  bool SendResponse(int server_id, const std::string& device_address,
                     int request_id, int status, int offset,
                     const std::vector<uint8_t>& value) override;
   bool SendNotification(
-      int server_if,
+      int server_id,
       const std::string& device_address,
       const bluetooth::GattIdentifier& characteristic_id,
       bool confirm,
@@ -94,20 +94,20 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
 
  private:
   // Returns a pointer to the IBluetoothGattServerCallback instance
-  // associated with |server_if|. Returns NULL if such a callback cannot be
+  // associated with |server_id|. Returns NULL if such a callback cannot be
   // found.
   android::sp<IBluetoothGattServerCallback>
-      GetGattServerCallback(int server_if);
+      GetGattServerCallback(int server_id);
 
-  // Returns a pointer to the GattServer instance associated with |server_if|.
-  // Returns NULL if such a client cannot be found.
-  std::shared_ptr<bluetooth::GattServer> GetGattServer(int server_if);
+  // Returns a pointer to the GattServer instance associated with |server_id|.
+  // Returns NULL if such an instance cannot be found.
+  std::shared_ptr<bluetooth::GattServer> GetGattServer(int server_id);
 
-  // InterfaceWithClientsBase override:
-  void OnRegisterClientImpl(
+  // InterfaceWithInstancesBase override:
+  void OnRegisterInstanceImpl(
       bluetooth::BLEStatus status,
       android::sp<IInterface> callback,
-      bluetooth::BluetoothClientInstance* client) override;
+      bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
 

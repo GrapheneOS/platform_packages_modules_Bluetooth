@@ -21,7 +21,7 @@
 #include "service/gatt_client.h"
 #include "service/common/bluetooth/binder/IBluetoothGattClient.h"
 #include "service/common/bluetooth/binder/IBluetoothGattClientCallback.h"
-#include "service/ipc/binder/interface_with_clients_base.h"
+#include "service/ipc/binder/interface_with_instances_base.h"
 
 namespace bluetooth {
 class Adapter;
@@ -32,7 +32,7 @@ namespace binder {
 
 // Implements the server side of the IBluetoothGattClient interface.
 class BluetoothGattClientBinderServer : public BnBluetoothGattClient,
-                                        public InterfaceWithClientsBase {
+                                        public InterfaceWithInstancesBase {
  public:
   explicit BluetoothGattClientBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothGattClientBinderServer() override = default;
@@ -54,11 +54,11 @@ class BluetoothGattClientBinderServer : public BnBluetoothGattClient,
   // Returns NULL if such a client cannot be found.
   std::shared_ptr<bluetooth::GattClient> GetGattClient(int client_id);
 
-  // InterfaceWithClientsBase override:
-  void OnRegisterClientImpl(
+  // InterfaceWithInstancesBase override:
+  void OnRegisterInstanceImpl(
       bluetooth::BLEStatus status,
       android::sp<IInterface> callback,
-      bluetooth::BluetoothClientInstance* client) override;
+      bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
 

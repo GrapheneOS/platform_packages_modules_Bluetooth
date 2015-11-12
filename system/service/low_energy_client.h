@@ -23,7 +23,7 @@
 
 #include <base/macros.h>
 
-#include "service/bluetooth_client_instance.h"
+#include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/advertise_data.h"
 #include "service/common/bluetooth/advertise_settings.h"
 #include "service/common/bluetooth/low_energy_constants.h"
@@ -36,7 +36,7 @@ namespace bluetooth {
 // Bluetooth Low Energy GAP operations. Instances cannot be created directly and
 // should be obtained through the factory.
 class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
-                        public BluetoothClientInstance {
+                        public BluetoothInstance {
  public:
   // The destructor automatically unregisters this client instance from the
   // stack.
@@ -69,25 +69,25 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
-  int GetClientId() const override;
+  int GetInstanceId() const override;
 
  private:
   friend class LowEnergyClientFactory;
 
   // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
-  LowEnergyClient(const UUID& uuid, int client_if);
+  LowEnergyClient(const UUID& uuid, int client_id);
 
   // BluetoothGattInterface::ClientObserver overrides:
   void MultiAdvEnableCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int client_if, int status) override;
+      int client_id, int status) override;
   void MultiAdvDataCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int client_if, int status) override;
+      int client_id, int status) override;
   void MultiAdvDisableCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int client_if, int status) override;
+      int client_id, int status) override;
 
   // Helper method called from SetAdvertiseData/SetScanResponse.
   bt_status_t SetAdvertiseData(
@@ -106,7 +106,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // See getters above for documentation.
   UUID app_identifier_;
-  int client_if_;
+  int client_id_;
 
   // Protects advertising-related members below.
   std::mutex adv_fields_lock_;
@@ -133,27 +133,27 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 };
 
 // LowEnergyClientFactory is used to register and obtain a per-application
-// LowEnergyClient instance. Users should call RegisterClient to obtain their
+// LowEnergyClient instance. Users should call RegisterInstance to obtain their
 // own unique LowEnergyClient instance that has been registered with the
 // Bluetooth stack.
 class LowEnergyClientFactory
     : private hal::BluetoothGattInterface::ClientObserver,
-      public BluetoothClientInstanceFactory {
+      public BluetoothInstanceFactory {
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
   LowEnergyClientFactory();
   ~LowEnergyClientFactory() override;
 
-  // BluetoothClientInstanceFactory override:
-  bool RegisterClient(const UUID& uuid,
-                      const RegisterCallback& callback) override;
+  // BluetoothInstanceFactory override:
+  bool RegisterInstance(const UUID& uuid,
+                        const RegisterCallback& callback) override;
 
  private:
   // BluetoothGattInterface::ClientObserver overrides:
   void RegisterClientCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      int status, int client_if,
+      int status, int client_id,
       const bt_uuid_t& app_uuid) override;
 
   // Map of pending calls to register.
