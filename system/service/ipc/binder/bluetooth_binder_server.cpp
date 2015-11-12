@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "service/ipc/binder/bluetooth_gatt_client_binder_server.h"
 #include "service/ipc/binder/bluetooth_gatt_server_binder_server.h"
 #include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 
@@ -122,6 +123,21 @@ BluetoothBinderServer::GetLowEnergyInterface() {
     low_energy_interface_ = new BluetoothLowEnergyBinderServer(adapter_);
 
   return low_energy_interface_;
+}
+
+sp<IBluetoothGattClient>
+BluetoothBinderServer::GetGattClientInterface() {
+  VLOG(2) << __func__;
+
+  if (!adapter_->IsEnabled()) {
+    LOG(ERROR) << "Cannot obtain IBluetoothGattClient interface while disabled";
+    return nullptr;
+  }
+
+  if (!gatt_client_interface_.get())
+    gatt_client_interface_ = new BluetoothGattClientBinderServer(adapter_);
+
+  return gatt_client_interface_;
 }
 
 sp<IBluetoothGattServer>

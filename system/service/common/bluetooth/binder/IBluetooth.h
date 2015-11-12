@@ -24,6 +24,7 @@
 #include <binder/IInterface.h>
 
 #include <bluetooth/binder/IBluetoothCallback.h>
+#include <bluetooth/binder/IBluetoothGattClient.h>
 #include <bluetooth/binder/IBluetoothGattServer.h>
 #include <bluetooth/binder/IBluetoothLowEnergy.h>
 #include <bluetooth/uuid.h>
@@ -122,6 +123,7 @@ class IBluetooth : public android::IInterface {
     ON_BR_EDR_DOWN_TRANSACTION,
 
     GET_LOW_ENERGY_INTERFACE_TRANSACTION,
+    GET_GATT_CLIENT_INTERFACE_TRANSACTION,
     GET_GATT_SERVER_INTERFACE_TRANSACTION,
   };
 
@@ -150,6 +152,7 @@ class IBluetooth : public android::IInterface {
   virtual bool IsMultiAdvertisementSupported() = 0;
 
   virtual android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() = 0;
+  virtual android::sp<IBluetoothGattClient> GetGattClientInterface() = 0;
   virtual android::sp<IBluetoothGattServer> GetGattServerInterface() = 0;
 
   // TODO(armansito): Complete the API definition.
@@ -201,6 +204,7 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   bool IsMultiAdvertisementSupported() override;
 
   android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
+  android::sp<IBluetoothGattClient> GetGattClientInterface() override;
   android::sp<IBluetoothGattServer> GetGattServerInterface() override;
 
  private:

@@ -24,6 +24,7 @@
 #include "service/adapter.h"
 #include "service/common/bluetooth/binder/IBluetooth.h"
 #include "service/common/bluetooth/binder/IBluetoothCallback.h"
+#include "service/common/bluetooth/binder/IBluetoothGattClient.h"
 #include "service/common/bluetooth/binder/IBluetoothGattServer.h"
 #include "service/common/bluetooth/binder/IBluetoothLowEnergy.h"
 #include "service/common/bluetooth/uuid.h"
@@ -58,6 +59,7 @@ class BluetoothBinderServer : public BnBluetooth,
 
   bool IsMultiAdvertisementSupported() override;
   android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
+  android::sp<IBluetoothGattClient> GetGattClientInterface() override;
   android::sp<IBluetoothGattServer> GetGattServerInterface() override;
 
   // bluetooth::Adapter::Observer overrides:
@@ -73,8 +75,12 @@ class BluetoothBinderServer : public BnBluetooth,
   // first call to GetLowEnergyInterface().
   android::sp<IBluetoothLowEnergy> low_energy_interface_;
 
+  // The IBluetoothGattClient interface handle. This is lazily initialized on
+  // the first call to GetGattClientInterface().
+  android::sp<IBluetoothGattClient> gatt_client_interface_;
+
   // The IBluetoothGattServer interface handle. This is lazily initialized on
-  // the first call to GetLowEnergyInterface().
+  // the first call to GetGattServerInterface().
   android::sp<IBluetoothGattServer> gatt_server_interface_;
 
   DISALLOW_COPY_AND_ASSIGN(BluetoothBinderServer);
