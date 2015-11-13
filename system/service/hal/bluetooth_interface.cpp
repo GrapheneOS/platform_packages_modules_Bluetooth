@@ -53,13 +53,17 @@ base::ObserverList<BluetoothInterface::Observer>* GetObservers();
 #define FOR_EACH_BLUETOOTH_OBSERVER(func) \
   FOR_EACH_OBSERVER(BluetoothInterface::Observer, *GetObservers(), func)
 
+#define VERIFY_INTERFACE_OR_RETURN() \
+  do { \
+    if (!g_bluetooth_interface) { \
+      LOG(WARNING) << "Callback received while |g_interface| is NULL"; \
+      return; \
+    } \
+  } while (0)
+
 void AdapterStateChangedCallback(bt_state_t state) {
   lock_guard<mutex> lock(g_instance_lock);
-  if (!g_bluetooth_interface) {
-    LOG(WARNING) << "Callback received after global instance was destroyed";
-    return;
-  }
-
+  VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Adapter state changed: " << BtStateText(state);
   FOR_EACH_BLUETOOTH_OBSERVER(AdapterStateChangedCallback(state));
 }
@@ -68,11 +72,7 @@ void AdapterPropertiesCallback(bt_status_t status,
                                int num_properties,
                                bt_property_t* properties) {
   lock_guard<mutex> lock(g_instance_lock);
-  if (!g_bluetooth_interface) {
-    LOG(WARNING) << "Callback received after global instance was destroyed";
-    return;
-  }
-
+  VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Adapter properties changed - status: " << BtStatusText(status)
           << ", num_properties: " << num_properties;
   FOR_EACH_BLUETOOTH_OBSERVER(
@@ -81,13 +81,24 @@ void AdapterPropertiesCallback(bt_status_t status,
 
 void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   lock_guard<mutex> lock(g_instance_lock);
-  if (!g_bluetooth_interface) {
-    LOG(WARNING) << "Callback received after global instance was destroyed";
-    return;
-  }
-
+  VERIFY_INTERFACE_OR_RETURN();
   VLOG(1) << "Discovery state changed - state: " << BtDiscoveryStateText(state);
   FOR_EACH_BLUETOOTH_OBSERVER(DiscoveryStateChangedCallback(state));
+}
+
+void AclStateChangedCallback(bt_status_t status,
+                             bt_bdaddr_t *remote_bd_addr,
+                             bt_acl_state_t state) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(remote_bd_addr);
+  VLOG(1) << "Remote device ACL state changed - status: "
+          << BtStatusText(status)
+          << " - BD_ADDR: " << BtAddrString(remote_bd_addr)
+          << " - state: "
+          << ((state == BT_ACL_STATE_CONNECTED) ? "CONNECTED" : "DISCONNECTED");
+  FOR_EACH_BLUETOOTH_OBSERVER(
+      AclStateChangedCallback(status, *remote_bd_addr, state));
 }
 
 void ThreadEventCallback(bt_cb_thread_evt evt) {
@@ -136,7 +147,7 @@ bt_callbacks_t bt_callbacks = {
   nullptr, /* pin_request_cb  */
   nullptr, /* ssp_request_cb  */
   nullptr, /* bond_state_changed_cb */
-  nullptr, /* acl_state_changed_cb */
+  AclStateChangedCallback,
   ThreadEventCallback,
   nullptr, /* dut_mode_recv_cb */
   nullptr, /* le_test_mode_cb */
@@ -272,6 +283,13 @@ void BluetoothInterface::Observer::AdapterPropertiesCallback(
 
 void BluetoothInterface::Observer::DiscoveryStateChangedCallback(
     bt_discovery_state_t /* state */) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::AclStateChangedCallback(
+    bt_status_t /* status */,
+    const bt_bdaddr_t& /* remote_bdaddr */,
+    bt_acl_state_t /* state */) {
   // Do nothing.
 }
 

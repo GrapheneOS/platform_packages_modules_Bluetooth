@@ -19,6 +19,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
+#include <unordered_set>
 
 #include <base/macros.h>
 #include <base/observer_list.h>
@@ -44,13 +45,25 @@ class Adapter : public hal::BluetoothInterface::Observer {
   // Observer interface allows other classes to receive notifications from us.
   // All of the methods in this interface are declared as optional to allow
   // different layers to process only those events that they are interested in.
+  //
+  // All methods take in an |adapter| argument which points to the Adapter
+  // object that the Observer instance was added to.
   class Observer {
    public:
     virtual ~Observer() = default;
 
+    // Called when there is a change in the state of the local Bluetooth
+    // |adapter| from |prev_state| to |new_state|.
     virtual void OnAdapterStateChanged(Adapter* adapter,
                                        AdapterState prev_state,
                                        AdapterState new_state);
+
+    // Called when there is a change in the connection state between the local
+    // |adapter| and a remote device with address |device_address|. If the ACL
+    // state changes from disconnected to connected, then |connected| will be
+    // true and vice versa.
+    virtual void OnDeviceConnectionStateChanged(
+        Adapter* adapter, const std::string& device_address, bool connected);
   };
 
   Adapter();
@@ -91,6 +104,11 @@ class Adapter : public hal::BluetoothInterface::Observer {
   // multi-advertisement feature.
   bool IsMultiAdvertisementSupported() const;
 
+  // Returns true if the remote device with address |device_address| is
+  // currently connected. This is not a const method as it modifies the state of
+  // the associated internal mutex.
+  bool IsDeviceConnected(const std::string& device_address);
+
   // Returns a pointer to the LowEnergyClientFactory. This can be used to
   // register per-application LowEnergyClient instances to perform BLE GAP
   // operations.
@@ -110,6 +128,9 @@ class Adapter : public hal::BluetoothInterface::Observer {
   void AdapterPropertiesCallback(bt_status_t status,
                                  int num_properties,
                                  bt_property_t* properties) override;
+  void AclStateChangedCallback(bt_status_t status,
+                               const bt_bdaddr_t& remote_bdaddr,
+                               bt_acl_state_t state) override;
 
   // Sends a request to set the given HAL adapter property type and value.
   bool SetAdapterProperty(bt_property_type_t type, void* value, int length);
@@ -136,6 +157,10 @@ class Adapter : public hal::BluetoothInterface::Observer {
   // List of observers that are interested in notifications from us.
   std::mutex observers_lock_;
   base::ObserverList<Observer> observers_;
+
+  // List of devices addresses that are currently connected.
+  std::mutex connected_devices_lock_;
+  std::unordered_set<std::string> connected_devices_;
 
   // Factory used to create per-app LowEnergyClient instances.
   std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;

@@ -42,6 +42,11 @@ void Adapter::Observer::OnAdapterStateChanged(Adapter* adapter,
   // Default implementation does nothing
 }
 
+void Adapter::Observer::OnDeviceConnectionStateChanged(
+    Adapter* adapter, const std::string& device_address, bool connected) {
+  // Default implementation does nothing
+}
+
 Adapter::Adapter()
     : state_(ADAPTER_STATE_OFF),
       address_(kDefaultAddress),
@@ -162,6 +167,11 @@ bool Adapter::IsMultiAdvertisementSupported() const {
   return local_le_features_.max_adv_instance >= kMinAdvInstancesForMultiAdv;
 }
 
+bool Adapter::IsDeviceConnected(const std::string& device_address) {
+  std::lock_guard<std::mutex> lock(connected_devices_lock_);
+  return connected_devices_.find(device_address) != connected_devices_.end();
+}
+
 LowEnergyClientFactory* Adapter::GetLowEnergyClientFactory() const {
   return ble_client_factory_.get();
 }
@@ -242,6 +252,37 @@ void Adapter::AdapterPropertiesCallback(bt_status_t status,
 
     // TODO(armansito): notify others of the updated properties
   }
+}
+
+void Adapter::AclStateChangedCallback(bt_status_t status,
+                                      const bt_bdaddr_t& remote_bdaddr,
+                                      bt_acl_state_t state) {
+  std::string device_address = BtAddrString(&remote_bdaddr);
+  bool connected = (state == BT_ACL_STATE_CONNECTED);
+  LOG(INFO) << "ACL state changed: " << device_address << " - connected: "
+            << (connected ? "true" : "false");
+
+  // If this is reported with an error status, I suppose the best thing we can
+  // do is to log it and ignore the event.
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "AclStateChangedCallback called with status: "
+               << BtStatusText(status);
+    return;
+  }
+
+  // Introduce a scope to manage |connected_devices_lock_| with RAII.
+  {
+    std::lock_guard<std::mutex> lock(connected_devices_lock_);
+    if (connected)
+      connected_devices_.insert(device_address);
+    else
+      connected_devices_.erase(device_address);
+  }
+
+  std::lock_guard<std::mutex> lock(observers_lock_);
+  FOR_EACH_OBSERVER(
+      Observer, observers_,
+      OnDeviceConnectionStateChanged(this, device_address, connected));
 }
 
 bool Adapter::SetAdapterProperty(bt_property_type_t type,
