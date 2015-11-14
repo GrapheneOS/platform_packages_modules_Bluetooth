@@ -30,11 +30,6 @@ typedef struct reactor_t reactor_t;
 typedef void (*fixed_queue_free_cb)(void *data);
 typedef void (*fixed_queue_cb)(fixed_queue_t *queue, void *context);
 
-// Initializes a fixed |queue| with the given |capacity|. If more elements than
-// |capacity| are added to the queue, the caller is blocked until space is
-// made available in the queue. Returns false on failure.
-bool fixed_queue_init(fixed_queue_t *queue, size_t capacity);
-
 // Creates a new fixed queue with the given |capacity|. If more elements than
 // |capacity| are added to the queue, the caller is blocked until space is
 // made available in the queue. Returns NULL on failure. The caller must free
@@ -58,7 +53,7 @@ size_t fixed_queue_length(fixed_queue_t *queue);
 size_t fixed_queue_capacity(fixed_queue_t *queue);
 
 // Enqueues the given |data| into the |queue|. The caller will be blocked
-// if nore more space is available in the queue. Neither |queue| nor |data|
+// if no more space is available in the queue. Neither |queue| nor |data|
 // may be NULL.
 void fixed_queue_enqueue(fixed_queue_t *queue, void *data);
 
@@ -89,8 +84,10 @@ void *fixed_queue_try_peek_first(fixed_queue_t *queue);
 void *fixed_queue_try_peek_last(fixed_queue_t *queue);
 
 // Tries to remove a |data| element from the middle of the |queue|. This
-// function will never block the caller. If the |data| element is found
-// in the queue, a pointer to the removed data is returned, otherwise NULL.
+// function will never block the caller. If the queue is empty or NULL, this
+// function returns NULL immediately. |data| may not be NULL. If the |data|
+// element is found in the queue, a pointer to the removed data is returned,
+// otherwise NULL.
 void *fixed_queue_try_remove_from_queue(fixed_queue_t *queue, void *data);
 
 // Returns the iterateable list with all entries in the |queue|. This function
@@ -98,7 +95,8 @@ void *fixed_queue_try_remove_from_queue(fixed_queue_t *queue, void *data);
 //
 // NOTE: The return result of this function is not thread safe: the list could
 // be modified by another thread, and the result would be unpredictable.
-// Hence, the usage of this function is discouraged.
+// TODO: The usage of this function should be refactored, and the function
+// itself should be removed.
 list_t *fixed_queue_get_list(fixed_queue_t *queue);
 
 // This function returns a valid file descriptor. Callers may perform one
