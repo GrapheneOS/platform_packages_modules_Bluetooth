@@ -59,3 +59,10 @@ period_ms_t alarm_get_remaining_ms(const alarm_t *alarm);
 
 // Alarm-related state cleanup
 void alarm_cleanup(void);
+
+// This function should not need to be called normally.
+// /sys/power/wake_{|un}lock are used by default.
+// This is not guaranteed to have any effect after an alarm has been
+// set with alarm_set.
+// If |lock_path| or |unlock_path| are NULL, that path is not changed.
+void alarm_set_wake_lock_paths(const char *lock_path, const char *unlock_path);

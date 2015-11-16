@@ -79,7 +79,7 @@ TEST_F(AlarmTest, test_cancel) {
   msleep(10 + EPSILON_MS);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());;
   alarm_free(alarm);
 }
 
@@ -97,12 +97,12 @@ TEST_F(AlarmTest, test_set_short) {
   alarm_set(alarm, 10, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 1);
+  EXPECT_TRUE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   alarm_free(alarm);
 }
@@ -112,12 +112,12 @@ TEST_F(AlarmTest, test_set_long) {
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   alarm_free(alarm);
 }
@@ -132,17 +132,17 @@ TEST_F(AlarmTest, test_set_short_short) {
   alarm_set(alarm[1], 20, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 1);
+  EXPECT_TRUE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_EQ(lock_count, 1);
+  EXPECT_TRUE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
@@ -158,17 +158,17 @@ TEST_F(AlarmTest, test_set_short_long) {
   alarm_set(alarm[1], 10 + TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 1);
+  EXPECT_TRUE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
@@ -184,17 +184,17 @@ TEST_F(AlarmTest, test_set_long_long) {
   alarm_set(alarm[1], 2 * (TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS), cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 1);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   semaphore_wait(semaphore);
 
   EXPECT_EQ(cb_counter, 2);
-  EXPECT_EQ(lock_count, 0);
+  EXPECT_FALSE(WakeLockHeld());
 
   alarm_free(alarm[0]);
   alarm_free(alarm[1]);
