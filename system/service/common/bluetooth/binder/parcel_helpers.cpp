@@ -16,10 +16,17 @@
 
 #include "service/common/bluetooth/binder/parcel_helpers.h"
 
+#include "service/common/bluetooth/util/address_helper.h"
+
 using android::Parcel;
 
 using bluetooth::AdvertiseData;
 using bluetooth::AdvertiseSettings;
+using bluetooth::GattIdentifier;
+using bluetooth::ScanFilter;
+using bluetooth::ScanResult;
+using bluetooth::ScanSettings;
+using bluetooth::UUID;
 
 namespace ipc {
 namespace binder {
@@ -85,13 +92,13 @@ std::unique_ptr<AdvertiseSettings> CreateAdvertiseSettingsFromParcel(
       new AdvertiseSettings(mode, timeout, tx_power, connectable));
 }
 
-void WriteUUIDToParcel(const bluetooth::UUID& uuid, android::Parcel* parcel) {
+void WriteUUIDToParcel(const UUID& uuid, android::Parcel* parcel) {
   // The scheme used by android.os.ParcelUuid is to wrote the most significant
   // bits first as one 64-bit integer, followed by the least significant bits in
   // a second 64-bit integer. This is the same as writing the raw-bytes in
   // sequence, but we don't want to assume any host-endianness here. So follow
   // the same scheme and use the same Parcel APIs.
-  bluetooth::UUID::UUID128Bit bytes = uuid.GetFullBigEndian();
+  UUID::UUID128Bit bytes = uuid.GetFullBigEndian();
 
   uint64_t most_sig_bits =
       ((((uint64_t) bytes[0]) << 56) |
@@ -117,9 +124,9 @@ void WriteUUIDToParcel(const bluetooth::UUID& uuid, android::Parcel* parcel) {
   parcel->writeUint64(least_sig_bits);
 }
 
-std::unique_ptr<bluetooth::UUID> CreateUUIDFromParcel(
+std::unique_ptr<UUID> CreateUUIDFromParcel(
     const android::Parcel& parcel) {
-  bluetooth::UUID::UUID128Bit bytes;
+  UUID::UUID128Bit bytes;
 
   uint64_t most_sig_bits = parcel.readUint64();
   uint64_t least_sig_bits = parcel.readUint64();
@@ -142,11 +149,11 @@ std::unique_ptr<bluetooth::UUID> CreateUUIDFromParcel(
   bytes[14] = (least_sig_bits >> 8) & 0xFF;
   bytes[15] = least_sig_bits & 0xFF;
 
-  return std::unique_ptr<bluetooth::UUID>(new bluetooth::UUID(bytes));
+  return std::unique_ptr<UUID>(new UUID(bytes));
 }
 
 void WriteGattIdentifierToParcel(
-    const bluetooth::GattIdentifier& gatt_id,
+    const GattIdentifier& gatt_id,
     android::Parcel* parcel) {
   parcel->writeCString(gatt_id.device_address().c_str());
   parcel->writeInt32(gatt_id.is_primary());
@@ -160,7 +167,7 @@ void WriteGattIdentifierToParcel(
   parcel->writeInt32(gatt_id.descriptor_instance_id());
 }
 
-std::unique_ptr<bluetooth::GattIdentifier> CreateGattIdentifierFromParcel(
+std::unique_ptr<GattIdentifier> CreateGattIdentifierFromParcel(
     const android::Parcel& parcel) {
   std::string device_address = parcel.readCString();
   bool is_primary = parcel.readInt32();
@@ -173,11 +180,151 @@ std::unique_ptr<bluetooth::GattIdentifier> CreateGattIdentifierFromParcel(
   int char_id = parcel.readInt32();
   int desc_id = parcel.readInt32();
 
-  return std::unique_ptr<bluetooth::GattIdentifier>(
-      new bluetooth::GattIdentifier(
+  return std::unique_ptr<GattIdentifier>(
+      new GattIdentifier(
           device_address, is_primary,
           *service_uuid, *char_uuid, *desc_uuid,
           service_id, char_id, desc_id));
+}
+
+void WriteScanFilterToParcel(
+    const ScanFilter& filter,
+    android::Parcel* parcel) {
+  bool has_name = !filter.device_name().empty();
+  parcel->writeInt32(has_name ? 1 : 0);
+  if (has_name)
+    parcel->writeCString(filter.device_name().c_str());
+
+  bool has_address = !filter.device_address().empty();
+  parcel->writeInt32(has_address ? 1 : 0);
+  if (has_address)
+    parcel->writeCString(filter.device_address().c_str());
+
+  parcel->writeInt32(filter.service_uuid() ? 1 : 0);
+  if (filter.service_uuid()) {
+    WriteUUIDToParcel(*filter.service_uuid(), parcel);
+    parcel->writeInt32(filter.service_uuid_mask() ? 1 : 0);
+    if (filter.service_uuid_mask())
+      WriteUUIDToParcel(*filter.service_uuid_mask(), parcel);
+  }
+
+  // TODO(armansito): Support service and manufacturer data.
+}
+
+std::unique_ptr<ScanFilter> CreateScanFilterFromParcel(
+    const android::Parcel& parcel) {
+  std::string device_name;
+  if (parcel.readInt32() == 1)
+    device_name = parcel.readCString();
+
+  std::string device_address;
+  if (parcel.readInt32() == 1)
+    device_address = parcel.readCString();
+
+  std::unique_ptr<UUID> service_uuid, service_uuid_mask;
+  if (parcel.readInt32() == 1) {
+    service_uuid = CreateUUIDFromParcel(parcel);
+    if (parcel.readInt32() == 1)
+      service_uuid_mask = CreateUUIDFromParcel(parcel);
+  }
+
+  // TODO(armansito): Support service and manufacturer data.
+
+  std::unique_ptr<ScanFilter> filter(new ScanFilter());
+
+  filter->set_device_name(device_name);
+
+  if (!filter->SetDeviceAddress(device_address))
+    return nullptr;
+
+  if (!service_uuid)
+    return filter;
+
+  if (service_uuid_mask)
+    filter->SetServiceUuidWithMask(*service_uuid, *service_uuid_mask);
+  else
+    filter->SetServiceUuid(*service_uuid);
+
+  return filter;
+}
+
+void WriteScanSettingsToParcel(
+    const ScanSettings& settings,
+    android::Parcel* parcel) {
+  parcel->writeInt32(settings.mode());
+  parcel->writeInt32(settings.callback_type());
+  parcel->writeInt32(settings.result_type());
+  parcel->writeInt64(settings.report_delay().InMilliseconds());
+  parcel->writeInt32(settings.match_mode());
+  parcel->writeInt32(settings.match_count_per_filter());
+}
+
+std::unique_ptr<ScanSettings> CreateScanSettingsFromParcel(
+    const android::Parcel& parcel) {
+  ScanSettings::Mode mode =
+      static_cast<ScanSettings::Mode>(parcel.readInt32());
+  ScanSettings::CallbackType callback_type =
+      static_cast<ScanSettings::CallbackType>(parcel.readInt32());
+  ScanSettings::ResultType result_type =
+      static_cast<ScanSettings::ResultType>(parcel.readInt32());
+  base::TimeDelta report_delay = base::TimeDelta::FromMilliseconds(
+      parcel.readInt64());
+  ScanSettings::MatchMode match_mode =
+      static_cast<ScanSettings::MatchMode>(parcel.readInt32());
+  ScanSettings::MatchCount match_count_per_filter =
+      static_cast<ScanSettings::MatchCount>(parcel.readInt32());
+
+  return std::unique_ptr<ScanSettings>(new ScanSettings(
+      mode, callback_type, result_type, report_delay,
+      match_mode, match_count_per_filter));
+}
+
+void WriteScanResultToParcel(
+    const bluetooth::ScanResult& scan_result,
+    android::Parcel* parcel) {
+  // The Java framework code conditionally inserts 1 or 0 to indicate if the
+  // device adress and the scan record fields are present, based on whether the
+  // Java object is null. We do something similar here for consistency, although
+  // the native definition of ScanResult requires a valid BD_ADDR.
+  if (util::IsAddressValid(scan_result.device_address())) {
+    parcel->writeInt32(1);
+    parcel->writeCString(scan_result.device_address().c_str());
+  } else {
+    parcel->writeInt32(0);
+  }
+
+  if (!scan_result.scan_record().empty()) {
+    parcel->writeInt32(1);
+    parcel->writeByteArray(scan_result.scan_record().size(),
+                          scan_result.scan_record().data());
+  } else {
+    parcel->writeInt32(0);
+  }
+
+  parcel->writeInt32(scan_result.rssi());
+}
+
+std::unique_ptr<bluetooth::ScanResult> CreateScanResultFromParcel(
+    const android::Parcel& parcel) {
+  std::string device_address;
+  if (parcel.readInt32())
+    device_address = parcel.readCString();
+
+  std::vector<uint8_t> scan_record;
+  if (parcel.readInt32()) {
+    int record_len = parcel.readInt32();
+    if (record_len != -1) {
+      uint8_t bytes[record_len];
+      parcel.read(bytes, record_len);
+
+      scan_record = std::vector<uint8_t>(bytes, bytes + record_len);
+    }
+  }
+
+  int rssi = parcel.readInt32();
+
+  return std::unique_ptr<ScanResult>(new ScanResult(
+      device_address, scan_record, rssi));
 }
 
 }  // namespace binder

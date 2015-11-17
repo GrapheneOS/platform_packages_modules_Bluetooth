@@ -37,6 +37,12 @@ class UUID {
   // Creates and returns a random 128-bit UUID.
   static UUID GetRandom();
 
+  // Creates and returns a UUID in which all 128 bits are equal to 0.
+  static UUID GetNil();
+
+  // Creates and returns a UUID in which all 128 bits are equal to 1.
+  static UUID GetMax();
+
   // Construct a Bluetooth 'base' UUID.
   UUID();
 
@@ -71,6 +77,9 @@ class UUID {
 
   bool operator<(const UUID& rhs) const;
   bool operator==(const UUID& rhs) const;
+  inline bool operator!=(const UUID& rhs) const {
+    return !(*this == rhs);
+  }
 
  private:
   void InitializeDefault();

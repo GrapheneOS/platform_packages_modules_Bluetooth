@@ -25,6 +25,9 @@ using android::Parcel;
 using bluetooth::AdvertiseData;
 using bluetooth::AdvertiseSettings;
 using bluetooth::GattIdentifier;
+using bluetooth::ScanFilter;
+using bluetooth::ScanResult;
+using bluetooth::ScanSettings;
 using bluetooth::UUID;
 
 namespace ipc {
@@ -69,6 +72,33 @@ bool TestGattIdentifier(const GattIdentifier& id_in) {
   auto id_out = CreateGattIdentifierFromParcel(parcel);
 
   return id_in == *id_out;
+}
+
+bool TestScanSettings(const ScanSettings& settings_in) {
+  Parcel parcel;
+  WriteScanSettingsToParcel(settings_in, &parcel);
+  parcel.setDataPosition(0);
+  auto settings_out = CreateScanSettingsFromParcel(parcel);
+
+  return settings_in == *settings_out;
+}
+
+bool TestScanFilter(const ScanFilter& filter_in) {
+  Parcel parcel;
+  WriteScanFilterToParcel(filter_in, &parcel);
+  parcel.setDataPosition(0);
+  auto filter_out = CreateScanFilterFromParcel(parcel);
+
+  return filter_in == *filter_out;
+}
+
+bool TestScanResult(const ScanResult& result_in) {
+  Parcel parcel;
+  WriteScanResultToParcel(result_in, &parcel);
+  parcel.setDataPosition(0);
+  auto result_out = CreateScanResultFromParcel(parcel);
+
+  return result_in == *result_out;
 }
 
 TEST(ParcelHelpersTest, EmptyAdvertiseData) {
@@ -129,6 +159,52 @@ TEST(ParcelHelpersTest, GattIdentifier) {
   TestGattIdentifier(*service_id);
   TestGattIdentifier(*char_id);
   TestGattIdentifier(*desc_id);
+}
+
+TEST(ParcelHelpersTest, ScanSettings) {
+  ScanSettings settings0;
+  ScanSettings settings1(
+      ScanSettings::MODE_BALANCED,
+      ScanSettings::CALLBACK_TYPE_FIRST_MATCH,
+      ScanSettings::RESULT_TYPE_ABBREVIATED,
+      base::TimeDelta::FromMilliseconds(150),
+      ScanSettings::MATCH_MODE_STICKY,
+      ScanSettings::MATCH_COUNT_FEW_ADVERTISEMENTS);
+
+  EXPECT_TRUE(TestScanSettings(settings0));
+  EXPECT_TRUE(TestScanSettings(settings1));
+}
+
+TEST(ParcelHelpersTest, ScanFilter) {
+  ScanFilter filter;
+
+  filter.set_device_name("Test Device Name");
+  ASSERT_TRUE(filter.SetDeviceAddress("01:02:04:AB:CD:EF"));
+  EXPECT_TRUE(TestScanFilter(filter));
+
+  UUID uuid = UUID::GetRandom();
+  filter.SetServiceUuid(uuid);
+  EXPECT_TRUE(TestScanFilter(filter));
+
+  UUID mask = UUID::GetRandom();
+  filter.SetServiceUuidWithMask(uuid, mask);
+  EXPECT_TRUE(TestScanFilter(filter));
+}
+
+TEST(ParcelHelpersTest, ScanResult) {
+  const char kTestAddress[] = "01:02:03:AB:CD:EF";
+  const char kEmptyAddress[] = "";
+
+  const std::vector<uint8_t> kEmptyBytes;
+  const std::vector<uint8_t> kTestBytes{ 0x01, 0x02, 0x03 };
+
+  const int kTestRssi = 127;
+
+  ScanResult result0(kTestAddress, kEmptyBytes, kTestRssi);
+  ScanResult result1(kTestAddress, kTestBytes, kTestRssi);
+
+  EXPECT_TRUE(TestScanResult(result0));
+  EXPECT_TRUE(TestScanResult(result1));
 }
 
 }  // namespace
