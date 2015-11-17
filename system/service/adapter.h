@@ -102,12 +102,22 @@ class Adapter : public hal::BluetoothInterface::Observer {
 
   // Returns true if the local adapter supports the Low-Energy
   // multi-advertisement feature.
-  bool IsMultiAdvertisementSupported() const;
+  bool IsMultiAdvertisementSupported();
 
   // Returns true if the remote device with address |device_address| is
   // currently connected. This is not a const method as it modifies the state of
   // the associated internal mutex.
   bool IsDeviceConnected(const std::string& device_address);
+
+  // Returns the total number of trackable advertisements as supported by the
+  // underlying hardware.
+  int GetTotalNumberOfTrackableAdvertisements();
+
+  // Returns true if hardware-backed scan filtering is supported.
+  bool IsOffloadedFilteringSupported();
+
+  // Returns true if hardware-backed batch scanning is supported.
+  bool IsOffloadedScanBatchingSupported();
 
   // Returns a pointer to the LowEnergyClientFactory. This can be used to
   // register per-application LowEnergyClient instances to perform BLE GAP
@@ -152,6 +162,7 @@ class Adapter : public hal::BluetoothInterface::Observer {
   // The current set of supported LE features as obtained from the stack. The
   // values here are all initially set to 0 and updated when the corresponding
   // adapter property has been received from the stack.
+  std::mutex local_le_features_lock_;
   bt_local_le_features_t local_le_features_;
 
   // List of observers that are interested in notifications from us.

@@ -20,6 +20,9 @@
 
 #include "service/logging_helpers.h"
 
+using std::lock_guard;
+using std::mutex;
+
 namespace bluetooth {
 
 // static
@@ -27,14 +30,20 @@ const char Adapter::kDefaultAddress[] = "00:00:00:00:00:00";
 // static
 const char Adapter::kDefaultName[] = "not-initialized";
 
+// TODO(armansito): The following constants come straight from
+// packages/apps/Bluetooth/src/c/a/b/btservice/AdapterService.java. It would be
+// nice to know if there were a way to obtain these values from the stack
+// instead of hardcoding them here.
+
 // The minimum number of advertising instances required for multi-advertisement
 // support.
-//
-// TODO(armansito): This number comes straight from
-// packages/apps/Bluetooth/src/c/a/b/btservice/AdapterService.java. It would be
-// nice to know if there were a way to obtain this number from the stack instead
-// of hardcoding it here.
-const char kMinAdvInstancesForMultiAdv = 5;
+const int kMinAdvInstancesForMultiAdv = 5;
+
+// Used when determining if offloaded scan filtering is supported.
+const int kMinOffloadedFilters = 10;
+
+// Used when determining if offloaded scan batching is supported.
+const int kMinOffloadedScanStorageBytes = 1024;
 
 void Adapter::Observer::OnAdapterStateChanged(Adapter* adapter,
                                               AdapterState prev_state,
@@ -64,12 +73,12 @@ Adapter::~Adapter() {
 }
 
 void Adapter::AddObserver(Observer* observer) {
-  std::lock_guard<std::mutex> lock(observers_lock_);
+  lock_guard<mutex> lock(observers_lock_);
   observers_.AddObserver(observer);
 }
 
 void Adapter::RemoveObserver(Observer* observer) {
-  std::lock_guard<std::mutex> lock(observers_lock_);
+  lock_guard<mutex> lock(observers_lock_);
   observers_.RemoveObserver(observer);
 }
 
@@ -163,13 +172,30 @@ std::string Adapter::GetAddress() const {
   return address_.Get();
 }
 
-bool Adapter::IsMultiAdvertisementSupported() const {
+bool Adapter::IsMultiAdvertisementSupported() {
+  lock_guard<mutex> lock(local_le_features_lock_);
   return local_le_features_.max_adv_instance >= kMinAdvInstancesForMultiAdv;
 }
 
 bool Adapter::IsDeviceConnected(const std::string& device_address) {
-  std::lock_guard<std::mutex> lock(connected_devices_lock_);
+  lock_guard<mutex> lock(connected_devices_lock_);
   return connected_devices_.find(device_address) != connected_devices_.end();
+}
+
+int Adapter::GetTotalNumberOfTrackableAdvertisements() {
+  lock_guard<mutex> lock(local_le_features_lock_);
+  return local_le_features_.total_trackable_advertisers;
+}
+
+bool Adapter::IsOffloadedFilteringSupported() {
+  lock_guard<mutex> lock(local_le_features_lock_);
+  return local_le_features_.max_adv_filter_supported >= kMinOffloadedFilters;
+}
+
+bool Adapter::IsOffloadedScanBatchingSupported() {
+  lock_guard<mutex> lock(local_le_features_lock_);
+  return local_le_features_.scan_result_storage_size >=
+      kMinOffloadedScanStorageBytes;
 }
 
 LowEnergyClientFactory* Adapter::GetLowEnergyClientFactory() const {
@@ -233,6 +259,7 @@ void Adapter::AdapterPropertiesCallback(bt_status_t status,
         break;
       }
       case BT_PROPERTY_LOCAL_LE_FEATURES: {
+        lock_guard<mutex> lock(local_le_features_lock_);
         if (property->len != sizeof(bt_local_le_features_t)) {
           LOG(WARNING) << "Malformed value received for property: "
                        << "BT_PROPERTY_LOCAL_LE_FEATURES";
@@ -272,14 +299,14 @@ void Adapter::AclStateChangedCallback(bt_status_t status,
 
   // Introduce a scope to manage |connected_devices_lock_| with RAII.
   {
-    std::lock_guard<std::mutex> lock(connected_devices_lock_);
+    lock_guard<mutex> lock(connected_devices_lock_);
     if (connected)
       connected_devices_.insert(device_address);
     else
       connected_devices_.erase(device_address);
   }
 
-  std::lock_guard<std::mutex> lock(observers_lock_);
+  lock_guard<mutex> lock(observers_lock_);
   FOR_EACH_OBSERVER(
       Observer, observers_,
       OnDeviceConnectionStateChanged(this, device_address, connected));
@@ -310,7 +337,7 @@ void Adapter::NotifyAdapterStateChanged(AdapterState prev_state,
   if (prev_state == new_state)
     return;
 
-  std::lock_guard<std::mutex> lock(observers_lock_);
+  lock_guard<mutex> lock(observers_lock_);
   FOR_EACH_OBSERVER(Observer, observers_,
                     OnAdapterStateChanged(this, prev_state, new_state));
 }
