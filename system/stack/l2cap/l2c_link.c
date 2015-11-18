@@ -45,7 +45,7 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf);
+static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf, UINT16 fixed_cid);
 
 /*******************************************************************************
 **
@@ -1065,6 +1065,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 {
     int         xx;
     BOOLEAN     single_write = FALSE;
+    UINT16    fixed_cid;
 
     /* Save the channel ID for faster counting */
     if (p_buf)
@@ -1110,6 +1111,10 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         /* Loop through, starting at the next */
         for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_lcb++)
         {
+            /* Check for wraparound */
+            if (p_lcb == &l2cb.lcb_pool[MAX_L2CAP_LINKS])
+                p_lcb = &l2cb.lcb_pool[0];
+
             /* If controller window is full, nothing to do */
             if (p_lcb->transport == BT_TRANSPORT_BR_EDR &&
                 (l2cb.controller_xmit_window == 0 ||
@@ -1132,10 +1137,6 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             }
 #endif
 
-            /* Check for wraparound */
-            if (p_lcb == &l2cb.lcb_pool[MAX_L2CAP_LINKS])
-                p_lcb = &l2cb.lcb_pool[0];
-
             if ( (!p_lcb->in_use)
                || (p_lcb->partial_segment_being_sent)
                || (p_lcb->link_state != LST_CONNECTED)
@@ -1147,7 +1148,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             if (!list_is_empty(p_lcb->link_xmit_data_q)) {
                 p_buf = (BT_HDR *)list_front(p_lcb->link_xmit_data_q);
                 list_remove(p_lcb->link_xmit_data_q, p_buf);
-                l2c_link_send_to_lower (p_lcb, p_buf);
+                l2c_link_send_to_lower (p_lcb, p_buf, 0);
             }
             else if (single_write)
             {
@@ -1155,9 +1156,9 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 break;
             }
             /* If nothing on the link queue, check the channel queue */
-            else if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) != NULL)
+            else if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb, &fixed_cid)) != NULL)
             {
-                l2c_link_send_to_lower (p_lcb, p_buf);
+                l2c_link_send_to_lower (p_lcb, p_buf, fixed_cid);
             }
         }
 
@@ -1200,7 +1201,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
             p_buf = (BT_HDR *)list_front(p_lcb->link_xmit_data_q);
             list_remove(p_lcb->link_xmit_data_q, p_buf);
-            if (!l2c_link_send_to_lower (p_lcb, p_buf))
+            if (!l2c_link_send_to_lower (p_lcb, p_buf, 0))
                 break;
         }
 
@@ -1215,10 +1216,10 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
             while ((l2cb.controller_xmit_window != 0) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota))
 #endif
             {
-                if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb)) == NULL)
+                if ((p_buf = l2cu_get_next_buffer_to_send (p_lcb, &fixed_cid)) == NULL)
                     break;
 
-                if (!l2c_link_send_to_lower (p_lcb, p_buf))
+                if (!l2c_link_send_to_lower (p_lcb, p_buf, fixed_cid))
                     break;
             }
         }
@@ -1244,7 +1245,7 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
 ** Returns          TRUE for success, FALSE for fail
 **
 *******************************************************************************/
-static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
+static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf, UINT16 fixed_cid)
 {
     UINT16      num_segs;
     UINT16      xmit_window, acl_data_size;
@@ -1375,6 +1376,15 @@ static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf)
     }
 #endif
 
+    if (fixed_cid != 0)
+    {
+        L2CAP_TRACE_DEBUG("%s: fixed_cid = %d, send tx complete", __func__, fixed_cid);
+        /* send tx complete */
+        if (l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedTxComplete_Cb)
+        {
+            (*l2cb.fixed_reg[fixed_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedTxComplete_Cb)(fixed_cid, 1);
+        }
+    }
     return TRUE;
 }
 
