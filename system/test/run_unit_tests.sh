@@ -39,7 +39,9 @@ run_tests() {
 
   if [ "$failed_tests" != "" ]; then
     echo "$failed_tests";
+    return 1
   fi
+  return 0
 }
 
 tests=()
@@ -71,7 +73,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ ${#tests[*]} -eq 0 ]; then
-  run_tests "$device" ${known_tests[*]}
+  run_tests "$device" ${known_tests[*]} || exit 1
 else
-  run_tests "$device" ${tests[*]}
+  run_tests "$device" ${tests[*]} || exit 1
 fi
