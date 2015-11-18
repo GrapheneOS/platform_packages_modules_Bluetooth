@@ -61,7 +61,7 @@ bool Settings::Init() {
     // Check for libbase logging switches. These get processed by
     // logging::InitLogging directly.
     else if (iter.first != ::switches::kV) {
-      LOG(ERROR) << "Unexpected command-line switches found";
+      LOG(ERROR) << "Unexpected command-line switches found: " << iter.first;
       return false;
     }
   }
