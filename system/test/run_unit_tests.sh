@@ -10,7 +10,7 @@ known_tests=(
 )
 
 usage() {
-  echo "Usage: $0 [-s <specific device> ][--all|--help|<test names>]"
+  echo "Usage: $0 [-s <specific device> ][--all|--help|<test name>[.<filter>] ...]"
   echo ""
   echo "Known test names:"
 
@@ -25,13 +25,17 @@ run_tests() {
   shift
 
   failed_tests=''
-  for name in $*
+  for spec in $*
   do
+    name="${spec%%.*}"
+    if [ "${name}" != "${spec}" ]; then
+      filter="${spec#*.}"
+    fi
     echo "--- $name ---"
     echo "pushing..."
     $adb push {$ANDROID_PRODUCT_OUT,}/data/nativetest/$name/$name
     echo "running..."
-    $adb shell data/nativetest/$name/$name
+    $adb shell data/nativetest/$name/$name${filter:+ "--gtest_filter=${filter}"}
     if [ $? != 0 ]; then
       failed_tests="$failed_tests$CR!!! FAILED TEST: $name !!!";
     fi
