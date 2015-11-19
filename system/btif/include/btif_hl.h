@@ -23,6 +23,7 @@
 
 #include "bta_hl_api.h"
 #include "bt_common.h"
+#include "osi/include/non_repeating_timer.h"
 
 /*******************************************************************************
 **  Constants & Macros
