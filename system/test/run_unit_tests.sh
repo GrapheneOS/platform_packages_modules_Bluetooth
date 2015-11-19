@@ -23,45 +23,7 @@ usage() {
   done
 }
 
-run_tests() {
-  adb="adb${1:+ -s $1}"
-  shift
-
-  test_args=()
-  for arg
-  do
-    shift
-    if [ "$arg" == "--" ]; then
-      break
-    else
-      test_args+=( "$arg" )
-    fi
-  done
-
-  failed_tests=''
-  for spec in $*
-  do
-    name="${spec%%.*}"
-    if [ "${name}" != "${spec}" ]; then
-      filter="${spec#*.}"
-    fi
-    echo "--- $name ---"
-    echo "pushing..."
-    $adb push {$ANDROID_PRODUCT_OUT,}/data/nativetest/$name/$name
-    echo "running..."
-    $adb shell data/nativetest/$name/$name${filter:+ "--gtest_filter=${filter}"} ${test_args[*]}
-    if [ $? != 0 ]; then
-      failed_tests="$failed_tests$CR!!! FAILED TEST: $name !!!";
-    fi
-  done
-
-  if [ "$failed_tests" != "" ]; then
-    echo "$failed_tests";
-    return 1
-  fi
-  return 0
-}
-
+device=
 tests=()
 test_args=()
 while [ $# -gt 0 ]; do
@@ -99,4 +61,28 @@ if [ ${#tests[*]} -eq 0 ]; then
   tests+=( ${known_tests[*]} )
 fi
 
-run_tests "$device" ${test_args[*]} -- ${tests[*]} || exit 1
+adb="adb${device:+ -s $device}"
+
+failed_tests=''
+for spec in ${tests[*]}
+do
+  name="${spec%%.*}"
+  if [ "${name}" != "${spec}" ]; then
+    filter="${spec#*.}"
+  fi
+  echo "--- $name ---"
+  echo "pushing..."
+  $adb push {$ANDROID_PRODUCT_OUT,}/data/nativetest/$name/$name
+  echo "running..."
+  $adb shell data/nativetest/$name/$name${filter:+ "--gtest_filter=${filter}"} ${test_args[*]}
+  if [ $? != 0 ]; then
+    failed_tests="$failed_tests$CR!!! FAILED TEST: $name !!!";
+  fi
+done
+
+if [ "$failed_tests" != "" ]; then
+  echo "$failed_tests";
+  exit 1
+fi
+
+exit 0
