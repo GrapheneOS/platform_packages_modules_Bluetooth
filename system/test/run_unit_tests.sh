@@ -11,7 +11,7 @@ known_tests=(
 
 usage() {
   echo "Usage: $0 --help"
-  echo "       $0 [-s <specific device>] [--all] [<test name>[.<filter>] ...] [--<arg> ...]"
+  echo "       $0 [-i <iterations>] [-s <specific device>] [--all] [<test name>[.<filter>] ...] [--<arg> ...]"
   echo
   echo "Unknown long arguments are passed to the test."
   echo
@@ -23,6 +23,7 @@ usage() {
   done
 }
 
+iterations=1
 device=
 tests=()
 test_args=()
@@ -31,6 +32,16 @@ while [ $# -gt 0 ]; do
     -h|--help)
       usage
       exit 0
+      ;;
+    -i)
+      shift
+      if [ $# -eq 0 ]; then
+        echo "error: number of iterations expected" 1>&2
+        usage
+        exit 1
+      fi
+      iterations=$(( $1 ))
+      shift
       ;;
     -s)
       shift
@@ -74,9 +85,14 @@ do
   echo "pushing..."
   $adb push {$ANDROID_PRODUCT_OUT,}/data/nativetest/$name/$name
   echo "running..."
-  $adb shell data/nativetest/$name/$name${filter:+ "--gtest_filter=${filter}"} ${test_args[*]}
-  if [ $? != 0 ]; then
-    failed_tests="$failed_tests$CR!!! FAILED TEST: $name !!!";
+  failed_count=0
+  for i in $(seq 1 ${iterations})
+  do
+    $adb shell data/nativetest/$name/$name${filter:+ "--gtest_filter=${filter}"} ${test_args[*]} || failed_count=$(( $failed_count + 1 ))
+  done
+
+  if [ $failed_count != 0 ]; then
+    failed_tests="$failed_tests$CR!!! FAILED TEST: $name ${failed_count}/${iterations} !!!";
   fi
 done
 
