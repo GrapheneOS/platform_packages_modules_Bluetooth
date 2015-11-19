@@ -117,7 +117,7 @@ class DaemonImpl : public Daemon {
       return false;
     }
 
-    adapter_.reset(new Adapter());
+    adapter_ = Adapter::Create();
     ipc_manager_.reset(new ipc::IPCManager(adapter_.get()));
 
     if (!SetUpIPC()) {

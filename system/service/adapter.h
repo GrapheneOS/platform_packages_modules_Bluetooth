@@ -16,25 +16,20 @@
 
 #pragma once
 
-#include <atomic>
-#include <mutex>
-#include <string>
-#include <unordered_set>
+#include <memory>
 
 #include <base/macros.h>
-#include <base/observer_list.h>
 
 #include "service/common/bluetooth/adapter_state.h"
-#include "service/common/bluetooth/util/atomic_string.h"
-#include "service/gatt_client.h"
-#include "service/gatt_server.h"
-#include "service/hal/bluetooth_interface.h"
-#include "service/low_energy_client.h"
 
 namespace bluetooth {
 
+class GattClientFactory;
+class GattServerFactory;
+class LowEnergyClientFactory;
+
 // Represents the local Bluetooth adapter.
-class Adapter : public hal::BluetoothInterface::Observer {
+class Adapter {
  public:
   // The default values returned before the Adapter is fully initialized and
   // powered. The complete values for these fields are obtained following a
@@ -66,122 +61,79 @@ class Adapter : public hal::BluetoothInterface::Observer {
         Adapter* adapter, const std::string& device_address, bool connected);
   };
 
-  Adapter();
-  ~Adapter() override;
+  // Returns an Adapter implementation to be used in production. Don't use these
+  // in tests; use MockAdapter instead.
+  static std::unique_ptr<Adapter> Create();
+
+  virtual ~Adapter() = default;
 
   // Add or remove an observer.
-  void AddObserver(Observer* observer);
-  void RemoveObserver(Observer* observer);
+  virtual void AddObserver(Observer* observer) = 0;
+  virtual void RemoveObserver(Observer* observer) = 0;
 
   // Returns the current Adapter state.
-  AdapterState GetState() const;
+  virtual AdapterState GetState() const = 0;
 
   // Returns true, if the adapter radio is current powered.
-  bool IsEnabled() const;
+  virtual bool IsEnabled() const = 0;
 
   // Enables Bluetooth. This method will send a request to the Bluetooth adapter
   // to power up its radio. Returns true, if the request was successfully sent
   // to the controller, otherwise returns false. A successful call to this
   // method only means that the enable request has been sent to the Bluetooth
   // controller and does not imply that the operation itself succeeded.
-  bool Enable();
+  virtual bool Enable() = 0;
 
   // Powers off the Bluetooth radio. Returns true, if the disable request was
   // successfully sent to the Bluetooth controller.
-  bool Disable();
+  virtual bool Disable() = 0;
 
   // Returns the name currently assigned to the local adapter.
-  std::string GetName() const;
+  virtual std::string GetName() const = 0;
 
   // Sets the name assigned to the local Bluetooth adapter. This is the name
   // that the local controller will present to remote devices.
-  bool SetName(const std::string& name);
+  virtual bool SetName(const std::string& name) = 0;
 
   // Returns the local adapter addess in string form (XX:XX:XX:XX:XX:XX).
-  std::string GetAddress() const;
+  virtual std::string GetAddress() const = 0;
 
   // Returns true if the local adapter supports the Low-Energy
   // multi-advertisement feature.
-  bool IsMultiAdvertisementSupported();
+  virtual bool IsMultiAdvertisementSupported() = 0;
 
   // Returns true if the remote device with address |device_address| is
   // currently connected. This is not a const method as it modifies the state of
   // the associated internal mutex.
-  bool IsDeviceConnected(const std::string& device_address);
+  virtual bool IsDeviceConnected(const std::string& device_address) = 0;
 
   // Returns the total number of trackable advertisements as supported by the
   // underlying hardware.
-  int GetTotalNumberOfTrackableAdvertisements();
+  virtual int GetTotalNumberOfTrackableAdvertisements() = 0;
 
   // Returns true if hardware-backed scan filtering is supported.
-  bool IsOffloadedFilteringSupported();
+  virtual bool IsOffloadedFilteringSupported() = 0;
 
   // Returns true if hardware-backed batch scanning is supported.
-  bool IsOffloadedScanBatchingSupported();
+  virtual bool IsOffloadedScanBatchingSupported() = 0;
 
   // Returns a pointer to the LowEnergyClientFactory. This can be used to
   // register per-application LowEnergyClient instances to perform BLE GAP
   // operations.
-  LowEnergyClientFactory* GetLowEnergyClientFactory() const;
+  virtual LowEnergyClientFactory* GetLowEnergyClientFactory() const = 0;
 
   // Returns a pointer to the GattClientFactory. This can be used to register
   // per-application GATT server instances.
-  GattClientFactory* GetGattClientFactory() const;
+  virtual GattClientFactory* GetGattClientFactory() const = 0;
 
   // Returns a pointer to the GattServerFactory. This can be used to register
   // per-application GATT server instances.
-  GattServerFactory* GetGattServerFactory() const;
+  virtual GattServerFactory* GetGattServerFactory() const = 0;
+
+ protected:
+  Adapter() = default;
 
  private:
-  // hal::BluetoothInterface::Observer overrides.
-  void AdapterStateChangedCallback(bt_state_t state) override;
-  void AdapterPropertiesCallback(bt_status_t status,
-                                 int num_properties,
-                                 bt_property_t* properties) override;
-  void AclStateChangedCallback(bt_status_t status,
-                               const bt_bdaddr_t& remote_bdaddr,
-                               bt_acl_state_t state) override;
-
-  // Sends a request to set the given HAL adapter property type and value.
-  bool SetAdapterProperty(bt_property_type_t type, void* value, int length);
-
-  // Helper for invoking observer method.
-  void NotifyAdapterStateChanged(AdapterState prev_state,
-                                 AdapterState new_state);
-
-  // The current adapter state.
-  std::atomic<AdapterState> state_;
-
-  // The Bluetooth device address of the local adapter in string from
-  // (i.e.. XX:XX:XX:XX:XX:XX)
-  util::AtomicString address_;
-
-  // The current local adapter name.
-  util::AtomicString name_;
-
-  // The current set of supported LE features as obtained from the stack. The
-  // values here are all initially set to 0 and updated when the corresponding
-  // adapter property has been received from the stack.
-  std::mutex local_le_features_lock_;
-  bt_local_le_features_t local_le_features_;
-
-  // List of observers that are interested in notifications from us.
-  std::mutex observers_lock_;
-  base::ObserverList<Observer> observers_;
-
-  // List of devices addresses that are currently connected.
-  std::mutex connected_devices_lock_;
-  std::unordered_set<std::string> connected_devices_;
-
-  // Factory used to create per-app LowEnergyClient instances.
-  std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;
-
-  // Factory used to create per-app GattClient instances.
-  std::unique_ptr<GattClientFactory> gatt_client_factory_;
-
-  // Factory used to create per-app GattServer instances.
-  std::unique_ptr<GattServerFactory> gatt_server_factory_;
-
   DISALLOW_COPY_AND_ASSIGN(Adapter);
 };
 
