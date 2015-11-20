@@ -113,7 +113,7 @@ static void hal_close() {
   uart_fd = INVALID_FD;
 }
 
-static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size, bool block) {
+static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size) {
   if (type < DATA_TYPE_ACL || type > DATA_TYPE_EVENT) {
     LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);
     return 0;
@@ -125,7 +125,7 @@ static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_siz
     return 0;
   }
 
-  return eager_reader_read(uart_stream, buffer, max_size, block);
+  return eager_reader_read(uart_stream, buffer, max_size);
 }
 
 static void packet_finished(serial_data_type_t type) {
@@ -223,7 +223,7 @@ static void event_uart_has_bytes(eager_reader_t *reader, UNUSED_ATTR void *conte
     callbacks->data_ready(current_data_type);
   } else {
     uint8_t type_byte;
-    if (eager_reader_read(reader, &type_byte, 1, true) == 0) {
+    if (eager_reader_read(reader, &type_byte, 1) == 0) {
       LOG_ERROR(LOG_TAG, "%s could not read HCI message type", __func__);
       return;
     }

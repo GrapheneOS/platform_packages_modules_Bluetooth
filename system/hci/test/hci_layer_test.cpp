@@ -224,7 +224,7 @@ static size_t replay_data_to_receive(size_t max_size, uint8_t *buffer) {
   return 0;
 }
 
-STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, size_t max_size, UNUSED_ATTR bool block))
+STUB_FUNCTION(size_t, hal_read_data, (serial_data_type_t type, uint8_t *buffer, size_t max_size))
   DURING(receive_simple, ignoring_packets_following_packet) {
     EXPECT_EQ(DATA_TYPE_ACL, type);
     return replay_data_to_receive(max_size, buffer);

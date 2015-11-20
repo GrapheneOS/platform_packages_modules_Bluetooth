@@ -544,7 +544,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
   packet_receive_data_t *incoming = &incoming_packets[PACKET_TYPE_TO_INBOUND_INDEX(type)];
 
   uint8_t byte;
-  while (hal->read_data(type, &byte, 1, false) != 0) {
+  while (hal->read_data(type, &byte, 1) != 0) {
     switch (incoming->state) {
       case BRAND_NEW:
         // Initialize and prepare to jump to the preamble reading state
@@ -587,7 +587,7 @@ static void hal_says_data_ready(serial_data_type_t type) {
         incoming->index++;
         incoming->bytes_remaining--;
 
-        size_t bytes_read = hal->read_data(type, (incoming->buffer->data + incoming->index), incoming->bytes_remaining, false);
+        size_t bytes_read = hal->read_data(type, (incoming->buffer->data + incoming->index), incoming->bytes_remaining);
         incoming->index += bytes_read;
         incoming->bytes_remaining -= bytes_read;
 

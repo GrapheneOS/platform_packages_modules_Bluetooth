@@ -67,7 +67,7 @@ static void expect_packet_synchronous(serial_data_type_t type, char *packet_data
   int length = strlen(packet_data);
   for (int i = 0; i < length; i++) {
     uint8_t byte;
-    EXPECT_EQ((size_t)1, hal->read_data(type, &byte, 1, true));
+    EXPECT_EQ((size_t)1, hal->read_data(type, &byte, 1));
     EXPECT_EQ(packet_data[i], byte);
   }
 
@@ -116,7 +116,7 @@ STUB_FUNCTION(void, data_ready_callback, (serial_data_type_t type))
 
     uint8_t byte;
     size_t bytes_read;
-    while ((bytes_read = hal->read_data(type, &byte, 1, false)) != 0) {
+    while ((bytes_read = hal->read_data(type, &byte, 1)) != 0) {
       EXPECT_EQ(sample_data3[reentry_i], byte);
       semaphore_post(reentry_semaphore);
       reentry_i++;
