@@ -904,6 +904,12 @@ void l2cu_send_peer_disc_req (tL2C_CCB *p_ccb)
     BT_HDR  *p_buf, *p_buf2;
     UINT8   *p;
 
+    if ((!p_ccb) || (p_ccb->p_lcb == NULL))
+    {
+        L2CAP_TRACE_ERROR ("%s L2CAP - ccb or lcb invalid", __func__);
+        return;
+    }
+
     /* Create an identifier for this packet */
     p_ccb->p_lcb->id++;
     l2cu_adj_id(p_ccb->p_lcb, L2CAP_ADJ_ID);
