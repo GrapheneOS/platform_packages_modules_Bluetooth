@@ -270,20 +270,38 @@ bool config_save(const config_t *config, const char *filename) {
 
   for (const list_node_t *node = list_begin(config->sections); node != list_end(config->sections); node = list_next(node)) {
     const section_t *section = (const section_t *)list_node(node);
-    fprintf(fp, "[%s]\n", section->name);
+    if (fprintf(fp, "[%s]\n", section->name) < 0) {
+      LOG_ERROR(LOG_TAG, "%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
+      goto error_fclose;
+    }
 
     for (const list_node_t *enode = list_begin(section->entries); enode != list_end(section->entries); enode = list_next(enode)) {
       const entry_t *entry = (const entry_t *)list_node(enode);
-      fprintf(fp, "%s = %s\n", entry->key, entry->value);
+      if (fprintf(fp, "%s = %s\n", entry->key, entry->value) < 0) {
+        LOG_ERROR(LOG_TAG, "%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
+        goto error_fclose;
+      }
     }
 
     // Only add a separating newline if there are more sections.
-    if (list_next(node) != list_end(config->sections))
-      fputc('\n', fp);
+    if (list_next(node) != list_end(config->sections)) {
+      if (fputc('\n', fp) == EOF) {
+        LOG_ERROR(LOG_TAG, "%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
+        goto error_fclose;
+      }
+    }
   }
 
-  fflush(fp);
-  fclose(fp);
+  if (fflush(fp) == EOF) {
+    LOG_ERROR(LOG_TAG, "%s unable to flush to file '%s': %s", __func__, temp_filename, strerror(errno));
+    goto error_fclose;
+  }
+
+  if (fclose(fp) == EOF) {
+    LOG_ERROR(LOG_TAG, "%s unable to close file '%s': %s", __func__, temp_filename, strerror(errno));
+    // Calling fclose now has undefined behavior so skip calling it again and jump to 'error' instead.
+    goto error;
+  }
 
   // Change the file's permissions to Read/Write by User and Group
   if (chmod(temp_filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) == -1) {
@@ -299,6 +317,8 @@ bool config_save(const config_t *config, const char *filename) {
   osi_free(temp_filename);
   return true;
 
+error_fclose:;
+  fclose(fp);
 error:;
   unlink(temp_filename);
   osi_free(temp_filename);
