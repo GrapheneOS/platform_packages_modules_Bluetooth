@@ -31,6 +31,7 @@
 
 #include "rfcdefs.h"
 #include "osi/include/fixed_queue.h"
+#include "osi/include/non_repeating_timer.h"
 
 #include "btm_api.h"
 
