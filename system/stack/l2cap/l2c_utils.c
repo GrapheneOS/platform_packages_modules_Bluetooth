@@ -1213,8 +1213,15 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
             int xx;
 
             for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
+            {
+                /* Skip fixed channels not used on BR/EDR-ACL link */
+                if((xx >= L2CAP_ATT_CID - L2CAP_FIRST_FIXED_CHNL) &&
+                    (xx <= L2CAP_SMP_CID - L2CAP_FIRST_FIXED_CHNL))
+                    continue;
+
                 if (l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb != NULL)
                    p[(xx + L2CAP_FIRST_FIXED_CHNL) / 8] |= 1 << ((xx + L2CAP_FIRST_FIXED_CHNL) % 8);
+            }
         }
 #endif
     }
