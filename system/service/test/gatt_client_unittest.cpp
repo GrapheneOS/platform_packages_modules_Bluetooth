@@ -35,6 +35,7 @@ class MockGattHandler
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
+  MOCK_METHOD1(Scan, bt_status_t(bool));
 
   // Stub implementations for uninteresting TestClientHandler methods:
   bt_status_t MultiAdvEnable(int, int, int, int, int, int, int) override {
@@ -168,6 +169,24 @@ TEST_F(GattClientTest, RegisterInstance) {
   ASSERT_TRUE(client.get() == nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_FAILURE, status);
   EXPECT_EQ(uuid1, cb_uuid);
+}
+
+TEST_F(GattClientTest, StartStopScan) {
+  EXPECT_CALL(*mock_handler_, Scan(true))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  EXPECT_CALL(*mock_handler_, Scan(false))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+
+  for(int i=0; i<5; i++)
+    hal::BluetoothGattInterface::Get()->StartScan(i);
+
+  for(int i=0; i<5; i++)
+    hal::BluetoothGattInterface::Get()->StopScan(i);
+
+  testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 }
 
 }  // namespace

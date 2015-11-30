@@ -40,6 +40,13 @@ bt_status_t FakeUnregisterClient(int client_if) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeScan(bool start) {
+  if (g_client_handler)
+    return g_client_handler->Scan(start);
+
+  return BT_STATUS_FAIL;
+}
+
 bt_status_t FakeMultiAdvEnable(
     int client_if, int min_interval, int max_interval, int adv_type,
     int chnl_map, int tx_power, int timeout_s) {
@@ -152,7 +159,7 @@ bt_status_t FakeSendResponse(int conn_id, int trans_id, int status,
 btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
-  nullptr,  // scan
+  FakeScan,
   nullptr,  // connect
   nullptr,  // disconnect
   nullptr,  // listen

@@ -670,5 +670,53 @@ void BluetoothGattInterface::InitializeForTesting(
   g_interface = test_instance;
 }
 
+bt_status_t BluetoothGattInterface::StartScan(int client_id) {
+  lock_guard<mutex> lock(scan_clients_lock_);
+
+  // Scan already initiated for this client.
+  if (scan_client_set_.find(client_id) != scan_client_set_.end()) {
+    // Assume starting scan multiple times is not error, but warn user.
+    LOG(WARNING) << "Scan already initiated for client";
+    return BT_STATUS_SUCCESS;
+  }
+
+  // If this is the first scan client, then make a call into the stack. We
+  // only do this when the reference count changes to or from 0.
+  if (scan_client_set_.empty()) {
+    bt_status_t status = GetClientHALInterface()->scan(true);
+    if (status != BT_STATUS_SUCCESS) {
+      LOG(ERROR) << "HAL call to scan failed";
+      return status;
+    }
+  }
+
+  scan_client_set_.insert(client_id);
+
+  return BT_STATUS_SUCCESS;
+}
+
+bt_status_t BluetoothGattInterface::StopScan(int client_id) {
+  lock_guard<mutex> lock(scan_clients_lock_);
+
+  // Scan not initiated for this client.
+  auto iter = scan_client_set_.find(client_id);
+  if (iter == scan_client_set_.end()) {
+    // Assume stopping scan multiple times is not error, but warn user.
+    LOG(WARNING) << "Scan already stopped or not initiated for client";
+    return BT_STATUS_SUCCESS;
+  }
+
+  if (scan_client_set_.size() == 1) {
+    bt_status_t status = GetClientHALInterface()->scan(false);
+    if (status != BT_STATUS_SUCCESS) {
+      LOG(ERROR) << "HAL call to stop scan failed";
+      return status;
+    }
+  }
+
+  scan_client_set_.erase(iter);
+  return BT_STATUS_SUCCESS;
+}
+
 }  // namespace hal
 }  // namespace bluetooth
