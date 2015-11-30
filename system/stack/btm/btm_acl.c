@@ -927,8 +927,10 @@ void btm_read_remote_version_complete (UINT8 *p)
                 STREAM_TO_UINT16 (p_acl_cb->lmp_subversion, p);
             }
 
+#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
             if (p_acl_cb->transport == BT_TRANSPORT_LE)
                 l2cble_notify_le_connection (p_acl_cb->remote_addr);
+#endif  // (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
             break;
         }
     }

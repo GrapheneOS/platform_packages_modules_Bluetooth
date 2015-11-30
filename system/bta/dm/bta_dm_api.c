@@ -919,6 +919,7 @@ void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 *******************************************************************************/
 void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 {
+#if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_SCAN_PARAMS  *p_msg;
     if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
@@ -928,6 +929,7 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
         p_msg->scan_window      = scan_window;
         bta_sys_sendmsg(p_msg);
     }
+#endif  // BLE_INCLUDED == TRUE
 }
 
 /*******************************************************************************
@@ -945,6 +947,8 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 ** Returns          void
 **
 *******************************************************************************/
+
+#if BLE_INCLUDED == TRUE
 void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
                             UINT32 scan_window, tBLE_SCAN_MODE scan_mode,
                             tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback)
@@ -964,6 +968,7 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
         bta_sys_sendmsg(p_msg);
     }
 }
+#endif  // BLE_INCLUDED == TRUE
 
 /*******************************************************************************
 **
