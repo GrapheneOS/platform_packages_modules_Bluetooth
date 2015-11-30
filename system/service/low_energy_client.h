@@ -27,6 +27,8 @@
 #include "service/common/bluetooth/advertise_data.h"
 #include "service/common/bluetooth/advertise_settings.h"
 #include "service/common/bluetooth/low_energy_constants.h"
+#include "service/common/bluetooth/scan_filter.h"
+#include "service/common/bluetooth/scan_settings.h"
 #include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
 
@@ -47,9 +49,20 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Callback type used to return the result of asynchronous operations below.
   using StatusCallback = std::function<void(BLEStatus)>;
 
+  // Initiates a BLE device scan for this client using the given |settings| and
+  // |filters|. See the documentation for ScanSettings and ScanFilter for how
+  // these parameters can be configured. Return true on success, false
+  // otherwise. Please see logs for details in case of error.
+  bool StartScan(const ScanSettings& settings,
+                 const std::vector<ScanFilter>& filters);
+
+  // Stops an ongoing BLE device scan for this client.
+  bool StopScan();
+
   // Starts advertising based on the given advertising and scan response
   // data and the provided |settings|. Reports the result of the operation in
-  // |callback|.
+  // |callback|. Return true on success, false otherwise. Please see logs for
+  // details in case of error.
   bool StartAdvertising(const AdvertiseSettings& settings,
                         const AdvertiseData& advertise_data,
                         const AdvertiseData& scan_response,
@@ -70,6 +83,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   const AdvertiseSettings& advertise_settings() const {
    return advertise_settings_;
   }
+
+  // Returns the current scan settings.
+  const ScanSettings& scan_settings() const { return scan_settings_; }
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
@@ -135,6 +151,15 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   std::atomic_bool adv_started_;
   std::unique_ptr<StatusCallback> adv_start_callback_;
   std::unique_ptr<StatusCallback> adv_stop_callback_;
+
+  // Protects device scan related members below.
+  std::mutex scan_fields_lock_;
+
+  // Current scan settings.
+  ScanSettings scan_settings_;
+
+  // If true, then this client have a BLE device scan in progress.
+  std::atomic_bool scan_started_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);
 };
