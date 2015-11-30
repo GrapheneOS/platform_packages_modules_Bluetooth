@@ -197,7 +197,7 @@ class GattServerPostRegisterTest : public GattServerTest {
     GattServerTest::SetUp();
     UUID uuid = UUID::GetRandom();
     auto callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothClientInstance> in_client) {
+                        std::unique_ptr<BluetoothInstance> in_client) {
       CHECK(in_uuid == uuid);
       CHECK(in_client.get());
       CHECK(status == BLE_STATUS_SUCCESS);
@@ -210,7 +210,7 @@ class GattServerPostRegisterTest : public GattServerTest {
         .Times(1)
         .WillOnce(Return(BT_STATUS_SUCCESS));
 
-    factory_->RegisterClient(uuid, callback);
+    factory_->RegisterInstance(uuid, callback);
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
     fake_hal_gatt_iface_->NotifyRegisterServerCallback(
@@ -312,7 +312,7 @@ TEST_F(GattServerTest, RegisterServer) {
   int callback_count = 0;
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
-                      std::unique_ptr<BluetoothClientInstance> in_server) {
+                      std::unique_ptr<BluetoothInstance> in_server) {
     status = in_status;
     cb_uuid = uuid;
     server = std::unique_ptr<GattServer>(
@@ -323,16 +323,16 @@ TEST_F(GattServerTest, RegisterServer) {
   UUID uuid0 = UUID::GetRandom();
 
   // HAL returns failure.
-  EXPECT_FALSE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // HAL returns success.
-  EXPECT_TRUE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_TRUE(factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // Calling twice with the same UUID should fail with no additional calls into
   // the stack.
-  EXPECT_FALSE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(factory_->RegisterInstance(uuid0, callback));
 
   testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
@@ -341,7 +341,7 @@ TEST_F(GattServerTest, RegisterServer) {
   EXPECT_CALL(*mock_handler_, RegisterServer(_))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(factory_->RegisterClient(uuid1, callback));
+  EXPECT_TRUE(factory_->RegisterInstance(uuid1, callback));
 
   // Trigger callback with an unknown UUID. This should get ignored.
   UUID uuid2 = UUID::GetRandom();
@@ -358,7 +358,7 @@ TEST_F(GattServerTest, RegisterServer) {
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(server.get() != nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
-  EXPECT_EQ(server_if0, server->GetClientId());
+  EXPECT_EQ(server_if0, server->GetInstanceId());
   EXPECT_EQ(uuid0, server->GetAppIdentifier());
   EXPECT_EQ(uuid0, cb_uuid);
 
@@ -409,7 +409,7 @@ TEST_F(GattServerPostRegisterTest, SimpleServiceTest) {
       gatt_server_->EndServiceDeclaration(GattServer::ResultCallback()));
 
   // We should get a call for a service with one handle.
-  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetClientId(), _, 1))
+  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetInstanceId(), _, 1))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
       .WillOnce(Return(BT_STATUS_SUCCESS));
@@ -484,7 +484,7 @@ TEST_F(GattServerPostRegisterTest, AddServiceFailures) {
   hal::GetHALServiceId(*service_id, &hal_id);
   int srvc_handle = 0x0001;
 
-  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetClientId(), _, 1))
+  EXPECT_CALL(*mock_handler_, AddService(gatt_server_->GetInstanceId(), _, 1))
       .Times(3)
       .WillRepeatedly(Return(BT_STATUS_SUCCESS));
   EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
@@ -502,7 +502,7 @@ TEST_F(GattServerPostRegisterTest, AddServiceFailures) {
   EXPECT_TRUE(gatt_server_->EndServiceDeclaration(callback));
 
   // Report success for AddService but return failure from StartService.
-  EXPECT_CALL(*mock_handler_, StartService(gatt_server_->GetClientId(), 1, _))
+  EXPECT_CALL(*mock_handler_, StartService(gatt_server_->GetInstanceId(), 1, _))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
       .WillOnce(Return(BT_STATUS_SUCCESS));
@@ -524,7 +524,7 @@ TEST_F(GattServerPostRegisterTest, AddServiceFailures) {
 
   // Report failure for StartService. Added service data should get deleted.
   EXPECT_CALL(*mock_handler_,
-              DeleteService(gatt_server_->GetClientId(), srvc_handle))
+              DeleteService(gatt_server_->GetInstanceId(), srvc_handle))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   fake_hal_gatt_iface_->NotifyServiceStartedCallback(

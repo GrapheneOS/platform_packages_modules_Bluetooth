@@ -270,9 +270,9 @@ void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
 // LowEnergyClient implementation
 // ========================================================
 
-LowEnergyClient::LowEnergyClient(const UUID& uuid, int client_if)
+LowEnergyClient::LowEnergyClient(const UUID& uuid, int client_id)
     : app_identifier_(uuid),
-      client_if_(client_if),
+      client_id_(client_id),
       adv_data_needs_update_(false),
       scan_rsp_needs_update_(false),
       is_setting_adv_data_(false),
@@ -283,16 +283,16 @@ LowEnergyClient::LowEnergyClient(const UUID& uuid, int client_if)
 
 LowEnergyClient::~LowEnergyClient() {
   // Automatically unregister the client.
-  VLOG(1) << "LowEnergyClient unregistering client: " << client_if_;
+  VLOG(1) << "LowEnergyClient unregistering client: " << client_id_;
 
   // Unregister as observer so we no longer receive any callbacks.
   hal::BluetoothGattInterface::Get()->RemoveClientObserver(this);
 
   // Stop advertising and ignore the result.
   hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->multi_adv_disable(client_if_);
+      GetClientHALInterface()->multi_adv_disable(client_id_);
   hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->unregister_client(client_if_);
+      GetClientHALInterface()->unregister_client(client_id_);
 }
 
 bool LowEnergyClient::StartAdvertising(const AdvertiseSettings& settings,
@@ -334,7 +334,7 @@ bool LowEnergyClient::StartAdvertising(const AdvertiseSettings& settings,
 
   bt_status_t status = hal::BluetoothGattInterface::Get()->
       GetClientHALInterface()->multi_adv_enable(
-          client_if_,
+          client_id_,
           params.min_interval,
           params.max_interval,
           params.event_type,
@@ -377,7 +377,7 @@ bool LowEnergyClient::StopAdvertising(const StatusCallback& callback) {
   CHECK(!adv_start_callback_);
 
   bt_status_t status = hal::BluetoothGattInterface::Get()->
-      GetClientHALInterface()->multi_adv_disable(client_if_);
+      GetClientHALInterface()->multi_adv_disable(client_id_);
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to initiate call to disable multi-advertising";
     return false;
@@ -405,19 +405,19 @@ const UUID& LowEnergyClient::GetAppIdentifier() const {
   return app_identifier_;
 }
 
-int LowEnergyClient::GetClientId() const {
-  return client_if_;
+int LowEnergyClient::GetInstanceId() const {
+  return client_id_;
 }
 
 void LowEnergyClient::MultiAdvEnableCallback(
     hal::BluetoothGattInterface* gatt_iface,
-    int client_if, int status) {
-  if (client_if != client_if_)
+    int client_id, int status) {
+  if (client_id != client_id_)
     return;
 
   lock_guard<mutex> lock(adv_fields_lock_);
 
-  VLOG(1) << __func__ << "client_if: " << client_if << " status: " << status;
+  VLOG(1) << __func__ << "client_id: " << client_id << " status: " << status;
 
   CHECK(adv_start_callback_);
   CHECK(!adv_stop_callback_);
@@ -435,13 +435,13 @@ void LowEnergyClient::MultiAdvEnableCallback(
 
 void LowEnergyClient::MultiAdvDataCallback(
     hal::BluetoothGattInterface* gatt_iface,
-    int client_if, int status) {
-  if (client_if != client_if_)
+    int client_id, int status) {
+  if (client_id != client_id_)
     return;
 
   lock_guard<mutex> lock(adv_fields_lock_);
 
-  VLOG(1) << __func__ << "client_if: " << client_if << " status: " << status;
+  VLOG(1) << __func__ << "client_id: " << client_id << " status: " << status;
 
   is_setting_adv_data_ = false;
 
@@ -458,19 +458,19 @@ void LowEnergyClient::MultiAdvDataCallback(
 
 void LowEnergyClient::MultiAdvDisableCallback(
     hal::BluetoothGattInterface* /* gatt_iface */,
-    int client_if, int status) {
-  if (client_if != client_if_)
+    int client_id, int status) {
+  if (client_id != client_id_)
     return;
 
   lock_guard<mutex> lock(adv_fields_lock_);
 
-  VLOG(1) << __func__ << "client_if: " << client_if << " status: " << status;
+  VLOG(1) << __func__ << "client_id: " << client_id << " status: " << status;
 
   CHECK(!adv_start_callback_);
   CHECK(adv_stop_callback_);
 
   if (status == BT_STATUS_SUCCESS) {
-    VLOG(1) << "Multi-advertising stopped for client_if: " << client_if;
+    VLOG(1) << "Multi-advertising stopped for client_id: " << client_id;
     adv_started_ = false;
   } else {
     LOG(ERROR) << "Failed to stop multi-advertising";
@@ -507,7 +507,7 @@ bt_status_t LowEnergyClient::SetAdvertiseData(
   // length in APIs, so we should change that.
   bt_status_t status = gatt_iface->GetClientHALInterface()->
       multi_adv_set_inst_data(
-          client_if_,
+          client_id_,
           set_scan_rsp,
           data.include_device_name(),
           data.include_tx_power_level(),
@@ -596,8 +596,9 @@ LowEnergyClientFactory::~LowEnergyClientFactory() {
   hal::BluetoothGattInterface::Get()->RemoveClientObserver(this);
 }
 
-bool LowEnergyClientFactory::RegisterClient(const UUID& uuid,
-                                            const RegisterCallback& callback) {
+bool LowEnergyClientFactory::RegisterInstance(
+    const UUID& uuid,
+    const RegisterCallback& callback) {
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
   lock_guard<mutex> lock(pending_calls_lock_);
 
@@ -621,7 +622,7 @@ bool LowEnergyClientFactory::RegisterClient(const UUID& uuid,
 
 void LowEnergyClientFactory::RegisterClientCallback(
     hal::BluetoothGattInterface* gatt_iface,
-    int status, int client_if,
+    int status, int client_id,
     const bt_uuid_t& app_uuid) {
   UUID uuid(app_uuid);
 
@@ -638,7 +639,7 @@ void LowEnergyClientFactory::RegisterClientCallback(
   std::unique_ptr<LowEnergyClient> client;
   BLEStatus result = BLE_STATUS_FAILURE;
   if (status == BT_STATUS_SUCCESS) {
-    client.reset(new LowEnergyClient(uuid, client_if));
+    client.reset(new LowEnergyClient(uuid, client_id));
 
     // Use the unsafe variant to register this as an observer, since
     // LowEnergyClient instances only get created by LowEnergyClientCallback

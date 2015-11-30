@@ -62,7 +62,7 @@ btserviceBinderDaemonImplSrc := \
 	ipc/binder/bluetooth_gatt_client_binder_server.cpp \
 	ipc/binder/bluetooth_gatt_server_binder_server.cpp \
 	ipc/binder/bluetooth_low_energy_binder_server.cpp \
-	ipc/binder/interface_with_clients_base.cpp \
+	ipc/binder/interface_with_instances_base.cpp \
 	ipc/binder/ipc_handler_binder.cpp \
 
 btserviceBinderDaemonSrc := \

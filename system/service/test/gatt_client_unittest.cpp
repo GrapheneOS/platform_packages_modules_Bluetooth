@@ -87,7 +87,7 @@ class GattClientTest : public ::testing::Test {
   DISALLOW_COPY_AND_ASSIGN(GattClientTest);
 };
 
-TEST_F(GattClientTest, RegisterClient) {
+TEST_F(GattClientTest, RegisterInstance) {
   EXPECT_CALL(*mock_handler_, RegisterClient(_))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
@@ -101,7 +101,7 @@ TEST_F(GattClientTest, RegisterClient) {
   int callback_count = 0;
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
-                      std::unique_ptr<BluetoothClientInstance> in_client) {
+                      std::unique_ptr<BluetoothInstance> in_client) {
         status = in_status;
         cb_uuid = uuid;
         client = std::unique_ptr<GattClient>(
@@ -112,16 +112,16 @@ TEST_F(GattClientTest, RegisterClient) {
   UUID uuid0 = UUID::GetRandom();
 
   // HAL returns failure.
-  EXPECT_FALSE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // HAL returns success.
-  EXPECT_TRUE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_TRUE(factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // Calling twice with the same UUID should fail with no additional call into
   // the stack.
-  EXPECT_FALSE(factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(factory_->RegisterInstance(uuid0, callback));
 
   testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
@@ -130,7 +130,7 @@ TEST_F(GattClientTest, RegisterClient) {
   EXPECT_CALL(*mock_handler_, RegisterClient(_))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(factory_->RegisterClient(uuid1, callback));
+  EXPECT_TRUE(factory_->RegisterInstance(uuid1, callback));
 
   // Trigger callback with an unknown UUID. This should get ignored.
   UUID uuid2 = UUID::GetRandom();
@@ -147,7 +147,7 @@ TEST_F(GattClientTest, RegisterClient) {
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(client.get() != nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
-  EXPECT_EQ(client_id0, client->GetClientId());
+  EXPECT_EQ(client_id0, client->GetInstanceId());
   EXPECT_EQ(uuid0, client->GetAppIdentifier());
   EXPECT_EQ(uuid0, cb_uuid);
 

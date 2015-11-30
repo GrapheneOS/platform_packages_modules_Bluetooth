@@ -24,7 +24,7 @@ namespace ipc {
 namespace binder {
 
 namespace {
-const int kInvalidClientId = -1;
+const int kInvalidInstanceId = -1;
 }  // namespace
 
 BluetoothGattServerBinderServer::BluetoothGattServerBinderServer(
@@ -38,12 +38,12 @@ bool BluetoothGattServerBinderServer::RegisterServer(
   bluetooth::GattServerFactory* gatt_server_factory =
       adapter_->GetGattServerFactory();
 
-  return RegisterClientBase(callback, gatt_server_factory);
+  return RegisterInstanceBase(callback, gatt_server_factory);
 }
 
-void BluetoothGattServerBinderServer::UnregisterServer(int server_if) {
+void BluetoothGattServerBinderServer::UnregisterServer(int server_id) {
   VLOG(2) << __func__;
-  UnregisterClientBase(server_if);
+  UnregisterInstanceBase(server_id);
 }
 
 void BluetoothGattServerBinderServer::UnregisterAll() {
@@ -52,22 +52,22 @@ void BluetoothGattServerBinderServer::UnregisterAll() {
 }
 
 bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
-    int server_if, bool is_primary, const bluetooth::UUID& uuid,
+    int server_id, bool is_primary, const bluetooth::UUID& uuid,
     std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
   auto service_id = gatt_server->BeginServiceDeclaration(uuid, is_primary);
   if (!service_id) {
-    LOG(ERROR) << "Failed to begin service declaration - server_if: "
-               << server_if << " UUID: " << uuid.ToString();
+    LOG(ERROR) << "Failed to begin service declaration - server_id: "
+               << server_id << " UUID: " << uuid.ToString();
     return false;
   }
 
@@ -77,23 +77,23 @@ bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
 }
 
 bool BluetoothGattServerBinderServer::AddCharacteristic(
-    int server_if, const bluetooth::UUID& uuid,
+    int server_id, const bluetooth::UUID& uuid,
     int properties, int permissions,
     std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
   auto char_id = gatt_server->AddCharacteristic(uuid, properties, permissions);
   if (!char_id) {
-    LOG(ERROR) << "Failed to add characteristic - server_if: "
-               << server_if << " UUID: " << uuid.ToString();
+    LOG(ERROR) << "Failed to add characteristic - server_id: "
+               << server_id << " UUID: " << uuid.ToString();
     return false;
   }
 
@@ -103,22 +103,22 @@ bool BluetoothGattServerBinderServer::AddCharacteristic(
 }
 
 bool BluetoothGattServerBinderServer::AddDescriptor(
-    int server_if, const bluetooth::UUID& uuid, int permissions,
+    int server_id, const bluetooth::UUID& uuid, int permissions,
     std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
   auto desc_id = gatt_server->AddDescriptor(uuid, permissions);
   if (!desc_id) {
-    LOG(ERROR) << "Failed to add descriptor - server_if: "
-               << server_if << " UUID: " << uuid.ToString();
+    LOG(ERROR) << "Failed to add descriptor - server_id: "
+               << server_id << " UUID: " << uuid.ToString();
     return false;
   }
 
@@ -127,13 +127,13 @@ bool BluetoothGattServerBinderServer::AddDescriptor(
   return true;
 }
 
-bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
+bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_id) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
@@ -141,7 +141,8 @@ bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
   // use after free.
   android::wp<BluetoothGattServerBinderServer> weak_ptr_to_this(this);
   auto callback = [=](
-      bluetooth::BLEStatus status, const bluetooth::GattIdentifier& server_id) {
+      bluetooth::BLEStatus status,
+      const bluetooth::GattIdentifier& service_id) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {
       VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
@@ -150,13 +151,13 @@ bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
 
     std::lock_guard<std::mutex> lock(*maps_lock());
 
-    auto gatt_cb = GetGattServerCallback(server_if);
+    auto gatt_cb = GetGattServerCallback(server_id);
     if (!gatt_cb.get()) {
       VLOG(2) << "The callback was deleted";
       return;
     }
 
-    gatt_cb->OnServiceAdded(status, server_id);
+    gatt_cb->OnServiceAdded(status, service_id);
   };
 
   if (!gatt_server->EndServiceDeclaration(callback)) {
@@ -168,15 +169,15 @@ bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_if) {
 }
 
 bool BluetoothGattServerBinderServer::SendResponse(
-    int server_if, const std::string& device_address,
+    int server_id, const std::string& device_address,
     int request_id, int status, int offset,
     const std::vector<uint8_t>& value) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
@@ -186,7 +187,7 @@ bool BluetoothGattServerBinderServer::SendResponse(
 }
 
 bool BluetoothGattServerBinderServer::SendNotification(
-    int server_if,
+    int server_id,
     const std::string& device_address,
     const bluetooth::GattIdentifier& characteristic_id,
     bool confirm,
@@ -194,9 +195,9 @@ bool BluetoothGattServerBinderServer::SendNotification(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_server = GetGattServer(server_if);
+  auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
-    LOG(ERROR) << "Unknown server_if: " << server_if;
+    LOG(ERROR) << "Unknown server_id: " << server_id;
     return false;
   }
 
@@ -212,7 +213,7 @@ bool BluetoothGattServerBinderServer::SendNotification(
 
     std::lock_guard<std::mutex> lock(*maps_lock());
 
-    auto gatt_cb = GetGattServerCallback(server_if);
+    auto gatt_cb = GetGattServerCallback(server_id);
     if (!gatt_cb.get()) {
       VLOG(2) << "The callback was deleted";
       return;
@@ -238,7 +239,7 @@ void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
   if (!gatt_cb.get()) {
     LOG(WARNING) << "Callback for this GattServer was deleted.";
     return;
@@ -256,7 +257,7 @@ void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
   if (!gatt_cb.get()) {
     LOG(WARNING) << "Callback for this GattServer was deleted.";
     return;
@@ -267,26 +268,26 @@ void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
 }
 
 android::sp<IBluetoothGattServerCallback>
-BluetoothGattServerBinderServer::GetGattServerCallback(int server_if) {
-  auto cb = GetCallback(server_if);
+BluetoothGattServerBinderServer::GetGattServerCallback(int server_id) {
+  auto cb = GetCallback(server_id);
   return android::sp<IBluetoothGattServerCallback>(
       static_cast<IBluetoothGattServerCallback*>(cb.get()));
 }
 
 std::shared_ptr<bluetooth::GattServer>
-BluetoothGattServerBinderServer::GetGattServer(int server_if) {
+BluetoothGattServerBinderServer::GetGattServer(int server_id) {
   return std::static_pointer_cast<bluetooth::GattServer>(
-      GetClientInstance(server_if));
+      GetInstance(server_id));
 }
 
-void BluetoothGattServerBinderServer::OnRegisterClientImpl(
+void BluetoothGattServerBinderServer::OnRegisterInstanceImpl(
     bluetooth::BLEStatus status,
     android::sp<IInterface> callback,
-    bluetooth::BluetoothClientInstance* client) {
-  VLOG(1) << __func__ << " client ID: " << client->GetClientId()
+    bluetooth::BluetoothInstance* instance) {
+  VLOG(1) << __func__ << " instance ID: " << instance->GetInstanceId()
           << " status: " << status;
   bluetooth::GattServer* gatt_server =
-      static_cast<bluetooth::GattServer*>(client);
+      static_cast<bluetooth::GattServer*>(instance);
   gatt_server->SetDelegate(this);
 
   android::sp<IBluetoothGattServerCallback> cb(
@@ -294,7 +295,7 @@ void BluetoothGattServerBinderServer::OnRegisterClientImpl(
   cb->OnServerRegistered(
       status,
       (status == bluetooth::BLE_STATUS_SUCCESS) ?
-          client->GetClientId() : kInvalidClientId);
+          instance->GetInstanceId() : kInvalidInstanceId);
 }
 
 void BluetoothGattServerBinderServer::OnCharacteristicWriteRequest(
@@ -306,7 +307,7 @@ void BluetoothGattServerBinderServer::OnCharacteristicWriteRequest(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
   if (!gatt_cb.get()) {
     LOG(WARNING) << "Callback for this GattServer was deleted.";
     return;
@@ -326,7 +327,7 @@ void BluetoothGattServerBinderServer::OnDescriptorWriteRequest(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
   if (!gatt_cb.get()) {
     LOG(WARNING) << "Callback for this GattServer was deleted.";
     return;
@@ -344,7 +345,7 @@ void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto gatt_cb = GetGattServerCallback(gatt_server->GetClientId());
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
   if (!gatt_cb.get()) {
     LOG(WARNING) << "Callback for this GattServer was deleted.";
     return;

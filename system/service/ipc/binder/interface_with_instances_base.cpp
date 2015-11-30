@@ -14,16 +14,16 @@
 //  limitations under the License.
 //
 
-#include "service/ipc/binder/interface_with_clients_base.h"
+#include "service/ipc/binder/interface_with_instances_base.h"
 
 #include <base/logging.h>
 
 namespace ipc {
 namespace binder {
 
-bool InterfaceWithClientsBase::RegisterClientBase(
+bool InterfaceWithInstancesBase::RegisterInstanceBase(
     const android::sp<IInterface>& callback,
-    bluetooth::BluetoothClientInstanceFactory* factory) {
+    bluetooth::BluetoothInstanceFactory* factory) {
   VLOG(2) << __func__;
   CHECK(factory);
 
@@ -43,67 +43,68 @@ bool InterfaceWithClientsBase::RegisterClientBase(
   // Create a weak pointer and pass that to the callback to prevent an invalid
   // access later. Since this object is managed using Android's StrongPointer
   // (sp) we are using a wp here rather than std::weak_ptr.
-  android::wp<InterfaceWithClientsBase> weak_ptr_to_this(this);
+  android::wp<InterfaceWithInstancesBase> weak_ptr_to_this(this);
 
-  bluetooth::BluetoothClientInstanceFactory::RegisterCallback cb =
+  bluetooth::BluetoothInstanceFactory::RegisterCallback cb =
       [weak_ptr_to_this](
           bluetooth::BLEStatus status,
           const bluetooth::UUID& in_uuid,
-          std::unique_ptr<bluetooth::BluetoothClientInstance> client) {
+          std::unique_ptr<bluetooth::BluetoothInstance> instance) {
         // If the weak pointer was invalidated then there is nothing we can do.
-        android::sp<InterfaceWithClientsBase> strong_ptr_to_this =
+        android::sp<InterfaceWithInstancesBase> strong_ptr_to_this =
             weak_ptr_to_this.promote();
         if (!strong_ptr_to_this.get()) {
-          VLOG(2) << "InterfaceWithClientsBase was deleted while client was "
-                  << "being registered";
+          VLOG(2) << "InterfaceWithInstancesBase was deleted while instance was"
+                  << " being registered";
           return;
         }
 
-        strong_ptr_to_this->OnRegisterClient(
-            status, in_uuid, std::move(client));
+        strong_ptr_to_this->OnRegisterInstance(
+            status, in_uuid, std::move(instance));
       };
 
-  if (factory->RegisterClient(app_uuid, cb))
+  if (factory->RegisterInstance(app_uuid, cb))
     return true;
 
-  LOG(ERROR) << "Failed to register client";
+  LOG(ERROR) << "Failed to register instance";
   pending_callbacks_.Remove(app_uuid);
 
   return false;
 }
 
-void InterfaceWithClientsBase::UnregisterClientBase(int client_if) {
+void InterfaceWithInstancesBase::UnregisterInstanceBase(int instance_id) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(maps_lock_);
 
-  cif_to_cb_.Remove(client_if);
-  cif_to_client_.erase(client_if);
+  id_to_cb_.Remove(instance_id);
+  id_to_instance_.erase(instance_id);
 }
 
-void InterfaceWithClientsBase::UnregisterAllBase() {
+void InterfaceWithInstancesBase::UnregisterAllBase() {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(maps_lock_);
 
-  cif_to_cb_.Clear();
-  cif_to_client_.clear();
+  id_to_cb_.Clear();
+  id_to_instance_.clear();
 }
 
-android::sp<IInterface> InterfaceWithClientsBase::GetCallback(int client_if) {
-  return cif_to_cb_.Get(client_if);
+android::sp<IInterface> InterfaceWithInstancesBase::GetCallback(
+    int instance_id) {
+  return id_to_cb_.Get(instance_id);
 }
 
-std::shared_ptr<bluetooth::BluetoothClientInstance>
-InterfaceWithClientsBase::GetClientInstance(int client_if) {
-  auto iter = cif_to_client_.find(client_if);
-  if (iter == cif_to_client_.end())
-    return std::shared_ptr<bluetooth::BluetoothClientInstance>();
+std::shared_ptr<bluetooth::BluetoothInstance>
+InterfaceWithInstancesBase::GetInstance(int instance_id) {
+  auto iter = id_to_instance_.find(instance_id);
+  if (iter == id_to_instance_.end())
+    return std::shared_ptr<bluetooth::BluetoothInstance>();
   return iter->second;
 }
 
-void InterfaceWithClientsBase::OnRegisterClient(
+void InterfaceWithInstancesBase::OnRegisterInstance(
     bluetooth::BLEStatus status,
     const bluetooth::UUID& uuid,
-    std::unique_ptr<bluetooth::BluetoothClientInstance> client) {
+    std::unique_ptr<bluetooth::BluetoothInstance> instance) {
   VLOG(2) << __func__ << " - status: " << status;
 
   // Simply remove the callback from |pending_callbacks_| as it no longer
@@ -113,43 +114,43 @@ void InterfaceWithClientsBase::OnRegisterClient(
   // |callback| might be NULL if it was removed from the pending list, e.g. the
   // remote process that owns the callback died.
   if (!callback.get()) {
-    VLOG(1) << "Callback was removed before the call to \"RegisterClient\" "
-            << "returned; unregistering client";
+    VLOG(1) << "Callback was removed before the call to \"RegisterInstance\" "
+            << "returned; unregistering instance";
     return;
   }
 
   if (status != bluetooth::BLE_STATUS_SUCCESS) {
     // The call wasn't successful. Notify the implementation and return.
-    LOG(ERROR) << "Failed to register client: " << status;
-    OnRegisterClientImpl(status, callback, nullptr);
+    LOG(ERROR) << "Failed to register instance: " << status;
+    OnRegisterInstanceImpl(status, callback, nullptr);
     return;
   }
 
   std::lock_guard<std::mutex> lock(maps_lock_);
-  int client_if = client->GetClientId();
-  CHECK(client_if);
-  if (!cif_to_cb_.Register(client_if, callback, this)) {
+  int instance_id = instance->GetInstanceId();
+  CHECK(instance_id);
+  if (!id_to_cb_.Register(instance_id, callback, this)) {
     LOG(ERROR) << "Failed to store callback";
-    OnRegisterClientImpl(bluetooth::BLE_STATUS_FAILURE, callback, nullptr);
+    OnRegisterInstanceImpl(bluetooth::BLE_STATUS_FAILURE, callback, nullptr);
     return;
   }
 
-  VLOG(1) << "Registered BluetoothClientInstance - ID: " << client_if;
+  VLOG(1) << "Registered BluetoothInstance - ID: " << instance_id;
 
-  auto shared_client =
-      std::shared_ptr<bluetooth::BluetoothClientInstance>(client.release());
-  cif_to_client_[client_if] = shared_client;
+  auto shared_instance =
+      std::shared_ptr<bluetooth::BluetoothInstance>(instance.release());
+  id_to_instance_[instance_id] = shared_instance;
 
-  OnRegisterClientImpl(status, callback, shared_client.get());
+  OnRegisterInstanceImpl(status, callback, shared_instance.get());
 }
 
-void InterfaceWithClientsBase::OnRemoteCallbackRemoved(const int& key) {
-  VLOG(2) << __func__ << " client_if: " << key;
+void InterfaceWithInstancesBase::OnRemoteCallbackRemoved(const int& key) {
+  VLOG(2) << __func__ << " instance_id: " << key;
   std::lock_guard<std::mutex> lock(maps_lock_);
 
   // No need to remove from the callback map as the entry should be already
   // removed when this callback gets called.
-  cif_to_client_.erase(key);
+  id_to_instance_.erase(key);
 }
 
 }  // namespace binder

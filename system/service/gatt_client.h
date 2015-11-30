@@ -21,7 +21,7 @@
 
 #include <base/macros.h>
 
-#include "service/bluetooth_client_instance.h"
+#include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
 
@@ -30,13 +30,13 @@ namespace bluetooth {
 // A GattClient instance represents an application's handle to perform GATT
 // client-role operations. Instances cannot be created directly and should be
 // obtained through the factory.
-class GattClient : public BluetoothClientInstance {
+class GattClient : public BluetoothInstance {
  public:
   ~GattClient() override;
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
-  int GetClientId() const override;
+  int GetInstanceId() const override;
 
  private:
   friend class GattClientFactory;
@@ -55,7 +55,7 @@ class GattClient : public BluetoothClientInstance {
 // GattClientFactory is used to register and obtain a per-application GattClient
 // instance. Users should call RegisterClient to obtain their own unique
 // GattClient instance that has been registered with the Bluetooth stack.
-class GattClientFactory : public BluetoothClientInstanceFactory,
+class GattClientFactory : public BluetoothInstanceFactory,
                           private hal::BluetoothGattInterface::ClientObserver {
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
@@ -63,9 +63,9 @@ class GattClientFactory : public BluetoothClientInstanceFactory,
   GattClientFactory();
   ~GattClientFactory() override;
 
-  // BluetoothClientInstanceFactory override:
-  bool RegisterClient(const UUID& uuid,
-                      const RegisterCallback& callback) override;
+  // BluetoothInstanceFactory override:
+  bool RegisterInstance(const UUID& uuid,
+                        const RegisterCallback& callback) override;
 
  private:
   // hal::BluetoothGattInterface::ClientObserver override:
