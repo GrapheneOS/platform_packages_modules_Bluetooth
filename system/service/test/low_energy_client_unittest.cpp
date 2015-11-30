@@ -145,7 +145,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     LowEnergyClientTest::SetUp();
     UUID uuid = UUID::GetRandom();
     auto callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothClientInstance> in_client) {
+                        std::unique_ptr<BluetoothInstance> in_client) {
       CHECK(in_uuid == uuid);
       CHECK(in_client.get());
       CHECK(status == BLE_STATUS_SUCCESS);
@@ -158,7 +158,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
         .Times(1)
         .WillOnce(Return(BT_STATUS_SUCCESS));
 
-    ble_factory_->RegisterClient(uuid, callback);
+    ble_factory_->RegisterInstance(uuid, callback);
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
     fake_hal_gatt_iface_->NotifyRegisterClientCallback(0, 0, hal_uuid);
@@ -196,9 +196,9 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ASSERT_TRUE(le_client_->IsStartingAdvertising());
 
     fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+        le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
     fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+        le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
 
     ASSERT_TRUE(le_client_->IsAdvertisingStarted());
     ASSERT_FALSE(le_client_->IsStartingAdvertising());
@@ -210,12 +210,12 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     EXPECT_TRUE(le_client_->StartAdvertising(
         settings, data, AdvertiseData(), callback));
     fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+        le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
     fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+        le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
     EXPECT_TRUE(le_client_->StopAdvertising(LowEnergyClient::StatusCallback()));
     fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
-        le_client_->GetClientId(), BT_STATUS_SUCCESS);
+        le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   }
 
  protected:
@@ -225,7 +225,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClientPostRegisterTest);
 };
 
-TEST_F(LowEnergyClientTest, RegisterClient) {
+TEST_F(LowEnergyClientTest, RegisterInstance) {
   EXPECT_CALL(*mock_handler_, RegisterClient(_))
       .Times(2)
       .WillOnce(Return(BT_STATUS_FAIL))
@@ -239,7 +239,7 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   int callback_count = 0;
 
   auto callback = [&](BLEStatus in_status, const UUID& uuid,
-                      std::unique_ptr<BluetoothClientInstance> in_client) {
+                      std::unique_ptr<BluetoothInstance> in_client) {
         status = in_status;
         cb_uuid = uuid;
         client = std::unique_ptr<LowEnergyClient>(
@@ -250,16 +250,16 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   UUID uuid0 = UUID::GetRandom();
 
   // HAL returns failure.
-  EXPECT_FALSE(ble_factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // HAL returns success.
-  EXPECT_TRUE(ble_factory_->RegisterClient(uuid0, callback));
+  EXPECT_TRUE(ble_factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
 
   // Calling twice with the same UUID should fail with no additional call into
   // the stack.
-  EXPECT_FALSE(ble_factory_->RegisterClient(uuid0, callback));
+  EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
 
   testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
@@ -268,7 +268,7 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   EXPECT_CALL(*mock_handler_, RegisterClient(_))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
-  EXPECT_TRUE(ble_factory_->RegisterClient(uuid1, callback));
+  EXPECT_TRUE(ble_factory_->RegisterInstance(uuid1, callback));
 
   // Trigger callback with an unknown UUID. This should get ignored.
   UUID uuid2 = UUID::GetRandom();
@@ -285,7 +285,7 @@ TEST_F(LowEnergyClientTest, RegisterClient) {
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(client.get() != nullptr);  // Assert to terminate in case of error
   EXPECT_EQ(BLE_STATUS_SUCCESS, status);
-  EXPECT_EQ(client_if0, client->GetClientId());
+  EXPECT_EQ(client_if0, client->GetInstanceId());
   EXPECT_EQ(uuid0, client->GetAppIdentifier());
   EXPECT_EQ(uuid0, cb_uuid);
 
@@ -353,7 +353,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
 
   // Notify failure.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_FAIL);
+      le_client_->GetInstanceId(), BT_STATUS_FAIL);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -382,7 +382,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   // Notify success for enable. The procedure will fail since setting data will
   // fail.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -400,7 +400,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   // Notify success for enable. the advertise data call should succeed but
   // operation will remain pending.
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_TRUE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -408,7 +408,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
 
   // Notify failure from advertising call.
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_FAIL);
+      le_client_->GetInstanceId(), BT_STATUS_FAIL);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -424,9 +424,9 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
   EXPECT_EQ(3, callback_count);
 
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_TRUE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -483,7 +483,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StopAdvertisingBasic) {
 
   // Notify failure.
   fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
-      le_client_->GetClientId(), BT_STATUS_FAIL);
+      le_client_->GetInstanceId(), BT_STATUS_FAIL);
   EXPECT_TRUE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -499,7 +499,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StopAdvertisingBasic) {
 
   // Notify success.
   fake_hal_gatt_iface_->NotifyMultiAdvDisableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_FALSE(le_client_->IsAdvertisingStarted());
   EXPECT_FALSE(le_client_->IsStartingAdvertising());
   EXPECT_FALSE(le_client_->IsStoppingAdvertising());
@@ -567,7 +567,7 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   adv1.set_include_device_name(true);
 
   EXPECT_CALL(*mock_handler_,
-              MultiAdvEnable(le_client_->GetClientId(), _, _,
+              MultiAdvEnable(le_client_->GetInstanceId(), _, _,
                              kAdvertisingEventTypeScannable,
                              _, _, _))
       .Times(2)
@@ -598,11 +598,11 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   // Enable success; Adv. data success; Scan rsp. fail.
   EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_FAIL);
+      le_client_->GetInstanceId(), BT_STATUS_FAIL);
 
   EXPECT_EQ(1, callback_count);
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
@@ -611,11 +611,11 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
   // Second time everything succeeds.
   EXPECT_TRUE(le_client_->StartAdvertising(settings, adv0, adv1, callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   fake_hal_gatt_iface_->NotifyMultiAdvDataCallback(
-      le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
 
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(BLE_STATUS_SUCCESS, last_status);
@@ -712,7 +712,7 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_TRUE(le_client_->StartAdvertising(
               settings, multi_uuid_adv, AdvertiseData(), callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+          le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_EQ(1, callback_count);
   EXPECT_EQ(0, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
@@ -721,7 +721,7 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_TRUE(le_client_->StartAdvertising(
               settings, multi_uuid_adv, AdvertiseData(), callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+          le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_EQ(2, callback_count);
   EXPECT_EQ(0, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
@@ -794,7 +794,7 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_TRUE(le_client_->StartAdvertising(
               settings, service_uuid_mismatch, AdvertiseData(), callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
-          le_client_->GetClientId(), BT_STATUS_SUCCESS);
+      le_client_->GetInstanceId(), BT_STATUS_SUCCESS);
   EXPECT_EQ(10, callback_count);
   EXPECT_EQ(7, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);

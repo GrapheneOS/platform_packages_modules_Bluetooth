@@ -23,6 +23,10 @@
 namespace ipc {
 namespace binder {
 
+namespace {
+const int kInvalidInstanceId = -1;
+}  // namespace
+
 BluetoothLowEnergyBinderServer::BluetoothLowEnergyBinderServer(
     bluetooth::Adapter* adapter) : adapter_(adapter) {
   CHECK(adapter_);
@@ -37,12 +41,12 @@ bool BluetoothLowEnergyBinderServer::RegisterClient(
   bluetooth::LowEnergyClientFactory* ble_factory =
       adapter_->GetLowEnergyClientFactory();
 
-  return RegisterClientBase(callback, ble_factory);
+  return RegisterInstanceBase(callback, ble_factory);
 }
 
-void BluetoothLowEnergyBinderServer::UnregisterClient(int client_if) {
+void BluetoothLowEnergyBinderServer::UnregisterClient(int client_id) {
   VLOG(2) << __func__;
-  UnregisterClientBase(client_if);
+  UnregisterInstanceBase(client_id);
 }
 
 void BluetoothLowEnergyBinderServer::UnregisterAll() {
@@ -51,16 +55,16 @@ void BluetoothLowEnergyBinderServer::UnregisterAll() {
 }
 
 bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
-    int client_if,
+    int client_id,
     const bluetooth::AdvertiseData& advertise_data,
     const bluetooth::AdvertiseData& scan_response,
     const bluetooth::AdvertiseSettings& settings) {
-  VLOG(2) << __func__ << " client_if: " << client_if;
+  VLOG(2) << __func__ << " client_id: " << client_id;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto client = GetLEClient(client_if);
+  auto client = GetLEClient(client_id);
   if (!client) {
-    LOG(ERROR) << "Unknown client_if: " << client_if;
+    LOG(ERROR) << "Unknown client_id: " << client_id;
     return false;
   }
 
@@ -77,9 +81,9 @@ bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
 
     std::lock_guard<std::mutex> lock(*maps_lock());
 
-    auto cb = GetLECallback(client_if);
+    auto cb = GetLECallback(client_id);
     if (!cb.get()) {
-      VLOG(1) << "Client was removed before callback: " << client_if;
+      VLOG(1) << "Client was removed before callback: " << client_id;
       return;
     }
 
@@ -95,13 +99,13 @@ bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
   return true;
 }
 
-bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
+bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
-  auto client = GetLEClient(client_if);
+  auto client = GetLEClient(client_id);
   if (!client) {
-    LOG(ERROR) << "Unknown client_if: " << client_if;
+    LOG(ERROR) << "Unknown client_id: " << client_id;
     return false;
   }
 
@@ -116,9 +120,9 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
       return;
     }
 
-    auto cb = GetLECallback(client_if);
+    auto cb = GetLECallback(client_id);
     if (!cb.get()) {
-      VLOG(2) << "Client was unregistered - client_if: " << client_if;
+      VLOG(2) << "Client was unregistered - client_id: " << client_id;
       return;
     }
 
@@ -136,28 +140,29 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_if) {
 }
 
 android::sp<IBluetoothLowEnergyCallback>
-BluetoothLowEnergyBinderServer::GetLECallback(int client_if) {
-  auto cb = GetCallback(client_if);
+BluetoothLowEnergyBinderServer::GetLECallback(int client_id) {
+  auto cb = GetCallback(client_id);
   return android::sp<IBluetoothLowEnergyCallback>(
       static_cast<IBluetoothLowEnergyCallback*>(cb.get()));
 }
 
 std::shared_ptr<bluetooth::LowEnergyClient>
-BluetoothLowEnergyBinderServer::GetLEClient(int client_if) {
+BluetoothLowEnergyBinderServer::GetLEClient(int client_id) {
   return std::static_pointer_cast<bluetooth::LowEnergyClient>(
-      GetClientInstance(client_if));
+      GetInstance(client_id));
 }
 
-void BluetoothLowEnergyBinderServer::OnRegisterClientImpl(
+void BluetoothLowEnergyBinderServer::OnRegisterInstanceImpl(
     bluetooth::BLEStatus status,
     android::sp<IInterface> callback,
-    bluetooth::BluetoothClientInstance* client) {
+    bluetooth::BluetoothInstance* instance) {
   VLOG(1) << __func__ << " status: " << status;
   android::sp<IBluetoothLowEnergyCallback> cb(
       static_cast<IBluetoothLowEnergyCallback*>(callback.get()));
   cb->OnClientRegistered(
       status,
-      (status == bluetooth::BLE_STATUS_SUCCESS) ? client->GetClientId() : -1);
+      (status == bluetooth::BLE_STATUS_SUCCESS) ?
+          instance->GetInstanceId() : kInvalidInstanceId);
 }
 
 }  // namespace binder

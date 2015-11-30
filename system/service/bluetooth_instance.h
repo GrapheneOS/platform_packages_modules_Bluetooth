@@ -26,50 +26,50 @@
 
 namespace bluetooth {
 
-// A BluetoothClientInstance represents an application's handle to an instance
+// A BluetoothInstance represents an application's handle to an instance
 // that is registered with the underlying Bluetooth stack using a UUID and has a
-// stack-assigned integer "client_if" ID associated with it.
-class BluetoothClientInstance {
+// stack-assigned integer "instance_id" ID associated with it.
+class BluetoothInstance {
  public:
-  virtual ~BluetoothClientInstance() = default;
+  virtual ~BluetoothInstance() = default;
 
-  // Returns the app-specific unique ID used while registering this client.
+  // Returns the app-specific unique ID used while registering this instance.
   virtual const UUID& GetAppIdentifier() const = 0;
 
   // Returns the HAL "interface ID" assigned to this instance by the stack.
-  virtual int GetClientId() const = 0;
+  virtual int GetInstanceId() const = 0;
 
  protected:
   // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
-  BluetoothClientInstance() = default;
+  BluetoothInstance() = default;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothClientInstance);
+  DISALLOW_COPY_AND_ASSIGN(BluetoothInstance);
 };
 
-// A BluetoothClientInstanceFactory provides a common interface for factory
+// A BluetoothInstanceFactory provides a common interface for factory
 // classes that handle asynchronously registering a per-application instance of
-// a BluetoothClientInstance with the underlying stack.
-class BluetoothClientInstanceFactory {
+// a BluetoothInstance with the underlying stack.
+class BluetoothInstanceFactory {
  public:
-  BluetoothClientInstanceFactory() = default;
-  virtual ~BluetoothClientInstanceFactory() = default;
+  BluetoothInstanceFactory() = default;
+  virtual ~BluetoothInstanceFactory() = default;
 
-  // Callback invoked as a result of a call to RegisterClient.
+  // Callback invoked as a result of a call to RegisterInstance.
   using RegisterCallback = std::function<void(
       BLEStatus status, const UUID& app_uuid,
-      std::unique_ptr<BluetoothClientInstance> client)>;
+      std::unique_ptr<BluetoothInstance> instance)>;
 
-  // Registers a client of type T for the given unique identifier |app_uuid|.
+  // Registers an instance for the given unique identifier |app_uuid|.
   // On success, this asynchronously invokes |callback| with a unique pointer
-  // to an instance of type T whose ownership can be taken by the caller. In
+  // to a BluetoothInstance whose ownership can be taken by the caller. In
   // the case of an error, the pointer will contain nullptr.
-  virtual bool RegisterClient(const UUID& app_uuid,
-                              const RegisterCallback& callback) = 0;
+  virtual bool RegisterInstance(const UUID& app_uuid,
+                                const RegisterCallback& callback) = 0;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(BluetoothClientInstanceFactory);
+  DISALLOW_COPY_AND_ASSIGN(BluetoothInstanceFactory);
 };
 
 }  // namespace bluetooth

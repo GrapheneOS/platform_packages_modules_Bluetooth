@@ -24,7 +24,7 @@ namespace ipc {
 namespace binder {
 
 namespace {
-const int kInvalidClientId = -1;
+const int kInvalidInstanceId = -1;
 }  // namespace
 
 BluetoothGattClientBinderServer::BluetoothGattClientBinderServer(
@@ -39,12 +39,12 @@ bool BluetoothGattClientBinderServer::RegisterClient(
   bluetooth::GattClientFactory* gatt_client_factory =
       adapter_->GetGattClientFactory();
 
-  return RegisterClientBase(callback, gatt_client_factory);
+  return RegisterInstanceBase(callback, gatt_client_factory);
 }
 
 void BluetoothGattClientBinderServer::UnregisterClient(int client_id) {
   VLOG(2) << __func__;
-  UnregisterClientBase(client_id);
+  UnregisterInstanceBase(client_id);
 }
 
 void BluetoothGattClientBinderServer::UnregisterAll() {
@@ -62,14 +62,14 @@ BluetoothGattClientBinderServer::GetGattClientCallback(int client_id) {
 std::shared_ptr<bluetooth::GattClient>
 BluetoothGattClientBinderServer::GetGattClient(int client_id) {
   return std::static_pointer_cast<bluetooth::GattClient>(
-      GetClientInstance(client_id));
+      GetInstance(client_id));
 }
 
-void BluetoothGattClientBinderServer::OnRegisterClientImpl(
+void BluetoothGattClientBinderServer::OnRegisterInstanceImpl(
     bluetooth::BLEStatus status,
     android::sp<IInterface> callback,
-    bluetooth::BluetoothClientInstance* client) {
-  VLOG(1) << __func__ << " client ID: " << client->GetClientId()
+    bluetooth::BluetoothInstance* instance) {
+  VLOG(1) << __func__ << " client ID: " << instance->GetInstanceId()
           << " status: " << status;
 
   android::sp<IBluetoothGattClientCallback> cb(
@@ -77,7 +77,7 @@ void BluetoothGattClientBinderServer::OnRegisterClientImpl(
   cb->OnClientRegistered(
       status,
       (status == bluetooth::BLE_STATUS_SUCCESS) ?
-          client->GetClientId() : kInvalidClientId);
+          instance->GetInstanceId() : kInvalidInstanceId);
 }
 
 }  // namespace binder

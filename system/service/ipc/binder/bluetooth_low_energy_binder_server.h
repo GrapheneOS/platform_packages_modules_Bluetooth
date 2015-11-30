@@ -23,7 +23,7 @@
 #include "service/common/bluetooth/binder/IBluetoothLowEnergy.h"
 #include "service/common/bluetooth/binder/IBluetoothLowEnergyCallback.h"
 #include "service/common/bluetooth/low_energy_constants.h"
-#include "service/ipc/binder/interface_with_clients_base.h"
+#include "service/ipc/binder/interface_with_instances_base.h"
 #include "service/low_energy_client.h"
 
 namespace bluetooth {
@@ -35,7 +35,7 @@ namespace binder {
 
 // Implements the server side of the IBluetoothLowEnergy interface.
 class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
-                                       public InterfaceWithClientsBase {
+                                       public InterfaceWithInstancesBase {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLowEnergyBinderServer() override;
@@ -43,29 +43,29 @@ class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
   // IBluetoothLowEnergy overrides:
   bool RegisterClient(
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
-  void UnregisterClient(int client_if) override;
+  void UnregisterClient(int client_id) override;
   void UnregisterAll() override;
   bool StartMultiAdvertising(
-      int client_if,
+      int client_id,
       const bluetooth::AdvertiseData& advertise_data,
       const bluetooth::AdvertiseData& scan_response,
       const bluetooth::AdvertiseSettings& settings) override;
-  bool StopMultiAdvertising(int client_if) override;
+  bool StopMultiAdvertising(int client_id) override;
 
  private:
   // Returns a pointer to the IBluetoothLowEnergyCallback instance associated
-  // with |client_if|. Returns NULL if such a callback cannot be found.
-  android::sp<IBluetoothLowEnergyCallback> GetLECallback(int client_if);
+  // with |client_id|. Returns NULL if such a callback cannot be found.
+  android::sp<IBluetoothLowEnergyCallback> GetLECallback(int client_id);
 
   // Returns a pointer to the LowEnergyClient instance associated with
-  // |client_if|. Returns NULL if such a client cannot be found.
-  std::shared_ptr<bluetooth::LowEnergyClient> GetLEClient(int client_if);
+  // |client_id|. Returns NULL if such a client cannot be found.
+  std::shared_ptr<bluetooth::LowEnergyClient> GetLEClient(int client_id);
 
-  // InterfaceWithClientsBase override:
-  void OnRegisterClientImpl(
+  // InterfaceWithInstancesBase override:
+  void OnRegisterInstanceImpl(
       bluetooth::BLEStatus status,
       android::sp<IInterface> callback,
-      bluetooth::BluetoothClientInstance* client) override;
+      bluetooth::BluetoothInstance* instance) override;
 
   bluetooth::Adapter* adapter_;  // weak
 
