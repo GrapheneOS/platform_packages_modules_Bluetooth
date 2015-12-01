@@ -274,10 +274,11 @@ static future_t *start_up(void) {
   power_state = BT_VND_PWR_ON;
   vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
 
-  startup_future = future_new();
+  future_t *local_startup_future = future_new();
+  startup_future = local_startup_future;
   LOG_DEBUG(LOG_TAG, "%s starting async portion", __func__);
   thread_post(thread, event_finish_startup, NULL);
-  return startup_future;
+  return local_startup_future;
 error:;
   shut_down(); // returns NULL so no need to wait for it
   return future_new_immediate(FUTURE_FAIL);
