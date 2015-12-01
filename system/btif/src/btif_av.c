@@ -194,6 +194,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTA_AV_META_MSG_EVT)
         CASE_RETURN_STR(BTA_AV_REJECT_EVT)
         CASE_RETURN_STR(BTA_AV_RC_FEAT_EVT)
+        CASE_RETURN_STR(BTA_AV_OFFLOAD_START_RSP_EVT)
         CASE_RETURN_STR(BTIF_SM_ENTER_EVT)
         CASE_RETURN_STR(BTIF_SM_EXIT_EVT)
         CASE_RETURN_STR(BTIF_AV_CONNECT_REQ_EVT)
@@ -202,6 +203,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
         CASE_RETURN_STR(BTIF_AV_STOP_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
         CASE_RETURN_STR(BTIF_AV_SINK_CONFIG_REQ_EVT)
+        CASE_RETURN_STR(BTIF_AV_OFFLOAD_START_REQ_EVT)
         default: return "UNKNOWN_EVENT";
    }
 }
@@ -351,6 +353,11 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             btif_rc_handler(event, p_data);
             break;
 
+        case BTIF_AV_OFFLOAD_START_REQ_EVT:
+            BTIF_TRACE_ERROR("BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started IDLE");
+            btif_a2dp_on_offload_started(BTA_AV_FAIL);
+            break;
+
         default:
             BTIF_TRACE_WARNING("%s : unhandled event:%s", __FUNCTION__,
                                 dump_av_sm_event_name(event));
@@ -483,6 +490,11 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                 break;
             }
 
+        case BTIF_AV_OFFLOAD_START_REQ_EVT:
+            btif_a2dp_on_offload_started(BTA_AV_FAIL);
+            BTIF_TRACE_ERROR("BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started OPENING");
+            break;
+
         CHECK_RC_EVENT(event, p_data);
 
         default:
@@ -555,6 +567,11 @@ static BOOLEAN btif_av_state_closing_handler(btif_sm_event_t event, void *p_data
         /* Handle the RC_CLOSE event for the cleanup */
         case BTA_AV_RC_CLOSE_EVT:
             btif_rc_handler(event, (tBTA_AV*)p_data);
+            break;
+
+        case BTIF_AV_OFFLOAD_START_REQ_EVT:
+            btif_a2dp_on_offload_started(BTA_AV_FAIL);
+            BTIF_TRACE_ERROR("BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started Closing");
             break;
 
         default:
@@ -711,6 +728,11 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
                         (bt_bdaddr_t*)p_data);
             }
             btif_queue_advance();
+            break;
+
+        case BTIF_AV_OFFLOAD_START_REQ_EVT:
+            btif_a2dp_on_offload_started(BTA_AV_FAIL);
+            BTIF_TRACE_ERROR("BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started Opened");
             break;
 
         CHECK_RC_EVENT(event, p_data);
@@ -877,6 +899,15 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             btif_report_connection_state(BTAV_CONNECTION_STATE_DISCONNECTED, &(btif_av_cb.peer_bda));
 
             btif_sm_change_state(btif_av_cb.sm_handle, BTIF_AV_STATE_IDLE);
+            break;
+
+        case BTIF_AV_OFFLOAD_START_REQ_EVT:
+            BTA_AvOffloadStart(btif_av_cb.bta_handle);
+            break;
+
+        case BTA_AV_OFFLOAD_START_RSP_EVT:
+
+            btif_a2dp_on_offload_started(p_av->status);
             break;
 
         CHECK_RC_EVENT(event, p_data);

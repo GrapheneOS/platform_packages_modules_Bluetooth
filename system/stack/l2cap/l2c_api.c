@@ -1772,6 +1772,37 @@ BOOLEAN L2CA_GetCurrentConfig (UINT16 lcid,
 
 /*******************************************************************************
 **
+** Function      L2CA_GetConnectionConfig
+**
+** Description  This function returns configurations of L2CAP channel
+**              pp_l2c_ccb : pointer to this channels L2CAP ccb data.
+**
+** Returns      TRUE if successful
+**
+*******************************************************************************/
+BOOLEAN L2CA_GetConnectionConfig(UINT16 lcid, UINT16 *mtu, UINT16 *rcid, UINT16 *handle)
+{
+    tL2C_CCB *p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);;
+
+    L2CAP_TRACE_API ("%s CID: 0x%04x", __func__, lcid);
+
+    if (p_ccb)
+    {
+        *mtu = L2CAP_MTU_SIZE;
+        if (p_ccb->our_cfg.mtu_present)
+            *mtu = p_ccb->our_cfg.mtu;
+
+        *rcid  = p_ccb->remote_cid;
+        *handle= p_ccb->p_lcb->handle;
+        return TRUE;
+    }
+
+    L2CAP_TRACE_ERROR ("%s No CCB for CID:0x%04x", __func__, lcid);
+    return FALSE;
+}
+
+/*******************************************************************************
+**
 ** Function         L2CA_RegForNoCPEvt
 **
 ** Description      Register callback for Number of Completed Packets event.

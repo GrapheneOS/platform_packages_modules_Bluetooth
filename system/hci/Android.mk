@@ -35,6 +35,7 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../osi/include \
     $(LOCAL_PATH)/../stack/include \
     $(LOCAL_PATH)/../utils/include \
+    $(LOCAL_PATH)/../bta/include \
     $(bdroid_C_INCLUDES)
 
 LOCAL_MODULE := libbt-hci
