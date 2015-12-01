@@ -126,13 +126,14 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   ensure_stack_is_initialized();
 
   LOG_DEBUG(LOG_TAG, "%s is bringing up the stack.", __func__);
-  hack_future = future_new();
+  future_t *local_hack_future = future_new();
+  hack_future = local_hack_future;
 
   // Include this for now to put btif config into a shutdown-able state
   module_start_up(get_module(BTIF_CONFIG_MODULE));
   bte_main_enable();
 
-  if (future_await(hack_future) != FUTURE_SUCCESS) {
+  if (future_await(local_hack_future) != FUTURE_SUCCESS) {
     stack_is_running = true; // So stack shutdown actually happens
     event_shut_down_stack(NULL);
     return;
@@ -151,13 +152,14 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   }
 
   LOG_DEBUG(LOG_TAG, "%s is bringing down the stack.", __func__);
-  hack_future = future_new();
+  future_t *local_hack_future = future_new();
+  hack_future = local_hack_future;
   stack_is_running = false;
 
   btif_disable_bluetooth();
   module_shut_down(get_module(BTIF_CONFIG_MODULE));
 
-  future_await(hack_future);
+  future_await(local_hack_future);
   module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
 
   LOG_DEBUG(LOG_TAG, "%s finished.", __func__);
@@ -181,14 +183,15 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
   ensure_stack_is_not_running();
 
   LOG_DEBUG(LOG_TAG, "%s is cleaning up the stack.", __func__);
-  hack_future = future_new();
+  future_t *local_hack_future = future_new();
+  hack_future = local_hack_future;
   stack_is_initialized = false;
 
   btif_shutdown_bluetooth();
   module_clean_up(get_module(BTIF_CONFIG_MODULE));
   module_clean_up(get_module(BT_UTILS_MODULE));
 
-  future_await(hack_future);
+  future_await(local_hack_future);
   module_clean_up(get_module(OSI_MODULE));
   module_management_stop();
   LOG_DEBUG(LOG_TAG, "%s finished.", __func__);
