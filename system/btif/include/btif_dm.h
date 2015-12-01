@@ -50,6 +50,8 @@ void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
  * Out-of-band functions
  */
 void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data);
+void btif_dm_set_oob_for_le_io_req(BD_ADDR bd_addr, tBTA_OOB_DATA  *p_oob_data,
+                                   tBTA_LE_AUTH_REQ *p_auth_req);
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void);
 void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);

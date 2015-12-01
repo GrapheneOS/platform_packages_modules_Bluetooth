@@ -402,17 +402,19 @@ void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                           tBTA_LE_KEY_TYPE  *p_resp_key )
 {
     UNUSED(bd_addr);
-    /* if OOB is not supported, this call-out function does not need to do anything
-     * otherwise, look for the OOB data associated with the address and set *p_oob_data accordingly
-     * If the answer can not be obtained right away,
-     * set *p_oob_data to BTA_OOB_UNKNOWN and call bta_dm_ci_io_req() when the answer is available */
-
-    *p_oob_data = FALSE;
 
     /* *p_auth_req by default is FALSE for devices with NoInputNoOutput; TRUE for other devices. */
 
     if (bte_appl_cfg.ble_auth_req)
         *p_auth_req = bte_appl_cfg.ble_auth_req | (bte_appl_cfg.ble_auth_req & 0x04) | ((*p_auth_req) & 0x04);
+
+    /* if OOB is not supported, this call-out function does not need to do anything
+     * otherwise, look for the OOB data associated with the address and set *p_oob_data accordingly.
+     * If the answer can not be obtained right away,
+     * set *p_oob_data to BTA_OOB_UNKNOWN and call bta_dm_ci_io_req() when the answer is available.
+     */
+
+    btif_dm_set_oob_for_le_io_req(bd_addr, p_oob_data, p_auth_req);
 
     if (bte_appl_cfg.ble_io_cap <=4)
         *p_io_cap = bte_appl_cfg.ble_io_cap;

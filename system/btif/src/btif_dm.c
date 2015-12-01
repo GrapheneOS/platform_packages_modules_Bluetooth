@@ -149,11 +149,11 @@ typedef struct
     BD_NAME bd_name;
 } btif_dm_remote_name_t;
 
+/* this structure holds optional OOB data for remote device */
 typedef struct
 {
-    BT_OCTET16 sp_c;
-    BT_OCTET16 sp_r;
-    BD_ADDR  oob_bdaddr;  /* peer bdaddr*/
+    BD_ADDR  bdaddr;    /* peer bdaddr */
+    bt_out_of_band_data_t oob_data;
 } btif_dm_oob_cb_t;
 
 typedef struct
@@ -208,6 +208,7 @@ static void btif_dm_ble_key_notif_evt(tBTA_DM_SP_KEY_NOTIF *p_ssp_key_notif);
 static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl);
 static void btif_dm_ble_passkey_req_evt(tBTA_DM_PIN_REQ *p_pin_req);
 static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF *p_notif_req) ;
+static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB *req_oob_type);
 #endif
 
 static void bte_scan_filt_param_cfg_evt(UINT8 action_type,
@@ -231,6 +232,12 @@ extern void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UIN
 /******************************************************************************
 **  Functions
 ******************************************************************************/
+
+static bool is_empty_128bit(uint8_t *data)
+{
+    static const uint8_t zero[16] = { 0 };
+    return !memcmp(zero, data, sizeof(zero));
+}
 
 static void btif_dm_data_copy(uint16_t event, char *dst, char *src)
 {
@@ -1876,6 +1883,7 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             break;
         case BTA_DM_BLE_OOB_REQ_EVT:
             BTIF_TRACE_DEBUG("BTA_DM_BLE_OOB_REQ_EVT. ");
+            btif_dm_ble_oob_req_evt(&p_data->rmt_oob);
             break;
         case BTA_DM_BLE_LOCAL_IR_EVT:
             BTIF_TRACE_DEBUG("BTA_DM_BLE_LOCAL_IR_EVT. ");
@@ -2324,6 +2332,25 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
 
 /*******************************************************************************
 **
+** Function         btif_dm_create_bond_out_of_band
+**
+** Description      Initiate bonding with the specified device using out of band data
+**
+** Returns          bt_status_t
+**
+*******************************************************************************/
+bt_status_t btif_dm_create_bond_out_of_band(const bt_bdaddr_t *bd_addr, int transport, const bt_out_of_band_data_t *oob_data)
+{
+    bdcpy(oob_cb.bdaddr, bd_addr);
+    memcpy(&oob_cb.oob_data, oob_data, sizeof(bt_out_of_band_data_t));
+
+    bdstr_t bdstr;
+    BTIF_TRACE_EVENT("%s: bd_addr=%s, transport=%d", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)), transport);
+    return btif_dm_create_bond(bd_addr, transport);
+}
+
+/*******************************************************************************
+**
 ** Function         btif_dm_cancel_bond
 **
 ** Description      Initiate bonding with the specified device
@@ -2726,18 +2753,48 @@ void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
     }
 }
 
-void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data)
+void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_has_oob_data)
 {
-    if (oob_cb.sp_c[0] == 0 && oob_cb.sp_c[1] == 0 &&
-        oob_cb.sp_c[2] == 0 && oob_cb.sp_c[3] == 0 )
+    if (is_empty_128bit(oob_cb.oob_data.c192))
     {
-        *p_oob_data = FALSE;
+        *p_has_oob_data = FALSE;
     }
     else
     {
-        *p_oob_data = TRUE;
+        *p_has_oob_data = TRUE;
     }
-    BTIF_TRACE_DEBUG("btif_dm_set_oob_for_io_req *p_oob_data=%d", *p_oob_data);
+    BTIF_TRACE_DEBUG("%s: *p_has_oob_data=%d", __func__, *p_has_oob_data);
+}
+
+void btif_dm_set_oob_for_le_io_req(BD_ADDR bd_addr, tBTA_OOB_DATA  *p_has_oob_data,
+                                   tBTA_LE_AUTH_REQ *p_auth_req)
+{
+
+    /* We currently support only Security Manager TK as OOB data for LE transport.
+       If it's not present mark no OOB data.
+     */
+    if (!is_empty_128bit(oob_cb.oob_data.sm_tk))
+    {
+        /* make sure OOB data is for this particular device */
+        if (memcmp(bd_addr, oob_cb.bdaddr, BD_ADDR_LEN) == 0) {
+            // When using OOB with TK, SC Secure Connections bit must be disabled.
+            tBTA_LE_AUTH_REQ mask = ~BTM_LE_AUTH_REQ_SC_ONLY;
+            *p_auth_req = ((*p_auth_req) & mask);
+
+            *p_has_oob_data = TRUE;
+        }
+        else
+        {
+            *p_has_oob_data = FALSE;
+            BTIF_TRACE_WARNING("%s: remote address didn't match OOB data address",
+                               __func__);
+        }
+    }
+    else
+    {
+        *p_has_oob_data = FALSE;
+    }
+    BTIF_TRACE_DEBUG("%s *p_has_oob_data=%d", __func__, *p_has_oob_data);
 }
 
 #ifdef BTIF_DM_OOB_TEST
@@ -2751,13 +2808,12 @@ void btif_dm_load_local_oob(void)
 #if !defined(OS_GENERIC)
     char prop_oob[PROPERTY_VALUE_MAX];
     property_get("service.brcm.bt.oob", prop_oob, "3");
-    BTIF_TRACE_DEBUG("btif_dm_load_local_oob prop_oob = %s",prop_oob);
+    BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
     if (prop_oob[0] != '3')
     {
-        if (oob_cb.sp_c[0] == 0 && oob_cb.sp_c[1] == 0 &&
-            oob_cb.sp_c[2] == 0 && oob_cb.sp_c[3] == 0 )
+        if (is_empty_128bit(oob_cb.oob_data.c192))
         {
-            BTIF_TRACE_DEBUG("btif_dm_load_local_oob: read OOB, call BTA_DmLocalOob()");
+            BTIF_TRACE_DEBUG("%s: read OOB, call BTA_DmLocalOob()", __func__);
             BTA_DmLocalOob();
         }
     }
@@ -2777,16 +2833,14 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
     char *path_b = "/data/misc/bluedroid/LOCAL/b.key";
     char *path = NULL;
     char prop_oob[PROPERTY_VALUE_MAX];
-    BTIF_TRACE_DEBUG("btif_dm_proc_loc_oob: valid=%d", valid);
-    if (oob_cb.sp_c[0] == 0 && oob_cb.sp_c[1] == 0 &&
-        oob_cb.sp_c[2] == 0 && oob_cb.sp_c[3] == 0 &&
-        valid)
+    BTIF_TRACE_DEBUG("%s: valid=%d", __func__, valid);
+    if (is_empty_128bit(oob_cb.oob_data.c192) && valid)
     {
         BTIF_TRACE_DEBUG("save local OOB data in memory");
-        memcpy(oob_cb.sp_c, c, BT_OCTET16_LEN);
-        memcpy(oob_cb.sp_r, r, BT_OCTET16_LEN);
+        memcpy(oob_cb.oob_data.c192, c, BT_OCTET16_LEN);
+        memcpy(oob_cb.oob_data.r192, r, BT_OCTET16_LEN);
         property_get("service.brcm.bt.oob", prop_oob, "3");
-        BTIF_TRACE_DEBUG("btif_dm_proc_loc_oob prop_oob = %s",prop_oob);
+        BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
         if (prop_oob[0] == '1')
             path = path_a;
         else if (prop_oob[0] == '2')
@@ -2796,11 +2850,11 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
             fp = fopen(path, "wb+");
             if (fp == NULL)
             {
-                BTIF_TRACE_DEBUG("btif_dm_proc_loc_oob: failed to save local OOB data to %s", path);
+                BTIF_TRACE_DEBUG("%s: failed to save local OOB data to %s", __func__, path);
             }
             else
             {
-                BTIF_TRACE_DEBUG("btif_dm_proc_loc_oob: save local OOB data into file %s",path);
+                BTIF_TRACE_DEBUG("%s: save local OOB data into file %s", __func__, path);
                 fwrite (c , 1 , BT_OCTET16_LEN , fp );
                 fwrite (r , 1 , BT_OCTET16_LEN , fp );
                 fclose(fp);
@@ -2826,9 +2880,9 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
     char prop_oob[PROPERTY_VALUE_MAX];
     BOOLEAN result = FALSE;
     bt_bdaddr_t bt_bd_addr;
-    bdcpy(oob_cb.oob_bdaddr, bd_addr);
+    bdcpy(oob_cb.bdaddr, bd_addr);
     property_get("service.brcm.bt.oob", prop_oob, "3");
-    BTIF_TRACE_DEBUG("btif_dm_proc_rmt_oob prop_oob = %s",prop_oob);
+    BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
     if (prop_oob[0] == '1')
         path = path_b;
     else if (prop_oob[0] == '2')
@@ -2838,35 +2892,35 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
         fp = fopen(path, "rb");
         if (fp == NULL)
         {
-            BTIF_TRACE_DEBUG("btapp_dm_rmt_oob_reply: failed to read OOB keys from %s",path);
+            BTIF_TRACE_DEBUG("%s: failed to read OOB keys from %s", __func__, path);
             return FALSE;
         }
         else
         {
-            BTIF_TRACE_DEBUG("btif_dm_proc_rmt_oob: read OOB data from %s",path);
+            BTIF_TRACE_DEBUG("%s: read OOB data from %s", __func__, path);
             fread (p_c , 1 , BT_OCTET16_LEN , fp );
             fread (p_r , 1 , BT_OCTET16_LEN , fp );
             fclose(fp);
         }
-        BTIF_TRACE_DEBUG("----btif_dm_proc_rmt_oob: TRUE");
+        BTIF_TRACE_DEBUG("----%s: TRUE", __func__);
         sprintf(t, "%02x:%02x:%02x:%02x:%02x:%02x",
-                oob_cb.oob_bdaddr[0], oob_cb.oob_bdaddr[1], oob_cb.oob_bdaddr[2],
-                oob_cb.oob_bdaddr[3], oob_cb.oob_bdaddr[4], oob_cb.oob_bdaddr[5]);
-        BTIF_TRACE_DEBUG("----btif_dm_proc_rmt_oob: peer_bdaddr = %s", t);
+                oob_cb.bdaddr[0], oob_cb.bdaddr[1], oob_cb.bdaddr[2],
+                oob_cb.bdaddr[3], oob_cb.bdaddr[4], oob_cb.bdaddr[5]);
+        BTIF_TRACE_DEBUG("----%s: peer_bdaddr = %s", __func__, t);
         sprintf(t, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
                 p_c[0], p_c[1], p_c[2],  p_c[3],  p_c[4],  p_c[5],  p_c[6],  p_c[7],
                 p_c[8], p_c[9], p_c[10], p_c[11], p_c[12], p_c[13], p_c[14], p_c[15]);
-        BTIF_TRACE_DEBUG("----btif_dm_proc_rmt_oob: c = %s",t);
+        BTIF_TRACE_DEBUG("----%s: c = %s", __func__, t);
         sprintf(t, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
                 p_r[0], p_r[1], p_r[2],  p_r[3],  p_r[4],  p_r[5],  p_r[6],  p_r[7],
                 p_r[8], p_r[9], p_r[10], p_r[11], p_r[12], p_r[13], p_r[14], p_r[15]);
-        BTIF_TRACE_DEBUG("----btif_dm_proc_rmt_oob: r = %s",t);
+        BTIF_TRACE_DEBUG("----%s: r = %s", __func__, t);
         bdcpy(bt_bd_addr.address, bd_addr);
         btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_BOND_STATE_BONDING,
                               (char *)&bt_bd_addr, sizeof(bt_bdaddr_t), NULL);
         result = TRUE;
     }
-    BTIF_TRACE_DEBUG("btif_dm_proc_rmt_oob result=%d",result);
+    BTIF_TRACE_DEBUG("%s: result=%d", __func__, result);
     return result;
 #else  /* defined(OS_GENERIC) */
     return FALSE;
@@ -2920,6 +2974,10 @@ static void btif_dm_ble_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     bt_bond_state_t state = BT_BOND_STATE_NONE;
 
     bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
+
+    /* Clear OOB data */
+    memset(&oob_cb, 0, sizeof(oob_cb));
+
     if ( (p_auth_cmpl->success == TRUE) && (p_auth_cmpl->key_present) )
     {
         /* store keys */
@@ -3186,6 +3244,39 @@ static void btif_dm_ble_key_nc_req_evt(tBTA_DM_SP_KEY_NOTIF *p_notif_req)
     HAL_CBACK(bt_hal_cbacks, ssp_request_cb, &bd_addr, &bd_name,
               COD_UNCLASSIFIED, BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
               p_notif_req->passkey);
+}
+
+static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB *req_oob_type)
+{
+    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+
+    bt_bdaddr_t bd_addr;
+    bdcpy(bd_addr.address, req_oob_type->bd_addr);
+
+    /* We currently support only Security Manager TK as OOB data. We already
+     * checked if it's present in btif_dm_set_oob_for_le_io_req, but check here
+     * again. If it's not present do nothing, pairing will timeout.
+     */
+    if (is_empty_128bit(oob_cb.oob_data.sm_tk)) {
+        return;
+    }
+
+    /* make sure OOB data is for this particular device */
+    if (memcmp(req_oob_type->bd_addr, oob_cb.bdaddr, BD_ADDR_LEN) != 0) {
+        BTIF_TRACE_WARNING("%s: remote address didn't match OOB data address", __func__);
+        return;
+    }
+
+    /* Remote name update */
+    btif_update_remote_properties(req_oob_type->bd_addr , req_oob_type->bd_name,
+                                          NULL, BT_DEVICE_TYPE_BLE);
+
+    bond_state_changed(BT_STATUS_SUCCESS, &bd_addr, BT_BOND_STATE_BONDING);
+    pairing_cb.is_ssp = FALSE;
+    pairing_cb.is_le_only = TRUE;
+    pairing_cb.is_le_nc = FALSE;
+
+    BTM_BleOobDataReply(req_oob_type->bd_addr, 0, 16, oob_cb.oob_data.sm_tk);
 }
 
 void btif_dm_update_ble_remote_properties( BD_ADDR bd_addr, BD_NAME bd_name,

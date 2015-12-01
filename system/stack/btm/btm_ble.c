@@ -467,7 +467,9 @@ void BTM_BleConfirmReply (BD_ADDR bd_addr, UINT8 res)
 **
 ** Parameters:      bd_addr     - Address of the peer device
 **                  res         - result of the operation SMP_SUCCESS if success
-**                  p_data      - simple pairing Randomizer  C.
+**                  p_data      - oob data, depending on transport and capabilities.
+**                                Might be "Simple Pairing Randomizer", or
+**                                "Security Manager TK Value".
 **
 *******************************************************************************/
 void BTM_BleOobDataReply(BD_ADDR bd_addr, UINT8 res, UINT8 len, UINT8 *p_data)
