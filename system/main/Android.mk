@@ -163,8 +163,6 @@ LOCAL_REQUIRED_MODULES := \
     libbt-hci \
     libbt-vendor
 
-LOCAL_MULTILIB := 32
-
 LOCAL_CLANG_CFLAGS := -Wno-error=gnu-variable-sized-type-not-at-end
 LOCAL_CLANG_CFLAGS += -Wno-typedef-redefinition
 

@@ -24,15 +24,17 @@
  ******************************************************************************/
 #include <string.h>
 
-#include "bt_target.h"
+#include "osi/include/mutex.h"
+
 #include "bt_common.h"
-#include "rfcdefs.h"
-#include "port_api.h"
-#include "btm_int.h"
+#include "bt_target.h"
+#include "bt_utils.h"
 #include "btm_api.h"
+#include "btm_int.h"
+#include "port_api.h"
 #include "port_int.h"
 #include "rfc_int.h"
-#include "bt_utils.h"
+#include "rfcdefs.h"
 
 /*
 ** Local function definitions

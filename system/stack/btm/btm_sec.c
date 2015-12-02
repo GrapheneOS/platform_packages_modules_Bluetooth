@@ -27,14 +27,16 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "device/include/controller.h"
+#include "osi/include/log.h"
+#include "osi/include/time.h"
+
 #include "bt_types.h"
 #include "bt_utils.h"
 #include "btm_int.h"
 #include "btu.h"
-#include "device/include/controller.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
-#include "osi/include/log.h"
 
 #if (BT_USE_TRACES == TRUE && BT_TRACE_VERBOSE == FALSE)
 /* needed for sprintf() */

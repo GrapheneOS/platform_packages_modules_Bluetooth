@@ -35,6 +35,4 @@ LOCAL_MODULE:= bdt
 LOCAL_SHARED_LIBRARIES += libcutils   \
                           libhardware
 
-LOCAL_MULTILIB := 32
-
 include $(BUILD_EXECUTABLE)
