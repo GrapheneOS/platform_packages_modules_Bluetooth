@@ -73,11 +73,9 @@ enum
 
     BTA_DM_API_SET_ENCRYPTION_EVT,
 
-#if (BTM_OOB_INCLUDED == TRUE)
     BTA_DM_API_LOC_OOB_EVT,
     BTA_DM_CI_IO_REQ_EVT,
     BTA_DM_CI_RMT_OOB_EVT,
-#endif /* BTM_OOB_INCLUDED */
 
 
 #if BLE_INCLUDED == TRUE
@@ -1142,11 +1140,9 @@ extern void bta_dm_ble_get_energy_info(tBTA_DM_MSG *p_data);
 #endif
 extern void bta_dm_set_encryption(tBTA_DM_MSG *p_data);
 extern void bta_dm_confirm(tBTA_DM_MSG *p_data);
-#if (BTM_OOB_INCLUDED == TRUE)
 extern void bta_dm_loc_oob(tBTA_DM_MSG *p_data);
 extern void bta_dm_ci_io_req_act(tBTA_DM_MSG *p_data);
 extern void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data);
-#endif /* BTM_OOB_INCLUDED */
 
 extern void bta_dm_init_pm(void);
 extern void bta_dm_disable_pm(void);

@@ -2716,7 +2716,6 @@ void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
     }
 }
 
-#if (BTM_OOB_INCLUDED == TRUE)
 void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data)
 {
     if (oob_cb.sp_c[0] == 0 && oob_cb.sp_c[1] == 0 &&
@@ -2730,7 +2729,6 @@ void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data)
     }
     BTIF_TRACE_DEBUG("btif_dm_set_oob_for_io_req *p_oob_data=%d", *p_oob_data);
 }
-#endif /* BTM_OOB_INCLUDED */
 
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void)
@@ -2746,16 +2744,12 @@ void btif_dm_load_local_oob(void)
     BTIF_TRACE_DEBUG("btif_dm_load_local_oob prop_oob = %s",prop_oob);
     if (prop_oob[0] != '3')
     {
-#if (BTM_OOB_INCLUDED == TRUE)
         if (oob_cb.sp_c[0] == 0 && oob_cb.sp_c[1] == 0 &&
             oob_cb.sp_c[2] == 0 && oob_cb.sp_c[3] == 0 )
         {
             BTIF_TRACE_DEBUG("btif_dm_load_local_oob: read OOB, call BTA_DmLocalOob()");
             BTA_DmLocalOob();
         }
-#else  /* (BTM_OOB_INCLUDED != TRUE) */
-        BTIF_TRACE_ERROR("BTM_OOB_INCLUDED is FALSE!!(btif_dm_load_local_oob)");
-#endif  /* (BTM_OOB_INCLUDED == TRUE) */
     }
 #endif  /* !defined(OS_GENERIC) */
 }

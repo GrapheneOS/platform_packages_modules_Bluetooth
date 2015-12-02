@@ -49,14 +49,12 @@ void btif_dm_proc_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 /**
  * Out-of-band functions
  */
-#if (BTM_OOB_INCLUDED == TRUE)
 void btif_dm_set_oob_for_io_req(tBTA_OOB_DATA  *p_oob_data);
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void);
 void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
 #endif /* BTIF_DM_OOB_TEST */
-#endif /* BTM_OOB_INCLUDED */
 #if (BLE_INCLUDED == TRUE)
 
 typedef struct

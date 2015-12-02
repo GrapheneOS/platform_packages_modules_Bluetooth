@@ -23,9 +23,7 @@
 #include "bta_dm_co.h"
 #include "bta_dm_ci.h"
 #include "bt_utils.h"
-#if (BTM_OOB_INCLUDED == TRUE)
 #include "btif_dm.h"
-#endif
 #if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
 #include "bte_appl.h"
 
@@ -83,9 +81,7 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_o
                       tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig)
 {
     UNUSED(bd_addr);
-#if (BTM_OOB_INCLUDED == TRUE)
     btif_dm_set_oob_for_io_req(p_oob_data);
-#endif
     btif_dm_proc_io_req(bd_addr, p_io_cap, p_oob_data, p_auth_req, is_orig);
     BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_oob_data = %d", *p_oob_data);
     BTIF_TRACE_DEBUG("bta_dm_co_io_req *p_io_cap = %d", *p_io_cap);
@@ -133,7 +129,6 @@ void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
     UNUSED(p_upgrade);
 }
 
-#if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_dm_co_loc_oob
@@ -182,8 +177,6 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
     BTIF_TRACE_DEBUG("bta_dm_co_rmt_oob: result=%d",result);
     bta_dm_ci_rmt_oob(result, bd_addr, p_c, p_r);
 }
-
-#endif /* BTM_OOB_INCLUDED */
 
 
 // REMOVE FOR BLUEDROID ?
