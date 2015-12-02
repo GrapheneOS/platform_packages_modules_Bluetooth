@@ -37,9 +37,6 @@
 #include "utl.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
-#include "bt_utils.h"
-#include "vendor.h"
-
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
@@ -62,9 +59,6 @@
 #ifndef BTA_AV_RECONFIG_RETRY
 #define BTA_AV_RECONFIG_RETRY       6
 #endif
-
-/* ACL quota we are letting FW use for A2DP Offload Tx. */
-#define BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA      4
 
 static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 
@@ -146,8 +140,6 @@ const tBTA_AV_SACT bta_av_a2d_action[] =
     bta_av_role_res,        /* BTA_AV_ROLE_RES */
     bta_av_delay_co,        /* BTA_AV_DELAY_CO */
     bta_av_open_at_inc,     /* BTA_AV_OPEN_AT_INC */
-    bta_av_offload_req,     /* BTA_AV_OFFLOAD_REQ */
-    bta_av_offload_rsp,     /* BTA_AV_OFFLOAD_RSP */
     NULL
 };
 
@@ -1084,14 +1076,6 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->wait = 0;
     p_scb->num_disc_snks = 0;
     bta_sys_stop_timer(&p_scb->timer);
-
-    vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
-    if (p_scb->offload_start_pending) {
-        tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
-        (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
-    }
-    p_scb->offload_start_pending = FALSE;
-
     if (p_scb->deregistring)
     {
         /* remove stream */
@@ -1397,7 +1381,6 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     bta_av_conn_chg((tBTA_AV_DATA *) &msg);
     /* set the congestion flag, so AV would not send media packets by accident */
     p_scb->cong = TRUE;
-    p_scb->offload_start_pending = FALSE;
 
 
     p_scb->stream_mtu = p_data->str_msg.msg.open_ind.peer_mtu - AVDT_MEDIA_HDR_SIZE;
@@ -2078,13 +2061,6 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     if (p_scb->co_started)
     {
-        vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
-        if (p_scb->offload_start_pending) {
-            tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
-            (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
-        }
-        p_scb->offload_start_pending = FALSE;
-
         bta_av_stream_chg(p_scb, FALSE);
         p_scb->co_started = FALSE;
 
@@ -2677,13 +2653,6 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* in case that we received suspend_ind, we may need to call co_stop here */
     if(p_scb->co_started)
     {
-        vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
-        if (p_scb->offload_start_pending) {
-            tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
-            (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
-        }
-        p_scb->offload_start_pending = FALSE;
-
         bta_av_stream_chg(p_scb, FALSE);
 
         {
@@ -3130,90 +3099,6 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             bta_sys_sendmsg(p_buf);
         }
     }
-}
-
-/*******************************************************************************
-**
-** Function         bta_av_offload_req
-**
-** Description      This function is called if application requests offload of
-**                  a2dp audio.
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_av_offload_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
-{
-    tBTA_AV_STATUS status = BTA_AV_FAIL_RESOURCES;
-    UINT16 mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
-
-    APPL_TRACE_DEBUG("%s stream %s, audio channels open %d", __func__,
-                     p_scb->started ? "STARTED" : "STOPPED", bta_av_cb.audio_open_cnt);
-
-    /* Check if stream has already been started. */
-    /* Support offload if only one audio source stream is open. */
-    if (p_scb->started != TRUE) {
-        status = BTA_AV_FAIL_STREAM;
-
-    } else if (bta_av_cb.audio_open_cnt == 1 &&
-               p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC &&
-               p_scb->chnl == BTA_AV_CHNL_AUDIO) {
-
-        bt_vendor_op_a2dp_offload_t a2dp_offload_start;
-
-        if (L2CA_GetConnectionConfig(p_scb->l2c_cid, &a2dp_offload_start.acl_data_size,
-                                     &a2dp_offload_start.remote_cid, &a2dp_offload_start.lm_handle)) {
-
-            APPL_TRACE_DEBUG("%s l2cmtu %d lcid 0x%02X rcid 0x%02X lm_handle 0x%02X", __func__,
-                             a2dp_offload_start.acl_data_size, p_scb->l2c_cid,
-                             a2dp_offload_start.remote_cid, a2dp_offload_start.lm_handle);
-
-            a2dp_offload_start.bta_av_handle = p_scb->hndl;
-            a2dp_offload_start.xmit_quota = BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA;
-            a2dp_offload_start.stream_mtu = (mtu < p_scb->stream_mtu) ? mtu : p_scb->stream_mtu;
-            a2dp_offload_start.local_cid = p_scb->l2c_cid;
-            a2dp_offload_start.is_flushable = TRUE;
-            a2dp_offload_start.stream_source = ((UINT32)(p_scb->cfg.codec_info[1] | p_scb->cfg.codec_info[2]));
-
-            memcpy(a2dp_offload_start.codec_info, p_scb->cfg.codec_info,
-                   sizeof(a2dp_offload_start.codec_info));
-
-            if (!vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_START, &a2dp_offload_start)) {
-                status = BTA_AV_SUCCESS;
-                p_scb->offload_start_pending = TRUE;
-            }
-        }
-    }
-
-    if (status != BTA_AV_SUCCESS)
-        (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
-}
-
-/*******************************************************************************
-**
-** Function         bta_av_offload_rsp
-**
-** Description      This function is called when the vendor lib responds to
-**                  BT_VND_OP_A2DP_OFFLOAD_START.
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_av_offload_rsp(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
-{
-    tBTA_AV_STATUS status = p_data->api_status_rsp.status;
-
-    APPL_TRACE_DEBUG("%s stream %s status %s", __func__,
-                     p_scb->started ? "STARTED" : "STOPPED",
-                     status ? "FAIL" : "SUCCESS");
-
-    /* Check if stream has already been started. */
-    if (status == BTA_AV_SUCCESS && p_scb->started != TRUE) {
-        status = BTA_AV_FAIL_STREAM;
-    }
-
-    p_scb->offload_start_pending = FALSE;
-    (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
 }
 
 #endif /* BTA_AV_INCLUDED */

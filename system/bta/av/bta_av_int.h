@@ -84,8 +84,6 @@ enum
     BTA_AV_ROLE_CHANGE_EVT,
     BTA_AV_AVDT_DELAY_RPT_EVT,
     BTA_AV_ACP_CONNECT_EVT,
-    BTA_AV_API_OFFLOAD_START_EVT,
-    BTA_AV_API_OFFLOAD_START_RSP_EVT,
 
     /* these events are handled outside of the state machine */
     BTA_AV_API_ENABLE_EVT,
@@ -381,14 +379,6 @@ typedef struct
     UINT16              avdt_version;   /* AVDTP protocol version */
 } tBTA_AV_SDP_RES;
 
-/* data type for BTA_AV_API_OFFLOAD_RSP_EVT */
-typedef struct
-{
-    BT_HDR              hdr;
-    tBTA_AV_STATUS      status;
-} tBTA_AV_API_STATUS_RSP;
-
-
 /* type for SEP control block */
 typedef struct
 {
@@ -432,7 +422,6 @@ typedef union
     tBTA_AV_ROLE_RES        role_res;
     tBTA_AV_SDP_RES         sdp_res;
     tBTA_AV_API_META_RSP    api_meta_rsp;
-    tBTA_AV_API_STATUS_RSP  api_status_rsp;
 } tBTA_AV_DATA;
 
 typedef void (tBTA_AV_VDP_DATA_ACT)(void *p_scb);
@@ -526,7 +515,6 @@ typedef struct
     UINT8               q_tag;          /* identify the associated q_info union member */
     BOOLEAN             no_rtp_hdr;     /* TRUE if add no RTP header*/
     UINT16              uuid_int;       /*intended UUID of Initiator to connect to */
-    BOOLEAN             offload_start_pending;
 } tBTA_AV_SCB;
 
 #define BTA_AV_RC_ROLE_MASK     0x10
@@ -735,9 +723,6 @@ extern void bta_av_switch_role (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_role_res (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_delay_co (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
 extern void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-extern void bta_av_offload_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-extern void bta_av_offload_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
-
 
 /* ssm action functions - vdp specific */
 extern void bta_av_do_disc_vdp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data);
