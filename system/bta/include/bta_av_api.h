@@ -249,10 +249,11 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */
-#define BTA_AV_MEDIA_SINK_CFG_EVT    20      /* command to configure codec */
+#define BTA_AV_MEDIA_SINK_CFG_EVT    20 /* command to configure codec */
 #define BTA_AV_MEDIA_DATA_EVT   21      /* sending data to Media Task */
+#define BTA_AV_OFFLOAD_START_RSP_EVT 22 /* a2dp offload start response */
 /* Max BTA event */
-#define BTA_AV_MAX_EVT          22
+#define BTA_AV_MAX_EVT          23
 
 
 typedef UINT8 tBTA_AV_EVT;
@@ -448,6 +449,7 @@ typedef union
     tBTA_AV_META_MSG    meta_msg;
     tBTA_AV_REJECT      reject;
     tBTA_AV_RC_FEAT     rc_feat;
+    tBTA_AV_STATUS      status;
 } tBTA_AV;
 
 /* union of data associated with AV Media callback */
@@ -783,6 +785,32 @@ void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
 **
 *******************************************************************************/
 void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt);
+
+/*******************************************************************************
+**
+** Function         BTA_AvOffloadStart
+**
+** Description      Request Starting of A2DP Offload.
+**                  This function is used to start A2DP offload if vendor lib has
+**                  the feature enabled.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_AvOffloadStart(tBTA_AV_HNDL hndl);
+
+/*******************************************************************************
+**
+** Function         BTA_AvOffloadStartRsp
+**
+** Description      Response from vendor library indicating response for
+**                  OffloadStart.
+**
+** Returns          void
+**
+*******************************************************************************/
+void BTA_AvOffloadStartRsp(tBTA_AV_HNDL hndl, tBTA_AV_STATUS status);
+
 
 #ifdef __cplusplus
 }
