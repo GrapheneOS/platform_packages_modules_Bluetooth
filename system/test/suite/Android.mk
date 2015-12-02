@@ -50,6 +50,4 @@ LOCAL_STATIC_LIBRARIES += \
 
 LOCAL_CFLAGS += -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
 
-LOCAL_MULTILIB := 32
-
 include $(BUILD_NATIVE_TEST)
