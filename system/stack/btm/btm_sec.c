@@ -1649,7 +1649,6 @@ void BTM_SendKeypressNotif(BD_ADDR bd_addr, tBTM_SP_KEY_TYPE type)
 }
 #endif
 
-#if BTM_OOB_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         BTM_IoCapRsp
@@ -1949,7 +1948,6 @@ UINT8 * BTM_ReadOobData(UINT8 *p_data, UINT8 eir_tag, UINT8 *p_len)
 
     return p_ret;
 }
-#endif
 
 /*******************************************************************************
 **
@@ -3529,11 +3527,7 @@ False-positive: False-positive: evt_data.bd_addr is set at the beginning with:  
         callback_rc = (*btm_cb.api.p_sp_callback) (BTM_SP_IO_REQ_EVT, (tBTM_SP_EVT_DATA *)&evt_data);
     }
 
-#if BTM_OOB_INCLUDED == TRUE
     if ((callback_rc == BTM_SUCCESS) || (BTM_OOB_UNKNOWN != evt_data.oob_data))
-#else
-    if (callback_rc == BTM_SUCCESS)
-#endif
     {
         if ((btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD))
         {
@@ -3875,7 +3869,6 @@ void btm_simple_pair_complete (UINT8 *p)
     }
 }
 
-#if BTM_OOB_INCLUDED == TRUE
 /*******************************************************************************
 **
 ** Function         btm_rem_oob_req
@@ -3950,7 +3943,6 @@ void btm_read_local_oob_complete (UINT8 *p)
     if (btm_cb.api.p_sp_callback)
         (*btm_cb.api.p_sp_callback) (BTM_SP_LOC_OOB_EVT, (tBTM_SP_EVT_DATA *)&evt_data);
 }
-#endif /* BTM_OOB_INCLUDED */
 
 /*******************************************************************************
 **
@@ -5050,12 +5042,10 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
 {
     tBTM_CB *p_cb = &btm_cb;
     tBTM_SEC_DEV_REC *p_dev_rec;
-#if BTM_OOB_INCLUDED == TRUE
 #if (BTM_LOCAL_IO_CAPS == BTM_IO_CAP_NONE)
     tBTM_AUTH_REQ   auth_req = BTM_AUTH_AP_NO;
 #else
     tBTM_AUTH_REQ   auth_req = BTM_AUTH_AP_YES;
-#endif
 #endif
     UINT8   name[2];
     UNUSED(p_te);
@@ -5108,7 +5098,6 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
             break;
 #endif /* !BTM_IO_CAP_NONE */
 
-#if BTM_OOB_INCLUDED == TRUE
         case BTM_PAIR_STATE_WAIT_LOCAL_IOCAPS:
             if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)
                 auth_req |= BTM_AUTH_DD_BOND;
@@ -5122,7 +5111,6 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
             btsnd_hcic_rem_oob_neg_reply (p_cb->pairing_bda);
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
             break;
-#endif /* BTM_OOB_INCLUDED */
 
         case BTM_PAIR_STATE_WAIT_DISCONNECT:
             /* simple pairing failed. Started a 1-sec timer at simple pairing complete.

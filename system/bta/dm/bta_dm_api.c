@@ -447,7 +447,6 @@ void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin
 
 }
 
-#if (BTM_OOB_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         BTA_DmLocalOob
@@ -471,7 +470,7 @@ void BTA_DmLocalOob(void)
         bta_sys_sendmsg(p_msg);
     }
 }
-#endif /* BTM_OOB_INCLUDED */
+
 /*******************************************************************************
 **
 ** Function         BTA_DmConfirm

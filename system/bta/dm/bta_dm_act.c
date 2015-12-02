@@ -1085,7 +1085,6 @@ void bta_dm_confirm(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-#if (BTM_OOB_INCLUDED == TRUE)
 void bta_dm_loc_oob(tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
@@ -1129,7 +1128,6 @@ void bta_dm_ci_rmt_oob_act(tBTA_DM_MSG *p_data)
     BTM_RemoteOobDataReply(res, p_data->ci_rmt_oob.bd_addr,
         p_data->ci_rmt_oob.c, p_data->ci_rmt_oob.r );
 }
-#endif /* BTM_OOB_INCLUDED */
 
 /*******************************************************************************
 **
@@ -2929,10 +2927,6 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
         bta_dm_co_io_req(p_data->io_req.bd_addr, &p_data->io_req.io_cap,
             &p_data->io_req.oob_data, &p_data->io_req.auth_req, p_data->io_req.is_orig);
 #endif
-#if BTM_OOB_INCLUDED == FALSE
-        status = BTM_SUCCESS;
-#endif
-
         APPL_TRACE_EVENT("io mitm: %d oob_data:%d", p_data->io_req.auth_req, p_data->io_req.oob_data);
         break;
     case BTM_SP_IO_RSP_EVT:
@@ -3012,7 +3006,6 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 
         break;
 
-#if BTM_OOB_INCLUDED == TRUE
     case BTM_SP_LOC_OOB_EVT:
         bta_dm_co_loc_oob((BOOLEAN)(p_data->loc_oob.status == BTM_SUCCESS),
             p_data->loc_oob.c, p_data->loc_oob.r);
@@ -3040,7 +3033,7 @@ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)
 
         bta_dm_co_rmt_oob(p_data->rmt_oob.bd_addr);
         break;
-#endif
+
     case BTM_SP_COMPLT_EVT:
         /* do not report this event - handled by link_key_callback or auth_complete_callback */
         break;
@@ -4442,9 +4435,6 @@ static UINT8 bta_dm_ble_smp_cback (tBTM_LE_EVT event, BD_ADDR bda, tBTM_LE_EVT_D
                                  &p_data->io_req.max_key_size,
                                  &p_data->io_req.init_keys,
                                  &p_data->io_req.resp_keys);
-#endif
-#if BTM_OOB_INCLUDED == FALSE
-            status = BTM_SUCCESS;
 #endif
             APPL_TRACE_EVENT("io mitm: %d oob_data:%d", p_data->io_req.auth_req, p_data->io_req.oob_data);
 
