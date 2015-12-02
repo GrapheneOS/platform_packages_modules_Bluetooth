@@ -40,8 +40,6 @@
 #include <sys/time.h>
 #include <errno.h>
 
-#define LOG_TAG "BTIF-MEDIA"
-
 #include "bt_target.h"
 #include "osi/include/fixed_queue.h"
 #include "gki.h"
@@ -374,8 +372,6 @@ static const char* dump_a2dp_ctrl_event(UINT8 event)
         CASE_RETURN_STR(A2DP_CTRL_CMD_START)
         CASE_RETURN_STR(A2DP_CTRL_CMD_STOP)
         CASE_RETURN_STR(A2DP_CTRL_CMD_SUSPEND)
-        CASE_RETURN_STR(A2DP_CTRL_CMD_OFFLOAD_START)
-
         default:
             return "UNKNOWN MSG ID";
     }
@@ -534,10 +530,6 @@ static void btif_recv_ctrl_data(void)
             UIPC_Send(UIPC_CH_ID_AV_CTRL, 0, &channel_count, 1);
             break;
         }
-
-        case A2DP_CTRL_CMD_OFFLOAD_START:
-                btif_dispatch_sm_event(BTIF_AV_OFFLOAD_START_REQ_EVT, NULL, 0);
-            break;
 
         default:
             APPL_TRACE_ERROR("UNSUPPORTED CMD (%d)", cmd);
@@ -809,9 +801,9 @@ void btif_a2dp_setup_codec(void)
     GKI_disable();
 
     /* for now hardcode 44.1 khz 16 bit stereo PCM format */
-    media_feeding.cfg.pcm.sampling_freq = BTIF_A2DP_SRC_SAMPLING_RATE;
-    media_feeding.cfg.pcm.bit_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
-    media_feeding.cfg.pcm.num_channel = BTIF_A2DP_SRC_NUM_CHANNELS;
+    media_feeding.cfg.pcm.sampling_freq = 44100;
+    media_feeding.cfg.pcm.bit_per_sample = 16;
+    media_feeding.cfg.pcm.num_channel = 2;
     media_feeding.format = BTIF_AV_CODEC_PCM;
 
     if (bta_av_co_audio_set_codec(&media_feeding, &status))
@@ -1086,38 +1078,6 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av)
 
     /* stop timer tick */
     btif_media_task_stop_aa_req();
-}
-
-
-/*****************************************************************************
-**
-** Function        btif_a2dp_on_offload_started
-**
-** Description
-**
-** Returns
-**
-*******************************************************************************/
-void btif_a2dp_on_offload_started(tBTA_AV_STATUS status)
-{
-    tA2DP_CTRL_ACK ack;
-    APPL_TRACE_EVENT("%s status %d", __func__, status);
-
-    switch (status) {
-        case BTA_AV_SUCCESS:
-            ack = A2DP_CTRL_ACK_SUCCESS;
-            break;
-
-        case BTA_AV_FAIL_RESOURCES:
-            APPL_TRACE_ERROR("%s FAILED UNSUPPORTED", __func__);
-            ack = A2DP_CTRL_ACK_UNSUPPORTED;
-            break;
-        default:
-            APPL_TRACE_ERROR("%s FAILED", __func__);
-            ack = A2DP_CTRL_ACK_FAILURE;
-            break;
-    }
-    a2dp_cmd_acknowledge(ack);
 }
 
 /* when true media task discards any rx frames */
