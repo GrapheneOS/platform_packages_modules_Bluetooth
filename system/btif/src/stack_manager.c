@@ -63,7 +63,9 @@ void btif_thread_post(thread_fn func, void *context);
 
 static void init_stack(void) {
   // This is a synchronous process. Post it to the thread though, so
-  // state modification only happens there.
+  // state modification only happens there. Using the thread to perform
+  // all stack operations ensures that the operations are done serially
+  // and do not overlap.
   semaphore_t *semaphore = semaphore_new(0);
   thread_post(management_thread, event_init_stack, semaphore);
   semaphore_wait(semaphore);
@@ -78,8 +80,13 @@ static void shut_down_stack_async(void) {
   thread_post(management_thread, event_shut_down_stack, NULL);
 }
 
-static void clean_up_stack_async(void) {
-  thread_post(management_thread, event_clean_up_stack, NULL);
+static void clean_up_stack(void) {
+  // This is a synchronous process. Post it to the thread though, so
+  // state modification only happens there.
+  semaphore_t *semaphore = semaphore_new(0);
+  thread_post(management_thread, event_clean_up_stack, semaphore);
+  semaphore_wait(semaphore);
+  semaphore_free(semaphore);
 }
 
 static bool get_stack_is_running(void) {
@@ -174,10 +181,10 @@ static void ensure_stack_is_not_running(void) {
 }
 
 // Synchronous function to clean up the stack
-static void event_clean_up_stack(UNUSED_ATTR void *context) {
+static void event_clean_up_stack(void *context) {
   if (!stack_is_initialized) {
     LOG_DEBUG(LOG_TAG, "%s found the stack already in a clean state.", __func__);
-    return;
+    goto cleanup;
   }
 
   ensure_stack_is_not_running();
@@ -195,6 +202,11 @@ static void event_clean_up_stack(UNUSED_ATTR void *context) {
   module_clean_up(get_module(OSI_MODULE));
   module_management_stop();
   LOG_DEBUG(LOG_TAG, "%s finished.", __func__);
+
+cleanup:;
+  semaphore_t *semaphore = (semaphore_t *)context;
+  if (semaphore)
+    semaphore_post(semaphore);
 }
 
 static void event_signal_stack_up(UNUSED_ATTR void *context) {
@@ -223,7 +235,7 @@ static const stack_manager_t interface = {
   init_stack,
   start_up_stack_async,
   shut_down_stack_async,
-  clean_up_stack_async,
+  clean_up_stack,
 
   get_stack_is_running
 };

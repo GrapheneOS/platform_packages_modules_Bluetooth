@@ -154,7 +154,7 @@ static int disable(void) {
 }
 
 static void cleanup(void) {
-  stack_manager_get_interface()->clean_up_stack_async();
+  stack_manager_get_interface()->clean_up_stack();
 }
 
 static int get_adapter_properties(void)
