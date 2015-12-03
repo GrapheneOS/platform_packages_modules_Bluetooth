@@ -20,9 +20,14 @@
 #define BTIF_DM_H
 
 #include "bta_api.h"
+#include "btif_uid.h"
+
 /************************************************************************************
 **  Functions
 ********************************************************************************/
+
+void btif_dm_init(uid_set_t* set);
+void btif_dm_cleanup(void);
 
 /**
  * BTIF callback to switch context from bte to btif
