@@ -168,6 +168,22 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
   return true;
 }
 
+void BluetoothLowEnergyBinderServer::OnScanResult(
+    bluetooth::LowEnergyClient* client,
+    const bluetooth::ScanResult& result) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  int client_id = client->GetInstanceId();
+  auto cb = GetLECallback(client->GetInstanceId());
+  if (!cb.get()) {
+    VLOG(2) << "Client was unregistered - client_id: " << client_id;
+    return;
+  }
+
+  cb->OnScanResult(result);
+}
+
 android::sp<IBluetoothLowEnergyCallback>
 BluetoothLowEnergyBinderServer::GetLECallback(int client_id) {
   auto cb = GetCallback(client_id);
@@ -186,6 +202,9 @@ void BluetoothLowEnergyBinderServer::OnRegisterInstanceImpl(
     android::sp<IInterface> callback,
     bluetooth::BluetoothInstance* instance) {
   VLOG(1) << __func__ << " status: " << status;
+  bluetooth::LowEnergyClient* le_client =
+      static_cast<bluetooth::LowEnergyClient*>(instance);
+  le_client->SetDelegate(this);
 
   android::sp<IBluetoothLowEnergyCallback> cb(
       static_cast<IBluetoothLowEnergyCallback*>(callback.get()));

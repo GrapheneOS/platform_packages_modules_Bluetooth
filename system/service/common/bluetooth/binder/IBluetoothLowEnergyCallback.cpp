@@ -55,6 +55,12 @@ status_t BnBluetoothLowEnergyCallback::onTransact(
     OnClientRegistered(status, client_if);
     return android::NO_ERROR;
   }
+  case ON_SCAN_RESULT_TRANSACTION: {
+    auto scan_result = CreateScanResultFromParcel(data);
+    CHECK(scan_result.get());
+    OnScanResult(*scan_result);
+    return android::NO_ERROR;
+  }
   case ON_MULTI_ADVERTISE_CALLBACK_TRANSACTION: {
     int status = data.readInt32();
     bool is_start = data.readInt32();
@@ -87,6 +93,20 @@ void BpBluetoothLowEnergyCallback::OnClientRegistered(
 
   remote()->transact(
       IBluetoothLowEnergyCallback::ON_CLIENT_REGISTERED_TRANSACTION,
+      data, &reply,
+      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothLowEnergyCallback::OnScanResult(
+    const bluetooth::ScanResult& scan_result) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(
+      IBluetoothLowEnergyCallback::getInterfaceDescriptor());
+  WriteScanResultToParcel(scan_result, &data);
+
+  remote()->transact(
+      IBluetoothLowEnergyCallback::ON_SCAN_RESULT_TRANSACTION,
       data, &reply,
       IBinder::FLAG_ONEWAY);
 }
