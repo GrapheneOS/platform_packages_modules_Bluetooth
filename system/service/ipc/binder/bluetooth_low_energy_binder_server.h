@@ -34,8 +34,9 @@ namespace ipc {
 namespace binder {
 
 // Implements the server side of the IBluetoothLowEnergy interface.
-class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
-                                       public InterfaceWithInstancesBase {
+class BluetoothLowEnergyBinderServer
+    : public BnBluetoothLowEnergy,
+      public InterfaceWithInstancesBase {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLowEnergyBinderServer() override;
@@ -45,6 +46,11 @@ class BluetoothLowEnergyBinderServer : public BnBluetoothLowEnergy,
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_id) override;
   void UnregisterAll() override;
+  bool StartScan(
+      int client_id,
+      const bluetooth::ScanSettings& settings,
+      const std::vector<bluetooth::ScanFilter>& filters) override;
+  bool StopScan(int client_id) override;
   bool StartMultiAdvertising(
       int client_id,
       const bluetooth::AdvertiseData& advertise_data,

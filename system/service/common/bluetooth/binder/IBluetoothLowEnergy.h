@@ -22,6 +22,8 @@
 
 #include <bluetooth/advertise_data.h>
 #include <bluetooth/advertise_settings.h>
+#include <bluetooth/scan_filter.h>
+#include <bluetooth/scan_settings.h>
 #include <bluetooth/binder/IBluetoothLowEnergyCallback.h>
 
 namespace ipc {
@@ -70,6 +72,12 @@ class IBluetoothLowEnergy : public android::IInterface {
   virtual void UnregisterClient(int client_if) = 0;
   virtual void UnregisterAll() = 0;
 
+  virtual bool StartScan(
+      int client_id,
+      const bluetooth::ScanSettings& settings,
+      const std::vector<bluetooth::ScanFilter>& filters) = 0;
+  virtual bool StopScan(int client_id) = 0;
+
   virtual bool StartMultiAdvertising(
       int client_if,
       const bluetooth::AdvertiseData& advertise_data,
@@ -111,6 +119,11 @@ class BpBluetoothLowEnergy : public android::BpInterface<IBluetoothLowEnergy> {
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_if) override;
   void UnregisterAll() override;
+  bool StartScan(
+      int client_id,
+      const bluetooth::ScanSettings& settings,
+      const std::vector<bluetooth::ScanFilter>& filters) override;
+  bool StopScan(int client_id) override;
   bool StartMultiAdvertising(
       int client_if,
       const bluetooth::AdvertiseData& advertise_data,
