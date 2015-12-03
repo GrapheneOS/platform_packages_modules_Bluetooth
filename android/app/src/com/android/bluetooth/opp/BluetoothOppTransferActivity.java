@@ -381,6 +381,13 @@ public class BluetoothOppTransferActivity extends AlertActivity
                             mTransInfo.mID);
 
                     // retry the failed transfer
+                    Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
+                    BluetoothOppSendFileInfo sendFileInfo =
+                            BluetoothOppSendFileInfo.generateFileInfo(BluetoothOppTransferActivity
+                            .this, uri, mTransInfo.mFileType, false);
+                    uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
+                    BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
+                    mTransInfo.mFileUri = uri.toString();
                     BluetoothOppUtility.retryTransfer(this, mTransInfo);
 
                     BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(mTransInfo.mDestAddr);
