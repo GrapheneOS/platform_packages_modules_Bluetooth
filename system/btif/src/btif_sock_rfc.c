@@ -39,6 +39,7 @@
 #include "btif_sock_sdp.h"
 #include "btif_sock_thread.h"
 #include "btif_sock_util.h"
+#include "btif_uid.h"
 #include "btif_util.h"
 #include "btm_api.h"
 #include "btm_int.h"
@@ -80,6 +81,7 @@ typedef struct {
   char service_name[256];
   int fd;
   int app_fd;  // Temporary storage for the half of the socketpair that's sent back to upper layers.
+  int app_uid; // UID of the app for which this socket was created.
   int mtu;
   uint8_t *packet;
   int sdp_handle;
@@ -93,6 +95,7 @@ static rfc_slot_t rfc_slots[MAX_RFC_CHANNEL];
 static uint32_t rfc_slot_id;
 static volatile int pth = -1; // poll thread handle
 static pthread_mutex_t slot_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static uid_set_t* uid_set = NULL;
 
 static rfc_slot_t *find_free_slot(void);
 static void cleanup_rfc_slot(rfc_slot_t *rs);
@@ -104,8 +107,9 @@ static bool is_init_done(void) {
   return pth != -1;
 }
 
-bt_status_t btsock_rfc_init(int poll_thread_handle) {
+bt_status_t btsock_rfc_init(int poll_thread_handle, uid_set_t* set) {
   pth = poll_thread_handle;
+  uid_set = set;
 
   memset(rfc_slots, 0, sizeof(rfc_slots));
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i) {
@@ -124,6 +128,7 @@ bt_status_t btsock_rfc_init(int poll_thread_handle) {
 
 void btsock_rfc_cleanup(void) {
   pth = -1;
+  uid_set = NULL;
 
   pthread_mutex_lock(&slot_lock);
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i) {
@@ -202,6 +207,7 @@ static rfc_slot_t *alloc_rfc_slot(const bt_bdaddr_t *addr, const char *name, con
   slot->app_fd = fds[1];
   slot->security = security;
   slot->scn = channel;
+  slot->app_uid = -1;
 
   if(!is_uuid_empty(uuid)) {
     memcpy(slot->service_uuid, uuid, sizeof(slot->service_uuid));
@@ -238,6 +244,7 @@ static rfc_slot_t *create_srv_accept_rfc_slot(rfc_slot_t *srv_rs, const bt_bdadd
   accept_rs->role = srv_rs->role;
   accept_rs->rfc_handle = open_handle;
   accept_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(open_handle);
+  accept_rs->app_uid = srv_rs->app_uid;
 
   srv_rs->rfc_handle = new_listen_handle;
   srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
@@ -252,7 +259,7 @@ static rfc_slot_t *create_srv_accept_rfc_slot(rfc_slot_t *srv_rs, const bt_bdadd
   return accept_rs;
 }
 
-bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
+bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags, int app_uid) {
   assert(sock_fd != NULL);
   assert((service_uuid != NULL)
     || (channel >= 1 && channel <= MAX_RFC_CHANNEL)
@@ -298,6 +305,7 @@ bt_status_t btsock_rfc_listen(const char *service_name, const uint8_t *service_u
     - Try to simply remove the = -1 to free the FD at rs cleanup.*/
 //        close(rs->app_fd);
   slot->app_fd = INVALID_FD;  // Drop our reference to the fd.
+  slot->app_uid = app_uid;
   btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_EXCEPTION, slot->id);
 
   status = BT_STATUS_SUCCESS;
@@ -307,7 +315,7 @@ out:;
   return status;
 }
 
-bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
+bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *service_uuid, int channel, int *sock_fd, int flags, int app_uid) {
   assert(sock_fd != NULL);
   assert(service_uuid != NULL || (channel >= 1 && channel <= MAX_RFC_CHANNEL));
 
@@ -357,6 +365,7 @@ bt_status_t btsock_rfc_connect(const bt_bdaddr_t *bd_addr, const uint8_t *servic
 
   *sock_fd = slot->app_fd;    // Transfer ownership of fd to caller.
   slot->app_fd = INVALID_FD;  // Drop our reference to the fd.
+  slot->app_uid = app_uid;
   btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
   status = BT_STATUS_SUCCESS;
 
@@ -533,13 +542,20 @@ static void on_rfc_close(UNUSED_ATTR tBTA_JV_RFCOMM_CLOSE *p_close, uint32_t id)
 }
 
 static void on_rfc_write_done(UNUSED_ATTR tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
+  int app_uid = -1;
   pthread_mutex_lock(&slot_lock);
 
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
-  if (slot && !slot->f.outgoing_congest)
-    btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
+  if (slot) {
+    app_uid = slot->app_uid;
+    if (!slot->f.outgoing_congest) {
+      btsock_thread_add_fd(pth, slot->fd, BTSOCK_RFCOMM, SOCK_THREAD_FD_RD, slot->id);
+    }
+  }
 
   pthread_mutex_unlock(&slot_lock);
+
+  uid_set_add_tx(uid_set, app_uid, p->len);
 }
 
 static void on_rfc_outgoing_congest(tBTA_JV_RFCOMM_CONG *p, uint32_t id) {
@@ -815,6 +831,9 @@ out:;
 }
 
 int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
+  int app_uid = -1;
+  uint64_t bytes_rx = 0;
+
   pthread_mutex_lock(&slot_lock);
 
   int ret = 0;
@@ -822,6 +841,9 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
     goto out;
+
+  app_uid = slot->app_uid;
+  bytes_rx = p_buf->len;
 
   if (list_is_empty(slot->incoming_queue)) {
     switch (send_data_to_app(slot->fd, p_buf)) {
@@ -847,6 +869,9 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
 
 out:;
   pthread_mutex_unlock(&slot_lock);
+
+  uid_set_add_rx(uid_set, app_uid, bytes_rx);
+
   return ret;  // Return 0 to disable data flow.
 }
 

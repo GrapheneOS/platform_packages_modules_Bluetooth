@@ -30,11 +30,12 @@
 #include "btif_sock_sco.h"
 #include "btif_sock_sdp.h"
 #include "btif_sock_thread.h"
+#include "btif_uid.h"
 #include "btif_util.h"
 #include "osi/include/thread.h"
 
-static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags);
-static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags);
+static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *uuid, int channel, int *sock_fd, int flags, int app_uid);
+static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags, int app_uid);
 
 static void btsock_signaled(int fd, int type, int flags, uint32_t user_id);
 
@@ -52,7 +53,7 @@ btsock_interface_t *btif_sock_get_interface(void) {
   return &interface;
 }
 
-bt_status_t btif_sock_init(void) {
+bt_status_t btif_sock_init(uid_set_t* uid_set) {
   assert(thread_handle == -1);
   assert(thread == NULL);
 
@@ -63,13 +64,13 @@ bt_status_t btif_sock_init(void) {
     goto error;
   }
 
-  bt_status_t status = btsock_rfc_init(thread_handle);
+  bt_status_t status = btsock_rfc_init(thread_handle, uid_set);
   if (status != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "%s error initializing RFCOMM sockets: %d", __func__, status);
     goto error;
   }
 
-  status = btsock_l2cap_init(thread_handle);
+  status = btsock_l2cap_init(thread_handle, uid_set);
   if (status != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "%s error initializing L2CAP sockets: %d", __func__, status);
     goto error;
@@ -97,6 +98,7 @@ error:;
   if (thread_handle != -1)
     btsock_thread_exit(thread_handle);
   thread_handle = -1;
+  uid_set = NULL;
   return BT_STATUS_FAIL;
 }
 
@@ -115,7 +117,7 @@ void btif_sock_cleanup(void) {
   thread = NULL;
 }
 
-static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags) {
+static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, const uint8_t *service_uuid, int channel, int *sock_fd, int flags, int app_uid) {
   if((flags & BTSOCK_FLAG_NO_SDP) == 0) {
       assert(service_uuid != NULL || channel > 0);
       assert(sock_fd != NULL);
@@ -126,10 +128,10 @@ static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, c
 
   switch (type) {
     case BTSOCK_RFCOMM:
-      status = btsock_rfc_listen(service_name, service_uuid, channel, sock_fd, flags);
+      status = btsock_rfc_listen(service_name, service_uuid, channel, sock_fd, flags, app_uid);
       break;
     case BTSOCK_L2CAP:
-      status = btsock_l2cap_listen(service_name, channel, sock_fd, flags);
+      status = btsock_l2cap_listen(service_name, channel, sock_fd, flags, app_uid);
       break;
 
     case BTSOCK_SCO:
@@ -144,7 +146,7 @@ static bt_status_t btsock_listen(btsock_type_t type, const char *service_name, c
   return status;
 }
 
-static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags) {
+static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type, const uint8_t *uuid, int channel, int *sock_fd, int flags, int app_uid) {
   assert(uuid != NULL || channel > 0);
   assert(bd_addr != NULL);
   assert(sock_fd != NULL);
@@ -154,11 +156,11 @@ static bt_status_t btsock_connect(const bt_bdaddr_t *bd_addr, btsock_type_t type
 
   switch (type) {
     case BTSOCK_RFCOMM:
-      status = btsock_rfc_connect(bd_addr, uuid, channel, sock_fd, flags);
+      status = btsock_rfc_connect(bd_addr, uuid, channel, sock_fd, flags, app_uid);
       break;
 
     case BTSOCK_L2CAP:
-      status = btsock_l2cap_connect(bd_addr, channel, sock_fd, flags);
+      status = btsock_l2cap_connect(bd_addr, channel, sock_fd, flags, app_uid);
       break;
 
     case BTSOCK_SCO:
