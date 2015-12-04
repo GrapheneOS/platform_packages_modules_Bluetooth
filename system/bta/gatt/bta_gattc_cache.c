@@ -47,8 +47,14 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
 #define BTA_GATT_SDP_DB_SIZE 4096
 
 /*****************************************************************************
-**  Constants
+**  Constants and data types
 *****************************************************************************/
+
+typedef struct
+{
+    tSDP_DISCOVERY_DB   *p_sdp_db;
+    UINT16              sdp_conn_id;
+} tBTA_GATTC_CB_DATA;
 
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
 static char *bta_gattc_attr_type[] =
@@ -821,6 +827,7 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
     return status;
 
 }
+
 /*******************************************************************************
 **
 ** Function         bta_gattc_sdp_callback
@@ -830,21 +837,21 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_sdp_callback (UINT16 sdp_status)
+void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
 {
     tSDP_DISC_REC       *p_sdp_rec = NULL;
     tBT_UUID            service_uuid;
     tSDP_PROTOCOL_ELEM  pe;
     UINT16              start_handle = 0, end_handle = 0;
-    tBTA_GATTC_SERV     *p_srvc_cb = bta_gattc_find_scb_by_cid(bta_gattc_cb.sdp_conn_id);
+    tBTA_GATTC_CB_DATA  *cb_data = user_data;
+    tBTA_GATTC_SERV     *p_srvc_cb = bta_gattc_find_scb_by_cid(cb_data->sdp_conn_id);
 
-    if(((sdp_status == SDP_SUCCESS) || (sdp_status == SDP_DB_FULL)) && p_srvc_cb != NULL)
+    if (((sdp_status == SDP_SUCCESS) || (sdp_status == SDP_DB_FULL)) && p_srvc_cb != NULL)
     {
         do
         {
             /* find a service record, report it */
-            p_sdp_rec = SDP_FindServiceInDb(bta_gattc_cb.p_sdp_db,
-                                            0, p_sdp_rec);
+            p_sdp_rec = SDP_FindServiceInDb(cb_data->p_sdp_db, 0, p_sdp_rec);
             if (p_sdp_rec)
             {
                 if (SDP_FindServiceUUIDInRec(p_sdp_rec, &service_uuid))
@@ -884,16 +891,18 @@ void bta_gattc_sdp_callback (UINT16 sdp_status)
     }
 
     if ( p_srvc_cb != NULL)
+    {
         /* start discover primary service */
-        bta_gattc_explore_srvc(bta_gattc_cb.sdp_conn_id, p_srvc_cb);
+        bta_gattc_explore_srvc(cb_data->sdp_conn_id, p_srvc_cb);
+    }
     else
     {
         APPL_TRACE_ERROR("GATT service discovery is done on unknown connection");
     }
 
-    osi_freebuf(bta_gattc_cb.p_sdp_db);
-    bta_gattc_cb.p_sdp_db  = NULL;
-    bta_gattc_cb.sdp_conn_id = 0;
+    /* both were allocated in bta_gattc_sdp_service_disc */
+    osi_freebuf(cb_data->p_sdp_db);
+    osi_freebuf(cb_data);
 }
 /*******************************************************************************
 **
@@ -909,34 +918,41 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
     tSDP_UUID       uuid;
     UINT16          num_attrs = 2;
     UINT16          attr_list[2];
-    tBTA_GATT_STATUS    status = BTA_GATT_ERROR;
 
     memset (&uuid, 0, sizeof(tSDP_UUID));
 
     uuid.len = LEN_UUID_16;
     uuid.uu.uuid16 = UUID_PROTOCOL_ATT;
 
-     if((bta_gattc_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_GATT_SDP_DB_SIZE)) != NULL)
+    /* On success, cb_data will be freed inside bta_gattc_sdp_callback, otherwise it will be
+     * freed within this function. */
+    tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)osi_getbuf(sizeof(tBTA_GATTC_CB_DATA));
+    if (cb_data == NULL)
+        return BTA_GATT_ERROR;
+
+    cb_data->p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_GATT_SDP_DB_SIZE);
+    if (cb_data->p_sdp_db == NULL)
     {
-        attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
-        attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
+        osi_freebuf(cb_data);
+        return BTA_GATT_ERROR;
+    }
 
-        SDP_InitDiscoveryDb (bta_gattc_cb.p_sdp_db, BTA_GATT_SDP_DB_SIZE, 1,
-                             &uuid, num_attrs, attr_list);
+    attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
+    attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
 
-        if(!SDP_ServiceSearchAttributeRequest (p_server_cb->server_bda,
-                                              bta_gattc_cb.p_sdp_db, &bta_gattc_sdp_callback))
-        {
-            osi_freebuf(bta_gattc_cb.p_sdp_db);
-            bta_gattc_cb.p_sdp_db = NULL;
-        }
-        else
-        {
-            bta_gattc_cb.sdp_conn_id = conn_id;
-            status = BTA_GATT_OK;
-        }
-     }
-     return status;
+    SDP_InitDiscoveryDb(cb_data->p_sdp_db, BTA_GATT_SDP_DB_SIZE, 1,
+                         &uuid, num_attrs, attr_list);
+
+    if (!SDP_ServiceSearchAttributeRequest2(p_server_cb->server_bda,
+                                          cb_data->p_sdp_db, &bta_gattc_sdp_callback, cb_data))
+    {
+        osi_freebuf(cb_data->p_sdp_db);
+        osi_freebuf(cb_data);
+        return BTA_GATT_ERROR;
+    }
+
+    cb_data->sdp_conn_id = conn_id;
+    return BTA_GATT_OK;
 }
 /*******************************************************************************
 **
