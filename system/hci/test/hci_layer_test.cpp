@@ -520,6 +520,7 @@ class HciLayerTest : public AlarmTestHarness {
   protected:
     virtual void SetUp() {
       AlarmTestHarness::SetUp();
+      module_management_start();
 
       hci = hci_layer_get_test_interface(
         &buffer_allocator,
@@ -530,10 +531,6 @@ class HciLayerTest : public AlarmTestHarness {
         &vendor,
         &low_power_manager
       );
-
-      // Make sure the data dispatcher allocation isn't tracked
-      allocation_tracker_reset();
-      module_management_start();
 
       packet_index = 0;
       data_size_sum = 0;
@@ -584,6 +581,7 @@ class HciLayerTest : public AlarmTestHarness {
       EXPECT_CALL_COUNT(vendor_close, 1);
 
       semaphore_free(done);
+      hci_layer_cleanup_interface();
       module_management_stop();
       AlarmTestHarness::TearDown();
     }
