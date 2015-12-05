@@ -165,7 +165,7 @@ const tAVDT_SCB_ACTION avdt_scb_action[] = {
     avdt_scb_free_pkt,
     avdt_scb_clr_pkt,
     avdt_scb_chk_snd_pkt,
-    avdt_scb_tc_timer,
+    avdt_scb_transport_channel_timer,
     avdt_scb_clr_vars,
     avdt_scb_dealloc
 };
@@ -594,6 +594,8 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
     {
         if (!p_scb->allocated)
         {
+            alarm_free(p_scb->transport_channel_timer);
+            p_scb->transport_channel_timer = NULL;
             fixed_queue_free(p_scb->frag_q, NULL);
             memset(p_scb,0,sizeof(tAVDT_SCB));
             p_scb->allocated = TRUE;
@@ -615,7 +617,8 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 #endif
             }
 #endif
-            p_scb->timer_entry.param = p_scb;
+            p_scb->transport_channel_timer =
+                alarm_new("avdt_scb.transport_channel_timer");
             AVDT_TRACE_DEBUG("avdt_scb_alloc hdl=%d, psc_mask:0x%x", i+1, p_cs->cfg.psc_mask);
             break;
         }
@@ -649,7 +652,8 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     UNUSED(p_data);
 
     AVDT_TRACE_DEBUG("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
-    btu_stop_timer(&p_scb->timer_entry);
+    alarm_free(p_scb->transport_channel_timer);
+    p_scb->transport_channel_timer = NULL;
 
 #if AVDT_MULTIPLEXING == TRUE
     /* free fragments we're holding, if any; it shouldn't happen */

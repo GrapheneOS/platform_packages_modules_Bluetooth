@@ -25,7 +25,7 @@
 #ifndef HID_CONN_H
 #define HID_CONN_H
 
-#include "osi/include/non_repeating_timer.h"
+#include "osi/include/alarm.h"
 
 /* Define the HID Connection Block
 */
@@ -57,8 +57,7 @@ typedef struct hid_conn
     UINT16            intr_cid;
     UINT16            rem_mtu_size;
     UINT16            disc_reason;                       /* Reason for disconnecting (for HID_HDEV_EVT_CLOSE) */
-    timer_entry_t     timer_entry;
-
+    alarm_t           *process_repage_timer;
 } tHID_CONN;
 
 #define HID_SEC_CHN   1

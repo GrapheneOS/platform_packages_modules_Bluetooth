@@ -242,9 +242,9 @@ static uint8_t rssi_request_client_if;
 ********************************************************************************/
 
 static bt_status_t btif_gattc_multi_adv_disable(int client_if);
-static void btif_multi_adv_stop_cb(void *p_te)
+static void btif_multi_adv_stop_cb(void *data)
 {
-    int client_if = PTR_TO_INT(((timer_entry_t*)p_te)->data);
+    int client_if = PTR_TO_INT(data);
     btif_gattc_multi_adv_disable(client_if); // Does context switch
 }
 
@@ -680,7 +680,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                     , p_btif_cb->status
                 );
             btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
-                    (p_btif_cb->status==0 ? btif_multi_adv_stop_cb : NULL));
+                                      (p_btif_cb->status == BTA_GATT_OK) ?
+                                      btif_multi_adv_stop_cb : NULL);
             break;
         }
 
@@ -692,7 +693,8 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
                 , p_btif_cb->status
             );
             btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
-                    (p_btif_cb->status==0 ? btif_multi_adv_stop_cb : NULL));
+                                      (p_btif_cb->status == BTA_GATT_OK) ?
+                                      btif_multi_adv_stop_cb : NULL);
             break;
         }
 

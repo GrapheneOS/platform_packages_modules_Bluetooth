@@ -33,6 +33,8 @@
 #include "smp_int.h"
 
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 static void smp_tx_complete_callback(UINT16 cid, UINT16 num_pkt);
 
 static void smp_connect_callback(UINT16 channel, BD_ADDR bd_addr, BOOLEAN connected, UINT16 reason,
@@ -177,9 +179,9 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 
     if (memcmp(&bd_addr[0], p_cb->pairing_bda, BD_ADDR_LEN) == 0)
     {
-        btu_stop_timer (&p_cb->rsp_timer_ent);
-        btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
-                             SMP_WAIT_FOR_RSP_TOUT);
+        alarm_set_on_queue(p_cb->smp_rsp_timer_ent,
+                           SMP_WAIT_FOR_RSP_TIMEOUT_MS, smp_rsp_timeout, NULL,
+                           btu_general_alarm_queue);
 
         if (cmd == SMP_OPCODE_CONFIRM)
         {
@@ -328,9 +330,9 @@ static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
 
     if (memcmp(&bd_addr[0], p_cb->pairing_bda, BD_ADDR_LEN) == 0)
     {
-        btu_stop_timer (&p_cb->rsp_timer_ent);
-        btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
-                             SMP_WAIT_FOR_RSP_TOUT);
+        alarm_set_on_queue(p_cb->smp_rsp_timer_ent,
+                           SMP_WAIT_FOR_RSP_TIMEOUT_MS, smp_rsp_timeout, NULL,
+                           btu_general_alarm_queue);
 
         p_cb->rcvd_cmd_code = cmd;
         p_cb->rcvd_cmd_len = (UINT8) p_buf->len;

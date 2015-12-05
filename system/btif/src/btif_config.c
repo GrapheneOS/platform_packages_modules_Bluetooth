@@ -94,7 +94,7 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type)
 
 static pthread_mutex_t lock;  // protects operations on |config|.
 static config_t *config;
-static alarm_t *alarm_timer;
+static alarm_t *config_timer;
 
 // Module lifecycle functions
 
@@ -122,19 +122,19 @@ static future_t *init(void) {
   // TODO(sharvil): use a non-wake alarm for this once we have
   // API support for it. There's no need to wake the system to
   // write back to disk.
-  alarm_timer = alarm_new();
-  if (!alarm_timer) {
+  config_timer = alarm_new("btif.config");
+  if (!config_timer) {
     LOG_ERROR(LOG_TAG, "%s unable to create alarm.", __func__);
     goto error;
   }
 
   return future_new_immediate(FUTURE_SUCCESS);
 
-error:;
-  alarm_free(alarm_timer);
+error:
+  alarm_free(config_timer);
   config_free(config);
   pthread_mutex_destroy(&lock);
-  alarm_timer = NULL;
+  config_timer = NULL;
   config = NULL;
   return future_new_immediate(FUTURE_FAIL);
 }
@@ -147,10 +147,10 @@ static future_t *shut_down(void) {
 static future_t *clean_up(void) {
   btif_config_flush();
 
-  alarm_free(alarm_timer);
+  alarm_free(config_timer);
   config_free(config);
   pthread_mutex_destroy(&lock);
-  alarm_timer = NULL;
+  config_timer = NULL;
   config = NULL;
   return future_new_immediate(FUTURE_SUCCESS);
 }
@@ -355,17 +355,17 @@ bool btif_config_remove(const char *section, const char *key) {
 }
 
 void btif_config_save(void) {
-  assert(alarm_timer != NULL);
+  assert(config_timer != NULL);
   assert(config != NULL);
 
-  alarm_set(alarm_timer, CONFIG_SETTLE_PERIOD_MS, timer_config_save_cb, NULL);
+  alarm_set(config_timer, CONFIG_SETTLE_PERIOD_MS, timer_config_save_cb, NULL);
 }
 
 void btif_config_flush(void) {
   assert(config != NULL);
-  assert(alarm_timer != NULL);
+  assert(config_timer != NULL);
 
-  alarm_cancel(alarm_timer);
+  alarm_cancel(config_timer);
   btif_config_write(0, NULL);
 
   pthread_mutex_lock(&lock);
@@ -375,9 +375,9 @@ void btif_config_flush(void) {
 
 int btif_config_clear(void){
   assert(config != NULL);
-  assert(alarm_timer != NULL);
+  assert(config_timer != NULL);
 
-  alarm_cancel(alarm_timer);
+  alarm_cancel(config_timer);
 
   pthread_mutex_lock(&lock);
   config_free(config);
@@ -402,7 +402,7 @@ static void timer_config_save_cb(UNUSED_ATTR void *data) {
 
 static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_param) {
   assert(config != NULL);
-  assert(alarm_timer != NULL);
+  assert(config_timer != NULL);
 
   btif_config_devcache_cleanup();
 

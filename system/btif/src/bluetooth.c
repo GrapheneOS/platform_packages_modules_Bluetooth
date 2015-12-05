@@ -51,11 +51,13 @@
 #include "btsnoop.h"
 #include "btsnoop_mem.h"
 #include "osi/include/allocation_tracker.h"
+#include "osi/include/alarm.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/wakelock.h"
 #include "stack_manager.h"
 #include "btif_config.h"
+#include "btif/include/btif_debug_btsnoop.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -322,6 +324,12 @@ static int read_energy_info()
 static void dump(int fd)
 {
     btif_debug_dump(fd);
+    alarm_debug_dump(fd);
+#if defined(BTSNOOP_MEM) && (BTSNOOP_MEM == TRUE)
+    btif_debug_btsnoop_dump(fd);
+#endif
+
+    close(fd);
 }
 
 static const void* get_profile_interface (const char *profile_id)

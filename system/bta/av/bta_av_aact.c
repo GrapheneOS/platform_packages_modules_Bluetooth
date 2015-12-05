@@ -349,14 +349,16 @@ static void bta_av_st_rc_timer(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG("bta_av_st_rc_timer rc_handle:%d, use_rc: %d",
         p_scb->rc_handle, p_scb->use_rc);
     /* for outgoing RC connection as INT/CT */
-    if( (p_scb->rc_handle == BTA_AV_RC_HANDLE_NONE) &&
-        /*(bta_av_cb.features & BTA_AV_FEAT_RCCT) &&*/
-        (p_scb->use_rc == TRUE || (p_scb->role & BTA_AV_ROLE_AD_ACP)) )
+    if ((p_scb->rc_handle == BTA_AV_RC_HANDLE_NONE) &&
+        /* (bta_av_cb.features & BTA_AV_FEAT_RCCT) && */
+        (p_scb->use_rc == TRUE || (p_scb->role & BTA_AV_ROLE_AD_ACP)))
     {
-        if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) == 0)
-            bta_sys_start_timer(&p_scb->timer, BTA_AV_AVRC_TIMER_EVT, BTA_AV_RC_DISC_TIME_VAL);
-        else
+        if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) == 0) {
+            bta_sys_start_timer(p_scb->avrc_ct_timer, BTA_AV_RC_DISC_TIME_VAL,
+                                BTA_AV_AVRC_TIMER_EVT, p_scb->hndl);
+        } else {
             p_scb->wait |= BTA_AV_WAIT_CHECK_RC;
+        }
     }
 
 }
@@ -994,7 +996,8 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (p_scb->wait & BTA_AV_WAIT_CHECK_RC)
     {
         p_scb->wait &= ~BTA_AV_WAIT_CHECK_RC;
-        bta_sys_start_timer(&p_scb->timer, BTA_AV_AVRC_TIMER_EVT, BTA_AV_RC_DISC_TIME_VAL);
+        bta_sys_start_timer(p_scb->avrc_ct_timer, BTA_AV_RC_DISC_TIME_VAL,
+                            BTA_AV_AVRC_TIMER_EVT, p_scb->hndl);
     }
 
     if (bta_av_cb.features & BTA_AV_FEAT_MASTER)
@@ -1083,7 +1086,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->cur_psc_mask = 0;
     p_scb->wait = 0;
     p_scb->num_disc_snks = 0;
-    bta_sys_stop_timer(&p_scb->timer);
+    alarm_cancel(p_scb->avrc_ct_timer);
 
     vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
     if (p_scb->offload_start_pending) {
@@ -1155,7 +1158,7 @@ void bta_av_config_ind (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     /* Clear collision mask */
     p_scb->coll_mask = 0;
-    bta_sys_stop_timer(&bta_av_cb.acp_sig_tmr);
+    alarm_cancel(bta_av_cb.accept_signalling_timer);
 
     /* if no codec parameters in configuration, fail */
     if ((p_evt_cfg->num_codec == 0) ||
@@ -1230,19 +1233,17 @@ void bta_av_disconnect_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     tBTA_AV_RCB *p_rcb;
     UNUSED(p_data);
 
-    APPL_TRACE_DEBUG("bta_av_disconnect_req conn_lcb: 0x%x", bta_av_cb.conn_lcb);
+    APPL_TRACE_DEBUG("%s conn_lcb: 0x%x", __func__, bta_av_cb.conn_lcb);
 
-    bta_sys_stop_timer(&bta_av_cb.sig_tmr);
-    bta_sys_stop_timer(&p_scb->timer);
-    if(bta_av_cb.conn_lcb)
-    {
+    alarm_cancel(bta_av_cb.link_signalling_timer);
+    alarm_cancel(p_scb->avrc_ct_timer);
+
+    if (bta_av_cb.conn_lcb) {
         p_rcb = bta_av_get_rcb_by_shdl((UINT8)(p_scb->hdi + 1));
         if (p_rcb)
             bta_av_del_rc(p_rcb);
         AVDT_DisconnectReq(p_scb->peer_addr, bta_av_dt_cback[p_scb->hdi]);
-    }
-    else
-    {
+    } else {
         bta_av_ssm_execute(p_scb, BTA_AV_AVDT_DISCONNECT_EVT, NULL);
     }
 }
@@ -1323,7 +1324,7 @@ void bta_av_setconfig_rsp (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     AVDT_ConfigRsp(p_scb->avdt_handle, p_scb->avdt_label, p_data->ci_setconfig.err_code,
                    p_data->ci_setconfig.category);
 
-    bta_sys_stop_timer(&bta_av_cb.sig_tmr);
+    alarm_cancel(bta_av_cb.link_signalling_timer);
 
     if(p_data->ci_setconfig.err_code == AVDT_SUCCESS)
     {
@@ -1547,7 +1548,7 @@ void bta_av_do_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     {
         bta_av_str_stopped(p_scb, NULL);
     }
-    bta_sys_stop_timer(&bta_av_cb.sig_tmr);
+    alarm_cancel(bta_av_cb.link_signalling_timer);
 
     /* close stream */
     p_scb->started = FALSE;
@@ -1560,10 +1561,8 @@ void bta_av_do_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
      * for whatever reason the the close request can not be sent in time.
      * when this timer expires, AVDT_DisconnectReq will be called to disconnect the link
      */
-    bta_sys_start_timer(&p_scb->timer,
-                        (UINT16)BTA_AV_API_CLOSE_EVT,
-                        BTA_AV_CLOSE_REQ_TIME_VAL);
-
+    bta_sys_start_timer(p_scb->avrc_ct_timer, BTA_AV_CLOSE_REQ_TIME_VAL,
+                        BTA_AV_API_CLOSE_EVT, p_scb->hndl);
 }
 
 /*******************************************************************************
@@ -2190,8 +2189,7 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         return;
     }
 
-    /*if(bta_av_cb.features & BTA_AV_FEAT_RCCT)*/
-        bta_sys_stop_timer(&p_scb->timer);
+    alarm_cancel(p_scb->avrc_ct_timer);
 
     memcpy(p_cfg, &p_scb->cfg, sizeof(tAVDT_CFG));
     p_cfg->num_protect = p_rcfg->num_protect;
@@ -3051,7 +3049,7 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         if (!bta_av_link_role_ok(p_scb, A2D_SET_ONE_BIT))
         {
             APPL_TRACE_ERROR ("failed to start streaming for role management reasons!!");
-            bta_sys_stop_timer(&p_scb->timer);
+            alarm_cancel(p_scb->avrc_ct_timer);
             start.chnl   = p_scb->chnl;
             start.status = BTA_AV_FAIL_ROLE;
             start.initiator = TRUE;
@@ -3078,10 +3076,13 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             if(p_scb->rc_handle == BTA_AV_RC_HANDLE_NONE)
             {
                 /* AVRC channel is not connected. delay a little bit */
-                if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) == 0)
-                    bta_sys_start_timer(&p_scb->timer, BTA_AV_AVRC_TIMER_EVT, BTA_AV_RC_DISC_TIME_VAL);
-                else
+                if ((p_scb->wait & BTA_AV_WAIT_ROLE_SW_BITS) == 0) {
+                    bta_sys_start_timer(p_scb->avrc_ct_timer,
+                                        BTA_AV_RC_DISC_TIME_VAL,
+                                        BTA_AV_AVRC_TIMER_EVT, p_scb->hndl);
+                } else {
                     p_scb->wait |= BTA_AV_WAIT_CHECK_RC;
+                }
             }
         }
         else

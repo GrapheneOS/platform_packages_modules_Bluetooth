@@ -44,6 +44,8 @@
 #include "btif_gatt_multi_adv_util.h"
 #include "btif_gatt_util.h"
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **  Static variables
 ********************************************************************************/
@@ -502,9 +504,8 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
     // Discoverability timer cleanup
     if (stop_timer)
     {
-        if (p_multi_inst_cb->timer_entry.in_use)
-            btu_stop_timer_oneshot(&p_multi_inst_cb->timer_entry);
-        p_multi_inst_cb->timer_entry.in_use = 0;
+        alarm_free(p_multi_inst_cb->multi_adv_timer);
+        p_multi_inst_cb->multi_adv_timer = NULL;
     }
 
     memset(&p_multi_inst_cb->data, 0, sizeof(p_multi_inst_cb->data));
@@ -517,7 +518,7 @@ void btif_gattc_cleanup(void** buf)
    *buf = NULL;
 }
 
-void btif_multi_adv_timer_ctrl(int client_if, timer_callback_t cb)
+void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb)
 {
     int inst_id = btif_multi_adv_instid_for_clientif(client_if);
     if (inst_id == INVALID_ADV_INST)
@@ -531,21 +532,20 @@ void btif_multi_adv_timer_ctrl(int client_if, timer_callback_t cb)
     if (p_multi_adv_data_cb == NULL)
         return;
 
+    btgatt_multi_adv_inst_cb *inst_cb = &p_multi_adv_data_cb->inst_cb[cbindex];
     if (cb == NULL)
     {
-        if (p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.in_use)
-            btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry);
+        alarm_free(inst_cb->multi_adv_timer);
+        inst_cb->multi_adv_timer = NULL;
     } else {
-        if (p_multi_adv_data_cb->inst_cb[cbindex].timeout_s != 0)
+        if (inst_cb->timeout_s != 0)
         {
-            if (p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.in_use)
-                btu_stop_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry);
-
-            memset(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry, 0, sizeof(timer_entry_t));
-            p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.param = cb;
-            p_multi_adv_data_cb->inst_cb[cbindex].timer_entry.data = INT_TO_PTR(client_if);
-            btu_start_timer_oneshot(&p_multi_adv_data_cb->inst_cb[cbindex].timer_entry,
-                    BTU_TTYPE_USER_FUNC, p_multi_adv_data_cb->inst_cb[cbindex].timeout_s);
+            alarm_free(inst_cb->multi_adv_timer);
+            inst_cb->multi_adv_timer = alarm_new("btif_gatt.multi_adv_timer");
+            alarm_set_on_queue(inst_cb->multi_adv_timer,
+                               inst_cb->timeout_s * 1000,
+                               cb, INT_TO_PTR(client_if),
+                               btu_general_alarm_queue);
         }
     }
 }

@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "osi/include/osi.h"
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
 #include "port_api.h"
@@ -30,10 +31,10 @@
 /* minimum length of AT event */
 #define BTA_HF_CLIENT_AT_EVENT_MIN_LEN 3
 
-/* timeout for AT response */
+/* timeout (in milliseconds) for AT response */
 #define BTA_HF_CLIENT_AT_TIMEOUT 29989
 
-/* timeout for AT hold timer */
+/* timeout (in milliseconds) for AT hold timer */
 #define BTA_HF_CLIENT_AT_HOLD_TIMEOUT 41
 
 /******************************************************************************
@@ -43,6 +44,8 @@
 *******************************************************************************/
 /* BRSF: store received values here */
 extern tBTA_HF_CLIENT_CB  bta_hf_client_cb;
+
+extern fixed_queue_t *btu_bta_alarm_queue;
 
 /******************************************************************************
 **       SUPPORTED EVENT MESSAGES
@@ -139,45 +142,31 @@ static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, U
     }
 }
 
-static void bta_hf_client_at_resp_timer_cback(timer_entry_t *p_te)
+static void bta_hf_client_at_resp_timer_cback(UNUSED_ATTR void *data)
 {
-    if (p_te)
-    {
-        bta_hf_client_cb.scb.at_cb.resp_timer_on = FALSE;
-
-        APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
-
-        bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
-    }
-}
-
-static void bta_hf_client_stop_at_resp_timer(void)
-{
-    if (bta_hf_client_cb.scb.at_cb.resp_timer_on)
-    {
-        bta_hf_client_cb.scb.at_cb.resp_timer_on = FALSE;
-        bta_sys_stop_timer (&bta_hf_client_cb.scb.at_cb.resp_timer);
-    }
+    APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
+    bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
 }
 
 static void bta_hf_client_start_at_resp_timer(void)
 {
-    if (bta_hf_client_cb.scb.at_cb.resp_timer_on)
-    {
-        bta_sys_stop_timer (&bta_hf_client_cb.scb.at_cb.resp_timer);
-    }
+    alarm_set_on_queue(bta_hf_client_cb.scb.at_cb.resp_timer,
+                       BTA_HF_CLIENT_AT_TIMEOUT,
+                       bta_hf_client_at_resp_timer_cback,
+                       NULL,
+                       btu_bta_alarm_queue);
+}
 
-    bta_hf_client_cb.scb.at_cb.resp_timer.p_cback =
-        (timer_callback_t *)&bta_hf_client_at_resp_timer_cback;
-    bta_sys_start_timer(&bta_hf_client_cb.scb.at_cb.resp_timer, 0, BTA_HF_CLIENT_AT_TIMEOUT);
-    bta_hf_client_cb.scb.at_cb.resp_timer_on = TRUE;
+static void bta_hf_client_stop_at_resp_timer(void)
+{
+    alarm_cancel(bta_hf_client_cb.scb.at_cb.resp_timer);
 }
 
 static void bta_hf_client_send_at(tBTA_HF_CLIENT_AT_CMD cmd, char *buf, UINT16 buf_len)
 {
     if ((bta_hf_client_cb.scb.at_cb.current_cmd == BTA_HF_CLIENT_AT_NONE ||
             bta_hf_client_cb.scb.svc_conn == FALSE) &&
-            bta_hf_client_cb.scb.at_cb.hold_timer_on == FALSE)
+            !alarm_is_scheduled(bta_hf_client_cb.scb.at_cb.hold_timer))
     {
         UINT16  len;
 
@@ -221,42 +210,26 @@ static void bta_hf_client_send_queued_at(void)
     }
 }
 
-static void bta_hf_client_at_hold_timer_cback(timer_entry_t *p_te)
+static void bta_hf_client_at_hold_timer_cback(UNUSED_ATTR void *data)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
-
-    if (p_te)
-    {
-        bta_hf_client_cb.scb.at_cb.hold_timer_on = FALSE;
-        bta_hf_client_send_queued_at();
-    }
+    bta_hf_client_send_queued_at();
 }
 
 static void bta_hf_client_stop_at_hold_timer(void)
 {
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
-
-    if (bta_hf_client_cb.scb.at_cb.hold_timer_on)
-    {
-        bta_hf_client_cb.scb.at_cb.hold_timer_on = FALSE;
-        bta_sys_stop_timer (&bta_hf_client_cb.scb.at_cb.hold_timer);
-    }
+    alarm_cancel(bta_hf_client_cb.scb.at_cb.hold_timer);
 }
 
 static void bta_hf_client_start_at_hold_timer(void)
 {
-    timer_entry_t *p_te = &bta_hf_client_cb.scb.at_cb.hold_timer;
-
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
-
-    if (bta_hf_client_cb.scb.at_cb.hold_timer_on)
-    {
-        bta_sys_stop_timer(p_te);
-    }
-
-    p_te->p_cback = (timer_callback_t *)&bta_hf_client_at_hold_timer_cback;
-    bta_sys_start_timer(p_te, 0, BTA_HF_CLIENT_AT_HOLD_TIMEOUT);
-    bta_hf_client_cb.scb.at_cb.hold_timer_on = TRUE;
+    alarm_set_on_queue(bta_hf_client_cb.scb.at_cb.hold_timer,
+                       BTA_HF_CLIENT_AT_HOLD_TIMEOUT,
+                       bta_hf_client_at_hold_timer_cback,
+                       NULL,
+                       btu_bta_alarm_queue);
 }
 
 /******************************************************************************
@@ -1812,7 +1785,13 @@ void bta_hf_client_send_at_bia(void)
 
 void bta_hf_client_at_init(void)
 {
+    alarm_free(bta_hf_client_cb.scb.at_cb.resp_timer);
+    alarm_free(bta_hf_client_cb.scb.at_cb.hold_timer);
     memset(&bta_hf_client_cb.scb.at_cb, 0, sizeof(tBTA_HF_CLIENT_AT_CB));
+    bta_hf_client_cb.scb.at_cb.resp_timer =
+      alarm_new("bta_hf_client.scb_at_resp_timer");
+    bta_hf_client_cb.scb.at_cb.hold_timer =
+      alarm_new("bta_hf_client.scb_at_hold_timer");
     bta_hf_client_at_reset();
 }
 

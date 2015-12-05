@@ -80,9 +80,9 @@
 
 /* Timeout definitions.
 */
-#define BNEP_CONN_TIMEOUT           20               /* Connection related timeout */
-#define BNEP_HOST_TIMEOUT           200              /* host responce timeout */
-#define BNEP_FILTER_SET_TIMEOUT     10
+#define BNEP_CONN_TIMEOUT_MS        (20 * 1000)      /* Connection related timeout */
+#define BNEP_HOST_TIMEOUT_MS        (200 * 1000)     /* host responce timeout */
+#define BNEP_FILTER_SET_TIMEOUT_MS  (10 * 1000)
 
 /* Define the Out-Flow default values. */
 #define  BNEP_OFLOW_QOS_FLAG                 0
@@ -133,7 +133,7 @@ typedef struct
     UINT16            l2cap_cid;
     BD_ADDR           rem_bda;
     UINT16            rem_mtu_size;
-    timer_entry_t     conn_te;
+    alarm_t           *conn_timer;
     fixed_queue_t     *xmit_q;
 
     UINT16            sent_num_filters;
@@ -180,7 +180,6 @@ typedef struct
 
     tL2CAP_APPL_INFO        reg_info;
 
-    timer_entry_t           bnep_te;
     BOOLEAN                 profile_registered;             /* TRUE when we got our BD addr */
     UINT8                   trace_level;
 
@@ -204,7 +203,7 @@ extern tBNEP_CB  *bnep_cb_ptr;
 extern tBNEP_RESULT bnep_register_with_l2cap (void);
 extern void        bnep_disconnect (tBNEP_CONN *p_bcb, UINT16 reason);
 extern tBNEP_CONN *bnep_conn_originate (UINT8 *p_bd_addr);
-extern void        bnep_process_timeout(timer_entry_t *p_te);
+extern void        bnep_conn_timer_timeout(void *data);
 extern void        bnep_connected (tBNEP_CONN *p_bcb);
 
 

@@ -87,8 +87,8 @@ static void bta_dm_eir_search_services( tBTM_INQ_RESULTS  *p_result,
                                         tBTA_SERVICE_MASK *p_services_to_search,
                                         tBTA_SERVICE_MASK *p_services_found);
 
-static void bta_dm_search_timer_cback(timer_entry_t *p_te);
-static void bta_dm_disable_conn_down_timer_cback(timer_entry_t *p_te);
+static void bta_dm_search_timer_cback(void *data);
+static void bta_dm_disable_conn_down_timer_cback(void *data);
 static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 static void bta_dm_adjust_roles(BOOLEAN delay_role_switch);
 static char *bta_dm_get_remname(void);
@@ -122,12 +122,32 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 #endif
 #endif
 
+/* Disable timer interval (in milliseconds) */
+#ifndef BTA_DM_DISABLE_TIMER_MS
+#define BTA_DM_DISABLE_TIMER_MS 5000
+#endif
+
+/* Disable timer retrial interval (in milliseconds) */
+#ifndef BTA_DM_DISABLE_TIMER_RETRIAL_MS
+#define BTA_DM_DISABLE_TIMER_RETRIAL_MS 1500
+#endif
+
+/* Disable connection down timer (in milliseconds) */
+#ifndef BTA_DM_DISABLE_CONN_DOWN_TIMER_MS
+#define BTA_DM_DISABLE_CONN_DOWN_TIMER_MS 1000
+#endif
+
+/* Switch delay timer (in milliseconds) */
+#ifndef BTA_DM_SWITCH_DELAY_TIMER_MS
+#define BTA_DM_SWITCH_DELAY_TIMER_MS 500
+#endif
+
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb(void * p_result);
-static void bta_dm_delay_role_switch_cback(timer_entry_t *p_te);
+static void bta_dm_delay_role_switch_cback(void *data);
 extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
-static void bta_dm_disable_timer_cback(timer_entry_t *p_te);
+static void bta_dm_disable_timer_cback(void *data);
 
 
 const UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID] =
@@ -236,6 +256,7 @@ const tBTM_APPL_INFO bta_security =
 UINT8 g_disc_raw_data_buf[MAX_DISC_RAW_DATA_BUF];
 
 extern DEV_CLASS local_device_default_class;
+extern fixed_queue_t *btu_bta_alarm_queue;
 
 /*******************************************************************************
 **
@@ -285,6 +306,39 @@ void bta_dm_enable(tBTA_DM_MSG *p_data)
 
 /*******************************************************************************
 **
+** Function         bta_dm_init_cb
+**
+** Description      Initializes or re-initializes the bta_dm_cb control block
+**
+**
+** Returns          void
+**
+*******************************************************************************/
+void bta_dm_init_cb(void)
+{
+    /*
+     * TODO: Should alarm_free() the bta_dm_cb timers during graceful
+     * shutdown.
+     */
+    alarm_free(bta_dm_cb.disable_timer);
+    alarm_free(bta_dm_cb.switch_delay_timer);
+    for (size_t i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
+        for (size_t j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++) {
+            alarm_free(bta_dm_cb.pm_timer[i].timer[j]);
+        }
+    }
+    memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
+    bta_dm_cb.disable_timer = alarm_new("bta_dm.disable_timer");
+    bta_dm_cb.switch_delay_timer = alarm_new("bta_dm.switch_delay_timer");
+    for (size_t i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
+        for (size_t j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++) {
+            bta_dm_cb.pm_timer[i].timer[j] = alarm_new("bta_dm.pm_timer");
+        }
+    }
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_sys_hw_cback
 **
 ** Description     callback register to SYS to get HW status updates
@@ -318,7 +372,7 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
             bta_dm_cb.p_sec_cback(BTA_DM_DISABLE_EVT, NULL);
 
         /* reinitialize the control block */
-        memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
+        bta_dm_init_cb();
 
         /* unregister from SYS */
         bta_sys_hw_unregister( BTA_SYS_HW_BLUETOOTH );
@@ -335,14 +389,25 @@ static void bta_dm_sys_hw_cback( tBTA_SYS_HW_EVT status )
         /* save security callback */
         temp_cback = bta_dm_cb.p_sec_cback;
         /* make sure the control block is properly initialized */
-        memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
+        bta_dm_init_cb();
         /* and retrieve the callback */
         bta_dm_cb.p_sec_cback=temp_cback;
         bta_dm_cb.is_bta_dm_active = TRUE;
 
         /* hw is ready, go on with BTA DM initialization */
-        memset(&bta_dm_search_cb, 0x00, sizeof(bta_dm_search_cb));
-        memset(&bta_dm_conn_srvcs, 0x00, sizeof(bta_dm_conn_srvcs));
+        alarm_free(bta_dm_search_cb.search_timer);
+        alarm_free(bta_dm_search_cb.gatt_close_timer);
+        memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
+        /*
+         * TODO: Should alarm_free() the bta_dm_search_cb timers during
+         * graceful shutdown.
+         */
+        bta_dm_search_cb.search_timer =
+          alarm_new("bta_dm_search.search_timer");
+        bta_dm_search_cb.gatt_close_timer =
+          alarm_new("bta_dm_search.gatt_close_timer");
+
+        memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
         memset(&bta_dm_di_cb, 0, sizeof(tBTA_DM_DI_CB));
 
         memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
@@ -441,22 +506,19 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
          */
         APPL_TRACE_WARNING("%s BTA_DISABLE_DELAY set to %d ms",
                             __FUNCTION__, BTA_DISABLE_DELAY);
-        bta_sys_stop_timer(&bta_dm_cb.disable_timer);
-        bta_dm_cb.disable_timer.p_cback =
-            (timer_callback_t *)&bta_dm_disable_conn_down_timer_cback;
-        bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, BTA_DISABLE_DELAY);
+        alarm_set_on_queue(bta_dm_cb.disable_timer, BTA_DISABLE_DELAY,
+                           bta_dm_disable_conn_down_timer_cback, NULL,
+                           btu_bta_alarm_queue);
 #else
         bta_dm_disable_conn_down_timer_cback(NULL);
 #endif
     }
     else
     {
-        bta_dm_cb.disable_timer.p_cback =
-            (timer_callback_t *)&bta_dm_disable_timer_cback;
-        bta_dm_cb.disable_timer.param = INT_TO_PTR(0);
-        bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 5000);
+        alarm_set_on_queue(bta_dm_cb.disable_timer, BTA_DM_DISABLE_TIMER_MS,
+                           bta_dm_disable_timer_cback, UINT_TO_PTR(0),
+                           btu_bta_alarm_queue);
     }
-
 }
 
 /*******************************************************************************
@@ -471,16 +533,16 @@ void bta_dm_disable (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_disable_timer_cback(timer_entry_t *p_te)
+static void bta_dm_disable_timer_cback(void *data)
 {
     UINT8 i;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
     BOOLEAN trigger_disc = FALSE;
+    uint32_t param = PTR_TO_UINT(data);
 
+    APPL_TRACE_EVENT("%s trial %u", __func__, param);
 
-    APPL_TRACE_EVENT(" bta_dm_disable_timer_cback trial %d ", p_te->param);
-
-    if(BTM_GetNumAclLinks() && PTR_TO_INT(p_te->param) == 0)
+    if ((BTM_GetNumAclLinks() && param) == 0)
     {
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
@@ -495,10 +557,10 @@ static void bta_dm_disable_timer_cback(timer_entry_t *p_te)
             to be sent out to avoid jave layer disable timeout */
         if (trigger_disc)
         {
-            bta_dm_cb.disable_timer.p_cback =
-                (timer_callback_t *)&bta_dm_disable_timer_cback;
-            bta_dm_cb.disable_timer.param = INT_TO_PTR(1);
-            bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1500);
+            alarm_set_on_queue(bta_dm_cb.disable_timer,
+                               BTA_DM_DISABLE_TIMER_RETRIAL_MS,
+                               bta_dm_disable_timer_cback, UINT_TO_PTR(1),
+                               btu_bta_alarm_queue);
         }
     }
     else
@@ -1919,11 +1981,11 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
     {
         /* wait until link is disconnected or timeout */
         bta_dm_search_cb.sdp_results = TRUE;
-        bta_dm_search_cb.search_timer.p_cback =
-            (timer_callback_t *)&bta_dm_search_timer_cback;
-        bta_sys_start_timer(&bta_dm_search_cb.search_timer, 0, 1000*(L2CAP_LINK_INACTIVITY_TOUT+1) );
+        alarm_set_on_queue(bta_dm_search_cb.search_timer,
+                           1000 * (L2CAP_LINK_INACTIVITY_TOUT + 1),
+                           bta_dm_search_timer_cback, NULL,
+                           btu_bta_alarm_queue);
     }
-
 }
 
 /*******************************************************************************
@@ -1936,7 +1998,7 @@ void bta_dm_search_result (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_search_timer_cback(timer_entry_t *p_te)
+static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 {
     APPL_TRACE_EVENT("%s", __func__);
     bta_dm_search_cb.wait_disc = FALSE;
@@ -3430,7 +3492,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
             if(bta_dm_search_cb.sdp_results)
             {
                 APPL_TRACE_EVENT(" timer stopped  ");
-                bta_sys_stop_timer(&bta_dm_search_cb.search_timer);
+                alarm_cancel(bta_dm_search_cb.search_timer);
                 bta_dm_discover_next_device();
             }
 
@@ -3440,14 +3502,14 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
         {
             if(!BTM_GetNumAclLinks())
             {
-                bta_sys_stop_timer(&bta_dm_cb.disable_timer);
-                bta_dm_cb.disable_timer.p_cback =
-                    (timer_callback_t *)&bta_dm_disable_conn_down_timer_cback;
                 /*
                  * Start a timer to make sure that the profiles
                  * get the disconnect event.
                  */
-                bta_sys_start_timer(&bta_dm_cb.disable_timer, 0, 1000);
+                alarm_set_on_queue(bta_dm_cb.disable_timer,
+                                   BTA_DM_DISABLE_CONN_DOWN_TIMER_MS,
+                                   bta_dm_disable_conn_down_timer_cback, NULL,
+                                   btu_bta_alarm_queue);
             }
         }
         if (conn.link_down.is_removed)
@@ -3484,7 +3546,7 @@ void bta_dm_acl_change(tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_disable_conn_down_timer_cback(timer_entry_t *p_te)
+static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void *data)
 {
     tBTA_SYS_HW_MSG *sys_enable_event;
 
@@ -3587,10 +3649,10 @@ static void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id,
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_delay_role_switch_cback(timer_entry_t *p_te)
+static void bta_dm_delay_role_switch_cback(UNUSED_ATTR void *data)
 {
-    APPL_TRACE_EVENT("bta_dm_delay_role_switch_cback: initiating Delayed RS");
-    bta_dm_adjust_roles (FALSE);
+    APPL_TRACE_EVENT("%s: initiating Delayed RS", __func__);
+    bta_dm_adjust_roles(FALSE);
 }
 
 /*******************************************************************************
@@ -3706,12 +3768,12 @@ static void bta_dm_adjust_roles(BOOLEAN delay_role_switch)
                     }
                     else
                     {
-                        bta_dm_cb.switch_delay_timer.p_cback =
-                            (timer_callback_t *)&bta_dm_delay_role_switch_cback;
-                        bta_sys_start_timer(&bta_dm_cb.switch_delay_timer, 0, 500);
+                        alarm_set_on_queue(bta_dm_cb.switch_delay_timer,
+                                           BTA_DM_SWITCH_DELAY_TIMER_MS,
+                                           bta_dm_delay_role_switch_cback,
+                                           NULL, btu_bta_alarm_queue);
                     }
                 }
-
             }
         }
 
@@ -3809,14 +3871,10 @@ static void bta_dm_set_eir (char *local_name)
     UINT8    local_name_len;
 
     /* wait until complete to disable */
-    if (bta_dm_cb.disable_timer.in_use)
+    if (alarm_is_scheduled(bta_dm_cb.disable_timer))
         return;
 
 #if ( BTA_EIR_CANNED_UUID_LIST != TRUE )
-    /* wait until App is ready */
-    if (bta_dm_cb.app_ready_timer.in_use)
-        return;
-
     /* if local name is not provided, get it from controller */
     if( local_name == NULL )
     {
@@ -5575,9 +5633,11 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
         if (conn_id != BTA_GATT_INVALID_CONN_ID)
         {
             /* start a GATT channel close delay timer */
-            bta_sys_start_timer(&bta_dm_search_cb.gatt_close_timer, BTA_DM_DISC_CLOSE_TOUT_EVT,
-                                 BTA_DM_GATT_CLOSE_DELAY_TOUT);
-            bdcpy(bta_dm_search_cb.pending_close_bda, bta_dm_search_cb.peer_bdaddr);
+            bta_sys_start_timer(bta_dm_search_cb.gatt_close_timer,
+                                BTA_DM_GATT_CLOSE_DELAY_TOUT,
+                                BTA_DM_DISC_CLOSE_TOUT_EVT, 0);
+            bdcpy(bta_dm_search_cb.pending_close_bda,
+                  bta_dm_search_cb.peer_bdaddr);
         }
         bta_dm_search_cb.gatt_disc_active = FALSE;
     }
@@ -5621,7 +5681,7 @@ void btm_dm_start_gatt_discovery (BD_ADDR bd_addr)
         bta_dm_search_cb.conn_id != BTA_GATT_INVALID_CONN_ID)
     {
         memset(bta_dm_search_cb.pending_close_bda, 0, BD_ADDR_LEN);
-        bta_sys_stop_timer(&bta_dm_search_cb.gatt_close_timer);
+        alarm_cancel(bta_dm_search_cb.gatt_close_timer);
         btm_dm_start_disc_gatt_services(bta_dm_search_cb.conn_id);
     }
     else

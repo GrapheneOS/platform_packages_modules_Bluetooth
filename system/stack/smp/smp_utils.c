@@ -37,6 +37,9 @@
 #include "device/include/controller.h"
 #include "btm_int.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 #define SMP_PAIRING_REQ_SIZE    7
 #define SMP_CONFIRM_CMD_SIZE    (BT_OCTET16_LEN + 1)
 #define SMP_RAND_CMD_SIZE       (BT_OCTET16_LEN + 1)
@@ -324,10 +327,9 @@ BOOLEAN smp_send_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
             smp_send_msg_to_L2CAP(p_cb->pairing_bda, p_buf))
         {
             sent = TRUE;
-
-            btu_stop_timer (&p_cb->rsp_timer_ent);
-            btu_start_timer (&p_cb->rsp_timer_ent, BTU_TTYPE_SMP_PAIRING_CMD,
-                             SMP_WAIT_FOR_RSP_TOUT);
+            alarm_set_on_queue(p_cb->smp_rsp_timer_ent,
+                               SMP_WAIT_FOR_RSP_TIMEOUT_MS, smp_rsp_timeout,
+                               NULL, btu_general_alarm_queue);
         }
     }
 
@@ -354,11 +356,10 @@ BOOLEAN smp_send_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void smp_rsp_timeout(timer_entry_t *p_te)
+void smp_rsp_timeout(UNUSED_ATTR void *data)
 {
     tSMP_CB   *p_cb = &smp_cb;
     UINT8 failure = SMP_RSP_TIMEOUT;
-    UNUSED(p_te);
 
     SMP_TRACE_EVENT("%s state:%d br_state:%d", __FUNCTION__, p_cb->state, p_cb->br_state);
 
@@ -872,6 +873,7 @@ void smp_cb_cleanup(tSMP_CB   *p_cb)
 
     SMP_TRACE_EVENT("smp_cb_cleanup");
 
+    alarm_free(p_cb->smp_rsp_timer_ent);
     memset(p_cb, 0, sizeof(tSMP_CB));
     p_cb->p_callback = p_callback;
     p_cb->trace_level = trace_level;
@@ -909,8 +911,9 @@ void smp_remove_fixed_channel(tSMP_CB *p_cb)
 *******************************************************************************/
 void smp_reset_control_value(tSMP_CB *p_cb)
 {
-    SMP_TRACE_EVENT("smp_reset_control_value");
-    btu_stop_timer (&p_cb->rsp_timer_ent);
+    SMP_TRACE_EVENT("%s", __func__);
+
+    alarm_cancel(p_cb->smp_rsp_timer_ent);
     p_cb->flags = 0;
     /* set the link idle timer to drop the link when pairing is done
        usually service discovery will follow authentication complete, to avoid
@@ -1118,7 +1121,7 @@ BOOLEAN smp_pairing_keypress_notification_is_valid(tSMP_CB *p_cb)
 ** Description      Always returns TRUE.
 **
 *******************************************************************************/
-BOOLEAN smp_parameter_unconditionally_valid(tSMP_CB *p_cb)
+BOOLEAN smp_parameter_unconditionally_valid(UNUSED_ATTR tSMP_CB *p_cb)
 {
     return TRUE;
 }
@@ -1130,7 +1133,7 @@ BOOLEAN smp_parameter_unconditionally_valid(tSMP_CB *p_cb)
 ** Description      Always returns FALSE.
 **
 *******************************************************************************/
-BOOLEAN smp_parameter_unconditionally_invalid(tSMP_CB *p_cb)
+BOOLEAN smp_parameter_unconditionally_invalid(UNUSED_ATTR tSMP_CB *p_cb)
 {
     return FALSE;
 }

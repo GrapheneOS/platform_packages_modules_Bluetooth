@@ -42,6 +42,8 @@
 
 #if SDP_SERVER_ENABLED == TRUE
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /* Maximum number of bytes to reserve out of SDP MTU for response data */
 #define SDP_MAX_SERVICE_RSPHDR_LEN      12
 #define SDP_MAX_SERVATTR_RSPHDR_LEN     10
@@ -121,7 +123,8 @@ void sdp_server_handle_client_req (tCONN_CB *p_ccb, BT_HDR *p_msg)
 
 
     /* Start inactivity timer */
-    btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_SDP, SDP_INACT_TIMEOUT);
+    alarm_set_on_queue(p_ccb->sdp_conn_timer, SDP_INACT_TIMEOUT_MS,
+                       sdp_conn_timer_timeout, p_ccb, btu_general_alarm_queue);
 
     /* The first byte in the message is the pdu type */
     pdu_id = *p_req++;

@@ -345,24 +345,6 @@
 
 /******************************************************************************
 **
-** HCI Services (H4)
-**
-******************************************************************************/
-
-/* Use 2 second for low-resolution systems, override to 1 for high-resolution systems */
-#ifndef BT_1SEC_TIMEOUT
-#define BT_1SEC_TIMEOUT             (2)
-#endif
-
-/* Quick Timer */
-/* if L2CAP_FCR_INCLUDED is TRUE then it should have 100 millisecond resolution */
-/* if none of them is included then QUICK_TIMER_TICKS_PER_SEC is set to 0 to exclude quick timer */
-#ifndef QUICK_TIMER_TICKS_PER_SEC
-#define QUICK_TIMER_TICKS_PER_SEC   10       /* 100ms timer */
-#endif
-
-/******************************************************************************
-**
 ** BTM
 **
 ******************************************************************************/

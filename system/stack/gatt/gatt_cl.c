@@ -1181,7 +1181,7 @@ void gatt_client_handle_server_rsp (tGATT_TCB *p_tcb, UINT8 op_code,
         }
         else
         {
-            btu_stop_timer (&p_clcb->rsp_timer_ent);
+            alarm_cancel(p_clcb->gatt_rsp_timer_ent);
             p_clcb->retry_count = 0;
         }
     }

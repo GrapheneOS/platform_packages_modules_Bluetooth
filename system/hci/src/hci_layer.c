@@ -43,9 +43,9 @@
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "low_power_manager.h"
+#include "osi/include/alarm.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
-#include "osi/include/non_repeating_timer.h"
 #include "osi/include/reactor.h"
 #include "packet_fragmenter.h"
 #include "vendor.h"
@@ -106,7 +106,7 @@ typedef struct {
 #define STRING_VALUE_OF(x) #x
 
 static const uint32_t EPILOG_TIMEOUT_MS = 3000;
-static const uint32_t COMMAND_PENDING_TIMEOUT = 8000;
+static const uint32_t COMMAND_PENDING_TIMEOUT_MS = 8000;
 
 // Our interface
 static bool interface_created;
@@ -127,8 +127,8 @@ static future_t *startup_future;
 static thread_t *thread; // We own this
 
 static volatile bool firmware_is_configured = false;
-static non_repeating_timer_t *epilog_timer;
-static non_repeating_timer_t *startup_timer;
+static alarm_t *epilog_timer;
+static alarm_t *startup_timer;
 
 // Outbound-related
 static int command_credits = 1;
@@ -136,7 +136,7 @@ static fixed_queue_t *command_queue;
 static fixed_queue_t *packet_queue;
 
 // Inbound-related
-static non_repeating_timer_t *command_response_timer;
+static alarm_t *command_response_timer;
 static list_t *commands_pending_response;
 static pthread_mutex_t commands_pending_response_lock;
 static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
@@ -166,6 +166,7 @@ static bool filter_incoming_event(BT_HDR *packet);
 
 static serial_data_type_t event_to_data_type(uint16_t event);
 static waiting_command_t *get_waiting_command(command_opcode_t opcode);
+static void update_command_response_timer(void);
 
 // Module lifecycle functions
 
@@ -194,22 +195,22 @@ static future_t *start_up(void) {
     startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
 #endif  // !defined(OS_GENERIC)
 
-  startup_timer = non_repeating_timer_new(startup_timeout_ms, startup_timer_expired, NULL);
+  startup_timer = alarm_new("hci.startup_timer");
   if (!startup_timer) {
     LOG_ERROR(LOG_TAG, "%s unable to create startup timer.", __func__);
     goto error;
   }
 
   // Make sure we run in a bounded amount of time
-  non_repeating_timer_restart(startup_timer);
+  alarm_set(startup_timer, startup_timeout_ms, startup_timer_expired, NULL);
 
-  epilog_timer = non_repeating_timer_new(EPILOG_TIMEOUT_MS, epilog_timer_expired, NULL);
+  epilog_timer = alarm_new("hci.epilog_timer");
   if (!epilog_timer) {
     LOG_ERROR(LOG_TAG, "%s unable to create epilog timer.", __func__);
     goto error;
   }
 
-  command_response_timer = non_repeating_timer_new(COMMAND_PENDING_TIMEOUT, command_timed_out, NULL);
+  command_response_timer = alarm_new("hci.command_response_timer");
   if (!command_response_timer) {
     LOG_ERROR(LOG_TAG, "%s unable to create command response timer.", __func__);
     goto error;
@@ -279,7 +280,8 @@ static future_t *start_up(void) {
   LOG_DEBUG(LOG_TAG, "%s starting async portion", __func__);
   thread_post(thread, event_finish_startup, NULL);
   return local_startup_future;
-error:;
+
+error:
   shut_down(); // returns NULL so no need to wait for it
   return future_new_immediate(FUTURE_FAIL);
 }
@@ -291,7 +293,7 @@ static future_t *shut_down() {
 
   if (thread) {
     if (firmware_is_configured) {
-      non_repeating_timer_restart(epilog_timer);
+      alarm_set(epilog_timer, EPILOG_TIMEOUT_MS, epilog_timer_expired, NULL);
       thread_post(thread, event_epilog, NULL);
     } else {
       thread_stop(thread);
@@ -310,12 +312,13 @@ static future_t *shut_down() {
 
   packet_fragmenter->cleanup();
 
-  non_repeating_timer_free(epilog_timer);
-  non_repeating_timer_free(command_response_timer);
-  non_repeating_timer_free(startup_timer);
-
+  // Free the timers
+  alarm_free(epilog_timer);
   epilog_timer = NULL;
+  alarm_free(command_response_timer);
   command_response_timer = NULL;
+  alarm_free(startup_timer);
+  startup_timer = NULL;
 
   low_power_manager->cleanup();
   hal->close();
@@ -420,7 +423,7 @@ static void event_finish_startup(UNUSED_ATTR void *context) {
 static void firmware_config_callback(UNUSED_ATTR bool success) {
   LOG_INFO(LOG_TAG, "%s", __func__);
   firmware_is_configured = true;
-  non_repeating_timer_cancel(startup_timer);
+  alarm_cancel(startup_timer);
 
   future_ready(startup_future, FUTURE_SUCCESS);
   startup_future = NULL;
@@ -456,6 +459,7 @@ static void event_epilog(UNUSED_ATTR void *context) {
 
 static void epilog_finished_callback(UNUSED_ATTR bool success) {
   LOG_INFO(LOG_TAG, "%s", __func__);
+  alarm_cancel(epilog_timer);
   thread_stop(thread);
 }
 
@@ -481,7 +485,7 @@ static void event_command_ready(fixed_queue_t *queue, UNUSED_ATTR void *context)
     packet_fragmenter->fragment_and_dispatch(wait_entry->command);
     low_power_manager->transmit_done();
 
-    non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
+    update_command_response_timer();
   }
 }
 
@@ -685,8 +689,9 @@ static bool filter_incoming_event(BT_HDR *packet) {
   }
 
   return false;
-intercepted:;
-  non_repeating_timer_restart_if(command_response_timer, !list_is_empty(commands_pending_response));
+
+intercepted:
+  update_command_response_timer();
 
   if (wait_entry) {
     // If it has a callback, it's responsible for freeing the packet
@@ -754,6 +759,15 @@ static waiting_command_t *get_waiting_command(command_opcode_t opcode) {
 
   pthread_mutex_unlock(&commands_pending_response_lock);
   return NULL;
+}
+
+static void update_command_response_timer(void) {
+  if (list_is_empty(commands_pending_response)) {
+    alarm_cancel(command_response_timer);
+  } else {
+    alarm_set(command_response_timer, COMMAND_PENDING_TIMEOUT_MS,
+              command_timed_out, NULL);
+  }
 }
 
 static void init_layer_interface() {

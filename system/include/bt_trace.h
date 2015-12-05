@@ -227,10 +227,10 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 /* Define tracing for the HCI unit
 */
 
-#define HCI_TRACE_ERROR(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
-#define HCI_TRACE_WARNING(...)                   {if (btu_cb.trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
-#define HCI_TRACE_EVENT(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
-#define HCI_TRACE_DEBUG(...)                     {if (btu_cb.trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
+#define HCI_TRACE_ERROR(...)                     {if (btu_trace_level >= BT_TRACE_LEVEL_ERROR) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_ERROR, ##__VA_ARGS__);}
+#define HCI_TRACE_WARNING(...)                   {if (btu_trace_level >= BT_TRACE_LEVEL_WARNING) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_WARNING, ##__VA_ARGS__);}
+#define HCI_TRACE_EVENT(...)                     {if (btu_trace_level >= BT_TRACE_LEVEL_EVENT) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_EVENT, ##__VA_ARGS__);}
+#define HCI_TRACE_DEBUG(...)                     {if (btu_trace_level >= BT_TRACE_LEVEL_DEBUG) BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__);}
 
 
 /* Define tracing for BTM

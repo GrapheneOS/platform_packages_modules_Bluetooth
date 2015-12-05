@@ -44,6 +44,7 @@
 #include "gatt_int.h"
 #endif /* BLE_INCLUDED */
 
+extern fixed_queue_t *btu_general_alarm_queue;
 extern thread_t *bt_workqueue_thread;
 
 /********************************************************************************/
@@ -54,8 +55,8 @@ extern thread_t *bt_workqueue_thread;
 #define BTM_DEV_RESET_TIMEOUT   4
 #endif
 
-#define BTM_DEV_REPLY_TIMEOUT   2    /* 1 second expiration time is not good. Timer may start between 0 and 1 second. */
-                                     /* if it starts at the very end of the 0 second, timer will expire really easily. */
+// TODO: Reevaluate this value in the context of timers with ms granularity
+#define BTM_DEV_NAME_REPLY_TIMEOUT_MS (2 * 1000) /* 2 seconds for name reply */
 
 #define BTM_INFO_TIMEOUT        5   /* 5 seconds for info response */
 
@@ -85,8 +86,15 @@ void btm_dev_init (void)
     memset(btm_cb.cfg.bd_name, 0, sizeof(tBTM_LOC_BD_NAME));
 #endif
 
-    btm_cb.devcb.reset_timer.param  = (timer_param_t)TT_DEV_RESET;
-    btm_cb.devcb.rln_timer.param    = (timer_param_t)TT_DEV_RLN;
+    btm_cb.devcb.read_local_name_timer =
+        alarm_new("btm.read_local_name_timer");
+    btm_cb.devcb.read_rssi_timer = alarm_new("btm.read_rssi_timer");
+    btm_cb.devcb.read_link_quality_timer =
+        alarm_new("btm.read_link_quality_timer");
+    btm_cb.devcb.read_inq_tx_power_timer =
+        alarm_new("btm.read_inq_tx_power_timer");
+    btm_cb.devcb.qos_setup_timer = alarm_new("btm.qos_setup_timer");
+    btm_cb.devcb.read_tx_power_timer = alarm_new("btm.read_tx_power_timer");
 
     btm_cb.btm_acl_pkt_types_supported = BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
                                          BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
@@ -179,7 +187,7 @@ static void reset_complete(void *result) {
       controller->get_ble_resolving_list_max_size() > 0) {
       btm_ble_resolving_list_init(controller->get_ble_resolving_list_max_size());
       /* set the default random private address timeout */
-      btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT);
+      btsnd_hcic_ble_set_rand_priv_addr_timeout(BTM_BLE_PRIVATE_ADDR_INT_MS / 1000);
   }
 #endif
 
@@ -229,26 +237,19 @@ BOOLEAN BTM_IsDeviceUp (void)
 
 /*******************************************************************************
 **
-** Function         btm_dev_timeout
+** Function         btm_read_local_name_timeout
 **
-** Description      This function is called when a timer entry expires.
+** Description      Callback when reading the local name times out.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void btm_dev_timeout (timer_entry_t *p_te)
+void btm_read_local_name_timeout(UNUSED_ATTR void *data)
 {
-    timer_param_t timer_type = (timer_param_t)p_te->param;
-
-    if (timer_type == (timer_param_t)TT_DEV_RLN)
-    {
-        tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
-
-        btm_cb.devcb.p_rln_cmpl_cb = NULL;
-
-        if (p_cb)
-            (*p_cb)((void *) NULL);
-    }
+    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rln_cmpl_cb;
+    btm_cb.devcb.p_rln_cmpl_cb = NULL;
+    if (p_cb)
+        (*p_cb)((void *) NULL);
 }
 
 /*******************************************************************************
@@ -510,7 +511,10 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController (tBTM_CMPL_CB *p_rln_cmpl_cbac
     btm_cb.devcb.p_rln_cmpl_cb = p_rln_cmpl_cback;
 
     btsnd_hcic_read_name();
-    btu_start_timer (&btm_cb.devcb.rln_timer, BTU_TTYPE_BTM_DEV_CTL, BTM_DEV_REPLY_TIMEOUT);
+    alarm_set_on_queue(btm_cb.devcb.read_local_name_timer,
+                       BTM_DEV_NAME_REPLY_TIMEOUT_MS,
+                       btm_read_local_name_timeout, NULL,
+                       btu_general_alarm_queue);
 
     return BTM_CMD_STARTED;
 }
@@ -531,7 +535,7 @@ void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len)
     UINT8           status;
     UNUSED(evt_len);
 
-    btu_stop_timer (&btm_cb.devcb.rln_timer);
+    alarm_cancel(btm_cb.devcb.read_local_name_timer);
 
     /* If there was a callback address for read local name, call it */
     btm_cb.devcb.p_rln_cmpl_cb = NULL;

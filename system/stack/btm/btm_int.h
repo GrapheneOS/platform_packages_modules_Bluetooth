@@ -30,8 +30,8 @@
 #include "hcidefs.h"
 
 #include "rfcdefs.h"
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/non_repeating_timer.h"
 
 #include "btm_api.h"
 
@@ -122,13 +122,6 @@ typedef struct
 
 } tACL_CONN;
 
-/*****************************************************
-** TIMER Definitions
-******************************************************/
-#define TT_DEV_RESET     1
-#define TT_DEV_RLN       2
-#define TT_DEV_RLNKP     4              /* Read Link Policy Settings */
-
 /* Define the Device Management control structure
 */
 typedef struct
@@ -138,30 +131,29 @@ typedef struct
 
     tBTM_CMPL_CB        *p_stored_link_key_cmpl_cb;   /* Read/Write/Delete stored link key    */
 
-    timer_entry_t        reset_timer;
-
-    timer_entry_t        rln_timer;
+    alarm_t             *read_local_name_timer; /* Read local name timer */
     tBTM_CMPL_CB        *p_rln_cmpl_cb;     /* Callback function to be called when  */
                                             /* read local name function complete    */
-    timer_entry_t        rssi_timer;
+    alarm_t             *read_rssi_timer;   /* Read RSSI timer */
     tBTM_CMPL_CB        *p_rssi_cmpl_cb;    /* Callback function to be called when  */
-                                            /* read rssi function completes         */
-    timer_entry_t        lnk_quality_timer;
-    tBTM_CMPL_CB        *p_lnk_qual_cmpl_cb;/* Callback function to be called when  */
+                                            /* read RSSI function completes */
+    alarm_t             *read_link_quality_timer;
+    tBTM_CMPL_CB        *p_link_qual_cmpl_cb; /* Callback function to be called when  */
                                             /* read link quality function completes */
-    timer_entry_t        txpwer_timer;
-    tBTM_CMPL_CB        *p_txpwer_cmpl_cb;    /* Callback function to be called when  */
+
+    alarm_t             *read_inq_tx_power_timer;
+    tBTM_CMPL_CB        *p_inq_tx_power_cmpl_cb; /* Callback function to be called when  */
                                             /* read inq tx power function completes  */
 
-    timer_entry_t        qossu_timer;
-    tBTM_CMPL_CB        *p_qossu_cmpl_cb;   /* Callback function to be called when  */
+    alarm_t             *qos_setup_timer;   /* QoS setup timer */
+    tBTM_CMPL_CB        *p_qos_setup_cmpl_cb; /* Callback function to be called when  */
                                             /* qos setup function completes         */
 
     tBTM_ROLE_SWITCH_CMPL switch_role_ref_data;
     tBTM_CMPL_CB        *p_switch_role_cb;  /* Callback function to be called when  */
                                             /* requested switch role is completed   */
 
-    timer_entry_t        tx_power_timer;
+    alarm_t             *read_tx_power_timer; /* Read tx power timer */
     tBTM_CMPL_CB        *p_tx_power_cmpl_cb;/* Callback function to be called       */
 
     DEV_CLASS            dev_class;         /* Local device class                   */
@@ -249,10 +241,10 @@ typedef struct
 {
     tBTM_CMPL_CB *p_remname_cmpl_cb;
 
-#define BTM_EXT_RMT_NAME_TIMEOUT    40
+#define BTM_EXT_RMT_NAME_TIMEOUT_MS (40 * 1000) /* 40 seconds */
 
 
-    timer_entry_t    rmt_name_timer_ent;
+    alarm_t         *remote_name_timer;
 
     UINT16           discoverable_mode;
     UINT16           connectable_mode;
@@ -279,7 +271,6 @@ typedef struct
     UINT32           inq_counter;           /* Counter incremented each time an inquiry completes */
                                             /* Used for determining whether or not duplicate devices */
                                             /* have responded to the same inquiry */
-    timer_entry_t    inq_timer_ent;
     tINQ_BDADDR     *p_bd_db;               /* Pointer to memory that holds bdaddrs */
     UINT16           num_bd_entries;        /* Number of entries in database */
     UINT16           max_bd_entries;        /* Maximum number of entries that can be stored */
@@ -845,7 +836,7 @@ typedef struct
     tBTM_RMT_NAME_CALLBACK  *p_rmt_name_callback[BTM_SEC_MAX_RMT_NAME_CALLBACKS];
 
     tBTM_SEC_DEV_REC        *p_collided_dev_rec;
-    timer_entry_t            sec_collision_te;
+    alarm_t                 *sec_collision_timer;
     UINT32                   collision_start_time;
     UINT32                   max_collision_delay;
     UINT32                   dev_rec_count;      /* Counter used for device record timestamp */
@@ -866,7 +857,7 @@ typedef struct
     tBTM_PAIRING_STATE       pairing_state; /* The current pairing state    */
     UINT8                    pairing_flags; /* The current pairing flags    */
     BD_ADDR                  pairing_bda;   /* The device currently pairing */
-    timer_entry_t            pairing_te;    /* Timer for pairing process    */
+    alarm_t                 *pairing_timer; /* Timer for pairing process    */
     UINT16                   disc_handle;   /* for legacy devices */
     UINT8                    disc_reason;   /* for legacy devices */
     tBTM_SEC_SERV_REC        sec_serv_rec[BTM_SEC_MAX_SERVICE_RECORDS];
@@ -913,14 +904,15 @@ extern void         btm_init (void);
 /* Internal functions provided by btm_inq.c
 *******************************************
 */
-extern tBTM_STATUS  btm_initiate_rem_name (BD_ADDR remote_bda,
-                                           tBTM_INQ_INFO *p_cur,
-                                           UINT8 origin, UINT32 timeout,
-                                           tBTM_CMPL_CB *p_cb);
+extern tBTM_STATUS  btm_initiate_rem_name(BD_ADDR remote_bda,
+                                          tBTM_INQ_INFO *p_cur,
+                                          UINT8 origin, period_ms_t timeout_ms,
+                                          tBTM_CMPL_CB *p_cb);
 
 extern void         btm_process_remote_name (BD_ADDR bda, BD_NAME name, UINT16 evt_len,
                                              UINT8 hci_status);
 extern void         btm_inq_rmt_name_failed(void);
+extern void         btm_inq_remote_name_timer_timeout(void *data);
 
 /* Inquiry related functions */
 extern void         btm_clr_inq_db (BD_ADDR p_bda);
@@ -952,9 +944,16 @@ extern void         btm_cont_rswitch (tACL_CONN *p,
 
 extern UINT8        btm_handle_to_acl_index (UINT16 hci_handle);
 extern void         btm_read_link_policy_complete (UINT8 *p);
-extern void         btm_read_rssi_complete (UINT8 *p);
-extern void         btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble);
-extern void         btm_read_link_quality_complete (UINT8 *p);
+
+extern void         btm_read_rssi_timeout(void *data);
+extern void         btm_read_rssi_complete(UINT8 *p);
+
+extern void         btm_read_tx_power_timeout(void *data);
+extern void         btm_read_tx_power_complete(UINT8 *p, BOOLEAN is_ble);
+
+extern void         btm_read_link_quality_timeout(void *data);
+extern void         btm_read_link_quality_complete(UINT8 *p);
+
 extern tBTM_STATUS  btm_set_packet_types (tACL_CONN *p, UINT16 pkt_types);
 extern void         btm_process_clk_off_comp_evt (UINT16 hci_handle, UINT16 clock_offset);
 extern void         btm_acl_role_changed (UINT8 hci_status, BD_ADDR bd_addr, UINT8 new_role);
@@ -986,7 +985,10 @@ extern void btm_sco_chk_pend_unpark (UINT8 hci_status, UINT16 hci_handle);
 #else
 #define btm_sco_chk_pend_unpark(hci_status, hci_handle)
 #endif /* BTM_SCO_INCLUDED */
-extern void btm_qos_setup_complete (UINT8 status, UINT16 handle, FLOW_SPEC *p_flow);
+
+extern void btm_qos_setup_timeout(void *data);
+extern void btm_qos_setup_complete(UINT8 status, UINT16 handle,
+                                   FLOW_SPEC *p_flow);
 
 
 /* Internal functions provided by btm_sco.c
@@ -1013,9 +1015,9 @@ extern void btm_sco_flush_sco_data(UINT16 sco_inx);
 /* Internal functions provided by btm_devctl.c
 **********************************************
 */
-extern void btm_dev_init (void);
-extern void btm_dev_timeout(timer_entry_t *p_te);
-extern void btm_read_local_name_complete (UINT8 *p, UINT16 evt_len);
+extern void btm_dev_init(void);
+extern void btm_read_local_name_timeout(void *data);
+extern void btm_read_local_name_complete(UINT8 *p, UINT16 evt_len);
 
 #if (BLE_INCLUDED == TRUE)
 extern void btm_ble_add_2_white_list_complete(UINT8 status);
@@ -1062,7 +1064,9 @@ extern tBTM_STATUS  btm_sec_mx_access_request (BD_ADDR bd_addr, UINT16 psm, BOOL
                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
 extern void  btm_sec_conn_req (UINT8 *bda, UINT8 *dc);
 extern void btm_create_conn_cancel_complete (UINT8 *p);
-extern void btm_read_linq_tx_power_complete (UINT8 *p);
+
+extern void  btm_read_inq_tx_power_timeout(void *data);
+extern void  btm_read_inq_tx_power_complete(UINT8 *p);
 
 extern void  btm_sec_init (UINT8 sec_mode);
 extern void  btm_sec_dev_reset (void);

@@ -36,6 +36,9 @@
 #include "btu.h"
 #include "hcimsgs.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
@@ -221,7 +224,10 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
             else
             {
                 l2cu_send_peer_connect_req (p_ccb);
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
         }
         break;
@@ -234,7 +240,7 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 
     case L2CEVT_L2CAP_CONNECT_REQ:                      /* Peer connect request */
         /* stop link timer to avoid race condition between A2MP, Security, and L2CAP */
-        btu_stop_timer (&p_ccb->p_lcb->timer_entry);
+        alarm_cancel(p_ccb->p_lcb->l2c_lcb_timer);
 
         /* Cancel sniff mode if needed */
         {
@@ -341,7 +347,10 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
             }
             else
             {
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
                 l2cu_send_peer_connect_req (p_ccb);          /* Start Connection     */
             }
         }
@@ -422,7 +431,10 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         if (!p_ccb->p_lcb->w4_info_rsp)
         {
             /* Don't need to get info from peer or already retrieved so continue */
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
             L2CAP_TRACE_API ("L2CAP - Calling Connect_Ind_Cb(), CID: 0x%04x", p_ccb->local_cid);
 
             (*p_ccb->p_rcb->api.pL2CA_ConnectInd_Cb) (p_ccb->p_lcb->remote_bd_addr, p_ccb->local_cid,
@@ -448,7 +460,10 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         if (((tL2C_CONN_INFO *)p_data)->status == BTM_DELAY_CHECK)
         {
             /* start a timer - encryption change not received before L2CAP connect req */
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_DELAY_CHECK_SM4);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_DELAY_CHECK_SM4_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
         }
         else
         {
@@ -480,7 +495,9 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         if (!btsnd_hcic_disconnect (p_ccb->p_lcb->handle, HCI_ERR_AUTH_FAILURE))
         {
             L2CAP_TRACE_API ("L2CAP - Calling btsnd_hcic_disconnect for handle %i failed", p_ccb->p_lcb->handle);
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, 1);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer, BT_1SEC_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
         }
         break;
 
@@ -534,7 +551,9 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
     case L2CEVT_L2CAP_CONNECT_RSP:                  /* Got peer connect confirm */
         p_ccb->remote_cid = p_ci->remote_cid;
         p_ccb->chnl_state = CST_CONFIG;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         L2CAP_TRACE_API ("L2CAP - Calling Connect_Cfm_Cb(), CID: 0x%04x, Success", p_ccb->local_cid);
 
         (*p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb)(local_cid, L2CAP_CONN_OK);
@@ -542,7 +561,10 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
 
     case L2CEVT_L2CAP_CONNECT_RSP_PND:              /* Got peer connect pending */
         p_ccb->remote_cid = p_ci->remote_cid;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT_EXT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CONNECT_EXT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         if (p_ccb->p_rcb->api.pL2CA_ConnectPnd_Cb)
         {
             L2CAP_TRACE_API ("L2CAP - Calling Connect_Pnd_Cb(), CID: 0x%04x", p_ccb->local_cid);
@@ -568,7 +590,10 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
         {
             l2cu_send_peer_disc_req (p_ccb);
             p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
         }
         else
             l2cu_release_ccb (p_ccb);
@@ -589,7 +614,10 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
         else
         {
             /* We have feature info, so now send peer connect request */
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
             l2cu_send_peer_connect_req (p_ccb);          /* Start Connection     */
         }
         break;
@@ -635,13 +663,19 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p_
         {
             l2cu_send_peer_connect_rsp (p_ccb, L2CAP_CONN_OK, 0);
             p_ccb->chnl_state = CST_CONFIG;
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_CFG_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
         }
         else
         {
             /* If pending, stay in same state and start extended timer */
             l2cu_send_peer_connect_rsp (p_ccb, p_ci->l2cap_result, p_ci->l2cap_status);
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT_EXT);
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_CONNECT_EXT_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
         }
         break;
 
@@ -666,12 +700,18 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p_
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
         l2cu_send_peer_disc_req (p_ccb);
         p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_L2CAP_INFO_RSP:
         /* We have feature info, so now give the upper layer connect IND */
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         L2CAP_TRACE_API ("L2CAP - Calling Connect_Ind_Cb(), CID: 0x%04x", p_ccb->local_cid);
 
         (*p_ccb->p_rcb->api.pL2CA_ConnectInd_Cb) (p_ccb->p_lcb->remote_bd_addr,
@@ -762,7 +802,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                 p_ccb->config_done |= RECONFIG_FLAG;
                 p_ccb->chnl_state = CST_OPEN;
                 l2c_link_adjust_chnl_allocation ();
-                btu_stop_timer (&p_ccb->timer_entry);
+                alarm_cancel(p_ccb->l2c_ccb_timer);
 
                 /* If using eRTM and waiting for an ACK, restart the ACK timer */
                 if (p_ccb->fcrb.wait_ack)
@@ -795,7 +835,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_L2CAP_CONFIG_RSP_NEG:              /* Peer config error rsp */
         /* Disable the Timer */
-         btu_stop_timer (&p_ccb->timer_entry);
+         alarm_cancel(p_ccb->l2c_ccb_timer);
 
         /* If failure was channel mode try to renegotiate */
         if (l2c_fcr_renegotiate_chan(p_ccb, p_cfg) == FALSE)
@@ -806,7 +846,10 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CAP_DISCONNECT_REQ:                  /* Peer disconnected request */
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
         L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  Conf Needed", p_ccb->local_cid);
         (*p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb)(p_ccb->local_cid, TRUE);
@@ -815,7 +858,10 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
     case L2CEVT_L2CA_CONFIG_REQ:                   /* Upper layer config req   */
         l2cu_process_our_cfg_req (p_ccb, p_cfg);
         l2cu_send_peer_config_req (p_ccb, p_cfg);
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_L2CA_CONFIG_RSP:                   /* Upper layer config rsp   */
@@ -851,7 +897,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             p_ccb->config_done |= RECONFIG_FLAG;
             p_ccb->chnl_state = CST_OPEN;
             l2c_link_adjust_chnl_allocation ();
-            btu_stop_timer (&p_ccb->timer_entry);
+            alarm_cancel(p_ccb->l2c_ccb_timer);
         }
 
         l2cu_send_peer_config_rsp (p_ccb, p_cfg);
@@ -874,13 +920,19 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_L2CA_CONFIG_RSP_NEG:               /* Upper layer config reject */
         l2cu_send_peer_config_rsp (p_ccb, p_cfg);
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
         l2cu_send_peer_disc_req (p_ccb);
         p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_L2CAP_DATA:                        /* Peer data packet rcvd    */
@@ -982,7 +1034,10 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         p_ccb->chnl_state = CST_CONFIG;
         p_ccb->config_done &= ~CFG_DONE_MASK;
 
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
 
         if ((cfg_result = l2cu_process_peer_cfg_req (p_ccb, p_cfg)) == L2CAP_PEER_CFG_OK)
         {
@@ -992,7 +1047,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         /* Error in config parameters: reset state and config flag */
         else if (cfg_result == L2CAP_PEER_CFG_UNACCEPTABLE)
         {
-            btu_stop_timer(&p_ccb->timer_entry);
+            alarm_cancel(p_ccb->l2c_ccb_timer);
             p_ccb->chnl_state = tempstate;
             p_ccb->config_done = tempcfgdone;
             l2cu_send_peer_config_rsp (p_ccb, p_cfg);
@@ -1019,7 +1074,10 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 // btla-specific --
 
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         L2CAP_TRACE_API ("L2CAP - Calling Disconnect_Ind_Cb(), CID: 0x%04x  Conf Needed", p_ccb->local_cid);
         (*p_ccb->p_rcb->api.pL2CA_DisconnectInd_Cb)(p_ccb->local_cid, TRUE);
         break;
@@ -1040,7 +1098,10 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
         l2cu_send_peer_disc_req (p_ccb);
         p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_DISCONNECT_TOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
@@ -1053,7 +1114,10 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         p_ccb->config_done &= ~CFG_DONE_MASK;
         l2cu_process_our_cfg_req (p_ccb, (tL2CAP_CFG_INFO *)p_data);
         l2cu_send_peer_config_req (p_ccb, (tL2CAP_CFG_INFO *)p_data);
-        btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+        alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                           L2CAP_CHNL_CFG_TIMEOUT_MS,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
         break;
 
     case L2CEVT_TIMEOUT:

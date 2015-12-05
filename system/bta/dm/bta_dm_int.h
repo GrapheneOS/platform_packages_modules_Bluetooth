@@ -833,7 +833,7 @@ typedef struct
      * Keep three different timers for PARK, SNIFF and SUSPEND if TBFC is
      * supported.
      */
-    timer_entry_t           timer[BTA_DM_PM_MODE_TIMER_MAX];
+    alarm_t *               timer[BTA_DM_PM_MODE_TIMER_MAX];
 
     UINT8                   srvc_id[BTA_DM_PM_MODE_TIMER_MAX];
     UINT8                   pm_action[BTA_DM_PM_MODE_TIMER_MAX];
@@ -863,7 +863,7 @@ typedef struct
 #endif
     UINT16                      state;
     BOOLEAN                     disabling;
-    timer_entry_t               disable_timer;
+    alarm_t                     *disable_timer;
     UINT32                      wbt_sdp_handle;          /* WIDCOMM Extensions SDP record handle */
     UINT8                       wbt_scn;                 /* WIDCOMM Extensions SCN */
     UINT8                       num_master_only;
@@ -889,7 +889,6 @@ typedef struct
     BOOLEAN         just_works;     /* TRUE, if "Just Works" association model */
 #if ( BTA_EIR_CANNED_UUID_LIST != TRUE )
     /* store UUID list for EIR */
-    timer_entry_t               app_ready_timer;
     UINT32                      eir_uuid[BTM_EIR_SERVICE_ARRAY_SIZE];
 #if (BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
     tBT_UUID                    custom_uuid[BTA_EIR_SERVER_NUM_CUSTOM_UUID];
@@ -899,7 +898,7 @@ typedef struct
 
 
     tBTA_DM_ENCRYPT_CBACK      *p_encrypt_cback;
-    timer_entry_t               switch_delay_timer;
+    alarm_t                    *switch_delay_timer;
 
 } tBTA_DM_CB;
 
@@ -921,7 +920,7 @@ typedef struct
     BD_ADDR                peer_bdaddr;
     BOOLEAN                name_discover_done;
     BD_NAME                peer_name;
-    timer_entry_t          search_timer;
+    alarm_t              * search_timer;
     UINT8                  service_index;
     tBTA_DM_MSG          * p_search_queue;   /* search or discover commands during search cancel stored here */
     BOOLEAN                wait_disc;
@@ -943,7 +942,7 @@ typedef struct
     UINT8 *                 p_ble_rawdata;
     UINT32                 ble_raw_size;
     UINT32                 ble_raw_used;
-    timer_entry_t          gatt_close_timer; /* GATT channel close delay timer */
+    alarm_t              * gatt_close_timer; /* GATT channel close delay timer */
     BD_ADDR                pending_close_bda; /* pending GATT channel remote device address */
 #endif
 #endif
@@ -1082,6 +1081,7 @@ extern void bta_dm_search_sm_disable( void );
 
 extern void bta_dm_enable (tBTA_DM_MSG *p_data);
 extern void bta_dm_disable (tBTA_DM_MSG *p_data);
+extern void bta_dm_init_cb(void);
 extern void bta_dm_set_dev_name (tBTA_DM_MSG *p_data);
 extern void bta_dm_set_visibility (tBTA_DM_MSG *p_data);
 

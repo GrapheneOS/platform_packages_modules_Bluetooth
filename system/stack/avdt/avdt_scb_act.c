@@ -33,6 +33,9 @@
 #include "bt_common.h"
 #include "btu.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /* This table is used to lookup the callback event that matches a particular
 ** state machine API request event.  Note that state machine API request
 ** events are at the beginning of the event list starting at zero, thus
@@ -227,7 +230,10 @@ void avdt_scb_hdl_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     avdt_ad_open_req(AVDT_CHAN_MEDIA, p_scb->p_ccb, p_scb, AVDT_INT);
 
     /* start tc connect timer */
-    btu_start_timer(&p_scb->timer_entry, BTU_TTYPE_AVDT_SCB_TC, AVDT_SCB_TC_CONN_TOUT);
+    alarm_set_on_queue(p_scb->transport_channel_timer,
+                       AVDT_SCB_TC_CONN_TIMEOUT_MS,
+                       avdt_scb_transport_channel_timer_timeout, p_scb,
+                       btu_general_alarm_queue);
 }
 
 /*******************************************************************************
@@ -1020,8 +1026,7 @@ void avdt_scb_hdl_tc_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         p_scb->p_pkt = NULL;
     }
 
-    /* stop transport channel timer */
-    btu_stop_timer(&p_scb->timer_entry);
+    alarm_cancel(p_scb->transport_channel_timer);
 
     if ((p_scb->role == AVDT_CLOSE_INT) || (p_scb->role == AVDT_OPEN_INT))
     {
@@ -1153,8 +1158,7 @@ void avdt_scb_hdl_tc_open(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     UINT8   role;
 #endif
 
-    /* stop transport channel connect timer */
-    btu_stop_timer(&p_scb->timer_entry);
+    alarm_cancel(p_scb->transport_channel_timer);
 
     event = (p_scb->role == AVDT_OPEN_INT) ? AVDT_OPEN_CFM_EVT : AVDT_OPEN_IND_EVT;
     p_data->open.hdr.err_code = 0;
@@ -1550,8 +1554,10 @@ void avdt_scb_snd_open_rsp(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     /* send response */
     avdt_msg_send_rsp(p_scb->p_ccb, AVDT_SIG_OPEN, &p_data->msg);
 
-    /* start tc connect timer */
-    btu_start_timer(&p_scb->timer_entry, BTU_TTYPE_AVDT_SCB_TC, AVDT_SCB_TC_CONN_TOUT);
+    alarm_set_on_queue(p_scb->transport_channel_timer,
+                       AVDT_SCB_TC_CONN_TIMEOUT_MS,
+                       avdt_scb_transport_channel_timer_timeout, p_scb,
+                       btu_general_alarm_queue);
 }
 
 /*******************************************************************************
@@ -2045,7 +2051,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 /*******************************************************************************
 **
-** Function         avdt_scb_tc_timer
+** Function         avdt_scb_transport_channel_timer
 **
 ** Description      This function is called to start a timer when the peer
 **                  initiates closing of the stream.  The timer verifies that
@@ -2054,11 +2060,14 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 ** Returns          Nothing.
 **
 *******************************************************************************/
-void avdt_scb_tc_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
+void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    btu_start_timer(&p_scb->timer_entry, BTU_TTYPE_AVDT_SCB_TC, AVDT_SCB_TC_DISC_TOUT);
+    alarm_set_on_queue(p_scb->transport_channel_timer,
+                       AVDT_SCB_TC_DISC_TIMEOUT_MS,
+                       avdt_scb_transport_channel_timer_timeout, p_scb,
+                       btu_general_alarm_queue);
 }
 
 /*******************************************************************************

@@ -40,6 +40,9 @@
 #include "l2cdefs.h"
 #include "osi/include/log.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /********************************************************************************/
 /*              L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /********************************************************************************/
@@ -159,8 +162,12 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
                 p_msg->layer_specific = 2;
                 list_append(l2cb.rcv_pending_q, p_msg);
 
-                if (list_length(l2cb.rcv_pending_q) == 1)
-                    btu_start_timer (&l2cb.rcv_hold_te, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
+                if (list_length(l2cb.rcv_pending_q) == 1) {
+                    alarm_set_on_queue(l2cb.receive_hold_timer,
+                                       BT_1SEC_TIMEOUT_MS,
+                                       l2c_receive_hold_timer_timeout, NULL,
+                                       btu_general_alarm_queue);
+                }
 
                 return;
             } else {
@@ -417,7 +424,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             /* SonyEricsson Info request Bug workaround (Continue connection) */
             else if (rej_reason == L2CAP_CMD_REJ_NOT_UNDERSTOOD && p_lcb->w4_info_rsp)
             {
-                btu_stop_timer (&p_lcb->info_timer_entry);
+                alarm_cancel(p_lcb->info_resp_timer);
 
                 p_lcb->w4_info_rsp = FALSE;
                 ci.status = HCI_SUCCESS;
@@ -734,7 +741,7 @@ static void process_l2cap_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
             /* Stop the link connect timer if sent before L2CAP connection is up */
             if (p_lcb->w4_info_rsp)
             {
-                btu_stop_timer (&p_lcb->info_timer_entry);
+                alarm_cancel(p_lcb->info_resp_timer);
                 p_lcb->w4_info_rsp = FALSE;
             }
 
@@ -814,7 +821,7 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
         return;
 
     if (!timed_out) {
-        btu_stop_timer(&l2cb.rcv_hold_te);
+        alarm_cancel(l2cb.receive_hold_timer);
         L2CAP_TRACE_WARNING("L2CAP HOLD CONTINUE");
     } else {
         L2CAP_TRACE_WARNING("L2CAP HOLD TIMEOUT");
@@ -832,8 +839,11 @@ void l2c_process_held_packets(BOOLEAN timed_out) {
     }
 
     /* If anyone still in the queue, restart the timeout */
-    if (!list_is_empty(l2cb.rcv_pending_q))
-        btu_start_timer (&l2cb.rcv_hold_te, BTU_TTYPE_L2CAP_HOLD, BT_1SEC_TIMEOUT);
+    if (!list_is_empty(l2cb.rcv_pending_q)) {
+        alarm_set_on_queue(l2cb.receive_hold_timer, BT_1SEC_TIMEOUT_MS,
+                           l2c_receive_hold_timer_timeout, NULL,
+                           btu_general_alarm_queue);
+    }
 }
 
 /*******************************************************************************
@@ -901,47 +911,38 @@ void l2c_init (void)
     l2cb.rcv_pending_q = list_new(NULL);
     if (l2cb.rcv_pending_q == NULL)
         LOG_ERROR(LOG_TAG, "%s unable to allocate memory for link layer control block", __func__);
+    l2cb.receive_hold_timer = alarm_new("l2c.receive_hold_timer");
 }
 
 void l2c_free(void) {
     list_free(l2cb.rcv_pending_q);
 }
 
-/*******************************************************************************
-**
-** Function         l2c_process_timeout
-**
-** Description      This function is called when an L2CAP-related timeout occurs
-**
-** Returns          void
-**
-*******************************************************************************/
-void l2c_process_timeout (timer_entry_t *p_te)
+void l2c_receive_hold_timer_timeout(UNUSED_ATTR void *data)
 {
-    /* What type of timeout ? */
-    switch (p_te->event)
-    {
-    case BTU_TTYPE_L2CAP_LINK:
-        l2c_link_timeout ((tL2C_LCB *)p_te->param);
-        break;
+    /* Update the timeouts in the hold queue */
+    l2c_process_held_packets(TRUE);
+}
 
-    case BTU_TTYPE_L2CAP_CHNL:
-        l2c_csm_execute (((tL2C_CCB *)p_te->param), L2CEVT_TIMEOUT, NULL);
-        break;
+void l2c_ccb_timer_timeout(void *data)
+{
+    tL2C_CCB *p_ccb = (tL2C_CCB *)data;
 
-    case BTU_TTYPE_L2CAP_FCR_ACK:
-        l2c_csm_execute (((tL2C_CCB *)p_te->param), L2CEVT_ACK_TIMEOUT, NULL);
-        break;
+    l2c_csm_execute(p_ccb, L2CEVT_TIMEOUT, NULL);
+}
 
-    case BTU_TTYPE_L2CAP_HOLD:
-        /* Update the timeouts in the hold queue */
-        l2c_process_held_packets(TRUE);
-        break;
+void l2c_fcrb_ack_timer_timeout(void *data)
+{
+    tL2C_CCB *p_ccb = (tL2C_CCB *)data;
 
-    case BTU_TTYPE_L2CAP_INFO:
-        l2c_info_timeout((tL2C_LCB *)p_te->param);
-        break;
-    }
+    l2c_csm_execute(p_ccb, L2CEVT_ACK_TIMEOUT, NULL);
+}
+
+void l2c_lcb_timer_timeout(void *data)
+{
+    tL2C_LCB *p_lcb = (tL2C_LCB *)data;
+
+    l2c_link_timeout(p_lcb);
 }
 
 /*******************************************************************************

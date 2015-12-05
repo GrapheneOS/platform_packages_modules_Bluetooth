@@ -49,6 +49,8 @@
 
 #define BTM_SEC_MAX_COLLISION_DELAY     (5000)
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 #ifdef APPL_AUTH_WRITE_EXCEPTION
 BOOLEAN (APPL_AUTH_WRITE_EXCEPTION)(BD_ADDR bd_addr);
 #endif
@@ -66,9 +68,9 @@ static tBTM_STATUS btm_sec_execute_procedure (tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN  btm_sec_start_get_name (tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN  btm_sec_start_authentication (tBTM_SEC_DEV_REC *p_dev_rec);
 static BOOLEAN  btm_sec_start_encryption (tBTM_SEC_DEV_REC *p_dev_rec);
-static void     btm_sec_collision_timeout(timer_entry_t *p_te);
+static void     btm_sec_collision_timeout(void *data);
 static void     btm_restore_mode(void);
-static void     btm_sec_pairing_timeout(timer_entry_t *p_te);
+static void     btm_sec_pairing_timeout(void *data);
 static tBTM_STATUS btm_sec_dd_create_conn (tBTM_SEC_DEV_REC *p_dev_rec);
 static void     btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state);
 
@@ -3836,12 +3838,14 @@ void btm_simple_pair_complete (UINT8 *p)
             btm_sec_change_pairing_state (BTM_PAIR_STATE_WAIT_DISCONNECT);
 
             /* Change the timer to 1 second */
-            btu_start_timer (&btm_cb.pairing_te, BTU_TTYPE_USER_FUNC, BT_1SEC_TIMEOUT);
+            alarm_set_on_queue(btm_cb.pairing_timer, BT_1SEC_TIMEOUT_MS,
+                               btm_sec_pairing_timeout, NULL,
+                               btu_general_alarm_queue);
         }
         else if (memcmp (btm_cb.pairing_bda, evt_data.bd_addr, BD_ADDR_LEN) == 0)
         {
             /* stop the timer */
-            btu_stop_timer(&btm_cb.pairing_te);
+            alarm_cancel(btm_cb.pairing_timer);
 
             if (p_dev_rec->sec_state != BTM_SEC_STATE_AUTHENTICATING)
             {
@@ -3981,8 +3985,9 @@ static void btm_sec_auth_collision (UINT16 handle)
                 p_dev_rec->sec_state = 0;
 
             btm_cb.p_collided_dev_rec = p_dev_rec;
-            btm_cb.sec_collision_te.param = UINT_TO_PTR(btm_sec_collision_timeout);
-            btu_start_timer (&btm_cb.sec_collision_te, BTU_TTYPE_USER_FUNC, BT_1SEC_TIMEOUT);
+            alarm_set_on_queue(btm_cb.sec_collision_timer, BT_1SEC_TIMEOUT_MS,
+                               btm_sec_collision_timeout, NULL,
+                               btu_general_alarm_queue);
         }
     }
 }
@@ -4370,18 +4375,17 @@ void btm_sec_encrypt_change (UINT16 handle, UINT8 status, UINT8 encr_enable)
 ** Returns          Pointer to the TLE struct
 **
 *******************************************************************************/
-static void btm_sec_connect_after_reject_timeout(timer_entry_t *p_te)
+static void btm_sec_connect_after_reject_timeout(UNUSED_ATTR void *data)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = btm_cb.p_collided_dev_rec;
-    UNUSED(p_te);
 
-    BTM_TRACE_EVENT ("btm_sec_connect_after_reject_timeout()");
-    btm_cb.sec_collision_te.param = 0;
+    BTM_TRACE_EVENT("%s", __func__);
     btm_cb.p_collided_dev_rec = 0;
 
     if (btm_sec_dd_create_conn(p_dev_rec) != BTM_CMD_STARTED)
     {
-        BTM_TRACE_WARNING ("Security Manager: btm_sec_connect_after_reject_timeout: failed to start connection");
+        BTM_TRACE_WARNING("Security Manager: %s: failed to start connection",
+                          __func__);
 
         btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
 
@@ -4477,8 +4481,9 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                         /* Start timer with 0 to initiate connection with new LCB */
                         /* because L2CAP will delete current LCB with this event  */
                         btm_cb.p_collided_dev_rec = p_dev_rec;
-                        btm_cb.sec_collision_te.param = UINT_TO_PTR(btm_sec_connect_after_reject_timeout);
-                        btu_start_timer (&btm_cb.sec_collision_te, BTU_TTYPE_USER_FUNC, 0);
+                        alarm_set_on_queue(btm_cb.sec_collision_timer, 0,
+                                           btm_sec_connect_after_reject_timeout,
+                                           NULL, btu_general_alarm_queue);
                     }
                     else
                     {
@@ -4535,8 +4540,9 @@ void btm_sec_connected (UINT8 *bda, UINT16 handle, UINT8 status, UINT8 enc_mode)
                 /* Start timer with 0 to initiate connection with new LCB */
                 /* because L2CAP will delete current LCB with this event  */
                 btm_cb.p_collided_dev_rec = p_dev_rec;
-                btm_cb.sec_collision_te.param = UINT_TO_PTR(btm_sec_connect_after_reject_timeout);
-                btu_start_timer(&btm_cb.sec_collision_te, BTU_TTYPE_USER_FUNC, 0);
+                alarm_set_on_queue(btm_cb.sec_collision_timer, 0,
+                                   btm_sec_connect_after_reject_timeout,
+                                   NULL, btu_general_alarm_queue);
             }
 
             return;
@@ -5040,7 +5046,7 @@ void btm_sec_link_key_request (UINT8 *p_bda)
 ** Returns          Pointer to the TLE struct
 **
 *******************************************************************************/
-static void btm_sec_pairing_timeout (timer_entry_t *p_te)
+static void btm_sec_pairing_timeout(UNUSED_ATTR void *data)
 {
     tBTM_CB *p_cb = &btm_cb;
     tBTM_SEC_DEV_REC *p_dev_rec;
@@ -5050,15 +5056,13 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
     tBTM_AUTH_REQ   auth_req = BTM_AUTH_AP_YES;
 #endif
     UINT8   name[2];
-    UNUSED(p_te);
 
-    p_cb->pairing_te.param = 0;
 /* Coverity: FALSE-POSITIVE error from Coverity tool. Please do NOT remove following comment. */
 /* coverity[UNUSED_VALUE] pointer p_dev_rec is actually used several times... This is a Coverity false-positive, i.e. a fake issue.
 */
     p_dev_rec = btm_find_dev (p_cb->pairing_bda);
 
-    BTM_TRACE_EVENT ("btm_sec_pairing_timeout()  State: %s   Flags: %u",
+    BTM_TRACE_EVENT ("%s  State: %s   Flags: %u", __func__,
                       btm_pair_state_descr(p_cb->pairing_state), p_cb->pairing_flags);
 
     switch (p_cb->pairing_state)
@@ -5119,9 +5123,10 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
              * now it's time to tear down the ACL link*/
             if (p_dev_rec == NULL)
             {
-                BTM_TRACE_ERROR ("btm_sec_pairing_timeout() BTM_PAIR_STATE_WAIT_DISCONNECT unknown BDA: %08x%04x",
-                                  (p_cb->pairing_bda[0]<<24) + (p_cb->pairing_bda[1]<<16) + (p_cb->pairing_bda[2]<<8) + p_cb->pairing_bda[3],
-                                  (p_cb->pairing_bda[4] << 8) + p_cb->pairing_bda[5]);
+                BTM_TRACE_ERROR("%s BTM_PAIR_STATE_WAIT_DISCONNECT unknown BDA: %08x%04x",
+                                __func__,
+                                (p_cb->pairing_bda[0]<<24) + (p_cb->pairing_bda[1]<<16) + (p_cb->pairing_bda[2]<<8) + p_cb->pairing_bda[3],
+                                (p_cb->pairing_bda[4] << 8) + p_cb->pairing_bda[5]);
                 break;
             }
             btm_sec_send_hci_disconnect (p_dev_rec, HCI_ERR_AUTH_FAILURE, p_dev_rec->hci_handle);
@@ -5149,7 +5154,8 @@ static void btm_sec_pairing_timeout (timer_entry_t *p_te)
             break;
 
         default:
-            BTM_TRACE_WARNING ("btm_sec_pairing_timeout() not processed state: %s", btm_pair_state_descr(btm_cb.pairing_state));
+            BTM_TRACE_WARNING("%s not processed state: %s", __func__,
+                              btm_pair_state_descr(btm_cb.pairing_state));
             btm_sec_change_pairing_state (BTM_PAIR_STATE_IDLE);
             break;
     }
@@ -5792,12 +5798,9 @@ static tBTM_SEC_SERV_REC *btm_sec_find_mx_serv (UINT8 is_originator, UINT16 psm,
 ** Returns          Pointer to the TLE struct
 **
 *******************************************************************************/
-static void btm_sec_collision_timeout (timer_entry_t *p_te)
+static void btm_sec_collision_timeout(UNUSED_ATTR void *data)
 {
-    UNUSED(p_te);
-
     BTM_TRACE_EVENT ("%s()", __func__);
-    btm_cb.sec_collision_te.param = 0;
 
     tBTM_STATUS status = btm_sec_execute_procedure (btm_cb.p_collided_dev_rec);
 
@@ -5915,7 +5918,7 @@ static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
 
     if (new_state == BTM_PAIR_STATE_IDLE)
     {
-        btu_stop_timer(&btm_cb.pairing_te);
+        alarm_cancel(btm_cb.pairing_timer);
 
         btm_cb.pairing_flags = 0;
         btm_cb.pin_code_len  = 0;
@@ -5931,13 +5934,14 @@ static void btm_sec_change_pairing_state (tBTM_PAIRING_STATE new_state)
     }
     else
     {
-        /* If transitionng out of idle, mark the lcb as bonding */
+        /* If transitioning out of idle, mark the lcb as bonding */
         if (old_state == BTM_PAIR_STATE_IDLE)
             l2cu_update_lcb_4_bonding (btm_cb.pairing_bda, TRUE);
 
-        btm_cb.pairing_te.param = (timer_param_t)btm_sec_pairing_timeout;
-
-        btu_start_timer(&btm_cb.pairing_te, BTU_TTYPE_USER_FUNC, BTM_SEC_TIMEOUT_VALUE);
+        alarm_set_on_queue(btm_cb.pairing_timer,
+                           BTM_SEC_TIMEOUT_VALUE * 1000,
+                           btm_sec_pairing_timeout, NULL,
+                           btu_general_alarm_queue);
     }
 }
 

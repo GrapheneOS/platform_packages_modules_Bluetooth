@@ -77,7 +77,8 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
         {
             fixed_queue_free(p_port->tx.queue, NULL);
             fixed_queue_free(p_port->rx.queue, NULL);
-            memset (p_port, 0, sizeof (tPORT));
+            alarm_free(p_port->rfc.port_timer);
+            memset(p_port, 0, sizeof (tPORT));
 
             p_port->in_use = TRUE;
             p_port->inx    = yy + 1;
@@ -113,6 +114,7 @@ void port_set_defaults (tPORT *p_port)
 {
     fixed_queue_free(p_port->tx.queue, NULL);
     fixed_queue_free(p_port->rx.queue, NULL);
+    alarm_free(p_port->rfc.port_timer);
 
     p_port->ev_mask        = 0;
     p_port->p_callback     = NULL;
@@ -136,6 +138,7 @@ void port_set_defaults (tPORT *p_port)
     memset (&p_port->tx, 0, sizeof (p_port->tx));
     p_port->rx.queue = fixed_queue_new(SIZE_MAX);
     p_port->tx.queue = fixed_queue_new(SIZE_MAX);
+    p_port->rfc.port_timer = alarm_new("rfcomm_port.port_timer");
 }
 
 /*******************************************************************************
@@ -234,6 +237,8 @@ void port_release_port (tPORT *p_port)
 
     mutex_global_unlock();
 
+    alarm_cancel(p_port->rfc.port_timer);
+
     p_port->state = PORT_STATE_CLOSED;
 
     if (p_port->rfc.state == RFC_STATE_CLOSED)
@@ -276,9 +281,11 @@ void port_release_port (tPORT *p_port)
             RFCOMM_TRACE_DEBUG ("port_release_port:Clean-up handle:%d", p_port->inx);
             fixed_queue_free(p_port->tx.queue, NULL);
             fixed_queue_free(p_port->rx.queue, NULL);
+            alarm_free(p_port->rfc.port_timer);
             memset (p_port, 0, sizeof (tPORT));
             p_port->rx.queue = fixed_queue_new(SIZE_MAX);
             p_port->tx.queue = fixed_queue_new(SIZE_MAX);
+            p_port->rfc.port_timer = alarm_new("rfcomm_port.port_timer");
         }
     }
 }

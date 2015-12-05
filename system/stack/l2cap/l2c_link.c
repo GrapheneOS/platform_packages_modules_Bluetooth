@@ -41,6 +41,9 @@
 #include "btm_api.h"
 #include "btm_int.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 static BOOLEAN l2c_link_send_to_lower (tL2C_LCB *p_lcb, BT_HDR *p_buf);
 
 /*******************************************************************************
@@ -106,7 +109,9 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
         p_lcb->link_state = LST_CONNECTING;
 
         /* Start a timer waiting for connect complete */
-        btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_CONNECT_TOUT);
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer, L2CAP_LINK_CONNECT_TIMEOUT_MS,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
         return (TRUE);
     }
 
@@ -218,7 +223,7 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
         /* Update the timeouts in the hold queue */
         l2c_process_held_packets(FALSE);
 
-        btu_stop_timer (&p_lcb->timer_entry);
+        alarm_cancel(p_lcb->l2c_lcb_timer);
 
         /* For all channels, send the event through their FSMs */
         for (p_ccb = p_lcb->ccb_queue.p_first_ccb; p_ccb; p_ccb = p_ccb->p_next_ccb)
@@ -229,11 +234,17 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
         if (p_lcb->p_echo_rsp_cb)
         {
             l2cu_send_peer_echo_req (p_lcb, NULL, 0);
-            btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_ECHO_RSP_TOUT);
+            alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                               L2CAP_ECHO_RSP_TIMEOUT_MS,
+                               l2c_lcb_timer_timeout, p_lcb,
+                               btu_general_alarm_queue);
         }
         else if (!p_lcb->ccb_queue.p_first_ccb)
         {
-            btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_STARTUP_TOUT);
+            period_ms_t timeout_ms = L2CAP_LINK_STARTUP_TOUT * 1000;
+            alarm_set_on_queue(p_lcb->l2c_lcb_timer, timeout_ms,
+                               l2c_lcb_timer_timeout, p_lcb,
+                               btu_general_alarm_queue);
         }
     }
     /* Max number of acl connections.                          */
@@ -328,13 +339,15 @@ void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data
             switch(status)
             {
             case BTM_SUCCESS:
-                L2CAP_TRACE_DEBUG ("ccb timer ticks: %u", p_ccb->timer_entry.ticks);
                 event = L2CEVT_SEC_COMP;
                 break;
 
             case BTM_DELAY_CHECK:
                 /* start a timer - encryption change not received before L2CAP connect req */
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_DELAY_CHECK_SM4);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_DELAY_CHECK_SM4_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
                 return;
 
             default:
@@ -533,7 +546,6 @@ BOOLEAN l2c_link_hci_qos_violation (UINT16 handle)
 void l2c_link_timeout (tL2C_LCB *p_lcb)
 {
     tL2C_CCB   *p_ccb;
-    UINT16      timeout;
     tBTM_STATUS rc;
 
      L2CAP_TRACE_EVENT ("L2CAP - l2c_link_timeout() link state %d first CCB %p is_bonding:%d",
@@ -598,46 +610,50 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
         /* If no channels in use, drop the link. */
         if (!p_lcb->ccb_queue.p_first_ccb)
         {
+            period_ms_t timeout_ms;
+            bool start_timeout = true;
+
             rc = btm_sec_disconnect (p_lcb->handle, HCI_ERR_PEER_USER);
 
             if (rc == BTM_CMD_STORED)
             {
                 /* Security Manager will take care of disconnecting, state will be updated at that time */
-                timeout = 0xFFFF;
+                start_timeout = false;
             }
             else if (rc == BTM_CMD_STARTED)
             {
                 p_lcb->link_state = LST_DISCONNECTING;
-                timeout = L2CAP_LINK_DISCONNECT_TOUT;
+                timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
             }
             else if (rc == BTM_SUCCESS)
             {
                 l2cu_process_fixed_disc_cback(p_lcb);
                 /* BTM SEC will make sure that link is release (probably after pairing is done) */
                 p_lcb->link_state = LST_DISCONNECTING;
-                timeout = 0xFFFF;
+                start_timeout = false;
             }
             else if (rc == BTM_BUSY)
             {
                 /* BTM is still executing security process. Let lcb stay as connected */
-                timeout = 0xFFFF;
+                start_timeout = false;
             }
             else if ((p_lcb->is_bonding)
                   && (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER)))
             {
                 l2cu_process_fixed_disc_cback(p_lcb);
                 p_lcb->link_state = LST_DISCONNECTING;
-                timeout = L2CAP_LINK_DISCONNECT_TOUT;
+                timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
             }
             else
             {
                 /* probably no buffer to send disconnect */
-                timeout = BT_1SEC_TIMEOUT;
+                timeout_ms = BT_1SEC_TIMEOUT_MS;
             }
 
-            if (timeout != 0xFFFF)
-            {
-                btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, timeout);
+            if (start_timeout) {
+                alarm_set_on_queue(p_lcb->l2c_lcb_timer, timeout_ms,
+                                   l2c_lcb_timer_timeout, p_lcb,
+                                   btu_general_alarm_queue);
             }
         }
         else
@@ -650,15 +666,16 @@ void l2c_link_timeout (tL2C_LCB *p_lcb)
 
 /*******************************************************************************
 **
-** Function         l2c_info_timeout
+** Function         l2c_info_resp_timer_timeout
 **
 ** Description      This function is called when an info request times out
 **
 ** Returns          void
 **
 *******************************************************************************/
-void l2c_info_timeout (tL2C_LCB *p_lcb)
+void l2c_info_resp_timer_timeout(void *data)
 {
+    tL2C_LCB *p_lcb = (tL2C_LCB *)data;
     tL2C_CCB   *p_ccb;
     tL2C_CONN_INFO  ci;
 
@@ -670,7 +687,10 @@ void l2c_info_timeout (tL2C_LCB *p_lcb)
         {
             if ( (p_ccb->chnl_state == CST_ORIG_W4_SEC_COMP) || (p_ccb->chnl_state == CST_TERM_W4_SEC_COMP) )
             {
-                btu_start_timer (&p_lcb->info_timer_entry, BTU_TTYPE_L2CAP_INFO, L2CAP_WAIT_INFO_RSP_TOUT);
+                alarm_set_on_queue(p_lcb->info_resp_timer,
+                                   L2CAP_WAIT_INFO_RSP_TIMEOUT_MS,
+                                   l2c_info_resp_timer_timeout, p_lcb,
+                                   btu_general_alarm_queue);
                 return;
             }
         }
@@ -814,11 +834,14 @@ void l2c_link_adjust_allocation (void)
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
               && (!list_is_empty(p_lcb->link_xmit_data_q))
-              && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
-                btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
+                 && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) ) {
+                alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                                   L2CAP_LINK_FLOW_CONTROL_TIMEOUT_MS,
+                                   l2c_lcb_timer_timeout, p_lcb,
+                                   btu_general_alarm_queue);
+            }
         }
     }
-
 }
 
 /*******************************************************************************
@@ -959,7 +982,10 @@ void l2c_pin_code_request (BD_ADDR bd_addr)
 
     if ( (p_lcb) && (!p_lcb->ccb_queue.p_first_ccb) )
     {
-        btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_CONNECT_TOUT_EXT);
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                           L2CAP_LINK_CONNECT_EXT_TIMEOUT_MS,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
     }
 }
 
@@ -1184,10 +1210,13 @@ void l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf)
         /* There is a special case where we have readjusted the link quotas and  */
         /* this link may have sent anything but some other link sent packets so  */
         /* so we may need a timer to kick off this link's transmissions.         */
-        if ( (!list_is_empty(p_lcb->link_xmit_data_q)) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
-            btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
+        if ( (!list_is_empty(p_lcb->link_xmit_data_q)) && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) ) {
+            alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                               L2CAP_LINK_FLOW_CONTROL_TIMEOUT_MS,
+                               l2c_lcb_timer_timeout, p_lcb,
+                               btu_general_alarm_queue);
+        }
     }
-
 }
 
 /*******************************************************************************

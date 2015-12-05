@@ -61,7 +61,7 @@
 #define BTM_BLE_GAP_DISC_SCAN_INT      18         /* Interval(scan_int) = 11.25 ms= 0x0010 * 0.625 ms */
 #define BTM_BLE_GAP_DISC_SCAN_WIN      18         /* scan_window = 11.25 ms= 0x0010 * 0.625 ms */
 #define BTM_BLE_GAP_ADV_INT            512        /* Tgap(gen_disc) = 1.28 s= 512 * 0.625 ms */
-#define BTM_BLE_GAP_LIM_TOUT           180        /* Tgap(lim_timeout) = 180s max */
+#define BTM_BLE_GAP_LIM_TIMEOUT_MS     (180 * 1000) /* Tgap(lim_timeout) = 180s max */
 #define BTM_BLE_LOW_LATENCY_SCAN_INT   8000       /* Interval(scan_int) = 5s= 8000 * 0.625 ms */
 #define BTM_BLE_LOW_LATENCY_SCAN_WIN   8000       /* scan_window = 5s= 8000 * 0.625 ms */
 
@@ -72,7 +72,7 @@
 #define BTM_BLE_GAP_ADV_DIR_MAX_INT        800         /* Tgap(dir_conn_adv_int_max) = 500 ms = 800 * 0.625 ms */
 #define BTM_BLE_GAP_ADV_DIR_MIN_INT        400         /* Tgap(dir_conn_adv_int_min) = 250 ms = 400 * 0.625 ms */
 
-#define BTM_BLE_GAP_FAST_ADV_TOUT          30
+#define BTM_BLE_GAP_FAST_ADV_TIMEOUT_MS    (30 * 1000)
 
 #define BTM_BLE_SEC_REQ_ACT_NONE           0
 #define BTM_BLE_SEC_REQ_ACT_ENCRYPT        1 /* encrypt the link using current key or key refresh */
@@ -124,7 +124,8 @@ typedef struct
 
 #define BTM_BLE_ISVALID_PARAM(x, min, max)  (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
 
-#define BTM_BLE_PRIVATE_ADDR_INT    900  /* 15 minutes minimum for random address refreshing */
+/* 15 minutes minimum for random address refreshing */
+#define BTM_BLE_PRIVATE_ADDR_INT_MS     (15 * 60 * 1000)
 
 typedef struct
 {
@@ -145,7 +146,7 @@ typedef struct
     tBLE_BD_ADDR direct_bda;
     tBTM_BLE_EVT directed_conn;
     BOOLEAN fast_adv_on;
-    timer_entry_t fast_adv_timer;
+    alarm_t *fast_adv_timer;
 
     UINT8 adv_len;
     UINT8 adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
@@ -156,7 +157,7 @@ typedef struct
     tBTM_BLE_LOCAL_ADV_DATA adv_data;
     tBTM_BLE_ADV_CHNL_MAP adv_chnl_map;
 
-    timer_entry_t inq_timer_ent;
+    alarm_t *inquiry_timer;
     BOOLEAN scan_rsp;
     UINT8 state; /* Current state that the inquiry process is in */
     INT8 tx_power;
@@ -179,7 +180,7 @@ typedef struct
     tBTM_BLE_RESOLVE_CBACK      *p_resolve_cback;
     tBTM_BLE_ADDR_CBACK         *p_generate_cback;
     void                        *p;
-    timer_entry_t               raddr_timer_ent;
+    alarm_t                     *refresh_raddr_timer;
 } tBTM_LE_RANDOM_CB;
 
 #define BTM_BLE_MAX_BG_CONN_DEV_NUM    10
@@ -304,7 +305,7 @@ typedef struct
     /* observer callback and timer */
     tBTM_INQ_RESULTS_CB *p_obs_results_cb;
     tBTM_CMPL_CB *p_obs_cmpl_cb;
-    timer_entry_t obs_timer_ent;
+    alarm_t *observer_timer;
 
     /* background connection procedure cb value */
     tBTM_BLE_CONN_TYPE bg_conn_type;
@@ -345,7 +346,8 @@ typedef struct
 extern "C" {
 #endif
 
-extern void btm_ble_timeout(timer_entry_t *p_te);
+extern void btm_ble_adv_raddr_timer_timeout(void *data);
+extern void btm_ble_refresh_raddr_timer_timeout(void *data);
 extern void btm_ble_process_adv_pkt (UINT8 *p);
 extern void btm_ble_proc_scan_rsp_rpt (UINT8 *p);
 extern tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, tBTM_CMPL_CB *p_cb);

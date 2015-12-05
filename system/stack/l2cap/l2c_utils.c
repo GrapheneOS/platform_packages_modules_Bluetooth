@@ -41,6 +41,8 @@
 #include "bt_utils.h"
 #include "osi/include/allocator.h"
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **
 ** Function         l2cu_allocate_lcb
@@ -59,6 +61,8 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
     {
         if (!p_lcb->in_use)
         {
+            alarm_free(p_lcb->l2c_lcb_timer);
+            alarm_free(p_lcb->info_resp_timer);
             memset (p_lcb, 0, sizeof (tL2C_LCB));
 
             memcpy (p_lcb->remote_bd_addr, p_bd_addr, BD_ADDR_LEN);
@@ -67,8 +71,8 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
             p_lcb->link_state      = LST_DISCONNECTED;
             p_lcb->handle          = HCI_INVALID_HANDLE;
             p_lcb->link_flush_tout = 0xFFFF;
-            p_lcb->timer_entry.param = (timer_param_t)p_lcb;
-            p_lcb->info_timer_entry.param = (timer_param_t)p_lcb;
+            p_lcb->l2c_lcb_timer   = alarm_new("l2c_lcb.l2c_lcb_timer");
+            p_lcb->info_resp_timer = alarm_new("l2c_lcb.info_resp_timer");
             p_lcb->idle_timeout    = l2cb.idle_timeout;
             p_lcb->id              = 1;                     /* spec does not allow '0' */
             p_lcb->is_bonding      = is_bonding;
@@ -127,8 +131,8 @@ void l2cu_update_lcb_4_bonding (BD_ADDR p_bd_addr, BOOLEAN is_bonding)
 **
 ** Function         l2cu_release_lcb
 **
-** Description      Release an LCB. All timers will be stopped, channels
-**                  dropped, buffers returned etc.
+** Description      Release an LCB. All timers will be stopped and freed,
+**                  channels dropped, buffers returned etc.
 **
 ** Returns          void
 **
@@ -140,9 +144,11 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     p_lcb->in_use     = FALSE;
     p_lcb->is_bonding = FALSE;
 
-    /* Stop timers */
-    btu_stop_timer (&p_lcb->timer_entry);
-    btu_stop_timer (&p_lcb->info_timer_entry);
+    /* Stop and free timers */
+    alarm_free(p_lcb->l2c_lcb_timer);
+    p_lcb->l2c_lcb_timer = NULL;
+    alarm_free(p_lcb->info_resp_timer);
+    p_lcb->info_resp_timer = NULL;
 
     /* Release any unfinished L2CAP packet on this link */
     if (p_lcb->p_hcit_rcv_acl)
@@ -1110,7 +1116,9 @@ void l2cu_send_peer_info_req (tL2C_LCB *p_lcb, UINT16 info_type)
     UINT16_TO_STREAM (p, info_type);
 
     p_lcb->w4_info_rsp = TRUE;
-    btu_start_timer (&p_lcb->info_timer_entry, BTU_TTYPE_L2CAP_INFO, L2CAP_WAIT_INFO_RSP_TOUT);
+    alarm_set_on_queue(p_lcb->info_resp_timer, L2CAP_WAIT_INFO_RSP_TIMEOUT_MS,
+                       l2c_info_resp_timer_timeout, p_lcb,
+                       btu_general_alarm_queue);
 
     l2c_link_check_send_pkts (p_lcb, NULL, p_buf);
 }
@@ -1554,23 +1562,17 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     memset (&p_ccb->ertm_info, 0, sizeof(tL2CAP_ERTM_INFO));
     p_ccb->peer_cfg_already_rejected = FALSE;
     p_ccb->fcr_cfg_tries         = L2CAP_MAX_FCR_CFG_TRIES;
-    p_ccb->fcrb.ack_timer.param  = (timer_param_t)p_ccb;
 
-    /* if timer is running, stop it */
-    if (p_ccb->fcrb.ack_timer.in_use)
-        btu_stop_quick_timer (&p_ccb->fcrb.ack_timer);
-
-    p_ccb->fcrb.mon_retrans_timer.param  = (timer_param_t)p_ccb;
+    alarm_free(p_ccb->fcrb.ack_timer);
+    p_ccb->fcrb.ack_timer = alarm_new("l2c_fcrb.ack_timer");
 
 // btla-specific ++
    /*  CSP408639 Fix: When L2CAP send amp move channel request or receive
      * L2CEVT_AMP_MOVE_REQ do following sequence. Send channel move
      * request -> Stop retrans/monitor timer -> Change channel state to CST_AMP_MOVING. */
-   if (p_ccb->fcrb.mon_retrans_timer.in_use)
-         btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
+    alarm_free(p_ccb->fcrb.mon_retrans_timer);
+    p_ccb->fcrb.mon_retrans_timer = alarm_new("l2c_fcrb.mon_retrans_timer");
 // btla-specific --
-
-    l2c_fcr_stop_timer (p_ccb);
 
     p_ccb->ertm_info.preferred_mode  = L2CAP_FCR_BASIC_MODE;        /* Default mode for channel is basic mode */
     p_ccb->ertm_info.allowed_modes   = L2CAP_FCR_CHAN_OPT_BASIC;    /* Default mode for channel is basic mode */
@@ -1606,8 +1608,8 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     p_ccb->is_flushable = FALSE;
 #endif
 
-    p_ccb->timer_entry.param = (timer_param_t)p_ccb;
-    p_ccb->timer_entry.in_use = 0;
+    alarm_free(p_ccb->l2c_ccb_timer);
+    p_ccb->l2c_ccb_timer = alarm_new("l2c.l2c_ccb_timer");
 
     l2c_link_adjust_chnl_allocation ();
 
@@ -1629,7 +1631,6 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
 *******************************************************************************/
 BOOLEAN l2cu_start_post_bond_timer (UINT16 handle)
 {
-    UINT16    timeout;
     tL2C_LCB *p_lcb = l2cu_find_lcb_by_handle(handle);
 
     if (!p_lcb)
@@ -1642,26 +1643,22 @@ BOOLEAN l2cu_start_post_bond_timer (UINT16 handle)
         return (FALSE);
 
     /* If no channels on the connection, start idle timeout */
-    if ( (p_lcb->link_state == LST_CONNECTED) || (p_lcb->link_state == LST_CONNECTING) || (p_lcb->link_state == LST_DISCONNECTING) )
-    {
-        if (p_lcb->idle_timeout == 0)
-        {
-            if (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER))
-            {
+    if ((p_lcb->link_state == LST_CONNECTED) ||
+        (p_lcb->link_state == LST_CONNECTING) ||
+        (p_lcb->link_state == LST_DISCONNECTING)) {
+        period_ms_t timeout_ms = L2CAP_BONDING_TIMEOUT * 1000;
+
+        if (p_lcb->idle_timeout == 0) {
+            if (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER)) {
                 p_lcb->link_state = LST_DISCONNECTING;
-                timeout = L2CAP_LINK_DISCONNECT_TOUT;
+                timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
+            } else {
+                timeout_ms = BT_1SEC_TIMEOUT_MS;
             }
-            else
-                timeout = BT_1SEC_TIMEOUT;
         }
-        else
-        {
-            timeout = L2CAP_BONDING_TIMEOUT;
-        }
-
-        if (timeout != 0xFFFF)
-            btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, timeout);
-
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer, timeout_ms,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
         return (TRUE);
     }
 
@@ -1704,8 +1701,9 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
 
     btm_sec_clr_temp_auth_service (p_lcb->remote_bd_addr);
 
-    /* Stop the timer */
-    btu_stop_timer (&p_ccb->timer_entry);
+    /* Free the timer */
+    alarm_free(p_ccb->l2c_ccb_timer);
+    p_ccb->l2c_ccb_timer = NULL;
 
     while (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
         osi_freebuf(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
@@ -2291,7 +2289,10 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 
                 if (BTM_SwitchRole (p_lcb_cur->remote_bd_addr, HCI_ROLE_MASTER, NULL) == BTM_CMD_STARTED)
                 {
-                    btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_ROLE_SWITCH_TOUT);
+                    alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                                       L2CAP_LINK_ROLE_SWITCH_TIMEOUT_MS,
+                                       l2c_lcb_timer_timeout, p_lcb,
+                                       btu_general_alarm_queue);
                     return (TRUE);
                 }
             }
@@ -2400,8 +2401,10 @@ BOOLEAN l2cu_create_conn_after_switch (tL2C_LCB *p_lcb)
 
     btm_acl_update_busy_level (BTM_BLI_PAGE_EVT);
 
-    btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK,
-                     L2CAP_LINK_CONNECT_TOUT);
+    alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                       L2CAP_LINK_CONNECT_TIMEOUT_MS,
+                       l2c_lcb_timer_timeout, p_lcb,
+                       btu_general_alarm_queue);
 
     return (TRUE);
 }
@@ -2699,7 +2702,7 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
     if ((p_ccb = l2cu_allocate_ccb (NULL, 0)) == NULL)
         return (FALSE);
 
-    btu_stop_timer(&p_lcb->timer_entry);
+    alarm_cancel(p_lcb->l2c_lcb_timer);
 
     /* Set CID for the connection */
     p_ccb->local_cid  = fixed_cid;
@@ -2711,9 +2714,6 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
     p_ccb->fcrb.waiting_for_ack_q = fixed_queue_new(SIZE_MAX);
 
     p_ccb->is_flushable = FALSE;
-
-    p_ccb->timer_entry.param  = (timer_param_t)p_ccb;
-
 
     if (p_fcr)
     {
@@ -2756,15 +2756,18 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
 void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
 {
     tBTM_STATUS     rc;
-    UINT16          timeout = p_lcb->idle_timeout;
+    period_ms_t     timeout_ms = p_lcb->idle_timeout * 1000;
+    bool            start_timeout = true;
 
 #if (L2CAP_NUM_FIXED_CHNLS > 0)
     int         xx;
 
     for (xx = 0; xx < L2CAP_NUM_FIXED_CHNLS; xx++)
     {
-        if ( (p_lcb->p_fixed_ccbs[xx] != NULL) && (p_lcb->p_fixed_ccbs[xx]->fixed_chnl_idle_tout > timeout) )
-            timeout = p_lcb->p_fixed_ccbs[xx]->fixed_chnl_idle_tout;
+        if ((p_lcb->p_fixed_ccbs[xx] != NULL) &&
+            (p_lcb->p_fixed_ccbs[xx]->fixed_chnl_idle_tout * 1000 > timeout_ms)) {
+            timeout_ms = p_lcb->p_fixed_ccbs[xx]->fixed_chnl_idle_tout * 1000;
+        }
     }
 #endif
 
@@ -2772,7 +2775,7 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
     if (p_lcb->is_bonding)
         return;
 
-    if (timeout == 0)
+    if (timeout_ms == 0)
     {
         L2CAP_TRACE_DEBUG ("l2cu_no_dynamic_ccbs() IDLE timer 0, disconnecting link");
 
@@ -2781,37 +2784,37 @@ void l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb)
         {
             l2cu_process_fixed_disc_cback(p_lcb);
             p_lcb->link_state = LST_DISCONNECTING;
-            timeout = L2CAP_LINK_DISCONNECT_TOUT;
+            timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
         }
         else if (rc == BTM_SUCCESS)
         {
             l2cu_process_fixed_disc_cback(p_lcb);
             /* BTM SEC will make sure that link is release (probably after pairing is done) */
             p_lcb->link_state = LST_DISCONNECTING;
-            timeout = 0xFFFF;
+            start_timeout = false;
         }
         else if ( (p_lcb->is_bonding)
             &&   (btsnd_hcic_disconnect (p_lcb->handle, HCI_ERR_PEER_USER)) )
         {
             l2cu_process_fixed_disc_cback(p_lcb);
             p_lcb->link_state = LST_DISCONNECTING;
-            timeout = L2CAP_LINK_DISCONNECT_TOUT;
+            timeout_ms = L2CAP_LINK_DISCONNECT_TIMEOUT_MS;
         }
         else
         {
             /* probably no buffer to send disconnect */
-            timeout = BT_1SEC_TIMEOUT;
+            timeout_ms = BT_1SEC_TIMEOUT_MS;
         }
     }
 
-    if (timeout != 0xFFFF)
-    {
-        L2CAP_TRACE_DEBUG ("l2cu_no_dynamic_ccbs() starting IDLE timeout: %d", timeout);
-        btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, timeout);
-    }
-    else
-    {
-        btu_stop_timer(&p_lcb->timer_entry);
+    if (start_timeout) {
+        L2CAP_TRACE_DEBUG("%s starting IDLE timeout: %d ms", __func__,
+                          timeout_ms);
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer, timeout_ms,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
+    } else {
+        alarm_cancel(p_lcb->l2c_lcb_timer);
     }
 }
 

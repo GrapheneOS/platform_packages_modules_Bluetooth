@@ -25,8 +25,6 @@
 #define COMPILE_ASSERT(x) char * DUMMY_PTR = !(x)
 #endif  // COMPILE_ASSERT
 
-typedef uint32_t timeout_t;
-
 // Macros for safe integer to pointer conversion. In the C language, data is
 // commonly cast to opaque pointer containers and back for generic parameter
 // passing in callbacks. These macros should be used sparingly in new code

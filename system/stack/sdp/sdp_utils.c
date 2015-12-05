@@ -120,10 +120,8 @@ tCONN_CB *sdpu_allocate_ccb (void)
     {
         if (p_ccb->con_state == SDP_STATE_IDLE)
         {
-            memset (p_ccb, 0, sizeof (tCONN_CB));
-
-            p_ccb->timer_entry.param = p_ccb;
-
+            memset(p_ccb, 0, sizeof(tCONN_CB));
+            p_ccb->sdp_conn_timer = alarm_new("sdp.sdp_conn_timer");
             return (p_ccb);
         }
     }
@@ -145,7 +143,8 @@ tCONN_CB *sdpu_allocate_ccb (void)
 void sdpu_release_ccb (tCONN_CB *p_ccb)
 {
     /* Ensure timer is stopped */
-    btu_stop_timer (&p_ccb->timer_entry);
+    alarm_free(p_ccb->sdp_conn_timer);
+    p_ccb->sdp_conn_timer = NULL;
 
     /* Drop any response pointer we may be holding */
     p_ccb->con_state = SDP_STATE_IDLE;

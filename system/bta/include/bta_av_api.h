@@ -245,8 +245,9 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_RECONFIG_EVT     14      /* reconfigure response */
 #define BTA_AV_SUSPEND_EVT      15      /* suspend response */
 #define BTA_AV_PENDING_EVT      16      /* incoming connection pending:
-                                         * signal channel is open and stream is not open
-                                         * after BTA_AV_SIG_TIME_VAL ms */
+                                         * signal channel is open and stream is
+                                         * not open after
+                                         * BTA_AV_SIGNALLING_TIMEOUT_MS */
 #define BTA_AV_META_MSG_EVT     17      /* metadata messages */
 #define BTA_AV_REJECT_EVT       18      /* incoming connection rejected */
 #define BTA_AV_RC_FEAT_EVT      19      /* remote control channel peer supported features update */

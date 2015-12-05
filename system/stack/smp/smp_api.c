@@ -49,6 +49,7 @@
 void SMP_Init(void)
 {
     memset(&smp_cb, 0, sizeof(tSMP_CB));
+    smp_cb.smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
 
 #if defined(SMP_INITIAL_TRACE_LEVEL)
     smp_cb.trace_level = SMP_INITIAL_TRACE_LEVEL;

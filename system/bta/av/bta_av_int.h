@@ -94,7 +94,7 @@ enum
     BTA_AV_API_DISCONNECT_EVT,
     BTA_AV_CI_SRC_DATA_READY_EVT,
     BTA_AV_SIG_CHG_EVT,
-    BTA_AV_SIG_TIMER_EVT,
+    BTA_AV_SIGNALLING_TIMER_EVT,
     BTA_AV_SDP_AVRC_DISC_EVT,
     BTA_AV_AVRC_CLOSE_EVT,
     BTA_AV_CONN_CHG_EVT,
@@ -486,7 +486,7 @@ typedef struct
     tBTA_AV_Q_INFO      q_info;
     tAVDT_SEP_INFO      sep_info[BTA_AV_NUM_SEPS];      /* stream discovery results */
     tAVDT_CFG           cfg;            /* local SEP configuration */
-    timer_entry_t       timer;          /* delay timer for AVRC CT */
+    alarm_t             *avrc_ct_timer; /* delay timer for AVRC CT */
     BD_ADDR             peer_addr;      /* peer BD address */
     UINT16              l2c_cid;        /* L2CAP channel ID */
     UINT16              stream_mtu;     /* MTU of stream */
@@ -574,8 +574,8 @@ typedef struct
     tBTA_AV_CBACK       *p_cback;       /* application callback function */
     tBTA_AV_RCB         rcb[BTA_AV_NUM_RCB];  /* RCB control block */
     tBTA_AV_LCB         lcb[BTA_AV_NUM_LINKS+1];  /* link control block */
-    timer_entry_t       sig_tmr;        /* link timer */
-    timer_entry_t       acp_sig_tmr;    /* timer to monitor signalling when accepting */
+    alarm_t             *link_signalling_timer;
+    alarm_t             *accept_signalling_timer; /* timer to monitor signalling when accepting */
     UINT32              sdp_a2d_handle; /* SDP record handle for audio src */
 #if (BTA_AV_SINK_INCLUDED == TRUE)
     UINT32              sdp_a2d_snk_handle; /* SDP record handle for audio snk */
@@ -666,7 +666,7 @@ extern BOOLEAN bta_av_is_rcfg_sst(tBTA_AV_SCB *p_scb);
 /* nsm action functions */
 extern void bta_av_api_disconnect(tBTA_AV_DATA *p_data);
 extern void bta_av_sig_chg(tBTA_AV_DATA *p_data);
-extern void bta_av_sig_timer(tBTA_AV_DATA *p_data);
+extern void bta_av_signalling_timer(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_disc_done(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_closed(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_disc(UINT8 disc);
