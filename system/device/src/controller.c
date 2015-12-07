@@ -151,6 +151,10 @@ static future_t *start_up(void) {
     );
 
     packet_parser->parse_generic_command_complete(response);
+
+    // If we modified the BT_HOST_SUPPORT, we will need ext. feat. page 1
+    if (last_features_classic_page_index < 1)
+      last_features_classic_page_index = 1;
   }
 #endif
 
