@@ -777,6 +777,21 @@ static void init_layer_interface() {
   }
 }
 
+void hci_layer_cleanup_interface() {
+  if (interface_created) {
+    interface.send_low_power_command = NULL;
+    interface.do_postload = NULL;
+
+    data_dispatcher_free(interface.event_dispatcher);
+
+    interface.set_data_queue = NULL;
+    interface.transmit_command = NULL;
+    interface.transmit_command_futured = NULL;
+    interface.transmit_downward = NULL;
+    interface_created = false;
+  }
+}
+
 static const hci_hal_callbacks_t hal_callbacks = {
   hal_says_data_ready
 };
