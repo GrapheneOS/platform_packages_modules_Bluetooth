@@ -63,6 +63,15 @@ const char *BtStateText(const bt_state_t state) {
   }
 }
 
+const char *BtDiscoveryStateText(const bt_discovery_state_t state) {
+  switch (state) {
+    CASE_RETURN_TEXT(BT_DISCOVERY_STOPPED);
+    CASE_RETURN_TEXT(BT_DISCOVERY_STARTED);
+    default:
+      return "unknown discovery state code";
+  }
+}
+
 const char *BtScanModeText(const bt_scan_mode_t mode) {
   switch (mode) {
     CASE_RETURN_TEXT(BT_SCAN_MODE_NONE);
