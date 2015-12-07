@@ -110,3 +110,5 @@ const hci_t *hci_layer_get_test_interface(
     const packet_fragmenter_t *packet_fragmenter_interface,
     const vendor_t *vendor_interface,
     const low_power_manager_t *low_power_manager_interface);
+
+void hci_layer_cleanup_interface();
