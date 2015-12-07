@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include "bluetooth_test.h"
+#include "adapter/bluetooth_test.h"
 
 #include <mutex>
 

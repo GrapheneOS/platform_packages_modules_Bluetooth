@@ -22,6 +22,7 @@
 #include <base/observer_list.h>
 
 #include "service/hal/bluetooth_interface.h"
+#include "service/logging_helpers.h"
 
 using std::lock_guard;
 using std::mutex;
@@ -68,6 +69,26 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
 
   FOR_EACH_CLIENT_OBSERVER(
       RegisterClientCallback(g_interface, status, client_if, *app_uuid));
+}
+
+void ScanResultCallback(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+  CHECK(adv_data);
+
+  VLOG(2) << __func__ << " - BD_ADDR: " << BtAddrString(bda)
+          << " RSSI: " << rssi;
+  FOR_EACH_CLIENT_OBSERVER(
+    ScanResultCallback(g_interface, *bda, rssi, adv_data));
+}
+
+void ListenCallback(int status, int client_if) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(ListenCallback(g_interface, status, client_if));
 }
 
 void MultiAdvEnableCallback(int client_if, int status) {
@@ -193,6 +214,16 @@ void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
       g_interface, status, server_if, srvc_handle));
 }
 
+void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
+          << " handle: " << srvc_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_SERVER_OBSERVER(ServiceDeletedCallback(
+      g_interface, status, server_if, srvc_handle));
+}
+
 void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                          int attr_handle, int offset, bool is_long) {
   lock_guard<mutex> lock(g_instance_lock);
@@ -248,7 +279,7 @@ void IndicationSentCallback(int conn_id, int status) {
 // GATT client-role and GAP events.
 const btgatt_client_callbacks_t gatt_client_callbacks = {
     RegisterClientCallback,
-    nullptr,  // scan_result_cb
+    ScanResultCallback,
     nullptr,  // open_cb
     nullptr,  // close_cb
     nullptr,  // search_complete_cb
@@ -264,7 +295,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // write_descriptor_cb
     nullptr,  // execute_write_cb
     nullptr,  // read_remote_rssi_cb
-    nullptr,  // listen_cb
+    ListenCallback,
     nullptr,  // configure_mtu_cb
     nullptr,  // scan_filter_cfg_cb
     nullptr,  // scan_filter_param_cb
@@ -286,16 +317,16 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     RegisterServerCallback,
     ConnectionCallback,
     ServiceAddedCallback,
-    nullptr,  // included_service_added_cb,
+    nullptr,  // included_service_added_cb
     CharacteristicAddedCallback,
     DescriptorAddedCallback,
     ServiceStartedCallback,
     ServiceStoppedCallback,
-    nullptr,  // service_deleted_cb,
+    ServiceDeletedCallback,
     RequestReadCallback,
     RequestWriteCallback,
     RequestExecWriteCallback,
-    nullptr,  // response_confirmation_cb,
+    nullptr,  // response_confirmation_cb
     IndicationSentCallback,
     nullptr,  // congestion_cb
     nullptr,  // mtu_changed_cb
@@ -440,6 +471,19 @@ void BluetoothGattInterface::ClientObserver::RegisterClientCallback(
     const bt_uuid_t& /* app_uuid */) {
   // Do nothing.
 }
+void BluetoothGattInterface::ClientObserver::ScanResultCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    const bt_bdaddr_t& /* bda */,
+    int /* rssi */,
+    uint8_t* /* adv_data */) {
+  // Do Nothing.
+}
+void BluetoothGattInterface::ClientObserver::ListenCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* client_if */) {
+  // Do nothing.
+}
 void BluetoothGattInterface::ClientObserver::MultiAdvEnableCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
@@ -520,6 +564,14 @@ void BluetoothGattInterface::ServerObserver::ServiceStartedCallback(
 }
 
 void BluetoothGattInterface::ServerObserver::ServiceStoppedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* server_if */,
+    int /* srvc_handle */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::ServiceDeletedCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* server_if */,

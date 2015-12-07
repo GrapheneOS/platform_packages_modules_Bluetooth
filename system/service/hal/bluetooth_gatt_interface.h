@@ -52,6 +52,15 @@ class BluetoothGattInterface {
         int status, int client_if,
         const bt_uuid_t& app_uuid);
 
+    virtual void ScanResultCallback(
+        BluetoothGattInterface* gatt_iface,
+        const bt_bdaddr_t& bda, int rssi,
+        uint8_t* adv_data);
+
+    virtual void ListenCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int client_if);
+
     virtual void MultiAdvEnableCallback(
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
@@ -113,6 +122,11 @@ class BluetoothGattInterface {
         int srvc_handle);
 
     virtual void ServiceStoppedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status, int server_if,
+        int srvc_handle);
+
+    virtual void ServiceDeletedCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int server_if,
         int srvc_handle);
