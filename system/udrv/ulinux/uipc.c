@@ -181,7 +181,7 @@ static int accept_server_socket(int sfd)
 
     if (poll(&pfd, 1, 0) == 0)
     {
-        BTIF_TRACE_EVENT("accept poll timeout");
+        BTIF_TRACE_WARNING("accept poll timeout");
         return -1;
     }
 
@@ -395,13 +395,14 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
 
         if (pfd.revents & (POLLERR|POLLHUP))
         {
-            BTIF_TRACE_EVENT("%s() - POLLERR or POLLHUP. Exiting", __FUNCTION__);
+            BTIF_TRACE_WARNING("%s() - POLLERR or POLLHUP. Exiting", __FUNCTION__);
             return;
         }
 
         if (ret <= 0)
         {
-            BTIF_TRACE_EVENT("%s() - error (%d). Exiting", __FUNCTION__, ret);
+            BTIF_TRACE_WARNING("%s() - poll() failed (%s). Exiting",
+                               __FUNCTION__, strerror(errno));
             return;
         }
 
@@ -669,31 +670,6 @@ void UIPC_Close(tUIPC_CH_ID ch_id)
 
 /*******************************************************************************
  **
- ** Function         UIPC_SendBuf
- **
- ** Description      Called to transmit a message over UIPC.
- **                  Message buffer will be freed by UIPC_SendBuf.
- **
- ** Returns          TRUE in case of success, FALSE in case of failure.
- **
- *******************************************************************************/
-BOOLEAN UIPC_SendBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
-{
-    UNUSED(p_msg);
-
-    BTIF_TRACE_DEBUG("UIPC_SendBuf : ch_id %d NOT IMPLEMENTED", ch_id);
-
-    UIPC_LOCK();
-
-    /* currently not used */
-
-    UIPC_UNLOCK();
-
-    return FALSE;
-}
-
-/*******************************************************************************
- **
  ** Function         UIPC_Send
  **
  ** Description      Called to transmit a message over UIPC.
@@ -718,25 +694,6 @@ BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
     UIPC_UNLOCK();
 
     return FALSE;
-}
-
-/*******************************************************************************
- **
- ** Function         UIPC_ReadBuf
- **
- ** Description      Called to read a message from UIPC.
- **
- ** Returns          void
- **
- *******************************************************************************/
-void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
-{
-    UNUSED(p_msg);
-
-    BTIF_TRACE_DEBUG("UIPC_ReadBuf : ch_id:%d NOT IMPLEMENTED", ch_id);
-
-    UIPC_LOCK();
-    UIPC_UNLOCK();
 }
 
 /*******************************************************************************
@@ -781,7 +738,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
            a read for more than poll timeout */
         if (poll(&pfd, 1, uipc_main.ch[ch_id].read_poll_tmo_ms) == 0)
         {
-            BTIF_TRACE_EVENT("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
+            BTIF_TRACE_WARNING("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
             break;
         }
 
@@ -789,7 +746,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 
         if (pfd.revents & (POLLHUP|POLLNVAL) )
         {
-            BTIF_TRACE_EVENT("poll : channel detached remotely");
+            BTIF_TRACE_WARNING("poll : channel detached remotely");
             UIPC_LOCK();
             uipc_close_locked(ch_id);
             UIPC_UNLOCK();
@@ -802,7 +759,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 
         if (n == 0)
         {
-            BTIF_TRACE_EVENT("UIPC_Read : channel detached remotely");
+            BTIF_TRACE_WARNING("UIPC_Read : channel detached remotely");
             UIPC_LOCK();
             uipc_close_locked(ch_id);
             UIPC_UNLOCK();
@@ -811,7 +768,7 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 
         if (n < 0)
         {
-            BTIF_TRACE_EVENT("UIPC_Read : read failed (%s)", strerror(errno));
+            BTIF_TRACE_WARNING("UIPC_Read : read failed (%s)", strerror(errno));
             return 0;
         }
 
