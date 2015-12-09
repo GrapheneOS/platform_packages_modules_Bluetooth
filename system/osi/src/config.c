@@ -270,14 +270,14 @@ bool config_save(const config_t *config, const char *filename) {
     const section_t *section = (const section_t *)list_node(node);
     if (fprintf(fp, "[%s]\n", section->name) < 0) {
       LOG_ERROR("%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
-      goto error_fclose;
+      goto error;
     }
 
     for (const list_node_t *enode = list_begin(section->entries); enode != list_end(section->entries); enode = list_next(enode)) {
       const entry_t *entry = (const entry_t *)list_node(enode);
       if (fprintf(fp, "%s = %s\n", entry->key, entry->value) < 0) {
         LOG_ERROR("%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
-        goto error_fclose;
+        goto error;
       }
     }
 
@@ -285,21 +285,17 @@ bool config_save(const config_t *config, const char *filename) {
     if (list_next(node) != list_end(config->sections)) {
       if (fputc('\n', fp) == EOF) {
         LOG_ERROR("%s unable to write to file '%s': %s", __func__, temp_filename, strerror(errno));
-        goto error_fclose;
+        goto error;
       }
     }
   }
 
-  if (fflush(fp) == EOF) {
-    LOG_ERROR("%s unable to flush to file '%s': %s", __func__, temp_filename, strerror(errno));
-    goto error_fclose;
-  }
-
   if (fclose(fp) == EOF) {
     LOG_ERROR("%s unable to close file '%s': %s", __func__, temp_filename, strerror(errno));
-    // Calling fclose now has undefined behavior so skip calling it again and jump to 'error' instead.
+    fp = NULL;
     goto error;
   }
+  fp = NULL;
 
   // Change the file's permissions to Read/Write by User and Group
   if (chmod(temp_filename, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP) == -1) {
@@ -315,9 +311,9 @@ bool config_save(const config_t *config, const char *filename) {
   osi_free(temp_filename);
   return true;
 
-error_fclose:;
-  fclose(fp);
 error:;
+  if (fp != NULL)
+    fclose(fp);
   unlink(temp_filename);
   osi_free(temp_filename);
   return false;
