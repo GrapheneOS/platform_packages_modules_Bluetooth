@@ -244,6 +244,10 @@ void Adapter::AdapterPropertiesCallback(bt_status_t status,
   }
 }
 
+void Adapter::DiscoveryStateChangedCallback(bt_discovery_state_t state) {
+  // This does nothing
+}
+
 bool Adapter::SetAdapterProperty(bt_property_type_t type,
                                  void* value, int length) {
   CHECK(length > 0);
