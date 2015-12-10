@@ -278,54 +278,50 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
                             BOOLEAN for_caps)
 {
-    tA2D_STATUS status;
-    UINT8   losc;
+    tA2D_STATUS status = A2D_SUCCESS;
+    UINT8 losc;
 
-    if( p_ie == NULL || p_info == NULL)
-        status = A2D_INVALID_PARAMS;
-    else
-    {
-        losc    = *p_info;
-        p_info += 2;
+    if (p_ie == NULL || p_info == NULL)
+        return A2D_INVALID_PARAMS;
 
-        /* If the function is called for the wrong Media Type or Media Codec Type */
-        if(losc != A2D_SBC_INFO_LEN || *p_info != A2D_MEDIA_CT_SBC)
-            status = A2D_WRONG_CODEC;
-        else
-        {
-            p_info++;
-            p_ie->samp_freq = *p_info & A2D_SBC_IE_SAMP_FREQ_MSK;
-            p_ie->ch_mode   = *p_info & A2D_SBC_IE_CH_MD_MSK;
-            p_info++;
-            p_ie->block_len     = *p_info & A2D_SBC_IE_BLOCKS_MSK;
-            p_ie->num_subbands  = *p_info & A2D_SBC_IE_SUBBAND_MSK;
-            p_ie->alloc_mthd    = *p_info & A2D_SBC_IE_ALLOC_MD_MSK;
-            p_info++;
-            p_ie->min_bitpool = *p_info++;
-            p_ie->max_bitpool = *p_info;
-            status = A2D_SUCCESS;
-            if(p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL )
-                status = A2D_BAD_MIN_BITPOOL;
+    losc = *p_info;
+    p_info += 2;
 
-            if(p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL ||
-                p_ie->max_bitpool < p_ie->min_bitpool)
-                status = A2D_BAD_MAX_BITPOOL;
+    /* If the function is called for the wrong Media Type or Media Codec Type */
+    if (losc != A2D_SBC_INFO_LEN || *p_info != A2D_MEDIA_CT_SBC)
+        return A2D_WRONG_CODEC;
 
-            if(for_caps == FALSE)
-            {
-                if(A2D_BitsSet(p_ie->samp_freq) != A2D_SET_ONE_BIT)
-                    status = A2D_BAD_SAMP_FREQ;
-                if(A2D_BitsSet(p_ie->ch_mode) != A2D_SET_ONE_BIT)
-                    status = A2D_BAD_CH_MODE;
-                if(A2D_BitsSet(p_ie->block_len) != A2D_SET_ONE_BIT)
-                    status = A2D_BAD_BLOCK_LEN;
-                if(A2D_BitsSet(p_ie->num_subbands) != A2D_SET_ONE_BIT)
-                    status = A2D_BAD_SUBBANDS;
-                if(A2D_BitsSet(p_ie->alloc_mthd) != A2D_SET_ONE_BIT)
-                    status = A2D_BAD_ALLOC_MTHD;
-            }
-        }
-    }
+    p_info++;
+    p_ie->samp_freq = *p_info & A2D_SBC_IE_SAMP_FREQ_MSK;
+    p_ie->ch_mode   = *p_info & A2D_SBC_IE_CH_MD_MSK;
+    p_info++;
+    p_ie->block_len     = *p_info & A2D_SBC_IE_BLOCKS_MSK;
+    p_ie->num_subbands  = *p_info & A2D_SBC_IE_SUBBAND_MSK;
+    p_ie->alloc_mthd    = *p_info & A2D_SBC_IE_ALLOC_MD_MSK;
+    p_info++;
+    p_ie->min_bitpool = *p_info++;
+    p_ie->max_bitpool = *p_info;
+    if (p_ie->min_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->min_bitpool > A2D_SBC_IE_MAX_BITPOOL )
+        status = A2D_BAD_MIN_BITPOOL;
+
+    if (p_ie->max_bitpool < A2D_SBC_IE_MIN_BITPOOL || p_ie->max_bitpool > A2D_SBC_IE_MAX_BITPOOL ||
+         p_ie->max_bitpool < p_ie->min_bitpool)
+        status = A2D_BAD_MAX_BITPOOL;
+
+    if (for_caps != FALSE)
+        return status;
+
+    if (A2D_BitsSet(p_ie->samp_freq) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_SAMP_FREQ;
+    if (A2D_BitsSet(p_ie->ch_mode) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_CH_MODE;
+    if (A2D_BitsSet(p_ie->block_len) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_BLOCK_LEN;
+    if (A2D_BitsSet(p_ie->num_subbands) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_SUBBANDS;
+    if (A2D_BitsSet(p_ie->alloc_mthd) != A2D_SET_ONE_BIT)
+        status = A2D_BAD_ALLOC_MTHD;
+
     return status;
 }
 
