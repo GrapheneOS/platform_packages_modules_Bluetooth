@@ -56,7 +56,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SHARED_LIBRARIES := \
     liblog \
-    libchrome-host
+    libchrome
 
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_CFLAGS += -std=c++11
