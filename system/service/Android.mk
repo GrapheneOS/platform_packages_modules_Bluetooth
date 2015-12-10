@@ -136,7 +136,7 @@ LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
-LOCAL_SHARED_LIBRARIES += libchrome-host
+LOCAL_SHARED_LIBRARIES += libchrome
 LOCAL_STATIC_LIBRARIES += libgmock_host libgtest_host liblog
 include $(BUILD_HOST_NATIVE_TEST)
 
