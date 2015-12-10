@@ -82,7 +82,7 @@ void AdapterPropertiesCallback(bt_status_t status,
 void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   lock_guard<mutex> lock(g_instance_lock);
   if (!g_bluetooth_interface) {
-    LOG(WARNING) << "Callback recieved after global instance was destroyed";
+    LOG(WARNING) << "Callback received after global instance was destroyed";
     return;
   }
 
@@ -255,6 +255,25 @@ base::ObserverList<BluetoothInterface::Observer>* GetObservers() {
 }
 
 }  // namespace
+
+// Default observer implementations. These are provided so that the methods
+// themselves are optional.
+void BluetoothInterface::Observer::AdapterStateChangedCallback(
+    bt_state_t /* state*/) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::AdapterPropertiesCallback(
+    bt_status_t /* status */,
+    int /* num_properties */,
+    bt_property_t* /* properties */) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::DiscoveryStateChangedCallback(
+    bt_discovery_state_t /* state */) {
+  // Do nothing.
+}
 
 // static
 bool BluetoothInterface::Initialize() {

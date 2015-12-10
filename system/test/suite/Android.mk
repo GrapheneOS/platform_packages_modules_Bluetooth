@@ -23,6 +23,7 @@ LOCAL_MODULE := net_test_bluetooth
 
 # These tests use the bluetoothtbd HAL wrappers in order to easily interact
 # with the interface using C++
+# TODO: Make the bluetoothtbd HAL a static library
 bluetoothHalSrc := \
   ../../service/hal/bluetooth_interface.cpp \
   ../../service/logging_helpers.cpp

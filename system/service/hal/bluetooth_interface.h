@@ -49,11 +49,11 @@ class BluetoothInterface {
     // All of the events below correspond to callbacks defined in
     // "bt_callbacks_t" in the HAL API definitions.
 
-    virtual void AdapterStateChangedCallback(bt_state_t state) = 0;
+    virtual void AdapterStateChangedCallback(bt_state_t state);
     virtual void AdapterPropertiesCallback(bt_status_t status,
                                            int num_properties,
-                                           bt_property_t* properties) = 0;
-    virtual void DiscoveryStateChangedCallback(bt_discovery_state_t state) = 0;
+                                           bt_property_t* properties);
+    virtual void DiscoveryStateChangedCallback(bt_discovery_state_t state);
 
     // TODO(armansito): Complete the list of callbacks.
   };
