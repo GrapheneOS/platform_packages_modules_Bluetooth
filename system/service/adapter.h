@@ -110,6 +110,7 @@ class Adapter : public hal::BluetoothInterface::Observer {
   void AdapterPropertiesCallback(bt_status_t status,
                                  int num_properties,
                                  bt_property_t* properties) override;
+  void DiscoveryStateChangedCallback(bt_discovery_state_t state) override;
 
   // Sends a request to set the given HAL adapter property type and value.
   bool SetAdapterProperty(bt_property_type_t type, void* value, int length);
