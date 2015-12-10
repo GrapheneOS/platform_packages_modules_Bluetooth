@@ -31,6 +31,8 @@ const char *BtTransportText(const btgatt_transport_t t);
 
 const char *BtStateText(const bt_state_t state);
 
+const char *BtDiscoveryStateText(const bt_discovery_state_t);
+
 const char *BtScanModeText(const bt_scan_mode_t mode);
 
 const char *BtStatusText(const bt_status_t status);

@@ -53,6 +53,7 @@ class BluetoothInterface {
     virtual void AdapterPropertiesCallback(bt_status_t status,
                                            int num_properties,
                                            bt_property_t* properties) = 0;
+    virtual void DiscoveryStateChangedCallback(bt_discovery_state_t state) = 0;
 
     // TODO(armansito): Complete the list of callbacks.
   };

@@ -21,33 +21,36 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_bluetooth
 
+# These tests use the bluetoothtbd HAL wrappers in order to easily interact
+# with the interface using C++
+bluetoothHalSrc := \
+  ../../service/hal/bluetooth_interface.cpp \
+  ../../service/logging_helpers.cpp
+
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
 
 LOCAL_SRC_FILES := \
-    cases/adapter.c \
-    cases/cases.c \
-    cases/gatt.c \
-    cases/pan.c \
-    cases/rfcomm.c \
-    support/adapter.c \
-    support/callbacks.c \
-    support/gatt.c \
-    support/hal.c \
-    support/pan.c \
-    support/rfcomm.c \
-    main.cpp
+    adapter_unittest.cpp \
+    bluetooth_test.cpp \
+    $(bluetoothHalSrc)
 
 LOCAL_SHARED_LIBRARIES += \
     liblog \
     libhardware \
     libhardware_legacy \
-    libcutils
+    libcutils \
+    libchrome
 
 LOCAL_STATIC_LIBRARIES += \
   libbtcore \
   libosi
 
-LOCAL_CFLAGS += -Wall -Wno-unused-parameter -Wno-missing-field-initializers -Werror
+LOCAL_CFLAGS += \
+  -std=c++11 \
+  -Wall \
+  -Werror \
+  -Wno-unused-parameter \
+  -Wno-missing-field-initializers
 
 include $(BUILD_NATIVE_TEST)

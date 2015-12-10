@@ -79,6 +79,17 @@ void AdapterPropertiesCallback(bt_status_t status,
       AdapterPropertiesCallback(status, num_properties, properties));
 }
 
+void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
+  lock_guard<mutex> lock(g_instance_lock);
+  if (!g_bluetooth_interface) {
+    LOG(WARNING) << "Callback recieved after global instance was destroyed";
+    return;
+  }
+
+  VLOG(1) << "Discovery state changed - state: " << BtDiscoveryStateText(state);
+  FOR_EACH_BLUETOOTH_OBSERVER(DiscoveryStateChangedCallback(state));
+}
+
 void ThreadEventCallback(bt_cb_thread_evt evt) {
   VLOG(1) << "ThreadEventCallback" << BtEventText(evt);
 
@@ -121,7 +132,7 @@ bt_callbacks_t bt_callbacks = {
   AdapterPropertiesCallback,
   nullptr, /* remote_device_properties_cb */
   nullptr, /* device_found_cb */
-  nullptr, /* discovery_state_changed_cb */
+  DiscoveryStateChangedCallback,
   nullptr, /* pin_request_cb  */
   nullptr, /* ssp_request_cb  */
   nullptr, /* bond_state_changed_cb */
