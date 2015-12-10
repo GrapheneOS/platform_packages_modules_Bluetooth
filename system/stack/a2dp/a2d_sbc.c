@@ -275,7 +275,8 @@ tA2D_STATUS A2D_BldSbcInfo(UINT8 media_type, tA2D_SBC_CIE *p_ie, UINT8 *p_result
 ** Returns          A2D_SUCCESS if function execution succeeded.
 **                  Error status code, otherwise.
 ******************************************************************************/
-tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info, BOOLEAN for_caps)
+tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, const UINT8 *p_info,
+                            BOOLEAN for_caps)
 {
     tA2D_STATUS status;
     UINT8   losc;
@@ -285,7 +286,7 @@ tA2D_STATUS A2D_ParsSbcInfo(tA2D_SBC_CIE *p_ie, UINT8 *p_info, BOOLEAN for_caps)
     else
     {
         losc    = *p_info;
-        *p_info += 2;
+        p_info += 2;
 
         /* If the function is called for the wrong Media Type or Media Codec Type */
         if(losc != A2D_SBC_INFO_LEN || *p_info != A2D_MEDIA_CT_SBC)
