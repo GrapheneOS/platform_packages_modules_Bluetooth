@@ -60,6 +60,7 @@ btosiCommonTestSrc := \
     ./test/config_test.cpp \
     ./test/data_dispatcher_test.cpp \
     ./test/eager_reader_test.cpp \
+    ./test/fixed_queue_test.cpp \
     ./test/future_test.cpp \
     ./test/hash_map_test.cpp \
     ./test/hash_map_utils_test.cpp \

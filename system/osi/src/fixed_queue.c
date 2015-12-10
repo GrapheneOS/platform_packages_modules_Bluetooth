@@ -41,36 +41,6 @@ typedef struct fixed_queue_t {
 
 static void internal_dequeue_ready(void *context);
 
-bool fixed_queue_init(fixed_queue_t *queue, size_t capacity) {
-  if (queue == NULL)
-    return false;
-  memset(queue, 0, sizeof(*queue));
-
-  pthread_mutex_init(&queue->lock, NULL);
-  queue->capacity = capacity;
-
-  queue->list = list_new(NULL);
-  if (!queue->list)
-    goto error;
-
-  queue->enqueue_sem = semaphore_new(capacity);
-  if (!queue->enqueue_sem)
-    goto error;
-
-  queue->dequeue_sem = semaphore_new(0);
-  if (!queue->dequeue_sem)
-    goto error;
-
-  return true;
-
-error:
-  list_free(queue->list);
-  semaphore_free(queue->enqueue_sem);
-  semaphore_free(queue->dequeue_sem);
-  pthread_mutex_destroy(&queue->lock);
-  return false;
-}
-
 fixed_queue_t *fixed_queue_new(size_t capacity) {
   fixed_queue_t *ret = osi_calloc(sizeof(fixed_queue_t));
   if (!ret)
@@ -229,12 +199,19 @@ void *fixed_queue_try_remove_from_queue(fixed_queue_t *queue, void *data) {
   if (queue == NULL)
     return NULL;
 
+  bool removed = false;
   pthread_mutex_lock(&queue->lock);
-  bool removed = list_remove(queue->list, data);
+  if (list_contains(queue->list, data) &&
+      semaphore_try_wait(queue->dequeue_sem)) {
+    removed = list_remove(queue->list, data);
+    assert(removed);
+  }
   pthread_mutex_unlock(&queue->lock);
 
-  if (removed)
+  if (removed) {
+    semaphore_post(queue->enqueue_sem);
     return data;
+  }
   return NULL;
 }
 
