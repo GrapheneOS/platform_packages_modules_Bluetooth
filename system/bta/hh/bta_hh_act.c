@@ -443,19 +443,28 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             HID_HostSetSecurityLevel("", p_cb->sec_mask);
 
             /* open HID connection */
-            if ((ret = HID_HostOpenDev (p_cb->hid_handle)) != HID_SUCCESS)
+            ret = HID_HostOpenDev (p_cb->hid_handle);
+            APPL_TRACE_DEBUG ("%s: HID_HostOpenDev returned=%d", __func__, ret);
+            if (ret == HID_SUCCESS || ret == HID_ERR_ALREADY_CONN)
+            {
+                status = BTA_HH_OK;
+            }
+            else if (ret == HID_ERR_CONN_IN_PROCESS)
+            {
+                /* Connection already in progress, return from here, SDP
+                 * will be performed after connection is completed.
+                 */
+                APPL_TRACE_DEBUG ("%s: connection already in progress", __func__);
+                return;
+            }
+            else
             {
 #if BTA_HH_DEBUG
-                APPL_TRACE_DEBUG ("bta_hh_sdp_cmpl:  HID_HostOpenDev failed: \
-                    Status 0x%2X",ret);
+                APPL_TRACE_DEBUG ("%s: HID_HostOpenDev failed: Status 0x%2X", __func__, ret);
 #endif
                 /* open fail, remove device from management device list */
                 HID_HostRemoveDev( p_cb->hid_handle);
                 status = BTA_HH_ERR;
-            }
-            else
-            {
-                status = BTA_HH_OK;
             }
         }
         else /* incoming connection SDP finish */
@@ -840,6 +849,9 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         bta_hh_disc_cmpl();
     }
 
+    /* Error in opening hid connection, reset flags */
+    p_cb->incoming_conn = FALSE;
+    p_cb->incoming_hid_handle = BTA_HH_INVALID_HANDLE;
 }
 
 /*******************************************************************************
