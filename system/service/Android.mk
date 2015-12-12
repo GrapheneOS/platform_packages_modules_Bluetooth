@@ -23,6 +23,9 @@ btserviceCommonSrc := \
 	common/bluetooth/advertise_data.cpp \
 	common/bluetooth/advertise_settings.cpp \
 	common/bluetooth/gatt_identifier.cpp \
+	common/bluetooth/scan_filter.cpp \
+	common/bluetooth/scan_result.cpp \
+	common/bluetooth/scan_settings.cpp \
 	common/bluetooth/util/address_helper.cpp \
 	common/bluetooth/util/atomic_string.cpp \
 	common/bluetooth/uuid.cpp

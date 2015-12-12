@@ -44,6 +44,20 @@ UUID UUID::GetRandom() {
   return UUID(bytes);
 }
 
+// static
+UUID UUID::GetNil() {
+  UUID128Bit bytes;
+  bytes.fill(0);
+  return UUID(bytes);
+}
+
+// static
+UUID UUID::GetMax() {
+  UUID128Bit bytes;
+  bytes.fill(1);
+  return UUID(bytes);
+}
+
 void UUID::InitializeDefault() {
   // Initialize to Bluetooth SIG base UUID.
   id_ = kSigBaseUUID;
