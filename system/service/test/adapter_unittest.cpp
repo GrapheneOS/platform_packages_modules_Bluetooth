@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include "service/adapter.h"
+#include "service/common/bluetooth/util/address_helper.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/fake_bluetooth_interface.h"
 
@@ -61,7 +62,8 @@ class TestObserver final : public bluetooth::Adapter::Observer {
   TestObserver(bluetooth::Adapter* adapter)
       : adapter_(adapter),
         prev_state_(bluetooth::ADAPTER_STATE_INVALID),
-        cur_state_(bluetooth::ADAPTER_STATE_INVALID) {
+        cur_state_(bluetooth::ADAPTER_STATE_INVALID),
+        last_device_connected_state_(false) {
     CHECK(adapter_);
     adapter_->AddObserver(this);
   }
@@ -73,18 +75,37 @@ class TestObserver final : public bluetooth::Adapter::Observer {
   bluetooth::AdapterState prev_state() const { return prev_state_; }
   bluetooth::AdapterState cur_state() const { return cur_state_; }
 
+  std::string last_connection_state_address() const {
+    return last_connection_state_address_;
+  }
+
+  bool last_device_connected_state() const {
+    return last_device_connected_state_;
+  }
+
   // bluetooth::Adapter::Observer override:
   void OnAdapterStateChanged(bluetooth::Adapter* adapter,
                              bluetooth::AdapterState prev_state,
-                             bluetooth::AdapterState new_state) {
+                             bluetooth::AdapterState new_state) override {
     ASSERT_EQ(adapter_, adapter);
     prev_state_ = prev_state;
     cur_state_ = new_state;
   }
 
+  void OnDeviceConnectionStateChanged(
+      Adapter* adapter,
+      const std::string& device_address,
+      bool connected) override {
+    ASSERT_EQ(adapter_, adapter);
+    last_connection_state_address_ = device_address;
+    last_device_connected_state_ = connected;
+  }
+
  private:
   bluetooth::Adapter* adapter_;
   bluetooth::AdapterState prev_state_, cur_state_;
+  std::string last_connection_state_address_;
+  bool last_device_connected_state_;
 
   DISALLOW_COPY_AND_ASSIGN(TestObserver);
 };
@@ -230,6 +251,37 @@ TEST_F(AdapterTest, IsMultiAdvertisementSupported) {
   features.max_adv_instance = 0;  // Low number.
   fake_hal_iface_->NotifyAdapterLocalLeFeaturesPropertyChanged(&features);
   EXPECT_FALSE(adapter_->IsMultiAdvertisementSupported());
+}
+
+TEST_F(AdapterTest, IsDeviceConnected) {
+  const char kDeviceAddr[] = "12:34:56:78:9A:BC";
+  TestObserver observer(adapter_.get());
+
+  EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
+
+  bt_bdaddr_t hal_addr;
+  ASSERT_TRUE(util::BdAddrFromString(kDeviceAddr, &hal_addr));
+
+  // status != BT_STATUS_SUCCESS should be ignored
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_FAIL, hal_addr, BT_ACL_STATE_CONNECTED);
+  EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
+  EXPECT_TRUE(observer.last_connection_state_address().empty());
+  EXPECT_FALSE(observer.last_device_connected_state());
+
+  // Connected
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_CONNECTED);
+  EXPECT_TRUE(adapter_->IsDeviceConnected(kDeviceAddr));
+  EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
+  EXPECT_TRUE(observer.last_device_connected_state());
+
+  // Disconnected
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_DISCONNECTED);
+  EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
+  EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
+  EXPECT_FALSE(observer.last_device_connected_state());
 }
 
 }  // namespace

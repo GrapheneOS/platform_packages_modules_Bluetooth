@@ -54,6 +54,9 @@ class BluetoothInterface {
                                            int num_properties,
                                            bt_property_t* properties);
     virtual void DiscoveryStateChangedCallback(bt_discovery_state_t state);
+    virtual void AclStateChangedCallback(bt_status_t status,
+                                         const bt_bdaddr_t& remote_bdaddr,
+                                         bt_acl_state_t state);
 
     // TODO(armansito): Complete the list of callbacks.
   };

@@ -53,10 +53,12 @@ base::ObserverList<BluetoothGattInterface::ServerObserver>*
                     *GetServerObservers(), func)
 
 #define VERIFY_INTERFACE_OR_RETURN() \
-  if (!g_interface) { \
-    LOG(WARNING) << "Callback received after |g_interface| is NULL"; \
-    return; \
-  }
+  do { \
+    if (!g_interface) { \
+      LOG(WARNING) << "Callback received while |g_interface| is NULL"; \
+      return; \
+    } \
+  } while (0)
 
 void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
   lock_guard<mutex> lock(g_instance_lock);

@@ -134,6 +134,15 @@ void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
   NotifyAdapterPropertiesChanged(1, &property);
 }
 
+void FakeBluetoothInterface::NotifyAclStateChangedCallback(
+    bt_status_t status,
+    const bt_bdaddr_t& remote_bdaddr,
+    bt_acl_state_t state) {
+  FOR_EACH_OBSERVER(
+      Observer, observers_,
+      AclStateChangedCallback(status, remote_bdaddr, state));
+}
+
 void FakeBluetoothInterface::AddObserver(Observer* observer) {
   observers_.AddObserver(observer);
 }
