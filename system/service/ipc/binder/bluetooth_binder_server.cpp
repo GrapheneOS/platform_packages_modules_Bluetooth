@@ -22,6 +22,8 @@
 #include "service/ipc/binder/bluetooth_gatt_server_binder_server.h"
 #include "service/ipc/binder/bluetooth_low_energy_binder_server.h"
 
+#include "service/hal/bluetooth_interface.h"
+
 using android::sp;
 
 namespace ipc {
@@ -153,6 +155,20 @@ BluetoothBinderServer::GetGattServerInterface() {
     gatt_server_interface_ = new BluetoothGattServerBinderServer(adapter_);
 
   return gatt_server_interface_;
+}
+
+android::status_t BluetoothBinderServer::dump(int fd, const android::Vector<android::String16>& args) {
+  VLOG(2) << __func__ << " called with fd " << fd;
+  if  (args.size() > 0) {
+    // TODO (jamuraa): Parse arguments and switch on --proto, --proto_text
+    for (auto x : args) {
+      VLOG(2) << __func__ << "argument: " << x.string();
+    }
+  }
+  // TODO (jamuraa): enumerate profiles and dump profile information
+  const bt_interface_t *iface = bluetooth::hal::BluetoothInterface::Get()->GetHALInterface();
+  iface->dump(fd);
+  return android::NO_ERROR;
 }
 
 void BluetoothBinderServer::OnAdapterStateChanged(

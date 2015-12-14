@@ -20,6 +20,8 @@
 #include <vector>
 
 #include <base/macros.h>
+#include <utils/String16.h>
+#include <utils/Vector.h>
 
 #include "service/adapter.h"
 #include "service/common/bluetooth/binder/IBluetooth.h"
@@ -61,6 +63,8 @@ class BluetoothBinderServer : public BnBluetooth,
   android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() override;
   android::sp<IBluetoothGattClient> GetGattClientInterface() override;
   android::sp<IBluetoothGattServer> GetGattServerInterface() override;
+
+  android::status_t dump(int fd, const android::Vector<android::String16>& args) override;
 
   // bluetooth::Adapter::Observer overrides:
   void OnAdapterStateChanged(bluetooth::Adapter* adapter,
