@@ -92,6 +92,11 @@ btserviceBaseTestSrc := \
 	test/util_unittest.cpp \
 	test/uuid_unittest.cpp
 
+# Some standard CFLAGS used in all targets.
+btservice_common_flags :=
+# libchrome has unused parameters in their .h files. b/26228533
+btservice_common_flags += -Wno-unused-parameter
+
 # Native system service for target
 # ========================================================
 include $(CLEAR_VARS)
@@ -103,6 +108,7 @@ LOCAL_SRC_FILES := \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
 LOCAL_REQUIRED_MODULES = bluetooth.default
@@ -137,6 +143,7 @@ LOCAL_SRC_FILES += \
 endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
 LOCAL_SHARED_LIBRARIES += libchrome
@@ -157,6 +164,7 @@ LOCAL_SRC_FILES := \
 	test/parcel_helpers_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
 LOCAL_SHARED_LIBRARIES += \
@@ -175,6 +183,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE := libbluetooth-client
 LOCAL_SHARED_LIBRARIES += libbinder libchrome libutils
 include $(BUILD_STATIC_LIBRARY)
@@ -184,6 +193,7 @@ include $(BUILD_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := client/main.cpp
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
 LOCAL_STATIC_LIBRARIES += libbluetooth-client
@@ -203,6 +213,7 @@ LOCAL_SRC_FILES := \
 	example/heart_rate/server_main.cpp
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
 LOCAL_CFLAGS += -std=c++11
+LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
 LOCAL_STATIC_LIBRARIES += libbluetooth-client
