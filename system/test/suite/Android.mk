@@ -25,6 +25,7 @@ LOCAL_MODULE := net_test_bluetooth
 # with the interface using C++
 # TODO: Make the bluetoothtbd HAL a static library
 bluetoothHalSrc := \
+  ../../service/hal/bluetooth_gatt_interface.cpp \
   ../../service/hal/bluetooth_interface.cpp \
   ../../service/logging_helpers.cpp
 
@@ -32,8 +33,10 @@ LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
 
 LOCAL_SRC_FILES := \
-    adapter_unittest.cpp \
-    bluetooth_test.cpp \
+    adapter/adapter_unittest.cpp \
+    adapter/bluetooth_test.cpp \
+    gatt/gatt_test.cpp \
+    gatt/gatt_unittest.cpp \
     $(bluetoothHalSrc)
 
 LOCAL_SHARED_LIBRARIES += \
