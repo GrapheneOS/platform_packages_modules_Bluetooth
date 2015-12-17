@@ -338,11 +338,13 @@ void handle_rc_features()
         rc_features |= BTRC_FEAT_BROWSE;
     }
 
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     if ( (btif_rc_cb.rc_features & BTA_AV_FEAT_ADV_CTRL) &&
          (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG))
     {
         rc_features |= BTRC_FEAT_ABSOLUTE_VOLUME;
     }
+#endif
 
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_METADATA)
     {
