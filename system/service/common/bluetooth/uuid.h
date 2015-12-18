@@ -19,7 +19,8 @@
 #include <array>
 #include <string>
 
-#include <base/hash.h>
+// TODO: Find places that break include what you use and remove this.
+#include <base/logging.h>
 #include <hardware/bluetooth.h>
 
 namespace bluetooth {
@@ -101,9 +102,8 @@ template<>
 struct hash<bluetooth::UUID> {
   std::size_t operator()(const bluetooth::UUID& key) const {
     const auto& uuid_bytes = key.GetFullBigEndian();
-
-    return base::Hash(reinterpret_cast<const char*>(uuid_bytes.data()),
-                      uuid_bytes.size());
+    std::hash<std::string> hash_fn;
+    return hash_fn(std::string((char *)uuid_bytes.data(), uuid_bytes.size()));
   }
 };
 
