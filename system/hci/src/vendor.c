@@ -166,8 +166,12 @@ static void buffer_free_cb(void *buffer) {
 
 static void transmit_completed_callback(BT_HDR *response, void *context) {
   // Call back to the vendor library if it provided a callback to call.
-  if (context)
+  if (context) {
     ((tINT_CMD_CBACK)context)(response);
+  } else {
+    // HCI layer expects us to release the response.
+    buffer_free_cb(response);
+  }
 }
 
 // Called back from vendor library when it wants to send an HCI command.
