@@ -37,7 +37,7 @@ namespace bttest {
 void BluetoothTest::SetUp() {
   bt_interface_ = nullptr;
   state_ = BT_STATE_OFF;
-  property_count_ = 0;
+  properties_changed_count_ = 0;
   last_changed_properties_ = nullptr;
   discovery_state_ = BT_DISCOVERY_STOPPED;
   acl_state_ = BT_ACL_STATE_DISCONNECTED;
@@ -74,12 +74,12 @@ bt_state_t BluetoothTest::GetState() {
   return state_;
 }
 
-int BluetoothTest::GetPropertyCount() {
-  return property_count_;
+int BluetoothTest::GetPropertiesChangedCount() {
+  return properties_changed_count_;
 }
 
 bt_property_t* BluetoothTest::GetProperty(bt_property_type_t type) {
-  for (int i = 0; i < property_count_; ++i) {
+  for (int i = 0; i < properties_changed_count_; ++i) {
     if (last_changed_properties_[i].type == type) {
       return &last_changed_properties_[i];
     }
@@ -111,9 +111,9 @@ void BluetoothTest::AdapterPropertiesCallback(
     bt_status_t status,
     int num_properties,
     bt_property_t* new_properties) {
-  property_free_array(last_changed_properties_, property_count_);
+  property_free_array(last_changed_properties_, properties_changed_count_);
   last_changed_properties_ = property_copy_array(new_properties, num_properties);
-  property_count_ = num_properties;
+  properties_changed_count_ = num_properties;
   semaphore_post(adapter_properties_callback_sem_);
 }
 

@@ -61,18 +61,29 @@ TEST_F(BluetoothTest, AdapterRepeatedEnableDisable) {
   }
 }
 
-TEST_F(BluetoothTest, AdapterSetName) {
-  bt_property_t *name = property_new_name("get_name");
+TEST_F(BluetoothTest, AdapterSetGetName) {
+  bt_property_t *name = property_new_name("BluetoothTestName");
 
   EXPECT_EQ(bt_interface()->enable(), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_state_changed_callback_sem_);
   EXPECT_EQ(GetState(), BT_STATE_ON)
     << "Test should be run with Adapter enabled";
 
+  EXPECT_EQ(bt_interface()->get_adapter_property(BT_PROPERTY_BDNAME),
+      BT_STATUS_SUCCESS);
+  semaphore_wait(adapter_properties_callback_sem_);
+  EXPECT_GT(GetPropertiesChangedCount(), 0)
+    << "Expected at least one adapter property to change";
+  bt_property_t *old_name = GetProperty(BT_PROPERTY_BDNAME);
+  EXPECT_NE(old_name, nullptr);
+  EXPECT_FALSE(property_equals(name, old_name))
+    << "Current name of the device matches test name. "
+    << "Please change the device name for this test.";
+
   EXPECT_EQ(bt_interface()->set_adapter_property(name), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_properties_callback_sem_);
-  EXPECT_GT(GetPropertyCount(), 1)
-    << "Expected at least one adapter property";
+  EXPECT_GT(GetPropertiesChangedCount(), 0)
+    << "Expected at least one adapter property to change";
   EXPECT_TRUE(GetProperty(BT_PROPERTY_BDNAME))
     << "The Bluetooth name property did not change.";
   EXPECT_TRUE(property_equals(GetProperty(BT_PROPERTY_BDNAME), name))
@@ -80,34 +91,16 @@ TEST_F(BluetoothTest, AdapterSetName) {
     << property_as_name(GetProperty(BT_PROPERTY_BDNAME))->name
     << "' does not match test value " << name;
 
-  EXPECT_EQ(bt_interface()->disable(), BT_STATUS_SUCCESS);
-  semaphore_wait(adapter_state_changed_callback_sem_);
-  EXPECT_EQ(GetState(), BT_STATE_OFF) << "Adapter did not turn off.";
-  property_free(name);
-}
-
-TEST_F(BluetoothTest, AdapterGetName) {
-  bt_property_t *name = property_new_name("get_name");
-
-  EXPECT_EQ(bt_interface()->enable(), BT_STATUS_SUCCESS);
-  semaphore_wait(adapter_state_changed_callback_sem_);
-  EXPECT_EQ(GetState(), BT_STATE_ON)
-    << "Test should be run with Adapter enabled";
-
-  EXPECT_EQ(bt_interface()->set_adapter_property(name), BT_STATUS_SUCCESS);
+  EXPECT_EQ(bt_interface()->set_adapter_property(old_name), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_properties_callback_sem_);
-  EXPECT_EQ(bt_interface()->get_adapter_property(BT_PROPERTY_BDNAME),
-      BT_STATUS_SUCCESS);
-  semaphore_wait(adapter_properties_callback_sem_);
-  EXPECT_TRUE(GetPropertyCount() >= 1)
-    << "Expected 1 adapter property change, found " << GetPropertyCount()
-    << " instead.";
+  EXPECT_GT(GetPropertiesChangedCount(), 0)
+    << "Expected at least one adapter property";
   EXPECT_TRUE(GetProperty(BT_PROPERTY_BDNAME))
     << "The Bluetooth name property did not change.";
-  EXPECT_TRUE(property_equals(GetProperty(BT_PROPERTY_BDNAME), name))
+  EXPECT_TRUE(property_equals(GetProperty(BT_PROPERTY_BDNAME), old_name))
     << "Bluetooth name '"
     << property_as_name(GetProperty(BT_PROPERTY_BDNAME))->name
-    << "' does not match test value";
+    << "' does not match test value " << old_name;
 
   EXPECT_EQ(bt_interface()->disable(), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_state_changed_callback_sem_);

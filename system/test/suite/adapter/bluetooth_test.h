@@ -52,8 +52,9 @@ class BluetoothTest : public ::testing::Test,
   // Gets the current state of the Bluetooth Interface
   bt_state_t GetState();
 
-  // Get the number of properties set
-  int GetPropertyCount();
+  // Get the number of properties that have changed on the
+  // Adapter Properties callback
+  int GetPropertiesChangedCount();
 
   // Get the value of a specific property
   bt_property_t* GetProperty(bt_property_type_t type);
@@ -97,7 +98,7 @@ class BluetoothTest : public ::testing::Test,
   const bt_interface_t* bt_interface_;
 
   bt_state_t state_;
-  int property_count_;
+  int properties_changed_count_;
   bt_property_t *last_changed_properties_;
   bt_discovery_state_t discovery_state_;
   bt_acl_state_t acl_state_;
