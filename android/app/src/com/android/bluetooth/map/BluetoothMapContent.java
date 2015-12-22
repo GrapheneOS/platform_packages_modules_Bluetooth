@@ -117,7 +117,6 @@ public class BluetoothMapContent {
     // MAP specification states that the default value for parameter mask are
     // the #REQUIRED attributes in the DTD, and not all enabled
     public static final long PARAMETER_MASK_ALL_ENABLED = 0xFFFFFFFFL;
-    public static final long PARAMETER_MASK_DEFAULT = 0x5EBL;
     public static final long CONVO_PARAMETER_MASK_ALL_ENABLED = 0xFFFFFFFFL;
     public static final long CONVO_PARAMETER_MASK_DEFAULT =
             CONVO_PARAM_MASK_CONVO_NAME |
@@ -2047,9 +2046,9 @@ public class BluetoothMapContent {
          * should cause all parameters to be included in the message list. */
         if(ap.getParameterMask() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER ||
                 ap.getParameterMask() == 0) {
-            ap.setParameterMask(PARAMETER_MASK_DEFAULT);
+            ap.setParameterMask(PARAMETER_MASK_ALL_ENABLED);
             if (V) Log.v(TAG, "msgListing(): appParameterMask is zero or not present, " +
-                    "changing to default: " + ap.getParameterMask());
+                    "changing to all enabled by default: " + ap.getParameterMask());
         }
         if (V) Log.v(TAG, "folderElement hasSmsMmsContent = " + folderElement.hasSmsMmsContent() +
                 " folderElement.hasEmailContent = " + folderElement.hasEmailContent() +
