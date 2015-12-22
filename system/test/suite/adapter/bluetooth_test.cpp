@@ -66,6 +66,10 @@ void BluetoothTest::TearDown() {
   ASSERT_FALSE(bt_hal_interface->IsInitialized());
 }
 
+void BluetoothTest::ClearSemaphore(semaphore_t* sem) {
+  while (semaphore_try_wait(sem));
+}
+
 const bt_interface_t* BluetoothTest::bt_interface() {
   return bt_interface_;
 }
