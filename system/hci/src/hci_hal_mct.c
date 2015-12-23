@@ -126,11 +126,11 @@ static void hal_close() {
     uart_fds[i] = INVALID_FD;
 }
 
-static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size, bool block) {
+static size_t read_data(serial_data_type_t type, uint8_t *buffer, size_t max_size) {
   if (type == DATA_TYPE_ACL) {
-    return eager_reader_read(acl_stream, buffer, max_size, block);
+    return eager_reader_read(acl_stream, buffer, max_size);
   } else if (type == DATA_TYPE_EVENT) {
-    return eager_reader_read(event_stream, buffer, max_size, block);
+    return eager_reader_read(event_stream, buffer, max_size);
   }
 
   LOG_ERROR(LOG_TAG, "%s invalid data type: %d", __func__, type);

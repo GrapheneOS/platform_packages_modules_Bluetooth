@@ -165,13 +165,12 @@ void eager_reader_unregister(eager_reader_t *reader) {
 }
 
 // SEE HEADER FOR THREAD SAFETY NOTE
-size_t eager_reader_read(eager_reader_t *reader, uint8_t *buffer, size_t max_size, bool block) {
+size_t eager_reader_read(eager_reader_t *reader, uint8_t *buffer, size_t max_size) {
   assert(reader != NULL);
   assert(buffer != NULL);
 
-  // If the caller wants nonblocking behavior, poll to see if we have
-  // any bytes available before reading.
-  if (!block && !has_byte(reader))
+  // Poll to see if we have any bytes available before reading.
+  if (!has_byte(reader))
     return 0;
 
   // Find out how many bytes we have available in our various buffers.
