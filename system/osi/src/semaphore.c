@@ -85,13 +85,14 @@ bool semaphore_try_wait(semaphore_t *semaphore) {
     return false;
   }
 
+  bool rc = true;
   eventfd_t value;
   if (eventfd_read(semaphore->fd, &value) == -1)
-    return false;
+    rc = false;
 
   if (fcntl(semaphore->fd, F_SETFL, flags) == -1)
-    LOG_ERROR(LOG_TAG, "%s unable to resetore flags for semaphore fd: %s", __func__, strerror(errno));
-  return true;
+    LOG_ERROR(LOG_TAG, "%s unable to restore flags for semaphore fd: %s", __func__, strerror(errno));
+  return rc;
 }
 
 void semaphore_post(semaphore_t *semaphore) {
