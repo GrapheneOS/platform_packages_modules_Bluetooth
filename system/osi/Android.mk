@@ -67,6 +67,7 @@ btosiCommonTestSrc := \
     ./test/list_test.cpp \
     ./test/reactor_test.cpp \
     ./test/ringbuffer_test.cpp \
+    ./test/semaphore_test.cpp \
     ./test/thread_test.cpp \
     ./test/time_test.cpp
 
