@@ -68,6 +68,9 @@ class BluetoothTest : public ::testing::Test,
   // Get the current Bond State
   bt_bond_state_t GetBondState();
 
+  // Reset a semaphores count to 0
+  void ClearSemaphore(semaphore_t* sem);
+
   // SetUp initializes the Bluetooth interface and registers the callbacks
   // before running every test
   void SetUp() override;
