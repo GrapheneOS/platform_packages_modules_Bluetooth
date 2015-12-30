@@ -109,7 +109,7 @@ TEST_F(AlarmTest, test_set_short) {
 
 TEST_F(AlarmTest, test_set_long) {
   alarm_t *alarm = alarm_new();
-  alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS, cb, NULL);
+  alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
   EXPECT_EQ(lock_count, 0);
@@ -180,8 +180,8 @@ TEST_F(AlarmTest, test_set_long_long) {
     alarm_new()
   };
 
-  alarm_set(alarm[0], TIMER_INTERVAL_FOR_WAKELOCK_IN_MS, cb, NULL);
-  alarm_set(alarm[1], 2 * TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
+  alarm_set(alarm[0], TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
+  alarm_set(alarm[1], 2 * (TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS), cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
   EXPECT_EQ(lock_count, 0);
