@@ -78,12 +78,13 @@ TEST_F(BluetoothTest, AdapterSetGetName) {
   semaphore_wait(adapter_properties_callback_sem_);
   EXPECT_GT(GetPropertiesChangedCount(), 0)
     << "Expected at least one adapter property to change";
-  bt_property_t *old_name = GetProperty(BT_PROPERTY_BDNAME);
-  EXPECT_NE(old_name, nullptr);
-  if (property_equals(old_name, new_name)) {
+  bt_property_t *name_property = GetProperty(BT_PROPERTY_BDNAME);
+  EXPECT_NE(name_property, nullptr);
+  if (property_equals(name_property, new_name)) {
     property_free(new_name);
     new_name = property_new_name("BluetoothTestName2");
   }
+  std::string old_name((const char *)property_as_name(name_property)->name);
 
   EXPECT_EQ(bt_interface()->set_adapter_property(new_name), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_properties_callback_sem_);
@@ -97,17 +98,19 @@ TEST_F(BluetoothTest, AdapterSetGetName) {
     << " does not match test value " << property_as_name(new_name)->name;
 
 
-  EXPECT_EQ(bt_interface()->set_adapter_property(old_name), BT_STATUS_SUCCESS);
+  bt_property_t *old_name_property = property_new_name(old_name.c_str());
+  EXPECT_EQ(bt_interface()->set_adapter_property(old_name_property), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_properties_callback_sem_);
-  EXPECT_TRUE(property_equals(GetProperty(BT_PROPERTY_BDNAME), old_name))
+  EXPECT_TRUE(property_equals(GetProperty(BT_PROPERTY_BDNAME), old_name_property))
     << "Bluetooth name "
     << property_as_name(GetProperty(BT_PROPERTY_BDNAME))->name
-    << " does not match original name" << property_as_name(old_name)->name;
+    << " does not match original name" << old_name;
 
   EXPECT_EQ(bt_interface()->disable(), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_state_changed_callback_sem_);
   EXPECT_EQ(GetState(), BT_STATE_OFF) << "Adapter did not turn off.";
   property_free(new_name);
+  property_free(old_name_property);
 }
 
 TEST_F(BluetoothTest, AdapterStartDiscovery) {
