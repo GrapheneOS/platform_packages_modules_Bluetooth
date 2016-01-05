@@ -8,6 +8,8 @@ LOCAL_CFLAGS += \
 endif
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -std=c99
 LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end
+# Too many unused parameters. TODO: Annotate them.
+LOCAL_CFLAGS += -Wno-unused-parameter
 
 LOCAL_SRC_FILES:= \
     ./dm/bta_dm_ci.c \
