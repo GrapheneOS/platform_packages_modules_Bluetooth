@@ -166,5 +166,7 @@ LOCAL_SHARED_LIBRARIES := libcutils libc
 # a struct.
 # const-logical-operand is needed for code in l2c_utils.c that looks intentional.
 LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=constant-logical-operand
+# Too many unused parameters. TODO: Annotate them.
+LOCAL_CFLAGS += -Wno-unused-parameter
 
 include $(BUILD_STATIC_LIBRARY)
