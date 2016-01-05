@@ -165,5 +165,7 @@ LOCAL_REQUIRED_MODULES := \
 
 LOCAL_CLANG_CFLAGS := -Wno-error=gnu-variable-sized-type-not-at-end
 LOCAL_CLANG_CFLAGS += -Wno-typedef-redefinition
+# Too many unused parameters. TODO: Annotate them.
+LOCAL_CFLAGS += -Wno-unused-parameter
 
 include $(BUILD_SHARED_LIBRARY)
