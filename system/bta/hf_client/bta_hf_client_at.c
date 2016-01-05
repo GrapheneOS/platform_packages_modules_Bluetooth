@@ -965,7 +965,7 @@ static char *bta_hf_client_parse_cops(char *buffer)
     /* spec forces 16 chars max, plus \0 here */
     char opstr[17];
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+COPS:");
 
