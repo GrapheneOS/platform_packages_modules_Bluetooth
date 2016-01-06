@@ -29,7 +29,6 @@ LOCAL_SHARED_LIBRARIES := \
     libchrome
 
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE := test-vendor
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
@@ -59,7 +58,6 @@ LOCAL_SHARED_LIBRARIES := \
     libchrome
 
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CFLAGS += -std=c++11
 LOCAL_MODULE := test-vendor_test_host
 LOCAL_MODULE_TAGS := tests
 

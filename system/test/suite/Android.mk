@@ -51,7 +51,6 @@ LOCAL_STATIC_LIBRARIES += \
   libosi
 
 LOCAL_CFLAGS += \
-  -std=c++11 \
   -Wall \
   -Werror \
   -Wno-unused-parameter \

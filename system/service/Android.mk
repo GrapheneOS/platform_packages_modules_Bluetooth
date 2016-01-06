@@ -107,7 +107,6 @@ LOCAL_SRC_FILES := \
 	$(btserviceDaemonSrc) \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
@@ -142,7 +141,6 @@ LOCAL_SRC_FILES += \
 	test/stub_ipc_handler_linux.cpp
 endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
@@ -163,7 +161,6 @@ LOCAL_SRC_FILES := \
 	test/main.cpp \
 	test/parcel_helpers_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
@@ -182,7 +179,6 @@ LOCAL_SRC_FILES := \
 	$(btserviceCommonBinderSrc)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE := libbluetooth-client
 LOCAL_SHARED_LIBRARIES += libbinder libchrome libutils
@@ -192,7 +188,6 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := client/main.cpp
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
@@ -212,7 +207,6 @@ LOCAL_SRC_FILES := \
 	example/heart_rate/heart_rate_server.cpp \
 	example/heart_rate/server_main.cpp
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
-LOCAL_CFLAGS += -std=c++11
 LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
