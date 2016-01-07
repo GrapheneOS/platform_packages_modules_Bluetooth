@@ -43,5 +43,8 @@ static const interop_entry_t interop_database[] = {
   {{0x80, 0xe4, 0xda, 0x70,   0,0}, 4, INTEROP_DISABLE_LE_SECURE_CONNECTIONS},
 
   // BMW car kits (Harman/Becker)
-  {{0x9c, 0xdf, 0x03,       0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING}
+  {{0x9c, 0xdf, 0x03,       0,0,0}, 3, INTEROP_AUTO_RETRY_PAIRING},
+
+  // Jaybird Family
+  {{0x00, 0x18, 0x91,       0,0,0}, 3, INTEROP_2MBPS_LINK_ONLY}
 };
