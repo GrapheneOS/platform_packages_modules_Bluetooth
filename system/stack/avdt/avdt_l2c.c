@@ -179,6 +179,9 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
     UINT16          result;
     tL2CAP_CFG_INFO cfg;
     tBTM_STATUS rc;
+#if defined(AVDT_DISABLE_3DH) && (AVDT_DISABLE_3DH == TRUE)
+    tACL_CONN *p_acl_cb;
+#endif
     UNUSED(psm);
 
     /* do we already have a control channel for this peer? */
@@ -201,6 +204,14 @@ void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 
             p_tbl->id   = id;
             p_tbl->state = AVDT_AD_ST_SEC_ACP;
             p_tbl->cfg_flags = AVDT_L2C_CFG_CONN_ACP;
+
+#if defined(AVDT_DISABLE_3DH) && (AVDT_DISABLE_3DH == TRUE)
+            p_acl_cb = btm_bda_to_acl(bd_addr, BT_TRANSPORT_BR_EDR);
+            btm_set_packet_types (p_acl_cb, (btm_cb.btm_acl_pkt_types_supported |
+                                             HCI_PKT_TYPES_MASK_NO_3_DH1 |
+                                             HCI_PKT_TYPES_MASK_NO_3_DH3 |
+                                             HCI_PKT_TYPES_MASK_NO_3_DH5));
+#endif
 
             /* Check the security */
             rc = btm_sec_mx_access_request (bd_addr, AVDT_PSM,
@@ -282,6 +293,9 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
     tAVDT_TC_TBL    *p_tbl;
     tL2CAP_CFG_INFO cfg;
     tAVDT_CCB *p_ccb;
+#if defined(AVDT_DISABLE_3DH) && (AVDT_DISABLE_3DH == TRUE)
+    tACL_CONN *p_acl_cb;
+#endif
 
     AVDT_TRACE_DEBUG("avdt_l2c_connect_cfm_cback lcid: %d, result: %d",
         lcid, result);
@@ -320,6 +334,15 @@ void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result)
                         p_tbl->state = AVDT_AD_ST_SEC_INT;
                         p_tbl->lcid = lcid;
                         p_tbl->cfg_flags = AVDT_L2C_CFG_CONN_INT;
+
+#if defined(AVDT_DISABLE_3DH) && (AVDT_DISABLE_3DH == TRUE)
+                        p_acl_cb = btm_bda_to_acl(p_ccb->peer_addr, BT_TRANSPORT_BR_EDR);
+                        btm_set_packet_types (p_acl_cb,
+                                              (btm_cb.btm_acl_pkt_types_supported |
+                                               HCI_PKT_TYPES_MASK_NO_3_DH1 |
+                                               HCI_PKT_TYPES_MASK_NO_3_DH3 |
+                                               HCI_PKT_TYPES_MASK_NO_3_DH5));
+#endif
 
                         /* Check the security */
                         btm_sec_mx_access_request (p_ccb->peer_addr, AVDT_PSM,
