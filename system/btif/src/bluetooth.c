@@ -256,6 +256,16 @@ static int create_bond(const bt_bdaddr_t *bd_addr, int transport)
     return btif_dm_create_bond(bd_addr, transport);
 }
 
+static int create_bond_out_of_band(const bt_bdaddr_t *bd_addr, int transport,
+                                   const bt_out_of_band_data_t *oob_data)
+{
+    /* sanity check */
+    if (interface_ready() == FALSE)
+        return BT_STATUS_NOT_READY;
+
+    return btif_dm_create_bond_out_of_band(bd_addr, transport, oob_data);
+}
+
 static int cancel_bond(const bt_bdaddr_t *bd_addr)
 {
     /* sanity check */
@@ -439,6 +449,7 @@ static const bt_interface_t bluetoothInterface = {
     start_discovery,
     cancel_discovery,
     create_bond,
+    create_bond_out_of_band,
     remove_bond,
     cancel_bond,
     get_connection_state,
