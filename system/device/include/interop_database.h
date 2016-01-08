@@ -60,4 +60,7 @@ static const interop_entry_t interop_database[] = {
 
   // VW Car Kit - not enough granularity with volume
   {{0x00, 0x26, 0x7e,       0,0,0}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+
+  // Jaybird Family
+  {{0x00, 0x18, 0x91,       0,0,0}, 3, INTEROP_2MBPS_LINK_ONLY}
 };
