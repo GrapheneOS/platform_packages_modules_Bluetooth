@@ -39,7 +39,7 @@ class AdapterTest : public ::testing::Test {
     hal::BluetoothGattInterface::InitializeForTesting(
         new hal::FakeBluetoothGattInterface(nullptr, nullptr));
 
-    adapter_.reset(new Adapter());
+    adapter_ = Adapter::Create();
   }
 
   void TearDown() override {
