@@ -327,7 +327,7 @@ bool LowEnergyClient::StartAdvertising(const AdvertiseSettings& settings,
 
   adv_data_ = advertise_data;
   scan_response_ = scan_response;
-  settings_ = settings;
+  advertise_settings_ = settings;
 
   AdvertiseParams params;
   GetAdvertiseParams(settings, !scan_response_.data().empty(), &params);
