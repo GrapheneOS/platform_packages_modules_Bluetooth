@@ -167,7 +167,7 @@ android::status_t BluetoothBinderServer::dump(int fd, const android::Vector<andr
   }
   // TODO (jamuraa): enumerate profiles and dump profile information
   const bt_interface_t *iface = bluetooth::hal::BluetoothInterface::Get()->GetHALInterface();
-  iface->dump(fd);
+  iface->dump(fd, NULL);
   return android::NO_ERROR;
 }
 
