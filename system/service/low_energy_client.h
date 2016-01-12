@@ -65,7 +65,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   bool IsStoppingAdvertising() const;
 
   // Returns the current advertising settings.
-  const AdvertiseSettings& settings() const { return settings_; }
+  const AdvertiseSettings& advertise_settings() const {
+   return advertise_settings_;
+  }
 
   // BluetoothClientInstace overrides:
   const UUID& GetAppIdentifier() const override;
@@ -119,7 +121,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   std::atomic_bool scan_rsp_needs_update_;
 
   // Latest advertising settings.
-  AdvertiseSettings settings_;
+  AdvertiseSettings advertise_settings_;
 
   // Whether or not there is a pending call to update advertising or scan
   // response data.
