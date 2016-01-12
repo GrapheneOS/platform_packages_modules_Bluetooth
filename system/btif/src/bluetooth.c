@@ -321,7 +321,7 @@ static int read_energy_info()
     return BT_STATUS_SUCCESS;
 }
 
-static void dump(int fd)
+static void dump(int fd, UNUSED_ATTR const char **arguments)
 {
     btif_debug_dump(fd);
     alarm_debug_dump(fd);
