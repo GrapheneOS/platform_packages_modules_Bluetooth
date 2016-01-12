@@ -18,10 +18,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "service/adapter.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/low_energy_client.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
+#include "test/mock_adapter.h"
 
 using ::testing::_;
 using ::testing::Return;
@@ -119,7 +121,7 @@ class LowEnergyClientTest : public ::testing::Test {
             hal::FakeBluetoothGattInterface::TestClientHandler>(mock_handler_),
         nullptr);
     hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
-    ble_factory_.reset(new LowEnergyClientFactory());
+    ble_factory_.reset(new LowEnergyClientFactory(mock_adapter_));
   }
 
   void TearDown() override {
@@ -129,6 +131,7 @@ class LowEnergyClientTest : public ::testing::Test {
 
  protected:
   hal::FakeBluetoothGattInterface* fake_hal_gatt_iface_;
+  testing::MockAdapter mock_adapter_;
   std::shared_ptr<MockGattHandler> mock_handler_;
   std::unique_ptr<LowEnergyClientFactory> ble_factory_;
 
@@ -163,7 +166,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
 
     bt_uuid_t hal_uuid = uuid.GetBlueDroid();
     fake_hal_gatt_iface_->NotifyRegisterClientCallback(0, 0, hal_uuid);
-    testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+    ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
   void TearDown() override {
@@ -262,7 +265,7 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
   // the stack.
   EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
 
-  testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // Call with a different UUID while one is pending.
   UUID uuid1 = UUID::GetRandom();
@@ -298,7 +301,7 @@ TEST_F(LowEnergyClientTest, RegisterInstance) {
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   client.reset();
-  testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // |uuid1| fails.
   int client_if1 = 3;
