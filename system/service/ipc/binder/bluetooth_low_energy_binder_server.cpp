@@ -112,7 +112,7 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
   android::wp<BluetoothLowEnergyBinderServer> weak_ptr_to_this(this);
-  auto settings_copy = client->settings();
+  auto settings_copy = client->advertise_settings();
   auto callback = [=](bluetooth::BLEStatus status) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {
