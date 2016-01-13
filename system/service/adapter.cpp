@@ -77,7 +77,7 @@ class AdapterImpl : public Adapter,
       name_(kDefaultName) {
     memset(&local_le_features_, 0, sizeof(local_le_features_));
     hal::BluetoothInterface::Get()->AddObserver(this);
-    ble_client_factory_.reset(new LowEnergyClientFactory());
+    ble_client_factory_.reset(new LowEnergyClientFactory(*this));
     gatt_client_factory_.reset(new GattClientFactory());
     gatt_server_factory_.reset(new GattServerFactory());
     hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();

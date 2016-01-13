@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "service/adapter.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
 
@@ -270,8 +271,10 @@ void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
 // LowEnergyClient implementation
 // ========================================================
 
-LowEnergyClient::LowEnergyClient(const UUID& uuid, int client_id)
-    : app_identifier_(uuid),
+LowEnergyClient::LowEnergyClient(
+    Adapter& adapter, const UUID& uuid, int client_id)
+    : adapter_(adapter),
+      app_identifier_(uuid),
       client_id_(client_id),
       adv_data_needs_update_(false),
       scan_rsp_needs_update_(false),
@@ -588,7 +591,8 @@ void LowEnergyClient::InvokeAndClearStopCallback(BLEStatus status) {
 // LowEnergyClientFactory implementation
 // ========================================================
 
-LowEnergyClientFactory::LowEnergyClientFactory() {
+LowEnergyClientFactory::LowEnergyClientFactory(Adapter& adapter)
+    : adapter_(adapter) {
   hal::BluetoothGattInterface::Get()->AddClientObserver(this);
 }
 
@@ -639,7 +643,7 @@ void LowEnergyClientFactory::RegisterClientCallback(
   std::unique_ptr<LowEnergyClient> client;
   BLEStatus result = BLE_STATUS_FAILURE;
   if (status == BT_STATUS_SUCCESS) {
-    client.reset(new LowEnergyClient(uuid, client_id));
+    client.reset(new LowEnergyClient(adapter_, uuid, client_id));
 
     // Use the unsafe variant to register this as an observer, since
     // LowEnergyClient instances only get created by LowEnergyClientCallback

@@ -32,6 +32,8 @@
 
 namespace bluetooth {
 
+class Adapter;
+
 // A LowEnergyClient represents an application's handle to perform various
 // Bluetooth Low Energy GAP operations. Instances cannot be created directly and
 // should be obtained through the factory.
@@ -78,7 +80,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // Constructor shouldn't be called directly as instances are meant to be
   // obtained from the factory.
-  LowEnergyClient(const UUID& uuid, int client_id);
+  LowEnergyClient(Adapter& adapter, const UUID& uuid, int client_id);
 
   // BluetoothGattInterface::ClientObserver overrides:
   void MultiAdvEnableCallback(
@@ -105,6 +107,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Calls and clears the pending callbacks.
   void InvokeAndClearStartCallback(BLEStatus status);
   void InvokeAndClearStopCallback(BLEStatus status);
+
+  // Raw pointer to the Bluetooth Adapter.
+  Adapter& adapter_;
 
   // See getters above for documentation.
   UUID app_identifier_;
@@ -144,7 +149,7 @@ class LowEnergyClientFactory
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
-  LowEnergyClientFactory();
+  LowEnergyClientFactory(Adapter& adapter);
   ~LowEnergyClientFactory() override;
 
   // BluetoothInstanceFactory override:
@@ -152,6 +157,8 @@ class LowEnergyClientFactory
                         const RegisterCallback& callback) override;
 
  private:
+  friend class LowEnergyClient;
+
   // BluetoothGattInterface::ClientObserver overrides:
   void RegisterClientCallback(
       hal::BluetoothGattInterface* gatt_iface,
@@ -161,6 +168,9 @@ class LowEnergyClientFactory
   // Map of pending calls to register.
   std::mutex pending_calls_lock_;
   std::map<UUID, RegisterCallback> pending_calls_;
+
+  // Raw pointer to the Adapter that owns this factory.
+  Adapter& adapter_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClientFactory);
 };
