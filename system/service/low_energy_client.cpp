@@ -281,7 +281,8 @@ LowEnergyClient::LowEnergyClient(
       is_setting_adv_data_(false),
       adv_started_(false),
       adv_start_callback_(nullptr),
-      adv_stop_callback_(nullptr) {
+      adv_stop_callback_(nullptr),
+      scan_started_(false) {
 }
 
 LowEnergyClient::~LowEnergyClient() {
@@ -296,6 +297,49 @@ LowEnergyClient::~LowEnergyClient() {
       GetClientHALInterface()->multi_adv_disable(client_id_);
   hal::BluetoothGattInterface::Get()->
       GetClientHALInterface()->unregister_client(client_id_);
+
+  // Stop any scans started by this client.
+  if (scan_started_.load())
+    StopScan();
+}
+
+bool LowEnergyClient::StartScan(const ScanSettings& settings,
+                                const std::vector<ScanFilter>& filters) {
+  VLOG(2) << __func__;
+
+  // Cannot start a scan if the adapter is not enabled.
+  if (!adapter_.IsEnabled()) {
+    LOG(ERROR) << "Cannot scan while Bluetooth is disabled";
+    return false;
+  }
+
+  // TODO(jpawlowski): Push settings and filtering logic below the HAL.
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      StartScan(client_id_);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Failed to initiate scanning for client: " << client_id_;
+    return false;
+  }
+
+  scan_started_ = true;
+  return true;
+}
+
+bool LowEnergyClient::StopScan() {
+  VLOG(2) << __func__;
+
+  // TODO(armansito): We don't support batch scanning yet so call
+  // StopRegularScanForClient directly. In the future we will need to
+  // conditionally call a batch scan API here.
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      StopScan(client_id_);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Failed to stop scan for client: " << client_id_;
+    return false;
+  }
+
+  scan_started_ = false;
+  return true;
 }
 
 bool LowEnergyClient::StartAdvertising(const AdvertiseSettings& settings,

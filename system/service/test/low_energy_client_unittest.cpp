@@ -34,7 +34,10 @@ namespace {
 class MockGattHandler
     : public hal::FakeBluetoothGattInterface::TestClientHandler {
  public:
-  MockGattHandler() = default;
+  MockGattHandler() {
+    ON_CALL(*this, Scan(false))
+        .WillByDefault(Return(BT_STATUS_SUCCESS));
+  }
   ~MockGattHandler() override = default;
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
@@ -802,6 +805,35 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_EQ(10, callback_count);
   EXPECT_EQ(7, adv_handler->call_count());
   EXPECT_EQ(BLE_STATUS_FAILURE, last_status);
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, ScanSettings) {
+  EXPECT_CALL(mock_adapter_, IsEnabled())
+      .WillOnce(Return(false))
+      .WillRepeatedly(Return(true));
+
+  ScanSettings settings;
+  std::vector<ScanFilter> filters;
+
+  // Adapter is not enabled.
+  EXPECT_FALSE(le_client_->StartScan(settings, filters));
+
+  //TODO(jpawlowski): add tests checking settings and filter parsing when
+  // implemented
+
+  // These should succeed and result in a HAL call
+  EXPECT_CALL(*mock_handler_, Scan(true))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(le_client_->StartScan(settings, filters));
+
+  // These should succeed and result in a HAL call
+  EXPECT_CALL(*mock_handler_, Scan(false))
+      .Times(1)
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_TRUE(le_client_->StopScan());
+
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 }
 
 }  // namespace
