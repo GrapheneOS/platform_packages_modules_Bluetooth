@@ -35,6 +35,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
 
     virtual bt_status_t RegisterClient(bt_uuid_t* app_uuid) = 0;
     virtual bt_status_t UnregisterClient(int client_if) = 0;
+
+    virtual bt_status_t Scan(bool start) = 0;
+
     virtual bt_status_t MultiAdvEnable(
         int client_if, int min_interval, int max_interval, int adv_type,
         int chnl_map, int tx_power, int timeout_s) = 0;
@@ -135,6 +138,7 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   base::ObserverList<ServerObserver> server_observers_;
   std::shared_ptr<TestClientHandler> client_handler_;
   std::shared_ptr<TestServerHandler> server_handler_;
+
 
   DISALLOW_COPY_AND_ASSIGN(FakeBluetoothGattInterface);
 };

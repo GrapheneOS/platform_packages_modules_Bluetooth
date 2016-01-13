@@ -37,6 +37,7 @@ class MockGattHandler
 
   MOCK_METHOD1(RegisterClient, bt_status_t(bt_uuid_t*));
   MOCK_METHOD1(UnregisterClient, bt_status_t(int));
+  MOCK_METHOD1(Scan, bt_status_t(bool));
   MOCK_METHOD7(MultiAdvEnable, bt_status_t(int, int, int, int, int, int, int));
   MOCK_METHOD10(
       MultiAdvSetInstDataMock,

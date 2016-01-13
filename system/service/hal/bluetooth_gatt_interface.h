@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include <mutex>
+#include <unordered_set>
+#include <vector>
+
 #include <base/macros.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
@@ -226,11 +230,21 @@ class BluetoothGattInterface {
   // structure.
   virtual const btgatt_server_interface_t* GetServerHALInterface() const = 0;
 
+  // Initiates a regular BLE device scan. This is called internally from each
+  // LowEnergyClient. This function synchronizes the scan requests and maintains
+  // an internal reference count for each scan client that is interested.
+  bt_status_t StartScan(int client_id);
+  bt_status_t StopScan(int client_id);
+
  protected:
   BluetoothGattInterface() = default;
   virtual ~BluetoothGattInterface() = default;
 
  private:
+  // Used to keep a reference count for the different BLE scan clients.
+  std::mutex scan_clients_lock_;
+  std::unordered_set<int> scan_client_set_;
+
   DISALLOW_COPY_AND_ASSIGN(BluetoothGattInterface);
 };
 
