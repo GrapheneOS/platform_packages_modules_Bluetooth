@@ -36,7 +36,8 @@ namespace binder {
 // Implements the server side of the IBluetoothLowEnergy interface.
 class BluetoothLowEnergyBinderServer
     : public BnBluetoothLowEnergy,
-      public InterfaceWithInstancesBase {
+      public InterfaceWithInstancesBase,
+      public bluetooth::LowEnergyClient::Delegate {
  public:
   explicit BluetoothLowEnergyBinderServer(bluetooth::Adapter* adapter);
   ~BluetoothLowEnergyBinderServer() override;
@@ -57,6 +58,10 @@ class BluetoothLowEnergyBinderServer
       const bluetooth::AdvertiseData& scan_response,
       const bluetooth::AdvertiseSettings& settings) override;
   bool StopMultiAdvertising(int client_id) override;
+
+  // bluetooth::LowEnergyClient::Delegate overrides:
+  void OnScanResult(bluetooth::LowEnergyClient* client,
+                    const bluetooth::ScanResult& result) override;
 
  private:
   // Returns a pointer to the IBluetoothLowEnergyCallback instance associated

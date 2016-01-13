@@ -22,6 +22,7 @@
 
 #include <bluetooth/advertise_data.h>
 #include <bluetooth/advertise_settings.h>
+#include <bluetooth/scan_result.h>
 
 namespace ipc {
 namespace binder {
@@ -54,7 +55,7 @@ namespace binder {
   };
 
   virtual void OnClientRegistered(int status, int client_if) = 0;
-
+  virtual void OnScanResult(const bluetooth::ScanResult& scan_result) = 0;
   virtual void OnMultiAdvertiseCallback(
       int status, bool is_start,
       const bluetooth::AdvertiseSettings& settings) = 0;
@@ -92,6 +93,7 @@ class BpBluetoothLowEnergyCallback
 
   // IBluetoothLowEnergyCallback overrides:
   void OnClientRegistered(int status, int client_if) override;
+  void OnScanResult(const bluetooth::ScanResult& scan_result) override;
   void OnMultiAdvertiseCallback(
       int status, bool is_start,
       const bluetooth::AdvertiseSettings& settings) override;

@@ -29,6 +29,13 @@ oneway interface IBluetoothLowEnergyCallback {
   void onClientRegistered(in int status, in int client_if);
 
   /**
+   * Called to report BLE device scan results once a scan session is started for
+   * this client using IBluetoothLowEnergy.startScan. |scan_result| contains all
+   * the data related to the discovered BLE device.
+   */
+  void onScanResult(in ScanResult scan_result);
+
+  /**
    * Called to report the result of a call to
    * IBluetoothLowEnergy.startMultiAdvertising or stopMultiAdvertising.
    */
