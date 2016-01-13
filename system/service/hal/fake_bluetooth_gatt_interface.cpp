@@ -246,6 +246,12 @@ void FakeBluetoothGattInterface::NotifyRegisterClientCallback(
                     RegisterClientCallback(this, status, client_if, app_uuid));
 }
 
+void FakeBluetoothGattInterface::NotifyScanResultCallback(
+    const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    ScanResultCallback(this, bda, rssi, adv_data));
+}
+
 void FakeBluetoothGattInterface::NotifyMultiAdvEnableCallback(
     int client_if, int status) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,

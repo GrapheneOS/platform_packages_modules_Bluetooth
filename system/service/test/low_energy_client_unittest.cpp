@@ -70,6 +70,29 @@ class MockGattHandler
   DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
 };
 
+class TestDelegate : public LowEnergyClient::Delegate {
+ public:
+  TestDelegate() : scan_result_count_(0) {
+  }
+
+  ~TestDelegate() override = default;
+
+  int scan_result_count() const { return scan_result_count_; }
+  const ScanResult& last_scan_result() const { return last_scan_result_; }
+
+  void OnScanResult(LowEnergyClient* client, const ScanResult& scan_result) {
+    ASSERT_TRUE(client);
+    scan_result_count_++;
+    last_scan_result_ = scan_result;
+  }
+
+ private:
+  int scan_result_count_;
+  ScanResult last_scan_result_;
+
+  DISALLOW_COPY_AND_ASSIGN(TestDelegate);
+};
+
 // Created this class for testing Advertising Data Setting
 // It provides a work around in order to verify the arguments
 // in the arrays passed to MultiAdvSetInstData due to mocks
@@ -834,6 +857,69 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanSettings) {
   EXPECT_TRUE(le_client_->StopScan());
 
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
+  TestDelegate delegate;
+  le_client_->SetDelegate(&delegate);
+
+  EXPECT_EQ(0, delegate.scan_result_count());
+
+  const uint8_t kTestRecord0[] = { 0x02, 0x01, 0x00, 0x00 };
+  const uint8_t kTestRecord1[] = { 0x00 };
+  const uint8_t kTestRecord2[] = {
+    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
+    0x01, 0x00
+  };
+  const bt_bdaddr_t kTestAddress = {
+    { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
+  };
+  const char kTestAddressStr[] = "01:02:03:0A:0B:0C";
+  const int kTestRssi = 64;
+
+  // Scan wasn't started. Result should be ignored.
+  fake_hal_gatt_iface_->NotifyScanResultCallback(
+      kTestAddress, kTestRssi, (uint8_t*) kTestRecord0);
+  EXPECT_EQ(0, delegate.scan_result_count());
+
+  // Start a scan session for |le_client_|.
+  EXPECT_CALL(mock_adapter_, IsEnabled())
+      .Times(1)
+      .WillOnce(Return(true));
+  EXPECT_CALL(*mock_handler_, Scan(_))
+      .Times(2)
+      .WillOnce(Return(BT_STATUS_SUCCESS))
+      .WillOnce(Return(BT_STATUS_SUCCESS));
+  ScanSettings settings;
+  std::vector<ScanFilter> filters;
+  ASSERT_TRUE(le_client_->StartScan(settings, filters));
+
+  fake_hal_gatt_iface_->NotifyScanResultCallback(
+      kTestAddress, kTestRssi, (uint8_t*) kTestRecord0);
+  EXPECT_EQ(1, delegate.scan_result_count());
+  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
+  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
+  EXPECT_EQ(3U, delegate.last_scan_result().scan_record().size());
+
+  fake_hal_gatt_iface_->NotifyScanResultCallback(
+      kTestAddress, kTestRssi, (uint8_t*) kTestRecord1);
+  EXPECT_EQ(2, delegate.scan_result_count());
+  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
+  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
+  EXPECT_TRUE(delegate.last_scan_result().scan_record().empty());
+
+  fake_hal_gatt_iface_->NotifyScanResultCallback(
+      kTestAddress, kTestRssi, (uint8_t*) kTestRecord2);
+  EXPECT_EQ(3, delegate.scan_result_count());
+  EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
+  EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
+  EXPECT_EQ(62U, delegate.last_scan_result().scan_record().size());
+
+  le_client_->SetDelegate(nullptr);
 }
 
 }  // namespace
