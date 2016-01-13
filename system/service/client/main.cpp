@@ -21,6 +21,7 @@
 #include <base/command_line.h>
 #include <base/logging.h>
 #include <base/macros.h>
+#include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
 #include <binder/IPCThreadState.h>
@@ -34,6 +35,8 @@
 #include <bluetooth/binder/IBluetoothLowEnergy.h>
 #include <bluetooth/binder/IBluetoothLowEnergyCallback.h>
 #include <bluetooth/low_energy_constants.h>
+#include <bluetooth/scan_filter.h>
+#include <bluetooth/scan_settings.h>
 #include <bluetooth/uuid.h>
 
 using namespace std;
@@ -87,6 +90,9 @@ std::atomic_int ble_client_id(0);
 // true then an operation to register the client is in progress.
 std::atomic_bool gatt_registering(false);
 std::atomic_int gatt_client_id(0);
+
+// True if we should dump the scan record bytes for incoming scan results.
+std::atomic_bool dump_scan_record(false);
 
 // True if the remote process has died and we should exit.
 std::atomic_bool should_exit(false);
@@ -150,6 +156,26 @@ class CLIBluetoothLowEnergyCallback
       PrintPrompt();
 
     ble_registering = false;
+  }
+
+  void OnScanResult(const bluetooth::ScanResult& scan_result) override {
+    if (showing_prompt.load())
+      cout << endl;
+
+    cout << COLOR_BOLDWHITE "Scan result: "
+         << COLOR_BOLDYELLOW "[" << scan_result.device_address() << "] "
+         << COLOR_BOLDWHITE "- RSSI: " << scan_result.rssi() << COLOR_OFF;
+
+    if (dump_scan_record) {
+      cout << " - Record: "
+           << base::HexEncode(scan_result.scan_record().data(),
+                              scan_result.scan_record().size());
+    }
+
+    cout  << endl << endl;
+
+    if (showing_prompt.load())
+      PrintPrompt();
   }
 
   void OnMultiAdvertiseCallback(
@@ -412,10 +438,10 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
       set_uuid = true;
     }
     else if (arg == "-h") {
-      const char* kUsage =
+      static const char kUsage[] =
           "Usage: start-adv [flags]\n"
           "\n"
-          "Flags\n"
+          "Flags:\n"
           "\t-n\tInclude device name\n"
           "\t-t\tInclude TX power\n"
           "\t-c\tSend connectable adv. packets (default is non-connectable)\n"
@@ -507,6 +533,59 @@ void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(status);
 }
 
+void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
+  if (!ble_client_id.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  for (auto arg : args) {
+    if (arg == "-d") {
+      dump_scan_record = true;
+    } else if (arg == "-h") {
+      static const char kUsage[] =
+          "Usage: start-le-scan [flags]\n"
+          "\n"
+          "Flags:\n"
+          "\t-d\tDump scan record\n"
+          "\t-h\tShow this help message\n";
+      cout << kUsage << endl;
+      return;
+    }
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  bluetooth::ScanSettings settings;
+  std::vector<bluetooth::ScanFilter> filters;
+
+  bool status = ble_iface->StartScan(ble_client_id.load(), settings, filters);
+  PrintCommandStatus(status);
+}
+
+void HandleStopLeScan(IBluetooth* bt_iface, const vector<string>& args) {
+  if (!ble_client_id.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  bluetooth::ScanSettings settings;
+  std::vector<bluetooth::ScanFilter> filters;
+
+  bool status = ble_iface->StopScan(ble_client_id.load());
+  PrintCommandStatus(status);
+}
+
 void HandleHelp(IBluetooth* bt_iface, const vector<string>& args);
 
 struct {
@@ -538,6 +617,9 @@ struct {
     "\t\tUnregister from the Bluetooth GATT Client interface" },
   { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
   { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
+  { "start-le-scan", HandleStartLeScan,
+    "\t\tStart LE device scan (-h for options)" },
+  { "stop-le-scan", HandleStopLeScan, "\t\tStop LE device scan" },
   {},
 };
 
