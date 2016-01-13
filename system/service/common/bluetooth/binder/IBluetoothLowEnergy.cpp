@@ -57,8 +57,8 @@ status_t BnBluetoothLowEnergy::onTransact(
     return android::NO_ERROR;
   }
   case UNREGISTER_CLIENT_TRANSACTION: {
-    int client_if = data.readInt32();
-    UnregisterClient(client_if);
+    int client_id = data.readInt32();
+    UnregisterClient(client_id);
     return android::NO_ERROR;
   }
   case UNREGISTER_ALL_TRANSACTION: {
@@ -66,7 +66,7 @@ status_t BnBluetoothLowEnergy::onTransact(
     return android::NO_ERROR;
   }
   case START_MULTI_ADVERTISING_TRANSACTION: {
-    int client_if = data.readInt32();
+    int client_id = data.readInt32();
     std::unique_ptr<AdvertiseData> adv_data =
         CreateAdvertiseDataFromParcel(data);
     std::unique_ptr<AdvertiseData> scan_rsp =
@@ -75,15 +75,15 @@ status_t BnBluetoothLowEnergy::onTransact(
         CreateAdvertiseSettingsFromParcel(data);
 
     bool result = StartMultiAdvertising(
-        client_if, *adv_data, *scan_rsp, *adv_settings);
+        client_id, *adv_data, *scan_rsp, *adv_settings);
 
     reply->writeInt32(result);
 
     return android::NO_ERROR;
   }
   case STOP_MULTI_ADVERTISING_TRANSACTION: {
-    int client_if = data.readInt32();
-    bool result = StopMultiAdvertising(client_if);
+    int client_id = data.readInt32();
+    bool result = StopMultiAdvertising(client_id);
 
     reply->writeInt32(result);
 
@@ -114,11 +114,11 @@ bool BpBluetoothLowEnergy::RegisterClient(
   return reply.readInt32();
 }
 
-void BpBluetoothLowEnergy::UnregisterClient(int client_if) {
+void BpBluetoothLowEnergy::UnregisterClient(int client_id) {
   Parcel data, reply;
 
   data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
-  data.writeInt32(client_if);
+  data.writeInt32(client_id);
 
   remote()->transact(IBluetoothLowEnergy::UNREGISTER_CLIENT_TRANSACTION,
                      data, &reply);
@@ -134,14 +134,14 @@ void BpBluetoothLowEnergy::UnregisterAll() {
 }
 
 bool BpBluetoothLowEnergy::StartMultiAdvertising(
-    int client_if,
+    int client_id,
     const AdvertiseData& advertise_data,
     const AdvertiseData& scan_response,
     const AdvertiseSettings& settings) {
   Parcel data, reply;
 
   data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
-  data.writeInt32(client_if);
+  data.writeInt32(client_id);
   WriteAdvertiseDataToParcel(advertise_data, &data);
   WriteAdvertiseDataToParcel(scan_response, &data);
   WriteAdvertiseSettingsToParcel(settings, &data);
@@ -152,11 +152,11 @@ bool BpBluetoothLowEnergy::StartMultiAdvertising(
   return reply.readInt32();
 }
 
-bool BpBluetoothLowEnergy::StopMultiAdvertising(int client_if) {
+bool BpBluetoothLowEnergy::StopMultiAdvertising(int client_id) {
   Parcel data, reply;
 
   data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
-  data.writeInt32(client_if);
+  data.writeInt32(client_id);
 
   remote()->transact(IBluetoothLowEnergy::STOP_MULTI_ADVERTISING_TRANSACTION,
                      data, &reply);
