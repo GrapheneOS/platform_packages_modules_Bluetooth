@@ -65,6 +65,35 @@ status_t BnBluetoothLowEnergy::onTransact(
     UnregisterAll();
     return android::NO_ERROR;
   }
+  case START_SCAN_TRANSACTION: {
+    int client_id = data.readInt32();
+    auto settings = CreateScanSettingsFromParcel(data);
+    CHECK(settings);
+    std::vector<bluetooth::ScanFilter> filters;
+
+    int list_meta_data = data.readInt32();
+    CHECK(list_meta_data == kParcelValList);
+
+    int filter_count = data.readInt32();
+    if (filter_count >= 0) {  // Make sure |filter_count| isn't negative.
+      for (int i = 0; i < filter_count; i++) {
+        auto filter = CreateScanFilterFromParcel(data);
+        CHECK(filter);
+        filters.push_back(*filter);
+      }
+    }
+
+    bool result = StartScan(client_id, *settings, filters);
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
+  case STOP_SCAN_TRANSACTION: {
+    int client_id = data.readInt32();
+    bool result = StopScan(client_id);
+    reply->writeInt32(result);
+    return android::NO_ERROR;
+  }
   case START_MULTI_ADVERTISING_TRANSACTION: {
     int client_id = data.readInt32();
     std::unique_ptr<AdvertiseData> adv_data =
@@ -131,6 +160,42 @@ void BpBluetoothLowEnergy::UnregisterAll() {
 
   remote()->transact(IBluetoothLowEnergy::UNREGISTER_ALL_TRANSACTION,
                      data, &reply);
+}
+
+bool BpBluetoothLowEnergy::StartScan(
+    int client_id,
+    const bluetooth::ScanSettings& settings,
+    const std::vector<bluetooth::ScanFilter>& filters) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
+  data.writeInt32(client_id);
+  WriteScanSettingsToParcel(settings, &data);
+
+  // The Java equivalent of |filters| is a List<ScanFilter>. Parcel.java inserts
+  // a metadata value of VAL_LIST (11) for this so I'm doing it here for
+  // compatibility.
+  data.writeInt32(kParcelValList);
+  data.writeInt32(filters.size());
+  for (const auto& filter : filters)
+    WriteScanFilterToParcel(filter, &data);
+
+  remote()->transact(IBluetoothLowEnergy::START_SCAN_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
+}
+
+bool BpBluetoothLowEnergy::StopScan(int client_id) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
+  data.writeInt32(client_id);
+
+  remote()->transact(IBluetoothLowEnergy::STOP_SCAN_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
 }
 
 bool BpBluetoothLowEnergy::StartMultiAdvertising(

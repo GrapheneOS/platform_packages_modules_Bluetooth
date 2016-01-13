@@ -33,9 +33,25 @@ interface IBluetoothLowEnergy {
   void unregisterClient(in int client_if);
 
   /**
-   * Unregisters all previous registered clients.
+   * Unregisters all previously registered clients.
    */
   void unregisterAll();
+
+  /**
+   * Initiates a BLE device scan for the scan client with ID |client_id|, using
+   * the parameters defined in |settings|. Scan results that are reported to the
+   * application with the associated IBluetoothLowEnergyCallback event will be
+   * filtered using a combination of hardware and software filtering based on
+   * |filters|. Return true on success, false otherwise.
+   */
+  boolean startScan(in int client_id, in ScanSettings settings,
+                    in ScanFilter[] filters);
+
+  /**
+   * Stops a previously initiated scan session for the client with ID
+   * |client_id|. Return true on success, false otherwise.
+   */
+  boolean stopScan(in int client_id);
 
   /**
    * Starts a multi-advertising instance using |advertising_data| and
