@@ -1210,7 +1210,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
 
     if (BTM_IsInquiryActive())
     {
-        if (BTM_CancelInquiry() != BTM_CMD_STARTED)
+        if (BTM_CancelInquiry() == BTM_SUCCESS)
         {
             bta_dm_search_cancel_notify(NULL);
             p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG));
