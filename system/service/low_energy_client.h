@@ -28,6 +28,7 @@
 #include "service/common/bluetooth/advertise_settings.h"
 #include "service/common/bluetooth/low_energy_constants.h"
 #include "service/common/bluetooth/scan_filter.h"
+#include "service/common/bluetooth/scan_result.h"
 #include "service/common/bluetooth/scan_settings.h"
 #include "service/common/bluetooth/uuid.h"
 #include "service/hal/bluetooth_gatt_interface.h"
@@ -42,9 +43,29 @@ class Adapter;
 class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
                         public BluetoothInstance {
  public:
+  // The Delegate interface is used to notify asynchronous events related to BLE
+  // GAP operations.
+  class Delegate {
+   public:
+    Delegate() = default;
+    virtual ~Delegate() = default;
+
+    // Called asynchronously to notify the delegate of nearby BLE advertisers
+    // found during a device scan.
+    virtual void OnScanResult(LowEnergyClient* client,
+                              const ScanResult& scan_result) = 0;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(Delegate);
+  };
+
   // The destructor automatically unregisters this client instance from the
   // stack.
   ~LowEnergyClient() override;
+
+  // Assigns a delegate to this instance. |delegate| must out-live this
+  // LowEnergyClient instance.
+  void SetDelegate(Delegate* delegate);
 
   // Callback type used to return the result of asynchronous operations below.
   using StatusCallback = std::function<void(BLEStatus)>;
@@ -99,6 +120,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   LowEnergyClient(Adapter& adapter, const UUID& uuid, int client_id);
 
   // BluetoothGattInterface::ClientObserver overrides:
+  void ScanResultCallback(
+      hal::BluetoothGattInterface* gatt_iface,
+      const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) override;
   void MultiAdvEnableCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int client_id, int status) override;
@@ -160,6 +184,11 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // If true, then this client have a BLE device scan in progress.
   std::atomic_bool scan_started_;
+
+  // Raw handle to the Delegate, which must outlive this LowEnergyClient
+  // instance.
+  std::mutex delegate_mutex_;
+  Delegate* delegate_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);
 };

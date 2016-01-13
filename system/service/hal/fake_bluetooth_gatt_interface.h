@@ -90,6 +90,8 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // Client callbacks:
   void NotifyRegisterClientCallback(int status, int client_if,
                                     const bt_uuid_t& app_uuid);
+  void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
+                                uint8_t* adv_data);
   void NotifyMultiAdvEnableCallback(int client_if, int status);
   void NotifyMultiAdvDataCallback(int client_if, int status);
   void NotifyMultiAdvDisableCallback(int client_if, int status);
