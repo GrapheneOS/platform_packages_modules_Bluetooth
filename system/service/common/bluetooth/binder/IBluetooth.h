@@ -118,7 +118,6 @@ class IBluetooth : public android::IInterface {
     GET_ACTIVITY_ENERGY_INFO_FROM_CONTROLLER_TRANSACTION,
     REPORT_ACTIVITY_INFO_TRANSACTION,
 
-    DUMP_TRANSACTION,
     ON_LE_SERVICE_UP_TRANSACTION,
     ON_BR_EDR_DOWN_TRANSACTION,
 
@@ -154,8 +153,6 @@ class IBluetooth : public android::IInterface {
   virtual android::sp<IBluetoothLowEnergy> GetLowEnergyInterface() = 0;
   virtual android::sp<IBluetoothGattClient> GetGattClientInterface() = 0;
   virtual android::sp<IBluetoothGattServer> GetGattServerInterface() = 0;
-
-  // TODO(armansito): Complete the API definition.
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IBluetooth);

@@ -25,6 +25,7 @@ using android::IBinder;
 using android::interface_cast;
 using android::IServiceManager;
 using android::Parcel;
+using android::PERMISSION_DENIED;
 using android::sp;
 using android::status_t;
 using android::String16;
@@ -64,77 +65,89 @@ sp<IBluetooth> IBluetooth::getClientInterface() {
 status_t BnBluetooth::onTransact(
     uint32_t code, const Parcel& data, Parcel* reply, uint32_t flags) {
   VLOG(2) << "IBluetooth transaction: " << code;
-  if (!data.checkInterface(this))
-    return android::PERMISSION_DENIED;
 
   switch (code) {
     case IS_ENABLED_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       bool is_enabled = IsEnabled();
       reply->writeInt32(is_enabled);
       return android::NO_ERROR;
     }
     case GET_STATE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       int state = GetState();
       reply->writeInt32(state);
       return android::NO_ERROR;
     }
     case ENABLE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       bool result = Enable();
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
     case DISABLE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       bool result = Disable();
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
     case GET_ADDRESS_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       std::string address = GetAddress();
       reply->writeCString(address.c_str());
       return android::NO_ERROR;
     }
     case GET_UUIDS_TRANSACTION:
+      CHECK_INTERFACE(IBluetooth, data, reply);
       // TODO(armansito): Figure out how to handle a Java "ParcelUuid" natively.
       // (see http://b/23316698).
       return android::INVALID_OPERATION;
 
     case SET_NAME_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       std::string name(data.readCString());
       bool result = SetName(name);
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
     case GET_NAME_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       std::string name = GetName();
       reply->writeCString(name.c_str());
       return android::NO_ERROR;
     }
     case REGISTER_CALLBACK_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       sp<IBinder> callback = data.readStrongBinder();
       RegisterCallback(interface_cast<IBluetoothCallback>(callback));
       return android::NO_ERROR;
     }
     case UNREGISTER_CALLBACK_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       sp<IBinder> callback = data.readStrongBinder();
       UnregisterCallback(interface_cast<IBluetoothCallback>(callback));
       return android::NO_ERROR;
     }
     case IS_MULTI_ADVERTISEMENT_SUPPORTED_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       bool result = IsMultiAdvertisementSupported();
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
     case GET_LOW_ENERGY_INTERFACE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       sp<IBluetoothLowEnergy> ble_iface = GetLowEnergyInterface();
       reply->writeStrongBinder(IInterface::asBinder(ble_iface.get()));
       return android::NO_ERROR;
     }
     case GET_GATT_CLIENT_INTERFACE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       sp<IBluetoothGattClient> gatt_client_iface = GetGattClientInterface();
       reply->writeStrongBinder(IInterface::asBinder(gatt_client_iface.get()));
       return android::NO_ERROR;
     }
     case GET_GATT_SERVER_INTERFACE_TRANSACTION: {
+      CHECK_INTERFACE(IBluetooth, data, reply);
       sp<IBluetoothGattServer> gatt_server_iface = GetGattServerInterface();
       reply->writeStrongBinder(IInterface::asBinder(gatt_server_iface.get()));
       return android::NO_ERROR;
