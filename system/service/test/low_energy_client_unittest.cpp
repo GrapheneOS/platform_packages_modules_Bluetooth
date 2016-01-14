@@ -168,31 +168,16 @@ class LowEnergyClientTest : public ::testing::Test {
 // Used for tests that operate on a pre-registered client.
 class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
  public:
-  LowEnergyClientPostRegisterTest() = default;
+  LowEnergyClientPostRegisterTest() : next_client_id_(0) {
+  }
   ~LowEnergyClientPostRegisterTest() override = default;
 
   void SetUp() override {
     LowEnergyClientTest::SetUp();
-    UUID uuid = UUID::GetRandom();
-    auto callback = [&](BLEStatus status, const UUID& in_uuid,
-                        std::unique_ptr<BluetoothInstance> in_client) {
-      CHECK(in_uuid == uuid);
-      CHECK(in_client.get());
-      CHECK(status == BLE_STATUS_SUCCESS);
-
-      le_client_ = std::unique_ptr<LowEnergyClient>(
-          static_cast<LowEnergyClient*>(in_client.release()));
+    auto callback = [&](std::unique_ptr<LowEnergyClient> client) {
+      le_client_ = std::move(client);
     };
-
-    EXPECT_CALL(*mock_handler_, RegisterClient(_))
-        .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
-
-    ble_factory_->RegisterInstance(uuid, callback);
-
-    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
-    fake_hal_gatt_iface_->NotifyRegisterClientCallback(0, 0, hal_uuid);
-    ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+    RegisterTestClient(callback);
   }
 
   void TearDown() override {
@@ -204,6 +189,32 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
         .WillOnce(Return(BT_STATUS_SUCCESS));
     le_client_.reset();
     LowEnergyClientTest::TearDown();
+  }
+
+  void RegisterTestClient(
+      const std::function<void(std::unique_ptr<LowEnergyClient> client)>
+          callback) {
+    UUID uuid = UUID::GetRandom();
+    auto api_callback = [&](BLEStatus status, const UUID& in_uuid,
+                        std::unique_ptr<BluetoothInstance> in_client) {
+      CHECK(in_uuid == uuid);
+      CHECK(in_client.get());
+      CHECK(status == BLE_STATUS_SUCCESS);
+
+      callback(std::unique_ptr<LowEnergyClient>(
+          static_cast<LowEnergyClient*>(in_client.release())));
+    };
+
+    EXPECT_CALL(*mock_handler_, RegisterClient(_))
+        .Times(1)
+        .WillOnce(Return(BT_STATUS_SUCCESS));
+
+    ble_factory_->RegisterInstance(uuid, api_callback);
+
+    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
+    fake_hal_gatt_iface_->NotifyRegisterClientCallback(
+        0, next_client_id_++, hal_uuid);
+    ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
   void StartAdvertising() {
@@ -252,6 +263,8 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
   std::unique_ptr<LowEnergyClient> le_client_;
 
  private:
+  int next_client_id_;
+
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClientPostRegisterTest);
 };
 
