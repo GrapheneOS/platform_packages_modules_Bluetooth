@@ -146,3 +146,65 @@ TEST_F(ListTest, test_list_next) {
   EXPECT_EQ(list_next(list_begin(list)), list_end(list));
   list_free(list);
 }
+
+static bool list_callback_sum(void *data, void *context) {
+  assert(data);
+  assert(context);
+  int *sum = (int *)context;
+  int *value = (int *)data;
+  *sum += *value;
+  return true;
+}
+
+static bool list_callback_find_int(void *data, void *context) {
+  assert(data);
+  assert(context);
+  return (*(int *)data != *(int *)context);
+}
+
+TEST_F(ListTest, test_list_foreach_full) {
+  list_t *list = list_new(NULL);
+
+  // Fill in test data
+  int x[] = { 1, 2, 3, 4, 5 };
+  for (size_t i = 0; i < ARRAY_SIZE(x); ++i)
+    list_append(list, &x[i]);
+  EXPECT_EQ(list_length(list), 5);
+
+  // Test complete iteration
+  int sum = 0;
+  bool rc = list_foreach(list, list_callback_sum, &sum);
+  EXPECT_EQ(sum, 15);
+  EXPECT_TRUE(rc);
+
+  list_free(list);
+}
+
+TEST_F(ListTest, test_list_foreach_partial) {
+  list_t *list = list_new(NULL);
+
+  // Fill in test data
+  int x[] = { 1, 2, 3, 4, 5 };
+  for (size_t i = 0; i < ARRAY_SIZE(x); ++i)
+    list_append(list, &x[i]);
+  EXPECT_EQ(list_length(list), 5);
+
+  // Test partial iteration
+  int find = 4;
+  bool rc = list_foreach(list, list_callback_find_int, &find);
+  EXPECT_FALSE(rc);
+
+  find = 1;
+  rc = list_foreach(list, list_callback_find_int, &find);
+  EXPECT_FALSE(rc);
+
+  find = 5;
+  rc = list_foreach(list, list_callback_find_int, &find);
+  EXPECT_FALSE(rc);
+
+  find = 0;
+  rc = list_foreach(list, list_callback_find_int, &find);
+  EXPECT_TRUE(rc);
+
+  list_free(list);
+}
