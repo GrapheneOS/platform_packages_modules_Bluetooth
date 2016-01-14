@@ -45,6 +45,7 @@
 #include "btsnoop.h"
 #include "btu.h"
 #include "bt_common.h"
+#include "device/include/interop.h"
 #include "hci_layer.h"
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
@@ -100,6 +101,7 @@ fixed_queue_t *btu_hci_msg_queue;
 void bte_main_boot_entry(void)
 {
     module_init(get_module(COUNTER_MODULE));
+    module_init(get_module(INTEROP_MODULE));
 
     hci = hci_layer_get_interface();
     if (!hci)
@@ -136,6 +138,7 @@ void bte_main_shutdown()
 
     module_clean_up(get_module(STACK_CONFIG_MODULE));
 
+    module_clean_up(get_module(INTEROP_MODULE));
     module_clean_up(get_module(COUNTER_MODULE));
 }
 
