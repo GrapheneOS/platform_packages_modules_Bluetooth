@@ -1049,8 +1049,11 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* used to reset cache in application */
         bta_gattc_co_cache_reset(p_clcb->p_srcb->server_bda);
     }
-    /* release pending attribute list buffer */
-    utl_freebuf((void **)&p_clcb->p_srcb->p_srvc_list);
+    if(p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_list)
+    {
+        /* release pending attribute list buffer */
+        utl_freebuf((void **)&p_clcb->p_srcb->p_srvc_list);
+    }
 
     if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING)
     {
