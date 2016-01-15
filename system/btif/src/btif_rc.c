@@ -1957,7 +1957,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
 **
 ** Description      iterator callback function to match the event and handle
 **                  timer cleanup
-** Returns          true if matches with the event, flase otherwise
+** Returns          true to continue iterating, false to stop
 **
 ***************************************************************************/
 bool iterate_supported_event_list_for_interim_rsp(void *data, void *cb_data)
@@ -1970,9 +1970,9 @@ bool iterate_supported_event_list_for_interim_rsp(void *data, void *cb_data)
     if (p_event->event_id == *p_event_id)
     {
         p_event->status = eINTERIM;
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 /***************************************************************************
@@ -1984,25 +1984,22 @@ bool iterate_supported_event_list_for_interim_rsp(void *data, void *cb_data)
 **                  transaction label and removes the event from list,
 **                  this event will not be requested again during
 **                  the lifetime of the connection.
-** Returns          true if matches with the event, flase otherwise
+** Returns          false to stop iterating, true to continue
 **
 ***************************************************************************/
 bool iterate_supported_event_list_for_timeout(void *data, void *cb_data)
 {
     UINT8 label;
-    UINT32 cb_value;
     btif_rc_supported_event_t *p_event = (btif_rc_supported_event_t *)data;
 
-    cb_value = (UINT32)cb_data;
-
-    label = cb_value & 0xFF;
+    label = (*(UINT8*)cb_data) & 0xFF;
 
     if (p_event->label == label)
     {
         list_remove(btif_rc_cb.rc_supported_event_list, p_event);
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 /***************************************************************************
@@ -2018,11 +2015,9 @@ bool iterate_supported_event_list_for_timeout(void *data, void *cb_data)
 static void rc_notification_interim_timout (UINT8 label)
 {
     list_node_t *node;
-    UINT32 cb_data;
 
-    cb_data = label;
-    list_foreach_ext(btif_rc_cb.rc_supported_event_list,
-                     iterate_supported_event_list_for_timeout, (void*)cb_data);
+    list_foreach(btif_rc_cb.rc_supported_event_list,
+                     iterate_supported_event_list_for_timeout, &label);
     /* Timeout happened for interim response for the registered event,
      * check if there are any pending for registration
      */
@@ -2471,9 +2466,9 @@ static void handle_notification_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_REG
                     p_rsp->event_id);
                 return;
         }
-        list_foreach_ext(btif_rc_cb.rc_supported_event_list,
+        list_foreach(btif_rc_cb.rc_supported_event_list,
                 iterate_supported_event_list_for_interim_rsp,
-                (void*)&p_rsp->event_id);
+                &p_rsp->event_id);
 
         node = list_begin(btif_rc_cb.rc_supported_event_list);
         while (node != NULL)
