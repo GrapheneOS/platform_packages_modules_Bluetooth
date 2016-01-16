@@ -39,6 +39,7 @@ btosiCommonSrc := \
     ./src/hash_map.c \
     ./src/hash_map_utils.c \
     ./src/list.c \
+    ./src/metrics.cpp \
     ./src/mutex.c \
     ./src/reactor.c \
     ./src/ringbuffer.c \
@@ -79,6 +80,27 @@ btosiCommonIncludes := \
 btosiCommonCFlags := -std=c99 -Wall -Werror -UNDEBUG -fvisibility=hidden \
     $(bdroid_CFLAGS)
 
+
+# protobuf library for bluetooth
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_MODULE := libbt-protos
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+generated_sources_dir := $(call local-generated-sources-dir)
+LOCAL_EXPORT_C_INCLUDE_DIRS += \
+    $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
+LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libbt-protos
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+generated_sources_dir := $(call local-generated-sources-dir)
+LOCAL_EXPORT_C_INCLUDE_DIRS += \
+    $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
+LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+include $(BUILD_HOST_STATIC_LIBRARY)
+
 # libosi static library for target
 # ========================================================
 include $(CLEAR_VARS)
@@ -90,6 +112,7 @@ LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 include $(BUILD_STATIC_LIBRARY)
 
@@ -110,6 +133,7 @@ LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi-host
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 include $(BUILD_HOST_STATIC_LIBRARY)
 endif
@@ -125,8 +149,8 @@ LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog
-LOCAL_STATIC_LIBRARIES := libosi
+LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
+LOCAL_STATIC_LIBRARIES := libosi libbt-protos
 include $(BUILD_NATIVE_TEST)
 
 # libosi unit tests for host
@@ -139,7 +163,7 @@ LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_LDLIBS := -lrt -lpthread
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog
-LOCAL_STATIC_LIBRARIES := libosi-host
+LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
+LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos
 include $(BUILD_HOST_NATIVE_TEST)
 endif
