@@ -60,6 +60,8 @@ class BluetoothLowEnergyBinderServer
   bool StopMultiAdvertising(int client_id) override;
 
   // bluetooth::LowEnergyClient::Delegate overrides:
+  void OnConnectionState(bluetooth::LowEnergyClient* client, int status,
+                         const char* address, bool connected) override;
   void OnScanResult(bluetooth::LowEnergyClient* client,
                     const bluetooth::ScanResult& result) override;
 
