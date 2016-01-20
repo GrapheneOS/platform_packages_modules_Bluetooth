@@ -37,6 +37,10 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t UnregisterClient(int client_if) = 0;
 
     virtual bt_status_t Scan(bool start) = 0;
+    virtual bt_status_t Connect(int client_if, const bt_bdaddr_t *bd_addr,
+                                bool is_direct, int transport) = 0;
+    virtual bt_status_t Disconnect(int client_if, const bt_bdaddr_t *bd_addr,
+                                   int conn_id) = 0;
 
     virtual bt_status_t MultiAdvEnable(
         int client_if, int min_interval, int max_interval, int adv_type,
@@ -90,6 +94,10 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // Client callbacks:
   void NotifyRegisterClientCallback(int status, int client_if,
                                     const bt_uuid_t& app_uuid);
+  void NotifyConnectCallback(int conn_id, int status, int client_if,
+                             const bt_bdaddr_t& bda);
+  void NotifyDisconnectCallback(int conn_id, int status, int client_if,
+                                const bt_bdaddr_t& bda);
   void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
                                 uint8_t* adv_data);
   void NotifyMultiAdvEnableCallback(int client_if, int status);
