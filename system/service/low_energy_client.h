@@ -35,6 +35,12 @@
 
 namespace bluetooth {
 
+struct ConnComparator {
+    bool operator()(const bt_bdaddr_t& a, const bt_bdaddr_t& b) const {
+        return memcmp(&a, &b, sizeof(bt_bdaddr_t)) < 0;
+    }
+};
+
 class Adapter;
 
 // A LowEnergyClient represents an application's handle to perform various
@@ -55,6 +61,10 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
     virtual void OnScanResult(LowEnergyClient* client,
                               const ScanResult& scan_result) = 0;
 
+    // Called asynchronously to notify the delegate of connection state change
+    virtual void OnConnectionState(LowEnergyClient* client, int status,
+                                   const char* address, bool connected) = 0;
+
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
@@ -69,6 +79,15 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // Callback type used to return the result of asynchronous operations below.
   using StatusCallback = std::function<void(BLEStatus)>;
+
+  // Initiates a BLE connection do device with address |address|. If
+  // |is_direct| is set, use direct connect procedure. Return true on success
+  //, false otherwise.
+  bool Connect(std::string address, bool is_direct);
+
+  // Disconnect from previously connected BLE device with address |address|.
+  // Return true on success, false otherwise.
+  bool Disconnect(std::string address);
 
   // Initiates a BLE device scan for this client using the given |settings| and
   // |filters|. See the documentation for ScanSettings and ScanFilter for how
@@ -102,7 +121,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
 
   // Returns the current advertising settings.
   const AdvertiseSettings& advertise_settings() const {
-   return advertise_settings_;
+    return advertise_settings_;
   }
 
   // Returns the current scan settings.
@@ -123,6 +142,13 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   void ScanResultCallback(
       hal::BluetoothGattInterface* gatt_iface,
       const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) override;
+
+  void ConnectCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int client_id, const bt_bdaddr_t& bda) override;
+  void DisconnectCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int client_id, const bt_bdaddr_t& bda) override;
   void MultiAdvEnableCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int client_id, int status) override;
@@ -189,6 +215,12 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // instance.
   std::mutex delegate_mutex_;
   Delegate* delegate_;
+
+  // Protects device connection related members below.
+  std::mutex connection_fields_lock_;
+
+  // Maps bluetooth address to connection id
+  std::map<const bt_bdaddr_t, int, ConnComparator> connection_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);
 };

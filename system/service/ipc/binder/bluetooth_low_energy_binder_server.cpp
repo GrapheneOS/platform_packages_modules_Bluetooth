@@ -168,6 +168,12 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
   return true;
 }
 
+void BluetoothLowEnergyBinderServer::OnConnectionState(
+      bluetooth::LowEnergyClient* client, int status,
+      const char* address, bool connected) {
+  VLOG(2) << __func__ << " address: " << address << " connected: " << connected;
+}
+
 void BluetoothLowEnergyBinderServer::OnScanResult(
     bluetooth::LowEnergyClient* client,
     const bluetooth::ScanResult& result) {
