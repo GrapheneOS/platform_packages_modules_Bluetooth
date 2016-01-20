@@ -65,6 +65,25 @@ status_t BnBluetoothLowEnergy::onTransact(
     UnregisterAll();
     return android::NO_ERROR;
   }
+  case CONNECT_TRANSACTION: {
+    int client_id = data.readInt32();
+    const char* address = data.readCString();
+    bool is_direct = data.readBool();
+
+    bool result = Connect(client_id, address, is_direct);
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
+  case DISCONNECT_TRANSACTION: {
+    int client_id = data.readInt32();
+    const char* address = data.readCString();
+
+    bool result = Disconnect(client_id, address);
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
   case START_SCAN_TRANSACTION: {
     int client_id = data.readInt32();
     auto settings = CreateScanSettingsFromParcel(data);
@@ -160,6 +179,34 @@ void BpBluetoothLowEnergy::UnregisterAll() {
 
   remote()->transact(IBluetoothLowEnergy::UNREGISTER_ALL_TRANSACTION,
                      data, &reply);
+}
+
+bool BpBluetoothLowEnergy::Connect(int client_id, const char* address,
+                                   bool is_direct) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
+  data.writeInt32(client_id);
+  data.writeCString(address);
+  data.writeBool(is_direct);
+
+  remote()->transact(IBluetoothLowEnergy::CONNECT_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
+}
+
+bool BpBluetoothLowEnergy::Disconnect(int client_id, const char* address) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
+  data.writeInt32(client_id);
+  data.writeCString(address);
+
+  remote()->transact(IBluetoothLowEnergy::DISCONNECT_TRANSACTION,
+                     data, &reply);
+
+  return reply.readInt32();
 }
 
 bool BpBluetoothLowEnergy::StartScan(

@@ -55,6 +55,8 @@ namespace binder {
   };
 
   virtual void OnClientRegistered(int status, int client_if) = 0;
+  virtual void OnConnectionState(int status, int client_id, const char* address,
+                                 bool connected) = 0;
   virtual void OnScanResult(const bluetooth::ScanResult& scan_result) = 0;
   virtual void OnMultiAdvertiseCallback(
       int status, bool is_start,
@@ -93,6 +95,8 @@ class BpBluetoothLowEnergyCallback
 
   // IBluetoothLowEnergyCallback overrides:
   void OnClientRegistered(int status, int client_if) override;
+  void OnConnectionState(int status, int client_id, const char* address,
+                         bool connected) override;
   void OnScanResult(const bluetooth::ScanResult& scan_result) override;
   void OnMultiAdvertiseCallback(
       int status, bool is_start,

@@ -37,6 +37,18 @@ interface IBluetoothLowEnergy {
    */
   void unregisterAll();
 
+  /* Initiates a BLE connection do device with address |address|. If
+   * |is_direct| is set, use direct connect procedure. Return true on success,
+   * false otherwise.
+   */
+  boolean Connect(in int client_id, in const char* address,
+                  in boolean is_direct);
+
+  /* Disconnect from previously connected BLE device with address |address|.
+   * Return true on success, false otherwise.
+   */
+  boolean Disconnect(in int client_id, in const char* address);
+
   /**
    * Initiates a BLE device scan for the scan client with ID |client_id|, using
    * the parameters defined in |settings|. Scan results that are reported to the
