@@ -715,8 +715,9 @@ int main(int argc, char* argv[]) {
       return EXIT_FAILURE;
     }
 
-    vector<string> args;
-    base::SplitString(command, ' ', &args);
+    vector<string> args =
+        base::SplitString(command, " ", base::TRIM_WHITESPACE,
+                          base::SPLIT_WANT_ALL);
 
     if (args.empty())
       continue;
