@@ -1434,7 +1434,18 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
             {
                 mask = 1 << xx;
                 APPL_TRACE_DEBUG("conn_lcb: 0x%x", p_cb->conn_lcb);
-
+                tBTA_AV_SCB *p_scb = p_cb->p_scb[xx];
+                if (p_scb != NULL)
+                {
+                    UINT8 avdt_tsep_type = p_scb->seps[p_scb->sep_idx].tsep;
+                    /* If the device is a A2DP source, disconnect the AVDT connection */
+                    if ((avdt_tsep_type == AVDT_TSEP_SRC) && (p_data->hdr.offset == AVDT_ACP))
+                    {
+                        LOG_INFO("%s disconnecting invalid A2DP source to A2DP source connection.", __func__);
+                        AVDT_DisconnectReq(p_data->str_msg.bd_addr, NULL);
+                        return;
+                    }
+                }
                 /* look for a p_lcb with its p_scb registered */
                 if((!(mask & p_cb->conn_lcb)) && (p_cb->p_scb[xx] != NULL))
                 {
