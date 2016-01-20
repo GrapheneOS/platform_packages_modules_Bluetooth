@@ -91,13 +91,13 @@ UUID::UUID(std::string uuid) {
     if (uuid[23] != '-')
       return;
 
-    std::vector<std::string> tokens;
-    base::SplitString(uuid, '-', &tokens);
+    std::vector<std::string> tokens = base::SplitString(
+        uuid, "-", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
     if (tokens.size() != 5)
       return;
 
-    uuid = JoinString(tokens, "");
+    uuid = base::JoinString(tokens, "");
   }
 
   const int start_index = uuid.size() == 4 ? 2 : 0;

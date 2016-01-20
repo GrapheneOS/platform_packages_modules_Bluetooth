@@ -34,8 +34,8 @@ bool BdAddrFromString(const std::string& address, bt_bdaddr_t* out_addr) {
   if (address.length() != 17)
     return false;
 
-  std::vector<std::string> byte_tokens;
-  base::SplitString(address, ':', &byte_tokens);
+  std::vector<std::string> byte_tokens = base::SplitString(
+      address, ":", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
   if (byte_tokens.size() != 6)
     return false;

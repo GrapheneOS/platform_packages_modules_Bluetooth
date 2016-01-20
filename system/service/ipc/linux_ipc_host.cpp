@@ -134,8 +134,8 @@ bool LinuxIPCHost::OnAddCharacteristic(const std::string& service_uuid,
                                const std::string& characteristic_uuid,
                                const std::string& control_uuid,
                                const std::string& options) {
-  std::vector<std::string> option_tokens;
-  base::SplitString(options, '.', &option_tokens);
+  std::vector<std::string> option_tokens = base::SplitString(
+      options, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
   int properties_mask = 0;
   int permissions_mask = 0;
@@ -187,8 +187,8 @@ bool LinuxIPCHost::OnSetAdvertisement(const std::string& service_uuid,
   LOG_INFO(LOG_TAG, "%s: service:%s uuids:%s data:%s", __func__, service_uuid.c_str(),
            advertise_uuids.c_str(), advertise_data.c_str());
 
-  std::vector<std::string> advertise_uuid_tokens;
-  base::SplitString(advertise_uuids, '.', &advertise_uuid_tokens);
+  std::vector<std::string> advertise_uuid_tokens = base::SplitString(
+      advertise_uuids, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
   // string -> vector<UUID>
   std::vector<UUID> ids;
@@ -215,8 +215,8 @@ bool LinuxIPCHost::OnSetScanResponse(const std::string& service_uuid,
                              const std::string& scan_response_data,
                              const std::string& manufacturer_data,
                              const std::string& transmit_name) {
-  std::vector<std::string> scan_response_uuid_tokens;
-  base::SplitString(scan_response_uuids, '.', &scan_response_uuid_tokens);
+  std::vector<std::string> scan_response_uuid_tokens = base::SplitString(
+      scan_response_uuids, ".", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
 
   // string -> vector<UUID>
   std::vector<UUID> ids;
@@ -267,8 +267,8 @@ bool LinuxIPCHost::OnMessage() {
     return false;
   }
 
-  std::vector<std::string> tokens;
-  base::SplitString(ipc_msg, '|', &tokens);
+  std::vector<std::string> tokens = base::SplitString(
+      ipc_msg, "|", base::TRIM_WHITESPACE, base::SPLIT_WANT_ALL);
   switch (tokens.size()) {
     case 2:
       if (tokens[0] == kSetAdapterNameCommand)

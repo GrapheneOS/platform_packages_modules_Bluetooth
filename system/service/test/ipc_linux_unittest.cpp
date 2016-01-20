@@ -134,13 +134,13 @@ class TestDelegate : public ipc::IPCManager::Delegate,
   void OnIPCHandlerStarted(ipc::IPCManager::Type type) override {
     ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
     started_count_++;
-    base::MessageLoop::current()->Quit();
+    base::MessageLoop::current()->QuitWhenIdle();
   }
 
   void OnIPCHandlerStopped(ipc::IPCManager::Type type) override {
     ASSERT_EQ(ipc::IPCManager::TYPE_LINUX, type);
     stopped_count_++;
-    base::MessageLoop::current()->Quit();
+    base::MessageLoop::current()->QuitWhenIdle();
   }
 
   int started_count() const { return started_count_; }
