@@ -83,6 +83,33 @@ void ScanResultCallback(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data) {
     ScanResultCallback(g_interface, *bda, rssi, adv_data));
 }
 
+void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  VLOG(2) << __func__ << " - status: " << status
+          << " client_if: " << client_if
+          << " - BD_ADDR: " << BtAddrString(bda)
+          << " - conn_id: " << conn_id;
+  FOR_EACH_CLIENT_OBSERVER(
+    ConnectCallback(g_interface, conn_id, status, client_if, *bda));
+}
+
+void DisconnectCallback(int conn_id, int status, int client_if,
+                        bt_bdaddr_t* bda) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  CHECK(bda);
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+             << " - status: " << status
+             << " client_if: " << client_if
+             << " - BD_ADDR: " << BtAddrString(bda);
+  FOR_EACH_CLIENT_OBSERVER(
+    DisconnectCallback(g_interface, conn_id, status, client_if, *bda));
+}
+
 void ListenCallback(int status, int client_if) {
   lock_guard<mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
@@ -280,8 +307,8 @@ void IndicationSentCallback(int conn_id, int status) {
 const btgatt_client_callbacks_t gatt_client_callbacks = {
     RegisterClientCallback,
     ScanResultCallback,
-    nullptr,  // open_cb
-    nullptr,  // close_cb
+    ConnectCallback,
+    DisconnectCallback,
     nullptr,  // search_complete_cb
     nullptr,  // search_result_cb
     nullptr,  // get_characteristic_cb
@@ -478,6 +505,25 @@ void BluetoothGattInterface::ClientObserver::ScanResultCallback(
     uint8_t* /* adv_data */) {
   // Do Nothing.
 }
+
+void BluetoothGattInterface::ClientObserver::ConnectCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */,
+    int /* client_if */,
+    const bt_bdaddr_t& /* bda */) {
+  // Do nothing
+}
+
+void BluetoothGattInterface::ClientObserver::DisconnectCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */,
+    int /* client_if */,
+    const bt_bdaddr_t& /* bda */) {
+  // Do nothing
+}
+
 void BluetoothGattInterface::ClientObserver::ListenCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,

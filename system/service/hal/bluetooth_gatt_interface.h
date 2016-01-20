@@ -61,6 +61,20 @@ class BluetoothGattInterface {
         const bt_bdaddr_t& bda, int rssi,
         uint8_t* adv_data);
 
+    virtual void ConnectCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        int status,
+        int client_if,
+        const bt_bdaddr_t& bda);
+
+    virtual void DisconnectCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        int status,
+        int client_if,
+        const bt_bdaddr_t& bda);
+
     virtual void ListenCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int client_if);
