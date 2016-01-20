@@ -27,6 +27,9 @@
 
 using ::testing::_;
 using ::testing::Return;
+using ::testing::Pointee;
+using ::testing::DoAll;
+using ::testing::Invoke;
 
 namespace bluetooth {
 namespace {
@@ -74,13 +77,21 @@ class MockGattHandler
 
 class TestDelegate : public LowEnergyClient::Delegate {
  public:
-  TestDelegate() : scan_result_count_(0) {
+  TestDelegate() : scan_result_count_(0), connection_state_count_(0) {
   }
 
   ~TestDelegate() override = default;
 
   int scan_result_count() const { return scan_result_count_; }
   const ScanResult& last_scan_result() const { return last_scan_result_; }
+
+  int connection_state_count() const { return connection_state_count_; }
+
+  void OnConnectionState(LowEnergyClient* client, int status,
+                         const char* address, bool connected)  {
+    ASSERT_TRUE(client);
+    connection_state_count_++;
+  }
 
   void OnScanResult(LowEnergyClient* client, const ScanResult& scan_result) {
     ASSERT_TRUE(client);
@@ -91,6 +102,8 @@ class TestDelegate : public LowEnergyClient::Delegate {
  private:
   int scan_result_count_;
   ScanResult last_scan_result_;
+
+  int connection_state_count_;
 
   DISALLOW_COPY_AND_ASSIGN(TestDelegate);
 };
@@ -248,7 +261,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
     ASSERT_FALSE(le_client_->IsStoppingAdvertising());
   }
 
-  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback){
+  void AdvertiseDataTestHelper(AdvertiseData data, std::function<void(BLEStatus)> callback) {
     AdvertiseSettings settings;
     EXPECT_TRUE(le_client_->StartAdvertising(
         settings, data, AdvertiseData(), callback));
@@ -835,7 +848,7 @@ TEST_F(LowEnergyClientPostRegisterTest, AdvertiseDataParsing) {
   EXPECT_EQ(service_data, adv_handler->service_data());
   EXPECT_EQ(uuid_32bit_canonical, adv_handler->uuid_data());
 
-  //Service data and UUID where the UUID for dont match, should fail
+  // Service data and UUID where the UUID for dont match, should fail
   EXPECT_TRUE(le_client_->StartAdvertising(
               settings, service_uuid_mismatch, AdvertiseData(), callback));
   fake_hal_gatt_iface_->NotifyMultiAdvEnableCallback(
@@ -856,7 +869,7 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanSettings) {
   // Adapter is not enabled.
   EXPECT_FALSE(le_client_->StartScan(settings, filters));
 
-  //TODO(jpawlowski): add tests checking settings and filter parsing when
+  // TODO(jpawlowski): add tests checking settings and filter parsing when
   // implemented
 
   // These should succeed and result in a HAL call
@@ -936,6 +949,61 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
 
   le_client_->SetDelegate(nullptr);
 }
+
+MATCHER_P(BitEq, x, std::string(negation ? "isn't" : "is") +
+                        " bitwise equal to " + ::testing::PrintToString(x)) {
+  static_assert(sizeof(x) == sizeof(arg), "Size mismatch");
+  return std::memcmp(&arg, &x, sizeof(x)) == 0;
+}
+
+TEST_F(LowEnergyClientPostRegisterTest, Connect) {
+  const bt_bdaddr_t kTestAddress = {
+    { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
+  };
+  const char kTestAddressStr[] = "01:02:03:0A:0B:0C";
+  const bool kTestDirect = false;
+  const int connId = 12;
+
+  TestDelegate delegate;
+  le_client_->SetDelegate(&delegate);
+
+  // TODO(jpawlowski): NotifyConnectCallback should be called after returning
+  // success, fix it when it becomes important.
+  // These should succeed and result in a HAL call
+  EXPECT_CALL(*mock_handler_, Connect(le_client_->GetInstanceId(),
+          Pointee(BitEq(kTestAddress)), kTestDirect, BT_TRANSPORT_LE))
+      .Times(1)
+      .WillOnce(DoAll(
+        Invoke([&](int client_id, const bt_bdaddr_t *bd_addr, bool is_direct,
+                   int transport){
+          fake_hal_gatt_iface_->NotifyConnectCallback(connId, BT_STATUS_SUCCESS,
+                                                      client_id, *bd_addr);
+        }),
+        Return(BT_STATUS_SUCCESS)));
+
+  EXPECT_TRUE(le_client_->Connect(kTestAddressStr, kTestDirect));
+  EXPECT_EQ(1, delegate.connection_state_count());
+
+  // TODO(jpawlowski): same as above
+  // These should succeed and result in a HAL call
+  EXPECT_CALL(*mock_handler_, Disconnect(le_client_->GetInstanceId(),
+        Pointee(BitEq(kTestAddress)), connId))
+      .Times(1)
+      .WillOnce(DoAll(
+        Invoke([&](int client_id, const bt_bdaddr_t *bd_addr, int connId){
+          fake_hal_gatt_iface_->NotifyDisconnectCallback(connId,
+                                                         BT_STATUS_SUCCESS,
+                                                         client_id, *bd_addr);
+        }),
+        Return(BT_STATUS_SUCCESS)));
+
+  EXPECT_TRUE(le_client_->Disconnect(kTestAddressStr));
+  EXPECT_EQ(2, delegate.connection_state_count());
+
+  le_client_->SetDelegate(nullptr);
+  ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
+}
+
 
 }  // namespace
 }  // namespace bluetooth

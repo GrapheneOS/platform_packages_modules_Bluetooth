@@ -19,6 +19,7 @@
 #include <base/logging.h>
 
 #include "service/adapter.h"
+#include "service/common/bluetooth/util/address_helper.h"
 #include "service/logging_helpers.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
@@ -107,7 +108,7 @@ bool ProcessUUID(const uint8_t* uuid_data, size_t uuid_len, UUID* out_uuid) {
 
 bool ProcessServiceData(const uint8_t* data,
         uint8_t uuid_len,
-        HALAdvertiseData* out_data){
+        HALAdvertiseData* out_data) {
   size_t field_len = data[0];
 
   // Minimum packet size should be equal to the uuid length + 1 to include
@@ -142,7 +143,7 @@ bool ProcessServiceData(const uint8_t* data,
     // through uuid field
     VLOG(1) << "More than one UUID entry not allowed";
     return false;
-  } // else do nothing as UUID is already properly assigned
+  }  // else do nothing as UUID is already properly assigned
 
   // Use + uuid_len + 2 here in order to skip over a
   // uuid contained in the beggining of the field
@@ -334,6 +335,49 @@ LowEnergyClient::~LowEnergyClient() {
     StopScan();
 }
 
+bool LowEnergyClient::Connect(std::string address, bool is_direct) {
+  VLOG(2) << __func__ << "Address: " << address << " is_direct: " << is_direct;
+
+  bt_bdaddr_t bda;
+  util::BdAddrFromString(address, &bda);
+
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      GetClientHALInterface()->connect(client_id_, &bda, is_direct,
+                                       BT_TRANSPORT_LE);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "HAL call to connect failed";
+    return false;
+  }
+
+  return true;
+}
+
+bool LowEnergyClient::Disconnect(std::string address) {
+  VLOG(2) << __func__ << "Address: " << address;
+
+  bt_bdaddr_t bda;
+  util::BdAddrFromString(address, &bda);
+
+  std::map<const bt_bdaddr_t, int>::iterator conn_id;
+  {
+    lock_guard<mutex> lock(connection_fields_lock_);
+    conn_id = connection_ids_.find(bda);
+    if (conn_id == connection_ids_.end()) {
+      LOG(WARNING) << "Can't disconnect, no existing connection to " << address;
+      return false;
+    }
+  }
+
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      GetClientHALInterface()->disconnect(client_id_, &bda, conn_id->second);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "HAL call to disconnect failed";
+    return false;
+  }
+
+  return true;
+}
+
 void LowEnergyClient::SetDelegate(Delegate* delegate) {
   lock_guard<mutex> lock(delegate_mutex_);
   delegate_ = delegate;
@@ -511,6 +555,46 @@ void LowEnergyClient::ScanResultCallback(
   ScanResult result(BtAddrString(&bda), scan_record, rssi);
 
   delegate_->OnScanResult(this, result);
+}
+
+void LowEnergyClient::ConnectCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int client_id, const bt_bdaddr_t& bda) {
+  if (client_id != client_id_)
+    return;
+
+  VLOG(1) << __func__ << "client_id: " << client_id << " status: " << status;
+
+  {
+    lock_guard<mutex> lock(connection_fields_lock_);
+    auto success = connection_ids_.emplace(bda, conn_id);
+    if (!success.second) {
+      LOG(ERROR) << __func__ << " Insertion into connection_ids_ failed!";
+    }
+  }
+
+  if (delegate_)
+    delegate_->OnConnectionState(this, status, BtAddrString(&bda).c_str(),
+                                 true);
+}
+
+void LowEnergyClient::DisconnectCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int client_id, const bt_bdaddr_t& bda) {
+  if (client_id != client_id_)
+    return;
+
+  VLOG(1) << __func__ << " client_id: " << client_id << " status: " << status;
+  {
+    lock_guard<mutex> lock(connection_fields_lock_);
+    if (!connection_ids_.erase(bda)) {
+      LOG(ERROR) << __func__ << " Erasing from connection_ids_ failed!";
+    }
+  }
+
+  if (delegate_)
+    delegate_->OnConnectionState(this, status, BtAddrString(&bda).c_str(),
+                                 false);
 }
 
 void LowEnergyClient::MultiAdvEnableCallback(
