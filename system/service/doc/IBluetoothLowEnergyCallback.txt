@@ -28,6 +28,11 @@ oneway interface IBluetoothLowEnergyCallback {
    */
   void onClientRegistered(in int status, in int client_if);
 
+  /* Called asynchronously to notify the delegate of connection state change.
+   */
+  void OnConnectionState(in int status, in int client_id, in const char* address,
+                         in bool connected);
+
   /**
    * Called to report BLE device scan results once a scan session is started for
    * this client using IBluetoothLowEnergy.startScan. |scan_result| contains all

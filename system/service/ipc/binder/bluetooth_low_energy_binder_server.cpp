@@ -54,6 +54,38 @@ void BluetoothLowEnergyBinderServer::UnregisterAll() {
   UnregisterAllBase();
 }
 
+bool BluetoothLowEnergyBinderServer::Connect(int client_id,
+                                             const char* address,
+                                             bool is_direct) {
+  VLOG(2) << __func__ << " client_id: " << client_id
+          << " address: " << address
+          << " is_direct: " << is_direct;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto client = GetLEClient(client_id);
+  if (!client) {
+    LOG(ERROR) << "Unknown client_id: " << client_id;
+    return false;
+  }
+
+  return client->Connect(std::string(address), is_direct);
+}
+
+bool BluetoothLowEnergyBinderServer::Disconnect(int client_id,
+                                                const char* address) {
+  VLOG(2) << __func__ << " client_id: " << client_id
+          << " address: " << address;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto client = GetLEClient(client_id);
+  if (!client) {
+    LOG(ERROR) << "Unknown client_id: " << client_id;
+    return false;
+  }
+
+  return client->Disconnect(std::string(address));
+}
+
 bool BluetoothLowEnergyBinderServer::StartScan(
     int client_id,
     const bluetooth::ScanSettings& settings,
@@ -172,6 +204,15 @@ void BluetoothLowEnergyBinderServer::OnConnectionState(
       bluetooth::LowEnergyClient* client, int status,
       const char* address, bool connected) {
   VLOG(2) << __func__ << " address: " << address << " connected: " << connected;
+
+  int client_id = client->GetInstanceId();
+  auto cb = GetLECallback(client->GetInstanceId());
+  if (!cb.get()) {
+    VLOG(2) << "Client was unregistered - client_id: " << client_id;
+    return;
+  }
+
+  cb->OnConnectionState(status, client_id, address, connected);
 }
 
 void BluetoothLowEnergyBinderServer::OnScanResult(

@@ -72,6 +72,9 @@ class IBluetoothLowEnergy : public android::IInterface {
   virtual void UnregisterClient(int client_if) = 0;
   virtual void UnregisterAll() = 0;
 
+  virtual bool Connect(int client_id, const char* address, bool is_direct) = 0;
+  virtual bool Disconnect(int client_id, const char* address) = 0;
+
   virtual bool StartScan(
       int client_id,
       const bluetooth::ScanSettings& settings,
@@ -119,6 +122,10 @@ class BpBluetoothLowEnergy : public android::BpInterface<IBluetoothLowEnergy> {
       const android::sp<IBluetoothLowEnergyCallback>& callback) override;
   void UnregisterClient(int client_if) override;
   void UnregisterAll() override;
+
+  bool Connect(int client_id, const char* address, bool is_direct) override;
+  bool Disconnect(int client_id, const char* address) override;
+
   bool StartScan(
       int client_id,
       const bluetooth::ScanSettings& settings,

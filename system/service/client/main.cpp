@@ -158,6 +158,11 @@ class CLIBluetoothLowEnergyCallback
     ble_registering = false;
   }
 
+  void OnConnectionState(int status, int client_id, const char* address,
+                         bool connected) override {
+    //TODO(jpawlowski): implement
+  }
+
   void OnScanResult(const bluetooth::ScanResult& scan_result) override {
     if (showing_prompt.load())
       cout << endl;
