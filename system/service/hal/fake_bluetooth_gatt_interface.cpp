@@ -47,6 +47,22 @@ bt_status_t FakeScan(bool start) {
   return BT_STATUS_FAIL;
 }
 
+bt_status_t FakeConnect(int client_if, const bt_bdaddr_t *bd_addr,
+                        bool is_direct, int transport) {
+  if (g_client_handler)
+    return g_client_handler->Connect(client_if, bd_addr, is_direct, transport);
+
+  return BT_STATUS_FAIL;
+}
+
+bt_status_t FakeDisconnect(int client_if, const bt_bdaddr_t *bd_addr,
+                           int conn_id) {
+  if (g_client_handler)
+    return g_client_handler->Disconnect(client_if, bd_addr, conn_id);
+
+  return BT_STATUS_FAIL;
+}
+
 bt_status_t FakeMultiAdvEnable(
     int client_if, int min_interval, int max_interval, int adv_type,
     int chnl_map, int tx_power, int timeout_s) {
@@ -160,8 +176,8 @@ btgatt_client_interface_t fake_btgattc_iface = {
   FakeRegisterClient,
   FakeUnregisterClient,
   FakeScan,
-  nullptr,  // connect
-  nullptr,  // disconnect
+  FakeConnect,
+  FakeDisconnect,
   nullptr,  // listen
   nullptr,  // refresh
   nullptr,  // search_service
@@ -244,6 +260,18 @@ void FakeBluetoothGattInterface::NotifyRegisterClientCallback(
     const bt_uuid_t& app_uuid) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
                     RegisterClientCallback(this, status, client_if, app_uuid));
+}
+
+void FakeBluetoothGattInterface::NotifyConnectCallback(
+    int conn_id, int status, int client_if, const bt_bdaddr_t& bda) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    ConnectCallback(this, conn_id, status, client_if, bda));
+}
+
+void FakeBluetoothGattInterface::NotifyDisconnectCallback(
+    int conn_id, int status, int client_if, const bt_bdaddr_t& bda) {
+  FOR_EACH_OBSERVER(ClientObserver, client_observers_,
+                    DisconnectCallback(this, conn_id, status, client_if, bda));
 }
 
 void FakeBluetoothGattInterface::NotifyScanResultCallback(
