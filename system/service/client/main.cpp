@@ -160,7 +160,19 @@ class CLIBluetoothLowEnergyCallback
 
   void OnConnectionState(int status, int client_id, const char* address,
                          bool connected) override {
-    //TODO(jpawlowski): implement
+    if (showing_prompt.load())
+      cout << endl;
+
+    cout << COLOR_BOLDWHITE "Connection state: "
+         << COLOR_BOLDYELLOW "[" << address
+         << " connected: " << (connected ? "true" : "false") << " ] "
+         << COLOR_BOLDWHITE "- status: " << status
+         << COLOR_BOLDWHITE " - client_id: " << client_id << COLOR_OFF;
+
+    cout  << endl << endl;
+
+    if (showing_prompt.load())
+      PrintPrompt();
   }
 
   void OnScanResult(const bluetooth::ScanResult& scan_result) override {
@@ -538,6 +550,59 @@ void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(status);
 }
 
+void HandleConnect(IBluetooth* bt_iface, const vector<string>& args) {
+  string address;
+
+  if (args.size() != 1) {
+    PrintError("Expected MAC address as only argument");
+    return;
+  }
+
+  address = args[0];
+
+  if (!ble_client_id.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  bool status = ble_iface->Connect(ble_client_id.load(), address.c_str(),
+                                   false /*  is_direct */);
+
+  PrintCommandStatus(status);
+}
+
+void HandleDisconnect(IBluetooth* bt_iface, const vector<string>& args) {
+  string address;
+
+  if (args.size() != 1) {
+    PrintError("Expected MAC address as only argument");
+    return;
+  }
+
+  address = args[0];
+
+  if (!ble_client_id.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  bool status = ble_iface->Disconnect(ble_client_id.load(), address.c_str());
+
+  PrintCommandStatus(status);
+}
+
 void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
   if (!ble_client_id.load()) {
     PrintError("BLE not registered");
@@ -620,6 +685,9 @@ struct {
     "\t\tRegister with the Bluetooth GATT Client interface" },
   { "unregister-gatt", HandleUnregisterGATT,
     "\t\tUnregister from the Bluetooth GATT Client interface" },
+  { "connect-le", HandleConnect, "\t\tConnect to LE device (-h for options)"},
+  { "disconnect-le", HandleDisconnect,
+    "\t\tDisconnect LE device (-h for options)"},
   { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
   { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
   { "start-le-scan", HandleStartLeScan,
