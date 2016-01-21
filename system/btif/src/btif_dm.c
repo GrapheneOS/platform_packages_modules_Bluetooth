@@ -191,6 +191,7 @@ static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
 **  Static variables
 ************************************************************************************/
 static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX+1] = {'\0'};
+static uid_set_t* uid_set = NULL;
 
 /******************************************************************************
 **  Static functions
@@ -263,6 +264,16 @@ static void btif_dm_data_free(uint16_t event, tBTA_DM_SEC *dm_sec)
 {
     if (event == BTA_DM_BLE_KEY_EVT)
         osi_free(dm_sec->ble_key.p_key_value);
+}
+
+void btif_dm_init(uid_set_t* set)
+{
+    uid_set = set;
+}
+
+void btif_dm_cleanup(void)
+{
+    uid_set = NULL;
 }
 
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
@@ -1964,7 +1975,10 @@ static void btif_dm_upstreams_evt(UINT16 event, char* p_param)
             energy_info.tx_time = p_ener_data->tx_time;
             energy_info.idle_time = p_ener_data->idle_time;
             energy_info.energy_used = p_ener_data->energy_used;
-            HAL_CBACK(bt_hal_cbacks, energy_info_cb, &energy_info);
+
+            bt_uid_traffic_t* data = uid_set_read_and_clear(uid_set);
+            HAL_CBACK(bt_hal_cbacks, energy_info_cb, &energy_info, data);
+            osi_free(data);
             break;
         }
 #endif

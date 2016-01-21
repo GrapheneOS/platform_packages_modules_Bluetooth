@@ -59,6 +59,7 @@
 #include "btif_profile_queue.h"
 #include "btif_sock.h"
 #include "btif_storage.h"
+#include "btif_uid.h"
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/controller.h"
@@ -130,6 +131,7 @@ static UINT8 btif_dut_mode = 0;
 
 static thread_t *bt_jni_workqueue_thread;
 static const char *BT_JNI_WORKQUEUE_NAME = "bt_jni_workqueue";
+static uid_set_t* uid_set = NULL;
 
 /************************************************************************************
 **  Static functions
@@ -545,8 +547,12 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status)
     /* callback to HAL */
     if (status == BTA_SUCCESS)
     {
+        uid_set = uid_set_create();
+
+        btif_dm_init(uid_set);
+
         /* init rfcomm & l2cap api */
-        btif_sock_init();
+        btif_sock_init(uid_set);
 
         /* init pan */
         btif_pan_init();
@@ -562,6 +568,8 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status)
     }
     else
     {
+        btif_dm_cleanup();
+
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
 
@@ -587,10 +595,16 @@ bt_status_t btif_disable_bluetooth(void)
     BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
     btif_dm_on_disable();
+    btif_dm_cleanup();
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
     btif_pan_cleanup();
     BTA_DisableBluetooth();
+
+    if (uid_set) {
+        uid_set_destroy(uid_set);
+        uid_set = NULL;
+    }
 
     return BT_STATUS_SUCCESS;
 }
