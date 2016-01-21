@@ -17,6 +17,9 @@
 #include "service/hal/bluetooth_gatt_interface.h"
 
 #include <mutex>
+#define _LIBCPP_BUILDING_SHARED_MUTEX
+#include <shared_mutex>
+#undef _LIBCPP_BUILDING_SHARED_MUTEX
 
 #include <base/logging.h>
 #include <base/observer_list.h>
@@ -25,7 +28,10 @@
 #include "service/logging_helpers.h"
 
 using std::lock_guard;
+using std::unique_lock;
+using std::shared_lock;
 using std::mutex;
+using std::shared_timed_mutex;
 
 namespace bluetooth {
 namespace hal {
@@ -35,8 +41,11 @@ namespace {
 // The global BluetoothGattInterface instance.
 BluetoothGattInterface* g_interface = nullptr;
 
-// Mutex used by callbacks to access |g_interface|.
-mutex g_instance_lock;
+// Mutex used by callbacks to access |g_interface|. If we initialize or clean it
+// use unique_lock. If only accessing |g_interface| use shared lock.
+//TODO(jpawlowski): this should be just shared_mutex, as we currently don't use
+// timed methods. Change to shared_mutex when we upgrade to C++14
+shared_timed_mutex g_instance_lock;
 
 // Helper for obtaining the observer lists. This is forward declared here
 // and defined below since it depends on BluetoothInterfaceImpl.
@@ -62,7 +71,7 @@ base::ObserverList<BluetoothGattInterface::ServerObserver>*
   } while (0)
 
 void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
@@ -72,7 +81,7 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
 }
 
 void ScanResultCallback(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
   CHECK(adv_data);
@@ -84,7 +93,7 @@ void ScanResultCallback(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data) {
 }
 
 void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
@@ -98,7 +107,7 @@ void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
 
 void DisconnectCallback(int conn_id, int status, int client_if,
                         bt_bdaddr_t* bda) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
@@ -111,7 +120,7 @@ void DisconnectCallback(int conn_id, int status, int client_if,
 }
 
 void ListenCallback(int status, int client_if) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -119,7 +128,7 @@ void ListenCallback(int status, int client_if) {
 }
 
 void MultiAdvEnableCallback(int client_if, int status) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -128,7 +137,7 @@ void MultiAdvEnableCallback(int client_if, int status) {
 }
 
 void MultiAdvUpdateCallback(int client_if, int status) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -137,7 +146,7 @@ void MultiAdvUpdateCallback(int client_if, int status) {
 }
 
 void MultiAdvDataCallback(int client_if, int status) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -146,7 +155,7 @@ void MultiAdvDataCallback(int client_if, int status) {
 }
 
 void MultiAdvDisableCallback(int client_if, int status) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -155,7 +164,7 @@ void MultiAdvDisableCallback(int client_if, int status) {
 }
 
 void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(app_uuid);
@@ -166,7 +175,7 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
 
 void ConnectionCallback(int conn_id, int server_if, int connected,
                         bt_bdaddr_t* bda) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id
           << " server_if: " << server_if << " connected: " << connected;
   VERIFY_INTERFACE_OR_RETURN();
@@ -181,7 +190,7 @@ void ServiceAddedCallback(
     int server_if,
     btgatt_srvc_id_t* srvc_id,
     int srvc_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -196,7 +205,7 @@ void CharacteristicAddedCallback(
     bt_uuid_t* uuid,
     int srvc_handle,
     int char_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " srvc_handle: " << srvc_handle << " char_handle: " << char_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -211,7 +220,7 @@ void DescriptorAddedCallback(
     bt_uuid_t* uuid,
     int srvc_handle,
     int desc_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " srvc_handle: " << srvc_handle << " desc_handle: " << desc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -222,7 +231,7 @@ void DescriptorAddedCallback(
 }
 
 void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -232,7 +241,7 @@ void ServiceStartedCallback(int status, int server_if, int srvc_handle) {
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -242,7 +251,7 @@ void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
 }
 
 void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " handle: " << srvc_handle;
   VERIFY_INTERFACE_OR_RETURN();
@@ -253,7 +262,7 @@ void ServiceDeletedCallback(int status, int server_if, int srvc_handle) {
 
 void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                          int attr_handle, int offset, bool is_long) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " is_long: " << is_long;
@@ -268,7 +277,7 @@ void RequestWriteCallback(int conn_id, int trans_id,
                           bt_bdaddr_t* bda,
                           int attr_handle, int offset, int length,
                           bool need_rsp, bool is_prep, uint8_t* value) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
           << " length: " << length << " need_rsp: " << need_rsp
@@ -283,7 +292,7 @@ void RequestWriteCallback(int conn_id, int trans_id,
 
 void RequestExecWriteCallback(int conn_id, int trans_id,
                               bt_bdaddr_t* bda, int exec_write) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " exec_write: " << exec_write;
   VERIFY_INTERFACE_OR_RETURN();
@@ -294,7 +303,7 @@ void RequestExecWriteCallback(int conn_id, int trans_id,
 }
 
 void IndicationSentCallback(int conn_id, int status) {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " status: " << status;
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -380,38 +389,18 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
 
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override {
-    lock_guard<mutex> lock(g_instance_lock);
-    AddClientObserverUnsafe(observer);
-  }
-
-  void RemoveClientObserver(ClientObserver* observer) override {
-    lock_guard<mutex> lock(g_instance_lock);
-    RemoveClientObserverUnsafe(observer);
-  }
-
-  void AddClientObserverUnsafe(ClientObserver* observer) override {
     client_observers_.AddObserver(observer);
   }
 
-  void RemoveClientObserverUnsafe(ClientObserver* observer) override {
+  void RemoveClientObserver(ClientObserver* observer) override {
     client_observers_.RemoveObserver(observer);
   }
 
   void AddServerObserver(ServerObserver* observer) override {
-    lock_guard<mutex> lock(g_instance_lock);
-    AddServerObserverUnsafe(observer);
-  }
-
-  void RemoveServerObserver(ServerObserver* observer) override {
-    lock_guard<mutex> lock(g_instance_lock);
-    RemoveServerObserverUnsafe(observer);
-  }
-
-  void AddServerObserverUnsafe(ServerObserver* observer) override {
     server_observers_.AddObserver(observer);
   }
 
-  void RemoveServerObserverUnsafe(ServerObserver* observer) override {
+  void RemoveServerObserver(ServerObserver* observer) override {
     server_observers_.RemoveObserver(observer);
   }
 
@@ -668,7 +657,7 @@ void BluetoothGattInterface::ServerObserver::IndicationSentCallback(
 
 // static
 bool BluetoothGattInterface::Initialize() {
-  lock_guard<mutex> lock(g_instance_lock);
+  unique_lock<shared_timed_mutex> lock(g_instance_lock);
   CHECK(!g_interface);
 
   std::unique_ptr<BluetoothGattInterfaceImpl> impl(
@@ -685,7 +674,7 @@ bool BluetoothGattInterface::Initialize() {
 
 // static
 void BluetoothGattInterface::CleanUp() {
-  lock_guard<mutex> lock(g_instance_lock);
+  unique_lock<shared_timed_mutex> lock(g_instance_lock);
   CHECK(g_interface);
 
   delete g_interface;
@@ -694,14 +683,14 @@ void BluetoothGattInterface::CleanUp() {
 
 // static
 bool BluetoothGattInterface::IsInitialized() {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
 
   return g_interface != nullptr;
 }
 
 // static
 BluetoothGattInterface* BluetoothGattInterface::Get() {
-  lock_guard<mutex> lock(g_instance_lock);
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
   CHECK(g_interface);
   return g_interface;
 }
@@ -709,7 +698,7 @@ BluetoothGattInterface* BluetoothGattInterface::Get() {
 // static
 void BluetoothGattInterface::InitializeForTesting(
     BluetoothGattInterface* test_instance) {
-  lock_guard<mutex> lock(g_instance_lock);
+  unique_lock<shared_timed_mutex> lock(g_instance_lock);
   CHECK(test_instance);
   CHECK(!g_interface);
 
