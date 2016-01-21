@@ -72,6 +72,7 @@ bt_interface_t fake_bt_iface = {
   nullptr, /* set_os_callouts */
   nullptr, /* read_energy_info */
   nullptr, /* dump */
+  nullptr  /* config clear */
 };
 
 }  // namespace
