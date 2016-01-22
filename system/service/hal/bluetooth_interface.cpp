@@ -79,6 +79,20 @@ void AdapterPropertiesCallback(bt_status_t status,
       AdapterPropertiesCallback(status, num_properties, properties));
 }
 
+void RemoteDevicePropertiesCallback(bt_status_t status,
+                               bt_bdaddr_t *remote_bd_addr,
+                               int num_properties,
+                               bt_property_t* properties) {
+  lock_guard<mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  VLOG(1) << " Remote device properties changed - status: " << BtStatusText(status)
+          << " - BD_ADDR: " << BtAddrString(remote_bd_addr)
+          << ", num_properties: " << num_properties;
+  FOR_EACH_BLUETOOTH_OBSERVER(
+      RemoteDevicePropertiesCallback(status, remote_bd_addr, num_properties,
+                                     properties));
+}
+
 void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   lock_guard<mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
@@ -141,7 +155,7 @@ bt_callbacks_t bt_callbacks = {
   sizeof(bt_callbacks_t),
   AdapterStateChangedCallback,
   AdapterPropertiesCallback,
-  nullptr, /* remote_device_properties_cb */
+  RemoteDevicePropertiesCallback,
   nullptr, /* device_found_cb */
   DiscoveryStateChangedCallback,
   nullptr, /* pin_request_cb  */
@@ -276,6 +290,14 @@ void BluetoothInterface::Observer::AdapterStateChangedCallback(
 
 void BluetoothInterface::Observer::AdapterPropertiesCallback(
     bt_status_t /* status */,
+    int /* num_properties */,
+    bt_property_t* /* properties */) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::RemoteDevicePropertiesCallback(
+    bt_status_t /* status */,
+    bt_bdaddr_t* /* remote_bd_addr */,
     int /* num_properties */,
     bt_property_t* /* properties */) {
   // Do nothing.
