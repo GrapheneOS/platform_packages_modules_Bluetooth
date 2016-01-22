@@ -73,9 +73,11 @@ btosiCommonTestSrc := \
 
 btosiCommonIncludes := \
     $(LOCAL_PATH)/.. \
-    $(LOCAL_PATH)/../utils/include
+    $(LOCAL_PATH)/../utils/include \
+    $(LOCAL_PATH)/../stack/include $(bdroid_C_INCLUDES)
 
-btosiCommonCFlags := -std=c99 -Wall -Werror -UNDEBUG -fvisibility=hidden
+btosiCommonCFlags := -std=c99 -Wall -Werror -UNDEBUG -fvisibility=hidden \
+    $(bdroid_CFLAGS)
 
 # libosi static library for target
 # ========================================================
