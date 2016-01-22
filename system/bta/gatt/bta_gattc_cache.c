@@ -1501,6 +1501,165 @@ tBTA_GATT_STATUS bta_gattc_query_cache(UINT16 conn_id,
 
 /*******************************************************************************
 **
+** Function         bta_gattc_fill_gatt_db_el
+**
+** Description      fill a btgatt_db_element_t value
+**
+** Returns          None.
+**
+*******************************************************************************/
+void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
+                               bt_gatt_db_attribute_type_t type,
+                               UINT16 att_handle,
+                               UINT16 s_handle, UINT16 e_handle,
+                               UINT8 id, tBT_UUID uuid, UINT8 prop)
+{
+    p_attr->type             = type;
+    p_attr->attribute_handle = att_handle;
+    p_attr->start_handle     = s_handle;
+    p_attr->end_handle       = e_handle;
+    p_attr->id               = id;
+    p_attr->properties       = prop;
+    bta_to_btif_uuid(&p_attr->uuid, &uuid);
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_get_gatt_db_impl
+**
+** Description      copy the server GATT database into db parameter.
+**
+** Parameters       p_srvc_cb: server.
+**                  db: output parameter which will contain GATT database copy.
+**                      Caller is responsible for freeing it.
+**                  count: output parameter which will contain number of
+**                  elements in database.
+**
+** Returns          None.
+**
+*******************************************************************************/
+static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
+                                       btgatt_db_element_t **db,
+                                       int *count)
+{
+    tBTA_GATTC_CACHE_ATTR   *p_attr;
+    tBT_UUID                uuid;
+
+    APPL_TRACE_DEBUG(LOG_TAG, "%s", __func__);
+
+    tBTA_GATTC_CACHE        *p_cur_srvc = p_srvc_cb->p_srvc_cache;
+    int db_size = 0;
+    while (p_cur_srvc)
+    {
+        db_size++;
+        for(p_attr = p_cur_srvc->p_attr; p_attr; p_attr = p_attr->p_next)
+            db_size++;
+        p_cur_srvc = p_cur_srvc->p_next;
+    }
+
+    void* buffer = osi_malloc(db_size * sizeof(btgatt_db_element_t));
+    btgatt_db_element_t *curr_db_attr = buffer;
+
+    p_cur_srvc = p_srvc_cb->p_srvc_cache;
+    while (p_cur_srvc)
+    {
+        bta_gattc_fill_gatt_db_el(curr_db_attr,
+                                  p_cur_srvc->service_uuid.is_primary ?
+                                      BTGATT_DB_PRIMARY_SERVICE :
+                                      BTGATT_DB_SECONDARY_SERVICE,
+                                  0 /* att_handle */,
+                                  p_cur_srvc->s_handle,
+                                  p_cur_srvc->e_handle,
+                                  p_cur_srvc->service_uuid.id.inst_id,
+                                  p_cur_srvc->service_uuid.id.uuid,
+                                  0 /* prop */);
+        curr_db_attr++;
+
+        for (p_attr = p_cur_srvc->p_attr; p_attr; p_attr = p_attr->p_next)
+        {
+            if ((uuid.len = p_attr->uuid_len) == LEN_UUID_16)
+                uuid.uu.uuid16 = p_attr->p_uuid->uuid16;
+            else
+                memcpy(uuid.uu.uuid128, p_attr->p_uuid->uuid128, LEN_UUID_128);
+
+            bt_gatt_db_attribute_type_t type;
+            switch (p_attr->attr_type)
+            {
+                case BTA_GATTC_ATTR_TYPE_CHAR:
+                    type = BTGATT_DB_CHARACTERISTIC;
+                    break;
+
+                case BTA_GATTC_ATTR_TYPE_CHAR_DESCR:
+                    type = BTGATT_DB_DESCRIPTOR;
+                    break;
+
+                case BTA_GATTC_ATTR_TYPE_INCL_SRVC:
+                    type = BTGATT_DB_INCLUDED_SERVICE;
+                    break;
+
+                default:
+                    LOG_ERROR(LOG_TAG, "%s unknown gatt db attribute type: %d",
+                              __func__, p_attr->attr_type);
+            }
+
+            bta_gattc_fill_gatt_db_el(curr_db_attr,
+                                      type,
+                                      p_attr->attr_handle,
+                                      0 /* s_handle */,
+                                      0 /* e_handle */,
+                                      p_attr->inst_id,
+                                      uuid,
+                                      p_attr->property);
+            curr_db_attr++;
+        }
+        p_cur_srvc = p_cur_srvc->p_next;
+    }
+
+    *db = buffer;
+    *count = db_size;
+}
+
+/*******************************************************************************
+**
+** Function         bta_gattc_get_gatt_db
+**
+** Description      copy the server GATT database into db parameter.
+**
+** Parameters       conn_id: connection ID which identify the server.
+**                  db: output parameter which will contain GATT database copy.
+**                      Caller is responsible for freeing it.
+**                  count: number of elements in database.
+**
+** Returns          None.
+**
+*******************************************************************************/
+void bta_gattc_get_gatt_db(UINT16 conn_id, btgatt_db_element_t **db, int *count)
+{
+    tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
+    tBTA_GATT_STATUS status = BTA_GATT_ILLEGAL_PARAMETER;
+
+    LOG_DEBUG(LOG_TAG, "%s", __func__);
+    if (p_clcb == NULL) {
+        APPL_TRACE_ERROR("Unknown conn ID: %d", conn_id);
+        return;
+    }
+
+    if (p_clcb->state != BTA_GATTC_CONN_ST) {
+        APPL_TRACE_ERROR("server cache not available, CLCB state = %d",
+                         p_clcb->state);
+        return;
+    }
+
+    if (!p_clcb->p_srcb || p_clcb->p_srcb->p_srvc_list || /* no active discovery */
+        !p_clcb->p_srcb->p_srvc_cache) {
+        APPL_TRACE_ERROR("No server cache available");
+    }
+
+    bta_gattc_get_gatt_db_impl(p_clcb->p_srcb, db, count);
+}
+
+/*******************************************************************************
+**
 ** Function         bta_gattc_rebuild_cache
 **
 ** Description      rebuild server cache from NV cache.

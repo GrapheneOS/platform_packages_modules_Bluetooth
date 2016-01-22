@@ -884,6 +884,20 @@ extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
 
 /*******************************************************************************
 **
+** Function         BTA_GATTC_GetGattDb
+**
+** Description      This function is called to get gatt db.
+**
+** Parameters       conn_id: connection ID which identify the server.
+**                  db: output parameter which will contain gatt db copy.
+**                      Caller is responsible for freeing it.
+**                  count: number of elements in db.
+**
+*******************************************************************************/
+extern void BTA_GATTC_GetGattDb(UINT16 conn_id, btgatt_db_element_t **db, int *count);
+
+/*******************************************************************************
+**
 ** Function         BTA_GATTC_ReadCharacteristic
 **
 ** Description      This function is called to read a service's characteristics of
