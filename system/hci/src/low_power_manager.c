@@ -81,7 +81,7 @@ static void init(thread_t *post_thread) {
 
   vendor->set_callback(VENDOR_SET_LPM_MODE, vendor_enable_disable_callback);
 
-  idle_alarm = alarm_new();
+  idle_alarm = alarm_new("hci.idle");
   if (!idle_alarm) {
     LOG_ERROR(LOG_TAG, "%s could not create idle alarm.", __func__);
   }

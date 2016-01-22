@@ -51,6 +51,8 @@ void btm_init (void)
     /* All fields are cleared; nonzero fields are reinitialized in appropriate function */
     memset(&btm_cb, 0, sizeof(tBTM_CB));
     btm_cb.page_queue = fixed_queue_new(SIZE_MAX);
+    btm_cb.sec_collision_timer = alarm_new("btm.sec_collision_timer");
+    btm_cb.pairing_timer = alarm_new("btm.pairing_timer");
 
 #if defined(BTM_INITIAL_TRACE_LEVEL)
     btm_cb.trace_level = BTM_INITIAL_TRACE_LEVEL;

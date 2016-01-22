@@ -224,7 +224,6 @@ typedef struct
 #define BT_PSM_UDI_CP                   0x001D /* Unrestricted Digital Information Profile C-Plane  */
 #define BT_PSM_ATT                      0x001F /* Attribute Protocol  */
 
-
 /* These macros extract the HCI opcodes from a buffer
 */
 #define HCI_GET_CMD_HDR_OPCODE(p)    (UINT16)((*((UINT8 *)((p) + 1) + p->offset) + \
@@ -411,20 +410,7 @@ typedef UINT8 ACCESS_CODE[ACCESS_CODE_BYTE_LEN];
 
 #define SYNC_REPS 1             /* repeats of sync word transmitted to start of burst */
 
-/* Bluetooth CLK27 */
-#define BT_CLK27            (2 << 26)
-
-/* Bluetooth CLK12 is 1.28 sec */
-#define BT_CLK12_TO_MS(x)    ((x) * 1280)
-#define BT_MS_TO_CLK12(x)    ((x) / 1280)
-#define BT_CLK12_TO_SLOTS(x) ((x) << 11)
-
-/* Bluetooth CLK is 0.625 msec */
-#define BT_CLK_TO_MS(x)      (((x) * 5 + 3) / 8)
-#define BT_MS_TO_CLK(x)      (((x) * 8 + 2) / 5)
-
-#define BT_CLK_TO_MICROSECS(x)  (((x) * 5000 + 3) / 8)
-#define BT_MICROSECS_TO_CLK(x)  (((x) * 8 + 2499) / 5000)
+#define BT_1SEC_TIMEOUT_MS              (1 * 1000)      /* 1 second */
 
 /* Maximum UUID size - 16 bytes, and structure to hold any type of UUID. */
 #define MAX_UUID_SIZE              16

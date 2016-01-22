@@ -48,11 +48,15 @@
 #include "hcidefs.h"
 #include "bt_utils.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 static void btm_read_remote_features (UINT16 handle);
 static void btm_read_remote_ext_features (UINT16 handle, UINT8 page_number);
 static void btm_process_remote_ext_features (tACL_CONN *p_acl_cb, UINT8 num_read_pages);
 
-#define BTM_DEV_REPLY_TIMEOUT   3       /* 3 second timeout waiting for responses */
+/* 3 seconds timeout waiting for responses */
+#define BTM_DEV_REPLY_TIMEOUT_MS (3 * 1000)
 
 /*******************************************************************************
 **
@@ -1873,20 +1877,23 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
                     bd[3], bd[4], bd[5]);
 
     /* If someone already waiting on the version, do not allow another */
-    if (btm_cb.devcb.p_qossu_cmpl_cb)
+    if (btm_cb.devcb.p_qos_setup_cmpl_cb)
         return(BTM_BUSY);
 
     if ( (p = btm_bda_to_acl(bd, BT_TRANSPORT_BR_EDR)) != NULL)
     {
-        btu_start_timer (&btm_cb.devcb.qossu_timer, BTU_TTYPE_BTM_ACL, BTM_DEV_REPLY_TIMEOUT);
-        btm_cb.devcb.p_qossu_cmpl_cb = p_cb;
+        btm_cb.devcb.p_qos_setup_cmpl_cb = p_cb;
+        alarm_set_on_queue(btm_cb.devcb.qos_setup_timer,
+                           BTM_DEV_REPLY_TIMEOUT_MS,
+                           btm_qos_setup_timeout, NULL,
+                           btu_general_alarm_queue);
 
         if (!btsnd_hcic_qos_setup (p->hci_handle, p_flow->qos_flags, p_flow->service_type,
                                    p_flow->token_rate, p_flow->peak_bandwidth,
                                    p_flow->latency,p_flow->delay_variation))
         {
-            btm_cb.devcb.p_qossu_cmpl_cb = NULL;
-            btu_stop_timer(&btm_cb.devcb.qossu_timer);
+            btm_cb.devcb.p_qos_setup_cmpl_cb = NULL;
+            alarm_cancel(btm_cb.devcb.qos_setup_timer);
             return(BTM_NO_RESOURCES);
         }
         else
@@ -1899,6 +1906,23 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
 
 /*******************************************************************************
 **
+** Function         btm_qos_setup_timeout
+**
+** Description      Callback when QoS setup times out.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_qos_setup_timeout(UNUSED_ATTR void *data)
+{
+    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_qos_setup_cmpl_cb;
+    btm_cb.devcb.p_qos_setup_cmpl_cb = NULL;
+    if (p_cb)
+        (*p_cb)((void *) NULL);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_qos_setup_complete
 **
 ** Description      This function is called when the command complete message
@@ -1907,15 +1931,16 @@ tBTM_STATUS BTM_SetQoS (BD_ADDR bd, FLOW_SPEC *p_flow, tBTM_CMPL_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_qos_setup_complete (UINT8 status, UINT16 handle, FLOW_SPEC *p_flow)
+void btm_qos_setup_complete(UINT8 status, UINT16 handle, FLOW_SPEC *p_flow)
 {
-    tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_qossu_cmpl_cb;
+    tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_qos_setup_cmpl_cb;
     tBTM_QOS_SETUP_CMPL     qossu;
-    BTM_TRACE_DEBUG ("btm_qos_setup_complete");
-    btu_stop_timer (&btm_cb.devcb.qossu_timer);
 
-    btm_cb.devcb.p_qossu_cmpl_cb = NULL;
+    BTM_TRACE_DEBUG("%s", __func__);
+    alarm_cancel(btm_cb.devcb.qos_setup_timer);
+    btm_cb.devcb.p_qos_setup_cmpl_cb = NULL;
 
+    /* If there was a registered callback, call it */
     if (p_cb)
     {
         memset(&qossu, 0, sizeof(tBTM_QOS_SETUP_CMPL));
@@ -1935,7 +1960,6 @@ void btm_qos_setup_complete (UINT8 status, UINT16 handle, FLOW_SPEC *p_flow)
         (*p_cb)(&qossu);
     }
 }
-
 
 /*******************************************************************************
 **
@@ -1973,15 +1997,15 @@ tBTM_STATUS BTM_ReadRSSI (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
     p = btm_bda_to_acl(remote_bda, transport);
     if (p != (tACL_CONN *)NULL)
     {
-        btu_start_timer (&btm_cb.devcb.rssi_timer, BTU_TTYPE_BTM_ACL,
-                         BTM_DEV_REPLY_TIMEOUT);
-
         btm_cb.devcb.p_rssi_cmpl_cb = p_cb;
+        alarm_set_on_queue(btm_cb.devcb.read_rssi_timer,
+                           BTM_DEV_REPLY_TIMEOUT_MS, btm_read_rssi_timeout,
+                           NULL, btu_general_alarm_queue);
 
         if (!btsnd_hcic_read_rssi (p->hci_handle))
         {
             btm_cb.devcb.p_rssi_cmpl_cb = NULL;
-            btu_stop_timer (&btm_cb.devcb.rssi_timer);
+            alarm_cancel(btm_cb.devcb.read_rssi_timer);
             return(BTM_NO_RESOURCES);
         }
         else
@@ -2012,20 +2036,22 @@ tBTM_STATUS BTM_ReadLinkQuality (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
                     remote_bda[3], remote_bda[4], remote_bda[5]);
 
     /* If someone already waiting on the version, do not allow another */
-    if (btm_cb.devcb.p_lnk_qual_cmpl_cb)
+    if (btm_cb.devcb.p_link_qual_cmpl_cb)
         return(BTM_BUSY);
 
     p = btm_bda_to_acl(remote_bda, BT_TRANSPORT_BR_EDR);
     if (p != (tACL_CONN *)NULL)
     {
-        btu_start_timer (&btm_cb.devcb.lnk_quality_timer, BTU_TTYPE_BTM_ACL,
-                         BTM_DEV_REPLY_TIMEOUT);
-        btm_cb.devcb.p_lnk_qual_cmpl_cb = p_cb;
+        btm_cb.devcb.p_link_qual_cmpl_cb = p_cb;
+        alarm_set_on_queue(btm_cb.devcb.read_link_quality_timer,
+                           BTM_DEV_REPLY_TIMEOUT_MS,
+                           btm_read_link_quality_timeout, NULL,
+                           btu_general_alarm_queue);
 
         if (!btsnd_hcic_get_link_quality (p->hci_handle))
         {
-            btu_stop_timer (&btm_cb.devcb.lnk_quality_timer);
-            btm_cb.devcb.p_lnk_qual_cmpl_cb = NULL;
+            btm_cb.devcb.p_link_qual_cmpl_cb = NULL;
+            alarm_cancel(btm_cb.devcb.read_link_quality_timer);
             return(BTM_NO_RESOURCES);
         }
         else
@@ -2066,10 +2092,11 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
     p = btm_bda_to_acl(remote_bda, transport);
     if (p != (tACL_CONN *)NULL)
     {
-        btu_start_timer (&btm_cb.devcb.tx_power_timer, BTU_TTYPE_BTM_ACL,
-                         BTM_DEV_REPLY_TIMEOUT);
-
         btm_cb.devcb.p_tx_power_cmpl_cb = p_cb;
+        alarm_set_on_queue(btm_cb.devcb.read_tx_power_timer,
+                       BTM_DEV_REPLY_TIMEOUT_MS,
+                       btm_read_tx_power_timeout, NULL,
+                       btu_general_alarm_queue);
 
 #if BLE_INCLUDED == TRUE
         if (p->transport == BT_TRANSPORT_LE)
@@ -2085,7 +2112,7 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
         if (!ret)
         {
             btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
-            btu_stop_timer (&btm_cb.devcb.tx_power_timer);
+            alarm_cancel(btm_cb.devcb.read_tx_power_timer);
             return(BTM_NO_RESOURCES);
         }
         else
@@ -2095,6 +2122,24 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
     /* If here, no BD Addr found */
     return (BTM_UNKNOWN_ADDR);
 }
+
+/*******************************************************************************
+**
+** Function         btm_read_tx_power_timeout
+**
+** Description      Callback when reading the tx power times out.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_tx_power_timeout(UNUSED_ATTR void *data)
+{
+    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_tx_power_cmpl_cb;
+    btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
+    if (p_cb)
+        (*p_cb)((void *) NULL);
+}
+
 /*******************************************************************************
 **
 ** Function         btm_read_tx_power_complete
@@ -2105,19 +2150,19 @@ tBTM_STATUS BTM_ReadTxPower (BD_ADDR remote_bda, tBT_TRANSPORT transport, tBTM_C
 ** Returns          void
 **
 *******************************************************************************/
-void btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble)
+void btm_read_tx_power_complete(UINT8 *p, BOOLEAN is_ble)
 {
     tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_tx_power_cmpl_cb;
     tBTM_TX_POWER_RESULTS   results;
     UINT16                   handle;
     tACL_CONN               *p_acl_cb = &btm_cb.acl_db[0];
     UINT16                   index;
-    BTM_TRACE_DEBUG ("btm_read_tx_power_complete");
-    btu_stop_timer (&btm_cb.devcb.tx_power_timer);
 
-    /* If there was a callback registered for read rssi, call it */
+    BTM_TRACE_DEBUG("%s", __func__);
+    alarm_cancel(btm_cb.devcb.read_tx_power_timer);
     btm_cb.devcb.p_tx_power_cmpl_cb = NULL;
 
+    /* If there was a registered callback, call it */
     if (p_cb)
     {
         STREAM_TO_UINT8  (results.hci_status, p);
@@ -2160,6 +2205,23 @@ void btm_read_tx_power_complete (UINT8 *p, BOOLEAN is_ble)
 
 /*******************************************************************************
 **
+** Function         btm_read_rssi_timeout
+**
+** Description      Callback when reading the RSSI times out.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_rssi_timeout(UNUSED_ATTR void *data)
+{
+    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_rssi_cmpl_cb;
+    btm_cb.devcb.p_rssi_cmpl_cb = NULL;
+    if (p_cb)
+        (*p_cb)((void *) NULL);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_read_rssi_complete
 **
 ** Description      This function is called when the command complete message
@@ -2175,12 +2237,12 @@ void btm_read_rssi_complete (UINT8 *p)
     UINT16                   handle;
     tACL_CONN               *p_acl_cb = &btm_cb.acl_db[0];
     UINT16                   index;
-    BTM_TRACE_DEBUG ("btm_read_rssi_complete");
-    btu_stop_timer (&btm_cb.devcb.rssi_timer);
 
-    /* If there was a callback registered for read rssi, call it */
+    BTM_TRACE_DEBUG("%s", __func__);
+    alarm_cancel(btm_cb.devcb.read_rssi_timer);
     btm_cb.devcb.p_rssi_cmpl_cb = NULL;
 
+    /* If there was a registered callback, call it */
     if (p_cb)
     {
         STREAM_TO_UINT8  (results.hci_status, p);
@@ -2214,6 +2276,23 @@ void btm_read_rssi_complete (UINT8 *p)
 
 /*******************************************************************************
 **
+** Function         btm_read_link_quality_timeout
+**
+** Description      Callback when reading the link quality times out.
+**
+** Returns          void
+**
+*******************************************************************************/
+void btm_read_link_quality_timeout(UNUSED_ATTR void *data)
+{
+    tBTM_CMPL_CB  *p_cb = btm_cb.devcb.p_link_qual_cmpl_cb;
+    btm_cb.devcb.p_link_qual_cmpl_cb = NULL;
+    if (p_cb)
+        (*p_cb)((void *) NULL);
+}
+
+/*******************************************************************************
+**
 ** Function         btm_read_link_quality_complete
 **
 ** Description      This function is called when the command complete message
@@ -2222,19 +2301,19 @@ void btm_read_rssi_complete (UINT8 *p)
 ** Returns          void
 **
 *******************************************************************************/
-void btm_read_link_quality_complete (UINT8 *p)
+void btm_read_link_quality_complete(UINT8 *p)
 {
-    tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_lnk_qual_cmpl_cb;
+    tBTM_CMPL_CB            *p_cb = btm_cb.devcb.p_link_qual_cmpl_cb;
     tBTM_LINK_QUALITY_RESULTS results;
     UINT16                   handle;
     tACL_CONN               *p_acl_cb = &btm_cb.acl_db[0];
     UINT16                   index;
-    BTM_TRACE_DEBUG ("btm_read_link_quality_complete");
-    btu_stop_timer (&btm_cb.devcb.lnk_quality_timer);
 
-    /* If there was a callback registered for read rssi, call it */
-    btm_cb.devcb.p_lnk_qual_cmpl_cb = NULL;
+    BTM_TRACE_DEBUG("%s", __func__);
+    alarm_cancel(btm_cb.devcb.read_link_quality_timer);
+    btm_cb.devcb.p_link_qual_cmpl_cb = NULL;
 
+    /* If there was a registered callback, call it */
     if (p_cb)
     {
         STREAM_TO_UINT8  (results.hci_status, p);

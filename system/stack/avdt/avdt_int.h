@@ -24,8 +24,8 @@
 #ifndef AVDT_INT_H
 #define AVDT_INT_H
 
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/non_repeating_timer.h"
 #include "bt_common.h"
 #include "avdt_api.h"
 #include "avdtc_api.h"
@@ -103,11 +103,11 @@ enum {
 */
 #define AVDT_MSG_OFFSET         (L2CAP_MIN_OFFSET + AVDT_NUM_SEPS + AVDT_LEN_TYPE_START)
 
-/* scb transport channel connect timeout value */
-#define AVDT_SCB_TC_CONN_TOUT   10
+/* scb transport channel connect timeout value (in milliseconds) */
+#define AVDT_SCB_TC_CONN_TIMEOUT_MS   (10 * 1000)
 
-/* scb transport channel disconnect timeout value */
-#define AVDT_SCB_TC_DISC_TOUT   10
+/* scb transport channel disconnect timeout value (in milliseconds) */
+#define AVDT_SCB_TC_DISC_TIMEOUT_MS   (10 * 1000)
 
 /* maximum number of command retransmissions */
 #ifndef AVDT_RET_MAX
@@ -424,7 +424,13 @@ typedef union {
 /* channel control block type */
 typedef struct {
     BD_ADDR             peer_addr;      /* BD address of peer */
-    timer_entry_t       timer_entry;    /* CCB timer entry */
+    /*
+     * NOTE: idle_ccb_timer, ret_ccb_timer and rsp_ccb_timer are mutually
+     * exclusive - no more than one timer should be running at the same time.
+     */
+    alarm_t             *idle_ccb_timer; /* Idle CCB timer entry */
+    alarm_t             *ret_ccb_timer; /* Ret CCB timer entry */
+    alarm_t             *rsp_ccb_timer; /* Rsp CCB timer entry */
     fixed_queue_t       *cmd_q;         /* Queue for outgoing command messages */
     fixed_queue_t       *rsp_q;         /* Queue for outgoing response and reject messages */
     tAVDT_CTRL_CBACK    *proc_cback;    /* Procedure callback function */
@@ -483,7 +489,7 @@ typedef struct {
     tAVDT_CS        cs;             /* stream creation struct */
     tAVDT_CFG       curr_cfg;       /* current configuration */
     tAVDT_CFG       req_cfg;        /* requested configuration */
-    timer_entry_t   timer_entry;    /* timer entry */
+    alarm_t         *transport_channel_timer; /* transport channel connect timer */
     BT_HDR          *p_pkt;         /* packet waiting to be sent */
     tAVDT_CCB       *p_ccb;         /* ccb associated with this scb */
     UINT16          media_seq;      /* media packet sequence number */
@@ -668,7 +674,8 @@ extern void avdt_scb_set_remove(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
-extern void avdt_scb_tc_timer(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
+extern void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb,
+                                             tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
                                  UINT32 *p_data_len, fixed_queue_t *pq);
@@ -697,7 +704,10 @@ extern UINT8 avdt_ad_write_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, B
 extern void avdt_ad_open_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb, UINT8 role);
 extern void avdt_ad_close_req(UINT8 type, tAVDT_CCB *p_ccb, tAVDT_SCB *p_scb);
 
-extern void avdt_process_timeout(timer_entry_t *p_te);
+extern void avdt_ccb_idle_ccb_timer_timeout(void *data);
+extern void avdt_ccb_ret_ccb_timer_timeout(void *data);
+extern void avdt_ccb_rsp_ccb_timer_timeout(void *data);
+extern void avdt_scb_transport_channel_timer_timeout(void *data);
 
 /*****************************************************************************
 ** macros

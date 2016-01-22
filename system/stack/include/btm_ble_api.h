@@ -27,7 +27,7 @@
 
 #include "btm_api.h"
 #include "bt_common.h"
-#include "osi/include/non_repeating_timer.h"
+#include "osi/include/alarm.h"
 #include <hardware/bt_common_types.h>
 
 #define CHNL_MAP_LEN    5
@@ -502,7 +502,7 @@ typedef struct
     BOOLEAN                     in_use;
     UINT8                       adv_evt;
     BD_ADDR                     rpa;
-    timer_entry_t               raddr_timer_ent;
+    alarm_t                     *adv_raddr_timer;
     tBTM_BLE_MULTI_ADV_CBACK    *p_cback;
     void                        *p_ref;
     UINT8                       index;

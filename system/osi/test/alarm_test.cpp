@@ -22,12 +22,15 @@
 
 extern "C" {
 #include "osi/include/alarm.h"
+#include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
 #include "osi/include/semaphore.h"
+#include "osi/include/thread.h"
 }
 
 static semaphore_t *semaphore;
 static int cb_counter;
+static int cb_misordered_counter;
 
 static const uint64_t EPSILON_MS = 5;
 
@@ -40,6 +43,7 @@ class AlarmTest : public AlarmTestHarness {
     virtual void SetUp() {
       AlarmTestHarness::SetUp();
       cb_counter = 0;
+      cb_misordered_counter = 0;
 
       semaphore = semaphore_new(0);
     }
@@ -55,8 +59,16 @@ static void cb(UNUSED_ATTR void *data) {
   semaphore_post(semaphore);
 }
 
+static void ordered_cb(void *data) {
+  int i = PTR_TO_INT(data);
+  if (i != cb_counter)
+    cb_misordered_counter++;
+  ++cb_counter;
+  semaphore_post(semaphore);
+}
+
 TEST_F(AlarmTest, test_new_free_simple) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_new_free_simple");
   ASSERT_TRUE(alarm != NULL);
   alarm_free(alarm);
 }
@@ -66,25 +78,25 @@ TEST_F(AlarmTest, test_free_null) {
 }
 
 TEST_F(AlarmTest, test_simple_cancel) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_simple_cancel");
   alarm_cancel(alarm);
   alarm_free(alarm);
 }
 
 TEST_F(AlarmTest, test_cancel) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_cancel");
   alarm_set(alarm, 10, cb, NULL);
   alarm_cancel(alarm);
 
   msleep(10 + EPSILON_MS);
 
   EXPECT_EQ(cb_counter, 0);
-  EXPECT_FALSE(WakeLockHeld());;
+  EXPECT_FALSE(WakeLockHeld());
   alarm_free(alarm);
 }
 
 TEST_F(AlarmTest, test_cancel_idempotent) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_cancel_idempotent");
   alarm_set(alarm, 10, cb, NULL);
   alarm_cancel(alarm);
   alarm_cancel(alarm);
@@ -93,7 +105,8 @@ TEST_F(AlarmTest, test_cancel_idempotent) {
 }
 
 TEST_F(AlarmTest, test_set_short) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_set_short");
+
   alarm_set(alarm, 10, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
@@ -107,8 +120,28 @@ TEST_F(AlarmTest, test_set_short) {
   alarm_free(alarm);
 }
 
+TEST_F(AlarmTest, test_set_short_periodic) {
+  alarm_t *alarm = alarm_new_periodic("alarm_test.test_set_short_periodic");
+
+  alarm_set(alarm, 10, cb, NULL);
+
+  EXPECT_EQ(cb_counter, 0);
+  EXPECT_TRUE(WakeLockHeld());
+
+  for (int i = 1; i <= 10; i++) {
+    semaphore_wait(semaphore);
+
+    EXPECT_GE(cb_counter, i);
+    EXPECT_TRUE(WakeLockHeld());
+  }
+  alarm_cancel(alarm);
+  EXPECT_FALSE(WakeLockHeld());
+
+  alarm_free(alarm);
+}
+
 TEST_F(AlarmTest, test_set_long) {
-  alarm_t *alarm = alarm_new();
+  alarm_t *alarm = alarm_new("alarm_test.test_set_long");
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
 
   EXPECT_EQ(cb_counter, 0);
@@ -124,8 +157,8 @@ TEST_F(AlarmTest, test_set_long) {
 
 TEST_F(AlarmTest, test_set_short_short) {
   alarm_t *alarm[2] = {
-    alarm_new(),
-    alarm_new()
+    alarm_new("alarm_test.test_set_short_short_0"),
+    alarm_new("alarm_test.test_set_short_short_1")
   };
 
   alarm_set(alarm[0], 10, cb, NULL);
@@ -150,8 +183,8 @@ TEST_F(AlarmTest, test_set_short_short) {
 
 TEST_F(AlarmTest, test_set_short_long) {
   alarm_t *alarm[2] = {
-    alarm_new(),
-    alarm_new()
+    alarm_new("alarm_test.test_set_short_long_0"),
+    alarm_new("alarm_test.test_set_short_long_1")
   };
 
   alarm_set(alarm[0], 10, cb, NULL);
@@ -176,8 +209,8 @@ TEST_F(AlarmTest, test_set_short_long) {
 
 TEST_F(AlarmTest, test_set_long_long) {
   alarm_t *alarm[2] = {
-    alarm_new(),
-    alarm_new()
+    alarm_new("alarm_test.test_set_long_long_0"),
+    alarm_new("alarm_test.test_set_long_long_1")
   };
 
   alarm_set(alarm[0], TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
@@ -200,11 +233,98 @@ TEST_F(AlarmTest, test_set_long_long) {
   alarm_free(alarm[1]);
 }
 
+TEST_F(AlarmTest, test_is_scheduled) {
+  alarm_t *alarm = alarm_new("alarm_test.test_is_scheduled");
+
+  EXPECT_FALSE(alarm_is_scheduled((alarm_t *)NULL));
+  EXPECT_FALSE(alarm_is_scheduled(alarm));
+  alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);
+  EXPECT_TRUE(alarm_is_scheduled(alarm));
+
+  EXPECT_EQ(cb_counter, 0);
+  EXPECT_FALSE(WakeLockHeld());
+
+  semaphore_wait(semaphore);
+
+  EXPECT_FALSE(alarm_is_scheduled(alarm));
+  EXPECT_EQ(cb_counter, 1);
+  EXPECT_FALSE(WakeLockHeld());
+
+  alarm_free(alarm);
+}
+
+// Test whether the callbacks are invoked in the expected order
+TEST_F(AlarmTest, test_callback_ordering) {
+  alarm_t *alarms[100];
+
+  for (int i = 0; i < 100; i++) {
+    const std::string alarm_name = "alarm_test.test_callback_ordering[" +
+      std::to_string(i) + "]";
+    alarms[i] = alarm_new(alarm_name.c_str());
+  }
+
+  for (int i = 0; i < 100; i++) {
+    alarm_set(alarms[i], 100, ordered_cb, INT_TO_PTR(i));
+  }
+
+  for (int i = 1; i <= 100; i++) {
+    semaphore_wait(semaphore);
+    EXPECT_GE(cb_counter, i);
+  }
+  EXPECT_EQ(cb_counter, 100);
+  EXPECT_EQ(cb_misordered_counter, 0);
+
+  for (int i = 0; i < 100; i++)
+    alarm_free(alarms[i]);
+
+  EXPECT_FALSE(WakeLockHeld());
+}
+
+// Test whether the callbacks are involed in the expected order on a
+// separate queue.
+TEST_F(AlarmTest, test_callback_ordering_on_queue) {
+  alarm_t *alarms[100];
+  fixed_queue_t *queue = fixed_queue_new(SIZE_MAX);
+  thread_t *thread = thread_new("timers.test_callback_ordering_on_queue.thread");
+
+  alarm_register_processing_queue(queue, thread);
+
+  for (int i = 0; i < 100; i++) {
+    const std::string alarm_name =
+      "alarm_test.test_callback_ordering_on_queue[" +
+      std::to_string(i) + "]";
+    alarms[i] = alarm_new(alarm_name.c_str());
+  }
+
+  for (int i = 0; i < 100; i++) {
+    alarm_set_on_queue(alarms[i], 100, ordered_cb, INT_TO_PTR(i), queue);
+  }
+
+  for (int i = 1; i <= 100; i++) {
+    semaphore_wait(semaphore);
+    EXPECT_GE(cb_counter, i);
+  }
+  EXPECT_EQ(cb_counter, 100);
+  EXPECT_EQ(cb_misordered_counter, 0);
+
+  for (int i = 0; i < 100; i++)
+    alarm_free(alarms[i]);
+
+  EXPECT_FALSE(WakeLockHeld());
+
+  alarm_unregister_processing_queue(queue);
+  fixed_queue_free(queue, NULL);
+  thread_free(thread);
+}
+
 // Try to catch any race conditions between the timer callback and |alarm_free|.
 TEST_F(AlarmTest, test_callback_free_race) {
   for (int i = 0; i < 1000; ++i) {
-    alarm_t *alarm = alarm_new();
+    const std::string alarm_name = "alarm_test.test_callback_free_race[" +
+      std::to_string(i) + "]";
+    alarm_t *alarm = alarm_new(alarm_name.c_str());
     alarm_set(alarm, 0, cb, NULL);
     alarm_free(alarm);
   }
+  alarm_cleanup();
 }

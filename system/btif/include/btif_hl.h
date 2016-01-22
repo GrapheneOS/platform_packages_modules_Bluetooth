@@ -23,7 +23,7 @@
 
 #include "bta_hl_api.h"
 #include "bt_common.h"
-#include "osi/include/non_repeating_timer.h"
+#include "osi/include/alarm.h"
 
 /*******************************************************************************
 **  Constants & Macros
@@ -215,8 +215,7 @@ typedef struct
     UINT8                   sdp_idx;
     tBTA_HL_SDP             sdp;
     btif_hl_cch_op_t        cch_oper;
-    BOOLEAN                 cch_timer_active;
-    timer_entry_t           cch_timer;
+    alarm_t                 *cch_timer;
 } btif_hl_mcl_cb_t;
 
 typedef struct

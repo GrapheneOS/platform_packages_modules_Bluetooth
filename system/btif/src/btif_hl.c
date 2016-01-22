@@ -70,6 +70,8 @@ extern void btif_hl_release_mcl_sockets(UINT8 app_idx, UINT8 mcl_idx);
 extern BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
 extern void btif_hl_release_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 btif_hl_cb_t btif_hl_cb;
 btif_hl_cb_t *p_btif_hl_cb = &btif_hl_cb;
 
@@ -168,7 +170,8 @@ void btif_hl_display_calling_process_name(void)
     prctl(BTIF_IF_GET_NAME, name, 0, 0, 0);
     BTIF_TRACE_DEBUG("Process name (%s)", name);
 }
-#define BTIF_TIMEOUT_CCH_NO_DCH_SECS   30
+#define BTIF_TIMEOUT_CCH_NO_DCH_MS   (30 * 1000)
+
 /*******************************************************************************
 **
 ** Function      btif_hl_if_channel_setup_pending
@@ -262,43 +265,26 @@ UINT8 btif_hl_num_dchs_in_use(UINT8 mcl_handle){
 }
 /*******************************************************************************
 **
-** Function      btif_hl_tmr_hdlr
+** Function      btif_hl_timer_timeout
 **
 ** Description   Process timer timeout
 **
 ** Returns      void
 *******************************************************************************/
-void btif_hl_tmr_hdlr(timer_entry_t *p_te)
+void btif_hl_timer_timeout(void *data)
 {
-    btif_hl_mcl_cb_t    *p_mcb;
-    UINT8               i,j;
-    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, p_te->in_use);
+    btif_hl_mcl_cb_t    *p_mcb = (btif_hl_mcl_cb_t *)data;
 
-    for (i=0; i < BTA_HL_NUM_APPS ; i ++)
-    {
-        for (j=0; j< BTA_HL_NUM_MCLS; j++)
-        {
-            p_mcb =BTIF_HL_GET_MCL_CB_PTR(i,j);
-
-            if (p_mcb->cch_timer_active)
-            {
-                BTIF_TRACE_DEBUG("%app_idx=%d, mcl_idx=%d mcl-connected=%d",
-                                  i, j,  p_mcb->is_connected);
-                p_mcb->cch_timer_active = FALSE;
-                if (p_mcb->is_connected)
-                {
-                    BTIF_TRACE_DEBUG("Idle timeout Close CCH app_idx=%d mcl_idx=%d mcl_handle=%d",
-                                      i ,j, p_mcb->mcl_handle);
-                    BTA_HlCchClose(p_mcb->mcl_handle);
-                }
-                else
-                {
-                    BTIF_TRACE_DEBUG("CCH idle timeout But CCH not connected app_idx=%d mcl_idx=%d ",i,j);
-                }
-            }
-        }
+    BTIF_TRACE_DEBUG("%s", __func__);
+    if (p_mcb->is_connected) {
+        BTIF_TRACE_DEBUG("Idle timeout Close CCH mcl_handle=%d",
+                         p_mcb->mcl_handle);
+        BTA_HlCchClose(p_mcb->mcl_handle);
+    } else {
+        BTIF_TRACE_DEBUG("CCH idle timeout But CCH not connected");
     }
 }
+
 /*******************************************************************************
 **
 ** Function      btif_hl_stop_cch_timer
@@ -310,16 +296,11 @@ void btif_hl_tmr_hdlr(timer_entry_t *p_te)
 void btif_hl_stop_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
 {
     btif_hl_mcl_cb_t    *p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BTIF_TRACE_DEBUG("%s app_idx=%d, mcl_idx=%d timer_in_use=%d",
-                      __FUNCTION__,app_idx, mcl_idx, p_mcb->cch_timer.in_use);
 
-    p_mcb->cch_timer_active = FALSE;
-    if (p_mcb->cch_timer.in_use)
-    {
-        BTIF_TRACE_DEBUG("stop CCH timer ");
-        btu_stop_timer(&p_mcb->cch_timer);
-    }
+    BTIF_TRACE_DEBUG("%s app_idx=%d, mcl_idx=%d", __func__, app_idx, mcl_idx);
+    alarm_cancel(p_mcb->cch_timer);
 }
+
 /*******************************************************************************
 **
 ** Function      btif_hl_start_cch_timer
@@ -331,28 +312,15 @@ void btif_hl_stop_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
 void btif_hl_start_cch_timer(UINT8 app_idx, UINT8 mcl_idx)
 {
     btif_hl_mcl_cb_t    *p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BTIF_TRACE_DEBUG("%s app_idx=%d, mcl_idx=%d  timer_active=%d timer_in_use=%d",
-                      __FUNCTION__,app_idx, mcl_idx,
-                      p_mcb->cch_timer_active, p_mcb->cch_timer.in_use);
+    BTIF_TRACE_DEBUG("%s app_idx=%d, mcl_idx=%d", __func__, app_idx, mcl_idx);
 
-    p_mcb->cch_timer_active = TRUE;
-    if (!p_mcb->cch_timer.in_use)
-    {
-        BTIF_TRACE_DEBUG("Start CCH timer ");
-        memset(&p_mcb->cch_timer, 0, sizeof(timer_entry_t));
-        p_mcb->cch_timer.param = btif_hl_tmr_hdlr;
-        btu_start_timer(&p_mcb->cch_timer, BTU_TTYPE_USER_FUNC,
-                        BTIF_TIMEOUT_CCH_NO_DCH_SECS);
-    }
-    else
-    {
-        BTIF_TRACE_DEBUG("Restart CCH timer ");
-        btu_stop_timer(&p_mcb->cch_timer);
-        btu_start_timer(&p_mcb->cch_timer, BTU_TTYPE_USER_FUNC,
-                        BTIF_TIMEOUT_CCH_NO_DCH_SECS);
-    }
-
+    alarm_free(p_mcb->cch_timer);
+    p_mcb->cch_timer = alarm_new("btif_hl.mcl_cch_timer");
+    alarm_set_on_queue(p_mcb->cch_timer, BTIF_TIMEOUT_CCH_NO_DCH_MS,
+                       btif_hl_timer_timeout, p_mcb,
+                       btu_general_alarm_queue);
 }
+
 /*******************************************************************************
 **
 ** Function      btif_hl_find_mdl_idx
@@ -511,6 +479,7 @@ static void btif_hl_clean_mcl_cb(UINT8 app_idx, UINT8 mcl_idx)
     btif_hl_mcl_cb_t     *p_mcb;
     BTIF_TRACE_DEBUG("%s app_idx=%d, mcl_idx=%d", __FUNCTION__,app_idx, mcl_idx);
     p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
+    alarm_free(p_mcb->cch_timer);
     memset(p_mcb, 0, sizeof(btif_hl_mcl_cb_t));
 }
 
@@ -897,7 +866,8 @@ BOOLEAN btif_hl_cch_open(UINT8 app_id, BD_ADDR bd_addr, UINT16 ctrl_psm,
             if (btif_hl_find_avail_mcl_idx(app_idx, &mcl_idx))
             {
                 p_mcb = BTIF_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                memset(p_mcb,0, sizeof(btif_hl_mcl_cb_t));
+                alarm_free(p_mcb->cch_timer);
+                memset(p_mcb, 0, sizeof(btif_hl_mcl_cb_t));
                 p_mcb->in_use = TRUE;
                 bdcpy(p_mcb->bd_addr, bd_addr);
 
@@ -1343,7 +1313,9 @@ static void btif_hl_free_app_idx(UINT8 app_idx){
     if ((app_idx < BTA_HL_NUM_APPS) && btif_hl_cb.acb[app_idx].in_use )
     {
         btif_hl_cb.acb[app_idx].in_use = FALSE;
-        memset (&btif_hl_cb.acb[app_idx], 0, sizeof(btif_hl_app_cb_t));
+        for (size_t i = 0; i < BTA_HL_NUM_MCLS; i++)
+            alarm_free(btif_hl_cb.acb[app_idx].mcb[i].cch_timer);
+        memset(&btif_hl_cb.acb[app_idx], 0, sizeof(btif_hl_app_cb_t));
     }
 }
 /*******************************************************************************
@@ -2080,7 +2052,9 @@ static void btif_hl_proc_dereg_cfm(tBTA_HL *p_data)
         if (p_data->dereg_cfm.status == BTA_HL_STATUS_OK)
         {
             btif_hl_clean_mdls_using_app_idx(app_idx);
-            memset(p_acb, 0,sizeof(btif_hl_app_cb_t));
+            for (size_t i = 0; i < BTA_HL_NUM_MCLS; i++)
+                alarm_free(p_acb->mcb[i].cch_timer);
+            memset(p_acb, 0, sizeof(btif_hl_app_cb_t));
         }
         else
             state = BTHL_APP_REG_STATE_DEREG_FAILED;
@@ -2422,6 +2396,7 @@ static void btif_hl_proc_cch_open_ind(tBTA_HL *p_data)
                 if (btif_hl_find_avail_mcl_idx(i, &mcl_idx))
                 {
                     p_mcb = BTIF_HL_GET_MCL_CB_PTR(i, mcl_idx);
+                    alarm_free(p_mcb->cch_timer);
                     memset(p_mcb, 0, sizeof(btif_hl_mcl_cb_t));
                     p_mcb->in_use = TRUE;
                     p_mcb->is_connected = TRUE;
@@ -3836,6 +3811,11 @@ static void btif_hl_upstreams_ctrl_evt(UINT16 event, char* p_param){
 
             if (p_data->disable_cfm.status == BTA_HL_STATUS_OK)
             {
+                for (size_t i = 0; i < BTA_HL_NUM_APPS; i++) {
+                    for (size_t j = 0; j < BTA_HL_NUM_MCLS; j++) {
+                        alarm_free(p_btif_hl_cb->acb[i].mcb[j].cch_timer);
+                    }
+                }
                 memset(p_btif_hl_cb, 0, sizeof(btif_hl_cb_t));
                 btif_hl_set_state(BTIF_HL_STATE_DISABLED);
             }

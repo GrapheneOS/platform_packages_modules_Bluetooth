@@ -26,6 +26,9 @@
 #include "bnep_api.h"
 #include "bnep_int.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **
 ** Function         BNEP_Init
@@ -45,9 +48,6 @@ void BNEP_Init (void)
 #else
     bnep_cb.trace_level = BT_TRACE_LEVEL_NONE;    /* No traces */
 #endif
-
-    /* Start a timer to read our BD address */
-    btu_start_timer(&bnep_cb.bnep_te, BTU_TTYPE_BNEP, 2);
 }
 
 
@@ -208,7 +208,9 @@ tBNEP_RESULT BNEP_Connect (BD_ADDR p_rem_bda,
         }
 
         /* Start timer waiting for connect */
-        btu_start_timer(&p_bcb->conn_te, BTU_TTYPE_BNEP, BNEP_CONN_TIMEOUT);
+        alarm_set_on_queue(p_bcb->conn_timer, BNEP_CONN_TIMEOUT_MS,
+                           bnep_conn_timer_timeout, p_bcb,
+                           btu_general_alarm_queue);
     }
 
     *p_handle = p_bcb->handle;

@@ -52,9 +52,6 @@ tBTA_SYS_CB bta_sys_cb;
 #endif
 
 fixed_queue_t *btu_bta_alarm_queue;
-static hash_map_t *bta_alarm_hash_map;
-static const size_t BTA_ALARM_HASH_MAP_SIZE = 17;
-static pthread_mutex_t bta_alarm_lock;
 extern thread_t *bt_workqueue_thread;
 
 /* trace level */
@@ -64,7 +61,6 @@ UINT8 btif_trace_level = BT_TRACE_LEVEL_WARNING;
 
 // Communication queue between btu_task and bta.
 extern fixed_queue_t *btu_bta_msg_queue;
-void btu_bta_alarm_ready(fixed_queue_t *queue, UNUSED_ATTR void *context);
 
 static const tBTA_SYS_REG bta_sys_hw_reg =
 {
@@ -178,16 +174,9 @@ void bta_sys_init(void)
 {
     memset(&bta_sys_cb, 0, sizeof(tBTA_SYS_CB));
 
-    pthread_mutex_init(&bta_alarm_lock, NULL);
-
-    bta_alarm_hash_map = hash_map_new(BTA_ALARM_HASH_MAP_SIZE,
-            hash_function_pointer, NULL, (data_free_fn)alarm_free, NULL);
     btu_bta_alarm_queue = fixed_queue_new(SIZE_MAX);
 
-    fixed_queue_register_dequeue(btu_bta_alarm_queue,
-        thread_get_reactor(bt_workqueue_thread),
-        btu_bta_alarm_ready,
-        NULL);
+    alarm_register_processing_queue(btu_bta_alarm_queue, bt_workqueue_thread);
 
     appl_trace_level = APPL_INITIAL_TRACE_LEVEL;
 
@@ -206,8 +195,6 @@ void bta_sys_init(void)
 void bta_sys_free(void) {
     fixed_queue_free(btu_bta_alarm_queue, NULL);
     btu_bta_alarm_queue = NULL;
-    hash_map_free(bta_alarm_hash_map);
-    pthread_mutex_destroy(&bta_alarm_lock);
 }
 
 /*******************************************************************************
@@ -618,66 +605,15 @@ void bta_sys_sendmsg(void *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_alarm_cb(void *data) {
-  assert(data != NULL);
-  timer_entry_t *p_te = (timer_entry_t *)data;
-
-  fixed_queue_enqueue(btu_bta_alarm_queue, p_te);
-}
-
-void bta_sys_start_timer(timer_entry_t *p_te, UINT16 type, INT32 timeout_ms) {
-  assert(p_te != NULL);
-
-  // Get the alarm for this p_te.
-  pthread_mutex_lock(&bta_alarm_lock);
-  if (!hash_map_has_key(bta_alarm_hash_map, p_te)) {
-    hash_map_set(bta_alarm_hash_map, p_te, alarm_new());
-  }
-  pthread_mutex_unlock(&bta_alarm_lock);
-
-  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_te);
-  if (alarm == NULL) {
-    LOG_ERROR(LOG_TAG, "%s unable to create alarm.", __func__);
-    return;
-  }
-
-  p_te->event = type;
-  p_te->ticks = timeout_ms;
-  alarm_set(alarm, (period_ms_t)timeout_ms, bta_alarm_cb, p_te);
-}
-
-UINT32 bta_sys_get_remaining_ticks(timer_entry_t *p_target_te)
+void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval, uint16_t event,
+                         uint16_t layer_specific)
 {
-  pthread_mutex_lock(&bta_alarm_lock);
-  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_target_te);
-  pthread_mutex_unlock(&bta_alarm_lock);
-  if (alarm == NULL) {
-    LOG_ERROR("%s unable to get alarm", __func__);
-    return 0;
-  }
+    BT_HDR *p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR));
 
-  return alarm_get_remaining_ms(alarm);
-}
-
-
-/*******************************************************************************
-**
-** Function         bta_sys_stop_timer
-**
-** Description      Stop a BTA timer.
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_sys_stop_timer(timer_entry_t *p_te) {
-  assert(p_te != NULL);
-
-  alarm_t *alarm = hash_map_get(bta_alarm_hash_map, p_te);
-  if (alarm == NULL) {
-    LOG_DEBUG(LOG_TAG, "%s expected alarm was not in bta alarm hash map.", __func__);
-    return;
-  }
-  alarm_cancel(alarm);
+    p_buf->event = event;
+    p_buf->layer_specific = layer_specific;
+    alarm_set_on_queue(alarm, interval, bta_sys_sendmsg, p_buf,
+                       btu_bta_alarm_queue);
 }
 
 /*******************************************************************************

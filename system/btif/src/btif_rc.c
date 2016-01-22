@@ -114,9 +114,9 @@ typedef struct
 } btif_rc_cmd_ctxt_t;
 
 /* 2 second timeout to get interim response */
-#define BTIF_TIMEOUT_RC_INTERIM_RSP     2
-#define BTIF_TIMEOUT_RC_STATUS_CMD      2
-#define BTIF_TIMEOUT_RC_CONTROL_CMD     2
+#define BTIF_TIMEOUT_RC_INTERIM_RSP_MS     (2 * 1000)
+#define BTIF_TIMEOUT_RC_STATUS_CMD_MS      (2 * 1000)
+#define BTIF_TIMEOUT_RC_CONTROL_CMD_MS     (2 * 1000)
 
 
 typedef enum
@@ -132,10 +132,6 @@ typedef struct {
     btif_rc_nfn_reg_status_t    status;
 } btif_rc_supported_event_t;
 
-#define RC_TIMER_STATUS_CMD     0
-#define RC_TIMER_CONTROL_CMD    1
-#define RC_TIMER_PLAY_STATUS    2
-
 #define BTIF_RC_STS_TIMEOUT     0xFE
 typedef struct {
     UINT8   label;
@@ -148,12 +144,10 @@ typedef struct {
 } btif_rc_control_cmd_timer_t;
 
 typedef struct {
-    UINT8   timer_id;
     union {
         btif_rc_status_cmd_timer_t rc_status_cmd;
         btif_rc_control_cmd_timer_t rc_control_cmd;
     };
-    timer_entry_t tle;
 } btif_rc_timer_context_t;
 
 typedef struct {
@@ -181,7 +175,7 @@ typedef struct {
     uint8_t                     rc_vol_label;
     list_t                      *rc_supported_event_list;
     btif_rc_player_app_settings_t   rc_app_settings;
-    timer_entry_t               tle_rc_play_status;
+    alarm_t                     *rc_play_status_timer;
     BOOLEAN                     rc_features_processed;
     UINT64                      rc_playing_uid;
     BOOLEAN                     rc_procedure_complete;
@@ -191,7 +185,8 @@ typedef struct {
     BOOLEAN in_use;
     UINT8 lbl;
     UINT8 handle;
-    timer_entry_t tle_txn;
+    btif_rc_timer_context_t txn_timer_context;
+    alarm_t *txn_timer;
 } rc_transaction_t;
 
 typedef struct
@@ -213,7 +208,7 @@ static int  uinput_driver_check();
 static int  uinput_create(char *name);
 static int  init_uinput (void);
 static void close_uinput (void);
-static void sleep_ms(uint32_t timeout_ms);
+static void sleep_ms(period_ms_t timeout_ms);
 
 static const struct {
     const char *name;
@@ -252,9 +247,8 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(
 static void btif_rc_ctrl_upstreams_rsp_evt(
     UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8* p_buf, UINT16 buf_len, UINT8 rsp_type);
 static void rc_ctrl_procedure_complete();
-static void rc_stop_play_status_timer ();
+static void rc_stop_play_status_timer();
 static void register_for_event_notification (btif_rc_supported_event_t *p_event);
-static void rc_timeout_handler (UINT16 event, char* p_data);
 static void handle_get_capability_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET_CAPS_RSP *p_rsp);
 static void handle_app_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_APP_ATTR_RSP *p_rsp);
 static void handle_app_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_APP_VALUES_RSP *p_rsp);
@@ -276,6 +270,7 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attri
 #endif
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND* p_param, UINT8 ctype, UINT8 label);
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label);
+static void rc_start_play_status_timer(void);
 
 /*****************************************************************************
 **  Static variables
@@ -293,6 +288,8 @@ static btrc_ctrl_callbacks_t *bt_rc_ctrl_callbacks = NULL;
 ******************************************************************************/
 extern BOOLEAN btif_hf_call_terminated_recently();
 extern BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod);
+
+extern fixed_queue_t *btu_general_alarm_queue;
 
 /*****************************************************************************
 **  Functions
@@ -633,11 +630,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
         sizeof(btif_rc_player_app_settings_t));
     btif_rc_cb.rc_features_processed = FALSE;
     btif_rc_cb.rc_procedure_complete = FALSE;
-    /* Check and stop play status timer */
-    if (btif_rc_cb.tle_rc_play_status.in_use == TRUE)
-    {
-        rc_stop_play_status_timer();
-    }
+    rc_stop_play_status_timer();
     /* Check and clear the notification event list */
     if (btif_rc_cb.rc_supported_event_list != NULL)
     {
@@ -1512,7 +1505,7 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(UINT8 event, tAVRC_COMMAND *pavrc_cmd
 
 static void rc_supported_event_free(void* p_data)
 {
-    osi_freebuf (p_data);
+    osi_freebuf(p_data);
 }
 #endif
 
@@ -1810,7 +1803,7 @@ static bt_status_t set_volume(uint8_t volume)
             }
             else
             {
-                if (NULL!=p_msg)
+                if (p_msg != NULL)
                    osi_freebuf(p_msg);
                 BTIF_TRACE_ERROR("%s: failed to obtain transaction details. status: 0x%02x",
                                     __FUNCTION__, tran_status);
@@ -1865,7 +1858,7 @@ static void register_volumechange (UINT8 lbl)
          }
          else
          {
-            if (NULL!=p_msg)
+            if (p_msg != NULL)
                osi_freebuf(p_msg);
             BTIF_TRACE_ERROR("%s transaction not obtained with label: %d",__FUNCTION__,lbl);
          }
@@ -2041,22 +2034,165 @@ static void rc_notification_interim_timout (UINT8 label)
 
 /***************************************************************************
 **
-** Function         rc_timeout_callback
+** Function         btif_rc_status_cmd_timeout_handler
 **
-** Description      RC timeout callback.
+** Description      RC status command timeout handler (Runs in BTIF context).
+** Returns          None
+**
+***************************************************************************/
+static void btif_rc_status_cmd_timeout_handler(UNUSED_ATTR uint16_t event,
+                                               char *data)
+{
+    btif_rc_timer_context_t *p_context;
+    tAVRC_RESPONSE      avrc_response = {0};
+    tBTA_AV_META_MSG    meta_msg;
+
+    p_context = (btif_rc_timer_context_t *)data;
+    memset(&meta_msg, 0, sizeof(tBTA_AV_META_MSG));
+    meta_msg.rc_handle = btif_rc_cb.rc_handle;
+
+    switch (p_context->rc_status_cmd.pdu_id) {
+    case AVRC_PDU_REGISTER_NOTIFICATION:
+        rc_notification_interim_timout(p_context->rc_status_cmd.label);
+        break;
+
+    case AVRC_PDU_GET_CAPABILITIES:
+        avrc_response.get_caps.status = BTIF_RC_STS_TIMEOUT;
+        handle_get_capability_response(&meta_msg, &avrc_response.get_caps);
+        break;
+
+    case AVRC_PDU_LIST_PLAYER_APP_ATTR:
+        avrc_response.list_app_attr.status = BTIF_RC_STS_TIMEOUT;
+        handle_app_attr_response(&meta_msg, &avrc_response.list_app_attr);
+        break;
+
+    case AVRC_PDU_LIST_PLAYER_APP_VALUES:
+        avrc_response.list_app_values.status = BTIF_RC_STS_TIMEOUT;
+        handle_app_val_response(&meta_msg, &avrc_response.list_app_values);
+        break;
+
+    case AVRC_PDU_GET_CUR_PLAYER_APP_VALUE:
+        avrc_response.get_cur_app_val.status = BTIF_RC_STS_TIMEOUT;
+        handle_app_cur_val_response(&meta_msg, &avrc_response.get_cur_app_val);
+        break;
+
+    case AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT:
+        avrc_response.get_app_attr_txt.status = BTIF_RC_STS_TIMEOUT;
+        handle_app_attr_txt_response(&meta_msg, &avrc_response.get_app_attr_txt);
+        break;
+
+    case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
+        avrc_response.get_app_val_txt.status = BTIF_RC_STS_TIMEOUT;
+        handle_app_attr_txt_response(&meta_msg, &avrc_response.get_app_val_txt);
+        break;
+
+    case AVRC_PDU_GET_ELEMENT_ATTR:
+        avrc_response.get_elem_attrs.status = BTIF_RC_STS_TIMEOUT;
+        handle_get_elem_attr_response(&meta_msg, &avrc_response.get_elem_attrs);
+        break;
+
+    case AVRC_PDU_GET_PLAY_STATUS:
+        avrc_response.get_caps.status = BTIF_RC_STS_TIMEOUT;
+        handle_get_capability_response(&meta_msg, &avrc_response.get_caps);
+        break;
+    }
+    release_transaction(p_context->rc_status_cmd.label);
+}
+
+/***************************************************************************
+**
+** Function         btif_rc_status_cmd_timer_timeout
+**
+** Description      RC status command timeout callback.
 **                  This is called from BTU context and switches to BTIF
 **                  context to handle the timeout events
 ** Returns          None
 **
 ***************************************************************************/
-static void rc_timeout_callback (timer_entry_t *tle)
+static void btif_rc_status_cmd_timer_timeout(void *data)
 {
-    char *p_data = (char*)tle->data;
+    btif_rc_timer_context_t *p_data = (btif_rc_timer_context_t *)data;
 
-    tle->data = NULL;
-    btif_transfer_context(rc_timeout_handler, 0,
-                  p_data, sizeof(btif_rc_timer_context_t), NULL);
-    osi_freebuf (p_data);
+    btif_transfer_context(btif_rc_status_cmd_timeout_handler, 0,
+                          (char *)p_data, sizeof(btif_rc_timer_context_t),
+                          NULL);
+}
+
+/***************************************************************************
+**
+** Function         btif_rc_control_cmd_timeout_handler
+**
+** Description      RC control command timeout handler (Runs in BTIF context).
+** Returns          None
+**
+***************************************************************************/
+static void btif_rc_control_cmd_timeout_handler(UNUSED_ATTR uint16_t event,
+                                                char *data)
+{
+    btif_rc_timer_context_t *p_context = (btif_rc_timer_context_t *)data;
+    tAVRC_RESPONSE      avrc_response = {0};
+    tBTA_AV_META_MSG    meta_msg;
+
+    memset(&meta_msg, 0, sizeof(tBTA_AV_META_MSG));
+    meta_msg.rc_handle = btif_rc_cb.rc_handle;
+
+    switch (p_context->rc_control_cmd.pdu_id) {
+    case AVRC_PDU_SET_PLAYER_APP_VALUE:
+        avrc_response.set_app_val.status = BTIF_RC_STS_TIMEOUT;
+        handle_set_app_attr_val_response(&meta_msg,
+                                         &avrc_response.set_app_val);
+        break;
+    }
+    release_transaction(p_context->rc_control_cmd.label);
+}
+
+/***************************************************************************
+**
+** Function         btif_rc_control_cmd_timer_timeout
+**
+** Description      RC control command timeout callback.
+**                  This is called from BTU context and switches to BTIF
+**                  context to handle the timeout events
+** Returns          None
+**
+***************************************************************************/
+static void btif_rc_control_cmd_timer_timeout(void *data)
+{
+    btif_rc_timer_context_t *p_data = (btif_rc_timer_context_t *)data;
+
+    btif_transfer_context(btif_rc_control_cmd_timeout_handler, 0,
+                          (char *)p_data, sizeof(btif_rc_timer_context_t),
+                          NULL);
+}
+
+/***************************************************************************
+**
+** Function         btif_rc_play_status_timeout_handler
+**
+** Description      RC play status timeout handler (Runs in BTIF context).
+** Returns          None
+**
+***************************************************************************/
+static void btif_rc_play_status_timeout_handler(UNUSED_ATTR uint16_t event,
+                                                UNUSED_ATTR char *p_data)
+{
+    get_play_status_cmd();
+    rc_start_play_status_timer();
+}
+
+/***************************************************************************
+**
+** Function         btif_rc_play_status_timer_timeout
+**
+** Description      RC play status timeout callback.
+**                  This is called from BTU context and switches to BTIF
+**                  context to handle the timeout events
+** Returns          None
+**
+***************************************************************************/
+static void btif_rc_play_status_timer_timeout(UNUSED_ATTR void *data)
+{
+    btif_transfer_context(btif_rc_play_status_timeout_handler, 0, 0, 0, NULL);
 }
 
 /***************************************************************************
@@ -2067,22 +2203,18 @@ static void rc_timeout_callback (timer_entry_t *tle)
 ** Returns          None
 **
 ***************************************************************************/
-void rc_start_play_status_timer ()
+static void rc_start_play_status_timer(void)
 {
-    btif_rc_timer_context_t *p_rc_timer_context;
     /* Start the Play status timer only if it is not started */
-    if (btif_rc_cb.tle_rc_play_status.data == NULL)
-    {
-        p_rc_timer_context = (btif_rc_timer_context_t*) osi_getbuf(sizeof(btif_rc_timer_context_t));
-        if (p_rc_timer_context != NULL)
-        {
-            p_rc_timer_context->timer_id = RC_TIMER_PLAY_STATUS;
-            memset(&btif_rc_cb.tle_rc_play_status, 0, sizeof(timer_entry_t));
-            btif_rc_cb.tle_rc_play_status.param = rc_timeout_callback;
-            btif_rc_cb.tle_rc_play_status.data = p_rc_timer_context;
-            btu_start_timer(&btif_rc_cb.tle_rc_play_status, BTU_TTYPE_USER_FUNC,
-                    BTIF_TIMEOUT_RC_INTERIM_RSP);
+    if (!alarm_is_scheduled(btif_rc_cb.rc_play_status_timer)) {
+        if (btif_rc_cb.rc_play_status_timer == NULL) {
+            btif_rc_cb.rc_play_status_timer =
+                alarm_new("btif_rc.rc_play_status_timer");
         }
+        alarm_set_on_queue(btif_rc_cb.rc_play_status_timer,
+                           BTIF_TIMEOUT_RC_INTERIM_RSP_MS,
+                           btif_rc_play_status_timer_timeout, NULL,
+                           btu_general_alarm_queue);
     }
 }
 
@@ -2094,109 +2226,10 @@ void rc_start_play_status_timer ()
 ** Returns          None
 **
 ***************************************************************************/
-void rc_stop_play_status_timer ()
+void rc_stop_play_status_timer()
 {
-    if (btif_rc_cb.tle_rc_play_status.data != NULL)
-    {
-        btu_stop_timer (&btif_rc_cb.tle_rc_play_status);
-        osi_freebuf(btif_rc_cb.tle_rc_play_status.data);
-        btif_rc_cb.tle_rc_play_status.data = NULL;
-    }
-}
-
-/***************************************************************************
-**
-** Function         rc_timeout_handler
-**
-** Description      RC timeout handler (Runs in BTIF context).
-**                  main handler for all the timers created from RC module
-** Returns          None
-**
-***************************************************************************/
-static void rc_timeout_handler (UINT16 event, char* p_data)
-{
-    btif_rc_timer_context_t *p_rc_timer_context;
-    tAVRC_RESPONSE      avrc_response = {0};
-    tBTA_AV_META_MSG    meta_msg;
-
-    p_rc_timer_context = (btif_rc_timer_context_t *)p_data;
-    memset(&meta_msg, 0, sizeof(tBTA_AV_META_MSG));
-    meta_msg.rc_handle = btif_rc_cb.rc_handle;
-
-    switch (p_rc_timer_context->timer_id)
-    {
-        case RC_TIMER_STATUS_CMD:
-            switch (p_rc_timer_context->rc_status_cmd.pdu_id)
-            {
-                case AVRC_PDU_REGISTER_NOTIFICATION:
-                    rc_notification_interim_timout(
-                                    p_rc_timer_context->rc_status_cmd.label);
-                    break;
-
-                case AVRC_PDU_GET_CAPABILITIES:
-                    avrc_response.get_caps.status = BTIF_RC_STS_TIMEOUT;
-                    handle_get_capability_response(&meta_msg, &avrc_response.get_caps);
-                    break;
-
-                case AVRC_PDU_LIST_PLAYER_APP_ATTR:
-                    avrc_response.list_app_attr.status = BTIF_RC_STS_TIMEOUT;
-                    handle_app_attr_response(&meta_msg, &avrc_response.list_app_attr);
-                    break;
-
-                case AVRC_PDU_LIST_PLAYER_APP_VALUES:
-                    avrc_response.list_app_values.status = BTIF_RC_STS_TIMEOUT;
-                    handle_app_val_response(&meta_msg, &avrc_response.list_app_values);
-                    break;
-
-                case AVRC_PDU_GET_CUR_PLAYER_APP_VALUE:
-                    avrc_response.get_cur_app_val.status = BTIF_RC_STS_TIMEOUT;
-                    handle_app_cur_val_response(&meta_msg, &avrc_response.get_cur_app_val);
-                    break;
-
-                case AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT:
-                    avrc_response.get_app_attr_txt.status = BTIF_RC_STS_TIMEOUT;
-                    handle_app_attr_txt_response(&meta_msg, &avrc_response.get_app_attr_txt);
-                    break;
-
-                case AVRC_PDU_GET_PLAYER_APP_VALUE_TEXT:
-                    avrc_response.get_app_val_txt.status = BTIF_RC_STS_TIMEOUT;
-                    handle_app_attr_txt_response(&meta_msg, &avrc_response.get_app_val_txt);
-                    break;
-
-                case AVRC_PDU_GET_ELEMENT_ATTR:
-                    avrc_response.get_elem_attrs.status = BTIF_RC_STS_TIMEOUT;
-                    handle_get_elem_attr_response(&meta_msg, &avrc_response.get_elem_attrs);
-                    break;
-
-                case AVRC_PDU_GET_PLAY_STATUS:
-                    avrc_response.get_caps.status = BTIF_RC_STS_TIMEOUT;
-                    handle_get_capability_response(&meta_msg, &avrc_response.get_caps);
-                    break;
-            }
-            release_transaction (p_rc_timer_context->rc_status_cmd.label);
-            break;
-
-        case RC_TIMER_CONTROL_CMD:
-            switch (p_rc_timer_context->rc_control_cmd.pdu_id)
-            {
-                case AVRC_PDU_SET_PLAYER_APP_VALUE:
-                    avrc_response.set_app_val.status = BTIF_RC_STS_TIMEOUT;
-                    handle_set_app_attr_val_response(&meta_msg, &avrc_response.set_app_val);
-                    break;
-            }
-            release_transaction (p_rc_timer_context->rc_control_cmd.label);
-            break;
-
-        case RC_TIMER_PLAY_STATUS:
-            get_play_status_cmd();
-            rc_start_play_status_timer();
-            break;
-
-        default:
-            BTIF_TRACE_ERROR("%s Error unknown timer id %d",
-                __FUNCTION__, p_rc_timer_context->timer_id);
-            break;
-    }
+    if (btif_rc_cb.rc_play_status_timer != NULL)
+        alarm_cancel(btif_rc_cb.rc_play_status_timer);
 }
 
 /***************************************************************************
@@ -2209,7 +2242,7 @@ static void rc_timeout_handler (UINT16 event, char* p_data)
 ** Returns          None
 **
 ***************************************************************************/
-static void register_for_event_notification (btif_rc_supported_event_t *p_event)
+static void register_for_event_notification(btif_rc_supported_event_t *p_event)
 {
     bt_status_t status;
     rc_transaction_t *p_transaction;
@@ -2217,7 +2250,7 @@ static void register_for_event_notification (btif_rc_supported_event_t *p_event)
     status = get_transaction(&p_transaction);
     if (status == BT_STATUS_SUCCESS)
     {
-        btif_rc_timer_context_t *p_rc_timer_context;
+        btif_rc_timer_context_t *p_context = &p_transaction->txn_timer_context;
 
         status = register_notification_cmd (p_transaction->lbl, p_event->event_id, 0);
         if (status != BT_STATUS_SUCCESS)
@@ -2229,18 +2262,16 @@ static void register_for_event_notification (btif_rc_supported_event_t *p_event)
         }
         p_event->label = p_transaction->lbl;
         p_event->status = eREGISTERED;
-        p_rc_timer_context = (btif_rc_timer_context_t*) osi_getbuf(sizeof(btif_rc_timer_context_t));
-        if (p_rc_timer_context != NULL)
-        {
-            p_rc_timer_context->timer_id = RC_TIMER_STATUS_CMD;
-            p_rc_timer_context->rc_status_cmd.label = p_transaction->lbl;
-            p_rc_timer_context->rc_status_cmd.pdu_id = AVRC_PDU_REGISTER_NOTIFICATION;
-            memset(&p_transaction->tle_txn, 0, sizeof(timer_entry_t));
-            p_transaction->tle_txn.param = rc_timeout_callback;
-            p_transaction->tle_txn.data = p_rc_timer_context;
-            btu_start_timer(&p_transaction->tle_txn, BTU_TTYPE_USER_FUNC,
-                    BTIF_TIMEOUT_RC_INTERIM_RSP);
-        }
+        p_context->rc_status_cmd.label = p_transaction->lbl;
+        p_context->rc_status_cmd.pdu_id = AVRC_PDU_REGISTER_NOTIFICATION;
+
+        alarm_free(p_transaction->txn_timer);
+        p_transaction->txn_timer =
+            alarm_new("btif_rc.status_command_txn_timer");
+        alarm_set_on_queue(p_transaction->txn_timer,
+                           BTIF_TIMEOUT_RC_INTERIM_RSP_MS,
+                           btif_rc_status_cmd_timer_timeout, p_context,
+                           btu_general_alarm_queue);
     }
     else
     {
@@ -2249,54 +2280,31 @@ static void register_for_event_notification (btif_rc_supported_event_t *p_event)
     }
 }
 
-static void start_status_command_timer (UINT8 pdu_id, rc_transaction_t *p_txn)
+static void start_status_command_timer(UINT8 pdu_id, rc_transaction_t *p_txn)
 {
-    bt_status_t status;
-    btif_rc_timer_context_t *p_rc_timer_context;
+    btif_rc_timer_context_t *p_context = &p_txn->txn_timer_context;
+    p_context->rc_status_cmd.label = p_txn->lbl;
+    p_context->rc_status_cmd.pdu_id = pdu_id;
 
-    p_rc_timer_context = (btif_rc_timer_context_t*) osi_getbuf(sizeof(btif_rc_timer_context_t));
-    if (p_rc_timer_context != NULL)
-    {
-        p_rc_timer_context->timer_id = RC_TIMER_STATUS_CMD;
-        p_rc_timer_context->rc_status_cmd.label = p_txn->lbl;
-        p_rc_timer_context->rc_status_cmd.pdu_id = pdu_id;
-
-        memset(&p_txn->tle_txn, 0, sizeof(timer_entry_t));
-        p_txn->tle_txn.param = rc_timeout_callback;
-        p_txn->tle_txn.data = p_rc_timer_context;
-        btu_start_timer(&p_txn->tle_txn, BTU_TTYPE_USER_FUNC,
-                BTIF_TIMEOUT_RC_STATUS_CMD);
-    }
-    else
-    {
-        BTIF_TRACE_ERROR("%s Getbuf failed while starting command timer",
-            __FUNCTION__);
-    }
+    alarm_free(p_txn->txn_timer);
+    p_txn->txn_timer = alarm_new("btif_rc.status_command_txn_timer");
+    alarm_set_on_queue(p_txn->txn_timer, BTIF_TIMEOUT_RC_STATUS_CMD_MS,
+                       btif_rc_status_cmd_timer_timeout, p_context,
+                       btu_general_alarm_queue);
 }
 
-static void start_control_command_timer (UINT8 pdu_id, rc_transaction_t *p_txn)
+static void start_control_command_timer(UINT8 pdu_id, rc_transaction_t *p_txn)
 {
-    bt_status_t status;
-    btif_rc_timer_context_t *p_rc_timer_context;
+    btif_rc_timer_context_t *p_context = &p_txn->txn_timer_context;
+    p_context->rc_control_cmd.label = p_txn->lbl;
+    p_context->rc_control_cmd.pdu_id = pdu_id;
 
-    p_rc_timer_context = (btif_rc_timer_context_t*) osi_getbuf(sizeof(btif_rc_timer_context_t));
-    if (p_rc_timer_context != NULL)
-    {
-        p_rc_timer_context->timer_id = RC_TIMER_CONTROL_CMD;
-        p_rc_timer_context->rc_control_cmd.label = p_txn->lbl;
-        p_rc_timer_context->rc_control_cmd.pdu_id = pdu_id;
-
-        memset(&p_txn->tle_txn, 0, sizeof(timer_entry_t));
-        p_txn->tle_txn.param = rc_timeout_callback;
-        p_txn->tle_txn.data = p_rc_timer_context;
-        btu_start_timer(&p_txn->tle_txn, BTU_TTYPE_USER_FUNC,
-                BTIF_TIMEOUT_RC_CONTROL_CMD);
-    }
-    else
-    {
-        BTIF_TRACE_ERROR("%s Getbuf failed while starting command timer",
-            __FUNCTION__);
-    }
+    alarm_free(p_txn->txn_timer);
+    p_txn->txn_timer = alarm_new("btif_rc.control_command_txn_timer");
+    alarm_set_on_queue(p_txn->txn_timer,
+                       BTIF_TIMEOUT_RC_CONTROL_CMD_MS,
+                       btif_rc_control_cmd_timer_timeout, p_context,
+                       btu_general_alarm_queue);
 }
 
 /***************************************************************************
@@ -2334,7 +2342,7 @@ static void handle_get_capability_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_G
                 (p_rsp->param.event_id[xx] == AVRC_EVT_TRACK_CHANGE)||
                 (p_rsp->param.event_id[xx] == AVRC_EVT_APP_SETTING_CHANGE))
             {
-                p_event = (btif_rc_supported_event_t*) osi_getbuf(sizeof(btif_rc_supported_event_t));
+                p_event = (btif_rc_supported_event_t *)osi_getbuf(sizeof(btif_rc_supported_event_t));
                 p_event->event_id = p_rsp->param.event_id[xx];
                 p_event->status = eNOT_REGISTERED;
                 list_append(btif_rc_cb.rc_supported_event_list, p_event);
@@ -2655,7 +2663,6 @@ static void handle_app_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_AP
 static void handle_app_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_APP_VALUES_RSP *p_rsp)
 {
     UINT8 xx, attr_index;
-    int i,j;
     UINT8 attrs[AVRC_MAX_APP_ATTR_SIZE];
     btif_rc_player_app_settings_t *p_app_settings;
     bt_bdaddr_t rc_addr;
@@ -2783,7 +2790,7 @@ static void handle_app_cur_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET_
 ***************************************************************************/
 static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET_APP_ATTR_TXT_RSP *p_rsp)
 {
-    UINT8 xx, attr_index;
+    UINT8 xx;
     UINT8 vals[AVRC_MAX_APP_ATTR_SIZE];
     btif_rc_player_app_settings_t *p_app_settings;
     bt_bdaddr_t rc_addr;
@@ -2805,7 +2812,7 @@ static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET
         p_app_settings->num_ext_attrs = 0;
         for (xx = 0; xx < p_app_settings->ext_attr_index; xx++)
         {
-            osi_freebuf (p_app_settings->ext_attrs[xx].p_str);
+            osi_freebuf(p_app_settings->ext_attrs[xx].p_str);
         }
         p_app_settings->ext_attr_index = 0;
 
@@ -2884,10 +2891,10 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
 
             for (x = 0; x < p_ext_attr->num_val; x++)
             {
-                osi_freebuf (p_ext_attr->ext_attr_val[x].p_str);
+                osi_freebuf(p_ext_attr->ext_attr_val[x].p_str);
             }
             p_ext_attr->num_val = 0;
-            osi_freebuf (p_app_settings->ext_attrs[xx].p_str);
+            osi_freebuf(p_app_settings->ext_attrs[xx].p_str);
         }
         p_app_settings->ext_attr_index = 0;
 
@@ -2956,10 +2963,10 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
 
             for (x = 0; x < p_ext_attr->num_val; x++)
             {
-                osi_freebuf (p_ext_attr->ext_attr_val[x].p_str);
+                osi_freebuf(p_ext_attr->ext_attr_val[x].p_str);
             }
             p_ext_attr->num_val = 0;
-            osi_freebuf (p_app_settings->ext_attrs[xx].p_str);
+            osi_freebuf(p_app_settings->ext_attrs[xx].p_str);
         }
         p_app_settings->num_attrs = 0;
     }
@@ -3010,25 +3017,22 @@ static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GE
 
     if (p_rsp->status == AVRC_STS_NO_ERROR)
     {
-        p_attr = (btrc_element_attr_val_t*)osi_getbuf (p_rsp->num_attr * sizeof(btrc_element_attr_val_t));
-        if (p_attr != NULL)
+        p_attr = (btrc_element_attr_val_t *)osi_getbuf(p_rsp->num_attr * sizeof(btrc_element_attr_val_t));
+        memset(p_attr, 0, osi_get_buf_size(p_attr));
+        for (xx = 0; xx < p_rsp->num_attr; xx++)
         {
-            memset(p_attr, 0, osi_get_buf_size (p_attr));
-            for (xx = 0; xx < p_rsp->num_attr; xx++)
+            p_attr[xx].attr_id = p_rsp->p_attrs[xx].attr_id;
+            /* Todo. Legth limit check to include null */
+            if (p_rsp->p_attrs[xx].name.str_len && p_rsp->p_attrs[xx].name.p_str)
             {
-                p_attr[xx].attr_id = p_rsp->p_attrs[xx].attr_id;
-                /* Todo. Legth limit check to include null */
-                if (p_rsp->p_attrs[xx].name.str_len && p_rsp->p_attrs[xx].name.p_str)
-                {
-                    memcpy(p_attr[xx].text, p_rsp->p_attrs[xx].name.p_str,
-                            p_rsp->p_attrs[xx].name.str_len);
-                    osi_freebuf (p_rsp->p_attrs[xx].name.p_str);
-                }
+                memcpy(p_attr[xx].text, p_rsp->p_attrs[xx].name.p_str,
+                       p_rsp->p_attrs[xx].name.str_len);
+                osi_freebuf(p_rsp->p_attrs[xx].name.p_str);
             }
-            HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb,
-                &rc_addr, p_rsp->num_attr, p_attr);
-            osi_freebuf (p_attr);
         }
+        HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb,
+                  &rc_addr, p_rsp->num_attr, p_attr);
+        osi_freebuf(p_attr);
     }
     else if (p_rsp->status == BTIF_RC_STS_TIMEOUT)
     {
@@ -3099,12 +3103,8 @@ static void clear_cmd_timeout (UINT8 label)
         return;
     }
 
-    btu_stop_timer (&p_txn->tle_txn);
-    if (p_txn->tle_txn.data != NULL)
-    {
-        osi_freebuf (p_txn->tle_txn.data);
-        p_txn->tle_txn.data = NULL;
-    }
+    if (p_txn->txn_timer != NULL)
+        alarm_cancel(p_txn->txn_timer);
 }
 
 /***************************************************************************
@@ -3263,6 +3263,7 @@ static void cleanup()
     {
         bt_rc_callbacks = NULL;
     }
+    alarm_free(btif_rc_cb.rc_play_status_timer);
     memset(&btif_rc_cb, 0, sizeof(btif_rc_cb_t));
     lbl_destroy();
     BTIF_TRACE_EVENT("## %s ## completed", __FUNCTION__);
@@ -3285,6 +3286,7 @@ static void cleanup_ctrl()
     {
         bt_rc_ctrl_callbacks = NULL;
     }
+    alarm_free(btif_rc_cb.rc_play_status_timer);
     memset(&btif_rc_cb, 0, sizeof(btif_rc_cb_t));
     lbl_destroy();
     BTIF_TRACE_EVENT("## %s ## completed", __FUNCTION__);
@@ -3523,12 +3525,7 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t *bd_addr, uint8_t num_a
      avrc_cmd.set_app_val.num_val = num_attrib;
      avrc_cmd.set_app_val.pdu = AVRC_PDU_SET_PLAYER_APP_VALUE;
      avrc_cmd.set_app_val.p_vals =
-           (tAVRC_APP_SETTING*)osi_getbuf(sizeof(tAVRC_APP_SETTING)*num_attrib);
-    if (avrc_cmd.set_app_val.p_vals == NULL)
-    {
-        BTIF_TRACE_ERROR("%s: alloc failed", __FUNCTION__);
-        return BT_STATUS_FAIL;
-    }
+           (tAVRC_APP_SETTING *)osi_getbuf(sizeof(tAVRC_APP_SETTING) * num_attrib);
      for (count = 0; count < num_attrib; count++)
      {
          avrc_cmd.set_app_val.p_vals[count].attr_id = attrib_ids[count];
@@ -3610,7 +3607,7 @@ static bt_status_t get_player_app_setting_attr_text_cmd (UINT8 *attrs, UINT8 num
     {
         BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x", __FUNCTION__, status);
     }
-    if (NULL != p_msg)
+    if (p_msg != NULL)
         osi_freebuf(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
@@ -3671,7 +3668,7 @@ static bt_status_t get_player_app_setting_value_text_cmd (UINT8 *vals, UINT8 num
         BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                 __FUNCTION__, status);
     }
-    if (NULL != p_msg)
+    if (p_msg != NULL)
         osi_freebuf(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
@@ -3939,7 +3936,7 @@ static bt_status_t volume_change_notification_rsp(bt_bdaddr_t *bd_addr, btrc_not
      }
      else
      {
-         if (NULL!=p_msg)
+         if (p_msg != NULL)
             osi_freebuf(p_msg);
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
@@ -3971,21 +3968,19 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t *bd_addr, uint8_t key_co
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
     {
         bt_status_t tran_status = get_transaction(&p_transaction);
-        if ((BT_STATUS_SUCCESS == tran_status) && (NULL != p_transaction))
-        {
-             UINT8* p_buf = (UINT8*)osi_getbuf(AVRC_PASS_THRU_GROUP_LEN);
-             if (p_buf != NULL)
-             {
-                 UINT8* start = p_buf;
-                 UINT24_TO_BE_STREAM(start, AVRC_CO_METADATA);
-                 *(start)++ = 0;
-                 UINT8_TO_BE_STREAM(start, key_code);
-                 BTA_AvRemoteVendorUniqueCmd(btif_rc_cb.rc_handle, p_transaction->lbl,
-                    (tBTA_AV_STATE)key_state, p_buf, AVRC_PASS_THRU_GROUP_LEN);
-                status =  BT_STATUS_SUCCESS;
-                BTIF_TRACE_DEBUG("%s: succesfully sent group_navigation command to BTA",
-                                                                          __FUNCTION__);
-             }
+        if ((BT_STATUS_SUCCESS == tran_status) && (NULL != p_transaction)) {
+             UINT8* p_buf = (UINT8 *)osi_getbuf(AVRC_PASS_THRU_GROUP_LEN);
+             UINT8* start = p_buf;
+             UINT24_TO_BE_STREAM(start, AVRC_CO_METADATA);
+             *(start)++ = 0;
+             UINT8_TO_BE_STREAM(start, key_code);
+             BTA_AvRemoteVendorUniqueCmd(btif_rc_cb.rc_handle,
+                                         p_transaction->lbl,
+                                         (tBTA_AV_STATE)key_state, p_buf,
+                                         AVRC_PASS_THRU_GROUP_LEN);
+             status =  BT_STATUS_SUCCESS;
+             BTIF_TRACE_DEBUG("%s: succesfully sent group_navigation command to BTA",
+                              __FUNCTION__);
         }
         else
         {
@@ -4115,15 +4110,13 @@ const btrc_ctrl_interface_t *btif_rc_ctrl_get_interface(void)
 static void initialize_transaction(int lbl)
 {
     pthread_mutex_lock(&device.lbllock);
-    if (lbl < MAX_TRANSACTIONS_PER_SESSION)
-    {
-        if (device.transaction[lbl].tle_txn.in_use == TRUE)
-        {
-            clear_cmd_timeout (lbl);
+    if (lbl < MAX_TRANSACTIONS_PER_SESSION) {
+        if (alarm_is_scheduled(device.transaction[lbl].txn_timer)) {
+            clear_cmd_timeout(lbl);
         }
-       device.transaction[lbl].lbl = lbl;
-       device.transaction[lbl].in_use=FALSE;
-       device.transaction[lbl].handle=0;
+        device.transaction[lbl].lbl = lbl;
+        device.transaction[lbl].in_use=FALSE;
+        device.transaction[lbl].handle=0;
     }
     pthread_mutex_unlock(&device.lbllock);
 }
@@ -4268,7 +4261,7 @@ void lbl_destroy()
 **
 **      Returns        void
 *******************************************************************************/
-static void sleep_ms(uint32_t timeout_ms) {
+static void sleep_ms(period_ms_t timeout_ms) {
     struct timespec delay;
     delay.tv_sec = timeout_ms / 1000;
     delay.tv_nsec = 1000 * 1000 * (timeout_ms % 1000);

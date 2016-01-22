@@ -213,9 +213,9 @@ static uint8_t BTIF_SetTraceLevel(uint8_t new_level) {
 
 static uint8_t BTU_SetTraceLevel(uint8_t new_level) {
   if (new_level != 0xFF)
-    btu_cb.trace_level = new_level;
+    btu_trace_level = new_level;
 
-  return btu_cb.trace_level;
+  return btu_trace_level;
 }
 
 static void load_levels_from_config(const config_t *config) {

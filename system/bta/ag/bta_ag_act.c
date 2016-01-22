@@ -430,9 +430,9 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     bta_ag_at_reinit(&p_scb->at_cb);
 
     /* stop timers */
-    bta_sys_stop_timer(&p_scb->act_timer);
+    alarm_cancel(p_scb->ring_timer);
 #if (BTM_WBS_INCLUDED == TRUE)
-    bta_sys_stop_timer(&p_scb->cn_timer);
+    alarm_cancel(p_scb->codec_negotiation_timer);
 #endif
 
     close.hdr.handle = bta_ag_scb_to_idx(p_scb);
@@ -522,13 +522,11 @@ void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 
     bta_ag_cback_open(p_scb, NULL, BTA_AG_SUCCESS);
 
-    if (p_scb->conn_service == BTA_AG_HFP)
-    {
+    if (p_scb->conn_service == BTA_AG_HFP) {
         /* if hfp start timer for service level conn */
-        bta_sys_start_timer(&p_scb->act_timer, BTA_AG_SVC_TOUT_EVT, p_bta_ag_cfg->conn_tout);
-    }
-    else
-    {
+        bta_sys_start_timer(p_scb->ring_timer, p_bta_ag_cfg->conn_tout,
+                            BTA_AG_SVC_TIMEOUT_EVT, bta_ag_scb_to_idx(p_scb));
+    } else {
         /* else service level conn is open */
         bta_ag_svc_conn_open(p_scb, p_data);
     }
@@ -567,11 +565,9 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     /* Collision Handling */
     for (i = 0, ag_scb = &bta_ag_cb.scb[0]; i < BTA_AG_NUM_SCB; i++, ag_scb++)
     {
-        if ((ag_scb->in_use) && (ag_scb->colli_tmr_on))
+        if (ag_scb->in_use && alarm_is_scheduled(ag_scb->collision_timer))
         {
-            /* stop collision timer */
-            ag_scb->colli_tmr_on = FALSE;
-            bta_sys_stop_timer (&ag_scb->colli_timer);
+            alarm_cancel(ag_scb->collision_timer);
 
             if (bdcmp (dev_addr, ag_scb->peer_addr) == 0)
             {
@@ -814,8 +810,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         /* Clear AT+BIA mask from previous SLC if any. */
         p_scb->bia_masked_out = 0;
 
-        /* stop timer */
-        bta_sys_stop_timer(&p_scb->act_timer);
+        alarm_cancel(p_scb->ring_timer);
 
         /* call callback */
         evt.hdr.handle = bta_ag_scb_to_idx(p_scb);

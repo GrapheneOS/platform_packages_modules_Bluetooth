@@ -25,7 +25,7 @@
 #define BTA_SYS_H
 
 #include "bt_target.h"
-#include "osi/include/non_repeating_timer.h"
+#include "osi/include/alarm.h"
 #include "bt_common.h"
 
 /*****************************************************************************
@@ -228,10 +228,9 @@ extern void bta_sys_deregister(UINT8 id);
 extern BOOLEAN bta_sys_is_register(UINT8 id);
 extern UINT16 bta_sys_get_sys_features(void);
 extern void bta_sys_sendmsg(void *p_msg);
-extern void bta_sys_start_timer(timer_entry_t *p_te, UINT16 type, INT32 timeout_ms);
-extern void bta_sys_stop_timer(timer_entry_t *p_te);
+extern void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval,
+                                uint16_t event, uint16_t layer_specific);
 extern void bta_sys_disable(tBTA_SYS_HW_MODULE module);
-extern UINT32 bta_sys_get_remaining_ticks(timer_entry_t *p_target_te);
 
 extern void bta_sys_hw_register( tBTA_SYS_HW_MODULE module, tBTA_SYS_HW_CBACK *cback);
 extern void bta_sys_hw_unregister( tBTA_SYS_HW_MODULE module );

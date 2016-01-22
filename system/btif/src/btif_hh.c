@@ -29,6 +29,7 @@
 
 #include "btif_hh.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -64,6 +65,7 @@
 #define LOGITECH_KB_MX5500_VENDOR_ID  0x046D
 #define LOGITECH_KB_MX5500_PRODUCT_ID 0xB30B
 
+extern fixed_queue_t *btu_general_alarm_queue;
 extern const int BT_UID;
 extern const int BT_GID;
 static int btif_hh_keylockstates=0; //The current key state of each key
@@ -71,7 +73,7 @@ static int btif_hh_keylockstates=0; //The current key state of each key
 #define BTIF_HH_ID_1        0
 #define BTIF_HH_DEV_DISCONNECTED 3
 
-#define BTIF_TIMEOUT_VUP_SECS   3
+#define BTIF_TIMEOUT_VUP_MS   (3 * 1000)
 
 #ifndef BTUI_HH_SECURITY
 #define BTUI_HH_SECURITY (BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)
@@ -158,7 +160,7 @@ static void set_keylockstate(int keymask, BOOLEAN isSet);
 static void toggle_os_keylockstates(int fd, int changedkeystates);
 static void sync_lockstate_on_connect(btif_hh_device_t *p_dev);
 //static void hh_update_keyboard_lockstates(btif_hh_device_t *p_dev);
-void btif_hh_tmr_hdlr(timer_entry_t *p_te);
+void btif_hh_timer_timeout(void *data);
 
 /************************************************************************************
 **  Functions
@@ -397,15 +399,12 @@ static btif_hh_device_t *btif_hh_find_connected_dev_by_bda(bt_bdaddr_t *bd_addr)
 *******************************************************************************/
 void btif_hh_stop_vup_timer(bt_bdaddr_t *bd_addr)
 {
-    btif_hh_device_t *p_dev  = btif_hh_find_connected_dev_by_bda(bd_addr);
-    if(p_dev != NULL)
-    {
-        if (p_dev->vup_timer_active)
-        {
-            BTIF_TRACE_DEBUG("stop VUP timer ");
-            btu_stop_timer(&p_dev->vup_timer);
-        }
-        p_dev->vup_timer_active = FALSE;
+    btif_hh_device_t *p_dev = btif_hh_find_connected_dev_by_bda(bd_addr);
+
+    if (p_dev != NULL) {
+        BTIF_TRACE_DEBUG("stop VUP timer");
+        alarm_free(p_dev->vup_timer);
+        p_dev->vup_timer = NULL;
     }
 }
 /*******************************************************************************
@@ -418,25 +417,16 @@ void btif_hh_stop_vup_timer(bt_bdaddr_t *bd_addr)
 *******************************************************************************/
 void btif_hh_start_vup_timer(bt_bdaddr_t *bd_addr)
 {
+    BTIF_TRACE_DEBUG("%s", __func__);
+
     btif_hh_device_t *p_dev  = btif_hh_find_connected_dev_by_bda(bd_addr);
+    assert(p_dev != NULL);
 
-    if (p_dev->vup_timer_active == FALSE)
-    {
-        BTIF_TRACE_DEBUG("Start VUP timer ");
-        memset(&p_dev->vup_timer, 0, sizeof(timer_entry_t));
-        p_dev->vup_timer.param = btif_hh_tmr_hdlr;
-        btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
-                        BTIF_TIMEOUT_VUP_SECS);
-    }
-    else
-    {
-        BTIF_TRACE_DEBUG("Restart VUP timer ");
-        btu_stop_timer(&p_dev->vup_timer);
-        btu_start_timer(&p_dev->vup_timer, BTU_TTYPE_USER_FUNC,
-                        BTIF_TIMEOUT_VUP_SECS);
-    }
-        p_dev->vup_timer_active = TRUE;
-
+    alarm_free(p_dev->vup_timer);
+    p_dev->vup_timer = alarm_new("btif_hh.vup_timer");
+    alarm_set_on_queue(p_dev->vup_timer, BTIF_TIMEOUT_VUP_MS,
+                       btif_hh_timer_timeout, p_dev,
+                       btu_general_alarm_queue);
 }
 
 /*******************************************************************************
@@ -744,9 +734,12 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             btif_hh_cb.status = BTIF_HH_DISABLED;
             if (p_data->status == BTA_HH_OK) {
                 int i;
-                //Clear the control block
+                // Clear the control block
+                for (i = 0; i < BTIF_HH_MAX_HID; i++) {
+                    alarm_free(btif_hh_cb.devices[i].vup_timer);
+                }
                 memset(&btif_hh_cb, 0, sizeof(btif_hh_cb));
-                for (i = 0; i < BTIF_HH_MAX_HID; i++){
+                for (i = 0; i < BTIF_HH_MAX_HID; i++) {
                     btif_hh_cb.devices[i].dev_status = BTHH_CONN_STATE_UNKNOWN;
                 }
             }
@@ -792,8 +785,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                 btif_dm_hh_open_failed(bdaddr);
                 p_dev = btif_hh_find_dev_by_bda(bdaddr);
                 if (p_dev != NULL) {
-                    if(p_dev->vup_timer_active)
-                        btif_hh_stop_vup_timer(&(p_dev->bd_addr));
+                    btif_hh_stop_vup_timer(&(p_dev->bd_addr));
                     if (p_dev->fd >= 0) {
                         bta_hh_co_destroy(p_dev->fd);
                         p_dev->fd = -1;
@@ -811,8 +803,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
             p_dev = btif_hh_find_connected_dev_by_handle(p_data->dev_status.handle);
             if (p_dev != NULL) {
                 BTIF_TRACE_DEBUG("%s: uhid fd = %d", __FUNCTION__, p_dev->fd);
-                if(p_dev->vup_timer_active)
-                    btif_hh_stop_vup_timer(&(p_dev->bd_addr));
+                btif_hh_stop_vup_timer(&(p_dev->bd_addr));
                 if (p_dev->fd >= 0) {
                     bta_hh_co_destroy(p_dev->fd);
                     p_dev->fd = -1;
@@ -1032,10 +1023,7 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                          p_dev->bd_addr.address[2],p_dev->bd_addr.address[3],
                          p_dev->bd_addr.address[4], p_dev->bd_addr.address[5]);
                     /* Stop the VUP timer */
-                    if(p_dev->vup_timer_active)
-                    {
-                        btif_hh_stop_vup_timer(&(p_dev->bd_addr));
-                    }
+                    btif_hh_stop_vup_timer(&(p_dev->bd_addr));
                     p_dev->dev_status = BTHH_CONN_STATE_DISCONNECTED;
                     BTIF_TRACE_DEBUG("%s---Sending connection state change", __FUNCTION__);
                     HAL_CBACK(bt_hh_callbacks, connection_state_cb,&(p_dev->bd_addr), p_dev->dev_status);
@@ -1158,43 +1146,30 @@ static void btif_hh_handle_evt(UINT16 event, char *p_param)
 
 /*******************************************************************************
 **
-** Function      btif_hh_tmr_hdlr
+** Function      btif_hh_timer_timeout
 **
 ** Description   Process timer timeout
 **
 ** Returns      void
 *******************************************************************************/
-void btif_hh_tmr_hdlr(timer_entry_t *p_te)
+void btif_hh_timer_timeout(void *data)
 {
-    btif_hh_device_t *p_dev;
-    UINT8               i;
-    tBTA_HH_EVT event;
+    btif_hh_device_t *p_dev = (btif_hh_device_t *)data;
+    tBTA_HH_EVT event = BTA_HH_VC_UNPLUG_EVT;
     tBTA_HH p_data;
-    int param_len = 0;
+    int param_len = sizeof(tBTA_HH_CBDATA);
+
+    BTIF_TRACE_DEBUG("%s",  __func__);
+    if (p_dev->dev_status != BTHH_CONN_STATE_CONNECTED)
+        return;
+
     memset(&p_data, 0, sizeof(tBTA_HH));
+    p_data.dev_status.status = BTHH_ERR;
+    p_data.dev_status.handle = p_dev->dev_handle;
 
-    BTIF_TRACE_DEBUG("%s timer_in_use=%d",  __FUNCTION__, p_te->in_use);
-
-    for (i = 0; i < BTIF_HH_MAX_HID; i++) {
-        if (btif_hh_cb.devices[i].dev_status == BTHH_CONN_STATE_CONNECTED)
-        {
-
-            p_dev = &btif_hh_cb.devices[i];
-
-            if (p_dev->vup_timer_active)
-            {
-                p_dev->vup_timer_active = FALSE;
-                event = BTA_HH_VC_UNPLUG_EVT;
-                p_data.dev_status.status = BTHH_ERR;
-                p_data.dev_status.handle = p_dev->dev_handle;
-                param_len = sizeof(tBTA_HH_CBDATA);
-
-                /* switch context to btif task context */
-                btif_transfer_context(btif_hh_upstreams_evt, (uint16_t)event, (void*)&p_data,
-                            param_len, NULL);
-            }
-        }
-    }
+    /* switch context to btif task context */
+    btif_transfer_context(btif_hh_upstreams_evt, (uint16_t)event,
+                          (char *)&p_data, param_len, NULL);
 }
 
 /*******************************************************************************

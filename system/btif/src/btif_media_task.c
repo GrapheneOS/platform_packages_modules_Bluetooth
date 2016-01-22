@@ -223,8 +223,6 @@ typedef struct
 #if (BTA_AV_INCLUDED == TRUE)
     fixed_queue_t *TxAaQ;
     fixed_queue_t *RxSbcQ;
-    BOOLEAN is_tx_timer;
-    BOOLEAN is_rx_timer;
     UINT16 TxAaMtuSize;
     UINT32 timestamp;
     UINT8 TxTranscoding;
@@ -392,8 +390,7 @@ static void btif_audiopath_detached(void)
 
     /*  send stop request only if we are actively streaming and haven't received
         a stop request. Potentially audioflinger detached abnormally */
-    if (btif_media_cb.is_tx_timer)
-    {
+    if (alarm_is_scheduled(btif_media_cb.media_alarm)) {
         /* post stop event and wait for audio path to stop */
         btif_dispatch_sm_event(BTIF_AV_STOP_STREAM_REQ_EVT, NULL, 0);
     }
@@ -502,7 +499,8 @@ static void btif_recv_ctrl_data(void)
             break;
 
         case A2DP_CTRL_CMD_STOP:
-            if (btif_media_cb.peer_sep == AVDT_TSEP_SNK && btif_media_cb.is_tx_timer == FALSE)
+            if (btif_media_cb.peer_sep == AVDT_TSEP_SNK &&
+                (!alarm_is_scheduled(btif_media_cb.media_alarm)))
             {
                 /* we are already stopped, just ack back */
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_SUCCESS);
@@ -767,7 +765,6 @@ void btif_a2dp_stop_media_task(void)
     // Stop timer
     alarm_free(btif_media_cb.media_alarm);
     btif_media_cb.media_alarm = NULL;
-    btif_media_cb.is_tx_timer = FALSE;
 
     // Exit thread
     fixed_queue_free(btif_media_cmd_msg_queue, NULL);
@@ -1248,7 +1245,7 @@ static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
     log_tstamps_us("media task tx timer");
 
 #if (BTA_AV_INCLUDED == TRUE)
-    if(btif_media_cb.is_tx_timer == TRUE)
+    if (alarm_is_scheduled(btif_media_cb.media_alarm))
     {
         btif_media_send_aa_frame();
     }
@@ -1761,135 +1758,124 @@ static void btif_media_task_enc_update(BT_HDR *p_msg)
     SINT16 s16FrameLen;
     UINT8 protect = 0;
 
-    APPL_TRACE_DEBUG("btif_media_task_enc_update : minmtu %d, maxbp %d minbp %d",
-            pUpdateAudio->MinMtuSize, pUpdateAudio->MaxBitPool, pUpdateAudio->MinBitPool);
+    APPL_TRACE_DEBUG("%s : minmtu %d, maxbp %d minbp %d", __func__,
+                     pUpdateAudio->MinMtuSize, pUpdateAudio->MaxBitPool,
+                     pUpdateAudio->MinBitPool);
 
-    /* Only update the bitrate and MTU size while timer is running to make sure it has been initialized */
-    //if (btif_media_cb.is_tx_timer)
-    {
-        btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE -
-                                      BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
+    btif_media_cb.TxAaMtuSize = ((BTIF_MEDIA_AA_BUF_SIZE -
+                                  BTIF_MEDIA_AA_SBC_OFFSET - sizeof(BT_HDR))
                 < pUpdateAudio->MinMtuSize) ? (BTIF_MEDIA_AA_BUF_SIZE - BTIF_MEDIA_AA_SBC_OFFSET
                 - sizeof(BT_HDR)) : pUpdateAudio->MinMtuSize;
 
-        /* Set the initial target bit rate */
-        pstrEncParams->u16BitRate = btif_media_task_get_sbc_rate();
+    /* Set the initial target bit rate */
+    pstrEncParams->u16BitRate = btif_media_task_get_sbc_rate();
 
-        if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
-            s16SamplingFreq = 16000;
-        else if (pstrEncParams->s16SamplingFreq == SBC_sf32000)
-            s16SamplingFreq = 32000;
-        else if (pstrEncParams->s16SamplingFreq == SBC_sf44100)
-            s16SamplingFreq = 44100;
-        else
-            s16SamplingFreq = 48000;
+    if (pstrEncParams->s16SamplingFreq == SBC_sf16000)
+        s16SamplingFreq = 16000;
+    else if (pstrEncParams->s16SamplingFreq == SBC_sf32000)
+        s16SamplingFreq = 32000;
+    else if (pstrEncParams->s16SamplingFreq == SBC_sf44100)
+        s16SamplingFreq = 44100;
+    else
+        s16SamplingFreq = 48000;
 
-        do
-        {
-            if (pstrEncParams->s16NumOfBlocks == 0 || pstrEncParams->s16NumOfSubBands == 0
-                || pstrEncParams->s16NumOfChannels == 0)
-            {
-                APPL_TRACE_ERROR("btif_media_task_enc_update() - Avoiding division by zero...");
-                APPL_TRACE_ERROR("btif_media_task_enc_update() - block=%d, subBands=%d, channels=%d",
-                    pstrEncParams->s16NumOfBlocks, pstrEncParams->s16NumOfSubBands,
-                    pstrEncParams->s16NumOfChannels);
-                break;
-            }
+    do {
+        if (pstrEncParams->s16NumOfBlocks == 0 ||
+            pstrEncParams->s16NumOfSubBands == 0 ||
+            pstrEncParams->s16NumOfChannels == 0) {
+            APPL_TRACE_ERROR("%s - Avoiding division by zero...", __func__);
+            APPL_TRACE_ERROR("%s - block=%d, subBands=%d, channels=%d",
+                             __func__,
+                             pstrEncParams->s16NumOfBlocks,
+                             pstrEncParams->s16NumOfSubBands,
+                             pstrEncParams->s16NumOfChannels);
+            break;
+        }
 
-            if ((pstrEncParams->s16ChannelMode == SBC_JOINT_STEREO) ||
-                (pstrEncParams->s16ChannelMode == SBC_STEREO) )
-            {
-                s16BitPool = (SINT16)( (pstrEncParams->u16BitRate *
+        if ((pstrEncParams->s16ChannelMode == SBC_JOINT_STEREO) ||
+            (pstrEncParams->s16ChannelMode == SBC_STEREO)) {
+            s16BitPool = (SINT16)((pstrEncParams->u16BitRate *
                     pstrEncParams->s16NumOfSubBands * 1000 / s16SamplingFreq)
-                    -( (32 + (4 * pstrEncParams->s16NumOfSubBands *
+                    - ((32 + (4 * pstrEncParams->s16NumOfSubBands *
                     pstrEncParams->s16NumOfChannels)
-                    + ( (pstrEncParams->s16ChannelMode - 2) *
-                    pstrEncParams->s16NumOfSubBands )   )
-                    / pstrEncParams->s16NumOfBlocks) );
+                    + ((pstrEncParams->s16ChannelMode - 2) *
+                    pstrEncParams->s16NumOfSubBands))
+                    / pstrEncParams->s16NumOfBlocks));
 
-                s16FrameLen = 4 + (4*pstrEncParams->s16NumOfSubBands*
-                    pstrEncParams->s16NumOfChannels)/8
-                    + ( ((pstrEncParams->s16ChannelMode - 2) *
+            s16FrameLen = 4 + (4*pstrEncParams->s16NumOfSubBands *
+                    pstrEncParams->s16NumOfChannels) / 8
+                    + (((pstrEncParams->s16ChannelMode - 2) *
                     pstrEncParams->s16NumOfSubBands)
-                    + (pstrEncParams->s16NumOfBlocks * s16BitPool) ) / 8;
+                    + (pstrEncParams->s16NumOfBlocks * s16BitPool)) / 8;
 
-                s16BitRate = (8 * s16FrameLen * s16SamplingFreq)
+            s16BitRate = (8 * s16FrameLen * s16SamplingFreq)
                     / (pstrEncParams->s16NumOfSubBands *
                     pstrEncParams->s16NumOfBlocks * 1000);
 
-                if (s16BitRate > pstrEncParams->u16BitRate)
-                    s16BitPool--;
+            if (s16BitRate > pstrEncParams->u16BitRate)
+                s16BitPool--;
 
-                if(pstrEncParams->s16NumOfSubBands == 8)
-                    s16BitPool = (s16BitPool > 255) ? 255 : s16BitPool;
-                else
-                    s16BitPool = (s16BitPool > 128) ? 128 : s16BitPool;
-            }
+            if (pstrEncParams->s16NumOfSubBands == 8)
+                s16BitPool = (s16BitPool > 255) ? 255 : s16BitPool;
             else
-            {
-                s16BitPool = (SINT16)( ((pstrEncParams->s16NumOfSubBands *
+                s16BitPool = (s16BitPool > 128) ? 128 : s16BitPool;
+        } else {
+            s16BitPool = (SINT16)(((pstrEncParams->s16NumOfSubBands *
                     pstrEncParams->u16BitRate * 1000)
                     / (s16SamplingFreq * pstrEncParams->s16NumOfChannels))
-                    -( ( (32 / pstrEncParams->s16NumOfChannels) +
-                    (4 * pstrEncParams->s16NumOfSubBands) )
-                    /   pstrEncParams->s16NumOfBlocks ) );
+                    - (((32 / pstrEncParams->s16NumOfChannels) +
+                    (4 * pstrEncParams->s16NumOfSubBands))
+                    / pstrEncParams->s16NumOfBlocks));
 
-                pstrEncParams->s16BitPool = (s16BitPool >
-                    (16 * pstrEncParams->s16NumOfSubBands))
-                    ? (16*pstrEncParams->s16NumOfSubBands) : s16BitPool;
-            }
+            pstrEncParams->s16BitPool =
+                (s16BitPool > (16 * pstrEncParams->s16NumOfSubBands)) ?
+                        (16 * pstrEncParams->s16NumOfSubBands) : s16BitPool;
+        }
 
-            if (s16BitPool < 0)
-            {
-                s16BitPool = 0;
-            }
+        if (s16BitPool < 0)
+            s16BitPool = 0;
 
-            APPL_TRACE_EVENT("bitpool candidate : %d (%d kbps)",
+        APPL_TRACE_EVENT("%s bitpool candidate : %d (%d kbps)", __func__,
                          s16BitPool, pstrEncParams->u16BitRate);
 
-            if (s16BitPool > pUpdateAudio->MaxBitPool)
-            {
-                APPL_TRACE_DEBUG("btif_media_task_enc_update computed bitpool too large (%d)",
-                                    s16BitPool);
-                /* Decrease bitrate */
-                btif_media_cb.encoder.u16BitRate -= BTIF_MEDIA_BITRATE_STEP;
-                /* Record that we have decreased the bitrate */
-                protect |= 1;
-            }
-            else if (s16BitPool < pUpdateAudio->MinBitPool)
-            {
-                APPL_TRACE_WARNING("btif_media_task_enc_update computed bitpool too small (%d)", s16BitPool);
+        if (s16BitPool > pUpdateAudio->MaxBitPool) {
+            APPL_TRACE_DEBUG("%s computed bitpool too large (%d)", __func__,
+                             s16BitPool);
+            /* Decrease bitrate */
+            btif_media_cb.encoder.u16BitRate -= BTIF_MEDIA_BITRATE_STEP;
+            /* Record that we have decreased the bitrate */
+            protect |= 1;
+        } else if (s16BitPool < pUpdateAudio->MinBitPool) {
+            APPL_TRACE_WARNING("%s computed bitpool too small (%d)", __func__,
+                               s16BitPool);
 
-                /* Increase bitrate */
-                UINT16 previous_u16BitRate = btif_media_cb.encoder.u16BitRate;
-                btif_media_cb.encoder.u16BitRate += BTIF_MEDIA_BITRATE_STEP;
-                /* Record that we have increased the bitrate */
-                protect |= 2;
-                /* Check over-flow */
-                if (btif_media_cb.encoder.u16BitRate < previous_u16BitRate)
-                    protect |= 3;
-            }
-            else
-            {
-                break;
-            }
-            /* In case we have already increased and decreased the bitrate, just stop */
-            if (protect == 3)
-            {
-                APPL_TRACE_ERROR("btif_media_task_enc_update could not find bitpool in range");
-                break;
-            }
-        } while (1);
+            /* Increase bitrate */
+            UINT16 previous_u16BitRate = btif_media_cb.encoder.u16BitRate;
+            btif_media_cb.encoder.u16BitRate += BTIF_MEDIA_BITRATE_STEP;
+            /* Record that we have increased the bitrate */
+            protect |= 2;
+            /* Check over-flow */
+            if (btif_media_cb.encoder.u16BitRate < previous_u16BitRate)
+                protect |= 3;
+        } else {
+            break;
+        }
+        /* In case we have already increased and decreased the bitrate, just stop */
+        if (protect == 3) {
+            APPL_TRACE_ERROR("%s could not find bitpool in range", __func__);
+            break;
+        }
+    } while (1);
 
-        /* Finally update the bitpool in the encoder structure */
-        pstrEncParams->s16BitPool = s16BitPool;
+    /* Finally update the bitpool in the encoder structure */
+    pstrEncParams->s16BitPool = s16BitPool;
 
-        APPL_TRACE_DEBUG("btif_media_task_enc_update final bit rate %d, final bit pool %d",
-                btif_media_cb.encoder.u16BitRate, btif_media_cb.encoder.s16BitPool);
+    APPL_TRACE_DEBUG("%s final bit rate %d, final bit pool %d", __func__,
+                     btif_media_cb.encoder.u16BitRate,
+                     btif_media_cb.encoder.s16BitPool);
 
-        /* make sure we reinitialize encoder with new settings */
-        SBC_Encoder_Init(&(btif_media_cb.encoder));
-    }
+    /* make sure we reinitialize encoder with new settings */
+    SBC_Encoder_Init(&(btif_media_cb.encoder));
 }
 
 /*******************************************************************************
@@ -2079,13 +2065,14 @@ static void btif_media_task_aa_handle_start_decoding(void) {
 #ifdef USE_AUDIO_TRACK
   BtifAvrcpAudioTrackStart(btif_media_cb.audio_track);
 #endif
-  btif_media_cb.decode_alarm = alarm_new();
+  btif_media_cb.decode_alarm = alarm_new_periodic("btif.media_decode");
   if (!btif_media_cb.decode_alarm) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate decode alarm.", __func__);
     return;
   }
 
-  alarm_set_periodic(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK, btif_decode_alarm_cb, NULL);
+  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK,
+            btif_decode_alarm_cb, NULL);
 }
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
@@ -2294,18 +2281,10 @@ static void btif_media_task_alarm_cb(UNUSED_ATTR void *context) {
  *******************************************************************************/
 static void btif_media_task_aa_start_tx(void)
 {
-    APPL_TRACE_DEBUG("btif_media_task_aa_start_tx is timer %d, feeding mode %d",
-             btif_media_cb.is_tx_timer, btif_media_cb.feeding_mode);
+    APPL_TRACE_DEBUG("%s media_alarm %srunning, feeding mode %d", __func__,
+                     alarm_is_scheduled(btif_media_cb.media_alarm)? "" : "not ",
+                     btif_media_cb.feeding_mode);
 
-    if (btif_media_cb.is_tx_timer) {
-      LOG_ERROR(LOG_TAG, "%s media alarm already running", __func__);
-      return;
-    }
-
-    /* Use a timer to poll the UIPC, get rid of the UIPC call back */
-    // UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REG_CBACK, NULL);
-
-    btif_media_cb.is_tx_timer = TRUE;
     last_frame_us = 0;
 
     /* Reset the media feeding state */
@@ -2313,16 +2292,15 @@ static void btif_media_task_aa_start_tx(void)
 
     APPL_TRACE_EVENT("starting timer %dms", BTIF_MEDIA_TIME_TICK);
 
-    assert(btif_media_cb.media_alarm == NULL);
-
-    btif_media_cb.media_alarm = alarm_new();
+    alarm_free(btif_media_cb.media_alarm);
+    btif_media_cb.media_alarm = alarm_new_periodic("btif.media_task");
     if (!btif_media_cb.media_alarm) {
       LOG_ERROR(LOG_TAG, "%s unable to allocate media alarm.", __func__);
       return;
     }
 
-    alarm_set_periodic(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK,
-                       btif_media_task_alarm_cb, NULL);
+    alarm_set(btif_media_cb.media_alarm, BTIF_MEDIA_TIME_TICK,
+              btif_media_task_alarm_cb, NULL);
 }
 
 /*******************************************************************************
@@ -2336,14 +2314,14 @@ static void btif_media_task_aa_start_tx(void)
  *******************************************************************************/
 static void btif_media_task_aa_stop_tx(void)
 {
-    APPL_TRACE_DEBUG("%s is_tx_timer: %d", __func__, btif_media_cb.is_tx_timer);
+    APPL_TRACE_DEBUG("%s media_alarm is %srunning", __func__,
+                     alarm_is_scheduled(btif_media_cb.media_alarm)? "" : "not ");
 
-    const bool send_ack = (btif_media_cb.is_tx_timer != FALSE);
+    const bool send_ack = alarm_is_scheduled(btif_media_cb.media_alarm);
 
     /* Stop the timer first */
     alarm_free(btif_media_cb.media_alarm);
     btif_media_cb.media_alarm = NULL;
-    btif_media_cb.is_tx_timer = FALSE;
 
     UIPC_Close(UIPC_CH_ID_AV_AUDIO);
 
@@ -2720,7 +2698,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
                 nb_frame = 0;
 
                 /* break read loop if timer was stopped (media task stopped) */
-                if ( btif_media_cb.is_tx_timer == FALSE )
+                if (! alarm_is_scheduled(btif_media_cb.media_alarm))
                 {
                     osi_freebuf(p_buf);
                     return;

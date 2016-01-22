@@ -33,10 +33,12 @@
 #include "btm_api.h"
 
 
+extern fixed_queue_t *btu_bta_alarm_queue;
+
 static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_mode,
                                tBTA_DM_PM_REQ pm_req);
-static void bta_dm_pm_timer_cback(void *p_te);
+static void bta_dm_pm_timer_cback(void *data);
 static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hci_status);
 static BOOLEAN bta_dm_pm_park(BD_ADDR peer_addr);
 static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index);
@@ -278,10 +280,10 @@ static void bta_dm_pm_stop_timer_by_srvc_id(BD_ADDR peer_addr, UINT8 srvc_id)
 **
 *******************************************************************************/
 static void bta_dm_pm_start_timer(tBTA_PM_TIMER *p_timer, UINT8 timer_idx,
-                                  INT32 timeout, UINT8 srvc_id, UINT8 pm_action)
+                                  period_ms_t timeout_ms, UINT8 srvc_id,
+                                  UINT8 pm_action)
 {
     p_timer->in_use = TRUE;
-    p_timer->timer[timer_idx].p_cback = bta_dm_pm_timer_cback;
 
     if (p_timer->srvc_id[timer_idx] == BTA_ID_MAX)
         p_timer->active++;
@@ -291,7 +293,9 @@ static void bta_dm_pm_start_timer(tBTA_PM_TIMER *p_timer, UINT8 timer_idx,
 
     p_timer->srvc_id[timer_idx] = srvc_id;
 
-    bta_sys_start_timer(&p_timer->timer[timer_idx], 0, timeout);
+    alarm_set_on_queue(p_timer->timer[timer_idx], timeout_ms,
+                       bta_dm_pm_timer_cback, p_timer->timer[timer_idx],
+                       btu_bta_alarm_queue);
 }
 
 /*******************************************************************************
@@ -315,18 +319,13 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
 
     assert(p_timer->in_use && (p_timer->active > 0));
 
-    bta_sys_stop_timer(&p_timer->timer[timer_idx]);
+    alarm_cancel(p_timer->timer[timer_idx]);
     p_timer->srvc_id[timer_idx] = BTA_ID_MAX;
     /* NOTE: pm_action[timer_idx] intentionally not reset */
 
     p_timer->active--;
     if (p_timer->active == 0)
         p_timer->in_use = FALSE;
-}
-
-UINT32 bta_dm_pm_get_remaining_ticks (timer_entry_t *p_target_te)
-{
-    return bta_sys_get_remaining_ticks(p_target_te);
 }
 
 /*******************************************************************************
@@ -525,7 +524,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
 {
 
     tBTA_DM_PM_ACTION   pm_action = BTA_DM_PM_NO_ACTION;
-    UINT16              timeout = 0;
+    period_ms_t         timeout_ms = 0;
     UINT8               i,j;
     tBTA_DM_PM_ACTION   failed_pm = 0;
     tBTA_DM_PEER_DEVICE *p_peer_device = NULL;
@@ -537,7 +536,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
     tBTA_DM_SRVCS       *p_srvcs = NULL;
     BOOLEAN timer_started = FALSE;
     UINT8   timer_idx, available_timer = BTA_DM_PM_MODE_TIMER_MAX;
-    UINT32  remaining_ticks = 0;
+    period_ms_t  remaining_ms = 0;
 
     if(!bta_dm_cb.device_list.count)
         return;
@@ -588,7 +587,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                     if (pm_req != BTA_DM_PM_NEW_REQ || p_srvcs->new_request)
                     {
                         p_srvcs->new_request = FALSE;
-                        timeout =  p_act0->timeout;
+                        timeout_ms =  p_act0->timeout;
                     }
                 }
             }
@@ -600,7 +599,7 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                 if(p_act1->power_mode > pm_action)
                 {
                     pm_action = p_act1->power_mode;
-                    timeout =  p_act1->timeout;
+                    timeout_ms =  p_act1->timeout;
                 }
             }
         }
@@ -618,22 +617,22 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
             /* no timeout needed if no action is required */
             if(pm_action == BTA_DM_PM_NO_ACTION)
             {
-                timeout = 0;
+                timeout_ms = 0;
             }
 
         }
     }
     /* if need to start a timer */
-    if((pm_req != BTA_DM_PM_EXECUTE) && timeout)
+    if ((pm_req != BTA_DM_PM_EXECUTE) && (timeout_ms > 0))
     {
-        for(i=0; i<BTA_DM_NUM_PM_TIMER; i++)
+        for (i=0; i<BTA_DM_NUM_PM_TIMER; i++)
         {
-            if(bta_dm_cb.pm_timer[i].in_use && bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr) == 0)
+            if (bta_dm_cb.pm_timer[i].in_use && bdcmp(bta_dm_cb.pm_timer[i].peer_bdaddr, peer_addr) == 0)
             {
                 if ((timer_idx = bta_pm_action_to_timer_idx(pm_action)) != BTA_DM_PM_MODE_TIMER_MAX)
                 {
-                    remaining_ticks = bta_dm_pm_get_remaining_ticks(&bta_dm_cb.pm_timer[i].timer[timer_idx]);
-                    if (remaining_ticks < timeout)
+                    remaining_ms = alarm_get_remaining_ms(bta_dm_cb.pm_timer[i].timer[timer_idx]);
+                    if (remaining_ms < timeout_ms)
                     {
                         /* Cancel and restart the timer */
                         /*
@@ -645,7 +644,9 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                          */
                         bta_dm_pm_stop_timer_by_index(&bta_dm_cb.pm_timer[i],
                                                       timer_idx);
-                        bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[i], timer_idx, timeout, p_srvcs->id, pm_action);
+                        bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[i],
+                                              timer_idx, timeout_ms,
+                                              p_srvcs->id, pm_action);
                     }
                     timer_started = TRUE;
                 }
@@ -653,7 +654,8 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
             }
             else if (!bta_dm_cb.pm_timer[i].in_use)
             {
-                APPL_TRACE_DEBUG("%s dm_pm_timer:%d, %d", __func__, i, timeout);
+                APPL_TRACE_DEBUG("%s dm_pm_timer:%d, %d ms", __func__, i,
+                                 timeout_ms);
                 if (available_timer == BTA_DM_PM_MODE_TIMER_MAX)
                     available_timer = i;
             }
@@ -666,7 +668,9 @@ static void bta_dm_pm_set_mode(BD_ADDR peer_addr, tBTA_DM_PM_ACTION pm_request,
                 bdcpy(bta_dm_cb.pm_timer[available_timer].peer_bdaddr, peer_addr);
                 if ((timer_idx = bta_pm_action_to_timer_idx(pm_action)) != BTA_DM_PM_MODE_TIMER_MAX)
                 {
-                    bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[available_timer], timer_idx, timeout, p_srvcs->id, pm_action);
+                    bta_dm_pm_start_timer(&bta_dm_cb.pm_timer[available_timer],
+                                          timer_idx, timeout_ms,
+                                          p_srvcs->id, pm_action);
                     timer_started = TRUE;
                 }
             }
@@ -929,9 +933,10 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 v
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_dm_pm_timer_cback(void *p_te)
+static void bta_dm_pm_timer_cback(void *data)
 {
     UINT8 i, j;
+    alarm_t *alarm = (alarm_t *)data;
 
     for (i=0; i<BTA_DM_NUM_PM_TIMER; i++)
     {
@@ -940,7 +945,7 @@ static void bta_dm_pm_timer_cback(void *p_te)
         {
             for (j = 0; j < BTA_DM_PM_MODE_TIMER_MAX; j++)
             {
-                if(&bta_dm_cb.pm_timer[i].timer[j] == (timer_entry_t *)p_te)
+                if (bta_dm_cb.pm_timer[i].timer[j] == alarm)
                 {
                     bta_dm_cb.pm_timer[i].active --;
                     bta_dm_cb.pm_timer[i].srvc_id[j] = BTA_ID_MAX;

@@ -41,6 +41,9 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **
 ** Function         L2CA_Register
@@ -687,7 +690,10 @@ BOOLEAN  L2CA_Ping (BD_ADDR p_bd_addr, tL2CA_ECHO_RSP_CB *p_callback)
     {
         l2cu_adj_id(p_lcb, L2CAP_ADJ_BRCM_ID);  /* Make sure not using Broadcom ID */
         l2cu_send_peer_echo_req (p_lcb, NULL, 0);
-        btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_ECHO_RSP_TOUT);
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                           L2CAP_ECHO_RSP_TIMEOUT_MS,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
     }
 
     return (TRUE);

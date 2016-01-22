@@ -40,7 +40,6 @@ btosiCommonSrc := \
     ./src/hash_map_utils.c \
     ./src/list.c \
     ./src/mutex.c \
-    ./src/non_repeating_timer.c \
     ./src/reactor.c \
     ./src/ringbuffer.c \
     ./src/semaphore.c \

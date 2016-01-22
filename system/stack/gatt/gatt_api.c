@@ -34,7 +34,6 @@
 #include "l2c_api.h"
 #include "btm_int.h"
 
-
 /*******************************************************************************
 **
 ** Function         GATT_SetTraceLevel
@@ -1116,7 +1115,7 @@ tGATT_STATUS GATTC_SendHandleValueConfirm (UINT16 conn_id, UINT16 handle)
     {
         if (p_tcb->ind_count > 0 )
         {
-            btu_stop_timer (&p_tcb->ind_ack_timer_ent);
+            alarm_cancel(p_tcb->ind_ack_timer);
 
             GATT_TRACE_DEBUG ("notif_count=%d ", p_tcb->ind_count);
             /* send confirmation now */
@@ -1299,7 +1298,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
                     (p_clcb->p_reg->gatt_if == gatt_if) &&
                     (p_clcb->p_tcb->tcb_idx == p_tcb->tcb_idx))
                 {
-                    btu_stop_timer(&p_clcb->rsp_timer_ent);
+                    alarm_cancel(p_clcb->gatt_rsp_timer_ent);
                     gatt_clcb_dealloc (p_clcb);
                     break;
                 }

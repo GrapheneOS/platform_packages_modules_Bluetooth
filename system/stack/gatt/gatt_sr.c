@@ -1429,7 +1429,7 @@ void gatts_process_value_conf(tGATT_TCB *p_tcb, UINT8 op_code)
     BOOLEAN         continue_processing;
     UINT16          conn_id;
 
-    btu_stop_timer (&p_tcb->conf_timer_ent);
+    alarm_cancel(p_tcb->conf_timer);
     if (GATT_HANDLE_IS_VALID(handle))
     {
         p_tcb->indicate_handle = 0;

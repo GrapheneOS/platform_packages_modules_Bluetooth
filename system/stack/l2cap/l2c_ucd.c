@@ -37,6 +37,9 @@
 #include "btm_int.h"
 
 #if (L2CAP_UCD_INCLUDED == TRUE)
+
+extern fixed_queue_t *btu_bta_alarm_queue;
+
 static BOOLEAN l2c_ucd_connect ( BD_ADDR rem_bda );
 
 /*******************************************************************************
@@ -1014,12 +1017,17 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             {
                 /* start a timer to send next UCD packet in OPEN state */
                 /* it will prevent stack overflow */
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, 0);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer, 0,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
             else
             {
                 /* start a timer for idle timeout of UCD */
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, p_ccb->fixed_chnl_idle_tout);
+                period_ms_t timeout_ms = p_ccb->fixed_chnl_idle_tout * 1000;
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer, timeout_ms,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
             break;
 
@@ -1028,7 +1036,10 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             l2c_ucd_discard_pending_out_sec_q(p_ccb);
 
             /* start a timer for idle timeout of UCD */
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, p_ccb->fixed_chnl_idle_tout);
+            period_ms_t timeout_ms = p_ccb->fixed_chnl_idle_tout * 1000;
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer, timeout_ms,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
             break;
 
         case L2CEVT_L2CA_DATA_WRITE:    /* Upper layer data to send */
@@ -1062,12 +1073,17 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             {
                 /* start a timer to check next UCD packet in OPEN state */
                 /* it will prevent stack overflow */
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, 0);
+              alarm_set_on_queue(p_ccb->l2c_ccb_timer, 0,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
             }
             else
             {
                 /* start a timer for idle timeout of UCD */
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, p_ccb->fixed_chnl_idle_tout);
+                period_ms_t timeout_ms = p_ccb->fixed_chnl_idle_tout * 1000;
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer, timeout_ms,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
             break;
 
@@ -1081,7 +1097,10 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             l2c_ucd_discard_pending_in_sec_q (p_ccb);
 
             /* start a timer for idle timeout of UCD */
-            btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, p_ccb->fixed_chnl_idle_tout);
+            period_ms_t timeout_ms = p_ccb->fixed_chnl_idle_tout * 1000;
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer, timeout_ms,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
             break;
 
         case L2CEVT_L2CA_DATA_WRITE:        /* Upper layer data to send */
@@ -1116,7 +1135,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         {
         case L2CEVT_L2CAP_DATA:             /* Peer data packet rcvd    */
             /* stop idle timer of UCD */
-            btu_stop_timer (&p_ccb->timer_entry);
+            alarm_cancel(p_ccb->l2c_ccb_timer);
 
             fixed_queue_enqueue(p_ccb->p_lcb->ucd_in_sec_pending_q, p_data);
             l2c_ucd_check_pending_in_sec_q (p_ccb);
@@ -1124,7 +1143,7 @@ BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
         case L2CEVT_L2CA_DATA_WRITE:        /* Upper layer data to send */
             /* stop idle timer of UCD */
-            btu_stop_timer (&p_ccb->timer_entry);
+            alarm_cancel(p_ccb->l2c_ccb_timer);
 
             l2c_ucd_enqueue_pending_out_sec_q(p_ccb, p_data);
 

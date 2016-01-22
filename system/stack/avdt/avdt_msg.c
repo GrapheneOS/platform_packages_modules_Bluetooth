@@ -36,6 +36,8 @@
 #include "bt_common.h"
 #include "btu.h"
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*****************************************************************************
 ** constants
 *****************************************************************************/
@@ -1307,11 +1309,21 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                 if ((sig == AVDT_SIG_DISCOVER) || (sig == AVDT_SIG_GETCAP) ||
                     (sig == AVDT_SIG_SECURITY) || (avdt_cb.rcb.ret_tout == 0))
                 {
-                    btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RSP, avdt_cb.rcb.sig_tout);
+                    alarm_cancel(p_ccb->idle_ccb_timer);
+                    alarm_cancel(p_ccb->ret_ccb_timer);
+                    period_ms_t interval_ms = avdt_cb.rcb.sig_tout * 1000;
+                    alarm_set_on_queue(p_ccb->rsp_ccb_timer, interval_ms,
+                                       avdt_ccb_rsp_ccb_timer_timeout, p_ccb,
+                                       btu_general_alarm_queue);
                 }
                 else if (sig != AVDT_SIG_DELAY_RPT)
                 {
-                    btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.ret_tout);
+                    alarm_cancel(p_ccb->idle_ccb_timer);
+                    alarm_cancel(p_ccb->rsp_ccb_timer);
+                    period_ms_t interval_ms = avdt_cb.rcb.ret_tout * 1000;
+                    alarm_set_on_queue(p_ccb->ret_ccb_timer, interval_ms,
+                                       avdt_ccb_ret_ccb_timer_timeout, p_ccb,
+                                       btu_general_alarm_queue);
                 }
             }
         }
@@ -1842,7 +1854,9 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
                 (AVDT_LAYERSPEC_LABEL(p_ccb->p_curr_cmd->layer_specific) == label))
             {
                 /* stop timer */
-                btu_stop_timer(&p_ccb->timer_entry);
+                alarm_cancel(p_ccb->idle_ccb_timer);
+                alarm_cancel(p_ccb->ret_ccb_timer);
+                alarm_cancel(p_ccb->rsp_ccb_timer);
 
                 /* clear retransmission count */
                 p_ccb->ret_count = 0;

@@ -37,6 +37,8 @@
 
 #include <string.h>
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **
 ** Function         rfc_calc_fcs
@@ -170,12 +172,14 @@ tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator)
         if (rfc_cb.port.rfc_mcb[j].state == RFC_MX_STATE_IDLE)
         {
             /* New multiplexer control block */
+            alarm_free(p_mcb->mcb_timer);
             fixed_queue_free(p_mcb->cmd_q, NULL);
             memset (p_mcb, 0, sizeof (tRFC_MCB));
             memcpy (p_mcb->bd_addr, bd_addr, BD_ADDR_LEN);
             RFCOMM_TRACE_DEBUG("rfc_alloc_multiplexer_channel:is_initiator:%d, create new p_mcb:%p, index:%d",
                                 is_initiator, &rfc_cb.port.rfc_mcb[j], j);
 
+            p_mcb->mcb_timer = alarm_new("rfcomm_mcb.mcb_timer");
             p_mcb->cmd_q = fixed_queue_new(SIZE_MAX);
 
             p_mcb->is_initiator = is_initiator;
@@ -203,6 +207,7 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
     void    *p_buf;
 
     rfc_timer_stop (p_mcb);
+    alarm_free(p_mcb->mcb_timer);
 
     while ((p_buf = fixed_queue_try_dequeue(p_mcb->cmd_q)) != NULL)
         osi_freebuf(p_buf);
@@ -220,15 +225,14 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 ** Description      Start RFC Timer
 **
 *******************************************************************************/
-void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
+void rfc_timer_start(tRFC_MCB *p_mcb, UINT16 timeout)
 {
-    timer_entry_t *p_te = &p_mcb->timer_entry;
+    RFCOMM_TRACE_EVENT ("%s - timeout:%d seconds", __func__, timeout);
 
-    RFCOMM_TRACE_EVENT ("rfc_timer_start - timeout:%d", timeout);
-
-    p_te->param = p_mcb;
-
-    btu_start_timer (p_te, BTU_TTYPE_RFCOMM_MFC, timeout);
+    period_ms_t interval_ms = timeout * 1000;
+    alarm_set_on_queue(p_mcb->mcb_timer, interval_ms,
+                       rfcomm_mcb_timer_timeout, p_mcb,
+                       btu_general_alarm_queue);
 }
 
 
@@ -239,11 +243,11 @@ void rfc_timer_start (tRFC_MCB *p_mcb, UINT16 timeout)
 ** Description      Stop RFC Timer
 **
 *******************************************************************************/
-void rfc_timer_stop (tRFC_MCB *p_mcb)
+void rfc_timer_stop(tRFC_MCB *p_mcb)
 {
-    RFCOMM_TRACE_EVENT ("rfc_timer_stop");
+    RFCOMM_TRACE_EVENT("%s", __func__);
 
-    btu_stop_timer (&p_mcb->timer_entry);
+    alarm_cancel(p_mcb->mcb_timer);
 }
 
 
@@ -254,17 +258,15 @@ void rfc_timer_stop (tRFC_MCB *p_mcb)
 ** Description      Start RFC Timer
 **
 *******************************************************************************/
-void rfc_port_timer_start (tPORT *p_port, UINT16 timeout)
+void rfc_port_timer_start(tPORT *p_port, UINT16 timeout)
 {
-    timer_entry_t *p_te = &p_port->rfc.timer_entry;
+    RFCOMM_TRACE_EVENT("%s - timeout:%d seconds", __func__, timeout);
 
-    RFCOMM_TRACE_EVENT ("rfc_port_timer_start - timeout:%d", timeout);
-
-    p_te->param = p_port;
-
-    btu_start_timer (p_te, BTU_TTYPE_RFCOMM_PORT, timeout);
+    period_ms_t interval_ms = timeout * 1000;
+    alarm_set_on_queue(p_port->rfc.port_timer, interval_ms,
+                       rfcomm_port_timer_timeout, p_port,
+                       btu_general_alarm_queue);
 }
-
 
 /*******************************************************************************
 **
@@ -273,11 +275,11 @@ void rfc_port_timer_start (tPORT *p_port, UINT16 timeout)
 ** Description      Stop RFC Timer
 **
 *******************************************************************************/
-void rfc_port_timer_stop (tPORT *p_port)
+void rfc_port_timer_stop(tPORT *p_port)
 {
-    RFCOMM_TRACE_EVENT ("rfc_port_timer_stop");
+    RFCOMM_TRACE_EVENT ("%s", __func__);
 
-    btu_stop_timer (&p_port->rfc.timer_entry);
+    alarm_cancel(p_port->rfc.port_timer);
 }
 
 
@@ -314,33 +316,19 @@ void rfc_check_mcb_active (tRFC_MCB *p_mcb)
         rfc_timer_start (p_mcb, RFC_MCB_RELEASE_INACT_TIMER);
 }
 
-
-/*******************************************************************************
-**
-** Function         rfcomm_process_timeout
-**
-** Description      The function called every second to check RFCOMM timers
-**
-** Returns          void
-**
-*******************************************************************************/
-void rfcomm_process_timeout (timer_entry_t *p_te)
+void rfcomm_port_timer_timeout(void *data)
 {
-    switch (p_te->event)
-    {
-    case BTU_TTYPE_RFCOMM_MFC:
-        rfc_mx_sm_execute ((tRFC_MCB *)p_te->param, RFC_EVENT_TIMEOUT, NULL);
-        break;
+    tPORT *p_port = (tPORT *)data;
 
-    case BTU_TTYPE_RFCOMM_PORT:
-        rfc_port_sm_execute ((tPORT *)p_te->param, RFC_EVENT_TIMEOUT, NULL);
-        break;
-
-    default:
-        break;
-    }
+    rfc_port_sm_execute(p_port, RFC_EVENT_TIMEOUT, NULL);
 }
 
+void rfcomm_mcb_timer_timeout(void *data)
+{
+    tRFC_MCB *p_mcb = (tRFC_MCB *)data;
+
+    rfc_mx_sm_execute(p_mcb, RFC_EVENT_TIMEOUT, NULL);
+}
 
 /*******************************************************************************
 **

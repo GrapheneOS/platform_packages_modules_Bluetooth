@@ -26,9 +26,9 @@
 
 #include <stdbool.h>
 
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
-#include "osi/include/non_repeating_timer.h"
 #include "btm_api.h"
 #include "bt_common.h"
 #include "l2c_api.h"
@@ -36,33 +36,23 @@
 
 #define L2CAP_MIN_MTU   48      /* Minimum acceptable MTU is 48 bytes */
 
-/* Timeouts. Since L2CAP works off a 1-second list, all are in seconds.
-*/
-#define L2CAP_LINK_ROLE_SWITCH_TOUT  10           /* 10 seconds */
-#define L2CAP_LINK_CONNECT_TOUT      60           /* 30 seconds */
-#define L2CAP_LINK_CONNECT_TOUT_EXT  120          /* 120 seconds */
-#define L2CAP_ECHO_RSP_TOUT          30           /* 30 seconds */
-#define L2CAP_LINK_FLOW_CONTROL_TOUT 2            /* 2  seconds */
-#define L2CAP_LINK_DISCONNECT_TOUT   30           /* 30 seconds */
-
-#ifndef L2CAP_CHNL_CONNECT_TOUT      /* BTIF needs to override for internal project needs */
-#define L2CAP_CHNL_CONNECT_TOUT      60           /* 60 seconds */
-#endif
-
-#define L2CAP_CHNL_CONNECT_TOUT_EXT  120          /* 120 seconds */
-#define L2CAP_CHNL_CFG_TIMEOUT       30           /* 30 seconds */
-#define L2CAP_CHNL_DISCONNECT_TOUT   10           /* 10 seconds */
-#define L2CAP_DELAY_CHECK_SM4        2            /* 2 seconds */
-#define L2CAP_WAIT_INFO_RSP_TOUT     3            /* 3 seconds */
-#define L2CAP_WAIT_UNPARK_TOUT       2            /* 2 seconds */
-#define L2CAP_LINK_INFO_RESP_TOUT    2            /* 2  seconds */
-#define L2CAP_BLE_LINK_CONNECT_TOUT  30           /* 30 seconds */
-#define L2CAP_BLE_CONN_PARAM_UPD_TOUT   30           /* 30 seconds */
-
-/* quick timer uses millisecond unit */
-#define L2CAP_DEFAULT_RETRANS_TOUT   2000         /* 2000 milliseconds */
-#define L2CAP_DEFAULT_MONITOR_TOUT   12000        /* 12000 milliseconds */
-#define L2CAP_FCR_ACK_TOUT           200          /* 200 milliseconds */
+/*
+ * Timeout values (in milliseconds).
+ */
+#define L2CAP_LINK_ROLE_SWITCH_TIMEOUT_MS  (10 * 1000)  /* 10 seconds */
+#define L2CAP_LINK_CONNECT_TIMEOUT_MS      (60 * 1000)  /* 30 seconds */
+#define L2CAP_LINK_CONNECT_EXT_TIMEOUT_MS (120 * 1000)  /* 120 seconds */
+#define L2CAP_ECHO_RSP_TIMEOUT_MS          (30 * 1000)  /* 30 seconds */
+#define L2CAP_LINK_FLOW_CONTROL_TIMEOUT_MS  (2 * 1000)  /* 2 seconds */
+#define L2CAP_LINK_DISCONNECT_TIMEOUT_MS   (30 * 1000)  /* 30 seconds */
+#define L2CAP_CHNL_CONNECT_TIMEOUT_MS      (60 * 1000)  /* 60 seconds */
+#define L2CAP_CHNL_CONNECT_EXT_TIMEOUT_MS (120 * 1000)  /* 120 seconds */
+#define L2CAP_CHNL_CFG_TIMEOUT_MS          (30 * 1000)  /* 30 seconds */
+#define L2CAP_CHNL_DISCONNECT_TIMEOUT_MS   (10 * 1000)  /* 10 seconds */
+#define L2CAP_DELAY_CHECK_SM4_TIMEOUT_MS    (2 * 1000)  /* 2 seconds */
+#define L2CAP_WAIT_INFO_RSP_TIMEOUT_MS      (3 * 1000)  /* 3 seconds */
+#define L2CAP_BLE_LINK_CONNECT_TIMEOUT_MS  (30 * 1000)  /* 30 seconds */
+#define L2CAP_FCR_ACK_TIMEOUT_MS                  200   /* 200 milliseconds */
 
 /* Define the possible L2CAP channel states. The names of
 ** the states may seem a bit strange, but they are taken from
@@ -184,8 +174,8 @@ typedef struct
     fixed_queue_t *srej_rcv_hold_q;         /* Buffers rcvd but held pending SREJ rsp   */
     fixed_queue_t *retrans_q;               /* Buffers being retransmitted              */
 
-    timer_entry_t ack_timer;                /* Timer delaying RR                        */
-    timer_entry_t mon_retrans_timer;        /* Timer Monitor or Retransmission          */
+    alarm_t       *ack_timer;                /* Timer delaying RR                        */
+    alarm_t       *mon_retrans_timer;       /* Timer Monitor or Retransmission          */
 
 #if (L2CAP_ERTM_STATS == TRUE)
     UINT32      connect_tick_count;         /* Time channel was established             */
@@ -268,7 +258,7 @@ typedef struct t_l2c_ccb
     UINT16              local_cid;              /* Local CID                        */
     UINT16              remote_cid;             /* Remote CID                       */
 
-    timer_entry_t       timer_entry;            /* CCB Timer Entry */
+    alarm_t             *l2c_ccb_timer;         /* CCB Timer Entry */
 
     tL2C_RCB            *p_rcb;                 /* Registration CB for this Channel */
     bool                should_free_rcb;        /* True if RCB was allocated on the heap */
@@ -361,13 +351,13 @@ typedef struct t_l2c_linkcb
     BOOLEAN             in_use;                     /* TRUE when in use, FALSE when not */
     tL2C_LINK_STATE     link_state;
 
-    timer_entry_t       timer_entry;                /* Timer entry for timeout evt */
+    alarm_t             *l2c_lcb_timer;             /* Timer entry for timeout evt */
     UINT16              handle;                     /* The handle used with LM          */
 
     tL2C_CCB_Q          ccb_queue;                  /* Queue of CCBs on this LCB        */
 
     tL2C_CCB            *p_pending_ccb;             /* ccb of waiting channel during link disconnect */
-    timer_entry_t       info_timer_entry;           /* Timer entry for info resp timeout evt */
+    alarm_t             *info_resp_timer;           /* Timer entry for info resp timeout evt */
     BD_ADDR             remote_bd_addr;             /* The BD address of the remote     */
 
     UINT8               link_role;                  /* Master or slave                  */
@@ -459,7 +449,7 @@ typedef struct
     UINT16          idle_timeout;                   /* Idle timeout                     */
 
     list_t          *rcv_pending_q;                 /* Recv pending queue               */
-    timer_entry_t   rcv_hold_te;                    /* Timer entry for rcv hold    */
+    alarm_t         *receive_hold_timer;            /* Timer entry for rcv hold    */
 
     tL2C_LCB        *p_cur_hcit_lcb;                /* Current HCI Transport buffer     */
     UINT16          num_links_active;               /* Number of links active           */
@@ -553,7 +543,10 @@ extern tL2C_CB *l2c_cb_ptr;
 void l2c_init(void);
 void l2c_free(void);
 
-extern void     l2c_process_timeout(timer_entry_t *p_te);
+extern void     l2c_receive_hold_timer_timeout(void *data);
+extern void     l2c_ccb_timer_timeout(void *data);
+extern void     l2c_lcb_timer_timeout(void *data);
+extern void     l2c_fcrb_ack_timer_timeout(void *data);
 extern UINT8    l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flag);
 extern void     l2c_rcv_acl_data (BT_HDR *p_msg);
 extern void     l2c_process_held_packets (BOOLEAN timed_out);
@@ -675,7 +668,7 @@ extern BOOLEAN  l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_b
 extern BOOLEAN  l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason);
 extern BOOLEAN  l2c_link_hci_qos_violation (UINT16 handle);
 extern void     l2c_link_timeout (tL2C_LCB *p_lcb);
-extern void     l2c_info_timeout (tL2C_LCB *p_lcb);
+extern void     l2c_info_resp_timer_timeout(void *data);
 extern void     l2c_link_check_send_pkts (tL2C_LCB *p_lcb, tL2C_CCB *p_ccb, BT_HDR *p_buf);
 extern void     l2c_link_adjust_allocation (void);
 extern void     l2c_link_process_num_completed_pkts (UINT8 *p);

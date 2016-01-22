@@ -39,57 +39,39 @@
 tAVDT_CB avdt_cb;
 #endif
 
-
-/*******************************************************************************
-**
-** Function         avdt_process_timeout
-**
-** Description      This function is called by BTU when an AVDTP timer
-**                  expires.  The function sends a timer event to the
-**                  appropriate CCB or SCB state machine.
-**
-**                  This function is for use internal to the stack only.
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-void avdt_process_timeout(timer_entry_t *p_te)
+void avdt_ccb_idle_ccb_timer_timeout(void *data)
 {
-    UINT8   event = 0;
-    UINT8   err_code = AVDT_ERR_TIMEOUT;
+    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
+    uint8_t avdt_event = AVDT_CCB_IDLE_TOUT_EVT;
+    uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-    switch (p_te->event)
-    {
-        case BTU_TTYPE_AVDT_CCB_RET:
-            event = AVDT_CCB_RET_TOUT_EVT + AVDT_CCB_MKR;
-            break;
+    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+}
 
-        case BTU_TTYPE_AVDT_CCB_RSP:
-            event = AVDT_CCB_RSP_TOUT_EVT + AVDT_CCB_MKR;
-            break;
+void avdt_ccb_ret_ccb_timer_timeout(void *data)
+{
+    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
+    uint8_t avdt_event = AVDT_CCB_RET_TOUT_EVT;
+    uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-        case BTU_TTYPE_AVDT_CCB_IDLE:
-            event = AVDT_CCB_IDLE_TOUT_EVT + AVDT_CCB_MKR;
-            break;
+    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+}
 
-        case BTU_TTYPE_AVDT_SCB_TC:
-            event = AVDT_SCB_TC_TOUT_EVT;
-            break;
+void avdt_ccb_rsp_ccb_timer_timeout(void *data)
+{
+    tAVDT_CCB *p_ccb = (tAVDT_CCB *)data;
+    uint8_t avdt_event = AVDT_CCB_RSP_TOUT_EVT;
+    uint8_t err_code = AVDT_ERR_TIMEOUT;
 
-        default:
-            break;
-    }
+    avdt_ccb_event(p_ccb, avdt_event, (tAVDT_CCB_EVT *)&err_code);
+}
 
-    if (event & AVDT_CCB_MKR)
-    {
-        avdt_ccb_event((tAVDT_CCB *) p_te->param, (UINT8) (event & ~AVDT_CCB_MKR),
-                       (tAVDT_CCB_EVT *) &err_code);
-    }
-    else
-    {
-        avdt_scb_event((tAVDT_SCB *) p_te->param, event, NULL);
-    }
+void avdt_scb_transport_channel_timer_timeout(void *data)
+{
+    tAVDT_SCB *p_scb = (tAVDT_SCB *)data;
+    uint8_t avdt_event = AVDT_SCB_TC_TOUT_EVT;
+
+    avdt_scb_event(p_scb, avdt_event, NULL);
 }
 
 /*******************************************************************************

@@ -38,9 +38,12 @@
 #define BTA_AG_SCO_DEBUG FALSE
 #endif
 
-#ifndef BTA_AG_CODEC_NEGO_TIMEOUT
-#define BTA_AG_CODEC_NEGO_TIMEOUT   3000
+/* Codec negotiation timeout */
+#ifndef BTA_AG_CODEC_NEGOTIATION_TIMEOUT_MS
+#define BTA_AG_CODEC_NEGOTIATION_TIMEOUT_MS (3 * 1000)          /* 3 seconds */
 #endif
+
+extern fixed_queue_t *btu_bta_alarm_queue;
 
 #if BTA_AG_SCO_DEBUG == TRUE
 static char *bta_ag_sco_evt_str(UINT8 event);
@@ -640,7 +643,7 @@ BOOLEAN bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
 
 /*******************************************************************************
 **
-** Function         bta_ag_cn_timer_cback
+** Function         bta_ag_codec_negotiation_timer_cback
 **
 ** Description
 **
@@ -648,23 +651,15 @@ BOOLEAN bta_ag_attempt_msbc_safe_settings(tBTA_AG_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_cn_timer_cback (timer_entry_t *p_te)
+static void bta_ag_codec_negotiation_timer_cback(void *data)
 {
-    tBTA_AG_SCB *p_scb;
+    tBTA_AG_SCB *p_scb = (tBTA_AG_SCB *)data;
 
-    if (p_te)
-    {
-        p_scb = (tBTA_AG_SCB *)p_te->param;
+    /* Announce that codec negotiation failed. */
+    bta_ag_sco_codec_nego(p_scb, FALSE);
 
-        if (p_scb)
-        {
-            /* Announce that codec negotiation failed. */
-            bta_ag_sco_codec_nego(p_scb, FALSE);
-
-            /* call app callback */
-            bta_ag_cback_sco(p_scb, BTA_AG_AUDIO_CLOSE_EVT);
-        }
-    }
+    /* call app callback */
+    bta_ag_cback_sco(p_scb, BTA_AG_AUDIO_CLOSE_EVT);
 }
 
 /*******************************************************************************
@@ -692,9 +687,11 @@ void bta_ag_codec_negotiate(tBTA_AG_SCB *p_scb)
         bta_ag_send_bcs(p_scb, NULL);
 
         /* Start timer to handle timeout */
-        p_scb->cn_timer.p_cback = (timer_callback_t *)&bta_ag_cn_timer_cback;
-        p_scb->cn_timer.param = p_scb;
-        bta_sys_start_timer(&p_scb->cn_timer, 0, BTA_AG_CODEC_NEGO_TIMEOUT);
+        alarm_set_on_queue(p_scb->codec_negotiation_timer,
+                           BTA_AG_CODEC_NEGOTIATION_TIMEOUT_MS,
+                           bta_ag_codec_negotiation_timer_cback,
+                           p_scb,
+                           btu_bta_alarm_queue);
     }
     else
     {

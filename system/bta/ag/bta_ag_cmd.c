@@ -41,8 +41,8 @@
 **  Constants
 *****************************************************************************/
 
-/* ring timeout */
-#define BTA_AG_RING_TOUT        5000
+/* Ring timeout */
+#define BTA_AG_RING_TIMEOUT_MS  (5 * 1000)      /* 5 seconds */
 
 #define BTA_AG_CMD_MAX_VAL      32767  /* Maximum value is signed 16-bit value */
 
@@ -1249,9 +1249,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_BCS:
             bta_ag_send_ok(p_scb);
-
-            /* stop cn timer */
-            bta_sys_stop_timer(&p_scb->cn_timer);
+            alarm_cancel(p_scb->codec_negotiation_timer);
 
             switch(int_arg)
             {
@@ -1383,7 +1381,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             /* if incoming call connected stop ring timer */
             if (p_result->result == BTA_AG_IN_CALL_CONN_RES)
             {
-                bta_sys_stop_timer(&p_scb->act_timer);
+                alarm_cancel(p_scb->ring_timer);
             }
 
             if (!(p_scb->features & BTA_AG_FEAT_NOSCO))
@@ -1402,8 +1400,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_END_CALL_RES:
-            /* stop ring timer */
-            bta_sys_stop_timer(&p_scb->act_timer);
+            alarm_cancel(p_scb->ring_timer);
 
             /* close sco */
             if ((bta_ag_sco_is_open(p_scb) || bta_ag_sco_is_opening(p_scb)) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
@@ -1513,8 +1510,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_IN_CALL_CONN_RES:
-            /* stop ring timer */
-            bta_sys_stop_timer(&p_scb->act_timer);
+            alarm_cancel(p_scb->ring_timer);
 
             /* if sco not opened and we need to open it, send indicators first
             ** then  open sco.
@@ -1536,8 +1532,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_IN_CALL_HELD_RES:
-            /* stop ring timer */
-            bta_sys_stop_timer(&p_scb->act_timer);
+            alarm_cancel(p_scb->ring_timer);
 
             bta_ag_send_call_inds(p_scb, p_result->result);
 
@@ -1598,8 +1593,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_END_CALL_RES:
-            /* stop ring timer */
-            bta_sys_stop_timer(&p_scb->act_timer);
+            alarm_cancel(p_scb->ring_timer);
 
             /* if sco open, close sco then send indicator values */
             if ((bta_ag_sco_is_open(p_scb) || bta_ag_sco_is_opening(p_scb)) && !(p_scb->features & BTA_AG_FEAT_NOSCO))
@@ -1828,8 +1822,6 @@ void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 #endif
 
-    /* restart ring timer */
-    bta_sys_start_timer(&p_scb->act_timer, BTA_AG_RING_TOUT_EVT, BTA_AG_RING_TOUT);
+    bta_sys_start_timer(p_scb->ring_timer, BTA_AG_RING_TIMEOUT_MS,
+                        BTA_AG_RING_TIMEOUT_EVT, bta_ag_scb_to_idx(p_scb));
 }
-
-

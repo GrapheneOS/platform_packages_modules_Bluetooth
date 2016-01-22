@@ -179,7 +179,7 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
     bta_av_api_disconnect,  /* BTA_AV_API_DISCONNECT_EVT */
     bta_av_ci_data,         /* BTA_AV_CI_SRC_DATA_READY_EVT */
     bta_av_sig_chg,         /* BTA_AV_SIG_CHG_EVT */
-    bta_av_sig_timer,       /* BTA_AV_SIG_TIMER_EVT */
+    bta_av_signalling_timer, /* BTA_AV_SIGNALLING_TIMER_EVT */
     bta_av_rc_disc_done,    /* BTA_AV_SDP_AVRC_DISC_EVT */
     bta_av_rc_closed,       /* BTA_AV_AVRC_CLOSE_EVT */
     bta_av_conn_chg,        /* BTA_AV_CONN_CHG_EVT */
@@ -209,42 +209,6 @@ static char *bta_av_st_code(UINT8 state);
 
 /*******************************************************************************
 **
-** Function         bta_av_timer_cback
-**
-** Description      forward the event to stream state machine
-**
-** Returns          void
-**
-*******************************************************************************/
-static void bta_av_timer_cback(void *p_te)
-{
-    BT_HDR          *p_buf;
-    timer_entry_t  *p = (timer_entry_t *)p_te;
-    int xx;
-    tBTA_AV_SCB *p_scb = NULL;
-
-    /* find the SCB that has the timer */
-    for(xx=0; xx<BTA_AV_NUM_STRS; xx++)
-    {
-        if(bta_av_cb.p_scb[xx] && &(bta_av_cb.p_scb[xx]->timer)== p)
-        {
-            p_scb = bta_av_cb.p_scb[xx];
-            break;
-        }
-    }
-
-    if (p_scb && (p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
-    {
-        /* send the event through the audio state machine.
-         * only when the audio SM is open, the main SM opens the RC connection as INT */
-        p_buf->event = p->event;
-        p_buf->layer_specific = p_scb->hndl;
-        bta_sys_sendmsg(p_buf);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         bta_av_api_enable
 **
 ** Description      Handle an API enable event.
@@ -258,6 +222,9 @@ static void bta_av_api_enable(tBTA_AV_DATA *p_data)
     int i;
     tBTA_AV_ENABLE      enable;
 
+    alarm_free(bta_av_cb.link_signalling_timer);
+    alarm_free(bta_av_cb.accept_signalling_timer);
+
     /* initialize control block */
     memset(&bta_av_cb, 0, sizeof(tBTA_AV_CB));
 
@@ -265,6 +232,14 @@ static void bta_av_api_enable(tBTA_AV_DATA *p_data)
         bta_av_cb.rcb[i].handle = BTA_AV_RC_HANDLE_NONE;
 
     bta_av_cb.rc_acp_handle = BTA_AV_RC_HANDLE_NONE;
+
+    /*
+     * TODO: The "disable" event handling is missing - there we need
+     * to alarm_free() the alarms below.
+     */
+    bta_av_cb.link_signalling_timer = alarm_new("bta_av.link_signalling_timer");
+    bta_av_cb.accept_signalling_timer =
+        alarm_new("bta_av.accept_signalling_timer");
 
     /* store parameters */
     bta_av_cb.p_cback  = p_data->api_enable.p_cback;
@@ -389,6 +364,7 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
                     p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
                     p_ret->hdi  = xx;
                     p_ret->a2d_list = list_new(NULL);
+                    p_ret->avrc_ct_timer = alarm_new("bta_av.avrc_ct_timer");
                     bta_av_cb.p_scb[xx] = p_ret;
                 }
                 break;
@@ -566,7 +542,6 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
         p_scb->app_id   = registr.app_id;
 
         /* initialize the stream control block */
-        p_scb->timer.p_cback = (timer_callback_t *)&bta_av_timer_cback;
         registr.status = BTA_AV_SUCCESS;
 
         if((bta_av_cb.reg_audio + bta_av_cb.reg_video) == 0)
@@ -1098,7 +1073,9 @@ BOOLEAN bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
                 {
                     /* can not switch role on SCBI
                      * start the timer on SCB - because this function is ONLY called when SCB gets API_OPEN */
-                    bta_sys_start_timer(&p_scb->timer, BTA_AV_AVRC_TIMER_EVT, BTA_AV_RS_TIME_VAL);
+                    bta_sys_start_timer(p_scb->avrc_ct_timer,
+                                        BTA_AV_RS_TIME_VAL,
+                                        BTA_AV_AVRC_TIMER_EVT, p_scb->hndl);
                 }
                 needed = TRUE;
                 /* mark the original channel as waiting for RS result */
@@ -1419,7 +1396,7 @@ char *bta_av_evt_code(UINT16 evt_code)
     case BTA_AV_API_DISCONNECT_EVT: return "API_DISCNT";
     case BTA_AV_CI_SRC_DATA_READY_EVT: return "CI_DATA_READY";
     case BTA_AV_SIG_CHG_EVT: return "SIG_CHG";
-    case BTA_AV_SIG_TIMER_EVT: return "SIG_TMR";
+    case BTA_AV_SIGNALLING_TIMER_EVT: return "SIGNALLING_TIMER";
     case BTA_AV_SDP_AVRC_DISC_EVT: return "SDP_AVRC_DISC";
     case BTA_AV_AVRC_CLOSE_EVT: return "AVRC_CLOSE";
     case BTA_AV_CONN_CHG_EVT: return "CONN_CHG";

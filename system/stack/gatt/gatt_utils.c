@@ -79,6 +79,7 @@ const char * const op_code_name[] =
 static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
+extern fixed_queue_t *btu_general_alarm_queue;
 
 /*******************************************************************************
 **
@@ -975,6 +976,8 @@ tGATT_TCB * gatt_allocate_tcb_by_bdaddr(BD_ADDR bda, tBT_TRANSPORT transport)
             memset(p_tcb, 0, sizeof(tGATT_TCB));
             p_tcb->pending_enc_clcb = fixed_queue_new(SIZE_MAX);
             p_tcb->pending_ind_q = fixed_queue_new(SIZE_MAX);
+            p_tcb->conf_timer = alarm_new("gatt.conf_timer");
+            p_tcb->ind_ack_timer = alarm_new("gatt.ind_ack_timer");
             p_tcb->sr_cmd.multi_rsp_q = fixed_queue_new(SIZE_MAX);
             p_tcb->in_use = TRUE;
             p_tcb->tcb_idx = i;
@@ -1198,37 +1201,44 @@ BOOLEAN gatt_parse_uuid_from_cmd(tBT_UUID *p_uuid_rec, UINT16 uuid_size, UINT8 *
 **
 ** Description      Start a wait_for_response timer.
 **
-** Returns          TRUE if command sent, otherwise FALSE.
+** Returns          void
 **
 *******************************************************************************/
 void gatt_start_rsp_timer(UINT16 clcb_idx)
 {
     tGATT_CLCB *p_clcb = &gatt_cb.clcb[clcb_idx];
-    UINT32 timeout = GATT_WAIT_FOR_RSP_TOUT;
-    p_clcb->rsp_timer_ent.param  = (timer_param_t)p_clcb;
+    period_ms_t timeout_ms = GATT_WAIT_FOR_RSP_TIMEOUT_MS;
+
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
-        p_clcb->op_subtype == GATT_DISC_SRVC_ALL)
-    {
-        timeout = GATT_WAIT_FOR_DISC_RSP_TOUT;
+        p_clcb->op_subtype == GATT_DISC_SRVC_ALL) {
+        timeout_ms = GATT_WAIT_FOR_DISC_RSP_TIMEOUT_MS;
     }
-    btu_start_timer (&p_clcb->rsp_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
-                     timeout);
+
+    // TODO: The tGATT_CLCB memory and state management needs cleanup,
+    // and then the timers can be allocated elsewhere.
+    if (p_clcb->gatt_rsp_timer_ent == NULL) {
+        p_clcb->gatt_rsp_timer_ent = alarm_new("gatt.gatt_rsp_timer_ent");
+    }
+    alarm_set_on_queue(p_clcb->gatt_rsp_timer_ent, timeout_ms,
+                       gatt_rsp_timeout, p_clcb, btu_general_alarm_queue);
 }
+
 /*******************************************************************************
 **
 ** Function         gatt_start_conf_timer
 **
 ** Description      Start a wait_for_confirmation timer.
 **
-** Returns          TRUE if command sent, otherwise FALSE.
+** Returns          void
 **
 *******************************************************************************/
-void gatt_start_conf_timer(tGATT_TCB    *p_tcb)
+void gatt_start_conf_timer(tGATT_TCB *p_tcb)
 {
-    p_tcb->conf_timer_ent.param  = (timer_param_t)p_tcb;
-    btu_start_timer (&p_tcb->conf_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_RSP,
-                     GATT_WAIT_FOR_RSP_TOUT);
+    alarm_set_on_queue(p_tcb->conf_timer, GATT_WAIT_FOR_RSP_TIMEOUT_MS,
+                       gatt_indication_confirmation_timeout, p_tcb,
+                       btu_general_alarm_queue);
 }
+
 /*******************************************************************************
 **
 ** Function         gatt_start_ind_ack_timer
@@ -1240,12 +1250,11 @@ void gatt_start_conf_timer(tGATT_TCB    *p_tcb)
 *******************************************************************************/
 void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 {
-    p_tcb->ind_ack_timer_ent.param  = (timer_param_t)p_tcb;
     /* start notification cache timer */
-    btu_start_timer (&p_tcb->ind_ack_timer_ent, BTU_TTYPE_ATT_WAIT_FOR_IND_ACK,
-                     GATT_WAIT_FOR_RSP_TOUT);
-
+    alarm_set_on_queue(p_tcb->ind_ack_timer, GATT_WAIT_FOR_RSP_TIMEOUT_MS,
+                       gatt_ind_ack_timeout, p_tcb, btu_general_alarm_queue);
 }
+
 /*******************************************************************************
 **
 ** Function         gatt_rsp_timeout
@@ -1255,12 +1264,13 @@ void gatt_start_ind_ack_timer(tGATT_TCB *p_tcb)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_rsp_timeout(timer_entry_t *p_te)
+void gatt_rsp_timeout(void *data)
 {
-    tGATT_CLCB *p_clcb = (tGATT_CLCB *)p_te->param;
+    tGATT_CLCB *p_clcb = (tGATT_CLCB *)data;
+
     if (p_clcb == NULL || p_clcb->p_tcb == NULL)
     {
-        GATT_TRACE_WARNING("gatt_rsp_timeout clcb is already deleted");
+        GATT_TRACE_WARNING("%s clcb is already deleted", __func__);
         return;
     }
     if (p_clcb->operation == GATTC_OPTYPE_DISCOVERY &&
@@ -1268,10 +1278,11 @@ void gatt_rsp_timeout(timer_entry_t *p_te)
         p_clcb->retry_count < GATT_REQ_RETRY_LIMIT)
     {
         UINT8 rsp_code;
-        GATT_TRACE_WARNING("gatt_rsp_timeout retry discovery primary service");
+        GATT_TRACE_WARNING("%s retry discovery primary service", __func__);
         if (p_clcb != gatt_cmd_dequeue(p_clcb->p_tcb, &rsp_code))
         {
-            GATT_TRACE_ERROR("gatt_rsp_timeout command queue out of sync, disconnect");
+            GATT_TRACE_ERROR("%s command queue out of sync, disconnect",
+                             __func__);
         }
         else
         {
@@ -1281,8 +1292,25 @@ void gatt_rsp_timeout(timer_entry_t *p_te)
         }
     }
 
-    GATT_TRACE_WARNING("gatt_rsp_timeout disconnecting...");
+    GATT_TRACE_WARNING("%s disconnecting...", __func__);
     gatt_disconnect (p_clcb->p_tcb);
+}
+
+/*******************************************************************************
+**
+** Function         gatt_indication_confirmation_timeout
+**
+** Description      Called when the indication confirmation timer expires
+**
+** Returns          void
+**
+*******************************************************************************/
+void gatt_indication_confirmation_timeout(void *data)
+{
+    tGATT_TCB *p_tcb = (tGATT_TCB *)data;
+
+    GATT_TRACE_WARNING("%s disconnecting...", __func__);
+    gatt_disconnect(p_tcb);
 }
 
 /*******************************************************************************
@@ -1294,16 +1322,16 @@ void gatt_rsp_timeout(timer_entry_t *p_te)
 ** Returns          void
 **
 *******************************************************************************/
-void gatt_ind_ack_timeout(timer_entry_t *p_te)
+void gatt_ind_ack_timeout(void *data)
 {
-    tGATT_TCB * p_tcb = (tGATT_TCB *)p_te->param;
+    tGATT_TCB *p_tcb = (tGATT_TCB *)data;
 
-    GATT_TRACE_WARNING("gatt_ind_ack_timeout send ack now");
+    GATT_TRACE_WARNING("%s send ack now", __func__);
 
     if (p_tcb != NULL)
         p_tcb->ind_count = 0;
 
-    attp_send_cl_msg(((tGATT_TCB *)p_te->param), 0, GATT_HANDLE_VALUE_CONF, NULL);
+    attp_send_cl_msg(p_tcb, 0, GATT_HANDLE_VALUE_CONF, NULL);
 }
 /*******************************************************************************
 **
@@ -1687,6 +1715,7 @@ void gatt_clcb_dealloc (tGATT_CLCB *p_clcb)
 {
     if (p_clcb && p_clcb->in_use)
     {
+        alarm_free(p_clcb->gatt_rsp_timer_ent);
         memset(p_clcb, 0, sizeof(tGATT_CLCB));
     }
 }
@@ -2205,7 +2234,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
 
     operation =  p_clcb->operation;
     conn_id = p_clcb->conn_id;
-    btu_stop_timer(&p_clcb->rsp_timer_ent);
+    alarm_cancel(p_clcb->gatt_rsp_timer_ent);
 
     gatt_clcb_dealloc(p_clcb);
 
@@ -2248,7 +2277,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
             p_clcb = &gatt_cb.clcb[i];
             if (p_clcb->in_use && p_clcb->p_tcb == p_tcb)
             {
-                btu_stop_timer(&p_clcb->rsp_timer_ent);
+                alarm_cancel(p_clcb->gatt_rsp_timer_ent);
                 GATT_TRACE_DEBUG ("found p_clcb conn_id=%d clcb_idx=%d", p_clcb->conn_id, p_clcb->clcb_idx);
                 if (p_clcb->operation != GATTC_OPTYPE_NONE)
                     gatt_end_operation(p_clcb, GATT_ERROR, NULL);
@@ -2258,8 +2287,10 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
             }
         }
 
-        btu_stop_timer (&p_tcb->ind_ack_timer_ent);
-        btu_stop_timer (&p_tcb->conf_timer_ent);
+        alarm_free(p_tcb->ind_ack_timer);
+        p_tcb->ind_ack_timer = NULL;
+        alarm_free(p_tcb->conf_timer);
+        p_tcb->conf_timer = NULL;
         gatt_free_pending_ind(p_tcb);
         gatt_free_pending_enc_queue(p_tcb);
         fixed_queue_free(p_tcb->sr_cmd.multi_rsp_q, NULL);

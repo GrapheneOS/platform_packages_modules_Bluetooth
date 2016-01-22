@@ -51,9 +51,12 @@
 #define BTM_BLE_FILTER_TARGET_UNKNOWN       0xff
 #define BTM_BLE_POLICY_UNKNOWN              0xff
 
-#define BTM_EXT_BLE_RMT_NAME_TIMEOUT        30
+#define BTM_EXT_BLE_RMT_NAME_TIMEOUT_MS     (30 * 1000)
 #define MIN_ADV_LENGTH                       2
 #define BTM_VSC_CHIP_CAPABILITY_RSP_LEN_L_RELEASE 9
+
+
+extern fixed_queue_t *btu_general_alarm_queue;
 
 static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
@@ -73,6 +76,12 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      tBLE_ADDR_TYPE *p_peer_addr_type,
                                      tBLE_ADDR_TYPE *p_own_addr_type);
 static void btm_ble_stop_observe(void);
+static void btm_ble_fast_adv_timer_timeout(void *data);
+static void btm_ble_start_slow_adv(void);
+static void btm_ble_inquiry_timer_gap_limited_discovery_timeout(void *data);
+static void btm_ble_inquiry_timer_timeout(void *data);
+static void btm_ble_observer_timer_timeout(void *data);
+
 
 #define BTM_BLE_INQ_RESULT          0x01
 #define BTM_BLE_OBS_RESULT          0x02
@@ -402,9 +411,13 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
         if (status == BTM_CMD_STARTED)
         {
             btm_cb.ble_ctr_cb.scan_activity |= BTM_LE_OBSERVE_ACTIVE;
-            if (duration != 0)
+            if (duration != 0) {
                 /* start observer timer */
-                btu_start_timer (&btm_cb.ble_ctr_cb.obs_timer_ent, BTU_TTYPE_BLE_OBSERVE, duration);
+                period_ms_t duration_ms = duration * 1000;
+                alarm_set_on_queue(btm_cb.ble_ctr_cb.observer_timer,
+                                   duration_ms, btm_ble_observer_timer_timeout,
+                                   NULL, btu_general_alarm_queue);
+            }
         }
     }
     else if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
@@ -1755,7 +1768,7 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
 
     btm_ble_select_adv_interval(p_cb, evt_type, &adv_int_min, &adv_int_max);
 
-    btu_stop_timer(&p_cb->fast_adv_timer);
+    alarm_cancel(p_cb->fast_adv_timer);
 
     /* update adv params if start advertising */
     BTM_TRACE_EVENT ("evt_type=0x%x p-cb->evt_type=0x%x ", evt_type, p_cb->evt_type);
@@ -1801,8 +1814,10 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
     {
         p_cb->fast_adv_on = TRUE;
         /* start initial GAP mode adv timer */
-        btu_start_timer (&p_cb->fast_adv_timer, BTU_TTYPE_BLE_GAP_FAST_ADV,
-                          BTM_BLE_GAP_FAST_ADV_TOUT);
+        alarm_set_on_queue(p_cb->fast_adv_timer,
+                           BTM_BLE_GAP_FAST_ADV_TIMEOUT_MS,
+                           btm_ble_fast_adv_timer_timeout, NULL,
+                           btu_general_alarm_queue);
     }
     else
     {
@@ -1814,10 +1829,12 @@ tBTM_STATUS btm_ble_set_discoverability(UINT16 combined_mode)
     /* set up stop advertising timer */
     if (status == BTM_SUCCESS && mode == BTM_BLE_LIMITED_DISCOVERABLE)
     {
-        BTM_TRACE_EVENT ("start timer for limited disc mode duration=%d (180 secs)", BTM_BLE_GAP_LIM_TOUT);
+        BTM_TRACE_EVENT("start timer for limited disc mode duration=%d ms",
+                        BTM_BLE_GAP_LIM_TIMEOUT_MS);
         /* start Tgap(lim_timeout) */
-        btu_start_timer (&p_cb->inq_timer_ent, BTU_TTYPE_BLE_GAP_LIM_DISC,
-                         BTM_BLE_GAP_LIM_TOUT);
+        alarm_set_on_queue(p_cb->inquiry_timer, BTM_BLE_GAP_LIM_TIMEOUT_MS,
+                           btm_ble_inquiry_timer_gap_limited_discovery_timeout,
+                           NULL, btu_general_alarm_queue);
     }
     return status;
 }
@@ -1861,7 +1878,7 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
 
     btm_ble_select_adv_interval(p_cb, evt_type, &adv_int_min, &adv_int_max);
 
-    btu_stop_timer(&p_cb->fast_adv_timer);
+    alarm_cancel(p_cb->fast_adv_timer);
     /* update adv params if needed */
     if (new_mode == BTM_BLE_ADV_ENABLE)
     {
@@ -1903,8 +1920,10 @@ tBTM_STATUS btm_ble_set_connectability(UINT16 combined_mode)
     {
         p_cb->fast_adv_on = TRUE;
         /* start initial GAP mode adv timer */
-        btu_start_timer (&p_cb->fast_adv_timer, BTU_TTYPE_BLE_GAP_FAST_ADV,
-                             BTM_BLE_GAP_FAST_ADV_TOUT);
+        alarm_set_on_queue(p_cb->fast_adv_timer,
+                           BTM_BLE_GAP_FAST_ADV_TIMEOUT_MS,
+                           btm_ble_fast_adv_timer_timeout, NULL,
+                           btu_general_alarm_queue);
     }
     else
     {
@@ -1983,10 +2002,12 @@ tBTM_STATUS btm_ble_start_inquiry (UINT8 mode, UINT8   duration)
 
         BTM_TRACE_DEBUG("btm_ble_start_inquiry inq_active = 0x%02x", p_inq->inq_active);
 
-        if (duration != 0)
-        {
+        if (duration != 0) {
             /* start inquiry timer */
-            btu_start_timer (&p_ble_cb->inq_var.inq_timer_ent, BTU_TTYPE_BLE_INQUIRY, duration);
+            period_ms_t duration_ms = duration * 1000;
+            alarm_set_on_queue(p_ble_cb->inq_var.inquiry_timer,
+                               duration_ms, btm_ble_inquiry_timer_timeout,
+                               NULL, btu_general_alarm_queue);
         }
     }
 
@@ -2063,9 +2084,10 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO *p_cur, t
 
     memcpy(p_inq->remname_bda, remote_bda, BD_ADDR_LEN);
 
-    btu_start_timer (&p_inq->rmt_name_timer_ent,
-                     BTU_TTYPE_BTM_RMT_NAME,
-                     BTM_EXT_BLE_RMT_NAME_TIMEOUT);
+    alarm_set_on_queue(p_inq->remote_name_timer,
+                       BTM_EXT_BLE_RMT_NAME_TIMEOUT_MS,
+                       btm_inq_remote_name_timer_timeout, NULL,
+                       btu_general_alarm_queue);
 
     return BTM_CMD_STARTED;
 }
@@ -2090,7 +2112,7 @@ BOOLEAN btm_ble_cancel_remote_name(BD_ADDR remote_bda)
 
     p_inq->remname_active = FALSE;
     memset(p_inq->remname_bda, 0, BD_ADDR_LEN);
-    btu_stop_timer(&p_inq->rmt_name_timer_ent);
+    alarm_cancel(p_inq->remote_name_timer);
 
     return status;
 }
@@ -2911,7 +2933,7 @@ void btm_ble_stop_inquiry(void)
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
     tBTM_BLE_CB *p_ble_cb = &btm_cb.ble_ctr_cb;
 
-    btu_stop_timer (&p_ble_cb->inq_var.inq_timer_ent);
+    alarm_cancel(p_ble_cb->inq_var.inquiry_timer);
 
     p_ble_cb->scan_activity &=  ~BTM_BLE_INQUIRY_MASK;
 
@@ -2947,7 +2969,7 @@ static void btm_ble_stop_observe(void)
     tBTM_BLE_CB *p_ble_cb = & btm_cb.ble_ctr_cb;
     tBTM_CMPL_CB *p_obs_cb = p_ble_cb->p_obs_cmpl_cb;
 
-    btu_stop_timer (&p_ble_cb->obs_timer_ent);
+    alarm_cancel(p_ble_cb->observer_timer);
 
     p_ble_cb->scan_activity &= ~BTM_LE_OBSERVE_ACTIVE;
 
@@ -3078,6 +3100,12 @@ tBTM_STATUS btm_ble_stop_adv(void)
     return rt;
 }
 
+static void btm_ble_fast_adv_timer_timeout(UNUSED_ATTR void *data)
+{
+    /* fast adv is completed, fall back to slow adv interval */
+    btm_ble_start_slow_adv();
+}
+
 /*******************************************************************************
 **
 ** Function         btm_ble_start_slow_adv
@@ -3087,7 +3115,7 @@ tBTM_STATUS btm_ble_stop_adv(void)
 ** Returns          void
 **
 *******************************************************************************/
-static void btm_ble_start_slow_adv (void)
+static void btm_ble_start_slow_adv(void)
 {
     tBTM_BLE_INQ_CB *p_cb = &btm_cb.ble_ctr_cb.inq_var;
 
@@ -3112,59 +3140,38 @@ static void btm_ble_start_slow_adv (void)
         btm_ble_start_adv();
     }
 }
-/*******************************************************************************
-**
-** Function         btm_ble_timeout
-**
-** Description      Called when BTM BLE inquiry timer expires
-**
-** Returns          void
-**
-*******************************************************************************/
-void btm_ble_timeout(timer_entry_t *p_te)
+
+static void btm_ble_inquiry_timer_gap_limited_discovery_timeout(UNUSED_ATTR void *data)
 {
-    BTM_TRACE_EVENT ("btm_ble_timeout");
+    /* lim_timeout expired, limited discovery should exit now */
+    btm_cb.btm_inq_vars.discoverable_mode &= ~BTM_BLE_LIMITED_DISCOVERABLE;
+    btm_ble_set_adv_flag(btm_cb.btm_inq_vars.connectable_mode,
+                         btm_cb.btm_inq_vars.discoverable_mode);
+}
 
-    switch (p_te->event)
-    {
-        case BTU_TTYPE_BLE_OBSERVE:
-            btm_ble_stop_observe();
-            break;
+static void btm_ble_inquiry_timer_timeout(UNUSED_ATTR void *data)
+{
+    btm_ble_stop_inquiry();
+}
 
-        case BTU_TTYPE_BLE_INQUIRY:
-            btm_ble_stop_inquiry();
-            break;
+static void btm_ble_observer_timer_timeout(UNUSED_ATTR void *data)
+{
+    btm_ble_stop_observe();
+}
 
-        case BTU_TTYPE_BLE_GAP_LIM_DISC:
-            /* lim_timeout expiried, limited discovery should exit now */
-            btm_cb.btm_inq_vars.discoverable_mode &= ~BTM_BLE_LIMITED_DISCOVERABLE;
-            btm_ble_set_adv_flag(btm_cb.btm_inq_vars.connectable_mode, btm_cb.btm_inq_vars.discoverable_mode);
-            break;
+void btm_ble_adv_raddr_timer_timeout(void *data)
+{
+    if ((btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM) &&
+        (BTM_BleMaxMultiAdvInstanceCount() > 0)) {
+        btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST *)data);
+    }
+}
 
-        case BTU_TTYPE_BLE_RANDOM_ADDR:
-            if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM)
-            {
-                if (NULL == (void *)(p_te->param))
-                {
-                    /* refresh the random addr */
-                    btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
-                }
-                else
-                {
-                    if (BTM_BleMaxMultiAdvInstanceCount() > 0)
-                       btm_ble_multi_adv_configure_rpa((tBTM_BLE_MULTI_ADV_INST*)p_te->param);
-                }
-            }
-            break;
-
-        case BTU_TTYPE_BLE_GAP_FAST_ADV:
-            /* fast adv is completed, fall back to slow adv interval */
-            btm_ble_start_slow_adv();
-            break;
-
-        default:
-            break;
-
+void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void *data)
+{
+    if (btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type == BLE_ADDR_RANDOM) {
+        /* refresh the random addr */
+        btm_gen_resolvable_private_addr((void *)btm_gen_resolve_paddr_low);
     }
 }
 
@@ -3360,15 +3367,19 @@ void btm_ble_update_mode_operation(UINT8 link_role, BD_ADDR bd_addr, UINT8 statu
 ** Returns          void
 **
 *******************************************************************************/
-void btm_ble_init (void)
+void btm_ble_init(void)
 {
     tBTM_BLE_CB *p_cb = &btm_cb.ble_ctr_cb;
 
     BTM_TRACE_DEBUG("%s", __func__);
 
+    alarm_free(p_cb->observer_timer);
+    alarm_free(p_cb->inq_var.fast_adv_timer);
     memset(p_cb, 0, sizeof(tBTM_BLE_CB));
     memset(&(btm_cb.cmn_ble_vsc_cb), 0 , sizeof(tBTM_BLE_VSC_CB));
     btm_cb.cmn_ble_vsc_cb.values_read = FALSE;
+
+    p_cb->observer_timer = alarm_new("btm_ble.observer_timer");
     p_cb->cur_states       = 0;
     p_cb->conn_pending_q = fixed_queue_new(SIZE_MAX);
 
@@ -3379,11 +3390,16 @@ void btm_ble_init (void)
     p_cb->inq_var.sfp = BTM_BLE_DEFAULT_SFP;
     p_cb->inq_var.connectable_mode = BTM_BLE_NON_CONNECTABLE;
     p_cb->inq_var.discoverable_mode = BTM_BLE_NON_DISCOVERABLE;
+    p_cb->inq_var.fast_adv_timer = alarm_new("btm_ble_inq.fast_adv_timer");
+    p_cb->inq_var.inquiry_timer = alarm_new("btm_ble_inq.inquiry_timer");
 
     /* for background connection, reset connection params to be undefined */
     p_cb->scan_int = p_cb->scan_win = BTM_BLE_SCAN_PARAM_UNDEF;
 
     p_cb->inq_var.evt_type = BTM_BLE_NON_CONNECT_EVT;
+
+    p_cb->addr_mgnt_cb.refresh_raddr_timer =
+        alarm_new("btm_ble_addr.refresh_raddr_timer");
 
 #if BLE_VND_INCLUDED == FALSE
     btm_ble_adv_filter_init();

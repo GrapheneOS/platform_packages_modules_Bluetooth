@@ -163,8 +163,16 @@ void gatt_free(void)
     {
         fixed_queue_free(gatt_cb.tcb[i].pending_enc_clcb, NULL);
         gatt_cb.tcb[i].pending_enc_clcb = NULL;
+
         fixed_queue_free(gatt_cb.tcb[i].pending_ind_q, NULL);
         gatt_cb.tcb[i].pending_ind_q = NULL;
+
+        alarm_free(gatt_cb.tcb[i].conf_timer);
+        gatt_cb.tcb[i].conf_timer = NULL;
+
+        alarm_free(gatt_cb.tcb[i].ind_ack_timer);
+        gatt_cb.tcb[i].ind_ack_timer = NULL;
+
         fixed_queue_free(gatt_cb.tcb[i].sr_cmd.multi_rsp_q, NULL);
         gatt_cb.tcb[i].sr_cmd.multi_rsp_q = NULL;
     }

@@ -38,6 +38,9 @@
 #include "btm_int.h"
 #include "btu.h"
 
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /* Flag passed to retransmit_i_frames() when all packets should be retransmitted */
 #define L2C_FCR_RETX_ALL_PKTS   0xFF
 
@@ -185,8 +188,11 @@ void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
     }
 
     /* Only start a timer that was not started */
-    if (p_ccb->fcrb.mon_retrans_timer.in_use == 0)
-        btu_start_quick_timer (&p_ccb->fcrb.mon_retrans_timer, BTU_TTYPE_L2CAP_CHNL, tout*QUICK_TIMER_TICKS_PER_SEC/1000);
+    if (!alarm_is_scheduled(p_ccb->fcrb.mon_retrans_timer)) {
+        alarm_set_on_queue(p_ccb->fcrb.mon_retrans_timer, tout,
+                           l2c_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
+    }
 }
 
 /*******************************************************************************
@@ -201,10 +207,7 @@ void l2c_fcr_start_timer (tL2C_CCB *p_ccb)
 void l2c_fcr_stop_timer (tL2C_CCB *p_ccb)
 {
     assert(p_ccb != NULL);
-    if (p_ccb->fcrb.mon_retrans_timer.in_use)
-    {
-        btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
-    }
+    alarm_cancel(p_ccb->fcrb.mon_retrans_timer);
 }
 
 /*******************************************************************************
@@ -221,7 +224,10 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
     assert(p_ccb != NULL);
     tL2C_FCRB *p_fcrb = &p_ccb->fcrb;
 
-    l2c_fcr_stop_timer (p_ccb);
+    alarm_free(p_fcrb->mon_retrans_timer);
+    p_fcrb->mon_retrans_timer = NULL;
+    alarm_free(p_fcrb->ack_timer);
+    p_fcrb->ack_timer = NULL;
 
     if (p_fcrb->p_rx_sdu)
         osi_freebuf (p_fcrb->p_rx_sdu);
@@ -239,9 +245,6 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
         osi_freebuf(fixed_queue_try_dequeue(p_fcrb->retrans_q));
     fixed_queue_free(p_fcrb->retrans_q, NULL);
     p_fcrb->retrans_q = NULL;
-
-    btu_stop_quick_timer (&p_fcrb->ack_timer);
-    btu_stop_quick_timer (&p_ccb->fcrb.mon_retrans_timer);
 
 #if (L2CAP_ERTM_STATS == TRUE)
     if ( (p_ccb->local_cid >= L2CAP_BASE_APPL_CID) && (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_ERTM_MODE) )
@@ -437,8 +440,7 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
 
         p_fcrb->last_ack_sent = p_ccb->fcrb.next_seq_expected;
 
-        if (p_ccb->fcrb.ack_timer.in_use)
-            btu_stop_quick_timer (&p_ccb->fcrb.ack_timer);
+        alarm_cancel(p_ccb->fcrb.ack_timer);
     }
 
     /* Set the control word */
@@ -587,8 +589,7 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
 
         p_ccb->fcrb.last_ack_sent = p_ccb->fcrb.next_seq_expected;
 
-        if (p_ccb->fcrb.ack_timer.in_use)
-            btu_stop_quick_timer (&p_ccb->fcrb.ack_timer);
+        alarm_cancel(p_ccb->fcrb.ack_timer);
     }
     else
     {
@@ -725,7 +726,10 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 /* This is a small optimization... the monitor timer is 12 secs, but we saw */
                 /* that if the other side sends us a poll when we are waiting for a final,  */
                 /* then it speeds up recovery significantly if we poll him back soon after his poll. */
-                btu_start_quick_timer (&p_ccb->fcrb.mon_retrans_timer, BTU_TTYPE_L2CAP_CHNL, QUICK_TIMER_TICKS_PER_SEC);
+                alarm_set_on_queue(p_ccb->fcrb.mon_retrans_timer,
+                                   BT_1SEC_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
             osi_freebuf (p_buf);
             return;
@@ -1206,7 +1210,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                     p_fcrb->srej_sent = TRUE;
                     l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_SREJ, 0);
                 }
-                btu_stop_quick_timer (&p_ccb->fcrb.ack_timer);
+                alarm_cancel(p_ccb->fcrb.ack_timer);
             }
         }
         return;
@@ -1240,10 +1244,11 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
         if (delay_ack)
         {
             /* If it is the first I frame we did not ack, start ack timer */
-            if (!p_ccb->fcrb.ack_timer.in_use)
-            {
-                btu_start_quick_timer (&p_ccb->fcrb.ack_timer, BTU_TTYPE_L2CAP_FCR_ACK,
-                                        (L2CAP_FCR_ACK_TOUT*QUICK_TIMER_TICKS_PER_SEC)/1000);
+            if (!alarm_is_scheduled(p_ccb->fcrb.ack_timer)) {
+                alarm_set_on_queue(p_ccb->fcrb.ack_timer,
+                                   L2CAP_FCR_ACK_TIMEOUT_MS,
+                                   l2c_fcrb_ack_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
             }
         }
         else if ((fixed_queue_is_empty(p_ccb->xmit_hold_q) ||
@@ -2107,7 +2112,10 @@ BOOLEAN l2c_fcr_renegotiate_chan(tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
                 l2cu_process_our_cfg_req (p_ccb, &p_ccb->our_cfg);
                 l2cu_send_peer_config_req (p_ccb, &p_ccb->our_cfg);
-                btu_start_timer (&p_ccb->timer_entry, BTU_TTYPE_L2CAP_CHNL, L2CAP_CHNL_CFG_TIMEOUT);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_CHNL_CFG_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
                 return (TRUE);
             }
         }

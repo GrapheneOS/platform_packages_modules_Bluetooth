@@ -33,6 +33,9 @@
 #include "device/include/controller.h"
 
 #if (BLE_INCLUDED == TRUE)
+
+extern fixed_queue_t *btu_general_alarm_queue;
+
 static void l2cble_start_conn_update (tL2C_LCB *p_lcb);
 
 /*******************************************************************************
@@ -299,7 +302,7 @@ void l2cble_scanner_conn_comp (UINT16 handle, BD_ADDR bda, tBLE_ADDR_TYPE type,
         L2CAP_TRACE_ERROR ("L2CAP got BLE scanner conn_comp in bad state: %d", p_lcb->link_state);
         return;
     }
-    btu_stop_timer(&p_lcb->timer_entry);
+    alarm_cancel(p_lcb->l2c_lcb_timer);
 
     /* Save the handle */
     p_lcb->handle = handle;
@@ -759,7 +762,10 @@ BOOLEAN l2cble_init_direct_conn (tL2C_LCB *p_lcb)
         p_lcb->link_state = LST_CONNECTING;
         l2cb.is_ble_connecting = TRUE;
         memcpy (l2cb.ble_connecting_bda, p_lcb->remote_bd_addr, BD_ADDR_LEN);
-        btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_BLE_LINK_CONNECT_TOUT);
+        alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                           L2CAP_BLE_LINK_CONNECT_TIMEOUT_MS,
+                           l2c_lcb_timer_timeout, p_lcb,
+                           btu_general_alarm_queue);
         btm_ble_set_conn_st (BLE_DIR_CONN);
 
         return (TRUE);
@@ -939,8 +945,12 @@ void l2c_ble_link_adjust_allocation (void)
             /* so we may need a timer to kick off this link's transmissions.         */
             if ( (p_lcb->link_state == LST_CONNECTED)
               && (!list_is_empty(p_lcb->link_xmit_data_q))
-              && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) )
-                btu_start_timer (&p_lcb->timer_entry, BTU_TTYPE_L2CAP_LINK, L2CAP_LINK_FLOW_CONTROL_TOUT);
+                 && (p_lcb->sent_not_acked < p_lcb->link_xmit_quota) ) {
+                alarm_set_on_queue(p_lcb->l2c_lcb_timer,
+                                   L2CAP_LINK_FLOW_CONTROL_TIMEOUT_MS,
+                                   l2c_lcb_timer_timeout, p_lcb,
+                                   btu_general_alarm_queue);
+            }
         }
     }
 }

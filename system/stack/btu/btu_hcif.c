@@ -385,35 +385,6 @@ void btu_hcif_send_cmd (UNUSED_ATTR UINT8 controller_id, BT_HDR *p_buf)
 
 /*******************************************************************************
 **
-** Function         btu_hcif_send_host_rdy_for_data
-**
-** Description      This function is called to check if it can send commands
-**                  to the Host Controller. It may be passed the address of
-**                  a packet to send.
-**
-** Returns          void
-**
-*******************************************************************************/
-void btu_hcif_send_host_rdy_for_data(void)
-{
-    UINT16      num_pkts[MAX_L2CAP_LINKS + 4];      /* 3 SCO connections */
-    UINT16      handles[MAX_L2CAP_LINKS + 4];
-    UINT8       num_ents;
-
-    /* Get the L2CAP numbers */
-    num_ents = l2c_link_pkts_rcvd (num_pkts, handles);
-
-    /* Get the SCO numbers */
-    /* No SCO for now ?? */
-
-    if (num_ents)
-    {
-        btsnd_hcic_host_num_xmitted_pkts (num_ents, handles, num_pkts);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         btu_hcif_inquiry_comp_evt
 **
 ** Description      Process event HCI_INQUIRY_COMP_EVT
@@ -850,7 +821,7 @@ static void btu_hcif_hdl_command_complete (UINT16 opcode, UINT8 *p, UINT16 evt_l
             break;
 
         case HCI_READ_INQ_TX_POWER_LEVEL:
-            btm_read_linq_tx_power_complete (p);
+            btm_read_inq_tx_power_complete(p);
             break;
 
 #if (BLE_INCLUDED == TRUE)

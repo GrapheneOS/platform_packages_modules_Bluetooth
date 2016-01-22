@@ -26,8 +26,8 @@
 #define PORT_INT_H
 
 #include "bt_target.h"
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
-#include "osi/include/non_repeating_timer.h"
 #include "bt_common.h"
 #include "rfcdefs.h"
 #include "port_api.h"
@@ -92,7 +92,7 @@ typedef struct
 */
 typedef struct
 {
-    timer_entry_t timer_entry; /* Timer entry */
+    alarm_t *mcb_timer;       /* MCB timer */
     fixed_queue_t *cmd_q;     /* Queue for command messages on this mux */
     UINT8     port_inx[RFCOMM_MAX_DLCI + 1];  /* Array for quick access to  */
                                               /* tPORT based on dlci        */
@@ -116,8 +116,7 @@ typedef struct
 /*
 ** RFCOMM Port Connection Control Block
 */
-struct t_rfc_port
-{
+typedef struct {
 #define RFC_PORT_STATE_IDLE          0
 #define RFC_PORT_STATE_WAIT_START    1
 #define RFC_PORT_STATE_OPENING       2
@@ -136,15 +135,14 @@ struct t_rfc_port
 
     tRFC_MCB *p_mcb;
 
-    timer_entry_t timer_entry;          /* Timer entry */
-};
-typedef struct t_rfc_port tRFC_PORT;
+    alarm_t  *port_timer;
+} tRFC_PORT;
 
 
 /*
 ** Define control block containing information about PORT connection
 */
-struct t_port_info
+typedef struct
 {
     UINT8   inx;            /* Index of this control block in the port_info array */
     BOOLEAN in_use;         /* True when structure is allocated */
@@ -206,8 +204,7 @@ struct t_port_info
     BOOLEAN     keep_port_handle;           /* TRUE if port is not deallocated when closing */
                                             /* it is set to TRUE for server when allocating port */
     UINT16      keep_mtu;                   /* Max MTU that port can receive by server */
-};
-typedef struct t_port_info tPORT;
+} tPORT;
 
 
 /* Define the PORT/RFCOMM control structure

@@ -40,7 +40,7 @@
 #define BTIF_AV_SERVICE_NAME "Advanced Audio"
 #define BTIF_AVK_SERVICE_NAME "Advanced Audio Sink"
 
-#define BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS  2
+#define BTIF_TIMEOUT_AV_OPEN_ON_RC_MS  (2 * 1000)
 
 typedef enum {
     BTIF_AV_STATE_IDLE = 0x0,
@@ -93,7 +93,7 @@ typedef struct
 static btav_callbacks_t *bt_av_src_callbacks = NULL;
 static btav_callbacks_t *bt_av_sink_callbacks = NULL;
 static btif_av_cb_t btif_av_cb = {0};
-static timer_entry_t te_av_open_on_rc;
+static alarm_t *av_open_on_rc_timer = NULL;
 
 /* both interface and media task needs to be ready to alloc incoming request */
 #define CHECK_BTAV_INIT() if (((bt_av_src_callbacks == NULL) &&(bt_av_sink_callbacks == NULL)) \
@@ -144,6 +144,8 @@ extern void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data);
 extern BOOLEAN btif_rc_get_connected_peer(BD_ADDR peer_addr);
 extern UINT8 btif_rc_get_connected_peer_handle(void);
 extern void btif_rc_check_handle_pending_play (BD_ADDR peer_addr, BOOLEAN bSendToApp);
+
+extern fixed_queue_t *btu_general_alarm_queue;
 
 /*****************************************************************************
 ** Local helper functions
@@ -208,7 +210,7 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
 *****************************************************************************/
 /*******************************************************************************
 **
-** Function         btif_initiate_av_open_tmr_hdlr
+** Function         btif_initiate_av_open_timer_timeout
 **
 ** Description      Timer to trigger AV open if the remote headset establishes
 **                  RC connection w/o AV connection. The timer is needed to IOP
@@ -217,11 +219,11 @@ const char *dump_av_sm_event_name(btif_av_sm_event_t event)
 ** Returns          void
 **
 *******************************************************************************/
-static void btif_initiate_av_open_tmr_hdlr(timer_entry_t *p_te)
+static void btif_initiate_av_open_timer_timeout(UNUSED_ATTR void *data)
 {
     BD_ADDR peer_addr;
     btif_av_connect_req_t connect_req;
-    UNUSED(p_te);
+
     /* is there at least one RC connection - There should be */
     if (btif_rc_get_connected_peer(peer_addr)) {
        BTIF_TRACE_DEBUG("%s Issuing connect to the remote RC peer", __FUNCTION__);
@@ -335,10 +337,10 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
              */
 
             BTIF_TRACE_DEBUG("BTA_AV_RC_OPEN_EVT received w/o AV");
-            memset(&te_av_open_on_rc, 0, sizeof(te_av_open_on_rc));
-            te_av_open_on_rc.param = btif_initiate_av_open_tmr_hdlr;
-            btu_start_timer(&te_av_open_on_rc, BTU_TTYPE_USER_FUNC,
-                            BTIF_TIMEOUT_AV_OPEN_ON_RC_SECS);
+            alarm_set_on_queue(av_open_on_rc_timer,
+                               BTIF_TIMEOUT_AV_OPEN_ON_RC_MS,
+                               btif_initiate_av_open_timer_timeout, NULL,
+                               btu_general_alarm_queue);
             btif_rc_handler(event, p_data);
             break;
 
@@ -417,10 +419,8 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
             break;
 
         case BTA_AV_RC_CLOSE_EVT:
-            if (te_av_open_on_rc.in_use) {
-                BTIF_TRACE_DEBUG("BTA_AV_RC_CLOSE_EVT: Stopping AV timer.");
-                btu_stop_timer(&te_av_open_on_rc);
-            }
+            BTIF_TRACE_DEBUG("BTA_AV_RC_CLOSE_EVT: Stopping AV timer.");
+            alarm_cancel(av_open_on_rc_timer);
             btif_rc_handler(event, p_data);
             break;
 
@@ -1154,6 +1154,8 @@ bt_status_t btif_av_init(int service_id)
 {
     if (btif_av_cb.sm_handle == NULL)
     {
+        alarm_free(av_open_on_rc_timer);
+        av_open_on_rc_timer = alarm_new("btif_av.av_open_on_rc_timer");
         if (!btif_a2dp_start_media_task())
             return BT_STATUS_FAIL;
 

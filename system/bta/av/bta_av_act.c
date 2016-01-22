@@ -52,18 +52,20 @@
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
-/* the timer in milliseconds to wait for open req after setconfig for incoming connections */
-#ifndef BTA_AV_SIG_TIME_VAL
-#define BTA_AV_SIG_TIME_VAL 8000
+/* the timeout to wait for open req after setconfig for incoming connections */
+#ifndef BTA_AV_SIGNALLING_TIMEOUT_MS
+#define BTA_AV_SIGNALLING_TIMEOUT_MS (8 * 1000)         /* 8 seconds */
 #endif
 
-/* In millisec to wait for signalling from SNK when it is initiated from SNK.   */
-/* If not, we will start signalling from SRC.                                   */
-#ifndef BTA_AV_ACP_SIG_TIME_VAL
-#define BTA_AV_ACP_SIG_TIME_VAL 2000
+/* Time to wait for signalling from SNK when it is initiated from SNK. */
+/* If not, we will start signalling from SRC. */
+#ifndef BTA_AV_ACCEPT_SIGNALLING_TIMEOUT_MS
+#define BTA_AV_ACCEPT_SIGNALLING_TIMEOUT_MS     (2 * 1000)      /* 2 seconds */
 #endif
 
-static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te);
+extern fixed_queue_t *btu_bta_alarm_queue;
+
+static void bta_av_accept_signalling_timer_cback(void *data);
 
 /*******************************************************************************
 **
@@ -123,7 +125,7 @@ void bta_av_del_rc(tBTA_AV_RCB *p_rcb)
                     p_scb->rc_handle = BTA_AV_RC_HANDLE_NONE;
                 /* just in case the RC timer is active
                 if (bta_av_cb.features & BTA_AV_FEAT_RCCT && p_scb->chnl == BTA_AV_CHNL_AUDIO) */
-                    bta_sys_stop_timer(&p_scb->timer);
+                alarm_cancel(p_scb->avrc_ct_timer);
             }
         }
 
@@ -512,7 +514,7 @@ void bta_av_rc_opened(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             APPL_TRACE_DEBUG("bta_av_rc_opened shdl:%d, srch %d", i + 1, p_scb->rc_handle);
             shdl = i+1;
             LOG_INFO(LOG_TAG, "%s allow incoming AVRCP connections:%d", __func__, p_scb->use_rc);
-            bta_sys_stop_timer(&p_scb->timer);
+            alarm_cancel(p_scb->avrc_ct_timer);
             disc = p_scb->hndl;
             break;
         }
@@ -1077,7 +1079,7 @@ void bta_av_rc_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                     /* just in case the RC timer is active
                     if (bta_av_cb.features & BTA_AV_FEAT_RCCT &&
                        p_scb->chnl == BTA_AV_CHNL_AUDIO) */
-                        bta_sys_stop_timer(&p_scb->timer);
+                    alarm_cancel(p_scb->avrc_ct_timer);
                 }
             }
 
@@ -1326,7 +1328,7 @@ void bta_av_conn_chg(tBTA_AV_DATA *p_data)
                 /* just in case the RC timer is active
                 if (p_cb->features & BTA_AV_FEAT_RCCT) */
                 {
-                    bta_sys_stop_timer(&p_scb->timer);
+                    alarm_cancel(p_scb->avrc_ct_timer);
                 }
                 /* one audio channel goes down. check if we need to restore high priority */
                 chk_restore = TRUE;
@@ -1433,7 +1435,7 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 void bta_av_api_disconnect(tBTA_AV_DATA *p_data)
 {
     AVDT_DisconnectReq(p_data->api_discnt.bd_addr, bta_av_conn_cback);
-    bta_sys_stop_timer(&bta_av_cb.sig_tmr);
+    alarm_cancel(bta_av_cb.link_signalling_timer);
 }
 
 /*******************************************************************************
@@ -1449,7 +1451,7 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 {
     UINT16 event = p_data->str_msg.hdr.layer_specific;
     tBTA_AV_CB   *p_cb = &bta_av_cb;
-    int     xx;
+    UINT32 xx;
     UINT8   mask;
     tBTA_AV_LCB *p_lcb = NULL;
 
@@ -1489,22 +1491,18 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 
                         /* The Pending Event should be sent as soon as the L2CAP signalling channel
                          * is set up, which is NOW. Earlier this was done only after
-                         * BTA_AV_SIG_TIME_VAL milliseconds.
+                         * BTA_AV_SIGNALLING_TIMEOUT_MS.
                          * The following function shall send the event and start the recurring timer
                          */
-                        bta_av_sig_timer(NULL);
+                        bta_av_signalling_timer(NULL);
 
                         /* Possible collision : need to avoid outgoing processing while the timer is running */
                         p_cb->p_scb[xx]->coll_mask = BTA_AV_COLL_INC_TMR;
-
-                        // TODO(armansito): Why is this variable called "xx" and
-                        // why is it a signed integer? The callback reinterprets
-                        // it as a UINT8 and then reassigns it as param that
-                        // way, so should this be unsigned?
-                        p_cb->acp_sig_tmr.param = INT_TO_PTR(xx);
-                        p_cb->acp_sig_tmr.p_cback =
-                            (timer_callback_t *)&bta_av_acp_sig_timer_cback;
-                        bta_sys_start_timer(&p_cb->acp_sig_tmr, 0, BTA_AV_ACP_SIG_TIME_VAL);
+                        alarm_set_on_queue(p_cb->accept_signalling_timer,
+                                           BTA_AV_ACCEPT_SIGNALLING_TIMEOUT_MS,
+                                           bta_av_accept_signalling_timer_cback,
+                                           UINT_TO_PTR(xx),
+                                           btu_bta_alarm_queue);
                     }
                     break;
                 }
@@ -1524,7 +1522,7 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 #if ( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
     else if (event == BTA_AR_AVDT_CONN_EVT)
     {
-        bta_sys_stop_timer(&bta_av_cb.sig_tmr);
+        alarm_cancel(bta_av_cb.link_signalling_timer);
     }
 #endif
     else
@@ -1551,16 +1549,17 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_av_sig_timer
+** Function         bta_av_signalling_timer
 **
 ** Description      process the signal channel timer. This timer is started
 **                  when the AVDTP signal channel is connected. If no profile
-**                  is connected, the timer goes off every BTA_AV_SIG_TIME_VAL
+**                  is connected, the timer goes off every
+**                  BTA_AV_SIGNALLING_TIMEOUT_MS.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_sig_timer(tBTA_AV_DATA *p_data)
+void bta_av_signalling_timer(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
     int     xx;
@@ -1569,7 +1568,7 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
     tBTA_AV_PEND pend;
     UNUSED(p_data);
 
-    APPL_TRACE_DEBUG("bta_av_sig_timer");
+    APPL_TRACE_DEBUG("%s", __func__);
     for(xx=0; xx<BTA_AV_NUM_LINKS; xx++)
     {
         mask = 1 << xx;
@@ -1577,9 +1576,10 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
         {
             /* this entry is used. check if it is connected */
             p_lcb = &p_cb->lcb[xx];
-            if (!p_lcb->conn_msk)
-            {
-                bta_sys_start_timer(&p_cb->sig_tmr, BTA_AV_SIG_TIMER_EVT, BTA_AV_SIG_TIME_VAL);
+            if (!p_lcb->conn_msk) {
+                bta_sys_start_timer(p_cb->link_signalling_timer,
+                                    BTA_AV_SIGNALLING_TIMEOUT_MS,
+                                    BTA_AV_SIGNALLING_TIMER_EVT, 0);
                 bdcpy(pend.bd_addr, p_lcb->addr);
                 (*p_cb->p_cback)(BTA_AV_PENDING_EVT, (tBTA_AV *) &pend);
             }
@@ -1589,7 +1589,7 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_av_acp_sig_timer_cback
+** Function         bta_av_accept_signalling_timer_cback
 **
 ** Description      Process the timeout when SRC is accepting connection
 **                  and SNK did not start signalling.
@@ -1597,9 +1597,9 @@ void bta_av_sig_timer(tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te)
+static void bta_av_accept_signalling_timer_cback(void *data)
 {
-    UINT8   inx = PTR_TO_UINT(p_te->param);
+    UINT32   inx = PTR_TO_UINT(data);
     tBTA_AV_CB  *p_cb = &bta_av_cb;
     tBTA_AV_SCB *p_scb = NULL;
     tBTA_AV_API_OPEN  *p_buf;
@@ -1609,7 +1609,7 @@ static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te)
     }
     if (p_scb)
     {
-        APPL_TRACE_DEBUG("bta_av_acp_sig_timer_cback, coll_mask = 0x%02X", p_scb->coll_mask);
+        APPL_TRACE_DEBUG("%s coll_mask = 0x%02X", __func__, p_scb->coll_mask);
 
         if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
         {
@@ -1622,10 +1622,11 @@ static void bta_av_acp_sig_timer_cback(timer_entry_t *p_te)
                     /* We are still doing SDP. Run the timer again. */
                     p_scb->coll_mask |= BTA_AV_COLL_INC_TMR;
 
-                    p_cb->acp_sig_tmr.param = UINT_TO_PTR(inx);
-                    p_cb->acp_sig_tmr.p_cback =
-                        (timer_callback_t *)&bta_av_acp_sig_timer_cback;
-                    bta_sys_start_timer(&p_cb->acp_sig_tmr, 0, BTA_AV_ACP_SIG_TIME_VAL);
+                    alarm_set_on_queue(p_cb->accept_signalling_timer,
+                                       BTA_AV_ACCEPT_SIGNALLING_TIMEOUT_MS,
+                                       bta_av_accept_signalling_timer_cback,
+                                       UINT_TO_PTR(inx),
+                                       btu_bta_alarm_queue);
                 }
                 else
                 {
@@ -2176,7 +2177,7 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
         }
 
         /* make sure that the timer is not active */
-        bta_sys_stop_timer(&p_scb->timer);
+        alarm_cancel(p_scb->avrc_ct_timer);
         utl_freebuf((void **)&p_cb->p_scb[p_scb->hdi]);
     }
 

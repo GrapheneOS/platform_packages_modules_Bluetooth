@@ -34,6 +34,8 @@
 #include "btu.h"
 #include "btm_api.h"
 
+extern fixed_queue_t *btu_general_alarm_queue;
+
 /*******************************************************************************
 **
 ** Function         avdt_ccb_clear_ccb
@@ -143,7 +145,12 @@ void avdt_ccb_chk_close(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
     /* if no active scbs start idle timer */
     if (i == AVDT_NUM_SEPS)
     {
-        btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_IDLE, avdt_cb.rcb.idle_tout);
+        alarm_cancel(p_ccb->ret_ccb_timer);
+        alarm_cancel(p_ccb->rsp_ccb_timer);
+        period_ms_t interval_ms = avdt_cb.rcb.idle_tout * 1000;
+        alarm_set_on_queue(p_ccb->idle_ccb_timer, interval_ms,
+                           avdt_ccb_idle_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
     }
 }
 
@@ -830,8 +837,13 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             }
         }
 
-        /* restart timer */
-        btu_start_timer(&p_ccb->timer_entry, BTU_TTYPE_AVDT_CCB_RET, avdt_cb.rcb.ret_tout);
+        /* restart ret timer */
+        alarm_cancel(p_ccb->idle_ccb_timer);
+        alarm_cancel(p_ccb->rsp_ccb_timer);
+        period_ms_t interval_ms = avdt_cb.rcb.ret_tout * 1000;
+        alarm_set_on_queue(p_ccb->ret_ccb_timer, interval_ms,
+                           avdt_ccb_ret_ccb_timer_timeout, p_ccb,
+                           btu_general_alarm_queue);
     }
 }
 
@@ -998,10 +1010,7 @@ void avdt_ccb_chk_timer(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    if (p_ccb->timer_entry.event == BTU_TTYPE_AVDT_CCB_IDLE)
-    {
-        btu_stop_timer(&p_ccb->timer_entry);
-    }
+    alarm_cancel(p_ccb->idle_ccb_timer);
 }
 
 /*******************************************************************************
