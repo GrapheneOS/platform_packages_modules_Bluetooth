@@ -608,7 +608,7 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
 
     case BTA_JV_RFCOMM_READ_EVT:
     case BTA_JV_RFCOMM_DATA_IND_EVT:
-      // unused
+      // Unused.
       break;
 
     default:
