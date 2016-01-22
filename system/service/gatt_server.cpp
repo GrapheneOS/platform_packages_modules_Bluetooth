@@ -1008,9 +1008,7 @@ void GattServerFactory::RegisterServerCallback(
   if (status == BT_STATUS_SUCCESS) {
     server.reset(new GattServer(uuid, server_id));
 
-    // Use the unsafe variant to register this as an observer to prevent a
-    // deadlock since this callback is currently holding the lock.
-    gatt_iface->AddServerObserverUnsafe(server.get());
+    gatt_iface->AddServerObserver(server.get());
 
     result = BLE_STATUS_SUCCESS;
   }

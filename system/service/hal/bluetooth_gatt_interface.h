@@ -197,36 +197,14 @@ class BluetoothGattInterface {
   static BluetoothGattInterface* Get();
 
   // Add or remove an observer that is interested in GATT client interface
-  // notifications from us. These methods are thread-safe. This implies that
-  // this cannot be called re-entrantly from a ClientObserver event without
-  // causing a dead-lock. If you must modify the observer list re-entrantly, use
-  // the unsafe variants instead.
+  // notifications from us. Thread-safety is guaranteed by ObserverList.
   virtual void AddClientObserver(ClientObserver* observer) = 0;
   virtual void RemoveClientObserver(ClientObserver* observer) = 0;
 
-  // Unsafe variants of the Add|RemoveClientObserver methods above. The above
-  // methods acquire an internal lock to prevent concurrent access to the
-  // observer list while the unsafe ones don't, so use them wisely. One
-  // recommended use of these methods is from observer methods where the
-  // internal lock is already being held by the executing thread.
-  virtual void AddClientObserverUnsafe(ClientObserver* observer) = 0;
-  virtual void RemoveClientObserverUnsafe(ClientObserver* observer) = 0;
-
   // Add or remove an observer that is interested in GATT server interface
-  // notifications from us. These methods are thread-safe. This implies that
-  // this cannot be called re-entrantly from a ServerObserver event without
-  // causing a dead-lock. If you must modify the observer list re-entrantly, use
-  // the unsafe variants instead.
+  // notifications from us. Thread-safety is guaranteed by ObserverList.
   virtual void AddServerObserver(ServerObserver* observer) = 0;
   virtual void RemoveServerObserver(ServerObserver* observer) = 0;
-
-  // Unsafe variants of the Add|RemoveServerObserver methods above. The above
-  // methods acquire an internal lock to prevent concurrent access to the
-  // observer list while the unsafe ones don't, so use them wisely. One
-  // recommended use of these methods is from observer methods where the
-  // internal lock is already being held by the executing thread.
-  virtual void AddServerObserverUnsafe(ServerObserver* observer) = 0;
-  virtual void RemoveServerObserverUnsafe(ServerObserver* observer) = 0;
 
   // The HAL module pointer that represents the standard BT-GATT client
   // interface. This is implemented in and provided by the shared Bluetooth
