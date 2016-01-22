@@ -35,7 +35,8 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
  public:
   HeartRateServer(
       android::sp<ipc::binder::IBluetooth> bluetooth,
-      scoped_refptr<base::SingleThreadTaskRunner> main_task_runner);
+      scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
+      bool advertise);
   ~HeartRateServer() override;
 
   // Set up the server and register the GATT services with the stack. This
@@ -121,6 +122,9 @@ class HeartRateServer : public ipc::binder::BnBluetoothGattServerCallback {
   // The daemon itself doesn't maintain a Client Characteristic Configuration
   // mapping, so we do it ourselves here.
   std::unordered_map<std::string, uint8_t> device_ccc_map_;
+
+  // Wether we should also start advertising
+  bool advertise_;
 
   // libchrome task runner that we use to post heart rate measurement
   // notifications on the main thread.

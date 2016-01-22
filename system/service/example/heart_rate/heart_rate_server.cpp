@@ -27,14 +27,65 @@
 
 namespace heart_rate {
 
+class CLIBluetoothLowEnergyCallback
+    : public ipc::binder::BnBluetoothLowEnergyCallback {
+ public:
+  CLIBluetoothLowEnergyCallback(android::sp<ipc::binder::IBluetooth> bt)
+      : bt_(bt) {}
+
+  // IBluetoothLowEnergyCallback overrides:
+  void OnConnectionState(int status, int client_id, const char* address,
+                         bool connected) override {}
+  void OnScanResult(const bluetooth::ScanResult& scan_result) override {}
+
+  void OnClientRegistered(int status, int client_id){
+    if (status != bluetooth::BLE_STATUS_SUCCESS) {
+      LOG(ERROR) << "Failed to register BLE client, will not start advertising";
+      return;
+    }
+
+    LOG(INFO) << "Registered BLE client with ID: " << client_id;
+
+    std::vector<uint8_t> data;
+    base::TimeDelta timeout;
+
+    bluetooth::AdvertiseSettings settings(
+        bluetooth::AdvertiseSettings::MODE_LOW_POWER,
+        timeout,
+        bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM,
+        true);
+
+    bluetooth::AdvertiseData adv_data(data);
+    adv_data.set_include_device_name(true);
+    adv_data.set_include_tx_power_level(true);
+
+    bluetooth::AdvertiseData scan_rsp;
+
+    bt_->GetLowEnergyInterface()->
+        StartMultiAdvertising(client_id, adv_data, scan_rsp, settings);
+  }
+
+  void OnMultiAdvertiseCallback(int status, bool is_start,
+      const bluetooth::AdvertiseSettings& /* settings */) {
+    LOG(INFO) << "Advertising" << (is_start?" started":" stopped");
+  };
+
+ private:
+  android::sp<ipc::binder::IBluetooth> bt_;
+  DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
+};
+
+
 HeartRateServer::HeartRateServer(
     android::sp<ipc::binder::IBluetooth> bluetooth,
-    scoped_refptr<base::SingleThreadTaskRunner> main_task_runner)
+    scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
+    bool advertise)
     : simulation_started_(false),
       bluetooth_(bluetooth),
       server_if_(-1),
       hr_notification_count_(0),
       energy_expended_(0),
+      advertise_(advertise),
       main_task_runner_(main_task_runner),
       weak_ptr_factory_(this) {
   CHECK(bluetooth_.get());
@@ -270,6 +321,16 @@ void HeartRateServer::OnServiceAdded(
 
   LOG(INFO) << "Heart Rate service added";
   pending_run_cb_(true);
+
+  if (advertise_) {
+    auto ble = bluetooth_->GetLowEnergyInterface();
+    if (!ble.get()) {
+      LOG(ERROR) << "Failed to obtain handle to IBluetoothLowEnergy interface";
+      return;
+    }
+    ble->RegisterClient(new CLIBluetoothLowEnergyCallback(bluetooth_));
+  }
+
 }
 
 void HeartRateServer::OnCharacteristicReadRequest(
