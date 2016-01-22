@@ -830,11 +830,7 @@ void LowEnergyClientFactory::RegisterClientCallback(
   if (status == BT_STATUS_SUCCESS) {
     client.reset(new LowEnergyClient(adapter_, uuid, client_id));
 
-    // Use the unsafe variant to register this as an observer, since
-    // LowEnergyClient instances only get created by LowEnergyClientCallback
-    // from inside this GATT client observer event, which would otherwise cause
-    // a deadlock.
-    gatt_iface->AddClientObserverUnsafe(client.get());
+    gatt_iface->AddClientObserver(client.get());
 
     result = BLE_STATUS_SUCCESS;
   }

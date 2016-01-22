@@ -134,12 +134,8 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   // BluetoothGattInterface overrides:
   void AddClientObserver(ClientObserver* observer) override;
   void RemoveClientObserver(ClientObserver* observer) override;
-  void AddClientObserverUnsafe(ClientObserver* observer) override;
-  void RemoveClientObserverUnsafe(ClientObserver* observer) override;
   void AddServerObserver(ServerObserver* observer) override;
   void RemoveServerObserver(ServerObserver* observer) override;
-  void AddServerObserverUnsafe(ServerObserver* observer) override;
-  void RemoveServerObserverUnsafe(ServerObserver* observer) override;
   const btgatt_client_interface_t* GetClientHALInterface() const override;
   const btgatt_server_interface_t* GetServerHALInterface() const override;
 

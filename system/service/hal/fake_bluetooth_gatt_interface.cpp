@@ -393,16 +393,6 @@ void FakeBluetoothGattInterface::RemoveClientObserver(
   client_observers_.RemoveObserver(observer);
 }
 
-void FakeBluetoothGattInterface::AddClientObserverUnsafe(
-    ClientObserver* observer) {
-  AddClientObserver(observer);
-}
-
-void FakeBluetoothGattInterface::RemoveClientObserverUnsafe(
-    ClientObserver* observer) {
-  RemoveClientObserver(observer);
-}
-
 void FakeBluetoothGattInterface::AddServerObserver(ServerObserver* observer) {
   CHECK(observer);
   server_observers_.AddObserver(observer);
@@ -412,16 +402,6 @@ void FakeBluetoothGattInterface::RemoveServerObserver(
     ServerObserver* observer) {
   CHECK(observer);
   server_observers_.RemoveObserver(observer);
-}
-
-void FakeBluetoothGattInterface::AddServerObserverUnsafe(
-    ServerObserver* observer) {
-  AddServerObserver(observer);
-}
-
-void FakeBluetoothGattInterface::RemoveServerObserverUnsafe(
-    ServerObserver* observer) {
-  RemoveServerObserver(observer);
 }
 
 const btgatt_client_interface_t*
