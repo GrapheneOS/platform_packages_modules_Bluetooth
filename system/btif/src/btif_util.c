@@ -111,7 +111,7 @@ void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128)
     memcpy(uuid128->uu + 2, &uuid16_bo, sizeof(uint16_t));
 }
 
-void string_to_uuid(char *str, bt_uuid_t *p_uuid)
+void string_to_uuid(const char *str, bt_uuid_t *p_uuid)
 {
     uint32_t uuid0, uuid4;
     uint16_t uuid1, uuid2, uuid3, uuid5;
@@ -163,7 +163,7 @@ void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
 **
 **  Returns         the number of hex bytes filled.
 */
-int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex)
+int ascii_2_hex (const char *p_ascii, int len, UINT8 *p_hex)
 {
     int     x;
     UINT8   c;

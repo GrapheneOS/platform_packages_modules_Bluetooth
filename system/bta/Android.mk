@@ -80,7 +80,7 @@ LOCAL_SRC_FILES:= \
     ./jv/bta_jv_main.c \
     ./jv/bta_jv_api.c
 
-LOCAL_MODULE := libbt-brcm_bta
+LOCAL_MODULE := libbt-bta
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libcutils libc
