@@ -877,6 +877,7 @@ void smp_cb_cleanup(tSMP_CB   *p_cb)
     memset(p_cb, 0, sizeof(tSMP_CB));
     p_cb->p_callback = p_callback;
     p_cb->trace_level = trace_level;
+    p_cb->smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
 }
 
 /*******************************************************************************
