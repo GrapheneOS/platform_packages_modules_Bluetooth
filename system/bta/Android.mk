@@ -2,10 +2,6 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
-LOCAL_CFLAGS += \
-	-DBOARD_HAVE_BLUETOOTH_BCM
-endif
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -std=c99
 LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end
 
