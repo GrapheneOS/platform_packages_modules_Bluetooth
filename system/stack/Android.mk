@@ -38,11 +38,6 @@ LOCAL_C_INCLUDES:= . \
 
 LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
 
-ifeq ($(BOARD_HAVE_BLUETOOTH_BCM),true)
-LOCAL_CFLAGS += \
-	-DBOARD_HAVE_BLUETOOTH_BCM
-endif
-
 LOCAL_SRC_FILES:= \
     ./a2dp/a2d_api.c \
     ./a2dp/a2d_sbc.c \
