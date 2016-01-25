@@ -129,9 +129,11 @@ int main(int argc, char* argv[]) {
     main_loop.QuitWhenIdle();
   };
 
+  bool advertise = base::CommandLine::ForCurrentProcess()->HasSwitch("advertise");
+
   // Create the Heart Rate server.
   std::unique_ptr<heart_rate::HeartRateServer> hr(
-      new heart_rate::HeartRateServer(bluetooth, main_loop.task_runner()));
+      new heart_rate::HeartRateServer(bluetooth, main_loop.task_runner(), advertise));
   if (!hr->Run(callback)) {
     LOG(ERROR) << "Failed to start Heart Rate server";
     return EXIT_FAILURE;
