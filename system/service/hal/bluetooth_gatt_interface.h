@@ -75,9 +75,18 @@ class BluetoothGattInterface {
         int client_if,
         const bt_bdaddr_t& bda);
 
+    virtual void SearchCompleteCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        int status);
+
     virtual void ListenCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int client_if);
+
+    virtual void MtuChangedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int status, int mtu);
 
     virtual void MultiAdvEnableCallback(
         BluetoothGattInterface* gatt_iface,

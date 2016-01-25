@@ -119,12 +119,41 @@ void DisconnectCallback(int conn_id, int status, int client_if,
     DisconnectCallback(g_interface, conn_id, status, client_if, *bda));
 }
 
+void SearchCompleteCallback(int conn_id, int status) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " - status: " << status;
+  FOR_EACH_CLIENT_OBSERVER(
+    SearchCompleteCallback(g_interface, conn_id, status));
+}
+
+void SearchResultCallback(int conn_id, btgatt_srvc_id_t *srvc_id) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id;
+  // do not propagate this event, will do service discovery with new HAL call
+}
+
 void ListenCallback(int status, int client_if) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
   VERIFY_INTERFACE_OR_RETURN();
 
   FOR_EACH_CLIENT_OBSERVER(ListenCallback(g_interface, status, client_if));
+}
+
+void MtuChangedCallback(int conn_id, int status, int mtu) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " status: " << status
+          << " mtu: " << mtu;
+
+  FOR_EACH_CLIENT_OBSERVER(MtuChangedCallback(g_interface, conn_id, status, mtu));
 }
 
 void MultiAdvEnableCallback(int client_if, int status) {
@@ -318,8 +347,8 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     ScanResultCallback,
     ConnectCallback,
     DisconnectCallback,
-    nullptr,  // search_complete_cb
-    nullptr,  // search_result_cb
+    SearchCompleteCallback,
+    SearchResultCallback,
     nullptr,  // get_characteristic_cb
     nullptr,  // get_descriptor_cb
     nullptr,  // get_included_service_cb
@@ -332,7 +361,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // execute_write_cb
     nullptr,  // read_remote_rssi_cb
     ListenCallback,
-    nullptr,  // configure_mtu_cb
+    MtuChangedCallback,
     nullptr,  // scan_filter_cfg_cb
     nullptr,  // scan_filter_param_cb
     nullptr,  // scan_filter_status_cb
@@ -513,12 +542,28 @@ void BluetoothGattInterface::ClientObserver::DisconnectCallback(
   // Do nothing
 }
 
+void BluetoothGattInterface::ClientObserver::SearchCompleteCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */) {
+  // Do nothing
+}
+
 void BluetoothGattInterface::ClientObserver::ListenCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* client_if */) {
   // Do nothing.
 }
+
+void BluetoothGattInterface::ClientObserver::MtuChangedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* statis*/,
+    int /* mtu */) {
+  // Do nothing.
+}
+
 void BluetoothGattInterface::ClientObserver::MultiAdvEnableCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
