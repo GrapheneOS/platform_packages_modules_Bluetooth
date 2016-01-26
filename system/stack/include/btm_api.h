@@ -518,14 +518,12 @@ typedef UINT8 tBTM_EIR_SEARCH_RESULT;
 #define BTM_OOB_HASH_C_SIZE         BT_OOB_HASH_C_SIZE
 #define BTM_OOB_RAND_R_SIZE         BT_OOB_RAND_R_SIZE
 
-
-#if BLE_INCLUDED == TRUE
 #define BTM_BLE_SEC_NONE                0
 #define BTM_BLE_SEC_ENCRYPT             1 /* encrypt the link using current key */
 #define BTM_BLE_SEC_ENCRYPT_NO_MITM     2
 #define BTM_BLE_SEC_ENCRYPT_MITM        3
 typedef UINT8   tBTM_BLE_SEC_ACT;
-#endif
+
 /************************************************************************************************
 ** BTM Services MACROS handle array of UINT32 bits for more than 32 services
 *************************************************************************************************/
@@ -3442,13 +3440,15 @@ extern tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr);
 **                  bring up unencrypted links, then later encrypt them.
 **
 ** Parameters:      bd_addr       - Address of the peer device
+**                  transport     - Link transport
 **                  p_callback    - Pointer to callback function called if
 **                                  this function returns PENDING after required
 **                                  procedures are completed.  Can be set to NULL
 **                                  if status is not desired.
 **                  p_ref_data    - pointer to any data the caller wishes to receive
 **                                  in the callback function upon completion.
-*                                   can be set to NULL if not used.
+**                                  can be set to NULL if not used.
+**                  sec_act       - LE security action, unused for BR/EDR
 **
 ** Returns          BTM_SUCCESS   - already encrypted
 **                  BTM_PENDING   - command will be returned in the callback
@@ -3458,7 +3458,8 @@ extern tBTM_STATUS BTM_SecBondCancel (BD_ADDR bd_addr);
 **
 *******************************************************************************/
 extern tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport,
-                                      tBTM_SEC_CBACK *p_callback, void *p_ref_data);
+                                      tBTM_SEC_CBACK *p_callback,
+                                      void *p_ref_data, tBTM_BLE_SEC_ACT sec_act);
 
 /*******************************************************************************
 **

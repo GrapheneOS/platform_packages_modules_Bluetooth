@@ -744,6 +744,7 @@ typedef struct
     UINT32              mx_proto_id;
     UINT32              mx_chan_id;
     tBT_TRANSPORT       transport;
+    tBTM_BLE_SEC_ACT    sec_act;
 } tBTM_SEC_QUEUE_ENTRY;
 
 #if (L2CAP_UCD_INCLUDED == TRUE)

@@ -1274,10 +1274,9 @@ void btm_ble_link_sec_check(BD_ADDR bd_addr, tBTM_LE_AUTH_REQ auth_req, tBTM_BLE
 **                  the local device ER is copied into er
 **
 *******************************************************************************/
-tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, void *p_ref_data, UINT8 link_role)
+tBTM_STATUS btm_ble_set_encryption (BD_ADDR bd_addr, tBTM_BLE_SEC_ACT sec_act, UINT8 link_role)
 {
     tBTM_STATUS         cmd = BTM_NO_RESOURCES;
-    tBTM_BLE_SEC_ACT    sec_act = *(tBTM_BLE_SEC_ACT *)p_ref_data ;
     tBTM_SEC_DEV_REC    *p_rec = btm_find_dev (bd_addr);
     tBTM_BLE_SEC_REQ_ACT sec_req_act;
     tBTM_LE_AUTH_REQ    auth_req;
