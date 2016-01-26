@@ -46,7 +46,8 @@ class CLIBluetoothLowEnergyCallback
 
     LOG(INFO) << "Registered BLE client with ID: " << client_id;
 
-    std::vector<uint8_t> data;
+    /* Advertising data: 16-bit Service UUID: Heart Rate Service */
+    std::vector<uint8_t> data{0x03, 0x03, 0x0D, 0x18};
     base::TimeDelta timeout;
 
     bluetooth::AdvertiseSettings settings(
