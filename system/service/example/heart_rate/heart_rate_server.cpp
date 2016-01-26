@@ -36,6 +36,8 @@ class CLIBluetoothLowEnergyCallback
   // IBluetoothLowEnergyCallback overrides:
   void OnConnectionState(int status, int client_id, const char* address,
                          bool connected) override {}
+  void OnMtuChanged(int status, const char *address, int mtu) override {}
+
   void OnScanResult(const bluetooth::ScanResult& scan_result) override {}
 
   void OnClientRegistered(int status, int client_id){

@@ -86,6 +86,23 @@ bool BluetoothLowEnergyBinderServer::Disconnect(int client_id,
   return client->Disconnect(std::string(address));
 }
 
+bool BluetoothLowEnergyBinderServer::SetMtu(int client_id,
+                                            const char* address,
+                                            int mtu) {
+  VLOG(2) << __func__ << " client_id: " << client_id
+          << " address: " << address
+          << " mtu: " << mtu;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto client = GetLEClient(client_id);
+  if (!client) {
+    LOG(ERROR) << "Unknown client_id: " << client_id;
+    return false;
+  }
+
+  return client->SetMtu(address, mtu);
+}
+
 bool BluetoothLowEnergyBinderServer::StartScan(
     int client_id,
     const bluetooth::ScanSettings& settings,
@@ -213,6 +230,22 @@ void BluetoothLowEnergyBinderServer::OnConnectionState(
   }
 
   cb->OnConnectionState(status, client_id, address, connected);
+}
+
+void BluetoothLowEnergyBinderServer::OnMtuChanged(
+      bluetooth::LowEnergyClient* client, int status, const char* address, int mtu) {
+  VLOG(2) << __func__ << " address: " << address
+          << " status: " << status
+          << " mtu: " << mtu;
+
+  int client_id = client->GetInstanceId();
+  auto cb = GetLECallback(client_id);
+  if (!cb.get()) {
+    VLOG(2) << "Client was unregistered - client_id: " << client_id;
+    return;
+  }
+
+  cb->OnMtuChanged(status, address, mtu);
 }
 
 void BluetoothLowEnergyBinderServer::OnScanResult(

@@ -175,6 +175,21 @@ class CLIBluetoothLowEnergyCallback
       PrintPrompt();
   }
 
+  void OnMtuChanged(int status, const char *address, int mtu) override {
+    if (showing_prompt.load())
+      cout << endl;
+
+    cout << COLOR_BOLDWHITE "MTU changed: "
+         << COLOR_BOLDYELLOW "[" << address << " ] "
+         << COLOR_BOLDWHITE " - status: " << status
+         << COLOR_BOLDWHITE " - mtu: " << mtu << COLOR_OFF;
+
+    cout  << endl << endl;
+
+    if (showing_prompt.load())
+      PrintPrompt();
+  }
+
   void OnScanResult(const bluetooth::ScanResult& scan_result) override {
     if (showing_prompt.load())
       cout << endl;

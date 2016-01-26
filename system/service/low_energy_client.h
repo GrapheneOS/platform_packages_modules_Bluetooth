@@ -65,6 +65,10 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
     virtual void OnConnectionState(LowEnergyClient* client, int status,
                                    const char* address, bool connected) = 0;
 
+    // Called asynchronously to notify the delegate of mtu change
+    virtual void OnMtuChanged(LowEnergyClient* client, int status, const char* address,
+                              int mtu) = 0;
+
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
@@ -88,6 +92,10 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // Disconnect from previously connected BLE device with address |address|.
   // Return true on success, false otherwise.
   bool Disconnect(std::string address);
+
+  // Sends request to set MTU to |mtu| for device with address |address|.
+  // Return true on success, false otherwise.
+  bool SetMtu(std::string address, int mtu);
 
   // Initiates a BLE device scan for this client using the given |settings| and
   // |filters|. See the documentation for ScanSettings and ScanFilter for how
@@ -149,6 +157,9 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   void DisconnectCallback(
       hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
       int client_id, const bt_bdaddr_t& bda) override;
+  void MtuChangedCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int mtu) override;
   void MultiAdvEnableCallback(
       hal::BluetoothGattInterface* gatt_iface,
       int client_id, int status) override;
@@ -220,6 +231,7 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   std::mutex connection_fields_lock_;
 
   // Maps bluetooth address to connection id
+  //TODO(jpawlowski): change type to bimap
   std::map<const bt_bdaddr_t, int, ConnComparator> connection_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(LowEnergyClient);

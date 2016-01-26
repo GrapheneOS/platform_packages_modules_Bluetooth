@@ -33,6 +33,11 @@ oneway interface IBluetoothLowEnergyCallback {
   void OnConnectionState(in int status, in int client_id, in const char* address,
                          in bool connected);
 
+  /* Called to report current MTU value. Can be a result of calling
+   * IBluetoothLowEnergy.setMtu or remote device trying to change MTU.
+   */
+  void OnMtuChanged(in int status, in const char* address, in int mtu);
+
   /**
    * Called to report BLE device scan results once a scan session is started for
    * this client using IBluetoothLowEnergy.startScan. |scan_result| contains all

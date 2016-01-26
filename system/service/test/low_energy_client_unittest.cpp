@@ -77,7 +77,8 @@ class MockGattHandler
 
 class TestDelegate : public LowEnergyClient::Delegate {
  public:
-  TestDelegate() : scan_result_count_(0), connection_state_count_(0) {
+  TestDelegate() : scan_result_count_(0), connection_state_count_(0),
+                   last_mtu_(0) {
   }
 
   ~TestDelegate() override = default;
@@ -93,6 +94,12 @@ class TestDelegate : public LowEnergyClient::Delegate {
     connection_state_count_++;
   }
 
+  void OnMtuChanged(LowEnergyClient* client, int status, const char* address,
+                    int mtu) {
+    ASSERT_TRUE(client);
+    last_mtu_ = mtu;
+  }
+
   void OnScanResult(LowEnergyClient* client, const ScanResult& scan_result) {
     ASSERT_TRUE(client);
     scan_result_count_++;
@@ -104,6 +111,8 @@ class TestDelegate : public LowEnergyClient::Delegate {
   ScanResult last_scan_result_;
 
   int connection_state_count_;
+
+  int last_mtu_;
 
   DISALLOW_COPY_AND_ASSIGN(TestDelegate);
 };

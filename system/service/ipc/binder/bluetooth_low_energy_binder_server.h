@@ -49,6 +49,7 @@ class BluetoothLowEnergyBinderServer
   void UnregisterAll() override;
   bool Connect(int client_id, const char* address, bool is_direct) override;
   bool Disconnect(int client_id, const char* address) override;
+  bool SetMtu(int client_id, const char* address, int mtu) override;
   bool StartScan(
       int client_id,
       const bluetooth::ScanSettings& settings,
@@ -64,6 +65,8 @@ class BluetoothLowEnergyBinderServer
   // bluetooth::LowEnergyClient::Delegate overrides:
   void OnConnectionState(bluetooth::LowEnergyClient* client, int status,
                          const char* address, bool connected) override;
+  void OnMtuChanged(bluetooth::LowEnergyClient* client, int status,
+                    const char* address, int mtu) override;
   void OnScanResult(bluetooth::LowEnergyClient* client,
                     const bluetooth::ScanResult& result) override;
 

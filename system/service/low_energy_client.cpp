@@ -378,6 +378,33 @@ bool LowEnergyClient::Disconnect(std::string address) {
   return true;
 }
 
+bool LowEnergyClient::SetMtu(std::string address, int mtu) {
+  VLOG(2) << __func__ << "Address: " << address
+          << " MTU: " << mtu;
+
+  bt_bdaddr_t bda;
+  util::BdAddrFromString(address, &bda);
+
+  std::map<const bt_bdaddr_t, int>::iterator conn_id;
+  {
+    lock_guard<mutex> lock(connection_fields_lock_);
+    conn_id = connection_ids_.find(bda);
+    if (conn_id == connection_ids_.end()) {
+      LOG(WARNING) << "Can't set MTU, no existing connection to " << address;
+      return false;
+    }
+  }
+
+  bt_status_t status = hal::BluetoothGattInterface::Get()->
+      GetClientHALInterface()->configure_mtu(conn_id->second, mtu);
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "HAL call to set MTU failed";
+    return false;
+  }
+
+  return true;
+}
+
 void LowEnergyClient::SetDelegate(Delegate* delegate) {
   lock_guard<mutex> lock(delegate_mutex_);
   delegate_ = delegate;
@@ -595,6 +622,31 @@ void LowEnergyClient::DisconnectCallback(
   if (delegate_)
     delegate_->OnConnectionState(this, status, BtAddrString(&bda).c_str(),
                                  false);
+}
+
+void LowEnergyClient::MtuChangedCallback(
+      hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,
+      int mtu) {
+  VLOG(1) << __func__ << " conn_id: " << conn_id << " status: " << status
+          << " mtu: " << mtu;
+
+  const bt_bdaddr_t *bda = nullptr;
+  {
+    lock_guard<mutex> lock(connection_fields_lock_);
+    for (auto& connection: connection_ids_) {
+      if (connection.second == conn_id) {
+        bda = &connection.first;
+        break;
+      }
+    }
+  }
+
+  if (!bda)
+    return;
+
+  const char *addr = BtAddrString(bda).c_str();
+  if (delegate_)
+    delegate_->OnMtuChanged(this, status, addr, mtu);
 }
 
 void LowEnergyClient::MultiAdvEnableCallback(

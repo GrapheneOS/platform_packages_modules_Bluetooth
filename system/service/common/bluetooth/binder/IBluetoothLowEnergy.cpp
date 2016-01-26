@@ -84,6 +84,16 @@ status_t BnBluetoothLowEnergy::onTransact(
 
     return android::NO_ERROR;
   }
+  case SET_MTU_TRANSACTION: {
+    int client_id = data.readInt32();
+    const char* address = data.readCString();
+    int mtu = data.readInt32();
+
+    bool result = SetMtu(client_id, address, mtu);
+    reply->writeInt32(result);
+
+    return android::NO_ERROR;
+  }
   case START_SCAN_TRANSACTION: {
     int client_id = data.readInt32();
     auto settings = CreateScanSettingsFromParcel(data);
@@ -206,6 +216,18 @@ bool BpBluetoothLowEnergy::Disconnect(int client_id, const char* address) {
   remote()->transact(IBluetoothLowEnergy::DISCONNECT_TRANSACTION,
                      data, &reply);
 
+  return reply.readInt32();
+}
+
+bool BpBluetoothLowEnergy::SetMtu(int client_id, const char* address, int mtu) {
+  Parcel data, reply;
+
+  data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
+  data.writeInt32(client_id);
+  data.writeCString(address);
+  data.writeInt32(mtu);
+
+  remote()->transact(IBluetoothLowEnergy::SET_MTU_TRANSACTION, data, &reply);
   return reply.readInt32();
 }
 
