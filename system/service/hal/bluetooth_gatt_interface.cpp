@@ -137,6 +137,61 @@ void SearchResultCallback(int conn_id, btgatt_srvc_id_t *srvc_id) {
   // do not propagate this event, will do service discovery with new HAL call
 }
 
+void RegisterForNotificationCallback(int conn_id, int registered, int status,
+                                      btgatt_srvc_id_t *srvc_id,
+                                      btgatt_gatt_id_t *char_id) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  LOG(INFO) << __func__ << " - conn_id: " << conn_id
+          << " - status: " << status
+          << " - registered: " << registered
+          << " - srvc_id: " << (srvc_id ? srvc_id->id.inst_id : 0)
+          << " - char_id: " << (char_id ? char_id->inst_id : 0);
+  FOR_EACH_CLIENT_OBSERVER(
+    RegisterForNotificationCallback(g_interface, conn_id, status, registered,
+                                    srvc_id, char_id));
+}
+
+void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " - address: " << BtAddrString(&p_data->bda)
+          << " - srvc_id: " << (p_data ? p_data->srvc_id.id.inst_id : 0)
+          << " - char_id: " << (p_data ? p_data->char_id.inst_id : 0)
+          << " - len: " << p_data->len
+          << " - is_notify: " << p_data->is_notify;
+
+  FOR_EACH_CLIENT_OBSERVER(
+    NotifyCallback(g_interface, conn_id, p_data));
+}
+
+void WriteCharacteristicCallback(int conn_id, int status,
+      btgatt_write_params_t *p_data) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " - status: " << status;
+
+  FOR_EACH_CLIENT_OBSERVER(
+    WriteCharacteristicCallback(g_interface, conn_id, status, p_data));
+}
+
+void WriteDescriptorCallback(int conn_id, int status,
+      btgatt_write_params_t *p_data) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " - status: " << status;
+
+  FOR_EACH_CLIENT_OBSERVER(
+    WriteDescriptorCallback(g_interface, conn_id, status, p_data));
+}
+
 void ListenCallback(int status, int client_if) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " client_if: " << client_if;
@@ -361,12 +416,12 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // get_characteristic_cb
     nullptr,  // get_descriptor_cb
     nullptr,  // get_included_service_cb
-    nullptr,  // register_for_notification_cb
-    nullptr,  // notify_cb
+    RegisterForNotificationCallback,
+    NotifyCallback,
     nullptr,  // read_characteristic_cb
-    nullptr,  // write_characteristic_cb
+    WriteCharacteristicCallback,
     nullptr,  // read_descriptor_cb
-    nullptr,  // write_descriptor_cb
+    WriteDescriptorCallback,
     nullptr,  // execute_write_cb
     nullptr,  // read_remote_rssi_cb
     ListenCallback,
@@ -555,6 +610,39 @@ void BluetoothGattInterface::ClientObserver::SearchCompleteCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* status */) {
+  // Do nothing
+}
+
+void BluetoothGattInterface::ClientObserver::RegisterForNotificationCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */,
+    int /* registered */,
+    btgatt_srvc_id_t* /* srvc_id */,
+    btgatt_gatt_id_t* /* char_id */) {
+  // Do nothing
+}
+
+void BluetoothGattInterface::ClientObserver::NotifyCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    btgatt_notify_params_t* /* p_data */) {
+  // Do nothing
+}
+
+void BluetoothGattInterface::ClientObserver::WriteCharacteristicCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */,
+    btgatt_write_params_t* /* p_data */) {
+  // Do nothing
+}
+
+void BluetoothGattInterface::ClientObserver::WriteDescriptorCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    int /* status */,
+    btgatt_write_params_t* /* p_data */) {
   // Do nothing
 }
 

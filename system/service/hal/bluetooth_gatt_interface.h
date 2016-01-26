@@ -80,6 +80,28 @@ class BluetoothGattInterface {
         int conn_id,
         int status);
 
+    virtual void RegisterForNotificationCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, int status, int registered,
+        btgatt_srvc_id_t* srvc_id,
+        btgatt_gatt_id_t* char_id);
+
+    virtual void NotifyCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id, btgatt_notify_params_t* p_data);
+
+    virtual void WriteCharacteristicCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        int status,
+        btgatt_write_params_t* p_data);
+
+    virtual void WriteDescriptorCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        int status,
+        btgatt_write_params_t* p_data);
+
     virtual void ListenCallback(
         BluetoothGattInterface* gatt_iface,
         int status, int client_if);
