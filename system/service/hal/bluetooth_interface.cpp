@@ -104,6 +104,44 @@ void DiscoveryStateChangedCallback(bt_discovery_state_t state) {
   FOR_EACH_BLUETOOTH_OBSERVER(DiscoveryStateChangedCallback(state));
 }
 
+void PinRequestCallback(bt_bdaddr_t *remote_bd_addr, bt_bdname_t *bd_name,
+    uint32_t cod, bool min_16_digit) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  VLOG(2) << __func__
+          << " - remote_bd_addr: " << remote_bd_addr
+          << " - bd_name: " << bd_name
+          << " - cod: " << cod
+          << " - min_16_digit: " << min_16_digit;
+  FOR_EACH_BLUETOOTH_OBSERVER(PinRequestCallback(remote_bd_addr, bd_name, cod, min_16_digit));
+}
+
+void SSPRequestCallback(bt_bdaddr_t *remote_bd_addr,
+    bt_bdname_t *bd_name, uint32_t cod, bt_ssp_variant_t pairing_variant, uint32_t pass_key) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  VLOG(2) << __func__
+          << " - remote_bd_addr: " << remote_bd_addr
+          << " - bd_name: " << bd_name
+          << " - cod: " << cod
+          << " - pairing_variant: " << pairing_variant;
+  FOR_EACH_BLUETOOTH_OBSERVER(SSPRequestCallback(remote_bd_addr, bd_name, cod,
+      pairing_variant, pass_key));
+}
+
+void BondStateChangedCallback(
+    bt_status_t status,
+    bt_bdaddr_t *remote_bd_addr,
+    bt_bond_state_t state) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VERIFY_INTERFACE_OR_RETURN();
+  VLOG(2) << __func__
+          << " - remote_bd_addr: " << BtAddrString(remote_bd_addr)
+          << " - status: " << status
+          << " - state: " << state;
+  FOR_EACH_BLUETOOTH_OBSERVER(BondStateChangedCallback(status, remote_bd_addr, state));
+}
+
 void AclStateChangedCallback(bt_status_t status,
                              bt_bdaddr_t *remote_bd_addr,
                              bt_acl_state_t state) {
@@ -162,9 +200,9 @@ bt_callbacks_t bt_callbacks = {
   RemoteDevicePropertiesCallback,
   nullptr, /* device_found_cb */
   DiscoveryStateChangedCallback,
-  nullptr, /* pin_request_cb  */
-  nullptr, /* ssp_request_cb  */
-  nullptr, /* bond_state_changed_cb */
+  PinRequestCallback,
+  SSPRequestCallback,
+  BondStateChangedCallback,
   AclStateChangedCallback,
   ThreadEventCallback,
   nullptr, /* dut_mode_recv_cb */
@@ -309,6 +347,30 @@ void BluetoothInterface::Observer::RemoteDevicePropertiesCallback(
 
 void BluetoothInterface::Observer::DiscoveryStateChangedCallback(
     bt_discovery_state_t /* state */) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::PinRequestCallback(
+    bt_bdaddr_t *remote_bd_addr,
+    bt_bdname_t *bd_name,
+    uint32_t cod,
+    bool min_16_digit) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::SSPRequestCallback(
+    bt_bdaddr_t *remote_bd_addr,
+    bt_bdname_t *bd_name,
+    uint32_t cod,
+    bt_ssp_variant_t pairing_variant,
+    uint32_t pass_key) {
+  // Do nothing.
+}
+
+void BluetoothInterface::Observer::BondStateChangedCallback(
+    bt_status_t status,
+    bt_bdaddr_t *remote_bd_addr,
+    bt_bond_state_t state) {
   // Do nothing.
 }
 
