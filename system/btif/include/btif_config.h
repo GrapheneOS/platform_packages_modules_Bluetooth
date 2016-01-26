@@ -46,7 +46,7 @@ const char *btif_config_section_name(const btif_config_section_iter_t *section);
 
 void btif_config_save(void);
 void btif_config_flush(void);
-int btif_config_clear(void);
+bool btif_config_clear(void);
 
 // TODO(zachoverflow): Eww...we need to move these out. These are peer specific, not config general.
 bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type);
