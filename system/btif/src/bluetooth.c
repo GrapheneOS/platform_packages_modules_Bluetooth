@@ -419,7 +419,7 @@ static int set_os_callouts(bt_os_callouts_t *callouts) {
 
 static int config_clear(void) {
     LOG_INFO("%s", __func__);
-    return btif_config_clear();
+    return btif_config_clear() ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
 static const bt_interface_t bluetoothInterface = {
