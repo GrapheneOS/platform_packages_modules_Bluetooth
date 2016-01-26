@@ -36,8 +36,6 @@ LOCAL_C_INCLUDES += \
     $(bdroid_C_INCLUDES)
 
 LOCAL_MODULE := libbt-hci
-LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -63,8 +61,7 @@ LOCAL_SRC_FILES := \
     ./test/hci_hal_mct_test.cpp \
     ./test/hci_layer_test.cpp \
     ./test/low_power_manager_test.cpp \
-    ./test/packet_fragmenter_test.cpp \
-    $(bdroid_C_INCLUDES)
+    ./test/packet_fragmenter_test.cpp
 
 
 LOCAL_CFLAGS := -Wall -Werror $(bdroid_CFLAGS)

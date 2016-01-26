@@ -2,7 +2,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_C_INCLUDES:= . \
+LOCAL_C_INCLUDES:= \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
                    $(LOCAL_PATH)/btm \
@@ -128,11 +128,8 @@ LOCAL_SRC_FILES:= \
     ./sdp/sdp_discovery.c \
     ./pan/pan_main.c \
     ./srvc/srvc_battery.c \
-    ./srvc/srvc_battery_int.h \
     ./srvc/srvc_dis.c \
-    ./srvc/srvc_dis_int.h \
     ./srvc/srvc_eng.c \
-    ./srvc/srvc_eng_int.h \
     ./pan/pan_api.c \
     ./pan/pan_utils.c \
     ./btu/btu_hcif.c \
@@ -153,10 +150,8 @@ LOCAL_SRC_FILES:= \
     ./gap/gap_utils.c
 
 LOCAL_MODULE := libbt-brcm_stack
-LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_STATIC_LIBRARIES := libbt-hci
-LOCAL_SHARED_LIBRARIES := libcutils libc
+LOCAL_SHARED_LIBRARIES := libcutils
 # gnu-variable-sized-type-not-at-end is needed for a variable-size header in
 # a struct.
 # const-logical-operand is needed for code in l2c_utils.c that looks intentional.
