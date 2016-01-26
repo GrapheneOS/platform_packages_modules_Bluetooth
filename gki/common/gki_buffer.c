@@ -243,7 +243,8 @@ void *GKI_getpoolbuf (UINT8 pool_id)
 *******************************************************************************/
 void GKI_freebuf (void *p_buf)
 {
-  osi_free((BUFFER_HDR_T *)p_buf - 1);
+  if (p_buf)
+    osi_free((BUFFER_HDR_T *)p_buf - 1);
 }
 
 
