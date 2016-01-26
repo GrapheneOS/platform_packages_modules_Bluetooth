@@ -177,6 +177,11 @@ class BluetoothGattInterface {
         int conn_id, int trans_id,
         const bt_bdaddr_t& bda, int exec_write);
 
+    virtual void ResponseConfirmationCallback(
+        BluetoothGattInterface* gatt_iface,
+        int status,
+        int handle);
+
     virtual void IndicationSentCallback(
         BluetoothGattInterface* gatt_iface, int conn_id, int status);
 

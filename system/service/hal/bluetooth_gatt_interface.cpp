@@ -331,6 +331,15 @@ void RequestExecWriteCallback(int conn_id, int trans_id,
       g_interface, conn_id, trans_id, *bda, exec_write));
 }
 
+void ResponseConfirmationCallback(int status, int handle) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - status: " << status << " handle: " << handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_SERVER_OBSERVER(ResponseConfirmationCallback(
+      g_interface, status, handle));
+}
+
 void IndicationSentCallback(int conn_id, int status) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " status: " << status;
@@ -391,7 +400,7 @@ const btgatt_server_callbacks_t gatt_server_callbacks = {
     RequestReadCallback,
     RequestWriteCallback,
     RequestExecWriteCallback,
-    nullptr,  // response_confirmation_cb
+    ResponseConfirmationCallback,
     IndicationSentCallback,
     nullptr,  // congestion_cb
     nullptr,  // mtu_changed_cb
@@ -691,6 +700,13 @@ void BluetoothGattInterface::ServerObserver::RequestExecWriteCallback(
     const bt_bdaddr_t& /* bda */,
     int /* exec_write */) {
   // Do nothing.
+}
+
+void BluetoothGattInterface::ServerObserver::ResponseConfirmationCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* status */,
+    int /* handle */) {
+  // Do nothing
 }
 
 void BluetoothGattInterface::ServerObserver::IndicationSentCallback(
