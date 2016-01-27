@@ -618,6 +618,38 @@ void HandleDisconnect(IBluetooth* bt_iface, const vector<string>& args) {
   PrintCommandStatus(status);
 }
 
+void HandleSetMtu(IBluetooth* bt_iface, const vector<string>& args) {
+  string address;
+  int mtu;
+
+  if (args.size() != 2) {
+    PrintError("Usage: set-mtu [address] [mtu]");
+    return;
+  }
+
+  address = args[0];
+  mtu = std::stoi(args[1]);
+
+  if (mtu < 23) {
+    PrintError("MTU must be 23 or larger");
+    return;
+  }
+
+  if (!ble_client_id.load()) {
+    PrintError("BLE not registered");
+    return;
+  }
+
+  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  if (!ble_iface.get()) {
+    PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
+    return;
+  }
+
+  bool status = ble_iface->SetMtu(ble_client_id.load(), address.c_str(), mtu);
+  PrintCommandStatus(status);
+}
+
 void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
   if (!ble_client_id.load()) {
     PrintError("BLE not registered");
@@ -703,6 +735,7 @@ struct {
   { "connect-le", HandleConnect, "\t\tConnect to LE device (-h for options)"},
   { "disconnect-le", HandleDisconnect,
     "\t\tDisconnect LE device (-h for options)"},
+  { "set-mtu", HandleSetMtu, "\t\tSet MTU (-h for options)"},
   { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
   { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
   { "start-le-scan", HandleStartLeScan,
