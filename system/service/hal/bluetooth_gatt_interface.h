@@ -207,7 +207,8 @@ class BluetoothGattInterface {
     virtual void IndicationSentCallback(
         BluetoothGattInterface* gatt_iface, int conn_id, int status);
 
-    // TODO(armansito): Complete the list of callbacks.
+    virtual void MtuChangedCallback(
+        BluetoothGattInterface* gatt_iface, int conn_id, int mtu);
   };
 
   // Initialize and clean up the BluetoothInterface singleton. Returns false if
