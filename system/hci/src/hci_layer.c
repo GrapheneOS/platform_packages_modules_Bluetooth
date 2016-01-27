@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <cutils/properties.h>
+#include <hardware_legacy/power.h>
 #include <string.h>
 #include <signal.h>
 #include <string.h>
@@ -139,6 +140,9 @@ static packet_receive_data_t incoming_packets[INBOUND_PACKET_TYPE_COUNT];
 // The hand-off point for data going to a higher layer, set by the higher layer
 static fixed_queue_t *upwards_data_queue;
 
+// Wake lock to prevent sleep mode during bt adapter initialization.
+static const char *WAKE_LOCK_ID = "bt_adapter_init_wakelock";
+
 static future_t *shut_down();
 
 static void event_finish_startup(void *context);
@@ -188,6 +192,12 @@ static future_t *start_up(void) {
     goto error;
   }
 
+  // Prevent system from entering suspend mode during bt adapter initialization.
+  int status = acquire_wake_lock(PARTIAL_WAKE_LOCK, WAKE_LOCK_ID);
+  if (status != (int) strlen(WAKE_LOCK_ID)) {
+    LOG_ERROR("%s unable to acquire wake lock: %d", __func__, status);
+    goto error;
+  }
   // Make sure we run in a bounded amount of time
   non_repeating_timer_restart(startup_timer);
 
@@ -273,6 +283,8 @@ error:;
 
 static future_t *shut_down() {
   LOG_INFO("%s", __func__);
+
+  release_wake_lock(WAKE_LOCK_ID);
 
   hci_inject->close();
 
@@ -407,12 +419,17 @@ static void firmware_config_callback(UNUSED_ATTR bool success) {
   firmware_is_configured = true;
   non_repeating_timer_cancel(startup_timer);
 
+  release_wake_lock(WAKE_LOCK_ID);
+
   future_ready(startup_future, FUTURE_SUCCESS);
   startup_future = NULL;
 }
 
 static void startup_timer_expired(UNUSED_ATTR void *context) {
   LOG_ERROR("%s", __func__);
+
+  release_wake_lock(WAKE_LOCK_ID);
+
   future_ready(startup_future, FUTURE_FAIL);
   startup_future = NULL;
 }
