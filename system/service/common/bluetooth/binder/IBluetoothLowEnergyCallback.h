@@ -44,6 +44,7 @@ namespace binder {
   enum {
     ON_CLIENT_REGISTERED_TRANSACTION = android::IBinder::FIRST_CALL_TRANSACTION,
     ON_CONNECTION_STATE_TRANSACTION,
+    ON_MTU_CHANGED_TRANSACTION,
     ON_SCAN_RESULT_TRANSACTION,
     ON_BATCH_SCAN_RESULTS_TRANSACTION,
     ON_READ_REMOTE_RSSI_TRANSACTION,
@@ -57,6 +58,7 @@ namespace binder {
   virtual void OnClientRegistered(int status, int client_if) = 0;
   virtual void OnConnectionState(int status, int client_id, const char* address,
                                  bool connected) = 0;
+  virtual void OnMtuChanged(int status, const char* address, int mtu) = 0;
   virtual void OnScanResult(const bluetooth::ScanResult& scan_result) = 0;
   virtual void OnMultiAdvertiseCallback(
       int status, bool is_start,
@@ -97,6 +99,7 @@ class BpBluetoothLowEnergyCallback
   void OnClientRegistered(int status, int client_if) override;
   void OnConnectionState(int status, int client_id, const char* address,
                          bool connected) override;
+  void OnMtuChanged(int status, const char* address, int mtu) override;
   void OnScanResult(const bluetooth::ScanResult& scan_result) override;
   void OnMultiAdvertiseCallback(
       int status, bool is_start,

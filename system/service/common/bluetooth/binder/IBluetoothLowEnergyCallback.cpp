@@ -64,6 +64,14 @@ status_t BnBluetoothLowEnergyCallback::onTransact(
     OnConnectionState(status, client_id, address, connected);
     return android::NO_ERROR;
   }
+  case ON_MTU_CHANGED_TRANSACTION: {
+    int status = data.readInt32();
+    const char *address = data.readCString();
+    int mtu = data.readInt32();
+
+    OnMtuChanged(status, address, mtu);
+    return android::NO_ERROR;
+  }
   case ON_SCAN_RESULT_TRANSACTION: {
     auto scan_result = CreateScanResultFromParcel(data);
     CHECK(scan_result.get());
@@ -120,6 +128,22 @@ void BpBluetoothLowEnergyCallback::OnConnectionState(
 
   remote()->transact(
       IBluetoothLowEnergyCallback::ON_CONNECTION_STATE_TRANSACTION,
+      data, NULL,
+      IBinder::FLAG_ONEWAY);
+}
+
+void BpBluetoothLowEnergyCallback::OnMtuChanged(
+    int status, const char* address, int mtu) {
+  Parcel data;
+
+  data.writeInterfaceToken(
+      IBluetoothLowEnergyCallback::getInterfaceDescriptor());
+  data.writeInt32(status);
+  data.writeCString(address);
+  data.writeInt32(mtu);
+
+  remote()->transact(
+      IBluetoothLowEnergyCallback::ON_MTU_CHANGED_TRANSACTION,
       data, NULL,
       IBinder::FLAG_ONEWAY);
 }

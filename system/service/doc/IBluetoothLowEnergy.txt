@@ -45,9 +45,16 @@ interface IBluetoothLowEnergy {
                   in boolean is_direct);
 
   /* Disconnect from previously connected BLE device with address |address|.
-   * Return true on success, false otherwise.
+   * Returns true on success, false otherwise.
    */
   boolean Disconnect(in int client_id, in const char* address);
+
+  /**
+   * Sends request to set MTU to |mtu| for the device with address |address|.
+   * OnMtuChanged callback will be triggered as a result of this call. Returns
+   * true when the command was sent, false otherwise.
+   */
+   boolean setMtu(in int client_id, in char* address, int mtu);
 
   /**
    * Initiates a BLE device scan for the scan client with ID |client_id|, using
