@@ -1070,13 +1070,13 @@ typedef void (tBTA_DM_EXEC_CBACK) (void * p_param);
 /* Encryption callback*/
 typedef void (tBTA_DM_ENCRYPT_CBACK) (BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_STATUS result);
 
-#if BLE_INCLUDED == TRUE
 #define BTA_DM_BLE_SEC_NONE         BTM_BLE_SEC_NONE
 #define BTA_DM_BLE_SEC_ENCRYPT      BTM_BLE_SEC_ENCRYPT
 #define BTA_DM_BLE_SEC_NO_MITM      BTM_BLE_SEC_ENCRYPT_NO_MITM
 #define BTA_DM_BLE_SEC_MITM         BTM_BLE_SEC_ENCRYPT_MITM
 typedef tBTM_BLE_SEC_ACT            tBTA_DM_BLE_SEC_ACT;
 
+#if BLE_INCLUDED == TRUE
 typedef tBTM_BLE_TX_TIME_MS         tBTA_DM_BLE_TX_TIME_MS;
 typedef tBTM_BLE_RX_TIME_MS         tBTA_DM_BLE_RX_TIME_MS;
 typedef tBTM_BLE_IDLE_TIME_MS       tBTA_DM_BLE_IDLE_TIME_MS;

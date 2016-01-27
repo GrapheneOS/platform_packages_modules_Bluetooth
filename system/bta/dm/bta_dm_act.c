@@ -4383,7 +4383,7 @@ void bta_dm_set_encryption (tBTA_DM_MSG *p_data)
         }
 
         if (BTM_SetEncryption(p_data->set_encryption.bd_addr, p_data->set_encryption.transport,
-                                           bta_dm_encrypt_cback, &p_data->set_encryption.sec_act)
+                              bta_dm_encrypt_cback, NULL, p_data->set_encryption.sec_act)
                               == BTM_CMD_STARTED)
         {
             bta_dm_cb.device_list.peer_device[i].p_encrypt_cback = p_data->set_encryption.p_callback;

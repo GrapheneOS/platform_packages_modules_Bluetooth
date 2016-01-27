@@ -105,7 +105,8 @@ static BOOLEAN btm_sec_is_serv_level0 (UINT16 psm);
 static UINT16  btm_sec_set_serv_level4_flags (UINT16 cur_security, BOOLEAN is_originator);
 
 static BOOLEAN btm_sec_queue_encrypt_request  (BD_ADDR bd_addr, tBT_TRANSPORT transport,
-                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data);
+                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data,
+                                         tBTM_BLE_SEC_ACT sec_act);
 static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRANSPORT transport,
                                             UINT8 encr_enable);
 
@@ -1351,15 +1352,15 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr)
 **                  bring up unencrypted links, then later encrypt them.
 **
 ** Parameters:      bd_addr       - Address of the peer device
+**                  transport     - Link transport
 **                  p_callback    - Pointer to callback function called if
 **                                  this function returns PENDING after required
 **                                  procedures are completed.  Can be set to NULL
 **                                  if status is not desired.
 **                  p_ref_data    - pointer to any data the caller wishes to receive
 **                                  in the callback function upon completion.
-*                                   can be set to NULL if not used.
-**                  transport  -    TRUE to encryption the link over LE transport
-**                                  or FALSE for BR/EDR transport
+**                                  can be set to NULL if not used.
+**                  sec_act       - LE security action, unused for BR/EDR
 **
 ** Returns          BTM_SUCCESS   - already encrypted
 **                  BTM_PENDING   - command will be returned in the callback
@@ -1369,7 +1370,7 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType (BD_ADDR bd_addr)
 **
 *******************************************************************************/
 tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SEC_CBACK *p_callback,
-                               void *p_ref_data)
+                               void *p_ref_data, tBTM_BLE_SEC_ACT sec_act)
 {
     tBTM_STATUS rc = 0;
 
@@ -1411,7 +1412,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
     {
         BTM_TRACE_WARNING ("Security Manager: BTM_SetEncryption busy, enqueue request");
 
-        if (btm_sec_queue_encrypt_request(bd_addr, transport, p_callback, p_ref_data))
+        if (btm_sec_queue_encrypt_request(bd_addr, transport, p_callback, p_ref_data, sec_act))
         {
             return BTM_CMD_STARTED;
         }
@@ -1438,7 +1439,7 @@ tBTM_STATUS BTM_SetEncryption (BD_ADDR bd_addr, tBT_TRANSPORT transport, tBTM_SE
         tACL_CONN *p = btm_bda_to_acl(bd_addr, transport);
         if (p)
         {
-           rc = btm_ble_set_encryption(bd_addr, p_ref_data, p->link_role);
+           rc = btm_ble_set_encryption(bd_addr, sec_act, p->link_role);
         }
         else
         {
@@ -2909,7 +2910,7 @@ void btm_sec_check_pending_reqs (void)
                 else
                 {
                     BTM_SetEncryption(p_e->bd_addr, p_e->transport, p_e->p_callback,
-                                      p_e->p_ref_data);
+                                      p_e->p_ref_data, p_e->sec_act);
                 }
             }
 
@@ -4131,7 +4132,7 @@ void btm_sec_auth_complete (UINT16 handle, UINT8 status)
                 {
                     // Encryption is required to start SM over BR/EDR
                     // indicate that this is encryption after authentication
-                    BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL);
+                    BTM_SetEncryption(p_dev_rec->bd_addr, BT_TRANSPORT_BR_EDR, NULL, NULL, 0);
                 }
             }
             l2cu_start_post_bond_timer (p_dev_rec->hci_handle);
@@ -6031,6 +6032,7 @@ static BOOLEAN btm_sec_queue_mx_request (BD_ADDR bd_addr,  UINT16 psm,  BOOLEAN 
         p_e->mx_proto_id    = mx_proto_id;
         p_e->mx_chan_id     = mx_chan_id;
         p_e->transport      = BT_TRANSPORT_BR_EDR;
+        p_e->sec_act        = 0;
 
         memcpy (p_e->bd_addr, bd_addr, BD_ADDR_LEN);
 
@@ -6127,17 +6129,19 @@ void btm_sec_auth_payload_tout (UINT8 *p, UINT16 hci_evt_len)
 **
 *******************************************************************************/
 static BOOLEAN btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT transport,
-                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data)
+                                         tBTM_SEC_CALLBACK *p_callback, void *p_ref_data,
+                                         tBTM_BLE_SEC_ACT sec_act)
 {
     tBTM_SEC_QUEUE_ENTRY  *p_e;
     p_e = (tBTM_SEC_QUEUE_ENTRY *)osi_getbuf(sizeof(tBTM_SEC_QUEUE_ENTRY) + 1);
 
     if (p_e)
     {
-        p_e->psm  = 0;  /* if PSM 0, encryption request */
-        p_e->p_callback  = p_callback;
+        p_e->psm        = 0;  /* if PSM 0, encryption request */
+        p_e->p_callback = p_callback;
         p_e->p_ref_data = p_ref_data;
         p_e->transport  = transport;
+        p_e->sec_act    = sec_act;
         memcpy(p_e->bd_addr, bd_addr, BD_ADDR_LEN);
         fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
         return TRUE;
@@ -6239,21 +6243,18 @@ static void btm_sec_check_pending_enc_req (tBTM_SEC_DEV_REC  *p_dev_rec, tBT_TRA
 #endif
             )
         {
-#if BLE_INCLUDED == TRUE
-            UINT8 sec_act = *(UINT8 *)(p_e->p_ref_data);
-#endif
-
             if (encr_enable == 0 || transport == BT_TRANSPORT_BR_EDR
 #if BLE_INCLUDED == TRUE
-                || (sec_act == BTM_BLE_SEC_ENCRYPT || sec_act == BTM_BLE_SEC_ENCRYPT_NO_MITM)
-                || (sec_act == BTM_BLE_SEC_ENCRYPT_MITM && p_dev_rec->sec_flags
+                || p_e->sec_act == BTM_BLE_SEC_ENCRYPT
+                || p_e->sec_act == BTM_BLE_SEC_ENCRYPT_NO_MITM
+                || (p_e->sec_act == BTM_BLE_SEC_ENCRYPT_MITM && p_dev_rec->sec_flags
                     & BTM_SEC_LE_AUTHENTICATED)
 #endif
                )
             {
-                (*p_e->p_callback) (p_dev_rec->bd_addr, transport, p_e->p_ref_data, res);
-                fixed_queue_try_remove_from_queue(btm_cb.sec_pending_q,
-                                                  (void *)p_e);
+                if (p_e->p_callback)
+                    (*p_e->p_callback) (p_dev_rec->bd_addr, transport, p_e->p_ref_data, res);
+                fixed_queue_try_remove_from_queue(btm_cb.sec_pending_q, (void *)p_e);
             }
         }
     }

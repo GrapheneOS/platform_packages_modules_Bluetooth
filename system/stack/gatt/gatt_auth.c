@@ -506,7 +506,8 @@ BOOLEAN gatt_security_check_start(tGATT_CLCB *p_clcb)
             {
                 GATT_TRACE_DEBUG("gatt_security_check_start: Encrypt now or key upgreade first");
                 gatt_convert_sec_action(gatt_sec_act, &btm_ble_sec_act);
-                btm_status = BTM_SetEncryption(p_tcb->peer_bda, p_tcb->transport , gatt_enc_cmpl_cback, &btm_ble_sec_act);
+                btm_status = BTM_SetEncryption(p_tcb->peer_bda, p_tcb->transport,
+                                               gatt_enc_cmpl_cback, NULL, btm_ble_sec_act);
                 if ( (btm_status != BTM_SUCCESS) && (btm_status != BTM_CMD_STARTED))
                 {
                     GATT_TRACE_ERROR("gatt_security_check_start BTM_SetEncryption failed btm_status=%d", btm_status);
