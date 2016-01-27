@@ -16,12 +16,16 @@
  *  limitations under the License.
  *
  ******************************************************************************/
+
+#define LOG_TAG "bt_hf_client"
+
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
+#include "osi/include/log.h"
 #include "port_api.h"
 
 /* Uncomment to enable AT traffic dumping */
@@ -145,9 +149,13 @@ static void bta_hf_client_at_resp_timer_cback (TIMER_LIST_ENT *p_tle)
     {
         bta_hf_client_cb.scb.at_cb.resp_timer_on = FALSE;
 
-        APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
-
-        bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
+        if (bta_hf_client_cb.scb.at_cb.current_cmd == BTA_HF_CLIENT_AT_CNUM) {
+          LOG_INFO("%s timed out waiting for AT+CNUM response; spoofing OK.", __func__);
+          bta_hf_client_handle_ok();
+        } else {
+          APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
+          bta_hf_client_sm_execute(BTA_HF_CLIENT_API_CLOSE_EVT, NULL);
+        }
     }
 }
 
