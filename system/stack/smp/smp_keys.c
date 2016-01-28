@@ -105,13 +105,13 @@ void smp_debug_print_nbyte_big_endian (UINT8 *p, const UINT8 *key_name, UINT8 le
 
     SMP_TRACE_WARNING("%s(MSB ~ LSB):", key_name);
     memset(p_buf, 0, sizeof(p_buf));
-    nrows = len % ncols ? len / ncols + 1: len / ncols;
 
     int ind = 0;
     int  ncols = 32; /* num entries in one line */
     int  nrows;      /* num lines */
     int  x;
 
+    nrows = len % ncols ? len / ncols + 1: len / ncols;
     for (int row = 0; row <  nrows; row++)
     {
         for (int col = 0, x = 0; (ind < len) && (col < ncols); col++, ind++)
