@@ -440,17 +440,15 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
 
- if (p_clcb->p_q_cmd == NULL)
- {
-     p_clcb->p_q_cmd = p_data;
- }
- else
- {
-     APPL_TRACE_ERROR("already has a pending command!!");
-     /* skip the callback now. ----- need to send callback ? */
- }
- return (p_clcb->p_q_cmd != NULL) ? TRUE : FALSE;
+    if (p_clcb->p_q_cmd == NULL)
+    {
+        p_clcb->p_q_cmd = p_data;
+        return TRUE;
+    }
 
+    APPL_TRACE_ERROR ("%s: already has a pending command!!", __func__);
+    /* skip the callback now. ----- need to send callback ? */
+    return FALSE;
 }
 
 /*******************************************************************************
