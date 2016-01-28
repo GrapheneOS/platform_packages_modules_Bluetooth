@@ -58,6 +58,8 @@
 #include "stack_manager.h"
 #include "btif_config.h"
 #include "btif/include/btif_debug_btsnoop.h"
+#include "btif/include/btif_debug_conn.h"
+#include "btif/include/btif_media.h"
 
 /************************************************************************************
 **  Constants & Macros
