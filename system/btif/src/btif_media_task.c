@@ -41,8 +41,6 @@
 
 #include <hardware/bluetooth.h>
 
-#define LOG_TAG "BTIF-MEDIA"
-
 #include "a2d_api.h"
 #include "a2d_int.h"
 #include "a2d_sbc.h"
@@ -135,7 +133,7 @@ enum {
 
 #define BTIF_MEDIA_TIME_TICK                     (20 * BTIF_MEDIA_NUM_TICK)
 #define A2DP_DATA_READ_POLL_MS    (BTIF_MEDIA_TIME_TICK / 2)
-#define BTIF_SINK_MEDIA_TIME_TICK                (20 * BTIF_MEDIA_NUM_TICK)
+#define BTIF_SINK_MEDIA_TIME_TICK_MS             (20 * BTIF_MEDIA_NUM_TICK)
 
 
 /* buffer pool */
@@ -196,6 +194,61 @@ enum {
 #define PACKET_PLAYED_PER_TICK_32 5
 #define PACKET_PLAYED_PER_TICK_16 3
 
+typedef struct {
+    // Counter for total updates
+    size_t total_updates;
+
+    // Last update timestamp (in us)
+    uint64_t last_update_us;
+
+    // Counter for overdue scheduling
+    size_t overdue_scheduling_count;
+
+    // Accumulated overdue scheduling deviations (in us)
+    uint64_t total_overdue_scheduling_delta_us;
+
+    // Max. overdue scheduling delta time (in us)
+    uint64_t max_overdue_scheduling_delta_us;
+
+    // Counter for premature scheduling
+    size_t premature_scheduling_count;
+
+    // Accumulated premature scheduling deviations (in us)
+    uint64_t total_premature_scheduling_delta_us;
+
+    // Max. premature scheduling delta time (in us)
+    uint64_t max_premature_scheduling_delta_us;
+} scheduling_stats_t;
+
+typedef struct {
+    scheduling_stats_t tx_queue_enqueue_stats;
+    scheduling_stats_t tx_queue_dequeue_stats;
+
+    size_t tx_queue_total_frames;
+    size_t tx_queue_max_frames;
+
+    uint64_t tx_queue_total_queueing_time_us;
+    uint64_t tx_queue_max_queueing_time_us;
+
+    size_t tx_queue_total_readbuf_calls;
+    uint64_t tx_queue_last_readbuf_us;
+
+    size_t tx_queue_total_flushed_messages;
+    uint64_t tx_queue_last_flushed_us;
+
+    size_t tx_queue_total_dropped_messages;
+    size_t tx_queue_dropouts;
+    uint64_t tx_queue_last_dropouts_us;
+
+    size_t media_read_total_underflow_bytes;
+    size_t media_read_total_underflow_count;
+    uint64_t media_read_last_underflow_us;
+
+    size_t media_read_total_underrun_bytes;
+    size_t media_read_total_underrun_count;
+    uint64_t media_read_last_underrun_us;
+} btif_media_stats_t;
+
 typedef struct
 {
     UINT16 num_frames_to_be_processed;
@@ -247,6 +300,8 @@ typedef struct
 #endif
     alarm_t *media_alarm;
     alarm_t *decode_alarm;
+
+    btif_media_stats_t stats;
 #endif
 
 } tBTIF_MEDIA_CB;
@@ -292,7 +347,7 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg);
 #endif
 
 #if (BTA_AV_INCLUDED == TRUE)
-static void btif_media_send_aa_frame(void);
+static void btif_media_send_aa_frame(uint64_t timestamp_us);
 static void btif_media_task_feeding_state_reset(void);
 static void btif_media_task_aa_start_tx(void);
 static void btif_media_task_aa_stop_tx(void);
@@ -300,7 +355,7 @@ static void btif_media_task_enc_init(BT_HDR *p_msg);
 static void btif_media_task_enc_update(BT_HDR *p_msg);
 static void btif_media_task_audio_feeding_init(BT_HDR *p_msg);
 static void btif_media_task_aa_tx_flush(BT_HDR *p_msg);
-static void btif_media_aa_prep_2_send(UINT8 nb_frame);
+static void btif_media_aa_prep_2_send(UINT8 nb_frame, uint64_t timestamp_us);
 #if (BTA_AV_SINK_INCLUDED == TRUE)
 static void btif_media_task_aa_handle_decoder_reset(BT_HDR *p_msg);
 static void btif_media_task_aa_handle_clear_track(void);
@@ -323,6 +378,41 @@ static thread_t *worker_thread;
  **  Misc helper functions
  *****************************************************************************/
 
+static void update_scheduling_stats(scheduling_stats_t *stats,
+                                    uint64_t now_us, uint64_t expected_delta)
+{
+    uint64_t last_us = stats->last_update_us;
+
+    stats->total_updates++;
+    stats->last_update_us = now_us;
+
+    if (last_us == 0)
+      return;           // First update: expected delta doesn't apply
+
+    uint64_t deadline_us = last_us + expected_delta;
+    if (deadline_us < now_us) {
+        // Overdue scheduling
+        uint64_t delta_us = now_us - deadline_us;
+        // Ignore extreme outliers
+        if (delta_us < 10 * expected_delta) {
+            if (stats->max_overdue_scheduling_delta_us < delta_us)
+                stats->max_overdue_scheduling_delta_us = delta_us;
+            stats->total_overdue_scheduling_delta_us += delta_us;
+            stats->overdue_scheduling_count++;
+        }
+    } else if (deadline_us > now_us) {
+        // Premature scheduling
+        uint64_t delta_us = deadline_us - now_us;
+        // Ignore extreme outliers
+        if (delta_us < 10 * expected_delta) {
+            if (stats->max_premature_scheduling_delta_us < delta_us)
+                stats->max_premature_scheduling_delta_us = delta_us;
+            stats->total_premature_scheduling_delta_us += delta_us;
+            stats->premature_scheduling_count++;
+        }
+    }
+}
+
 static UINT64 time_now_us()
 {
     struct timespec ts_now;
@@ -330,10 +420,10 @@ static UINT64 time_now_us()
     return ((UINT64)ts_now.tv_sec * USEC_PER_SEC) + ((UINT64)ts_now.tv_nsec / 1000);
 }
 
-static void log_tstamps_us(char *comment)
+static void log_tstamps_us(char *comment, uint64_t timestamp_us)
 {
     static UINT64 prev_us = 0;
-    const UINT64 now_us = time_now_us();
+    const UINT64 now_us = timestamp_us;
     APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, now_us, now_us - prev_us,
                 fixed_queue_length(btif_media_cb.TxAaQ));
     prev_us = now_us;
@@ -1242,12 +1332,13 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context) {}
 
 static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
 {
-    log_tstamps_us("media task tx timer");
+    uint64_t timestamp_us = time_now_us();
+    log_tstamps_us("media task tx timer", timestamp_us);
 
 #if (BTA_AV_INCLUDED == TRUE)
     if (alarm_is_scheduled(btif_media_cb.media_alarm))
     {
-        btif_media_send_aa_frame();
+        btif_media_send_aa_frame(timestamp_us);
     }
     else
     {
@@ -1260,10 +1351,10 @@ static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
 static void btif_media_task_aa_handle_uipc_rx_rdy(void)
 {
     /* process all the UIPC data */
-    btif_media_aa_prep_2_send(0xFF);
+    btif_media_aa_prep_2_send(0xFF, time_now_us());
 
     /* send it */
-    LOG_VERBOSE(LOG_TAG, "btif_media_task_aa_handle_uipc_rx_rdy calls bta_av_ci_src_data_ready");
+    LOG_VERBOSE(LOG_TAG, "%s calls bta_av_ci_src_data_ready", __func__);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 #endif
@@ -1688,6 +1779,9 @@ static void btif_media_task_aa_tx_flush(BT_HDR *p_msg)
     btif_media_cb.media_feeding_state.pcm.counter = 0;
     btif_media_cb.media_feeding_state.pcm.aa_feed_residue = 0;
 
+    btif_media_cb.stats.tx_queue_total_flushed_messages +=
+        fixed_queue_length(btif_media_cb.TxAaQ);
+    btif_media_cb.stats.tx_queue_last_flushed_us = time_now_us();
     btif_media_flush_q(btif_media_cb.TxAaQ);
 
     UIPC_Ioctl(UIPC_CH_ID_AV_AUDIO, UIPC_REQ_RX_FLUSH, NULL);
@@ -2071,7 +2165,7 @@ static void btif_media_task_aa_handle_start_decoding(void) {
     return;
   }
 
-  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK,
+  alarm_set(btif_media_cb.decode_alarm, BTIF_SINK_MEDIA_TIME_TICK_MS,
             btif_decode_alarm_cb, NULL);
 }
 
@@ -2463,7 +2557,18 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
  *******************************************************************************/
 BT_HDR *btif_media_aa_readbuf(void)
 {
-    return fixed_queue_try_dequeue(btif_media_cb.TxAaQ);
+    uint64_t now_us = time_now_us();
+    BT_HDR *p_buf = fixed_queue_try_dequeue(btif_media_cb.TxAaQ);
+
+    btif_media_cb.stats.tx_queue_total_readbuf_calls++;
+    btif_media_cb.stats.tx_queue_last_readbuf_us = now_us;
+    if (p_buf != NULL) {
+        // Update the statistics
+        update_scheduling_stats(&btif_media_cb.stats.tx_queue_dequeue_stats,
+                                now_us, BTIF_SINK_MEDIA_TIME_TICK_MS * 1000);
+    }
+
+    return p_buf;
 }
 
 /*******************************************************************************
@@ -2527,6 +2632,9 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
             APPL_TRACE_WARNING("### UNDERFLOW :: ONLY READ %d BYTES OUT OF %d ###",
                 nb_byte_read, read_size);
             btif_media_cb.media_feeding_state.pcm.aa_feed_residue += nb_byte_read;
+            btif_media_cb.stats.media_read_total_underflow_bytes += (read_size - nb_byte_read);
+            btif_media_cb.stats.media_read_total_underflow_count++;
+            btif_media_cb.stats.media_read_last_underflow_us = time_now_us();
             return FALSE;
         }
     }
@@ -2585,6 +2693,9 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
     {
         APPL_TRACE_WARNING("### UNDERRUN :: ONLY READ %d BYTES OUT OF %d ###",
                 nb_byte_read, read_size);
+        btif_media_cb.stats.media_read_total_underrun_bytes += (read_size - nb_byte_read);
+        btif_media_cb.stats.media_read_total_underrun_count++;
+        btif_media_cb.stats.media_read_last_underrun_us = time_now_us();
 
         if (nb_byte_read == 0)
             return FALSE;
@@ -2644,9 +2755,11 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
  ** Returns          void
  **
  *******************************************************************************/
-static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
+static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
+                                          uint64_t timestamp_us)
 {
     BT_HDR * p_buf;
+    const uint8_t orig_nb_frame = nb_frame;
     UINT16 blocm_x_subband = btif_media_cb.encoder.s16NumOfSubBands *
                              btif_media_cb.encoder.s16NumOfBlocks;
 
@@ -2720,14 +2833,23 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
             {
                 APPL_TRACE_DEBUG("### tx suspended, discarded frame ###");
 
-                if (! fixed_queue_is_empty(btif_media_cb.TxAaQ))
-                    btif_media_flush_q(btif_media_cb.TxAaQ);
+                btif_media_cb.stats.tx_queue_total_flushed_messages +=
+                    fixed_queue_length(btif_media_cb.TxAaQ);
+                btif_media_cb.stats.tx_queue_last_flushed_us =
+                    timestamp_us;
+                btif_media_flush_q(btif_media_cb.TxAaQ);
 
                 osi_freebuf(p_buf);
                 return;
             }
 
             /* Enqueue the encoded SBC frame in AA Tx Queue */
+            update_scheduling_stats(&btif_media_cb.stats.tx_queue_enqueue_stats,
+                                    timestamp_us,
+                                    BTIF_SINK_MEDIA_TIME_TICK_MS * 1000);
+            btif_media_cb.stats.tx_queue_total_frames += orig_nb_frame;
+            if (orig_nb_frame > btif_media_cb.stats.tx_queue_max_frames)
+                btif_media_cb.stats.tx_queue_max_frames = orig_nb_frame;
             fixed_queue_enqueue(btif_media_cb.TxAaQ, p_buf);
         }
         else
@@ -2748,7 +2870,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame)
  **
  *******************************************************************************/
 
-static void btif_media_aa_prep_2_send(UINT8 nb_frame)
+static void btif_media_aa_prep_2_send(UINT8 nb_frame, uint64_t timestamp_us)
 {
     // Check for TX queue overflow
 
@@ -2760,17 +2882,21 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
         APPL_TRACE_WARNING("%s() - TX queue buffer count %d/%d", __func__,
                            fixed_queue_length(btif_media_cb.TxAaQ),
                            MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame);
+        btif_media_cb.stats.tx_queue_dropouts++;
+        btif_media_cb.stats.tx_queue_last_dropouts_us = timestamp_us;
     }
 
-    while (fixed_queue_length(btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame))
+    while (fixed_queue_length(btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame)) {
+        btif_media_cb.stats.tx_queue_total_dropped_messages++;
         osi_freebuf(fixed_queue_try_dequeue(btif_media_cb.TxAaQ));
+    }
 
     // Transcode frame
 
     switch (btif_media_cb.TxTranscoding)
     {
     case BTIF_MEDIA_TRSCD_PCM_2_SBC:
-        btif_media_aa_prep_sbc_2_send(nb_frame);
+        btif_media_aa_prep_sbc_2_send(nb_frame, timestamp_us);
         break;
 
     default:
@@ -2788,7 +2914,7 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame)
  ** Returns          void
  **
  *******************************************************************************/
-static void btif_media_send_aa_frame(void)
+static void btif_media_send_aa_frame(uint64_t timestamp_us)
 {
     UINT8 nb_frame_2_send;
 
@@ -2798,11 +2924,11 @@ static void btif_media_send_aa_frame(void)
     if (nb_frame_2_send != 0)
     {
         /* format and Q buffer to send */
-        btif_media_aa_prep_2_send(nb_frame_2_send);
+      btif_media_aa_prep_2_send(nb_frame_2_send, timestamp_us);
     }
 
     /* send it */
-    LOG_VERBOSE(LOG_TAG, "btif_media_send_aa_frame : send %d frames", nb_frame_2_send);
+    LOG_VERBOSE(LOG_TAG, "%s : send %d frames", __func__, nb_frame_2_send);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
 }
 
@@ -2882,3 +3008,117 @@ void dump_codec_info(unsigned char *p_codec)
 
 }
 
+void btif_debug_a2dp_dump(int fd)
+{
+    uint64_t now_us = time_now_us();
+    btif_media_stats_t *stats = &btif_media_cb.stats;
+    scheduling_stats_t *enqueue_stats = &stats->tx_queue_enqueue_stats;
+    scheduling_stats_t *dequeue_stats = &stats->tx_queue_dequeue_stats;
+    size_t ave_size;
+    uint64_t ave_time_us;
+
+    dprintf(fd, "\nA2DP State:\n");
+    dprintf(fd, "\n  TxQueue:\n");
+
+    dprintf(fd, "    Counts (enqueue/dequeue/readbuf)                        : %zu / %zu / %zu\n",
+            enqueue_stats->total_updates,
+            dequeue_stats->total_updates,
+            stats->tx_queue_total_readbuf_calls);
+
+    dprintf(fd, "    Last update time ago in ms (enqueue/dequeue/readbuf)    : %llu / %llu / %llu\n",
+            (enqueue_stats->last_update_us > 0) ?
+                (unsigned long long)(now_us - enqueue_stats->last_update_us) / 1000 : 0,
+            (dequeue_stats->last_update_us > 0) ?
+                (unsigned long long)(now_us - dequeue_stats->last_update_us) / 1000 : 0,
+            (stats->tx_queue_last_readbuf_us > 0)?
+                (unsigned long long)(now_us - stats->tx_queue_last_readbuf_us) / 1000 : 0);
+
+    ave_size = 0;
+    if (enqueue_stats->total_updates != 0)
+        ave_size = stats->tx_queue_total_frames / enqueue_stats->total_updates;
+    dprintf(fd, "    Frames per packet (total/max/ave)                       : %zu / %zu / %zu\n",
+            stats->tx_queue_total_frames,
+            stats->tx_queue_max_frames,
+            ave_size);
+
+    dprintf(fd, "    Counts (flushed/dropped/dropouts)                       : %zu / %zu / %zu\n",
+            stats->tx_queue_total_flushed_messages,
+            stats->tx_queue_total_dropped_messages,
+            stats->tx_queue_dropouts);
+
+    dprintf(fd, "    Last update time ago in ms (flushed/dropped)            : %llu / %llu\n",
+            (stats->tx_queue_last_flushed_us > 0) ?
+                (unsigned long long)(now_us - stats->tx_queue_last_flushed_us) / 1000 : 0,
+            (stats->tx_queue_last_dropouts_us > 0)?
+                (unsigned long long)(now_us - stats->tx_queue_last_dropouts_us)/ 1000 : 0);
+
+    dprintf(fd, "    Counts (underflow/underrun)                             : %zu / %zu\n",
+            stats->media_read_total_underflow_count,
+            stats->media_read_total_underrun_count);
+
+    dprintf(fd, "    Bytes (underflow/underrun)                              : %zu / %zu\n",
+            stats->media_read_total_underflow_bytes,
+            stats->media_read_total_underrun_bytes);
+
+    dprintf(fd, "    Last update time ago in ms (underflow/underrun)         : %llu / %llu\n",
+            (stats->media_read_last_underflow_us > 0) ?
+                (unsigned long long)(now_us - stats->media_read_last_underflow_us) / 1000 : 0,
+            (stats->media_read_last_underrun_us > 0)?
+                (unsigned long long)(now_us - stats->media_read_last_underrun_us) / 1000 : 0);
+
+    //
+    // TxQueue enqueue stats
+    //
+    dprintf(fd, "    Enqueue deviation counts (overdue/premature)            : %zu / %zu\n",
+            enqueue_stats->overdue_scheduling_count,
+            enqueue_stats->premature_scheduling_count);
+
+    ave_time_us = 0;
+    if (enqueue_stats->overdue_scheduling_count != 0) {
+        ave_time_us = enqueue_stats->total_overdue_scheduling_delta_us /
+            enqueue_stats->overdue_scheduling_count;
+    }
+    dprintf(fd, "    Enqueue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
+            (unsigned long long)enqueue_stats->total_overdue_scheduling_delta_us / 1000,
+            (unsigned long long)enqueue_stats->max_overdue_scheduling_delta_us / 1000,
+            (unsigned long long)ave_time_us / 1000);
+
+    ave_time_us = 0;
+    if (enqueue_stats->premature_scheduling_count != 0) {
+        ave_time_us = enqueue_stats->total_premature_scheduling_delta_us /
+            enqueue_stats->premature_scheduling_count;
+    }
+    dprintf(fd, "    Enqueue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
+            (unsigned long long)enqueue_stats->total_premature_scheduling_delta_us / 1000,
+            (unsigned long long)enqueue_stats->max_premature_scheduling_delta_us / 1000,
+            (unsigned long long)ave_time_us / 1000);
+
+
+    //
+    // TxQueue dequeue stats
+    //
+    dprintf(fd, "    Dequeue deviation counts (overdue/premature)            : %zu / %zu\n",
+            dequeue_stats->overdue_scheduling_count,
+            dequeue_stats->premature_scheduling_count);
+
+    ave_time_us = 0;
+    if (dequeue_stats->overdue_scheduling_count != 0) {
+        ave_time_us = dequeue_stats->total_overdue_scheduling_delta_us /
+            dequeue_stats->overdue_scheduling_count;
+    }
+    dprintf(fd, "    Dequeue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
+            (unsigned long long)dequeue_stats->total_overdue_scheduling_delta_us / 1000,
+            (unsigned long long)dequeue_stats->max_overdue_scheduling_delta_us / 1000,
+            (unsigned long long)ave_time_us / 1000);
+
+    ave_time_us = 0;
+    if (dequeue_stats->premature_scheduling_count != 0) {
+        ave_time_us = dequeue_stats->total_premature_scheduling_delta_us /
+            dequeue_stats->premature_scheduling_count;
+    }
+    dprintf(fd, "    Dequeue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
+            (unsigned long long)dequeue_stats->total_premature_scheduling_delta_us / 1000,
+            (unsigned long long)dequeue_stats->max_premature_scheduling_delta_us / 1000,
+            (unsigned long long)ave_time_us / 1000);
+
+}

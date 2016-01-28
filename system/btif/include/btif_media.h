@@ -298,4 +298,7 @@ void btif_a2dp_set_peer_sep(UINT8 sep);
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state);
 #endif
+
+void btif_debug_a2dp_dump(int fd);
+
 #endif

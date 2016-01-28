@@ -324,6 +324,7 @@ static int read_energy_info()
 static void dump(int fd, UNUSED_ATTR const char **arguments)
 {
     btif_debug_conn_dump(fd);
+    btif_debug_a2dp_dump(fd);
     wakelock_debug_dump(fd);
     alarm_debug_dump(fd);
 #if defined(BTSNOOP_MEM) && (BTSNOOP_MEM == TRUE)
