@@ -58,6 +58,7 @@ namespace {
 #define COLOR_BOLDGRAY    "\x1B[1;30m"
 #define COLOR_BOLDWHITE   "\x1B[1;37m"
 #define COLOR_BOLDYELLOW  "\x1B[1;93m"
+#define CLEAR_LINE        "\x1B[2K"
 
 const char kCommandDisable[] = "disable";
 const char kCommandEnable[] = "enable";
@@ -108,7 +109,20 @@ void PrintError(const string& message) {
 void PrintOpStatus(const std::string& op, bool status) {
   cout << COLOR_BOLDWHITE << op << " status: " COLOR_OFF
        << (status ? (COLOR_GREEN "success") : (COLOR_RED "failure"))
-       << COLOR_OFF << endl << endl;
+       << COLOR_OFF << endl;
+}
+
+inline void BeginAsyncOut() {
+  if (showing_prompt.load())
+    cout << CLEAR_LINE << "\r";
+}
+
+inline void EndAsyncOut() {
+  std::flush(cout);
+  if (showing_prompt.load())
+      PrintPrompt();
+  else
+    cout << endl;
 }
 
 class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
@@ -120,16 +134,14 @@ class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
   void OnBluetoothStateChange(
       bluetooth::AdapterState prev_state,
       bluetooth::AdapterState new_state) override {
-    if (showing_prompt.load())
-      cout << endl;
+
+    BeginAsyncOut();
     cout << COLOR_BOLDWHITE "Adapter state changed: " COLOR_OFF
          << COLOR_MAGENTA << AdapterStateToString(prev_state) << COLOR_OFF
          << COLOR_BOLDWHITE " -> " COLOR_OFF
-         << COLOR_BOLDYELLOW << AdapterStateToString(new_state) << COLOR_OFF
-         << endl << endl;
-    if (showing_prompt.load())
-      PrintPrompt();
-  }
+         << COLOR_BOLDYELLOW << AdapterStateToString(new_state) << COLOR_OFF;
+    EndAsyncOut();
+   }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothCallback);
@@ -143,57 +155,41 @@ class CLIBluetoothLowEnergyCallback
 
   // IBluetoothLowEnergyCallback overrides:
   void OnClientRegistered(int status, int client_id) override {
-    if (showing_prompt.load())
-      cout << endl;
+    BeginAsyncOut();
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       PrintError("Failed to register BLE client");
     } else {
       ble_client_id = client_id;
       cout << COLOR_BOLDWHITE "Registered BLE client with ID: " COLOR_OFF
-           << COLOR_GREEN << client_id << COLOR_OFF << endl << endl;
+           << COLOR_GREEN << client_id << COLOR_OFF;
     }
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
 
     ble_registering = false;
   }
 
   void OnConnectionState(int status, int client_id, const char* address,
                          bool connected) override {
-    if (showing_prompt.load())
-      cout << endl;
-
+    BeginAsyncOut();
     cout << COLOR_BOLDWHITE "Connection state: "
          << COLOR_BOLDYELLOW "[" << address
          << " connected: " << (connected ? "true" : "false") << " ] "
          << COLOR_BOLDWHITE "- status: " << status
          << COLOR_BOLDWHITE " - client_id: " << client_id << COLOR_OFF;
-
-    cout  << endl << endl;
-
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
   }
 
   void OnMtuChanged(int status, const char *address, int mtu) override {
-    if (showing_prompt.load())
-      cout << endl;
-
+    BeginAsyncOut();
     cout << COLOR_BOLDWHITE "MTU changed: "
          << COLOR_BOLDYELLOW "[" << address << " ] "
          << COLOR_BOLDWHITE " - status: " << status
          << COLOR_BOLDWHITE " - mtu: " << mtu << COLOR_OFF;
-
-    cout  << endl << endl;
-
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
   }
 
   void OnScanResult(const bluetooth::ScanResult& scan_result) override {
-    if (showing_prompt.load())
-      cout << endl;
-
+    BeginAsyncOut();
     cout << COLOR_BOLDWHITE "Scan result: "
          << COLOR_BOLDYELLOW "[" << scan_result.device_address() << "] "
          << COLOR_BOLDWHITE "- RSSI: " << scan_result.rssi() << COLOR_OFF;
@@ -203,25 +199,17 @@ class CLIBluetoothLowEnergyCallback
            << base::HexEncode(scan_result.scan_record().data(),
                               scan_result.scan_record().size());
     }
-
-    cout  << endl << endl;
-
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
   }
 
   void OnMultiAdvertiseCallback(
       int status, bool is_start,
       const bluetooth::AdvertiseSettings& /* settings */) {
-    if (showing_prompt.load())
-      cout << endl;
-
+    BeginAsyncOut();
     std::string op = is_start ? "start" : "stop";
 
     PrintOpStatus("Advertising " + op, status == bluetooth::BLE_STATUS_SUCCESS);
-
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
   }
 
  private:
@@ -236,17 +224,15 @@ class CLIGattClientCallback
 
   // IBluetoothGattClientCallback overrides:
   void OnClientRegistered(int status, int client_id) override {
-    if (showing_prompt.load())
-      cout << endl;
+    BeginAsyncOut();
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       PrintError("Failed to register GATT client");
     } else {
       gatt_client_id = client_id;
       cout << COLOR_BOLDWHITE "Registered GATT client with ID: " COLOR_OFF
-           << COLOR_GREEN << client_id << COLOR_OFF << endl << endl;
+           << COLOR_GREEN << client_id << COLOR_OFF;
     }
-    if (showing_prompt.load())
-      PrintPrompt();
+    EndAsyncOut();
 
     gatt_registering = false;
   }
@@ -760,12 +746,10 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
 
   // android::IBinder::DeathRecipient override:
   void binderDied(const android::wp<android::IBinder>& /* who */) override {
-    if (showing_prompt.load())
-      cout << endl;
+    BeginAsyncOut();
     cout << COLOR_BOLDWHITE "The Bluetooth daemon has died" COLOR_OFF << endl;
-    cout << "\nPress 'ENTER' to exit." << endl;
-    if (showing_prompt.load())
-      PrintPrompt();
+    cout << "\nPress 'ENTER' to exit.";
+    EndAsyncOut();
 
     android::IPCThreadState::self()->stopProcess();
     should_exit = true;
