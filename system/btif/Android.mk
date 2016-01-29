@@ -110,7 +110,8 @@ btifCommonIncludes := \
   external/tinyxml2 \
   external/zlib
 
-btifCommonCFlags += -DBUILDCFG $(bdroid_CFLAGS) -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
+btifCommonCFlags += -DBUILDCFG $(bdroid_CFLAGS) -std=c99 \
+  -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
 
 # libbtif static library for target
 # ========================================================
