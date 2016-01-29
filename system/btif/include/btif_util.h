@@ -69,7 +69,7 @@ void uint2devclass(UINT32 dev, DEV_CLASS dev_class);
 void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
 
 void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
-void string_to_uuid(char *str, bt_uuid_t *p_uuid);
-int ascii_2_hex (char *p_ascii, int len, UINT8 *p_hex);
+void string_to_uuid(const char *str, bt_uuid_t *p_uuid);
+int ascii_2_hex (const char *p_ascii, int len, UINT8 *p_hex);
 
 #endif /* BTIF_UTIL_H */
