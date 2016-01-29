@@ -43,6 +43,7 @@
 
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
+extern void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src);
 
 #define BTA_GATT_SDP_DB_SIZE 4096
 
