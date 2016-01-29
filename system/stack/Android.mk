@@ -149,7 +149,7 @@ LOCAL_SRC_FILES:= \
     ./gap/gap_conn.c \
     ./gap/gap_utils.c
 
-LOCAL_MODULE := libbt-brcm_stack
+LOCAL_MODULE := libbt-stack
 LOCAL_STATIC_LIBRARIES := libbt-hci
 LOCAL_SHARED_LIBRARIES := libcutils
 # gnu-variable-sized-type-not-at-end is needed for a variable-size header in

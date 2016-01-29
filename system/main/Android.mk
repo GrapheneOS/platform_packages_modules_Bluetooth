@@ -6,10 +6,6 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
-# HAL layer
-LOCAL_SRC_FILES:= \
-	../btif/src/bluetooth.c
-
 # platform specific
 LOCAL_SRC_FILES+= \
 	bte_main.c \
@@ -17,57 +13,6 @@ LOCAL_SRC_FILES+= \
 	bte_logmsg.c \
 	bte_conf.c \
 	stack_config.c
-
-# BTIF
-LOCAL_SRC_FILES += \
-    ../btif/src/btif_av.c \
-    ../btif/src/btif_avrcp_audio_track.cpp \
-    ../btif/src/btif_config.c \
-    ../btif/src/btif_config_transcode.cpp \
-    ../btif/src/btif_core.c \
-    ../btif/src/btif_debug.c \
-    ../btif/src/btif_debug_btsnoop.c \
-    ../btif/src/btif_debug_conn.c \
-    ../btif/src/btif_dm.c \
-    ../btif/src/btif_gatt.c \
-    ../btif/src/btif_gatt_client.c \
-    ../btif/src/btif_gatt_multi_adv_util.c \
-    ../btif/src/btif_gatt_server.c \
-    ../btif/src/btif_gatt_test.c \
-    ../btif/src/btif_gatt_util.c \
-    ../btif/src/btif_hf.c \
-    ../btif/src/btif_hf_client.c \
-    ../btif/src/btif_hh.c \
-    ../btif/src/btif_hl.c \
-    ../btif/src/btif_sdp.c \
-    ../btif/src/btif_media_task.c \
-    ../btif/src/btif_pan.c \
-    ../btif/src/btif_profile_queue.c \
-    ../btif/src/btif_rc.c \
-    ../btif/src/btif_sm.c \
-    ../btif/src/btif_sock.c \
-    ../btif/src/btif_sock_rfc.c \
-    ../btif/src/btif_sock_l2cap.c \
-    ../btif/src/btif_sock_sco.c \
-    ../btif/src/btif_sock_sdp.c \
-    ../btif/src/btif_sock_thread.c \
-    ../btif/src/btif_sdp_server.c \
-    ../btif/src/btif_sock_util.c \
-    ../btif/src/btif_storage.c \
-    ../btif/src/btif_uid.c \
-    ../btif/src/btif_util.c \
-    ../btif/src/stack_manager.c
-
-# callouts
-LOCAL_SRC_FILES+= \
-    ../btif/co/bta_ag_co.c \
-    ../btif/co/bta_dm_co.c \
-    ../btif/co/bta_av_co.c \
-    ../btif/co/bta_hh_co.c \
-    ../btif/co/bta_hl_co.c \
-    ../btif/co/bta_pan_co.c \
-    ../btif/co/bta_gattc_co.c \
-    ../btif/co/bta_gatts_co.c \
 
 # sbc encoder
 LOCAL_SRC_FILES+= \
@@ -139,10 +84,11 @@ LOCAL_STATIC_LIBRARIES := \
     libbt-qcom_sbc_decoder
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
-    libbt-brcm_bta \
-    libbt-brcm_stack \
+    libbt-bta \
     libbtdevice \
+    libbtif \
     libbt-hci \
+    libbt-stack \
     libbt-utils \
     libbtcore \
     libosi
