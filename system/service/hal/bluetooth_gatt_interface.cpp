@@ -101,6 +101,7 @@ void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
           << " client_if: " << client_if
           << " - BD_ADDR: " << BtAddrString(bda)
           << " - conn_id: " << conn_id;
+
   FOR_EACH_CLIENT_OBSERVER(
     ConnectCallback(g_interface, conn_id, status, client_if, *bda));
 }
@@ -245,6 +246,15 @@ void MultiAdvDisableCallback(int client_if, int status) {
 
   FOR_EACH_CLIENT_OBSERVER(
       MultiAdvDisableCallback(g_interface, client_if, status));
+}
+
+void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id << " size: " << size;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      GetGattDbCallback(g_interface, conn_id, db, size));
 }
 
 void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
@@ -448,6 +458,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // batchscan_threshold_cb
     nullptr,  // track_adv_event_cb
     nullptr,  // scan_parameter_setup_completed_cb
+    GetGattDbCallback,
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
@@ -691,6 +702,14 @@ void BluetoothGattInterface::ClientObserver::MultiAdvDisableCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* status */,
     int /* client_if */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ClientObserver::GetGattDbCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    btgatt_db_element_t* /* gatt_db */,
+    int /* size */) {
   // Do nothing.
 }
 

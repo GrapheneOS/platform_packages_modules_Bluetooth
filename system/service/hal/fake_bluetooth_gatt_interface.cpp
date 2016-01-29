@@ -210,6 +210,7 @@ btgatt_client_interface_t fake_btgattc_iface = {
   nullptr,  // batchscan_dis_batch_scan
   nullptr,  // batchscan_read_reports
   nullptr,  // test_command
+  nullptr,  // get_gatt_db
 };
 
 btgatt_server_interface_t fake_btgatts_iface = {

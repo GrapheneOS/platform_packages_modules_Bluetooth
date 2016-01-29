@@ -463,6 +463,7 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* batchscan_threshold_cb; */
     nullptr, /* track_adv_event_cb; */
     nullptr, /* scan_parameter_setup_completed_cb; */
+    nullptr, /* get_gatt_db_cb; */
 };
 
 const btgatt_callbacks_t gatt_callbacks = {

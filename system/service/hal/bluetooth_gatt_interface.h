@@ -126,7 +126,11 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int client_if, int status);
 
-    // TODO(armansito): Complete the list of callbacks.
+    virtual void GetGattDbCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        btgatt_db_element_t* gatt_db,
+        int size);
   };
 
   // The standard BT-GATT server callback interface.
