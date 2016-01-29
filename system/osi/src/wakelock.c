@@ -71,10 +71,10 @@ static wakelock_stats_t wakelock_stats;
 // are executed serially.
 static pthread_mutex_t monitor;
 
-static bool wakelock_acquire_callout(void);
-static bool wakelock_acquire_native(void);
-static bool wakelock_release_callout(void);
-static bool wakelock_release_native(void);
+static bt_status_t wakelock_acquire_callout(void);
+static bt_status_t wakelock_acquire_native(void);
+static bt_status_t wakelock_release_callout(void);
+static bt_status_t wakelock_release_native(void);
 static void wakelock_initialize(void);
 static void wakelock_initialize_native(void);
 static void reset_wakelock_stats(void);
@@ -92,33 +92,34 @@ void wakelock_set_os_callouts(bt_os_callouts_t *callouts)
 bool wakelock_acquire(void) {
   pthread_once(&initialized, wakelock_initialize);
 
-  if (is_native)
-    return wakelock_acquire_native();
-  else
-    return wakelock_acquire_callout();
-}
+  bt_status_t status = BT_STATUS_FAIL;
 
-static bool wakelock_acquire_callout(void)
-{
-  const bt_status_t status =
-    wakelock_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
+  if (is_native)
+    status = wakelock_acquire_native();
+  else
+    status = wakelock_acquire_callout();
+
   update_wakelock_acquired_stats(status);
+
   if (status != BT_STATUS_SUCCESS)
     LOG_ERROR(LOG_TAG, "%s unable to acquire wake lock: %d", __func__, status);
 
   return (status == BT_STATUS_SUCCESS);
 }
 
-static bool wakelock_acquire_native(void)
-{
+static bt_status_t wakelock_acquire_callout(void) {
+  return wakelock_os_callouts->acquire_wake_lock(WAKE_LOCK_ID);
+}
+
+static bt_status_t wakelock_acquire_native(void) {
   if (wake_lock_fd == INVALID_FD) {
     LOG_ERROR(LOG_TAG, "%s lock not acquired, invalid fd", __func__);
-    return false;
+    return BT_STATUS_PARM_INVALID;
   }
 
   if (wake_unlock_fd == INVALID_FD) {
     LOG_ERROR(LOG_TAG, "%s not acquiring lock: can't release lock", __func__);
-    return false;
+    return BT_STATUS_PARM_INVALID;
   }
 
   long lock_name_len = strlen(WAKE_LOCK_ID);
@@ -126,38 +127,38 @@ static bool wakelock_acquire_native(void)
   if (locked_id_len == -1) {
     LOG_ERROR(LOG_TAG, "%s wake lock not acquired: %s",
               __func__, strerror(errno));
-    return false;
+    return BT_STATUS_FAIL;
   } else if (locked_id_len < lock_name_len) {
     // TODO (jamuraa): this is weird. maybe we should release and retry.
     LOG_WARN(LOG_TAG, "%s wake lock truncated to %zd chars",
              __func__, locked_id_len);
   }
-  return true;
+  return BT_STATUS_SUCCESS;
 }
 
 bool wakelock_release(void) {
   pthread_once(&initialized, wakelock_initialize);
 
-  if (is_native)
-    return wakelock_release_native();
-  else
-    return wakelock_release_callout();
-}
+  bt_status_t status = BT_STATUS_FAIL;
 
-static bool wakelock_release_callout(void)
-{
-  const bt_status_t status =
-    wakelock_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+  if (is_native)
+    status = wakelock_release_native();
+  else
+    status = wakelock_release_callout();
+
   update_wakelock_released_stats(status);
 
   return (status == BT_STATUS_SUCCESS);
 }
 
-static bool wakelock_release_native(void)
-{
+static bt_status_t wakelock_release_callout(void) {
+  return wakelock_os_callouts->release_wake_lock(WAKE_LOCK_ID);
+}
+
+static bt_status_t wakelock_release_native(void) {
   if (wake_unlock_fd == INVALID_FD) {
     LOG_ERROR(LOG_TAG, "%s lock not released, invalid fd", __func__);
-    return false;
+    return BT_STATUS_PARM_INVALID;
   }
 
   ssize_t wrote_name_len = write(wake_unlock_fd, WAKE_LOCK_ID, locked_id_len);
@@ -168,11 +169,10 @@ static bool wakelock_release_native(void)
     LOG_ERROR(LOG_TAG, "%s lock release only wrote %zd, assuming released",
               __func__, wrote_name_len);
   }
-  return true;
+  return BT_STATUS_SUCCESS;
 }
 
-static void wakelock_initialize(void)
-{
+static void wakelock_initialize(void) {
   pthread_mutex_init(&monitor, NULL);
   reset_wakelock_stats();
 
@@ -180,8 +180,7 @@ static void wakelock_initialize(void)
     wakelock_initialize_native();
 }
 
-static void wakelock_initialize_native(void)
-{
+static void wakelock_initialize_native(void) {
   LOG_DEBUG(LOG_TAG, "%s opening wake locks", __func__);
 
   if (!wake_lock_path)
