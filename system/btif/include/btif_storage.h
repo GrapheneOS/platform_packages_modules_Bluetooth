@@ -352,4 +352,9 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
                                   bt_remote_version_t *p_ver);
 
+/******************************************************************************
+ * Exported for unit tests
+ *****************************************************************************/
+size_t btif_split_uuids_string(const char *str, bt_uuid_t *p_uuid, size_t max_uuids);
+
 #endif /* BTIF_STORAGE_H */

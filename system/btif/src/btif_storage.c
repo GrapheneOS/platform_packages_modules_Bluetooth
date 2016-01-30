@@ -187,38 +187,6 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
 **  Static functions
 ************************************************************************************/
 
-/*******************************************************************************
-**
-** Function         btif_in_split_uuids_string_to_list
-**
-** Description      Internal helper function to split the string of UUIDs
-**                  read from the NVRAM to an array
-**
-** Returns          None
-**
-*******************************************************************************/
-static void btif_in_split_uuids_string_to_list(char *str, bt_uuid_t *p_uuid,
-                                               uint32_t *p_num_uuid)
-{
-    char buf[64];
-    char *p_start = str;
-    char *p_needle;
-    uint32_t num = 0;
-    do
-    {
-        //p_needle = strchr(p_start, ';');
-        p_needle = strchr(p_start, ' ');
-        if (p_needle < p_start) break;
-        memset(buf, 0, sizeof(buf));
-        strncpy(buf, p_start, (p_needle-p_start));
-        string_to_uuid(buf, p_uuid + num);
-        num++;
-        p_start = ++p_needle;
-
-    } while (*p_start != 0);
-    *p_num_uuid = num;
-}
-
 static int prop2cfg(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
 {
     bdstr_t bdstr = {0};
@@ -389,8 +357,7 @@ static int cfg2prop(bt_bdaddr_t *remote_bd_addr, bt_property_t *prop)
                                     BTIF_STORAGE_PATH_REMOTE_SERVICE, value, &size))
             {
                 bt_uuid_t *p_uuid = (bt_uuid_t*)prop->val;
-                uint32_t num_uuids = 0;
-                btif_in_split_uuids_string_to_list(value, p_uuid, &num_uuids);
+                size_t num_uuids = btif_split_uuids_string(value, p_uuid, BT_MAX_NUM_UUIDS);
                 prop->len = num_uuids * sizeof(bt_uuid_t);
                 ret = TRUE;
             }
@@ -591,6 +558,34 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len, bt_bd
  * Caller is expected to provide a valid pointer to 'property->value' based on
  * the property->type.
  *******************************************************************************/
+
+/*******************************************************************************
+**
+** Function         btif_split_uuids_string
+**
+** Description      Internal helper function to split the string of UUIDs
+**                  read from the NVRAM to an array
+**
+** Returns          Number of UUIDs parsed from the supplied string
+**
+*******************************************************************************/
+size_t btif_split_uuids_string(const char *str, bt_uuid_t *p_uuid, size_t max_uuids)
+{
+    assert(str);
+    assert(p_uuid);
+
+    size_t num_uuids = 0;
+    while (str && num_uuids < max_uuids)
+    {
+        bool rc = string_to_uuid(str, p_uuid++);
+        if (!rc) break;
+        num_uuids++;
+        str = strchr(str, ' ');
+        if (str) str++;
+    }
+
+    return num_uuids;
+}
 
 /*******************************************************************************
 **
