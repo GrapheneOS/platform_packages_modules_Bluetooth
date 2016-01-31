@@ -23,6 +23,10 @@ bdroid_CFLAGS += \
   -fvisibility=hidden \
   -Wall \
   -Wunused-but-set-variable \
+  -Werror=format-security \
+  -Werror=pointer-to-int-cast \
+  -Werror=int-to-pointer-cast \
+  -Werror=implicit-function-declaration \
   -UNDEBUG \
   -DLOG_NDEBUG=1
 
