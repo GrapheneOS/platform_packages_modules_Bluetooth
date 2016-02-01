@@ -54,6 +54,7 @@ import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.Pair;
@@ -2151,6 +2152,16 @@ public class AdapterService extends Service {
     @Override
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
+
+        if (args.length > 0) {
+            debugLog("dumpsys arguments, skipping normal dumpsys: " +
+                    TextUtils.join(" ", args));
+            if (args[0].startsWith("--proto")) {
+                dumpNative(fd, args);
+                // TODO(jamuraa): gather protobuf details here and merge
+            }
+            return;
+        }
 
         writer.println("Bluetooth Status");
         writer.println("  enabled: " + isEnabled());
