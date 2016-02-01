@@ -1093,7 +1093,6 @@ extern void btm_sec_set_peer_sec_caps (tACL_CONN *p_acl_cb, tBTM_SEC_DEV_REC *p_
 
 #if BLE_INCLUDED == TRUE
 extern void  btm_sec_clear_ble_keys (tBTM_SEC_DEV_REC  *p_dev_rec);
-extern  BOOLEAN btm_sec_find_bonded_dev (UINT8 start_idx, UINT8 *p_found_idx, tBTM_SEC_DEV_REC **p_rec);
 extern BOOLEAN btm_sec_is_a_bonded_dev (BD_ADDR bda);
 extern void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec);
 extern BOOLEAN btm_sec_is_le_capable_dev (BD_ADDR bda);
