@@ -3059,10 +3059,21 @@ static tBTM_STATUS btm_sec_dd_create_conn (tBTM_SEC_DEV_REC *p_dev_rec)
     return(BTM_CMD_STARTED);
 }
 
+
+bool is_state_getting_name(void *data, void *context)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = data;
+
+    if (p_dev_rec->sec_state == BTM_SEC_STATE_GETTING_NAME) {
+        return false;
+    }
+    return true;
+}
+
 /*******************************************************************************
 **
 ** Function         btm_sec_rmt_name_request_complete
-**
+*
 ** Description      This function is called when remote name was obtained from
 **                  the peer device
 **
@@ -3089,20 +3100,13 @@ void btm_sec_rmt_name_request_complete (UINT8 *p_bd_addr, UINT8 *p_bd_name, UINT
         p_dev_rec = btm_find_dev (p_bd_addr);
     else
     {
-        p_dev_rec = &btm_cb.sec_dev_rec[0];
-
-        for (i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
-        {
-            if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
-                && (p_dev_rec->sec_state == BTM_SEC_STATE_GETTING_NAME))
-            {
-                p_bd_addr = p_dev_rec->bd_addr;
-                break;
-            }
-        }
-
-        if (i == BTM_SEC_MAX_DEVICE_RECORDS)
+        list_node_t *node = list_foreach(btm_cb.sec_dev_rec, is_state_getting_name, NULL);
+        if (node != NULL) {
+            p_dev_rec = list_node(node);
+            p_bd_addr = p_dev_rec->bd_addr;
+        } else {
             p_dev_rec = NULL;
+        }
     }
 
     /* Commenting out trace due to obf/compilation problems.
@@ -5877,6 +5881,18 @@ static void btm_restore_mode(void)
     }
 }
 
+
+bool is_sec_state_equal(void *data, void *context)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = data;
+    UINT8 *state = context;
+
+    if (p_dev_rec->sec_state == *state)
+        return false;
+
+    return true;
+}
+
 /*******************************************************************************
 **
 ** Function         btm_sec_find_dev_by_sec_state
@@ -5889,15 +5905,11 @@ static void btm_restore_mode(void)
 *******************************************************************************/
 tBTM_SEC_DEV_REC *btm_sec_find_dev_by_sec_state (UINT8 state)
 {
-    tBTM_SEC_DEV_REC *p_dev_rec = &btm_cb.sec_dev_rec[0];
+    list_node_t *n = list_foreach(btm_cb.sec_dev_rec, is_sec_state_equal, &state);
+    if (n)
+        return list_node(n);
 
-    for (int i = 0; i < BTM_SEC_MAX_DEVICE_RECORDS; i++, p_dev_rec++)
-    {
-        if ((p_dev_rec->sec_flags & BTM_SEC_IN_USE)
-            && (p_dev_rec->sec_state == state))
-            return(p_dev_rec);
-    }
-    return(NULL);
+    return NULL;
 }
 
 /*******************************************************************************
