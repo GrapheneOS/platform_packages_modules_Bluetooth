@@ -79,14 +79,14 @@ bool list_remove(list_t *list, void *data);
 void list_clear(list_t *list);
 
 // Iterates through the |list| and calls |callback| for each data element. Iteration
-// continues until |callback| returns false. The function returns the result of the
-// last executed |callback| or true if the list is empty. |context| is passed to
-// |callback| on each iteration.
+// continues until |callback| returns false. The function returns the pointer to last
+// processed element, or NULL if the list is empty, or all calls to |callback| returned
+// true. |context| is passed to |callback| on each iteration.
 // If the list is empty, |callback| will never be called. It is safe to mutate the
 // list inside the callback. If an element is added before the node being visited,
 // there will be no callback for the newly-inserted node. Neither |list| nor
 // |callback| may be NULL.
-bool list_foreach(const list_t *list, list_iter_cb callback, void *context);
+list_node_t *list_foreach(const list_t *list, list_iter_cb callback, void *context);
 
 // Returns an iterator to the first element in |list|. |list| may not be NULL.
 // The returned iterator is valid as long as it does not equal the value returned

@@ -168,17 +168,17 @@ void list_clear(list_t *list) {
   list->length = 0;
 }
 
-bool list_foreach(const list_t *list, list_iter_cb callback, void *context) {
+list_node_t *list_foreach(const list_t *list, list_iter_cb callback, void *context) {
   assert(list != NULL);
   assert(callback != NULL);
 
   for (list_node_t *node = list->head; node; ) {
     list_node_t *next = node->next;
     if (!callback(node->data, context))
-      return false;
+      return node;
     node = next;
   }
-  return true;
+  return NULL;
 }
 
 list_node_t *list_begin(const list_t *list) {
