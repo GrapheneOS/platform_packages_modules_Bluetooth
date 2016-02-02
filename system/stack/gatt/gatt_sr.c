@@ -1049,6 +1049,11 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
     switch (op_code)
     {
         case GATT_REQ_PREPARE_WRITE:
+            if (len < 2) {
+                GATT_TRACE_ERROR("%s: Prepare write request was invalid - missing offset, sending error response", __func__);
+                gatt_send_error_rsp(p_tcb, GATT_INVALID_PDU, op_code, handle, FALSE);
+                return;
+            }
             sr_data.write_req.is_prep = TRUE;
             STREAM_TO_UINT16(sr_data.write_req.offset, p);
             len -= 2;
