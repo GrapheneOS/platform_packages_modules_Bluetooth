@@ -146,6 +146,13 @@ static void btm_db_reset (void)
     }
 }
 
+bool set_sec_state_idle(void *data, void *context)
+{
+    tBTM_SEC_DEV_REC *p_dev_rec = data;
+    p_dev_rec->sec_state = BTM_SEC_STATE_IDLE;
+    return true;
+}
+
 static void reset_complete(void *result) {
   assert(result == FUTURE_SUCCESS);
   const controller_t *controller = controller_get_interface();
@@ -154,9 +161,7 @@ static void reset_complete(void *result) {
   l2cu_device_reset ();
 
   /* Clear current security state */
-  for (int devinx = 0; devinx < BTM_SEC_MAX_DEVICE_RECORDS; devinx++) {
-    btm_cb.sec_dev_rec[devinx].sec_state = BTM_SEC_STATE_IDLE;
-  }
+  list_foreach(btm_cb.sec_dev_rec, set_sec_state_idle, NULL);
 
   /* After the reset controller should restore all parameters to defaults. */
   btm_cb.btm_inq_vars.inq_counter       = 1;
