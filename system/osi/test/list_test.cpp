@@ -173,9 +173,9 @@ TEST_F(ListTest, test_list_foreach_full) {
 
   // Test complete iteration
   int sum = 0;
-  bool rc = list_foreach(list, list_callback_sum, &sum);
+  list_node_t *rc = list_foreach(list, list_callback_sum, &sum);
   EXPECT_EQ(sum, 15);
-  EXPECT_TRUE(rc);
+  EXPECT_TRUE(rc == NULL);
 
   list_free(list);
 }
@@ -191,20 +191,26 @@ TEST_F(ListTest, test_list_foreach_partial) {
 
   // Test partial iteration
   int find = 4;
-  bool rc = list_foreach(list, list_callback_find_int, &find);
-  EXPECT_FALSE(rc);
+  list_node_t *rc = list_foreach(list, list_callback_find_int, &find);
+  EXPECT_TRUE(rc != NULL);
+  int *rc_val = (int *)list_node(rc);
+  EXPECT_TRUE(*rc_val == 4);
 
   find = 1;
   rc = list_foreach(list, list_callback_find_int, &find);
-  EXPECT_FALSE(rc);
+  EXPECT_TRUE(rc != NULL);
+  rc_val = (int *)list_node(rc);
+  EXPECT_TRUE(*rc_val == 1);
 
   find = 5;
   rc = list_foreach(list, list_callback_find_int, &find);
-  EXPECT_FALSE(rc);
+  EXPECT_TRUE(rc != NULL);
+  rc_val = (int *)list_node(rc);
+  EXPECT_TRUE(*rc_val == 5);
 
   find = 0;
   rc = list_foreach(list, list_callback_find_int, &find);
-  EXPECT_TRUE(rc);
+  EXPECT_TRUE(rc == NULL);
 
   list_free(list);
 }
