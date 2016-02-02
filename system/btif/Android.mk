@@ -121,7 +121,7 @@ LOCAL_SRC_FILES := $(btifCommonSrc)
 LOCAL_CFLAGS := $(btifCommonCFlags)
 # Many .h files have redefined typedefs
 LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
-LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_SHARED_LIBRARIES := libcutils liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libbtif
