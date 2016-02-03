@@ -88,19 +88,14 @@ status_t BnBluetoothGattServerCallback::onTransact(
     bool is_prep = data.readInt32();
     bool need_rsp = data.readInt32();
 
-    std::vector<uint8_t> value;
-    int value_len = data.readInt32();
-    if (value_len != -1) {
-      uint8_t bytes[value_len];
-      data.read(bytes, value_len);
-      value.insert(value.begin(), bytes, bytes + value_len);
-    }
+    auto value = ReadByteVectorFromParcel(data);
+    CHECK(value.get());
 
     auto char_id = CreateGattIdentifierFromParcel(data);
     CHECK(char_id);
 
-    OnCharacteristicWriteRequest(
-        device_address, request_id, offset, is_prep, need_rsp, value, *char_id);
+    OnCharacteristicWriteRequest(device_address, request_id, offset, is_prep,
+                                 need_rsp, *value, *char_id);
     return android::NO_ERROR;
   }
   case ON_DESCRIPTOR_WRITE_REQUEST_TRANSACTION: {
@@ -110,19 +105,14 @@ status_t BnBluetoothGattServerCallback::onTransact(
     bool is_prep = data.readInt32();
     bool need_rsp = data.readInt32();
 
-    std::vector<uint8_t> value;
-    int value_len = data.readInt32();
-    if (value_len != -1) {
-      uint8_t bytes[value_len];
-      data.read(bytes, value_len);
-      value.insert(value.begin(), bytes, bytes + value_len);
-    }
+    auto value = ReadByteVectorFromParcel(data);
+    CHECK(value.get());
 
     auto desc_id = CreateGattIdentifierFromParcel(data);
     CHECK(desc_id);
 
-    OnDescriptorWriteRequest(
-        device_address, request_id, offset, is_prep, need_rsp, value, *desc_id);
+    OnDescriptorWriteRequest(device_address, request_id, offset, is_prep,
+                             need_rsp, *value, *desc_id);
     return android::NO_ERROR;
   }
   case ON_EXECUTE_WRITE_REQUEST_TRANSACTION: {
