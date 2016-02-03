@@ -470,7 +470,7 @@ void bnepu_check_send_packet (tBNEP_CONN *p_bcb, BT_HDR *p_buf)
         {
             BNEP_TRACE_EVENT ("BNEP - congested, dropping buf, CID: 0x%x", p_bcb->l2cap_cid);
 
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
         }
         else
         {

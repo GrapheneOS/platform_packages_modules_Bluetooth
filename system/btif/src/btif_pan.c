@@ -729,12 +729,8 @@ static void btu_exec_tap_fd_read(void *p_param) {
     // PAN can use.
     for (int i = 0; i < PAN_BUF_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
         BT_HDR *buffer = (BT_HDR *)osi_getbuf(PAN_BUF_SIZE);
-        if (!buffer) {
-            BTIF_TRACE_WARNING("%s unable to allocate buffer for packet.", __func__);
-            break;
-        }
         buffer->offset = PAN_MINIMUM_OFFSET;
-        buffer->len = osi_get_buf_size(buffer) - sizeof(BT_HDR) - buffer->offset;
+        buffer->len = PAN_BUF_SIZE - sizeof(BT_HDR) - buffer->offset;
 
         UINT8 *packet = (UINT8 *)buffer + sizeof(BT_HDR) + buffer->offset;
 

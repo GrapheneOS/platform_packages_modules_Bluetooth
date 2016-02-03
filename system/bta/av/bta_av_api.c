@@ -638,21 +638,17 @@ void BTA_AvCloseRc(UINT8 rc_handle)
 void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
                                BT_HDR *p_pkt)
 {
-    tBTA_AV_API_META_RSP  *p_buf;
+    tBTA_AV_API_META_RSP  *p_buf =
+      (tBTA_AV_API_META_RSP *)osi_getbuf((UINT16)sizeof(tBTA_AV_API_META_RSP));
 
-    if ((p_buf = (tBTA_AV_API_META_RSP *) osi_getbuf((UINT16) (sizeof(tBTA_AV_API_META_RSP)))) != NULL)
-    {
-        p_buf->hdr.event = BTA_AV_API_META_RSP_EVT;
-        p_buf->hdr.layer_specific   = rc_handle;
-        p_buf->rsp_code = rsp_code;
-        p_buf->p_pkt = p_pkt;
-        p_buf->is_rsp = TRUE;
-        p_buf->label = label;
+    p_buf->hdr.event = BTA_AV_API_META_RSP_EVT;
+    p_buf->hdr.layer_specific = rc_handle;
+    p_buf->rsp_code = rsp_code;
+    p_buf->p_pkt = p_pkt;
+    p_buf->is_rsp = TRUE;
+    p_buf->label = label;
 
-        bta_sys_sendmsg(p_buf);
-    } else if (p_pkt) {
-        osi_freebuf(p_pkt);
-    }
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************

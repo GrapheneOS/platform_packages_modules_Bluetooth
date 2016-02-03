@@ -1335,8 +1335,7 @@ void btm_ble_adv_filter_init(void)
 *******************************************************************************/
 void btm_ble_adv_filter_cleanup(void)
 {
-    if (btm_ble_adv_filt_cb.p_addr_filter_count)
-        osi_freebuf (btm_ble_adv_filt_cb.p_addr_filter_count);
+    osi_freebuf_and_reset((void **)&btm_ble_adv_filt_cb.p_addr_filter_count);
 }
 
 #endif

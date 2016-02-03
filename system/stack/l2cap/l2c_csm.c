@@ -276,7 +276,7 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
@@ -372,7 +372,7 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
@@ -474,7 +474,7 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
@@ -601,7 +601,7 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
 
     case L2CEVT_L2CAP_INFO_RSP:
@@ -694,7 +694,7 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p_
 
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
@@ -947,7 +947,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
                     (*l2cb.fixed_reg[p_ccb->local_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb)
                         (p_ccb->local_cid, p_ccb->p_lcb->remote_bd_addr,(BT_HDR *)p_data);
                 else
-                    osi_freebuf (p_data);
+                    osi_freebuf(p_data);
             break;
             }
         }
@@ -959,7 +959,7 @@ static void l2c_csm_config (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         if (p_ccb->config_done & OB_CFG_DONE)
             l2c_enqueue_peer_data (p_ccb, (BT_HDR *)p_data);
         else
-            osi_freebuf (p_data);
+            osi_freebuf(p_data);
         break;
 
     case L2CEVT_TIMEOUT:
@@ -1187,7 +1187,7 @@ static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, UINT16 event, void
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
     }
 }
@@ -1237,7 +1237,7 @@ static void l2c_csm_w4_l2ca_disconnect_rsp (tL2C_CCB *p_ccb, UINT16 event, void 
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         break;
     }
 }

@@ -691,7 +691,7 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     }
 
     if (do_free)
-        osi_freebuf (p_data->api_meta_rsp.p_pkt);
+        osi_freebuf_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
 /*******************************************************************************
@@ -706,8 +706,7 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_cb);
-
-    osi_freebuf (p_data->api_meta_rsp.p_pkt);
+    osi_freebuf_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
 /*******************************************************************************
@@ -1412,7 +1411,7 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
     bta_av_close_all_rc(p_cb);
 
-    utl_freebuf((void **) &p_cb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_cb->p_disc_db);
 
     /* disable audio/video - de-register all channels,
      * expect BTA_AV_DEREG_COMP_EVT when deregister is complete */
@@ -1874,7 +1873,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     }
 
     p_cb->disc = 0;
-    utl_freebuf((void **) &p_cb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_cb->p_disc_db);
 
     APPL_TRACE_DEBUG("peer_features 0x%x, features 0x%x", peer_features, p_cb->features);
 
@@ -2181,7 +2180,7 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 
         /* make sure that the timer is not active */
         alarm_cancel(p_scb->avrc_ct_timer);
-        utl_freebuf((void **)&p_cb->p_scb[p_scb->hdi]);
+        osi_freebuf_and_reset((void **)&p_cb->p_scb[p_scb->hdi]);
     }
 
     APPL_TRACE_DEBUG("audio 0x%x, video: 0x%x, disable:%d",

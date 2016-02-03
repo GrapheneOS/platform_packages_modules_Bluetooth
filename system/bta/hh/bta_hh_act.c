@@ -250,7 +250,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
     }
 
     /* free disc_db when SDP is completed */
-    utl_freebuf((void **)&bta_hh_cb.p_disc_db);
+    osi_freebuf_and_reset((void **)&bta_hh_cb.p_disc_db);
 
     /* send SDP_CMPL_EVT into state machine */
     bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
@@ -313,9 +313,8 @@ static void bta_hh_di_sdp_cback(UINT16 result)
     }
 
 
-    if (status != BTA_HH_OK)
-    {
-        utl_freebuf((void **)&bta_hh_cb.p_disc_db);
+    if (status != BTA_HH_OK) {
+        osi_freebuf_and_reset((void **)&bta_hh_cb.p_disc_db);
         /* send SDP_CMPL_EVT into state machine */
         bta_hh_sm_execute(p_cb, BTA_HH_SDP_CMPL_EVT, (tBTA_HH_DATA *)&status);
     }
@@ -404,10 +403,10 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                     Status 0x%2X",status);
 #endif
                 status = BTA_HH_ERR_SDP;
-                utl_freebuf((void **)&bta_hh_cb.p_disc_db);
-            }
-            else
+                osi_freebuf_and_reset((void **)&bta_hh_cb.p_disc_db);
+            } else {
                 status = BTA_HH_OK;
+            }
         }
     }
 
@@ -668,7 +667,7 @@ void bta_hh_data_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     bta_hh_co_data((UINT8)p_data->hid_cback.hdr.layer_specific, p_rpt, pdata->len,
                     p_cb->mode, p_cb->sub_class, p_cb->dscp_info.ctry_code, p_cb->addr, p_cb->app_id);
 
-    utl_freebuf((void **)&pdata);
+    osi_freebuf_and_reset((void **)&pdata);
 }
 
 
@@ -807,7 +806,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     (* bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH *)&hs_data);
 
     p_cb->w4_evt = 0;
-    utl_freebuf((void **)&pdata);
+    osi_freebuf_and_reset((void **)&pdata);
 
 }
 
@@ -1215,7 +1214,7 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
     case HID_HDEV_EVT_INTR_DATC:
     case HID_HDEV_EVT_CTRL_DATC:
         /* Unhandled events: Free buffer for DATAC */
-        utl_freebuf((void **)&pdata);
+        osi_freebuf_and_reset((void **)&pdata);
         break;
     case HID_HDEV_EVT_VC_UNPLUG:
         for (xx = 0; xx < BTA_HH_MAX_DEVICE; xx++)

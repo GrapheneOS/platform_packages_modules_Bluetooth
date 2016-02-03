@@ -292,8 +292,7 @@ tBNEP_RESULT BNEP_ConnectResp (UINT16 handle, tBNEP_RESULT resp)
             p = bnep_process_control_packet (p_bcb, p, &rem_len, TRUE);
         }
 
-        osi_freebuf (p_bcb->p_pending_data);
-        p_bcb->p_pending_data = NULL;
+        osi_freebuf_and_reset((void **)&p_bcb->p_pending_data);
     }
     return (BNEP_SUCCESS);
 }
@@ -366,7 +365,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 
     if ((!handle) || (handle > BNEP_MAX_CONNECTIONS))
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (BNEP_WRONG_HANDLE);
     }
 
@@ -375,7 +374,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     if (p_buf->len > BNEP_MTU_SIZE)
     {
         BNEP_TRACE_ERROR ("BNEP_Write() length %d exceeded MTU %d", p_buf->len, BNEP_MTU_SIZE);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (BNEP_MTU_EXCEDED);
     }
 
@@ -404,7 +403,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
 
                 if (new_len > org_len)
                 {
-                    osi_freebuf (p_buf);
+                    osi_freebuf(p_buf);
                     return BNEP_IGNORE_CMD;
                 }
 
@@ -422,7 +421,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
         }
         else
         {
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             return BNEP_IGNORE_CMD;
         }
     }
@@ -430,7 +429,7 @@ tBNEP_RESULT BNEP_WriteBuf (UINT16 handle,
     /* Check transmit queue */
     if (fixed_queue_length(p_bcb->xmit_q) >= BNEP_MAX_XMITQ_DEPTH)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (BNEP_Q_SIZE_EXCEEDED);
     }
 

@@ -248,10 +248,10 @@ void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
     APPL_TRACE_DEBUG("bta_hl_clean_mdl_cb app_idx=%d mcl_idx=%d mdl_idx=%d",
                       app_idx, mcl_idx, mdl_idx);
 #endif
-    utl_freebuf((void **) &p_dcb->p_tx_pkt);
-    utl_freebuf((void **) &p_dcb->p_rx_pkt);
-    utl_freebuf((void **) &p_dcb->p_echo_tx_pkt);
-    utl_freebuf((void **) &p_dcb->p_echo_rx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_rx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_echo_tx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_echo_rx_pkt);
 
     memset((void *)p_dcb, 0 , sizeof(tBTA_HL_MDL_CB));
 }
@@ -2461,7 +2461,7 @@ void bta_hl_discard_data(UINT16 event, tBTA_HL_DATA *p_data)
             break;
 
         case BTA_HL_MCA_RCV_DATA_EVT:
-            utl_freebuf((void**)&p_data->mca_rcv_data_evt.p_pkt);
+            osi_freebuf_and_reset((void **)&p_data->mca_rcv_data_evt.p_pkt);
             break;
 
         default:

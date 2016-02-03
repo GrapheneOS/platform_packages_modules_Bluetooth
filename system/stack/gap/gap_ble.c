@@ -158,7 +158,7 @@ void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
          if (p_q->p_cback != NULL)
             (*p_q->p_cback)(FALSE, p_clcb->bda, 0, NULL);
 
-         osi_freebuf (p_q);
+         osi_freebuf(p_q);
     }
     fixed_queue_free(p_clcb->pending_req_q, NULL);
 
@@ -205,7 +205,7 @@ BOOLEAN gap_ble_dequeue_request (tGAP_CLCB *p_clcb, UINT16 * p_uuid, tGAP_BLE_CM
     {
         *p_cback    = p_q->p_cback;
         *p_uuid     = p_q->uuid;
-        osi_freebuf((void *)p_q);
+        osi_freebuf(p_q);
         return TRUE;
     }
 

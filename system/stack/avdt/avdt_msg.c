@@ -1390,11 +1390,10 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     {
         /* if reassembly in progress drop message and process new single */
         if (p_ccb->p_rx_msg != NULL)
-        {
-            osi_freebuf(p_ccb->p_rx_msg);
-            p_ccb->p_rx_msg = NULL;
             AVDT_TRACE_WARNING("Got single during reassembly");
-        }
+
+        osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
+
         p_ret = p_buf;
     }
     /* start packet */
@@ -1402,10 +1401,9 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     {
         /* if reassembly in progress drop message and process new single */
         if (p_ccb->p_rx_msg != NULL)
-        {
-            osi_freebuf(p_ccb->p_rx_msg);
             AVDT_TRACE_WARNING("Got start during reassembly");
-        }
+
+        osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
         p_ccb->p_rx_msg = p_buf;
 
         /* copy first header byte over nosp */
@@ -1442,8 +1440,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len)
             {
                 /* won't fit; free everything */
-                osi_freebuf(p_ccb->p_rx_msg);
-                p_ccb->p_rx_msg = NULL;
+                osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
                 osi_freebuf(p_buf);
                 p_ret = NULL;
             }

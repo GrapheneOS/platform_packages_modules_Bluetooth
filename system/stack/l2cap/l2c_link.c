@@ -1526,7 +1526,7 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
     if ((p_lcb = l2cu_find_lcb_by_handle (handle)) == NULL)
     {
         L2CAP_TRACE_WARNING ("L2CAP - rcvd segment complete, unknown handle: %d", handle);
-        osi_freebuf (p_msg);
+        osi_freebuf(p_msg);
         return;
     }
 
@@ -1541,5 +1541,5 @@ void l2c_link_segments_xmitted (BT_HDR *p_msg)
         l2c_link_check_send_pkts (p_lcb, NULL, NULL);
     }
     else
-        osi_freebuf (p_msg);
+        osi_freebuf(p_msg);
 }

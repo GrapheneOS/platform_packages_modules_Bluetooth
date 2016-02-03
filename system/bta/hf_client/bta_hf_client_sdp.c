@@ -374,10 +374,5 @@ void bta_hf_client_do_disc(void)
 void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data)
 {
     UNUSED(p_data);
-
-    if (bta_hf_client_cb.scb.p_disc_db != NULL)
-    {
-        osi_freebuf(bta_hf_client_cb.scb.p_disc_db);
-        bta_hf_client_cb.scb.p_disc_db = NULL;
-    }
+    osi_freebuf_and_reset((void **)&bta_hf_client_cb.scb.p_disc_db);
 }

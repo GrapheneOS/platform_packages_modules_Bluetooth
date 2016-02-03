@@ -954,9 +954,8 @@ static void btif_hh_upstreams_evt(UINT16 event, char* p_param)
                     //Free buffer created for dscp_info;
                     if (dscp_info.descriptor.dl_len >0 && dscp_info.descriptor.dsc_list != NULL)
                     {
-                      osi_freebuf(dscp_info.descriptor.dsc_list);
-                      dscp_info.descriptor.dsc_list = NULL;
-                      dscp_info.descriptor.dl_len=0;
+                        osi_freebuf_and_reset((void **)&dscp_info.descriptor.dsc_list);
+                        dscp_info.descriptor.dl_len = 0;
                     }
                 }
                 else {
@@ -1331,7 +1330,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
                      hid_info.app_id, dscp_info);
     }
 
-    osi_freebuf(dscp_info.descriptor.dsc_list);
+    osi_freebuf_and_reset((void **)&dscp_info.descriptor.dsc_list);
 
     return BT_STATUS_SUCCESS;
 }

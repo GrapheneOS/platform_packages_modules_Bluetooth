@@ -2227,10 +2227,7 @@ void gatt_end_operation(tGATT_CLCB *p_clcb, tGATT_STATUS status, void *p_data)
         }
     }
 
-    if (p_clcb->p_attr_buf)
-    {
-        osi_freebuf(p_clcb->p_attr_buf);
-    }
+    osi_freebuf_and_reset((void **)&p_clcb->p_attr_buf);
 
     operation =  p_clcb->operation;
     conn_id = p_clcb->conn_id;

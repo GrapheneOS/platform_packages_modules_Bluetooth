@@ -248,7 +248,7 @@ void bta_hl_dch_mca_rcv_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 
                 if (MCA_WriteReq((tMCA_DL) p_dcb->mdl_handle, p_data->mca_rcv_data_evt.p_pkt) != MCA_SUCCESS)
                 {
-                    utl_freebuf((void **) &p_data->mca_rcv_data_evt.p_pkt);
+                    osi_freebuf_and_reset((void **)&p_data->mca_rcv_data_evt.p_pkt);
                     bta_hl_dch_sm_execute(app_idx, mcl_idx, mdl_idx, BTA_HL_DCH_CLOSE_ECHO_TEST_EVT, p_data);
                 }
                 break;
@@ -305,7 +305,7 @@ void bta_hl_dch_ci_put_echo_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 #endif
 
     p_dcb->cout_oper &= ~BTA_HL_CO_PUT_ECHO_DATA_MASK;
-    utl_freebuf((void **) &p_dcb->p_echo_rx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_echo_rx_pkt);
     p_dcb->ci_put_echo_data_status = p_data->ci_get_put_echo_data.status;
 
     p_dcb->echo_oper = BTA_HL_ECHO_OP_DCH_CLOSE_CFM;
@@ -379,7 +379,7 @@ void bta_hl_dch_ci_put_rx_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 #endif
 
     p_dcb->cout_oper &= ~BTA_HL_CO_PUT_RX_DATA_MASK;
-    utl_freebuf((void **) &p_dcb->p_rx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_rx_pkt);
     bta_hl_build_rcv_data_ind(&evt_data,
                               p_acb->app_handle,
                               p_mcb->mcl_handle,
@@ -457,9 +457,7 @@ void bta_hl_dch_ci_get_tx_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
     }
 
     if (free_buf)
-    {
-        utl_freebuf((void **) &p_dcb->p_tx_pkt);
-    }
+        osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
 
     bta_hl_build_send_data_cfm(&evt_data,
                                p_acb->app_handle,
@@ -1850,8 +1848,7 @@ static void bta_hl_sdp_cback(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
         } while (TRUE);
     }
 
-
-    utl_freebuf((void **)&p_cb->p_db);
+    osi_freebuf_and_reset((void **)&p_cb->p_db);
 
     if ( (status == SDP_SUCCESS || status == SDP_DB_FULL) &&
          p_cb->sdp.num_recs  &&
@@ -2236,13 +2233,10 @@ tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, UINT8 app_idx, UINT8 m
         status = BTA_HL_STATUS_SDP_NO_RESOURCE;
     }
 
-    if (status != BTA_HL_STATUS_OK)
-    {
-        utl_freebuf((void **)&p_cb->p_db);
-        if (status != BTA_HL_STATUS_SDP_NO_RESOURCE )
-        {
+    if (status != BTA_HL_STATUS_OK) {
+        osi_freebuf_and_reset((void **)&p_cb->p_db);
+        if (status != BTA_HL_STATUS_SDP_NO_RESOURCE)
             bta_hl_deallocate_spd_cback(sdp_cback_idx);
-        }
     }
 
     return status;

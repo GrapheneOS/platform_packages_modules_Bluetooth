@@ -56,18 +56,10 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
     p_ccb->ret_count = 0;
 
     /* free message being fragmented */
-    if (p_ccb->p_curr_msg != NULL)
-    {
-        osi_freebuf(p_ccb->p_curr_msg);
-        p_ccb->p_curr_msg = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_ccb->p_curr_msg);
 
     /* free message being reassembled */
-    if (p_ccb->p_rx_msg != NULL)
-    {
-        osi_freebuf(p_ccb->p_rx_msg);
-        p_ccb->p_rx_msg = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
 
     /* clear out response queue */
     while ((p_buf = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
@@ -751,8 +743,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
             }
         }
 
-        osi_freebuf(p_ccb->p_curr_cmd);
-        p_ccb->p_curr_cmd = NULL;
+        osi_freebuf_and_reset((void **)&p_ccb->p_curr_cmd);
     }
 }
 
@@ -770,12 +761,7 @@ void avdt_ccb_cmd_fail(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_free_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UNUSED(p_data);
-
-    if (p_ccb->p_curr_cmd != NULL)
-    {
-        osi_freebuf(p_ccb->p_curr_cmd);
-        p_ccb->p_curr_cmd = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_ccb->p_curr_cmd);
 }
 
 /*******************************************************************************

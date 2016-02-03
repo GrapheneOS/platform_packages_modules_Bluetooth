@@ -69,10 +69,7 @@ void data_dispatcher_free(data_dispatcher_t *dispatcher) {
     return;
 
   hash_map_free(dispatcher->dispatch_table);
-
-  if (dispatcher->name)
-    osi_free(dispatcher->name);
-
+  osi_free(dispatcher->name);
   osi_free(dispatcher);
 }
 

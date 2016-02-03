@@ -1366,9 +1366,8 @@ void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
     p_cb->total_srvc = 0;
     p_cb->dscp_info.descriptor.dsc_list = NULL;
 
-    for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i ++, p_hid_srvc ++)
-    {
-        utl_freebuf((void **)&p_hid_srvc->rpt_map);
+    for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i++, p_hid_srvc++) {
+        osi_freebuf_and_reset((void **)&p_hid_srvc->rpt_map);
         memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
     }
 }
@@ -1850,9 +1849,7 @@ void bta_hh_le_save_rpt_map(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
 
     pp = p_data->p_value->unformat.p_value;
 
-    /* save report descriptor */
-    if (p_srvc->rpt_map != NULL)
-        osi_freebuf((void*)p_srvc->rpt_map);
+    osi_freebuf_and_reset((void **)&p_srvc->rpt_map);
 
     if (p_data->p_value->unformat.len > 0)
         p_srvc->rpt_map = (UINT8 *)osi_getbuf(p_data->p_value->unformat.len);
@@ -1931,7 +1928,7 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
     p_dev_cb->w4_evt = 0;
     (* bta_hh_cb.p_cback)(BTA_HH_GET_RPT_EVT, (tBTA_HH *)&hs_data);
 
-    utl_freebuf((void **)&p_buf);
+    osi_freebuf_and_reset((void **)&p_buf);
 }
 
 /*******************************************************************************

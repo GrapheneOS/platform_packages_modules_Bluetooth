@@ -305,12 +305,9 @@ void bta_gattc_clcb_dealloc(tBTA_GATTC_CLCB *p_clcb)
             p_srcb->mtu = 0;
         }
 
-        utl_freebuf((void **)&p_clcb->p_q_cmd);
-
+        osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
         memset(p_clcb, 0, sizeof(tBTA_GATTC_CLCB));
-    }
-    else
-    {
+    } else {
         APPL_TRACE_ERROR("bta_gattc_clcb_dealloc p_clcb=NULL");
     }
 }
@@ -419,7 +416,7 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
             fixed_queue_free(p_tcb->cache_buffer, NULL);
         }
 
-        utl_freebuf((void **)&p_tcb->p_srvc_list);
+        osi_freebuf_and_reset((void **)&p_tcb->p_srvc_list);
         memset(p_tcb, 0 , sizeof(tBTA_GATTC_SERV));
         p_tcb->cache_buffer = fixed_queue_new(SIZE_MAX);
 

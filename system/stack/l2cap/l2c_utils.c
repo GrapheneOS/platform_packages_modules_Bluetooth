@@ -151,11 +151,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     p_lcb->info_resp_timer = NULL;
 
     /* Release any unfinished L2CAP packet on this link */
-    if (p_lcb->p_hcit_rcv_acl)
-    {
-        osi_freebuf(p_lcb->p_hcit_rcv_acl);
-        p_lcb->p_hcit_rcv_acl = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_lcb->p_hcit_rcv_acl);
 
 #if BTM_SCO_INCLUDED == TRUE
 #if (BLE_INCLUDED == TRUE)

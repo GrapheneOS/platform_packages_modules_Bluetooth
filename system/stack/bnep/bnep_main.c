@@ -487,7 +487,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
     if ((p_bcb = bnepu_find_bcb_by_cid (l2cap_cid)) == NULL)
     {
         BNEP_TRACE_WARNING ("BNEP - Rcvd L2CAP data, unknown CID: 0x%x", l2cap_cid);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -498,7 +498,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
     if ((rem_len <= bnep_frame_hdr_sizes[type]) || (rem_len > BNEP_MTU_SIZE))
     {
         BNEP_TRACE_EVENT ("BNEP - rcvd frame, bad len: %d  type: 0x%02x", p_buf->len, type);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -540,14 +540,14 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
             } while (ext & 0x80);
         }
 
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
     if (type > BNEP_FRAME_COMPRESSED_ETHERNET_DEST_ONLY)
     {
         BNEP_TRACE_EVENT ("BNEP - rcvd frame, unknown type: 0x%02x", type);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -598,7 +598,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
                 p = bnep_process_control_packet (p_bcb, p, &rem_len, TRUE);
             }
         }
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
 
     case BNEP_FRAME_COMPRESSED_ETHERNET:
@@ -663,7 +663,7 @@ static void bnep_data_ind (UINT16 l2cap_cid, BT_HDR *p_buf)
     else if (bnep_cb.p_data_ind_cb)
     {
         (*bnep_cb.p_data_ind_cb)(p_bcb->handle, p_src_addr, p_dst_addr, protocol, p, rem_len, fw_ext_present);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
     }
 }
 

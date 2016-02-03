@@ -959,11 +959,7 @@ void btm_ble_batchscan_cleanup(void)
     BTM_TRACE_EVENT (" btm_ble_batchscan_cleanup");
 
     for (index = 0; index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE; index++)
-    {
-        if (NULL != ble_batchscan_cb.main_rep_q.p_data[index])
-            osi_freebuf(ble_batchscan_cb.main_rep_q.p_data[index]);
-        ble_batchscan_cb.main_rep_q.p_data[index] = NULL;
-    }
+        osi_freebuf_and_reset((void **)&ble_batchscan_cb.main_rep_q.p_data[index]);
 
     memset(&ble_batchscan_cb, 0, sizeof(tBTM_BLE_BATCH_SCAN_CB));
     memset(&ble_advtrack_cb, 0, sizeof(tBTM_BLE_ADV_TRACK_CB));

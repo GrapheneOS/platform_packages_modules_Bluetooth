@@ -719,7 +719,7 @@ BOOLEAN btm_send_pending_direct_conn(void)
     if (p_req != NULL)
     {
         rt = l2cble_init_direct_conn((tL2C_LCB *)(p_req->p_param));
-        osi_freebuf((void *)p_req);
+        osi_freebuf(p_req);
     }
 
     return rt;

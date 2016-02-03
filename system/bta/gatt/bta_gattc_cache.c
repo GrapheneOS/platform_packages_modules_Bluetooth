@@ -149,21 +149,13 @@ BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_getbuf(GATT_DB_BUF_SIZE);
 
-    if (p_buf == NULL)
-    {
-        APPL_TRACE_DEBUG("No resources: GKI buffer allocation failed.");
-        utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
-        p_srvc_cb->free_byte = 0;
-    }
-    else
-    {
-        memset(p_buf, 0, osi_get_buf_size(p_buf));
-        p_srvc_cb->p_free = (UINT8 *) p_buf;
-        p_srvc_cb->free_byte = osi_get_buf_size(p_buf);
+    memset(p_buf, 0, GATT_DB_BUF_SIZE);
+    p_srvc_cb->p_free = (UINT8 *) p_buf;
+    p_srvc_cb->free_byte = GATT_DB_BUF_SIZE;
 
-        /* link into buffer queue */
-        fixed_queue_enqueue(p_srvc_cb->cache_buffer, p_buf);
-    }
+    /* link into buffer queue */
+    fixed_queue_enqueue(p_srvc_cb->cache_buffer, p_buf);
+
 #if BTA_GATT_DEBUG== TRUE
     APPL_TRACE_DEBUG("allocating new buffer: free byte = %d", p_srvc_cb->free_byte);
 #endif
@@ -189,28 +181,19 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
         p_srvc_cb->cache_buffer = fixed_queue_new(SIZE_MAX);
     }
 
-    utl_freebuf((void **)&p_srvc_cb->p_srvc_list);
+    osi_freebuf(p_srvc_cb->p_srvc_list);
+    p_srvc_cb->p_srvc_list =
+        (tBTA_GATTC_ATTR_REC *)osi_getbuf(BTA_GATTC_ATTR_LIST_SIZE);
+    p_srvc_cb->total_srvc = 0;
+    p_srvc_cb->cur_srvc_idx = 0;
+    p_srvc_cb->cur_char_idx = 0;
+    p_srvc_cb->next_avail_idx = 0;
 
-    if ((p_srvc_cb->p_srvc_list = (tBTA_GATTC_ATTR_REC*)osi_getbuf(BTA_GATTC_ATTR_LIST_SIZE)) == NULL)
-    {
-        APPL_TRACE_DEBUG("No resources: GKI buffer allocation failed.");
+    if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL) {
         status = GATT_NO_RESOURCES;
-    }
-    else
-    {
-        p_srvc_cb->total_srvc = 0;
-        p_srvc_cb->cur_srvc_idx =
-        p_srvc_cb->cur_char_idx =
-        p_srvc_cb->next_avail_idx = 0;
-
-        if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
-        {
-            status = GATT_NO_RESOURCES;
-        }
-        else
-        {
-            p_srvc_cb->p_cur_srvc = p_srvc_cb->p_srvc_cache = NULL;
-        }
+    } else {
+        p_srvc_cb->p_cur_srvc = NULL;
+        p_srvc_cb->p_srvc_cache = NULL;
     }
 
     return status;
@@ -932,12 +915,6 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
         return BTA_GATT_ERROR;
 
     cb_data->p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_GATT_SDP_DB_SIZE);
-    if (cb_data->p_sdp_db == NULL)
-    {
-        osi_freebuf(cb_data);
-        return BTA_GATT_ERROR;
-    }
-
     attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
     attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
 

@@ -203,15 +203,11 @@ static void wakelock_initialize_native(void) {
 }
 
 void wakelock_cleanup(void) {
-  if (wake_lock_path && wake_lock_path != DEFAULT_WAKE_LOCK_PATH) {
-    osi_free(wake_lock_path);
-    wake_lock_path = NULL;
-  }
+  if (wake_lock_path && wake_lock_path != DEFAULT_WAKE_LOCK_PATH)
+    osi_free_and_reset((void **)&wake_lock_path);
 
-  if (wake_unlock_path && wake_unlock_path != DEFAULT_WAKE_UNLOCK_PATH) {
-    osi_free(wake_unlock_path);
-    wake_unlock_path = NULL;
-  }
+  if (wake_unlock_path && wake_unlock_path != DEFAULT_WAKE_UNLOCK_PATH)
+    osi_free_and_reset((void **)&wake_unlock_path);
 
   initialized = PTHREAD_ONCE_INIT;
   pthread_mutex_destroy(&monitor);

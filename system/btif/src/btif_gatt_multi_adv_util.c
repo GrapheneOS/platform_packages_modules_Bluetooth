@@ -99,14 +99,12 @@ void btif_gattc_incr_app_count(void)
 void btif_gattc_decr_app_count(void)
 {
     if (user_app_count > 0)
-        user_app_count --;
+        user_app_count--;
 
-    if(user_app_count == 0 && NULL != p_multi_adv_com_data_cb)
-    {
-       osi_freebuf (p_multi_adv_com_data_cb->clntif_map);
-       osi_freebuf (p_multi_adv_com_data_cb->inst_cb);
-       osi_freebuf(p_multi_adv_com_data_cb);
-       p_multi_adv_com_data_cb = NULL;
+    if ((user_app_count == 0) && (p_multi_adv_com_data_cb != NULL)) {
+       osi_freebuf(p_multi_adv_com_data_cb->clntif_map);
+       osi_freebuf(p_multi_adv_com_data_cb->inst_cb);
+       osi_freebuf_and_reset((void **)&p_multi_adv_com_data_cb);
     }
 }
 
@@ -257,16 +255,11 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
     }
 }
 
-void btif_gattc_adv_data_cleanup(const btif_adv_data_t* adv)
+void btif_gattc_adv_data_cleanup(btif_adv_data_t* adv)
 {
-    if (adv->p_service_data)
-        osi_freebuf(adv->p_service_data);
-
-    if (adv->p_service_uuid)
-        osi_freebuf(adv->p_service_uuid);
-
-    if (adv->p_manufacturer_data)
-        osi_freebuf(adv->p_manufacturer_data);
+    osi_freebuf_and_reset((void **)&adv->p_service_data);
+    osi_freebuf_and_reset((void **)&adv->p_service_uuid);
+    osi_freebuf_and_reset((void **)&adv->p_manufacturer_data);
 }
 
 BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
@@ -509,13 +502,6 @@ void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_multi_inst_cb,
     }
 
     memset(&p_multi_inst_cb->data, 0, sizeof(p_multi_inst_cb->data));
-}
-
-void btif_gattc_cleanup(void** buf)
-{
-   if (NULL == *buf) return;
-   osi_freebuf(*buf);
-   *buf = NULL;
 }
 
 void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb)

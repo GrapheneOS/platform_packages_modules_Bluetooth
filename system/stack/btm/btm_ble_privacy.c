@@ -1011,16 +1011,11 @@ void btm_ble_resolving_list_cleanup(void)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
 
-    if (p_q->resolve_q_random_pseudo)
-        osi_freebuf(p_q->resolve_q_random_pseudo);
-
-    if (p_q->resolve_q_action)
-       osi_freebuf(p_q->resolve_q_action);
+    osi_freebuf_and_reset((void **)&p_q->resolve_q_random_pseudo);
+    osi_freebuf_and_reset((void **)&p_q->resolve_q_action);
 
     controller_get_interface()->set_ble_resolving_list_max_size(0);
-    if (btm_cb.ble_ctr_cb.irk_list_mask)
-       osi_freebuf(btm_cb.ble_ctr_cb.irk_list_mask);
 
-    btm_cb.ble_ctr_cb.irk_list_mask = NULL;
+    osi_freebuf_and_reset((void **)&btm_cb.ble_ctr_cb.irk_list_mask);
 }
 #endif

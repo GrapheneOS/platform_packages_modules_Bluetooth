@@ -369,13 +369,12 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
         case BTA_GATTC_READ_DESCR_EVT:
             if (p_data != NULL && p_data->read.p_value != NULL)
             {
-                if (get_uuid16 (&p_data->read.descr_type.uuid) != GATT_UUID_CHAR_AGG_FORMAT
-                  && p_data->read.p_value->unformat.len > 0
-                  && p_data->read.p_value->unformat.p_value != NULL)
-                {
-                    osi_freebuf(p_data->read.p_value->unformat.p_value);
+                if ((get_uuid16(&p_data->read.descr_type.uuid) !=
+                     GATT_UUID_CHAR_AGG_FORMAT) &&
+                    (p_data->read.p_value->unformat.len > 0)) {
+                    osi_freebuf_and_reset((void **)&p_data->read.p_value->unformat.p_value);
                 }
-                osi_freebuf(p_data->read.p_value);
+                osi_freebuf_and_reset((void **)p_data->read.p_value);
             }
             break;
 
@@ -787,8 +786,7 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             HAL_CBACK(bt_gatt_callbacks, client->batchscan_reports_cb
                     , p_data->client_if, p_data->status, p_data->read_reports.report_format
                     , p_data->read_reports.num_records, p_data->read_reports.data_len, p_rep_data);
-            if (NULL != p_rep_data)
-                osi_freebuf(p_rep_data);
+            osi_freebuf(p_rep_data);
             break;
         }
 
@@ -1007,7 +1005,7 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
         (char*) &btif_scan_track_cb, sizeof(btgatt_batch_track_cb_t), NULL);
 
     if (data_len > 0)
-        osi_freebuf(btif_scan_track_cb.read_reports.p_rep_data);
+        osi_freebuf_and_reset((void **)&btif_scan_track_cb.read_reports.p_rep_data);
 }
 
 static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
@@ -1131,7 +1129,7 @@ static void btgattc_free_event_data(UINT16 event, char *event_data)
         case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
         case BTIF_GATTC_SET_ADV_DATA:
         {
-            const btif_adv_data_t *adv_data = (btif_adv_data_t*) event_data;
+            btif_adv_data_t *adv_data = (btif_adv_data_t *)event_data;
             btif_gattc_adv_data_cleanup(adv_data);
             break;
         }
