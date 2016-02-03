@@ -44,25 +44,13 @@ void WriteAdvertiseDataToParcel(const AdvertiseData& data, Parcel* parcel) {
 
 std::unique_ptr<AdvertiseData> CreateAdvertiseDataFromParcel(
     const Parcel& parcel) {
-  std::vector<uint8_t> data;
-
-  // For len=0 Parcel::writeByteArray writes "-1" for the length value. So, any
-  // other value means that there is data to read.
-  // TODO(pavlin): We shouldn't need to worry about his here. Instead, Parcel
-  // should have an API for deserializing an array of bytes (e.g.
-  // Parcel::readByteArray()).
-  int data_len = parcel.readInt32();
-  if (data_len != -1) {
-    uint8_t bytes[data_len];
-    parcel.read(bytes, data_len);
-
-    data = std::vector<uint8_t>(bytes, bytes + data_len);
-  }
+  auto data = ReadByteVectorFromParcel(parcel);
+  CHECK(data.get());
 
   bool include_device_name = parcel.readInt32();
   bool include_tx_power = parcel.readInt32();
 
-  std::unique_ptr<AdvertiseData> adv(new AdvertiseData(data));
+  std::unique_ptr<AdvertiseData> adv(new AdvertiseData(*data));
   adv->set_include_device_name(include_device_name);
   adv->set_include_tx_power_level(include_tx_power);
 
@@ -310,21 +298,27 @@ std::unique_ptr<bluetooth::ScanResult> CreateScanResultFromParcel(
   if (parcel.readInt32())
     device_address = parcel.readCString();
 
-  std::vector<uint8_t> scan_record;
-  if (parcel.readInt32()) {
-    int record_len = parcel.readInt32();
-    if (record_len != -1) {
-      uint8_t bytes[record_len];
-      parcel.read(bytes, record_len);
-
-      scan_record = std::vector<uint8_t>(bytes, bytes + record_len);
-    }
-  }
+  auto scan_record = ReadByteVectorFromParcel(parcel);
+  CHECK(scan_record.get());
 
   int rssi = parcel.readInt32();
 
   return std::unique_ptr<ScanResult>(new ScanResult(
-      device_address, scan_record, rssi));
+      device_address, *scan_record, rssi));
+}
+
+std::unique_ptr<std::vector<uint8_t>> ReadByteVectorFromParcel(
+    const android::Parcel& parcel) {
+  int32_t value_len = parcel.readInt32();
+  value_len = std::min(0, value_len);
+
+  std::unique_ptr<std::vector<uint8_t>> p(new std::vector<uint8_t>(value_len));
+
+  android::status_t result = parcel.read(p->data(), value_len);
+  if (result != android::NO_ERROR)
+    return nullptr;
+
+  return p;
 }
 
 }  // namespace binder

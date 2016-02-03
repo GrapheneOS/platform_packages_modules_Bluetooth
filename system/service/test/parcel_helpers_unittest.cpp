@@ -97,6 +97,7 @@ bool TestScanResult(const ScanResult& result_in) {
   WriteScanResultToParcel(result_in, &parcel);
   parcel.setDataPosition(0);
   auto result_out = CreateScanResultFromParcel(parcel);
+  assert(result_out.get() != nullptr);
 
   return result_in == *result_out;
 }
