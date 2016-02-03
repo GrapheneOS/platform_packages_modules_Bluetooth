@@ -1899,7 +1899,6 @@ static void btif_hl_proc_reg_cfm(tBTA_HL* p_data) {
       p_acb->app_handle = p_data->reg_cfm.app_handle;
     } else {
       btif_hl_free_app_idx(app_idx);
-      reg_counter--;
       state = BTHL_APP_REG_STATE_REG_FAILED;
     }
 
@@ -2985,7 +2984,9 @@ static void btif_hl_proc_cb_evt(uint16_t event, char* p_param) {
       }
 
       break;
+
     case BTIF_HL_REG_APP:
+      reg_counter++;
       p_acb = BTIF_HL_GET_APP_CB_PTR(p_data->reg.app_idx);
       BTIF_TRACE_DEBUG("Rcv BTIF_HL_REG_APP app_idx=%d reg_pending=%d",
                        p_data->reg.app_idx, p_acb->reg_pending);
@@ -3003,10 +3004,10 @@ static void btif_hl_proc_cb_evt(uint16_t event, char* p_param) {
         BTIF_TRACE_DEBUG("reg request is processed state=%d reg_pending=%d",
                          btif_hl_get_state(), p_acb->reg_pending);
       }
-
       break;
 
     case BTIF_HL_UNREG_APP:
+      reg_counter--;
       BTIF_TRACE_DEBUG("Rcv BTIF_HL_UNREG_APP app_idx=%d",
                        p_data->unreg.app_idx);
       p_acb = BTIF_HL_GET_APP_CB_PTR(p_data->unreg.app_idx);
@@ -3017,6 +3018,7 @@ static void btif_hl_proc_cb_evt(uint16_t event, char* p_param) {
           BTA_HlDeregister(p_acb->app_id, p_acb->app_handle);
       }
       break;
+
     case BTIF_HL_UPDATE_MDL:
       BTIF_TRACE_DEBUG("Rcv BTIF_HL_UPDATE_MDL app_idx=%d",
                        p_data->update_mdl.app_idx);
@@ -3912,7 +3914,6 @@ static bt_status_t register_application(bthl_reg_param_t* p_reg_param,
     evt_param.reg.app_idx = app_idx;
     len = sizeof(btif_hl_reg_t);
     p_acb->reg_pending = true;
-    reg_counter++;
     BTIF_TRACE_DEBUG("calling btif_transfer_context status=%d app_id=%d",
                      status, *app_id);
     status = btif_transfer_context(btif_hl_proc_cb_evt, BTIF_HL_REG_APP,
