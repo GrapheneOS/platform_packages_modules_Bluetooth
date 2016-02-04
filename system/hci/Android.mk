@@ -17,7 +17,8 @@ LOCAL_SRC_FILES := \
     src/hci_packet_parser.c \
     src/low_power_manager.c \
     src/packet_fragmenter.c \
-    src/vendor.c
+    src/vendor.c \
+    EventLogTags.logtags
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
 LOCAL_CFLAGS += -DHCI_USE_MCT
