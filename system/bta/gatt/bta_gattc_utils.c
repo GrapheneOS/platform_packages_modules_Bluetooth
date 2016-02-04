@@ -589,33 +589,40 @@ BOOLEAN bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV
 **
 ** Function         bta_gattc_clear_notif_registration
 **
-** Description      clear up the notification registration information by BD_ADDR.
+** Description      Clear up the notification registration information by BD_ADDR.
+**                  Where handle is between start_handle and end_handle, and
+**                  start_handle and end_handle are boundaries of service
+**                  containing characteristic.
 **
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_clear_notif_registration(UINT16 conn_id)
+void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
+                                        UINT16 start_handle, UINT16 end_handle)
 {
     BD_ADDR             remote_bda;
     tBTA_GATTC_IF       gatt_if;
     tBTA_GATTC_RCB      *p_clrcb ;
     UINT8       i;
     tGATT_TRANSPORT     transport;
+    UINT16              handle;
 
-    if (GATT_GetConnectionInfor(conn_id, &gatt_if, remote_bda, &transport))
-    {
-        if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) != NULL)
-        {
-            for (i = 0 ; i < BTA_GATTC_NOTIF_REG_MAX; i ++)
-            {
+    if (GATT_GetConnectionInfor(conn_id, &gatt_if, remote_bda, &transport)) {
+        if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) != NULL) {
+            for (i = 0 ; i < BTA_GATTC_NOTIF_REG_MAX; i ++) {
                 if (p_clrcb->notif_reg[i].in_use &&
                     !bdcmp(p_clrcb->notif_reg[i].remote_bda, remote_bda))
-                    memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
+
+                    /* It's enough to get service or characteristic handle, as
+                     * clear boundaries are always around service.
+                     */
+                    handle = bta_gattc_id2handle(p_srcb, &p_clrcb->notif_reg[i].char_id.srvc_id,
+                                                 &p_clrcb->notif_reg[i].char_id.char_id, NULL);
+                    if (handle >= start_handle && handle <= end_handle)
+                        memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
             }
         }
-    }
-    else
-    {
+    } else {
         APPL_TRACE_ERROR("can not clear indication/notif registration for unknown app");
     }
     return;

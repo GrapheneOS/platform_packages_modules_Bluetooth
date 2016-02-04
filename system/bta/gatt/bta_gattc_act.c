@@ -1938,7 +1938,7 @@ BOOLEAN bta_gattc_process_srvc_chg_ind(UINT16 conn_id,
                                        tBTA_GATTC_SERV     *p_srcb,
                                        tBTA_GATTC_CLCB      *p_clcb,
                                        tBTA_GATTC_NOTIFY    *p_notify,
-                                       UINT16 handle)
+                                       tGATT_VALUE *att_value)
 {
     tBT_UUID        gattp_uuid, srvc_chg_uuid;
     BOOLEAN         processed = FALSE;
@@ -1953,11 +1953,23 @@ BOOLEAN bta_gattc_process_srvc_chg_ind(UINT16 conn_id,
     if (bta_gattc_uuid_compare(&p_notify->char_id.srvc_id.id.uuid, &gattp_uuid, TRUE) &&
         bta_gattc_uuid_compare(&p_notify->char_id.char_id.uuid, &srvc_chg_uuid, TRUE))
     {
+        if (att_value->len != BTA_GATTC_SERVICE_CHANGED_LEN) {
+            APPL_TRACE_ERROR("%s: received malformed service changed indication, skipping", __func__);
+            return FALSE;
+        }
+
+        UINT8 *p = att_value->value;
+        UINT16 s_handle = ((UINT16)(*(p    )) + (((UINT16)(*(p + 1))) << 8));
+        UINT16 e_handle = ((UINT16)(*(p + 2)) + (((UINT16)(*(p + 3))) << 8));
+
+        APPL_TRACE_ERROR("%s: service changed s_handle:0x%04x e_handle:0x%04x",
+                         __func__, s_handle, e_handle);
+
         processed = TRUE;
         /* mark service handle change pending */
         p_srcb->srvc_hdl_chg = TRUE;
         /* clear up all notification/indication registration */
-        bta_gattc_clear_notif_registration(conn_id);
+        bta_gattc_clear_notif_registration(p_srcb, conn_id, s_handle, e_handle);
         /* service change indication all received, do discovery update */
         if ( ++ p_srcb->update_count == bta_gattc_num_reg_app())
         {
@@ -1977,7 +1989,7 @@ BOOLEAN bta_gattc_process_srvc_chg_ind(UINT16 conn_id,
                 }
             }
             /* send confirmation here if this is an indication, it should always be */
-            GATTC_SendHandleValueConfirm(conn_id, handle);
+            GATTC_SendHandleValueConfirm(conn_id, att_value->handle);
 
             /* if connection available, refresh cache by doing discovery now */
             if (p_clcb != NULL)
@@ -2074,7 +2086,7 @@ void bta_gattc_process_indicate(UINT16 conn_id, tGATTC_OPTYPE op, tGATT_CL_COMPL
                             &notify.descr_type))
     {
         /* if non-service change indication/notification, forward to application */
-        if (!bta_gattc_process_srvc_chg_ind(conn_id, p_clrcb, p_srcb, p_clcb, &notify, handle))
+        if (!bta_gattc_process_srvc_chg_ind(conn_id, p_clrcb, p_srcb, p_clcb, &notify, &p_data->att_value))
         {
             /* if app registered for the notification */
             if (bta_gattc_check_notif_registry(p_clrcb, p_srcb, &notify))
