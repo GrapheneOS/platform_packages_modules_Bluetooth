@@ -471,25 +471,32 @@ void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id, tBTA_AV_STA
 **
 ** Function         BTA_AvRemoteVendorUniqueCmd
 **
-** Description      Send a remote control command with Vendor Unique rc_id. This function can only
-**                  be used if AV is enabled with feature BTA_AV_FEAT_RCCT.
+** Description      Send a remote control command with Vendor Unique rc_id.
+**                  This function can only be used if AV is enabled with
+**                  feature BTA_AV_FEAT_RCCT.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_STATE key_state,
-                                 UINT8* p_msg, UINT8 buf_len)
+void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label,
+                                 tBTA_AV_STATE key_state, UINT8* p_msg,
+                                 UINT8 buf_len)
 {
-    tBTA_AV_API_REMOTE_CMD  *p_buf =
-        (tBTA_AV_API_REMOTE_CMD *) osi_getbuf(sizeof(tBTA_AV_API_REMOTE_CMD));
-    assert(p_buf);
+    tBTA_AV_API_REMOTE_CMD *p_buf =
+      (tBTA_AV_API_REMOTE_CMD *)osi_getbuf(sizeof(tBTA_AV_API_REMOTE_CMD) +
+                                           buf_len);
+    p_buf->label = label;
     p_buf->hdr.event = BTA_AV_API_REMOTE_CMD_EVT;
-    p_buf->hdr.layer_specific   = rc_handle;
+    p_buf->hdr.layer_specific = rc_handle;
     p_buf->msg.op_id = AVRC_ID_VENDOR;
     p_buf->msg.state = key_state;
-    p_buf->msg.p_pass_data = p_msg;
     p_buf->msg.pass_len = buf_len;
-    p_buf->label = label;
+    if (p_msg == NULL) {
+        p_buf->msg.p_pass_data = NULL;
+    } else {
+        p_buf->msg.p_pass_data = (UINT8 *)(p_buf + 1);
+        memcpy(p_buf->msg.p_pass_data, p_msg, buf_len);
+    }
     bta_sys_sendmsg(p_buf);
 }
 

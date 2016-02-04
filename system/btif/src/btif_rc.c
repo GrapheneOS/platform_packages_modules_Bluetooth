@@ -3969,14 +3969,14 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t *bd_addr, uint8_t key_co
     {
         bt_status_t tran_status = get_transaction(&p_transaction);
         if ((BT_STATUS_SUCCESS == tran_status) && (NULL != p_transaction)) {
-             UINT8* p_buf = (UINT8 *)osi_getbuf(AVRC_PASS_THRU_GROUP_LEN);
-             UINT8* start = p_buf;
+             UINT8 buffer[AVRC_PASS_THRU_GROUP_LEN] = {0};
+             UINT8* start = buffer;
              UINT24_TO_BE_STREAM(start, AVRC_CO_METADATA);
              *(start)++ = 0;
              UINT8_TO_BE_STREAM(start, key_code);
              BTA_AvRemoteVendorUniqueCmd(btif_rc_cb.rc_handle,
                                          p_transaction->lbl,
-                                         (tBTA_AV_STATE)key_state, p_buf,
+                                         (tBTA_AV_STATE)key_state, buffer,
                                          AVRC_PASS_THRU_GROUP_LEN);
              status =  BT_STATUS_SUCCESS;
              BTIF_TRACE_DEBUG("%s: succesfully sent group_navigation command to BTA",
