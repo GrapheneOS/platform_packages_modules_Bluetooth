@@ -79,6 +79,13 @@ void *list_back(const list_t *list) {
   return list->tail->data;
 }
 
+list_node_t *list_back_node(const list_t *list) {
+  assert(list != NULL);
+  assert(!list_is_empty(list));
+
+  return list->tail;
+}
+
 bool list_insert_after(list_t *list, list_node_t *prev_node, void *data) {
   assert(list != NULL);
   assert(prev_node != NULL);
