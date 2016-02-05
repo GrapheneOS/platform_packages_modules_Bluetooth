@@ -2511,7 +2511,7 @@ void  btm_acl_reset_paging (void)
     BTM_TRACE_DEBUG ("btm_acl_reset_paging");
     /* If we sent reset we are definitely not paging any more */
     while ((p = (BT_HDR *)fixed_queue_try_dequeue(btm_cb.page_queue)) != NULL)
-        osi_freebuf(p);
+        osi_free(p);
 
     btm_cb.paging = FALSE;
 }

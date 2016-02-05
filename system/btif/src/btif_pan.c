@@ -618,7 +618,7 @@ static int forward_bnep(tETH_HDR* eth_hdr, BT_HDR *hdr) {
             }
         }
     }
-    osi_freebuf(hdr);
+    osi_free(hdr);
     return FORWARD_IGNORE;
 }
 
@@ -728,7 +728,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
     // give other profiles a chance to run by limiting the amount of memory
     // PAN can use.
     for (int i = 0; i < PAN_BUF_MAX && btif_is_enabled() && btpan_cb.flow; i++) {
-        BT_HDR *buffer = (BT_HDR *)osi_getbuf(PAN_BUF_SIZE);
+        BT_HDR *buffer = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
         buffer->offset = PAN_MINIMUM_OFFSET;
         buffer->len = PAN_BUF_SIZE - sizeof(BT_HDR) - buffer->offset;
 
@@ -742,13 +742,13 @@ static void btu_exec_tap_fd_read(void *p_param) {
             switch (ret) {
                 case -1:
                     BTIF_TRACE_ERROR("%s unable to read from driver: %s", __func__, strerror(errno));
-                    osi_freebuf(buffer);
+                    osi_free(buffer);
                     //add fd back to monitor thread to try it again later
                     btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
                     return;
                 case 0:
                     BTIF_TRACE_WARNING("%s end of file reached.", __func__);
-                    osi_freebuf(buffer);
+                    osi_free(buffer);
                     //add fd back to monitor thread to process the exception
                     btsock_thread_add_fd(pan_pth, fd, 0, SOCK_THREAD_FD_RD, 0);
                     return;
@@ -775,7 +775,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
         } else {
             BTIF_TRACE_WARNING("%s dropping packet of length %d", __func__, buffer->len);
             btpan_cb.congest_packet_size = 0;
-            osi_freebuf(buffer);
+            osi_free(buffer);
         }
 
         // Bail out of the loop if reading from the TAP fd would block.

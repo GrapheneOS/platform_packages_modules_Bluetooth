@@ -426,8 +426,8 @@ static void btif_hl_clean_pcb(btif_hl_pending_chan_cb_t *p_pcb)
 static void btif_hl_clean_mdl_cb(btif_hl_mdl_cb_t *p_dcb)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__ );
-    osi_freebuf_and_reset((void **)&p_dcb->p_rx_pkt);
-    osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+    osi_free_and_reset((void **)&p_dcb->p_rx_pkt);
+    osi_free_and_reset((void **)&p_dcb->p_tx_pkt);
     memset(p_dcb, 0 , sizeof(btif_hl_mdl_cb_t));
 }
 
@@ -3083,7 +3083,7 @@ static void btif_hl_proc_send_data_cfm(tBTA_HL_MDL_HANDLE mdl_handle,
                                           &app_idx, &mcl_idx, &mdl_idx ))
     {
         p_dcb = BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-        osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+        osi_free_and_reset((void **)&p_dcb->p_tx_pkt);
         BTIF_TRACE_DEBUG("send success free p_tx_pkt tx_size=%d",
                          p_dcb->tx_size);
         p_dcb->tx_size = 0;
@@ -4469,7 +4469,7 @@ BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx){
 
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if (p_dcb && ((p_scb = (btif_hl_soc_cb_t *)osi_getbuf((UINT16)sizeof(btif_hl_soc_cb_t)))!=NULL))
+    if (p_dcb && ((p_scb = (btif_hl_soc_cb_t *)osi_malloc(sizeof(btif_hl_soc_cb_t)))!=NULL))
     {
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, p_scb->socket_id) >= 0)
         {
@@ -4487,7 +4487,7 @@ BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx){
             btif_hl_select_wakeup();
             status = TRUE;
         } else {
-            osi_freebuf_and_reset((void **)&p_scb);
+            osi_free_and_reset((void **)&p_scb);
         }
     }
 
@@ -4596,7 +4596,7 @@ void btif_hl_close_socket( fd_set *p_org_set){
             BTIF_TRACE_DEBUG("idle socket app_idx=%d mcl_id=%d, mdl_idx=%d p_dcb->in_use=%d",
                     p_scb->app_idx, p_scb->mcl_idx, p_scb->mdl_idx, p_dcb->in_use);
             list_remove(soc_queue, p_scb);
-            osi_freebuf(p_scb);
+            osi_free(p_scb);
             p_dcb->p_scb = NULL;
         }
     }
@@ -4653,9 +4653,9 @@ void btif_hl_select_monitor_callback(fd_set *p_cur_set ,fd_set *p_org_set) {
                 if (p_dcb->p_tx_pkt) {
                     BTIF_TRACE_ERROR("Rcv new pkt but the last pkt is still not been"
                             "  sent tx_size=%d", p_dcb->tx_size);
-                    osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+                    osi_free_and_reset((void **)&p_dcb->p_tx_pkt);
                 }
-                p_dcb->p_tx_pkt = osi_getbuf(p_dcb->mtu);
+                p_dcb->p_tx_pkt = osi_malloc(p_dcb->mtu);
                 int r = (int)recv(p_scb->socket_id[1], p_dcb->p_tx_pkt,
                                   p_dcb->mtu, MSG_DONTWAIT);
                 if (r > 0) {

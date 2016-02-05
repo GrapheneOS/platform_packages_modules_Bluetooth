@@ -212,7 +212,7 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
     BTIF_TRACE_VERBOSE("btif_transfer_context event %d, len %d", event, param_len);
 
     /* allocate and send message that will be executed in btif context */
-    if ((p_msg = (tBTIF_CONTEXT_SWITCH_CBACK *) osi_getbuf(sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len)) != NULL)
+    if ((p_msg = (tBTIF_CONTEXT_SWITCH_CBACK *) osi_malloc(sizeof(tBTIF_CONTEXT_SWITCH_CBACK) + param_len)) != NULL)
     {
         p_msg->hdr.event = BT_EVT_CONTEXT_SWITCH_EVT; /* internal event */
         p_msg->p_cb = p_cback;
@@ -310,7 +310,7 @@ static void bt_jni_msg_ready(void *context) {
       BTIF_TRACE_ERROR("unhandled btif event (%d)", p_msg->event & BT_EVT_MASK);
       break;
   }
-  osi_freebuf(p_msg);
+  osi_free(p_msg);
 }
 
 /*******************************************************************************

@@ -523,7 +523,7 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
         return PAN_SUCCESS;
     }
 
-    buffer = (BT_HDR *)osi_getbuf(PAN_BUF_SIZE);
+    buffer = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
     if (!buffer) {
         PAN_TRACE_ERROR("%s unable to acquire buffer.", __func__);
         return PAN_NO_RESOURCES;
@@ -569,7 +569,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     if (pan_cb.role == PAN_ROLE_INACTIVE || (!(pan_cb.num_conns)))
     {
         PAN_TRACE_ERROR ("PAN is not active Data write failed");
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return PAN_FAILURE;
     }
 
@@ -581,7 +581,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
             if (pan_cb.pcb[i].con_state == PAN_STATE_CONNECTED)
                 BNEP_Write(pan_cb.pcb[i].handle, dst, data, p_buf->len, protocol, src, ext);
         }
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return PAN_SUCCESS;
     }
 
@@ -599,7 +599,7 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
         if (i == MAX_PAN_CONNS)
         {
             PAN_TRACE_ERROR ("PAN Don't have any user connections");
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             return PAN_FAILURE;
         }
 
@@ -624,14 +624,14 @@ tPAN_RESULT PAN_WriteBuf (UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoc
     if (!pcb)
     {
         PAN_TRACE_ERROR ("PAN Buf write for wrong handle");
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return PAN_FAILURE;
     }
 
     if (pcb->con_state != PAN_STATE_CONNECTED)
     {
         PAN_TRACE_ERROR ("PAN Buf write when conn is not active");
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return PAN_FAILURE;
     }
 

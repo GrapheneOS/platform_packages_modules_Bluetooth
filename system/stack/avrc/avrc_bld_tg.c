@@ -834,7 +834,7 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
     }
 
     /* allocate and initialize the buffer */
-    p_pkt = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
+    p_pkt = (BT_HDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
     if (p_pkt)
     {
         UINT8 *p_data, *p_start;
@@ -987,7 +987,7 @@ tAVRC_STS AVRC_BldResponse( UINT8 handle, tAVRC_RESPONSE *p_rsp, BT_HDR **pp_pkt
 
     if (alloc && (status != AVRC_STS_NO_ERROR) )
     {
-        osi_freebuf(p_pkt);
+        osi_free(p_pkt);
         *pp_pkt = NULL;
     }
     AVRC_TRACE_API("%s returning %d", __func__, status);

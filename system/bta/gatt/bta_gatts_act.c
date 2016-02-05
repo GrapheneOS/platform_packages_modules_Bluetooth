@@ -237,7 +237,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
             else
             {
                 if ((p_buf =
-                  (tBTA_GATTS_INT_START_IF *) osi_getbuf(sizeof(tBTA_GATTS_INT_START_IF))) != NULL)
+                  (tBTA_GATTS_INT_START_IF *) osi_malloc(sizeof(tBTA_GATTS_INT_START_IF))) != NULL)
                 {
                     p_buf->hdr.event    = BTA_GATTS_INT_START_IF_EVT;
                     p_buf->server_if    = p_cb->rcb[first_unuse].gatt_if;

@@ -992,12 +992,12 @@ void btm_ble_resolving_list_init(UINT8 max_irk_list_sz)
 
     if (max_irk_list_sz > 0)
     {
-        p_q->resolve_q_random_pseudo = (BD_ADDR *)osi_getbuf(sizeof(BD_ADDR) * max_irk_list_sz);
-        p_q->resolve_q_action = (UINT8 *)osi_getbuf(max_irk_list_sz);
+        p_q->resolve_q_random_pseudo = (BD_ADDR *)osi_malloc(sizeof(BD_ADDR) * max_irk_list_sz);
+        p_q->resolve_q_action = (UINT8 *)osi_malloc(max_irk_list_sz);
 
         /* RPA offloading feature */
         if (btm_cb.ble_ctr_cb.irk_list_mask == NULL)
-            btm_cb.ble_ctr_cb.irk_list_mask = (UINT8 *)osi_getbuf(irk_mask_size);
+            btm_cb.ble_ctr_cb.irk_list_mask = (UINT8 *)osi_malloc(irk_mask_size);
 
         BTM_TRACE_DEBUG ("%s max_irk_list_sz = %d", __func__, max_irk_list_sz);
     }
@@ -1022,11 +1022,11 @@ void btm_ble_resolving_list_cleanup(void)
 {
     tBTM_BLE_RESOLVE_Q *p_q = &btm_cb.ble_ctr_cb.resolving_list_pend_q;
 
-    osi_freebuf_and_reset((void **)&p_q->resolve_q_random_pseudo);
-    osi_freebuf_and_reset((void **)&p_q->resolve_q_action);
+    osi_free_and_reset((void **)&p_q->resolve_q_random_pseudo);
+    osi_free_and_reset((void **)&p_q->resolve_q_action);
 
     controller_get_interface()->set_ble_resolving_list_max_size(0);
 
-    osi_freebuf_and_reset((void **)&btm_cb.ble_ctr_cb.irk_list_mask);
+    osi_free_and_reset((void **)&btm_cb.ble_ctr_cb.irk_list_mask);
 }
 #endif

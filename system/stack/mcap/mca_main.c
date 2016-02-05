@@ -490,7 +490,7 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
             mca_ccb_event(p_ccb, event, (tMCA_CCB_EVT *) p_buf);
         } /* got a valid ccb */
         else
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
     }
     /* else send event to dcb */
     else
@@ -501,7 +501,7 @@ void mca_tc_data_ind(tMCA_TC_TBL *p_tbl, BT_HDR *p_buf)
             mca_dcb_event(p_dcb, MCA_DCB_TC_DATA_EVT, (tMCA_DCB_EVT *) p_buf);
         }
         else
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
     }
 }
 

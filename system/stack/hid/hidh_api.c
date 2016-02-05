@@ -467,7 +467,7 @@ tHID_STATUS HID_HostWriteDev( UINT8 dev_handle, UINT8 t_type,
     }
 
     if (status != HID_SUCCESS)
-        osi_freebuf(pbuf);
+        osi_free(pbuf);
     else
         status = hidh_conn_snd_data(dev_handle, t_type, param, data, report_id, pbuf);
 

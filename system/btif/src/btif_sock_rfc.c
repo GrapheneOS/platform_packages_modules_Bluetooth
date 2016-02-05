@@ -117,7 +117,7 @@ bt_status_t btsock_rfc_init(int poll_thread_handle, uid_set_t* set) {
     rfc_slots[i].sdp_handle = 0;
     rfc_slots[i].fd = INVALID_FD;
     rfc_slots[i].app_fd = INVALID_FD;
-    rfc_slots[i].incoming_queue = list_new(osi_freebuf);
+    rfc_slots[i].incoming_queue = list_new(osi_free);
     assert(rfc_slots[i].incoming_queue != NULL);
   }
 
@@ -854,12 +854,12 @@ int bta_co_rfc_data_incoming(void *user_data, BT_HDR *p_buf) {
         break;
 
       case SENT_ALL:
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         ret = 1;  // Enable data flow.
         break;
 
       case SENT_FAILED:
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         cleanup_rfc_slot(slot);
         break;
     }

@@ -267,7 +267,7 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
     APPL_TRACE_DEBUG(" bta_sys_hw_btm_cback was called with parameter: %i" , status );
 
     /* send a message to BTA SYS */
-    if ((sys_event = (tBTA_SYS_HW_MSG *) osi_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+    if ((sys_event = (tBTA_SYS_HW_MSG *) osi_malloc(sizeof(tBTA_SYS_HW_MSG))) != NULL)
     {
         if (status == BTM_DEV_STATUS_UP)
             sys_event->hdr.event = BTA_SYS_EVT_STACK_ENABLED_EVT;
@@ -276,7 +276,7 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
         else
         {
             /* BTM_DEV_STATUS_CMD_TOUT is ignored for now. */
-            osi_freebuf_and_reset((void **)&sys_event);
+            osi_free_and_reset((void **)&sys_event);
         }
 
         if (sys_event)
@@ -348,7 +348,7 @@ void bta_sys_hw_api_enable( tBTA_SYS_HW_MSG *p_sys_hw_msg )
         bta_sys_cb.sys_hw_module_active |=  ((UINT32)1 << p_sys_hw_msg->hw_module );
 
         tBTA_SYS_HW_MSG *p_msg;
-        if ((p_msg = (tBTA_SYS_HW_MSG *) osi_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+        if ((p_msg = (tBTA_SYS_HW_MSG *) osi_malloc(sizeof(tBTA_SYS_HW_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_SYS_EVT_ENABLED_EVT;
             p_msg->hw_module = p_sys_hw_msg->hw_module;
@@ -407,7 +407,7 @@ void bta_sys_hw_api_disable(tBTA_SYS_HW_MSG *p_sys_hw_msg)
         bta_sys_cb.state = BTA_SYS_HW_STOPPING;
 
         tBTA_SYS_HW_MSG *p_msg;
-        if ((p_msg = (tBTA_SYS_HW_MSG *) osi_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+        if ((p_msg = (tBTA_SYS_HW_MSG *) osi_malloc(sizeof(tBTA_SYS_HW_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_SYS_EVT_DISABLED_EVT;
             p_msg->hw_module = p_sys_hw_msg->hw_module;
@@ -518,7 +518,7 @@ void bta_sys_event(BT_HDR *p_msg)
 
     if (freebuf)
     {
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
     }
 
 }
@@ -607,7 +607,7 @@ void bta_sys_sendmsg(void *p_msg)
 void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval, uint16_t event,
                          uint16_t layer_specific)
 {
-    BT_HDR *p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR));
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
     p_buf->event = event;
     p_buf->layer_specific = layer_specific;

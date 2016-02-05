@@ -72,7 +72,7 @@ tBTA_STATUS BTA_AgEnable(tBTA_AG_PARSE_MODE parse_mode, tBTA_AG_CBACK *p_cback)
     /* register with BTA system manager */
     bta_sys_register(BTA_ID_AG, &bta_ag_reg);
 
-    if ((p_buf = (tBTA_AG_API_ENABLE *) osi_getbuf(sizeof(tBTA_AG_API_ENABLE))) != NULL)
+    if ((p_buf = (tBTA_AG_API_ENABLE *) osi_malloc(sizeof(tBTA_AG_API_ENABLE))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_API_ENABLE_EVT;
         p_buf->parse_mode = parse_mode;
@@ -98,7 +98,7 @@ void BTA_AgDisable(void)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AG_API_DISABLE_EVT;
         bta_sys_sendmsg(p_buf);
@@ -121,7 +121,7 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT f
     tBTA_AG_API_REGISTER    *p_buf;
     int                     i;
 
-    if ((p_buf = (tBTA_AG_API_REGISTER *) osi_getbuf(sizeof(tBTA_AG_API_REGISTER))) != NULL)
+    if ((p_buf = (tBTA_AG_API_REGISTER *) osi_malloc(sizeof(tBTA_AG_API_REGISTER))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_API_REGISTER_EVT;
         p_buf->features = features;
@@ -153,7 +153,7 @@ void BTA_AgDeregister(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AG_API_DEREGISTER_EVT;
         p_buf->layer_specific = handle;
@@ -178,7 +178,7 @@ void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_
 {
     tBTA_AG_API_OPEN  *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_OPEN *) osi_getbuf(sizeof(tBTA_AG_API_OPEN))) != NULL)
+    if ((p_buf = (tBTA_AG_API_OPEN *) osi_malloc(sizeof(tBTA_AG_API_OPEN))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_API_OPEN_EVT;
         p_buf->hdr.layer_specific = handle;
@@ -204,7 +204,7 @@ void BTA_AgClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AG_API_CLOSE_EVT;
         p_buf->layer_specific = handle;
@@ -227,7 +227,7 @@ void BTA_AgAudioOpen(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AG_API_AUDIO_OPEN_EVT;
         p_buf->layer_specific = handle;
@@ -250,7 +250,7 @@ void BTA_AgAudioClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_AG_API_AUDIO_CLOSE_EVT;
         p_buf->layer_specific = handle;
@@ -275,7 +275,7 @@ void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
 {
     tBTA_AG_API_RESULT  *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_RESULT *) osi_getbuf(sizeof(tBTA_AG_API_RESULT))) != NULL)
+    if ((p_buf = (tBTA_AG_API_RESULT *) osi_malloc(sizeof(tBTA_AG_API_RESULT))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_API_RESULT_EVT;
         p_buf->hdr.layer_specific = handle;
@@ -304,7 +304,7 @@ void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec)
 {
     tBTA_AG_API_SETCODEC    *p_buf;
 
-    if ((p_buf = (tBTA_AG_API_SETCODEC *) osi_getbuf(sizeof(tBTA_AG_API_SETCODEC))) != NULL)
+    if ((p_buf = (tBTA_AG_API_SETCODEC *) osi_malloc(sizeof(tBTA_AG_API_SETCODEC))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_API_SETCODEC_EVT;
         p_buf->hdr.layer_specific = handle;

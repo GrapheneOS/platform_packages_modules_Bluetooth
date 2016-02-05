@@ -989,7 +989,7 @@ BOOLEAN btif_media_task_clear_track(void)
 {
     BT_HDR *p_buf;
 
-    if (NULL == (p_buf = osi_getbuf(sizeof(BT_HDR))))
+    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
     {
         return FALSE;
     }
@@ -1018,7 +1018,7 @@ void btif_reset_decoder(UINT8 *p_av)
             p_av[4], p_av[5], p_av[6]);
 
     tBTIF_MEDIA_SINK_CFG_UPDATE *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(tBTIF_MEDIA_SINK_CFG_UPDATE))))
+    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_SINK_CFG_UPDATE))))
     {
         APPL_TRACE_EVENT("btif_reset_decoder No Buffer ");
         return;
@@ -1238,7 +1238,7 @@ void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state)
 {
     APPL_TRACE_EVENT("btif_a2dp_set_audio_focus_state");
     tBTIF_MEDIA_SINK_FOCUS_UPDATE *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(tBTIF_MEDIA_SINK_FOCUS_UPDATE))))
+    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_SINK_FOCUS_UPDATE))))
     {
         APPL_TRACE_EVENT("btif_a2dp_set_audio_focus_state No Buffer ");
         return;
@@ -1319,7 +1319,7 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context)
                      break;
                 }
                 num_frames_to_process = num_frames_to_process - p_msg->num_frames_to_be_processed;
-                osi_freebuf(p_msg);
+                osi_free(p_msg);
             }
         }while(num_frames_to_process > 0);
 
@@ -1401,7 +1401,7 @@ static void btif_media_thread_cleanup(UNUSED_ATTR void *context) {
 BOOLEAN btif_media_task_send_cmd_evt(UINT16 Evt)
 {
     BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(BT_HDR))))
+    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
     {
         return FALSE;
     }
@@ -1425,7 +1425,7 @@ static void btif_media_flush_q(fixed_queue_t *p_q)
 {
     while (! fixed_queue_is_empty(p_q))
     {
-        osi_freebuf(fixed_queue_try_dequeue(p_q));
+        osi_free(fixed_queue_try_dequeue(p_q));
     }
 }
 
@@ -1484,7 +1484,7 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void 
     default:
         APPL_TRACE_ERROR("ERROR in %s unknown event %d", __func__, p_msg->event);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
     LOG_VERBOSE(LOG_TAG, "%s: %s DONE", __func__, dump_media_event(p_msg->event));
 }
 
@@ -1564,7 +1564,7 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
 BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO *p_msg)
 {
     tBTIF_MEDIA_INIT_AUDIO *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(tBTIF_MEDIA_INIT_AUDIO))))
+    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO))))
     {
         return FALSE;
     }
@@ -1588,7 +1588,7 @@ BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO *p_msg)
 BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO *p_msg)
 {
     tBTIF_MEDIA_UPDATE_AUDIO *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(tBTIF_MEDIA_UPDATE_AUDIO))))
+    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_UPDATE_AUDIO))))
     {
         return FALSE;
     }
@@ -1612,7 +1612,7 @@ BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO *p_msg)
 BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg)
 {
     tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING))))
+    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING))))
     {
         return FALSE;
     }
@@ -1636,7 +1636,7 @@ BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p
 BOOLEAN btif_media_task_start_aa_req(void)
 {
     BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(BT_HDR))))
+    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
     {
         APPL_TRACE_EVENT("GKI failed");
         return FALSE;
@@ -1660,7 +1660,7 @@ BOOLEAN btif_media_task_start_aa_req(void)
 BOOLEAN btif_media_task_stop_aa_req(void)
 {
     BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_getbuf(sizeof(BT_HDR))))
+    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
     {
         return FALSE;
     }
@@ -1698,7 +1698,7 @@ BOOLEAN btif_media_task_aa_rx_flush_req(void)
     if (fixed_queue_is_empty(btif_media_cb.RxSbcQ)) /*  Que is already empty */
         return TRUE;
 
-    if (NULL == (p_buf = osi_getbuf(sizeof(BT_HDR))))
+    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
     {
         return FALSE;
     }
@@ -1720,7 +1720,7 @@ BOOLEAN btif_media_task_aa_rx_flush_req(void)
  *******************************************************************************/
 BOOLEAN btif_media_task_aa_tx_flush_req(void)
 {
-    BT_HDR *p_buf = osi_getbuf(sizeof(BT_HDR));
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
 
     if (p_buf == NULL)
         return FALSE;
@@ -2515,13 +2515,13 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
     if (fixed_queue_length(btif_media_cb.RxSbcQ) == MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
     {
         UINT8 ret = fixed_queue_length(btif_media_cb.RxSbcQ);
-        osi_freebuf(fixed_queue_try_dequeue(btif_media_cb.RxSbcQ));
+        osi_free(fixed_queue_try_dequeue(btif_media_cb.RxSbcQ));
         return ret;
     }
 
     BTIF_TRACE_VERBOSE("%s +", __func__);
     /* allocate and Queue this buffer */
-    if ((p_msg = (tBT_SBC_HDR *) osi_getbuf(sizeof(tBT_SBC_HDR) +
+    if ((p_msg = (tBT_SBC_HDR *) osi_malloc(sizeof(tBT_SBC_HDR) +
                         p_pkt->offset+ p_pkt->len)) != NULL)
     {
         memcpy((UINT8*)(p_msg + 1), (UINT8*)(p_pkt + 1) + p_pkt->offset, p_pkt->len);
@@ -2765,7 +2765,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
 
     while (nb_frame)
     {
-        p_buf = osi_getbuf(BTIF_MEDIA_AA_BUF_SIZE);
+        p_buf = osi_malloc(BTIF_MEDIA_AA_BUF_SIZE);
         if (p_buf == NULL)
         {
             APPL_TRACE_ERROR ("ERROR btif_media_aa_prep_sbc_2_send no buffer TxCnt %d ",
@@ -2813,7 +2813,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
                 /* break read loop if timer was stopped (media task stopped) */
                 if (! alarm_is_scheduled(btif_media_cb.media_alarm))
                 {
-                    osi_freebuf(p_buf);
+                    osi_free(p_buf);
                     return;
                 }
             }
@@ -2839,7 +2839,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
                     timestamp_us;
                 btif_media_flush_q(btif_media_cb.TxAaQ);
 
-                osi_freebuf(p_buf);
+                osi_free(p_buf);
                 return;
             }
 
@@ -2854,7 +2854,7 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
         }
         else
         {
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
     }
 }
@@ -2888,7 +2888,7 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame, uint64_t timestamp_us)
 
     while (fixed_queue_length(btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame)) {
         btif_media_cb.stats.tx_queue_total_dropped_messages++;
-        osi_freebuf(fixed_queue_try_dequeue(btif_media_cb.TxAaQ));
+        osi_free(fixed_queue_try_dequeue(btif_media_cb.TxAaQ));
     }
 
     // Transcode frame

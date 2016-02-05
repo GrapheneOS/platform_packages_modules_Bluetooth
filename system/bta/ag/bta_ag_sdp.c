@@ -88,7 +88,7 @@ static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
             event = BTA_AG_DISC_INT_RES_EVT;
         }
 
-        if ((p_buf = (tBTA_AG_DISC_RESULT *) osi_getbuf(sizeof(tBTA_AG_DISC_RESULT))) != NULL)
+        if ((p_buf = (tBTA_AG_DISC_RESULT *) osi_malloc(sizeof(tBTA_AG_DISC_RESULT))) != NULL)
         {
             p_buf->hdr.event = event;
             p_buf->hdr.layer_specific = idx;
@@ -454,7 +454,7 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
     }
 
     /* allocate buffer for sdp database */
-    p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(BTA_AG_DISC_BUF_SIZE);
+    p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_AG_DISC_BUF_SIZE);
 
     if(p_scb->p_disc_db)
     {
@@ -495,5 +495,5 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 void bta_ag_free_db(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UNUSED(p_data);
-    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
+    osi_free_and_reset((void **)&p_scb->p_disc_db);
 }

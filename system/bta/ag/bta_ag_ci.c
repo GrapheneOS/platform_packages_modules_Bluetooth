@@ -54,7 +54,7 @@ void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
         if (len_remaining < len)
             len = len_remaining;
 
-        if ((p_buf = (tBTA_AG_CI_RX_WRITE *) osi_getbuf((UINT16)(sizeof(tBTA_AG_CI_RX_WRITE) + len + 1))) != NULL)
+        if ((p_buf = (tBTA_AG_CI_RX_WRITE *) osi_malloc(sizeof(tBTA_AG_CI_RX_WRITE) + len + 1)) != NULL)
     {
         p_buf->hdr.event = BTA_AG_CI_RX_WRITE_EVT;
         p_buf->hdr.layer_specific = handle;
@@ -89,7 +89,7 @@ void bta_ag_ci_slc_ready(UINT16 handle)
 {
     tBTA_AG_DATA *p_buf;
 
-    if ((p_buf = (tBTA_AG_DATA *)osi_getbuf(sizeof(tBTA_AG_DATA))) != NULL)
+    if ((p_buf = (tBTA_AG_DATA *)osi_malloc(sizeof(tBTA_AG_DATA))) != NULL)
     {
         p_buf->hdr.event = BTA_AG_CI_SLC_READY_EVT;
         p_buf->hdr.layer_specific = handle;

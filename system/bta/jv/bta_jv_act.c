@@ -1396,7 +1396,7 @@ void bta_jv_l2cap_write_fixed(tBTA_JV_MSG *p_data)
 {
     tBTA_JV_L2CAP_WRITE_FIXED evt_data;
     tBTA_JV_API_L2CAP_WRITE_FIXED *ls = &(p_data->l2cap_write_fixed);
-    BT_HDR *msg = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + ls->len + L2CAP_MIN_OFFSET);
+    BT_HDR *msg = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + ls->len + L2CAP_MIN_OFFSET);
     if (!msg)
     {
       APPL_TRACE_ERROR("%s() could not allocate msg buffer",__func__);
@@ -2154,7 +2154,7 @@ tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_
 
     APPL_TRACE_API("bta_jv_set_pm_conn_state(handle:0x%x, state: %d)", p_cb->handle,
             new_st);
-    if ((p_msg = (tBTA_JV_API_PM_STATE_CHANGE *)osi_getbuf(
+    if ((p_msg = (tBTA_JV_API_PM_STATE_CHANGE *)osi_malloc(
             sizeof(tBTA_JV_API_PM_STATE_CHANGE))) != NULL)
     {
         p_msg->hdr.event = BTA_JV_API_PM_STATE_CHANGE_EVT;

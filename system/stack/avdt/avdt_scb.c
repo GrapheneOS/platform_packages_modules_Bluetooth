@@ -658,7 +658,7 @@ void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 #if AVDT_MULTIPLEXING == TRUE
     /* free fragments we're holding, if any; it shouldn't happen */
     while ((p_buf = fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
     fixed_queue_free(p_scb->frag_q, NULL);
 #endif
 

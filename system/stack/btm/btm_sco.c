@@ -89,7 +89,7 @@ void btm_sco_flush_sco_data(UINT16 sco_inx)
     {
         p = &btm_cb.sco_cb.sco_db[sco_inx];
         while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p->xmit_data_q)) != NULL)
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
     }
 #else
@@ -289,7 +289,7 @@ void  btm_route_sco_data(BT_HDR *p_msg)
         /* send data callback */
         if (!btm_cb.sco_cb.p_data_cb )
             /* if no data callback registered,  just free the buffer  */
-            osi_freebuf(p_msg);
+            osi_free(p_msg);
         else
         {
             (*btm_cb.sco_cb.p_data_cb)(sco_inx, p_msg, (tBTM_SCO_DATA_FLAG) pkt_status);
@@ -297,10 +297,10 @@ void  btm_route_sco_data(BT_HDR *p_msg)
     }
     else /* no mapping handle SCO connection is active, free the buffer */
     {
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
     }
 #else
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #endif
 }
 
@@ -339,7 +339,7 @@ tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf)
         if (p_buf->offset < HCI_SCO_PREAMBLE_SIZE)
         {
             BTM_TRACE_ERROR ("BTM SCO - cannot send buffer, offset: %d", p_buf->offset);
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             status = BTM_ILLEGAL_VALUE;
         }
         else    /* write HCI header */
@@ -368,7 +368,7 @@ tBTM_STATUS BTM_WriteScoData (UINT16 sco_inx, BT_HDR *p_buf)
     }
     else
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 
         BTM_TRACE_WARNING ("BTM_WriteScoData, invalid sco index: %d at state [%d]",
             sco_inx, btm_cb.sco_cb.sco_db[sco_inx].state);
