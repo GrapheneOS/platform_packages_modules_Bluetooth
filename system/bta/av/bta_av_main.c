@@ -1181,44 +1181,34 @@ UINT16 bta_av_chk_mtu(tBTA_AV_SCB *p_scb, UINT16 mtu)
 *******************************************************************************/
 void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 {
-    tBTA_AV_SCB *p_scbi;
-    int     i;
-    UINT16  size, copy_size;
-    BT_HDR *p_new;
-
-    if(!p_buf)
+    /* Test whether there is more than one audio channel connected */
+    if ((p_buf == NULL) || (bta_av_cb.audio_open_cnt < 2))
         return;
 
-    if(bta_av_cb.audio_open_cnt >= 2)
-    {
-        size = osi_get_buf_size(p_buf);
-        copy_size = BT_HDR_SIZE + p_buf->len + p_buf->offset;
-        /* more than one audio channel is connected */
-        for(i=0; i<BTA_AV_NUM_STRS; i++)
-        {
-            p_scbi = bta_av_cb.p_scb[i];
-            if( (p_scb->hdi != i) && /* not the original channel */
-                (bta_av_cb.conn_audio & BTA_AV_HNDL_TO_MSK(i)) && /* connected audio */
-                p_scbi && p_scbi->co_started ) /* scb is used and started */
-            {
-                /* enqueue the data only when the stream is started */
-                p_new = (BT_HDR *)osi_getbuf(size);
-                if(p_new)
-                {
-                    memcpy(p_new, p_buf, copy_size);
-                    list_append(p_scbi->a2d_list, p_new);
-                    if (list_length(p_scbi->a2d_list) >  p_bta_av_cfg->audio_mqs) {
-                        // Drop the oldest packet
-                        bta_av_co_audio_drop(p_scbi->hndl);
-                        BT_HDR *p_buf = list_front(p_scbi->a2d_list);
-                        list_remove(p_scbi->a2d_list, p_buf);
-                        osi_freebuf(p_buf);
-                    }
-                }
-            }
+    UINT16 copy_size = BT_HDR_SIZE + p_buf->len + p_buf->offset;
+    for (int i = 0; i < BTA_AV_NUM_STRS; i++) {
+        tBTA_AV_SCB *p_scbi = bta_av_cb.p_scb[i];
+
+        if (i == p_scb->hdi)
+            continue;           /* Ignore the original channel */
+        if ((p_scbi == NULL) || !p_scbi->co_started)
+            continue;           /* Ignore if SCB is not used or started */
+        if (!(bta_av_cb.conn_audio & BTA_AV_HNDL_TO_MSK(i)))
+            continue;           /* Audio is not connected */
+
+        /* Enqueue the data */
+        BT_HDR *p_new = (BT_HDR *)osi_getbuf(copy_size);
+        memcpy(p_new, p_buf, copy_size);
+        list_append(p_scbi->a2d_list, p_new);
+
+        if (list_length(p_scbi->a2d_list) > p_bta_av_cfg->audio_mqs) {
+            // Drop the oldest packet
+            bta_av_co_audio_drop(p_scbi->hndl);
+            BT_HDR *p_buf_drop = list_front(p_scbi->a2d_list);
+            list_remove(p_scbi->a2d_list, p_buf_drop);
+            osi_freebuf(p_buf_drop);
         }
     }
-
 }
 
 /*******************************************************************************

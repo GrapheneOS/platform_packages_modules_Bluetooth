@@ -1372,7 +1372,6 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     UINT8   *p;
     UINT8   pkt_type;
     BT_HDR  *p_ret;
-    UINT16  buf_len;
 
     /* parse the message header */
     p = (UINT8 *)(p_buf + 1) + p_buf->offset;
@@ -1404,7 +1403,21 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             AVDT_TRACE_WARNING("Got start during reassembly");
 
         osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
-        p_ccb->p_rx_msg = p_buf;
+
+        /*
+         * Allocate bigger buffer for reassembly. As lower layers are
+         * not aware of possible packet size after reassembly, they
+         * would have allocated smaller buffer.
+         */
+        p_ccb->p_rx_msg = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
+        memcpy(p_ccb->p_rx_msg, p_buf,
+               sizeof(BT_HDR) + p_buf->offset + p_buf->len);
+
+        /* Free original buffer */
+        osi_freebuf(p_buf);
+
+        /* update p to point to new buffer */
+        p = (UINT8 *)(p_ccb->p_rx_msg + 1) + p_ccb->p_rx_msg->offset;
 
         /* copy first header byte over nosp */
         *(p + 1) = *p;
@@ -1430,22 +1443,24 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         else
         {
             /* get size of buffer holding assembled message */
-            buf_len = osi_get_buf_size(p_ccb->p_rx_msg) - sizeof(BT_HDR);
+            /*
+             * NOTE: The buffer is allocated above at the beginning of the
+             * reassembly, and is always of size BT_DEFAULT_BUFFER_SIZE.
+             */
+            UINT16 buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
 
             /* adjust offset and len of fragment for header byte */
             p_buf->offset += AVDT_LEN_TYPE_CONT;
             p_buf->len -= AVDT_LEN_TYPE_CONT;
 
             /* verify length */
-            if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len)
-            {
+            if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len) {
                 /* won't fit; free everything */
+                AVDT_TRACE_WARNING("%s: Fragmented message too big!", __func__);
                 osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
                 osi_freebuf(p_buf);
                 p_ret = NULL;
-            }
-            else
-            {
+            } else {
                 /* copy contents of p_buf to p_rx_msg */
                 memcpy((UINT8 *)(p_ccb->p_rx_msg + 1) + p_ccb->p_rx_msg->offset,
                        (UINT8 *)(p_buf + 1) + p_buf->offset, p_buf->len);
