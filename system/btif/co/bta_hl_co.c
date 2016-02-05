@@ -334,7 +334,7 @@ void bta_hl_co_get_tx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
         if (p_dcb->tx_size <= buf_size )
         {
             memcpy(p_buf, p_dcb->p_tx_pkt, p_dcb->tx_size);
-            osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+            osi_free_and_reset((void **)&p_dcb->p_tx_pkt);
             p_dcb->tx_size = 0;
             status = BTA_HL_STATUS_OK;
         }
@@ -376,7 +376,7 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
     {
         p_dcb = BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
 
-        p_dcb->p_rx_pkt = (UINT8 *)osi_getbuf(data_size);
+        p_dcb->p_rx_pkt = (UINT8 *)osi_malloc(data_size);
         memcpy(p_dcb->p_rx_pkt, p_data, data_size);
         if (p_dcb->p_scb) {
             BTIF_TRACE_DEBUG("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
@@ -390,7 +390,7 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
                                  data_size);
             }
         }
-        osi_freebuf_and_reset((void **)&p_dcb->p_rx_pkt);
+        osi_free_and_reset((void **)&p_dcb->p_rx_pkt);
     }
 
     bta_hl_ci_put_rx_data(mdl_handle,  status, evt);

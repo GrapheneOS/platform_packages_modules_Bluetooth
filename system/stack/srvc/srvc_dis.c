@@ -313,8 +313,8 @@ void dis_c_cmpl_cback (tSRVC_CLCB *p_clcb, tGATTC_OPTYPE op,
             case GATT_UUID_MANU_NAME:
             case GATT_UUID_IEEE_DATA:
                 p_str = p_clcb->dis_value.data_string[read_type - GATT_UUID_MODEL_NUMBER_STR];
-                osi_freebuf(p_str);
-                if ((p_str = (UINT8 *)osi_getbuf((UINT16)(p_data->att_value.len + 1))) != NULL)
+                osi_free(p_str);
+                if ((p_str = (UINT8 *)osi_malloc(p_data->att_value.len + 1)) != NULL)
                 {
                     p_clcb->dis_value.attr_mask |= dis_uuid_to_attr(read_type);
                     memcpy(p_str, p_data->att_value.value, p_data->att_value.len);
@@ -417,12 +417,12 @@ tDIS_STATUS DIS_SrUpdate(tDIS_ATTR_BIT dis_attr_bit, tDIS_ATTR *p_info)
         {
             if (dis_attr_bit & (UINT16)(1 << i))
             {
-                osi_freebuf(dis_cb.dis_value.data_string[i - 1]);
+                osi_free(dis_cb.dis_value.data_string[i - 1]);
 /* coverity[OVERRUN-STATIC] False-positive : when i = 8, (1 << i) == DIS_ATTR_PNP_ID_BIT, and it will never come down here
 CID 49902: Out-of-bounds read (OVERRUN_STATIC)
 Overrunning static array "dis_cb.dis_value.data_string", with 7 elements, at position 7 with index variable "i".
 */
-                if ((dis_cb.dis_value.data_string[i - 1] = (UINT8 *)osi_getbuf((UINT16)(p_info->data_str.len + 1))) != NULL)
+                if ((dis_cb.dis_value.data_string[i - 1] = (UINT8 *)osi_malloc(p_info->data_str.len + 1)) != NULL)
                 {
 
                     memcpy(dis_cb.dis_value.data_string[i - 1], p_info->data_str.p_data, p_info->data_str.len);

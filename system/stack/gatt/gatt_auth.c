@@ -52,7 +52,7 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
     /* do not need to mark channel securoty activity for data signing */
     gatt_set_sec_act(p_clcb->p_tcb, GATT_SEC_OK);
 
-    p_data = (UINT8 *)osi_getbuf((UINT16)(p_attr->len + 3)); /* 3 = 2 byte handle + opcode */
+    p_data = (UINT8 *)osi_malloc(p_attr->len + 3); /* 3 = 2 byte handle + opcode */
 
     if (p_data != NULL)
     {
@@ -80,7 +80,7 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
             gatt_end_operation(p_clcb, GATT_INTERNAL_ERROR, NULL);
         }
 
-        osi_freebuf(p_data);
+        osi_free(p_data);
     }
 
     return status;
@@ -197,7 +197,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
                 }
             }
             gatt_sec_check_complete(status, p_buf->p_clcb, p_tcb->sec_act);
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             /* start all other pending operation in queue */
             for (size_t count = fixed_queue_length(p_tcb->pending_enc_clcb);
                  count > 0; count--)
@@ -206,7 +206,7 @@ void gatt_enc_cmpl_cback(BD_ADDR bd_addr, tBT_TRANSPORT transport, void *p_ref_d
                 if (p_buf != NULL)
                 {
                     gatt_security_check_start(p_buf->p_clcb);
-                    osi_freebuf(p_buf);
+                    osi_free(p_buf);
                 }
                 else
                     break;
@@ -260,7 +260,7 @@ void gatt_notify_enc_cmpl(BD_ADDR bd_addr)
                 if (p_buf != NULL)
                 {
                     gatt_security_check_start(p_buf->p_clcb);
-                    osi_freebuf(p_buf);
+                    osi_free(p_buf);
                 }
                 else
                     break;

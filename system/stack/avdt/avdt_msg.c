@@ -1245,7 +1245,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                    (p_tbl->peer_mtu - 1) + 2;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+            p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
             if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
@@ -1267,7 +1267,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
             hdr_len = AVDT_LEN_TYPE_CONT;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+            p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
             if (p_buf == NULL)
             {
                 /* do we even want to try and recover from this? could do so
@@ -1380,7 +1380,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     /* quick sanity check on length */
     if (p_buf->len < avdt_msg_pkt_type_len[pkt_type])
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         AVDT_TRACE_WARNING("Bad length during reassembly");
         p_ret = NULL;
     }
@@ -1391,7 +1391,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         if (p_ccb->p_rx_msg != NULL)
             AVDT_TRACE_WARNING("Got single during reassembly");
 
-        osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
+        osi_free_and_reset((void **)&p_ccb->p_rx_msg);
 
         p_ret = p_buf;
     }
@@ -1402,19 +1402,19 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         if (p_ccb->p_rx_msg != NULL)
             AVDT_TRACE_WARNING("Got start during reassembly");
 
-        osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
+        osi_free_and_reset((void **)&p_ccb->p_rx_msg);
 
         /*
          * Allocate bigger buffer for reassembly. As lower layers are
          * not aware of possible packet size after reassembly, they
          * would have allocated smaller buffer.
          */
-        p_ccb->p_rx_msg = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
+        p_ccb->p_rx_msg = (BT_HDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
         memcpy(p_ccb->p_rx_msg, p_buf,
                sizeof(BT_HDR) + p_buf->offset + p_buf->len);
 
         /* Free original buffer */
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 
         /* update p to point to new buffer */
         p = (UINT8 *)(p_ccb->p_rx_msg + 1) + p_ccb->p_rx_msg->offset;
@@ -1436,7 +1436,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
         /* if no reassembly in progress drop message */
         if (p_ccb->p_rx_msg == NULL)
         {
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             AVDT_TRACE_WARNING("Pkt type=%d out of order", pkt_type);
             p_ret = NULL;
         }
@@ -1457,8 +1457,8 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
             if ((p_ccb->p_rx_msg->offset + p_buf->len) > buf_len) {
                 /* won't fit; free everything */
                 AVDT_TRACE_WARNING("%s: Fragmented message too big!", __func__);
-                osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
-                osi_freebuf(p_buf);
+                osi_free_and_reset((void **)&p_ccb->p_rx_msg);
+                osi_free(p_buf);
                 p_ret = NULL;
             } else {
                 /* copy contents of p_buf to p_rx_msg */
@@ -1478,7 +1478,7 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
                     p_ccb->p_rx_msg->len += p_buf->len;
                     p_ret = NULL;
                 }
-                osi_freebuf(p_buf);
+                osi_free(p_buf);
             }
         }
     }
@@ -1507,7 +1507,7 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL)
     {
         AVDT_TRACE_ERROR("avdt_msg_send_cmd out of buffer!!");
@@ -1576,7 +1576,7 @@ void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up buf pointer and offset */
@@ -1621,7 +1621,7 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up buf pointer and offset */
@@ -1682,7 +1682,7 @@ void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
     UINT8       *p_start;
 
     /* get a buffer */
-    p_buf = (BT_HDR *) osi_getbuf(AVDT_CMD_BUF_SIZE);
+    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
     if (p_buf == NULL) return;
 
     /* set up buf pointer and offset */
@@ -1917,7 +1917,7 @@ void avdt_msg_ind(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
     }
 
     /* free message buffer */
-    osi_freebuf(p_buf);
+    osi_free(p_buf);
 
     /* if its a rsp or rej, send event to ccb to free associated
     ** cmd msg buffer and handle cmd queue

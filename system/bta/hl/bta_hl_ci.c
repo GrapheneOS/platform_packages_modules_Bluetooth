@@ -57,7 +57,7 @@ extern void bta_hl_ci_get_tx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
                       mdl_handle, status, evt);
 #endif
 
-    if ((p_evt = (tBTA_HL_CI_GET_PUT_DATA *)osi_getbuf(sizeof(tBTA_HL_CI_GET_PUT_DATA))) != NULL)
+    if ((p_evt = (tBTA_HL_CI_GET_PUT_DATA *)osi_malloc(sizeof(tBTA_HL_CI_GET_PUT_DATA))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->mdl_handle =  mdl_handle;
@@ -91,7 +91,7 @@ extern void bta_hl_ci_put_rx_data(  tBTA_HL_MDL_HANDLE mdl_handle,
                       mdl_handle, status, evt);
 #endif
 
-    if ((p_evt = (tBTA_HL_CI_GET_PUT_DATA *)osi_getbuf(sizeof(tBTA_HL_CI_GET_PUT_DATA))) != NULL)
+    if ((p_evt = (tBTA_HL_CI_GET_PUT_DATA *)osi_malloc(sizeof(tBTA_HL_CI_GET_PUT_DATA))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->mdl_handle =  mdl_handle;
@@ -127,7 +127,7 @@ extern void bta_hl_ci_get_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
                       mcl_handle, status, evt);
 #endif
 
-    if ((p_evt = (tBTA_HL_CI_ECHO_DATA *)osi_getbuf(sizeof(tBTA_HL_CI_ECHO_DATA))) != NULL)
+    if ((p_evt = (tBTA_HL_CI_ECHO_DATA *)osi_malloc(sizeof(tBTA_HL_CI_ECHO_DATA))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->mcl_handle =  mcl_handle;
@@ -162,7 +162,7 @@ extern void bta_hl_ci_put_echo_data(  tBTA_HL_MCL_HANDLE mcl_handle,
                       mcl_handle, status, evt);
 #endif
 
-    if ((p_evt = (tBTA_HL_CI_ECHO_DATA *)osi_getbuf(sizeof(tBTA_HL_CI_ECHO_DATA))) != NULL)
+    if ((p_evt = (tBTA_HL_CI_ECHO_DATA *)osi_malloc(sizeof(tBTA_HL_CI_ECHO_DATA))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->mcl_handle =  mcl_handle;

@@ -46,22 +46,3 @@ void osi_free(void *ptr);
 // |p_ptr| is a pointer to the buffer pointer to be reset.
 // |p_ptr| cannot be NULL.
 void osi_free_and_reset(void **p_ptr);
-
-//
-// TODO: The functions below should be removed and replaced with the
-// corresponding functions above.
-//
-
-// Allocate a buffer of size |size|. Return the allocated buffer if there
-// is enough memory, otherwise NULL.
-void *osi_getbuf(uint16_t size);
-
-// Free a buffer that was previously allocated with function |osi_getbuf|.
-// |ptr| can be NULL.
-void osi_freebuf(void *ptr);
-
-// Free a buffer that was previously allocated with function |osi_getbuf|
-// and reset the pointer to that buffer to NULL.
-// |p_ptr| is a pointer to the buffer pointer to be reset.
-// |p_ptr| cannot be NULL.
-void osi_freebuf_and_reset(void **p_ptr);

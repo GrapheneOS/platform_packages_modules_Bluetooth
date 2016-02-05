@@ -151,7 +151,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
     p_lcb->info_resp_timer = NULL;
 
     /* Release any unfinished L2CAP packet on this link */
-    osi_freebuf_and_reset((void **)&p_lcb->p_hcit_rcv_acl);
+    osi_free_and_reset((void **)&p_lcb->p_hcit_rcv_acl);
 
 #if BTM_SCO_INCLUDED == TRUE
 #if (BLE_INCLUDED == TRUE)
@@ -213,7 +213,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         while (!list_is_empty(p_lcb->link_xmit_data_q)) {
             BT_HDR *p_buf = list_front(p_lcb->link_xmit_data_q);
             list_remove(p_lcb->link_xmit_data_q, p_buf);
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
         list_free(p_lcb->link_xmit_data_q);
         p_lcb->link_xmit_data_q = NULL;
@@ -347,7 +347,7 @@ BOOLEAN l2c_is_cmd_rejected (UINT8 cmd_code, UINT8 id, tL2C_LCB *p_lcb)
 *******************************************************************************/
 BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
 {
-    BT_HDR  *p_buf = (BT_HDR *)osi_getbuf(L2CAP_CMD_BUF_SIZE);
+    BT_HDR  *p_buf = (BT_HDR *)osi_malloc(L2CAP_CMD_BUF_SIZE);
     UINT8   *p;
 
     if (!p_buf)
@@ -807,7 +807,7 @@ void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, UINT8 *p_data, UINT16 data_len,
         return;
     }
 
-    p_buf = (BT_HDR *)osi_getbuf (len + rej_len);
+    p_buf = (BT_HDR *)osi_malloc(len + rej_len);
 
     if (!p_buf)
     {
@@ -1702,7 +1702,7 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     p_ccb->l2c_ccb_timer = NULL;
 
     while (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
-        osi_freebuf(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
+        osi_free(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
     fixed_queue_free(p_ccb->xmit_hold_q, NULL);
     p_ccb->xmit_hold_q = NULL;
 

@@ -1571,7 +1571,7 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
     if ( event == BTA_HL_SDP_QUERY_OK_EVT)
     {
-        if ((p_sdp = (tBTA_HL_SDP *)osi_getbuf((UINT16)(sizeof(tBTA_HL_SDP)))) != NULL)
+        if ((p_sdp = (tBTA_HL_SDP *)osi_malloc(sizeof(tBTA_HL_SDP))) != NULL)
         {
             memcpy(p_sdp, &p_mcb->sdp, sizeof(tBTA_HL_SDP));
             release_sdp_buf = TRUE;
@@ -1599,7 +1599,7 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     p_acb->p_cback(BTA_HL_SDP_QUERY_CFM_EVT,(tBTA_HL *) &evt_data );
 
     if (release_sdp_buf)
-        osi_freebuf_and_reset((void **)&p_sdp);
+        osi_free_and_reset((void **)&p_sdp);
 
     if (p_data->cch_sdp.release_mcl_cb) {
         memset(p_mcb, 0, sizeof(tBTA_HL_MCL_CB));

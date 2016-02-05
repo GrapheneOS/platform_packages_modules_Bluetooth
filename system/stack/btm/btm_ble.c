@@ -1997,7 +1997,7 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
     {
         UINT8 *p_mac = (UINT8 *)signature;
         UINT8 *p_buf, *pp;
-        if ((p_buf = (UINT8 *)osi_getbuf((UINT16)(len + 4))) != NULL)
+        if ((p_buf = (UINT8 *)osi_malloc(len + 4)) != NULL)
         {
             BTM_TRACE_DEBUG("%s-Start to generate Local CSRK", __func__);
             pp = p_buf;
@@ -2022,7 +2022,7 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
                              *p_mac, *(p_mac + 1), *(p_mac + 2), *(p_mac + 3));
             BTM_TRACE_DEBUG("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
                             *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
     }
     return ret;

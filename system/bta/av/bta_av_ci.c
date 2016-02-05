@@ -46,7 +46,7 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->layer_specific   = chnl;
         p_buf->event = BTA_AV_CI_SRC_DATA_READY_EVT;
@@ -72,7 +72,7 @@ void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,
 {
     tBTA_AV_CI_SETCONFIG  *p_buf;
 
-    if ((p_buf = (tBTA_AV_CI_SETCONFIG *) osi_getbuf(sizeof(tBTA_AV_CI_SETCONFIG))) != NULL)
+    if ((p_buf = (tBTA_AV_CI_SETCONFIG *) osi_malloc(sizeof(tBTA_AV_CI_SETCONFIG))) != NULL)
     {
         p_buf->hdr.layer_specific   = hndl;
         p_buf->hdr.event = (err_code == AVDT_SUCCESS) ?

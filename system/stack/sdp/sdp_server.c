@@ -259,7 +259,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_getbuf(SDP_DATA_BUF_SIZE);
+    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     if (p_buf == NULL)
     {
         SDP_TRACE_ERROR ("SDP - no buf for search rsp");
@@ -368,8 +368,8 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Free and reallocate buffer */
-    osi_freebuf(p_ccb->rsp_list);
-    p_ccb->rsp_list = (UINT8 *)osi_getbuf(max_list_len);
+    osi_free(p_ccb->rsp_list);
+    p_ccb->rsp_list = (UINT8 *)osi_malloc(max_list_len);
 
     /* Check if this is a continuation request */
     if (*p_req) {
@@ -493,7 +493,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_getbuf(SDP_DATA_BUF_SIZE);
+    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     if (p_buf == NULL)
     {
         SDP_TRACE_ERROR ("SDP - no buf for search rsp");
@@ -598,8 +598,8 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     memcpy(&attr_seq_sav, &attr_seq, sizeof(tSDP_ATTR_SEQ)) ;
 
     /* Free and reallocate buffer */
-    osi_freebuf(p_ccb->rsp_list);
-    p_ccb->rsp_list = (UINT8 *)osi_getbuf(max_list_len);
+    osi_free(p_ccb->rsp_list);
+    p_ccb->rsp_list = (UINT8 *)osi_malloc(max_list_len);
 
     /* Check if this is a continuation request */
     if (*p_req) {
@@ -796,7 +796,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_getbuf(SDP_DATA_BUF_SIZE);
+    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     if (p_buf == NULL)
     {
         SDP_TRACE_ERROR ("SDP - no buf for search rsp");

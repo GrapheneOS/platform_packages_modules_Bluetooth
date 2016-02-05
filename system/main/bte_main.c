@@ -270,6 +270,6 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
     else
     {
         APPL_TRACE_ERROR("Invalid Controller ID. Discarding message.");
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
     }
 }

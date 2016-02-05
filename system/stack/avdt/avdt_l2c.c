@@ -524,6 +524,6 @@ void avdt_l2c_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
         avdt_ad_tc_data_ind(p_tbl, p_buf);
     }
     else /* prevent buffer leak */
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 }
 

@@ -305,7 +305,7 @@ void bta_dm_sco_co_in_data(BT_HDR  *p_buf)
     if (btui_cfg.sco_use_mic)
         btui_sco_codec_inqdata(p_buf);
     else
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 }
 
 /*******************************************************************************

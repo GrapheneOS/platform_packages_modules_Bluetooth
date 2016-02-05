@@ -107,7 +107,7 @@ static void l2c_ucd_data_ind_cback (BD_ADDR rem_bda, BT_HDR *p_buf)
     if ((p_rcb = l2cu_find_rcb_by_psm (psm)) == NULL)
     {
         L2CAP_TRACE_ERROR ("L2CAP - no RCB for l2c_ucd_data_ind_cback, PSM: 0x%04x", psm);
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
     }
     else
     {
@@ -408,7 +408,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
         ||( p_rcb->ucd.state == L2C_UCD_STATE_UNUSED ))
     {
         L2CAP_TRACE_WARNING ("L2CAP - no RCB for L2CA_UcdDataWrite, PSM: 0x%04x", psm);
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -419,7 +419,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     {
         if ( l2c_ucd_connect (rem_bda) == FALSE )
         {
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             return (L2CAP_DW_FAILED);
         }
 
@@ -427,7 +427,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
         if (((p_lcb = l2cu_find_lcb_by_bd_addr (rem_bda, BT_TRANSPORT_BR_EDR)) == NULL)
             || ((p_ccb = l2cu_find_ccb_by_cid (p_lcb, L2CAP_CONNECTIONLESS_CID)) == NULL))
         {
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             return (L2CAP_DW_FAILED);
         }
     }
@@ -443,7 +443,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
     if ((p_lcb->ucd_mtu) && (p_buf->len > p_lcb->ucd_mtu))
     {
         L2CAP_TRACE_WARNING ("L2CAP - Handle: 0x%04x  UCD bigger than peer's UCD mtu size cannot be sent", p_lcb->handle);
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -456,7 +456,7 @@ UINT16 L2CA_UcdDataWrite (UINT16 psm, BD_ADDR rem_bda, BT_HDR *p_buf, UINT16 fla
                             fixed_queue_length(p_lcb->ucd_out_sec_pending_q)),
                            p_ccb->buff_quota);
 
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (L2CAP_DW_FAILED);
     }
 
@@ -645,12 +645,12 @@ void l2c_ucd_delete_sec_pending_q(tL2C_LCB  *p_lcb)
 {
     /* clean up any security pending UCD */
     while (! fixed_queue_is_empty(p_lcb->ucd_out_sec_pending_q))
-        osi_freebuf(fixed_queue_try_dequeue(p_lcb->ucd_out_sec_pending_q));
+        osi_free(fixed_queue_try_dequeue(p_lcb->ucd_out_sec_pending_q));
     fixed_queue_free(p_lcb->ucd_out_sec_pending_q, NULL);
     p_lcb->ucd_out_sec_pending_q = NULL;
 
     while (! fixed_queue_is_empty(p_lcb->ucd_in_sec_pending_q))
-        osi_freebuf(fixed_queue_try_dequeue(p_lcb->ucd_in_sec_pending_q));
+        osi_free(fixed_queue_try_dequeue(p_lcb->ucd_in_sec_pending_q));
     fixed_queue_free(p_lcb->ucd_in_sec_pending_q);
     p_lcb->ucd_in_sec_pending_q = NULL;
 }
@@ -813,7 +813,7 @@ void l2c_ucd_discard_pending_out_sec_q(tL2C_CCB  *p_ccb)
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_out_sec_pending_q);
 
     /* we may need to report to application */
-    osi_freebuf(p_buf);
+    osi_free(p_buf);
 }
 
 /*******************************************************************************
@@ -877,7 +877,7 @@ void l2c_ucd_send_pending_in_sec_q(tL2C_CCB  *p_ccb)
 void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb)
 {
     BT_HDR *p_buf = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->p_lcb->ucd_in_sec_pending_q);
-    osi_freebuf(p_buf);
+    osi_free(p_buf);
 }
 
 /*******************************************************************************
@@ -904,7 +904,7 @@ BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg)
             if ((p_ccb = l2cu_allocate_ccb (p_lcb, 0)) == NULL)
             {
                 L2CAP_TRACE_WARNING ("L2CAP - no CCB for UCD reception");
-                osi_freebuf(p_msg);
+                osi_free(p_msg);
                 return TRUE;
             }
             else

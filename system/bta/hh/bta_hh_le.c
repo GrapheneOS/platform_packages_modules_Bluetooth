@@ -1367,7 +1367,7 @@ void bta_hh_clear_service_cache(tBTA_HH_DEV_CB *p_cb)
     p_cb->dscp_info.descriptor.dsc_list = NULL;
 
     for (i = 0; i < BTA_HH_LE_HID_SRVC_MAX; i++, p_hid_srvc++) {
-        osi_freebuf_and_reset((void **)&p_hid_srvc->rpt_map);
+        osi_free_and_reset((void **)&p_hid_srvc->rpt_map);
         memset(p_hid_srvc, 0, sizeof(tBTA_HH_LE_HID_SRVC));
     }
 }
@@ -1496,7 +1496,7 @@ void bta_hh_le_close(tBTA_GATTC_CLOSE * p_data)
     UINT16  sm_event = BTA_HH_GATT_CLOSE_EVT;
 
     if (p_dev_cb != NULL &&
-        (p_buf = (tBTA_HH_LE_CLOSE *)osi_getbuf(sizeof(tBTA_HH_LE_CLOSE))) != NULL)
+        (p_buf = (tBTA_HH_LE_CLOSE *)osi_malloc(sizeof(tBTA_HH_LE_CLOSE))) != NULL)
     {
         p_buf->hdr.event            = sm_event;
         p_buf->hdr.layer_specific   = (UINT16)p_dev_cb->hid_handle;
@@ -1849,10 +1849,10 @@ void bta_hh_le_save_rpt_map(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
 
     pp = p_data->p_value->unformat.p_value;
 
-    osi_freebuf_and_reset((void **)&p_srvc->rpt_map);
+    osi_free_and_reset((void **)&p_srvc->rpt_map);
 
     if (p_data->p_value->unformat.len > 0)
-        p_srvc->rpt_map = (UINT8 *)osi_getbuf(p_data->p_value->unformat.len);
+        p_srvc->rpt_map = (UINT8 *)osi_malloc(p_data->p_value->unformat.len);
 
     if (p_srvc->rpt_map != NULL)
     {
@@ -1908,7 +1908,7 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
 
         if (p_rpt != NULL &&
             p_data->p_value != NULL &&
-            (p_buf = (BT_HDR *)osi_getbuf((UINT16)(sizeof(BT_HDR) +p_data->p_value->unformat.len + 1))) != NULL)
+            (p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->p_value->unformat.len + 1)) != NULL)
         {
             /* pack data send to app */
             hs_data.status  = BTA_HH_OK;
@@ -1928,7 +1928,7 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
     p_dev_cb->w4_evt = 0;
     (* bta_hh_cb.p_cback)(BTA_HH_GET_RPT_EVT, (tBTA_HH *)&hs_data);
 
-    osi_freebuf_and_reset((void **)&p_buf);
+    osi_free_and_reset((void **)&p_buf);
 }
 
 /*******************************************************************************
@@ -2370,7 +2370,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
     /* need to append report ID to the head of data */
     if (p_rpt->rpt_id != 0)
     {
-        if ((p_buf = (UINT8 *)osi_getbuf((UINT16)(p_data->len + 1))) == NULL)
+        if ((p_buf = (UINT8 *)osi_malloc(p_data->len + 1)) == NULL)
         {
             APPL_TRACE_ERROR("No resources to send report data");
             return;
@@ -2393,7 +2393,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
                     app_id);
 
     if (p_buf != p_data->value)
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 }
 
 /*******************************************************************************
@@ -2561,7 +2561,7 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb, UINT8 srvc_inst,
     if (p_rpt == NULL)
     {
         APPL_TRACE_ERROR("bta_hh_le_write_rpt: no matching report");
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return;
     }
 

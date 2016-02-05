@@ -110,7 +110,7 @@ static void bta_hf_client_clear_queued_at(void)
 
     while (cur != NULL) {
         next = cur->next;
-        osi_freebuf(cur);
+        osi_free(cur);
         cur = next;
     }
 
@@ -123,7 +123,7 @@ static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, U
 
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
-    if ((new_cmd = (tBTA_HF_CLIENT_AT_QCMD *) osi_getbuf(sizeof(tBTA_HF_CLIENT_AT_QCMD))) != NULL)
+    if ((new_cmd = (tBTA_HF_CLIENT_AT_QCMD *) osi_malloc(sizeof(tBTA_HF_CLIENT_AT_QCMD))) != NULL)
     {
         new_cmd->cmd = cmd;
         new_cmd->buf_len = buf_len;
@@ -215,7 +215,7 @@ static void bta_hf_client_send_queued_at(void)
 
         bta_hf_client_send_at(cur->cmd, cur->buf, cur->buf_len);
 
-        osi_freebuf(cur);
+        osi_free(cur);
     }
 }
 

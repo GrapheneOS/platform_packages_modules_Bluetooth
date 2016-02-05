@@ -378,7 +378,7 @@ static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
     }
 
     /* allocate and initialize the buffer */
-    BT_HDR *p_pkt = (BT_HDR *)osi_getbuf(AVRC_META_CMD_BUF_SIZE);
+    BT_HDR *p_pkt = (BT_HDR *)osi_malloc(AVRC_META_CMD_BUF_SIZE);
     if (p_pkt)
     {
         UINT8 *p_data, *p_start;
@@ -498,7 +498,7 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
 
     if (alloc && (status != AVRC_STS_NO_ERROR) )
     {
-        osi_freebuf(p_pkt);
+        osi_free(p_pkt);
         *pp_pkt = NULL;
     }
     AVRC_TRACE_API("AVRC_BldCommand: returning %d", status);

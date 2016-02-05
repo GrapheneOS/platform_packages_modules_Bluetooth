@@ -21,15 +21,14 @@
 #include "buffer_allocator.h"
 #include "bt_common.h"
 
-// TODO(zachoverflow): move the assertion into osi_getbuf in the future
 static void *buffer_alloc(size_t size) {
   assert(size <= BT_DEFAULT_BUFFER_SIZE);
-  return osi_getbuf((uint16_t)size);
+  return osi_malloc(size);
 }
 
 static const allocator_t interface = {
   buffer_alloc,
-  osi_freebuf
+  osi_free
 };
 
 const allocator_t *buffer_allocator_get_interface() {
