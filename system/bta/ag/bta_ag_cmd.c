@@ -860,7 +860,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
     val.hdr.handle = bta_ag_scb_to_idx(p_scb);
     val.hdr.app_id = p_scb->app_id;
     val.num = (uint16_t) int_arg;
-    strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
+    strlcpy(val.str, p_arg, sizeof(val.str));
 
     /* call callback with event */
     (*bta_ag_cb.p_cback)(bta_ag_hsp_cb_evt[cmd], (tBTA_AG *) &val);
@@ -1118,7 +1118,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
     val.hdr.status = BTA_AG_SUCCESS;
     val.num = int_arg;
     bdcpy(val.bd_addr, p_scb->peer_addr);
-    strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
+    strlcpy(val.str, p_arg, sizeof(val.str));
 
     event = bta_ag_hfp_cb_evt[cmd];
 
@@ -1449,7 +1449,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
                     break;
 
                 i++;
-                if ( (val.str[i] != 0) && (val.str[i] != ',') )
+                if ((val.str[i] == 0) || (val.str[i] != ','))
                     break;
             }
             if (val.str[i] == 0)
@@ -1582,7 +1582,7 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, bool unknown, char *p_arg)
         val.hdr.app_id = p_scb->app_id;
         val.hdr.status = BTA_AG_SUCCESS;
         val.num = 0;
-        strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
+        strlcpy(val.str, p_arg, sizeof(val.str));
         (*bta_ag_cb.p_cback)(BTA_AG_AT_UNAT_EVT, (tBTA_AG *) &val);
     }
     else
