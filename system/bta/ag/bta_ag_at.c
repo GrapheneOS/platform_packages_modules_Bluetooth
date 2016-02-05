@@ -61,13 +61,10 @@ void bta_ag_at_init(tBTA_AG_AT_CB *p_cb)
 ******************************************************************************/
 void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 {
-    if (p_cb->p_cmd_buf != NULL)
-    {
-        osi_freebuf(p_cb->p_cmd_buf);
-        p_cb->p_cmd_buf = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_cb->p_cmd_buf);
     p_cb->cmd_pos = 0;
 }
+
 /******************************************************************************
 **
 ** Function         bta_ag_process_at

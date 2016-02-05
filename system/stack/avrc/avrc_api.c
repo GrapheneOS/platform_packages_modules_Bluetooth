@@ -336,9 +336,7 @@ static BT_HDR * avrc_proc_vendor_command(UINT8 handle, UINT8 label,
 
         if (abort_frag)
         {
-            if (p_fcb->p_fmsg)
-                osi_freebuf(p_fcb->p_fmsg);
-            p_fcb->p_fmsg = NULL;
+            osi_freebuf_and_reset((void **)&p_fcb->p_fmsg);
             p_fcb->frag_enabled = FALSE;
         }
     }
@@ -400,11 +398,7 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
         {
             /* previous fragments need to be dropped, when received another new message */
             p_rcb->rasm_offset = 0;
-            if (p_rcb->p_rmsg)
-            {
-                osi_freebuf(p_rcb->p_rmsg);
-                p_rcb->p_rmsg = NULL;
-            }
+            osi_freebuf_and_reset((void **)&p_rcb->p_rmsg);
         }
 
         if (pkt_type != AVRC_PKT_SINGLE && cr == AVCT_RSP)
@@ -1048,11 +1042,7 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
     if (p_fcb->frag_enabled)
         p_fcb->frag_enabled = FALSE;
 
-    if (p_fcb->p_fmsg)
-    {
-        osi_freebuf(p_fcb->p_fmsg);
-        p_fcb->p_fmsg = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_fcb->p_fmsg);
 
     /* AVRCP spec has not defined any control channel commands that needs fragmentation at this level
      * check for fragmentation only on the response */

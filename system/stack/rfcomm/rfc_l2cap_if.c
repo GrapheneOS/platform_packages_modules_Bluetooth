@@ -314,7 +314,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
     if (!p_mcb)
     {
         RFCOMM_TRACE_WARNING ("RFCOMM_BufDataInd LCID:0x%x", lcid);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -323,7 +323,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
     /* If the frame did not pass validation just ignore it */
     if (event == RFC_EVENT_BAD_FRAME)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -338,7 +338,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 
         /* Other multiplexer events go to state machine */
         rfc_mx_sm_execute (p_mcb, event, NULL);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -352,14 +352,14 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
             if (( p_mcb->is_initiator && !rfc_cb.rfc.rx_frame.cr)
              || (!p_mcb->is_initiator &&  rfc_cb.rfc.rx_frame.cr))
                 rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, rfc_cb.rfc.rx_frame.pf);
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             return;
         }
 
         if ((p_port = port_find_dlci_port (rfc_cb.rfc.rx_frame.dlci)) == NULL)
         {
             rfc_send_dm (p_mcb, rfc_cb.rfc.rx_frame.dlci, TRUE);
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             return;
         }
         p_mcb->port_inx[rfc_cb.rfc.rx_frame.dlci] = p_port->inx;
@@ -374,7 +374,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
         if (p_buf->len > 0)
             rfc_port_sm_execute (p_port, event, p_buf);
         else
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
 
         if (rfc_cb.rfc.rx_frame.credit != 0)
             rfc_inc_credit (p_port, rfc_cb.rfc.rx_frame.credit);
@@ -382,7 +382,7 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
         return;
     }
     rfc_port_sm_execute (p_port, event,  NULL);
-    osi_freebuf (p_buf);
+    osi_freebuf(p_buf);
 }
 
 /*******************************************************************************

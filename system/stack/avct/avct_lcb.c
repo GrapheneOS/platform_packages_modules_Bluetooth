@@ -376,10 +376,7 @@ void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         AVCT_TRACE_DEBUG("avct_lcb_dealloc now");
 
         /* clear reassembled msg buffer if in use */
-        if (p_lcb->p_rx_msg != NULL)
-        {
-            osi_freebuf(p_lcb->p_rx_msg);
-        }
+        osi_freebuf(p_lcb->p_rx_msg);
         fixed_queue_free(p_lcb->tx_q, NULL);
         memset(p_lcb, 0, sizeof(tAVCT_LCB));
     }

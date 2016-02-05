@@ -529,7 +529,7 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_UIH:
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
         rfc_send_dm (p_mcb, RFCOMM_MX_DLCI, FALSE);
         return;
 

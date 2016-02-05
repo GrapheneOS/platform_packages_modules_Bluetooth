@@ -320,8 +320,6 @@ extern BOOLEAN btif_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
                                                   UINT8 *p_app_idx, UINT8 *p_mcl_idx);
 extern BOOLEAN  btif_hl_save_mdl_cfg(UINT8 app_id, UINT8 item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg);
 extern BOOLEAN  btif_hl_delete_mdl_cfg(UINT8 app_id, UINT8 item_idx);
-extern void * btif_hl_get_buf(UINT16 size);
-extern void btif_hl_free_buf(void **p);
 extern BOOLEAN btif_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
                                                  UINT8 *p_app_idx,UINT8 *p_mcl_idx,
                                                  UINT8 *p_mdl_idx);

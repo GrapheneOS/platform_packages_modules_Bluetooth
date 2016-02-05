@@ -211,7 +211,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
         if(!p_new_buf)
         {
             APPL_TRACE_WARNING("Cannot get a PAN buffer");
-            osi_freebuf( p_buf );
+            osi_freebuf(p_buf);
             return;
         }
         else
@@ -219,7 +219,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
             memcpy( (UINT8 *)(p_new_buf+1)+sizeof(tBTA_PAN_DATA_PARAMS), (UINT8 *)(p_buf+1)+p_buf->offset, p_buf->len );
             p_new_buf->len    = p_buf->len;
             p_new_buf->offset = sizeof(tBTA_PAN_DATA_PARAMS);
-            osi_freebuf( p_buf );
+            osi_freebuf(p_buf);
         }
     }
     else
@@ -237,7 +237,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
     if((p_scb = bta_pan_scb_by_handle(handle)) == NULL)
     {
 
-        osi_freebuf( p_new_buf );
+        osi_freebuf(p_new_buf);
         return;
     }
 
@@ -817,9 +817,7 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 void bta_pan_free_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     UNUSED(p_scb);
-
     osi_freebuf(p_data);
-
 }
 
 #endif /* PAN_INCLUDED */

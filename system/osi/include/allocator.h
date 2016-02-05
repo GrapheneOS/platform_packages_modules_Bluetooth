@@ -41,9 +41,16 @@ void *osi_malloc(size_t size);
 void *osi_calloc(size_t size);
 void osi_free(void *ptr);
 
+// Free a buffer that was previously allocated with function |osi_malloc|
+// or |osi_calloc| and reset the pointer to that buffer to NULL.
+// |p_ptr| is a pointer to the buffer pointer to be reset.
+// |p_ptr| cannot be NULL.
+void osi_free_and_reset(void **p_ptr);
+
 //
-// TODO: Functions osi_getbuf(), osi_freebuf() and osi_get_buf_size() below
-// should be removed.
+// TODO: Function osi_get_buf_size() should be removed.
+// The rest of the functions below should be removed and replaced with the
+// corresponding functions above.
 //
 
 // Allocate a buffer of size |size|. Return the allocated buffer if there
@@ -51,7 +58,14 @@ void osi_free(void *ptr);
 void *osi_getbuf(uint16_t size);
 
 // Free a buffer that was previously allocated with function |osi_getbuf|.
+// |ptr| can be NULL.
 void osi_freebuf(void *ptr);
+
+// Free a buffer that was previously allocated with function |osi_getbuf|
+// and reset the pointer to that buffer to NULL.
+// |p_ptr| is a pointer to the buffer pointer to be reset.
+// |p_ptr| cannot be NULL.
+void osi_freebuf_and_reset(void **p_ptr);
 
 // Get the size of the buffer previously allocated with function |osi_getbuf|
 uint16_t osi_get_buf_size(void *ptr);

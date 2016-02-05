@@ -276,8 +276,7 @@ void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status )
         else
         {
             /* BTM_DEV_STATUS_CMD_TOUT is ignored for now. */
-            osi_freebuf (sys_event);
-            sys_event = NULL;
+            osi_freebuf_and_reset((void **)sys_event);
         }
 
         if (sys_event)

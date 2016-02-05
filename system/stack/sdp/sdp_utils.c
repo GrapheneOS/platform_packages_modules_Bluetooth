@@ -154,12 +154,8 @@ void sdpu_release_ccb (tCONN_CB *p_ccb)
 
     /* Free the response buffer */
     if (p_ccb->rsp_list)
-    {
-       SDP_TRACE_DEBUG("releasing SDP rsp_list");
-
-        osi_freebuf(p_ccb->rsp_list);
-        p_ccb->rsp_list = NULL;
-    }
+        SDP_TRACE_DEBUG("releasing SDP rsp_list");
+    osi_freebuf_and_reset((void **)&p_ccb->rsp_list);
 }
 
 

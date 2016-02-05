@@ -473,7 +473,7 @@ tMCA_RESULT MCA_CreateMdl(tMCA_CL mcl, tMCA_DEP dep, UINT16 data_psm,
                     return MCA_SUCCESS;
                 }
                 else
-                    osi_freebuf (p_evt_data);
+                    osi_freebuf(p_evt_data);
             }
             mca_dcb_dealloc(p_dcb, NULL);
         }

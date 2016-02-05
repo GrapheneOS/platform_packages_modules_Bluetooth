@@ -357,40 +357,6 @@ static BOOLEAN btif_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
 
 /*******************************************************************************
 **
-** Function      btif_hl_get_buf
-**
-** Description   get buffer
-**
-** Returns     void
-**
-*******************************************************************************/
-void * btif_hl_get_buf(UINT16 size)
-{
-    return osi_getbuf(size);
-}
-
-/*******************************************************************************
-**
-** Function      btif_hl_free_buf
-**
-** Description free buffer
-**
-** Return void
-**
-*******************************************************************************/
-void btif_hl_free_buf(void **p)
-{
-    if (*p != NULL)
-    {
-        BTIF_TRACE_DEBUG("%s OK", __FUNCTION__ );
-        osi_freebuf(*p);
-        *p = NULL;
-    }
-    else
-        BTIF_TRACE_ERROR("%s NULL pointer",__FUNCTION__ );
-}
-/*******************************************************************************
-**
 ** Function      btif_hl_is_the_first_reliable_existed
 **
 ** Description  This function checks whether the first reliable DCH channel
@@ -460,8 +426,8 @@ static void btif_hl_clean_pcb(btif_hl_pending_chan_cb_t *p_pcb)
 static void btif_hl_clean_mdl_cb(btif_hl_mdl_cb_t *p_dcb)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__ );
-    btif_hl_free_buf((void **) &p_dcb->p_rx_pkt);
-    btif_hl_free_buf((void **) &p_dcb->p_tx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_rx_pkt);
+    osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
     memset(p_dcb, 0 , sizeof(btif_hl_mdl_cb_t));
 }
 
@@ -3116,9 +3082,10 @@ static void btif_hl_proc_send_data_cfm(tBTA_HL_MDL_HANDLE mdl_handle,
     if (btif_hl_find_mdl_idx_using_handle(mdl_handle,
                                           &app_idx, &mcl_idx, &mdl_idx ))
     {
-        p_dcb =BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-        btif_hl_free_buf((void **) &p_dcb->p_tx_pkt);
-        BTIF_TRACE_DEBUG("send success free p_tx_pkt tx_size=%d", p_dcb->tx_size);
+        p_dcb = BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
+        osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
+        BTIF_TRACE_DEBUG("send success free p_tx_pkt tx_size=%d",
+                         p_dcb->tx_size);
         p_dcb->tx_size = 0;
     }
 }
@@ -4519,11 +4486,8 @@ BOOLEAN btif_hl_create_socket(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx){
             list_append(soc_queue, (void *)p_scb);
             btif_hl_select_wakeup();
             status = TRUE;
-        }
-        else
-        {
-
-            btif_hl_free_buf((void **)&p_scb);
+        } else {
+            osi_freebuf_and_reset((void **)&p_scb);
         }
     }
 
@@ -4624,6 +4588,7 @@ void btif_hl_close_socket( fd_set *p_org_set){
         // We may mutate this list so we need keep track of
         // the current node and only remove items behind.
         btif_hl_soc_cb_t *p_scb = list_node(node);
+        BTIF_TRACE_DEBUG("p_scb=0x%x", p_scb);
         node = list_next(node);
         if (btif_hl_get_socket_state(p_scb) == BTIF_HL_SOC_STATE_IDLE) {
             btif_hl_mdl_cb_t *p_dcb = BTIF_HL_GET_MDL_CB_PTR(p_scb->app_idx,
@@ -4631,10 +4596,9 @@ void btif_hl_close_socket( fd_set *p_org_set){
             BTIF_TRACE_DEBUG("idle socket app_idx=%d mcl_id=%d, mdl_idx=%d p_dcb->in_use=%d",
                     p_scb->app_idx, p_scb->mcl_idx, p_scb->mdl_idx, p_dcb->in_use);
             list_remove(soc_queue, p_scb);
-            btif_hl_free_buf((void **)&p_scb);
+            osi_freebuf(p_scb);
             p_dcb->p_scb = NULL;
         }
-        BTIF_TRACE_DEBUG("p_scb=0x%x", p_scb);
     }
     BTIF_TRACE_DEBUG("leaving %s",__FUNCTION__);
 }
@@ -4689,21 +4653,19 @@ void btif_hl_select_monitor_callback(fd_set *p_cur_set ,fd_set *p_org_set) {
                 if (p_dcb->p_tx_pkt) {
                     BTIF_TRACE_ERROR("Rcv new pkt but the last pkt is still not been"
                             "  sent tx_size=%d", p_dcb->tx_size);
-                    btif_hl_free_buf((void **) &p_dcb->p_tx_pkt);
+                    osi_freebuf_and_reset((void **)&p_dcb->p_tx_pkt);
                 }
-                p_dcb->p_tx_pkt = btif_hl_get_buf (p_dcb->mtu);
-                if (p_dcb) {
-                    int r = (int)recv(p_scb->socket_id[1], p_dcb->p_tx_pkt,
-                            p_dcb->mtu, MSG_DONTWAIT);
-                    if (r > 0) {
-                        BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback send data r =%d", r);
-                        p_dcb->tx_size = r;
-                        BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback send data tx_size=%d", p_dcb->tx_size );
-                        BTA_HlSendData(p_dcb->mdl_handle, p_dcb->tx_size);
-                    } else {
-                        BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback receive failed r=%d",r);
-                        BTA_HlDchClose(p_dcb->mdl_handle);
-                    }
+                p_dcb->p_tx_pkt = osi_getbuf(p_dcb->mtu);
+                int r = (int)recv(p_scb->socket_id[1], p_dcb->p_tx_pkt,
+                                  p_dcb->mtu, MSG_DONTWAIT);
+                if (r > 0) {
+                    BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback send data r =%d", r);
+                    p_dcb->tx_size = r;
+                    BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback send data tx_size=%d", p_dcb->tx_size );
+                    BTA_HlSendData(p_dcb->mdl_handle, p_dcb->tx_size);
+                } else {
+                    BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback receive failed r=%d",r);
+                    BTA_HlDchClose(p_dcb->mdl_handle);
                 }
             }
         }

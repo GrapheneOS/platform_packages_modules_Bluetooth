@@ -1071,8 +1071,8 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG("bta_av_cleanup");
 
     /* free any buffers */
-    utl_freebuf((void **) &p_scb->p_cap);
-    utl_freebuf((void **) &p_scb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_scb->p_cap);
+    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
     p_scb->avdt_version = 0;
 
     /* initialize some control block variables */
@@ -1128,7 +1128,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_free_sdb(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_data);
-    utl_freebuf((void **) &p_scb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
 }
 
 /*******************************************************************************
@@ -1574,11 +1574,11 @@ void bta_av_do_close (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_connect_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_connect_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_data);
 
-    utl_freebuf((void **) &p_scb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
 
     if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
     {
@@ -1600,12 +1600,12 @@ void bta_av_connect_req (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_sdp_failed (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
+void bta_av_sdp_failed(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     if (!p_scb->open_status)
         p_scb->open_status = BTA_AV_FAIL_SDP;
 
-    utl_freebuf((void **) &p_scb->p_disc_db);
+    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
     bta_av_str_closed(p_scb, p_data);
 }
 
@@ -1936,7 +1936,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         if (!bta_av_is_rcfg_sst(p_scb))
         {
             /* free capabilities buffer */
-            utl_freebuf((void **) &p_scb->p_cap);
+            osi_freebuf_and_reset((void **)&p_scb->p_cap);
         }
     }
     else
@@ -2725,7 +2725,7 @@ void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     /* rc listen */
     bta_av_st_rc_timer(p_scb, NULL);
-    utl_freebuf((void **)&p_scb->p_cap);
+    osi_freebuf_and_reset((void **)&p_scb->p_cap);
 
     /* No need to keep the role bits once reconfig is done. */
     p_scb->role &= ~BTA_AV_ROLE_AD_ACP;

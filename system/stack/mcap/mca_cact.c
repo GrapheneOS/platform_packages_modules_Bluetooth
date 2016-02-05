@@ -83,8 +83,7 @@ void mca_ccb_report_event(tMCA_CCB *p_ccb, UINT8 event, tMCA_CTRL *p_data)
 void mca_ccb_free_msg(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     UNUSED(p_ccb);
-
-    osi_freebuf (p_data);
+    osi_freebuf(p_data);
 }
 
 /*******************************************************************************
@@ -113,7 +112,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
          * Get the mdl_id in dcb to compose the request */
         p_msg->mdl_id = p_dcb->mdl_id;
         mca_dcb_event(p_dcb, MCA_DCB_API_CLOSE_EVT, NULL);
-        mca_free_buf ((void **)&p_ccb->p_tx_req);
+        osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
         p_ccb->status = MCA_CCB_STAT_NORM;
         is_abort = TRUE;
     }
@@ -150,7 +149,7 @@ void mca_ccb_snd_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     else
     {
         MCA_TRACE_WARNING ("dropping api req");
-        osi_freebuf (p_data);
+        osi_freebuf(p_data);
     }
 }
 
@@ -196,12 +195,12 @@ void mca_ccb_snd_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
                 p_ccb->p_rcb->reg.data_psm, BTM_SEC_PROTO_MCA, p_msg->dcb_idx);
             p_ccb->status = MCA_CCB_STAT_PENDING;
             /* set p_tx_req to block API_REQ/API_RSP before DL is up */
-            mca_free_buf ((void **)&p_ccb->p_tx_req);
+            osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
             p_ccb->p_tx_req = p_ccb->p_rx_msg;
             p_ccb->p_rx_msg = NULL;
             p_ccb->p_tx_req->dcb_idx = p_msg->dcb_idx;
         }
-        mca_free_buf ((void **)&p_ccb->p_rx_msg);
+        osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
         p_pkt->len = p - p_start;
         L2CA_DataWrite (p_ccb->lcid, p_pkt);
     }
@@ -294,8 +293,8 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
             p_ccb->status = MCA_CCB_STAT_NORM;
             if (p_ccb->p_tx_req && ((p_dcb = mca_dcb_by_hdl(p_ccb->p_tx_req->dcb_idx))!= NULL))
             {
-                mca_dcb_dealloc (p_dcb, NULL);
-                mca_free_buf ((void **)&p_ccb->p_tx_req);
+                mca_dcb_dealloc(p_dcb, NULL);
+                osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
             }
         }
         else
@@ -323,13 +322,13 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
             {
                 mca_dcb_dealloc(p_dcb, NULL);
             }
-            mca_free_buf ((void **)&p_ccb->p_tx_req);
+            osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
             mca_stop_timer(p_ccb);
         }
         else
         {
             /*  local is initiator, ignore the req */
-            osi_freebuf (p_pkt);
+            osi_freebuf(p_pkt);
             return;
         }
     }
@@ -442,13 +441,13 @@ void mca_ccb_hdl_req(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         p_ccb->p_rx_msg = p_rx_msg;
         if (send_rsp)
         {
-            osi_freebuf (p_pkt);
+            osi_freebuf(p_pkt);
             p_ccb->p_rx_msg = NULL;
         }
         mca_ccb_report_event(p_ccb, evt_data.hdr.op_code, &evt_data);
     }
     else
-        osi_freebuf (p_pkt);
+        osi_freebuf(p_pkt);
 }
 
 /*******************************************************************************
@@ -540,7 +539,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
             } /* end of chk_mdl */
 
             if (p_ccb->status != MCA_CCB_STAT_PENDING)
-                mca_free_buf ((void **)&p_ccb->p_tx_req);
+                osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
             mca_ccb_report_event(p_ccb, evt_data.hdr.op_code, &evt_data);
         }
         /* else a bad response is received */
@@ -550,7 +549,7 @@ void mca_ccb_hdl_rsp(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
         /* not expecting any response. drop it */
         MCA_TRACE_WARNING ("dropping received rsp (not expecting a response)");
     }
-    osi_freebuf (p_data);
+    osi_freebuf(p_data);
 }
 
 /*******************************************************************************
@@ -586,8 +585,8 @@ void mca_ccb_dl_open (tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
 {
     UNUSED(p_data);
 
-    mca_free_buf ((void **)&p_ccb->p_tx_req);
-    mca_free_buf ((void **)&p_ccb->p_rx_msg);
+    osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
+    osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
     p_ccb->status = MCA_CCB_STAT_NORM;
 }
 

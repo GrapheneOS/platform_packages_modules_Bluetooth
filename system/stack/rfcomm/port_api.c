@@ -1381,7 +1381,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
     /* We should not allow to write data in to server port when connection is not opened */
     if (p_port->is_server && (p_port->rfc.state != RFC_STATE_OPENED))
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (PORT_CLOSED);
     }
 
@@ -1401,7 +1401,7 @@ static int port_write (tPORT *p_port, BT_HDR *p_buf)
             RFCOMM_TRACE_WARNING ("PORT_Write: Queue size: %d",
                                    p_port->tx.queue_size);
 
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
 
             if ((p_port->p_callback != NULL) && (p_port->ev_mask & PORT_EV_ERR))
                   p_port->p_callback (PORT_EV_ERR, p_port->inx);
@@ -1451,7 +1451,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
     /* Check if handle is valid to avoid crashing */
     if ((handle == 0) || (handle > MAX_RFC_PORTS))
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (PORT_BAD_HANDLE);
     }
 
@@ -1459,7 +1459,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
 
     if (!p_port->in_use || (p_port->state == PORT_STATE_CLOSED))
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (PORT_NOT_OPENED);
     }
 
@@ -1467,7 +1467,7 @@ int PORT_Write (UINT16 handle, BT_HDR *p_buf)
     {
         RFCOMM_TRACE_WARNING ("PORT_Write: Data dropped line_status:0x%x",
                                p_port->line_status);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (PORT_LINE_ERR);
     }
 

@@ -156,7 +156,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
     if ((SMP_OPCODE_MAX < cmd) || (SMP_OPCODE_MIN > cmd))
     {
         SMP_TRACE_WARNING( "Ignore received command with RESERVED code 0x%02x", cmd);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -170,7 +170,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         }
         else if (memcmp(&bd_addr[0], p_cb->pairing_bda, BD_ADDR_LEN))
         {
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             smp_reject_unexpected_pairing_command(bd_addr);
             return;
         }
@@ -201,7 +201,7 @@ static void smp_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         smp_sm_event(p_cb, cmd, p);
     }
 
-    osi_freebuf (p_buf);
+    osi_freebuf(p_buf);
 }
 
 /*******************************************************************************
@@ -321,7 +321,7 @@ static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         }
         else if (memcmp(&bd_addr[0], p_cb->pairing_bda, BD_ADDR_LEN))
         {
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             smp_reject_unexpected_pairing_command(bd_addr);
             return;
         }
@@ -339,6 +339,6 @@ static void smp_br_data_received(UINT16 channel, BD_ADDR bd_addr, BT_HDR *p_buf)
         smp_br_state_machine_event(p_cb, cmd, p);
     }
 
-    osi_freebuf (p_buf);
+    osi_freebuf(p_buf);
 }
 #endif /* SMP_INCLUDED == TRUE */

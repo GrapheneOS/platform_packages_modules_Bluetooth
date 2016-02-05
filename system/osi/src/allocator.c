@@ -80,6 +80,13 @@ void osi_free(void *ptr) {
   free(allocation_tracker_notify_free(alloc_allocator_id, ptr));
 }
 
+void osi_free_and_reset(void **p_ptr)
+{
+  assert(p_ptr != NULL);
+  osi_free(*p_ptr);
+  *p_ptr = NULL;
+}
+
 const allocator_t allocator_calloc = {
   osi_calloc,
   osi_free
@@ -110,9 +117,19 @@ void *osi_getbuf(uint16_t size)
 
 void osi_freebuf(void *p_buf)
 {
+  if (p_buf == NULL)
+    return;
+
   BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
   assert(header->magic_number == MAGIC_NUMBER);
   osi_free(header);
+}
+
+void osi_freebuf_and_reset(void **p_ptr)
+{
+  assert(p_ptr != NULL);
+  osi_freebuf(*p_ptr);
+  *p_ptr = NULL;
 }
 
 uint16_t osi_get_buf_size(void *p_buf)

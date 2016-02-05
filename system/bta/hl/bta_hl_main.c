@@ -1599,24 +1599,16 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
     p_acb->p_cback(BTA_HL_SDP_QUERY_CFM_EVT,(tBTA_HL *) &evt_data );
 
     if (release_sdp_buf)
-    {
-        utl_freebuf((void **) &p_sdp);
-    }
+        osi_freebuf_and_reset((void **)&p_sdp);
 
-    if (p_data->cch_sdp.release_mcl_cb)
-    {
-        memset(p_mcb, 0 ,sizeof(tBTA_HL_MCL_CB));
-    }
-    else
-    {
+    if (p_data->cch_sdp.release_mcl_cb) {
+        memset(p_mcb, 0, sizeof(tBTA_HL_MCL_CB));
+    } else {
         if (p_mcb->close_pending)
-        {
-            bta_hl_check_cch_close(app_idx,mcl_idx,p_data, TRUE);
-        }
+            bta_hl_check_cch_close(app_idx, mcl_idx, p_data, TRUE);
 
-        if (!p_mcb->ctrl_psm)
-        {
-            /* this is a control channel acceptor do not store the sdp records*/
+        if (!p_mcb->ctrl_psm) {
+            /* Control channel acceptor: do not store the SDP records */
             memset(&p_mcb->sdp, 0, sizeof(tBTA_HL_SDP));
         }
     }

@@ -1485,11 +1485,7 @@ static void btm_clr_inq_result_flt (void)
 {
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
 
-    if (p_inq->p_bd_db)
-    {
-        osi_freebuf(p_inq->p_bd_db);
-        p_inq->p_bd_db = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_inq->p_bd_db);
     p_inq->num_bd_entries = 0;
     p_inq->max_bd_entries = 0;
 }

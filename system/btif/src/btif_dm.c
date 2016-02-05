@@ -263,7 +263,7 @@ static void btif_dm_data_copy(uint16_t event, char *dst, char *src)
 static void btif_dm_data_free(uint16_t event, tBTA_DM_SEC *dm_sec)
 {
     if (event == BTA_DM_BLE_KEY_EVT)
-        osi_free(dm_sec->ble_key.p_key_value);
+        osi_free_and_reset((void **)&dm_sec->ble_key.p_key_value);
 }
 
 void btif_dm_init(uid_set_t* set)
@@ -841,12 +841,9 @@ static void search_services_copy_cb(UINT16 event, char *p_dest, char *p_src)
                                                         (UINT8*)(p_dest + sizeof(tBTA_DM_SEARCH));
                        memcpy(p_dest_data->disc_res.p_uuid_list, p_src_data->disc_res.p_uuid_list,
                               p_src_data->disc_res.num_uuids*MAX_UUID_SIZE);
-                       osi_freebuf(p_src_data->disc_res.p_uuid_list);
+                       osi_freebuf_and_reset((void **)&p_src_data->disc_res.p_uuid_list);
                   }
-                  if (p_src_data->disc_res.p_raw_data != NULL)
-                  {
-                      osi_freebuf(p_src_data->disc_res.p_raw_data);
-                  }
+                  osi_freebuf_and_reset((void **)&p_src_data->disc_res.p_raw_data);
               }
          } break;
     }

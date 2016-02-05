@@ -116,10 +116,7 @@ static void leftshift_onebit(UINT8 *input, UINT8 *output)
 *******************************************************************************/
 static void cmac_aes_cleanup(void)
 {
-    if (cmac_cb.text != NULL)
-    {
-        osi_freebuf(cmac_cb.text);
-    }
+    osi_freebuf(cmac_cb.text);
     memset(&cmac_cb, 0, sizeof(tCMAC_CB));
 }
 

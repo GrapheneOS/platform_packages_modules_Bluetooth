@@ -318,7 +318,6 @@ extern void mca_rcb_dealloc(tMCA_HANDLE handle);
 extern tMCA_HANDLE mca_rcb_to_handle(tMCA_RCB *p_rcb);
 extern tMCA_RCB *mca_rcb_by_handle(tMCA_HANDLE handle);
 extern BOOLEAN mca_is_valid_dep_id(tMCA_RCB *p_rcb, tMCA_DEP dep);
-extern void mca_free_buf(void **p_buf);
 extern void mca_ccb_timer_timeout(void *data);
 extern void mca_stop_timer(tMCA_CCB *p_ccb);
 

@@ -862,15 +862,11 @@ void btm_ble_multi_adv_cleanup(void)
         for (size_t i = 0; i < btm_cb.cmn_ble_vsc_cb.adv_inst_max; i++) {
             alarm_free(btm_multi_adv_cb.p_adv_inst[i].adv_raddr_timer);
         }
-        osi_freebuf(btm_multi_adv_cb.p_adv_inst);
+        osi_freebuf_and_reset((void **)&btm_multi_adv_cb.p_adv_inst);
     }
 
-    if (btm_multi_adv_cb.op_q.p_sub_code)
-         osi_freebuf(btm_multi_adv_cb.op_q.p_sub_code);
-
-    if (btm_multi_adv_cb.op_q.p_inst_id)
-        osi_freebuf(btm_multi_adv_cb.op_q.p_inst_id);
-
+    osi_freebuf_and_reset((void **)&btm_multi_adv_cb.op_q.p_sub_code);
+    osi_freebuf_and_reset((void **)&btm_multi_adv_cb.op_q.p_inst_id);
 }
 
 /*******************************************************************************

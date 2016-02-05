@@ -100,11 +100,10 @@ void mca_dcb_cong (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 ** Returns          void.
 **
 *******************************************************************************/
-void mca_dcb_free_data (tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
+void mca_dcb_free_data(tMCA_DCB *p_dcb, tMCA_DCB_EVT *p_data)
 {
     UNUSED(p_dcb);
-
-    osi_freebuf (p_data);
+    osi_freebuf(p_data);
 }
 
 /*******************************************************************************

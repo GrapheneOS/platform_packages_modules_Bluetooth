@@ -1050,10 +1050,9 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         /* used to reset cache in application */
         bta_gattc_co_cache_reset(p_clcb->p_srcb->server_bda);
     }
-    if(p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_list)
-    {
+    if (p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_list) {
         /* release pending attribute list buffer */
-        utl_freebuf((void **)&p_clcb->p_srcb->p_srvc_list);
+        osi_freebuf_and_reset((void **)&p_clcb->p_srcb->p_srvc_list);
     }
 
     if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING)
@@ -1073,9 +1072,8 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
          * want to free the underlying buffer that's being
          * referenced by p_clcb->p_q_cmd
          */
-        if (p_q_cmd != p_clcb->p_q_cmd) {
-            utl_freebuf((void **)&p_q_cmd);
-        }
+        if (p_q_cmd != p_clcb->p_q_cmd)
+            osi_freebuf_and_reset((void **)&p_q_cmd);
     }
 }
 /*******************************************************************************
@@ -1358,7 +1356,7 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
                     BTA_GATTC_READ_CHAR_EVT: BTA_GATTC_READ_DESCR_EVT;
     cb_data.read.conn_id = p_clcb->bta_conn_id;
 
-    utl_freebuf((void **)&p_clcb->p_q_cmd);
+    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
     /* read complete, callback */
     ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
 
@@ -1410,7 +1408,7 @@ void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     else
         event = BTA_GATTC_WRITE_DESCR_EVT;
 
-    utl_freebuf((void **)&p_clcb->p_q_cmd);
+    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
     cb_data.write.conn_id = p_clcb->bta_conn_id;
     /* write complete, callback */
     ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
@@ -1429,8 +1427,7 @@ void bta_gattc_exec_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
 
-    utl_freebuf((void **)&p_clcb->p_q_cmd);
-
+    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
     p_clcb->status      = BTA_GATT_OK;
 
     /* execute complete, callback */
@@ -1454,7 +1451,7 @@ void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
 
-    utl_freebuf((void **)&p_clcb->p_q_cmd);
+    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
 
     if (p_data->p_cmpl  &&  p_data->status == BTA_GATT_OK)
         p_clcb->p_srcb->mtu  = p_data->p_cmpl->mtu;

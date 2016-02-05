@@ -154,8 +154,8 @@ static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
         case BTA_GATTS_WRITE_EVT:
         case BTA_GATTS_EXEC_WRITE_EVT:
         case BTA_GATTS_MTU_EVT:
-            if (p_data && p_data->req_data.p_data)
-                osi_freebuf(p_data->req_data.p_data);
+            if (p_data != NULL)
+                osi_freebuf_and_reset((void **)&p_data->req_data.p_data);
             break;
 
         default:

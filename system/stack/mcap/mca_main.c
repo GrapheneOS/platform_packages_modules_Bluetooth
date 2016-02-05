@@ -629,21 +629,3 @@ BOOLEAN mca_is_valid_dep_id(tMCA_RCB *p_rcb, tMCA_DEP dep)
     }
     return valid;
 }
-
-/*******************************************************************************
-**
-** Function         mca_free_buf
-**
-** Description      free memory for specified GKI packet
-**
-** Returns          void
-**
-*******************************************************************************/
-void mca_free_buf (void **p_buf)
-{
-    if (p_buf && *p_buf)
-    {
-        osi_freebuf(*p_buf);
-        *p_buf = NULL;
-    }
-}

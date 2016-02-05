@@ -1225,7 +1225,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
     bta_dm_search_cb.services = p_data->search.services;
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    utl_freebuf((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
 
     if ((bta_dm_search_cb.num_uuid = p_data->search.num_uuid) != 0 &&
          p_data->search.p_uuid != NULL)
@@ -1340,7 +1340,7 @@ void bta_dm_discover (tBTA_DM_MSG *p_data)
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     bta_dm_gattc_register();
-    utl_freebuf((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
     if ((bta_dm_search_cb.num_uuid = p_data->discover.num_uuid) != 0 &&
         p_data->discover.p_uuid != NULL)
     {
@@ -1752,11 +1752,8 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             else /* regular one service per search or PNP search */
                 break;
 
-        }
-        while(bta_dm_search_cb.service_index <= BTA_MAX_SERVICE_ID);
+        } while (bta_dm_search_cb.service_index <= BTA_MAX_SERVICE_ID);
 
-//        osi_freebuf(bta_dm_search_cb.p_sdp_db);
-//        bta_dm_search_cb.p_sdp_db = NULL;
         APPL_TRACE_DEBUG("%s services_found = %04x", __FUNCTION__,
                          bta_dm_search_cb.services_found);
 
@@ -1873,8 +1870,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             bta_dm_search_cb.wait_disc = FALSE;
 
         /* not able to connect go to next device */
-        osi_freebuf(bta_dm_search_cb.p_sdp_db);
-        bta_dm_search_cb.p_sdp_db = NULL;
+        osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 
         BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
 
@@ -1904,12 +1900,12 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_cmpl (tBTA_DM_MSG *p_data)
+void bta_dm_search_cmpl(tBTA_DM_MSG *p_data)
 {
     APPL_TRACE_EVENT("%s", __func__);
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    utl_freebuf((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
 #endif
 
     if (p_data->hdr.layer_specific == BTA_DM_API_DI_DISCOVER_EVT)
@@ -2021,12 +2017,7 @@ static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
-    if(bta_dm_search_cb.p_sdp_db)
-    {
-        osi_freebuf(bta_dm_search_cb.p_sdp_db);
-        bta_dm_search_cb.p_sdp_db = NULL;
-    }
-
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 }
 
 /*******************************************************************************
@@ -2038,16 +2029,13 @@ void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_queue_search (tBTA_DM_MSG *p_data)
+void bta_dm_queue_search(tBTA_DM_MSG *p_data)
 {
-    if(bta_dm_search_cb.p_search_queue)
-    {
-        osi_freebuf(bta_dm_search_cb.p_search_queue);
-    }
-
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_SEARCH));
-    memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_SEARCH));
-
+    osi_freebuf(bta_dm_search_cb.p_search_queue);
+    bta_dm_search_cb.p_search_queue =
+      (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_SEARCH));
+    memcpy(bta_dm_search_cb.p_search_queue, p_data,
+           sizeof(tBTA_DM_API_SEARCH));
 }
 
 /*******************************************************************************
@@ -2059,16 +2047,13 @@ void bta_dm_queue_search (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
+void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 {
-    if(bta_dm_search_cb.p_search_queue)
-    {
-        osi_freebuf(bta_dm_search_cb.p_search_queue);
-    }
-
-    bta_dm_search_cb.p_search_queue = (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_DISCOVER));
-    memcpy(bta_dm_search_cb.p_search_queue, p_data, sizeof(tBTA_DM_API_DISCOVER));
-
+    osi_freebuf(bta_dm_search_cb.p_search_queue);
+    bta_dm_search_cb.p_search_queue =
+        (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_DISCOVER));
+    memcpy(bta_dm_search_cb.p_search_queue, p_data,
+           sizeof(tBTA_DM_API_DISCOVER));
 }
 
 /*******************************************************************************
@@ -2080,14 +2065,10 @@ void bta_dm_queue_disc (tBTA_DM_MSG *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_search_clear_queue (tBTA_DM_MSG *p_data)
+void bta_dm_search_clear_queue(tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
-    if(bta_dm_search_cb.p_search_queue)
-    {
-        osi_freebuf(bta_dm_search_cb.p_search_queue);
-        bta_dm_search_cb.p_search_queue = NULL;
-    }
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_search_queue);
 }
 
 /*******************************************************************************
@@ -2123,12 +2104,8 @@ void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data)
 void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
-    if(bta_dm_search_cb.p_sdp_db)
-    {
-        osi_freebuf(bta_dm_search_cb.p_sdp_db);
-        bta_dm_search_cb.p_sdp_db = NULL;
-    }
 
+    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
     bta_dm_search_cancel_notify(NULL);
 }
 
@@ -2254,10 +2231,11 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
 
                 if (!SDP_ServiceSearchAttributeRequest (bd_addr, bta_dm_search_cb.p_sdp_db, &bta_dm_sdp_callback))
                 {
-                    /* if discovery not successful with this device
-                    proceed to next one */
-                    osi_freebuf(bta_dm_search_cb.p_sdp_db);
-                    bta_dm_search_cb.p_sdp_db = NULL;
+                    /*
+                     * If discovery is not successful with this device, then
+                     * proceed with the next one.
+                     */
+                    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
                     bta_dm_search_cb.service_index = BTA_MAX_SERVICE_ID;
 
                 }

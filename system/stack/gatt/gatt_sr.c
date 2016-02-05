@@ -100,11 +100,8 @@ void gatt_dequeue_sr_cmd (tGATT_TCB *p_tcb)
     /* Double check in case any buffers are queued */
     GATT_TRACE_DEBUG("gatt_dequeue_sr_cmd" );
     if (p_tcb->sr_cmd.p_rsp_msg)
-    {
         GATT_TRACE_ERROR("free p_tcb->sr_cmd.p_rsp_msg = %d", p_tcb->sr_cmd.p_rsp_msg);
-
-        osi_freebuf (p_tcb->sr_cmd.p_rsp_msg);
-    }
+    osi_freebuf_and_reset((void **)&p_tcb->sr_cmd.p_rsp_msg);
 
     while (!fixed_queue_is_empty(p_tcb->sr_cmd.multi_rsp_q))
         osi_freebuf(fixed_queue_try_dequeue(p_tcb->sr_cmd.multi_rsp_q));
@@ -231,12 +228,12 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
             {
                 GATT_TRACE_ERROR("process_read_multi_rsp - nothing found!!");
                 p_cmd->status = GATT_NOT_FOUND;
-                osi_freebuf (p_buf);
-                GATT_TRACE_DEBUG(" osi_freebuf (p_buf)");
+                osi_freebuf(p_buf);
+                GATT_TRACE_DEBUG("osi_freebuf(p_buf)");
             }
             else if (p_cmd->p_rsp_msg != NULL)
             {
-                osi_freebuf (p_buf);
+                osi_freebuf(p_buf);
             }
             else
             {
@@ -819,7 +816,7 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg) osi_freebuf(p_msg);
+        osi_freebuf(p_msg);
         gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
     }
     else
@@ -894,7 +891,7 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  osi_freebuf(p_msg);
+        osi_freebuf(p_msg);
         gatt_send_error_rsp (p_tcb, reason, op_code, s_hdl, FALSE);
     }
     else
@@ -1075,7 +1072,7 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     }
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  osi_freebuf(p_msg);
+        osi_freebuf(p_msg);
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)
@@ -1237,7 +1234,7 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 
     if (reason != GATT_SUCCESS)
     {
-        if (p_msg)  osi_freebuf(p_msg);
+        osi_freebuf(p_msg);
 
         /* in theroy BUSY is not possible(should already been checked), protected check */
         if (reason != GATT_PENDING && reason != GATT_BUSY)

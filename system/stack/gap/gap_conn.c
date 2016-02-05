@@ -446,19 +446,19 @@ UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf)
 
     if (!p_ccb)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (GAP_ERR_BAD_HANDLE);
     }
 
     if (p_ccb->con_state != GAP_CCB_STATE_CONNECTED)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (GAP_ERR_BAD_STATE);
     }
 
     if (p_buf->offset < L2CAP_MIN_OFFSET)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return (GAP_ERR_BUF_OFFSET);
     }
 
@@ -1006,7 +1006,7 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     /* Find CCB based on CID */
     if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
     {
-        osi_freebuf (p_msg);
+        osi_freebuf(p_msg);
         return;
     }
 
@@ -1024,7 +1024,7 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     }
     else
     {
-        osi_freebuf (p_msg);
+        osi_freebuf(p_msg);
     }
 }
 

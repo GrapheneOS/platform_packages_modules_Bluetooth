@@ -495,10 +495,5 @@ void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 void bta_ag_free_db(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UNUSED(p_data);
-
-    if (p_scb->p_disc_db != NULL)
-    {
-        osi_freebuf(p_scb->p_disc_db);
-        p_scb->p_disc_db = NULL;
-    }
+    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
 }

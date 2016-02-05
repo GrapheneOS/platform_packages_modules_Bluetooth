@@ -229,8 +229,7 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
     alarm_free(p_fcrb->ack_timer);
     p_fcrb->ack_timer = NULL;
 
-    if (p_fcrb->p_rx_sdu)
-        osi_freebuf (p_fcrb->p_rx_sdu);
+    osi_freebuf_and_reset((void **)&p_fcrb->p_rx_sdu);
 
     while (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
         osi_freebuf(fixed_queue_try_dequeue(p_fcrb->waiting_for_ack_q));
@@ -625,7 +624,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     if (p_buf->len < min_pdu_len)
     {
         L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  Len too short: %u", p_ccb->local_cid, p_buf->len);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -731,7 +730,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                                    l2c_ccb_timer_timeout, p_ccb,
                                    btu_general_alarm_queue);
             }
-            osi_freebuf (p_buf);
+            osi_freebuf(p_buf);
             return;
         }
 
@@ -755,7 +754,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     /* Process receive sequence number */
     if (!process_reqseq (p_ccb, ctrl_word))
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -793,7 +792,7 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                 process_i_frame (p_ccb, p_buf, ctrl_word, TRUE);
             }
             else
-                osi_freebuf (p_buf);
+                osi_freebuf(p_buf);
 
             /* If more frames were lost during SREJ, send a REJ */
             if (p_ccb->fcrb.rej_after_srej)
@@ -1071,7 +1070,7 @@ static void process_s_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word)
         L2CAP_TRACE_DEBUG ("process_s_frame hit_max_retries");
     }
 
-    osi_freebuf (p_buf);
+    osi_freebuf(p_buf);
 }
 
 
@@ -1157,7 +1156,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
 
                         if (p_buf2)
                         {
-                            osi_freebuf (p_buf);
+                            osi_freebuf(p_buf);
                             p_buf = p_buf2;
                         }
                         p_buf->offset += L2CAP_FCR_OVERHEAD;
@@ -1175,7 +1174,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                                          p_ccb->local_cid, next_srej, fixed_queue_length(p_fcrb->srej_rcv_hold_q), p_ccb->our_cfg.fcr.tx_win_sz);
 
                     p_fcrb->rej_after_srej = TRUE;
-                    osi_freebuf (p_buf);
+                    osi_freebuf(p_buf);
                 }
             }
             else if (p_fcrb->rej_sent)
@@ -1184,7 +1183,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                                      p_ccb->local_cid, num_lost, tx_seq, p_fcrb->next_seq_expected, p_fcrb->srej_sent);
 
                 /* If REJ sent, just drop the frame */
-                osi_freebuf (p_buf);
+                osi_freebuf(p_buf);
             }
             else
             {
@@ -1194,7 +1193,7 @@ static void process_i_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_word, B
                 /* If only one lost, we will send SREJ, otherwise we will send REJ */
                 if (num_lost > 1)
                 {
-                    osi_freebuf (p_buf);
+                    osi_freebuf(p_buf);
                     p_fcrb->rej_sent = TRUE;
                     l2c_fcr_send_S_frame (p_ccb, L2CAP_FCR_SUP_REJ, 0);
                 }
@@ -1312,7 +1311,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     if (ctrl_word & L2CAP_FCR_S_FRAME_BIT)
     {
         L2CAP_TRACE_WARNING ("Rx L2CAP PDU: CID: 0x%04x  BAD S-frame in streaming mode  ctrl_word: 0x%04x", p_ccb->local_cid, ctrl_word);
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
         return;
     }
 
@@ -1335,11 +1334,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
                                 p_ccb->local_cid, p_ccb->fcrb.next_seq_expected, tx_seq, p_ccb->fcrb.p_rx_sdu);
 
         /* Lost one or more packets, so flush the SAR queue */
-        if (p_ccb->fcrb.p_rx_sdu != NULL)
-        {
-            osi_freebuf (p_ccb->fcrb.p_rx_sdu);
-            p_ccb->fcrb.p_rx_sdu = NULL;
-        }
+        osi_freebuf_and_reset((void **)&p_ccb->fcrb.p_rx_sdu);
     }
 
     p_ccb->fcrb.next_seq_expected = (tx_seq + 1) & L2CAP_FCR_SEQ_MODULO;
@@ -1347,11 +1342,7 @@ static void process_stream_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf)
     if (!do_sar_reassembly (p_ccb, p_buf, ctrl_word))
     {
         /* Some sort of SAR error, so flush the SAR queue */
-        if (p_ccb->fcrb.p_rx_sdu != NULL)
-        {
-            osi_freebuf (p_ccb->fcrb.p_rx_sdu);
-            p_ccb->fcrb.p_rx_sdu = NULL;
-        }
+        osi_freebuf_and_reset((void **)&p_ccb->fcrb.p_rx_sdu);
     }
 }
 
@@ -1450,7 +1441,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
 
                 p_fcrb->p_rx_sdu->len += p_buf->len;
 
-                osi_freebuf (p_buf);
+                osi_freebuf(p_buf);
                 p_buf = NULL;
 
                 if (sar_type == L2CAP_FCR_END_SDU)
@@ -1464,7 +1455,7 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
 
     if (packet_ok == FALSE)
     {
-        osi_freebuf (p_buf);
+        osi_freebuf(p_buf);
     }
     else if (p_buf != NULL)
     {
