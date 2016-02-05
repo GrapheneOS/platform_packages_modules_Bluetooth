@@ -410,15 +410,8 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 
     if (p_tcb != NULL)
     {
-        if (p_tcb->cache_buffer != NULL) {
-            while (! fixed_queue_is_empty(p_tcb->cache_buffer))
-                osi_freebuf(fixed_queue_try_dequeue(p_tcb->cache_buffer));
-            fixed_queue_free(p_tcb->cache_buffer, NULL);
-        }
-
         osi_freebuf_and_reset((void **)&p_tcb->p_srvc_list);
         memset(p_tcb, 0 , sizeof(tBTA_GATTC_SERV));
-        p_tcb->cache_buffer = fixed_queue_new(SIZE_MAX);
 
         p_tcb->in_use = TRUE;
         bdcpy(p_tcb->server_bda, bda);
