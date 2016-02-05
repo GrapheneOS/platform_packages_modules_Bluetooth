@@ -374,7 +374,7 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
                     (p_data->read.p_value->unformat.len > 0)) {
                     osi_freebuf_and_reset((void **)&p_data->read.p_value->unformat.p_value);
                 }
-                osi_freebuf_and_reset((void **)p_data->read.p_value);
+                osi_freebuf_and_reset((void **)&p_data->read.p_value);
             }
             break;
 
