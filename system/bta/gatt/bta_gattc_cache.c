@@ -142,10 +142,10 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, UINT8 n
 **
 ** Description      Allocate a GKI buffer for database cache.
 **
-** Returns          status
+** Returns          none.
 **
 *******************************************************************************/
-BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
+void bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_getbuf(GATT_DB_BUF_SIZE);
 
@@ -159,7 +159,6 @@ BT_HDR *bta_gattc_alloc_cache_buf(tBTA_GATTC_SERV *p_srvc_cb)
 #if BTA_GATT_DEBUG== TRUE
     APPL_TRACE_DEBUG("allocating new buffer: free byte = %d", p_srvc_cb->free_byte);
 #endif
-    return p_buf;
 }
 /*******************************************************************************
 **
@@ -189,12 +188,9 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
     p_srvc_cb->cur_char_idx = 0;
     p_srvc_cb->next_avail_idx = 0;
 
-    if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL) {
-        status = GATT_NO_RESOURCES;
-    } else {
-        p_srvc_cb->p_cur_srvc = NULL;
-        p_srvc_cb->p_srvc_cache = NULL;
-    }
+    bta_gattc_alloc_cache_buf(p_srvc_cb);
+    p_srvc_cb->p_cur_srvc = NULL;
+    p_srvc_cb->p_srvc_cache = NULL;
 
     return status;
 }
@@ -304,10 +300,7 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 #endif
 
     if (p_srvc_cb->free_byte < sizeof(tBTA_GATTC_CACHE))
-    {
-        if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
-            return GATT_NO_RESOURCES;
-    }
+        bta_gattc_alloc_cache_buf(p_srvc_cb);
 
     p_new_srvc = (tBTA_GATTC_CACHE *)p_srvc_cb->p_free;
     /* update service information */
@@ -367,10 +360,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     }
 
     if (p_srvc_cb->free_byte < len)
-    {
-        if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
-            return GATT_NO_RESOURCES;
-    }
+        bta_gattc_alloc_cache_buf(p_srvc_cb);
 
     p_attr = (tBTA_GATTC_CACHE_ATTR *)p_srvc_cb->p_free;
 
@@ -392,15 +382,14 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         memcpy(pp, p_uuid->uu.uuid128, LEN_UUID_128);
     }
 
-    if (type == BTA_GATTC_ATTR_TYPE_CHAR)
-    {
+    if (type == BTA_GATTC_ATTR_TYPE_CHAR) {
         p_attr->inst_id = bta_gattc_get_char_inst_id(p_srvc_cb->p_cur_srvc, p_uuid);
         p_srvc_cb->p_cur_srvc->p_cur_char = p_attr;
-    }
-    else if (type == BTA_GATTC_ATTR_TYPE_CHAR_DESCR)
+    } else if (type == BTA_GATTC_ATTR_TYPE_CHAR_DESCR) {
         p_attr->inst_id = bta_gattc_get_char_descr_inst_id(p_srvc_cb->p_cur_srvc->p_cur_char, p_uuid);
-    else /* TODO: --->> temp treat included service as single instance */
+    } else { /* TODO: --->> temp treat included service as single instance */
         p_attr->inst_id = 0;
+    }
 
     /* update service information */
     p_srvc_cb->p_free += len;
@@ -408,9 +397,8 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 
     /* first attribute within the service, update the attribute pointer */
     if (p_srvc_cb->p_cur_srvc->p_attr == NULL)
-    {
         p_srvc_cb->p_cur_srvc->p_attr = p_attr;
-    }
+
     if (p_srvc_cb->p_cur_srvc->p_last_attr != NULL)
         p_srvc_cb->p_cur_srvc->p_last_attr->p_next = p_attr;
 
@@ -1657,14 +1645,9 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
         while (! fixed_queue_is_empty(p_srvc_cb->cache_buffer))
             osi_freebuf(fixed_queue_try_dequeue(p_srvc_cb->cache_buffer));
 
-        if (bta_gattc_alloc_cache_buf(p_srvc_cb) == NULL)
-        {
-            APPL_TRACE_ERROR("allocate cache buffer failed, no resources");
-        }
-        else
-        {
-            p_srvc_cb->p_cur_srvc = p_srvc_cb->p_srvc_cache = NULL;
-        }
+        bta_gattc_alloc_cache_buf(p_srvc_cb);
+        p_srvc_cb->p_cur_srvc = NULL;
+        p_srvc_cb->p_srvc_cache = NULL;
     }
 
     while (num_attr > 0 && p_attr != NULL)
