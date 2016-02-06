@@ -355,18 +355,14 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
             if(bta_av_cb.p_scb[xx] == NULL)
             {
                 /* found an empty spot */
-                p_ret = (tBTA_AV_SCB *)osi_malloc(sizeof(tBTA_AV_SCB));
-                if(p_ret)
-                {
-                    memset(p_ret, 0, sizeof(tBTA_AV_SCB));
-                    p_ret->rc_handle = BTA_AV_RC_HANDLE_NONE;
-                    p_ret->chnl = chnl;
-                    p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
-                    p_ret->hdi  = xx;
-                    p_ret->a2d_list = list_new(NULL);
-                    p_ret->avrc_ct_timer = alarm_new("bta_av.avrc_ct_timer");
-                    bta_av_cb.p_scb[xx] = p_ret;
-                }
+                p_ret = (tBTA_AV_SCB *)osi_calloc(sizeof(tBTA_AV_SCB));
+                p_ret->rc_handle = BTA_AV_RC_HANDLE_NONE;
+                p_ret->chnl = chnl;
+                p_ret->hndl = (tBTA_AV_HNDL)((xx + 1) | chnl);
+                p_ret->hdi  = xx;
+                p_ret->a2d_list = list_new(NULL);
+                p_ret->avrc_ct_timer = alarm_new("bta_av.avrc_ct_timer");
+                bta_av_cb.p_scb[xx] = p_ret;
                 break;
             }
         }
@@ -378,7 +374,6 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 *******************************************************************************/
 void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data)
 {
-    tBTA_AV_STR_MSG     *p_msg;
     UINT16  evt = 0;
     tBTA_AV_SCB *p_scb = NULL;
     UNUSED(handle);
@@ -400,31 +395,23 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
         }
 #endif
 
-        if (/*((p_scb && (p_scb->role & BTA_AV_ROLE_AD_ACP)) ||
-
-            //(AVDT_CONNECT_IND_EVT == event && AVDT_ACP == p_data->hdr.err_param))
-
-            (AVDT_CONNECT_IND_EVT == event))&& */
-            (p_msg = (tBTA_AV_STR_MSG *) osi_malloc(sizeof(tBTA_AV_STR_MSG))) != NULL)
-        {
-            p_msg->hdr.event = evt;
-            p_msg->hdr.layer_specific = event;
-            p_msg->hdr.offset = p_data->hdr.err_param;
-            bdcpy(p_msg->bd_addr, bd_addr);
+        tBTA_AV_STR_MSG *p_msg =
+            (tBTA_AV_STR_MSG *)osi_malloc(sizeof(tBTA_AV_STR_MSG));
+        p_msg->hdr.event = evt;
+        p_msg->hdr.layer_specific = event;
+        p_msg->hdr.offset = p_data->hdr.err_param;
+        bdcpy(p_msg->bd_addr, bd_addr);
 #if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
-            if(p_scb)
-            {
-                APPL_TRACE_DEBUG("scb hndl x%x, role x%x", p_scb->hndl, p_scb->role);
-            }
-#endif
-            APPL_TRACE_DEBUG("conn_cback bd_addr:%02x-%02x-%02x-%02x-%02x-%02x",
-                          bd_addr[0], bd_addr[1],
-                          bd_addr[2], bd_addr[3],
-                          bd_addr[4], bd_addr[5]);
-            bta_sys_sendmsg(p_msg);
+        if(p_scb) {
+            APPL_TRACE_DEBUG("scb hndl x%x, role x%x", p_scb->hndl, p_scb->role);
         }
+#endif
+        APPL_TRACE_DEBUG("conn_cback bd_addr:%02x-%02x-%02x-%02x-%02x-%02x",
+                         bd_addr[0], bd_addr[1],
+                         bd_addr[2], bd_addr[3],
+                         bd_addr[4], bd_addr[5]);
+        bta_sys_sendmsg(p_msg);
     }
-
 }
 
 #if AVDT_REPORTING == TRUE
@@ -912,7 +899,6 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
 {
     int         i;
     tBTA_AV_SCB *p_scb = NULL;
-    tBTA_AV_ROLE_RES  *p_buf;
     UINT8       cur_role;
     UINT8       peer_idx = 0;
     UNUSED(status);
@@ -923,9 +909,9 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
         /* loop through all the SCBs to find matching peer addresses and report the role change event */
         /* note that more than one SCB (a2dp & vdp) maybe waiting for this event */
         p_scb = bta_av_cb.p_scb[i];
-        if (p_scb && (bdcmp (peer_addr, p_scb->peer_addr) == 0) &&
-            (p_buf = (tBTA_AV_ROLE_RES *) osi_malloc(sizeof(tBTA_AV_ROLE_RES))) != NULL)
-        {
+        if (p_scb && (bdcmp (peer_addr, p_scb->peer_addr) == 0)) {
+            tBTA_AV_ROLE_RES *p_buf =
+                (tBTA_AV_ROLE_RES *)osi_malloc(sizeof(tBTA_AV_ROLE_RES));
             APPL_TRACE_DEBUG("new_role:%d, hci_status:x%x hndl: x%x", id, app_id, p_scb->hndl);
             /*
             if ((id != BTM_ROLE_MASTER) && (app_id != HCI_SUCCESS))

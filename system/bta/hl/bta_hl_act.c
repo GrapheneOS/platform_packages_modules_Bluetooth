@@ -1871,81 +1871,55 @@ static void bta_hl_sdp_cback(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
         case BTA_HL_SDP_OP_SDP_QUERY_CURRENT:
 
             /* send result in event back to BTA */
-            if ((p_cch_buf = (tBTA_HL_CCH_SDP *) osi_malloc(sizeof(tBTA_HL_CCH_SDP))) != NULL)
-            {
-                if (result)
-                {
-                    if (sdp_oper == BTA_HL_SDP_OP_CCH_INIT)
-                    {
-                        event = BTA_HL_CCH_SDP_OK_EVT;
-                        if (p_cb->close_pending)
-                        {
-                            event = BTA_HL_CCH_SDP_FAIL_EVT;
-                        }
-                    }
-                    else
-                    {
-                        event = BTA_HL_SDP_QUERY_OK_EVT;
-                    }
-                }
-                else
-                {
-                    if (sdp_oper == BTA_HL_SDP_OP_CCH_INIT)
-                    {
+            p_cch_buf = (tBTA_HL_CCH_SDP *)osi_malloc(sizeof(tBTA_HL_CCH_SDP));
+            if (result) {
+                if (sdp_oper == BTA_HL_SDP_OP_CCH_INIT) {
+                    event = BTA_HL_CCH_SDP_OK_EVT;
+                    if (p_cb->close_pending)
                         event = BTA_HL_CCH_SDP_FAIL_EVT;
-                    }
-                    else
-                    {
-                        event = BTA_HL_SDP_QUERY_FAIL_EVT;
-                    }
+                } else {
+                    event = BTA_HL_SDP_QUERY_OK_EVT;
                 }
-                p_cch_buf->hdr.event = event;
-
-                p_cch_buf->app_idx = app_idx;
-                p_cch_buf->mcl_idx = mcl_idx;
-                p_cch_buf->release_mcl_cb = FALSE;
-                if (sdp_oper == BTA_HL_SDP_OP_SDP_QUERY_NEW)
-                {
-                    p_cch_buf->release_mcl_cb = TRUE;
-                }
-
-                bta_sys_sendmsg(p_cch_buf);
+            } else {
+                if (sdp_oper == BTA_HL_SDP_OP_CCH_INIT)
+                    event = BTA_HL_CCH_SDP_FAIL_EVT;
+                else 
+                    event = BTA_HL_SDP_QUERY_FAIL_EVT;
             }
+            p_cch_buf->hdr.event = event;
+
+            p_cch_buf->app_idx = app_idx;
+            p_cch_buf->mcl_idx = mcl_idx;
+            p_cch_buf->release_mcl_cb = FALSE;
+            if (sdp_oper == BTA_HL_SDP_OP_SDP_QUERY_NEW)
+                p_cch_buf->release_mcl_cb = TRUE;
+
+            bta_sys_sendmsg(p_cch_buf);
             break;
         case BTA_HL_SDP_OP_DCH_OPEN_INIT:
         case BTA_HL_SDP_OP_DCH_RECONNECT_INIT:
-            if ((p_dch_buf = (tBTA_HL_DCH_SDP *) osi_malloc(sizeof(tBTA_HL_DCH_SDP))) != NULL)
-            {
-                p_dch_buf->hdr.event = BTA_HL_DCH_SDP_FAIL_EVT;
-                p_dch_buf->app_idx = app_idx;
-                p_dch_buf->mcl_idx = mcl_idx;
-                p_dch_buf->mdl_idx = mdl_idx;
-                p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-                if (p_dcb->abort_oper & BTA_HL_ABORT_PENDING_MASK)
-                {
-                    p_dcb->abort_oper &= ~BTA_HL_ABORT_PENDING_MASK;
-                    result = FALSE;
-                }
-                if (result)
-                {
-                    if (sdp_oper == BTA_HL_SDP_OP_DCH_OPEN_INIT)
-                    {
-                        if (p_dcb->local_mdep_id == BTA_HL_ECHO_TEST_MDEP_ID )
-                        {
-                            p_dch_buf->hdr.event = BTA_HL_DCH_ECHO_TEST_EVT;
-                        }
-                        else
-                        {
-                            p_dch_buf->hdr.event = BTA_HL_DCH_OPEN_EVT;
-                        }
-                    }
-                    else
-                    {
-                        p_dch_buf->hdr.event = BTA_HL_DCH_RECONNECT_EVT;
-                    }
-                }
-                bta_sys_sendmsg(p_dch_buf);
+            p_dch_buf = (tBTA_HL_DCH_SDP *)osi_malloc(sizeof(tBTA_HL_DCH_SDP));
+            p_dch_buf->hdr.event = BTA_HL_DCH_SDP_FAIL_EVT;
+            p_dch_buf->app_idx = app_idx;
+            p_dch_buf->mcl_idx = mcl_idx;
+            p_dch_buf->mdl_idx = mdl_idx;
+            p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
+            if (p_dcb->abort_oper & BTA_HL_ABORT_PENDING_MASK) {
+                p_dcb->abort_oper &= ~BTA_HL_ABORT_PENDING_MASK;
+                result = FALSE;
             }
+            if (result) {
+                if (sdp_oper == BTA_HL_SDP_OP_DCH_OPEN_INIT) {
+                    if (p_dcb->local_mdep_id == BTA_HL_ECHO_TEST_MDEP_ID) {
+                        p_dch_buf->hdr.event = BTA_HL_DCH_ECHO_TEST_EVT;
+                    } else {
+                        p_dch_buf->hdr.event = BTA_HL_DCH_OPEN_EVT;
+                    }
+                } else {
+                    p_dch_buf->hdr.event = BTA_HL_DCH_RECONNECT_EVT;
+                }
+            }
+            bta_sys_sendmsg(p_dch_buf);
             break;
         default:
             break;
@@ -2193,42 +2167,30 @@ tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, UINT8 app_idx, UINT8 m
 #endif
     if ((p_cb->sdp_cback = bta_hl_allocate_spd_cback(sdp_oper, app_idx, mcl_idx, mdl_idx, &sdp_cback_idx)) != NULL)
     {
-        if ( p_cb->p_db ||
-             (!p_cb->p_db &&
-              (p_cb->p_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_HL_DISC_SIZE)) != NULL))
+        if (p_cb->p_db == NULL)
+            (p_cb->p_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_HL_DISC_SIZE));
+        attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
+        attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
+        attr_list[2] = ATTR_ID_BT_PROFILE_DESC_LIST;
+        attr_list[3] = ATTR_ID_ADDITION_PROTO_DESC_LISTS;
+        attr_list[4] = ATTR_ID_SERVICE_NAME;
+        attr_list[5] = ATTR_ID_SERVICE_DESCRIPTION;
+        attr_list[6] = ATTR_ID_PROVIDER_NAME;
+        attr_list[7] = ATTR_ID_HDP_SUP_FEAT_LIST;
+        attr_list[8] = ATTR_ID_HDP_DATA_EXCH_SPEC;
+        attr_list[9] = ATTR_ID_HDP_MCAP_SUP_PROC;
+
+        uuid_list.len = LEN_UUID_16;
+        uuid_list.uu.uuid16 = UUID_SERVCLASS_HDP_PROFILE;
+        SDP_InitDiscoveryDb(p_cb->p_db, BTA_HL_DISC_SIZE, 1, &uuid_list, num_attrs, attr_list);
+
+        if (!SDP_ServiceSearchAttributeRequest(p_cb->bd_addr, p_cb->p_db, p_cb->sdp_cback))
         {
-            attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
-            attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
-            attr_list[2] = ATTR_ID_BT_PROFILE_DESC_LIST;
-            attr_list[3] = ATTR_ID_ADDITION_PROTO_DESC_LISTS;
-            attr_list[4] = ATTR_ID_SERVICE_NAME;
-            attr_list[5] = ATTR_ID_SERVICE_DESCRIPTION;
-            attr_list[6] = ATTR_ID_PROVIDER_NAME;
-            attr_list[7] = ATTR_ID_HDP_SUP_FEAT_LIST;
-            attr_list[8] = ATTR_ID_HDP_DATA_EXCH_SPEC;
-            attr_list[9] = ATTR_ID_HDP_MCAP_SUP_PROC;
-
-
-            uuid_list.len = LEN_UUID_16;
-            uuid_list.uu.uuid16 = UUID_SERVCLASS_HDP_PROFILE;
-            SDP_InitDiscoveryDb(p_cb->p_db, BTA_HL_DISC_SIZE, 1, &uuid_list, num_attrs, attr_list);
-
-            if (!SDP_ServiceSearchAttributeRequest(p_cb->bd_addr, p_cb->p_db, p_cb->sdp_cback))
-            {
-                status = BTA_HL_STATUS_FAIL;
-            }
-            else
-            {
-                status = BTA_HL_STATUS_OK;
-            }
+            status = BTA_HL_STATUS_FAIL;
+        } else {
+            status = BTA_HL_STATUS_OK;
         }
-        else    /* No services available */
-        {
-            status = BTA_HL_STATUS_NO_RESOURCE;
-        }
-    }
-    else
-    {
+    } else {
         status = BTA_HL_STATUS_SDP_NO_RESOURCE;
     }
 
@@ -2562,7 +2524,6 @@ void bta_hl_cch_mca_connect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data)
 void bta_hl_mcap_ctrl_cback (tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
                              tMCA_CTRL *p_data)
 {
-    tBTA_HL_MCA_EVT * p_msg;
     BOOLEAN send_event=TRUE;
     UINT16 mca_event;
 
@@ -2632,12 +2593,13 @@ void bta_hl_mcap_ctrl_cback (tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
             break;
     }
 
-    if (send_event && ((p_msg = (tBTA_HL_MCA_EVT *)osi_malloc(sizeof(tBTA_HL_MCA_EVT))) != NULL))
-    {
+    if (send_event) {
+        tBTA_HL_MCA_EVT * p_msg =
+            (tBTA_HL_MCA_EVT *)osi_malloc(sizeof(tBTA_HL_MCA_EVT));
         p_msg->hdr.event = mca_event;
         p_msg->app_handle = (tBTA_HL_APP_HANDLE) handle;
         p_msg->mcl_handle = (tBTA_HL_MCL_HANDLE) mcl;
-        memcpy (&p_msg->mca_data, p_data, sizeof(tMCA_CTRL));
+        memcpy(&p_msg->mca_data, p_data, sizeof(tMCA_CTRL));
         bta_sys_sendmsg(p_msg);
     }
 }
@@ -2653,22 +2615,20 @@ void bta_hl_mcap_ctrl_cback (tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
 *******************************************************************************/
 void bta_hl_mcap_data_cback (tMCA_DL mdl, BT_HDR *p_pkt)
 {
-    tBTA_HL_MCA_RCV_DATA_EVT *p_msg;
-
     UINT8 app_idx, mcl_idx, mdl_idx;
     if (bta_hl_find_mdl_idx_using_handle ((tBTA_HL_MDL_HANDLE)mdl, &app_idx, &mcl_idx, &mdl_idx))
     {
-        if ((p_msg = (tBTA_HL_MCA_RCV_DATA_EVT *)osi_malloc(sizeof(tBTA_HL_MCA_RCV_DATA_EVT))) != NULL)
-        {
-            p_msg->hdr.event = BTA_HL_MCA_RCV_DATA_EVT;
-            p_msg->app_idx = app_idx;
-            p_msg->mcl_idx = mcl_idx;
-            p_msg->mdl_idx = mdl_idx;
-            p_msg->p_pkt = p_pkt;
-            bta_sys_sendmsg(p_msg);
-        }
+        tBTA_HL_MCA_RCV_DATA_EVT *p_msg =
+            (tBTA_HL_MCA_RCV_DATA_EVT *)osi_malloc(sizeof(tBTA_HL_MCA_RCV_DATA_EVT));
+        p_msg->hdr.event = BTA_HL_MCA_RCV_DATA_EVT;
+        p_msg->app_idx = app_idx;
+        p_msg->mcl_idx = mcl_idx;
+        p_msg->mdl_idx = mdl_idx;
+        p_msg->p_pkt = p_pkt;
+        bta_sys_sendmsg(p_msg);
     }
 }
+
 /*****************************************************************************
 **  Debug Functions
 *****************************************************************************/

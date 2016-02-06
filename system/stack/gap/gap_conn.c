@@ -524,17 +524,9 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
     while (max_len)
     {
         if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
-        {
             p_buf = (BT_HDR *)osi_malloc(L2CAP_FCR_ERTM_BUF_SIZE);
-            if (p_buf == NULL)
-                return (GAP_ERR_CONGESTED);
-        }
         else
-        {
             p_buf = (BT_HDR *)osi_malloc(GAP_DATA_BUF_SIZE);
-            if (p_buf == NULL)
-                return (GAP_ERR_CONGESTED);
-        }
 
         p_buf->offset = L2CAP_MIN_OFFSET;
         p_buf->len = (p_ccb->rem_mtu_size < max_len) ? p_ccb->rem_mtu_size : max_len;
@@ -1219,21 +1211,14 @@ static void gap_release_ccb (tGAP_CCB *p_ccb)
 *******************************************************************************/
 void gap_send_event (UINT16 gap_handle)
 {
-    BT_HDR  *p_msg;
+    BT_HDR *p_msg = (BT_HDR *)osi_malloc(BT_HDR_SIZE);
 
-    if ((p_msg = (BT_HDR*)osi_malloc(BT_HDR_SIZE)) != NULL)
-    {
-        p_msg->event  = BT_EVT_TO_GAP_MSG;
-        p_msg->len    = 0;
-        p_msg->offset = 0;
-        p_msg->layer_specific = gap_handle;
+    p_msg->event  = BT_EVT_TO_GAP_MSG;
+    p_msg->len    = 0;
+    p_msg->offset = 0;
+    p_msg->layer_specific = gap_handle;
 
-        GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
-    }
-    else
-    {
-        GAP_TRACE_ERROR("Unable to allocate message buffer for event.");
-    }
+    GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
 }
 
 /*******************************************************************************

@@ -250,12 +250,10 @@ tAVDT_CTRL_CBACK * const bta_av_dt_cback[] =
 ***********************************************/
 static UINT8 bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, UINT8 local_sep)
 {
-    UINT8 xx =0;
-    for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
-    {
-        if ((p_scb->seps[xx].tsep == local_sep) &&
-            (p_scb->seps[xx].codec_type == p_scb->codec_type))
-            return (p_scb->seps[xx].av_handle);
+    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+        if ((p_scb->seps[i].tsep == local_sep) &&
+            (p_scb->seps[i].codec_type == p_scb->codec_type))
+            return (p_scb->seps[i].av_handle);
     }
     APPL_TRACE_DEBUG(" bta_av_get_scb_handle appropiate sep_type not found")
     return 0; /* return invalid handle */
@@ -272,11 +270,9 @@ static UINT8 bta_av_get_scb_handle(tBTA_AV_SCB *p_scb, UINT8 local_sep)
 ***********************************************/
 static UINT8 bta_av_get_scb_sep_type(tBTA_AV_SCB *p_scb, UINT8 tavdt_handle)
 {
-    UINT8 xx =0;
-    for (xx = 0; xx<BTA_AV_MAX_SEPS; xx++)
-    {
-        if (p_scb->seps[xx].av_handle == tavdt_handle)
-            return (p_scb->seps[xx].tsep);
+    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+        if (p_scb->seps[i].av_handle == tavdt_handle)
+            return (p_scb->seps[i].tsep);
     }
     APPL_TRACE_DEBUG(" bta_av_get_scb_sep_type appropiate handle not found")
     return 3; /* return invalid sep type */
@@ -397,14 +393,7 @@ static BOOLEAN bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
             /* we got a stream; get its capabilities */
             if (p_scb->p_cap == NULL)
-            {
-                p_scb->p_cap = (tAVDT_CFG *) osi_malloc(sizeof(tAVDT_CFG));
-            }
-            if (p_scb->p_cap == NULL)
-            {
-                i = p_scb->num_seps;
-                break;
-            }
+                p_scb->p_cap = (tAVDT_CFG *)osi_malloc(sizeof(tAVDT_CFG));
             if (p_scb->avdt_version >= AVDT_VERSION_SYNC)
             {
                 p_req = AVDT_GetAllCapReq;
@@ -442,10 +431,8 @@ static BOOLEAN bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 static void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data, int index)
 {
-    tBTA_AV_STR_MSG     *p_msg;
     UINT16              sec_len = 0;
     tBTA_AV_SCB         *p_scb = bta_av_cb.p_scb[index];
-    int                 xx;
 
     if (p_data)
     {
@@ -461,8 +448,9 @@ static void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, t
         }
     }
 
-    if (p_scb && (p_msg = (tBTA_AV_STR_MSG *) osi_malloc((sizeof(tBTA_AV_STR_MSG) + sec_len))) != NULL)
-    {
+    if (p_scb) {
+        tBTA_AV_STR_MSG *p_msg =
+            (tBTA_AV_STR_MSG *)osi_malloc(sizeof(tBTA_AV_STR_MSG) + sec_len);
 
         /* copy event data, bd addr, and handle to event message buffer */
         p_msg->hdr.offset = 0;
@@ -505,14 +493,11 @@ static void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, t
                  * Later when we receive AVDT_CONFIG_IND_EVT, we use a new p_scb and set its state to
                  * incoming which we do it above.
                  * We also have to set the old p_scb state to init to be used later             */
-                for (xx = 0; xx < BTA_AV_NUM_STRS; xx++)
-                {
-                    if ((bta_av_cb.p_scb[xx]) && (xx != index))
-                    {
-                        if (bta_av_cb.p_scb[xx]->state == BTA_AV_INCOMING_SST)
-                        {
-                            bta_av_cb.p_scb[xx]->state = BTA_AV_INIT_SST;
-                            bta_av_cb.p_scb[xx]->coll_mask = 0;
+                for (int i = 0; i < BTA_AV_NUM_STRS; i++) {
+                    if ((bta_av_cb.p_scb[i]) && (i != index)) {
+                        if (bta_av_cb.p_scb[i]->state == BTA_AV_INCOMING_SST) {
+                            bta_av_cb.p_scb[i]->state = BTA_AV_INIT_SST;
+                            bta_av_cb.p_scb[i]->coll_mask = 0;
                             break;
                         }
                     }
@@ -721,29 +706,25 @@ static void bta_av_stream5_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAV
 *******************************************************************************/
 static void bta_av_a2d_sdp_cback(BOOLEAN found, tA2D_Service *p_service)
 {
-    tBTA_AV_SDP_RES *p_msg;
-    tBTA_AV_SCB     *p_scb;
+    tBTA_AV_SCB *p_scb = bta_av_hndl_to_scb(bta_av_cb.handle);
 
-    if ((p_msg = (tBTA_AV_SDP_RES *) osi_malloc(sizeof(tBTA_AV_SDP_RES))) != NULL)
-    {
-        p_msg->hdr.event = (found) ? BTA_AV_SDP_DISC_OK_EVT : BTA_AV_SDP_DISC_FAIL_EVT;
-
-        p_scb = bta_av_hndl_to_scb(bta_av_cb.handle);
-        if (p_scb)
-        {
-            if (found && (p_service != NULL))
-                p_scb->avdt_version = p_service->avdt_version;
-            else
-                p_scb->avdt_version = 0x00;
-
-            p_msg->hdr.layer_specific = bta_av_cb.handle;
-            bta_sys_sendmsg(p_msg);
-        }
-        else
-        {
-            APPL_TRACE_ERROR ("bta_av_a2d_sdp_cback, no scb found for handle(0x%x)", bta_av_cb.handle);
-        }
+    if (p_scb == NULL) {
+        APPL_TRACE_ERROR("%s, no scb found for handle(0x%x)", __func__,
+                         bta_av_cb.handle);
+        return;
     }
+
+    tBTA_AV_SDP_RES *p_msg =
+        (tBTA_AV_SDP_RES *)osi_malloc(sizeof(tBTA_AV_SDP_RES));
+    p_msg->hdr.event = (found) ?
+        BTA_AV_SDP_DISC_OK_EVT : BTA_AV_SDP_DISC_FAIL_EVT;
+    if (found && (p_service != NULL))
+        p_scb->avdt_version = p_service->avdt_version;
+    else
+        p_scb->avdt_version = 0x00;
+    p_msg->hdr.layer_specific = bta_av_cb.handle;
+
+    bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************
@@ -757,17 +738,15 @@ static void bta_av_a2d_sdp_cback(BOOLEAN found, tA2D_Service *p_service)
 *******************************************************************************/
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB *p_scb, UINT8 avdt_handle)
 {
-    int xx;
     APPL_TRACE_DEBUG("bta_av_adjust_seps_idx codec_type: %d", p_scb->codec_type);
-    for(xx=0; xx<BTA_AV_MAX_SEPS; xx++)
-    {
+    for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
         APPL_TRACE_DEBUG("av_handle: %d codec_type: %d",
-            p_scb->seps[xx].av_handle, p_scb->seps[xx].codec_type);
-        if((p_scb->seps[xx].av_handle && p_scb->codec_type == p_scb->seps[xx].codec_type)
-            && (p_scb->seps[xx].av_handle == avdt_handle))
+            p_scb->seps[i].av_handle, p_scb->seps[i].codec_type);
+        if((p_scb->seps[i].av_handle && p_scb->codec_type == p_scb->seps[i].codec_type)
+            && (p_scb->seps[i].av_handle == avdt_handle))
         {
-            p_scb->sep_idx      = xx;
-            p_scb->avdt_handle  = p_scb->seps[xx].av_handle;
+            p_scb->sep_idx = i;
+            p_scb->avdt_handle = p_scb->seps[i].av_handle;
             break;
         }
     }
@@ -1020,31 +999,28 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* allocate discovery database */
     if (p_scb->p_disc_db == NULL)
     {
-        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_AV_DISC_BUF_SIZE);
+        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_AV_DISC_BUF_SIZE);
     }
 
     /* only one A2D find service is active at a time */
     bta_av_cb.handle = p_scb->hndl;
 
-    if(p_scb->p_disc_db)
-    {
-        /* set up parameters */
-        db_params.db_len = BTA_AV_DISC_BUF_SIZE;
-        db_params.num_attr = 3;
-        db_params.p_db = p_scb->p_disc_db;
-        db_params.p_attrs = attr_list;
-        p_scb->uuid_int = p_data->api_open.uuid;
-        if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SINK)
-            sdp_uuid = UUID_SERVCLASS_AUDIO_SOURCE;
-        else if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SOURCE)
-            sdp_uuid = UUID_SERVCLASS_AUDIO_SINK;
+    /* set up parameters */
+    db_params.db_len = BTA_AV_DISC_BUF_SIZE;
+    db_params.num_attr = 3;
+    db_params.p_db = p_scb->p_disc_db;
+    db_params.p_attrs = attr_list;
+    p_scb->uuid_int = p_data->api_open.uuid;
+    if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SINK)
+        sdp_uuid = UUID_SERVCLASS_AUDIO_SOURCE;
+    else if (p_scb->uuid_int == UUID_SERVCLASS_AUDIO_SOURCE)
+        sdp_uuid = UUID_SERVCLASS_AUDIO_SINK;
 
-        APPL_TRACE_DEBUG("uuid_int 0x%x, Doing SDP For 0x%x", p_scb->uuid_int, sdp_uuid);
-        if(A2D_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
-                        bta_av_a2d_sdp_cback) == A2D_SUCCESS)
-        {
-            return;
-        }
+    APPL_TRACE_DEBUG("uuid_int 0x%x, Doing SDP For 0x%x", p_scb->uuid_int,
+                     sdp_uuid);
+    if (A2D_FindService(sdp_uuid, p_scb->peer_addr, &db_params,
+                        bta_av_a2d_sdp_cback) == A2D_SUCCESS) {
+        return;
     }
 
     /* when the code reaches here, either the DB is NULL
@@ -1064,8 +1040,7 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_CONN_CHG msg;
-    int             xx;
-    UINT8           role = BTA_AV_ROLE_AD_INT;
+    UINT8 role = BTA_AV_ROLE_AD_INT;
     UNUSED(p_data);
 
     APPL_TRACE_DEBUG("bta_av_cleanup");
@@ -1098,11 +1073,10 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (p_scb->deregistring)
     {
         /* remove stream */
-        for(xx=0; xx<BTA_AV_MAX_SEPS; xx++)
-        {
-            if(p_scb->seps[xx].av_handle)
-                AVDT_RemoveStream(p_scb->seps[xx].av_handle);
-            p_scb->seps[xx].av_handle = 0;
+        for (int i = 0; i < BTA_AV_MAX_SEPS; i++) {
+            if (p_scb->seps[i].av_handle)
+                AVDT_RemoveStream(p_scb->seps[i].av_handle);
+            p_scb->seps[i].av_handle = 0;
         }
 
         bta_av_dereg_comp((tBTA_AV_DATA *) &msg);
@@ -2172,22 +2146,8 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->num_recfg = 0;
     /* store the new configuration in control block */
     if (p_scb->p_cap == NULL)
-    {
-        p_scb->p_cap = (tAVDT_CFG *) osi_malloc(sizeof(tAVDT_CFG));
-    }
-    if((p_cfg = p_scb->p_cap) == NULL)
-    {
-        /* report failure */
-        evt.status = BTA_AV_FAIL_RESOURCES;
-        evt.chnl   = p_scb->chnl;
-        evt.hndl   = p_scb->hndl;
-        (*bta_av_cb.p_cback)(BTA_AV_RECONFIG_EVT, (tBTA_AV *)&evt);
-
-        /* this event is not possible in this state.
-         * use it to bring the SSM back to open state */
-        bta_av_ssm_execute(p_scb, BTA_AV_SDP_DISC_OK_EVT, NULL);
-        return;
-    }
+        p_scb->p_cap = (tAVDT_CFG *)osi_malloc(sizeof(tAVDT_CFG));
+    p_cfg = p_scb->p_cap;
 
     alarm_cancel(p_scb->avrc_ct_timer);
 
@@ -3114,8 +3074,6 @@ void bta_av_open_rc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 *******************************************************************************/
 void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
-    tBTA_AV_API_OPEN  *p_buf;
-
     memcpy (&(p_scb->open_api), &(p_data->api_open), sizeof(tBTA_AV_API_OPEN));
 
     if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
@@ -3130,13 +3088,12 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         /* SNK did not start signalling, API was called N seconds timeout. */
         /* We need to switch to INIT state and start opening connection. */
         p_scb->coll_mask = 0;
-        bta_av_set_scb_sst_init (p_scb);
+        bta_av_set_scb_sst_init(p_scb);
 
-        if ((p_buf = (tBTA_AV_API_OPEN *) osi_malloc(sizeof(tBTA_AV_API_OPEN))) != NULL)
-        {
-            memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
-            bta_sys_sendmsg(p_buf);
-        }
+        tBTA_AV_API_OPEN *p_buf =
+            (tBTA_AV_API_OPEN *)osi_malloc(sizeof(tBTA_AV_API_OPEN));
+        memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
+        bta_sys_sendmsg(p_buf);
     }
 }
 

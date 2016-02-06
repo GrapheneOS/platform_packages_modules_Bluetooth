@@ -864,13 +864,12 @@ void gatt_process_read_by_type_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 
                 p_clcb->op_subtype = GATT_READ_BY_HANDLE;
                 if (!p_clcb->p_attr_buf)
                     p_clcb->p_attr_buf = (UINT8 *)osi_malloc(GATT_MAX_ATTR_LEN);
-                if (p_clcb->p_attr_buf && p_clcb->counter <= GATT_MAX_ATTR_LEN)
-                {
+                if (p_clcb->counter <= GATT_MAX_ATTR_LEN) {
                     memcpy(p_clcb->p_attr_buf, p, p_clcb->counter);
                     gatt_act_read(p_clcb, p_clcb->counter);
+                } else {
+                    gatt_end_operation(p_clcb, GATT_INTERNAL_ERROR, (void *)p);
                 }
-                else
-                   gatt_end_operation(p_clcb, GATT_INTERNAL_ERROR, (void *)p);
             }
             else
             {
@@ -967,8 +966,7 @@ void gatt_process_read_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb,  UINT8 op_code,
                 p_clcb->p_attr_buf = (UINT8 *)osi_malloc(GATT_MAX_ATTR_LEN);
 
             /* copy attrobute value into cb buffer  */
-            if (p_clcb->p_attr_buf && offset < GATT_MAX_ATTR_LEN)
-            {
+            if (offset < GATT_MAX_ATTR_LEN) {
                 if ((len + offset) > GATT_MAX_ATTR_LEN)
                     len = GATT_MAX_ATTR_LEN - offset;
 

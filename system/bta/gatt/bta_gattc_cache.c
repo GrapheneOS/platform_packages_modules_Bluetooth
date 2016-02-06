@@ -271,7 +271,7 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     APPL_TRACE_DEBUG("Add a service into Service");
 #endif
 
-    tBTA_GATTC_CACHE    *p_new_srvc = osi_malloc(sizeof(tBTA_GATTC_CACHE));
+    tBTA_GATTC_CACHE *p_new_srvc = osi_malloc(sizeof(tBTA_GATTC_CACHE));
 
     /* update service information */
     p_new_srvc->s_handle = s_handle;
@@ -318,7 +318,8 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         return GATT_WRONG_STATE;
     }
 
-    tBTA_GATTC_CACHE_ATTR *p_attr = osi_malloc(sizeof(tBTA_GATTC_CACHE_ATTR)+ p_uuid->len);
+    tBTA_GATTC_CACHE_ATTR *p_attr =
+        osi_malloc(sizeof(tBTA_GATTC_CACHE_ATTR)+ p_uuid->len);
 
     p_attr->attr_handle = handle;
     p_attr->attr_type   = type;
@@ -846,11 +847,12 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
     uuid.len = LEN_UUID_16;
     uuid.uu.uuid16 = UUID_PROTOCOL_ATT;
 
-    /* On success, cb_data will be freed inside bta_gattc_sdp_callback, otherwise it will be
-     * freed within this function. */
-    tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)osi_malloc(sizeof(tBTA_GATTC_CB_DATA));
-    if (cb_data == NULL)
-        return BTA_GATT_ERROR;
+    /*
+     * On success, cb_data will be freed inside bta_gattc_sdp_callback,
+     * otherwise it will be freed within this function.
+     */
+    tBTA_GATTC_CB_DATA *cb_data =
+        (tBTA_GATTC_CB_DATA *)osi_malloc(sizeof(tBTA_GATTC_CB_DATA));
 
     cb_data->p_sdp_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_GATT_SDP_DB_SIZE);
     attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;

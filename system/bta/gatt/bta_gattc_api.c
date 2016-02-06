@@ -56,20 +56,17 @@ static const tBTA_SYS_REG bta_gattc_reg =
 *******************************************************************************/
 void BTA_GATTC_Disable(void)
 {
-    BT_HDR  *p_buf;
-
     if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
     {
         APPL_TRACE_WARNING("GATTC Module not enabled/already disabled");
         return;
     }
-    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
-    {
-        p_buf->event = BTA_GATTC_API_DISABLE_EVT;
-        bta_sys_sendmsg(p_buf);
-    }
-    bta_sys_deregister(BTA_ID_GATTC);
 
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+    p_buf->event = BTA_GATTC_API_DISABLE_EVT;
+
+    bta_sys_sendmsg(p_buf);
+    bta_sys_deregister(BTA_ID_GATTC);
 }
 
 /*******************************************************************************
@@ -87,23 +84,18 @@ void BTA_GATTC_Disable(void)
 *******************************************************************************/
 void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb)
 {
-    tBTA_GATTC_API_REG  *p_buf;
+    tBTA_GATTC_API_REG *p_buf =
+        (tBTA_GATTC_API_REG *)osi_malloc(sizeof(tBTA_GATTC_API_REG));
 
     if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
-    {
         bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
-    }
 
-    if ((p_buf = (tBTA_GATTC_API_REG *) osi_malloc(sizeof(tBTA_GATTC_API_REG))) != NULL)
-    {
-        p_buf->hdr.event    = BTA_GATTC_API_REG_EVT;
-        if (p_app_uuid != NULL)
-            memcpy(&p_buf->app_uuid, p_app_uuid, sizeof(tBT_UUID));
-        p_buf->p_cback      = p_client_cb;
+    p_buf->hdr.event = BTA_GATTC_API_REG_EVT;
+    if (p_app_uuid != NULL)
+        memcpy(&p_buf->app_uuid, p_app_uuid, sizeof(tBT_UUID));
+    p_buf->p_cback = p_client_cb;
 
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -120,15 +112,13 @@ void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb)
 *******************************************************************************/
 void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if)
 {
-    tBTA_GATTC_API_DEREG  *p_buf;
+    tBTA_GATTC_API_DEREG *p_buf =
+        (tBTA_GATTC_API_DEREG *)osi_malloc(sizeof(tBTA_GATTC_API_DEREG));
 
-    if ((p_buf = (tBTA_GATTC_API_DEREG *) osi_malloc(sizeof(tBTA_GATTC_API_DEREG))) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_DEREG_EVT;
-        p_buf->client_if = client_if;
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    p_buf->hdr.event = BTA_GATTC_API_DEREG_EVT;
+    p_buf->client_if = client_if;
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -149,21 +139,16 @@ void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if)
 void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
                     BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport)
 {
-    tBTA_GATTC_API_OPEN  *p_buf;
+    tBTA_GATTC_API_OPEN *p_buf =
+       (tBTA_GATTC_API_OPEN *) osi_malloc(sizeof(tBTA_GATTC_API_OPEN));
 
-    if ((p_buf = (tBTA_GATTC_API_OPEN *) osi_malloc(sizeof(tBTA_GATTC_API_OPEN))) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_OPEN_EVT;
+    p_buf->hdr.event = BTA_GATTC_API_OPEN_EVT;
+    p_buf->client_if = client_if;
+    p_buf->is_direct = is_direct;
+    p_buf->transport = transport;
+    memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
-        p_buf->client_if = client_if;
-        p_buf->is_direct = is_direct;
-        p_buf->transport = transport;
-        memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
-
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -182,19 +167,15 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
 *******************************************************************************/
 void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct)
 {
-    tBTA_GATTC_API_CANCEL_OPEN  *p_buf;
+    tBTA_GATTC_API_CANCEL_OPEN *p_buf =
+        (tBTA_GATTC_API_CANCEL_OPEN *)osi_malloc(sizeof(tBTA_GATTC_API_CANCEL_OPEN));
 
-    if ((p_buf = (tBTA_GATTC_API_CANCEL_OPEN *) osi_malloc(sizeof(tBTA_GATTC_API_CANCEL_OPEN))) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_CANCEL_OPEN_EVT;
+    p_buf->hdr.event = BTA_GATTC_API_CANCEL_OPEN_EVT;
+    p_buf->client_if = client_if;
+    p_buf->is_direct = is_direct;
+    memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
-        p_buf->client_if = client_if;
-        p_buf->is_direct = is_direct;
-        memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -210,19 +191,14 @@ void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN i
 *******************************************************************************/
 void BTA_GATTC_Close(UINT16 conn_id)
 {
-    BT_HDR  *p_buf;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
-    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
-    {
-        p_buf->event = BTA_GATTC_API_CLOSE_EVT;
+    p_buf->event = BTA_GATTC_API_CLOSE_EVT;
+    p_buf->layer_specific = conn_id;
 
-        p_buf->layer_specific = conn_id;
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
-
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ConfigureMTU
@@ -238,19 +214,16 @@ void BTA_GATTC_Close(UINT16 conn_id)
 *******************************************************************************/
 void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 {
-    tBTA_GATTC_API_CFG_MTU  *p_buf;
+    tBTA_GATTC_API_CFG_MTU *p_buf =
+        (tBTA_GATTC_API_CFG_MTU *)osi_malloc(sizeof(tBTA_GATTC_API_CFG_MTU));
 
-    if ((p_buf = (tBTA_GATTC_API_CFG_MTU *) osi_malloc(sizeof(tBTA_GATTC_API_CFG_MTU))) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_CFG_MTU_EVT;
-        p_buf->hdr.layer_specific = conn_id;
+    p_buf->hdr.event = BTA_GATTC_API_CFG_MTU_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->mtu = mtu;
 
-        p_buf->mtu = mtu;
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ServiceSearchRequest
@@ -269,29 +242,20 @@ void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 *******************************************************************************/
 void BTA_GATTC_ServiceSearchRequest (UINT16 conn_id, tBT_UUID *p_srvc_uuid)
 {
-    tBTA_GATTC_API_SEARCH  *p_buf;
-    size_t len = sizeof(tBTA_GATTC_API_SEARCH) + sizeof(tBT_UUID);
+    const size_t len = sizeof(tBTA_GATTC_API_SEARCH) + sizeof(tBT_UUID);
+    tBTA_GATTC_API_SEARCH *p_buf = (tBTA_GATTC_API_SEARCH *)osi_calloc(len);
 
-    if ((p_buf = (tBTA_GATTC_API_SEARCH *) osi_malloc(len)) != NULL)
-    {
-        memset(p_buf, 0, len);
-
-        p_buf->hdr.event = BTA_GATTC_API_SEARCH_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-
-        if (p_srvc_uuid)
-        {
-            p_buf->p_srvc_uuid = (tBT_UUID *)(p_buf + 1);
-            memcpy(p_buf->p_srvc_uuid, p_srvc_uuid, sizeof(tBT_UUID));
-        }
-        else
-            p_buf->p_srvc_uuid = NULL;
-
-        bta_sys_sendmsg(p_buf);
+    p_buf->hdr.event = BTA_GATTC_API_SEARCH_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    if (p_srvc_uuid) {
+        p_buf->p_srvc_uuid = (tBT_UUID *)(p_buf + 1);
+        memcpy(p_buf->p_srvc_uuid, p_srvc_uuid, sizeof(tBT_UUID));
+    } else {
+        p_buf->p_srvc_uuid = NULL;
     }
-    return;
-}
 
+    bta_sys_sendmsg(p_buf);
+}
 
 /*******************************************************************************
 **
@@ -579,23 +543,18 @@ void  BTA_GATTC_GetGattDb(UINT16 conn_id, btgatt_db_element_t **db, int *count)
 void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
                                   tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_READ  *p_buf;
+    tBTA_GATTC_API_READ *p_buf =
+        (tBTA_GATTC_API_READ *)osi_calloc(sizeof(tBTA_GATTC_API_READ));
 
-    if ((p_buf = (tBTA_GATTC_API_READ *) osi_malloc(sizeof(tBTA_GATTC_API_READ))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_READ));
+    p_buf->hdr.event = BTA_GATTC_API_READ_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
 
-        p_buf->hdr.event = BTA_GATTC_API_READ_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
+    memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+    p_buf->p_descr_type = NULL;
 
-        memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
-        p_buf->p_descr_type = NULL;
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -614,28 +573,22 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
                               tBTA_GATTC_CHAR_DESCR_ID  *p_descr_id,
                               tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_READ  *p_buf;
-    size_t len = sizeof(tBTA_GATT_ID) + sizeof(tBTA_GATTC_API_READ);
+    const size_t len = sizeof(tBTA_GATT_ID) + sizeof(tBTA_GATTC_API_READ);
+    tBTA_GATTC_API_READ *p_buf = (tBTA_GATTC_API_READ *)osi_calloc(len);
 
-    if ((p_buf = (tBTA_GATTC_API_READ *) osi_malloc(len)) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_READ));
+    p_buf->hdr.event = BTA_GATTC_API_READ_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
 
-        p_buf->hdr.event = BTA_GATTC_API_READ_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
+    memcpy(&p_buf->srvc_id, &p_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
+    p_buf->p_descr_type  = (tBTA_GATT_ID *)(p_buf + 1);
 
-        memcpy(&p_buf->srvc_id, &p_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
-        p_buf->p_descr_type  = (tBTA_GATT_ID *)(p_buf + 1);
+    memcpy(p_buf->p_descr_type, &p_descr_id->descr_id, sizeof(tBTA_GATT_ID));
 
-        memcpy(p_buf->p_descr_type, &p_descr_id->descr_id, sizeof(tBTA_GATT_ID));
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
-
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ReadMultiple
@@ -652,36 +605,26 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
 void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
                             tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_READ_MULTI  *p_buf;
-    tBTA_GATTC_ATTR_ID          *p_value;
-    size_t len = sizeof(tBTA_GATTC_API_READ_MULTI) +
+    const size_t len = sizeof(tBTA_GATTC_API_READ_MULTI) +
                         p_read_multi->num_attr * sizeof(tBTA_GATTC_ATTR_ID);
-    UINT8       i;
+    tBTA_GATTC_API_READ_MULTI *p_buf =
+        (tBTA_GATTC_API_READ_MULTI *)osi_calloc(len);
 
-    if ((p_buf = (tBTA_GATTC_API_READ_MULTI *) osi_malloc(len)) != NULL)
-    {
-        memset(p_buf, 0, len);
+    p_buf->hdr.event = BTA_GATTC_API_READ_MULTI_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
+    p_buf->num_attr = p_read_multi->num_attr;
 
-        p_buf->hdr.event = BTA_GATTC_API_READ_MULTI_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
-
-        p_buf->num_attr = p_read_multi->num_attr;
-
-        if (p_buf->num_attr > 0)
-        {
-            p_buf->p_id_list = p_value = (tBTA_GATTC_ATTR_ID *)(p_buf + 1);
-
-            for (i = 0; i < p_buf->num_attr; i ++, p_value ++)
-            {
-                memcpy(p_value, &p_read_multi->id_list[i], sizeof(tBTA_GATTC_ATTR_ID));
-            }
+    if (p_buf->num_attr > 0) {
+        tBTA_GATTC_ATTR_ID *p_value;
+        p_buf->p_id_list = p_value = (tBTA_GATTC_ATTR_ID *)(p_buf + 1);
+        for (int i = 0; i < p_buf->num_attr; i++, p_value++) {
+            memcpy(p_value, &p_read_multi->id_list[i], sizeof(tBTA_GATTC_ATTR_ID));
         }
-        bta_sys_sendmsg(p_buf);
     }
-    return;
-}
 
+    bta_sys_sendmsg(p_buf);
+}
 
 /*******************************************************************************
 **
@@ -705,32 +648,27 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
                                 UINT8 *p_value,
                                 tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_WRITE  *p_buf;
+    tBTA_GATTC_API_WRITE  *p_buf =
+        (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + len);
 
-    if ((p_buf = (tBTA_GATTC_API_WRITE *) osi_malloc(sizeof(tBTA_GATTC_API_WRITE) + len)) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_WRITE) + len);
+    p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
 
-        p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
+    memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
 
-        memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+    p_buf->write_type = write_type;
+    p_buf->len = len;
 
-        p_buf->write_type = write_type;
-        p_buf->len = len;
-
-        if (p_value && len > 0)
-        {
-            p_buf->p_value = (UINT8 *)(p_buf + 1);
-            memcpy(p_buf->p_value, p_value, len);
-        }
-
-        bta_sys_sendmsg(p_buf);
+    if (p_value && len > 0) {
+        p_buf->p_value = (UINT8 *)(p_buf + 1);
+        memcpy(p_buf->p_value, p_value, len);
     }
-    return;
+
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_WriteCharDescr
@@ -751,39 +689,32 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
                                tBTA_GATT_UNFMT      *p_data,
                                tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_WRITE  *p_buf;
     size_t len = sizeof(tBTA_GATTC_API_WRITE) + sizeof(tBTA_GATT_ID);
 
     if (p_data != NULL)
         len += p_data->len;
 
-    if ((p_buf = (tBTA_GATTC_API_WRITE *) osi_malloc(len)) != NULL)
-    {
-        memset(p_buf, 0, len);
+    tBTA_GATTC_API_WRITE *p_buf = (tBTA_GATTC_API_WRITE *)osi_calloc(len);
+    p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
 
-        p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
+    memcpy(&p_buf->srvc_id, &p_char_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_char_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
+    p_buf->p_descr_type = (tBTA_GATT_ID *)(p_buf + 1);
+    memcpy(p_buf->p_descr_type, &p_char_descr_id->descr_id, sizeof(tBTA_GATT_ID));
+    p_buf->write_type = write_type;
 
-        memcpy(&p_buf->srvc_id, &p_char_descr_id->char_id.srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_char_descr_id->char_id.char_id, sizeof(tBTA_GATT_ID));
-        p_buf->p_descr_type = (tBTA_GATT_ID *)(p_buf + 1);
-        memcpy(p_buf->p_descr_type, &p_char_descr_id->descr_id, sizeof(tBTA_GATT_ID));
-        p_buf->write_type = write_type;
-
-        if (p_data && p_data->len != 0)
-        {
-            p_buf->p_value  = (UINT8 *)(p_buf->p_descr_type + 1);
-            p_buf->len      = p_data->len;
-            /* pack the descr data */
-            memcpy(p_buf->p_value, p_data->p_value, p_data->len);
-        }
-
-        bta_sys_sendmsg(p_buf);
+    if (p_data && p_data->len != 0) {
+        p_buf->p_value  = (UINT8 *)(p_buf->p_descr_type + 1);
+        p_buf->len      = p_data->len;
+        /* pack the descr data */
+        memcpy(p_buf->p_value, p_data->p_value, p_data->len);
     }
-    return;
 
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_PrepareWrite
@@ -803,34 +734,28 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
                               UINT16 offset, UINT16 len, UINT8 *p_value,
                               tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_WRITE  *p_buf;
+    tBTA_GATTC_API_WRITE *p_buf =
+        (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + len);
 
-    if ((p_buf = (tBTA_GATTC_API_WRITE *) osi_malloc(sizeof(tBTA_GATTC_API_WRITE) + len)) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_WRITE) + len);
+    p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->auth_req = auth_req;
 
-        p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->auth_req = auth_req;
+    memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
 
-        memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+    p_buf->write_type = BTA_GATTC_WRITE_PREPARE;
+    p_buf->offset   = offset;
+    p_buf->len = len;
 
-        p_buf->write_type = BTA_GATTC_WRITE_PREPARE;
-        p_buf->offset   = offset;
-        p_buf->len = len;
-
-        if (p_value && len > 0)
-        {
-            p_buf->p_value = (UINT8 *)(p_buf + 1);
-            memcpy(p_buf->p_value, p_value, len);
-        }
-
-        bta_sys_sendmsg(p_buf);
+    if (p_value && len > 0) {
+        p_buf->p_value = (UINT8 *)(p_buf + 1);
+        memcpy(p_buf->p_value, p_value, len);
     }
-    return;
 
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ExecuteWrite
@@ -845,22 +770,16 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
 *******************************************************************************/
 void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute)
 {
-    tBTA_GATTC_API_EXEC  *p_buf;
+    tBTA_GATTC_API_EXEC *p_buf =
+        (tBTA_GATTC_API_EXEC *)osi_calloc(sizeof(tBTA_GATTC_API_EXEC));
 
-    if ((p_buf = (tBTA_GATTC_API_EXEC *) osi_malloc(sizeof(tBTA_GATTC_API_EXEC))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_EXEC));
+    p_buf->hdr.event = BTA_GATTC_API_EXEC_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->is_execute = is_execute;
 
-        p_buf->hdr.event = BTA_GATTC_API_EXEC_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-
-        p_buf->is_execute = is_execute;
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
-
+    bta_sys_sendmsg(p_buf);
 }
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_SendIndConfirm
@@ -875,25 +794,20 @@ void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute)
 *******************************************************************************/
 void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id)
 {
-    tBTA_GATTC_API_CONFIRM  *p_buf;
+    tBTA_GATTC_API_CONFIRM *p_buf =
+        (tBTA_GATTC_API_CONFIRM *)osi_calloc(sizeof(tBTA_GATTC_API_CONFIRM));
 
-    APPL_TRACE_API("BTA_GATTC_SendIndConfirm conn_id=%d service uuid1=0x%x char uuid=0x%x",
-                    conn_id, p_char_id->srvc_id.id.uuid.uu.uuid16, p_char_id->char_id.uuid.uu.uuid16);
+    APPL_TRACE_API("%s conn_id=%d service uuid1=0x%x char uuid=0x%x",
+                   __func__, conn_id, p_char_id->srvc_id.id.uuid.uu.uuid16,
+                   p_char_id->char_id.uuid.uu.uuid16);
 
-    if ((p_buf = (tBTA_GATTC_API_CONFIRM *) osi_malloc(sizeof(tBTA_GATTC_API_CONFIRM))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_API_CONFIRM));
+    p_buf->hdr.event = BTA_GATTC_API_CONFIRM_EVT;
+    p_buf->hdr.layer_specific = conn_id;
 
-        p_buf->hdr.event = BTA_GATTC_API_CONFIRM_EVT;
-        p_buf->hdr.layer_specific = conn_id;
+    memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
+    memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
 
-        memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-        memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
-
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -1041,18 +955,13 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
 *******************************************************************************/
 void BTA_GATTC_Refresh(BD_ADDR remote_bda)
 {
-    tBTA_GATTC_API_OPEN  *p_buf;
+    tBTA_GATTC_API_OPEN *p_buf =
+        (tBTA_GATTC_API_OPEN *)osi_malloc(sizeof(tBTA_GATTC_API_OPEN));
 
-    if ((p_buf = (tBTA_GATTC_API_OPEN *) osi_malloc(sizeof(tBTA_GATTC_API_OPEN))) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_REFRESH_EVT;
+    p_buf->hdr.event = BTA_GATTC_API_REFRESH_EVT;
+    memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
-        memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
-
-
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -1072,25 +981,20 @@ void BTA_GATTC_Refresh(BD_ADDR remote_bda)
 *******************************************************************************/
 void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda)
 {
-    tBTA_GATTC_API_LISTEN  *p_buf;
+    tBTA_GATTC_API_LISTEN *p_buf =
+        (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
 
-    if ((p_buf = (tBTA_GATTC_API_LISTEN *) osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN)) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_LISTEN_EVT;
-
-        p_buf->client_if = client_if;
-        p_buf->start = start;
-        if (target_bda)
-        {
-            p_buf->remote_bda = (UINT8*)(p_buf + 1);
-            memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
-        }
-        else
-            p_buf->remote_bda = NULL;
-
-        bta_sys_sendmsg(p_buf);
+    p_buf->hdr.event = BTA_GATTC_API_LISTEN_EVT;
+    p_buf->client_if = client_if;
+    p_buf->start = start;
+    if (target_bda) {
+        p_buf->remote_bda = (UINT8*)(p_buf + 1);
+        memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
+    } else {
+        p_buf->remote_bda = NULL;
     }
-    return;
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -1107,17 +1011,14 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target
 *******************************************************************************/
 void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start)
 {
-    tBTA_GATTC_API_LISTEN  *p_buf;
+    tBTA_GATTC_API_LISTEN *p_buf =
+        (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
 
-    if ((p_buf = (tBTA_GATTC_API_LISTEN *) osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN)) != NULL)
-    {
-        p_buf->hdr.event = BTA_GATTC_API_BROADCAST_EVT;
-        p_buf->client_if = client_if;
-        p_buf->start = start;
-        bta_sys_sendmsg(p_buf);
-    }
-    return;
+    p_buf->hdr.event = BTA_GATTC_API_BROADCAST_EVT;
+    p_buf->client_if = client_if;
+    p_buf->start = start;
+
+    bta_sys_sendmsg(p_buf);
 }
 
 #endif /* BTA_GATT_INCLUDED */
-

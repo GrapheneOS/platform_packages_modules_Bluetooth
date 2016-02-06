@@ -196,8 +196,7 @@ tBTM_STATUS btm_ble_batchscan_enq_rep_q(UINT8 report_format, tBTM_BLE_REF_VALUE 
 void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT8 *p_data,
                                     UINT8 data_len)
 {
-    int index = 0, len = 0;
-    UINT8 *p_orig_data = NULL, *p_app_data = NULL;
+    int index = 0;
 
     for (index = 0; index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE; index++)
     {
@@ -210,8 +209,10 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
 
     if (index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE && data_len > 0 && num_records > 0)
     {
-        len = ble_batchscan_cb.main_rep_q.data_len[index];
-        p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
+        int len = ble_batchscan_cb.main_rep_q.data_len[index];
+        UINT8 *p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
+        UINT8 *p_app_data;
+
         if (NULL != p_orig_data)
         {
             p_app_data = osi_malloc(len + data_len);

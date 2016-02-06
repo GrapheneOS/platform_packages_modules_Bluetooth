@@ -128,12 +128,6 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
 
     GATT_TRACE_DEBUG ("process_read_multi_rsp status=%d mtu=%d", status, mtu);
 
-    if (p_buf == NULL)
-    {
-        p_cmd->status = GATT_INSUF_RESOURCE;
-        return FALSE;
-    }
-
     /* Enqueue the response */
     memcpy((void *)p_buf, (const void *)p_msg, sizeof(tGATTS_RSP));
     fixed_queue_enqueue(p_cmd->multi_rsp_q, p_buf);
@@ -148,13 +142,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
         if (fixed_queue_length(p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)
         {
             len = sizeof(BT_HDR) + L2CAP_MIN_OFFSET + mtu;
-            if ((p_buf = (BT_HDR *)osi_malloc(len)) == NULL)
-            {
-                p_cmd->status = GATT_INSUF_RESOURCE;
-                return(TRUE);
-            }
-
-            memset(p_buf, 0, len);
+            p_buf = (BT_HDR *)osi_calloc(len);
             p_buf->offset = L2CAP_MIN_OFFSET;
             p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
@@ -403,7 +391,6 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
     UINT8           *p = p_data, i_rcb;
     tGATT_STATUS    err = GATT_SUCCESS;
     UINT8           sec_flag, key_size;
-    tGATTS_RSP       *p_msg;
 
     GATT_TRACE_DEBUG("gatt_process_read_multi_req" );
     p_tcb->sr_cmd.multi_req.num_handles = 0;
@@ -469,41 +456,29 @@ void gatt_process_read_multi_req (tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len, U
         {
             gatt_sr_reset_cback_cnt(p_tcb); /* read multiple use multi_rsp_q's count*/
 
-            for (ll = 0; ll < p_tcb->sr_cmd.multi_req.num_handles; ll ++)
-            {
-                if ((p_msg = (tGATTS_RSP *)osi_malloc(sizeof(tGATTS_RSP))) != NULL)
-                {
-                    memset(p_msg, 0, sizeof(tGATTS_RSP))
-                    ;
-                    handle = p_tcb->sr_cmd.multi_req.handles[ll];
-                    i_rcb = gatt_sr_find_i_rcb_by_handle(handle);
+            for (ll = 0; ll < p_tcb->sr_cmd.multi_req.num_handles; ll ++) {
+                tGATTS_RSP *p_msg = (tGATTS_RSP *)osi_calloc(sizeof(tGATTS_RSP));
+                handle = p_tcb->sr_cmd.multi_req.handles[ll];
+                i_rcb = gatt_sr_find_i_rcb_by_handle(handle);
 
-                    p_msg->attr_value.handle = handle;
-                    err = gatts_read_attr_value_by_handle(p_tcb,
-                                                          gatt_cb.sr_reg[i_rcb].p_db,
-                                                          op_code,
-                                                          handle,
-                                                          0,
-                                                          p_msg->attr_value.value,
-                                                          &p_msg->attr_value.len,
-                                                          GATT_MAX_ATTR_LEN,
-                                                          sec_flag,
-                                                          key_size,
-                                                          trans_id);
+                p_msg->attr_value.handle = handle;
+                err = gatts_read_attr_value_by_handle(p_tcb,
+                                                      gatt_cb.sr_reg[i_rcb].p_db,
+                                                      op_code,
+                                                      handle,
+                                                      0,
+                                                      p_msg->attr_value.value,
+                                                      &p_msg->attr_value.len,
+                                                      GATT_MAX_ATTR_LEN,
+                                                      sec_flag,
+                                                      key_size,
+                                                      trans_id);
 
-                    if (err == GATT_SUCCESS)
-                    {
-                        gatt_sr_process_app_rsp(p_tcb, gatt_cb.sr_reg[i_rcb].gatt_if ,trans_id, op_code, GATT_SUCCESS, p_msg);
-                    }
-                    /* either not using or done using the buffer, release it now */
-                    osi_free(p_msg);
+                if (err == GATT_SUCCESS) {
+                    gatt_sr_process_app_rsp(p_tcb, gatt_cb.sr_reg[i_rcb].gatt_if ,trans_id, op_code, GATT_SUCCESS, p_msg);
                 }
-                else
-                {
-                    err = GATT_NO_RESOURCES;
-                    gatt_dequeue_sr_cmd(p_tcb);
-                    break;
-                }
+                /* either not using or done using the buffer, release it now */
+                osi_free(p_msg);
             }
         }
         else
@@ -784,18 +759,11 @@ void gatts_process_primary_service_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 l
                     reason = GATT_INVALID_PDU;
             }
 
-            if (reason == GATT_SUCCESS)
-            {
-                if ((p_msg =  (BT_HDR *)osi_malloc(msg_len)) == NULL)
-                {
-                    GATT_TRACE_ERROR("gatts_process_primary_service_req failed. no resources.");
-                    reason = GATT_NO_RESOURCES;
-                }
-                else
-                {
-                    memset(p_msg, 0, msg_len);
-                    reason = gatt_build_primary_service_rsp (p_msg, p_tcb, op_code, s_hdl, e_hdl, p_data, value);
-                }
+            if (reason == GATT_SUCCESS) {
+                p_msg = (BT_HDR *)osi_calloc(msg_len);
+                reason = gatt_build_primary_service_rsp (p_msg, p_tcb, op_code,
+                                                         s_hdl, e_hdl, p_data,
+                                                         value);
             }
         }
         else
@@ -849,44 +817,34 @@ static void gatts_process_find_info(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
     {
         buf_len = (UINT16)(sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET);
 
-        if ((p_msg =  (BT_HDR *)osi_malloc(buf_len)) == NULL)
-        {
-            reason = GATT_NO_RESOURCES;
-        }
-        else
-        {
-            reason = GATT_NOT_FOUND;
+        p_msg = (BT_HDR *)osi_calloc(buf_len);
+        reason = GATT_NOT_FOUND;
 
-            memset(p_msg, 0, buf_len);
-            p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
-            *p ++ = op_code + 1;
-            p_msg->len = 2;
+        p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        *p ++ = op_code + 1;
+        p_msg->len = 2;
 
-            buf_len = p_tcb->payload_size - 2;
+        buf_len = p_tcb->payload_size - 2;
 
-            p_srv = p_list->p_first;
+        p_srv = p_list->p_first;
 
-            while (p_srv)
-            {
-                p_rcb = GATT_GET_SR_REG_PTR(p_srv->i_sreg);
+        while (p_srv) {
+            p_rcb = GATT_GET_SR_REG_PTR(p_srv->i_sreg);
 
-                if (p_rcb->in_use &&
-                    !(p_rcb->s_hdl > e_hdl ||
-                      p_rcb->e_hdl < s_hdl))
-                {
-                    reason = gatt_build_find_info_rsp(p_rcb, p_msg, &buf_len, s_hdl, e_hdl);
-                    if (reason == GATT_NO_RESOURCES)
-                    {
-                        reason = GATT_SUCCESS;
-                        break;
-                    }
+            if (p_rcb->in_use && !(p_rcb->s_hdl > e_hdl ||
+                                   p_rcb->e_hdl < s_hdl)) {
+                reason = gatt_build_find_info_rsp(p_rcb, p_msg, &buf_len,
+                                                  s_hdl, e_hdl);
+                if (reason == GATT_NO_RESOURCES) {
+                    reason = GATT_SUCCESS;
+                    break;
                 }
-                p_srv = p_srv->p_next;
             }
-            *p = (UINT8)p_msg->offset;
-
-            p_msg->offset = L2CAP_MIN_OFFSET;
+            p_srv = p_srv->p_next;
         }
+        *p = (UINT8)p_msg->offset;
+
+        p_msg->offset = L2CAP_MIN_OFFSET;
     }
 
     if (reason != GATT_SUCCESS)
@@ -1005,69 +963,53 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 
     if (reason == GATT_SUCCESS)
     {
-        if ((p_msg =  (BT_HDR *)osi_malloc(msg_len)) == NULL)
-        {
-            GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
+        p_msg = (BT_HDR *)osi_calloc(msg_len);
+        p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
 
-            reason = GATT_NO_RESOURCES;
-        }
-        else
-        {
-            memset(p_msg, 0, msg_len);
-            p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+        *p ++ = op_code + 1;
+        /* reserve length byte */
+        p_msg->len = 2;
+        buf_len = p_tcb->payload_size - 2;
 
-            *p ++ = op_code + 1;
-            /* reserve length byte */
-            p_msg->len = 2;
-            buf_len = p_tcb->payload_size - 2;
+        reason = GATT_NOT_FOUND;
 
-            reason = GATT_NOT_FOUND;
+        p_srv = p_list->p_first;
 
-            p_srv = p_list->p_first;
+        while (p_srv) {
+            p_rcb = GATT_GET_SR_REG_PTR(p_srv->i_sreg);
 
-            while (p_srv)
-            {
-                p_rcb = GATT_GET_SR_REG_PTR(p_srv->i_sreg);
+            if (p_rcb->in_use && !(p_rcb->s_hdl > e_hdl ||
+                                   p_rcb->e_hdl < s_hdl)) {
+                gatt_sr_get_sec_info(p_tcb->peer_bda, p_tcb->transport,
+                                     &sec_flag, &key_size);
 
-                if (p_rcb->in_use &&
-                    !(p_rcb->s_hdl > e_hdl ||
-                      p_rcb->e_hdl < s_hdl))
-                {
-                    gatt_sr_get_sec_info(p_tcb->peer_bda,
-                                         p_tcb->transport,
-                                         &sec_flag,
-                                         &key_size);
+                ret = gatts_db_read_attr_value_by_type(p_tcb,
+                                                       p_rcb->p_db,
+                                                       op_code,
+                                                       p_msg,
+                                                       s_hdl,
+                                                       e_hdl,
+                                                       uuid,
+                                                       &buf_len,
+                                                       sec_flag,
+                                                       key_size,
+                                                       0,
+                                                       &err_hdl);
+                if (ret != GATT_NOT_FOUND) {
+                    reason = ret;
 
-                    ret = gatts_db_read_attr_value_by_type(p_tcb,
-                                                           p_rcb->p_db,
-                                                           op_code,
-                                                           p_msg,
-                                                           s_hdl,
-                                                           e_hdl,
-                                                           uuid,
-                                                           &buf_len,
-                                                           sec_flag,
-                                                           key_size,
-                                                           0,
-                                                           &err_hdl);
-                    if (ret != GATT_NOT_FOUND)
-                    {
-                        reason = ret;
-
-                        if (ret == GATT_NO_RESOURCES)
-                            reason = GATT_SUCCESS;
-                    }
-                    if (ret != GATT_SUCCESS && ret != GATT_NOT_FOUND)
-                    {
-                        s_hdl = err_hdl;
-                        break;
-                    }
+                    if (ret == GATT_NO_RESOURCES)
+                        reason = GATT_SUCCESS;
                 }
-                p_srv = p_srv->p_next;
+                if (ret != GATT_SUCCESS && ret != GATT_NOT_FOUND) {
+                    s_hdl = err_hdl;
+                    break;
+                }
             }
-            *p              = (UINT8)p_msg->offset;
-            p_msg->offset   = L2CAP_MIN_OFFSET;
+            p_srv = p_srv->p_next;
         }
+        *p = (UINT8)p_msg->offset;
+        p_msg->offset = L2CAP_MIN_OFFSET;
     }
     if (reason != GATT_SUCCESS)
     {
@@ -1189,47 +1131,36 @@ static void gatts_process_read_req(tGATT_TCB *p_tcb, tGATT_SR_REG *p_rcb, UINT8 
 {
     size_t          buf_len = sizeof(BT_HDR) + p_tcb->payload_size + L2CAP_MIN_OFFSET;
     tGATT_STATUS    reason;
-    BT_HDR          *p_msg = NULL;
     UINT8           sec_flag, key_size, *p;
     UINT16          offset = 0, value_len = 0;
+    BT_HDR          *p_msg = (BT_HDR *)osi_calloc(buf_len);
 
-    UNUSED (len);
-    if ((p_msg =  (BT_HDR *)osi_malloc(buf_len)) == NULL)
-    {
-        GATT_TRACE_ERROR("gatts_process_find_info failed. no resources.");
+    UNUSED(len);
 
-        reason = GATT_NO_RESOURCES;
-    }
-    else
-    {
-        if (op_code == GATT_REQ_READ_BLOB)
-            STREAM_TO_UINT16(offset, p_data);
+    if (op_code == GATT_REQ_READ_BLOB)
+        STREAM_TO_UINT16(offset, p_data);
 
-        memset(p_msg, 0, buf_len);
-        p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
-        *p ++ = op_code + 1;
-        p_msg->len = 1;
-        buf_len = p_tcb->payload_size - 1;
+    p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
+    *p ++ = op_code + 1;
+    p_msg->len = 1;
+    buf_len = p_tcb->payload_size - 1;
 
-        gatt_sr_get_sec_info(p_tcb->peer_bda,
-                             p_tcb->transport,
-                             &sec_flag,
-                             &key_size);
+    gatt_sr_get_sec_info(p_tcb->peer_bda, p_tcb->transport, &sec_flag,
+                         &key_size);
 
-        reason = gatts_read_attr_value_by_handle(p_tcb,
-                                                 p_rcb->p_db,
-                                                 op_code,
-                                                 handle,
-                                                 offset,
-                                                 p,
-                                                 &value_len,
-                                                 (uint16_t)buf_len,
-                                                 sec_flag,
-                                                 key_size,
-                                                 0);
+    reason = gatts_read_attr_value_by_handle(p_tcb,
+                                             p_rcb->p_db,
+                                             op_code,
+                                             handle,
+                                             offset,
+                                             p,
+                                             &value_len,
+                                             (uint16_t)buf_len,
+                                             sec_flag,
+                                             key_size,
+                                             0);
 
-        p_msg->len += value_len;
-    }
+    p_msg->len += value_len;
 
     if (reason != GATT_SUCCESS)
     {

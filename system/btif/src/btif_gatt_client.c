@@ -328,29 +328,20 @@ static void btapp_gattc_req_data(UINT16 event, char *p_dest, char *p_src)
             {
                 p_dest_data->read.p_value = osi_malloc(sizeof(tBTA_GATT_READ_VAL));
 
-                if (p_dest_data->read.p_value != NULL)
-                {
-                    memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
-                        sizeof(tBTA_GATT_READ_VAL));
+                memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
+                       sizeof(tBTA_GATT_READ_VAL));
 
-                    // Allocate buffer for att value if necessary
-                    if (get_uuid16(&p_src_data->read.descr_type.uuid) != GATT_UUID_CHAR_AGG_FORMAT
-                      && p_src_data->read.p_value->unformat.len > 0
-                      && p_src_data->read.p_value->unformat.p_value != NULL)
-                    {
-                        p_dest_data->read.p_value->unformat.p_value =
-                                       osi_malloc(p_src_data->read.p_value->unformat.len);
-                        if (p_dest_data->read.p_value->unformat.p_value != NULL)
-                        {
-                            memcpy(p_dest_data->read.p_value->unformat.p_value,
-                                   p_src_data->read.p_value->unformat.p_value,
-                                   p_src_data->read.p_value->unformat.len);
-                        }
-                    }
+                // Allocate buffer for att value if necessary
+                if (get_uuid16(&p_src_data->read.descr_type.uuid) != GATT_UUID_CHAR_AGG_FORMAT &&
+                    p_src_data->read.p_value->unformat.len > 0 &&
+                    p_src_data->read.p_value->unformat.p_value != NULL) {
+                    p_dest_data->read.p_value->unformat.p_value =
+                        osi_malloc(p_src_data->read.p_value->unformat.len);
+                    memcpy(p_dest_data->read.p_value->unformat.p_value,
+                           p_src_data->read.p_value->unformat.p_value,
+                           p_src_data->read.p_value->unformat.len);
                 }
-            }
-            else
-            {
+            } else {
                 BTIF_TRACE_WARNING("%s :Src read.p_value ptr is NULL for event  0x%x",
                                     __FUNCTION__, event);
                 p_dest_data->read.p_value = NULL;

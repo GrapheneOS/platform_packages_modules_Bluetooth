@@ -82,7 +82,6 @@ static void queue_int_add(connect_node_t *p_param) {
     }
 
     connect_node_t *p_node = osi_malloc(sizeof(connect_node_t));
-    assert(p_node != NULL);
     memcpy(p_node, p_param, sizeof(connect_node_t));
     list_append(connect_queue, p_node);
 }

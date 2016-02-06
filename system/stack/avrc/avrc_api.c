@@ -121,13 +121,11 @@ static BT_HDR * avrc_copy_packet(BT_HDR *p_pkt, int rsp_pkt_len)
     BT_HDR *p_pkt_copy = (BT_HDR *)osi_malloc(BT_HDR_SIZE + offset + pkt_len);
 
     /* Copy the packet header, set the new offset, and copy the payload */
-    if (p_pkt_copy != NULL) {
-        memcpy(p_pkt_copy, p_pkt, BT_HDR_SIZE);
-        p_pkt_copy->offset = offset;
-        UINT8 *p_data = avrc_get_data_ptr(p_pkt);
-        UINT8 *p_data_copy = avrc_get_data_ptr(p_pkt_copy);
-        memcpy(p_data_copy, p_data, p_pkt->len);
-    }
+    memcpy(p_pkt_copy, p_pkt, BT_HDR_SIZE);
+    p_pkt_copy->offset = offset;
+    UINT8 *p_data = avrc_get_data_ptr(p_pkt);
+    UINT8 *p_data_copy = avrc_get_data_ptr(p_pkt_copy);
+    memcpy(p_data_copy, p_data, p_pkt->len);
 
     return p_pkt_copy;
 }
@@ -195,50 +193,27 @@ static void avrc_send_continue_frag(UINT8 handle, UINT8 label)
 
     AVRC_TRACE_DEBUG("%s handle = %u label = %u len = %d",
                      __func__, handle, label, p_pkt->len);
-    if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
-    {
+    if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN) {
         int offset_len = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
         p_pkt_old = p_fcb->p_fmsg;
         p_pkt = (BT_HDR *)osi_malloc(AVRC_PACKET_LEN + offset_len + BT_HDR_SIZE);
-        if (p_pkt)
-        {
-            p_pkt->len          = AVRC_MAX_CTRL_DATA_LEN;
-            p_pkt->offset       = AVCT_MSG_OFFSET;
-            p_pkt->layer_specific = p_pkt_old->layer_specific;
-            p_pkt->event = p_pkt_old->event;
-            p_old = (UINT8 *)(p_pkt_old+1) + p_pkt_old->offset;
-            p_data = (UINT8 *)(p_pkt+1) + p_pkt->offset;
-            memcpy (p_data, p_old, AVRC_MAX_CTRL_DATA_LEN);
-            /* use AVRC continue packet type */
-            p_data += AVRC_VENDOR_HDR_SIZE;
-            p_data++; /* pdu */
-            *p_data++ = AVRC_PKT_CONTINUE;
-            /* 4=pdu, pkt_type & len */
-            UINT16_TO_BE_STREAM(p_data, (AVRC_MAX_CTRL_DATA_LEN - AVRC_VENDOR_HDR_SIZE - 4));
+        p_pkt->len = AVRC_MAX_CTRL_DATA_LEN;
+        p_pkt->offset = AVCT_MSG_OFFSET;
+        p_pkt->layer_specific = p_pkt_old->layer_specific;
+        p_pkt->event = p_pkt_old->event;
+        p_old = (UINT8 *)(p_pkt_old + 1) + p_pkt_old->offset;
+        p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+        memcpy (p_data, p_old, AVRC_MAX_CTRL_DATA_LEN);
+        /* use AVRC continue packet type */
+        p_data += AVRC_VENDOR_HDR_SIZE;
+        p_data++; /* pdu */
+        *p_data++ = AVRC_PKT_CONTINUE;
+        /* 4=pdu, pkt_type & len */
+        UINT16_TO_BE_STREAM(p_data, (AVRC_MAX_CTRL_DATA_LEN - AVRC_VENDOR_HDR_SIZE - 4));
 
-            /* prepare the left over for as an end fragment */
-            avrc_prep_end_frag (handle);
-        }
-        else
-        {
-            /* use the current GKI buffer to send Internal error status */
-            p_pkt = p_fcb->p_fmsg;
-            p_fcb->p_fmsg = NULL;
-            p_fcb->frag_enabled = FALSE;
-            AVRC_TRACE_ERROR ("AVRC_MsgReq no buffers for fragmentation - send internal error" );
-            p_data = (UINT8 *)(p_pkt+1) + p_pkt->offset;
-            *p_data++ = AVRC_PDU_REQUEST_CONTINUATION_RSP;
-            *p_data++ = 0;
-            UINT16_TO_BE_STREAM(p_data, 0);
-            p_pkt->len = 4;
-            rej_rsp.pdu = AVRC_PDU_REQUEST_CONTINUATION_RSP;
-            rej_rsp.status = AVRC_STS_INTERNAL_ERR;
-            AVRC_BldResponse( handle, (tAVRC_RESPONSE *)&rej_rsp, &p_pkt);
-            cr = AVCT_RSP;
-        }
-    }
-    else
-    {
+        /* prepare the left over for as an end fragment */
+        avrc_prep_end_frag (handle);
+    } else {
         /* end fragment. clean the control block */
         p_fcb->frag_enabled = FALSE;
         p_fcb->p_fmsg       = NULL;
@@ -838,37 +813,31 @@ static BT_HDR  * avrc_pass_msg(tAVRC_MSG_PASS *p_msg)
     assert(p_msg != NULL);
     assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN+p_msg->pass_len));
 
-    BT_HDR  *p_cmd = (BT_HDR *) osi_malloc(AVRC_CMD_BUF_SIZE);
-    if (p_cmd != NULL)
-    {
-        p_cmd->offset   = AVCT_MSG_OFFSET;
-        p_cmd->layer_specific   = AVCT_DATA_CTRL;
+    BT_HDR  *p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
+    p_cmd->offset = AVCT_MSG_OFFSET;
+    p_cmd->layer_specific = AVCT_DATA_CTRL;
 
-        UINT8 *p_data   = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-        *p_data++       = (p_msg->hdr.ctype & AVRC_CTYPE_MASK);
-        *p_data++       = (AVRC_SUB_PANEL << AVRC_SUBTYPE_SHIFT); /* Panel subunit & id=0 */
-        *p_data++       = AVRC_OP_PASS_THRU;
-        *p_data         = (AVRC_PASS_OP_ID_MASK&p_msg->op_id);
-        if (p_msg->state)
-            *p_data     |= AVRC_PASS_STATE_MASK;
-        p_data++;
+    UINT8 *p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
+    *p_data++ = (p_msg->hdr.ctype & AVRC_CTYPE_MASK);
+    *p_data++ = (AVRC_SUB_PANEL << AVRC_SUBTYPE_SHIFT); /* Panel subunit & id=0 */
+    *p_data++ = AVRC_OP_PASS_THRU;
+    *p_data = (AVRC_PASS_OP_ID_MASK&p_msg->op_id);
+    if (p_msg->state)
+        *p_data     |= AVRC_PASS_STATE_MASK;
+    p_data++;
 
-        if (p_msg->op_id == AVRC_ID_VENDOR)
-        {
-            *p_data++       = p_msg->pass_len;
-            if (p_msg->pass_len && p_msg->p_pass_data)
-            {
-                memcpy(p_data, p_msg->p_pass_data, p_msg->pass_len);
-                p_data += p_msg->pass_len;
-            }
+    if (p_msg->op_id == AVRC_ID_VENDOR) {
+        *p_data++ = p_msg->pass_len;
+        if (p_msg->pass_len && p_msg->p_pass_data) {
+            memcpy(p_data, p_msg->p_pass_data, p_msg->pass_len);
+            p_data += p_msg->pass_len;
         }
-        else /* set msg len to 0 for other op_id */
-        {
-            /* set msg len to 0 for other op_id */
-            *p_data++       = 0;
-        }
-        p_cmd->len      = (UINT16) (p_data - (UINT8 *)(p_cmd + 1) - p_cmd->offset);
+    } else {
+        /* set msg len to 0 for other op_id */
+        *p_data++       = 0;
     }
+    p_cmd->len = (UINT16) (p_data - (UINT8 *)(p_cmd + 1) - p_cmd->offset);
+
     return p_cmd;
 }
 
@@ -993,7 +962,6 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
     UINT8   *p_start = NULL;
     tAVRC_FRAG_CB   *p_fcb;
     UINT16  len;
-    BT_HDR  *p_pkt_new;
 
     if (!p_pkt)
         return AVRC_BAD_PARAM;
@@ -1045,10 +1013,9 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
         if (p_pkt->len > AVRC_MAX_CTRL_DATA_LEN)
         {
             int offset_len = MAX(AVCT_MSG_OFFSET, p_pkt->offset);
-            p_pkt_new = (BT_HDR *)osi_malloc(AVRC_PACKET_LEN + offset_len
-                + BT_HDR_SIZE);
-            if (p_pkt_new && (p_start != NULL))
-            {
+            BT_HDR *p_pkt_new =
+                (BT_HDR *)osi_malloc(AVRC_PACKET_LEN + offset_len + BT_HDR_SIZE);
+            if (p_start != NULL) {
                 p_fcb->frag_enabled = TRUE;
                 p_fcb->p_fmsg       = p_pkt;
                 p_fcb->frag_pdu     = *p_start;
@@ -1073,9 +1040,8 @@ UINT16 AVRC_MsgReq (UINT8 handle, UINT8 label, UINT8 ctype, BT_HDR *p_pkt)
                 avrc_prep_end_frag (handle);
                 AVRC_TRACE_DEBUG ("%s p_pkt len:%d/%d, next len:%d", __func__,
                                   p_pkt->len, len, p_fcb->p_fmsg->len );
-            }
-            else
-            {
+            } else {
+                /* TODO: Is this "else" block valid? Remove it? */
                 AVRC_TRACE_ERROR ("AVRC_MsgReq no buffers for fragmentation" );
                 osi_free(p_pkt);
                 return AVRC_NO_RESOURCES;

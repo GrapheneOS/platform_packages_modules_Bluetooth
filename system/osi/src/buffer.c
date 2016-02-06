@@ -37,10 +37,6 @@ buffer_t *buffer_new(size_t size) {
   assert(size > 0);
 
   buffer_t *buffer = osi_calloc(sizeof(buffer_t) + size);
-  if (!buffer) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate buffer of %zu bytes.", __func__, size);
-    return NULL;
-  }
 
   buffer->root = buffer;
   buffer->refcount = 1;
@@ -60,10 +56,6 @@ buffer_t *buffer_new_slice(const buffer_t *buf, size_t slice_size) {
   assert(slice_size <= buf->length);
 
   buffer_t *ret = osi_calloc(sizeof(buffer_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate new buffer for slice of length %zu.", __func__, slice_size);
-    return NULL;
-  }
 
   ret->root = buf->root;
   ret->refcount = SIZE_MAX;

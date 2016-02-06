@@ -183,7 +183,6 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     UINT16          rsp_param_len, num_rsp_handles, xx;
     UINT32          rsp_handles[SDP_MAX_RECORDS] = {0};
     tSDP_RECORD    *p_rec = NULL;
-    BT_HDR         *p_buf;
     BOOLEAN         is_cont = FALSE;
     UNUSED(p_req_end);
 
@@ -259,12 +258,7 @@ static void process_service_search (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
-    if (p_buf == NULL)
-    {
-        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
-        return;
-    }
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -330,7 +324,6 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     UINT32          rec_handle;
     tSDP_RECORD     *p_rec;
     tSDP_ATTRIBUTE  *p_attr;
-    BT_HDR          *p_buf;
     BOOLEAN         is_cont = FALSE;
     UINT16          attr_len;
 
@@ -493,12 +486,7 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
-    if (p_buf == NULL)
-    {
-        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
-        return;
-    }
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -566,7 +554,6 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     tSDP_RECORD    *p_rec;
     tSDP_ATTR_SEQ   attr_seq, attr_seq_sav;
     tSDP_ATTRIBUTE *p_attr;
-    BT_HDR         *p_buf;
     BOOLEAN         maxxed_out = FALSE, is_cont = FALSE;
     UINT8           *p_seq_start;
     UINT16          seq_len, attr_len;
@@ -796,12 +783,7 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
     }
 
     /* Get a buffer to use to build the response */
-    p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
-    if (p_buf == NULL)
-    {
-        SDP_TRACE_ERROR ("SDP - no buf for search rsp");
-        return;
-    }
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_rsp = p_rsp_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 

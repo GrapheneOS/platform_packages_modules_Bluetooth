@@ -530,7 +530,6 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     UINT16          curr_msg_len;
     UINT8           pkt_type;
     UINT8           hdr_len;
-    BT_HDR          *p_buf;
     UINT8           *p;
     UINT8           nosp = 0;       /* number of subsequent packets */
     UINT16          temp;
@@ -555,8 +554,9 @@ void avct_lcb_send_msg(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
     }
 
     /* while we haven't sent all packets */
-    while (curr_msg_len != 0)
-    {
+    while (curr_msg_len != 0) {
+        BT_HDR *p_buf;
+
         /* set header len */
         hdr_len = avct_lcb_pkt_type_len[pkt_type];
 
@@ -708,16 +708,13 @@ void avct_lcb_msg_ind(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
         /* if command send reject */
         if (cr_ipid == AVCT_CMD)
         {
-            BT_HDR *p_buf = (BT_HDR *) osi_malloc(AVCT_CMD_BUF_SIZE);
-            if (p_buf != NULL)
-            {
-                p_buf->len = AVCT_HDR_LEN_SINGLE;
-                p_buf->offset = AVCT_MSG_OFFSET - AVCT_HDR_LEN_SINGLE;
-                p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-                AVCT_BLD_HDR(p, label, AVCT_PKT_TYPE_SINGLE, AVCT_REJ);
-                UINT16_TO_BE_STREAM(p, pid);
-                L2CA_DataWrite(p_lcb->ch_lcid, p_buf);
-            }
+            BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVCT_CMD_BUF_SIZE);
+            p_buf->len = AVCT_HDR_LEN_SINGLE;
+            p_buf->offset = AVCT_MSG_OFFSET - AVCT_HDR_LEN_SINGLE;
+            p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+            AVCT_BLD_HDR(p, label, AVCT_PKT_TYPE_SINGLE, AVCT_REJ);
+            UINT16_TO_BE_STREAM(p, pid);
+            L2CA_DataWrite(p_lcb->ch_lcid, p_buf);
         }
     }
 }

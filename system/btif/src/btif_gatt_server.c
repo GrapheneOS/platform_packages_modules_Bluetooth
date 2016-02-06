@@ -134,11 +134,8 @@ static void btapp_gatts_copy_req_data(UINT16 event, char *p_dest, char *p_src)
         case BTA_GATTS_EXEC_WRITE_EVT:
         case BTA_GATTS_MTU_EVT:
             p_dest_data->req_data.p_data = osi_malloc(sizeof(tBTA_GATTS_REQ_DATA));
-            if (p_dest_data->req_data.p_data != NULL)
-            {
-                memcpy(p_dest_data->req_data.p_data, p_src_data->req_data.p_data,
-                    sizeof(tBTA_GATTS_REQ_DATA));
-            }
+            memcpy(p_dest_data->req_data.p_data, p_src_data->req_data.p_data,
+                   sizeof(tBTA_GATTS_REQ_DATA));
             break;
 
         default:

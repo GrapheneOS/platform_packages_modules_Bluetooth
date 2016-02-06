@@ -936,8 +936,6 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         if ( buf == NULL || blank_datc )
         {
             p_buf = (BT_HDR *)osi_malloc(buf_size);
-            if (p_buf == NULL)
-                return (HID_ERR_NO_RESOURCES);
 
             p_buf->offset = L2CAP_MIN_OFFSET;
             seg_req = FALSE;
@@ -948,8 +946,6 @@ tHID_STATUS hidh_conn_snd_data (UINT8 dhandle, UINT8 trans_type, UINT8 param,
         else if ( (buf->len > (p_hcon->rem_mtu_size - 1)))
         {
             p_buf = (BT_HDR *)osi_malloc(buf_size);
-            if (p_buf == NULL)
-                return (HID_ERR_NO_RESOURCES);
 
             p_buf->offset = L2CAP_MIN_OFFSET;
             seg_req = TRUE;

@@ -262,57 +262,53 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
                    "Times there is less than 2 packets in controller when flow controlled:%08u", p_ccb->fcrb.controller_idle);
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "max_held_acks:%08u, in_cfg.fcr.tx_win_sz:%08u", p_ccb->fcrb.max_held_acks, p_ccb->peer_cfg.fcr.tx_win_sz );
-        if (p_str)
-        {
-            sprintf(p_str, "Sent Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
+
+        sprintf(p_str, "Sent Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
                 p_ccb->fcrb.ertm_pkt_counts[0], p_ccb->fcrb.ertm_byte_counts[0],
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[0] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_sent[0], p_ccb->fcrb.s_frames_sent[1], p_ccb->fcrb.s_frames_sent[2], p_ccb->fcrb.s_frames_sent[3]);
 
-            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
-            sprintf(p_str, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
+        sprintf(p_str, "Rcvd Pkts:%08u Bytes:%10u(%06u/sec) RR:%08u REJ:%08u RNR:%08u SREJ:%08u",
                 p_ccb->fcrb.ertm_pkt_counts[1], p_ccb->fcrb.ertm_byte_counts[1],
                 (dur >= 10 ? (p_ccb->fcrb.ertm_byte_counts[1] * 100) / (dur / 10) : 0),
                 p_ccb->fcrb.s_frames_rcvd[0], p_ccb->fcrb.s_frames_rcvd[1], p_ccb->fcrb.s_frames_rcvd[2], p_ccb->fcrb.s_frames_rcvd[3]);
 
-            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
-            throughput_avg  = 0;
-            ack_delay_avg   = 0;
-            ack_q_count_avg = 0;
+        throughput_avg = 0;
+        ack_delay_avg = 0;
+        ack_q_count_avg = 0;
 
-            for (i = 0; i < L2CAP_ERTM_STATS_NUM_AVG; i++ )
-            {
-                if (i == p_ccb->fcrb.ack_delay_avg_index )
-                {
-                    BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
-                           "[%02u] collecting data ...", i );
-                    continue;
-                }
-
-                sprintf(p_str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
-                        i, p_ccb->fcrb.throughput[i],
-                        p_ccb->fcrb.ack_delay_avg[i], p_ccb->fcrb.ack_delay_min[i], p_ccb->fcrb.ack_delay_max[i],
-                        p_ccb->fcrb.ack_q_count_avg[i], p_ccb->fcrb.ack_q_count_min[i], p_ccb->fcrb.ack_q_count_max[i] );
-
-                BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
-
-                throughput_avg  += p_ccb->fcrb.throughput[i];
-                ack_delay_avg   += p_ccb->fcrb.ack_delay_avg[i];
-                ack_q_count_avg += p_ccb->fcrb.ack_q_count_avg[i];
+        for (i = 0; i < L2CAP_ERTM_STATS_NUM_AVG; i++) {
+            if (i == p_ccb->fcrb.ack_delay_avg_index) {
+                BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+                         "[%02u] collecting data ...", i );
+                continue;
             }
 
-            throughput_avg  /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
-            ack_delay_avg   /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
-            ack_q_count_avg /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
+            sprintf(p_str, "[%02u] throughput: %5u, ack_delay avg:%3u, min:%3u, max:%3u, ack_q_count avg:%3u, min:%3u, max:%3u",
+                    i, p_ccb->fcrb.throughput[i],
+                    p_ccb->fcrb.ack_delay_avg[i], p_ccb->fcrb.ack_delay_min[i], p_ccb->fcrb.ack_delay_max[i],
+                    p_ccb->fcrb.ack_q_count_avg[i], p_ccb->fcrb.ack_q_count_min[i], p_ccb->fcrb.ack_q_count_max[i] );
 
-            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
-                   "throughput_avg: %8u (kbytes/sec), ack_delay_avg: %8u ms, ack_q_count_avg: %8u",
-                    throughput_avg, ack_delay_avg, ack_q_count_avg );
+            BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC, "%s", p_str);
 
-            osi_free(p_str);
+            throughput_avg  += p_ccb->fcrb.throughput[i];
+            ack_delay_avg   += p_ccb->fcrb.ack_delay_avg[i];
+            ack_q_count_avg += p_ccb->fcrb.ack_q_count_avg[i];
         }
+
+        throughput_avg  /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
+        ack_delay_avg   /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
+        ack_q_count_avg /= (L2CAP_ERTM_STATS_NUM_AVG - 1);
+
+        BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
+                 "throughput_avg: %8u (kbytes/sec), ack_delay_avg: %8u ms, ack_q_count_avg: %8u",
+                 throughput_avg, ack_delay_avg, ack_q_count_avg );
+
+        osi_free(p_str);
 
         BT_TRACE(TRACE_CTRL_GENERAL | TRACE_LAYER_GKI | TRACE_ORG_GKI , TRACE_TYPE_GENERIC,
                    "---");
@@ -338,20 +334,11 @@ BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
     uint16_t buf_size = no_of_bytes + sizeof(BT_HDR) + new_offset;
     BT_HDR *p_buf2 = (BT_HDR *)osi_malloc(buf_size);
 
-    if (p_buf2 != NULL)
-    {
-        p_buf2->offset = new_offset;
-        p_buf2->len    = no_of_bytes;
-
-        memcpy (((UINT8 *)(p_buf2 + 1)) + p_buf2->offset,
-                ((UINT8 *)(p_buf + 1))  + p_buf->offset,
-                no_of_bytes);
-    }
-    else
-    {
-        L2CAP_TRACE_ERROR("L2CAP - failed to clone buffer, Size: %u",
-                          buf_size);
-    }
+    p_buf2->offset = new_offset;
+    p_buf2->len = no_of_bytes;
+    memcpy(((UINT8 *)(p_buf2 + 1)) + p_buf2->offset,
+           ((UINT8 *)(p_buf + 1))  + p_buf->offset,
+           no_of_bytes);
 
     return (p_buf2);
 }
@@ -503,7 +490,6 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
 void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
 {
     assert(p_ccb != NULL);
-    BT_HDR      *p_buf;
     UINT8       *p;
     UINT16      ctrl_word;
     UINT16      fcs;
@@ -528,73 +514,60 @@ void l2c_fcr_send_S_frame (tL2C_CCB *p_ccb, UINT16 function_code, UINT16 pf_bit)
     ctrl_word |= (p_ccb->fcrb.next_seq_expected << L2CAP_FCR_REQ_SEQ_BITS_SHIFT);
     ctrl_word |= pf_bit;
 
-    p_buf = (BT_HDR *)osi_malloc(L2CAP_CMD_BUF_SIZE);
-    if (p_buf != NULL)
-    {
-        p_buf->offset = HCI_DATA_PREAMBLE_SIZE;
-        p_buf->len    = L2CAP_PKT_OVERHEAD + L2CAP_FCR_OVERHEAD;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(L2CAP_CMD_BUF_SIZE);
+    p_buf->offset = HCI_DATA_PREAMBLE_SIZE;
+    p_buf->len    = L2CAP_PKT_OVERHEAD + L2CAP_FCR_OVERHEAD;
 
-        /* Set the pointer to the beginning of the data */
-        p = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    /* Set the pointer to the beginning of the data */
+    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
 
-        /* Put in the L2CAP header */
-        UINT16_TO_STREAM (p, L2CAP_FCR_OVERHEAD + L2CAP_FCS_LEN);
-        UINT16_TO_STREAM (p, p_ccb->remote_cid);
-        UINT16_TO_STREAM (p, ctrl_word);
+    /* Put in the L2CAP header */
+    UINT16_TO_STREAM(p, L2CAP_FCR_OVERHEAD + L2CAP_FCS_LEN);
+    UINT16_TO_STREAM(p, p_ccb->remote_cid);
+    UINT16_TO_STREAM(p, ctrl_word);
 
-        /* Compute the FCS and add to the end of the buffer if not bypassed */
-        if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS)
-        {
-            fcs = l2c_fcr_tx_get_fcs (p_buf);
+    /* Compute the FCS and add to the end of the buffer if not bypassed */
+    if (p_ccb->bypass_fcs != L2CAP_BYPASS_FCS) {
+        fcs = l2c_fcr_tx_get_fcs (p_buf);
 
-            UINT16_TO_STREAM (p, fcs);
-            p_buf->len += L2CAP_FCS_LEN;
-        }
-        else /* rewrite the length without FCS length */
-        {
-            p -= 6;
-            UINT16_TO_STREAM (p, L2CAP_FCR_OVERHEAD);
-        }
+        UINT16_TO_STREAM (p, fcs);
+        p_buf->len += L2CAP_FCS_LEN;
+    } else {
+        /* rewrite the length without FCS length */
+        p -= 6;
+        UINT16_TO_STREAM (p, L2CAP_FCR_OVERHEAD);
+    }
 
-        /* Now, the HCI transport header */
-        p_buf->layer_specific = L2CAP_NON_FLUSHABLE_PKT;
-        l2cu_set_acl_hci_header (p_buf, p_ccb);
+    /* Now, the HCI transport header */
+    p_buf->layer_specific = L2CAP_NON_FLUSHABLE_PKT;
+    l2cu_set_acl_hci_header (p_buf, p_ccb);
 
 #if BT_TRACE_VERBOSE == TRUE
-        if ((((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 1)
-         || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3))
-        {
-            L2CAP_TRACE_WARNING ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
+    if ((((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 1)
+        || (((ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT) == 3)) {
+        L2CAP_TRACE_WARNING("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
                             p_ccb->local_cid, ctrl_word,
                             SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
                             (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
                             (ctrl_word & L2CAP_FCR_P_BIT) >> L2CAP_FCR_P_BIT_SHIFT,
                             (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
-            L2CAP_TRACE_WARNING ("                  Buf Len: %u", p_buf->len);
-        }
-        else
-        {
-            L2CAP_TRACE_EVENT ("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
-                            p_ccb->local_cid, ctrl_word,
-                            SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
-                            (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
-                            (ctrl_word & L2CAP_FCR_P_BIT) >> L2CAP_FCR_P_BIT_SHIFT,
-                            (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
-            L2CAP_TRACE_EVENT ("                  Buf Len: %u", p_buf->len);
-        }
+        L2CAP_TRACE_WARNING ("                  Buf Len: %u", p_buf->len);
+    } else {
+        L2CAP_TRACE_EVENT("L2CAP eRTM Tx S-frame  CID: 0x%04x  ctrlword: 0x%04x  Type: %s  ReqSeq: %u  P: %u  F: %u",
+                          p_ccb->local_cid, ctrl_word,
+                          SUP_types[(ctrl_word & L2CAP_FCR_SUP_BITS) >> L2CAP_FCR_SUP_SHIFT],
+                          (ctrl_word & L2CAP_FCR_REQ_SEQ_BITS) >> L2CAP_FCR_REQ_SEQ_BITS_SHIFT,
+                          (ctrl_word & L2CAP_FCR_P_BIT) >> L2CAP_FCR_P_BIT_SHIFT,
+                          (ctrl_word & L2CAP_FCR_F_BIT) >> L2CAP_FCR_F_BIT_SHIFT);
+        L2CAP_TRACE_EVENT("                  Buf Len: %u", p_buf->len);
+    }
 #endif  /* BT_TRACE_VERBOSE */
 
-        l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, p_buf);
+    l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, p_buf);
 
-        p_ccb->fcrb.last_ack_sent = p_ccb->fcrb.next_seq_expected;
+    p_ccb->fcrb.last_ack_sent = p_ccb->fcrb.next_seq_expected;
 
-        alarm_cancel(p_ccb->fcrb.ack_timer);
-    }
-    else
-    {
-        L2CAP_TRACE_ERROR ("l2c_fcr_send_S_frame(No Resources) cid 0x%04x, Type: 0x%4x",
-                             p_ccb->local_cid, function_code);
-    }
+    alarm_cancel(p_ccb->fcrb.ack_timer);
 }
 
 
@@ -1408,16 +1381,10 @@ static BOOLEAN do_sar_reassembly (tL2C_CCB *p_ccb, BT_HDR *p_buf, UINT16 ctrl_wo
             {
                 L2CAP_TRACE_WARNING ("SAR - SDU len: %u  larger than MTU: %u", p_fcrb->rx_sdu_len, p_fcrb->rx_sdu_len);
                 packet_ok = FALSE;
-            }
-            else if ((p_fcrb->p_rx_sdu = (BT_HDR *)osi_malloc(L2CAP_MAX_BUF_SIZE)) == NULL)
-            {
-                L2CAP_TRACE_ERROR ("SAR - no buffer for SDU start");
-                packet_ok = FALSE;
-            }
-            else
-            {
+            } else {
+                p_fcrb->p_rx_sdu = (BT_HDR *)osi_malloc(L2CAP_MAX_BUF_SIZE);
                 p_fcrb->p_rx_sdu->offset = OBX_BUF_MIN_OFFSET;
-                p_fcrb->p_rx_sdu->len    = 0;
+                p_fcrb->p_rx_sdu->len = 0;
             }
         }
 

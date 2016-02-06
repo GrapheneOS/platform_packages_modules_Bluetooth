@@ -528,17 +528,12 @@ BOOLEAN SDP_AddSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_elem,
                          UINT8 type[], UINT8 len[], UINT8 *p_val[])
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx;
-    UINT8           *p_buff;
-    UINT8           *p;
-    UINT8           *p_head;
-    BOOLEAN         result;
+    UINT16 xx;
+    UINT8 *p;
+    UINT8 *p_head;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddSequence cannot get a buffer!");
-        return (FALSE);
-    }
     p = p_buff;
 
     /* First, build the sequence */
@@ -611,17 +606,12 @@ BOOLEAN SDP_AddUuidSequence (UINT32 handle,  UINT16 attr_id, UINT16 num_uuids,
                              UINT16 *p_uuids)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx;
-    UINT8           *p_buff;
-    UINT8           *p;
-    INT32           max_len = SDP_MAX_ATTR_LEN -3;
-    BOOLEAN         result;
+    UINT16 xx;
+    UINT8 *p;
+    INT32 max_len = SDP_MAX_ATTR_LEN -3;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddUuidSequence cannot get a buffer!");
-        return (FALSE);
-    }
     p = p_buff;
 
     /* First, build the sequence */
@@ -661,15 +651,9 @@ BOOLEAN SDP_AddProtocolList (UINT32 handle, UINT16 num_elem,
                              tSDP_PROTOCOL_ELEM *p_elem_list)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT8           *p_buff;
-    int             offset;
-    BOOLEAN         result;
-
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddProtocolList cannot get a buffer!");
-        return (FALSE);
-    }
+    int offset;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
 
     offset = sdp_compose_proto_list(p_buff, num_elem, p_elem_list);
     result = SDP_AddAttribute (handle, ATTR_ID_PROTOCOL_DESC_LIST,DATA_ELE_SEQ_DESC_TYPE, (UINT32) offset, p_buff);
@@ -697,18 +681,13 @@ BOOLEAN SDP_AddAdditionProtoLists (UINT32 handle, UINT16 num_elem,
                                    tSDP_PROTO_LIST_ELEM *p_proto_list)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx;
-    UINT8           *p_buff;
-    UINT8           *p;
-    UINT8           *p_len;
-    int             offset;
-    BOOLEAN         result;
+    UINT16 xx;
+    UINT8 *p;
+    UINT8 *p_len;
+    int offset;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddAdditionProtoLists cannot get a buffer!");
-        return (FALSE);
-    }
     p = p_buff;
 
     /* for each ProtocolDescriptorList */
@@ -749,16 +728,11 @@ BOOLEAN SDP_AddProfileDescriptorList (UINT32 handle, UINT16 profile_uuid,
                                       UINT16 version)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT8           *p_buff;
-    UINT8           *p;
-     BOOLEAN        result;
+    UINT8 *p;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *)osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddProfileDescriptorList cannot get a buffer!");
-        return (FALSE);
-    }
-    p = p_buff+2;
+    p = p_buff + 2;
 
     /* First, build the profile descriptor list. This consists of a data element sequence. */
     /* The sequence consists of profile's UUID and version number  */
@@ -798,15 +772,10 @@ BOOLEAN SDP_AddLanguageBaseAttrIDList (UINT32 handle, UINT16 lang,
                                        UINT16 char_enc, UINT16 base_id)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT8           *p_buff;
-    UINT8           *p;
-    BOOLEAN         result;
+    UINT8 *p;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddLanguageBaseAttrIDList cannot get a buffer!");
-        return (FALSE);
-    }
     p = p_buff;
 
     /* First, build the language base descriptor list. This consists of a data */
@@ -846,16 +815,11 @@ BOOLEAN SDP_AddServiceClassIdList (UINT32 handle, UINT16 num_services,
                                    UINT16 *p_service_uuids)
 {
 #if SDP_SERVER_ENABLED == TRUE
-    UINT16          xx;
-    UINT8           *p_buff;
-    UINT8           *p;
-    BOOLEAN         result;
+    UINT16 xx;
+    UINT8 *p;
+    BOOLEAN result;
+    UINT8 *p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2);
 
-    if ((p_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN * 2)) == NULL)
-    {
-        SDP_TRACE_ERROR("SDP_AddServiceClassIdList cannot get a buffer!");
-        return (FALSE);
-    }
     p = p_buff;
 
     for (xx = 0; xx < num_services; xx++, p_service_uuids++)

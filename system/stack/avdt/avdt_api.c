@@ -1284,7 +1284,6 @@ UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
 {
     tAVDT_SCB       *p_scb;
     UINT16          result = AVDT_BAD_PARAMS;
-    BT_HDR          *p_pkt;
     tAVDT_TC_TBL    *p_tbl;
     UINT8           *p, *plen, *pm1, *p_end;
 #if AVDT_MULTIPLEXING == TRUE
@@ -1304,9 +1303,9 @@ UINT16 AVDT_SendReport(UINT8 handle, AVDT_REPORT_TYPE type,
 
         /* build SR - assume fit in one packet */
         p_tbl = avdt_ad_tc_tbl_by_type(AVDT_CHAN_REPORT, p_scb->p_ccb, p_scb);
-        if((p_tbl->state == AVDT_AD_ST_OPEN) &&
-            (p_pkt = (BT_HDR *)osi_malloc(p_tbl->peer_mtu)) != NULL)
-        {
+        if (p_tbl->state == AVDT_AD_ST_OPEN) {
+            BT_HDR *p_pkt = (BT_HDR *)osi_malloc(p_tbl->peer_mtu);
+
             p_pkt->offset = L2CAP_MIN_OFFSET;
             p = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
 #if AVDT_MULTIPLEXING == TRUE

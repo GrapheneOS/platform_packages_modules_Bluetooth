@@ -987,16 +987,11 @@ void btif_a2dp_on_open(void)
  *******************************************************************************/
 BOOLEAN btif_media_task_clear_track(void)
 {
-    BT_HDR *p_buf;
-
-    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
 
     p_buf->event = BTIF_MEDIA_AUDIO_SINK_CLEAR_TRACK;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1012,17 +1007,13 @@ BOOLEAN btif_media_task_clear_track(void)
 
 void btif_reset_decoder(UINT8 *p_av)
 {
+    tBTIF_MEDIA_SINK_CFG_UPDATE *p_buf =
+        osi_malloc(sizeof(tBTIF_MEDIA_SINK_CFG_UPDATE));
+
     APPL_TRACE_EVENT("btif_reset_decoder");
     APPL_TRACE_DEBUG("btif_reset_decoder p_codec_info[%x:%x:%x:%x:%x:%x]",
             p_av[1], p_av[2], p_av[3],
             p_av[4], p_av[5], p_av[6]);
-
-    tBTIF_MEDIA_SINK_CFG_UPDATE *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_SINK_CFG_UPDATE))))
-    {
-        APPL_TRACE_EVENT("btif_reset_decoder No Buffer ");
-        return;
-    }
 
     memcpy(p_buf->codec_info,p_av, AVDT_CODEC_SIZE);
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_SINK_CFG_UPDATE;
@@ -1236,13 +1227,10 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state)
 {
-    APPL_TRACE_EVENT("btif_a2dp_set_audio_focus_state");
-    tBTIF_MEDIA_SINK_FOCUS_UPDATE *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_SINK_FOCUS_UPDATE))))
-    {
-        APPL_TRACE_EVENT("btif_a2dp_set_audio_focus_state No Buffer ");
-        return;
-    }
+    tBTIF_MEDIA_SINK_FOCUS_UPDATE *p_buf =
+        osi_malloc(sizeof(tBTIF_MEDIA_SINK_FOCUS_UPDATE));
+
+    APPL_TRACE_EVENT("%s", __func__);
 
     p_buf->focus_state = state;
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_SINK_SET_FOCUS_STATE;
@@ -1400,15 +1388,11 @@ static void btif_media_thread_cleanup(UNUSED_ATTR void *context) {
  *******************************************************************************/
 BOOLEAN btif_media_task_send_cmd_evt(UINT16 Evt)
 {
-    BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
 
     p_buf->event = Evt;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1563,16 +1547,12 @@ static void btif_media_task_handle_inc_media(tBT_SBC_HDR*p_msg)
  *******************************************************************************/
 BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO *p_msg)
 {
-    tBTIF_MEDIA_INIT_AUDIO *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO))))
-    {
-        return FALSE;
-    }
+    tBTIF_MEDIA_INIT_AUDIO *p_buf = osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO));
 
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_INIT_AUDIO));
     p_buf->hdr.event = BTIF_MEDIA_SBC_ENC_INIT;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1587,16 +1567,13 @@ BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO *p_msg)
  *******************************************************************************/
 BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO *p_msg)
 {
-    tBTIF_MEDIA_UPDATE_AUDIO *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_UPDATE_AUDIO))))
-    {
-        return FALSE;
-    }
+    tBTIF_MEDIA_UPDATE_AUDIO *p_buf =
+        osi_malloc(sizeof(tBTIF_MEDIA_UPDATE_AUDIO));
 
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_UPDATE_AUDIO));
     p_buf->hdr.event = BTIF_MEDIA_SBC_ENC_UPDATE;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1611,16 +1588,13 @@ BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO *p_msg)
  *******************************************************************************/
 BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg)
 {
-    tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING))))
-    {
-        return FALSE;
-    }
+    tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_buf =
+        osi_malloc(sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING));
 
     memcpy(p_buf, p_msg, sizeof(tBTIF_MEDIA_INIT_AUDIO_FEEDING));
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_FEEDING_INIT;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1635,16 +1609,11 @@ BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p
  *******************************************************************************/
 BOOLEAN btif_media_task_start_aa_req(void)
 {
-    BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
-    {
-        APPL_TRACE_EVENT("GKI failed");
-        return FALSE;
-    }
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
 
     p_buf->event = BTIF_MEDIA_START_AA_TX;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1659,11 +1628,7 @@ BOOLEAN btif_media_task_start_aa_req(void)
  *******************************************************************************/
 BOOLEAN btif_media_task_stop_aa_req(void)
 {
-    BT_HDR *p_buf;
-    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
 
     p_buf->event = BTIF_MEDIA_STOP_AA_TX;
 
@@ -1693,19 +1658,13 @@ BOOLEAN btif_media_task_stop_aa_req(void)
  *******************************************************************************/
 BOOLEAN btif_media_task_aa_rx_flush_req(void)
 {
-    BT_HDR *p_buf;
-
     if (fixed_queue_is_empty(btif_media_cb.RxSbcQ)) /*  Que is already empty */
         return TRUE;
 
-    if (NULL == (p_buf = osi_malloc(sizeof(BT_HDR))))
-    {
-        return FALSE;
-    }
-
+    BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
     p_buf->event = BTIF_MEDIA_FLUSH_AA_RX;
-
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
+
     return TRUE;
 }
 
@@ -1721,9 +1680,6 @@ BOOLEAN btif_media_task_aa_rx_flush_req(void)
 BOOLEAN btif_media_task_aa_tx_flush_req(void)
 {
     BT_HDR *p_buf = osi_malloc(sizeof(BT_HDR));
-
-    if (p_buf == NULL)
-        return FALSE;
 
     p_buf->event = BTIF_MEDIA_FLUSH_AA_TX;
 
@@ -2508,8 +2464,6 @@ static UINT8 btif_get_num_aa_frame(void)
  *******************************************************************************/
 UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
 {
-    tBT_SBC_HDR *p_msg;
-
     if (btif_media_cb.rx_flush == TRUE) /* Flush enabled, do not enque */
         return fixed_queue_length(btif_media_cb.RxSbcQ);
     if (fixed_queue_length(btif_media_cb.RxSbcQ) == MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ)
@@ -2521,28 +2475,23 @@ UINT8 btif_media_sink_enque_buf(BT_HDR *p_pkt)
 
     BTIF_TRACE_VERBOSE("%s +", __func__);
     /* allocate and Queue this buffer */
-    if ((p_msg = (tBT_SBC_HDR *) osi_malloc(sizeof(tBT_SBC_HDR) +
-                        p_pkt->offset+ p_pkt->len)) != NULL)
-    {
-        memcpy((UINT8*)(p_msg + 1), (UINT8*)(p_pkt + 1) + p_pkt->offset, p_pkt->len);
-        p_msg->num_frames_to_be_processed = (*((UINT8*)(p_pkt + 1) + p_pkt->offset))& 0x0f;
-        p_msg->len = p_pkt->len;
-        p_msg->offset = 0;
-        p_msg->layer_specific = p_pkt->layer_specific;
-        BTIF_TRACE_VERBOSE("%s frames to process %d, len %d  ",
-                           __func__, p_msg->num_frames_to_be_processed,p_msg->len);
-        fixed_queue_enqueue(btif_media_cb.RxSbcQ, p_msg);
-        if(fixed_queue_length(btif_media_cb.RxSbcQ) == MAX_A2DP_DELAYED_START_FRAME_COUNT)
-        {
-            BTIF_TRACE_DEBUG(" Initiate Decoding ");
-            btif_media_task_aa_handle_start_decoding();
-        }
+    tBT_SBC_HDR *p_msg =
+        (tBT_SBC_HDR *)osi_malloc(sizeof(tBT_SBC_HDR) + p_pkt->offset +
+                                  p_pkt->len);
+    memcpy((UINT8 *)(p_msg + 1), (UINT8 *)(p_pkt + 1) + p_pkt->offset,
+           p_pkt->len);
+    p_msg->num_frames_to_be_processed = (*((UINT8 *)(p_pkt + 1) + p_pkt->offset))& 0x0f;
+    p_msg->len = p_pkt->len;
+    p_msg->offset = 0;
+    p_msg->layer_specific = p_pkt->layer_specific;
+    BTIF_TRACE_VERBOSE("%s frames to process %d, len %d  ",
+                       __func__, p_msg->num_frames_to_be_processed,p_msg->len);
+    fixed_queue_enqueue(btif_media_cb.RxSbcQ, p_msg);
+    if (fixed_queue_length(btif_media_cb.RxSbcQ) == MAX_A2DP_DELAYED_START_FRAME_COUNT) {
+        BTIF_TRACE_DEBUG(" Initiate Decoding ");
+        btif_media_task_aa_handle_start_decoding();
     }
-    else
-    {
-        /* let caller deal with a failed allocation */
-        BTIF_TRACE_VERBOSE("btif_media_sink_enque_buf No Buffer left - ");
-    }
+
     return fixed_queue_length(btif_media_cb.RxSbcQ);
 }
 
@@ -2758,20 +2707,12 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
                                           uint64_t timestamp_us)
 {
-    BT_HDR * p_buf;
     const uint8_t orig_nb_frame = nb_frame;
     UINT16 blocm_x_subband = btif_media_cb.encoder.s16NumOfSubBands *
                              btif_media_cb.encoder.s16NumOfBlocks;
 
-    while (nb_frame)
-    {
-        p_buf = osi_malloc(BTIF_MEDIA_AA_BUF_SIZE);
-        if (p_buf == NULL)
-        {
-            APPL_TRACE_ERROR ("ERROR btif_media_aa_prep_sbc_2_send no buffer TxCnt %d ",
-                              fixed_queue_length(btif_media_cb.TxAaQ));
-            return;
-        }
+    while (nb_frame) {
+        BT_HDR *p_buf = osi_malloc(BTIF_MEDIA_AA_BUF_SIZE);
 
         /* Init buffer */
         p_buf->offset = BTIF_MEDIA_AA_SBC_OFFSET;

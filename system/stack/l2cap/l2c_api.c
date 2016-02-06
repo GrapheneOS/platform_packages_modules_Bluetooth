@@ -359,10 +359,6 @@ bool L2CA_SetConnectionCallbacks(uint16_t local_cid, const tL2CAP_APPL_INFO *cal
   tL2C_RCB *registration_control_block = channel_control_block->p_rcb;
   if (!channel_control_block->should_free_rcb) {
     registration_control_block = (tL2C_RCB *)osi_calloc(sizeof(tL2C_RCB));
-    if (!registration_control_block) {
-      LOG_ERROR(LOG_TAG, "%s unable to allocate registration control block.", __func__);
-      return false;
-    }
 
     *registration_control_block = *channel_control_block->p_rcb;
     channel_control_block->p_rcb = registration_control_block;

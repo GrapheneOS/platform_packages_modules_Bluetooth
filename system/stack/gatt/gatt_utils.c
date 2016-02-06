@@ -233,18 +233,16 @@ tGATTS_PENDING_NEW_SRV_START *gatt_sr_is_new_srv_chg(tBT_UUID *p_app_uuid128, tB
 *******************************************************************************/
 tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 {
-    GATT_TRACE_DEBUG("%s", __func__);
-
     tGATT_VALUE *p_buf = (tGATT_VALUE *)osi_malloc(sizeof(tGATT_VALUE));
-    if (p_buf != NULL)
-    {
-        GATT_TRACE_DEBUG("enqueue a pending indication");
-        memcpy(p_buf, p_ind, sizeof(tGATT_VALUE));
-        fixed_queue_enqueue(p_tcb->pending_ind_q, p_buf);
-    }
+
+    GATT_TRACE_DEBUG("%s", __func__);
+    GATT_TRACE_DEBUG("enqueue a pending indication");
+
+    memcpy(p_buf, p_ind, sizeof(tGATT_VALUE));
+    fixed_queue_enqueue(p_tcb->pending_ind_q, p_buf);
+
     return p_buf;
 }
-
 
 /*******************************************************************************
 **
@@ -257,16 +255,15 @@ tGATT_VALUE *gatt_add_pending_ind(tGATT_TCB  *p_tcb, tGATT_VALUE *p_ind)
 *******************************************************************************/
 tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *p_new_srv_start)
 {
-    GATT_TRACE_DEBUG("%s", __func__);
-
     tGATTS_PENDING_NEW_SRV_START *p_buf =
         (tGATTS_PENDING_NEW_SRV_START *)osi_malloc(sizeof(tGATTS_PENDING_NEW_SRV_START));
-    if (p_buf != NULL)
-    {
-        GATT_TRACE_DEBUG("enqueue a new pending new srv start");
-        p_buf->p_new_srv_start = p_new_srv_start;
-        fixed_queue_enqueue(gatt_cb.pending_new_srv_start_q, p_buf);
-    }
+
+    GATT_TRACE_DEBUG("%s", __func__);
+    GATT_TRACE_DEBUG("enqueue a new pending new srv start");
+
+    p_buf->p_new_srv_start = p_new_srv_start;
+    fixed_queue_enqueue(gatt_cb.pending_new_srv_start_q, p_buf);
+
     return p_buf;
 }
 
@@ -282,19 +279,16 @@ tGATTS_PENDING_NEW_SRV_START *gatt_add_pending_new_srv_start(tGATTS_HNDL_RANGE *
 *******************************************************************************/
 tGATTS_SRV_CHG *gatt_add_srv_chg_clt(tGATTS_SRV_CHG *p_srv_chg)
 {
-    GATT_TRACE_DEBUG ("%s", __func__);
-
     tGATTS_SRV_CHG *p_buf = (tGATTS_SRV_CHG *)osi_malloc(sizeof(tGATTS_SRV_CHG));
-    if (p_buf != NULL)
-    {
-        GATT_TRACE_DEBUG ("enqueue a srv chg client");
-        memcpy(p_buf, p_srv_chg, sizeof(tGATTS_SRV_CHG));
-        fixed_queue_enqueue(gatt_cb.srv_chg_clt_q, p_buf);
-    }
+
+    GATT_TRACE_DEBUG("%s", __func__);
+    GATT_TRACE_DEBUG("enqueue a srv chg client");
+
+    memcpy(p_buf, p_srv_chg, sizeof(tGATTS_SRV_CHG));
+    fixed_queue_enqueue(gatt_cb.srv_chg_clt_q, p_buf);
 
     return p_buf;
 }
-
 
 /*******************************************************************************
 **
@@ -2798,16 +2792,15 @@ BOOLEAN gatt_update_auto_connect_dev (tGATT_IF gatt_if, BOOLEAN add, BD_ADDR bd_
 *******************************************************************************/
 tGATT_PENDING_ENC_CLCB* gatt_add_pending_enc_channel_clcb(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb)
 {
-    GATT_TRACE_DEBUG ("gatt_add_pending_new_srv_start");
-
     tGATT_PENDING_ENC_CLCB *p_buf =
         (tGATT_PENDING_ENC_CLCB *)osi_malloc(sizeof(tGATT_PENDING_ENC_CLCB));
-    if (p_buf != NULL)
-    {
-        GATT_TRACE_DEBUG("enqueue a new pending encryption channel clcb");
-        p_buf->p_clcb = p_clcb;
-        fixed_queue_enqueue(p_tcb->pending_enc_clcb, p_buf);
-    }
+
+    GATT_TRACE_DEBUG ("%s", __func__);
+    GATT_TRACE_DEBUG("enqueue a new pending encryption channel clcb");
+
+    p_buf->p_clcb = p_clcb;
+    fixed_queue_enqueue(p_tcb->pending_enc_clcb, p_buf);
+
     return p_buf;
 }
 /*******************************************************************************
