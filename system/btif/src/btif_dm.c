@@ -30,11 +30,13 @@
 #include "btif_dm.h"
 
 #include <assert.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <hardware/bluetooth.h>
@@ -61,9 +63,9 @@
 #include "bta_gatt_api.h"
 #include "device/include/interop.h"
 #include "include/stack_config.h"
-#include "osi/include/log.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/metrics.h"
 #include "stack_config.h"
 #include "stack/btm/btm_int.h"
 
@@ -177,10 +179,28 @@ typedef struct
     unsigned int   manufact_id;
 }skip_sdp_entry_t;
 
+typedef enum
+{
+    BTIF_DM_FUNC_CREATE_BOND,
+    BTIF_DM_FUNC_CANCEL_BOND,
+    BTIF_DM_FUNC_REMOVE_BOND,
+    BTIF_DM_FUNC_BOND_STATE_CHANGED,
+} bt_bond_function_t;
+
+typedef struct
+{
+    bt_bdaddr_t bd_addr;
+    bt_bond_function_t function;
+    bt_bond_state_t state;
+    struct timespec timestamp;
+} btif_bond_event_t;
+
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
 
 #define MAX_SDP_BL_ENTRIES 3
 #define UUID_HUMAN_INTERFACE_DEVICE "00001124-0000-1000-8000-00805f9b34fb"
+
+#define MAX_BTIF_BOND_EVENT_ENTRIES 15
 
 static skip_sdp_entry_t sdp_blacklist[] = {{76}}; //Apple Mouse and Keyboard
 
@@ -192,6 +212,17 @@ static BOOLEAN btif_dm_inquiry_in_progress = FALSE;
 ************************************************************************************/
 static char btif_default_local_name[DEFAULT_LOCAL_NAME_MAX+1] = {'\0'};
 static uid_set_t* uid_set = NULL;
+
+/* A circular array to keep track of the most recent bond events */
+static btif_bond_event_t btif_dm_bond_events[MAX_BTIF_BOND_EVENT_ENTRIES + 1];
+
+static pthread_mutex_t bond_event_lock;
+
+/* |btif_num_bond_events| keeps track of the total number of events and can be
+   greater than |MAX_BTIF_BOND_EVENT_ENTRIES| */
+static size_t btif_num_bond_events = 0;
+static size_t btif_events_start_index = 0;
+static size_t btif_events_end_index = 0;
 
 /******************************************************************************
 **  Static functions
@@ -214,9 +245,15 @@ static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB *req_oob_type);
 
 static void bte_scan_filt_param_cfg_evt(UINT8 action_type,
                                            tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                           tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status);
+                                           tBTA_DM_BLE_REF_VALUE ref_value,
+                                           tBTA_STATUS status);
 
 static char* btif_get_default_local_name();
+
+static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
+                                      bt_bond_function_t function,
+                                      bt_bond_state_t state);
+
 /******************************************************************************
 **  Externs
 ******************************************************************************/
@@ -268,11 +305,13 @@ static void btif_dm_data_free(uint16_t event, tBTA_DM_SEC *dm_sec)
 void btif_dm_init(uid_set_t* set)
 {
     uid_set = set;
+    pthread_mutex_init(&bond_event_lock, NULL);
 }
 
 void btif_dm_cleanup(void)
 {
     uid_set = NULL;
+    pthread_mutex_destroy(&bond_event_lock);
 }
 
 bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
@@ -502,6 +541,9 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
 
 static void bond_state_changed(bt_status_t status, bt_bdaddr_t *bd_addr, bt_bond_state_t state)
 {
+
+    btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_BOND_STATE_CHANGED, state);
+
     // Send bonding state only once - based on outgoing/incoming we may receive duplicates
     if ((pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING))
     {
@@ -2338,6 +2380,8 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
     if (pairing_cb.state != BT_BOND_STATE_NONE)
         return BT_STATUS_BUSY;
 
+    btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CREATE_BOND, pairing_cb.state);
+
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_CREATE_BOND,
                           (char *)&create_bond_cb, sizeof(btif_dm_create_bond_cb_t), NULL);
 
@@ -2378,6 +2422,8 @@ bt_status_t btif_dm_cancel_bond(const bt_bdaddr_t *bd_addr)
     bdstr_t bdstr;
 
     BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
+
+    btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_CANCEL_BOND, pairing_cb.state);
 
     /* TODO:
     **  1. Restore scan modes
@@ -2467,6 +2513,9 @@ bt_status_t btif_dm_remove_bond(const bt_bdaddr_t *bd_addr)
     bdstr_t bdstr;
 
     BTIF_TRACE_EVENT("%s: bd_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
+
+    btif_stats_add_bond_event(bd_addr, BTIF_DM_FUNC_REMOVE_BOND, pairing_cb.state);
+
     btif_transfer_context(btif_dm_generic_evt, BTIF_DM_CB_REMOVE_BOND,
                           (char *)bd_addr, sizeof(bt_bdaddr_t), NULL);
 
@@ -3400,4 +3449,101 @@ static char* btif_get_default_local_name() {
     }
 #endif  /* !defined(OS_GENERIC) */
     return btif_default_local_name;
+}
+
+static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
+                                      bt_bond_function_t function,
+                                      bt_bond_state_t state) {
+    pthread_mutex_lock(&bond_event_lock);
+
+    btif_bond_event_t* event = &btif_dm_bond_events[btif_events_end_index];
+    memcpy(&event->bd_addr, bd_addr, sizeof(bt_bdaddr_t));
+    event->function = function;
+    event->state = state;
+    clock_gettime(CLOCK_MONOTONIC, &event->timestamp);
+
+    btif_num_bond_events++;
+    btif_events_end_index = (btif_events_end_index + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1);
+    if (btif_events_end_index == btif_events_start_index) {
+        btif_events_start_index = (btif_events_start_index + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1);
+    }
+
+    int type;
+    btif_get_device_type(event->bd_addr.address, &type);
+    device_type_t device_type;
+    switch (type) {
+        case BT_DEVICE_TYPE_BREDR:
+            device_type = DEVICE_TYPE_BREDR;
+            break;
+        case BT_DEVICE_TYPE_BLE:
+            device_type = DEVICE_TYPE_LE;
+            break;
+        case BT_DEVICE_TYPE_DUMO:
+            device_type = DEVICE_TYPE_DUMO;
+            break;
+        default:
+            device_type = DEVICE_TYPE_UNKNOWN;
+            break;
+    }
+    // TODO (apanicke): Add disconnect reason and
+    // device class to the pair event.
+    uint64_t ts = event->timestamp.tv_sec * 1000 +
+                  event->timestamp.tv_nsec / 1000000;
+    metrics_pair_event(0, ts, 0, device_type);
+
+    pthread_mutex_unlock(&bond_event_lock);
+}
+
+void btif_debug_bond_event_dump(int fd) {
+    pthread_mutex_lock(&bond_event_lock);
+    dprintf(fd, "\nBond Events: \n");
+    dprintf(fd, "  Total Number of events: %zu\n", btif_num_bond_events);
+    dprintf(fd, "  Time          BD_ADDR            Function             State\n");
+
+    for (size_t i = btif_events_start_index; i != btif_events_end_index;
+         i = (i + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1)) {
+        btif_bond_event_t* event = &btif_dm_bond_events[i];
+
+        char eventtime[15];
+        struct tm *tstamp = localtime(&event->timestamp.tv_sec);
+        strftime(eventtime, sizeof(eventtime), "%H:%M:%S.%%03u", tstamp);
+        snprintf(eventtime, sizeof(eventtime), eventtime, (event->timestamp.tv_nsec) / 1000000);
+
+        char bdaddr[18];
+        bdaddr_to_string(&event->bd_addr, bdaddr, sizeof(bdaddr));
+
+        char* func_name;
+        switch (event->function) {
+            case BTIF_DM_FUNC_CREATE_BOND:
+                func_name = "btif_dm_create_bond";
+                break;
+            case BTIF_DM_FUNC_REMOVE_BOND:
+                func_name = "btif_dm_remove_bond";
+                break;
+            case BTIF_DM_FUNC_BOND_STATE_CHANGED:
+                func_name = "bond_state_changed ";
+                break;
+            default:
+                func_name = "Invalid value      ";
+                break;
+        }
+
+        char* bond_state;
+        switch (event->state) {
+            case BT_BOND_STATE_NONE:
+                bond_state = "BOND_STATE_NONE";
+                break;
+            case BT_BOND_STATE_BONDING:
+                bond_state = "BOND_STATE_BONDING";
+                break;
+            case BT_BOND_STATE_BONDED:
+                bond_state = "BOND_STATE_BONDED";
+                break;
+            default:
+                bond_state = "Invalid bond state";
+                break;
+        }
+        dprintf(fd, "  %s  %s  %s  %s\n", eventtime, bdaddr, func_name, bond_state);
+    }
+    pthread_mutex_unlock(&bond_event_lock);
 }

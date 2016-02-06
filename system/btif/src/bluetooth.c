@@ -338,6 +338,7 @@ static void dump(int fd, const char **arguments)
       }
     }
     btif_debug_conn_dump(fd);
+    btif_debug_bond_event_dump(fd);
     btif_debug_a2dp_dump(fd);
     wakelock_debug_dump(fd);
     alarm_debug_dump(fd);
