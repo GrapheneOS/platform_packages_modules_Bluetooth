@@ -64,8 +64,6 @@ static const eventfd_t EVENT_REACTOR_STOP = 1;
 
 reactor_t *reactor_new(void) {
   reactor_t *ret = (reactor_t *)osi_calloc(sizeof(reactor_t));
-  if (!ret)
-    return NULL;
 
   ret->epoll_fd = INVALID_FD;
   ret->event_fd = INVALID_FD;
@@ -138,11 +136,8 @@ reactor_object_t *reactor_register(reactor_t *reactor,
   assert(reactor != NULL);
   assert(fd != INVALID_FD);
 
-  reactor_object_t *object = (reactor_object_t *)osi_calloc(sizeof(reactor_object_t));
-  if (!object) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate reactor object: %s", __func__, strerror(errno));
-    return NULL;
-  }
+  reactor_object_t *object =
+      (reactor_object_t *)osi_calloc(sizeof(reactor_object_t));
 
   object->reactor = reactor;
   object->fd = fd;

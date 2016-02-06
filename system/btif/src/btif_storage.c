@@ -869,7 +869,6 @@ bt_status_t btif_storage_load_bonded_devices(void)
     bt_bdname_t name, alias;
     bt_scan_mode_t mode;
     uint32_t disc_timeout;
-    bt_bdaddr_t *devices_list;
     bt_uuid_t local_uuids[BT_MAX_NUM_UUIDS];
     bt_uuid_t remote_uuids[BT_MAX_NUM_UUIDS];
     uint32_t cod, devtype;
@@ -908,7 +907,8 @@ bt_status_t btif_storage_load_bonded_devices(void)
         num_props++;
 
         /* BONDED_DEVICES */
-        devices_list = (bt_bdaddr_t*)osi_malloc(sizeof(bt_bdaddr_t)*bonded_devices.num_devices);
+        bt_bdaddr_t *devices_list =
+            (bt_bdaddr_t *)osi_malloc(sizeof(bt_bdaddr_t) * bonded_devices.num_devices);
         adapter_props[num_props].type = BT_PROPERTY_ADAPTER_BONDED_DEVICES;
         adapter_props[num_props].len = bonded_devices.num_devices * sizeof(bt_bdaddr_t);
         adapter_props[num_props].val = devices_list;

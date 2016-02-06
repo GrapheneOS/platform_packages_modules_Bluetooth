@@ -1103,10 +1103,10 @@ static BOOLEAN copy_extra_byte_in_db(tGATT_SVC_DB *p_db, void **p_dst, UINT16 le
 *******************************************************************************/
 static BOOLEAN allocate_svc_db_buf(tGATT_SVC_DB *p_db)
 {
+    BT_HDR *p_buf = (BT_HDR *)osi_calloc(GATT_DB_BUF_SIZE);
+
     GATT_TRACE_DEBUG("%s allocating extra buffer", __func__);
 
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(GATT_DB_BUF_SIZE);
-    memset(p_buf, 0, GATT_DB_BUF_SIZE);
     p_db->p_free_mem = (UINT8 *) p_buf;
     p_db->mem_free = GATT_DB_BUF_SIZE;
 

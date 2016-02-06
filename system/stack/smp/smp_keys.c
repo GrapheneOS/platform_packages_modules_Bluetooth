@@ -152,16 +152,11 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
         return FALSE;
     }
 
-    if ((p_start = (UINT8 *)osi_malloc((SMP_ENCRYT_DATA_SIZE*4))) == NULL)
-    {
-        SMP_TRACE_ERROR ("%s failed unable to allocate buffer", __func__);
-        return FALSE;
-    }
+    p_start = (UINT8 *)osi_calloc(SMP_ENCRYT_DATA_SIZE * 4);
 
     if (pt_len > SMP_ENCRYT_DATA_SIZE)
         pt_len = SMP_ENCRYT_DATA_SIZE;
 
-    memset(p_start, 0, SMP_ENCRYT_DATA_SIZE * 4);
     p = p_start;
     ARRAY_TO_STREAM (p, plain_text, pt_len); /* byte 0 to byte 15 */
     p_rev_data = p = p_start + SMP_ENCRYT_DATA_SIZE; /* start at byte 16 */

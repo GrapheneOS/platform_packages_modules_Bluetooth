@@ -1046,22 +1046,21 @@ void btif_av_event_deep_copy(UINT16 event, char *p_dest, char *p_src)
             if (av_src->meta_msg.p_data && av_src->meta_msg.len)
             {
                 av_dest->meta_msg.p_data = osi_calloc(av_src->meta_msg.len);
-                assert(av_dest->meta_msg.p_data);
-                memcpy(av_dest->meta_msg.p_data, av_src->meta_msg.p_data, av_src->meta_msg.len);
+                memcpy(av_dest->meta_msg.p_data, av_src->meta_msg.p_data,
+                       av_src->meta_msg.len);
             }
 
             if (av_src->meta_msg.p_msg)
             {
                 av_dest->meta_msg.p_msg = osi_calloc(sizeof(tAVRC_MSG));
-                assert(av_dest->meta_msg.p_msg);
-                memcpy(av_dest->meta_msg.p_msg, av_src->meta_msg.p_msg, sizeof(tAVRC_MSG));
+                memcpy(av_dest->meta_msg.p_msg, av_src->meta_msg.p_msg,
+                       sizeof(tAVRC_MSG));
 
                 if (av_src->meta_msg.p_msg->vendor.p_vendor_data &&
                     av_src->meta_msg.p_msg->vendor.vendor_len)
                 {
                     av_dest->meta_msg.p_msg->vendor.p_vendor_data = osi_calloc(
                         av_src->meta_msg.p_msg->vendor.vendor_len);
-                    assert(av_dest->meta_msg.p_msg->vendor.p_vendor_data);
                     memcpy(av_dest->meta_msg.p_msg->vendor.p_vendor_data,
                         av_src->meta_msg.p_msg->vendor.p_vendor_data,
                         av_src->meta_msg.p_msg->vendor.vendor_len);

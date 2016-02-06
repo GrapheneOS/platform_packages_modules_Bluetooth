@@ -133,11 +133,6 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
     return;
 
   client_t *client = (client_t *)osi_calloc(sizeof(client_t));
-  if (!client) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for client.", __func__);
-    socket_free(socket);
-    return;
-  }
 
   client->socket = socket;
 

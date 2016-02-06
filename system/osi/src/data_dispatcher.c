@@ -40,10 +40,6 @@ data_dispatcher_t *data_dispatcher_new(const char *name) {
   assert(name != NULL);
 
   data_dispatcher_t *ret = osi_calloc(sizeof(data_dispatcher_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for new data dispatcher.", __func__);
-    goto error;
-  }
 
   ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL, NULL);
   if (!ret->dispatch_table) {

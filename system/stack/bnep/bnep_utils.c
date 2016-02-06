@@ -182,11 +182,6 @@ void bnep_send_conn_req (tBNEP_CONN *p_bcb)
 
     BNEP_TRACE_DEBUG ("%s: sending setup req with dst uuid %x",
         __func__, p_bcb->dst_uuid.uu.uuid16);
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("%s: not able to send connection request", __func__);
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = p_start = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -243,11 +238,6 @@ void bnep_send_conn_responce (tBNEP_CONN *p_bcb, UINT16 resp_code)
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_conn_responce for CID: 0x%x", p_bcb->l2cap_cid);
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - not able to send connection response");
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -283,12 +273,6 @@ void bnepu_send_peer_our_filters (tBNEP_CONN *p_bcb)
     UINT16      xx;
 
     BNEP_TRACE_DEBUG ("BNEP sending peer our filters");
-
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - no buffer send filters");
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -336,12 +320,6 @@ void bnepu_send_peer_our_multi_filters (tBNEP_CONN *p_bcb)
 
     BNEP_TRACE_DEBUG ("BNEP sending peer our multicast filters");
 
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - no buffer to send multicast filters");
-        return;
-    }
-
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -388,11 +366,6 @@ void bnepu_send_peer_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_code)
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending filter response");
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - no buffer filter rsp");
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -426,11 +399,6 @@ void bnep_send_command_not_understood (tBNEP_CONN *p_bcb, UINT8 cmd_code)
     UINT8   *p;
 
     BNEP_TRACE_EVENT ("BNEP - bnep_send_command_not_understood for CID: 0x%x, cmd 0x%x", p_bcb->l2cap_cid, cmd_code);
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - not able to send connection response");
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -1165,11 +1133,6 @@ void bnepu_send_peer_multicast_filter_rsp (tBNEP_CONN *p_bcb, UINT16 response_co
     UINT8   *p;
 
     BNEP_TRACE_DEBUG ("BNEP sending multicast filter response %d", response_code);
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP - no buffer filter rsp");
-        return;
-    }
 
     p_buf->offset = L2CAP_MIN_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;

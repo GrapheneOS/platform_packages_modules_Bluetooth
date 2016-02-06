@@ -77,10 +77,7 @@ BOOLEAN BTM_SecAddDevice (BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
         }
 
         BTM_TRACE_DEBUG ("%s: allocate a new dev rec", __func__);
-        p_dev_rec = osi_malloc(sizeof(tBTM_SEC_DEV_REC));
-
-        /* Initialize this record */
-        memset (p_dev_rec, 0, sizeof (tBTM_SEC_DEV_REC));
+        p_dev_rec = osi_calloc(sizeof(tBTM_SEC_DEV_REC));
         list_append(btm_cb.sec_dev_rec, p_dev_rec);
 
         memcpy (p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN);
@@ -251,10 +248,7 @@ tBTM_SEC_DEV_REC *btm_sec_alloc_dev (BD_ADDR bd_addr)
         p_dev_rec = btm_find_oldest_dev();
     } else {
         BTM_TRACE_DEBUG ("allocate a new dev rec");
-        p_dev_rec = osi_malloc(sizeof(tBTM_SEC_DEV_REC));
-
-        /* Initialize this record */
-        memset (p_dev_rec, 0, sizeof (tBTM_SEC_DEV_REC));
+        p_dev_rec = osi_calloc(sizeof(tBTM_SEC_DEV_REC));
         list_append(btm_cb.sec_dev_rec, p_dev_rec);
     }
 

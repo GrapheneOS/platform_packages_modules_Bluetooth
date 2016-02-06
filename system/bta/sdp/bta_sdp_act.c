@@ -475,11 +475,7 @@ void bta_sdp_enable(tBTA_SDP_MSG *p_data)
 *******************************************************************************/
 void bta_sdp_search(tBTA_SDP_MSG *p_data)
 {
-    int x=0;
-    // TODO: Leaks!!! but needed as user-data pointer
-    tBT_UUID *bta_sdp_search_uuid = osi_malloc(sizeof(tBT_UUID));
-    if(p_data == NULL)
-    {
+    if (p_data == NULL) {
         APPL_TRACE_DEBUG("SDP control block handle is null");
         return;
     }
@@ -504,12 +500,13 @@ void bta_sdp_search(tBTA_SDP_MSG *p_data)
     bta_sdp_cb.sdp_active = BTA_SDP_ACTIVE_YES;
     bdcpy(bta_sdp_cb.remote_addr, p_data->get_search.bd_addr);
     /* set the uuid used in the search */
+    tBT_UUID *bta_sdp_search_uuid = osi_malloc(sizeof(tBT_UUID));
     memcpy(bta_sdp_search_uuid, &(p_data->get_search.uuid),sizeof(tBT_UUID));
 
     /* initialize the search for the uuid */
     APPL_TRACE_DEBUG("%s init discovery with UUID(len: %d):",
             __func__, bta_sdp_search_uuid->len);
-    for(x = 0; x<bta_sdp_search_uuid->len;x++){
+    for (int x = 0; x<bta_sdp_search_uuid->len;x++){
         APPL_TRACE_DEBUG("%X",bta_sdp_search_uuid->uu.uuid128[x]);
     }
     SDP_InitDiscoveryDb (p_bta_sdp_cfg->p_sdp_db, p_bta_sdp_cfg->sdp_db_size, 1,

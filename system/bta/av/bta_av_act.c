@@ -198,14 +198,13 @@ static void bta_av_del_sdp_rec(UINT32 *p_sdp_handle)
 *******************************************************************************/
 static void bta_av_avrc_sdp_cback(UINT16 status)
 {
-    BT_HDR *p_msg;
+    BT_HDR *p_msg = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+
     UNUSED(status);
 
-    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
-    {
-        p_msg->event = BTA_AV_SDP_AVRC_DISC_EVT;
-        bta_sys_sendmsg(p_msg);
-    }
+    p_msg->event = BTA_AV_SDP_AVRC_DISC_EVT;
+
+    bta_sys_sendmsg(p_msg);
 }
 
 /*******************************************************************************
@@ -219,7 +218,6 @@ static void bta_av_avrc_sdp_cback(UINT16 status)
 *******************************************************************************/
 static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_ADDR peer_addr)
 {
-    tBTA_AV_RC_CONN_CHG *p_msg;
     UINT16 msg_event = 0;
     UNUSED(result);
 
@@ -240,16 +238,14 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
         msg_event = BTA_AV_AVRC_CLOSE_EVT;
     }
 
-    if (msg_event)
-    {
-        if ((p_msg = (tBTA_AV_RC_CONN_CHG *) osi_malloc(sizeof(tBTA_AV_RC_CONN_CHG))) != NULL)
-        {
-            p_msg->hdr.event = msg_event;
-            p_msg->handle    = handle;
-            if (peer_addr)
-                bdcpy(p_msg->peer_addr, peer_addr);
-            bta_sys_sendmsg(p_msg);
-        }
+    if (msg_event) {
+        tBTA_AV_RC_CONN_CHG *p_msg =
+            (tBTA_AV_RC_CONN_CHG *)osi_malloc(sizeof(tBTA_AV_RC_CONN_CHG));
+        p_msg->hdr.event = msg_event;
+        p_msg->handle = handle;
+        if (peer_addr)
+            bdcpy(p_msg->peer_addr, peer_addr);
+        bta_sys_sendmsg(p_msg);
     }
 }
 
@@ -281,23 +277,22 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
     /* Create a copy of the message */
     tBTA_AV_RC_MSG *p_buf =
         (tBTA_AV_RC_MSG *)osi_malloc(sizeof(tBTA_AV_RC_MSG) + data_len);
-    if (p_buf != NULL) {
-        p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
-        p_buf->handle = handle;
-        p_buf->label = label;
-        p_buf->opcode = opcode;
-        memcpy(&p_buf->msg, p_msg, sizeof(tAVRC_MSG));
-        /* Copy the data payload, and set the pointer to it */
-        if (p_data_src != NULL) {
-            UINT8 *p_data_dst = (UINT8 *)(p_buf + 1);
-            memcpy(p_data_dst, p_data_src, data_len);
-            if (opcode == AVRC_OP_VENDOR)
-                p_buf->msg.vendor.p_vendor_data = p_data_dst;
-            else if (opcode == AVRC_OP_PASS_THRU)
-                p_buf->msg.pass.p_pass_data = p_data_dst;
-        }
-        bta_sys_sendmsg(p_buf);
+    p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
+    p_buf->handle = handle;
+    p_buf->label = label;
+    p_buf->opcode = opcode;
+    memcpy(&p_buf->msg, p_msg, sizeof(tAVRC_MSG));
+    /* Copy the data payload, and set the pointer to it */
+    if (p_data_src != NULL) {
+        UINT8 *p_data_dst = (UINT8 *)(p_buf + 1);
+        memcpy(p_data_dst, p_data_src, data_len);
+        if (opcode == AVRC_OP_VENDOR)
+            p_buf->msg.vendor.p_vendor_data = p_data_dst;
+        else if (opcode == AVRC_OP_PASS_THRU)
+            p_buf->msg.pass.p_pass_data = p_data_dst;
     }
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -955,13 +950,12 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             if ((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR) &&
               (p_data->rc_msg.msg.pass.pass_len > 0))
             {
-                av.remote_rsp.p_data = (UINT8*)osi_malloc(p_data->rc_msg.msg.pass.pass_len);
-                if (av.remote_rsp.p_data != NULL)
-                {
-                    APPL_TRACE_DEBUG("Vendor Unique data len = %d",p_data->rc_msg.msg.pass.pass_len);
-                    memcpy(av.remote_rsp.p_data,p_data->rc_msg.msg.pass.p_pass_data,
-                                             p_data->rc_msg.msg.pass.pass_len);
-                }
+                av.remote_rsp.p_data =
+                    (UINT8 *)osi_malloc(p_data->rc_msg.msg.pass.pass_len);
+                APPL_TRACE_DEBUG("Vendor Unique data len = %d",
+                                 p_data->rc_msg.msg.pass.pass_len);
+                memcpy(av.remote_rsp.p_data,p_data->rc_msg.msg.pass.p_pass_data,
+                       p_data->rc_msg.msg.pass.pass_len);
             }
         }
         /* must be a bad ctype -> reject*/
@@ -1601,7 +1595,6 @@ static void bta_av_accept_signalling_timer_cback(void *data)
     UINT32   inx = PTR_TO_UINT(data);
     tBTA_AV_CB  *p_cb = &bta_av_cb;
     tBTA_AV_SCB *p_scb = NULL;
-    tBTA_AV_API_OPEN  *p_buf;
     if (inx < BTA_AV_NUM_STRS)
     {
         p_scb = p_cb->p_scb[inx];
@@ -1643,11 +1636,10 @@ static void bta_av_accept_signalling_timer_cback(void *data)
                     p_scb->coll_mask &= ~BTA_AV_COLL_API_CALLED;
 
                     /* BTA_AV_API_OPEN_EVT */
-                    if ((p_buf = (tBTA_AV_API_OPEN *) osi_malloc(sizeof(tBTA_AV_API_OPEN))) != NULL)
-                    {
-                        memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
-                        bta_sys_sendmsg(p_buf);
-                    }
+                    tBTA_AV_API_OPEN  *p_buf =
+                        (tBTA_AV_API_OPEN *)osi_malloc(sizeof(tBTA_AV_API_OPEN));
+                    memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
+                    bta_sys_sendmsg(p_buf);
                 }
             }
         }
@@ -2079,25 +2071,19 @@ void bta_av_rc_disc(UINT8 disc)
     {
         /* allocate discovery database */
         if (p_cb->p_disc_db == NULL)
-        {
-            p_cb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_AV_DISC_BUF_SIZE);
-        }
+            p_cb->p_disc_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_AV_DISC_BUF_SIZE);
 
-        if (p_cb->p_disc_db)
-        {
-            /* set up parameters */
-            db_params.db_len = BTA_AV_DISC_BUF_SIZE;
-            db_params.num_attr = 3;
-            db_params.p_db = p_cb->p_disc_db;
-            db_params.p_attrs = attr_list;
+        /* set up parameters */
+        db_params.db_len = BTA_AV_DISC_BUF_SIZE;
+        db_params.num_attr = 3;
+        db_params.p_db = p_cb->p_disc_db;
+        db_params.p_attrs = attr_list;
 
-            /* searching for UUID_SERVCLASS_AV_REMOTE_CONTROL gets both TG and CT */
-            if (AVRC_FindService(UUID_SERVCLASS_AV_REMOTE_CONTROL, p_addr, &db_params,
-                            bta_av_avrc_sdp_cback) == AVRC_SUCCESS)
-            {
-                p_cb->disc = disc;
-                APPL_TRACE_DEBUG("disc %d", p_cb->disc);
-            }
+        /* searching for UUID_SERVCLASS_AV_REMOTE_CONTROL gets both TG and CT */
+        if (AVRC_FindService(UUID_SERVCLASS_AV_REMOTE_CONTROL, p_addr,
+                             &db_params, bta_av_avrc_sdp_cback) == AVRC_SUCCESS) {
+            p_cb->disc = disc;
+            APPL_TRACE_DEBUG("disc %d", p_cb->disc);
         }
     }
 }

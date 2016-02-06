@@ -185,8 +185,7 @@ error:;
 
 static sco_socket_t *sco_socket_new(void) {
   sco_socket_t *sco_socket = (sco_socket_t *)osi_calloc(sizeof(sco_socket_t));
-  if (sco_socket)
-    sco_socket->sco_handle = BTM_INVALID_SCO_INDEX;
+  sco_socket->sco_handle = BTM_INVALID_SCO_INDEX;
   return sco_socket;
 }
 

@@ -66,8 +66,6 @@ thread_t *thread_new_sized(const char *name, size_t work_queue_capacity) {
   assert(work_queue_capacity != 0);
 
   thread_t *ret = osi_calloc(sizeof(thread_t));
-  if (!ret)
-    goto error;
 
   ret->reactor = reactor_new();
   if (!ret->reactor)
@@ -141,10 +139,6 @@ bool thread_post(thread_t *thread, thread_fn func, void *context) {
   // Queue item is freed either when the queue itself is destroyed
   // or when the item is removed from the queue for dispatch.
   work_item_t *item = (work_item_t *)osi_malloc(sizeof(work_item_t));
-  if (!item) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory: %s", __func__, strerror(errno));
-    return false;
-  }
   item->func = func;
   item->context = context;
   fixed_queue_enqueue(thread->work_queue, item);

@@ -76,10 +76,6 @@ eager_reader_t *eager_reader_new(
   assert(thread_name != NULL && *thread_name != '\0');
 
   eager_reader_t *ret = osi_calloc(sizeof(eager_reader_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for new eager_reader.", __func__);
-    goto error;
-  }
 
   ret->allocator = allocator;
   ret->inbound_fd = fd_to_read;

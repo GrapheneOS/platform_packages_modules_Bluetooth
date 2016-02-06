@@ -796,7 +796,6 @@ void avdt_ccb_cong_state(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
 {
     UINT8   err_code = AVDT_ERR_TIMEOUT;
-    BT_HDR  *p_msg;
 
     p_ccb->ret_count++;
     if (p_ccb->ret_count == AVDT_RET_MAX)
@@ -814,13 +813,10 @@ void avdt_ccb_ret_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((!p_ccb->cong) && (p_ccb->p_curr_msg == NULL) && (p_ccb->p_curr_cmd != NULL))
         {
             /* make copy of message in p_curr_cmd and send it */
-            p_msg = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-            if (p_msg != NULL)
-            {
-                memcpy(p_msg, p_ccb->p_curr_cmd,
-                       (sizeof(BT_HDR) + p_ccb->p_curr_cmd->offset + p_ccb->p_curr_cmd->len));
-                avdt_msg_send(p_ccb, p_msg);
-            }
+            BT_HDR *p_msg = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
+            memcpy(p_msg, p_ccb->p_curr_cmd,
+                   (sizeof(BT_HDR) + p_ccb->p_curr_cmd->offset + p_ccb->p_curr_cmd->len));
+            avdt_msg_send(p_ccb, p_msg);
         }
 
         /* restart ret timer */
@@ -857,13 +853,10 @@ void avdt_ccb_snd_cmd(tAVDT_CCB *p_ccb, tAVDT_CCB_EVT *p_data)
         if ((p_msg = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->cmd_q)) != NULL)
         {
             /* make a copy of buffer in p_curr_cmd */
-            p_ccb->p_curr_cmd = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-            if (p_ccb->p_curr_cmd != NULL)
-            {
-                memcpy(p_ccb->p_curr_cmd, p_msg, (sizeof(BT_HDR) + p_msg->offset + p_msg->len));
-
-                avdt_msg_send(p_ccb, p_msg);
-            }
+            p_ccb->p_curr_cmd = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
+            memcpy(p_ccb->p_curr_cmd, p_msg,
+                   (sizeof(BT_HDR) + p_msg->offset + p_msg->len));
+            avdt_msg_send(p_ccb, p_msg);
         }
     }
 }
