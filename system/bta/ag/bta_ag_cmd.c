@@ -347,7 +347,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
     *p++ = '\n';
 
     /* copy result code string */
-    BCM_STRCPY_S(p, sizeof(buf), bta_ag_result_tbl[code].p_res);
+    strlcpy(p, bta_ag_result_tbl[code].p_res, sizeof(buf) - 2);
 #if defined(BTA_HSP_RESULT_REPLACE_COLON) && (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
     if(p_scb->conn_service == BTA_AG_HSP)
     {
@@ -376,7 +376,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
     }
     else if (bta_ag_result_tbl[code].fmt == BTA_AG_RES_FMT_STR)
     {
-        BCM_STRCPY_S(p, sizeof(buf), p_arg);
+        strcpy(p, p_arg);
         p += strlen(p_arg);
     }
 
@@ -427,7 +427,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         *p++ = '\n';
 
         /* copy result code string */
-        BCM_STRCPY_S(p, sizeof(buf), bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].p_res);
+        strcpy(p, bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].p_res);
         p += strlen(bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].p_res);
 
         /* copy argument if any */
@@ -437,7 +437,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         }
         else if (bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].fmt == BTA_AG_RES_FMT_STR)
         {
-            BCM_STRCPY_S(p, sizeof(buf), m_res_cb->res_cb[res_idx].p_arg);
+            strcpy(p, m_res_cb->res_cb[res_idx].p_arg);
             p += strlen(m_res_cb->res_cb[res_idx].p_arg);
         }
 
@@ -753,7 +753,7 @@ static void bta_ag_process_unat_res(char *unat_result)
         /* Add EOF */
         trim_data[j] = '\0';
         str_leng = str_leng - 4;
-        BCM_STRNCPY_S(unat_result, BTA_AG_AT_MAX_LEN+1, trim_data,str_leng+1);
+        strlcpy(unat_result, trim_data, str_leng+1);
         i=0;
         j=0;
 
@@ -850,8 +850,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
     val.hdr.handle = bta_ag_scb_to_idx(p_scb);
     val.hdr.app_id = p_scb->app_id;
     val.num = (UINT16) int_arg;
-    BCM_STRNCPY_S(val.str, sizeof(val.str), p_arg, BTA_AG_AT_MAX_LEN);
-    val.str[BTA_AG_AT_MAX_LEN] = 0;
+    strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
 
     /* call callback with event */
     (*bta_ag_cb.p_cback)(bta_ag_hsp_cb_evt[cmd], (tBTA_AG *) &val);
@@ -892,8 +891,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
     val.hdr.app_id = p_scb->app_id;
     val.num = int_arg;
     bdcpy(val.bd_addr, p_scb->peer_addr);
-    BCM_STRNCPY_S(val.str, sizeof(val.str), p_arg, BTA_AG_AT_MAX_LEN);
-    val.str[BTA_AG_AT_MAX_LEN] = 0;
+    strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
 
     event = bta_ag_hfp_cb_evt[cmd];
 
@@ -1320,8 +1318,7 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
         val.hdr.handle = bta_ag_scb_to_idx(p_scb);
         val.hdr.app_id = p_scb->app_id;
         val.num = 0;
-        BCM_STRNCPY_S(val.str, sizeof(val.str), p_arg, BTA_AG_AT_MAX_LEN);
-        val.str[BTA_AG_AT_MAX_LEN] = 0;
+        strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
         (*bta_ag_cb.p_cback)(BTA_AG_AT_UNAT_EVT, (tBTA_AG *) &val);
     }
     else

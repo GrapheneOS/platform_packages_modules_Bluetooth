@@ -48,9 +48,6 @@ typedef bool BOOLEAN;
 #  define INLINE
 #endif
 
-#define BCM_STRCPY_S(x1,x2,x3)      strcpy((x1),(x3))
-#define BCM_STRNCPY_S(x1,x2,x3,x4)  strncpy((x1),(x3),(x4))
-
 /* READ WELL !!
 **
 ** This section defines global events. These are events that cross layers.

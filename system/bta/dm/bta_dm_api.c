@@ -175,20 +175,14 @@ void BTA_DisableTestMode(void)
 *******************************************************************************/
 void BTA_DmSetDeviceName(char *p_name)
 {
-
     tBTA_DM_API_SET_NAME    *p_msg;
 
     if ((p_msg = (tBTA_DM_API_SET_NAME *) osi_getbuf(sizeof(tBTA_DM_API_SET_NAME))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_NAME_EVT;
-        /* truncate the name if needed */
-        BCM_STRNCPY_S((char*)p_msg->name, sizeof(p_msg->name), p_name, BD_NAME_LEN-1);
-        p_msg->name[BD_NAME_LEN-1]=0;
-
+        strlcpy((char*)p_msg->name, p_name, BD_NAME_LEN);
         bta_sys_sendmsg(p_msg);
     }
-
-
 }
 
 /*******************************************************************************

@@ -465,10 +465,9 @@ static void bta_av_api_sink_enable(tBTA_AV_DATA *p_data)
     activate_sink = p_data->hdr.layer_specific;
     APPL_TRACE_DEBUG("bta_av_api_sink_enable %d ", activate_sink)
     char p_service_name[BTA_SERVICE_NAME_LEN+1];
-    BCM_STRNCPY_S(p_service_name, sizeof(p_service_name),
-            BTIF_AVK_SERVICE_NAME, BTA_SERVICE_NAME_LEN);
+    strlcpy(p_service_name, BTIF_AVK_SERVICE_NAME, BTA_SERVICE_NAME_LEN);
 
-    if(activate_sink)
+    if (activate_sink)
     {
         AVDT_SINK_Activate();
         if (bta_av_cb.sdp_a2d_snk_handle == 0)
