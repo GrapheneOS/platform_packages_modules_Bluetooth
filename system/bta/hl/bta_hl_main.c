@@ -697,9 +697,9 @@ static void bta_hl_api_register(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
                 p_acb->p_cback = p_data->api_reg.p_cback;
                 p_acb->sec_mask = p_data->api_reg.sec_mask;
                 p_acb->dev_type = p_data->api_reg.dev_type;
-                BCM_STRNCPY_S(p_acb->srv_name, sizeof(p_acb->srv_name), p_data->api_reg.srv_name, BTA_SERVICE_NAME_LEN);
-                BCM_STRNCPY_S(p_acb->srv_desp, sizeof(p_acb->srv_desp), p_data->api_reg.srv_desp, BTA_SERVICE_DESP_LEN);
-                BCM_STRNCPY_S(p_acb->provider_name, sizeof(p_acb->provider_name), p_data->api_reg.provider_name, BTA_PROVIDER_NAME_LEN);
+                strlcpy(p_acb->srv_name, p_data->api_reg.srv_name, BTA_SERVICE_NAME_LEN);
+                strlcpy(p_acb->srv_desp, p_data->api_reg.srv_desp, BTA_SERVICE_DESP_LEN);
+                strlcpy(p_acb->provider_name, p_data->api_reg.provider_name, BTA_PROVIDER_NAME_LEN);
                 bta_hl_cb.p_alloc_psm = L2CA_AllocatePSM;
                 p_acb->ctrl_psm = bta_hl_cb.p_alloc_psm();
                 p_acb->data_psm = bta_hl_cb.p_alloc_psm();
