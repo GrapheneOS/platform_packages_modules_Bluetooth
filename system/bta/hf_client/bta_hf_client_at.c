@@ -149,7 +149,7 @@ static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, U
 static void bta_hf_client_at_resp_timer_cback(UNUSED_ATTR void *data)
 {
   if (bta_hf_client_cb.scb.at_cb.current_cmd == BTA_HF_CLIENT_AT_CNUM) {
-    LOG_INFO("%s timed out waiting for AT+CNUM response; spoofing OK.", __func__);
+    LOG_INFO(LOG_TAG, "%s timed out waiting for AT+CNUM response; spoofing OK.", __func__);
     bta_hf_client_handle_ok();
   } else {
     APPL_TRACE_ERROR("HFPClient: AT response timeout, disconnecting");
