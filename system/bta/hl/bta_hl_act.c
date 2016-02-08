@@ -1793,8 +1793,7 @@ static void bta_hl_sdp_cback(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
                         /* Check MDEP Description pointer to prevent crash due to null pointer */
                         if (sup_feature.list_elem[i].p_mdep_desp != NULL)
                         {
-                            BCM_STRNCPY_S(p_hdp_rec->mdep_cfg[i].mdep_desp,
-                                    sizeof(p_hdp_rec->mdep_cfg[i].mdep_desp),
+                            strlcpy(p_hdp_rec->mdep_cfg[i].mdep_desp,
                                     sup_feature.list_elem[i].p_mdep_desp,
                                     BTA_HL_MDEP_DESP_LEN);
                         }
