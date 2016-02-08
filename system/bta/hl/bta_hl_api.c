@@ -125,31 +125,19 @@ void BTA_HlUpdate(UINT8  app_id,
             p_buf->p_cback = p_cback;
             p_buf->is_register = is_register;
             if (p_reg_param->p_srv_name)
-            {
-                BCM_STRNCPY_S(p_buf->srv_name, sizeof(p_buf->srv_name),
-                              p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
-                p_buf->srv_name[BTA_SERVICE_NAME_LEN] = '\0';
-            }
+                strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
             else
-                p_buf->srv_name[0]= '\0';
+                p_buf->srv_name[0] = 0;
 
             if (p_reg_param->p_srv_desp)
-            {
-                BCM_STRNCPY_S(p_buf->srv_desp, sizeof(p_buf->srv_desp),
-                              p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
-                p_buf->srv_desp[BTA_SERVICE_DESP_LEN]= '\0';
-            }
+                strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
             else
-                p_buf->srv_desp[0]= '\0';
+                p_buf->srv_desp[0] = 0;
 
             if (p_reg_param->p_provider_name)
-            {
-                BCM_STRNCPY_S(p_buf->provider_name, sizeof(p_buf->provider_name),
-                              p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
-                p_buf->provider_name[BTA_PROVIDER_NAME_LEN]= '\0';
-            }
+                strlcpy(p_buf->provider_name, p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
             else
-                p_buf->provider_name[0]= '\0';
+                p_buf->provider_name[0] = 0;
 
             bta_sys_sendmsg(p_buf);
         }
@@ -194,31 +182,19 @@ void BTA_HlRegister(UINT8  app_id,
         p_buf->sec_mask     = (p_reg_param->sec_mask | BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT);
         p_buf->p_cback = p_cback;
         if (p_reg_param->p_srv_name)
-        {
-            BCM_STRNCPY_S(p_buf->srv_name, sizeof(p_buf->srv_name),
-                          p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
-            p_buf->srv_name[BTA_SERVICE_NAME_LEN] = '\0';
-        }
+            strlcpy(p_buf->srv_name, p_reg_param->p_srv_name, BTA_SERVICE_NAME_LEN);
         else
-            p_buf->srv_name[0]= '\0';
+            p_buf->srv_name[0] = 0;
 
         if (p_reg_param->p_srv_desp)
-        {
-            BCM_STRNCPY_S(p_buf->srv_desp, sizeof(p_buf->srv_desp),
-                          p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
-            p_buf->srv_desp[BTA_SERVICE_DESP_LEN]= '\0';
-        }
+            strlcpy(p_buf->srv_desp, p_reg_param->p_srv_desp, BTA_SERVICE_DESP_LEN);
         else
-            p_buf->srv_desp[0]= '\0';
+            p_buf->srv_desp[0] = 0;
 
         if (p_reg_param->p_provider_name)
-        {
-            BCM_STRNCPY_S(p_buf->provider_name, sizeof(p_buf->provider_name),
-                          p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
-            p_buf->provider_name[BTA_PROVIDER_NAME_LEN]= '\0';
-        }
+            strlcpy(p_buf->provider_name, p_reg_param->p_provider_name, BTA_PROVIDER_NAME_LEN);
         else
-            p_buf->provider_name[0]= '\0';
+            p_buf->provider_name[0] = 0;
 
         bta_sys_sendmsg(p_buf);
     }
