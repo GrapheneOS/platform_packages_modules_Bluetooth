@@ -118,11 +118,10 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
         if(p_user_info && (role & BTA_PAN_ROLE_PANU))
         {
             if(p_user_info->p_srv_name)
-                BCM_STRNCPY_S(p_buf->user_name, sizeof(p_buf->user_name), p_user_info->p_srv_name, BTA_SERVICE_NAME_LEN);
+                strlcpy(p_buf->user_name, p_user_info->p_srv_name, BTA_SERVICE_NAME_LEN);
             else
                 p_buf->user_name[0] = 0;
 
-            p_buf->user_name[BTA_SERVICE_NAME_LEN] = 0;
             p_buf->user_app_id = p_user_info->app_id;
             p_buf->user_sec_mask = p_user_info->sec_mask;
         }
@@ -130,11 +129,10 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
         if(p_gn_info && (role & BTA_PAN_ROLE_GN))
         {
             if(p_gn_info->p_srv_name)
-                BCM_STRNCPY_S(p_buf->gn_name, sizeof(p_buf->gn_name), p_gn_info->p_srv_name, BTA_SERVICE_NAME_LEN);
+                strlcpy(p_buf->gn_name, p_gn_info->p_srv_name, BTA_SERVICE_NAME_LEN);
             else
                 p_buf->gn_name[0] = 0;
 
-            p_buf->gn_name[BTA_SERVICE_NAME_LEN] = 0;
             p_buf->gn_app_id = p_gn_info->app_id;
             p_buf->gn_sec_mask = p_gn_info->sec_mask;
 
@@ -143,11 +141,10 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
         if(p_nap_info && (role & BTA_PAN_ROLE_NAP))
         {
             if(p_nap_info->p_srv_name)
-                BCM_STRNCPY_S(p_buf->nap_name, sizeof(p_buf->nap_name), p_nap_info->p_srv_name, BTA_SERVICE_NAME_LEN);
+                strlcpy(p_buf->nap_name, p_nap_info->p_srv_name, BTA_SERVICE_NAME_LEN);
             else
                 p_buf->nap_name[0] = 0;
 
-            p_buf->nap_name[BTA_SERVICE_NAME_LEN] = 0;
             p_buf->nap_app_id = p_nap_info->app_id;
             p_buf->nap_sec_mask = p_nap_info->sec_mask;
 
@@ -155,9 +152,6 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
 
         bta_sys_sendmsg(p_buf);
     }
-
-
-
 }
 
 /*******************************************************************************
