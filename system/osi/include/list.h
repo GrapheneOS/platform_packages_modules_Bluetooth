@@ -48,6 +48,10 @@ void *list_front(const list_t *list);
 // be NULL or empty.
 void *list_back(const list_t *list);
 
+// Returns the last node in the list without removing it. |list| may not
+// be NULL or empty.
+list_node_t *list_back_node(const list_t *list);
+
 // Inserts |data| after |prev_node| in |list|. |data|, |list|, and |prev_node|
 // may not be NULL. This function does not make a copy of |data| so the pointer
 // must remain valid at least until the element is removed from the list or the
