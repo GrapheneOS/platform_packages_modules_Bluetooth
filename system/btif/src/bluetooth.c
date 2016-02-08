@@ -53,6 +53,7 @@
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/alarm.h"
 #include "osi/include/log.h"
+#include "osi/include/metrics.h"
 #include "osi/include/osi.h"
 #include "osi/include/wakelock.h"
 #include "stack_manager.h"
@@ -323,8 +324,18 @@ static int read_energy_info()
     return BT_STATUS_SUCCESS;
 }
 
-static void dump(int fd, UNUSED_ATTR const char **arguments)
+static void dump(int fd, const char **arguments)
 {
+    if (arguments != NULL && arguments[0] != NULL) {
+      if (strncmp(arguments[0], "--proto-text", 11) == 0) {
+        metrics_print(fd, true);
+        return;
+      }
+      if (strncmp(arguments[0], "--proto-bin", 10) == 0) {
+        metrics_write(fd, true);
+        return;
+      }
+    }
     btif_debug_conn_dump(fd);
     btif_debug_a2dp_dump(fd);
     wakelock_debug_dump(fd);

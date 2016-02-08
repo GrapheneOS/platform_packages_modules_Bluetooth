@@ -76,6 +76,7 @@ LOCAL_SHARED_LIBRARIES := \
     liblog \
     libz \
     libpower \
+    libprotobuf-cpp-full \
     libmedia \
     libutils
 
@@ -88,6 +89,7 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
     libbtdevice \
     libbtif \
     libbt-hci \
+    libbt-protos \
     libbt-stack \
     libbt-utils \
     libbtcore \

@@ -67,8 +67,8 @@ LOCAL_SRC_FILES := \
 LOCAL_CFLAGS := -Wall -Werror $(bdroid_CFLAGS)
 LOCAL_MODULE := net_test_hci
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl
-LOCAL_STATIC_LIBRARIES := libbt-hci libosi libcutils libbtcore
+LOCAL_SHARED_LIBRARIES := liblog libdl libprotobuf-cpp-full
+LOCAL_STATIC_LIBRARIES := libbt-hci libosi libcutils libbtcore libbt-protos
 
 include $(BUILD_NATIVE_TEST)
 endif # SANITIZE_TARGET

@@ -31,6 +31,7 @@
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/metrics.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"
 #include "osi/include/wakelock.h"
@@ -285,6 +286,8 @@ static void update_wakelock_acquired_stats(bt_status_t acquired_status) {
   wakelock_stats.last_acquired_timestamp_ms = now_ms;
 
   pthread_mutex_unlock(&monitor);
+
+  metrics_wake_event(WAKE_EVENT_ACQUIRED, NULL, WAKE_LOCK_ID, now_ms);
 }
 
 //
@@ -325,6 +328,8 @@ static void update_wakelock_released_stats(bt_status_t released_status) {
   wakelock_stats.total_acquired_interval_ms += delta_ms;
 
   pthread_mutex_unlock(&monitor);
+
+  metrics_wake_event(WAKE_EVENT_RELEASED, NULL, WAKE_LOCK_ID, now_ms);
 }
 
 void wakelock_debug_dump(int fd) {
