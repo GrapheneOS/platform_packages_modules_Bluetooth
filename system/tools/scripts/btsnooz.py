@@ -23,6 +23,7 @@ the btsnoop headers.
 
 
 import base64
+import fileinput
 import struct
 import sys
 import zlib
@@ -140,18 +141,15 @@ def decode_snooz_v2(decompressed, last_timestamp_ms):
 
 
 def main():
-  if len(sys.argv) != 2:
-    sys.stderr.write('Usage: %s <bugreport>\n' % sys.argv[0])
+  if len(sys.argv) > 2:
+    sys.stderr.write('Usage: %s [bugreport]\n' % sys.argv[0])
     exit(1)
 
-  with open(sys.argv[1]) as f:
-    while True:
-      line = f.readline()
-      if not line:
-        break
-      if line.startswith('--- BEGIN:BTSNOOP_LOG_SUMMARY'):
-        decode_snooz(base64.standard_b64decode(f.readline()))
-        sys.exit(0)
+  iterator = fileinput.input()
+  for line in iterator:
+    if line.startswith('--- BEGIN:BTSNOOP_LOG_SUMMARY'):
+      decode_snooz(base64.standard_b64decode(iterator.next()))
+      sys.exit(0)
   sys.stderr.write('No btsnooz section found in bugreport.\n');
 
 
