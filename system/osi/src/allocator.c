@@ -131,10 +131,3 @@ void osi_freebuf_and_reset(void **p_ptr)
   osi_freebuf(*p_ptr);
   *p_ptr = NULL;
 }
-
-uint16_t osi_get_buf_size(void *p_buf)
-{
-  BUFFER_HDR_T *header = (BUFFER_HDR_T *)p_buf - 1;
-  assert(header->magic_number == MAGIC_NUMBER);
-  return header->size;
-}
