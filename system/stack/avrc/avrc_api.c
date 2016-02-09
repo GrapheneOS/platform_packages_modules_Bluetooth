@@ -379,7 +379,6 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
     BOOLEAN     req_continue = FALSE;
     BT_HDR      *p_pkt_new = NULL;
     UINT8       pkt_type;
-    UINT16      buf_len;
     tAVRC_RASM_CB   *p_rcb;
     tAVRC_NEXT_CMD   avrc_cmd;
 
@@ -404,42 +403,34 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
         if (pkt_type != AVRC_PKT_SINGLE && cr == AVCT_RSP)
         {
             /* not a single response packet - need to re-assemble metadata messages */
-            if (pkt_type == AVRC_PKT_START)
-            {
+            if (pkt_type == AVRC_PKT_START) {
                 /* Allocate buffer for re-assembly */
                 p_rcb->rasm_pdu = *p_data;
-                if ((p_rcb->p_rmsg = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE)) != NULL)
-                {
-                    /* Copy START packet to buffer for re-assembling fragments*/
-                    memcpy(p_rcb->p_rmsg, p_pkt, sizeof(BT_HDR));   /* Copy bt hdr */
+                p_rcb->p_rmsg = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
+                /* Copy START packet to buffer for re-assembling fragments */
+                memcpy(p_rcb->p_rmsg, p_pkt, sizeof(BT_HDR)); /* Copy bt hdr */
 
-                    /* Copy metadata message */
-                    memcpy((UINT8 *)(p_rcb->p_rmsg + 1),
-                           (UINT8 *)(p_pkt+1) + p_pkt->offset, p_pkt->len);
+                /* Copy metadata message */
+                memcpy((UINT8 *)(p_rcb->p_rmsg + 1),
+                       (UINT8 *)(p_pkt+1) + p_pkt->offset, p_pkt->len);
 
-                    /* offset of start of metadata response in reassembly buffer */
-                    p_rcb->p_rmsg->offset = p_rcb->rasm_offset = 0;
+                /* offset of start of metadata response in reassembly buffer */
+                p_rcb->p_rmsg->offset = p_rcb->rasm_offset = 0;
 
-                    /* Free original START packet, replace with pointer to reassembly buffer  */
-                    osi_freebuf(p_pkt);
-                    *pp_pkt = p_rcb->p_rmsg;
-                }
-                else
-                {
-                    /* Unable to allocate buffer for fragmented avrc message. Reuse START
-                                      buffer for reassembly (re-assembled message may fit into ACL buf) */
-                    AVRC_TRACE_DEBUG ("Unable to allocate buffer for fragmented avrc message, \
-                                       reusing START buffer for reassembly");
-                    p_rcb->rasm_offset = p_pkt->offset;
-                    p_rcb->p_rmsg = p_pkt;
-                }
+                /*
+                 * Free original START packet, replace with pointer to
+                 * reassembly buffer.
+                 */
+                osi_freebuf(p_pkt);
+                *pp_pkt = p_rcb->p_rmsg;
 
-                /* set offset to point to where to copy next - use the same re-asm logic as AVCT */
+                /*
+                 * Set offset to point to where to copy next - use the same
+                 * reassembly logic as AVCT.
+                 */
                 p_rcb->p_rmsg->offset += p_rcb->p_rmsg->len;
                 req_continue = TRUE;
-            }
-            else if (p_rcb->p_rmsg == NULL)
-            {
+            } else if (p_rcb->p_rmsg == NULL) {
                 /* Received a CONTINUE/END, but no corresponding START
                               (or previous fragmented response was dropped) */
                 AVRC_TRACE_DEBUG ("Received a CONTINUE/END without no corresponding START \
@@ -451,7 +442,11 @@ static UINT8 avrc_proc_far_msg(UINT8 handle, UINT8 label, UINT8 cr, BT_HDR **pp_
             else
             {
                 /* get size of buffer holding assembled message */
-                buf_len = osi_get_buf_size (p_rcb->p_rmsg) - sizeof(BT_HDR);
+                /*
+                 * NOTE: The buffer is allocated above at the beginning of the
+                 * reassembly, and is always of size BT_DEFAULT_BUFFER_SIZE.
+                 */
+                UINT16 buf_len = BT_DEFAULT_BUFFER_SIZE - sizeof(BT_HDR);
                 /* adjust offset and len of fragment for header byte */
                 p_pkt->offset += (AVRC_VENDOR_HDR_SIZE + AVRC_MIN_META_HDR_SIZE);
                 p_pkt->len -= (AVRC_VENDOR_HDR_SIZE + AVRC_MIN_META_HDR_SIZE);

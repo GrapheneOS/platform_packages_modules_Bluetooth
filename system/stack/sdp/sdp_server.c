@@ -367,53 +367,33 @@ static void process_service_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
         return;
     }
 
+    /* Free and reallocate buffer */
+    osi_freebuf(p_ccb->rsp_list);
+    p_ccb->rsp_list = (UINT8 *)osi_getbuf(max_list_len);
+
     /* Check if this is a continuation request */
-    if (*p_req)
-    {
-        /* Free and reallocate buffer */
-        osi_freebuf(p_ccb->rsp_list);
-        p_ccb->rsp_list = (UINT8 *)osi_getbuf(max_list_len);
-        if (*p_req++ != SDP_CONTINUATION_LEN)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_LEN);
+    if (*p_req) {
+        if (*p_req++ != SDP_CONTINUATION_LEN) {
+            sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                                    SDP_TEXT_BAD_CONT_LEN);
             return;
         }
-        BE_STREAM_TO_UINT16 (cont_offset, p_req);
+        BE_STREAM_TO_UINT16(cont_offset, p_req);
 
-        if (cont_offset != p_ccb->cont_offset)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_INX);
-            return;
-        }
-
-        if (!p_ccb->rsp_list)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_NO_RESOURCES, NULL);
+        if (cont_offset != p_ccb->cont_offset) {
+            sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                                    SDP_TEXT_BAD_CONT_INX);
             return;
         }
         is_cont = TRUE;
 
         /* Initialise for continuation response */
         p_rsp = &p_ccb->rsp_list[0];
-        attr_seq.attr_entry[p_ccb->cont_info.next_attr_index].start = p_ccb->cont_info.next_attr_start_id;
-    }
-    else
-    {
-        /* Get a scratch buffer to store response */
-        if (!p_ccb->rsp_list || (osi_get_buf_size(p_ccb->rsp_list) < max_list_len))
-        {
-            /* Free and reallocate if the earlier allocated buffer is small */
-            osi_freebuf(p_ccb->rsp_list);
-            p_ccb->rsp_list = (UINT8 *)osi_getbuf (max_list_len);
-            if (p_ccb->rsp_list == NULL)
-            {
-                SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
-                return;
-            }
-        }
-
+        attr_seq.attr_entry[p_ccb->cont_info.next_attr_index].start =
+            p_ccb->cont_info.next_attr_start_id;
+    } else {
         p_ccb->cont_offset = 0;
-        p_rsp = &p_ccb->rsp_list[3];            /* Leave space for data elem descr */
+        p_rsp = &p_ccb->rsp_list[3];    /* Leave space for data elem descr */
 
         /* Reset continuation parameters in p_ccb */
         p_ccb->cont_info.prev_sdp_rec = NULL;
@@ -617,59 +597,33 @@ static void process_service_search_attr_req (tCONN_CB *p_ccb, UINT16 trans_num,
 
     memcpy(&attr_seq_sav, &attr_seq, sizeof(tSDP_ATTR_SEQ)) ;
 
+    /* Free and reallocate buffer */
+    osi_freebuf(p_ccb->rsp_list);
+    p_ccb->rsp_list = (UINT8 *)osi_getbuf(max_list_len);
+
     /* Check if this is a continuation request */
-    if (*p_req)
-    {
-        /* Free and reallocate buffer */
-        osi_freebuf(p_ccb->rsp_list);
-        p_ccb->rsp_list = (UINT8 *)osi_getbuf (max_list_len);
-        if (p_ccb->rsp_list == NULL)
-        {
-            SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
+    if (*p_req) {
+        if (*p_req++ != SDP_CONTINUATION_LEN) {
+            sdpu_build_n_send_error(p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                                    SDP_TEXT_BAD_CONT_LEN);
             return;
         }
+        BE_STREAM_TO_UINT16(cont_offset, p_req);
 
-        if (*p_req++ != SDP_CONTINUATION_LEN)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_LEN);
-            return;
-        }
-        BE_STREAM_TO_UINT16 (cont_offset, p_req);
-
-        if (cont_offset != p_ccb->cont_offset)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE, SDP_TEXT_BAD_CONT_INX);
-            return;
-        }
-
-        if (!p_ccb->rsp_list)
-        {
-            sdpu_build_n_send_error (p_ccb, trans_num, SDP_NO_RESOURCES, NULL);
+        if (cont_offset != p_ccb->cont_offset) {
+            sdpu_build_n_send_error (p_ccb, trans_num, SDP_INVALID_CONT_STATE,
+                                     SDP_TEXT_BAD_CONT_INX);
             return;
         }
         is_cont = TRUE;
 
         /* Initialise for continuation response */
         p_rsp = &p_ccb->rsp_list[0];
-        attr_seq.attr_entry[p_ccb->cont_info.next_attr_index].start = p_ccb->cont_info.next_attr_start_id;
-    }
-    else
-    {
-        /* Get a scratch buffer to store response */
-        if (!p_ccb->rsp_list || (osi_get_buf_size(p_ccb->rsp_list) < max_list_len))
-        {
-            /* Free and reallocate if the earlier allocated buffer is small */
-            osi_freebuf(p_ccb->rsp_list);
-            p_ccb->rsp_list = (UINT8 *)osi_getbuf (max_list_len);
-            if (p_ccb->rsp_list == NULL)
-            {
-                SDP_TRACE_ERROR ("SDP - no scratch buf for search rsp");
-                return;
-            }
-        }
-
+        attr_seq.attr_entry[p_ccb->cont_info.next_attr_index].start =
+            p_ccb->cont_info.next_attr_start_id;
+    } else {
         p_ccb->cont_offset = 0;
-        p_rsp = &p_ccb->rsp_list[3];            /* Leave space for data elem descr */
+        p_rsp = &p_ccb->rsp_list[3];    /* Leave space for data elem descr */
 
         /* Reset continuation parameters in p_ccb */
         p_ccb->cont_info.prev_sdp_rec = NULL;

@@ -312,7 +312,12 @@ static tAVRC_STS avrc_bld_app_setting_text_rsp (tAVRC_GET_APP_ATTR_TXT_RSP *p_rs
     /* get the existing length, if any, and also the num attributes */
     p_start = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
     p_data = p_len = p_start + 2; /* pdu + rsvd */
-    len_left = osi_get_buf_size(p_pkt) - BT_HDR_SIZE - p_pkt->offset - p_pkt->len;
+
+    /*
+     * NOTE: The buffer is allocated within avrc_bld_init_rsp_buffer(), and is
+     * always of size BT_DEFAULT_BUFFER_SIZE.
+     */
+    len_left = BT_DEFAULT_BUFFER_SIZE - BT_HDR_SIZE - p_pkt->offset - p_pkt->len;
 
     BE_STREAM_TO_UINT16(len, p_data);
     p_count = p_data;
@@ -806,7 +811,6 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 {
     UINT16 offset = AVRC_MSG_PASS_THRU_OFFSET;
     UINT16 chnl = AVCT_DATA_CTRL;
-    UINT16 len = AVRC_META_CMD_BUF_SIZE;
     BT_HDR *p_pkt = NULL;
     UINT8  opcode = avrc_opcode_from_pdu(p_rsp->pdu);
 
@@ -826,13 +830,11 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 
     case AVRC_OP_VENDOR:
         offset = AVRC_MSG_VENDOR_OFFSET;
-        if (p_rsp->pdu == AVRC_PDU_GET_ELEMENT_ATTR)
-            len = AVRC_BROWSE_BUF_SIZE;
         break;
     }
 
     /* allocate and initialize the buffer */
-    p_pkt = (BT_HDR *)osi_getbuf(len);
+    p_pkt = (BT_HDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
     if (p_pkt)
     {
         UINT8 *p_data, *p_start;
