@@ -34,6 +34,15 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_rc.h>
 
+/**
+ * TODO(eisenbach): cutils/properties.h is only being used to pull-in runtime
+ * settings on Android. Remove this conditional include once we have a generic
+ * way to obtain system properties.
+ */
+#if !defined(OS_GENERIC)
+#include <cutils/properties.h>
+#endif  /* !defined(OS_GENERIC) */
+
 #include "avrc_defs.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
@@ -271,6 +280,7 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attri
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND* p_param, UINT8 ctype, UINT8 label);
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label);
 static void rc_start_play_status_timer(void);
+static bool absolute_volume_disabled(void);
 
 /*****************************************************************************
 **  Static variables
@@ -461,7 +471,8 @@ void handle_rc_features(BD_ADDR bd_addr)
     bt_bdaddr_t rc_addr;
     bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
 
-    if (interop_match(INTEROP_DISABLE_ABSOLUTE_VOLUME, &rc_addr))
+    if (interop_match(INTEROP_DISABLE_ABSOLUTE_VOLUME, &rc_addr)
+        || absolute_volume_disabled())
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
 
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_BROWSE)
@@ -4239,4 +4250,16 @@ static void sleep_ms(period_ms_t timeout_ms) {
     do {
         err = nanosleep(&delay, &delay);
     } while (err == -1 && errno == EINTR);
+}
+
+static bool absolute_volume_disabled() {
+#if !defined(OS_GENERIC)
+    char volume_disabled[PROPERTY_VALUE_MAX] = {0};
+    property_get("persist.bluetooth.disableabsvol", volume_disabled, "false");
+    if (strncmp(volume_disabled, "true", 4) == 0) {
+        BTIF_TRACE_WARNING("%s: Absolute volume disabled by property", __func__);
+        return true;
+    }
+#endif  /* !defined(OS_GENERIC) */
+    return false;
 }
