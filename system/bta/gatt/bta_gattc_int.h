@@ -254,10 +254,9 @@ typedef union
     UINT16              uuid16;
 }tBTA_GATTC_UUID;
 
-typedef struct gattc_attr_cache
+typedef struct
 {
     tBTA_GATTC_UUID         *p_uuid;
-    struct                  gattc_attr_cache *p_next;
     UINT16                  uuid_len;
     UINT16                  attr_handle;
     UINT8                   inst_id;
@@ -269,15 +268,13 @@ typedef struct gattc_attr_cache
 } __attribute__((packed)) tBTA_GATTC_CACHE_ATTR;
 // btla-specific --
 
-typedef struct gattc_svc_cache
+typedef struct
 {
     tBTA_GATT_SRVC_ID       service_uuid;
-    tBTA_GATTC_CACHE_ATTR   *p_attr;
-    tBTA_GATTC_CACHE_ATTR   *p_last_attr;
+    list_t                 *p_attr; /* list of tBTA_GATTC_CACHE_ATTR */
     UINT16                  s_handle;
     UINT16                  e_handle;
-    struct                  gattc_svc_cache *p_next;
-    tBTA_GATTC_CACHE_ATTR   *p_cur_char;
+    list_node_t            *p_cur_char; /* node pointing to p_attr */
 // btla-specific ++
 } __attribute__((packed)) tBTA_GATTC_CACHE;
 // btla-specific --
@@ -323,11 +320,8 @@ typedef struct
 
     UINT8               state;
 
-    tBTA_GATTC_CACHE    *p_srvc_cache;
+    list_t              *p_srvc_cache;  /* list of tBTA_GATTC_CACHE */
     tBTA_GATTC_CACHE    *p_cur_srvc;
-    fixed_queue_t       *cache_buffer;  /* buffer queue used for storing the cache data */
-    UINT8               *p_free;        /* starting point to next available byte */
-    UINT16              free_byte;      /* number of available bytes in server cache buffer */
     UINT8               update_count;   /* indication received */
     UINT8               num_clcb;       /* number of associated CLCB */
 
