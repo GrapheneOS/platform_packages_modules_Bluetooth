@@ -100,14 +100,14 @@ void btm_ble_batchscan_filter_track_adv_vse_cback(UINT8 len, UINT8 *p)
                 STREAM_TO_UINT8(adv_data.adv_pkt_len, p);
                 if (adv_data.adv_pkt_len > 0)
                 {
-                    adv_data.p_adv_pkt_data = osi_getbuf(adv_data.adv_pkt_len);
+                    adv_data.p_adv_pkt_data = osi_malloc(adv_data.adv_pkt_len);
                     memcpy(adv_data.p_adv_pkt_data, p, adv_data.adv_pkt_len);
                 }
 
                 STREAM_TO_UINT8(adv_data.scan_rsp_len, p);
                 if (adv_data.scan_rsp_len > 0)
                 {
-                    adv_data.p_scan_rsp_data = osi_getbuf(adv_data.scan_rsp_len);
+                    adv_data.p_scan_rsp_data = osi_malloc(adv_data.scan_rsp_len);
                     memcpy(adv_data.p_scan_rsp_data, p, adv_data.scan_rsp_len);
                 }
             }
@@ -214,17 +214,17 @@ void btm_ble_batchscan_enq_rep_data(UINT8 report_format, UINT8 num_records, UINT
         p_orig_data = ble_batchscan_cb.main_rep_q.p_data[index];
         if (NULL != p_orig_data)
         {
-            p_app_data = osi_getbuf(len + data_len);
+            p_app_data = osi_malloc(len + data_len);
             memcpy(p_app_data, p_orig_data, len);
             memcpy(p_app_data+len, p_data, data_len);
-            osi_freebuf(p_orig_data);
+            osi_free(p_orig_data);
             ble_batchscan_cb.main_rep_q.p_data[index] = p_app_data;
             ble_batchscan_cb.main_rep_q.num_records[index] += num_records;
             ble_batchscan_cb.main_rep_q.data_len[index] += data_len;
         }
         else
         {
-            p_app_data = osi_getbuf(data_len);
+            p_app_data = osi_malloc(data_len);
             memcpy(p_app_data, p_data, data_len);
             ble_batchscan_cb.main_rep_q.p_data[index] = p_app_data;
             ble_batchscan_cb.main_rep_q.num_records[index] = num_records;
@@ -959,7 +959,7 @@ void btm_ble_batchscan_cleanup(void)
     BTM_TRACE_EVENT (" btm_ble_batchscan_cleanup");
 
     for (index = 0; index < BTM_BLE_BATCH_REP_MAIN_Q_SIZE; index++)
-        osi_freebuf_and_reset((void **)&ble_batchscan_cb.main_rep_q.p_data[index]);
+        osi_free_and_reset((void **)&ble_batchscan_cb.main_rep_q.p_data[index]);
 
     memset(&ble_batchscan_cb, 0, sizeof(tBTM_BLE_BATCH_SCAN_CB));
     memset(&ble_advtrack_cb, 0, sizeof(tBTM_BLE_ADV_TRACK_CB));

@@ -54,7 +54,7 @@ void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS st
     tBTA_GATTC_CI_EVT  *p_evt;
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_getbuf(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
+    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_malloc(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->hdr.layer_specific = conn_id;
@@ -87,7 +87,7 @@ void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
     tBTA_GATTC_CI_LOAD  *p_evt;
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_LOAD *) osi_getbuf(sizeof(tBTA_GATTC_CI_LOAD))) != NULL)
+    if ((p_evt = (tBTA_GATTC_CI_LOAD *) osi_malloc(sizeof(tBTA_GATTC_CI_LOAD))) != NULL)
     {
         memset(p_evt, 0, sizeof(tBTA_GATTC_CI_LOAD));
 
@@ -128,7 +128,7 @@ void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS st
     tBTA_GATTC_CI_EVT  *p_evt;
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_getbuf(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
+    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_malloc(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
     {
         p_evt->hdr.event = evt;
         p_evt->hdr.layer_specific = conn_id;

@@ -509,7 +509,7 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
 
             /* clean up before reuse it */
             while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_mcb->cmd_q)) != NULL)
-                osi_freebuf(p_buf);
+                osi_free(p_buf);
 
             rfc_timer_start (p_mcb, RFC_MCB_INIT_INACT_TIMER);
 
@@ -529,7 +529,7 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         return;
 
     case RFC_EVENT_UIH:
-        osi_freebuf(p_data);
+        osi_free(p_data);
         rfc_send_dm (p_mcb, RFCOMM_MX_DLCI, FALSE);
         return;
 

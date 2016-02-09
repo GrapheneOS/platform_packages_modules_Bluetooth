@@ -201,7 +201,7 @@ static void bta_av_avrc_sdp_cback(UINT16 status)
     BT_HDR *p_msg;
     UNUSED(status);
 
-    if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_AV_SDP_AVRC_DISC_EVT;
         bta_sys_sendmsg(p_msg);
@@ -242,7 +242,7 @@ static void bta_av_rc_ctrl_cback(UINT8 handle, UINT8 event, UINT16 result, BD_AD
 
     if (msg_event)
     {
-        if ((p_msg = (tBTA_AV_RC_CONN_CHG *) osi_getbuf(sizeof(tBTA_AV_RC_CONN_CHG))) != NULL)
+        if ((p_msg = (tBTA_AV_RC_CONN_CHG *) osi_malloc(sizeof(tBTA_AV_RC_CONN_CHG))) != NULL)
         {
             p_msg->hdr.event = msg_event;
             p_msg->handle    = handle;
@@ -280,7 +280,7 @@ static void bta_av_rc_msg_cback(UINT8 handle, UINT8 label, UINT8 opcode, tAVRC_M
 
     /* Create a copy of the message */
     tBTA_AV_RC_MSG *p_buf =
-        (tBTA_AV_RC_MSG *)osi_getbuf((UINT16)(sizeof(tBTA_AV_RC_MSG) + data_len));
+        (tBTA_AV_RC_MSG *)osi_malloc(sizeof(tBTA_AV_RC_MSG) + data_len);
     if (p_buf != NULL) {
         p_buf->hdr.event = BTA_AV_AVRC_MSG_EVT;
         p_buf->handle = handle;
@@ -691,7 +691,7 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
     }
 
     if (do_free)
-        osi_freebuf_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
+        osi_free_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
 /*******************************************************************************
@@ -706,7 +706,7 @@ void bta_av_rc_meta_rsp(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_cb);
-    osi_freebuf_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
+    osi_free_and_reset((void **)&p_data->api_meta_rsp.p_pkt);
 }
 
 /*******************************************************************************
@@ -955,7 +955,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
             if ((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR) &&
               (p_data->rc_msg.msg.pass.pass_len > 0))
             {
-                av.remote_rsp.p_data = (UINT8*)osi_getbuf(p_data->rc_msg.msg.pass.pass_len);
+                av.remote_rsp.p_data = (UINT8*)osi_malloc(p_data->rc_msg.msg.pass.pass_len);
                 if (av.remote_rsp.p_data != NULL)
                 {
                     APPL_TRACE_DEBUG("Vendor Unique data len = %d",p_data->rc_msg.msg.pass.pass_len);
@@ -1411,7 +1411,7 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
 
     bta_av_close_all_rc(p_cb);
 
-    osi_freebuf_and_reset((void **)&p_cb->p_disc_db);
+    osi_free_and_reset((void **)&p_cb->p_disc_db);
 
     /* disable audio/video - de-register all channels,
      * expect BTA_AV_DEREG_COMP_EVT when deregister is complete */
@@ -1643,7 +1643,7 @@ static void bta_av_accept_signalling_timer_cback(void *data)
                     p_scb->coll_mask &= ~BTA_AV_COLL_API_CALLED;
 
                     /* BTA_AV_API_OPEN_EVT */
-                    if ((p_buf = (tBTA_AV_API_OPEN *) osi_getbuf(sizeof(tBTA_AV_API_OPEN))) != NULL)
+                    if ((p_buf = (tBTA_AV_API_OPEN *) osi_malloc(sizeof(tBTA_AV_API_OPEN))) != NULL)
                     {
                         memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
                         bta_sys_sendmsg(p_buf);
@@ -1873,7 +1873,7 @@ void bta_av_rc_disc_done(tBTA_AV_DATA *p_data)
     }
 
     p_cb->disc = 0;
-    osi_freebuf_and_reset((void **)&p_cb->p_disc_db);
+    osi_free_and_reset((void **)&p_cb->p_disc_db);
 
     APPL_TRACE_DEBUG("peer_features 0x%x, features 0x%x", peer_features, p_cb->features);
 
@@ -2080,7 +2080,7 @@ void bta_av_rc_disc(UINT8 disc)
         /* allocate discovery database */
         if (p_cb->p_disc_db == NULL)
         {
-            p_cb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(BTA_AV_DISC_BUF_SIZE);
+            p_cb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_AV_DISC_BUF_SIZE);
         }
 
         if (p_cb->p_disc_db)
@@ -2141,7 +2141,7 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
                 while (!list_is_empty(p_scb->a2d_list)) {
                     p_buf = (BT_HDR*)list_front(p_scb->a2d_list);
                     list_remove(p_scb->a2d_list, p_buf);
-                    osi_freebuf(p_buf);
+                    osi_free(p_buf);
                 }
             }
 
@@ -2180,7 +2180,7 @@ void bta_av_dereg_comp(tBTA_AV_DATA *p_data)
 
         /* make sure that the timer is not active */
         alarm_cancel(p_scb->avrc_ct_timer);
-        osi_freebuf_and_reset((void **)&p_cb->p_scb[p_scb->hdi]);
+        osi_free_and_reset((void **)&p_cb->p_scb[p_scb->hdi]);
     }
 
     APPL_TRACE_DEBUG("audio 0x%x, video: 0x%x, disable:%d",

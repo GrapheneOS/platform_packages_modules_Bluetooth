@@ -1485,7 +1485,7 @@ static void btm_clr_inq_result_flt (void)
 {
     tBTM_INQUIRY_VAR_ST *p_inq = &btm_cb.btm_inq_vars;
 
-    osi_freebuf_and_reset((void **)&p_inq->p_bd_db);
+    osi_free_and_reset((void **)&p_inq->p_bd_db);
     p_inq->num_bd_entries = 0;
     p_inq->max_bd_entries = 0;
 }
@@ -1822,7 +1822,7 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
         btm_clr_inq_result_flt();
 
         /* Allocate memory to hold bd_addrs responding */
-        if ((p_inq->p_bd_db = (tINQ_BDADDR *)osi_getbuf(BT_DEFAULT_BUFFER_SIZE)) != NULL)
+        if ((p_inq->p_bd_db = (tINQ_BDADDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE)) != NULL)
         {
             p_inq->max_bd_entries = (UINT16)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
             memset(p_inq->p_bd_db, 0, BT_DEFAULT_BUFFER_SIZE);
@@ -2075,7 +2075,7 @@ void btm_sort_inq_result(void)
     num_resp = (btm_cb.btm_inq_vars.inq_cmpl_info.num_resp<BTM_INQ_DB_SIZE)?
                 btm_cb.btm_inq_vars.inq_cmpl_info.num_resp: BTM_INQ_DB_SIZE;
 
-    if((p_tmp = (tINQ_DB_ENT *)osi_getbuf(sizeof(tINQ_DB_ENT))) != NULL)
+    if((p_tmp = (tINQ_DB_ENT *)osi_malloc(sizeof(tINQ_DB_ENT))) != NULL)
     {
         size = sizeof(tINQ_DB_ENT);
         for(xx = 0; xx < num_resp-1; xx++, p_ent++)
@@ -2091,7 +2091,7 @@ void btm_sort_inq_result(void)
             }
         }
 
-        osi_freebuf(p_tmp);
+        osi_free(p_tmp);
     }
 }
 
@@ -2508,7 +2508,7 @@ tBTM_STATUS BTM_WriteEIR( BT_HDR *p_buff )
     }
     else
     {
-        osi_freebuf(p_buff);
+        osi_free(p_buff);
         return BTM_MODE_UNSUPPORTED;
     }
 }

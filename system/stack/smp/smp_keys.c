@@ -152,7 +152,7 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
         return FALSE;
     }
 
-    if ((p_start = (UINT8 *)osi_getbuf((SMP_ENCRYT_DATA_SIZE*4))) == NULL)
+    if ((p_start = (UINT8 *)osi_malloc((SMP_ENCRYT_DATA_SIZE*4))) == NULL)
     {
         SMP_TRACE_ERROR ("%s failed unable to allocate buffer", __func__);
         return FALSE;
@@ -187,7 +187,7 @@ BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
     p_out->status = HCI_SUCCESS;
     p_out->opcode =  HCI_BLE_ENCRYPT;
 
-    osi_freebuf(p_start);
+    osi_free(p_start);
 
     return TRUE;
 }

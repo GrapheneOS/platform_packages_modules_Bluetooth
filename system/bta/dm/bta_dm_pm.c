@@ -912,7 +912,7 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 v
 {
    tBTA_DM_PM_BTM_STATUS  *p_buf;
 
-   if ((p_buf = (tBTA_DM_PM_BTM_STATUS *) osi_getbuf(sizeof(tBTA_DM_PM_BTM_STATUS))) != NULL)
+   if ((p_buf = (tBTA_DM_PM_BTM_STATUS *) osi_malloc(sizeof(tBTA_DM_PM_BTM_STATUS))) != NULL)
     {
         p_buf->hdr.event = BTA_DM_PM_BTM_STATUS_EVT;
         p_buf->status = status;
@@ -964,7 +964,7 @@ static void bta_dm_pm_timer_cback(void *data)
     if (i==BTA_DM_NUM_PM_TIMER)
         return;
 
-    tBTA_DM_PM_TIMER *p_buf = (tBTA_DM_PM_TIMER *) osi_getbuf(sizeof(tBTA_DM_PM_TIMER));
+    tBTA_DM_PM_TIMER *p_buf = (tBTA_DM_PM_TIMER *) osi_malloc(sizeof(tBTA_DM_PM_TIMER));
     if (p_buf != NULL)
     {
         p_buf->hdr.event = BTA_DM_PM_TIMER_EVT;

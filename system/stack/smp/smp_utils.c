@@ -386,7 +386,7 @@ BT_HDR * smp_build_pairing_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UINT8       *p;
 
     SMP_TRACE_EVENT("smp_build_pairing_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_PAIRING_REQ_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_PAIRING_REQ_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -420,7 +420,7 @@ static BT_HDR * smp_build_confirm_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("smp_build_confirm_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_CONFIRM_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_CONFIRM_CMD_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -447,7 +447,7 @@ static BT_HDR * smp_build_rand_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __func__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_RAND_CMD_SIZE + L2CAP_MIN_OFFSET))
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_RAND_CMD_SIZE + L2CAP_MIN_OFFSET))
          != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -475,7 +475,7 @@ static BT_HDR * smp_build_encrypt_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("smp_build_encrypt_info_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_ENC_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_ENC_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -504,7 +504,7 @@ static BT_HDR * smp_build_master_id_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
 
     SMP_TRACE_EVENT("%s", __func__);
 
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_MASTER_ID_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_MASTER_ID_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -535,7 +535,7 @@ static BT_HDR * smp_build_identity_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(p_cb);
 
     SMP_TRACE_EVENT("smp_build_identity_info_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_ID_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_ID_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -566,7 +566,7 @@ static BT_HDR * smp_build_id_addr_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
     UNUSED(p_cb);
     SMP_TRACE_EVENT("smp_build_id_addr_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_ID_ADDR_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -595,7 +595,7 @@ static BT_HDR * smp_build_signing_info_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("smp_build_signing_info_cmd");
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_SIGN_INFO_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -623,7 +623,7 @@ static BT_HDR * smp_build_pairing_fail(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __func__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -651,7 +651,7 @@ static BT_HDR *smp_build_security_request(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __func__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + 2 + L2CAP_MIN_OFFSET)) != NULL)
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + 2 + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
 
@@ -688,7 +688,7 @@ static BT_HDR *smp_build_pair_public_key_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     memcpy(p_publ_key, p_cb->loc_publ_key.x, BT_OCTET32_LEN);
     memcpy(p_publ_key + BT_OCTET32_LEN, p_cb->loc_publ_key.y, BT_OCTET32_LEN);
 
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) +
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) +
         SMP_PAIR_PUBL_KEY_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -717,7 +717,7 @@ static BT_HDR *smp_build_pairing_commitment_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __func__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) + SMP_PAIR_COMMITM_SIZE + L2CAP_MIN_OFFSET))
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + SMP_PAIR_COMMITM_SIZE + L2CAP_MIN_OFFSET))
         != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -746,7 +746,7 @@ static BT_HDR *smp_build_pair_dhkey_check_cmd(UINT8 cmd_code, tSMP_CB *p_cb)
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __FUNCTION__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) +
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) +
         SMP_PAIR_DHKEY_CHECK_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -775,7 +775,7 @@ static BT_HDR * smp_build_pairing_keypress_notification_cmd(UINT8 cmd_code, tSMP
     UNUSED(cmd_code);
 
     SMP_TRACE_EVENT("%s", __FUNCTION__);
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR)\
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR)\
         + SMP_PAIR_KEYPR_NOTIF_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
@@ -1156,7 +1156,7 @@ void smp_reject_unexpected_pairing_command(BD_ADDR bd_addr)
 
     SMP_TRACE_DEBUG ("%s", __FUNCTION__);
 
-    if ((p_buf = (BT_HDR *)osi_getbuf(sizeof(BT_HDR) +\
+    if ((p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) +\
         SMP_PAIR_FAIL_SIZE + L2CAP_MIN_OFFSET)) != NULL)
     {
         p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;

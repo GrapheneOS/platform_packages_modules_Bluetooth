@@ -139,7 +139,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
 
         case BT_EVT_TO_BTU_HCI_EVT:
             btu_hcif_process_event ((UINT8)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
-            osi_freebuf(p_msg);
+            osi_free(p_msg);
 
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
             /* If host receives events which it doesn't response to, */
@@ -153,7 +153,7 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
             break;
 
         default:
-            osi_freebuf(p_msg);
+            osi_free(p_msg);
             break;
     }
 }

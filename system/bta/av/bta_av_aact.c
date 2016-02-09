@@ -398,7 +398,7 @@ static BOOLEAN bta_av_next_getcap(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             /* we got a stream; get its capabilities */
             if (p_scb->p_cap == NULL)
             {
-                p_scb->p_cap = (tAVDT_CFG *) osi_getbuf(sizeof(tAVDT_CFG));
+                p_scb->p_cap = (tAVDT_CFG *) osi_malloc(sizeof(tAVDT_CFG));
             }
             if (p_scb->p_cap == NULL)
             {
@@ -461,7 +461,7 @@ static void bta_av_proc_stream_evt(UINT8 handle, BD_ADDR bd_addr, UINT8 event, t
         }
     }
 
-    if (p_scb && (p_msg = (tBTA_AV_STR_MSG *) osi_getbuf((UINT16) (sizeof(tBTA_AV_STR_MSG) + sec_len))) != NULL)
+    if (p_scb && (p_msg = (tBTA_AV_STR_MSG *) osi_malloc((sizeof(tBTA_AV_STR_MSG) + sec_len))) != NULL)
     {
 
         /* copy event data, bd addr, and handle to event message buffer */
@@ -604,12 +604,12 @@ void bta_av_stream_data_cback(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UI
     }
     if(index == BTA_AV_NUM_STRS) /* cannot find correct handler */
     {
-        osi_freebuf(p_pkt);
+        osi_free(p_pkt);
         return;
     }
     p_pkt->event = BTA_AV_MEDIA_DATA_EVT;
     p_scb->seps[p_scb->sep_idx].p_app_data_cback(BTA_AV_MEDIA_DATA_EVT, (tBTA_AV_MEDIA*)p_pkt);
-    osi_freebuf(p_pkt);  /* a copy of packet had been delivered, we free this buffer */
+    osi_free(p_pkt);  /* a copy of packet had been delivered, we free this buffer */
 }
 
 /*******************************************************************************
@@ -724,7 +724,7 @@ static void bta_av_a2d_sdp_cback(BOOLEAN found, tA2D_Service *p_service)
     tBTA_AV_SDP_RES *p_msg;
     tBTA_AV_SCB     *p_scb;
 
-    if ((p_msg = (tBTA_AV_SDP_RES *) osi_getbuf(sizeof(tBTA_AV_SDP_RES))) != NULL)
+    if ((p_msg = (tBTA_AV_SDP_RES *) osi_malloc(sizeof(tBTA_AV_SDP_RES))) != NULL)
     {
         p_msg->hdr.event = (found) ? BTA_AV_SDP_DISC_OK_EVT : BTA_AV_SDP_DISC_FAIL_EVT;
 
@@ -1020,7 +1020,7 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* allocate discovery database */
     if (p_scb->p_disc_db == NULL)
     {
-        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(BTA_AV_DISC_BUF_SIZE);
+        p_scb->p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BTA_AV_DISC_BUF_SIZE);
     }
 
     /* only one A2D find service is active at a time */
@@ -1071,8 +1071,8 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     APPL_TRACE_DEBUG("bta_av_cleanup");
 
     /* free any buffers */
-    osi_freebuf_and_reset((void **)&p_scb->p_cap);
-    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
+    osi_free_and_reset((void **)&p_scb->p_cap);
+    osi_free_and_reset((void **)&p_scb->p_disc_db);
     p_scb->avdt_version = 0;
 
     /* initialize some control block variables */
@@ -1128,7 +1128,7 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 void bta_av_free_sdb(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_data);
-    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
+    osi_free_and_reset((void **)&p_scb->p_disc_db);
 }
 
 /*******************************************************************************
@@ -1578,7 +1578,7 @@ void bta_av_connect_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     UNUSED(p_data);
 
-    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
+    osi_free_and_reset((void **)&p_scb->p_disc_db);
 
     if (p_scb->coll_mask & BTA_AV_COLL_INC_TMR)
     {
@@ -1605,7 +1605,7 @@ void bta_av_sdp_failed(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     if (!p_scb->open_status)
         p_scb->open_status = BTA_AV_FAIL_SDP;
 
-    osi_freebuf_and_reset((void **)&p_scb->p_disc_db);
+    osi_free_and_reset((void **)&p_scb->p_disc_db);
     bta_av_str_closed(p_scb, p_data);
 }
 
@@ -1936,7 +1936,7 @@ void bta_av_getcap_results (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         if (!bta_av_is_rcfg_sst(p_scb))
         {
             /* free capabilities buffer */
-            osi_freebuf_and_reset((void **)&p_scb->p_cap);
+            osi_free_and_reset((void **)&p_scb->p_cap);
         }
     }
     else
@@ -2104,7 +2104,7 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         {
             p_buf = (BT_HDR *)list_front(p_scb->a2d_list);
             list_remove(p_scb->a2d_list, p_buf);
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
 
     /* drop the audio buffers queued in L2CAP */
@@ -2173,7 +2173,7 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* store the new configuration in control block */
     if (p_scb->p_cap == NULL)
     {
-        p_scb->p_cap = (tAVDT_CFG *) osi_getbuf(sizeof(tAVDT_CFG));
+        p_scb->p_cap = (tAVDT_CFG *) osi_malloc(sizeof(tAVDT_CFG));
     }
     if((p_cfg = p_scb->p_cap) == NULL)
     {
@@ -2326,7 +2326,7 @@ void bta_av_data_path (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
                 {
                     /* too many buffers in a2d_list, drop it. */
                     bta_av_co_audio_drop(p_scb->hndl);
-                    osi_freebuf(p_buf);
+                    osi_free(p_buf);
                 }
             }
         }
@@ -2725,7 +2725,7 @@ void bta_av_rcfg_str_ok (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     /* rc listen */
     bta_av_st_rc_timer(p_scb, NULL);
-    osi_freebuf_and_reset((void **)&p_scb->p_cap);
+    osi_free_and_reset((void **)&p_scb->p_cap);
 
     /* No need to keep the role bits once reconfig is done. */
     p_scb->role &= ~BTA_AV_ROLE_AD_ACP;
@@ -3132,7 +3132,7 @@ void bta_av_open_at_inc (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
         p_scb->coll_mask = 0;
         bta_av_set_scb_sst_init (p_scb);
 
-        if ((p_buf = (tBTA_AV_API_OPEN *) osi_getbuf(sizeof(tBTA_AV_API_OPEN))) != NULL)
+        if ((p_buf = (tBTA_AV_API_OPEN *) osi_malloc(sizeof(tBTA_AV_API_OPEN))) != NULL)
         {
             memcpy(p_buf, &(p_scb->open_api), sizeof(tBTA_AV_API_OPEN));
             bta_sys_sendmsg(p_buf);

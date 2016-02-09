@@ -210,7 +210,7 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
     alarm_free(p_mcb->mcb_timer);
 
     while ((p_buf = fixed_queue_try_dequeue(p_mcb->cmd_q)) != NULL)
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
     fixed_queue_free(p_mcb->cmd_q, NULL);
 
     memset (p_mcb, 0, sizeof (tRFC_MCB));

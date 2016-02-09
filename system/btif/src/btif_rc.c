@@ -848,7 +848,7 @@ void handle_rc_vendorunique_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
         {
             if (p_remote_rsp->len >= AVRC_PASS_THRU_GROUP_LEN)
                 vendor_id = p_remote_rsp->p_data[AVRC_PASS_THRU_GROUP_LEN -1];
-            osi_freebuf_and_reset((void **)&p_remote_rsp->p_data);
+            osi_free_and_reset((void **)&p_remote_rsp->p_data);
         }
         BTIF_TRACE_DEBUG("%s: vendor_id=%d status=%s", __FUNCTION__, vendor_id, status);
 
@@ -1798,7 +1798,7 @@ static bt_status_t set_volume(uint8_t volume)
             }
             else
             {
-                osi_freebuf(p_msg);
+                osi_free(p_msg);
                 BTIF_TRACE_ERROR("%s: failed to obtain transaction details. status: 0x%02x",
                                     __FUNCTION__, tran_status);
                 status = BT_STATUS_FAIL;
@@ -1849,7 +1849,7 @@ static void register_volumechange (UINT8 lbl)
                           AVRC_CMD_NOTIF, p_msg);
             BTIF_TRACE_DEBUG("%s:BTA_AvMetaCmd called", __func__);
          } else {
-            osi_freebuf(p_msg);
+            osi_free(p_msg);
             BTIF_TRACE_ERROR("%s transaction not obtained with label: %d",
                              __func__, lbl);
          }
@@ -2325,7 +2325,7 @@ static void handle_get_capability_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_G
         btif_rc_supported_event_t *p_event;
 
         /* Todo: Check if list can be active when we hit here */
-        btif_rc_cb.rc_supported_event_list = list_new(osi_freebuf);
+        btif_rc_cb.rc_supported_event_list = list_new(osi_free);
         for (xx = 0; xx < p_rsp->count; xx++)
         {
             /* Skip registering for Play position change notification */
@@ -2333,7 +2333,7 @@ static void handle_get_capability_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_G
                 (p_rsp->param.event_id[xx] == AVRC_EVT_TRACK_CHANGE)||
                 (p_rsp->param.event_id[xx] == AVRC_EVT_APP_SETTING_CHANGE))
             {
-                p_event = (btif_rc_supported_event_t *)osi_getbuf(sizeof(btif_rc_supported_event_t));
+                p_event = (btif_rc_supported_event_t *)osi_malloc(sizeof(btif_rc_supported_event_t));
                 p_event->event_id = p_rsp->param.event_id[xx];
                 p_event->status = eNOT_REGISTERED;
                 list_append(btif_rc_cb.rc_supported_event_list, p_event);
@@ -2766,7 +2766,7 @@ static void handle_app_cur_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET_
      * Defer it if browsing is supported till players query
      */
     rc_ctrl_procedure_complete ();
-    osi_freebuf_and_reset((void **)&p_rsp->p_vals);
+    osi_free_and_reset((void **)&p_rsp->p_vals);
 }
 
 /***************************************************************************
@@ -2802,7 +2802,7 @@ static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET
          */
         p_app_settings->num_ext_attrs = 0;
         for (xx = 0; xx < p_app_settings->ext_attr_index; xx++)
-            osi_freebuf_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
+            osi_free_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
         p_app_settings->ext_attr_index = 0;
 
         for (xx = 0; xx < p_app_settings->num_attrs; xx++)
@@ -2879,9 +2879,9 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
             btrc_player_app_ext_attr_t *p_ext_attr = &p_app_settings->ext_attrs[xx];
 
             for (x = 0; x < p_ext_attr->num_val; x++)
-                osi_freebuf_and_reset((void **)&p_ext_attr->ext_attr_val[x].p_str);
+                osi_free_and_reset((void **)&p_ext_attr->ext_attr_val[x].p_str);
             p_ext_attr->num_val = 0;
-            osi_freebuf_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
+            osi_free_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
         }
         p_app_settings->ext_attr_index = 0;
 
@@ -2949,9 +2949,9 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
             btrc_player_app_ext_attr_t *p_ext_attr = &p_app_settings->ext_attrs[xx];
 
             for (x = 0; x < p_ext_attr->num_val; x++)
-                osi_freebuf_and_reset((void **)&p_ext_attr->ext_attr_val[x].p_str);
+                osi_free_and_reset((void **)&p_ext_attr->ext_attr_val[x].p_str);
             p_ext_attr->num_val = 0;
-            osi_freebuf_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
+            osi_free_and_reset((void **)&p_app_settings->ext_attrs[xx].p_str);
         }
         p_app_settings->num_attrs = 0;
     }
@@ -3003,7 +3003,7 @@ static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GE
     if (p_rsp->status == AVRC_STS_NO_ERROR)
     {
         size_t buf_size = p_rsp->num_attr * sizeof(btrc_element_attr_val_t);
-        p_attr = (btrc_element_attr_val_t *)osi_getbuf(buf_size);
+        p_attr = (btrc_element_attr_val_t *)osi_malloc(buf_size);
         memset(p_attr, 0, buf_size);
         for (xx = 0; xx < p_rsp->num_attr; xx++) {
             p_attr[xx].attr_id = p_rsp->p_attrs[xx].attr_id;
@@ -3012,12 +3012,12 @@ static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GE
                 p_rsp->p_attrs[xx].name.p_str) {
                 memcpy(p_attr[xx].text, p_rsp->p_attrs[xx].name.p_str,
                        p_rsp->p_attrs[xx].name.str_len);
-                osi_freebuf_and_reset((void **)&p_rsp->p_attrs[xx].name.p_str);
+                osi_free_and_reset((void **)&p_rsp->p_attrs[xx].name.p_str);
             }
         }
         HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb,
                   &rc_addr, p_rsp->num_attr, p_attr);
-        osi_freebuf(p_attr);
+        osi_free(p_attr);
     }
     else if (p_rsp->status == BTIF_RC_STS_TIMEOUT)
     {
@@ -3319,7 +3319,7 @@ static bt_status_t getcapabilities_cmd (uint8_t cap_id)
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                              __FUNCTION__, status);
      }
-     osi_freebuf(p_msg);
+     osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3368,7 +3368,7 @@ static bt_status_t list_player_app_setting_attrib_cmd(void)
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
      }
-     osi_freebuf(p_msg);
+     osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3416,7 +3416,7 @@ static bt_status_t list_player_app_setting_value_cmd(uint8_t attrib_id)
      {
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x", __FUNCTION__, status);
      }
-     osi_freebuf(p_msg);
+     osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3471,7 +3471,7 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attri
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
      }
-     osi_freebuf(p_msg);
+     osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3506,7 +3506,7 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t *bd_addr, uint8_t num_a
      avrc_cmd.set_app_val.num_val = num_attrib;
      avrc_cmd.set_app_val.pdu = AVRC_PDU_SET_PLAYER_APP_VALUE;
      avrc_cmd.set_app_val.p_vals =
-           (tAVRC_APP_SETTING *)osi_getbuf(sizeof(tAVRC_APP_SETTING) * num_attrib);
+           (tAVRC_APP_SETTING *)osi_malloc(sizeof(tAVRC_APP_SETTING) * num_attrib);
      for (count = 0; count < num_attrib; count++)
      {
          avrc_cmd.set_app_val.p_vals[count].attr_id = attrib_ids[count];
@@ -3528,8 +3528,8 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t *bd_addr, uint8_t num_a
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
      }
-     osi_freebuf(p_msg);
-     osi_freebuf_and_reset((void **)&avrc_cmd.set_app_val.p_vals);
+     osi_free(p_msg);
+     osi_free_and_reset((void **)&avrc_cmd.set_app_val.p_vals);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3578,7 +3578,7 @@ static bt_status_t get_player_app_setting_attr_text_cmd (UINT8 *attrs, UINT8 num
                 __FUNCTION__, p_transaction->lbl);
         BTA_AvVendorCmd(btif_rc_cb.rc_handle, p_transaction->lbl,
                 AVRC_CMD_STATUS, data_start, p_msg->len);
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
         status =  BT_STATUS_SUCCESS;
         start_status_command_timer (AVRC_PDU_GET_PLAYER_APP_ATTR_TEXT, p_transaction);
     }
@@ -3586,7 +3586,7 @@ static bt_status_t get_player_app_setting_attr_text_cmd (UINT8 *attrs, UINT8 num
     {
         BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x", __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3646,7 +3646,7 @@ static bt_status_t get_player_app_setting_value_text_cmd (UINT8 *vals, UINT8 num
         BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                 __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3697,7 +3697,7 @@ static bt_status_t register_notification_cmd (UINT8 label, UINT8 event_id, UINT3
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3760,7 +3760,7 @@ static bt_status_t get_element_attribute_cmd (uint8_t num_attribute, uint32_t *p
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3813,7 +3813,7 @@ static bt_status_t get_play_status_cmd(void)
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3862,7 +3862,7 @@ static bt_status_t set_volume_rsp(bt_bdaddr_t *bd_addr, uint8_t abs_vol, uint8_t
          BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                             __FUNCTION__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __FUNCTION__);
 #endif
@@ -3908,7 +3908,7 @@ static bt_status_t volume_change_notification_rsp(bt_bdaddr_t *bd_addr, btrc_not
         BTIF_TRACE_ERROR("%s: failed to build command. status: 0x%02x",
                          __func__, status);
     }
-    osi_freebuf(p_msg);
+    osi_free(p_msg);
 
 #else
     BTIF_TRACE_DEBUG("%s: feature not enabled", __func__);

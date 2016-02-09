@@ -586,7 +586,7 @@ static void gatt_le_data_ind (UINT16 chan, BD_ADDR bd_addr, BT_HDR *p_buf)
     }
     else
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 
         if (p_tcb != NULL)
         {
@@ -910,7 +910,7 @@ static void gatt_l2cif_data_ind_cback(UINT16 lcid, BT_HDR *p_buf)
         gatt_data_process(p_tcb, p_buf);
     }
     else /* prevent buffer leak */
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 }
 
 /*******************************************************************************
@@ -1031,7 +1031,7 @@ void gatt_data_process (tGATT_TCB *p_tcb, BT_HDR *p_buf)
         GATT_TRACE_ERROR ("invalid data length, ignore");
     }
 
-    osi_freebuf(p_buf);
+    osi_free(p_buf);
 }
 
 /*******************************************************************************

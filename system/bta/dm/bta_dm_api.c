@@ -76,7 +76,7 @@ tBTA_STATUS BTA_EnableBluetooth(tBTA_DM_SEC_CBACK *p_cback)
     /* if UUID list is not provided as static data */
     bta_sys_eir_register(bta_dm_eir_update_uuid);
 
-    if ((p_msg = (tBTA_DM_API_ENABLE *) osi_getbuf(sizeof(tBTA_DM_API_ENABLE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_ENABLE *) osi_malloc(sizeof(tBTA_DM_API_ENABLE))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_ENABLE_EVT;
         p_msg->p_sec_cback = p_cback;
@@ -102,7 +102,7 @@ tBTA_STATUS BTA_DisableBluetooth(void)
 
     BT_HDR    *p_msg;
 
-    if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_DM_API_DISABLE_EVT;
         bta_sys_sendmsg(p_msg);
@@ -131,7 +131,7 @@ tBTA_STATUS BTA_EnableTestMode(void)
 
     APPL_TRACE_API("BTA_EnableTestMode");
 
-    if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_DM_API_ENABLE_TEST_MODE_EVT;
         bta_sys_sendmsg(p_msg);
@@ -156,7 +156,7 @@ void BTA_DisableTestMode(void)
 
     APPL_TRACE_API("BTA_DisableTestMode");
 
-    if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_DM_API_DISABLE_TEST_MODE_EVT;
         bta_sys_sendmsg(p_msg);
@@ -177,7 +177,7 @@ void BTA_DmSetDeviceName(char *p_name)
 {
     tBTA_DM_API_SET_NAME    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_SET_NAME *) osi_getbuf(sizeof(tBTA_DM_API_SET_NAME))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SET_NAME *) osi_malloc(sizeof(tBTA_DM_API_SET_NAME))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_NAME_EVT;
         strlcpy((char*)p_msg->name, p_name, BD_NAME_LEN);
@@ -201,7 +201,7 @@ void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 p
 
     tBTA_DM_API_SET_VISIBILITY    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_SET_VISIBILITY *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SET_VISIBILITY *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_SET_VISIBILITY_EVT;
         p_msg->disc_mode = disc_mode;
@@ -233,7 +233,7 @@ void BTA_DmSearch(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK services, tBTA_DM_SEA
 
     tBTA_DM_API_SEARCH    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_SEARCH *) osi_getbuf(sizeof(tBTA_DM_API_SEARCH))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SEARCH *) osi_malloc(sizeof(tBTA_DM_API_SEARCH))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_SEARCH));
 
@@ -262,7 +262,7 @@ void BTA_DmSearchCancel(void)
 {
     BT_HDR    *p_msg;
 
-    if ((p_msg = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_msg = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_msg->event = BTA_DM_API_SEARCH_CANCEL_EVT;
         bta_sys_sendmsg(p_msg);
@@ -286,7 +286,7 @@ void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
 {
     tBTA_DM_API_DISCOVER    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_getbuf(sizeof(tBTA_DM_API_DISCOVER))) != NULL)
+    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_malloc(sizeof(tBTA_DM_API_DISCOVER))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_DISCOVER));
 
@@ -316,7 +316,7 @@ void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
 {
     tBTA_DM_API_DISCOVER    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_getbuf(sizeof(tBTA_DM_API_DISCOVER))) != NULL)
+    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_malloc(sizeof(tBTA_DM_API_DISCOVER))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_DISCOVER_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -349,7 +349,7 @@ void BTA_DmBond(BD_ADDR bd_addr)
 {
     tBTA_DM_API_BOND    *p_msg;
 
-    p_msg = (tBTA_DM_API_BOND *) osi_getbuf(sizeof(tBTA_DM_API_BOND));
+    p_msg = (tBTA_DM_API_BOND *) osi_malloc(sizeof(tBTA_DM_API_BOND));
     if (p_msg != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BOND_EVT;
@@ -374,7 +374,7 @@ void BTA_DmBondByTransport(BD_ADDR bd_addr, tBTA_TRANSPORT transport)
 {
     tBTA_DM_API_BOND    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BOND *) osi_getbuf(sizeof(tBTA_DM_API_BOND))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BOND *) osi_malloc(sizeof(tBTA_DM_API_BOND))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BOND_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -400,7 +400,7 @@ void BTA_DmBondCancel(BD_ADDR bd_addr)
 {
     tBTA_DM_API_BOND_CANCEL    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BOND_CANCEL *) osi_getbuf(sizeof(tBTA_DM_API_BOND_CANCEL))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BOND_CANCEL *) osi_malloc(sizeof(tBTA_DM_API_BOND_CANCEL))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BOND_CANCEL_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -426,7 +426,7 @@ void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin
 {
     tBTA_DM_API_PIN_REPLY    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_PIN_REPLY *) osi_getbuf(sizeof(tBTA_DM_API_PIN_REPLY))) != NULL)
+    if ((p_msg = (tBTA_DM_API_PIN_REPLY *) osi_malloc(sizeof(tBTA_DM_API_PIN_REPLY))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_PIN_REPLY_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -458,7 +458,7 @@ void BTA_DmLocalOob(void)
 {
     tBTA_DM_API_LOC_OOB    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_LOC_OOB *) osi_getbuf(sizeof(tBTA_DM_API_LOC_OOB))) != NULL)
+    if ((p_msg = (tBTA_DM_API_LOC_OOB *) osi_malloc(sizeof(tBTA_DM_API_LOC_OOB))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_LOC_OOB_EVT;
         bta_sys_sendmsg(p_msg);
@@ -479,7 +479,7 @@ void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
 {
     tBTA_DM_API_CONFIRM    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_CONFIRM *) osi_getbuf(sizeof(tBTA_DM_API_CONFIRM))) != NULL)
+    if ((p_msg = (tBTA_DM_API_CONFIRM *) osi_malloc(sizeof(tBTA_DM_API_CONFIRM))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_CONFIRM_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -506,7 +506,7 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
 
     tBTA_DM_API_ADD_DEVICE *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_ADD_DEVICE *) osi_getbuf(sizeof(tBTA_DM_API_ADD_DEVICE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_ADD_DEVICE *) osi_malloc(sizeof(tBTA_DM_API_ADD_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_DEVICE));
 
@@ -554,7 +554,7 @@ tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 {
     tBTA_DM_API_REMOVE_DEVICE *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_REMOVE_DEVICE *) osi_getbuf(sizeof(tBTA_DM_API_REMOVE_DEVICE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_REMOVE_DEVICE *) osi_malloc(sizeof(tBTA_DM_API_REMOVE_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_REMOVE_DEVICE));
 
@@ -683,7 +683,7 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
 {
     tBTA_DM_API_EXECUTE_CBACK *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_EXECUTE_CBACK *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    if ((p_msg = (tBTA_DM_API_EXECUTE_CBACK *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_EXECUTE_CBACK_EVT;
         p_msg->p_param= p_param;
@@ -714,7 +714,7 @@ void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_
 
     tBTA_DM_API_ADD_BLEKEY *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_ADD_BLEKEY *) osi_getbuf(sizeof(tBTA_DM_API_ADD_BLEKEY))) != NULL)
+    if ((p_msg = (tBTA_DM_API_ADD_BLEKEY *) osi_malloc(sizeof(tBTA_DM_API_ADD_BLEKEY))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_BLEKEY));
 
@@ -749,7 +749,7 @@ void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TY
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_ADD_BLE_DEVICE *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_ADD_BLE_DEVICE *) osi_getbuf(sizeof(tBTA_DM_API_ADD_BLE_DEVICE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_ADD_BLE_DEVICE *) osi_malloc(sizeof(tBTA_DM_API_ADD_BLE_DEVICE))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_ADD_BLE_DEVICE));
 
@@ -781,7 +781,7 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_PASSKEY_REPLY    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_PASSKEY_REPLY *) osi_getbuf(sizeof(tBTA_DM_API_PASSKEY_REPLY))) != NULL)
+    if ((p_msg = (tBTA_DM_API_PASSKEY_REPLY *) osi_malloc(sizeof(tBTA_DM_API_PASSKEY_REPLY))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_PASSKEY_REPLY));
 
@@ -812,7 +812,7 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
 {
 #if BLE_INCLUDED == TRUE
-    tBTA_DM_API_CONFIRM *p_msg = (tBTA_DM_API_CONFIRM *)osi_getbuf(sizeof(tBTA_DM_API_CONFIRM));
+    tBTA_DM_API_CONFIRM *p_msg = (tBTA_DM_API_CONFIRM *)osi_malloc(sizeof(tBTA_DM_API_CONFIRM));
     if (p_msg != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_CONFIRM));
@@ -841,7 +841,7 @@ void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_SEC_GRANT    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BLE_SEC_GRANT *) osi_getbuf(sizeof(tBTA_DM_API_BLE_SEC_GRANT))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_SEC_GRANT *) osi_malloc(sizeof(tBTA_DM_API_BLE_SEC_GRANT))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SEC_GRANT));
 
@@ -879,7 +879,7 @@ void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_CONN_PARAMS    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BLE_CONN_PARAMS *) osi_getbuf(sizeof(tBTA_DM_API_BLE_CONN_PARAMS))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_CONN_PARAMS *) osi_malloc(sizeof(tBTA_DM_API_BLE_CONN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_CONN_PARAMS));
 
@@ -914,7 +914,7 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 {
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_SCAN_PARAMS  *p_msg;
-    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_malloc(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
         p_msg->hdr.event = BTA_DM_API_BLE_CONN_SCAN_PARAM_EVT;
@@ -948,7 +948,7 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
 {
     tBTA_DM_API_BLE_SCAN_PARAMS *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_getbuf(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_malloc(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
         p_msg->hdr.event = BTA_DM_API_BLE_SCAN_PARAM_EVT;
@@ -983,7 +983,7 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 
     APPL_TRACE_API ("BTA_DmSetBleAdvParam: %d, %d", adv_int_min, adv_int_max);
 
-    if ((p_msg = (tBTA_DM_API_BLE_ADV_PARAMS *) osi_getbuf(sizeof(tBTA_DM_API_BLE_ADV_PARAMS))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_ADV_PARAMS *) osi_malloc(sizeof(tBTA_DM_API_BLE_ADV_PARAMS))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_ADV_PARAMS));
 
@@ -1025,7 +1025,7 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                             tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_getbuf(sizeof(*p_msg));
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_malloc(sizeof(*p_msg));
   if (!p_msg) return;
 
   memset(p_msg, 0, sizeof(*p_msg));
@@ -1050,7 +1050,7 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                                  tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_getbuf(sizeof(*p_msg));
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_malloc(sizeof(*p_msg));
   if (!p_msg) return;
 
   memset(p_msg, 0, sizeof(*p_msg));
@@ -1089,7 +1089,7 @@ extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
     tBTA_DM_API_SET_STORAGE_CONFIG  *p_msg;
     bta_dm_cb.p_setup_cback = p_setup_cback;
     if ((p_msg = (tBTA_DM_API_SET_STORAGE_CONFIG *)
-          osi_getbuf(sizeof(tBTA_DM_API_SET_STORAGE_CONFIG))) != NULL)
+          osi_malloc(sizeof(tBTA_DM_API_SET_STORAGE_CONFIG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_SETUP_STORAGE_EVT;
         p_msg->p_setup_cback=bta_ble_scan_setup_cb;
@@ -1127,7 +1127,7 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
 {
     tBTA_DM_API_ENABLE_SCAN  *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN *) osi_getbuf(sizeof(tBTA_DM_API_ENABLE_SCAN))) != NULL)
+    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN *) osi_malloc(sizeof(tBTA_DM_API_ENABLE_SCAN))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_ENABLE_BATCH_SCAN_EVT;
         p_msg->scan_mode = scan_mode;
@@ -1156,7 +1156,7 @@ extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value)
     tBTA_DM_API_DISABLE_SCAN  *p_msg;
 
     if ((p_msg = (tBTA_DM_API_DISABLE_SCAN *)
-         osi_getbuf(sizeof(tBTA_DM_API_DISABLE_SCAN))) != NULL)
+         osi_malloc(sizeof(tBTA_DM_API_DISABLE_SCAN))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT;
         p_msg->ref_value = ref_value;
@@ -1182,7 +1182,7 @@ extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
     tBTA_DM_API_READ_SCAN_REPORTS  *p_msg;
 
     if ((p_msg = (tBTA_DM_API_READ_SCAN_REPORTS *)
-          osi_getbuf(sizeof(tBTA_DM_API_READ_SCAN_REPORTS))) != NULL)
+          osi_malloc(sizeof(tBTA_DM_API_READ_SCAN_REPORTS))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT;
         p_msg->scan_type = scan_type;
@@ -1209,7 +1209,7 @@ extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
     tBTA_DM_API_TRACK_ADVERTISER  *p_msg;
 
     if ((p_msg = (tBTA_DM_API_TRACK_ADVERTISER *)
-         osi_getbuf(sizeof(tBTA_DM_API_TRACK_ADVERTISER))) != NULL)
+         osi_malloc(sizeof(tBTA_DM_API_TRACK_ADVERTISER))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_API_BLE_TRACK_ADVERTISER_EVT;
         p_msg->p_track_adv_cback = p_track_adv_cback;
@@ -1242,7 +1242,7 @@ extern void BTA_DmBleBroadcast (BOOLEAN start)
 
     APPL_TRACE_API("BTA_DmBleBroadcast: start = %d ", start);
 
-    if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) osi_getbuf(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) osi_malloc(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_OBSERVE));
 
@@ -1273,7 +1273,7 @@ void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_BLE_SET_BG_CONN_TYPE    *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BLE_SET_BG_CONN_TYPE *) osi_getbuf(sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_SET_BG_CONN_TYPE *) osi_malloc(sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE));
 
@@ -1305,7 +1305,7 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
                                 sizeof(tBT_UUID) * p_services->num_uuid) :
                                 sizeof(tBTA_DM_API_DISCOVER);
 
-    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_DISCOVER *) osi_malloc(len)) != NULL)
     {
         memset(p_msg, 0, len);
 
@@ -1408,7 +1408,7 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
     UINT16  len = p_services ? (sizeof(tBTA_DM_API_SEARCH) + sizeof(tBT_UUID) * p_services->num_uuid) :
                     sizeof(tBTA_DM_API_SEARCH);
 
-    if ((p_msg = (tBTA_DM_API_SEARCH *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_SEARCH *) osi_malloc(len)) != NULL)
     {
         memset(p_msg, 0, len);
 
@@ -1462,7 +1462,7 @@ void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, UINT16 min_int,
 #if BLE_INCLUDED == TRUE
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg;
 
-    p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) osi_getbuf(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
+    p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) osi_malloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
     if (p_msg != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
@@ -1494,7 +1494,7 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 #if BLE_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE
     tBTA_DM_API_LOCAL_PRIVACY *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_LOCAL_PRIVACY *) osi_getbuf(sizeof(tBTA_DM_API_ENABLE_PRIVACY))) != NULL)
+    if ((p_msg = (tBTA_DM_API_LOCAL_PRIVACY *) osi_malloc(sizeof(tBTA_DM_API_ENABLE_PRIVACY))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_LOCAL_PRIVACY));
 
@@ -1532,7 +1532,7 @@ void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
 
     APPL_TRACE_API ("BTA_BleEnableAdvInstance");
 
-    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_ENB *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_ENB *) osi_malloc(len)) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_ENB));
 
@@ -1568,7 +1568,7 @@ void BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
     UINT16      len = sizeof(tBTA_BLE_ADV_PARAMS) + sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
 
     APPL_TRACE_API ("BTA_BleUpdateAdvInstParam");
-     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) osi_getbuf(len)) != NULL)
+     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_PARAM *) osi_malloc(len)) != NULL)
      {
           memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM));
           p_msg->hdr.event     = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
@@ -1601,7 +1601,7 @@ void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
-  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg = osi_getbuf(sizeof(*p_msg));
+  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg = osi_malloc(sizeof(*p_msg));
   if (!p_msg) return;
 
   memset(p_msg, 0, sizeof(*p_msg));
@@ -1630,7 +1630,7 @@ void BTA_BleDisableAdvInstance (UINT8  inst_id)
 
     APPL_TRACE_API ("BTA_BleDisableAdvInstance: %d", inst_id);
     if ((p_msg = (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)
-          osi_getbuf(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE))) != NULL)
+          osi_malloc(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE))) != NULL)
     {
          memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
          p_msg->hdr.event    = BTA_DM_API_BLE_MULTI_ADV_DISABLE_EVT;
@@ -1697,7 +1697,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
         }
     }
 
-    if ((p_msg = (tBTA_DM_API_CFG_FILTER_COND *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_CFG_FILTER_COND *) osi_malloc(len)) != NULL)
     {
         memset (p_msg, 0, len);
 
@@ -1804,7 +1804,7 @@ void BTA_DmBleScanFilterSetup(UINT8 action, tBTA_DM_BLE_PF_FILT_INDEX filt_index
 
     UINT16  len = sizeof(tBTA_DM_API_SCAN_FILTER_PARAM_SETUP) + sizeof(tBLE_BD_ADDR);
 
-    if ((p_msg = (tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *) osi_malloc(len)) != NULL)
     {
         memset (p_msg, 0, len);
 
@@ -1852,7 +1852,7 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback)
 
     UINT16  len = sizeof(tBTA_DM_API_ENERGY_INFO) + sizeof(tBLE_BD_ADDR);
 
-    if ((p_msg = (tBTA_DM_API_ENERGY_INFO *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_ENERGY_INFO *) osi_malloc(len)) != NULL)
     {
         memset (p_msg, 0, len);
         p_msg->hdr.event        = BTA_DM_API_BLE_ENERGY_INFO_EVT;
@@ -1883,7 +1883,7 @@ void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cb
 
     UINT16  len = sizeof(tBTA_DM_API_ENABLE_SCAN_FILTER) + sizeof(tBLE_BD_ADDR);
 
-    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN_FILTER *) osi_getbuf(len)) != NULL)
+    if ((p_msg = (tBTA_DM_API_ENABLE_SCAN_FILTER *) osi_malloc(len)) != NULL)
     {
         memset (p_msg, 0, len);
 
@@ -1921,7 +1921,7 @@ void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max
 {
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) osi_getbuf(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM))) != NULL)
+    if ((p_msg = (tBTA_DM_API_UPDATE_CONN_PARAM *) osi_malloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM))) != NULL)
     {
         memset (p_msg, 0, sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
 
@@ -1950,7 +1950,7 @@ void BTA_DmBleSetDataLength(BD_ADDR remote_device, UINT16 tx_data_length)
 {
     tBTA_DM_API_BLE_SET_DATA_LENGTH *p_msg;
 
-    if ((p_msg = (tBTA_DM_API_BLE_SET_DATA_LENGTH *)osi_getbuf(sizeof(tBTA_DM_API_BLE_SET_DATA_LENGTH)))
+    if ((p_msg = (tBTA_DM_API_BLE_SET_DATA_LENGTH *)osi_malloc(sizeof(tBTA_DM_API_BLE_SET_DATA_LENGTH)))
                   != NULL)
     {
         bdcpy(p_msg->remote_bda, remote_device);
@@ -1991,7 +1991,7 @@ void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_DM_ENCR
     tBTA_DM_API_SET_ENCRYPTION   *p_msg;
 
     APPL_TRACE_API("BTA_DmSetEncryption"); //todo
-    if ((p_msg = (tBTA_DM_API_SET_ENCRYPTION *) osi_getbuf(sizeof(tBTA_DM_API_SET_ENCRYPTION))) != NULL)
+    if ((p_msg = (tBTA_DM_API_SET_ENCRYPTION *) osi_malloc(sizeof(tBTA_DM_API_SET_ENCRYPTION))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_SET_ENCRYPTION));
 
@@ -2025,7 +2025,7 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 
     APPL_TRACE_API("BTA_DmCloseACL");
 
-    if ((p_msg = (tBTA_DM_API_REMOVE_ACL *) osi_getbuf(sizeof(tBTA_DM_API_REMOVE_ACL))) != NULL)
+    if ((p_msg = (tBTA_DM_API_REMOVE_ACL *) osi_malloc(sizeof(tBTA_DM_API_REMOVE_ACL))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_REMOVE_ACL));
 
@@ -2062,7 +2062,7 @@ extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
 
     APPL_TRACE_API("BTA_DmBleObserve:start = %d ", start);
 
-    if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) osi_getbuf(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
+    if ((p_msg = (tBTA_DM_API_BLE_OBSERVE *) osi_malloc(sizeof(tBTA_DM_API_BLE_OBSERVE))) != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_API_BLE_OBSERVE));
 

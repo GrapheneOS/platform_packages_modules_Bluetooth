@@ -1010,7 +1010,6 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                 if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(sock->our_fd, FIONREAD, &size)
                         == 0 && size)) {
                     uint8_t *buffer = osi_malloc(L2CAP_MAX_SDU_LENGTH);
-                    //uint8_t *buffer = (uint8_t*)osi_getbuf(L2CAP_MAX_SDU_LENGTH);
                     /* Apparently we hijack the req_id (UINT32) to pass the pointer to the buffer to
                      * the write complete callback, which call a free... wonder if this works on a
                      * 64 bit platform? */

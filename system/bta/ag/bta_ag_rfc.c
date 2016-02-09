@@ -101,7 +101,7 @@ static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
             return;
         }
 
-        if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+        if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
         {
             p_buf->event = BTA_AG_RFC_DATA_EVT;
             p_buf->layer_specific = handle;
@@ -174,7 +174,7 @@ static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
             event = BTA_AG_RFC_SRV_CLOSE_EVT;
         }
 
-        if ((p_buf = (tBTA_AG_RFC *) osi_getbuf(sizeof(tBTA_AG_RFC))) != NULL)
+        if ((p_buf = (tBTA_AG_RFC *) osi_malloc(sizeof(tBTA_AG_RFC))) != NULL)
         {
             p_buf->hdr.event = event;
             p_buf->hdr.layer_specific = handle;
@@ -414,7 +414,7 @@ void bta_ag_rfc_do_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         /* Close API was called while AG is in Opening state.               */
         /* Need to trigger the state machine to send callback to the app    */
         /* and move back to INIT state.                                     */
-        if ((p_buf = (tBTA_AG_RFC *) osi_getbuf(sizeof(tBTA_AG_RFC))) != NULL)
+        if ((p_buf = (tBTA_AG_RFC *) osi_malloc(sizeof(tBTA_AG_RFC))) != NULL)
         {
             p_buf->hdr.event = BTA_AG_RFC_CLOSE_EVT;
             p_buf->hdr.layer_specific = bta_ag_scb_to_idx(p_scb);

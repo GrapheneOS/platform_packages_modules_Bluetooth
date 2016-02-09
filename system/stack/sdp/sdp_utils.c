@@ -155,7 +155,7 @@ void sdpu_release_ccb (tCONN_CB *p_ccb)
     /* Free the response buffer */
     if (p_ccb->rsp_list)
         SDP_TRACE_DEBUG("releasing SDP rsp_list");
-    osi_freebuf_and_reset((void **)&p_ccb->rsp_list);
+    osi_free_and_reset((void **)&p_ccb->rsp_list);
 }
 
 
@@ -313,7 +313,7 @@ void sdpu_build_n_send_error (tCONN_CB *p_ccb, UINT16 trans_num, UINT16 error_co
 {
     UINT8           *p_rsp, *p_rsp_start, *p_rsp_param_len;
     UINT16          rsp_param_len;
-    BT_HDR          *p_buf = (BT_HDR *)osi_getbuf(SDP_DATA_BUF_SIZE);
+    BT_HDR          *p_buf = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
 
 
     SDP_TRACE_WARNING ("SDP - sdpu_build_n_send_error  code: 0x%x  CID: 0x%x",
@@ -1010,7 +1010,7 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
     size_t  len_to_copy;
     UINT16  attr_len;
 
-    if ((p_attr_buff = (UINT8 *) osi_getbuf(sizeof(UINT8) * SDP_MAX_ATTR_LEN )) == NULL)
+    if ((p_attr_buff = (UINT8 *) osi_malloc(sizeof(UINT8) * SDP_MAX_ATTR_LEN )) == NULL)
     {
         SDP_TRACE_ERROR("sdpu_build_partial_attrib_entry cannot get a buffer!");
         return NULL;
@@ -1027,7 +1027,7 @@ UINT8 *sdpu_build_partial_attrib_entry (UINT8 *p_out, tSDP_ATTRIBUTE *p_attr, UI
     p_out = &p_out[len_to_copy];
     *offset += len_to_copy;
 
-    osi_freebuf(p_attr_buff);
+    osi_free(p_attr_buff);
     return p_out;
 }
 

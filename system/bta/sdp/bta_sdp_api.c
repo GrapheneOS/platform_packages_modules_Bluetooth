@@ -69,7 +69,7 @@ tBTA_SDP_STATUS BTA_SdpEnable(tBTA_SDP_DM_CBACK *p_cback)
         bta_sys_register(BTA_ID_SDP, &bta_sdp_reg);
 
         if (p_cback &&
-                (p_buf = (tBTA_SDP_API_ENABLE *) osi_getbuf(sizeof(tBTA_SDP_API_ENABLE))) != NULL)
+                (p_buf = (tBTA_SDP_API_ENABLE *) osi_malloc(sizeof(tBTA_SDP_API_ENABLE))) != NULL)
         {
             p_buf->hdr.event = BTA_SDP_API_ENABLE_EVT;
             p_buf->p_cback = p_cback;
@@ -99,7 +99,7 @@ tBTA_SDP_STATUS BTA_SdpSearch(BD_ADDR bd_addr, tSDP_UUID *uuid)
     tBTA_SDP_API_SEARCH *p_msg;
 
     APPL_TRACE_API(__FUNCTION__);
-    if ((p_msg = (tBTA_SDP_API_SEARCH *)osi_getbuf(sizeof(tBTA_SDP_API_SEARCH))) != NULL)
+    if ((p_msg = (tBTA_SDP_API_SEARCH *)osi_malloc(sizeof(tBTA_SDP_API_SEARCH))) != NULL)
     {
         p_msg->hdr.event = BTA_SDP_API_SEARCH_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);
@@ -130,7 +130,7 @@ tBTA_SDP_STATUS BTA_SdpCreateRecordByUser(void* user_data)
     tBTA_SDP_API_RECORD_USER *p_msg;
 
     APPL_TRACE_API(__FUNCTION__);
-    if ((p_msg = (tBTA_SDP_API_RECORD_USER *)osi_getbuf(sizeof(tBTA_SDP_API_RECORD_USER))) != NULL)
+    if ((p_msg = (tBTA_SDP_API_RECORD_USER *)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER))) != NULL)
     {
         p_msg->hdr.event = BTA_SDP_API_CREATE_RECORD_USER_EVT;
         p_msg->user_data = user_data;
@@ -159,7 +159,7 @@ tBTA_SDP_STATUS BTA_SdpRemoveRecordByUser(void* user_data)
     tBTA_SDP_API_RECORD_USER *p_msg;
 
     APPL_TRACE_API(__FUNCTION__);
-    if ((p_msg = (tBTA_SDP_API_RECORD_USER *)osi_getbuf(sizeof(tBTA_SDP_API_RECORD_USER))) != NULL)
+    if ((p_msg = (tBTA_SDP_API_RECORD_USER *)osi_malloc(sizeof(tBTA_SDP_API_RECORD_USER))) != NULL)
     {
         p_msg->hdr.event = BTA_SDP_API_REMOVE_RECORD_USER_EVT;
         p_msg->user_data = user_data;

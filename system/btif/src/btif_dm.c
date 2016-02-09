@@ -841,9 +841,9 @@ static void search_services_copy_cb(UINT16 event, char *p_dest, char *p_src)
                                                         (UINT8*)(p_dest + sizeof(tBTA_DM_SEARCH));
                        memcpy(p_dest_data->disc_res.p_uuid_list, p_src_data->disc_res.p_uuid_list,
                               p_src_data->disc_res.num_uuids*MAX_UUID_SIZE);
-                       osi_freebuf_and_reset((void **)&p_src_data->disc_res.p_uuid_list);
+                       osi_free_and_reset((void **)&p_src_data->disc_res.p_uuid_list);
                   }
-                  osi_freebuf_and_reset((void **)&p_src_data->disc_res.p_raw_data);
+                  osi_free_and_reset((void **)&p_src_data->disc_res.p_raw_data);
               }
          } break;
     }
