@@ -27,7 +27,7 @@ bdroid_CFLAGS += \
   -Werror=pointer-to-int-cast \
   -Werror=int-to-pointer-cast \
   -Werror=implicit-function-declaration \
-  -Wno-gnu-variable-sized-type-not-at-end
+  -Wno-gnu-variable-sized-type-not-at-end \
   -UNDEBUG \
   -DLOG_NDEBUG=1
 
