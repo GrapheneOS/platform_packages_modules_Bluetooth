@@ -148,9 +148,9 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
         p_srvc_cb->p_srvc_cache = NULL;
     }
 
-    osi_freebuf(p_srvc_cb->p_srvc_list);
+    osi_free(p_srvc_cb->p_srvc_list);
     p_srvc_cb->p_srvc_list =
-        (tBTA_GATTC_ATTR_REC *)osi_getbuf(BTA_GATTC_ATTR_LIST_SIZE);
+        (tBTA_GATTC_ATTR_REC *)osi_malloc(BTA_GATTC_ATTR_LIST_SIZE);
     p_srvc_cb->total_srvc = 0;
     p_srvc_cb->cur_srvc_idx = 0;
     p_srvc_cb->cur_char_idx = 0;
@@ -823,8 +823,8 @@ void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
     }
 
     /* both were allocated in bta_gattc_sdp_service_disc */
-    osi_freebuf(cb_data->p_sdp_db);
-    osi_freebuf(cb_data);
+    osi_free(cb_data->p_sdp_db);
+    osi_free(cb_data);
 }
 /*******************************************************************************
 **
@@ -848,11 +848,11 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
 
     /* On success, cb_data will be freed inside bta_gattc_sdp_callback, otherwise it will be
      * freed within this function. */
-    tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)osi_getbuf(sizeof(tBTA_GATTC_CB_DATA));
+    tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)osi_malloc(sizeof(tBTA_GATTC_CB_DATA));
     if (cb_data == NULL)
         return BTA_GATT_ERROR;
 
-    cb_data->p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_GATT_SDP_DB_SIZE);
+    cb_data->p_sdp_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_GATT_SDP_DB_SIZE);
     attr_list[0] = ATTR_ID_SERVICE_CLASS_ID_LIST;
     attr_list[1] = ATTR_ID_PROTOCOL_DESC_LIST;
 
@@ -862,8 +862,8 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
     if (!SDP_ServiceSearchAttributeRequest2(p_server_cb->server_bda,
                                           cb_data->p_sdp_db, &bta_gattc_sdp_callback, cb_data))
     {
-        osi_freebuf(cb_data->p_sdp_db);
-        osi_freebuf(cb_data);
+        osi_free(cb_data->p_sdp_db);
+        osi_free(cb_data);
         return BTA_GATT_ERROR;
     }
 

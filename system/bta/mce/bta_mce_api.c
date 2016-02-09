@@ -70,7 +70,7 @@ tBTA_MCE_STATUS BTA_MceEnable(tBTA_MCE_DM_CBACK *p_cback)
         /* register with BTA system manager */
         bta_sys_register(BTA_ID_MCE, &bta_mce_reg);
 
-        if (p_cback && (p_buf = (tBTA_MCE_API_ENABLE *) osi_getbuf(sizeof(tBTA_MCE_API_ENABLE))) != NULL)
+        if (p_cback && (p_buf = (tBTA_MCE_API_ENABLE *) osi_malloc(sizeof(tBTA_MCE_API_ENABLE))) != NULL)
         {
             p_buf->hdr.event = BTA_MCE_API_ENABLE_EVT;
             p_buf->p_cback = p_cback;
@@ -100,7 +100,7 @@ tBTA_MCE_STATUS BTA_MceGetRemoteMasInstances(BD_ADDR bd_addr)
     tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *p_msg;
 
     APPL_TRACE_API(__FUNCTION__);
-    if ((p_msg = (tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *)osi_getbuf(sizeof(tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES))) != NULL)
+    if ((p_msg = (tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES *)osi_malloc(sizeof(tBTA_MCE_API_GET_REMOTE_MAS_INSTANCES))) != NULL)
     {
         p_msg->hdr.event = BTA_MCE_API_GET_REMOTE_MAS_INSTANCES_EVT;
         bdcpy(p_msg->bd_addr, bd_addr);

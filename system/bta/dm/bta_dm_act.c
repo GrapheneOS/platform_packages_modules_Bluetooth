@@ -295,7 +295,7 @@ void bta_dm_enable(tBTA_DM_MSG *p_data)
     bta_dm_cb.is_bta_dm_active = TRUE;
 
     /* send a message to BTA SYS */
-    if ((sys_enable_event = (tBTA_SYS_HW_MSG *) osi_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+    if ((sys_enable_event = (tBTA_SYS_HW_MSG *) osi_malloc(sizeof(tBTA_SYS_HW_MSG))) != NULL)
     {
         sys_enable_event->hdr.event = BTA_SYS_API_ENABLE_EVT;
         sys_enable_event->hw_module = BTA_SYS_HW_BLUETOOTH;
@@ -1206,7 +1206,7 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
     tBTM_INQUIRY_CMPL result;
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    UINT16 len = (UINT16)(sizeof(tBT_UUID) * p_data->search.num_uuid);
+    size_t len = sizeof(tBT_UUID) * p_data->search.num_uuid;
     bta_dm_gattc_register();
 #endif
 
@@ -1225,12 +1225,12 @@ void bta_dm_search_start (tBTA_DM_MSG *p_data)
     bta_dm_search_cb.services = p_data->search.services;
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
 
     if ((bta_dm_search_cb.num_uuid = p_data->search.num_uuid) != 0 &&
          p_data->search.p_uuid != NULL)
     {
-        if ((bta_dm_search_cb.p_srvc_uuid = (tBT_UUID *)osi_getbuf(len)) == NULL)
+        if ((bta_dm_search_cb.p_srvc_uuid = (tBT_UUID *)osi_malloc(len)) == NULL)
         {
             APPL_TRACE_ERROR("%s no resources", __func__);
 
@@ -1275,7 +1275,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
         if (BTM_CancelInquiry() == BTM_SUCCESS)
         {
             bta_dm_search_cancel_notify(NULL);
-            p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG));
+            p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG));
             if (p_msg != NULL)
             {
                 p_msg->hdr.event = BTA_DM_SEARCH_CMPL_EVT;
@@ -1292,7 +1292,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
     {
         BTM_CancelRemoteDeviceName();
 
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_DM_SEARCH_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
@@ -1301,7 +1301,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
 
     }
     else {
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_DM_INQUIRY_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
@@ -1330,7 +1330,7 @@ void bta_dm_search_cancel (tBTA_DM_MSG *p_data)
 void bta_dm_discover (tBTA_DM_MSG *p_data)
 {
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
-    UINT16 len = (UINT16)(sizeof(tBT_UUID) * p_data->discover.num_uuid);
+    size_t len = sizeof(tBT_UUID) * p_data->discover.num_uuid;
 #endif
     APPL_TRACE_EVENT("%s services_to_search=0x%04X, sdp_search=%d", __func__,
                       p_data->discover.services, p_data->discover.sdp_search);
@@ -1340,11 +1340,11 @@ void bta_dm_discover (tBTA_DM_MSG *p_data)
 
 #if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
     bta_dm_gattc_register();
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
     if ((bta_dm_search_cb.num_uuid = p_data->discover.num_uuid) != 0 &&
         p_data->discover.p_uuid != NULL)
     {
-        if ((bta_dm_search_cb.p_srvc_uuid = (tBT_UUID *)osi_getbuf(len)) == NULL)
+        if ((bta_dm_search_cb.p_srvc_uuid = (tBT_UUID *)osi_malloc(len)) == NULL)
         {
             p_data->discover.p_cback(BTA_DM_DISC_CMPL_EVT, NULL);
             return;
@@ -1411,7 +1411,7 @@ static void bta_dm_di_disc_callback(UINT16 result)
 {
     tBTA_DM_MSG * p_msg;
 
-    if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event            = BTA_DM_SEARCH_CMPL_EVT;
         p_msg->hdr.layer_specific   = BTA_DM_API_DI_DISCOVER_EVT;
@@ -1468,7 +1468,7 @@ void bta_dm_di_disc (tBTA_DM_MSG *p_data)
     bdcpy(bta_dm_search_cb.peer_bdaddr, p_data->di_disc.bd_addr);
     bta_dm_di_cb.p_di_db = p_data->di_disc.p_sdp_db;
 
-    if((bta_dm_search_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_DM_SDP_DB_SIZE)) != NULL)
+    if((bta_dm_search_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_DM_SDP_DB_SIZE)) != NULL)
     {
         if ( SDP_DiDiscover(bta_dm_search_cb.peer_bdaddr, p_data->di_disc.p_sdp_db,
                     p_data->di_disc.len, bta_dm_di_disc_callback) == SDP_SUCCESS)
@@ -1482,7 +1482,7 @@ void bta_dm_di_disc (tBTA_DM_MSG *p_data)
     }
 
     if ( result == BTA_FAILURE &&
-        (p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        (p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event            = BTA_DM_SEARCH_CMPL_EVT;
         p_msg->hdr.layer_specific   = BTA_DM_API_DI_DISCOVER_EVT;
@@ -1568,7 +1568,7 @@ void bta_dm_inq_cmpl (tBTA_DM_MSG *p_data)
         /* no devices, search complete */
         bta_dm_search_cb.services = 0;
 
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event          = BTA_DM_SEARCH_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
@@ -1790,7 +1790,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
 
 
-            if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+            if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
             {
                 p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
                 p_msg->disc_result.result.disc_res.result = BTA_SUCCESS;
@@ -1799,7 +1799,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                 p_msg->disc_result.result.disc_res.num_uuids = num_uuids;
                 p_msg->disc_result.result.disc_res.p_uuid_list = NULL;
                 if (num_uuids > 0) {
-                    p_msg->disc_result.result.disc_res.p_uuid_list = (UINT8*)osi_getbuf(num_uuids*MAX_UUID_SIZE);
+                    p_msg->disc_result.result.disc_res.p_uuid_list = (UINT8*)osi_malloc(num_uuids*MAX_UUID_SIZE);
                     if (p_msg->disc_result.result.disc_res.p_uuid_list) {
                         memcpy(p_msg->disc_result.result.disc_res.p_uuid_list, uuid_list,
                                num_uuids*MAX_UUID_SIZE);
@@ -1818,7 +1818,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                         bta_dm_search_cb.p_sdp_db->raw_used,
                         bta_dm_search_cb.p_sdp_db->raw_data);
 
-                    p_msg->disc_result.result.disc_res.p_raw_data = osi_getbuf(bta_dm_search_cb.p_sdp_db->raw_used);
+                    p_msg->disc_result.result.disc_res.p_raw_data = osi_malloc(bta_dm_search_cb.p_sdp_db->raw_used);
                     if ( NULL != p_msg->disc_result.result.disc_res.p_raw_data  ) {
                         memcpy(     p_msg->disc_result.result.disc_res.p_raw_data,
                                     bta_dm_search_cb.p_sdp_db->raw_data,
@@ -1866,11 +1866,11 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
             bta_dm_search_cb.wait_disc = FALSE;
 
         /* not able to connect go to next device */
-        osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
+        osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 
         BTM_SecDeleteRmtNameNotifyCallback(&bta_dm_service_search_remname_cback);
 
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
             p_msg->disc_result.result.disc_res.result = BTA_FAILURE;
@@ -1898,7 +1898,7 @@ void bta_dm_search_cmpl(tBTA_DM_MSG *p_data)
     APPL_TRACE_EVENT("%s", __func__);
 
 #if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_srvc_uuid);
 #endif
 
     if (p_data->hdr.layer_specific == BTA_DM_API_DI_DISCOVER_EVT)
@@ -1926,7 +1926,7 @@ void bta_dm_disc_result (tBTA_DM_MSG *p_data)
 #endif
     bta_dm_search_cb.p_search_cback(BTA_DM_DISC_RES_EVT, &p_data->disc_result.result);
 
-    tBTA_DM_MSG *p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG));
+    tBTA_DM_MSG *p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG));
 
     /* send a message to change state */
     if (p_msg != NULL)
@@ -2010,7 +2010,7 @@ static void bta_dm_search_timer_cback(UNUSED_ATTR void *data)
 void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
 }
 
 /*******************************************************************************
@@ -2024,9 +2024,9 @@ void bta_dm_free_sdp_db (tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_queue_search(tBTA_DM_MSG *p_data)
 {
-    osi_freebuf(bta_dm_search_cb.p_search_queue);
+    osi_free(bta_dm_search_cb.p_search_queue);
     bta_dm_search_cb.p_search_queue =
-      (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_SEARCH));
+      (tBTA_DM_MSG *)osi_malloc(sizeof(tBTA_DM_API_SEARCH));
     memcpy(bta_dm_search_cb.p_search_queue, p_data,
            sizeof(tBTA_DM_API_SEARCH));
 }
@@ -2042,9 +2042,9 @@ void bta_dm_queue_search(tBTA_DM_MSG *p_data)
 *******************************************************************************/
 void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 {
-    osi_freebuf(bta_dm_search_cb.p_search_queue);
+    osi_free(bta_dm_search_cb.p_search_queue);
     bta_dm_search_cb.p_search_queue =
-        (tBTA_DM_MSG *)osi_getbuf(sizeof(tBTA_DM_API_DISCOVER));
+        (tBTA_DM_MSG *)osi_malloc(sizeof(tBTA_DM_API_DISCOVER));
     memcpy(bta_dm_search_cb.p_search_queue, p_data,
            sizeof(tBTA_DM_API_DISCOVER));
 }
@@ -2061,7 +2061,7 @@ void bta_dm_queue_disc(tBTA_DM_MSG *p_data)
 void bta_dm_search_clear_queue(tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_search_queue);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_search_queue);
 }
 
 /*******************************************************************************
@@ -2098,7 +2098,7 @@ void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data)
 {
     UNUSED(p_data);
 
-    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
+    osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
     bta_dm_search_cancel_notify(NULL);
 }
 
@@ -2154,7 +2154,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
         if( bta_dm_search_cb.services_to_search
             & (tBTA_SERVICE_MASK)(BTA_SERVICE_ID_TO_SERVICE_MASK(bta_dm_search_cb.service_index)))
         {
-            if((bta_dm_search_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_getbuf(BTA_DM_SDP_DB_SIZE)) != NULL)
+            if((bta_dm_search_cb.p_sdp_db = (tSDP_DISCOVERY_DB *)osi_malloc(BTA_DM_SDP_DB_SIZE)) != NULL)
             {
                 APPL_TRACE_DEBUG("bta_dm_search_cb.services = %04x***********", bta_dm_search_cb.services);
                 /* try to search all services by search based on L2CAP UUID */
@@ -2228,7 +2228,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
                      * If discovery is not successful with this device, then
                      * proceed with the next one.
                      */
-                    osi_freebuf_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
+                    osi_free_and_reset((void **)&bta_dm_search_cb.p_sdp_db);
                     bta_dm_search_cb.service_index = BTA_MAX_SERVICE_ID;
 
                 }
@@ -2255,7 +2255,7 @@ static void bta_dm_find_services ( BD_ADDR bd_addr)
     /* no more services to be discovered */
     if(bta_dm_search_cb.service_index >= BTA_MAX_SERVICE_ID)
     {
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
             p_msg->disc_result.result.disc_res.services = bta_dm_search_cb.services_found;
@@ -2296,7 +2296,7 @@ static void bta_dm_discover_next_device(void)
         /* no devices, search complete */
         bta_dm_search_cb.services = 0;
 
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event          = BTA_DM_SEARCH_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
@@ -2444,7 +2444,7 @@ static void bta_dm_discover_device(BD_ADDR remote_bd_addr)
     }
 
     /* name discovery and service discovery are done for this device */
-    if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+    if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
         /* initialize the data structure - includes p_raw_data and raw_data_size */
@@ -2473,7 +2473,7 @@ static void bta_dm_sdp_callback (UINT16 sdp_status)
 
     tBTA_DM_SDP_RESULT * p_msg;
 
-    if ((p_msg = (tBTA_DM_SDP_RESULT *) osi_getbuf(sizeof(tBTA_DM_SDP_RESULT))) != NULL)
+    if ((p_msg = (tBTA_DM_SDP_RESULT *) osi_malloc(sizeof(tBTA_DM_SDP_RESULT))) != NULL)
     {
         p_msg->hdr.event = BTA_DM_SDP_RESULT_EVT;
         p_msg->sdp_result = sdp_status;
@@ -2553,7 +2553,7 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
     if (bta_dm_search_cb.cancel_pending == FALSE)
     {
         APPL_TRACE_DEBUG("%s", __FUNCTION__);
-        p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG));
+        p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG));
         if (p_msg != NULL) {
             p_msg->inq_cmpl.hdr.event = BTA_DM_INQUIRY_CMPL_EVT;
             p_msg->inq_cmpl.num = ((tBTM_INQUIRY_CMPL *)p_result)->num_resp;
@@ -2565,7 +2565,7 @@ static void bta_dm_inq_cmpl_cb (void * p_result)
         bta_dm_search_cb.cancel_pending = FALSE;
         bta_dm_search_cancel_notify(NULL);
 
-        p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG));
+        p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG));
         if (p_msg != NULL) {
             p_msg->hdr.event = BTA_DM_SEARCH_CMPL_EVT;
             p_msg->hdr.layer_specific = BTA_DM_API_DISCOVER_EVT;
@@ -2660,7 +2660,7 @@ static void bta_dm_remname_cback (tBTM_REMOTE_DEV_NAME *p_remote_name)
     }
 #endif
 
-    if ((p_msg = (tBTA_DM_REM_NAME *) osi_getbuf(sizeof(tBTA_DM_REM_NAME))) != NULL)
+    if ((p_msg = (tBTA_DM_REM_NAME *) osi_malloc(sizeof(tBTA_DM_REM_NAME))) != NULL)
     {
         bdcpy (p_msg->result.disc_res.bd_addr, bta_dm_search_cb.peer_bdaddr);
         strlcpy((char*)p_msg->result.disc_res.bd_name,
@@ -3108,7 +3108,7 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
 {
     tBTA_DM_ACL_CHANGE * p_msg;
 
-    if ((p_msg = (tBTA_DM_ACL_CHANGE *) osi_getbuf(sizeof(tBTA_DM_ACL_CHANGE))) != NULL)
+    if ((p_msg = (tBTA_DM_ACL_CHANGE *) osi_malloc(sizeof(tBTA_DM_ACL_CHANGE))) != NULL)
     {
         p_msg->event = p_data->event;
         p_msg->is_new = FALSE;
@@ -3170,7 +3170,7 @@ static void bta_dm_acl_change_cback(BD_ADDR p_bda, DEV_CLASS p_dc, BD_NAME p_bdn
                                     UINT8 *features, BOOLEAN is_new)
 #endif
 {
-    tBTA_DM_ACL_CHANGE *p_msg = (tBTA_DM_ACL_CHANGE *) osi_getbuf(sizeof(tBTA_DM_ACL_CHANGE));
+    tBTA_DM_ACL_CHANGE *p_msg = (tBTA_DM_ACL_CHANGE *) osi_malloc(sizeof(tBTA_DM_ACL_CHANGE));
     if (p_msg != NULL)
     {
         memset(p_msg, 0, sizeof(tBTA_DM_ACL_CHANGE));
@@ -3512,7 +3512,7 @@ static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void *data)
     bta_sys_hw_register( BTA_SYS_HW_BLUETOOTH, bta_dm_sys_hw_cback );
 
     /* send a message to BTA SYS */
-    if ((sys_enable_event = (tBTA_SYS_HW_MSG *) osi_getbuf(sizeof(tBTA_SYS_HW_MSG))) != NULL)
+    if ((sys_enable_event = (tBTA_SYS_HW_MSG *) osi_malloc(sizeof(tBTA_SYS_HW_MSG))) != NULL)
     {
         sys_enable_event->hdr.event = BTA_SYS_API_DISABLE_EVT;
         sys_enable_event->hw_module = BTA_SYS_HW_BLUETOOTH;
@@ -3841,7 +3841,7 @@ static void bta_dm_set_eir (char *local_name)
 #endif  // BTA_EIR_CANNED_UUID_LIST
 
     /* Allocate a buffer to hold HCI command */
-    BT_HDR *p_buf = (BT_HDR *)osi_getbuf(BTM_CMD_BUF_SIZE);
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(BTM_CMD_BUF_SIZE);
     if (p_buf == NULL)
     {
         APPL_TRACE_ERROR("bta_dm_set_eir couldn't allocate buffer");
@@ -5531,7 +5531,7 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
         bta_dm_search_cb.uuid_to_search = 0;
 
         /* no more services to be discovered */
-        if ((p_msg = (tBTA_DM_MSG *) osi_getbuf(sizeof(tBTA_DM_MSG))) != NULL)
+        if ((p_msg = (tBTA_DM_MSG *) osi_malloc(sizeof(tBTA_DM_MSG))) != NULL)
         {
             p_msg->hdr.event = BTA_DM_DISCOVERY_RESULT_EVT;
             p_msg->disc_result.result.disc_res.result = (status == BTA_GATT_OK) ? BTA_SUCCESS :BTA_FAILURE;
@@ -5546,7 +5546,7 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
             p_msg->disc_result.result.disc_res.device_type |= BT_DEVICE_TYPE_BLE;
             if ( bta_dm_search_cb.ble_raw_used > 0 )
             {
-                p_msg->disc_result.result.disc_res.p_raw_data = osi_getbuf(bta_dm_search_cb.ble_raw_used);
+                p_msg->disc_result.result.disc_res.p_raw_data = osi_malloc(bta_dm_search_cb.ble_raw_used);
 
                 memcpy( p_msg->disc_result.result.disc_res.p_raw_data,
                             bta_dm_search_cb.p_ble_rawdata,

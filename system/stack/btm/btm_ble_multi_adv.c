@@ -819,17 +819,17 @@ void btm_ble_multi_adv_init()
 
     if (btm_cb.cmn_ble_vsc_cb.adv_inst_max > 0)
     {
-        btm_multi_adv_cb.p_adv_inst = osi_getbuf( sizeof(tBTM_BLE_MULTI_ADV_INST)*
+        btm_multi_adv_cb.p_adv_inst = osi_malloc( sizeof(tBTM_BLE_MULTI_ADV_INST)*
                                                  (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
         memset(btm_multi_adv_cb.p_adv_inst, 0, sizeof(tBTM_BLE_MULTI_ADV_INST)*
                                                (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
 
-        btm_multi_adv_cb.op_q.p_sub_code = osi_getbuf( sizeof(UINT8) *
+        btm_multi_adv_cb.op_q.p_sub_code = osi_malloc( sizeof(UINT8) *
                                                       (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
         memset(btm_multi_adv_cb.op_q.p_sub_code, 0,
                sizeof(UINT8)*(btm_cb.cmn_ble_vsc_cb.adv_inst_max));
 
-        btm_multi_adv_cb.op_q.p_inst_id = osi_getbuf( sizeof(UINT8) *
+        btm_multi_adv_cb.op_q.p_inst_id = osi_malloc( sizeof(UINT8) *
                                           (btm_cb.cmn_ble_vsc_cb.adv_inst_max));
         memset(btm_multi_adv_cb.op_q.p_inst_id, 0,
                sizeof(UINT8)*(btm_cb.cmn_ble_vsc_cb.adv_inst_max));
@@ -862,11 +862,11 @@ void btm_ble_multi_adv_cleanup(void)
         for (size_t i = 0; i < btm_cb.cmn_ble_vsc_cb.adv_inst_max; i++) {
             alarm_free(btm_multi_adv_cb.p_adv_inst[i].adv_raddr_timer);
         }
-        osi_freebuf_and_reset((void **)&btm_multi_adv_cb.p_adv_inst);
+        osi_free_and_reset((void **)&btm_multi_adv_cb.p_adv_inst);
     }
 
-    osi_freebuf_and_reset((void **)&btm_multi_adv_cb.op_q.p_sub_code);
-    osi_freebuf_and_reset((void **)&btm_multi_adv_cb.op_q.p_inst_id);
+    osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.p_sub_code);
+    osi_free_and_reset((void **)&btm_multi_adv_cb.op_q.p_inst_id);
 }
 
 /*******************************************************************************

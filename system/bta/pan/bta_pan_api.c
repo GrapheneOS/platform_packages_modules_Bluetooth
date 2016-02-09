@@ -61,7 +61,7 @@ void BTA_PanEnable(tBTA_PAN_CBACK p_cback)
     /* register with BTA system manager */
     bta_sys_register(BTA_ID_PAN, &bta_pan_reg);
 
-    if ((p_buf = (tBTA_PAN_API_ENABLE *) osi_getbuf(sizeof(tBTA_PAN_API_ENABLE))) != NULL)
+    if ((p_buf = (tBTA_PAN_API_ENABLE *) osi_malloc(sizeof(tBTA_PAN_API_ENABLE))) != NULL)
     {
         p_buf->hdr.event = BTA_PAN_API_ENABLE_EVT;
         p_buf->p_cback = p_cback;
@@ -87,7 +87,7 @@ void BTA_PanDisable(void)
     BT_HDR  *p_buf;
 
     bta_sys_deregister(BTA_ID_PAN);
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_PAN_API_DISABLE_EVT;
         bta_sys_sendmsg(p_buf);
@@ -110,7 +110,7 @@ void BTA_PanSetRole(tBTA_PAN_ROLE role, tBTA_PAN_ROLE_INFO *p_user_info, tBTA_PA
 
     tBTA_PAN_API_SET_ROLE  *p_buf;
 
-    if ((p_buf = (tBTA_PAN_API_SET_ROLE *) osi_getbuf(sizeof(tBTA_PAN_API_SET_ROLE))) != NULL)
+    if ((p_buf = (tBTA_PAN_API_SET_ROLE *) osi_malloc(sizeof(tBTA_PAN_API_SET_ROLE))) != NULL)
     {
         p_buf->hdr.event = BTA_PAN_API_SET_ROLE_EVT;
         p_buf->role = role;
@@ -171,7 +171,7 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    
 
     tBTA_PAN_API_OPEN  *p_buf;
 
-    if ((p_buf = (tBTA_PAN_API_OPEN *) osi_getbuf(sizeof(tBTA_PAN_API_OPEN))) != NULL)
+    if ((p_buf = (tBTA_PAN_API_OPEN *) osi_malloc(sizeof(tBTA_PAN_API_OPEN))) != NULL)
     {
         p_buf->hdr.event = BTA_PAN_API_OPEN_EVT;
         p_buf->local_role = local_role;
@@ -196,7 +196,7 @@ void BTA_PanClose(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->event = BTA_PAN_API_CLOSE_EVT;
         p_buf->layer_specific = handle;

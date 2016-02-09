@@ -64,7 +64,7 @@ static void bta_hf_client_sdp_cback(UINT16 status)
         event = BTA_HF_CLIENT_DISC_INT_RES_EVT;
     }
 
-    if ((p_buf = (tBTA_HF_CLIENT_DISC_RESULT *) osi_getbuf(sizeof(tBTA_HF_CLIENT_DISC_RESULT))) != NULL)
+    if ((p_buf = (tBTA_HF_CLIENT_DISC_RESULT *) osi_malloc(sizeof(tBTA_HF_CLIENT_DISC_RESULT))) != NULL)
     {
         p_buf->hdr.event = event;
         p_buf->status = status;
@@ -332,7 +332,7 @@ void bta_hf_client_do_disc(void)
     }
 
     /* allocate buffer for sdp database */
-    bta_hf_client_cb.scb.p_disc_db = (tSDP_DISCOVERY_DB *) osi_getbuf(BT_DEFAULT_BUFFER_SIZE);
+    bta_hf_client_cb.scb.p_disc_db = (tSDP_DISCOVERY_DB *) osi_malloc(BT_DEFAULT_BUFFER_SIZE);
 
     if (bta_hf_client_cb.scb.p_disc_db)
     {
@@ -374,5 +374,5 @@ void bta_hf_client_do_disc(void)
 void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data)
 {
     UNUSED(p_data);
-    osi_freebuf_and_reset((void **)&bta_hf_client_cb.scb.p_disc_db);
+    osi_free_and_reset((void **)&bta_hf_client_cb.scb.p_disc_db);
 }

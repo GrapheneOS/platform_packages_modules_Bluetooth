@@ -302,8 +302,8 @@ void mca_ccb_dealloc(tMCA_CCB *p_ccb, tMCA_CCB_EVT *p_data)
     {
         L2CA_Deregister (p_ccb->data_vpsm);
     }
-    osi_freebuf_and_reset((void **)&p_ccb->p_rx_msg);
-    osi_freebuf_and_reset((void **)&p_ccb->p_tx_req);
+    osi_free_and_reset((void **)&p_ccb->p_rx_msg);
+    osi_free_and_reset((void **)&p_ccb->p_tx_req);
     mca_stop_timer(p_ccb);
 
     if (p_data)

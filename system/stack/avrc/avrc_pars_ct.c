@@ -254,7 +254,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         }
         BE_STREAM_TO_UINT8(p_result->get_cur_app_val.num_val, p);
         app_sett =
-            (tAVRC_APP_SETTING*)osi_getbuf(p_result->get_cur_app_val.num_val*sizeof(tAVRC_APP_SETTING));
+            (tAVRC_APP_SETTING*)osi_malloc(p_result->get_cur_app_val.num_val*sizeof(tAVRC_APP_SETTING));
         AVRC_TRACE_DEBUG("%s attr count = %d ", __func__, p_result->get_cur_app_val.num_val);
         for (int xx = 0; xx < p_result->get_cur_app_val.num_val; xx++)
         {
@@ -278,7 +278,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         BE_STREAM_TO_UINT8(num_attrs, p);
         AVRC_TRACE_DEBUG("%s attr count = %d ", __func__, p_result->get_app_attr_txt.num_attr);
         p_result->get_app_attr_txt.num_attr = num_attrs;
-        p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_getbuf(num_attrs * sizeof(tAVRC_APP_SETTING_TEXT));
+        p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_malloc(num_attrs * sizeof(tAVRC_APP_SETTING_TEXT));
         if (p_setting_text == NULL)
         {
             p_result->get_app_attr_txt.num_attr = 0;
@@ -294,7 +294,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
             BE_STREAM_TO_UINT8(p_result->get_app_attr_txt.p_attrs[xx].str_len, p);
             if (p_result->get_app_attr_txt.p_attrs[xx].str_len != 0)
             {
-                p_str = (UINT8*)osi_getbuf(p_result->get_app_attr_txt.p_attrs[xx].str_len);
+                p_str = (UINT8*)osi_malloc(p_result->get_app_attr_txt.p_attrs[xx].str_len);
                 if (p_str != NULL)
                 {
                     BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_attr_txt.p_attrs[xx].str_len);
@@ -328,7 +328,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         p_result->get_app_val_txt.num_attr = num_vals;
         AVRC_TRACE_DEBUG("%s value count = %d ", __func__, p_result->get_app_val_txt.num_attr);
 
-        p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_getbuf(num_vals * sizeof(tAVRC_APP_SETTING_TEXT));
+        p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_malloc(num_vals * sizeof(tAVRC_APP_SETTING_TEXT));
         if (p_setting_text == NULL)
         {
             p_result->get_app_attr_txt.num_attr = 0;
@@ -344,7 +344,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
             BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[xx].str_len, p);
             if (p_result->get_app_val_txt.p_attrs[xx].str_len != 0)
             {
-                p_str = (UINT8*)osi_getbuf(p_result->get_app_val_txt.p_attrs[xx].str_len);
+                p_str = (UINT8*)osi_malloc(p_result->get_app_val_txt.p_attrs[xx].str_len);
                 if (p_str != NULL)
                 {
                     BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_val_txt.p_attrs[xx].str_len);
@@ -382,7 +382,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         p_result->get_elem_attrs.num_attr = num_attrs;
         if (num_attrs)
         {
-            p_attrs = (tAVRC_ATTR_ENTRY*)osi_getbuf(num_attrs * sizeof(tAVRC_ATTR_ENTRY));
+            p_attrs = (tAVRC_ATTR_ENTRY*)osi_malloc(num_attrs * sizeof(tAVRC_ATTR_ENTRY));
             for (int xx = 0; xx < num_attrs; xx++)
             {
                 BE_STREAM_TO_UINT32(p_attrs[xx].attr_id, p);
@@ -390,7 +390,7 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
                 BE_STREAM_TO_UINT16(p_attrs[xx].name.str_len, p);
                 if (p_attrs[xx].name.str_len > 0)
                 {
-                    p_attrs[xx].name.p_str = (UINT8*)osi_getbuf(p_attrs[xx].name.str_len);
+                    p_attrs[xx].name.p_str = (UINT8*)osi_malloc(p_attrs[xx].name.str_len);
                     if (p_attrs[xx].name.p_str != NULL)
                     {
                         BE_STREAM_TO_ARRAY(p, p_attrs[xx].name.p_str, p_attrs[xx].name.str_len);

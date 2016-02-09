@@ -53,7 +53,7 @@ void bta_pan_ci_tx_ready(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->layer_specific = handle;
         p_buf->event = BTA_PAN_CI_TX_READY_EVT;
@@ -78,7 +78,7 @@ void bta_pan_ci_rx_ready(UINT16 handle)
 {
     BT_HDR  *p_buf;
 
-    if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_buf->layer_specific = handle;
         p_buf->event = BTA_PAN_CI_RX_READY_EVT;
@@ -105,7 +105,7 @@ void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
 {
     tBTA_PAN_CI_TX_FLOW  *p_buf;
 
-    if ((p_buf = (tBTA_PAN_CI_TX_FLOW *) osi_getbuf(sizeof(tBTA_PAN_CI_TX_FLOW))) != NULL)
+    if ((p_buf = (tBTA_PAN_CI_TX_FLOW *) osi_malloc(sizeof(tBTA_PAN_CI_TX_FLOW))) != NULL)
     {
         p_buf->hdr.layer_specific = handle;
         p_buf->hdr.event = BTA_PAN_CI_TX_FLOW_EVT;
@@ -129,7 +129,7 @@ void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
 void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
                             UINT8 *p_data, UINT16 len, BOOLEAN ext)
 {
-    BT_HDR * p_buf = (BT_HDR *) osi_getbuf(PAN_BUF_SIZE);
+    BT_HDR * p_buf = (BT_HDR *) osi_malloc(PAN_BUF_SIZE);
 
     if (p_buf != NULL)
     {
@@ -159,9 +159,8 @@ void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoco
 ** Description      This function is called to send data to the phone when
 **                  the RX path is configured to use a push interface with
 **                  zero copy.  The function sends an event to PAN containing
-**                  the data buffer.  The buffer must be allocated using
-**                  functions osi_getbuf().  The buffer
-**                  will be freed by BTA; the phone must not free the buffer.
+**                  the data buffer. The buffer will be freed by BTA; the
+**                  phone must not free the buffer.
 **
 **
 ** Returns          void

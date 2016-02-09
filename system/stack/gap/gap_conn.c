@@ -336,7 +336,7 @@ UINT16 GAP_ConnReadData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT1
             p_buf->len    -= copy_len;
             break;
         }
-        osi_freebuf(fixed_queue_try_dequeue(p_ccb->rx_queue));
+        osi_free(fixed_queue_try_dequeue(p_ccb->rx_queue));
     }
 
     p_ccb->rx_queue_size -= *p_len;
@@ -446,19 +446,19 @@ UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf)
 
     if (!p_ccb)
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (GAP_ERR_BAD_HANDLE);
     }
 
     if (p_ccb->con_state != GAP_CCB_STATE_CONNECTED)
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (GAP_ERR_BAD_STATE);
     }
 
     if (p_buf->offset < L2CAP_MIN_OFFSET)
     {
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
         return (GAP_ERR_BUF_OFFSET);
     }
 
@@ -525,13 +525,13 @@ UINT16 GAP_ConnWriteData (UINT16 gap_handle, UINT8 *p_data, UINT16 max_len, UINT
     {
         if (p_ccb->cfg.fcr.mode == L2CAP_FCR_ERTM_MODE)
         {
-            p_buf = (BT_HDR *)osi_getbuf(L2CAP_FCR_ERTM_BUF_SIZE);
+            p_buf = (BT_HDR *)osi_malloc(L2CAP_FCR_ERTM_BUF_SIZE);
             if (p_buf == NULL)
                 return (GAP_ERR_CONGESTED);
         }
         else
         {
-            p_buf = (BT_HDR *)osi_getbuf(GAP_DATA_BUF_SIZE);
+            p_buf = (BT_HDR *)osi_malloc(GAP_DATA_BUF_SIZE);
             if (p_buf == NULL)
                 return (GAP_ERR_CONGESTED);
         }
@@ -1006,7 +1006,7 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     /* Find CCB based on CID */
     if ((p_ccb = gap_find_ccb_by_cid (l2cap_cid)) == NULL)
     {
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
         return;
     }
 
@@ -1024,7 +1024,7 @@ static void gap_data_ind (UINT16 l2cap_cid, BT_HDR *p_msg)
     }
     else
     {
-        osi_freebuf(p_msg);
+        osi_free(p_msg);
     }
 }
 
@@ -1183,12 +1183,12 @@ static void gap_release_ccb (tGAP_CCB *p_ccb)
     p_ccb->rx_queue_size = 0;
 
     while (!fixed_queue_is_empty(p_ccb->rx_queue))
-        osi_freebuf(fixed_queue_try_dequeue(p_ccb->rx_queue));
+        osi_free(fixed_queue_try_dequeue(p_ccb->rx_queue));
     fixed_queue_free(p_ccb->rx_queue, NULL);
     p_ccb->rx_queue = NULL;
 
     while (!fixed_queue_is_empty(p_ccb->tx_queue))
-        osi_freebuf(fixed_queue_try_dequeue(p_ccb->tx_queue));
+        osi_free(fixed_queue_try_dequeue(p_ccb->tx_queue));
     fixed_queue_free(p_ccb->tx_queue, NULL);
     p_ccb->tx_queue = NULL;
 
@@ -1221,7 +1221,7 @@ void gap_send_event (UINT16 gap_handle)
 {
     BT_HDR  *p_msg;
 
-    if ((p_msg = (BT_HDR*)osi_getbuf(BT_HDR_SIZE)) != NULL)
+    if ((p_msg = (BT_HDR*)osi_malloc(BT_HDR_SIZE)) != NULL)
     {
         p_msg->event  = BT_EVT_TO_GAP_MSG;
         p_msg->len    = 0;

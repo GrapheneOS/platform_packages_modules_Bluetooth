@@ -215,7 +215,7 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
                 /* BTA use the same client interface as BTE GATT statck */
                 cb_data.reg_oper.client_if = p_cb->cl_rcb[i].client_if;
 
-                if ((p_buf = (tBTA_GATTC_INT_START_IF *) osi_getbuf(sizeof(tBTA_GATTC_INT_START_IF))) != NULL)
+                if ((p_buf = (tBTA_GATTC_INT_START_IF *) osi_malloc(sizeof(tBTA_GATTC_INT_START_IF))) != NULL)
                 {
                     p_buf->hdr.event    = BTA_GATTC_INT_START_IF_EVT;
                     p_buf->client_if    = p_cb->cl_rcb[i].client_if;
@@ -1048,7 +1048,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
     }
     if (p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_list) {
         /* release pending attribute list buffer */
-        osi_freebuf_and_reset((void **)&p_clcb->p_srcb->p_srvc_list);
+        osi_free_and_reset((void **)&p_clcb->p_srcb->p_srvc_list);
     }
 
     if (p_clcb->auto_update == BTA_GATTC_DISC_WAITING)
@@ -1069,7 +1069,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
          * referenced by p_clcb->p_q_cmd
          */
         if (p_q_cmd != p_clcb->p_q_cmd)
-            osi_freebuf_and_reset((void **)&p_q_cmd);
+            osi_free_and_reset((void **)&p_q_cmd);
     }
 }
 /*******************************************************************************
@@ -1352,7 +1352,7 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
                     BTA_GATTC_READ_CHAR_EVT: BTA_GATTC_READ_DESCR_EVT;
     cb_data.read.conn_id = p_clcb->bta_conn_id;
 
-    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
+    osi_free_and_reset((void **)&p_clcb->p_q_cmd);
     /* read complete, callback */
     ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
 
@@ -1404,7 +1404,7 @@ void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     else
         event = BTA_GATTC_WRITE_DESCR_EVT;
 
-    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
+    osi_free_and_reset((void **)&p_clcb->p_q_cmd);
     cb_data.write.conn_id = p_clcb->bta_conn_id;
     /* write complete, callback */
     ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
@@ -1423,7 +1423,7 @@ void bta_gattc_exec_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
 
-    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
+    osi_free_and_reset((void **)&p_clcb->p_q_cmd);
     p_clcb->status      = BTA_GATT_OK;
 
     /* execute complete, callback */
@@ -1447,7 +1447,7 @@ void bta_gattc_cfg_mtu_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     tBTA_GATTC          cb_data;
 
-    osi_freebuf_and_reset((void **)&p_clcb->p_q_cmd);
+    osi_free_and_reset((void **)&p_clcb->p_q_cmd);
 
     if (p_data->p_cmpl  &&  p_data->status == BTA_GATT_OK)
         p_clcb->p_srcb->mtu  = p_data->p_cmpl->mtu;
@@ -1806,7 +1806,7 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
     else
         btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, reason);
 
-    if ((p_buf = (tBTA_GATTC_DATA *) osi_getbuf(sizeof(tBTA_GATTC_DATA))) != NULL)
+    if ((p_buf = (tBTA_GATTC_DATA *) osi_malloc(sizeof(tBTA_GATTC_DATA))) != NULL)
     {
         memset(p_buf, 0, sizeof(tBTA_GATTC_DATA));
 
@@ -1854,7 +1854,7 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
 
     APPL_TRACE_DEBUG("bta_gattc_enc_cmpl_cback: cif = %d", gattc_if);
 
-    if ((p_buf = (tBTA_GATTC_DATA *) osi_getbuf(sizeof(tBTA_GATTC_DATA))) != NULL)
+    if ((p_buf = (tBTA_GATTC_DATA *) osi_malloc(sizeof(tBTA_GATTC_DATA))) != NULL)
     {
         memset(p_buf, 0, sizeof(tBTA_GATTC_DATA));
 
@@ -2169,7 +2169,7 @@ static void bta_gattc_cmpl_sendmsg(UINT16 conn_id, tGATTC_OPTYPE op,
                                    tGATT_CL_COMPLETE *p_data)
 {
     const UINT16         len = sizeof(tBTA_GATTC_OP_CMPL) + sizeof(tGATT_CL_COMPLETE);
-    tBTA_GATTC_OP_CMPL  *p_buf = (tBTA_GATTC_OP_CMPL *) osi_getbuf(len);
+    tBTA_GATTC_OP_CMPL  *p_buf = (tBTA_GATTC_OP_CMPL *) osi_malloc(len);
 
     if (p_buf != NULL)
     {

@@ -93,7 +93,7 @@ static void bta_pan_conn_state_cback(UINT16 handle, BD_ADDR bd_addr, tPAN_RESULT
     tBTA_PAN_SCB     *p_scb;
 
 
-    if ((p_buf = (tBTA_PAN_CONN *) osi_getbuf(sizeof(tBTA_PAN_CONN))) != NULL)
+    if ((p_buf = (tBTA_PAN_CONN *) osi_malloc(sizeof(tBTA_PAN_CONN))) != NULL)
     {
         if((state == PAN_SUCCESS) && !is_role_change)
         {
@@ -166,7 +166,7 @@ static void bta_pan_data_flow_cb(UINT16 handle, tPAN_RESULT result)
 
     if(result == PAN_TX_FLOW_ON)
     {
-        if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+        if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
         {
             p_buf->layer_specific = handle;
             p_buf->event = BTA_PAN_BNEP_FLOW_ENABLE_EVT;
@@ -207,11 +207,11 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
     if ( sizeof(tBTA_PAN_DATA_PARAMS) > p_buf->offset )
     {
         /* offset smaller than data structure in front of actual data */
-        p_new_buf = (BT_HDR *)osi_getbuf(PAN_BUF_SIZE);
+        p_new_buf = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
         if(!p_new_buf)
         {
             APPL_TRACE_WARNING("Cannot get a PAN buffer");
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
             return;
         }
         else
@@ -219,7 +219,7 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
             memcpy( (UINT8 *)(p_new_buf+1)+sizeof(tBTA_PAN_DATA_PARAMS), (UINT8 *)(p_buf+1)+p_buf->offset, p_buf->len );
             p_new_buf->len    = p_buf->len;
             p_new_buf->offset = sizeof(tBTA_PAN_DATA_PARAMS);
-            osi_freebuf(p_buf);
+            osi_free(p_buf);
         }
     }
     else
@@ -237,12 +237,12 @@ static void bta_pan_data_buf_ind_cback(UINT16 handle, BD_ADDR src, BD_ADDR dst, 
     if((p_scb = bta_pan_scb_by_handle(handle)) == NULL)
     {
 
-        osi_freebuf(p_new_buf);
+        osi_free(p_new_buf);
         return;
     }
 
     fixed_queue_enqueue(p_scb->data_queue, p_new_buf);
-    if ((p_event = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+    if ((p_event = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
     {
         p_event->layer_specific = handle;
         p_event->event = BTA_PAN_RX_FROM_BNEP_READY_EVT;
@@ -487,7 +487,7 @@ void bta_pan_disable(void)
         if (p_scb->in_use)
         {
             while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue)) != NULL)
-                osi_freebuf(p_buf);
+                osi_free(p_buf);
 
             bta_pan_co_close(p_scb->handle, p_scb->app_id);
 
@@ -566,7 +566,7 @@ void bta_pan_api_close (tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
     /* send an event to BTA so that application will get the connection
        close event */
-    if ((p_buf = (tBTA_PAN_CONN *) osi_getbuf(sizeof(tBTA_PAN_CONN))) != NULL)
+    if ((p_buf = (tBTA_PAN_CONN *) osi_malloc(sizeof(tBTA_PAN_CONN))) != NULL)
     {
         p_buf->hdr.event = BTA_PAN_CONN_CLOSE_EVT;
 
@@ -651,7 +651,7 @@ void bta_pan_conn_close(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
     /* free all queued up data buffers */
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_scb->data_queue)) != NULL)
-        osi_freebuf(p_buf);
+        osi_free(p_buf);
 
     bta_pan_scb_dealloc(p_scb);
 
@@ -718,7 +718,7 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 
         /* free data that exceeds queue level */
         while (fixed_queue_length(p_scb->data_queue) > bta_pan_cb.q_level)
-            osi_freebuf(fixed_queue_try_dequeue(p_scb->data_queue));
+            osi_free(fixed_queue_try_dequeue(p_scb->data_queue));
         bta_pan_pm_conn_idle(p_scb);
     }
     /* if configured for zero copy push */
@@ -743,13 +743,13 @@ void bta_pan_tx_path(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
             }
             /* free data that exceeds queue level  */
             while (fixed_queue_length(p_scb->data_queue) > bta_pan_cb.q_level)
-                osi_freebuf(fixed_queue_try_dequeue(p_scb->data_queue));
+                osi_free(fixed_queue_try_dequeue(p_scb->data_queue));
 
             /* if there is more data to be passed to
             upper layer */
             if (!fixed_queue_is_empty(p_scb->data_queue))
             {
-                if ((p_buf = (BT_HDR *) osi_getbuf(sizeof(BT_HDR))) != NULL)
+                if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
                 {
                     p_buf->layer_specific = p_scb->handle;
                     p_buf->event = BTA_PAN_RX_FROM_BNEP_READY_EVT;
@@ -817,7 +817,7 @@ void bta_pan_write_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 void bta_pan_free_buf(tBTA_PAN_SCB *p_scb, tBTA_PAN_DATA *p_data)
 {
     UNUSED(p_scb);
-    osi_freebuf(p_data);
+    osi_free(p_data);
 }
 
 #endif /* PAN_INCLUDED */
