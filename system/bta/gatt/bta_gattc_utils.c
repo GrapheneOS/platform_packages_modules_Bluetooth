@@ -410,6 +410,9 @@ tBTA_GATTC_SERV * bta_gattc_srcb_alloc(BD_ADDR bda)
 
     if (p_tcb != NULL)
     {
+        if (p_tcb->p_srvc_cache != NULL)
+            list_free(p_tcb->p_srvc_cache);
+
         osi_free_and_reset((void **)&p_tcb->p_srvc_list);
         memset(p_tcb, 0 , sizeof(tBTA_GATTC_SERV));
 
