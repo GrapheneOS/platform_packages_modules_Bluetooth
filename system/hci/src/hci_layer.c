@@ -57,7 +57,7 @@ bt_bdaddr_t btif_local_bd_addr;
 #define PREAMBLE_BUFFER_SIZE 4 // max preamble size, ACL
 #define RETRIEVE_ACL_LENGTH(preamble) ((((preamble)[3]) << 8) | (preamble)[2])
 
-#define BT_HCI_TIMEOUT_TAG_NUM 1000002
+#define BT_HCI_TIMEOUT_TAG_NUM 1010000
 
 static const uint8_t preamble_sizes[] = {
   HCI_COMMAND_PREAMBLE_SIZE,
