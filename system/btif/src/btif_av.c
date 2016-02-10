@@ -247,6 +247,16 @@ static void btif_initiate_av_open_timer_timeout(UNUSED_ATTR void *data)
 **  Static functions
 ******************************************************************************/
 
+/*******************************************************************************
+**
+** Function         btif_report_connection_state
+**
+** Description      Updates the components via the callbacks about the connection
+**                  state of a2dp connection.
+**
+** Returns          None
+**
+*******************************************************************************/
 static void btif_report_connection_state(btav_connection_state_t state, bt_bdaddr_t *bd_addr)
 {
     if (bt_av_sink_callbacks != NULL) {
@@ -256,6 +266,19 @@ static void btif_report_connection_state(btav_connection_state_t state, bt_bdadd
     }
 }
 
+/*******************************************************************************
+**
+** Function         btif_report_audio_state
+**
+** Description      Updates the components via the callbacks about the audio
+**                  state of a2dp connection. The state is updated when either
+**                  the remote ends starts streaming (started state) or whenever
+**                  it transitions out of started state (to opened or streaming)
+**                  state.
+**
+** Returns          None
+**
+*******************************************************************************/
 static void btif_report_audio_state(btav_audio_state_t state, bt_bdaddr_t *bd_addr)
 {
     if (bt_av_sink_callbacks != NULL) {
@@ -753,9 +776,6 @@ static BOOLEAN btif_av_state_opened_handler(btif_sm_event_t event, void *p_data)
             if (btif_av_cb.peer_sep == AVDT_TSEP_SRC)
             {
                 btif_a2dp_set_rx_flush(FALSE); /*  remove flush state, ready for streaming*/
-#ifdef USE_AUDIO_TRACK
-                audio_focus_status(BTIF_MEDIA_FOCUS_READY);
-#endif
             }
 
             /* change state to started, send acknowledgement if start is pending */
@@ -862,6 +882,11 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             /* we are again in started state, clear any remote suspend flags */
             btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
 
+            /**
+             * Report to components above that we have entered the streaming
+             * stage, this should usually be followed by focus grant.
+             * see update_audio_focus_state()
+             */
             btif_report_audio_state(BTAV_AUDIO_STATE_STARTED, &(btif_av_cb.peer_bda));
 
             /* increase the a2dp consumer task priority temporarily when start
@@ -966,13 +991,6 @@ static BOOLEAN btif_av_state_started_handler(btif_sm_event_t event, void *p_data
             /* suspend completed and state changed, clear pending status */
             btif_av_cb.flags &= ~BTIF_AV_FLAG_LOCAL_SUSPEND_PENDING;
             break;
-
-#ifdef USE_AUDIO_TRACK
-            case BTIF_AV_SINK_FOCUS_REQ_EVT:
-                HAL_CBACK(bt_av_sink_callbacks, audio_focus_request_cb,
-                                                   &(btif_av_cb.peer_bda));
-            break;
-#endif
 
         case BTA_AV_STOP_EVT:
 
@@ -1221,32 +1239,20 @@ static bt_status_t init_sink(btav_callbacks_t* callbacks)
 #ifdef USE_AUDIO_TRACK
 /*******************************************************************************
 **
-** Function         audio_focus_status
+** Function         update_audio_focus_state
 **
-** Description      Update Audio Focus State
+** Description      Updates the final focus state reported by components calling
+**                  this module.
 **
 ** Returns          None
 **
 *******************************************************************************/
-void audio_focus_status(int state)
+void update_audio_focus_state(int state)
 {
     BTIF_TRACE_DEBUG("%s state %d ",__func__, state);
     btif_a2dp_set_audio_focus_state(state);
 }
 
-/*******************************************************************************
-**
-** Function         btif_queue_focus_request
-**
-** Description      This is used to move context to btif and queue audio_focus_request
-**
-** Returns          none
-**
-*******************************************************************************/
-void btif_queue_focus_request(void)
-{
-    btif_transfer_context(btif_av_handle_event, BTIF_AV_SINK_FOCUS_REQ_EVT, NULL, 0, NULL);
-}
 #endif
 
 /*******************************************************************************
@@ -1367,7 +1373,7 @@ static const btav_interface_t bt_av_sink_interface = {
     disconnect,
     cleanup_sink,
 #ifdef USE_AUDIO_TRACK
-    audio_focus_status,
+    update_audio_focus_state,
 #else
     NULL,
 #endif

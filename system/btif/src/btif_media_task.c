@@ -898,7 +898,7 @@ void btif_a2dp_stop_media_task(void)
 
 void btif_a2dp_on_init(void)
 {
-    //tput_mon(1, 0, 1);
+    btif_media_cb.rx_audio_focus_state = BTIF_MEDIA_FOCUS_NOT_GRANTED;
 }
 
 
@@ -972,9 +972,6 @@ void btif_a2dp_on_idle(void)
         btif_media_task_aa_rx_flush_req();
         btif_media_task_aa_handle_stop_decoding();
         btif_media_task_clear_track();
-#ifdef USE_AUDIO_TRACK
-        btif_media_cb.rx_audio_focus_state = BTIF_MEDIA_FOCUS_IDLE;
-#endif
         APPL_TRACE_DEBUG("Stopped BT track");
     }
 #endif
@@ -1273,23 +1270,14 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context)
     }
     else
     {
-
 #ifdef USE_AUDIO_TRACK
-        switch(btif_media_cb.rx_audio_focus_state)
+        /* Don't Do anything in case of Not granted */
+        if (btif_media_cb.rx_audio_focus_state == BTIF_MEDIA_FOCUS_NOT_GRANTED)
         {
-            /* Don't Do anything in case of Idle, Requested */
-            case BTIF_MEDIA_FOCUS_REQUESTED:
-            case BTIF_MEDIA_FOCUS_IDLE:
-                return;
-            /* In case of Ready, request for focus and wait to move in granted */
-            case BTIF_MEDIA_FOCUS_READY:
-                btif_queue_focus_request();
-                btif_media_cb.rx_audio_focus_state = BTIF_MEDIA_FOCUS_REQUESTED;
-                return;
-            /* play only in this case */
-            case BTIF_MEDIA_FOCUS_GRANTED:
-                break;
+            APPL_TRACE_DEBUG("%s skipping frames since focus is not present.", __func__);
+            return;
         }
+        /* play only in BTIF_MEDIA_FOCUS_GRANTED case */
 #endif
         if (btif_media_cb.rx_flush == TRUE)
         {
@@ -1331,7 +1319,7 @@ static void btif_media_task_avk_handle_timer(UNUSED_ATTR void *context)
                 num_frames_to_process = num_frames_to_process - p_msg->num_frames_to_be_processed;
                 osi_free(p_msg);
             }
-        }while(num_frames_to_process > 0);
+        } while(num_frames_to_process > 0);
 
         APPL_TRACE_DEBUG(" Process Frames - ");
     }
