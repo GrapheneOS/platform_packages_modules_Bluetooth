@@ -894,7 +894,8 @@ extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
 **                  count: number of elements in db.
 **
 *******************************************************************************/
-extern void BTA_GATTC_GetGattDb(UINT16 conn_id, btgatt_db_element_t **db, int *count);
+extern void BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle,
+                                btgatt_db_element_t **db, int *count);
 
 /*******************************************************************************
 **

@@ -536,7 +536,7 @@ extern void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid);
 extern tBTA_GATT_STATUS bta_gattc_query_cache(UINT16 conn_id, UINT8 query_type, tBTA_GATT_SRVC_ID *p_srvc_id,
                                               tBTA_GATT_ID *p_start_rec,tBT_UUID *p_uuid_cond,
                                               tBTA_GATT_ID *p_output, void *p_param);
-extern void bta_gattc_get_gatt_db(UINT16 conn_id, btgatt_db_element_t **db, int *count);
+extern void bta_gattc_get_gatt_db(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle, btgatt_db_element_t **db, int *count);
 extern tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb);
 extern void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srcv, UINT16 num_attr, tBTA_GATTC_NV_ATTR *p_attr, UINT16 attr_index);
 extern BOOLEAN bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id);
