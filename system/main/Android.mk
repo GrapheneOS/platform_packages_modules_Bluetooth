@@ -54,7 +54,6 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bdroid_C_INCLUDES) \
-	external/tinyxml2 \
 	external/zlib
 
 LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
@@ -81,7 +80,6 @@ LOCAL_SHARED_LIBRARIES := \
     libutils
 
 LOCAL_STATIC_LIBRARIES := \
-    libtinyxml2 \
     libbt-qcom_sbc_decoder
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
