@@ -86,7 +86,6 @@ static const hci_t *hci;
 /*******************************************************************************
 **  Externs
 *******************************************************************************/
-extern void bte_load_ble_conf(const char *p_path);
 fixed_queue_t *btu_hci_msg_queue;
 
 /******************************************************************************
@@ -115,9 +114,6 @@ void bte_main_boot_entry(void)
     data_dispatcher_register_default(hci->event_dispatcher, btu_hci_msg_queue);
     hci->set_data_queue(btu_hci_msg_queue);
 
-#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
-    bte_load_ble_conf(BTE_BLE_STACK_CONF_FILE);
-#endif
     module_init(get_module(STACK_CONFIG_MODULE));
 }
 
