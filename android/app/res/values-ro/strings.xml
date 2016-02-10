@@ -125,7 +125,8 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Ștergeţi"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Salvați"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Anulați"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Selectați conturile la care doriți să permiteți accesul prin Bluetooth. Va trebui să acceptați accesul la conturi la conectare."</string>
+    <!-- no translation found for bluetooth_map_settings_intro (6482369468223987562) -->
+    <skip />
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Sloturi rămase:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Pictograma aplicației"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Setări de permitere a accesului la mesajele prin Bluetooth"</string>
