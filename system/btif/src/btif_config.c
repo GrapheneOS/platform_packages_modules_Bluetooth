@@ -32,7 +32,6 @@
 #include "btcore/include/module.h"
 #include "btif_common.h"
 #include "btif_config.h"
-#include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
@@ -47,7 +46,6 @@ static const char *CONFIG_FILE_PATH = "bt_config.conf";
 #else  // !defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 #endif  // defined(OS_GENERIC)
-static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
 static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
 static void timer_config_save_cb(void *data);
@@ -102,19 +100,13 @@ static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
-    LOG_WARN(LOG_TAG, "%s unable to load config file; attempting to transcode legacy file.", __func__);
-    config = btif_config_transcode(LEGACY_CONFIG_FILE_PATH);
+    LOG_WARN(LOG_TAG, "%s unable to load config file: %s; starting unconfigured.",
+              __func__, CONFIG_FILE_PATH);
+    config = config_new_empty();
     if (!config) {
-      LOG_WARN(LOG_TAG, "%s unable to transcode legacy file, starting unconfigured.", __func__);
-      config = config_new_empty();
-      if (!config) {
-        LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
-        goto error;
-      }
+      LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
+      goto error;
     }
-
-    if (config_save(config, CONFIG_FILE_PATH))
-      unlink(LEGACY_CONFIG_FILE_PATH);
   }
 
   btif_config_devcache_cleanup();

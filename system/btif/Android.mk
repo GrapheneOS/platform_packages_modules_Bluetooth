@@ -30,7 +30,6 @@ btifCommonSrc += \
   src/btif_av.c \
   src/btif_avrcp_audio_track.cpp \
   src/btif_config.c \
-  src/btif_config_transcode.cpp \
   src/btif_core.c \
   src/btif_debug.c \
   src/btif_debug_btsnoop.c \
@@ -107,7 +106,6 @@ btifCommonIncludes := \
   $(LOCAL_PATH)/../audio_a2dp_hw \
   $(LOCAL_PATH)/../utils/include \
   $(bdroid_C_INCLUDES) \
-  external/tinyxml2 \
   external/zlib
 
 btifCommonCFlags += -DBUILDCFG $(bdroid_CFLAGS) -std=c99 \
