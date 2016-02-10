@@ -130,16 +130,11 @@ status_t BnBluetoothGattServer::onTransact(
     int status = data.readInt32();
     int offset = data.readInt32();
 
-    std::vector<uint8_t> value;
-    int value_len = data.readInt32();
-    if (value_len != -1) {
-      uint8_t bytes[value_len];
-      data.read(bytes, value_len);
-      value.insert(value.begin(), bytes, bytes + value_len);
-    }
+    auto value = ReadByteVectorFromParcel(data);
+    CHECK(value.get());
 
     bool result = SendResponse(
-        server_if, device_address, request_id, status, offset, value);
+        server_if, device_address, request_id, status, offset, *value);
 
     reply->writeInt32(result);
 
@@ -152,16 +147,11 @@ status_t BnBluetoothGattServer::onTransact(
     CHECK(char_id);
     bool confirm = data.readInt32();
 
-    std::vector<uint8_t> value;
-    int value_len = data.readInt32();
-    if (value_len != -1) {
-      uint8_t bytes[value_len];
-      data.read(bytes, value_len);
-      value.insert(value.begin(), bytes, bytes + value_len);
-    }
+    auto value = ReadByteVectorFromParcel(data);
+    CHECK(value.get());
 
     bool result = SendNotification(server_if, device_address, *char_id, confirm,
-                                   value);
+                                   *value);
 
     reply->writeInt32(result);
 
