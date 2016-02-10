@@ -31,6 +31,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "device/include/controller.h"
+
 
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"
@@ -1195,14 +1197,15 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
             }
 
-            // Mark background connections
+            // Check for background connections
             if (!p_cb->is_direct)
             {
-                // Check if RPA offloading is supported, otherwise, do not start
-                // background connection, since it will not connect after address
-                // changes
-                if ((p_cb->addr_type == BLE_ADDR_RANDOM)
-                        && BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
+                // Check for privacy 1.0 and 1.1 controller and do not start background
+                // connection if RPA offloading is not supported, since it will not
+                // connect after change of random address
+                if (!controller_get_interface()->supports_ble_privacy() &&
+                   (p_cb->addr_type == BLE_ADDR_RANDOM) &&
+                   BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
                 {
                     tBTM_BLE_VSC_CB vnd_capabilities;
                     BTM_BleGetVendorCapabilities(&vnd_capabilities);
