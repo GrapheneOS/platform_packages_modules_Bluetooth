@@ -1427,6 +1427,7 @@ void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
 **
 *******************************************************************************/
 static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
+                                       UINT16 start_handle, UINT16 end_handle,
                                        btgatt_db_element_t **db,
                                        int *count)
 {
@@ -1444,6 +1445,12 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
          sn != list_end(p_srvc_cb->p_srvc_cache); sn = list_next(sn)) {
         tBTA_GATTC_CACHE *p_cur_srvc = list_node(sn);
 
+        if (p_cur_srvc->s_handle < start_handle)
+            continue;
+
+        if (p_cur_srvc->e_handle > end_handle)
+            break;
+
         db_size++;
         if (p_cur_srvc->p_attr)
             db_size += list_length(p_cur_srvc->p_attr);
@@ -1455,6 +1462,12 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
     for (list_node_t *sn = list_begin(p_srvc_cb->p_srvc_cache);
          sn != list_end(p_srvc_cb->p_srvc_cache); sn = list_next(sn)) {
         tBTA_GATTC_CACHE *p_cur_srvc = list_node(sn);
+
+        if (p_cur_srvc->s_handle < start_handle)
+            continue;
+
+        if (p_cur_srvc->e_handle > end_handle)
+            break;
 
         bta_gattc_fill_gatt_db_el(curr_db_attr,
                                   p_cur_srvc->service_uuid.is_primary ?
@@ -1530,7 +1543,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_get_gatt_db(UINT16 conn_id, btgatt_db_element_t **db, int *count)
+void bta_gattc_get_gatt_db(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle, btgatt_db_element_t **db, int *count)
 {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
@@ -1551,7 +1564,7 @@ void bta_gattc_get_gatt_db(UINT16 conn_id, btgatt_db_element_t **db, int *count)
         APPL_TRACE_ERROR("No server cache available");
     }
 
-    bta_gattc_get_gatt_db_impl(p_clcb->p_srcb, db, count);
+    bta_gattc_get_gatt_db_impl(p_clcb->p_srcb, start_handle, end_handle, db, count);
 }
 
 /*******************************************************************************
