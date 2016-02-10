@@ -18,7 +18,6 @@ the BUILD.gn file that's in libchrome/base. This is a legacy file that only
 works inside the Chromium project and we're using our own from secondary build
 sources.
 3. "platform/external/modp_b64" => third_party/modp_b64
-4. "platform/external/tinyxml2" => third_party/tinyxml2
 
 From Chromium:
 1. "src/testing/gtest" => third_party/gtest
