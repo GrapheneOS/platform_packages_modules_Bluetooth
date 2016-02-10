@@ -95,5 +95,12 @@ void WriteScanResultToParcel(
 std::unique_ptr<bluetooth::ScanResult> CreateScanResultFromParcel(
     const android::Parcel& parcel);
 
+// Reads a byte vector from |parcel| which is packed as a Int32 value
+// followed by the indicated number of bytes.
+// Returns the read vector, or nullptr if there is an error reading the
+// vector.
+std::unique_ptr<std::vector<uint8_t>> ReadByteVectorFromParcel(
+    const android::Parcel& parcel);
+
 }  // namespace binder
 }  // namespace ipc
