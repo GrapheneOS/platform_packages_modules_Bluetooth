@@ -101,9 +101,7 @@ typedef struct
 
 #ifdef USE_AUDIO_TRACK
 typedef enum {
-        BTIF_MEDIA_FOCUS_IDLE = 0,
-        BTIF_MEDIA_FOCUS_READY,
-        BTIF_MEDIA_FOCUS_REQUESTED,
+        BTIF_MEDIA_FOCUS_NOT_GRANTED = 0,
         BTIF_MEDIA_FOCUS_GRANTED
 } btif_media_audio_focus_state;
 
