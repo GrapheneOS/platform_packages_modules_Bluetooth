@@ -43,8 +43,10 @@
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "bt_config.conf";
+static const char *CONFIG_BACKUP_PATH = "bt_config.bak";
 #else  // !defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
+static const char *CONFIG_BACKUP_PATH = "/data/misc/bluedroid/bt_config.bak";
 #endif  // defined(OS_GENERIC)
 static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
@@ -100,12 +102,16 @@ static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
-    LOG_WARN(LOG_TAG, "%s unable to load config file: %s; starting unconfigured.",
+    LOG_WARN(LOG_TAG, "%s unable to load config file: %s; using backup.",
               __func__, CONFIG_FILE_PATH);
-    config = config_new_empty();
+    config = config_new(CONFIG_BACKUP_PATH);
     if (!config) {
-      LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
-      goto error;
+      LOG_ERROR(LOG_TAG, "%s unable to load backup; creating empty config.", __func__);
+      config = config_new_empty();
+      if (!config) {
+        LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
+        goto error;
+      }
     }
   }
 
@@ -397,6 +403,7 @@ static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_para
   btif_config_devcache_cleanup();
 
   pthread_mutex_lock(&lock);
+  rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
   config_save(config, CONFIG_FILE_PATH);
   pthread_mutex_unlock(&lock);
 }
