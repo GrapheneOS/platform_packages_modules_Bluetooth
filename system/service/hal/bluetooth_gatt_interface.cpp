@@ -257,6 +257,27 @@ void GetGattDbCallback(int conn_id, btgatt_db_element_t *db, int size) {
       GetGattDbCallback(g_interface, conn_id, db, size));
 }
 
+void ServicesRemovedCallback(int conn_id, uint16_t start_handle, uint16_t end_handle) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " start_handle: " << start_handle
+          << " end_handle: " << end_handle;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      ServicesRemovedCallback(g_interface, conn_id, start_handle, end_handle));
+}
+
+void ServicesAddedCallback(int conn_id, btgatt_db_element_t *added, int added_count) {
+  shared_lock<shared_timed_mutex> lock(g_instance_lock);
+  VLOG(2) << __func__ << " - conn_id: " << conn_id
+          << " added_count: " << added_count;
+  VERIFY_INTERFACE_OR_RETURN();
+
+  FOR_EACH_CLIENT_OBSERVER(
+      ServicesAddedCallback(g_interface, conn_id, added, added_count));
+}
+
 void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if;
@@ -459,6 +480,8 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr,  // track_adv_event_cb
     nullptr,  // scan_parameter_setup_completed_cb
     GetGattDbCallback,
+    ServicesRemovedCallback,
+    ServicesAddedCallback,
 };
 
 const btgatt_server_callbacks_t gatt_server_callbacks = {
@@ -710,6 +733,22 @@ void BluetoothGattInterface::ClientObserver::GetGattDbCallback(
     int /* conn_id */,
     btgatt_db_element_t* /* gatt_db */,
     int /* size */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ClientObserver::ServicesRemovedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    uint16_t /* start_handle */,
+    uint16_t /* end_handle */) {
+  // Do nothing.
+}
+
+void BluetoothGattInterface::ClientObserver::ServicesAddedCallback(
+    BluetoothGattInterface* /* gatt_iface */,
+    int /* conn_id */,
+    btgatt_db_element_t* /* added */,
+    int /* added_count */) {
   // Do nothing.
 }
 
