@@ -464,6 +464,8 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     nullptr, /* track_adv_event_cb; */
     nullptr, /* scan_parameter_setup_completed_cb; */
     nullptr, /* get_gatt_db_cb; */
+    nullptr, /* services_removed_cb */
+    nullptr, /* services_added_cb */
 };
 
 const btgatt_callbacks_t gatt_callbacks = {
