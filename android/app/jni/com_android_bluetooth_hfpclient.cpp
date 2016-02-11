@@ -581,17 +581,18 @@ static jboolean dialNative(JNIEnv* env, jobject object, jbyteArray address,
     return JNI_FALSE;
   }
 
-  const char* number = NULL;
-  if (number_str != NULL) {
-    number = env->GetStringUTFChars(number_str, NULL);
+  const char* number = nullptr;
+  if (number_str != nullptr) {
+    number = env->GetStringUTFChars(number_str, nullptr);
   }
-
   bt_status_t status =
-      sBluetoothHfpClientInterface->dial((const RawAddress*)addr, number);
+    sBluetoothHfpClientInterface->dial((const RawAddress*)addr,
+                                       number == nullptr ? "" : number);
+
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed to dial, status: %d", status);
   }
-  if (number != NULL) {
+  if (number != nullptr) {
     env->ReleaseStringUTFChars(number_str, number);
   }
   env->ReleaseByteArrayElements(address, addr, 0);
@@ -752,7 +753,6 @@ static jboolean sendATCmdNative(JNIEnv* env, jobject object, jbyteArray address,
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   const char* arg = NULL;
   if (arg_str != NULL) {
     arg = env->GetStringUTFChars(arg_str, NULL);
