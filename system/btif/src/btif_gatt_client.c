@@ -1366,7 +1366,7 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
         {
             btgatt_db_element_t *db = NULL;
             int count = 0;
-            BTA_GATTC_GetGattDb(p_cb->conn_id, &db, &count);
+            BTA_GATTC_GetGattDb(p_cb->conn_id, 0x0000, 0xFFFF, &db, &count);
 
             HAL_CBACK(bt_gatt_callbacks, client->get_gatt_db_cb,
                 p_cb->conn_id, db, count);
