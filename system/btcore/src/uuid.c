@@ -63,8 +63,6 @@ bt_uuid_t *uuid_new(const char *uuid_string) {
     return NULL;
 
   bt_uuid_t *uuid = osi_calloc(sizeof(bt_uuid_t));
-  if (uuid == NULL)
-    return NULL;
 
   const char *s = uuid_string;
   for (size_t i = 0; i < sizeof(bt_uuid_t); ++i, s+=2) {

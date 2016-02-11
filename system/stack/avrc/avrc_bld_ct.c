@@ -379,34 +379,31 @@ static BT_HDR *avrc_bld_init_cmd_buffer(tAVRC_COMMAND *p_cmd)
 
     /* allocate and initialize the buffer */
     BT_HDR *p_pkt = (BT_HDR *)osi_malloc(AVRC_META_CMD_BUF_SIZE);
-    if (p_pkt)
-    {
-        UINT8 *p_data, *p_start;
+    UINT8 *p_data, *p_start;
 
-        p_pkt->layer_specific = AVCT_DATA_CTRL;
-        p_pkt->event    = opcode;
-        p_pkt->offset   = offset;
-        p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
-        p_start = p_data;
+    p_pkt->layer_specific = AVCT_DATA_CTRL;
+    p_pkt->event = opcode;
+    p_pkt->offset = offset;
+    p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = p_data;
 
-        /* pass thru - group navigation - has a two byte op_id, so dont do it here */
-        if (opcode != AVRC_OP_PASS_THRU)
-            *p_data++ = p_cmd->pdu;
+    /* pass thru - group navigation - has a two byte op_id, so dont do it here */
+    if (opcode != AVRC_OP_PASS_THRU)
+        *p_data++ = p_cmd->pdu;
 
-        switch (opcode)
-        {
-        case AVRC_OP_VENDOR:
-            /* reserved 0, packet_type 0 */
-            UINT8_TO_BE_STREAM(p_data, 0);
-            /* continue to the next "case to add length */
-            /* add fixed lenth - 0 */
-            UINT16_TO_BE_STREAM(p_data, 0);
-            break;
-        }
-
-        p_pkt->len = (p_data - p_start);
+    switch (opcode) {
+    case AVRC_OP_VENDOR:
+        /* reserved 0, packet_type 0 */
+        UINT8_TO_BE_STREAM(p_data, 0);
+        /* continue to the next "case to add length */
+        /* add fixed lenth - 0 */
+        UINT16_TO_BE_STREAM(p_data, 0);
+        break;
     }
+
+    p_pkt->len = (p_data - p_start);
     p_cmd->cmd.opcode = opcode;
+
     return p_pkt;
 }
 

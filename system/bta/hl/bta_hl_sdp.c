@@ -144,11 +144,10 @@ int bta_hl_compose_supported_feature_list( UINT8 *p, UINT16 num_elem,
 BOOLEAN bta_hl_add_sup_feature_list (UINT32 handle, UINT16 num_elem,
                                      const tBTA_HL_SUP_FEATURE_ELEM *p_elem_list)
 {
-    UINT8       *p_buf;
-    int         offset;
-    BOOLEAN     result;
+    int offset;
+    BOOLEAN result;
+    UINT8 *p_buf = (UINT8 *)osi_malloc(BTA_HL_SUP_FEATURE_SDP_BUF_SIZE);
 
-    p_buf = (UINT8 *)osi_malloc(BTA_HL_SUP_FEATURE_SDP_BUF_SIZE);
     offset = bta_hl_compose_supported_feature_list(p_buf, num_elem,
                                                    p_elem_list);
     result = SDP_AddAttribute(handle, ATTR_ID_HDP_SUP_FEAT_LIST,

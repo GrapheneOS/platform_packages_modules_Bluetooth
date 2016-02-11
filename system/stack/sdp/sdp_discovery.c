@@ -123,13 +123,7 @@ static void sdp_snd_service_search_req(tCONN_CB *p_ccb, UINT8 cont_len, UINT8 * 
     BT_HDR          *p_cmd = (BT_HDR *) osi_malloc(SDP_DATA_BUF_SIZE);
     UINT16          param_len;
 
-    /* Check the buffer for sending the packet to L2CAP */
-    if (p_cmd == NULL)
-    {
-        sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
-        return;
-    }
-
+    /* Prepare the buffer for sending the packet to L2CAP */
     p_cmd->offset = L2CAP_MIN_OFFSET;
     p = p_start = (UINT8 *)(p_cmd + 1) + L2CAP_MIN_OFFSET;
 
@@ -437,16 +431,8 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
             p_ccb->list_len, list_byte_count);
 #endif
         if (p_ccb->rsp_list == NULL)
-        {
             p_ccb->rsp_list = (UINT8 *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
-            if (p_ccb->rsp_list == NULL)
-            {
-                SDP_TRACE_ERROR ("SDP - no buf to save rsp");
-                sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
-                return;
-            }
-        }
-        memcpy (&p_ccb->rsp_list[p_ccb->list_len], p_reply, list_byte_count);
+        memcpy(&p_ccb->rsp_list[p_ccb->list_len], p_reply, list_byte_count);
         p_ccb->list_len += list_byte_count;
         p_reply         += list_byte_count;
 #if (SDP_DEBUG_RAW == TRUE)
@@ -486,14 +472,8 @@ static void process_service_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     /* Now, ask for the next handle. Re-use the buffer we just got. */
     if (p_ccb->cur_handle < p_ccb->num_handles)
     {
-        BT_HDR  *p_msg = (BT_HDR *) osi_malloc(SDP_DATA_BUF_SIZE);
+        BT_HDR  *p_msg = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
         UINT8   *p;
-
-        if (!p_msg)
-        {
-            sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
-            return;
-        }
 
         p_msg->offset = L2CAP_MIN_OFFSET;
         p = p_start = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;
@@ -598,15 +578,7 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
             p_ccb->list_len, lists_byte_count);
 #endif
         if (p_ccb->rsp_list == NULL)
-        {
             p_ccb->rsp_list = (UINT8 *)osi_malloc(SDP_MAX_LIST_BYTE_COUNT);
-            if (p_ccb->rsp_list == NULL)
-            {
-                SDP_TRACE_ERROR ("SDP - no buf to save rsp");
-                sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
-                return;
-            }
-        }
         memcpy (&p_ccb->rsp_list[p_ccb->list_len], p_reply, lists_byte_count);
         p_ccb->list_len += lists_byte_count;
         p_reply         += lists_byte_count;
@@ -634,14 +606,8 @@ static void process_service_search_attr_rsp (tCONN_CB *p_ccb, UINT8 *p_reply)
     /* If continuation request (or first time request) */
     if ((cont_request_needed) || (!p_reply))
     {
-        BT_HDR  *p_msg = (BT_HDR *) osi_malloc(SDP_DATA_BUF_SIZE);
+        BT_HDR  *p_msg = (BT_HDR *)osi_malloc(SDP_DATA_BUF_SIZE);
         UINT8   *p;
-
-        if (!p_msg)
-        {
-            sdp_disconnect (p_ccb, SDP_NO_RESOURCES);
-            return;
-        }
 
         p_msg->offset = L2CAP_MIN_OFFSET;
         p = p_start = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET;

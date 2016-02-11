@@ -176,18 +176,15 @@ void gap_ble_dealloc_clcb(tGAP_CLCB *p_clcb)
 *******************************************************************************/
 BOOLEAN gap_ble_enqueue_request (tGAP_CLCB *p_clcb, UINT16 uuid, tGAP_BLE_CMPL_CBACK *p_cback)
 {
-    tGAP_BLE_REQ  *p_q = (tGAP_BLE_REQ *)osi_malloc(sizeof(tGAP_BLE_REQ));
+    tGAP_BLE_REQ *p_q = (tGAP_BLE_REQ *)osi_malloc(sizeof(tGAP_BLE_REQ));
 
-    if (p_q != NULL)
-    {
-        p_q->p_cback = p_cback;
-        p_q->uuid = uuid;
-        fixed_queue_enqueue(p_clcb->pending_req_q, p_q);
-        return TRUE;
-    }
+    p_q->p_cback = p_cback;
+    p_q->uuid = uuid;
+    fixed_queue_enqueue(p_clcb->pending_req_q, p_q);
 
-    return FALSE;
+    return TRUE;
 }
+
 /*******************************************************************************
 **
 ** Function         gap_ble_dequeue_request

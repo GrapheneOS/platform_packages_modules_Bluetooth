@@ -137,19 +137,10 @@ static struct packet *packet_alloc(const uint8_t *data, uint32_t len)
     struct packet *p = osi_calloc(sizeof(*p));
     uint8_t *buf = osi_malloc(len);
 
-    if (p && buf) {
-
-        p->data = buf;
-        p->len = len;
-        memcpy(p->data, data, len);
-        return p;
-
-    } else if (p)
-       osi_free(p);
-    else if (buf)
-       osi_free(buf);
-
-    return NULL;
+    p->data = buf;
+    p->len = len;
+    memcpy(p->data, data, len);
+    return p;
 }
 
 /* makes a copy of the data, returns TRUE on success */
@@ -293,9 +284,9 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
 static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *addr,
         char is_server, int flags)
 {
-    l2cap_socket *sock;
     unsigned security = 0;
     int fds[2];
+    l2cap_socket *sock = osi_calloc(sizeof(*sock));
 
     if (flags & BTSOCK_FLAG_ENCRYPT)
         security |= is_server ? BTM_SEC_IN_ENCRYPT : BTM_SEC_OUT_ENCRYPT;
@@ -305,12 +296,6 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
         security |= is_server ? BTM_SEC_IN_MITM : BTM_SEC_OUT_MITM;
     if (flags & BTSOCK_FLAG_AUTH_16_DIGIT)
         security |= BTM_SEC_IN_MIN_16_DIGIT_PIN;
-
-    sock = osi_calloc(sizeof(*sock));
-    if (!sock) {
-        APPL_TRACE_ERROR("alloc failed");
-        goto fail_alloc;
-    }
 
     if (socketpair(AF_LOCAL, SOCK_SEQPACKET, 0, fds)) {
         APPL_TRACE_ERROR("socketpair failed, errno:%d", errno);
@@ -358,8 +343,6 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
 
 fail_sockpair:
     osi_free(sock);
-
-fail_alloc:
     return NULL;
 }
 
@@ -1013,53 +996,52 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                     /* Apparently we hijack the req_id (UINT32) to pass the pointer to the buffer to
                      * the write complete callback, which call a free... wonder if this works on a
                      * 64 bit platform? */
-                    if (buffer != NULL) {
-                        /* The socket is created with SOCK_SEQPACKET, hence we read one message at
-                         * the time. The maximum size of a message is allocated to ensure data is
-                         * not lost. This is okay to do as Android uses virtual memory, hence even
-                         * if we only use a fraction of the memory it should not block for others
-                         * to use the memory. As the definition of ioctl(FIONREAD) do not clearly
-                         * define what value will be returned if multiple messages are written to
-                         * the socket before any message is read from the socket, we could
-                         * potentially risk to allocate way more memory than needed. One of the use
-                         * cases for this socket is obex where multiple 64kbyte messages are
-                         * typically written to the socket in a tight loop, hence we risk the ioctl
-                         * will return the total amount of data in the buffer, which could be
-                         * multiple 64kbyte chunks.
-                         * UPDATE: As the stack cannot handle 64kbyte buffers, the size is reduced
-                         * to around 8kbyte - and using malloc for buffer allocation here seems to
-                         * be wrong
-                         * UPDATE: Since we are responsible for freeing the buffer in the
-                         * write_complete_ind, it is OK to use malloc. */
-                        int count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
-                                MSG_NOSIGNAL | MSG_DONTWAIT);
-                        APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
-                                count);
+                    /* The socket is created with SOCK_SEQPACKET, hence we read one message at
+                     * the time. The maximum size of a message is allocated to ensure data is
+                     * not lost. This is okay to do as Android uses virtual memory, hence even
+                     * if we only use a fraction of the memory it should not block for others
+                     * to use the memory. As the definition of ioctl(FIONREAD) do not clearly
+                     * define what value will be returned if multiple messages are written to
+                     * the socket before any message is read from the socket, we could
+                     * potentially risk to allocate way more memory than needed. One of the use
+                     * cases for this socket is obex where multiple 64kbyte messages are
+                     * typically written to the socket in a tight loop, hence we risk the ioctl
+                     * will return the total amount of data in the buffer, which could be
+                     * multiple 64kbyte chunks.
+                     * UPDATE: As the stack cannot handle 64kbyte buffers, the size is reduced
+                     * to around 8kbyte - and using malloc for buffer allocation here seems to
+                     * be wrong
+                     * UPDATE: Since we are responsible for freeing the buffer in the
+                     * write_complete_ind, it is OK to use malloc. */
+                    int count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
+                                     MSG_NOSIGNAL | MSG_DONTWAIT);
+                    APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
+                                     count);
 
-                        // TODO(armansito): |buffer|, which is created above via
-                        // malloc, is being cast below to UINT32 to be used as
-                        // the |req_id| parameter of BTA_JvL2capWriteFixed and
-                        // BTA_JvL2capWrite. The "id" then gets freed in an
-                        // obscure callback elsewhere. We need to watch out for
-                        // this type of unsafe practice, as this is error prone
-                        // and difficult to follow.
-                        if (sock->fixed_chan) {
-                            if(BTA_JvL2capWriteFixed(sock->channel, (BD_ADDR*)&sock->addr,
-                                    PTR_TO_UINT(buffer), btsock_l2cap_cbk, buffer, count,
-                                    UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
-                                // On fail, free the buffer
-                                on_l2cap_write_fixed_done(buffer, count, user_id);
-                            }
-                        } else {
-                            if(BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer), buffer, count,
-                                    UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
-                                // On fail, free the buffer
-                                on_l2cap_write_done(buffer, count, user_id);
-                            }
+                    // TODO(armansito): |buffer|, which is created above via
+                    // malloc, is being cast below to UINT32 to be used as
+                    // the |req_id| parameter of BTA_JvL2capWriteFixed and
+                    // BTA_JvL2capWrite. The "id" then gets freed in an
+                    // obscure callback elsewhere. We need to watch out for
+                    // this type of unsafe practice, as this is error prone
+                    // and difficult to follow.
+                    if (sock->fixed_chan) {
+                        if (BTA_JvL2capWriteFixed(sock->channel,
+                                                  (BD_ADDR*)&sock->addr,
+                                                  PTR_TO_UINT(buffer),
+                                                  btsock_l2cap_cbk, buffer,
+                                                  count,
+                                                  UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                            // On fail, free the buffer
+                            on_l2cap_write_fixed_done(buffer, count, user_id);
                         }
                     } else {
-                        // This cannot happen.
-                        APPL_TRACE_ERROR("Unable to allocate memory for data packet from JAVA...")
+                        if (BTA_JvL2capWrite(sock->handle, PTR_TO_UINT(buffer),
+                                             buffer, count,
+                                             UINT_TO_PTR(user_id)) != BTA_JV_SUCCESS) {
+                          // On fail, free the buffer
+                          on_l2cap_write_done(buffer, count, user_id);
+                        }
                     }
                 }
             } else

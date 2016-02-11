@@ -364,10 +364,6 @@ static void transmit_command(
     command_status_cb status_callback,
     void *context) {
   waiting_command_t *wait_entry = osi_calloc(sizeof(waiting_command_t));
-  if (!wait_entry) {
-    LOG_ERROR(LOG_TAG, "%s couldn't allocate space for wait entry.", __func__);
-    return;
-  }
 
   uint8_t *stream = command->data + command->offset;
   STREAM_TO_UINT16(wait_entry->opcode, stream);
@@ -385,8 +381,6 @@ static void transmit_command(
 
 static future_t *transmit_command_futured(BT_HDR *command) {
   waiting_command_t *wait_entry = osi_calloc(sizeof(waiting_command_t));
-  assert(wait_entry != NULL);
-
   future_t *future = future_new();
 
   uint8_t *stream = command->data + command->offset;

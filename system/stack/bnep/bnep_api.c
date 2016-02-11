@@ -473,7 +473,6 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
                           UINT8 *p_src_addr,
                           BOOLEAN fw_ext_present)
 {
-    BT_HDR       *p_buf;
     tBNEP_CONN   *p_bcb;
     UINT8        *p;
 
@@ -537,12 +536,7 @@ tBNEP_RESULT  BNEP_Write (UINT16 handle,
         return (BNEP_Q_SIZE_EXCEEDED);
 
     /* Get a buffer to copy the data into */
-    p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
-    if (p_buf == NULL)
-    {
-        BNEP_TRACE_ERROR ("BNEP_Write() not able to get buffer");
-        return (BNEP_NO_RESOURCES);
-    }
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(BNEP_BUF_SIZE);
 
     p_buf->len = len;
     p_buf->offset = BNEP_MINIMUM_OFFSET;

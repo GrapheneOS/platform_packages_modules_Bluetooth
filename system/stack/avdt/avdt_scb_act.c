@@ -2099,7 +2099,6 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
     UINT16          buf_size;
     UINT16          offset = AVDT_MEDIA_OFFSET + AVDT_AL_HDR_SIZE;
     UINT16          cont_offset = offset - AVDT_MEDIA_HDR_SIZE;
-    BT_HDR          *p_frag;
 
     tcid = avdt_ad_type_to_tcid(AVDT_CHAN_MEDIA, p_scb);
     lcid = avdt_cb.ad.rt_tbl[avdt_ccb_to_idx(p_scb->p_ccb)][tcid].lcid;
@@ -2138,15 +2137,10 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
 
     mtu_used = buf_size - BT_HDR_SIZE;
 
-    while(*p_data_len && num_frag)
-    {
+    while (*p_data_len && num_frag) {
         /* allocate buffer for fragment */
-        if(NULL == (p_frag = (BT_HDR*)osi_malloc(buf_size)))
-        {
-            AVDT_TRACE_WARNING("avdt_scb_queue_frags len=%d(out of buffers)",
-                               *p_data_len);
-            break;
-        }
+        BT_HDR *p_frag = (BT_HDR *)osi_malloc(buf_size);
+
         /* fill fragment by chunk of media payload */
         p_frag->layer_specific = *p_data_len;/* length of all remaining transport packet */
         p_frag->offset = offset;

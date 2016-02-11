@@ -1822,13 +1822,8 @@ static void btm_initiate_inquiry (tBTM_INQUIRY_VAR_ST *p_inq)
         btm_clr_inq_result_flt();
 
         /* Allocate memory to hold bd_addrs responding */
-        if ((p_inq->p_bd_db = (tINQ_BDADDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE)) != NULL)
-        {
-            p_inq->max_bd_entries = (UINT16)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
-            memset(p_inq->p_bd_db, 0, BT_DEFAULT_BUFFER_SIZE);
-/*            BTM_TRACE_DEBUG("btm_initiate_inquiry: memory allocated for %d bdaddrs",
-                              p_inq->max_bd_entries); */
-        }
+        p_inq->p_bd_db = (tINQ_BDADDR *)osi_calloc(BT_DEFAULT_BUFFER_SIZE);
+        p_inq->max_bd_entries = (UINT16)(BT_DEFAULT_BUFFER_SIZE / sizeof(tINQ_BDADDR));
 
         if (!btsnd_hcic_inquiry(*lap, p_inqparms->duration, 0))
             btm_process_inq_complete (BTM_NO_RESOURCES, (UINT8)(p_inqparms->mode & BTM_BR_INQUIRY_MASK));
@@ -2066,33 +2061,27 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 *******************************************************************************/
 void btm_sort_inq_result(void)
 {
-    UINT8               xx, yy, num_resp;
-    tINQ_DB_ENT         *p_tmp  = NULL;
-    tINQ_DB_ENT         *p_ent  = btm_cb.btm_inq_vars.inq_db;
-    tINQ_DB_ENT         *p_next = btm_cb.btm_inq_vars.inq_db+1;
-    int                 size;
+    UINT8 xx, yy, num_resp;
+    tINQ_DB_ENT *p_ent  = btm_cb.btm_inq_vars.inq_db;
+    tINQ_DB_ENT *p_next = btm_cb.btm_inq_vars.inq_db+1;
+    int size;
+    tINQ_DB_ENT *p_tmp = (tINQ_DB_ENT *)osi_malloc(sizeof(tINQ_DB_ENT));
 
     num_resp = (btm_cb.btm_inq_vars.inq_cmpl_info.num_resp<BTM_INQ_DB_SIZE)?
                 btm_cb.btm_inq_vars.inq_cmpl_info.num_resp: BTM_INQ_DB_SIZE;
 
-    if((p_tmp = (tINQ_DB_ENT *)osi_malloc(sizeof(tINQ_DB_ENT))) != NULL)
-    {
-        size = sizeof(tINQ_DB_ENT);
-        for(xx = 0; xx < num_resp-1; xx++, p_ent++)
-        {
-            for(yy = xx+1, p_next = p_ent+1; yy < num_resp; yy++, p_next++)
-            {
-                if(p_ent->inq_info.results.rssi < p_next->inq_info.results.rssi)
-                {
-                    memcpy (p_tmp,  p_next, size);
-                    memcpy (p_next, p_ent,  size);
-                    memcpy (p_ent,  p_tmp,  size);
-                }
+    size = sizeof(tINQ_DB_ENT);
+    for (xx = 0; xx < num_resp-1; xx++, p_ent++) {
+        for (yy = xx+1, p_next = p_ent+1; yy < num_resp; yy++, p_next++) {
+            if (p_ent->inq_info.results.rssi < p_next->inq_info.results.rssi) {
+                memcpy(p_tmp, p_next, size);
+                memcpy(p_next, p_ent,  size);
+                memcpy(p_ent, p_tmp,  size);
             }
         }
-
-        osi_free(p_tmp);
     }
+
+    osi_free(p_tmp);
 }
 
 /*******************************************************************************

@@ -43,8 +43,6 @@ static void internal_dequeue_ready(void *context);
 
 fixed_queue_t *fixed_queue_new(size_t capacity) {
   fixed_queue_t *ret = osi_calloc(sizeof(fixed_queue_t));
-  if (!ret)
-    goto error;
 
   pthread_mutex_init(&ret->lock, NULL);
   ret->capacity = capacity;

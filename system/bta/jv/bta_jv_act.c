@@ -1397,11 +1397,7 @@ void bta_jv_l2cap_write_fixed(tBTA_JV_MSG *p_data)
     tBTA_JV_L2CAP_WRITE_FIXED evt_data;
     tBTA_JV_API_L2CAP_WRITE_FIXED *ls = &(p_data->l2cap_write_fixed);
     BT_HDR *msg = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + ls->len + L2CAP_MIN_OFFSET);
-    if (!msg)
-    {
-      APPL_TRACE_ERROR("%s() could not allocate msg buffer",__func__);
-        return;
-    }
+
     evt_data.status  = BTA_JV_FAILURE;
     evt_data.channel = ls->channel;
     memcpy(evt_data.addr, ls->addr, sizeof(evt_data.addr));
@@ -2146,24 +2142,21 @@ void bta_jv_change_pm_state(tBTA_JV_MSG *p_data)
 tBTA_JV_STATUS bta_jv_set_pm_conn_state(tBTA_JV_PM_CB *p_cb, const tBTA_JV_CONN_STATE
         new_st)
 {
-    tBTA_JV_STATUS status = BTA_JV_FAILURE;
-    tBTA_JV_API_PM_STATE_CHANGE *p_msg;
+    if (p_cb == NULL)
+        return BTA_JV_FAILURE;
 
-    if (NULL == p_cb)
-        return status;
+    APPL_TRACE_API("%s: handle:0x%x, state: %d", __func__, p_cb->handle,
+                   new_st);
 
-    APPL_TRACE_API("bta_jv_set_pm_conn_state(handle:0x%x, state: %d)", p_cb->handle,
-            new_st);
-    if ((p_msg = (tBTA_JV_API_PM_STATE_CHANGE *)osi_malloc(
-            sizeof(tBTA_JV_API_PM_STATE_CHANGE))) != NULL)
-    {
-        p_msg->hdr.event = BTA_JV_API_PM_STATE_CHANGE_EVT;
-        p_msg->p_cb = p_cb;
-        p_msg->state = new_st;
-        bta_sys_sendmsg(p_msg);
-        status = BTA_JV_SUCCESS;
-    }
-    return (status);
+    tBTA_JV_API_PM_STATE_CHANGE *p_msg =
+        (tBTA_JV_API_PM_STATE_CHANGE *)osi_malloc(sizeof(tBTA_JV_API_PM_STATE_CHANGE));
+    p_msg->hdr.event = BTA_JV_API_PM_STATE_CHANGE_EVT;
+    p_msg->p_cb = p_cb;
+    p_msg->state = new_st;
+
+    bta_sys_sendmsg(p_msg);
+
+    return BTA_JV_SUCCESS;
 }
 
 /*******************************************************************************
@@ -2287,9 +2280,6 @@ static struct fc_channel *fcchan_get(uint16_t chan, char create)
         return NULL; /* we cannot alloc a struct if not asked to */
 
     t = osi_calloc(sizeof(*t));
-    if (!t)
-        return NULL;
-
     t->chan = chan;
 
     if (!L2CA_RegisterFixedChannel(chan, &fcr)) {
@@ -2353,32 +2343,29 @@ static struct fc_client *fcclient_alloc(uint16_t chan, char server, const uint8_
         sec_id = bta_jv_alloc_sec_id();
 
     t = osi_calloc(sizeof(*t));
-    if (t) {
-        //allocate it a unique ID
-        do {
-           t->id = ++fc_next_id;
-        } while (!t->id || fcclient_find_by_id(t->id));
+    // Allocate it a unique ID
+    do {
+        t->id = ++fc_next_id;
+    } while (!t->id || fcclient_find_by_id(t->id));
 
-        //populate some params
-        t->chan = chan;
-        t->server = server;
+    // Populate some params
+    t->chan = chan;
+    t->server = server;
 
-        //get a security id
-        t->sec_id = sec_id;
+    // Get a security id
+    t->sec_id = sec_id;
 
-        //link it in to global list
-        t->next_all_list = fc_clients;
-        fc_clients = t;
+    // Link it in to global list
+    t->next_all_list = fc_clients;
+    fc_clients = t;
 
-        //link it in to channel list
-        t->next_chan_list = fc->clients;
-        fc->clients = t;
+    // Link it in to channel list
+    t->next_chan_list = fc->clients;
+    fc->clients = t;
 
-        //update channel if needed
-        if (server)
-            fc->has_server = TRUE;
-    } else if (!sec_id_to_use)
-       bta_jv_free_sec_id(&sec_id);
+    // Update channel if needed
+    if (server)
+        fc->has_server = TRUE;
 
     return t;
 }

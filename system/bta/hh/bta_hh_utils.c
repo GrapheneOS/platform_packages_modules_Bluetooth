@@ -201,20 +201,17 @@ void bta_hh_add_device_to_list(tBTA_HH_DEV_CB *p_cb, UINT8 handle,
     p_cb->dscp_info.ssr_min_tout    = ssr_min_tout;
 
     /* store report descriptor info */
-    if ( p_dscp_info)
-    {
+    if (p_dscp_info) {
         osi_free_and_reset((void **)&p_cb->dscp_info.descriptor.dsc_list);
 
-        if (p_dscp_info->dl_len &&
-            (p_cb->dscp_info.descriptor.dsc_list =
-             (UINT8 *)osi_malloc(p_dscp_info->dl_len)) != NULL)
-        {
+        if (p_dscp_info->dl_len) {
+            p_cb->dscp_info.descriptor.dsc_list =
+              (UINT8 *)osi_malloc(p_dscp_info->dl_len);
             p_cb->dscp_info.descriptor.dl_len = p_dscp_info->dl_len;
             memcpy(p_cb->dscp_info.descriptor.dsc_list, p_dscp_info->dsc_list,
-                    p_dscp_info->dl_len);
+                   p_dscp_info->dl_len);
         }
     }
-    return;
 }
 
 /*******************************************************************************

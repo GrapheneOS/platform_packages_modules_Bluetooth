@@ -650,27 +650,21 @@ tBTM_DEV_STATUS_CB *BTM_RegisterForDeviceStatusNotif (tBTM_DEV_STATUS_CB *p_cb)
 tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode, UINT8 param_len,
                                       UINT8 *p_param_buf, tBTM_VSC_CMPL_CB *p_cb)
 {
-    void *p_buf;
-
-    BTM_TRACE_EVENT ("BTM: BTM_VendorSpecificCommand: Opcode: 0x%04X, ParamLen: %i.",
-                      opcode, param_len);
-
     /* Allocate a buffer to hold HCI command plus the callback function */
-    if ((p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB *) +
-                            param_len + HCIC_PREAMBLE_SIZE)) != NULL)
-    {
-        /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
-        btsnd_hcic_vendor_spec_cmd (p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
+    void *p_buf = osi_malloc(sizeof(BT_HDR) + sizeof(tBTM_CMPL_CB *) +
+                             param_len + HCIC_PREAMBLE_SIZE);
 
-        /* Return value */
-        if (p_cb != NULL)
-            return (BTM_CMD_STARTED);
-        else
-            return (BTM_SUCCESS);
-    }
+    BTM_TRACE_EVENT("BTM: %s: Opcode: 0x%04X, ParamLen: %i.", __func__,
+                    opcode, param_len);
+
+    /* Send the HCI command (opcode will be OR'd with HCI_GRP_VENDOR_SPECIFIC) */
+    btsnd_hcic_vendor_spec_cmd(p_buf, opcode, param_len, p_param_buf, (void *)p_cb);
+
+    /* Return value */
+    if (p_cb != NULL)
+        return (BTM_CMD_STARTED);
     else
-        return (BTM_NO_RESOURCES);
-
+        return (BTM_SUCCESS);
 }
 
 

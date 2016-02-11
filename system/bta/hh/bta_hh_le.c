@@ -1492,19 +1492,18 @@ void bta_hh_gatt_open(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 void bta_hh_le_close(tBTA_GATTC_CLOSE * p_data)
 {
     tBTA_HH_DEV_CB *p_dev_cb = bta_hh_le_find_dev_cb_by_bda(p_data->remote_bda);
-    tBTA_HH_LE_CLOSE    *p_buf = NULL;
     UINT16  sm_event = BTA_HH_GATT_CLOSE_EVT;
 
-    if (p_dev_cb != NULL &&
-        (p_buf = (tBTA_HH_LE_CLOSE *)osi_malloc(sizeof(tBTA_HH_LE_CLOSE))) != NULL)
-    {
-        p_buf->hdr.event            = sm_event;
-        p_buf->hdr.layer_specific   = (UINT16)p_dev_cb->hid_handle;
-        p_buf->conn_id              = p_data->conn_id;
-        p_buf->reason               = p_data->reason;
+    if (p_dev_cb != NULL) {
+        tBTA_HH_LE_CLOSE *p_buf =
+            (tBTA_HH_LE_CLOSE *)osi_malloc(sizeof(tBTA_HH_LE_CLOSE));
+        p_buf->hdr.event = sm_event;
+        p_buf->hdr.layer_specific = (UINT16)p_dev_cb->hid_handle;
+        p_buf->conn_id = p_data->conn_id;
+        p_buf->reason = p_data->reason;
 
-        p_dev_cb->conn_id           = BTA_GATT_INVALID_CONN_ID;
-        p_dev_cb->security_pending  = FALSE;
+        p_dev_cb->conn_id = BTA_GATT_INVALID_CONN_ID;
+        p_dev_cb->security_pending = FALSE;
         bta_sys_sendmsg(p_buf);
     }
 }
@@ -1906,10 +1905,8 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
                                             p_data->char_id.uuid.uu.uuid16,
                                             p_data->char_id.inst_id);
 
-        if (p_rpt != NULL &&
-            p_data->p_value != NULL &&
-            (p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->p_value->unformat.len + 1)) != NULL)
-        {
+        if (p_rpt != NULL && p_data->p_value != NULL) {
+            p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->p_value->unformat.len + 1);
             /* pack data send to app */
             hs_data.status  = BTA_HH_OK;
             p_buf->len = p_data->p_value->unformat.len + 1;
@@ -2370,11 +2367,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
     /* need to append report ID to the head of data */
     if (p_rpt->rpt_id != 0)
     {
-        if ((p_buf = (UINT8 *)osi_malloc(p_data->len + 1)) == NULL)
-        {
-            APPL_TRACE_ERROR("No resources to send report data");
-            return;
-        }
+        p_buf = (UINT8 *)osi_malloc(p_data->len + 1);
 
         p_buf[0] = p_rpt->rpt_id;
         memcpy(&p_buf[1], p_data->value, p_data->len);

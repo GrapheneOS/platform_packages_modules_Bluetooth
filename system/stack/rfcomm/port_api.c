@@ -1598,9 +1598,6 @@ int PORT_WriteDataCO (UINT16 handle, int* p_len)
 
         /* continue with rfcomm data write */
         p_buf = (BT_HDR *)osi_malloc(RFCOMM_DATA_BUF_SIZE);
-        if (!p_buf)
-            break;
-
         p_buf->offset         = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET;
         p_buf->layer_specific = handle;
 
@@ -1727,9 +1724,6 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 
         /* continue with rfcomm data write */
         p_buf = (BT_HDR *)osi_malloc(RFCOMM_DATA_BUF_SIZE);
-        if (!p_buf)
-            break;
-
         p_buf->offset         = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET;
         p_buf->layer_specific = handle;
 
@@ -1786,7 +1780,6 @@ int PORT_WriteData (UINT16 handle, char *p_data, UINT16 max_len, UINT16 *p_len)
 *******************************************************************************/
 int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
 {
-    BT_HDR   *p_buf;
     tPORT    *p_port;
 
     RFCOMM_TRACE_API ("PORT_Test() len:%d", len);
@@ -1807,22 +1800,15 @@ int PORT_Test (UINT16 handle, UINT8 *p_data, UINT16 len)
         return (PORT_UNKNOWN_ERROR);
     }
 
-    p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
-    if (p_buf != NULL)
-    {
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(RFCOMM_CMD_BUF_SIZE);
+    p_buf->offset  = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
+    p_buf->len = len;
 
-        p_buf->offset  = L2CAP_MIN_OFFSET + RFCOMM_MIN_OFFSET + 2;
-        p_buf->len = len;
+    memcpy((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
 
-        memcpy ((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, p_buf->len);
+    rfc_send_test(p_port->rfc.p_mcb, TRUE, p_buf);
 
-        rfc_send_test (p_port->rfc.p_mcb, TRUE, p_buf);
-        return (PORT_SUCCESS);
-    }
-    else
-    {
-        return (PORT_NO_MEM);
-    }
+    return (PORT_SUCCESS);
 }
 
 /*******************************************************************************

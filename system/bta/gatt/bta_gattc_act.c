@@ -184,7 +184,6 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
     tBTA_GATTC               cb_data;
     UINT8                    i;
     tBT_UUID                 *p_app_uuid = &p_data->api_reg.app_uuid;
-    tBTA_GATTC_INT_START_IF  *p_buf;
     tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
 
     APPL_TRACE_DEBUG("bta_gattc_register state %d",p_cb->state);
@@ -215,21 +214,13 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
                 /* BTA use the same client interface as BTE GATT statck */
                 cb_data.reg_oper.client_if = p_cb->cl_rcb[i].client_if;
 
-                if ((p_buf = (tBTA_GATTC_INT_START_IF *) osi_malloc(sizeof(tBTA_GATTC_INT_START_IF))) != NULL)
-                {
-                    p_buf->hdr.event    = BTA_GATTC_INT_START_IF_EVT;
-                    p_buf->client_if    = p_cb->cl_rcb[i].client_if;
+                tBTA_GATTC_INT_START_IF *p_buf =
+                    (tBTA_GATTC_INT_START_IF *)osi_malloc(sizeof(tBTA_GATTC_INT_START_IF));
+                p_buf->hdr.event = BTA_GATTC_INT_START_IF_EVT;
+                p_buf->client_if = p_cb->cl_rcb[i].client_if;
 
-                    bta_sys_sendmsg(p_buf);
-                    status = BTA_GATT_OK;
-                }
-                else
-                {
-                    GATT_Deregister(p_cb->cl_rcb[i].client_if);
-
-                    status = BTA_GATT_NO_RESOURCES;
-                    memset( &p_cb->cl_rcb[i], 0 , sizeof(tBTA_GATTC_RCB));
-                }
+                bta_sys_sendmsg(p_buf);
+                status = BTA_GATT_OK;
                 break;
             }
         }
@@ -1791,12 +1782,9 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
                                  BOOLEAN connected, tGATT_DISCONN_REASON reason,
                                  tBT_TRANSPORT transport)
 {
-    tBTA_GATTC_DATA *p_buf;
-
-    if (reason != 0)
-    {
+    if (reason != 0) {
         APPL_TRACE_WARNING("%s() - cif=%d connected=%d conn_id=%d reason=0x%04x",
-                      __FUNCTION__, gattc_if, connected, conn_id, reason);
+                           __func__, gattc_if, connected, conn_id, reason);
     }
 
     bt_bdaddr_t bdaddr;
@@ -1806,21 +1794,18 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
     else
         btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, reason);
 
-    if ((p_buf = (tBTA_GATTC_DATA *) osi_malloc(sizeof(tBTA_GATTC_DATA))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_DATA));
+    tBTA_GATTC_DATA *p_buf =
+        (tBTA_GATTC_DATA *)osi_calloc(sizeof(tBTA_GATTC_DATA));
+    p_buf->int_conn.hdr.event = connected ? BTA_GATTC_INT_CONN_EVT :
+                                            BTA_GATTC_INT_DISCONN_EVT;
+    p_buf->int_conn.hdr.layer_specific = conn_id;
+    p_buf->int_conn.client_if = gattc_if;
+    p_buf->int_conn.role = L2CA_GetBleConnRole(bda);
+    p_buf->int_conn.reason = reason;
+    p_buf->int_conn.transport = transport;
+    bdcpy(p_buf->int_conn.remote_bda, bda);
 
-        p_buf->int_conn.hdr.event            = connected ? BTA_GATTC_INT_CONN_EVT:
-                                                           BTA_GATTC_INT_DISCONN_EVT;
-        p_buf->int_conn.hdr.layer_specific   = conn_id;
-        p_buf->int_conn.client_if            = gattc_if;
-        p_buf->int_conn.role                 = L2CA_GetBleConnRole(bda);
-        p_buf->int_conn.reason               = reason;
-        p_buf->int_conn.transport            = transport;
-        bdcpy(p_buf->int_conn.remote_bda, bda);
-
-        bta_sys_sendmsg(p_buf);
-    }
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -1834,13 +1819,11 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, BD_ADDR bda, UINT16 conn_id,
 *******************************************************************************/
 static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
 {
-    tBTA_GATTC_DATA *p_buf;
-    tBTA_GATTC_CLCB *p_clcb = NULL;
+    tBTA_GATTC_CLCB *p_clcb =
+        bta_gattc_find_clcb_by_cif(gattc_if, bda, BTA_GATT_TRANSPORT_LE);
 
-    if ((p_clcb = bta_gattc_find_clcb_by_cif(gattc_if, bda, BTA_GATT_TRANSPORT_LE)) == NULL)
-    {
+    if (p_clcb == NULL)
         return;
-    }
 
 #if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
     /* filter this event just for BTA HH LE GATT client,
@@ -1852,19 +1835,16 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
     }
 #endif
 
-    APPL_TRACE_DEBUG("bta_gattc_enc_cmpl_cback: cif = %d", gattc_if);
+    APPL_TRACE_DEBUG("%s: cif = %d", __func__, gattc_if);
 
-    if ((p_buf = (tBTA_GATTC_DATA *) osi_malloc(sizeof(tBTA_GATTC_DATA))) != NULL)
-    {
-        memset(p_buf, 0, sizeof(tBTA_GATTC_DATA));
+    tBTA_GATTC_DATA *p_buf =
+        (tBTA_GATTC_DATA *)osi_calloc(sizeof(tBTA_GATTC_DATA));
+    p_buf->enc_cmpl.hdr.event = BTA_GATTC_ENC_CMPL_EVT;
+    p_buf->enc_cmpl.hdr.layer_specific = p_clcb->bta_conn_id;
+    p_buf->enc_cmpl.client_if = gattc_if;
+    bdcpy(p_buf->enc_cmpl.remote_bda, bda);
 
-        p_buf->enc_cmpl.hdr.event            = BTA_GATTC_ENC_CMPL_EVT;
-        p_buf->enc_cmpl.hdr.layer_specific   = p_clcb->bta_conn_id;
-        p_buf->enc_cmpl.client_if            = gattc_if;
-        bdcpy(p_buf->enc_cmpl.remote_bda, bda);
-
-        bta_sys_sendmsg(p_buf);
-    }
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -2168,25 +2148,20 @@ static void bta_gattc_cmpl_sendmsg(UINT16 conn_id, tGATTC_OPTYPE op,
                                    tBTA_GATT_STATUS status,
                                    tGATT_CL_COMPLETE *p_data)
 {
-    const UINT16         len = sizeof(tBTA_GATTC_OP_CMPL) + sizeof(tGATT_CL_COMPLETE);
-    tBTA_GATTC_OP_CMPL  *p_buf = (tBTA_GATTC_OP_CMPL *) osi_malloc(len);
+    const size_t len = sizeof(tBTA_GATTC_OP_CMPL) + sizeof(tGATT_CL_COMPLETE);
+    tBTA_GATTC_OP_CMPL *p_buf = (tBTA_GATTC_OP_CMPL *)osi_calloc(len);
 
-    if (p_buf != NULL)
-    {
-        memset(p_buf, 0, len);
-        p_buf->hdr.event = BTA_GATTC_OP_CMPL_EVT;
-        p_buf->hdr.layer_specific = conn_id;
-        p_buf->status = status;
-        p_buf->op_code = op;
+    p_buf->hdr.event = BTA_GATTC_OP_CMPL_EVT;
+    p_buf->hdr.layer_specific = conn_id;
+    p_buf->status = status;
+    p_buf->op_code = op;
 
-        if (p_data != NULL)
-        {
-            p_buf->p_cmpl = (tGATT_CL_COMPLETE *)(p_buf + 1);
-            memcpy(p_buf->p_cmpl, p_data, sizeof(tGATT_CL_COMPLETE));
-        }
-
-        bta_sys_sendmsg(p_buf);
+    if (p_data != NULL) {
+        p_buf->p_cmpl = (tGATT_CL_COMPLETE *)(p_buf + 1);
+        memcpy(p_buf->p_cmpl, p_data, sizeof(tGATT_CL_COMPLETE));
     }
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************

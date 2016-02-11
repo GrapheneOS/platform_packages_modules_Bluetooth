@@ -51,17 +51,16 @@
 void bta_gattc_ci_cache_open(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS status,
                              UINT16 conn_id)
 {
-    tBTA_GATTC_CI_EVT  *p_evt;
+    tBTA_GATTC_CI_EVT *p_evt =
+        (tBTA_GATTC_CI_EVT *) osi_malloc(sizeof(tBTA_GATTC_CI_EVT));
+
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_malloc(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
-    {
-        p_evt->hdr.event = evt;
-        p_evt->hdr.layer_specific = conn_id;
+    p_evt->hdr.event = evt;
+    p_evt->hdr.layer_specific = conn_id;
+    p_evt->status = status;
 
-        p_evt->status = status;
-        bta_sys_sendmsg(p_evt);
-    }
+    bta_sys_sendmsg(p_evt);
 }
 
 /*******************************************************************************
@@ -84,26 +83,20 @@ void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
                              tBTA_GATTC_NV_ATTR *p_attr, tBTA_GATT_STATUS status,
                              UINT16 conn_id)
 {
-    tBTA_GATTC_CI_LOAD  *p_evt;
+    tBTA_GATTC_CI_LOAD  *p_evt =
+        (tBTA_GATTC_CI_LOAD *)osi_calloc(sizeof(tBTA_GATTC_CI_LOAD));
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_LOAD *) osi_malloc(sizeof(tBTA_GATTC_CI_LOAD))) != NULL)
-    {
-        memset(p_evt, 0, sizeof(tBTA_GATTC_CI_LOAD));
+    p_evt->hdr.event = evt;
+    p_evt->hdr.layer_specific = conn_id;
+    p_evt->status = status;
+    p_evt->num_attr = (num_attr > BTA_GATTC_NV_LOAD_MAX) ? BTA_GATTC_NV_LOAD_MAX : num_attr;
 
-        p_evt->hdr.event = evt;
-        p_evt->hdr.layer_specific = conn_id;
-
-        p_evt->status    = status;
-        p_evt->num_attr  = (num_attr > BTA_GATTC_NV_LOAD_MAX) ? BTA_GATTC_NV_LOAD_MAX : num_attr;
-
-        if (p_evt->num_attr > 0 && p_attr != NULL)
-        {
-            memcpy(p_evt->attr, p_attr, p_evt->num_attr * sizeof(tBTA_GATTC_NV_ATTR));
-        }
-
-        bta_sys_sendmsg(p_evt);
+    if (p_evt->num_attr > 0 && p_attr != NULL) {
+        memcpy(p_evt->attr, p_attr, p_evt->num_attr * sizeof(tBTA_GATTC_NV_ATTR));
     }
+
+    bta_sys_sendmsg(p_evt);
 }
 
 /*******************************************************************************
@@ -125,16 +118,15 @@ void bta_gattc_ci_cache_load(BD_ADDR server_bda, UINT16 evt, UINT16 num_attr,
 void bta_gattc_ci_cache_save(BD_ADDR server_bda, UINT16 evt, tBTA_GATT_STATUS status,
                              UINT16 conn_id)
 {
-    tBTA_GATTC_CI_EVT  *p_evt;
+    tBTA_GATTC_CI_EVT *p_evt =
+        (tBTA_GATTC_CI_EVT *)osi_malloc(sizeof(tBTA_GATTC_CI_EVT));
+
     UNUSED(server_bda);
 
-    if ((p_evt = (tBTA_GATTC_CI_EVT *) osi_malloc(sizeof(tBTA_GATTC_CI_EVT))) != NULL)
-    {
-        p_evt->hdr.event = evt;
-        p_evt->hdr.layer_specific = conn_id;
+    p_evt->hdr.event = evt;
+    p_evt->hdr.layer_specific = conn_id;
+    p_evt->status = status;
 
-        p_evt->status = status;
-        bta_sys_sendmsg(p_evt);
-    }
+    bta_sys_sendmsg(p_evt);
 }
 #endif /* BTA_GATT_INCLUDED */

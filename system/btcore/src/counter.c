@@ -181,9 +181,7 @@ bool counter_foreach(counter_iter_cb cb, void *context) {
 
 static counter_t *counter_new_(counter_data_t initial_val) {
   counter_t *counter = (counter_t *)osi_calloc(sizeof(counter_t));
-  if (!counter) {
-    return NULL;
-  }
+
   atomic_store(&counter->val, initial_val);
   return counter;
 }
@@ -337,12 +335,6 @@ static void accept_ready(socket_t *socket, UNUSED_ATTR void *context) {
     return;
 
   client_t *client = (client_t *)osi_calloc(sizeof(client_t));
-  if (!client) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for client", __func__);
-    socket_free(socket);
-    return;
-  }
-
   client->socket = socket;
 
   if (!list_append(clients_, client)) {

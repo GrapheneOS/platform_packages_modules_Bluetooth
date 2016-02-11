@@ -54,34 +54,28 @@ static BOOLEAN gatt_sign_data (tGATT_CLCB *p_clcb)
 
     p_data = (UINT8 *)osi_malloc(p_attr->len + 3); /* 3 = 2 byte handle + opcode */
 
-    if (p_data != NULL)
-    {
-        p = p_data;
-        UINT8_TO_STREAM(p, GATT_SIGN_CMD_WRITE);
-        UINT16_TO_STREAM(p, p_attr->handle);
-        ARRAY_TO_STREAM(p, p_attr->value, p_attr->len);
+    p = p_data;
+    UINT8_TO_STREAM(p, GATT_SIGN_CMD_WRITE);
+    UINT16_TO_STREAM(p, p_attr->handle);
+    ARRAY_TO_STREAM(p, p_attr->value, p_attr->len);
 
-        /* sign data length should be attribulte value length plus 2B handle + 1B op code */
-        if ((payload_size - GATT_AUTH_SIGN_LEN - 3) < p_attr->len)
-            p_attr->len = payload_size - GATT_AUTH_SIGN_LEN - 3;
+    /* sign data length should be attribulte value length plus 2B handle + 1B op code */
+    if ((payload_size - GATT_AUTH_SIGN_LEN - 3) < p_attr->len)
+        p_attr->len = payload_size - GATT_AUTH_SIGN_LEN - 3;
 
-        p_signature = p_attr->value + p_attr->len;
-        if (BTM_BleDataSignature(p_clcb->p_tcb->peer_bda,
-                                p_data,
-                                (UINT16)(p_attr->len + 3), /* 3 = 2 byte handle + opcode */
-                                p_signature))
-        {
-            p_attr->len += BTM_BLE_AUTH_SIGN_LEN;
-            gatt_set_ch_state(p_clcb->p_tcb, GATT_CH_OPEN);
-            gatt_act_write(p_clcb, GATT_SEC_SIGN_DATA);
-        }
-        else
-        {
-            gatt_end_operation(p_clcb, GATT_INTERNAL_ERROR, NULL);
-        }
-
-        osi_free(p_data);
+    p_signature = p_attr->value + p_attr->len;
+    if (BTM_BleDataSignature(p_clcb->p_tcb->peer_bda,
+                             p_data,
+                             (UINT16)(p_attr->len + 3), /* 3 = 2 byte handle + opcode */
+                             p_signature)) {
+        p_attr->len += BTM_BLE_AUTH_SIGN_LEN;
+        gatt_set_ch_state(p_clcb->p_tcb, GATT_CH_OPEN);
+        gatt_act_write(p_clcb, GATT_SEC_SIGN_DATA);
+    } else {
+        gatt_end_operation(p_clcb, GATT_INTERNAL_ERROR, NULL);
     }
+
+    osi_free(p_data);
 
     return status;
 }

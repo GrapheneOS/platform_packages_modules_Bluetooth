@@ -50,10 +50,6 @@ static void internal_write_ready(void *context);
 
 socket_t *socket_new(void) {
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
-    goto error;
-  }
 
   ret->fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (ret->fd == INVALID_FD) {
@@ -80,10 +76,6 @@ socket_t *socket_new_from_fd(int fd) {
   assert(fd != INVALID_FD);
 
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
-    return NULL;
-  }
 
   ret->fd = fd;
   return ret;
@@ -128,11 +120,6 @@ socket_t *socket_accept(const socket_t *socket) {
   }
 
   socket_t *ret = (socket_t *)osi_calloc(sizeof(socket_t));
-  if (!ret) {
-    close(fd);
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for socket.", __func__);
-    return NULL;
-  }
 
   ret->fd = fd;
   return ret;

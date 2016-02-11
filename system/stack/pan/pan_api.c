@@ -503,8 +503,6 @@ tPAN_RESULT PAN_Disconnect (UINT16 handle)
 *******************************************************************************/
 tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, UINT8 *p_data, UINT16 len, BOOLEAN ext)
 {
-    BT_HDR *buffer;
-
     if (pan_cb.role == PAN_ROLE_INACTIVE || !pan_cb.num_conns) {
         PAN_TRACE_ERROR("%s PAN is not active, data write failed.", __func__);
         return PAN_FAILURE;
@@ -523,12 +521,7 @@ tPAN_RESULT PAN_Write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol, 
         return PAN_SUCCESS;
     }
 
-    buffer = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
-    if (!buffer) {
-        PAN_TRACE_ERROR("%s unable to acquire buffer.", __func__);
-        return PAN_NO_RESOURCES;
-    }
-
+    BT_HDR *buffer = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
     buffer->len = len;
     buffer->offset = PAN_MINIMUM_OFFSET;
     memcpy((UINT8 *)buffer + sizeof(BT_HDR) + buffer->offset, p_data, buffer->len);

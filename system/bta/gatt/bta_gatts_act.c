@@ -182,7 +182,6 @@ void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb)
 *******************************************************************************/
 void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 {
-    tBTA_GATTS_INT_START_IF  *p_buf;
     tBTA_GATTS               cb_data;
     tBTA_GATT_STATUS         status = BTA_GATT_OK;
     UINT8                    i, first_unuse = 0xff;
@@ -230,29 +229,17 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
             cb_data.reg_oper.server_if      =
             p_cb->rcb[first_unuse].gatt_if  =
             GATT_Register(&p_msg->api_reg.app_uuid, &bta_gatts_cback);
-            if ( !p_cb->rcb[first_unuse].gatt_if)
-            {
+            if ( !p_cb->rcb[first_unuse].gatt_if) {
                 status = BTA_GATT_NO_RESOURCES;
-            }
-            else
-            {
-                if ((p_buf =
-                  (tBTA_GATTS_INT_START_IF *) osi_malloc(sizeof(tBTA_GATTS_INT_START_IF))) != NULL)
-                {
-                    p_buf->hdr.event    = BTA_GATTS_INT_START_IF_EVT;
-                    p_buf->server_if    = p_cb->rcb[first_unuse].gatt_if;
+            } else {
+              tBTA_GATTS_INT_START_IF *p_buf =
+                  (tBTA_GATTS_INT_START_IF *)osi_malloc(sizeof(tBTA_GATTS_INT_START_IF));
+                p_buf->hdr.event = BTA_GATTS_INT_START_IF_EVT;
+                p_buf->server_if = p_cb->rcb[first_unuse].gatt_if;
 
-                    bta_sys_sendmsg(p_buf);
-                }
-                else
-                {
-                    status = BTA_GATT_NO_RESOURCES;
-                    memset( &p_cb->rcb[first_unuse], 0 , sizeof(tBTA_GATTS_RCB));
-                }
+                bta_sys_sendmsg(p_buf);
             }
-        }
-        else
-        {
+        } else {
             status = BTA_GATT_NO_RESOURCES;
         }
 

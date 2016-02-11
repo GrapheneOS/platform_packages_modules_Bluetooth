@@ -38,7 +38,7 @@
 **                      p_msg: Pointer to VENDOR DEPENDENT message structure.
 **
 **                  Output Parameters:
-**                      None.
+*                      None.
 **
 ** Returns          pointer to a valid GKI buffer if successful.
 **                  NULL if p_msg is NULL.
@@ -53,26 +53,23 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
 
 #if AVRC_METADATA_INCLUDED == TRUE
     assert(AVRC_META_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
-    p_cmd = (BT_HDR *) osi_malloc(AVRC_META_CMD_BUF_SIZE);
+    p_cmd = (BT_HDR *)osi_malloc(AVRC_META_CMD_BUF_SIZE);
 #else
     assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
-    p_cmd = (BT_HDR *) osi_malloc(AVRC_CMD_BUF_SIZE);
+    p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
 #endif
-    if (p_cmd != NULL)
-    {
-        p_cmd->offset   = AVCT_MSG_OFFSET;
-        p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-        *p_data++       = (p_msg->hdr.ctype & AVRC_CTYPE_MASK);
-        *p_data++       = (p_msg->hdr.subunit_type << AVRC_SUBTYPE_SHIFT) | p_msg->hdr.subunit_id;
-        *p_data++       = AVRC_OP_VENDOR;
-        AVRC_CO_ID_TO_BE_STREAM(p_data, p_msg->company_id);
-        if(p_msg->vendor_len && p_msg->p_vendor_data)
-        {
-            memcpy(p_data, p_msg->p_vendor_data, p_msg->vendor_len);
-        }
-        p_cmd->len  = (UINT16) (p_data + p_msg->vendor_len - (UINT8 *)(p_cmd + 1) - p_cmd->offset);
-        p_cmd->layer_specific   = AVCT_DATA_CTRL;
-    }
+
+    p_cmd->offset = AVCT_MSG_OFFSET;
+    p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
+    *p_data++ = (p_msg->hdr.ctype & AVRC_CTYPE_MASK);
+    *p_data++ = (p_msg->hdr.subunit_type << AVRC_SUBTYPE_SHIFT) | p_msg->hdr.subunit_id;
+    *p_data++ = AVRC_OP_VENDOR;
+    AVRC_CO_ID_TO_BE_STREAM(p_data, p_msg->company_id);
+    if (p_msg->vendor_len && p_msg->p_vendor_data)
+        memcpy(p_data, p_msg->p_vendor_data, p_msg->vendor_len);
+    p_cmd->len  = (UINT16)(p_data + p_msg->vendor_len - (UINT8 *)(p_cmd + 1) - p_cmd->offset);
+    p_cmd->layer_specific = AVCT_DATA_CTRL;
+
     return p_cmd;
 }
 
@@ -99,22 +96,20 @@ static BT_HDR  * avrc_vendor_msg(tAVRC_MSG_VENDOR *p_msg)
 ******************************************************************************/
 UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label)
 {
-    BT_HDR  *p_cmd = (BT_HDR *) osi_malloc(AVRC_CMD_BUF_SIZE);
+    BT_HDR  *p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if (p_cmd != NULL)
-    {
-        p_cmd->offset   = AVCT_MSG_OFFSET;
-        p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-        *p_data++       = AVRC_CMD_STATUS;
-        /* unit & id ignore */
-        *p_data++       = (AVRC_SUB_UNIT << AVRC_SUBTYPE_SHIFT) | AVRC_SUBID_IGNORE;
-        *p_data++       = AVRC_OP_UNIT_INFO;
-        memset(p_data, AVRC_CMD_OPRND_PAD, AVRC_UNIT_OPRND_BYTES);
-        p_cmd->len      = p_data + AVRC_UNIT_OPRND_BYTES - (UINT8 *)(p_cmd + 1) - p_cmd->offset;
-        p_cmd->layer_specific   = AVCT_DATA_CTRL;
-    }
-    return AVCT_MsgReq( handle, label, AVCT_CMD, p_cmd);
+    p_cmd->offset = AVCT_MSG_OFFSET;
+    p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
+    *p_data++ = AVRC_CMD_STATUS;
+    /* unit & id ignore */
+    *p_data++ = (AVRC_SUB_UNIT << AVRC_SUBTYPE_SHIFT) | AVRC_SUBID_IGNORE;
+    *p_data++ = AVRC_OP_UNIT_INFO;
+    memset(p_data, AVRC_CMD_OPRND_PAD, AVRC_UNIT_OPRND_BYTES);
+    p_cmd->len = p_data + AVRC_UNIT_OPRND_BYTES - (UINT8 *)(p_cmd + 1) - p_cmd->offset;
+    p_cmd->layer_specific = AVCT_DATA_CTRL;
+
+    return AVCT_MsgReq(handle, label, AVCT_CMD, p_cmd);
 }
 
 /******************************************************************************
@@ -144,23 +139,21 @@ UINT16 AVRC_UnitCmd(UINT8 handle, UINT8 label)
 ******************************************************************************/
 UINT16 AVRC_SubCmd(UINT8 handle, UINT8 label, UINT8 page)
 {
-    BT_HDR  *p_cmd = (BT_HDR *) osi_malloc(AVRC_CMD_BUF_SIZE);
+    BT_HDR  *p_cmd = (BT_HDR *)osi_malloc(AVRC_CMD_BUF_SIZE);
     UINT8   *p_data;
 
-    if (p_cmd != NULL)
-    {
-        p_cmd->offset   = AVCT_MSG_OFFSET;
-        p_data          = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
-        *p_data++       = AVRC_CMD_STATUS;
-        /* unit & id ignore */
-        *p_data++       = (AVRC_SUB_UNIT << AVRC_SUBTYPE_SHIFT) | AVRC_SUBID_IGNORE;
-        *p_data++       = AVRC_OP_SUB_INFO;
-        *p_data++       = ((page&AVRC_SUB_PAGE_MASK) << AVRC_SUB_PAGE_SHIFT) | AVRC_SUB_EXT_CODE;
-        memset(p_data, AVRC_CMD_OPRND_PAD, AVRC_SUB_OPRND_BYTES);
-        p_cmd->len      = p_data + AVRC_SUB_OPRND_BYTES - (UINT8 *)(p_cmd + 1) - p_cmd->offset;
-        p_cmd->layer_specific   = AVCT_DATA_CTRL;
-    }
-    return AVCT_MsgReq( handle, label, AVCT_CMD, p_cmd);
+    p_cmd->offset = AVCT_MSG_OFFSET;
+    p_data = (UINT8 *)(p_cmd + 1) + p_cmd->offset;
+    *p_data++ = AVRC_CMD_STATUS;
+    /* unit & id ignore */
+    *p_data++ = (AVRC_SUB_UNIT << AVRC_SUBTYPE_SHIFT) | AVRC_SUBID_IGNORE;
+    *p_data++ = AVRC_OP_SUB_INFO;
+    *p_data++ = ((page&AVRC_SUB_PAGE_MASK) << AVRC_SUB_PAGE_SHIFT) | AVRC_SUB_EXT_CODE;
+    memset(p_data, AVRC_CMD_OPRND_PAD, AVRC_SUB_OPRND_BYTES);
+    p_cmd->len = p_data + AVRC_SUB_OPRND_BYTES - (UINT8 *)(p_cmd + 1) - p_cmd->offset;
+    p_cmd->layer_specific = AVCT_DATA_CTRL;
+
+    return AVCT_MsgReq(handle, label, AVCT_CMD, p_cmd);
 }
 
 /******************************************************************************

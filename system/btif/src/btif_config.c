@@ -296,8 +296,6 @@ bool btif_config_set_bin(const char *section, const char *key, const uint8_t *va
       assert(value != NULL);
 
   char *str = (char *)osi_calloc(length * 2 + 1);
-  if (!str)
-    return false;
 
   for (size_t i = 0; i < length; ++i) {
     str[(i * 2) + 0] = lookup[(value[i] >> 4) & 0x0F];

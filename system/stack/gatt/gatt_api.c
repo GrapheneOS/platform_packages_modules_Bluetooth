@@ -895,7 +895,6 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
 {
     tGATT_STATUS status = GATT_SUCCESS;
     tGATT_CLCB          *p_clcb;
-    tGATT_READ_MULTI    *p_read_multi;
     tGATT_IF            gatt_if=GATT_GET_GATT_IF(conn_id);
     UINT8               tcb_idx = GATT_GET_TCB_IDX(conn_id);
     tGATT_TCB           *p_tcb = gatt_get_tcb_by_idx(tcb_idx);
@@ -934,9 +933,10 @@ tGATT_STATUS GATTC_Read (UINT16 conn_id, tGATT_READ_TYPE type, tGATT_READ_PARAM 
             case GATT_READ_MULTIPLE:
                 p_clcb->s_handle = 0;
                 /* copy multiple handles in CB */
-                p_read_multi = (tGATT_READ_MULTI *)osi_malloc(sizeof(tGATT_READ_MULTI));
+                tGATT_READ_MULTI *p_read_multi =
+                    (tGATT_READ_MULTI *)osi_malloc(sizeof(tGATT_READ_MULTI));
                 p_clcb->p_attr_buf = (UINT8*)p_read_multi;
-                memcpy (p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
+                memcpy(p_read_multi, &p_read->read_multiple, sizeof(tGATT_READ_MULTI));
             case GATT_READ_BY_HANDLE:
             case GATT_READ_PARTIAL:
                 memset(&p_clcb->uuid, 0, sizeof(tBT_UUID));
@@ -1008,32 +1008,22 @@ tGATT_STATUS GATTC_Write (UINT16 conn_id, tGATT_WRITE_TYPE type, tGATT_VALUE *p_
         p_clcb->op_subtype = type;
         p_clcb->auth_req = p_write->auth_req;
 
-        if (( p_clcb->p_attr_buf = (UINT8 *)osi_malloc(sizeof(tGATT_VALUE))) != NULL)
-        {
-            memcpy(p_clcb->p_attr_buf, (void *)p_write, sizeof(tGATT_VALUE));
+        p_clcb->p_attr_buf = (UINT8 *)osi_malloc(sizeof(tGATT_VALUE));
+        memcpy(p_clcb->p_attr_buf, (void *)p_write, sizeof(tGATT_VALUE));
 
-            p =  (tGATT_VALUE *)p_clcb->p_attr_buf;
-            if (type == GATT_WRITE_PREPARE)
-            {
-                p_clcb->start_offset = p_write->offset;
-                p->offset = 0;
-            }
-
-            if (gatt_security_check_start(p_clcb) == FALSE)
-            {
-                status = GATT_NO_RESOURCES;
-            }
+        p = (tGATT_VALUE *)p_clcb->p_attr_buf;
+        if (type == GATT_WRITE_PREPARE) {
+            p_clcb->start_offset = p_write->offset;
+            p->offset = 0;
         }
-        else
-        {
+
+        if (gatt_security_check_start(p_clcb) == FALSE) {
             status = GATT_NO_RESOURCES;
         }
 
         if (status == GATT_NO_RESOURCES)
             gatt_clcb_dealloc(p_clcb);
-    }
-    else
-    {
+    } else {
         status = GATT_NO_RESOURCES;
     }
     return status;
