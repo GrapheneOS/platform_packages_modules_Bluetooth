@@ -38,8 +38,14 @@
 
 #include "bt_types.h"
 
+// TODO(armansito): Find a better way than searching by a hardcoded path.
+#if defined(OS_GENERIC)
+static const char *CONFIG_FILE_PATH = "bt_config.conf";
+static const char *CONFIG_BACKUP_PATH = "bt_config.bak";
+#else  // !defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
-static const char *LEGACY_CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
+static const char *CONFIG_BACKUP_PATH = "/data/misc/bluedroid/bt_config.bak";
+#endif  // defined(OS_GENERIC)
 static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
 static void timer_config_save_cb(void *data);
@@ -94,19 +100,17 @@ static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
   if (!config) {
-    LOG_WARN("%s unable to load config file; attempting to transcode legacy file.", __func__);
-    config = btif_config_transcode(LEGACY_CONFIG_FILE_PATH);
+    LOG_WARN("%s unable to load config file: %s; using backup.",
+              __func__, CONFIG_FILE_PATH);
+    config = config_new(CONFIG_BACKUP_PATH);
     if (!config) {
-      LOG_WARN("%s unable to transcode legacy file, starting unconfigured.", __func__);
+      LOG_ERROR("%s unable to load backup; creating empty config.", __func__);
       config = config_new_empty();
       if (!config) {
         LOG_ERROR("%s unable to allocate a config object.", __func__);
         goto error;
       }
     }
-
-    if (config_save(config, CONFIG_FILE_PATH))
-      unlink(LEGACY_CONFIG_FILE_PATH);
   }
 
   btif_config_devcache_cleanup();
@@ -393,6 +397,7 @@ static void btif_config_write(void) {
   btif_config_devcache_cleanup();
 
   pthread_mutex_lock(&lock);
+  rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
   config_save(config, CONFIG_FILE_PATH);
   pthread_mutex_unlock(&lock);
 }
