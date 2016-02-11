@@ -1318,7 +1318,7 @@ void btm_ble_adv_filter_init(void)
     if (cmn_ble_vsc_cb.max_filter > 0)
     {
         btm_ble_adv_filt_cb.p_addr_filter_count =
-            (tBTM_BLE_PF_COUNT*) osi_malloc( sizeof(tBTM_BLE_PF_COUNT) * cmn_ble_vsc_cb.max_filter);
+            (tBTM_BLE_PF_COUNT*)osi_malloc(sizeof(tBTM_BLE_PF_COUNT) * cmn_ble_vsc_cb.max_filter);
     }
 }
 

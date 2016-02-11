@@ -155,7 +155,6 @@ static const tBTM_ESCO_PARAMS bta_ag_esco_params =
 static void bta_ag_sco_conn_cback(UINT16 sco_idx)
 {
     UINT16  handle;
-    BT_HDR  *p_buf;
     tBTA_AG_SCB *p_scb;
 
     /* match callback to scb; first check current sco scb */
@@ -173,18 +172,13 @@ static void bta_ag_sco_conn_cback(UINT16 sco_idx)
             handle = 0;
     }
 
-    if (handle != 0)
-    {
-        if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
-        {
-            p_buf->event = BTA_AG_SCO_OPEN_EVT;
-            p_buf->layer_specific = handle;
-            bta_sys_sendmsg(p_buf);
-        }
-    }
-    /* no match found; disconnect sco, init sco variables */
-    else
-    {
+    if (handle != 0) {
+        BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+        p_buf->event = BTA_AG_SCO_OPEN_EVT;
+        p_buf->layer_specific = handle;
+        bta_sys_sendmsg(p_buf);
+    } else {
+        /* no match found; disconnect sco, init sco variables */
         bta_ag_cb.sco.p_curr_scb = NULL;
         bta_ag_cb.sco.state = BTA_AG_SCO_SHUTDOWN_ST;
         BTM_RemoveSco(sco_idx);
@@ -203,7 +197,6 @@ static void bta_ag_sco_conn_cback(UINT16 sco_idx)
 *******************************************************************************/
 static void bta_ag_sco_disc_cback(UINT16 sco_idx)
 {
-    BT_HDR  *p_buf;
     UINT16  handle = 0;
 
     APPL_TRACE_DEBUG ("bta_ag_sco_disc_cback(): sco_idx: 0x%x  p_cur_scb: 0x%08x  sco.state: %d", sco_idx, bta_ag_cb.sco.p_curr_scb, bta_ag_cb.sco.state);
@@ -261,16 +254,12 @@ static void bta_ag_sco_disc_cback(UINT16 sco_idx)
         bta_ag_cb.sco.p_curr_scb->inuse_codec = BTA_AG_CODEC_NONE;
 #endif
 
-        if ((p_buf = (BT_HDR *) osi_malloc(sizeof(BT_HDR))) != NULL)
-        {
-            p_buf->event = BTA_AG_SCO_CLOSE_EVT;
-            p_buf->layer_specific = handle;
-            bta_sys_sendmsg(p_buf);
-        }
-    }
-    /* no match found */
-    else
-    {
+        BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
+        p_buf->event = BTA_AG_SCO_CLOSE_EVT;
+        p_buf->layer_specific = handle;
+        bta_sys_sendmsg(p_buf);
+    } else {
+        /* no match found */
         APPL_TRACE_DEBUG("no scb for ag_sco_disc_cback");
 
         /* sco could be closed after scb dealloc'ed */

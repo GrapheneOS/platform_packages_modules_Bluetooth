@@ -62,27 +62,17 @@ btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb()
 
     if (NULL == p_multi_adv_com_data_cb)
     {
-        p_multi_adv_com_data_cb = osi_malloc(sizeof(btgatt_multi_adv_common_data));
-        if (NULL != p_multi_adv_com_data_cb)
-        {
-            memset(p_multi_adv_com_data_cb, 0, sizeof(btgatt_multi_adv_common_data));
+        p_multi_adv_com_data_cb = osi_calloc(sizeof(btgatt_multi_adv_common_data));
+        /* Storing both client_if and inst_id details */
+        p_multi_adv_com_data_cb->clntif_map =
+            osi_calloc((max_adv_inst * INST_ID_IDX_MAX) * sizeof(INT8));
 
-            /* Storing both client_if and inst_id details */
-            p_multi_adv_com_data_cb->clntif_map =
-                  osi_malloc(( max_adv_inst * INST_ID_IDX_MAX)* sizeof(INT8));
-            memset(p_multi_adv_com_data_cb->clntif_map, 0 ,
-                  ( max_adv_inst * INST_ID_IDX_MAX)* sizeof(INT8));
+        p_multi_adv_com_data_cb->inst_cb =
+            osi_calloc((max_adv_inst + 1) * sizeof(btgatt_multi_adv_inst_cb));
 
-            p_multi_adv_com_data_cb->inst_cb = osi_malloc(( max_adv_inst + 1 )
-                                              * sizeof(btgatt_multi_adv_inst_cb));
-            memset(p_multi_adv_com_data_cb->inst_cb, 0 ,
-                 ( max_adv_inst + 1) * sizeof(btgatt_multi_adv_inst_cb));
-
-            for (int i=0; i < max_adv_inst * 2; i += 2)
-            {
-                p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
-                p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
-            }
+        for (int i = 0; i < max_adv_inst * 2; i += 2) {
+            p_multi_adv_com_data_cb->clntif_map[i] = INVALID_ADV_INST;
+            p_multi_adv_com_data_cb->clntif_map[i+1] = INVALID_ADV_INST;
         }
     }
 

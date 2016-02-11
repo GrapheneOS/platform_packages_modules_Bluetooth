@@ -1245,13 +1245,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
                    (p_tbl->peer_mtu - 1) + 2;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-            if (p_buf == NULL)
-            {
-                /* do we even want to try and recover from this? could do so
-                by setting retransmission timer */
-                return TRUE;
-            }
+            p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
             /* copy portion of data from current message to new buffer */
             p_buf->offset = L2CAP_MIN_OFFSET + hdr_len;
@@ -1267,13 +1261,7 @@ BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg)
             hdr_len = AVDT_LEN_TYPE_CONT;
 
             /* get a new buffer for fragment we are sending */
-            p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-            if (p_buf == NULL)
-            {
-                /* do we even want to try and recover from this? could do so
-                by setting retransmission timer */
-                return TRUE;
-            }
+            p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
             /* copy portion of data from current message to new buffer */
             p_buf->offset = L2CAP_MIN_OFFSET + hdr_len;
@@ -1502,17 +1490,9 @@ BT_HDR *avdt_msg_asmbl(tAVDT_CCB *p_ccb, BT_HDR *p_buf)
 *******************************************************************************/
 void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p_params)
 {
-    BT_HDR      *p_buf;
-    UINT8       *p;
-    UINT8       *p_start;
-
-    /* get a buffer */
-    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-    if (p_buf == NULL)
-    {
-        AVDT_TRACE_ERROR("avdt_msg_send_cmd out of buffer!!");
-        return;
-    }
+    UINT8 *p;
+    UINT8 *p_start;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
     /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
@@ -1571,13 +1551,9 @@ void avdt_msg_send_cmd(tAVDT_CCB *p_ccb, void *p_scb, UINT8 sig_id, tAVDT_MSG *p
 *******************************************************************************/
 void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 {
-    BT_HDR      *p_buf;
-    UINT8       *p;
-    UINT8       *p_start;
-
-    /* get a buffer */
-    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-    if (p_buf == NULL) return;
+    UINT8 *p;
+    UINT8 *p_start;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
     /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
@@ -1616,13 +1592,9 @@ void avdt_msg_send_rsp(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 *******************************************************************************/
 void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 {
-    BT_HDR      *p_buf;
-    UINT8       *p;
-    UINT8       *p_start;
-
-    /* get a buffer */
-    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-    if (p_buf == NULL) return;
+    UINT8 *p;
+    UINT8 *p_start;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
     /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;
@@ -1677,13 +1649,9 @@ void avdt_msg_send_rej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 *******************************************************************************/
 void avdt_msg_send_grej(tAVDT_CCB *p_ccb, UINT8 sig_id, tAVDT_MSG *p_params)
 {
-    BT_HDR      *p_buf;
-    UINT8       *p;
-    UINT8       *p_start;
-
-    /* get a buffer */
-    p_buf = (BT_HDR *) osi_malloc(AVDT_CMD_BUF_SIZE);
-    if (p_buf == NULL) return;
+    UINT8 *p;
+    UINT8 *p_start;
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(AVDT_CMD_BUF_SIZE);
 
     /* set up buf pointer and offset */
     p_buf->offset = AVDT_MSG_OFFSET;

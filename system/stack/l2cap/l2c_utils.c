@@ -350,12 +350,6 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(L2CAP_CMD_BUF_SIZE);
     UINT8   *p;
 
-    if (!p_buf)
-    {
-        L2CAP_TRACE_ERROR ("l2cu_build_header - no buffer");
-        return (NULL);
-    }
-
     p_buf->offset = L2CAP_SEND_CMD_OFFSET;
     p_buf->len = len + HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
     p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET;
@@ -791,7 +785,6 @@ void l2cu_send_peer_config_rsp (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 *******************************************************************************/
 void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, UINT8 *p_data, UINT16 data_len, UINT16 rej_len)
 {
-    BT_HDR  *p_buf;
     UINT16  len, cfg_len, buf_space, len1;
     UINT8   *p, *p_hci_len, *p_data_end;
     UINT8   cfg_code;
@@ -807,14 +800,7 @@ void l2cu_send_peer_config_rej (tL2C_CCB *p_ccb, UINT8 *p_data, UINT16 data_len,
         return;
     }
 
-    p_buf = (BT_HDR *)osi_malloc(len + rej_len);
-
-    if (!p_buf)
-    {
-        L2CAP_TRACE_ERROR ("L2CAP - no buffer for cfg_rej");
-        return;
-    }
-
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(len + rej_len);
     p_buf->offset = L2CAP_SEND_CMD_OFFSET;
     p = (UINT8 *)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET;
 

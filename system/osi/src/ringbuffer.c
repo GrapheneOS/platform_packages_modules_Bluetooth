@@ -32,15 +32,8 @@ struct ringbuffer_t {
 
 ringbuffer_t* ringbuffer_init(const size_t size) {
   ringbuffer_t* p = osi_calloc(sizeof(ringbuffer_t));
-  if (p == 0)
-    return NULL;
 
   p->base = osi_calloc(size);
-  if (p->base == 0) {
-    osi_free(p);
-    return NULL;
-  }
-
   p->head = p->tail = p->base;
   p->total = p->available = size;
 

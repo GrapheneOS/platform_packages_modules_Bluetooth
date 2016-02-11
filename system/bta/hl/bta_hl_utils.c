@@ -268,20 +268,14 @@ void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
 *******************************************************************************/
 BT_HDR * bta_hl_get_buf(UINT16 data_size, BOOLEAN fcs_use)
 {
-    BT_HDR *p_new;
-    UINT16 size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
+    size_t size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE;
 
     if (fcs_use)
-    {
         size += L2CAP_FCS_LEN;
-    }
 
-    p_new = (BT_HDR *)osi_malloc(size);
-    if (p_new)
-    {
-        p_new->len = data_size;
-        p_new->offset = L2CAP_MIN_OFFSET;
-    }
+    BT_HDR *p_new = (BT_HDR *)osi_malloc(size);
+    p_new->len = data_size;
+    p_new->offset = L2CAP_MIN_OFFSET;
 
     return p_new;
 }

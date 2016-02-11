@@ -811,7 +811,6 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
 {
     UINT16 offset = AVRC_MSG_PASS_THRU_OFFSET;
     UINT16 chnl = AVCT_DATA_CTRL;
-    BT_HDR *p_pkt = NULL;
     UINT8  opcode = avrc_opcode_from_pdu(p_rsp->pdu);
 
     AVRC_TRACE_API("%s: pdu=%x, opcode=%x/%x", __func__, p_rsp->pdu, opcode, p_rsp->rsp.opcode);
@@ -834,35 +833,32 @@ static BT_HDR *avrc_bld_init_rsp_buffer(tAVRC_RESPONSE *p_rsp)
     }
 
     /* allocate and initialize the buffer */
-    p_pkt = (BT_HDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
-    if (p_pkt)
-    {
-        UINT8 *p_data, *p_start;
+    BT_HDR *p_pkt = (BT_HDR *)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
+    UINT8 *p_data, *p_start;
 
-        p_pkt->layer_specific = chnl;
-        p_pkt->event    = opcode;
-        p_pkt->offset   = offset;
-        p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
-        p_start = p_data;
+    p_pkt->layer_specific = chnl;
+    p_pkt->event    = opcode;
+    p_pkt->offset   = offset;
+    p_data = (UINT8 *)(p_pkt + 1) + p_pkt->offset;
+    p_start = p_data;
 
-        /* pass thru - group navigation - has a two byte op_id, so dont do it here */
-        if (opcode != AVRC_OP_PASS_THRU)
-            *p_data++ = p_rsp->pdu;
+    /* pass thru - group navigation - has a two byte op_id, so dont do it here */
+    if (opcode != AVRC_OP_PASS_THRU)
+        *p_data++ = p_rsp->pdu;
 
-        switch (opcode)
-        {
-        case AVRC_OP_VENDOR:
-            /* reserved 0, packet_type 0 */
-            UINT8_TO_BE_STREAM(p_data, 0);
-            /* continue to the next "case to add length */
-            /* add fixed lenth - 0 */
-            UINT16_TO_BE_STREAM(p_data, 0);
-            break;
-        }
-
-        p_pkt->len = (p_data - p_start);
+    switch (opcode) {
+    case AVRC_OP_VENDOR:
+        /* reserved 0, packet_type 0 */
+        UINT8_TO_BE_STREAM(p_data, 0);
+        /* continue to the next "case to add length */
+        /* add fixed lenth - 0 */
+        UINT16_TO_BE_STREAM(p_data, 0);
+        break;
     }
+
+    p_pkt->len = (p_data - p_start);
     p_rsp->rsp.opcode = opcode;
+
     return p_pkt;
 }
 

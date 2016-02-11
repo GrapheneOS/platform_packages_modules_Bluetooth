@@ -62,10 +62,6 @@ static entry_t *entry_find(const config_t *config, const char *section, const ch
 
 config_t *config_new_empty(void) {
   config_t *config = osi_calloc(sizeof(config_t));
-  if (!config) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for config_t.", __func__);
-    goto error;
-  }
 
   config->sections = list_new(section_free);
   if (!config->sections) {
@@ -254,10 +250,6 @@ bool config_save(const config_t *config, const char *filename) {
   assert(*filename != '\0');
 
   char *temp_filename = osi_calloc(strlen(filename) + 5);
-  if (!temp_filename) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for filename.", __func__);
-    return false;
-  }
 
   strcpy(temp_filename, filename);
   strcat(temp_filename, ".new");
@@ -376,8 +368,6 @@ static void config_parse(FILE *fp, config_t *config) {
 
 static section_t *section_new(const char *name) {
   section_t *section = osi_calloc(sizeof(section_t));
-  if (!section)
-    return NULL;
 
   section->name = osi_strdup(name);
   section->entries = list_new(entry_free);
@@ -406,8 +396,6 @@ static section_t *section_find(const config_t *config, const char *section) {
 
 static entry_t *entry_new(const char *key, const char *value) {
   entry_t *entry = osi_calloc(sizeof(entry_t));
-  if (!entry)
-    return NULL;
 
   entry->key = osi_strdup(key);
   entry->value = osi_strdup(value);

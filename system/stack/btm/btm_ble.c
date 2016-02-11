@@ -81,10 +81,7 @@ BOOLEAN BTM_SecAddBleDevice (BD_ADDR bd_addr, BD_NAME bd_name, tBT_DEVICE_TYPE d
             return FALSE;
         }
 
-        p_dev_rec = osi_malloc(sizeof(tBTM_SEC_DEV_REC));
-
-        /* Initialize this record */
-        memset(p_dev_rec, 0, sizeof (tBTM_SEC_DEV_REC));
+        p_dev_rec = osi_calloc(sizeof(tBTM_SEC_DEV_REC));
         list_append(btm_cb.sec_dev_rec, p_dev_rec);
 
         memcpy(p_dev_rec->bd_addr, bd_addr, BD_ADDR_LEN);
@@ -1996,34 +1993,31 @@ BOOLEAN BTM_BleDataSignature (BD_ADDR bd_addr, UINT8 *p_text, UINT16 len,
     else
     {
         UINT8 *p_mac = (UINT8 *)signature;
-        UINT8 *p_buf, *pp;
-        if ((p_buf = (UINT8 *)osi_malloc(len + 4)) != NULL)
-        {
-            BTM_TRACE_DEBUG("%s-Start to generate Local CSRK", __func__);
-            pp = p_buf;
-            /* prepare plain text */
-            if (p_text)
-            {
-                memcpy(p_buf, p_text, len);
-                pp = (p_buf + len);
-            }
+        UINT8 *pp;
+        UINT8 *p_buf = (UINT8 *)osi_malloc(len + 4);
 
-            UINT32_TO_STREAM(pp, p_rec->ble.keys.local_counter);
-            UINT32_TO_STREAM(p_mac, p_rec->ble.keys.local_counter);
-
-            if ((ret = aes_cipher_msg_auth_code(p_rec->ble.keys.lcsrk, p_buf, (UINT16)(len + 4),
-                                        BTM_CMAC_TLEN_SIZE, p_mac)) == TRUE)
-            {
-                  btm_ble_increment_sign_ctr(bd_addr, TRUE);
-            }
-
-            BTM_TRACE_DEBUG("%s p_mac = %d", __func__, p_mac);
-            BTM_TRACE_DEBUG("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x",
-                             *p_mac, *(p_mac + 1), *(p_mac + 2), *(p_mac + 3));
-            BTM_TRACE_DEBUG("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
-                            *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
-            osi_free(p_buf);
+        BTM_TRACE_DEBUG("%s-Start to generate Local CSRK", __func__);
+        pp = p_buf;
+        /* prepare plain text */
+        if (p_text) {
+            memcpy(p_buf, p_text, len);
+            pp = (p_buf + len);
         }
+
+        UINT32_TO_STREAM(pp, p_rec->ble.keys.local_counter);
+        UINT32_TO_STREAM(p_mac, p_rec->ble.keys.local_counter);
+
+        if ((ret = aes_cipher_msg_auth_code(p_rec->ble.keys.lcsrk, p_buf, (UINT16)(len + 4),
+                                            BTM_CMAC_TLEN_SIZE, p_mac)) == TRUE) {
+            btm_ble_increment_sign_ctr(bd_addr, TRUE);
+        }
+
+        BTM_TRACE_DEBUG("%s p_mac = %d", __func__, p_mac);
+        BTM_TRACE_DEBUG("p_mac[0] = 0x%02x p_mac[1] = 0x%02x p_mac[2] = 0x%02x p_mac[3] = 0x%02x",
+                        *p_mac, *(p_mac + 1), *(p_mac + 2), *(p_mac + 3));
+        BTM_TRACE_DEBUG("p_mac[4] = 0x%02x p_mac[5] = 0x%02x p_mac[6] = 0x%02x p_mac[7] = 0x%02x",
+                        *(p_mac + 4), *(p_mac + 5), *(p_mac + 6), *(p_mac + 7));
+        osi_free(p_buf);
     }
     return ret;
 }
@@ -2108,8 +2102,7 @@ BOOLEAN BTM_GetLeSecurityState (BD_ADDR bd_addr, UINT8 *p_le_dev_sec_flags, UINT
         return (FALSE);
     }
 
-    if (p_dev_rec->ble_hci_handle == BTM_SEC_INVALID_HANDLE)
-    {
+    if (p_dev_rec->ble_hci_handle == BTM_SEC_INVALID_HANDLE) {
         BTM_TRACE_ERROR ("%s-this is not LE device", __func__);
         return (FALSE);
     }

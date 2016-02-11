@@ -248,16 +248,14 @@ static void toggle_os_keylockstates(int fd, int changedlockstates)
 static BT_HDR *create_pbuf(UINT16 len, UINT8 *data)
 {
     BT_HDR* p_buf = osi_malloc(len + BTA_HH_MIN_OFFSET + sizeof(BT_HDR));
+    UINT8* pbuf_data;
 
-    if (p_buf) {
-        UINT8* pbuf_data;
+    p_buf->len = len;
+    p_buf->offset = BTA_HH_MIN_OFFSET;
 
-        p_buf->len = len;
-        p_buf->offset = BTA_HH_MIN_OFFSET;
+    pbuf_data = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    memcpy(pbuf_data, data, len);
 
-        pbuf_data = (UINT8*) (p_buf + 1) + p_buf->offset;
-        memcpy(pbuf_data, data, len);
-    }
     return p_buf;
 }
 
@@ -529,14 +527,8 @@ void btif_hh_remove_device(bt_bdaddr_t bd_addr)
 BOOLEAN btif_hh_copy_hid_info(tBTA_HH_DEV_DSCP_INFO* dest , tBTA_HH_DEV_DSCP_INFO* src)
 {
     dest->descriptor.dl_len = 0;
-    if (src->descriptor.dl_len >0)
-    {
-        dest->descriptor.dsc_list = (UINT8 *) osi_malloc(src->descriptor.dl_len);
-        if (dest->descriptor.dsc_list == NULL)
-        {
-            BTIF_TRACE_WARNING("%s: Failed to allocate DSCP for CB", __FUNCTION__);
-            return FALSE;
-        }
+    if (src->descriptor.dl_len > 0) {
+        dest->descriptor.dsc_list = (UINT8 *)osi_malloc(src->descriptor.dl_len);
     }
     memcpy(dest->descriptor.dsc_list, src->descriptor.dsc_list, src->descriptor.dl_len);
     dest->descriptor.dl_len = src->descriptor.dl_len;
@@ -1316,12 +1308,7 @@ static bt_status_t set_info (bt_bdaddr_t *bd_addr, bthh_hid_info_t hid_info )
     dscp_info.ctry_code  = hid_info.ctry_code;
 
     dscp_info.descriptor.dl_len = hid_info.dl_len;
-    dscp_info.descriptor.dsc_list = (UINT8 *) osi_malloc(dscp_info.descriptor.dl_len);
-    if (dscp_info.descriptor.dsc_list == NULL)
-    {
-        LOG_ERROR(LOG_TAG, "%s: Failed to allocate DSCP for CB", __FUNCTION__);
-        return BT_STATUS_FAIL;
-    }
+    dscp_info.descriptor.dsc_list = (UINT8 *)osi_malloc(dscp_info.descriptor.dl_len);
     memcpy(dscp_info.descriptor.dsc_list, &(hid_info.dsc_list), hid_info.dl_len);
 
     if (btif_hh_add_added_dev(*bd_addr, hid_info.attr_mask))
@@ -1496,18 +1483,10 @@ static bt_status_t set_report (bt_bdaddr_t *bd_addr, bthh_report_type_t reportTy
     }
     else {
         int    hex_bytes_filled;
-        UINT8  *hexbuf;
-        UINT16 len = (strlen(report) + 1) / 2;
-
-        hexbuf = osi_malloc(len);
-        if (hexbuf == NULL) {
-            BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
-                __FUNCTION__, len);
-            return BT_STATUS_FAIL;
-        }
+        size_t len = (strlen(report) + 1) / 2;
+        UINT8  *hexbuf = osi_calloc(len);
 
         /* Build a SetReport data buffer */
-        memset(hexbuf, 0, len);
         //TODO
         hex_bytes_filled = ascii_2_hex(report, len, hexbuf);
         LOG_INFO(LOG_TAG, "Hex bytes filled, hex value: %d", hex_bytes_filled);
@@ -1562,18 +1541,10 @@ static bt_status_t send_data (bt_bdaddr_t *bd_addr, char* data)
 
     else {
         int    hex_bytes_filled;
-        UINT8  *hexbuf;
-        UINT16 len = (strlen(data) + 1) / 2;
-
-        hexbuf = osi_malloc(len);
-        if (hexbuf == NULL) {
-            BTIF_TRACE_ERROR("%s: Error, failed to allocate RPT buffer, len = %d",
-                __FUNCTION__, len);
-            return BT_STATUS_FAIL;
-        }
+        size_t len = (strlen(data) + 1) / 2;
+        UINT8 *hexbuf = osi_calloc(len);
 
         /* Build a SendData data buffer */
-        memset(hexbuf, 0, len);
         hex_bytes_filled = ascii_2_hex(data, len, hexbuf);
         BTIF_TRACE_ERROR("Hex bytes filled, hex value: %d, %d", hex_bytes_filled, len);
 

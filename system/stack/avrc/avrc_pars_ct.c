@@ -246,14 +246,13 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
 
     case AVRC_PDU_GET_CUR_PLAYER_APP_VALUE:
     {
-        tAVRC_APP_SETTING *app_sett;
         if (len == 0)
         {
             p_result->get_cur_app_val.num_val = 0;
             break;
         }
         BE_STREAM_TO_UINT8(p_result->get_cur_app_val.num_val, p);
-        app_sett =
+        tAVRC_APP_SETTING *app_sett =
             (tAVRC_APP_SETTING*)osi_malloc(p_result->get_cur_app_val.num_val*sizeof(tAVRC_APP_SETTING));
         AVRC_TRACE_DEBUG("%s attr count = %d ", __func__, p_result->get_cur_app_val.num_val);
         for (int xx = 0; xx < p_result->get_cur_app_val.num_val; xx++)
@@ -279,35 +278,17 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         AVRC_TRACE_DEBUG("%s attr count = %d ", __func__, p_result->get_app_attr_txt.num_attr);
         p_result->get_app_attr_txt.num_attr = num_attrs;
         p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_malloc(num_attrs * sizeof(tAVRC_APP_SETTING_TEXT));
-        if (p_setting_text == NULL)
-        {
-            p_result->get_app_attr_txt.num_attr = 0;
-            AVRC_TRACE_ERROR("%s alloc fail", __FUNCTION__);
-            break;
-        }
         for (int xx = 0; xx < num_attrs; xx++)
         {
-            UINT8 *p_str;
-
             BE_STREAM_TO_UINT8(p_result->get_app_attr_txt.p_attrs[xx].attr_id, p);
             BE_STREAM_TO_UINT16(p_result->get_app_attr_txt.p_attrs[xx].charset_id, p);
             BE_STREAM_TO_UINT8(p_result->get_app_attr_txt.p_attrs[xx].str_len, p);
             if (p_result->get_app_attr_txt.p_attrs[xx].str_len != 0)
             {
-                p_str = (UINT8*)osi_malloc(p_result->get_app_attr_txt.p_attrs[xx].str_len);
-                if (p_str != NULL)
-                {
-                    BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_attr_txt.p_attrs[xx].str_len);
-                    p_result->get_app_attr_txt.p_attrs[xx].p_str = p_str;
-                }
-                else
-                {
-                    p_result->get_app_attr_txt.p_attrs[xx].str_len = 0;
-                    AVRC_TRACE_ERROR("%s alloc failed for text", __FUNCTION__);
-                }
-            }
-            else
-            {
+                UINT8 *p_str = (UINT8 *)osi_malloc(p_result->get_app_attr_txt.p_attrs[xx].str_len);
+                BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_attr_txt.p_attrs[xx].str_len);
+                p_result->get_app_attr_txt.p_attrs[xx].p_str = p_str;
+            } else {
                 p_result->get_app_attr_txt.p_attrs[xx].p_str = NULL;
             }
         }
@@ -328,37 +309,17 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         p_result->get_app_val_txt.num_attr = num_vals;
         AVRC_TRACE_DEBUG("%s value count = %d ", __func__, p_result->get_app_val_txt.num_attr);
 
-        p_setting_text = (tAVRC_APP_SETTING_TEXT*)osi_malloc(num_vals * sizeof(tAVRC_APP_SETTING_TEXT));
-        if (p_setting_text == NULL)
-        {
-            p_result->get_app_attr_txt.num_attr = 0;
-            AVRC_TRACE_ERROR("%s alloc fail", __FUNCTION__);
-            break;
-        }
-        for (int xx = 0; xx < num_vals; xx++)
-        {
-            UINT8 *p_str;
-
-            BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[xx].attr_id, p);
-            BE_STREAM_TO_UINT16(p_result->get_app_val_txt.p_attrs[xx].charset_id, p);
-            BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[xx].str_len, p);
-            if (p_result->get_app_val_txt.p_attrs[xx].str_len != 0)
-            {
-                p_str = (UINT8*)osi_malloc(p_result->get_app_val_txt.p_attrs[xx].str_len);
-                if (p_str != NULL)
-                {
-                    BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_val_txt.p_attrs[xx].str_len);
-                    p_result->get_app_val_txt.p_attrs[xx].p_str = p_str;
-                }
-                else
-                {
-                    p_result->get_app_val_txt.p_attrs[xx].str_len = 0;
-                    AVRC_TRACE_ERROR("%s alloc failed for value text", __FUNCTION__);
-                }
-            }
-            else
-            {
-                p_result->get_app_val_txt.p_attrs[xx].p_str = NULL;
+        p_setting_text = (tAVRC_APP_SETTING_TEXT *)osi_malloc(num_vals * sizeof(tAVRC_APP_SETTING_TEXT));
+        for (int i = 0; i < num_vals; i++) {
+            BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[i].attr_id, p);
+            BE_STREAM_TO_UINT16(p_result->get_app_val_txt.p_attrs[i].charset_id, p);
+            BE_STREAM_TO_UINT8(p_result->get_app_val_txt.p_attrs[i].str_len, p);
+            if (p_result->get_app_val_txt.p_attrs[i].str_len != 0) {
+                UINT8 *p_str = (UINT8 *)osi_malloc(p_result->get_app_val_txt.p_attrs[i].str_len);
+                BE_STREAM_TO_ARRAY(p, p_str, p_result->get_app_val_txt.p_attrs[i].str_len);
+                p_result->get_app_val_txt.p_attrs[i].p_str = p_str;
+            } else {
+                p_result->get_app_val_txt.p_attrs[i].p_str = NULL;
             }
         }
     }
@@ -370,7 +331,6 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
 
     case AVRC_PDU_GET_ELEMENT_ATTR:
     {
-        tAVRC_ATTR_ENTRY    *p_attrs;
         UINT8               num_attrs;
 
         if (len <= 0)
@@ -382,24 +342,15 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
         p_result->get_elem_attrs.num_attr = num_attrs;
         if (num_attrs)
         {
-            p_attrs = (tAVRC_ATTR_ENTRY*)osi_malloc(num_attrs * sizeof(tAVRC_ATTR_ENTRY));
-            for (int xx = 0; xx < num_attrs; xx++)
-            {
-                BE_STREAM_TO_UINT32(p_attrs[xx].attr_id, p);
-                BE_STREAM_TO_UINT16(p_attrs[xx].name.charset_id, p);
-                BE_STREAM_TO_UINT16(p_attrs[xx].name.str_len, p);
-                if (p_attrs[xx].name.str_len > 0)
-                {
-                    p_attrs[xx].name.p_str = (UINT8*)osi_malloc(p_attrs[xx].name.str_len);
-                    if (p_attrs[xx].name.p_str != NULL)
-                    {
-                        BE_STREAM_TO_ARRAY(p, p_attrs[xx].name.p_str, p_attrs[xx].name.str_len);
-                    }
-                    else
-                    {
-                        p_attrs[xx].name.str_len = 0;
-                        AVRC_TRACE_ERROR("%s : alloc failed for attribute", __FUNCTION__);
-                    }
+            tAVRC_ATTR_ENTRY *p_attrs =
+                (tAVRC_ATTR_ENTRY*)osi_malloc(num_attrs * sizeof(tAVRC_ATTR_ENTRY));
+            for (int i = 0; i < num_attrs; i++) {
+                BE_STREAM_TO_UINT32(p_attrs[i].attr_id, p);
+                BE_STREAM_TO_UINT16(p_attrs[i].name.charset_id, p);
+                BE_STREAM_TO_UINT16(p_attrs[i].name.str_len, p);
+                if (p_attrs[i].name.str_len > 0) {
+                    p_attrs[i].name.p_str = (UINT8 *)osi_malloc(p_attrs[i].name.str_len);
+                    BE_STREAM_TO_ARRAY(p, p_attrs[i].name.p_str, p_attrs[i].name.str_len);
                 }
             }
             p_result->get_elem_attrs.p_attrs = p_attrs;

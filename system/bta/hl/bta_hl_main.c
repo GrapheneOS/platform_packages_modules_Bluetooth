@@ -1569,20 +1569,11 @@ static void bta_hl_sdp_query_results(tBTA_HL_CB *p_cb, tBTA_HL_DATA *p_data)
 
     event = p_data->hdr.event;
 
-    if ( event == BTA_HL_SDP_QUERY_OK_EVT)
-    {
-        if ((p_sdp = (tBTA_HL_SDP *)osi_malloc(sizeof(tBTA_HL_SDP))) != NULL)
-        {
-            memcpy(p_sdp, &p_mcb->sdp, sizeof(tBTA_HL_SDP));
-            release_sdp_buf = TRUE;
-        }
-        else
-        {
-            status = BTA_HL_STATUS_SDP_NO_RESOURCE;
-        }
-    }
-    else
-    {
+    if (event == BTA_HL_SDP_QUERY_OK_EVT) {
+        p_sdp = (tBTA_HL_SDP *)osi_malloc(sizeof(tBTA_HL_SDP));
+        memcpy(p_sdp, &p_mcb->sdp, sizeof(tBTA_HL_SDP));
+        release_sdp_buf = TRUE;
+    } else {
         status = BTA_HL_STATUS_SDP_FAIL;
     }
 

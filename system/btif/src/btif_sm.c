@@ -59,15 +59,12 @@ typedef struct {
 
 btif_sm_handle_t btif_sm_init(const btif_sm_handler_t *p_handlers, btif_sm_state_t initial_state)
 {
-    btif_sm_cb_t *p_cb;
-
-    if (p_handlers == NULL)
-    {
+    if (p_handlers == NULL) {
         BTIF_TRACE_ERROR("%s : p_handlers is NULL", __FUNCTION__);
         return NULL;
     }
 
-    p_cb = (btif_sm_cb_t *)osi_malloc(sizeof(btif_sm_cb_t));
+    btif_sm_cb_t *p_cb = (btif_sm_cb_t *)osi_malloc(sizeof(btif_sm_cb_t));
     p_cb->state = initial_state;
     p_cb->p_handlers = (btif_sm_handler_t*)p_handlers;
 

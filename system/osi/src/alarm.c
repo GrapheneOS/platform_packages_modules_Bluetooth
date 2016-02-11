@@ -165,10 +165,6 @@ static alarm_t *alarm_new_internal(const char *name, bool is_periodic) {
   pthread_mutexattr_init(&attr);
 
   alarm_t *ret = osi_calloc(sizeof(alarm_t));
-  if (!ret) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for alarm.", __func__);
-    goto error;
-  }
 
   // Make this a recursive mutex to make it safe to call |alarm_cancel| from
   // within the callback function of the alarm.

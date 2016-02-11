@@ -3003,35 +3003,31 @@ static void handle_set_app_attr_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
 ** Returns          None
 **
 ***************************************************************************/
-static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET_ELEM_ATTRS_RSP *p_rsp)
+static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg,
+                                           tAVRC_GET_ELEM_ATTRS_RSP *p_rsp)
 {
-    btrc_element_attr_val_t *p_attr;
-    bt_bdaddr_t rc_addr;
-    UINT16 xx;
-
-    bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
-
-    if (p_rsp->status == AVRC_STS_NO_ERROR)
-    {
+    if (p_rsp->status == AVRC_STS_NO_ERROR) {
+        bt_bdaddr_t rc_addr;
         size_t buf_size = p_rsp->num_attr * sizeof(btrc_element_attr_val_t);
-        p_attr = (btrc_element_attr_val_t *)osi_malloc(buf_size);
-        memset(p_attr, 0, buf_size);
-        for (xx = 0; xx < p_rsp->num_attr; xx++) {
-            p_attr[xx].attr_id = p_rsp->p_attrs[xx].attr_id;
+        btrc_element_attr_val_t *p_attr =
+            (btrc_element_attr_val_t *)osi_calloc(buf_size);
+
+        bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+
+        for (int i = 0; i < p_rsp->num_attr; i++) {
+            p_attr[i].attr_id = p_rsp->p_attrs[i].attr_id;
             /* Todo. Legth limit check to include null */
-            if (p_rsp->p_attrs[xx].name.str_len &&
-                p_rsp->p_attrs[xx].name.p_str) {
-                memcpy(p_attr[xx].text, p_rsp->p_attrs[xx].name.p_str,
-                       p_rsp->p_attrs[xx].name.str_len);
-                osi_free_and_reset((void **)&p_rsp->p_attrs[xx].name.p_str);
+            if (p_rsp->p_attrs[i].name.str_len &&
+                p_rsp->p_attrs[i].name.p_str) {
+                memcpy(p_attr[i].text, p_rsp->p_attrs[i].name.p_str,
+                       p_rsp->p_attrs[i].name.str_len);
+                osi_free_and_reset((void **)&p_rsp->p_attrs[i].name.p_str);
             }
         }
         HAL_CBACK(bt_rc_ctrl_callbacks, track_changed_cb,
                   &rc_addr, p_rsp->num_attr, p_attr);
         osi_free(p_attr);
-    }
-    else if (p_rsp->status == BTIF_RC_STS_TIMEOUT)
-    {
+    } else if (p_rsp->status == BTIF_RC_STS_TIMEOUT) {
         /* Retry for timeout case, this covers error handling
          * for continuation failure also.
          */
@@ -3045,11 +3041,9 @@ static void handle_get_elem_attr_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GE
             AVRC_MEDIA_ATTR_ID_PLAYING_TIME
             };
         get_element_attribute_cmd (AVRC_MAX_NUM_MEDIA_ATTR_ID, attr_list);
-    }
-    else
-    {
+    } else {
         BTIF_TRACE_ERROR("%s: Error in get element attr procedure %d",
-            __FUNCTION__, p_rsp->status);
+                         __func__, p_rsp->status);
     }
 }
 

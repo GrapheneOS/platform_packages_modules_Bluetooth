@@ -6034,28 +6034,23 @@ static BOOLEAN btm_sec_queue_mx_request (BD_ADDR bd_addr,  UINT16 psm,  BOOLEAN 
 {
     tBTM_SEC_QUEUE_ENTRY *p_e = (tBTM_SEC_QUEUE_ENTRY *)osi_malloc(sizeof(tBTM_SEC_QUEUE_ENTRY));
 
-    if (p_e)
-    {
-        p_e->psm            = psm;
-        p_e->is_orig        = is_orig;
-        p_e->p_callback     = p_callback;
-        p_e->p_ref_data     = p_ref_data;
-        p_e->mx_proto_id    = mx_proto_id;
-        p_e->mx_chan_id     = mx_chan_id;
-        p_e->transport      = BT_TRANSPORT_BR_EDR;
-        p_e->sec_act        = 0;
+    p_e->psm            = psm;
+    p_e->is_orig        = is_orig;
+    p_e->p_callback     = p_callback;
+    p_e->p_ref_data     = p_ref_data;
+    p_e->mx_proto_id    = mx_proto_id;
+    p_e->mx_chan_id     = mx_chan_id;
+    p_e->transport      = BT_TRANSPORT_BR_EDR;
+    p_e->sec_act        = 0;
 
-        memcpy (p_e->bd_addr, bd_addr, BD_ADDR_LEN);
+    memcpy(p_e->bd_addr, bd_addr, BD_ADDR_LEN);
 
-        BTM_TRACE_EVENT ("%s() PSM: 0x%04x  Is_Orig: %u  mx_proto_id: %u  mx_chan_id: %u",
-                          __func__, psm, is_orig, mx_proto_id, mx_chan_id);
+    BTM_TRACE_EVENT("%s() PSM: 0x%04x  Is_Orig: %u  mx_proto_id: %u  mx_chan_id: %u",
+                     __func__, psm, is_orig, mx_proto_id, mx_chan_id);
 
-        fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
+    fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
 
-        return(TRUE);
-    }
-
-    return(FALSE);
+    return TRUE;
 }
 
 static BOOLEAN btm_sec_check_prefetch_pin (tBTM_SEC_DEV_REC  *p_dev_rec)
@@ -6143,22 +6138,18 @@ static BOOLEAN btm_sec_queue_encrypt_request (BD_ADDR bd_addr, tBT_TRANSPORT tra
                                          tBTM_SEC_CALLBACK *p_callback, void *p_ref_data,
                                          tBTM_BLE_SEC_ACT sec_act)
 {
-    tBTM_SEC_QUEUE_ENTRY  *p_e;
-    p_e = (tBTM_SEC_QUEUE_ENTRY *)osi_malloc(sizeof(tBTM_SEC_QUEUE_ENTRY) + 1);
+    tBTM_SEC_QUEUE_ENTRY *p_e =
+        (tBTM_SEC_QUEUE_ENTRY *)osi_malloc(sizeof(tBTM_SEC_QUEUE_ENTRY) + 1);
 
-    if (p_e)
-    {
-        p_e->psm        = 0;  /* if PSM 0, encryption request */
-        p_e->p_callback = p_callback;
-        p_e->p_ref_data = p_ref_data;
-        p_e->transport  = transport;
-        p_e->sec_act    = sec_act;
-        memcpy(p_e->bd_addr, bd_addr, BD_ADDR_LEN);
-        fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
-        return TRUE;
-    }
+    p_e->psm        = 0;  /* if PSM 0, encryption request */
+    p_e->p_callback = p_callback;
+    p_e->p_ref_data = p_ref_data;
+    p_e->transport  = transport;
+    p_e->sec_act    = sec_act;
+    memcpy(p_e->bd_addr, bd_addr, BD_ADDR_LEN);
+    fixed_queue_enqueue(btm_cb.sec_pending_q, p_e);
 
-    return FALSE;
+    return TRUE;
 }
 
 /*******************************************************************************

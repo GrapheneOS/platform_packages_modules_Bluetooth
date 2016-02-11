@@ -43,10 +43,6 @@ array_t *array_new(size_t element_size) {
   assert(element_size > 0);
 
   array_t *array = osi_calloc(sizeof(array_t) + element_size * INTERNAL_ELEMENTS);
-  if (!array) {
-    LOG_ERROR(LOG_TAG, "%s unable to allocate memory for array with elements of size %zu.", __func__, element_size);
-    return NULL;
-  }
 
   array->element_size = element_size;
   array->capacity = INTERNAL_ELEMENTS;

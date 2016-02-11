@@ -119,30 +119,25 @@ static void bta_hf_client_clear_queued_at(void)
 
 static void bta_hf_client_queue_at(tBTA_HF_CLIENT_AT_CMD cmd, const char *buf, UINT16 buf_len)
 {
-    tBTA_HF_CLIENT_AT_QCMD *new_cmd;
+    tBTA_HF_CLIENT_AT_QCMD *new_cmd =
+        (tBTA_HF_CLIENT_AT_QCMD *)osi_malloc(sizeof(tBTA_HF_CLIENT_AT_QCMD));
 
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
-    if ((new_cmd = (tBTA_HF_CLIENT_AT_QCMD *) osi_malloc(sizeof(tBTA_HF_CLIENT_AT_QCMD))) != NULL)
-    {
-        new_cmd->cmd = cmd;
-        new_cmd->buf_len = buf_len;
-        new_cmd->next = NULL;
-        memcpy(new_cmd->buf, buf, buf_len);
+    new_cmd->cmd = cmd;
+    new_cmd->buf_len = buf_len;
+    new_cmd->next = NULL;
+    memcpy(new_cmd->buf, buf, buf_len);
 
-        if (bta_hf_client_cb.scb.at_cb.queued_cmd != NULL)
-        {
-            tBTA_HF_CLIENT_AT_QCMD *qcmd = bta_hf_client_cb.scb.at_cb.queued_cmd;
+    if (bta_hf_client_cb.scb.at_cb.queued_cmd != NULL) {
+        tBTA_HF_CLIENT_AT_QCMD *qcmd = bta_hf_client_cb.scb.at_cb.queued_cmd;
 
-            while (qcmd->next != NULL)
-                qcmd = qcmd->next;
+        while (qcmd->next != NULL)
+            qcmd = qcmd->next;
 
-            qcmd->next = new_cmd;
-        }
-        else
-        {
-            bta_hf_client_cb.scb.at_cb.queued_cmd = new_cmd;
-        }
+        qcmd->next = new_cmd;
+    } else {
+        bta_hf_client_cb.scb.at_cb.queued_cmd = new_cmd;
     }
 }
 

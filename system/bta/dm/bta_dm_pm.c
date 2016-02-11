@@ -910,17 +910,16 @@ void bta_dm_pm_active(BD_ADDR peer_addr)
 *******************************************************************************/
 static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 value, UINT8 hci_status)
 {
-   tBTA_DM_PM_BTM_STATUS  *p_buf;
+    tBTA_DM_PM_BTM_STATUS *p_buf =
+        (tBTA_DM_PM_BTM_STATUS *)osi_malloc(sizeof(tBTA_DM_PM_BTM_STATUS));
 
-   if ((p_buf = (tBTA_DM_PM_BTM_STATUS *) osi_malloc(sizeof(tBTA_DM_PM_BTM_STATUS))) != NULL)
-    {
-        p_buf->hdr.event = BTA_DM_PM_BTM_STATUS_EVT;
-        p_buf->status = status;
-        p_buf->value = value;
-        p_buf->hci_status = hci_status;
-        bdcpy(p_buf->bd_addr, bd_addr);
-        bta_sys_sendmsg(p_buf);
-    }
+    p_buf->hdr.event = BTA_DM_PM_BTM_STATUS_EVT;
+    p_buf->status = status;
+    p_buf->value = value;
+    p_buf->hci_status = hci_status;
+    bdcpy(p_buf->bd_addr, bd_addr);
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -964,14 +963,13 @@ static void bta_dm_pm_timer_cback(void *data)
     if (i==BTA_DM_NUM_PM_TIMER)
         return;
 
-    tBTA_DM_PM_TIMER *p_buf = (tBTA_DM_PM_TIMER *) osi_malloc(sizeof(tBTA_DM_PM_TIMER));
-    if (p_buf != NULL)
-    {
-        p_buf->hdr.event = BTA_DM_PM_TIMER_EVT;
-        p_buf->pm_request = bta_dm_cb.pm_timer[i].pm_action[j];
-        bdcpy(p_buf->bd_addr, bta_dm_cb.pm_timer[i].peer_bdaddr);
-        bta_sys_sendmsg(p_buf);
-    }
+    tBTA_DM_PM_TIMER *p_buf =
+        (tBTA_DM_PM_TIMER *)osi_malloc(sizeof(tBTA_DM_PM_TIMER));
+    p_buf->hdr.event = BTA_DM_PM_TIMER_EVT;
+    p_buf->pm_request = bta_dm_cb.pm_timer[i].pm_action[j];
+    bdcpy(p_buf->bd_addr, bta_dm_cb.pm_timer[i].peer_bdaddr);
+
+    bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
