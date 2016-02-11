@@ -37,14 +37,15 @@ namespace binder {
 
 void WriteAdvertiseDataToParcel(const AdvertiseData& data, Parcel* parcel) {
   CHECK(parcel);
-  parcel->writeByteArray(data.data().size(), data.data().data());  // lol
+  parcel->writeByteVector(data.data());
   parcel->writeInt32(data.include_device_name());
   parcel->writeInt32(data.include_tx_power_level());
 }
 
 std::unique_ptr<AdvertiseData> CreateAdvertiseDataFromParcel(
     const Parcel& parcel) {
-  auto data = ReadByteVectorFromParcel(parcel);
+  std::unique_ptr<std::vector<uint8_t>> data;
+  parcel.readByteVector(&data);
   CHECK(data.get());
 
   bool include_device_name = parcel.readInt32();
@@ -281,14 +282,7 @@ void WriteScanResultToParcel(
     parcel->writeInt32(0);
   }
 
-  if (!scan_result.scan_record().empty()) {
-    parcel->writeInt32(1);
-    parcel->writeByteArray(scan_result.scan_record().size(),
-                          scan_result.scan_record().data());
-  } else {
-    parcel->writeInt32(0);
-  }
-
+  parcel->writeByteVector(scan_result.scan_record());
   parcel->writeInt32(scan_result.rssi());
 }
 
@@ -298,7 +292,8 @@ std::unique_ptr<bluetooth::ScanResult> CreateScanResultFromParcel(
   if (parcel.readInt32())
     device_address = parcel.readCString();
 
-  auto scan_record = ReadByteVectorFromParcel(parcel);
+  std::unique_ptr<std::vector<uint8_t>> scan_record;
+  parcel.readByteVector(&scan_record);
   CHECK(scan_record.get());
 
   int rssi = parcel.readInt32();
@@ -306,20 +301,5 @@ std::unique_ptr<bluetooth::ScanResult> CreateScanResultFromParcel(
   return std::unique_ptr<ScanResult>(new ScanResult(
       device_address, *scan_record, rssi));
 }
-
-std::unique_ptr<std::vector<uint8_t>> ReadByteVectorFromParcel(
-    const android::Parcel& parcel) {
-  int32_t value_len = parcel.readInt32();
-  value_len = std::min(0, value_len);
-
-  std::unique_ptr<std::vector<uint8_t>> p(new std::vector<uint8_t>(value_len));
-
-  android::status_t result = parcel.read(p->data(), value_len);
-  if (result != android::NO_ERROR)
-    return nullptr;
-
-  return p;
-}
-
 }  // namespace binder
 }  // namespace ipc
