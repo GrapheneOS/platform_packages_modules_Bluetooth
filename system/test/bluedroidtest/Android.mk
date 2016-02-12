@@ -16,23 +16,21 @@
 
 LOCAL_PATH:= $(call my-dir)
 
+# Bluetooth unit tests for target
+# ========================================================
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:=     \
     bluedroidtest.c
 
 LOCAL_C_INCLUDES :=
-LOCAL_CFLAGS := -Wno-unused-parameter
-
-LOCAL_CFLAGS += -std=c99
-
-LOCAL_CFLAGS += -std=c99
-
 LOCAL_MODULE_TAGS := eng
-
 LOCAL_MODULE:= bdt
-
 LOCAL_SHARED_LIBRARIES += libcutils   \
                           libhardware
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_EXECUTABLE)

@@ -75,11 +75,10 @@ btosiCommonTestSrc := \
 btosiCommonIncludes := \
     $(LOCAL_PATH)/.. \
     $(LOCAL_PATH)/../utils/include \
-    $(LOCAL_PATH)/../stack/include $(bdroid_C_INCLUDES)
+    $(LOCAL_PATH)/../stack/include \
+    $(bluetooth_C_INCLUDES)
 
-btosiCommonCFlags := -Wall -Werror -UNDEBUG -fvisibility=hidden $(bdroid_CFLAGS)
-
-# protobuf library for bluetooth
+# Bluetooth Protobuf static library for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_MODULE := libbt-protos
@@ -88,8 +87,15 @@ generated_sources_dir := $(call local-generated-sources-dir)
 LOCAL_EXPORT_C_INCLUDE_DIRS += \
     $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
 LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)
 
+# Bluetooth Protobuf static library for host
+# ========================================================
 include $(CLEAR_VARS)
 LOCAL_MODULE := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
@@ -97,6 +103,11 @@ generated_sources_dir := $(call local-generated-sources-dir)
 LOCAL_EXPORT_C_INCLUDE_DIRS += \
     $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
 LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_STATIC_LIBRARY)
 
 # libosi static library for target
@@ -104,14 +115,16 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
-LOCAL_CFLAGS := $(btosiCommonCFlags)
-# Many .h files have redefined typedefs
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libc liblog
 LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)
 
 # libosi static library for host
@@ -120,35 +133,40 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
-# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
-# should be compatible for a Linux host OS. We should figure out what to do for
-# a non-Linux host OS.
-LOCAL_CFLAGS := \
-	$(btosiCommonCFlags) \
-	-D_GNU_SOURCE
-# Many .h files have redefined typedefs
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_MODULE := libosi-host
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+
+# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
+# should be compatible for a Linux host OS. We should figure out what to do for
+# a non-Linux host OS.
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -D_GNU_SOURCE
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_STATIC_LIBRARY)
 endif
 
+#
 # Note: It's good to get the tests compiled both for the host and the target so
 # we get to test with both Bionic libc and glibc
-
+#
 # libosi unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
-LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
 LOCAL_STATIC_LIBRARIES := libosi libbt-protos
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_NATIVE_TEST)
 
 # libosi unit tests for host
@@ -157,11 +175,15 @@ ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
-LOCAL_CFLAGS := -Wall -UNDEBUG
 LOCAL_LDLIBS := -lrt -lpthread
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
 LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_NATIVE_TEST)
 endif

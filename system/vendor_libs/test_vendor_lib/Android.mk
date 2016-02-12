@@ -1,5 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
+# test-vendor shared library for target
+# ========================================================
 include $(CLEAR_VARS)
 
 BT_DIR := $(TOP_DIR)packages/modules/Bluetooth/system
@@ -33,8 +35,14 @@ LOCAL_MODULE := test-vendor
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_SHARED_LIBRARY)
 
+# test-vendor unit tests for host
+# ========================================================
 ifeq ($(HOST_OS), linux)
 include $(CLEAR_VARS)
 
@@ -60,6 +68,10 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE := test-vendor_test_host
 LOCAL_MODULE_TAGS := tests
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_HOST_NATIVE_TEST)
 endif

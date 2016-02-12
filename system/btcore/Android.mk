@@ -45,31 +45,37 @@ btcoreCommonIncludes := \
 # libbtcore static library for target
 # ========================================================
 include $(CLEAR_VARS)
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
-LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS)
 LOCAL_MODULE := libbtcore
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := libc liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)
 
 # libbtcore static library for host
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
-# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
-# should be compatible for a Linux host OS. We should figure out what to do for
-# a non-Linux host OS.
-LOCAL_CFLAGS := -std=c99 $(bdroid_CFLAGS) -D_GNU_SOURCE
 LOCAL_MODULE := libbtcore-host
 LOCAL_MODULE_TAGS := optional
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+
+# TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
+# should be compatible for a Linux host OS. We should figure out what to do for
+# a non-Linux host OS.
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -D_GNU_SOURCE
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_STATIC_LIBRARY)
 endif
 
@@ -79,27 +85,33 @@ endif
 # libbtcore unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
-LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
 LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbtcore libosi
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_NATIVE_TEST)
 
 # libbtcore unit tests for host
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
-LOCAL_CFLAGS := -Wall -Werror -Werror=unused-variable
 LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_STATIC_LIBRARIES := libbtcore-host libosi-host
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_NATIVE_TEST)
 endif
