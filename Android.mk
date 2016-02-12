@@ -1,38 +1,64 @@
 LOCAL_PATH := $(call my-dir)
 
-# Setup bdroid local make variables for handling configuration
+# Setup Bluetooth local make variables for handling configuration
 ifneq ($(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR),)
-  bdroid_C_INCLUDES := $(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR)
-  bdroid_CFLAGS += -DHAS_BDROID_BUILDCFG
+  bluetooth_C_INCLUDES := $(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR)
+  bluetooth_CFLAGS += -DHAS_BDROID_BUILDCFG
 else
-  bdroid_C_INCLUDES :=
-  bdroid_CFLAGS += -DHAS_NO_BDROID_BUILDCFG
+  bluetooth_C_INCLUDES :=
+  bluetooth_CFLAGS += -DHAS_NO_BDROID_BUILDCFG
 endif
 
 ifneq ($(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED),)
-  bdroid_CFLAGS += -DHCILP_INCLUDED=$(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED)
+  bluetooth_CFLAGS += -DHCILP_INCLUDED=$(BOARD_BLUETOOTH_BDROID_HCILP_INCLUDED)
 endif
 
 ifneq ($(TARGET_BUILD_VARIANT),user)
-bdroid_CFLAGS += -DBLUEDROID_DEBUG
+bluetooth_CFLAGS += -DBLUEDROID_DEBUG
 endif
 
-bdroid_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
+bluetooth_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
 
-bdroid_CFLAGS += \
+#
+# Common C/C++ compiler flags.
+#
+# - gnu-variable-sized-type-not-at-end is needed for a variable-size header in
+#   a struct.
+# - constant-logical-operand is needed for code in l2c_utils.c that looks
+#   intentional.
+#
+bluetooth_CFLAGS += \
   -fvisibility=hidden \
   -Wall \
-  -Wunused-but-set-variable \
-  -Werror=format-security \
-  -Werror=pointer-to-int-cast \
-  -Werror=int-to-pointer-cast \
-  -Werror=implicit-function-declaration \
+  -Wextra \
+  -Werror \
+  -Wno-typedef-redefinition \
   -Wno-gnu-variable-sized-type-not-at-end \
+  -Wno-unused-parameter \
+  -Wno-maybe-uninitialized \
+  -Wno-uninitialized \
+  -Wno-missing-field-initializers \
+  -Wno-unused-variable \
+  -Wno-non-literal-null-conversion \
+  -Wno-sign-compare \
+  -Wno-incompatible-pointer-types \
+  -Wno-unused-function \
+  -Wno-missing-braces \
+  -Wno-enum-conversion \
+  -Wno-logical-not-parentheses \
+  -Wno-parentheses \
+  -Wno-constant-logical-operand \
+  -Wno-format \
   -UNDEBUG \
   -DLOG_NDEBUG=1
+
+bluetooth_CONLYFLAGS += -std=c99
+bluetooth_CPPFLAGS :=
 
 include $(call all-subdir-makefiles)
 
 # Cleanup our locals
-bdroid_C_INCLUDES :=
-bdroid_CFLAGS :=
+bluetooth_C_INCLUDES :=
+bluetooth_CFLAGS :=
+bluetooth_CONLYFLAGS :=
+bluetooth_CPPFLAGS :=

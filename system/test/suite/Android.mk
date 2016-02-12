@@ -16,6 +16,8 @@
 
 LOCAL_PATH := $(call my-dir)
 
+# Bluetooth test suite for target
+# ========================================================
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional
@@ -50,10 +52,8 @@ LOCAL_STATIC_LIBRARIES += \
   libbtcore \
   libosi
 
-LOCAL_CFLAGS += \
-  -Wall \
-  -Werror \
-  -Wno-unused-parameter \
-  -Wno-missing-field-initializers
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_NATIVE_TEST)

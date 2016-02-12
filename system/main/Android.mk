@@ -1,9 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
-#
-# Bluetooth HW module
-#
-
+# Bluetooth main HW module / shared library for target
+# ========================================================
 include $(CLEAR_VARS)
 
 # platform specific
@@ -53,21 +51,8 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../embdrv/sbc/decoder/include \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
-	$(bdroid_C_INCLUDES) \
+	$(bluetooth_C_INCLUDES) \
 	external/zlib
-
-LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
-LOCAL_CONLYFLAGS := -std=c99
-
-ifeq ($(TARGET_PRODUCT), full_crespo)
-     LOCAL_CFLAGS += -DTARGET_CRESPO
-endif
-ifeq ($(TARGET_PRODUCT), full_crespo4g)
-     LOCAL_CFLAGS += -DTARGET_CRESPO
-endif
-ifeq ($(TARGET_PRODUCT), full_maguro)
-     LOCAL_CFLAGS += -DTARGET_MAGURO
-endif
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \
@@ -114,9 +99,8 @@ LOCAL_REQUIRED_MODULES := \
     libbt-hci \
     libbt-vendor
 
-LOCAL_CLANG_CFLAGS := -Wno-error=gnu-variable-sized-type-not-at-end
-LOCAL_CLANG_CFLAGS += -Wno-typedef-redefinition
-# Too many unused parameters. TODO: Annotate them.
-LOCAL_CFLAGS += -Wno-unused-parameter
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_SHARED_LIBRARY)

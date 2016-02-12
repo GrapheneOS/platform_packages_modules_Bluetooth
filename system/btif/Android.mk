@@ -105,32 +105,38 @@ btifCommonIncludes := \
   $(LOCAL_PATH)/../embdrv/sbc/decoder/include \
   $(LOCAL_PATH)/../audio_a2dp_hw \
   $(LOCAL_PATH)/../utils/include \
-  $(bdroid_C_INCLUDES) \
+  $(bluetooth_C_INCLUDES) \
   external/zlib
-
-btifCommonCFlags += -DBUILDCFG $(bdroid_CFLAGS) -std=c99 \
-  -Wno-error=maybe-uninitialized -Wno-error=uninitialized -Wno-error=unused-parameter
 
 # libbtif static library for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifCommonSrc)
-LOCAL_CFLAGS := $(btifCommonCFlags)
 # Many .h files have redefined typedefs
-LOCAL_CLANG_CFLAGS += -Wno-error=typedef-redefinition
 LOCAL_SHARED_LIBRARIES := libcutils liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libbtif
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)
 
+# btif unit tests for target
+# ========================================================
 include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifTestSrc)
-LOCAL_CFLAGS := $(btifCommonCFlags)
 LOCAL_SHARED_LIBRARIES += liblog libhardware libhardware_legacy libcutils
 LOCAL_STATIC_LIBRARIES += libbtcore libbtif libosi
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_btif
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_NATIVE_TEST)
