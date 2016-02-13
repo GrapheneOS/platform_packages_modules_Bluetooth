@@ -1031,7 +1031,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
 #if (AVRC_CTLR_INCLUDED == TRUE)
         case BTA_AV_REMOTE_RSP_EVT:
         {
-            BTIF_TRACE_DEBUG("%s %s RSP: rc_id:0x%x key_state:%d",
+            BTIF_TRACE_DEBUG("%s RSP: rc_id:0x%x key_state:%d",
                              __FUNCTION__, p_data->remote_rsp.rc_id, p_data->remote_rsp.key_state);
             if (p_data->remote_rsp.rc_id == AVRC_ID_VENDOR)
             {
