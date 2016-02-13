@@ -18,6 +18,8 @@ LOCAL_PATH := $(call my-dir)
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_LINUX), true)
 
+# libbt-vendor shared library for target
+# ========================================================
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := \
@@ -31,6 +33,10 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_TAGS := optional
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_SHARED_LIBRARY)
 

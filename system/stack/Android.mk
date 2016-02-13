@@ -1,5 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
+# Bluetooth stack static library for target
+# ========================================================
 include $(CLEAR_VARS)
 
 LOCAL_C_INCLUDES:= \
@@ -31,9 +33,7 @@ LOCAL_C_INCLUDES:= \
                    $(LOCAL_PATH)/../bta/sys \
                    $(LOCAL_PATH)/../utils/include \
                    $(LOCAL_PATH)/../ \
-                   $(bdroid_C_INCLUDES) \
-
-LOCAL_CFLAGS += $(bdroid_CFLAGS) -std=c99
+                   $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES:= \
     ./a2dp/a2d_api.c \
@@ -152,11 +152,9 @@ LOCAL_SRC_FILES:= \
 LOCAL_MODULE := libbt-stack
 LOCAL_STATIC_LIBRARIES := libbt-hci
 LOCAL_SHARED_LIBRARIES := libcutils
-# gnu-variable-sized-type-not-at-end is needed for a variable-size header in
-# a struct.
-# const-logical-operand is needed for code in l2c_utils.c that looks intentional.
-LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end -Wno-error=constant-logical-operand
-# Too many unused parameters. TODO: Annotate them.
-LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_STATIC_LIBRARY)

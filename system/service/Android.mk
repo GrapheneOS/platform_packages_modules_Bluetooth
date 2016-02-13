@@ -16,6 +16,26 @@
 
 LOCAL_PATH:= $(call my-dir)
 
+#
+# Workaround for libchrome and -DNDEBUG usage.
+#
+# Test whether the original HOST_GLOBAL_CFLAGS and
+# TARGET_GLOBAL_CFLAGS contain -DNDEBUG .
+# This is needed as a workaround to make sure that
+# libchrome and local files calling logging::InitLogging()
+# are consistent with the usage of -DNDEBUG .
+# ========================================================
+ifneq (,$(findstring NDEBUG,$(HOST_GLOBAL_CFLAGS)))
+  btservice_orig_HOST_NDEBUG := -DBT_LIBCHROME_NDEBUG
+else
+  btservice_orig_HOST_NDEBUG :=
+endif
+ifneq (,$(findstring NDEBUG,$(TARGET_GLOBAL_CFLAGS)))
+  btservice_orig_TARGET_NDEBUG := -DBT_LIBCHROME_NDEBUG
+else
+  btservice_orig_TARGET_NDEBUG :=
+endif
+
 # Source variables
 # ========================================================
 btserviceCommonSrc := \
@@ -92,11 +112,6 @@ btserviceBaseTestSrc := \
 	test/util_unittest.cpp \
 	test/uuid_unittest.cpp
 
-# Some standard CFLAGS used in all targets.
-btservice_common_flags :=
-# libchrome has unused parameters in their .h files. b/26228533
-btservice_common_flags += -Wno-unused-parameter
-
 # Native system service for target
 # ========================================================
 include $(CLEAR_VARS)
@@ -107,7 +122,6 @@ LOCAL_SRC_FILES := \
 	$(btserviceDaemonSrc) \
 	main.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
 LOCAL_REQUIRED_MODULES = bluetooth.default
@@ -120,9 +134,14 @@ LOCAL_SHARED_LIBRARIES += \
 	liblog \
 	libutils
 LOCAL_INIT_RC := bluetoothtbd.rc
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_EXECUTABLE)
 
-# Native system service unittests for host
+# Native system service unit tests for host
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
@@ -141,16 +160,20 @@ LOCAL_SRC_FILES += \
 	test/stub_ipc_handler_linux.cpp
 endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
 LOCAL_SHARED_LIBRARIES += libchrome
 LOCAL_STATIC_LIBRARIES += libgmock_host libgtest_host liblog
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_HOST_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_HOST_NATIVE_TEST)
 
-# Native system service unittests for target. This
-# includes Binder related tests that can only be run on
-# target.
+# Native system service unit tests for target.
+# This includes Binder related tests that can only be run
+# on target.
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
@@ -161,7 +184,6 @@ LOCAL_SRC_FILES := \
 	test/main.cpp \
 	test/parcel_helpers_unittest.cpp
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
 LOCAL_SHARED_LIBRARIES += \
@@ -169,9 +191,15 @@ LOCAL_SHARED_LIBRARIES += \
 	libchrome \
 	libutils
 LOCAL_STATIC_LIBRARIES += libgmock libgtest liblog
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_NATIVE_TEST)
 
 # Client library for interacting with Bluetooth daemon
+# This is a static library for target.
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
@@ -179,16 +207,19 @@ LOCAL_SRC_FILES := \
 	$(btserviceCommonBinderSrc)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE := libbluetooth-client
 LOCAL_SHARED_LIBRARIES += libbinder libchrome libutils
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_STATIC_LIBRARY)
 
 # Native system service CLI for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := client/main.cpp
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
 LOCAL_STATIC_LIBRARIES += libbluetooth-client
@@ -196,18 +227,22 @@ LOCAL_SHARED_LIBRARIES += \
 	libbinder \
 	libchrome \
 	libutils
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_EXECUTABLE)
 
-# Heart Rate GATT service example
+# Heart Rate GATT service example for target
 # ========================================================
-# TODO(armansito): Move this into a new makefile under examples/ once we build a
-# client static library that the examples can depend on.
+# TODO(armansito): Move this into a new makefile under examples/ once we build
+# a client static library that the examples can depend on.
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	example/heart_rate/heart_rate_server.cpp \
 	example/heart_rate/server_main.cpp
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
-LOCAL_CFLAGS += $(btservice_common_flags)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
 LOCAL_STATIC_LIBRARIES += libbluetooth-client
@@ -215,4 +250,9 @@ LOCAL_SHARED_LIBRARIES += \
 	libbinder \
 	libchrome \
 	libutils
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
 include $(BUILD_EXECUTABLE)
