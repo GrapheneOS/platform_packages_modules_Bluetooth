@@ -131,6 +131,18 @@ class BluetoothGattInterface {
         int conn_id,
         btgatt_db_element_t* gatt_db,
         int size);
+
+    virtual void ServicesRemovedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        uint16_t start_handle,
+        uint16_t end_handle);
+
+    virtual void ServicesAddedCallback(
+        BluetoothGattInterface* gatt_iface,
+        int conn_id,
+        btgatt_db_element_t *added,
+        int added_count);
   };
 
   // The standard BT-GATT server callback interface.
