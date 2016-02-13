@@ -58,20 +58,6 @@ static void smp_process_private_key(tSMP_CB *p_cb);
 static void smp_finish_nonce_generation(tSMP_CB *p_cb);
 static void smp_process_new_nonce(tSMP_CB *p_cb);
 
-static const tSMP_ACT smp_encrypt_action[] =
-{
-    smp_generate_compare,           /* SMP_GEN_COMPARE */
-    smp_generate_confirm,          /* SMP_GEN_CONFIRM*/
-    smp_generate_stk,               /* SMP_GEN_STK*/
-    smp_generate_ltk_cont,          /* SMP_GEN_LTK */
-    smp_generate_ltk,               /* SMP_GEN_DIV_LTK */
-    smp_generate_rand_vector,        /* SMP_GEN_RAND_V */
-    smp_generate_y,                  /* SMP_GEN_EDIV */
-    smp_generate_passkey,           /* SMP_GEN_TK */
-    smp_generate_srand_mrand_confirm, /* SMP_GEN_SRAND_MRAND */
-    smp_generate_rand_cont         /* SMP_GEN_SRAND_MRAND_CONT */
-};
-
 #define SMP_PASSKEY_MASK    0xfff00000
 
 void smp_debug_print_nbyte_little_endian(UINT8 *p, const UINT8 *key_name, UINT8 len)

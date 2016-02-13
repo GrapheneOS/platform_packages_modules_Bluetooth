@@ -446,7 +446,6 @@ tBTM_SEC_DEV_REC *btm_find_dev(BD_ADDR bd_addr)
 void btm_consolidate_dev(tBTM_SEC_DEV_REC *p_target_rec)
 {
 #if BLE_INCLUDED == TRUE
-    tBTM_SEC_DEV_REC *p_dev_rec = NULL;
     tBTM_SEC_DEV_REC temp_rec = *p_target_rec;
 
     BTM_TRACE_DEBUG("%s", __func__);

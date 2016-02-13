@@ -136,7 +136,7 @@ static BOOLEAN process_read_multi_rsp (tGATT_SR_CMD *p_cmd, tGATT_STATUS status,
     if (status == GATT_SUCCESS)
     {
         GATT_TRACE_DEBUG("Multi read count=%d num_hdls=%d",
-                         fixed_queue_length(&p_cmd->multi_rsp_q),
+                         fixed_queue_length(p_cmd->multi_rsp_q),
                          p_cmd->multi_req.num_handles);
         /* Wait till we get all the responses */
         if (fixed_queue_length(p_cmd->multi_rsp_q) == p_cmd->multi_req.num_handles)

@@ -163,8 +163,6 @@ static tBTTRC_FUNC_MAP bttrc_set_level_map[] = {
   {0, 0, NULL, NULL, DEFAULT_CONF_TRACE_LEVEL}
 };
 
-static const UINT16 bttrc_map_size = sizeof(bttrc_set_level_map)/sizeof(tBTTRC_FUNC_MAP);
-
 void LogMsg(uint32_t trace_set_mask, const char *fmt_str, ...) {
   static char buffer[BTE_LOG_BUF_SIZE];
   int trace_layer = TRACE_GET_LAYER(trace_set_mask);

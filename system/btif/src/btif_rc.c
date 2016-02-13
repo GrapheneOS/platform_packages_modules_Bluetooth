@@ -253,8 +253,6 @@ static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG *pmeta_msg);
 static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
 static void btif_rc_ctrl_upstreams_rsp_cmd(
     UINT8 event, tAVRC_COMMAND *pavrc_cmd, UINT8 label);
-static void btif_rc_ctrl_upstreams_rsp_evt(
-    UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8* p_buf, UINT16 buf_len, UINT8 rsp_type);
 static void rc_ctrl_procedure_complete();
 static void rc_stop_play_status_timer();
 static void register_for_event_notification (btif_rc_supported_event_t *p_event);
@@ -2708,7 +2706,7 @@ static void handle_app_val_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_LIST_APP
             }
             get_player_app_setting_cmd (p_app_settings->num_attrs, attrs);
             HAL_CBACK (bt_rc_ctrl_callbacks, playerapplicationsetting_cb, &rc_addr,
-                        p_app_settings->num_attrs, &p_app_settings->attrs, 0, NULL);
+                        p_app_settings->num_attrs, p_app_settings->attrs, 0, NULL);
         }
     }
     else if (p_app_settings->ext_attr_index < p_app_settings->num_ext_attrs)
@@ -2821,7 +2819,7 @@ static void handle_app_attr_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC_GET
             attrs[xx] = p_app_settings->attrs[xx].attr_id;
         }
         HAL_CBACK (bt_rc_ctrl_callbacks, playerapplicationsetting_cb, &rc_addr,
-                    p_app_settings->num_attrs, &p_app_settings->attrs, 0, NULL);
+                    p_app_settings->num_attrs, p_app_settings->attrs, 0, NULL);
 
         get_player_app_setting_cmd (xx, attrs);
         return;
@@ -2901,7 +2899,7 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
             attrs[xx] = p_app_settings->attrs[xx].attr_id;
         }
         HAL_CBACK (bt_rc_ctrl_callbacks, playerapplicationsetting_cb, &rc_addr,
-                    p_app_settings->num_attrs, &p_app_settings->attrs, 0, NULL);
+                    p_app_settings->num_attrs, p_app_settings->attrs, 0, NULL);
 
         get_player_app_setting_cmd (xx, attrs);
         return;
@@ -2947,8 +2945,8 @@ static void handle_app_attr_val_txt_response (tBTA_AV_META_MSG *pmeta_msg, tAVRC
             attrs[xx+x] = p_app_settings->ext_attrs[x].attr_id;
         }
         HAL_CBACK (bt_rc_ctrl_callbacks, playerapplicationsetting_cb, &rc_addr,
-                    p_app_settings->num_attrs, &p_app_settings->attrs,
-                    p_app_settings->num_ext_attrs, &p_app_settings->ext_attrs);
+                    p_app_settings->num_attrs, p_app_settings->attrs,
+                    p_app_settings->num_ext_attrs, p_app_settings->ext_attrs);
         get_player_app_setting_cmd (xx + x, attrs);
 
         /* Free the application settings information after sending to

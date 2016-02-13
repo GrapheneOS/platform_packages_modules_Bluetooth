@@ -1639,8 +1639,12 @@ void bta_hf_client_send_at_atd(char *number, UINT32 memory)
     } else {
         at_len = snprintf(buf, sizeof(buf), "ATD>%u;\r", memory);
     }
+    if (at_len < 0) {
+        APPL_TRACE_ERROR("%s: error preparing ATD command");
+        return;
+    }
 
-    at_len = MIN(at_len, sizeof(buf));
+    at_len = MIN((size_t)at_len, sizeof(buf));
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_ATD, buf, at_len);
 }

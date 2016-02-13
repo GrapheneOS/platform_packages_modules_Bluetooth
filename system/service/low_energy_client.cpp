@@ -172,7 +172,6 @@ bool ProcessAdvertiseData(const AdvertiseData& adv,
 
     // The type byte is the next byte in the adv. "TLV" format.
     uint8_t type = data[i + 1];
-    size_t uuid_len = 0;
 
     switch (type) {
     case HCI_EIR_MANUFACTURER_SPECIFIC_TYPE: {

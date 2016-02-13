@@ -89,7 +89,7 @@ static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
   assert(rb_dst != NULL);
   assert(rb_src != NULL);
 
-  z_stream zs = {0};
+  z_stream zs = {.zalloc = Z_NULL, .zfree = Z_NULL, .opaque = Z_NULL};
   if (deflateInit(&zs, Z_DEFAULT_COMPRESSION) != Z_OK)
     return false;
 

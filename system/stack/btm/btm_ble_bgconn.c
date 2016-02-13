@@ -149,10 +149,8 @@ void btm_update_scanner_filter_policy(tBTM_BLE_SFP scan_policy)
 BOOLEAN btm_add_dev_to_controller (BOOLEAN to_add, BD_ADDR bd_addr)
 {
     tBTM_SEC_DEV_REC    *p_dev_rec = btm_find_dev (bd_addr);
-    tBLE_ADDR_TYPE  addr_type = BLE_ADDR_PUBLIC;
     BOOLEAN             started = FALSE;
     BD_ADDR             dummy_bda = {0};
-    tBT_DEVICE_TYPE dev_type;
 
     if (p_dev_rec != NULL && p_dev_rec->device_type & BT_DEVICE_TYPE_BLE) {
         if (to_add) {

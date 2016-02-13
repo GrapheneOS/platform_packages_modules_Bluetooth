@@ -1107,9 +1107,13 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
     // We could have received a new link key without going through the pairing flow.
     // If so, we don't want to perform SDP or any other operations on the authenticated
     // device.
-    if (!bdaddr_equals(p_auth_cmpl->bd_addr, pairing_cb.bd_addr)) {
+    if (bdcmp(p_auth_cmpl->bd_addr, pairing_cb.bd_addr) != 0) {
       char address[32];
-      bdaddr_to_string(&p_auth_cmpl->bd_addr, address, sizeof(address));
+      bt_bdaddr_t bt_bdaddr;
+
+      memcpy(bt_bdaddr.address, p_auth_cmpl->bd_addr,
+             sizeof(bt_bdaddr.address));
+      bdaddr_to_string(&bt_bdaddr, address, sizeof(address));
       LOG_INFO(LOG_TAG, "%s skipping SDP since we did not initiate pairing to %s.", __func__, address);
       return;
     }
@@ -2351,7 +2355,7 @@ bt_status_t btif_dm_create_bond(const bt_bdaddr_t *bd_addr, int transport)
 *******************************************************************************/
 bt_status_t btif_dm_create_bond_out_of_band(const bt_bdaddr_t *bd_addr, int transport, const bt_out_of_band_data_t *oob_data)
 {
-    bdcpy(oob_cb.bdaddr, bd_addr);
+    bdcpy(oob_cb.bdaddr, bd_addr->address);
     memcpy(&oob_cb.oob_data, oob_data, sizeof(bt_out_of_band_data_t));
 
     bdstr_t bdstr;

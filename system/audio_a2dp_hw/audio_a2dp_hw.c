@@ -134,6 +134,8 @@ static size_t out_get_buffer_size(const struct audio_stream *stream);
 /*****************************************************************************
 **  Functions
 ******************************************************************************/
+/* Function used only in debug mode */
+static const char* dump_a2dp_ctrl_event(char event) __attribute__ ((unused));
 
 /*****************************************************************************
 **   Miscellaneous helper functions

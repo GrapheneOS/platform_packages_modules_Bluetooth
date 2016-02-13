@@ -1511,6 +1511,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
                 default:
                     LOG_ERROR(LOG_TAG, "%s unknown gatt db attribute type: %d",
                               __func__, p_attr->attr_type);
+                    continue;
             }
 
             bta_gattc_fill_gatt_db_el(curr_db_attr,

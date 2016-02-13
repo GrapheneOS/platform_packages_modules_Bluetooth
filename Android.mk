@@ -22,33 +22,25 @@ bluetooth_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
 #
 # Common C/C++ compiler flags.
 #
-# - gnu-variable-sized-type-not-at-end is needed for a variable-size header in
-#   a struct.
-# - constant-logical-operand is needed for code in l2c_utils.c that looks
-#   intentional.
+# -Wno-constant-logical-operand is needed for code in l2c_utils.c that is
+#  intentional.
+# -Wno-gnu-variable-sized-type-not-at-end is needed, because struct BT_HDR
+#  is defined as a variable-size header in a struct.
+# -Wno-typedef-redefinition is needed because of the way the struct typedef
+#  is done in osi/include header files. This issue can be obsoleted by
+#  switching to C11 or C++.
+# -Wno-unused-parameter is needed, because there are too many unused
+#  parameters in all the code.
 #
 bluetooth_CFLAGS += \
   -fvisibility=hidden \
   -Wall \
   -Wextra \
   -Werror \
-  -Wno-typedef-redefinition \
-  -Wno-gnu-variable-sized-type-not-at-end \
-  -Wno-unused-parameter \
-  -Wno-maybe-uninitialized \
-  -Wno-uninitialized \
-  -Wno-missing-field-initializers \
-  -Wno-unused-variable \
-  -Wno-non-literal-null-conversion \
-  -Wno-sign-compare \
-  -Wno-incompatible-pointer-types \
-  -Wno-unused-function \
-  -Wno-missing-braces \
-  -Wno-enum-conversion \
-  -Wno-logical-not-parentheses \
-  -Wno-parentheses \
   -Wno-constant-logical-operand \
-  -Wno-format \
+  -Wno-gnu-variable-sized-type-not-at-end \
+  -Wno-typedef-redefinition \
+  -Wno-unused-parameter \
   -UNDEBUG \
   -DLOG_NDEBUG=1
 

@@ -611,8 +611,12 @@ void gatt_process_error_rsp(tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
 void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op_code,
                                   UINT16 len, UINT8 *p_data)
 {
-    tGATT_VALUE  value = {0};
-    UINT8        *p= p_data;
+    UINT8 *p = p_data;
+
+    tGATT_VALUE value = {
+        .conn_id = p_clcb->conn_id,
+        .auth_req = GATT_AUTH_REQ_NONE,
+    };
 
     GATT_TRACE_ERROR("value resp op_code = %s len = %d", gatt_dbg_op_name(op_code), len);
 
@@ -659,7 +663,7 @@ void gatt_process_prep_write_rsp (tGATT_TCB *p_tcb, tGATT_CLCB *p_clcb, UINT8 op
 void gatt_process_notification(tGATT_TCB *p_tcb, UINT8 op_code,
                                UINT16 len, UINT8 *p_data)
 {
-    tGATT_VALUE     value = {0};
+    tGATT_VALUE     value;
     tGATT_REG       *p_reg;
     UINT16          conn_id;
     tGATT_STATUS    encrypt_status;
@@ -674,7 +678,8 @@ void gatt_process_notification(tGATT_TCB *p_tcb, UINT8 op_code,
         return;
     }
 
-    STREAM_TO_UINT16 (value.handle, p);
+    memset(&value, 0, sizeof(value));
+    STREAM_TO_UINT16(value.handle, p);
     value.len = len - 2;
     memcpy (value.value, p, value.len);
 
