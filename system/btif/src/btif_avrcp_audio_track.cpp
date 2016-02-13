@@ -38,7 +38,6 @@ void *BtifAvrcpAudioTrackCreate(int trackFreq, int channelType)
 {
     LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btCreateTrack freq %d  channel %d ",
                      __func__, trackFreq, channelType);
-    int ret = -1;
     sp<android::AudioTrack> track =
         new android::AudioTrack(AUDIO_STREAM_MUSIC, trackFreq, AUDIO_FORMAT_PCM_16_BIT,
                                 channelType, (int)0, (audio_output_flags_t)AUDIO_OUTPUT_FLAG_FAST,

@@ -1063,7 +1063,8 @@ void bta_av_cleanup(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     p_scb->num_disc_snks = 0;
     alarm_cancel(p_scb->avrc_ct_timer);
 
-    vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
+    vendor_get_interface()->send_command(
+        (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
     if (p_scb->offload_start_pending) {
         tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
         (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
@@ -2058,7 +2059,9 @@ void bta_av_str_stopped (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     if (p_scb->co_started)
     {
-        vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
+      vendor_get_interface()->send_command(
+          (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP,
+          (void*)&p_scb->l2c_cid);
         if (p_scb->offload_start_pending) {
             tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
             (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
@@ -2136,7 +2139,6 @@ void bta_av_reconfig (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 {
     tAVDT_CFG   *p_cfg;
     tBTA_AV_API_STOP    stop;
-    tBTA_AV_RECONFIG    evt;
     tBTA_AV_API_RCFG    *p_rcfg = &p_data->api_reconfig;
 
     APPL_TRACE_DEBUG("bta_av_reconfig r:%d, s:%d idx: %d (o:%d)",
@@ -2642,7 +2644,9 @@ void bta_av_suspend_cfm (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* in case that we received suspend_ind, we may need to call co_stop here */
     if(p_scb->co_started)
     {
-        vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
+        vendor_get_interface()->send_command(
+            (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP,
+            (void*)&p_scb->l2c_cid);
         if (p_scb->offload_start_pending) {
             tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
             (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV *)&status);
@@ -3143,7 +3147,9 @@ void bta_av_offload_req(tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
             memcpy(a2dp_offload_start.codec_info, p_scb->cfg.codec_info,
                    sizeof(a2dp_offload_start.codec_info));
 
-            if (!vendor_get_interface()->send_command(BT_VND_OP_A2DP_OFFLOAD_START, &a2dp_offload_start)) {
+            if (!vendor_get_interface()->send_command(
+                  (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_START,
+                  &a2dp_offload_start)) {
                 status = BTA_AV_SUCCESS;
                 p_scb->offload_start_pending = TRUE;
             }

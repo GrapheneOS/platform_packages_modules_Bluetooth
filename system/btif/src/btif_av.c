@@ -94,7 +94,7 @@ typedef struct
 ******************************************************************************/
 static btav_callbacks_t *bt_av_src_callbacks = NULL;
 static btav_callbacks_t *bt_av_sink_callbacks = NULL;
-static btif_av_cb_t btif_av_cb = {0};
+static btif_av_cb_t btif_av_cb = {0, {{0}}, 0, 0, 0, 0};
 static alarm_t *av_open_on_rc_timer = NULL;
 
 /* both interface and media task needs to be ready to alloc incoming request */

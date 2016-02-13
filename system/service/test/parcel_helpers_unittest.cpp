@@ -201,7 +201,7 @@ TEST(ParcelHelpersTest, ScanResult) {
 
   const int kTestRssi = 127;
 
-  ScanResult result0(kTestAddress, kEmptyBytes, kTestRssi);
+  ScanResult result0(kEmptyAddress, kEmptyBytes, kTestRssi);
   ScanResult result1(kTestAddress, kTestBytes, kTestRssi);
 
   EXPECT_TRUE(TestScanResult(result0));

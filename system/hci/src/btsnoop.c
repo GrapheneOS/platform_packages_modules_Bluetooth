@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <netinet/in.h>
 #include <stdbool.h>
@@ -164,7 +165,8 @@ static void update_logging() {
     // Save the old log if configured to do so
     if (stack_config->get_btsnoop_should_save_last()) {
       char last_log_path[PATH_MAX];
-      snprintf(last_log_path, PATH_MAX, "%s.%llu", log_path, btsnoop_timestamp());
+      snprintf(last_log_path, PATH_MAX, "%s.%" PRIu64, log_path,
+               btsnoop_timestamp());
       if (!rename(log_path, last_log_path) && errno != ENOENT)
         LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__, log_path, last_log_path, strerror(errno));
     }

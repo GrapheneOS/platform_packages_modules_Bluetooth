@@ -186,7 +186,6 @@ static void avrc_send_continue_frag(UINT8 handle, UINT8 label)
     BT_HDR  *p_pkt_old, *p_pkt;
     UINT8   *p_old, *p_data;
     UINT8   cr = AVCT_RSP;
-    tAVRC_RSP   rej_rsp;
 
     p_fcb = &avrc_cb.fcb[handle];
     p_pkt = p_fcb->p_fmsg;
