@@ -1,11 +1,8 @@
 LOCAL_PATH:= $(call my-dir)
 
+# BTA static library for target
+# ========================================================
 include $(CLEAR_VARS)
-
-LOCAL_CFLAGS += -DBUILDCFG $(bdroid_CFLAGS) -std=c99
-LOCAL_CLANG_CFLAGS += -Wno-error=gnu-variable-sized-type-not-at-end
-# Too many unused parameters. TODO: Annotate them.
-LOCAL_CFLAGS += -Wno-unused-parameter
 
 LOCAL_SRC_FILES:= \
     ./dm/bta_dm_ci.c \
@@ -99,7 +96,10 @@ LOCAL_C_INCLUDES+= . \
                    $(LOCAL_PATH)/../udrv/include \
                    $(LOCAL_PATH)/../vnd/include \
                    $(LOCAL_PATH)/../utils/include \
-                   $(bdroid_C_INCLUDES) \
+                   $(bluetooth_C_INCLUDES)
 
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_STATIC_LIBRARY)
