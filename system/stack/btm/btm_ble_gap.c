@@ -924,7 +924,7 @@ static bool is_resolving_list_bit_set(void *data, void *context)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = data;
 
-    if (p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT != 0)
+    if ((p_dev_rec->ble.in_controller_list & BTM_RESOLVING_LIST_BIT) != 0)
         return false;
 
     return true;
@@ -944,7 +944,7 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      tBLE_ADDR_TYPE *p_peer_addr_type,
                                      tBLE_ADDR_TYPE *p_own_addr_type)
 {
-    UINT8 evt_type, i = BTM_SEC_MAX_DEVICE_RECORDS;
+    UINT8 evt_type;
     tBTM_SEC_DEV_REC    *p_dev_rec;
 
     evt_type = (p_cb->connectable_mode == BTM_BLE_NON_CONNECTABLE) ? \

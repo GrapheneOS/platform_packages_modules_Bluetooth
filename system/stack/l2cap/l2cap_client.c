@@ -201,7 +201,8 @@ static void connect_completed_cb(uint16_t local_channel_id, uint16_t error_code)
   }
 
   // Use default L2CAP parameters.
-  tL2CAP_CFG_INFO desired_parameters = { 0 };
+  tL2CAP_CFG_INFO desired_parameters;
+  memset(&desired_parameters, 0, sizeof(desired_parameters));
   if (!L2CA_ConfigReq(local_channel_id, &desired_parameters)) {
     LOG_ERROR(LOG_TAG, "%s error sending L2CAP config parameters.", __func__);
     client->callbacks.disconnected(client, client->context);
@@ -209,7 +210,7 @@ static void connect_completed_cb(uint16_t local_channel_id, uint16_t error_code)
 }
 
 static void config_request_cb(uint16_t local_channel_id, tL2CAP_CFG_INFO *requested_parameters) {
-  tL2CAP_CFG_INFO response = { 0 };
+  tL2CAP_CFG_INFO response;
   l2cap_client_t *client = find(local_channel_id);
 
   if (!client) {
@@ -217,6 +218,7 @@ static void config_request_cb(uint16_t local_channel_id, tL2CAP_CFG_INFO *reques
     return;
   }
 
+  memset(&response, 0, sizeof(response));
   response.result = L2CAP_CFG_OK;
 
   if (requested_parameters->mtu_present) {
