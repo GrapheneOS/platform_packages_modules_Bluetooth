@@ -920,6 +920,7 @@ tBTM_STATUS BTM_BleSetConnectableMode(tBTM_BLE_CONN_MODE connectable_mode)
     return btm_ble_set_connectability( p_cb->connectable_mode);
 }
 
+#if BLE_PRIVACY_SPT == TRUE
 static bool is_resolving_list_bit_set(void *data, void *context)
 {
     tBTM_SEC_DEV_REC *p_dev_rec = data;
@@ -929,6 +930,7 @@ static bool is_resolving_list_bit_set(void *data, void *context)
 
     return true;
 }
+#endif
 
 /*******************************************************************************
 **
@@ -945,7 +947,9 @@ static UINT8 btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB *p_cb,
                                      tBLE_ADDR_TYPE *p_own_addr_type)
 {
     UINT8 evt_type;
-    tBTM_SEC_DEV_REC    *p_dev_rec;
+#if BLE_PRIVACY_SPT == TRUE
+    tBTM_SEC_DEV_REC *p_dev_rec;
+#endif
 
     evt_type = (p_cb->connectable_mode == BTM_BLE_NON_CONNECTABLE) ? \
                 ((p_cb->scan_rsp) ? BTM_BLE_DISCOVER_EVT : BTM_BLE_NON_CONNECT_EVT )\
