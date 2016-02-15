@@ -1738,10 +1738,11 @@ void btm_ble_conn_complete(UINT8 *p, UINT16 evt_len, BOOLEAN enhanced)
 {
 #if (BLE_PRIVACY_SPT == TRUE )
     UINT8       *p_data = p, peer_addr_type;
+    BD_ADDR     local_rpa, peer_rpa;
 #endif
     UINT8       role, status, bda_type;
     UINT16      handle;
-    BD_ADDR     bda, local_rpa, peer_rpa;
+    BD_ADDR     bda;
     UINT16      conn_interval, conn_latency, conn_timeout;
     BOOLEAN     match = FALSE;
     UNUSED(evt_len);
