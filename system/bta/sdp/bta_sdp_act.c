@@ -50,8 +50,6 @@ static const uint8_t  UUID_MAP_MAS[] = {0x00, 0x00, 0x11, 0x32, 0x00, 0x00, 0x10
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_MAP_MNS[] = {0x00, 0x00, 0x11, 0x33, 0x00, 0x00, 0x10, 0x00,
                                         0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
-static const uint8_t  UUID_SPP[] = {0x00, 0x00, 0x11, 0x01, 0x00, 0x00, 0x10, 0x00,
-                                    0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 static const uint8_t  UUID_SAP[] = {0x00, 0x00, 0x11, 0x2D, 0x00, 0x00, 0x10, 0x00,
                                     0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 // TODO:
@@ -314,7 +312,6 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 
 static void bta_create_sap_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
-    tSDP_DISCOVERY_DB *db = p_bta_sdp_cfg->p_sdp_db;
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
     UINT16 pversion = -1;
@@ -384,12 +381,13 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 static void bta_sdp_search_cback(UINT16 result, void * user_data)
 {
     tSDP_DISC_REC *p_rec = NULL;
-    tBTA_SDP_SEARCH_COMP evt_data = {0}; // We need to zero-initialize
+    tBTA_SDP_SEARCH_COMP evt_data;
     tBTA_SDP_STATUS status = BTA_SDP_FAILURE;
     int count = 0;
     tBT_UUID su;
     APPL_TRACE_DEBUG("%s() -  res: 0x%x", __func__, result);
 
+    memset(&evt_data, 0, sizeof(evt_data));
     bta_sdp_cb.sdp_active = BTA_SDP_ACTIVE_NONE;
 
     if (bta_sdp_cb.p_dm_cback == NULL) return;
@@ -488,7 +486,8 @@ void bta_sdp_search(tBTA_SDP_MSG *p_data)
         /* SDP is still in progress */
         status = BTA_SDP_BUSY;
         if(bta_sdp_cb.p_dm_cback) {
-            tBTA_SDP_SEARCH_COMP result = {0};
+            tBTA_SDP_SEARCH_COMP result;
+            memset(&result, 0, sizeof(result));
             result.uuid = p_data->get_search.uuid;
             bdcpy(result.remote_addr, p_data->get_search.bd_addr);
             result.status = status;
@@ -519,7 +518,8 @@ void bta_sdp_search(tBTA_SDP_MSG *p_data)
 
         /* failed to start SDP. report the failure right away */
         if (bta_sdp_cb.p_dm_cback) {
-            tBTA_SDP_SEARCH_COMP result = {0};
+            tBTA_SDP_SEARCH_COMP result;
+            memset(&result, 0, sizeof(result));
             result.uuid = p_data->get_search.uuid;
             bdcpy(result.remote_addr, p_data->get_search.bd_addr);
             result.status = status;

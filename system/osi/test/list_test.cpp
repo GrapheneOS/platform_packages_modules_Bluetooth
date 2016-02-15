@@ -169,7 +169,7 @@ TEST_F(ListTest, test_list_foreach_full) {
   int x[] = { 1, 2, 3, 4, 5 };
   for (size_t i = 0; i < ARRAY_SIZE(x); ++i)
     list_append(list, &x[i]);
-  EXPECT_EQ(list_length(list), 5);
+  EXPECT_EQ(list_length(list), (size_t)5);
 
   // Test complete iteration
   int sum = 0;
@@ -187,7 +187,7 @@ TEST_F(ListTest, test_list_foreach_partial) {
   int x[] = { 1, 2, 3, 4, 5 };
   for (size_t i = 0; i < ARRAY_SIZE(x); ++i)
     list_append(list, &x[i]);
-  EXPECT_EQ(list_length(list), 5);
+  EXPECT_EQ(list_length(list), (size_t)5);
 
   // Test partial iteration
   int find = 4;

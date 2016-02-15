@@ -1562,13 +1562,14 @@ void bta_jv_rfcomm_connect(tBTA_JV_MSG *p_data)
     tBTA_JV_RFC_CB  *p_cb = NULL;
     tBTA_JV_PCB     *p_pcb;
     tBTA_JV_API_RFCOMM_CONNECT *cc = &(p_data->rfcomm_connect);
-    tBTA_JV_RFCOMM_CL_INIT      evt_data = {0};
+    tBTA_JV_RFCOMM_CL_INIT evt_data;
 
     /* TODO DM role manager
     L2CA_SetDesireRole(cc->role);
     */
 
     sec_id = bta_jv_alloc_sec_id();
+    memset(&evt_data, 0, sizeof(evt_data));
     evt_data.sec_id = sec_id;
     evt_data.status = BTA_JV_SUCCESS;
     if (0 == sec_id ||
@@ -1898,10 +1899,12 @@ void bta_jv_rfcomm_start_server(tBTA_JV_MSG *p_data)
     tBTA_JV_RFC_CB  *p_cb = NULL;
     tBTA_JV_PCB     *p_pcb;
     tBTA_JV_API_RFCOMM_SERVER *rs = &(p_data->rfcomm_server);
-    tBTA_JV_RFCOMM_START        evt_data = {0};
+    tBTA_JV_RFCOMM_START evt_data;
+
     /* TODO DM role manager
     L2CA_SetDesireRole(rs->role);
     */
+    memset(&evt_data, 0, sizeof(evt_data));
     evt_data.status = BTA_JV_FAILURE;
     APPL_TRACE_DEBUG("bta_jv_rfcomm_start_server: sec id in use:%d, rfc_cb in use:%d",
                 get_sec_id_used(), get_rfc_cb_used());

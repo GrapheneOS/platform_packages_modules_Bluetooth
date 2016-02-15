@@ -64,11 +64,6 @@ namespace {
 #define COLOR_BOLDYELLOW  "\x1B[1;93m"
 #define CLEAR_LINE        "\x1B[2K"
 
-const char kCommandDisable[] = "disable";
-const char kCommandEnable[] = "enable";
-const char kCommandGetState[] = "get-state";
-const char kCommandIsEnabled[] = "is-enabled";
-
 #define CHECK_ARGS_COUNT(args, op, num, msg) \
   if (!(args.size() op num)) { \
     PrintError(msg); \

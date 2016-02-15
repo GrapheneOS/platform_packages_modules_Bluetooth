@@ -63,19 +63,6 @@ static void bta_dm_local_name_cback(BD_ADDR bd_addr);
 static BOOLEAN bta_dm_check_av(UINT16 event);
 static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data);
 
-
-#if BLE_INCLUDED == TRUE
-static void bta_dm_acl_change_cback(BD_ADDR p_bda, DEV_CLASS p_dc,
-                                    BD_NAME p_bdn, UINT8 *features,
-                                    BOOLEAN is_new, UINT16 handle,
-                                    tBT_TRANSPORT transport);
-#else
-static void bta_dm_acl_change_cback(BD_ADDR p_bda, DEV_CLASS p_dc,
-                                    BD_NAME p_bdn, UINT8 *features,
-                                    BOOLEAN is_new);
-#endif
-
-
 static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
 
 /* Extended Inquiry Response */
@@ -3044,45 +3031,6 @@ static void bta_dm_bl_change_cback (tBTM_BL_EVENT_DATA *p_data)
     case BTM_BL_COLLISION_EVT:
         bdcpy(p_msg->bd_addr, p_data->conn.p_bda);
         break;
-    }
-
-    p_msg->hdr.event = BTA_DM_ACL_CHANGE_EVT;
-    bta_sys_sendmsg(p_msg);
-}
-
-/*******************************************************************************
-**
-** Function         bta_dm_acl_change_cback
-**
-** Description      Callback from btm when acl connection goes up or down
-**
-**
-** Returns          void
-**
-*******************************************************************************/
-#if BLE_INCLUDED == TRUE
-static void bta_dm_acl_change_cback(BD_ADDR p_bda, DEV_CLASS p_dc,
-                                    BD_NAME p_bdn, UINT8 *features,
-                                    BOOLEAN is_new, UINT16 handle,
-                                    tBT_TRANSPORT transport)
-#else
-static void bta_dm_acl_change_cback(BD_ADDR p_bda, DEV_CLASS p_dc,
-                                    BD_NAME p_bdn, UINT8 *features,
-                                    BOOLEAN is_new)
-#endif
-{
-    tBTA_DM_ACL_CHANGE *p_msg = (tBTA_DM_ACL_CHANGE *)osi_calloc(sizeof(tBTA_DM_ACL_CHANGE));
-
-    bdcpy(p_msg->bd_addr, p_bda);
-    p_msg->is_new = is_new;
-#if BLE_INCLUDED == TRUE
-    p_msg->handle = handle;
-    p_msg->transport = transport;
-#endif
-    /* This is collision case */
-    if (features != NULL) {
-        if ((features[0] == 0xFF) && !is_new)
-            p_msg->event = BTM_BL_COLLISION_EVT;
     }
 
     p_msg->hdr.event = BTA_DM_ACL_CHANGE_EVT;
