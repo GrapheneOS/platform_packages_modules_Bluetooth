@@ -20,6 +20,12 @@
 
 #include "service/adapter.h"
 
+using ::android::String8;
+using ::android::String16;
+using ::android::binder::Status;
+
+using ::android::bluetooth::IBluetoothGattServerCallback;
+
 namespace ipc {
 namespace binder {
 
@@ -28,32 +34,37 @@ const int kInvalidInstanceId = -1;
 }  // namespace
 
 BluetoothGattServerBinderServer::BluetoothGattServerBinderServer(
-    bluetooth::Adapter* adapter) : adapter_(adapter) {
+    bluetooth::Adapter* adapter)
+    : adapter_(adapter) {
   CHECK(adapter_);
 }
 
-bool BluetoothGattServerBinderServer::RegisterServer(
-    const android::sp<IBluetoothGattServerCallback>& callback) {
+Status BluetoothGattServerBinderServer::RegisterServer(
+    const ::android::sp<IBluetoothGattServerCallback>& callback,
+    bool* _aidl_return) {
   VLOG(2) << __func__;
   bluetooth::GattServerFactory* gatt_server_factory =
       adapter_->GetGattServerFactory();
 
-  return RegisterInstanceBase(callback, gatt_server_factory);
+  *_aidl_return = RegisterInstanceBase(callback, gatt_server_factory);
+  return Status::ok();
 }
 
-void BluetoothGattServerBinderServer::UnregisterServer(int server_id) {
+Status BluetoothGattServerBinderServer::UnregisterServer(int server_id) {
   VLOG(2) << __func__;
   UnregisterInstanceBase(server_id);
+  return Status::ok();
 }
 
-void BluetoothGattServerBinderServer::UnregisterAll() {
+Status BluetoothGattServerBinderServer::UnregisterAll() {
   VLOG(2) << __func__;
   UnregisterAllBase();
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
-    int server_id, bool is_primary, const bluetooth::UUID& uuid,
-    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+Status BluetoothGattServerBinderServer::BeginServiceDeclaration(
+    int server_id, bool is_primary, const android::bluetooth::UUID& uuid,
+    android::bluetooth::GattIdentifier* out_id, bool* _aidl_return) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
@@ -61,25 +72,28 @@ bool BluetoothGattServerBinderServer::BeginServiceDeclaration(
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   auto service_id = gatt_server->BeginServiceDeclaration(uuid, is_primary);
   if (!service_id) {
     LOG(ERROR) << "Failed to begin service declaration - server_id: "
                << server_id << " UUID: " << uuid.ToString();
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  out_id->swap(service_id);
+  *out_id = *service_id;
 
-  return true;
+  *_aidl_return = true;
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::AddCharacteristic(
-    int server_id, const bluetooth::UUID& uuid,
-    int properties, int permissions,
-    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+Status BluetoothGattServerBinderServer::AddCharacteristic(
+    int server_id, const android::bluetooth::UUID& uuid, int properties,
+    int permissions, android::bluetooth::GattIdentifier* out_id,
+    bool* _aidl_return) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
@@ -87,24 +101,26 @@ bool BluetoothGattServerBinderServer::AddCharacteristic(
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   auto char_id = gatt_server->AddCharacteristic(uuid, properties, permissions);
   if (!char_id) {
-    LOG(ERROR) << "Failed to add characteristic - server_id: "
-               << server_id << " UUID: " << uuid.ToString();
-    return false;
+    LOG(ERROR) << "Failed to add characteristic - server_id: " << server_id
+               << " UUID: " << uuid.ToString();
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  out_id->swap(char_id);
-
-  return true;
+  *out_id = *char_id.get();
+  *_aidl_return = true;
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::AddDescriptor(
-    int server_id, const bluetooth::UUID& uuid, int permissions,
-    std::unique_ptr<bluetooth::GattIdentifier>* out_id) {
+Status BluetoothGattServerBinderServer::AddDescriptor(
+    int server_id, const android::bluetooth::UUID& uuid, int permissions,
+    android::bluetooth::GattIdentifier* out_id, bool* _aidl_return) {
   VLOG(2) << __func__;
   CHECK(out_id);
   std::lock_guard<std::mutex> lock(*maps_lock());
@@ -112,37 +128,40 @@ bool BluetoothGattServerBinderServer::AddDescriptor(
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   auto desc_id = gatt_server->AddDescriptor(uuid, permissions);
   if (!desc_id) {
-    LOG(ERROR) << "Failed to add descriptor - server_id: "
-               << server_id << " UUID: " << uuid.ToString();
-    return false;
+    LOG(ERROR) << "Failed to add descriptor - server_id: " << server_id
+               << " UUID: " << uuid.ToString();
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  out_id->swap(desc_id);
-
-  return true;
+  *out_id = *desc_id.get();
+  *_aidl_return = true;
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_id) {
+Status BluetoothGattServerBinderServer::EndServiceDeclaration(
+    int server_id, bool* _aidl_return) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
   // use after free.
   android::wp<BluetoothGattServerBinderServer> weak_ptr_to_this(this);
-  auto callback = [=](
-      bluetooth::BLEStatus status,
-      const bluetooth::GattIdentifier& service_id) {
+  auto callback = [=](bluetooth::BLEStatus status,
+                      const bluetooth::GattIdentifier& service_id) {
     auto sp_to_this = weak_ptr_to_this.promote();
     if (!sp_to_this.get()) {
       VLOG(2) << "BluetoothLowEnergyBinderServer was deleted";
@@ -162,43 +181,46 @@ bool BluetoothGattServerBinderServer::EndServiceDeclaration(int server_id) {
 
   if (!gatt_server->EndServiceDeclaration(callback)) {
     LOG(ERROR) << "Failed to end service declaration";
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return true;
+  *_aidl_return = true;
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::SendResponse(
-    int server_id, const std::string& device_address,
-    int request_id, int status, int offset,
-    const std::vector<uint8_t>& value) {
+Status BluetoothGattServerBinderServer::SendResponse(
+    int server_id, const String16& device_address, int request_id, int status,
+    int offset, const std::vector<uint8_t>& value, bool* _aidl_return) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return gatt_server->SendResponse(
-      device_address, request_id, static_cast<bluetooth::GATTError>(status),
-      offset, value);
+  *_aidl_return = gatt_server->SendResponse(
+      std::string(String8(device_address).string()), request_id,
+      static_cast<bluetooth::GATTError>(status), offset, value);
+
+  return Status::ok();
 }
 
-bool BluetoothGattServerBinderServer::SendNotification(
-    int server_id,
-    const std::string& device_address,
-    const bluetooth::GattIdentifier& characteristic_id,
-    bool confirm,
-    const std::vector<uint8_t>& value) {
+Status BluetoothGattServerBinderServer::SendNotification(
+    int server_id, const String16& device_address,
+    const android::bluetooth::GattIdentifier& characteristic_id, bool confirm,
+    const std::vector<uint8_t>& value, bool* _aidl_return) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto gatt_server = GetGattServer(server_id);
   if (!gatt_server) {
     LOG(ERROR) << "Unknown server_id: " << server_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
@@ -222,18 +244,20 @@ bool BluetoothGattServerBinderServer::SendNotification(
     gatt_cb->OnNotificationSent(device_address, error);
   };
 
-  if (!gatt_server->SendNotification(device_address, characteristic_id,
-                                     confirm, value, callback)) {
+  if (!gatt_server->SendNotification(
+          std::string(String8(device_address).string()), characteristic_id,
+          confirm, value, callback)) {
     LOG(ERROR) << "Failed to send notification";
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return true;
+  *_aidl_return = true;
+  return Status::ok();
 }
 
 void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
-    bluetooth::GattServer* gatt_server,
-    const std::string& device_address,
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
     int request_id, int offset, bool is_long,
     const bluetooth::GattIdentifier& characteristic_id) {
   VLOG(2) << __func__;
@@ -246,12 +270,12 @@ void BluetoothGattServerBinderServer::OnCharacteristicReadRequest(
   }
 
   gatt_cb->OnCharacteristicReadRequest(
-      device_address, request_id, offset, is_long, characteristic_id);
+      String16(device_address.c_str(), device_address.length()), request_id,
+      offset, is_long, characteristic_id);
 }
 
 void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
-    bluetooth::GattServer* gatt_server,
-    const std::string& device_address,
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
     int request_id, int offset, bool is_long,
     const bluetooth::GattIdentifier& descriptor_id) {
   VLOG(2) << __func__;
@@ -264,7 +288,8 @@ void BluetoothGattServerBinderServer::OnDescriptorReadRequest(
   }
 
   gatt_cb->OnDescriptorReadRequest(
-      device_address, request_id, offset, is_long, descriptor_id);
+      String16(device_address.c_str(), device_address.length()), request_id,
+      offset, is_long, descriptor_id);
 }
 
 android::sp<IBluetoothGattServerCallback>
@@ -281,8 +306,7 @@ BluetoothGattServerBinderServer::GetGattServer(int server_id) {
 }
 
 void BluetoothGattServerBinderServer::OnRegisterInstanceImpl(
-    bluetooth::BLEStatus status,
-    android::sp<IInterface> callback,
+    bluetooth::BLEStatus status, android::sp<IInterface> callback,
     bluetooth::BluetoothInstance* instance) {
   VLOG(1) << __func__ << " instance ID: " << instance->GetInstanceId()
           << " status: " << status;
@@ -292,15 +316,13 @@ void BluetoothGattServerBinderServer::OnRegisterInstanceImpl(
 
   android::sp<IBluetoothGattServerCallback> cb(
       static_cast<IBluetoothGattServerCallback*>(callback.get()));
-  cb->OnServerRegistered(
-      status,
-      (status == bluetooth::BLE_STATUS_SUCCESS) ?
-          instance->GetInstanceId() : kInvalidInstanceId);
+  cb->OnServerRegistered(status, (status == bluetooth::BLE_STATUS_SUCCESS)
+                                     ? instance->GetInstanceId()
+                                     : kInvalidInstanceId);
 }
 
 void BluetoothGattServerBinderServer::OnCharacteristicWriteRequest(
-    bluetooth::GattServer* gatt_server,
-    const std::string& device_address,
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
     int request_id, int offset, bool is_prepare_write, bool need_response,
     const std::vector<uint8_t>& value,
     const bluetooth::GattIdentifier& characteristic_id) {
@@ -314,13 +336,12 @@ void BluetoothGattServerBinderServer::OnCharacteristicWriteRequest(
   }
 
   gatt_cb->OnCharacteristicWriteRequest(
-      device_address, request_id, offset, is_prepare_write, need_response,
-      value, characteristic_id);
+      String16(device_address.c_str(), device_address.length()), request_id,
+      offset, is_prepare_write, need_response, value, characteristic_id);
 }
 
 void BluetoothGattServerBinderServer::OnDescriptorWriteRequest(
-    bluetooth::GattServer* gatt_server,
-    const std::string& device_address,
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
     int request_id, int offset, bool is_prepare_write, bool need_response,
     const std::vector<uint8_t>& value,
     const bluetooth::GattIdentifier& descriptor_id) {
@@ -334,13 +355,12 @@ void BluetoothGattServerBinderServer::OnDescriptorWriteRequest(
   }
 
   gatt_cb->OnDescriptorWriteRequest(
-      device_address, request_id, offset, is_prepare_write, need_response,
-      value, descriptor_id);
+      String16(device_address.c_str(), device_address.length()), request_id,
+      offset, is_prepare_write, need_response, value, descriptor_id);
 }
 
 void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
-    bluetooth::GattServer* gatt_server,
-    const std::string& device_address,
+    bluetooth::GattServer* gatt_server, const std::string& device_address,
     int request_id, bool is_execute) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
@@ -351,7 +371,9 @@ void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
     return;
   }
 
-  gatt_cb->OnExecuteWriteRequest(device_address, request_id, is_execute);
+  gatt_cb->OnExecuteWriteRequest(
+      String16(device_address.c_str(), device_address.length()), request_id,
+      is_execute);
 }
 
 }  // namespace binder

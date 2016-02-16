@@ -51,14 +51,14 @@ btserviceCommonSrc := \
 	common/bluetooth/uuid.cpp
 
 btserviceCommonBinderSrc := \
-	common/bluetooth/binder/IBluetooth.cpp \
-	common/bluetooth/binder/IBluetoothCallback.cpp \
-	common/bluetooth/binder/IBluetoothGattClient.cpp \
-	common/bluetooth/binder/IBluetoothGattClientCallback.cpp \
-	common/bluetooth/binder/IBluetoothGattServer.cpp \
-	common/bluetooth/binder/IBluetoothGattServerCallback.cpp \
-	common/bluetooth/binder/IBluetoothLowEnergy.cpp \
-	common/bluetooth/binder/IBluetoothLowEnergyCallback.cpp \
+	common/android/bluetooth/IBluetooth.aidl \
+	common/android/bluetooth/IBluetoothCallback.aidl \
+	common/android/bluetooth/IBluetoothGattClient.aidl \
+	common/android/bluetooth/IBluetoothGattClientCallback.aidl \
+	common/android/bluetooth/IBluetoothGattServer.aidl \
+	common/android/bluetooth/IBluetoothGattServerCallback.aidl \
+	common/android/bluetooth/IBluetoothLowEnergy.aidl \
+	common/android/bluetooth/IBluetoothLowEnergyCallback.aidl \
 	common/android/bluetooth/advertise_data.cpp \
 	common/android/bluetooth/advertise_settings.cpp \
 	common/android/bluetooth/gatt_identifier.cpp \
