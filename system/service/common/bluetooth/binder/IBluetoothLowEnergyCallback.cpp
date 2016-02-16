@@ -19,15 +19,16 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
-#include "service/common/bluetooth/binder/parcel_helpers.h"
+#include "service/common/android/bluetooth/advertise_settings.h"
+#include "service/common/android/bluetooth/scan_result.h"
 
 using android::IBinder;
 using android::Parcel;
 using android::sp;
 using android::status_t;
 
-using bluetooth::AdvertiseData;
-using bluetooth::AdvertiseSettings;
+using android::bluetooth::AdvertiseSettings;
+using android::bluetooth::ScanResult;
 
 namespace ipc {
 namespace binder {
@@ -73,17 +74,17 @@ status_t BnBluetoothLowEnergyCallback::onTransact(
     return android::NO_ERROR;
   }
   case ON_SCAN_RESULT_TRANSACTION: {
-    auto scan_result = CreateScanResultFromParcel(data);
-    CHECK(scan_result.get());
-    OnScanResult(*scan_result);
+    ScanResult scan_result;
+    data.readParcelable(&scan_result);
+    OnScanResult(scan_result);
     return android::NO_ERROR;
   }
   case ON_MULTI_ADVERTISE_CALLBACK_TRANSACTION: {
     int status = data.readInt32();
     bool is_start = data.readInt32();
-    std::unique_ptr<AdvertiseSettings> settings =
-        CreateAdvertiseSettingsFromParcel(data);
-    OnMultiAdvertiseCallback(status, is_start, *settings);
+    AdvertiseSettings settings;
+    data.readParcelable(&settings);
+    OnMultiAdvertiseCallback(status, is_start, settings);
     return android::NO_ERROR;
   }
   default:
@@ -154,7 +155,7 @@ void BpBluetoothLowEnergyCallback::OnScanResult(
 
   data.writeInterfaceToken(
       IBluetoothLowEnergyCallback::getInterfaceDescriptor());
-  WriteScanResultToParcel(scan_result, &data);
+  data.writeParcelable((ScanResult)scan_result);
 
   remote()->transact(
       IBluetoothLowEnergyCallback::ON_SCAN_RESULT_TRANSACTION,
@@ -164,14 +165,14 @@ void BpBluetoothLowEnergyCallback::OnScanResult(
 
 void BpBluetoothLowEnergyCallback::OnMultiAdvertiseCallback(
     int status, bool is_start,
-    const AdvertiseSettings& settings) {
+    const bluetooth::AdvertiseSettings& settings) {
   Parcel data, reply;
 
   data.writeInterfaceToken(
       IBluetoothLowEnergyCallback::getInterfaceDescriptor());
   data.writeInt32(status);
   data.writeInt32(is_start);
-  WriteAdvertiseSettingsToParcel(settings, &data);
+  data.writeParcelable((AdvertiseSettings)settings);
 
   remote()->transact(
       IBluetoothLowEnergyCallback::ON_MULTI_ADVERTISE_CALLBACK_TRANSACTION,

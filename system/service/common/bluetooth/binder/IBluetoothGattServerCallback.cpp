@@ -19,12 +19,14 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
-#include "service/common/bluetooth/binder/parcel_helpers.h"
+#include "service/common/android/bluetooth/gatt_identifier.h"
 
 using android::IBinder;
 using android::Parcel;
 using android::sp;
 using android::status_t;
+
+using android::bluetooth::GattIdentifier;
 
 namespace ipc {
 namespace binder {
@@ -54,9 +56,9 @@ status_t BnBluetoothGattServerCallback::onTransact(
   }
   case ON_SERVICE_ADDED_TRANSACTION: {
     int status = data.readInt32();
-    auto gatt_id = CreateGattIdentifierFromParcel(data);
-    CHECK(gatt_id);
-    OnServiceAdded(status, *gatt_id);
+    GattIdentifier gatt_id;
+    data.readParcelable(&gatt_id);
+    OnServiceAdded(status, gatt_id);
     return android::NO_ERROR;
   }
   case ON_CHARACTERISTIC_READ_REQUEST_TRANSACTION: {
@@ -64,10 +66,10 @@ status_t BnBluetoothGattServerCallback::onTransact(
     int request_id = data.readInt32();
     int offset = data.readInt32();
     bool is_long = data.readInt32();
-    auto char_id = CreateGattIdentifierFromParcel(data);
-    CHECK(char_id);
+    GattIdentifier char_id;
+    data.readParcelable(&char_id);
     OnCharacteristicReadRequest(device_address, request_id, offset, is_long,
-                                *char_id);
+                                char_id);
     return android::NO_ERROR;
   }
   case ON_DESCRIPTOR_READ_REQUEST_TRANSACTION: {
@@ -75,10 +77,10 @@ status_t BnBluetoothGattServerCallback::onTransact(
     int request_id = data.readInt32();
     int offset = data.readInt32();
     bool is_long = data.readInt32();
-    auto desc_id = CreateGattIdentifierFromParcel(data);
-    CHECK(desc_id);
+    GattIdentifier desc_id;
+    data.readParcelable(&desc_id);
     OnDescriptorReadRequest(device_address, request_id, offset, is_long,
-                            *desc_id);
+                            desc_id);
     return android::NO_ERROR;
   }
   case ON_CHARACTERISTIC_WRITE_REQUEST_TRANSACTION: {
@@ -92,11 +94,11 @@ status_t BnBluetoothGattServerCallback::onTransact(
     data.readByteVector(&value);
     CHECK(value.get());
 
-    auto char_id = CreateGattIdentifierFromParcel(data);
-    CHECK(char_id);
+    GattIdentifier char_id;
+    data.readParcelable(&char_id);
 
     OnCharacteristicWriteRequest(device_address, request_id, offset, is_prep,
-                                 need_rsp, *value, *char_id);
+                                 need_rsp, *value, char_id);
     return android::NO_ERROR;
   }
   case ON_DESCRIPTOR_WRITE_REQUEST_TRANSACTION: {
@@ -110,11 +112,10 @@ status_t BnBluetoothGattServerCallback::onTransact(
     data.readByteVector(&value);
     CHECK(value.get());
 
-    auto desc_id = CreateGattIdentifierFromParcel(data);
-    CHECK(desc_id);
-
+    GattIdentifier desc_id;
+    data.readParcelable(&desc_id);
     OnDescriptorWriteRequest(device_address, request_id, offset, is_prep,
-                             need_rsp, *value, *desc_id);
+                             need_rsp, *value, desc_id);
     return android::NO_ERROR;
   }
   case ON_EXECUTE_WRITE_REQUEST_TRANSACTION: {
@@ -168,7 +169,7 @@ void BpBluetoothGattServerCallback::OnServiceAdded(
   data.writeInterfaceToken(
       IBluetoothGattServerCallback::getInterfaceDescriptor());
   data.writeInt32(status);
-  WriteGattIdentifierToParcel(service_id, &data);
+  data.writeParcelable((GattIdentifier)service_id);
 
   remote()->transact(IBluetoothGattServerCallback::ON_SERVICE_ADDED_TRANSACTION,
                      data, &reply,
@@ -187,7 +188,7 @@ void BpBluetoothGattServerCallback::OnCharacteristicReadRequest(
   data.writeInt32(request_id);
   data.writeInt32(offset);
   data.writeInt32(is_long);
-  WriteGattIdentifierToParcel(characteristic_id, &data);
+  data.writeParcelable((GattIdentifier)characteristic_id);
 
   remote()->transact(
       IBluetoothGattServerCallback::ON_CHARACTERISTIC_READ_REQUEST_TRANSACTION,
@@ -207,7 +208,7 @@ void BpBluetoothGattServerCallback::OnDescriptorReadRequest(
   data.writeInt32(request_id);
   data.writeInt32(offset);
   data.writeInt32(is_long);
-  WriteGattIdentifierToParcel(descriptor_id, &data);
+  data.writeParcelable((GattIdentifier)descriptor_id);
 
   remote()->transact(
       IBluetoothGattServerCallback::ON_DESCRIPTOR_READ_REQUEST_TRANSACTION,
@@ -230,7 +231,7 @@ void BpBluetoothGattServerCallback::OnCharacteristicWriteRequest(
   data.writeInt32(is_prepare_write);
   data.writeInt32(need_response);
   data.writeByteVector(value);
-  WriteGattIdentifierToParcel(characteristic_id, &data);
+  data.writeParcelable((GattIdentifier)characteristic_id);
 
   remote()->transact(
       IBluetoothGattServerCallback::ON_CHARACTERISTIC_WRITE_REQUEST_TRANSACTION,
@@ -253,7 +254,7 @@ void BpBluetoothGattServerCallback::OnDescriptorWriteRequest(
   data.writeInt32(is_prepare_write);
   data.writeInt32(need_response);
   data.writeByteVector(value);
-  WriteGattIdentifierToParcel(descriptor_id, &data);
+  data.writeParcelable((GattIdentifier)descriptor_id);
 
   remote()->transact(
       IBluetoothGattServerCallback::ON_DESCRIPTOR_WRITE_REQUEST_TRANSACTION,

@@ -88,7 +88,7 @@ class AdvertiseSettings {
   // Comparison operator.
   bool operator==(const AdvertiseSettings& rhs) const;
 
- private:
+ protected:
   Mode mode_;
   base::TimeDelta timeout_;
   TxPowerLevel tx_power_level_;

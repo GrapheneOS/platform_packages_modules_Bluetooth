@@ -82,7 +82,7 @@ class UUID {
     return !(*this == rhs);
   }
 
- private:
+ protected:
   void InitializeDefault();
 
   // Network-byte-ordered ID.

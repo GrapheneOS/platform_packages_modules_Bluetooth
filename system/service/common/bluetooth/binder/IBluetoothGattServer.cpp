@@ -19,13 +19,17 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
-#include "service/common/bluetooth/binder/parcel_helpers.h"
+#include "service/common/android/bluetooth/uuid.h"
+#include "service/common/android/bluetooth/gatt_identifier.h"
 
 using android::IBinder;
 using android::interface_cast;
 using android::Parcel;
 using android::sp;
 using android::status_t;
+
+using android::bluetooth::GattIdentifier;
+using android::bluetooth::UUID;
 
 namespace ipc {
 namespace binder {
@@ -63,56 +67,57 @@ status_t BnBluetoothGattServer::onTransact(
   case BEGIN_SERVICE_DECLARATION_TRANSACTION: {
     int server_if = data.readInt32();
     bool is_primary = data.readInt32();
-    auto uuid = CreateUUIDFromParcel(data);
-    CHECK(uuid);
+    UUID uuid;
+    data.readParcelable(&uuid);
 
     std::unique_ptr<bluetooth::GattIdentifier> out_id;
     bool result = BeginServiceDeclaration(
-        server_if, is_primary, *uuid, &out_id);
+        server_if, is_primary, uuid, &out_id);
 
     reply->writeInt32(result);
 
     if (result) {
       CHECK(out_id);
-      WriteGattIdentifierToParcel(*out_id, reply);
+      reply->writeParcelable((GattIdentifier)*out_id);
     }
 
     return android::NO_ERROR;
   }
   case ADD_CHARACTERISTIC_TRANSACTION: {
     int server_if = data.readInt32();
-    auto uuid = CreateUUIDFromParcel(data);
-    CHECK(uuid);
+    UUID uuid;
+    data.readParcelable(&uuid);
+
     int properties = data.readInt32();
     int permissions = data.readInt32();
 
     std::unique_ptr<bluetooth::GattIdentifier> out_id;
     bool result = AddCharacteristic(
-        server_if, *uuid, properties, permissions, &out_id);
+        server_if, uuid, properties, permissions, &out_id);
 
     reply->writeInt32(result);
 
     if (result) {
       CHECK(out_id);
-      WriteGattIdentifierToParcel(*out_id, reply);
+      reply->writeParcelable((GattIdentifier)*out_id);
     }
 
     return android::NO_ERROR;
   }
   case ADD_DESCRIPTOR_TRANSACTION: {
     int server_if = data.readInt32();
-    auto uuid = CreateUUIDFromParcel(data);
-    CHECK(uuid);
+    UUID uuid;
+    data.readParcelable(&uuid);
     int permissions = data.readInt32();
 
     std::unique_ptr<bluetooth::GattIdentifier> out_id;
-    bool result = AddDescriptor(server_if, *uuid, permissions, &out_id);
+    bool result = AddDescriptor(server_if, uuid, permissions, &out_id);
 
     reply->writeInt32(result);
 
     if (result) {
       CHECK(out_id);
-      WriteGattIdentifierToParcel(*out_id, reply);
+      reply->writeParcelable((GattIdentifier)*out_id);
     }
 
     return android::NO_ERROR;
@@ -144,15 +149,15 @@ status_t BnBluetoothGattServer::onTransact(
   case SEND_NOTIFICATION_TRANSACTION: {
     int server_if = data.readInt32();
     std::string device_address = data.readCString();
-    auto char_id = CreateGattIdentifierFromParcel(data);
-    CHECK(char_id);
+    GattIdentifier char_id;
+    data.readParcelable(&char_id);
     bool confirm = data.readInt32();
 
     std::unique_ptr<std::vector<uint8_t>> value;
     data.readByteVector(&value);
     CHECK(value.get());
 
-    bool result = SendNotification(server_if, device_address, *char_id, confirm,
+    bool result = SendNotification(server_if, device_address, char_id, confirm,
                                    *value);
 
     reply->writeInt32(result);
@@ -212,15 +217,18 @@ bool BpBluetoothGattServer::BeginServiceDeclaration(
   data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
   data.writeInt32(server_if);
   data.writeInt32(is_primary);
-  WriteUUIDToParcel(uuid, &data);
+  data.writeParcelable((UUID)uuid);
 
   remote()->transact(
       IBluetoothGattServer::BEGIN_SERVICE_DECLARATION_TRANSACTION,
       data, &reply);
 
   bool result = reply.readInt32();
-  if (result)
-    *out_id = CreateGattIdentifierFromParcel(reply);
+  if (result) {
+    std::unique_ptr<GattIdentifier> char_id;
+    data.readParcelable(&char_id);
+    out_id->reset((bluetooth::GattIdentifier *)char_id.release());
+  }
 
   return result;
 }
@@ -234,7 +242,7 @@ bool BpBluetoothGattServer::AddCharacteristic(
 
   data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
   data.writeInt32(server_if);
-  WriteUUIDToParcel(uuid, &data);
+  data.writeParcelable((UUID)uuid);
   data.writeInt32(properties);
   data.writeInt32(permissions);
 
@@ -242,8 +250,11 @@ bool BpBluetoothGattServer::AddCharacteristic(
                      data, &reply);
 
   bool result = reply.readInt32();
-  if (result)
-    *out_id = CreateGattIdentifierFromParcel(reply);
+  if (result) {
+    std::unique_ptr<GattIdentifier> gatt_id;
+    data.readParcelable(&gatt_id);
+    out_id->reset((bluetooth::GattIdentifier *)gatt_id.release());
+  }
 
   return result;
 }
@@ -256,15 +267,18 @@ bool BpBluetoothGattServer::AddDescriptor(
 
   data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
   data.writeInt32(server_if);
-  WriteUUIDToParcel(uuid, &data);
+  data.writeParcelable((UUID)uuid);
   data.writeInt32(permissions);
 
   remote()->transact(IBluetoothGattServer::ADD_DESCRIPTOR_TRANSACTION,
                      data, &reply);
 
   bool result = reply.readInt32();
-  if (result)
-    *out_id = CreateGattIdentifierFromParcel(reply);
+  if (result) {
+    std::unique_ptr<GattIdentifier> gatt_id;
+    data.readParcelable(&gatt_id);
+    out_id->reset((bluetooth::GattIdentifier *)gatt_id.release());
+  }
 
   return result;
 }
@@ -314,7 +328,7 @@ bool BpBluetoothGattServer::SendNotification(
   data.writeInterfaceToken(IBluetoothGattServer::getInterfaceDescriptor());
   data.writeInt32(server_if);
   data.writeCString(device_address.c_str());
-  WriteGattIdentifierToParcel(characteristic_id, &data);
+  data.writeParcelable((GattIdentifier)characteristic_id);
   data.writeInt32(confirm);
   data.writeByteVector(value);
 

@@ -59,7 +59,17 @@ btserviceCommonBinderSrc := \
 	common/bluetooth/binder/IBluetoothGattServerCallback.cpp \
 	common/bluetooth/binder/IBluetoothLowEnergy.cpp \
 	common/bluetooth/binder/IBluetoothLowEnergyCallback.cpp \
-	common/bluetooth/binder/parcel_helpers.cpp
+	common/android/bluetooth/advertise_data.cpp \
+	common/android/bluetooth/advertise_settings.cpp \
+	common/android/bluetooth/gatt_identifier.cpp \
+	common/android/bluetooth/scan_filter.cpp \
+	common/android/bluetooth/scan_result.cpp \
+	common/android/bluetooth/scan_settings.cpp \
+	common/android/bluetooth/uuid.cpp \
+
+btserviceCommonAidlInclude := \
+	packages/modules/Bluetooth/system/service/common \
+	frameworks/native/aidl/binder
 
 btserviceDaemonSrc := \
 	adapter.cpp \
@@ -116,11 +126,12 @@ btserviceBaseTestSrc := \
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
-	$(btserviceBinderDaemonSrc) \
 	$(btserviceCommonSrc) \
+	$(btserviceBinderDaemonSrc) \
 	$(btserviceLinuxSrc) \
 	$(btserviceDaemonSrc) \
 	main.cpp
+LOCAL_AIDL_INCLUDES = $(btserviceCommonAidlInclude)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetoothtbd
@@ -178,11 +189,14 @@ include $(BUILD_HOST_NATIVE_TEST)
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceBaseTestSrc) \
-	$(btserviceBinderDaemonSrc) \
 	$(btserviceCommonSrc) \
+	$(btserviceBinderDaemonSrc) \
 	$(btserviceDaemonSrc) \
 	test/main.cpp \
-	test/parcel_helpers_unittest.cpp
+	test/parcelable_unittest.cpp \
+	test/ParcelableTest.aidl
+LOCAL_AIDL_INCLUDES := $(btserviceCommonAidlInclude)
+LOCAL_AIDL_INCLUDES += ./
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
@@ -205,6 +219,7 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
 	$(btserviceCommonBinderSrc)
+LOCAL_AIDL_INCLUDES := $(btserviceCommonAidlInclude)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
 LOCAL_MODULE := libbluetooth-client
