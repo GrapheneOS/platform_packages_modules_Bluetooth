@@ -51,7 +51,9 @@ bool interop_match(const interop_feature_t feature, const bt_bdaddr_t *addr);
 // Add a dynamic interop database entry for a device matching the first |length| bytes
 // of |addr|, implementing the workaround identified by |feature|. |addr| may not be
 // null and |length| must be greater than 0 and less than sizeof(bt_bdaddr_t).
-void interop_database_add(const interop_feature_t feature, const bt_bdaddr_t *addr, size_t length);
+// As |interop_feature_t| is not exposed in the public API, feature must be a valid
+// integer representing an optoin in the enum.
+void interop_database_add(const uint16_t feature, const bt_bdaddr_t *addr, size_t length);
 
 // Clear the dynamic portion of the interoperability workaround database.
 void interop_database_clear(void);
