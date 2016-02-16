@@ -1132,7 +1132,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
     if ((info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE)
         && (L2CAP_EXTFEA_SUPPORTED_MASK & (L2CAP_EXTFEA_ENH_RETRANS | L2CAP_EXTFEA_STREAM_MODE |
                                            L2CAP_EXTFEA_NO_CRC |L2CAP_EXTFEA_FIXED_CHNLS |
-                                           L2CAP_EXTFEA_UCD_RECEPTION )) )
+                                           L2CAP_EXTFEA_UCD_RECEPTION )) != 0 )
 #endif
     {
         len += L2CAP_EXTENDED_FEATURES_ARRAY_SIZE;
@@ -1164,7 +1164,7 @@ void l2cu_send_peer_info_rsp (tL2C_LCB *p_lcb, UINT8 remote_id, UINT16 info_type
 #else
     if ((info_type == L2CAP_EXTENDED_FEATURES_INFO_TYPE)
         && (L2CAP_EXTFEA_SUPPORTED_MASK & ( L2CAP_EXTFEA_ENH_RETRANS | L2CAP_EXTFEA_STREAM_MODE
-                                          | L2CAP_EXTFEA_UCD_RECEPTION )) )
+                                          | L2CAP_EXTFEA_UCD_RECEPTION )) != 0 )
 #endif
     {
         UINT16_TO_STREAM (p, L2CAP_INFO_RESP_RESULT_SUCCESS);
