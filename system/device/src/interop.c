@@ -54,7 +54,7 @@ bool interop_match(const interop_feature_t feature, const bt_bdaddr_t *addr) {
   return false;
 }
 
-void interop_database_add(const interop_feature_t feature, const bt_bdaddr_t *addr, size_t length) {
+void interop_database_add(const uint16_t feature, const bt_bdaddr_t *addr, size_t length) {
   assert(addr);
   assert(length > 0);
   assert(length < sizeof(bt_bdaddr_t));
