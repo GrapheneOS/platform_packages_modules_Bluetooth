@@ -62,6 +62,32 @@ typedef enum {
 void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms);
 
+// Record A2DP session information.
+// |session_duration_sec| is the session duration (in seconds).
+// |device_class| is the device class of the paired device.
+// |media_timer_min_ms| is the minimum scheduled time (in milliseconds)
+// of the media timer.
+// |media_timer_max_ms| is the maximum scheduled time (in milliseconds)
+// of the media timer.
+// |media_timer_avg_ms| is the average scheduled time (in milliseconds)
+// of the media timer.
+// |buffer_overruns_max_count| - TODO - not clear what this is.
+// |buffer_overruns_total| is the number of times the media buffer with
+// audio data has overrun.
+// |buffer_underruns_average| - TODO - not clear what this is.
+// |buffer_underruns_count| is the number of times there was no enough
+// audio data to add to the media buffer.
+void metrics_a2dp_session(int64_t session_duration_sec,
+                          const char *disconnect_reason,
+                          uint32_t device_class,
+                          int32_t media_timer_min_ms,
+                          int32_t media_timer_max_ms,
+                          int32_t media_timer_avg_ms,
+                          int32_t buffer_overruns_max_count,
+                          int32_t buffer_overruns_total,
+                          float buffer_underruns_average,
+                          int32_t buffer_underruns_count);
+
 // Writes the metrics, in packed protobuf format, into the descriptor |fd|.
 // If |clear| is true, metrics events are cleared afterwards.
 void metrics_write(int fd, bool clear);
