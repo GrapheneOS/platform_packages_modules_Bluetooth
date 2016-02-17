@@ -393,4 +393,15 @@ void btif_dm_read_energy_info();
 **
 *******************************************************************************/
 bt_status_t btif_config_hci_snoop_log(uint8_t enable);
+
+/*******************************************************************************
+**
+** Function         btif_debug_bond_event_dump
+**
+** Description     Dump bond event information
+**
+** Returns          void
+**
+*******************************************************************************/
+void btif_debug_bond_event_dump(int fd);
 #endif /* BTIF_API_H */
