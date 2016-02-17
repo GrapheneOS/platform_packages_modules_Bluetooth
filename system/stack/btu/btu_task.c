@@ -120,6 +120,11 @@ static void btu_hci_msg_process(BT_HDR *p_msg) {
     {
         case BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK: // TODO(zachoverflow): remove this
             ((post_to_task_hack_t *)(&p_msg->data[0]))->callback(p_msg);
+#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+            /* If the host receives events which it doesn't responsd to, */
+            /* it should start an idle timer to enter sleep mode.        */
+            btu_check_bt_sleep ();
+#endif
             break;
         case BT_EVT_TO_BTU_HCI_ACL:
             /* All Acl Data goes to L2CAP */
