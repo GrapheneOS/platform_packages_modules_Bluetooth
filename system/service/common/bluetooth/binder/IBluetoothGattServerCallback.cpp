@@ -88,7 +88,8 @@ status_t BnBluetoothGattServerCallback::onTransact(
     bool is_prep = data.readInt32();
     bool need_rsp = data.readInt32();
 
-    auto value = ReadByteVectorFromParcel(data);
+    std::unique_ptr<std::vector<uint8_t>> value;
+    data.readByteVector(&value);
     CHECK(value.get());
 
     auto char_id = CreateGattIdentifierFromParcel(data);
@@ -105,7 +106,8 @@ status_t BnBluetoothGattServerCallback::onTransact(
     bool is_prep = data.readInt32();
     bool need_rsp = data.readInt32();
 
-    auto value = ReadByteVectorFromParcel(data);
+    std::unique_ptr<std::vector<uint8_t>> value;
+    data.readByteVector(&value);
     CHECK(value.get());
 
     auto desc_id = CreateGattIdentifierFromParcel(data);
@@ -227,7 +229,7 @@ void BpBluetoothGattServerCallback::OnCharacteristicWriteRequest(
   data.writeInt32(offset);
   data.writeInt32(is_prepare_write);
   data.writeInt32(need_response);
-  data.writeByteArray(value.size(), value.data());
+  data.writeByteVector(value);
   WriteGattIdentifierToParcel(characteristic_id, &data);
 
   remote()->transact(
@@ -250,7 +252,7 @@ void BpBluetoothGattServerCallback::OnDescriptorWriteRequest(
   data.writeInt32(offset);
   data.writeInt32(is_prepare_write);
   data.writeInt32(need_response);
-  data.writeByteArray(value.size(), value.data());
+  data.writeByteVector(value);
   WriteGattIdentifierToParcel(descriptor_id, &data);
 
   remote()->transact(
