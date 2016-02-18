@@ -62,7 +62,8 @@ LOCAL_SHARED_LIBRARIES := \
     libpower \
     libprotobuf-cpp-full \
     libmedia \
-    libutils
+    libutils \
+    libchrome
 
 LOCAL_STATIC_LIBRARIES := \
     libbt-qcom_sbc_decoder
