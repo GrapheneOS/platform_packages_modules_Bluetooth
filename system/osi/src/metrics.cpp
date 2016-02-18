@@ -32,6 +32,7 @@ extern "C" {
 
 #include <base/base64.h>
 #include <google/protobuf/text_format.h>
+#include <mutex>
 
 using clearcut::connectivity::A2DPSession;
 using clearcut::connectivity::BluetoothLog;
@@ -46,6 +47,7 @@ using clearcut::connectivity::WakeEvent;
 using clearcut::connectivity::WakeEvent_WakeEventType;
 
 BluetoothLog *pending;
+std::mutex log_lock;
 
 static void lazy_initialize(void) {
   if (pending == nullptr) {
@@ -55,6 +57,7 @@ static void lazy_initialize(void) {
 
 void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
                         uint32_t device_class, device_type_t device_type) {
+  std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
   PairEvent *event = pending->add_pair_event();
@@ -81,6 +84,7 @@ void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
 
 void metrics_wake_event(wake_event_type_t type, const char *requestor,
                         const char *name, uint64_t timestamp_ms) {
+  std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
   WakeEvent *event = pending->add_wake_event();
@@ -105,6 +109,7 @@ void metrics_wake_event(wake_event_type_t type, const char *requestor,
 
 void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms) {
+  std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
   ScanEvent *event = pending->add_scan_event();
@@ -143,6 +148,7 @@ void metrics_a2dp_session(int64_t session_duration_sec,
                           int32_t buffer_overruns_total,
                           float buffer_underruns_average,
                           int32_t buffer_underruns_count) {
+  std::lock_guard<std::mutex> lock(log_lock);
   lazy_initialize();
 
   BluetoothSession *bt_session = pending->add_session();
@@ -172,6 +178,7 @@ void metrics_a2dp_session(int64_t session_duration_sec,
 }
 
 void metrics_write(int fd, bool clear) {
+  log_lock.lock();
   LOG_DEBUG(LOG_TAG, "%s serializing metrics", __func__);
   lazy_initialize();
 
@@ -181,6 +188,11 @@ void metrics_write(int fd, bool clear) {
     return;
   }
 
+  if (clear) {
+    pending->Clear();
+  }
+  log_lock.unlock();
+
   std::string protoBase64;
   base::Base64Encode(serialized, &protoBase64);
 
@@ -188,25 +200,24 @@ void metrics_write(int fd, bool clear) {
     LOG_ERROR(LOG_TAG, "%s: error writing to dumpsys fd: %s (%d)", __func__,
               strerror(errno), errno);
   }
-
-  if (clear) {
-    pending->Clear();
-  }
 }
 
 void metrics_print(int fd, bool clear) {
+  log_lock.lock();
   LOG_DEBUG(LOG_TAG, "%s printing metrics", __func__);
   lazy_initialize();
 
   std::string pretty_output;
   google::protobuf::TextFormat::PrintToString(*pending, &pretty_output);
 
+  if (clear) {
+    pending->Clear();
+  }
+  log_lock.unlock();
+
   if (write(fd, pretty_output.c_str(), pretty_output.size()) == -1) {
     LOG_ERROR(LOG_TAG, "%s: error writing to dumpsys fd: %s (%d)", __func__,
               strerror(errno), errno);
   }
 
-  if (clear) {
-    pending->Clear();
-  }
 }
