@@ -329,10 +329,12 @@ static void dump(int fd, const char **arguments)
 {
     if (arguments != NULL && arguments[0] != NULL) {
       if (strncmp(arguments[0], "--proto-text", 11) == 0) {
+        btif_update_a2dp_metrics();
         metrics_print(fd, true);
         return;
       }
       if (strncmp(arguments[0], "--proto-bin", 10) == 0) {
+        btif_update_a2dp_metrics();
         metrics_write(fd, true);
         return;
       }

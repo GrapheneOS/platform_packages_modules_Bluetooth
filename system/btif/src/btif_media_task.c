@@ -63,6 +63,7 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
+#include "osi/include/metrics.h"
 #include "osi/include/mutex.h"
 #include "osi/include/thread.h"
 
@@ -218,9 +219,17 @@ typedef struct {
 
     // Max. premature scheduling delta time (in us)
     uint64_t max_premature_scheduling_delta_us;
+
+    // Counter for exact scheduling
+    size_t exact_scheduling_count;
+
+    // Accumulated and counted scheduling time (in us)
+    uint64_t total_scheduling_time_us;
 } scheduling_stats_t;
 
 typedef struct {
+    uint64_t session_start_us;
+
     scheduling_stats_t tx_queue_enqueue_stats;
     scheduling_stats_t tx_queue_dequeue_stats;
 
@@ -399,6 +408,7 @@ static void update_scheduling_stats(scheduling_stats_t *stats,
                 stats->max_overdue_scheduling_delta_us = delta_us;
             stats->total_overdue_scheduling_delta_us += delta_us;
             stats->overdue_scheduling_count++;
+            stats->total_scheduling_time_us += now_us - last_us;
         }
     } else if (deadline_us > now_us) {
         // Premature scheduling
@@ -409,7 +419,12 @@ static void update_scheduling_stats(scheduling_stats_t *stats,
                 stats->max_premature_scheduling_delta_us = delta_us;
             stats->total_premature_scheduling_delta_us += delta_us;
             stats->premature_scheduling_count++;
+            stats->total_scheduling_time_us += now_us - last_us;
         }
+    } else {
+        // On-time scheduling
+        stats->exact_scheduling_count++;
+        stats->total_scheduling_time_us += now_us - last_us;
     }
 }
 
@@ -1349,6 +1364,8 @@ static void btif_media_task_aa_handle_uipc_rx_rdy(void)
 
 static void btif_media_thread_init(UNUSED_ATTR void *context) {
   memset(&btif_media_cb, 0, sizeof(btif_media_cb));
+  btif_media_cb.stats.session_start_us = time_now_us();
+
   UIPC_Init(NULL);
 
 #if (BTA_AV_INCLUDED == TRUE)
@@ -3062,4 +3079,55 @@ void btif_debug_a2dp_dump(int fd)
             (unsigned long long)dequeue_stats->max_premature_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
 
+}
+
+void btif_update_a2dp_metrics(void)
+{
+    uint64_t now_us = time_now_us();
+    btif_media_stats_t *stats = &btif_media_cb.stats;
+    scheduling_stats_t *dequeue_stats = &stats->tx_queue_dequeue_stats;
+    int32_t media_timer_min_ms = 0;
+    int32_t media_timer_max_ms = 0;
+    int32_t media_timer_avg_ms = 0;
+    int32_t buffer_overruns_max_count = 0;
+    int32_t buffer_overruns_total = 0;
+    float buffer_underruns_average = 0.0;
+    int32_t buffer_underruns_count = 0;
+
+    int64_t session_duration_sec =
+        (now_us - stats->session_start_us) / (1000 * 1000);
+
+    /* TODO: Disconnect reason is not supported (yet) */
+    const char *disconnect_reason = NULL;
+    uint32_t device_class = BTM_COD_MAJOR_AUDIO;
+
+    if (dequeue_stats->total_updates > 1) {
+        media_timer_min_ms = BTIF_SINK_MEDIA_TIME_TICK_MS -
+            (dequeue_stats->max_premature_scheduling_delta_us / 1000);
+        media_timer_max_ms = BTIF_SINK_MEDIA_TIME_TICK_MS +
+            (dequeue_stats->max_overdue_scheduling_delta_us / 1000);
+
+        uint64_t total_scheduling_count =
+            dequeue_stats->overdue_scheduling_count +
+            dequeue_stats->premature_scheduling_count +
+            dequeue_stats->exact_scheduling_count;
+        if (total_scheduling_count > 0) {
+            media_timer_avg_ms = dequeue_stats->total_scheduling_time_us /
+                (1000 * total_scheduling_count);
+        }
+
+        /*
+         * TODO: What is buffer_overruns_max_count and
+         * buffer_underruns_average?
+         */
+        buffer_overruns_total = stats->tx_queue_total_dropped_messages;
+        buffer_underruns_count = stats->media_read_total_underflow_count +
+            stats->media_read_total_underrun_count;
+    }
+
+    metrics_a2dp_session(session_duration_sec, disconnect_reason, device_class,
+                         media_timer_min_ms, media_timer_max_ms,
+                         media_timer_avg_ms, buffer_overruns_max_count,
+                         buffer_overruns_total, buffer_underruns_average,
+                         buffer_underruns_count);
 }
