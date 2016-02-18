@@ -32,7 +32,9 @@ extern "C" {
 
 #include <google/protobuf/text_format.h>
 
+using clearcut::connectivity::A2DPSession;
 using clearcut::connectivity::BluetoothLog;
+using clearcut::connectivity::BluetoothSession;
 using clearcut::connectivity::DeviceInfo;
 using clearcut::connectivity::DeviceInfo_DeviceType;
 using clearcut::connectivity::PairEvent;
@@ -74,11 +76,10 @@ void metrics_pair_event(uint32_t disconnect_reason, uint64_t timestamp_ms,
   event->set_disconnect_reason(disconnect_reason);
 
   event->set_event_time_millis(timestamp_ms);
-
 }
 
 void metrics_wake_event(wake_event_type_t type, const char *requestor,
-                        const char *name, uint64_t timestamp) {
+                        const char *name, uint64_t timestamp_ms) {
   lazy_initialize();
 
   WakeEvent *event = pending->add_wake_event();
@@ -98,9 +99,8 @@ void metrics_wake_event(wake_event_type_t type, const char *requestor,
   if (name)
     event->set_name(name);
 
-  event->set_event_time_millis(timestamp);
+  event->set_event_time_millis(timestamp_ms);
 }
-
 
 void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
                         uint32_t results, uint64_t timestamp_ms) {
@@ -116,7 +116,7 @@ void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
   if (initator)
     event->set_initiator(initator);
 
-  ScanEvent_ScanTechnologyType scantype = ScanEvent::SCAN_TYPE_UNKNOWN;
+  ScanEvent::ScanTechnologyType scantype = ScanEvent::SCAN_TYPE_UNKNOWN;
 
   if (type == SCAN_TECH_TYPE_LE)
     scantype = ScanEvent::SCAN_TECH_TYPE_LE;
@@ -130,6 +130,44 @@ void metrics_scan_event(bool start, const char *initator, scan_tech_t type,
   event->set_number_results(results);
 
   event->set_event_time_millis(timestamp_ms);
+}
+
+void metrics_a2dp_session(int64_t session_duration_sec,
+                          const char *disconnect_reason,
+                          uint32_t device_class,
+                          int32_t media_timer_min_ms,
+                          int32_t media_timer_max_ms,
+                          int32_t media_timer_avg_ms,
+                          int32_t buffer_overruns_max_count,
+                          int32_t buffer_overruns_total,
+                          float buffer_underruns_average,
+                          int32_t buffer_underruns_count) {
+  lazy_initialize();
+
+  BluetoothSession *bt_session = pending->add_session();
+
+  // Set connection type: for A2DP it is always BR/EDR
+  BluetoothSession::ConnectionTechnologyType conn_type =
+    BluetoothSession::CONNECTION_TECHNOLOGY_TYPE_BREDR;
+  bt_session->set_connection_technology_type(conn_type);
+
+  bt_session->set_session_duration_sec(session_duration_sec);
+  if (disconnect_reason != NULL)
+    bt_session->set_disconnect_reason(disconnect_reason);
+
+  // Set device: class and type are pre-defined
+  DeviceInfo *info = bt_session->mutable_device_connected_to();
+  info->set_device_class(device_class);
+  info->set_device_type(DeviceInfo::DEVICE_TYPE_BREDR);
+
+  A2DPSession *a2dp_session = bt_session->mutable_a2dp_session();
+  a2dp_session->set_media_timer_min_millis(media_timer_min_ms);
+  a2dp_session->set_media_timer_max_millis(media_timer_max_ms);
+  a2dp_session->set_media_timer_avg_millis(media_timer_avg_ms);
+  a2dp_session->set_buffer_overruns_max_count(buffer_overruns_max_count);
+  a2dp_session->set_buffer_overruns_total(buffer_overruns_total);
+  a2dp_session->set_buffer_underruns_average(buffer_underruns_average);
+  a2dp_session->set_buffer_underruns_count(buffer_underruns_count);
 }
 
 void metrics_write(int fd, bool clear) {

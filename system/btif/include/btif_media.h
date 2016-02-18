@@ -300,5 +300,5 @@ void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state);
 #endif
 
 void btif_debug_a2dp_dump(int fd);
-
+void btif_update_a2dp_metrics(void);
 #endif
