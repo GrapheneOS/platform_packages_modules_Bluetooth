@@ -194,14 +194,13 @@ TEST(ParcelHelpersTest, ScanFilter) {
 
 TEST(ParcelHelpersTest, ScanResult) {
   const char kTestAddress[] = "01:02:03:AB:CD:EF";
-  const char kEmptyAddress[] = "";
 
   const std::vector<uint8_t> kEmptyBytes;
   const std::vector<uint8_t> kTestBytes{ 0x01, 0x02, 0x03 };
 
   const int kTestRssi = 127;
 
-  ScanResult result0(kEmptyAddress, kEmptyBytes, kTestRssi);
+  ScanResult result0(kTestAddress, kEmptyBytes, kTestRssi);
   ScanResult result1(kTestAddress, kTestBytes, kTestRssi);
 
   EXPECT_TRUE(TestScanResult(result0));
