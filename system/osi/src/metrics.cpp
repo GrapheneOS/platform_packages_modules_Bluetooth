@@ -30,6 +30,7 @@ extern "C" {
 
 #include "osi/src/protos/bluetooth.pb.h"
 
+#include <base/base64.h>
 #include <google/protobuf/text_format.h>
 
 using clearcut::connectivity::A2DPSession;
@@ -180,7 +181,10 @@ void metrics_write(int fd, bool clear) {
     return;
   }
 
-  if (write(fd, serialized.c_str(), serialized.size()) == -1) {
+  std::string protoBase64;
+  base::Base64Encode(serialized, &protoBase64);
+
+  if (write(fd, protoBase64.c_str(), protoBase64.size()) == -1) {
     LOG_ERROR(LOG_TAG, "%s: error writing to dumpsys fd: %s (%d)", __func__,
               strerror(errno), errno);
   }
