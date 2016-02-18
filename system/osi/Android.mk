@@ -117,7 +117,7 @@ LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 LOCAL_MODULE := libosi
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_SHARED_LIBRARIES := libc liblog libchrome
 LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
@@ -135,7 +135,7 @@ LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 LOCAL_MODULE := libosi-host
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SHARED_LIBRARIES := liblog libchrome
 LOCAL_STATIC_LIBRARIES := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
@@ -160,7 +160,7 @@ LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
+LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full libchrome
 LOCAL_STATIC_LIBRARIES := libosi libbt-protos
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
@@ -178,7 +178,7 @@ LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_LDLIBS := -lrt -lpthread
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full
+LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full libchrome
 LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
