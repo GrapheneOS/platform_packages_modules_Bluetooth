@@ -3498,7 +3498,8 @@ void btif_debug_bond_event_dump(int fd) {
     pthread_mutex_lock(&bond_event_lock);
     dprintf(fd, "\nBond Events: \n");
     dprintf(fd, "  Total Number of events: %zu\n", btif_num_bond_events);
-    dprintf(fd, "  Time          BD_ADDR            Function             State\n");
+    if (btif_num_bond_events > 0)
+        dprintf(fd, "  Time          BD_ADDR            Function             State\n");
 
     for (size_t i = btif_events_start_index; i != btif_events_end_index;
          i = (i + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1)) {
