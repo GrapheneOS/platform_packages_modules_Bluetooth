@@ -2219,11 +2219,18 @@ BOOLEAN l2cu_create_conn (tL2C_LCB *p_lcb, tBT_TRANSPORT transport)
 #endif
 
 #if (BLE_INCLUDED == TRUE)
-    if (transport == BT_TRANSPORT_LE) {
+    tBT_DEVICE_TYPE     dev_type;
+    tBLE_ADDR_TYPE      addr_type;
+
+
+    BTM_ReadDevInfo(p_lcb->remote_bd_addr, &dev_type, &addr_type);
+
+    if (transport == BT_TRANSPORT_LE)
+    {
         if (!controller_get_interface()->supports_ble())
             return FALSE;
 
-        p_lcb->ble_addr_type = BTM_IS_PUBLIC_BDA(p_lcb->remote_bd_addr) ? BLE_ADDR_PUBLIC : BLE_ADDR_RANDOM;
+        p_lcb->ble_addr_type = addr_type;
         p_lcb->transport = BT_TRANSPORT_LE;
 
         return (l2cble_create_conn(p_lcb));
