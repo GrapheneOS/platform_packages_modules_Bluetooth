@@ -134,7 +134,7 @@
 #define BTIF_A2DP_SRC_NUM_CHANNELS 2
 #endif
 
-/* This feature is used to eanble interleaved scan*/
+/* This feature is used to enable interleaved scan */
 #ifndef BTA_HOST_INTERLEAVE_SEARCH
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE
 #endif
@@ -256,10 +256,6 @@
 #define GAP_DATA_BUF_SIZE               BT_DEFAULT_BUFFER_SIZE
 #endif
 
-#ifndef SPP_DB_SIZE
-#define SPP_DB_SIZE                     BT_DEFAULT_BUFFER_SIZE
-#endif
-
 /* BNEP data and protocol messages. */
 #ifndef BNEP_BUF_SIZE
 #define BNEP_BUF_SIZE                   BT_DEFAULT_BUFFER_SIZE
@@ -297,15 +293,6 @@
 /* AVRCP Metadata buffer size for protocol messages */
 #ifndef AVRC_META_CMD_BUF_SIZE
 #define AVRC_META_CMD_BUF_SIZE          BT_SMALL_BUFFER_SIZE
-#endif
-
-/* AVRCP buffer size for browsing channel messages */
-#ifndef AVRC_BROWSE_BUF_SIZE
-#define AVRC_BROWSE_BUF_SIZE            BT_DEFAULT_BUFFER_SIZE
-#endif
-
-#ifndef BTA_HL_USER_TX_BUF_SIZE
-#define BTA_HL_USER_TX_BUF_SIZE         BT_DEFAULT_BUFFER_SIZE
 #endif
 
 #ifndef BTA_HL_LRG_DATA_BUF_SIZE
@@ -478,11 +465,6 @@
 /* Maximum length of the service name. */
 #ifndef BT_MAX_SERVICE_NAME_LEN
 #define BT_MAX_SERVICE_NAME_LEN     21
-#endif
-
-/* ACL buffer size in HCI Host Buffer Size command. */
-#ifndef BTM_ACL_BUF_SIZE
-#define BTM_ACL_BUF_SIZE            0
 #endif
 
 /* The maximum number of clients that can register with the power manager. */
@@ -746,10 +728,6 @@
 #endif
 
 
-#ifndef BLE_BATCH_SCAN_INCLUDED
-#define BLE_BATCH_SCAN_INCLUDED  TRUE
-#endif
-
 /******************************************************************************
 **
 ** ATT/GATT Protocol/Profile Settings
@@ -847,10 +825,6 @@
 
 #ifndef SMP_MAX_ENC_KEY_SIZE
 #define SMP_MAX_ENC_KEY_SIZE    16
-#endif
-
-#ifndef SMP_MIN_ENC_KEY_SIZE
-#define SMP_MIN_ENC_KEY_SIZE    7
 #endif
 
 /* minimum link timeout after SMP pairing is done, leave room for key exchange
@@ -1038,16 +1012,6 @@
 **
 ******************************************************************************/
 
-/* The maximum number of registered servers. */
-#ifndef OBX_NUM_SERVERS
-#define OBX_NUM_SERVERS             12
-#endif
-
-/* The maximum number of active clients. */
-#ifndef OBX_NUM_CLIENTS
-#define OBX_NUM_CLIENTS             8
-#endif
-
 /*
  * Buffer size to reassemble the SDU.
  * It will allow buffers to be used that are larger than the L2CAP_MAX_MTU.
@@ -1210,22 +1174,7 @@
 #define AVDT_NUM_SEPS               3
 #endif
 
-/* Number of transport channels setup per media stream(audio or video) */
-#ifndef AVDT_NUM_CHANNELS
-
-#if AVDT_REPORTING == TRUE
-/* signaling, media and reporting channels */
-#define AVDT_NUM_CHANNELS   3
-#else
-/* signaling and media channels */
-#define AVDT_NUM_CHANNELS   2
-#endif  // AVDT_REPORTING
-
-#endif  // AVDT_NUM_CHANNELS
-
-/* Number of transport channels setup by AVDT for all media streams
- * AVDT_NUM_CHANNELS * Number of simultaneous streams.
- */
+/* Number of transport channels setup by AVDT for all media streams */
 #ifndef AVDT_NUM_TC_TBL
 #define AVDT_NUM_TC_TBL             6
 #endif
@@ -1365,10 +1314,6 @@
 ** HID
 **
 ******************************************************************************/
-
-#ifndef HID_DEV_SUBCLASS
-#define HID_DEV_SUBCLASS            COD_MINOR_POINTING
-#endif
 
 #ifndef HID_CONTROL_BUF_SIZE
 #define HID_CONTROL_BUF_SIZE            BT_DEFAULT_BUFFER_SIZE
@@ -1567,11 +1512,6 @@ The maximum number of payload octets that the local device can receive in a sing
 #define MCA_FCR_OPT_MPS_SIZE            1000
 #endif
 
-/* Shared transport */
-#ifndef NFC_SHARED_TRANSPORT_ENABLED
-#define NFC_SHARED_TRANSPORT_ENABLED    FALSE
-#endif
-
 /******************************************************************************
 **
 ** Sleep Mode (Low Power Mode)
@@ -1581,15 +1521,6 @@ The maximum number of payload octets that the local device can receive in a sing
 #ifndef HCILP_INCLUDED
 #define HCILP_INCLUDED                  TRUE
 #endif
-
-/******************************************************************************
-**
-** APPL - Application Task
-**
-******************************************************************************/
-
-#define L2CAP_FEATURE_REQ_ID      73
-#define L2CAP_FEATURE_RSP_ID     173
 
 /******************************************************************************
 **
