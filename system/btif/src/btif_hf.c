@@ -1311,7 +1311,7 @@ static bt_status_t phone_state_change(int num_active, int num_held, bthf_call_st
                           __FUNCTION__);
 
         memset(&ag_res, 0, sizeof(tBTA_AG_RES_DATA));
-        ag_res.audio_handle = btif_hf_cb[idx].handle;
+        ag_res.audio_handle = BTA_AG_HANDLE_SCO_NO_CHANGE;
         /* Addition call setup with the Active call
         ** CIND response should have been updated.
         ** just open SCO conenction.
