@@ -689,17 +689,15 @@ static void update_scheduling_stats(alarm_stats_t *stats,
 
 static void dump_stat(int fd, stat_t *stat, const char *description)
 {
-    period_ms_t ave_time_ms;
+    period_ms_t average_time_ms = 0;
+    if (stat->count != 0)
+      average_time_ms = stat->total_ms / stat->count;
 
-    ave_time_ms = 0;
-    if (stat->count != 0) {
-      ave_time_ms = stat->total_ms / stat->count;
-    }
-    dprintf(fd, "%s in ms (total/max/ave)   : %llu / %llu / %llu\n",
+    dprintf(fd, "%-51s: %llu / %llu / %llu\n",
             description,
             (unsigned long long)stat->total_ms,
             (unsigned long long)stat->max_ms,
-            (unsigned long long)ave_time_ms);
+            (unsigned long long)average_time_ms);
 }
 
 void alarm_debug_dump(int fd)
@@ -727,23 +725,30 @@ void alarm_debug_dump(int fd)
     dprintf(fd, "  Alarm : %s (%s)\n", stats->name,
             (alarm->is_periodic) ? "PERIODIC" : "SINGLE");
 
-    dprintf(fd, "    Action counts (sched/resched/exec/cancel)       : %zu / %zu / %zu / %zu\n",
+    dprintf(fd, "%-51s: %zu / %zu / %zu / %zu\n",
+            "    Action counts (sched/resched/exec/cancel",
             stats->scheduled_count, stats->rescheduled_count,
             stats->callback_execution.count, stats->canceled_count);
 
-    dprintf(fd, "    Deviation counts (overdue/premature)            : %zu / %zu\n",
+    dprintf(fd, "%-51s: %zu / %zu\n",
+            "    Deviation counts (overdue/premature)",
             stats->overdue_scheduling.count,
             stats->premature_scheduling.count);
 
-    dprintf(fd, "    Time in ms (since creation/interval/remaining)  : %llu / %llu / %lld\n",
+    dprintf(fd, "%-51s: %llu / %llu / %lld\n",
+            "    Time in ms (since creation/interval/remaining)",
             (unsigned long long)(just_now - alarm->creation_time),
             (unsigned long long) alarm->period,
             (long long)(alarm->deadline - just_now));
 
-    dump_stat(fd, &stats->callback_execution, "    Callback execution time");
-    dump_stat(fd, &stats->overdue_scheduling, "    Overdue scheduling time");
+    dump_stat(fd, &stats->callback_execution,
+              "    Callback execution time in ms (total/max/avg)");
+
+    dump_stat(fd, &stats->overdue_scheduling,
+              "    Overdue scheduling time in ms (total/max/avg)");
+
     dump_stat(fd, &stats->premature_scheduling,
-              "    Premature scheduling time");
+              "    Premature scheduling time in ms (total/max/avg)");
 
     dprintf(fd, "\n");
   }
