@@ -27,7 +27,7 @@
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <stdio.h>
 
-#define LOGWRAPPER(tag, fmt, args...) fprintf(stderr, "%s %s: " fmt "\n", tag, __func__, ## args)
+#define LOGWRAPPER(tag, fmt, args...) fprintf(stderr, "%s: " fmt "\n", tag, ## args)
 
 #define LOG_VERBOSE(...) LOGWRAPPER(__VA_ARGS__)
 #define LOG_DEBUG(...) LOGWRAPPER(__VA_ARGS__)
