@@ -70,5 +70,15 @@ shared_library("bluetooth.default") {
     "//utils",
   ]
 
-  libs = [ "-ldl", "-lpthread", "-lresolv", "-lrt", "-lz" ]
+  cflags_c = [
+    "-Lobj/osi",
+    "-losi",
+  ]
+  libs = [
+    "-ldl",
+    "-lpthread",
+    "-lresolv",
+    "-lrt",
+    "-lz",
+  ]
 }

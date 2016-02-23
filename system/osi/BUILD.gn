@@ -42,14 +42,15 @@ static_library("osi") {
     # dependencies are abstracted.
     "src/socket_utils/socket_local_client.c",
     "src/socket_utils/socket_local_server.c",
-
     "src/thread.c",
     "src/time.c",
+    "src/wakelock.c",
   ]
 
   include_dirs = [
     "//",
     "//utils/include",
+    "//stack/include",
   ]
 }
 
@@ -77,12 +78,16 @@ executable("net_test_osi") {
 
   include_dirs = [
     "//",
+    "//osi/test",
   ]
 
   deps = [
     "//osi",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
   ]
 
-  libs = [ "-lpthread", "-lrt" ]
+  libs = [
+    "-lpthread",
+    "-lrt",
+  ]
 }

@@ -25,7 +25,7 @@ group("bluetooth") {
   deps = [
     "//main:bluetooth.default",
     "//service:bluetoothtbd",
-    "//vendor_libs:vendor-libs"
+    "//vendor_libs:vendor-libs",
   ]
 }
 
@@ -33,7 +33,7 @@ group("bluetooth_tests") {
   testonly = true
 
   deps = [
-    "//test/suite:net_test_bluedroid",
+    "//test/suite:net_test_bluetooth",
     "//btcore:net_test_btcore",
     "//hci:net_test_hci",
     "//osi:net_test_osi",
