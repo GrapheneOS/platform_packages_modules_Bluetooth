@@ -24,7 +24,6 @@
 
 #include <stddef.h>
 #include "bt_target.h"
-#include "btcore/include/counter.h"
 #include "bt_common.h"
 #include "rfcdefs.h"
 #include "port_api.h"
@@ -206,8 +205,6 @@ void rfc_send_buf_uih (tRFC_MCB *p_mcb, UINT8 dlci, BT_HDR *p_buf)
     }
     else
     {
-        counter_add("rfcomm.tx.frames", 1);
-        counter_add("rfcomm.tx.bytes", p_buf->len);
         L2CA_DataWrite (p_mcb->lcid, p_buf);
     }
 }

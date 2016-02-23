@@ -24,7 +24,6 @@
 
 #include <stddef.h>
 #include "bt_target.h"
-#include "btcore/include/counter.h"
 
 #include "osi/include/time.h"
 #include "bt_common.h"
@@ -368,8 +367,6 @@ void RFCOMM_BufDataInd (UINT16 lcid, BT_HDR *p_buf)
 
     if (event == RFC_EVENT_UIH)
     {
-        counter_add("rfcomm.rx.frames", 1);
-        counter_add("rfcomm.rx.bytes", p_buf->len);
 
         if (p_buf->len > 0)
             rfc_port_sm_execute (p_port, event, p_buf);

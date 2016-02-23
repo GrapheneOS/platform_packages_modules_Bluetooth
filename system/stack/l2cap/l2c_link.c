@@ -29,7 +29,6 @@
 #include <stdio.h>
 
 #include "device/include/controller.h"
-#include "btcore/include/counter.h"
 #include "bt_common.h"
 #include "bt_types.h"
 #include "bt_utils.h"
@@ -101,7 +100,6 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
                 p_lcb->link_role = l2cu_get_conn_role(p_lcb);
         }
 
-        counter_add("l2cap.conn.accept", 1);
 
         /* Tell the other side we accept the connection */
         btsnd_hcic_accept_conn (bd_addr, p_lcb->link_role);
@@ -125,7 +123,6 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
         else
             p_lcb->link_role = l2cu_get_conn_role(p_lcb);
 
-        counter_add("l2cap.conn.accept", 1);
         btsnd_hcic_accept_conn (bd_addr, p_lcb->link_role);
 
         p_lcb->link_state = LST_CONNECTING;
@@ -134,7 +131,6 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
     else if (p_lcb->link_state == LST_DISCONNECTING)
     {
         /* In disconnecting state, reject the connection. */
-        counter_add("l2cap.conn.reject.disconn", 1);
         btsnd_hcic_reject_conn (bd_addr, HCI_ERR_HOST_REJECT_DEVICE);
     }
     else
@@ -142,7 +138,6 @@ BOOLEAN l2c_link_hci_conn_req (BD_ADDR bd_addr)
         L2CAP_TRACE_ERROR("L2CAP got conn_req while connected (state:%d). Reject it",
                 p_lcb->link_state);
         /* Reject the connection with ACL Connection Already exist reason */
-        counter_add("l2cap.conn.reject.exists", 1);
         btsnd_hcic_reject_conn (bd_addr, HCI_ERR_CONNECTION_EXISTS);
     }
     return (FALSE);
@@ -198,7 +193,6 @@ BOOLEAN l2c_link_hci_conn_comp (UINT8 status, UINT16 handle, BD_ADDR p_bda)
     {
         /* Connected OK. Change state to connected */
         p_lcb->link_state = LST_CONNECTED;
-        counter_add("l2cap.conn.ok", 1);
 
         /* Get the peer information if the l2cap flow-control/rtrans is supported */
         l2cu_send_peer_info_req (p_lcb, L2CAP_EXTENDED_FEATURES_INFO_TYPE);
