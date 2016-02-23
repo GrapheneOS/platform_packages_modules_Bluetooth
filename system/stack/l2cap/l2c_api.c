@@ -30,7 +30,6 @@
 #include <string.h>
 
 #include "bt_types.h"
-#include "btcore/include/counter.h"
 #include "btm_api.h"
 #include "btu.h"
 #include "bt_common.h"
@@ -243,7 +242,6 @@ UINT16 L2CA_ErtmConnectReq (UINT16 psm, BD_ADDR p_bd_addr, tL2CAP_ERTM_INFO *p_e
     tL2C_CCB        *p_ccb;
     tL2C_RCB        *p_rcb;
 
-    counter_add("l2cap.conn.req", 1);
     L2CAP_TRACE_API ("L2CA_ErtmConnectReq()  PSM: 0x%04x  BDA: %08x%04x  p_ertm_info: 0x%08x allowed:0x%x preferred:%d", psm,
                       (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
                       (p_bd_addr[4]<<8)+p_bd_addr[5], p_ertm_info,
@@ -403,7 +401,6 @@ BOOLEAN L2CA_ErtmConnectRsp (BD_ADDR p_bd_addr, UINT8 id, UINT16 lcid, UINT16 re
     tL2C_LCB        *p_lcb;
     tL2C_CCB        *p_ccb;
 
-    counter_add("l2cap.conn.rsp", 1);
     L2CAP_TRACE_API ("L2CA_ErtmConnectRsp()  CID: 0x%04x  Result: %d  Status: %d  BDA: %08x%04x  p_ertm_info:0x%08x",
                       lcid, result, status,
                       (p_bd_addr[0]<<24)+(p_bd_addr[1]<<16)+(p_bd_addr[2]<<8)+p_bd_addr[3],
@@ -487,7 +484,6 @@ BOOLEAN L2CA_ConfigReq (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
-    counter_add("l2cap.cfg.req", 1);
     L2CAP_TRACE_API ("L2CA_ConfigReq()  CID 0x%04x: fcr_present:%d (mode %d) mtu_present:%d (%d)",
         cid, p_cfg->fcr_present, p_cfg->fcr.mode, p_cfg->mtu_present, p_cfg->mtu);
 
@@ -538,7 +534,6 @@ BOOLEAN L2CA_ConfigRsp (UINT16 cid, tL2CAP_CFG_INFO *p_cfg)
 {
     tL2C_CCB        *p_ccb;
 
-    counter_add("l2cap.cfg.rsp", 1);
     L2CAP_TRACE_API ("L2CA_ConfigRsp()  CID: 0x%04x  Result: %d MTU present:%d Flush TO:%d FCR:%d FCS:%d",
         cid, p_cfg->result, p_cfg->mtu_present, p_cfg->flush_to_present, p_cfg->fcr_present, p_cfg->fcs_present);
 
@@ -582,7 +577,6 @@ BOOLEAN L2CA_DisconnectReq (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
-    counter_add("l2cap.disconn.req", 1);
     L2CAP_TRACE_API ("L2CA_DisconnectReq()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */
@@ -611,7 +605,6 @@ BOOLEAN L2CA_DisconnectRsp (UINT16 cid)
 {
     tL2C_CCB        *p_ccb;
 
-    counter_add("l2cap.disconn.rsp", 1);
     L2CAP_TRACE_API ("L2CA_DisconnectRsp()  CID: 0x%04x", cid);
 
     /* Find the channel control block. We don't know the link it is on. */

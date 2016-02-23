@@ -27,7 +27,6 @@
 #include <stdio.h>
 
 #include "device/include/controller.h"
-#include "btcore/include/counter.h"
 #include "bt_common.h"
 #include "bt_types.h"
 #include "hcimsgs.h"
@@ -376,16 +375,12 @@ BT_HDR *l2cu_build_header (tL2C_LCB *p_lcb, UINT16 len, UINT8 cmd, UINT8 id)
 #if (BLE_INCLUDED == TRUE)
     if (p_lcb->transport == BT_TRANSPORT_LE)
     {
-        counter_add("l2cap.ble.tx.bytes", p_buf->len);
-        counter_add("l2cap.ble.tx.pkts", 1);
 
         UINT16_TO_STREAM (p, L2CAP_BLE_SIGNALLING_CID);
     }
     else
 #endif
     {
-        counter_add("l2cap.sig.tx.bytes", p_buf->len);
-        counter_add("l2cap.sig.tx.pkts", 1);
         UINT16_TO_STREAM (p, L2CAP_SIGNALLING_CID);
     }
 
