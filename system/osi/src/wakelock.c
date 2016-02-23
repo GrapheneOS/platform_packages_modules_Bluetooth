@@ -24,9 +24,11 @@
 #include <hardware/bluetooth.h>
 #include <inttypes.h>
 #include <limits.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
