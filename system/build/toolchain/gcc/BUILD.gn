@@ -54,7 +54,8 @@ toolchain("gcc") {
     soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
     rspfile = soname + ".rsp"
 
-    command = "$cxx -shared {{ldflags}} -o $soname -Wl,-soname=$soname @$rspfile"
+    command =
+        "$cxx -shared {{ldflags}} -o $soname -Wl,-soname=$soname @$rspfile"
     rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
 
     description = "SOLINK $soname"

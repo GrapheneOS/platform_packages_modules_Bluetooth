@@ -16,12 +16,10 @@
 
 source_set("base_sources") {
   sources = [
-    "base/allocator/type_profiler_control.cc",
     "base/at_exit.cc",
     "base/atomic_ref_count.h",
     "base/atomic_sequence_num.h",
     "base/atomicops.h",
-    "base/atomicops_internals_x86_gcc.cc",
     "base/base64.cc",
     "base/base64.h",
     "base/base_export.h",
@@ -56,7 +54,6 @@ source_set("base_sources") {
     "base/files/scoped_temp_dir.cc",
     "base/guid.cc",
     "base/guid_posix.cc",
-    "base/hash.cc",
     "base/json/json_parser.cc",
     "base/json/json_reader.cc",
     "base/json/json_string_value_serializer.cc",
@@ -72,13 +69,16 @@ source_set("base_sources") {
     "base/memory/weak_ptr.cc",
     "base/message_loop/incoming_task_queue.cc",
     "base/message_loop/message_loop.cc",
-    "base/message_loop/message_loop_proxy.cc",
-    "base/message_loop/message_loop_proxy_impl.cc",
+    "base/message_loop/message_loop_task_runner.cc",
     "base/message_loop/message_pump.cc",
     "base/message_loop/message_pump_default.cc",
+
+    # we don't want any glib dependencies.
+    #   "base/message_loop/message_pump_glib.cc",
     "base/message_loop/message_pump_libevent.cc",
     "base/metrics/bucket_ranges.cc",
     "base/metrics/field_trial.cc",
+    "base/metrics/metrics_hashes.cc",
     "base/metrics/histogram_base.cc",
     "base/metrics/histogram.cc",
     "base/metrics/histogram_samples.cc",
@@ -115,6 +115,7 @@ source_set("base_sources") {
     "base/sequence_checker_impl.cc",
     "base/sequenced_task_runner.cc",
     "base/sha1_portable.cc",
+    "base/strings/pattern.cc",
     "base/strings/safe_sprintf.cc",
     "base/strings/string16.cc",
     "base/strings/string_number_conversions.cc",
@@ -133,6 +134,7 @@ source_set("base_sources") {
     "base/synchronization/waitable_event_posix.cc",
     "base/sync_socket_posix.cc",
     "base/sys_info.cc",
+
     # TODO(armansito): For our GN builds these platform-specific implementations
     # don't really make that much sense but instead of removing the line I'm
     # commenting it out in case we want to re-add it later (it's included in the
@@ -142,12 +144,8 @@ source_set("base_sources") {
     "base/sys_info_posix.cc",
     "base/task/cancelable_task_tracker.cc",
     "base/task_runner.cc",
-    "base/third_party/dmg_fp/dtoa.cc",
-    "base/third_party/dmg_fp/g_fmt.cc",
-    "base/third_party/dynamic_annotations/dynamic_annotations.c",
     "base/third_party/icu/icu_utf.cc",
     "base/third_party/nspr/prtime.cc",
-    "base/third_party/superfasthash/superfasthash.c",
     "base/threading/non_thread_safe_impl.cc",
     "base/threading/platform_thread_internal_posix.cc",
     "base/threading/platform_thread_linux.cc",
@@ -174,6 +172,10 @@ source_set("base_sources") {
     "base/time/tick_clock.cc",
     "base/time/time.cc",
     "base/time/time_posix.cc",
+    "base/trace_event/heap_profiler_allocation_context.cc",
+    "base/trace_event/heap_profiler_allocation_context_tracker.cc",
+    "base/trace_event/heap_profiler_stack_frame_deduplicator.cc",
+    "base/trace_event/heap_profiler_type_name_deduplicator.cc",
     "base/trace_event/malloc_dump_provider.cc",
     "base/trace_event/memory_allocator_dump.cc",
     "base/trace_event/memory_allocator_dump_guid.cc",
@@ -184,27 +186,44 @@ source_set("base_sources") {
     "base/trace_event/process_memory_maps_dump_provider.cc",
     "base/trace_event/process_memory_totals.cc",
     "base/trace_event/process_memory_totals_dump_provider.cc",
+    "base/trace_event/trace_buffer.cc",
     "base/trace_event/trace_config.cc",
     "base/trace_event/trace_event_argument.cc",
     "base/trace_event/trace_event_impl.cc",
-    "base/trace_event/trace_event_impl_constants.cc",
-    "base/trace_event/trace_event_memory.cc",
     "base/trace_event/trace_event_memory_overhead.cc",
     "base/trace_event/trace_event_synthetic_delay.cc",
+    "base/trace_event/trace_log.cc",
+    "base/trace_event/trace_log_constants.cc",
+    "base/trace_event/trace_sampling_thread.cc",
     "base/tracked_objects.cc",
     "base/tracking_info.cc",
     "base/values.cc",
     "base/vlog.cc",
   ]
 
-  defines = [ "BASE_IMPLEMENTATION" ]
+  defines = [
+    "BASE_IMPLEMENTATION",
+
+    # trick libchrome to think we're building host code within an Android checkout
+    # thanks to it no glib dependency
+    "__ANDROID_HOST__=1",
+    "OS_LINUX=1",
+  ]
 
   include_dirs = [
     "//",
     "//third_party/libchrome",
+    "//third_party/libevent",
+    "//third_party/libevent/include",
     "//third_party/libchrome/base",
     "//third_party/modp_b64",
+    "//third_party/gtest/include",
   ]
+}
+
+config("libchrome_config") {
+  # libchrome headers need to be able to find themselves.
+  include_dirs = [ "//third_party/libchrome" ]
 }
 
 static_library("base") {
@@ -224,5 +243,11 @@ static_library("base") {
     "-Wno-sign-promo",
   ]
 
-  libs = [ "-levent", "-levent_core", "-lpthread" ]
+  libs = [
+    "-levent",
+    "-levent_core",
+    "-lpthread",
+  ]
+
+  public_configs = [ ":libchrome_config" ]
 }
