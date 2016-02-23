@@ -150,7 +150,8 @@ def main():
     if line.startswith('--- BEGIN:BTSNOOP_LOG_SUMMARY'):
       decode_snooz(base64.standard_b64decode(iterator.next()))
       sys.exit(0)
-  sys.stderr.write('No btsnooz section found in bugreport.\n');
+  sys.stderr.write('No btsnooz section found in bugreport.\n')
+  sys.exit(1)
 
 
 if __name__ == '__main__':
