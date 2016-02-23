@@ -16,7 +16,9 @@
 
 #include "service/ipc/ipc_manager.h"
 
+#if !defined(OS_GENERIC)
 #include "service/ipc/binder/ipc_handler_binder.h"
+#endif  // !defined(OS_GENERIC)
 #include "service/ipc/ipc_handler_linux.h"
 
 namespace ipc {
@@ -49,7 +51,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
     return true;
-
+#if !defined(OS_GENERIC)
   case TYPE_BINDER:
     if (BinderStarted()) {
       LOG(ERROR) << "IPCManagerBinder already started.";
@@ -62,7 +64,7 @@ bool IPCManager::Start(Type type, Delegate* delegate) {
       return false;
     }
     return true;
-
+#endif  // !defined(OS_GENERIC)
   default:
     LOG(ERROR) << "Unsupported IPC type given: " << type;
   }
