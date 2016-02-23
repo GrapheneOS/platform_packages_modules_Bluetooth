@@ -31,6 +31,7 @@ static_library("osi") {
     "src/hash_map.c",
     "src/hash_map_utils.c",
     "src/list.c",
+    "src/metrics_linux.cpp",
     "src/mutex.c",
     "src/reactor.c",
     "src/ringbuffer.c",
