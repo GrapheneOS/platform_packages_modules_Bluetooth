@@ -18,8 +18,6 @@
 
 #define LOG_TAG "bt_btif_bta_ag"
 
-#include <cutils/properties.h>
-
 #include "bta/include/bta_ag_api.h"
 #include "hci/include/hci_audio.h"
 #include "osi/include/osi.h"
