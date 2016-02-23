@@ -110,16 +110,23 @@
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"তালিকা থেকে সমস্ত আইটেম সাফ করা হবে।"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth share: পাঠানো ফাইলগুলি"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth share: প্রাপ্ত করা ফাইলগুলি"</string>
-    <string name="noti_caption" msgid="7508708288885707365">"<xliff:g id="SUCCESSFUL_NUMBER_0">%1$s</xliff:g>টি সফল, <xliff:g id="UNSUCCESSFUL_NUMBER">%2$s</xliff:g>টি অসফল।"</string>
+    <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>টি অসফল হয়েছে৷</item>
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>টি অসফল হয়েছে৷</item>
+    </plurals>
+    <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>টি সফল হয়েছে, %2$s</item>
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g>টি সফল হয়েছে, %2$s</item>
+    </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"তালিকা সাফ করুন"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"খুলুন"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"তালিকা থেকে সাফ করুন"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"সাফ করুন"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"সংরক্ষণ করুন"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"বাতিল করুন"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"আপনি Bluetooth এর মাধ্যমে যেই অ্যাকাউন্টগুলি ভাগ করতে চান সেগুলি নির্বাচন করুন। সংযোগের সময়ে আপনাকে এখনও পর্যন্ত অ্যাকাউন্টের যে কোনো অ্যাক্সেস গ্রহণ করতে হবে।"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"আপনি Bluetooth এর মাধ্যমে যে অ্যাকাউন্টগুলি শেয়ার করতে চান সেগুলি নির্বাচন করুন। সংযোগের সময়ে আপনাকে এখনো অ্যাকাউন্টের যে কোনো অ্যাক্সেস গ্রহণ করতে হবে।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"যে স্লটগুলি বাকি আছে:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"অ্যাপ্লিকেশান আইকন"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth মারফত বার্তা ভাগ করার সেটিংস"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth মারফত বার্তা শেয়ার করার সেটিংস"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"অ্যাকাউন্ট নির্বাচন করা যাচ্ছে না। ০টি স্লট বাকি আছে"</string>
 </resources>
