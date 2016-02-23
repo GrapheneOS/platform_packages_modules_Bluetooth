@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "bt_target.h"
-#include "btcore/include/counter.h"
 #include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
@@ -106,8 +105,6 @@ void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
 
     if (p_buf->len <= controller_get_interface()->get_acl_packet_size_classic())
     {
-        counter_add("l2cap.ch2.tx.bytes", p_buf->len);
-        counter_add("l2cap.ch2.tx.pkts", 1);
 
         bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
     }
@@ -236,15 +233,11 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     /* Send the data through the channel state machine */
     if (rcv_cid == L2CAP_SIGNALLING_CID)
     {
-        counter_add("l2cap.sig.rx.bytes", l2cap_len);
-        counter_add("l2cap.sig.rx.pkts", 1);
         process_l2cap_cmd (p_lcb, p, l2cap_len);
         osi_free(p_msg);
     }
     else if (rcv_cid == L2CAP_CONNECTIONLESS_CID)
     {
-        counter_add("l2cap.ch2.rx.bytes", l2cap_len);
-        counter_add("l2cap.ch2.rx.pkts", 1);
         /* process_connectionless_data (p_lcb); */
         STREAM_TO_UINT16 (psm, p);
         L2CAP_TRACE_DEBUG( "GOT CONNECTIONLESS DATA PSM:%d", psm ) ;
@@ -262,8 +255,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 #if (BLE_INCLUDED == TRUE)
     else if (rcv_cid == L2CAP_BLE_SIGNALLING_CID)
     {
-        counter_add("l2cap.ble.rx.bytes", l2cap_len);
-        counter_add("l2cap.ble.rx.pkts", 1);
         l2cble_process_sig_cmd (p_lcb, p, l2cap_len);
         osi_free(p_msg);
     }
@@ -272,8 +263,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     else if ((rcv_cid >= L2CAP_FIRST_FIXED_CHNL) && (rcv_cid <= L2CAP_LAST_FIXED_CHNL) &&
              (l2cb.fixed_reg[rcv_cid - L2CAP_FIRST_FIXED_CHNL].pL2CA_FixedData_Cb != NULL) )
     {
-        counter_add("l2cap.fix.rx.bytes", l2cap_len);
-        counter_add("l2cap.fix.rx.pkts", 1);
         /* If no CCB for this channel, allocate one */
         if (p_lcb &&
             /* only process fixed channel data when link is open or wait for data indication */
@@ -295,8 +284,6 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
 
     else
     {
-        counter_add("l2cap.dyn.rx.bytes", l2cap_len);
-        counter_add("l2cap.dyn.rx.pkts", 1);
         if (p_ccb == NULL)
             osi_free(p_msg);
         else
@@ -993,8 +980,6 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
         return (L2CAP_DW_FAILED);
     }
 
-    counter_add("l2cap.dyn.tx.bytes", p_data->len);
-    counter_add("l2cap.dyn.tx.pkts", 1);
 
     l2c_csm_execute (p_ccb, L2CEVT_L2CA_DATA_WRITE, p_data);
 
