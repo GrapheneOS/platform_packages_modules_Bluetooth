@@ -20,14 +20,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-// TODO(armansito): cutils/properties.h is only being used to pull-in runtime
-// settings on Android. Remove this conditional include once we have a generic
-// way to obtain system properties.
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  // !defined(OS_GENERIC)
-
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "bt_utils.h"
 #include "bta_api.h"
 #include "bta_sys.h"
@@ -384,12 +378,7 @@ void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
 *******************************************************************************/
 static void bta_hf_client_api_enable(tBTA_HF_CLIENT_DATA *p_data)
 {
-    // TODO(armansito): For non-Android systems we need a common method of
-    // loading system properties. Remove the conditionally compiled code once we
-    // have that in place.
-#if !defined(OS_GENERIC)
     char value[PROPERTY_VALUE_MAX];
-#endif  // !defined(OS_GENERIC)
 
     /* initialize control block */
     memset(&bta_hf_client_cb, 0, sizeof(tBTA_HF_CLIENT_CB));
@@ -397,17 +386,12 @@ static void bta_hf_client_api_enable(tBTA_HF_CLIENT_DATA *p_data)
     /* store callback function */
     bta_hf_client_cb.p_cback = p_data->api_enable.p_cback;
 
-    // TODO(armansito): For non-Android systems we need a common method of
-    // loading system properties. Remove the conditionally compiled code once we
-    // have that in place.
-#if !defined(OS_GENERIC)
     /* check if mSBC support enabled */
-    property_get("ro.bluetooth.hfp.ver", value, "0");
+    osi_property_get("ro.bluetooth.hfp.ver", value, "0");
     if (strcmp(value,"1.6") == 0)
     {
        bta_hf_client_cb.msbc_enabled = TRUE;
     }
-#endif  // !defined(OS_GENERIC)
 
     bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
 

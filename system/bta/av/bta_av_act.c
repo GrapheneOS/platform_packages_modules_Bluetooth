@@ -36,17 +36,13 @@
 #include "bta_av_int.h"
 #include "l2c_api.h"
 #include "osi/include/list.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "utl.h"
 
 #if ( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
-#endif
-
-#include "osi/include/log.h"
-
-#if (AVRC_CTLR_INCLUDED == TRUE)
-#include <cutils/properties.h>
 #endif
 
 /*****************************************************************************
@@ -892,7 +888,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         {
             /* check if operation is supported */
             char avrcp_ct_support[PROPERTY_VALUE_MAX];
-            property_get("bluetooth.pts.avrcp_ct.support", avrcp_ct_support, "false");
+            osi_property_get("bluetooth.pts.avrcp_ct.support", avrcp_ct_support, "false");
             if (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VENDOR)
             {
                 p_data->rc_msg.msg.hdr.ctype = BTA_AV_RSP_NOT_IMPL;

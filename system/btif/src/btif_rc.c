@@ -34,15 +34,6 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_rc.h>
 
-/**
- * TODO(eisenbach): cutils/properties.h is only being used to pull-in runtime
- * settings on Android. Remove this conditional include once we have a generic
- * way to obtain system properties.
- */
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  /* !defined(OS_GENERIC) */
-
 #include "avrc_defs.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
@@ -53,6 +44,7 @@
 #include "device/include/interop.h"
 #include "uinput.h"
 #include "osi/include/list.h"
+#include "osi/include/properties.h"
 #include "btu.h"
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)
 /*****************************************************************************
@@ -4253,13 +4245,11 @@ static void sleep_ms(period_ms_t timeout_ms) {
 }
 
 static bool absolute_volume_disabled() {
-#if !defined(OS_GENERIC)
     char volume_disabled[PROPERTY_VALUE_MAX] = {0};
-    property_get("persist.bluetooth.disableabsvol", volume_disabled, "false");
+    osi_property_get("persist.bluetooth.disableabsvol", volume_disabled, "false");
     if (strncmp(volume_disabled, "true", 4) == 0) {
         BTIF_TRACE_WARNING("%s: Absolute volume disabled by property", __func__);
         return true;
     }
-#endif  /* !defined(OS_GENERIC) */
     return false;
 }

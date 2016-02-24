@@ -39,17 +39,11 @@
 #include <utils/ThreadDefs.h>
 #include <cutils/sched_policy.h>
 
-// TODO(armansito): cutils/properties.h is only being used to pull-in runtime
-// settings on Android. Remove this conditional include once we have a generic
-// way to obtain system properties.
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  // !defined(OS_GENERIC)
-
 #include "bt_types.h"
 #include "btcore/include/module.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 
 /*******************************************************************************
 **  Type definitions for callback functions
@@ -92,10 +86,6 @@ EXPORT_SYMBOL const module_t bt_utils_module = {
   }
 };
 
-// TODO(armansito): Remove this conditional code once there is a generic way
-// to obtain system properties. System properties are only available on
-// Android. Don't do the following check if this is a generic build.
-#if !defined(OS_GENERIC)
 /*****************************************************************************
 **
 ** Function        check_do_scheduling_group
@@ -107,7 +97,7 @@ EXPORT_SYMBOL const module_t bt_utils_module = {
 *******************************************************************************/
 static void check_do_scheduling_group(void) {
     char buf[PROPERTY_VALUE_MAX];
-    int len = property_get("debug.sys.noschedgroups", buf, "");
+    int len = osi_property_get("debug.sys.noschedgroups", buf, "");
     if (len > 0) {
         int temp;
         if (sscanf(buf, "%d", &temp) == 1) {
@@ -115,7 +105,6 @@ static void check_do_scheduling_group(void) {
         }
     }
 }
-#endif  // !defined(OS_GENERIC)
 
 /*****************************************************************************
 **
