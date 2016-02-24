@@ -22,6 +22,7 @@ static_library("btcore") {
     "src/module.c",
     "src/property.c",
     "src/uuid.c",
+    "src/osi_module.c",
   ]
 
   include_dirs = [
