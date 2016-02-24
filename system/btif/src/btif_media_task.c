@@ -2976,14 +2976,14 @@ void btif_debug_a2dp_dump(int fd)
     uint64_t ave_time_us;
 
     dprintf(fd, "\nA2DP State:\n");
-    dprintf(fd, "\n  TxQueue:\n");
+    dprintf(fd, "  TxQueue:\n");
 
-    dprintf(fd, "    Counts (enqueue/dequeue/readbuf)                        : %zu / %zu / %zu\n",
+    dprintf(fd, "  Counts (enqueue/dequeue/readbuf)                        : %zu / %zu / %zu\n",
             enqueue_stats->total_updates,
             dequeue_stats->total_updates,
             stats->tx_queue_total_readbuf_calls);
 
-    dprintf(fd, "    Last update time ago in ms (enqueue/dequeue/readbuf)    : %llu / %llu / %llu\n",
+    dprintf(fd, "  Last update time ago in ms (enqueue/dequeue/readbuf)    : %llu / %llu / %llu\n",
             (enqueue_stats->last_update_us > 0) ?
                 (unsigned long long)(now_us - enqueue_stats->last_update_us) / 1000 : 0,
             (dequeue_stats->last_update_us > 0) ?
@@ -2994,31 +2994,31 @@ void btif_debug_a2dp_dump(int fd)
     ave_size = 0;
     if (enqueue_stats->total_updates != 0)
         ave_size = stats->tx_queue_total_frames / enqueue_stats->total_updates;
-    dprintf(fd, "    Frames per packet (total/max/ave)                       : %zu / %zu / %zu\n",
+    dprintf(fd, "  Frames per packet (total/max/ave)                       : %zu / %zu / %zu\n",
             stats->tx_queue_total_frames,
             stats->tx_queue_max_frames,
             ave_size);
 
-    dprintf(fd, "    Counts (flushed/dropped/dropouts)                       : %zu / %zu / %zu\n",
+    dprintf(fd, "  Counts (flushed/dropped/dropouts)                       : %zu / %zu / %zu\n",
             stats->tx_queue_total_flushed_messages,
             stats->tx_queue_total_dropped_messages,
             stats->tx_queue_dropouts);
 
-    dprintf(fd, "    Last update time ago in ms (flushed/dropped)            : %llu / %llu\n",
+    dprintf(fd, "  Last update time ago in ms (flushed/dropped)            : %llu / %llu\n",
             (stats->tx_queue_last_flushed_us > 0) ?
                 (unsigned long long)(now_us - stats->tx_queue_last_flushed_us) / 1000 : 0,
             (stats->tx_queue_last_dropouts_us > 0)?
                 (unsigned long long)(now_us - stats->tx_queue_last_dropouts_us)/ 1000 : 0);
 
-    dprintf(fd, "    Counts (underflow/underrun)                             : %zu / %zu\n",
+    dprintf(fd, "  Counts (underflow/underrun)                             : %zu / %zu\n",
             stats->media_read_total_underflow_count,
             stats->media_read_total_underrun_count);
 
-    dprintf(fd, "    Bytes (underflow/underrun)                              : %zu / %zu\n",
+    dprintf(fd, "  Bytes (underflow/underrun)                              : %zu / %zu\n",
             stats->media_read_total_underflow_bytes,
             stats->media_read_total_underrun_bytes);
 
-    dprintf(fd, "    Last update time ago in ms (underflow/underrun)         : %llu / %llu\n",
+    dprintf(fd, "  Last update time ago in ms (underflow/underrun)         : %llu / %llu\n",
             (stats->media_read_last_underflow_us > 0) ?
                 (unsigned long long)(now_us - stats->media_read_last_underflow_us) / 1000 : 0,
             (stats->media_read_last_underrun_us > 0)?
@@ -3027,7 +3027,7 @@ void btif_debug_a2dp_dump(int fd)
     //
     // TxQueue enqueue stats
     //
-    dprintf(fd, "    Enqueue deviation counts (overdue/premature)            : %zu / %zu\n",
+    dprintf(fd, "  Enqueue deviation counts (overdue/premature)            : %zu / %zu\n",
             enqueue_stats->overdue_scheduling_count,
             enqueue_stats->premature_scheduling_count);
 
@@ -3036,7 +3036,7 @@ void btif_debug_a2dp_dump(int fd)
         ave_time_us = enqueue_stats->total_overdue_scheduling_delta_us /
             enqueue_stats->overdue_scheduling_count;
     }
-    dprintf(fd, "    Enqueue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
+    dprintf(fd, "  Enqueue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
             (unsigned long long)enqueue_stats->total_overdue_scheduling_delta_us / 1000,
             (unsigned long long)enqueue_stats->max_overdue_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
@@ -3046,7 +3046,7 @@ void btif_debug_a2dp_dump(int fd)
         ave_time_us = enqueue_stats->total_premature_scheduling_delta_us /
             enqueue_stats->premature_scheduling_count;
     }
-    dprintf(fd, "    Enqueue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
+    dprintf(fd, "  Enqueue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
             (unsigned long long)enqueue_stats->total_premature_scheduling_delta_us / 1000,
             (unsigned long long)enqueue_stats->max_premature_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
@@ -3055,7 +3055,7 @@ void btif_debug_a2dp_dump(int fd)
     //
     // TxQueue dequeue stats
     //
-    dprintf(fd, "    Dequeue deviation counts (overdue/premature)            : %zu / %zu\n",
+    dprintf(fd, "  Dequeue deviation counts (overdue/premature)            : %zu / %zu\n",
             dequeue_stats->overdue_scheduling_count,
             dequeue_stats->premature_scheduling_count);
 
@@ -3064,7 +3064,7 @@ void btif_debug_a2dp_dump(int fd)
         ave_time_us = dequeue_stats->total_overdue_scheduling_delta_us /
             dequeue_stats->overdue_scheduling_count;
     }
-    dprintf(fd, "    Dequeue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
+    dprintf(fd, "  Dequeue overdue scheduling time in ms (total/max/ave)   : %llu / %llu / %llu\n",
             (unsigned long long)dequeue_stats->total_overdue_scheduling_delta_us / 1000,
             (unsigned long long)dequeue_stats->max_overdue_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
@@ -3074,7 +3074,7 @@ void btif_debug_a2dp_dump(int fd)
         ave_time_us = dequeue_stats->total_premature_scheduling_delta_us /
             dequeue_stats->premature_scheduling_count;
     }
-    dprintf(fd, "    Dequeue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
+    dprintf(fd, "  Dequeue premature scheduling time in ms (total/max/ave) : %llu / %llu / %llu\n",
             (unsigned long long)dequeue_stats->total_premature_scheduling_delta_us / 1000,
             (unsigned long long)dequeue_stats->max_premature_scheduling_delta_us / 1000,
             (unsigned long long)ave_time_us / 1000);
