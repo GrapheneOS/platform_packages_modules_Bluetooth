@@ -32,9 +32,7 @@ source_set("sbc_decoder") {
     "decoder/srce/synthesis-sbc.c",
   ]
 
-  include_dirs = [
-    "decoder/include",
-  ]
+  include_dirs = [ "decoder/include" ]
 }
 
 source_set("sbc_encoder") {

@@ -48,8 +48,12 @@ executable("net_test_btcore") {
   deps = [
     "//btcore",
     "//osi",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
   ]
 
-  libs = [ "-lpthread", "-lrt", "-ldl" ]
+  libs = [
+    "-lpthread",
+    "-lrt",
+    "-ldl",
+  ]
 }

@@ -16,10 +16,8 @@
 
 shared_library("bt-vendor-linux") {
   sources = [
-    "bt_vendor_linux.c"
+    "bt_vendor_linux.c",
   ]
 
-  include_dirs = [
-    "//"
-  ]
+  include_dirs = [ "//" ]
 }

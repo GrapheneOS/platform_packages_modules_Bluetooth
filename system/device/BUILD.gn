@@ -17,7 +17,8 @@
 static_library("device") {
   sources = [
     "src/classic/peer.c",
-    "src/controller.c"
+    "src/controller.c",
+    "src/interop.c",
   ]
 
   include_dirs = [
@@ -36,17 +37,18 @@ executable("net_test_device") {
     "test/classic/peer_test.cpp",
   ]
 
-  include_dirs = [
-    "//",
-    "//osi/include",
-  ]
+  include_dirs = [ "//" ]
 
   deps = [
     "//device",
     "//btcore",
     "//osi",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
   ]
 
-  libs = [ "-lpthread", "-lrt", "-ldl" ]
+  libs = [
+    "-lpthread",
+    "-lrt",
+    "-ldl",
+  ]
 }
