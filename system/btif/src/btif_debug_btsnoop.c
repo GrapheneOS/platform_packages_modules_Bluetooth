@@ -127,7 +127,7 @@ void btif_debug_btsnoop_init(void) {
 }
 
 void btif_debug_btsnoop_dump(int fd) {
-  dprintf(fd, "\n--- BEGIN:BTSNOOP_LOG_SUMMARY (%zu bytes in) ---\n", ringbuffer_size(buffer));
+  dprintf(fd, "--- BEGIN:BTSNOOP_LOG_SUMMARY (%zu bytes in) ---\n", ringbuffer_size(buffer));
 
   ringbuffer_t *ringbuffer = ringbuffer_init(BTSNOOP_MEM_BUFFER_SIZE);
   if (ringbuffer == NULL) {
