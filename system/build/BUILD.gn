@@ -65,7 +65,6 @@ config("linux") {
     "HAS_NO_BDROID_BUILDCFG",
     "LOG_NDEBUG=1",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
-    "PROPERTY_VALUE_MAX=256",
     "KERNEL_MISSING_CLOCK_BOOTTIME_ALARM=TRUE",
 
     # This is a macro to that can be used by source code to detect if the
