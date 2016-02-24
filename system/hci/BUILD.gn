@@ -37,6 +37,7 @@ static_library("hci") {
     "include",
     "//",
     "//include",
+    "//bta/include",
     "//btcore/include",
     "//stack/include",
   ]
@@ -59,6 +60,7 @@ executable("net_test_hci") {
     "//include",
     "//btcore/include",
     "//hci/include",
+    "//osi/test",
     "//stack/include",
   ]
 
@@ -66,8 +68,12 @@ executable("net_test_hci") {
     "//hci",
     "//osi",
     "//btcore",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
   ]
 
-  libs = [ "-lpthread", "-lrt", "-ldl" ]
+  libs = [
+    "-lpthread",
+    "-lrt",
+    "-ldl",
+  ]
 }

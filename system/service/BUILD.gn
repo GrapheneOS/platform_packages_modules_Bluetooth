@@ -17,48 +17,62 @@
 source_set("service") {
   sources = [
     "adapter.cpp",
-    "adapter_state.cpp",
     "daemon.cpp",
+    "gatt_client.cpp",
     "gatt_server.cpp",
-    "hal/bluetooth_interface.cpp",
-    "ipc/binder/bluetooth_binder_server.cpp",
-    "ipc/binder/IBluetooth.cpp",
-    "ipc/binder/IBluetoothCallback.cpp",
-    "ipc/binder/ipc_handler_binder.cpp",
-    "ipc/ipc_handler.cpp",
-    "ipc/ipc_handler_linux.cpp",
-    "ipc/ipc_manager.cpp",
-    "ipc/linux_ipc_host.cpp",
+    "gatt_server_old.cpp",
     "logging_helpers.cpp",
+    "low_energy_client.cpp",
     "settings.cpp",
-    "util/atomic_string.cpp",
-    "uuid.cpp"
+    "common/bluetooth/advertise_data.cpp",
+    "common/bluetooth/adapter_state.cpp",
+    "common/bluetooth/uuid.cpp",
+    "common/bluetooth/scan_filter.cpp",
+    "common/bluetooth/scan_result.cpp",
+    "common/bluetooth/scan_settings.cpp",
+    "common/bluetooth/gatt_identifier.cpp",
+    "common/bluetooth/advertise_settings.cpp",
+    "common/bluetooth/util/atomic_string.cpp",
+    "common/bluetooth/util/address_helper.cpp",
+    "hal/bluetooth_interface.cpp",
+    "hal/bluetooth_gatt_interface.cpp",
+    "hal/fake_bluetooth_gatt_interface.cpp",
+    "hal/fake_bluetooth_interface.cpp",
+    "hal/gatt_helpers.cpp",
+    "ipc/ipc_handler.cpp",
+    "ipc/linux_ipc_host.cpp",
+    "ipc/ipc_manager.cpp",
+    "ipc/ipc_handler_linux.cpp",
   ]
 
   include_dirs = [
     "//",
-    "//third_party/libchrome"
+    "//service/common",
+    "//third_party/libchrome",
+    "//third_party/modp_b64/modp64",
+    libhw_include_path,
   ]
 }
 
 executable("bluetoothtbd") {
   sources = [
-    "main.cpp"
+    "main.cpp",
   ]
 
   deps = [
     ":service",
     "//btcore",
     "//third_party/libchrome:base",
-    "//third_party/modp_b64"
+    "//third_party/modp_b64",
   ]
 
-  include_dirs = [
-    "//",
-    "//third_party/libchrome"
-  ]
+  include_dirs = [ "//" ]
 
-  libs = [ "-ldl", "-lpthread", "-lrt" ]
+  libs = [
+    "-ldl",
+    "-lpthread",
+    "-lrt",
+  ]
 }
 
 executable("service_unittests") {
@@ -70,16 +84,11 @@ executable("service_unittests") {
     "test/uuid_unittest.cpp",
   ]
 
-  include_dirs = [
-    "//",
-    "//third_party/gmock/include",
-    "//third_party/libchrome"
-  ]
+  include_dirs = [ "//" ]
 
   deps = [
     ":service",
-    "//third_party/gmock:gmock_main",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gmock_main",
     "//third_party/libchrome:base",
     "//third_party/modp_b64",
   ]

@@ -14,9 +14,11 @@ shared_library("test_vendor_lib") {
   include_dirs = [
     "include",
     "//",
+
     # TODO(dennischeng): Ideally we should need to have the lines below for
     # indirect includes.
     "//stack/include",
+    "//third_party/libchrome:base",
   ]
 }
 
@@ -40,7 +42,7 @@ executable("test_vendor_lib_test") {
   ]
 
   deps = [
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
     "//third_party/libchrome:base",
     "//vendor_libs/test_vendor_lib",
   ]

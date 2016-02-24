@@ -17,18 +17,8 @@
 executable("net_test_bluetooth") {
   testonly = true
   sources = [
-    "cases/adapter.c",
-    "cases/cases.c",
-    "cases/gatt.c",
-    "cases/pan.c",
-    "cases/rfcomm.c",
-    "support/adapter.c",
-    "support/callbacks.c",
-    "support/gatt.c",
-    "support/hal.c",
-    "support/pan.c",
-    "support/rfcomm.c",
-    "main.cpp",
+    "adapter/adapter_unittest.cpp",
+    "adapter/bluetooth_test.cpp",
   ]
 
   include_dirs = [
@@ -39,10 +29,16 @@ executable("net_test_bluetooth") {
   deps = [
     "//btcore",
     "//main:bluetooth.default",
+    "//service:service",
+    "//service:service_unittests",
+    "//third_party/libchrome:base",
     "//osi",
-    "//third_party/gtest:gtest_main",
+    "//third_party/googletest:gtest_main",
   ]
 
-  libs = [ "-lpthread", "-lrt", "-ldl" ]
-
+  libs = [
+    "-lpthread",
+    "-lrt",
+    "-ldl",
+  ]
 }

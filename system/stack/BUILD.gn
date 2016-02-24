@@ -148,6 +148,7 @@ static_library("stack") {
     "sdp",
     "smp",
     "srvc",
+    "//osi/include",
     "//btcore/include",
     "//vnd/include",
     "//vnd/ble",
