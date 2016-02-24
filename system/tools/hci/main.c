@@ -93,7 +93,7 @@ static int set_name(int argc, char **argv) {
   if (!write_hci_command(HCI_PACKET_COMMAND, packet, sizeof(packet)))
     return 1;
 
-  memset(&packet[0], sizeof(packet), 0);
+  memset(&packet[0], 0, sizeof(packet));
   packet[0] = 0x52;
   packet[1] = 0x0C;
   packet[2] = 0xF1;  // HCI command packet length.
