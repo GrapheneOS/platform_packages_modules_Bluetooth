@@ -22,7 +22,6 @@ LOCAL_PATH := $(call my-dir)
 # ========================================================
 btcoreCommonSrc := \
     src/bdaddr.c \
-    src/counter.c \
     src/device_class.c \
     src/hal_util.c \
     src/module.c \
@@ -32,7 +31,6 @@ btcoreCommonSrc := \
 
 btcoreCommonTestSrc := \
     ./test/bdaddr_test.cpp \
-    ./test/counter_test.cpp \
     ./test/device_class_test.cpp \
     ./test/property_test.cpp \
     ./test/uuid_test.cpp \

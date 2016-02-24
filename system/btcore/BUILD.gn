@@ -17,7 +17,6 @@
 static_library("btcore") {
   sources = [
     "src/bdaddr.c",
-    "src/counter.c",
     "src/device_class.c",
     "src/hal_util.c",
     "src/module.c",
@@ -35,7 +34,6 @@ executable("net_test_btcore") {
   testonly = true
   sources = [
     "test/bdaddr_test.cpp",
-    "test/counter_test.cpp",
     "test/device_class_test.cpp",
     "test/property_test.cpp",
     "test/uuid_test.cpp",

@@ -38,7 +38,6 @@
 #include "bt_hci_bdroid.h"
 #include "bt_utils.h"
 #include "bta_api.h"
-#include "btcore/include/counter.h"
 #include "btcore/include/module.h"
 #include "bte.h"
 #include "btif_common.h"
@@ -100,7 +99,6 @@ fixed_queue_t *btu_hci_msg_queue;
 ******************************************************************************/
 void bte_main_boot_entry(void)
 {
-    module_init(get_module(COUNTER_MODULE));
     module_init(get_module(INTEROP_MODULE));
 
     hci = hci_layer_get_interface();
@@ -139,7 +137,6 @@ void bte_main_shutdown()
     module_clean_up(get_module(STACK_CONFIG_MODULE));
 
     module_clean_up(get_module(INTEROP_MODULE));
-    module_clean_up(get_module(COUNTER_MODULE));
 }
 
 /******************************************************************************
@@ -258,8 +255,6 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
 
     p_msg->event = event;
 
-    counter_add("main.tx.packets", 1);
-    counter_add("main.tx.bytes", p_msg->len);
 
     if((sub_event == LOCAL_BR_EDR_CONTROLLER_ID) || \
        (sub_event == LOCAL_BLE_CONTROLLER_ID))
