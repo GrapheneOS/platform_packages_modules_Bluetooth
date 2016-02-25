@@ -1328,6 +1328,7 @@ public class AdapterService extends Service {
          public void dump(FileDescriptor fd, String[] args) {
             PrintWriter writer = new PrintWriter(new FileOutputStream(fd));
             AdapterService service = getService();
+            if (service == null) return;
             service.dump(fd, writer, args);
          }
     };
