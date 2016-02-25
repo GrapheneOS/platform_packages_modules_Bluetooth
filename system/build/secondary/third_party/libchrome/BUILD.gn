@@ -212,18 +212,21 @@ source_set("base_sources") {
 
   include_dirs = [
     "//",
+    "//third_party/googletest/googletest/include",
     "//third_party/libchrome",
     "//third_party/libevent",
     "//third_party/libevent/include",
     "//third_party/libchrome/base",
     "//third_party/modp_b64",
-    "//third_party/gtest/include",
   ]
 }
 
 config("libchrome_config") {
   # libchrome headers need to be able to find themselves.
-  include_dirs = [ "//third_party/libchrome" ]
+  include_dirs = [
+    "//third_party/googletest/googletest/include",
+    "//third_party/libchrome",
+ ]
 }
 
 static_library("base") {
