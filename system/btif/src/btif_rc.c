@@ -240,14 +240,18 @@ static void send_reject_response (UINT8 rc_handle, UINT8 label,
 static UINT8 opcode_from_pdu(UINT8 pdu);
 static void send_metamsg_rsp (UINT8 rc_handle, UINT8 label,
     tBTA_AV_CODE code, tAVRC_RESPONSE *pmetamsg_resp);
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void register_volumechange(UINT8 label);
+#endif
 static void lbl_init();
 static void lbl_destroy();
 static void init_all_transactions();
 static bt_status_t  get_transaction(rc_transaction_t **ptransaction);
 static void release_transaction(UINT8 label);
 static rc_transaction_t* get_transaction_by_lbl(UINT8 label);
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
+#endif
 #if (AVRC_CTLR_INCLUDED == TRUE)
 static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG *pmeta_msg);
 static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
@@ -276,7 +280,9 @@ static bt_status_t list_player_app_setting_value_cmd(uint8_t attrib_id);
 static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attrib_ids);
 #endif
 static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND* p_param, UINT8 ctype, UINT8 label);
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, UINT8 ctype, UINT8 label);
+#endif
 static void rc_start_play_status_timer(void);
 static bool absolute_volume_disabled(void);
 
@@ -1513,6 +1519,7 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(UINT8 event, tAVRC_COMMAND *pavrc_cmd
 }
 #endif
 
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btif_rc_upstreams_rsp_evt
@@ -1527,7 +1534,6 @@ static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, 
     BTIF_TRACE_EVENT("%s pdu: %s handle: 0x%x ctype:%x label:%x", __FUNCTION__,
         dump_rc_pdu(pavrc_resp->pdu), btif_rc_cb.rc_handle, ctype, label);
 
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     switch (event)
     {
         case AVRC_PDU_REGISTER_NOTIFICATION:
@@ -1551,8 +1557,8 @@ static void btif_rc_upstreams_rsp_evt(UINT16 event, tAVRC_RESPONSE *pavrc_resp, 
         default:
             return;
     }
-#endif
 }
+#endif
 
 /************************************************************************************
 **  AVRCP API Functions
@@ -1825,6 +1831,7 @@ static bt_status_t set_volume(uint8_t volume)
     return status;
 }
 
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 /***************************************************************************
 **
 ** Function         register_volumechange
@@ -1942,6 +1949,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
      btif_rc_upstreams_rsp_evt((uint16_t)avrc_response.rsp.pdu, &avrc_response, pmeta_msg->code,
                                 pmeta_msg->label);
 }
+#endif
 
 #if (AVRC_CTLR_INCLUDED == TRUE)
 /***************************************************************************
