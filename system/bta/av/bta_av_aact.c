@@ -30,14 +30,13 @@
 #include <assert.h>
 #include <string.h>
 
-#include <cutils/properties.h>
-
-#include "bta_av_int.h"
 #include "avdt_api.h"
-#include "utl.h"
-#include "l2c_api.h"
-#include "l2cdefs.h"
+#include "bta_av_int.h"
 #include "bt_utils.h"
+#include "l2cdefs.h"
+#include "l2c_api.h"
+#include "osi/include/properties.h"
+#include "utl.h"
 #include "vendor.h"
 
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
@@ -1438,7 +1437,7 @@ void bta_av_str_opened (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
 
     // This code is used to pass PTS TC for AVDTP ABORT
     char value[PROPERTY_VALUE_MAX] = {0};
-    if ((property_get("bluetooth.pts.force_a2dp_abort", value, "false"))
+    if ((osi_property_get("bluetooth.pts.force_a2dp_abort", value, "false"))
         && (!strcmp(value, "true")))
     {
         APPL_TRACE_ERROR ("%s: Calling AVDT_AbortReq", __func__);

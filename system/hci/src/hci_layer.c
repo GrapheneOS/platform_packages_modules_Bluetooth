@@ -27,13 +27,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// TODO(armansito): cutils/properties.h is only being used to pull-in runtime
-// settings on Android. Remove this conditional include once we have a generic
-// way to obtain system properties.
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  // !defined(OS_GENERIC)
-
 #include "btcore/include/module.h"
 #include "btsnoop.h"
 #include "buffer_allocator.h"
@@ -46,6 +39,7 @@
 #include "osi/include/alarm.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 #include "osi/include/reactor.h"
 #include "packet_fragmenter.h"
 #include "vendor.h"
@@ -187,13 +181,11 @@ static future_t *start_up(void) {
   // non-Android builds.
   period_ms_t startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
 
-#if !defined(OS_GENERIC)
   // Grab the override startup timeout ms, if present.
   char timeout_prop[PROPERTY_VALUE_MAX];
-  if (!property_get("bluetooth.enable_timeout_ms", timeout_prop, STRING_VALUE_OF(DEFAULT_STARTUP_TIMEOUT_MS))
+  if (!osi_property_get("bluetooth.enable_timeout_ms", timeout_prop, STRING_VALUE_OF(DEFAULT_STARTUP_TIMEOUT_MS))
       || (startup_timeout_ms = atoi(timeout_prop)) < 100)
     startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
-#endif  // !defined(OS_GENERIC)
 
   startup_timer = alarm_new("hci.startup_timer");
   if (!startup_timer) {

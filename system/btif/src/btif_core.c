@@ -38,15 +38,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-/**
- * TODO(armansito): On OSs other than Android, the sys/properties.h system
- * does not exist. Remove this conditional include once we have a generic way
- * to obtain system properties.
- */
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  /* !defined(OS_GENERIC) */
-
 #include "bdaddr.h"
 #include "bt_utils.h"
 #include "bta_api.h"
@@ -68,6 +59,7 @@
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 #include "osi/include/thread.h"
 #include "stack_manager.h"
 
@@ -326,7 +318,7 @@ void btif_thread_post(thread_fn func, void *context) {
 static bool btif_fetch_property(const char *key, bt_bdaddr_t *addr) {
     char val[PROPERTY_VALUE_MAX] = {0};
 
-    if (property_get(key, val, NULL)) {
+    if (osi_property_get(key, val, NULL)) {
         if (string_to_bdaddr(val, addr)) {
             BTIF_TRACE_DEBUG("%s: Got BDA %s", __func__, val);
             return TRUE;
@@ -342,16 +334,10 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     uint8_t valid_bda = FALSE;
     int val_size = 0;
 
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
     const uint8_t null_bdaddr[BD_ADDR_LEN] = {0,0,0,0,0,0};
 
     /* Get local bdaddr storage path from property */
-    if (property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
+    if (osi_property_get(PROPERTY_BT_BDADDR_PATH, val, NULL))
     {
         int addr_fd;
 
@@ -392,7 +378,6 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     if (!valid_bda) {
         valid_bda = btif_fetch_property(FACTORY_BT_ADDR_PROPERTY, local_addr);
     }
-#endif  /* !defined(OS_GENERIC) */
 
     /* Generate new BDA if necessary */
     if (!valid_bda)
@@ -415,16 +400,8 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         BTIF_TRACE_DEBUG("No preset BDA. Generating BDA: %s for prop %s",
              (char*)bdstr, PERSIST_BDADDR_PROPERTY);
 
-
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
-        if (property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
+        if (osi_property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
             BTIF_TRACE_ERROR("Failed to set random BDA in prop %s",PERSIST_BDADDR_PROPERTY);
-#endif  /* !defined(OS_GENERIC) */
     }
 
     //save the bd address to config file
