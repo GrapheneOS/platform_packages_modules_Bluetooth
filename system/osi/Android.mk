@@ -41,6 +41,7 @@ btosiCommonSrc := \
     ./src/list.c \
     ./src/metrics.cpp \
     ./src/mutex.c \
+    ./src/properties.c \
     ./src/reactor.c \
     ./src/ringbuffer.c \
     ./src/semaphore.c \
@@ -66,6 +67,7 @@ btosiCommonTestSrc := \
     ./test/hash_map_test.cpp \
     ./test/hash_map_utils_test.cpp \
     ./test/list_test.cpp \
+    ./test/properties_test.cpp \
     ./test/reactor_test.cpp \
     ./test/ringbuffer_test.cpp \
     ./test/semaphore_test.cpp \
@@ -142,7 +144,7 @@ LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 # TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
 # should be compatible for a Linux host OS. We should figure out what to do for
 # a non-Linux host OS.
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) -D_GNU_SOURCE
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -D_GNU_SOURCE -DOS_GENERIC
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -160,7 +162,7 @@ LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full libchrome
+LOCAL_SHARED_LIBRARIES := libc liblog libprotobuf-cpp-full libchrome libcutils
 LOCAL_STATIC_LIBRARIES := libosi libbt-protos
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
@@ -181,7 +183,7 @@ LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full libchrome
 LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DOS_GENERIC
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 

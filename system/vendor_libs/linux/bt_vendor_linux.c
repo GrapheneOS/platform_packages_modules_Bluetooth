@@ -29,10 +29,9 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
-#include <cutils/properties.h>
-
 #include "hci/include/bt_vendor_lib.h"
 #include "osi/include/log.h"
+#include "osi/include/properties.h"
 
 #define BTPROTO_HCI     1
 #define HCI_CHANNEL_USER        1
@@ -101,7 +100,7 @@ static int bt_vendor_init(const bt_vendor_callbacks_t *p_cb,
   memcpy(bt_vendor_local_bdaddr, local_bdaddr,
          sizeof(bt_vendor_local_bdaddr));
 
-  property_get("bluetooth.interface", prop_value, "0");
+  osi_property_get("bluetooth.interface", prop_value, "0");
 
   errno = 0;
   if (memcmp(prop_value, "hci", 3))
@@ -113,13 +112,13 @@ static int bt_vendor_init(const bt_vendor_callbacks_t *p_cb,
 
   LOG_INFO(LOG_TAG, "Using interface hci%d", hci_interface);
 
-  property_get("bluetooth.rfkill", prop_value, "0");
+  osi_property_get("bluetooth.rfkill", prop_value, "0");
 
   rfkill_en = atoi(prop_value);
   if (rfkill_en)
     LOG_INFO(LOG_TAG, "RFKILL enabled");
 
-  bt_hwcfg_en = property_get("bluetooth.hwcfg",
+  bt_hwcfg_en = osi_property_get("bluetooth.hwcfg",
                              prop_value, NULL) > 0 ? 1 : 0;
   if (bt_hwcfg_en)
     LOG_INFO(LOG_TAG, "HWCFG enabled");
@@ -133,12 +132,12 @@ static int bt_vendor_hw_cfg(int stop)
     return 0;
 
   if (stop) {
-    if (property_set("bluetooth.hwcfg", "stop") < 0) {
+    if (osi_property_set("bluetooth.hwcfg", "stop") < 0) {
       LOG_ERROR(LOG_TAG, "%s cannot stop btcfg service via prop", __func__);
       return 1;
     }
   } else {
-    if (property_set("bluetooth.hwcfg", "start") < 0) {
+    if (osi_property_set("bluetooth.hwcfg", "start") < 0) {
       LOG_ERROR(LOG_TAG, "%s cannot start btcfg service via prop", __func__);
       return 1;
     }

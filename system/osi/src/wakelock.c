@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"

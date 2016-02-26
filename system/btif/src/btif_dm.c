@@ -41,15 +41,6 @@
 
 #include <hardware/bluetooth.h>
 
-/**
- * TODO(armansito): cutils/properties.h is only being used to pull-in runtime
- * settings on Android. Remove this conditional include once we have a generic
- * way to obtain system properties.
- */
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  /* !defined(OS_GENERIC) */
-
 #include "bdaddr.h"
 #include "bta_gatt_api.h"
 #include "btif_api.h"
@@ -66,6 +57,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/metrics.h"
+#include "osi/include/properties.h"
 #include "stack_config.h"
 #include "stack/btm/btm_int.h"
 
@@ -2863,14 +2855,8 @@ void btif_dm_set_oob_for_le_io_req(BD_ADDR bd_addr, tBTA_OOB_DATA  *p_has_oob_da
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void)
 {
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
     char prop_oob[PROPERTY_VALUE_MAX];
-    property_get("service.brcm.bt.oob", prop_oob, "3");
+    osi_property_get("service.brcm.bt.oob", prop_oob, "3");
     BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
     if (prop_oob[0] != '3')
     {
@@ -2880,17 +2866,10 @@ void btif_dm_load_local_oob(void)
             BTA_DmLocalOob();
         }
     }
-#endif  /* !defined(OS_GENERIC) */
 }
 
 void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 {
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
     FILE *fp;
     char *path_a = "/data/misc/bluedroid/LOCAL/a.key";
     char *path_b = "/data/misc/bluedroid/LOCAL/b.key";
@@ -2902,7 +2881,7 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
         BTIF_TRACE_DEBUG("save local OOB data in memory");
         memcpy(oob_cb.oob_data.c192, c, BT_OCTET16_LEN);
         memcpy(oob_cb.oob_data.r192, r, BT_OCTET16_LEN);
-        property_get("service.brcm.bt.oob", prop_oob, "3");
+        osi_property_get("service.brcm.bt.oob", prop_oob, "3");
         BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
         if (prop_oob[0] == '1')
             path = path_a;
@@ -2924,17 +2903,10 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
             }
         }
     }
-#endif  /* !defined(OS_GENERIC) */
 }
 
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
 {
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
     char t[128];
     FILE *fp;
     char *path_a = "/data/misc/bluedroid/LOCAL/a.key";
@@ -2944,7 +2916,7 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
     BOOLEAN result = FALSE;
     bt_bdaddr_t bt_bd_addr;
     bdcpy(oob_cb.bdaddr, bd_addr);
-    property_get("service.brcm.bt.oob", prop_oob, "3");
+    osi_property_get("service.brcm.bt.oob", prop_oob, "3");
     BTIF_TRACE_DEBUG("%s: prop_oob = %s", __func__, prop_oob);
     if (prop_oob[0] == '1')
         path = path_b;
@@ -2985,9 +2957,6 @@ BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
     }
     BTIF_TRACE_DEBUG("%s: result=%d", __func__, result);
     return result;
-#else  /* defined(OS_GENERIC) */
-    return FALSE;
-#endif  /* !defined(OS_GENERIC) */
 }
 #endif /*  BTIF_DM_OOB_TEST */
 #if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
@@ -3426,12 +3395,6 @@ void btif_dm_read_energy_info()
 }
 
 static char* btif_get_default_local_name() {
-  /**
-   * TODO(armansito): On OSs other than Android, the sys/properties.h system
-   * does not exist. Remove this conditional include once we have a generic way
-   * to obtain system properties.
-   */
-#if !defined(OS_GENERIC)
     if (btif_default_local_name[0] == '\0')
     {
         int max_len = sizeof(btif_default_local_name) - 1;
@@ -3442,12 +3405,11 @@ static char* btif_get_default_local_name() {
         else
         {
             char prop_model[PROPERTY_VALUE_MAX];
-            property_get(PROPERTY_PRODUCT_MODEL, prop_model, "");
+            osi_property_get(PROPERTY_PRODUCT_MODEL, prop_model, "");
             strncpy(btif_default_local_name, prop_model, max_len);
         }
         btif_default_local_name[max_len] = '\0';
     }
-#endif  /* !defined(OS_GENERIC) */
     return btif_default_local_name;
 }
 

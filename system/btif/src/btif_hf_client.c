@@ -34,21 +34,13 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_hf_client.h>
 
-/**
- * TODO(armansito): On OSs other than Android, the sys/properties.h system
- * does not exist. Remove this conditional include once we have a generic way
- * to obtain system properties.
- */
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  /* !defined(OS_GENERIC) */
-
 #include "bt_utils.h"
 #include "bta_hf_client_api.h"
 #include "btcore/include/bdaddr.h"
 #include "btif_common.h"
 #include "btif_profile_queue.h"
 #include "btif_util.h"
+#include "osi/include/properties.h"
 
 /************************************************************************************
 **  Constants & Macros
@@ -83,17 +75,7 @@
 static bthf_client_callbacks_t *bt_hf_client_callbacks = NULL;
 static UINT32 btif_hf_client_features = 0;
 
-/**
- * TODO(armansito): On OSs other than Android, the sys/properties.h system
- * does not exist. Since that is how the HFP version is currently obtained, on
- * systems other than Android, hardcode 1.5 as the profile version for now,
- * until there is a generic way to obtain these configuration properties.
- */
-#if defined(OS_GENERIC)
-const char btif_hf_client_version[] = "1.5";
-#else  /* !defined(OS_GENERIC) */
 char btif_hf_client_version[PROPERTY_VALUE_MAX];
-#endif  /* defined(OS_GENERIC) */
 
 #define CHECK_BTHF_CLIENT_INIT() if (bt_hf_client_callbacks == NULL)\
     {\
@@ -956,14 +938,7 @@ bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable)
 {
     BTIF_TRACE_EVENT("%s enable:%d", __FUNCTION__, b_enable);
 
-/**
- * TODO(armansito): On OSs other than Android, the sys/properties.h system
- * does not exist. Since that is how the HFP version is currently obtained, on
- * systems other than Android we're hardcoding the version to 1.5 above.
- */
-#if !defined(OS_GENERIC)
-    property_get("ro.bluetooth.hfp.ver", btif_hf_client_version, "1.5");
-#endif  /* !defined(OS_GENERIC) */
+    osi_property_get("ro.bluetooth.hfp.ver", btif_hf_client_version, "1.5");
 
      if (b_enable)
      {
