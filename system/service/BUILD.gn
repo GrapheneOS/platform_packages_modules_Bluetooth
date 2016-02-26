@@ -48,9 +48,12 @@ source_set("service") {
   include_dirs = [
     "//",
     "//service/common",
-    "//third_party/libchrome",
     "//third_party/modp_b64/modp64",
     libhw_include_path,
+  ]
+
+  deps = [
+    "//third_party/libchrome:base"
   ]
 }
 

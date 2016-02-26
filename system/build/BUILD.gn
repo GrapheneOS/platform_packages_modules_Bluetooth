@@ -55,7 +55,9 @@ config("linux") {
   cflags_c = [ "-std=c99" ]
 
   cflags_cc = [
-    "-std=c++11",
+#TODO(jpawlowski): we should use same c++ version as Android, which is c++11,
+# but we use some c++14 features. Uncomment when this get fixed in code.:
+    "-std=c++14",
     "-fno-exceptions",
   ]
 
