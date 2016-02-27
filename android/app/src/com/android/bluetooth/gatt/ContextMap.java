@@ -85,6 +85,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             this.scansStarted++;
             isScanning = true;
             startTime = System.currentTimeMillis();
+
             if (settings != null) {
                 isOpportunisticScan = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
                 isBackgroundScan = (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
