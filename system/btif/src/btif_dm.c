@@ -1214,8 +1214,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
             }
 #endif
 
-            if(btif_dm_inquiry_in_progress)
-                btif_dm_cancel_discovery();
+            // Ensure inquiry is stopped before attempting service discovery
+            btif_dm_cancel_discovery();
 
             btif_dm_get_remote_services(&bd_addr);
         }
