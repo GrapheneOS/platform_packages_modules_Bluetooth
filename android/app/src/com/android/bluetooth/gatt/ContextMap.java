@@ -79,6 +79,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
         }
 
         void recordScanStart(ScanSettings settings) {
+            if (isScanning)
+                return;
+
             this.scansStarted++;
             isScanning = true;
             startTime = System.currentTimeMillis();
@@ -106,6 +109,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
         }
 
         void recordScanStop() {
+            if (!isScanning)
+              return;
+
             this.scansStopped++;
             isScanning = false;
             stopTime = System.currentTimeMillis();
