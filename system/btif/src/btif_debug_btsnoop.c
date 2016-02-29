@@ -97,15 +97,16 @@ static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
   uint8_t block_src[BLOCK_SIZE];
   uint8_t block_dst[BLOCK_SIZE];
 
-  while (ringbuffer_size(rb_src) > 0) {
-    zs.avail_in = ringbuffer_pop(rb_src, block_src, BLOCK_SIZE);
+  const size_t num_blocks = (ringbuffer_size(rb_src) + BLOCK_SIZE - 1) / BLOCK_SIZE;
+  for (size_t i = 0; i < num_blocks; ++i) {
+    zs.avail_in = ringbuffer_peek(rb_src, i * BLOCK_SIZE, block_src, BLOCK_SIZE);
     zs.next_in = block_src;
 
     do {
       zs.avail_out = BLOCK_SIZE;
       zs.next_out = block_dst;
 
-      int err = deflate(&zs, ringbuffer_size(rb_src) == 0 ? Z_FINISH : Z_NO_FLUSH);
+      int err = deflate(&zs, (i == num_blocks - 1) ? Z_FINISH : Z_NO_FLUSH);
       if (err == Z_STREAM_ERROR) {
         rc = false;
         break;

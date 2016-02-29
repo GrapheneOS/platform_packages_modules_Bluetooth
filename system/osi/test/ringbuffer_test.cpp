@@ -22,7 +22,7 @@ TEST(RingbufferTest, test_insert_basic) {
   EXPECT_EQ(6, ringbuffer_available(rb));
 
   uint8_t peek[10] = {0};
-  size_t peeked = ringbuffer_peek(rb, peek, 10);
+  size_t peeked = ringbuffer_peek(rb, 0, peek, 10);
   EXPECT_EQ(10, ringbuffer_size(rb)); // Ensure size doesn't change
   EXPECT_EQ(6, ringbuffer_available(rb));
   EXPECT_EQ(10, peeked);
@@ -48,7 +48,7 @@ TEST(RingbufferTest, test_insert_full) {
   EXPECT_EQ(0, ringbuffer_available(rb));
   EXPECT_EQ(5, ringbuffer_size(rb));
 
-  size_t peeked = ringbuffer_peek(rb, peek, 5);
+  size_t peeked = ringbuffer_peek(rb, 0, peek, 5);
   EXPECT_EQ(5, peeked);
   EXPECT_EQ(0, ringbuffer_available(rb));
   EXPECT_EQ(5, ringbuffer_size(rb));
@@ -78,7 +78,7 @@ TEST(RingbufferTest, test_multi_insert_delete) {
 
   uint8_t content[] = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xBB, 0xBB, 0xBB, 0xBB, 0xBB};
   uint8_t peek[16] = {0};
-  size_t peeked = ringbuffer_peek(rb, peek, 16);
+  size_t peeked = ringbuffer_peek(rb, 0, peek, 16);
   EXPECT_EQ(13, peeked);
   ASSERT_TRUE(0 == memcmp(content, peek, peeked));
 
@@ -96,7 +96,7 @@ TEST(RingbufferTest, test_multi_insert_delete) {
   EXPECT_EQ(14, ringbuffer_size(rb));
 
   uint8_t content2[] = {0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0xCC, 0xCC};
-  peeked = ringbuffer_peek(rb, peek, 7);
+  peeked = ringbuffer_peek(rb, 0, peek, 7);
   EXPECT_EQ(7, peeked);
   ASSERT_TRUE(0 == memcmp(content2, peek, peeked));
 
