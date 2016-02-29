@@ -159,7 +159,7 @@ bool bta_ag_add_record(uint16_t service_uuid, char *p_service_name, uint8_t scn,
     if (service_uuid == UUID_SERVCLASS_AG_HANDSFREE)
     {
         profile_uuid = UUID_SERVCLASS_HF_HANDSFREE;
-        version = HFP_VERSION_1_6;
+        version = BTA_HFP_VERSION;
     }
     else
     {
