@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
@@ -398,6 +399,7 @@ static void btif_config_write(void) {
 
   pthread_mutex_lock(&lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
+  sync();
   config_save(config, CONFIG_FILE_PATH);
   pthread_mutex_unlock(&lock);
 }
