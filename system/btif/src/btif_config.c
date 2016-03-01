@@ -41,6 +41,15 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
+/**
+ * TODO(apanicke): cutils/properties.h is only being used to pull-in runtime
+ * settings on Android. Remove this conditional include once we have a generic
+ * way to obtain system properties.
+ */
+#if !defined(OS_GENERIC)
+#include <cutils/properties.h>
+#endif  /* !defined(OS_GENERIC) */
+
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "bt_config.conf";
@@ -56,6 +65,8 @@ static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 static void timer_config_save_cb(void *data);
 static void btif_config_write(UINT16 event, char *p_param);
 static void btif_config_devcache_cleanup(void);
+static bool is_factory_reset(void);
+static void delete_config_files(void);
 
 static enum ConfigSource {
   NOT_LOADED,
@@ -113,6 +124,10 @@ static alarm_t *config_timer;
 
 static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
+
+  if (is_factory_reset())
+    delete_config_files();
+
   config = config_new(CONFIG_FILE_PATH);
   btif_config_source = ORIGINAL;
   if (!config) {
@@ -391,7 +406,7 @@ void btif_config_flush(void) {
   pthread_mutex_unlock(&lock);
 }
 
-bool btif_config_clear(void){
+bool btif_config_clear(void) {
   assert(config != NULL);
   assert(config_timer != NULL);
 
@@ -493,4 +508,16 @@ void btif_debug_config_dump(int fd) {
     }
 
     pthread_mutex_unlock(&lock);
+}
+
+static bool is_factory_reset(void) {
+  char factory_reset[PROPERTY_VALUE_MAX] = {0};
+  property_get("persist.bluetooth.factoryreset", factory_reset, "false");
+  return strncmp(factory_reset, "true", 4) == 0;
+}
+
+static void delete_config_files(void) {
+  remove(CONFIG_FILE_PATH);
+  remove(CONFIG_BACKUP_PATH);
+  property_set("persist.bluetooth.factoryreset", "false");
 }
