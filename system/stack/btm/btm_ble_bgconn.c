@@ -714,9 +714,11 @@ BOOLEAN btm_send_pending_direct_conn(void)
     BOOLEAN     rt = FALSE;
 
     p_req = (tBTM_BLE_CONN_REQ*)fixed_queue_try_dequeue(btm_cb.ble_ctr_cb.conn_pending_q);
-    if (p_req != NULL)
-    {
-        rt = l2cble_init_direct_conn((tL2C_LCB *)(p_req->p_param));
+    if (p_req != NULL) {
+        tL2C_LCB *p_lcb = (tL2C_LCB *)(p_req->p_param);
+        /* Ignore entries that might have been released while queued. */
+        if (p_lcb->in_use)
+            rt = l2cble_init_direct_conn(p_lcb);
         osi_free(p_req);
     }
 
