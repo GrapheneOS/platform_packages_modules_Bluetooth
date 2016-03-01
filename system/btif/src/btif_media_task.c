@@ -1387,7 +1387,9 @@ static void btif_media_thread_cleanup(UNUSED_ATTR void *context) {
 
 #if (BTA_AV_INCLUDED == TRUE)
   fixed_queue_free(btif_media_cb.TxAaQ, NULL);
+  btif_media_cb.TxAaQ = NULL;
   fixed_queue_free(btif_media_cb.RxSbcQ, NULL);
+  btif_media_cb.RxSbcQ = NULL;
 #endif
 
   /* Clear media task flag */
