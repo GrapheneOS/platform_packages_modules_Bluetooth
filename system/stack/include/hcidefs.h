@@ -370,6 +370,9 @@
 /* Extended BLE Scan parameters OCF */
 #define HCI_BLE_EXTENDED_SCAN_PARAMS_OCF  (0x015A | HCI_GRP_VENDOR_SPECIFIC)
 
+/* Controller debug info OCF */
+#define HCI_CONTROLLER_DEBUG_INFO_OCF     (0x015B | HCI_GRP_VENDOR_SPECIFIC)
+
 /* subcode for multi adv feature */
 #define BTM_BLE_MULTI_ADV_SET_PARAM                     0x01
 #define BTM_BLE_MULTI_ADV_WRITE_ADV_DATA                0x02
