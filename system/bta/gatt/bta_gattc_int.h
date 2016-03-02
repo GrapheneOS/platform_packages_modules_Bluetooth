@@ -241,7 +241,6 @@ typedef struct
 {
     tBT_UUID                uuid;
     UINT16                  attr_handle;
-    UINT8                   inst_id;
     tBTA_GATT_CHAR_PROP     property; /* if characteristic, it is char property;
                                          if included service, flag primary,
                                          if descriptor, not used */
@@ -267,7 +266,6 @@ typedef struct
     UINT16              s_handle;
     UINT16              e_handle;
     BOOLEAN             is_primary;
-    UINT8               srvc_inst_id;
     tBTA_GATT_CHAR_PROP property;
 }tBTA_GATTC_ATTR_REC;
 
