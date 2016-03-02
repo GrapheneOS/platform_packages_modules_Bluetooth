@@ -147,7 +147,7 @@ def main():
 
   iterator = fileinput.input()
   for line in iterator:
-    if line.startswith('--- BEGIN:BTSNOOP_LOG_SUMMARY'):
+    if line.find('--- BEGIN:BTSNOOP_LOG_SUMMARY') != -1:
       decode_snooz(base64.standard_b64decode(iterator.next()))
       sys.exit(0)
   sys.stderr.write('No btsnooz section found in bugreport.\n')
