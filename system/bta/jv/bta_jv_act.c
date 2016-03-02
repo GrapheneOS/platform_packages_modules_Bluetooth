@@ -84,11 +84,11 @@ static void fcchan_conn_chng_cbk(uint16_t chan, BD_ADDR bd_addr, bool connected,
 static void fcchan_data_cbk(uint16_t chan, BD_ADDR bd_addr, BT_HDR *p_buf);
 
 
-extern void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
+extern void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str, size_t str_len);
 static inline void logu(const char* title, const uint8_t * p_uuid)
 {
     char uuids[128];
-    uuid_to_string_legacy((bt_uuid_t*)p_uuid, uuids);
+    uuid_to_string_legacy((bt_uuid_t*)p_uuid, uuids, sizeof(uuids));
     APPL_TRACE_DEBUG("%s: %s", title, uuids);
 }
 

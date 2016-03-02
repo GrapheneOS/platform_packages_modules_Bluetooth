@@ -556,9 +556,9 @@ bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr)
     BTIF_TRACE_DEBUG("%s", __func__);
     btif_hh_device_t *p_dev;
     char bd_str[18];
-    sprintf(bd_str, "%02X:%02X:%02X:%02X:%02X:%02X",
-            bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
-            bd_addr->address[4], bd_addr->address[5]);
+    snprintf(bd_str, sizeof(bd_str), "%02X:%02X:%02X:%02X:%02X:%02X",
+             bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
+             bd_addr->address[4], bd_addr->address[5]);
     p_dev = btif_hh_find_dev_by_bda(bd_addr);
     if ((p_dev != NULL) && (p_dev->dev_status == BTHH_CONN_STATE_CONNECTED)
         && (p_dev->attr_mask & HID_VIRTUAL_CABLE))
@@ -597,8 +597,8 @@ bt_status_t btif_hh_connect(bt_bdaddr_t *bd_addr)
     CHECK_BTHH_INIT();
     dev = btif_hh_find_dev_by_bda(bd_addr);
     BTIF_TRACE_DEBUG("Connect _hh");
-    sprintf(bda_str, "%02X:%02X:%02X:%02X:%02X:%02X",
-            (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+    snprintf(bda_str, sizeof(bda_str), "%02X:%02X:%02X:%02X:%02X:%02X",
+             (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
     if (dev == NULL && btif_hh_cb.device_num >= BTIF_HH_MAX_HID) {
         // No space for more HID device now.
          BTIF_TRACE_WARNING("%s: Error, exceeded the maximum supported HID device number %d",
@@ -1263,9 +1263,9 @@ static bt_status_t virtual_unplug (bt_bdaddr_t *bd_addr)
     CHECK_BTHH_INIT();
     btif_hh_device_t *p_dev;
     char bd_str[18];
-    sprintf(bd_str, "%02X:%02X:%02X:%02X:%02X:%02X",
-            bd_addr->address[0],  bd_addr->address[1],  bd_addr->address[2],  bd_addr->address[3],
-            bd_addr->address[4], bd_addr->address[5]);
+    snprintf(bd_str, sizeof(bd_str), "%02X:%02X:%02X:%02X:%02X:%02X",
+             bd_addr->address[0], bd_addr->address[1],  bd_addr->address[2],
+             bd_addr->address[3], bd_addr->address[4], bd_addr->address[5]);
     if (btif_hh_cb.status == BTIF_HH_DISABLED)
     {
         BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);

@@ -52,9 +52,8 @@ const char *bdaddr_to_string(const bt_bdaddr_t *addr, char *string, size_t size)
     return NULL;
 
   const uint8_t *ptr = addr->address;
-  sprintf(string, "%02x:%02x:%02x:%02x:%02x:%02x",
-           ptr[0], ptr[1], ptr[2],
-           ptr[3], ptr[4], ptr[5]);
+  snprintf(string, size, "%02x:%02x:%02x:%02x:%02x:%02x",
+           ptr[0], ptr[1], ptr[2], ptr[3], ptr[4], ptr[5]);
   return string;
 }
 

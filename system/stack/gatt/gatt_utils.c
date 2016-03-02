@@ -2285,28 +2285,29 @@ uint8_t * gatt_dbg_op_name(uint8_t op_code)
 void gatt_dbg_display_uuid(tBT_UUID bt_uuid)
 {
     char str_buf[50];
-    int x = 0;
 
     if (bt_uuid.len == LEN_UUID_16)
     {
-        sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
+        snprintf(str_buf, sizeof(str_buf), "0x%04x", bt_uuid.uu.uuid16);
     }
     else if (bt_uuid.len == LEN_UUID_32)
     {
-        sprintf(str_buf, "0x%08x", (unsigned int)bt_uuid.uu.uuid32);
+        snprintf(str_buf, sizeof(str_buf), "0x%08x", (unsigned int)bt_uuid.uu.uuid32);
     }
     else if (bt_uuid.len == LEN_UUID_128)
     {
-        x += sprintf(&str_buf[x], "0x%02x%02x%02x%02x%02x%02x%02x%02x",
-                     bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
-                     bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
-                     bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
-                     bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
-        sprintf(&str_buf[x], "%02x%02x%02x%02x%02x%02x%02x%02x",
-                bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
-                bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
-                bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
-                bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
+        int x = snprintf(str_buf, sizeof(str_buf),
+                      "0x%02x%02x%02x%02x%02x%02x%02x%02x",
+                      bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
+                      bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
+                      bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
+                      bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
+        snprintf(&str_buf[x], sizeof(str_buf) - x,
+                 "%02x%02x%02x%02x%02x%02x%02x%02x",
+                 bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
+                 bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
+                 bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
+                 bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
     }
     else
         strlcpy(str_buf, "Unknown UUID 0", sizeof(str_buf));
