@@ -2673,8 +2673,14 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
     tL2C_CCB    *p_ccb;
 
     /* If we already have a CCB, then simply return */
-    if (p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL] != NULL)
+    p_ccb = p_lcb->p_fixed_ccbs[fixed_cid - L2CAP_FIRST_FIXED_CHNL];
+    if ((p_ccb != NULL) && p_ccb->in_use) {
+        /*
+         * NOTE: The "in_use" check is needed to ignore leftover entries
+         * that have been already released by l2cu_release_ccb().
+         */
         return (TRUE);
+    }
 
     if ((p_ccb = l2cu_allocate_ccb (NULL, 0)) == NULL)
         return (FALSE);
