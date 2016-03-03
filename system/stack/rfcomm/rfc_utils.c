@@ -206,6 +206,9 @@ void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 {
     void    *p_buf;
 
+    /* Remove the MCB from the mapping table */
+    rfc_save_lcid_mcb(NULL, p_mcb->lcid);
+
     rfc_timer_stop (p_mcb);
     alarm_free(p_mcb->mcb_timer);
 
