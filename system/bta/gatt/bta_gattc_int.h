@@ -248,16 +248,9 @@ typedef union
 
 
 /* GATT server cache on the client */
-typedef union
-{
-    UINT8               uuid128[LEN_UUID_128];
-    UINT16              uuid16;
-}tBTA_GATTC_UUID;
-
 typedef struct
 {
-    tBTA_GATTC_UUID         *p_uuid;
-    UINT16                  uuid_len;
+    tBT_UUID                uuid;
     UINT16                  attr_handle;
     UINT8                   inst_id;
     tBTA_GATT_CHAR_PROP     property; /* if characteristic, it is char property;
@@ -515,7 +508,6 @@ extern BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_dat
 extern UINT16 bta_gattc_id2handle(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_SRVC_ID *p_service_id, tBTA_GATT_ID *p_char_id, tBTA_GATT_ID *p_descr_uuid);
 extern BOOLEAN bta_gattc_handle2id(tBTA_GATTC_SERV *p_srcb, UINT16 handle, tBTA_GATT_SRVC_ID *service_id, tBTA_GATT_ID *char_id, tBTA_GATT_ID *p_type);
 extern BOOLEAN bta_gattc_uuid_compare (tBT_UUID *p_src, tBT_UUID *p_tar, BOOLEAN is_precise);
-extern void bta_gattc_pack_attr_uuid(tBTA_GATTC_CACHE_ATTR   *p_attr, tBT_UUID *p_uuid);
 extern BOOLEAN bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV *p_srcb, tBTA_GATTC_NOTIFY  *p_notify);
 extern tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb, tBT_UUID *p_descr_uuid, tGATT_VALUE *p_attr, tBTA_GATT_READ_VAL *p_value);
 extern BOOLEAN bta_gattc_mark_bg_conn (tBTA_GATTC_IF client_if,  BD_ADDR_PTR remote_bda, BOOLEAN add, BOOLEAN is_listen);
