@@ -1222,7 +1222,7 @@ typedef UINT8 tBTM_LINK_KEY_TYPE;
 #define BTM_SEC_SERVICE_FIRST_EMPTY     51
 
 #ifndef BTM_SEC_MAX_SERVICES
-#define BTM_SEC_MAX_SERVICES            65
+#define BTM_SEC_MAX_SERVICES            75
 #endif
 
 /************************************************************************************************
