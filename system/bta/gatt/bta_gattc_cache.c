@@ -282,7 +282,6 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     p_new_srvc->p_attr = NULL;
 
     p_srvc_cb->p_cur_srvc = p_new_srvc;
-    p_srvc_cb->p_cur_srvc->p_cur_char = NULL;
 
     if (p_srvc_cb->p_srvc_cache == NULL) {
         p_srvc_cb->p_srvc_cache = list_new(service_free);
@@ -351,9 +350,6 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     }
 
     list_append(p_srvc_cb->p_cur_srvc->p_attr, p_attr);
-
-    if (type == BTA_GATTC_ATTR_TYPE_CHAR)
-        p_srvc_cb->p_cur_srvc->p_cur_char = list_back_node(p_srvc_cb->p_cur_srvc->p_attr);
 
     return BTA_GATT_OK;
 }
