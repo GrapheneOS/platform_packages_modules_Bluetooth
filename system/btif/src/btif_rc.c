@@ -43,10 +43,12 @@
 #include "bt_common.h"
 #include "device/include/interop.h"
 #include "uinput.h"
+#include "bdaddr.h"
 #include "osi/include/list.h"
 #include "osi/include/properties.h"
 #include "btu.h"
 #define RC_INVALID_TRACK_ID (0xFFFFFFFFFFFFFFFFULL)
+
 /*****************************************************************************
 **  Constants & Macros
 ******************************************************************************/
@@ -465,10 +467,18 @@ void handle_rc_features(BD_ADDR bd_addr)
     {
     btrc_remote_features_t rc_features = BTRC_FEAT_NONE;
     bt_bdaddr_t rc_addr;
+
     bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
+    bt_bdaddr_t avdtp_addr  = btif_av_get_addr();
+
+    bdstr_t addr1, addr2;
+    BTIF_TRACE_DEBUG("%s: AVDTP Address: %s AVCTP address: %s", __func__,
+                     bdaddr_to_string(&avdtp_addr, addr1, sizeof(addr1)),
+                     bdaddr_to_string(&rc_addr, addr2, sizeof(addr2)));
 
     if (interop_match(INTEROP_DISABLE_ABSOLUTE_VOLUME, &rc_addr)
-        || absolute_volume_disabled())
+        || absolute_volume_disabled()
+        || bdcmp(avdtp_addr.address, rc_addr.address))
         btif_rc_cb.rc_features &= ~BTA_AV_FEAT_ADV_CTRL;
 
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_BROWSE)
