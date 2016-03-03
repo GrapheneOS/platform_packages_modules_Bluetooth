@@ -54,7 +54,8 @@ public class A2dpSinkService extends ProfileService {
     }
 
     protected boolean stop() {
-        mStateMachine.doQuit();
+        if(mStateMachine != null)
+            mStateMachine.doQuit();
         return true;
     }
 
