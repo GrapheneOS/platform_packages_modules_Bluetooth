@@ -195,6 +195,8 @@ static void *run_thread(void *start_arg) {
   }
   thread->tid = gettid();
 
+  LOG_WARN(LOG_TAG, "%s: thread id %d, thread name %s started", __func__, thread->tid, thread->name);
+
   semaphore_post(start->start_sem);
 
   int fd = fixed_queue_get_dequeue_fd(thread->work_queue);
@@ -219,6 +221,7 @@ static void *run_thread(void *start_arg) {
   if (count > fixed_queue_capacity(thread->work_queue))
     LOG_DEBUG(LOG_TAG, "%s growing event queue on shutdown.", __func__);
 
+  LOG_WARN(LOG_TAG, "%s: thread id %d, thread name %s exited", __func__, thread->tid, thread->name);
   return NULL;
 }
 
