@@ -274,7 +274,6 @@ typedef struct
     list_t                 *p_attr; /* list of tBTA_GATTC_CACHE_ATTR */
     UINT16                  s_handle;
     UINT16                  e_handle;
-    list_node_t            *p_cur_char; /* node pointing to p_attr */
 // btla-specific ++
 } __attribute__((packed)) tBTA_GATTC_CACHE;
 // btla-specific --
