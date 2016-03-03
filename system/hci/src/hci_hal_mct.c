@@ -100,7 +100,7 @@ static bool hal_open() {
   }
 
   acl_stream = eager_reader_new(uart_fds[CH_ACL_IN], &allocator_malloc, HCI_HAL_SERIAL_BUFFER_SIZE, SIZE_MAX, "hci_mct");
-  if (!event_stream) {
+  if (!acl_stream) {
     LOG_ERROR(LOG_TAG, "%s unable to create eager reader for the acl-in uart serial port.", __func__);
     goto error;
   }
