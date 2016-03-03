@@ -45,7 +45,9 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p
     tAVRC_STS  status = AVRC_STS_NO_ERROR;
     UINT8   *p;
     UINT16  len;
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     UINT8 eventid=0;
+#endif
 
     /* Check the vendor data */
     if (p_msg->vendor_len == 0)
@@ -392,9 +394,11 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UI
     {
         switch (p_msg->hdr.opcode)
         {
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
         case AVRC_OP_VENDOR:     /*  0x00    Vendor-dependent commands */
             status = avrc_ctrl_pars_vendor_rsp(&p_msg->vendor, p_result, p_buf,buf_len);
             break;
+#endif
 
         default:
             AVRC_TRACE_ERROR("%s unknown opcode:0x%x", __func__, p_msg->hdr.opcode);
