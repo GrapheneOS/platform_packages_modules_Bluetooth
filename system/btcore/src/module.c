@@ -78,10 +78,12 @@ bool module_init(const module_t *module) {
   assert(module != NULL);
   assert(get_module_state(module) == MODULE_STATE_NONE);
 
+  LOG_WARN(LOG_TAG, "%s initializing the module \"%s\"", __func__, module->name);
   if (!call_lifecycle_function(module->init)) {
     LOG_ERROR(LOG_TAG, "%s failed to initialize \"%s\"", __func__, module->name);
     return false;
   }
+  LOG_WARN(LOG_TAG, "%s initialized the module \"%s\"", __func__, module->name);
 
   set_module_state(module, MODULE_STATE_INITIALIZED);
   return true;
@@ -95,10 +97,12 @@ bool module_start_up(const module_t *module) {
   // as we're converting the startup sequence.
   assert(get_module_state(module) == MODULE_STATE_INITIALIZED || module->init == NULL);
 
+  LOG_WARN(LOG_TAG, "%s Starting the module \"%s\"", __func__, module->name);
   if (!call_lifecycle_function(module->start_up)) {
     LOG_ERROR(LOG_TAG, "%s failed to start up \"%s\"", __func__, module->name);
     return false;
   }
+  LOG_WARN(LOG_TAG, "%s Started the module \"%s\"", __func__, module->name);
 
   set_module_state(module, MODULE_STATE_STARTED);
   return true;
@@ -114,8 +118,11 @@ void module_shut_down(const module_t *module) {
   if (state < MODULE_STATE_STARTED)
     return;
 
+  LOG_WARN(LOG_TAG, "%s Shutting the module \"%s\"", __func__, module->name);
   if (!call_lifecycle_function(module->shut_down))
     LOG_ERROR(LOG_TAG, "%s found \"%s\" reported failure during shutdown. Continuing anyway.", __func__, module->name);
+  else
+    LOG_WARN(LOG_TAG, "%s Shutdown the module \"%s\"", __func__, module->name);
 
   set_module_state(module, MODULE_STATE_INITIALIZED);
 }
