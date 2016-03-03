@@ -43,6 +43,7 @@ static void bta_dm_pm_btm_cback(BD_ADDR bd_addr, tBTM_PM_STATUS status, UINT16 v
 static BOOLEAN bta_dm_pm_park(BD_ADDR peer_addr);
 static BOOLEAN bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE *p_peer_dev, UINT8 index);
 static BOOLEAN bta_dm_pm_is_sco_active ();
+static int bta_dm_get_sco_index();
 static void bta_dm_pm_hid_check(BOOLEAN bScoActive);
 static void bta_dm_pm_set_sniff_policy(tBTA_DM_PEER_DEVICE *p_dev, BOOLEAN bDisable);
 static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER *p_timer,
@@ -865,9 +866,24 @@ static void bta_dm_pm_ssr(BD_ADDR peer_addr)
     }
 
     p_spec = &p_bta_dm_ssr_spec[ssr];
-    APPL_TRACE_WARNING("bta_dm_pm_ssr:%d, lat:%d", ssr, p_spec->max_lat);
-    if(p_spec->max_lat)
+    APPL_TRACE_WARNING("%s ssr:%d, lat:%d", __func__, ssr, p_spec->max_lat);
+
+    if (p_spec->max_lat)
     {
+        /* Avoid SSR reset on device which has SCO connected */
+        if (bta_dm_pm_is_sco_active())
+        {
+            int idx = bta_dm_get_sco_index();
+            if (idx != -1)
+            {
+                if (bdcmp(bta_dm_conn_srvcs.conn_srvc[idx].peer_bdaddr, peer_addr) == 0)
+                {
+                    APPL_TRACE_WARNING("%s SCO is active on device, ignore SSR", __func__);
+                    return;
+                }
+            }
+        }
+
         /* set the SSR parameters. */
         BTM_SetSsrParams (peer_addr, p_spec->max_lat,
             p_spec->min_rmt_to, p_spec->min_loc_to);
@@ -1148,6 +1164,29 @@ static BOOLEAN bta_dm_pm_is_sco_active ()
 
 /*******************************************************************************
 **
+** Function        bta_dm_get_sco_index
+**
+** Description     Loop through connected services for HFP+State=SCO
+**
+** Returns         index at which SCO is connected, in absence of SCO return -1
+**
+*******************************************************************************/
+static int bta_dm_get_sco_index()
+{
+    for(int j = 0; j < bta_dm_conn_srvcs.count; j++)
+    {
+        /* check for SCO connected index */
+        if ( (bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_AG ) &&
+             (bta_dm_conn_srvcs.conn_srvc[j].state == BTA_SYS_SCO_OPEN) )
+        {
+            return j;
+        }
+    }
+    return -1;
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_pm_hid_check
 **
 ** Description      Disables/Enables sniff in link policy based on SCO Up/Down
@@ -1155,7 +1194,6 @@ static BOOLEAN bta_dm_pm_is_sco_active ()
 ** Returns          None
 **
 *******************************************************************************/
-
 static void bta_dm_pm_hid_check(BOOLEAN bScoActive)
 {
     int j;
