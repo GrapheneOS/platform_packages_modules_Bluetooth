@@ -575,6 +575,14 @@ static void btif_recv_ctrl_data(void)
                 break;
             }
 
+            if (alarm_is_scheduled(btif_media_cb.media_alarm))
+            {
+                APPL_TRACE_WARNING("%s Unexpected HAL start."
+                   "Stream already in started state", __func__);
+                a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+                break;
+            }
+
             if (btif_av_stream_ready() == TRUE)
             {
                 /* setup audio data channel listener */
@@ -853,7 +861,6 @@ bool btif_a2dp_start_media_task(void)
         NULL);
 
     thread_post(worker_thread, btif_media_thread_init, NULL);
-
     APPL_TRACE_EVENT("## A2DP MEDIA THREAD STARTED ##");
 
     return true;
