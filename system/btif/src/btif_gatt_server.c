@@ -395,26 +395,32 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             if (!p_cb->is_direct)
                 BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
 
-            switch(device_type)
+            // Determine transport
+            if (p_cb->transport != GATT_TRANSPORT_AUTO)
             {
-                case BT_DEVICE_TYPE_BREDR:
-                    transport = BTA_GATT_TRANSPORT_BR_EDR;
-                    break;
-
-                case BT_DEVICE_TYPE_BLE:
-                    transport = BTA_GATT_TRANSPORT_LE;
-                    break;
-
-                case BT_DEVICE_TYPE_DUMO:
-                    if (p_cb->transport == GATT_TRANSPORT_LE)
-                        transport = BTA_GATT_TRANSPORT_LE;
-                    else
+                transport = p_cb->transport;
+            } else {
+                switch(device_type)
+                {
+                    case BT_DEVICE_TYPE_BREDR:
                         transport = BTA_GATT_TRANSPORT_BR_EDR;
-                    break;
+                        break;
 
-                default:
-                    BTIF_TRACE_ERROR (" GATT Open :Invalid device type %d",device_type);
-                    return;
+                    case BT_DEVICE_TYPE_BLE:
+                        transport = BTA_GATT_TRANSPORT_LE;
+                        break;
+
+                    case BT_DEVICE_TYPE_DUMO:
+                        if (p_cb->transport == GATT_TRANSPORT_LE)
+                            transport = BTA_GATT_TRANSPORT_LE;
+                        else
+                            transport = BTA_GATT_TRANSPORT_BR_EDR;
+                        break;
+
+                    default:
+                        BTIF_TRACE_ERROR ("%s: Invalid device type %d", __func__, device_type);
+                        return;
+                }
             }
 
             // Connect!
