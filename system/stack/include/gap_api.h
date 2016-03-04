@@ -55,6 +55,8 @@
 #define GAP_EVT_CONN_DATA_AVAIL     0x0102
 #define GAP_EVT_CONN_CONGESTED      0x0103
 #define GAP_EVT_CONN_UNCONGESTED    0x0104
+#define GAP_EVT_TX_EMPTY            0x0105
+
 /* Values for 'chan_mode_mask' field */
 /* GAP_ConnOpen() - optional channels to negotiate */
 #define GAP_FCR_CHAN_OPT_BASIC      L2CAP_FCR_CHAN_OPT_BASIC
