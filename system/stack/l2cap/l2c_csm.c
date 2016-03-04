@@ -189,9 +189,7 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         /* Cancel sniff mode if needed */
         {
             tBTM_PM_PWR_MD settings;
-// btla-specific ++
             memset((void*)&settings, 0, sizeof(settings));
-// btla-specific --
             settings.mode = BTM_PM_MD_ACTIVE;
 /* COVERITY
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
@@ -245,9 +243,7 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
         /* Cancel sniff mode if needed */
         {
             tBTM_PM_PWR_MD settings;
-// btla-specific ++
             memset((void*)&settings, 0, sizeof(settings));
-// btla-specific --
             settings.mode = BTM_PM_MD_ACTIVE;
 /* COVERITY
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
@@ -1063,7 +1059,6 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CAP_DISCONNECT_REQ:                  /* Peer disconnected request */
-// btla-specific ++
         /* Make sure we are not in sniff mode */
         {
             tBTM_PM_PWR_MD settings;
@@ -1071,7 +1066,6 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
             settings.mode = BTM_PM_MD_ACTIVE;
             BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
         }
-// btla-specific --
 
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
         alarm_set_on_queue(p_ccb->l2c_ccb_timer,

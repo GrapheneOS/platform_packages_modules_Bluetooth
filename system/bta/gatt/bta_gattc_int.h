@@ -257,9 +257,7 @@ typedef struct
                                          if included service, flag primary,
                                          if descriptor, not used */
     tBTA_GATTC_ATTR_TYPE    attr_type;
-// btla-specific ++
 } __attribute__((packed)) tBTA_GATTC_CACHE_ATTR;
-// btla-specific --
 
 typedef struct
 {
@@ -268,9 +266,7 @@ typedef struct
     UINT16                  s_handle;
     UINT16                  e_handle;
     list_node_t            *p_cur_char; /* node pointing to p_attr */
-// btla-specific ++
 } __attribute__((packed)) tBTA_GATTC_CACHE;
-// btla-specific --
 
 typedef struct
 {
