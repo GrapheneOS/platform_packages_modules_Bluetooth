@@ -1341,7 +1341,7 @@
 #endif
 
 #ifndef HID_HOST_MAX_CONN_RETRY
-#define HID_HOST_MAX_CONN_RETRY     (3)
+#define HID_HOST_MAX_CONN_RETRY     (1)
 #endif
 
 #ifndef HID_HOST_REPAGE_WIN
