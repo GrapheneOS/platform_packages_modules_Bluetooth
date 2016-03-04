@@ -571,6 +571,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 
     memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
     memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+    p_buf->p_descr_type = NULL;
 
     p_buf->write_type = write_type;
     p_buf->len = len;
@@ -657,6 +658,7 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
 
     memcpy(&p_buf->srvc_id, &p_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
     memcpy(&p_buf->char_id, &p_char_id->char_id, sizeof(tBTA_GATT_ID));
+    p_buf->p_descr_type = NULL;
 
     p_buf->write_type = BTA_GATTC_WRITE_PREPARE;
     p_buf->offset   = offset;
