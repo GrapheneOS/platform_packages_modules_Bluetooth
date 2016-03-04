@@ -130,14 +130,6 @@ void SearchCompleteCallback(int conn_id, int status) {
     SearchCompleteCallback(g_interface, conn_id, status));
 }
 
-void SearchResultCallback(int conn_id, btgatt_srvc_id_t *srvc_id) {
-  shared_lock<shared_timed_mutex> lock(g_instance_lock);
-  VERIFY_INTERFACE_OR_RETURN();
-
-  VLOG(2) << __func__ << " - conn_id: " << conn_id;
-  // do not propagate this event, will do service discovery with new HAL call
-}
-
 void RegisterForNotificationCallback(int conn_id, int registered, int status,
                                       btgatt_srvc_id_t *srvc_id,
                                       btgatt_gatt_id_t *char_id) {
@@ -451,10 +443,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     ConnectCallback,
     DisconnectCallback,
     SearchCompleteCallback,
-    SearchResultCallback,
-    nullptr,  // get_characteristic_cb
-    nullptr,  // get_descriptor_cb
-    nullptr,  // get_included_service_cb
     RegisterForNotificationCallback,
     NotifyCallback,
     nullptr,  // read_characteristic_cb
