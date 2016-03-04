@@ -871,7 +871,6 @@ bt_status_t btif_storage_load_bonded_devices(void)
     uint32_t disc_timeout;
     bt_uuid_t local_uuids[BT_MAX_NUM_UUIDS];
     bt_uuid_t remote_uuids[BT_MAX_NUM_UUIDS];
-    uint32_t cod, devtype;
 
     btif_in_fetch_bonded_devices(&bonded_devices, 1);
 
@@ -935,6 +934,12 @@ bt_status_t btif_storage_load_bonded_devices(void)
         for (i = 0; i < bonded_devices.num_devices; i++)
         {
             bt_bdaddr_t *p_remote_addr;
+
+            /*
+             * TODO: improve handling of missing fields in NVRAM.
+             */
+            uint32_t cod = 0;
+            uint32_t devtype = 0;
 
             num_props = 0;
             p_remote_addr = &bonded_devices.devices[i];
