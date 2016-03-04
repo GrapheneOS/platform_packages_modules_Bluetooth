@@ -2068,7 +2068,6 @@ extern tBTM_STATUS BTM_VendorSpecificCommand(UINT16 opcode,
 *******************************************************************************/
 extern UINT8 BTM_AllocateSCN(void);
 
-// btla-specific ++
 /*******************************************************************************
 **
 ** Function         BTM_TryAllocateSCN
@@ -2079,7 +2078,6 @@ extern UINT8 BTM_AllocateSCN(void);
 **
 *******************************************************************************/
 extern BOOLEAN BTM_TryAllocateSCN(UINT8 scn);
-// btla-specific --
 
 
 /*******************************************************************************

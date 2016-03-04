@@ -862,11 +862,9 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                         status = GATT_INVALID_PDU;
                     }
                     /* these attribute does not allow write blob */
-// btla-specific ++
                     else if ( (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16) &&
                               (p_attr->uuid == GATT_UUID_CHAR_CLIENT_CONFIG ||
                                p_attr->uuid == GATT_UUID_CHAR_SRVR_CONFIG) )
-// btla-specific --
                     {
                         if (op_code == GATT_REQ_PREPARE_WRITE && offset != 0) /* does not allow write blob */
                         {

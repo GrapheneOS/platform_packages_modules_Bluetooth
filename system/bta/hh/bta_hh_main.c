@@ -450,7 +450,6 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                 else /* else remove device by handle */
                 {
                     index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
-// btla-specific ++
                     /* If BT disable is done while the HID device is connected and Link_Key uses unauthenticated combination
                       * then we can get into a situation where remove_bonding is called with the index set to 0 (without getting
                       * cleaned up). Only when VIRTUAL_UNPLUG is called do we cleanup the index and make it MAX_KNOWN.
@@ -461,7 +460,6 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                         (bta_hh_cb.kdev[index].in_use == FALSE)) {
                         index = BTA_HH_IDX_INVALID;
                     }
-// btla-specific --
                 }
             }
             else if (p_msg->event == BTA_HH_INT_OPEN_EVT)

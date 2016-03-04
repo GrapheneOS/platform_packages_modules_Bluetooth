@@ -596,14 +596,12 @@ typedef struct
     tBTM_LE_CONN_PRAMS  conn_params;
 #endif
 
-// btla-specific ++
 #if BTM_DISC_DURING_RS == TRUE
 #define BTM_SEC_RS_NOT_PENDING          0           /* Role Switch not in progress */
 #define BTM_SEC_RS_PENDING              1           /* Role Switch in progress */
 #define BTM_SEC_DISC_PENDING            2           /* Disconnect is pending */
     UINT8           rs_disc_pending;
 #endif
-// btla-specific --
 #define BTM_SEC_NO_LAST_SERVICE_ID      0
     UINT8           last_author_service_id;         /* ID of last serviced authorized: Reset after each l2cap connection */
 
@@ -963,9 +961,7 @@ extern void         btm_read_remote_ext_features_failed (UINT8 status, UINT16 ha
 extern void         btm_read_remote_version_complete (UINT8 *p);
 extern void         btm_establish_continue (tACL_CONN *p_acl_cb);
 
-// btla-specific ++
 extern void         btm_acl_chk_peer_pkt_type_support (tACL_CONN *p, UINT16 *p_pkt_type);
-// btla-specific --
 /* Read maximum data packet that can be sent over current connection */
 extern UINT16 btm_get_max_packet_size (BD_ADDR addr);
 extern tACL_CONN *btm_bda_to_acl (BD_ADDR bda, tBT_TRANSPORT transport);

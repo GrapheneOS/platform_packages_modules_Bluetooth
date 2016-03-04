@@ -1960,7 +1960,6 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
 
     if (p_cfg->fcr_present)
     {
-// btla-specific ++
         /* Temporary - until a better algorithm is implemented */
         /* If peer's tx_wnd_sz requires too many buffers for us to support, then adjust it. For now, respond with our own tx_wnd_sz. */
         /* Note: peer is not guaranteed to obey our adjustment */
@@ -1969,7 +1968,6 @@ void l2c_fcr_adj_our_rsp_options (tL2C_CCB *p_ccb, tL2CAP_CFG_INFO *p_cfg)
             L2CAP_TRACE_DEBUG ("%s: adjusting requested tx_win_sz from %i to %i", __FUNCTION__, p_ccb->peer_cfg.fcr.tx_win_sz, p_ccb->our_cfg.fcr.tx_win_sz);
             p_ccb->peer_cfg.fcr.tx_win_sz = p_ccb->our_cfg.fcr.tx_win_sz;
         }
-// btla-specific --
 
         p_cfg->fcr.mode         = p_ccb->peer_cfg.fcr.mode;
         p_cfg->fcr.tx_win_sz    = p_ccb->peer_cfg.fcr.tx_win_sz;
