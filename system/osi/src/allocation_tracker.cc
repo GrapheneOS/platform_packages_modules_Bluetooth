@@ -37,15 +37,21 @@ typedef struct {
   bool freed;
 } allocation_t;
 
-static const char *canary = "tinybird";
-
-static size_t canary_size;
+static const size_t canary_size = 8;
+static char canary[canary_size];
 static std::unordered_map<void*, allocation_t*> allocations;
 static pthread_mutex_t lock;
 static bool enabled = false;
 
 void allocation_tracker_init(void) {
-  canary_size = strlen(canary);
+  if (enabled)
+    return;
+
+  // randomize the canary contents
+  for (size_t i = 0; i < canary_size; i++)
+     canary[i] = (char)osi_rand();
+
+  LOG_DEBUG(LOG_TAG, "canary initialized");
 
   pthread_mutex_init(&lock, NULL);
 
