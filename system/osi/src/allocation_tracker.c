@@ -52,21 +52,26 @@ static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *contex
 static void *untracked_calloc(size_t size);
 
 static const size_t allocation_hash_map_size = 1024;
-static const char *canary = "tinybird";
 static const allocator_t untracked_calloc_allocator = {
   untracked_calloc,
   free
 };
 
-static size_t canary_size;
-static hash_map_t *allocations;
+static const size_t canary_size = 8;
+static char canary[canary_size];
+
+static hash_map_t *allocations = NULL;
 static pthread_mutex_t lock;
 
 void allocation_tracker_init(void) {
   if (allocations)
     return;
 
-  canary_size = strlen(canary);
+  // randomize the canary contents
+  for (size_t i = 0; i < canary_size; i++)
+     canary[i] = (char)osi_rand();
+
+  LOG_DEBUG(LOG_TAG, "canary initialized");
 
   pthread_mutex_init(&lock, NULL);
 
