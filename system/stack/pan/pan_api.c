@@ -179,9 +179,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
             SDP_DeleteRecord (pan_cb.pan_nap_sdp_handle);
 
         pan_cb.pan_nap_sdp_handle = pan_register_with_sdp (UUID_SERVCLASS_NAP, p_sec[2], p_nap_name, p_desc);
-// btla-specific ++
         bta_sys_add_uuid(UUID_SERVCLASS_NAP);
-// btla-specific --
     }
     /* If the NAP role is already active and now being cleared delete the record */
     else if (pan_cb.role & PAN_ROLE_NAP_SERVER)
@@ -190,9 +188,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
         {
             SDP_DeleteRecord (pan_cb.pan_nap_sdp_handle);
             pan_cb.pan_nap_sdp_handle = 0;
-// btla-specific ++
             bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
-// btla-specific --
         }
     }
 #endif
@@ -211,9 +207,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
             SDP_DeleteRecord (pan_cb.pan_gn_sdp_handle);
 
         pan_cb.pan_gn_sdp_handle = pan_register_with_sdp (UUID_SERVCLASS_GN, p_sec[1], p_gn_name, p_desc);
-// btla-specific ++
         bta_sys_add_uuid(UUID_SERVCLASS_GN);
-// btla-specific --
     }
     /* If the GN role is already active and now being cleared delete the record */
     else if (pan_cb.role & PAN_ROLE_GN_SERVER)
@@ -222,9 +216,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
         {
             SDP_DeleteRecord (pan_cb.pan_gn_sdp_handle);
             pan_cb.pan_gn_sdp_handle = 0;
-// btla-specific ++
             bta_sys_remove_uuid(UUID_SERVCLASS_GN);
-// btla-specific --
         }
     }
 #endif
@@ -242,9 +234,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
             SDP_DeleteRecord (pan_cb.pan_user_sdp_handle);
 
         pan_cb.pan_user_sdp_handle = pan_register_with_sdp (UUID_SERVCLASS_PANU, p_sec[0], p_user_name, p_desc);
-// btla-specific ++
         bta_sys_add_uuid(UUID_SERVCLASS_PANU);
-// btla-specific --
     }
     /* If the PANU role is already active and now being cleared delete the record */
     else if (pan_cb.role & PAN_ROLE_CLIENT)
@@ -253,9 +243,7 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
         {
             SDP_DeleteRecord (pan_cb.pan_user_sdp_handle);
             pan_cb.pan_user_sdp_handle = 0;
-// btla-specific ++
             bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
-// btla-specific --
         }
     }
 #endif

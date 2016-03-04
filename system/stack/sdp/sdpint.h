@@ -82,13 +82,11 @@
 #define     MAX_ATTR_PER_SEQ        16
 
 /* Max length we support for any attribute */
-// btla-specific ++
 #ifdef SDP_MAX_ATTR_LEN
 #define MAX_ATTR_LEN SDP_MAX_ATTR_LEN
 #else
 #define     MAX_ATTR_LEN            256
 #endif
-// btla-specific --
 
 /* Internal UUID sequence representation */
 typedef struct
