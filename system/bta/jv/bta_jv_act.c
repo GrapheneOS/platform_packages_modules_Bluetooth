@@ -1021,6 +1021,10 @@ static void bta_jv_l2cap_client_cback(UINT16 gap_handle, UINT16 event)
         bta_jv_pm_conn_idle(p_cb->p_pm_cb);
         break;
 
+    case GAP_EVT_TX_EMPTY:
+        bta_jv_pm_conn_idle(p_cb->p_pm_cb);
+        break;
+
     case GAP_EVT_CONN_CONGESTED:
     case GAP_EVT_CONN_UNCONGESTED:
         p_cb->cong = (event == GAP_EVT_CONN_CONGESTED) ? TRUE : FALSE;
@@ -1183,6 +1187,10 @@ static void bta_jv_l2cap_server_cback(UINT16 gap_handle, UINT16 event)
         /* Reset idle timer to avoid requesting sniff mode while receiving data */
         bta_jv_pm_conn_busy(p_cb->p_pm_cb);
         p_cb->p_cback(BTA_JV_L2CAP_DATA_IND_EVT, &evt_data, p_cb->user_data);
+        bta_jv_pm_conn_idle(p_cb->p_pm_cb);
+        break;
+
+    case GAP_EVT_TX_EMPTY:
         bta_jv_pm_conn_idle(p_cb->p_pm_cb);
         break;
 
@@ -1375,7 +1383,6 @@ void bta_jv_l2cap_write(tBTA_JV_MSG *p_data)
            evt_data.status = BTA_JV_SUCCESS;
         }
         ls->p_cb->p_cback(BTA_JV_L2CAP_WRITE_EVT, (tBTA_JV *)&evt_data, ls->user_data);
-        bta_jv_set_pm_conn_state(ls->p_cb->p_pm_cb, BTA_JV_CONN_IDLE);
     } else {
         /* As this pointer is checked in the API function, this occurs only when the channel is
          * disconnected after the API function is called, but before the message is handled. */
