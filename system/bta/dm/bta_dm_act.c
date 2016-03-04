@@ -25,6 +25,7 @@
 
 #define LOG_TAG "bt_bta_dm"
 
+#include <assert.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -3639,6 +3640,34 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result)
 
 /*******************************************************************************
 **
+** Function         find_utf8_char_boundary
+**
+** Description      This function checks a UTF8 string |utf8str| starting at
+**                  |offset|, moving backwards and returns the offset of the
+**                  next valid UTF8 character boundary found.
+**
+** Returns          Offset of UTF8 character boundary
+**
+*******************************************************************************/
+static size_t find_utf8_char_boundary(const char *utf8str, size_t offset)
+{
+    assert(utf8str);
+    assert(offset > 0);
+
+    while (--offset)
+    {
+        uint8_t ch = (uint8_t)utf8str[offset];
+        if ((ch & 0x80) == 0x00) // ASCII
+            return offset + 1;
+        if ((ch & 0xC0) == 0xC0) // Multi-byte sequence start
+            return offset;
+    }
+
+    return 0;
+}
+
+/*******************************************************************************
+**
 ** Function         bta_dm_set_eir
 **
 ** Description      This function creates EIR tagged data and writes it to controller.
@@ -3710,14 +3739,15 @@ static void bta_dm_set_eir (char *local_name)
 #endif  // BTA_EIR_CANNED_UUID_LIST
 
         /* if UUID doesn't fit remaing space, shorten local name */
-        if ( local_name_len > (free_eir_length - 4 - num_uuid*LEN_UUID_16))
+        if (local_name_len > (free_eir_length - 4 - num_uuid*LEN_UUID_16))
         {
-            APPL_TRACE_WARNING("BTA EIR: local name is shortened");
-            local_name_len = p_bta_dm_eir_cfg->bta_dm_eir_min_name_len;
+            local_name_len = find_utf8_char_boundary(local_name,
+                p_bta_dm_eir_cfg->bta_dm_eir_min_name_len);
+            APPL_TRACE_WARNING("%s local name is shortened (%d)", __func__, local_name_len);
             data_type = BTM_EIR_SHORTENED_LOCAL_NAME_TYPE;
-        }
-        else
+        } else {
             data_type = BTM_EIR_COMPLETE_LOCAL_NAME_TYPE;
+        }
     }
 
     UINT8_TO_STREAM(p, local_name_len + 1);
