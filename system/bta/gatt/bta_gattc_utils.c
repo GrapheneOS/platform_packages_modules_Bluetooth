@@ -581,8 +581,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
                     /* It's enough to get service or characteristic handle, as
                      * clear boundaries are always around service.
                      */
-                    handle = bta_gattc_id2handle(p_srcb, &p_clrcb->notif_reg[i].char_id.srvc_id,
-                                                 &p_clrcb->notif_reg[i].char_id.char_id, NULL);
+                    handle = p_clrcb->notif_reg[i].char_id.char_id.inst_id;
                     if (handle >= start_handle && handle <= end_handle)
                         memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
             }
