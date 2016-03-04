@@ -247,9 +247,7 @@ typedef struct
 {
     tBTA_GATT_STATUS    status;
     tBTA_GATTC_IF       client_if;
-// btla-specific ++
     tBT_UUID            app_uuid;
-// btla-specific --
 }tBTA_GATTC_REG;
 
 typedef struct
@@ -327,7 +325,6 @@ typedef struct
     BOOLEAN congested; /* congestion indicator */
 }tBTA_GATTC_CONGEST;
 
-// btla-specific ++
 typedef struct
 {
     tBTA_GATT_STATUS        status;
@@ -335,7 +332,6 @@ typedef struct
     UINT16                  conn_id;
     BD_ADDR                 remote_bda;
 }tBTA_GATTC_OPEN_CLOSE;
-// btla-specific --
 
 typedef struct
 {
@@ -488,9 +484,7 @@ typedef struct
 {
     tBTA_GATTS_IF       server_if;
     tBTA_GATT_STATUS    status;
-// btla-specific ++
     tBT_UUID            uuid;
-// btla-specific --
 }tBTA_GATTS_REG_OPER;
 
 
@@ -498,12 +492,10 @@ typedef struct
 {
     tBTA_GATTS_IF       server_if;
     UINT16              service_id;
-// btla-specific ++
     UINT16              svc_instance;
     BOOLEAN             is_primary;
     tBTA_GATT_STATUS    status;
     tBT_UUID            uuid;
-// btla-specific --
 }tBTA_GATTS_CREATE;
 
 typedef struct
@@ -512,9 +504,7 @@ typedef struct
     UINT16              service_id;
     UINT16              attr_id;
     tBTA_GATT_STATUS    status;
-// btla-specific ++
     tBT_UUID            char_uuid;
-// btla-specific --
 }tBTA_GATTS_ADD_RESULT;
 
 typedef struct

@@ -216,9 +216,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
         }
 
         cb_data.reg_oper.server_if = BTA_GATTS_INVALID_IF;
-// btla-specific ++
         memcpy(&cb_data.reg_oper.uuid, &p_msg->api_reg.app_uuid, sizeof(tBT_UUID));
-// btla-specific --
         if (first_unuse != 0xff)
         {
             APPL_TRACE_ERROR("register application first_unuse rcb_idx = %d", first_unuse);
@@ -361,9 +359,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 
                 cb_data.create.status      = BTA_GATT_OK;
                 cb_data.create.service_id  = service_id;
-// btla-specific ++
                 cb_data.create.is_primary  = p_msg->api_create_svc.is_pri;
-// btla-specific --
                 cb_data.create.server_if   = p_cb->rcb[rcb_idx].gatt_if;
             }
             else
@@ -372,10 +368,8 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
                 memset(&p_cb->srvc_cb[srvc_idx], 0, sizeof(tBTA_GATTS_SRVC_CB));
                 APPL_TRACE_ERROR("service creation failed.");
             }
-// btla-specific ++
             memcpy(&cb_data.create.uuid, &p_msg->api_create_svc.service_uuid, sizeof(tBT_UUID));
             cb_data.create.svc_instance= p_msg->api_create_svc.inst;
-// btla-specific --
         }
         if (p_cb->rcb[rcb_idx].p_cback)
             (* p_cb->rcb[rcb_idx].p_cback)(BTA_GATTS_CREATE_EVT, &cb_data);
@@ -441,9 +435,7 @@ void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
     cb_data.add_result.server_if = p_rcb->gatt_if;
     cb_data.add_result.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
     cb_data.add_result.attr_id = attr_id;
-// btla-specific ++
     memcpy(&cb_data.add_result.char_uuid, &p_msg->api_add_char.char_uuid, sizeof(tBT_UUID));
-// btla-specific --
 
     if (attr_id)
     {
@@ -479,9 +471,7 @@ void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p
     cb_data.add_result.server_if = p_rcb->gatt_if;
     cb_data.add_result.service_id = p_msg->api_add_incl_srvc.hdr.layer_specific;
     cb_data.add_result.attr_id = attr_id;
-// btla-specific ++
     memcpy(&cb_data.add_result.char_uuid, &p_msg->api_add_char_descr.descr_uuid, sizeof(tBT_UUID));
-// btla-specific --
 
     if (attr_id)
     {

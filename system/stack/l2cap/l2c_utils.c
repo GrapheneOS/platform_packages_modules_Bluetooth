@@ -1543,13 +1543,11 @@ tL2C_CCB *l2cu_allocate_ccb (tL2C_LCB *p_lcb, UINT16 cid)
     alarm_free(p_ccb->fcrb.ack_timer);
     p_ccb->fcrb.ack_timer = alarm_new("l2c_fcrb.ack_timer");
 
-// btla-specific ++
    /*  CSP408639 Fix: When L2CAP send amp move channel request or receive
      * L2CEVT_AMP_MOVE_REQ do following sequence. Send channel move
      * request -> Stop retrans/monitor timer -> Change channel state to CST_AMP_MOVING. */
     alarm_free(p_ccb->fcrb.mon_retrans_timer);
     p_ccb->fcrb.mon_retrans_timer = alarm_new("l2c_fcrb.mon_retrans_timer");
-// btla-specific --
 
     p_ccb->ertm_info.preferred_mode  = L2CAP_FCR_BASIC_MODE;        /* Default mode for channel is basic mode */
     p_ccb->ertm_info.allowed_modes   = L2CAP_FCR_CHAN_OPT_BASIC;    /* Default mode for channel is basic mode */
