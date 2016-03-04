@@ -815,30 +815,6 @@ extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_GetNextCharDescr
-**
-** Description      This function is called to find the next charatceristic of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_start_descr_id: start the characteristic search from the next record
-**                           after the one identified by p_start_descr_id.
-**                  p_descr_uuid_cond: Characteristic descriptor UUID, if NULL find
-**                               the first available characteristic descriptor.
-**                  p_descr_result: output parameter which will store the GATT
-**                                  characteristic descriptor ID.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetNextCharDescr (UINT16 conn_id,
-                                                     tBTA_GATTC_CHAR_DESCR_ID *p_start_descr_id,
-                                                     tBT_UUID           *p_descr_uuid_cond,
-                                                     tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
-
-
-/*******************************************************************************
-**
 ** Function         BTA_GATTC_GetFirstIncludedService
 **
 ** Description      This function is called to find the first included service of the
@@ -858,29 +834,6 @@ extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id,
                                                            tBTA_GATT_SRVC_ID    *p_srvc_id,
                                                            tBT_UUID               *p_uuid_cond,
                                                            tBTA_GATTC_INCL_SVC_ID *p_result);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetNextIncludedService
-**
-** Description      This function is called to find the next included service of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_start_id: start the search from the next record
-**                                  after the one identified by p_start_id.
-**                  p_uuid_cond: Included service UUID, if NULL find the first available
-**                               included service.
-**                  p_result: output parameter which will store the GATT ID
-**                              of the included service found.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetNextIncludedService(UINT16 conn_id,
-                                                          tBTA_GATTC_INCL_SVC_ID *p_start_id,
-                                                          tBT_UUID             *p_uuid_cond,
-                                                          tBTA_GATTC_INCL_SVC_ID *p_result);
 
 /*******************************************************************************
 **
