@@ -491,12 +491,10 @@ tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
     if( (dev_handle >= HID_HOST_MAX_DEVICES) || (!hh_cb.devices[dev_handle].in_use) )
         return HID_ERR_INVALID_PARAM;
 
-    hh_cb.devices[dev_handle].conn_tries = HID_HOST_MAX_CONN_RETRY+1;
-    alarm_cancel(hh_cb.devices[dev_handle].conn.process_repage_timer);
-
     if( hh_cb.devices[dev_handle].state != HID_DEV_CONNECTED )
         return HID_ERR_NO_CONNECTION;
 
+    alarm_cancel(hh_cb.devices[dev_handle].conn.process_repage_timer);
     hh_cb.devices[dev_handle].conn_tries = HID_HOST_MAX_CONN_RETRY+1;
     return hidh_conn_disconnect( dev_handle );
 }
