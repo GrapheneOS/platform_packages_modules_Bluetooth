@@ -58,6 +58,7 @@ Then fetch third party dependencies:
 ```sh
 cd ~/fluoride/bt
 mkdir third_party
+cd third_party
 git clone https://github.com/google/googletest.git
 git clone https://android.googlesource.com/platform/external/libchrome
 git clone https://android.googlesource.com/platform/external/modp_b64
