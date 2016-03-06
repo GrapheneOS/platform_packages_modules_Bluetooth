@@ -16,7 +16,6 @@ LOCAL_SRC_FILES:= \
     ./gatt/bta_gatts_act.c \
     ./gatt/bta_gatts_main.c \
     ./gatt/bta_gattc_utils.c \
-    ./gatt/bta_gattc_ci.c \
     ./gatt/bta_gatts_api.c \
     ./gatt/bta_gattc_main.c \
     ./gatt/bta_gattc_act.c \
