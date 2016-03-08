@@ -72,7 +72,6 @@ btifCommonSrc += \
   co/bta_hh_co.c \
   co/bta_hl_co.c \
   co/bta_pan_co.c \
-  co/bta_gattc_co.c \
   co/bta_gatts_co.c
 
 # Tests
