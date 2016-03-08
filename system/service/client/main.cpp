@@ -736,6 +736,33 @@ void HandleHelp(IBluetooth* /* bt_iface */, const vector<string>& /* args */) {
   cout << endl;
 }
 
+const char kExecuteLong[] = "exec";
+const char kExecuteShort[] = "e";
+
+bool ExecuteCommand(sp<IBluetooth> bt_iface, std::string &command) {
+  vector<string> args =
+      base::SplitString(command, " ", base::TRIM_WHITESPACE,
+                        base::SPLIT_WANT_ALL);
+
+  if (args.empty())
+    return true;
+
+  // The first argument is the command while the remaining are what we pass to
+  // the handler functions.
+  command = args[0];
+  args.erase(args.begin());
+
+  for (int i = 0; kCommandMap[i].func; i++) {
+    if (command == kCommandMap[i].command) {
+      kCommandMap[i].func(bt_iface.get(), args);
+      return true;
+    }
+  }
+
+  cout << "Unrecognized command: " << command << endl;
+  return false;
+}
+
 }  // namespace
 
 class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
@@ -757,6 +784,7 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
  private:
   DISALLOW_COPY_AND_ASSIGN(BluetoothDeathRecipient);
 };
+
 
 int main(int argc, char* argv[]) {
   base::AtExitManager exit_manager;
@@ -795,8 +823,30 @@ int main(int argc, char* argv[]) {
        << "Type \"help\" to see possible commands.\n"
        << endl;
 
+  string command;
+
+  // Add commands from the command line, if they exist.
+  auto command_line = base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch(kExecuteLong)) {
+    command += command_line->GetSwitchValueASCII(kExecuteLong);
+  }
+
+  if (command_line->HasSwitch(kExecuteShort)) {
+    if (!command.empty())
+      command += " ; ";
+    command += command_line->GetSwitchValueASCII(kExecuteShort);
+  }
+
   while (true) {
-    string command;
+    vector<string> commands = base::SplitString(command, ";",
+                                                base::TRIM_WHITESPACE,
+                                                base::SPLIT_WANT_ALL);
+    for (string command : commands) {
+      if (!ExecuteCommand(bt_iface, command))
+        break;
+    }
+
+    commands.clear();
 
     PrintPrompt();
 
@@ -814,28 +864,6 @@ int main(int argc, char* argv[]) {
       return EXIT_FAILURE;
     }
 
-    vector<string> args =
-        base::SplitString(command, " ", base::TRIM_WHITESPACE,
-                          base::SPLIT_WANT_ALL);
-
-    if (args.empty())
-      continue;
-
-    // The first argument is the command while the remaning are what we pass to
-    // the handler functions.
-    command = args[0];
-    args.erase(args.begin());
-
-    bool command_handled = false;
-    for (int i = 0; kCommandMap[i].func && !command_handled; i++) {
-      if (command == kCommandMap[i].command) {
-        kCommandMap[i].func(bt_iface.get(), args);
-        command_handled = true;
-      }
-    }
-
-    if (!command_handled)
-      cout << "Unrecognized command: " << command << endl;
   }
 
   return EXIT_SUCCESS;
