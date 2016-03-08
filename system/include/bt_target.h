@@ -25,7 +25,7 @@
 #endif
 
 #if !defined(HAS_BDROID_BUILDCFG) && !defined(HAS_NO_BDROID_BUILDCFG)
-#error "An Android.mk file did not include bdroid_CFLAGS and possibly not bdorid_C_INCLUDES"
+#error "An Android.mk file did not include bdroid_CFLAGS and possibly not bdroid_C_INCLUDES"
 #endif
 
 #ifdef HAS_BDROID_BUILDCFG
