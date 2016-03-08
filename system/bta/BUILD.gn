@@ -45,7 +45,6 @@ static_library("bta") {
     "gatt/bta_gattc_act.c",
     "gatt/bta_gattc_api.c",
     "gatt/bta_gattc_cache.c",
-    "gatt/bta_gattc_ci.c",
     "gatt/bta_gattc_main.c",
     "gatt/bta_gattc_utils.c",
     "gatt/bta_gatts_act.c",
