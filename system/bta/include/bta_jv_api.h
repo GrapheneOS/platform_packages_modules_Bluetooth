@@ -590,7 +590,7 @@ extern tBTA_JV_STATUS BTA_JvL2capConnectLE(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capConnect(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+extern tBTA_JV_STATUS BTA_JvL2capConnect(int conn_type, tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                            const tL2CAP_ERTM_INFO *ertm_info, UINT16 remote_psm,
                            UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
                            BD_ADDR peer_bd_addr, tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);
@@ -634,7 +634,7 @@ extern tBTA_JV_STATUS BTA_JvL2capCloseLE(UINT32 handle);
 **                  BTA_JV_FAILURE, otherwise.
 **
 *******************************************************************************/
-extern tBTA_JV_STATUS BTA_JvL2capStartServer(tBTA_SEC sec_mask, tBTA_JV_ROLE role,
+extern tBTA_JV_STATUS BTA_JvL2capStartServer(int conn_type, tBTA_SEC sec_mask, tBTA_JV_ROLE role,
                            const tL2CAP_ERTM_INFO *ertm_info,
                            UINT16 local_psm, UINT16 rx_mtu, tL2CAP_CFG_INFO *cfg,
                            tBTA_JV_L2CAP_CBACK *p_cback, void *user_data);

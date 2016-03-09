@@ -797,6 +797,87 @@ void l2c_fcr_proc_pdu (tL2C_CCB *p_ccb, BT_HDR *p_buf)
 
 /*******************************************************************************
 **
+** Function         l2c_lcc_proc_pdu
+**
+** Description      This function is the entry point for processing of a
+**                  received PDU when in LE Coc flow control modes.
+**
+** Returns          -
+**
+*******************************************************************************/
+void l2c_lcc_proc_pdu(tL2C_CCB *p_ccb, BT_HDR *p_buf)
+{
+
+    assert(p_ccb != NULL);
+    assert(p_buf != NULL);
+    UINT8  *p = (UINT8*)(p_buf + 1) + p_buf->offset;
+    UINT16 sdu_length;
+    BT_HDR *p_data = NULL;
+
+    /* Buffer length should not exceed local mps */
+    if (p_buf->len > p_ccb->local_conn_cfg.mps)
+    {
+        /* Discard the buffer */
+        osi_free(p_buf);
+        return;
+    }
+
+    if (p_ccb->is_first_seg)
+    {
+        STREAM_TO_UINT16(sdu_length, p);
+        /* Check the SDU Length with local MTU size */
+        if (sdu_length > p_ccb->local_conn_cfg.mtu)
+        {
+            /* Discard the buffer */
+            osi_free(p_buf);
+            return;
+        }
+
+
+        if ((p_data = (BT_HDR *) osi_malloc(L2CAP_MAX_BUF_SIZE)) == NULL)
+        {
+            osi_free(p_buf);
+            return;
+        }
+
+        p_ccb->ble_sdu = p_data;
+        p_data->len = 0;
+        p_ccb->ble_sdu_length = sdu_length;
+        L2CAP_TRACE_DEBUG ("%s SDU Length = %d",__func__,sdu_length);
+        p_buf->len -= sizeof(sdu_length);
+        p_buf->offset += sizeof(sdu_length);
+        p_data->offset = 0;
+
+    }
+    else
+        p_data = p_ccb->ble_sdu;
+
+    memcpy((UINT8*)(p_data + 1) + p_data->offset + p_data->len, (UINT8*)(p_buf + 1) + p_buf->offset, p_buf->len);
+    p_data->len += p_buf->len;
+    p = (UINT8*)(p_data+1) + p_data->offset;
+    if (p_data->len == p_ccb->ble_sdu_length)
+    {
+        l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DATA, p_data);
+        p_ccb->is_first_seg = TRUE;
+        p_ccb->ble_sdu = NULL;
+        p_ccb->ble_sdu_length = 0;
+    }
+    else if (p_data->len < p_ccb->ble_sdu_length)
+    {
+        p_ccb->is_first_seg = FALSE;
+    }
+    else
+    {
+        L2CAP_TRACE_ERROR ("%s Length in the SDU messed up",__func__);
+        // TODO: reset every thing may be???
+    }
+
+    osi_free(p_buf);
+    return;
+}
+
+/*******************************************************************************
+**
 ** Function         l2c_fcr_proc_tout
 **
 ** Description      Handle a timeout. We should be in error recovery state.
@@ -1734,6 +1815,104 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
     return (p_xmit);
 }
 
+/*******************************************************************************
+**
+** Function         l2c_lcc_get_next_xmit_sdu_seg
+**
+** Description      Get the next SDU segment to transmit for LE connection oriented channel
+**
+** Returns          pointer to buffer with segment or NULL
+**
+*******************************************************************************/
+BT_HDR *l2c_lcc_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length)
+{
+    BOOLEAN     first_seg    = FALSE;       /* The segment is the first part of data  */
+    BOOLEAN     last_seg     = FALSE;       /* The segment is the last part of data  */
+    UINT16      no_of_bytes_to_send = 0;
+    UINT16      sdu_len = 0;
+    BT_HDR      *p_buf, *p_xmit;
+    UINT8       *p;
+    UINT16      max_pdu = p_ccb->peer_conn_cfg.mps;
+
+    p_buf = (BT_HDR *)fixed_queue_try_peek_first(p_ccb->xmit_hold_q);
+
+    /* We are using the "event" field to tell is if we already started segmentation */
+    if (p_buf->event == 0)
+    {
+        first_seg = TRUE;
+        sdu_len   = p_buf->len;
+        if (p_buf->len <= (max_pdu - L2CAP_LCC_SDU_LENGTH))
+        {
+            last_seg = TRUE;
+            no_of_bytes_to_send = p_buf->len;
+        }
+        else
+            no_of_bytes_to_send = max_pdu - L2CAP_LCC_SDU_LENGTH;
+    }
+    else if (p_buf->len <= max_pdu)
+    {
+        last_seg = TRUE;
+        no_of_bytes_to_send = p_buf->len;
+    }
+    else
+    {
+        /* Middle Packet */
+        no_of_bytes_to_send = max_pdu;
+    }
+
+    /* Get a new buffer and copy the data that can be sent in a PDU */
+    if (first_seg == TRUE)
+        p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_LCC_OFFSET,
+                    no_of_bytes_to_send);
+    else
+        p_xmit = l2c_fcr_clone_buf (p_buf, L2CAP_MIN_OFFSET,
+                   no_of_bytes_to_send);
+
+    if (p_xmit != NULL)
+    {
+        p_buf->event  = p_ccb->local_cid;
+        p_xmit->event = p_ccb->local_cid;
+
+        if (first_seg == TRUE)
+        {
+            p_xmit->offset -= L2CAP_LCC_SDU_LENGTH;  /* for writing the SDU length. */
+            p = (UINT8 *)(p_xmit + 1) + p_xmit->offset;
+            UINT16_TO_STREAM(p, sdu_len);
+            p_xmit->len += L2CAP_LCC_SDU_LENGTH;
+        }
+
+        p_buf->len    -= no_of_bytes_to_send;
+        p_buf->offset += no_of_bytes_to_send;
+
+        /* copy PBF setting */
+        p_xmit->layer_specific = p_buf->layer_specific;
+
+    }
+    else /* Should never happen if the application has configured buffers correctly */
+    {
+        L2CAP_TRACE_ERROR ("L2CAP - cannot get buffer, for segmentation");
+        return (NULL);
+    }
+
+    if (last_seg == TRUE)
+    {
+        p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->xmit_hold_q);
+        osi_free(p_buf);
+    }
+
+    /* Step back to add the L2CAP headers */
+    p_xmit->offset -= L2CAP_PKT_OVERHEAD;
+    p_xmit->len    += L2CAP_PKT_OVERHEAD ;
+
+    /* Set the pointer to the beginning of the data */
+    p = (UINT8 *)(p_xmit + 1) + p_xmit->offset;
+
+    /* Note: if FCS has to be included then the length is recalculated later */
+    UINT16_TO_STREAM (p, p_xmit->len - L2CAP_PKT_OVERHEAD);
+    UINT16_TO_STREAM (p, p_ccb->remote_cid);
+    return (p_xmit);
+
+}
 
 /*******************************************************************************
 ** Configuration negotiation functions
