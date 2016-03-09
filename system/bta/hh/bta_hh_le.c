@@ -1717,7 +1717,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb)
     char_cond.len = LEN_UUID_16;
     char_cond.uu.uuid16 = char_uuid;
 
-    bta_hh_le_fill_16bits_srvc_id(TRUE, 0, UUID_SERVCLASS_LE_HID, &srvc_id);
+    bta_hh_le_fill_16bits_srvc_id(TRUE, p_dev_cb->hid_srvc.srvc_inst_id, UUID_SERVCLASS_LE_HID, &srvc_id);
 
 #if BTA_HH_DEBUG == TRUE
     APPL_TRACE_DEBUG("bta_hh_le_search_hid_chars: looking for %s(0x%04x)",
