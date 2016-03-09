@@ -169,9 +169,18 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_LP_CONNECT_CFM:                         /* Link came up         */
-        p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
-                                  p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb);
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+        {
+            p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
+            l2ble_sec_access_req(p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, TRUE,
+                    &l2c_link_sec_comp, p_ccb);
+        }
+        else
+        {
+            p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
+            btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+                                      p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb);
+        }
         break;
 
     case L2CEVT_LP_CONNECT_CFM_NEG:                     /* Link failed          */
@@ -186,11 +195,19 @@ static void l2c_csm_closed (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CA_CONNECT_REQ:                       /* API connect request  */
-        /* Cancel sniff mode if needed */
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
         {
-            tBTM_PM_PWR_MD settings;
-            memset((void*)&settings, 0, sizeof(settings));
-            settings.mode = BTM_PM_MD_ACTIVE;
+            p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
+            l2ble_sec_access_req(p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, TRUE,
+                    &l2c_link_sec_comp, p_ccb);
+        }
+        else
+        {
+            /* Cancel sniff mode if needed */
+            {
+                tBTM_PM_PWR_MD settings;
+                memset((void*)&settings, 0, sizeof(settings));
+                settings.mode = BTM_PM_MD_ACTIVE;
 /* COVERITY
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.max" in call to function "BTM_SetPowerMode" [details]
@@ -198,13 +215,14 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 // FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.
 // coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored
 */
-            BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
-        }
+                BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+            }
 
-        /* If sec access does not result in started SEC_COM or COMP_NEG are already processed */
-        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
-                                      p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
-            p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
+            /* If sec access does not result in started SEC_COM or COMP_NEG are already processed */
+            if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+                                          p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
+                p_ccb->chnl_state = CST_ORIG_W4_SEC_COMP;
+        }
         break;
 
     case L2CEVT_SEC_COMP:
@@ -240,11 +258,19 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
         /* stop link timer to avoid race condition between A2MP, Security, and L2CAP */
         alarm_cancel(p_ccb->p_lcb->l2c_lcb_timer);
 
-        /* Cancel sniff mode if needed */
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
         {
-            tBTM_PM_PWR_MD settings;
-            memset((void*)&settings, 0, sizeof(settings));
-            settings.mode = BTM_PM_MD_ACTIVE;
+            p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
+             l2ble_sec_access_req(p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, FALSE,
+                    &l2c_link_sec_comp, p_ccb);
+        }
+        else
+        {
+            /* Cancel sniff mode if needed */
+            {
+                tBTM_PM_PWR_MD settings;
+                memset((void*)&settings, 0, sizeof(settings));
+                settings.mode = BTM_PM_MD_ACTIVE;
 /* COVERITY
 Event uninit_use_in_call: Using uninitialized value "settings" (field "settings".timeout uninitialized) in call to function "BTM_SetPowerMode" [details]
 Event uninit_use_in_call: Using uninitialized value "settings.max" in call to function "BTM_SetPowerMode" [details]
@@ -252,15 +278,16 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 // FALSE-POSITIVE error from Coverity test-tool. Please do NOT remove following comment.
 // coverity[uninit_use_in_call] False-positive: setting the mode to BTM_PM_MD_ACTIVE only uses settings.mode the other data members of tBTM_PM_PWR_MD are ignored
 */
-            BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
-        }
+                BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+            }
 
-        p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
-        if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
-                                  p_ccb->p_lcb->handle, FALSE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
-        {
-            /* started the security process, tell the peer to set a longer timer */
-            l2cu_send_peer_connect_rsp(p_ccb, L2CAP_CONN_PENDING, 0);
+            p_ccb->chnl_state = CST_TERM_W4_SEC_COMP;
+            if (btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+                                      p_ccb->p_lcb->handle, FALSE, &l2c_link_sec_comp, p_ccb) == BTM_CMD_STARTED)
+            {
+                /* started the security process, tell the peer to set a longer timer */
+                l2cu_send_peer_connect_rsp(p_ccb, L2CAP_CONN_PENDING, 0);
+            }
         }
         break;
 
@@ -277,6 +304,11 @@ Event uninit_use_in_call: Using uninitialized value "settings.min" in call to fu
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
         l2cu_release_ccb (p_ccb);
+        break;
+
+    case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:
+    case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:
+        osi_free(p_data);
         break;
     }
 }
@@ -326,28 +358,47 @@ static void l2c_csm_orig_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
 
     case L2CEVT_SEC_RE_SEND_CMD:                    /* BTM has enough info to proceed */
     case L2CEVT_LP_CONNECT_CFM:                     /* Link came up         */
-        btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+        {
+             l2ble_sec_access_req(p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm, FALSE,
+                    &l2c_link_sec_comp, p_ccb);
+        }
+        else
+        {
+            btm_sec_l2cap_access_req (p_ccb->p_lcb->remote_bd_addr, p_ccb->p_rcb->psm,
                                   p_ccb->p_lcb->handle, TRUE, &l2c_link_sec_comp, p_ccb);
+        }
         break;
 
     case L2CEVT_SEC_COMP:                            /* Security completed success */
         /* Wait for the info resp in this state before sending connect req (if needed) */
         p_ccb->chnl_state = CST_W4_L2CAP_CONNECT_RSP;
-        if (!p_ccb->p_lcb->w4_info_rsp)
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
         {
-            /* Need to have at least one compatible channel to continue */
-            if (!l2c_fcr_chk_chan_modes(p_ccb))
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                               L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
+            l2cble_credit_based_conn_req (p_ccb);          /* Start Connection     */
+        }
+        else
+        {
+            if (!p_ccb->p_lcb->w4_info_rsp)
             {
-                l2cu_release_ccb (p_ccb);
-                (*connect_cfm)(local_cid, L2CAP_CONN_NO_LINK);
-            }
-            else
-            {
-                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
-                                   L2CAP_CHNL_CONNECT_TIMEOUT_MS,
-                                   l2c_ccb_timer_timeout, p_ccb,
-                                   btu_general_alarm_queue);
-                l2cu_send_peer_connect_req (p_ccb);          /* Start Connection     */
+                /* Need to have at least one compatible channel to continue */
+                if (!l2c_fcr_chk_chan_modes(p_ccb))
+                {
+                    l2cu_release_ccb (p_ccb);
+                    (*connect_cfm)(local_cid, L2CAP_CONN_NO_LINK);
+                }
+                else
+                {
+                    alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                       L2CAP_CHNL_CONNECT_TIMEOUT_MS,
+                                       l2c_ccb_timer_timeout, p_ccb,
+                                       btu_general_alarm_queue);
+                    l2cu_send_peer_connect_req (p_ccb);          /* Start Connection     */
+                }
             }
         }
         break;
@@ -463,7 +514,10 @@ static void l2c_csm_term_w4_sec_comp (tL2C_CCB *p_ccb, UINT16 event, void *p_dat
         }
         else
         {
-            l2cu_send_peer_connect_rsp (p_ccb, L2CAP_CONN_SECURITY_BLOCK, 0);
+            if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+                l2cu_reject_ble_connection(p_ccb->p_lcb, p_ccb->remote_id, L2CAP_LE_INSUFFICIENT_AUTHENTICATION);
+            else
+                l2cu_send_peer_connect_rsp (p_ccb, L2CAP_CONN_SECURITY_BLOCK, 0);
             l2cu_release_ccb (p_ccb);
         }
         break;
@@ -546,10 +600,19 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
 
     case L2CEVT_L2CAP_CONNECT_RSP:                  /* Got peer connect confirm */
         p_ccb->remote_cid = p_ci->remote_cid;
-        p_ccb->chnl_state = CST_CONFIG;
-        alarm_set_on_queue(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
-                           l2c_ccb_timer_timeout, p_ccb,
-                           btu_general_alarm_queue);
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+        {
+            /* Connection is completed */
+            alarm_cancel(p_ccb->l2c_ccb_timer);
+            p_ccb->chnl_state = CST_OPEN;
+        }
+        else
+        {
+            p_ccb->chnl_state = CST_CONFIG;
+            alarm_set_on_queue(p_ccb->l2c_ccb_timer, L2CAP_CHNL_CFG_TIMEOUT_MS,
+                               l2c_ccb_timer_timeout, p_ccb,
+                               btu_general_alarm_queue);
+        }
         L2CAP_TRACE_API ("L2CAP - Calling Connect_Cfm_Cb(), CID: 0x%04x, Success", p_ccb->local_cid);
 
         (*p_ccb->p_rcb->api.pL2CA_ConnectCfm_Cb)(local_cid, L2CAP_CONN_OK);
@@ -617,6 +680,11 @@ static void l2c_csm_w4_l2cap_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p
             l2cu_send_peer_connect_req (p_ccb);          /* Start Connection     */
         }
         break;
+
+    case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:
+    case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:
+        osi_free(p_data);
+        break;
     }
 }
 
@@ -653,31 +721,51 @@ static void l2c_csm_w4_l2ca_connect_rsp (tL2C_CCB *p_ccb, UINT16 event, void *p_
 
     case L2CEVT_L2CA_CONNECT_RSP:
         p_ci = (tL2C_CONN_INFO *)p_data;
-
-        /* Result should be OK or PENDING */
-        if ((!p_ci) || (p_ci->l2cap_result == L2CAP_CONN_OK))
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
         {
-            l2cu_send_peer_connect_rsp (p_ccb, L2CAP_CONN_OK, 0);
-            p_ccb->chnl_state = CST_CONFIG;
-            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
-                               L2CAP_CHNL_CFG_TIMEOUT_MS,
-                               l2c_ccb_timer_timeout, p_ccb,
-                               btu_general_alarm_queue);
+            /* Result should be OK or Reject */
+            if ((!p_ci) || (p_ci->l2cap_result == L2CAP_CONN_OK))
+            {
+                l2cble_credit_based_conn_res (p_ccb, L2CAP_CONN_OK);
+                p_ccb->chnl_state = CST_OPEN;
+                alarm_cancel(p_ccb->l2c_ccb_timer);
+            }
+            else
+            {
+                l2cble_credit_based_conn_res (p_ccb, p_ci->l2cap_result);
+                l2cu_release_ccb (p_ccb);
+            }
         }
         else
         {
-            /* If pending, stay in same state and start extended timer */
-            l2cu_send_peer_connect_rsp (p_ccb, p_ci->l2cap_result, p_ci->l2cap_status);
-            alarm_set_on_queue(p_ccb->l2c_ccb_timer,
-                               L2CAP_CHNL_CONNECT_EXT_TIMEOUT_MS,
-                               l2c_ccb_timer_timeout, p_ccb,
-                               btu_general_alarm_queue);
+            /* Result should be OK or PENDING */
+            if ((!p_ci) || (p_ci->l2cap_result == L2CAP_CONN_OK))
+            {
+                l2cu_send_peer_connect_rsp (p_ccb, L2CAP_CONN_OK, 0);
+                p_ccb->chnl_state = CST_CONFIG;
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_CHNL_CFG_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
+            }
+            else
+            {
+                /* If pending, stay in same state and start extended timer */
+                l2cu_send_peer_connect_rsp (p_ccb, p_ci->l2cap_result, p_ci->l2cap_status);
+                alarm_set_on_queue(p_ccb->l2c_ccb_timer,
+                                   L2CAP_CHNL_CONNECT_EXT_TIMEOUT_MS,
+                                   l2c_ccb_timer_timeout, p_ccb,
+                                   btu_general_alarm_queue);
+            }
         }
         break;
 
     case L2CEVT_L2CA_CONNECT_RSP_NEG:
         p_ci = (tL2C_CONN_INFO *)p_data;
-        l2cu_send_peer_connect_rsp (p_ccb, p_ci->l2cap_result, p_ci->l2cap_status);
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+            l2cble_credit_based_conn_res (p_ccb, p_ci->l2cap_result);
+        else
+            l2cu_send_peer_connect_rsp (p_ccb, p_ci->l2cap_result, p_ci->l2cap_status);
         l2cu_release_ccb (p_ccb);
         break;
 
@@ -986,6 +1074,7 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
     tL2C_CHNL_STATE         tempstate;
     UINT8                   tempcfgdone;
     UINT8                   cfg_result;
+    UINT16                  *credit;
 
 #if (BT_TRACE_VERBOSE == TRUE)
     L2CAP_TRACE_EVENT ("L2CAP - LCID: 0x%04x  st: OPEN  evt: %s",
@@ -1059,12 +1148,15 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CAP_DISCONNECT_REQ:                  /* Peer disconnected request */
-        /* Make sure we are not in sniff mode */
+        if (p_ccb->p_lcb->transport != BT_TRANSPORT_LE)
         {
-            tBTM_PM_PWR_MD settings;
-            memset((void*)&settings, 0, sizeof(settings));
-            settings.mode = BTM_PM_MD_ACTIVE;
-            BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+        /* Make sure we are not in sniff mode */
+            {
+                tBTM_PM_PWR_MD settings;
+                memset((void*)&settings, 0, sizeof(settings));
+                settings.mode = BTM_PM_MD_ACTIVE;
+                BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+            }
         }
 
         p_ccb->chnl_state = CST_W4_L2CA_DISCONNECT_RSP;
@@ -1077,20 +1169,27 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
         break;
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
-        if((p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_DataInd_Cb))
+        if ((p_ccb->p_rcb) && (p_ccb->p_rcb->api.pL2CA_DataInd_Cb))
             (*p_ccb->p_rcb->api.pL2CA_DataInd_Cb)(p_ccb->local_cid, (BT_HDR *)p_data);
         break;
 
     case L2CEVT_L2CA_DISCONNECT_REQ:                 /* Upper wants to disconnect */
-        /* Make sure we are not in sniff mode */
+        if (p_ccb->p_lcb->transport != BT_TRANSPORT_LE)
         {
-            tBTM_PM_PWR_MD settings;
-            memset((void*)&settings, 0, sizeof(settings));
-            settings.mode = BTM_PM_MD_ACTIVE;
-            BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+            /* Make sure we are not in sniff mode */
+            {
+                tBTM_PM_PWR_MD settings;
+                memset((void*)&settings, 0, sizeof(settings));
+                settings.mode = BTM_PM_MD_ACTIVE;
+                BTM_SetPowerMode (BTM_PM_SET_ONLY_ID, p_ccb->p_lcb->remote_bd_addr, &settings);
+            }
         }
 
-        l2cu_send_peer_disc_req (p_ccb);
+        if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+            l2cble_send_peer_disc_req (p_ccb);
+        else
+            l2cu_send_peer_disc_req (p_ccb);
+
         p_ccb->chnl_state = CST_W4_L2CAP_DISCONNECT_RSP;
         alarm_set_on_queue(p_ccb->l2c_ccb_timer,
                            L2CAP_CHNL_DISCONNECT_TIMEOUT_MS,
@@ -1122,6 +1221,29 @@ static void l2c_csm_open (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 
     case L2CEVT_ACK_TIMEOUT:
         l2c_fcr_proc_ack_tout (p_ccb);
+        break;
+
+    case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:
+        L2CAP_TRACE_DEBUG("%s Sending credit",__func__);
+        credit = (UINT16*)p_data;
+        l2cble_send_flow_control_credit(p_ccb, *credit);
+        break;
+
+    case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:
+        credit = (UINT16*)p_data;
+        L2CAP_TRACE_DEBUG("%s Credits received %d",__func__, *credit);
+        if((p_ccb->peer_conn_cfg.credits + *credit) > L2CAP_LE_MAX_CREDIT)
+        {
+            /* we have received credits more than max coc credits,
+             * so disconnecting the Le Coc Channel
+             */
+            l2cble_send_peer_disc_req (p_ccb);
+        }
+        else
+        {
+            p_ccb->peer_conn_cfg.credits += *credit;
+            l2c_link_check_send_pkts (p_ccb->p_lcb, NULL, NULL);
+        }
         break;
     }
 }
@@ -1181,6 +1303,11 @@ static void l2c_csm_w4_l2cap_disconnect_rsp (tL2C_CCB *p_ccb, UINT16 event, void
 
     case L2CEVT_L2CAP_DATA:                         /* Peer data packet rcvd    */
     case L2CEVT_L2CA_DATA_WRITE:                    /* Upper layer data to send */
+        osi_free(p_data);
+        break;
+
+    case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:
+    case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:
         osi_free(p_data);
         break;
     }
@@ -1322,6 +1449,10 @@ static char *l2c_csm_get_event_name (UINT16 event)
         return ("L2CEVT_L2CAP_INFO_RSP");
     case L2CEVT_ACK_TIMEOUT:
         return ("L2CEVT_ACK_TIMEOUT");
+    case L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT:   /* Upper layer send credit packet       */
+        return ("SEND_FLOW_CONTROL_CREDIT");
+    case L2CEVT_L2CAP_RECV_FLOW_CONTROL_CREDIT:  /* Peer send credit packet              */
+        return ("RECV_FLOW_CONTROL_CREDIT");
 
     default:
         return ("???? UNKNOWN EVENT");

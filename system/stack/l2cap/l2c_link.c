@@ -314,7 +314,7 @@ void l2c_link_sec_comp (BD_ADDR p_bda, tBT_TRANSPORT transport, void *p_ref_data
     ci.status       = status;
     memcpy (ci.bd_addr, p_bda, BD_ADDR_LEN);
 
-    p_lcb = l2cu_find_lcb_by_bd_addr (p_bda, BT_TRANSPORT_BR_EDR);
+    p_lcb = l2cu_find_lcb_by_bd_addr (p_bda, transport);
 
     /* If we don't have one, this is an error */
     if (!p_lcb)

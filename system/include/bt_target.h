@@ -710,6 +710,10 @@
 #define BTM_BLE_ADV_TX_POWER {-21, -15, -7, 1, 9}
 #endif
 
+/* The maximum number of simultaneous applications that can register with LE L2CAP. */
+#ifndef BLE_MAX_L2CAP_CLIENTS
+#define BLE_MAX_L2CAP_CLIENTS           15
+#endif
 
 /******************************************************************************
 **
