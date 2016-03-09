@@ -1480,7 +1480,11 @@ static void cleanup(void) {
   BTIF_TRACE_EVENT("%s", __func__);
 
   if (bt_hf_callbacks) {
+#if (defined(BTIF_HF_SERVICES) && (BTIF_HF_SERVICES & BTA_HFP_SERVICE_MASK))
     btif_disable_service(BTA_HFP_SERVICE_ID);
+#else
+    btif_disable_service(BTA_HSP_SERVICE_ID);
+#endif
     bt_hf_callbacks = NULL;
   }
 }
