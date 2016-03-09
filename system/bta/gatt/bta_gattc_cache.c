@@ -903,26 +903,7 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
         }
     }
 }
-/*******************************************************************************
-**
-** Function         bta_gattc_id2handle
-**
-** Description      map GATT ID to handle in a given cache.
-**
-** Returns          the handle mapped. 0 if not found.
-**
-*******************************************************************************/
-UINT16 bta_gattc_id2handle(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_SRVC_ID *p_service_id,
-                           tBTA_GATT_ID *p_char_id, tBTA_GATT_ID *p_descr_uuid)
-{
-    if (!p_service_id || !p_srcb->p_srvc_cache || list_is_empty(p_srcb->p_srvc_cache))
-        return 0;
 
-    if (p_descr_uuid == NULL)
-        return p_char_id->inst_id;
-
-    return p_descr_uuid->inst_id;
-}
 /*******************************************************************************
 **
 ** Function         bta_gattc_handle2id
