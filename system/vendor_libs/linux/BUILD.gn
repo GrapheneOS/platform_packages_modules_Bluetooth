@@ -15,8 +15,18 @@
 #
 
 shared_library("bt-vendor-linux") {
+  output_name = "libbt-vendor"
   sources = [
     "bt_vendor_linux.c",
+  ]
+
+  deps = [
+   "//osi",
+  ]
+
+  cflags_c = [
+    "-Lobj/osi",
+    "-losi",
   ]
 
   include_dirs = [ "//" ]
