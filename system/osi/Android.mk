@@ -41,6 +41,7 @@ btosiCommonSrc := \
     ./src/list.c \
     ./src/metrics.cpp \
     ./src/mutex.c \
+    ./src/osi.c \
     ./src/properties.c \
     ./src/reactor.c \
     ./src/ringbuffer.c \
@@ -68,6 +69,7 @@ btosiCommonTestSrc := \
     ./test/hash_map_utils_test.cpp \
     ./test/list_test.cpp \
     ./test/properties_test.cpp \
+    ./test/rand_test.cpp \
     ./test/reactor_test.cpp \
     ./test/ringbuffer_test.cpp \
     ./test/semaphore_test.cpp \
