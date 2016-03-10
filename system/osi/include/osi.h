@@ -1,3 +1,21 @@
+/******************************************************************************
+ *
+ *  Copyright (C) 2016 Google, Inc.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at:
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ ******************************************************************************/
+
 #pragma once
 
 #include <stdbool.h>
@@ -35,3 +53,9 @@
 
 #define PTR_TO_INT(p) ((int) ((intptr_t) (p)))
 #define INT_TO_PTR(i) ((void *) ((intptr_t) (i)))
+
+// Obtain a random number between 0 and INT_MAX inclusive.
+// Taken from a system random source such as /dev/random.
+// No guarantees of distribution are made.
+// Effort is made for this to come from a real random source.
+int osi_rand(void);

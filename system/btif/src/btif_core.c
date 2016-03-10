@@ -383,16 +383,14 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     if (!valid_bda)
     {
         bdstr_t bdstr;
-        /* Seed the random number generator */
-        srand((unsigned int) (time(0)));
 
         /* No autogen BDA. Generate one now. */
         local_addr->address[0] = 0x22;
         local_addr->address[1] = 0x22;
-        local_addr->address[2] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr->address[3] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr->address[4] = (uint8_t) ((rand() >> 8) & 0xFF);
-        local_addr->address[5] = (uint8_t) ((rand() >> 8) & 0xFF);
+        local_addr->address[2] = (uint8_t) osi_rand();
+        local_addr->address[3] = (uint8_t) osi_rand();
+        local_addr->address[4] = (uint8_t) osi_rand();
+        local_addr->address[5] = (uint8_t) osi_rand();
 
         /* Convert to ascii, and store as a persistent property */
         bdaddr_to_string(local_addr, bdstr, sizeof(bdstr));
