@@ -410,7 +410,7 @@ static void bt_vendor_cleanup(void)
   bt_vendor_callbacks = NULL;
 }
 
-const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
+EXPORT_SYMBOL const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
   sizeof(bt_vendor_interface_t),
   bt_vendor_init,
   bt_vendor_op,
