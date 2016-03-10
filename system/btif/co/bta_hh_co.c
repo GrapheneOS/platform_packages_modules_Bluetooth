@@ -424,6 +424,15 @@ void bta_hh_co_data(UINT8 dev_handle, UINT8 *p_rpt, UINT16 len, tBTA_HH_PROTO_MO
         return;
     }
 
+    // Wait a maximum of MAX_POLLING_ATTEMPTS x POLLING_SLEEP_DURATION in case
+    // device creation is pending.
+    if (p_dev->fd >= 0) {
+        UINT32 polling_attempts = 0;
+        while (!p_dev->ready_for_data && polling_attempts++ < BTIF_HH_MAX_POLLING_ATTEMPTS) {
+            usleep(BTIF_HH_POLLING_SLEEP_DURATION_US);
+        }
+    }
+
     // Send the HID data to the kernel.
     if ((p_dev->fd >= 0) && p_dev->ready_for_data) {
         bta_hh_co_write(p_dev->fd, p_rpt, len);
