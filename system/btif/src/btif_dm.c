@@ -65,11 +65,14 @@
 **  Constants & Macros
 ******************************************************************************/
 
+#define COD_MASK                            0x07FF
+
 #define COD_UNCLASSIFIED ((0x1F) << 8)
 #define COD_HID_KEYBOARD                    0x0540
 #define COD_HID_POINTING                    0x0580
 #define COD_HID_COMBO                       0x05C0
 #define COD_HID_MAJOR                       0x0500
+#define COD_HID_MASK                        0x0700
 #define COD_AV_HEADSETS                     0x0404
 #define COD_AV_HANDSFREE                    0x0408
 #define COD_AV_HEADPHONES                   0x0418
@@ -427,8 +430,7 @@ static BOOLEAN check_cached_remote_name(tBTA_DM_SEARCH *p_search_data,
     return FALSE;
 }
 
-BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
-{
+static uint32_t get_cod(const bt_bdaddr_t *remote_bdaddr) {
     uint32_t    remote_cod;
     bt_property_t prop_name;
 
@@ -437,30 +439,21 @@ BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
                                sizeof(uint32_t), &remote_cod);
     if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr, &prop_name) == BT_STATUS_SUCCESS)
     {
-        LOG_INFO(LOG_TAG, "%s remote_cod = 0x%08x cod = 0x%08x", __func__, remote_cod, cod);
-        if ((remote_cod & 0x7ff) == cod)
-            return TRUE;
+        LOG_INFO(LOG_TAG, "%s remote_cod = 0x%08x", __func__, remote_cod);
+        return remote_cod & COD_MASK;
     }
 
-    return FALSE;
+    return 0;
 }
 
-BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
+BOOLEAN check_cod(const bt_bdaddr_t *remote_bdaddr, uint32_t cod)
 {
-    uint32_t    remote_cod;
-    bt_property_t prop_name;
+    return get_cod(remote_bdaddr) == cod;
+}
 
-    /* check if we already have it in our btif_storage cache */
-    BTIF_STORAGE_FILL_PROPERTY(&prop_name, BT_PROPERTY_CLASS_OF_DEVICE,
-                               sizeof(uint32_t), &remote_cod);
-    if (btif_storage_get_remote_device_property((bt_bdaddr_t *)remote_bdaddr,
-                                &prop_name) == BT_STATUS_SUCCESS)
-    {
-        BTIF_TRACE_DEBUG("%s: remote_cod = 0x%06x", __FUNCTION__, remote_cod);
-        if ((remote_cod & 0x700) == cod)
-            return TRUE;
-    }
-    return FALSE;
+BOOLEAN check_cod_hid(const bt_bdaddr_t *remote_bdaddr)
+{
+    return (get_cod(remote_bdaddr) & COD_HID_MASK) == COD_HID_MAJOR;
 }
 
 BOOLEAN check_hid_le(const bt_bdaddr_t *remote_bdaddr)
@@ -1165,7 +1158,7 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         state = BT_BOND_STATE_BONDED;
         bdcpy(bd_addr.address, p_auth_cmpl->bd_addr);
 
-        if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr, COD_HID_MAJOR))
+        if (check_sdp_bl(&bd_addr) && check_cod_hid(&bd_addr))
         {
             LOG_WARN(LOG_TAG, "%s:skip SDP", __FUNCTION__);
             skip_sdp = TRUE;
@@ -3422,7 +3415,7 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
     memcpy(&event->bd_addr, bd_addr, sizeof(bt_bdaddr_t));
     event->function = function;
     event->state = state;
-    clock_gettime(CLOCK_MONOTONIC, &event->timestamp);
+    clock_gettime(CLOCK_REALTIME, &event->timestamp);
 
     btif_num_bond_events++;
     btif_events_end_index = (btif_events_end_index + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1);
@@ -3431,7 +3424,8 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
     }
 
     int type;
-    btif_get_device_type(event->bd_addr.address, &type);
+    btif_get_device_type(bd_addr->address, &type);
+
     device_type_t device_type;
     switch (type) {
         case BT_DEVICE_TYPE_BREDR:
@@ -3447,11 +3441,11 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
             device_type = DEVICE_TYPE_UNKNOWN;
             break;
     }
-    // TODO (apanicke): Add disconnect reason and
-    // device class to the pair event.
+
+    uint32_t cod = get_cod(bd_addr);
     uint64_t ts = event->timestamp.tv_sec * 1000 +
                   event->timestamp.tv_nsec / 1000000;
-    metrics_pair_event(0, ts, 0, device_type);
+    metrics_pair_event(0, ts, cod, device_type);
 
     pthread_mutex_unlock(&bond_event_lock);
 }
