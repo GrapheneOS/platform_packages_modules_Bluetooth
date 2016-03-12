@@ -2892,6 +2892,65 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
     }
 }
 
+/*******************************************************************************
+**
+** Function         btif_dm_get_smp_config
+**
+** Description      Retrieve the SMP pairing options from the bt_stack.conf
+**                  file. To provide specific pairing options for the host
+**                  add a node with label "SmpOptions" to the config file
+**                  and assign it a comma separated list of 5 values in the
+**                  format: auth, io, ikey, rkey, ksize, oob
+**                  eg: SmpOptions=0xD,0x4,0xf,0xf,0x10
+**
+** Parameters:      tBTE_APPL_CFG*: pointer to struct defining pairing options
+**
+** Returns          TRUE if the options were successfully read, else FALSE
+**
+*******************************************************************************/
+BOOLEAN btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg) {
+
+    if(!stack_config_get_interface()->get_smp_options()) {
+        BTIF_TRACE_DEBUG ("%s: SMP options not found in configuration", __func__);
+        return FALSE;
+    }
+
+    char conf[64];
+    const char* recv = stack_config_get_interface()->get_smp_options();
+    char* pch;
+    char* endptr;
+
+    strncpy(conf, recv, 64);
+    conf[63] = 0; // null terminate
+
+    if ((pch = strtok(conf, ",")) != NULL)
+        p_cfg->ble_auth_req = (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_io_cap =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_init_key =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_resp_key =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_max_key_size =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    return TRUE;
+}
+
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)
 {
     char t[128];
