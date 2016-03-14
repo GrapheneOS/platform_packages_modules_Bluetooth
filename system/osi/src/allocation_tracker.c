@@ -167,6 +167,11 @@ void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr
     assert(end_canary[i] == canary[i]);
   }
 
+  // Free the hash map entry to avoid unlimited memory usage growth.
+  // Double-free of memory is detected with "assert(allocation)" above
+  // as the allocation entry will not be present.
+  hash_map_erase(allocations, ptr);
+
   pthread_mutex_unlock(&lock);
 
   return ((char *)ptr) - canary_size;
