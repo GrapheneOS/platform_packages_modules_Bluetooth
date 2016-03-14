@@ -902,10 +902,6 @@ typedef struct
 
 } tBTA_DM_CB;
 
-#ifndef BTA_DM_SDP_DB_SIZE
-#define BTA_DM_SDP_DB_SIZE 250
-#endif
-
 /* DM search control block */
 typedef struct
 {
