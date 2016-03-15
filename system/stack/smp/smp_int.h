@@ -343,7 +343,8 @@ typedef struct
     UINT8           rcvd_cmd_len;
     UINT16          total_tx_unacked;
     BOOLEAN         wait_for_authorization_complete;
-}tSMP_CB;
+    UINT8           cert_failure; /*failure case for certification */
+} tSMP_CB;
 
 /* Server Action functions are of this type */
 typedef void (*tSMP_ACT)(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);

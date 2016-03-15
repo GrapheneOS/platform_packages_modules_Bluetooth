@@ -63,6 +63,42 @@ static bool lmp_version_below(BD_ADDR bda, uint8_t version)
     return acl->lmp_version < version;
 }
 
+static bool pts_test_send_authentication_complete_failure(tSMP_CB *p_cb)
+{
+    uint8_t reason = 0;
+
+    if (p_cb->cert_failure < 2 || p_cb->cert_failure > 6)
+        return false;
+
+    SMP_TRACE_ERROR("%s failure case = %d", __func__, p_cb->cert_failure);
+
+    switch (p_cb->cert_failure)
+    {
+        case 2:
+            reason = SMP_PAIR_AUTH_FAIL;
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+            break;
+        case 3:
+            reason = SMP_PAIR_FAIL_UNKNOWN;
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+            break;
+        case 4:
+            reason = SMP_PAIR_NOT_SUPPORT;
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+            break;
+        case 5:
+            reason = SMP_PASSKEY_ENTRY_FAIL;
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+            break;
+        case 6:
+            reason = SMP_REPEATED_ATTEMPTS;
+            smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+            break;
+    }
+
+    return true;;
+}
+
 /*******************************************************************************
 ** Function         smp_update_key_mask
 ** Description      This function updates the key mask for sending or receiving.
@@ -549,6 +585,10 @@ void smp_proc_pair_cmd(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
         return;
     }
+
+    // PTS Testing failure modes
+    if (pts_test_send_authentication_complete_failure(p_cb))
+        return;
 
     if (p_cb->role == HCI_ROLE_SLAVE)
     {
@@ -1403,6 +1443,11 @@ void smp_process_io_response(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
         {
             if (smp_request_oob_data(p_cb)) return;
         }
+
+        // PTS Testing failure modes
+        if (pts_test_send_authentication_complete_failure(p_cb))
+            return;
+
         smp_send_pair_rsp(p_cb, NULL);
     }
 }
@@ -1638,6 +1683,14 @@ void smp_process_peer_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 
     SMP_TRACE_DEBUG("%s start ", __func__);
 
+    // PTS Testing failure modes
+    if (p_cb->cert_failure == 1) {
+        SMP_TRACE_ERROR("%s failure case = %d", __func__, p_cb->cert_failure);
+        reason = p_cb->failure = SMP_CONFIRM_VALUE_ERR;
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+        return;
+    }
+
     switch(p_cb->selected_association_model)
     {
         case SMP_MODEL_SEC_CONN_JUSTWORKS:
@@ -1671,7 +1724,7 @@ void smp_process_peer_nonce(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             break;
         case SMP_MODEL_SEC_CONN_PASSKEY_ENT:
         case SMP_MODEL_SEC_CONN_PASSKEY_DISP:
-            if (!smp_check_commitment(p_cb))
+            if (!smp_check_commitment(p_cb) && p_cb->cert_failure != 9)
             {
                 reason = p_cb->failure = SMP_CONFIRM_VALUE_ERR;
                 smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
