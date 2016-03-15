@@ -259,168 +259,49 @@ void BTA_GATTC_ServiceSearchRequest (UINT16 conn_id, tBT_UUID *p_srvc_uuid)
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_GetFirstChar
+** Function         BTA_GATTC_GetServices
 **
-** Description      This function is called to find the first characteristic of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_srvc_id: the service ID of which the characteristic is belonged to.
-**                  p_char_uuid_cond: Characteristic UUID, if NULL find the first available
-**                               characteristic.
-**                  p_char_result: output parameter which will store the GATT
-**                                  characteristic ID.
-**                  p_property: output parameter to carry the characteristic property.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16 conn_id, tBTA_GATT_SRVC_ID *p_srvc_id,
-                                          tBT_UUID *p_char_uuid_cond,
-                                          tBTA_GATTC_CHAR_ID *p_char_result,
-                                          tBTA_GATT_CHAR_PROP *p_property)
-{
-    tBTA_GATT_STATUS    status;
-
-    if (!p_srvc_id || !p_char_result)
-        return BTA_GATT_ILLEGAL_PARAMETER;
-
-    if ((status = bta_gattc_query_cache(conn_id, BTA_GATTC_ATTR_TYPE_CHAR, p_srvc_id, NULL,
-                                        p_char_uuid_cond, &p_char_result->char_id, (void *)p_property))
-        == BTA_GATT_OK)
-    {
-        memcpy(&p_char_result->srvc_id, p_srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-    }
-
-    return status;
-
-}
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetNextChar
-**
-** Description      This function is called to find the next characteristic of the
-**                  service on the given server.
+** Description      This function is called to find the services on the given server.
 **
 ** Parameters       conn_id: connection ID which identify the server.
-**                  p_start_char_id: start the characteristic search from the next record
-**                           after the one identified by char_id.
-**                  p_char_uuid_cond: Characteristic UUID, if NULL find the first available
-**                               characteristic.
-**                  p_char_result: output parameter which will store the GATT
-**                                  characteristic ID.
-**                  p_property: output parameter to carry the characteristic property.
 **
-** Returns          returns status.
+** Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
-                                         tBTA_GATTC_CHAR_ID *p_start_char_id,
-                                         tBT_UUID           *p_char_uuid_cond,
-                                         tBTA_GATTC_CHAR_ID *p_char_result,
-                                         tBTA_GATT_CHAR_PROP    *p_property)
-{
-    tBTA_GATT_STATUS    status;
-
-    if (!p_start_char_id || !p_char_result)
-        return BTA_GATT_ILLEGAL_PARAMETER;
-
-    if ((status = bta_gattc_query_cache(conn_id, BTA_GATTC_ATTR_TYPE_CHAR,
-                                        &p_start_char_id->srvc_id,
-                                        &p_start_char_id->char_id,
-                                        p_char_uuid_cond,
-                                        &p_char_result->char_id,
-                                        (void *) p_property))
-        == BTA_GATT_OK)
-    {
-        memcpy(&p_char_result->srvc_id, &p_start_char_id->srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-    }
-
-    return status;
+const list_t* BTA_GATTC_GetServices(UINT16 conn_id) {
+    return bta_gattc_get_services(conn_id);
 }
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_GetFirstCharDescr
+** Function         BTA_GATTC_GetCharacteristic
 **
-** Description      This function is called to find the first characteristic descriptor of the
-**                  characteristic on the given server.
+** Description      This function is called to find the characteristic on the given server.
 **
 ** Parameters       conn_id: connection ID which identify the server.
-**                  p_char_id: the characteristic ID of which the descriptor is belonged to.
-**                  p_descr_uuid_cond: Characteristic Descr UUID, if NULL find the first available
-**                               characteristic.
-**                  p_descr_result: output parameter which will store the GATT
-**                                  characteristic descriptor ID.
+**                  handle: characteristic handle
 **
-** Returns          returns status.
+** Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
-                                                tBT_UUID *p_descr_uuid_cond,
-                                                tBTA_GATTC_CHAR_DESCR_ID *p_descr_result)
-{
-    tBTA_GATT_STATUS    status;
-
-    if (!p_char_id || !p_descr_result)
-        return BTA_GATT_ILLEGAL_PARAMETER;
-
-    memset(p_descr_result, 0, sizeof(tBTA_GATTC_CHAR_DESCR_ID));
-
-    if ((status = bta_gattc_query_cache(conn_id,
-                                        BTA_GATTC_ATTR_TYPE_CHAR_DESCR,
-                                        &p_char_id->srvc_id,
-                                        &p_char_id->char_id,
-                                        p_descr_uuid_cond,
-                                        &p_descr_result->char_id.char_id,
-                                        NULL))
-        == BTA_GATT_OK)
-    {
-        memcpy(&p_descr_result->descr_id, &p_descr_result->char_id.char_id, sizeof(tBTA_GATT_ID));
-        memcpy(&p_descr_result->char_id, p_char_id, sizeof(tBTA_GATTC_CHAR_ID));
-    }
-    return status;
-
+const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_id, UINT16 handle) {
+    return bta_gattc_get_characteristic(conn_id, handle);
 }
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_GetFirstIncludedService
+** Function         BTA_GATTC_GetCharacteristic
 **
-** Description      This function is called to find the first included service of the
-**                  service on the given server.
+** Description      This function is called to find the characteristic on the given server.
 **
 ** Parameters       conn_id: connection ID which identify the server.
-**                  p_srvc_id: the service ID of which the characteristic is belonged to.
-**                  p_uuid_cond: Characteristic UUID, if NULL find the first available
-**                               characteristic.
-**                  p_result: output parameter which will store the GATT ID
-**                              of the included service found.
+**                  handle: descriptor handle
 **
-** Returns          returns status.
+** Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id, tBTA_GATT_SRVC_ID *p_srvc_id,
-                                                    tBT_UUID *p_uuid_cond, tBTA_GATTC_INCL_SVC_ID *p_result)
-{
-    tBTA_GATT_STATUS    status;
-
-    if (!p_srvc_id || !p_result)
-        return BTA_GATT_ILLEGAL_PARAMETER;
-
-    if ((status = bta_gattc_query_cache(conn_id,
-                                        BTA_GATTC_ATTR_TYPE_INCL_SRVC,
-                                        p_srvc_id,
-                                        NULL,
-                                        p_uuid_cond,
-                                        &p_result->incl_svc_id.id,
-                                        (void *)&p_result->incl_svc_id.is_primary))
-        == BTA_GATT_OK)
-    {
-        memcpy(&p_result->srvc_id, p_srvc_id, sizeof(tBTA_GATT_SRVC_ID));
-    }
-
-    return status;
+const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 handle) {
+    return bta_gattc_get_descriptor(conn_id, handle);
 }
 
 /*******************************************************************************

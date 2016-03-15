@@ -237,28 +237,6 @@ typedef union
 
 
 /* GATT server cache on the client */
-typedef struct
-{
-    tBT_UUID                uuid;
-    UINT16                  attr_handle;
-    tBTA_GATT_CHAR_PROP     property; /* if characteristic, it is char property;
-                                         if included service, flag primary,
-                                         if descriptor, not used */
-    tBTA_GATTC_ATTR_TYPE    attr_type;
-// btla-specific ++
-} __attribute__((packed)) tBTA_GATTC_CACHE_ATTR;
-// btla-specific --
-
-typedef struct
-{
-    tBTA_GATT_SRVC_ID       service_uuid;
-    list_t                 *p_attr; /* list of tBTA_GATTC_CACHE_ATTR */
-    UINT16                  s_handle;
-    UINT16                  e_handle;
-    list_node_t            *p_cur_char; /* node pointing to p_attr */
-// btla-specific ++
-} __attribute__((packed)) tBTA_GATTC_CACHE;
-// btla-specific --
 
 typedef struct
 {
@@ -300,8 +278,7 @@ typedef struct
 
     UINT8               state;
 
-    list_t              *p_srvc_cache;  /* list of tBTA_GATTC_CACHE */
-    tBTA_GATTC_CACHE    *p_cur_srvc;
+    list_t              *p_srvc_cache;  /* list of tBTA_GATTC_SERVICE */
     UINT8               update_count;   /* indication received */
     UINT8               num_clcb;       /* number of associated CLCB */
 
@@ -508,9 +485,10 @@ extern void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type
 extern tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb, UINT8 disc_type);
 extern tBTA_GATT_STATUS bta_gattc_discover_pri_service(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb, UINT8 disc_type);
 extern void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid);
-extern tBTA_GATT_STATUS bta_gattc_query_cache(UINT16 conn_id, UINT8 query_type, tBTA_GATT_SRVC_ID *p_srvc_id,
-                                              tBTA_GATT_ID *p_start_rec,tBT_UUID *p_uuid_cond,
-                                              tBTA_GATT_ID *p_output, void *p_param);
+extern const list_t* bta_gattc_get_services(UINT16 conn_id);
+extern const tBTA_GATTC_SERVICE* bta_gattc_get_service_for_handle(UINT16 conn_id, UINT16 handle);
+extern tBTA_GATTC_CHARACTERISTIC* bta_gattc_get_characteristic(UINT16 conn_id, UINT16 handle);
+extern tBTA_GATTC_DESCRIPTOR* bta_gattc_get_descriptor(UINT16 conn_id, UINT16 handle);
 extern void bta_gattc_get_gatt_db(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle, btgatt_db_element_t **db, int *count);
 extern tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb);
 extern void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srcv, UINT16 num_attr, tBTA_GATTC_NV_ATTR *attr);
