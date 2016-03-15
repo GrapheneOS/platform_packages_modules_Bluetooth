@@ -195,7 +195,6 @@ typedef struct
     UINT8                   char_inst_id;
     tBTA_HH_RPT_TYPE        rpt_type;
     UINT16                  uuid;
-    UINT8                   prop;
     UINT8                   rpt_id;
     BOOLEAN                 client_cfg_exist;
     UINT16                  client_cfg_value;
@@ -211,9 +210,8 @@ typedef struct
     UINT8                   srvc_inst_id;
     tBTA_HH_LE_RPT          report[BTA_HH_LE_RPT_MAX];
 
-#define BTA_HH_LE_PROTO_MODE_BIT        0x01
-#define BTA_HH_LE_CP_BIT                0x02
-    UINT8                   option_char; /* control point char exisit or not */
+    UINT16                  proto_mode_handle;
+    UINT8                   control_point_handle;
 
     BOOLEAN                 expl_incl_srvc;
     UINT8                   incl_srvc_inst; /* assuming only one included service : battery service */
@@ -268,6 +266,7 @@ typedef struct
     UINT16              conn_id;
     BOOLEAN             in_bg_conn;
     UINT8               clt_cfg_idx;
+    UINT16              scan_refresh_char_handle;
     BOOLEAN             scps_supported;
 
 #define BTA_HH_LE_SCPS_NOTIFY_NONE    0
