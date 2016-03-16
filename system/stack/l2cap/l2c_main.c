@@ -128,6 +128,7 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
     tL2C_LCB    *p_lcb;
     tL2C_CCB    *p_ccb = NULL;
     UINT16      l2cap_len, rcv_cid, psm;
+    UINT16      credit;
 
     /* Extract the handle */
     STREAM_TO_UINT16 (handle, p);
@@ -288,16 +289,26 @@ void l2c_rcv_acl_data (BT_HDR *p_msg)
             osi_free(p_msg);
         else
         {
-            /* Basic mode packets go straight to the state machine */
-            if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
-                l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DATA, p_msg);
+            if (p_lcb->transport == BT_TRANSPORT_LE)
+            {
+               l2c_lcc_proc_pdu(p_ccb,p_msg);
+               // Got a pkt, valid send out credits to the peer device
+               credit = L2CAP_LE_DEFAULT_CREDIT;
+               l2c_csm_execute(p_ccb, L2CEVT_L2CA_SEND_FLOW_CONTROL_CREDIT, &credit);
+            }
             else
             {
-                /* eRTM or streaming mode, so we need to validate states first */
-                if ((p_ccb->chnl_state == CST_OPEN) || (p_ccb->chnl_state == CST_CONFIG))
-                    l2c_fcr_proc_pdu (p_ccb, p_msg);
+                /* Basic mode packets go straight to the state machine */
+                if (p_ccb->peer_cfg.fcr.mode == L2CAP_FCR_BASIC_MODE)
+                    l2c_csm_execute (p_ccb, L2CEVT_L2CAP_DATA, p_msg);
                 else
-                    osi_free(p_msg);
+                {
+                    /* eRTM or streaming mode, so we need to validate states first */
+                    if ((p_ccb->chnl_state == CST_OPEN) || (p_ccb->chnl_state == CST_CONFIG))
+                        l2c_fcr_proc_pdu (p_ccb, p_msg);
+                    else
+                        osi_free (p_msg);
+                }
             }
         }
     }
@@ -957,7 +968,14 @@ UINT8 l2c_data_write (UINT16 cid, BT_HDR *p_data, UINT16 flags)
 
 #ifndef TESTER /* Tester may send any amount of data. otherwise sending message
                   bigger than mtu size of peer is a violation of protocol */
-    if (p_data->len > p_ccb->peer_cfg.mtu)
+    UINT16 mtu;
+
+    if (p_ccb->p_lcb->transport == BT_TRANSPORT_LE)
+        mtu = p_ccb->peer_conn_cfg.mtu;
+    else
+        mtu = p_ccb->peer_cfg.mtu;
+
+    if (p_data->len > mtu)
     {
         L2CAP_TRACE_WARNING ("L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size", cid);
         osi_free(p_data);
