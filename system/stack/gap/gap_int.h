@@ -84,6 +84,9 @@ typedef struct
 
     tL2CAP_CFG_INFO   cfg;                  /* Configuration                        */
     tL2CAP_ERTM_INFO  ertm_info;            /* Pools and modes for ertm */
+    tBT_TRANSPORT     transport;            /* Transport channel BR/EDR or BLE */
+    tL2CAP_LE_CFG_INFO local_coc_cfg;       /* local configuration for LE Coc */
+    tL2CAP_LE_CFG_INFO peer_coc_cfg;        /* local configuration for LE Coc */
 } tGAP_CCB;
 
 typedef struct

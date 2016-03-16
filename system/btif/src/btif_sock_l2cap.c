@@ -85,6 +85,7 @@ typedef struct l2cap_socket {
     unsigned               connected        :1;  //is connected?
     unsigned               outgoing_congest :1;  //should we hold?
     unsigned               server_psm_sent  :1;  //The server shall only send PSM once.
+    BOOLEAN                is_le_coc;            //is le connection oriented channel?
 } l2cap_socket;
 
 static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock);
@@ -262,23 +263,30 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
         osi_free(buf);
 
     //lower-level close() should be idempotent... so let's call it and see...
-    // Only call if we are non server connections
-    if (sock->handle && (sock->server == FALSE)) {
-        if (sock->fixed_chan)
-            BTA_JvL2capCloseLE(sock->handle);
-        else
-            BTA_JvL2capClose(sock->handle);
-    }
-    if ((sock->channel >= 0) && (sock->server == TRUE)) {
-        if (sock->fixed_chan) {
-            BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP_LE);
-        } else {
+    if (sock->is_le_coc)
+    {
+        // Only call if we are non server connections
+        if (sock->handle >= 0 && (sock->server == FALSE)) {
+                BTA_JvL2capClose(sock->handle);
+        }
+        if ((sock->channel >= 0) && (sock->server == TRUE)) {
             BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
         }
-
-        if (!sock->fixed_chan) {
-           APPL_TRACE_DEBUG("%s stopping L2CAP server channel %d", __func__, sock->channel);
-           BTA_JvL2capStopServer(sock->channel, UINT_TO_PTR(sock->id));
+    }
+    else
+    {
+        // Only call if we are non server connections
+        if (sock->handle && (sock->server == FALSE)) {
+            if (sock->fixed_chan)
+                BTA_JvL2capCloseLE(sock->handle);
+            else
+                BTA_JvL2capClose(sock->handle);
+        }
+        if ((sock->channel >= 0) && (sock->server == TRUE)) {
+            if (sock->fixed_chan)
+                BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP_LE);
+            else
+                BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
         }
     }
 
@@ -463,6 +471,7 @@ static void on_srv_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN *p_open, l2cap_socket 
     accept_rs->handle = sock->handle;
     accept_rs->app_uid = sock->app_uid;
     sock->handle = -1; /* We should no longer associate this handle with the server socket */
+    accept_rs->is_le_coc = sock->is_le_coc;
 
     /* Swap IDs to hand over the GAP connection to the accepted socket, and start a new server on
        the newly create socket ID. */
@@ -850,15 +859,32 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock) {
     } else {
         /* If we have a channel specified in the request, just start the server,
          * else we request a PSM and start the server after we receive a PSM. */
-        if(sock->channel < 0) {
-            if(BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, UINT_TO_PTR(sock->id), 0)
-                    != BTA_JV_SUCCESS)
-                stat = BT_STATUS_FAIL;
+        if (sock->channel < 0) {
+            if (sock->is_le_coc) {
+                if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP_LE, UINT_TO_PTR(sock->id), 0)
+                        != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
+            else
+            {
+                if (BTA_JvGetChannelId(BTA_JV_CONN_TYPE_L2CAP, UINT_TO_PTR(sock->id), 0)
+                        != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
         } else {
-            if (BTA_JvL2capStartServer(sock->security, 0, &obex_l2c_etm_opt,
-                    sock->channel, L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk, UINT_TO_PTR(sock->id))
-                    != BTA_JV_SUCCESS)
-                stat = BT_STATUS_FAIL;
+            if (sock->is_le_coc) {
+                if (BTA_JvL2capStartServer(BTA_JV_CONN_TYPE_L2CAP_LE, sock->security, 0, NULL,
+                        sock->channel, L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk, UINT_TO_PTR(sock->id))
+                        != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
+            else
+            {
+                if (BTA_JvL2capStartServer(BTA_JV_CONN_TYPE_L2CAP, sock->security, 0, &obex_l2c_etm_opt,
+                        sock->channel, L2CAP_MAX_SDU_LENGTH, &cfg, btsock_l2cap_cbk, UINT_TO_PTR(sock->id))
+                        != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
         }
     }
     return stat;
@@ -871,6 +897,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
     int fixed_chan = 1;
     l2cap_socket *sock;
     tL2CAP_CFG_INFO cfg;
+    BOOLEAN is_le_coc = FALSE;
 
     if (!sock_fd)
         return BT_STATUS_PARM_INVALID;
@@ -880,7 +907,8 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
         fixed_chan = 0;
     } else {
         fixed_chan = (channel & L2CAP_MASK_FIXED_CHANNEL) != 0;
-        channel &=~ L2CAP_MASK_FIXED_CHANNEL;
+        is_le_coc = (channel & L2CAP_MASK_LE_COC_CHANNEL) != 0;
+        channel &=~ (L2CAP_MASK_FIXED_CHANNEL | L2CAP_MASK_LE_COC_CHANNEL);
     }
 
     if (!is_inited())
@@ -896,6 +924,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
     sock->fixed_chan = fixed_chan;
     sock->channel = channel;
     sock->app_uid = app_uid;
+    sock->is_le_coc = is_le_coc;
 
     stat = BT_STATUS_SUCCESS;
 
@@ -917,10 +946,19 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
                 stat = BT_STATUS_FAIL;
 
         } else {
-            if (BTA_JvL2capConnect(sock->security, 0, &obex_l2c_etm_opt,
-                    channel, L2CAP_MAX_SDU_LENGTH, &cfg, sock->addr.address,
-                    btsock_l2cap_cbk, UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
-                stat = BT_STATUS_FAIL;
+            if (sock->is_le_coc) {
+                if (BTA_JvL2capConnect(BTA_JV_CONN_TYPE_L2CAP_LE, sock->security, 0, NULL,
+                        channel, L2CAP_MAX_SDU_LENGTH, &cfg, sock->addr.address,
+                        btsock_l2cap_cbk, UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
+            else
+            {
+                if (BTA_JvL2capConnect(BTA_JV_CONN_TYPE_L2CAP, sock->security, 0, &obex_l2c_etm_opt,
+                        channel, L2CAP_MAX_SDU_LENGTH, &cfg, sock->addr.address,
+                        btsock_l2cap_cbk, UINT_TO_PTR(sock->id)) != BTA_JV_SUCCESS)
+                    stat = BT_STATUS_FAIL;
+            }
         }
     }
 

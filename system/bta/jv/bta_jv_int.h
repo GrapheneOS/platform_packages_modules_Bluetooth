@@ -164,6 +164,7 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
+    INT32               type;       /* One of BTA_JV_CONN_TYPE_ */
     tBTA_SEC            sec_mask;
     tBTA_JV_ROLE        role;
     union {
@@ -184,6 +185,7 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
+    INT32               type;       /* One of BTA_JV_CONN_TYPE_ */
     tBTA_SEC            sec_mask;
     tBTA_JV_ROLE        role;
     union {

@@ -40,7 +40,9 @@
 #define L2CAP_CMD_AMP_MOVE_CFM_RSP          0x11
 #define L2CAP_CMD_BLE_UPDATE_REQ            0x12
 #define L2CAP_CMD_BLE_UPDATE_RSP            0x13
-
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ 0x14
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_RES 0x15
+#define L2CAP_CMD_BLE_FLOW_CTRL_CREDIT      0x16
 
 /* Define some packet and header lengths
 */
@@ -69,6 +71,9 @@
 #define L2CAP_CMD_BLE_UPD_REQ_LEN   8       /* Min and max interval, latency, tout  */
 #define L2CAP_CMD_BLE_UPD_RSP_LEN   2       /* Result                               */
 
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_REQ_LEN 10 /* LE_PSM, SCID, MTU, MPS, Init Credit */
+#define L2CAP_CMD_BLE_CREDIT_BASED_CONN_RES_LEN 10 /* DCID, MTU, MPS, Init credit, Result */
+#define L2CAP_CMD_BLE_FLOW_CTRL_CREDIT_LEN      4  /* CID, Credit */
 
 /* Define the packet boundary flags
 */
@@ -97,6 +102,16 @@
 #define L2CAP_CONN_NO_LINK           255        /* Add a couple of our own for internal use */
 #define L2CAP_CONN_CANCEL            256        /* L2CAP connection cancelled */
 
+/* Define the LE L2CAP connection result codes
+*/
+#define L2CAP_LE_CONN_OK                        0
+#define L2CAP_LE_NO_PSM                         2
+#define L2CAP_LE_NO_RESOURCES                   4
+#define L2CAP_LE_INSUFFICIENT_AUTHENTICATION    5
+#define L2CAP_LE_INSUFFICIENT_AUTHORIZATION     6
+#define L2CAP_LE_INSUFFICIENT_ENCRYP_KEY_SIZE   7
+#define L2CAP_LE_INSUFFICIENT_ENCRYP            8
+#define L2CAP_LE_INVALID_SOURCE_CID             9   /* We don't like peer device response */
 
 /* Define L2CAP Move Channel Response result codes
 */
