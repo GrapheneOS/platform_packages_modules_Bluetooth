@@ -27,6 +27,7 @@
 
 #include "bta_api.h"
 #include "gatt_api.h"
+#include "osi/include/list.h"
 
 #ifndef     BTA_GATT_INCLUDED
 #warning BTA_GATT_INCLUDED not defined
@@ -278,6 +279,7 @@ typedef struct
     UINT8       id;
     UINT8       prop;       /* used when attribute type is characteristic */
     BOOLEAN     is_primary; /* used when attribute type is service */
+    UINT16      incl_srvc_handle; /* used when attribute type is included service */
 }tBTA_GATTC_NV_ATTR;
 
 /* callback data structure */
@@ -614,6 +616,39 @@ typedef void (tBTA_GATTS_ENB_CBACK)(tBTA_GATT_STATUS status);
 /* Server callback function */
 typedef void (tBTA_GATTS_CBACK)(tBTA_GATTS_EVT event,  tBTA_GATTS *p_data);
 
+typedef struct
+{
+    tBTA_GATT_SRVC_ID       service_uuid;
+    UINT16                  s_handle;
+    UINT16                  e_handle;
+    list_t                 *characteristics; /* list of tBTA_GATTC_CHARACTERISTIC */
+    list_t                 *included_svc; /* list of tBTA_GATTC_INCLUDED_SVC */
+} __attribute__((packed)) tBTA_GATTC_SERVICE;
+
+typedef struct
+{
+    tBT_UUID                uuid;
+    UINT16                  handle;
+    tBTA_GATT_CHAR_PROP     properties;
+    tBTA_GATTC_SERVICE     *service; /* owning service*/
+    list_t                 *descriptors; /* list of tBTA_GATTC_DESCRIPTOR */
+} __attribute__((packed)) tBTA_GATTC_CHARACTERISTIC;
+
+typedef struct
+{
+    tBT_UUID                    uuid;
+    UINT16                      handle;
+    tBTA_GATTC_CHARACTERISTIC  *characteristic; /* owning characteristic */
+} __attribute__((packed)) tBTA_GATTC_DESCRIPTOR;
+
+typedef struct
+{
+    tBT_UUID                uuid;
+    UINT16                  handle;
+    tBTA_GATTC_SERVICE     *owning_service; /* owning service*/
+    tBTA_GATTC_SERVICE     *included_service;
+} __attribute__((packed)) tBTA_GATTC_INCLUDED_SVC;
+
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
@@ -732,6 +767,47 @@ extern void BTA_GATTC_Close(UINT16 conn_id);
 **
 *******************************************************************************/
 extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_srvc_uuid);
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_GetServices
+**
+** Description      This function is called to find the services on the given server.
+**
+** Parameters       conn_id: connection ID which identify the server.
+**
+** Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
+**
+*******************************************************************************/
+extern const list_t* BTA_GATTC_GetServices(UINT16 conn_id);
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_GetCharacteristic
+**
+** Description      This function is called to find the characteristic on the given server.
+**
+** Parameters       conn_id: connection ID which identify the server.
+**                  handle: characteristic handle
+**
+** Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
+**
+*******************************************************************************/
+extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_id, UINT16 handle);
+
+/*******************************************************************************
+**
+** Function         BTA_GATTC_GetCharacteristic
+**
+** Description      This function is called to find the characteristic on the given server.
+**
+** Parameters       conn_id: connection ID which identify the server.
+**                  handle: descriptor handle
+**
+** Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
+**
+*******************************************************************************/
+extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 handle);
 
 /*******************************************************************************
 **
