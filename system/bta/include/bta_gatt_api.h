@@ -204,52 +204,12 @@ typedef UINT8 tBTA_GATTC_WRITE_TYPE;
 #define BTA_GATT_CONN_NONE                      0x0101                          /* 0x0101 no connection to cancel  */
 typedef UINT16 tBTA_GATT_REASON;
 
-typedef struct
-{
-    tBTA_GATT_ID        id;
-    BOOLEAN             is_primary;
-}tBTA_GATT_SRVC_ID;
-
-typedef struct
-{
-    tBTA_GATT_SRVC_ID       srvc_id;
-    tBTA_GATT_ID            char_id;
-}tBTA_GATTC_CHAR_ID;
-
-typedef struct
-{
-    tBTA_GATTC_CHAR_ID      char_id;
-    tBTA_GATT_ID            descr_id;
-}tBTA_GATTC_CHAR_DESCR_ID;
-
-typedef struct
-{
-    tBTA_GATT_SRVC_ID       srvc_id;
-    tBTA_GATT_SRVC_ID       incl_svc_id;
-}tBTA_GATTC_INCL_SVC_ID;
-
-#define     BTA_GATT_TYPE_CHAR          0
-#define     BTA_GATT_TYPE_CHAR_DESCR    1
-typedef UINT8 tBTA_GATT_ID_TYPE;
-
-typedef struct
-{
-    tBTA_GATT_ID_TYPE               id_type;
-    union
-    {
-        tBTA_GATTC_CHAR_ID         char_id;
-        tBTA_GATTC_CHAR_DESCR_ID   char_descr_id;
-
-    }                       id_value;
-}tBTA_GATTC_ATTR_ID;
-
 #define BTA_GATTC_MULTI_MAX    GATT_MAX_READ_MULTI_HANDLES
 
 typedef struct
 {
     UINT8                       num_attr;
-    tBTA_GATTC_ATTR_ID          id_list[BTA_GATTC_MULTI_MAX];
-
+    UINT16                      handles[BTA_GATTC_MULTI_MAX];
 }tBTA_GATTC_MULTI;
 
 #define BTA_GATT_AUTH_REQ_NONE           GATT_AUTH_REQ_NONE
@@ -294,34 +254,17 @@ typedef struct
 
 typedef struct
 {
-    UINT8                       num_pres_fmt;   /* number of presentation format aggregated*/
-    tBTA_GATTC_CHAR_DESCR_ID    pre_format[BTA_GATTC_MULTI_MAX];
-}tBTA_GATT_CHAR_AGGRE_VALUE;
-
-typedef union
-{
-    tBTA_GATT_CHAR_AGGRE_VALUE      aggre_value;
-    tBTA_GATT_UNFMT                 unformat;
-
-}tBTA_GATT_READ_VAL;
-
-typedef struct
-{
     UINT16              conn_id;
     tBTA_GATT_STATUS    status;
-    tBTA_GATT_SRVC_ID   srvc_id;
-    tBTA_GATT_ID        char_id;
-    tBTA_GATT_ID        descr_type;
-    tBTA_GATT_READ_VAL  *p_value;
+    UINT16              handle;
+    tBTA_GATT_UNFMT  *p_value;
 }tBTA_GATTC_READ;
 
 typedef struct
 {
     UINT16              conn_id;
     tBTA_GATT_STATUS    status;
-    tBTA_GATT_SRVC_ID   srvc_id;
-    tBTA_GATT_ID        char_id;
-    tBTA_GATT_ID        descr_type;
+    UINT16              handle;
 }tBTA_GATTC_WRITE;
 
 typedef struct
@@ -339,7 +282,7 @@ typedef struct
 typedef struct
 {
     UINT16              conn_id;
-    tBTA_GATT_SRVC_ID   service_uuid;
+    tBTA_GATT_ID   service_uuid;
 }tBTA_GATTC_SRVC_RES;
 
 typedef struct
@@ -372,8 +315,7 @@ typedef struct
 {
     UINT16              conn_id;
     BD_ADDR             bda;
-    tBTA_GATTC_CHAR_ID  char_id;
-    tBTA_GATT_ID        descr_type;
+    UINT16              handle;
     UINT16              len;
     UINT8               value[BTA_GATT_MAX_ATTR_LEN];
     BOOLEAN             is_notify;
@@ -628,7 +570,9 @@ typedef void (tBTA_GATTS_CBACK)(tBTA_GATTS_EVT event,  tBTA_GATTS *p_data);
 
 typedef struct
 {
-    tBTA_GATT_SRVC_ID       service_uuid;
+    tBT_UUID                uuid;
+    BOOLEAN                 is_primary;
+    UINT16                  handle;
     UINT16                  s_handle;
     UINT16                  e_handle;
     list_t                 *characteristics; /* list of tBTA_GATTC_CHARACTERISTIC */
@@ -807,7 +751,7 @@ extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_
 
 /*******************************************************************************
 **
-** Function         BTA_GATTC_GetCharacteristic
+** Function         BTA_GATTC_GetDescriptor
 **
 ** Description      This function is called to find the characteristic on the given server.
 **
@@ -818,98 +762,6 @@ extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_
 **
 *******************************************************************************/
 extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 handle);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetFirstChar
-**
-** Description      This function is called to find the first charatceristic of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_srvc_id: the service ID of which the characteristic is belonged to.
-**                  p_char_uuid_cond: Characteristic UUID, if NULL find the first available
-**                               characteristic.
-**                  p_char_result: output parameter which will store the GATT
-**                                  characteristic ID.
-**                  p_property: output parameter to carry the characteristic property.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstChar (UINT16              conn_id,
-                                                 tBTA_GATT_SRVC_ID   *p_srvc_id,
-                                                 tBT_UUID            *p_char_uuid_cond,
-                                                 tBTA_GATTC_CHAR_ID  *p_char_result,
-                                                 tBTA_GATT_CHAR_PROP *p_property);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetNextChar
-**
-** Description      This function is called to find the next charatceristic of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_start_char_id: start the characteristic search from the next record
-**                           after the one identified by char_id.
-**                  p_char_uuid_cond: Characteristic UUID, if NULL find the first available
-**                               characteristic.
-**                  p_char_result: output parameter which will store the GATT
-**                                  characteristic ID.
-**                  p_property: output parameter, characteristic property.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetNextChar (UINT16 conn_id,
-                                                tBTA_GATTC_CHAR_ID  *p_start_char_id,
-                                                tBT_UUID            *p_char_uuid_cond,
-                                                tBTA_GATTC_CHAR_ID  *p_char_result,
-                                                tBTA_GATT_CHAR_PROP *p_property);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetFirstCharDescr
-**
-** Description      This function is called to find the first charatceristic descriptor of the
-**                  charatceristic on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_char_id: the characteristic ID of which the descriptor is belonged to.
-**                  p_descr_uuid_cond: Characteristic Descr UUID, if NULL find the first available
-**                               characteristic.
-**                  p_descr_result: output parameter which will store the GATT
-**                                  characteristic descriptor ID.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstCharDescr (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id,
-                                                      tBT_UUID *p_descr_uuid_cond,
-                                                      tBTA_GATTC_CHAR_DESCR_ID *p_descr_result);
-
-/*******************************************************************************
-**
-** Function         BTA_GATTC_GetFirstIncludedService
-**
-** Description      This function is called to find the first included service of the
-**                  service on the given server.
-**
-** Parameters       conn_id: connection ID which identify the server.
-**                  p_srvc_id: the service ID of which the included service is belonged to.
-**                  p_uuid_cond: include service UUID, if NULL find the first available
-**                               included service.
-**                  p_result: output parameter which will store the GATT ID
-**                              of the included service found.
-**
-** Returns          returns status.
-**
-*******************************************************************************/
-extern tBTA_GATT_STATUS  BTA_GATTC_GetFirstIncludedService(UINT16 conn_id,
-                                                           tBTA_GATT_SRVC_ID    *p_srvc_id,
-                                                           tBT_UUID               *p_uuid_cond,
-                                                           tBTA_GATTC_INCL_SVC_ID *p_result);
 
 /*******************************************************************************
 **
@@ -930,34 +782,29 @@ extern void BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_
 **
 ** Function         BTA_GATTC_ReadCharacteristic
 **
-** Description      This function is called to read a service's characteristics of
-**                    the given characteritisc ID.
+** Description      This function is called to read a characteristics value
 **
 ** Parameters       conn_id - connectino ID.
-**                    p_char_id - characteritic ID to read.
+**                  handle - characteritic handle to read.
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_ReadCharacteristic (UINT16 conn_id,
-                                          tBTA_GATTC_CHAR_ID *p_char_id,
-                                          tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ReadCharDescr
 **
-** Description      This function is called to read a characteristics descriptor.
+** Description      This function is called to read a descriptor value.
 **
 ** Parameters       conn_id - connection ID.
-**                    p_char_descr_id - characteritic descriptor ID to read.
+**                  handle - descriptor handle to read.
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
-                                     tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
-                                     tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -966,40 +813,40 @@ extern void BTA_GATTC_ReadCharDescr (UINT16 conn_id,
 ** Description      This function is called to write characteristic value.
 **
 ** Parameters       conn_id - connection ID.
-**                    p_char_id - characteristic ID to write.
-**                    write_type - type of write.
+**                  handle - characteristic handle to write.
+**                  write_type - type of write.
 **                  len: length of the data to be written.
 **                  p_value - the value to be written.
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_WriteCharValue (UINT16 conn_id,
-                                      tBTA_GATTC_CHAR_ID *p_char_id,
-                                      tBTA_GATTC_WRITE_TYPE  write_type,
-                                      UINT16 len,
-                                      UINT8 *p_value,
-                                      tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
+                                UINT16 handle,
+                                tBTA_GATTC_WRITE_TYPE  write_type,
+                                UINT16 len,
+                                UINT8 *p_value,
+                                tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_WriteCharDescr
 **
-** Description      This function is called to write characteristic descriptor value.
+** Description      This function is called to write descriptor value.
 **
 ** Parameters       conn_id - connection ID
-**                    p_char_descr_id - characteristic descriptor ID to write.
-**                    write_type - type of write.
+**                  handle - descriptor handle to write.
+**                  write_type - type of write.
 **                  p_value - the value to be written.
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
-                                      tBTA_GATTC_CHAR_DESCR_ID *p_char_descr_id,
-                                      tBTA_GATTC_WRITE_TYPE  write_type,
-                                      tBTA_GATT_UNFMT   *p_data,
-                                      tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
+                               UINT16 handle,
+                               tBTA_GATTC_WRITE_TYPE  write_type,
+                               tBTA_GATT_UNFMT      *p_data,
+                               tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -1008,12 +855,12 @@ extern void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 ** Description      This function is called to send handle value confirmation.
 **
 ** Parameters       conn_id - connection ID.
-**                    p_char_id - characteristic ID to confrim.
+**                  handle - characteristic handle to confirm.
 **
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char_id);
+extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle);
 
 /*******************************************************************************
 **
@@ -1021,17 +868,16 @@ extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, tBTA_GATTC_CHAR_ID *p_char
 **
 ** Description      This function is called to register for notification of a service.
 **
-** Parameters       client_if   - client interface.
-**                  remote_bda  - target GATT server.
-**                  p_char_id   - pointer to GATT characteristic ID.
+** Parameters       client_if - client interface.
+**                  remote_bda - target GATT server.
+**                  handle - GATT characteristic handle.
 **
 ** Returns          OK if registration succeed, otherwise failed.
 **
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
                                                             BD_ADDR            remote_bda,
-                                                            tBTA_GATTC_CHAR_ID *p_char_id);
-
+                                                            UINT16             handle);
 
 /*******************************************************************************
 **
@@ -1041,14 +887,14 @@ extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      c
 **
 ** Parameters       client_if - client interface.
 **                  remote_bda - target GATT server.
-**                  p_char_id - pointer to a GATT characteristic ID.
+**                  handle - GATT characteristic handle.
 **
 ** Returns          OK if deregistration succeed, otherwise failed.
 **
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
                                                               BD_ADDR            remote_bda,
-                                                              tBTA_GATTC_CHAR_ID *p_char_id);
+                                                              UINT16             handle);
 
 /*******************************************************************************
 **
@@ -1057,16 +903,16 @@ extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF     
 ** Description      This function is called to prepare write a characteristic value.
 **
 ** Parameters       conn_id - connection ID.
-**                    p_char_id - GATT characteritic ID of the service.
+**                  handle - GATT characteritic handle.
 **                  offset - offset of the write value.
-**                  len: length of the data to be written.
+**                  len - length of the data to be written.
 **                  p_value - the value to be written.
 **
 ** Returns          None
 **
 *******************************************************************************/
 extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
-                                     tBTA_GATTC_CHAR_ID *p_char_id,
+                                     UINT16 handle,
                                      UINT16 offset,
                                      UINT16 len,
                                      UINT8 *p_value,

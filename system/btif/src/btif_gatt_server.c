@@ -435,11 +435,13 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTS_CREATE_SERVICE:
         {
-            tBTA_GATT_SRVC_ID srvc_id;
-            btif_to_bta_srvc_id(&srvc_id, &p_cb->srvc_id);
-            BTA_GATTS_CreateService(p_cb->server_if, &srvc_id.id.uuid,
-                                    srvc_id.id.inst_id, p_cb->num_handles,
-                                    srvc_id.is_primary);
+            tBT_UUID uuid;
+            btif_to_bta_uuid(&uuid, &p_cb->srvc_id.id.uuid);
+
+            BTA_GATTS_CreateService(p_cb->server_if, &uuid,
+                                    p_cb->srvc_id.id.inst_id, p_cb->num_handles,
+                                    p_cb->srvc_id.is_primary);
+
             break;
         }
 
