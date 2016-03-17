@@ -94,9 +94,9 @@ bool display_cache_service(void *data, void *context) {
     tBTA_GATTC_SERVICE    *p_cur_srvc = data;
     APPL_TRACE_ERROR("Service: handle[%d ~ %d] %s[0x%04x] inst[%d]",
                       p_cur_srvc->s_handle, p_cur_srvc->e_handle,
-                      ((p_cur_srvc->service_uuid.id.uuid.len == 2) ? "uuid16" : "uuid128"),
-                      p_cur_srvc->service_uuid.id.uuid.uu.uuid16,
-                      p_cur_srvc->service_uuid.id.inst_id);
+                      ((p_cur_srvc->uuid.len == 2) ? "uuid16" : "uuid128"),
+                      p_cur_srvc->uuid.uu.uuid16,
+                      p_cur_srvc->handle);
 
     if (p_cur_srvc->characteristics != NULL) {
         list_foreach(p_cur_srvc->characteristics, display_cache_attribute, NULL);
@@ -211,9 +211,9 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     /* update service information */
     p_new_srvc->s_handle = s_handle;
     p_new_srvc->e_handle = e_handle;
-    p_new_srvc->service_uuid.is_primary = is_primary;
-    memcpy(&p_new_srvc->service_uuid.id.uuid, p_uuid, sizeof(tBT_UUID));
-    p_new_srvc->service_uuid.id.inst_id = s_handle;
+    p_new_srvc->is_primary = is_primary;
+    memcpy(&p_new_srvc->uuid, p_uuid, sizeof(tBT_UUID));
+    p_new_srvc->handle = s_handle;
     p_new_srvc->characteristics = list_new(characteristic_free);
     p_new_srvc->included_svc = list_new(osi_free);
 
@@ -946,47 +946,6 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
 
 /*******************************************************************************
 **
-** Function         bta_gattc_handle2id
-**
-** Description      map a handle to GATT ID in a given cache.
-**
-** Returns          FALSE if map can not be found.
-**
-*******************************************************************************/
-
-BOOLEAN bta_gattc_handle2id(tBTA_GATTC_SERV *p_srcb, UINT16 handle, tBTA_GATT_SRVC_ID *p_service_id,
-                            tBTA_GATT_ID *p_char_id, tBTA_GATT_ID *p_descr_type)
-{
-    memset(p_service_id, 0, sizeof(tBTA_GATT_SRVC_ID));
-    memset(p_char_id, 0, sizeof(tBTA_GATT_ID));
-    memset(p_descr_type, 0, sizeof(tBTA_GATT_ID));
-
-    if (!p_srcb->p_srvc_cache || list_is_empty(p_srcb->p_srvc_cache))
-        return FALSE;
-
-    tBTA_GATTC_DESCRIPTOR* p_desc = bta_gattc_get_descriptor_srcb(p_srcb, handle);
-    tBTA_GATTC_CHARACTERISTIC* p_char = NULL;
-    if (p_desc) {
-        memcpy(&p_descr_type->uuid, &p_desc->uuid, sizeof(tBT_UUID));
-        p_descr_type->inst_id = p_desc->handle;
-
-        p_char = p_desc->characteristic;
-    } else {
-        p_char = bta_gattc_get_characteristic_srcb(p_srcb, handle);
-    }
-
-    if (p_char) {
-        memcpy(&p_char_id->uuid, &p_char->uuid, sizeof(tBT_UUID));
-        p_char_id->inst_id = p_char->handle;
-
-        memcpy(p_service_id, &p_char->service->service_uuid, sizeof(tBTA_GATT_SRVC_ID));
-        return TRUE;
-    }
-    return FALSE;
-}
-
-/*******************************************************************************
-**
 ** Function         bta_gattc_search_service
 **
 ** Description      search local cache for matching service record.
@@ -1005,14 +964,14 @@ void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
          sn != list_end(p_clcb->p_srcb->p_srvc_cache); sn = list_next(sn)) {
         tBTA_GATTC_SERVICE *p_cache = list_node(sn);
 
-        if (!bta_gattc_uuid_compare(p_uuid, &p_cache->service_uuid.id.uuid, FALSE))
+        if (!bta_gattc_uuid_compare(p_uuid, &p_cache->uuid, FALSE))
             continue;
 
 #if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
         APPL_TRACE_DEBUG("found service [0x%04x], inst[%d] handle [%d]",
-                          p_cache->service_uuid.id.uuid.uu.uuid16,
-                          p_cache->service_uuid.id.inst_id,
-                            p_cache->s_handle);
+                          p_cache->uuid.uu.uuid16,
+                          p_cache->handle,
+                          p_cache->s_handle);
 #endif
         if (!p_clcb->p_rcb->p_cback)
             continue;
@@ -1020,8 +979,8 @@ void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
         memset(&cb_data, 0, sizeof(tBTA_GATTC));
 
         cb_data.srvc_res.conn_id = p_clcb->bta_conn_id;
-        memcpy(&cb_data.srvc_res.service_uuid, &p_cache->service_uuid,
-                sizeof(tBTA_GATT_SRVC_ID));
+        cb_data.srvc_res.service_uuid.inst_id = p_cache->handle;
+        memcpy(&cb_data.srvc_res.service_uuid.uuid, &p_cache->uuid, sizeof(tBTA_GATT_ID));
 
         (* p_clcb->p_rcb->p_cback)(BTA_GATTC_SEARCH_RES_EVT, &cb_data);
     }
@@ -1239,14 +1198,14 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
             break;
 
         bta_gattc_fill_gatt_db_el(curr_db_attr,
-                                  p_cur_srvc->service_uuid.is_primary ?
+                                  p_cur_srvc->is_primary ?
                                       BTGATT_DB_PRIMARY_SERVICE :
                                       BTGATT_DB_SECONDARY_SERVICE,
                                   0 /* att_handle */,
                                   p_cur_srvc->s_handle,
                                   p_cur_srvc->e_handle,
                                   p_cur_srvc->s_handle,
-                                  p_cur_srvc->service_uuid.id.uuid,
+                                  p_cur_srvc->uuid,
                                   0 /* prop */);
         curr_db_attr++;
 
@@ -1445,10 +1404,10 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
                                 BTA_GATTC_ATTR_TYPE_SRVC,
                                p_cur_srvc->s_handle,
                                p_cur_srvc->e_handle,
-                               p_cur_srvc->service_uuid.id.uuid,
+                               p_cur_srvc->uuid,
                                0 /* properties */,
                                0 /* incl_srvc_handle */,
-                               p_cur_srvc->service_uuid.is_primary);
+                               p_cur_srvc->is_primary);
     }
 
     for (list_node_t *sn = list_begin(p_srvc_cb->p_srvc_cache);
