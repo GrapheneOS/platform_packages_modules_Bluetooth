@@ -39,6 +39,8 @@
 #define BTIF_HH_KEYSTATE_MASK_CAPSLOCK   0x02
 #define BTIF_HH_KEYSTATE_MASK_SCROLLLOCK 0x04
 
+#define BTIF_HH_MAX_POLLING_ATTEMPTS      10
+#define BTIF_HH_POLLING_SLEEP_DURATION_US 5000
 
 /*******************************************************************************
 **  Type definitions and return values
