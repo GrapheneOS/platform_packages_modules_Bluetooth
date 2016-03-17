@@ -272,7 +272,8 @@ static bt_status_t connect_audio( bt_bdaddr_t *bd_addr )
 
     if (is_connected(bd_addr))
     {
-        if (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_CODEC)
+        if ((BTIF_HF_CLIENT_FEATURES & BTA_HF_CLIENT_FEAT_CODEC) &&
+                (btif_hf_client_cb.peer_feat & BTA_HF_CLIENT_PEER_CODEC))
         {
             BTA_HfClientSendAT(btif_hf_client_cb.handle, BTA_HF_CLIENT_AT_CMD_BCC, 0, 0, NULL);
         }
