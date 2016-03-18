@@ -67,6 +67,8 @@ typedef struct {
   period_ms_t last_acquired_timestamp_ms;
   period_ms_t last_released_timestamp_ms;
   period_ms_t last_reset_timestamp_ms;
+  int last_acquired_error;
+  int last_released_error;
 } wakelock_stats_t;
 
 static wakelock_stats_t wakelock_stats;
@@ -276,8 +278,10 @@ static void update_wakelock_acquired_stats(bt_status_t acquired_status) {
 
   pthread_mutex_lock(&monitor);
 
-  if (acquired_status != BT_STATUS_SUCCESS)
+  if (acquired_status != BT_STATUS_SUCCESS) {
     wakelock_stats.acquired_errors++;
+    wakelock_stats.last_acquired_error = acquired_status;
+  }
 
   if (wakelock_stats.is_acquired) {
     pthread_mutex_unlock(&monitor);
@@ -306,8 +310,10 @@ static void update_wakelock_released_stats(bt_status_t released_status) {
 
   pthread_mutex_lock(&monitor);
 
-  if (released_status != BT_STATUS_SUCCESS)
+  if (released_status != BT_STATUS_SUCCESS) {
     wakelock_stats.released_errors++;
+    wakelock_stats.last_released_error = released_status;
+  }
 
   if (!wakelock_stats.is_acquired) {
     pthread_mutex_unlock(&monitor);
@@ -364,20 +370,22 @@ void wakelock_debug_dump(int fd) {
     ave_interval = total_interval / wakelock_stats.acquired_count;
 
   dprintf(fd, "\nBluetooth Wakelock Statistics:\n");
-  dprintf(fd, "  Wakelock is acquired                    : %s\n",
+  dprintf(fd, "  Is acquired                    : %s\n",
           wakelock_stats.is_acquired? "true" : "false");
-  dprintf(fd, "  Wakelock acquired/released count        : %zu / %zu\n",
+  dprintf(fd, "  Acquired/released count        : %zu / %zu\n",
           wakelock_stats.acquired_count, wakelock_stats.released_count);
-  dprintf(fd, "  Wakelock acquired/released errors       : %zu / %zu\n",
+  dprintf(fd, "  Acquired/released error count  : %zu / %zu\n",
           wakelock_stats.acquired_errors, wakelock_stats.released_errors);
-  dprintf(fd, "  Wakelock last acquired time (ms)        : %llu\n",
+  dprintf(fd, "  Last acquire/release error code: %d / %d\n",
+          wakelock_stats.last_acquired_error, wakelock_stats.last_released_error);
+  dprintf(fd, "  Last acquired time (ms)        : %llu\n",
           (unsigned long long)last_interval);
-  dprintf(fd, "  Wakelock acquired time min/max/avg (ms) : %llu / %llu / %llu\n",
+  dprintf(fd, "  Acquired time min/max/avg (ms) : %llu / %llu / %llu\n",
           (unsigned long long)min_interval, (unsigned long long)max_interval,
           (unsigned long long)ave_interval);
-  dprintf(fd, "  Wakelock total acquired time (ms)       : %llu\n",
+  dprintf(fd, "  Total acquired time (ms)       : %llu\n",
           (unsigned long long)total_interval);
-  dprintf(fd, "  Bluetooth total run time (ms)           : %llu\n",
+  dprintf(fd, "  Total run time (ms)            : %llu\n",
           (unsigned long long)(now_ms - wakelock_stats.last_reset_timestamp_ms));
 
   if (lock_error == 0)
