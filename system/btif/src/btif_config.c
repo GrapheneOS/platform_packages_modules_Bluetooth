@@ -30,6 +30,7 @@
 #include "bt_types.h"
 #include "btcore/include/bdaddr.h"
 #include "btcore/include/module.h"
+#include "btif_api.h"
 #include "btif_common.h"
 #include "btif_config.h"
 #include "btif_config_transcode.h"
@@ -59,6 +60,7 @@ static void btif_config_write(UINT16 event, char *p_param);
 static bool is_factory_reset(void);
 static void delete_config_files(void);
 static void btif_config_remove_unpaired(config_t *config);
+static void btif_config_remove_restricted(config_t *config);
 
 static enum ConfigSource {
   NOT_LOADED,
@@ -145,6 +147,10 @@ static future_t *init(void) {
   }
 
   btif_config_remove_unpaired(config);
+
+  // Cleanup temporary pairings if we have left guest mode
+  if (!is_restricted_mode())
+    btif_config_remove_restricted(config);
 
   // TODO(sharvil): use a non-wake alarm for this once we have
   // API support for it. There's no need to wake the system to
@@ -494,6 +500,22 @@ void btif_debug_config_dump(int fd) {
     }
 
     dprintf(fd, "  Devices loaded: %d\n", btif_config_devices_loaded);
+}
+
+static void btif_config_remove_restricted(config_t* config) {
+  assert(config != NULL);
+
+  pthread_mutex_lock(&lock);
+  const config_section_node_t *snode = config_section_begin(config);
+  while (snode != config_section_end(config)) {
+    const char *section = config_section_name(snode);
+    if (string_is_bdaddr(section) && config_has_key(config, section, "Restricted")) {
+        BTIF_TRACE_DEBUG("%s: Removing restricted device %s", __func__, section);
+        config_remove_section(config, section);
+    }
+    snode = config_section_next(snode);
+  }
+  pthread_mutex_unlock(&lock);
 }
 
 static bool is_factory_reset(void) {

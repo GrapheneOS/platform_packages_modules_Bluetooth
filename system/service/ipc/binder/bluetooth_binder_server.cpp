@@ -58,9 +58,9 @@ Status BluetoothBinderServer::GetState(int32_t* _aidl_return) {
   return Status::ok();
 }
 
-Status BluetoothBinderServer::Enable(bool* _aidl_return) {
+Status BluetoothBinderServer::Enable(bool start_restricted, bool* _aidl_return) {
   VLOG(2) << __func__;
-  *_aidl_return = adapter_->Enable();
+  *_aidl_return = adapter_->Enable(start_restricted);
   return Status::ok();
 }
 
