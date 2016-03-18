@@ -204,17 +204,13 @@ tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator)
 *******************************************************************************/
 void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 {
-    void    *p_buf;
-
     /* Remove the MCB from the mapping table */
     rfc_save_lcid_mcb(NULL, p_mcb->lcid);
 
     rfc_timer_stop (p_mcb);
     alarm_free(p_mcb->mcb_timer);
 
-    while ((p_buf = fixed_queue_try_dequeue(p_mcb->cmd_q)) != NULL)
-        osi_free(p_buf);
-    fixed_queue_free(p_mcb->cmd_q, NULL);
+    fixed_queue_free(p_mcb->cmd_q, osi_free);
 
     memset (p_mcb, 0, sizeof (tRFC_MCB));
     p_mcb->state = RFC_MX_STATE_IDLE;

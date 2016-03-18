@@ -350,36 +350,28 @@ tAVCT_LCB *avct_lcb_alloc(BD_ADDR bd_addr)
 *******************************************************************************/
 void avct_lcb_dealloc(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data)
 {
-    tAVCT_CCB   *p_ccb = &avct_cb.ccb[0];
-    BOOLEAN     found = FALSE;
-    int         i;
     UNUSED(p_data);
 
-    AVCT_TRACE_DEBUG("avct_lcb_dealloc %d", p_lcb->allocated);
+    AVCT_TRACE_DEBUG("%s allocated: %d", __func__, p_lcb->allocated);
 
-    for (i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
+    // Check if the LCB is still referenced
+
+    tAVCT_CCB *p_ccb = &avct_cb.ccb[0];
+    for (size_t i = 0; i < AVCT_NUM_CONN; i++, p_ccb++)
     {
-        /* if ccb allocated and */
-        if (p_ccb->allocated)
+        if (p_ccb->allocated && p_ccb->p_lcb == p_lcb)
         {
-            if (p_ccb->p_lcb == p_lcb)
-            {
-                AVCT_TRACE_DEBUG("avct_lcb_dealloc used by ccb: %d", i);
-                found = TRUE;
-                break;
-            }
+            AVCT_TRACE_DEBUG("%s LCB in use; lcb index: %d", __func__, i);
+            return;
         }
     }
 
-    if (!found)
-    {
-        AVCT_TRACE_DEBUG("avct_lcb_dealloc now");
+    // If not, de-allocate now...
 
-        /* clear reassembled msg buffer if in use */
-        osi_free(p_lcb->p_rx_msg);
-        fixed_queue_free(p_lcb->tx_q, NULL);
-        memset(p_lcb, 0, sizeof(tAVCT_LCB));
-    }
+    AVCT_TRACE_DEBUG("%s Freeing LCB", __func__);
+    osi_free(p_lcb->p_rx_msg);
+    fixed_queue_free(p_lcb->tx_q, NULL);
+    memset(p_lcb, 0, sizeof(tAVCT_LCB));
 }
 
 /*******************************************************************************
