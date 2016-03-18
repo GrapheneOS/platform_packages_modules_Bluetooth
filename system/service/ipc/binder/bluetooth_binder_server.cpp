@@ -50,9 +50,9 @@ int BluetoothBinderServer::GetState() {
   return adapter_->GetState();
 }
 
-bool BluetoothBinderServer::Enable() {
+bool BluetoothBinderServer::Enable(bool startRestricted) {
   VLOG(2) << __func__;
-  return adapter_->Enable();
+  return adapter_->Enable(startRestricted);
 }
 
 bool BluetoothBinderServer::EnableNoAutoConnect() {

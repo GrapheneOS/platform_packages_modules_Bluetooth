@@ -259,8 +259,23 @@ void HandleDisable(IBluetooth* bt_iface, const vector<string>& args) {
 }
 
 void HandleEnable(IBluetooth* bt_iface, const vector<string>& args) {
-  CHECK_NO_ARGS(args);
-  PrintCommandStatus(bt_iface->Enable());
+  bool isRestrictedMode = false;
+
+  for (auto iter = args.begin(); iter != args.end(); ++iter) {
+    const std::string& arg = *iter;
+    if (arg == "-h") {
+      static const char kUsage[] =
+          "Usage: start-adv [flags]\n"
+          "\n"
+          "Flags:\n"
+          "\t--restricted|-r\tStart in restricted mode\n";
+      cout << kUsage << endl;
+      return;
+    } else if (arg == "--restricted" || arg == "-r") {
+      isRestrictedMode = true;
+    }
+  }
+  PrintCommandStatus(bt_iface->Enable(isRestrictedMode));
 }
 
 void HandleGetState(IBluetooth* bt_iface, const vector<string>& args) {
@@ -697,7 +712,7 @@ struct {
 } kCommandMap[] = {
   { "help", HandleHelp, "\t\t\tDisplay this message" },
   { "disable", HandleDisable, "\t\t\tDisable Bluetooth" },
-  { "enable", HandleEnable, "\t\t\tEnable Bluetooth" },
+  { "enable", HandleEnable, "\t\t\tEnable Bluetooth (-h for options)" },
   { "get-state", HandleGetState, "\t\tGet the current adapter state" },
   { "is-enabled", HandleIsEnabled, "\t\tReturn if Bluetooth is enabled" },
   { "get-local-address", HandleGetLocalAddress,

@@ -81,7 +81,8 @@ status_t BnBluetooth::onTransact(
     }
     case ENABLE_TRANSACTION: {
       CHECK_INTERFACE(IBluetooth, data, reply);
-      bool result = Enable();
+      bool startRestricted = data.readBool();
+      bool result = Enable(startRestricted);
       reply->writeInt32(result);
       return android::NO_ERROR;
     }
@@ -182,10 +183,11 @@ int BpBluetooth::GetState() {
   return reply.readInt32();
 }
 
-bool BpBluetooth::Enable() {
+bool BpBluetooth::Enable(bool startRestricted) {
   Parcel data, reply;
 
   data.writeInterfaceToken(IBluetooth::getInterfaceDescriptor());
+  data.writeBool(startRestricted);
   remote()->transact(IBluetooth::ENABLE_TRANSACTION, data, &reply);
 
   return reply.readInt32();

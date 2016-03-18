@@ -60,6 +60,7 @@
 #include "osi/include/wakelock.h"
 #include "stack_manager.h"
 #include "btif_config.h"
+#include "btif_storage.h"
 #include "btif/include/btif_debug_btsnoop.h"
 #include "btif/include/btif_debug_conn.h"
 #include "btif/include/btif_media.h"
@@ -69,6 +70,7 @@
 ************************************************************************************/
 
 bt_callbacks_t *bt_hal_cbacks = NULL;
+bool restricted_mode = FALSE;
 
 /************************************************************************************
 **  Externs
@@ -140,8 +142,10 @@ static int init(bt_callbacks_t *callbacks) {
   return BT_STATUS_SUCCESS;
 }
 
-static int enable(void) {
+static int enable(bool start_restricted) {
   LOG_INFO(LOG_TAG, "%s", __func__);
+
+  restricted_mode = start_restricted;
 
   if (!interface_ready())
     return BT_STATUS_NOT_READY;
@@ -160,6 +164,10 @@ static int disable(void) {
 
 static void cleanup(void) {
   stack_manager_get_interface()->clean_up_stack();
+}
+
+bool is_restricted_mode() {
+  return restricted_mode;
 }
 
 static int get_adapter_properties(void)
@@ -282,6 +290,9 @@ static int cancel_bond(const bt_bdaddr_t *bd_addr)
 
 static int remove_bond(const bt_bdaddr_t *bd_addr)
 {
+    if (is_restricted_mode() && !btif_storage_is_restricted_device(bd_addr))
+        return 0;
+
     /* sanity check */
     if (interface_ready() == FALSE)
         return BT_STATUS_NOT_READY;

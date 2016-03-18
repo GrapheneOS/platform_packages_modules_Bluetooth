@@ -45,7 +45,7 @@ class BluetoothBinderServer : public BnBluetooth,
   // IBluetooth overrides:
   bool IsEnabled() override;
   int GetState() override;
-  bool Enable() override;
+  bool Enable(bool startRestricted) override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
 
