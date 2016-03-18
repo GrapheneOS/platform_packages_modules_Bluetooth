@@ -134,7 +134,7 @@ class IBluetooth : public android::IInterface {
 
   virtual bool IsEnabled() = 0;
   virtual int GetState() = 0;
-  virtual bool Enable() = 0;
+  virtual bool Enable(bool start_restricted) = 0;
   virtual bool EnableNoAutoConnect() = 0;
   virtual bool Disable() = 0;
 
@@ -184,7 +184,7 @@ class BpBluetooth : public android::BpInterface<IBluetooth> {
   // IBluetooth overrides:
   bool IsEnabled() override;
   int GetState() override;
-  bool Enable() override;
+  bool Enable(bool start_restricted) override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
 

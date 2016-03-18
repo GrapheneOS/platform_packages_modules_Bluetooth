@@ -45,7 +45,7 @@ class BluetoothBinderServer : public BnBluetooth,
   // IBluetooth overrides:
   bool IsEnabled() override;
   int GetState() override;
-  bool Enable() override;
+  bool Enable(bool start_restricted) override;
   bool EnableNoAutoConnect() override;
   bool Disable() override;
 
@@ -65,7 +65,6 @@ class BluetoothBinderServer : public BnBluetooth,
   android::sp<IBluetoothGattServer> GetGattServerInterface() override;
 
   android::status_t dump(int fd, const android::Vector<android::String16>& args) override;
-
   // bluetooth::Adapter::Observer overrides:
   void OnAdapterStateChanged(bluetooth::Adapter* adapter,
                              bluetooth::AdapterState prev_state,
