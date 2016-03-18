@@ -594,9 +594,6 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
     {
         if (!p_scb->allocated)
         {
-            alarm_free(p_scb->transport_channel_timer);
-            p_scb->transport_channel_timer = NULL;
-            fixed_queue_free(p_scb->frag_q, NULL);
             memset(p_scb,0,sizeof(tAVDT_SCB));
             p_scb->allocated = TRUE;
             p_scb->p_ccb = NULL;
@@ -646,20 +643,14 @@ tAVDT_SCB *avdt_scb_alloc(tAVDT_CS *p_cs)
 *******************************************************************************/
 void avdt_scb_dealloc(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
-#if AVDT_MULTIPLEXING == TRUE
-    void *p_buf;
-#endif
     UNUSED(p_data);
 
     AVDT_TRACE_DEBUG("avdt_scb_dealloc hdl=%d", avdt_scb_to_hdl(p_scb));
     alarm_free(p_scb->transport_channel_timer);
-    p_scb->transport_channel_timer = NULL;
 
 #if AVDT_MULTIPLEXING == TRUE
     /* free fragments we're holding, if any; it shouldn't happen */
-    while ((p_buf = fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-        osi_free(p_buf);
-    fixed_queue_free(p_scb->frag_q, NULL);
+    fixed_queue_free(p_scb->frag_q, osi_free);
 #endif
 
     memset(p_scb, 0, sizeof(tAVDT_SCB));

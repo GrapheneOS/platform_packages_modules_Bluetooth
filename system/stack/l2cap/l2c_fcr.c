@@ -231,18 +231,13 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 
     osi_free_and_reset((void **)&p_fcrb->p_rx_sdu);
 
-    while (!fixed_queue_is_empty(p_fcrb->waiting_for_ack_q))
-        osi_free(fixed_queue_try_dequeue(p_fcrb->waiting_for_ack_q));
+    fixed_queue_free(p_fcrb->waiting_for_ack_q, osi_free);
     p_fcrb->waiting_for_ack_q = NULL;
 
-    while (!fixed_queue_is_empty(p_fcrb->srej_rcv_hold_q))
-        osi_free(fixed_queue_try_dequeue(p_fcrb->srej_rcv_hold_q));
-    fixed_queue_free(p_fcrb->srej_rcv_hold_q, NULL);
+    fixed_queue_free(p_fcrb->srej_rcv_hold_q, osi_free);
     p_fcrb->srej_rcv_hold_q = NULL;
 
-    while (!fixed_queue_is_empty(p_fcrb->retrans_q))
-        osi_free(fixed_queue_try_dequeue(p_fcrb->retrans_q));
-    fixed_queue_free(p_fcrb->retrans_q, NULL);
+    fixed_queue_free(p_fcrb->retrans_q, osi_free);
     p_fcrb->retrans_q = NULL;
 
 #if (L2CAP_ERTM_STATS == TRUE)

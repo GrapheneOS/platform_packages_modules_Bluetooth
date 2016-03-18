@@ -943,13 +943,7 @@ UINT16 AVDT_WriteReqOpt(UINT8 handle, BT_HDR *p_pkt, UINT32 time_stamp, UINT8 m_
         evt.apiwrite.time_stamp = time_stamp;
         evt.apiwrite.m_pt = m_pt;
         evt.apiwrite.opt = opt;
-#if AVDT_MULTIPLEXING == TRUE
-        evt.apiwrite.frag_q = fixed_queue_new(SIZE_MAX);
-#endif
         avdt_scb_event(p_scb, AVDT_SCB_API_WRITE_REQ_EVT, &evt);
-#if AVDT_MULTIPLEXING == TRUE
-        fixed_queue_free(evt.apiwrite.frag_q, NULL);
-#endif
     }
 
     return result;
@@ -1192,18 +1186,10 @@ extern UINT16 AVDT_WriteDataReq(UINT8 handle, UINT8 *p_data, UINT32 data_len,
             break;
         }
         evt.apiwrite.p_buf = 0; /* it will indicate using of fragments queue frag_q */
-        /* create queue of media fragments */
-        evt.apiwrite.frag_q = fixed_queue_new(SIZE_MAX);
 
         /* compose fragments from media payload and put fragments into gueue */
-        avdt_scb_queue_frags(p_scb, &p_data, &data_len, evt.apiwrite.frag_q);
+        avdt_scb_queue_frags(p_scb, &p_data, &data_len);
 
-        if (fixed_queue_is_empty(evt.apiwrite.frag_q))
-        {
-            AVDT_TRACE_WARNING("AVDT_WriteDataReq out of GKI buffers");
-            result = AVDT_ERR_RESOURCE;
-            break;
-        }
         evt.apiwrite.data_len = data_len;
         evt.apiwrite.p_data = p_data;
 
