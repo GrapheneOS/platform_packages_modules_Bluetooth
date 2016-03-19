@@ -34,6 +34,7 @@
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
+#include "osi/include/compat.h"
 
 #define BTPROTO_HCI     1
 #define HCI_CHANNEL_USER        1
