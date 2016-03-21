@@ -87,28 +87,29 @@ size_t ringbuffer_delete(ringbuffer_t *rb, size_t length) {
   return length;
 }
 
-size_t ringbuffer_peek(const ringbuffer_t *rb, uint8_t *p, size_t length) {
+size_t ringbuffer_peek(const ringbuffer_t *rb, off_t offset, uint8_t *p, size_t length) {
   assert(rb);
   assert(p);
+  assert(offset >= 0);
+  assert((size_t)offset <= ringbuffer_size(rb));
 
-  uint8_t *b = rb->head;
-  size_t copied = 0;
+  uint8_t *b = ((rb->head - rb->base + offset) % rb->total) + rb->base;
+  const size_t bytes_to_copy = (offset + length > ringbuffer_size(rb)) ? ringbuffer_size(rb) - offset : length;
 
-  while (copied < length && copied < ringbuffer_size(rb)) {
+  for (size_t copied = 0; copied < bytes_to_copy; ++copied) {
     *p++ = *b++;
     if (b >= (rb->base + rb->total))
       b = rb->base;
-    ++copied;
   }
 
-  return copied;
+  return bytes_to_copy;
 }
 
 size_t ringbuffer_pop(ringbuffer_t *rb, uint8_t *p, size_t length) {
   assert(rb);
   assert(p);
 
-  const size_t copied = ringbuffer_peek(rb, p, length);
+  const size_t copied = ringbuffer_peek(rb, 0, p, length);
   rb->head += copied;
   if (rb->head >= (rb->base + rb->total))
     rb->head -= rb->total;
