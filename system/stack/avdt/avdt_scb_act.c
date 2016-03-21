@@ -1267,16 +1267,15 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     UINT8   *p;
     UINT32  ssrc;
-    BT_HDR  *p_frag;
 
     /* free fragments we're holding, if any; it shouldn't happen */
     if (!fixed_queue_is_empty(p_scb->frag_q))
     {
-        while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-            osi_free(p_frag);
-
         /* this shouldn't be happening */
         AVDT_TRACE_WARNING("*** Dropped media packet; congested");
+        BT_HDR *p_frag;
+        while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
+             osi_free(p_frag);
     }
 
     /* build a media fragments */
@@ -1285,11 +1284,11 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
     ssrc = avdt_scb_gen_ssrc(p_scb);
 
-    if (! fixed_queue_is_empty(p_data->apiwrite.frag_q)) {
-        list_t *list = fixed_queue_get_list(p_data->apiwrite.frag_q);
+    if (! fixed_queue_is_empty(p_scb->frag_q)) {
+        list_t *list = fixed_queue_get_list(p_scb->frag_q);
         const list_node_t *node = list_begin(list);
         if (node != list_end(list)) {
-            p_frag = (BT_HDR *)list_node(node);
+            BT_HDR *p_frag = (BT_HDR *)list_node(node);
             node = list_next(node);
 
             /* get first packet */
@@ -1316,7 +1315,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
         }
 
         for ( ; node != list_end(list); node = list_next(node)) {
-            p_frag = (BT_HDR *)list_node(node);
+            BT_HDR *p_frag = (BT_HDR *)list_node(node);
 
             /* posit on Adaptation Layer header */
             p_frag->len += AVDT_AL_HDR_SIZE;
@@ -1333,11 +1332,6 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
             UINT16_TO_BE_STREAM(p, p_frag->layer_specific);
         }
     }
-
-    /* store it */
-    p_scb->frag_q = p_data->apiwrite.frag_q;
-    /* TODO: Assign to NULL or allocate a new queue? */
-    p_data->apiwrite.frag_q = NULL;
 }
 #endif
 
@@ -1355,7 +1349,7 @@ void avdt_scb_hdl_write_req_frag(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_hdl_write_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
 #if AVDT_MULTIPLEXING == TRUE
-    if (fixed_queue_is_empty(p_data->apiwrite.frag_q))
+    if (fixed_queue_is_empty(p_scb->frag_q))
 #endif
         avdt_scb_hdl_write_req_no_frag(p_scb, p_data);
 #if AVDT_MULTIPLEXING == TRUE
@@ -1438,23 +1432,18 @@ void avdt_scb_snd_close_req(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_snd_stream_close(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
 #if AVDT_MULTIPLEXING == TRUE
-    BT_HDR          *p_frag;
-
-    AVDT_TRACE_WARNING("avdt_scb_snd_stream_close c:%d, off:%d",
+    AVDT_TRACE_WARNING("%s c:%d, off:%d", __func__,
         fixed_queue_length(p_scb->frag_q), p_scb->frag_off);
+
     /* clean fragments queue */
-    while((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
-         osi_free(p_frag);
+    BT_HDR *p_frag;
+    while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
+        osi_free(p_frag);
+
     p_scb->frag_off = 0;
 #endif
     osi_free_and_reset((void **)&p_scb->p_pkt);
 
-#if 0
-    if(p_scb->cong)
-        p_scb->cong = FALSE;
-
-    /* p_scb->curr_cfg.mux_tsid_media == 0 */
-#endif
     avdt_scb_snd_close_req(p_scb, p_data);
 }
 
@@ -1870,9 +1859,6 @@ void avdt_scb_set_remove(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 {
     tAVDT_CTRL      avdt_ctrl;
-#if AVDT_MULTIPLEXING == TRUE
-    BT_HDR          *p_frag;
-#endif
 
     /* set error code and parameter */
     avdt_ctrl.hdr.err_code = AVDT_ERR_BAD_STATE;
@@ -1883,7 +1869,8 @@ void avdt_scb_free_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 
 #if AVDT_MULTIPLEXING == TRUE
     /* clean fragments queue */
-    while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_data->apiwrite.frag_q)) != NULL)
+    BT_HDR          *p_frag;
+    while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
          osi_free(p_frag);
 #endif
 
@@ -1909,9 +1896,6 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     tAVDT_CCB       *p_ccb;
     UINT8           tcid;
     UINT16          lcid;
-#if AVDT_MULTIPLEXING == TRUE
-    BT_HDR          *p_frag;
-#endif
     UNUSED(p_data);
 
     /* set error code and parameter */
@@ -1942,9 +1926,9 @@ void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
     {
         AVDT_TRACE_DEBUG("Dropped fragments queue");
         /* clean fragments queue */
+        BT_HDR *p_frag;
         while ((p_frag = (BT_HDR*)fixed_queue_try_dequeue(p_scb->frag_q)) != NULL)
              osi_free(p_frag);
-
         p_scb->frag_off = 0;
 
         /* we need to call callback to keep data flow going */
@@ -2018,7 +2002,7 @@ void avdt_scb_chk_snd_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
                 if (AVDT_AD_SUCCESS == res || fixed_queue_is_empty(p_scb->frag_q))
                 {
                     /* all buffers were sent to L2CAP, compose more to queue */
-                    avdt_scb_queue_frags(p_scb, &p_scb->p_next_frag, &p_scb->frag_off, p_scb->frag_q);
+                    avdt_scb_queue_frags(p_scb, &p_scb->p_next_frag, &p_scb->frag_off);
                     if (!fixed_queue_is_empty(p_scb->frag_q))
                     {
                         data.llcong = p_scb->cong;
@@ -2087,7 +2071,7 @@ void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data)
 **
 *******************************************************************************/
 void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
-                          UINT32 *p_data_len, fixed_queue_t *pq)
+                          UINT32 *p_data_len)
 {
     UINT16  lcid;
     UINT16  num_frag;
@@ -2168,7 +2152,7 @@ void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
             UINT16_TO_BE_STREAM(p, p_frag->layer_specific );
         }
         /* put fragment into gueue */
-        fixed_queue_enqueue(pq, p_frag);
+        fixed_queue_enqueue(p_scb->frag_q, p_frag);
         num_frag--;
     }
 }
