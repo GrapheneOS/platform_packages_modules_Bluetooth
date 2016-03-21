@@ -458,7 +458,6 @@ typedef struct {
     BT_HDR      *p_buf;
     UINT32      time_stamp;
 #if AVDT_MULTIPLEXING == TRUE
-    fixed_queue_t *frag_q;              /* Queue for outgoing media fragments. p_buf should be 0 */
     UINT8       *p_data;
     UINT32      data_len;
 #endif
@@ -677,8 +676,7 @@ extern void avdt_scb_clr_pkt(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_transport_channel_timer(tAVDT_SCB *p_scb,
                                              tAVDT_SCB_EVT *p_data);
 extern void avdt_scb_clr_vars(tAVDT_SCB *p_scb, tAVDT_SCB_EVT *p_data);
-extern void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data,
-                                 UINT32 *p_data_len, fixed_queue_t *pq);
+extern void avdt_scb_queue_frags(tAVDT_SCB *p_scb, UINT8 **pp_data, UINT32 *p_data_len);
 
 /* msg function declarations */
 extern BOOLEAN avdt_msg_send(tAVDT_CCB *p_ccb, BT_HDR *p_msg);

@@ -75,21 +75,20 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
         p_port = &rfc_cb.port.port[yy];
         if (!p_port->in_use)
         {
-            fixed_queue_free(p_port->tx.queue, NULL);
-            fixed_queue_free(p_port->rx.queue, NULL);
-            alarm_free(p_port->rfc.port_timer);
             memset(p_port, 0, sizeof (tPORT));
 
             p_port->in_use = TRUE;
             p_port->inx    = yy + 1;
 
-            p_port->dlci   = dlci;
-            memcpy (p_port->bd_addr, bd_addr, BD_ADDR_LEN);
-
             /* During the open set default state for the port connection */
             port_set_defaults (p_port);
 
+            p_port->rfc.port_timer = alarm_new("rfcomm_port.port_timer");
             rfc_cb.rfc.last_port = yy;
+
+            p_port->dlci   = dlci;
+            memcpy (p_port->bd_addr, bd_addr, BD_ADDR_LEN);
+
             RFCOMM_TRACE_DEBUG("rfc_cb.port.port[%d]:%p allocated, last_port:%d", yy, p_port, rfc_cb.rfc.last_port);
             RFCOMM_TRACE_DEBUG("port_allocate_port:bd_addr:%02x:%02x:%02x:%02x:%02x:%02x",
                                 bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4], bd_addr[5]);
@@ -112,10 +111,6 @@ tPORT *port_allocate_port (UINT8 dlci, BD_ADDR bd_addr)
 *******************************************************************************/
 void port_set_defaults (tPORT *p_port)
 {
-    fixed_queue_free(p_port->tx.queue, NULL);
-    fixed_queue_free(p_port->rx.queue, NULL);
-    alarm_free(p_port->rfc.port_timer);
-
     p_port->ev_mask        = 0;
     p_port->p_callback     = NULL;
     p_port->port_ctrl      = 0;
@@ -129,16 +124,14 @@ void port_set_defaults (tPORT *p_port)
 
     p_port->credit_tx      = 0;
     p_port->credit_rx      = 0;
-/*  p_port->credit_rx_max  = PORT_CREDIT_RX_MAX;            Determined later */
-/*  p_port->credit_rx_low  = PORT_CREDIT_RX_LOW;            Determined later */
 
     memset (&p_port->local_ctrl, 0, sizeof (p_port->local_ctrl));
     memset (&p_port->peer_ctrl, 0, sizeof (p_port->peer_ctrl));
     memset (&p_port->rx, 0, sizeof (p_port->rx));
     memset (&p_port->tx, 0, sizeof (p_port->tx));
-    p_port->rx.queue = fixed_queue_new(SIZE_MAX);
+
     p_port->tx.queue = fixed_queue_new(SIZE_MAX);
-    p_port->rfc.port_timer = alarm_new("rfcomm_port.port_timer");
+    p_port->rx.queue = fixed_queue_new(SIZE_MAX);
 }
 
 /*******************************************************************************
@@ -206,35 +199,29 @@ void port_select_mtu (tPORT *p_port)
                           p_port->credit_rx_max, p_port->credit_rx_low, p_port->rx_buf_critical);
 }
 
-
 /*******************************************************************************
 **
 ** Function         port_release_port
 **
-** Description      Release port infor control block.
+** Description      Release port control block.
 **
 ** Returns          Pointer to the PORT or NULL if not found
 **
 *******************************************************************************/
-void port_release_port (tPORT *p_port)
+void port_release_port(tPORT *p_port)
 {
-    BT_HDR *p_buf;
-    UINT32 mask;
-    tPORT_CALLBACK *p_port_cb;
-    tPORT_STATE user_port_pars;
+    RFCOMM_TRACE_DEBUG("%s p_port: %p state: %d keep_handle: %d", __func__,
+        p_port, p_port->rfc.state, p_port->keep_port_handle);
 
     mutex_global_lock();
-    RFCOMM_TRACE_DEBUG("port_release_port, p_port:%p", p_port);
+    BT_HDR *p_buf;
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->rx.queue)) != NULL)
         osi_free(p_buf);
-
     p_port->rx.queue_size = 0;
 
     while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_port->tx.queue)) != NULL)
         osi_free(p_buf);
-
     p_port->tx.queue_size = 0;
-
     mutex_global_unlock();
 
     alarm_cancel(p_port->rfc.port_timer);
@@ -243,25 +230,29 @@ void port_release_port (tPORT *p_port)
 
     if (p_port->rfc.state == RFC_STATE_CLOSED)
     {
-        RFCOMM_TRACE_DEBUG ("rfc_port_closed DONE");
         if (p_port->rfc.p_mcb)
         {
             p_port->rfc.p_mcb->port_inx[p_port->dlci] = 0;
 
             /* If there are no more ports opened on this MCB release it */
-            rfc_check_mcb_active (p_port->rfc.p_mcb);
+            rfc_check_mcb_active(p_port->rfc.p_mcb);
         }
+
         rfc_port_timer_stop (p_port);
-        RFCOMM_TRACE_DEBUG ("port_release_port:p_port->keep_port_handle:%d", p_port->keep_port_handle);
-        if( p_port->keep_port_handle )
+        fixed_queue_free(p_port->tx.queue, NULL);
+        fixed_queue_free(p_port->rx.queue, NULL);
+
+        if (p_port->keep_port_handle)
         {
-            RFCOMM_TRACE_DEBUG ("port_release_port:Initialize handle:%d", p_port->inx);
+            RFCOMM_TRACE_DEBUG("%s Re-initialize handle: %d", __func__, p_port->inx);
+
             /* save event mask and callback */
-            mask = p_port->ev_mask;
-            p_port_cb = p_port->p_callback;
-            user_port_pars = p_port->user_port_pars;
+            UINT32 mask = p_port->ev_mask;
+            tPORT_CALLBACK *p_port_cb = p_port->p_callback;
+            tPORT_STATE user_port_pars = p_port->user_port_pars;
 
             port_set_defaults(p_port);
+
             /* restore */
             p_port->ev_mask         = mask;
             p_port->p_callback      = p_port_cb;
@@ -270,26 +261,18 @@ void port_release_port (tPORT *p_port)
 
             p_port->state           = PORT_STATE_OPENING;
             p_port->rfc.p_mcb       = NULL;
-            if(p_port->is_server)
+            if (p_port->is_server)
                 p_port->dlci       &= 0xfe;
 
             p_port->local_ctrl.modem_signal = p_port->default_signal_state;
             memcpy (p_port->bd_addr, BT_BD_ANY, BD_ADDR_LEN);
-        }
-        else
-        {
-            RFCOMM_TRACE_DEBUG ("port_release_port:Clean-up handle:%d", p_port->inx);
-            fixed_queue_free(p_port->tx.queue, NULL);
-            fixed_queue_free(p_port->rx.queue, NULL);
+        } else {
+            RFCOMM_TRACE_DEBUG("%s Clean-up handle: %d", __func__, p_port->inx);
             alarm_free(p_port->rfc.port_timer);
             memset (p_port, 0, sizeof (tPORT));
-            p_port->rx.queue = fixed_queue_new(SIZE_MAX);
-            p_port->tx.queue = fixed_queue_new(SIZE_MAX);
-            p_port->rfc.port_timer = alarm_new("rfcomm_port.port_timer");
         }
     }
 }
-
 
 /*******************************************************************************
 **

@@ -63,11 +63,7 @@ static void avdt_ccb_clear_ccb(tAVDT_CCB *p_ccb)
 
     /* clear out response queue */
     while ((p_buf = (BT_HDR *) fixed_queue_try_dequeue(p_ccb->rsp_q)) != NULL)
-    {
         osi_free(p_buf);
-    }
-    fixed_queue_free(p_ccb->rsp_q, NULL);
-    p_ccb->rsp_q = NULL;
 }
 
 /*******************************************************************************

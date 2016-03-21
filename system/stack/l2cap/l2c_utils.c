@@ -1686,9 +1686,7 @@ void l2cu_release_ccb (tL2C_CCB *p_ccb)
     alarm_free(p_ccb->l2c_ccb_timer);
     p_ccb->l2c_ccb_timer = NULL;
 
-    while (!fixed_queue_is_empty(p_ccb->xmit_hold_q))
-        osi_free(fixed_queue_try_dequeue(p_ccb->xmit_hold_q));
-    fixed_queue_free(p_ccb->xmit_hold_q, NULL);
+    fixed_queue_free(p_ccb->xmit_hold_q, osi_free);
     p_ccb->xmit_hold_q = NULL;
 
     l2c_fcr_cleanup (p_ccb);
