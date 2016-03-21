@@ -54,6 +54,15 @@ static void timer_config_save_cb(void *data);
 static void btif_config_write(UINT16 event, char *p_param);
 static void btif_config_devcache_cleanup(void);
 
+static enum ConfigSource {
+  NOT_LOADED,
+  ORIGINAL,
+  BACKUP,
+  NEW_FILE,
+  RESET
+} btif_config_source = NOT_LOADED;
+
+
 // TODO(zachoverflow): Move these two functions out, because they are too specific for this file
 // {grumpy-cat/no, monty-python/you-make-me-sad}
 bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type)
@@ -101,13 +110,16 @@ static alarm_t *config_timer;
 static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
   config = config_new(CONFIG_FILE_PATH);
+  btif_config_source = ORIGINAL;
   if (!config) {
     LOG_WARN(LOG_TAG, "%s unable to load config file: %s; using backup.",
               __func__, CONFIG_FILE_PATH);
     config = config_new(CONFIG_BACKUP_PATH);
+    btif_config_source = BACKUP;
     if (!config) {
       LOG_ERROR(LOG_TAG, "%s unable to load backup; creating empty config.", __func__);
       config = config_new_empty();
+      btif_config_source = NEW_FILE;
       if (!config) {
         LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
         goto error;
@@ -385,6 +397,7 @@ bool btif_config_clear(void){
   }
 
   bool ret = config_save(config, CONFIG_FILE_PATH);
+  btif_config_source = RESET;
   pthread_mutex_unlock(&lock);
   return ret;
 }
@@ -440,4 +453,31 @@ static void btif_config_devcache_cleanup(void) {
     snode = config_section_next(snode);
   }
   pthread_mutex_unlock(&lock);
+}
+
+void btif_debug_config_dump(int fd) {
+    pthread_mutex_lock(&lock);
+
+    dprintf(fd, "\nBluetooth Config:\n");
+
+    dprintf(fd, "  Config Source: ");
+    switch(btif_config_source) {
+        case NOT_LOADED:
+            dprintf(fd, "Not loaded\n");
+            break;
+        case ORIGINAL:
+            dprintf(fd, "Original file\n");
+            break;
+        case BACKUP:
+            dprintf(fd, "Backup file\n");
+            break;
+        case NEW_FILE:
+            dprintf(fd, "New file\n");
+            break;
+        case RESET:
+            dprintf(fd, "Reset file\n");
+            break;
+    }
+
+    pthread_mutex_unlock(&lock);
 }
