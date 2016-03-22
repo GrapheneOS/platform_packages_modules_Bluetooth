@@ -444,7 +444,9 @@ tRFC_MCB *rfc_find_lcid_mcb (UINT16 lcid)
 ** Description      This function returns MCB block supporting local cid
 **
 *******************************************************************************/
-void rfc_save_lcid_mcb (tRFC_MCB *p_mcb, UINT16 lcid)
+void rfc_save_lcid_mcb(tRFC_MCB *p_mcb, UINT16 lcid)
 {
+    if (lcid < L2CAP_BASE_APPL_CID)
+        return;
     rfc_cb.rfc.p_rfc_lcid_mcb[lcid - L2CAP_BASE_APPL_CID] = p_mcb;
 }

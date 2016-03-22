@@ -121,11 +121,14 @@ void rfc_mx_sm_state_idle (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         /* Initialize L2CAP MTU */
         p_mcb->peer_l2cap_mtu = L2CAP_DEFAULT_MTU - RFCOMM_MIN_OFFSET - 1;
 
-        if ((p_mcb->lcid = L2CA_ConnectReq (BT_PSM_RFCOMM, p_mcb->bd_addr)) == 0)
-        {
-            PORT_StartCnf (p_mcb, RFCOMM_ERROR);
+        UINT16 lcid = L2CA_ConnectReq(BT_PSM_RFCOMM, p_mcb->bd_addr);
+        if (lcid == 0) {
+            rfc_save_lcid_mcb(NULL, p_mcb->lcid);
+            p_mcb->lcid = 0;
+            PORT_StartCnf(p_mcb, RFCOMM_ERROR);
             return;
         }
+        p_mcb->lcid = lcid;
         /* Save entry for quicker access to mcb based on the LCID */
         rfc_save_lcid_mcb (p_mcb, p_mcb->lcid);
 
@@ -499,11 +502,14 @@ void rfc_mx_sm_state_disc_wait_ua (tRFC_MCB *p_mcb, UINT16 event, void *p_data)
         if (p_mcb->restart_required)
         {
             /* Start Request was received while disconnecting.  Execute it again */
-            if ((p_mcb->lcid = L2CA_ConnectReq (BT_PSM_RFCOMM, p_mcb->bd_addr)) == 0)
-            {
-                PORT_StartCnf (p_mcb, RFCOMM_ERROR);
+            UINT16 lcid = L2CA_ConnectReq(BT_PSM_RFCOMM, p_mcb->bd_addr);
+            if (lcid == 0) {
+                rfc_save_lcid_mcb(NULL, p_mcb->lcid);
+                p_mcb->lcid = 0;
+                PORT_StartCnf(p_mcb, RFCOMM_ERROR);
                 return;
             }
+            p_mcb->lcid = lcid;
             /* Save entry for quicker access to mcb based on the LCID */
             rfc_save_lcid_mcb (p_mcb, p_mcb->lcid);
 
