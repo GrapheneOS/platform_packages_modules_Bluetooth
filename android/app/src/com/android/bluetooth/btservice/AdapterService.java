@@ -547,7 +547,8 @@ public class AdapterService extends Service {
         // {@link #releaseWakeLock(String lockName)}, so a synchronization is needed here.
         synchronized (this) {
             if (mWakeLock != null) {
-                mWakeLock.release();
+                if (mWakeLock.isHeld())
+                    mWakeLock.release();
                 mWakeLock = null;
             }
         }
@@ -2020,21 +2021,15 @@ public class AdapterService extends Service {
     // extended to allow acquiring an arbitrary number of wake locks. The current interface
     // takes |lockName| as a parameter in anticipation of that implementation.
     private boolean acquireWakeLock(String lockName) {
-        if (mWakeLock != null) {
-            if (!lockName.equals(mWakeLockName)) {
-                errorLog("Multiple wake lock acquisition attempted; aborting: " + lockName);
-                return false;
+        synchronized (this) {
+            if (mWakeLock == null) {
+                mWakeLockName = lockName;
+                mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, lockName);
             }
 
-            // We're already holding the desired wake lock so return success.
-            if (mWakeLock.isHeld()) {
-                return true;
-            }
+            if (!mWakeLock.isHeld())
+                mWakeLock.acquire();
         }
-
-        mWakeLockName = lockName;
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, lockName);
-        mWakeLock.acquire();
         return true;
     }
 
@@ -2049,9 +2044,8 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            mWakeLock.release();
-            mWakeLock = null;
-            mWakeLockName = null;
+            if (mWakeLock.isHeld())
+                mWakeLock.release();
         }
         return true;
     }
