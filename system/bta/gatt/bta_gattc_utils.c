@@ -73,10 +73,10 @@ void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uui
 ** Returns          TRUE if two uuid match; FALSE otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_gattc_uuid_compare (tBT_UUID *p_src, tBT_UUID *p_tar, BOOLEAN is_precise)
+BOOLEAN bta_gattc_uuid_compare (const tBT_UUID *p_src, const tBT_UUID *p_tar, BOOLEAN is_precise)
 {
     UINT8  su[LEN_UUID_128], tu[LEN_UUID_128];
-    UINT8  *ps, *pt;
+    const UINT8  *ps, *pt;
 
     /* any of the UUID is unspecified */
     if (p_src == 0 || p_tar == 0)
@@ -446,85 +446,6 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_gattc_cpygattid
-**
-** Description      copy two tBTA_GATT_ID value
-**
-** Returns
-**
-*******************************************************************************/
-void bta_gattc_cpygattid(tBTA_GATT_ID *p_des, tBTA_GATT_ID *p_src)
-{
-    memset ((void *)p_des, 0, sizeof(tBTA_GATT_ID));
-
-    p_des->inst_id = p_src->inst_id;
-
-    p_des->uuid.len = p_src->uuid.len;
-
-    if (p_des->uuid.len == LEN_UUID_16)
-    {
-        p_des->uuid.uu.uuid16 = p_src->uuid.uu.uuid16;
-    }
-    else if (p_des->uuid.len == LEN_UUID_128)
-    {
-        memcpy(p_des->uuid.uu.uuid128, p_src->uuid.uu.uuid128, LEN_UUID_128);
-    }
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_gattid_compare
-**
-** Description      compare two tBTA_GATT_ID type of pointer
-**
-** Returns
-**
-*******************************************************************************/
-BOOLEAN bta_gattc_gattid_compare(tBTA_GATT_ID *p_src, tBTA_GATT_ID *p_tar)
-{
-    if (p_src->inst_id == p_tar->inst_id &&
-        bta_gattc_uuid_compare (&p_src->uuid, &p_tar->uuid, TRUE ))
-        return TRUE;
-    else
-        return FALSE;
-
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_srvcid_compare
-**
-** Description      compare two tBTA_GATT_SRVC_ID type of pointer
-**
-** Returns
-**
-*******************************************************************************/
-BOOLEAN bta_gattc_srvcid_compare(tBTA_GATT_SRVC_ID *p_src, tBTA_GATT_SRVC_ID *p_tar)
-{
-    if (p_src->is_primary == p_tar->is_primary &&
-        bta_gattc_gattid_compare (&p_src->id, &p_tar->id))
-        return TRUE;
-    else
-        return FALSE;
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_charid_compare
-**
-** Description      compare two tBTA_GATTC_CHAR_ID type of pointer
-**
-** Returns
-**
-*******************************************************************************/
-BOOLEAN bta_gattc_charid_compare(tBTA_GATTC_CHAR_ID *p_src, tBTA_GATTC_CHAR_ID *p_tar)
-{
-    if (bta_gattc_gattid_compare (&p_src->char_id, &p_tar->char_id) &&
-        bta_gattc_srvcid_compare (&p_src->srvc_id, &p_tar->srvc_id))
-        return TRUE;
-    else
-        return FALSE;
-}
-
-/*******************************************************************************
-**
 ** Function         bta_gattc_check_notif_registry
 **
 ** Description      check if the service notificaition has been registered.
@@ -541,7 +462,7 @@ BOOLEAN bta_gattc_check_notif_registry(tBTA_GATTC_RCB  *p_clreg, tBTA_GATTC_SERV
     {
         if (p_clreg->notif_reg[i].in_use &&
             bdcmp(p_clreg->notif_reg[i].remote_bda, p_srcb->server_bda) == 0 &&
-            bta_gattc_charid_compare (&p_clreg->notif_reg[i].char_id, &p_notify->char_id))
+            p_clreg->notif_reg[i].handle == p_notify->handle)
         {
             APPL_TRACE_DEBUG("Notification registered!");
             return TRUE;
@@ -581,7 +502,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
                     /* It's enough to get service or characteristic handle, as
                      * clear boundaries are always around service.
                      */
-                    handle = p_clrcb->notif_reg[i].char_id.char_id.inst_id;
+                    handle = p_clrcb->notif_reg[i].handle;
                     if (handle >= start_handle && handle <= end_handle)
                         memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
             }
@@ -592,55 +513,6 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
     return;
 }
 
-/*******************************************************************************
-**
-** Function         bta_gattc_pack_cb_data
-**
-** Description      pack the data from read response into callback data structure.
-**
-** Returns
-**
-*******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_pack_read_cb_data(tBTA_GATTC_SERV *p_srcb,
-                                             tBT_UUID *p_descr_uuid,
-                                             tGATT_VALUE *p_attr,
-                                             tBTA_GATT_READ_VAL *p_value)
-{
-    UINT8                   i = 0, *pp = p_attr->value;
-    tBT_UUID                uuid = {LEN_UUID_16, {GATT_UUID_CHAR_AGG_FORMAT}};
-    UINT16                  handle;
-    tBTA_GATT_STATUS        status = BTA_GATT_OK;
-
-    /* GATT_UUID_CHAR_AGG_FORMAT */
-    if (bta_gattc_uuid_compare (&uuid, p_descr_uuid, TRUE))
-    {
-        while (p_attr->len >= 2 && i < BTA_GATTC_MULTI_MAX)
-        {
-            STREAM_TO_UINT16(handle, pp);
-
-            if (bta_gattc_handle2id(p_srcb,
-                                    handle,
-                                    &p_value->aggre_value.pre_format[i].char_id.srvc_id,
-                                    &p_value->aggre_value.pre_format[i].char_id.char_id,
-                                    &p_value->aggre_value.pre_format[i].descr_id) == FALSE)
-            {
-                status = BTA_GATT_INTERNAL_ERROR;
-                APPL_TRACE_ERROR("can not map to GATT ID. handle = 0x%04x", handle);
-                break;
-            }
-            i ++;
-            p_attr->len -= 2;
-        }
-        p_value->aggre_value.num_pres_fmt = i;
-    }
-    else
-    {
-        /* all others, take as raw format */
-        p_value->unformat.len = p_attr->len;
-        p_value->unformat.p_value = p_attr->value;
-    }
-    return status;
-}
 /*******************************************************************************
 **
 ** Function         bta_gattc_mark_bg_conn
