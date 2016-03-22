@@ -435,10 +435,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
     ClientConnectCallback,
     ClientDisconnectCallback,
     nullptr, /* search_complete_cb; */
-    nullptr, /* search_result_cb; */
-    nullptr, /* get_characteristic_cb; */
-    nullptr, /* get_descriptor_cb; */
-    nullptr, /* get_included_service_cb; */
     nullptr, /* register_for_notification_cb; */
     nullptr, /* notify_cb; */
     nullptr, /* read_characteristic_cb; */

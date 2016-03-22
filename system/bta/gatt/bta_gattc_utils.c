@@ -446,34 +446,6 @@ BOOLEAN bta_gattc_enqueue(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 
 /*******************************************************************************
 **
-** Function         bta_gattc_pack_attr_uuid
-**
-** Description      pack UUID into a stream.
-**
-** Returns
-**
-*******************************************************************************/
-void bta_gattc_pack_attr_uuid(tBTA_GATTC_CACHE_ATTR   *p_attr, tBT_UUID *p_uuid)
-{
-    UINT8 *pp = (UINT8 *)p_attr->p_uuid;
-
-    memset(p_uuid, 0, sizeof(tBT_UUID));
-
-    p_uuid->len = p_attr->uuid_len;
-
-    if (p_attr->uuid_len == LEN_UUID_16)
-    {
-        STREAM_TO_UINT16(p_uuid->uu.uuid16, pp);
-    }
-    else
-    {
-        memcpy(p_uuid->uu.uuid128, pp, LEN_UUID_128);
-    }
-
-    return;
-}
-/*******************************************************************************
-**
 ** Function         bta_gattc_cpygattid
 **
 ** Description      copy two tBTA_GATT_ID value
@@ -609,8 +581,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
                     /* It's enough to get service or characteristic handle, as
                      * clear boundaries are always around service.
                      */
-                    handle = bta_gattc_id2handle(p_srcb, &p_clrcb->notif_reg[i].char_id.srvc_id,
-                                                 &p_clrcb->notif_reg[i].char_id.char_id, NULL);
+                    handle = p_clrcb->notif_reg[i].char_id.char_id.inst_id;
                     if (handle >= start_handle && handle <= end_handle)
                         memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
             }

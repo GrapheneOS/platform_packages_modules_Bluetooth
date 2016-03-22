@@ -97,6 +97,9 @@ static const char *bta_gattc_op_code_name[] =
 **  Action Functions
 *****************************************************************************/
 
+
+void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS status);
+
 /*******************************************************************************
 **
 ** Function         bta_gattc_enable
@@ -711,7 +714,13 @@ void bta_gattc_conn(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
             if (p_clcb->p_srcb->state == BTA_GATTC_SERV_IDLE)
             {
                 p_clcb->p_srcb->state = BTA_GATTC_SERV_LOAD;
-                bta_gattc_sm_execute(p_clcb, BTA_GATTC_START_CACHE_EVT, NULL);
+                if (bta_gattc_cache_load(p_clcb)) {
+                    bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_OK);
+                } else {
+                    p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
+                     /* cache load failure, start discovery */
+                    bta_gattc_start_discover(p_clcb, NULL);
+                }
             }
             else /* cache is building */
                 p_clcb->state = BTA_GATTC_DISCOVER_ST;
@@ -1035,7 +1044,7 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         }
 
         /* used to reset cache in application */
-        bta_gattc_co_cache_reset(p_clcb->p_srcb->server_bda);
+        bta_gattc_cache_reset(p_clcb->p_srcb->server_bda);
     }
     if (p_clcb->p_srcb && p_clcb->p_srcb->p_srvc_list) {
         /* release pending attribute list buffer */
@@ -1074,38 +1083,33 @@ void bta_gattc_disc_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_read(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
+    if (!bta_gattc_enqueue(p_clcb, p_data))
+        return;
+
     UINT16 handle = 0;
     tGATT_READ_PARAM    read_param;
     tBTA_GATT_STATUS    status;
 
     memset (&read_param, 0 ,sizeof(tGATT_READ_PARAM));
 
-    if (bta_gattc_enqueue(p_clcb, p_data))
+    if (p_data->api_write.p_descr_type == NULL)
+        handle = p_data->api_write.char_id.inst_id;
+    else
+        handle = p_data->api_write.p_descr_type->inst_id;
+
+    read_param.by_handle.handle = handle;
+    read_param.by_handle.auth_req = p_data->api_read.auth_req;
+
+    status = GATTC_Read(p_clcb->bta_conn_id, GATT_READ_BY_HANDLE, &read_param);
+
+    /* read fail */
+    if (status != BTA_GATT_OK)
     {
-        if ((handle = bta_gattc_id2handle(p_clcb->p_srcb,
-                                          &p_data->api_read.srvc_id,
-                                          &p_data->api_read.char_id,
-                                          p_data->api_read.p_descr_type)) == 0)
-        {
-            status = BTA_GATT_ERROR;
-        }
-        else
-        {
-            read_param.by_handle.handle = handle;
-            read_param.by_handle.auth_req = p_data->api_read.auth_req;
+        /* Dequeue the data, if it was enqueued */
+        if (p_clcb->p_q_cmd == p_data)
+            p_clcb->p_q_cmd = NULL;
 
-            status = GATTC_Read(p_clcb->bta_conn_id, GATT_READ_BY_HANDLE, &read_param);
-        }
-
-        /* read fail */
-        if (status != BTA_GATT_OK)
-        {
-            /* Dequeue the data, if it was enqueued */
-            if (p_clcb->p_q_cmd == p_data)
-                p_clcb->p_q_cmd = NULL;
-
-            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_READ, status, NULL);
-        }
+        bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_READ, status, NULL);
     }
 }
 /*******************************************************************************
@@ -1133,22 +1137,11 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
         {
             handle = 0;
 
-            if (p_id->id_type == BTA_GATT_TYPE_CHAR)
-            {
-                handle = bta_gattc_id2handle(p_clcb->p_srcb,
-                                     &p_id->id_value.char_id.srvc_id,
-                                     &p_id->id_value.char_id.char_id,
-                                     NULL);
-            }
-            else if (p_id->id_type == BTA_GATT_TYPE_CHAR_DESCR)
-            {
-                handle = bta_gattc_id2handle(p_clcb->p_srcb,
-                                     &p_id->id_value.char_descr_id.char_id.srvc_id,
-                                     &p_id->id_value.char_descr_id.char_id.char_id,
-                                     &p_id->id_value.char_descr_id.descr_id);
-            }
-            else
-            {
+            if (p_id->id_type == BTA_GATT_TYPE_CHAR) {
+                handle = p_id->id_value.char_id.char_id.inst_id;
+            } else if (p_id->id_type == BTA_GATT_TYPE_CHAR_DESCR) {
+                handle = p_id->id_value.char_descr_id.descr_id.inst_id;
+            } else {
                 APPL_TRACE_ERROR("invalud ID type: %d", p_id->id_type);
             }
 
@@ -1188,43 +1181,38 @@ void bta_gattc_read_multi(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_write(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
+    if (!bta_gattc_enqueue(p_clcb, p_data))
+        return;
+
     UINT16              handle = 0;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
 
-    if (bta_gattc_enqueue(p_clcb, p_data))
+    if (p_data->api_write.p_descr_type == NULL)
+        handle = p_data->api_write.char_id.inst_id;
+    else
+        handle = p_data->api_write.p_descr_type->inst_id;
+
+    tGATT_VALUE attr;
+
+    attr.conn_id = p_clcb->bta_conn_id;
+    attr.handle = handle;
+    attr.offset = p_data->api_write.offset;
+    attr.len    = p_data->api_write.len;
+    attr.auth_req = p_data->api_write.auth_req;
+
+    if (p_data->api_write.p_value)
+        memcpy(attr.value, p_data->api_write.p_value, p_data->api_write.len);
+
+    status = GATTC_Write(p_clcb->bta_conn_id, p_data->api_write.write_type, &attr);
+
+    /* write fail */
+    if (status != BTA_GATT_OK)
     {
-        if ((handle = bta_gattc_id2handle(p_clcb->p_srcb,
-                                          &p_data->api_write.srvc_id,
-                                          &p_data->api_write.char_id,
-                                          p_data->api_write.p_descr_type)) == 0)
-        {
-            status = BTA_GATT_ERROR;
-        }
-        else
-        {
-            tGATT_VALUE attr;
+        /* Dequeue the data, if it was enqueued */
+        if (p_clcb->p_q_cmd == p_data)
+            p_clcb->p_q_cmd = NULL;
 
-            attr.conn_id = p_clcb->bta_conn_id;
-            attr.handle = handle;
-            attr.offset = p_data->api_write.offset;
-            attr.len    = p_data->api_write.len;
-            attr.auth_req = p_data->api_write.auth_req;
-
-            if (p_data->api_write.p_value)
-                memcpy(attr.value, p_data->api_write.p_value, p_data->api_write.len);
-
-            status = GATTC_Write(p_clcb->bta_conn_id, p_data->api_write.write_type, &attr);
-        }
-
-        /* write fail */
-        if (status != BTA_GATT_OK)
-        {
-            /* Dequeue the data, if it was enqueued */
-            if (p_clcb->p_q_cmd == p_data)
-                p_clcb->p_q_cmd = NULL;
-
-            bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_WRITE, status, NULL);
-        }
+        bta_gattc_cmpl_sendmsg(p_clcb->bta_conn_id, GATTC_OPTYPE_WRITE, status, NULL);
     }
 }
 /*******************************************************************************
@@ -1264,30 +1252,16 @@ void bta_gattc_execute(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_confirm(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
-    UINT16 handle;
+    UINT16 handle = p_data->api_confirm.char_id.inst_id;
 
-    if ((handle = bta_gattc_id2handle(p_clcb->p_srcb,
-                                      &p_data->api_confirm.srvc_id,
-                                      &p_data->api_confirm.char_id,
-                                      NULL)) == 0)
-    {
-        APPL_TRACE_ERROR("Can not map service/char ID into valid handle");
-    }
-    else
-    {
-        if (GATTC_SendHandleValueConfirm(p_data->api_confirm.hdr.layer_specific, handle)
-            != GATT_SUCCESS)
-        {
+    if (GATTC_SendHandleValueConfirm(p_data->api_confirm.hdr.layer_specific, handle)
+        != GATT_SUCCESS) {
             APPL_TRACE_ERROR("bta_gattc_confirm to handle [0x%04x] failed", handle);
-        }
-        else
-        {
-            /* if over BR_EDR, inform PM for mode change */
-            if (p_clcb->transport == BTA_TRANSPORT_BR_EDR)
-            {
-                bta_sys_busy(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
-                bta_sys_idle(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
-            }
+    } else {
+        /* if over BR_EDR, inform PM for mode change */
+        if (p_clcb->transport == BTA_TRANSPORT_BR_EDR) {
+            bta_sys_busy(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
+            bta_sys_idle(BTA_ID_GATTC, BTA_ALL_APP_ID, p_clcb->bda);
         }
     }
 }
@@ -1582,143 +1556,7 @@ void bta_gattc_q_cmd(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 {
     bta_gattc_enqueue(p_clcb, p_data);
 }
-/*******************************************************************************
-**
-** Function         bta_gattc_cache_open
-**
-** Description      open a NV cache for loading
-**
-** Returns          void
-**
-*******************************************************************************/
-void bta_gattc_cache_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
-{
-    UNUSED(p_data);
 
-    bta_gattc_set_discover_st(p_clcb->p_srcb);
-
-    APPL_TRACE_DEBUG("bta_gattc_cache_open conn_id=%d",p_clcb->bta_conn_id);
-    bta_gattc_co_cache_open(p_clcb->p_srcb->server_bda, BTA_GATTC_CI_CACHE_OPEN_EVT,
-                            p_clcb->bta_conn_id, FALSE);
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_start_load
-**
-** Description      start cache loading by sending callout open cache
-**
-** Returns          None.
-**
-*******************************************************************************/
-void bta_gattc_ci_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
-{
-    APPL_TRACE_DEBUG("bta_gattc_ci_open conn_id=%d server state=%d" ,
-                      p_clcb->bta_conn_id, p_clcb->p_srcb->state);
-    if (p_clcb->p_srcb->state == BTA_GATTC_SERV_LOAD)
-    {
-        if (p_data->ci_open.status == BTA_GATT_OK)
-        {
-            p_clcb->p_srcb->attr_index = 0;
-            bta_gattc_co_cache_load(p_clcb->p_srcb->server_bda,
-                                    BTA_GATTC_CI_CACHE_LOAD_EVT,
-                                    p_clcb->p_srcb->attr_index,
-                                    p_clcb->bta_conn_id);
-        }
-        else
-        {
-            p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
-            /* cache open failure, start discovery */
-            bta_gattc_start_discover(p_clcb, NULL);
-        }
-    }
-    if (p_clcb->p_srcb->state == BTA_GATTC_SERV_SAVE)
-    {
-        if (p_data->ci_open.status == BTA_GATT_OK)
-        {
-            if (!bta_gattc_cache_save(p_clcb->p_srcb, p_clcb->bta_conn_id))
-            {
-                p_data->ci_open.status = BTA_GATT_ERROR;
-            }
-        }
-        if (p_data->ci_open.status != BTA_GATT_OK)
-        {
-            p_clcb->p_srcb->attr_index = 0;
-            bta_gattc_co_cache_close(p_clcb->p_srcb->server_bda, p_clcb->bta_conn_id);
-            bta_gattc_reset_discover_st(p_clcb->p_srcb, p_clcb->status);
-
-        }
-    }
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_ci_load
-**
-** Description      cache loading received.
-**
-** Returns          None.
-**
-*******************************************************************************/
-void bta_gattc_ci_load(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
-{
-
-    APPL_TRACE_DEBUG("bta_gattc_ci_load conn_id=%d load status=%d",
-                      p_clcb->bta_conn_id, p_data->ci_load.status);
-
-    if (p_data->ci_load.status == BTA_GATT_OK ||
-         p_data->ci_load.status == BTA_GATT_MORE)
-    {
-        if (p_data->ci_load.num_attr != 0)
-            bta_gattc_rebuild_cache(p_clcb->p_srcb, p_data->ci_load.num_attr,
-                                p_data->ci_load.attr, p_clcb->p_srcb->attr_index);
-
-        if (p_data->ci_load.status == BTA_GATT_OK)
-        {
-            p_clcb->p_srcb->attr_index = 0;
-            bta_gattc_reset_discover_st(p_clcb->p_srcb, BTA_GATT_OK);
-            bta_gattc_co_cache_close(p_clcb->p_srcb->server_bda, 0);
-        }
-        else /* load more */
-        {
-            p_clcb->p_srcb->attr_index += p_data->ci_load.num_attr;
-
-            bta_gattc_co_cache_load(p_clcb->p_srcb->server_bda,
-                                    BTA_GATTC_CI_CACHE_LOAD_EVT,
-                                    p_clcb->p_srcb->attr_index,
-                                    p_clcb->bta_conn_id);
-        }
-    }
-    else
-    {
-        bta_gattc_co_cache_close(p_clcb->p_srcb->server_bda, 0);
-        p_clcb->p_srcb->state = BTA_GATTC_SERV_DISC;
-        p_clcb->p_srcb->attr_index = 0;
-        /* cache load failure, start discovery */
-        bta_gattc_start_discover(p_clcb, NULL);
-    }
-}
-/*******************************************************************************
-**
-** Function         bta_gattc_ci_save
-**
-** Description      cache loading received.
-**
-** Returns          None.
-**
-*******************************************************************************/
-void bta_gattc_ci_save(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
-{
-    UNUSED(p_data);
-
-    APPL_TRACE_DEBUG("bta_gattc_ci_save conn_id=%d  " ,
-                      p_clcb->bta_conn_id   );
-
-    if (!bta_gattc_cache_save(p_clcb->p_srcb, p_clcb->bta_conn_id))
-    {
-        p_clcb->p_srcb->attr_index = 0;
-        bta_gattc_co_cache_close(p_clcb->p_srcb->server_bda, 0);
-        bta_gattc_reset_discover_st(p_clcb->p_srcb, p_clcb->status);
-    }
-}
 /*******************************************************************************
 **
 ** Function         bta_gattc_fail
@@ -1893,7 +1731,7 @@ void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
         }
     }
     /* used to reset cache in application */
-    bta_gattc_co_cache_reset(p_msg->api_conn.remote_bda);
+    bta_gattc_cache_reset(p_msg->api_conn.remote_bda);
 
 }
 /*******************************************************************************
