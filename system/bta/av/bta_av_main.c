@@ -555,10 +555,19 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                 bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                 (UINT8)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
-
-                bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target", NULL,
-                                p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
-                                (bta_av_cb.features & BTA_AV_FEAT_BROWSE));
+                if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
+                {
+                    bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
+                                   NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
+                                   (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_3);
+                }
+                else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
+                {
+                    // Initialize AVRCP1.4 to provide Absolute Volume control.
+                    bta_ar_reg_avrc(UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target",
+                                   NULL, p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
+                                   (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_4);
+                }
 #endif
             }
 
@@ -701,9 +710,17 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                         bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
                     }
 #if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
-                    /* create an SDP record as AVRC CT. */
-                    bta_ar_reg_avrc(UUID_SERVCLASS_AV_REMOTE_CONTROL, NULL, NULL,
-                    p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV,(bta_av_cb.features & BTA_AV_FEAT_BROWSE));
+                    /* create an SDP record as AVRC CT. We create 1.3 for SOURCE
+                     * because we rely on feature bits being scanned by external
+                     * devices more than the profile version itself.
+                     */
+                    if ((profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) ||
+                        (profile_initialized == UUID_SERVCLASS_AUDIO_SINK))
+                    {
+                        bta_ar_reg_avrc(UUID_SERVCLASS_AV_REMOTE_CONTROL, NULL, NULL,
+                        p_bta_av_cfg->avrc_ct_cat, BTA_ID_AV,
+                        (bta_av_cb.features & BTA_AV_FEAT_BROWSE), AVRC_REV_1_3);
+                    }
 #endif
                 }
             }

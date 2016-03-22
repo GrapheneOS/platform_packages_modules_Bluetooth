@@ -105,7 +105,7 @@ static tAVRC_STS avrc_pars_vendor_rsp(tAVRC_MSG_VENDOR *p_msg, tAVRC_RESPONSE *p
 
     return status;
 }
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
+
 void avrc_parse_notification_rsp (UINT8 *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
 {
     BE_STREAM_TO_UINT8(p_rsp->event_id, p_stream);
@@ -150,6 +150,7 @@ void avrc_parse_notification_rsp (UINT8 *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
     }
 }
 
+#if (AVRC_CTLR_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_ctrl_pars_vendor_rsp
@@ -375,7 +376,6 @@ static tAVRC_STS avrc_ctrl_pars_vendor_rsp(
     }
     return AVRC_STS_NO_ERROR;
 }
-#endif /* (AVRC_ADV_CTRL_INCLUDED == TRUE) */
 
 /*******************************************************************************
 **
@@ -394,11 +394,9 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UI
     {
         switch (p_msg->hdr.opcode)
         {
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
         case AVRC_OP_VENDOR:     /*  0x00    Vendor-dependent commands */
             status = avrc_ctrl_pars_vendor_rsp(&p_msg->vendor, p_result, p_buf,buf_len);
             break;
-#endif
 
         default:
             AVRC_TRACE_ERROR("%s unknown opcode:0x%x", __func__, p_msg->hdr.opcode);
@@ -409,7 +407,7 @@ tAVRC_STS AVRC_Ctrl_ParsResponse (tAVRC_MSG *p_msg, tAVRC_RESPONSE *p_result, UI
     }
     return status;
 }
-
+#endif /* (AVRC_CTRL_INCLUDED) == TRUE) */
 /*******************************************************************************
 **
 ** Function         AVRC_ParsResponse
