@@ -130,20 +130,16 @@ void SearchCompleteCallback(int conn_id, int status) {
     SearchCompleteCallback(g_interface, conn_id, status));
 }
 
-void RegisterForNotificationCallback(int conn_id, int registered, int status,
-                                      btgatt_srvc_id_t *srvc_id,
-                                      btgatt_gatt_id_t *char_id) {
+void RegisterForNotificationCallback(int conn_id, int registered, int status, uint16_t handle) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
   LOG(INFO) << __func__ << " - conn_id: " << conn_id
           << " - status: " << status
           << " - registered: " << registered
-          << " - srvc_id: " << (srvc_id ? srvc_id->id.inst_id : 0)
-          << " - char_id: " << (char_id ? char_id->inst_id : 0);
+          << " - handle: " << handle;
   FOR_EACH_CLIENT_OBSERVER(
-    RegisterForNotificationCallback(g_interface, conn_id, status, registered,
-                                    srvc_id, char_id));
+    RegisterForNotificationCallback(g_interface, conn_id, status, registered, handle));
 }
 
 void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
@@ -152,8 +148,7 @@ void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
 
   VLOG(2) << __func__ << " - conn_id: " << conn_id
           << " - address: " << BtAddrString(&p_data->bda)
-          << " - srvc_id: " << (p_data ? p_data->srvc_id.id.inst_id : 0)
-          << " - char_id: " << (p_data ? p_data->char_id.inst_id : 0)
+          << " - handle: " << p_data->handle
           << " - len: " << p_data->len
           << " - is_notify: " << p_data->is_notify;
 
@@ -161,8 +156,7 @@ void NotifyCallback(int conn_id, btgatt_notify_params_t *p_data) {
     NotifyCallback(g_interface, conn_id, p_data));
 }
 
-void WriteCharacteristicCallback(int conn_id, int status,
-      btgatt_write_params_t *p_data) {
+void WriteCharacteristicCallback(int conn_id, int status, uint16_t handle) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -170,11 +164,11 @@ void WriteCharacteristicCallback(int conn_id, int status,
           << " - status: " << status;
 
   FOR_EACH_CLIENT_OBSERVER(
-    WriteCharacteristicCallback(g_interface, conn_id, status, p_data));
+    WriteCharacteristicCallback(g_interface, conn_id, status, handle));
 }
 
 void WriteDescriptorCallback(int conn_id, int status,
-      btgatt_write_params_t *p_data) {
+      uint16_t handle) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
 
@@ -182,7 +176,7 @@ void WriteDescriptorCallback(int conn_id, int status,
           << " - status: " << status;
 
   FOR_EACH_CLIENT_OBSERVER(
-    WriteDescriptorCallback(g_interface, conn_id, status, p_data));
+    WriteDescriptorCallback(g_interface, conn_id, status, handle));
 }
 
 void ListenCallback(int status, int client_if) {
@@ -648,8 +642,7 @@ void BluetoothGattInterface::ClientObserver::RegisterForNotificationCallback(
     int /* conn_id */,
     int /* status */,
     int /* registered */,
-    btgatt_srvc_id_t* /* srvc_id */,
-    btgatt_gatt_id_t* /* char_id */) {
+    uint16_t /* handle */) {
   // Do nothing
 }
 
@@ -664,7 +657,7 @@ void BluetoothGattInterface::ClientObserver::WriteCharacteristicCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* status */,
-    btgatt_write_params_t* /* p_data */) {
+    uint16_t /* handle */) {
   // Do nothing
 }
 
@@ -672,7 +665,7 @@ void BluetoothGattInterface::ClientObserver::WriteDescriptorCallback(
     BluetoothGattInterface* /* gatt_iface */,
     int /* conn_id */,
     int /* status */,
-    btgatt_write_params_t* /* p_data */) {
+    uint16_t /* handle */) {
   // Do nothing
 }
 

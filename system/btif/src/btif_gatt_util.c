@@ -109,19 +109,6 @@ void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
     }
 }
 
-void btif_to_bta_gatt_id(tBTA_GATT_ID *p_dest, btgatt_gatt_id_t *p_src)
-{
-    p_dest->inst_id = p_src->inst_id;
-    btif_to_bta_uuid(&p_dest->uuid, &p_src->uuid);
-}
-
-void btif_to_bta_srvc_id(tBTA_GATT_SRVC_ID *p_dest, btgatt_srvc_id_t *p_src)
-{
-    p_dest->id.inst_id = p_src->id.inst_id;
-    btif_to_bta_uuid(&p_dest->id.uuid, &p_src->id.uuid);
-    p_dest->is_primary = p_src->is_primary;
-}
-
 void btif_to_bta_response(tBTA_GATTS_RSP *p_dest, btgatt_response_t* p_src)
 {
     p_dest->attr_value.auth_req = p_src->attr_value.auth_req;
@@ -199,19 +186,6 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
     }
 }
 
-void bta_to_btif_gatt_id(btgatt_gatt_id_t *p_dest, tBTA_GATT_ID *p_src)
-{
-    p_dest->inst_id = p_src->inst_id;
-    bta_to_btif_uuid(&p_dest->uuid, &p_src->uuid);
-}
-
-void bta_to_btif_srvc_id(btgatt_srvc_id_t *p_dest, tBTA_GATT_SRVC_ID *p_src)
-{
-    p_dest->id.inst_id = p_src->id.inst_id;
-    bta_to_btif_uuid(&p_dest->id.uuid, &p_src->id.uuid);
-    p_dest->is_primary = p_src->is_primary;
-}
-
 /*******************************************************************************
  * Utility functions
  *******************************************************************************/
@@ -237,44 +211,25 @@ uint16_t get_uuid16(tBT_UUID *p_uuid)
 
 uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
 {
-    uint16_t descr_type = 0;
     uint16_t len = 0;
 
     p_dest->status = p_src->status;
-    bta_to_btif_srvc_id(&p_dest->srvc_id, &p_src->srvc_id);
-    bta_to_btif_gatt_id(&p_dest->char_id, &p_src->char_id);
-    bta_to_btif_gatt_id(&p_dest->descr_id, &p_src->descr_type);
+    p_dest->handle = p_src->handle;
 
-    descr_type = get_uuid16(&p_src->descr_type.uuid);
-
-    switch (descr_type)
+    if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
     {
-        case GATT_UUID_CHAR_AGG_FORMAT:
-            /* not supported */
-            p_dest->value_type = GATTC_READ_VALUE_TYPE_AGG_FORMAT;
-            break;
+        LOG_INFO(LOG_TAG, "%s len = %d ", __FUNCTION__, p_src->p_value->len);
+        p_dest->value.len = p_src->p_value->len;
+        if ( p_src->p_value->len > 0  && p_src->p_value->p_value != NULL )
+            memcpy(p_dest->value.value, p_src->p_value->p_value,
+                    p_src->p_value->len);
 
-        default:
-            if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
-            {
-                LOG_INFO(LOG_TAG, "%s unformat.len = %d ", __FUNCTION__, p_src->p_value->unformat.len);
-                p_dest->value.len = p_src->p_value->unformat.len;
-                if ( p_src->p_value->unformat.len > 0  && p_src->p_value->unformat.p_value != NULL )
-                {
-                    memcpy(p_dest->value.value, p_src->p_value->unformat.p_value,
-                           p_src->p_value->unformat.len);
-                }
-                len += p_src->p_value->unformat.len;
-            }
-            else
-            {
-                p_dest->value.len = 0;
-            }
-
-            p_dest->value_type = GATTC_READ_VALUE_TYPE_VALUE;
-            break;
+        len += p_src->p_value->len;
+    } else {
+        p_dest->value.len = 0;
     }
 
+    p_dest->value_type = GATTC_READ_VALUE_TYPE_VALUE;
     return len;
 }
 
