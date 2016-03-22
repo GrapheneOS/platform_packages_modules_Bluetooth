@@ -1511,7 +1511,6 @@ bt_status_t btif_av_execute_service(BOOLEAN b_enable)
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
              |BTA_AV_FEAT_RCCT
              |BTA_AV_FEAT_ADV_CTRL
-             |BTA_AV_FEAT_BROWSE
 #endif
              ,bte_av_callback);
 #else
