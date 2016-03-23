@@ -692,7 +692,7 @@ static char *bta_hf_client_parse_cind_values(char *buffer)
 
 static char *bta_hf_client_parse_cind_list(char *buffer)
 {
-    int offset;
+    int offset = 0;
     char name[129];
     UINT32 min, max;
     UINT32 index = 0;
@@ -701,6 +701,12 @@ static char *bta_hf_client_parse_cind_list(char *buffer)
     while ((res = sscanf(buffer, "(\"%128[^\"]\",(%u%*[-,]%u))%n", name, &min, &max, &offset)) > 2)
     {
         bta_hf_client_handle_cind_list_item(name, min, max, index);
+        if (offset == 0)
+        {
+            APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
+            return NULL;
+        }
+
         buffer += offset;
         index++;
 
@@ -808,13 +814,19 @@ static char *bta_hf_client_parse_ciev(char *buffer)
 {
     UINT32 index, value;
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+CIEV:");
 
     res = sscanf(buffer, "%u,%u%n", &index, &value, &offset);
     if(res < 2)
     {
+        return NULL;
+    }
+
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
         return NULL;
     }
 
@@ -888,7 +900,7 @@ static char *bta_hf_client_parse_clip(char *buffer)
     char number[33];
     UINT32 type = 0;
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+CLIP:");
 
@@ -896,6 +908,12 @@ static char *bta_hf_client_parse_clip(char *buffer)
     res = sscanf(buffer, "\"%32[^\"]\",%u%n", number, &type, &offset);
     if(res < 2)
     {
+        return NULL;
+    }
+
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
         return NULL;
     }
 
@@ -916,7 +934,7 @@ static char *bta_hf_client_parse_ccwa(char *buffer)
     char number[33];
     UINT32 type = 0;
     int res ;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+CCWA:");
 
@@ -924,6 +942,12 @@ static char *bta_hf_client_parse_ccwa(char *buffer)
     res = sscanf(buffer, "\"%32[^\"]\",%u%n", number, &type, &offset);
     if(res < 2)
     {
+        return NULL;
+    }
+
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
         return NULL;
     }
 
@@ -953,6 +977,12 @@ static char *bta_hf_client_parse_cops(char *buffer)
     {
         return NULL;
     }
+    /* Abort in case offset not set because of format error */
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
+        return NULL;
+    }
 
     buffer += offset;
 
@@ -970,13 +1000,20 @@ static char *bta_hf_client_parse_binp(char *buffer)
     /* phone number is 32 chars plus one for \0*/
     char numstr[33];
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+BINP:");
 
     res = sscanf(buffer, "\"%32[^\"]\"\r\n%n", numstr, &offset);
     if(res < 1)
     {
+        return NULL;
+    }
+
+    /* Abort in case offset not set because of format error */
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
         return NULL;
     }
 
@@ -997,7 +1034,7 @@ static char *bta_hf_client_parse_clcc(char *buffer)
     char numstr[33];     /* spec forces 32 chars, plus one for \0*/
     UINT16 type;
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+CLCC:");
 
@@ -1008,7 +1045,15 @@ static char *bta_hf_client_parse_clcc(char *buffer)
         return NULL;
     }
 
+    /* Abort in case offset not set because of format error */
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
+        return NULL;
+    }
+
     buffer += offset;
+    offset = 0;
 
     /* check optional part */
     if (*buffer == ',')
@@ -1031,6 +1076,13 @@ static char *bta_hf_client_parse_clcc(char *buffer)
         if (res2 >= 2)
         {
             res += res2;
+            /* Abort in case offset not set because of format error */
+            if (offset == 0)
+            {
+                APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
+                return NULL;
+            }
+
             buffer += offset;
         }
     }
@@ -1059,7 +1111,7 @@ static char *bta_hf_client_parse_cnum(char *buffer)
     UINT16 type;
     UINT16 service = 0; /* 0 in case this optional parameter is not being sent */
     int res;
-    int offset;
+    int offset = 0;
 
     AT_CHECK_EVENT(buffer, "+CNUM:");
 
@@ -1084,6 +1136,13 @@ static char *bta_hf_client_parse_cnum(char *buffer)
 
     if (res < 3)
     {
+        return NULL;
+    }
+
+    /* Abort in case offset not set because of format error */
+    if (offset == 0)
+    {
+        APPL_TRACE_ERROR("%s: Format Error %s", __func__, buffer);
         return NULL;
     }
 
@@ -1431,6 +1490,11 @@ void bta_hf_client_send_at_brsf(void)
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+BRSF=%u\r", bta_hf_client_cb.scb.features);
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_BRSF , buf, at_len);
 }
@@ -1461,6 +1525,11 @@ void bta_hf_client_send_at_bcs(UINT32 codec)
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+BCS=%u\r", codec);
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_BCS, buf, at_len);
 }
@@ -1511,6 +1580,12 @@ void bta_hf_client_send_at_chld(char cmd, UINT32 idx)
         at_len = snprintf(buf, sizeof(buf), "AT+CHLD=%c%u\r", cmd, idx);
     else
         at_len = snprintf(buf, sizeof(buf), "AT+CHLD=%c\r", cmd);
+
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_CHLD, buf, at_len);
 }
@@ -1605,6 +1680,11 @@ void bta_hf_client_send_at_vgs(UINT32 volume)
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VGS=%u\r", volume);
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_VGS, buf, at_len);
 }
@@ -1617,6 +1697,11 @@ void bta_hf_client_send_at_vgm(UINT32 volume)
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VGM=%u\r", volume);
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_VGM, buf, at_len);
 }
@@ -1633,13 +1718,19 @@ void bta_hf_client_send_at_atd(char *number, UINT32 memory)
     } else {
         at_len = snprintf(buf, sizeof(buf), "ATD>%u;\r", memory);
     }
+
     if (at_len < 0) {
-        APPL_TRACE_ERROR("%s: error preparing ATD command");
+        APPL_TRACE_ERROR("%s: error preparing ATD command", __func__);
         return;
     }
 
     at_len = MIN((size_t)at_len, sizeof(buf));
 
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_ATD, buf, at_len);
 }
 
@@ -1692,6 +1783,12 @@ void bta_hf_client_send_at_btrh(BOOLEAN query, UINT32 val)
         at_len = snprintf(buf, sizeof(buf), "AT+BTRH=%u\r", val);
     }
 
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
+
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_BTRH, buf, at_len);
 }
 
@@ -1703,6 +1800,12 @@ void bta_hf_client_send_at_vts(char code)
     APPL_TRACE_DEBUG("%s", __FUNCTION__);
 
     at_len = snprintf(buf, sizeof(buf), "AT+VTS=%c\r", code);
+
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_VTS, buf, at_len);
 }
@@ -1755,6 +1858,12 @@ void bta_hf_client_send_at_binp(UINT32 action)
 
     at_len = snprintf(buf, sizeof(buf), "AT+BINP=%u\r", action);
 
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
+
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_BINP, buf, at_len);
 }
 
@@ -1781,6 +1890,12 @@ void bta_hf_client_send_at_bia(void)
     }
 
     buf[at_len - 1] = '\r';
+
+    if (at_len < 0)
+    {
+        APPL_TRACE_ERROR("%s: AT command Framing error", __func__);
+        return;
+    }
 
     bta_hf_client_send_at(BTA_HF_CLIENT_AT_BIA, buf, at_len);
 }
