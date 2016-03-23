@@ -135,6 +135,13 @@ public class GattService extends ProfileService {
     private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
             new HashMap<Integer, List<BluetoothGattService>>();
 
+    static final int NUM_SCAN_EVENTS_KEPT = 20;
+    /**
+     * Internal list of scan events to use with the proto
+     */
+    ArrayList<BluetoothProto.ScanEvent> mScanEvents =
+        new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
+
     private ServiceDeclaration addDeclaration() {
         synchronized (mServiceDeclarations) {
             mServiceDeclarations.add(new ServiceDeclaration());
