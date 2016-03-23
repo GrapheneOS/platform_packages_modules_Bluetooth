@@ -27,16 +27,22 @@
 #include <base/run_loop.h>
 
 #include <binder/IPCThreadState.h>
+#include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
 
-#include <bluetooth/binder/IBluetooth.h>
+#include <android/bluetooth/IBluetooth.h>
 
 #include "service/example/heart_rate/heart_rate_server.h"
 
 using android::sp;
-using ipc::binder::IBluetooth;
+using android::OK;
+using android::bluetooth::IBluetooth;
+
+using android::getService;
 
 namespace {
+
+std::string kServiceName = "bluetooth-service";
 
 void QuitMessageLoop() {
   // I don't know why both of these calls are necessary but the message loop
@@ -50,8 +56,7 @@ class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
  public:
   BluetoothDeathRecipient(
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner)
-      : main_task_runner_(main_task_runner) {
-  }
+      : main_task_runner_(main_task_runner) {}
 
   ~BluetoothDeathRecipient() override = default;
 
@@ -91,15 +96,18 @@ int main(int argc, char* argv[]) {
 
   LOG(INFO) << "Starting GATT Heart Rate Service sample";
 
-  // Obtain the IBluetooth binder from the service manager service.
-  sp<IBluetooth> bluetooth = IBluetooth::getClientInterface();
-  if (!bluetooth.get()) {
-    LOG(ERROR) << "Failed to obtain a handle on IBluetooth";
+  sp<IBluetooth> bluetooth;
+  status_t status = getService(String16(kServiceName.c_str()), &bluetooth);
+  if (status != OK) {
+    LOG(ERROR) << "Failed to get service binder: '" << kServiceName
+               << "' status=" << status;
     return EXIT_FAILURE;
   }
 
   // Bluetooth needs to be enabled for our demo to work.
-  if (!bluetooth->IsEnabled()) {
+  bool enabled;
+  bluetooth->IsEnabled(&enabled);
+  if (!enabled) {
     LOG(ERROR) << "Bluetooth is not enabled.";
     return EXIT_FAILURE;
   }
@@ -133,11 +141,13 @@ int main(int argc, char* argv[]) {
     main_loop.QuitWhenIdle();
   };
 
-  bool advertise = base::CommandLine::ForCurrentProcess()->HasSwitch("advertise");
+  bool advertise =
+      base::CommandLine::ForCurrentProcess()->HasSwitch("advertise");
 
   // Create the Heart Rate server.
   std::unique_ptr<heart_rate::HeartRateServer> hr(
-      new heart_rate::HeartRateServer(bluetooth, main_loop.task_runner(), advertise));
+      new heart_rate::HeartRateServer(bluetooth, main_loop.task_runner(),
+                                      advertise));
   if (!hr->Run(callback)) {
     LOG(ERROR) << "Failed to start Heart Rate server";
     return EXIT_FAILURE;

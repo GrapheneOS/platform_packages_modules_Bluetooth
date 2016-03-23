@@ -29,15 +29,16 @@
 #include <base/strings/string_split.h>
 #include <base/strings/string_util.h>
 #include <binder/IPCThreadState.h>
+#include <binder/IServiceManager.h>
 #include <binder/ProcessState.h>
 
 #include <bluetooth/adapter_state.h>
-#include <bluetooth/binder/IBluetooth.h>
-#include <bluetooth/binder/IBluetoothCallback.h>
-#include <bluetooth/binder/IBluetoothGattClient.h>
-#include <bluetooth/binder/IBluetoothGattClientCallback.h>
-#include <bluetooth/binder/IBluetoothLowEnergy.h>
-#include <bluetooth/binder/IBluetoothLowEnergyCallback.h>
+#include <android/bluetooth/BnBluetoothCallback.h>
+#include <android/bluetooth/BnBluetoothGattClientCallback.h>
+#include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
+#include <android/bluetooth/IBluetooth.h>
+#include <android/bluetooth/IBluetoothGattClient.h>
+#include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <bluetooth/low_energy_constants.h>
 #include <bluetooth/scan_filter.h>
 #include <bluetooth/scan_settings.h>
@@ -46,28 +47,33 @@
 using namespace std;
 
 using android::sp;
+using android::String8;
+using android::String16;
+using android::binder::Status;
+using android::OK;
+using android::getService;
 
-using ipc::binder::IBluetooth;
-using ipc::binder::IBluetoothGattClient;
-using ipc::binder::IBluetoothLowEnergy;
+using android::bluetooth::IBluetooth;
+using android::bluetooth::IBluetoothGattClient;
+using android::bluetooth::IBluetoothLowEnergy;
 
 namespace {
 
-#define COLOR_OFF         "\x1B[0m"
-#define COLOR_RED         "\x1B[0;91m"
-#define COLOR_GREEN       "\x1B[0;92m"
-#define COLOR_YELLOW      "\x1B[0;93m"
-#define COLOR_BLUE        "\x1B[0;94m"
-#define COLOR_MAGENTA     "\x1B[0;95m"
-#define COLOR_BOLDGRAY    "\x1B[1;30m"
-#define COLOR_BOLDWHITE   "\x1B[1;37m"
-#define COLOR_BOLDYELLOW  "\x1B[1;93m"
-#define CLEAR_LINE        "\x1B[2K"
+#define COLOR_OFF "\x1B[0m"
+#define COLOR_RED "\x1B[0;91m"
+#define COLOR_GREEN "\x1B[0;92m"
+#define COLOR_YELLOW "\x1B[0;93m"
+#define COLOR_BLUE "\x1B[0;94m"
+#define COLOR_MAGENTA "\x1B[0;95m"
+#define COLOR_BOLDGRAY "\x1B[1;30m"
+#define COLOR_BOLDWHITE "\x1B[1;37m"
+#define COLOR_BOLDYELLOW "\x1B[1;93m"
+#define CLEAR_LINE "\x1B[2K"
 
 #define CHECK_ARGS_COUNT(args, op, num, msg) \
-  if (!(args.size() op num)) { \
-    PrintError(msg); \
-    return; \
+  if (!(args.size() op num)) {               \
+    PrintError(msg);                         \
+    return;                                  \
   }
 #define CHECK_NO_ARGS(args) \
   CHECK_ARGS_COUNT(args, ==, 0, "Expected no arguments")
@@ -97,9 +103,9 @@ std::atomic_bool dump_scan_record(false);
 // True if the remote process has died and we should exit.
 std::atomic_bool should_exit(false);
 
-void PrintPrompt() {
-  cout << COLOR_BLUE "[FCLI] " COLOR_OFF << flush;
-}
+std::string kServiceName = "bluetooth-service";
+
+void PrintPrompt() { cout << COLOR_BLUE "[FCLI] " COLOR_OFF << flush; }
 
 void PrintError(const string& message) {
   cout << COLOR_RED << message << COLOR_OFF << endl;
@@ -112,48 +118,48 @@ void PrintOpStatus(const std::string& op, bool status) {
 }
 
 inline void BeginAsyncOut() {
-  if (showing_prompt.load())
-    cout << CLEAR_LINE << "\r";
+  if (showing_prompt.load()) cout << CLEAR_LINE << "\r";
 }
 
 inline void EndAsyncOut() {
   std::flush(cout);
   if (showing_prompt.load())
-      PrintPrompt();
+    PrintPrompt();
   else
     cout << endl;
 }
 
-class CLIBluetoothCallback : public ipc::binder::BnBluetoothCallback {
+class CLIBluetoothCallback : public android::bluetooth::BnBluetoothCallback {
  public:
   CLIBluetoothCallback() = default;
   ~CLIBluetoothCallback() override = default;
 
   // IBluetoothCallback overrides:
-  void OnBluetoothStateChange(
-      bluetooth::AdapterState prev_state,
-      bluetooth::AdapterState new_state) override {
-
+  Status OnBluetoothStateChange(int32_t prev_state,
+                                int32_t new_state) override {
     BeginAsyncOut();
-    cout << COLOR_BOLDWHITE "Adapter state changed: " COLOR_OFF
-         << COLOR_MAGENTA << AdapterStateToString(prev_state) << COLOR_OFF
-         << COLOR_BOLDWHITE " -> " COLOR_OFF
-         << COLOR_BOLDYELLOW << AdapterStateToString(new_state) << COLOR_OFF;
+    cout << COLOR_BOLDWHITE "Adapter state changed: " COLOR_OFF << COLOR_MAGENTA
+         << AdapterStateToString(bluetooth::AdapterState(prev_state))
+         << COLOR_OFF << COLOR_BOLDWHITE " -> " COLOR_OFF << COLOR_BOLDYELLOW
+         << AdapterStateToString(bluetooth::AdapterState(new_state))
+         << COLOR_OFF;
     EndAsyncOut();
-   }
+
+    return Status::ok();
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothCallback);
 };
 
 class CLIBluetoothLowEnergyCallback
-    : public ipc::binder::BnBluetoothLowEnergyCallback {
+    : public android::bluetooth::BnBluetoothLowEnergyCallback {
  public:
   CLIBluetoothLowEnergyCallback() = default;
   ~CLIBluetoothLowEnergyCallback() override = default;
 
   // IBluetoothLowEnergyCallback overrides:
-  void OnClientRegistered(int status, int client_id) override {
+  Status OnClientRegistered(int status, int client_id) override {
     BeginAsyncOut();
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       PrintError("Failed to register BLE client");
@@ -165,32 +171,34 @@ class CLIBluetoothLowEnergyCallback
     EndAsyncOut();
 
     ble_registering = false;
+    return Status::ok();
   }
 
-  void OnConnectionState(int status, int client_id, const char* address,
-                         bool connected) override {
+  Status OnConnectionState(int status, int client_id, const String16& address,
+                           bool connected) override {
     BeginAsyncOut();
-    cout << COLOR_BOLDWHITE "Connection state: "
-         << COLOR_BOLDYELLOW "[" << address
-         << " connected: " << (connected ? "true" : "false") << " ] "
+    cout << COLOR_BOLDWHITE "Connection state: " << COLOR_BOLDYELLOW "["
+         << address << " connected: " << (connected ? "true" : "false") << " ] "
          << COLOR_BOLDWHITE "- status: " << status
          << COLOR_BOLDWHITE " - client_id: " << client_id << COLOR_OFF;
     EndAsyncOut();
+    return Status::ok();
   }
 
-  void OnMtuChanged(int status, const char *address, int mtu) override {
+  Status OnMtuChanged(int status, const String16& address, int mtu) override {
     BeginAsyncOut();
-    cout << COLOR_BOLDWHITE "MTU changed: "
-         << COLOR_BOLDYELLOW "[" << address << " ] "
-         << COLOR_BOLDWHITE " - status: " << status
+    cout << COLOR_BOLDWHITE "MTU changed: " << COLOR_BOLDYELLOW "[" << address
+         << " ] " << COLOR_BOLDWHITE " - status: " << status
          << COLOR_BOLDWHITE " - mtu: " << mtu << COLOR_OFF;
     EndAsyncOut();
+    return Status::ok();
   }
 
-  void OnScanResult(const bluetooth::ScanResult& scan_result) override {
+  Status OnScanResult(
+      const android::bluetooth::ScanResult& scan_result) override {
     BeginAsyncOut();
-    cout << COLOR_BOLDWHITE "Scan result: "
-         << COLOR_BOLDYELLOW "[" << scan_result.device_address() << "] "
+    cout << COLOR_BOLDWHITE "Scan result: " << COLOR_BOLDYELLOW "["
+         << scan_result.device_address() << "] "
          << COLOR_BOLDWHITE "- RSSI: " << scan_result.rssi() << COLOR_OFF;
 
     if (dump_scan_record) {
@@ -199,16 +207,18 @@ class CLIBluetoothLowEnergyCallback
                               scan_result.scan_record().size());
     }
     EndAsyncOut();
+    return Status::ok();
   }
 
-  void OnMultiAdvertiseCallback(
+  Status OnMultiAdvertiseCallback(
       int status, bool is_start,
-      const bluetooth::AdvertiseSettings& /* settings */) {
+      const android::bluetooth::AdvertiseSettings& /* settings */) {
     BeginAsyncOut();
     std::string op = is_start ? "start" : "stop";
 
     PrintOpStatus("Advertising " + op, status == bluetooth::BLE_STATUS_SUCCESS);
     EndAsyncOut();
+    return Status::ok();
   }
 
  private:
@@ -216,13 +226,13 @@ class CLIBluetoothLowEnergyCallback
 };
 
 class CLIGattClientCallback
-    : public ipc::binder::BnBluetoothGattClientCallback {
+    : public android::bluetooth::BnBluetoothGattClientCallback {
  public:
   CLIGattClientCallback() = default;
   ~CLIGattClientCallback() override = default;
 
   // IBluetoothGattClientCallback overrides:
-  void OnClientRegistered(int status, int client_id) override {
+  Status OnClientRegistered(int status, int client_id) override {
     BeginAsyncOut();
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       PrintError("Failed to register GATT client");
@@ -234,15 +244,14 @@ class CLIGattClientCallback
     EndAsyncOut();
 
     gatt_registering = false;
+    return Status::ok();
   }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CLIGattClientCallback);
 };
 
-void PrintCommandStatus(bool status) {
-  PrintOpStatus("Command", status);
-}
+void PrintCommandStatus(bool status) { PrintOpStatus("Command", status); }
 
 void PrintFieldAndValue(const string& field, const string& value) {
   cout << COLOR_BOLDWHITE << field << ": " << COLOR_BOLDYELLOW << value
@@ -255,49 +264,59 @@ void PrintFieldAndBoolValue(const string& field, bool value) {
 
 void HandleDisable(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  PrintCommandStatus(bt_iface->Disable());
+  bool status;
+  bt_iface->Disable(&status);
+  PrintCommandStatus(status);
 }
 
 void HandleEnable(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  PrintCommandStatus(bt_iface->Enable());
+  bool status;
+  bt_iface->Enable(&status);
+  PrintCommandStatus(status);
 }
 
 void HandleGetState(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  bluetooth::AdapterState state = static_cast<bluetooth::AdapterState>(
-      bt_iface->GetState());
+
+  int32_t st;
+  bt_iface->GetState(&st);
+  bluetooth::AdapterState state = static_cast<bluetooth::AdapterState>(st);
   PrintFieldAndValue("Adapter state", bluetooth::AdapterStateToString(state));
 }
 
 void HandleIsEnabled(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  bool enabled = bt_iface->IsEnabled();
+  bool enabled;
+  bt_iface->IsEnabled(&enabled);
   PrintFieldAndBoolValue("Adapter enabled", enabled);
 }
 
 void HandleGetLocalAddress(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  string address = bt_iface->GetAddress();
-  PrintFieldAndValue("Adapter address", address);
+  String16 address;
+  bt_iface->GetAddress(&address);
+  PrintFieldAndValue("Adapter address", std::string(String8(address).string()));
 }
 
 void HandleSetLocalName(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_ARGS_COUNT(args, >=, 1, "No name was given");
 
   std::string name;
-  for (const auto& arg : args)
-    name += arg + " ";
+  for (const auto& arg : args) name += arg + " ";
 
   base::TrimWhitespaceASCII(name, base::TRIM_TRAILING, &name);
 
-  PrintCommandStatus(bt_iface->SetName(name));
+  bool status;
+  bt_iface->SetName(String16(String8(name.c_str())), &status);
+  PrintCommandStatus(status);
 }
 
 void HandleGetLocalName(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
-  string name = bt_iface->GetName();
-  PrintFieldAndValue("Adapter name", name);
+  String16 name;
+  bt_iface->GetName(&name);
+  PrintFieldAndValue("Adapter name", std::string(String8(name).string()));
 }
 
 void HandleAdapterInfo(IBluetooth* bt_iface, const vector<string>& args) {
@@ -305,19 +324,31 @@ void HandleAdapterInfo(IBluetooth* bt_iface, const vector<string>& args) {
 
   cout << COLOR_BOLDWHITE "Adapter Properties: " COLOR_OFF << endl;
 
-  PrintFieldAndValue("\tAddress", bt_iface->GetAddress());
-  PrintFieldAndValue("\tState", bluetooth::AdapterStateToString(
-      static_cast<bluetooth::AdapterState>(bt_iface->GetState())));
-  PrintFieldAndValue("\tName", bt_iface->GetName());
-  PrintFieldAndBoolValue("\tMulti-Adv. supported",
-                         bt_iface->IsMultiAdvertisementSupported());
+  String16 address;
+  bt_iface->GetAddress(&address);
+  PrintFieldAndValue("\tAddress", std::string(String8(address).string()));
+
+  int adapter_state;
+  bt_iface->GetState(&adapter_state);
+  PrintFieldAndValue("\tState",
+                     bluetooth::AdapterStateToString(
+                         static_cast<bluetooth::AdapterState>(adapter_state)));
+
+  String16 name;
+  bt_iface->GetName(&name);
+  PrintFieldAndValue("\tName", std::string(String8(name).string()));
+
+  bool multi_adv;
+  bt_iface->IsMultiAdvertisementSupported(&multi_adv);
+  PrintFieldAndBoolValue("\tMulti-Adv. supported", multi_adv);
 }
 
 void HandleSupportsMultiAdv(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
-  bool status = bt_iface->IsMultiAdvertisementSupported();
-  PrintFieldAndBoolValue("Multi-advertisement support", status);
+  bool multi_adv;
+  bt_iface->IsMultiAdvertisementSupported(&multi_adv);
+  PrintFieldAndBoolValue("Multi-advertisement support", multi_adv);
 }
 
 void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
@@ -333,13 +364,15 @@ void HandleRegisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bool status = ble_iface->RegisterClient(new CLIBluetoothLowEnergyCallback());
+  bool status;
+  ble_iface->RegisterClient(new CLIBluetoothLowEnergyCallback(), &status);
   ble_registering = status;
   PrintCommandStatus(status);
 }
@@ -352,7 +385,8 @@ void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
@@ -366,7 +400,8 @@ void HandleUnregisterBLE(IBluetooth* bt_iface, const vector<string>& args) {
 void HandleUnregisterAllBLE(IBluetooth* bt_iface, const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
@@ -389,13 +424,15 @@ void HandleRegisterGATT(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothGattClient> gatt_iface = bt_iface->GetGattClientInterface();
+  sp<IBluetoothGattClient> gatt_iface;
+  bt_iface->GetGattClientInterface(&gatt_iface);
   if (!gatt_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth GATT Client interface");
     return;
   }
 
-  bool status = gatt_iface->RegisterClient(new CLIGattClientCallback());
+  bool status;
+  gatt_iface->RegisterClient(new CLIGattClientCallback(), &status);
   gatt_registering = status;
   PrintCommandStatus(status);
 }
@@ -408,7 +445,8 @@ void HandleUnregisterGATT(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothGattClient> gatt_iface = bt_iface->GetGattClientInterface();
+  sp<IBluetoothGattClient> gatt_iface;
+  bt_iface->GetGattClientInterface(&gatt_iface);
   if (!gatt_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth GATT Client interface");
     return;
@@ -453,8 +491,7 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
       }
 
       set_uuid = true;
-    }
-    else if (arg == "-h") {
+    } else if (arg == "-h") {
       static const char kUsage[] =
           "Usage: start-adv [flags]\n"
           "\n"
@@ -466,8 +503,7 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
           "\t-h\tShow this help message\n";
       cout << kUsage << endl;
       return;
-    }
-    else {
+    } else {
       PrintError("Unrecognized option: " + arg);
       return;
     }
@@ -478,7 +514,8 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
@@ -486,11 +523,8 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
 
   std::vector<uint8_t> data;
   if (set_manufacturer_data) {
-    data = {{
-      0x07, bluetooth::kEIRTypeManufacturerSpecificData,
-      0xe0, 0x00,
-      'T', 'e', 's', 't'
-    }};
+    data = {{0x07, bluetooth::kEIRTypeManufacturerSpecificData, 0xe0, 0x00, 'T',
+             'e', 's', 't'}};
   }
 
   if (set_uuid) {
@@ -518,10 +552,8 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
   base::TimeDelta timeout;
 
   bluetooth::AdvertiseSettings settings(
-      bluetooth::AdvertiseSettings::MODE_LOW_POWER,
-      timeout,
-      bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM,
-      connectable);
+      bluetooth::AdvertiseSettings::MODE_LOW_POWER, timeout,
+      bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM, connectable);
 
   bluetooth::AdvertiseData adv_data(data);
   adv_data.set_include_device_name(include_name);
@@ -529,8 +561,9 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
 
   bluetooth::AdvertiseData scan_rsp;
 
-  bool status = ble_iface->StartMultiAdvertising(ble_client_id.load(),
-                                                 adv_data, scan_rsp, settings);
+  bool status;
+  ble_iface->StartMultiAdvertising(ble_client_id.load(), adv_data, scan_rsp,
+                                   settings, &status);
   PrintCommandStatus(status);
 }
 
@@ -540,13 +573,15 @@ void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bool status = ble_iface->StopMultiAdvertising(ble_client_id.load());
+  bool status;
+  ble_iface->StopMultiAdvertising(ble_client_id.load(), &status);
   PrintCommandStatus(status);
 }
 
@@ -565,14 +600,17 @@ void HandleConnect(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bool status = ble_iface->Connect(ble_client_id.load(), address.c_str(),
-                                   false /*  is_direct */);
+  bool status;
+  ble_iface->Connect(ble_client_id.load(),
+                     String16(address.c_str(), address.length()),
+                     false /*  is_direct */, &status);
 
   PrintCommandStatus(status);
 }
@@ -592,14 +630,16 @@ void HandleDisconnect(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bool status = ble_iface->Disconnect(ble_client_id.load(), address.c_str());
-
+  bool status;
+  ble_iface->Disconnect(ble_client_id.load(),
+                        String16(address.c_str(), address.length()), &status);
   PrintCommandStatus(status);
 }
 
@@ -625,13 +665,16 @@ void HandleSetMtu(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bool status = ble_iface->SetMtu(ble_client_id.load(), address.c_str(), mtu);
+  bool status;
+  ble_iface->SetMtu(ble_client_id.load(),
+                    String16(address.c_str(), address.length()), mtu, &status);
   PrintCommandStatus(status);
 }
 
@@ -656,16 +699,18 @@ void HandleStartLeScan(IBluetooth* bt_iface, const vector<string>& args) {
     }
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
   bluetooth::ScanSettings settings;
-  std::vector<bluetooth::ScanFilter> filters;
+  std::vector<android::bluetooth::ScanFilter> filters;
 
-  bool status = ble_iface->StartScan(ble_client_id.load(), settings, filters);
+  bool status;
+  ble_iface->StartScan(ble_client_id.load(), settings, filters, &status);
   PrintCommandStatus(status);
 }
 
@@ -675,16 +720,15 @@ void HandleStopLeScan(IBluetooth* bt_iface, const vector<string>& args) {
     return;
   }
 
-  sp<IBluetoothLowEnergy> ble_iface = bt_iface->GetLowEnergyInterface();
+  sp<IBluetoothLowEnergy> ble_iface;
+  bt_iface->GetLowEnergyInterface(&ble_iface);
   if (!ble_iface.get()) {
     PrintError("Failed to obtain handle to Bluetooth Low Energy interface");
     return;
   }
 
-  bluetooth::ScanSettings settings;
-  std::vector<bluetooth::ScanFilter> filters;
-
-  bool status = ble_iface->StopScan(ble_client_id.load());
+  bool status;
+  ble_iface->StopScan(ble_client_id.load(), &status);
   PrintCommandStatus(status);
 }
 
@@ -695,38 +739,38 @@ struct {
   void (*func)(IBluetooth*, const vector<string>& args);
   string help;
 } kCommandMap[] = {
-  { "help", HandleHelp, "\t\t\tDisplay this message" },
-  { "disable", HandleDisable, "\t\t\tDisable Bluetooth" },
-  { "enable", HandleEnable, "\t\t\tEnable Bluetooth" },
-  { "get-state", HandleGetState, "\t\tGet the current adapter state" },
-  { "is-enabled", HandleIsEnabled, "\t\tReturn if Bluetooth is enabled" },
-  { "get-local-address", HandleGetLocalAddress,
-    "\tGet the local adapter address" },
-  { "set-local-name", HandleSetLocalName, "\t\tSet the local adapter name" },
-  { "get-local-name", HandleGetLocalName, "\t\tGet the local adapter name" },
-  { "adapter-info", HandleAdapterInfo, "\t\tPrint adapter properties" },
-  { "supports-multi-adv", HandleSupportsMultiAdv,
-    "\tWhether multi-advertisement is currently supported" },
-  { "register-ble", HandleRegisterBLE,
-    "\t\tRegister with the Bluetooth Low Energy interface" },
-  { "unregister-ble", HandleUnregisterBLE,
-    "\t\tUnregister from the Bluetooth Low Energy interface" },
-  { "unregister-all-ble", HandleUnregisterAllBLE,
-    "\tUnregister all clients from the Bluetooth Low Energy interface" },
-  { "register-gatt", HandleRegisterGATT,
-    "\t\tRegister with the Bluetooth GATT Client interface" },
-  { "unregister-gatt", HandleUnregisterGATT,
-    "\t\tUnregister from the Bluetooth GATT Client interface" },
-  { "connect-le", HandleConnect, "\t\tConnect to LE device (-h for options)"},
-  { "disconnect-le", HandleDisconnect,
-    "\t\tDisconnect LE device (-h for options)"},
-  { "set-mtu", HandleSetMtu, "\t\tSet MTU (-h for options)"},
-  { "start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)" },
-  { "stop-adv", HandleStopAdv, "\t\tStop advertising" },
-  { "start-le-scan", HandleStartLeScan,
-    "\t\tStart LE device scan (-h for options)" },
-  { "stop-le-scan", HandleStopLeScan, "\t\tStop LE device scan" },
-  {},
+    {"help", HandleHelp, "\t\t\tDisplay this message"},
+    {"disable", HandleDisable, "\t\t\tDisable Bluetooth"},
+    {"enable", HandleEnable, "\t\t\tEnable Bluetooth"},
+    {"get-state", HandleGetState, "\t\tGet the current adapter state"},
+    {"is-enabled", HandleIsEnabled, "\t\tReturn if Bluetooth is enabled"},
+    {"get-local-address", HandleGetLocalAddress,
+     "\tGet the local adapter address"},
+    {"set-local-name", HandleSetLocalName, "\t\tSet the local adapter name"},
+    {"get-local-name", HandleGetLocalName, "\t\tGet the local adapter name"},
+    {"adapter-info", HandleAdapterInfo, "\t\tPrint adapter properties"},
+    {"supports-multi-adv", HandleSupportsMultiAdv,
+     "\tWhether multi-advertisement is currently supported"},
+    {"register-ble", HandleRegisterBLE,
+     "\t\tRegister with the Bluetooth Low Energy interface"},
+    {"unregister-ble", HandleUnregisterBLE,
+     "\t\tUnregister from the Bluetooth Low Energy interface"},
+    {"unregister-all-ble", HandleUnregisterAllBLE,
+     "\tUnregister all clients from the Bluetooth Low Energy interface"},
+    {"register-gatt", HandleRegisterGATT,
+     "\t\tRegister with the Bluetooth GATT Client interface"},
+    {"unregister-gatt", HandleUnregisterGATT,
+     "\t\tUnregister from the Bluetooth GATT Client interface"},
+    {"connect-le", HandleConnect, "\t\tConnect to LE device (-h for options)"},
+    {"disconnect-le", HandleDisconnect,
+     "\t\tDisconnect LE device (-h for options)"},
+    {"set-mtu", HandleSetMtu, "\t\tSet MTU (-h for options)"},
+    {"start-adv", HandleStartAdv, "\t\tStart advertising (-h for options)"},
+    {"stop-adv", HandleStopAdv, "\t\tStop advertising"},
+    {"start-le-scan", HandleStartLeScan,
+     "\t\tStart LE device scan (-h for options)"},
+    {"stop-le-scan", HandleStopLeScan, "\t\tStop LE device scan"},
+    {},
 };
 
 void HandleHelp(IBluetooth* /* bt_iface */, const vector<string>& /* args */) {
@@ -796,9 +840,11 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  sp<IBluetooth> bt_iface = IBluetooth::getClientInterface();
-  if (!bt_iface.get()) {
-    LOG(ERROR) << "Failed to obtain handle on IBluetooth";
+  sp<IBluetooth> bt_iface;
+  status_t status = getService(String16(kServiceName.c_str()), &bt_iface);
+  if (status != OK) {
+    LOG(ERROR) << "Failed to get service binder: '" << kServiceName
+               << "' status=" << status;
     return EXIT_FAILURE;
   }
 
@@ -818,8 +864,8 @@ int main(int argc, char* argv[]) {
   sp<CLIBluetoothCallback> callback = new CLIBluetoothCallback();
   bt_iface->RegisterCallback(callback);
 
-  cout << COLOR_BOLDWHITE << "Fluoride Command-Line Interface\n" << COLOR_OFF
-       << endl
+  cout << COLOR_BOLDWHITE << "Fluoride Command-Line Interface\n"
+       << COLOR_OFF << endl
        << "Type \"help\" to see possible commands.\n"
        << endl;
 
@@ -863,7 +909,6 @@ int main(int argc, char* argv[]) {
       LOG(ERROR) << "An error occured while reading input";
       return EXIT_FAILURE;
     }
-
   }
 
   return EXIT_SUCCESS;

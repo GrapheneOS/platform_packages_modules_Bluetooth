@@ -20,6 +20,8 @@
 
 #include "service/adapter.h"
 
+using android::bluetooth::IBluetoothGattClientCallback;
+
 namespace ipc {
 namespace binder {
 
@@ -28,28 +30,33 @@ const int kInvalidInstanceId = -1;
 }  // namespace
 
 BluetoothGattClientBinderServer::BluetoothGattClientBinderServer(
-    bluetooth::Adapter* adapter) : adapter_(adapter) {
+    bluetooth::Adapter* adapter)
+    : adapter_(adapter) {
   CHECK(adapter_);
 }
 
-bool BluetoothGattClientBinderServer::RegisterClient(
-    const android::sp<IBluetoothGattClientCallback>& callback) {
+Status BluetoothGattClientBinderServer::RegisterClient(
+    const android::sp<IBluetoothGattClientCallback>& callback,
+    bool* _aidl_return) {
   VLOG(2) << __func__;
 
   bluetooth::GattClientFactory* gatt_client_factory =
       adapter_->GetGattClientFactory();
 
-  return RegisterInstanceBase(callback, gatt_client_factory);
+  *_aidl_return = RegisterInstanceBase(callback, gatt_client_factory);
+  return Status::ok();
 }
 
-void BluetoothGattClientBinderServer::UnregisterClient(int client_id) {
+Status BluetoothGattClientBinderServer::UnregisterClient(int client_id) {
   VLOG(2) << __func__;
   UnregisterInstanceBase(client_id);
+  return Status::ok();
 }
 
-void BluetoothGattClientBinderServer::UnregisterAll() {
+Status BluetoothGattClientBinderServer::UnregisterAll() {
   VLOG(2) << __func__;
   UnregisterAllBase();
+  return Status::ok();
 }
 
 android::sp<IBluetoothGattClientCallback>
@@ -66,18 +73,16 @@ BluetoothGattClientBinderServer::GetGattClient(int client_id) {
 }
 
 void BluetoothGattClientBinderServer::OnRegisterInstanceImpl(
-    bluetooth::BLEStatus status,
-    android::sp<IInterface> callback,
+    bluetooth::BLEStatus status, android::sp<IInterface> callback,
     bluetooth::BluetoothInstance* instance) {
   VLOG(1) << __func__ << " client ID: " << instance->GetInstanceId()
           << " status: " << status;
 
   android::sp<IBluetoothGattClientCallback> cb(
       static_cast<IBluetoothGattClientCallback*>(callback.get()));
-  cb->OnClientRegistered(
-      status,
-      (status == bluetooth::BLE_STATUS_SUCCESS) ?
-          instance->GetInstanceId() : kInvalidInstanceId);
+  cb->OnClientRegistered(status, (status == bluetooth::BLE_STATUS_SUCCESS)
+                                     ? instance->GetInstanceId()
+                                     : kInvalidInstanceId);
 }
 
 }  // namespace binder

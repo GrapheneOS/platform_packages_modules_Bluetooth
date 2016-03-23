@@ -20,6 +20,10 @@
 
 #include "service/adapter.h"
 
+using android::String8;
+using android::String16;
+using android::binder::Status;
+
 namespace ipc {
 namespace binder {
 
@@ -28,122 +32,142 @@ const int kInvalidInstanceId = -1;
 }  // namespace
 
 BluetoothLowEnergyBinderServer::BluetoothLowEnergyBinderServer(
-    bluetooth::Adapter* adapter) : adapter_(adapter) {
+    bluetooth::Adapter* adapter)
+    : adapter_(adapter) {
   CHECK(adapter_);
 }
 
-BluetoothLowEnergyBinderServer::~BluetoothLowEnergyBinderServer() {
-}
+BluetoothLowEnergyBinderServer::~BluetoothLowEnergyBinderServer() {}
 
-bool BluetoothLowEnergyBinderServer::RegisterClient(
-    const android::sp<IBluetoothLowEnergyCallback>& callback) {
+Status BluetoothLowEnergyBinderServer::RegisterClient(
+    const android::sp<IBluetoothLowEnergyCallback>& callback,
+    bool* _aidl_return) {
   VLOG(2) << __func__;
   bluetooth::LowEnergyClientFactory* ble_factory =
       adapter_->GetLowEnergyClientFactory();
 
-  return RegisterInstanceBase(callback, ble_factory);
+  *_aidl_return = RegisterInstanceBase(callback, ble_factory);
+  return Status::ok();
 }
 
-void BluetoothLowEnergyBinderServer::UnregisterClient(int client_id) {
+Status BluetoothLowEnergyBinderServer::UnregisterClient(int client_id) {
   VLOG(2) << __func__;
   UnregisterInstanceBase(client_id);
+  return Status::ok();
 }
 
-void BluetoothLowEnergyBinderServer::UnregisterAll() {
+Status BluetoothLowEnergyBinderServer::UnregisterAll() {
   VLOG(2) << __func__;
   UnregisterAllBase();
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::Connect(int client_id,
-                                             const char* address,
-                                             bool is_direct) {
-  VLOG(2) << __func__ << " client_id: " << client_id
-          << " address: " << address
+Status BluetoothLowEnergyBinderServer::Connect(int client_id,
+                                               const String16& address,
+                                               bool is_direct,
+                                               bool* _aidl_return) {
+  VLOG(2) << __func__ << " client_id: " << client_id << " address: " << address
           << " is_direct: " << is_direct;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return client->Connect(std::string(address), is_direct);
+  *_aidl_return =
+      client->Connect(std::string(String8(address).string()), is_direct);
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::Disconnect(int client_id,
-                                                const char* address) {
-  VLOG(2) << __func__ << " client_id: " << client_id
-          << " address: " << address;
+Status BluetoothLowEnergyBinderServer::Disconnect(int client_id,
+                                                  const String16& address,
+                                                  bool* _aidl_return) {
+  VLOG(2) << __func__ << " client_id: " << client_id << " address: " << address;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return client->Disconnect(std::string(address));
+  *_aidl_return = client->Disconnect(std::string(String8(address).string()));
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::SetMtu(int client_id,
-                                            const char* address,
-                                            int mtu) {
-  VLOG(2) << __func__ << " client_id: " << client_id
-          << " address: " << address
+Status BluetoothLowEnergyBinderServer::SetMtu(int client_id,
+                                              const String16& address, int mtu,
+                                              bool* _aidl_return) {
+  VLOG(2) << __func__ << " client_id: " << client_id << " address: " << address
           << " mtu: " << mtu;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return client->SetMtu(address, mtu);
+  *_aidl_return = client->SetMtu(std::string(String8(address).string()), mtu);
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::StartScan(
-    int client_id,
-    const bluetooth::ScanSettings& settings,
-    const std::vector<bluetooth::ScanFilter>& filters) {
+Status BluetoothLowEnergyBinderServer::StartScan(
+    int client_id, const android::bluetooth::ScanSettings& settings,
+    const std::vector<android::bluetooth::ScanFilter>& filters,
+    bool* _aidl_return) {
   VLOG(2) << __func__ << " client_id: " << client_id;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return client->StartScan(settings, filters);
+  std::vector<bluetooth::ScanFilter> flt;
+  for (auto filter : filters) {
+    flt.push_back(filter);
+  }
+
+  *_aidl_return = client->StartScan(settings, flt);
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::StopScan(int client_id) {
+Status BluetoothLowEnergyBinderServer::StopScan(int client_id,
+                                                bool* _aidl_return) {
   VLOG(2) << __func__ << " client_id: " << client_id;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return client->StopScan();
+  *_aidl_return = client->StopScan();
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
-    int client_id,
-    const bluetooth::AdvertiseData& advertise_data,
-    const bluetooth::AdvertiseData& scan_response,
-    const bluetooth::AdvertiseSettings& settings) {
+Status BluetoothLowEnergyBinderServer::StartMultiAdvertising(
+    int client_id, const android::bluetooth::AdvertiseData& advertise_data,
+    const android::bluetooth::AdvertiseData& scan_response,
+    const android::bluetooth::AdvertiseSettings& settings, bool* _aidl_return) {
   VLOG(2) << __func__ << " client_id: " << client_id;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
@@ -168,23 +192,27 @@ bool BluetoothLowEnergyBinderServer::StartMultiAdvertising(
     cb->OnMultiAdvertiseCallback(status, true /* is_start */, settings_copy);
   };
 
-  if (!client->StartAdvertising(
-      settings, advertise_data, scan_response, callback)) {
+  if (!client->StartAdvertising(settings, advertise_data, scan_response,
+                                callback)) {
     LOG(ERROR) << "Failed to initiate call to start advertising";
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return true;
+  *_aidl_return = true;
+  return Status::ok();
 }
 
-bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
+Status BluetoothLowEnergyBinderServer::StopMultiAdvertising(
+    int client_id, bool* _aidl_return) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
   auto client = GetLEClient(client_id);
   if (!client) {
     LOG(ERROR) << "Unknown client_id: " << client_id;
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
   // Create a weak pointer and pass that to the callback to prevent a potential
@@ -211,15 +239,17 @@ bool BluetoothLowEnergyBinderServer::StopMultiAdvertising(int client_id) {
 
   if (!client->StopAdvertising(callback)) {
     LOG(ERROR) << "Failed to initiate call to start advertising";
-    return false;
+    *_aidl_return = false;
+    return Status::ok();
   }
 
-  return true;
+  *_aidl_return = true;
+  return Status::ok();
 }
 
 void BluetoothLowEnergyBinderServer::OnConnectionState(
-      bluetooth::LowEnergyClient* client, int status,
-      const char* address, bool connected) {
+    bluetooth::LowEnergyClient* client, int status, const char* address,
+    bool connected) {
   VLOG(2) << __func__ << " address: " << address << " connected: " << connected;
 
   int client_id = client->GetInstanceId();
@@ -229,13 +259,14 @@ void BluetoothLowEnergyBinderServer::OnConnectionState(
     return;
   }
 
-  cb->OnConnectionState(status, client_id, address, connected);
+  cb->OnConnectionState(status, client_id,
+                        String16(address, std::strlen(address)), connected);
 }
 
 void BluetoothLowEnergyBinderServer::OnMtuChanged(
-      bluetooth::LowEnergyClient* client, int status, const char* address, int mtu) {
-  VLOG(2) << __func__ << " address: " << address
-          << " status: " << status
+    bluetooth::LowEnergyClient* client, int status, const char* address,
+    int mtu) {
+  VLOG(2) << __func__ << " address: " << address << " status: " << status
           << " mtu: " << mtu;
 
   int client_id = client->GetInstanceId();
@@ -245,12 +276,11 @@ void BluetoothLowEnergyBinderServer::OnMtuChanged(
     return;
   }
 
-  cb->OnMtuChanged(status, address, mtu);
+  cb->OnMtuChanged(status, String16(address, std::strlen(address)), mtu);
 }
 
 void BluetoothLowEnergyBinderServer::OnScanResult(
-    bluetooth::LowEnergyClient* client,
-    const bluetooth::ScanResult& result) {
+    bluetooth::LowEnergyClient* client, const bluetooth::ScanResult& result) {
   VLOG(2) << __func__;
   std::lock_guard<std::mutex> lock(*maps_lock());
 
@@ -278,8 +308,7 @@ BluetoothLowEnergyBinderServer::GetLEClient(int client_id) {
 }
 
 void BluetoothLowEnergyBinderServer::OnRegisterInstanceImpl(
-    bluetooth::BLEStatus status,
-    android::sp<IInterface> callback,
+    bluetooth::BLEStatus status, android::sp<IInterface> callback,
     bluetooth::BluetoothInstance* instance) {
   VLOG(1) << __func__ << " status: " << status;
   bluetooth::LowEnergyClient* le_client =
@@ -288,10 +317,9 @@ void BluetoothLowEnergyBinderServer::OnRegisterInstanceImpl(
 
   android::sp<IBluetoothLowEnergyCallback> cb(
       static_cast<IBluetoothLowEnergyCallback*>(callback.get()));
-  cb->OnClientRegistered(
-      status,
-      (status == bluetooth::BLE_STATUS_SUCCESS) ?
-          instance->GetInstanceId() : kInvalidInstanceId);
+  cb->OnClientRegistered(status, (status == bluetooth::BLE_STATUS_SUCCESS)
+                                     ? instance->GetInstanceId()
+                                     : kInvalidInstanceId);
 }
 
 }  // namespace binder

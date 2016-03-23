@@ -25,6 +25,12 @@
 #include "service/hal/bluetooth_interface.h"
 
 using android::sp;
+using android::String8;
+using android::String16;
+
+using android::bluetooth::IBluetoothCallback;
+using android::bluetooth::IBluetoothGattClient;
+using android::bluetooth::IBluetoothGattServer;
 
 namespace ipc {
 namespace binder {
@@ -40,140 +46,162 @@ BluetoothBinderServer::~BluetoothBinderServer() {
 }
 
 // binder::BnBluetooth overrides:
-bool BluetoothBinderServer::IsEnabled() {
+Status BluetoothBinderServer::IsEnabled(bool* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->IsEnabled();
+  *_aidl_return = adapter_->IsEnabled();
+  return Status::ok();
 }
 
-int BluetoothBinderServer::GetState() {
+Status BluetoothBinderServer::GetState(int32_t* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->GetState();
+  *_aidl_return = adapter_->GetState();
+  return Status::ok();
 }
 
-bool BluetoothBinderServer::Enable() {
+Status BluetoothBinderServer::Enable(bool* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->Enable();
+  *_aidl_return = adapter_->Enable();
+  return Status::ok();
 }
 
-bool BluetoothBinderServer::EnableNoAutoConnect() {
+Status BluetoothBinderServer::EnableNoAutoConnect(bool* _aidl_return) {
   VLOG(2) << __func__;
   // TODO(armansito): Implement.
-  return false;
+  *_aidl_return = false;
+  return Status::ok();
 }
 
-bool BluetoothBinderServer::Disable() {
+Status BluetoothBinderServer::Disable(bool* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->Disable();
+  *_aidl_return = adapter_->Disable();
+  return Status::ok();
 }
 
-std::string BluetoothBinderServer::GetAddress() {
+Status BluetoothBinderServer::GetAddress(::android::String16* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->GetAddress();
+  *_aidl_return = String16(String8(adapter_->GetAddress().c_str()));
+  return Status::ok();
 }
 
-std::vector<bluetooth::UUID> BluetoothBinderServer::GetUUIDs() {
+Status BluetoothBinderServer::GetUUIDs(
+    ::std::vector<::android::bluetooth::UUID>* _aidl_return) {
   VLOG(2) << __func__;
   // TODO(armansito): Implement.
-  return std::vector<bluetooth::UUID>();
+  *_aidl_return = std::vector<android::bluetooth::UUID>();
+  return Status::ok();
 }
 
-bool BluetoothBinderServer::SetName(const std::string& name) {
+Status BluetoothBinderServer::SetName(const ::android::String16& name,
+                                      bool* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->SetName(name);
+  *_aidl_return = adapter_->SetName(std::string(String8(name).string()));
+  return Status::ok();
 }
 
-std::string BluetoothBinderServer::GetName() {
+Status BluetoothBinderServer::GetName(::android::String16* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->GetName();
+  *_aidl_return = String16(String8(adapter_->GetName().c_str()));
+  return Status::ok();
 }
 
-void BluetoothBinderServer::RegisterCallback(
-    const sp<IBluetoothCallback>& callback) {
+Status BluetoothBinderServer::RegisterCallback(
+    const ::android::sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
-  if (!callback.get() ) {
+  if (!callback.get()) {
     LOG(ERROR) << "RegisterCallback called with NULL binder. Ignoring.";
-    return;
+    return Status::ok();
   }
   callbacks_.Register(callback);
+  return Status::ok();
 }
 
-void BluetoothBinderServer::UnregisterCallback(
-    const sp<IBluetoothCallback>& callback) {
+Status BluetoothBinderServer::UnregisterCallback(
+    const ::android::sp<IBluetoothCallback>& callback) {
   VLOG(2) << __func__;
-  if (!callback.get() ) {
+  if (!callback.get()) {
     LOG(ERROR) << "UnregisterCallback called with NULL binder. Ignoring.";
-    return;
+    return Status::ok();
   }
   callbacks_.Unregister(callback);
+  return Status::ok();
 }
 
-bool BluetoothBinderServer::IsMultiAdvertisementSupported() {
+Status BluetoothBinderServer::IsMultiAdvertisementSupported(
+    bool* _aidl_return) {
   VLOG(2) << __func__;
-  return adapter_->IsMultiAdvertisementSupported();
+  *_aidl_return = adapter_->IsMultiAdvertisementSupported();
+  return Status::ok();
 }
 
-sp<IBluetoothLowEnergy>
-BluetoothBinderServer::GetLowEnergyInterface() {
+Status BluetoothBinderServer::GetLowEnergyInterface(
+    ::android::sp<IBluetoothLowEnergy>* _aidl_return) {
   VLOG(2) << __func__;
 
   if (!adapter_->IsEnabled()) {
     LOG(ERROR) << "Cannot obtain IBluetoothLowEnergy interface while disabled";
-    return nullptr;
+    *_aidl_return = NULL;
+    return Status::ok();
   }
 
   if (!low_energy_interface_.get())
     low_energy_interface_ = new BluetoothLowEnergyBinderServer(adapter_);
 
-  return low_energy_interface_;
+  *_aidl_return = low_energy_interface_;
+  return Status::ok();
 }
 
-sp<IBluetoothGattClient>
-BluetoothBinderServer::GetGattClientInterface() {
+Status BluetoothBinderServer::GetGattClientInterface(
+    ::android::sp<IBluetoothGattClient>* _aidl_return) {
   VLOG(2) << __func__;
 
   if (!adapter_->IsEnabled()) {
     LOG(ERROR) << "Cannot obtain IBluetoothGattClient interface while disabled";
-    return nullptr;
+    *_aidl_return = NULL;
+    return Status::ok();
   }
 
   if (!gatt_client_interface_.get())
     gatt_client_interface_ = new BluetoothGattClientBinderServer(adapter_);
 
-  return gatt_client_interface_;
+  *_aidl_return = gatt_client_interface_;
+  return Status::ok();
 }
 
-sp<IBluetoothGattServer>
-BluetoothBinderServer::GetGattServerInterface() {
+Status BluetoothBinderServer::GetGattServerInterface(
+    ::android::sp<IBluetoothGattServer>* _aidl_return) {
   VLOG(2) << __func__;
 
   if (!adapter_->IsEnabled()) {
     LOG(ERROR) << "Cannot obtain IBluetoothGattServer interface while disabled";
-    return nullptr;
+    *_aidl_return = NULL;
+    return Status::ok();
   }
 
   if (!gatt_server_interface_.get())
     gatt_server_interface_ = new BluetoothGattServerBinderServer(adapter_);
 
-  return gatt_server_interface_;
+  *_aidl_return = gatt_server_interface_;
+  return Status::ok();
 }
 
-android::status_t BluetoothBinderServer::dump(int fd, const android::Vector<android::String16>& args) {
+android::status_t BluetoothBinderServer::dump(
+    int fd, const android::Vector<android::String16>& args) {
   VLOG(2) << __func__ << " called with fd " << fd;
-  if  (args.size() > 0) {
+  if (args.size() > 0) {
     // TODO (jamuraa): Parse arguments and switch on --proto, --proto_text
     for (auto x : args) {
       VLOG(2) << __func__ << "argument: " << x.string();
     }
   }
   // TODO (jamuraa): enumerate profiles and dump profile information
-  const bt_interface_t *iface = bluetooth::hal::BluetoothInterface::Get()->GetHALInterface();
+  const bt_interface_t* iface =
+      bluetooth::hal::BluetoothInterface::Get()->GetHALInterface();
   iface->dump(fd, NULL);
   return android::NO_ERROR;
 }
 
 void BluetoothBinderServer::OnAdapterStateChanged(
-    bluetooth::Adapter* adapter,
-    bluetooth::AdapterState prev_state,
+    bluetooth::Adapter* adapter, bluetooth::AdapterState prev_state,
     bluetooth::AdapterState new_state) {
   CHECK_EQ(adapter, adapter_);
   VLOG(2) << "Received adapter state update - prev: " << prev_state

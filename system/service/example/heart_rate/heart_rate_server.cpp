@@ -21,29 +21,45 @@
 #include <base/logging.h>
 #include <base/rand_util.h>
 
+#include <android/bluetooth/BnBluetoothLowEnergyCallback.h>
+#include <android/bluetooth/IBluetoothLowEnergy.h>
 #include <bluetooth/low_energy_constants.h>
 
 #include "service/example/heart_rate/constants.h"
 
+using android::binder::Status;
+using android::String8;
+using android::String16;
+
+using android::bluetooth::IBluetoothLowEnergy;
+
 namespace heart_rate {
 
 class CLIBluetoothLowEnergyCallback
-    : public ipc::binder::BnBluetoothLowEnergyCallback {
+    : public android::bluetooth::BnBluetoothLowEnergyCallback {
  public:
-  CLIBluetoothLowEnergyCallback(android::sp<ipc::binder::IBluetooth> bt)
+  CLIBluetoothLowEnergyCallback(android::sp<android::bluetooth::IBluetooth> bt)
       : bt_(bt) {}
 
   // IBluetoothLowEnergyCallback overrides:
-  void OnConnectionState(int status, int client_id, const char* address,
-                         bool connected) override {}
-  void OnMtuChanged(int status, const char *address, int mtu) override {}
+  Status OnConnectionState(int status, int client_id, const String16& address,
+                           bool connected) override {
+    return Status::ok();
+  }
 
-  void OnScanResult(const bluetooth::ScanResult& scan_result) override {}
+  Status OnMtuChanged(int status, const String16& address, int mtu) override {
+    return Status::ok();
+  }
 
-  void OnClientRegistered(int status, int client_id){
+  Status OnScanResult(
+      const android::bluetooth::ScanResult& scan_result) override {
+    return Status::ok();
+  }
+
+  Status OnClientRegistered(int status, int client_id) {
     if (status != bluetooth::BLE_STATUS_SUCCESS) {
       LOG(ERROR) << "Failed to register BLE client, will not start advertising";
-      return;
+      return Status::ok();
     }
 
     LOG(INFO) << "Registered BLE client with ID: " << client_id;
@@ -53,10 +69,8 @@ class CLIBluetoothLowEnergyCallback
     base::TimeDelta timeout;
 
     bluetooth::AdvertiseSettings settings(
-        bluetooth::AdvertiseSettings::MODE_LOW_POWER,
-        timeout,
-        bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM,
-        true);
+        bluetooth::AdvertiseSettings::MODE_LOW_POWER, timeout,
+        bluetooth::AdvertiseSettings::TX_POWER_LEVEL_MEDIUM, true);
 
     bluetooth::AdvertiseData adv_data(data);
     adv_data.set_include_device_name(true);
@@ -64,23 +78,28 @@ class CLIBluetoothLowEnergyCallback
 
     bluetooth::AdvertiseData scan_rsp;
 
-    bt_->GetLowEnergyInterface()->
-        StartMultiAdvertising(client_id, adv_data, scan_rsp, settings);
+    android::sp<IBluetoothLowEnergy> ble;
+    bt_->GetLowEnergyInterface(&ble);
+    bool start_status;
+    ble->StartMultiAdvertising(client_id, adv_data, scan_rsp, settings,
+                               &start_status);
+    return Status::ok();
   }
 
-  void OnMultiAdvertiseCallback(int status, bool is_start,
-      const bluetooth::AdvertiseSettings& /* settings */) {
-    LOG(INFO) << "Advertising" << (is_start?" started":" stopped");
+  Status OnMultiAdvertiseCallback(
+      int status, bool is_start,
+      const android::bluetooth::AdvertiseSettings& /* settings */) {
+    LOG(INFO) << "Advertising" << (is_start ? " started" : " stopped");
+    return Status::ok();
   };
 
  private:
-  android::sp<ipc::binder::IBluetooth> bt_;
+  android::sp<android::bluetooth::IBluetooth> bt_;
   DISALLOW_COPY_AND_ASSIGN(CLIBluetoothLowEnergyCallback);
 };
 
-
 HeartRateServer::HeartRateServer(
-    android::sp<ipc::binder::IBluetooth> bluetooth,
+    android::sp<android::bluetooth::IBluetooth> bluetooth,
     scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
     bool advertise)
     : simulation_started_(false),
@@ -96,11 +115,9 @@ HeartRateServer::HeartRateServer(
 
 HeartRateServer::~HeartRateServer() {
   std::lock_guard<std::mutex> lock(mutex_);
-  if (!gatt_.get() || server_if_ == -1)
-    return;
+  if (!gatt_.get() || server_if_ == -1) return;
 
-  if (!android::IInterface::asBinder(gatt_.get())->isBinderAlive())
-    return;
+  if (!android::IInterface::asBinder(gatt_.get())->isBinderAlive()) return;
 
   // Manually unregister ourselves from the daemon. It's good practice to do
   // this, even though the daemon will automatically unregister us if this
@@ -117,7 +134,7 @@ bool HeartRateServer::Run(const RunCallback& callback) {
   }
 
   // Grab the IBluetoothGattServer binder from the Bluetooth daemon.
-  gatt_ = bluetooth_->GetGattServerInterface();
+  bluetooth_->GetGattServerInterface(&gatt_);
   if (!gatt_.get()) {
     LOG(ERROR) << "Failed to obtain handle to IBluetoothGattServer interface";
     return false;
@@ -125,7 +142,9 @@ bool HeartRateServer::Run(const RunCallback& callback) {
 
   // Register this instance as a GATT server. If this call succeeds, we will
   // asynchronously receive a server ID via the OnServerRegistered callback.
-  if (!gatt_->RegisterServer(this)) {
+  bool status;
+  gatt_->RegisterServer(this, &status);
+  if (!status) {
     LOG(ERROR) << "Failed to register with the server interface";
     return false;
   }
@@ -137,9 +156,8 @@ bool HeartRateServer::Run(const RunCallback& callback) {
 
 void HeartRateServer::ScheduleNextMeasurement() {
   main_task_runner_->PostDelayedTask(
-      FROM_HERE,
-      base::Bind(&HeartRateServer::SendHeartRateMeasurement,
-                 weak_ptr_factory_.GetWeakPtr()),
+      FROM_HERE, base::Bind(&HeartRateServer::SendHeartRateMeasurement,
+                            weak_ptr_factory_.GetWeakPtr()),
       base::TimeDelta::FromSeconds(1));
 }
 
@@ -151,21 +169,20 @@ void HeartRateServer::SendHeartRateMeasurement() {
   for (const auto& iter : device_ccc_map_) {
     uint8_t ccc_val = iter.second;
 
-    if (!ccc_val)
-      continue;
+    if (!ccc_val) continue;
 
     found = true;
 
     // Don't send a notification if one is already pending for this device.
-    if (pending_notification_map_[iter.first])
-      continue;
+    if (pending_notification_map_[iter.first]) continue;
 
     std::vector<uint8_t> value;
     BuildHeartRateMeasurementValue(&value);
 
-    if (gatt_->SendNotification(server_if_, iter.first, hr_measurement_id_,
-                                false, value))
-      pending_notification_map_[iter.first] = true;
+    bool status;
+    gatt_->SendNotification(server_if_, String16(String8(iter.first.c_str())),
+                            hr_measurement_id_, false, value, &status);
+    if (status) pending_notification_map_[iter.first] = true;
   }
 
   // Still enabled!
@@ -212,13 +229,13 @@ void HeartRateServer::BuildHeartRateMeasurementValue(
   }
 }
 
-void HeartRateServer::OnServerRegistered(int status, int server_if) {
+Status HeartRateServer::OnServerRegistered(int status, int server_if) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (status != bluetooth::BLE_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to register GATT server";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
   // Registration succeeded. Store our ID, as we need it for GATT server
@@ -228,95 +245,97 @@ void HeartRateServer::OnServerRegistered(int status, int server_if) {
   LOG(INFO) << "Heart Rate server registered - server_if: " << server_if_;
   LOG(INFO) << "Populating attributes";
 
+  bool op_status;
   // Start service declaration.
-  std::unique_ptr<bluetooth::GattIdentifier> gatt_id;
-  if (!gatt_->BeginServiceDeclaration(server_if_, true,
-                                      kHRServiceUUID,
-                                      &gatt_id)) {
+  android::bluetooth::GattIdentifier gatt_id;
+  gatt_->BeginServiceDeclaration(server_if_, true, kHRServiceUUID, &gatt_id,
+                                 &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to begin service declaration";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
-  hr_service_id_ = *gatt_id;
+  hr_service_id_ = gatt_id;
 
   // Add Heart Rate Measurement characteristic.
-  if (!gatt_->AddCharacteristic(
-      server_if_, kHRMeasurementUUID,
-      bluetooth::kCharacteristicPropertyNotify,
-      0, &gatt_id)) {
+  gatt_->AddCharacteristic(server_if_, kHRMeasurementUUID,
+                           bluetooth::kCharacteristicPropertyNotify, 0,
+                           &gatt_id, &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to add heart rate measurement characteristic";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
-  hr_measurement_id_ = *gatt_id;
+  hr_measurement_id_ = gatt_id;
 
   // Add Client Characteristic Configuration descriptor for the Heart Rate
   // Measurement characteristic.
-  if (!gatt_->AddDescriptor(
-      server_if_, kCCCDescriptorUUID,
-      bluetooth::kAttributePermissionRead|bluetooth::kAttributePermissionWrite,
-      &gatt_id)) {
+  gatt_->AddDescriptor(server_if_, kCCCDescriptorUUID,
+                       bluetooth::kAttributePermissionRead |
+                           bluetooth::kAttributePermissionWrite,
+                       &gatt_id, &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to add CCC descriptor";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
-  hr_measurement_cccd_id_ = *gatt_id;
+  hr_measurement_cccd_id_ = gatt_id;
 
   // Add Body Sensor Location characteristic.
-  if (!gatt_->AddCharacteristic(
-      server_if_, kBodySensorLocationUUID,
-      bluetooth::kCharacteristicPropertyRead,
-      bluetooth::kAttributePermissionRead,
-      &gatt_id)) {
+  gatt_->AddCharacteristic(server_if_, kBodySensorLocationUUID,
+                           bluetooth::kCharacteristicPropertyRead,
+                           bluetooth::kAttributePermissionRead, &gatt_id,
+                           &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to add body sensor location characteristic";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
-  body_sensor_loc_id_ = *gatt_id;
+  body_sensor_loc_id_ = gatt_id;
 
   // Add Heart Rate Control Point characteristic.
-  if (!gatt_->AddCharacteristic(
-      server_if_, kHRControlPointUUID,
-      bluetooth::kCharacteristicPropertyWrite,
-      bluetooth::kAttributePermissionWrite,
-      &gatt_id)) {
+  gatt_->AddCharacteristic(
+      server_if_, kHRControlPointUUID, bluetooth::kCharacteristicPropertyWrite,
+      bluetooth::kAttributePermissionWrite, &gatt_id, &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to add heart rate control point characteristic";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
-  hr_control_point_id_ = *gatt_id;
+  hr_control_point_id_ = gatt_id;
 
   // End service declaration. We will be notified whether or not this succeeded
   // via the OnServiceAdded callback.
-  if (!gatt_->EndServiceDeclaration(server_if_)) {
+  gatt_->EndServiceDeclaration(server_if_, &op_status);
+  if (!op_status) {
     LOG(ERROR) << "Failed to end service declaration";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
   LOG(INFO) << "Initiated EndServiceDeclaration request";
+  return Status::ok();
 }
 
-void HeartRateServer::OnServiceAdded(
-    int status,
-    const bluetooth::GattIdentifier& service_id) {
+Status HeartRateServer::OnServiceAdded(
+    int status, const android::bluetooth::GattIdentifier& service_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   if (status != bluetooth::BLE_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to add Heart Rate service";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
   if (service_id != hr_service_id_) {
     LOG(ERROR) << "Received callback for the wrong service ID";
     pending_run_cb_(false);
-    return;
+    return Status::ok();
   }
 
   // EndServiceDeclaration succeeded! Our Heart Rate service is now discoverable
@@ -326,20 +345,19 @@ void HeartRateServer::OnServiceAdded(
   pending_run_cb_(true);
 
   if (advertise_) {
-    auto ble = bluetooth_->GetLowEnergyInterface();
-    if (!ble.get()) {
-      LOG(ERROR) << "Failed to obtain handle to IBluetoothLowEnergy interface";
-      return;
-    }
-    ble->RegisterClient(new CLIBluetoothLowEnergyCallback(bluetooth_));
+    android::sp<IBluetoothLowEnergy> ble;
+    bluetooth_->GetLowEnergyInterface(&ble);
+    bool status;
+    ble->RegisterClient(new CLIBluetoothLowEnergyCallback(bluetooth_), &status);
   }
 
+  return Status::ok();
 }
 
-void HeartRateServer::OnCharacteristicReadRequest(
-    const std::string& device_address,
-    int request_id, int offset, bool /* is_long */,
-    const bluetooth::GattIdentifier& characteristic_id) {
+Status HeartRateServer::OnCharacteristicReadRequest(
+    const String16& device_address, int request_id, int offset,
+    bool /* is_long */,
+    const android::bluetooth::GattIdentifier& characteristic_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic read. Only the body
@@ -353,28 +371,32 @@ void HeartRateServer::OnCharacteristicReadRequest(
   else if (offset == 0)
     value.push_back(kHRBodyLocationFoot);
 
-  gatt_->SendResponse(server_if_, device_address, request_id, error,
-                      offset, value);
+  bool status;
+  gatt_->SendResponse(server_if_, device_address, request_id, error, offset,
+                      value, &status);
+  return Status::ok();
 }
 
-void HeartRateServer::OnDescriptorReadRequest(
-    const std::string& device_address,
-    int request_id, int offset, bool /* is_long */,
-    const bluetooth::GattIdentifier& descriptor_id) {
+Status HeartRateServer::OnDescriptorReadRequest(
+    const String16& device_address, int request_id, int offset,
+    bool /* is_long */,
+    const android::bluetooth::GattIdentifier& descriptor_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   // This is where we handle an incoming characteristic descriptor read. There
   // is only one descriptor.
   if (descriptor_id != hr_measurement_cccd_id_) {
     std::vector<uint8_t> value;
+    bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
-                        bluetooth::GATT_ERROR_ATTRIBUTE_NOT_FOUND,
-                        offset, value);
-    return;
+                        bluetooth::GATT_ERROR_ATTRIBUTE_NOT_FOUND, offset,
+                        value, &status);
+    return Status::ok();
   }
 
   // 16-bit value encoded as little-endian.
-  const uint8_t value_bytes[] = { device_ccc_map_[device_address], 0x00 };
+  const uint8_t value_bytes[] = {
+      device_ccc_map_[std::string(String8(device_address).string())], 0x00};
 
   std::vector<uint8_t> value;
   bluetooth::GATTError error = bluetooth::GATT_ERROR_NONE;
@@ -383,15 +405,17 @@ void HeartRateServer::OnDescriptorReadRequest(
   else
     value.insert(value.begin(), value_bytes + offset, value_bytes + 2 - offset);
 
-  gatt_->SendResponse(server_if_, device_address, request_id, error,
-                      offset, value);
+  bool status;
+  gatt_->SendResponse(server_if_, device_address, request_id, error, offset,
+                      value, &status);
+  return Status::ok();
 }
 
-void HeartRateServer::OnCharacteristicWriteRequest(
-    const std::string& device_address,
-    int request_id, int offset, bool is_prepare_write, bool need_response,
+Status HeartRateServer::OnCharacteristicWriteRequest(
+    const String16& device_address, int request_id, int offset,
+    bool is_prepare_write, bool need_response,
     const std::vector<uint8_t>& value,
-    const bluetooth::GattIdentifier& characteristic_id) {
+    const android::bluetooth::GattIdentifier& characteristic_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::vector<uint8_t> dummy;
@@ -400,10 +424,11 @@ void HeartRateServer::OnCharacteristicWriteRequest(
   // service doesn't really support prepared writes, so we just reject them to
   // keep things simple.
   if (is_prepare_write) {
+    bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
-                        bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED,
-                        offset, dummy);
-    return;
+                        bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED, offset,
+                        dummy, &status);
+    return Status::ok();
   }
 
   // Heart Rate Control point is the only writable characteristic.
@@ -412,27 +437,29 @@ void HeartRateServer::OnCharacteristicWriteRequest(
   // Writes to the Heart Rate Control Point characteristic must contain a single
   // byte with the value 0x01.
   if (value.size() != 1 || value[0] != 0x01) {
+    bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
-                        bluetooth::GATT_ERROR_OUT_OF_RANGE,
-                        offset, dummy);
-    return;
+                        bluetooth::GATT_ERROR_OUT_OF_RANGE, offset, dummy,
+                        &status);
+    return Status::ok();
   }
 
   LOG(INFO) << "Heart Rate Control Point written; Enery Expended reset!";
   energy_expended_ = 0;
 
-  if (!need_response)
-    return;
+  if (!need_response) return Status::ok();
 
+  bool status;
   gatt_->SendResponse(server_if_, device_address, request_id,
-                      bluetooth::GATT_ERROR_NONE, offset, dummy);
+                      bluetooth::GATT_ERROR_NONE, offset, dummy, &status);
+  return Status::ok();
 }
 
-void HeartRateServer::OnDescriptorWriteRequest(
-    const std::string& device_address,
-    int request_id, int offset, bool is_prepare_write, bool need_response,
+Status HeartRateServer::OnDescriptorWriteRequest(
+    const String16& device_address, int request_id, int offset,
+    bool is_prepare_write, bool need_response,
     const std::vector<uint8_t>& value,
-    const bluetooth::GattIdentifier& descriptor_id) {
+    const android::bluetooth::GattIdentifier& descriptor_id) {
   std::lock_guard<std::mutex> lock(mutex_);
 
   std::vector<uint8_t> dummy;
@@ -441,10 +468,11 @@ void HeartRateServer::OnDescriptorWriteRequest(
   // service doesn't really support prepared writes, so we just reject them to
   // keep things simple.
   if (is_prepare_write) {
+    bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
-                        bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED,
-                        offset, dummy);
-    return;
+                        bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED, offset,
+                        dummy, &status);
+    return Status::ok();
   }
 
   // CCC is the only descriptor we have.
@@ -453,16 +481,17 @@ void HeartRateServer::OnDescriptorWriteRequest(
   // CCC must contain 2 bytes for a 16-bit value in little-endian. The only
   // allowed values here are 0x0000 and 0x0001.
   if (value.size() != 2 || value[1] != 0x00 || value[0] > 0x01) {
+    bool status;
     gatt_->SendResponse(server_if_, device_address, request_id,
                         bluetooth::GATT_ERROR_CCCD_IMPROPERLY_CONFIGURED,
-                        offset, dummy);
-    return;
+                        offset, dummy, &status);
+    return Status::ok();
   }
 
-  device_ccc_map_[device_address] = value[0];
+  device_ccc_map_[std::string(String8(device_address).string())] = value[0];
 
-  LOG(INFO) << "Heart Rate Measurement CCC written - device: "
-            << device_address << " value: " << (int)value[0];
+  LOG(INFO) << "Heart Rate Measurement CCC written - device: " << device_address
+            << " value: " << (int)value[0];
 
   // Start the simulation.
   if (!simulation_started_ && value[0]) {
@@ -470,29 +499,36 @@ void HeartRateServer::OnDescriptorWriteRequest(
     ScheduleNextMeasurement();
   }
 
-  if (!need_response)
-    return;
+  if (!need_response) return Status::ok();
 
+  bool status;
   gatt_->SendResponse(server_if_, device_address, request_id,
-                      bluetooth::GATT_ERROR_NONE, offset, dummy);
+                      bluetooth::GATT_ERROR_NONE, offset, dummy, &status);
+  return Status::ok();
 }
 
-void HeartRateServer::OnExecuteWriteRequest(
-    const std::string& device_address,
-    int request_id,
-    bool /* is_execute */) {
+Status HeartRateServer::OnExecuteWriteRequest(const String16& device_address,
+                                              int request_id,
+                                              bool /* is_execute */) {
   // We don't support Prepared Writes so, simply return Not Supported error.
   std::vector<uint8_t> dummy;
+  bool status;
   gatt_->SendResponse(server_if_, device_address, request_id,
-                      bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED, 0, dummy);
+                      bluetooth::GATT_ERROR_REQUEST_NOT_SUPPORTED, 0, dummy,
+                      &status);
+
+  return Status::ok();
 }
 
-void HeartRateServer::OnNotificationSent(
-    const std::string& device_address, int status) {
+Status HeartRateServer::OnNotificationSent(const String16& device_address,
+                                           int status) {
   LOG(INFO) << "Notification was sent - device: " << device_address
             << " status: " << status;
   std::lock_guard<std::mutex> lock(mutex_);
-  pending_notification_map_[device_address] = false;
+  pending_notification_map_[std::string(String8(device_address).string())] =
+      false;
+
+  return Status::ok();
 }
 
 }  // namespace heart_rate
