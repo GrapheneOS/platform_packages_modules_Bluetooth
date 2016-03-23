@@ -259,23 +259,23 @@ public class BluetoothPbapVcardManager {
 
         final Uri myUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
         Cursor contactCursor = null;
+        // By default order is indexed
+        String orderBy = Phone.CONTACT_ID;
         try {
-            contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION, CLAUSE_ONLY_VISIBLE,
-                    null, Phone.CONTACT_ID);
+            if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+                orderBy = Phone.DISPLAY_NAME;
+            }
+            contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
+                CLAUSE_ONLY_VISIBLE, null, orderBy);
             if (contactCursor != null) {
                 appendDistinctNameIdList(nameList,
-                        mContext.getString(android.R.string.unknownName), contactCursor,
-                        Phone.CONTACT_ID, Phone.DISPLAY_NAME);
-                if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_INDEXED) {
-                    if (V) Log.v(TAG, "getPhonebookNameList, order by index");
-                    // Do not need to do anything, as we sort it by index already
-                } else if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
-                    if (V) Log.v(TAG, "getPhonebookNameList, order by alpha");
-                    Collections.sort(nameList);
-                }
+                        mContext.getString(android.R.string.unknownName),
+                        contactCursor);
             }
+        } catch (CursorWindowAllocationException e) {
+            Log.e(TAG, "CursorWindowAllocationException while getting phonebook name list");
         } catch (Exception e) {
-            Log.e(TAG, "Exception while getting Phonebook name list", e);
+            Log.e(TAG, "Exception while getting phonebook name list", e);
         } finally {
             if (contactCursor != null) {
                 contactCursor.close();
@@ -445,17 +445,22 @@ public class BluetoothPbapVcardManager {
         Cursor contactIdCursor = new MatrixCursor(new String[] {
             Phone.CONTACT_ID
         });
+        // By default order is indexed
+        String orderBy = Phone.CONTACT_ID;
         try {
+            if (orderByWhat == BluetoothPbapObexServer.ORDER_BY_ALPHABETICAL) {
+                orderBy = Phone.DISPLAY_NAME;
+            }
             contactCursor = mResolver.query(myUri, PHONES_CONTACTS_PROJECTION,
-                    CLAUSE_ONLY_VISIBLE, null, Phone.CONTACT_ID);
-            contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
-
+                CLAUSE_ONLY_VISIBLE, null, orderBy);
         } catch (CursorWindowAllocationException e) {
             Log.e(TAG,
-                    "CursorWindowAllocationException while composing phonebook one vcard");
+                "CursorWindowAllocationException while composing phonebook one vcard");
         } finally {
             if (contactCursor != null) {
+                contactIdCursor = ContactCursorFilter.filterByOffset(contactCursor, offset);
                 contactCursor.close();
+                contactCursor = null;
             }
         }
         return composeContactsAndSendVCards(op, contactIdCursor, vcardType21, ownerVCard,
