@@ -46,7 +46,7 @@ class ScanResult {
   // Comparison operator.
   bool operator==(const ScanResult& rhs) const;
 
- private:
+ protected:
   std::string device_address_;
   std::vector<uint8_t> scan_record_;
   int rssi_;

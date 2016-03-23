@@ -27,7 +27,7 @@ namespace bluetooth {
 // Represents a data packet for Bluetooth Low Energy advertisements. This is the
 // native equivalent of the Android framework class defined in
 // frameworks/base/core/j/android/bluetooth/le/AdvertiseData.java
-class AdvertiseData final {
+class AdvertiseData {
  public:
   // Constructs an AdvertiseData with the given parameters. |data| can only
   // contain the "Service UUIDs", "Service Data", and "Manufacturer Data" fields
@@ -70,7 +70,7 @@ class AdvertiseData final {
   // Assignment operator
   AdvertiseData& operator=(const AdvertiseData& other);
 
- private:
+ protected:
   std::vector<uint8_t> data_;
   bool include_device_name_;
   bool include_tx_power_level_;

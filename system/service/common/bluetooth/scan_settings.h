@@ -152,7 +152,7 @@ class ScanSettings {
   // Comparison operator.
   bool operator==(const ScanSettings& rhs) const;
 
- private:
+ protected:
   Mode mode_;
   CallbackTypeBitField callback_type_;
   ResultType result_type_;

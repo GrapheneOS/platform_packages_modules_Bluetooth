@@ -64,7 +64,7 @@ class ScanFilter {
   // Comparison operator.
   bool operator==(const ScanFilter& rhs) const;
 
- private:
+ protected:
   std::string device_name_;
   std::string device_address_;
 

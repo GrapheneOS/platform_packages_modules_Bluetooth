@@ -19,7 +19,10 @@
 #include <base/logging.h>
 #include <binder/Parcel.h>
 
-#include "service/common/bluetooth/binder/parcel_helpers.h"
+#include "service/common/android/bluetooth/advertise_data.h"
+#include "service/common/android/bluetooth/advertise_settings.h"
+#include "service/common/android/bluetooth/scan_filter.h"
+#include "service/common/android/bluetooth/scan_settings.h"
 
 using android::IBinder;
 using android::interface_cast;
@@ -27,8 +30,10 @@ using android::Parcel;
 using android::sp;
 using android::status_t;
 
-using bluetooth::AdvertiseData;
-using bluetooth::AdvertiseSettings;
+using android::bluetooth::AdvertiseData;
+using android::bluetooth::AdvertiseSettings;
+using android::bluetooth::ScanFilter;
+using android::bluetooth::ScanSettings;
 
 namespace ipc {
 namespace binder {
@@ -96,23 +101,18 @@ status_t BnBluetoothLowEnergy::onTransact(
   }
   case START_SCAN_TRANSACTION: {
     int client_id = data.readInt32();
-    auto settings = CreateScanSettingsFromParcel(data);
-    CHECK(settings);
-    std::vector<bluetooth::ScanFilter> filters;
+    ScanSettings settings;
+    data.readParcelable(&settings);
+    std::vector<ScanFilter> filters;
 
-    int list_meta_data = data.readInt32();
-    CHECK(list_meta_data == kParcelValList);
+    data.readParcelableVector(&filters);
 
-    int filter_count = data.readInt32();
-    if (filter_count >= 0) {  // Make sure |filter_count| isn't negative.
-      for (int i = 0; i < filter_count; i++) {
-        auto filter = CreateScanFilterFromParcel(data);
-        CHECK(filter);
-        filters.push_back(*filter);
-      }
+    std::vector<bluetooth::ScanFilter> flt;
+    for(const auto& filter : filters) {
+      flt.push_back(filter);
     }
 
-    bool result = StartScan(client_id, *settings, filters);
+    bool result = StartScan(client_id, settings, flt);
     reply->writeInt32(result);
 
     return android::NO_ERROR;
@@ -125,15 +125,15 @@ status_t BnBluetoothLowEnergy::onTransact(
   }
   case START_MULTI_ADVERTISING_TRANSACTION: {
     int client_id = data.readInt32();
-    std::unique_ptr<AdvertiseData> adv_data =
-        CreateAdvertiseDataFromParcel(data);
-    std::unique_ptr<AdvertiseData> scan_rsp =
-        CreateAdvertiseDataFromParcel(data);
-    std::unique_ptr<AdvertiseSettings> adv_settings =
-        CreateAdvertiseSettingsFromParcel(data);
+    AdvertiseData adv_data;
+    AdvertiseData scan_rsp;
+    AdvertiseSettings adv_settings;
+    data.readParcelable(&adv_data);
+    data.readParcelable(&scan_rsp);
+    data.readParcelable(&adv_settings);
 
     bool result = StartMultiAdvertising(
-        client_id, *adv_data, *scan_rsp, *adv_settings);
+        client_id, adv_data, scan_rsp, adv_settings);
 
     reply->writeInt32(result);
 
@@ -239,15 +239,13 @@ bool BpBluetoothLowEnergy::StartScan(
 
   data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
   data.writeInt32(client_id);
-  WriteScanSettingsToParcel(settings, &data);
+  data.writeParcelable((ScanSettings)settings);
 
-  // The Java equivalent of |filters| is a List<ScanFilter>. Parcel.java inserts
-  // a metadata value of VAL_LIST (11) for this so I'm doing it here for
-  // compatibility.
-  data.writeInt32(kParcelValList);
-  data.writeInt32(filters.size());
-  for (const auto& filter : filters)
-    WriteScanFilterToParcel(filter, &data);
+  std::vector<ScanFilter> flt;
+  for(const auto& filter : filters) {
+    flt.push_back(filter);
+  }
+  data.writeParcelableVector(flt);
 
   remote()->transact(IBluetoothLowEnergy::START_SCAN_TRANSACTION,
                      data, &reply);
@@ -269,16 +267,16 @@ bool BpBluetoothLowEnergy::StopScan(int client_id) {
 
 bool BpBluetoothLowEnergy::StartMultiAdvertising(
     int client_id,
-    const AdvertiseData& advertise_data,
-    const AdvertiseData& scan_response,
-    const AdvertiseSettings& settings) {
+    const bluetooth::AdvertiseData& advertise_data,
+    const bluetooth::AdvertiseData& scan_response,
+    const bluetooth::AdvertiseSettings& settings) {
   Parcel data, reply;
 
   data.writeInterfaceToken(IBluetoothLowEnergy::getInterfaceDescriptor());
   data.writeInt32(client_id);
-  WriteAdvertiseDataToParcel(advertise_data, &data);
-  WriteAdvertiseDataToParcel(scan_response, &data);
-  WriteAdvertiseSettingsToParcel(settings, &data);
+  data.writeParcelable((AdvertiseData)advertise_data);
+  data.writeParcelable((AdvertiseData)scan_response);
+  data.writeParcelable((AdvertiseSettings)settings);
 
   remote()->transact(IBluetoothLowEnergy::START_MULTI_ADVERTISING_TRANSACTION,
                      data, &reply);
