@@ -1605,7 +1605,7 @@ static void bta_av_accept_signalling_timer_cback(void *data)
 
             if (bta_av_is_scb_opening(p_scb))
             {
-                if (p_scb->p_disc_db)
+                if (p_scb->sdp_discovery_started)
                 {
                     /* We are still doing SDP. Run the timer again. */
                     p_scb->coll_mask |= BTA_AV_COLL_INC_TMR;
