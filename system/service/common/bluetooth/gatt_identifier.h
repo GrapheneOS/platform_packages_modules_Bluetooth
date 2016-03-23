@@ -30,7 +30,7 @@ namespace bluetooth {
 //
 // For local services, the uniqueness of each identifier is guaranteed only
 // within the registered GATT server that they exist in.
-class GattIdentifier final {
+class GattIdentifier {
  public:
   // Static initialization methods. These return NULL if invalid parameters are
   // given.
@@ -90,7 +90,7 @@ class GattIdentifier final {
   int characteristic_instance_id() const { return char_instance_id_; }
   int descriptor_instance_id() const { return desc_instance_id_; }
 
- private:
+ protected:
   friend struct std::hash<bluetooth::GattIdentifier>;
 
   // NOTE: Don't forget to update the std::hash specialization below if you
