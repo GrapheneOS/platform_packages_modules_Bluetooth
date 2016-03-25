@@ -1017,7 +1017,6 @@ void bta_av_do_disc_a2d (tBTA_AV_SCB *p_scb, tBTA_AV_DATA *p_data)
     /* set up parameters */
     db_params.db_len = BTA_AV_DISC_BUF_SIZE;
     db_params.num_attr = 3;
-    db_params.p_db = NULL;
     db_params.p_attrs = attr_list;
     p_scb->uuid_int = p_data->api_open.uuid;
     p_scb->sdp_discovery_started = TRUE;
