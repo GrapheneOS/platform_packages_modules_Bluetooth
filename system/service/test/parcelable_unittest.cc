@@ -18,7 +18,6 @@
 
 #include "service/common/android/bluetooth/advertise_data.h"
 #include "service/common/android/bluetooth/advertise_settings.h"
-#include "service/common/android/bluetooth/gatt_identifier.h"
 #include "service/common/android/bluetooth/bluetooth_gatt_characteristic.h"
 #include "service/common/android/bluetooth/bluetooth_gatt_descriptor.h"
 #include "service/common/android/bluetooth/bluetooth_gatt_service.h"
@@ -32,7 +31,6 @@ using android::Parcel;
 
 using bluetooth::AdvertiseData;
 using bluetooth::AdvertiseSettings;
-using bluetooth::GattIdentifier;
 using bluetooth::Characteristic;
 using bluetooth::Descriptor;
 using bluetooth::ScanFilter;
@@ -101,27 +99,6 @@ TEST(ParcelableTest, UUID) {
     UUID uuid = UUID::GetRandom();
     TestData<UUID, android::bluetooth::UUID>(uuid);
   }
-}
-
-TEST(ParcelableTest, GattIdentifier) {
-  UUID uuid0 = UUID::GetRandom();
-  UUID uuid1 = UUID::GetRandom();
-  UUID uuid2 = UUID::GetRandom();
-
-  auto service_id =
-      GattIdentifier::CreateServiceId("01:23:45:67:89:ab", 5, uuid0, false);
-  auto char_id = GattIdentifier::CreateCharacteristicId(3, uuid1, *service_id);
-  auto desc_id = GattIdentifier::CreateDescriptorId(10, uuid2, *char_id);
-
-  bool result =
-      TestData<GattIdentifier, android::bluetooth::GattIdentifier>(*service_id);
-  EXPECT_TRUE(result);
-  result =
-      TestData<GattIdentifier, android::bluetooth::GattIdentifier>(*char_id);
-  EXPECT_TRUE(result);
-  result =
-      TestData<GattIdentifier, android::bluetooth::GattIdentifier>(*desc_id);
-  EXPECT_TRUE(result);
 }
 
 TEST(ParcelableTest, ScanSettings) {

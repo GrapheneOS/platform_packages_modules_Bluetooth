@@ -120,124 +120,152 @@ BOOLEAN  GATTS_NVRegister (tGATT_APPL_INFO *p_cb_info)
     return status;
 }
 
+
+static unsigned char BASE_UUID[16] = {
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+    0x80, 0x00, 0x00, 0x80, 0x5f, 0x9b, 0x34, 0xfb, };
+
+static int uuidType(unsigned char* p_uuid)
+{
+    if (memcmp(p_uuid+4, BASE_UUID+4, 12) != 0)
+        return LEN_UUID_128;
+    if (memcmp(p_uuid, BASE_UUID, 2) != 0)
+        return LEN_UUID_32;
+
+    return LEN_UUID_16;
+}
+
+/*******************************************************************************
+ * BTIF -> BTA conversion functions
+ *******************************************************************************/
+
+static void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
+{
+    char *p_byte = (char*)p_src;
+    int i = 0;
+
+    p_dest->len = uuidType(p_src->uu);
+
+    switch (p_dest->len)
+    {
+        case LEN_UUID_16:
+            p_dest->uu.uuid16 = (p_src->uu[2] << 8) + p_src->uu[3];
+            break;
+
+        case LEN_UUID_32:
+            p_dest->uu.uuid32  = (p_src->uu[0] << 24) + (p_src->uu[1] << 16)
+                               + (p_src->uu[2] <<  8) + p_src->uu[3];
+            break;
+
+        case LEN_UUID_128:
+            for(i = 0; i != 16; ++i)
+                p_dest->uu.uuid128[i] = p_byte[i];
+            break;
+
+        default:
+            GATT_TRACE_ERROR("%s: Unknown UUID length %d!", __func__, p_dest->len);
+            break;
+    }
+}
+
+static UINT16 compute_service_size(btgatt_db_element_t *service, int count) {
+    int db_size = 0;
+    btgatt_db_element_t *el = service;
+
+    for (int i = 0; i<count; i++, el++)
+        if (el->type == BTGATT_DB_PRIMARY_SERVICE ||
+            el->type == BTGATT_DB_SECONDARY_SERVICE ||
+            el->type == BTGATT_DB_DESCRIPTOR ||
+            el->type == BTGATT_DB_INCLUDED_SERVICE)
+            db_size += 1;
+        else if (el->type == BTGATT_DB_CHARACTERISTIC)
+            db_size += 2;
+        else
+            GATT_TRACE_ERROR("%s: Unknown element type: %d", __func__, el->type);
+
+    return db_size;
+}
 /*******************************************************************************
 **
 ** Function         GATTS_CreateService
 **
-** Description      This function is called to reserve a block of handles for a service.
+** Description      This function is called to add GATT service.
 **
-**                  *** It should be called only once per service instance  ***
+** Parameter        gatt_if : application if
+**                  service : pseudo-representation of service and it's content
+**                  count   : size of service
 **
-** Parameter        gatt_if       : application if
-**                  p_svc_uuid    : service UUID
-**                  svc_inst      : instance of the service inside the application
-**                  num_handles   : number of handles needed by the service.
-**                  is_pri        : is a primary service or not.
-**
-** Returns          service handle if sucessful, otherwise 0.
+** Returns          on success GATT_SERVICE_STARTED is returned, and
+**                  attribute_handle field inside service elements are filled.
+**                  on error error status is returned.
 **
 *******************************************************************************/
-UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
-                            UINT16 svc_inst, UINT16 num_handles, BOOLEAN is_pri)
-{
-
+UINT16 GATTS_AddService(tGATT_IF gatt_if, btgatt_db_element_t *service, int count) {
     tGATT_HDL_LIST_INFO     *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM     *p_list=NULL;
     UINT16                  s_hdl=0;
     BOOLEAN                 save_hdl=FALSE;
-    tGATTS_PENDING_NEW_SRV_START      *p_buf=NULL;
     tGATT_REG              *p_reg = gatt_get_regcb(gatt_if);
     tBT_UUID     *p_app_uuid128;
 
+    bool is_pri = (service->type == BTGATT_DB_PRIMARY_SERVICE) ? true : false;
+    tBT_UUID svc_uuid;
+    btif_to_bta_uuid(&svc_uuid, &service->uuid);
 
-    GATT_TRACE_API ("GATTS_CreateService" );
+    GATT_TRACE_API("%s", __func__);
 
     if (p_reg == NULL)
     {
         GATT_TRACE_ERROR ("Inavlid gatt_if=%d", gatt_if);
-        return(0);
+        return GATT_INTERNAL_ERROR;
     }
 
     p_app_uuid128 = &p_reg->app_uuid128;
 
-    if ((p_list = gatt_find_hdl_buffer_by_app_id(p_app_uuid128, p_svc_uuid, svc_inst)) != NULL)
-    {
-        s_hdl = p_list->asgn_range.s_handle;
-        GATT_TRACE_DEBUG ("Service already been created!!");
-    }
-    else
-    {
-        if ( (p_svc_uuid->len == LEN_UUID_16) && (p_svc_uuid->uu.uuid16 == UUID_SERVCLASS_GATT_SERVER))
-        {
+    UINT16 num_handles = compute_service_size(service, count);
+
+    if ( (svc_uuid.len == LEN_UUID_16) && (svc_uuid.uu.uuid16 == UUID_SERVCLASS_GATT_SERVER)) {
             s_hdl=  gatt_cb.hdl_cfg.gatt_start_hdl;
-        }
-        else if ((p_svc_uuid->len == LEN_UUID_16) && (p_svc_uuid->uu.uuid16 == UUID_SERVCLASS_GAP_SERVER))
-        {
+    } else if ((svc_uuid.len == LEN_UUID_16) && (svc_uuid.uu.uuid16 == UUID_SERVCLASS_GAP_SERVER)) {
             s_hdl= gatt_cb.hdl_cfg.gap_start_hdl;
-        }
-        else
-        {
-            p_list = p_list_info->p_first;
+    } else {
+        p_list = p_list_info->p_first;
 
-            if (p_list)
-            {
-                s_hdl = p_list->asgn_range.e_handle + 1;
-            }
+        if (p_list)
+            s_hdl = p_list->asgn_range.e_handle + 1;
 
-            if (s_hdl < gatt_cb.hdl_cfg.app_start_hdl)
-            {
+        if (s_hdl < gatt_cb.hdl_cfg.app_start_hdl)
+            s_hdl= gatt_cb.hdl_cfg.app_start_hdl;
 
-                s_hdl= gatt_cb.hdl_cfg.app_start_hdl;
-            }
-            save_hdl = TRUE;
-        }
-
-        /* check for space */
-        if (num_handles > (0xFFFF - s_hdl + 1))
-        {
-            GATT_TRACE_ERROR ("GATTS_ReserveHandles: no handles, s_hdl: %u  needed: %u", s_hdl, num_handles);
-            return(0);
-        }
-
-        if ( (p_list = gatt_alloc_hdl_buffer()) == NULL)
-        {
-            /* No free entry */
-            GATT_TRACE_ERROR ("GATTS_ReserveHandles: no free handle blocks");
-            return(0);
-        }
-
-        p_list->asgn_range.app_uuid128 = *p_app_uuid128;
-        p_list->asgn_range.svc_uuid    = *p_svc_uuid;
-        p_list->asgn_range.svc_inst    = svc_inst;
-        p_list->asgn_range.s_handle    = s_hdl;
-        p_list->asgn_range.e_handle    = s_hdl+num_handles-1;
-        p_list->asgn_range.is_primary  = is_pri;
-
-        gatt_add_an_item_to_list(p_list_info, p_list);
-
-        if (save_hdl)
-        {
-            if (gatt_cb.cb_info.p_nv_save_callback)
-                (*gatt_cb.cb_info.p_nv_save_callback)(TRUE, &p_list->asgn_range);
-            /* add a pending new  service change item to the list */
-            if ( (p_buf = gatt_add_pending_new_srv_start(&p_list->asgn_range)) == NULL)
-            {
-                /* No free entry */
-                GATT_TRACE_ERROR ("gatt_add_pending_new_srv_start: no free blocks");
-
-                if (p_list)
-                {
-                    gatt_remove_an_item_from_list(p_list_info, p_list);
-                    gatt_free_hdl_buffer(p_list);
-                }
-                return(0);
-            }
-
-            GATT_TRACE_DEBUG ("Add a new srv chg item");
-        }
+        save_hdl = TRUE;
     }
 
-    if (!gatts_init_service_db(&p_list->svc_db, p_svc_uuid, is_pri, s_hdl , num_handles))
+    /* check for space */
+    if (num_handles > (0xFFFF - s_hdl + 1)) {
+        GATT_TRACE_ERROR ("GATTS_ReserveHandles: no handles, s_hdl: %u  needed: %u", s_hdl, num_handles);
+        return GATT_INTERNAL_ERROR;
+    }
+
+    if ( (p_list = gatt_alloc_hdl_buffer()) == NULL) {
+        /* No free entry */
+        GATT_TRACE_ERROR ("GATTS_ReserveHandles: no free handle blocks");
+        return GATT_INTERNAL_ERROR;
+    }
+
+    p_list->asgn_range.app_uuid128 = *p_app_uuid128;
+    p_list->asgn_range.svc_uuid    = svc_uuid;
+    p_list->asgn_range.s_handle    = s_hdl;
+    p_list->asgn_range.e_handle    = s_hdl+num_handles-1;
+    p_list->asgn_range.is_primary  = is_pri;
+
+    gatt_add_an_item_to_list(p_list_info, p_list);
+
+    if (save_hdl) {
+        if (gatt_cb.cb_info.p_nv_save_callback)
+            (*gatt_cb.cb_info.p_nv_save_callback)(TRUE, &p_list->asgn_range);
+    }
+
+    if (!gatts_init_service_db(&p_list->svc_db, &svc_uuid, is_pri, s_hdl , num_handles))
     {
         GATT_TRACE_ERROR ("GATTS_ReserveHandles: service DB initialization failed");
         if (p_list)
@@ -246,137 +274,83 @@ UINT16 GATTS_CreateService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid,
             gatt_free_hdl_buffer(p_list);
         }
 
-        if (p_buf)
-            osi_free(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
-        return(0);
+        return GATT_INTERNAL_ERROR;
     }
 
-    GATT_TRACE_DEBUG ("GATTS_CreateService(success): handles needed:%u s_hdl=%u e_hdl=%u %s[%x] is_primary=%d",
+    GATT_TRACE_DEBUG ("%d: handles needed:%u s_hdl=%u e_hdl=%u %s[%x] is_primary=%d", __func__,
                        num_handles, p_list->asgn_range.s_handle , p_list->asgn_range.e_handle,
                        ((p_list->asgn_range.svc_uuid.len == 2) ? "uuid16": "uuid128" ),
                        p_list->asgn_range.svc_uuid.uu.uuid16,
                        p_list->asgn_range.is_primary);
 
-    return(s_hdl);
+    service->attribute_handle = s_hdl;
+
+    btgatt_db_element_t *el = service +1;
+    for (int i = 0; i<count-1; i++, el++) {
+        tBT_UUID uuid;
+        btif_to_bta_uuid(&uuid, &el->uuid);
+
+        if (el->type == BTGATT_DB_CHARACTERISTIC) {
+            /* data validity checking */
+            if (((el->properties & GATT_CHAR_PROP_BIT_AUTH) && !(el->permissions & GATT_WRITE_SIGNED_PERM)) ||
+                ((el->permissions & GATT_WRITE_SIGNED_PERM) && !(el->properties & GATT_CHAR_PROP_BIT_AUTH)) ) {
+                GATT_TRACE_DEBUG("Invalid configuration property=0x%02x perm=0x%04x ", el->properties, el->permissions);
+                return GATT_INTERNAL_ERROR;
+            }
+
+            el->attribute_handle = gatts_add_characteristic(&p_list->svc_db, el->permissions, el->properties, &uuid);
+        } else if (el->type == BTGATT_DB_DESCRIPTOR) {
+            el->attribute_handle = gatts_add_char_descr(&p_list->svc_db, el->permissions, &uuid);
+        } else if (el->type == BTGATT_DB_INCLUDED_SERVICE) {
+            tGATT_HDL_LIST_ELEM  *p_incl_decl;
+            if ((p_incl_decl = gatt_find_hdl_buffer_by_handle(el->attribute_handle)) == NULL) {
+                GATT_TRACE_DEBUG("Included Service not created");
+                return GATT_INTERNAL_ERROR;
+            }
+
+            el->attribute_handle = gatts_add_included_service(&p_list->svc_db,
+                                              p_incl_decl->asgn_range.s_handle,
+                                              p_incl_decl->asgn_range.e_handle,
+                                              p_incl_decl->asgn_range.svc_uuid);
+        }
+    }
+
+    tGATT_SR_REG            *p_sreg;
+    UINT8                    i_sreg;
+    tBT_UUID                *p_uuid;
+
+    GATT_TRACE_API ("%s: service parsed correctly, now starting", __func__);
+
+    /*this is a new application servoce start */
+    if ((i_sreg = gatt_sr_alloc_rcb(p_list)) ==  GATT_MAX_SR_PROFILES) {
+        GATT_TRACE_ERROR ("%s: no free server registration block", __func__);
+        return GATT_NO_RESOURCES;
+    }
+
+    p_sreg = &gatt_cb.sr_reg[i_sreg];
+    p_sreg->gatt_if = gatt_if;
+
+    if (p_sreg->type == GATT_UUID_PRI_SERVICE) {
+        p_uuid = gatts_get_service_uuid(p_sreg->p_db);
+        p_sreg->sdp_handle = gatt_add_sdp_record(p_uuid, p_sreg->s_hdl, p_sreg->e_hdl);
+    }
+
+    gatts_update_srv_list_elem(i_sreg, p_sreg->s_hdl,
+                               p_list->asgn_range.is_primary);
+
+    gatt_add_a_srv_to_list(&gatt_cb.srv_list_info, &gatt_cb.srv_list[i_sreg]);
+
+    GATT_TRACE_DEBUG ("%s: allocated i_sreg=%d ",__func__, i_sreg);
+    GATT_TRACE_DEBUG ("%s: s_hdl=%d e_hdl=%d type=0x%x sdp_hdl=0x%x", __func__,
+                       p_sreg->s_hdl,p_sreg->e_hdl,
+                       p_sreg->type,
+                       p_sreg->sdp_handle);
+
+    gatt_proc_srv_chg();
+
+    return GATT_SERVICE_STARTED;
 }
 
-/*******************************************************************************
-**
-** Function         GATTS_AddIncludeService
-**
-** Description      This function is called to add an included service.
-**
-** Parameter        service_handle : To which service this included service is added to.
-**                  include_svc_handle    : included service handle.
-**
-** Returns          included service attribute handle. If 0, add included service
-**                  fail.
-**
-*******************************************************************************/
-UINT16 GATTS_AddIncludeService (UINT16 service_handle, UINT16 include_svc_handle)
-
-{
-    tGATT_HDL_LIST_ELEM  *p_decl, *p_incl_decl;
-
-    if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
-    {
-        GATT_TRACE_DEBUG("Service not created");
-        return 0;
-    }
-    if ((p_incl_decl = gatt_find_hdl_buffer_by_handle(include_svc_handle)) == NULL)
-    {
-        GATT_TRACE_DEBUG("Included Service not created");
-        return 0;
-    }
-
-    return gatts_add_included_service(&p_decl->svc_db,
-                                      p_incl_decl->asgn_range.s_handle,
-                                      p_incl_decl->asgn_range.e_handle,
-                                      p_incl_decl->asgn_range.svc_uuid);
-}
-/*******************************************************************************
-**
-** Function         GATTS_AddCharacteristic
-**
-** Description      This function is called to add a characteristic into a service.
-**                  It will add a characteristic declaration and characteristic
-**                  value declaration into the service database identified by the
-**                  service handle.
-**
-** Parameter        service_handle : To which service this included service is added to.
-**                  char_uuid : Characteristic UUID.
-**                  perm      : Characteristic value declaration attribute permission.
-**                  property  : Characteristic Properties
-**
-** Returns          Characteristic value declaration attribute handle. 0 if failed.
-**
-*******************************************************************************/
-UINT16 GATTS_AddCharacteristic (UINT16 service_handle, tBT_UUID *p_char_uuid,
-                                tGATT_PERM perm,tGATT_CHAR_PROP property)
-{
-    tGATT_HDL_LIST_ELEM  *p_decl;
-
-    if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
-    {
-        GATT_TRACE_DEBUG("Service not created");
-        return 0;
-    }
-    /* data validity checking */
-    if (  ((property & GATT_CHAR_PROP_BIT_AUTH) && !(perm & GATT_WRITE_SIGNED_PERM)) ||
-          ((perm & GATT_WRITE_SIGNED_PERM) && !(property & GATT_CHAR_PROP_BIT_AUTH)) )
-    {
-        GATT_TRACE_DEBUG("Invalid configuration property=0x%x perm=0x%x ", property, perm);
-        return 0;
-    }
-
-    return gatts_add_characteristic(&p_decl->svc_db,
-                                    perm,
-                                    property,
-                                    p_char_uuid);
-}
-/*******************************************************************************
-**
-** Function         GATTS_AddCharDescriptor
-**
-** Description      This function is called to add a characteristic descriptor
-**                  into a service database. Add descriptor should follow add char
-**                  to which it belongs, and next add char should be done only
-**                  after all add descriptors for the previous char.
-**
-** Parameter        service_handle  : To which service this characteristic descriptor
-**                                    is added to.
-**                  perm            : Characteristic value declaration attribute
-**                                    permission.
-**                  p_descr_uuid    : Characteristic descriptor UUID
-**
-** Returns         Characteristic descriptor attribute handle. 0 if add
-**                 characteristic descriptor failed.
-**
-*******************************************************************************/
-UINT16 GATTS_AddCharDescriptor (UINT16 service_handle,
-                                 tGATT_PERM perm,
-                                 tBT_UUID  * p_descr_uuid)
-{
-    tGATT_HDL_LIST_ELEM  *p_decl;
-
-    if ((p_decl = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
-    {
-        GATT_TRACE_DEBUG("Service not created");
-        return 0;
-    }
-    if (p_descr_uuid == NULL ||
-        (p_descr_uuid->len != LEN_UUID_128 && p_descr_uuid->len !=  LEN_UUID_16
-         && p_descr_uuid->len !=  LEN_UUID_32))
-    {
-        GATT_TRACE_DEBUG("Illegal parameter");
-        return 0;
-    }
-
-    return gatts_add_char_descr(&p_decl->svc_db,
-                                perm,
-                                p_descr_uuid);
-
-}
 /*******************************************************************************
 **
 ** Function         GATTS_DeleteService
@@ -385,7 +359,7 @@ UINT16 GATTS_AddCharDescriptor (UINT16 service_handle,
 **
 ** Parameter        gatt_if       : application interface
 **                  p_svc_uuid    : service UUID
-**                  svc_inst      : instance of the service inside the application
+**                  start_handle  : start handle of the service
 **
 ** Returns          TRUE if operation succeed, FALSE if handle block was not found.
 **
@@ -396,7 +370,6 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
     tGATT_HDL_LIST_INFO             *p_list_info= &gatt_cb.hdl_list_info;
     tGATT_HDL_LIST_ELEM             *p_list=NULL;
     UINT8                           i_sreg;
-    tGATTS_PENDING_NEW_SRV_START    *p_buf;
     tGATT_REG       *p_reg = gatt_get_regcb(gatt_if);
     tBT_UUID *p_app_uuid128;
 
@@ -415,17 +388,7 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
         return(FALSE);
     }
 
-    if ( (p_buf = gatt_sr_is_new_srv_chg(&p_list->asgn_range.app_uuid128,
-                                         &p_list->asgn_range.svc_uuid,
-                                         p_list->asgn_range.svc_inst)) != NULL)
-    {
-        GATT_TRACE_DEBUG ("Delete a new service changed item - the service has not yet started");
-        osi_free(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
-    }
-    else
-    {
-        gatt_proc_srv_chg();
-    }
+    gatt_proc_srv_chg();
 
     if ((i_sreg = gatt_sr_find_i_rcb_by_app_id (p_app_uuid128,
                                                 p_svc_uuid,
@@ -445,104 +408,6 @@ BOOLEAN GATTS_DeleteService (tGATT_IF gatt_if, tBT_UUID *p_svc_uuid, UINT16 svc_
     gatt_free_hdl_buffer(p_list);
 
     return(TRUE);
-}
-
-/*******************************************************************************
-**
-** Function         GATTS_StartService
-**
-** Description      This function is called to start a service with GATT
-**
-** Parameter        gatt_if : service handle.
-**                  p_cback       : application service callback functions.
-**                  sup_transport : supported transport(s) for this primary service
-**
-** return           GATT_SUCCESS if sucessfully started; otherwise error code.
-**
-*******************************************************************************/
-tGATT_STATUS GATTS_StartService (tGATT_IF gatt_if, UINT16 service_handle,
-                                 tGATT_TRANSPORT sup_transport)
-{
-    tGATT_SR_REG            *p_sreg;
-    tGATT_HDL_LIST_ELEM      *p_list=NULL;
-    UINT8                    i_sreg;
-    tBT_UUID                *p_uuid;
-    tGATT_REG              *p_reg = gatt_get_regcb(gatt_if);
-
-    tGATTS_PENDING_NEW_SRV_START *p_buf;
-
-    GATT_TRACE_API ("GATTS_StartService");
-
-    if (p_reg == NULL)
-    {
-        /* Not found  */
-        GATT_TRACE_ERROR ("Applicaiton not found ");
-        return GATT_NOT_FOUND;
-    }
-
-    if ((p_list = gatt_find_hdl_buffer_by_handle(service_handle)) == NULL)
-    {
-        /* Not found  */
-        GATT_TRACE_ERROR ("no service found");
-        return GATT_NOT_FOUND;
-    }
-
-    if (gatt_sr_find_i_rcb_by_app_id (&p_list->asgn_range.app_uuid128,
-                                      &p_list->asgn_range.svc_uuid,
-                                      p_list->asgn_range.svc_inst) != GATT_MAX_SR_PROFILES)
-    {
-        GATT_TRACE_ERROR ("Duplicate Service start - Service already started");
-        return GATT_SERVICE_STARTED;
-    }
-
-    /*this is a new application servoce start */
-    if ((i_sreg = gatt_sr_alloc_rcb(p_list)) ==  GATT_MAX_SR_PROFILES)
-    {
-        GATT_TRACE_ERROR ("GATTS_StartService: no free server registration block");
-        return GATT_NO_RESOURCES;
-    }
-
-    p_sreg = &gatt_cb.sr_reg[i_sreg];
-    p_sreg->gatt_if = gatt_if;
-
-    switch (sup_transport)
-    {
-        case GATT_TRANSPORT_BR_EDR:
-        case GATT_TRANSPORT_LE_BR_EDR:
-            if (p_sreg->type == GATT_UUID_PRI_SERVICE)
-            {
-                p_uuid = gatts_get_service_uuid (p_sreg->p_db);
-
-                p_sreg->sdp_handle = gatt_add_sdp_record(p_uuid, p_sreg->s_hdl, p_sreg->e_hdl);
-            }
-            break;
-        default:
-            break;
-    }
-
-    gatts_update_srv_list_elem(i_sreg, p_sreg->s_hdl,
-                               p_list->asgn_range.is_primary);
-
-    gatt_add_a_srv_to_list(&gatt_cb.srv_list_info, &gatt_cb.srv_list[i_sreg]);
-
-    GATT_TRACE_DEBUG ("allocated i_sreg=%d ",i_sreg);
-
-    GATT_TRACE_DEBUG ("s_hdl=%d e_hdl=%d type=0x%x svc_inst=%d sdp_hdl=0x%x",
-                       p_sreg->s_hdl,p_sreg->e_hdl,
-                       p_sreg->type,  p_sreg->service_instance,
-                       p_sreg->sdp_handle);
-
-
-    if ( (p_buf = gatt_sr_is_new_srv_chg(&p_list->asgn_range.app_uuid128,
-                                         &p_list->asgn_range.svc_uuid,
-                                         p_list->asgn_range.svc_inst)) != NULL)
-    {
-        gatt_proc_srv_chg();
-        /* remove the new service element after the srv changed processing is completed*/
-
-        osi_free(fixed_queue_try_remove_from_queue(gatt_cb.pending_new_srv_start_q, p_buf));
-    }
-    return GATT_SUCCESS;
 }
 
 /*******************************************************************************

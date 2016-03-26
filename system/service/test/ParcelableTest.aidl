@@ -11,7 +11,6 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattIncludedService;
 import android.bluetooth.BluetoothGattService;
-import android.bluetooth.GattIdentifier;
 import android.bluetooth.ScanFilter;
 import android.bluetooth.ScanResult;
 import android.bluetooth.ScanSettings;
@@ -20,7 +19,6 @@ import android.bluetooth.UUID;
 interface ParcelableTest {
   void OnAdvertiseData(in AdvertiseData advertise_data);
   void OnAdvertiseSettings(in AdvertiseSettings advertise_settings);
-  void OnGattIdentifier(in GattIdentifier gatt_identifier);
   void OnScanFilter(in ScanFilter scan_filter);
   void OnScanResult(in ScanResult scan_result);
   void OnScanSettings(in ScanSettings scan_settings);

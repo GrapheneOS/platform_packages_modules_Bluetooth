@@ -1038,7 +1038,8 @@ void gatts_process_read_by_type_req(tGATT_TCB *p_tcb, UINT8 op_code, UINT16 len,
 **
 *******************************************************************************/
 void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
-                              UINT8 op_code, UINT16 len, UINT8 *p_data)
+                              UINT8 op_code, UINT16 len, UINT8 *p_data,
+                              bt_gatt_db_attribute_type_t gatt_type)
 {
     tGATTS_DATA     sr_data;
     UINT32          trans_id;
@@ -1101,12 +1102,22 @@ void gatts_process_write_req (tGATT_TCB *p_tcb, UINT8 i_rcb, UINT16 handle,
         {
             p_sreg = &gatt_cb.sr_reg[i_rcb];
             conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_sreg->gatt_if);
-            gatt_sr_send_req_callback(conn_id,
-                                      trans_id,
-                                      GATTS_REQ_TYPE_WRITE,
-                                      &sr_data);
 
-            status = GATT_PENDING;
+            UINT8 opcode = 0;
+            if (gatt_type == BTGATT_DB_DESCRIPTOR) {
+                opcode = GATTS_REQ_TYPE_WRITE_DESCRIPTOR;
+            } else if (gatt_type == BTGATT_DB_CHARACTERISTIC) {
+                opcode = GATTS_REQ_TYPE_WRITE_CHARACTERISTIC;
+            } else {
+                GATT_TRACE_ERROR("%s: Attempt to write attribute that's not tied with"
+                                 " characteristic or descriptor value.", __func__);
+                status = GATT_ERROR;
+            }
+
+            if (opcode) {
+                gatt_sr_send_req_callback(conn_id, trans_id, opcode, &sr_data);
+                status = GATT_PENDING;
+            }
         }
         else
         {
@@ -1248,7 +1259,8 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
                             case GATT_CMD_WRITE:
                             case GATT_SIGN_CMD_WRITE:
                             case GATT_REQ_PREPARE_WRITE:
-                                gatts_process_write_req(p_tcb, i, handle, op_code, len, p);
+                                gatts_process_write_req(p_tcb, i, handle, op_code, len, p,
+                                                        p_attr->gatt_type);
                                 break;
                             default:
                                 break;
