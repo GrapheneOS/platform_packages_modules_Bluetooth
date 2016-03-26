@@ -20,6 +20,7 @@
 
 extern "C" {
 #include "btcore/include/property.h"
+#include "stack/include/bt_types.h"
 }
 
 namespace {
@@ -146,6 +147,28 @@ TEST_F(BluetoothTest, AdapterCancelDiscovery) {
   EXPECT_EQ(bt_interface()->disable(), BT_STATUS_SUCCESS);
   semaphore_wait(adapter_state_changed_callback_sem_);
   EXPECT_EQ(GetState(), BT_STATE_OFF) << "Adapter did not turn off.";
+}
+
+TEST_F(BluetoothTest, AdapterDisableDuringBonding) {
+  EXPECT_EQ(GetState(), BT_STATE_OFF)
+    << "Test should be run with Adapter disabled";
+
+  bt_bdaddr_t bdaddr = { { 0x22, 0x22, 0x22, 0x22, 0x22, 0x22 } };
+
+  for (int i = 0; i < kTestRepeatCount; ++i) {
+    EXPECT_EQ(bt_interface()->enable(), BT_STATUS_SUCCESS);
+    semaphore_wait(adapter_state_changed_callback_sem_);
+    EXPECT_EQ(GetState(), BT_STATE_ON) <<  "Adapter did not turn on.";
+
+    EXPECT_EQ(bt_interface()->create_bond(&bdaddr, BT_TRANSPORT_BR_EDR),
+              BT_STATUS_SUCCESS);
+
+    EXPECT_EQ(bt_interface()->cancel_bond(&bdaddr), BT_STATUS_SUCCESS);
+
+    EXPECT_EQ(bt_interface()->disable(), BT_STATUS_SUCCESS);
+    semaphore_wait(adapter_state_changed_callback_sem_);
+    EXPECT_EQ(GetState(), BT_STATE_OFF) << "Adapter did not turn off.";
+  }
 }
 
 }  // bttest
