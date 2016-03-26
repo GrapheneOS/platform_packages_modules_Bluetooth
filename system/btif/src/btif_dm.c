@@ -305,7 +305,10 @@ void btif_dm_init(uid_set_t* set)
 
 void btif_dm_cleanup(void)
 {
-    uid_set = NULL;
+    if (uid_set) {
+        uid_set_destroy(uid_set);
+        uid_set = NULL;
+    }
     pthread_mutex_destroy(&bond_event_lock);
 }
 
