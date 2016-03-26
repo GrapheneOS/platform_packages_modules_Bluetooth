@@ -1462,7 +1462,7 @@ void bta_av_sig_chg(tBTA_AV_DATA *p_data)
                     /* If the device is a A2DP source, disconnect the AVDT connection */
                     if ((avdt_tsep_type == AVDT_TSEP_SRC) && (p_data->hdr.offset == AVDT_ACP))
                     {
-                        LOG_INFO("%s disconnecting invalid A2DP source to A2DP source connection.", __func__);
+                        LOG_INFO(LOG_TAG, "%s disconnecting invalid A2DP source to A2DP source connection.", __func__);
                         AVDT_DisconnectReq(p_data->str_msg.bd_addr, NULL);
                         return;
                     }
