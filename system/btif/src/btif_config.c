@@ -30,7 +30,6 @@
 #include "bt_types.h"
 #include "btcore/include/bdaddr.h"
 #include "btcore/include/module.h"
-#include "btif_api.h"
 #include "btif_common.h"
 #include "btif_config.h"
 #include "btif_util.h"
@@ -54,7 +53,6 @@ static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 static void timer_config_save_cb(void *data);
 static void btif_config_write(UINT16 event, char *p_param);
 static void btif_config_devcache_cleanup(void);
-static void btif_config_remove_restricted_devices(void);
 
 static enum ConfigSource {
   NOT_LOADED,
@@ -130,10 +128,6 @@ static future_t *init(void) {
   }
 
   btif_config_devcache_cleanup();
-
-  // Cleanup temporary pairings if we have left guest mode
-  if (!is_restricted_mode())
-    btif_config_remove_restricted_devices();
 
   // TODO(sharvil): use a non-wake alarm for this once we have
   // API support for it. There's no need to wake the system to
@@ -453,6 +447,7 @@ static void btif_config_devcache_cleanup(void) {
           !config_has_key(config, section, "LE_KEY_LCSRK")) {
         snode = config_section_next(snode);
         config_remove_section(config, section);
+        continue;
       }
     }
     snode = config_section_next(snode);
@@ -461,44 +456,28 @@ static void btif_config_devcache_cleanup(void) {
 }
 
 void btif_debug_config_dump(int fd) {
-  pthread_mutex_lock(&lock);
+    pthread_mutex_lock(&lock);
 
-  dprintf(fd, "\nBluetooth Config:\n");
+    dprintf(fd, "\nBluetooth Config:\n");
 
-  dprintf(fd, "  Config Source: ");
-  switch(btif_config_source) {
-    case NOT_LOADED:
-      dprintf(fd, "Not loaded\n");
-      break;
-    case ORIGINAL:
-      dprintf(fd, "Original file\n");
-      break;
-    case BACKUP:
-      dprintf(fd, "Backup file\n");
-      break;
-    case NEW_FILE:
-      dprintf(fd, "New file\n");
-      break;
-    case RESET:
-      dprintf(fd, "Reset file\n");
-      break;
-  }
-
-  pthread_mutex_unlock(&lock);
-}
-
-static void btif_config_remove_restricted_devices(void) {
-  assert(config != NULL);
-
-  pthread_mutex_lock(&lock);
-  const config_section_node_t *snode = config_section_begin(config);
-  while (snode != config_section_end(config)) {
-    const char *section = config_section_name(snode);
-    if (string_is_bdaddr(section) && config_has_key(config, section, "Restricted")) {
-        BTIF_TRACE_DEBUG("%s: Removing restricted device %s", __func__, section);
-        config_remove_section(config, section);
+    dprintf(fd, "  Config Source: ");
+    switch(btif_config_source) {
+        case NOT_LOADED:
+            dprintf(fd, "Not loaded\n");
+            break;
+        case ORIGINAL:
+            dprintf(fd, "Original file\n");
+            break;
+        case BACKUP:
+            dprintf(fd, "Backup file\n");
+            break;
+        case NEW_FILE:
+            dprintf(fd, "New file\n");
+            break;
+        case RESET:
+            dprintf(fd, "Reset file\n");
+            break;
     }
-    snode = config_section_next(snode);
-  }
-  pthread_mutex_unlock(&lock);
+
+    pthread_mutex_unlock(&lock);
 }
