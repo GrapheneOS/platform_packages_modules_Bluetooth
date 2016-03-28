@@ -534,8 +534,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status)
     }
     else
     {
-        btif_dm_cleanup();
-
         /* cleanup rfcomm & l2cap api */
         btif_sock_cleanup();
 
@@ -561,16 +559,10 @@ bt_status_t btif_disable_bluetooth(void)
     BTIF_TRACE_DEBUG("BTIF DISABLE BLUETOOTH");
 
     btif_dm_on_disable();
-    btif_dm_cleanup();
     /* cleanup rfcomm & l2cap api */
     btif_sock_cleanup();
     btif_pan_cleanup();
     BTA_DisableBluetooth();
-
-    if (uid_set) {
-        uid_set_destroy(uid_set);
-        uid_set = NULL;
-    }
 
     return BT_STATUS_SUCCESS;
 }
@@ -619,6 +611,8 @@ void btif_disable_bluetooth_evt(void)
 bt_status_t btif_shutdown_bluetooth(void)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+
+    btif_dm_cleanup();
 
     btif_transfer_context(btif_jni_disassociate, 0, NULL, 0, NULL);
 
