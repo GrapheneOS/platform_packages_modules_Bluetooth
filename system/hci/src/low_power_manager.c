@@ -72,6 +72,7 @@ static wake_state_t wake_state;
 static uint32_t idle_timeout_ms;
 static alarm_t *idle_alarm;
 static bool transmit_is_done;
+static void wake_deassert();
 
 // Interface functions
 
@@ -186,7 +187,11 @@ static void idle_timer_expired(UNUSED_ATTR void *context) {
 
 static void start_idle_timer() {
   if (state == LPM_ENABLED) {
-    alarm_set(idle_alarm, idle_timeout_ms, idle_timer_expired, NULL);
+    if (idle_timeout_ms == 0) {
+       wake_deassert();
+    } else {
+       alarm_set(idle_alarm, idle_timeout_ms, idle_timer_expired, NULL);
+    }
   }
 }
 
