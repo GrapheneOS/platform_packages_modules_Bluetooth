@@ -306,8 +306,7 @@ tA2D_STATUS A2D_FindService(UINT16 service_uuid, BD_ADDR bd_addr,
 
     if (result == TRUE)
     {
-        /* store service_uuid and discovery db pointer */
-        a2d_cb.find.p_db = p_db->p_db;
+        /* store service_uuid */
         a2d_cb.find.service_uuid = service_uuid;
         a2d_cb.find.p_cback = p_cback;
 
