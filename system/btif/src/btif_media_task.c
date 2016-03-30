@@ -898,7 +898,9 @@ void btif_a2dp_stop_media_task(void)
 
 void btif_a2dp_on_init(void)
 {
+#ifdef USE_AUDIO_TRACK
     btif_media_cb.rx_audio_focus_state = BTIF_MEDIA_FOCUS_NOT_GRANTED;
+#endif // USE_AUDIO_TRACK
 }
 
 
