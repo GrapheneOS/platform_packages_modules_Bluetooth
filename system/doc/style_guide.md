@@ -70,7 +70,9 @@ the `2^n` build configurations is untenable for `n` greater than, say, 4.
 Although C++ offers constructs that may make Fluoride development faster,
 safer, more pleasant, etc. the decision _for the time being_ is to stick with
 pure C99. The exceptions are when linking against libraries that are written
-in C++. At the time of writing the library used is `gtest`,
+in C++. At the time of writing these libraries are `gtest` and `tinyxml2`,
+where the latter is a dependency that should be eliminated in favor of simpler,
+non-XML formats.
 
 ### Variadic functions
 Variadic functions are dangerous and should be avoided for most code. The
