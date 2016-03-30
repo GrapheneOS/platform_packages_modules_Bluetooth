@@ -52,6 +52,7 @@ LOCAL_C_INCLUDES+= . \
 	$(LOCAL_PATH)/../audio_a2dp_hw \
 	$(LOCAL_PATH)/../utils/include \
 	$(bluetooth_C_INCLUDES) \
+	external/tinyxml2 \
 	external/zlib
 
 LOCAL_SHARED_LIBRARIES := \
@@ -66,6 +67,7 @@ LOCAL_SHARED_LIBRARIES := \
     libchrome
 
 LOCAL_STATIC_LIBRARIES := \
+    libtinyxml2 \
     libbt-qcom_sbc_decoder
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
