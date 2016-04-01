@@ -70,7 +70,7 @@
 */
 typedef enum
 {
-    CST_CLOSED,                           /* Channel is in clodes state           */
+    CST_CLOSED,                           /* Channel is in closed state           */
     CST_ORIG_W4_SEC_COMP,                 /* Originator waits security clearence  */
     CST_TERM_W4_SEC_COMP,                 /* Acceptor waits security clearence    */
     CST_W4_L2CAP_CONNECT_RSP,             /* Waiting for peer conenct response    */
@@ -657,16 +657,6 @@ void l2c_ucd_discard_pending_in_sec_q(tL2C_CCB  *p_ccb);
 BOOLEAN l2c_ucd_check_rx_pkts(tL2C_LCB  *p_lcb, BT_HDR *p_msg);
 BOOLEAN l2c_ucd_process_event(tL2C_CCB *p_ccb, UINT16 event, void *p_data);
 #endif
-
-#if (BLE_INCLUDED == TRUE)
-extern void l2cu_send_peer_ble_par_req (tL2C_LCB *p_lcb, UINT16 min_int, UINT16 max_int, UINT16 latency, UINT16 timeout);
-extern void l2cu_send_peer_ble_par_rsp (tL2C_LCB *p_lcb, UINT16 reason, UINT8 rem_id);
-#endif
-
-extern BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR_OPTS *p_fcr);
-extern void    l2cu_no_dynamic_ccbs (tL2C_LCB *p_lcb);
-extern void    l2cu_process_fixed_chnl_resp (tL2C_LCB *p_lcb);
-
 
 /* Functions provided for Broadcom Aware
 ****************************************
