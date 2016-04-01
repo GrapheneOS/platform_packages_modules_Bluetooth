@@ -1496,6 +1496,11 @@ void l2c_enqueue_peer_data (tL2C_CCB *p_ccb, BT_HDR *p_buf)
         UINT16_TO_STREAM (p, p_ccb->remote_cid);
     }
 
+    if (p_ccb->xmit_hold_q == NULL) {
+      L2CAP_TRACE_ERROR("%s: empty queue: p_ccb = %p p_ccb->in_use = %d p_ccb->chnl_state = %d p_ccb->local_cid = %u p_ccb->remote_cid = %u",
+                        __func__, p_ccb, p_ccb->in_use, p_ccb->chnl_state,
+                        p_ccb->local_cid, p_ccb->remote_cid);
+    }
     fixed_queue_enqueue(p_ccb->xmit_hold_q, p_buf);
 
     l2cu_check_channel_congestion (p_ccb);
