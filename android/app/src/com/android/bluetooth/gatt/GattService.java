@@ -118,11 +118,6 @@ public class GattService extends ProfileService {
 
     private int mMaxScanFilters;
 
-    /**
-     * Pending service declaration queue
-     */
-    private List<ServiceDeclaration> mServiceDeclarations = new ArrayList<ServiceDeclaration>();
-
     static final int NUM_SCAN_EVENTS_KEPT = 20;
     /**
      * Internal list of scan events to use with the proto
@@ -132,36 +127,6 @@ public class GattService extends ProfileService {
 
     private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
             new HashMap<Integer, List<BluetoothGattService>>();
-
-    private ServiceDeclaration addDeclaration() {
-        synchronized (mServiceDeclarations) {
-            mServiceDeclarations.add(new ServiceDeclaration());
-        }
-        return getActiveDeclaration();
-    }
-
-    private ServiceDeclaration getActiveDeclaration() {
-        synchronized (mServiceDeclarations) {
-            if (mServiceDeclarations.size() > 0)
-                return mServiceDeclarations.get(mServiceDeclarations.size() - 1);
-        }
-        return null;
-    }
-
-    private ServiceDeclaration getPendingDeclaration() {
-        synchronized (mServiceDeclarations) {
-            if (mServiceDeclarations.size() > 0)
-                return mServiceDeclarations.get(0);
-        }
-        return null;
-    }
-
-    private void removePendingDeclaration() {
-        synchronized (mServiceDeclarations) {
-            if (mServiceDeclarations.size() > 0)
-                mServiceDeclarations.remove(0);
-        }
-    }
 
     private AdvertiseManager mAdvertiseManager;
     private ScanManager mScanManager;
@@ -202,7 +167,6 @@ public class GattService extends ProfileService {
         mClientMap.clear();
         mServerMap.clear();
         mHandleMap.clear();
-        mServiceDeclarations.clear();
         mReliableQueue.clear();
         if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
         if (mScanManager != null) mScanManager.cleanup();
@@ -481,50 +445,17 @@ public class GattService extends ProfileService {
             service.serverDisconnect(serverIf, address);
         }
 
-        public void beginServiceDeclaration(int serverIf, int srvcType,
-                                            int srvcInstanceId, int minHandles,
-                                            ParcelUuid srvcId, boolean advertisePreferred) {
+        public void addService(int serverIf, BluetoothGattService svc) {
             GattService service = getService();
             if (service == null) return;
-            service.beginServiceDeclaration(serverIf, srvcType, srvcInstanceId,
-                               minHandles, srvcId.getUuid(), advertisePreferred);
+
+            service.addService(serverIf, svc);
         }
 
-        public void addIncludedService(int serverIf, int srvcType,
-                            int srvcInstanceId, ParcelUuid srvcId) {
+        public void removeService(int serverIf, int handle) {
             GattService service = getService();
             if (service == null) return;
-            service.addIncludedService(serverIf, srvcType, srvcInstanceId,
-                                            srvcId.getUuid());
-        }
-
-        public void addCharacteristic(int serverIf, ParcelUuid charId,
-                            int properties, int permissions) {
-            GattService service = getService();
-            if (service == null) return;
-            service.addCharacteristic(serverIf, charId.getUuid(), properties,
-                                      permissions);
-        }
-
-        public void addDescriptor(int serverIf, ParcelUuid descId,
-                           int permissions) {
-            GattService service = getService();
-            if (service == null) return;
-            service.addDescriptor(serverIf, descId.getUuid(), permissions);
-        }
-
-        public void endServiceDeclaration(int serverIf) {
-            GattService service = getService();
-            if (service == null) return;
-            service.endServiceDeclaration(serverIf);
-        }
-
-        public void removeService(int serverIf, int srvcType,
-                           int srvcInstanceId, ParcelUuid srvcId) {
-            GattService service = getService();
-            if (service == null) return;
-            service.removeService(serverIf, srvcType, srvcInstanceId,
-                                  srvcId.getUuid());
+            service.removeService(serverIf, handle);
         }
 
         public void clearServices(int serverIf) {
@@ -540,14 +471,11 @@ public class GattService extends ProfileService {
             service.sendResponse(serverIf, address, requestId, status, offset, value);
         }
 
-        public void sendNotification(int serverIf, String address, int srvcType,
-                                              int srvcInstanceId, ParcelUuid srvcId,
-                                              int charInstanceId, ParcelUuid charId,
+        public void sendNotification(int serverIf, String address, int handle,
                                               boolean confirm, byte[] value) {
             GattService service = getService();
             if (service == null) return;
-            service.sendNotification(serverIf, address, srvcType, srvcInstanceId,
-                srvcId.getUuid(), charInstanceId, charId.getUuid(), confirm, value);
+            service.sendNotification(serverIf, address, handle, confirm, value);
         }
 
         @Override
@@ -1638,57 +1566,47 @@ public class GattService extends ProfileService {
         }
     }
 
-    void onServiceAdded(int status, int serverIf, int srvcType, int srvcInstId,
-                        long srvcUuidLsb, long srvcUuidMsb, int srvcHandle)
+    void onServiceAdded(int status, int serverIf, List<GattDbElement> service)
                         throws RemoteException {
-        UUID uuid = new UUID(srvcUuidMsb, srvcUuidLsb);
-        if (DBG) Log.d(TAG, "onServiceAdded() UUID=" + uuid + ", status=" + status
-            + ", handle=" + srvcHandle);
-        if (status == 0) {
-            mHandleMap.addService(serverIf, srvcHandle, uuid, srvcType, srvcInstId,
-                mAdvertisingServiceUuids.remove(uuid));
+        if (DBG) Log.d(TAG, "onServiceAdded(), status=" + status);
+
+        if (status != 0) {
+            return;
         }
 
-        continueServiceDeclaration(serverIf, status, srvcHandle);
-    }
+        GattDbElement svcEl = service.get(0);
+        int srvcHandle = svcEl.attributeHandle;
 
-    void onIncludedServiceAdded(int status, int serverIf, int srvcHandle,
-                                int includedSrvcHandle) throws RemoteException {
-        if (DBG) Log.d(TAG, "onIncludedServiceAdded() status=" + status
-            + ", service=" + srvcHandle + ", included=" + includedSrvcHandle);
-        continueServiceDeclaration(serverIf, status, srvcHandle);
-    }
+        BluetoothGattService svc = null;
 
-    void onCharacteristicAdded(int status, int serverIf,
-                               long charUuidLsb, long charUuidMsb,
-                               int srvcHandle, int charHandle)
-                               throws RemoteException {
-            UUID uuid = new UUID(charUuidMsb, charUuidLsb);
-        if (DBG) Log.d(TAG, "onCharacteristicAdded() UUID=" + uuid + ", status=" + status
-            + ", srvcHandle=" + srvcHandle + ", charHandle=" + charHandle);
-        if (status == 0)
-            mHandleMap.addCharacteristic(serverIf, charHandle, uuid, srvcHandle);
-        continueServiceDeclaration(serverIf, status, srvcHandle);
-    }
+        for (GattDbElement el : service) {
+            if (el.type == GattDbElement.TYPE_PRIMARY_SERVICE) {
+                mHandleMap.addService(serverIf, el.attributeHandle, el.uuid,
+                        BluetoothGattService.SERVICE_TYPE_PRIMARY, 0, false);
+                svc = new BluetoothGattService(svcEl.uuid, svcEl.attributeHandle,
+                        BluetoothGattService.SERVICE_TYPE_PRIMARY);
+            } else if (el.type == GattDbElement.TYPE_SECONDARY_SERVICE) {
+                mHandleMap.addService(serverIf, el.attributeHandle, el.uuid,
+                        BluetoothGattService.SERVICE_TYPE_SECONDARY, 0, false);
+                svc = new BluetoothGattService(svcEl.uuid, svcEl.attributeHandle,
+                        BluetoothGattService.SERVICE_TYPE_SECONDARY);
+            } else if (el.type == GattDbElement.TYPE_CHARACTERISTIC) {
+                mHandleMap.addCharacteristic(serverIf, el.attributeHandle, el.uuid, srvcHandle);
+                svc.addCharacteristic(new BluetoothGattCharacteristic(el.uuid,
+                        el.attributeHandle, el.properties, el.permissions));
+            } else if (el.type == GattDbElement.TYPE_DESCRIPTOR) {
+                mHandleMap.addDescriptor(serverIf, el.attributeHandle, el.uuid, srvcHandle);
+                List<BluetoothGattCharacteristic> chars = svc.getCharacteristics();
+                chars.get(chars.size()-1).addDescriptor(
+                        new BluetoothGattDescriptor(el.uuid, el.attributeHandle, el.permissions));
+            }
+        }
+        mHandleMap.setStarted(serverIf, srvcHandle, true);
 
-    void onDescriptorAdded(int status, int serverIf,
-                           long descrUuidLsb, long descrUuidMsb,
-                           int srvcHandle, int descrHandle)
-                           throws RemoteException {
-            UUID uuid = new UUID(descrUuidMsb, descrUuidLsb);
-        if (DBG) Log.d(TAG, "onDescriptorAdded() UUID=" + uuid + ", status=" + status
-            + ", srvcHandle=" + srvcHandle + ", descrHandle=" + descrHandle);
-        if (status == 0)
-            mHandleMap.addDescriptor(serverIf, descrHandle, uuid, srvcHandle);
-        continueServiceDeclaration(serverIf, status, srvcHandle);
-    }
-
-    void onServiceStarted(int status, int serverIf, int srvcHandle)
-            throws RemoteException {
-        if (DBG) Log.d(TAG, "onServiceStarted() srvcHandle=" + srvcHandle
-            + ", status=" + status);
-        if (status == 0)
-            mHandleMap.setStarted(serverIf, srvcHandle, true);
+        ServerMap.App app = mServerMap.getById(serverIf);
+        if (app != null) {
+                app.callback.onServiceAdded(status, svc);
+        }
     }
 
     void onServiceStopped(int status, int serverIf, int srvcHandle)
@@ -1709,7 +1627,7 @@ public class GattService extends ProfileService {
     void onClientConnected(String address, boolean connected, int connId, int serverIf)
             throws RemoteException {
 
-        if (DBG) Log.d(TAG, "onConnected() connId=" + connId
+        if (DBG) Log.d(TAG, "onClientConnected() connId=" + connId
             + ", address=" + address + ", connected=" + connected);
 
         ServerMap.App app = mServerMap.getById(serverIf);
@@ -1724,97 +1642,84 @@ public class GattService extends ProfileService {
         app.callback.onServerConnectionState((byte)0, serverIf, connected, address);
     }
 
-    void onAttributeRead(String address, int connId, int transId,
-                            int attrHandle, int offset, boolean isLong)
+    void onServerReadCharacteristic(String address, int connId, int transId,
+                            int handle, int offset, boolean isLong)
                             throws RemoteException {
-        if (VDBG) Log.d(TAG, "onAttributeRead() connId=" + connId
-            + ", address=" + address + ", handle=" + attrHandle
+        if (VDBG) Log.d(TAG, "onServerReadCharacteristic() connId=" + connId
+            + ", address=" + address + ", handle=" + handle
             + ", requestId=" + transId + ", offset=" + offset);
 
-        HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
+        HandleMap.Entry entry = mHandleMap.getByHandle(handle);
         if (entry == null) return;
 
-        mHandleMap.addRequest(transId, attrHandle);
+        mHandleMap.addRequest(transId, handle);
 
         ServerMap.App app = mServerMap.getById(entry.serverIf);
         if (app == null) return;
 
-        switch(entry.type) {
-            case HandleMap.TYPE_CHARACTERISTIC:
-            {
-                HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
-                app.callback.onCharacteristicReadRequest(address, transId, offset, isLong,
-                    serviceEntry.serviceType, serviceEntry.instance,
-                    new ParcelUuid(serviceEntry.uuid), entry.instance,
-                    new ParcelUuid(entry.uuid));
-                break;
-            }
-
-            case HandleMap.TYPE_DESCRIPTOR:
-            {
-                HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
-                HandleMap.Entry charEntry = mHandleMap.getByHandle(entry.charHandle);
-                app.callback.onDescriptorReadRequest(address, transId, offset, isLong,
-                    serviceEntry.serviceType, serviceEntry.instance,
-                    new ParcelUuid(serviceEntry.uuid), charEntry.instance,
-                    new ParcelUuid(charEntry.uuid),
-                    new ParcelUuid(entry.uuid));
-                break;
-            }
-
-            default:
-                Log.e(TAG, "onAttributeRead() - Requested unknown attribute type.");
-                break;
-        }
+        app.callback.onCharacteristicReadRequest(address, transId, offset, isLong, handle);
     }
 
-    void onAttributeWrite(String address, int connId, int transId,
-                            int attrHandle, int offset, int length,
+    void onServerReadDescriptor(String address, int connId, int transId,
+                            int handle, int offset, boolean isLong)
+                            throws RemoteException {
+        if (VDBG) Log.d(TAG, "onServerReadDescriptor() connId=" + connId
+            + ", address=" + address + ", handle=" + handle
+            + ", requestId=" + transId + ", offset=" + offset);
+
+        HandleMap.Entry entry = mHandleMap.getByHandle(handle);
+        if (entry == null) return;
+
+        mHandleMap.addRequest(transId, handle);
+
+        ServerMap.App app = mServerMap.getById(entry.serverIf);
+        if (app == null) return;
+
+        app.callback.onDescriptorReadRequest(address, transId, offset, isLong, handle);
+    }
+
+    void onServerWriteCharacteristic(String address, int connId, int transId,
+                            int handle, int offset, int length,
+                            boolean needRsp, boolean isPrep,
+                            byte[] data)
+                            throws RemoteException {
+        if (VDBG) Log.d(TAG, "onServerWriteCharacteristic() connId=" + connId
+            + ", address=" + address + ", handle=" + handle
+            + ", requestId=" + transId + ", isPrep=" + isPrep
+            + ", offset=" + offset);
+
+        HandleMap.Entry entry = mHandleMap.getByHandle(handle);
+        if (entry == null) return;
+
+        mHandleMap.addRequest(transId, handle);
+
+        ServerMap.App app = mServerMap.getById(entry.serverIf);
+        if (app == null) return;
+
+        app.callback.onCharacteristicWriteRequest(address, transId,
+                    offset, length, isPrep, needRsp, handle, data);
+    }
+
+    void onServerWriteDescriptor(String address, int connId, int transId,
+                            int handle, int offset, int length,
                             boolean needRsp, boolean isPrep,
                             byte[] data)
                             throws RemoteException {
         if (VDBG) Log.d(TAG, "onAttributeWrite() connId=" + connId
-            + ", address=" + address + ", handle=" + attrHandle
+            + ", address=" + address + ", handle=" + handle
             + ", requestId=" + transId + ", isPrep=" + isPrep
             + ", offset=" + offset);
 
-        HandleMap.Entry entry = mHandleMap.getByHandle(attrHandle);
+        HandleMap.Entry entry = mHandleMap.getByHandle(handle);
         if (entry == null) return;
 
-        mHandleMap.addRequest(transId, attrHandle);
+        mHandleMap.addRequest(transId, handle);
 
         ServerMap.App app = mServerMap.getById(entry.serverIf);
         if (app == null) return;
 
-        switch(entry.type) {
-            case HandleMap.TYPE_CHARACTERISTIC:
-            {
-                HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
-                app.callback.onCharacteristicWriteRequest(address, transId,
-                            offset, length, isPrep, needRsp,
-                            serviceEntry.serviceType, serviceEntry.instance,
-                            new ParcelUuid(serviceEntry.uuid), entry.instance,
-                            new ParcelUuid(entry.uuid), data);
-                break;
-            }
-
-            case HandleMap.TYPE_DESCRIPTOR:
-            {
-                HandleMap.Entry serviceEntry = mHandleMap.getByHandle(entry.serviceHandle);
-                HandleMap.Entry charEntry = mHandleMap.getByHandle(entry.charHandle);
-                app.callback.onDescriptorWriteRequest(address, transId,
-                            offset, length, isPrep, needRsp,
-                            serviceEntry.serviceType, serviceEntry.instance,
-                            new ParcelUuid(serviceEntry.uuid), charEntry.instance,
-                            new ParcelUuid(charEntry.uuid),
-                            new ParcelUuid(entry.uuid), data);
-                break;
-            }
-
-            default:
-                Log.e(TAG, "onAttributeWrite() - Requested unknown attribute type.");
-                break;
-        }
+        app.callback.onDescriptorWriteRequest(address, transId,
+                    offset, length, isPrep, needRsp, handle, data);
     }
 
     void onExecuteWrite(String address, int connId, int transId, int execWrite)
@@ -1917,62 +1822,45 @@ public class GattService extends ProfileService {
         gattServerDisconnectNative(serverIf, address, connId != null ? connId : 0);
     }
 
-    void beginServiceDeclaration(int serverIf, int srvcType, int srvcInstanceId,
-                                 int minHandles, UUID srvcUuid, boolean advertisePreferred) {
+    void addService(int serverIf, BluetoothGattService service) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "beginServiceDeclaration() - uuid=" + srvcUuid);
-        ServiceDeclaration serviceDeclaration = addDeclaration();
-        serviceDeclaration.addService(srvcUuid, srvcType, srvcInstanceId, minHandles,
-            advertisePreferred);
-    }
+        if (DBG) Log.d(TAG, "addService() - uuid=" + service.getUuid());
 
-    void addIncludedService(int serverIf, int srvcType, int srvcInstanceId,
-                            UUID srvcUuid) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<GattDbElement> db = new ArrayList<GattDbElement>();
 
-        if (DBG) Log.d(TAG, "addIncludedService() - uuid=" + srvcUuid);
-        getActiveDeclaration().addIncludedService(srvcUuid, srvcType, srvcInstanceId);
-    }
+        if (service.getType() == BluetoothGattService.SERVICE_TYPE_PRIMARY)
+            db.add(GattDbElement.createPrimaryService(service.getUuid()));
+        else db.add(GattDbElement.createSecondaryService(service.getUuid()));
 
-    void addCharacteristic(int serverIf, UUID charUuid, int properties,
-                           int permissions) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+            int permission = ((characteristic.getKeySize() - 7) << 12)
+                                    + characteristic.getPermissions();
+            db.add(GattDbElement.createCharacteristic(characteristic.getUuid(),
+                 characteristic.getProperties(), permission));
 
-        if (DBG) Log.d(TAG, "addCharacteristic() - uuid=" + charUuid);
-        getActiveDeclaration().addCharacteristic(charUuid, properties, permissions);
-    }
-
-    void addDescriptor(int serverIf, UUID descUuid, int permissions) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        if (DBG) Log.d(TAG, "addDescriptor() - uuid=" + descUuid);
-        getActiveDeclaration().addDescriptor(descUuid, permissions);
-    }
-
-    void endServiceDeclaration(int serverIf) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        if (DBG) Log.d(TAG, "endServiceDeclaration()");
-
-        if (getActiveDeclaration() == getPendingDeclaration()) {
-            try {
-                continueServiceDeclaration(serverIf, (byte)0, 0);
-            } catch (RemoteException e) {
-                Log.e(TAG,""+e);
+            for (BluetoothGattDescriptor descriptor: characteristic.getDescriptors()) {
+                permission = ((characteristic.getKeySize() - 7) << 12)
+                                    + descriptor.getPermissions();
+                db.add(GattDbElement.createDescriptor(descriptor.getUuid(), permission));
             }
         }
+
+        for (BluetoothGattService includedService : service.getIncludedServices()) {
+            int inclSrvc = mHandleMap.getServiceHandle(includedService.getUuid(),
+                    includedService.getType(), includedService.getInstanceId());
+            db.add(GattDbElement.createIncludedService(inclSrvc));
+        }
+
+        gattServerAddServiceNative(serverIf, db);
     }
 
-    void removeService(int serverIf, int srvcType,
-                  int srvcInstanceId, UUID srvcUuid) {
+    void removeService(int serverIf, int handle) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "removeService() - uuid=" + srvcUuid);
+        if (DBG) Log.d(TAG, "removeService() - handle=" + handle);
 
-        int srvcHandle = mHandleMap.getServiceHandle(srvcUuid, srvcType, srvcInstanceId);
-        if (srvcHandle == 0) return;
-        gattServerDeleteServiceNative(serverIf, srvcHandle);
+        gattServerDeleteServiceNative(serverIf, handle);
     }
 
     void clearServices(int serverIf) {
@@ -1998,27 +1886,18 @@ public class GattService extends ProfileService {
         mHandleMap.deleteRequest(requestId);
     }
 
-    void sendNotification(int serverIf, String address, int srvcType,
-                                 int srvcInstanceId, UUID srvcUuid,
-                                 int charInstanceId, UUID charUuid,
-                                 boolean confirm, byte[] value) {
+    void sendNotification(int serverIf, String address, int handle, boolean confirm, byte[] value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (VDBG) Log.d(TAG, "sendNotification() - address=" + address);
-
-        int srvcHandle = mHandleMap.getServiceHandle(srvcUuid, srvcType, srvcInstanceId);
-        if (srvcHandle == 0) return;
-
-        int charHandle = mHandleMap.getCharacteristicHandle(srvcHandle, charUuid, charInstanceId);
-        if (charHandle == 0) return;
+        if (VDBG) Log.d(TAG, "sendNotification() - address=" + address + " handle=" + handle);
 
         int connId = mServerMap.connIdByAddress(serverIf, address);
         if (connId == 0) return;
 
         if (confirm) {
-            gattServerSendIndicationNative(serverIf, charHandle, connId, value);
+            gattServerSendIndicationNative(serverIf, handle, connId, value);
         } else {
-            gattServerSendNotificationNative(serverIf, charHandle, connId, value);
+            gattServerSendNotificationNative(serverIf, handle, connId, value);
         }
     }
 
@@ -2088,85 +1967,6 @@ public class GattService extends ProfileService {
     private void enforceImpersonatationPermission() {
         enforceCallingOrSelfPermission(android.Manifest.permission.UPDATE_DEVICE_STATS,
                 "Need UPDATE_DEVICE_STATS permission");
-    }
-
-    private void continueServiceDeclaration(int serverIf, int status, int srvcHandle) throws RemoteException {
-        if (mServiceDeclarations.size() == 0) return;
-        if (DBG) Log.d(TAG, "continueServiceDeclaration() - srvcHandle=" + srvcHandle);
-
-        boolean finished = false;
-
-        ServiceDeclaration.Entry entry = null;
-        if (status == 0)
-            entry = getPendingDeclaration().getNext();
-
-        if (entry != null) {
-            if (DBG) Log.d(TAG, "continueServiceDeclaration() - next entry type="
-                + entry.type);
-            switch(entry.type) {
-                case ServiceDeclaration.TYPE_SERVICE:
-                    if (entry.advertisePreferred) {
-                        mAdvertisingServiceUuids.add(entry.uuid);
-                    }
-                    gattServerAddServiceNative(serverIf, entry.serviceType,
-                        entry.instance,
-                        entry.uuid.getLeastSignificantBits(),
-                        entry.uuid.getMostSignificantBits(),
-                        getPendingDeclaration().getNumHandles());
-                    break;
-
-                case ServiceDeclaration.TYPE_CHARACTERISTIC:
-                    gattServerAddCharacteristicNative(serverIf, srvcHandle,
-                        entry.uuid.getLeastSignificantBits(),
-                        entry.uuid.getMostSignificantBits(),
-                        entry.properties, entry.permissions);
-                    break;
-
-                case ServiceDeclaration.TYPE_DESCRIPTOR:
-                    gattServerAddDescriptorNative(serverIf, srvcHandle,
-                        entry.uuid.getLeastSignificantBits(),
-                        entry.uuid.getMostSignificantBits(),
-                        entry.permissions);
-                    break;
-
-                case ServiceDeclaration.TYPE_INCLUDED_SERVICE:
-                {
-                    int inclSrvc = mHandleMap.getServiceHandle(entry.uuid,
-                                            entry.serviceType, entry.instance);
-                    if (inclSrvc != 0) {
-                        gattServerAddIncludedServiceNative(serverIf, srvcHandle,
-                                                           inclSrvc);
-                    } else {
-                        finished = true;
-                    }
-                    break;
-                }
-            }
-        } else {
-            gattServerStartServiceNative(serverIf, srvcHandle,
-                (byte)BluetoothDevice.TRANSPORT_BREDR | BluetoothDevice.TRANSPORT_LE);
-            finished = true;
-        }
-
-        if (finished) {
-            if (DBG) Log.d(TAG, "continueServiceDeclaration() - completed.");
-            ServerMap.App app = mServerMap.getById(serverIf);
-            if (app != null) {
-                HandleMap.Entry serviceEntry = mHandleMap.getByHandle(srvcHandle);
-
-                if (serviceEntry != null) {
-                    app.callback.onServiceAdded(status, serviceEntry.serviceType,
-                        serviceEntry.instance, new ParcelUuid(serviceEntry.uuid));
-                } else {
-                    app.callback.onServiceAdded(status, 0, 0, null);
-                }
-            }
-            removePendingDeclaration();
-
-            if (getPendingDeclaration() != null) {
-                continueServiceDeclaration(serverIf, (byte)0, 0);
-            }
-        }
     }
 
     private void stopNextService(int serverIf, int status) throws RemoteException {
@@ -2246,9 +2046,7 @@ public class GattService extends ProfileService {
         for (UUID uuid : mAdvertisingServiceUuids) {
             println(sb, "  " + uuid);
         }
-        for (ServiceDeclaration declaration : mServiceDeclarations) {
-            println(sb, "  " + declaration);
-        }
+
         println(sb, "mMaxScanFilters: " + mMaxScanFilters);
 
         sb.append("\nGATT Client Map\n");
@@ -2366,24 +2164,7 @@ public class GattService extends ProfileService {
     private native void gattServerDisconnectNative(int serverIf, String address,
                                               int conn_id);
 
-    private native void gattServerAddServiceNative (int server_if,
-            int service_type, int service_id_inst_id,
-            long service_id_uuid_lsb, long service_id_uuid_msb,
-            int num_handles);
-
-    private native void gattServerAddIncludedServiceNative (int server_if,
-            int svc_handle, int included_svc_handle);
-
-    private native void gattServerAddCharacteristicNative (int server_if,
-            int svc_handle, long char_uuid_lsb, long char_uuid_msb,
-            int properties, int permissions);
-
-    private native void gattServerAddDescriptorNative (int server_if,
-            int svc_handle, long desc_uuid_lsb, long desc_uuid_msb,
-            int permissions);
-
-    private native void gattServerStartServiceNative (int server_if,
-            int svc_handle, int transport );
+    private native void gattServerAddServiceNative(int server_if, List<GattDbElement> service);
 
     private native void gattServerStopServiceNative (int server_if,
                                                      int svc_handle);
