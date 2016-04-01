@@ -2748,11 +2748,6 @@ BOOLEAN l2cu_initialize_fixed_ccb (tL2C_LCB *p_lcb, UINT16 fixed_cid, tL2CAP_FCR
     p_ccb->local_cid  = fixed_cid;
     p_ccb->remote_cid = fixed_cid;
 
-    p_ccb->xmit_hold_q = fixed_queue_new(SIZE_MAX);
-    p_ccb->fcrb.srej_rcv_hold_q = fixed_queue_new(SIZE_MAX);
-    p_ccb->fcrb.retrans_q = fixed_queue_new(SIZE_MAX);
-    p_ccb->fcrb.waiting_for_ack_q = fixed_queue_new(SIZE_MAX);
-
     p_ccb->is_flushable = FALSE;
 
     if (p_fcr)
