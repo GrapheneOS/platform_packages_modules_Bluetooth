@@ -146,11 +146,21 @@ def main():
     exit(1)
 
   iterator = fileinput.input()
+  found = False
+  base64_string = ""
   for line in iterator:
+    if found:
+      if line.find('--- END:BTSNOOP_LOG_SUMMARY') != -1:
+        decode_snooz(base64.standard_b64decode(base64_string))
+        sys.exit(0)
+      base64_string += line.strip()
+
     if line.find('--- BEGIN:BTSNOOP_LOG_SUMMARY') != -1:
-      decode_snooz(base64.standard_b64decode(iterator.next()))
-      sys.exit(0)
-  sys.stderr.write('No btsnooz section found in bugreport.\n');
+      found = True
+
+  if not found:
+    sys.stderr.write('No btsnooz section found in bugreport.\n')
+    sys.exit(1)
 
 
 if __name__ == '__main__':
