@@ -47,7 +47,7 @@ void *BtifAvrcpAudioTrackCreate(int trackFreq, int channelType)
     assert(track != NULL);
 
     BtifAvrcpAudioTrack *trackHolder = new BtifAvrcpAudioTrack;
-    assert(trackHolder);
+    assert(trackHolder != NULL);
     trackHolder->track = track;
 
     if (trackHolder->track->initCheck() != 0)
@@ -64,8 +64,9 @@ void *BtifAvrcpAudioTrackCreate(int trackFreq, int channelType)
 
 void BtifAvrcpAudioTrackStart(void *handle)
 {
+    assert(handle != NULL);
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
-    assert(trackHolder);
+    assert(trackHolder != NULL);
     assert(trackHolder->track != NULL);
     LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
     trackHolder->track->start();
@@ -73,6 +74,10 @@ void BtifAvrcpAudioTrackStart(void *handle)
 
 void BtifAvrcpAudioTrackStop(void *handle)
 {
+    if (handle == NULL) {
+        LOG_DEBUG(LOG_TAG, "%s handle is null.", __func__);
+        return;
+    }
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
     if (trackHolder != NULL && trackHolder->track != NULL) {
         LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
@@ -82,6 +87,10 @@ void BtifAvrcpAudioTrackStop(void *handle)
 
 void BtifAvrcpAudioTrackDelete(void *handle)
 {
+    if (handle == NULL) {
+        LOG_DEBUG(LOG_TAG, "%s handle is null.", __func__);
+        return;
+    }
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
     if (trackHolder != NULL && trackHolder->track != NULL) {
         LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
@@ -99,6 +108,10 @@ void BtifAvrcpAudioTrackDelete(void *handle)
 
 void BtifAvrcpAudioTrackPause(void *handle)
 {
+    if (handle == NULL) {
+        LOG_DEBUG(LOG_TAG, "%s handle is null.", __func__);
+        return;
+    }
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
     if (trackHolder != NULL && trackHolder->track != NULL) {
         LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
@@ -110,7 +123,7 @@ void BtifAvrcpAudioTrackPause(void *handle)
 int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen)
 {
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
-    assert(trackHolder);
+    assert(trackHolder != NULL);
     assert(trackHolder->track != NULL);
     int retval = -1;
 #if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
