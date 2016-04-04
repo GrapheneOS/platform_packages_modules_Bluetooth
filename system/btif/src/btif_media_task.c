@@ -900,7 +900,8 @@ void btif_a2dp_on_init(void)
 {
 #ifdef USE_AUDIO_TRACK
     btif_media_cb.rx_audio_focus_state = BTIF_MEDIA_FOCUS_NOT_GRANTED;
-#endif // USE_AUDIO_TRACK
+    btif_media_cb.audio_track = NULL;
+#endif
 }
 
 
@@ -959,7 +960,7 @@ void btif_a2dp_setup_codec(void)
 
 void btif_a2dp_on_idle(void)
 {
-    APPL_TRACE_EVENT("## ON A2DP IDLE ##");
+    APPL_TRACE_EVENT("## ON A2DP IDLE ## peer_sep = %d", btif_media_cb.peer_sep);
     if (btif_media_cb.peer_sep == AVDT_TSEP_SNK)
     {
         /* Make sure media task is stopped */
@@ -2149,6 +2150,7 @@ static void btif_media_task_aa_handle_clear_track (void)
 #ifdef USE_AUDIO_TRACK
     BtifAvrcpAudioTrackStop(btif_media_cb.audio_track);
     BtifAvrcpAudioTrackDelete(btif_media_cb.audio_track);
+    btif_media_cb.audio_track = NULL;
 #endif
 }
 
