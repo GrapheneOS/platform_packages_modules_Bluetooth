@@ -156,16 +156,18 @@ void btif_debug_btsnoop_dump(int fd) {
   uint8_t b64_in[3] = {0};
   char b64_out[5] = {0};
 
-  size_t i = sizeof(btsnooz_preamble_t);
+  size_t line_length = 0;
   while (ringbuffer_size(ringbuffer) > 0) {
     size_t read = ringbuffer_pop(ringbuffer, b64_in, 3);
-    if (i > 0 && i % MAX_LINE_LENGTH == 0)
+    if (line_length >= MAX_LINE_LENGTH) {
       dprintf(fd, "\n");
-    i += b64_ntop(b64_in, read, b64_out, 5);
+      line_length = 0;
+    }
+    line_length += b64_ntop(b64_in, read, b64_out, 5);
     dprintf(fd, "%s", b64_out);
   }
 
-  dprintf(fd, "\n--- END:BTSNOOP_LOG_SUMMARY (%zu bytes out) ---\n", i);
+  dprintf(fd, "\n--- END:BTSNOOP_LOG_SUMMARY ---\n");
 
 error:
   ringbuffer_free(ringbuffer);
