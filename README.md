@@ -62,6 +62,7 @@ cd third_party
 git clone https://github.com/google/googletest.git
 git clone https://android.googlesource.com/platform/external/libchrome
 git clone https://android.googlesource.com/platform/external/modp_b64
+git clone https://android.googlesource.com/platform/external/tinyxml2
 ```
 
 And third party dependencies of third party dependencies:
