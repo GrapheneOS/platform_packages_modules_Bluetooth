@@ -80,6 +80,7 @@ static_library("btif") {
     "//stack/a2dp",
     "//stack/btm",
     "//stack/include",
+    "//third_party/tinyxml2",
     "//include",
     "//udrv/include",
     "//utils/include",
