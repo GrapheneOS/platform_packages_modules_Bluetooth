@@ -66,6 +66,7 @@ shared_library("bluetooth.default") {
     "//hci",
     "//osi",
     "//stack",
+    "//third_party/tinyxml2",
     "//udrv",
     "//utils",
   ]

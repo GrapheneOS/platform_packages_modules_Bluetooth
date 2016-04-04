@@ -32,6 +32,7 @@
 #include "btcore/include/module.h"
 #include "btif_common.h"
 #include "btif_config.h"
+#include "btif_config_transcode.h"
 #include "btif_util.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
@@ -53,9 +54,11 @@
 #if defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "bt_config.conf";
 static const char *CONFIG_BACKUP_PATH = "bt_config.bak";
+static const char *CONFIG_LEGACY_FILE_PATH = "bt_config.xml";
 #else  // !defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "/data/misc/bluedroid/bt_config.conf";
 static const char *CONFIG_BACKUP_PATH = "/data/misc/bluedroid/bt_config.bak";
+static const char *CONFIG_LEGACY_FILE_PATH = "/data/misc/bluedroid/bt_config.xml";
 #endif  // defined(OS_GENERIC)
 static const period_ms_t CONFIG_SETTLE_PERIOD_MS = 3000;
 
@@ -69,6 +72,7 @@ static enum ConfigSource {
   NOT_LOADED,
   ORIGINAL,
   BACKUP,
+  LEGACY,
   NEW_FILE,
   RESET
 } btif_config_source = NOT_LOADED;
@@ -127,19 +131,24 @@ static future_t *init(void) {
   config = config_new(CONFIG_FILE_PATH);
   btif_config_source = ORIGINAL;
   if (!config) {
-    LOG_WARN(LOG_TAG, "%s unable to load config file: %s; using backup.",
+    LOG_WARN("%s unable to load config file: %s; using backup.",
               __func__, CONFIG_FILE_PATH);
     config = config_new(CONFIG_BACKUP_PATH);
     btif_config_source = BACKUP;
-    if (!config) {
-      LOG_ERROR(LOG_TAG, "%s unable to load backup; creating empty config.", __func__);
-      config = config_new_empty();
-      btif_config_source = NEW_FILE;
-      if (!config) {
-        LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
-        goto error;
-      }
-    }
+  }
+  if (!config) {
+    LOG_WARN("%s unable to load backup; attempting to transcode legacy file.", __func__);
+    config = btif_config_transcode(CONFIG_LEGACY_FILE_PATH);
+    btif_config_source = LEGACY;
+  }
+  if (!config) {
+    LOG_ERROR("%s unable to transcode legacy file; creating empty config.", __func__);
+    config = config_new_empty();
+    btif_config_source = NEW_FILE;
+  }
+  if (!config) {
+    LOG_ERROR("%s unable to allocate a config object.", __func__);
+    goto error;
   }
 
   btif_config_devcache_cleanup();
@@ -161,6 +170,7 @@ error:
   pthread_mutex_destroy(&lock);
   config_timer = NULL;
   config = NULL;
+  btif_config_source = NOT_LOADED;
   return future_new_immediate(FUTURE_FAIL);
 }
 
@@ -486,6 +496,9 @@ void btif_debug_config_dump(int fd) {
             break;
         case BACKUP:
             dprintf(fd, "Backup file\n");
+            break;
+        case LEGACY:
+            dprintf(fd, "Legacy file\n");
             break;
         case NEW_FILE:
             dprintf(fd, "New file\n");
