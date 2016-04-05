@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.a2dp;
+package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAvrcpController;
