@@ -234,7 +234,7 @@ typedef struct {
     scheduling_stats_t tx_queue_dequeue_stats;
 
     size_t tx_queue_total_frames;
-    size_t tx_queue_max_frames;
+    size_t tx_queue_max_frames_per_packet;
 
     uint64_t tx_queue_total_queueing_time_us;
     uint64_t tx_queue_max_queueing_time_us;
@@ -256,6 +256,14 @@ typedef struct {
     size_t media_read_total_underrun_bytes;
     size_t media_read_total_underrun_count;
     uint64_t media_read_last_underrun_us;
+
+    size_t media_read_total_expected_frames;
+    size_t media_read_max_expected_frames;
+    size_t media_read_expected_count;
+
+    size_t media_read_total_limited_frames;
+    size_t media_read_max_limited_frames;
+    size_t media_read_limited_count;
 } btif_media_stats_t;
 
 typedef struct
@@ -2449,10 +2457,19 @@ static UINT8 btif_get_num_aa_frame(void)
 
             /* calculate nbr of frames pending for this media tick */
             result = btif_media_cb.media_feeding_state.pcm.counter/pcm_bytes_per_frame;
+            if (result > btif_media_cb.stats.media_read_max_expected_frames)
+                btif_media_cb.stats.media_read_max_expected_frames = result;
+            btif_media_cb.stats.media_read_total_expected_frames += result;
+            btif_media_cb.stats.media_read_expected_count++;
             if (result > MAX_PCM_FRAME_NUM_PER_TICK)
             {
                 APPL_TRACE_WARNING("%s() - Limiting frames to be sent from %d to %d"
                     , __FUNCTION__, result, MAX_PCM_FRAME_NUM_PER_TICK);
+                size_t delta = result - MAX_PCM_FRAME_NUM_PER_TICK;
+                btif_media_cb.stats.media_read_limited_count++;
+                btif_media_cb.stats.media_read_total_limited_frames += delta;
+                if (delta > btif_media_cb.stats.media_read_max_limited_frames)
+                    btif_media_cb.stats.media_read_max_limited_frames = delta;
                 result = MAX_PCM_FRAME_NUM_PER_TICK;
             }
             btif_media_cb.media_feeding_state.pcm.counter -= result*pcm_bytes_per_frame;
@@ -2725,7 +2742,7 @@ BOOLEAN btif_media_aa_read_feeding(tUIPC_CH_ID channel_id)
 static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
                                           uint64_t timestamp_us)
 {
-    const uint8_t orig_nb_frame = nb_frame;
+    uint8_t remain_nb_frame = nb_frame;
     UINT16 blocm_x_subband = btif_media_cb.encoder.s16NumOfSubBands *
                              btif_media_cb.encoder.s16NumOfBlocks;
 
@@ -2806,9 +2823,11 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
             update_scheduling_stats(&btif_media_cb.stats.tx_queue_enqueue_stats,
                                     timestamp_us,
                                     BTIF_SINK_MEDIA_TIME_TICK_MS * 1000);
-            btif_media_cb.stats.tx_queue_total_frames += orig_nb_frame;
-            if (orig_nb_frame > btif_media_cb.stats.tx_queue_max_frames)
-                btif_media_cb.stats.tx_queue_max_frames = orig_nb_frame;
+            uint8_t done_nb_frame = remain_nb_frame - nb_frame;
+            remain_nb_frame = nb_frame;
+            btif_media_cb.stats.tx_queue_total_frames += done_nb_frame;
+            if (done_nb_frame > btif_media_cb.stats.tx_queue_max_frames_per_packet)
+                btif_media_cb.stats.tx_queue_max_frames_per_packet = done_nb_frame;
             fixed_queue_enqueue(btif_media_cb.TxAaQ, p_buf);
         }
         else
@@ -2993,11 +3012,31 @@ void btif_debug_a2dp_dump(int fd)
                 (unsigned long long)(now_us - stats->tx_queue_last_readbuf_us) / 1000 : 0);
 
     ave_size = 0;
+    if (stats->media_read_expected_count != 0)
+        ave_size = stats->media_read_total_expected_frames / stats->media_read_expected_count;
+    dprintf(fd, "  Frames expected (total/max/ave)                         : %zu / %zu / %zu\n",
+            stats->media_read_total_expected_frames,
+            stats->media_read_max_expected_frames,
+            ave_size);
+
+    ave_size = 0;
+    if (stats->media_read_limited_count != 0)
+        ave_size = stats->media_read_total_limited_frames / stats->media_read_limited_count;
+    dprintf(fd, "  Frames limited (total/max/ave)                          : %zu / %zu / %zu\n",
+            stats->media_read_total_limited_frames,
+            stats->media_read_max_limited_frames,
+            ave_size);
+
+    dprintf(fd, "  Counts (expected/limited)                               : %zu / %zu\n",
+            stats->media_read_expected_count,
+            stats->media_read_limited_count);
+
+    ave_size = 0;
     if (enqueue_stats->total_updates != 0)
         ave_size = stats->tx_queue_total_frames / enqueue_stats->total_updates;
     dprintf(fd, "  Frames per packet (total/max/ave)                       : %zu / %zu / %zu\n",
             stats->tx_queue_total_frames,
-            stats->tx_queue_max_frames,
+            stats->tx_queue_max_frames_per_packet,
             ave_size);
 
     dprintf(fd, "  Counts (flushed/dropped/dropouts)                       : %zu / %zu / %zu\n",
@@ -3098,7 +3137,7 @@ void btif_update_a2dp_metrics(void)
     int64_t session_duration_sec =
         (now_us - stats->session_start_us) / (1000 * 1000);
 
-    /* TODO: Disconnect reason is not supported (yet) */
+    /* NOTE: Disconnect reason is unused */
     const char *disconnect_reason = NULL;
     uint32_t device_class = BTM_COD_MAJOR_AUDIO;
 
@@ -3117,13 +3156,14 @@ void btif_update_a2dp_metrics(void)
                 (1000 * total_scheduling_count);
         }
 
-        /*
-         * TODO: What is buffer_overruns_max_count and
-         * buffer_underruns_average?
-         */
+        buffer_overruns_max_count = stats->media_read_max_expected_frames;
         buffer_overruns_total = stats->tx_queue_total_dropped_messages;
         buffer_underruns_count = stats->media_read_total_underflow_count +
             stats->media_read_total_underrun_count;
+        if (buffer_underruns_count > 0) {
+            buffer_underruns_average =
+                (stats->media_read_total_underflow_bytes + stats->media_read_total_underrun_bytes) / buffer_underruns_count;
+        }
     }
 
     metrics_a2dp_session(session_duration_sec, disconnect_reason, device_class,
