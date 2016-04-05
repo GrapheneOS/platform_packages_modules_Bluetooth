@@ -43,7 +43,8 @@ config_t *config_new(const char *filename);
 //
 // |src| must not be NULL
 // This function will not return NULL.
-config_t *config_clone(config_t *src);
+// Clients must call config_free on the returned object.
+config_t *config_new_clone(const config_t *src);
 
 // Frees resources associated with the config file. No further operations may
 // be performed on the |config| object after calling this function. |config|
