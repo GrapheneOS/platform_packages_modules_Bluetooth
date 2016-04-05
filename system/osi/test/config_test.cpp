@@ -80,9 +80,9 @@ TEST_F(ConfigTest, config_free_null) {
   config_free(NULL);
 }
 
-TEST_F(ConfigTest, config_clone) {
+TEST_F(ConfigTest, config_new_clone) {
   config_t *config = config_new(CONFIG_FILE);
-  config_t *clone = config_clone(config);
+  config_t *clone = config_new_clone(config);
 
   config_set_string(clone, CONFIG_DEFAULT_SECTION, "first_key", "not_value");
 
