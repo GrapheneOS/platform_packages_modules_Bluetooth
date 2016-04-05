@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.a2dp;
+package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothAudioConfig;
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dpSink;
+import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
+import com.android.bluetooth.a2dpsink.mbs.A2dpMediaBrowserService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
@@ -49,14 +51,26 @@ public class A2dpSinkService extends ProfileService {
     }
 
     protected boolean start() {
+        if (DBG) {
+            Log.d(TAG, "start()");
+        }
+        // Start the media browser service.
+        Intent startIntent = new Intent(this, A2dpMediaBrowserService.class);
+        startService(startIntent);
         mStateMachine = A2dpSinkStateMachine.make(this, this);
         setA2dpSinkService(this);
         return true;
     }
 
     protected boolean stop() {
-        if(mStateMachine != null)
+        if (DBG) {
+            Log.d(TAG, "stop()");
+        }
+        if(mStateMachine != null) {
             mStateMachine.doQuit();
+        }
+        Intent stopIntent = new Intent(this, A2dpMediaBrowserService.class);
+        stopService(stopIntent);
         return true;
     }
 

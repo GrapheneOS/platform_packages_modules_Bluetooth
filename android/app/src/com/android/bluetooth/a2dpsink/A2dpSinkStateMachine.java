@@ -26,7 +26,7 @@
  *                           V    |
  *                        (Connected -- See A2dpSinkStreamingStateMachine)
  */
-package com.android.bluetooth.a2dp;
+package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAvrcpController;
@@ -94,7 +94,6 @@ final class A2dpSinkStateMachine extends StateMachine {
     private Context mContext;
     private BluetoothAdapter mAdapter;
     private IntentBroadcastHandler mIntentBroadcastHandler;
-    private final WakeLock mWakeLock;
 
     private static final int MSG_CONNECTION_STATE_CHANGED = 0;
 
@@ -153,7 +152,6 @@ final class A2dpSinkStateMachine extends StateMachine {
         setInitialState(mDisconnected);
 
         PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BluetoothA2dpSinkService");
 
         mIntentBroadcastHandler = new IntentBroadcastHandler();
     }
@@ -338,6 +336,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
+                    log("STACK_EVENT " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             removeMessages(CONNECT_TIMEOUT);
@@ -359,6 +358,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
         // in Pending state
         private void processConnectionEvent(int state, BluetoothDevice device) {
+            log("processConnectionEvent state " + state);
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     mAudioConfigs.remove(device);
@@ -388,7 +388,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         }
                     } else if (mTargetDevice != null && mTargetDevice.equals(device)) {
                         // outgoing connection failed
-                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
+                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_CONNECTED,
                                                  BluetoothProfile.STATE_CONNECTING);
                         synchronized (A2dpSinkStateMachine.this) {
                             mTargetDevice = null;
@@ -408,6 +408,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                     break;
             case CONNECTION_STATE_CONNECTED:
                 if ((mCurrentDevice != null) && mCurrentDevice.equals(device)) {
+                    loge("current device is not null");
                     // disconnection failed
                     broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_DISCONNECTING);
@@ -420,6 +421,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     }
                 } else if (mTargetDevice != null && mTargetDevice.equals(device)) {
+                    loge("target device is not null");
                     broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_CONNECTING);
                     synchronized (A2dpSinkStateMachine.this) {
@@ -428,6 +430,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     }
                 } else if (mIncomingDevice != null && mIncomingDevice.equals(device)) {
+                    loge("incoming device is not null");
                     broadcastConnectionState(mIncomingDevice, BluetoothProfile.STATE_CONNECTED,
                                              BluetoothProfile.STATE_CONNECTING);
                     synchronized (A2dpSinkStateMachine.this) {
@@ -732,7 +735,6 @@ final class A2dpSinkStateMachine extends StateMachine {
     private void broadcastConnectionState(BluetoothDevice device, int newState, int prevState) {
 
        int delay = 0;
-        mWakeLock.acquire();
         mIntentBroadcastHandler.sendMessageDelayed(mIntentBroadcastHandler.obtainMessage(
                                                         MSG_CONNECTION_STATE_CHANGED,
                                                         prevState,
@@ -824,7 +826,6 @@ final class A2dpSinkStateMachine extends StateMachine {
             switch (msg.what) {
                 case MSG_CONNECTION_STATE_CHANGED:
                     onConnectionStateChanged((BluetoothDevice) msg.obj, msg.arg1, msg.arg2);
-                    mWakeLock.release();
                     break;
             }
         }

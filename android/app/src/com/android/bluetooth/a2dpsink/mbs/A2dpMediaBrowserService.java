@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.android.a2dpsink.mbs;
+package com.android.bluetooth.a2dpsink.mbs;
 
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
@@ -38,6 +38,8 @@ import android.os.ResultReceiver;
 import android.service.media.MediaBrowserService;
 import android.util.Pair;
 import android.util.Log;
+
+import com.android.bluetooth.R;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -282,12 +284,22 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         Log.d(TAG, "msgDeviceConnect");
         // We are connected to a new device via A2DP now.
         mA2dpDevice = device;
+        refreshInitialPlayingState();
     }
 
     private void msgProfileConnect(BluetoothProfile profile) {
         Log.d(TAG, "msgProfileConnect");
         if (profile != null) {
             mAvrcpProfile = (BluetoothAvrcpController) profile;
+        }
+        refreshInitialPlayingState();
+    }
+
+    // Refresh the UI if we have a connected device and AVRCP is initialized.
+    private void refreshInitialPlayingState() {
+        if (mAvrcpProfile == null || mA2dpDevice == null) {
+            Log.d(TAG, "AVRCP Profile " + mAvrcpProfile + " device " + mA2dpDevice);
+            return;
         }
 
         List<BluetoothDevice> devices = mAvrcpProfile.getConnectedDevices();
