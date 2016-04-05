@@ -94,7 +94,7 @@ config_t *config_new(const char *filename) {
   return config;
 }
 
-config_t *config_clone(config_t *src) {
+config_t *config_new_clone(const config_t *src) {
   assert(src != NULL);
 
   config_t *ret = config_new_empty();
