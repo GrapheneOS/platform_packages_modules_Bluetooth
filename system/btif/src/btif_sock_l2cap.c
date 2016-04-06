@@ -774,10 +774,6 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data
         APPL_TRACE_DEBUG("BTA_JV_L2CAP_READ_EVT not used");
         break;
 
-    case BTA_JV_L2CAP_RECEIVE_EVT:
-        APPL_TRACE_DEBUG("BTA_JV_L2CAP_RECEIVE_EVT not used");
-        break;
-
     case BTA_JV_L2CAP_WRITE_EVT:
         APPL_TRACE_DEBUG("BTA_JV_L2CAP_WRITE_EVT: id: %u", sock_id);
         on_l2cap_write_done(UINT_TO_PTR(p_data->l2c_write.req_id), p_data->l2c_write.len, sock_id);

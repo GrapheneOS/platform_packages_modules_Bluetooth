@@ -114,20 +114,6 @@ void BTA_JvDisable(void)
 
 /*******************************************************************************
 **
-** Function         BTA_JvIsEnable
-**
-** Description      Get the JV registration status.
-**
-** Returns          TRUE, if registered
-**
-*******************************************************************************/
-BOOLEAN BTA_JvIsEnable(void)
-{
-    return bta_sys_is_register(BTA_ID_JV);
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_JvIsEncrypted
 **
 ** Description      This function checks if the link to peer device is encrypted
@@ -665,55 +651,6 @@ tBTA_JV_STATUS BTA_JvL2capRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT
 
 /*******************************************************************************
 **
-** Function         BTA_JvL2capReceive
-**
-** Description      This function reads data from an L2CAP connection
-**                  When the operation is complete, tBTA_JV_L2CAP_CBACK is
-**                  called with BTA_JV_L2CAP_RECEIVE_EVT.
-**                  If there are more data queued in L2CAP than len, the extra data will be discarded.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-tBTA_JV_STATUS BTA_JvL2capReceive(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
-{
-    tBTA_JV_STATUS status = BTA_JV_FAILURE;
-    tBTA_JV_L2CAP_RECEIVE evt_data;
-    UINT32  left_over = 0;
-    UINT16  max_len, read_len;
-
-    APPL_TRACE_API( "%s", __func__);
-    
-
-    if (handle < BTA_JV_MAX_L2C_CONN && bta_jv_cb.l2c_cb[handle].p_cback)
-    {
-        status = BTA_JV_SUCCESS;
-        evt_data.status = BTA_JV_FAILURE;
-        evt_data.handle = handle;
-        evt_data.req_id = req_id;
-        evt_data.p_data = p_data;
-        evt_data.len    = 0;
-
-        if (BT_PASS == GAP_ConnReadData((UINT16)handle, p_data, len, &evt_data.len))
-        {
-            evt_data.status = BTA_JV_SUCCESS;
-            GAP_GetRxQueueCnt ((UINT16)handle, &left_over);
-            while (left_over)
-            {
-                max_len = (left_over > 0xFFFF)?0xFFFF:left_over;
-                GAP_ConnReadData ((UINT16)handle, NULL, max_len, &read_len);
-                left_over -= read_len;
-            }
-        }
-        bta_jv_cb.l2c_cb[handle].p_cback(
-            BTA_JV_L2CAP_RECEIVE_EVT, (tBTA_JV *)&evt_data, bta_jv_cb.l2c_cb[handle].user_data);
-    }
-
-    return(status);
-}
-/*******************************************************************************
-**
 ** Function         BTA_JvL2capReady
 **
 ** Description      This function determined if there is data to read from
@@ -964,44 +901,6 @@ tBTA_JV_STATUS BTA_JvRfcommStopServer(UINT32 handle, void * user_data)
 
 /*******************************************************************************
 **
-** Function         BTA_JvRfcommRead
-**
-** Description      This function reads data from an RFCOMM connection
-**                  The actual size of data read is returned in p_len.
-**
-** Returns          BTA_JV_SUCCESS, if the request is being processed.
-**                  BTA_JV_FAILURE, otherwise.
-**
-*******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommRead(UINT32 handle, UINT32 req_id, UINT8 *p_data, UINT16 len)
-{
-    tBTA_JV_STATUS status = BTA_JV_FAILURE;
-    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
-    UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
-
-    APPL_TRACE_API("%s", __func__);
-
-    if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
-        si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si]) {
-        tBTA_JV_API_RFCOMM_READ *p_msg =
-            (tBTA_JV_API_RFCOMM_READ *)osi_malloc(sizeof(tBTA_JV_API_RFCOMM_READ));
-        p_msg->hdr.event = BTA_JV_API_RFCOMM_READ_EVT;
-        p_msg->handle = handle;
-        p_msg->req_id = req_id;
-        p_msg->p_data = p_data;
-        p_msg->len = len;
-        p_msg->p_cb = &bta_jv_cb.rfc_cb[hi];
-        p_msg->p_pcb = &bta_jv_cb.port_cb[p_msg->p_cb->rfc_hdl[si] - 1];
-
-        bta_sys_sendmsg(p_msg);
-        status = BTA_JV_SUCCESS;
-    }
-
-    return status;
-}
-
-/*******************************************************************************
-**
 ** Function         BTA_JvRfcommGetPortHdl
 **
 ** Description    This function fetches the rfcomm port handle
@@ -1020,38 +919,6 @@ UINT16 BTA_JvRfcommGetPortHdl(UINT32 handle)
         return bta_jv_cb.port_cb[bta_jv_cb.rfc_cb[hi].rfc_hdl[si] - 1].port_handle;
     else
         return 0xffff;
-}
-
-
-/*******************************************************************************
-**
-** Function         BTA_JvRfcommReady
-**
-** Description      This function determined if there is data to read from
-**                  an RFCOMM connection
-**
-** Returns          BTA_JV_SUCCESS, if data queue size is in *p_data_size.
-**                  BTA_JV_FAILURE, if error.
-**
-*******************************************************************************/
-tBTA_JV_STATUS BTA_JvRfcommReady(UINT32 handle, UINT32 *p_data_size)
-{
-    tBTA_JV_STATUS status = BTA_JV_FAILURE;
-    UINT16          size = 0;
-    UINT32  hi = ((handle & BTA_JV_RFC_HDL_MASK)&~BTA_JV_RFCOMM_MASK) - 1;
-    UINT32  si = BTA_JV_RFC_HDL_TO_SIDX(handle);
-
-    APPL_TRACE_API( "BTA_JvRfcommReady");
-    if (hi < BTA_JV_MAX_RFC_CONN && bta_jv_cb.rfc_cb[hi].p_cback &&
-        si < BTA_JV_MAX_RFC_SR_SESSION && bta_jv_cb.rfc_cb[hi].rfc_hdl[si])
-    {
-        if(PORT_GetRxQueueCnt(bta_jv_cb.rfc_cb[hi].rfc_hdl[si], &size) == PORT_SUCCESS)
-        {
-            status = BTA_JV_SUCCESS;
-        }
-    }
-    *p_data_size = size;
-    return(status);
 }
 
 /*******************************************************************************
