@@ -130,6 +130,8 @@ void btsock_rfc_cleanup(void) {
   pth = -1;
   uid_set = NULL;
 
+  BTA_JvDisable();
+
   pthread_mutex_lock(&slot_lock);
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i) {
     if (rfc_slots[i].id)
