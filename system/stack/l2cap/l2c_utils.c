@@ -78,6 +78,7 @@ tL2C_LCB *l2cu_allocate_lcb (BD_ADDR p_bd_addr, BOOLEAN is_bonding, tBT_TRANSPOR
 #if (BLE_INCLUDED == TRUE)
             p_lcb->transport       = transport;
             p_lcb->tx_data_len     = controller_get_interface()->get_ble_default_data_packet_length();
+            p_lcb->le_sec_pending_q = fixed_queue_new(SIZE_MAX);
 
             if (transport == BT_TRANSPORT_LE)
             {
@@ -250,6 +251,19 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
         p_lcb->p_echo_rsp_cb = NULL;
 
         (*p_cb) (L2CAP_PING_RESULT_NO_LINK);
+    }
+
+    /* Check and release all the LE COC connections waiting for security */
+    if (p_lcb->le_sec_pending_q)
+    {
+        while (!fixed_queue_is_empty(p_lcb->le_sec_pending_q))
+        {
+            tL2CAP_SEC_DATA *p_buf = (tL2CAP_SEC_DATA*) fixed_queue_try_dequeue(p_lcb->le_sec_pending_q);
+            if (p_buf->p_callback)
+                p_buf->p_callback(p_lcb->remote_bd_addr, p_lcb->transport, p_buf->p_ref_data, BTM_DEV_RESET);
+            osi_free(p_buf);
+        }
+        fixed_queue_free(p_lcb->le_sec_pending_q, NULL);
     }
 }
 
