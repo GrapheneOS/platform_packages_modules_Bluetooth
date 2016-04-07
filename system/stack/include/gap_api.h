@@ -208,20 +208,6 @@ extern UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf);
 
 /*******************************************************************************
 **
-** Function         GAP_ConnBTWrite
-**
-** Description      GKI buffer aware applications can call this function to write data
-**                  by passing a pointer to the GKI buffer of data.
-**
-** Returns          BT_PASS                 - data read
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**                  GAP_ERR_BAD_STATE       - connection not established
-**                  GAP_INVALID_BUF_OFFSET  - buffer offset is invalid
-*******************************************************************************/
-extern UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf);
-
-/*******************************************************************************
-**
 ** Function         GAP_ConnWriteData
 **
 ** Description      GKI buffer unaware application will call this function

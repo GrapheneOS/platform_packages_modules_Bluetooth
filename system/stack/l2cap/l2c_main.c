@@ -56,62 +56,6 @@ tL2C_CB l2cb;
 
 /*******************************************************************************
 **
-** Function         l2c_bcst_msg
-**
-** Description
-**
-** Returns          void
-**
-*******************************************************************************/
-void l2c_bcst_msg( BT_HDR *p_buf, UINT16 psm )
-{
-    UINT8       *p;
-
-    /* Ensure we have enough space in the buffer for the L2CAP and HCI headers */
-    if (p_buf->offset < L2CAP_BCST_MIN_OFFSET)
-    {
-        L2CAP_TRACE_ERROR ("L2CAP - cannot send buffer, offset: %d", p_buf->offset);
-        osi_free(p_buf);
-        return;
-    }
-
-    /* Step back some bytes to add the headers */
-    p_buf->offset -= (HCI_DATA_PREAMBLE_SIZE + L2CAP_PKT_OVERHEAD + L2CAP_BCST_OVERHEAD);
-    p_buf->len    += L2CAP_PKT_OVERHEAD + L2CAP_BCST_OVERHEAD;
-
-    /* Set the pointer to the beginning of the data */
-    p = (UINT8 *)(p_buf + 1) + p_buf->offset;
-
-    /* First, the HCI transport header */
-    UINT16_TO_STREAM (p, 0x0050 | (L2CAP_PKT_START << 12) | (2 << 14));
-
-    uint16_t acl_data_size = controller_get_interface()->get_acl_data_size_classic();
-    /* The HCI transport will segment the buffers. */
-    if (p_buf->len > acl_data_size)
-    {
-        UINT16_TO_STREAM (p, acl_data_size);
-    }
-    else
-    {
-        UINT16_TO_STREAM (p, p_buf->len);
-    }
-
-    /* Now the L2CAP header */
-    UINT16_TO_STREAM (p, p_buf->len - L2CAP_PKT_OVERHEAD);
-    UINT16_TO_STREAM (p, L2CAP_CONNECTIONLESS_CID);
-    UINT16_TO_STREAM (p, psm);
-
-    p_buf->len += HCI_DATA_PREAMBLE_SIZE;
-
-    if (p_buf->len <= controller_get_interface()->get_acl_packet_size_classic())
-    {
-
-        bte_main_hci_send(p_buf, BT_EVT_TO_LM_HCI_ACL);
-    }
-}
-
-/*******************************************************************************
-**
 ** Function         l2c_rcv_acl_data
 **
 ** Description      This function is called from the HCI Interface when an ACL
