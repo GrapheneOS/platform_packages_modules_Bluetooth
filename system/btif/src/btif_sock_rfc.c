@@ -606,7 +606,6 @@ static void *rfcomm_cback(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data) {
       on_rfc_outgoing_congest(&p_data->rfc_cong, (uintptr_t)user_data);
       break;
 
-    case BTA_JV_RFCOMM_READ_EVT:
     case BTA_JV_RFCOMM_DATA_IND_EVT:
       // Unused.
       break;

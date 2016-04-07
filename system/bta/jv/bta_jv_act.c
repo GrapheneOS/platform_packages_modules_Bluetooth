@@ -2014,35 +2014,6 @@ void bta_jv_rfcomm_stop_server(tBTA_JV_MSG *p_data)
 
 /*******************************************************************************
 **
-** Function     bta_jv_rfcomm_read
-**
-** Description  Read data from an RFCOMM connection
-**
-** Returns      void
-**
-*******************************************************************************/
-void bta_jv_rfcomm_read(tBTA_JV_MSG *p_data)
-{
-    tBTA_JV_API_RFCOMM_READ *rc = &(p_data->rfcomm_read);
-    tBTA_JV_RFC_CB  *p_cb = rc->p_cb;
-    tBTA_JV_PCB     *p_pcb = rc->p_pcb;
-    tBTA_JV_RFCOMM_READ    evt_data;
-
-    evt_data.status = BTA_JV_FAILURE;
-    evt_data.handle = p_cb->handle;
-    evt_data.req_id = rc->req_id;
-    evt_data.p_data = rc->p_data;
-    if (PORT_ReadData(rc->p_pcb->port_handle, (char *)rc->p_data, rc->len, &evt_data.len) ==
-        PORT_SUCCESS)
-    {
-        evt_data.status = BTA_JV_SUCCESS;
-    }
-
-    p_cb->p_cback(BTA_JV_RFCOMM_READ_EVT, (tBTA_JV *)&evt_data, p_pcb->user_data);
-}
-
-/*******************************************************************************
-**
 ** Function     bta_jv_rfcomm_write
 **
 ** Description  write data to an RFCOMM connection
