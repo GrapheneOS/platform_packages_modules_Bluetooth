@@ -23,12 +23,7 @@
 #include <base/files/scoped_file.h>
 #include <base/logging.h>
 
-// For system properties
-// TODO(icoolidge): abstraction or non-cutils stub.
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  // !defined(OS_GENERIC)
-
+#include "osi/include/properties.h"
 #include "service/daemon.h"
 #include "service/switches.h"
 
