@@ -63,7 +63,7 @@ status_t ScanSettings::readFromParcel(const Parcel* parcel) {
 
   int64_t value64;
   status = parcel->readInt64(&value64);
-  report_delay_ms_ = base::TimeDelta::FromMilliseconds(value64);
+  report_delay_ms_ = ::base::TimeDelta::FromMilliseconds(value64);
 
   status = parcel->readInt32(&value);
   if (status != OK) return status;
