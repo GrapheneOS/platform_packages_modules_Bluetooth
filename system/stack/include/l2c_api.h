@@ -42,9 +42,6 @@
 #define L2CAP_LCC_SDU_LENGTH    2
 #define L2CAP_LCC_OFFSET        (L2CAP_MIN_OFFSET + L2CAP_LCC_SDU_LENGTH)  /* plus SDU length(2) */
 
-/* Minimum offset for broadcast needs another two bytes for the PSM */
-#define L2CAP_BCST_MIN_OFFSET       11
-
 /* ping result codes */
 #define L2CAP_PING_RESULT_OK        0       /* Ping reply received OK     */
 #define L2CAP_PING_RESULT_NO_LINK   1       /* Link could not be setup    */

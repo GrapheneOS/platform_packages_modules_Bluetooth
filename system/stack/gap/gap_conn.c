@@ -466,71 +466,6 @@ UINT16 GAP_ConnBTRead (UINT16 gap_handle, BT_HDR **pp_buf)
     }
 }
 
-
-/*******************************************************************************
-**
-** Function         GAP_ConnBTWrite
-**
-** Description      Bluetooth Aware applications can call this function to write data.
-**
-** Parameters:      handle      - Handle of the connection returned in the Open
-**                  p_buf      - pointer to address of buffer with data,
-**
-** Returns          BT_PASS                 - data read
-**                  GAP_ERR_BAD_HANDLE      - invalid handle
-**                  GAP_ERR_BAD_STATE       - connection not established
-**                  GAP_INVALID_BUF_OFFSET  - buffer offset is invalid
-*******************************************************************************/
-UINT16 GAP_ConnBTWrite (UINT16 gap_handle, BT_HDR *p_buf)
-{
-    tGAP_CCB    *p_ccb = gap_find_ccb_by_handle (gap_handle);
-
-    if (!p_ccb)
-    {
-        osi_free(p_buf);
-        return (GAP_ERR_BAD_HANDLE);
-    }
-
-    if (p_ccb->con_state != GAP_CCB_STATE_CONNECTED)
-    {
-        osi_free(p_buf);
-        return (GAP_ERR_BAD_STATE);
-    }
-
-    if (p_buf->offset < L2CAP_MIN_OFFSET)
-    {
-        osi_free(p_buf);
-        return (GAP_ERR_BUF_OFFSET);
-    }
-
-    fixed_queue_enqueue(p_ccb->tx_queue, p_buf);
-
-    if (p_ccb->is_congested)
-    {
-        return (BT_PASS);
-    }
-
-    /* Send the buffer through L2CAP */
-#if (GAP_CONN_POST_EVT_INCLUDED == TRUE)
-    gap_send_event (gap_handle);
-#else
-    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(p_ccb->tx_queue)) != NULL)
-    {
-        UINT8 status = L2CA_DATA_WRITE (p_ccb->connection_id, p_buf);
-
-        if (status == L2CAP_DW_CONGESTED)
-        {
-            p_ccb->is_congested = TRUE;
-            break;
-        }
-        else if (status != L2CAP_DW_SUCCESS)
-            return (GAP_ERR_BAD_STATE);
-    }
-#endif
-    return (BT_PASS);
-}
-
-
 /*******************************************************************************
 **
 ** Function         GAP_ConnWriteData
@@ -1321,51 +1256,5 @@ void gap_send_event (UINT16 gap_handle)
     GKI_send_msg(BTU_TASK, BTU_HCI_RCV_MBOX, p_msg);
 }
 
-/*******************************************************************************
-**
-** Function     gap_proc_btu_event
-**
-** Description  Event handler for BT_EVT_TO_GAP_MSG event from BTU task
-**
-** Returns      None
-**
-*******************************************************************************/
-void gap_proc_btu_event(BT_HDR *p_msg)
-{
-    tGAP_CCB   *p_ccb = gap_find_ccb_by_handle (p_msg->layer_specific);
-    UINT8       status;
-    BT_HDR     *p_buf;
-
-    if (!p_ccb)
-    {
-        return;
-    }
-
-    if (p_ccb->con_state != GAP_CCB_STATE_CONNECTED)
-    {
-        return;
-    }
-
-    if (p_ccb->is_congested)
-    {
-        return;
-    }
-
-    /* Send the buffer through L2CAP */
-
-    while ((p_buf = (BT_HDR *)fixed_queue_try_dequeue(&p_ccb->tx_queue)) != NULL)
-    {
-        status = L2CA_DATA_WRITE (p_ccb->connection_id, p_buf);
-
-        if (status == L2CAP_DW_CONGESTED)
-        {
-            p_ccb->is_congested = TRUE;
-            break;
-        }
-        else if (status != L2CAP_DW_SUCCESS)
-            break;
-    }
-
-}
 #endif /* (GAP_CONN_POST_EVT_INCLUDED == TRUE) */
 #endif  /* GAP_CONN_INCLUDED */
