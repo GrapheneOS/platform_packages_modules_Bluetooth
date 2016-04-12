@@ -1116,10 +1116,9 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 {
     UNUSED(p_buf);
 
-    APPL_TRACE_ERROR("%s: *****************************************************************************************************", __func__);
+    APPL_TRACE_DEBUG("%s", __func__);
     if (p_cb->status == BTA_HH_OK)
     {
-        APPL_TRACE_ERROR("%s: OK", __func__);
         if (!p_cb->hid_srvc.in_use)
         {
             APPL_TRACE_DEBUG("bta_hh_security_cmpl no reports loaded, try to load");
@@ -1136,18 +1135,17 @@ void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
         /*  discovery has been done for HID service */
         if (p_cb->app_id != 0 && p_cb->hid_srvc.in_use)
         {
-            APPL_TRACE_ERROR("%s: discovery has been done for HID service", __func__);
+            APPL_TRACE_DEBUG("%s: discovery has been done for HID service", __func__);
             /* configure protocol mode */
             if (bta_hh_le_set_protocol_mode(p_cb, p_cb->mode) == FALSE)
             {
-                APPL_TRACE_ERROR("bta_hh_security_cmpl");
                 bta_hh_le_open_cmpl(p_cb);
             }
         }
         /* start primary service discovery for HID service */
         else
         {
-            APPL_TRACE_ERROR("%s: Starting service discovery", __func__);
+            APPL_TRACE_DEBUG("%s: Starting service discovery", __func__);
             bta_hh_le_pri_service_discovery(p_cb);
         }
     }
