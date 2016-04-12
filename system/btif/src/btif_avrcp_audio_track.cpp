@@ -15,6 +15,8 @@
  */
 
 //#define LOG_NDEBUG 0
+#define LOG_TAG "bt_btif_avrcp_audio_track"
+
 #include "btif_avrcp_audio_track.h"
 
 #include <media/AudioTrack.h>

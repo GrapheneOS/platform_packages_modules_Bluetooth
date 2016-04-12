@@ -40,15 +40,7 @@
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
-
-/**
- * TODO(apanicke): cutils/properties.h is only being used to pull-in runtime
- * settings on Android. Remove this conditional include once we have a generic
- * way to obtain system properties.
- */
-#if !defined(OS_GENERIC)
-#include <cutils/properties.h>
-#endif  /* !defined(OS_GENERIC) */
+#include "osi/include/properties.h"
 
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(OS_GENERIC)
@@ -131,23 +123,23 @@ static future_t *init(void) {
   config = config_new(CONFIG_FILE_PATH);
   btif_config_source = ORIGINAL;
   if (!config) {
-    LOG_WARN("%s unable to load config file: %s; using backup.",
+    LOG_WARN(LOG_TAG, "%s unable to load config file: %s; using backup.",
               __func__, CONFIG_FILE_PATH);
     config = config_new(CONFIG_BACKUP_PATH);
     btif_config_source = BACKUP;
   }
   if (!config) {
-    LOG_WARN("%s unable to load backup; attempting to transcode legacy file.", __func__);
+    LOG_WARN(LOG_TAG, "%s unable to load backup; attempting to transcode legacy file.", __func__);
     config = btif_config_transcode(CONFIG_LEGACY_FILE_PATH);
     btif_config_source = LEGACY;
   }
   if (!config) {
-    LOG_ERROR("%s unable to transcode legacy file; creating empty config.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to transcode legacy file; creating empty config.", __func__);
     config = config_new_empty();
     btif_config_source = NEW_FILE;
   }
   if (!config) {
-    LOG_ERROR("%s unable to allocate a config object.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
     goto error;
   }
 
@@ -501,12 +493,12 @@ void btif_debug_config_dump(int fd) {
 
 static bool is_factory_reset(void) {
   char factory_reset[PROPERTY_VALUE_MAX] = {0};
-  property_get("persist.bluetooth.factoryreset", factory_reset, "false");
+  osi_property_get("persist.bluetooth.factoryreset", factory_reset, "false");
   return strncmp(factory_reset, "true", 4) == 0;
 }
 
 static void delete_config_files(void) {
   remove(CONFIG_FILE_PATH);
   remove(CONFIG_BACKUP_PATH);
-  property_set("persist.bluetooth.factoryreset", "false");
+  osi_property_set("persist.bluetooth.factoryreset", "false");
 }
