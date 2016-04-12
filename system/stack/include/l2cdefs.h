@@ -59,7 +59,6 @@
 #define L2CAP_ECHO_RSP_LEN      0           /* Data is optional                     */
 #define L2CAP_INFO_REQ_LEN      2           /* Info type                            */
 #define L2CAP_INFO_RSP_LEN      4           /* Info type, result (data is optional) */
-#define L2CAP_BCST_OVERHEAD     2           /* Additional broadcast packet overhead */
 #define L2CAP_UCD_OVERHEAD      2           /* Additional connectionless packet overhead */
 
 #define L2CAP_AMP_CONN_REQ_LEN  5           /* PSM, CID, and remote controller ID   */
