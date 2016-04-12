@@ -313,7 +313,8 @@ LowEnergyClient::LowEnergyClient(
       adv_started_(false),
       adv_start_callback_(nullptr),
       adv_stop_callback_(nullptr),
-      scan_started_(false) {
+      scan_started_(false),
+      delegate_(nullptr) {
 }
 
 LowEnergyClient::~LowEnergyClient() {
