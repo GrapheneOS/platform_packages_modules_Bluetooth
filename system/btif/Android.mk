@@ -115,7 +115,7 @@ include $(CLEAR_VARS)
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifCommonSrc)
 # Many .h files have redefined typedefs
-LOCAL_SHARED_LIBRARIES := libcutils liblog
+LOCAL_SHARED_LIBRARIES := libmedia libcutils liblog
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libbtif
