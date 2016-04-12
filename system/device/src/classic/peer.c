@@ -21,7 +21,6 @@
 #include "device/include/classic/peer.h"
 
 #include <assert.h>
-#include <cutils/log.h>
 #include <pthread.h>
 #include <stdbool.h>
 

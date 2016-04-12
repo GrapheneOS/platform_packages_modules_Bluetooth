@@ -21,6 +21,7 @@ static_library("btif") {
     #TODO(jpawlowski): heavily depends on Android,
     #   "src/btif_avrcp_audio_track.cpp",
     "src/btif_config.c",
+    "src/btif_config_transcode.cpp",
     "src/btif_core.c",
     "src/btif_debug.c",
     "src/btif_debug_btsnoop.c",

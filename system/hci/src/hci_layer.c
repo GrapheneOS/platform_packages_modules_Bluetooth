@@ -175,10 +175,7 @@ static future_t *start_up(void) {
 
   pthread_mutex_init(&commands_pending_response_lock, NULL);
 
-  // TODO(armansito): cutils/properties.h is only being used to pull-in runtime
-  // settings on Android. Remove this conditional include once we have a generic
-  // way to obtain system properties. For now, always use the default timeout on
-  // non-Android builds.
+  // For now, always use the default timeout on non-Android builds.
   period_ms_t startup_timeout_ms = DEFAULT_STARTUP_TIMEOUT_MS;
 
   // Grab the override startup timeout ms, if present.
