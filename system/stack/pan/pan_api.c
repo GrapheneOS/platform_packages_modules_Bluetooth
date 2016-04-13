@@ -166,12 +166,12 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
     /* Register all the roles with SDP */
     PAN_TRACE_API ("PAN_SetRole() called with role 0x%x", role);
 #if (defined (PAN_SUPPORTS_ROLE_NAP) && PAN_SUPPORTS_ROLE_NAP == TRUE)
-    /* Check the service name */
-    if ((p_nap_name == NULL) || (*p_nap_name == 0))
-        p_nap_name = PAN_NAP_DEFAULT_SERVICE_NAME;
-
     if (role & PAN_ROLE_NAP_SERVER)
     {
+        /* Check the service name */
+        if ((p_nap_name == NULL) || (*p_nap_name == 0))
+            p_nap_name = PAN_NAP_DEFAULT_SERVICE_NAME;
+
         /* Registering for NAP service with SDP */
         p_desc = PAN_NAP_DEFAULT_DESCRIPTION;
 
@@ -194,12 +194,12 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
 #endif
 
 #if (defined (PAN_SUPPORTS_ROLE_GN) && PAN_SUPPORTS_ROLE_GN == TRUE)
-    /* Check the service name */
-    if ((p_gn_name == NULL) || (*p_gn_name == 0))
-        p_gn_name = PAN_GN_DEFAULT_SERVICE_NAME;
-
     if (role & PAN_ROLE_GN_SERVER)
     {
+        /* Check the service name */
+        if ((p_gn_name == NULL) || (*p_gn_name == 0))
+            p_gn_name = PAN_GN_DEFAULT_SERVICE_NAME;
+
         /* Registering for GN service with SDP */
         p_desc = PAN_GN_DEFAULT_DESCRIPTION;
 
@@ -222,12 +222,12 @@ tPAN_RESULT PAN_SetRole (UINT8 role,
 #endif
 
 #if (defined (PAN_SUPPORTS_ROLE_PANU) && PAN_SUPPORTS_ROLE_PANU == TRUE)
-    /* Check the service name */
-    if ((p_user_name == NULL) || (*p_user_name == 0))
-        p_user_name = PAN_PANU_DEFAULT_SERVICE_NAME;
-
     if (role & PAN_ROLE_CLIENT)
     {
+        /* Check the service name */
+        if ((p_user_name == NULL) || (*p_user_name == 0))
+            p_user_name = PAN_PANU_DEFAULT_SERVICE_NAME;
+
         /* Registering for PANU service with SDP */
         p_desc = PAN_PANU_DEFAULT_DESCRIPTION;
         if (pan_cb.pan_user_sdp_handle != 0)
