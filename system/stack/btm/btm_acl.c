@@ -497,10 +497,9 @@ void btm_acl_device_down (void)
 *******************************************************************************/
 void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
 {
-    tBTM_BL_UPDATE_DATA  evt;
-    UINT8 busy_level;
-    BTM_TRACE_DEBUG ("btm_acl_update_busy_level");
     BOOLEAN old_inquiry_state = btm_cb.is_inquiry;
+    tBTM_BL_UPDATE_DATA  evt;
+    evt.busy_level_flags = 0;
     switch (event)
     {
         case BTM_BLI_ACL_UP_EVT:
@@ -536,6 +535,7 @@ void btm_acl_update_busy_level (tBTM_BLI_EVENT event)
             break;
     }
 
+    UINT8 busy_level;
     if (btm_cb.is_paging || btm_cb.is_inquiry)
         busy_level = 10;
     else
