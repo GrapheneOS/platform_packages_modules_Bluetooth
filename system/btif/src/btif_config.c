@@ -79,6 +79,7 @@ static enum ConfigSource {
   RESET
 } btif_config_source = NOT_LOADED;
 
+static int btif_config_devices_loaded = -1;
 
 // TODO(zachoverflow): Move these two functions out, because they are too specific for this file
 // {grumpy-cat/no, monty-python/you-make-me-sad}
@@ -452,6 +453,7 @@ static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_para
 
 static void btif_config_remove_unpaired(config_t *conf) {
   assert(conf != NULL);
+  int paired_devices = 0;
 
   // The paired config used to carry information about
   // discovered devices during regular inquiry scans.
@@ -470,14 +472,17 @@ static void btif_config_remove_unpaired(config_t *conf) {
         config_remove_section(conf, section);
         continue;
       }
+      paired_devices++;
     }
     snode = config_section_next(snode);
   }
+
+  // should only happen once, at initial load time
+  if (btif_config_devices_loaded == -1)
+    btif_config_devices_loaded = paired_devices;
 }
 
 void btif_debug_config_dump(int fd) {
-    pthread_mutex_lock(&lock);
-
     dprintf(fd, "\nBluetooth Config:\n");
 
     dprintf(fd, "  Config Source: ");
@@ -502,7 +507,7 @@ void btif_debug_config_dump(int fd) {
             break;
     }
 
-    pthread_mutex_unlock(&lock);
+    dprintf(fd, "  Devices loaded: %d\n", btif_config_devices_loaded);
 }
 
 static void btif_config_remove_restricted(config_t* config) {
