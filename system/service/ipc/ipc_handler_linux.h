@@ -18,6 +18,7 @@
 
 #include <atomic>
 
+#include <android-base/macros.h>
 #include <base/files/file_path.h>
 #include <base/files/scoped_file.h>
 #include <base/macros.h>
@@ -61,7 +62,11 @@ class IPCHandlerLinux : public IPCHandler {
   void NotifyStoppedOnCurrentThread();
 
   // True, if the IPC mechanism is running.
+#if defined(__APPLE__)
+  bool running_ ATTRIBUTE_UNUSED;
+#else
   bool running_;
+#endif
 
   // The server socket on which we listen to incoming connections.
   base::ScopedFD socket_;
