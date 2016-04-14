@@ -125,6 +125,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         mSession.setCallback(mSessionCallbacks);
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mSession.setActive(true);
         mAvrcpCommandQueue = new AvrcpCommandQueueHandler(Looper.getMainLooper(), this);
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
