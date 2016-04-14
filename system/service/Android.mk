@@ -138,6 +138,7 @@ LOCAL_MODULE := bluetoothtbd
 LOCAL_REQUIRED_MODULES = bluetooth.default
 LOCAL_STATIC_LIBRARIES += libbtcore
 LOCAL_SHARED_LIBRARIES += \
+	libbase \
 	libbinder \
 	libchrome \
 	libcutils \
@@ -173,7 +174,7 @@ endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd-host_test
-LOCAL_SHARED_LIBRARIES += libchrome
+LOCAL_SHARED_LIBRARIES += libbase libchrome
 LOCAL_STATIC_LIBRARIES += libgmock_host libgtest_host liblog
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_HOST_NDEBUG)
@@ -201,6 +202,7 @@ LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
 LOCAL_MODULE := bluetoothtbd_test
 LOCAL_SHARED_LIBRARIES += \
+	libbase \
 	libbinder \
 	libchrome \
 	libutils
