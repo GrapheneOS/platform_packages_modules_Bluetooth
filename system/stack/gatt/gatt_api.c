@@ -1274,7 +1274,7 @@ void GATT_Deregister (tGATT_IF gatt_if)
         {
             if (gatt_get_ch_state(p_tcb) != GATT_CH_CLOSE)
             {
-                gatt_update_app_use_link_flag(gatt_if, p_tcb,  FALSE, FALSE);
+                gatt_update_app_use_link_flag(gatt_if, p_tcb,  FALSE, TRUE);
             }
 
             for (j = 0, p_clcb= &gatt_cb.clcb[j]; j < GATT_CL_MAX_LCB; j++, p_clcb++)
@@ -1490,7 +1490,7 @@ tGATT_STATUS GATT_Disconnect (UINT16 conn_id)
 
     if (p_tcb)
     {
-        gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, FALSE);
+        gatt_update_app_use_link_flag(gatt_if, p_tcb, FALSE, TRUE);
         ret = GATT_SUCCESS;
     }
     return ret;
