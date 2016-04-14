@@ -215,7 +215,7 @@ static void *btif_hh_poll_event_thread(void *arg)
         if (pfds[0].revents & POLLIN) {
             APPL_TRACE_DEBUG("%s: POLLIN", __func__);
             ret = uhid_event(p_dev);
-            if (ret != -EINTR)
+            if (ret != -EINTR && ret != 0)
                 break;
         }
     }
