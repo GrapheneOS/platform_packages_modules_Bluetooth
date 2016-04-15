@@ -50,6 +50,11 @@ void BtifAvrcpAudioTrackStart(void *handle);
 void BtifAvrcpAudioTrackPause(void *handle);
 
 /**
+ * Sets audio track gain.
+ */
+void BtifAvrcpSetAudioTrackGain(void *handle, float gain);
+
+/**
  * Stop / Delete the audio track.
  * Delete should usually be called stop.
  */
