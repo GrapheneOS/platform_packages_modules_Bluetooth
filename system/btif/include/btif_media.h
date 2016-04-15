@@ -295,6 +295,7 @@ int btif_a2dp_get_track_channel_count(UINT8 channeltype);
 void btif_a2dp_set_peer_sep(UINT8 sep);
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state);
+void btif_a2dp_set_audio_track_gain(float gain);
 #endif
 
 void btif_debug_a2dp_dump(int fd);
