@@ -1266,6 +1266,12 @@ void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state)
     p_buf->hdr.event = BTIF_MEDIA_AUDIO_SINK_SET_FOCUS_STATE;
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
 }
+
+void btif_a2dp_set_audio_track_gain(float gain)
+{
+    APPL_TRACE_DEBUG("%s set gain to %f", __func__, gain);
+    BtifAvrcpSetAudioTrackGain(btif_media_cb.audio_track, gain);
+}
 #endif
 
 #if (BTA_AV_SINK_INCLUDED == TRUE)
