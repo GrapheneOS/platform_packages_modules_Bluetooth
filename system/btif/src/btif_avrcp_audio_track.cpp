@@ -122,6 +122,19 @@ void BtifAvrcpAudioTrackPause(void *handle)
     }
 }
 
+void BtifAvrcpSetAudioTrackGain(void *handle, float gain)
+{
+    if (handle == NULL) {
+        LOG_DEBUG(LOG_TAG, "%s handle is null.", __func__);
+        return;
+    }
+    BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
+    if (trackHolder != NULL && trackHolder->track != NULL) {
+        LOG_VERBOSE(LOG_TAG, "%s set gain %f", __func__, gain);
+        trackHolder->track->setVolume(gain);
+    }
+}
+
 int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen)
 {
     BtifAvrcpAudioTrack *trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);

@@ -1253,6 +1253,20 @@ void update_audio_focus_state(int state)
     btif_a2dp_set_audio_focus_state(state);
 }
 
+/*******************************************************************************
+**
+** Function         update_audio_track_gain
+**
+** Description      Updates the track gain (used for ducking).
+**
+** Returns          None
+**
+*******************************************************************************/
+void update_audio_track_gain(float gain)
+{
+    BTIF_TRACE_DEBUG("%s gain %f ",__func__, gain);
+    btif_a2dp_set_audio_track_gain(gain);
+}
 #endif
 
 /*******************************************************************************
@@ -1364,6 +1378,7 @@ static const btav_interface_t bt_av_src_interface = {
     disconnect,
     cleanup_src,
     NULL,
+    NULL,
 };
 
 static const btav_interface_t bt_av_sink_interface = {
@@ -1374,7 +1389,9 @@ static const btav_interface_t bt_av_sink_interface = {
     cleanup_sink,
 #ifdef USE_AUDIO_TRACK
     update_audio_focus_state,
+    update_audio_track_gain,
 #else
+    NULL,
     NULL,
 #endif
 };
