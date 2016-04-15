@@ -97,8 +97,12 @@
 #define AVRC_SUPF_CT_CAT2               0x0002      /* Category 2 */
 #define AVRC_SUPF_CT_CAT3               0x0004      /* Category 3 */
 #define AVRC_SUPF_CT_CAT4               0x0008      /* Category 4 */
-#define AVRC_SUPF_CT_BROWSE             0x0040      /* Browsing */
 #define AVRC_SUPF_CT_APP_SETTINGS       0x0010      /* Player Application Settings */
+#define AVRC_SUPF_CT_GROUP_NAVI         0x0020      /* Group Navigation */
+#define AVRC_SUPF_CT_BROWSE             0x0040      /* Browsing */
+#define AVRC_SUPF_CT_COVER_ART_GET_IMAGE_PROP   0x0080  /* Cover Art, get image property */
+#define AVRC_SUPF_CT_COVER_ART_GET_IMAGE        0x0100  /* Cover Art, get image */
+#define AVRC_SUPF_CT_COVER_ART_GET_THUMBNAIL    0x0200  /* Cover Art, get Linked Thumbnail */
 
 #define AVRC_SUPF_TG_CAT1               0x0001      /* Category 1 */
 #define AVRC_SUPF_TG_CAT2               0x0002      /* Category 2 */
@@ -108,6 +112,7 @@
 #define AVRC_SUPF_TG_GROUP_NAVI         0x0020      /* Group Navigation */
 #define AVRC_SUPF_TG_BROWSE             0x0040      /* Browsing */
 #define AVRC_SUPF_TG_MULTI_PLAYER       0x0080      /* Muliple Media Player */
+#define AVRC_SUPF_TG_PLAYER_COVER_ART   0x0100      /* Cover Art */
 
 #define AVRC_META_SUCCESS               AVRC_SUCCESS
 #define AVRC_META_FAIL                  AVRC_FAIL
@@ -205,7 +210,8 @@ extern "C"
 **
 ******************************************************************************/
 extern UINT16 AVRC_AddRecord(UINT16 service_uuid, char *p_service_name,
-                char *p_provider_name, UINT16 categories, UINT32 sdp_handle, BOOLEAN browse_supported);
+                char *p_provider_name, UINT16 categories, UINT32 sdp_handle,
+                BOOLEAN browse_supported, UINT16 profile_version);
 
 /******************************************************************************
 **
