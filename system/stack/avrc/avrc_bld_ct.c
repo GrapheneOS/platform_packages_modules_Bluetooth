@@ -112,7 +112,8 @@ static tAVRC_STS avrc_bld_register_notifn(BT_HDR * p_pkt, UINT8 event_id, UINT32
     p_pkt->len = (p_data - p_start);
     return AVRC_STS_NO_ERROR;
 }
-
+#endif
+#if (AVRC_CTLR_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_bld_get_capability_cmd
@@ -456,10 +457,12 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
         status = avrc_bld_set_abs_volume_cmd(&p_cmd->volume, p_pkt);
         break;
 #endif
-#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     case AVRC_PDU_REGISTER_NOTIFICATION:      /* 0x31 */
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
         status=avrc_bld_register_notifn(p_pkt,p_cmd->reg_notif.event_id,p_cmd->reg_notif.param);
+#endif
         break;
+#if (AVRC_CTLR_INCLUDED == TRUE)
     case AVRC_PDU_GET_CAPABILITIES:
         status = avrc_bld_get_capability_cmd(p_pkt, p_cmd->get_caps.capability_id);
         break;
