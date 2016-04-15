@@ -964,7 +964,7 @@ public class AdapterService extends Service {
         }
 
         public boolean createBond(BluetoothDevice device, int transport) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "createBond() - Not allowed for non-active user");
                 return false;
             }
@@ -975,7 +975,7 @@ public class AdapterService extends Service {
         }
 
         public boolean createBondOutOfBand(BluetoothDevice device, int transport, OobData oobData) {
-            if (!Utils.checkCaller()) {
+            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "createBondOutOfBand() - Not allowed for non-active user");
                 return false;
             }
