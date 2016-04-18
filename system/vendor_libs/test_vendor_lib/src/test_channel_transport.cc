@@ -21,6 +21,7 @@
 #include "base/logging.h"
 
 extern "C" {
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 #include <sys/socket.h>
@@ -123,7 +124,9 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   command_handler_(command_name, args);
 }
 
-void TestChannelTransport::OnFileCanWriteWithoutBlocking(int fd) {}
+void TestChannelTransport::OnFileCanWriteWithoutBlocking(
+  int fd UNUSED_ATTR) {
+}
 
 void TestChannelTransport::RegisterCommandHandler(
     std::function<void(const std::string&, const std::vector<std::string>&)>
