@@ -34,6 +34,7 @@ public class HfpClientConnection extends Connection {
 
     private BluetoothHeadsetClient mHeadsetProfile;
     private BluetoothHeadsetClientCall mCurrentCall;
+    private boolean mClosing;
     private boolean mClosed;
     private boolean mLocalDisconnect;
     private boolean mClientHasEcc;
@@ -89,8 +90,24 @@ public class HfpClientConnection extends Connection {
     public void handleCallChanged(BluetoothHeadsetClientCall call) {
         HfpClientConference conference = (HfpClientConference) getConference();
         mCurrentCall = call;
-
         int state = call.getState();
+
+        // If this call is already terminated (locally) but we are only hearing about the handle of
+        // the call right now -- then close the call.
+        boolean closing = false;
+        synchronized (this) {
+            closing = mClosing;
+        }
+        if (closing && state != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
+            if (mHeadsetProfile != null) {
+                mHeadsetProfile.terminateCall(mDevice, mClientHasEcc ? mCurrentCall.getId() : 0);
+                mLocalDisconnect = true;
+            } else {
+                Log.e(TAG, "HFP disconnected but call update received, ignore.");
+            }
+            return;
+        }
+
         Log.d(TAG, "Got call state change to " + state);
         switch (state) {
             case BluetoothHeadsetClientCall.CALL_STATE_ACTIVE:
@@ -160,14 +177,16 @@ public class HfpClientConnection extends Connection {
     }
 
     @Override
-    public void onDisconnect() {
+    public synchronized void onDisconnect() {
         Log.d(TAG, "onDisconnect " + mCurrentCall);
+        mClosing = true;
         if (!mClosed) {
+            // In this state we can close the call without problems.
             if (mHeadsetProfile != null && mCurrentCall != null) {
                 mHeadsetProfile.terminateCall(mDevice, mClientHasEcc ? mCurrentCall.getId() : 0);
                 mLocalDisconnect = true;
-            } else {
-                close(DisconnectCause.LOCAL);
+            } else if (mCurrentCall == null) {
+                Log.w(TAG, "Call disconnected but call handle not received.");
             }
         }
     }
