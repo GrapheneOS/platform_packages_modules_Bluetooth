@@ -127,12 +127,12 @@ TEST_F(AdapterTest, Enable) {
   EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
 
   // Enable fails at HAL level
-  EXPECT_FALSE(adapter_->Enable());
+  EXPECT_FALSE(adapter_->Enable(false));
   EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, adapter_->GetState());
 
   // Enable success
   fake_hal_manager_->enable_succeed = true;
-  EXPECT_TRUE(adapter_->Enable());
+  EXPECT_TRUE(adapter_->Enable(false));
 
   // Should have received a state update.
   EXPECT_EQ(bluetooth::ADAPTER_STATE_OFF, observer.prev_state());
@@ -140,7 +140,7 @@ TEST_F(AdapterTest, Enable) {
 
   // Enable fails because not disabled
   EXPECT_EQ(bluetooth::ADAPTER_STATE_TURNING_ON, adapter_->GetState());
-  EXPECT_FALSE(adapter_->Enable());
+  EXPECT_FALSE(adapter_->Enable(false));
 
   // Adapter state updates properly
   fake_hal_iface_->NotifyAdapterStateChanged(BT_STATE_ON);
@@ -151,7 +151,7 @@ TEST_F(AdapterTest, Enable) {
   EXPECT_EQ(bluetooth::ADAPTER_STATE_ON, observer.cur_state());
 
   // Enable fails because already enabled
-  EXPECT_FALSE(adapter_->Enable());
+  EXPECT_FALSE(adapter_->Enable(false));
 }
 
 TEST_F(AdapterTest, Disable) {
