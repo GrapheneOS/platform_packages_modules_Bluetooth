@@ -229,7 +229,7 @@ static void post_result_to_callback(void *context) {
   thread_fn callback = wrapper->callback;
 
   // Clean up the resources we used
-  thread_stop(wrapper->lifecycle_thread);
+  thread_free(wrapper->lifecycle_thread);
   osi_free(wrapper);
 
   callback(result);
