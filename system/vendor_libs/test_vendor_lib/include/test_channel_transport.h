@@ -68,8 +68,8 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
   std::unique_ptr<base::ScopedFD> fd_;
 
   // TODO(dennischeng): Get port and enabled flag from a config file.
-  int port_;
   bool enabled_;
+  int port_;
 
   DISALLOW_COPY_AND_ASSIGN(TestChannelTransport);
 };
