@@ -99,7 +99,12 @@ static bool get_stack_is_running(void) {
 static void event_init_stack(void *context) {
   semaphore_t *semaphore = (semaphore_t *)context;
 
-  if (!stack_is_initialized) {
+  LOG_INFO(LOG_TAG, "%s is initializing the stack", __func__);
+
+ if (stack_is_initialized) {
+   LOG_INFO(LOG_TAG, "%s found the stack already in initialized state",
+            __func__);
+ } else {
     module_management_start();
 
     module_init(get_module(OSI_MODULE));
@@ -110,6 +115,8 @@ static void event_init_stack(void *context) {
     // stack init is synchronous, so no waiting necessary here
     stack_is_initialized = true;
   }
+
+  LOG_INFO(LOG_TAG, "%s finished", __func__);
 
   if (semaphore)
     semaphore_post(semaphore);
@@ -126,13 +133,13 @@ static void ensure_stack_is_initialized(void) {
 // Synchronous function to start up the stack
 static void event_start_up_stack(UNUSED_ATTR void *context) {
   if (stack_is_running) {
-    LOG_DEBUG(LOG_TAG, "%s stack already brought up.", __func__);
+    LOG_INFO(LOG_TAG, "%s stack already brought up", __func__);
     return;
   }
 
   ensure_stack_is_initialized();
 
-  LOG_DEBUG(LOG_TAG, "%s is bringing up the stack.", __func__);
+  LOG_INFO(LOG_TAG, "%s is bringing up the stack", __func__);
   future_t *local_hack_future = future_new();
   hack_future = local_hack_future;
 
@@ -141,24 +148,25 @@ static void event_start_up_stack(UNUSED_ATTR void *context) {
   bte_main_enable();
 
   if (future_await(local_hack_future) != FUTURE_SUCCESS) {
+    LOG_ERROR(LOG_TAG, "%s failed to start up the stack", __func__);
     stack_is_running = true; // So stack shutdown actually happens
     event_shut_down_stack(NULL);
     return;
   }
 
   stack_is_running = true;
-  LOG_DEBUG(LOG_TAG, "%s finished", __func__);
+  LOG_INFO(LOG_TAG, "%s finished", __func__);
   btif_thread_post(event_signal_stack_up, NULL);
 }
 
 // Synchronous function to shut down the stack
 static void event_shut_down_stack(UNUSED_ATTR void *context) {
   if (!stack_is_running) {
-    LOG_DEBUG(LOG_TAG, "%s stack is already brought down.", __func__);
+    LOG_INFO(LOG_TAG, "%s stack is already brought down", __func__);
     return;
   }
 
-  LOG_DEBUG(LOG_TAG, "%s is bringing down the stack.", __func__);
+  LOG_INFO(LOG_TAG, "%s is bringing down the stack", __func__);
   future_t *local_hack_future = future_new();
   hack_future = local_hack_future;
   stack_is_running = false;
@@ -169,7 +177,7 @@ static void event_shut_down_stack(UNUSED_ATTR void *context) {
   future_await(local_hack_future);
   module_shut_down(get_module(CONTROLLER_MODULE)); // Doesn't do any work, just puts it in a restartable state
 
-  LOG_DEBUG(LOG_TAG, "%s finished.", __func__);
+  LOG_INFO(LOG_TAG, "%s finished", __func__);
   btif_thread_post(event_signal_stack_down, NULL);
 }
 
@@ -183,13 +191,13 @@ static void ensure_stack_is_not_running(void) {
 // Synchronous function to clean up the stack
 static void event_clean_up_stack(void *context) {
   if (!stack_is_initialized) {
-    LOG_DEBUG(LOG_TAG, "%s found the stack already in a clean state.", __func__);
+    LOG_INFO(LOG_TAG, "%s found the stack already in a clean state", __func__);
     goto cleanup;
   }
 
   ensure_stack_is_not_running();
 
-  LOG_DEBUG(LOG_TAG, "%s is cleaning up the stack.", __func__);
+  LOG_INFO(LOG_TAG, "%s is cleaning up the stack", __func__);
   future_t *local_hack_future = future_new();
   hack_future = local_hack_future;
   stack_is_initialized = false;
@@ -201,7 +209,7 @@ static void event_clean_up_stack(void *context) {
   future_await(local_hack_future);
   module_clean_up(get_module(OSI_MODULE));
   module_management_stop();
-  LOG_DEBUG(LOG_TAG, "%s finished.", __func__);
+  LOG_INFO(LOG_TAG, "%s finished", __func__);
 
 cleanup:;
   semaphore_t *semaphore = (semaphore_t *)context;
@@ -226,7 +234,7 @@ static void ensure_manager_initialized(void) {
 
   management_thread = thread_new("stack_manager");
   if (!management_thread) {
-    LOG_ERROR(LOG_TAG, "%s unable to create stack management thread.", __func__);
+    LOG_ERROR(LOG_TAG, "%s unable to create stack management thread", __func__);
     return;
   }
 }
