@@ -37,7 +37,7 @@ bool TestChannelTransport::SetUp() {
   CHECK(enabled_);
 
   struct sockaddr_in listen_address, test_channel_address;
-  int sockaddr_in_size = sizeof(struct sockaddr_in);
+  socklen_t sockaddr_in_size = sizeof(struct sockaddr_in);
   int listen_fd = -1;
   int accept_fd = -1;
   memset(&listen_address, 0, sockaddr_in_size);
