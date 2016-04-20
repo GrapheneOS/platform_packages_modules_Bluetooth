@@ -518,22 +518,6 @@ static void btif_config_remove_restricted(config_t* config) {
   pthread_mutex_unlock(&lock);
 }
 
-static void btif_config_remove_restricted(config_t* config) {
-  assert(config != NULL);
-
-  pthread_mutex_lock(&lock);
-  const config_section_node_t *snode = config_section_begin(config);
-  while (snode != config_section_end(config)) {
-    const char *section = config_section_name(snode);
-    if (string_is_bdaddr(section) && config_has_key(config, section, "Restricted")) {
-        BTIF_TRACE_DEBUG("%s: Removing restricted device %s", __func__, section);
-        config_remove_section(config, section);
-    }
-    snode = config_section_next(snode);
-  }
-  pthread_mutex_unlock(&lock);
-}
-
 static bool is_factory_reset(void) {
   char factory_reset[PROPERTY_VALUE_MAX] = {0};
   osi_property_get("persist.bluetooth.factoryreset", factory_reset, "false");
