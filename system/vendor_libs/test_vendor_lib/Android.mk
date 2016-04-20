@@ -22,6 +22,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(BT_DIR) \
+    $(BT_DIR)/utils/include \
     $(BT_DIR)/hci/include \
     $(BT_DIR)/stack/include \
     $(BT_DIR)/third_party/gtest/include
@@ -58,6 +59,7 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(BT_DIR) \
+    $(BT_DIR)/utils/include \
     $(BT_DIR)/hci/include \
     $(BT_DIR)/stack/include
 

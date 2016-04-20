@@ -49,8 +49,8 @@ void VendorManager::Initialize() {
 }
 
 VendorManager::VendorManager()
-    : running_(false),
-      test_channel_transport_(true, 6111),
+    : test_channel_transport_(true, 6111),
+      running_(false),
       thread_("TestVendorLibrary"),
       weak_ptr_factory_(this) {}
 

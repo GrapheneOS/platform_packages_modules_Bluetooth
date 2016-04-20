@@ -27,6 +27,7 @@
 
 extern "C" {
 #include "stack/include/hcidefs.h"
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 }  // extern "C"
 
@@ -124,7 +125,7 @@ void DualModeController::SendInquiryResult() const {
 void DualModeController::SendExtendedInquiryResult(
     const std::string& name, const std::string& address) const {
   std::vector<uint8_t> rssi = {0};
-  std::vector<uint8_t> extended_inquiry_data = {name.length() + 1, 0x09};
+  std::vector<uint8_t> extended_inquiry_data = {static_cast<uint8_t>(name.length() + 1), 0x09};
   std::copy(name.begin(), name.end(),
             std::back_inserter(extended_inquiry_data));
   std::vector<uint8_t> bd_address(address.begin(), address.end());
@@ -141,8 +142,8 @@ void DualModeController::SendExtendedInquiryResult(
 
 DualModeController::DualModeController()
     : state_(kStandby),
-      test_channel_state_(kNone),
-      properties_(kControllerPropertiesFile) {
+      properties_(kControllerPropertiesFile),
+      test_channel_state_(kNone) {
 #define SET_HANDLER(opcode, method) \
   active_hci_commands_[opcode] =    \
       std::bind(&DualModeController::method, this, std::placeholders::_1);
@@ -242,7 +243,7 @@ void DualModeController::SetEventDelay(int64_t delay) {
 }
 
 void DualModeController::TestChannelClear(
-    const std::vector<std::string>& args) {
+    const std::vector<std::string>& args UNUSED_ATTR) {
   LogCommand("TestChannel Clear");
   test_channel_state_ = kNone;
   SetEventDelay(0);
@@ -256,7 +257,7 @@ void DualModeController::TestChannelDiscover(
 }
 
 void DualModeController::TestChannelTimeoutAll(
-    const std::vector<std::string>& args) {
+    const std::vector<std::string>& args UNUSED_ATTR) {
   LogCommand("TestChannel Timeout All");
   test_channel_state_ = kTimeoutAll;
 }
@@ -269,7 +270,7 @@ void DualModeController::TestChannelSetEventDelay(
 }
 
 void DualModeController::TestChannelClearEventDelay(
-    const std::vector<std::string>& args) {
+    const std::vector<std::string>& args UNUSED_ATTR) {
   LogCommand("TestChannel Clear Event Delay");
   test_channel_state_ = kNone;
   SetEventDelay(0);
@@ -453,7 +454,7 @@ void DualModeController::HciInquiryCancel(
 }
 
 void DualModeController::HciDeleteStoredLinkKey(
-    const std::vector<uint8_t>& args) {
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
   LogCommand("Delete Stored Link Key");
   /* Check the last octect in |args|. If it is 0, delete only the link key for
    * the given BD_ADDR. If is is 1, delete all stored link keys. */
@@ -461,7 +462,7 @@ void DualModeController::HciDeleteStoredLinkKey(
 }
 
 void DualModeController::HciRemoteNameRequest(
-    const std::vector<uint8_t>& args) {
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
   LogCommand("Remote Name Request");
   SendCommandStatusSuccess(HCI_RMT_NAME_REQUEST);
 }
@@ -490,17 +491,26 @@ DualModeController::Properties::Properties(const std::string& file_name)
 
 const std::vector<uint8_t> DualModeController::Properties::GetBufferSize() {
   return std::vector<uint8_t>(
-      {kSuccessStatus, acl_data_packet_size_, acl_data_packet_size_ >> 8,
-       sco_data_packet_size_, num_acl_data_packets_, num_acl_data_packets_ >> 8,
-       num_sco_data_packets_, num_sco_data_packets_ >> 8});
+      {kSuccessStatus,
+       static_cast<uint8_t>(acl_data_packet_size_),
+       static_cast<uint8_t>(acl_data_packet_size_ >> 8),
+       sco_data_packet_size_,
+       static_cast<uint8_t>(num_acl_data_packets_),
+       static_cast<uint8_t>(num_acl_data_packets_ >> 8),
+       static_cast<uint8_t>(num_sco_data_packets_),
+       static_cast<uint8_t>(num_sco_data_packets_ >> 8)});
 }
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalVersionInformation() {
-  return std::vector<uint8_t>({kSuccessStatus, version_, revision_,
-                               revision_ >> 8, lmp_pal_version_,
-                               manufacturer_name_, manufacturer_name_ >> 8,
-                               lmp_pal_subversion_, lmp_pal_subversion_ >> 8});
+  return std::vector<uint8_t>({kSuccessStatus, version_,
+                               static_cast<uint8_t>(revision_),
+                               static_cast<uint8_t>(revision_ >> 8),
+                               lmp_pal_version_,
+                               static_cast<uint8_t>(manufacturer_name_),
+                               static_cast<uint8_t>(manufacturer_name_ >> 8),
+                               static_cast<uint8_t>(lmp_pal_subversion_),
+                               static_cast<uint8_t>(lmp_pal_subversion_ >> 8)});
 }
 
 const std::vector<uint8_t> DualModeController::Properties::GetBdAddress() {
