@@ -17,7 +17,6 @@
 group("vendor-libs") {
   deps = [
     "linux:bt-vendor-linux",
-    #TODO(jpawlowski): uncomment when building fixed
-    #    "test_vendor_lib:test_vendor_lib",
+    "test_vendor_lib:test_vendor_lib",
   ]
 }
