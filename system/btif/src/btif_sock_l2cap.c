@@ -361,7 +361,8 @@ fail_sockpair:
 
 bt_status_t btsock_l2cap_init(int handle, uid_set_t* set)
 {
-    APPL_TRACE_DEBUG("btsock_l2cap_init...");
+    APPL_TRACE_DEBUG("%s handle = %d", __func__);
+    pthread_mutex_init(&state_lock, NULL);
     pthread_mutex_lock(&state_lock);
     pth = handle;
     socks = NULL;
@@ -378,6 +379,7 @@ bt_status_t btsock_l2cap_cleanup()
     while (socks)
         btsock_l2cap_free_l(socks);
     pthread_mutex_unlock(&state_lock);
+    pthread_mutex_destroy(&state_lock);
 
     return BT_STATUS_SUCCESS;
 }
@@ -914,8 +916,10 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
     pthread_mutex_lock(&state_lock);
 
     sock = btsock_l2cap_alloc_l(name, addr, listen, flags);
-    if (!sock)
+    if (!sock) {
+        pthread_mutex_unlock(&state_lock);
         return BT_STATUS_NOMEM;
+    }
 
     sock->fixed_chan = fixed_chan;
     sock->channel = channel;
