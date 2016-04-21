@@ -33,6 +33,7 @@
 #include "btm_int.h"
 #include "osi/include/log.h"
 #include "srvc_api.h"
+#include "stack/include/l2c_api.h"
 #include "utl.h"
 
 #ifndef BTA_HH_LE_RECONN
@@ -1555,6 +1556,20 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
                     break;
                 }
             }
+        } else if (service->uuid.uu.uuid16 == UUID_SERVCLASS_GAP_SERVER) {
+            //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
+            for (list_node_t *cn = list_begin(service->characteristics);
+                 cn != list_end(service->characteristics); cn = list_next(cn)) {
+                tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+                if (p_char->uuid.len == LEN_UUID_16 &&
+                    p_char->uuid.uu.uuid16 == GATT_UUID_GAP_PREF_CONN_PARAM) {
+
+                    /* read the char value */
+                    gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle);
+
+                    break;
+                }
+            }
         }
     }
 
@@ -1725,6 +1740,26 @@ void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     if (char_uuid == GATT_UUID_BATTERY_LEVEL)
     {
         bta_hh_read_battery_level_cmpl(p_data->status, p_dev_cb, p_data);
+    }
+    else if (char_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
+    {
+        //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
+        UINT8 *pp = p_data->p_value->p_value;
+        UINT16 min, max, latency, tout;
+        STREAM_TO_UINT16 (min, pp);
+        STREAM_TO_UINT16 (max, pp);
+        STREAM_TO_UINT16 (latency, pp);
+        STREAM_TO_UINT16 (tout, pp);
+
+        // Make sure both min, and max are bigger than 11.25ms, lower values can introduce
+        // audio issues if A2DP is also active.
+        if (min < BTM_BLE_CONN_INT_MIN_LIMIT)
+            min = BTM_BLE_CONN_INT_MIN_LIMIT;
+        if (max < BTM_BLE_CONN_INT_MIN_LIMIT)
+            max = BTM_BLE_CONN_INT_MIN_LIMIT;
+
+        BTM_BleSetPrefConnParams (p_dev_cb->addr, min, max, latency, tout);
+        L2CA_UpdateBleConnParams(p_dev_cb->addr, min, max, latency, tout);
     }
     else
     {
