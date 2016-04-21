@@ -660,12 +660,13 @@ static bool filter_incoming_event(BT_HDR *packet) {
     STREAM_TO_UINT16(opcode, stream);
 
     wait_entry = get_waiting_command(opcode);
-    if (!wait_entry)
-      LOG_WARN(LOG_TAG, "%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
-    else if (wait_entry->complete_callback)
+    if (!wait_entry) {
+      //LOG_WARN(LOG_TAG, "%s command complete event with no matching command. opcode: 0x%x.", __func__, opcode);
+    } else if (wait_entry->complete_callback) {
       wait_entry->complete_callback(packet, wait_entry->context);
-    else if (wait_entry->complete_future)
+    } else if (wait_entry->complete_future) {
       future_ready(wait_entry->complete_future, packet);
+    }
 
     goto intercepted;
   } else if (event_code == HCI_COMMAND_STATUS_EVT) {
