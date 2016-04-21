@@ -23,61 +23,61 @@ LOCAL_PATH := $(call my-dir)
 
 # HAL layer
 btifCommonSrc := \
-  src/bluetooth.c
+  src/bluetooth.cc
 
 # BTIF implementation
 btifCommonSrc += \
-  src/btif_av.c \
-  src/btif_avrcp_audio_track.cpp \
-  src/btif_config.c \
-  src/btif_config_transcode.cpp \
-  src/btif_core.c \
-  src/btif_debug.c \
-  src/btif_debug_btsnoop.c \
-  src/btif_debug_conn.c \
-  src/btif_dm.c \
-  src/btif_gatt.c \
-  src/btif_gatt_client.c \
-  src/btif_gatt_multi_adv_util.c \
-  src/btif_gatt_server.c \
-  src/btif_gatt_test.c \
-  src/btif_gatt_util.c \
-  src/btif_hf.c \
-  src/btif_hf_client.c \
-  src/btif_hh.c \
-  src/btif_hl.c \
-  src/btif_sdp.c \
-  src/btif_media_task.c \
-  src/btif_pan.c \
-  src/btif_profile_queue.c \
-  src/btif_rc.c \
-  src/btif_sm.c \
-  src/btif_sock.c \
-  src/btif_sock_rfc.c \
-  src/btif_sock_l2cap.c \
-  src/btif_sock_sco.c \
-  src/btif_sock_sdp.c \
-  src/btif_sock_thread.c \
-  src/btif_sdp_server.c \
-  src/btif_sock_util.c \
-  src/btif_storage.c \
-  src/btif_uid.c \
-  src/btif_util.c \
-  src/stack_manager.c
+  src/btif_av.cc \
+  src/btif_avrcp_audio_track.cc \
+  src/btif_config.cc \
+  src/btif_config_transcode.cc \
+  src/btif_core.cc \
+  src/btif_debug.cc \
+  src/btif_debug_btsnoop.cc \
+  src/btif_debug_conn.cc \
+  src/btif_dm.cc \
+  src/btif_gatt.cc \
+  src/btif_gatt_client.cc \
+  src/btif_gatt_multi_adv_util.cc \
+  src/btif_gatt_server.cc \
+  src/btif_gatt_test.cc \
+  src/btif_gatt_util.cc \
+  src/btif_hf.cc \
+  src/btif_hf_client.cc \
+  src/btif_hh.cc \
+  src/btif_hl.cc \
+  src/btif_sdp.cc \
+  src/btif_media_task.cc \
+  src/btif_pan.cc \
+  src/btif_profile_queue.cc \
+  src/btif_rc.cc \
+  src/btif_sm.cc \
+  src/btif_sock.cc \
+  src/btif_sock_rfc.cc \
+  src/btif_sock_l2cap.cc \
+  src/btif_sock_sco.cc \
+  src/btif_sock_sdp.cc \
+  src/btif_sock_thread.cc \
+  src/btif_sdp_server.cc \
+  src/btif_sock_util.cc \
+  src/btif_storage.cc \
+  src/btif_uid.cc \
+  src/btif_util.cc \
+  src/stack_manager.cc
 
 # Callouts
 btifCommonSrc += \
-  co/bta_ag_co.c \
-  co/bta_dm_co.c \
-  co/bta_av_co.c \
-  co/bta_hh_co.c \
-  co/bta_hl_co.c \
-  co/bta_pan_co.c \
-  co/bta_gatts_co.c
+  co/bta_ag_co.cc \
+  co/bta_dm_co.cc \
+  co/bta_av_co.cc \
+  co/bta_hh_co.cc \
+  co/bta_hl_co.cc \
+  co/bta_pan_co.cc \
+  co/bta_gatts_co.cc
 
 # Tests
 btifTestSrc := \
-  test/btif_storage_test.cpp
+  test/btif_storage_test.cc
 
 # Includes
 btifCommonIncludes := \
@@ -112,6 +112,9 @@ btifCommonIncludes := \
 # libbtif static library for target
 # ========================================================
 include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifCommonSrc)
 # Many .h files have redefined typedefs
@@ -129,6 +132,9 @@ include $(BUILD_STATIC_LIBRARY)
 # btif unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifTestSrc)
 LOCAL_SHARED_LIBRARIES += liblog libhardware libhardware_legacy libcutils

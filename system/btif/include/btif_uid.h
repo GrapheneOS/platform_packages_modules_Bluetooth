@@ -20,6 +20,10 @@
 
 #include <hardware/bluetooth.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct uid_set_t;
 typedef struct uid_set_t uid_set_t;
 
@@ -41,3 +45,7 @@ void uid_set_add_rx(uid_set_t* set, int32_t app_uid, uint64_t bytes);
  * The caller is responsible for calling osi_free() on the returned array.
  */
 bt_uid_traffic_t* uid_set_read_and_clear(uid_set_t* set);
+
+#ifdef __cplusplus
+}
+#endif

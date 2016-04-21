@@ -425,7 +425,7 @@ void BTA_AgDisable(void);
 **
 *******************************************************************************/
 void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
-                    tBTA_AG_FEAT features, char *p_service_names[], UINT8 app_id);
+                    tBTA_AG_FEAT features, const char *p_service_names[], UINT8 app_id);
 
 /*******************************************************************************
 **

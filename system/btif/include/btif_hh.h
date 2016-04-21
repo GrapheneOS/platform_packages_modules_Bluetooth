@@ -26,6 +26,9 @@
 #include "bta_hh_api.h"
 #include "btu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************************************************************************
 **  Constants & Macros
@@ -110,5 +113,9 @@ extern void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type
                     UINT16 size, UINT8* report);
 
 BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

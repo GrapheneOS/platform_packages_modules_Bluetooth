@@ -27,6 +27,10 @@
 #include "hci_packet_factory.h"
 #include "hci_packet_parser.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char CONTROLLER_MODULE[] = "controller_module";
 
 typedef struct controller_t {
@@ -84,3 +88,7 @@ const controller_t *controller_get_test_interface(
     const hci_t *hci_interface,
     const hci_packet_factory_t *packet_factory_interface,
     const hci_packet_parser_t *packet_parser_interface);
+
+#ifdef __cplusplus
+}
+#endif

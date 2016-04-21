@@ -21,6 +21,10 @@
 
 #include "btif_media.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -170,5 +174,9 @@ BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
  **
  *******************************************************************************/
 BOOLEAN bta_av_co_get_remote_bitpool_pref(UINT8 *min, UINT8 *max);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

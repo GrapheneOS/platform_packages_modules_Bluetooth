@@ -18,6 +18,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct future_t future_t;
 
 #define FUTURE_SUCCESS ((void *)1)
@@ -39,3 +43,7 @@ void future_ready(future_t *future, void *value);
 // Waits for the |future| to be ready. Returns the value set in |future_ready|.
 // Frees the future before return. |future| may not be NULL.
 void *future_await(future_t *async_result);
+
+#ifdef __cplusplus
+}
+#endif

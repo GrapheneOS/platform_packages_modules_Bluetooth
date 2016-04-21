@@ -24,6 +24,10 @@
 
 #include "bta/include/bta_gatt_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src);
 void btif_to_bta_response(tBTA_GATTS_RSP *p_dest, btgatt_response_t* p_src);
 void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, bt_uuid_t *p_src);
@@ -36,6 +40,9 @@ uint16_t get_uuid16(tBT_UUID *p_uuid);
 void btif_gatt_check_encrypted_link(BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport);
 extern void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t *p_dest,
                                 btgatt_track_adv_info_t *p_src);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

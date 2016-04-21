@@ -32,6 +32,9 @@
 #include "btif_sm.h"
 #include "bta_av_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************************************************************************
 **  Type definitions for callback functions
@@ -190,5 +193,9 @@ void btif_queue_focus_request(void);
 ** Returns          Void
 ********************************************************************************/
 void btif_av_clear_remote_suspend_flag(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTIF_AV_H */
