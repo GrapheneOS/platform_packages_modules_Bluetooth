@@ -289,22 +289,6 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
                 BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
         }
     }
-    else
-    {
-        // Only call if we are non server connections
-        if (sock->handle && (sock->server == FALSE)) {
-            if (sock->fixed_chan)
-                BTA_JvL2capCloseLE(sock->handle);
-            else
-                BTA_JvL2capClose(sock->handle);
-        }
-        if ((sock->channel >= 0) && (sock->server == TRUE)) {
-            if (sock->fixed_chan)
-                BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP_LE);
-            else
-                BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
-        }
-    }
 
     APPL_TRACE_DEBUG("%s: free(id = %d)", __func__, sock->id);
     osi_free(sock);
