@@ -152,8 +152,10 @@ enum {
 #define BTIF_MEDIA_BITRATE_STEP 5
 #endif
 
-/* Middle quality quality setting @ 44.1 khz */
-#define DEFAULT_SBC_BITRATE 328
+#ifndef BTIF_A2DP_DEFAULT_BITRATE
+/* High quality quality setting @ 44.1 khz */
+#define BTIF_A2DP_DEFAULT_BITRATE 328
+#endif
 
 #ifndef BTIF_A2DP_NON_EDR_MAX_RATE
 #define BTIF_A2DP_NON_EDR_MAX_RATE 229
@@ -747,7 +749,7 @@ static void btif_a2dp_data_cb(tUIPC_CH_ID ch_id, tUIPC_EVENT event)
 
 static UINT16 btif_media_task_get_sbc_rate(void)
 {
-    UINT16 rate = DEFAULT_SBC_BITRATE;
+    UINT16 rate = BTIF_A2DP_DEFAULT_BITRATE;
 
     /* restrict bitrate if a2dp link is non-edr */
     if (!btif_av_is_peer_edr())
