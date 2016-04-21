@@ -543,7 +543,12 @@ static void on_rfc_close(UNUSED_ATTR tBTA_JV_RFCOMM_CLOSE *p_close, uint32_t id)
   pthread_mutex_unlock(&slot_lock);
 }
 
-static void on_rfc_write_done(UNUSED_ATTR tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
+static void on_rfc_write_done(tBTA_JV_RFCOMM_WRITE *p, uint32_t id) {
+  if (p->status != BTA_JV_SUCCESS) {
+    LOG_ERROR(LOG_TAG, "%s error writing to RFCOMM socket with slot %u.", __func__, p->req_id);
+    return;
+  }
+
   int app_uid = -1;
   pthread_mutex_lock(&slot_lock);
 
