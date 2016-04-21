@@ -25,6 +25,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "bt_types.h"
@@ -42,6 +43,11 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+
+#define INFO_SECTION "Info"
+#define FILE_TIMESTAMP "TimeCreated"
+#define TIME_STRING_LENGTH sizeof("YYYY-MM-DD HH:MM:SS")
+static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
 
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(OS_GENERIC)
@@ -72,6 +78,7 @@ static enum ConfigSource {
 } btif_config_source = NOT_LOADED;
 
 static int btif_config_devices_loaded = -1;
+static char btif_config_time_created[TIME_STRING_LENGTH];
 
 // TODO(zachoverflow): Move these two functions out, because they are too specific for this file
 // {grumpy-cat/no, monty-python/you-make-me-sad}
@@ -119,6 +126,7 @@ static alarm_t *config_timer;
 
 static future_t *init(void) {
   pthread_mutex_init(&lock, NULL);
+  pthread_mutex_lock(&lock);
 
   if (is_factory_reset())
     delete_config_files();
@@ -152,6 +160,17 @@ static future_t *init(void) {
   if (!is_restricted_mode())
     btif_config_remove_restricted(config);
 
+  // Read or set config file creation timestamp
+  const char* time_str = config_get_string(config, INFO_SECTION, FILE_TIMESTAMP, NULL);
+  if (time_str != NULL) {
+    strlcpy(btif_config_time_created, time_str, TIME_STRING_LENGTH);
+  } else {
+    time_t current_time = time(NULL);
+    struct tm* time_created = localtime(&current_time);
+    strftime(btif_config_time_created, TIME_STRING_LENGTH, TIME_STRING_FORMAT, time_created);
+    config_set_string(config, INFO_SECTION, FILE_TIMESTAMP, btif_config_time_created);
+  }
+
   // TODO(sharvil): use a non-wake alarm for this once we have
   // API support for it. There's no need to wake the system to
   // write back to disk.
@@ -161,11 +180,13 @@ static future_t *init(void) {
     goto error;
   }
 
+  pthread_mutex_unlock(&lock);
   return future_new_immediate(FUTURE_SUCCESS);
 
 error:
   alarm_free(config_timer);
   config_free(config);
+  pthread_mutex_unlock(&lock);
   pthread_mutex_destroy(&lock);
   config_timer = NULL;
   config = NULL;
@@ -500,12 +521,12 @@ void btif_debug_config_dump(int fd) {
     }
 
     dprintf(fd, "  Devices loaded: %d\n", btif_config_devices_loaded);
+    dprintf(fd, "  File created/tagged: %s\n", btif_config_time_created);
 }
 
 static void btif_config_remove_restricted(config_t* config) {
   assert(config != NULL);
 
-  pthread_mutex_lock(&lock);
   const config_section_node_t *snode = config_section_begin(config);
   while (snode != config_section_end(config)) {
     const char *section = config_section_name(snode);
@@ -515,7 +536,6 @@ static void btif_config_remove_restricted(config_t* config) {
     }
     snode = config_section_next(snode);
   }
-  pthread_mutex_unlock(&lock);
 }
 
 static bool is_factory_reset(void) {
