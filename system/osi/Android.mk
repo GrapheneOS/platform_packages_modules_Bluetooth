@@ -115,6 +115,27 @@ LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_HOST_STATIC_LIBRARY)
 
+
+# protobuf library for bluetooth
+# ========================================================
+include $(CLEAR_VARS)
+LOCAL_MODULE := libbt-protos
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+generated_sources_dir := $(call local-generated-sources-dir)
+LOCAL_EXPORT_C_INCLUDE_DIRS += \
+    $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
+LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+include $(BUILD_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libbt-protos
+LOCAL_MODULE_CLASS := STATIC_LIBRARIES
+generated_sources_dir := $(call local-generated-sources-dir)
+LOCAL_EXPORT_C_INCLUDE_DIRS += \
+    $(generated_sources_dir)/proto/packages/modules/Bluetooth/system
+LOCAL_SRC_FILES := $(call all-proto-files-under,src/protos/)
+include $(BUILD_HOST_STATIC_LIBRARY)
+
 # libosi static library for target
 # ========================================================
 include $(CLEAR_VARS)
