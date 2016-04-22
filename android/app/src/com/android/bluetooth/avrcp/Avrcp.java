@@ -262,7 +262,8 @@ public final class Avrcp {
     }
 
     private void updateCurrentMediaController(MediaController controller) {
-        Log.v(TAG, "Updating media controller to " + controller);
+        Log.v(TAG, "Updating media controller to " + controller + " from " +
+                   controller.getPackageName());
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaControllerCb);
         }
@@ -737,7 +738,7 @@ public final class Avrcp {
                 mHandler.removeMessages(MESSAGE_PLAY_INTERVAL_TIMEOUT);
             }
         } else {
-            Log.v(TAG, "Metadata updated but no change!");
+            Log.v(TAG, "Updated " + mMetadata.toString() + " but no change!");
         }
 
     }
@@ -777,6 +778,7 @@ public final class Avrcp {
                 break;
 
             case EVT_TRACK_CHANGED:
+                Log.v(TAG, "Track changed notification enabled");
                 mTrackChangedNT = NOTIFICATION_TYPE_INTERIM;
                 sendTrackChangedRsp();
                 break;
@@ -840,7 +842,8 @@ public final class Avrcp {
            0xFFFFFFFFFFFFFFFF in the interim response */
         long trackNumberRsp = -1L;
 
-        if (isPlayingState(mCurrentPlayState)) {
+        if (mCurrentPlayState.getState() != PlaybackState.STATE_NONE &&
+            mCurrentPlayState.getState() != PlaybackState.STATE_ERROR) {
             trackNumberRsp = mTrackNumber;
         }
 
@@ -932,7 +935,7 @@ public final class Avrcp {
 
     private boolean isPlayingState(PlaybackState state) {
         return (state.getState() == PlaybackState.STATE_PLAYING) ||
-                (state.getState() == PlaybackState.STATE_BUFFERING);
+               (state.getState() == PlaybackState.STATE_BUFFERING);
     }
 
     /**
