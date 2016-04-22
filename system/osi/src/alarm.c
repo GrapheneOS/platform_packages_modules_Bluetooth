@@ -292,6 +292,8 @@ void alarm_cleanup(void) {
   if (!alarms)
     return;
 
+  pthread_mutex_lock(&monitor);
+
   dispatcher_thread_active = false;
   semaphore_post(alarm_expired);
   thread_free(dispatcher_thread);
@@ -308,6 +310,7 @@ void alarm_cleanup(void) {
   list_free(alarms);
   alarms = NULL;
 
+  pthread_mutex_unlock(&monitor);
   pthread_mutex_destroy(&monitor);
 }
 
