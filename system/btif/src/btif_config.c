@@ -49,11 +49,6 @@
 #define TIME_STRING_LENGTH sizeof("YYYY-MM-DD HH:MM:SS")
 static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
 
-#define INFO_SECTION "Info"
-#define FILE_TIMESTAMP "TimeCreated"
-#define TIME_STRING_LENGTH sizeof("YYYY-MM-DD HH:MM:SS")
-static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
-
 // TODO(armansito): Find a better way than searching by a hardcoded path.
 #if defined(OS_GENERIC)
 static const char *CONFIG_FILE_PATH = "bt_config.conf";
