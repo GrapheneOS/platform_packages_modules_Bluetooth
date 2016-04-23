@@ -140,6 +140,26 @@ TEST_F(AlarmTest, test_set_short_periodic) {
   alarm_free(alarm);
 }
 
+TEST_F(AlarmTest, test_set_zero_periodic) {
+  alarm_t *alarm = alarm_new_periodic("alarm_test.test_set_zero_periodic");
+
+  alarm_set(alarm, 0, cb, NULL);
+
+  EXPECT_EQ(cb_counter, 0);
+  EXPECT_TRUE(WakeLockHeld());
+
+  for (int i = 1; i <= 10; i++) {
+    semaphore_wait(semaphore);
+
+    EXPECT_GE(cb_counter, i);
+    EXPECT_TRUE(WakeLockHeld());
+  }
+  alarm_cancel(alarm);
+  EXPECT_FALSE(WakeLockHeld());
+
+  alarm_free(alarm);
+}
+
 TEST_F(AlarmTest, test_set_long) {
   alarm_t *alarm = alarm_new("alarm_test.test_set_long");
   alarm_set(alarm, TIMER_INTERVAL_FOR_WAKELOCK_IN_MS + EPSILON_MS, cb, NULL);

@@ -434,7 +434,7 @@ static void schedule_next_instance(alarm_t *alarm) {
   // Calculate the next deadline for this alarm
   period_ms_t just_now = now();
   period_ms_t ms_into_period = 0;
-  if (alarm->is_periodic)
+  if ((alarm->is_periodic) && (alarm->period != 0))
     ms_into_period = ((just_now - alarm->creation_time) % alarm->period);
   alarm->deadline = just_now + (alarm->period - ms_into_period);
 
@@ -729,7 +729,7 @@ void alarm_debug_dump(int fd)
             (alarm->is_periodic) ? "PERIODIC" : "SINGLE");
 
     dprintf(fd, "%-51s: %zu / %zu / %zu / %zu\n",
-            "    Action counts (sched/resched/exec/cancel",
+            "    Action counts (sched/resched/exec/cancel)",
             stats->scheduled_count, stats->rescheduled_count,
             stats->callback_execution.count, stats->canceled_count);
 
