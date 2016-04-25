@@ -79,9 +79,9 @@ public class PbapClientService extends ProfileService {
         try {
             registerReceiver(mPbapBroadcastReceiver, filter);
         } catch (Exception e) {
-            Log.w(TAG,"Unable to register pbapclient receiver",e);
+            Log.w(TAG,"Unable to register pbapclient receiver", e);
         }
-        mPbapClientStateMachine = new PbapClientStateMachine(this);
+        mPbapClientStateMachine = new PbapClientStateMachine(this, this);
         setPbapClientService(this);
         mPbapClientStateMachine.start();
         return true;
@@ -92,7 +92,7 @@ public class PbapClientService extends ProfileService {
         try {
             unregisterReceiver(mPbapBroadcastReceiver);
         } catch (Exception e) {
-            Log.w(TAG,"Unable to unregister pbapclient receiver",e);
+            Log.w(TAG,"Unable to unregister pbapclient receiver", e);
         }
         if (mPbapClientStateMachine != null) {
             mPbapClientStateMachine.doQuit();
