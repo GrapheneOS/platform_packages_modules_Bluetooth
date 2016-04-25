@@ -1465,7 +1465,7 @@ extern UINT16 BTM_BleReadConnectability ();
 **                  p_addr_type: output parameter to read the address type.
 **
 *******************************************************************************/
-extern void BTM_ReadDevInfo (BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type,
+extern void BTM_ReadDevInfo (const BD_ADDR remote_bda, tBT_DEVICE_TYPE *p_dev_type,
                                      tBLE_ADDR_TYPE *p_addr_type);
 
 

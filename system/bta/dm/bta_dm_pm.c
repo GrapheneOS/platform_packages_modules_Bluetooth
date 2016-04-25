@@ -1123,7 +1123,7 @@ void bta_dm_pm_timer(tBTA_DM_MSG *p_data)
 ** Returns          tBTA_DM_PEER_DEVICE
 **
 *******************************************************************************/
-tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(BD_ADDR peer_addr)
+tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(const BD_ADDR peer_addr)
 {
     tBTA_DM_PEER_DEVICE *p_dev = NULL;
 
