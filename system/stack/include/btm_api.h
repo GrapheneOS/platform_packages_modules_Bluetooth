@@ -2517,7 +2517,7 @@ extern UINT8 *BTM_ReadAllRemoteFeatures (BD_ADDR addr);
 ** Returns          pointer to entry, or NULL if not found
 **
 *******************************************************************************/
-extern tBTM_INQ_INFO *BTM_InqDbRead (BD_ADDR p_bda);
+extern tBTM_INQ_INFO *BTM_InqDbRead (const BD_ADDR p_bda);
 
 
 /*******************************************************************************
@@ -2768,7 +2768,7 @@ extern tBTM_STATUS BTM_SwitchRole (BD_ADDR remote_bd_addr,
 **                  BTM_BUSY if command is already in progress
 **
 *******************************************************************************/
-extern tBTM_STATUS BTM_ReadRSSI (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
+extern tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb);
 
 
 /*******************************************************************************
