@@ -1163,7 +1163,7 @@ extern void bta_dm_search_cancel_cmpl (tBTA_DM_MSG *p_data);
 extern void bta_dm_search_cancel_notify (tBTA_DM_MSG *p_data);
 extern void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data);
 extern void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data);
-extern tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(BD_ADDR peer_addr);
+extern tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(const BD_ADDR peer_addr);
 
 extern void bta_dm_pm_active(BD_ADDR peer_addr);
 

@@ -95,7 +95,7 @@ void btm_acl_init (void)
 **                  NULL if not found.
 **
 *******************************************************************************/
-tACL_CONN *btm_bda_to_acl (BD_ADDR bda, tBT_TRANSPORT transport)
+tACL_CONN *btm_bda_to_acl (const BD_ADDR bda, tBT_TRANSPORT transport)
 {
     tACL_CONN   *p = &btm_cb.acl_db[0];
     UINT16       xx;
@@ -1972,7 +1972,7 @@ void btm_qos_setup_complete(UINT8 status, UINT16 handle, FLOW_SPEC *p_flow)
 ** Returns          BTM_CMD_STARTED if successfully initiated or error code
 **
 *******************************************************************************/
-tBTM_STATUS BTM_ReadRSSI (BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
+tBTM_STATUS BTM_ReadRSSI (const BD_ADDR remote_bda, tBTM_CMPL_CB *p_cb)
 {
     tACL_CONN   *p;
     tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
