@@ -292,21 +292,23 @@ void alarm_cleanup(void) {
   if (!alarms)
     return;
 
-  pthread_mutex_lock(&monitor);
-
   dispatcher_thread_active = false;
   semaphore_post(alarm_expired);
   thread_free(dispatcher_thread);
   dispatcher_thread = NULL;
+
+  pthread_mutex_lock(&monitor);
 
   fixed_queue_free(default_callback_queue, NULL);
   default_callback_queue = NULL;
   thread_free(default_callback_thread);
   default_callback_thread = NULL;
 
+  timer_delete(wakeup_timer);
+  timer_delete(timer);
   semaphore_free(alarm_expired);
   alarm_expired = NULL;
-  timer_delete(&timer);
+
   list_free(alarms);
   alarms = NULL;
 
