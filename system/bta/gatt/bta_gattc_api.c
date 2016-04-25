@@ -591,7 +591,7 @@ void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle)
 **
 *******************************************************************************/
 tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
-                                                     BD_ADDR bda, UINT16 handle)
+                                                     const BD_ADDR bda, UINT16 handle)
 {
     tBTA_GATTC_RCB      *p_clreg;
     tBTA_GATT_STATUS    status = BTA_GATT_ILLEGAL_PARAMETER;
@@ -661,7 +661,7 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
 **
 *******************************************************************************/
 tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
-                                                       BD_ADDR bda, UINT16 handle)
+                                                       const BD_ADDR bda, UINT16 handle)
 {
     if (!handle) {
         APPL_TRACE_ERROR("%s: deregistration failed, handle is 0", __func__);
@@ -702,7 +702,7 @@ tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Refresh(BD_ADDR remote_bda)
+void BTA_GATTC_Refresh(const BD_ADDR remote_bda)
 {
     tBTA_GATTC_API_OPEN *p_buf =
         (tBTA_GATTC_API_OPEN *)osi_malloc(sizeof(tBTA_GATTC_API_OPEN));

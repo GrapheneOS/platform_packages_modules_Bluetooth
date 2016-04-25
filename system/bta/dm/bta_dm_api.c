@@ -557,7 +557,7 @@ void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
 ** Returns          0 if the device is NOT connected.
 **
 *******************************************************************************/
-UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr )
+UINT16 BTA_DmGetConnectionState(const BD_ADDR bd_addr )
 {
     tBTA_DM_PEER_DEVICE * p_dev = bta_dm_find_peer_device(bd_addr);
     return (p_dev && p_dev->conn_state == BTA_DM_CONNECTED);
@@ -786,7 +786,7 @@ void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
+void BTA_DmSetBlePrefConnParams(const BD_ADDR bd_addr,
                                UINT16 min_conn_int, UINT16 max_conn_int,
                                UINT16 slave_latency, UINT16 supervision_tout )
 {
@@ -1755,7 +1755,7 @@ void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cb
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
+void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
                                     UINT16 latency, UINT16 timeout)
 {
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg =
