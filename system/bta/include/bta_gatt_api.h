@@ -866,7 +866,7 @@ extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle);
 **
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
-                                                            BD_ADDR            remote_bda,
+                                                            const BD_ADDR      remote_bda,
                                                             UINT16             handle);
 
 /*******************************************************************************
@@ -883,7 +883,7 @@ extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      c
 **
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
-                                                              BD_ADDR            remote_bda,
+                                                              const BD_ADDR      remote_bda,
                                                               UINT16             handle);
 
 /*******************************************************************************
@@ -950,7 +950,7 @@ extern void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_mult
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Refresh(BD_ADDR remote_bda);
+extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 
 
 /*******************************************************************************

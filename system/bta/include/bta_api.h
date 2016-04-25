@@ -1603,7 +1603,7 @@ extern void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services );
 ** Returns          0 if the device is NOT connected.
 **
 *******************************************************************************/
-extern UINT16 BTA_DmGetConnectionState( BD_ADDR bd_addr );
+extern UINT16 BTA_DmGetConnectionState( const BD_ADDR bd_addr );
 
 
 /*******************************************************************************
@@ -1804,7 +1804,7 @@ extern void BTA_DmAddBleKey (BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_DmSetBlePrefConnParams(BD_ADDR bd_addr,
+extern void BTA_DmSetBlePrefConnParams(const BD_ADDR bd_addr,
                                        UINT16 min_conn_int, UINT16 max_conn_int,
                                        UINT16 slave_latency, UINT16 supervision_tout );
 
@@ -2115,7 +2115,7 @@ extern void BTA_BleDisableAdvInstance(UINT8 inst_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_DmBleUpdateConnectionParams(BD_ADDR bd_addr, UINT16 min_int,
+extern void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, UINT16 min_int,
                                    UINT16 max_int, UINT16 latency, UINT16 timeout);
 
 /*******************************************************************************
