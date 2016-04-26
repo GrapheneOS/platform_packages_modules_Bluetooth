@@ -345,7 +345,9 @@ bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
              btif_sdp_execute_service(b_enable);
          }break;
          default:
-              BTIF_TRACE_ERROR("%s: Unknown service being enabled", __FUNCTION__);
+           BTIF_TRACE_ERROR("%s: Unknown service %d being %s",
+                            __func__, service_id,
+                            (b_enable) ? "enabled" : "disabled");
               return BT_STATUS_FAIL;
     }
     return BT_STATUS_SUCCESS;
