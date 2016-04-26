@@ -219,16 +219,10 @@ static char *bta_av_st_code(UINT8 state);
 *******************************************************************************/
 static void bta_av_api_enable(tBTA_AV_DATA *p_data)
 {
-    int i;
-    tBTA_AV_ENABLE      enable;
-
-    alarm_free(bta_av_cb.link_signalling_timer);
-    alarm_free(bta_av_cb.accept_signalling_timer);
-
     /* initialize control block */
     memset(&bta_av_cb, 0, sizeof(tBTA_AV_CB));
 
-    for(i=0; i<BTA_AV_NUM_RCB; i++)
+    for (int i = 0; i < BTA_AV_NUM_RCB; i++)
         bta_av_cb.rcb[i].handle = BTA_AV_RC_HANDLE_NONE;
 
     bta_av_cb.rc_acp_handle = BTA_AV_RC_HANDLE_NONE;
@@ -246,6 +240,7 @@ static void bta_av_api_enable(tBTA_AV_DATA *p_data)
     bta_av_cb.features = p_data->api_enable.features;
     bta_av_cb.sec_mask = p_data->api_enable.sec_mask;
 
+    tBTA_AV_ENABLE enable;
     enable.features = bta_av_cb.features;
 
     /* Register for SCO change event */

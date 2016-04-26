@@ -129,7 +129,7 @@ static uid_set_t* uid_set = NULL;
 **  Static functions
 ************************************************************************************/
 static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
-static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+static void btif_jni_disassociate();
 static bool btif_fetch_property(const char *key, bt_bdaddr_t *addr);
 
 /* sends message to btif task */
@@ -145,7 +145,7 @@ extern void bte_load_did_conf(const char *p_path);
 /** TODO: Move these to _common.h */
 void bte_main_boot_entry(void);
 void bte_main_disable(void);
-void bte_main_shutdown(void);
+void bte_main_cleanup(void);
 #if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
 void bte_main_enable_lpm(BOOLEAN enable);
 #endif
@@ -258,16 +258,6 @@ void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
   btif_dm_load_ble_local_keys();
 #endif
   BTA_EnableBluetooth(bte_dm_evt);
-}
-
-void btif_init_fail(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
-  BTIF_TRACE_DEBUG("btif_task: hardware init failed");
-  bte_main_disable();
-  btif_queue_release();
-  bte_main_shutdown();
-  btif_dut_mode = 0;
-
-  future_ready(stack_manager_get_hack_future(), FUTURE_FAIL);
 }
 
 /*******************************************************************************
@@ -599,29 +589,26 @@ void btif_disable_bluetooth_evt(void)
 
 /*******************************************************************************
 **
-** Function         btif_shutdown_bluetooth
+** Function         btif_cleanup_bluetooth
 **
-** Description      Finalizes BT scheduler shutdown and terminates BTIF
-**                  task.
+** Description      Cleanup BTIF state.
 **
 ** Returns          void
 **
 *******************************************************************************/
 
-bt_status_t btif_shutdown_bluetooth(void)
+bt_status_t btif_cleanup_bluetooth(void)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
 
     btif_dm_cleanup();
-
-    btif_transfer_context(btif_jni_disassociate, 0, NULL, 0, NULL);
-
+    btif_jni_disassociate();
     btif_queue_release();
 
     thread_free(bt_jni_workqueue_thread);
     bt_jni_workqueue_thread = NULL;
 
-    bte_main_shutdown();
+    bte_main_cleanup();
 
     btif_dut_mode = 0;
 
@@ -1328,10 +1315,8 @@ static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_p
   HAL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
 }
 
-static void btif_jni_disassociate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+static void btif_jni_disassociate() {
   BTIF_TRACE_DEBUG("%s Disassociating thread from JVM", __func__);
   HAL_CBACK(bt_hal_cbacks, thread_evt_cb, DISASSOCIATE_JVM);
   bt_hal_cbacks = NULL;
-  future_ready(stack_manager_get_hack_future(), FUTURE_SUCCESS);
 }
-
