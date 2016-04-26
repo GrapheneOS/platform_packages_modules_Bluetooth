@@ -76,16 +76,15 @@ bt_status_t btif_disable_bluetooth(void);
 
 /*******************************************************************************
 **
-** Function         btif_shutdown_bluetooth
+** Function         btif_cleanup_bluetooth
 **
-** Description      Finalizes BT scheduler shutdown and terminates BTIF
-**                  task.
+** Description      Cleanup BTIF state.
 **
 **
 ** Returns          void
 **
 *******************************************************************************/
-bt_status_t btif_shutdown_bluetooth(void);
+bt_status_t btif_cleanup_bluetooth(void);
 
 /*******************************************************************************
 **

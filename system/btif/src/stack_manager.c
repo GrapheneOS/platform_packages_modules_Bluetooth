@@ -202,11 +202,9 @@ static void event_clean_up_stack(void *context) {
   hack_future = local_hack_future;
   stack_is_initialized = false;
 
-  btif_shutdown_bluetooth();
+  btif_cleanup_bluetooth();
   module_clean_up(get_module(BTIF_CONFIG_MODULE));
   module_clean_up(get_module(BT_UTILS_MODULE));
-
-  future_await(local_hack_future);
   module_clean_up(get_module(OSI_MODULE));
   module_management_stop();
   LOG_INFO(LOG_TAG, "%s finished", __func__);
