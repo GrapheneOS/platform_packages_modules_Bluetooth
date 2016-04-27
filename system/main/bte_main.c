@@ -119,14 +119,14 @@ void bte_main_boot_entry(void)
 
 /******************************************************************************
 **
-** Function         bte_main_shutdown
+** Function         bte_main_cleanup
 **
-** Description      BTE MAIN API - Shutdown code for BTE chip/stack
+** Description      BTE MAIN API - Cleanup code for BTE chip/stack
 **
 ** Returns          None
 **
 ******************************************************************************/
-void bte_main_shutdown()
+void bte_main_cleanup()
 {
     data_dispatcher_register_default(hci_layer_get_interface()->event_dispatcher, NULL);
     hci->set_data_queue(NULL);

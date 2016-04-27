@@ -1410,6 +1410,11 @@ void bta_av_disable(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
         hdr.layer_specific = xx + 1;
         bta_av_api_deregister((tBTA_AV_DATA *)&hdr);
     }
+
+    alarm_free(p_cb->link_signalling_timer);
+    p_cb->link_signalling_timer = NULL;
+    alarm_free(p_cb->accept_signalling_timer);
+    p_cb->accept_signalling_timer = NULL;
 }
 
 /*******************************************************************************
