@@ -63,9 +63,9 @@ final class BluetoothPbapRequestPullPhoneBook extends BluetoothPbapRequest {
         ObexAppParameters oap = new ObexAppParameters();
 
         /* make sure format is one of allowed values */
-        if (format != BluetoothPbapClient.VCARD_TYPE_21
-                && format != BluetoothPbapClient.VCARD_TYPE_30) {
-            format = BluetoothPbapClient.VCARD_TYPE_21;
+        if (format != PbapClientConnectionHandler.VCARD_TYPE_21
+                && format != PbapClientConnectionHandler.VCARD_TYPE_30) {
+            format = PbapClientConnectionHandler.VCARD_TYPE_21;
         }
 
         if (filter != 0) {

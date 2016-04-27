@@ -62,6 +62,7 @@ class PbapClientConnectionHandler extends Handler {
     public static final String ICH_PATH = "telecom/ich.vcf";
     public static final String OCH_PATH = "telecom/och.vcf";
     public static final byte VCARD_TYPE_21 = 0;
+    public static final byte VCARD_TYPE_30 = 1;
 
     private Account mAccount;
     private AccountManager mAccountManager;

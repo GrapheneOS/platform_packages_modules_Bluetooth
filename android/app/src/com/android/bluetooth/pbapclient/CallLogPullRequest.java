@@ -15,7 +15,6 @@
  */
 package com.android.bluetooth.pbapclient;
 
-import com.android.bluetooth.pbapclient.BluetoothPbapClient;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
@@ -59,11 +58,11 @@ public class CallLogPullRequest extends PullRequest {
         }
         int type;
         try {
-            if (path.equals(BluetoothPbapClient.ICH_PATH)) {
+            if (path.equals(PbapClientConnectionHandler.ICH_PATH)) {
                 type = CallLog.Calls.INCOMING_TYPE;
-            } else if (path.equals(BluetoothPbapClient.OCH_PATH)) {
+            } else if (path.equals(PbapClientConnectionHandler.OCH_PATH)) {
                 type = CallLog.Calls.OUTGOING_TYPE;
-            } else if (path.equals(BluetoothPbapClient.MCH_PATH)) {
+            } else if (path.equals(PbapClientConnectionHandler.MCH_PATH)) {
                 type = CallLog.Calls.MISSED_TYPE;
             } else {
                 Log.w(TAG, "Unknown path type:" + path);

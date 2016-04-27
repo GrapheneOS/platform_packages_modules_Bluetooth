@@ -53,7 +53,7 @@ public class PhonebookPullRequest extends PullRequest {
     public PhonebookPullRequest(Context context, Account account) {
         mContext = context;
         mAccount = account;
-        path = BluetoothPbapClient.PB_PATH;
+        path = PbapClientConnectionHandler.PB_PATH;
     }
 
     // TODO: Apply operations together if possible.
