@@ -1106,6 +1106,6 @@ static void hidh_conn_retry(  UINT8 dhandle )
                        interval_ms, hidh_process_repage_timer_timeout,
                        UINT_TO_PTR(dhandle), btu_general_alarm_queue);
 #else
-    hidh_process_repage_process(dhandle);
+    hidh_try_repage(dhandle);
 #endif
 }
