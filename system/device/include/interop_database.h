@@ -54,6 +54,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
   // Jabra EXTREAM2 - unacceptably loud volume
   {{{0x1c, 0x48, 0xf9,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
+  // Ausdom M05 - unacceptably loud volume
+  {{0xa0, 0xe9, 0xdb,       0,0,0}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+
   // JayBird BlueBuds X - low granularity on volume control
   {{{0x44, 0x5e, 0xf3,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
   {{{0xd4, 0x9c, 0x28,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
@@ -67,6 +70,9 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
   // Mpow Cheetah - unacceptably loud volume
   {{{0x00, 0x11, 0xb1,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+
+  // Mpow Cheetah - unacceptably loud volume
+  {{0x00, 0x11, 0xb1,       0,0,0}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
   // SOL REPUBLIC Tracks Air - unable to adjust volume back off from max
   {{{0xa4, 0x15, 0x66,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
