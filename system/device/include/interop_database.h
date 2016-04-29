@@ -81,7 +81,10 @@ static const interop_addr_entry_t interop_addr_database[] = {
   {{{0xe0, 0x75, 0x0a,      0,0,0}}, 3, INTEROP_DISABLE_AUTO_PAIRING},
 
   // Unknown keyboard (carried over from auto_pair_devlist.conf)
-  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN}
+  {{{0x00, 0x0F, 0xF6,      0,0,0}}, 3, INTEROP_KEYBOARD_REQUIRES_FIXED_PIN},
+
+  // Jaybird Family
+  {{{0x00, 0x18, 0x91,       0,0,0}}, 3, INTEROP_2MBPS_LINK_ONLY},
 };
 
 typedef struct {
