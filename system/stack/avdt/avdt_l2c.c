@@ -35,7 +35,6 @@
 #include "btm_int.h"
 #include "device/include/interop.h"
 
-
 /* callback function declarations */
 void avdt_l2c_connect_ind_cback(BD_ADDR bd_addr, UINT16 lcid, UINT16 psm, UINT8 id);
 void avdt_l2c_connect_cfm_cback(UINT16 lcid, UINT16 result);
