@@ -28,6 +28,10 @@
 
 #define LOG_TAG "bt_btif_core"
 
+#include <base/at_exit.h>
+#include <base/bind.h>
+#include <base/run_loop.h>
+#include <base/threading/thread.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
@@ -128,11 +132,13 @@ static UINT8 btif_dut_mode = 0;
 static thread_t *bt_jni_workqueue_thread;
 static const char *BT_JNI_WORKQUEUE_NAME = "bt_jni_workqueue";
 static uid_set_t* uid_set = NULL;
+base::MessageLoop* message_loop_ = NULL;
+base::RunLoop *jni_run_loop = NULL;
 
 /************************************************************************************
 **  Static functions
 ************************************************************************************/
-static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+static void btif_jni_associate();
 static void btif_jni_disassociate();
 static bool btif_fetch_property(const char *key, bt_bdaddr_t *addr);
 
@@ -233,6 +239,29 @@ bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_p
 
 /*******************************************************************************
 **
+** Function         do_in_jni_thread
+**
+** Description      This function posts a task into the btif message loop, that
+**                  executes it in the JNI message loop.
+**
+** Returns          void
+**
+*******************************************************************************/
+bt_status_t do_in_jni_thread(const base::Closure& task) {
+  if (!message_loop_ || !message_loop_ ->task_runner().get()) {
+    BTIF_TRACE_WARNING("%s: Dropped message, message_loop not initialized yet!", __func__);
+    return BT_STATUS_FAIL;
+  }
+
+  if (message_loop_->task_runner()->PostTask(FROM_HERE, task))
+    return BT_STATUS_SUCCESS;
+
+  BTIF_TRACE_ERROR("%s: Post task to task runner failed!", __func__);
+  return BT_STATUS_FAIL;
+}
+
+/*******************************************************************************
+**
 ** Function         btif_is_dut_mode
 **
 ** Description      checks if BTIF is currently in DUT mode
@@ -307,11 +336,11 @@ static void bt_jni_msg_ready(void *context) {
 
 void btif_sendmsg(void *p_msg)
 {
-    thread_post(bt_jni_workqueue_thread, bt_jni_msg_ready, p_msg);
+  do_in_jni_thread(base::Bind(&bt_jni_msg_ready, p_msg));
 }
 
 void btif_thread_post(thread_fn func, void *context) {
-    thread_post(bt_jni_workqueue_thread, func, context);
+  do_in_jni_thread(base::Bind(func, context));
 }
 
 static bool btif_fetch_property(const char *key, bt_bdaddr_t *addr) {
@@ -416,6 +445,25 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
     btif_config_set_str("Adapter", "Address", bdstr);
 }
 
+void run_message_loop(UNUSED_ATTR void *context) {
+  // TODO(jpawlowski): exit_manager should be defined in main(), but there is no main method.
+  // It is therefore defined in bt_jni_workqueue_thread, and will be deleted when we free it.
+  base::AtExitManager exit_manager;
+
+  message_loop_ = new base::MessageLoop(base::MessageLoop::Type::TYPE_DEFAULT);
+
+  // Associate this workqueue thread with JNI.
+  message_loop_->task_runner()->PostTask(FROM_HERE, base::Bind(&btif_jni_associate));
+
+  jni_run_loop = new base::RunLoop();
+  jni_run_loop->Run();
+
+  delete message_loop_;
+  message_loop_ = NULL;
+
+  delete jni_run_loop;
+  jni_run_loop = NULL;
+}
 /*******************************************************************************
 **
 ** Function         btif_init_bluetooth
@@ -438,8 +486,7 @@ bt_status_t btif_init_bluetooth() {
     goto error_exit;
   }
 
-  // Associate this workqueue thread with jni.
-  btif_transfer_context(btif_jni_associate, 0, NULL, 0, NULL);
+  thread_post(bt_jni_workqueue_thread, run_message_loop, nullptr);
 
   return BT_STATUS_SUCCESS;
 
@@ -613,6 +660,10 @@ bt_status_t btif_cleanup_bluetooth(void)
     btif_dm_cleanup();
     btif_jni_disassociate();
     btif_queue_release();
+
+    if (jni_run_loop && message_loop_) {
+      message_loop_->task_runner()->PostTask(FROM_HERE, jni_run_loop->QuitClosure());
+    }
 
     thread_free(bt_jni_workqueue_thread);
     bt_jni_workqueue_thread = NULL;
@@ -1319,7 +1370,7 @@ bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id)
     return BT_STATUS_SUCCESS;
 }
 
-static void btif_jni_associate(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param) {
+static void btif_jni_associate() {
   BTIF_TRACE_DEBUG("%s Associating thread to JVM", __func__);
   HAL_CBACK(bt_hal_cbacks, thread_evt_cb, ASSOCIATE_JVM);
 }

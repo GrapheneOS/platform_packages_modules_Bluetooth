@@ -87,4 +87,8 @@ static_library("btif") {
     "//utils/include",
     "//vnd/include",
   ]
+
+  deps = [
+    "//third_party/libchrome:base"
+  ]
 }

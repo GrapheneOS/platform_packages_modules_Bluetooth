@@ -118,7 +118,7 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifCommonSrc)
 # Many .h files have redefined typedefs
-LOCAL_SHARED_LIBRARIES := libmedia libcutils liblog
+LOCAL_SHARED_LIBRARIES := libmedia libcutils liblog libchrome
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libbtif
