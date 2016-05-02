@@ -23,6 +23,10 @@
 #include "osi/include/future.h"
 #include "osi/include/thread.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef future_t *(*module_lifecycle_fn)(void);
 
 typedef struct {
@@ -65,3 +69,7 @@ void module_start_up_callbacked_wrapper(
   thread_t *callback_thread,
   thread_fn callback
 );
+
+#ifdef __cplusplus
+}
+#endif

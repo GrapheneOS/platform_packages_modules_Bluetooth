@@ -88,6 +88,10 @@ static const hci_t *hci;
 *******************************************************************************/
 fixed_queue_t *btu_hci_msg_queue;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /******************************************************************************
 **
 ** Function         bte_main_boot_entry
@@ -267,3 +271,7 @@ void bte_main_hci_send (BT_HDR *p_msg, UINT16 event)
         osi_free(p_msg);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

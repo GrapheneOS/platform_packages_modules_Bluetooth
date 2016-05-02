@@ -18,6 +18,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 
 /* BTE tracing IDs for debug purposes */
@@ -414,3 +418,7 @@ typedef struct {
 extern UINT8 appl_trace_level;
 
 void LogMsg (UINT32 trace_set_mask, const char *fmt_str, ...);
+
+#ifdef __cplusplus
+}
+#endif

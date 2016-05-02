@@ -24,6 +24,10 @@
 #include "bt_target.h"
 #include "bt_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -318,5 +322,9 @@ bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
  * Exported for unit tests
  *****************************************************************************/
 size_t btif_split_uuids_string(const char *str, bt_uuid_t *p_uuid, size_t max_uuids);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTIF_STORAGE_H */

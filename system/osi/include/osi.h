@@ -21,6 +21,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define UNUSED_ATTR __attribute__((unused))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define INVALID_FD (-1)
@@ -59,3 +63,7 @@
 // No guarantees of distribution are made.
 // Effort is made for this to come from a real random source.
 int osi_rand(void);
+
+#ifdef __cplusplus
+}
+#endif

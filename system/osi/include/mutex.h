@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Mutex-related state init
 void mutex_init(void);
 
@@ -31,3 +35,7 @@ void mutex_global_lock(void);
 
 // Unlock the global mutex
 void mutex_global_unlock(void);
+
+#ifdef __cplusplus
+}
+#endif

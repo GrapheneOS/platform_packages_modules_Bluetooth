@@ -24,6 +24,10 @@
 
 #include "osi/include/hash_map.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Note: the string representation of a bdaddr is expected to have the format
 // xx:xx:xx:xx:xx:xx
 // where each 'x' is a hex digit. The API presented in this header will accept
@@ -58,3 +62,7 @@ bool string_to_bdaddr(const char *string, bt_bdaddr_t *addr);
 
 // A hash function tailored for bdaddrs.
 hash_index_t hash_function_bdaddr(const void *key);
+
+#ifdef __cplusplus
+}
+#endif

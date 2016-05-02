@@ -26,6 +26,10 @@
 
 #include "bta_pan_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -196,5 +200,9 @@ extern void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STA
 *******************************************************************************/
 extern void bta_pan_co_mfilt_ind(UINT16 handle,  BOOLEAN indication, tBTA_PAN_STATUS result,
                                  UINT16 len, UINT8 *p_filters);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTA_PAN_CO_H */
