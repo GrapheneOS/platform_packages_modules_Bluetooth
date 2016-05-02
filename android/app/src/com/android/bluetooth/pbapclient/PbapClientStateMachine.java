@@ -199,8 +199,11 @@ final class PbapClientStateMachine extends StateMachine {
             if (DBG) Log.d(TAG,"Processing MSG " + message.what + " from " + this.getName());
             switch (message.what) {
                 case MSG_DISCONNECT:
-                    removeMessages(MSG_CONNECT_TIMEOUT);
-                    transitionTo(mDisconnecting);
+                    if (message.obj instanceof BluetoothDevice &&
+                            ((BluetoothDevice) message.obj).equals(mCurrentDevice)) {
+                        removeMessages(MSG_CONNECT_TIMEOUT);
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 case MSG_CONNECTION_COMPLETE:
@@ -299,7 +302,10 @@ final class PbapClientStateMachine extends StateMachine {
                     break;
 
                 case MSG_DISCONNECT:
-                    transitionTo(mDisconnecting);
+                    if ((message.obj instanceof BluetoothDevice) &&
+                           ((BluetoothDevice) message.obj).equals(mCurrentDevice)) {
+                        transitionTo(mDisconnecting);
+                    }
                     break;
 
                 case MSG_RESUME_DOWNLOAD:
