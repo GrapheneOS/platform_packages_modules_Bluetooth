@@ -613,8 +613,8 @@ void bta_hf_client_operator_name(char *name)
 
     memset(&evt, 0, sizeof(evt));
 
-    strlcpy(evt.operator.name, name, BTA_HF_CLIENT_OPERATOR_NAME_LEN + 1);
-    evt.operator.name[BTA_HF_CLIENT_OPERATOR_NAME_LEN] = '\0';
+    strlcpy(evt.operator_name.name, name, BTA_HF_CLIENT_OPERATOR_NAME_LEN + 1);
+    evt.operator_name.name[BTA_HF_CLIENT_OPERATOR_NAME_LEN] = '\0';
 
     (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_OPERATOR_NAME_EVT, &evt);
 }

@@ -22,10 +22,13 @@
 #include "bta_api.h"
 #include "btif_uid.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************************************
 **  Functions
 ********************************************************************************/
-
 void btif_dm_init(uid_set_t* set);
 void btif_dm_cleanup(void);
 
@@ -102,5 +105,9 @@ void btif_dm_update_ble_remote_properties( BD_ADDR bd_addr, BD_NAME bd_name,
                                            tBT_DEVICE_TYPE dev_type);
 
 #endif /* BLE_INCLUDED */
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

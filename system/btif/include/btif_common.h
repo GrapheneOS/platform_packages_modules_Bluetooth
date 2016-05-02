@@ -29,6 +29,10 @@
 #include "bt_types.h"
 #include "bta_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -215,5 +219,9 @@ void btif_remote_properties_evt(bt_status_t status, bt_bdaddr_t *remote_addr,
                                    uint32_t num_props, bt_property_t *p_props);
 
 void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTIF_COMMON_H */

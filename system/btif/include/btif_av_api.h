@@ -202,9 +202,4 @@ typedef struct
     tBTIF_AV_MEDIA_FEED_CFG cfg;     /* Media codec configuration */
 } tBTIF_AV_MEDIA_FEEDINGS;
 
-
-#ifdef __cplusplus
-}
-#endif
-
 #endif /* BTIF_AV_API_H */

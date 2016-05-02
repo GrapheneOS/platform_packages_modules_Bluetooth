@@ -107,7 +107,7 @@ void BTA_HfClientDisable(void)
 **
 *******************************************************************************/
 void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                          char *p_service_name)
+                          const char *p_service_name)
 {
     tBTA_HF_CLIENT_API_REGISTER *p_buf =
         (tBTA_HF_CLIENT_API_REGISTER *)osi_malloc(sizeof(tBTA_HF_CLIENT_API_REGISTER));

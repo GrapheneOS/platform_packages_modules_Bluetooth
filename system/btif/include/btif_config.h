@@ -23,6 +23,10 @@
 
 #include "bt_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char BTIF_CONFIG_MODULE[] = "btif_config_module";
 
 typedef struct btif_config_section_iter_t btif_config_section_iter_t;
@@ -53,3 +57,7 @@ bool btif_get_address_type(const BD_ADDR bd_addr, int *p_addr_type);
 bool btif_get_device_type(const BD_ADDR bd_addr, int *p_device_type);
 
 void btif_debug_config_dump(int fd);
+
+#ifdef __cplusplus
+}
+#endif

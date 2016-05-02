@@ -28,6 +28,10 @@
 #include "bta_api.h"
 #include "bta_hl_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and Data Types
 *****************************************************************************/
@@ -230,5 +234,9 @@ extern void bta_hl_co_get_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle
 *******************************************************************************/
 extern void bta_hl_co_put_echo_data (UINT8 app_id, tBTA_HL_MCL_HANDLE mcl_handle,
                                      UINT16 data_size, UINT8 *p_data, UINT16 evt);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BTA_HL_CO_H */

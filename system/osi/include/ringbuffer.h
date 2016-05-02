@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct ringbuffer_t ringbuffer_t;
 
 // NOTE:
@@ -59,3 +63,7 @@ size_t ringbuffer_pop(ringbuffer_t *rb, uint8_t *p, size_t length);
 // Deletes |length| bytes from the ringbuffer starting from the head
 // Return actual number of bytes deleted.
 size_t ringbuffer_delete(ringbuffer_t *rb, size_t length);
+
+#ifdef __cplusplus
+}
+#endif

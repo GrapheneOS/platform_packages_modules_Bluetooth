@@ -21,6 +21,10 @@
 #include <stdbool.h>
 #include <hardware/bluetooth.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Set the Bluetooth OS callouts to |callouts|.
 // This function should be called when native kernel wakelocks are not used
 // directly. If this function is not called, or |callouts| is NULL, then native
@@ -52,3 +56,7 @@ void wakelock_set_paths(const char *lock_path, const char *unlock_path);
 // Dump wakelock-related debug info to the |fd| file descriptor.
 // The caller is responsible for closing the |fd|.
 void wakelock_debug_dump(int fd);
+
+#ifdef __cplusplus
+}
+#endif

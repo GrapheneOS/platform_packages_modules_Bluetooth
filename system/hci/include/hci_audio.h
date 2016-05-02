@@ -20,6 +20,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Audio state definitions.
 typedef enum {
     SCO_STATE_OFF = 0,      // Audio is off.
@@ -38,3 +42,7 @@ typedef enum {
 // Set the audio state on the controller for SCO (PCM, WBS, ...) using the
 // vendor library.
 void set_audio_state(uint16_t handle, sco_codec_t codec, sco_state_t state);
+
+#ifdef __cplusplus
+}
+#endif

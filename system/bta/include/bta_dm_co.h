@@ -26,6 +26,9 @@
 
 #include "bta_sys.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef BTA_SCO_OUT_PKT_SIZE
     #define BTA_SCO_OUT_PKT_SIZE    BTM_SCO_DATA_SIZE_MAX
@@ -268,5 +271,9 @@ extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                                  UINT8 *p_max_key_size,
                                  tBTA_LE_KEY_TYPE *p_init_key,
                                  tBTA_LE_KEY_TYPE  *p_resp_key );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

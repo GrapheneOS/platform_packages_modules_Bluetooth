@@ -23,6 +23,10 @@
 
 #include "osi/include/list.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct fixed_queue_t;
 typedef struct fixed_queue_t fixed_queue_t;
 typedef struct reactor_t reactor_t;
@@ -122,3 +126,7 @@ void fixed_queue_register_dequeue(fixed_queue_t *queue, reactor_t *reactor, fixe
 // Unregisters the dequeue ready callback for |queue| from whichever reactor
 // it is registered with, if any. This function is idempotent.
 void fixed_queue_unregister_dequeue(fixed_queue_t *queue);
+
+#ifdef __cplusplus
+}
+#endif
