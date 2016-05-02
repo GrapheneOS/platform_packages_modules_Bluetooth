@@ -101,8 +101,8 @@ bool alarm_is_scheduled(const alarm_t *alarm);
 void alarm_register_processing_queue(fixed_queue_t *queue, thread_t *thread);
 
 // Unregisters |queue| for processing alarm callbacks on whichever thread
-// it is registered with. |queue| may not be NULL.
-// This function is idempotent.
+// it is registered with. All alarms currently set for execution on |queue|
+// will be canceled. |queue| may not be NULL. This function is idempotent.
 void alarm_unregister_processing_queue(fixed_queue_t *queue);
 
 // Figure out how much time until next expiration.
