@@ -21,6 +21,10 @@
 #include "bt_target.h"
 #include "sdpdefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -675,5 +679,9 @@ UINT8 SDP_SetTraceLevel (UINT8 new_level);
 **
 *******************************************************************************/
 BOOLEAN SDP_FindServiceUUIDInRec(tSDP_DISC_REC *p_rec, tBT_UUID *p_uuid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* SDP_API_H */

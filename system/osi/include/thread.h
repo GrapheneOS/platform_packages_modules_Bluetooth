@@ -21,10 +21,15 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define THREAD_NAME_MAX 16
 
 typedef struct reactor_t reactor_t;
 typedef struct thread_t thread_t;
+
 typedef void (*thread_fn)(void *context);
 
 // Creates and starts a new thread with the given name. Only THREAD_NAME_MAX
@@ -73,3 +78,7 @@ reactor_t *thread_get_reactor(const thread_t *thread);
 
 // Returns the name of the given |thread|. |thread| may not be NULL.
 const char *thread_name(const thread_t *thread);
+
+#ifdef __cplusplus
+}
+#endif

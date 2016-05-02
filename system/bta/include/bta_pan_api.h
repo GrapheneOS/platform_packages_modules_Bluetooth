@@ -59,7 +59,7 @@ typedef UINT8   tBTA_PAN_ROLE;
 /*  information regarding PAN roles */
 typedef struct
 {
-    char *p_srv_name;  /* service name for the PAN role */
+    const char *p_srv_name;  /* service name for the PAN role */
     UINT8 app_id;      /* application id */
     tBTA_SEC sec_mask; /* security setting for the role */
 

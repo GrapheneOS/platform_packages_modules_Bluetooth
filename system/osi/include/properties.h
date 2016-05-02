@@ -24,6 +24,10 @@
 #include <cutils/properties.h>
 #endif  // defined(OS_GENERIC)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Get value associated with key |key| into |value|.
 // Returns the length of the value which will never be greater than
 // PROPERTY_VALUE_MAX - 1 and will always be zero terminated.
@@ -35,3 +39,7 @@ int osi_property_get(const char *key, char *value, const char *default_value);
 // Write value of property associated with key |key| to |value|.
 // Returns 0 on success, < 0 on failure
 int osi_property_set(const char *key, const char *value);
+
+#ifdef __cplusplus
+}
+#endif

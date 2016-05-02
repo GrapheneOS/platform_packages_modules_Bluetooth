@@ -22,6 +22,10 @@
 
 #include "bt_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Callback invoked for each HCI packet.
 // Highlander mode - there can be only one...
 typedef void (*btsnoop_data_cb)(const uint16_t type, const uint8_t *p_data, const size_t len);
@@ -34,3 +38,7 @@ void btsnoop_mem_set_callback(btsnoop_data_cb cb);
 // is sent/received. Packets will be filtered  and then
 // forwarded to the |btsnoop_data_cb|.
 void btsnoop_mem_capture(const BT_HDR *p_buf);
+
+#ifdef __cplusplus
+}
+#endif

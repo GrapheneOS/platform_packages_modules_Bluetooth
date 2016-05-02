@@ -17,7 +17,7 @@
 shared_library("bluetooth.default") {
   # HAL layer
   sources = [
-    "//btif/src/bluetooth.c",
+    "//btif/src/bluetooth.cc",
   ]
 
   # platform specific
