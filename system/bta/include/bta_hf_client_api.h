@@ -236,7 +236,7 @@ typedef union
     tBTA_HF_CLIENT_CONN             conn;
     tBTA_HF_CLIENT_IND              ind;
     tBTA_HF_CLIENT_VAL              val;
-    tBTA_HF_CLIENT_OPERATOR_NAME    operator;
+    tBTA_HF_CLIENT_OPERATOR_NAME    operator_name;
     tBTA_HF_CLIENT_NUMBER           number;
     tBTA_HF_CLIENT_AT_RESULT        result;
     tBTA_HF_CLIENT_CLCC             clcc;
@@ -295,7 +295,7 @@ void BTA_HfClientDisable(void);
 **
 *******************************************************************************/
 void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
-                          char *p_service_name);
+                          const char *p_service_name);
 
 /*******************************************************************************
 **

@@ -59,6 +59,7 @@ config("linux") {
 # but we use some c++14 features. Uncomment when this get fixed in code.:
     "-std=c++14",
     "-fno-exceptions",
+    "-fpermissive",
   ]
 
   defines = [

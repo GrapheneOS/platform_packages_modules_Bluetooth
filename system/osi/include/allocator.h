@@ -22,6 +22,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void *(*alloc_fn)(size_t size);
 typedef void (*free_fn)(void *ptr);
 
@@ -46,3 +50,7 @@ void osi_free(void *ptr);
 // |p_ptr| is a pointer to the buffer pointer to be reset.
 // |p_ptr| cannot be NULL.
 void osi_free_and_reset(void **p_ptr);
+
+#ifdef __cplusplus
+}
+#endif

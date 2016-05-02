@@ -28,7 +28,8 @@
 #ifndef BTIF_GATT_H
 #define BTIF_GATT_H
 
-
+extern const btgatt_client_interface_t btgattClientInterface;
+extern const btgatt_server_interface_t btgattServerInterface;
 
 #endif
 

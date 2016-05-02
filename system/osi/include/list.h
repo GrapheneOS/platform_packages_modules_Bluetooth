@@ -3,6 +3,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct list_node_t;
 typedef struct list_node_t list_node_t;
 
@@ -112,3 +116,7 @@ list_node_t *list_next(const list_node_t *node);
 // Returns the value stored at the location pointed to by the iterator |node|.
 // |node| must not equal the value returned by |list_end|.
 void *list_node(const list_node_t *node);
+
+#ifdef __cplusplus
+}
+#endif

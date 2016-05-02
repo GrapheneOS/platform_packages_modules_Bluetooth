@@ -25,6 +25,10 @@
 #include "bt_common.h"
 #include "osi/include/alarm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -327,4 +331,9 @@ extern void btif_hl_abort_pending_chan_setup(UINT8 app_idx, UINT8 mcl_idx);
 extern BOOLEAN btif_hl_proc_pending_op(UINT8 app_idx, UINT8 mcl_idx);
 extern BOOLEAN btif_hl_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
                                         tBTA_HL_MDL_CFG *p_mdl_buf );
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
