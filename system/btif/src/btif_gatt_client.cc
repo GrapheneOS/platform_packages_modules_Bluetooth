@@ -95,7 +95,6 @@ typedef enum {
     BTIF_GATTC_LISTEN,
     BTIF_GATTC_SET_ADV_DATA,
     BTIF_GATTC_CONFIGURE_MTU,
-    BTIF_GATTC_CONN_PARAM_UPDT,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1376,22 +1375,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
 
-        case BTIF_GATTC_CONN_PARAM_UPDT:
-        {
-            btif_conn_param_cb_t *p_conn_param_cb = (btif_conn_param_cb_t*) p_param;
-            if (BTA_DmGetConnectionState(p_conn_param_cb->bd_addr.address))
-            {
-                BTA_DmBleUpdateConnectionParams(p_conn_param_cb->bd_addr.address,
-                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
-                               p_conn_param_cb->latency, p_conn_param_cb->timeout);
-            } else {
-                BTA_DmSetBlePrefConnParams(p_conn_param_cb->bd_addr.address,
-                               p_conn_param_cb->min_interval, p_conn_param_cb->max_interval,
-                               p_conn_param_cb->latency, p_conn_param_cb->timeout);
-            }
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -1615,18 +1598,25 @@ static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, int min_interval,
-                    int max_interval, int latency, int timeout)
-{
-    CHECK_BTGATT_INIT();
-    btif_conn_param_cb_t btif_cb;
-    btif_cb.min_interval = min_interval;
-    btif_cb.max_interval = max_interval;
-    btif_cb.latency = latency;
-    btif_cb.timeout = timeout;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONN_PARAM_UPDT,
-                                 (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
+void btif_gattc_conn_parameter_update_impl(const BD_ADDR addr, int min_interval,
+                                           int max_interval, int latency,
+                                           int timeout) {
+  if (BTA_DmGetConnectionState(const_cast<UINT8 *>(addr)))
+    BTA_DmBleUpdateConnectionParams(const_cast<UINT8 *>(addr), min_interval,
+                                    max_interval, latency, timeout);
+  else
+    BTA_DmSetBlePrefConnParams(const_cast<UINT8 *>(addr), min_interval,
+                               max_interval, latency, timeout);
+}
+
+static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr,
+                                                    int min_interval,
+                                                    int max_interval,
+                                                    int latency, int timeout) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&btif_gattc_conn_parameter_update_impl),
+           bd_addr->address, min_interval, max_interval, latency, timeout));
 }
 
 static void btif_gattc_scan_filter_param_setup_impl(
