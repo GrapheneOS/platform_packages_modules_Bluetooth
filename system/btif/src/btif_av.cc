@@ -1250,7 +1250,7 @@ static bt_status_t init_sink(btav_callbacks_t* callbacks)
 void update_audio_focus_state(int state)
 {
     BTIF_TRACE_DEBUG("%s state %d ",__func__, state);
-    btif_a2dp_set_audio_focus_state(state);
+    btif_a2dp_set_audio_focus_state((btif_media_audio_focus_state) state);
 }
 
 /*******************************************************************************
