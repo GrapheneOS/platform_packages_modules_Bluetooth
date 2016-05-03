@@ -86,8 +86,6 @@ typedef enum {
     BTIF_GATTC_OPEN,
     BTIF_GATTC_CLOSE,
     BTIF_GATTC_SEARCH_SERVICE,
-    BTIF_GATTC_WRITE_CHAR,
-    BTIF_GATTC_WRITE_CHAR_DESCR,
     BTIF_GATTC_EXECUTE_WRITE,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
@@ -1071,7 +1069,6 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
 static void btgattc_handle_event(uint16_t event, char* p_param)
 {
     tBT_UUID                   uuid;
-    tBTA_GATT_UNFMT            descr_val;
 
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
     if (!p_cb) return;
@@ -1190,20 +1187,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             }
             break;
         }
-
-        case BTIF_GATTC_WRITE_CHAR:
-            BTA_GATTC_WriteCharValue(p_cb->conn_id, p_cb->handle, p_cb->write_type,
-                                     p_cb->len, p_cb->value, p_cb->auth_req);
-            break;
-
-        case BTIF_GATTC_WRITE_CHAR_DESCR:
-            descr_val.len = p_cb->len;
-            descr_val.p_value = p_cb->value;
-
-            BTA_GATTC_WriteCharDescr(p_cb->conn_id, p_cb->handle,
-                                     p_cb->write_type, &descr_val,
-                                     p_cb->auth_req);
-            break;
 
         case BTIF_GATTC_EXECUTE_WRITE:
             BTA_GATTC_ExecuteWrite(p_cb->conn_id, p_cb->action);
@@ -1467,35 +1450,35 @@ static bt_status_t btif_gattc_read_char_descr(int conn_id, uint16_t handle,
       Bind(&BTA_GATTC_ReadCharDescr, conn_id, handle, auth_req));
 }
 
-static bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
-                                         int len, int auth_req, char* p_value)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.handle = (uint16_t) handle;
-    btif_cb.auth_req = (uint8_t) auth_req;
-    btif_cb.write_type = (uint8_t) write_type;
-    btif_cb.len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-    memcpy(btif_cb.value, p_value, btif_cb.len);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_WRITE_CHAR,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle,
+                                         int write_type, int len, int auth_req,
+                                         char *p_value) {
+  CHECK_BTGATT_INIT();
+
+  len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
+  // callback will own this value and free it.
+  UINT8 *value = new UINT8(len);
+  memcpy(value, p_value, len);
+
+  return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharValue, conn_id, handle,
+                               write_type, len, base::Owned(value), auth_req));
 }
 
 static bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
-                                               int write_type, int len, int auth_req,
-                                               char* p_value)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.handle = (uint16_t) handle;
-    btif_cb.auth_req = (uint8_t) auth_req;
-    btif_cb.write_type = (uint8_t) write_type;
-    btif_cb.len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-    memcpy(btif_cb.value, p_value, btif_cb.len);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_WRITE_CHAR_DESCR,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+                                               int write_type, int len,
+                                               int auth_req, char *p_value) {
+  len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
+
+  // callback will own this value and free it
+  // TODO(jpawlowski): This one is little hacky because of unfmt type,
+  // make it accept len an val like BTA_GATTC_WriteCharValue
+  tBTA_GATT_UNFMT *value = (tBTA_GATT_UNFMT *)new UINT8(sizeof(UINT16) + len);
+  value->len = len;
+  value->p_value = ((UINT8 *)value) + 2;
+  memcpy(value->p_value, p_value, len);
+
+  return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharDescr, conn_id, handle,
+                               write_type, Owned(value), auth_req));
 }
 
 static bt_status_t btif_gattc_execute_write(int conn_id, int execute)
