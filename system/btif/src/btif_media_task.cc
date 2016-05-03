@@ -1259,7 +1259,7 @@ void btif_a2dp_set_tx_flush(BOOLEAN enable)
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state)
 {
-    tBTIF_MEDIA_SINK_FOCUS_UPDATE *p_buf =
+    tBTIF_MEDIA_SINK_FOCUS_UPDATE *p_buf = (tBTIF_MEDIA_SINK_FOCUS_UPDATE *)
         osi_malloc(sizeof(tBTIF_MEDIA_SINK_FOCUS_UPDATE));
 
     APPL_TRACE_EVENT("%s", __func__);
@@ -1480,7 +1480,8 @@ static void btif_media_thread_handle_cmd(fixed_queue_t *queue, UNUSED_ATTR void 
     case BTIF_MEDIA_AUDIO_SINK_SET_FOCUS_STATE:
         if(!btif_av_is_connected())
             break;
-        btif_media_cb.rx_audio_focus_state = ((tBTIF_MEDIA_SINK_FOCUS_UPDATE *)p_msg)->focus_state;
+        btif_media_cb.rx_audio_focus_state = ((btif_media_audio_focus_state)
+            ((tBTIF_MEDIA_SINK_FOCUS_UPDATE *)p_msg)->focus_state);
         APPL_TRACE_DEBUG("Setting focus state to %d ",btif_media_cb.rx_audio_focus_state);
         break;
 #endif
