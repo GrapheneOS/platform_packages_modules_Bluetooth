@@ -38,7 +38,7 @@ namespace heart_rate {
 class CLIBluetoothLowEnergyCallback
     : public android::bluetooth::BnBluetoothLowEnergyCallback {
  public:
-  CLIBluetoothLowEnergyCallback(android::sp<android::bluetooth::IBluetooth> bt)
+  explicit CLIBluetoothLowEnergyCallback(android::sp<android::bluetooth::IBluetooth> bt)
       : bt_(bt) {}
 
   // IBluetoothLowEnergyCallback overrides:

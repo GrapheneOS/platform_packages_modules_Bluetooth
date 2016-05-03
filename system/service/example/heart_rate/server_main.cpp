@@ -54,7 +54,7 @@ void QuitMessageLoop() {
 // Handles the case where the Bluetooth process dies.
 class BluetoothDeathRecipient : public android::IBinder::DeathRecipient {
  public:
-  BluetoothDeathRecipient(
+  explicit BluetoothDeathRecipient(
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner)
       : main_task_runner_(main_task_runner) {}
 
