@@ -59,7 +59,7 @@ class AdapterTest : public ::testing::Test {
 
 class TestObserver final : public bluetooth::Adapter::Observer {
  public:
-  TestObserver(bluetooth::Adapter* adapter)
+  explicit TestObserver(bluetooth::Adapter* adapter)
       : adapter_(adapter),
         prev_state_(bluetooth::ADAPTER_STATE_INVALID),
         cur_state_(bluetooth::ADAPTER_STATE_INVALID),
