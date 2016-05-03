@@ -222,34 +222,33 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
     p_multi_adv_inst->min_interval = min_interval;
     p_multi_adv_inst->max_interval = max_interval;
     p_multi_adv_inst->appearance = appearance;
-    p_multi_adv_inst->manufacturer_len = manufacturer_len;
 
     if (manufacturer_len > 0)
     {
-        p_multi_adv_inst->p_manufacturer_data = (uint8_t*)osi_malloc(manufacturer_len);
+        if (manufacturer_len > MAX_SIZE_MANUFACTURER_DATA)
+            manufacturer_len = MAX_SIZE_MANUFACTURER_DATA;
+
+        p_multi_adv_inst->manufacturer_len = manufacturer_len;
         memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data, manufacturer_len);
     }
 
-    p_multi_adv_inst->service_data_len = service_data_len;
     if (service_data_len > 0)
     {
-        p_multi_adv_inst->p_service_data = (uint8_t*)osi_malloc(service_data_len);
+        if (service_data_len > MAX_SIZE_PROPRIETARY_ELEMENT)
+            service_data_len = MAX_SIZE_PROPRIETARY_ELEMENT;
+
+        p_multi_adv_inst->service_data_len = service_data_len;
         memcpy(p_multi_adv_inst->p_service_data, service_data, service_data_len);
     }
 
-    p_multi_adv_inst->service_uuid_len = service_uuid_len;
     if (service_uuid_len > 0)
     {
-        p_multi_adv_inst->p_service_uuid = (uint8_t*)osi_malloc(service_uuid_len);
+        if (service_uuid_len > MAX_SIZE_SERVICE_DATA)
+            service_uuid_len = MAX_SIZE_SERVICE_DATA;
+
+        p_multi_adv_inst->service_uuid_len = service_uuid_len;
         memcpy(p_multi_adv_inst->p_service_uuid, service_uuid, service_uuid_len);
     }
-}
-
-void btif_gattc_adv_data_cleanup(btif_adv_data_t* adv)
-{
-    osi_free_and_reset((void **)&adv->p_service_data);
-    osi_free_and_reset((void **)&adv->p_service_uuid);
-    osi_free_and_reset((void **)&adv->p_manufacturer_data);
 }
 
 BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
@@ -320,7 +319,6 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
     }
 
     if (p_adv_data->manufacturer_len > 0 &&
-        p_adv_data->p_manufacturer_data != NULL &&
         p_adv_data->manufacturer_len < MAX_SIZE_MANUFACTURER_DATA)
     {
       p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_MANU;
@@ -331,7 +329,6 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
     }
 
     if (p_adv_data->service_data_len > 0 &&
-        p_adv_data->p_service_data != NULL &&
         p_adv_data->service_data_len < MAX_SIZE_PROPRIETARY_ELEMENT)
     {
       BTIF_TRACE_DEBUG("%s - In service_data", __func__);
@@ -347,7 +344,7 @@ BOOLEAN btif_gattc_copy_datacb(int cbindex, const btif_adv_data_t *p_adv_data,
       p_multi_adv_data_cb->inst_cb[cbindex].mask |= BTM_BLE_AD_BIT_PROPRIETARY;
     }
 
-    if (p_adv_data->service_uuid_len && p_adv_data->p_service_uuid)
+    if (p_adv_data->service_uuid_len)
     {
         UINT16 *p_uuid_out16 = NULL;
         UINT32 *p_uuid_out32 = NULL;
