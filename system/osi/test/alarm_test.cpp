@@ -145,7 +145,6 @@ TEST_F(AlarmTest, test_set_zero_periodic) {
 
   alarm_set(alarm, 0, cb, NULL);
 
-  EXPECT_EQ(cb_counter, 0);
   EXPECT_TRUE(WakeLockHeld());
 
   for (int i = 1; i <= 10; i++) {
