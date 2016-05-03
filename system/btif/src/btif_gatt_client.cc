@@ -83,7 +83,6 @@ typedef enum {
     BTIF_GATTC_UNREGISTER_APP,
     BTIF_GATTC_SCAN_START,
     BTIF_GATTC_SCAN_STOP,
-    BTIF_GATTC_OPEN,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1095,73 +1094,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_DmBleObserve(FALSE, 0, 0);
             break;
 
-        case BTIF_GATTC_OPEN:
-        {
-            // Ensure device is in inquiry database
-            int addr_type = 0;
-            int device_type = 0;
-            tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
-
-            if (btif_get_address_type(p_cb->bd_addr.address, &addr_type) &&
-                btif_get_device_type(p_cb->bd_addr.address, &device_type) &&
-                device_type != BT_DEVICE_TYPE_BREDR)
-            {
-                BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
-            }
-
-            // Check for background connections
-            if (!p_cb->is_direct)
-            {
-                // Check for privacy 1.0 and 1.1 controller and do not start background
-                // connection if RPA offloading is not supported, since it will not
-                // connect after change of random address
-                if (!controller_get_interface()->supports_ble_privacy() &&
-                   (p_cb->addr_type == BLE_ADDR_RANDOM) &&
-                   BTM_BLE_IS_RESOLVE_BDA(p_cb->bd_addr.address))
-                {
-                    tBTM_BLE_VSC_CB vnd_capabilities;
-                    BTM_BleGetVendorCapabilities(&vnd_capabilities);
-                    if (!vnd_capabilities.rpa_offloading)
-                    {
-                        HAL_CBACK(bt_gatt_callbacks, client->open_cb, 0, BT_STATUS_UNSUPPORTED,
-                                        p_cb->client_if, &p_cb->bd_addr);
-                        return;
-                    }
-                }
-                BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
-            }
-
-            // Determine transport
-            if (p_cb->transport != GATT_TRANSPORT_AUTO)
-            {
-                transport = p_cb->transport;
-            } else {
-                switch(device_type)
-                {
-                    case BT_DEVICE_TYPE_BREDR:
-                        transport = BTA_GATT_TRANSPORT_BR_EDR;
-                        break;
-
-                    case BT_DEVICE_TYPE_BLE:
-                        transport = BTA_GATT_TRANSPORT_LE;
-                        break;
-
-                    case BT_DEVICE_TYPE_DUMO:
-                        if (p_cb->transport == GATT_TRANSPORT_LE)
-                            transport = BTA_GATT_TRANSPORT_LE;
-                        else
-                            transport = BTA_GATT_TRANSPORT_BR_EDR;
-                        break;
-                }
-            }
-
-            // Connect!
-            BTIF_TRACE_DEBUG ("%s Transport=%d, device type=%d",
-                                __func__, transport, device_type);
-            BTA_GATTC_Open(p_cb->client_if, p_cb->bd_addr.address, p_cb->is_direct, transport);
-            break;
-        }
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1298,17 +1230,75 @@ static bt_status_t btif_gattc_scan( bool start )
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
+static void btif_gattc_open_impl(int client_if, BD_ADDR address,
+                                 bool is_direct, int transport_p) {
+  // Ensure device is in inquiry database
+  int addr_type = 0;
+  int device_type = 0;
+  tBTA_GATT_TRANSPORT transport = (tBTA_GATT_TRANSPORT)BTA_GATT_TRANSPORT_LE;
+
+  if (btif_get_address_type(address, &addr_type) &&
+      btif_get_device_type(address, &device_type) &&
+      device_type != BT_DEVICE_TYPE_BREDR) {
+    BTA_DmAddBleDevice(address, addr_type, device_type);
+  }
+
+  // Check for background connections
+  if (!is_direct) {
+    // Check for privacy 1.0 and 1.1 controller and do not start background
+    // connection if RPA offloading is not supported, since it will not
+    // connect after change of random address
+    if (!controller_get_interface()->supports_ble_privacy() &&
+        (addr_type == BLE_ADDR_RANDOM) &&
+        BTM_BLE_IS_RESOLVE_BDA(address)) {
+      tBTM_BLE_VSC_CB vnd_capabilities;
+      BTM_BleGetVendorCapabilities(&vnd_capabilities);
+      if (!vnd_capabilities.rpa_offloading) {
+        HAL_CBACK(bt_gatt_callbacks, client->open_cb, 0, BT_STATUS_UNSUPPORTED,
+                  client_if, (bt_bdaddr_t*) &address);
+        return;
+      }
+    }
+    BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
+  }
+
+  // Determine transport
+  if (transport_p != GATT_TRANSPORT_AUTO) {
+    transport = transport_p;
+  } else {
+    switch (device_type) {
+      case BT_DEVICE_TYPE_BREDR:
+        transport = BTA_GATT_TRANSPORT_BR_EDR;
+        break;
+
+      case BT_DEVICE_TYPE_BLE:
+        transport = BTA_GATT_TRANSPORT_LE;
+        break;
+
+      case BT_DEVICE_TYPE_DUMO:
+        if (transport == GATT_TRANSPORT_LE)
+          transport = BTA_GATT_TRANSPORT_LE;
+        else
+          transport = BTA_GATT_TRANSPORT_BR_EDR;
+        break;
+    }
+  }
+
+  // Connect!
+  BTIF_TRACE_DEBUG("%s Transport=%d, device type=%d", __func__, transport,
+                   device_type);
+  BTA_GATTC_Open(client_if, address, is_direct, transport);
+}
+
 static bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t *bd_addr,
-                                        bool is_direct,int transport)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    btif_cb.is_direct = is_direct ? 1 : 0;
-    btif_cb.transport = (btgatt_transport_t)transport;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_OPEN,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+                                   bool is_direct, int transport) {
+  CHECK_BTGATT_INIT();
+  // Closure will own this value and free it.
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(
+      Bind(&btif_gattc_open_impl, client_if, base::Owned(address), is_direct,
+           transport));
 }
 
 static void btif_gattc_close_impl(int client_if, BD_ADDR address,
