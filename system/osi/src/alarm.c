@@ -126,6 +126,7 @@ static period_ms_t now(void);
 static void alarm_set_internal(alarm_t *alarm, period_ms_t period,
                                alarm_callback_t cb, void *data,
                                fixed_queue_t *queue);
+static void alarm_cancel_internal(alarm_t *alarm);
 static void remove_pending_alarm(alarm_t *alarm);
 static void schedule_next_instance(alarm_t *alarm);
 static void reschedule_root_alarm(void);
@@ -260,7 +261,17 @@ void alarm_cancel(alarm_t *alarm) {
     return;
 
   pthread_mutex_lock(&monitor);
+  alarm_cancel_internal(alarm);
+  pthread_mutex_unlock(&monitor);
 
+  // If the callback for |alarm| is in progress, wait here until it completes.
+  pthread_mutex_lock(&alarm->callback_lock);
+  pthread_mutex_unlock(&alarm->callback_lock);
+}
+
+// Internal implementation of canceling an alarm.
+// The caller must hold the |monitor| lock.
+static void alarm_cancel_internal(alarm_t *alarm) {
   bool needs_reschedule = (!list_is_empty(alarms) && list_front(alarms) == alarm);
 
   remove_pending_alarm(alarm);
@@ -270,15 +281,10 @@ void alarm_cancel(alarm_t *alarm) {
   alarm->callback = NULL;
   alarm->data = NULL;
   alarm->stats.canceled_count++;
+  alarm->queue = NULL;
 
   if (needs_reschedule)
     reschedule_root_alarm();
-
-  pthread_mutex_unlock(&monitor);
-
-  // If the callback for |alarm| is in progress, wait here until it completes.
-  pthread_mutex_lock(&alarm->callback_lock);
-  pthread_mutex_unlock(&alarm->callback_lock);
 }
 
 bool alarm_is_scheduled(const alarm_t *alarm) {
@@ -557,7 +563,23 @@ void alarm_register_processing_queue(fixed_queue_t *queue, thread_t *thread) {
 }
 
 void alarm_unregister_processing_queue(fixed_queue_t *queue) {
+  assert(alarms != NULL);
+  assert(queue != NULL);
+
   fixed_queue_unregister_dequeue(queue);
+
+  // Cancel all alarms that are using this queue
+  pthread_mutex_lock(&monitor);
+  for (list_node_t *node = list_begin(alarms); node != list_end(alarms); ) {
+    alarm_t *alarm = (alarm_t *)list_node(node);
+    node = list_next(node);
+    // TODO: Each module is responsible for tearing down its alarms; currently,
+    // this is not the case. In the future, this check should be replaced by
+    // an assert.
+    if (alarm->queue == queue)
+      alarm_cancel_internal(alarm);
+  }
+  pthread_mutex_unlock(&monitor);
 }
 
 static void alarm_queue_ready(fixed_queue_t *queue,
