@@ -100,7 +100,6 @@ typedef enum {
     BTIF_GATTC_SCAN_FILTER_CONFIG,
     BTIF_GATTC_SCAN_FILTER_CLEAR,
     BTIF_GATTC_SCAN_FILTER_ENABLE,
-    BTIF_GATTC_SET_SCAN_PARAMS,
     BTIF_GATTC_ADV_INSTANCE_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_UPDATE,
     BTIF_GATTC_ADV_INSTANCE_SET_DATA,
@@ -1530,13 +1529,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_SET_SCAN_PARAMS:
-        {
-            BTA_DmSetBleScanParams(p_cb->client_if, p_cb->scan_interval, p_cb->scan_window,
-                                   BTM_BLE_SCAN_MODE_ACTI, bta_scan_param_setup_cb);
-            break;
-        }
-
         case BTIF_GATTC_CONFIG_STORAGE_PARAMS:
         {
             btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
@@ -1900,16 +1892,14 @@ static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
                                  (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_set_scan_parameters(int client_if, int scan_interval,
-                                                  int scan_window)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = client_if;
-    btif_cb.scan_interval = scan_interval;
-    btif_cb.scan_window = scan_window;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_SCAN_PARAMS,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_set_scan_parameters(int client_if,
+                                                  int scan_interval,
+                                                  int scan_window) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(BTA_DmSetBleScanParams, client_if, scan_interval, scan_window,
+           BTM_BLE_SCAN_MODE_ACTI,
+           (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
 }
 
 static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
