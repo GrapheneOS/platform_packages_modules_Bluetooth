@@ -1083,23 +1083,6 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
                           (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static void btgattc_free_event_data(UINT16 event, char *event_data)
-{
-    switch (event)
-    {
-        case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
-        case BTIF_GATTC_SET_ADV_DATA:
-        {
-            btif_adv_data_t *adv_data = (btif_adv_data_t *)event_data;
-            btif_gattc_adv_data_cleanup(adv_data);
-            break;
-        }
-
-        default:
-            break;
-    }
-}
-
 static void btgattc_handle_event(uint16_t event, char* p_param)
 {
     tBTA_GATT_STATUS           status;
@@ -1598,8 +1581,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
     }
-
-    btgattc_free_event_data(event, p_param);
 }
 
 /*******************************************************************************
@@ -1666,44 +1647,6 @@ static bt_status_t btif_gattc_listen(int client_if, bool start)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void btif_gattc_deep_copy(UINT16 event, char *p_dest, char *p_src)
-{
-    switch (event)
-    {
-        case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
-        case BTIF_GATTC_SET_ADV_DATA:
-        {
-            const btif_adv_data_t *src = (btif_adv_data_t*) p_src;
-            btif_adv_data_t *dst = (btif_adv_data_t*) p_dest;
-            maybe_non_aligned_memcpy(dst, src, sizeof(*src));
-
-            if (src->p_manufacturer_data)
-            {
-                dst->p_manufacturer_data = (UINT8 *)osi_malloc(src->manufacturer_len);
-                memcpy(dst->p_manufacturer_data, src->p_manufacturer_data,
-                       src->manufacturer_len);
-            }
-
-            if (src->p_service_data)
-            {
-                dst->p_service_data = (UINT8 *)osi_malloc(src->service_data_len);
-                memcpy(dst->p_service_data, src->p_service_data, src->service_data_len);
-            }
-
-            if (src->p_service_uuid)
-            {
-                dst->p_service_uuid = (UINT8 *)osi_malloc(src->service_uuid_len);
-                memcpy(dst->p_service_uuid, src->p_service_uuid, src->service_uuid_len);
-            }
-            break;
-        }
-
-        default:
-            ASSERTC(false, "Unhandled deep copy", event);
-            break;
-    }
-}
-
 static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, bool include_name,
                 bool include_txpower, int min_interval, int max_interval, int appearance,
                 uint16_t manufacturer_len, char* manufacturer_data,
@@ -1719,8 +1662,7 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
         &adv_data);
 
     bt_status_t status = btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_ADV_DATA,
-                       (char*) &adv_data, sizeof(adv_data), btif_gattc_deep_copy);
-    btif_gattc_adv_data_cleanup(&adv_data);
+                       (char*) &adv_data, sizeof(adv_data), NULL);
     return status;
 }
 
@@ -2056,9 +1998,7 @@ static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp
 
     bt_status_t status = btif_transfer_context(
         btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_SET_DATA,
-        (char *)&multi_adv_data_inst, sizeof(multi_adv_data_inst),
-        btif_gattc_deep_copy);
-    btif_gattc_adv_data_cleanup(&multi_adv_data_inst);
+        (char *)&multi_adv_data_inst, sizeof(multi_adv_data_inst), NULL);
     return status;
 }
 

@@ -46,11 +46,11 @@ typedef struct
     int max_interval;
     int appearance;
     uint16_t manufacturer_len;
-    uint8_t* p_manufacturer_data;
+    uint8_t p_manufacturer_data[MAX_SIZE_MANUFACTURER_DATA];
     uint16_t service_data_len;
-    uint8_t* p_service_data;
+    uint8_t p_service_data[MAX_SIZE_SERVICE_DATA];
     uint16_t service_uuid_len;
-    uint8_t* p_service_uuid;
+    uint8_t p_service_uuid[MAX_SIZE_SERVICE_DATA];
 } btif_adv_data_t;
 
 
