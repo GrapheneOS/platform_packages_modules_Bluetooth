@@ -415,7 +415,6 @@ TEST_F(AlarmTest, test_periodic_unregister_processing_queue) {
   for (int i = 0; i < 5; i++) {
     alarm_set_on_queue(alarms[i], 20 + i, cb, INT_TO_PTR(i), queue);
   }
-  EXPECT_EQ(cb_counter, 0);
   EXPECT_TRUE(WakeLockHeld());
 
   for (int i = 1; i <= 20; i++) {
