@@ -193,6 +193,7 @@ void bta_sys_init(void)
 }
 
 void bta_sys_free(void) {
+    alarm_unregister_processing_queue(btu_bta_alarm_queue);
     fixed_queue_free(btu_bta_alarm_queue, NULL);
     btu_bta_alarm_queue = NULL;
 }
