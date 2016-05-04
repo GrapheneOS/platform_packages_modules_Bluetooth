@@ -190,9 +190,6 @@ static future_t *start_up(void) {
     goto error;
   }
 
-  // Make sure we run in a bounded amount of time
-  alarm_set(startup_timer, startup_timeout_ms, startup_timer_expired, NULL);
-
   epilog_timer = alarm_new("hci.epilog_timer");
   if (!epilog_timer) {
     LOG_ERROR(LOG_TAG, "%s unable to create epilog timer.", __func__);
@@ -231,6 +228,11 @@ static future_t *start_up(void) {
 
   memset(incoming_packets, 0, sizeof(incoming_packets));
 
+  // Make sure we run in a bounded amount of time
+  future_t *local_startup_future = future_new();
+  startup_future = local_startup_future;
+  alarm_set(startup_timer, startup_timeout_ms, startup_timer_expired, NULL);
+
   packet_fragmenter->init(&packet_fragmenter_callbacks);
 
   fixed_queue_register_dequeue(command_queue, thread_get_reactor(thread), event_command_ready, NULL);
@@ -264,8 +266,6 @@ static future_t *start_up(void) {
   power_state = BT_VND_PWR_ON;
   vendor->send_command(VENDOR_CHIP_POWER_CONTROL, &power_state);
 
-  future_t *local_startup_future = future_new();
-  startup_future = local_startup_future;
   LOG_DEBUG(LOG_TAG, "%s starting async portion", __func__);
   thread_post(thread, event_finish_startup, NULL);
   return local_startup_future;
