@@ -88,7 +88,6 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
 
-#define BTIF_GATT_OBSERVE_EVT   0x1000
 #define BTIF_GATTC_SCAN_FILTER_EVT  0x1003
 
 #define ENABLE_BATCH_SCAN 1
@@ -392,33 +391,6 @@ static BOOLEAN btif_gattc_find_bdaddr (BD_ADDR p_bda)
     return FALSE;
 }
 
-static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
-{
-    uint8_t remote_name_len;
-    uint8_t *p_eir_remote_name=NULL;
-    bt_bdname_t bdname;
-
-    p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
-                                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
-
-    if (p_eir_remote_name == NULL)
-    {
-        p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
-                                BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
-    }
-
-    if (p_eir_remote_name)
-    {
-        memcpy(bdname.name, p_eir_remote_name, remote_name_len);
-        bdname.name[remote_name_len]='\0';
-
-        LOG_DEBUG(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
-              remote_name_len, p_btif_cb->device_type  );
-        btif_dm_update_ble_remote_properties( p_btif_cb->bd_addr.address,   bdname.name,
-                                               p_btif_cb->device_type);
-    }
-}
-
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 {
     LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
@@ -545,44 +517,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
         case BTA_GATTC_CANCEL_OPEN_EVT:
             break;
-
-        case BTIF_GATT_OBSERVE_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            uint8_t remote_name_len;
-            uint8_t *p_eir_remote_name=NULL;
-            bt_device_type_t dev_type;
-            bt_property_t properties;
-
-            p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
-                                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
-
-            if (p_eir_remote_name == NULL)
-            {
-                p_eir_remote_name = BTM_CheckEirData(p_btif_cb->value,
-                                BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
-            }
-
-            if ((p_btif_cb->addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name))
-            {
-               if (!btif_gattc_find_bdaddr(p_btif_cb->bd_addr.address))
-               {
-                  btif_gattc_add_remote_bdaddr(p_btif_cb->bd_addr.address, p_btif_cb->addr_type);
-                  btif_gattc_update_properties(p_btif_cb);
-               }
-            }
-
-             dev_type = (bt_device_type_t) p_btif_cb->device_type;
-             BTIF_STORAGE_FILL_PROPERTY(&properties,
-                        BT_PROPERTY_TYPE_OF_DEVICE, sizeof(dev_type), &dev_type);
-             btif_storage_set_remote_device_property(&(p_btif_cb->bd_addr), &properties);
-
-            btif_storage_set_remote_addr_type( &p_btif_cb->bd_addr, p_btif_cb->addr_type);
-
-            HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb,
-                      &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->value);
-            break;
-        }
 
         case BTA_GATTC_LISTEN_EVT:
         {
@@ -739,45 +673,79 @@ static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 rep
   }
 }
 
-static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
-{
-    btif_gattc_cb_t btif_cb;
-    uint8_t len;
+static void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr,
+                                     tBT_DEVICE_TYPE device_type, int8_t rssi,
+                                     uint8_t addr_type, uint8_t *value) {
+  uint8_t remote_name_len;
+  uint8_t *p_eir_remote_name = NULL;
+  bt_device_type_t dev_type;
+  bt_property_t properties;
 
-    switch (event)
-    {
-        case BTA_DM_INQ_RES_EVT:
-        {
-            bdcpy(btif_cb.bd_addr.address, p_data->inq_res.bd_addr);
-            btif_cb.device_type = p_data->inq_res.device_type;
-            btif_cb.rssi = p_data->inq_res.rssi;
-            btif_cb.addr_type = p_data->inq_res.ble_addr_type;
-            btif_cb.flag = p_data->inq_res.flag;
-            if (p_data->inq_res.p_eir)
-            {
-                memcpy(btif_cb.value, p_data->inq_res.p_eir, 62);
-                if (BTM_CheckEirData(p_data->inq_res.p_eir, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
-                                      &len))
-                {
-                    p_data->inq_res.remt_name_not_required  = TRUE;
-                }
-            }
-        }
-        break;
+  p_eir_remote_name = BTM_CheckEirData(value, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
+                                       &remote_name_len);
 
-        case BTA_DM_INQ_CMPL_EVT:
-        {
-            BTIF_TRACE_DEBUG("%s  BLE observe complete. Num Resp %d",
-                              __FUNCTION__,p_data->inq_cmpl.num_resps);
-            return;
-        }
+  if (p_eir_remote_name == NULL) {
+    p_eir_remote_name = BTM_CheckEirData(
+        value, BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+  }
 
-        default:
-        BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __FUNCTION__, event);
-        return;
+  if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
+    if (!btif_gattc_find_bdaddr(bd_addr.address)) {
+      btif_gattc_add_remote_bdaddr(bd_addr.address, addr_type);
+
+      if (p_eir_remote_name) {
+        bt_bdname_t bdname;
+        memcpy(bdname.name, p_eir_remote_name, remote_name_len);
+        bdname.name[remote_name_len] = '\0';
+
+        LOG_DEBUG(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __func__,
+                  bdname.name, remote_name_len, device_type);
+        btif_dm_update_ble_remote_properties(bd_addr.address, bdname.name,
+                                             device_type);
+      }
     }
-    btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATT_OBSERVE_EVT,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+  }
+
+  dev_type = (bt_device_type_t)device_type;
+  BTIF_STORAGE_FILL_PROPERTY(&properties, BT_PROPERTY_TYPE_OF_DEVICE,
+                             sizeof(dev_type), &dev_type);
+  btif_storage_set_remote_device_property(&(bd_addr), &properties);
+
+  btif_storage_set_remote_addr_type(&bd_addr, addr_type);
+
+  HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb, &bd_addr, rssi, value);
+}
+
+static void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event,
+                                tBTA_DM_SEARCH *p_data) {
+  uint8_t len;
+
+  if (event == BTA_DM_INQ_CMPL_EVT) {
+    BTIF_TRACE_DEBUG("%s  BLE observe complete. Num Resp %d", __func__,
+                     p_data->inq_cmpl.num_resps);
+    return;
+  }
+
+  if (event != BTA_DM_INQ_RES_EVT) {
+    BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __FUNCTION__, event);
+    return;
+  }
+
+  uint8_t *value = new uint8_t[BTGATT_MAX_ATTR_LEN];
+  if (p_data->inq_res.p_eir) {
+    memcpy(value, p_data->inq_res.p_eir, 62);
+
+    if (BTM_CheckEirData(p_data->inq_res.p_eir,
+                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
+      p_data->inq_res.remt_name_not_required = TRUE;
+    }
+  }
+
+  bt_bdaddr_t bdaddr;
+  bdcpy(bdaddr.address, p_data->inq_res.bd_addr);
+  do_in_jni_thread(Bind(bta_scan_results_cb_impl, bdaddr,
+                        p_data->inq_res.device_type, p_data->inq_res.rssi,
+                        p_data->inq_res.ble_addr_type, Owned(value)));
 }
 
 static void bta_track_adv_event_cb(
