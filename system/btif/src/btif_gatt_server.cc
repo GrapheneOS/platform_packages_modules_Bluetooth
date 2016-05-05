@@ -26,6 +26,7 @@
 
 #define LOG_TAG "bt_btif_gatt"
 
+#include <base/bind.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +49,11 @@
 #include "btif_storage.h"
 #include "bt_common.h"
 #include "osi/include/log.h"
+
+using base::Bind;
+using base::Owned;
+
+extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 /************************************************************************************
 **  Constants & Macros
@@ -73,8 +79,7 @@ typedef enum {
     BTIF_GATTS_START_SERVICE,
     BTIF_GATTS_STOP_SERVICE,
     BTIF_GATTS_DELETE_SERVICE,
-    BTIF_GATTS_SEND_INDICATION,
-    BTIF_GATTS_SEND_RESPONSE
+    BTIF_GATTS_SEND_INDICATION
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -494,20 +499,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             //       invoked without need for confirmation.
             break;
 
-        case BTIF_GATTS_SEND_RESPONSE:
-        {
-            tBTA_GATTS_RSP rsp_struct;
-            btgatt_response_t *p_rsp = &p_cb->response;
-            btif_to_bta_response(&rsp_struct, p_rsp);
-
-            BTA_GATTS_SendRsp(p_cb->conn_id, p_cb->trans_id,
-                              p_cb->status, &rsp_struct);
-
-            HAL_CBACK(bt_gatt_callbacks, server->response_confirmation_cb,
-                      0, rsp_struct.attr_value.handle);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -658,17 +649,23 @@ static bt_status_t btif_gatts_send_indication(int server_if, int attribute_handl
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
+static void btif_gatts_send_response_impl(int conn_id, int trans_id, int status,
+                                          btgatt_response_t response) {
+  tBTA_GATTS_RSP rsp_struct;
+  btif_to_bta_response(&rsp_struct, &response);
+
+  BTA_GATTS_SendRsp(conn_id, trans_id, status, &rsp_struct);
+
+  HAL_CBACK(bt_gatt_callbacks, server->response_confirmation_cb, 0,
+            rsp_struct.attr_value.handle);
+}
+
 static bt_status_t btif_gatts_send_response(int conn_id, int trans_id,
-                                            int status, btgatt_response_t *response)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.trans_id = (uint32_t) trans_id;
-    btif_cb.status = (uint8_t) status;
-    memcpy(&btif_cb.response, response, sizeof(btgatt_response_t));
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_SEND_RESPONSE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+                                            int status,
+                                            btgatt_response_t *response) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&btif_gatts_send_response_impl, conn_id,
+                               trans_id, status, *response));
 }
 
 const btgatt_server_interface_t btgattServerInterface = {
