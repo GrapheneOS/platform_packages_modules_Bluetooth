@@ -101,8 +101,9 @@ class PbapClientConnectionHandler extends Handler {
                      * connect via an OBEX session */
                     mSocket = mDevice.createRfcommSocketToServiceRecord(
                             BluetoothUuid.PBAP_PSE.getUuid());
+                    if (DBG) Log.d(TAG, "Socket created.");
                     mSocket.connect();
-
+                    if (DBG) Log.d(TAG, "Socket connected.");
                     BluetoothPbapObexTransport transport;
                     transport = new BluetoothPbapObexTransport(mSocket);
 
@@ -131,14 +132,17 @@ class PbapClientConnectionHandler extends Handler {
                 break;
 
             case MSG_DISCONNECT:
+                if (DBG) Log.d(TAG,"Starting Disconnect");
                 try {
                     if (mObexSession != null) {
                         mObexSession.disconnect(null);
                     }
+                    if (DBG) Log.d(TAG, "Closing Socket");
                     closeSocket();
                 } catch (IOException e) {
-                    Log.w(TAG,"DISCONNECT Failure " + e.toString());
+                    Log.w(TAG, "DISCONNECT Failure ", e);
                 }
+                Log.d(TAG, "Completing Disconnect");
                 removeAccount(mAccount);
                 mContext.getContentResolver()
                         .delete(CallLog.Calls.CONTENT_URI, null, null);
