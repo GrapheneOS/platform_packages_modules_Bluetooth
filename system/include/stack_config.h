@@ -23,6 +23,10 @@
 #include "osi/include/config.h"
 #include "module.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char STACK_CONFIG_MODULE[] = "stack_config_module";
 
 typedef struct {
@@ -34,3 +38,7 @@ typedef struct {
 } stack_config_t;
 
 const stack_config_t *stack_config_get_interface();
+
+#ifdef __cplusplus
+}
+#endif
