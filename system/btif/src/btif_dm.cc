@@ -98,8 +98,6 @@
 #define BTIF_DM_INTERLEAVE_DURATION_LE_TWO    4
 #endif
 
-#define MAX_SDP_BL_ENTRIES 3
-
 #define ENCRYPTED_BREDR       2
 #define ENCRYPTED_LE          4
 
@@ -192,7 +190,6 @@ typedef struct
 
 #define BTA_SERVICE_ID_TO_SERVICE_MASK(id)       (1 << (id))
 
-#define MAX_SDP_BL_ENTRIES 3
 #define UUID_HUMAN_INTERFACE_DEVICE "00001124-0000-1000-8000-00805f9b34fb"
 
 #define MAX_BTIF_BOND_EVENT_ENTRIES 15
@@ -521,7 +518,7 @@ BOOLEAN check_sdp_bl(const bt_bdaddr_t *remote_bdaddr)
     }
     manufacturer = info.manufacturer;
 
-    for (int i = 0; i < MAX_SDP_BL_ENTRIES; i++)
+    for (unsigned int i = 0; i < ARRAY_SIZE(sdp_blacklist); i++)
     {
         if (manufacturer == sdp_blacklist[i].manufact_id)
             return TRUE;
