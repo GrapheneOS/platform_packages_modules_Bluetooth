@@ -78,8 +78,7 @@ typedef enum {
     BTIF_GATTS_ADD_DESCRIPTOR,
     BTIF_GATTS_START_SERVICE,
     BTIF_GATTS_STOP_SERVICE,
-    BTIF_GATTS_DELETE_SERVICE,
-    BTIF_GATTS_SEND_INDICATION
+    BTIF_GATTS_DELETE_SERVICE
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -492,13 +491,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             BTA_GATTS_DeleteService(p_cb->srvc_handle);
             break;
 
-        case BTIF_GATTS_SEND_INDICATION:
-            BTA_GATTS_HandleValueIndication(p_cb->conn_id, p_cb->attr_handle,
-                                        p_cb->len, p_cb->value, p_cb->confirm);
-            // TODO: Might need to send an ACK if handle value indication is
-            //       invoked without need for confirmation.
-            break;
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -634,19 +626,20 @@ static bt_status_t btif_gatts_delete_service(int server_if, int service_handle)
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
-static bt_status_t btif_gatts_send_indication(int server_if, int attribute_handle, int conn_id,
-                                              int len, int confirm, char* p_value)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.attr_handle = attribute_handle;
-    btif_cb.confirm = confirm;
-    btif_cb.len = len;
-    memcpy(btif_cb.value, p_value, len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len);
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_SEND_INDICATION,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static bt_status_t btif_gatts_send_indication(int server_if,
+                                              int attribute_handle, int conn_id,
+                                              int len, int confirm,
+                                              char *p_value) {
+  CHECK_BTGATT_INIT();
+
+  len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
+  uint8_t *value = new uint8_t[len];
+  memcpy(value, p_value, len);
+
+  return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
+                               attribute_handle, len, base::Owned(value), confirm));
+  // TODO: Might need to send an ACK if handle value indication is
+  //       invoked without need for confirmation.
 }
 
 static void btif_gatts_send_response_impl(int conn_id, int trans_id, int status,
