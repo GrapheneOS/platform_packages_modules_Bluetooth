@@ -436,7 +436,11 @@ static uint8_t get_ble_resolving_list_max_size(void) {
 }
 
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
-  assert(readable);
+  // Setting "resolving_list_max_size" to 0 is done during cleanup,
+  // hence we ignore the "readable" flag already set to false during shutdown.
+  if (resolving_list_max_size != 0) {
+    assert(readable);
+  }
   assert(ble_supported);
   ble_resolving_list_max_size = resolving_list_max_size;
 }
