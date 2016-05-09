@@ -326,7 +326,18 @@ void l2c_fcr_cleanup (tL2C_CCB *p_ccb)
 BT_HDR *l2c_fcr_clone_buf(BT_HDR *p_buf, UINT16 new_offset, UINT16 no_of_bytes)
 {
     assert(p_buf != NULL);
-    uint16_t buf_size = no_of_bytes + sizeof(BT_HDR) + new_offset;
+    /*
+     * NOTE: We allocate extra L2CAP_FCS_LEN octets, in case we need to put
+     * the FCS (Frame Check Sequence) at the end of the buffer.
+     */
+    uint16_t buf_size = no_of_bytes + sizeof(BT_HDR) + new_offset + L2CAP_FCS_LEN;
+#if (L2CAP_ERTM_STATS == TRUE)
+    /*
+     * NOTE: If L2CAP_ERTM_STATS is enabled, we need 4 extra octets at the
+     * end for a timestamp at the end of an I-frame.
+     */
+    buf_size += sizeof(uint32_t);
+#endif
     BT_HDR *p_buf2 = (BT_HDR *)osi_malloc(buf_size);
 
     p_buf2->offset = new_offset;
@@ -440,6 +451,10 @@ static void prepare_I_frame (tL2C_CCB *p_ccb, BT_HDR *p_buf, BOOLEAN is_retransm
         fcs = l2c_fcr_tx_get_fcs(p_buf);
 
         /* Point to the end of the buffer and put the FCS there */
+        /*
+         * NOTE: Here we assume the allocated buffer is large enough
+         * to include extra L2CAP_FCS_LEN octets at the end.
+         */
         p = ((UINT8 *) (p_buf+1)) + p_buf->offset + p_buf->len;
 
         UINT16_TO_STREAM (p, fcs);
@@ -1794,6 +1809,10 @@ BT_HDR *l2c_fcr_get_next_xmit_sdu_seg (tL2C_CCB *p_ccb, UINT16 max_packet_length
         {
 #if (L2CAP_ERTM_STATS == TRUE)
             /* set timestamp at the end of tx I-frame to get acking delay */
+            /*
+             * NOTE: Here we assume the allocate buffer is large enough
+             * to include extra 4 octets at the end.
+             */
             p = ((UINT8 *) (p_wack+1)) + p_wack->offset + p_wack->len;
             UINT32_TO_STREAM (p, time_get_os_boottime_ms());
 #endif
