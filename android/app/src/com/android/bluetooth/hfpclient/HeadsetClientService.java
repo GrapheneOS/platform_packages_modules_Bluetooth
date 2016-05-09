@@ -90,13 +90,15 @@ public class HeadsetClientService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG, "Unable to unregister broadcast receiver", e);
         }
-        mStateMachine.doQuit();
+
+        if (mStateMachine != null) {
+            mStateMachine.doQuit();
+        }
 
         // Stop the HfpClientConnectionService.
         Intent stopIntent = new Intent(this, HfpClientConnectionService.class);
         stopIntent.putExtra(HFP_CLIENT_STOP_TAG, true);
         startService(stopIntent);
-
         return true;
     }
 
