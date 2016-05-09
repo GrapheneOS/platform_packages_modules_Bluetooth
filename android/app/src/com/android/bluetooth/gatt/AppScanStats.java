@@ -186,9 +186,6 @@ import com.android.bluetooth.btservice.BluetoothProto;
         long minScan = minScanTime;
         long scanDuration = 0;
 
-        if (lastScans.isEmpty())
-            return;
-
         if (isScanning) {
             scanDuration = currTime - startTime;
             minScan = Math.min(scanDuration, minScan);
@@ -204,12 +201,15 @@ import com.android.bluetooth.btservice.BluetoothProto;
             avgScan = (totalScanTime + scanDuration) / scansStarted;
         }
 
-        LastScan lastScan = lastScans.get(lastScans.size() - 1);
         sb.append("  " + appName);
         if (isRegistered) sb.append(" (Registered)");
-        if (lastScan.opportunistic) sb.append(" (Opportunistic)");
-        if (lastScan.background) sb.append(" (Background)");
-        if (lastScan.timeout) sb.append(" (Forced-Opportunistic)");
+
+        if (!lastScans.isEmpty()) {
+            LastScan lastScan = lastScans.get(lastScans.size() - 1);
+            if (lastScan.opportunistic) sb.append(" (Opportunistic)");
+            if (lastScan.background) sb.append(" (Background)");
+            if (lastScan.timeout) sb.append(" (Forced-Opportunistic)");
+        }
         sb.append("\n");
 
         sb.append("  LE scans (started/stopped)         : " +
@@ -223,7 +223,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         sb.append("  Total number of results            : " +
                   results + "\n");
 
-        if (lastScans.size() != 0) {
+        if (!lastScans.isEmpty()) {
             int lastScansSize = scansStopped < NUM_SCAN_DURATIONS_KEPT ?
                                 scansStopped : NUM_SCAN_DURATIONS_KEPT;
             sb.append("  Last " + lastScansSize +
