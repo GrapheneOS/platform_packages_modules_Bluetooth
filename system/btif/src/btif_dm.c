@@ -3447,10 +3447,12 @@ void btif_debug_bond_event_dump(int fd) {
          i = (i + 1) % (MAX_BTIF_BOND_EVENT_ENTRIES + 1)) {
         btif_bond_event_t* event = &btif_dm_bond_events[i];
 
-        char eventtime[15];
+        char eventtime[20];
+        char temptime[20];
         struct tm *tstamp = localtime(&event->timestamp.tv_sec);
-        strftime(eventtime, sizeof(eventtime), "%H:%M:%S.%%03u", tstamp);
-        snprintf(eventtime, sizeof(eventtime), eventtime, (event->timestamp.tv_nsec) / 1000000);
+        strftime(temptime, sizeof(temptime), "%H:%M:%S", tstamp);
+        snprintf(eventtime, sizeof(eventtime), "%s.%03ld", temptime,
+                 event->timestamp.tv_nsec / 1000000);
 
         char bdaddr[18];
         bdaddr_to_string(&event->bd_addr, bdaddr, sizeof(bdaddr));
