@@ -20,6 +20,7 @@
 #include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
+#include "osi/include/osi.h"
 #include "srvc_eng_int.h"
 
 #if BLE_INCLUDED == TRUE
@@ -28,8 +29,6 @@
 #include "srvc_dis_int.h"
 //#endif
 #include "srvc_battery_int.h"
-
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 static void srvc_eng_s_request_cback (UINT16 conn_id, UINT32 trans_id, UINT8 op_code, tGATTS_DATA *p_data);
 static void srvc_eng_connect_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id, BOOLEAN connected,
