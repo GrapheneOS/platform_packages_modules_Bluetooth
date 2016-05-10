@@ -21,6 +21,7 @@
 
 #include "bta_api.h"
 #include "btif_uid.h"
+#include "bte_appl.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +67,9 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
 #endif /* BTIF_DM_OOB_TEST */
 #if (BLE_INCLUDED == TRUE)
+
+/*callout for reading SMP properties from Text file*/
+BOOLEAN btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 
 typedef struct
 {
