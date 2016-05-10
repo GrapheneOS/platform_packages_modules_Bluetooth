@@ -31,6 +31,7 @@ const char *BTSNOOP_SHOULD_SAVE_LAST_KEY = "BtSnoopSaveLog";
 const char *TRACE_CONFIG_ENABLED_KEY = "TraceConf";
 const char *PTS_SECURE_ONLY_MODE = "PTS_SecurePairOnly";
 const char *PTS_LE_CONN_UPDATED_DISABLED = "PTS_DisableConnUpdates";
+const char *PTS_DISABLE_SDP_LE_PAIR = "PTS_DisableSDPOnLEPair";
 
 static config_t *config;
 
@@ -98,6 +99,10 @@ static bool get_pts_conn_updates_disabled(void) {
   return config_get_bool(config, CONFIG_DEFAULT_SECTION, PTS_LE_CONN_UPDATED_DISABLED, false);
 }
 
+static bool get_pts_crosskey_sdp_disable(void) {
+  return config_get_bool(config, CONFIG_DEFAULT_SECTION, PTS_DISABLE_SDP_LE_PAIR, false);
+}
+
 static config_t *get_all(void) {
   return config;
 }
@@ -109,6 +114,7 @@ const stack_config_t interface = {
   get_trace_config_enabled,
   get_pts_secure_only_mode,
   get_pts_conn_updates_disabled,
+  get_pts_crosskey_sdp_disable,
   get_all
 };
 

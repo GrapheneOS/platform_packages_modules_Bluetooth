@@ -1187,10 +1187,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         }
         else
         {
-            /* Trigger SDP on the device */
-            pairing_cb.sdp_attempts = 1;;
-
 #if BLE_INCLUDED == TRUE
+            BOOLEAN is_crosskey = FALSE;
             /* If bonded due to cross-key, save the static address too*/
             if(pairing_cb.state == BT_BOND_STATE_BONDING &&
               (bdcmp(p_auth_cmpl->bd_addr, pairing_cb.bd_addr) != 0))
@@ -1198,13 +1196,21 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 BTIF_TRACE_DEBUG("%s: bonding initiated due to cross key, adding static address",
                                  __func__);
                 bdcpy(pairing_cb.static_bdaddr.address, p_auth_cmpl->bd_addr);
+                is_crosskey = TRUE;
             }
+            if (!is_crosskey || !(stack_config_get_interface()->get_pts_crosskey_sdp_disable()))
+            {
 #endif
 
-            // Ensure inquiry is stopped before attempting service discovery
-            btif_dm_cancel_discovery();
+                // Ensure inquiry is stopped before attempting service discovery
+                btif_dm_cancel_discovery();
 
-            btif_dm_get_remote_services(&bd_addr);
+                /* Trigger SDP on the device */
+                pairing_cb.sdp_attempts = 1;
+                btif_dm_get_remote_services(&bd_addr);
+#if BLE_INCLUDED == TRUE
+            }
+#endif
         }
         // Do not call bond_state_changed_cb yet. Wait until remote service discovery is complete
     }
