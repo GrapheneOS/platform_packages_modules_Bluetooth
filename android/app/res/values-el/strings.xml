@@ -130,4 +130,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Δεν είναι δυνατή η επιλογή λογαριασμού. Απομένουν 0 υποδοχές"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Ο ήχος Bluetooth συνδέθηκε"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Ο ήχος Bluetooth αποσυνδέθηκε"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Ήχος Bluetooth"</string>
 </resources>
