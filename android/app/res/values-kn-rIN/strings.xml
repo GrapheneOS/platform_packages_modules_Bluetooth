@@ -130,4 +130,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ಖಾತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. 0 ಸ್ಲಾಟ್‌ಗಳು ಉಳಿದಿವೆ"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕಗೊಂಡಿದೆ"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ ಸಂಪರ್ಕ ಕಡಿತಗೊಂಡಿದೆ"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ಬ್ಲೂಟೂತ್‌ ಆಡಿಯೊ"</string>
 </resources>

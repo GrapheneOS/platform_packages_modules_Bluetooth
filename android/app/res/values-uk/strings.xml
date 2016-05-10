@@ -134,4 +134,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Обліковий запис не вибрано. Залишилося 0 місць"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Аудіо Bluetooth під’єднано"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Аудіо Bluetooth від’єднано"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth Audio"</string>
 </resources>

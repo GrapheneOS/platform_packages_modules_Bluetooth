@@ -130,4 +130,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"खाता चयन गर्न सक्दैन। ० स्लटहरू बाँकी"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ब्लुटुथ सम्बन्धी अडियो यन्त्रलाई जडान गरियो"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ब्लुटुथ सम्बन्धी अडियो यन्त्रलाई विच्छेद गरियो"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ब्लुटुथको अडियो"</string>
 </resources>
