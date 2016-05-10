@@ -425,10 +425,9 @@ static BOOLEAN btif_av_state_idle_handler(btif_sm_event_t event, void *p_data)
                 btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr,
                                              (p_bta_data->open.status == BTA_AV_SUCCESS));
             }
-            else if (btif_av_cb.peer_sep == AVDT_TSEP_SRC)
+            else if ((btif_av_cb.peer_sep == AVDT_TSEP_SRC) &&
+                     (p_bta_data->open.status == BTA_AV_SUCCESS))
             {
-                /* if queued PLAY command,  send it now */
-                btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr, FALSE);
                 /* Bring up AVRCP connection too */
                 BTA_AvOpenRc(btif_av_cb.bta_handle);
             }
@@ -541,10 +540,9 @@ static BOOLEAN btif_av_state_opening_handler(btif_sm_event_t event, void *p_data
                 btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr,
                                              (p_bta_data->open.status == BTA_AV_SUCCESS));
             }
-            else if (btif_av_cb.peer_sep == AVDT_TSEP_SRC)
+            else if ((btif_av_cb.peer_sep == AVDT_TSEP_SRC) &&
+                     (p_bta_data->open.status == BTA_AV_SUCCESS))
             {
-                /* if queued PLAY command,  send it now */
-                btif_rc_check_handle_pending_play(p_bta_data->open.bd_addr, FALSE);
                 /* Bring up AVRCP connection too */
                 BTA_AvOpenRc(btif_av_cb.bta_handle);
             }
