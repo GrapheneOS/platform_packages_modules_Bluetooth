@@ -402,6 +402,10 @@ void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                           tBTA_LE_KEY_TYPE  *p_resp_key )
 {
     UNUSED(bd_addr);
+    /* Retrieve the properties from file system if possible */
+    tBTE_APPL_CFG nv_config;
+    if(btif_dm_get_smp_config(&nv_config))
+        bte_appl_cfg = nv_config;
 
     /* *p_auth_req by default is FALSE for devices with NoInputNoOutput; TRUE for other devices. */
 
