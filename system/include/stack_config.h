@@ -35,6 +35,7 @@ typedef struct {
   bool (*get_btsnoop_should_save_last)(void);
   bool (*get_trace_config_enabled)(void);
   bool (*get_pts_secure_only_mode)(void);
+  bool (*get_pts_conn_updates_disabled)(void);
   config_t *(*get_all)(void);
 } stack_config_t;
 
