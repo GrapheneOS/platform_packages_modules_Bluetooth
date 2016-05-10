@@ -34,15 +34,16 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.media.AudioManager;
+
 import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.HashMap;
 import java.nio.charset.Charset;
 import java.nio.ByteBuffer;
+
 /**
  * Provides Bluetooth AVRCP Controller profile, as a service in the Bluetooth application.
  * @hide

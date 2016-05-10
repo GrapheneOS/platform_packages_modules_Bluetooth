@@ -60,13 +60,11 @@ import com.android.vcard.VCardPhoneNumberTranslationCallback;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;
 
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.util.DevicePolicyUtils;
 
 public class BluetoothPbapVcardManager {

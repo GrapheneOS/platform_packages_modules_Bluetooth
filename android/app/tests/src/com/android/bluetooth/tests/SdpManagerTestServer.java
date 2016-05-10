@@ -1,15 +1,5 @@
 package com.android.bluetooth.tests;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
-
-import javax.obex.HeaderSet;
-import javax.obex.Operation;
-import javax.obex.ResponseCodes;
-import javax.obex.ServerRequestHandler;
-
-import junit.framework.Assert;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpMasRecord;
@@ -26,6 +16,17 @@ import android.util.Log;
 
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.sdp.SdpManager;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+
+import javax.obex.HeaderSet;
+import javax.obex.Operation;
+import javax.obex.ResponseCodes;
+import javax.obex.ServerRequestHandler;
+
+import junit.framework.Assert;
 
 /**
  * We use an OBEX server to execute SDP search operations, and validate results.

@@ -35,7 +35,6 @@ package com.android.bluetooth.opp;
 import com.android.bluetooth.R;
 import com.google.android.collect.Lists;
 
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.net.Uri;

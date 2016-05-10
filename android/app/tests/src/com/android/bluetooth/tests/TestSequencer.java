@@ -13,7 +13,6 @@ import javax.obex.ServerSession;
 import junit.framework.Assert;
 
 import android.content.Context;
-import android.hardware.camera2.impl.GetCommand;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.HandlerThread;

@@ -21,7 +21,6 @@
 package com.android.bluetooth.btservice;
 
 import android.app.AlarmManager;
-import android.app.Application;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -30,12 +29,9 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
-import android.bluetooth.IBluetoothManager;
-import android.bluetooth.IBluetoothManagerCallback;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.OobData;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -52,19 +48,15 @@ import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.EventLog;
 import android.util.Log;
-import android.util.Pair;
 
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dp.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
-import com.android.bluetooth.hdp.HealthService;
-import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
 import com.android.bluetooth.Utils;
@@ -72,20 +64,15 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.List;
-
-import android.content.pm.PackageManager;
-import android.os.ServiceManager;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -130,8 +117,6 @@ public class AdapterService extends Service {
             "message_access_permission";
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE =
             "sim_access_permission";
-
-    private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
     private static final String[] DEVICE_TYPE_NAMES = new String[] {
       "???",
@@ -2128,8 +2113,8 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
 
         if (args.length > 0) {
-            debugLog("dumpsys arguments, check for protobuf output: " +
-                    TextUtils.join(" ", args));
+            debugLog("dumpsys arguments, check for protobuf output: "
+                + TextUtils.join(" ", args));
             if (args[0].startsWith("--proto")) {
                 if (args[0].equals("--proto-java-bin")) {
                     dumpJava(fd);
@@ -2156,9 +2141,9 @@ public class AdapterService extends Service {
 
         writer.println("Bonded devices:");
         for (BluetoothDevice device : getBondedDevices()) {
-          writer.println("  " + device.getAddress() +
-              " [" + DEVICE_TYPE_NAMES[device.getType()] + "] " +
-              device.getName());
+          writer.println("  " + device.getAddress()
+              + " [" + DEVICE_TYPE_NAMES[device.getType()] + "] "
+              + device.getName());
         }
 
         // Dump profile information

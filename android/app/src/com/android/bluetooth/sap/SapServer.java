@@ -1,39 +1,33 @@
 package com.android.bluetooth.sap;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.bluetooth.BluetoothSap;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Message;
+import android.os.SystemClock;
+import android.os.SystemProperties;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import com.android.bluetooth.R;
+import com.google.protobuf.micro.CodedOutputStreamMicro;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
-
-import com.android.bluetooth.R;
-
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SyncResult;
-import android.os.Handler;
-import android.os.Handler.Callback;
-import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
-import android.os.Parcel;
-import android.os.SystemClock;
-import android.os.SystemProperties;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-import android.bluetooth.BluetoothSap;
-
-//import com.android.internal.telephony.RIL;
-import com.google.protobuf.micro.CodedOutputStreamMicro;
 
 
 /**
