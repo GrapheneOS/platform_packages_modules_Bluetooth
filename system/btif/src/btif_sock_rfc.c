@@ -783,11 +783,9 @@ void btsock_rfc_signaled(UNUSED_ATTR int fd, int flags, uint32_t user_id) {
     if (slot->f.connected) {
       // Make sure there's data pending in case the peer closed the socket.
       int size = 0;
-      if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(slot->fd, FIONREAD, &size) == 0 && size))
-        //unlock before BTA_JvRfcommWrite to avoid deadlock on concurrnet multi rfcomm connectoins
-        //concurrnet multi rfcomm connectoins
-        pthread_mutex_unlock(&slot_lock);
+      if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(slot->fd, FIONREAD, &size) == 0 && size)) {
         BTA_JvRfcommWrite(slot->rfc_handle, slot->id);
+      }
     } else {
       LOG_ERROR("%s socket signaled for read while disconnected, slot: %d, channel: %d", __func__, slot->id, slot->scn);
       need_close = true;
