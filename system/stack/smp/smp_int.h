@@ -51,6 +51,7 @@ typedef UINT8   tSMP_ASSO_MODEL;
 #endif
 
 #define SMP_WAIT_FOR_RSP_TOUT           30
+#define SMP_DELAYED_AUTH_TOUT           5   /* 500ms delay before authorization complete */
 
 #define SMP_OPCODE_INIT                   0x04
 
@@ -339,6 +340,8 @@ typedef struct
     UINT8           rcvd_cmd_len;
     UINT16          total_tx_unacked;
     BOOLEAN         wait_for_authorization_complete;
+    BOOLEAN         delayed_auth_timer_enabled;  /* TRUE if delayed_auth_timer_ent is started */
+    TIMER_LIST_ENT  delayed_auth_timer_ent;      /* timer to delay auth complete */
 }tSMP_CB;
 
 /* Server Action functions are of this type */
@@ -480,6 +483,7 @@ extern void smp_proc_pairing_cmpl(tSMP_CB *p_cb);
 extern void smp_convert_string_to_tk(BT_OCTET16 tk, UINT32 passkey);
 extern void smp_mask_enc_key(UINT8 loc_enc_size, UINT8 * p_data);
 extern void smp_rsp_timeout(TIMER_LIST_ENT *p_tle);
+extern void smp_delayed_auth_complete_timeout(TIMER_LIST_ENT *p_tle);
 extern void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b);
 extern BOOLEAN smp_encrypt_data (UINT8 *key, UINT8 key_len,
                                  UINT8 *plain_text, UINT8 pt_len,

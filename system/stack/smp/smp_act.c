@@ -517,6 +517,12 @@ void smp_proc_pair_fail(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
 {
     SMP_TRACE_DEBUG("%s", __func__);
     p_cb->status = *(UINT8 *)p_data;
+
+    /* Cancel pending auth complete timer if set */
+    if (p_cb->delayed_auth_timer_enabled) {
+        btu_stop_quick_timer(&p_cb->delayed_auth_timer_ent);
+        p_cb->delayed_auth_timer_enabled = FALSE;
+    }
 }
 
 /*******************************************************************************
@@ -1269,9 +1275,25 @@ void smp_key_distribution(tSMP_CB *p_cb, tSMP_INT_DATA *p_data)
             }
 
             if (p_cb->total_tx_unacked == 0)
-                smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
-            else
+            {
+                /*
+                 * Instead of declaring authorization complete immediately,
+                 * delay the event from being sent until 500ms later.
+                 * This allows the slave to send over Pairing Failed if the
+                 * last key is rejected.  During this waiting window, the
+                 * state should remain in SMP_STATE_BOND_PENDING.
+                 */
+                if (!p_cb->delayed_auth_timer_enabled)
+                {
+                    SMP_TRACE_DEBUG("%s delaying auth complete.", __func__);
+                    btu_start_quick_timer(&p_cb->delayed_auth_timer_ent,
+                                          BTU_TTYPE_SMP_DELAYED_AUTH,
+                                          SMP_DELAYED_AUTH_TOUT);
+                    p_cb->delayed_auth_timer_enabled = TRUE;
+                }
+            } else {
                 p_cb->wait_for_authorization_complete = TRUE;
+            }
         }
     }
 }

@@ -160,6 +160,7 @@ typedef void (*tBTU_EVENT_CALLBACK)(BT_HDR *p_hdr);
 
 
 #define BTU_TTYPE_UCD_TO                            108
+#define BTU_TTYPE_SMP_DELAYED_AUTH                  109
 
 /* This is the inquiry response information held by BTU, and available
 ** to applications.

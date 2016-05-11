@@ -374,6 +374,34 @@ void smp_rsp_timeout(TIMER_LIST_ENT *p_tle)
 
 /*******************************************************************************
 **
+** Function         smp_delayed_auth_complete_timeout
+**
+** Description      Callback for delaying authorization complete.
+**
+** Returns          void
+**
+*******************************************************************************/
+void smp_delayed_auth_complete_timeout(TIMER_LIST_ENT *p_tle)
+{
+    tSMP_CB *p_cb = &smp_cb;
+    UNUSED(p_tle);
+
+    /*
+     * Waited for potential pair failure. Send SMP_AUTH_CMPL_EVT if
+     * the state is still in bond pending.
+     */
+    if (smp_get_state() == SMP_STATE_BOND_PENDING)
+    {
+        UINT8 reason = SMP_SUCCESS;
+        SMP_TRACE_EVENT("%s sending delayed auth complete.", __FUNCTION__);
+        smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &reason);
+    }
+
+    p_cb->delayed_auth_timer_enabled = FALSE;
+}
+
+/*******************************************************************************
+**
 ** Function         smp_build_pairing_req_cmd
 **
 ** Description      Build pairing request command.

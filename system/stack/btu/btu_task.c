@@ -517,6 +517,12 @@ static void btu_l2cap_alarm_process(TIMER_LIST_ENT *p_tle) {
       l2c_process_timeout (p_tle);
       break;
 
+#if (defined(SMP_INCLUDED) && SMP_INCLUDED == TRUE)
+    case BTU_TTYPE_SMP_DELAYED_AUTH:
+      smp_delayed_auth_complete_timeout(p_tle);
+      break;
+#endif
+
     default:
       break;
   }
