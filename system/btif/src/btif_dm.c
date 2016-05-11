@@ -1187,10 +1187,8 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
         }
         else
         {
-            /* Trigger SDP on the device */
-            pairing_cb.sdp_attempts = 1;;
-
 #if BLE_INCLUDED == TRUE
+            BOOLEAN is_crosskey = FALSE;
             /* If bonded due to cross-key, save the static address too*/
             if(pairing_cb.state == BT_BOND_STATE_BONDING &&
               (bdcmp(p_auth_cmpl->bd_addr, pairing_cb.bd_addr) != 0))
@@ -1198,13 +1196,21 @@ static void btif_dm_auth_cmpl_evt (tBTA_DM_AUTH_CMPL *p_auth_cmpl)
                 BTIF_TRACE_DEBUG("%s: bonding initiated due to cross key, adding static address",
                                  __func__);
                 bdcpy(pairing_cb.static_bdaddr.address, p_auth_cmpl->bd_addr);
+                is_crosskey = TRUE;
             }
+            if (!is_crosskey || !(stack_config_get_interface()->get_pts_crosskey_sdp_disable()))
+            {
 #endif
 
-            // Ensure inquiry is stopped before attempting service discovery
-            btif_dm_cancel_discovery();
+                // Ensure inquiry is stopped before attempting service discovery
+                btif_dm_cancel_discovery();
 
-            btif_dm_get_remote_services(&bd_addr);
+                /* Trigger SDP on the device */
+                pairing_cb.sdp_attempts = 1;
+                btif_dm_get_remote_services(&bd_addr);
+#if BLE_INCLUDED == TRUE
+            }
+#endif
         }
         // Do not call bond_state_changed_cb yet. Wait until remote service discovery is complete
     }
@@ -2882,6 +2888,65 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
             }
         }
     }
+}
+
+/*******************************************************************************
+**
+** Function         btif_dm_get_smp_config
+**
+** Description      Retrieve the SMP pairing options from the bt_stack.conf
+**                  file. To provide specific pairing options for the host
+**                  add a node with label "SmpOptions" to the config file
+**                  and assign it a comma separated list of 5 values in the
+**                  format: auth, io, ikey, rkey, ksize, oob
+**                  eg: SmpOptions=0xD,0x4,0xf,0xf,0x10
+**
+** Parameters:      tBTE_APPL_CFG*: pointer to struct defining pairing options
+**
+** Returns          TRUE if the options were successfully read, else FALSE
+**
+*******************************************************************************/
+BOOLEAN btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg) {
+
+    if(!stack_config_get_interface()->get_smp_options()) {
+        BTIF_TRACE_DEBUG ("%s: SMP options not found in configuration", __func__);
+        return FALSE;
+    }
+
+    char conf[64];
+    const char* recv = stack_config_get_interface()->get_smp_options();
+    char* pch;
+    char* endptr;
+
+    strncpy(conf, recv, 64);
+    conf[63] = 0; // null terminate
+
+    if ((pch = strtok(conf, ",")) != NULL)
+        p_cfg->ble_auth_req = (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_io_cap =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_init_key =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_resp_key =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    if ((pch = strtok(NULL, ",")) != NULL)
+        p_cfg->ble_max_key_size =  (UINT8) strtoul(pch, &endptr, 16);
+    else
+        return FALSE;
+
+    return TRUE;
 }
 
 BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r)

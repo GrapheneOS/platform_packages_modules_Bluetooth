@@ -31,6 +31,7 @@
 #include "btm_int.h"
 #include "hcimsgs.h"
 #include "device/include/controller.h"
+#include "stack_config.h"
 
 #if (BLE_INCLUDED == TRUE)
 
@@ -151,6 +152,9 @@ BOOLEAN L2CA_UpdateBleConnParams (BD_ADDR rem_bda, UINT16 min_int, UINT16 max_in
 *******************************************************************************/
 BOOLEAN L2CA_EnableUpdateBleConnParams (BD_ADDR rem_bda, BOOLEAN enable)
 {
+    if (stack_config_get_interface()->get_pts_conn_updates_disabled())
+        return false;
+
     tL2C_LCB            *p_lcb;
 
     /* See if we have a link control block for the remote device */
