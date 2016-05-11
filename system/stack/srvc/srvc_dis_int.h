@@ -24,6 +24,10 @@
 #include "srvc_api.h"
 #include "srvc_eng_int.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define DIS_MAX_CHAR_NUM            9
 
 typedef struct
@@ -51,10 +55,6 @@ typedef struct
 
     tDIS_ATTR_MASK          request_mask;
 }tDIS_CB;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE

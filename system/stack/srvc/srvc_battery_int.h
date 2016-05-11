@@ -23,6 +23,10 @@
 #include "srvc_api.h"
 #include "gatt_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef BA_MAX_INT_NUM
 #define BA_MAX_INT_NUM     4
 #endif
@@ -53,10 +57,6 @@ typedef struct
     BOOLEAN                 enabled;
 
 }tBATTERY_CB;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE

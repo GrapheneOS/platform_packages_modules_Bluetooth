@@ -18,6 +18,10 @@
 #ifndef _UIPC_LINUX_H_
 #define _UIPC_LINUX_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int SOCKET;
 #define INVALID_SOCKET  (SOCKET)(-1)
 #define SOCKET_ERROR            (-1)
@@ -27,11 +31,6 @@ typedef struct {
     char            *p_address;
     unsigned int    port;
 } tUIPC_LINUX_CFG_TCP ;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Socket configuration for GLGPS interface */
 extern tUIPC_LINUX_CFG_TCP uipc_linux_cfg_glgps;

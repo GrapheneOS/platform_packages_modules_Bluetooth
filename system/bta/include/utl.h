@@ -27,6 +27,10 @@
 #include "bt_types.h"
 #include "bt_utils.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -49,11 +53,6 @@ typedef struct
     UINT16      service;
 } tBTA_UTL_COD;
 
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*****************************************************************************
 **  External Function Declarations

@@ -29,6 +29,9 @@
 
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define GATT_CREATE_CONN_ID(tcb_idx, gatt_if)  ((UINT16) ((((UINT8)(tcb_idx) ) << 8) | ((UINT8) (gatt_if))))
 #define GATT_GET_TCB_IDX(conn_id)  ((UINT8) (((UINT16) (conn_id)) >> 8))
@@ -505,10 +508,6 @@ typedef struct
 
 
 #define GATT_SIZE_OF_SRV_CHG_HNDL_RANGE 4
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE

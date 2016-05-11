@@ -27,6 +27,10 @@
 
 #include "bta_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -377,11 +381,6 @@ typedef struct
     char         *chld_val_ecc;
     char         *chld_val;
 } tBTA_AG_CFG;
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*****************************************************************************
 **  External Function Declarations
