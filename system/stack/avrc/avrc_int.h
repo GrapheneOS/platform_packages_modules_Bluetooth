@@ -29,7 +29,6 @@
 #include "avct_defs.h"
 #include "avrc_api.h"
 #include "osi/include/alarm.h"
-
 #include "osi/include/fixed_queue.h"
 
 #ifdef __cplusplus
@@ -132,8 +131,8 @@ typedef struct
 /* AVRC internal connection control block */
 typedef struct
 {
-    fixed_queue_t       *cmd_q;          /* Command queue for serializing vendor specific commands */
-    uint8_t               flags;          /* See AVRC_CB_FLAGS_* definitions */
+    fixed_queue_t       *cmd_q;         /* Command queue for serializing vendor specific commands */
+    uint8_t             flags;          /* See AVRC_CB_FLAGS_* definitions */
     alarm_t *           tle;            /* Command timeout timer */
 } tAVRC_CONN_INT_CB;
 

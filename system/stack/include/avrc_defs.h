@@ -853,7 +853,7 @@ typedef union
                                               ((a) <= AVRC_EVT_VOLUME_CHANGE)) ? true : false)
 
 #define AVRC_IS_VALID_ATTRIBUTE(a)          ((((((a) > 0) && (a) <= AVRC_PLAYER_SETTING_SCAN)) || \
-					      ((a) >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)) ? true : false)
+                                              ((a) >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)) ? true : false)
 
 #define AVRC_IS_VALID_MEDIA_ATTRIBUTE(a)    (((a) >= AVRC_MEDIA_ATTR_ID_TITLE) && \
                                              ((a) <= AVRC_MEDIA_ATTR_ID_PLAYING_TIME) ? true : false)
@@ -1166,7 +1166,7 @@ typedef struct
 typedef struct
 {
     uint8_t       pdu;
-    tAVRC_STS   status;
+    tAVRC_STS     status;
     uint8_t       opcode;         /* Op Code (assigned by AVRC_BldCommand according to pdu) */
     uint8_t       scope;
 } tAVRC_GET_NUM_OF_ITEMS_CMD;

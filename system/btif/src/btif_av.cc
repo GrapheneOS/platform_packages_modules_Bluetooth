@@ -113,8 +113,8 @@ else\
 /* Helper macro to avoid code duplication in the state machine handlers */
 #define CHECK_RC_EVENT(e, d) \
     case BTA_AV_RC_OPEN_EVT: \
-    case BTA_AV_RC_CLOSE_EVT: \
     case BTA_AV_RC_BROWSE_OPEN_EVT: \
+    case BTA_AV_RC_CLOSE_EVT: \
     case BTA_AV_RC_BROWSE_CLOSE_EVT: \
     case BTA_AV_REMOTE_CMD_EVT: \
     case BTA_AV_VENDOR_CMD_EVT: \
@@ -1083,12 +1083,12 @@ static void btif_av_handle_event(uint16_t event, char* p_param)
 
 void btif_av_event_deep_copy(uint16_t event, char *p_dest, char *p_src)
 {
+    BTIF_TRACE_DEBUG("%s", __func__);
     tBTA_AV *av_src = (tBTA_AV *)p_src;
     tBTA_AV *av_dest = (tBTA_AV *)p_dest;
 
     // First copy the structure
     maybe_non_aligned_memcpy(av_dest, av_src, sizeof(*av_src));
-
     switch (event)
     {
         case BTA_AV_META_MSG_EVT:
@@ -1601,7 +1601,7 @@ bt_status_t btif_av_sink_execute_service(bool b_enable)
           * be initiated by the app/audioflinger layers */
          BTA_AvEnable(BTA_SEC_AUTHENTICATE, BTA_AV_FEAT_NO_SCO_SSPD|BTA_AV_FEAT_RCCT|
                                             BTA_AV_FEAT_METADATA|BTA_AV_FEAT_VENDOR|
-                                            BTA_AV_FEAT_ADV_CTRL|BTA_AV_FEAT_RCTG,
+                                            BTA_AV_FEAT_ADV_CTRL|BTA_AV_FEAT_RCTG|BTA_AV_FEAT_BROWSE,
                                                                         bte_av_callback);
          BTA_AvRegister(BTA_AV_CHNL_AUDIO, BTIF_AVK_SERVICE_NAME, 0,
                         bte_av_sink_media_callback, UUID_SERVCLASS_AUDIO_SINK);

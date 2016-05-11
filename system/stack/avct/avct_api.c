@@ -418,14 +418,14 @@ uint16_t AVCT_MsgReq(uint8_t handle, uint8_t label, uint8_t cr, BT_HDR *p_msg)
     tAVCT_CCB       *p_ccb;
     tAVCT_UL_MSG    ul_msg;
 
-    AVCT_TRACE_API("AVCT_MsgReq");
+    AVCT_TRACE_API("%s", __func__);
 
     /* verify p_msg parameter */
     if (p_msg == NULL)
     {
         return AVCT_NO_RESOURCES;
     }
-    AVCT_TRACE_API("len: %d", p_msg->len);
+    AVCT_TRACE_API("%s len: %d layer_specific: %d", __func__, p_msg->len, p_msg->layer_specific);
 
     /* map handle to ccb */
     if ((p_ccb = avct_ccb_by_idx(handle)) == NULL)
