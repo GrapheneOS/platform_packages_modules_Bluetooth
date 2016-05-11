@@ -29,6 +29,10 @@
 #include "gatt_api.h"
 #include "osi/include/list.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef     BTA_GATT_INCLUDED
 #warning BTA_GATT_INCLUDED not defined
 #define     BTA_GATT_INCLUDED     FALSE
@@ -596,11 +600,6 @@ typedef struct
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /**************************
 **  Client Functions

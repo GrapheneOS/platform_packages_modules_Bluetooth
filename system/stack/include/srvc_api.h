@@ -23,6 +23,10 @@
 #include "gatt_api.h"
 #include "gattdefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define DIS_SUCCESS             GATT_SUCCESS
 #define DIS_ILLEGAL_PARAM       GATT_ILLEGAL_PARAMETER
 #define DIS_NO_RESOURCES        GATT_NO_RESOURCES
@@ -126,10 +130,6 @@ typedef union
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 /*****************************************************************************
 **  Service Engine API
 *****************************************************************************/

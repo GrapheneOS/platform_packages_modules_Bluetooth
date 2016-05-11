@@ -32,6 +32,10 @@
 #include "rfcdefs.h"
 #include "port_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Local events passed when application event is sent from the api to PORT */
 /* ???*/
 #define PORT_EVENT_OPEN         (1  | BT_EVT_TO_BTU_SP_EVT)
@@ -214,10 +218,6 @@ typedef struct
     tPORT        port[MAX_RFC_PORTS];            /* Port info pool */
     tRFC_MCB     rfc_mcb[MAX_BD_CONNECTIONS];    /* RFCOMM bd_connections pool */
 } tPORT_CB;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*
 ** Functions provided by the port_utils.c

@@ -28,6 +28,10 @@
 #include "l2c_api.h"
 #include "port_int.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 ** Define RFCOMM result codes
 */
@@ -272,11 +276,6 @@ extern  UINT8 rfc_calc_fcs (UINT16 len, UINT8 *p);
 #define RFCOMM_DISC_FCS(p_data, cr, dlci)  rfc_calc_fcs(3, p_data)
 #define RFCOMM_UIH_FCS(p_data, dlci)       rfc_calc_fcs(2, p_data)
 
-#endif
-
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 extern void rfc_mx_sm_execute (tRFC_MCB *p_mcb, UINT16 event, void *p_data);

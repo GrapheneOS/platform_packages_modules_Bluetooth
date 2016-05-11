@@ -31,6 +31,9 @@
 #include "btm_int.h"
 #include "btu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* BNEP frame types
 */
@@ -184,10 +187,6 @@ typedef struct
     UINT8                   trace_level;
 
 } tBNEP_CB;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global BNEP data
 */

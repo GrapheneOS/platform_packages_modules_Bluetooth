@@ -30,6 +30,10 @@
 #include "avct_defs.h"
 #include "l2c_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 ** constants
 *****************************************************************************/
@@ -212,10 +216,6 @@ extern tAVCT_CCB *avct_ccb_by_idx(UINT8 idx);
 /*****************************************************************************
 ** global data
 *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /* Main control block */
 #if AVCT_DYNAMIC_MEMORY == FALSE

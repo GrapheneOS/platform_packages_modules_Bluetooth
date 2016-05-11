@@ -63,6 +63,10 @@
 #include "osi/include/thread.h"
 #include "stack_manager.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -139,10 +143,6 @@ static void btif_sendmsg(void *p_msg);
 **  Externs
 ************************************************************************************/
 extern fixed_queue_t *btu_hci_msg_queue;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern void bte_load_did_conf(const char *p_path);
 
