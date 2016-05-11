@@ -27,6 +27,7 @@
 #include "bt_target.h"
 #include <string.h>
 #include "btm_int.h"
+#include "stack_config.h"
 
 /* Global BTM control block structure
 */
@@ -63,7 +64,11 @@ void btm_init (void)
     /* Initialize BTM component structures */
     btm_inq_db_init();                  /* Inquiry Database and Structures */
     btm_acl_init();                     /* ACL Database and Structures */
-    btm_sec_init(BTM_SEC_MODE_SP);      /* Security Manager Database and Structures */
+    /* Security Manager Database and Structures */
+    if (stack_config_get_interface()->get_pts_secure_only_mode())
+        btm_sec_init(BTM_SEC_MODE_SC);
+    else
+        btm_sec_init(BTM_SEC_MODE_SP);
 #if BTM_SCO_INCLUDED == TRUE
     btm_sco_init();                     /* SCO Database and Structures (If included) */
 #endif

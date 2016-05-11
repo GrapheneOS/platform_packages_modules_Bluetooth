@@ -23,6 +23,10 @@
 #include "osi/include/config.h"
 #include "module.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char STACK_CONFIG_MODULE[] = "stack_config_module";
 
 typedef struct {
@@ -30,7 +34,15 @@ typedef struct {
   bool (*get_btsnoop_turned_on)(void);
   bool (*get_btsnoop_should_save_last)(void);
   bool (*get_trace_config_enabled)(void);
+  bool (*get_pts_secure_only_mode)(void);
+  bool (*get_pts_conn_updates_disabled)(void);
+  bool (*get_pts_crosskey_sdp_disable)(void);
+  const char* (*get_smp_options)(void);
   config_t *(*get_all)(void);
 } stack_config_t;
 
 const stack_config_t *stack_config_get_interface();
+
+#ifdef __cplusplus
+}
+#endif
