@@ -746,8 +746,7 @@ public abstract class BluetoothMapbMessage {
                  * END:MSG in the actual message content, it is now safe to use the END:MSG tag
                  * as terminator, and simply ignore the length field.*/
 
-                /* 2 added to compensate for the removed \r\n */
-                byte[] rawData = reader.getDataBytes(mBMsgLength - (line.getBytes().length + 2));
+                byte[] rawData = reader.getDataBytes(mBMsgLength);
                 String data;
                 try {
                     data = new String(rawData, "UTF-8");
