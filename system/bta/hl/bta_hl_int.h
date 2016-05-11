@@ -31,6 +31,9 @@
 #include "bta_hl_co.h"
 #include "l2cdefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef UINT16 (tBTA_HL_ALLOCATE_PSM) (void);
 
@@ -596,11 +599,6 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
 /*****************************************************************************
 **  Function prototypes
 *****************************************************************************/
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
     /* main */
     extern BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg);
     /* sdp */

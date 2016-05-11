@@ -29,6 +29,10 @@
 #include "avct_defs.h"
 #include "avrc_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*      DEBUG FLAGS
  *
  * #define META_DEBUG_ENABLED
@@ -126,13 +130,6 @@ typedef struct
     UINT16              service_uuid;   /* service UUID to search */
     UINT8               trace_level;
 } tAVRC_CB;
-
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /******************************************************************************
 ** Main Control Block

@@ -26,6 +26,10 @@
 
 #include "a2d_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -56,12 +60,6 @@ typedef struct
     BOOLEAN         use_desc;
     UINT16          avdt_sdp_ver;   /* AVDTP version */
 } tA2D_CB;
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /******************************************************************************
 ** Main Control Block

@@ -30,6 +30,10 @@
 #include "osi/include/alarm.h"
 #include <hardware/bt_common_types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CHNL_MAP_LEN    5
 typedef UINT8 tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
 
@@ -888,9 +892,6 @@ tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
 /*****************************************************************************
 **  EXTERNAL FUNCTION DECLARATIONS
 *****************************************************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 /*******************************************************************************
 **
 ** Function         BTM_SecAddBleDevice

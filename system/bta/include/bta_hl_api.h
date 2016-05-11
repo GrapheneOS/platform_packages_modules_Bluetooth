@@ -30,6 +30,10 @@
 #include "btm_api.h"
 #include "mca_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -626,10 +630,6 @@ typedef void tBTA_HL_CBACK(tBTA_HL_EVT event, tBTA_HL *p_data);
 /*****************************************************************************
 **  External Function Declarations
 *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /**************************
 **  API Functions

@@ -27,6 +27,10 @@
 
 #include "pan_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 ** This role is used to shutdown the profile. Used internally
 ** Applications should call PAN_Deregister to shutdown the profile
@@ -91,11 +95,6 @@ typedef struct
     UINT8                       num_conns;
     UINT8                       trace_level;
 } tPAN_CB;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global PAN data
 */

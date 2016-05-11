@@ -23,6 +23,10 @@
 #include "gatt_api.h"
 #include "srvc_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SRVC_MAX_APPS                  GATT_CL_MAX_LCB
 
 #define SRVC_ID_NONE            0
@@ -55,12 +59,6 @@ typedef struct
     BOOLEAN                 enabled;
 
 }tSRVC_ENG_CB;
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global GATT data */
 #if GATT_DYNAMIC_MEMORY == FALSE
