@@ -30,6 +30,9 @@
 #include "sdp_api.h"
 #include "l2c_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Continuation length - we use a 2-byte offset */
 #define SDP_CONTINUATION_LEN        2
@@ -229,9 +232,6 @@ typedef struct
     UINT8             trace_level;
 } tSDP_CB;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 /* Global SDP data */
 #if SDP_DYNAMIC_MEMORY == FALSE
 extern tSDP_CB  sdp_cb;

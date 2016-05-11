@@ -29,6 +29,10 @@
 
 #include "avdt_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* start AVDTC events here to distinguish from AVDT events */
 #define AVDTC_EVT_BEGIN             0x80
 
@@ -59,11 +63,6 @@ typedef union {
 } tAVDTC_CTRL;
 
 typedef void tAVDTC_CTRL_CBACK(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDTC_CTRL *p_data);
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*******************************************************************************
 **

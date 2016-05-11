@@ -33,6 +33,10 @@
 #include "l2c_api.h"
 #include "btm_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef AVDT_DEBUG
 #define AVDT_DEBUG  FALSE
 #endif
@@ -724,10 +728,6 @@ extern void avdt_scb_transport_channel_timer_timeout(void *data);
 /*****************************************************************************
 ** global data
 *****************************************************************************/
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /******************************************************************************
 ** Main Control Block

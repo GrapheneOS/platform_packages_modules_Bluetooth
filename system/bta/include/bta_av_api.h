@@ -31,6 +31,10 @@
 #include "a2d_api.h"
 #include "bta_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -519,11 +523,6 @@ typedef struct
     char              avrc_controller_name[BTA_SERVICE_NAME_LEN]; /* Default AVRCP controller name */
     char              avrc_target_name[BTA_SERVICE_NAME_LEN];     /* Default AVRCP target name*/
 } tBTA_AV_CFG;
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*****************************************************************************
 **  External Function Declarations

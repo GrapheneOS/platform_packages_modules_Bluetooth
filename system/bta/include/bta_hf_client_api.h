@@ -27,6 +27,10 @@
 
 #include "bta_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -144,16 +148,10 @@ typedef UINT8 tBTA_HF_CLIENT_IND_TYPE;
 
 typedef UINT8 tBTA_HF_CLIENT_AT_CMD_TYPE;
 
-/* data associated with most non-AT events */
-/* placeholder, if not needed should be removed*/
-typedef struct
-{
-} tBTA_HF_CLIENT_HDR;
 
 /* data associated with BTA_HF_CLIENT_REGISTER_EVT */
 typedef struct
 {
-    tBTA_HF_CLIENT_HDR      hdr;
     UINT16                  handle;
     tBTA_HF_CLIENT_STATUS   status;
 } tBTA_HF_CLIENT_REGISTER;
@@ -161,7 +159,6 @@ typedef struct
 /* data associated with BTA_HF_CLIENT_OPEN_EVT */
 typedef struct
 {
-    tBTA_HF_CLIENT_HDR      hdr;
     BD_ADDR                 bd_addr;
     tBTA_HF_CLIENT_STATUS   status;
 } tBTA_HF_CLIENT_OPEN;
@@ -169,7 +166,6 @@ typedef struct
 /* data associated with BTA_HF_CLIENT_CONN_EVT */
 typedef struct
 {
-    tBTA_HF_CLIENT_HDR         hdr;
     tBTA_HF_CLIENT_PEER_FEAT   peer_feat;
     tBTA_HF_CLIENT_CHLD_FEAT   chld_feat;
 } tBTA_HF_CLIENT_CONN;
@@ -177,7 +173,6 @@ typedef struct
 /* data associated with BTA_HF_CLIENT_IND_EVT event */
 typedef struct
 {
-    tBTA_HF_CLIENT_HDR         hdr;
     tBTA_HF_CLIENT_IND_TYPE    type;
     UINT16                     value;
 } tBTA_HF_CLIENT_IND;
@@ -230,7 +225,6 @@ typedef struct
 /* union of data associated with AG callback */
 typedef union
 {
-    tBTA_HF_CLIENT_HDR              hdr;
     tBTA_HF_CLIENT_REGISTER         reg;
     tBTA_HF_CLIENT_OPEN             open;
     tBTA_HF_CLIENT_CONN             conn;
@@ -247,11 +241,6 @@ typedef UINT32 tBTA_HF_CLIENT_FEAT;
 
 /* HF Client callback */
 typedef void (tBTA_HF_CLIENT_CBACK)(tBTA_HF_CLIENT_EVT event, tBTA_HF_CLIENT *p_data);
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /*****************************************************************************
 **  External Function Declarations

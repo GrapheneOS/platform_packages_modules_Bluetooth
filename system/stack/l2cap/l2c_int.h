@@ -34,6 +34,10 @@
 #include "l2c_api.h"
 #include "l2cdefs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define L2CAP_MIN_MTU   48      /* Minimum acceptable MTU is 48 bytes */
 
 /* LE credit based L2CAP connection parameters */
@@ -550,11 +554,6 @@ typedef void (tL2C_FCR_MGMT_EVT_HDLR) (UINT8, tL2C_CCB *);
 #else
 #define L2CAP_HIGH_PRI_MIN_XMIT_QUOTA_A     (l2cb.high_pri_min_xmit_quota)
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 /* L2CAP global data
 ************************************
