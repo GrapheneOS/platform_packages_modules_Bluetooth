@@ -28,6 +28,10 @@
 #include "osi/include/alarm.h"
 #include "bt_common.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -214,10 +218,6 @@ typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 /*****************************************************************************
 **  Function declarations
 *****************************************************************************/
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern void bta_sys_init(void);
 extern void bta_sys_free(void);

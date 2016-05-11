@@ -14,6 +14,10 @@
 #include "bt_types.h"
 #include "btm_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /****************************************************************************
 **  Resolvable private address offload VSC specific definitions
 ******************************************************************************/
@@ -29,11 +33,6 @@ enum
 **  Advertising packet filter VSC specific definitions
 ******************************************************************************/
 
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*****************************************************************************
 **              VENDOR SPECIFIC BLE FEATURE FUNCTIONS

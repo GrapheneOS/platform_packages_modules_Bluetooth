@@ -36,6 +36,9 @@
 #include "smp_api.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* scanning enable status */
 #define BTM_BLE_SCAN_ENABLE      0x01
@@ -343,10 +346,6 @@ typedef struct
     tBTM_BLE_STATE_MASK cur_states; /* bit mask of tBTM_BLE_STATE */
     UINT8 link_count[2]; /* total link count master and slave*/
 } tBTM_BLE_CB;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 extern void btm_ble_adv_raddr_timer_timeout(void *data);
 extern void btm_ble_refresh_raddr_timer_timeout(void *data);

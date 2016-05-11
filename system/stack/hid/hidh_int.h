@@ -29,6 +29,10 @@
 #include "hid_conn.h"
 #include "l2c_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum {
     HID_DEV_NO_CONN,
     HID_DEV_CONNECTED
@@ -71,11 +75,6 @@ extern tHID_STATUS hidh_conn_disconnect (UINT8 dhandle);
 extern tHID_STATUS hidh_conn_initiate (UINT8 dhandle);
 extern void hidh_process_repage_timer_timeout(void *data);
 extern void hidh_try_repage(UINT8 dhandle);
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 /******************************************************************************
 ** Main Control Block

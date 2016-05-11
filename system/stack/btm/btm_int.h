@@ -43,6 +43,10 @@
 #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if BTM_MAX_LOC_BD_NAME_LEN > 0
 typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
 #endif
@@ -897,11 +901,6 @@ typedef struct
 #define BTM_SEC_ENC_PENDING       5    /* wait for link encryption pending */
 
 typedef UINT8 tBTM_SEC_ACTION;
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #if BTM_DYNAMIC_MEMORY == FALSE
 extern tBTM_CB  btm_cb;

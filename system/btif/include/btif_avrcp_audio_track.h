@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#if defined (__cplusplus) || (cplusplus)
+#if defined (__cplusplus)
 extern "C" {
 #endif
 

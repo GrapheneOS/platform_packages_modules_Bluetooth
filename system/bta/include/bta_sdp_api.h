@@ -30,6 +30,10 @@
 #include "bta_api.h"
 #include "btm_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* status values */
 #define BTA_SDP_SUCCESS                  0            /* Successful operation. */
 #define BTA_SDP_FAILURE                  1            /* Generic failure. */
@@ -76,10 +80,6 @@ typedef struct
     tSDP_DISCOVERY_DB   *p_sdp_db;  /* The data buffer to keep SDP database */
 } tBTA_SDP_CFG;
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 /*******************************************************************************
 **
 ** Function         BTA_SdpEnable

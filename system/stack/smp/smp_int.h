@@ -31,6 +31,10 @@
 #include "btm_api.h"
 #include "smp_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SMP_MODEL_ENCRYPTION_ONLY  0   /* Legacy mode, Just Works model */
 #define SMP_MODEL_PASSKEY       1   /* Legacy mode, Passkey Entry model, this side inputs the key */
 #define SMP_MODEL_OOB           2   /* Legacy mode, OOB model */
@@ -343,12 +347,6 @@ typedef struct
 
 /* Server Action functions are of this type */
 typedef void (*tSMP_ACT)(tSMP_CB *p_cb, tSMP_INT_DATA *p_data);
-
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #if SMP_DYNAMIC_MEMORY == FALSE
 extern tSMP_CB  smp_cb;

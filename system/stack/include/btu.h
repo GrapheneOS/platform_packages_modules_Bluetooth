@@ -31,6 +31,10 @@
 #include "bt_common.h"
 #include "osi/include/alarm.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // HACK(zachoverflow): temporary dark magic
 #define BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK 0x1700 // didn't look used in bt_types...here goes nothing
 typedef struct {
@@ -49,11 +53,6 @@ typedef struct {
   BT_HDR *command;
   void *context;
 } command_status_hack_t;
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* Global BTU data */
 extern uint8_t btu_trace_level;
