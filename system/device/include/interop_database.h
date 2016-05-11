@@ -76,6 +76,7 @@ static const interop_addr_entry_t interop_addr_database[] = {
 
   // VW Car Kit - not enough granularity with volume
   {{{0x00, 0x26, 0x7e,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
+  {{{0x90, 0x03, 0xb7,      0,0,0}}, 3, INTEROP_DISABLE_ABSOLUTE_VOLUME},
 
   // Subaru car kits (ALPS) - auto-pairing fails and rejects next pairing
   {{{0xe0, 0x75, 0x0a,      0,0,0}}, 3, INTEROP_DISABLE_AUTO_PAIRING},
