@@ -97,9 +97,7 @@ typedef enum {
     BTIF_GATTC_CONFIGURE_MTU,
     BTIF_GATTC_CONN_PARAM_UPDT,
     BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
-    BTIF_GATTC_SCAN_FILTER_CONFIG,
-    BTIF_GATTC_SCAN_FILTER_CLEAR,
-    BTIF_GATTC_SCAN_FILTER_ENABLE
+    BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1352,23 +1350,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_SCAN_FILTER_CLEAR:
-        {
-            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
-            BTA_DmBleCfgFilterCondition(BTA_DM_BLE_SCAN_COND_CLEAR, BTA_DM_BLE_PF_TYPE_ALL,
-                                        p_adv_filt_cb->filt_index, NULL, bta_scan_filt_cfg_cb,
-                                        p_adv_filt_cb->client_if);
-            break;
-        }
-
-        case BTIF_GATTC_SCAN_FILTER_ENABLE:
-        {
-            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
-            BTA_DmEnableScanFilter(p_adv_filt_cb->action, bta_scan_filt_status_cb,
-                                   p_adv_filt_cb->client_if);
-            break;
-        }
-
         case BTIF_GATTC_LISTEN:
 #if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
             BTA_GATTC_Listen(p_cb->client_if, p_cb->start, NULL);
@@ -1727,34 +1708,24 @@ static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
                                  (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_clear(int client_if, int filt_index)
-{
-    CHECK_BTGATT_INIT();
-    BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, filt_index);
+static bt_status_t btif_gattc_scan_filter_clear(int client_if, int filter_index) {
+  CHECK_BTGATT_INIT();
+  BTIF_TRACE_DEBUG("%s: filter_index: %d", __FUNCTION__, filter_index);
 
-    btgatt_adv_filter_cb_t btif_filt_cb;
-    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
-    btif_filt_cb.client_if = client_if;
-    btif_filt_cb.filt_index = filt_index;
-    btif_filt_cb.action = BTA_DM_BLE_SCAN_COND_CLEAR;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_CONFIG,
-                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+  return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition,
+                               BTA_DM_BLE_SCAN_COND_CLEAR,
+                               BTA_DM_BLE_PF_TYPE_ALL, filter_index, nullptr,
+                               &bta_scan_filt_cfg_cb, client_if));
 }
 
-static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable)
-{
-    int action = 0;
-    CHECK_BTGATT_INIT();
-    BTIF_TRACE_DEBUG("%s, %d", __FUNCTION__, enable);
+static bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable) {
+  CHECK_BTGATT_INIT();
+  BTIF_TRACE_DEBUG("%s: enable: %d", __FUNCTION__, enable);
 
-    btgatt_adv_filter_cb_t btif_filt_cb;
-    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
-    btif_filt_cb.client_if = client_if;
-    if (true == enable)
-        action = 1;
-    btif_filt_cb.action = action;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_ENABLE,
-                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+  uint8_t action = enable ? 1: 0;
+
+  return do_in_jni_thread(Bind(&BTA_DmEnableScanFilter, action,
+                               &bta_scan_filt_status_cb, client_if));
 }
 
 static bt_status_t btif_gattc_set_scan_parameters(int client_if,
