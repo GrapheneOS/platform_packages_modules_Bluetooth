@@ -33,6 +33,7 @@
 #include <base/strings/string_number_conversions.h>
 #include <base/strings/string_split.h>
 
+#include "osi/include/osi.h"
 #include "osi/include/log.h"
 #include "service/adapter.h"
 
@@ -248,7 +249,10 @@ bool LinuxIPCHost::OnStopService(const std::string& service_uuid) {
 
 bool LinuxIPCHost::OnMessage() {
   std::string ipc_msg;
-  int size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0, MSG_PEEK | MSG_TRUNC);
+  ssize_t size;
+
+  OSI_NO_INTR(size = recv(pfds_[kFdIpc].fd, &ipc_msg[0], 0,
+                          MSG_PEEK | MSG_TRUNC));
   if (-1 == size) {
     LOG_ERROR(LOG_TAG, "Error reading datagram size: %s", strerror(errno));
     return false;
@@ -258,7 +262,7 @@ bool LinuxIPCHost::OnMessage() {
   }
 
   ipc_msg.resize(size);
-  size = read(pfds_[kFdIpc].fd, &ipc_msg[0], ipc_msg.size());
+  OSI_NO_INTR(size = read(pfds_[kFdIpc].fd, &ipc_msg[0], ipc_msg.size()));
   if (-1 == size) {
     LOG_ERROR(LOG_TAG, "Error reading IPC: %s", strerror(errno));
     return false;
@@ -306,7 +310,9 @@ bool LinuxIPCHost::OnMessage() {
 
 bool LinuxIPCHost::OnGattWrite() {
   UUID::UUID128Bit id;
-  int r = read(pfds_[kFdGatt].fd, id.data(), id.size());
+  ssize_t r;
+
+  OSI_NO_INTR(r = read(pfds_[kFdGatt].fd, id.data(), id.size()));
   if (r != id.size()) {
     LOG_ERROR(LOG_TAG, "Error reading GATT attribute ID");
     return false;
@@ -325,7 +331,7 @@ bool LinuxIPCHost::OnGattWrite() {
   transmit += "|" + base::HexEncode(id.data(), id.size());
   transmit += "|" + encoded_value;
 
-  r = write(pfds_[kFdIpc].fd, transmit.data(), transmit.size());
+  OSI_NO_INTR(r = write(pfds_[kFdIpc].fd, transmit.data(), transmit.size()));
   if (-1 == r) {
     LOG_ERROR(LOG_TAG, "Error replying to IPC: %s", strerror(errno));
     return false;

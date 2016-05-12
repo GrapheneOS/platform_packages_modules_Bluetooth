@@ -121,7 +121,8 @@ int osi_socket_local_client_connect(int fd, const char *name, int namespaceId,
     goto error;
   }
 
-  if (connect(fd, (struct sockaddr *)&addr, alen) < 0) {
+  OSI_NO_INTR(err = connect(fd, (struct sockaddr *)&addr, alen));
+  if (err < 0) {
     goto error;
   }
 

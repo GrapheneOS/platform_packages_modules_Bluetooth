@@ -176,7 +176,10 @@ static bool write_hci_command(hci_packet_t type, const void *packet, size_t leng
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(0x7F000001);
   addr.sin_port = htons(8873);
-  if (connect(sock, (const struct sockaddr *)&addr, sizeof(addr)) == -1)
+  int ret;
+  OSI_NO_INTR(ret = connect(sock, (const struct sockaddr *)&addr,
+                            sizeof(addr)));
+  if (ret == -1)
     goto error;
 
   if (send(sock, &type, 1, 0) != 1)
