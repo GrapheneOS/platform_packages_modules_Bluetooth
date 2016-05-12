@@ -600,63 +600,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
-        case BTA_GATTC_MULT_ADV_ENB_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            if (0xFF != p_btif_cb->inst_id)
-                btif_multi_adv_add_instid_map(p_btif_cb->client_if, p_btif_cb->inst_id, false);
-            HAL_CBACK(bt_gatt_callbacks, client->multi_adv_enable_cb
-                    , p_btif_cb->client_if
-                    , p_btif_cb->status
-                );
-            btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
-                                      (p_btif_cb->status == BTA_GATT_OK) ?
-                                      btif_multi_adv_stop_cb : NULL);
-            break;
-        }
-
-        case BTA_GATTC_MULT_ADV_UPD_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->multi_adv_update_cb
-                , p_btif_cb->client_if
-                , p_btif_cb->status
-            );
-            btif_multi_adv_timer_ctrl(p_btif_cb->client_if,
-                                      (p_btif_cb->status == BTA_GATT_OK) ?
-                                      btif_multi_adv_stop_cb : NULL);
-            break;
-        }
-
-        case BTA_GATTC_MULT_ADV_DATA_EVT:
-         {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_gattc_clear_clientif(p_btif_cb->client_if, FALSE);
-            HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb
-                , p_btif_cb->client_if
-                , p_btif_cb->status
-            );
-            break;
-        }
-
-        case BTA_GATTC_MULT_ADV_DIS_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            btif_gattc_clear_clientif(p_btif_cb->client_if, TRUE);
-            HAL_CBACK(bt_gatt_callbacks, client->multi_adv_disable_cb
-                , p_btif_cb->client_if
-                , p_btif_cb->status
-            );
-            break;
-        }
-
-        case BTA_GATTC_ADV_DATA_EVT:
-        {
-            btif_gattc_cleanup_inst_cb(STD_ADV_INSTID, FALSE);
-            /* No HAL callback available */
-            break;
-        }
-
         case BTA_GATTC_CONGEST_EVT:
             HAL_CBACK(bt_gatt_callbacks, client->congestion_cb
                 , p_data->congest.conn_id
@@ -679,63 +622,58 @@ static void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
-static void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event, UINT8 inst_id,
-                                    void *p_ref, tBTA_STATUS call_status)
-{
-    btif_gattc_cb_t btif_cb;
-    tBTA_GATTC_EVT upevt;
-    uint8_t client_if = 0;
-
-    if (NULL == p_ref)
-    {
-        BTIF_TRACE_WARNING("%s Invalid p_ref received",__FUNCTION__);
-    }
-    else
-    {
-        client_if = *(UINT8 *) p_ref;
-    }
-
-    BTIF_TRACE_DEBUG("%s -Inst ID %d, Status:%x, client_if:%d",__FUNCTION__,inst_id, call_status,
-                       client_if);
-    btif_cb.status = call_status;
-    btif_cb.client_if = client_if;
-    btif_cb.inst_id = inst_id;
-
-    switch(event)
-    {
-        case BTA_BLE_MULTI_ADV_ENB_EVT:
-            upevt = BTA_GATTC_MULT_ADV_ENB_EVT;
-            break;
-
-        case BTA_BLE_MULTI_ADV_DISABLE_EVT:
-            upevt = BTA_GATTC_MULT_ADV_DIS_EVT;
-            break;
-
-        case BTA_BLE_MULTI_ADV_PARAM_EVT:
-            upevt = BTA_GATTC_MULT_ADV_UPD_EVT;
-            break;
-
-        case BTA_BLE_MULTI_ADV_DATA_EVT:
-            upevt = BTA_GATTC_MULT_ADV_DATA_EVT;
-            break;
-
-        default:
-            return;
-    }
-
-    bt_status_t status = btif_transfer_context(btif_gattc_upstreams_evt, (uint16_t) upevt,
-                        (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
-    ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
+static void multi_adv_enable_cb_impl(int client_if, int status, int inst_id) {
+  if (0xFF != inst_id) btif_multi_adv_add_instid_map(client_if, inst_id, false);
+  HAL_CBACK(bt_gatt_callbacks, client->multi_adv_enable_cb, client_if, status);
+  btif_multi_adv_timer_ctrl(
+      client_if, (status == BTA_GATT_OK) ? btif_multi_adv_stop_cb : NULL);
 }
 
-static void bta_gattc_set_adv_data_cback(tBTA_STATUS call_status)
-{
-    UNUSED(call_status);
-    btif_gattc_cb_t btif_cb;
-    btif_cb.status = call_status;
-    btif_cb.action = 0;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_ADV_DATA_EVT,
-                          (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void multi_adv_update_cb_impl(int client_if, int status, int inst_id) {
+  HAL_CBACK(bt_gatt_callbacks, client->multi_adv_update_cb, client_if, status);
+  btif_multi_adv_timer_ctrl(
+      client_if, (status == BTA_GATT_OK) ? btif_multi_adv_stop_cb : NULL);
+}
+
+static void multi_adv_data_cb_impl(int client_if, int status, int inst_id) {
+  btif_gattc_clear_clientif(client_if, FALSE);
+  HAL_CBACK(bt_gatt_callbacks, client->multi_adv_data_cb, client_if, status);
+}
+
+static void multi_adv_disable_cb_impl(int client_if, int status, int inst_id) {
+  btif_gattc_clear_clientif(client_if, TRUE);
+  HAL_CBACK(bt_gatt_callbacks, client->multi_adv_disable_cb, client_if, status);
+}
+
+static void bta_gattc_multi_adv_cback(tBTA_BLE_MULTI_ADV_EVT event,
+                                      UINT8 inst_id, void *p_ref,
+                                      tBTA_STATUS status) {
+  uint8_t client_if = 0;
+
+  if (NULL == p_ref) {
+    BTIF_TRACE_WARNING("%s Invalid p_ref received", __func__);
+  } else {
+    client_if = *(UINT8 *)p_ref;
+  }
+
+  BTIF_TRACE_DEBUG("%s -Inst ID %d, Status:%x, client_if:%d", __func__, inst_id,
+                   status, client_if);
+
+  if (event == BTA_BLE_MULTI_ADV_ENB_EVT)
+    do_in_jni_thread(
+        Bind(multi_adv_enable_cb_impl, client_if, status, inst_id));
+  else if (event == BTA_BLE_MULTI_ADV_DISABLE_EVT)
+    do_in_jni_thread(
+        Bind(multi_adv_disable_cb_impl, client_if, status, inst_id));
+  else if (event == BTA_BLE_MULTI_ADV_PARAM_EVT)
+    do_in_jni_thread(
+        Bind(multi_adv_update_cb_impl, client_if, status, inst_id));
+  else if (event == BTA_BLE_MULTI_ADV_DATA_EVT)
+    do_in_jni_thread(Bind(multi_adv_data_cb_impl, client_if, status, inst_id));
+}
+
+static void bta_gattc_set_adv_data_cback(tBTA_STATUS call_status) {
+  do_in_jni_thread(Bind(&btif_gattc_cleanup_inst_cb, STD_ADV_INSTID, FALSE));
 }
 
 static void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
