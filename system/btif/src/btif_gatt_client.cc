@@ -79,9 +79,7 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 #define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 typedef enum {
-    BTIF_GATTC_REGISTER_APP = 1000,
-    BTIF_GATTC_UNREGISTER_APP,
-    BTIF_GATTC_SCAN_FILTER_CONFIG
+    BTIF_GATTC_SCAN_FILTER_CONFIG = 1000
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1062,8 +1060,6 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
 
 static void btgattc_handle_event(uint16_t event, char* p_param)
 {
-    tBT_UUID                   uuid;
-
     btif_gattc_cb_t* p_cb = (btif_gattc_cb_t*) p_param;
     if (!p_cb) return;
 
@@ -1071,18 +1067,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
     switch (event)
     {
-        case BTIF_GATTC_REGISTER_APP:
-            btif_to_bta_uuid(&uuid, &p_cb->uuid);
-            btif_gattc_incr_app_count();
-            BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
-            break;
-
-        case BTIF_GATTC_UNREGISTER_APP:
-            btif_gattc_clear_clientif(p_cb->client_if, TRUE);
-            btif_gattc_decr_app_count();
-            BTA_GATTC_AppDeregister(p_cb->client_if);
-            break;
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1193,22 +1177,28 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 **  Client API Functions
 ********************************************************************************/
 
-static bt_status_t btif_gattc_register_app(bt_uuid_t *uuid)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    memcpy(&btif_cb.uuid, uuid, sizeof(bt_uuid_t));
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_REGISTER_APP,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void btif_gattc_register_app_impl(tBT_UUID uuid) {
+  btif_gattc_incr_app_count();
+  BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
 }
 
-static bt_status_t btif_gattc_unregister_app(int client_if )
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_UNREGISTER_APP,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_register_app(bt_uuid_t *uuid) {
+  CHECK_BTGATT_INIT();
+
+  tBT_UUID bt_uuid;
+  btif_to_bta_uuid(&bt_uuid, uuid);
+  return do_in_jni_thread(Bind(&btif_gattc_register_app_impl, bt_uuid));
+}
+
+static void btif_gattc_unregister_app_impl(int client_if) {
+  btif_gattc_clear_clientif(client_if, TRUE);
+  btif_gattc_decr_app_count();
+  BTA_GATTC_AppDeregister(client_if);
+}
+
+static bt_status_t btif_gattc_unregister_app(int client_if) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&btif_gattc_unregister_app_impl, client_if));
 }
 
 static bt_status_t btif_gattc_scan(bool start) {
