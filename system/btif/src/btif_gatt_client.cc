@@ -89,8 +89,6 @@ typedef enum {
     BTIF_GATTC_WRITE_CHAR,
     BTIF_GATTC_WRITE_CHAR_DESCR,
     BTIF_GATTC_EXECUTE_WRITE,
-    BTIF_GATTC_REG_FOR_NOTIFICATION,
-    BTIF_GATTC_DEREG_FOR_NOTIFICATION,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1072,7 +1070,6 @@ static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
 
 static void btgattc_handle_event(uint16_t event, char* p_param)
 {
-    tBTA_GATT_STATUS           status;
     tBT_UUID                   uuid;
     tBTA_GATT_UNFMT            descr_val;
 
@@ -1210,22 +1207,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 
         case BTIF_GATTC_EXECUTE_WRITE:
             BTA_GATTC_ExecuteWrite(p_cb->conn_id, p_cb->action);
-            break;
-
-        case BTIF_GATTC_REG_FOR_NOTIFICATION:
-            status = BTA_GATTC_RegisterForNotifications(p_cb->client_if,
-                                    p_cb->bd_addr.address, p_cb->handle);
-
-            HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
-                p_cb->conn_id, 1, status, p_cb->handle);
-            break;
-
-        case BTIF_GATTC_DEREG_FOR_NOTIFICATION:
-            status = BTA_GATTC_DeregisterForNotifications(p_cb->client_if,
-                                        p_cb->bd_addr.address, p_cb->handle);
-
-            HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
-                p_cb->conn_id, 0, status, p_cb->handle);
             break;
 
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
@@ -1527,28 +1508,48 @@ static bt_status_t btif_gattc_execute_write(int conn_id, int execute)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_reg_for_notification(int client_if, const bt_bdaddr_t *bd_addr,
-                                                   uint16_t handle)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    btif_cb.handle = handle;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_REG_FOR_NOTIFICATION,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void btif_gattc_reg_for_notification_impl(tBTA_GATTC_IF client_if,
+                                          const BD_ADDR bda, UINT16 handle) {
+  tBTA_GATT_STATUS status = BTA_GATTC_RegisterForNotifications(
+      client_if, const_cast<UINT8 *>(bda), handle);
+
+  //TODO(jpawlowski): conn_id is currently unused
+  HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
+            /* conn_id */ 0, 1, status, handle);
 }
 
-static bt_status_t btif_gattc_dereg_for_notification(int client_if, const bt_bdaddr_t *bd_addr,
-                                                     uint16_t handle)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    btif_cb.handle = handle;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_DEREG_FOR_NOTIFICATION,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_reg_for_notification(int client_if,
+                                                   const bt_bdaddr_t *bd_addr,
+                                                   uint16_t handle) {
+  CHECK_BTGATT_INIT();
+
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&btif_gattc_reg_for_notification_impl), client_if,
+           base::Owned(address), handle));
+}
+
+static void btif_gattc_dereg_for_notification_impl(tBTA_GATTC_IF client_if,
+                                            const BD_ADDR bda, UINT16 handle) {
+  tBTA_GATT_STATUS status = BTA_GATTC_DeregisterForNotifications(
+      client_if, const_cast<UINT8 *>(bda), handle);
+
+  //TODO(jpawlowski): conn_id is currently unused
+  HAL_CBACK(bt_gatt_callbacks, client->register_for_notification_cb,
+            /* conn_id */ 0, 0, status, handle);
+}
+
+static bt_status_t btif_gattc_dereg_for_notification(int client_if,
+                                                     const bt_bdaddr_t *bd_addr,
+                                                     uint16_t handle) {
+  CHECK_BTGATT_INIT();
+
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&btif_gattc_dereg_for_notification_impl),
+           client_if, base::Owned(address), handle));
 }
 
 static bt_status_t btif_gattc_read_remote_rssi(int client_if,
