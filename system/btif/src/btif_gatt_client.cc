@@ -86,7 +86,6 @@ typedef enum {
     BTIF_GATTC_OPEN,
     BTIF_GATTC_CLOSE,
     BTIF_GATTC_SEARCH_SERVICE,
-    BTIF_GATTC_EXECUTE_WRITE,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1188,10 +1187,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_EXECUTE_WRITE:
-            BTA_GATTC_ExecuteWrite(p_cb->conn_id, p_cb->action);
-            break;
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1481,14 +1476,10 @@ static bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
                                write_type, Owned(value), auth_req));
 }
 
-static bt_status_t btif_gattc_execute_write(int conn_id, int execute)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.action = (uint8_t) execute;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_EXECUTE_WRITE,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_execute_write(int conn_id, int execute) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(&BTA_GATTC_ExecuteWrite, conn_id, (uint8_t)execute));
 }
 
 static void btif_gattc_reg_for_notification_impl(tBTA_GATTC_IF client_if,
