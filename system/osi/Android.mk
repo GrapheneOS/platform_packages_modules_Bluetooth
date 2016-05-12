@@ -39,7 +39,7 @@ btosiCommonSrc := \
     ./src/hash_map.c \
     ./src/hash_map_utils.c \
     ./src/list.c \
-    ./src/metrics.cpp \
+    ./src/metrics.cc \
     ./src/mutex.c \
     ./src/osi.c \
     ./src/properties.c \
@@ -54,27 +54,27 @@ btosiCommonSrc := \
     ./src/wakelock.c
 
 btosiCommonTestSrc := \
-    ./test/AlarmTestHarness.cpp \
-    ./test/AllocationTestHarness.cpp \
-    ./test/alarm_test.cpp \
-    ./test/allocation_tracker_test.cpp \
-    ./test/allocator_test.cpp \
-    ./test/array_test.cpp \
-    ./test/config_test.cpp \
-    ./test/data_dispatcher_test.cpp \
-    ./test/eager_reader_test.cpp \
-    ./test/fixed_queue_test.cpp \
-    ./test/future_test.cpp \
-    ./test/hash_map_test.cpp \
-    ./test/hash_map_utils_test.cpp \
-    ./test/list_test.cpp \
-    ./test/properties_test.cpp \
-    ./test/rand_test.cpp \
-    ./test/reactor_test.cpp \
-    ./test/ringbuffer_test.cpp \
-    ./test/semaphore_test.cpp \
-    ./test/thread_test.cpp \
-    ./test/time_test.cpp
+    ./test/AlarmTestHarness.cc \
+    ./test/AllocationTestHarness.cc \
+    ./test/alarm_test.cc \
+    ./test/allocation_tracker_test.cc \
+    ./test/allocator_test.cc \
+    ./test/array_test.cc \
+    ./test/config_test.cc \
+    ./test/data_dispatcher_test.cc \
+    ./test/eager_reader_test.cc \
+    ./test/fixed_queue_test.cc \
+    ./test/future_test.cc \
+    ./test/hash_map_test.cc \
+    ./test/hash_map_utils_test.cc \
+    ./test/list_test.cc \
+    ./test/properties_test.cc \
+    ./test/rand_test.cc \
+    ./test/reactor_test.cc \
+    ./test/ringbuffer_test.cc \
+    ./test/semaphore_test.cc \
+    ./test/thread_test.cc \
+    ./test/time_test.cc
 
 btosiCommonIncludes := \
     $(LOCAL_PATH)/.. \
@@ -85,6 +85,7 @@ btosiCommonIncludes := \
 # Bluetooth Protobuf static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 generated_sources_dir := $(call local-generated-sources-dir)
@@ -101,6 +102,7 @@ include $(BUILD_STATIC_LIBRARY)
 # Bluetooth Protobuf static library for host
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE := libbt-protos
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 LOCAL_IS_HOST_MODULE := true
@@ -118,6 +120,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 # libosi static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 LOCAL_MODULE := libosi
@@ -136,6 +139,7 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonSrc)
 LOCAL_MODULE := libosi-host
@@ -161,6 +165,7 @@ endif
 # libosi unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_MODULE := net_test_osi
@@ -178,6 +183,7 @@ include $(BUILD_NATIVE_TEST)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btosiCommonIncludes)
 LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_LDLIBS := -lrt -lpthread

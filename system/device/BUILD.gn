@@ -33,8 +33,8 @@ static_library("device") {
 executable("net_test_device") {
   testonly = true
   sources = [
-    "//osi/test/AllocationTestHarness.cpp",
-    "test/classic/peer_test.cpp",
+    "//osi/test/AllocationTestHarness.cc",
+    "test/classic/peer_test.cc",
   ]
 
   include_dirs = [ "//" ]
