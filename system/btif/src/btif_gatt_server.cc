@@ -72,9 +72,7 @@ typedef enum {
     BTIF_GATTS_UNREGISTER_APP,
     BTIF_GATTS_OPEN,
     BTIF_GATTS_CLOSE,
-    BTIF_GATTS_CREATE_SERVICE,
-    BTIF_GATTS_ADD_INCLUDED_SERVICE,
-    BTIF_GATTS_ADD_CHARACTERISTIC
+    BTIF_GATTS_CREATE_SERVICE
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -451,20 +449,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTS_ADD_INCLUDED_SERVICE:
-            BTA_GATTS_AddIncludeService(p_cb->srvc_handle, p_cb->incl_handle);
-            break;
-
-        case BTIF_GATTS_ADD_CHARACTERISTIC:
-        {
-            tBT_UUID uuid;
-            btif_to_bta_uuid(&uuid, &p_cb->uuid);
-
-            BTA_GATTS_AddCharacteristic(p_cb->srvc_handle, &uuid,
-                                        p_cb->permissions, p_cb->properties);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -529,31 +513,24 @@ static bt_status_t btif_gatts_add_service(int server_if, btgatt_srvc_id_t *srvc_
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
-static bt_status_t btif_gatts_add_included_service(int server_if, int service_handle,
-                                                   int included_handle)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.srvc_handle = (uint16_t) service_handle;
-    btif_cb.incl_handle = (uint16_t) included_handle;
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_ADD_INCLUDED_SERVICE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static bt_status_t btif_gatts_add_included_service(int server_if,
+                                                   int service_handle,
+                                                   int included_handle) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&BTA_GATTS_AddIncludeService, service_handle, included_handle));
 }
 
-static bt_status_t btif_gatts_add_characteristic(int server_if, int service_handle,
-                                                 bt_uuid_t *uuid, int properties,
-                                                 int permissions)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.srvc_handle = (uint16_t) service_handle;
-    btif_cb.properties = (uint8_t) properties;
-    btif_cb.permissions = (uint16_t) permissions;
-    memcpy(&btif_cb.uuid, uuid, sizeof(bt_uuid_t));
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_ADD_CHARACTERISTIC,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static bt_status_t btif_gatts_add_characteristic(int server_if,
+                                                 int service_handle,
+                                                 bt_uuid_t *uuid,
+                                                 int properties,
+                                                 int permissions) {
+  CHECK_BTGATT_INIT();
+  tBT_UUID *bt_uuid = new tBT_UUID;
+  btif_to_bta_uuid(bt_uuid, uuid);
+
+  return do_in_jni_thread(Bind(&BTA_GATTS_AddCharacteristic, service_handle,
+                               base::Owned(bt_uuid), permissions, properties));
 }
 
 static bt_status_t btif_gatts_add_descriptor(int server_if, int service_handle,
