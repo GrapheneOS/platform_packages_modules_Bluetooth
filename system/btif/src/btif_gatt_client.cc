@@ -66,6 +66,14 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 **  Constants & Macros
 ********************************************************************************/
 
+#define CLI_CBACK_IN_JNI(P_CBACK, ...)                                       \
+  if (bt_gatt_callbacks && bt_gatt_callbacks->client->P_CBACK) {             \
+    BTIF_TRACE_API("HAL bt_gatt_callbacks->client->%s", #P_CBACK);           \
+    do_in_jni_thread(Bind(bt_gatt_callbacks->client->P_CBACK, __VA_ARGS__)); \
+  } else {                                                                   \
+    ASSERTC(0, "Callback is NULL", 0);                                       \
+  }
+
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
         LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __FUNCTION__);\
@@ -83,7 +91,6 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 #define BTIF_GATT_OBSERVE_EVT   0x1000
 #define BTIF_GATTC_RSSI_EVT     0x1001
 #define BTIF_GATTC_SCAN_FILTER_EVT  0x1003
-#define BTIF_GATTC_SCAN_PARAM_EVT   0x1004
 
 #define ENABLE_BATCH_SCAN 1
 #define DISABLE_BATCH_SCAN 0
@@ -722,36 +729,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
-        case BTA_GATTC_SCAN_FLT_CFG_EVT:
-        {
-            btgatt_adv_filter_cb_t *p_btif_cb = (btgatt_adv_filter_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->scan_filter_cfg_cb, p_btif_cb->action,
-                      p_btif_cb->client_if, p_btif_cb->status, p_btif_cb->cond_op,
-                      p_btif_cb->avbl_space);
-            break;
-        }
-
-        case BTA_GATTC_SCAN_FLT_PARAM_EVT:
-        {
-            btgatt_adv_filter_cb_t *p_data = (btgatt_adv_filter_cb_t*) p_param;
-            BTIF_TRACE_DEBUG("BTA_GATTC_SCAN_FLT_PARAM_EVT: %d, %d, %d, %d",p_data->client_if,
-                p_data->action, p_data->avbl_space, p_data->status);
-            HAL_CBACK(bt_gatt_callbacks, client->scan_filter_param_cb
-                    , p_data->action, p_data->client_if, p_data->status
-                    , p_data->avbl_space);
-            break;
-        }
-
-        case BTA_GATTC_SCAN_FLT_STATUS_EVT:
-        {
-            btgatt_adv_filter_cb_t *p_data = (btgatt_adv_filter_cb_t*) p_param;
-            BTIF_TRACE_DEBUG("BTA_GATTC_SCAN_FLT_STATUS_EVT: %d, %d, %d",p_data->client_if,
-                p_data->action, p_data->status);
-            HAL_CBACK(bt_gatt_callbacks, client->scan_filter_status_cb
-                    , p_data->action, p_data->client_if, p_data->status);
-            break;
-        }
-
         case BTA_GATTC_ADV_VSC_EVT:
         {
             btgatt_track_adv_info_t *p_data = (btgatt_track_adv_info_t*)p_param;
@@ -761,14 +738,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
 
             btif_gatt_move_track_adv_data(&adv_info_data, p_data);
             HAL_CBACK(bt_gatt_callbacks, client->track_adv_event_cb, &adv_info_data);
-            break;
-        }
-
-        case BTIF_GATTC_SCAN_PARAM_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t *)p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->scan_parameter_setup_completed_cb,
-                      p_btif_cb->client_if, btif_gattc_translate_btm_status(p_btif_cb->status));
             break;
         }
 
@@ -1004,54 +973,31 @@ static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void bta_scan_param_setup_cb(tGATT_IF client_if, tBTM_STATUS status)
-{
-    btif_gattc_cb_t btif_cb;
-
-    btif_cb.status = status;
-    btif_cb.client_if = client_if;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATTC_SCAN_PARAM_EVT,
-                          (char *)&btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void bta_scan_param_setup_cb(tGATT_IF client_if, tBTM_STATUS status) {
+  CLI_CBACK_IN_JNI(scan_parameter_setup_completed_cb, client_if,
+                   btif_gattc_translate_btm_status(status));
 }
 
-static void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action, tBTA_DM_BLE_SCAN_COND_OP cfg_op,
-                                tBTA_DM_BLE_PF_AVBL_SPACE avbl_space, tBTA_STATUS status,
-                                tBTA_DM_BLE_REF_VALUE ref_value)
-{
-    btgatt_adv_filter_cb_t btif_cb;
-    btif_cb.status = status;
-    btif_cb.action = action;
-    btif_cb.cond_op = cfg_op;
-    btif_cb.avbl_space = avbl_space;
-    btif_cb.client_if = ref_value;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_CFG_EVT,
-                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+static void bta_scan_filt_cfg_cb(tBTA_DM_BLE_PF_ACTION action,
+                                 tBTA_DM_BLE_SCAN_COND_OP cfg_op,
+                                 tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
+                                 tBTA_STATUS status,
+                                 tBTA_DM_BLE_REF_VALUE ref_value) {
+  CLI_CBACK_IN_JNI(scan_filter_cfg_cb, action, ref_value, status, cfg_op,
+                   avbl_space);
 }
 
 static void bta_scan_filt_param_setup_cb(UINT8 action_type,
-                                        tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                        tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status)
-{
-    btgatt_adv_filter_cb_t btif_cb;
-
-    btif_cb.status = status;
-    btif_cb.action = action_type;
-    btif_cb.client_if = ref_value;
-    btif_cb.avbl_space = avbl_space;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_PARAM_EVT,
-                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+                                         tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
+                                         tBTA_DM_BLE_REF_VALUE ref_value,
+                                         tBTA_STATUS status) {
+  CLI_CBACK_IN_JNI(scan_filter_param_cb, action_type, ref_value, status,
+                   avbl_space);
 }
 
 static void bta_scan_filt_status_cb(UINT8 action, tBTA_STATUS status,
-                                    tBTA_DM_BLE_REF_VALUE ref_value)
-{
-    btgatt_adv_filter_cb_t btif_cb;
-
-    btif_cb.status = status;
-    btif_cb.action = action;
-    btif_cb.client_if = ref_value;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_SCAN_FLT_STATUS_EVT,
-                          (char*) &btif_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+                                    tBTA_DM_BLE_REF_VALUE ref_value) {
+  CLI_CBACK_IN_JNI(scan_filter_status_cb, action, ref_value, status);
 }
 
 /*******************************************************************************
