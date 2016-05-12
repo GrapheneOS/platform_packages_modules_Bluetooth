@@ -720,18 +720,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
-        case BTA_GATTC_ADV_VSC_EVT:
-        {
-            btgatt_track_adv_info_t *p_data = (btgatt_track_adv_info_t*)p_param;
-            btgatt_track_adv_info_t adv_info_data;
-
-            memset(&adv_info_data, 0, sizeof(btgatt_track_adv_info_t));
-
-            btif_gatt_move_track_adv_data(&adv_info_data, p_data);
-            HAL_CBACK(bt_gatt_callbacks, client->track_adv_event_cb, &adv_info_data);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
@@ -941,15 +929,15 @@ static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_dat
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data)
-{
-    btgatt_track_adv_info_t btif_scan_track_cb;
-    BTIF_TRACE_DEBUG("%s",__FUNCTION__);
-    btif_gatt_move_track_adv_data(&btif_scan_track_cb,
-                (btgatt_track_adv_info_t*)p_track_adv_data);
+static void bta_track_adv_event_cb(
+    tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data) {
+  btgatt_track_adv_info_t *btif_scan_track_cb = new btgatt_track_adv_info_t;
 
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_ADV_VSC_EVT,
-                          (char*) &btif_scan_track_cb, sizeof(btgatt_track_adv_info_t), NULL);
+  BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+  btif_gatt_move_track_adv_data(btif_scan_track_cb,
+                                (btgatt_track_adv_info_t *)p_track_adv_data);
+
+  CLI_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
 static void btm_read_rssi_cb(tBTM_RSSI_RESULTS *p_result) {
