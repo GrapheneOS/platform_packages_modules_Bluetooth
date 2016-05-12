@@ -50,7 +50,7 @@ static unsigned char BASE_UUID[16] = {
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-int uuidType(unsigned char* p_uuid)
+int uuidType(const unsigned char* p_uuid)
 {
     int i = 0;
     int match = 0;
@@ -80,7 +80,7 @@ int uuidType(unsigned char* p_uuid)
  * BTIF -> BTA conversion functions
  *******************************************************************************/
 
-void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src)
+void btif_to_bta_uuid(tBT_UUID *p_dest, const bt_uuid_t *p_src)
 {
     char *p_byte = (char*)p_src;
     int i = 0;
@@ -118,7 +118,7 @@ void btif_to_bta_response(tBTA_GATTS_RSP *p_dest, btgatt_response_t* p_src)
     memcpy(p_dest->attr_value.value, p_src->attr_value.value, GATT_MAX_ATTR_LEN);
 }
 
-void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, bt_uuid_t *p_src)
+void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, const bt_uuid_t *p_src)
 {
     char *p_byte = (char*)p_src;
     int i = 0;

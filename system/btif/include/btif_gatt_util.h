@@ -28,9 +28,9 @@
 extern "C" {
 #endif
 
-void btif_to_bta_uuid(tBT_UUID *p_dest, bt_uuid_t *p_src);
+void btif_to_bta_uuid(tBT_UUID *p_dest, const bt_uuid_t *p_src);
 void btif_to_bta_response(tBTA_GATTS_RSP *p_dest, btgatt_response_t* p_src);
-void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, bt_uuid_t *p_src);
+void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK *p_mask, const bt_uuid_t *p_src);
 
 void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src);
 
