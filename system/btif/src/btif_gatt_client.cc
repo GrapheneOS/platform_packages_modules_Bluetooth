@@ -101,8 +101,7 @@ typedef enum {
     BTIF_GATTC_SCAN_FILTER_CLEAR,
     BTIF_GATTC_SCAN_FILTER_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_ENABLE,
-    BTIF_GATTC_ADV_INSTANCE_UPDATE,
-    BTIF_GATTC_ADV_INSTANCE_SET_DATA
+    BTIF_GATTC_ADV_INSTANCE_UPDATE
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1455,31 +1454,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_ADV_INSTANCE_SET_DATA:
-        {
-            btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
-            int cbindex = btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
-            int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
-            if (inst_id >= 0 && cbindex >= 0 && btif_gattc_copy_datacb(cbindex, p_adv_data, true))
-            {
-                btgatt_multi_adv_common_data *p_multi_adv_data_cb =
-                    btif_obtain_multi_adv_data_cb();
-                BTA_BleCfgAdvInstData(
-                    (UINT8)inst_id,
-                    p_adv_data->set_scan_rsp,
-                    p_multi_adv_data_cb->inst_cb[cbindex].mask,
-                    &p_multi_adv_data_cb->inst_cb[cbindex].data);
-            }
-            else
-            {
-                BTIF_TRACE_ERROR(
-                    "%s:%s: failed to get invalid instance data: inst_id:%d "
-                    "cbindex:%d",
-                    __func__, "BTIF_GATTC_ADV_INSTANCE_SET_DATA", inst_id, cbindex);
-            }
-            break;
-        }
-
         case BTIF_GATTC_CONFIGURE_MTU:
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
@@ -1893,28 +1867,44 @@ static bt_status_t btif_gattc_multi_adv_update(int client_if, int min_interval, 
                          (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
 }
 
-static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp,
-                bool include_name, bool incl_txpower, int appearance,
-                int manufacturer_len, char* manufacturer_data,
-                int service_data_len, char* service_data,
-                int service_uuid_len, char* service_uuid)
-{
-    CHECK_BTGATT_INIT();
+static void btif_gattc_multi_adv_setdata_impl(btif_adv_data_t *p_adv_data) {
+  int cbindex =
+      btif_gattc_obtain_idx_for_datacb(p_adv_data->client_if, CLNT_IF_IDX);
+  int inst_id = btif_multi_adv_instid_for_clientif(p_adv_data->client_if);
+  if (inst_id >= 0 && cbindex >= 0 &&
+      btif_gattc_copy_datacb(cbindex, p_adv_data, true)) {
+    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+        btif_obtain_multi_adv_data_cb();
+    BTA_BleCfgAdvInstData((UINT8)inst_id, p_adv_data->set_scan_rsp,
+                          p_multi_adv_data_cb->inst_cb[cbindex].mask,
+                          &p_multi_adv_data_cb->inst_cb[cbindex].data);
+  } else {
+    BTIF_TRACE_ERROR(
+        "%s: failed to get invalid instance data: inst_id:%d cbindex:%d",
+        __func__, inst_id, cbindex);
+  }
+}
 
-    btif_adv_data_t multi_adv_data_inst;
-    memset(&multi_adv_data_inst, 0, sizeof(multi_adv_data_inst));
+static bt_status_t btif_gattc_multi_adv_setdata(
+    int client_if, bool set_scan_rsp, bool include_name, bool incl_txpower,
+    int appearance, int manufacturer_len, char *manufacturer_data,
+    int service_data_len, char *service_data, int service_uuid_len,
+    char *service_uuid) {
+  CHECK_BTGATT_INIT();
 
-    const int min_interval = 0;
-    const int max_interval = 0;
+  btif_adv_data_t *multi_adv_data_inst = new btif_adv_data_t;
 
-    btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name, incl_txpower,
-        min_interval, max_interval, appearance, manufacturer_len, manufacturer_data,
-        service_data_len, service_data, service_uuid_len, service_uuid, &multi_adv_data_inst);
+  const int min_interval = 0;
+  const int max_interval = 0;
 
-    bt_status_t status = btif_transfer_context(
-        btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_SET_DATA,
-        (char *)&multi_adv_data_inst, sizeof(multi_adv_data_inst), NULL);
-    return status;
+  btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name,
+                               incl_txpower, min_interval, max_interval,
+                               appearance, manufacturer_len, manufacturer_data,
+                               service_data_len, service_data, service_uuid_len,
+                               service_uuid, multi_adv_data_inst);
+
+  return do_in_jni_thread(Bind(&btif_gattc_multi_adv_setdata_impl,
+                               base::Owned(multi_adv_data_inst)));
 }
 
 static void btif_gattc_multi_adv_disable_impl(int client_if) {
