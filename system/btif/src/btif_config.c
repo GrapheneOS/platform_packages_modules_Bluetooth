@@ -54,6 +54,7 @@
 
 #define INFO_SECTION "Info"
 #define FILE_TIMESTAMP "TimeCreated"
+#define FILE_SOURCE "FileSource"
 #define TIME_STRING_LENGTH sizeof("YYYY-MM-DD HH:MM:SS")
 static const char* TIME_STRING_FORMAT = "%Y-%m-%d %H:%M:%S";
 
@@ -75,6 +76,7 @@ static bool is_factory_reset(void);
 static void delete_config_files(void);
 static void btif_config_remove_unpaired(config_t *config);
 static void btif_config_remove_restricted(config_t *config);
+static config_t *btif_config_open(const char* filename);
 
 static enum ConfigSource {
   NOT_LOADED,
@@ -139,24 +141,33 @@ static future_t *init(void) {
   if (is_factory_reset())
     delete_config_files();
 
-  config = config_new(CONFIG_FILE_PATH);
+  const char *file_source = NULL;
+
+  config = btif_config_open(CONFIG_FILE_PATH);
   btif_config_source = ORIGINAL;
   if (!config) {
     LOG_WARN("%s unable to load config file: %s; using backup.",
               __func__, CONFIG_FILE_PATH);
-    config = config_new(CONFIG_BACKUP_PATH);
+    config = btif_config_open(CONFIG_BACKUP_PATH);
     btif_config_source = BACKUP;
+    file_source = "Backup";
   }
   if (!config) {
     LOG_WARN("%s unable to load backup; attempting to transcode legacy file.", __func__);
     config = btif_config_transcode(CONFIG_LEGACY_FILE_PATH);
     btif_config_source = LEGACY;
+    file_source = "Legacy";
   }
   if (!config) {
     LOG_ERROR("%s unable to transcode legacy file; creating empty config.", __func__);
     config = config_new_empty();
     btif_config_source = NEW_FILE;
+    file_source = "Empty";
   }
+
+  if (file_source != NULL)
+    config_set_string(config, INFO_SECTION, FILE_SOURCE, file_source);
+
   if (!config) {
     LOG_ERROR("%s unable to allocate a config object.", __func__);
     goto error;
@@ -200,6 +211,20 @@ error:
   config = NULL;
   btif_config_source = NOT_LOADED;
   return future_new_immediate(FUTURE_FAIL);
+}
+
+static config_t *btif_config_open(const char *filename) {
+  config_t *config = config_new(filename);
+  if (!config)
+    return NULL;
+
+  if (!config_has_section(config, "Adapter")) {
+    LOG_ERROR(LOG_TAG, "Config is missing adapter section");
+    config_free(config);
+    return NULL;
+  }
+
+  return config;
 }
 
 static future_t *shut_down(void) {
@@ -464,11 +489,11 @@ static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_para
 
   pthread_mutex_lock(&lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
-  sync();
   config_t *config_paired = config_new_clone(config);
   btif_config_remove_unpaired(config_paired);
   config_save(config_paired, CONFIG_FILE_PATH);
   config_free(config_paired);
+  sync();
   pthread_mutex_unlock(&lock);
 }
 
@@ -530,6 +555,8 @@ void btif_debug_config_dump(int fd) {
 
     dprintf(fd, "  Devices loaded: %d\n", btif_config_devices_loaded);
     dprintf(fd, "  File created/tagged: %s\n", btif_config_time_created);
+    dprintf(fd, "  File source: %s\n", config_get_string(config, INFO_SECTION,
+                                           FILE_SOURCE, "Original"));
 }
 
 static void btif_config_remove_restricted(config_t* config) {
