@@ -46,6 +46,7 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 ifeq (,$(strip $(SANITIZE_TARGET)))
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
@@ -58,13 +59,13 @@ LOCAL_C_INCLUDES := \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    ../osi/test/AllocationTestHarness.cpp \
-    ../osi/test/AlarmTestHarness.cpp \
-    ./test/hci_hal_h4_test.cpp \
-    ./test/hci_hal_mct_test.cpp \
-    ./test/hci_layer_test.cpp \
-    ./test/low_power_manager_test.cpp \
-    ./test/packet_fragmenter_test.cpp
+    ../osi/test/AllocationTestHarness.cc \
+    ../osi/test/AlarmTestHarness.cc \
+    ./test/hci_hal_h4_test.cc \
+    ./test/hci_hal_mct_test.cc \
+    ./test/hci_layer_test.cc \
+    ./test/low_power_manager_test.cc \
+    ./test/packet_fragmenter_test.cc
 
 LOCAL_MODULE := net_test_hci
 LOCAL_MODULE_TAGS := tests

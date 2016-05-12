@@ -19,7 +19,7 @@ LOCAL_PATH := $(call my-dir)
 # Bluetooth test suite for target
 # ========================================================
 include $(CLEAR_VARS)
-
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_bluetooth
 
@@ -27,18 +27,18 @@ LOCAL_MODULE := net_test_bluetooth
 # with the interface using C++
 # TODO: Make the bluetoothtbd HAL a static library
 bluetoothHalSrc := \
-  ../../service/hal/bluetooth_gatt_interface.cpp \
-  ../../service/hal/bluetooth_interface.cpp \
-  ../../service/logging_helpers.cpp
+  ../../service/hal/bluetooth_gatt_interface.cc \
+  ../../service/hal/bluetooth_interface.cc \
+  ../../service/logging_helpers.cc
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
 
 LOCAL_SRC_FILES := \
-    adapter/adapter_unittest.cpp \
-    adapter/bluetooth_test.cpp \
-    gatt/gatt_test.cpp \
-    gatt/gatt_unittest.cpp \
+    adapter/adapter_unittest.cc \
+    adapter/bluetooth_test.cc \
+    gatt/gatt_test.cc \
+    gatt/gatt_unittest.cc \
     $(bluetoothHalSrc)
 
 LOCAL_SHARED_LIBRARIES += \
