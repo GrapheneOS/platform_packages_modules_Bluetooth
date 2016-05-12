@@ -180,14 +180,18 @@ static int bt_vendor_wait_hcidev(void)
   ev.opcode = MGMT_OP_INDEX_LIST;
   ev.index = HCI_DEV_NONE;
   ev.len = 0;
-  if (write(fd, &ev, 6) != 6) {
+
+  ssize_t wrote;
+  OSI_NO_INTR(wrote = write(fd, &ev, 6));
+  if (wrote != 6) {
     LOG_ERROR(LOG_TAG, "Unable to write mgmt command: %s", strerror(errno));
     ret = -1;
     goto end;
   }
 
   while (1) {
-    int n = poll(fds, 1, MGMT_EV_POLL_TIMEOUT);
+    int n;
+    OSI_NO_INTR(n = poll(fds, 1, MGMT_EV_POLL_TIMEOUT));
     if (n == -1) {
       LOG_ERROR(LOG_TAG, "Poll error: %s", strerror(errno));
       ret = -1;
@@ -273,7 +277,7 @@ static int bt_vendor_close(void *param)
 static int bt_vendor_rfkill(int block)
 {
   struct rfkill_event event;
-  int fd, len;
+  int fd;
 
   LOG_INFO(LOG_TAG, "%s", __func__);
 
@@ -289,7 +293,8 @@ static int bt_vendor_rfkill(int block)
   event.hard = block;
   event.soft = block;
 
-  len = write(fd, &event, sizeof(event));
+  ssize_t len;
+  OSI_NO_INTR(len = write(fd, &event, sizeof(event)));
   if (len < 0) {
     LOG_ERROR(LOG_TAG, "Failed to change rfkill state");
     close(fd);
