@@ -89,7 +89,6 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
 
 #define BTIF_GATT_OBSERVE_EVT   0x1000
-#define BTIF_GATTC_RSSI_EVT     0x1001
 #define BTIF_GATTC_SCAN_FILTER_EVT  0x1003
 
 #define ENABLE_BATCH_SCAN 1
@@ -585,14 +584,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_RSSI_EVT:
-        {
-            btif_gattc_cb_t *p_btif_cb = (btif_gattc_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->read_remote_rssi_cb, p_btif_cb->client_if,
-                      &p_btif_cb->bd_addr, p_btif_cb->rssi, p_btif_cb->status);
-            break;
-        }
-
         case BTA_GATTC_LISTEN_EVT:
         {
             HAL_CBACK(bt_gatt_callbacks, client->listen_cb
@@ -961,16 +952,11 @@ static void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data)
                           (char*) &btif_scan_track_cb, sizeof(btgatt_track_adv_info_t), NULL);
 }
 
-static void btm_read_rssi_cb (tBTM_RSSI_RESULTS *p_result)
-{
-    btif_gattc_cb_t btif_cb;
-
-    bdcpy(btif_cb.bd_addr.address, p_result->rem_bda);
-    btif_cb.rssi = p_result->rssi;
-    btif_cb.status = p_result->status;
-    btif_cb.client_if = rssi_request_client_if;
-    btif_transfer_context(btif_gattc_upstreams_evt, BTIF_GATTC_RSSI_EVT,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void btm_read_rssi_cb(tBTM_RSSI_RESULTS *p_result) {
+  bt_bdaddr_t *addr = new bt_bdaddr_t;
+  bdcpy(addr->address, p_result->rem_bda);
+  CLI_CBACK_IN_JNI(read_remote_rssi_cb, rssi_request_client_if,
+                   base::Owned(addr), p_result->rssi, p_result->status);
 }
 
 static void bta_scan_param_setup_cb(tGATT_IF client_if, tBTM_STATUS status) {
