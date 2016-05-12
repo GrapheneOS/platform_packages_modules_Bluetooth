@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unordered_set>
 #include "device/include/controller.h"
 
 
@@ -86,31 +87,28 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 #define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
 #define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
-#define BTIF_GATT_MAX_OBSERVED_DEV 40
+namespace std {
+template <>
+struct hash<bt_bdaddr_t> {
+  size_t operator()(const bt_bdaddr_t &f) const {
+    return f.address[0] + f.address[1] + f.address[2] + f.address[3] +
+           f.address[4] + f.address[5];
+  }
+};
 
-/*******************************************************************************
-**  Local type definitions
-********************************************************************************/
-typedef struct
-{
-    bt_bdaddr_t bd_addr;
-    BOOLEAN     in_use;
-}__attribute__((packed)) btif_gattc_dev_t;
-
-typedef struct
-{
-    btif_gattc_dev_t remote_dev[BTIF_GATT_MAX_OBSERVED_DEV];
-    uint8_t            addr_type;
-    uint8_t            next_storage_idx;
-}__attribute__((packed)) btif_gattc_dev_cb_t;
-
+template<>
+struct equal_to<bt_bdaddr_t> {
+  size_t operator()(const bt_bdaddr_t &x, const bt_bdaddr_t &y) const {
+    return memcmp(x.address, y.address, BD_ADDR_LEN);
+  }
+};
+}
 /*******************************************************************************
 **  Static variables
 ********************************************************************************/
 
 extern const btgatt_callbacks_t *bt_gatt_callbacks;
-static btif_gattc_dev_cb_t  btif_gattc_dev_cb;
-static btif_gattc_dev_cb_t  *p_dev_cb = &btif_gattc_dev_cb;
+std::unordered_set<bt_bdaddr_t> p_dev_cb;
 static uint8_t rssi_request_client_if;
 
 /*******************************************************************************
@@ -246,51 +244,18 @@ static void btapp_gattc_free_req_data(UINT16 event, tBTA_GATTC *p_data)
     }
 }
 
-static void btif_gattc_init_dev_cb(void)
-{
-    memset(p_dev_cb, 0, sizeof(btif_gattc_dev_cb_t));
+static void btif_gattc_init_dev_cb(void) { p_dev_cb.clear(); }
+
+static void btif_gattc_add_remote_bdaddr(BD_ADDR p_bda, uint8_t addr_type) {
+  bt_bdaddr_t bd_addr;
+  memcpy(bd_addr.address, p_bda, BD_ADDR_LEN);
+  p_dev_cb.insert(bd_addr);
 }
 
-static void btif_gattc_add_remote_bdaddr (BD_ADDR p_bda, uint8_t addr_type)
-{
-    uint8_t i;
-    for (i = 0; i < BTIF_GATT_MAX_OBSERVED_DEV; i++)
-    {
-        if (!p_dev_cb->remote_dev[i].in_use )
-        {
-            memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
-            p_dev_cb->addr_type = addr_type;
-            p_dev_cb->remote_dev[i].in_use = TRUE;
-            LOG_VERBOSE(LOG_TAG, "%s device added idx=%d", __FUNCTION__, i  );
-            break;
-        }
-    }
-
-    if ( i == BTIF_GATT_MAX_OBSERVED_DEV)
-    {
-        i= p_dev_cb->next_storage_idx;
-        memcpy(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN);
-        p_dev_cb->addr_type = addr_type;
-        p_dev_cb->remote_dev[i].in_use = TRUE;
-        LOG_VERBOSE(LOG_TAG, "%s device overwrite idx=%d", __FUNCTION__, i  );
-        p_dev_cb->next_storage_idx++;
-        if (p_dev_cb->next_storage_idx >= BTIF_GATT_MAX_OBSERVED_DEV)
-               p_dev_cb->next_storage_idx = 0;
-    }
-}
-
-static BOOLEAN btif_gattc_find_bdaddr (BD_ADDR p_bda)
-{
-    uint8_t i;
-    for (i = 0; i < BTIF_GATT_MAX_OBSERVED_DEV; i++)
-    {
-        if (p_dev_cb->remote_dev[i].in_use &&
-            !memcmp(p_dev_cb->remote_dev[i].bd_addr.address, p_bda, BD_ADDR_LEN))
-        {
-            return TRUE;
-        }
-    }
-    return FALSE;
+static BOOLEAN btif_gattc_find_bdaddr(BD_ADDR p_bda) {
+  bt_bdaddr_t bd_addr;
+  memcpy(bd_addr.address, p_bda, BD_ADDR_LEN);
+  return (p_dev_cb.count(bd_addr) != 0);
 }
 
 static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
