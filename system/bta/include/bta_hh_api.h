@@ -533,23 +533,8 @@ extern void BTA_HhRemoveDev(UINT8 dev_handle );
 extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
                                UINT16 report_len);
 
-#if BTA_HH_LE_INCLUDED == TRUE
-/*******************************************************************************
-**
-** Function         BTA_HhUpdateLeScanParam
-**
-** Description      Update the scan paramteters if connected to a LE hid device as
-**                  report host.
-**
-** Returns          void
-**
-*******************************************************************************/
-extern void BTA_HhUpdateLeScanParam(UINT8 dev_handle, UINT16 scan_int, UINT16 scan_win);
-#endif
 /* test commands */
 extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
-
-
 
 #ifdef __cplusplus
 }

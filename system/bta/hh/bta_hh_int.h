@@ -65,7 +65,6 @@ enum
     BTA_HH_GATT_WRITE_CHAR_CMPL_EVT,
     BTA_HH_GATT_READ_DESCR_CMPL_EVT,
     BTA_HH_GATT_WRITE_DESCR_CMPL_EVT,
-    BTA_HH_API_SCPP_UPDATE_EVT,
     BTA_HH_GATT_ENC_CMPL_EVT,
 #endif
 
@@ -396,7 +395,6 @@ extern void bta_hh_le_write_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_le_update_scpp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_ci_load_rpt (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 

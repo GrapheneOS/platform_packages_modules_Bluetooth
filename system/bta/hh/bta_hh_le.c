@@ -59,8 +59,6 @@ static const UINT16 bta_hh_uuid_to_rtp_type[BTA_LE_HID_RTP_UUID_MAX][2] =
 
 
 static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
-static void bta_hh_le_register_scpp_notif(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATT_STATUS status);
-static void bta_hh_le_register_scpp_notif_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATT_STATUS status);
 static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, BOOLEAN check_bond);
 //TODO(jpawlowski): uncomment when fixed
 // static void bta_hh_process_cache_rpt (tBTA_HH_DEV_CB *p_cb,
@@ -2013,10 +2011,6 @@ void bta_hh_le_write_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
         (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
         break;
 
-    case GATT_UUID_SCAN_INT_WINDOW:
-        bta_hh_le_register_scpp_notif(p_dev_cb, p_data->status);
-        break;
-
     default:
         break;
     }
@@ -2061,10 +2055,6 @@ void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_b
             p_dev_cb->clt_cfg_idx ++;
             bta_hh_le_write_rpt_clt_cfg(p_dev_cb, hid_inst_id);
 
-            break;
-
-        case GATT_UUID_SCAN_REFRESH:
-            bta_hh_le_register_scpp_notif_cmpl(p_dev_cb, p_data->status);
             break;
 
         default:
@@ -2507,42 +2497,6 @@ void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB *p_dev_cb)
 
 /*******************************************************************************
 **
-** Function         bta_hh_le_update_scpp
-**
-** Description      action function to update the scan parameters on remote HID
-**                  device
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_update_scpp(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    UINT8   value[4], *p = value;
-    tBTA_HH_CBDATA      cback_data;
-
-    if (!p_dev_cb->is_le_device ||
-        p_dev_cb->mode != BTA_HH_PROTO_RPT_MODE ||
-        p_dev_cb->scps_supported == FALSE) {
-        APPL_TRACE_ERROR("Can not set ScPP scan paramter as boot host, or remote does not support ScPP ");
-
-        cback_data.handle = p_dev_cb->hid_handle;
-        cback_data.status = BTA_HH_ERR;
-        (* bta_hh_cb.p_cback)(BTA_HH_UPDATE_SCPP_EVT, (tBTA_HH *)&cback_data);
-
-        return;
-    }
-
-    p_dev_cb->w4_evt = BTA_HH_UPDATE_SCPP_EVT;
-
-    UINT16_TO_STREAM(p, p_buf->le_scpp_update.scan_int);
-    UINT16_TO_STREAM(p, p_buf->le_scpp_update.scan_win);
-
-    gatt_queue_write_op(GATT_WRITE_CHAR, p_dev_cb->conn_id, p_dev_cb->scan_refresh_char_handle, 2,
-                        value, BTA_GATTC_TYPE_WRITE_NO_RSP);
-}
-
-/*******************************************************************************
-**
 ** Function         bta_hh_gattc_callback
 **
 ** Description      This is GATT client callback function used in BTA HH.
@@ -2662,64 +2616,6 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id)
 
     bta_hh_le_read_char_dscrpt(p_cb, p_rpt->char_inst_id, GATT_UUID_CHAR_CLIENT_CONFIG);
     return;
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_register_scpp_notif
-**
-** Description      register scan parameter refresh notitication complete
-**
-**
-** Parameters:
-**
-*******************************************************************************/
-static void bta_hh_le_register_scpp_notif(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATT_STATUS status)
-{
-    UINT8               sec_flag=0;
-
-    /* if write scan parameter sucessful */
-    /* if bonded and notification is not enabled, configure the client configuration */
-    if (status == BTA_GATT_OK &&
-        (p_dev_cb->scps_notify & BTA_HH_LE_SCPS_NOTIFY_SPT) != 0 &&
-        (p_dev_cb->scps_notify & BTA_HH_LE_SCPS_NOTIFY_ENB) == 0)
-    {
-        BTM_GetSecurityFlagsByTransport(p_dev_cb->addr, &sec_flag, BT_TRANSPORT_LE);
-        if ((sec_flag & BTM_SEC_FLAG_LKEY_KNOWN))
-        {
-            if (bta_hh_le_write_char_clt_cfg (p_dev_cb, p_dev_cb->scan_refresh_char_handle,
-                                              BTA_GATT_CLT_CONFIG_NOTIFICATION))
-            {
-                BTA_GATTC_RegisterForNotifications(bta_hh_cb.gatt_if, p_dev_cb->addr,
-                                                   p_dev_cb->scan_refresh_char_handle);
-                return;
-            }
-        }
-    }
-    bta_hh_le_register_scpp_notif_cmpl(p_dev_cb, status);
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_register_scpp_notif_cmpl
-**
-** Description      action function to register scan parameter refresh notitication
-**
-** Parameters:
-**
-*******************************************************************************/
-static void bta_hh_le_register_scpp_notif_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATT_STATUS status)
-{
-    tBTA_HH_CBDATA      cback_data ;
-    UINT16              cb_evt = p_dev_cb->w4_evt;
-
-    if (status == BTA_GATT_OK)
-        p_dev_cb->scps_notify = (BTA_HH_LE_SCPS_NOTIFY_ENB | BTA_HH_LE_SCPS_NOTIFY_SPT);
-
-    cback_data.handle = p_dev_cb->hid_handle;
-    cback_data.status = (status == BTA_GATT_OK)? BTA_HH_OK : BTA_HH_ERR;
-    p_dev_cb->w4_evt = 0;
-    (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
 }
 
 /*******************************************************************************
