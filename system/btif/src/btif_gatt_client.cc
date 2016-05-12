@@ -102,8 +102,7 @@ typedef enum {
     BTIF_GATTC_SCAN_FILTER_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_UPDATE,
-    BTIF_GATTC_ADV_INSTANCE_SET_DATA,
-    BTIF_GATTC_ADV_INSTANCE_DISABLE
+    BTIF_GATTC_ADV_INSTANCE_SET_DATA
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1481,17 +1480,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_ADV_INSTANCE_DISABLE:
-        {
-            btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
-            int inst_id = btif_multi_adv_instid_for_clientif(p_inst_cb->client_if);
-            if (inst_id >=0)
-                BTA_BleDisableAdvInstance((UINT8)inst_id);
-            else
-                BTIF_TRACE_ERROR("%s invalid instance ID in BTIF_GATTC_DISABLE_ADV",__FUNCTION__);
-            break;
-        }
-
         case BTIF_GATTC_CONFIGURE_MTU:
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
@@ -1929,15 +1917,17 @@ static bt_status_t btif_gattc_multi_adv_setdata(int client_if, bool set_scan_rsp
     return status;
 }
 
-static bt_status_t btif_gattc_multi_adv_disable(int client_if)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_multi_adv_inst_cb adv_cb;
-    memset(&adv_cb, 0, sizeof(btgatt_multi_adv_inst_cb));
-    adv_cb.client_if = (uint8_t) client_if;
+static void btif_gattc_multi_adv_disable_impl(int client_if) {
+  int inst_id = btif_multi_adv_instid_for_clientif(client_if);
+  if (inst_id >= 0)
+    BTA_BleDisableAdvInstance((UINT8)inst_id);
+  else
+    BTIF_TRACE_ERROR("%s invalid instance ID", __func__);
+}
 
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_DISABLE,
-                           (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
+static bt_status_t btif_gattc_multi_adv_disable(int client_if) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(btif_gattc_multi_adv_disable_impl, client_if));
 }
 
 static bt_status_t btif_gattc_cfg_storage(int client_if,
