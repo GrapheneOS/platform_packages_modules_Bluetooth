@@ -327,7 +327,7 @@ static bt_status_t btif_gatts_register_app(bt_uuid_t *bt_uuid) {
   btif_to_bta_uuid(uuid, bt_uuid);
 
   return do_in_jni_thread(
-      Bind(&BTA_GATTS_AppRegister, base::Owned(uuid), btapp_gatts_cback));
+      Bind(&BTA_GATTS_AppRegister, base::Owned(uuid), &btapp_gatts_cback));
 }
 
 static bt_status_t btif_gatts_unregister_app(int server_if) {
