@@ -67,39 +67,6 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
         LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);\
     }
 
-typedef enum {
-    BTIF_GATTS_REGISTER_APP = 2000,
-    BTIF_GATTS_UNREGISTER_APP
-} btif_gatts_event_t;
-
-/************************************************************************************
-**  Local type definitions
-************************************************************************************/
-
-typedef struct
-{
-    uint8_t             value[BTGATT_MAX_ATTR_LEN];
-    btgatt_response_t   response;
-    btgatt_srvc_id_t    srvc_id;
-    bt_bdaddr_t         bd_addr;
-    bt_uuid_t           uuid;
-    uint32_t            trans_id;
-    uint16_t            conn_id;
-    uint16_t            srvc_handle;
-    uint16_t            incl_handle;
-    uint16_t            attr_handle;
-    uint16_t            permissions;
-    uint16_t            len;
-    uint8_t             server_if;
-    uint8_t             is_direct;
-    uint8_t             num_handles;
-    uint8_t             properties;
-    uint8_t             confirm;
-    uint8_t             status;
-    btgatt_transport_t  transport;
-
-} __attribute__((packed)) btif_gatts_cb_t;
-
 /************************************************************************************
 **  Static variables
 ************************************************************************************/
@@ -351,53 +318,21 @@ static void btapp_gatts_cback(tBTA_GATTS_EVT event, tBTA_GATTS *p_data)
     ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
-static void btgatts_handle_event(uint16_t event, char* p_param)
-{
-    btif_gatts_cb_t* p_cb = (btif_gatts_cb_t*)p_param;
-    if (!p_cb) return;
-
-    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
-
-    switch (event)
-    {
-        case BTIF_GATTS_REGISTER_APP:
-        {
-            tBT_UUID uuid;
-            btif_to_bta_uuid(&uuid, &p_cb->uuid);
-            BTA_GATTS_AppRegister(&uuid, btapp_gatts_cback);
-            break;
-        }
-
-        case BTIF_GATTS_UNREGISTER_APP:
-            BTA_GATTS_AppDeregister(p_cb->server_if);
-            break;
-
-        default:
-            LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
-            break;
-    }
-}
-
 /************************************************************************************
 **  Server API Functions
 ************************************************************************************/
+static bt_status_t btif_gatts_register_app(bt_uuid_t *bt_uuid) {
+  CHECK_BTGATT_INIT();
+  tBT_UUID *uuid = new tBT_UUID;
+  btif_to_bta_uuid(uuid, bt_uuid);
 
-static bt_status_t btif_gatts_register_app(bt_uuid_t *uuid)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    memcpy(&btif_cb.uuid, uuid, sizeof(bt_uuid_t));
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_REGISTER_APP,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+  return do_in_jni_thread(
+      Bind(&BTA_GATTS_AppRegister, base::Owned(uuid), btapp_gatts_cback));
 }
 
-static bt_status_t btif_gatts_unregister_app( int server_if )
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_UNREGISTER_APP,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static bt_status_t btif_gatts_unregister_app(int server_if) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&BTA_GATTS_AppDeregister, server_if));
 }
 
 static void btif_gatts_open_impl(int server_if, BD_ADDR address, bool is_direct,
