@@ -26,6 +26,9 @@
 
 #define LOG_TAG "bt_btif_gattc"
 
+#include <base/at_exit.h>
+#include <base/bind.h>
+#include <base/threading/thread.h>
 #include <errno.h>
 #include <hardware/bluetooth.h>
 #include <stdio.h>
@@ -53,6 +56,11 @@
 #include "btif_storage.h"
 #include "osi/include/log.h"
 #include "vendor_api.h"
+
+using base::Bind;
+using base::Owned;
+
+extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 /*******************************************************************************
 **  Constants & Macros
@@ -85,7 +93,6 @@ typedef enum {
     BTIF_GATTC_EXECUTE_WRITE,
     BTIF_GATTC_REG_FOR_NOTIFICATION,
     BTIF_GATTC_DEREG_FOR_NOTIFICATION,
-    BTIF_GATTC_REFRESH,
     BTIF_GATTC_READ_RSSI,
     BTIF_GATTC_LISTEN,
     BTIF_GATTC_SET_ADV_DATA,
@@ -1261,10 +1268,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 p_cb->conn_id, 0, status, p_cb->handle);
             break;
 
-        case BTIF_GATTC_REFRESH:
-            BTA_GATTC_Refresh(p_cb->bd_addr.address);
-            break;
-
         case BTIF_GATTC_READ_RSSI:
             rssi_request_client_if = p_cb->client_if;
             BTM_ReadRSSI (p_cb->bd_addr.address, (tBTM_CMPL_CB *)btm_read_rssi_cb);
@@ -1666,14 +1669,13 @@ static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, boo
     return status;
 }
 
-static bt_status_t btif_gattc_refresh( int client_if, const bt_bdaddr_t *bd_addr )
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_REFRESH,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_refresh(int client_if,
+                                      const bt_bdaddr_t *bd_addr) {
+  CHECK_BTGATT_INIT();
+  // Closure will own this value and free it.
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(Bind(&BTA_GATTC_Refresh, base::Owned(address)));
 }
 
 static bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t *filter_uuid )
