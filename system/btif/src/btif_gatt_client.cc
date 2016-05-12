@@ -96,7 +96,6 @@ typedef enum {
     BTIF_GATTC_SET_ADV_DATA,
     BTIF_GATTC_CONFIGURE_MTU,
     BTIF_GATTC_CONN_PARAM_UPDT,
-    BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1239,17 +1238,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTM_ReadRSSI (p_cb->bd_addr.address, (tBTM_CMPL_CB *)btm_read_rssi_cb);
             break;
 
-        case BTIF_GATTC_SCAN_FILTER_PARAM_SETUP:
-        {
-            btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
-            if (1 == p_adv_filt_cb->adv_filt_param.dely_mode)
-               BTA_DmBleTrackAdvertiser(p_adv_filt_cb->client_if, bta_track_adv_event_cb);
-            BTA_DmBleScanFilterSetup(p_adv_filt_cb->action, p_adv_filt_cb->filt_index,
-                &p_adv_filt_cb->adv_filt_param, NULL, bta_scan_filt_param_setup_cb,
-                p_adv_filt_cb->client_if);
-            break;
-        }
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1641,28 +1629,36 @@ static bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr, 
                                  (char*) &btif_cb, sizeof(btif_conn_param_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan_filter_param_setup(btgatt_filt_param_setup_t
-                                                      filt_param)
-{
-    CHECK_BTGATT_INIT();
-    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
-    btgatt_adv_filter_cb_t btif_filt_cb;
-    memset(&btif_filt_cb, 0, sizeof(btgatt_adv_filter_cb_t));
-    btif_filt_cb.client_if = filt_param.client_if;
-    btif_filt_cb.action = filt_param.action;
-    btif_filt_cb.filt_index = filt_param.filt_index;
-    btif_filt_cb.adv_filt_param.feat_seln = filt_param.feat_seln;
-    btif_filt_cb.adv_filt_param.list_logic_type = filt_param.list_logic_type;
-    btif_filt_cb.adv_filt_param.filt_logic_type = filt_param.filt_logic_type;
-    btif_filt_cb.adv_filt_param.rssi_high_thres = filt_param.rssi_high_thres;
-    btif_filt_cb.adv_filt_param.rssi_low_thres = filt_param.rssi_low_thres;
-    btif_filt_cb.adv_filt_param.dely_mode = filt_param.dely_mode;
-    btif_filt_cb.adv_filt_param.found_timeout = filt_param.found_timeout;
-    btif_filt_cb.adv_filt_param.lost_timeout = filt_param.lost_timeout;
-    btif_filt_cb.adv_filt_param.found_timeout_cnt = filt_param.found_timeout_cnt;
-    btif_filt_cb.adv_filt_param.num_of_tracking_entries = filt_param.num_of_tracking_entries;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
-                                 (char*) &btif_filt_cb, sizeof(btgatt_adv_filter_cb_t), NULL);
+static void btif_gattc_scan_filter_param_setup_impl(
+    int client_if, uint8_t action, int filt_index,
+    tBTA_DM_BLE_PF_FILT_PARAMS *adv_filt_param) {
+  if (1 == adv_filt_param->dely_mode)
+    BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
+  BTA_DmBleScanFilterSetup(action, filt_index, adv_filt_param, NULL,
+                           bta_scan_filt_param_setup_cb, client_if);
+}
+
+static bt_status_t btif_gattc_scan_filter_param_setup(
+    btgatt_filt_param_setup_t filt_param) {
+  CHECK_BTGATT_INIT();
+  BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+
+  tBTA_DM_BLE_PF_FILT_PARAMS *adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
+  adv_filt_param->feat_seln = filt_param.feat_seln;
+  adv_filt_param->list_logic_type = filt_param.list_logic_type;
+  adv_filt_param->filt_logic_type = filt_param.filt_logic_type;
+  adv_filt_param->rssi_high_thres = filt_param.rssi_high_thres;
+  adv_filt_param->rssi_low_thres = filt_param.rssi_low_thres;
+  adv_filt_param->dely_mode = filt_param.dely_mode;
+  adv_filt_param->found_timeout = filt_param.found_timeout;
+  adv_filt_param->lost_timeout = filt_param.lost_timeout;
+  adv_filt_param->found_timeout_cnt = filt_param.found_timeout_cnt;
+  adv_filt_param->num_of_tracking_entries = filt_param.num_of_tracking_entries;
+
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&btif_gattc_scan_filter_param_setup_impl),
+           filt_param.client_if, filt_param.action, filt_param.filt_index,
+           base::Owned(adv_filt_param)));
 }
 
 static bt_status_t btif_gattc_scan_filter_add_remove(int client_if, int action,
