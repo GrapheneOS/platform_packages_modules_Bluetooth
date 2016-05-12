@@ -58,11 +58,11 @@
 int sock_send_all(int sock_fd, const uint8_t* buf, int len)
 {
     int s = len;
-    int ret;
+
     while(s)
     {
-        do ret = send(sock_fd, buf, s, 0);
-        while(ret < 0 && errno == EINTR);
+        ssize_t ret;
+        OSI_NO_INTR(ret = send(sock_fd, buf, s, 0));
         if(ret <= 0)
         {
             BTIF_TRACE_ERROR("sock fd:%d send errno:%d, ret:%d", sock_fd, errno, ret);
@@ -76,11 +76,11 @@ int sock_send_all(int sock_fd, const uint8_t* buf, int len)
 int sock_recv_all(int sock_fd, uint8_t* buf, int len)
 {
     int r = len;
-    int ret = -1;
+
     while(r)
     {
-        do ret = recv(sock_fd, buf, r, MSG_WAITALL);
-        while(ret < 0 && errno == EINTR);
+        ssize_t ret;
+        OSI_NO_INTR(ret = recv(sock_fd, buf, r, MSG_WAITALL));
         if(ret <= 0)
         {
             BTIF_TRACE_ERROR("sock fd:%d recv errno:%d, ret:%d", sock_fd, errno, ret);
@@ -94,7 +94,6 @@ int sock_recv_all(int sock_fd, uint8_t* buf, int len)
 
 int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
 {
-    ssize_t ret;
     struct msghdr msg;
     unsigned char *buffer = (unsigned char *)buf;
     memset(&msg, 0, sizeof(msg));
@@ -126,10 +125,8 @@ int sock_send_fd(int sock_fd, const uint8_t* buf, int len, int send_fd)
         msg.msg_iov = &iv;
         msg.msg_iovlen = 1;
 
-        do {
-            ret = sendmsg(sock_fd, &msg, MSG_NOSIGNAL);
-        } while (ret < 0 && errno == EINTR);
-
+        ssize_t ret;
+        OSI_NO_INTR(ret = sendmsg(sock_fd, &msg, MSG_NOSIGNAL));
         if (ret < 0) {
             BTIF_TRACE_ERROR("fd:%d, send_fd:%d, sendmsg ret:%d, errno:%d, %s",
                               sock_fd, send_fd, (int)ret, errno, strerror(errno));
