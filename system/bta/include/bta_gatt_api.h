@@ -146,7 +146,6 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_BTH_SCAN_THR_EVT  28 /* Batch scan threshold event */
 #define BTA_GATTC_BTH_SCAN_PARAM_EVT 29 /* Batch scan param event */
 #define BTA_GATTC_BTH_SCAN_DIS_EVT  30 /* Disable batch scan event */
-#define BTA_GATTC_ADV_VSC_EVT         34 /* ADV VSC event */
 
 typedef UINT8 tBTA_GATTC_EVT;
 
