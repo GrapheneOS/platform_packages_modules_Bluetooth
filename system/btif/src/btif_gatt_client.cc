@@ -84,7 +84,6 @@ typedef enum {
     BTIF_GATTC_SCAN_START,
     BTIF_GATTC_SCAN_STOP,
     BTIF_GATTC_OPEN,
-    BTIF_GATTC_CLOSE,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1163,17 +1162,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_CLOSE:
-            // Disconnect established connections
-            if (p_cb->conn_id != 0)
-                BTA_GATTC_Close(p_cb->conn_id);
-            else
-                BTA_GATTC_CancelOpen(p_cb->client_if, p_cb->bd_addr.address, TRUE);
-
-            // Cancel pending background connections (remove from whitelist)
-            BTA_GATTC_CancelOpen(p_cb->client_if, p_cb->bd_addr.address, FALSE);
-            break;
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1323,15 +1311,26 @@ static bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t *bd_addr,
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_close( int client_if, const bt_bdaddr_t *bd_addr, int conn_id)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CLOSE,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static void btif_gattc_close_impl(int client_if, BD_ADDR address,
+                                  int conn_id) {
+  // Disconnect established connections
+  if (conn_id != 0)
+    BTA_GATTC_Close(conn_id);
+  else
+    BTA_GATTC_CancelOpen(client_if, address, TRUE);
+
+  // Cancel pending background connections (remove from whitelist)
+  BTA_GATTC_CancelOpen(client_if, address, FALSE);
+}
+
+static bt_status_t btif_gattc_close(int client_if, const bt_bdaddr_t *bd_addr,
+                                    int conn_id) {
+  CHECK_BTGATT_INIT();
+  // Closure will own this value and free it.
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(
+      Bind(&btif_gattc_close_impl, client_if, base::Owned(address), conn_id));
 }
 
 static bt_status_t btif_gattc_listen(int client_if, bool start) {
