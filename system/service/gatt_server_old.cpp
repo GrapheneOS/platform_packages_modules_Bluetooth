@@ -231,8 +231,9 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
     // This is a single frame characteristic write.
     // Notify upwards because we're done now.
     const bluetooth::UUID::UUID128Bit &attr_uuid = ch.uuid.GetFullBigEndian();
-    int status = write(g_internal->pipefd[kPipeWriteEnd], attr_uuid.data(),
-                       attr_uuid.size());
+    ssize_t status;
+    OSI_NO_INTR(status = write(g_internal->pipefd[kPipeWriteEnd],
+                               attr_uuid.data(), attr_uuid.size()));
     if (-1 == status)
       LOG_ERROR(LOG_TAG, "%s: write failed: %s", __func__, strerror(errno));
   } else {
@@ -273,8 +274,9 @@ void RequestExecWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   // Communicate the attribute UUID as notification of a write update.
   const bluetooth::UUID::UUID128Bit uuid =
       g_internal->last_write.GetFullBigEndian();
-  int status = write(g_internal->pipefd[kPipeWriteEnd],
-                     uuid.data(), uuid.size());
+  ssize_t status;
+  OSI_NO_INTR(status = write(g_internal->pipefd[kPipeWriteEnd], uuid.data(),
+                             uuid.size()));
   if (-1 == status)
     LOG_ERROR(LOG_TAG, "%s: write failed: %s", __func__, strerror(errno));
 }

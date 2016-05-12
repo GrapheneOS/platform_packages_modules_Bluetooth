@@ -59,3 +59,6 @@
 // No guarantees of distribution are made.
 // Effort is made for this to come from a real random source.
 int osi_rand(void);
+
+// Re-run |fn| system call until the system call doesn't cause EINTR.
+#define OSI_NO_INTR(fn)  do {} while ((fn) == -1 && errno == EINTR)
