@@ -91,7 +91,6 @@ typedef enum {
     BTIF_GATTC_EXECUTE_WRITE,
     BTIF_GATTC_REG_FOR_NOTIFICATION,
     BTIF_GATTC_DEREG_FOR_NOTIFICATION,
-    BTIF_GATTC_LISTEN,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1329,14 +1328,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_LISTEN:
-#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
-            BTA_GATTC_Listen(p_cb->client_if, p_cb->start, NULL);
-#else
-            BTA_GATTC_Broadcast(p_cb->client_if, p_cb->start);
-#endif
-            break;
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -1397,14 +1388,14 @@ static bt_status_t btif_gattc_close( int client_if, const bt_bdaddr_t *bd_addr, 
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_listen(int client_if, bool start)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    btif_cb.start = start ? 1 : 0;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_LISTEN,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_listen(int client_if, bool start) {
+  CHECK_BTGATT_INIT();
+#if (defined(BLE_PERIPHERAL_MODE_SUPPORT) && \
+     (BLE_PERIPHERAL_MODE_SUPPORT == TRUE))
+  return do_in_jni_thread(Bind(&BTA_GATTC_Listen, client_if, start, nullptr));
+#else
+  return do_in_jni_thread(Bind(&BTA_GATTC_Broadcast, client_if, start));
+#endif
 }
 
 static void btif_gattc_set_adv_data_impl(btif_adv_data_t *p_adv_data) {
