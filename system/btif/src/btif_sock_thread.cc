@@ -263,7 +263,11 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     }
     sock_cmd_t cmd = {CMD_ADD_FD, fd, type, flags, user_id};
     APPL_TRACE_DEBUG("adding fd:%d, flags:0x%x", fd, flags);
-    return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0));
+
+    return ret == sizeof(cmd);
 }
 
 bool btsock_thread_remove_fd_and_close(int thread_handle, int fd)
@@ -280,7 +284,11 @@ bool btsock_thread_remove_fd_and_close(int thread_handle, int fd)
     }
 
     sock_cmd_t cmd = {CMD_REMOVE_FD, fd, 0, 0, 0};
-    return send(ts[thread_handle].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(ts[thread_handle].cmd_fdw, &cmd, sizeof(cmd), 0));
+
+    return ret == sizeof(cmd);
 }
 
 int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size, uint32_t user_id)
@@ -314,7 +322,11 @@ int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size,
             return FALSE;
         }
     }
-    return send(ts[h].cmd_fdw, cmd_send, size_send, 0) == size_send;
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(ts[h].cmd_fdw, cmd_send, size_send, 0));
+
+    return ret == size_send;
 }
 int btsock_thread_wakeup(int h)
 {
@@ -329,7 +341,11 @@ int btsock_thread_wakeup(int h)
         return FALSE;
     }
     sock_cmd_t cmd = {CMD_WAKEUP, 0, 0, 0, 0};
-    return send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd);
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0));
+
+    return ret == sizeof(cmd);
 }
 int btsock_thread_exit(int h)
 {
@@ -344,8 +360,11 @@ int btsock_thread_exit(int h)
         return FALSE;
     }
     sock_cmd_t cmd = {CMD_EXIT, 0, 0, 0, 0};
-    if(send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0) == sizeof(cmd))
-    {
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0));
+
+    if (ret == sizeof(cmd)) {
         pthread_join(ts[h].thread_id, 0);
         pthread_mutex_lock(&thread_slot_lock);
         free_thread_slot(h);
@@ -439,7 +458,11 @@ static int process_cmd_sock(int h)
 {
     sock_cmd_t cmd = {-1, 0, 0, 0, 0};
     int fd = ts[h].cmd_fdr;
-    if(recv(fd, &cmd, sizeof(cmd), MSG_WAITALL) != sizeof(cmd))
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = recv(fd, &cmd, sizeof(cmd), MSG_WAITALL));
+
+    if (ret != sizeof(cmd))
     {
         APPL_TRACE_ERROR("recv cmd errno:%d", errno);
         return FALSE;
@@ -546,7 +569,8 @@ static void *sock_poll_thread(void *arg)
     for(;;)
     {
         prepare_poll_fds(h, pfds);
-        int ret = poll(pfds, ts[h].poll_count, -1);
+        int ret;
+        OSI_NO_INTR(ret = poll(pfds, ts[h].poll_count, -1));
         if(ret == -1)
         {
             APPL_TRACE_ERROR("poll ret -1, exit the thread, errno:%d, err:%s", errno, strerror(errno));

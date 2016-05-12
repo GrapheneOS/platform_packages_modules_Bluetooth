@@ -113,7 +113,8 @@ bool socket_listen(const socket_t *socket, port_t port) {
 socket_t *socket_accept(const socket_t *socket) {
   assert(socket != NULL);
 
-  int fd = accept(socket->fd, NULL, NULL);
+  int fd;
+  OSI_NO_INTR(fd = accept(socket->fd, NULL, NULL));
   if (fd == INVALID_FD) {
     LOG_ERROR(LOG_TAG, "%s unable to accept socket: %s", __func__, strerror(errno));
     return NULL;
@@ -129,14 +130,20 @@ ssize_t socket_read(const socket_t *socket, void *buf, size_t count) {
   assert(socket != NULL);
   assert(buf != NULL);
 
-  return recv(socket->fd, buf, count, MSG_DONTWAIT);
+  ssize_t ret;
+  OSI_NO_INTR(ret = recv(socket->fd, buf, count, MSG_DONTWAIT));
+
+  return ret;
 }
 
 ssize_t socket_write(const socket_t *socket, const void *buf, size_t count) {
   assert(socket != NULL);
   assert(buf != NULL);
 
-  return send(socket->fd, buf, count, MSG_DONTWAIT);
+  ssize_t ret;
+  OSI_NO_INTR(ret = send(socket->fd, buf, count, MSG_DONTWAIT));
+
+  return ret;
 }
 
 ssize_t socket_write_and_transfer_fd(const socket_t *socket, const void *buf, size_t count, int fd) {
@@ -166,7 +173,9 @@ ssize_t socket_write_and_transfer_fd(const socket_t *socket, const void *buf, si
   header->cmsg_len = CMSG_LEN(sizeof(int));
   *(int *)CMSG_DATA(header) = fd;
 
-  ssize_t ret = sendmsg(socket->fd, &msg, MSG_DONTWAIT);
+  ssize_t ret;
+  OSI_NO_INTR(ret = sendmsg(socket->fd, &msg, MSG_DONTWAIT));
+
   close(fd);
   return ret;
 }

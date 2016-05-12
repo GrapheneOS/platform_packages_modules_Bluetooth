@@ -78,7 +78,10 @@ void btsnoop_net_write(const void *data, size_t length) {
 
   pthread_mutex_lock(&client_socket_lock_);
   if (client_socket_ != -1) {
-    if (send(client_socket_, data, length, 0) == -1 && errno == ECONNRESET) {
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(client_socket_, data, length, 0));
+
+    if (ret == -1 && errno == ECONNRESET) {
       safe_close_(&client_socket_);
     }
   }
@@ -116,7 +119,8 @@ static void *listen_fn_(UNUSED_ATTR void *context) {
   }
 
   for (;;) {
-    int client_socket = accept(listen_socket_, NULL, NULL);
+    int client_socket;
+    OSI_NO_INTR(client_socket = accept(listen_socket_, NULL, NULL));
     if (client_socket == -1) {
       if (errno == EINVAL || errno == EBADF) {
         break;
@@ -130,7 +134,8 @@ static void *listen_fn_(UNUSED_ATTR void *context) {
     pthread_mutex_lock(&client_socket_lock_);
     safe_close_(&client_socket_);
     client_socket_ = client_socket;
-    send(client_socket_, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16, 0);
+
+    OSI_NO_INTR(send(client_socket_, "btsnoop\0\0\0\0\1\0\0\x3\xea", 16, 0));
     pthread_mutex_unlock(&client_socket_lock_);
   }
 
