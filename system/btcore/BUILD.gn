@@ -34,11 +34,11 @@ static_library("btcore") {
 executable("net_test_btcore") {
   testonly = true
   sources = [
-    "test/bdaddr_test.cpp",
-    "test/device_class_test.cpp",
-    "test/property_test.cpp",
-    "test/uuid_test.cpp",
-    "//osi/test/AllocationTestHarness.cpp",
+    "test/bdaddr_test.cc",
+    "test/device_class_test.cc",
+    "test/property_test.cc",
+    "test/uuid_test.cc",
+    "//osi/test/AllocationTestHarness.cc",
   ]
 
   include_dirs = [

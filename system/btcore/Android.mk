@@ -30,11 +30,11 @@ btcoreCommonSrc := \
     src/uuid.c
 
 btcoreCommonTestSrc := \
-    ./test/bdaddr_test.cpp \
-    ./test/device_class_test.cpp \
-    ./test/property_test.cpp \
-    ./test/uuid_test.cpp \
-    ../osi/test/AllocationTestHarness.cpp
+    ./test/bdaddr_test.cc \
+    ./test/device_class_test.cc \
+    ./test/property_test.cc \
+    ./test/uuid_test.cc \
+    ../osi/test/AllocationTestHarness.cc
 
 btcoreCommonIncludes := \
     $(LOCAL_PATH)/include \
@@ -83,6 +83,7 @@ endif
 # libbtcore unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_MODULE := net_test_btcore
@@ -100,6 +101,7 @@ include $(BUILD_NATIVE_TEST)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_MODULE := net_test_btcore

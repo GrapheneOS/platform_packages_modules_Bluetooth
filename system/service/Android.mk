@@ -39,16 +39,16 @@ endif
 # Source variables
 # ========================================================
 btserviceCommonSrc := \
-	common/bluetooth/adapter_state.cpp \
-	common/bluetooth/advertise_data.cpp \
-	common/bluetooth/advertise_settings.cpp \
-	common/bluetooth/gatt_identifier.cpp \
-	common/bluetooth/scan_filter.cpp \
-	common/bluetooth/scan_result.cpp \
-	common/bluetooth/scan_settings.cpp \
-	common/bluetooth/util/address_helper.cpp \
-	common/bluetooth/util/atomic_string.cpp \
-	common/bluetooth/uuid.cpp
+	common/bluetooth/adapter_state.cc \
+	common/bluetooth/advertise_data.cc \
+	common/bluetooth/advertise_settings.cc \
+	common/bluetooth/gatt_identifier.cc \
+	common/bluetooth/scan_filter.cc \
+	common/bluetooth/scan_result.cc \
+	common/bluetooth/scan_settings.cc \
+	common/bluetooth/util/address_helper.cc \
+	common/bluetooth/util/atomic_string.cc \
+	common/bluetooth/uuid.cc
 
 btserviceCommonBinderSrc := \
 	common/android/bluetooth/IBluetooth.aidl \
@@ -59,44 +59,44 @@ btserviceCommonBinderSrc := \
 	common/android/bluetooth/IBluetoothGattServerCallback.aidl \
 	common/android/bluetooth/IBluetoothLowEnergy.aidl \
 	common/android/bluetooth/IBluetoothLowEnergyCallback.aidl \
-	common/android/bluetooth/advertise_data.cpp \
-	common/android/bluetooth/advertise_settings.cpp \
-	common/android/bluetooth/gatt_identifier.cpp \
-	common/android/bluetooth/scan_filter.cpp \
-	common/android/bluetooth/scan_result.cpp \
-	common/android/bluetooth/scan_settings.cpp \
-	common/android/bluetooth/uuid.cpp \
+	common/android/bluetooth/advertise_data.cc \
+	common/android/bluetooth/advertise_settings.cc \
+	common/android/bluetooth/gatt_identifier.cc \
+	common/android/bluetooth/scan_filter.cc \
+	common/android/bluetooth/scan_result.cc \
+	common/android/bluetooth/scan_settings.cc \
+	common/android/bluetooth/uuid.cc \
 
 btserviceCommonAidlInclude := \
 	packages/modules/Bluetooth/system/service/common \
 	frameworks/native/aidl/binder
 
 btserviceDaemonSrc := \
-	adapter.cpp \
-	daemon.cpp \
-	gatt_client.cpp \
-	gatt_server.cpp \
-	gatt_server_old.cpp \
-	hal/gatt_helpers.cpp \
-	hal/bluetooth_gatt_interface.cpp \
-	hal/bluetooth_interface.cpp \
-	ipc/ipc_handler.cpp \
-	ipc/ipc_manager.cpp \
-	logging_helpers.cpp \
-	low_energy_client.cpp \
-	settings.cpp
+	adapter.cc \
+	daemon.cc \
+	gatt_client.cc \
+	gatt_server.cc \
+	gatt_server_old.cc \
+	hal/gatt_helpers.cc \
+	hal/bluetooth_gatt_interface.cc \
+	hal/bluetooth_interface.cc \
+	ipc/ipc_handler.cc \
+	ipc/ipc_manager.cc \
+	logging_helpers.cc \
+	low_energy_client.cc \
+	settings.cc
 
 btserviceLinuxSrc := \
-	ipc/ipc_handler_linux.cpp \
-	ipc/linux_ipc_host.cpp
+	ipc/ipc_handler_linux.cc \
+	ipc/linux_ipc_host.cc
 
 btserviceBinderDaemonImplSrc := \
-	ipc/binder/bluetooth_binder_server.cpp \
-	ipc/binder/bluetooth_gatt_client_binder_server.cpp \
-	ipc/binder/bluetooth_gatt_server_binder_server.cpp \
-	ipc/binder/bluetooth_low_energy_binder_server.cpp \
-	ipc/binder/interface_with_instances_base.cpp \
-	ipc/binder/ipc_handler_binder.cpp \
+	ipc/binder/bluetooth_binder_server.cc \
+	ipc/binder/bluetooth_gatt_client_binder_server.cc \
+	ipc/binder/bluetooth_gatt_server_binder_server.cc \
+	ipc/binder/bluetooth_low_energy_binder_server.cc \
+	ipc/binder/interface_with_instances_base.cc \
+	ipc/binder/ipc_handler_binder.cc \
 
 btserviceBinderDaemonSrc := \
 	$(btserviceCommonBinderSrc) \
@@ -109,28 +109,29 @@ btserviceCommonIncludes := \
 # Main unit test sources. These get built for host and target.
 # ========================================================
 btserviceBaseTestSrc := \
-	hal/fake_bluetooth_gatt_interface.cpp \
-	hal/fake_bluetooth_interface.cpp \
-	test/adapter_unittest.cpp \
-	test/advertise_data_unittest.cpp \
-	test/fake_hal_util.cpp \
-	test/gatt_client_unittest.cpp \
-	test/gatt_identifier_unittest.cpp \
-	test/gatt_server_unittest.cpp \
-	test/low_energy_client_unittest.cpp \
-	test/settings_unittest.cpp \
-	test/util_unittest.cpp \
-	test/uuid_unittest.cpp
+	hal/fake_bluetooth_gatt_interface.cc \
+	hal/fake_bluetooth_interface.cc \
+	test/adapter_unittest.cc \
+	test/advertise_data_unittest.cc \
+	test/fake_hal_util.cc \
+	test/gatt_client_unittest.cc \
+	test/gatt_identifier_unittest.cc \
+	test/gatt_server_unittest.cc \
+	test/low_energy_client_unittest.cc \
+	test/settings_unittest.cc \
+	test/util_unittest.cc \
+	test/uuid_unittest.cc
 
 # Native system service for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
 	$(btserviceBinderDaemonSrc) \
 	$(btserviceLinuxSrc) \
 	$(btserviceDaemonSrc) \
-	main.cpp
+	main.cc
 LOCAL_AIDL_INCLUDES = $(btserviceCommonAidlInclude)
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := optional
@@ -155,20 +156,21 @@ include $(BUILD_EXECUTABLE)
 # Native system service unit tests for host
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	$(btserviceBaseTestSrc) \
 	$(btserviceCommonSrc) \
 	$(btserviceDaemonSrc) \
-	test/main.cpp \
-	test/stub_ipc_handler_binder.cpp
+	test/main.cc \
+	test/stub_ipc_handler_binder.cc
 ifeq ($(HOST_OS),linux)
 LOCAL_SRC_FILES += \
 	$(btserviceLinuxSrc) \
-	test/ipc_linux_unittest.cpp
+	test/ipc_linux_unittest.cc
 LOCAL_LDLIBS += -lrt
 else
 LOCAL_SRC_FILES += \
-	test/stub_ipc_handler_linux.cpp
+	test/stub_ipc_handler_linux.cc
 endif
 LOCAL_C_INCLUDES += $(btserviceCommonIncludes)
 LOCAL_MODULE_TAGS := debug tests
@@ -187,13 +189,14 @@ include $(BUILD_HOST_NATIVE_TEST)
 # on target.
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	$(btserviceBaseTestSrc) \
 	$(btserviceCommonSrc) \
 	$(btserviceBinderDaemonSrc) \
 	$(btserviceDaemonSrc) \
-	test/main.cpp \
-	test/parcelable_unittest.cpp \
+	test/main.cc \
+	test/parcelable_unittest.cc \
 	test/ParcelableTest.aidl
 LOCAL_AIDL_INCLUDES := $(btserviceCommonAidlInclude)
 LOCAL_AIDL_INCLUDES += ./
@@ -216,6 +219,7 @@ include $(BUILD_NATIVE_TEST)
 # This is a static library for target.
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
 	$(btserviceCommonSrc) \
 	$(btserviceCommonBinderSrc)
@@ -234,7 +238,8 @@ include $(BUILD_STATIC_LIBRARY)
 # Native system service CLI for target
 # ========================================================
 include $(CLEAR_VARS)
-LOCAL_SRC_FILES := client/main.cpp
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_SRC_FILES := client/main.cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bluetooth-cli
 LOCAL_STATIC_LIBRARIES += libbluetooth-client
@@ -254,9 +259,10 @@ include $(BUILD_EXECUTABLE)
 # TODO(armansito): Move this into a new makefile under examples/ once we build
 # a client static library that the examples can depend on.
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_SRC_FILES := \
-	example/heart_rate/heart_rate_server.cpp \
-	example/heart_rate/server_main.cpp
+	example/heart_rate/heart_rate_server.cc \
+	example/heart_rate/server_main.cc
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := bt-example-hr-server
