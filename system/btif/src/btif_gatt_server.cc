@@ -76,9 +76,7 @@ typedef enum {
     BTIF_GATTS_ADD_INCLUDED_SERVICE,
     BTIF_GATTS_ADD_CHARACTERISTIC,
     BTIF_GATTS_ADD_DESCRIPTOR,
-    BTIF_GATTS_START_SERVICE,
-    BTIF_GATTS_STOP_SERVICE,
-    BTIF_GATTS_DELETE_SERVICE
+    BTIF_GATTS_START_SERVICE
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -483,14 +481,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             BTA_GATTS_StartService(p_cb->srvc_handle, p_cb->transport);
             break;
 
-        case BTIF_GATTS_STOP_SERVICE:
-            BTA_GATTS_StopService(p_cb->srvc_handle);
-            break;
-
-        case BTIF_GATTS_DELETE_SERVICE:
-            BTA_GATTS_DeleteService(p_cb->srvc_handle);
-            break;
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -609,21 +599,13 @@ static bt_status_t btif_gatts_start_service(int server_if, int service_handle, i
 static bt_status_t btif_gatts_stop_service(int server_if, int service_handle)
 {
     CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.srvc_handle = (uint16_t) service_handle;
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_STOP_SERVICE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+    return do_in_jni_thread(Bind(&BTA_GATTS_StopService, service_handle));
 }
 
 static bt_status_t btif_gatts_delete_service(int server_if, int service_handle)
 {
     CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.srvc_handle = (uint16_t) service_handle;
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_DELETE_SERVICE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+    return do_in_jni_thread(Bind(&BTA_GATTS_DeleteService, service_handle));
 }
 
 static bt_status_t btif_gatts_send_indication(int server_if,
