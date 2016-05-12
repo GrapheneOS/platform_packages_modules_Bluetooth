@@ -99,8 +99,7 @@ typedef enum {
     BTIF_GATTC_SCAN_FILTER_PARAM_SETUP,
     BTIF_GATTC_SCAN_FILTER_CONFIG,
     BTIF_GATTC_SCAN_FILTER_CLEAR,
-    BTIF_GATTC_SCAN_FILTER_ENABLE,
-    BTIF_GATTC_ADV_INSTANCE_ENABLE
+    BTIF_GATTC_SCAN_FILTER_ENABLE
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1404,37 +1403,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_ADV_INSTANCE_ENABLE:
-        {
-            btgatt_multi_adv_inst_cb *p_inst_cb = (btgatt_multi_adv_inst_cb*) p_param;
-
-            int cbindex = -1, arrindex = -1;
-
-            arrindex = btif_multi_adv_add_instid_map(p_inst_cb->client_if,INVALID_ADV_INST, true);
-            if (arrindex >= 0)
-                cbindex = btif_gattc_obtain_idx_for_datacb(p_inst_cb->client_if, CLNT_IF_IDX);
-
-            if (cbindex >= 0 && arrindex >= 0)
-            {
-                btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-                memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param,
-                       &p_inst_cb->param, sizeof(tBTA_BLE_ADV_PARAMS));
-                p_multi_adv_data_cb->inst_cb[cbindex].timeout_s = p_inst_cb->timeout_s;
-                BTIF_TRACE_DEBUG("%s, client_if value: %d", __FUNCTION__,
-                            p_multi_adv_data_cb->clntif_map[arrindex + arrindex]);
-                BTA_BleEnableAdvInstance(&(p_multi_adv_data_cb->inst_cb[cbindex].param),
-                    bta_gattc_multi_adv_cback,
-                    &(p_multi_adv_data_cb->clntif_map[arrindex + arrindex]));
-            }
-            else
-            {
-                /* let the error propagate up from BTA layer */
-                BTIF_TRACE_ERROR("%s invalid index in BTIF_GATTC_ENABLE_ADV",__FUNCTION__);
-                BTA_BleEnableAdvInstance(&p_inst_cb->param, bta_gattc_multi_adv_cback, NULL);
-            }
-            break;
-        }
-
         case BTIF_GATTC_CONFIGURE_MTU:
             BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
             break;
@@ -1810,23 +1778,51 @@ static int btif_gattc_get_device_type( const bt_bdaddr_t *bd_addr )
     return 0;
 }
 
-static bt_status_t btif_gattc_multi_adv_enable(int client_if, int min_interval, int max_interval,
-                                            int adv_type, int chnl_map, int tx_power, int timeout_s)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_multi_adv_inst_cb adv_cb;
-    memset(&adv_cb, 0, sizeof(btgatt_multi_adv_inst_cb));
-    adv_cb.client_if = (uint8_t) client_if;
+static void btif_gattc_multi_adv_enable_impl(int client_if, int min_interval,
+                                             int max_interval, int adv_type,
+                                             int chnl_map, int tx_power,
+                                             int timeout_s) {
+  tBTA_BLE_ADV_PARAMS param;
+  param.adv_int_min = min_interval;
+  param.adv_int_max = max_interval;
+  param.adv_type = adv_type;
+  param.channel_map = chnl_map;
+  param.adv_filter_policy = 0;
+  param.tx_power = tx_power;
 
-    adv_cb.param.adv_int_min = min_interval;
-    adv_cb.param.adv_int_max = max_interval;
-    adv_cb.param.adv_type = adv_type;
-    adv_cb.param.channel_map = chnl_map;
-    adv_cb.param.adv_filter_policy = 0;
-    adv_cb.param.tx_power = tx_power;
-    adv_cb.timeout_s = timeout_s;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ADV_INSTANCE_ENABLE,
-                             (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
+  int cbindex = -1;
+  int arrindex = btif_multi_adv_add_instid_map(client_if, INVALID_ADV_INST, true);
+  if (arrindex >= 0)
+    cbindex = btif_gattc_obtain_idx_for_datacb(client_if, CLNT_IF_IDX);
+
+  if (cbindex >= 0 && arrindex >= 0) {
+    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+        btif_obtain_multi_adv_data_cb();
+    memcpy(&p_multi_adv_data_cb->inst_cb[cbindex].param, &param,
+           sizeof(tBTA_BLE_ADV_PARAMS));
+    p_multi_adv_data_cb->inst_cb[cbindex].timeout_s = timeout_s;
+    BTIF_TRACE_DEBUG("%s, client_if value: %d", __FUNCTION__,
+                     p_multi_adv_data_cb->clntif_map[arrindex + arrindex]);
+    BTA_BleEnableAdvInstance(
+        &(p_multi_adv_data_cb->inst_cb[cbindex].param),
+        bta_gattc_multi_adv_cback,
+        &(p_multi_adv_data_cb->clntif_map[arrindex + arrindex]));
+  } else {
+    // let the error propagate up from BTA layer
+    BTIF_TRACE_ERROR("%s invalid index arrindex: %d, cbindex: %d",
+                     __func__, arrindex, cbindex);
+    BTA_BleEnableAdvInstance(&param, bta_gattc_multi_adv_cback, NULL);
+  }
+}
+
+static bt_status_t btif_gattc_multi_adv_enable(int client_if, int min_interval,
+                                               int max_interval, int adv_type,
+                                               int chnl_map, int tx_power,
+                                               int timeout_s) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(btif_gattc_multi_adv_enable_impl, client_if,
+                               min_interval, max_interval, adv_type, chnl_map,
+                               tx_power, timeout_s));
 }
 
 static void btif_gattc_multi_adv_update_impl(int client_if, int min_interval,
