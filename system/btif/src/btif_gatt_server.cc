@@ -69,8 +69,7 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 typedef enum {
     BTIF_GATTS_REGISTER_APP = 2000,
-    BTIF_GATTS_UNREGISTER_APP,
-    BTIF_GATTS_OPEN
+    BTIF_GATTS_UNREGISTER_APP
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -373,58 +372,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             BTA_GATTS_AppDeregister(p_cb->server_if);
             break;
 
-        case BTIF_GATTS_OPEN:
-        {
-            // Ensure device is in inquiry database
-            int addr_type = 0;
-            int device_type = 0;
-            tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
-
-            if (btif_get_address_type(p_cb->bd_addr.address, &addr_type) &&
-                btif_get_device_type(p_cb->bd_addr.address, &device_type) &&
-                device_type != BT_DEVICE_TYPE_BREDR)
-            {
-                BTA_DmAddBleDevice(p_cb->bd_addr.address, addr_type, device_type);
-            }
-
-            // Mark background connections
-            if (!p_cb->is_direct)
-                BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
-
-            // Determine transport
-            if (p_cb->transport != GATT_TRANSPORT_AUTO)
-            {
-                transport = p_cb->transport;
-            } else {
-                switch(device_type)
-                {
-                    case BT_DEVICE_TYPE_BREDR:
-                        transport = BTA_GATT_TRANSPORT_BR_EDR;
-                        break;
-
-                    case BT_DEVICE_TYPE_BLE:
-                        transport = BTA_GATT_TRANSPORT_LE;
-                        break;
-
-                    case BT_DEVICE_TYPE_DUMO:
-                        if (p_cb->transport == GATT_TRANSPORT_LE)
-                            transport = BTA_GATT_TRANSPORT_LE;
-                        else
-                            transport = BTA_GATT_TRANSPORT_BR_EDR;
-                        break;
-
-                    default:
-                        BTIF_TRACE_ERROR ("%s: Invalid device type %d", __func__, device_type);
-                        return;
-                }
-            }
-
-            // Connect!
-            BTA_GATTS_Open(p_cb->server_if, p_cb->bd_addr.address,
-                           p_cb->is_direct, transport);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -453,17 +400,60 @@ static bt_status_t btif_gatts_unregister_app( int server_if )
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
-static bt_status_t btif_gatts_open( int server_if, const bt_bdaddr_t *bd_addr,
-                                      bool is_direct, int transport )
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.is_direct = is_direct ? 1 : 0;
-    btif_cb.transport = (btgatt_transport_t)transport;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_OPEN,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static void btif_gatts_open_impl(int server_if, BD_ADDR address, bool is_direct,
+                                 int transport_param) {
+  // Ensure device is in inquiry database
+  int addr_type = 0;
+  int device_type = 0;
+  tBTA_GATT_TRANSPORT transport = BTA_GATT_TRANSPORT_LE;
+
+  if (btif_get_address_type(address, &addr_type) &&
+      btif_get_device_type(address, &device_type) &&
+      device_type != BT_DEVICE_TYPE_BREDR) {
+    BTA_DmAddBleDevice(address, addr_type, device_type);
+  }
+
+  // Mark background connections
+  if (!is_direct) BTA_DmBleSetBgConnType(BTM_BLE_CONN_AUTO, NULL);
+
+  // Determine transport
+  if (transport_param != GATT_TRANSPORT_AUTO) {
+    transport = transport_param;
+  } else {
+    switch (device_type) {
+      case BT_DEVICE_TYPE_BREDR:
+        transport = BTA_GATT_TRANSPORT_BR_EDR;
+        break;
+
+      case BT_DEVICE_TYPE_BLE:
+        transport = BTA_GATT_TRANSPORT_LE;
+        break;
+
+      case BT_DEVICE_TYPE_DUMO:
+        if (transport_param == GATT_TRANSPORT_LE)
+          transport = BTA_GATT_TRANSPORT_LE;
+        else
+          transport = BTA_GATT_TRANSPORT_BR_EDR;
+        break;
+
+      default:
+        BTIF_TRACE_ERROR("%s: Invalid device type %d", __func__, device_type);
+        return;
+    }
+  }
+
+  // Connect!
+  BTA_GATTS_Open(server_if, address, is_direct, transport);
+}
+
+static bt_status_t btif_gatts_open(int server_if, const bt_bdaddr_t *bd_addr,
+                                   bool is_direct, int transport) {
+  CHECK_BTGATT_INIT();
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+
+  return do_in_jni_thread(Bind(&btif_gatts_open_impl, server_if,
+                               base::Owned(address), is_direct, transport));
 }
 
 static void btif_gatts_close_impl(int server_if, BD_ADDR address,
