@@ -50,15 +50,15 @@ include $(BUILD_STATIC_LIBRARY)
 # Bluetooth device unit tests for target
 # ========================================================
 include $(CLEAR_VARS)
-
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/.. \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    ../osi/test/AllocationTestHarness.cpp \
-    ./test/interop_test.cpp \
-    ./test/classic/peer_test.cpp
+    ../osi/test/AllocationTestHarness.cc \
+    ./test/interop_test.cc \
+    ./test/classic/peer_test.cc
 
 LOCAL_MODULE := net_test_device
 LOCAL_MODULE_TAGS := tests

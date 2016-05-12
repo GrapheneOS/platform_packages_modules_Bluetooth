@@ -17,8 +17,8 @@
 executable("net_test_bluetooth") {
   testonly = true
   sources = [
-    "adapter/adapter_unittest.cpp",
-    "adapter/bluetooth_test.cpp",
+    "adapter/adapter_unittest.cc",
+    "adapter/bluetooth_test.cc",
   ]
 
   include_dirs = [
