@@ -91,10 +91,8 @@ typedef enum {
     BTIF_GATTC_EXECUTE_WRITE,
     BTIF_GATTC_REG_FOR_NOTIFICATION,
     BTIF_GATTC_DEREG_FOR_NOTIFICATION,
-    BTIF_GATTC_READ_RSSI,
     BTIF_GATTC_LISTEN,
     BTIF_GATTC_SET_ADV_DATA,
-    BTIF_GATTC_CONFIGURE_MTU,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1232,11 +1230,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
                 p_cb->conn_id, 0, status, p_cb->handle);
             break;
 
-        case BTIF_GATTC_READ_RSSI:
-            rssi_request_client_if = p_cb->client_if;
-            BTM_ReadRSSI (p_cb->bd_addr.address, (tBTM_CMPL_CB *)btm_read_rssi_cb);
-            break;
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1370,10 +1363,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             }
             break;
         }
-
-        case BTIF_GATTC_CONFIGURE_MTU:
-            BTA_GATTC_ConfigureMTU(p_cb->conn_id, p_cb->len);
-            break;
 
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
@@ -1578,24 +1567,22 @@ static bt_status_t btif_gattc_dereg_for_notification(int client_if, const bt_bda
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_read_remote_rssi(int client_if, const bt_bdaddr_t *bd_addr)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.client_if = (uint8_t) client_if;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_READ_RSSI,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_read_remote_rssi(int client_if,
+                                               const bt_bdaddr_t *bd_addr) {
+  CHECK_BTGATT_INIT();
+  rssi_request_client_if = client_if;
+  // Closure will own this value and free it.
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+  return do_in_jni_thread(Bind(base::IgnoreResult(&BTM_ReadRSSI),
+                               base::Owned(address),
+                               (tBTM_CMPL_CB *)btm_read_rssi_cb));
 }
 
-static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = conn_id;
-    btif_cb.len = mtu; // Re-use len field
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONFIGURE_MTU,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&BTA_GATTC_ConfigureMTU), conn_id, mtu));
 }
 
 void btif_gattc_conn_parameter_update_impl(const BD_ADDR addr, int min_interval,
