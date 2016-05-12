@@ -92,7 +92,6 @@ typedef enum {
     BTIF_GATTC_REG_FOR_NOTIFICATION,
     BTIF_GATTC_DEREG_FOR_NOTIFICATION,
     BTIF_GATTC_LISTEN,
-    BTIF_GATTC_SET_ADV_DATA,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1338,32 +1337,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
 #endif
             break;
 
-        case BTIF_GATTC_SET_ADV_DATA:
-        {
-            const btif_adv_data_t *p_adv_data = (btif_adv_data_t*) p_param;
-            const int cbindex = CLNT_IF_IDX;
-            if (cbindex >= 0 && btif_gattc_copy_datacb(cbindex, p_adv_data, false))
-            {
-                btgatt_multi_adv_common_data *p_multi_adv_data_cb = btif_obtain_multi_adv_data_cb();
-                if (!p_adv_data->set_scan_rsp)
-                {
-                    BTA_DmBleSetAdvConfig(p_multi_adv_data_cb->inst_cb[cbindex].mask,
-                        &p_multi_adv_data_cb->inst_cb[cbindex].data, bta_gattc_set_adv_data_cback);
-                }
-                else
-                {
-                    BTA_DmBleSetScanRsp(p_multi_adv_data_cb->inst_cb[cbindex].mask,
-                        &p_multi_adv_data_cb->inst_cb[cbindex].data, bta_gattc_set_adv_data_cback);
-                }
-            }
-            else
-            {
-                BTIF_TRACE_ERROR("%s:%s: failed to get instance data cbindex: %d",
-                                 __func__, "BTIF_GATTC_SET_ADV_DATA", cbindex);
-            }
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -1434,23 +1407,43 @@ static bt_status_t btif_gattc_listen(int client_if, bool start)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_set_adv_data(int client_if, bool set_scan_rsp, bool include_name,
-                bool include_txpower, int min_interval, int max_interval, int appearance,
-                uint16_t manufacturer_len, char* manufacturer_data,
-                uint16_t service_data_len, char* service_data,
-                uint16_t service_uuid_len, char* service_uuid)
-{
-    CHECK_BTGATT_INIT();
-    btif_adv_data_t adv_data;
+static void btif_gattc_set_adv_data_impl(btif_adv_data_t *p_adv_data) {
+  const int cbindex = CLNT_IF_IDX;
+  if (cbindex >= 0 && btif_gattc_copy_datacb(cbindex, p_adv_data, false)) {
+    btgatt_multi_adv_common_data *p_multi_adv_data_cb =
+        btif_obtain_multi_adv_data_cb();
+    if (!p_adv_data->set_scan_rsp) {
+      BTA_DmBleSetAdvConfig(p_multi_adv_data_cb->inst_cb[cbindex].mask,
+                            &p_multi_adv_data_cb->inst_cb[cbindex].data,
+                            bta_gattc_set_adv_data_cback);
+    } else {
+      BTA_DmBleSetScanRsp(p_multi_adv_data_cb->inst_cb[cbindex].mask,
+                          &p_multi_adv_data_cb->inst_cb[cbindex].data,
+                          bta_gattc_set_adv_data_cback);
+    }
+  } else {
+    BTIF_TRACE_ERROR("%s: failed to get instance data cbindex: %d", __func__,
+                     cbindex);
+  }
+}
 
-    btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name,
-        include_txpower, min_interval, max_interval, appearance, manufacturer_len,
-        manufacturer_data, service_data_len, service_data, service_uuid_len, service_uuid,
-        &adv_data);
+static bt_status_t btif_gattc_set_adv_data(
+    int client_if, bool set_scan_rsp, bool include_name, bool include_txpower,
+    int min_interval, int max_interval, int appearance,
+    uint16_t manufacturer_len, char *manufacturer_data,
+    uint16_t service_data_len, char *service_data, uint16_t service_uuid_len,
+    char *service_uuid) {
+  CHECK_BTGATT_INIT();
 
-    bt_status_t status = btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SET_ADV_DATA,
-                       (char*) &adv_data, sizeof(adv_data), NULL);
-    return status;
+  btif_adv_data_t *adv_data = new btif_adv_data_t;
+
+  btif_gattc_adv_data_packager(
+      client_if, set_scan_rsp, include_name, include_txpower, min_interval,
+      max_interval, appearance, manufacturer_len, manufacturer_data,
+      service_data_len, service_data, service_uuid_len, service_uuid, adv_data);
+
+  return do_in_jni_thread(
+      Bind(&btif_gattc_set_adv_data_impl, base::Owned(adv_data)));
 }
 
 static bt_status_t btif_gattc_refresh(int client_if,
