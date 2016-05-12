@@ -81,8 +81,6 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 typedef enum {
     BTIF_GATTC_REGISTER_APP = 1000,
     BTIF_GATTC_UNREGISTER_APP,
-    BTIF_GATTC_SCAN_START,
-    BTIF_GATTC_SCAN_STOP,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1085,15 +1083,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_GATTC_AppDeregister(p_cb->client_if);
             break;
 
-        case BTIF_GATTC_SCAN_START:
-            btif_gattc_init_dev_cb();
-            BTA_DmBleObserve(TRUE, 0, bta_scan_results_cb);
-            break;
-
-        case BTIF_GATTC_SCAN_STOP:
-            BTA_DmBleObserve(FALSE, 0, 0);
-            break;
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1222,12 +1211,15 @@ static bt_status_t btif_gattc_unregister_app(int client_if )
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_scan( bool start )
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    return btif_transfer_context(btgattc_handle_event, start ? BTIF_GATTC_SCAN_START : BTIF_GATTC_SCAN_STOP,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_scan(bool start) {
+  CHECK_BTGATT_INIT();
+  if (start) {
+    btif_gattc_init_dev_cb();
+    return do_in_jni_thread(Bind(&BTA_DmBleObserve, TRUE, 0,
+                                 (tBTA_DM_SEARCH_CBACK *)bta_scan_results_cb));
+  } else {
+    return do_in_jni_thread(Bind(&BTA_DmBleObserve, FALSE, 0, nullptr));
+  }
 }
 
 static void btif_gattc_open_impl(int client_if, BD_ADDR address,
