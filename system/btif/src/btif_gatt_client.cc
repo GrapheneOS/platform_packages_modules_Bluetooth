@@ -85,7 +85,6 @@ typedef enum {
     BTIF_GATTC_SCAN_STOP,
     BTIF_GATTC_OPEN,
     BTIF_GATTC_CLOSE,
-    BTIF_GATTC_SEARCH_SERVICE,
     BTIF_GATTC_SCAN_FILTER_CONFIG
 } btif_gattc_event_t;
 
@@ -1175,18 +1174,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             BTA_GATTC_CancelOpen(p_cb->client_if, p_cb->bd_addr.address, FALSE);
             break;
 
-        case BTIF_GATTC_SEARCH_SERVICE:
-        {
-            if (p_cb->search_all)
-            {
-                BTA_GATTC_ServiceSearchRequest(p_cb->conn_id, NULL);
-            } else {
-                btif_to_bta_uuid(&uuid, &p_cb->uuid);
-                BTA_GATTC_ServiceSearchRequest(p_cb->conn_id, &uuid);
-            }
-            break;
-        }
-
         case BTIF_GATTC_SCAN_FILTER_CONFIG:
         {
             btgatt_adv_filter_cb_t *p_adv_filt_cb = (btgatt_adv_filter_cb_t *) p_param;
@@ -1405,16 +1392,19 @@ static bt_status_t btif_gattc_refresh(int client_if,
   return do_in_jni_thread(Bind(&BTA_GATTC_Refresh, base::Owned(address)));
 }
 
-static bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t *filter_uuid )
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.search_all = filter_uuid ? 0 : 1;
-    if (filter_uuid)
-        memcpy(&btif_cb.uuid, filter_uuid, sizeof(bt_uuid_t));
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_SEARCH_SERVICE,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_search_service(int conn_id,
+                                             bt_uuid_t *filter_uuid) {
+  CHECK_BTGATT_INIT();
+
+  if (filter_uuid) {
+    tBT_UUID *uuid = new tBT_UUID;
+    btif_to_bta_uuid(uuid, filter_uuid);
+    return do_in_jni_thread(
+        Bind(&BTA_GATTC_ServiceSearchRequest, conn_id, base::Owned(uuid)));
+  } else {
+    return do_in_jni_thread(
+        Bind(&BTA_GATTC_ServiceSearchRequest, conn_id, nullptr));
+  }
 }
 
 void btif_gattc_get_gatt_db_impl(int conn_id) {
