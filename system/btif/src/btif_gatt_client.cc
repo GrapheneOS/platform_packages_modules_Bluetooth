@@ -107,8 +107,7 @@ typedef enum {
     BTIF_GATTC_CONFIG_STORAGE_PARAMS,
     BTIF_GATTC_ENABLE_BATCH_SCAN,
     BTIF_GATTC_READ_BATCH_SCAN_REPORTS,
-    BTIF_GATTC_DISABLE_BATCH_SCAN,
-    BTIF_GATTC_GET_GATT_DB
+    BTIF_GATTC_DISABLE_BATCH_SCAN
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1211,18 +1210,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_GET_GATT_DB:
-        {
-            btgatt_db_element_t *db = NULL;
-            int count = 0;
-            BTA_GATTC_GetGattDb(p_cb->conn_id, 0x0000, 0xFFFF, &db, &count);
-
-            HAL_CBACK(bt_gatt_callbacks, client->get_gatt_db_cb,
-                p_cb->conn_id, db, count);
-            osi_free(db);
-            break;
-        }
-
         case BTIF_GATTC_WRITE_CHAR:
             BTA_GATTC_WriteCharValue(p_cb->conn_id, p_cb->handle, p_cb->write_type,
                                      p_cb->len, p_cb->value, p_cb->auth_req);
@@ -1672,14 +1659,18 @@ static bt_status_t btif_gattc_search_service(int conn_id, bt_uuid_t *filter_uuid
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static bt_status_t btif_gattc_get_gatt_db(int conn_id)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
+void btif_gattc_get_gatt_db_impl(int conn_id) {
+  btgatt_db_element_t *db = NULL;
+  int count = 0;
+  BTA_GATTC_GetGattDb(conn_id, 0x0000, 0xFFFF, &db, &count);
 
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_GET_GATT_DB,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+  HAL_CBACK(bt_gatt_callbacks, client->get_gatt_db_cb, conn_id, db, count);
+  osi_free(db);
+}
+
+static bt_status_t btif_gattc_get_gatt_db(int conn_id) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(&btif_gattc_get_gatt_db_impl, conn_id));
 }
 
 static bt_status_t btif_gattc_read_char(int conn_id, uint16_t handle,
