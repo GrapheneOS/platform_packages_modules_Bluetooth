@@ -50,7 +50,7 @@ struct config_t {
 // Empty definition; this type is aliased to list_node_t.
 struct config_section_iter_t {};
 
-static void config_parse(FILE *fp, config_t *config);
+static bool config_parse(FILE *fp, config_t *config);
 
 static section_t *section_new(const char *name);
 static void section_free(void *ptr);
@@ -89,7 +89,12 @@ config_t *config_new(const char *filename) {
     config_free(config);
     return NULL;
   }
-  config_parse(fp, config);
+
+  if (!config_parse(fp, config)) {
+    config_free(config);
+    config = NULL;
+  }
+
   fclose(fp);
   return config;
 }
@@ -352,7 +357,7 @@ static char *trim(char *str) {
   return str;
 }
 
-static void config_parse(FILE *fp, config_t *config) {
+static bool config_parse(FILE *fp, config_t *config) {
   assert(fp != NULL);
   assert(config != NULL);
 
@@ -373,7 +378,7 @@ static void config_parse(FILE *fp, config_t *config) {
       size_t len = strlen(line_ptr);
       if (line_ptr[len - 1] != ']') {
         LOG_DEBUG(LOG_TAG, "%s unterminated section name on line %d.", __func__, line_num);
-        continue;
+        return false;
       }
       strncpy(section, line_ptr + 1, len - 2);
       section[len - 2] = '\0';
@@ -381,13 +386,14 @@ static void config_parse(FILE *fp, config_t *config) {
       char *split = strchr(line_ptr, '=');
       if (!split) {
         LOG_DEBUG(LOG_TAG, "%s no key/value separator found on line %d.", __func__, line_num);
-        continue;
+        return false;
       }
 
       *split = '\0';
       config_set_string(config, section, trim(line_ptr), trim(split + 1));
     }
   }
+  return true;
 }
 
 static section_t *section_new(const char *name) {
