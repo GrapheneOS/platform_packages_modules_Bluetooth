@@ -103,11 +103,7 @@ typedef enum {
     BTIF_GATTC_ADV_INSTANCE_ENABLE,
     BTIF_GATTC_ADV_INSTANCE_UPDATE,
     BTIF_GATTC_ADV_INSTANCE_SET_DATA,
-    BTIF_GATTC_ADV_INSTANCE_DISABLE,
-    BTIF_GATTC_CONFIG_STORAGE_PARAMS,
-    BTIF_GATTC_ENABLE_BATCH_SCAN,
-    BTIF_GATTC_READ_BATCH_SCAN_REPORTS,
-    BTIF_GATTC_DISABLE_BATCH_SCAN
+    BTIF_GATTC_ADV_INSTANCE_DISABLE
 } btif_gattc_event_t;
 
 #define BTIF_GATT_MAX_OBSERVED_DEV 40
@@ -1516,39 +1512,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_CONFIG_STORAGE_PARAMS:
-        {
-            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
-            BTA_DmBleSetStorageParams(p_scan_track_cb->batch_scan_full_max,
-               p_scan_track_cb->batch_scan_trunc_max, p_scan_track_cb->batch_scan_notify_threshold,
-               bta_batch_scan_setup_cb, bta_batch_scan_threshold_cb, bta_batch_scan_reports_cb,
-               (tBTA_DM_BLE_REF_VALUE) p_scan_track_cb->client_if);
-            break;
-        }
-
-        case BTIF_GATTC_ENABLE_BATCH_SCAN:
-        {
-            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
-            BTA_DmBleEnableBatchScan(p_scan_track_cb->scan_mode, p_scan_track_cb->scan_interval,
-               p_scan_track_cb->scan_window, p_scan_track_cb->discard_rule,
-               p_scan_track_cb->addr_type, p_scan_track_cb->client_if);
-            break;
-        }
-
-        case BTIF_GATTC_DISABLE_BATCH_SCAN:
-        {
-            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
-            BTA_DmBleDisableBatchScan(p_scan_track_cb->client_if);
-            break;
-        }
-
-        case BTIF_GATTC_READ_BATCH_SCAN_REPORTS:
-        {
-            btgatt_batch_track_cb_t *p_scan_track_cb = (btgatt_batch_track_cb_t *) p_param;
-            BTA_DmBleReadScanReports(p_scan_track_cb->scan_mode, p_scan_track_cb->client_if);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -1977,55 +1940,38 @@ static bt_status_t btif_gattc_multi_adv_disable(int client_if)
                            (char*) &adv_cb, sizeof(btgatt_multi_adv_inst_cb), NULL);
 }
 
-static bt_status_t btif_gattc_cfg_storage(int client_if,int batch_scan_full_max,
-    int batch_scan_trunc_max, int batch_scan_notify_threshold)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_batch_track_cb_t bt_scan_cb;
-    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
-    bt_scan_cb.client_if = (uint8_t) client_if;
-    bt_scan_cb.batch_scan_full_max = batch_scan_full_max;
-    bt_scan_cb.batch_scan_trunc_max = batch_scan_trunc_max;
-    bt_scan_cb.batch_scan_notify_threshold = batch_scan_notify_threshold;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_CONFIG_STORAGE_PARAMS,
-                                 (char*) &bt_scan_cb, sizeof(btgatt_batch_track_cb_t), NULL);
+static bt_status_t btif_gattc_cfg_storage(int client_if,
+                                          int batch_scan_full_max,
+                                          int batch_scan_trunc_max,
+                                          int batch_scan_notify_threshold) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(BTA_DmBleSetStorageParams, batch_scan_full_max, batch_scan_trunc_max,
+           batch_scan_notify_threshold,
+           (tBTA_BLE_SCAN_SETUP_CBACK *)bta_batch_scan_setup_cb,
+           (tBTA_BLE_SCAN_THRESHOLD_CBACK *)bta_batch_scan_threshold_cb,
+           (tBTA_BLE_SCAN_REP_CBACK *)bta_batch_scan_reports_cb,
+           (tBTA_DM_BLE_REF_VALUE)client_if));
 }
 
-static bt_status_t btif_gattc_enb_batch_scan(int client_if,int scan_mode, int scan_interval,
-                int scan_window, int addr_type, int discard_rule)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_batch_track_cb_t bt_scan_cb;
-    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
-    bt_scan_cb.client_if = (uint8_t) client_if;
-    bt_scan_cb.scan_mode = scan_mode;
-    bt_scan_cb.scan_interval = scan_interval;
-    bt_scan_cb.scan_window = scan_window;
-    bt_scan_cb.discard_rule = discard_rule;
-    bt_scan_cb.addr_type = addr_type;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_ENABLE_BATCH_SCAN,
-                                 (char*) &bt_scan_cb, sizeof(btgatt_batch_track_cb_t), NULL);
+static bt_status_t btif_gattc_enb_batch_scan(int client_if, int scan_mode,
+                                             int scan_interval, int scan_window,
+                                             int addr_type, int discard_rule) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(BTA_DmBleEnableBatchScan, scan_mode,
+                               scan_interval, scan_window, discard_rule,
+                               addr_type, client_if));
 }
 
-static bt_status_t btif_gattc_dis_batch_scan(int client_if)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_batch_track_cb_t bt_scan_cb;
-    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
-    bt_scan_cb.client_if = (uint8_t) client_if;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_DISABLE_BATCH_SCAN,
-                                 (char*) &bt_scan_cb, sizeof(btgatt_batch_track_cb_t), NULL);
+static bt_status_t btif_gattc_dis_batch_scan(int client_if) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(BTA_DmBleDisableBatchScan, client_if));
 }
 
-static bt_status_t btif_gattc_read_batch_scan_reports(int client_if, int scan_mode)
-{
-    CHECK_BTGATT_INIT();
-    btgatt_batch_track_cb_t bt_scan_cb;
-    memset(&bt_scan_cb, 0, sizeof(btgatt_batch_track_cb_t));
-    bt_scan_cb.client_if = (uint8_t) client_if;
-    bt_scan_cb.scan_mode = scan_mode;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_READ_BATCH_SCAN_REPORTS,
-                                 (char*) &bt_scan_cb, sizeof(btgatt_batch_track_cb_t), NULL);
+static bt_status_t btif_gattc_read_batch_scan_reports(int client_if,
+                                                      int scan_mode) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
 }
 
 extern bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* params);
