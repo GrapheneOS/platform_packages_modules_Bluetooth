@@ -70,9 +70,7 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 typedef enum {
     BTIF_GATTS_REGISTER_APP = 2000,
     BTIF_GATTS_UNREGISTER_APP,
-    BTIF_GATTS_OPEN,
-    BTIF_GATTS_CLOSE,
-    BTIF_GATTS_CREATE_SERVICE
+    BTIF_GATTS_OPEN
 } btif_gatts_event_t;
 
 /************************************************************************************
@@ -427,28 +425,6 @@ static void btgatts_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTS_CLOSE:
-            // Cancel pending foreground/background connections
-            BTA_GATTS_CancelOpen(p_cb->server_if, p_cb->bd_addr.address, TRUE);
-            BTA_GATTS_CancelOpen(p_cb->server_if, p_cb->bd_addr.address, FALSE);
-
-            // Close active connection
-            if (p_cb->conn_id != 0)
-                BTA_GATTS_Close(p_cb->conn_id);
-            break;
-
-        case BTIF_GATTS_CREATE_SERVICE:
-        {
-            tBT_UUID uuid;
-            btif_to_bta_uuid(&uuid, &p_cb->srvc_id.id.uuid);
-
-            BTA_GATTS_CreateService(p_cb->server_if, &uuid,
-                                    p_cb->srvc_id.id.inst_id, p_cb->num_handles,
-                                    p_cb->srvc_id.is_primary);
-
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unknown event (%d)!", __FUNCTION__, event);
             break;
@@ -490,27 +466,37 @@ static bt_status_t btif_gatts_open( int server_if, const bt_bdaddr_t *bd_addr,
                                  (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
 }
 
-static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t *bd_addr, int conn_id)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    bdcpy(btif_cb.bd_addr.address, bd_addr->address);
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_CLOSE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static void btif_gatts_close_impl(int server_if, BD_ADDR address,
+                                  int conn_id) {
+  // Cancel pending foreground/background connections
+  BTA_GATTS_CancelOpen(server_if, address, TRUE);
+  BTA_GATTS_CancelOpen(server_if, address, FALSE);
+
+  // Close active connection
+  if (conn_id != 0) BTA_GATTS_Close(conn_id);
 }
 
-static bt_status_t btif_gatts_add_service(int server_if, btgatt_srvc_id_t *srvc_id,
-                                          int num_handles)
-{
-    CHECK_BTGATT_INIT();
-    btif_gatts_cb_t btif_cb;
-    btif_cb.server_if = (uint8_t) server_if;
-    btif_cb.num_handles = (uint8_t) num_handles;
-    memcpy(&btif_cb.srvc_id, srvc_id, sizeof(btgatt_srvc_id_t));
-    return btif_transfer_context(btgatts_handle_event, BTIF_GATTS_CREATE_SERVICE,
-                                 (char*) &btif_cb, sizeof(btif_gatts_cb_t), NULL);
+static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t *bd_addr,
+                                    int conn_id) {
+  CHECK_BTGATT_INIT();
+  uint8_t *address = new BD_ADDR;
+  bdcpy(address, bd_addr->address);
+
+  return do_in_jni_thread(
+      Bind(&btif_gatts_close_impl, server_if, base::Owned(address), conn_id));
+}
+
+static bt_status_t btif_gatts_add_service(int server_if,
+                                          btgatt_srvc_id_t *srvc_id,
+                                          int num_handles) {
+  CHECK_BTGATT_INIT();
+  tBT_UUID *bt_uuid = new tBT_UUID;
+  btif_to_bta_uuid(bt_uuid, &srvc_id->id.uuid);
+
+  return do_in_jni_thread(
+      Bind(base::IgnoreResult(&BTA_GATTS_CreateService), server_if,
+           base::Owned(bt_uuid), (uint8_t)srvc_id->id.inst_id,
+           (uint16_t)num_handles, (bool)srvc_id->is_primary));
 }
 
 static bt_status_t btif_gatts_add_included_service(int server_if,
