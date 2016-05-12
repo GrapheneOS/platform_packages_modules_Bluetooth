@@ -316,7 +316,9 @@ int send_event (int fd, uint16_t type, uint16_t code, int32_t value)
     event.code  = code;
     event.value = value;
 
-    return write(fd, &event, sizeof(event));
+    ssize_t ret;
+    OSI_NO_INTR(ret = write(fd, &event, sizeof(event)));
+    return (int)ret;
 }
 
 void send_key (int fd, uint16_t key, int pressed)
@@ -373,7 +375,9 @@ int uinput_create(char *name)
     dev.id.product = 0x0000;
     dev.id.version = 0x0000;
 
-    if (write(fd, &dev, sizeof(dev)) < 0) {
+    ssize_t ret;
+    OSI_NO_INTR(ret = write(fd, &dev, sizeof(dev)));
+    if (ret < 0) {
         BTIF_TRACE_ERROR("%s Unable to write device information", __FUNCTION__);
         close(fd);
         return -1;
@@ -4232,10 +4236,7 @@ static void sleep_ms(period_ms_t timeout_ms) {
     delay.tv_sec = timeout_ms / 1000;
     delay.tv_nsec = 1000 * 1000 * (timeout_ms % 1000);
 
-    int err;
-    do {
-        err = nanosleep(&delay, &delay);
-    } while (err == -1 && errno == EINTR);
+    OSI_NO_INTR(nanosleep(&delay, &delay));
 }
 
 static bool absolute_volume_disabled() {

@@ -456,9 +456,10 @@ int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 prot
         memcpy(packet + sizeof(tETH_HDR), buf, len);
 
         /* Send data to network interface */
-        int ret = write(tap_fd, packet, len + sizeof(tETH_HDR));
+        ssize_t ret;
+        OSI_NO_INTR(ret = write(tap_fd, packet, len + sizeof(tETH_HDR)));
         BTIF_TRACE_DEBUG("ret:%d", ret);
-        return ret;
+        return (int)ret;
     }
     return -1;
 
@@ -740,7 +741,9 @@ static void btu_exec_tap_fd_read(void *p_param) {
         // We save it in the congest_packet right away in case we can't deliver it in this
         // attempt.
         if (!btpan_cb.congest_packet_size) {
-            ssize_t ret = read(fd, btpan_cb.congest_packet, sizeof(btpan_cb.congest_packet));
+            ssize_t ret;
+            OSI_NO_INTR(ret = read(fd, btpan_cb.congest_packet,
+                                   sizeof(btpan_cb.congest_packet)));
             switch (ret) {
                 case -1:
                     BTIF_TRACE_ERROR("%s unable to read from driver: %s", __func__, strerror(errno));

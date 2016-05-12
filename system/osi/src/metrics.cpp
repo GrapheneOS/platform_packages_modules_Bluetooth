@@ -196,7 +196,9 @@ void metrics_write(int fd, bool clear) {
   std::string protoBase64;
   base::Base64Encode(serialized, &protoBase64);
 
-  if (write(fd, protoBase64.c_str(), protoBase64.size()) == -1) {
+  ssize_t ret;
+  OSI_NO_INTR(ret = write(fd, protoBase64.c_str(), protoBase64.size()));
+  if (ret == -1) {
     LOG_ERROR(LOG_TAG, "%s: error writing to dumpsys fd: %s (%d)", __func__,
               strerror(errno), errno);
   }
@@ -215,9 +217,10 @@ void metrics_print(int fd, bool clear) {
   }
   log_lock.unlock();
 
-  if (write(fd, pretty_output.c_str(), pretty_output.size()) == -1) {
+  ssize_t ret;
+  OSI_NO_INTR(ret = write(fd, pretty_output.c_str(), pretty_output.size()));
+  if (ret == -1) {
     LOG_ERROR(LOG_TAG, "%s: error writing to dumpsys fd: %s (%d)", __func__,
               strerror(errno), errno);
   }
-
 }
