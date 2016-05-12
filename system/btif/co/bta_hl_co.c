@@ -34,6 +34,8 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <cutils/sockets.h>
+
+#include "osi/include/osi.h"
 #include "bta_api.h"
 #include "btm_api.h"
 #include "bta_sys.h"
@@ -369,7 +371,6 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
     UINT8 app_idx, mcl_idx, mdl_idx;
     btif_hl_mdl_cb_t *p_dcb;
     tBTA_HL_STATUS status = BTA_HL_STATUS_FAIL;
-    int            r;
     BTIF_TRACE_DEBUG("%s app_id=%d mdl_handle=0x%x data_size=%d",
                       __FUNCTION__,app_id, mdl_handle, data_size);
 
@@ -384,7 +385,9 @@ void bta_hl_co_put_rx_data (UINT8 app_id, tBTA_HL_MDL_HANDLE mdl_handle,
             {
                 BTIF_TRACE_DEBUG("app_idx=%d mcl_idx=0x%x mdl_idx=0x%x data_size=%d",
                                   app_idx, mcl_idx, mdl_idx, data_size);
-                r = send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt, data_size, 0);
+                ssize_t r;
+                OSI_NO_INTR(r = send(p_dcb->p_scb->socket_id[1], p_dcb->p_rx_pkt,
+                                     data_size, 0));
 
                 if (r == data_size)
                 {

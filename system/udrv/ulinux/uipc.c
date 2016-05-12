@@ -46,6 +46,7 @@
 
 #include "gki.h"
 #include "bt_types.h"
+#include "osi/include/osi.h"
 #include "uipc.h"
 
 #include <cutils/sockets.h>
@@ -184,7 +185,9 @@ static int accept_server_socket(int sfd)
     pfd.fd = sfd;
     pfd.events = POLLIN;
 
-    if (poll(&pfd, 1, 0) == 0)
+    int poll_ret;
+    OSI_NO_INTR(poll_ret = poll(&pfd, 1, 0));
+    if (poll_ret == 0)
     {
         BTIF_TRACE_EVENT("accept poll timeout");
         return -1;
@@ -192,8 +195,8 @@ static int accept_server_socket(int sfd)
 
     //BTIF_TRACE_EVENT("poll revents 0x%x", pfd.revents);
 
-    if ((fd = accept(sfd, (struct sockaddr *)&remote, &len)) == -1)
-    {
+    OSI_NO_INTR(fd = accept(sfd, (struct sockaddr *)&remote, &len));
+    if (fd == -1) {
          BTIF_TRACE_ERROR("sock accept failed (%s)", strerror(errno));
          return -1;
     }
@@ -329,8 +332,8 @@ static void uipc_check_interrupt_locked(void)
     if (SAFE_FD_ISSET(uipc_main.signal_fds[0], &uipc_main.read_set))
     {
         char sig_recv = 0;
-        //BTIF_TRACE_EVENT("UIPC INTERRUPT");
-        recv(uipc_main.signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
+        OSI_NO_INTR(recv(uipc_main.signal_fds[0], &sig_recv, sizeof(sig_recv),
+                         MSG_WAITALL));
     }
 }
 
@@ -338,7 +341,8 @@ static inline void uipc_wakeup_locked(void)
 {
     char sig_on = 1;
     BTIF_TRACE_EVENT("UIPC SEND WAKE UP");
-    send(uipc_main.signal_fds[1], &sig_on, sizeof(sig_on), 0);
+
+    OSI_NO_INTR(send(uipc_main.signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
 
 static int uipc_setup_server_locked(tUIPC_CH_ID ch_id, char *name, tUIPC_RCV_CBACK *cback)
@@ -381,7 +385,6 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
 {
     char buf[UIPC_FLUSH_BUFFER_SIZE];
     struct pollfd pfd;
-    int ret;
 
     pfd.events = POLLIN;
     pfd.fd = uipc_main.ch[ch_id].fd;
@@ -394,10 +397,10 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
 
     while (1)
     {
-        ret = poll(&pfd, 1, 1);
+        int ret;
+        OSI_NO_INTR(ret = poll(&pfd, 1, 1));
         BTIF_TRACE_VERBOSE("%s() - polling fd %d, revents: 0x%x, ret %d",
                 __FUNCTION__, pfd.fd, pfd.revents, ret);
-
         if (pfd.revents & (POLLERR|POLLHUP))
         {
             BTIF_TRACE_EVENT("%s() - POLLERR or POLLHUP. Exiting", __FUNCTION__);
@@ -504,14 +507,13 @@ static void uipc_read_task(void *arg)
 
         result = select(uipc_main.max_fd+1, &uipc_main.read_set, NULL, NULL, NULL);
 
-        if (result == 0)
-        {
+        if (result == 0) {
             BTIF_TRACE_EVENT("select timeout");
             continue;
         }
-        else if (result < 0)
-        {
-            BTIF_TRACE_EVENT("select failed %s", strerror(errno));
+        if (result < 0) {
+            if (errno != EINTR)
+                BTIF_TRACE_EVENT("select failed %s", strerror(errno));
             continue;
         }
 
@@ -715,8 +717,9 @@ BOOLEAN UIPC_Send(tUIPC_CH_ID ch_id, UINT16 msg_evt, UINT8 *p_buf,
 
     UIPC_LOCK();
 
-    if (write(uipc_main.ch[ch_id].fd, p_buf, msglen) < 0)
-    {
+    ssize_t ret;
+    OSI_NO_INTR(ret = write(uipc_main.ch[ch_id].fd, p_buf, msglen));
+    if (ret < 0) {
         BTIF_TRACE_ERROR("failed to write (%s)", strerror(errno));
     }
 
@@ -756,7 +759,6 @@ void UIPC_ReadBuf(tUIPC_CH_ID ch_id, BT_HDR *p_msg)
 
 UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 {
-    int n;
     int n_read = 0;
     int fd = uipc_main.ch[ch_id].fd;
     struct pollfd pfd;
@@ -784,7 +786,11 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
 
         /* make sure there is data prior to attempting read to avoid blocking
            a read for more than poll timeout */
-        if (poll(&pfd, 1, uipc_main.ch[ch_id].read_poll_tmo_ms) == 0)
+
+        int poll_ret;
+        OSI_NO_INTR(poll_ret = poll(&pfd, 1,
+                                    uipc_main.ch[ch_id].read_poll_tmo_ms));
+        if (poll_ret == 0)
         {
             BTIF_TRACE_EVENT("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
             break;
@@ -801,7 +807,8 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
             return 0;
         }
 
-        n = recv(fd, p_buf+n_read, len-n_read, 0);
+        ssize_t n;
+        OSI_NO_INTR(n = recv(fd, p_buf+n_read, len-n_read, 0));
 
         //BTIF_TRACE_EVENT("read %d bytes", n);
 

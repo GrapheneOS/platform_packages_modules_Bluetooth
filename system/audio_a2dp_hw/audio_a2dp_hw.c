@@ -48,6 +48,7 @@
 
 #define LOG_TAG "bt_a2dp_hw"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
 /*****************************************************************************
 **  Constants & Macros
@@ -236,27 +237,25 @@ static int skt_connect(char *path, size_t buffer_sz)
 
 static int skt_read(int fd, void *p, size_t len)
 {
-    int read;
     struct pollfd pfd;
     struct timespec ts;
+    ssize_t read;
 
     FNLOG();
 
     ts_log("skt_read recv", len, NULL);
 
-    if ((read = recv(fd, p, len, MSG_NOSIGNAL)) == -1)
-    {
-        ERROR("write failed with errno=%d\n", errno);
-        return -1;
-    }
+    OSI_NO_INTR(read = recv(fd, p, len, MSG_NOSIGNAL));
+    if (read == -1)
+        ERROR("read failed with errno=%d\n", errno);
 
-    return read;
+    return (int)read;
 }
 
 static int skt_write(int fd, const void *p, size_t len)
 {
-    int sent;
     struct pollfd pfd;
+    ssize_t sent;
 
     FNLOG();
 
@@ -270,14 +269,11 @@ static int skt_write(int fd, const void *p, size_t len)
         return 0;
 
     ts_log("skt_write", len, NULL);
-
-    if ((sent = send(fd, p, len, MSG_NOSIGNAL)) == -1)
-    {
+    OSI_NO_INTR(sent = send(fd, p, len, MSG_NOSIGNAL));
+    if (sent == -1)
         ERROR("write failed with errno=%d\n", errno);
-        return -1;
-    }
 
-    return sent;
+    return (int)sent;
 }
 
 static int skt_disconnect(int fd)
@@ -302,29 +298,15 @@ static int skt_disconnect(int fd)
 
 static int a2dp_ctrl_receive(struct a2dp_stream_common *common, void* buffer, int length)
 {
-    int ret = recv(common->ctrl_fd, buffer, length, MSG_NOSIGNAL);
+    ssize_t ret;
+
+    OSI_NO_INTR(ret = recv(common->ctrl_fd, buffer, length, MSG_NOSIGNAL));
     if (ret < 0)
     {
         ERROR("ack failed (%s)", strerror(errno));
-        if (errno == EINTR)
-        {
-            /* retry again */
-            ret = recv(common->ctrl_fd, buffer, length, MSG_NOSIGNAL);
-            if (ret < 0)
-            {
-               ERROR("ack failed (%s)", strerror(errno));
-               skt_disconnect(common->ctrl_fd);
-               common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
-               return -1;
-            }
-        }
-        else
-        {
-               skt_disconnect(common->ctrl_fd);
-               common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
-               return -1;
-
-        }
+        skt_disconnect(common->ctrl_fd);
+        common->ctrl_fd = AUDIO_SKT_DISCONNECTED;
+        return -1;
     }
     return ret;
 }
@@ -336,7 +318,9 @@ static int a2dp_command(struct a2dp_stream_common *common, char cmd)
     DEBUG("A2DP COMMAND %s", dump_a2dp_ctrl_event(cmd));
 
     /* send command */
-    if (send(common->ctrl_fd, &cmd, 1, MSG_NOSIGNAL) == -1)
+    ssize_t sent;
+    OSI_NO_INTR(sent = send(common->ctrl_fd, &cmd, 1, MSG_NOSIGNAL));
+    if (sent == -1)
     {
         ERROR("cmd failed (%s)", strerror(errno));
         skt_disconnect(common->ctrl_fd);

@@ -968,7 +968,9 @@ static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
     uint32_t len;
 
     while (packet_get_head_l(sock, &buf, &len)) {
-        int sent = send(sock->our_fd, buf, len, MSG_DONTWAIT);
+        ssize_t sent;
+        OSI_NO_INTR(sent = send(sock->our_fd, buf, len, MSG_DONTWAIT));
+        int saved_errno = errno;
 
         if (sent == (signed)len)
             osi_free(buf);
@@ -981,7 +983,7 @@ static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
         else {
             packet_put_head_l(sock, buf, len);
             osi_free(buf);
-            return errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN;
+            return saved_errno == EWOULDBLOCK || saved_errno == EAGAIN;
         }
     }
 
@@ -1028,8 +1030,9 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                          * UPDATE: Since we are responsible for freeing the buffer in the
                          * write_complete_ind, it is OK to use malloc. */
 
-                        int count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
-                                MSG_NOSIGNAL | MSG_DONTWAIT);
+                        ssize_t count;
+                        OSI_NO_INTR(count = recv(fd, buffer, L2CAP_MAX_SDU_LENGTH,
+                                                 MSG_NOSIGNAL | MSG_DONTWAIT));
                         APPL_TRACE_DEBUG("btsock_l2cap_signaled - %d bytes received from socket",
                                 count);
                         if (sock->fixed_chan) {

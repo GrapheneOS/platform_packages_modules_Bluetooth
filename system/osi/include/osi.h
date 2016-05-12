@@ -1,5 +1,6 @@
 #pragma once
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -20,3 +21,6 @@
 #define COMPILE_ASSERT(x) char * DUMMY_PTR = !(x)
 
 typedef uint32_t timeout_t;
+
+// Re-run |fn| system call until the system call doesn't cause EINTR.
+#define OSI_NO_INTR(fn)  do {} while ((fn) == -1 && errno == EINTR)

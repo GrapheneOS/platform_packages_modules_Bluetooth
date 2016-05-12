@@ -4795,8 +4795,9 @@ void btif_hl_select_monitor_callback(fd_set *p_cur_set ,fd_set *p_org_set) {
                 }
                 p_dcb->p_tx_pkt = btif_hl_get_buf (p_dcb->mtu);
                 if (p_dcb) {
-                    int r = (int)recv(p_scb->socket_id[1], p_dcb->p_tx_pkt,
-                            p_dcb->mtu, MSG_DONTWAIT);
+                    ssize_t r;
+                    OSI_NO_INTR(r = recv(p_scb->socket_id[1], p_dcb->p_tx_pkt,
+                                         p_dcb->mtu, MSG_DONTWAIT));
                     if (r > 0) {
                         BTIF_TRACE_DEBUG("btif_hl_select_monitor_callback send data r =%d", r);
                         p_dcb->tx_size = r;
@@ -4851,8 +4852,13 @@ static inline int btif_hl_select_wakeup_init(fd_set* set){
 *******************************************************************************/
 static inline int btif_hl_select_wakeup(void){
     char sig_on = btif_hl_signal_select_wakeup;
-    BTIF_TRACE_DEBUG("btif_hl_select_wakeup");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+
+    BTIF_TRACE_DEBUG("%s", __func__);
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
+
+    return (int)ret;
 }
 
 /*******************************************************************************
@@ -4866,8 +4872,13 @@ static inline int btif_hl_select_wakeup(void){
 *******************************************************************************/
 static inline int btif_hl_select_close_connected(void){
     char sig_on = btif_hl_signal_select_close_connected;
-    BTIF_TRACE_DEBUG("btif_hl_select_close_connected");
-    return send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+
+    BTIF_TRACE_DEBUG("%s", __func__);
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
+
+    return (int)ret;
 }
 
 /*******************************************************************************
@@ -4881,10 +4892,13 @@ static inline int btif_hl_select_close_connected(void){
 *******************************************************************************/
 static inline int btif_hl_close_select_thread(void)
 {
-    int result = 0;
+    ssize_t result = 0;
     char sig_on = btif_hl_signal_select_exit;
-    BTIF_TRACE_DEBUG("btif_hl_signal_select_exit");
-    result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0);
+
+    BTIF_TRACE_DEBUG("%", __func__);
+
+    OSI_NO_INTR(result = send(signal_fds[1], &sig_on, sizeof(sig_on), 0));
+
     if (btif_is_enabled())
     {
         /* Wait for the select_thread_id to exit if BT is still enabled
@@ -4895,7 +4909,8 @@ static inline int btif_hl_close_select_thread(void)
         }
     }
     list_free(soc_queue);
-    return result;
+
+    return (int)result;
 }
 
 /*******************************************************************************
@@ -4910,9 +4925,13 @@ static inline int btif_hl_close_select_thread(void)
 static inline int btif_hl_select_wake_reset(void){
     char sig_recv = 0;
 
-    BTIF_TRACE_DEBUG("btif_hl_select_wake_reset");
-    recv(signal_fds[0], &sig_recv, sizeof(sig_recv), MSG_WAITALL);
-    return(int)sig_recv;
+    BTIF_TRACE_DEBUG("%s", __func__);
+
+    ssize_t r;
+    OSI_NO_INTR(r = recv(signal_fds[0], &sig_recv, sizeof(sig_recv),
+                         MSG_WAITALL));
+
+    return (int)sig_recv;
 }
 /*******************************************************************************
 **
@@ -4976,6 +4995,8 @@ static void *btif_hl_select_thread(void *arg){
         BTIF_TRACE_DEBUG("select unblocked ret=%d", ret);
         if (ret == -1)
         {
+            if (errno == EINTR)
+                continue;
             BTIF_TRACE_DEBUG("select() ret -1, exit the thread");
             btif_hl_thread_cleanup();
             select_thread_id = -1;
