@@ -86,8 +86,6 @@ typedef enum {
     BTIF_GATTC_OPEN,
     BTIF_GATTC_CLOSE,
     BTIF_GATTC_SEARCH_SERVICE,
-    BTIF_GATTC_READ_CHAR,
-    BTIF_GATTC_READ_CHAR_DESCR,
     BTIF_GATTC_WRITE_CHAR,
     BTIF_GATTC_WRITE_CHAR_DESCR,
     BTIF_GATTC_EXECUTE_WRITE,
@@ -1226,14 +1224,6 @@ static void btgattc_handle_event(uint16_t event, char* p_param)
             break;
         }
 
-        case BTIF_GATTC_READ_CHAR:
-            BTA_GATTC_ReadCharacteristic(p_cb->conn_id, p_cb->handle, p_cb->auth_req);
-            break;
-
-        case BTIF_GATTC_READ_CHAR_DESCR:
-            BTA_GATTC_ReadCharDescr(p_cb->conn_id, p_cb->handle, p_cb->auth_req);
-            break;
-
         case BTIF_GATTC_WRITE_CHAR:
             BTA_GATTC_WriteCharValue(p_cb->conn_id, p_cb->handle, p_cb->write_type,
                                      p_cb->len, p_cb->value, p_cb->auth_req);
@@ -1700,27 +1690,18 @@ static bt_status_t btif_gattc_get_gatt_db(int conn_id)
                                  (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-
-static bt_status_t btif_gattc_read_char(int conn_id, uint16_t handle, int auth_req)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.handle = (uint16_t) handle;
-    btif_cb.auth_req = (uint8_t) auth_req;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_READ_CHAR,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_read_char(int conn_id, uint16_t handle,
+                                        int auth_req) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(&BTA_GATTC_ReadCharacteristic, conn_id, handle, auth_req));
 }
 
-static bt_status_t btif_gattc_read_char_descr(int conn_id, uint16_t handle, int auth_req)
-{
-    CHECK_BTGATT_INIT();
-    btif_gattc_cb_t btif_cb;
-    btif_cb.conn_id = (uint16_t) conn_id;
-    btif_cb.handle = (uint16_t) handle;
-    btif_cb.auth_req = (uint8_t) auth_req;
-    return btif_transfer_context(btgattc_handle_event, BTIF_GATTC_READ_CHAR_DESCR,
-                                 (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
+static bt_status_t btif_gattc_read_char_descr(int conn_id, uint16_t handle,
+                                              int auth_req) {
+  CHECK_BTGATT_INIT();
+  return do_in_jni_thread(
+      Bind(&BTA_GATTC_ReadCharDescr, conn_id, handle, auth_req));
 }
 
 static bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
