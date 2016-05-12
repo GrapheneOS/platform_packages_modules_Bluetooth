@@ -664,62 +664,6 @@ static void btif_gattc_upstreams_evt(uint16_t event, char* p_param)
             );
             break;
 
-        case BTA_GATTC_BTH_SCAN_CFG_EVT:
-        {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->batchscan_cfg_storage_cb
-                , p_data->client_if
-                , p_data->status
-            );
-            break;
-        }
-
-        case BTA_GATTC_BTH_SCAN_ENB_EVT:
-        {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->batchscan_enb_disable_cb
-                    , ENABLE_BATCH_SCAN
-                    , p_data->client_if
-                    , p_data->status);
-            break;
-        }
-
-        case BTA_GATTC_BTH_SCAN_DIS_EVT:
-        {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->batchscan_enb_disable_cb
-                    , DISABLE_BATCH_SCAN
-                    , p_data->client_if
-                    , p_data->status);
-            break;
-        }
-
-        case BTA_GATTC_BTH_SCAN_THR_EVT:
-        {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            HAL_CBACK(bt_gatt_callbacks, client->batchscan_threshold_cb
-                    , p_data->client_if);
-            break;
-        }
-
-        case BTA_GATTC_BTH_SCAN_RD_EVT:
-        {
-            btgatt_batch_track_cb_t *p_data = (btgatt_batch_track_cb_t*) p_param;
-            uint8_t *p_rep_data = NULL;
-
-            if (p_data->read_reports.data_len > 0 && NULL != p_data->read_reports.p_rep_data)
-            {
-                p_rep_data = (uint8_t *)osi_malloc(p_data->read_reports.data_len);
-                memcpy(p_rep_data, p_data->read_reports.p_rep_data, p_data->read_reports.data_len);
-            }
-
-            HAL_CBACK(bt_gatt_callbacks, client->batchscan_reports_cb
-                    , p_data->client_if, p_data->status, p_data->read_reports.report_format
-                    , p_data->read_reports.num_records, p_data->read_reports.data_len, p_rep_data);
-            osi_free(p_rep_data);
-            break;
-        }
-
         default:
             LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __FUNCTION__, event);
             break;
@@ -794,98 +738,67 @@ static void bta_gattc_set_adv_data_cback(tBTA_STATUS call_status)
                           (char*) &btif_cb, sizeof(btif_gattc_cb_t), NULL);
 }
 
-static void bta_batch_scan_setup_cb (tBTA_BLE_BATCH_SCAN_EVT evt,
-                                            tBTA_DM_BLE_REF_VALUE ref_value, tBTA_STATUS status)
-{
-    UINT8 upevt = 0;
-    btgatt_batch_track_cb_t btif_scan_track_cb;
+static void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
+                                    tBTA_DM_BLE_REF_VALUE ref_value,
+                                    tBTA_STATUS status) {
+  BTIF_TRACE_DEBUG("bta_batch_scan_setup_cb-Status:%x, client_if:%d, evt=%d",
+                   status, ref_value, evt);
 
-    btif_scan_track_cb.status = status;
-    btif_scan_track_cb.client_if = ref_value;
-    BTIF_TRACE_DEBUG("bta_batch_scan_setup_cb-Status:%x, client_if:%d, evt=%d",
-            status, ref_value, evt);
-
-    switch(evt)
-    {
-        case BTA_BLE_BATCH_SCAN_ENB_EVT:
-        {
-           upevt = BTA_GATTC_BTH_SCAN_ENB_EVT;
-           break;
-        }
-
-        case BTA_BLE_BATCH_SCAN_DIS_EVT:
-        {
-           upevt = BTA_GATTC_BTH_SCAN_DIS_EVT;
-           break;
-        }
-
-        case BTA_BLE_BATCH_SCAN_CFG_STRG_EVT:
-        {
-           upevt = BTA_GATTC_BTH_SCAN_CFG_EVT;
-           break;
-        }
-
-        case BTA_BLE_BATCH_SCAN_DATA_EVT:
-        {
-           upevt = BTA_GATTC_BTH_SCAN_RD_EVT;
-           break;
-        }
-
-        case BTA_BLE_BATCH_SCAN_THRES_EVT:
-        {
-           upevt = BTA_GATTC_BTH_SCAN_THR_EVT;
-           break;
-        }
-
-        default:
-            return;
+  switch (evt) {
+    case BTA_BLE_BATCH_SCAN_ENB_EVT: {
+      CLI_CBACK_IN_JNI(batchscan_enb_disable_cb, 1, ref_value, status);
+      return;
     }
 
-    btif_transfer_context(btif_gattc_upstreams_evt, upevt,(char*) &btif_scan_track_cb,
-                          sizeof(btgatt_batch_track_cb_t), NULL);
+    case BTA_BLE_BATCH_SCAN_DIS_EVT: {
+      CLI_CBACK_IN_JNI(batchscan_enb_disable_cb, 0, ref_value, status);
+      return;
+    }
 
+    case BTA_BLE_BATCH_SCAN_CFG_STRG_EVT: {
+      CLI_CBACK_IN_JNI(batchscan_cfg_storage_cb, ref_value, status);
+      return;
+    }
+
+    case BTA_BLE_BATCH_SCAN_DATA_EVT: {
+      CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0, 0,
+                       nullptr);
+      return;
+    }
+
+    case BTA_BLE_BATCH_SCAN_THRES_EVT: {
+      CLI_CBACK_IN_JNI(batchscan_threshold_cb, ref_value);
+      return;
+    }
+
+    default:
+      return;
+  }
 }
 
 static void bta_batch_scan_threshold_cb(tBTA_DM_BLE_REF_VALUE ref_value)
 {
-    btgatt_batch_track_cb_t btif_scan_track_cb;
-    btif_scan_track_cb.status = 0;
-    btif_scan_track_cb.client_if = ref_value;
-
-    BTIF_TRACE_DEBUG("%s - client_if:%d",__FUNCTION__, ref_value);
-
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_THR_EVT,
-                          (char*) &btif_scan_track_cb, sizeof(btif_gattc_cb_t), NULL);
+    CLI_CBACK_IN_JNI(batchscan_threshold_cb, ref_value);
 }
 
 static void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value, UINT8 report_format,
                                             UINT8 num_records, UINT16 data_len,
                                             UINT8* p_rep_data, tBTA_STATUS status)
 {
-    btgatt_batch_track_cb_t btif_scan_track_cb;
-    memset(&btif_scan_track_cb, 0, sizeof(btgatt_batch_track_cb_t));
-    BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d",__FUNCTION__, ref_value, status, num_records,
-                                    data_len);
+  BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d", __FUNCTION__, ref_value,
+                   status, num_records, data_len);
 
-    btif_scan_track_cb.status = status;
+  if (data_len > 0) {
+    uint8_t *data = new uint8_t(data_len);
+    memcpy(data, p_rep_data, data_len);
+    osi_free(p_rep_data);
 
-    btif_scan_track_cb.client_if = ref_value;
-    btif_scan_track_cb.read_reports.report_format = report_format;
-    btif_scan_track_cb.read_reports.data_len = data_len;
-    btif_scan_track_cb.read_reports.num_records = num_records;
-
-    if (data_len > 0)
-    {
-        btif_scan_track_cb.read_reports.p_rep_data = (UINT8 *)osi_malloc(data_len);
-        memcpy(btif_scan_track_cb.read_reports.p_rep_data, p_rep_data, data_len);
-        osi_free(p_rep_data);
-    }
-
-    btif_transfer_context(btif_gattc_upstreams_evt, BTA_GATTC_BTH_SCAN_RD_EVT,
-        (char*) &btif_scan_track_cb, sizeof(btgatt_batch_track_cb_t), NULL);
-
-    if (data_len > 0)
-        osi_free_and_reset((void **)&btif_scan_track_cb.read_reports.p_rep_data);
+    CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
+                     num_records, data_len, Owned(data));
+  } else {
+    CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
+                     num_records, 0, nullptr);
+  }
 }
 
 static void bta_scan_results_cb (tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data)
