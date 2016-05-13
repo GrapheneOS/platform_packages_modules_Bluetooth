@@ -1233,29 +1233,16 @@ void bta_gattc_confirm(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
-    uint8_t               event;
-    tBTA_GATTC          cb_data;
-    memset(&cb_data, 0, sizeof(tBTA_GATTC));
+    GATT_READ_OP_CB cb = p_clcb->p_q_cmd->api_read.read_cb;
+    void *my_cb_data = p_clcb->p_q_cmd->api_read.read_cb_data;
 
-    cb_data.read.status     = p_data->status;
-
-    if (p_data->p_cmpl != NULL && p_data->status == BTA_GATT_OK)
-    {
-        cb_data.read.handle = p_data->p_cmpl->att_value.handle;
-
-        cb_data.read.len = p_data->p_cmpl->att_value.len;
-        memcpy(cb_data.read.value, p_data->p_cmpl->att_value.value, cb_data.read.len);
-    } else {
-        cb_data.read.handle = p_clcb->p_q_cmd->api_read.handle;
-    }
-
-    event = p_clcb->p_q_cmd->api_read.cmpl_evt;
-    cb_data.read.conn_id = p_clcb->bta_conn_id;
-
+    uint16_t handle = p_clcb->p_q_cmd->api_read.handle;
     osi_free_and_reset((void **)&p_clcb->p_q_cmd);
-    /* read complete, callback */
-    ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
 
+    if (cb) {
+        cb(p_clcb->bta_conn_id, p_data->status, handle,
+            p_data->p_cmpl->att_value.len, p_data->p_cmpl->att_value.value, my_cb_data);
+    }
 }
 /*******************************************************************************
 **
@@ -1268,27 +1255,14 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 *******************************************************************************/
 void bta_gattc_write_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
-    tBTA_GATTC      cb_data = {0};
-    uint8_t          event;
-
-    memset(&cb_data, 0, sizeof(tBTA_GATTC));
-
-    cb_data.write.status     = p_data->status;
-    cb_data.write.handle = p_data->p_cmpl->att_value.handle;
-
-    if (p_clcb->p_q_cmd->api_write.hdr.event == BTA_GATTC_API_WRITE_EVT &&
-        p_clcb->p_q_cmd->api_write.write_type == BTA_GATTC_WRITE_PREPARE)
-
-        event = BTA_GATTC_PREP_WRITE_EVT;
-
-    else
-        event = p_clcb->p_q_cmd->api_write.cmpl_evt;
+    GATT_WRITE_OP_CB cb = p_clcb->p_q_cmd->api_write.write_cb;
+    void *my_cb_data = p_clcb->p_q_cmd->api_write.write_cb_data;
 
     osi_free_and_reset((void **)&p_clcb->p_q_cmd);
-    cb_data.write.conn_id = p_clcb->bta_conn_id;
-    /* write complete, callback */
-    ( *p_clcb->p_rcb->p_cback)(event, (tBTA_GATTC *)&cb_data);
 
+    if (cb) {
+        cb(p_clcb->bta_conn_id, p_data->status, p_data->p_cmpl->att_value.handle, my_cb_data);
+    }
 }
 /*******************************************************************************
 **
