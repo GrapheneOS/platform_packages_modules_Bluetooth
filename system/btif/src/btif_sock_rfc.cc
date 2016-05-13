@@ -917,6 +917,7 @@ int bta_co_rfc_data_outgoing(void *user_data, uint8_t *buf, uint16_t size) {
 
   ssize_t received;
   OSI_NO_INTR(received = recv(slot->fd, buf, size, 0));
+
   if(received == size) {
     ret = true;
   } else {
