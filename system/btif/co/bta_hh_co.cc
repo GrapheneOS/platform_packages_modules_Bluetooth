@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <linux/uhid.h>
 #include <unistd.h>
+#include "osi/include/osi.h"
 #include "btif_hh.h"
 #include "bta_api.h"
 #include "bta_hh_api.h"
@@ -58,8 +59,9 @@ void uhid_set_non_blocking(int fd)
 /*Internal function to perform UHID write and error checking*/
 static int uhid_write(int fd, const struct uhid_event *ev)
 {
-    ssize_t ret = write(fd, ev, sizeof(*ev));
+    ssize_t ret;
 
+    OSI_NO_INTR(ret = write(fd, ev, sizeof(*ev)));
     if (ret < 0){
         int rtn = -errno;
         APPL_TRACE_ERROR("%s: Cannot write to uhid:%s",
@@ -197,7 +199,6 @@ static void *btif_hh_poll_event_thread(void *arg)
     btif_hh_device_t *p_dev = (btif_hh_device_t*)arg;
     APPL_TRACE_DEBUG("%s: Thread created fd = %d", __func__, p_dev->fd);
     struct pollfd pfds[1];
-    int ret;
 
     pfds[0].fd = p_dev->fd;
     pfds[0].events = POLLIN;
@@ -206,7 +207,8 @@ static void *btif_hh_poll_event_thread(void *arg)
     uhid_set_non_blocking(p_dev->fd);
 
     while(p_dev->hh_keep_polling){
-        ret = poll(pfds, 1, 50);
+        int ret;
+        OSI_NO_INTR(ret = poll(pfds, 1, 50));
         if (ret < 0) {
             APPL_TRACE_ERROR("%s: Cannot poll for fds: %s\n", __func__, strerror(errno));
             break;
