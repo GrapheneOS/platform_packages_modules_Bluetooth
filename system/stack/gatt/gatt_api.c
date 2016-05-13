@@ -1191,7 +1191,7 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
     UINT8        i_gatt_if=0;
     tGATT_IF     gatt_if=0;
 
-    GATT_TRACE_API ("GATT_Register");
+    GATT_TRACE_API("%s", __func__);
     gatt_dbg_display_uuid(*p_app_uuid128);
 
     for (i_gatt_if = 0, p_reg = gatt_cb.cl_rcb; i_gatt_if < GATT_MAX_APPS; i_gatt_if++, p_reg++)
@@ -1215,11 +1215,14 @@ tGATT_IF GATT_Register (tBT_UUID *p_app_uuid128, tGATT_CBACK *p_cb_info)
             p_reg->app_cb      = *p_cb_info;
             p_reg->in_use      = TRUE;
 
-            break;
+            GATT_TRACE_API("%s: allocated gatt_if=%d", __func__, gatt_if);
+            return gatt_if;
         }
     }
-    GATT_TRACE_API ("allocated gatt_if=%d", gatt_if);
-    return gatt_if;
+
+    GATT_TRACE_ERROR("%s: can't Register GATT client, MAX client %d reached!",
+                     __func__, GATT_MAX_APPS);
+    return 0;
 }
 
 
