@@ -134,7 +134,7 @@ static future_t *init(void) {
   if (is_factory_reset())
     delete_config_files();
 
-  std::string file_source;
+  const char *file_source = NULL;
 
   config = btif_config_open(CONFIG_FILE_PATH);
   btif_config_source = ORIGINAL;
@@ -158,8 +158,8 @@ static future_t *init(void) {
     file_source = "Empty";
   }
 
-  if (!file_source.empty())
-    config_set_string(config, INFO_SECTION, FILE_SOURCE, file_source.c_str());
+  if (file_source != NULL)
+    config_set_string(config, INFO_SECTION, FILE_SOURCE, file_source);
 
   if (!config) {
     LOG_ERROR(LOG_TAG, "%s unable to allocate a config object.", __func__);
@@ -480,7 +480,6 @@ static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_para
 
   pthread_mutex_lock(&lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
-  sync();
   config_t *config_paired = config_new_clone(config);
   btif_config_remove_unpaired(config_paired);
   config_save(config_paired, CONFIG_FILE_PATH);
