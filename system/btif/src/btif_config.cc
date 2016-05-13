@@ -480,6 +480,7 @@ static void btif_config_write(UNUSED_ATTR UINT16 event, UNUSED_ATTR char *p_para
 
   pthread_mutex_lock(&lock);
   rename(CONFIG_FILE_PATH, CONFIG_BACKUP_PATH);
+  sync();
   config_t *config_paired = config_new_clone(config);
   btif_config_remove_unpaired(config_paired);
   config_save(config_paired, CONFIG_FILE_PATH);
