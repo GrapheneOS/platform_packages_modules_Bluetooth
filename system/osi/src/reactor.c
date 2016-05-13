@@ -237,10 +237,7 @@ static reactor_status_t run_reactor(reactor_t *reactor, int iterations) {
     pthread_mutex_unlock(&reactor->list_lock);
 
     int ret;
-    do {
-      ret = epoll_wait(reactor->epoll_fd, events, MAX_EVENTS, -1);
-    } while (ret == -1 && errno == EINTR);
-
+    OSI_NO_INTR(ret = epoll_wait(reactor->epoll_fd, events, MAX_EVENTS, -1));
     if (ret == -1) {
       LOG_ERROR(LOG_TAG, "%s error in epoll_wait: %s", __func__, strerror(errno));
       reactor->is_running = false;

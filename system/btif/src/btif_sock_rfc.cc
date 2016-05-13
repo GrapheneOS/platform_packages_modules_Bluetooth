@@ -747,10 +747,12 @@ static sent_status_t send_data_to_app(int fd, BT_HDR *p_buf) {
   if (p_buf->len == 0)
     return SENT_ALL;
 
-  ssize_t sent = send(fd, p_buf->data + p_buf->offset, p_buf->len, MSG_DONTWAIT);
+  ssize_t sent;
+  OSI_NO_INTR(sent = send(fd, p_buf->data + p_buf->offset, p_buf->len,
+                          MSG_DONTWAIT));
 
   if (sent == -1) {
-    if (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
+    if (errno == EAGAIN || errno == EWOULDBLOCK)
       return SENT_NONE;
     LOG_ERROR(LOG_TAG, "%s error writing RFCOMM data back to app: %s", __func__, strerror(errno));
     return SENT_FAILED;
@@ -909,12 +911,13 @@ int bta_co_rfc_data_outgoing(void *user_data, uint8_t *buf, uint16_t size) {
 
   uint32_t id = (uintptr_t)user_data;
   int ret = false;
-  int received;
   rfc_slot_t *slot = find_rfc_slot_by_id(id);
   if (!slot)
     goto out;
 
-  received = recv(slot->fd, buf, size, 0);
+  ssize_t received;
+  OSI_NO_INTR(received = recv(slot->fd, buf, size, 0));
+
   if(received == size) {
     ret = true;
   } else {
