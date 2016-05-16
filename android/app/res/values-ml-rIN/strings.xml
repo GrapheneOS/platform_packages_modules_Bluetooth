@@ -128,6 +128,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"അക്കൗണ്ട് തിരഞ്ഞെടുക്കാനാകില്ല. 0 സ്ലോട്ടുകൾ ശേഷിക്കുന്നു"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth ഓഡിയോ കണക്‌റ്റുചെയ്തു"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth ഓഡിയോ വിച്ഛേദിച്ചു"</string>
-    <!-- no translation found for a2dp_sink_mbs_label (7566075853395412558) -->
-    <skip />
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth ഓഡിയോ"</string>
 </resources>

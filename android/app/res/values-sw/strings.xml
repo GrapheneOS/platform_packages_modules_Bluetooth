@@ -130,6 +130,5 @@
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Haiwezi kuchagua akaunti. Nafasi 0 zimesalia"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Imeunganisha sauti ya Bluetooth"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Imeondoa sauti ya Bluetooth"</string>
-    <!-- no translation found for a2dp_sink_mbs_label (7566075853395412558) -->
-    <skip />
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Sauti ya Bluetooth"</string>
 </resources>
