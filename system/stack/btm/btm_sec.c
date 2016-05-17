@@ -994,6 +994,12 @@ tBTM_STATUS btm_sec_bond_by_transport (BD_ADDR bd_addr, tBT_TRANSPORT transport,
         return(BTM_NO_RESOURCES);
     }
 
+    if (!controller_get_interface()->get_is_ready())
+    {
+        BTM_TRACE_ERROR ("%s controller module is not ready", __func__);
+        return(BTM_NO_RESOURCES);
+    }
+
     BTM_TRACE_DEBUG ("before update sec_flags=0x%x", p_dev_rec->sec_flags);
 
     /* Finished if connection is active and already paired */
