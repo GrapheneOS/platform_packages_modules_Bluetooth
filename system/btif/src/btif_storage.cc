@@ -133,11 +133,6 @@
     #error "btif storage entry size exceeds unv max line size"
 #endif
 
-#define BTIF_STORAGE_HL_APP          "hl_app"
-#define BTIF_STORAGE_HL_APP_CB       "hl_app_cb"
-#define BTIF_STORAGE_HL_APP_DATA     "hl_app_data_"
-#define BTIF_STORAGE_HL_APP_MDL_DATA "hl_app_mdl_data_"
-
 /************************************************************************************
 **  Local type definitions
 ************************************************************************************/
@@ -1418,46 +1413,6 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr)
     btif_config_remove(bdstr, "HidDescriptor");
     btif_config_save();
     return BT_STATUS_SUCCESS;
-}
-
-/*******************************************************************************
-**
-** Function         btif_storage_read_hl_apps_cb
-**
-** Description      BTIF storage API - Read HL application control block from NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size)
-{
-    bt_status_t bt_status = BT_STATUS_SUCCESS;
-
-    if (!btif_config_exist(BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB)) {
-        memset(value, 0, value_size);
-        if (!btif_config_set_bin(BTIF_STORAGE_HL_APP,BTIF_STORAGE_HL_APP_CB,
-                             (const uint8_t *)value, value_size)) {
-            bt_status = BT_STATUS_FAIL;
-        } else {
-            btif_config_save();
-        }
-    } else {
-        size_t read_size = value_size;
-        if (!btif_config_get_bin(BTIF_STORAGE_HL_APP, BTIF_STORAGE_HL_APP_CB,
-                             (uint8_t *)value, &read_size)) {
-            bt_status = BT_STATUS_FAIL;
-        } else {
-            if (read_size != (size_t)value_size) {
-                BTIF_TRACE_ERROR("%s  value_size=%d read_size=%d",
-                                  __FUNCTION__, value_size, read_size);
-                bt_status = BT_STATUS_FAIL;
-            }
-        }
-    }
-
-    BTIF_TRACE_DEBUG("%s  status=%d value_size=%d", __FUNCTION__, bt_status, value_size);
-    return bt_status;
 }
 
 /*******************************************************************************
