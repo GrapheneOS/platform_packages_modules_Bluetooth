@@ -67,6 +67,11 @@ static char *l2c_csm_get_event_name (UINT16 event);
 *******************************************************************************/
 void l2c_csm_execute (tL2C_CCB *p_ccb, UINT16 event, void *p_data)
 {
+    if (!l2cu_is_ccb_active(p_ccb)) {
+        L2CAP_TRACE_WARNING("%s CCB not in use, event (%d) cannot be processed", __func__, event);
+        return;
+    }
+
     switch (p_ccb->chnl_state)
     {
     case CST_CLOSED:
