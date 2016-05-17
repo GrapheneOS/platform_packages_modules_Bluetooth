@@ -24,6 +24,7 @@
  *
  ******************************************************************************/
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -39,6 +40,7 @@
 #include "btu.h"
 #include "btm_api.h"
 #include "btm_int.h"
+#include "btcore/include/bdaddr.h"
 
 
 extern fixed_queue_t *btu_general_alarm_queue;
@@ -450,7 +452,7 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
             else
 #endif
        {
-          #if (L2CAP_NUM_FIXED_CHNLS > 0)
+#if (L2CAP_NUM_FIXED_CHNLS > 0)
           /* If we are going to re-use the LCB without dropping it, release all fixed channels
           here */
           int xx;
@@ -465,6 +467,19 @@ BOOLEAN l2c_link_hci_disc_comp (UINT16 handle, UINT8 reason)
                   (*l2cb.fixed_reg[xx].pL2CA_FixedConn_Cb)(xx + L2CAP_FIRST_FIXED_CHNL,
                           p_lcb->remote_bd_addr, FALSE, p_lcb->disc_reason, BT_TRANSPORT_BR_EDR);
 #endif
+                    if (p_lcb->p_fixed_ccbs[xx] == NULL) {
+                      bdstr_t bd_addr_str = {0};
+                      L2CAP_TRACE_ERROR("%s: unexpected p_fixed_ccbs[%d] is NULL remote_bd_addr = %s p_lcb = %p in_use = %d link_state = %d handle = %d link_role = %d is_bonding = %d disc_reason = %d transport = %d",
+                                        __func__, xx,
+                                        bdaddr_to_string((bt_bdaddr_t *)&p_lcb->remote_bd_addr,
+                                                         bd_addr_str,
+                                                         sizeof(bd_addr_str)),
+                                        p_lcb, p_lcb->in_use,
+                                        p_lcb->link_state, p_lcb->handle,
+                                        p_lcb->link_role, p_lcb->is_bonding,
+                                        p_lcb->disc_reason, p_lcb->transport);
+                    }
+                    assert(p_lcb->p_fixed_ccbs[xx] != NULL);
                     l2cu_release_ccb (p_lcb->p_fixed_ccbs[xx]);
 
                     p_lcb->p_fixed_ccbs[xx] = NULL;
