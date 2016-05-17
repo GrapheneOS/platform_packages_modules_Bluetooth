@@ -154,78 +154,6 @@ bt_status_t btif_storage_load_bonded_devices(void);
 
 /*******************************************************************************
 **
-** Function         btif_storage_read_hl_apps_cb
-**
-** Description      BTIF storage API - Read HL application control block from NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_read_hl_apps_cb(char *value, int value_size);
-
-/*******************************************************************************
-**
-** Function         btif_storage_write_hl_apps_cb
-**
-** Description      BTIF storage API - Write HL application control block to NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_write_hl_apps_cb(char *value, int value_size);
-
-/*******************************************************************************
-**
-** Function         btif_storage_read_hl_apps_cb
-**
-** Description      BTIF storage API - Read HL application configuration from NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_read_hl_app_data(UINT8 app_idx, char *value, int value_size);
-
-/*******************************************************************************
-**
-** Function         btif_storage_write_hl_app_data
-**
-** Description      BTIF storage API - Write HL application configuration to NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_write_hl_app_data(UINT8 app_idx, char *value, int value_size);
-
-/*******************************************************************************
-**
-** Function         btif_storage_read_hl_mdl_data
-**
-** Description      BTIF storage API - Read HL application MDL configuration from NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_read_hl_mdl_data(UINT8 app_idx, char *value, int value_size);
-
-/*******************************************************************************
-**
-** Function         btif_storage_write_hl_mdl_data
-**
-** Description      BTIF storage API - Write HL application MDL configuration from NVRAM
-**
-** Returns          BT_STATUS_SUCCESS if the operation was successful,
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-bt_status_t btif_storage_write_hl_mdl_data(UINT8 app_idx, char *value, int value_size);
-
-/*******************************************************************************
-**
 ** Function         btif_storage_add_hid_device_info
 **
 ** Description      BTIF storage API - Adds the hid information of bonded hid devices-to NVRAM
@@ -304,20 +232,6 @@ bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
                                               UINT8 addr_type);
 
 #endif
-/*******************************************************************************
-**
-** Function         btif_storage_get_remote_version
-**
-** Description      Fetch remote version info on cached remote device
-**
-** Returns          BT_STATUS_SUCCESS if found
-**                  BT_STATUS_FAIL otherwise
-**
-*******************************************************************************/
-
-bt_status_t btif_storage_get_remote_version(const bt_bdaddr_t *remote_bd_addr,
-                                  bt_remote_version_t *p_ver);
-
 /******************************************************************************
  * Exported for unit tests
  *****************************************************************************/
