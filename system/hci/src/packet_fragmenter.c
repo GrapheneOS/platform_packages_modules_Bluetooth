@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <string.h>
 
+#include "bt_target.h"
 #include "buffer_allocator.h"
 #include "device/include/controller.h"
 #include "hci_internals.h"
@@ -119,6 +120,10 @@ static void fragment_and_dispatch(BT_HDR *packet) {
   callbacks->fragmented(packet, true);
 }
 
+static bool check_uint16_overflow(uint16_t a, uint16_t b) {
+  return (UINT16_MAX - a) < b;
+}
+
 static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
   if ((packet->event & MSG_EVT_MASK) == MSG_HC_TO_STACK_HCI_ACL) {
     uint8_t *stream = packet->data;
@@ -145,7 +150,23 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
         buffer_allocator->free(partial_packet);
       }
 
+      if (acl_length < L2CAP_HEADER_SIZE) {
+        LOG_WARN(LOG_TAG, "%s L2CAP packet too small (%d < %d). Dropping it.", __func__, packet->len, L2CAP_HEADER_SIZE);
+        buffer_allocator->free(packet);
+        return;
+      }
+
       uint16_t full_length = l2cap_length + L2CAP_HEADER_SIZE + HCI_ACL_PREAMBLE_SIZE;
+
+      // Check for buffer overflow and that the full packet size + BT_HDR size is less than
+      // the max buffer size
+      if (check_uint16_overflow(l2cap_length, (L2CAP_HEADER_SIZE + HCI_ACL_PREAMBLE_SIZE)) ||
+          ((full_length + sizeof(BT_HDR)) > BT_DEFAULT_BUFFER_SIZE)) {
+        LOG_ERROR(LOG_TAG, "%s L2CAP packet has invalid length (%d). Dropping it.", __func__, l2cap_length);
+        buffer_allocator->free(packet);
+        return;
+      }
+
       if (full_length <= packet->len) {
         if (full_length < packet->len)
           LOG_WARN(LOG_TAG, "%s found l2cap full length %d less than the hci length %d.", __func__, l2cap_length, packet->len);
