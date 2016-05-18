@@ -35,6 +35,7 @@
 #include "bta_hh_api.h"
 #include "btif_util.h"
 #include "bta_hh_co.h"
+#include "btcore/include/bdaddr.h"
 
 const char *dev_path = "/dev/uhid";
 

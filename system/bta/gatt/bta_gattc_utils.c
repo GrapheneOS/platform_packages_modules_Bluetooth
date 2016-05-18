@@ -33,7 +33,6 @@
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
 #include "btcore/include/bdaddr.h"
-#include "btif/include/btif_util.h"
 #include "bt_common.h"
 #include "l2c_api.h"
 #include "utl.h"
