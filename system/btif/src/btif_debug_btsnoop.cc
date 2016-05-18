@@ -30,7 +30,7 @@
 
 // Total btsnoop memory log buffer size
 #ifndef BTSNOOP_MEM_BUFFER_SIZE
-static const size_t BTSNOOP_MEM_BUFFER_SIZE = (128 * 1024);
+static const size_t BTSNOOP_MEM_BUFFER_SIZE = (256 * 1024);
 #endif
 
 // Block size for copying buffers (for compression/encoding etc.)
@@ -42,27 +42,14 @@ static const uint8_t MAX_LINE_LENGTH = 128;
 static ringbuffer_t *buffer = NULL;
 static uint64_t last_timestamp_ms = 0;
 
+static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data, size_t length);
+
 static void btsnoop_cb(const uint16_t type, const uint8_t *data, const size_t length) {
   btsnooz_header_t header;
 
-  // Only log packet content for HCI commands and events (privacy).
-  size_t included_length = 0;
-  switch (type) {
-    case BT_EVT_TO_LM_HCI_CMD:
-      included_length = length;
-      break;
-    case BT_EVT_TO_BTU_HCI_EVT:
-      included_length = length;
-      break;
-    case BT_EVT_TO_LM_HCI_ACL:
-    case BT_EVT_TO_BTU_HCI_ACL:
-      included_length = 4;
-      break;
-    case BT_EVT_TO_LM_HCI_SCO:
-    case BT_EVT_TO_BTU_HCI_SCO:
-      included_length = 2;
-      break;
-  }
+  size_t included_length = btsnoop_calculate_packet_length(type, data, length);
+  if (included_length == 0)
+    return;
 
   // Make room in the ring buffer
 
@@ -83,6 +70,54 @@ static void btsnoop_cb(const uint16_t type, const uint8_t *data, const size_t le
 
   ringbuffer_insert(buffer, (uint8_t *)&header, sizeof(btsnooz_header_t));
   ringbuffer_insert(buffer, data, included_length);
+}
+
+static size_t btsnoop_calculate_packet_length(uint16_t type, const uint8_t *data, size_t length) {
+  static const size_t HCI_ACL_HEADER_SIZE = 4;
+  static const size_t L2CAP_HEADER_SIZE = 4;
+  static const size_t L2CAP_CID_OFFSET = (HCI_ACL_HEADER_SIZE + 2);
+  static const uint16_t L2CAP_SIGNALING_CID = 0x0001;
+
+  // Maximum amount of ACL data to log.
+  // Enough for an RFCOMM frame up to the frame check;
+  // not enough for a HID report or audio data.
+  static const size_t MAX_HCI_ACL_LEN = 14;
+
+  // Calculate packet length to be included
+
+  switch (type) {
+    case BT_EVT_TO_LM_HCI_CMD:
+      return length;
+
+    case BT_EVT_TO_BTU_HCI_EVT:
+      return length;
+
+    case BT_EVT_TO_LM_HCI_ACL:
+    case BT_EVT_TO_BTU_HCI_ACL:
+    {
+      size_t len_hci_acl = HCI_ACL_HEADER_SIZE + L2CAP_HEADER_SIZE;
+      // Check if we have enough data for an L2CAP header
+      if (length > len_hci_acl) {
+        uint16_t l2cap_cid = data[L2CAP_CID_OFFSET] | (data[L2CAP_CID_OFFSET + 1] << 8);
+        if (l2cap_cid == L2CAP_SIGNALING_CID) {
+          // For the signaling CID, take the full packet.
+          // That way, the PSM setup is captured, allowing decoding of PSMs down the road.
+          return length;
+        } else {
+          // Otherwise, return as much as we reasonably can
+          len_hci_acl = MAX_HCI_ACL_LEN;
+        }
+      }
+      return len_hci_acl < length ? len_hci_acl : length;
+    }
+
+    case BT_EVT_TO_LM_HCI_SCO:
+    case BT_EVT_TO_BTU_HCI_SCO:
+      // We're not logging SCO packets at this time since they are not currently used.
+      // FALLTHROUGH
+    default:
+      return 0;
+  }
 }
 
 static bool btsnoop_compress(ringbuffer_t *rb_dst, ringbuffer_t *rb_src) {
