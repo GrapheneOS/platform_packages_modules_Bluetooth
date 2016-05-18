@@ -401,18 +401,21 @@ static void uipc_flush_ch_locked(tUIPC_CH_ID ch_id)
     {
         int ret;
         OSI_NO_INTR(ret = poll(&pfd, 1, 1));
+        if (ret == 0) {
+            BTIF_TRACE_VERBOSE("%s(): poll() timeout - nothing to do. Exiting",
+                               __func__);
+            return;
+        }
+        if (ret < 0) {
+            BTIF_TRACE_WARNING("%s() - poll() failed: return %d errno %d (%s). Exiting",
+                               __func__, ret, errno, strerror(errno));
+            return;
+        }
         BTIF_TRACE_VERBOSE("%s() - polling fd %d, revents: 0x%x, ret %d",
                 __FUNCTION__, pfd.fd, pfd.revents, ret);
         if (pfd.revents & (POLLERR|POLLHUP))
         {
             BTIF_TRACE_WARNING("%s() - POLLERR or POLLHUP. Exiting", __FUNCTION__);
-            return;
-        }
-
-        if (ret <= 0)
-        {
-            BTIF_TRACE_WARNING("%s() - poll() failed (%s). Exiting",
-                               __FUNCTION__, strerror(errno));
             return;
         }
 
@@ -752,6 +755,11 @@ UINT32 UIPC_Read(tUIPC_CH_ID ch_id, UINT16 *p_msg_evt, UINT8 *p_buf, UINT32 len)
         if (poll_ret == 0)
         {
             BTIF_TRACE_WARNING("poll timeout (%d ms)", uipc_main.ch[ch_id].read_poll_tmo_ms);
+            break;
+        }
+        if (poll_ret < 0) {
+            BTIF_TRACE_ERROR("%s(): poll() failed: return %d errno %d (%s)",
+                           __func__, poll_ret, errno, strerror(errno));
             break;
         }
 
