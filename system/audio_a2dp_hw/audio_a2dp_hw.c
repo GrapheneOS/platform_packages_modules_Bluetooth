@@ -358,15 +358,19 @@ static int a2dp_command(struct a2dp_stream_common *common, char cmd)
     }
 
     /* wait for ack byte */
-    if (a2dp_ctrl_receive(common, &ack, 1) < 0)
+    if (a2dp_ctrl_receive(common, &ack, 1) < 0) {
+        ERROR("A2DP COMMAND %s: no ACK", dump_a2dp_ctrl_event(cmd));
         return -1;
+    }
 
     DEBUG("A2DP COMMAND %s DONE STATUS %d", dump_a2dp_ctrl_event(cmd), ack);
 
     if (ack == A2DP_CTRL_ACK_INCALL_FAILURE)
         return ack;
-    if (ack != A2DP_CTRL_ACK_SUCCESS)
+    if (ack != A2DP_CTRL_ACK_SUCCESS) {
+        ERROR("A2DP COMMAND %s error %d", dump_a2dp_ctrl_event(cmd), ack);
         return -1;
+    }
 
     return 0;
 }
