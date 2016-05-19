@@ -558,6 +558,8 @@ static void btif_recv_ctrl_data(void)
 
             if (media_task_running == MEDIA_TASK_STATE_SHUTTING_DOWN)
             {
+                APPL_TRACE_WARNING("%s: A2DP command %s while media task shutting down",
+                                   __func__, dump_a2dp_ctrl_event(cmd));
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
                 return;
             }
@@ -569,6 +571,8 @@ static void btif_recv_ctrl_data(void)
             }
             else
             {
+                APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
+                                   __func__, dump_a2dp_ctrl_event(cmd));
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
             }
             break;
@@ -585,8 +589,8 @@ static void btif_recv_ctrl_data(void)
 
             if (alarm_is_scheduled(btif_media_cb.media_alarm))
             {
-                APPL_TRACE_WARNING("%s Unexpected HAL start."
-                   "Stream already in started state", __func__);
+                APPL_TRACE_WARNING("%s: A2DP command %s when media alarm already scheduled",
+                                   __func__, dump_a2dp_ctrl_event(cmd));
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
                 break;
             }
@@ -614,6 +618,8 @@ static void btif_recv_ctrl_data(void)
             }
             else
             {
+                APPL_TRACE_WARNING("%s: A2DP command %s while AV stream is not ready",
+                                   __func__, dump_a2dp_ctrl_event(cmd));
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
                 break;
             }
@@ -1097,6 +1103,8 @@ BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start)
     }
     else if (pending_start)
     {
+        APPL_TRACE_WARNING("%s: A2DP start request failed: status = %d",
+                         __func__, p_av->status);
         a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
         ack = TRUE;
     }
@@ -1151,8 +1159,11 @@ void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av)
         {
             APPL_TRACE_EVENT("AV STOP FAILED (%d)", p_av->status);
 
-            if (p_av->initiator)
+            if (p_av->initiator) {
+                APPL_TRACE_WARNING("%s: A2DP stop request failed: status = %d",
+                                   __func__, p_av->status);
                 a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+            }
             return;
         }
     }
@@ -1195,8 +1206,11 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av)
     /* check for status failures */
     if (p_av->status != BTA_AV_SUCCESS)
     {
-        if (p_av->initiator == TRUE)
+        if (p_av->initiator == TRUE) {
+            APPL_TRACE_WARNING("%s: A2DP suspend request failed: status = %d",
+                               __func__, p_av->status);
             a2dp_cmd_acknowledge(A2DP_CTRL_ACK_FAILURE);
+        }
     }
 
     /* once stream is fully stopped we will ack back */
@@ -1233,7 +1247,7 @@ void btif_a2dp_on_offload_started(tBTA_AV_STATUS status)
             ack = A2DP_CTRL_ACK_UNSUPPORTED;
             break;
         default:
-            APPL_TRACE_ERROR("%s FAILED", __func__);
+            APPL_TRACE_ERROR("%s FAILED: status = %d", __func__, status);
             ack = A2DP_CTRL_ACK_FAILURE;
             break;
     }
