@@ -787,7 +787,10 @@ static void btu_exec_tap_fd_read(void *p_param) {
         ufd.fd = fd;
         ufd.events = POLLIN;
         ufd.revents = 0;
-        if (poll(&ufd, 1, 0) <= 0 || IS_EXCEPTION(ufd.revents))
+
+        int ret;
+        OSI_NO_INTR(ret = poll(&ufd, 1, 0));
+        if (ret <= 0 || IS_EXCEPTION(ufd.revents))
             break;
     }
 
