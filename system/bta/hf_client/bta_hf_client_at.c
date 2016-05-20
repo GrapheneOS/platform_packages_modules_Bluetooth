@@ -584,18 +584,18 @@ static void bta_hf_client_handle_btrh( UINT16 code)
 /* Check if prefix match and skip spaces if any */
 #define AT_CHECK_EVENT(buf, event) \
     if (strncmp("\r\n"event, buf,sizeof("\r\n"event) - 1) != 0) return buf; \
-    buf += sizeof("\r\n"event) - 1; \
-    while (*buf == ' ') buf++;
+    (buf) += sizeof("\r\n"event) - 1; \
+    while (*(buf) == ' ') (buf)++;
 
 /* check for <cr><lf> and forward buffer if match */
 #define AT_CHECK_RN(buf) \
     if (strncmp("\r\n", buf, sizeof("\r\n") - 1) != 0) { \
         APPL_TRACE_DEBUG("%s missing end <cr><lf>", __FUNCTION__); \
         return NULL;} \
-    buf += sizeof("\r\n") - 1;
+    (buf) += sizeof("\r\n") - 1;
 
 /* skip rest of AT string up to <cr> */
-#define AT_SKIP_REST(buf) while(*buf != '\r') buf++;
+#define AT_SKIP_REST(buf) while(*(buf) != '\r') (buf)++;
 
 static char *bta_hf_client_parse_ok(char *buffer)
 {

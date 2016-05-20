@@ -71,7 +71,7 @@ namespace {
 #define CLEAR_LINE "\x1B[2K"
 
 #define CHECK_ARGS_COUNT(args, op, num, msg) \
-  if (!(args.size() op num)) {               \
+  if (!((args).size() op num)) {             \
     PrintError(msg);                         \
     return;                                  \
   }

@@ -68,33 +68,33 @@
 
 #define RFCOMM_PARSE_CTRL_FIELD(ea, cr, dlci, p_data)       \
 {                                                           \
-    ea = *p_data & RFCOMM_EA;                               \
-    cr = (*p_data & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR;     \
-    dlci = *p_data++ >> RFCOMM_SHIFT_DLCI;                  \
-    if (!ea) dlci += *p_data++ << RFCOMM_SHIFT_DLCI2;       \
+    (ea) = *(p_data) & RFCOMM_EA;                           \
+    (cr) = (*(p_data) & RFCOMM_CR_MASK) >> RFCOMM_SHIFT_CR; \
+    (dlci) = *(p_data)++ >> RFCOMM_SHIFT_DLCI;              \
+    if (!(ea)) (dlci) += *(p_data)++ << RFCOMM_SHIFT_DLCI2; \
 }
 
-#define RFCOMM_FORMAT_CTRL_FIELD(p_data, ea, cr, dlci)      \
-    *p_data++ = ea | cr | (dlci << RFCOMM_SHIFT_DLCI)
+#define RFCOMM_FORMAT_CTRL_FIELD(p_data, ea, cr, dlci) \
+    (*(p_data)++ = (ea) | (cr) | ((dlci) << RFCOMM_SHIFT_DLCI))
 
-#define RFCOMM_PARSE_TYPE_FIELD(type, pf, p_data)           \
-{                                                           \
-    type = *p_data & ~RFCOMM_PF_MASK;                       \
-    pf   = (*p_data++ & RFCOMM_PF_MASK) >> RFCOMM_PF_OFFSET;\
+#define RFCOMM_PARSE_TYPE_FIELD(type, pf, p_data)               \
+{                                                               \
+    (type) = *(p_data) & ~RFCOMM_PF_MASK;                       \
+    (pf)   = (*(p_data)++ & RFCOMM_PF_MASK) >> RFCOMM_PF_OFFSET;\
 }
 
-#define RFCOMM_FORMAT_TYPE_FIELD(p_data, type, pf)          \
-    *p_data++ = (type | (pf << RFCOMM_PF_OFFSET))           \
-{                                                           \
-    type = *p_data & ~RFCOMM_PF_MASK;                       \
-    pf   = (*p_data++ & RFCOMM_PF_MASK) >> RFCOMM_PF_OFFSET;\
+#define RFCOMM_FORMAT_TYPE_FIELD(p_data, type, pf)                    \
+    *(p_data)++ = ((type) | ((pf) << RFCOMM_PF_OFFSET))               \
+{                                                                     \
+    (type) = *(p_data) & ~RFCOMM_PF_MASK;                             \
+    (pf)   = (*(p_data)++ & RFCOMM_PF_MASK) >> RFCOMM_PF_OFFSET;      \
 }
 
-#define RFCOMM_PARSE_LEN_FIELD(ea, length, p_data)          \
-{                                                           \
-    ea = (*p_data & RFCOMM_EA);                             \
-    length = (*p_data++ >> RFCOMM_SHIFT_LENGTH1);           \
-    if (!ea) length += (*p_data++ << RFCOMM_SHIFT_LENGTH2); \
+#define RFCOMM_PARSE_LEN_FIELD(ea, length, p_data)                \
+{                                                                 \
+    (ea) = (*(p_data) & RFCOMM_EA);                               \
+    (length) = (*(p_data)++ >> RFCOMM_SHIFT_LENGTH1);             \
+    if (!(ea)) (length) += (*(p_data)++ << RFCOMM_SHIFT_LENGTH2); \
 }
 
 #define RFCOMM_FRAME_IS_CMD(initiator, cr)                  \

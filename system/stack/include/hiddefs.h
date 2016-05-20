@@ -75,9 +75,9 @@ typedef UINT8 tHID_STATUS;
 #define HID_TRANS_DATA          (10)
 #define HID_TRANS_DATAC         (11)
 
-#define HID_GET_TRANS_FROM_HDR(x) ((x >> 4) & 0x0f)
-#define HID_GET_PARAM_FROM_HDR(x) (x & 0x0f)
-#define HID_BUILD_HDR(t,p)  (UINT8)((t << 4) | (p & 0x0f))
+#define HID_GET_TRANS_FROM_HDR(x) (((x) >> 4) & 0x0f)
+#define HID_GET_PARAM_FROM_HDR(x) ((x) & 0x0f)
+#define HID_BUILD_HDR(t,p)  (UINT8)(((t) << 4) | ((p) & 0x0f))
 
 
 /* Parameters for Handshake

@@ -36,7 +36,7 @@
     #include "sdp_api.h"
     #include "btm_int.h"
 /* check if [x, y] and [a, b] have overlapping range */
-    #define GATT_VALIDATE_HANDLE_RANGE(x, y, a, b)   (y >= a && x <= b)
+    #define GATT_VALIDATE_HANDLE_RANGE(x, y, a, b)   ((y) >= (a) && (x) <= (b))
 
     #define GATT_GET_NEXT_VALID_HANDLE(x)    (((x)/10 + 1) * 10)
 

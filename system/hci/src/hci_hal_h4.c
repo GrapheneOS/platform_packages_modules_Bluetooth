@@ -36,7 +36,7 @@
 
 // Increased HCI thread priority to keep up with the audio sub-system
 // when streaming time sensitive data (A2DP).
-#define HCI_THREAD_PRIORITY -19
+#define HCI_THREAD_PRIORITY (-19)
 
 // Our interface and modules we import
 static const hci_hal_t interface;

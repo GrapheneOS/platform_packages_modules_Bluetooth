@@ -103,7 +103,7 @@ typedef UINT8 tGATT_STATUS;
 #define  GATT_HANDLE_VALUE_IND               0x1D
 #define  GATT_HANDLE_VALUE_CONF              0x1E
 #define  GATT_SIGN_CMD_WRITE                 0xD2 /* changed in V4.0 1101-0010 (signed write)  see write cmd above*/
-#define  GATT_OP_CODE_MAX                    GATT_HANDLE_VALUE_CONF + 1 /* 0x1E = 30 + 1 = 31*/
+#define  GATT_OP_CODE_MAX                    (GATT_HANDLE_VALUE_CONF + 1) /* 0x1E = 30 + 1 = 31*/
 
 
 #define  GATT_HANDLE_IS_VALID(x) ((x) != 0)

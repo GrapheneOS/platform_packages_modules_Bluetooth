@@ -56,7 +56,7 @@ static const BD_ADDR     na_bda= {0};
 static UINT8 btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
                                   UINT8 cond_type, tBLE_BD_ADDR *p_bd_addr, UINT8 num_available);
 
-#define BTM_BLE_SET_SCAN_PF_OPCODE(x, y) (((x)<<4)|y)
+#define BTM_BLE_SET_SCAN_PF_OPCODE(x, y) (((x)<<4)|(y))
 #define BTM_BLE_GET_SCAN_PF_SUBCODE(x)    ((x) >> 4)
 #define BTM_BLE_GET_SCAN_PF_ACTION(x)    ((x) & 0x0f)
 #define BTM_BLE_INVALID_COUNTER     0xff

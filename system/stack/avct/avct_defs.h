@@ -53,8 +53,8 @@
 
 #define AVCT_PRS_HDR(p, label, type, cr_ipid) \
     label = *(p) >> 4; \
-    type = (*(p) >> 2) & 3; \
-    cr_ipid = *(p)++ & 3;
+    (type) = (*(p) >> 2) & 3; \
+    (cr_ipid) = *(p)++ & 3;
 
 #define AVCT_PRS_PKT_TYPE(p, type) \
     type = (*(p) >> 2) & 3;

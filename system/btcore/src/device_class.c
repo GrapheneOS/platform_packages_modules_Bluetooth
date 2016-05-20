@@ -31,7 +31,7 @@ typedef struct _bt_device_class_t {
 } __attribute__ ((__packed__)) _bt_device_class_t;
 
 // Convenience to interpret raw device class bytes.
-#define DC(x) ((_bt_device_class_t *)x)
+#define DC(x) ((_bt_device_class_t *)(x))
 
 // Ensure the internal device class implementation and public one
 // have equal size.
