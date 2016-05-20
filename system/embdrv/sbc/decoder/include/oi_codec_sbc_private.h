@@ -107,7 +107,7 @@ typedef struct {
 #define VALID_INT32(x) (((x) >= OI_INT32_MIN) && ((x) <= OI_INT32_MAX))
 
 #define DCTII_8_SHIFT_IN 0
-#define DCTII_8_SHIFT_OUT 16-DCTII_8_SHIFT_IN
+#define DCTII_8_SHIFT_OUT (16-DCTII_8_SHIFT_IN)
 
 #define DCTII_8_SHIFT_0 (DCTII_8_SHIFT_OUT)
 #define DCTII_8_SHIFT_1 (DCTII_8_SHIFT_OUT)

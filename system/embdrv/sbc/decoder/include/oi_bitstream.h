@@ -83,36 +83,36 @@ do { \
     OI_ASSERT((bitPtr) < 16); \
     OI_ASSERT((bitPtr) >= 8); \
     \
-    result = (value) << (bitPtr); \
-    result >>= 32 - (bits); \
+    (result) = (value) << (bitPtr); \
+    (result) >>= 32 - (bits); \
     \
-    bitPtr += (bits); \
-    while (bitPtr >= 16) { \
-        value = ((value) << 8) | *ptr++; \
-        bitPtr -= 8; \
+    (bitPtr) += (bits); \
+    while ((bitPtr) >= 16) { \
+        (value) = ((value) << 8) | *(ptr)++; \
+        (bitPtr) -= 8; \
     } \
-    OI_ASSERT((bits == 0) || (result < (1u << (bits)))); \
+    OI_ASSERT(((bits) == 0) || ((result) < (1u << (bits)))); \
 } while (0)
 
 
 #define OI_BITSTREAM_WRITEUINT(ptr, value, bitPtr, datum, bits) \
 do {\
-    bitPtr -= bits;\
-    value |= datum << bitPtr;\
+    (bitPtr) -= (bits);\
+    (value) |= (datum) << (bitPtr);\
     \
-    while (bitPtr <= 16) {\
-        bitPtr += 8;\
-        *ptr++ = (OI_UINT8)(value >> 24);\
-        value <<= 8;\
+    while ((bitPtr) <= 16) {\
+        (bitPtr) += 8;\
+        *(ptr)++ = (OI_UINT8)((value) >> 24);\
+        (value) <<= 8;\
     }\
 } while (0)
 
 #define OI_BITSTREAM_WRITEFLUSH(ptr, value, bitPtr) \
 do {\
-    while (bitPtr < 32) {\
-        bitPtr += 8;\
-        *ptr++ = (OI_UINT8)(value >> 24);\
-        value <<= 8;\
+    while ((bitPtr) < 32) {\
+        (bitPtr) += 8;\
+        *(ptr)++ = (OI_UINT8)((value) >> 24);\
+        (value) <<= 8;\
     }\
 } while (0)
 

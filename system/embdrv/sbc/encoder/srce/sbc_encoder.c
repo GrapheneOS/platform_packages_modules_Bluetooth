@@ -99,15 +99,16 @@ typedef struct
 tSBC_PRTC_CB sbc_prtc_cb;
 
 #define SBC_PRTC_IDX(sc) (((sc) & 0x3) + (((sc) & 0x30) >> 2))
-#define SBC_PRTC_CHK_INIT(ar) {if(sbc_prtc_cb.init == 0){sbc_prtc_cb.init=1; ar[0] &= ~SBC_PRTC_SYNC_MASK;}}
+#define SBC_PRTC_CHK_INIT(ar) {if(sbc_prtc_cb.init == 0){sbc_prtc_cb.init=1; (ar)[0] &= ~SBC_PRTC_SYNC_MASK;}}
 #define SBC_PRTC_C2L() {p_last=&sbc_prtc_cb.fr[SBC_PRTC_LIDX]; p_cur=&sbc_prtc_cb.fr[SBC_PRTC_CIDX]; \
                         p_last->idx = p_cur->idx; p_last->use = p_cur->use;}
-#define SBC_PRTC_GETC(ar) {p_cur->use = ar[SBC_PRTC_CRC_IDX] & SBC_PRTC_USE_MASK; \
-                           p_cur->idx = SBC_PRTC_IDX(ar[SBC_PRTC_CRC_IDX]);}
+#define SBC_PRTC_GETC(ar) {p_cur->use = (ar)[SBC_PRTC_CRC_IDX] & SBC_PRTC_USE_MASK; \
+                           p_cur->idx = SBC_PRTC_IDX((ar)[SBC_PRTC_CRC_IDX]);}
 #define SBC_PRTC_CHK_CRC(ar) {SBC_PRTC_C2L();SBC_PRTC_GETC(ar);sbc_prtc_cb.index = (p_cur->use)?SBC_PRTC_CIDX:SBC_PRTC_LIDX;}
 #define SBC_PRTC_SCRMB(ar) {idx = sbc_prtc_cb.fr[sbc_prtc_cb.index].idx; \
-    if(idx > 0){if((idx&1)&&(pstrEncParams->u16PacketLength > (sbc_prtc_cb.base+(idx<<1)))) {tmp2=idx<<1; tmp=ar[idx];ar[idx]=ar[tmp2];ar[tmp2]=tmp;} \
-                else{tmp2=ar[idx]; tmp=(tmp2>>5)+(tmp2<<3);ar[idx]=(UINT8)tmp;}}}
+    if(idx > 0){if((idx&1)&&(pstrEncParams->u16PacketLength > (sbc_prtc_cb.base+(idx<<1)))) \
+                {tmp2=idx<<1; tmp=(ar)[idx];(ar)[idx]=(ar)[tmp2];(ar)[tmp2]=tmp;} \
+                else{tmp2=(ar)[idx]; tmp=(tmp2>>5)+(tmp2<<3);(ar)[idx]=(UINT8)tmp;}}}
 
 #if (SBC_JOINT_STE_INCLUDED == TRUE)
 SINT32   s32LRDiff[SBC_MAX_NUM_OF_BLOCKS]    = {0};
