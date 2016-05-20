@@ -16,122 +16,130 @@
 
 #define LOG_TAG "bt_vendor"
 
-#include "vendor_manager.h"
+#include <unistd.h>
+#include <memory>
 
 #include "base/logging.h"
-
-extern "C" {
 #include "osi/include/log.h"
-
-#include <unistd.h>
-}  // extern "C"
+#include "vendor_manager.h"
 
 namespace test_vendor_lib {
 
-// Initializes vendor manager for test controller. |p_cb| are the callbacks to
-// be in TestVendorOp(). |local_bdaddr| points to the address of the Bluetooth
-// device. Returns 0 on success, -1 on error.
-static int TestVendorInitialize(const bt_vendor_callbacks_t* p_cb,
-                                unsigned char* /* local_bdaddr */) {
-  LOG_INFO(LOG_TAG, "Initializing test controller.");
-  CHECK(p_cb);
+class BtVendor {
+ public:
+  // Initializes vendor manager for test controller. |p_cb| are the callbacks to
+  // be in TestVendorOp(). |local_bdaddr| points to the address of the Bluetooth
+  // device. Returns 0 on success, -1 on error.
+  static int Initialize(const bt_vendor_callbacks_t* p_cb,
+                        unsigned char* /* local_bdaddr */) {
+    LOG_INFO(LOG_TAG, "Initializing test controller.");
+    CHECK(p_cb);
 
-  VendorManager::Initialize();
-  VendorManager* manager = VendorManager::Get();
-  manager->SetVendorCallbacks(*(const_cast<bt_vendor_callbacks_t*>(p_cb)));
-  return manager->Run() ? 0 : -1;
-}
+    vendor_callbacks_ = *p_cb;
 
-// Vendor specific operations. |opcode| is the opcode for Bluedroid's vendor op
-// definitions. |param| points to operation specific arguments. Return value is
-// dependent on the operation invoked, or -1 on error.
-static int TestVendorOp(bt_vendor_opcode_t opcode, void* param) {
-  LOG_INFO(LOG_TAG, "Opcode received in vendor library: %d", opcode);
-
-  VendorManager* manager = VendorManager::Get();
-  CHECK(manager);
-
-  switch (opcode) {
-    case BT_VND_OP_POWER_CTRL: {
-      LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_POWER_CTRL");
-      int* state = static_cast<int*>(param);
-      if (*state == BT_VND_PWR_OFF)
-        LOG_INFO(LOG_TAG, "Turning Bluetooth off.");
-      else if (*state == BT_VND_PWR_ON)
-        LOG_INFO(LOG_TAG, "Turning Bluetooth on.");
-      return 0;
-    }
-
-    // Give the HCI its fd to communicate with the HciTransport.
-    case BT_VND_OP_USERIAL_OPEN: {
-      LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_OPEN");
-      int* fd_list = static_cast<int*>(param);
-      fd_list[0] = manager->GetHciFd();
-      LOG_INFO(LOG_TAG, "Setting HCI's fd to: %d", fd_list[0]);
-      return 1;
-    }
-
-    // Close the HCI's file descriptor.
-    case BT_VND_OP_USERIAL_CLOSE:
-      LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
-      LOG_INFO(LOG_TAG, "Closing HCI's fd (fd: %d)", manager->GetHciFd());
-      manager->CloseHciFd();
-      return 1;
-
-    case BT_VND_OP_FW_CFG:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_FW_CFG");
-      manager->GetVendorCallbacks().fwcfg_cb(BT_VND_OP_RESULT_SUCCESS);
-      return -1;
-
-    case BT_VND_OP_SCO_CFG:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SCO_CFG");
-      manager->GetVendorCallbacks().scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
-      return -1;
-
-    case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
-      LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_SCO_CFG");
-      *((uint32_t*)param) = 1000;
-      return 0;
-
-    case BT_VND_OP_LPM_SET_MODE:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_SET_MODE");
-      manager->GetVendorCallbacks().lpm_cb(BT_VND_OP_RESULT_SUCCESS);
-      return -1;
-
-    case BT_VND_OP_LPM_WAKE_SET_STATE:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_WAKE_SET_STATE");
-      return -1;
-
-    case BT_VND_OP_SET_AUDIO_STATE:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SET_AUDIO_STATE");
-      return -1;
-
-    case BT_VND_OP_EPILOG:
-      LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_EPILOG");
-      manager->GetVendorCallbacks().epilog_cb(BT_VND_OP_RESULT_SUCCESS);
-      return -1;
-
-    default:
-      LOG_INFO(LOG_TAG, "Op not recognized.");
-      return -1;
+    vendor_manager_.reset(new VendorManager());
+    return vendor_manager_->Initialize() ? 0 : 1;
   }
-  return 0;
-}
 
-// Closes the vendor interface and cleans up the global vendor manager object.
-static void TestVendorCleanUp(void) {
-  LOG_INFO(LOG_TAG, "Cleaning up vendor library.");
-  VendorManager::CleanUp();
-}
+  // Vendor specific operations. |opcode| is the opcode for Bluedroid's vendor
+  // op definitions. |param| points to operation specific arguments. Return
+  // value is dependent on the operation invoked, or -1 on error.
+  static int Op(bt_vendor_opcode_t opcode, void* param) {
+    LOG_INFO(LOG_TAG, "Opcode received in vendor library: %d", opcode);
+
+    CHECK(vendor_manager_);
+
+    switch (opcode) {
+      case BT_VND_OP_POWER_CTRL: {
+        LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_POWER_CTRL");
+        int* state = static_cast<int*>(param);
+        if (*state == BT_VND_PWR_OFF)
+          LOG_INFO(LOG_TAG, "Turning Bluetooth off.");
+        else if (*state == BT_VND_PWR_ON)
+          LOG_INFO(LOG_TAG, "Turning Bluetooth on.");
+        return 0;
+      }
+
+      // Give the HCI its fd to communicate with the HciTransport.
+      case BT_VND_OP_USERIAL_OPEN: {
+        LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_OPEN");
+        int* fd_list = static_cast<int*>(param);
+        fd_list[0] = vendor_manager_->GetHciFd();
+        LOG_INFO(LOG_TAG, "Setting HCI's fd to: %d", fd_list[0]);
+        return 1;
+      }
+
+      // Close the HCI's file descriptor.
+      case BT_VND_OP_USERIAL_CLOSE:
+        LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_USERIAL_CLOSE");
+        LOG_INFO(
+            LOG_TAG, "Closing HCI's fd (fd: %d)", vendor_manager_->GetHciFd());
+        vendor_manager_->CloseHciFd();
+        return 1;
+
+      case BT_VND_OP_FW_CFG:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_FW_CFG");
+        vendor_callbacks_.fwcfg_cb(BT_VND_OP_RESULT_SUCCESS);
+        return -1;
+
+      case BT_VND_OP_SCO_CFG:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SCO_CFG");
+        vendor_callbacks_.scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
+        return -1;
+
+      case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
+        LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_SCO_CFG");
+        *((uint32_t*)param) = 1000;
+        return 0;
+
+      case BT_VND_OP_LPM_SET_MODE:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_SET_MODE");
+        vendor_callbacks_.lpm_cb(BT_VND_OP_RESULT_SUCCESS);
+        return -1;
+
+      case BT_VND_OP_LPM_WAKE_SET_STATE:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_WAKE_SET_STATE");
+        return -1;
+
+      case BT_VND_OP_SET_AUDIO_STATE:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SET_AUDIO_STATE");
+        return -1;
+
+      case BT_VND_OP_EPILOG:
+        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_EPILOG");
+        vendor_callbacks_.epilog_cb(BT_VND_OP_RESULT_SUCCESS);
+        return -1;
+
+      default:
+        LOG_INFO(LOG_TAG, "Op not recognized.");
+        return -1;
+    }
+    return 0;
+  }
+
+  // Closes the vendor interface and cleans up the global vendor manager object.
+  static void CleanUp(void) {
+    LOG_INFO(LOG_TAG, "Cleaning up vendor library.");
+    CHECK(vendor_manager_);
+    vendor_manager_->CleanUp();
+    vendor_manager_.reset();
+  }
+
+ private:
+  static std::unique_ptr<VendorManager> vendor_manager_;
+  static bt_vendor_callbacks_t vendor_callbacks_;
+};
+
+// Definition of static class members
+std::unique_ptr<VendorManager> BtVendor::vendor_manager_;
+bt_vendor_callbacks_t BtVendor::vendor_callbacks_;
 
 }  // namespace test_vendor_lib
 
 // Entry point of DLib.
-#ifdef BLUETOOTH_USE_TEST_AS_VENDOR
 EXPORT_SYMBOL
-#endif
 const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
     sizeof(bt_vendor_interface_t),
-    test_vendor_lib::TestVendorInitialize,
-    test_vendor_lib::TestVendorOp,
-    test_vendor_lib::TestVendorCleanUp};
+    test_vendor_lib::BtVendor::Initialize,
+    test_vendor_lib::BtVendor::Op,
+    test_vendor_lib::BtVendor::CleanUp};

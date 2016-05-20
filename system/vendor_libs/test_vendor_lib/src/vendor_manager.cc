@@ -20,64 +20,28 @@
 
 #include "base/logging.h"
 
-extern "C" {
 #include "osi/include/log.h"
-}  // extern "C"
 
 namespace test_vendor_lib {
 
 VendorManager* g_manager = nullptr;
 
-// static
 void VendorManager::CleanUp() {
-  delete g_manager;
-  g_manager = nullptr;
+  test_channel_transport_.CleanUp();
 }
 
-// static
-VendorManager* VendorManager::Get() {
-  // Initialize should have been called already.
-  CHECK(g_manager);
-  return g_manager;
-}
-
-// static
-void VendorManager::Initialize() {
-  CHECK(!g_manager);
-  g_manager = new VendorManager();
-}
-
-VendorManager::VendorManager()
-    : test_channel_transport_(true, 6111), running_(false) {}
-
-bool VendorManager::Run() {
-  CHECK(!running_);
-
+bool VendorManager::Initialize() {
   if (!transport_.SetUp()) {
     LOG_ERROR(LOG_TAG, "Error setting up transport object.");
     return false;
   }
 
-  if (test_channel_transport_.IsEnabled()) {
-    LOG_INFO(LOG_TAG, "Test channel is enabled.");
-
-    if (test_channel_transport_.SetUp()) {
-      controller_.RegisterHandlersWithTestChannelTransport(
-          test_channel_transport_);
-    } else {
-      LOG_ERROR(LOG_TAG,
-                "Error setting up test channel object, continuing without it.");
-      test_channel_transport_.Disable();
-    }
-  } else {
-    LOG_INFO(LOG_TAG, "Test channel is disabled.");
-  }
-
   controller_.RegisterHandlersWithHciTransport(transport_);
-  // TODO(dennischeng): Register PostDelayedEventResponse instead.
-  controller_.RegisterDelayedEventChannel([this](
-      std::unique_ptr<EventPacket> event, std::chrono::milliseconds delay) {
-    transport_.PostDelayedEventResponse(*event, delay);
+
+  controller_.RegisterHandlersWithTestChannelTransport(test_channel_transport_);
+
+  controller_.RegisterEventChannel([this](std::unique_ptr<EventPacket> event) {
+    transport_.PostEventResponse(*event);
   });
 
   transport_.RegisterEventScheduler(
@@ -92,38 +56,43 @@ bool VendorManager::Run() {
         async_manager_.ExecAsyncPeriodically(delay, period, task);
       });
 
-  running_ = true;
-  StartWatchingOnThread();
-
-  return true;
-}
-
-void VendorManager::StartWatchingOnThread() {
-  CHECK(running_);
-
   if (async_manager_.WatchFdForNonBlockingReads(
           transport_.GetVendorFd(), [this](int fd) {
             transport_.OnFileCanReadWithoutBlocking(fd);
           }) != 0) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
+    return true;
+  }
+
+  SetUpTestChannel(6111);
+
+  return true;
+}
+
+VendorManager::VendorManager() : test_channel_transport_() {}
+
+void VendorManager::SetUpTestChannel(int port) {
+  int socket_fd = test_channel_transport_.SetUp(port);
+
+  if (socket_fd == -1) {
+    LOG_ERROR(LOG_TAG, "Test channel SetUp(%d) failed.", port);
     return;
   }
 
-  if (test_channel_transport_.IsEnabled())
-    if (async_manager_.WatchFdForNonBlockingReads(
-            test_channel_transport_.GetFd(), [this](int fd) {
-              test_channel_transport_.OnFileCanReadWithoutBlocking(fd);
-            }) != 0) {
+  LOG_INFO(LOG_TAG, "Test channel SetUp() successful");
+  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this](int socket_fd) {
+    int conn_fd = test_channel_transport_.Accept(socket_fd);
+    if (conn_fd < 0) {
       LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
+      return;
     }
-}
-
-void VendorManager::SetVendorCallbacks(const bt_vendor_callbacks_t& callbacks) {
-  vendor_callbacks_ = callbacks;
-}
-
-const bt_vendor_callbacks_t& VendorManager::GetVendorCallbacks() const {
-  return vendor_callbacks_;
+    LOG_INFO(LOG_TAG, "Test channel connection accepted.");
+    async_manager_.WatchFdForNonBlockingReads(conn_fd, [this](int conn_fd) {
+      test_channel_transport_.OnCommandReady(conn_fd, [this, conn_fd]() {
+        async_manager_.StopWatchingFileDescriptor(conn_fd);
+      });
+    });
+  });
 }
 
 void VendorManager::CloseHciFd() {
