@@ -315,7 +315,8 @@ static jboolean getProtocolModeNative(JNIEnv *env, jobject object, jbyteArray ad
     bt_status_t status;
     jbyte *addr;
     jboolean ret = JNI_TRUE;
-    bthh_protocol_mode_t protocolMode;
+    // TODO: protocolMode is unused by the backend: see b/28908173
+    bthh_protocol_mode_t protocolMode = BTHH_UNSUPPORTED_MODE;
     if (!sBluetoothHidInterface) return JNI_FALSE;
 
     addr = env->GetByteArrayElements(address, NULL);
