@@ -298,11 +298,22 @@ static void bt_jni_msg_ready(void *context) {
 
 void btif_sendmsg(void *p_msg)
 {
-    thread_post(bt_jni_workqueue_thread, bt_jni_msg_ready, p_msg);
+  if (!bt_jni_workqueue_thread) {
+    BTIF_TRACE_ERROR("%s: message dropped, queue not initialized or gone", __func__);
+    osi_free(p_msg);
+    return;
+  }
+
+  thread_post(bt_jni_workqueue_thread, bt_jni_msg_ready, p_msg);
 }
 
 void btif_thread_post(thread_fn func, void *context) {
-    thread_post(bt_jni_workqueue_thread, func, context);
+  if (!bt_jni_workqueue_thread) {
+    BTIF_TRACE_ERROR("%s: call dropped, queue not initialized or gone", __func__);
+    return;
+  }
+
+  thread_post(bt_jni_workqueue_thread, func, context);
 }
 
 static bool btif_fetch_property(const char *key, bt_bdaddr_t *addr) {
