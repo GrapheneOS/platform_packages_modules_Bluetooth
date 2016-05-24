@@ -143,7 +143,8 @@ static uint64_t btsnoop_timestamp(void) {
   gettimeofday(&tv, NULL);
 
   // Timestamp is in microseconds.
-  uint64_t timestamp = tv.tv_sec * 1000 * 1000LL;
+  uint64_t timestamp = tv.tv_sec;
+  timestamp *= (uint64_t)1000000ULL;
   timestamp += tv.tv_usec;
   timestamp += BTSNOOP_EPOCH_DELTA;
   return timestamp;
