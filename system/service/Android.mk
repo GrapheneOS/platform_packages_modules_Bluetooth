@@ -43,9 +43,12 @@ btserviceCommonSrc := \
 	common/bluetooth/advertise_data.cc \
 	common/bluetooth/advertise_settings.cc \
 	common/bluetooth/gatt_identifier.cc \
+	common/bluetooth/descriptor.cc \
+	common/bluetooth/characteristic.cc \
 	common/bluetooth/scan_filter.cc \
 	common/bluetooth/scan_result.cc \
 	common/bluetooth/scan_settings.cc \
+	common/bluetooth/service.cc \
 	common/bluetooth/util/address_helper.cc \
 	common/bluetooth/util/atomic_string.cc \
 	common/bluetooth/uuid.cc
@@ -62,6 +65,10 @@ btserviceCommonBinderSrc := \
 	common/android/bluetooth/advertise_data.cc \
 	common/android/bluetooth/advertise_settings.cc \
 	common/android/bluetooth/gatt_identifier.cc \
+	common/android/bluetooth/bluetooth_gatt_characteristic.cc \
+	common/android/bluetooth/bluetooth_gatt_descriptor.cc \
+	common/android/bluetooth/bluetooth_gatt_included_service.cc \
+	common/android/bluetooth/bluetooth_gatt_service.cc \
 	common/android/bluetooth/scan_filter.cc \
 	common/android/bluetooth/scan_result.cc \
 	common/android/bluetooth/scan_settings.cc \
