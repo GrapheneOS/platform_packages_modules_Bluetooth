@@ -299,21 +299,6 @@ void gatt_profile_db_init (void)
 
 /*******************************************************************************
 **
-** Function         gatt_config_ccc_complete
-**
-** Description      The function finish the service change ccc configuration
-**
-** Returns          void
-**
-*******************************************************************************/
-static void gatt_config_ccc_complete(tGATT_PROFILE_CLCB *p_clcb)
-{
-    GATT_Disconnect(p_clcb->conn_id);
-    gatt_profile_clcb_dealloc(p_clcb);
-}
-
-/*******************************************************************************
-**
 ** Function         gatt_disc_res_cback
 **
 ** Description      Gatt profile discovery result callback
@@ -372,9 +357,7 @@ static void gatt_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGA
         p_clcb->ccc_stage ++;
         gatt_cl_start_config_ccc(p_clcb);
     } else {
-        GATT_TRACE_ERROR("%s() - Register for service changed indication failure", __FUNCTION__);
-        /* free the connection */
-        gatt_config_ccc_complete (p_clcb);
+        GATT_TRACE_ERROR("%s() - Unable to register for service changed indication", __func__);
     }
 }
 
@@ -422,11 +405,7 @@ static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB *p_clcb)
         srvc_disc_param.e_handle = 0xffff;
         srvc_disc_param.service.len = 2;
         srvc_disc_param.service.uu.uuid16 = UUID_SERVCLASS_GATT_SERVER;
-        if (GATTC_Discover (p_clcb->conn_id, GATT_DISC_SRVC_BY_UUID, &srvc_disc_param) != GATT_SUCCESS)
-        {
-            GATT_TRACE_ERROR("%s() - ccc service error", __FUNCTION__);
-            gatt_config_ccc_complete(p_clcb);
-        }
+        GATTC_Discover(p_clcb->conn_id, GATT_DISC_SRVC_BY_UUID, &srvc_disc_param);
         break;
 
     case GATT_SVC_CHANGED_CHARACTERISTIC: /* discover service change char */
@@ -434,32 +413,20 @@ static void gatt_cl_start_config_ccc(tGATT_PROFILE_CLCB *p_clcb)
         srvc_disc_param.e_handle = p_clcb->e_handle;
         srvc_disc_param.service.len = 2;
         srvc_disc_param.service.uu.uuid16 = GATT_UUID_GATT_SRV_CHGD;
-        if (GATTC_Discover (p_clcb->conn_id, GATT_DISC_CHAR, &srvc_disc_param) != GATT_SUCCESS)
-        {
-            GATT_TRACE_ERROR("%s() - ccc char error", __FUNCTION__);
-            gatt_config_ccc_complete(p_clcb);
-        }
+        GATTC_Discover(p_clcb->conn_id, GATT_DISC_CHAR, &srvc_disc_param);
         break;
 
     case GATT_SVC_CHANGED_DESCRIPTOR: /* discover service change ccc */
         srvc_disc_param.s_handle = p_clcb->s_handle;
         srvc_disc_param.e_handle = p_clcb->e_handle;
-        if (GATTC_Discover (p_clcb->conn_id, GATT_DISC_CHAR_DSCPT, &srvc_disc_param) != GATT_SUCCESS)
-        {
-            GATT_TRACE_ERROR("%s() - ccc char descriptor error", __FUNCTION__);
-            gatt_config_ccc_complete(p_clcb);
-        }
+        GATTC_Discover(p_clcb->conn_id, GATT_DISC_CHAR_DSCPT, &srvc_disc_param);
         break;
 
     case GATT_SVC_CHANGED_CONFIGURE_CCCD: /* write ccc */
         ccc_value.handle = p_clcb->s_handle;
         ccc_value.len = 2;
         ccc_value.value[0] = GATT_CLT_CONFIG_INDICATION;
-        if (GATTC_Write (p_clcb->conn_id, GATT_WRITE, &ccc_value) != GATT_SUCCESS)
-        {
-            GATT_TRACE_ERROR("%s() - write ccc error", __FUNCTION__);
-            gatt_config_ccc_complete(p_clcb);
-        }
+        GATTC_Write(p_clcb->conn_id, GATT_WRITE, &ccc_value);
         break;
     }
 }
