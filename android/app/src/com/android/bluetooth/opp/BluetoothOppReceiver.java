@@ -118,27 +118,14 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             in.setDataAndNormalize(uri);
             context.startActivity(in);
-
-            NotificationManager notMgr = (NotificationManager)context
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notMgr != null) {
-                notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                if (V) Log.v(TAG, "notMgr.cancel called");
-            }
+            cancelNotification(context, uri);
         } else if (action.equals(BluetoothShare.INCOMING_FILE_CONFIRMATION_REQUEST_ACTION)) {
             if (V) Log.v(TAG, "Receiver INCOMING_FILE_NOTIFICATION");
 
             Toast.makeText(context, context.getString(R.string.incoming_file_toast_msg),
                     Toast.LENGTH_SHORT).show();
-
-        } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
-            if (V) {
-                if (action.equals(Constants.ACTION_OPEN)) {
-                    Log.v(TAG, "Receiver open for " + intent.getData());
-                } else {
-                    Log.v(TAG, "Receiver list for " + intent.getData());
-                }
-            }
+        } else if (action.equals(Constants.ACTION_LIST)) {
+            Log.v(TAG, "Receiver list for " + intent.getData());
 
             BluetoothOppTransferInfo transInfo = new BluetoothOppTransferInfo();
             Uri uri = intent.getData();
@@ -161,12 +148,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 context.startActivity(in);
             }
 
-            NotificationManager notMgr = (NotificationManager)context
-                    .getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notMgr != null) {
-                notMgr.cancel((int)ContentUris.parseId(intent.getData()));
-                if (V) Log.v(TAG, "notMgr.cancel called");
-                }
+            cancelNotification(context, uri);
         } else if (action.equals(Constants.ACTION_OPEN_OUTBOUND_TRANSFER)) {
             if (V) Log.v(TAG, "Received ACTION_OPEN_OUTBOUND_TRANSFER.");
 
@@ -278,5 +260,22 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void cancelNotification(Context context, Uri uri) {
+        NotificationManager notMgr = (NotificationManager)context
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notMgr == null) return;
+
+        int id = -1;
+        try {
+          id = (int) ContentUris.parseId(uri);
+        } catch (NumberFormatException ex) {
+          Log.v(TAG, "Can't parse notification ID from Uri!");
+          return;
+        }
+
+        notMgr.cancel(id);
+        if (V) Log.v(TAG, "notMgr.cancel called");
     }
 }
