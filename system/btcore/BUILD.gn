@@ -19,7 +19,7 @@ static_library("btcore") {
     "src/bdaddr.c",
     "src/device_class.c",
     "src/hal_util.c",
-    "src/module.c",
+    "src/module.cc",
     "src/property.c",
     "src/uuid.c",
     "src/osi_module.c",
