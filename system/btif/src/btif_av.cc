@@ -73,7 +73,7 @@ typedef struct
     btif_sm_handle_t sm_handle;
     UINT8 flags;
     tBTA_AV_EDR edr;
-    UINT8   peer_sep;  /* sep type of peer device */
+    UINT8 peer_sep;  /* sep type of peer device */
 } btif_av_cb_t;
 
 typedef struct
@@ -1651,4 +1651,23 @@ void btif_av_clear_remote_suspend_flag(void)
 {
     BTIF_TRACE_DEBUG("%s: flag :%x",__func__, btif_av_cb.flags);
     btif_av_cb.flags &= ~BTIF_AV_FLAG_REMOTE_SUSPEND;
+}
+
+/*******************************************************************************
+**
+** Function         btif_av_peer_supports_3mbps
+**
+** Description      Check if the connected A2DP device supports
+**                  3 Mbps EDR. This function only works if connected.
+**                  If not connected it will always be false.
+**
+** Returns          TRUE if remote device is EDR and supports 3 Mbps
+**
+*******************************************************************************/
+BOOLEAN btif_av_peer_supports_3mbps(void)
+{
+    BOOLEAN is3mbps = ((btif_av_cb.edr & BTA_AV_EDR_3MBPS) != 0);
+    BTIF_TRACE_DEBUG("%s: connected %d, edr_3mbps %d", __func__,
+            btif_av_is_connected(), is3mbps);
+    return (btif_av_is_connected() && is3mbps);
 }
