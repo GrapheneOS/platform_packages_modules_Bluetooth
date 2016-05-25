@@ -20,6 +20,10 @@
 
 #include "btcore/include/bdaddr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static const char CLASSIC_PEER_MODULE[] = "classic_peer_module";
 
 typedef struct classic_peer_t classic_peer_t;
@@ -32,3 +36,7 @@ classic_peer_t *classic_peer_by_address(bt_bdaddr_t *address);
 
 // Returns the bluetooth address of the |peer|. |peer| may not be NULL.
 const bt_bdaddr_t *classic_peer_get_address(classic_peer_t *peer);
+
+#ifdef __cplusplus
+}
+#endif

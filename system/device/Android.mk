@@ -21,6 +21,7 @@ LOCAL_PATH := $(call my-dir)
 # Bluetooth device static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/.. \
@@ -32,7 +33,7 @@ LOCAL_C_INCLUDES := \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    src/classic/peer.c \
+    src/classic/peer.cc \
     src/controller.c \
     src/interop.c
 
