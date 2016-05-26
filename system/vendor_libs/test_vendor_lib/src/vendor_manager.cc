@@ -80,8 +80,10 @@ bool VendorManager::Run() {
   controller_.RegisterHandlersWithHciTransport(transport_);
   // TODO(dennischeng): Register PostDelayedEventResponse instead.
   controller_.RegisterDelayedEventChannel(
-      std::bind(&HciTransport::PostDelayedEventResponse, &transport_,
-                std::placeholders::_1, std::placeholders::_2));
+      std::bind(&HciTransport::PostDelayedEventResponse,
+                &transport_,
+                std::placeholders::_1,
+                std::placeholders::_2));
 
   running_ = true;
   if (!thread_.StartWithOptions(
@@ -106,8 +108,10 @@ void VendorManager::StartWatchingOnThread() {
   CHECK(base::MessageLoopForIO::IsCurrent());
 
   if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-          transport_.GetVendorFd(), true,
-          base::MessageLoopForIO::WATCH_READ_WRITE, &hci_watcher_,
+          transport_.GetVendorFd(),
+          true,
+          base::MessageLoopForIO::WATCH_READ_WRITE,
+          &hci_watcher_,
           &transport_)) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
     return;
@@ -115,8 +119,10 @@ void VendorManager::StartWatchingOnThread() {
 
   if (test_channel_transport_.IsEnabled())
     if (!base::MessageLoopForIO::current()->WatchFileDescriptor(
-            test_channel_transport_.GetFd(), true,
-            base::MessageLoopForIO::WATCH_READ, &test_channel_watcher_,
+            test_channel_transport_.GetFd(),
+            true,
+            base::MessageLoopForIO::WATCH_READ,
+            &test_channel_watcher_,
             &test_channel_transport_))
       LOG_ERROR(LOG_TAG, "Error watching test channel fd.");
 }

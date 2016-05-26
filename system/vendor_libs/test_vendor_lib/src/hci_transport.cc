@@ -20,15 +20,15 @@
 
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
-#include "base/logging.h"
 #include "base/bind.h"
+#include "base/logging.h"
 #include "base/thread_task_runner_handle.h"
 
 extern "C" {
 #include <sys/socket.h>
 
-#include "stack/include/hcidefs.h"
 #include "osi/include/log.h"
+#include "stack/include/hcidefs.h"
 }  // extern "C"
 
 namespace test_vendor_lib {
@@ -144,12 +144,13 @@ void HciTransport::PostDelayedEventResponse(std::unique_ptr<EventPacket> event,
   // inconsistent event responses.
   if (!base::TimeTicks::IsHighResolution()) {
     LOG_INFO(LOG_TAG,
-              "System does not support high resolution timing. Sending event "
-              "without delay.");
+             "System does not support high resolution timing. Sending event "
+             "without delay.");
     PostEventResponse(std::move(event));
   }
 
-  LOG_INFO(LOG_TAG, "Posting event response with delay of %" PRId64 " ms.",
+  LOG_INFO(LOG_TAG,
+           "Posting event response with delay of %" PRId64 " ms.",
            delay.InMilliseconds());
 
   AddEventToOutboundEvents(

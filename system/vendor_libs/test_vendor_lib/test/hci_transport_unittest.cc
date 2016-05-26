@@ -14,8 +14,8 @@
 // limitations under the License.
 //
 
-#include "vendor_libs/test_vendor_lib/include/command_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
+#include "vendor_libs/test_vendor_lib/include/command_packet.h"
 
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
@@ -56,9 +56,7 @@ class HciTransportTest : public ::testing::Test {
     PostStartWatchingOnThread();
   }
 
-  ~HciTransportTest() {
-    transport_.CloseHciFd();
-  }
+  ~HciTransportTest() { transport_.CloseHciFd(); }
 
   void CommandCallback(std::unique_ptr<CommandPacket> command) {
     ++command_callback_count_;
@@ -89,9 +87,7 @@ class HciTransportTest : public ::testing::Test {
 
  private:
   // Workaround because ASSERT cannot be used directly in a constructor
-  void SetUpTransport() {
-    ASSERT_TRUE(transport_.SetUp());
-  }
+  void SetUpTransport() { ASSERT_TRUE(transport_.SetUp()); }
 
   void StartThread() {
     ASSERT_TRUE(thread_.StartWithOptions(
@@ -100,17 +96,21 @@ class HciTransportTest : public ::testing::Test {
 
   void PostStartWatchingOnThread() {
     thread_.task_runner()->PostTask(
-        FROM_HERE, base::Bind(&HciTransportTest::StartWatchingOnThread,
-                              weak_ptr_factory_.GetWeakPtr()));
+        FROM_HERE,
+        base::Bind(&HciTransportTest::StartWatchingOnThread,
+                   weak_ptr_factory_.GetWeakPtr()));
   }
 
   void StartWatchingOnThread() {
     base::MessageLoopForIO* loop =
         static_cast<base::MessageLoopForIO*>(thread_.message_loop());
     ASSERT_TRUE(loop);
-    ASSERT_TRUE(loop->WatchFileDescriptor(
-        transport_.GetVendorFd(), true,
-        base::MessageLoopForIO::WATCH_READ_WRITE, &watcher_, &transport_));
+    ASSERT_TRUE(
+        loop->WatchFileDescriptor(transport_.GetVendorFd(),
+                                  true,
+                                  base::MessageLoopForIO::WATCH_READ_WRITE,
+                                  &watcher_,
+                                  &transport_));
   }
 };
 
