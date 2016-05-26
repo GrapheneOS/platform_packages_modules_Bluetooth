@@ -25,7 +25,7 @@ LOCAL_PATH := $(call my-dir)
 # dependencies are abstracted.
 btosiCommonSrc := \
     ./src/alarm.c \
-    ./src/allocation_tracker.c \
+    ./src/allocation_tracker.cc \
     ./src/allocator.c \
     ./src/array.c \
     ./src/buffer.c \
