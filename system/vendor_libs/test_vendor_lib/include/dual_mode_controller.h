@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "base/json/json_value_converter.h"
 #include "base/time/time.h"
@@ -193,12 +193,12 @@ class DualModeController {
   // OGF: 0x0003
   // OCF: 0x0045
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.50
-   void HciWriteInquiryMode(const std::vector<uint8_t>& args);
+  void HciWriteInquiryMode(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0047
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.52
-   void HciWritePageScanType(const std::vector<uint8_t>& args);
+  void HciWritePageScanType(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0043
@@ -243,12 +243,12 @@ class DualModeController {
   // OGF: 0x0003
   // OCF: 0x003A
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.45
-    void HciWriteCurrentIacLap(const std::vector<uint8_t>& args);
+  void HciWriteCurrentIacLap(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x001E
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.3.22
-   void HciWriteInquiryScanActivity(const std::vector<uint8_t>& args);
+  void HciWriteInquiryScanActivity(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x001A
@@ -305,8 +305,8 @@ class DualModeController {
   };
 
   enum TestChannelState {
-    kNone,  // The controller is running normally.
-    kTimeoutAll,  // All commands should time out, i.e. send no response.
+    kNone,             // The controller is running normally.
+    kTimeoutAll,       // All commands should time out, i.e. send no response.
     kDelayedResponse,  // Event responses are sent after a delay.
   };
 
