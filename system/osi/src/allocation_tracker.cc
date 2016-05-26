@@ -24,10 +24,9 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unordered_map>
 
 #include "osi/include/allocator.h"
-#include "osi/include/hash_functions.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
@@ -38,77 +37,58 @@ typedef struct {
   bool freed;
 } allocation_t;
 
-// Hidden constructor for hash map for our use only. Everything else should use the
-// normal interface.
-hash_map_t *hash_map_new_internal(
-    size_t size,
-    hash_index_fn hash_fn,
-    key_free_fn key_fn,
-    data_free_fn,
-    key_equality_fn equality_fn,
-    const allocator_t *zeroed_allocator);
-
-static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context);
-static void *untracked_calloc(size_t size);
-
-static const size_t allocation_hash_map_size = 1024;
 static const char *canary = "tinybird";
-static const allocator_t untracked_calloc_allocator = {
-  untracked_calloc,
-  free
-};
 
 static size_t canary_size;
-static hash_map_t *allocations;
+static std::unordered_map<void*, allocation_t*> allocations;
 static pthread_mutex_t lock;
+static bool enabled = false;
 
 void allocation_tracker_init(void) {
-  if (allocations)
-    return;
-
   canary_size = strlen(canary);
 
   pthread_mutex_init(&lock, NULL);
 
   pthread_mutex_lock(&lock);
-  allocations = hash_map_new_internal(
-    allocation_hash_map_size,
-    hash_function_pointer,
-    NULL,
-    free,
-    NULL,
-    &untracked_calloc_allocator);
+  enabled = true;
   pthread_mutex_unlock(&lock);
 }
 
 // Test function only. Do not call in the normal course of operations.
 void allocation_tracker_uninit(void) {
-  if (!allocations)
+  if (!enabled)
     return;
 
   pthread_mutex_lock(&lock);
-  hash_map_free(allocations);
-  allocations = NULL;
+  allocations.clear();
+  enabled = false;
   pthread_mutex_unlock(&lock);
 }
 
 void allocation_tracker_reset(void) {
-  if (!allocations)
+  if (!enabled)
     return;
 
   pthread_mutex_lock(&lock);
-  hash_map_clear(allocations);
+  allocations.clear();
   pthread_mutex_unlock(&lock);
 }
 
 size_t allocation_tracker_expect_no_allocations(void) {
-  if (!allocations)
+  if (!enabled)
     return 0;
 
   pthread_mutex_lock(&lock);
 
   size_t unfreed_memory_size = 0;
-  hash_map_foreach(allocations, allocation_entry_freed_checker, &unfreed_memory_size);
+
+  for (const auto &entry : allocations) {
+    allocation_t *allocation = entry.second;
+    if (!allocation->freed) {
+      unfreed_memory_size += allocation->size; // Report back the unfreed byte count
+      LOG_ERROR(LOG_TAG, "%s found unfreed allocation. address: 0x%zx size: %zd bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
+    }
+  }
 
   pthread_mutex_unlock(&lock);
 
@@ -116,7 +96,7 @@ size_t allocation_tracker_expect_no_allocations(void) {
 }
 
 void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t requested_size) {
-  if (!allocations || !ptr)
+  if (!enabled || !ptr)
     return ptr;
 
   char *return_ptr = (char *)ptr;
@@ -125,12 +105,14 @@ void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t re
 
   pthread_mutex_lock(&lock);
 
-  allocation_t *allocation = (allocation_t *)hash_map_get(allocations, return_ptr);
-  if (allocation) {
+  auto map_entry = allocations.find(return_ptr);
+  allocation_t *allocation;
+  if (map_entry != allocations.end()) {
+    allocation = map_entry->second;
     assert(allocation->freed); // Must have been freed before
   } else {
     allocation = (allocation_t *)calloc(1, sizeof(allocation_t));
-    hash_map_set(allocations, return_ptr, allocation);
+    allocations[return_ptr] = allocation;
   }
 
   allocation->allocator_id = allocator_id;
@@ -148,12 +130,14 @@ void *allocation_tracker_notify_alloc(uint8_t allocator_id, void *ptr, size_t re
 }
 
 void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr) {
-  if (!allocations || !ptr)
+  if (!enabled || !ptr)
     return ptr;
 
   pthread_mutex_lock(&lock);
 
-  allocation_t *allocation = (allocation_t *)hash_map_get(allocations, ptr);
+  auto map_entry = allocations.find(ptr);
+  assert(map_entry != allocations.end());
+  allocation_t *allocation = map_entry->second;
   assert(allocation);                               // Must have been tracked before
   assert(!allocation->freed);                       // Must not be a double free
   assert(allocation->allocator_id == allocator_id); // Must be from the same allocator
@@ -170,7 +154,7 @@ void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr
   // Free the hash map entry to avoid unlimited memory usage growth.
   // Double-free of memory is detected with "assert(allocation)" above
   // as the allocation entry will not be present.
-  hash_map_erase(allocations, ptr);
+  allocations.erase(ptr);
 
   pthread_mutex_unlock(&lock);
 
@@ -178,19 +162,5 @@ void *allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id, void *ptr
 }
 
 size_t allocation_tracker_resize_for_canary(size_t size) {
-  return (!allocations) ? size : size + (2 * canary_size);
-}
-
-static bool allocation_entry_freed_checker(hash_map_entry_t *entry, void *context) {
-  allocation_t *allocation = (allocation_t *)entry->data;
-  if (!allocation->freed) {
-    *((size_t *)context) += allocation->size; // Report back the unfreed byte count
-    LOG_ERROR(LOG_TAG, "%s found unfreed allocation. address: 0x%zx size: %zd bytes", __func__, (uintptr_t)allocation->ptr, allocation->size);
-  }
-
-  return true;
-}
-
-static void *untracked_calloc(size_t size) {
-  return calloc(size, 1);
+  return (!enabled) ? size : size + (2 * canary_size);
 }

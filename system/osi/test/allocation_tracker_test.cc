@@ -20,9 +20,9 @@
 
 extern "C" {
 #include "osi/include/allocation_tracker.h"
+}
 
 void allocation_tracker_uninit(void);
-}
 
 static const allocator_id_t allocator_id = 5;
 
