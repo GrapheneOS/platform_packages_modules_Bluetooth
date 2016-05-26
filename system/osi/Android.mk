@@ -35,8 +35,6 @@ btosiCommonSrc := \
     ./src/eager_reader.c \
     ./src/fixed_queue.c \
     ./src/future.c \
-    ./src/hash_functions.c \
-    ./src/hash_map.c \
     ./src/hash_map_utils.cc \
     ./src/list.c \
     ./src/metrics.cc \
@@ -65,7 +63,6 @@ btosiCommonTestSrc := \
     ./test/eager_reader_test.cc \
     ./test/fixed_queue_test.cc \
     ./test/future_test.cc \
-    ./test/hash_map_test.cc \
     ./test/hash_map_utils_test.cc \
     ./test/list_test.cc \
     ./test/properties_test.cc \
