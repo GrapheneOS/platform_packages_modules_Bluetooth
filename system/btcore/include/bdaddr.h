@@ -21,8 +21,7 @@
 #include <hardware/bluetooth.h>
 #include <stdbool.h>
 #include <stddef.h>
-
-#include "osi/include/hash_map.h"
+#include "osi/include/hash_functions.h"
 
 #ifdef __cplusplus
 extern "C" {
