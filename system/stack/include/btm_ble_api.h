@@ -182,6 +182,11 @@ typedef UINT8   tBTM_BLE_SFP;
 #define BTM_BLE_CONN_TIMEOUT_DEF    2000
 #endif
 
+/* minimum supervision timeout */
+#ifndef BTM_BLE_CONN_TIMEOUT_MIN_DEF
+#define BTM_BLE_CONN_TIMEOUT_MIN_DEF    100
+#endif
+
 /* minimum acceptable connection interval */
 #ifndef BTM_BLE_CONN_INT_MIN_LIMIT
 #define BTM_BLE_CONN_INT_MIN_LIMIT     0x0009
