@@ -3,7 +3,7 @@ LOCAL_PATH:= $(call my-dir)
 # Bluetooth stack static library for target
 # ========================================================
 include $(CLEAR_VARS)
-
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES:= \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
@@ -57,7 +57,7 @@ LOCAL_SRC_FILES:= \
     ./btm/btm_sec.c \
     ./btm/btm_inq.c \
     ./btm/btm_ble_addr.c \
-    ./btm/btm_ble_bgconn.c \
+    ./btm/btm_ble_bgconn.cc \
     ./btm/btm_main.c \
     ./btm/btm_dev.c \
     ./btm/btm_ble_gap.c \
