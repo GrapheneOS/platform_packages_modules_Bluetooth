@@ -84,6 +84,24 @@ class DualModeController {
     // Specification Version 4.2, Volume 2, Part E, Section 7.4.1 (page 788).
     const std::vector<uint8_t> GetLocalVersionInformation();
 
+    // Specification Version 4.2, Volume 2, Part E, Section 7.8.2
+    const std::vector<uint8_t> GetLeBufferSize();
+
+    // Specification Version 4.2, Volume 2, Part E, Section 7.8.3
+    const std::vector<uint8_t> GetLeLocalSupportedFeatures();
+
+    // Specification Version 4.2, Volume 2, Part E, Section 7.8.14
+    const std::vector<uint8_t> GetLeWhiteListSize();
+
+    // Specification Version 4.2, Volume 2, Part E, Section 7.8.23
+    const std::vector<uint8_t> GetLeRand();
+
+    // Specification Version 4.2, Volume 2, Part E, Section 7.8.27
+    const std::vector<uint8_t> GetLeSupportedStates();
+
+    // Vendor-specific commands (see hcidefs.h)
+    const std::vector<uint8_t> GetLeVendorCap();
+
     static void RegisterJSONConverter(
         base::JSONValueConverter<Properties>* converter);
 
@@ -97,9 +115,11 @@ class DualModeController {
     uint8_t lmp_pal_version_;
     uint16_t manufacturer_name_;
     uint16_t lmp_pal_subversion_;
-    uint8_t maximum_page_number_;
     uint8_t local_supported_commands_size_;
     uint8_t local_name_size_;
+    uint16_t le_acl_data_packet_length_;
+    uint8_t num_le_acl_data_packets_;
+    uint8_t le_white_list_size_;
     std::vector<uint8_t> bd_address_;
   };
 
@@ -174,6 +194,11 @@ class DualModeController {
   // OCF: 0x0004
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.4
   void HciReadLocalExtendedFeatures(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0004
+  // OCF: 0x000B
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.4.8
+  void HciReadLocalSupportedCodecs(const std::vector<uint8_t>& args);
 
   // OGF: 0x0003
   // OCF: 0x0056
@@ -280,6 +305,83 @@ class DualModeController {
   // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.1.19
   void HciRemoteNameRequest(const std::vector<uint8_t>& args);
 
+  // LE Controller Commands
+
+  // OGF: 0x0008
+  // OCF: 0x0001
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.1
+  void HciLeSetEventMask(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x0002
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.2
+  void HciLeReadBufferSize(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x0003
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.3
+  void HciLeReadLocalSupportedFeatures(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x0005
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.4
+  void HciLeSetRandomAddress(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x000B
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.10
+  void HciLeSetScanParameters(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x000C
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.11
+  void HciLeSetScanEnable(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x000F
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.14
+  void HciLeReadWhiteListSize(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x0018
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.23
+  void HciLeRand(const std::vector<uint8_t>& args);
+
+  // OGF: 0x0008
+  // OCF: 0x001C
+  // Bluetooth Core Specification Version 4.2 Volume 2 Part E 7.8.27
+  void HciLeReadSupportedStates(const std::vector<uint8_t>& args);
+
+  // Vendor-specific commands (see hcidefs.h)
+
+  // OGF: 0x00FC
+  // OCF: 0x0027
+  void HciBleVendorSleepMode(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x0153
+  void HciBleVendorCap(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x0154
+  void HciBleVendorMultiAdv(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x0155
+  void HciBleVendor155(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x0157
+  void HciBleVendor157(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x0159
+  void HciBleEnergyInfo(const std::vector<uint8_t>& args);
+
+  // OGF: 0x00FC
+  // OCF: 0x015A
+  void HciBleExtendedScanParams(const std::vector<uint8_t>& args);
+
   // Test Channel commands:
 
   // Clears all test channel modifications.
@@ -356,6 +458,19 @@ class DualModeController {
   // 0x02 Inquiry Result with RSSI format or Extended Inquiry Result format.
   // 0x03-0xFF: Reserved.
   uint8_t inquiry_mode_;
+
+  std::vector<uint8_t> le_event_mask_;
+
+  std::vector<uint8_t> le_random_address_;
+
+  uint8_t le_scan_type_;
+  uint16_t le_scan_interval_;
+  uint16_t le_scan_window_;
+  uint8_t own_address_type_;
+  uint8_t scanning_filter_policy_;
+
+  uint8_t le_scan_enable_;
+  uint8_t filter_duplicates_;
 
   State state_;
 
