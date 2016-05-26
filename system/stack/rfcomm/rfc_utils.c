@@ -198,14 +198,19 @@ tRFC_MCB *rfc_alloc_multiplexer_channel (BD_ADDR bd_addr, BOOLEAN is_initiator)
 **
 ** Function         rfc_release_multiplexer_channel
 **
-** Description      This function returns existing or new control block for
-**                  the BD_ADDR.
+** Description      Release a multiplexer control block
 **
 *******************************************************************************/
 void rfc_release_multiplexer_channel (tRFC_MCB *p_mcb)
 {
     /* Remove the MCB from the mapping table */
     rfc_save_lcid_mcb(NULL, p_mcb->lcid);
+
+    /* Remove the MCB from the ports */
+    for (int i = 0; i < MAX_RFC_PORTS; i++) {
+        if (rfc_cb.port.port[i].rfc.p_mcb == p_mcb)
+            rfc_cb.port.port[i].rfc.p_mcb = NULL;
+    }
 
     rfc_timer_stop (p_mcb);
     alarm_free(p_mcb->mcb_timer);
