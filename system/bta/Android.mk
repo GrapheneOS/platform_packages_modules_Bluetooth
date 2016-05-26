@@ -3,6 +3,7 @@ LOCAL_PATH:= $(call my-dir)
 # BTA static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES:= \
     ./dm/bta_dm_ci.c \
@@ -12,15 +13,15 @@ LOCAL_SRC_FILES:= \
     ./dm/bta_dm_cfg.c \
     ./dm/bta_dm_api.c \
     ./dm/bta_dm_sco.c \
-    ./gatt/bta_gattc_api.c \
-    ./gatt/bta_gatts_act.c \
-    ./gatt/bta_gatts_main.c \
-    ./gatt/bta_gattc_utils.c \
-    ./gatt/bta_gatts_api.c \
-    ./gatt/bta_gattc_main.c \
-    ./gatt/bta_gattc_act.c \
-    ./gatt/bta_gattc_cache.c \
-    ./gatt/bta_gatts_utils.c \
+    ./gatt/bta_gattc_api.cc \
+    ./gatt/bta_gatts_act.cc \
+    ./gatt/bta_gatts_main.cc \
+    ./gatt/bta_gattc_utils.cc \
+    ./gatt/bta_gatts_api.cc \
+    ./gatt/bta_gattc_main.cc \
+    ./gatt/bta_gattc_act.cc \
+    ./gatt/bta_gattc_cache.cc \
+    ./gatt/bta_gatts_utils.cc \
     ./ag/bta_ag_sdp.c \
     ./ag/bta_ag_sco.c \
     ./ag/bta_ag_cfg.c \
