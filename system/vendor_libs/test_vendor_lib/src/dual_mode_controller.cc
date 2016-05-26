@@ -37,6 +37,8 @@ namespace {
 // context).
 const uint8_t kSuccessStatus = 0;
 
+const uint8_t kUnknownHciCommand = 1;
+
 // The default number encoded in event packets to indicate to the HCI how many
 // command packets it can send to the controller.
 const uint8_t kNumHciCommandPackets = 1;
@@ -73,13 +75,6 @@ bool ParseUint8t(const base::StringPiece& value, uint8_t* field) {
 
 bool ParseUint16t(const base::StringPiece& value, uint16_t* field) {
   *field = std::stoi(value.as_string());
-  return true;
-}
-
-bool ParseUint8tVector(const base::StringPiece& value,
-                       std::vector<uint8_t>* field) {
-  for (char& c : value.as_string())
-    field->push_back(c - '0');
   return true;
 }
 
@@ -162,6 +157,7 @@ DualModeController::DualModeController()
   SET_HANDLER(HCI_READ_LOCAL_VERSION_INFO, HciReadLocalVersionInformation);
   SET_HANDLER(HCI_READ_BD_ADDR, HciReadBdAddr);
   SET_HANDLER(HCI_READ_LOCAL_SUPPORTED_CMDS, HciReadLocalSupportedCommands);
+  SET_HANDLER(HCI_READ_LOCAL_SUPPORTED_CODECS, HciReadLocalSupportedCodecs);
   SET_HANDLER(HCI_READ_LOCAL_EXT_FEATURES, HciReadLocalExtendedFeatures);
   SET_HANDLER(HCI_WRITE_SIMPLE_PAIRING_MODE, HciWriteSimplePairingMode);
   SET_HANDLER(HCI_WRITE_LE_HOST_SUPPORT, HciWriteLeHostSupport);
@@ -184,6 +180,22 @@ DualModeController::DualModeController()
   SET_HANDLER(HCI_INQUIRY_CANCEL, HciInquiryCancel);
   SET_HANDLER(HCI_DELETE_STORED_LINK_KEY, HciDeleteStoredLinkKey);
   SET_HANDLER(HCI_RMT_NAME_REQUEST, HciRemoteNameRequest);
+  SET_HANDLER(HCI_BLE_SET_EVENT_MASK, HciLeSetEventMask);
+  SET_HANDLER(HCI_BLE_READ_BUFFER_SIZE, HciLeReadBufferSize);
+  SET_HANDLER(HCI_BLE_READ_LOCAL_SPT_FEAT, HciLeReadLocalSupportedFeatures);
+  SET_HANDLER(HCI_BLE_WRITE_RANDOM_ADDR, HciLeSetRandomAddress);
+  SET_HANDLER(HCI_BLE_WRITE_SCAN_PARAMS, HciLeSetScanParameters);
+  SET_HANDLER(HCI_BLE_WRITE_SCAN_ENABLE, HciLeSetScanEnable);
+  SET_HANDLER(HCI_BLE_READ_WHITE_LIST_SIZE, HciLeReadWhiteListSize);
+  SET_HANDLER(HCI_BLE_RAND, HciLeRand);
+  SET_HANDLER(HCI_BLE_READ_SUPPORTED_STATES, HciLeReadSupportedStates);
+  SET_HANDLER((HCI_GRP_VENDOR_SPECIFIC | 0x27), HciBleVendorSleepMode);
+  SET_HANDLER(HCI_BLE_VENDOR_CAP_OCF, HciBleVendorCap);
+  SET_HANDLER(HCI_BLE_MULTI_ADV_OCF, HciBleVendorMultiAdv);
+  SET_HANDLER((HCI_GRP_VENDOR_SPECIFIC | 0x155), HciBleVendor155);
+  SET_HANDLER((HCI_GRP_VENDOR_SPECIFIC | 0x157), HciBleVendor157);
+  SET_HANDLER(HCI_BLE_ENERGY_INFO_OCF, HciBleEnergyInfo);
+  SET_HANDLER(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF, HciBleExtendedScanParams);
 #undef SET_HANDLER
 
 #define SET_TEST_HANDLER(command_name, method)  \
@@ -317,9 +329,9 @@ void DualModeController::HciReadLocalVersionInformation(
 }
 
 void DualModeController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
-  LogCommand("Read Bd Addr");
-  std::vector<uint8_t> bd_address_with_status = properties_.GetBdAddress();
-  bd_address_with_status.insert(bd_address_with_status.begin(), kSuccessStatus);
+  std::vector<uint8_t> bd_address_with_status = {
+      kSuccessStatus, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+
   SendCommandComplete(HCI_READ_BD_ADDR, bd_address_with_status);
 }
 
@@ -328,6 +340,15 @@ void DualModeController::HciReadLocalSupportedCommands(
   LogCommand("Read Local Supported Commands");
   SendCommandComplete(HCI_READ_LOCAL_SUPPORTED_CMDS,
                       properties_.GetLocalSupportedCommands());
+}
+
+void DualModeController::HciReadLocalSupportedCodecs(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  std::vector<uint8_t> supported_codecs = {kSuccessStatus, 0x2, 0x0, 0x01, 0x0};
+
+  LogCommand("Read Local Supported Codecs");
+  SendCommandComplete(HCI_READ_LOCAL_SUPPORTED_CODECS, supported_codecs);
+  // TODO properties_.GetLocalSupportedCodecs());
 }
 
 void DualModeController::HciReadLocalExtendedFeatures(
@@ -481,6 +502,106 @@ void DualModeController::HciRemoteNameRequest(
   SendCommandStatusSuccess(HCI_RMT_NAME_REQUEST);
 }
 
+void DualModeController::HciLeSetEventMask(const std::vector<uint8_t>& args) {
+  LogCommand("LE SetEventMask");
+  le_event_mask_ = args;
+  SendCommandComplete(HCI_BLE_SET_EVENT_MASK, {kSuccessStatus});
+}
+
+void DualModeController::HciLeReadBufferSize(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_READ_BUFFER_SIZE, properties_.GetLeBufferSize());
+}
+
+void DualModeController::HciLeReadLocalSupportedFeatures(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_READ_LOCAL_SPT_FEAT,
+                      properties_.GetLeLocalSupportedFeatures());
+}
+
+void DualModeController::HciLeSetRandomAddress(
+    const std::vector<uint8_t>& args) {
+  LogCommand("LE SetRandomAddress");
+  le_random_address_ = args;
+  SendCommandComplete(HCI_BLE_WRITE_RANDOM_ADDR, {kSuccessStatus});
+}
+
+void DualModeController::HciLeSetScanParameters(
+    const std::vector<uint8_t>& args) {
+  LogCommand("LE SetScanParameters");
+  le_scan_type_ = args[0];
+  le_scan_interval_ = args[1] | (args[2] << 8);
+  le_scan_window_ = args[3] | (args[4] << 8);
+  own_address_type_ = args[5];
+  scanning_filter_policy_ = args[6];
+  SendCommandComplete(HCI_BLE_WRITE_SCAN_PARAMS, {kSuccessStatus});
+}
+
+void DualModeController::HciLeSetScanEnable(const std::vector<uint8_t>& args) {
+  LogCommand("LE SetScanEnable");
+  le_scan_enable_ = args[0];
+  filter_duplicates_ = args[1];
+  SendCommandComplete(HCI_BLE_WRITE_SCAN_ENABLE, {kSuccessStatus});
+}
+
+void DualModeController::HciLeReadWhiteListSize(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_READ_WHITE_LIST_SIZE,
+                      properties_.GetLeWhiteListSize());
+}
+
+void DualModeController::HciLeRand(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_RAND, properties_.GetLeRand());
+}
+
+void DualModeController::HciLeReadSupportedStates(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_READ_SUPPORTED_STATES,
+                      properties_.GetLeSupportedStates());
+}
+
+void DualModeController::HciBleVendorSleepMode(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  std::vector<uint8_t> success_multi_adv = {kSuccessStatus, 0x04};
+
+  SendCommandComplete(HCI_GRP_VENDOR_SPECIFIC | 0x27, {kSuccessStatus});
+}
+
+void DualModeController::HciBleVendorCap(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_VENDOR_CAP_OCF, properties_.GetLeVendorCap());
+}
+
+void DualModeController::HciBleVendorMultiAdv(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  std::vector<uint8_t> success_multi_adv = {kSuccessStatus, 0x04};
+
+  SendCommandComplete(HCI_BLE_MULTI_ADV_OCF, success_multi_adv);
+}
+
+void DualModeController::HciBleVendor155(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  std::vector<uint8_t> success155 = {kSuccessStatus, 0x04, 0x80};
+
+  SendCommandComplete(HCI_GRP_VENDOR_SPECIFIC | 0x155, success155);
+}
+
+void DualModeController::HciBleVendor157(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_GRP_VENDOR_SPECIFIC | 0x157, {kUnknownHciCommand});
+}
+
+void DualModeController::HciBleEnergyInfo(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_ENERGY_INFO_OCF, {kUnknownHciCommand});
+}
+
+void DualModeController::HciBleExtendedScanParams(
+    const std::vector<uint8_t>& args UNUSED_ATTR) {
+  SendCommandComplete(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF, {kUnknownHciCommand});
+}
+
 DualModeController::Properties::Properties(const std::string& file_name)
     : local_supported_commands_size_(64), local_name_size_(248) {
   std::string properties_raw;
@@ -501,6 +622,66 @@ DualModeController::Properties::Properties(const std::string& file_name)
   if (!converter.Convert(properties_dictionary, this))
     LOG_INFO(LOG_TAG,
              "Error converting JSON properties into Properties object.");
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetLeBufferSize() {
+  return std::vector<uint8_t>(
+      {kSuccessStatus,
+       static_cast<uint8_t>(le_acl_data_packet_length_),
+       static_cast<uint8_t>(le_acl_data_packet_length_ >> 8),
+       num_le_acl_data_packets_});
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLeLocalSupportedFeatures() {
+  std::vector<uint8_t> success_local_supported_features = {
+      kSuccessStatus, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F};
+
+  return success_local_supported_features;
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLeSupportedStates() {
+  std::vector<uint8_t> success_supported_states = {
+      kSuccessStatus, 0x00, 0x00, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+  return success_supported_states;
+}
+
+const std::vector<uint8_t>
+DualModeController::Properties::GetLeWhiteListSize() {
+  return std::vector<uint8_t>({kSuccessStatus, le_white_list_size_});
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetLeRand() {
+  std::vector<uint8_t> success_rand_val;
+
+  success_rand_val.push_back(kSuccessStatus);
+
+  for (uint8_t i = 0; i < 8; ++i)
+    success_rand_val.push_back(static_cast<uint8_t>(rand()));
+
+  return success_rand_val;
+}
+
+const std::vector<uint8_t> DualModeController::Properties::GetLeVendorCap() {
+  std::vector<uint8_t> success_vendor_cap = {kSuccessStatus,
+                                             0x05,
+                                             0x01,
+                                             0x00,
+                                             0x04,
+                                             0x80,
+                                             0x01,
+                                             0x10,
+                                             0x01,
+                                             0x60,
+                                             0x00,
+                                             0x0a,
+                                             0x00,
+                                             0x01,
+                                             0x01};
+
+  return success_vendor_cap;
 }
 
 const std::vector<uint8_t> DualModeController::Properties::GetBufferSize() {
@@ -534,17 +715,31 @@ const std::vector<uint8_t> DualModeController::Properties::GetBdAddress() {
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalExtendedFeatures(uint8_t page_number) {
-  return std::vector<uint8_t>({kSuccessStatus,
-                               page_number,
-                               maximum_page_number_,
-                               0xFF,
-                               0xFF,
-                               0xFF,
-                               0xFF,
-                               0xFF,
-                               0xFF,
-                               0xFF,
-                               0xFF});
+  uint8_t maximum_page_number = 1;
+  if (page_number == 0)
+    return std::vector<uint8_t>({kSuccessStatus,
+                                 page_number,
+                                 maximum_page_number,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF,
+                                 0xFF});
+  else
+    return std::vector<uint8_t>({kSuccessStatus,
+                                 page_number,
+                                 maximum_page_number,
+                                 0x07,
+                                 0x00,
+                                 0x00,
+                                 0x00,
+                                 0x00,
+                                 0x00,
+                                 0x00,
+                                 0x00});
 }
 
 const std::vector<uint8_t>
@@ -583,11 +778,6 @@ void DualModeController::Properties::RegisterJSONConverter(
   REGISTER_UINT8_T("LmpPalVersion", lmp_pal_version_);
   REGISTER_UINT16_T("ManufacturerName", manufacturer_name_);
   REGISTER_UINT16_T("LmpPalSubversion", lmp_pal_subversion_);
-  REGISTER_UINT8_T("MaximumPageNumber", maximum_page_number_);
-  converter->RegisterCustomField<std::vector<uint8_t>>(
-      "BdAddress",
-      &DualModeController::Properties::bd_address_,
-      &ParseUint8tVector);
 #undef REGISTER_UINT8_T
 #undef REGISTER_UINT16_T
 }
