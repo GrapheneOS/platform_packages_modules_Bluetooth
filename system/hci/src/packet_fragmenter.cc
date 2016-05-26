@@ -22,13 +22,12 @@
 
 #include <assert.h>
 #include <string.h>
+#include <unordered_map>
 
 #include "bt_target.h"
 #include "buffer_allocator.h"
 #include "device/include/controller.h"
 #include "hci_internals.h"
-#include "osi/include/hash_functions.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
@@ -42,25 +41,20 @@
 #define CONTINUATION_PACKET_BOUNDARY 1
 #define L2CAP_HEADER_SIZE       4
 
-// TODO(zachoverflow): find good value for this
-#define NUMBER_OF_BUCKETS 42
-
 // Our interface and callbacks
-static const packet_fragmenter_t interface;
+
 static const allocator_t *buffer_allocator;
 static const controller_t *controller;
 static const packet_fragmenter_callbacks_t *callbacks;
 
-static hash_map_t *partial_packets;
+static std::unordered_map<uint16_t /* handle */, BT_HDR*> partial_packets;
 
 static void init(const packet_fragmenter_callbacks_t *result_callbacks) {
   callbacks = result_callbacks;
-  partial_packets = hash_map_new(NUMBER_OF_BUCKETS, hash_function_naive, NULL, NULL, NULL);
 }
 
 static void cleanup() {
-  if (partial_packets)
-    hash_map_free(partial_packets);
+  partial_packets.clear();
 }
 
 static void fragment_and_dispatch(BT_HDR *packet) {
@@ -140,14 +134,14 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
     uint8_t boundary_flag = GET_BOUNDARY_FLAG(handle);
     handle = handle & HANDLE_MASK;
 
-    BT_HDR *partial_packet = (BT_HDR *)hash_map_get(partial_packets, (void *)(uintptr_t)handle);
-
     if (boundary_flag == START_PACKET_BOUNDARY) {
-      if (partial_packet) {
+      auto map_iter = partial_packets.find(handle);
+      if (map_iter != partial_packets.end()) {
         LOG_WARN(LOG_TAG, "%s found unfinished packet for handle with start packet. Dropping old.", __func__);
 
-        hash_map_erase(partial_packets, (void *)(uintptr_t)handle);
-        buffer_allocator->free(partial_packet);
+        BT_HDR *hdl = map_iter->second;
+        partial_packets.erase(map_iter);
+        buffer_allocator->free(hdl);
       }
 
       if (acl_length < L2CAP_HEADER_SIZE) {
@@ -175,7 +169,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
         return;
       }
 
-      partial_packet = (BT_HDR *)buffer_allocator->alloc(full_length + sizeof(BT_HDR));
+      BT_HDR *partial_packet = (BT_HDR *)buffer_allocator->alloc(full_length + sizeof(BT_HDR));
       partial_packet->event = packet->event;
       partial_packet->len = full_length;
       partial_packet->offset = packet->len;
@@ -187,15 +181,18 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       STREAM_SKIP_UINT16(stream); // skip the handle
       UINT16_TO_STREAM(stream, full_length - HCI_ACL_PREAMBLE_SIZE);
 
-      hash_map_set(partial_packets, (void *)(uintptr_t)handle, partial_packet);
+      partial_packets[handle] = partial_packet;
+
       // Free the old packet buffer, since we don't need it anymore
       buffer_allocator->free(packet);
     } else {
-      if (!partial_packet) {
+      auto map_iter = partial_packets.find(handle);
+      if (map_iter == partial_packets.end()) {
         LOG_WARN(LOG_TAG, "%s got continuation for unknown packet. Dropping it.", __func__);
         buffer_allocator->free(packet);
         return;
       }
+      BT_HDR *partial_packet = map_iter->second;
 
       packet->offset = HCI_ACL_PREAMBLE_SIZE;
       uint16_t projected_offset = partial_packet->offset + (packet->len - HCI_ACL_PREAMBLE_SIZE);
@@ -216,7 +213,7 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
       partial_packet->offset = projected_offset;
 
       if (partial_packet->offset == partial_packet->len) {
-        hash_map_erase(partial_packets, (void *)(uintptr_t)handle);
+        partial_packets.erase(handle);
         partial_packet->offset = 0;
         callbacks->reassembled(partial_packet);
       }
