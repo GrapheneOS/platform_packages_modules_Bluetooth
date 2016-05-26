@@ -44,7 +44,6 @@
 
 #include "audio_a2dp_hw.h"
 #include "bt_utils.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/hash_map_utils.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
@@ -160,7 +159,7 @@ static const char* dump_a2dp_ctrl_event(char event)
 
 /* logs timestamp with microsec precision
    pprev is optional in case a dedicated diff is required */
-static void ts_log(char *tag, int val, struct timespec *pprev_opt)
+static void ts_log(const char *tag, int val, struct timespec *pprev_opt)
 {
     struct timespec now;
     static struct timespec prev = {0,0};
@@ -203,7 +202,7 @@ static int calc_audiotime(struct a2dp_config cfg, int bytes)
 **
 *****************************************************************************/
 
-static int skt_connect(char *path, size_t buffer_sz)
+static int skt_connect(const char *path, size_t buffer_sz)
 {
     int ret;
     int skt_fd;
@@ -488,11 +487,11 @@ static int start_audio_datapath(struct a2dp_stream_common *common)
             goto error;
         }
     }
-    common->state = AUDIO_A2DP_STATE_STARTED;
+    common->state = (a2dp_state_t)AUDIO_A2DP_STATE_STARTED;
     return 0;
 
 error:
-    common->state = oldstate;
+    common->state = (a2dp_state_t)oldstate;
     return -1;
 }
 
@@ -509,11 +508,11 @@ static int stop_audio_datapath(struct a2dp_stream_common *common)
     if (a2dp_command(common, A2DP_CTRL_CMD_STOP) < 0)
     {
         ERROR("audiopath stop failed");
-        common->state = oldstate;
+        common->state = (a2dp_state_t)oldstate;
         return -1;
     }
 
-    common->state = AUDIO_A2DP_STATE_STOPPED;
+    common->state = (a2dp_state_t)AUDIO_A2DP_STATE_STOPPED;
 
     /* disconnect audio path */
     skt_disconnect(common->audio_fd);
@@ -558,6 +557,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     int sent;
     int us_delay;
+    size_t frames;
 
     DEBUG("write %zu bytes (fd %d)", bytes, out->common.audio_fd);
 
@@ -599,7 +599,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
         goto error;
     }
 
-    const size_t frames = bytes / audio_stream_out_frame_size(stream);
+    frames = bytes / audio_stream_out_frame_size(stream);
     out->frames_rendered += frames;
     out->frames_presented += frames;
     pthread_mutex_unlock(&out->common.lock);
@@ -664,7 +664,7 @@ static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     struct a2dp_stream_out *out = (struct a2dp_stream_out *)stream;
     DEBUG("format 0x%x", out->common.cfg.format);
-    return out->common.cfg.format;
+    return (audio_format_t)out->common.cfg.format;
 }
 
 static int out_set_format(struct audio_stream *stream, audio_format_t format)
@@ -706,10 +706,11 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
     INFO("state %d", out->common.state);
 
-    hash_map_t *params = hash_map_utils_new_from_string_params(kvpairs);
+    std::unordered_map<std::string, std::string> params =
+            hash_map_utils_new_from_string_params(kvpairs);
     int status = 0;
 
-    if (!params)
+    if (params.empty())
       return status;
 
     pthread_mutex_lock(&out->common.lock);
@@ -717,17 +718,13 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     /* dump params */
     hash_map_utils_dump_string_keys_string_values(params);
 
-    char *keyval = (char *)hash_map_get(params, "closing");
-
-    if (keyval && strcmp(keyval, "true") == 0)
+    if (params["closing"].compare("true") == 0)
     {
         DEBUG("stream closing, disallow any writes");
         out->common.state = AUDIO_A2DP_STATE_STOPPING;
     }
 
-    keyval = (char *)hash_map_get(params, "A2dpSuspended");
-
-    if (keyval && strcmp(keyval, "true") == 0)
+    if (params["A2dpSuspended"].compare("true") == 0)
     {
         if (out->common.state == AUDIO_A2DP_STATE_STARTED)
             status = suspend_audio_datapath(&out->common, false);
@@ -743,7 +740,6 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
     }
 
     pthread_mutex_unlock(&out->common.lock);
-    hash_map_free(params);
 
     return status;
 }
@@ -1174,9 +1170,9 @@ static char * adev_get_parameters(const struct audio_hw_device *dev,
 
     FNLOG();
 
-    hash_map_t *params = hash_map_utils_new_from_string_params(keys);
+    std::unordered_map<std::string, std::string> params =
+            hash_map_utils_new_from_string_params(keys);
     hash_map_utils_dump_string_keys_string_values(params);
-    hash_map_free(params);
 
     return strdup("");
 }
@@ -1209,7 +1205,7 @@ static int adev_set_master_volume(struct audio_hw_device *dev, float volume)
     return -ENOSYS;
 }
 
-static int adev_set_mode(struct audio_hw_device *dev, int mode)
+static int adev_set_mode(struct audio_hw_device *dev, audio_mode_t mode)
 {
     UNUSED(dev);
     UNUSED(mode);
@@ -1375,7 +1371,7 @@ static int adev_open(const hw_module_t* module, const char* name,
         return -EINVAL;
     }
 
-    adev = calloc(1, sizeof(struct a2dp_audio_device));
+    adev = (struct a2dp_audio_device *)calloc(1, sizeof(struct a2dp_audio_device));
 
     if (!adev)
         return -ENOMEM;

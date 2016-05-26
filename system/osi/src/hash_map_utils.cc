@@ -28,22 +28,14 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-static bool string_equals(const void *key_a, const void *key_b);
-static bool dump_entry(hash_map_entry_t *entry, UNUSED_ATTR void *context);
-
-static const size_t BUCKETS_NUM = 5;
-
-hash_map_t *hash_map_utils_new_from_string_params(const char *params) {
+std::unordered_map<std::string, std::string>
+hash_map_utils_new_from_string_params(const char *params) {
   assert(params != NULL);
 
-  hash_map_t *map = hash_map_new(BUCKETS_NUM, hash_function_string, osi_free,
-                                 osi_free, string_equals);
-  if (!map)
-    return NULL;
+  std::unordered_map<std::string, std::string> map;
 
   char *str = osi_strdup(params);
-  if (!str)
-    return NULL;
+  if (!str) return map;
 
   LOG_VERBOSE(LOG_TAG, "%s: source string: '%s'", __func__, str);
 
@@ -54,8 +46,7 @@ hash_map_t *hash_map_utils_new_from_string_params(const char *params) {
   while (kvpair && *kvpair) {
     char *eq = strchr(kvpair, '=');
 
-    if (eq == kvpair)
-      goto next_pair;
+    if (eq == kvpair) goto next_pair;
 
     char *key;
     char *value;
@@ -70,35 +61,26 @@ hash_map_t *hash_map_utils_new_from_string_params(const char *params) {
       value = osi_strdup("");
     }
 
-    hash_map_set(map, key, value);
+    map[key] = value;
+
+    osi_free(key);
+    osi_free(value);
 
     items++;
-next_pair:
+  next_pair:
     kvpair = strtok_r(NULL, ";", &tmpstr);
   }
 
-  if (!items)
-    LOG_VERBOSE(LOG_TAG, "%s: no items found in string\n", __func__);
+  if (!items) LOG_VERBOSE(LOG_TAG, "%s: no items found in string\n", __func__);
 
   osi_free(str);
   return map;
 }
 
-void hash_map_utils_dump_string_keys_string_values(hash_map_t *map) {
-  if (!map) {
-    LOG_VERBOSE( LOG_TAG, "%s: the given map is NULL\n", __func__);
-    return;
+void hash_map_utils_dump_string_keys_string_values(
+    std::unordered_map<std::string, std::string> &map) {
+  for (const auto &ptr : map) {
+    LOG_INFO(LOG_TAG, "key: '%s' value: '%s'\n", ptr.first.c_str(),
+             ptr.second.c_str());
   }
-  hash_map_foreach(map, dump_entry, NULL);
-}
-
-static bool string_equals(const void *key_a, const void *key_b) {
-  return !strcmp(key_a, key_b);
-}
-
-static bool dump_entry(hash_map_entry_t *entry, UNUSED_ATTR void *context) {
-  hash_map_entry_t *hash_map_entry = (hash_map_entry_t *)entry;
-  LOG_INFO(LOG_TAG, "key: '%s' value: '%s'\n", (char *)hash_map_entry->key,
-           (char *)hash_map_entry->data);
-  return true;
 }
