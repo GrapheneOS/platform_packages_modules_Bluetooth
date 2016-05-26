@@ -21,11 +21,11 @@
 #include "base/logging.h"
 
 extern "C" {
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 }  // extern "C"
 
 namespace test_vendor_lib {
@@ -53,7 +53,8 @@ bool TestChannelTransport::SetUp() {
   listen_address.sin_port = htons(port_);
   listen_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if (bind(listen_fd, reinterpret_cast<sockaddr*>(&listen_address),
+  if (bind(listen_fd,
+           reinterpret_cast<sockaddr*>(&listen_address),
            sockaddr_in_size) < 0) {
     LOG_INFO(LOG_TAG, "Error binding test channel listener socket to address.");
     close(listen_fd);
@@ -66,9 +67,9 @@ bool TestChannelTransport::SetUp() {
     return false;
   }
 
-  if ((accept_fd =
-           accept(listen_fd, reinterpret_cast<sockaddr*>(&test_channel_address),
-                  &sockaddr_in_size)) < 0) {
+  if ((accept_fd = accept(listen_fd,
+                          reinterpret_cast<sockaddr*>(&test_channel_address),
+                          &sockaddr_in_size)) < 0) {
     LOG_INFO(LOG_TAG, "Error accepting test channel connection.");
     close(listen_fd);
     return false;
@@ -97,8 +98,8 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   command_name_raw.resize(command_name_size);
   read(fd, &command_name_raw[0], command_name_size);
   std::string command_name(command_name_raw.begin(), command_name_raw.end());
-  LOG_INFO(LOG_TAG, "Received command from test channel: %s",
-           command_name.data());
+  LOG_INFO(
+      LOG_TAG, "Received command from test channel: %s", command_name.data());
 
   if (command_name == "CLOSE_TEST_CHANNEL") {
     fd_.reset(nullptr);
@@ -124,9 +125,7 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   command_handler_(command_name, args);
 }
 
-void TestChannelTransport::OnFileCanWriteWithoutBlocking(
-  int fd UNUSED_ATTR) {
-}
+void TestChannelTransport::OnFileCanWriteWithoutBlocking(int fd UNUSED_ATTR) {}
 
 void TestChannelTransport::RegisterCommandHandler(
     std::function<void(const std::string&, const std::vector<std::string>&)>

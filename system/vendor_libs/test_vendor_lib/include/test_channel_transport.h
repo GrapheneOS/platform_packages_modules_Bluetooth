@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 
 #include "base/files/scoped_file.h"
 #include "base/message_loop/message_loop.h"

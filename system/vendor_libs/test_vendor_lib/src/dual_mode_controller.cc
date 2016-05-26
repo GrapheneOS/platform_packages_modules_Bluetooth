@@ -18,17 +18,17 @@
 
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
 
-#include "base/logging.h"
 #include "base/files/file_util.h"
 #include "base/json/json_reader.h"
+#include "base/logging.h"
 #include "base/values.h"
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 extern "C" {
-#include "stack/include/hcidefs.h"
-#include "osi/include/osi.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
+#include "stack/include/hcidefs.h"
 }  // extern "C"
 
 namespace {
@@ -77,7 +77,7 @@ bool ParseUint16t(const base::StringPiece& value, uint16_t* field) {
 }
 
 bool ParseUint8tVector(const base::StringPiece& value,
-                              std::vector<uint8_t>* field) {
+                       std::vector<uint8_t>* field) {
   for (char& c : value.as_string())
     field->push_back(c - '0');
   return true;
@@ -104,8 +104,8 @@ void DualModeController::SendCommandCompleteSuccess(
 void DualModeController::SendCommandStatus(uint8_t status,
                                            uint16_t command_opcode) const {
   std::unique_ptr<EventPacket> command_status =
-      EventPacket::CreateCommandStatusEvent(status, kNumHciCommandPackets,
-                                            command_opcode);
+      EventPacket::CreateCommandStatusEvent(
+          status, kNumHciCommandPackets, command_opcode);
   send_event_(std::move(command_status));
 }
 
@@ -116,27 +116,36 @@ void DualModeController::SendCommandStatusSuccess(
 
 void DualModeController::SendInquiryResult() const {
   std::unique_ptr<EventPacket> inquiry_result =
-      EventPacket::CreateInquiryResultEvent(
-          1, kOtherDeviceBdAddress, kPageScanRepetitionMode,
-          kPageScanPeriodMode, kPageScanMode, kClassOfDevice, kClockOffset);
+      EventPacket::CreateInquiryResultEvent(1,
+                                            kOtherDeviceBdAddress,
+                                            kPageScanRepetitionMode,
+                                            kPageScanPeriodMode,
+                                            kPageScanMode,
+                                            kClassOfDevice,
+                                            kClockOffset);
   send_event_(std::move(inquiry_result));
 }
 
 void DualModeController::SendExtendedInquiryResult(
     const std::string& name, const std::string& address) const {
   std::vector<uint8_t> rssi = {0};
-  std::vector<uint8_t> extended_inquiry_data = {static_cast<uint8_t>(name.length() + 1), 0x09};
-  std::copy(name.begin(), name.end(),
-            std::back_inserter(extended_inquiry_data));
+  std::vector<uint8_t> extended_inquiry_data = {
+      static_cast<uint8_t>(name.length() + 1), 0x09};
+  std::copy(
+      name.begin(), name.end(), std::back_inserter(extended_inquiry_data));
   std::vector<uint8_t> bd_address(address.begin(), address.end());
   // TODO(dennischeng): Use constants for parameter sizes, here and elsewhere.
   while (extended_inquiry_data.size() < 240) {
     extended_inquiry_data.push_back(0);
   }
   std::unique_ptr<EventPacket> extended_inquiry_result =
-      EventPacket::CreateExtendedInquiryResultEvent(
-          bd_address, kPageScanRepetitionMode, kPageScanPeriodMode,
-          kClassOfDevice, kClockOffset, rssi, extended_inquiry_data);
+      EventPacket::CreateExtendedInquiryResultEvent(bd_address,
+                                                    kPageScanRepetitionMode,
+                                                    kPageScanPeriodMode,
+                                                    kClassOfDevice,
+                                                    kClockOffset,
+                                                    rssi,
+                                                    extended_inquiry_data);
   send_event_(std::move(extended_inquiry_result));
 }
 
@@ -190,15 +199,17 @@ DualModeController::DualModeController()
 
 void DualModeController::RegisterHandlersWithHciTransport(
     HciTransport& transport) {
-  transport.RegisterCommandHandler(std::bind(&DualModeController::HandleCommand,
-                                             this, std::placeholders::_1));
+  transport.RegisterCommandHandler(std::bind(
+      &DualModeController::HandleCommand, this, std::placeholders::_1));
 }
 
 void DualModeController::RegisterHandlersWithTestChannelTransport(
     TestChannelTransport& transport) {
   transport.RegisterCommandHandler(
-      std::bind(&DualModeController::HandleTestChannelCommand, this,
-                std::placeholders::_1, std::placeholders::_2));
+      std::bind(&DualModeController::HandleTestChannelCommand,
+                this,
+                std::placeholders::_1,
+                std::placeholders::_2));
 }
 
 void DualModeController::HandleTestChannelCommand(
@@ -211,8 +222,11 @@ void DualModeController::HandleTestChannelCommand(
 void DualModeController::HandleCommand(
     std::unique_ptr<CommandPacket> command_packet) {
   uint16_t opcode = command_packet->GetOpcode();
-  LOG_INFO(LOG_TAG, "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X", opcode,
-           command_packet->GetOGF(), command_packet->GetOCF());
+  LOG_INFO(LOG_TAG,
+           "Command opcode: 0x%04X, OGF: 0x%04X, OCF: 0x%04X",
+           opcode,
+           command_packet->GetOGF(),
+           command_packet->GetOCF());
 
   // The command hasn't been registered with the handler yet. There is nothing
   // to do.
@@ -238,7 +252,8 @@ void DualModeController::RegisterDelayedEventChannel(
 void DualModeController::SetEventDelay(int64_t delay) {
   if (delay < 0)
     delay = 0;
-  send_event_ = std::bind(send_delayed_event_, std::placeholders::_1,
+  send_event_ = std::bind(send_delayed_event_,
+                          std::placeholders::_1,
                           base::TimeDelta::FromMilliseconds(delay));
 }
 
@@ -252,8 +267,8 @@ void DualModeController::TestChannelClear(
 void DualModeController::TestChannelDiscover(
     const std::vector<std::string>& args) {
   LogCommand("TestChannel Discover");
-  for (size_t i = 0; i < args.size()-1; i+=2)
-    SendExtendedInquiryResult(args[i], args[i+1]);
+  for (size_t i = 0; i < args.size() - 1; i += 2)
+    SendExtendedInquiryResult(args[i], args[i + 1]);
 }
 
 void DualModeController::TestChannelTimeoutAll(
@@ -295,7 +310,7 @@ void DualModeController::HciHostBufferSize(
 }
 
 void DualModeController::HciReadLocalVersionInformation(
-                 const std::vector<uint8_t>& /* args */) {
+    const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Local Version Information");
   SendCommandComplete(HCI_READ_LOCAL_VERSION_INFO,
                       properties_.GetLocalVersionInformation());
@@ -304,8 +319,7 @@ void DualModeController::HciReadLocalVersionInformation(
 void DualModeController::HciReadBdAddr(const std::vector<uint8_t>& /* args */) {
   LogCommand("Read Bd Addr");
   std::vector<uint8_t> bd_address_with_status = properties_.GetBdAddress();
-  bd_address_with_status.insert(bd_address_with_status.begin(),
-                                kSuccessStatus);
+  bd_address_with_status.insert(bd_address_with_status.begin(), kSuccessStatus);
   SendCommandComplete(HCI_READ_BD_ADDR, bd_address_with_status);
 }
 
@@ -503,7 +517,8 @@ const std::vector<uint8_t> DualModeController::Properties::GetBufferSize() {
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalVersionInformation() {
-  return std::vector<uint8_t>({kSuccessStatus, version_,
+  return std::vector<uint8_t>({kSuccessStatus,
+                               version_,
                                static_cast<uint8_t>(revision_),
                                static_cast<uint8_t>(revision_ >> 8),
                                lmp_pal_version_,
@@ -519,9 +534,17 @@ const std::vector<uint8_t> DualModeController::Properties::GetBdAddress() {
 
 const std::vector<uint8_t>
 DualModeController::Properties::GetLocalExtendedFeatures(uint8_t page_number) {
-  return std::vector<uint8_t>({kSuccessStatus, page_number,
-                               maximum_page_number_, 0xFF, 0xFF, 0xFF, 0xFF,
-                               0xFF, 0xFF, 0xFF, 0xFF});
+  return std::vector<uint8_t>({kSuccessStatus,
+                               page_number,
+                               maximum_page_number_,
+                               0xFF,
+                               0xFF,
+                               0xFF,
+                               0xFF,
+                               0xFF,
+                               0xFF,
+                               0xFF,
+                               0xFF});
 }
 
 const std::vector<uint8_t>
@@ -544,7 +567,7 @@ const std::vector<uint8_t> DualModeController::Properties::GetLocalName() {
 // static
 void DualModeController::Properties::RegisterJSONConverter(
     base::JSONValueConverter<DualModeController::Properties>* converter) {
-  // TODO(dennischeng): Use RegisterIntField() here?
+// TODO(dennischeng): Use RegisterIntField() here?
 #define REGISTER_UINT8_T(field_name, field) \
   converter->RegisterCustomField<uint8_t>(  \
       field_name, &DualModeController::Properties::field, &ParseUint8t);
@@ -562,7 +585,8 @@ void DualModeController::Properties::RegisterJSONConverter(
   REGISTER_UINT16_T("LmpPalSubversion", lmp_pal_subversion_);
   REGISTER_UINT8_T("MaximumPageNumber", maximum_page_number_);
   converter->RegisterCustomField<std::vector<uint8_t>>(
-      "BdAddress", &DualModeController::Properties::bd_address_,
+      "BdAddress",
+      &DualModeController::Properties::bd_address_,
       &ParseUint8tVector);
 #undef REGISTER_UINT8_T
 #undef REGISTER_UINT16_T
