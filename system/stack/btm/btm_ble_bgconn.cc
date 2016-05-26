@@ -24,10 +24,10 @@
 
 #include <assert.h>
 #include <string.h>
+#include <unordered_map>
 
 #include "device/include/controller.h"
 #include "osi/include/allocator.h"
-#include "osi/include/hash_map.h"
 #include "bt_types.h"
 #include "btu.h"
 #include "btm_int.h"
@@ -49,63 +49,50 @@ static void btm_resume_wl_activity(tBTM_BLE_WL_STATE wl_state);
 // controls whether the host should keep trying to scan for whitelisted
 // peripherals or not.
 // TODO: Move all of this to controller/le/background_list or similar?
-static const size_t background_connection_buckets = 42;
-static hash_map_t *background_connections = NULL;
-
 typedef struct background_connection_t {
   bt_bdaddr_t address;
 } background_connection_t;
 
-static bool bdaddr_equality_fn(const void *x, const void *y) {
-  return bdaddr_equals((bt_bdaddr_t *)x, (bt_bdaddr_t *)y);
-}
-
-static void background_connections_lazy_init()
-{
-  if (!background_connections) {
-    background_connections = hash_map_new(background_connection_buckets,
-                                      hash_function_bdaddr, NULL, osi_free, bdaddr_equality_fn);
-    assert(background_connections);
+struct KeyEqual {
+  bool operator()(const bt_bdaddr_t *x, const bt_bdaddr_t *y) const
+  {
+    return bdaddr_equals(x, y);
   }
-}
+};
+
+static std::unordered_map<bt_bdaddr_t *, background_connection_t *,
+                          std::hash<bt_bdaddr_t *>, KeyEqual>
+    background_connections;
 
 static void background_connection_add(bt_bdaddr_t *address) {
   assert(address);
-  background_connections_lazy_init();
-  background_connection_t *connection = hash_map_get(background_connections, address);
-  if (!connection) {
-    connection = osi_calloc(sizeof(background_connection_t));
+
+  auto map_iter = background_connections.find(address);
+  if (map_iter == background_connections.end()) {
+    background_connection_t *connection =
+        (background_connection_t *)osi_calloc(sizeof(background_connection_t));
     connection->address = *address;
-    hash_map_set(background_connections, &(connection->address), connection);
+    background_connections[&(connection->address)] = connection;
   }
 }
 
 static void background_connection_remove(bt_bdaddr_t *address) {
-  if (address && background_connections)
-    hash_map_erase(background_connections, address);
+  background_connections.erase(address);
 }
 
 static void background_connections_clear() {
-  if (background_connections)
-    hash_map_clear(background_connections);
-}
-
-static bool background_connections_pending_cb(hash_map_entry_t *hash_entry, void *context) {
-  bool *pending_connections = context;
-  background_connection_t *connection = hash_entry->data;
-  const bool connected = BTM_IsAclConnectionUp(connection->address.address, BT_TRANSPORT_LE);
-  if (!connected) {
-    *pending_connections = true;
-    return false;
-  }
-  return true;
+  background_connections.clear();
 }
 
 static bool background_connections_pending() {
-  bool pending_connections = false;
-  if (background_connections)
-    hash_map_foreach(background_connections, background_connections_pending_cb, &pending_connections);
-  return pending_connections;
+  for (const auto &map_el : background_connections) {
+    background_connection_t *connection = map_el.second;
+    const bool connected = BTM_IsAclConnectionUp(connection->address.address, BT_TRANSPORT_LE);
+    if (!connected) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /*******************************************************************************
