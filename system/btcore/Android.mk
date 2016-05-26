@@ -30,7 +30,7 @@ btcoreCommonSrc := \
     src/uuid.c
 
 btcoreCommonTestSrc := \
-    ./test/bdaddr_test.cc \
+	./test/bdaddr_test.cc \
     ./test/device_class_test.cc \
     ./test/property_test.cc \
     ./test/uuid_test.cc \
