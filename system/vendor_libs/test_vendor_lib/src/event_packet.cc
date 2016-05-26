@@ -40,7 +40,8 @@ uint8_t EventPacket::GetEventCode() const {
 
 // static
 std::unique_ptr<EventPacket> EventPacket::CreateCommandCompleteEvent(
-    uint8_t num_hci_command_packets, uint16_t command_opcode,
+    uint8_t num_hci_command_packets,
+    uint16_t command_opcode,
     const std::vector<uint8_t>& event_return_parameters) {
   size_t payload_size = sizeof(num_hci_command_packets) +
                         sizeof(command_opcode) + event_return_parameters.size();
@@ -73,9 +74,10 @@ std::unique_ptr<EventPacket> EventPacket::CreateCommandStatusEvent(
       new EventPacket(HCI_COMMAND_STATUS_EVT, payload));
 }
 
-//static
+// static
 std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
-    uint8_t num_responses, const std::vector<uint8_t>& bd_addresses,
+    uint8_t num_responses,
+    const std::vector<uint8_t>& bd_addresses,
     const std::vector<uint8_t>& page_scan_repetition_mode,
     const std::vector<uint8_t>& page_scan_period_mode,
     const std::vector<uint8_t>& page_scan_mode,
@@ -99,7 +101,7 @@ std::unique_ptr<EventPacket> EventPacket::CreateInquiryResultEvent(
       new EventPacket(HCI_INQUIRY_RESULT_EVT, payload));
 }
 
-//static
+// static
 std::unique_ptr<EventPacket> EventPacket::CreateExtendedInquiryResultEvent(
     const std::vector<uint8_t>& bd_address,
     const std::vector<uint8_t>& page_scan_repetition_mode,

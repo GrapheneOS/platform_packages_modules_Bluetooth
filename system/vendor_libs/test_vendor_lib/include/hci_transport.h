@@ -17,8 +17,8 @@
 #pragma once
 
 #include <functional>
-#include <memory>
 #include <list>
+#include <memory>
 
 extern "C" {
 #include <sys/epoll.h>

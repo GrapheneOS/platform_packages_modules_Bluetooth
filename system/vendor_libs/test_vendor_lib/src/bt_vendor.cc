@@ -100,8 +100,7 @@ static void TestVendorCleanUp(void) {
 
 // Entry point of DLib.
 const bt_vendor_interface_t BLUETOOTH_VENDOR_LIB_INTERFACE = {
-  sizeof(bt_vendor_interface_t),
-  test_vendor_lib::TestVendorInitialize,
-  test_vendor_lib::TestVendorOp,
-  test_vendor_lib::TestVendorCleanUp
-};
+    sizeof(bt_vendor_interface_t),
+    test_vendor_lib::TestVendorInitialize,
+    test_vendor_lib::TestVendorOp,
+    test_vendor_lib::TestVendorCleanUp};

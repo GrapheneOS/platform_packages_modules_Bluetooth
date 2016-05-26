@@ -34,10 +34,10 @@ extern "C" {
 namespace {
 const char small_payload[] = "foo bar baz";
 const char large_payload[] =
-  "Aristotle's principles will then be no more principles to him, than those "
-  "of Epicurus and the Stoics: let this diversity of opinions be propounded "
-  "to, and laid before him; he will himself choose, if he be able; if not, "
-  "he will remain in doubt.";
+    "Aristotle's principles will then be no more principles to him, than those "
+    "of Epicurus and the Stoics: let this diversity of opinions be propounded "
+    "to, and laid before him; he will himself choose, if he be able; if not, "
+    "he will remain in doubt.";
 }  // namespace
 
 namespace test_vendor_lib {
@@ -121,7 +121,6 @@ class PacketStreamTest : public ::testing::Test {
     ASSERT_TRUE(socketpair_fds_[0] > 0);
     ASSERT_TRUE(socketpair_fds_[1] > 0);
   }
-
 };
 
 TEST_F(PacketStreamTest, ReceivePacketType) {

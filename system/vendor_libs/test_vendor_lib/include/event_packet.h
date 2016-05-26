@@ -63,7 +63,8 @@ class EventPacket : public Packet {
   //     Contains any event specific parameters that should
   //     be sent to the host.
   static std::unique_ptr<EventPacket> CreateCommandCompleteEvent(
-      uint8_t num_hci_command_packets, uint16_t command_opcode,
+      uint8_t num_hci_command_packets,
+      uint16_t command_opcode,
       const std::vector<uint8_t>& event_return_parameters);
 
   // Creates and returns a command complete event packet. See the Bluetooth
@@ -107,7 +108,8 @@ class EventPacket : public Packet {
   //     Bits 14-0: Bits 16-2 of CLKNslave-CLK.
   //     Bits 15: Reserved.
   static std::unique_ptr<EventPacket> CreateInquiryResultEvent(
-      uint8_t num_responses, const std::vector<uint8_t>& bd_addresses,
+      uint8_t num_responses,
+      const std::vector<uint8_t>& bd_addresses,
       const std::vector<uint8_t>& page_scan_repetition_mode,
       const std::vector<uint8_t>& page_scan_period_mode,
       const std::vector<uint8_t>& page_scan_mode,
