@@ -228,7 +228,6 @@ void PORT_StartCnf (tRFC_MCB *p_mcb, UINT16 result)
                     p_port->error = PORT_START_FAILED;
 
                 rfc_release_multiplexer_channel (p_mcb);
-                p_port->rfc.p_mcb = NULL;
 
                 /* Send event to the application */
                 if (p_port->p_callback && (p_port->ev_mask & PORT_EV_CONNECT_ERR))
