@@ -31,7 +31,7 @@ btosiCommonSrc := \
     ./src/buffer.c \
     ./src/compat.c \
     ./src/config.c \
-    ./src/data_dispatcher.c \
+    ./src/data_dispatcher.cc \
     ./src/eager_reader.c \
     ./src/fixed_queue.c \
     ./src/future.c \
