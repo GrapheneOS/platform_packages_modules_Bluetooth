@@ -3,9 +3,10 @@ LOCAL_PATH := $(call my-dir)
 # Audio A2DP shared library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES := \
-	audio_a2dp_hw.c
+	audio_a2dp_hw.cc
 
 LOCAL_C_INCLUDES += \
 	. \

@@ -37,7 +37,7 @@ btosiCommonSrc := \
     ./src/future.c \
     ./src/hash_functions.c \
     ./src/hash_map.c \
-    ./src/hash_map_utils.c \
+    ./src/hash_map_utils.cc \
     ./src/list.c \
     ./src/metrics.cc \
     ./src/mutex.c \
