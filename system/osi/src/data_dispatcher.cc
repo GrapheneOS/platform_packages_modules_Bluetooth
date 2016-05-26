@@ -21,31 +21,28 @@
 #include "osi/include/data_dispatcher.h"
 
 #include <assert.h>
+#include <unordered_map>
 
 #include "osi/include/allocator.h"
-#include "osi/include/hash_functions.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/osi.h"
 #include "osi/include/log.h"
 
 #define DEFAULT_TABLE_BUCKETS 10
 
+typedef std::unordered_map<data_dispatcher_type_t, fixed_queue_t*> DispatchTableMap;
+
 struct data_dispatcher_t {
   char *name;
-  hash_map_t *dispatch_table;
+  DispatchTableMap *dispatch_table;
   fixed_queue_t *default_queue; // We don't own this queue
 };
 
 data_dispatcher_t *data_dispatcher_new(const char *name) {
   assert(name != NULL);
 
-  data_dispatcher_t *ret = osi_calloc(sizeof(data_dispatcher_t));
+  data_dispatcher_t *ret = (data_dispatcher_t*)osi_calloc(sizeof(data_dispatcher_t));
 
-  ret->dispatch_table = hash_map_new(DEFAULT_TABLE_BUCKETS, hash_function_naive, NULL, NULL, NULL);
-  if (!ret->dispatch_table) {
-    LOG_ERROR(LOG_TAG, "%s unable to create dispatch table.", __func__);
-    goto error;
-  }
+  ret->dispatch_table = new DispatchTableMap();
 
   ret->name = osi_strdup(name);
   if (!ret->name) {
@@ -64,7 +61,7 @@ void data_dispatcher_free(data_dispatcher_t *dispatcher) {
   if (!dispatcher)
     return;
 
-  hash_map_free(dispatcher->dispatch_table);
+  delete dispatcher->dispatch_table;
   osi_free(dispatcher->name);
   osi_free(dispatcher);
 }
@@ -72,9 +69,11 @@ void data_dispatcher_free(data_dispatcher_t *dispatcher) {
 void data_dispatcher_register(data_dispatcher_t *dispatcher, data_dispatcher_type_t type, fixed_queue_t *queue) {
   assert(dispatcher != NULL);
 
-  hash_map_erase(dispatcher->dispatch_table, (void *)type);
   if (queue)
-    hash_map_set(dispatcher->dispatch_table, (void *)type, queue);
+    (*dispatcher->dispatch_table)[type] = queue;
+  else
+    dispatcher->dispatch_table->erase(type);
+
 }
 
 void data_dispatcher_register_default(data_dispatcher_t *dispatcher, fixed_queue_t *queue) {
@@ -87,9 +86,12 @@ bool data_dispatcher_dispatch(data_dispatcher_t *dispatcher, data_dispatcher_typ
   assert(dispatcher != NULL);
   assert(data != NULL);
 
-  fixed_queue_t *queue = hash_map_get(dispatcher->dispatch_table, (void *)type);
-  if (!queue)
+  fixed_queue_t *queue;
+  auto iter = dispatcher->dispatch_table->find(type);
+  if (iter == dispatcher->dispatch_table->end())
     queue = dispatcher->default_queue;
+  else
+    queue = iter->second;
 
   if (queue)
     fixed_queue_enqueue(queue, data);
