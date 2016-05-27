@@ -17,7 +17,7 @@
 #define LOG_TAG "event_packet"
 
 #define VECTOR_COPY_TO_END(source, destination) \
-  std::copy(source.begin(), source.end(), std::back_inserter(destination));
+  std::copy((source).begin(), (source).end(), std::back_inserter(destination));
 
 #include "vendor_libs/test_vendor_lib/include/event_packet.h"
 

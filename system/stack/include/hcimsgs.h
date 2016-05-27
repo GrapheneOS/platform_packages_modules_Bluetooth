@@ -614,8 +614,8 @@ extern BOOLEAN btsnd_hcic_write_inquiry_mode(UINT8 type);              /* Write 
 
 #define HCI_DATA_HANDLE_MASK 0x0FFF
 
-#define HCID_GET_HANDLE_EVENT(p)  (UINT16)((*((UINT8 *)((p) + 1) + p->offset) + \
-                                           (*((UINT8 *)((p) + 1) + p->offset + 1) << 8)))
+#define HCID_GET_HANDLE_EVENT(p)  (UINT16)((*((UINT8 *)((p) + 1) + (p)->offset) + \
+                                           (*((UINT8 *)((p) + 1) + (p)->offset + 1) << 8)))
 
 #define HCID_GET_HANDLE(u16) (UINT16)((u16) & HCI_DATA_HANDLE_MASK)
 
@@ -627,12 +627,12 @@ extern BOOLEAN btsnd_hcic_write_inquiry_mode(UINT8 type);              /* Write 
 #define HCI_DATA_BCAST_OFFSET 10
 #define HCID_GET_BCAST(u16)   (UINT8)(((u16) >> HCI_DATA_BCAST_OFFSET) & HCI_DATA_BCAST_MASK)
 
-#define HCID_GET_ACL_LEN(p)     (UINT16)((*((UINT8 *)((p) + 1) + p->offset + 2) + \
-                                         (*((UINT8 *)((p) + 1) + p->offset + 3) << 8)))
+#define HCID_GET_ACL_LEN(p)     (UINT16)((*((UINT8 *)((p) + 1) + (p)->offset + 2) + \
+                                         (*((UINT8 *)((p) + 1) + (p)->offset + 3) << 8)))
 
 #define HCID_HEADER_SIZE      4
 
-#define HCID_GET_SCO_LEN(p)  (*((UINT8 *)((p) + 1) + p->offset + 2))
+#define HCID_GET_SCO_LEN(p)  (*((UINT8 *)((p) + 1) + (p)->offset + 2))
 
 extern void btsnd_hcic_vendor_spec_cmd (void *buffer, UINT16 opcode,
                                         UINT8 len, UINT8 *p_data,

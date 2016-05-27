@@ -148,7 +148,7 @@ enum
 #define BTA_AV_NUM_LINKS            AVDT_NUM_LINKS
 
 #define BTA_AV_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)(u32); }
-#define BTA_AV_BE_STREAM_TO_CO_ID(u32, p) {u32 = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
+#define BTA_AV_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
 
 /* these bits are defined for bta_av_cb.multi_av */
 #define BTA_AV_MULTI_AV_SUPPORTED   0x01

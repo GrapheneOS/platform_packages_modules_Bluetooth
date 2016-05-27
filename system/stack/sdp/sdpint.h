@@ -64,9 +64,9 @@ extern "C" {
 
 /* Define the type of device notification. */
 /* (Inquiry Scan and Page Scan)            */
-#define  SDP_DEVICE_NOTI_LEN                sizeof (BT_HDR) +           \
+#define  SDP_DEVICE_NOTI_LEN               (sizeof (BT_HDR) +           \
                                             HCIC_PREAMBLE_SIZE +        \
-                                            HCIC_PARAM_SIZE_WRITE_PARAM1
+                                            HCIC_PARAM_SIZE_WRITE_PARAM1)
 
 #define  SDP_DEVICE_NOTI_FLAG               0x03
 

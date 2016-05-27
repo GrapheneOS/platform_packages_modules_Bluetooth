@@ -75,7 +75,7 @@ extern "C" {
 
 /* Company ID is 24-bit integer We can not use the macros in bt_types.h */
 #define AVRC_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)(u32); }
-#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {u32 = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
+#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
 
 #define AVRC_AVC_HDR_SIZE           3   /* ctype, subunit*, opcode */
 
@@ -92,7 +92,7 @@ extern "C" {
 
 #define AVRC_MIN_BROWSE_SIZE        (AVCT_BROWSE_OFFSET + BT_HDR_SIZE + AVRC_MIN_BROWSE_HDR_SIZE)
 
-#define AVRC_CTRL_PKT_LEN(pf, pk)   {pf = (UINT8 *)((pk) + 1) + (pk)->offset + 2;}
+#define AVRC_CTRL_PKT_LEN(pf, pk)   {(pf) = (UINT8 *)((pk) + 1) + (pk)->offset + 2;}
 
 #define AVRC_MAX_CTRL_DATA_LEN      (AVRC_PACKET_LEN)
 

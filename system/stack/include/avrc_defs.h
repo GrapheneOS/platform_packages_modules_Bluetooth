@@ -837,26 +837,26 @@ typedef union
 } tAVRC_MSG;
 
 /* macros */
-#define AVRC_IS_VALID_CAP_ID(a)           (((a == AVRC_CAP_COMPANY_ID) || (a == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
+#define AVRC_IS_VALID_CAP_ID(a)           ((((a) == AVRC_CAP_COMPANY_ID) || ((a) == AVRC_CAP_EVENTS_SUPPORTED)) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_EVENT_ID(a)           (((a >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
-                                              (a <= AVRC_EVT_VOLUME_CHANGE)) ? TRUE : FALSE)
+#define AVRC_IS_VALID_EVENT_ID(a)           ((((a) >= AVRC_EVT_PLAY_STATUS_CHANGE) && \
+                                              ((a) <= AVRC_EVT_VOLUME_CHANGE)) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_ATTRIBUTE(a)          (((((a > 0) && a <= AVRC_PLAYER_SETTING_SCAN)) || \
-					      (a >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)) ? TRUE : FALSE)
+#define AVRC_IS_VALID_ATTRIBUTE(a)          ((((((a) > 0) && (a) <= AVRC_PLAYER_SETTING_SCAN)) || \
+					      ((a) >= AVRC_PLAYER_SETTING_LOW_MENU_EXT)) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_MEDIA_ATTRIBUTE(a)    ((a >= AVRC_MEDIA_ATTR_ID_TITLE) && \
-                                             (a <= AVRC_MEDIA_ATTR_ID_PLAYING_TIME) ? TRUE : FALSE)
+#define AVRC_IS_VALID_MEDIA_ATTRIBUTE(a)    (((a) >= AVRC_MEDIA_ATTR_ID_TITLE) && \
+                                             ((a) <= AVRC_MEDIA_ATTR_ID_PLAYING_TIME) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_BATTERY_STATUS(a)    ((a <= AVRC_BATTERY_STATUS_FULL_CHARGE) ? TRUE : FALSE)
+#define AVRC_IS_VALID_BATTERY_STATUS(a)    (((a) <= AVRC_BATTERY_STATUS_FULL_CHARGE) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_SYSTEM_STATUS(a)    ((a <= AVRC_SYSTEMSTATE_PWR_UNPLUGGED) ? TRUE : FALSE)
+#define AVRC_IS_VALID_SYSTEM_STATUS(a)    (((a) <= AVRC_SYSTEMSTATE_PWR_UNPLUGGED) ? TRUE : FALSE)
 
-#define AVRC_IS_VALID_GROUP(a)    ((a <= AVRC_PDU_PREV_GROUP) ? TRUE : FALSE)
+#define AVRC_IS_VALID_GROUP(a)    (((a) <= AVRC_PDU_PREV_GROUP) ? TRUE : FALSE)
 
 /* Company ID is 24-bit integer We can not use the macros in bt_types.h */
 #define AVRC_CO_ID_TO_BE_STREAM(p, u32) {*(p)++ = (UINT8)((u32) >> 16); *(p)++ = (UINT8)((u32) >> 8); *(p)++ = (UINT8)(u32); }
-#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {u32 = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
+#define AVRC_BE_STREAM_TO_CO_ID(u32, p) {(u32) = (((UINT32)(*((p) + 2))) + (((UINT32)(*((p) + 1))) << 8) + (((UINT32)(*(p))) << 16)); (p) += 3;}
 
 /*****************************************************************************
 **  data type definitions
