@@ -22,11 +22,10 @@
 #include <dlfcn.h>
 #include <pthread.h>
 #include <string.h>
+#include <unordered_map>
 
 #include "btcore/include/module.h"
 #include "osi/include/allocator.h"
-#include "osi/include/hash_functions.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
@@ -36,8 +35,8 @@ typedef enum {
   MODULE_STATE_STARTED = 2
 } module_state_t;
 
-static const size_t number_of_metadata_buckets = 42;
-static hash_map_t *metadata;
+static std::unordered_map<const module_t*, module_state_t> metadata;
+
 // Include this lock for now for correctness, while the startup sequence is being refactored
 static pthread_mutex_t metadata_lock;
 
@@ -45,24 +44,13 @@ static bool call_lifecycle_function(module_lifecycle_fn function);
 static module_state_t get_module_state(const module_t *module);
 static void set_module_state(const module_t *module, module_state_t state);
 
-void module_management_start(void) {
-  metadata = hash_map_new(
-    number_of_metadata_buckets,
-    hash_function_pointer,
-    NULL,
-    osi_free,
-    NULL
-  );
 
+void module_management_start(void) {
   pthread_mutex_init(&metadata_lock, NULL);
 }
 
 void module_management_stop(void) {
-  if (!metadata)
-    return;
-
-  hash_map_free(metadata);
-  metadata = NULL;
+  metadata.clear();
 
   pthread_mutex_destroy(&metadata_lock);
 }
@@ -74,7 +62,6 @@ const module_t *get_module(const char *name) {
 }
 
 bool module_init(const module_t *module) {
-  assert(metadata != NULL);
   assert(module != NULL);
   assert(get_module_state(module) == MODULE_STATE_NONE);
 
@@ -91,7 +78,6 @@ bool module_init(const module_t *module) {
 }
 
 bool module_start_up(const module_t *module) {
-  assert(metadata != NULL);
   assert(module != NULL);
   // TODO(zachoverflow): remove module->init check once automagic order/call is in place.
   // This hack is here so modules which don't require init don't have to have useless calls
@@ -111,7 +97,6 @@ bool module_start_up(const module_t *module) {
 }
 
 void module_shut_down(const module_t *module) {
-  assert(metadata != NULL);
   assert(module != NULL);
   module_state_t state = get_module_state(module);
   assert(state <= MODULE_STATE_STARTED);
@@ -132,7 +117,6 @@ void module_shut_down(const module_t *module) {
 }
 
 void module_clean_up(const module_t *module) {
-  assert(metadata != NULL);
   assert(module != NULL);
   module_state_t state = get_module_state(module);
   assert(state <= MODULE_STATE_INITIALIZED);
@@ -169,24 +153,16 @@ static bool call_lifecycle_function(module_lifecycle_fn function) {
 
 static module_state_t get_module_state(const module_t *module) {
   pthread_mutex_lock(&metadata_lock);
-  module_state_t *state_ptr = hash_map_get(metadata, module);
+  auto map_ptr = metadata.find(module);
   pthread_mutex_unlock(&metadata_lock);
 
-  return state_ptr ? *state_ptr : MODULE_STATE_NONE;
+  return (map_ptr != metadata.end()) ? map_ptr->second : MODULE_STATE_NONE;
 }
 
 static void set_module_state(const module_t *module, module_state_t state) {
   pthread_mutex_lock(&metadata_lock);
-
-  module_state_t *state_ptr = hash_map_get(metadata, module);
-  if (!state_ptr) {
-    state_ptr = osi_malloc(sizeof(module_state_t));
-    hash_map_set(metadata, module, state_ptr);
-  }
-
+  metadata[module] = state;
   pthread_mutex_unlock(&metadata_lock);
-
-  *state_ptr = state;
 }
 
 // TODO(zachoverflow): remove when everything modulized
@@ -207,7 +183,7 @@ void module_start_up_callbacked_wrapper(
     const module_t *module,
     thread_t *callback_thread,
     thread_fn callback) {
-  callbacked_wrapper_t *wrapper = osi_calloc(sizeof(callbacked_wrapper_t));
+  callbacked_wrapper_t *wrapper = (callbacked_wrapper_t*)osi_calloc(sizeof(callbacked_wrapper_t));
 
   wrapper->module = module;
   wrapper->lifecycle_thread = thread_new("module_wrapper");
@@ -221,7 +197,7 @@ void module_start_up_callbacked_wrapper(
 static void run_wrapped_start_up(void *context) {
   assert(context);
 
-  callbacked_wrapper_t *wrapper = context;
+  callbacked_wrapper_t *wrapper = (callbacked_wrapper_t*)context;
   wrapper->success = module_start_up(wrapper->module);
 
   // Post the result back to the callback
@@ -231,7 +207,7 @@ static void run_wrapped_start_up(void *context) {
 static void post_result_to_callback(void *context) {
   assert(context);
 
-  callbacked_wrapper_t *wrapper = context;
+  callbacked_wrapper_t *wrapper = (callbacked_wrapper_t*)context;
 
   // Save the values we need for callback
   void *result = wrapper->success ? FUTURE_SUCCESS : FUTURE_FAIL;
