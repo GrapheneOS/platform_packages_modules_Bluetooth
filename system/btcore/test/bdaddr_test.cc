@@ -22,27 +22,54 @@ extern "C" {
 #include "btcore/include/bdaddr.h"
 }
 
-TEST(HashFunctionBdaddrTest, test_same_pointer_is_same) {
-  bt_bdaddr_t test_address;
-  string_to_bdaddr("12:34:56:78:9A:BC", &test_address);
+static const char* test_addr = "12:34:56:78:9a:bc";
+static const char* test_addr2 = "cb:a9:87:65:43:21";
 
-  EXPECT_EQ(hash_function_bdaddr(&test_address), hash_function_bdaddr(&test_address));
+
+TEST(BdaddrTest, test_empty) {
+  bt_bdaddr_t empty;
+  string_to_bdaddr("00:00:00:00:00:00", &empty);
+  ASSERT_TRUE(bdaddr_is_empty(&empty));
+
+  bt_bdaddr_t not_empty;
+  string_to_bdaddr("00:00:00:00:00:01", &not_empty);
+  ASSERT_FALSE(bdaddr_is_empty(&not_empty));
 }
 
-TEST(HashFunctionBdaddrTest, test_same_value_is_same) {
-  bt_bdaddr_t test_address0;
-  bt_bdaddr_t test_address1;
-  string_to_bdaddr("12:34:56:78:9A:BC", &test_address0);
-  string_to_bdaddr("12:34:56:78:9A:BC", &test_address1);
+TEST(BdaddrTest, test_to_from_str) {
+  char ret[19];
+  bt_bdaddr_t bdaddr;
+  string_to_bdaddr(test_addr, &bdaddr);
 
-  EXPECT_EQ(hash_function_bdaddr(&test_address0), hash_function_bdaddr(&test_address1));
+  ASSERT_EQ(0x12, bdaddr.address[0]);
+  ASSERT_EQ(0x34, bdaddr.address[1]);
+  ASSERT_EQ(0x56, bdaddr.address[2]);
+  ASSERT_EQ(0x78, bdaddr.address[3]);
+  ASSERT_EQ(0x9A, bdaddr.address[4]);
+  ASSERT_EQ(0xBC, bdaddr.address[5]);
+
+  bdaddr_to_string(&bdaddr, ret, sizeof(ret));
+
+  ASSERT_STREQ(test_addr, ret);
 }
 
-TEST(HashFunctionBdaddrTest, test_different_value_is_different) {
-  bt_bdaddr_t test_address0;
-  bt_bdaddr_t test_address1;
-  string_to_bdaddr("12:34:56:78:9A:BC", &test_address0);
-  string_to_bdaddr("43:56:21:78:9A:BC", &test_address1);
+TEST(BdaddrTest, test_equals) {
+  bt_bdaddr_t bdaddr1;
+  bt_bdaddr_t bdaddr2;
+  bt_bdaddr_t bdaddr3;
+  string_to_bdaddr(test_addr, &bdaddr1);
+  string_to_bdaddr(test_addr, &bdaddr2);
+  EXPECT_TRUE(bdaddr_equals(&bdaddr1, &bdaddr2));
 
-  EXPECT_NE(hash_function_bdaddr(&test_address0), hash_function_bdaddr(&test_address1));
+  string_to_bdaddr(test_addr2, &bdaddr3);
+  EXPECT_FALSE(bdaddr_equals(&bdaddr2, &bdaddr3));
+}
+
+TEST(BdaddrTest, test_copy) {
+  bt_bdaddr_t bdaddr1;
+  bt_bdaddr_t bdaddr2;
+  string_to_bdaddr(test_addr, &bdaddr1);
+  bdaddr_copy(&bdaddr2, &bdaddr1);
+
+  EXPECT_TRUE(bdaddr_equals(&bdaddr1, &bdaddr2));
 }

@@ -23,8 +23,6 @@
 #include <string.h>
 
 #include "osi/include/allocator.h"
-#include "osi/include/hash_functions.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
