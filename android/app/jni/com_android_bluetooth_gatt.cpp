@@ -1087,8 +1087,10 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
     jbyte *p_value = env->GetByteArrayElements(value, NULL);
     if (p_value == NULL) return;
 
-    sGattIf->client->write_characteristic(conn_id, handle, write_type, len, auth_req, (char*)p_value);
+    std::vector<uint8_t> vect_val(p_value, p_value + len);
     env->ReleaseByteArrayElements(value, p_value, 0);
+
+    sGattIf->client->write_characteristic(conn_id, handle, write_type, auth_req, vect_val);
 }
 
 static void gattClientExecuteWriteNative(JNIEnv* env, jobject object,
@@ -1112,8 +1114,10 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
     jbyte *p_value = env->GetByteArrayElements(value, NULL);
     if (p_value == NULL) return;
 
-    sGattIf->client->write_descriptor(conn_id, handle, write_type, len, auth_req, (char*)p_value);
+    std::vector<uint8_t> vect_val(p_value, p_value + len);
     env->ReleaseByteArrayElements(value, p_value, 0);
+
+    sGattIf->client->write_descriptor(conn_id, handle, write_type, auth_req, vect_val);
 }
 
 static void gattClientRegisterForNotificationsNative(JNIEnv* env, jobject object,
@@ -1589,9 +1593,11 @@ static void gattServerSendIndicationNative (JNIEnv *env, jobject object,
     jbyte* array = env->GetByteArrayElements(val, 0);
     int val_len = env->GetArrayLength(val);
 
-    sGattIf->server->send_indication(server_if, attr_handle, conn_id, val_len,
-                                     /*confirm*/ 1, (char*)array);
+    std::vector<uint8_t> vect_val((uint8_t*)array, (uint8_t*)array + val_len);
     env->ReleaseByteArrayElements(val, array, JNI_ABORT);
+
+    sGattIf->server->send_indication(server_if, attr_handle, conn_id,
+                                     /*confirm*/ 1, std::move(vect_val));
 }
 
 static void gattServerSendNotificationNative (JNIEnv *env, jobject object,
@@ -1602,9 +1608,11 @@ static void gattServerSendNotificationNative (JNIEnv *env, jobject object,
     jbyte* array = env->GetByteArrayElements(val, 0);
     int val_len = env->GetArrayLength(val);
 
-    sGattIf->server->send_indication(server_if, attr_handle, conn_id, val_len,
-                                     /*confirm*/ 0, (char*)array);
+    std::vector<uint8_t> vect_val((uint8_t*)array, (uint8_t*)array + val_len);
     env->ReleaseByteArrayElements(val, array, JNI_ABORT);
+
+    sGattIf->server->send_indication(server_if, attr_handle, conn_id,
+                                     /*confirm*/ 0, std::move(vect_val));
 }
 
 static void gattServerSendResponseNative (JNIEnv *env, jobject object,
