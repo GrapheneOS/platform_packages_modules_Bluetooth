@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
