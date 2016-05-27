@@ -29,7 +29,7 @@ static_library("hci") {
     "src/hci_packet_factory.c",
     "src/hci_packet_parser.c",
     "src/low_power_manager.c",
-    "src/packet_fragmenter.c",
+    "src/packet_fragmenter.cc",
     "src/vendor.c",
   ]
 
