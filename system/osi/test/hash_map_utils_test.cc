@@ -21,9 +21,9 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
-#include "osi/include/hash_map.h"
 #include "osi/include/hash_map_utils.h"
+
+extern "C" {
 #include "osi/include/allocator.h"
 }
 
@@ -31,26 +31,25 @@ class HashMapUtilsTest : public AllocationTestHarness {
  protected:
   virtual void SetUp() {
     AllocationTestHarness::SetUp();
-    map = NULL;
   }
   virtual void TearDown() {
-    hash_map_free(map);
+    map.clear();
     AllocationTestHarness::TearDown();
   }
 
-  hash_map_t *map;
+  std::unordered_map<std::string, std::string> map;
 };
 
 TEST_F(HashMapUtilsTest, test_empty_string_params) {
   char params[] = "";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_TRUE(hash_map_is_empty(map));
+  EXPECT_TRUE(map.empty());
 }
 
 TEST_F(HashMapUtilsTest, test_semicolons) {
   char params[] = ";;;";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_TRUE(hash_map_is_empty(map));
+  EXPECT_TRUE(map.empty());
 }
 
 TEST_F(HashMapUtilsTest, test_equal_sign_in_value) {
@@ -58,8 +57,9 @@ TEST_F(HashMapUtilsTest, test_equal_sign_in_value) {
   char key[] = "keyOfSomething";
   char value[] = "value=OfSomething";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(1u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value, (char *)hash_map_get(map, key)));
+  EXPECT_EQ(1u, map.size());
+  EXPECT_EQ(value, map[key]);
+  map.clear();
 }
 
 TEST_F(HashMapUtilsTest, test_two_pairs_with_same_key) {
@@ -67,8 +67,8 @@ TEST_F(HashMapUtilsTest, test_two_pairs_with_same_key) {
   char key[] = "key";
   char value1[] = "value1";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(1u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value1, (char *)hash_map_get(map, key)));
+  EXPECT_EQ(1u, map.size());
+  EXPECT_EQ(value1, map[key]);
 }
 
 TEST_F(HashMapUtilsTest, test_one_key_value_pair_without_semicolon) {
@@ -76,8 +76,8 @@ TEST_F(HashMapUtilsTest, test_one_key_value_pair_without_semicolon) {
   char key[] = "keyOfSomething";
   char value[] = "valueOfSomething";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(1u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value, (char *)hash_map_get(map, key)));
+  EXPECT_EQ(1u, map.size());
+  EXPECT_EQ(value, map[key]);
 }
 
 TEST_F(HashMapUtilsTest, test_one_key_value_pair_with_semicolon) {
@@ -85,8 +85,8 @@ TEST_F(HashMapUtilsTest, test_one_key_value_pair_with_semicolon) {
   char key[] = "keyOfSomething";
   char value[] = "valueOfSomething";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(1u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value, (char *)hash_map_get(map, key)));
+  EXPECT_EQ(1u, map.size());
+  EXPECT_EQ(value, map[key]);
 }
 
 TEST_F(HashMapUtilsTest, test_one_pair_with_empty_value) {
@@ -94,14 +94,14 @@ TEST_F(HashMapUtilsTest, test_one_pair_with_empty_value) {
   char key[] = "keyOfSomething";
   char value[] = "";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(1u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value, (char *)hash_map_get(map, key)));
+  EXPECT_EQ(1u, map.size());
+  EXPECT_EQ(value, map[key]);
 }
 
 TEST_F(HashMapUtilsTest, test_one_pair_with_empty_key) {
   char params[] = "=valueOfSomething;";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_TRUE(hash_map_is_empty(map));
+  EXPECT_TRUE(map.empty());
 }
 
 TEST_F(HashMapUtilsTest, test_two_key_value_pairs) {
@@ -111,12 +111,7 @@ TEST_F(HashMapUtilsTest, test_two_key_value_pairs) {
   char key1[] = "key1";
   char value1[] = "value1";
   map = hash_map_utils_new_from_string_params(params);
-  EXPECT_EQ(2u, hash_map_size(map));
-  EXPECT_EQ(0, strcmp(value0, (char *)hash_map_get(map, key0)));
-  EXPECT_EQ(0, strcmp(value1, (char *)hash_map_get(map, key1)));
-}
-
-TEST_F(HashMapUtilsTest, test_dump_null_map) {
-  hash_map_t *map = NULL;
-  hash_map_utils_dump_string_keys_string_values(map);
+  EXPECT_EQ(2u, map.size());
+  EXPECT_EQ(value0, map[key0]);
+  EXPECT_EQ(value1, map[key1]);
 }

@@ -16,7 +16,7 @@
 
 shared_library("audio.a2dp.default") {
   sources = [
-    "audio_a2dp_hw.c",
+    "audio_a2dp_hw.cc",
   ]
 
   include_dirs = [
