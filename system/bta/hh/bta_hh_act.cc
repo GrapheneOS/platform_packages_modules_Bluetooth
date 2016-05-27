@@ -48,8 +48,8 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
 static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result);
 
 #if BTA_HH_DEBUG
-static char* bta_hh_get_w4_event(UINT16 event);
-static char * bta_hh_hid_event_name(UINT16 event);
+static const char* bta_hh_get_w4_event(UINT16 event);
+static const char * bta_hh_hid_event_name(UINT16 event);
 #endif
 
 /*****************************************************************************
@@ -1283,7 +1283,7 @@ static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result)
 *****************************************************************************/
 
 #if (defined BTA_HH_DEBUG && BTA_HH_DEBUG == TRUE)
-static char* bta_hh_get_w4_event(UINT16 event)
+static const char* bta_hh_get_w4_event(UINT16 event)
 {
     switch (event)
     {
@@ -1307,7 +1307,7 @@ static char* bta_hh_get_w4_event(UINT16 event)
 
 }
 
-static char * bta_hh_hid_event_name(UINT16 event)
+static const char * bta_hh_hid_event_name(UINT16 event)
 {
     switch (event)
     {

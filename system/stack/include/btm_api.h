@@ -3265,7 +3265,7 @@ extern void BTM_SetSecureConnectionsOnly (BOOLEAN secure_connections_only_mode);
 ** Returns          TRUE if registered OK, else FALSE
 **
 *******************************************************************************/
-extern BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, char *p_name,
+extern BOOLEAN BTM_SetSecurityLevel (BOOLEAN is_originator, const char *p_name,
                                      UINT8 service_id, UINT16 sec_level,
                                      UINT16 psm, UINT32 mx_proto_id,
                                      UINT32 mx_chan_id);

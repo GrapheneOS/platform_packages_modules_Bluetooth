@@ -252,8 +252,8 @@ tBTA_HH_CB  bta_hh_cb;
 ** Static functions
 *****************************************************************************/
 #if BTA_HH_DEBUG == TRUE
-static char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code);
-static char *bta_hh_state_code(tBTA_HH_STATE state_code);
+static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code);
+static const char *bta_hh_state_code(tBTA_HH_STATE state_code);
 #endif
 
 /*******************************************************************************
@@ -487,7 +487,7 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-static char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
+static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
 {
   switch(evt_code)
     {
@@ -553,7 +553,7 @@ static char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
 ** Returns          void
 **
 *******************************************************************************/
-static char *bta_hh_state_code(tBTA_HH_STATE state_code)
+static const char *bta_hh_state_code(tBTA_HH_STATE state_code)
 {
     switch (state_code)
     {
