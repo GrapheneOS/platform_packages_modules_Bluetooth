@@ -413,8 +413,7 @@ void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
 ** Parameters       conn_id - connection ID.
 **                  handle - characteristic handle to write.
 **                  write_type - type of write.
-**                  len: length of the data to be written.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
@@ -422,12 +421,11 @@ void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
 void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
                                 UINT16 handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
-                                UINT16 len,
-                                UINT8 *p_value,
+                                std::vector<uint8_t> value,
                                 tBTA_GATT_AUTH_REQ auth_req)
 {
-    tBTA_GATTC_API_WRITE  *p_buf =
-        (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + len);
+    tBTA_GATTC_API_WRITE  *p_buf = (tBTA_GATTC_API_WRITE *)
+        osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
 
     p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
     p_buf->hdr.layer_specific = conn_id;
@@ -435,11 +433,11 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
     p_buf->handle = handle;
     p_buf->cmpl_evt = BTA_GATTC_WRITE_CHAR_EVT;
     p_buf->write_type = write_type;
-    p_buf->len = len;
+    p_buf->len = value.size();
 
-    if (p_value && len > 0) {
+    if (value.size() > 0) {
         p_buf->p_value = (UINT8 *)(p_buf + 1);
-        memcpy(p_buf->p_value, p_value, len);
+        memcpy(p_buf->p_value, value.data(), value.size());
     }
 
     bta_sys_sendmsg(p_buf);
@@ -454,7 +452,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 ** Parameters       conn_id - connection ID
 **                  handle - descriptor hadle to write.
 **                  write_type - write type.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
@@ -462,15 +460,12 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
                                UINT16 handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
-                               tBTA_GATT_UNFMT      *p_data,
+                               std::vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req)
 {
-    size_t len = sizeof(tBTA_GATTC_API_WRITE);
+    tBTA_GATTC_API_WRITE *p_buf = (tBTA_GATTC_API_WRITE *)
+        osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
 
-    if (p_data != NULL)
-        len += p_data->len;
-
-    tBTA_GATTC_API_WRITE *p_buf = (tBTA_GATTC_API_WRITE *)osi_calloc(len);
     p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
@@ -478,11 +473,10 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
     p_buf->cmpl_evt = BTA_GATTC_WRITE_DESCR_EVT;
     p_buf->write_type = write_type;
 
-    if (p_data && p_data->len != 0) {
+    if (value.size() != 0) {
         p_buf->p_value  = (UINT8 *)(p_buf + 1);
-        p_buf->len      = p_data->len;
-        /* pack the descr data */
-        memcpy(p_buf->p_value, p_data->p_value, p_data->len);
+        p_buf->len      = value.size();
+        memcpy(p_buf->p_value, value.data(), value.size());
     }
 
     bta_sys_sendmsg(p_buf);
@@ -495,20 +489,19 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 ** Description      This function is called to prepare write a characteristic value.
 **
 ** Parameters       conn_id - connection ID.
-**                    p_char_id - GATT characteritic ID of the service.
+**                  p_char_id - GATT characteritic ID of the service.
 **                  offset - offset of the write value.
-**                  len: length of the data to be written.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle,
-                              UINT16 offset, UINT16 len, UINT8 *p_value,
+void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle, UINT16 offset,
+                              std::vector<uint8_t> value,
                               tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_WRITE *p_buf =
-        (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + len);
+        (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
 
     p_buf->hdr.event = BTA_GATTC_API_WRITE_EVT;
     p_buf->hdr.layer_specific = conn_id;
@@ -517,11 +510,11 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle,
 
     p_buf->write_type = BTA_GATTC_WRITE_PREPARE;
     p_buf->offset   = offset;
-    p_buf->len = len;
+    p_buf->len = value.size();
 
-    if (p_value && len > 0) {
+    if (value.size() > 0) {
         p_buf->p_value = (UINT8 *)(p_buf + 1);
-        memcpy(p_buf->p_value, p_value, len);
+        memcpy(p_buf->p_value, value.data(), value.size());
     }
 
     bta_sys_sendmsg(p_buf);

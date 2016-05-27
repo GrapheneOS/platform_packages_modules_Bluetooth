@@ -29,9 +29,9 @@
 #include "gatt_api.h"
 #include "osi/include/list.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <vector>
+
+using std::vector;
 
 #ifndef     BTA_GATT_INCLUDED
 #warning BTA_GATT_INCLUDED not defined
@@ -789,8 +789,7 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ 
 ** Parameters       conn_id - connection ID.
 **                  handle - characteristic handle to write.
 **                  write_type - type of write.
-**                  len: length of the data to be written.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
@@ -798,8 +797,7 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ 
 void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
                                 UINT16 handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
-                                UINT16 len,
-                                UINT8 *p_value,
+                                vector<uint8_t> value,
                                 tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
@@ -811,7 +809,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 ** Parameters       conn_id - connection ID
 **                  handle - descriptor handle to write.
 **                  write_type - type of write.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
@@ -819,7 +817,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
                                UINT16 handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
-                               tBTA_GATT_UNFMT      *p_data,
+                               vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
@@ -879,8 +877,7 @@ extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF     
 ** Parameters       conn_id - connection ID.
 **                  handle - GATT characteritic handle.
 **                  offset - offset of the write value.
-**                  len - length of the data to be written.
-**                  p_value - the value to be written.
+**                  value - the value to be written.
 **
 ** Returns          None
 **
@@ -888,8 +885,7 @@ extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF     
 extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
                                      UINT16 handle,
                                      UINT16 offset,
-                                     UINT16 len,
-                                     UINT8 *p_value,
+                                     vector<uint8_t> value,
                                      tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
@@ -1168,17 +1164,15 @@ extern void BTA_GATTS_StopService(UINT16 service_id);
 ** Description      This function is called to read a characteristics descriptor.
 **
 ** Parameters       conn_id - connection identifier.
-**					attr_id - attribute ID to indicate.
-**                  data_len - indicate data length.
-**                  p_data: data to indicate.
+**                  attr_id - attribute ID to indicate.
+**                  value - data to indicate.
 **                  need_confirm - if this indication expects a confirmation or not.
 **
 ** Returns          None
 **
 *******************************************************************************/
 extern void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
-                                             UINT16 data_len,
-                                             UINT8 *p_data,
+                                             vector<uint8_t> value,
                                              BOOLEAN need_confirm);
 
 /*******************************************************************************
@@ -1264,12 +1258,5 @@ extern void BTA_GATTS_Close(UINT16 conn_id);
 *******************************************************************************/
 extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start,
                              BD_ADDR_PTR target_bda);
-
-
-#ifdef __cplusplus
-
-}
-#endif
-
 
 #endif /* BTA_GATT_API_H */

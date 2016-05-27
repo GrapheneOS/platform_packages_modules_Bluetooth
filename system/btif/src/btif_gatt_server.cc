@@ -52,6 +52,7 @@
 
 using base::Bind;
 using base::Owned;
+using std::vector;
 
 extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
@@ -480,11 +481,10 @@ static bt_status_t btif_gatts_send_indication(int server_if,
   CHECK_BTGATT_INIT();
 
   len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-  uint8_t *value = new uint8_t[len];
-  memcpy(value, p_value, len);
+  vector<uint8_t> value(p_value, p_value + len);
 
   return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
-                               attribute_handle, len, base::Owned(value), confirm));
+                               attribute_handle, std::move(value), confirm));
   // TODO: Might need to send an ACK if handle value indication is
   //       invoked without need for confirmation.
 }
