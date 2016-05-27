@@ -57,13 +57,13 @@
 #define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
 #define print_events(events) do { \
     APPL_TRACE_DEBUG("print poll event:%x", events); \
-    if (events & POLLIN) APPL_TRACE_DEBUG(  "   POLLIN "); \
-    if (events & POLLPRI) APPL_TRACE_DEBUG( "   POLLPRI "); \
-    if (events & POLLOUT) APPL_TRACE_DEBUG( "   POLLOUT "); \
-    if (events & POLLERR) APPL_TRACE_DEBUG( "   POLLERR "); \
-    if (events & POLLHUP) APPL_TRACE_DEBUG( "   POLLHUP "); \
-    if (events & POLLNVAL) APPL_TRACE_DEBUG("   POLLNVAL "); \
-    if (events & POLLRDHUP) APPL_TRACE_DEBUG("   POLLRDHUP"); \
+    if ((events) & POLLIN) APPL_TRACE_DEBUG(  "   POLLIN "); \
+    if ((events) & POLLPRI) APPL_TRACE_DEBUG( "   POLLPRI "); \
+    if ((events) & POLLOUT) APPL_TRACE_DEBUG( "   POLLOUT "); \
+    if ((events) & POLLERR) APPL_TRACE_DEBUG( "   POLLERR "); \
+    if ((events) & POLLHUP) APPL_TRACE_DEBUG( "   POLLHUP "); \
+    if ((events) & POLLNVAL) APPL_TRACE_DEBUG("   POLLNVAL "); \
+    if ((events) & POLLRDHUP) APPL_TRACE_DEBUG("   POLLRDHUP"); \
     } while(0)
 
 #define MAX_THREAD 8

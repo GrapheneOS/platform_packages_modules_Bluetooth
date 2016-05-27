@@ -594,7 +594,7 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
 #define BTA_HL_GET_MDEP_CFG_PTR(app_idx, mdep_cfg_idx)  &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg)
 #define BTA_HL_GET_DATA_CFG_PTR(app_idx, mdep_cfg_idx, data_cfg_idx)  \
            &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg.data_cfg[data_cfg_idx])
-#define BTA_HL_GET_BUF_PTR(p_pkt) ((UINT8 *)((UINT8 *) (p_pkt+1) + p_pkt->offset))
+#define BTA_HL_GET_BUF_PTR(p_pkt) ((UINT8 *)((UINT8 *) ((p_pkt)+1) + (p_pkt)->offset))
 
 /*****************************************************************************
 **  Function prototypes

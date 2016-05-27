@@ -333,7 +333,7 @@ typedef struct
 
 } tL2CAP_ERTM_INFO;
 
-#define L2CA_REGISTER(a,b,c)              L2CA_Register(a,(tL2CAP_APPL_INFO *)b)
+#define L2CA_REGISTER(a,b,c)              L2CA_Register(a,(tL2CAP_APPL_INFO *)(b))
 #define L2CA_DEREGISTER(a)                L2CA_Deregister(a)
 #define L2CA_CONNECT_REQ(a,b,c)           L2CA_ErtmConnectReq(a,b,c)
 #define L2CA_CONNECT_RSP(a,b,c,d,e,f)     L2CA_ErtmConnectRsp(a,b,c,d,e,f)
@@ -342,7 +342,7 @@ typedef struct
 #define L2CA_DISCONNECT_REQ(a)            L2CA_DisconnectReq(a)
 #define L2CA_DISCONNECT_RSP(a)            L2CA_DisconnectRsp(a)
 #define L2CA_DATA_WRITE(a, b)             L2CA_DataWrite(a, b)
-#define L2CA_REGISTER_COC(a,b,c)          L2CA_RegisterLECoc(a,(tL2CAP_APPL_INFO *)b)
+#define L2CA_REGISTER_COC(a,b,c)          L2CA_RegisterLECoc(a,(tL2CAP_APPL_INFO *)(b))
 #define L2CA_DEREGISTER_COC(a)            L2CA_DeregisterLECoc(a)
 #define L2CA_CONNECT_COC_REQ(a,b,c)       L2CA_ConnectLECocReq(a,b,c)
 #define L2CA_CONNECT_COC_RSP(a,b,c,d,e,f) L2CA_ConnectLECocRsp(a,b,c,d,e,f)

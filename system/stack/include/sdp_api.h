@@ -61,8 +61,8 @@ extern "C" {
 
 /* Masks for attr_value field of tSDP_DISC_ATTR */
 #define SDP_DISC_ATTR_LEN_MASK          0x0FFF
-#define SDP_DISC_ATTR_TYPE(len_type)    (len_type >> 12)
-#define SDP_DISC_ATTR_LEN(len_type)     (len_type & SDP_DISC_ATTR_LEN_MASK)
+#define SDP_DISC_ATTR_TYPE(len_type)    ((len_type) >> 12)
+#define SDP_DISC_ATTR_LEN(len_type)     ((len_type) & SDP_DISC_ATTR_LEN_MASK)
 
 /* Maximum number of protocol list items (list_elem in tSDP_PROTOCOL_ELEM) */
 #define SDP_MAX_LIST_ELEMS      3

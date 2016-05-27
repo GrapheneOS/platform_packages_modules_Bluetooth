@@ -108,8 +108,8 @@ static void btif_hl_cback(tBTA_HL_EVT event, tBTA_HL *p_data);
 static void btif_hl_proc_cb_evt(UINT16 event, char* p_param);
 
 #define CHECK_CALL_CBACK(P_CB, P_CBACK, ...)\
-    if (P_CB && P_CB->P_CBACK) {            \
-        P_CB->P_CBACK(__VA_ARGS__);         \
+    if ((P_CB) && (P_CB)->P_CBACK) {        \
+        (P_CB)->P_CBACK(__VA_ARGS__);       \
     }                                       \
     else {                                  \
         ASSERTC(0, "Callback is NULL", 0);  \
@@ -119,8 +119,8 @@ static void btif_hl_proc_cb_evt(UINT16 event, char* p_param);
      if((p_btif_hl_cb->state != BTIF_HL_STATE_DISABLING) &&\
          (p_btif_hl_cb->state != BTIF_HL_STATE_DISABLED))  \
      {                                                     \
-        if (P_CB && P_CB->P_CBACK) {                       \
-            P_CB->P_CBACK(__VA_ARGS__);                    \
+        if ((P_CB) && (P_CB)->P_CBACK) {                   \
+            (P_CB)->P_CBACK(__VA_ARGS__);                  \
         }                                                  \
         else {                                             \
             ASSERTC(0, "Callback is NULL", 0);             \

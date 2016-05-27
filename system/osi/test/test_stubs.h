@@ -83,7 +83,7 @@
 //   AT_CALL(1) EXPECT_EQ(chocolate_covered_fake_blueberries, food);
 // }
 #define AT_CALL(index) \
-  if (_local_callcount == index)
+  if (_local_callcount == (index))
 
 // Declare all the available test modes for the DURING clauses
 // For example:

@@ -89,7 +89,7 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
                                       */
 #define BLE_RESOLVE_ADDR_MASK 0xc0 /* bit 6, and bit7 */
 #define BTM_BLE_IS_RESOLVE_BDA(x) \
-  ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
+  (((x)[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 namespace std {
 template <>

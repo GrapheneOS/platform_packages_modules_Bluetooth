@@ -143,15 +143,15 @@
 *****************************************************************************/
 
 #define AVDT_MSG_PRS_HDR(p, lbl, pkt, msg) \
-    lbl = *(p) >> 4; \
-    pkt = (*(p) >> 2) & 0x03; \
-    msg = *(p)++ & 0x03;
+    (lbl) = *(p) >> 4; \
+    (pkt) = (*(p) >> 2) & 0x03; \
+    (msg) = *(p)++ & 0x03;
 
 #define AVDT_MSG_PRS_DISC(p, seid, in_use, type, tsep) \
-    seid = *(p) >> 2; \
-    in_use = (*(p)++ >> 1) & 0x01; \
-    type = *(p) >> 4; \
-    tsep = (*(p)++ >> 3) & 0x01;
+    (seid) = *(p) >> 2; \
+    (in_use) = (*(p)++ >> 1) & 0x01; \
+    (type) = *(p) >> 4; \
+    (tsep) = (*(p)++ >> 3) & 0x01;
 
 #define AVDT_MSG_PRS_SIG(p, sig) \
     sig = *(p)++ & 0x3F;
@@ -163,19 +163,19 @@
     pkt = (*(p) >> 2) & 0x03;
 
 #define AVDT_MSG_PRS_OCTET1(p, o_v, o_p, o_x, o_cc) \
-    o_v = *(p) >> 6; \
-    o_p = (*(p) >> 5) & 0x01; \
-    o_x = (*(p) >> 4) & 0x01; \
-    o_cc = *(p)++ & 0x0F;
+    (o_v) = *(p) >> 6; \
+    (o_p) = (*(p) >> 5) & 0x01; \
+    (o_x) = (*(p) >> 4) & 0x01; \
+    (o_cc) = *(p)++ & 0x0F;
 
 #define AVDT_MSG_PRS_RPT_OCTET1(p, o_v, o_p, o_cc) \
-    o_v = *(p) >> 6; \
-    o_p = (*(p) >> 5) & 0x01; \
-    o_cc = *(p)++ & 0x1F;
+    (o_v) = *(p) >> 6; \
+    (o_p) = (*(p) >> 5) & 0x01; \
+    (o_cc) = *(p)++ & 0x1F;
 
 #define AVDT_MSG_PRS_M_PT(p, m_pt, marker) \
-    marker = *(p) >> 7; \
-    m_pt = *(p)++ & 0x7F;
+    (marker) = *(p) >> 7; \
+    (m_pt) = *(p)++ & 0x7F;
 
 #define AVDT_MSG_BLD_HDR(p, lbl, pkt, msg) \
     *(p)++ = (UINT8) ((lbl) << 4) | ((pkt) << 2) | (msg);
