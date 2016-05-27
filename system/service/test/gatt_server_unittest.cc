@@ -41,7 +41,7 @@ class MockGattHandler
   MOCK_METHOD4(AddDescriptor, bt_status_t(int, int, bt_uuid_t*, int));
   MOCK_METHOD3(StartService, bt_status_t(int, int, int));
   MOCK_METHOD2(DeleteService, bt_status_t(int, int));
-  MOCK_METHOD6(SendIndication, bt_status_t(int, int, int, int, int, char*));
+  MOCK_METHOD5(SendIndication, bt_status_t(int, int, int, int, vector<uint8_t>));
   MOCK_METHOD4(SendResponse, bt_status_t(int, int, int, btgatt_response_t*));
 
  private:
@@ -1243,12 +1243,12 @@ TEST_F(GattServerPostRegisterTest, SendNotification) {
   // fail.
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
   EXPECT_FALSE(gatt_server_->SendNotification(
@@ -1258,12 +1258,12 @@ TEST_F(GattServerPostRegisterTest, SendNotification) {
   // One of the calls succeeds.
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_FAIL));
   EXPECT_TRUE(gatt_server_->SendNotification(
@@ -1274,7 +1274,7 @@ TEST_F(GattServerPostRegisterTest, SendNotification) {
   // This one we send with confirm=true.
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             value.size(), 1, nullptr))
+                             1, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   EXPECT_TRUE(gatt_server_->SendNotification(
@@ -1299,12 +1299,12 @@ TEST_F(GattServerPostRegisterTest, SendNotification) {
   // Restart. Both calls succeed now.
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId0,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   EXPECT_CALL(*mock_handler_,
               SendIndication(kDefaultServerId, char_handle_, kConnId1,
-                             value.size(), 0, nullptr))
+                             0, value))
       .Times(1)
       .WillOnce(Return(BT_STATUS_SUCCESS));
   EXPECT_TRUE(gatt_server_->SendNotification(
