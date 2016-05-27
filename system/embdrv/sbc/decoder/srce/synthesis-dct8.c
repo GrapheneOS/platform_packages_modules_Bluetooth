@@ -208,7 +208,7 @@ PRIVATE void float_dct2_8(float * RESTRICT out, OI_INT32 const *RESTRICT in)
  */
 PRIVATE void dct2_8(SBC_BUFFER_T * RESTRICT out, OI_INT32 const *RESTRICT in)
 {
-#define BUTTERFLY(x,y) x += y; y = x - (y<<1);
+#define BUTTERFLY(x,y) x += (y); (y) = (x) - ((y)<<1);
 #define FIX_MULT_DCT(K, x) (MUL_32S_32S_HI(K,x)<<2)
 
     OI_INT32 L00,L01,L02,L03,L04,L05,L06,L07;

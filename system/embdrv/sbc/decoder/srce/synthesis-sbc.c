@@ -200,7 +200,7 @@ const OI_INT32 dec_window_4[21] = {
 #endif
 
 #ifndef CLIP_INT16
-#define CLIP_INT16(x) do { if (x > OI_INT16_MAX) { x = OI_INT16_MAX; } else if (x < OI_INT16_MIN) { x = OI_INT16_MIN; } } while (0)
+#define CLIP_INT16(x) do { if ((x) > OI_INT16_MAX) { (x) = OI_INT16_MAX; } else if ((x) < OI_INT16_MIN) { (x) = OI_INT16_MIN; } } while (0)
 #endif
 
 /**

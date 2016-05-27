@@ -172,7 +172,7 @@ typedef OI_UINT32 OI_UTF32;
  */
 
 #ifndef OI_ARRAYSIZE
-#define OI_ARRAYSIZE(a) (sizeof(a)/sizeof(a[0]))
+#define OI_ARRAYSIZE(a) (sizeof(a)/sizeof((a)[0]))
 #endif
 
 /**
