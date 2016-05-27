@@ -20,4 +20,12 @@
 
 #include "osi/include/allocator.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const allocator_t *buffer_allocator_get_interface();
+
+#ifdef __cplusplus
+}
+#endif

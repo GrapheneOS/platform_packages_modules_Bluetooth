@@ -3,6 +3,7 @@ LOCAL_PATH := $(call my-dir)
 # HCI static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES := \
     src/btsnoop.c \
@@ -18,7 +19,7 @@ LOCAL_SRC_FILES := \
     src/hci_packet_factory.c \
     src/hci_packet_parser.c \
     src/low_power_manager.c \
-    src/packet_fragmenter.c \
+    src/packet_fragmenter.cc \
     src/vendor.c
 
 LOCAL_C_INCLUDES += \
