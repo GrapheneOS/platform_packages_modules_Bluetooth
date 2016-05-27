@@ -31,6 +31,8 @@
 
 #define GATT_HDR_FIND_TYPE_VALUE_LEN    21
 #define GATT_OP_CODE_SIZE   1
+#define GATT_START_END_HANDLE_SIZE    4
+
 /**********************************************************************
 **   ATT protocl message building utility                              *
 ***********************************************************************/
@@ -125,10 +127,10 @@ BT_HDR *attp_build_err_cmd(UINT8 cmd_code, UINT16 err_handle, UINT8 reason)
 *******************************************************************************/
 BT_HDR *attp_build_browse_cmd(UINT8 op_code, UINT16 s_hdl, UINT16 e_hdl, tBT_UUID uuid)
 {
-    UINT8 *p;
-    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + 8 + L2CAP_MIN_OFFSET);
+    const size_t payload_size = (GATT_OP_CODE_SIZE) + (GATT_START_END_HANDLE_SIZE) + (LEN_UUID_128);
+    BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + payload_size + L2CAP_MIN_OFFSET);
 
-    p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
+    UINT8 *p = (UINT8 *)(p_buf + 1) + L2CAP_MIN_OFFSET;
     /* Describe the built message location and size */
     p_buf->offset = L2CAP_MIN_OFFSET;
     p_buf->len = GATT_OP_CODE_SIZE + 4;
