@@ -643,11 +643,12 @@ void l2cble_process_sig_cmd (tL2C_LCB *p_lcb, UINT8 *p, UINT16 pkt_len)
     switch (cmd_code)
     {
         case L2CAP_CMD_REJECT:
-        case L2CAP_CMD_ECHO_RSP:
-        case L2CAP_CMD_INFO_RSP:
             p += 2;
             break;
+
         case L2CAP_CMD_ECHO_REQ:
+        case L2CAP_CMD_ECHO_RSP:
+        case L2CAP_CMD_INFO_RSP:
         case L2CAP_CMD_INFO_REQ:
             l2cu_send_peer_cmd_reject (p_lcb, L2CAP_CMD_REJ_NOT_UNDERSTOOD, id, 0, 0);
             break;
