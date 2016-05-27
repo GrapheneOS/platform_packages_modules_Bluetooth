@@ -88,7 +88,7 @@ typedef UINT8 tBTA_AV_HNDL;
 #define BTA_AV_HNDL_TO_MSK(h)       ((UINT8)(1 << (h)))
 
 /* tBTA_AV_HNDL to mask */
-#define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((UINT8)(1 << (h&BTA_AV_HNDL_MSK)))
+#define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((UINT8)(1 << ((h)&BTA_AV_HNDL_MSK)))
 
 /* offset of codec type in codec info byte array */
 #define BTA_AV_CODEC_TYPE_IDX       AVDT_CODEC_TYPE_INDEX   /* 2 */

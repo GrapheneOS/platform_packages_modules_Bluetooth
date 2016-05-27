@@ -393,15 +393,15 @@ typedef UINT8 (tBTM_FILTER_CB) (BD_ADDR bd_addr, DEV_CLASS dc);
 #define BTM_COD_SERVICE_INFORMATION         0x8000
 
 /* class of device field macros */
-#define BTM_COD_FORMAT_TYPE(u8, pd)         {u8  = pd[2]&0x03;}
-#define BTM_COD_MINOR_CLASS(u8, pd)         {u8  = pd[2]&0xFC;}
-#define BTM_COD_MAJOR_CLASS(u8, pd)         {u8  = pd[1]&0x1F;}
-#define BTM_COD_SERVICE_CLASS(u16, pd)      {u16 = pd[0]; u16<<=8; u16 += pd[1]&0xE0;}
+#define BTM_COD_FORMAT_TYPE(u8, pd)         {(u8)  = (pd)[2]&0x03;}
+#define BTM_COD_MINOR_CLASS(u8, pd)         {(u8)  = (pd)[2]&0xFC;}
+#define BTM_COD_MAJOR_CLASS(u8, pd)         {(u8)  = (pd)[1]&0x1F;}
+#define BTM_COD_SERVICE_CLASS(u16, pd)      {(u16) = (pd)[0]; (u16)<<=8; (u16) += (pd)[1]&0xE0;}
 
 /* to set the fields (assumes that format type is always 0) */
-#define FIELDS_TO_COD(pd, mn, mj, sv) {pd[2] = mn; pd[1] =              \
-                                       mj+ ((sv)&BTM_COD_SERVICE_CLASS_LO_B); \
-                                       pd[0] = (sv) >> 8;}
+#define FIELDS_TO_COD(pd, mn, mj, sv) {(pd)[2] = mn; (pd)[1] =                  \
+                                       (mj)+ ((sv)&BTM_COD_SERVICE_CLASS_LO_B); \
+                                       (pd)[0] = (sv) >> 8;}
 
 /* the COD masks */
 #define BTM_COD_FORMAT_TYPE_MASK      0x03
@@ -1580,7 +1580,7 @@ typedef void (tBTM_BOND_CANCEL_CMPL_CALLBACK) (tBTM_STATUS result);
 #define BTM_LE_BR_KEYS_REQ_EVT  SMP_BR_KEYS_REQ_EVT     /* SMP over BR keys request event */
 #define BTM_LE_COMPLT_EVT       SMP_COMPLT_EVT         /* SMP complete event */
 #define BTM_LE_LAST_FROM_SMP    BTM_LE_BR_KEYS_REQ_EVT
-#define BTM_LE_KEY_EVT          BTM_LE_LAST_FROM_SMP + 1 /* KEY update event */
+#define BTM_LE_KEY_EVT          (BTM_LE_LAST_FROM_SMP + 1) /* KEY update event */
 typedef UINT8 tBTM_LE_EVT;
 
 #define BTM_LE_KEY_NONE           0

@@ -133,7 +133,7 @@ typedef struct
 #define BTA_JV_RFCOMM_MASK          0x80
 #define BTA_JV_ALL_APP_ID           0xFF
 #define BTA_JV_RFC_HDL_TO_SIDX(r)   (((r)&0xFF00) >> 8)
-#define BTA_JV_RFC_H_S_TO_HDL(h, s) ((h)|(s<<8))
+#define BTA_JV_RFC_H_S_TO_HDL(h, s) ((h)|((s)<<8))
 
 /* port control block */
 typedef struct

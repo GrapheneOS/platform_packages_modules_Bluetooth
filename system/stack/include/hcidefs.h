@@ -1446,7 +1446,7 @@ typedef struct
 
 #define HCI_FEATURE_BYTES_PER_PAGE      8
 
-#define HCI_FEATURES_KNOWN(x) ((x[0] | x[1] | x[2] | x[3] | x[4] | x[5] | x[6] | x[7]) != 0)
+#define HCI_FEATURES_KNOWN(x) (((x)[0] | (x)[1] | (x)[2] | (x)[3] | (x)[4] | (x)[5] | (x)[6] | (x)[7]) != 0)
 
 /*
 **   LMP features encoding - page 0
