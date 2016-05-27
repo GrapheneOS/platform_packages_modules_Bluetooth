@@ -24,7 +24,7 @@ btcoreCommonSrc := \
     src/bdaddr.c \
     src/device_class.c \
     src/hal_util.c \
-    src/module.c \
+    src/module.cc \
     src/osi_module.c \
     src/property.c \
     src/uuid.c
@@ -43,6 +43,7 @@ btcoreCommonIncludes := \
 # libbtcore static library for target
 # ========================================================
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 LOCAL_MODULE := libbtcore
@@ -60,6 +61,7 @@ include $(BUILD_STATIC_LIBRARY)
 # ========================================================
 ifeq ($(HOST_OS),linux)
 include $(CLEAR_VARS)
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 LOCAL_MODULE := libbtcore-host
