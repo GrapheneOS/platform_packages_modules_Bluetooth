@@ -16,7 +16,7 @@
 
 static_library("device") {
   sources = [
-    "src/classic/peer.c",
+    "src/classic/peer.cc",
     "src/controller.c",
     "src/interop.c",
   ]
