@@ -40,7 +40,6 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
-#include "osi/include/hash_map.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/thread.h"

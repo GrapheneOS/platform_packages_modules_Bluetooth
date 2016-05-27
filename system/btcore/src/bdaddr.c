@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "btcore/include/bdaddr.h"
+#include "osi/include/hash_functions.h"
 
 bool bdaddr_is_empty(const bt_bdaddr_t *addr) {
   assert(addr != NULL);
