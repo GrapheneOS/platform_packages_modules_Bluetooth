@@ -47,7 +47,7 @@
 static void bta_gattc_cache_write(BD_ADDR server_bda, UINT16 num_attr, tBTA_GATTC_NV_ATTR *attr);
 static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
 static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
-extern void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src);
+extern "C" void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src);
 tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, UINT16 handle);
 tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle);
 tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle);
@@ -176,13 +176,13 @@ tBTA_GATT_STATUS bta_gattc_init_cache(tBTA_GATTC_SERV *p_srvc_cb)
 }
 
 static void characteristic_free(void *ptr) {
-  tBTA_GATTC_CHARACTERISTIC *p_char = ptr;
+  tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*)ptr;
   list_free(p_char->descriptors);
   osi_free(p_char);
 }
 
 static void service_free(void *ptr) {
-  tBTA_GATTC_SERVICE *srvc = ptr;
+  tBTA_GATTC_SERVICE *srvc = (tBTA_GATTC_SERVICE*)ptr;
   list_free(srvc->characteristics);
   list_free(srvc->included_svc);
   osi_free(srvc);
@@ -206,7 +206,7 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     APPL_TRACE_DEBUG("Add a service into Service");
 #endif
 
-    tBTA_GATTC_SERVICE *p_new_srvc = osi_malloc(sizeof(tBTA_GATTC_SERVICE));
+    tBTA_GATTC_SERVICE *p_new_srvc = (tBTA_GATTC_SERVICE*)osi_malloc(sizeof(tBTA_GATTC_SERVICE));
 
     /* update service information */
     p_new_srvc->s_handle = s_handle;
@@ -253,7 +253,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     }
 
     if (type == BTA_GATTC_ATTR_TYPE_CHAR) {
-        tBTA_GATTC_CHARACTERISTIC *characteristic =
+        tBTA_GATTC_CHARACTERISTIC *characteristic = (tBTA_GATTC_CHARACTERISTIC*)
             osi_malloc(sizeof(tBTA_GATTC_CHARACTERISTIC));
 
         characteristic->handle = handle;
@@ -264,7 +264,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         characteristic->service = service;
         list_append(service->characteristics, characteristic);
     } else if (type == BTA_GATTC_ATTR_TYPE_INCL_SRVC) {
-        tBTA_GATTC_INCLUDED_SVC *isvc =
+        tBTA_GATTC_INCLUDED_SVC *isvc = (tBTA_GATTC_INCLUDED_SVC*)
             osi_malloc(sizeof(tBTA_GATTC_INCLUDED_SVC));
 
         isvc->handle = handle;
@@ -281,7 +281,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 
         list_append(service->included_svc, isvc);
     } else if (type == BTA_GATTC_ATTR_TYPE_CHAR_DESCR) {
-        tBTA_GATTC_DESCRIPTOR *descriptor =
+        tBTA_GATTC_DESCRIPTOR *descriptor = (tBTA_GATTC_DESCRIPTOR*)
             osi_malloc(sizeof(tBTA_GATTC_DESCRIPTOR));
 
         descriptor->handle = handle;
@@ -294,7 +294,8 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
             return GATT_WRONG_STATE;
         }
 
-        tBTA_GATTC_CHARACTERISTIC *char_node = list_back(service->characteristics);
+        tBTA_GATTC_CHARACTERISTIC *char_node = (tBTA_GATTC_CHARACTERISTIC*)
+            list_back(service->characteristics);
 
         descriptor->characteristic = char_node;
         list_append(char_node->descriptors, descriptor);
@@ -714,7 +715,7 @@ void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
     tBT_UUID            service_uuid;
     tSDP_PROTOCOL_ELEM  pe;
     UINT16              start_handle = 0, end_handle = 0;
-    tBTA_GATTC_CB_DATA  *cb_data = user_data;
+    tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)user_data;
     tBTA_GATTC_SERV     *p_srvc_cb = bta_gattc_find_scb_by_cid(cb_data->sdp_conn_id);
 
     if (((sdp_status == SDP_SUCCESS) || (sdp_status == SDP_DB_FULL)) && p_srvc_cb != NULL)
@@ -962,7 +963,7 @@ void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
 
     for (list_node_t *sn = list_begin(p_clcb->p_srcb->p_srvc_cache);
          sn != list_end(p_clcb->p_srcb->p_srvc_cache); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *p_cache = list_node(sn);
+        tBTA_GATTC_SERVICE *p_cache = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (!bta_gattc_uuid_compare(p_uuid, &p_cache->uuid, FALSE))
             continue;
@@ -1010,7 +1011,7 @@ tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, UIN
 
     for (list_node_t *sn = list_begin(services);
          sn != list_end(services); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *service = list_node(sn);
+        tBTA_GATTC_SERVICE *service = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (handle >= service->s_handle && handle <= service->e_handle)
             return service;
@@ -1039,7 +1040,7 @@ tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p
 
     for (list_node_t *cn = list_begin(service->characteristics);
          cn != list_end(service->characteristics); cn = list_next(cn)) {
-        tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+        tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
         if (handle == p_char->handle)
             return p_char;
     }
@@ -1066,10 +1067,10 @@ tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, U
 
     for (list_node_t *cn = list_begin(service->characteristics);
          cn != list_end(service->characteristics); cn = list_next(cn)) {
-        tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+        tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
         for (list_node_t *dn = list_begin(p_char->descriptors);
              dn != list_end(p_char->descriptors); dn = list_next(dn)) {
-            tBTA_GATTC_DESCRIPTOR *p_desc = list_node(dn);
+            tBTA_GATTC_DESCRIPTOR *p_desc = (tBTA_GATTC_DESCRIPTOR*) list_node(dn);
             if (handle == p_desc->handle)
                 return p_desc;
         }
@@ -1124,7 +1125,7 @@ static size_t bta_gattc_get_db_size(list_t *services,
 
     for (list_node_t *sn = list_begin(services);
          sn != list_end(services); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *p_cur_srvc = list_node(sn);
+        tBTA_GATTC_SERVICE *p_cur_srvc = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (p_cur_srvc->s_handle < start_handle)
             continue;
@@ -1138,7 +1139,7 @@ static size_t bta_gattc_get_db_size(list_t *services,
 
         for (list_node_t *cn = list_begin(p_cur_srvc->characteristics);
              cn != list_end(p_cur_srvc->characteristics); cn = list_next(cn)) {
-            tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+            tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
             db_size++;
 
             if (p_char->descriptors)
@@ -1185,11 +1186,11 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
     size_t db_size = bta_gattc_get_db_size(p_srvc_cb->p_srvc_cache, start_handle, end_handle);
 
     void* buffer = osi_malloc(db_size * sizeof(btgatt_db_element_t));
-    btgatt_db_element_t *curr_db_attr = buffer;
+    btgatt_db_element_t *curr_db_attr = (btgatt_db_element_t*) buffer;
 
     for (list_node_t *sn = list_begin(p_srvc_cb->p_srvc_cache);
          sn != list_end(p_srvc_cb->p_srvc_cache); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *p_cur_srvc = list_node(sn);
+        tBTA_GATTC_SERVICE *p_cur_srvc = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (p_cur_srvc->s_handle < start_handle)
             continue;
@@ -1214,7 +1215,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 
         for (list_node_t *cn = list_begin(p_cur_srvc->characteristics);
              cn != list_end(p_cur_srvc->characteristics); cn = list_next(cn)) {
-            tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+            tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
             bta_gattc_fill_gatt_db_el(curr_db_attr,
                                       BTGATT_DB_CHARACTERISTIC,
@@ -1231,7 +1232,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 
             for (list_node_t *dn = list_begin(p_char->descriptors);
                  dn != list_end(p_char->descriptors); dn = list_next(dn)) {
-                tBTA_GATTC_DESCRIPTOR *p_desc = list_node(dn);
+                tBTA_GATTC_DESCRIPTOR *p_desc = (tBTA_GATTC_DESCRIPTOR*) list_node(dn);
 
                 bta_gattc_fill_gatt_db_el(curr_db_attr,
                                           BTGATT_DB_DESCRIPTOR,
@@ -1250,7 +1251,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 
         for (list_node_t *isn = list_begin(p_cur_srvc->included_svc);
              isn != list_end(p_cur_srvc->included_svc); isn = list_next(isn)) {
-            tBTA_GATTC_INCLUDED_SVC *p_isvc = list_node(isn);
+            tBTA_GATTC_INCLUDED_SVC *p_isvc = (tBTA_GATTC_INCLUDED_SVC*) list_node(isn);
 
             bta_gattc_fill_gatt_db_el(curr_db_attr,
                                       BTGATT_DB_INCLUDED_SERVICE,
@@ -1264,7 +1265,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
         }
     }
 
-    *db = buffer;
+    *db = (btgatt_db_element_t*) buffer;
     *count = db_size;
 }
 
@@ -1394,11 +1395,11 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
 
     int i = 0;
     size_t db_size = bta_gattc_get_db_size(p_srvc_cb->p_srvc_cache, 0x0000, 0xFFFF);
-    tBTA_GATTC_NV_ATTR *nv_attr = osi_malloc(db_size * sizeof(tBTA_GATTC_NV_ATTR));
+    tBTA_GATTC_NV_ATTR *nv_attr = (tBTA_GATTC_NV_ATTR*) osi_malloc(db_size * sizeof(tBTA_GATTC_NV_ATTR));
 
     for (list_node_t *sn = list_begin(p_srvc_cb->p_srvc_cache);
          sn != list_end(p_srvc_cb->p_srvc_cache); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *p_cur_srvc = list_node(sn);
+        tBTA_GATTC_SERVICE *p_cur_srvc = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         bta_gattc_fill_nv_attr(&nv_attr[i++],
                                 BTA_GATTC_ATTR_TYPE_SRVC,
@@ -1412,14 +1413,14 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
 
     for (list_node_t *sn = list_begin(p_srvc_cb->p_srvc_cache);
          sn != list_end(p_srvc_cb->p_srvc_cache); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *p_cur_srvc = list_node(sn);
+        tBTA_GATTC_SERVICE *p_cur_srvc = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (!p_cur_srvc->characteristics || list_is_empty(p_cur_srvc->characteristics))
             continue;
 
         for (list_node_t *cn = list_begin(p_cur_srvc->characteristics);
              cn != list_end(p_cur_srvc->characteristics); cn = list_next(cn)) {
-            tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+            tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
             bta_gattc_fill_nv_attr(&nv_attr[i++],
                                    BTA_GATTC_ATTR_TYPE_CHAR,
@@ -1435,7 +1436,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
 
             for (list_node_t *dn = list_begin(p_char->descriptors);
                  dn != list_end(p_char->descriptors); dn = list_next(dn)) {
-                tBTA_GATTC_DESCRIPTOR *p_desc = list_node(dn);
+                tBTA_GATTC_DESCRIPTOR *p_desc = (tBTA_GATTC_DESCRIPTOR*) list_node(dn);
 
                 bta_gattc_fill_nv_attr(&nv_attr[i++],
                                        BTA_GATTC_ATTR_TYPE_CHAR_DESCR,
@@ -1453,7 +1454,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
 
         for (list_node_t *an = list_begin(p_cur_srvc->included_svc);
              an != list_end(p_cur_srvc->included_svc); an = list_next(an)) {
-            tBTA_GATTC_INCLUDED_SVC *p_isvc = list_node(an);
+            tBTA_GATTC_INCLUDED_SVC *p_isvc = (tBTA_GATTC_INCLUDED_SVC*) list_node(an);
 
             bta_gattc_fill_nv_attr(&nv_attr[i++],
                                    BTA_GATTC_ATTR_TYPE_INCL_SRVC,
@@ -1496,6 +1497,7 @@ bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
     UINT16 cache_ver = 0;
     tBTA_GATTC_NV_ATTR  *attr = NULL;
     bool success = false;
+    UINT16 num_attr = 0;
 
     if (fread(&cache_ver, sizeof(UINT16), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't read GATT cache version from: %s", __func__, fname);
@@ -1507,14 +1509,13 @@ bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
         goto done;
     }
 
-    UINT16 num_attr = 0;
 
     if (fread(&num_attr, sizeof(UINT16), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't read number of GATT attributes: %s", __func__, fname);
         goto done;
     }
 
-    attr = osi_malloc(sizeof(tBTA_GATTC_NV_ATTR) * num_attr);
+    attr = (tBTA_GATTC_NV_ATTR*) osi_malloc(sizeof(tBTA_GATTC_NV_ATTR) * num_attr);
 
     if (fread(attr, sizeof(tBTA_GATTC_NV_ATTR), 0xFF, fd) != num_attr) {
         APPL_TRACE_ERROR("%s: can't read GATT attributes: %s", __func__, fname);
