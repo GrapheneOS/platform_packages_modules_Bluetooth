@@ -496,7 +496,7 @@ void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value,
                    status, num_records, data_len);
 
   if (data_len > 0) {
-    uint8_t *data = new uint8_t(data_len);
+    uint8_t *data = new uint8_t[data_len];
     memcpy(data, p_rep_data, data_len);
     osi_free(p_rep_data);
 
@@ -857,7 +857,7 @@ bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
 
   len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
   // callback will own this value and free it.
-  UINT8 *value = new UINT8(len);
+  UINT8 *value = new UINT8[len];
   memcpy(value, p_value, len);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharValue, conn_id, handle,
@@ -872,7 +872,7 @@ bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
   // callback will own this value and free it
   // TODO(jpawlowski): This one is little hacky because of unfmt type,
   // make it accept len an val like BTA_GATTC_WriteCharValue
-  tBTA_GATT_UNFMT *value = (tBTA_GATT_UNFMT *)new UINT8(sizeof(UINT16) + len);
+  tBTA_GATT_UNFMT *value = (tBTA_GATT_UNFMT *)new UINT8[sizeof(UINT16) + len];
   value->len = len;
   value->p_value = ((UINT8 *)value) + 2;
   memcpy(value->p_value, p_value, len);
