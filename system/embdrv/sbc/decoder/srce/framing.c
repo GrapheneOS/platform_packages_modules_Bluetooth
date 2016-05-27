@@ -208,14 +208,14 @@ void OI_SBC_ExpandFrameFields(OI_CODEC_SBC_FRAME_INFO *frame)
 #define COPY4WORDS_BACK(_dest, _src)            \
     do {                                        \
             OI_INT32 _a, _b, _c, _d;            \
-            _a = *--_src;                       \
-            _b = *--_src;                       \
-            _c = *--_src;                       \
-            _d = *--_src;                       \
-            *--_dest = _a;                      \
-            *--_dest = _b;                      \
-            *--_dest = _c;                      \
-            *--_dest = _d;                      \
+            _a = *--(_src);                     \
+            _b = *--(_src);                     \
+            _c = *--(_src);                     \
+            _d = *--(_src);                     \
+            *--(_dest) = _a;                    \
+            *--(_dest) = _b;                    \
+            *--(_dest) = _c;                    \
+            *--(_dest) = _d;                    \
     } while (0)
 
 

@@ -72,7 +72,7 @@ typedef OI_UINT16 OI_INTERVAL;
  * Macro to convert milliseconds to OI_INTERVAL time units (Rounded Up)
  */
 
-#define OI_MSECONDS(n)   ((OI_INTERVAL) ((n + MSECS_PER_OI_INTERVAL - 1) / MSECS_PER_OI_INTERVAL))
+#define OI_MSECONDS(n)   ((OI_INTERVAL) (((n) + MSECS_PER_OI_INTERVAL - 1) / MSECS_PER_OI_INTERVAL))
 
 /**
  * Macro to convert minutes to OI_INTERVAL time units
