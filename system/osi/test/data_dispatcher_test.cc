@@ -4,8 +4,9 @@
 
 #include "AllocationTestHarness.h"
 
-extern "C" {
 #include "osi/include/data_dispatcher.h"
+
+extern "C" {
 #include "osi/include/fixed_queue.h"
 #include "osi/include/osi.h"
 }
