@@ -21,7 +21,6 @@
 #include <hardware/bluetooth.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include "osi/include/hash_functions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,9 +59,6 @@ bool string_is_bdaddr(const char *string);
 // represent a Bluetooth address, |addr| is not modified and this function returns
 // false. Otherwise, it returns true. Neither |string| nor |addr| may be NULL.
 bool string_to_bdaddr(const char *string, bt_bdaddr_t *addr);
-
-// A hash function tailored for bdaddrs.
-hash_index_t hash_function_bdaddr(const void *key);
 
 #ifdef __cplusplus
 }

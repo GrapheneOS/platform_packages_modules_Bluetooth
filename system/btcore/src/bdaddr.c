@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "btcore/include/bdaddr.h"
-#include "osi/include/hash_functions.h"
 
 bool bdaddr_is_empty(const bt_bdaddr_t *addr) {
   assert(addr != NULL);
@@ -91,12 +90,4 @@ bool string_to_bdaddr(const char *string, bt_bdaddr_t *addr) {
     memcpy(addr, &new_addr, sizeof(bt_bdaddr_t));
 
   return ret;
-}
-
-hash_index_t hash_function_bdaddr(const void *key) {
-  hash_index_t hash = 5381;
-  const char *bytes = (const char *)key;
-  for (size_t i = 0; i < sizeof(bt_bdaddr_t); ++i)
-    hash = ((hash << 5) + hash) + bytes[i];
-  return hash;
 }
