@@ -90,7 +90,7 @@
 
 #define BTIF_HF_CALL_END_TIMEOUT       6
 
-#define BTIF_HF_INVALID_IDX       -1
+#define BTIF_HF_INVALID_IDX       (-1)
 
 /* Number of BTIF-HF control blocks */
 #define BTIF_HF_NUM_CB       2

@@ -75,7 +75,7 @@ typedef UINT16 tBTA_HH_EVT;
 #define BTA_HH_APP_ID_LE            0xff
 
 /* defined the minimum offset */
-#define BTA_HH_MIN_OFFSET       L2CAP_MIN_OFFSET+1
+#define BTA_HH_MIN_OFFSET       (L2CAP_MIN_OFFSET+1)
 
 /* HID_HOST_MAX_DEVICES can not exceed 15 for th design of BTA HH */
 #define BTA_HH_IDX_INVALID      0xff

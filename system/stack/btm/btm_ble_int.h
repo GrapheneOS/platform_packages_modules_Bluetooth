@@ -86,11 +86,11 @@ typedef UINT8   tBTM_BLE_SEC_REQ_ACT;
 #define BLE_STATIC_PRIVATE_MSB_MASK          0x3f
 #define BLE_RESOLVE_ADDR_MSB                 0x40   /*  most significant bit, bit7, bit6 is 01 to be resolvable random */
 #define BLE_RESOLVE_ADDR_MASK                0xc0   /* bit 6, and bit7 */
-#define BTM_BLE_IS_RESOLVE_BDA(x)           ((x[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
+#define BTM_BLE_IS_RESOLVE_BDA(x)           (((x)[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB)
 
 #define BLE_PUBLIC_ADDR_MSB_MASK            0xC0
 #define BLE_PUBLIC_ADDR_MSB                 0x80   /*  most significant bit, bit7, bit6 is 10 to be public address*/
-#define BTM_IS_PUBLIC_BDA(x)               ((x[0]  & BLE_PUBLIC_ADDR_MSB) == BLE_PUBLIC_ADDR_MSB_MASK)
+#define BTM_IS_PUBLIC_BDA(x)               (((x)[0]  & BLE_PUBLIC_ADDR_MSB) == BLE_PUBLIC_ADDR_MSB_MASK)
 
 /* LE scan activity bit mask, continue with LE inquiry bits */
 #define BTM_LE_SELECT_CONN_ACTIVE      0x40     /* selection connection is in progress */

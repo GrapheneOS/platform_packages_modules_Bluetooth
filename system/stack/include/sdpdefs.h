@@ -43,9 +43,9 @@
 #define  ATTR_ID_ADDITION_PROTO_DESC_LISTS      0x000D
 
 #define  LANGUAGE_BASE_ID                       0x0100
-#define  ATTR_ID_SERVICE_NAME                   LANGUAGE_BASE_ID + 0x0000
-#define  ATTR_ID_SERVICE_DESCRIPTION            LANGUAGE_BASE_ID + 0x0001
-#define  ATTR_ID_PROVIDER_NAME                  LANGUAGE_BASE_ID + 0x0002
+#define  ATTR_ID_SERVICE_NAME                   (LANGUAGE_BASE_ID + 0x0000)
+#define  ATTR_ID_SERVICE_DESCRIPTION            (LANGUAGE_BASE_ID + 0x0001)
+#define  ATTR_ID_PROVIDER_NAME                  (LANGUAGE_BASE_ID + 0x0002)
 
 /* Device Identification (DI)
 */

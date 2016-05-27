@@ -26,7 +26,7 @@
 #include "include/bt_target.h"
 #include "osi/include/ringbuffer.h"
 
-#define REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type) (type >> 8)
+#define REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type) ((type) >> 8)
 
 // Total btsnoop memory log buffer size
 #ifndef BTSNOOP_MEM_BUFFER_SIZE

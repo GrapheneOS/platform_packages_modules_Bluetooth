@@ -205,7 +205,7 @@ BT_OCTET16 ble_encryption_key_value; /* BLE encryption key */
 #define BTM_MAX_INQUIRY_LENGTH          HCI_MAX_INQUIRY_LENGTH
 #define BTM_MIN_INQUIRY_LEN             0x01
 
-#define BTM_MIN_INQ_TX_POWER    -70
+#define BTM_MIN_INQ_TX_POWER    (-70)
 #define BTM_MAX_INQ_TX_POWER    20
 
 typedef struct

@@ -44,7 +44,7 @@
 
 // Increase BTU task thread priority to avoid pre-emption
 // of audio realated tasks.
-#define BTU_TASK_THREAD_PRIORITY -19
+#define BTU_TASK_THREAD_PRIORITY (-19)
 
 extern fixed_queue_t *btif_msg_queue;
 
