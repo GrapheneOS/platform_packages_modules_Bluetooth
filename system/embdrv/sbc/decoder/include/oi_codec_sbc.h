@@ -187,8 +187,8 @@ typedef struct {
  * */
 #define CODEC_DATA_WORDS(numChannels, numBuffers) \
     ((\
-        (sizeof(OI_INT32) * SBC_MAX_BLOCKS * numChannels * SBC_MAX_BANDS) \
-         + (sizeof(SBC_BUFFER_T) * SBC_MAX_CHANNELS * SBC_MAX_BANDS * numBuffers) \
+        (sizeof(OI_INT32) * SBC_MAX_BLOCKS * (numChannels) * SBC_MAX_BANDS) \
+         + (sizeof(SBC_BUFFER_T) * SBC_MAX_CHANNELS * SBC_MAX_BANDS * (numBuffers)) \
          + (sizeof (OI_UINT32) - 1) \
     ) / sizeof(OI_UINT32))
 
