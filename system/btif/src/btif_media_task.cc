@@ -463,10 +463,9 @@ static UINT64 time_now_us()
 static void log_tstamps_us(const char *comment, uint64_t timestamp_us)
 {
     static uint64_t prev_us = 0;
-    const UINT64 now_us = timestamp_us;
-    APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, now_us, now_us - prev_us,
-                fixed_queue_length(btif_media_cb.TxAaQ));
-    prev_us = now_us;
+    APPL_TRACE_DEBUG("[%s] ts %08llu, diff : %08llu, queue sz %d", comment, timestamp_us,
+        timestamp_us - prev_us, fixed_queue_length(btif_media_cb.TxAaQ));
+    prev_us = timestamp_us;
 }
 
 UNUSED_ATTR static const char *dump_media_event(UINT16 event)
