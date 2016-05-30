@@ -194,6 +194,19 @@ void btif_queue_focus_request(void);
 ********************************************************************************/
 void btif_av_clear_remote_suspend_flag(void);
 
+/*******************************************************************************
+**
+** Function         btif_av_peer_supports_3mbps
+**
+** Description      Check if the connected A2DP device supports
+**                  3 Mbps EDR. This function will only work while connected.
+**                  If not connected it will always return false.
+**
+** Returns          TRUE if remote device is EDR and supports 3 Mbps
+**
+*******************************************************************************/
+BOOLEAN btif_av_peer_supports_3mbps(void);
+
 #ifdef __cplusplus
 }
 #endif
