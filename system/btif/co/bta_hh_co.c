@@ -16,26 +16,25 @@
  *
  ******************************************************************************/
 
-//#if (defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE))
-
+#include <assert.h>
 #include <ctype.h>
+#include <errno.h>
 #include <fcntl.h>
-#include <sys/poll.h>
+#include <linux/uhid.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <errno.h>
+#include <sys/poll.h>
 #include <unistd.h>
-#include <linux/uhid.h>
-#include <unistd.h>
+
+#include "btcore/include/bdaddr.h"
 #include "osi/include/osi.h"
-#include "btif_hh.h"
 #include "bta_api.h"
 #include "bta_hh_api.h"
-#include "btif_util.h"
 #include "bta_hh_co.h"
-#include "btcore/include/bdaddr.h"
+#include "btif_hh.h"
+#include "btif_util.h"
 
 const char *dev_path = "/dev/uhid";
 
@@ -61,8 +60,8 @@ void uhid_set_non_blocking(int fd)
 static int uhid_write(int fd, const struct uhid_event *ev)
 {
     ssize_t ret;
-
     OSI_NO_INTR(ret = write(fd, ev, sizeof(*ev)));
+
     if (ret < 0){
         int rtn = -errno;
         APPL_TRACE_ERROR("%s: Cannot write to uhid:%s",
@@ -78,17 +77,16 @@ static int uhid_write(int fd, const struct uhid_event *ev)
 }
 
 /* Internal function to parse the events received from UHID driver*/
-static int uhid_event(btif_hh_device_t *p_dev)
+static int uhid_read_event(btif_hh_device_t *p_dev)
 {
+    assert(p_dev);
+
     struct uhid_event ev;
-    ssize_t ret;
     memset(&ev, 0, sizeof(ev));
-    if(!p_dev)
-    {
-        APPL_TRACE_ERROR("%s: Device not found",__FUNCTION__)
-        return -1;
-    }
-    ret = read(p_dev->fd, &ev, sizeof(ev));
+
+    ssize_t ret;
+    OSI_NO_INTR(ret = read(p_dev->fd, &ev, sizeof(ev)));
+
     if (ret == 0) {
         APPL_TRACE_ERROR("%s: Read HUP on uhid-cdev %s", __FUNCTION__,
                                                  strerror(errno));
@@ -217,8 +215,8 @@ static void *btif_hh_poll_event_thread(void *arg)
         }
         if (pfds[0].revents & POLLIN) {
             APPL_TRACE_DEBUG("%s: POLLIN", __func__);
-            ret = uhid_event(p_dev);
-            if (ret != -EINTR)
+            ret = uhid_read_event(p_dev);
+            if (ret != 0)
                 break;
         }
     }
