@@ -255,15 +255,11 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
         {
             bt_bdaddr_t bda;
             bdcpy(bda.address, p_data->req_data.remote_bda);
-
+            const auto &req = p_data->req_data.p_data->write_req;
+            vector<uint8_t> value(req.value, req.value + req.len);
             HAL_CBACK(bt_gatt_callbacks, server->request_write_cb,
                       p_data->req_data.conn_id,p_data->req_data.trans_id, &bda,
-                      p_data->req_data.p_data->write_req.handle,
-                      p_data->req_data.p_data->write_req.offset,
-                      p_data->req_data.p_data->write_req.len,
-                      p_data->req_data.p_data->write_req.need_rsp,
-                      p_data->req_data.p_data->write_req.is_prep,
-                      p_data->req_data.p_data->write_req.value);
+                      req.handle, req.offset, req.need_rsp, req.is_prep, value);
             break;
         }
 

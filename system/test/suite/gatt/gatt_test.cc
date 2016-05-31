@@ -107,7 +107,7 @@ void GattTest::RegisterClientCallback(
 
 void GattTest::ScanResultCallback(
     bluetooth::hal::BluetoothGattInterface* /* unused */,
-    const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) {
+    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
   semaphore_post(scan_result_callback_sem_);
 }
 

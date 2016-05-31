@@ -470,8 +470,7 @@ void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
     }
 
     case BTA_BLE_BATCH_SCAN_DATA_EVT: {
-      CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0, 0,
-                       nullptr);
+      CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0, vector<uint8_t>());
       return;
     }
 
@@ -497,31 +496,34 @@ void bta_batch_scan_reports_cb(tBTA_DM_BLE_REF_VALUE ref_value,
                    status, num_records, data_len);
 
   if (data_len > 0) {
-    uint8_t *data = new uint8_t[data_len];
-    memcpy(data, p_rep_data, data_len);
+
+    vector<uint8_t> data(p_rep_data, p_rep_data + data_len);
     osi_free(p_rep_data);
 
     CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                     num_records, data_len, Owned(data));
+                     num_records, std::move(data));
   } else {
     CLI_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                     num_records, 0, nullptr);
+                     num_records, vector<uint8_t>());
   }
 }
 
 void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
-                              int8_t rssi, uint8_t addr_type, uint8_t *value) {
+                              int8_t rssi, uint8_t addr_type,
+                              vector<uint8_t> value) {
   uint8_t remote_name_len;
-  uint8_t *p_eir_remote_name = NULL;
+  const uint8_t *p_eir_remote_name = NULL;
   bt_device_type_t dev_type;
   bt_property_t properties;
 
-  p_eir_remote_name = BTM_CheckEirData(value, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
+  p_eir_remote_name = BTM_CheckEirData(value.data(),
+                                       BTM_EIR_COMPLETE_LOCAL_NAME_TYPE,
                                        &remote_name_len);
 
   if (p_eir_remote_name == NULL) {
-    p_eir_remote_name = BTM_CheckEirData(
-        value, BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+    p_eir_remote_name = BTM_CheckEirData(value.data(),
+                                         BT_EIR_SHORTENED_LOCAL_NAME_TYPE,
+                                         &remote_name_len);
   }
 
   if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
@@ -548,7 +550,7 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
 
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
 
-  HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb, &bd_addr, rssi, value);
+  HAL_CBACK(bt_gatt_callbacks, client->scan_result_cb, &bd_addr, rssi, std::move(value));
 }
 
 void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
@@ -565,9 +567,9 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
     return;
   }
 
-  uint8_t *value = new uint8_t[BTGATT_MAX_ATTR_LEN];
+  vector<uint8_t> value(BTGATT_MAX_ATTR_LEN);
   if (p_data->inq_res.p_eir) {
-    memcpy(value, p_data->inq_res.p_eir, 62);
+    value.insert(value.begin(), p_data->inq_res.p_eir, p_data->inq_res.p_eir + 62);
 
     if (BTM_CheckEirData(p_data->inq_res.p_eir,
                          BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
@@ -579,7 +581,7 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH *p_data) {
   bdcpy(bdaddr.address, p_data->inq_res.bd_addr);
   do_in_jni_thread(Bind(bta_scan_results_cb_impl, bdaddr,
                         p_data->inq_res.device_type, p_data->inq_res.rssi,
-                        p_data->inq_res.ble_addr_type, Owned(value)));
+                        p_data->inq_res.ble_addr_type, std::move(value)));
 }
 
 void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA *p_track_adv_data) {
@@ -787,17 +789,16 @@ void btif_gattc_set_adv_data_impl(btif_adv_data_t *p_adv_data) {
 bt_status_t btif_gattc_set_adv_data(
     int client_if, bool set_scan_rsp, bool include_name, bool include_txpower,
     int min_interval, int max_interval, int appearance,
-    uint16_t manufacturer_len, char *manufacturer_data,
-    uint16_t service_data_len, char *service_data, uint16_t service_uuid_len,
-    char *service_uuid) {
+    vector<uint8_t> manufacturer_data, vector<uint8_t> service_data,
+    vector<uint8_t> service_uuid) {
   CHECK_BTGATT_INIT();
 
   btif_adv_data_t *adv_data = new btif_adv_data_t;
 
   btif_gattc_adv_data_packager(
       client_if, set_scan_rsp, include_name, include_txpower, min_interval,
-      max_interval, appearance, manufacturer_len, manufacturer_data,
-      service_data_len, service_data, service_uuid_len, service_uuid, adv_data);
+      max_interval, appearance, std::move(manufacturer_data), std::move(service_data),
+      std::move(service_uuid), adv_data);
 
   return do_in_jni_thread(
       Bind(&btif_gattc_set_adv_data_impl, base::Owned(adv_data)));
@@ -1011,45 +1012,45 @@ void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
                               &bta_scan_filt_cfg_cb, client_if);
 }
 
-void btif_gattc_scan_filter_add_local_name(uint8_t *data, int data_len,
+void btif_gattc_scan_filter_add_local_name(vector<uint8_t> data,
                                            int action, int filt_type,
                                            int filt_index, int client_if) {
   tBTA_DM_BLE_PF_COND_PARAM cond;
   memset(&cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
-  cond.local_name.data_len = data_len;
-  cond.local_name.p_data = data;
+  cond.local_name.data_len = data.size();
+  cond.local_name.p_data = const_cast<uint8_t*>(data.data());
   BTA_DmBleCfgFilterCondition(action, filt_type, filt_index, &cond,
                               &bta_scan_filt_cfg_cb, client_if);
 }
 
 void btif_gattc_scan_filter_add_manu_data(int company_id, int company_id_mask,
-                                          uint8_t *pattern, int pattern_len,
-                                          uint8_t *pattern_mask, int action,
-                                          int filt_type, int filt_index,
-                                          int client_if) {
+                                          vector<uint8_t> pattern,
+                                          vector<uint8_t> pattern_mask,
+                                          int action, int filt_type,
+                                          int filt_index, int client_if) {
   tBTA_DM_BLE_PF_COND_PARAM cond;
   memset(&cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
   cond.manu_data.company_id = company_id;
   cond.manu_data.company_id_mask = company_id_mask ? company_id_mask : 0xFFFF;
-  cond.manu_data.data_len = pattern_len;
-  cond.manu_data.p_pattern = pattern;
-  cond.manu_data.p_pattern_mask = pattern_mask;
+  cond.manu_data.data_len = pattern.size();
+  cond.manu_data.p_pattern = const_cast<uint8_t*>(pattern.data());
+  cond.manu_data.p_pattern_mask = const_cast<uint8_t*>(pattern_mask.data());
   BTA_DmBleCfgFilterCondition(action, filt_type, filt_index, &cond,
                               &bta_scan_filt_cfg_cb, client_if);
 }
 
-void btif_gattc_scan_filter_add_data_pattern(uint8_t *pattern, int pattern_len,
-                                             uint8_t *pattern_mask, int action,
-                                             int filt_type, int filt_index,
-                                             int client_if) {
+void btif_gattc_scan_filter_add_data_pattern(vector<uint8_t> pattern,
+                                             vector<uint8_t> pattern_mask,
+                                             int action, int filt_type,
+                                             int filt_index, int client_if) {
   tBTA_DM_BLE_PF_COND_PARAM cond;
   memset(&cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
-  cond.srvc_data.data_len = pattern_len;
-  cond.srvc_data.p_pattern = pattern;
-  cond.srvc_data.p_pattern_mask = pattern_mask;
+  cond.srvc_data.data_len = pattern.size();
+  cond.srvc_data.p_pattern = const_cast<uint8_t*>(pattern.data());
+  cond.srvc_data.p_pattern_mask = const_cast<uint8_t*>(pattern_mask.data());
   BTA_DmBleCfgFilterCondition(action, filt_type, filt_index, &cond,
                               &bta_scan_filt_cfg_cb, client_if);
 }
@@ -1057,13 +1058,13 @@ void btif_gattc_scan_filter_add_data_pattern(uint8_t *pattern, int pattern_len,
 bt_status_t btif_gattc_scan_filter_add_remove(
     int client_if, int action, int filt_type, int filt_index, int company_id,
     int company_id_mask, const bt_uuid_t *p_uuid, const bt_uuid_t *p_uuid_mask,
-    const bt_bdaddr_t *bd_addr, char addr_type, int data_len, char *p_data,
-    int mask_len, char *p_mask) {
+    const bt_bdaddr_t *bd_addr, char addr_type, vector<uint8_t> data,
+    vector<uint8_t> mask) {
   CHECK_BTGATT_INIT();
   BTIF_TRACE_DEBUG("%s, %d, %d", __FUNCTION__, action, filt_type);
 
   /* If data is passed, both mask and data have to be the same length */
-  if (data_len != mask_len && NULL != p_data && NULL != p_mask)
+  if (data.size() != mask.size() && data.size() != 0 && mask.size() != 0)
     return BT_STATUS_PARM_INVALID;
 
   switch (filt_type) {
@@ -1118,37 +1119,24 @@ bt_status_t btif_gattc_scan_filter_add_remove(
 
     case BTA_DM_BLE_PF_LOCAL_NAME:  // 4
     {
-      uint8_t *data = new uint8_t[data_len];
-      memcpy(data, p_data, data_len);
       return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_local_name,
-                                   base::Owned(data), data_len, action,
-                                   filt_type, filt_index, client_if));
+                                   std::move(data), action, filt_type,
+                                   filt_index, client_if));
     }
 
     case BTA_DM_BLE_PF_MANU_DATA:  // 5
     {
-      uint8_t *data = new uint8_t[data_len];
-      memcpy(data, p_data, data_len);
-
-      uint8_t *mask = new uint8_t[data_len];
-      memcpy(mask, p_mask, data_len);
       return do_in_jni_thread(
           Bind(&btif_gattc_scan_filter_add_manu_data, company_id,
-               company_id_mask, base::Owned(data), data_len, base::Owned(mask),
-               action, filt_type, filt_index, client_if));
+               company_id_mask, std::move(data), std::move(mask), action,
+               filt_type, filt_index, client_if));
     }
 
     case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:  // 6
     {
-      uint8_t *data = new uint8_t[data_len];
-      memcpy(data, p_data, data_len);
-
-      uint8_t *mask = new uint8_t[data_len];
-      memcpy(mask, p_mask, data_len);
-
       return do_in_jni_thread(Bind(
-          &btif_gattc_scan_filter_add_data_pattern, base::Owned(data), data_len,
-          base::Owned(mask), action, filt_type, filt_index, client_if));
+          &btif_gattc_scan_filter_add_data_pattern, std::move(data),
+          std::move(mask), action, filt_type, filt_index, client_if));
     }
 
     default:
@@ -1298,9 +1286,8 @@ void btif_gattc_multi_adv_setdata_impl(btif_adv_data_t *p_adv_data) {
 
 bt_status_t btif_gattc_multi_adv_setdata(
     int client_if, bool set_scan_rsp, bool include_name, bool incl_txpower,
-    int appearance, int manufacturer_len, char *manufacturer_data,
-    int service_data_len, char *service_data, int service_uuid_len,
-    char *service_uuid) {
+    int appearance, vector<uint8_t> manufacturer_data,
+    vector<uint8_t> service_data, vector<uint8_t> service_uuid) {
   CHECK_BTGATT_INIT();
 
   btif_adv_data_t *multi_adv_data_inst = new btif_adv_data_t;
@@ -1310,9 +1297,9 @@ bt_status_t btif_gattc_multi_adv_setdata(
 
   btif_gattc_adv_data_packager(client_if, set_scan_rsp, include_name,
                                incl_txpower, min_interval, max_interval,
-                               appearance, manufacturer_len, manufacturer_data,
-                               service_data_len, service_data, service_uuid_len,
-                               service_uuid, multi_adv_data_inst);
+                               appearance, std::move(manufacturer_data),
+                               std::move(service_data), std::move(service_uuid),
+                               multi_adv_data_inst);
 
   return do_in_jni_thread(Bind(&btif_gattc_multi_adv_setdata_impl,
                                base::Owned(multi_adv_data_inst)));
