@@ -222,7 +222,7 @@ void btgattc_register_app_cb(int status, int clientIf, bt_uuid_t *app_uuid)
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
 }
 
-void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data)
+void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data)
 {
     CHECK_CALLBACK_ENV
 
@@ -233,7 +233,7 @@ void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data)
 
     jstring address = sCallbackEnv->NewStringUTF(c_address);
     jbyteArray jb = sCallbackEnv->NewByteArray(62);
-    sCallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data);
+    sCallbackEnv->SetByteArrayRegion(jb, 0, 62, (jbyte *) adv_data.data());
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult
         , address, rssi, jb);
@@ -484,11 +484,11 @@ void btgattc_batchscan_startstop_cb(int startstop_action, int client_if, int sta
 }
 
 void btgattc_batchscan_reports_cb(int client_if, int status, int report_format,
-                        int num_records, int data_len, uint8_t *p_rep_data)
+                        int num_records, std::vector<uint8_t> data)
 {
     CHECK_CALLBACK_ENV
-    jbyteArray jb = sCallbackEnv->NewByteArray(data_len);
-    sCallbackEnv->SetByteArrayRegion(jb, 0, data_len, (jbyte *) p_rep_data);
+    jbyteArray jb = sCallbackEnv->NewByteArray(data.size());
+    sCallbackEnv->SetByteArrayRegion(jb, 0, data.size(), (jbyte *) data.data());
 
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanReports, status, client_if,
                                 report_format, num_records, jb);
@@ -761,8 +761,8 @@ void btgatts_request_read_cb(int conn_id, int trans_id, bt_bdaddr_t *bda,
 
 void btgatts_request_write_cb(int conn_id, int trans_id,
                               bt_bdaddr_t *bda, int attr_handle,
-                              int offset, int length,
-                              bool need_rsp, bool is_prep, uint8_t* value)
+                              int offset, bool need_rsp, bool is_prep,
+                              vector<uint8_t> value)
 {
     CHECK_CALLBACK_ENV
 
@@ -773,11 +773,11 @@ void btgatts_request_write_cb(int conn_id, int trans_id,
 
     jstring address = sCallbackEnv->NewStringUTF(c_address);
 
-    jbyteArray val = sCallbackEnv->NewByteArray(length);
-    if (val) sCallbackEnv->SetByteArrayRegion(val, 0, length, (jbyte*)value);
+    jbyteArray val = sCallbackEnv->NewByteArray(value.size());
+    if (val) sCallbackEnv->SetByteArrayRegion(val, 0, value.size(), (jbyte*)value.data());
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAttributeWrite,
                                  address, conn_id, trans_id, attr_handle,
-                                 offset, length, need_rsp, is_prep, val);
+                                 offset, value.size(), need_rsp, is_prep, val);
     sCallbackEnv->DeleteLocalRef(address);
     sCallbackEnv->DeleteLocalRef(val);
     checkAndClearExceptionFromCallback(sCallbackEnv, __FUNCTION__);
@@ -1087,10 +1087,11 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
     jbyte *p_value = env->GetByteArrayElements(value, NULL);
     if (p_value == NULL) return;
 
-    std::vector<uint8_t> vect_val(p_value, p_value + len);
+    vector<uint8_t> vect_val(p_value, p_value + len);
     env->ReleaseByteArrayElements(value, p_value, 0);
 
-    sGattIf->client->write_characteristic(conn_id, handle, write_type, auth_req, vect_val);
+    sGattIf->client->write_characteristic(conn_id, handle, write_type, auth_req,
+                                          std::move(vect_val));
 }
 
 static void gattClientExecuteWriteNative(JNIEnv* env, jobject object,
@@ -1117,7 +1118,8 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
     std::vector<uint8_t> vect_val(p_value, p_value + len);
     env->ReleaseByteArrayElements(value, p_value, 0);
 
-    sGattIf->client->write_descriptor(conn_id, handle, write_type, auth_req, vect_val);
+    sGattIf->client->write_descriptor(conn_id, handle, write_type, auth_req,
+                                      std::move(vect_val));
 }
 
 static void gattClientRegisterForNotificationsNative(JNIEnv* env, jobject object,
@@ -1161,21 +1163,22 @@ static void gattSetAdvDataNative(JNIEnv *env, jobject object, jint client_if,
     if (!sGattIf) return;
     jbyte* arr_data = env->GetByteArrayElements(manufacturerData, NULL);
     uint16_t arr_len = (uint16_t) env->GetArrayLength(manufacturerData);
+    vector<uint8_t> data(arr_data, arr_data + arr_len);
+    env->ReleaseByteArrayElements(manufacturerData, arr_data, JNI_ABORT);
 
-    jbyte* service_data = env->GetByteArrayElements(serviceData, NULL);
-    uint16_t service_data_len = (uint16_t) env->GetArrayLength(serviceData);
+    jbyte* arr_service_data = env->GetByteArrayElements(serviceData, NULL);
+    uint16_t arr_service_data_len = (uint16_t) env->GetArrayLength(serviceData);
+    vector<uint8_t> service_data(arr_service_data, arr_service_data + arr_service_data_len);
+    env->ReleaseByteArrayElements(serviceData, arr_service_data, JNI_ABORT);
 
-    jbyte* service_uuid = env->GetByteArrayElements(serviceUuid, NULL);
-    uint16_t service_uuid_len = (uint16_t) env->GetArrayLength(serviceUuid);
+    jbyte* arr_service_uuid = env->GetByteArrayElements(serviceUuid, NULL);
+    uint16_t arr_service_uuid_len = (uint16_t) env->GetArrayLength(serviceUuid);
+    vector<uint8_t> service_uuid(arr_service_uuid, arr_service_uuid + arr_service_uuid_len);
+    env->ReleaseByteArrayElements(serviceUuid, arr_service_uuid, JNI_ABORT);
 
     sGattIf->client->set_adv_data(client_if, setScanRsp, inclName, inclTxPower,
-        minInterval, maxInterval, appearance, arr_len, (char*)arr_data,
-        service_data_len, (char*)service_data, service_uuid_len,
-        (char*)service_uuid);
-
-    env->ReleaseByteArrayElements(manufacturerData, arr_data, JNI_ABORT);
-    env->ReleaseByteArrayElements(serviceData, service_data, JNI_ABORT);
-    env->ReleaseByteArrayElements(serviceUuid, service_uuid, JNI_ABORT);
+        minInterval, maxInterval, appearance, std::move(data),
+        std::move(service_data), std::move(service_uuid));
 }
 
 static void gattSetScanParametersNative(JNIEnv* env, jobject object,
@@ -1274,7 +1277,7 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             bt_bdaddr_t bda;
             jstr2bdaddr(env, &bda, address);
             sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index, 0,
-                                             0, NULL, NULL, &bda, addr_type,0, NULL,0, NULL);
+                                             0, NULL, NULL, &bda, addr_type, {}, {});
             break;
         }
 
@@ -1282,12 +1285,16 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
         {
             jbyte* data_array = env->GetByteArrayElements(data, 0);
             int data_len = env->GetArrayLength(data);
+            vector<uint8_t> vec_data(data_array, data_array + data_len);
+            env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
+
             jbyte* mask_array = env->GetByteArrayElements(mask, NULL);
             uint16_t mask_len = (uint16_t) env->GetArrayLength(mask);
-            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
-               0, 0, NULL, NULL, NULL, 0, data_len, (char*)data_array, mask_len,(char*) mask_array);
-            env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
+            vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
             env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
+
+            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+               0, 0, NULL, NULL, NULL, 0, std::move(vec_data), std::move(vec_mask));
             break;
         }
 
@@ -1299,10 +1306,10 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             set_uuid(uuid_mask.uu, uuid_mask_msb, uuid_mask_lsb);
             if (uuid_mask_lsb != 0 && uuid_mask_msb != 0)
                 sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
-                                 0, 0, &uuid, &uuid_mask, NULL,0,0, NULL,0, NULL);
+                                 0, 0, &uuid, &uuid_mask, NULL,0,{}, {});
             else
                 sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
-                                 0, 0, &uuid, NULL, NULL, 0,0, NULL,0, NULL);
+                                 0, 0, &uuid, NULL, NULL, 0,{}, {});
             break;
         }
 
@@ -1311,10 +1318,10 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
             const char* c_name = env->GetStringUTFChars(name, NULL);
             if (c_name != NULL && strlen(c_name) != 0)
             {
-                sGattIf->client->scan_filter_add_remove(client_if, action, filt_type,
-                                 filt_index, 0, 0, NULL, NULL, NULL, 0, strlen(c_name),
-                                 (char*)c_name, 0, NULL);
+                vector<uint8_t> vec_name(c_name, c_name + strlen(c_name));
                 env->ReleaseStringUTFChars(name, c_name);
+                sGattIf->client->scan_filter_add_remove(client_if, action, filt_type,
+                                 filt_index, 0, 0, NULL, NULL, NULL, 0, std::move(vec_name), {});
             }
             break;
         }
@@ -1323,14 +1330,18 @@ static void gattClientScanFilterAddRemoveNative(JNIEnv* env, jobject object,
         case 6: // BTM_BLE_PF_SRVC_DATA_PATTERN
         {
             jbyte* data_array = env->GetByteArrayElements(data, 0);
-            int data_len = env->GetArrayLength(data); // Array contains mask
+            int data_len = env->GetArrayLength(data);
+            vector<uint8_t> vec_data(data_array, data_array + data_len);
+            env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
+
             jbyte* mask_array = env->GetByteArrayElements(mask, NULL);
             uint16_t mask_len = (uint16_t) env->GetArrayLength(mask);
-            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
-                company_id, company_id_mask, NULL, NULL, NULL, 0, data_len, (char*)data_array,
-                mask_len, (char*) mask_array);
-            env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
+            vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
             env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
+
+            sGattIf->client->scan_filter_add_remove(client_if, action, filt_type, filt_index,
+                company_id, company_id_mask, NULL, NULL, NULL, 0, std::move(vec_data),
+                std::move(vec_mask));
             break;
         }
 
@@ -1421,21 +1432,22 @@ static void gattClientSetAdvDataNative(JNIEnv* env, jobject object , jint client
     if (!sGattIf) return;
     jbyte* manu_data = env->GetByteArrayElements(manufacturer_data, NULL);
     uint16_t manu_len = (uint16_t) env->GetArrayLength(manufacturer_data);
+    vector<uint8_t> manu_vec(manu_data, manu_data + manu_len);
+    env->ReleaseByteArrayElements(manufacturer_data, manu_data, JNI_ABORT);
 
     jbyte* serv_data = env->GetByteArrayElements(service_data, NULL);
     uint16_t serv_data_len = (uint16_t) env->GetArrayLength(service_data);
+    vector<uint8_t> serv_data_vec(serv_data, serv_data + serv_data_len);
+    env->ReleaseByteArrayElements(service_data, serv_data, JNI_ABORT);
 
     jbyte* serv_uuid = env->GetByteArrayElements(service_uuid, NULL);
     uint16_t serv_uuid_len = (uint16_t) env->GetArrayLength(service_uuid);
+    vector<uint8_t> serv_uuid_vec(serv_uuid, serv_uuid + serv_uuid_len);
+    env->ReleaseByteArrayElements(service_uuid, serv_uuid, JNI_ABORT);
 
     sGattIf->client->multi_adv_set_inst_data(client_if, set_scan_rsp, incl_name,incl_txpower,
-                                             appearance, manu_len, (char*)manu_data,
-                                             serv_data_len, (char*)serv_data, serv_uuid_len,
-                                             (char*)serv_uuid);
-
-    env->ReleaseByteArrayElements(manufacturer_data, manu_data, JNI_ABORT);
-    env->ReleaseByteArrayElements(service_data, serv_data, JNI_ABORT);
-    env->ReleaseByteArrayElements(service_uuid, serv_uuid, JNI_ABORT);
+                                             appearance, std::move(manu_vec),
+                                             std::move(serv_data_vec), std::move(serv_uuid_vec));
 }
 
 static void gattClientDisableAdvNative(JNIEnv* env, jobject object, jint client_if)
