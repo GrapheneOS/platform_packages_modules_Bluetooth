@@ -16,7 +16,6 @@
 
 static_library("device") {
   sources = [
-    "src/classic/peer.cc",
     "src/controller.c",
     "src/interop.c",
   ]
@@ -34,7 +33,6 @@ executable("net_test_device") {
   testonly = true
   sources = [
     "//osi/test/AllocationTestHarness.cc",
-    "test/classic/peer_test.cc",
   ]
 
   include_dirs = [ "//" ]

@@ -33,7 +33,6 @@ LOCAL_C_INCLUDES := \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_SRC_FILES := \
-    src/classic/peer.cc \
     src/controller.c \
     src/interop.c
 
@@ -58,8 +57,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
     ../osi/test/AllocationTestHarness.cc \
-    ./test/interop_test.cc \
-    ./test/classic/peer_test.cc
+    ./test/interop_test.cc
 
 LOCAL_MODULE := net_test_device
 LOCAL_MODULE_TAGS := tests
