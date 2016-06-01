@@ -21,8 +21,7 @@
 #include "vendor_libs/test_vendor_lib/include/hci_transport.h"
 
 #include "base/bind.h"
-#include "base/logging.h"
-#include "base/thread_task_runner_handle.h"
+#include "base/threading/thread_task_runner_handle.h"
 
 extern "C" {
 #include <sys/socket.h>
