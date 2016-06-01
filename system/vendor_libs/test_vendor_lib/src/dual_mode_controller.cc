@@ -18,6 +18,8 @@
 
 #include "vendor_libs/test_vendor_lib/include/dual_mode_controller.h"
 
+#include <memory>
+
 #include "base/files/file_util.h"
 #include "base/json/json_reader.h"
 #include "base/logging.h"
@@ -608,7 +610,7 @@ DualModeController::Properties::Properties(const std::string& file_name)
   if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw))
     LOG_INFO(LOG_TAG, "Error reading controller properties from file.");
 
-  scoped_ptr<base::Value> properties_value_ptr =
+  std::unique_ptr<base::Value> properties_value_ptr =
       base::JSONReader::Read(properties_raw);
   if (properties_value_ptr.get() == nullptr)
     LOG_INFO(LOG_TAG,
