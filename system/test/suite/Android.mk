@@ -16,20 +16,20 @@
 
 LOCAL_PATH := $(call my-dir)
 
+# These tests use the bluetoothtbd HAL wrappers in order to easily interact
+# with the interface using C++
+# TODO: Make the bluetoothtbd HAL a static library
+bluetoothHalSrc := \
+    ../../service/hal/bluetooth_gatt_interface.cc \
+    ../../service/hal/bluetooth_interface.cc \
+    ../../service/logging_helpers.cc
+
 # Bluetooth test suite for target
 # ========================================================
 include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_bluetooth
-
-# These tests use the bluetoothtbd HAL wrappers in order to easily interact
-# with the interface using C++
-# TODO: Make the bluetoothtbd HAL a static library
-bluetoothHalSrc := \
-  ../../service/hal/bluetooth_gatt_interface.cc \
-  ../../service/hal/bluetooth_interface.cc \
-  ../../service/logging_helpers.cc
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/../../
@@ -49,8 +49,42 @@ LOCAL_SHARED_LIBRARIES += \
     libchrome
 
 LOCAL_STATIC_LIBRARIES += \
-  libbtcore \
-  libosi
+    libbtcore \
+    libosi
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
+include $(BUILD_NATIVE_TEST)
+
+# Bluetooth test suite for target
+# ========================================================
+include $(CLEAR_VARS)
+
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := net_test_rfcomm
+
+LOCAL_C_INCLUDES += \
+    $(LOCAL_PATH)/../../ \
+    $(bluetooth_C_INCLUDES) \
+
+LOCAL_SRC_FILES := \
+    adapter/bluetooth_test.cc \
+    rfcomm/rfcomm_test.cc \
+    rfcomm/rfcomm_unittest.cc \
+    $(bluetoothHalSrc)
+
+LOCAL_SHARED_LIBRARIES += \
+    liblog \
+    libhardware \
+    libhardware_legacy \
+    libcutils \
+    libchrome \
+
+LOCAL_STATIC_LIBRARIES += \
+    libbtcore \
+    libosi \
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
