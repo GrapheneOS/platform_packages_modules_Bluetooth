@@ -22,6 +22,7 @@
 
 extern "C" {
 #include "btcore/include/property.h"
+#include "btcore/include/bdaddr.h"
 }
 
 namespace {
@@ -39,11 +40,14 @@ void BluetoothTest::SetUp() {
   state_ = BT_STATE_OFF;
   properties_changed_count_ = 0;
   last_changed_properties_ = nullptr;
+  remote_device_properties_changed_count_ = 0;
+  remote_device_last_changed_properties_ = nullptr;
   discovery_state_ = BT_DISCOVERY_STOPPED;
   acl_state_ = BT_ACL_STATE_DISCONNECTED;
   bond_state_ = BT_BOND_STATE_NONE;
 
   adapter_properties_callback_sem_ = semaphore_new(0);
+  remote_device_properties_callback_sem_ = semaphore_new(0);
   adapter_state_changed_callback_sem_ = semaphore_new(0);
   discovery_state_changed_callback_sem_ = semaphore_new(0);
 
@@ -57,6 +61,7 @@ void BluetoothTest::SetUp() {
 
 void BluetoothTest::TearDown() {
   semaphore_free(adapter_properties_callback_sem_);
+  semaphore_free(remote_device_properties_callback_sem_);
   semaphore_free(adapter_state_changed_callback_sem_);
   semaphore_free(discovery_state_changed_callback_sem_);
 
@@ -91,6 +96,19 @@ bt_property_t* BluetoothTest::GetProperty(bt_property_type_t type) {
   return nullptr;
 }
 
+bt_property_t* BluetoothTest::GetRemoteDeviceProperty(const bt_bdaddr_t* addr,
+                                                      bt_property_type_t type) {
+  if (!bdaddr_equals(&curr_remote_device_, addr))
+    return nullptr;
+
+  for (int i = 0; i < remote_device_properties_changed_count_; i++) {
+    if (remote_device_last_changed_properties_[i].type == type) {
+      return &remote_device_last_changed_properties_[i];
+    }
+  }
+  return nullptr;
+}
+
 bt_discovery_state_t BluetoothTest::GetDiscoveryState() {
   return discovery_state_;
 }
@@ -119,6 +137,21 @@ void BluetoothTest::AdapterPropertiesCallback(
   last_changed_properties_ = property_copy_array(new_properties, num_properties);
   properties_changed_count_ = num_properties;
   semaphore_post(adapter_properties_callback_sem_);
+}
+
+//callback
+void BluetoothTest::RemoteDevicePropertiesCallback(
+    bt_status_t status,
+    bt_bdaddr_t *remote_bd_addr,
+    int num_properties,
+    bt_property_t *properties) {
+  bdaddr_copy(&curr_remote_device_, remote_bd_addr);
+  property_free_array(remote_device_last_changed_properties_,
+                      remote_device_properties_changed_count_);
+  remote_device_last_changed_properties_ = property_copy_array(properties,
+                                                               num_properties);
+  remote_device_properties_changed_count_ = num_properties;
+  semaphore_post(remote_device_properties_callback_sem_);
 }
 
 // callback
