@@ -93,7 +93,7 @@ extern "C" {
 #define BTA_HL_NUM_PROTO_ELEMS          2
 #endif
 
-#define BTA_HL_VERSION_01_00            0x0100
+#define BTA_HL_VERSION                  0x0101
 #define BTA_HL_NUM_ADD_PROTO_LISTS      1
 #define BTA_HL_NUM_ADD_PROTO_ELEMS      2
 #define BTA_HL_MDEP_SEQ_SIZE            20
