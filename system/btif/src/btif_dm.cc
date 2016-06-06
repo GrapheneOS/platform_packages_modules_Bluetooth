@@ -2915,7 +2915,7 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 **                  add a node with label "SmpOptions" to the config file
 **                  and assign it a comma separated list of 5 values in the
 **                  format: auth, io, ikey, rkey, ksize, oob
-**                  eg: SmpOptions=0xD,0x4,0xf,0xf,0x10
+**                  eg: PTS_SmpOptions=0xD,0x4,0xf,0xf,0x10
 **
 ** Parameters:      tBTE_APPL_CFG*: pointer to struct defining pairing options
 **
@@ -2924,13 +2924,13 @@ void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
 *******************************************************************************/
 BOOLEAN btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg) {
 
-    if(!stack_config_get_interface()->get_smp_options()) {
+    if(!stack_config_get_interface()->get_pts_smp_options()) {
         BTIF_TRACE_DEBUG ("%s: SMP options not found in configuration", __func__);
         return FALSE;
     }
 
     char conf[64];
-    const char* recv = stack_config_get_interface()->get_smp_options();
+    const char* recv = stack_config_get_interface()->get_pts_smp_options();
     char* pch;
     char* endptr;
 
