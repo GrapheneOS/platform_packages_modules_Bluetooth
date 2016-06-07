@@ -48,10 +48,10 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
+import android.text.TextUtils;
 import android.util.EventLog;
 import android.util.Log;
 import android.util.Xml;
-import android.text.TextUtils;
 
 import org.xmlpull.v1.XmlSerializer;
 

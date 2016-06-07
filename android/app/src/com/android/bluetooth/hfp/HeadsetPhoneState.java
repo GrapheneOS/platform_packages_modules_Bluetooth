@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.hfp;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
@@ -24,7 +25,6 @@ import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.util.Log;
-import android.bluetooth.BluetoothDevice;
 
 
 // Note:

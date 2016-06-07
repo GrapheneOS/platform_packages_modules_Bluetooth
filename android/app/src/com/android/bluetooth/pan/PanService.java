@@ -16,15 +16,12 @@
 
 package com.android.bluetooth.pan;
 
-import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothPan;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.Resources.NotFoundException;
 import android.net.ConnectivityManager;
 import android.net.InterfaceConfiguration;
@@ -34,10 +31,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.INetworkManagementService;
 import android.os.Message;
-import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.UserManager;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
@@ -45,10 +40,8 @@ import com.android.bluetooth.Utils;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides Bluetooth Pan Device profile, as a service in

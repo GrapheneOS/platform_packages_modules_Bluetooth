@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.tests.mock;
 
-
 import android.database.Cursor;
 import android.net.Uri;
 import android.test.mock.MockContentProvider;

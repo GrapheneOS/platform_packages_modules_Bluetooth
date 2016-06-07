@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.tests.mock;
 
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;

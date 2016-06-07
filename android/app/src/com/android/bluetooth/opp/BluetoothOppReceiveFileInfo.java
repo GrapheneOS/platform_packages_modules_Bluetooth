@@ -202,7 +202,7 @@ public class BluetoothOppReceiveFileInfo {
                 return false;
             }
 
-	    	return true;
+            return true;
         } catch (IOException ioe) {
             // If an exception is thrown, there might be something wrong with the file.
             return false;
