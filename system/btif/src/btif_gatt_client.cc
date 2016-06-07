@@ -949,14 +949,14 @@ bt_status_t btif_gattc_configure_mtu(int conn_id, int mtu) {
       Bind(base::IgnoreResult(&BTA_GATTC_ConfigureMTU), conn_id, mtu));
 }
 
-void btif_gattc_conn_parameter_update_impl(const BD_ADDR addr, int min_interval,
+void btif_gattc_conn_parameter_update_impl(bt_bdaddr_t addr, int min_interval,
                                            int max_interval, int latency,
                                            int timeout) {
-  if (BTA_DmGetConnectionState(const_cast<UINT8 *>(addr)))
-    BTA_DmBleUpdateConnectionParams(const_cast<UINT8 *>(addr), min_interval,
+  if (BTA_DmGetConnectionState(addr.address))
+    BTA_DmBleUpdateConnectionParams(addr.address, min_interval,
                                     max_interval, latency, timeout);
   else
-    BTA_DmSetBlePrefConnParams(const_cast<UINT8 *>(addr), min_interval,
+    BTA_DmSetBlePrefConnParams(addr.address, min_interval,
                                max_interval, latency, timeout);
 }
 
@@ -966,7 +966,7 @@ bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t *bd_addr,
   CHECK_BTGATT_INIT();
   return do_in_jni_thread(
       Bind(base::IgnoreResult(&btif_gattc_conn_parameter_update_impl),
-           bd_addr->address, min_interval, max_interval, latency, timeout));
+           *bd_addr, min_interval, max_interval, latency, timeout));
 }
 
 void btif_gattc_scan_filter_param_setup_impl(
