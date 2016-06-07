@@ -301,6 +301,8 @@ void btm_sec_free_dev (tBTM_SEC_DEV_REC *p_dev_rec)
 #if BLE_INCLUDED == TRUE
     /* Clear out any saved BLE keys */
     btm_sec_clear_ble_keys (p_dev_rec);
+    /* clear the ble block */
+    memset(&p_dev_rec->ble, 0, sizeof(tBTM_SEC_BLE));
 #endif
 
 
