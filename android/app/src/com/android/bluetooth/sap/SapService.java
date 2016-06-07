@@ -7,19 +7,15 @@ import java.util.Set;
 
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSap;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothSap;
-import android.bluetooth.BluetoothUuid;
-import android.bluetooth.BluetoothSap;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -32,6 +28,7 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;

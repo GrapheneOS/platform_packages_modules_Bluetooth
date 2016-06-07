@@ -15,9 +15,7 @@
 package com.android.bluetooth;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
-import javax.obex.ObexSession;
 import javax.obex.ResponseCodes;
 import javax.obex.ServerSession;
 

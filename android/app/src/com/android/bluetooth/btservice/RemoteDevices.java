@@ -27,7 +27,6 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 

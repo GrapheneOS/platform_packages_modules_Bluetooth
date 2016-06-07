@@ -3,11 +3,8 @@ package com.android.bluetooth.tests;
 
 import android.test.AndroidTestCase;
 import android.util.Log;
-import android.util.Base64;
 
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils;

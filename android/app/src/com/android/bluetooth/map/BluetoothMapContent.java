@@ -36,10 +36,8 @@ import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.SparseArray;
 
 import com.android.bluetooth.SignedLongLong;
-import com.android.bluetooth.map.BluetoothMapContentObserver.Msg;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
@@ -54,13 +52,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @TargetApi(19)
 public class BluetoothMapContent {

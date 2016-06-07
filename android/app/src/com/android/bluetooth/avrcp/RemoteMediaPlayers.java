@@ -16,16 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.util.Log;
-
-import com.android.bluetooth.Utils;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * Provides Bluetooth AVRCP Controller profile, as a service in the Bluetooth application.

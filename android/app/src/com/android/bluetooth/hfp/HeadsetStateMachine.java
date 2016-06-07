@@ -38,7 +38,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
-import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothHeadsetPhone;
 import android.content.ComponentName;
 import android.content.Context;

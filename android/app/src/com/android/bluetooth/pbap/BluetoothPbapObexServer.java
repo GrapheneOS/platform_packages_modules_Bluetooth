@@ -37,8 +37,8 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Message;
 import android.os.Handler;
-import android.provider.CallLog.Calls;
 import android.provider.CallLog;
+import android.provider.CallLog.Calls;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -52,7 +52,6 @@ import java.util.Arrays;
 import javax.obex.ServerRequestHandler;
 import javax.obex.ResponseCodes;
 import javax.obex.ApplicationParameter;
-import javax.obex.ServerOperation;
 import javax.obex.Operation;
 import javax.obex.HeaderSet;
 
