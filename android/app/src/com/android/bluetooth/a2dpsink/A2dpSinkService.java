@@ -25,11 +25,12 @@ import android.content.Intent;
 import android.provider.Settings;
 import android.util.Log;
 import com.android.bluetooth.a2dpsink.mbs.A2dpMediaBrowserService;
+
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides Bluetooth A2DP Sink profile, as a service in the Bluetooth application.

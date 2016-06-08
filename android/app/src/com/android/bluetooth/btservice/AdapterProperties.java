@@ -19,7 +19,6 @@ package com.android.bluetooth.btservice;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.content.Intent;
 import android.os.ParcelUuid;
 import android.os.UserHandle;
@@ -30,7 +29,6 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class AdapterProperties {

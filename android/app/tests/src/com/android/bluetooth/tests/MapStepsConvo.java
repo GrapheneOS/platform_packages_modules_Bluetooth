@@ -3,7 +3,6 @@ package com.android.bluetooth.tests;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.util.Arrays;
 
 import javax.obex.HeaderSet;
 import javax.obex.Operation;
@@ -14,8 +13,6 @@ import android.util.Log;
 
 import com.android.bluetooth.map.BluetoothMapAppParams;
 import com.android.bluetooth.map.BluetoothMapConvoListing;
-import com.android.bluetooth.map.BluetoothMapConvoListingElement;
-import com.android.bluetooth.map.BluetoothMapFolderElement;
 import com.android.bluetooth.tests.TestSequencer.OPTYPE;
 
 public class MapStepsConvo {

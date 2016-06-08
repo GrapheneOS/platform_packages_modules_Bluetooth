@@ -19,7 +19,6 @@ import android.util.Log;
 import com.android.bluetooth.map.BluetoothMapConvoContactElement;
 import com.android.bluetooth.map.BluetoothMapConvoListing;
 import com.android.bluetooth.map.BluetoothMapConvoListingElement;
-import com.android.bluetooth.mapapi.BluetoothMapContract;
 
 /**
  * Class to hold test data - both the server side data to insert into the databases, and the

@@ -39,22 +39,20 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.Locale;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothDevicePicker;
 import android.content.Intent;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.provider.Settings;
-
+import android.util.Log;
 import android.util.Patterns;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.Locale;
 
 /**
  * This class is designed to act as the entry point of handling the share intent

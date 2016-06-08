@@ -8,9 +8,9 @@ import javax.obex.Operation;
 import javax.obex.ResponseCodes;
 
 import junit.framework.Assert;
+
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
-import android.os.Handler;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -18,7 +18,6 @@ import com.android.bluetooth.map.BluetoothMapAccountItem;
 import com.android.bluetooth.map.BluetoothMapContentObserver;
 import com.android.bluetooth.map.BluetoothMapMasInstance;
 import com.android.bluetooth.map.BluetoothMapObexServer;
-import com.android.bluetooth.map.BluetoothMapUtils;
 import com.android.bluetooth.map.BluetoothMnsObexClient;
 
 public class MapObexTestServer extends BluetoothMapObexServer {
