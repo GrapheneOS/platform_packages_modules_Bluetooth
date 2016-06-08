@@ -3,8 +3,6 @@ package com.android.bluetooth.sap;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.InvalidParameterException;
-import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,8 +11,6 @@ import org.android.btsap.SapApi;
 import org.android.btsap.SapApi.*;
 import com.google.protobuf.micro.*;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 /**

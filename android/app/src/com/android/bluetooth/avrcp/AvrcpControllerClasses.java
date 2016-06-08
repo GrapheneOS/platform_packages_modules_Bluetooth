@@ -18,16 +18,13 @@ package com.android.bluetooth.avrcp;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothAvrcpPlayerSettings;
-import com.android.bluetooth.Utils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.HashMap;
-import android.util.Log;
-import java.nio.charset.Charset;
-import java.nio.ByteBuffer;
-import android.media.session.PlaybackState;
 import android.media.MediaMetadata;
+import android.media.session.PlaybackState;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.nio.ByteBuffer;
+
 /**
  * Provides helper classes used by other AvrcpControllerClasses.
  */

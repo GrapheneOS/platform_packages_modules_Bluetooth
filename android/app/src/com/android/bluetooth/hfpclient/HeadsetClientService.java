@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2014 The Android Open Source Project
- * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +30,11 @@ import android.os.Bundle;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
+
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
 import com.android.bluetooth.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 

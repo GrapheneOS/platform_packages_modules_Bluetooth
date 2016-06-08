@@ -15,7 +15,6 @@
  */
 package com.android.bluetooth.gatt;
 
-import android.content.Context;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;

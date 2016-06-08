@@ -18,12 +18,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.BluetoothUuid;
-import android.graphics.Paint.Join;
 import android.os.Build;
 import android.test.AndroidTestCase;
 import android.util.Log;
-
-import junit.framework.Assert;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 public class SdpManagerTest extends AndroidTestCase {
