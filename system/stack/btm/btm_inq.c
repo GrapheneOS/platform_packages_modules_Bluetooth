@@ -1874,6 +1874,12 @@ void btm_process_inq_results (UINT8 *p, UINT8 inq_res_mode)
 
     STREAM_TO_UINT8 (num_resp, p);
 
+    if (inq_res_mode == BTM_INQ_RESULT_EXTENDED && (num_resp > 1)) {
+        BTM_TRACE_ERROR ("btm_process_inq_results() extended results (%d) > 1",
+                         num_resp);
+        return;
+    }
+
     for (xx = 0; xx < num_resp; xx++)
     {
         update = FALSE;
