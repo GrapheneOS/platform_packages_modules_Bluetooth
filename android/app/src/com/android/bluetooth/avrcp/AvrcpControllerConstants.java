@@ -16,17 +16,6 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.util.Log;
-
-import com.android.bluetooth.Utils;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
 /**
  * Provides helper classes used by other AvrcpControllerClasses.
  * Don't change this file without changing HAL Constants in bt_rc.h

@@ -24,9 +24,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
-import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
@@ -34,8 +32,6 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Provides Bluetooth Headset and Handsfree profile, as a service in

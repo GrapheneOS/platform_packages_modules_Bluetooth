@@ -60,7 +60,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import javax.obex.Operation;
 import javax.obex.ResponseCodes;

@@ -20,8 +20,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothA2dp;
-import android.content.Context;
-import android.content.Intent;
 import android.os.ParcelUuid;
 import android.provider.Settings;
 import android.util.Log;
@@ -29,9 +27,7 @@ import com.android.bluetooth.avrcp.Avrcp;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides Bluetooth A2DP profile, as a service in the Bluetooth application.

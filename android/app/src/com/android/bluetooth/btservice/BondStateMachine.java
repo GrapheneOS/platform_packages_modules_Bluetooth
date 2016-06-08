@@ -25,7 +25,6 @@ import com.android.bluetooth.hid.HidService;
 import com.android.bluetooth.hfp.HeadsetService;
 
 import android.bluetooth.OobData;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
 import android.os.UserHandle;

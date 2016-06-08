@@ -18,33 +18,23 @@
 package com.android.bluetooth.pbap;
 
 import android.content.Context;
-import android.os.SystemProperties;
+import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract.Profile;
+import android.provider.ContactsContract.RawContactsEntity;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
-import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
+import com.android.bluetooth.Utils;
+import com.android.bluetooth.pbap.BluetoothPbapService;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import android.content.Context;
-import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.Profile;
-import android.provider.ContactsContract.RawContactsEntity;
-
-
-import com.android.vcard.VCardComposer;
-import com.android.vcard.VCardConfig;
-
-
 public class BluetoothPbapUtils {
-
     private static final String TAG = "FilterUtils";
     private static final boolean V = BluetoothPbapService.VERBOSE;
 

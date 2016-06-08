@@ -16,49 +16,33 @@
 
 package com.android.bluetooth.avrcp;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAvrcp;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.os.ParcelUuid;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
-import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
-import com.android.internal.util.IState;
-import com.android.internal.util.State;
-import com.android.internal.util.StateMachine;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+
 /**
  * support Bluetooth AVRCP profile.
  * support metadata, play status and event notification

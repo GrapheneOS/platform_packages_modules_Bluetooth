@@ -17,14 +17,11 @@
 package com.android.bluetooth.btservice;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import android.bluetooth.BluetoothProfile;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.SystemProperties;
 import android.provider.Settings;
 import android.util.Log;
 

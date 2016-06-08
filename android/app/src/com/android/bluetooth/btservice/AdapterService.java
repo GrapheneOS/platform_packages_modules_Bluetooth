@@ -50,14 +50,15 @@ import android.os.Process;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.EventLog;
 import android.util.Log;
-
 import android.util.SparseArray;
+
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.hid.HidService;
@@ -65,6 +66,7 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sdp.SdpManager;
+import com.android.internal.app.IBatteryStats;
 import com.android.internal.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
@@ -80,9 +82,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
-
-import android.os.ServiceManager;
-import com.android.internal.app.IBatteryStats;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -129,8 +128,6 @@ public class AdapterService extends Service {
             "message_access_permission";
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE =
             "sim_access_permission";
-
-    private static final int ADAPTER_SERVICE_TYPE=Service.START_STICKY;
 
     private static final String[] DEVICE_TYPE_NAMES = new String[] {
       "???",
@@ -2404,8 +2401,8 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
 
         if (args.length > 0) {
-            debugLog("dumpsys arguments, check for protobuf output: " +
-                    TextUtils.join(" ", args));
+            debugLog("dumpsys arguments, check for protobuf output: "
+                + TextUtils.join(" ", args));
             if (args[0].startsWith("--proto")) {
                 if (args[0].equals("--proto-java-bin")) {
                     dumpJava(fd);
@@ -2432,9 +2429,9 @@ public class AdapterService extends Service {
 
         writer.println("Bonded devices:");
         for (BluetoothDevice device : getBondedDevices()) {
-          writer.println("  " + device.getAddress() +
-              " [" + DEVICE_TYPE_NAMES[device.getType()] + "] " +
-              device.getName());
+          writer.println("  " + device.getAddress()
+              + " [" + DEVICE_TYPE_NAMES[device.getType()] + "] "
+              + device.getName());
         }
 
         // Dump profile information

@@ -56,9 +56,7 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.os.Process;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
@@ -111,7 +109,6 @@ public class BluetoothOppService extends Service {
      * Array used when extracting strings from content provider
      */
     private CharArrayBuffer mOldChars;
-
     /**
      * Array used when extracting strings from content provider
      */

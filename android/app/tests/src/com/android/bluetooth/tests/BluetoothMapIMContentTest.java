@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.provider.BaseColumns;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -13,10 +12,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.android.bluetooth.mapapi.BluetoothMapContract;
-import com.android.bluetooth.mapapi.BluetoothMapContract.ConversationColumns;
-
-//import info.guardianproject.otr.app.im.provider.Imps;
-//import info.guardianproject.otr.app.im.provider.ImpsBluetoothProvider;
 
 public class BluetoothMapIMContentTest extends AndroidTestCase {
     private static final String TAG = "BluetoothMapIMContentTest";
