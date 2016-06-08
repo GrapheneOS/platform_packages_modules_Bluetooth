@@ -529,7 +529,7 @@ static void bta_dm_disable_timer_cback(void *data)
 
     APPL_TRACE_EVENT("%s trial %u", __func__, param);
 
-    if ((BTM_GetNumAclLinks() && param) == 0)
+    if (BTM_GetNumAclLinks() && (param == 0))
     {
         for(i=0; i<bta_dm_cb.device_list.count; i++)
         {
