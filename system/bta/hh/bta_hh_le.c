@@ -129,6 +129,8 @@ static bool rm_op_by_conn_id(void *data, void *context) {
 static void gatt_op_queue_clean(UINT16 conn_id) {
     if (gatt_op_queue)
         list_foreach(gatt_op_queue, rm_op_by_conn_id, &conn_id);
+
+    mark_as_not_executing(conn_id);
 }
 
 static bool find_op_by_conn_id(void *data, void *context) {
