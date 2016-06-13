@@ -169,16 +169,6 @@ public class BluetoothOppLauncherActivity extends Activity {
                     return;
                 }
             }
-        } else if (action.equals(Constants.ACTION_OPEN)) {
-            Uri uri = getIntent().getData();
-            if (V) Log.v(TAG, "Get ACTION_OPEN intent: Uri = " + uri);
-
-            Intent intent1 = new Intent();
-            intent1.setAction(action);
-            intent1.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-            intent1.setDataAndNormalize(uri);
-            this.sendBroadcast(intent1);
-            finish();
         } else {
             Log.w(TAG, "Unsupported action: " + action);
             finish();

@@ -56,9 +56,6 @@ public class Constants {
      */
     public static final String ACTION_RETRY = "android.btopp.intent.action.RETRY";
 
-    /** the intent that gets sent when clicking a successful transfer */
-    public static final String ACTION_OPEN = "android.btopp.intent.action.OPEN";
-
     /** the intent that gets sent when clicking outbound transfer notification */
     public static final String ACTION_OPEN_OUTBOUND_TRANSFER = "android.btopp.intent.action.OPEN_OUTBOUND";
 
