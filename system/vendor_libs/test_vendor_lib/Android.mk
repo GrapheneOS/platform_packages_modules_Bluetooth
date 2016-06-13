@@ -23,6 +23,8 @@ LOCAL_SRC_FILES := \
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/include \
     $(BT_DIR) \
+    $(BT_DIR)/include \
+    $(BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR) \
     $(BT_DIR)/utils/include \
     $(BT_DIR)/hci/include \
     $(BT_DIR)/stack/include \
