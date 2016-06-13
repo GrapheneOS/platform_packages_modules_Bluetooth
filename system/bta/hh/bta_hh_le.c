@@ -1295,6 +1295,8 @@ void bta_hh_gatt_open(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf)
 
         bta_hh_cb.le_cb_index[BTA_HH_GET_LE_CB_IDX(p_cb->hid_handle)] = p_cb->index;
 
+        gatt_op_queue_clean(p_cb->conn_id);
+
 #if BTA_HH_DEBUG == TRUE
         APPL_TRACE_DEBUG("hid_handle = %2x conn_id = %04x cb_index = %d", p_cb->hid_handle, p_cb->conn_id, p_cb->index);
 #endif
