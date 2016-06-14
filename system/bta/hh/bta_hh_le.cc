@@ -2278,7 +2278,6 @@ void bta_hh_le_get_rpt(tBTA_HH_DEV_CB *p_cb, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_
 **
 *******************************************************************************/
 void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
-                         tBTA_GATTC_WRITE_TYPE   write_type,
                          tBTA_HH_RPT_TYPE r_type,
                          BT_HDR *p_buf, UINT16 w4_evt )
 {
@@ -2305,6 +2304,13 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
     }
 
     p_cb->w4_evt = w4_evt;
+
+    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_cb->conn_id,
+                                                                          p_rpt->char_inst_id);
+
+    tBTA_GATTC_WRITE_TYPE write_type = BTA_GATTC_TYPE_WRITE;
+    if (p_char && (p_char->properties & BTA_GATT_CHAR_PROP_BIT_WRITE_NR))
+        write_type = BTA_GATTC_TYPE_WRITE_NO_RSP;
 
     gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_rpt->char_inst_id,
                         p_buf->len, p_value, write_type);
@@ -2357,7 +2363,6 @@ void bta_hh_le_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 
         case HID_TRANS_SET_REPORT:
             bta_hh_le_write_rpt(p_cb,
-                                BTA_GATTC_TYPE_WRITE,
                                 p_data->api_sndcmd.param,
                                 p_data->api_sndcmd.p_data,
                                 BTA_HH_SET_RPT_EVT);
@@ -2366,7 +2371,6 @@ void bta_hh_le_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         case HID_TRANS_DATA:  /* output report */
 
             bta_hh_le_write_rpt(p_cb,
-                                BTA_GATTC_TYPE_WRITE_NO_RSP,
                                 p_data->api_sndcmd.param,
                                 p_data->api_sndcmd.p_data,
                                 BTA_HH_DATA_EVT);
