@@ -1127,7 +1127,7 @@ void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
                                bt_gatt_db_attribute_type_t type,
                                UINT16 att_handle,
                                UINT16 s_handle, UINT16 e_handle,
-                               UINT8 id, tBT_UUID uuid, UINT8 prop)
+                               UINT16 id, tBT_UUID uuid, UINT8 prop)
 {
     p_attr->type             = type;
     p_attr->attribute_handle = att_handle;
