@@ -496,7 +496,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
         if ((p_clrcb = bta_gattc_cl_get_regcb(gatt_if)) != NULL) {
             for (i = 0 ; i < BTA_GATTC_NOTIF_REG_MAX; i ++) {
                 if (p_clrcb->notif_reg[i].in_use &&
-                    !bdcmp(p_clrcb->notif_reg[i].remote_bda, remote_bda))
+                        !bdcmp(p_clrcb->notif_reg[i].remote_bda, remote_bda)) {
 
                     /* It's enough to get service or characteristic handle, as
                      * clear boundaries are always around service.
@@ -504,6 +504,7 @@ void bta_gattc_clear_notif_registration(tBTA_GATTC_SERV *p_srcb, UINT16 conn_id,
                     handle = p_clrcb->notif_reg[i].handle;
                     if (handle >= start_handle && handle <= end_handle)
                         memset(&p_clrcb->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
+                }
             }
         }
     } else {
