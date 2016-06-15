@@ -184,11 +184,8 @@ public final class Avrcp {
 
         mSessionChangeListener = new MediaSessionChangeListener();
         mMediaSessionManager.addOnActiveSessionsChangedListener(mSessionChangeListener, null, mHandler);
-        List<MediaController> sessions = mMediaSessionManager.getActiveSessions(null);
+        updateCurrentMediaControllers(mMediaSessionManager.getActiveSessions(null));
         mMediaControllerCb = new MediaControllerListener();
-        if (sessions.size() > 0) {
-            updateCurrentMediaController(sessions.get(0));
-        }
     }
 
     public static Avrcp make(Context context) {
@@ -239,15 +236,25 @@ public final class Avrcp {
         @Override
         public void onActiveSessionsChanged(List<MediaController> controllers) {
             Log.v(TAG, "Active sessions changed, " + controllers.size() + " sessions");
-            if (controllers.size() > 0) {
-                updateCurrentMediaController(controllers.get(0));
-            }
+            updateCurrentMediaControllers(controllers);
         }
     }
 
-    private void updateCurrentMediaController(MediaController controller) {
-        Log.v(TAG, "Updating media controller to " + controller + " from " +
-                   controller.getPackageName());
+    private void updateCurrentMediaControllers(List<MediaController> controllers) {
+        MediaController controller = null;
+        for (MediaController c : controllers) {
+          controller = c;
+          if (c.getMetadata() != null)
+            break; // We found a suitable controller
+        }
+
+        String name = (controller == null) ? "null" : controller.getPackageName();
+        if (mMediaController == controller) {
+          Log.v(TAG, "MediaController still " + name);
+          return;
+        }
+
+        Log.v(TAG, "MediaController changed to " + name);
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaControllerCb);
         }
