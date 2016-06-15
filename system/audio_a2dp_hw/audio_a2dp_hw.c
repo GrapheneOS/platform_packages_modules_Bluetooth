@@ -59,11 +59,15 @@
 #define SOCK_SEND_TIMEOUT_MS 2000  /* Timeout for sending */
 #define SOCK_RECV_TIMEOUT_MS 5000  /* Timeout for receiving */
 
+// set WRITE_POLL_MS to 0 for blocking sockets, nonzero for polled non-blocking sockets
+#define WRITE_POLL_MS 20
+
 #define CASE_RETURN_STR(const) case const: return #const;
 
 #define FNLOG()             LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);
 #define DEBUG(fmt, ...)     LOG_VERBOSE(LOG_TAG, "%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 #define INFO(fmt, ...)      LOG_INFO(LOG_TAG, "%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
+#define WARN(fmt, ...)      LOG_WARN(LOG_TAG, "%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 #define ERROR(fmt, ...)     LOG_ERROR(LOG_TAG, "%s: " fmt,__FUNCTION__, ## __VA_ARGS__)
 
 #define ASSERTC(cond, msg, val) if (!(cond)) {ERROR("### ASSERT : %s line %d %s (%d) ###", __FILE__, __LINE__, msg, val);}
@@ -269,15 +273,41 @@ static int skt_read(int fd, void *p, size_t len)
 static int skt_write(int fd, const void *p, size_t len)
 {
     ssize_t sent;
-
     FNLOG();
 
     ts_log("skt_write", len, NULL);
-    OSI_NO_INTR(sent = send(fd, p, len, MSG_NOSIGNAL));
-    if (sent == -1)
-        ERROR("write failed with errno=%d\n", errno);
 
-    return (int)sent;
+    if (WRITE_POLL_MS == 0) {
+        // do not poll, use blocking send
+        OSI_NO_INTR(sent = send(fd, p, len, MSG_NOSIGNAL));
+        if (sent == -1)
+            ERROR("write failed with error(%s)", strerror(errno));
+
+        return (int)sent;
+    }
+
+    // use non-blocking send, poll
+    int ms_timeout = SOCK_SEND_TIMEOUT_MS;
+    size_t count = 0;
+    while (count < len) {
+        OSI_NO_INTR(sent = send(fd, p, len - count, MSG_NOSIGNAL | MSG_DONTWAIT));
+        if (sent == -1) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                ERROR("write failed with error(%s)", strerror(errno));
+                return -1;
+            }
+            if (ms_timeout >= WRITE_POLL_MS) {
+                usleep(WRITE_POLL_MS * 1000);
+                ms_timeout -= WRITE_POLL_MS;
+                continue;
+            }
+            WARN("write timeout exceeded, sent %zu bytes", count);
+            return -1;
+        }
+        count += sent;
+        p = (const uint8_t *)p + sent;
+    }
+    return (int)count;
 }
 
 static int skt_disconnect(int fd)
