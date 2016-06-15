@@ -225,6 +225,45 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
     list_append(p_srvc_cb->p_srvc_cache, p_new_srvc);
     return BTA_GATT_OK;
 }
+
+static tBTA_GATT_STATUS bta_gattc_add_char_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
+                                                    UINT16 attr_handle,
+                                                    UINT16 value_handle,
+                                                    tBT_UUID *p_uuid,
+                                                    UINT8 property)
+{
+#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+    APPL_TRACE_DEBUG("%s: Add a characteristic into Service", __func__);
+    APPL_TRACE_DEBUG("handle=%d uuid16=0x%x property=0x%x",
+                      value_handle, p_uuid->uu.uuid16, property);
+#endif
+
+    tBTA_GATTC_SERVICE *service = bta_gattc_find_matching_service(p_srvc_cb->p_srvc_cache, attr_handle);
+    if (!service) {
+        APPL_TRACE_ERROR("Illegal action to add char/descr/incl srvc for non-existing service!");
+        return GATT_WRONG_STATE;
+    }
+
+    /* TODO(jpawlowski): We should use attribute handle, not value handle to refer to characteristic.
+       This is just a temporary workaround.
+    */
+    if (service->e_handle < value_handle)
+        service->e_handle = value_handle;
+
+    tBTA_GATTC_CHARACTERISTIC *characteristic = (tBTA_GATTC_CHARACTERISTIC*)
+        osi_malloc(sizeof(tBTA_GATTC_CHARACTERISTIC));
+
+    characteristic->handle = value_handle;
+    characteristic->properties = property;
+    characteristic->descriptors = list_new(osi_free);
+    memcpy(&characteristic->uuid, p_uuid, sizeof(tBT_UUID));
+
+    characteristic->service = service;
+    list_append(service->characteristics, characteristic);
+
+    return BTA_GATT_OK;
+}
+
 /*******************************************************************************
 **
 ** Function         bta_gattc_add_attr_to_cache
@@ -253,18 +292,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
         return GATT_WRONG_STATE;
     }
 
-    if (type == BTA_GATTC_ATTR_TYPE_CHAR) {
-        tBTA_GATTC_CHARACTERISTIC *characteristic = (tBTA_GATTC_CHARACTERISTIC*)
-            osi_malloc(sizeof(tBTA_GATTC_CHARACTERISTIC));
-
-        characteristic->handle = handle;
-        characteristic->properties = property;
-        characteristic->descriptors = list_new(osi_free);
-        memcpy(&characteristic->uuid, p_uuid, sizeof(tBT_UUID));
-
-        characteristic->service = service;
-        list_append(service->characteristics, characteristic);
-    } else if (type == BTA_GATTC_ATTR_TYPE_INCL_SRVC) {
+    if (type == BTA_GATTC_ATTR_TYPE_INCL_SRVC) {
         tBTA_GATTC_INCLUDED_SVC *isvc = (tBTA_GATTC_INCLUDED_SVC*)
             osi_malloc(sizeof(tBTA_GATTC_INCLUDED_SVC));
 
@@ -527,12 +555,11 @@ static void bta_gattc_char_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
     if (p_srvc_cb->total_char > 0)
     {
         /* add the first characteristic into cache */
-        bta_gattc_add_attr_to_cache (p_srvc_cb,
+        bta_gattc_add_char_to_cache (p_srvc_cb,
+                                     p_rec->char_decl_handle,
                                      p_rec->s_handle,
                                      &p_rec->uuid,
-                                     p_rec->property,
-                                     0 /* incl_srvc_handle */,
-                                     BTA_GATTC_ATTR_TYPE_CHAR);
+                                     p_rec->property);
 
         /* start discoverying characteristic descriptor , if failed, disc for next char*/
         bta_gattc_start_disc_char_dscp(conn_id, p_srvc_cb);
@@ -561,12 +588,11 @@ static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
     {
         p_rec = p_srvc_cb->p_srvc_list + (++ p_srvc_cb->cur_char_idx);
         /* add the next characteristic into cache */
-        bta_gattc_add_attr_to_cache (p_srvc_cb,
+        bta_gattc_add_char_to_cache (p_srvc_cb,
+                                     p_rec->char_decl_handle,
                                      p_rec->s_handle,
                                      &p_rec->uuid,
-                                     p_rec->property,
-                                     0 /* incl_srvc_handle */,
-                                     BTA_GATTC_ATTR_TYPE_CHAR);
+                                     p_rec->property);
 
         /* start discoverying next characteristic for char descriptor */
         bta_gattc_start_disc_char_dscp(conn_id, p_srvc_cb);
@@ -679,6 +705,7 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
         p_srvc_cb->total_char ++;
 
         p_rec->s_handle = value_handle;
+        p_rec->char_decl_handle = decl_handle;
         p_rec->property = property;
         p_rec->e_handle = (p_srvc_cb->p_srvc_list + p_srvc_cb->cur_srvc_idx)->e_handle;
         memcpy(&p_rec->uuid, &uuid, sizeof(tBT_UUID));
@@ -1175,7 +1202,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
                                        btgatt_db_element_t **db,
                                        int *count)
 {
-    APPL_TRACE_DEBUG(LOG_TAG, "%s: start_handle 0x%04x, end_handle 0x%04x",
+    APPL_TRACE_DEBUG("%s: start_handle 0x%04x, end_handle 0x%04x",
                      __func__, start_handle, end_handle);
 
     if (!p_srvc_cb->p_srvc_cache || list_is_empty(p_srvc_cb->p_srvc_cache)) {
@@ -1341,6 +1368,14 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
                 break;
 
             case BTA_GATTC_ATTR_TYPE_CHAR:
+                //TODO(jpawlowski): store decl_handle properly.
+                bta_gattc_add_char_to_cache(p_srvc_cb,
+                                            p_attr->s_handle,
+                                            p_attr->s_handle,
+                                            &p_attr->uuid,
+                                            p_attr->prop);
+                break;
+
             case BTA_GATTC_ATTR_TYPE_CHAR_DESCR:
             case BTA_GATTC_ATTR_TYPE_INCL_SRVC:
                 bta_gattc_add_attr_to_cache(p_srvc_cb,
