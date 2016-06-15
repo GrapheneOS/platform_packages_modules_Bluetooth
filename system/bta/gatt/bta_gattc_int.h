@@ -244,6 +244,8 @@ typedef struct
     tBT_UUID            uuid;
     UINT16              s_handle;
     UINT16              e_handle;
+    // this field is set only for characteristic
+    UINT16              char_decl_handle;
     BOOLEAN             is_primary;
     tBTA_GATT_CHAR_PROP property;
 }tBTA_GATTC_ATTR_REC;
