@@ -41,25 +41,30 @@ bool VendorManager::Initialize() {
   controller_.RegisterHandlersWithTestChannelTransport(test_channel_transport_);
 
   controller_.RegisterEventChannel([this](std::unique_ptr<EventPacket> event) {
-    transport_.PostEventResponse(*event);
+    EventPacket evt = *event;
+    async_manager_.ExecAsync(std::chrono::milliseconds(0), [evt,this]() {
+      transport_.PostEvent(evt);
+    });
   });
 
-  transport_.RegisterEventScheduler(
+  controller_.RegisterTaskScheduler(
       [this](std::chrono::milliseconds delay, const TaskCallback& task) {
-        async_manager_.ExecAsync(delay, task);
+        return async_manager_.ExecAsync(delay, task);
       });
 
-  transport_.RegisterPeriodicEventScheduler(
+  controller_.RegisterPeriodicTaskScheduler(
       [this](std::chrono::milliseconds delay,
              std::chrono::milliseconds period,
              const TaskCallback& task) {
-        async_manager_.ExecAsyncPeriodically(delay, period, task);
+        return async_manager_.ExecAsyncPeriodically(delay, period, task);
       });
 
+  controller_.RegisterTaskCancel(
+      [this](AsyncTaskId task) { async_manager_.CancelAsyncTask(task); });
+
   if (async_manager_.WatchFdForNonBlockingReads(
-          transport_.GetVendorFd(), [this](int fd) {
-            transport_.OnFileCanReadWithoutBlocking(fd);
-          }) != 0) {
+          transport_.GetVendorFd(),
+          [this](int fd) { transport_.OnCommandReady(fd); }) != 0) {
     LOG_ERROR(LOG_TAG, "Error watching vendor fd.");
     return true;
   }
