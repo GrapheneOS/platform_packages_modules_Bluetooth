@@ -6,13 +6,13 @@ include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
 
 LOCAL_SRC_FILES:= \
-    ./dm/bta_dm_ci.c \
-    ./dm/bta_dm_act.c \
-    ./dm/bta_dm_pm.c \
-    ./dm/bta_dm_main.c \
-    ./dm/bta_dm_cfg.c \
-    ./dm/bta_dm_api.c \
-    ./dm/bta_dm_sco.c \
+    ./dm/bta_dm_ci.cc \
+    ./dm/bta_dm_act.cc \
+    ./dm/bta_dm_pm.cc \
+    ./dm/bta_dm_main.cc \
+    ./dm/bta_dm_cfg.cc \
+    ./dm/bta_dm_api.cc \
+    ./dm/bta_dm_sco.cc \
     ./gatt/bta_gattc_api.cc \
     ./gatt/bta_gatts_act.cc \
     ./gatt/bta_gatts_main.cc \
@@ -40,12 +40,12 @@ LOCAL_SRC_FILES:= \
     ./hf_client/bta_hf_client_sdp.c \
     ./hf_client/bta_hf_client_sco.c \
     ./hf_client/bta_hf_client_cmd.c \
-    ./hh/bta_hh_cfg.c \
-    ./hh/bta_hh_act.c \
-    ./hh/bta_hh_api.c \
-    ./hh/bta_hh_le.c \
-    ./hh/bta_hh_utils.c \
-    ./hh/bta_hh_main.c \
+    ./hh/bta_hh_cfg.cc \
+    ./hh/bta_hh_act.cc \
+    ./hh/bta_hh_api.cc \
+    ./hh/bta_hh_le.cc \
+    ./hh/bta_hh_utils.cc \
+    ./hh/bta_hh_main.cc \
     ./pan/bta_pan_main.c \
     ./pan/bta_pan_ci.c \
     ./pan/bta_pan_act.c \
