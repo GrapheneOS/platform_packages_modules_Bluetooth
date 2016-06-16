@@ -23,6 +23,10 @@
 #include "btm_api.h"
 #include "l2c_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************
 **  Constants
 *****************************************************************************/
@@ -376,7 +380,10 @@ extern BOOLEAN GAP_BleReadPeerAddressResolutionCap (BD_ADDR peer_bda,
 *******************************************************************************/
 extern BOOLEAN GAP_BleCancelReadPeerDevName (BD_ADDR peer_bda);
 
+#endif
 
+#ifdef __cplusplus
+}
 #endif
 
 #endif  /* GAP_API_H */

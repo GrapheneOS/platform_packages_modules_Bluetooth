@@ -1034,6 +1034,8 @@ typedef struct
    UINT8 lmp_version;
 }tBTA_DM_LMP_VER_INFO;
 
+extern const UINT16 bta_service_id_to_uuid_lkup_tbl [];
+
 extern tBTA_DM_PM_CFG *p_bta_dm_pm_cfg;
 extern tBTA_DM_PM_SPEC *p_bta_dm_pm_spec;
 extern tBTM_PM_PWR_MD *p_bta_dm_pm_md;
@@ -1165,7 +1167,7 @@ extern void bta_dm_search_cancel_transac_cmpl(tBTA_DM_MSG *p_data);
 extern void bta_dm_disc_rmt_name (tBTA_DM_MSG *p_data);
 extern tBTA_DM_PEER_DEVICE * bta_dm_find_peer_device(const BD_ADDR peer_addr);
 
-extern void bta_dm_pm_active(BD_ADDR peer_addr);
+extern "C" void bta_dm_pm_active(BD_ADDR peer_addr);
 
 void bta_dm_eir_update_uuid(UINT16 uuid16, BOOLEAN adding);
 
