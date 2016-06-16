@@ -499,7 +499,7 @@ tHID_STATUS HID_HostCloseDev( UINT8 dev_handle )
     return hidh_conn_disconnect( dev_handle );
 }
 
-tHID_STATUS HID_HostSetSecurityLevel( char serv_name[], UINT8 sec_lvl )
+tHID_STATUS HID_HostSetSecurityLevel(const char serv_name[], UINT8 sec_lvl )
 {
     if (!BTM_SetSecurityLevel (FALSE, serv_name, BTM_SEC_SERVICE_HIDH_SEC_CTRL,
                                sec_lvl, HID_PSM_CONTROL, BTM_SEC_PROTO_HID, HID_SEC_CHN))

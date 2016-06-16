@@ -86,7 +86,7 @@ static list_t *gatt_op_queue = NULL; // list of gatt_operation
 static list_t *gatt_op_queue_executing = NULL; // list of UINT16 connection ids that currently execute
 
 static void mark_as_executing(UINT16 conn_id) {
-    UINT16 *executing_conn_id = osi_malloc(sizeof(UINT16));
+    UINT16 *executing_conn_id = (UINT16*) osi_malloc(sizeof(UINT16));
     *executing_conn_id = conn_id;
     if (!gatt_op_queue_executing)
         gatt_op_queue_executing = list_new(osi_free);
@@ -95,8 +95,8 @@ static void mark_as_executing(UINT16 conn_id) {
 }
 
 static bool rm_exec_conn_id(void *data, void *context) {
-    UINT16 *conn_id = context;
-    UINT16 *conn_id2 = data;
+    UINT16 *conn_id = (UINT16*) context;
+    UINT16 *conn_id2 = (UINT16*) data;
     if (*conn_id == *conn_id2)
         list_remove(gatt_op_queue_executing, data);
 
@@ -109,8 +109,8 @@ static void mark_as_not_executing(UINT16 conn_id) {
 }
 
 static bool exec_list_contains(void *data, void *context) {
-    UINT16 *conn_id = context;
-    UINT16 *conn_id2 = data;
+    UINT16 *conn_id = (UINT16*) context;
+    UINT16 *conn_id2 = (UINT16*) data;
     if (*conn_id == *conn_id2)
         return FALSE;
 
@@ -118,8 +118,8 @@ static bool exec_list_contains(void *data, void *context) {
 }
 
 static bool rm_op_by_conn_id(void *data, void *context) {
-    UINT16 *conn_id = context;
-    gatt_operation *op = data;
+    UINT16 *conn_id = (UINT16*) context;
+    gatt_operation *op = (gatt_operation*) data;
     if(op->conn_id == *conn_id)
         list_remove(gatt_op_queue, data);
 
@@ -134,8 +134,8 @@ static void gatt_op_queue_clean(UINT16 conn_id) {
 }
 
 static bool find_op_by_conn_id(void *data, void *context) {
-    UINT16 *conn_id = context;
-    gatt_operation *op = data;
+    UINT16 *conn_id = (UINT16*) context;
+    gatt_operation *op = (gatt_operation*) data;
     if(op->conn_id == *conn_id)
         return FALSE;
 
@@ -154,7 +154,7 @@ static void gatt_execute_next_op(UINT16 conn_id) {
         APPL_TRACE_DEBUG("%s: no more operations queued for conn_id %d", __func__, conn_id);
         return;
     }
-    gatt_operation *op = list_node(op_node);
+    gatt_operation *op = (gatt_operation*) list_node(op_node);
 
     if (gatt_op_queue_executing && list_foreach(gatt_op_queue_executing, exec_list_contains, &conn_id)) {
         APPL_TRACE_DEBUG("%s: can't enqueue next op, already executing", __func__);
@@ -200,7 +200,7 @@ static void gatt_queue_read_op(UINT8 op_type, UINT16 conn_id, UINT16 handle) {
     gatt_op_queue = list_new(osi_free);
   }
 
-  gatt_operation *op = osi_malloc(sizeof(gatt_operation));
+  gatt_operation *op = (gatt_operation*) osi_malloc(sizeof(gatt_operation));
   op->type = op_type;
   op->conn_id = conn_id;
   op->handle = handle;
@@ -215,7 +215,7 @@ static void gatt_queue_write_op(UINT8 op_type, UINT16 conn_id, UINT16 handle, UI
     gatt_op_queue = list_new(osi_free);
   }
 
-  gatt_operation *op = osi_malloc(sizeof(gatt_operation));
+  gatt_operation *op = (gatt_operation*) osi_malloc(sizeof(gatt_operation));
   op->type = op_type;
   op->conn_id = conn_id;
   op->handle = handle;
@@ -257,7 +257,7 @@ static void bta_hh_le_hid_report_dbg(tBTA_HH_DEV_CB *p_cb)
 
     for (int j = 0; j < BTA_HH_LE_RPT_MAX; j ++, p_rpt++)
     {
-        char *  rpt_name = "Unknown";
+        const char * rpt_name = "Unknown";
 
         if (!p_rpt->in_use)
             break;
@@ -291,7 +291,7 @@ static void bta_hh_le_hid_report_dbg(tBTA_HH_DEV_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-static char *bta_hh_uuid_to_str(UINT16 uuid)
+static const char *bta_hh_uuid_to_str(UINT16 uuid)
 {
     switch(uuid)
     {
@@ -660,7 +660,7 @@ static tBTA_GATTC_DESCRIPTOR *find_descriptor_by_short_uuid(UINT16 conn_id,
 
     for (list_node_t *dn = list_begin(p_char->descriptors);
          dn != list_end(p_char->descriptors); dn = list_next(dn)) {
-        tBTA_GATTC_DESCRIPTOR *p_desc = list_node(dn);
+        tBTA_GATTC_DESCRIPTOR *p_desc = (tBTA_GATTC_DESCRIPTOR*) list_node(dn);
 
         if (p_char->uuid.len == LEN_UUID_16 &&
             p_desc->uuid.uu.uuid16 == short_uuid)
@@ -1376,7 +1376,7 @@ void process_included(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERVICE *service) {
 
     for (list_node_t *isn = list_begin(service->included_svc);
          isn != list_end(service->included_svc); isn = list_next(isn)) {
-        tBTA_GATTC_INCLUDED_SVC *p_isvc = list_node(isn);
+        tBTA_GATTC_INCLUDED_SVC *p_isvc = (tBTA_GATTC_INCLUDED_SVC*) list_node(isn);
         tBTA_GATTC_SERVICE *incl_svc = p_isvc->included_service;
         if (incl_svc->uuid.uu.uuid16 == UUID_SERVCLASS_BATTERY &&
             incl_svc->uuid.len == LEN_UUID_16) {
@@ -1386,7 +1386,7 @@ void process_included(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERVICE *service) {
 
             for (list_node_t *cn = list_begin(incl_svc->characteristics);
                  cn != list_end(incl_svc->characteristics); cn = list_next(cn)) {
-                tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+                tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
                 if (p_char->uuid.uu.uuid16 == GATT_UUID_BATTERY_LEVEL &&
                     p_char->uuid.len == LEN_UUID_16) {
 
@@ -1422,7 +1422,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
 
     for (list_node_t *cn = list_begin(service->characteristics);
          cn != list_end(service->characteristics); cn = list_next(cn)) {
-        tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+        tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
         if(p_char->uuid.len != LEN_UUID_16)
             continue;
@@ -1482,7 +1482,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
     /* Make sure PROTO_MODE is processed as last */
     for (list_node_t *cn = list_begin(service->characteristics);
          cn != list_end(service->characteristics); cn = list_next(cn)) {
-        tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+        tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
         if(p_char->uuid.len != LEN_UUID_16 &&
            p_char->uuid.uu.uuid16 == GATT_UUID_HID_PROTO_MODE) {
@@ -1523,7 +1523,7 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
     bool have_hid = false;
     for (list_node_t *sn = list_begin(services);
          sn != list_end(services); sn = list_next(sn)) {
-        tBTA_GATTC_SERVICE *service = list_node(sn);
+        tBTA_GATTC_SERVICE *service = (tBTA_GATTC_SERVICE*) list_node(sn);
 
         if (service->uuid.uu.uuid16 == UUID_SERVCLASS_LE_HID &&
             service->is_primary && !have_hid) {
@@ -1544,7 +1544,7 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
 
             for (list_node_t *cn = list_begin(service->characteristics);
                  cn != list_end(service->characteristics); cn = list_next(cn)) {
-                tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+                tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
                 if (p_char->uuid.len == LEN_UUID_16 &&
                     p_char->uuid.uu.uuid16 == GATT_UUID_SCAN_REFRESH) {
 
@@ -1562,7 +1562,7 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
             //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
             for (list_node_t *cn = list_begin(service->characteristics);
                  cn != list_end(service->characteristics); cn = list_next(cn)) {
-                tBTA_GATTC_CHARACTERISTIC *p_char = list_node(cn);
+                tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
                 if (p_char->uuid.len == LEN_UUID_16 &&
                     p_char->uuid.uu.uuid16 == GATT_UUID_GAP_PREF_CONN_PARAM) {
 

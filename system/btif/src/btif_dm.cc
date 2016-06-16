@@ -249,7 +249,6 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t *bd_addr,
 /******************************************************************************
 **  Externs
 ******************************************************************************/
-extern UINT16 bta_service_id_to_uuid_lkup_tbl [BTA_MAX_SERVICE_ID];
 extern bt_status_t btif_hf_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_execute_service(BOOLEAN b_enable);
 extern bt_status_t btif_av_sink_execute_service(BOOLEAN b_enable);
