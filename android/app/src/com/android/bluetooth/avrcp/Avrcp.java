@@ -183,9 +183,9 @@ public final class Avrcp {
         mHandler = new AvrcpMessageHandler(looper);
 
         mSessionChangeListener = new MediaSessionChangeListener();
+        mMediaControllerCb = new MediaControllerListener();
         mMediaSessionManager.addOnActiveSessionsChangedListener(mSessionChangeListener, null, mHandler);
         updateCurrentMediaControllers(mMediaSessionManager.getActiveSessions(null));
-        mMediaControllerCb = new MediaControllerListener();
     }
 
     public static Avrcp make(Context context) {
