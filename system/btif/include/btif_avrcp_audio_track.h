@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-#if defined (__cplusplus)
-extern "C" {
-#endif
-
 /**
  * Implements an API to be used by A2DP to do streaming of music over a media
  * stream. This API provides mechanism to create and control playback of the
@@ -67,7 +63,3 @@ void BtifAvrcpAudioTrackDelete(void *handle);
  * Used only for debugging.
  */
 int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen);
-
-#if defined (__cplusplus) || (cplusplus)
-}
-#endif

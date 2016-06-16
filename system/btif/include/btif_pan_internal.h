@@ -30,10 +30,6 @@
 #include "btif_pan.h"
 #include "bt_types.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -123,9 +119,5 @@ static inline int is_valid_bt_eth_addr(const BD_ADDR addr)
         return 0;
     return addr[0] & 1 ? 0 : 1; /* Cannot be multicasting address */
 }
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

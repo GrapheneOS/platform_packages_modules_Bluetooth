@@ -28,10 +28,6 @@
 #include "bt_types.h"
 #include "bt_utils.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -76,11 +72,8 @@ void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128);
 // otherwise. Returns false if |str| is null.
 bool string_to_uuid(const char *str, bt_uuid_t *p_uuid);
 
-void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
 int ascii_2_hex (const char *p_ascii, int len, UINT8 *p_hex);
 
-#ifdef __cplusplus
-}
-#endif
+extern "C" void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str);
 
 #endif /* BTIF_UTIL_H */
