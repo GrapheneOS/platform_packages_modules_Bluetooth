@@ -61,7 +61,7 @@ include $(BUILD_NATIVE_TEST)
 # Bluetooth test suite for target
 # ========================================================
 include $(CLEAR_VARS)
-
+LOCAL_CPP_EXTENSION := .cc
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_rfcomm
 
