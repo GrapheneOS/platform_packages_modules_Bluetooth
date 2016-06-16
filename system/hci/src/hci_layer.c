@@ -299,6 +299,7 @@ static future_t *shut_down() {
   fixed_queue_free(packet_queue, buffer_allocator->free);
   packet_queue = NULL;
   list_free(commands_pending_response);
+  commands_pending_response = NULL;
 
   pthread_mutex_destroy(&commands_pending_response_lock);
 
@@ -802,6 +803,7 @@ void hci_layer_cleanup_interface() {
     interface.do_postload = NULL;
 
     data_dispatcher_free(interface.event_dispatcher);
+    interface.event_dispatcher = NULL;
 
     interface.set_data_queue = NULL;
     interface.transmit_command = NULL;
