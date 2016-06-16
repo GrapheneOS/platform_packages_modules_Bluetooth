@@ -26,7 +26,6 @@
 #include "bta_api.h"
 #include "bta_hf_client_api.h"
 #include "bta_hf_client_int.h"
-#include "bta_dm_int.h"
 #include "l2c_api.h"
 #include "port_api.h"
 #include "bta_sys.h"
@@ -34,6 +33,8 @@
 #include "bt_utils.h"
 #include "osi/include/compat.h"
 #include <string.h>
+
+extern void bta_dm_pm_active(BD_ADDR peer_addr);
 
 /*****************************************************************************
 **  Constants

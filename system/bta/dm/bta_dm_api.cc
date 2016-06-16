@@ -924,7 +924,7 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                             tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_calloc(sizeof(*p_msg));
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = (tBTA_DM_API_SET_ADV_CONFIG*) osi_calloc(sizeof(*p_msg));
 
   p_msg->hdr.event = BTA_DM_API_BLE_SET_ADV_CONFIG_EVT;
   p_msg->data_mask = data_mask;
@@ -948,7 +948,7 @@ void BTA_DmBleSetAdvConfig (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv
 extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *p_adv_cfg,
                                  tBTA_SET_ADV_DATA_CMPL_CBACK *p_adv_data_cback)
 {
-  tBTA_DM_API_SET_ADV_CONFIG *p_msg = osi_calloc(sizeof(*p_msg));
+  tBTA_DM_API_SET_ADV_CONFIG *p_msg = (tBTA_DM_API_SET_ADV_CONFIG*) osi_calloc(sizeof(*p_msg));
 
   p_msg->hdr.event = BTA_DM_API_BLE_SET_SCAN_RSP_EVT;
   p_msg->data_mask = data_mask;
@@ -1398,9 +1398,9 @@ void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
     APPL_TRACE_API("%s", __func__);
 
     p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_ENB_EVT;
-    p_msg->p_cback = (void *)p_cback;
+    p_msg->p_cback = (tBTA_BLE_MULTI_ADV_CBACK *)p_cback;
     if (p_params != NULL) {
-        p_msg->p_params = (void *)(p_msg + 1);
+        p_msg->p_params = (tBTA_BLE_ADV_PARAMS *)(p_msg + 1);
         memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
     }
     p_msg->p_ref = p_ref;
@@ -1432,7 +1432,7 @@ void BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 
     p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_PARAM_UPD_EVT;
     p_msg->inst_id = inst_id;
-    p_msg->p_params = (void *)(p_msg + 1);
+    p_msg->p_params = (tBTA_BLE_ADV_PARAMS *)(p_msg + 1);
     memcpy(p_msg->p_params, p_params, sizeof(tBTA_BLE_ADV_PARAMS));
 
     bta_sys_sendmsg(p_msg);
@@ -1459,7 +1459,8 @@ void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
-  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg = osi_calloc(sizeof(*p_msg));
+  tBTA_DM_API_BLE_MULTI_ADV_DATA *p_msg =
+    (tBTA_DM_API_BLE_MULTI_ADV_DATA*) osi_calloc(sizeof(*p_msg));
 
   p_msg->hdr.event = BTA_DM_API_BLE_MULTI_ADV_DATA_EVT;
   p_msg->inst_id = inst_id;

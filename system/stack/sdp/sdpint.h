@@ -240,10 +240,6 @@ extern tSDP_CB *sdp_cb_ptr;
 #define sdp_cb (*sdp_cb_ptr)
 #endif
 
-#ifdef __cplusplus
-}
-#endif
-
 /* Functions provided by sdp_main.c */
 extern void     sdp_init (void);
 extern void     sdp_disconnect (tCONN_CB*p_ccb, UINT16 reason);
@@ -319,6 +315,8 @@ extern void sdp_disc_server_rsp (tCONN_CB *p_ccb, BT_HDR *p_msg);
 #define sdp_disc_server_rsp(p_ccb, p_msg)
 #endif
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

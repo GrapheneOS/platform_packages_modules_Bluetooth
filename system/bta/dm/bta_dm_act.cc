@@ -135,7 +135,7 @@ static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS *p_inq, UINT8 *p_eir);
 static void bta_dm_observe_cmpl_cb(void * p_result);
 static void bta_dm_delay_role_switch_cback(void *data);
-extern void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
+extern "C" void sdpu_uuid16_to_uuid128(UINT16 uuid16, UINT8* p_uuid128);
 static void bta_dm_disable_timer_cback(void *data);
 
 
@@ -1762,7 +1762,7 @@ void bta_dm_sdp_result (tBTA_DM_MSG *p_data)
                                  bta_dm_search_cb.p_sdp_db->raw_data);
 
                 p_msg->disc_result.result.disc_res.p_raw_data =
-                    osi_malloc(bta_dm_search_cb.p_sdp_db->raw_used);
+                    (uint8_t *) osi_malloc(bta_dm_search_cb.p_sdp_db->raw_used);
                 memcpy(p_msg->disc_result.result.disc_res.p_raw_data,
                        bta_dm_search_cb.p_sdp_db->raw_data,
                        bta_dm_search_cb.p_sdp_db->raw_used);
@@ -5440,7 +5440,7 @@ static void bta_dm_gatt_disc_complete(UINT16 conn_id, tBTA_GATT_STATUS status)
         p_msg->disc_result.result.disc_res.device_type |= BT_DEVICE_TYPE_BLE;
         if (bta_dm_search_cb.ble_raw_used > 0) {
             p_msg->disc_result.result.disc_res.p_raw_data =
-                osi_malloc(bta_dm_search_cb.ble_raw_used);
+                (uint8_t*) osi_malloc(bta_dm_search_cb.ble_raw_used);
 
             memcpy(p_msg->disc_result.result.disc_res.p_raw_data,
                    bta_dm_search_cb.p_ble_rawdata,

@@ -30,8 +30,9 @@
 #include "port_api.h"
 #include "utl.h"
 #include <string.h>
-#include "bta_dm_int.h"
 #include "l2c_api.h"
+
+extern void bta_dm_pm_active(BD_ADDR peer_addr);
 
 /*****************************************************************************
 **  Constants
