@@ -858,6 +858,7 @@ void l2c_init (void)
 
 void l2c_free(void) {
     list_free(l2cb.rcv_pending_q);
+    l2cb.rcv_pending_q = NULL;
 }
 
 void l2c_receive_hold_timer_timeout(UNUSED_ATTR void *data)

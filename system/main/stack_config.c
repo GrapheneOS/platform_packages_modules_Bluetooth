@@ -61,6 +61,7 @@ static future_t *init() {
 
 static future_t *clean_up() {
   config_free(config);
+  config = NULL;
   return future_new_immediate(FUTURE_SUCCESS);
 }
 
