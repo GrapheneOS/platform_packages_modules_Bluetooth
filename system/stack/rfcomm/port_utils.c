@@ -240,7 +240,9 @@ void port_release_port(tPORT *p_port)
 
         rfc_port_timer_stop (p_port);
         fixed_queue_free(p_port->tx.queue, NULL);
+        p_port->tx.queue = NULL;
         fixed_queue_free(p_port->rx.queue, NULL);
+        p_port->rx.queue = NULL;
 
         if (p_port->keep_port_handle)
         {

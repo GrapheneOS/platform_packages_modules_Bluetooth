@@ -4768,6 +4768,7 @@ static inline int btif_hl_close_select_thread(void)
         }
     }
     list_free(soc_queue);
+    soc_queue = NULL;
 
     return (int)result;
 }

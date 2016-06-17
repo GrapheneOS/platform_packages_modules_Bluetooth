@@ -2285,6 +2285,7 @@ void gatt_cleanup_upon_disc(BD_ADDR bda, UINT16 reason, tBT_TRANSPORT transport)
         gatt_free_pending_ind(p_tcb);
         gatt_free_pending_enc_queue(p_tcb);
         fixed_queue_free(p_tcb->sr_cmd.multi_rsp_q, NULL);
+        p_tcb->sr_cmd.multi_rsp_q = NULL;
 
         for (i = 0; i < GATT_MAX_APPS; i ++)
         {

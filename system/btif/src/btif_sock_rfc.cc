@@ -139,6 +139,7 @@ void btsock_rfc_cleanup(void) {
     if (rfc_slots[i].id)
       cleanup_rfc_slot(&rfc_slots[i]);
     list_free(rfc_slots[i].incoming_queue);
+    rfc_slots[i].incoming_queue = NULL;
   }
   pthread_mutex_unlock(&slot_lock);
 }
