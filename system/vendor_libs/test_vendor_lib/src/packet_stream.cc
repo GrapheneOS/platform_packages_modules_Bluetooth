@@ -30,31 +30,31 @@ extern "C" {
 namespace test_vendor_lib {
 
 std::unique_ptr<CommandPacket> PacketStream::ReceiveCommand(int fd) const {
-  std::vector<uint8_t> header;
-  std::vector<uint8_t> payload;
+  vector<uint8_t> header;
+  vector<uint8_t> params_size;
+  vector<uint8_t> payload;
 
   if (!ReceiveAll(header, CommandPacket::kCommandHeaderSize, fd)) {
     LOG_ERROR(LOG_TAG, "Error: receiving command header.");
     return std::unique_ptr<CommandPacket>(nullptr);
   }
 
-  if (!ReceiveAll(payload, header.back(), fd)) {
-    LOG_ERROR(LOG_TAG, "Error: receiving command payload.");
+  if (!ReceiveAll(params_size, 1, fd)) {
+    LOG_ERROR(LOG_TAG, "Error: receiving params size.");
     return std::unique_ptr<CommandPacket>(nullptr);
   }
 
-  std::unique_ptr<CommandPacket> command(new CommandPacket());
-  if (!command->Encode(header, payload)) {
-    LOG_ERROR(LOG_TAG, "Error: encoding command packet.");
-    command.reset(nullptr);
+  if (!ReceiveAll(payload, params_size[0], fd)) {
+    LOG_ERROR(LOG_TAG, "Error: receiving command payload.");
+    return std::unique_ptr<CommandPacket>(nullptr);
   }
-  return command;
+  return std::unique_ptr<CommandPacket>(new CommandPacket(header, payload));
 }
 
 serial_data_type_t PacketStream::ReceivePacketType(int fd) const {
   LOG_INFO(LOG_TAG, "Receiving packet type.");
 
-  std::vector<uint8_t> raw_type_octet;
+  vector<uint8_t> raw_type_octet;
 
   if (!ReceiveAll(raw_type_octet, 1, fd)) {
     // TODO(dennischeng): Proper error handling.
@@ -102,7 +102,7 @@ bool PacketStream::ValidateTypeOctet(serial_data_type_t type) const {
   return (type >= DATA_TYPE_COMMAND) && (type <= DATA_TYPE_SCO);
 }
 
-bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
+bool PacketStream::ReceiveAll(vector<uint8_t>& destination,
                               size_t num_octets_to_receive,
                               int fd) const {
   destination.resize(num_octets_to_receive);
@@ -119,7 +119,7 @@ bool PacketStream::ReceiveAll(std::vector<uint8_t>& destination,
   return true;
 }
 
-bool PacketStream::SendAll(const std::vector<uint8_t>& source,
+bool PacketStream::SendAll(const vector<uint8_t>& source,
                            size_t num_octets_to_send,
                            int fd) const {
   CHECK(source.size() >= num_octets_to_send);

@@ -94,7 +94,7 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   LOG_INFO(LOG_TAG, "Event ready in TestChannelTransport on fd: %d", fd);
   uint8_t command_name_size = 0;
   read(fd, &command_name_size, 1);
-  std::vector<uint8_t> command_name_raw;
+  vector<uint8_t> command_name_raw;
   command_name_raw.resize(command_name_size);
   read(fd, &command_name_raw[0], command_name_size);
   std::string command_name(command_name_raw.begin(), command_name_raw.end());
@@ -109,11 +109,11 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
   uint8_t num_args = 0;
   read(fd, &num_args, 1);
   LOG_INFO(LOG_TAG, "num_args: %d", num_args);
-  std::vector<std::string> args;
+  vector<std::string> args;
   for (uint8_t i = 0; i < num_args; ++i) {
     uint8_t arg_size = 0;
     read(fd, &arg_size, 1);
-    std::vector<uint8_t> arg;
+    vector<uint8_t> arg;
     arg.resize(arg_size);
     read(fd, &arg[0], arg_size);
     args.push_back(std::string(arg.begin(), arg.end()));
@@ -128,7 +128,7 @@ void TestChannelTransport::OnFileCanReadWithoutBlocking(int fd) {
 void TestChannelTransport::OnFileCanWriteWithoutBlocking(int fd UNUSED_ATTR) {}
 
 void TestChannelTransport::RegisterCommandHandler(
-    std::function<void(const std::string&, const std::vector<std::string>&)>
+    std::function<void(const std::string&, const vector<std::string>&)>
         callback) {
   command_handler_ = callback;
 }
