@@ -264,6 +264,7 @@ void l2cu_release_lcb (tL2C_LCB *p_lcb)
             osi_free(p_buf);
         }
         fixed_queue_free(p_lcb->le_sec_pending_q, NULL);
+        p_lcb->le_sec_pending_q = NULL;
     }
 }
 
