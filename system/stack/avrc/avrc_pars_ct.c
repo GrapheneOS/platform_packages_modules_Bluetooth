@@ -150,7 +150,7 @@ void avrc_parse_notification_rsp (UINT8 *p_stream, tAVRC_REG_NOTIF_RSP *p_rsp)
     }
 }
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_ctrl_pars_vendor_rsp

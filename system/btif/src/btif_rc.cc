@@ -246,7 +246,7 @@ static rc_transaction_t* get_transaction_by_lbl(UINT8 label);
 #if (AVRC_ADV_CTRL_INCLUDED == TRUE)
 static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
 #endif
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 static void handle_avk_rc_metamsg_cmd(tBTA_AV_META_MSG *pmeta_msg);
 static void handle_avk_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg);
 static void btif_rc_ctrl_upstreams_rsp_cmd(
@@ -425,7 +425,7 @@ void close_uinput (void)
     }
 }
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 void rc_cleanup_sent_cmd (void *p_data)
 {
     BTIF_TRACE_DEBUG("%s", __FUNCTION__);
@@ -556,7 +556,7 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
 {
     BTIF_TRACE_DEBUG("%s: rc_handle: %d", __FUNCTION__, p_rc_open->rc_handle);
     bt_status_t result = BT_STATUS_SUCCESS;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     bt_bdaddr_t rc_addr;
 #endif
 
@@ -600,7 +600,7 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
                                __FUNCTION__);
         }
         BTIF_TRACE_DEBUG("%s handle_rc_connect features %d ",__FUNCTION__, btif_rc_cb.rc_features);
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
         btif_rc_cb.rc_playing_uid = RC_INVALID_TRACK_ID;
         bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
         if (bt_rc_ctrl_callbacks != NULL)
@@ -634,7 +634,7 @@ void handle_rc_connect (tBTA_AV_RC_OPEN *p_rc_open)
  ***************************************************************************/
 void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
 {
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     bt_bdaddr_t rc_addr;
     tBTA_AV_FEAT features;
 #endif
@@ -645,7 +645,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
         BTIF_TRACE_ERROR("Got disconnect of unknown device");
         return;
     }
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
     features = btif_rc_cb.rc_features;
         /* Clean up AVRCP procedure flags */
@@ -680,7 +680,7 @@ void handle_rc_disconnect (tBTA_AV_RC_CLOSE *p_rc_close)
     }
 
     memset(btif_rc_cb.rc_addr, 0, sizeof(BD_ADDR));
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     /* report connection state if device is AVRCP target */
     if (bt_rc_ctrl_callbacks != NULL)
    {
@@ -792,7 +792,7 @@ void handle_rc_passthrough_cmd ( tBTA_AV_REMOTE_CMD *p_remote_cmd)
  ***************************************************************************/
 void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
 {
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     const char *status;
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
     {
@@ -834,7 +834,7 @@ void handle_rc_passthrough_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
  ***************************************************************************/
 void handle_rc_vendorunique_rsp ( tBTA_AV_REMOTE_RSP *p_remote_rsp)
 {
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     const char *status;
     UINT8 vendor_id = 0;
     if (btif_rc_cb.rc_features & BTA_AV_FEAT_RCTG)
@@ -1034,7 +1034,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
         }
         break;
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
         case BTA_AV_REMOTE_RSP_EVT:
         {
             BTIF_TRACE_DEBUG("%s RSP: rc_id:0x%x key_state:%d",
@@ -1056,7 +1056,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
             BTIF_TRACE_DEBUG("%s Peer_features:%x", __FUNCTION__, p_data->rc_feat.peer_features);
             btif_rc_cb.rc_features = p_data->rc_feat.peer_features;
             handle_rc_features(p_data->rc_feat.peer_addr);
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
             if ((btif_rc_cb.rc_connected) && (bt_rc_ctrl_callbacks != NULL))
             {
                 handle_rc_ctrl_features(btif_rc_cb.rc_addr);
@@ -1082,7 +1082,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV *p_data)
                 handle_rc_metamsg_cmd(&(p_data->meta_msg));
                 /* Free the Memory allocated for tAVRC_MSG */
             }
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
             else if ((bt_rc_callbacks == NULL)&&(bt_rc_ctrl_callbacks != NULL))
             {
                 /* This is case of Sink + CT + TG(for abs vol)) */
@@ -1475,7 +1475,7 @@ static void btif_rc_upstreams_evt(UINT16 event, tAVRC_COMMAND *pavrc_cmd, UINT8 
     }
 }
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         btif_rc_ctrl_upstreams_rsp_cmd
@@ -1492,7 +1492,6 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(UINT8 event, tAVRC_COMMAND *pavrc_cmd
         dump_rc_pdu(pavrc_cmd->pdu), btif_rc_cb.rc_handle);
     bt_bdaddr_t rc_addr;
     bdcpy(rc_addr.address, btif_rc_cb.rc_addr);
-#if (AVRC_CTLR_INCLUDED == TRUE)
     switch (event)
     {
     case AVRC_PDU_SET_ABSOLUTE_VOLUME:
@@ -1507,7 +1506,6 @@ static void btif_rc_ctrl_upstreams_rsp_cmd(UINT8 event, tAVRC_COMMAND *pavrc_cmd
          }
          break;
     }
-#endif
 }
 #endif
 
@@ -1943,7 +1941,7 @@ static void handle_rc_metamsg_rsp(tBTA_AV_META_MSG *pmeta_msg)
 }
 #endif
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /***************************************************************************
 **
 ** Function         iterate_supported_event_list_for_interim_rsp
@@ -3293,7 +3291,7 @@ static bt_status_t getcapabilities_cmd (uint8_t cap_id)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: cap_id %d", __FUNCTION__, cap_id);
     CHECK_RC_CONNECTED
     bt_status_t tran_status=get_transaction(&p_transaction);
@@ -3342,7 +3340,7 @@ static bt_status_t list_player_app_setting_attrib_cmd(void)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: ", __FUNCTION__);
     CHECK_RC_CONNECTED
     bt_status_t tran_status=get_transaction(&p_transaction);
@@ -3391,7 +3389,7 @@ static bt_status_t list_player_app_setting_value_cmd(uint8_t attrib_id)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction=NULL;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: attrib_id %d", __FUNCTION__, attrib_id);
     CHECK_RC_CONNECTED
     bt_status_t tran_status=get_transaction(&p_transaction);
@@ -3440,7 +3438,7 @@ static bt_status_t get_player_app_setting_cmd(uint8_t num_attrib, uint8_t* attri
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
     int count  = 0;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: num attrib_id %d", __FUNCTION__, num_attrib);
     CHECK_RC_CONNECTED
     bt_status_t tran_status=get_transaction(&p_transaction);
@@ -3495,7 +3493,7 @@ static bt_status_t change_player_app_setting(bt_bdaddr_t *bd_addr, uint8_t num_a
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
     int count  = 0;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: num attrib_id %d", __FUNCTION__, num_attrib);
     CHECK_RC_CONNECTED
     bt_status_t tran_status=get_transaction(&p_transaction);
@@ -3553,7 +3551,7 @@ static bt_status_t get_player_app_setting_attr_text_cmd (UINT8 *attrs, UINT8 num
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
     int count  = 0;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
@@ -3610,7 +3608,7 @@ static bt_status_t get_player_app_setting_value_text_cmd (UINT8 *vals, UINT8 num
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
     int count  = 0;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
@@ -3669,7 +3667,7 @@ static bt_status_t register_notification_cmd (UINT8 label, UINT8 event_id, UINT3
 {
 
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     CHECK_RC_CONNECTED
@@ -3721,7 +3719,7 @@ static bt_status_t get_element_attribute_cmd (uint8_t num_attribute, uint32_t *p
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction=NULL;
     int count  = 0;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
@@ -3783,7 +3781,7 @@ static bt_status_t get_play_status_cmd(void)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     rc_transaction_t *p_transaction = NULL;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_COMMAND avrc_cmd = {0};
     BT_HDR *p_msg = NULL;
     bt_status_t tran_status;
@@ -3836,7 +3834,7 @@ static bt_status_t get_play_status_cmd(void)
 static bt_status_t set_volume_rsp(bt_bdaddr_t *bd_addr, uint8_t abs_vol, uint8_t label)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     tAVRC_RESPONSE avrc_rsp;
     BT_HDR *p_msg = NULL;
     CHECK_RC_CONNECTED
@@ -3887,7 +3885,7 @@ static bt_status_t volume_change_notification_rsp(bt_bdaddr_t *bd_addr, btrc_not
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
     tAVRC_RESPONSE avrc_rsp;
     BT_HDR *p_msg = NULL;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s: rsp_type  %d abs_vol %d", __func__, rsp_type, abs_vol);
     CHECK_RC_CONNECTED
 
@@ -3932,7 +3930,7 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t *bd_addr, uint8_t key_co
                                             uint8_t key_state)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     rc_transaction_t *p_transaction=NULL;
     BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __FUNCTION__,
                                                     key_code, key_state);
@@ -3983,7 +3981,7 @@ static bt_status_t send_groupnavigation_cmd(bt_bdaddr_t *bd_addr, uint8_t key_co
 static bt_status_t send_passthrough_cmd(bt_bdaddr_t *bd_addr, uint8_t key_code, uint8_t key_state)
 {
     tAVRC_STS status = BT_STATUS_UNSUPPORTED;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     CHECK_RC_CONNECTED
     rc_transaction_t *p_transaction=NULL;
     BTIF_TRACE_DEBUG("%s: key-code: %d, key-state: %d", __FUNCTION__,

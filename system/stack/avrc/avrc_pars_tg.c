@@ -27,7 +27,7 @@
 *****************************************************************************/
 #if (AVRC_METADATA_INCLUDED == TRUE)
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_ctrl_pars_vendor_cmd
@@ -339,7 +339,7 @@ static tAVRC_STS avrc_pars_vendor_cmd(tAVRC_MSG_VENDOR *p_msg, tAVRC_COMMAND *p_
     return status;
 }
 
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         AVRC_Ctrl_ParsCommand
