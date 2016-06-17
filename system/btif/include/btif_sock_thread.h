@@ -24,10 +24,6 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_sock.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -53,9 +49,5 @@ int btsock_thread_post_cmd(int handle, int cmd_type, const unsigned char* cmd_da
                            int data_size, uint32_t user_id);
 int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback);
 int btsock_thread_exit(int handle);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -67,10 +67,6 @@
 #include "osi/include/thread.h"
 #include "stack_manager.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /************************************************************************************
 **  Constants & Macros
 ************************************************************************************/
@@ -149,22 +145,6 @@ static void btif_sendmsg(void *p_msg);
 **  Externs
 ************************************************************************************/
 extern fixed_queue_t *btu_hci_msg_queue;
-
-extern void bte_load_did_conf(const char *p_path);
-
-/** TODO: Move these to _common.h */
-void bte_main_boot_entry(void);
-void bte_main_disable(void);
-void bte_main_cleanup(void);
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
-void bte_main_enable_lpm(BOOLEAN enable);
-#endif
-void bte_main_postload_cfg(void);
-void bte_main_config_hci_logging(BOOLEAN enable, BOOLEAN bt_disabled);
-
-#ifdef __cplusplus
-}
-#endif
 
 void btif_dm_execute_service_request(UINT16 event, char *p_param);
 #ifdef BTIF_DM_OOB_TEST
