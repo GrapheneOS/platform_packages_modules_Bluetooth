@@ -38,9 +38,9 @@
 
 extern fixed_queue_t *btu_bta_alarm_queue;
 
-#if BTA_AG_DEBUG == TRUE
-static char *bta_ag_evt_str(UINT16 event, tBTA_AG_RES result);
-static char *bta_ag_state_str(UINT8 state);
+#if (BTA_AG_DEBUG == TRUE)
+static char *bta_ag_evt_str(uint16_t event, tBTA_AG_RES result);
+static char *bta_ag_state_str(uint8_t state);
 #endif
 
 /* state machine states */
@@ -138,7 +138,7 @@ const tBTA_AG_ACTION bta_ag_action[] =
 #define BTA_AG_NUM_COLS             3       /* number of columns in state tables */
 
 /* state table for init state */
-const UINT8 bta_ag_st_init[][BTA_AG_NUM_COLS] =
+const uint8_t bta_ag_st_init[][BTA_AG_NUM_COLS] =
 {
 /* Event                    Action 1                Action 2                Next state */
 /* API_REGISTER_EVT */      {BTA_AG_REGISTER,       BTA_AG_IGNORE,          BTA_AG_INIT_ST},
@@ -167,7 +167,7 @@ const UINT8 bta_ag_st_init[][BTA_AG_NUM_COLS] =
 };
 
 /* state table for opening state */
-const UINT8 bta_ag_st_opening[][BTA_AG_NUM_COLS] =
+const uint8_t bta_ag_st_opening[][BTA_AG_NUM_COLS] =
 {
 /* Event                    Action 1                Action 2                Next state */
 /* API_REGISTER_EVT */      {BTA_AG_IGNORE,         BTA_AG_IGNORE,          BTA_AG_OPENING_ST},
@@ -196,7 +196,7 @@ const UINT8 bta_ag_st_opening[][BTA_AG_NUM_COLS] =
 };
 
 /* state table for open state */
-const UINT8 bta_ag_st_open[][BTA_AG_NUM_COLS] =
+const uint8_t bta_ag_st_open[][BTA_AG_NUM_COLS] =
 {
 /* Event                    Action 1                Action 2                Next state */
 /* API_REGISTER_EVT */      {BTA_AG_IGNORE,         BTA_AG_IGNORE,          BTA_AG_OPEN_ST},
@@ -225,7 +225,7 @@ const UINT8 bta_ag_st_open[][BTA_AG_NUM_COLS] =
 };
 
 /* state table for closing state */
-const UINT8 bta_ag_st_closing[][BTA_AG_NUM_COLS] =
+const uint8_t bta_ag_st_closing[][BTA_AG_NUM_COLS] =
 {
 /* Event                    Action 1                Action 2                Next state */
 /* API_REGISTER_EVT */      {BTA_AG_IGNORE,         BTA_AG_IGNORE,          BTA_AG_CLOSING_ST},
@@ -254,7 +254,7 @@ const UINT8 bta_ag_st_closing[][BTA_AG_NUM_COLS] =
 };
 
 /* type for state table */
-typedef const UINT8 (*tBTA_AG_ST_TBL)[BTA_AG_NUM_COLS];
+typedef const uint8_t (*tBTA_AG_ST_TBL)[BTA_AG_NUM_COLS];
 
 /* state table */
 const tBTA_AG_ST_TBL bta_ag_st_tbl[] =
@@ -294,10 +294,10 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
         if (!p_scb->in_use)
         {
             /* initialize variables */
-            p_scb->in_use = TRUE;
+            p_scb->in_use = true;
             p_scb->sco_idx = BTM_INVALID_SCO_INDEX;
-#if (BTM_WBS_INCLUDED == TRUE )
-            p_scb->codec_updated = FALSE;
+#if (BTM_WBS_INCLUDED == TRUE)
+            p_scb->codec_updated = false;
             p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
             p_scb->sco_codec = BTA_AG_CODEC_CVSD;
 #endif
@@ -336,8 +336,8 @@ static tBTA_AG_SCB *bta_ag_scb_alloc(void)
 *******************************************************************************/
 void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 {
-    UINT8   idx;
-    BOOLEAN allocated = FALSE;
+    uint8_t   idx;
+    bool allocated = false;
 
     APPL_TRACE_DEBUG("bta_ag_scb_dealloc %d", bta_ag_scb_to_idx(p_scb));
 
@@ -359,7 +359,7 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
         {
             if (bta_ag_cb.scb[idx].in_use)
             {
-                allocated = TRUE;
+                allocated = true;
                 break;
             }
         }
@@ -382,10 +382,10 @@ void bta_ag_scb_dealloc(tBTA_AG_SCB *p_scb)
 ** Returns          Index of scb.
 **
 *******************************************************************************/
-UINT16 bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
+uint16_t bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
 {
     /* use array arithmetic to determine index */
-    return ((UINT16) (p_scb - bta_ag_cb.scb)) + 1;
+    return ((uint16_t) (p_scb - bta_ag_cb.scb)) + 1;
 }
 
 /*******************************************************************************
@@ -398,7 +398,7 @@ UINT16 bta_ag_scb_to_idx(tBTA_AG_SCB *p_scb)
 ** Returns          Pointer to scb or NULL if not allocated.
 **
 *******************************************************************************/
-tBTA_AG_SCB *bta_ag_scb_by_idx(UINT16 idx)
+tBTA_AG_SCB *bta_ag_scb_by_idx(uint16_t idx)
 {
     tBTA_AG_SCB     *p_scb;
 
@@ -430,7 +430,7 @@ tBTA_AG_SCB *bta_ag_scb_by_idx(UINT16 idx)
 ** Returns          Profile ndex of scb.
 **
 *******************************************************************************/
-UINT8 bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
+uint8_t bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
 {
     if (services & BTA_HFP_SERVICE_MASK)
     {
@@ -452,10 +452,10 @@ UINT8 bta_ag_service_to_idx(tBTA_SERVICE_MASK services)
 ** Returns          Index of SCB or zero if none found.
 **
 *******************************************************************************/
-UINT16 bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
+uint16_t bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
-    UINT16          i;
+    uint16_t        i;
 
     if (peer_addr != NULL)
     {
@@ -480,10 +480,10 @@ UINT16 bta_ag_idx_by_bdaddr(BD_ADDR peer_addr)
 ** Description      Check whether any other scb is in open state.
 **
 **
-** Returns          TRUE if another scb is in open state, FALSE otherwise.
+** Returns          true if another scb is in open state, false otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
+bool bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
     int             i;
@@ -492,13 +492,13 @@ BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
     {
         if (p_scb->in_use && p_scb != p_curr_scb && p_scb->state == BTA_AG_OPEN_ST)
         {
-            return TRUE;
+            return true;
         }
     }
 
     /* no other scb found */
     APPL_TRACE_DEBUG("No other ag scb open");
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -508,17 +508,17 @@ BOOLEAN bta_ag_other_scb_open(tBTA_AG_SCB *p_curr_scb)
 ** Description      Check whether given scb is in open state.
 **
 **
-** Returns          TRUE if scb is in open state, FALSE otherwise.
+** Returns          true if scb is in open state, false otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
+bool bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
 {
     if (p_curr_scb && p_curr_scb->in_use && p_curr_scb->state == BTA_AG_OPEN_ST)
     {
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -534,7 +534,7 @@ BOOLEAN bta_ag_scb_open(tBTA_AG_SCB *p_curr_scb)
 tBTA_AG_SCB *bta_ag_get_other_idle_scb (tBTA_AG_SCB *p_curr_scb)
 {
     tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
-    UINT8   xx;
+    uint8_t   xx;
 
     for (xx = 0; xx < BTA_AG_NUM_SCB; xx++, p_scb++)
     {
@@ -580,10 +580,10 @@ static void bta_ag_collision_timer_cback(void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
-                                    UINT8 app_id, BD_ADDR peer_addr)
+void bta_ag_collision_cback (tBTA_SYS_CONN_STATUS status, uint8_t id,
+                                    uint8_t app_id, BD_ADDR peer_addr)
 {
-    UINT16  handle;
+    uint16_t  handle;
     tBTA_AG_SCB *p_scb;
     UNUSED(status);
     UNUSED(app_id);
@@ -705,9 +705,9 @@ static void bta_ag_api_enable(tBTA_AG_DATA *p_data)
 static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
 {
     /* deregister all scbs in use */
-    tBTA_AG_SCB     *p_scb = &bta_ag_cb.scb[0];
-    BOOLEAN         do_dereg = FALSE;
-    int             i;
+    tBTA_AG_SCB  *p_scb = &bta_ag_cb.scb[0];
+    bool         do_dereg = false;
+    int          i;
 
     if (!bta_sys_is_register (BTA_ID_AG))
     {
@@ -723,7 +723,7 @@ static void bta_ag_api_disable(tBTA_AG_DATA *p_data)
         if (p_scb->in_use)
         {
             bta_ag_sm_execute(p_scb, BTA_AG_API_DEREGISTER_EVT, p_data);
-            do_dereg = TRUE;
+            do_dereg = true;
         }
     }
 
@@ -810,15 +810,15 @@ static void bta_ag_api_result(tBTA_AG_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
+void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, uint16_t event, tBTA_AG_DATA *p_data)
 {
     tBTA_AG_ST_TBL      state_table;
-    UINT8               action;
+    uint8_t             action;
     int                 i;
 
-#if BTA_AG_DEBUG == TRUE
-    UINT16  in_event = event;
-    UINT8   in_state = p_scb->state;
+#if (BTA_AG_DEBUG == TRUE)
+    uint16_t  in_event = event;
+    uint8_t   in_state = p_scb->state;
 
     /* Ignore displaying of AT results when not connected (Ignored in state machine) */
     if (in_event != BTA_AG_API_RESULT_EVT || p_scb->state == BTA_AG_OPEN_ST)
@@ -858,7 +858,7 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
             break;
         }
     }
-#if BTA_AG_DEBUG == TRUE
+#if (BTA_AG_DEBUG == TRUE)
     if (p_scb->state != in_state)
     {
         APPL_TRACE_EVENT("BTA AG State Change: [%s] -> [%s] after Event [%s]",
@@ -876,10 +876,10 @@ void bta_ag_sm_execute(tBTA_AG_SCB *p_scb, UINT16 event, tBTA_AG_DATA *p_data)
 ** Description      Data gateway main event handling function.
 **
 **
-** Returns          BOOLEAN
+** Returns          bool
 **
 *******************************************************************************/
-BOOLEAN bta_ag_hdl_event(BT_HDR *p_msg)
+bool bta_ag_hdl_event(BT_HDR *p_msg)
 {
     tBTA_AG_SCB *p_scb;
 
@@ -915,11 +915,11 @@ BOOLEAN bta_ag_hdl_event(BT_HDR *p_msg)
             }
             break;
     }
-    return TRUE;
+    return true;
 }
 
-#if BTA_AG_DEBUG == TRUE
-static char *bta_ag_evt_str(UINT16 event, tBTA_AG_RES result)
+#if (BTA_AG_DEBUG == TRUE)
+static char *bta_ag_evt_str(uint16_t event, tBTA_AG_RES result)
 {
     switch (event)
     {
@@ -1001,7 +1001,7 @@ static char *bta_ag_evt_str(UINT16 event, tBTA_AG_RES result)
     }
 }
 
-static char *bta_ag_state_str(UINT8 state)
+static char *bta_ag_state_str(uint8_t state)
 {
     switch (state)
     {

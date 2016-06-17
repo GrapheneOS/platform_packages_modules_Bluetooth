@@ -57,7 +57,7 @@ static const tBT_UUID bta_mce_mas_uuid = {
 **
 *******************************************************************************/
 
-static void bta_mce_search_cback(UINT16 result, void * user_data)
+static void bta_mce_search_cback(uint16_t result, void * user_data)
 {
     tSDP_DISC_REC *p_rec = NULL;
     tBTA_MCE_MAS_DISCOVERY_COMP evt_data;
@@ -152,7 +152,7 @@ void bta_mce_get_remote_mas_instances(tBTA_MCE_MSG *p_data)
     }
     tBTA_MCE_STATUS status = BTA_MCE_FAILURE;
 
-    APPL_TRACE_DEBUG("%s in, sdp_active:%d", __FUNCTION__, bta_mce_cb.sdp_active);
+    APPL_TRACE_DEBUG("%s in, sdp_active:%d", __func__, bta_mce_cb.sdp_active);
 
     if (bta_mce_cb.sdp_active != BTA_MCE_SDP_ACT_NONE)
     {

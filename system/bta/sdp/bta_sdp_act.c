@@ -94,7 +94,7 @@ static void bta_create_mns_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 {
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
-    UINT16 pversion = 0;
+    uint16_t pversion = 0;
     record->mns.hdr.type = SDP_TYPE_MAP_MNS;
     record->mns.hdr.service_name_length = 0;
     record->mns.hdr.service_name = NULL;
@@ -134,7 +134,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 {
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
-    UINT16 pversion = -1;
+    uint16_t pversion = -1;
 
     record->mas.hdr.type = SDP_TYPE_MAP_MAS;
     record->mas.hdr.service_name_length = 0;
@@ -186,7 +186,7 @@ static void bta_create_mas_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 static void bta_create_pse_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_REC *p_rec)
 {
     tSDP_DISC_ATTR *p_attr;
-    UINT16 pversion;
+    uint16_t pversion;
     tSDP_PROTOCOL_ELEM pe;
 
     record->pse.hdr.type = SDP_TYPE_PBAP_PSE;
@@ -233,7 +233,7 @@ static void bta_create_ops_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 {
     tSDP_DISC_ATTR *p_attr, *p_sattr;
     tSDP_PROTOCOL_ELEM pe;
-    UINT16 pversion = -1;
+    uint16_t pversion = -1;
 
     record->ops.hdr.type = SDP_TYPE_OPP_SERVER;
     record->ops.hdr.service_name_length = 0;
@@ -314,7 +314,7 @@ static void bta_create_sap_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 {
     tSDP_DISC_ATTR *p_attr;
     tSDP_PROTOCOL_ELEM pe;
-    UINT16 pversion = -1;
+    uint16_t pversion = -1;
 
     record->sap.hdr.type = SDP_TYPE_MAP_MAS;
     record->sap.hdr.service_name_length = 0;
@@ -378,7 +378,7 @@ static void bta_create_raw_sdp_record(bluetooth_sdp_record *record, tSDP_DISC_RE
 ** Returns      void
 **
 *******************************************************************************/
-static void bta_sdp_search_cback(UINT16 result, void * user_data)
+static void bta_sdp_search_cback(uint16_t result, void * user_data)
 {
     tSDP_DISC_REC *p_rec = NULL;
     tBTA_SDP_SEARCH_COMP evt_data;

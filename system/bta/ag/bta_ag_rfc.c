@@ -39,17 +39,17 @@
 #define BTA_AG_PORT_EV_MASK         PORT_EV_RXCHAR
 
 /* each scb has its own rfcomm callbacks */
-void bta_ag_port_cback_1(UINT32 code, UINT16 port_handle);
-void bta_ag_port_cback_2(UINT32 code, UINT16 port_handle);
-void bta_ag_port_cback_3(UINT32 code, UINT16 port_handle);
+void bta_ag_port_cback_1(uint32_t code, uint16_t port_handle);
+void bta_ag_port_cback_2(uint32_t code, uint16_t port_handle);
+void bta_ag_port_cback_3(uint32_t code, uint16_t port_handle);
 
-void bta_ag_mgmt_cback_1(UINT32 code, UINT16 port_handle);
-void bta_ag_mgmt_cback_2(UINT32 code, UINT16 port_handle);
-void bta_ag_mgmt_cback_3(UINT32 code, UINT16 port_handle);
+void bta_ag_mgmt_cback_1(uint32_t code, uint16_t port_handle);
+void bta_ag_mgmt_cback_2(uint32_t code, uint16_t port_handle);
+void bta_ag_mgmt_cback_3(uint32_t code, uint16_t port_handle);
 
-int bta_ag_data_cback_1(UINT16 port_handle, void *p_data, UINT16 len);
-int bta_ag_data_cback_2(UINT16 port_handle, void *p_data, UINT16 len);
-int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len);
+int bta_ag_data_cback_1(uint16_t port_handle, void *p_data, uint16_t len);
+int bta_ag_data_cback_2(uint16_t port_handle, void *p_data, uint16_t len);
+int bta_ag_data_cback_3(uint16_t port_handle, void *p_data, uint16_t len);
 
 /* rfcomm callback function tables */
 typedef tPORT_CALLBACK *tBTA_AG_PORT_CBACK;
@@ -85,7 +85,7 @@ const tBTA_AG_DATA_CBACK bta_ag_data_cback_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
+static void bta_ag_port_cback(uint32_t code, uint16_t port_handle, uint16_t handle)
 {
     tBTA_AG_SCB *p_scb;
     UNUSED(code);
@@ -117,12 +117,12 @@ static void bta_ag_port_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
+static void bta_ag_mgmt_cback(uint32_t code, uint16_t port_handle, uint16_t handle)
 {
-    tBTA_AG_SCB     *p_scb;
-    UINT16          event;
-    UINT8           i;
-    BOOLEAN         found_handle = FALSE;
+    tBTA_AG_SCB  *p_scb;
+    uint16_t     event;
+    uint8_t      i;
+    bool         found_handle = false;
 
     APPL_TRACE_DEBUG("ag_mgmt_cback : code = %d, port_handle = %d, handle = %d",
                         code, port_handle, handle);
@@ -141,14 +141,14 @@ static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
             if (p_scb->conn_handle)     /* Outgoing connection */
             {
                 if (port_handle == p_scb->conn_handle)
-                    found_handle = TRUE;
+                    found_handle = true;
             }
             else                        /* Incoming connection */
             {
                 for (i = 0; i < BTA_AG_NUM_IDX; i++)
                 {
                     if (port_handle == p_scb->serv_handle[i])
-                        found_handle = TRUE;
+                        found_handle = true;
                 }
             }
 
@@ -188,12 +188,12 @@ static void bta_ag_mgmt_cback(UINT32 code, UINT16 port_handle, UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-static int bta_ag_data_cback(UINT16 port_handle, void *p_data, UINT16 len, UINT16 handle)
+static int bta_ag_data_cback(uint16_t port_handle, void *p_data, uint16_t len, uint16_t handle)
 {
     UNUSED(port_handle);
 
     /* call data call-out directly */
-    bta_ag_co_tx_write(handle, (UINT8 *) p_data, len);
+    bta_ag_co_tx_write(handle, (uint8_t *) p_data, len);
     return 0;
 }
 
@@ -209,12 +209,12 @@ static int bta_ag_data_cback(UINT16 port_handle, void *p_data, UINT16 len, UINT1
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_mgmt_cback_1(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 1);}
-void bta_ag_mgmt_cback_2(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 2);}
-void bta_ag_mgmt_cback_3(UINT32 code, UINT16 handle) {bta_ag_mgmt_cback(code, handle, 3);}
-void bta_ag_port_cback_1(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 1);}
-void bta_ag_port_cback_2(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 2);}
-void bta_ag_port_cback_3(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, handle, 3);}
+void bta_ag_mgmt_cback_1(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 1);}
+void bta_ag_mgmt_cback_2(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 2);}
+void bta_ag_mgmt_cback_3(uint32_t code, uint16_t handle) {bta_ag_mgmt_cback(code, handle, 3);}
+void bta_ag_port_cback_1(uint32_t code, uint16_t handle) {bta_ag_port_cback(code, handle, 1);}
+void bta_ag_port_cback_2(uint32_t code, uint16_t handle) {bta_ag_port_cback(code, handle, 2);}
+void bta_ag_port_cback_3(uint32_t code, uint16_t handle) {bta_ag_port_cback(code, handle, 3);}
 
 /*******************************************************************************
 **
@@ -227,15 +227,15 @@ void bta_ag_port_cback_3(UINT32 code, UINT16 handle) {bta_ag_port_cback(code, ha
 ** Returns          void
 **
 *******************************************************************************/
-int bta_ag_data_cback_1(UINT16 port_handle, void *p_data, UINT16 len)
+int bta_ag_data_cback_1(uint16_t port_handle, void *p_data, uint16_t len)
 {
     return bta_ag_data_cback(port_handle, p_data, len, 1);
 }
-int bta_ag_data_cback_2(UINT16 port_handle, void *p_data, UINT16 len)
+int bta_ag_data_cback_2(uint16_t port_handle, void *p_data, uint16_t len)
 {
     return bta_ag_data_cback(port_handle, p_data, len, 2);
 }
-int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len)
+int bta_ag_data_cback_3(uint16_t port_handle, void *p_data, uint16_t len)
 {
     return bta_ag_data_cback(port_handle, p_data, len, 3);
 }
@@ -250,9 +250,9 @@ int bta_ag_data_cback_3(UINT16 port_handle, void *p_data, UINT16 len)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_setup_port(tBTA_AG_SCB *p_scb, UINT16 handle)
+void bta_ag_setup_port(tBTA_AG_SCB *p_scb, uint16_t handle)
 {
-    UINT16 i = bta_ag_scb_to_idx(p_scb) - 1;
+    uint16_t i = bta_ag_scb_to_idx(p_scb) - 1;
 
     /* set up data callback if using pass through mode */
     if (bta_ag_cb.parse_mode == BTA_AG_PASS_THROUGH)
@@ -285,11 +285,11 @@ void bta_ag_start_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
         /* if service is set in mask */
         if (services & 1)
         {
-            BTM_SetSecurityLevel(FALSE, "", bta_ag_sec_id[i], p_scb->serv_sec_mask,
+            BTM_SetSecurityLevel(false, "", bta_ag_sec_id[i], p_scb->serv_sec_mask,
                 BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, bta_ag_cb.profile[i].scn);
 
             bta_ag_port_status =  RFCOMM_CreateConnection(bta_ag_uuid[i], bta_ag_cb.profile[i].scn,
-                TRUE, BTA_AG_MTU, (UINT8 *) bd_addr_any, &(p_scb->serv_handle[i]),
+                true, BTA_AG_MTU, (uint8_t *) bd_addr_any, &(p_scb->serv_handle[i]),
                 bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]);
 
             if( bta_ag_port_status  == PORT_SUCCESS )
@@ -335,21 +335,21 @@ void bta_ag_close_servers(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK services)
 **
 ** Function         bta_ag_is_server_closed
 **
-** Description      Returns TRUE if all servers are closed.
+** Description      Returns true if all servers are closed.
 **
 **
-** Returns          TRUE if all servers are closed, FALSE otherwise
+** Returns          true if all servers are closed, false otherwise
 **
 *******************************************************************************/
-BOOLEAN bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
+bool bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 {
-    UINT8 xx;
-    BOOLEAN is_closed = TRUE;
+    uint8_t xx;
+    bool is_closed = true;
 
     for (xx = 0; xx < BTA_AG_NUM_IDX; xx++)
     {
         if (p_scb->serv_handle[xx] != 0)
-            is_closed = FALSE;
+            is_closed = false;
     }
 
     return is_closed;
@@ -367,11 +367,11 @@ BOOLEAN bta_ag_is_server_closed (tBTA_AG_SCB *p_scb)
 *******************************************************************************/
 void bta_ag_rfc_do_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    BTM_SetSecurityLevel(TRUE, "", bta_ag_sec_id[p_scb->conn_service],
+    BTM_SetSecurityLevel(true, "", bta_ag_sec_id[p_scb->conn_service],
         p_scb->cli_sec_mask, BT_PSM_RFCOMM, BTM_SEC_PROTO_RFCOMM, p_scb->peer_scn);
 
     if (RFCOMM_CreateConnection(bta_ag_uuid[p_scb->conn_service], p_scb->peer_scn,
-            FALSE, BTA_AG_MTU, p_scb->peer_addr, &(p_scb->conn_handle),
+            false, BTA_AG_MTU, p_scb->peer_addr, &(p_scb->conn_handle),
             bta_ag_mgmt_cback_tbl[bta_ag_scb_to_idx(p_scb) - 1]) == PORT_SUCCESS)
     {
         bta_ag_setup_port(p_scb, p_scb->conn_handle);

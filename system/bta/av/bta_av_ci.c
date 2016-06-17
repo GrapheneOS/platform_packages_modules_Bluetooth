@@ -65,8 +65,8 @@ void bta_av_ci_src_data_ready(tBTA_AV_CHNL chnl)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,
-                         UINT8 num_seid, UINT8 *p_seid, BOOLEAN recfg_needed, UINT8 avdt_handle)
+void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, uint8_t err_code, uint8_t category,
+                         uint8_t num_seid, uint8_t *p_seid, bool recfg_needed, uint8_t avdt_handle)
 {
     tBTA_AV_CI_SETCONFIG *p_buf =
         (tBTA_AV_CI_SETCONFIG *)osi_malloc(sizeof(tBTA_AV_CI_SETCONFIG));
@@ -80,7 +80,7 @@ void bta_av_ci_setconfig(tBTA_AV_HNDL hndl, UINT8 err_code, UINT8 category,
     p_buf->num_seid = num_seid;
     p_buf->avdt_handle= avdt_handle;
     if (p_seid && num_seid) {
-        p_buf->p_seid   = (UINT8 *)(p_buf + 1);
+        p_buf->p_seid   = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->p_seid, p_seid, num_seid);
     } else {
         p_buf->p_seid   = NULL;

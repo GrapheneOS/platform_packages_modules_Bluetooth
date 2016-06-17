@@ -27,7 +27,7 @@
 #include <assert.h>
 
 #include "bt_target.h"
-#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
+#if (BTA_AV_INCLUDED == TRUE)
 
 #include "bta_api.h"
 #include "bta_sys.h"
@@ -109,8 +109,8 @@ void BTA_AvDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, UINT8 app_id,
-                    tBTA_AV_DATA_CBACK  *p_data_cback, UINT16 service_uuid)
+void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name, uint8_t app_id,
+                    tBTA_AV_DATA_CBACK  *p_data_cback, uint16_t service_uuid)
 {
     tBTA_AV_API_REG *p_buf =
         (tBTA_AV_API_REG *)osi_malloc(sizeof(tBTA_AV_API_REG));
@@ -158,8 +158,8 @@ void BTA_AvDeregister(tBTA_AV_HNDL hndl)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle, BOOLEAN use_rc, tBTA_SEC sec_mask,
-                                                                             UINT16 uuid)
+void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle, bool use_rc, tBTA_SEC sec_mask,
+                                                                             uint16_t uuid)
 {
     tBTA_AV_API_OPEN *p_buf =
         (tBTA_AV_API_OPEN *)osi_malloc(sizeof(tBTA_AV_API_OPEN));
@@ -299,19 +299,19 @@ void BTA_AvEnable_Sink(int enable)
 ** Function         BTA_AvStop
 **
 ** Description      Stop audio/video stream data transfer.
-**                  If suspend is TRUE, this function sends AVDT suspend signal
+**                  If suspend is true, this function sends AVDT suspend signal
 **                  to the connected peer(s).
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvStop(BOOLEAN suspend)
+void BTA_AvStop(bool suspend)
 {
     tBTA_AV_API_STOP *p_buf =
         (tBTA_AV_API_STOP *)osi_malloc(sizeof(tBTA_AV_API_STOP));
 
     p_buf->hdr.event = BTA_AV_API_STOP_EVT;
-    p_buf->flush = TRUE;
+    p_buf->flush = true;
     p_buf->suspend = suspend;
 
     bta_sys_sendmsg(p_buf);
@@ -322,16 +322,16 @@ void BTA_AvStop(BOOLEAN suspend)
 ** Function         BTA_AvReconfig
 **
 ** Description      Reconfigure the audio/video stream.
-**                  If suspend is TRUE, this function tries the suspend/reconfigure
+**                  If suspend is true, this function tries the suspend/reconfigure
 **                  procedure first.
-**                  If suspend is FALSE or when suspend/reconfigure fails,
+**                  If suspend is false or when suspend/reconfigure fails,
 **                  this function closes and re-opens the AVDT connection.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
-                    UINT8 *p_codec_info, UINT8 num_protect, UINT8 *p_protect_info)
+void BTA_AvReconfig(tBTA_AV_HNDL hndl, bool suspend, uint8_t sep_info_idx,
+                    uint8_t *p_codec_info, uint8_t num_protect, uint8_t *p_protect_info)
 {
     tBTA_AV_API_RCFG *p_buf =
         (tBTA_AV_API_RCFG *)osi_malloc(sizeof(tBTA_AV_API_RCFG) + num_protect);
@@ -341,7 +341,7 @@ void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
     p_buf->num_protect = num_protect;
     p_buf->suspend = suspend;
     p_buf->sep_info_idx = sep_info_idx;
-    p_buf->p_protect_info = (UINT8 *)(p_buf + 1);
+    p_buf->p_protect_info = (uint8_t *)(p_buf + 1);
     memcpy(p_buf->codec_info, p_codec_info, AVDT_CODEC_SIZE);
     memcpy(p_buf->p_protect_info, p_protect_info, num_protect);
 
@@ -358,7 +358,7 @@ void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len)
+void BTA_AvProtectReq(tBTA_AV_HNDL hndl, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_PROTECT_REQ *p_buf =
         (tBTA_AV_API_PROTECT_REQ *)osi_malloc(sizeof(tBTA_AV_API_PROTECT_REQ) + len);
@@ -369,7 +369,7 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len)
     if (p_data == NULL) {
         p_buf->p_data = NULL;
     } else {
-        p_buf->p_data = (UINT8 *) (p_buf + 1);
+        p_buf->p_data = (uint8_t *) (p_buf + 1);
         memcpy(p_buf->p_data, p_data, len);
     }
 
@@ -388,7 +388,7 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data, UINT16 len)
+void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, uint8_t error_code, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_PROTECT_RSP *p_buf =
         (tBTA_AV_API_PROTECT_RSP *)osi_malloc(sizeof(tBTA_AV_API_PROTECT_RSP) + len);
@@ -400,7 +400,7 @@ void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data, UINT16
     if (p_data == NULL) {
         p_buf->p_data = NULL;
     } else {
-        p_buf->p_data = (UINT8 *) (p_buf + 1);
+        p_buf->p_data = (uint8_t *) (p_buf + 1);
         memcpy(p_buf->p_data, p_data, len);
     }
 
@@ -417,7 +417,7 @@ void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data, UINT16
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id, tBTA_AV_STATE key_state)
+void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id, tBTA_AV_STATE key_state)
 {
     tBTA_AV_API_REMOTE_CMD *p_buf =
         (tBTA_AV_API_REMOTE_CMD *)osi_malloc(sizeof(tBTA_AV_API_REMOTE_CMD));
@@ -444,9 +444,9 @@ void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id, tBTA_AV_STA
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label,
-                                 tBTA_AV_STATE key_state, UINT8* p_msg,
-                                 UINT8 buf_len)
+void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label,
+                                 tBTA_AV_STATE key_state, uint8_t* p_msg,
+                                 uint8_t buf_len)
 {
     tBTA_AV_API_REMOTE_CMD *p_buf =
       (tBTA_AV_API_REMOTE_CMD *)osi_malloc(sizeof(tBTA_AV_API_REMOTE_CMD) +
@@ -461,7 +461,7 @@ void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label,
     if (p_msg == NULL) {
         p_buf->msg.p_pass_data = NULL;
     } else {
-        p_buf->msg.p_pass_data = (UINT8 *)(p_buf + 1);
+        p_buf->msg.p_pass_data = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->msg.p_pass_data, p_msg, buf_len);
     }
     bta_sys_sendmsg(p_buf);
@@ -478,7 +478,7 @@ void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code, UINT8 *p_data, UINT16 len)
+void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code, uint8_t *p_data, uint16_t len)
 {
     tBTA_AV_API_VENDOR *p_buf =
         (tBTA_AV_API_VENDOR *)osi_malloc(sizeof(tBTA_AV_API_VENDOR) + len);
@@ -494,7 +494,7 @@ void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code, UINT8 
     if (p_data == NULL) {
         p_buf->msg.p_vendor_data = NULL;
     } else {
-        p_buf->msg.p_vendor_data = (UINT8 *) (p_buf + 1);
+        p_buf->msg.p_vendor_data = (uint8_t *) (p_buf + 1);
         memcpy(p_buf->msg.p_vendor_data, p_data, len);
     }
 
@@ -513,7 +513,7 @@ void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code, UINT8 
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code, UINT8 *p_data, UINT16 len, UINT32 company_id)
+void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code, uint8_t *p_data, uint16_t len, uint32_t company_id)
 {
     tBTA_AV_API_VENDOR *p_buf =
         (tBTA_AV_API_VENDOR *)osi_malloc(sizeof(tBTA_AV_API_VENDOR) + len);
@@ -532,7 +532,7 @@ void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code, UINT8 
     if (p_data == NULL) {
         p_buf->msg.p_vendor_data = NULL;
     } else {
-        p_buf->msg.p_vendor_data = (UINT8 *) (p_buf + 1);
+        p_buf->msg.p_vendor_data = (uint8_t *) (p_buf + 1);
         memcpy(p_buf->msg.p_vendor_data, p_data, len);
     }
 
@@ -569,7 +569,7 @@ void BTA_AvOpenRc(tBTA_AV_HNDL handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvCloseRc(UINT8 rc_handle)
+void BTA_AvCloseRc(uint8_t rc_handle)
 {
     tBTA_AV_API_CLOSE_RC *p_buf =
         (tBTA_AV_API_CLOSE_RC *)osi_malloc(sizeof(tBTA_AV_API_CLOSE_RC));
@@ -592,7 +592,7 @@ void BTA_AvCloseRc(UINT8 rc_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
+void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
                                BT_HDR *p_pkt)
 {
     tBTA_AV_API_META_RSP  *p_buf =
@@ -602,7 +602,7 @@ void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
     p_buf->hdr.layer_specific = rc_handle;
     p_buf->rsp_code = rsp_code;
     p_buf->p_pkt = p_pkt;
-    p_buf->is_rsp = TRUE;
+    p_buf->is_rsp = true;
     p_buf->label = label;
 
     bta_sys_sendmsg(p_buf);
@@ -622,7 +622,7 @@ void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt)
+void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt)
 {
     tBTA_AV_API_META_RSP *p_buf =
         (tBTA_AV_API_META_RSP *)osi_malloc(sizeof(tBTA_AV_API_META_RSP));
@@ -631,7 +631,7 @@ void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p
     p_buf->hdr.layer_specific   = rc_handle;
     p_buf->p_pkt = p_pkt;
     p_buf->rsp_code = cmd_code;
-    p_buf->is_rsp = FALSE;
+    p_buf->is_rsp = false;
     p_buf->label = label;
 
     bta_sys_sendmsg(p_buf);

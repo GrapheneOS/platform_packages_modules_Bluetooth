@@ -39,7 +39,7 @@ extern "C" {
 *****************************************************************************/
 /* Extra Debug Code */
 #ifndef BTA_HL_DEBUG
-#define BTA_HL_DEBUG           TRUE
+#define BTA_HL_DEBUG           true
 #endif
 
 #ifndef BTA_HL_NUM_APPS
@@ -142,7 +142,7 @@ extern "C" {
 #define BTA_HL_STATUS_INVALID_CTRL_PSM      27
 #define BTA_HL_STATUS_DUPLICATE_CCH_OPEN    28
 
-typedef UINT8 tBTA_HL_STATUS;
+typedef uint8_t tBTA_HL_STATUS;
 typedef tMCA_HANDLE tBTA_HL_APP_HANDLE;
 typedef tMCA_CL     tBTA_HL_MCL_HANDLE;
 typedef tMCA_DL     tBTA_HL_MDL_HANDLE;
@@ -153,7 +153,7 @@ enum
     BTA_HL_DEVICE_TYPE_DUAL
 };
 
-typedef UINT8 tBTA_HL_DEVICE_TYPE;
+typedef uint8_t tBTA_HL_DEVICE_TYPE;
 
 
 
@@ -171,11 +171,11 @@ typedef UINT8 tBTA_HL_DEVICE_TYPE;
 #define BTA_HL_MDEP_ROLE_SOURCE         0x00
 #define BTA_HL_MDEP_ROLE_SINK           0x01
 
-typedef UINT8 tBTA_HL_MDEP_ROLE;
+typedef uint8_t tBTA_HL_MDEP_ROLE;
 
 #define BTA_HL_MDEP_ROLE_MASK_SOURCE    0x01     /* bit mask */
 #define BTA_HL_MDEP_ROLE_MASK_SINK      0x02
-typedef UINT8 tBTA_HL_MDEP_ROLE_MASK;
+typedef uint8_t tBTA_HL_MDEP_ROLE_MASK;
 
 
 #define BTA_HL_ECHO_TEST_MDEP_ID        0
@@ -189,7 +189,7 @@ typedef tMCA_DEP tBTA_HL_MDEP_ID; /* 0 is for echo test,
 
 #define BTA_HL_DELETE_ALL_MDL_IDS   0xFFFF
 #define BTA_HL_MAX_MDL_VAL          0xFEFF
-typedef UINT16 tBTA_HL_MDL_ID;  /* 0x0000 reserved,
+typedef uint16_t tBTA_HL_MDL_ID;  /* 0x0000 reserved,
                                    0x0001-0xFEFF dynamic range,
                                    0xFF00-0xFFFE reserved,
                                    0xFFFF indicates all MDLs*/
@@ -199,14 +199,14 @@ typedef UINT16 tBTA_HL_MDL_ID;  /* 0x0000 reserved,
 #define BTA_HL_DCH_MODE_RELIABLE    0
 #define BTA_HL_DCH_MODE_STREAMING   1
 
-typedef UINT8 tBTA_HL_DCH_MODE;
+typedef uint8_t tBTA_HL_DCH_MODE;
 
 #define BTA_HL_DCH_CFG_NO_PREF      0
 #define BTA_HL_DCH_CFG_RELIABLE     1
 #define BTA_HL_DCH_CFG_STREAMING    2
 #define BTA_HL_DCH_CFG_UNKNOWN      0xFF
 
-typedef UINT8 tBTA_HL_DCH_CFG;
+typedef uint8_t tBTA_HL_DCH_CFG;
 
 /* The Default DCH CFG for the echo test when the device is a Source */
 #define BTA_HL_DEFAULT_ECHO_TEST_SRC_DCH_CFG BTA_HL_DCH_CFG_RELIABLE
@@ -214,27 +214,27 @@ typedef UINT8 tBTA_HL_DCH_CFG;
 #define BTA_HL_DCH_CREATE_RSP_SUCCESS 0
 #define BTA_HL_DCH_CREATE_RSP_CFG_REJ 1
 
-typedef UINT8 tBTA_HL_DCH_CREATE_RSP;
+typedef uint8_t tBTA_HL_DCH_CREATE_RSP;
 
 #define BTA_HL_MCAP_SUP_PROC_RECONNECT_INIT 0x02
 #define BTA_HL_MCAP_SUP_PROC_RECONNECT_APT  0x04
 #define BTA_HL_MCAP_SUP_PROC_CSP_SLAVE      0x08
 #define BTA_HL_MCAP_SUP_PROC_CSP_MASTER     0x10
 
-typedef UINT8 tBTA_HL_SUP_PROC_MASK;
+typedef uint8_t tBTA_HL_SUP_PROC_MASK;
 
 typedef struct
 {
-    UINT16                  max_rx_apdu_size;  /* local rcv MTU */
-    UINT16                  max_tx_apdu_size;  /* maximum TX APDU size*/
+    uint16_t                  max_rx_apdu_size;  /* local rcv MTU */
+    uint16_t                  max_tx_apdu_size;  /* maximum TX APDU size*/
 } tBTA_HL_ECHO_CFG;
 
 
 typedef struct
 {
-    UINT16                  data_type;
-    UINT16                  max_rx_apdu_size;  /* local rcv MTU */
-    UINT16                  max_tx_apdu_size;  /* maximum TX APDU size*/
+    uint16_t                  data_type;
+    uint16_t                  max_rx_apdu_size;  /* local rcv MTU */
+    uint16_t                  max_tx_apdu_size;  /* maximum TX APDU size*/
     char                    desp[BTA_HL_MDEP_DESP_LEN+1];
 } tBTA_HL_MDEP_DATA_TYPE_CFG;
 
@@ -242,7 +242,7 @@ typedef struct
 typedef struct
 {
     tBTA_HL_MDEP_ROLE           mdep_role;
-    UINT8                       num_of_mdep_data_types;
+    uint8_t                       num_of_mdep_data_types;
     tBTA_HL_MDEP_DATA_TYPE_CFG  data_cfg[BTA_HL_NUM_DATA_TYPES];
 } tBTA_HL_MDEP_CFG;
 
@@ -250,7 +250,7 @@ typedef struct
 {
     tBTA_HL_MDEP_ID         mdep_id;  /* MDEP ID 0x01-0x7F */
     tBTA_HL_MDEP_CFG        mdep_cfg;
-    UINT8                   ori_app_id;
+    uint8_t                   ori_app_id;
 } tBTA_HL_MDEP;
 
 typedef struct
@@ -258,27 +258,27 @@ typedef struct
     tBTA_HL_MDEP            mdep[BTA_HL_NUM_MDEPS];
     tBTA_HL_ECHO_CFG        echo_cfg;
     tBTA_HL_MDEP_ROLE_MASK  app_role_mask;
-    BOOLEAN                 advertize_source_sdp;
-    UINT8                   num_of_mdeps;
+    bool                 advertize_source_sdp;
+    uint8_t                   num_of_mdeps;
 } tBTA_HL_SUP_FEATURE;
 
 typedef struct
 {
-    BOOLEAN                 delete_req_pending;
+    bool                 delete_req_pending;
     tBTA_HL_MDL_ID          mdl_id;
     tBTA_HL_MCL_HANDLE      mcl_handle;
 } tBTA_HL_DELETE_MDL;
 
 typedef struct
 {
-    UINT8                   time;
-    UINT16                  mtu;
+    uint8_t                   time;
+    uint16_t                  mtu;
     tBTA_HL_MDL_ID          mdl_id;
     tBTA_HL_MDEP_ID         local_mdep_id;
     tBTA_HL_MDEP_ROLE       local_mdep_role;
-    BOOLEAN                 active;     /* true if this item is in use */
+    bool                 active;     /* true if this item is in use */
     tBTA_HL_DCH_MODE        dch_mode;
-    UINT8                   fcs;
+    uint8_t                   fcs;
     BD_ADDR                 peer_bd_addr;
 } tBTA_HL_MDL_CFG;
 
@@ -289,15 +289,15 @@ typedef struct
 /* This structure is used to add supported feature lists and find supported feature elements */
 typedef struct
 {
-    UINT8       mdep_id;
-    UINT16      data_type;
+    uint8_t       mdep_id;
+    uint16_t      data_type;
     tBTA_HL_MDEP_ROLE       mdep_role;
     char        *p_mdep_desp;
 } tBTA_HL_SUP_FEATURE_ELEM;
 
 typedef struct
 {
-    UINT16                      num_elems;
+    uint16_t                      num_elems;
     tBTA_HL_SUP_FEATURE_ELEM   list_elem[BTA_HL_NUM_SUP_FEATURE_ELEMS];
 } tBTA_HL_SUP_FEATURE_LIST_ELEM;
 
@@ -313,7 +313,7 @@ typedef struct
 
 typedef struct
 {
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     BD_ADDR                 bd_addr;           /* Address of peer device */
     tBTA_SEC                sec_mask;          /* security mask for initiating connection*/
 } tBTA_HL_CCH_OPEN_PARAM;
@@ -321,7 +321,7 @@ typedef struct
 
 typedef struct
 {
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     tBTA_HL_MDEP_ID         local_mdep_id;     /* local MDEP ID */
     tBTA_HL_MDEP_ID         peer_mdep_id;      /* peer mdep id */
     tBTA_HL_DCH_CFG         local_cfg;
@@ -331,22 +331,22 @@ typedef struct
 
 typedef struct
 {
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     tBTA_HL_MDL_ID          mdl_id;
 } tBTA_HL_DCH_RECONNECT_PARAM;
 
 
 typedef struct
 {
-    UINT16                  ctrl_psm;
-    UINT16                  pkt_size;
+    uint16_t                  ctrl_psm;
+    uint16_t                  pkt_size;
     tBTA_HL_DCH_CFG         local_cfg;
 } tBTA_HL_DCH_ECHO_TEST_PARAM;
 
 typedef struct
 {
-    UINT16                  buf_size;
-    UINT8                   p_buf;        /* buffer pointer */
+    uint16_t                  buf_size;
+    uint8_t                   p_buf;        /* buffer pointer */
 } tBTA_HL_DCH_BUF_INFO;
 
 typedef struct
@@ -359,18 +359,18 @@ typedef struct
 
 typedef struct
 {
-    UINT16              data_type;
-    UINT8               mdep_id;
+    uint16_t              data_type;
+    uint8_t               mdep_id;
     tBTA_HL_MDEP_ROLE   mdep_role;
     char                mdep_desp[BTA_HL_MDEP_DESP_LEN+1];
 }tBTA_HL_SDP_MDEP_CFG;
 
 typedef struct
 {
-    UINT16                  ctrl_psm;
-    UINT16                  data_psm;
-    UINT8                   mcap_sup_proc;
-    UINT8                   num_mdeps; /* number of mdep elements from SDP*/
+    uint16_t                  ctrl_psm;
+    uint16_t                  data_psm;
+    uint8_t                   mcap_sup_proc;
+    uint8_t                   num_mdeps; /* number of mdep elements from SDP*/
     char                    srv_name[BTA_SERVICE_NAME_LEN+1];
     char                    srv_desp[BTA_SERVICE_DESP_LEN+1];
     char                    provider_name[BTA_PROVIDER_NAME_LEN+1];
@@ -379,7 +379,7 @@ typedef struct
 
 typedef struct
 {
-    UINT8                num_recs;
+    uint8_t                num_recs;
     tBTA_HL_SDP_REC      sdp_rec[BTA_HL_NUM_SDP_RECS];
 } tBTA_HL_SDP;
 
@@ -389,7 +389,7 @@ enum
     BTA_HL_CTRL_ENABLE_CFM_EVT            = 0,
     BTA_HL_CTRL_DISABLE_CFM_EVT
 };
-typedef UINT8 tBTA_HL_CTRL_EVT;
+typedef uint8_t tBTA_HL_CTRL_EVT;
 /* Structure associated with BTA_HL_ENABLE_EVT
    BTA_HL_DISABLE_EVT */
 
@@ -432,13 +432,13 @@ enum
     BTA_HL_SDP_QUERY_CFM_EVT,
     BTA_HL_SDP_INFO_IND_EVT
 };
-typedef UINT8 tBTA_HL_EVT;
+typedef uint8_t tBTA_HL_EVT;
 
 
 typedef struct
 {
     tBTA_HL_STATUS          status;        /* start status */
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_APP_HANDLE      app_handle;
 } tBTA_HL_REGISTER_CFM;
 
@@ -446,14 +446,14 @@ typedef struct
 typedef struct
 {
     tBTA_HL_STATUS          status;        /* start status */
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_APP_HANDLE      app_handle;
 } tBTA_HL_DEREGISTER_CFM;
 
 
 typedef struct
 {
-    BOOLEAN                 intentional;
+    bool                 intentional;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     tBTA_HL_APP_HANDLE      app_handle;
 } tBTA_HL_CCH_CLOSE_IND;
@@ -482,7 +482,7 @@ typedef struct
 typedef struct
 {
     tBTA_HL_STATUS          status;             /* connection status */
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     tBTA_HL_APP_HANDLE      app_handle;
     BD_ADDR                 bd_addr;            /* address of peer device */
@@ -510,8 +510,8 @@ typedef struct
                                                    data channel conenction    */
     tBTA_HL_DCH_MODE        dch_mode;           /* data channel mode - reliable or streaming*/
 
-    BOOLEAN                 first_reliable;  /* whether this is the first reliable data channel */
-    UINT16                  mtu;
+    bool                 first_reliable;  /* whether this is the first reliable data channel */
+    uint16_t                  mtu;
 } tBTA_HL_DCH_OPEN_IND;
 
 typedef struct
@@ -524,14 +524,14 @@ typedef struct
     tBTA_HL_MDL_ID          mdl_id;             /* MCAP data link ID for this
                                                    data channel conenction    */
     tBTA_HL_DCH_MODE        dch_mode;           /* data channel mode - reliable or streaming*/
-    BOOLEAN                 first_reliable;     /* whether this is the first reliable data channel */
-    UINT16                  mtu;
+    bool                 first_reliable;     /* whether this is the first reliable data channel */
+    uint16_t                  mtu;
 } tBTA_HL_DCH_OPEN_CFM;
 
 
 typedef struct
 {
-    BOOLEAN                 intentional;
+    bool                 intentional;
     tBTA_HL_MDL_HANDLE      mdl_handle;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     tBTA_HL_APP_HANDLE      app_handle;
@@ -573,22 +573,22 @@ typedef struct
     tBTA_HL_MDL_HANDLE      mdl_handle;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     tBTA_HL_APP_HANDLE      app_handle;
-    BOOLEAN                 cong;
+    bool                 cong;
 } tBTA_HL_DCH_CONG_IND;
 
 typedef struct
 {
     tBTA_HL_APP_HANDLE      app_handle;
-    UINT16                  ctrl_psm;
-    UINT16                  data_psm;
-    UINT8                   data_x_spec;
-    UINT8                   mcap_sup_procs;
+    uint16_t                  ctrl_psm;
+    uint16_t                  data_psm;
+    uint8_t                   data_x_spec;
+    uint8_t                   mcap_sup_procs;
 } tBTA_HL_SDP_INFO_IND;
 
 typedef struct
 {
     tBTA_HL_STATUS          status;
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_APP_HANDLE      app_handle;
     BD_ADDR                 bd_addr;
     tBTA_HL_SDP             *p_sdp;
@@ -675,8 +675,8 @@ extern void BTA_HlDisable(void);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HlUpdate(UINT8  app_id,
-                         tBTA_HL_REG_PARAM *p_reg_param, BOOLEAN is_register,
+extern void BTA_HlUpdate(uint8_t  app_id,
+                         tBTA_HL_REG_PARAM *p_reg_param, bool is_register,
                          tBTA_HL_CBACK *p_cback);
 
 /*******************************************************************************
@@ -694,7 +694,7 @@ extern void BTA_HlUpdate(UINT8  app_id,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HlRegister(UINT8  app_id,
+extern void BTA_HlRegister(uint8_t  app_id,
                            tBTA_HL_REG_PARAM *p_reg_param,
                            tBTA_HL_CBACK *p_cback);
 
@@ -709,7 +709,7 @@ extern void BTA_HlRegister(UINT8  app_id,
 ** Returns         void
 **
 *******************************************************************************/
-extern void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle);
+extern void BTA_HlDeregister(uint8_t app_id,tBTA_HL_APP_HANDLE app_handle);
 
 /*******************************************************************************
 **
@@ -729,7 +729,7 @@ extern void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle);
 **                  Note: If the control PSM value is zero then the first HDP
 **                        instance is used for the control channel setup
 *******************************************************************************/
-extern void BTA_HlCchOpen(UINT8 app_id, tBTA_HL_APP_HANDLE app_handle,
+extern void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
                           tBTA_HL_CCH_OPEN_PARAM *p_open_param);
 
 /*******************************************************************************
@@ -815,7 +815,7 @@ extern void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle);
 **
 *******************************************************************************/
 extern void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
-                           UINT16           pkt_size);
+                           uint16_t           pkt_size);
 
 /*******************************************************************************
 **
@@ -864,7 +864,7 @@ extern void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
 ** Returns          void
 **
 *******************************************************************************/
-extern  void BTA_HlSdpQuery(UINT8  app_id,tBTA_HL_APP_HANDLE app_handle,
+extern  void BTA_HlSdpQuery(uint8_t  app_id,tBTA_HL_APP_HANDLE app_handle,
                             BD_ADDR bd_addr);
 
 /*******************************************************************************

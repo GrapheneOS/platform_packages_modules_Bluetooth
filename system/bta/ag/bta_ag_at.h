@@ -47,18 +47,18 @@
 typedef struct
 {
     const char  *p_cmd;         /* AT command string */
-    UINT8       arg_type;       /* allowable argument type syntax */
-    UINT8       fmt;            /* whether arg is int or string */
-    UINT8       min;            /* minimum value for int arg */
-    INT16       max;            /* maximum value for int arg */
+    uint8_t     arg_type;       /* allowable argument type syntax */
+    uint8_t     fmt;            /* whether arg is int or string */
+    uint8_t     min;            /* minimum value for int arg */
+    int16_t     max;            /* maximum value for int arg */
 } tBTA_AG_AT_CMD;
 
 /* callback function executed when command is parsed */
-typedef void (tBTA_AG_AT_CMD_CBACK)(void *p_user, UINT16 cmd, UINT8 arg_type,
-                                    char *p_arg, INT16 int_arg);
+typedef void (tBTA_AG_AT_CMD_CBACK)(void *p_user, uint16_t cmd, uint8_t arg_type,
+                                    char *p_arg, int16_t int_arg);
 
 /* callback function executed to send "ERROR" result code */
-typedef void (tBTA_AG_AT_ERR_CBACK)(void *p_user, BOOLEAN unknown, char *p_arg);
+typedef void (tBTA_AG_AT_ERR_CBACK)(void *p_user, bool unknown, char *p_arg);
 
 /* AT command parsing control block */
 typedef struct
@@ -68,9 +68,9 @@ typedef struct
     tBTA_AG_AT_ERR_CBACK    *p_err_cback;   /* error callback */
     void                    *p_user;        /* user-defined data */
     char                    *p_cmd_buf;     /* temp parsing buffer */
-    UINT16                  cmd_pos;        /* position in temp buffer */
-    UINT16                  cmd_max_len;    /* length of temp buffer to allocate */
-    UINT8                   state;          /* parsing state */
+    uint16_t                cmd_pos;        /* position in temp buffer */
+    uint16_t                cmd_max_len;    /* length of temp buffer to allocate */
+    uint8_t                 state;          /* parsing state */
 } tBTA_AG_AT_CB;
 
 /*****************************************************************************
@@ -115,7 +115,7 @@ extern void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb);
 ** Returns          void
 **
 *****************************************************************************/
-extern void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len);
+extern void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len);
 
 #endif /* BTA_AG_AT_H */
 

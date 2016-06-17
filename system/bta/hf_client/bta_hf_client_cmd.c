@@ -31,7 +31,7 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA *p_data)
             bta_hf_client_send_at_vts((char)p_val->uint32_val1);
             break;
         case BTA_HF_CLIENT_AT_CMD_BTRH:
-            bta_hf_client_send_at_btrh(FALSE, p_val->uint32_val1);
+            bta_hf_client_send_at_btrh(false, p_val->uint32_val1);
             break;
         case BTA_HF_CLIENT_AT_CMD_CHUP:
             bta_hf_client_send_at_chup();
@@ -50,7 +50,7 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA *p_data)
             bta_hf_client_send_at_ata();
             break;
         case BTA_HF_CLIENT_AT_CMD_COPS:
-            bta_hf_client_send_at_cops(TRUE);
+            bta_hf_client_send_at_cops(true);
             break;
         case BTA_HF_CLIENT_AT_CMD_ATD:
             bta_hf_client_send_at_atd(p_val->str, p_val->uint32_val1);
@@ -62,7 +62,7 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA *p_data)
             bta_hf_client_send_at_vgs(p_val->uint32_val1);
             break;
         case BTA_HF_CLIENT_AT_CMD_BVRA:
-            bta_hf_client_send_at_bvra(p_val->uint32_val1 == 0 ? FALSE : TRUE);
+            bta_hf_client_send_at_bvra(p_val->uint32_val1 == 0 ? false : true);
             break;
         case BTA_HF_CLIENT_AT_CMD_CLCC:
             bta_hf_client_send_at_clcc();

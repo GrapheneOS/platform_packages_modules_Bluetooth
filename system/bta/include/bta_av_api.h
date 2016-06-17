@@ -38,10 +38,10 @@ extern "C" {
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
-/* Set to TRUE if seperate authorization prompt desired for AVCTP besides A2DP authorization */
-/* Typically FALSE when AVRCP is used in conjunction with A2DP */
+/* Set to true if seperate authorization prompt desired for AVCTP besides A2DP authorization */
+/* Typically false when AVRCP is used in conjunction with A2DP */
 #ifndef BTA_AV_WITH_AVCTP_AUTHORIZATION
-#define BTA_AV_WITH_AVCTP_AUTHORIZATION     FALSE
+#define BTA_AV_WITH_AVCTP_AUTHORIZATION     false
 #endif
 
 /* AV status values */
@@ -53,7 +53,7 @@ extern "C" {
 #define BTA_AV_FAIL_ROLE        5       /* failed due to role management related issues */
 #define BTA_AV_FAIL_GET_CAP     6       /* get capability failed due to no SEP availale on the peer  */
 
-typedef UINT8 tBTA_AV_STATUS;
+typedef uint8_t tBTA_AV_STATUS;
 
 /* AV features masks */
 #define BTA_AV_FEAT_RCTG        0x0001  /* remote control target */
@@ -73,22 +73,22 @@ typedef UINT8 tBTA_AV_STATUS;
 /* Internal features */
 #define BTA_AV_FEAT_NO_SCO_SSPD 0x8000  /* Do not suspend av streaming as to AG events(SCO or Call) */
 
-typedef UINT16 tBTA_AV_FEAT;
+typedef uint16_t tBTA_AV_FEAT;
 
 /* AV channel values */
 #define BTA_AV_CHNL_MSK             0xC0
 #define BTA_AV_CHNL_AUDIO           0x40  /* audio channel */
 #define BTA_AV_CHNL_VIDEO           0x80  /* video channel */
-typedef UINT8 tBTA_AV_CHNL;
+typedef uint8_t tBTA_AV_CHNL;
 
 
 #define BTA_AV_HNDL_MSK             0x3F
-typedef UINT8 tBTA_AV_HNDL;
+typedef uint8_t tBTA_AV_HNDL;
 /* handle index to mask */
-#define BTA_AV_HNDL_TO_MSK(h)       ((UINT8)(1 << (h)))
+#define BTA_AV_HNDL_TO_MSK(h)       ((uint8_t)(1 << (h)))
 
 /* tBTA_AV_HNDL to mask */
-#define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((UINT8)(1 << ((h)&BTA_AV_HNDL_MSK)))
+#define BTA_AV_HNDL_TYPE_TO_MSK(h)  ((uint8_t)(1 << ((h)&BTA_AV_HNDL_MSK)))
 
 /* offset of codec type in codec info byte array */
 #define BTA_AV_CODEC_TYPE_IDX       AVDT_CODEC_TYPE_INDEX   /* 2 */
@@ -125,7 +125,7 @@ typedef UINT8 tBTA_AV_HNDL;
 #define BTA_AV_CODEC_H263_P8    VDP_MEDIA_CT_H263_P8    /* H.263 profile 8 */
 #define BTA_AV_CODEC_VEND       VDP_MEDIA_CT_VEND       /* Non-VDP */
 
-typedef UINT8 tBTA_AV_CODEC;
+typedef uint8_t tBTA_AV_CODEC;
 
 /* Company ID in BT assigned numbers */
 #define BTA_AV_BT_VENDOR_ID     VDP_BT_VENDOR_ID        /* Broadcom Corporation */
@@ -193,13 +193,13 @@ typedef UINT8 tBTA_AV_CODEC;
 #define BTA_AV_RC_F5            AVRC_ID_F5          /* F5 */
 #define BTA_AV_VENDOR           AVRC_ID_VENDOR      /* vendor unique */
 
-typedef UINT8 tBTA_AV_RC;
+typedef uint8_t tBTA_AV_RC;
 
 /* state flag for pass through command */
 #define BTA_AV_STATE_PRESS      AVRC_STATE_PRESS    /* key pressed */
 #define BTA_AV_STATE_RELEASE    AVRC_STATE_RELEASE  /* key released */
 
-typedef UINT8 tBTA_AV_STATE;
+typedef uint8_t tBTA_AV_STATE;
 
 /* command codes for BTA_AvVendorCmd */
 #define BTA_AV_CMD_CTRL         AVRC_CMD_CTRL
@@ -208,7 +208,7 @@ typedef UINT8 tBTA_AV_STATE;
 #define BTA_AV_CMD_NOTIF        AVRC_CMD_NOTIF
 #define BTA_AV_CMD_GEN_INQ      AVRC_CMD_GEN_INQ
 
-typedef UINT8 tBTA_AV_CMD;
+typedef uint8_t tBTA_AV_CMD;
 
 /* response codes for BTA_AvVendorRsp */
 #define BTA_AV_RSP_NOT_IMPL     AVRC_RSP_NOT_IMPL
@@ -219,7 +219,7 @@ typedef UINT8 tBTA_AV_CMD;
 #define BTA_AV_RSP_CHANGED      AVRC_RSP_CHANGED
 #define BTA_AV_RSP_INTERIM      AVRC_RSP_INTERIM
 
-typedef UINT8 tBTA_AV_CODE;
+typedef uint8_t tBTA_AV_CODE;
 
 /* error codes for BTA_AvProtectRsp */
 #define BTA_AV_ERR_NONE             A2D_SUCCESS         /* Success, no error */
@@ -228,7 +228,7 @@ typedef UINT8 tBTA_AV_CODE;
 #define BTA_AV_ERR_BAD_CP_TYPE      A2D_BAD_CP_TYPE     /* The requested Content Protection Type is not supported */
 #define BTA_AV_ERR_BAD_CP_FORMAT    A2D_BAD_CP_FORMAT   /* The format of Content Protection Data is not correct */
 
-typedef UINT8 tBTA_AV_ERR;
+typedef uint8_t tBTA_AV_ERR;
 
 
 /* AV callback events */
@@ -262,7 +262,7 @@ typedef UINT8 tBTA_AV_ERR;
 #define BTA_AV_MAX_EVT          23
 
 
-typedef UINT8 tBTA_AV_EVT;
+typedef uint8_t tBTA_AV_EVT;
 
 /* Event associated with BTA_AV_ENABLE_EVT */
 typedef struct
@@ -275,14 +275,14 @@ typedef struct
 {
     tBTA_AV_CHNL    chnl;       /* audio/video */
     tBTA_AV_HNDL    hndl;       /* Handle associated with the stream. */
-    UINT8           app_id;     /* ID associated with call to BTA_AvRegister() */
+    uint8_t           app_id;     /* ID associated with call to BTA_AvRegister() */
     tBTA_AV_STATUS  status;
 } tBTA_AV_REGISTER;
 
 /* data associated with BTA_AV_OPEN_EVT */
 #define BTA_AV_EDR_2MBPS        0x01
 #define BTA_AV_EDR_3MBPS        0x02
-typedef UINT8 tBTA_AV_EDR;
+typedef uint8_t tBTA_AV_EDR;
 
 typedef struct
 {
@@ -290,9 +290,9 @@ typedef struct
     tBTA_AV_HNDL    hndl;
     BD_ADDR         bd_addr;
     tBTA_AV_STATUS  status;
-    BOOLEAN         starting;
+    bool         starting;
     tBTA_AV_EDR     edr;        /* 0, if peer device does not support EDR */
-    UINT8           sep;        /*  sep type of peer device */
+    uint8_t           sep;        /*  sep type of peer device */
 } tBTA_AV_OPEN;
 
 /* data associated with BTA_AV_CLOSE_EVT */
@@ -308,8 +308,8 @@ typedef struct
     tBTA_AV_CHNL    chnl;
     tBTA_AV_HNDL    hndl;
     tBTA_AV_STATUS  status;
-    BOOLEAN         initiator; /* TRUE, if local device initiates the START */
-    BOOLEAN         suspending;
+    bool         initiator; /* true, if local device initiates the START */
+    bool         suspending;
 } tBTA_AV_START;
 
 /* data associated with BTA_AV_SUSPEND_EVT */
@@ -317,7 +317,7 @@ typedef struct
 {
     tBTA_AV_CHNL    chnl;
     tBTA_AV_HNDL    hndl;
-    BOOLEAN         initiator; /* TRUE, if local device initiates the SUSPEND */
+    bool         initiator; /* true, if local device initiates the SUSPEND */
     tBTA_AV_STATUS  status;
 } tBTA_AV_SUSPEND;
 
@@ -334,8 +334,8 @@ typedef struct
 {
     tBTA_AV_CHNL    chnl;
     tBTA_AV_HNDL    hndl;
-    UINT8           *p_data;
-    UINT16          len;
+    uint8_t           *p_data;
+    uint16_t          len;
 } tBTA_AV_PROTECT_REQ;
 
 /* data associated with BTA_AV_PROTECT_RSP_EVT */
@@ -343,15 +343,15 @@ typedef struct
 {
     tBTA_AV_CHNL    chnl;
     tBTA_AV_HNDL    hndl;
-    UINT8           *p_data;
-    UINT16          len;
+    uint8_t           *p_data;
+    uint16_t          len;
     tBTA_AV_ERR     err_code;
 } tBTA_AV_PROTECT_RSP;
 
 /* data associated with BTA_AV_RC_OPEN_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
+    uint8_t           rc_handle;
     tBTA_AV_FEAT    peer_features;
     BD_ADDR         peer_addr;
     tBTA_AV_STATUS  status;
@@ -360,14 +360,14 @@ typedef struct
 /* data associated with BTA_AV_RC_CLOSE_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
+    uint8_t           rc_handle;
     BD_ADDR         peer_addr;
 } tBTA_AV_RC_CLOSE;
 
 /* data associated with BTA_AV_RC_FEAT_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
+    uint8_t           rc_handle;
     tBTA_AV_FEAT    peer_features;
     BD_ADDR         peer_addr;
 } tBTA_AV_RC_FEAT;
@@ -375,47 +375,47 @@ typedef struct
 /* data associated with BTA_AV_REMOTE_CMD_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
+    uint8_t           rc_handle;
     tBTA_AV_RC      rc_id;
     tBTA_AV_STATE   key_state;
-    UINT8           len;
-    UINT8           *p_data;
+    uint8_t           len;
+    uint8_t           *p_data;
     tAVRC_HDR       hdr;    /* Message header. */
-    UINT8           label;
+    uint8_t           label;
 } tBTA_AV_REMOTE_CMD;
 
 /* data associated with BTA_AV_REMOTE_RSP_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
+    uint8_t           rc_handle;
     tBTA_AV_RC      rc_id;
     tBTA_AV_STATE   key_state;
-    UINT8           len;
-    UINT8           *p_data;
+    uint8_t           len;
+    uint8_t           *p_data;
     tBTA_AV_CODE    rsp_code;
-    UINT8           label;
+    uint8_t           label;
 } tBTA_AV_REMOTE_RSP;
 
 /* data associated with BTA_AV_VENDOR_CMD_EVT, BTA_AV_VENDOR_RSP_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
-    UINT16          len;            /* Max vendor dependent message is 512 */
-    UINT8           label;
+    uint8_t           rc_handle;
+    uint16_t          len;            /* Max vendor dependent message is 512 */
+    uint8_t           label;
     tBTA_AV_CODE    code;
-    UINT32          company_id;
-    UINT8           *p_data;
+    uint32_t          company_id;
+    uint8_t           *p_data;
 } tBTA_AV_VENDOR;
 
 /* data associated with BTA_AV_META_MSG_EVT */
 typedef struct
 {
-    UINT8           rc_handle;
-    UINT16          len;
-    UINT8           label;
+    uint8_t           rc_handle;
+    uint16_t          len;
+    uint8_t           label;
     tBTA_AV_CODE    code;
-    UINT32          company_id;
-    UINT8           *p_data;
+    uint32_t          company_id;
+    uint8_t           *p_data;
     tAVRC_MSG       *p_msg;
 } tBTA_AV_META_MSG;
 
@@ -461,7 +461,7 @@ typedef union
 
 typedef struct
 {
-    UINT8 *codec_info;
+    uint8_t *codec_info;
     BD_ADDR bd_addr;;
 } tBTA_AVK_CONFIG;
 
@@ -501,23 +501,23 @@ typedef void (tBTA_AV_REG) (tAVDT_CS *p_cs, char *p_service_name, void *p_data);
 /* AV configuration structure */
 typedef struct
 {
-    UINT32  company_id;         /* AVRCP Company ID */
-    UINT16  avrc_mtu;           /* AVRCP MTU at L2CAP for control channel */
-    UINT16  avrc_br_mtu;        /* AVRCP MTU at L2CAP for browsing channel */
-    UINT16  avrc_ct_cat;        /* AVRCP controller categories */
-    UINT16  avrc_tg_cat;        /* AVRCP target categories */
-    UINT16  sig_mtu;            /* AVDTP signaling channel MTU at L2CAP */
-    UINT16  audio_mtu;          /* AVDTP audio transport channel MTU at L2CAP */
-    const UINT16 *p_audio_flush_to;/* AVDTP audio transport channel flush timeout */
-    UINT16  audio_mqs;          /* AVDTP audio channel max data queue size */
-    UINT16  video_mtu;          /* AVDTP video transport channel MTU at L2CAP */
-    UINT16  video_flush_to;     /* AVDTP video transport channel flush timeout */
-    BOOLEAN avrc_group;         /* TRUE, to accept AVRC 1.3 group nevigation command */
-    UINT8   num_co_ids;         /* company id count in p_meta_co_ids */
-    UINT8   num_evt_ids;        /* event id count in p_meta_evt_ids */
+    uint32_t  company_id;         /* AVRCP Company ID */
+    uint16_t  avrc_mtu;           /* AVRCP MTU at L2CAP for control channel */
+    uint16_t  avrc_br_mtu;        /* AVRCP MTU at L2CAP for browsing channel */
+    uint16_t  avrc_ct_cat;        /* AVRCP controller categories */
+    uint16_t  avrc_tg_cat;        /* AVRCP target categories */
+    uint16_t  sig_mtu;            /* AVDTP signaling channel MTU at L2CAP */
+    uint16_t  audio_mtu;          /* AVDTP audio transport channel MTU at L2CAP */
+    const uint16_t *p_audio_flush_to;/* AVDTP audio transport channel flush timeout */
+    uint16_t  audio_mqs;          /* AVDTP audio channel max data queue size */
+    uint16_t  video_mtu;          /* AVDTP video transport channel MTU at L2CAP */
+    uint16_t  video_flush_to;     /* AVDTP video transport channel flush timeout */
+    bool avrc_group;         /* true, to accept AVRC 1.3 group nevigation command */
+    uint8_t   num_co_ids;         /* company id count in p_meta_co_ids */
+    uint8_t   num_evt_ids;        /* event id count in p_meta_evt_ids */
     tBTA_AV_CODE  rc_pass_rsp;  /* the default response code for pass through commands */
-    const UINT32 *p_meta_co_ids;/* the metadata Get Capabilities response for company id */
-    const UINT8 *p_meta_evt_ids;/* the the metadata Get Capabilities response for event id */
+    const uint32_t *p_meta_co_ids;/* the metadata Get Capabilities response for company id */
+    const uint8_t *p_meta_evt_ids;/* the the metadata Get Capabilities response for event id */
     const tBTA_AV_ACT *p_act_tbl;/* the action function table for VDP stream */
     tBTA_AV_REG       *p_reg;   /* action function to register VDP */
     char              avrc_controller_name[BTA_SERVICE_NAME_LEN]; /* Default AVRCP controller name */
@@ -570,7 +570,7 @@ void BTA_AvDisable(void);
 **
 *******************************************************************************/
 void BTA_AvRegister(tBTA_AV_CHNL chnl, const char *p_service_name,
-                    UINT8 app_id, tBTA_AV_DATA_CBACK  *p_data_cback, UINT16 service_uuid);
+                    uint8_t app_id, tBTA_AV_DATA_CBACK  *p_data_cback, uint16_t service_uuid);
 
 /*******************************************************************************
 **
@@ -595,7 +595,7 @@ void BTA_AvDeregister(tBTA_AV_HNDL hndl);
 **
 *******************************************************************************/
 void BTA_AvOpen(BD_ADDR bd_addr, tBTA_AV_HNDL handle,
-                        BOOLEAN use_rc, tBTA_SEC sec_mask, UINT16 uuid);
+                        bool use_rc, tBTA_SEC sec_mask, uint16_t uuid);
 
 /*******************************************************************************
 **
@@ -646,29 +646,29 @@ void BTA_AvStart(void);
 ** Function         BTA_AvStop
 **
 ** Description      Stop audio/video stream data transfer.
-**                  If suspend is TRUE, this function sends AVDT suspend signal
+**                  If suspend is true, this function sends AVDT suspend signal
 **                  to the connected peer(s).
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvStop(BOOLEAN suspend);
+void BTA_AvStop(bool suspend);
 
 /*******************************************************************************
 **
 ** Function         BTA_AvReconfig
 **
 ** Description      Reconfigure the audio/video stream.
-**                  If suspend is TRUE, this function tries the suspend/reconfigure
+**                  If suspend is true, this function tries the suspend/reconfigure
 **                  procedure first.
-**                  If suspend is FALSE or when suspend/reconfigure fails,
+**                  If suspend is false or when suspend/reconfigure fails,
 **                  this function closes and re-opens the AVDT connection.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
-                            UINT8 *p_codec_info, UINT8 num_protect, UINT8 *p_protect_info);
+void BTA_AvReconfig(tBTA_AV_HNDL hndl, bool suspend, uint8_t sep_info_idx,
+                            uint8_t *p_codec_info, uint8_t num_protect, uint8_t *p_protect_info);
 
 /*******************************************************************************
 **
@@ -680,7 +680,7 @@ void BTA_AvReconfig(tBTA_AV_HNDL hndl, BOOLEAN suspend, UINT8 sep_info_idx,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
+void BTA_AvProtectReq(tBTA_AV_HNDL hndl, uint8_t *p_data, uint16_t len);
 
 /*******************************************************************************
 **
@@ -694,8 +694,8 @@ void BTA_AvProtectReq(tBTA_AV_HNDL hndl, UINT8 *p_data, UINT16 len);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data,
-                              UINT16 len);
+void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, uint8_t error_code, uint8_t *p_data,
+                              uint16_t len);
 
 /*******************************************************************************
 **
@@ -707,7 +707,7 @@ void BTA_AvProtectRsp(tBTA_AV_HNDL hndl, UINT8 error_code, UINT8 *p_data,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
+void BTA_AvRemoteCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_RC rc_id,
                              tBTA_AV_STATE key_state);
 
 /*******************************************************************************
@@ -721,8 +721,8 @@ void BTA_AvRemoteCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_RC rc_id,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_STATE key_state,
-                                         UINT8* p_msg, UINT8 buf_len);
+void BTA_AvRemoteVendorUniqueCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_STATE key_state,
+                                         uint8_t* p_msg, uint8_t buf_len);
 
 /*******************************************************************************
 **
@@ -735,8 +735,8 @@ void BTA_AvRemoteVendorUniqueCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_STATE key
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code,
-                             UINT8 *p_data, UINT16 len);
+void BTA_AvVendorCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE cmd_code,
+                             uint8_t *p_data, uint16_t len);
 
 /*******************************************************************************
 **
@@ -750,8 +750,8 @@ void BTA_AvVendorCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE cmd_code,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvVendorRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
-                             UINT8 *p_data, UINT16 len, UINT32 company_id);
+void BTA_AvVendorRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
+                             uint8_t *p_data, uint16_t len, uint32_t company_id);
 
 
 /*******************************************************************************
@@ -775,7 +775,7 @@ void BTA_AvOpenRc(tBTA_AV_HNDL handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvCloseRc(UINT8 rc_handle);
+void BTA_AvCloseRc(uint8_t rc_handle);
 
 /*******************************************************************************
 **
@@ -789,7 +789,7 @@ void BTA_AvCloseRc(UINT8 rc_handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
+void BTA_AvMetaRsp(uint8_t rc_handle, uint8_t label, tBTA_AV_CODE rsp_code,
                                BT_HDR *p_pkt);
 
 /*******************************************************************************
@@ -806,7 +806,7 @@ void BTA_AvMetaRsp(UINT8 rc_handle, UINT8 label, tBTA_AV_CODE rsp_code,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AvMetaCmd(UINT8 rc_handle, UINT8 label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt);
+void BTA_AvMetaCmd(uint8_t rc_handle, uint8_t label, tBTA_AV_CMD cmd_code, BT_HDR *p_pkt);
 
 /*******************************************************************************
 **

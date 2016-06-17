@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
 #include "utl.h"
@@ -32,7 +32,7 @@
 #include "bta_sys.h"
 #include "bta_gatts_int.h"
 
-static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
+static const uint8_t  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x00, 0x00, 0x80,
     0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 /*******************************************************************************
@@ -41,12 +41,12 @@ static const UINT8  base_uuid[LEN_UUID_128] = {0xFB, 0x34, 0x9B, 0x5F, 0x80, 0x0
 **
 ** Description      Convert a 16 bits UUID to be an standard 128 bits one.
 **
-** Returns          TRUE if two uuid match; FALSE otherwise.
+** Returns          true if two uuid match; false otherwise.
 **
 *******************************************************************************/
-static void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UINT16 uuid_16)
+static void bta_gatt_convert_uuid16_to_uuid128(uint8_t uuid_128[LEN_UUID_128], uint16_t uuid_16)
 {
-    UINT8   *p = &uuid_128[LEN_UUID_128 - 4];
+    uint8_t   *p = &uuid_128[LEN_UUID_128 - 4];
 
     memcpy (uuid_128, base_uuid, LEN_UUID_128);
 
@@ -61,15 +61,15 @@ static void bta_gatt_convert_uuid16_to_uuid128(UINT8 uuid_128[LEN_UUID_128], UIN
 ** Returns          pointer to the control block, or otherwise NULL when failed.
 **
 *******************************************************************************/
-UINT8 bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB *p_cb, UINT8 rcb_idx)
+uint8_t bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB *p_cb, uint8_t rcb_idx)
 {
-    UINT8 i;
+    uint8_t i;
 
     for (i = 0; i < BTA_GATTS_MAX_SRVC_NUM; i ++)
     {
         if (!p_cb->srvc_cb[i].in_use)
         {
-            p_cb->srvc_cb[i].in_use = TRUE;
+            p_cb->srvc_cb[i].in_use = true;
             p_cb->srvc_cb[i].rcb_idx = rcb_idx;
             return i;
         }
@@ -88,7 +88,7 @@ UINT8 bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB *p_cb, UINT8 rcb_idx)
 *******************************************************************************/
 tBTA_GATTS_RCB *bta_gatts_find_app_rcb_by_app_if(tBTA_GATTS_IF server_if)
 {
-    UINT8 i;
+    uint8_t i;
     tBTA_GATTS_RCB *p_reg;
 
     for (i = 0, p_reg = bta_gatts_cb.rcb; i < BTA_GATTS_MAX_APP_NUM; i ++, p_reg++)
@@ -109,9 +109,9 @@ tBTA_GATTS_RCB *bta_gatts_find_app_rcb_by_app_if(tBTA_GATTS_IF server_if)
 **
 *******************************************************************************/
 
-UINT8 bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF server_if)
+uint8_t bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF server_if)
 {
-    UINT8 i;
+    uint8_t i;
 
     for (i = 0; i < BTA_GATTS_MAX_APP_NUM; i ++)
     {
@@ -129,9 +129,9 @@ UINT8 bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF se
 ** Returns          pointer to the rcb.
 **
 *******************************************************************************/
-tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, UINT16 service_id)
+tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, uint16_t service_id)
 {
-    UINT8 i;
+    uint8_t i;
     APPL_TRACE_DEBUG("bta_gatts_find_srvc_cb_by_srvc_id  service_id=%d", service_id);
     for (i = 0; i < BTA_GATTS_MAX_SRVC_NUM; i ++)
     {
@@ -153,9 +153,9 @@ tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, UINT
 ** Returns          pointer to the rcb.
 **
 *******************************************************************************/
-tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, UINT16 attr_id)
+tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, uint16_t attr_id)
 {
-    UINT8 i;
+    uint8_t i;
 
     for (i = 0; i < (BTA_GATTS_MAX_SRVC_NUM); i ++)
     {
@@ -186,18 +186,18 @@ tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, UINT
 **
 ** Description      Compare two UUID to see if they are the same.
 **
-** Returns          TRUE if two uuid match; FALSE otherwise.
+** Returns          true if two uuid match; false otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src)
+bool bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src)
 {
-    UINT8  su[LEN_UUID_128], tu[LEN_UUID_128];
-    UINT8  *ps, *pt;
+    uint8_t  su[LEN_UUID_128], tu[LEN_UUID_128];
+    uint8_t  *ps, *pt;
 
     /* any of the UUID is unspecified */
     if (src.len == 0 || tar.len == 0)
     {
-        return TRUE;
+        return true;
     }
 
     /* If both are 16-bit, we can do a simple compare */

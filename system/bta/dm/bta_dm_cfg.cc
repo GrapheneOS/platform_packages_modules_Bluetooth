@@ -44,7 +44,7 @@
 #define BTA_DM_LINK_TIMEOUT    8000
 #endif
 
-/* TRUE to avoid scatternet when av is streaming (be the master) */
+/* true to avoid scatternet when av is streaming (be the master) */
 #ifndef BTA_DM_AVOID_SCATTER_A2DP
 #define BTA_DM_AVOID_SCATTER_A2DP    TRUE
 #endif
@@ -67,7 +67,7 @@ const tBTA_DM_CFG bta_dm_cfg =
     BTA_DM_PAGE_TIMEOUT,
     /* link supervision timeout in 625uS*/
     BTA_DM_LINK_TIMEOUT,
-    /* TRUE to avoid scatternet when av is streaming (be the master) */
+    /* true to avoid scatternet when av is streaming (be the master) */
     BTA_DM_AVOID_SCATTER_A2DP
 };
 
@@ -117,7 +117,7 @@ tBTA_DM_CFG *p_bta_dm_cfg = (tBTA_DM_CFG *)&bta_dm_cfg;
 
 tBTA_DM_RM *p_bta_dm_rm_cfg = (tBTA_DM_RM *)&bta_dm_rm_cfg;
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 #  define BTA_DM_NUM_PM_ENTRY         23  /* number of entries in bta_dm_pm_cfg except the first */
 #  define BTA_DM_NUM_PM_SPEC          15  /* number of entries in bta_dm_pm_spec */
 #else
@@ -149,7 +149,7 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_CFG bta_dm_pm_cfg[BTA_DM_NUM_PM_ENTRY + 1] 
   {BTA_ID_PAN, BTUI_PAN_ID_PANU,    9},  /* PANU spec table */
   {BTA_ID_PAN, BTUI_PAN_ID_NAP,    10},  /* NAP spec table */
   {BTA_ID_HS,  BTA_ALL_APP_ID,     11}   /* HS spec table */
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
   ,{BTA_ID_GATTC,  BTA_ALL_APP_ID,  13}  /* gattc spec table */
   ,{BTA_ID_GATTS,  BTA_ALL_APP_ID,  14}  /* gatts spec table */
 #endif
@@ -405,7 +405,7 @@ tBTA_DM_PM_TYPE_QUALIFIER tBTA_DM_PM_SPEC bta_dm_pm_spec[BTA_DM_NUM_PM_SPEC] =
   }
  }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     /* GATTC : 13 */
  ,{
   (BTA_DM_PM_SNIFF | BTA_DM_PM_PARK),                           /* allow park & sniff */
@@ -535,7 +535,7 @@ tBTM_PM_PWR_MD *p_bta_dm_pm_md = (tBTM_PM_PWR_MD *)&bta_dm_pm_md;
 
 /* The performance impact of EIR packet size
 **
-** When BTM_EIR_DEFAULT_FEC_REQUIRED is TRUE,
+** When BTM_EIR_DEFAULT_FEC_REQUIRED is true,
 ** 1 to 17 bytes,    DM1 is used and most robust.
 ** 18 to 121 bytes,  DM3 is used but impacts inquiry scan time with large number
 **                    of devices.(almost double with 150 users)
@@ -544,7 +544,7 @@ tBTM_PM_PWR_MD *p_bta_dm_pm_md = (tBTM_PM_PWR_MD *)&bta_dm_pm_md;
 ** 225 to 240 bytes, DH5 is used without FEC but it not recommended.
 **                    (same reason of DM5)
 **
-** When BTM_EIR_DEFAULT_FEC_REQUIRED is FALSE,
+** When BTM_EIR_DEFAULT_FEC_REQUIRED is false,
 ** 1 to 27 bytes,    DH1 is used but only robust at short range.
 ** 28 to 183 bytes,  DH3 is used but only robust at short range and impacts inquiry
 **                    scan time with large number of devices.
@@ -553,7 +553,7 @@ tBTM_PM_PWR_MD *p_bta_dm_pm_md = (tBTM_PM_PWR_MD *)&bta_dm_pm_md;
 
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
                                             /* for example */
-const UINT8 bta_dm_eir_uuid16_list[] = {    0x08, 0x11, /* Headset */
+const uint8_t bta_dm_eir_uuid16_list[] = {    0x08, 0x11, /* Headset */
                                             0x1E, 0x11, /* Handsfree */
                                             0x0E, 0x11, /* AV Remote Control */
                                             0x0B, 0x11, /* Audio Sink */
@@ -568,7 +568,7 @@ const tBTA_DM_EIR_CONF bta_dm_eir_cfg =
            /* room for all UUID list then local name is shortened to this length */
 #if (BTA_EIR_CANNED_UUID_LIST == TRUE)
     8,
-    (UINT8 *)bta_dm_eir_uuid16_list,
+    (uint8_t *)bta_dm_eir_uuid16_list,
 #else // BTA_EIR_CANNED_UUID_LIST
     {   /* mask of UUID list in EIR */
         0xFFFFFFFF, /* LSB is the first UUID of the first 32 UUIDs in BTM_EIR_UUID_LKUP_TBL */

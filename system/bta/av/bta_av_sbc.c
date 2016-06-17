@@ -29,20 +29,20 @@
 #include "utl.h"
 
 typedef int (tBTA_AV_SBC_ACT)(void *p_src, void *p_dst,
-                               UINT32 src_samples, UINT32 dst_samples,
-                               UINT32 *p_ret);
+                               uint32_t src_samples, uint32_t dst_samples,
+                               uint32_t *p_ret);
 
 typedef struct
 {
-    INT32               cur_pos;    /* current position */
-    UINT32              src_sps;    /* samples per second (source audio data) */
-    UINT32              dst_sps;    /* samples per second (converted audio data) */
+    int32_t               cur_pos;    /* current position */
+    uint32_t              src_sps;    /* samples per second (source audio data) */
+    uint32_t              dst_sps;    /* samples per second (converted audio data) */
     tBTA_AV_SBC_ACT     *p_act;     /* the action function to do the conversion */
-    UINT16              bits;       /* number of bits per pcm sample */
-    UINT16              n_channels; /* number of channels (i.e. mono(1), stereo(2)...) */
-    INT16               worker1;
-    INT16               worker2;
-    UINT8               div;
+    uint16_t              bits;       /* number of bits per pcm sample */
+    uint16_t              n_channels; /* number of channels (i.e. mono(1), stereo(2)...) */
+    int16_t               worker1;
+    int16_t               worker2;
+    uint8_t               div;
 } tBTA_AV_SBC_UPS_CB;
 
 tBTA_AV_SBC_UPS_CB bta_av_sbc_ups_cb;
@@ -61,7 +61,7 @@ tBTA_AV_SBC_UPS_CB bta_av_sbc_ups_cb;
 ** Returns          none
 **
 *******************************************************************************/
-void bta_av_sbc_init_up_sample (UINT32 src_sps, UINT32 dst_sps, UINT16 bits, UINT16 n_channels)
+void bta_av_sbc_init_up_sample (uint32_t src_sps, uint32_t dst_sps, uint16_t bits, uint16_t n_channels)
 {
     bta_av_sbc_ups_cb.cur_pos   = -1;
     bta_av_sbc_ups_cb.src_sps   = src_sps;
@@ -125,11 +125,11 @@ void bta_av_sbc_init_up_sample (UINT32 src_sps, UINT32 dst_sps, UINT16 bits, UIN
 **
 *******************************************************************************/
 int bta_av_sbc_up_sample (void *p_src, void *p_dst,
-                         UINT32 src_samples, UINT32 dst_samples,
-                         UINT32 *p_ret)
+                         uint32_t src_samples, uint32_t dst_samples,
+                         uint32_t *p_ret)
 {
-    UINT32 src;
-    UINT32 dst;
+    uint32_t src;
+    uint32_t dst;
 
     if(bta_av_sbc_ups_cb.p_act)
     {
@@ -162,15 +162,15 @@ int bta_av_sbc_up_sample (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
-                         UINT32 src_samples, UINT32 dst_samples,
-                         UINT32 *p_ret)
+                         uint32_t src_samples, uint32_t dst_samples,
+                         uint32_t *p_ret)
 {
-    INT16   *p_src_tmp = (INT16 *)p_src;
-    INT16   *p_dst_tmp = (INT16 *)p_dst;
-    INT16   *p_worker1 = &bta_av_sbc_ups_cb.worker1;
-    INT16   *p_worker2 = &bta_av_sbc_ups_cb.worker2;
-    UINT32  src_sps = bta_av_sbc_ups_cb.src_sps;
-    UINT32  dst_sps = bta_av_sbc_ups_cb.dst_sps;
+    int16_t   *p_src_tmp = (int16_t *)p_src;
+    int16_t   *p_dst_tmp = (int16_t *)p_dst;
+    int16_t   *p_worker1 = &bta_av_sbc_ups_cb.worker1;
+    int16_t   *p_worker2 = &bta_av_sbc_ups_cb.worker2;
+    uint32_t  src_sps = bta_av_sbc_ups_cb.src_sps;
+    uint32_t  dst_sps = bta_av_sbc_ups_cb.dst_sps;
 
     while (bta_av_sbc_ups_cb.cur_pos > 0 && dst_samples)
     {
@@ -200,7 +200,7 @@ int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
         bta_av_sbc_ups_cb.cur_pos += dst_sps;
     }
 
-    if (bta_av_sbc_ups_cb.cur_pos == (INT32)dst_sps)
+    if (bta_av_sbc_ups_cb.cur_pos == (int32_t)dst_sps)
         bta_av_sbc_ups_cb.cur_pos = 0;
 
     *p_ret = ((char *)p_src_tmp - (char *)p_src);
@@ -225,14 +225,14 @@ int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
-                              UINT32 src_samples, UINT32 dst_samples,
-                              UINT32 *p_ret)
+                              uint32_t src_samples, uint32_t dst_samples,
+                              uint32_t *p_ret)
 {
-    INT16   *p_src_tmp = (INT16 *)p_src;
-    INT16   *p_dst_tmp = (INT16 *)p_dst;
-    INT16   *p_worker = &bta_av_sbc_ups_cb.worker1;
-    UINT32  src_sps = bta_av_sbc_ups_cb.src_sps;
-    UINT32  dst_sps = bta_av_sbc_ups_cb.dst_sps;
+    int16_t   *p_src_tmp = (int16_t *)p_src;
+    int16_t   *p_dst_tmp = (int16_t *)p_dst;
+    int16_t   *p_worker = &bta_av_sbc_ups_cb.worker1;
+    uint32_t  src_sps = bta_av_sbc_ups_cb.src_sps;
+    uint32_t  dst_sps = bta_av_sbc_ups_cb.dst_sps;
 
     while (bta_av_sbc_ups_cb.cur_pos > 0 && dst_samples)
     {
@@ -265,7 +265,7 @@ int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
         bta_av_sbc_ups_cb.cur_pos += dst_sps;
     }
 
-    if (bta_av_sbc_ups_cb.cur_pos == (INT32)dst_sps)
+    if (bta_av_sbc_ups_cb.cur_pos == (int32_t)dst_sps)
         bta_av_sbc_ups_cb.cur_pos = 0;
 
     *p_ret = ((char *)p_src_tmp - (char *)p_src);
@@ -290,15 +290,15 @@ int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
-                             UINT32 src_samples, UINT32 dst_samples,
-                             UINT32 *p_ret)
+                             uint32_t src_samples, uint32_t dst_samples,
+                             uint32_t *p_ret)
 {
-    UINT8   *p_src_tmp = (UINT8 *)p_src;
-    INT16   *p_dst_tmp = (INT16 *)p_dst;
-    INT16   *p_worker1 = &bta_av_sbc_ups_cb.worker1;
-    INT16   *p_worker2 = &bta_av_sbc_ups_cb.worker2;
-    UINT32  src_sps = bta_av_sbc_ups_cb.src_sps;
-    UINT32  dst_sps = bta_av_sbc_ups_cb.dst_sps;
+    uint8_t   *p_src_tmp = (uint8_t *)p_src;
+    int16_t   *p_dst_tmp = (int16_t *)p_dst;
+    int16_t   *p_worker1 = &bta_av_sbc_ups_cb.worker1;
+    int16_t   *p_worker2 = &bta_av_sbc_ups_cb.worker2;
+    uint32_t  src_sps = bta_av_sbc_ups_cb.src_sps;
+    uint32_t  dst_sps = bta_av_sbc_ups_cb.dst_sps;
 
     while (bta_av_sbc_ups_cb.cur_pos > 0 && dst_samples)
     {
@@ -314,10 +314,10 @@ int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
 
     while (src_samples -- && dst_samples)
     {
-        *p_worker1 = *(UINT8 *)p_src_tmp++;
+        *p_worker1 = *(uint8_t *)p_src_tmp++;
         *p_worker1 -= 0x80;
         *p_worker1 <<= 8;
-        *p_worker2 = *(UINT8 *)p_src_tmp++;
+        *p_worker2 = *(uint8_t *)p_src_tmp++;
         *p_worker2 -= 0x80;
         *p_worker2 <<= 8;
 
@@ -334,7 +334,7 @@ int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
         bta_av_sbc_ups_cb.cur_pos += dst_sps;
     }
 
-    if (bta_av_sbc_ups_cb.cur_pos == (INT32)dst_sps)
+    if (bta_av_sbc_ups_cb.cur_pos == (int32_t)dst_sps)
         bta_av_sbc_ups_cb.cur_pos = 0;
 
     *p_ret = ((char *)p_src_tmp - (char *)p_src);
@@ -359,14 +359,14 @@ int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
-                             UINT32 src_samples, UINT32 dst_samples,
-                             UINT32 *p_ret)
+                             uint32_t src_samples, uint32_t dst_samples,
+                             uint32_t *p_ret)
 {
-    UINT8   *p_src_tmp = (UINT8 *)p_src;
-    INT16   *p_dst_tmp = (INT16 *)p_dst;
-    INT16   *p_worker = &bta_av_sbc_ups_cb.worker1;
-    UINT32  src_sps = bta_av_sbc_ups_cb.src_sps;
-    UINT32  dst_sps = bta_av_sbc_ups_cb.dst_sps;
+    uint8_t   *p_src_tmp = (uint8_t *)p_src;
+    int16_t   *p_dst_tmp = (int16_t *)p_dst;
+    int16_t   *p_worker = &bta_av_sbc_ups_cb.worker1;
+    uint32_t  src_sps = bta_av_sbc_ups_cb.src_sps;
+    uint32_t  dst_sps = bta_av_sbc_ups_cb.dst_sps;
 
     while (bta_av_sbc_ups_cb.cur_pos > 0 && dst_samples)
     {
@@ -382,7 +382,7 @@ int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 
     while (src_samples-- && dst_samples)
     {
-        *p_worker = *(UINT8 *)p_src_tmp++;
+        *p_worker = *(uint8_t *)p_src_tmp++;
         *p_worker -= 0x80;
         *p_worker <<= 8;
 
@@ -399,7 +399,7 @@ int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
         bta_av_sbc_ups_cb.cur_pos += dst_sps;
     }
 
-    if (bta_av_sbc_ups_cb.cur_pos == (INT32)dst_sps)
+    if (bta_av_sbc_ups_cb.cur_pos == (int32_t)dst_sps)
         bta_av_sbc_ups_cb.cur_pos = 0;
 
     *p_ret = ((char *)p_src_tmp - (char *)p_src);
@@ -422,14 +422,14 @@ int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 **                  Codec configuration in p_cap.
 **
 *******************************************************************************/
-UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p_pref)
+uint8_t bta_av_sbc_cfg_for_cap(uint8_t *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p_pref)
 {
-    UINT8           status = A2D_SUCCESS;
+    uint8_t           status = A2D_SUCCESS;
     tA2D_SBC_CIE    peer_cie;
     UNUSED(p_cap);
 
     /* parse peer capabilities */
-    if ((status = A2D_ParsSbcInfo(&peer_cie, p_peer, TRUE)) != 0)
+    if ((status = A2D_ParsSbcInfo(&peer_cie, p_peer, true)) != 0)
     {
         return status;
     }
@@ -519,13 +519,13 @@ UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p
 ** Returns          0 if ok, nonzero if error.
 **
 *******************************************************************************/
-UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
+uint8_t bta_av_sbc_cfg_matches_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap)
 {
-    UINT8           status = 0;
+    uint8_t           status = 0;
     tA2D_SBC_CIE    cfg_cie;
 
     /* parse configuration */
-    if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, TRUE)) != 0)
+    if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, true)) != 0)
     {
         APPL_TRACE_ERROR(" bta_av_sbc_cfg_matches_cap Parsing Failed %d", status);
         return status;
@@ -591,13 +591,13 @@ UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
 ** Returns          0 if ok, nonzero if error.
 **
 *******************************************************************************/
-UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
+uint8_t bta_av_sbc_cfg_in_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap)
 {
-    UINT8           status = 0;
+    uint8_t           status = 0;
     tA2D_SBC_CIE    cfg_cie;
 
     /* parse configuration */
-    if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, FALSE)) != 0)
+    if ((status = A2D_ParsSbcInfo(&cfg_cie, p_cfg, false)) != 0)
     {
         return status;
     }
@@ -653,13 +653,13 @@ UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_sbc_bld_hdr(BT_HDR *p_buf, UINT16 fr_per_pkt)
+void bta_av_sbc_bld_hdr(BT_HDR *p_buf, uint16_t fr_per_pkt)
 {
-    UINT8   *p;
+    uint8_t   *p;
 
     p_buf->offset -= BTA_AV_SBC_HDR_SIZE;
-    p = (UINT8 *) (p_buf + 1) + p_buf->offset;
+    p = (uint8_t *) (p_buf + 1) + p_buf->offset;
     p_buf->len += BTA_AV_SBC_HDR_SIZE;
-    A2D_BldSbcMplHdr(p, FALSE, FALSE, FALSE, (UINT8) fr_per_pkt);
+    A2D_BldSbcMplHdr(p, false, false, false, (uint8_t) fr_per_pkt);
 }
 
