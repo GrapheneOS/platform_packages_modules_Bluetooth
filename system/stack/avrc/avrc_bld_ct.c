@@ -113,7 +113,7 @@ static tAVRC_STS avrc_bld_register_notifn(BT_HDR * p_pkt, UINT8 event_id, UINT32
     return AVRC_STS_NO_ERROR;
 }
 #endif
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         avrc_bld_get_capability_cmd
@@ -462,7 +462,7 @@ tAVRC_STS AVRC_BldCommand( tAVRC_COMMAND *p_cmd, BT_HDR **pp_pkt)
         status=avrc_bld_register_notifn(p_pkt,p_cmd->reg_notif.event_id,p_cmd->reg_notif.param);
 #endif
         break;
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
     case AVRC_PDU_GET_CAPABILITIES:
         status = avrc_bld_get_capability_cmd(p_pkt, p_cmd->get_caps.capability_id);
         break;
