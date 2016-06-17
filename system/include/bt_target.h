@@ -1389,8 +1389,8 @@
 #define AVRC_ADV_CTRL_INCLUDED      TRUE
 #endif
 
-#ifndef AVRC_CTLR_INCLUDED
-#define AVRC_CTLR_INCLUDED          TRUE
+#ifndef AVRC_CTRL_INCLUDED
+#define AVRC_CTRL_INCLUDED          TRUE
 #endif
 
 /******************************************************************************

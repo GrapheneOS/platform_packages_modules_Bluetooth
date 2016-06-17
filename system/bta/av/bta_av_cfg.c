@@ -40,11 +40,8 @@ const UINT32  bta_av_meta_caps_co_ids[] = {
 };
 
 /* AVRCP cupported categories */
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
 #define BTA_AV_RC_SUPF_CT       (AVRC_SUPF_CT_CAT2)
-#endif
-
-#if (AVRC_CTLR_INCLUDED == TRUE)
 #define BTA_AVK_RC_SUPF_CT       (AVRC_SUPF_CT_CAT1)
 #define BTA_AVK_RC_SUPF_TG       (AVRC_SUPF_TG_CAT2)
 #endif
