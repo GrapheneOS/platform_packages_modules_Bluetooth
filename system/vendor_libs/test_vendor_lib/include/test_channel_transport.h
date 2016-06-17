@@ -18,6 +18,8 @@
 
 #include <memory>
 #include <string>
+#include <vector>
+using std::vector;
 
 #include "base/files/scoped_file.h"
 #include "base/message_loop/message_loop.h"
@@ -52,7 +54,7 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
   // Sets the callback that fires when data is read in
   // |OnFileCanReadWithoutBlocking|.
   void RegisterCommandHandler(
-      std::function<void(const std::string&, const std::vector<std::string>&)>
+      std::function<void(const std::string&, const vector<std::string>&)>
           callback);
 
  private:
@@ -61,7 +63,7 @@ class TestChannelTransport : public base::MessageLoopForIO::Watcher {
 
   void OnFileCanWriteWithoutBlocking(int fd) override;
 
-  std::function<void(const std::string&, const std::vector<std::string>&)>
+  std::function<void(const std::string&, const vector<std::string>&)>
       command_handler_;
 
   // File descriptor to watch for test hook data.
