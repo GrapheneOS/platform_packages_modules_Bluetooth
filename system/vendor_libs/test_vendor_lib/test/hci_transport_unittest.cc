@@ -30,10 +30,10 @@ extern "C" {
 }  // extern "C"
 
 namespace {
-const std::vector<uint8_t> stub_command({DATA_TYPE_COMMAND,
-                                         static_cast<uint8_t>(HCI_RESET),
-                                         static_cast<uint8_t>(HCI_RESET >> 8),
-                                         0});
+const vector<uint8_t> stub_command({DATA_TYPE_COMMAND,
+                                    static_cast<uint8_t>(HCI_RESET),
+                                    static_cast<uint8_t>(HCI_RESET >> 8),
+                                    0});
 
 const int kMultiIterations = 10000;
 
@@ -63,7 +63,7 @@ class HciTransportTest : public ::testing::Test {
     // Ensure that the received packet matches the stub command.
     EXPECT_EQ(DATA_TYPE_COMMAND, command->GetType());
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
-    EXPECT_EQ(0, command->GetPayloadSize());
+    EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
     transport_.CloseVendorFd();
   }
 
@@ -72,7 +72,7 @@ class HciTransportTest : public ::testing::Test {
     // Ensure that the received packet matches the stub command.
     EXPECT_EQ(DATA_TYPE_COMMAND, command->GetType());
     EXPECT_EQ(HCI_RESET, command->GetOpcode());
-    EXPECT_EQ(0, command->GetPayloadSize());
+    EXPECT_EQ(static_cast<size_t>(1), command->GetPayloadSize());
     if (command_callback_count_ == kMultiIterations)
       transport_.CloseVendorFd();
   }

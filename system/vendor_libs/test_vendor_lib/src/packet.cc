@@ -28,18 +28,64 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-Packet::Packet(serial_data_type_t type) : type_(type) {}
+Packet::Packet(serial_data_type_t type, vector<uint8_t> header)
+    : type_(type), header_(std::move(header)) {
+  payload_ = {0};
+}
 
-bool Packet::Encode(const std::vector<uint8_t>& header,
-                    const std::vector<uint8_t>& payload) {
-  if (header.back() != payload.size())
+bool Packet::AddPayloadOctets(size_t octets, const vector<uint8_t>& bytes) {
+  if (octets + payload_.size() > kMaxPacketOctets)
     return false;
-  header_ = header;
-  payload_ = payload;
+
+  if (octets != bytes.size())
+    return false;
+
+  payload_.insert(payload_.end(), bytes.begin(), bytes.end());
+  payload_[0] = payload_.size() - 1;
+
   return true;
 }
 
-const std::vector<uint8_t>& Packet::GetHeader() const {
+bool Packet::AddPayloadOctets(size_t octets, const uint64_t value) {
+  vector<uint8_t> val_vector;
+
+  uint64_t v = value;
+
+  if (octets > sizeof(uint64_t))
+    return false;
+
+  for (size_t i = 0; i < octets; i++) {
+    val_vector.push_back(v & 0xff);
+    v = v >> 8;
+  }
+
+  if (v != 0)
+    return false;
+
+  return AddPayloadOctets(octets, val_vector);
+}
+
+bool Packet::IncrementPayloadCounter(const size_t index) {
+  if (payload_.size() < index - 1)
+    return false;
+
+  payload_[index]++;
+  return true;
+}
+
+bool Packet::IncrementPayloadCounter(const size_t index,
+                                     const uint8_t max_val) {
+  if (payload_.size() < index - 1)
+    return false;
+
+  if (payload_[index] + 1 > max_val)
+    return false;
+
+  payload_[index]++;
+  return true;
+}
+
+const vector<uint8_t>& Packet::GetHeader() const {
   // Every packet must have a header.
   CHECK(GetHeaderSize() > 0);
   return header_;
@@ -54,11 +100,11 @@ size_t Packet::GetPacketSize() const {
   return 1 + header_.size() + payload_.size();
 }
 
-const std::vector<uint8_t>& Packet::GetPayload() const {
+const vector<uint8_t>& Packet::GetPayload() const {
   return payload_;
 }
 
-uint8_t Packet::GetPayloadSize() const {
+size_t Packet::GetPayloadSize() const {
   return payload_.size();
 }
 
