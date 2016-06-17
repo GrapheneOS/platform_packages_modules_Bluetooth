@@ -899,7 +899,7 @@ void bta_av_rc_msg(tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data)
                         p_data->rc_msg.msg.pass.p_pass_data, is_inquiry);
 #endif
             }
-#if (AVRC_CTLR_INCLUDED == TRUE)
+#if (AVRC_CTRL_INCLUDED == TRUE)
             else if (((p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_UP)||
                       (p_data->rc_msg.msg.pass.op_id == AVRC_ID_VOL_DOWN)) &&
                      !strcmp(avrcp_ct_support, "true"))
