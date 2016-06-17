@@ -22,10 +22,6 @@
 
 #include "gatt_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
   BTIF_DEBUG_CONNECTED = 1,
   BTIF_DEBUG_DISCONNECTED
@@ -36,7 +32,3 @@ void btif_debug_conn_state(const bt_bdaddr_t bda, const btif_debug_conn_state_t 
     const tGATT_DISCONN_REASON disconnect_reason);
 
 void btif_debug_conn_dump(int fd);
-
-#ifdef __cplusplus
-}
-#endif
