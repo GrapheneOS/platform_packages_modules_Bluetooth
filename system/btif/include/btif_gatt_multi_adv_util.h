@@ -22,10 +22,6 @@
 
 #include "bta_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define CLNT_IF_IDX 0
 #define INST_ID_IDX 1
 #define INST_ID_IDX_MAX (INST_ID_IDX + 1)
@@ -93,7 +89,3 @@ extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
 extern void btif_gattc_adv_data_cleanup(btif_adv_data_t* adv);
 void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb);
-
-#ifdef __cplusplus
-}
-#endif
