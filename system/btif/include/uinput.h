@@ -19,10 +19,6 @@
 #ifndef __UINPUT_H
 #define __UINPUT_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
@@ -583,9 +579,5 @@ struct uinput_event {
     uint16_t code;
     int32_t value;
 };
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __UINPUT_H */

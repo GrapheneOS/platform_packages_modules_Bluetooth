@@ -35,10 +35,6 @@
 #include "btif_common.h"
 #include "btif_dm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
 **  BTIF CORE API
 ********************************************************************************/
@@ -424,9 +420,5 @@ bt_status_t btif_config_hci_snoop_log(uint8_t enable);
 **
 *******************************************************************************/
 void btif_debug_bond_event_dump(int fd);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTIF_API_H */

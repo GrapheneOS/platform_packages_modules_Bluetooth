@@ -18,10 +18,8 @@
 
 #include <gtest/gtest.h>
 
-extern "C" {
 #include "btif/include/btif_storage.h"
 #include "btif/include/btif_util.h"
-}
 
 TEST(BtifStorageTest, test_string_to_uuid) {
   const char *s1 = "e39c6285-867f-4b1d-9db0-35fbd9aebf22";
