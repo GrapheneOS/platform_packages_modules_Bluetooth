@@ -26,7 +26,18 @@ extern "C" {
 
 namespace test_vendor_lib {
 
-CommandPacket::CommandPacket() : Packet(DATA_TYPE_COMMAND) {}
+CommandPacket::CommandPacket(vector<uint8_t> header)
+    : Packet(DATA_TYPE_COMMAND, std::move(header)) {}
+
+CommandPacket::CommandPacket(uint16_t opcode)
+    : Packet(
+          DATA_TYPE_COMMAND,
+          {static_cast<uint8_t>(opcode), static_cast<uint8_t>(opcode >> 8)}) {}
+
+CommandPacket::CommandPacket(vector<uint8_t> header, vector<uint8_t> payload)
+    : Packet(DATA_TYPE_COMMAND, std::move(header)) {
+  AddPayloadOctets(payload.size(), std::move(payload));
+}
 
 uint16_t CommandPacket::GetOpcode() const {
   return 0 | (GetHeader()[0] | (GetHeader()[1] << 8));
