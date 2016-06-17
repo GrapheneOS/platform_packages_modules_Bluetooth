@@ -18,12 +18,15 @@
 
 #include <cstdint>
 #include <vector>
+using std::vector;
 
 extern "C" {
 #include "hci/include/hci_hal.h"
 }  // extern "C"
 
 namespace test_vendor_lib {
+
+const size_t kReservedZero = 0;
 
 // Abstract base class that is subclassed to provide type-specifc accessors on
 // data. Manages said data's memory and guarantees the data's persistence for IO
@@ -36,43 +39,67 @@ class Packet {
   // octet, the header, and the payload.
   size_t GetPacketSize() const;
 
-  const std::vector<uint8_t>& GetPayload() const;
+  const vector<uint8_t>& GetPayload() const;
 
-  uint8_t GetPayloadSize() const;
+  size_t GetPayloadSize() const;
 
-  const std::vector<uint8_t>& GetHeader() const;
+  const vector<uint8_t>& GetHeader() const;
 
   uint8_t GetHeaderSize() const;
 
   serial_data_type_t GetType() const;
 
-  // Validates the packet by checking that the payload size in the header is
-  // accurate. If the size is not valid, returns false. Otherwise, the data in
-  // |header| and |payload| is copied into |header_| and |payload_|
-  // respectively. If an error occurs while the data is being copied, the
-  // contents of |header| and |payload| are guaranteed to be preserved. The
-  // packet object will assume ownership of the copied data for its entire
-  // lifetime.
-  bool Encode(const std::vector<uint8_t>& header,
-              const std::vector<uint8_t>& payload);
-
- protected:
-  // Constructs an empty packet of type |type|. A call to Encode() shall be made
-  // to check and fill in the packet's data.
-  Packet(serial_data_type_t type);
+  // Add |octets| bytes to the payload.  Return true if:
+  // - the size of |bytes| is equal to |octets| and
+  // - the new size of the payload is still < |kMaxPacketOctets|
+  bool AddPayloadOctets(const size_t octets, const vector<uint8_t>& bytes);
 
  private:
-  // Underlying containers for storing the actual packet, broken down into the
-  // packet header and the packet payload. Data is copied into the vectors
-  // during the constructor and becomes accessible (read only) to children
-  // through GetHeader() and GetPayload().
-  std::vector<uint8_t> header_;
+  // Add |octets| bytes to the payload.  Return true if:
+  // - the value of |value| fits in |octets| bytes and
+  // - the new size of the payload is still < |kMaxPacketOctets|
+  bool AddPayloadOctets(const size_t octets, const uint64_t value);
 
-  std::vector<uint8_t> payload_;
+ public:
+  // Add type-checking versions
+  bool AddPayloadOctets1(const uint8_t value) {
+    return AddPayloadOctets(1, value);
+  }
+  bool AddPayloadOctets2(const uint16_t value) {
+    return AddPayloadOctets(2, value);
+  }
+  bool AddPayloadOctets3(const uint32_t value) {
+    return AddPayloadOctets(3, value);
+  }
+  bool AddPayloadOctets4(const uint32_t value) {
+    return AddPayloadOctets(4, value);
+  }
+  bool AddPayloadOctets6(const uint64_t value) {
+    return AddPayloadOctets(6, value);
+  }
+  bool AddPayloadOctets8(const uint64_t value) {
+    return AddPayloadOctets(8, value);
+  }
+
+ protected:
+  // Constructs an empty packet of type |type| and header |header|
+  Packet(serial_data_type_t type, vector<uint8_t> header);
+
+  bool IncrementPayloadCounter(const size_t index);
+  bool IncrementPayloadCounter(const size_t index, const uint8_t max_val);
+
+ private:
+  const size_t kMaxPacketOctets = 256;  // Includes the Octet count
+
+  // Underlying containers for storing the actual packet
 
   // The packet type is one of DATA_TYPE_ACL, DATA_TYPE_COMMAND,
   // DATA_TYPE_EVENT, or DATA_TYPE_SCO.
   serial_data_type_t type_;
+
+  vector<uint8_t> header_;
+
+  vector<uint8_t> payload_;
 };
 
 }  // namespace test_vendor_lib
