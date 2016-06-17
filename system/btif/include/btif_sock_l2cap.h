@@ -9,10 +9,6 @@
 
 #include <hardware/bluetooth.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define L2CAP_MASK_FIXED_CHANNEL    0x10000
 #define L2CAP_MASK_LE_COC_CHANNEL   0x20000
 
@@ -24,9 +20,5 @@ bt_status_t btsock_l2cap_connect(const bt_bdaddr_t *bd_addr,
                                int channel, int* sock_fd, int flags, int app_uid);
 void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id);
 void on_l2cap_psm_assigned(int id, int psm);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

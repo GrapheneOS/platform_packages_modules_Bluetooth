@@ -29,10 +29,6 @@
 #include "bt_types.h"
 #include "bta_api.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
 **  Constants & Macros
 ********************************************************************************/
@@ -202,8 +198,6 @@ typedef struct
 **  Functions
 ********************************************************************************/
 
-bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_params,
-                                    int param_len, tBTIF_COPY_CBACK *p_copy_cback);
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void);
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id);
 bt_status_t btif_disable_service(tBTA_SERVICE_ID service_id);
@@ -217,6 +211,23 @@ void btif_disable_bluetooth_evt(void);
 void btif_adapter_properties_evt(bt_status_t status, uint32_t num_props, bt_property_t *p_props);
 void btif_remote_properties_evt(bt_status_t status, bt_bdaddr_t *remote_addr,
                                    uint32_t num_props, bt_property_t *p_props);
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void bte_load_did_conf(const char *p_path);
+void bte_main_boot_entry(void);
+void bte_main_disable(void);
+void bte_main_cleanup(void);
+#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
+void bte_main_enable_lpm(BOOLEAN enable);
+#endif
+void bte_main_postload_cfg(void);
+
+bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_params,
+                                    int param_len, tBTIF_COPY_CBACK *p_copy_cback);
 
 void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);
 
