@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
+#if (BTA_HH_INCLUDED == TRUE)
 
 #include <string.h>
 
@@ -52,7 +52,7 @@ enum
     BTA_HH_MAINT_DEV_ACT,
     BTA_HH_OPEN_CMPL_ACT,
     BTA_HH_OPEN_FAILURE,
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     BTA_HH_GATT_CLOSE,
     BTA_HH_LE_OPEN_FAIL,
     BTA_HH_GATT_OPEN,
@@ -91,7 +91,7 @@ const tBTA_HH_ACTION bta_hh_action[] =
     bta_hh_maint_dev_act,
     bta_hh_open_cmpl_act,
     bta_hh_open_failure
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     ,bta_hh_gatt_close
     ,bta_hh_le_open_fail
     ,bta_hh_gatt_open
@@ -114,7 +114,7 @@ const tBTA_HH_ACTION bta_hh_action[] =
 #define BTA_HH_NUM_COLS                 2       /* number of columns */
 
 /* state table for idle state */
-const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
+const uint8_t bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 {
 /* Event                          Action                    Next state */
 /* BTA_HH_API_OPEN_EVT      */    {BTA_HH_START_SDP,     BTA_HH_W4_CONN_ST },
@@ -129,7 +129,7 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_IDLE_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
 /* BTA_HH_OPEN_CMPL_EVT        */  {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */   ,{BTA_HH_IGNORE,         BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_GATT_OPEN,      BTA_HH_W4_CONN_ST }
 /* BTA_HH_START_ENC_EVT    */    ,{BTA_HH_IGNORE,         BTA_HH_IDLE_ST    }
@@ -144,7 +144,7 @@ const UINT8 bta_hh_st_idle[][BTA_HH_NUM_COLS] =
 };
 
 
-const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
+const uint8_t bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 {
 /* Event                          Action                 Next state */
 /* BTA_HH_API_OPEN_EVT      */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
@@ -159,7 +159,7 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_IGNORE,        BTA_HH_W4_CONN_ST },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_IDLE_ST    },
 /* BTA_HH_OPEN_CMPL_EVT     */    {BTA_HH_OPEN_CMPL_ACT, BTA_HH_CONN_ST    }
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */   ,{BTA_HH_LE_OPEN_FAIL,  BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_GATT_OPEN,     BTA_HH_W4_CONN_ST }
 /* BTA_HH_START_ENC_EVT    */    ,{BTA_HH_START_SEC,     BTA_HH_W4_SEC     }
@@ -173,7 +173,7 @@ const UINT8 bta_hh_st_w4_conn[][BTA_HH_NUM_COLS] =
 };
 
 
-const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
+const uint8_t bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 {
 /* Event                          Action                 Next state */
 /* BTA_HH_API_OPEN_EVT      */    {BTA_HH_IGNORE,        BTA_HH_CONN_ST    },
@@ -188,7 +188,7 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* BTA_HH_API_GET_DSCP_EVT  */    {BTA_HH_GET_DSCP_ACT,  BTA_HH_CONN_ST    },
 /* BTA_HH_API_MAINT_DEV_EVT */    {BTA_HH_MAINT_DEV_ACT, BTA_HH_CONN_ST    },
 /* BTA_HH_OPEN_CMPL_EVT        */    {BTA_HH_IGNORE,         BTA_HH_CONN_ST    }
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 /* BTA_HH_GATT_CLOSE_EVT    */    ,{BTA_HH_GATT_CLOSE,    BTA_HH_IDLE_ST    }
 /* BTA_HH_GATT_OPEN_EVT    */    ,{BTA_HH_IGNORE,        BTA_HH_CONN_ST    }
 /* BTA_HH_START_ENC_EVT    */    ,{BTA_HH_IGNORE,        BTA_HH_CONN_ST     }
@@ -200,8 +200,8 @@ const UINT8 bta_hh_st_connected[][BTA_HH_NUM_COLS] =
 /* BTA_HH_GATT_ENC_CMPL_EVT */   ,{BTA_HH_IGNORE,        BTA_HH_CONN_ST     }
 #endif
 };
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
-const UINT8 bta_hh_st_w4_sec[][BTA_HH_NUM_COLS] =
+#if (BTA_HH_LE_INCLUDED == TRUE)
+const uint8_t bta_hh_st_w4_sec[][BTA_HH_NUM_COLS] =
 {
 /* Event                          Action                 Next state */
 /* BTA_HH_API_OPEN_EVT      */    {BTA_HH_IGNORE,        BTA_HH_W4_SEC  },
@@ -229,7 +229,7 @@ const UINT8 bta_hh_st_w4_sec[][BTA_HH_NUM_COLS] =
 #endif
 
 /* type for state table */
-typedef const UINT8 (*tBTA_HH_ST_TBL)[BTA_HH_NUM_COLS];
+typedef const uint8_t (*tBTA_HH_ST_TBL)[BTA_HH_NUM_COLS];
 
 /* state table */
 const tBTA_HH_ST_TBL bta_hh_st_tbl[] =
@@ -237,7 +237,7 @@ const tBTA_HH_ST_TBL bta_hh_st_tbl[] =
     bta_hh_st_idle,
     bta_hh_st_w4_conn,
     bta_hh_st_connected
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     ,bta_hh_st_w4_sec
 #endif
 };
@@ -245,13 +245,13 @@ const tBTA_HH_ST_TBL bta_hh_st_tbl[] =
 /*****************************************************************************
 ** Global data
 *****************************************************************************/
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_HH_CB  bta_hh_cb;
 #endif
 /*****************************************************************************
 ** Static functions
 *****************************************************************************/
-#if BTA_HH_DEBUG == TRUE
+#if (BTA_HH_DEBUG == TRUE)
 static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code);
 static const char *bta_hh_state_code(tBTA_HH_STATE state_code);
 #endif
@@ -266,15 +266,15 @@ static const char *bta_hh_state_code(tBTA_HH_STATE state_code);
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data)
+void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, uint16_t event, tBTA_HH_DATA * p_data)
 {
     tBTA_HH_ST_TBL  state_table;
-    UINT8           action;
+    uint8_t           action;
     tBTA_HH         cback_data;
     tBTA_HH_EVT     cback_event = 0;
-#if BTA_HH_DEBUG == TRUE
+#if (BTA_HH_DEBUG == TRUE)
     tBTA_HH_STATE   in_state ;
-    UINT16          debug_event = event;
+    uint16_t          debug_event = event;
 #endif
 
     memset(&cback_data, 0, sizeof(tBTA_HH));
@@ -308,7 +308,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                 else
                 {
                     cback_data.dev_info.status    = BTA_HH_ERR_HDL;
-                    cback_data.dev_info.handle    = (UINT8)p_data->api_maintdev.hdr.layer_specific;
+                    cback_data.dev_info.handle    = (uint8_t)p_data->api_maintdev.hdr.layer_specific;
                 }
                 break;
             case BTA_HH_API_WRITE_DEV_EVT:
@@ -320,12 +320,12 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                     p_data->api_sndcmd.t_type == HID_TRANS_SET_IDLE)
                 {
                     cback_data.dev_status.status = BTA_HH_ERR_HDL;
-                    cback_data.dev_status.handle = (UINT8)p_data->api_sndcmd.hdr.layer_specific;
+                    cback_data.dev_status.handle = (uint8_t)p_data->api_sndcmd.hdr.layer_specific;
                 }
                 else if (p_data->api_sndcmd.t_type != HID_TRANS_DATA &&
                     p_data->api_sndcmd.t_type != HID_TRANS_CONTROL)
                 {
-                    cback_data.hs_data.handle = (UINT8)p_data->api_sndcmd.hdr.layer_specific;
+                    cback_data.hs_data.handle = (uint8_t)p_data->api_sndcmd.hdr.layer_specific;
                     cback_data.hs_data.status = BTA_HH_ERR_HDL;
                     /* hs_data.rsp_data will be all zero, which is not valid value */
                 }
@@ -343,7 +343,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
                 cback_event = BTA_HH_CLOSE_EVT;
 
                 cback_data.dev_status.status = BTA_HH_ERR_HDL;
-                cback_data.dev_status.handle = (UINT8)p_data->api_sndcmd.hdr.layer_specific;
+                cback_data.dev_status.handle = (uint8_t)p_data->api_sndcmd.hdr.layer_specific;
                 break;
 
             default:
@@ -361,7 +361,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
     /* corresponding CB is found, go to state machine */
     else
     {
-#if BTA_HH_DEBUG == TRUE
+#if (BTA_HH_DEBUG == TRUE)
         in_state = p_cb->state;
         APPL_TRACE_EVENT("bta_hh_sm_execute: State 0x%02x [%s], Event [%s]",
                           in_state, bta_hh_state_code(in_state),
@@ -385,7 +385,7 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
             (*bta_hh_action[action])(p_cb, p_data);
         }
 
-#if BTA_HH_DEBUG == TRUE
+#if (BTA_HH_DEBUG == TRUE)
         if (in_state != p_cb->state)
         {
             APPL_TRACE_DEBUG("HH State Change: [%s] -> [%s] after Event [%s]",
@@ -408,9 +408,9 @@ void bta_hh_sm_execute(tBTA_HH_DEV_CB *p_cb, UINT16 event, tBTA_HH_DATA * p_data
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
+bool bta_hh_hdl_event(BT_HDR *p_msg)
 {
-    UINT8           index = BTA_HH_IDX_INVALID;
+    uint8_t           index = BTA_HH_IDX_INVALID;
     tBTA_HH_DEV_CB *p_cb = NULL;
 
     switch (p_msg->event)
@@ -443,15 +443,15 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                 }
                 else /* else remove device by handle */
                 {
-                    index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
+                    index = bta_hh_dev_handle_to_cb_idx((uint8_t)p_msg->layer_specific);
                     /* If BT disable is done while the HID device is connected and Link_Key uses unauthenticated combination
                       * then we can get into a situation where remove_bonding is called with the index set to 0 (without getting
                       * cleaned up). Only when VIRTUAL_UNPLUG is called do we cleanup the index and make it MAX_KNOWN.
-                      * So if REMOVE_DEVICE is called and in_use is FALSE then we should treat this as a NULL p_cb. Hence we
+                      * So if REMOVE_DEVICE is called and in_use is false then we should treat this as a NULL p_cb. Hence we
                       * force the index to be IDX_INVALID
                       */
                     if ((index != BTA_HH_IDX_INVALID) &&
-                        (bta_hh_cb.kdev[index].in_use == FALSE)) {
+                        (bta_hh_cb.kdev[index].in_use == false)) {
                         index = BTA_HH_IDX_INVALID;
                     }
                 }
@@ -461,23 +461,23 @@ BOOLEAN bta_hh_hdl_event(BT_HDR *p_msg)
                 index = bta_hh_find_cb(((tBTA_HH_CBACK_DATA *)p_msg)->addr);
             }
             else
-                index = bta_hh_dev_handle_to_cb_idx((UINT8)p_msg->layer_specific);
+                index = bta_hh_dev_handle_to_cb_idx((uint8_t)p_msg->layer_specific);
 
             if (index != BTA_HH_IDX_INVALID)
                 p_cb = &bta_hh_cb.kdev[index];
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
             APPL_TRACE_DEBUG("bta_hh_hdl_event:: handle = %d dev_cb[%d] ", p_msg->layer_specific, index);
 #endif
             bta_hh_sm_execute(p_cb, p_msg->event, (tBTA_HH_DATA *) p_msg);
     }
-    return (TRUE);
+    return (true);
 }
 
 /*****************************************************************************
 **  Debug Functions
 *****************************************************************************/
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_hh_evt_code
@@ -521,7 +521,7 @@ static const char *bta_hh_evt_code(tBTA_HH_INT_EVT evt_code)
         return "BTA_HH_API_GET_DSCP_EVT";
     case BTA_HH_OPEN_CMPL_EVT:
         return "BTA_HH_OPEN_CMPL_EVT";
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     case BTA_HH_GATT_CLOSE_EVT:
         return "BTA_HH_GATT_CLOSE_EVT";
     case BTA_HH_GATT_OPEN_EVT:
@@ -565,7 +565,7 @@ static const char *bta_hh_state_code(tBTA_HH_STATE state_code)
         return "BTA_HH_W4_CONN_ST";
     case BTA_HH_CONN_ST:
         return "BTA_HH_CONN_ST";
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     case BTA_HH_W4_SEC:
         return "BTA_HH_W4_SEC";
 #endif

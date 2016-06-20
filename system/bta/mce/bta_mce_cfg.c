@@ -32,7 +32,7 @@
 #define BTA_MCE_SDP_DB_SIZE  4500
 #endif
 
-static UINT8 __attribute__ ((aligned(4))) bta_mce_sdp_db_data[BTA_MCE_SDP_DB_SIZE];
+static uint8_t __attribute__ ((aligned(4))) bta_mce_sdp_db_data[BTA_MCE_SDP_DB_SIZE];
 
 /* MCE configuration structure */
 const tBTA_MCE_CFG bta_mce_cfg =

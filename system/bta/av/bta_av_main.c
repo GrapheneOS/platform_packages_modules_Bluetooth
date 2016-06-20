@@ -30,14 +30,14 @@
 #include "bt_target.h"
 #include "osi/include/log.h"
 
-#if defined(BTA_AV_INCLUDED) && (BTA_AV_INCLUDED == TRUE)
+#if (BTA_AV_INCLUDED == TRUE)
 #include "bta_av_co.h"
 #include "bta_av_int.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "utl.h"
 
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
 #endif
 
@@ -115,7 +115,7 @@ const tBTA_AV_ACTION bta_av_action[] =
 #define BTA_AV_NUM_COLS             2       /* number of columns in state tables */
 
 /* state table for init state */
-static const UINT8 bta_av_st_init[][BTA_AV_NUM_COLS] =
+static const uint8_t bta_av_st_init[][BTA_AV_NUM_COLS] =
 {
 /* Event                     Action 1               Next state */
 /* API_DISABLE_EVT */       {BTA_AV_DISABLE,        BTA_AV_INIT_ST },
@@ -130,7 +130,7 @@ static const UINT8 bta_av_st_init[][BTA_AV_NUM_COLS] =
 };
 
 /* state table for open state */
-static const UINT8 bta_av_st_open[][BTA_AV_NUM_COLS] =
+static const uint8_t bta_av_st_open[][BTA_AV_NUM_COLS] =
 {
 /* Event                     Action 1               Next state */
 /* API_DISABLE_EVT */       {BTA_AV_DISABLE,        BTA_AV_INIT_ST },
@@ -145,7 +145,7 @@ static const UINT8 bta_av_st_open[][BTA_AV_NUM_COLS] =
 };
 
 /* type for state table */
-typedef const UINT8 (*tBTA_AV_ST_TBL)[BTA_AV_NUM_COLS];
+typedef const uint8_t (*tBTA_AV_ST_TBL)[BTA_AV_NUM_COLS];
 
 /* state table */
 static const tBTA_AV_ST_TBL bta_av_st_tbl[] =
@@ -166,9 +166,9 @@ static void bta_av_rpc_conn(tBTA_AV_DATA *p_data);
 #endif
 static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data);
 
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t
                                  app_id, BD_ADDR peer_addr);
-static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
+static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
 
 /* action functions */
 const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
@@ -199,12 +199,12 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
 *****************************************************************************/
 
 /* AV control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_AV_CB  bta_av_cb;
 #endif
 
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
-static char *bta_av_st_code(UINT8 state);
+#if (BTA_AV_DEBUG == TRUE)
+static char *bta_av_st_code(uint8_t state);
 #endif
 
 /*******************************************************************************
@@ -290,11 +290,11 @@ static tBTA_AV_SCB * bta_av_addr_to_scb(BD_ADDR bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-tBTA_AV_SCB * bta_av_hndl_to_scb(UINT16 handle)
+tBTA_AV_SCB * bta_av_hndl_to_scb(uint16_t handle)
 {
     tBTA_AV_HNDL hndl = (tBTA_AV_HNDL)handle;
     tBTA_AV_SCB * p_scb = NULL;
-    UINT8 idx = (hndl & BTA_AV_HNDL_MSK);
+    uint8_t idx = (hndl & BTA_AV_HNDL_MSK);
 
     if(idx && (idx <= BTA_AV_NUM_STRS) )
     {
@@ -367,13 +367,13 @@ static tBTA_AV_SCB * bta_av_alloc_scb(tBTA_AV_CHNL chnl)
 
 /*******************************************************************************
 *******************************************************************************/
-void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data)
+void bta_av_conn_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
-    UINT16  evt = 0;
+    uint16_t  evt = 0;
     tBTA_AV_SCB *p_scb = NULL;
     UNUSED(handle);
 
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
     if (event == BTA_AR_AVDT_CONN_EVT ||
         event == AVDT_CONNECT_IND_EVT || event == AVDT_DISCONNECT_IND_EVT)
 #else
@@ -383,7 +383,7 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
         evt = BTA_AV_SIG_CHG_EVT;
         if(AVDT_DISCONNECT_IND_EVT == event)
             p_scb = bta_av_addr_to_scb(bd_addr);
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
         else if (AVDT_CONNECT_IND_EVT == event)
         {
             APPL_TRACE_DEBUG("CONN_IND is ACP:%d", p_data->hdr.err_param);
@@ -396,7 +396,7 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
         p_msg->hdr.layer_specific = event;
         p_msg->hdr.offset = p_data->hdr.err_param;
         bdcpy(p_msg->bd_addr, bd_addr);
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
         if(p_scb) {
             APPL_TRACE_DEBUG("scb hndl x%x, role x%x", p_scb->hndl, p_scb->role);
         }
@@ -409,7 +409,7 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
     }
 }
 
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_av_a2dp_report_cback
@@ -419,7 +419,7 @@ void bta_av_conn_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_a2dp_report_cback(UINT8 handle, AVDT_REPORT_TYPE type,
+static void bta_av_a2dp_report_cback(uint8_t handle, AVDT_REPORT_TYPE type,
                                     tAVDT_REPORT_DATA *p_data)
 {
     UNUSED(handle);
@@ -443,7 +443,7 @@ static void bta_av_a2dp_report_cback(UINT8 handle, AVDT_REPORT_TYPE type,
 
 static void bta_av_api_sink_enable(tBTA_AV_DATA *p_data)
 {
-    UINT16 activate_sink = 0;
+    uint16_t activate_sink = 0;
     activate_sink = p_data->hdr.layer_specific;
     APPL_TRACE_DEBUG("bta_av_api_sink_enable %d ", activate_sink)
     char p_service_name[BTA_SERVICE_NAME_LEN+1];
@@ -492,7 +492,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
     char            *p_service_name;
     tBTA_AV_CODEC   codec_type;
     tBTA_UTL_COD    cod;
-    UINT8           index = 0;
+    uint8_t           index = 0;
 
     memset(&cs,0,sizeof(tAVDT_CS));
 
@@ -500,7 +500,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
     registr.app_id = p_data->api_reg.app_id;
     registr.chnl   = (tBTA_AV_CHNL)p_data->hdr.layer_specific;
 
-    UINT16 profile_initialized = p_data->api_reg.service_uuid;
+    uint16_t profile_initialized = p_data->api_reg.service_uuid;
     if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK)
     {
         p_bta_av_cfg  = (tBTA_AV_CFG *) &bta_avk_cfg;
@@ -533,7 +533,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             reg.sig_tout = BTA_AV_SIG_TOUT;
             reg.idle_tout = BTA_AV_IDLE_TOUT;
             reg.sec_mask = bta_av_cb.sec_mask;
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
             bta_ar_reg_avdt(&reg, bta_av_conn_cback, BTA_ID_AV);
 #endif
             bta_sys_role_chg_register(&bta_av_sys_rs_cback);
@@ -542,13 +542,13 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             if (bta_av_cb.features & (BTA_AV_FEAT_RCTG))
             {
                 /* register with no authorization; let AVDTP use authorization instead */
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
 #if (BTA_AV_WITH_AVCTP_AUTHORIZATION == TRUE)
                 bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                 bta_av_cb.sec_mask, BTA_ID_AV);
 #else
                 bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
-                                (UINT8)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
+                                (uint8_t)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
                 if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE)
                 {
@@ -597,9 +597,9 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             p_service_name = p_data->api_reg.p_service_name;
         }
 
-        p_scb->suspend_sup  = TRUE;
-        p_scb->recfg_sup    = TRUE;
-        p_scb->skip_sdp     = FALSE;
+        p_scb->suspend_sup  = true;
+        p_scb->recfg_sup    = true;
+        p_scb->skip_sdp     = false;
 
         cs.p_ctrl_cback  = bta_av_dt_cback[p_scb->hdi];
         if(registr.chnl == BTA_AV_CHNL_AUDIO)
@@ -612,12 +612,12 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             cs.media_type    = AVDT_MEDIA_AUDIO;
             cs.mtu           = p_bta_av_cfg->audio_mtu;
             cs.flush_to      = L2CAP_DEFAULT_FLUSH_TO;
-#if AVDT_REPORTING == TRUE
+#if (AVDT_REPORTING == TRUE)
             if(bta_av_cb.features & BTA_AV_FEAT_REPORT)
             {
                 cs.cfg.psc_mask |= AVDT_PSC_REPORT;
                 cs.p_report_cback = bta_av_a2dp_report_cback;
-#if AVDT_MULTIPLEXING == TRUE
+#if (AVDT_MULTIPLEXING == TRUE)
                 cs.cfg.mux_tsid_report = 2;
 #endif
             }
@@ -646,7 +646,7 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
             /* keep the configuration in the stream control block */
             memcpy(&p_scb->cfg, &cs.cfg, sizeof(tAVDT_CFG));
             if ((*bta_av_a2d_cos.init)(&codec_type, cs.cfg.codec_info,
-                &cs.cfg.num_protect, cs.cfg.protect_info, index) == TRUE)
+                &cs.cfg.num_protect, cs.cfg.protect_info, index) == true)
             {
                 if(AVDT_CreateStream(&p_scb->seps[index].av_handle, &cs) == AVDT_SUCCESS)
                 {
@@ -693,18 +693,18 @@ static void bta_av_api_register(tBTA_AV_DATA *p_data)
                     /* if TG is not supported, we need to register to AVCT now */
                     if ((bta_av_cb.features & (BTA_AV_FEAT_RCTG)) == 0)
                     {
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
 #if (BTA_AV_WITH_AVCTP_AUTHORIZATION == TRUE)
                         bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
                                         bta_av_cb.sec_mask, BTA_ID_AV);
 #else
                         bta_ar_reg_avct(p_bta_av_cfg->avrc_mtu, p_bta_av_cfg->avrc_br_mtu,
-                                        (UINT8)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
+                                        (uint8_t)(bta_av_cb.sec_mask & (~BTA_SEC_AUTHORIZE)), BTA_ID_AV);
 #endif
 #endif
                         bta_av_rc_create(&bta_av_cb, AVCT_ACP, 0, BTA_AV_NUM_LINKS + 1);
                     }
-#if( defined BTA_AR_INCLUDED ) && (BTA_AR_INCLUDED == TRUE)
+#if (BTA_AR_INCLUDED == TRUE)
                     /* create an SDP record as AVRC CT. We create 1.3 for SOURCE
                      * because we rely on feature bits being scanned by external
                      * devices more than the profile version itself.
@@ -752,7 +752,7 @@ void bta_av_api_deregister(tBTA_AV_DATA *p_data)
 
     if(p_scb)
     {
-        p_scb->deregistring = TRUE;
+        p_scb->deregistring = true;
         bta_av_ssm_execute(p_scb, BTA_AV_API_CLOSE_EVT, p_data);
     }
     else
@@ -775,7 +775,7 @@ static void bta_av_ci_data(tBTA_AV_DATA *p_data)
 {
     tBTA_AV_SCB *p_scb;
     int     i;
-    UINT8   chnl = (UINT8)p_data->hdr.layer_specific;
+    uint8_t   chnl = (uint8_t)p_data->hdr.layer_specific;
 
     for( i=0; i < BTA_AV_NUM_STRS; i++ )
     {
@@ -817,7 +817,7 @@ static void bta_av_rpc_conn(tBTA_AV_DATA *p_data)
 static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data)
 {
     int xx;
-    UINT16 event = p_data->hdr.event - BTA_AV_FIRST_A2S_API_EVT + BTA_AV_FIRST_A2S_SSM_EVT;
+    uint16_t event = p_data->hdr.event - BTA_AV_FIRST_A2S_API_EVT + BTA_AV_FIRST_A2S_SSM_EVT;
 
     for(xx=0; xx<BTA_AV_NUM_STRS; xx++)
     {
@@ -832,12 +832,12 @@ static void bta_av_api_to_ssm(tBTA_AV_DATA *p_data)
 ** Description      if this is audio channel, check if more than one audio
 **                  channel is connected & already started.
 **
-** Returns          TRUE, if need api_start
+** Returns          true, if need api_start
 **
 *******************************************************************************/
-BOOLEAN bta_av_chk_start(tBTA_AV_SCB *p_scb)
+bool bta_av_chk_start(tBTA_AV_SCB *p_scb)
 {
-    BOOLEAN start = FALSE;
+    bool start = false;
     tBTA_AV_SCB *p_scbi;
     int i;
 
@@ -854,7 +854,7 @@ BOOLEAN bta_av_chk_start(tBTA_AV_SCB *p_scb)
                 p_scbi = bta_av_cb.p_scb[i];
                 if(p_scbi && p_scbi->chnl == BTA_AV_CHNL_AUDIO && p_scbi->co_started)
                 {
-                    start = TRUE;
+                    start = true;
                     /* may need to update the flush timeout of this already started stream */
                     if(p_scbi->co_started != bta_av_cb.audio_open_cnt)
                     {
@@ -882,7 +882,7 @@ void bta_av_restore_switch (void)
 {
     tBTA_AV_CB   *p_cb = &bta_av_cb;
     int     i;
-    UINT8   mask;
+    uint8_t   mask;
 
     APPL_TRACE_DEBUG("reg_audio: 0x%x",bta_av_cb.reg_audio);
     for(i=0; i<BTA_AV_NUM_STRS; i++)
@@ -908,12 +908,12 @@ void bta_av_restore_switch (void)
 ** Returns          (BTA_SYS_ROLE_CHANGE, new_role, hci_status, p_bda)
 **
 *******************************************************************************/
-static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     int         i;
     tBTA_AV_SCB *p_scb = NULL;
-    UINT8       cur_role;
-    UINT8       peer_idx = 0;
+    uint8_t       cur_role;
+    uint8_t       peer_idx = 0;
     UNUSED(status);
 
     APPL_TRACE_DEBUG("bta_av_sys_rs_cback: %d", bta_av_cb.rs_idx);
@@ -987,7 +987,7 @@ static void bta_av_sys_rs_cback (tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
+static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, uint8_t id, uint8_t
                                  app_id, BD_ADDR peer_addr)
 {
     tBTA_AV_SCB *p_scb;
@@ -999,27 +999,27 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
     APPL_TRACE_DEBUG("bta_av_sco_chg_cback:%d status:%d", id, status);
     if(id)
     {
-        bta_av_cb.sco_occupied = TRUE;
+        bta_av_cb.sco_occupied = true;
 
         /* either BTA_SYS_SCO_OPEN or BTA_SYS_SCO_CLOSE with remaining active SCO */
         for(i=0; i<BTA_AV_NUM_STRS; i++)
         {
             p_scb = bta_av_cb.p_scb[i];
 
-            if( p_scb && p_scb->co_started && (p_scb->sco_suspend == FALSE))
+            if( p_scb && p_scb->co_started && (p_scb->sco_suspend == false))
             {
                 APPL_TRACE_DEBUG("suspending scb:%d", i);
                 /* scb is used and started, not suspended automatically */
-                p_scb->sco_suspend = TRUE;
-                stop.flush   = FALSE;
-                stop.suspend = TRUE;
+                p_scb->sco_suspend = true;
+                stop.flush   = false;
+                stop.suspend = true;
                 bta_av_ssm_execute(p_scb, BTA_AV_AP_STOP_EVT, (tBTA_AV_DATA *)&stop);
             }
         }
     }
     else
     {
-        bta_av_cb.sco_occupied = FALSE;
+        bta_av_cb.sco_occupied = false;
 
         for(i=0; i<BTA_AV_NUM_STRS; i++)
         {
@@ -1042,16 +1042,16 @@ static void bta_av_sco_chg_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8
 **                  channel that is local as slave role.
 **                  If so, role switch and remove it from link policy.
 **
-** Returns          TRUE, if role switch is done
+** Returns          true, if role switch is done
 **
 *******************************************************************************/
-BOOLEAN bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
+bool bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
 {
-    UINT8 role;
-    BOOLEAN needed = FALSE;
+    uint8_t role;
+    bool needed = false;
     tBTA_AV_SCB *p_scbi;
     int i;
-    UINT8       mask;
+    uint8_t       mask;
 
     for(i=0; i<BTA_AV_NUM_STRS; i++)
     {
@@ -1075,7 +1075,7 @@ BOOLEAN bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
                                         BTA_AV_RS_TIME_VAL,
                                         BTA_AV_AVRC_TIMER_EVT, p_scb->hndl);
                 }
-                needed = TRUE;
+                needed = true;
                 /* mark the original channel as waiting for RS result */
                 bta_av_cb.rs_idx = p_scb->hdi + 1;
                 break;
@@ -1092,13 +1092,13 @@ BOOLEAN bta_av_switch_if_needed(tBTA_AV_SCB *p_scb)
 ** Description      This function checks if the SCB has existing ACL connection
 **                  If so, check if the link role fits the requirements.
 **
-** Returns          TRUE, if role is ok
+** Returns          true, if role is ok
 **
 *******************************************************************************/
-BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
+bool bta_av_link_role_ok(tBTA_AV_SCB *p_scb, uint8_t bits)
 {
-    UINT8 role;
-    BOOLEAN is_ok = TRUE;
+    uint8_t role;
+    bool is_ok = true;
 
     if (BTM_GetRole(p_scb->peer_addr, &role) == BTM_SUCCESS)
     {
@@ -1114,7 +1114,7 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
             {
                 /* can not switch role on SCB - start the timer on SCB */
             }
-            is_ok = FALSE;
+            is_ok = false;
             p_scb->wait |= BTA_AV_WAIT_ROLE_SW_RES_START;
 
         }
@@ -1133,12 +1133,12 @@ BOOLEAN bta_av_link_role_ok(tBTA_AV_SCB *p_scb, UINT8 bits)
 ** Returns          The smallest mtu of the connected audio channels
 **
 *******************************************************************************/
-UINT16 bta_av_chk_mtu(tBTA_AV_SCB *p_scb, UINT16 mtu)
+uint16_t bta_av_chk_mtu(tBTA_AV_SCB *p_scb, uint16_t mtu)
 {
-    UINT16 ret_mtu = BTA_AV_MAX_A2DP_MTU;
+    uint16_t ret_mtu = BTA_AV_MAX_A2DP_MTU;
     tBTA_AV_SCB *p_scbi;
     int i;
-    UINT8   mask;
+    uint8_t   mask;
     UNUSED(mtu);
 
     /* TODO_MV mess with the mtu according to the number of EDR/non-EDR headsets */
@@ -1184,7 +1184,7 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
     if ((p_buf == NULL) || (bta_av_cb.audio_open_cnt < 2))
         return;
 
-    UINT16 copy_size = BT_HDR_SIZE + p_buf->len + p_buf->offset;
+    uint16_t copy_size = BT_HDR_SIZE + p_buf->len + p_buf->offset;
     for (int i = 0; i < BTA_AV_NUM_STRS; i++) {
         tBTA_AV_SCB *p_scbi = bta_av_cb.p_scb[i];
 
@@ -1220,12 +1220,12 @@ void bta_av_dup_audio_buf(tBTA_AV_SCB *p_scb, BT_HDR *p_buf)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_av_sm_execute(tBTA_AV_CB *p_cb, UINT16 event, tBTA_AV_DATA *p_data)
+void bta_av_sm_execute(tBTA_AV_CB *p_cb, uint16_t event, tBTA_AV_DATA *p_data)
 {
     tBTA_AV_ST_TBL      state_table;
-    UINT8               action;
+    uint8_t               action;
 
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
     APPL_TRACE_EVENT("AV event=0x%x(%s) state=%d(%s)",
         event, bta_av_evt_code(event), p_cb->state, bta_av_st_code(p_cb->state));
 #else
@@ -1255,22 +1255,22 @@ void bta_av_sm_execute(tBTA_AV_CB *p_cb, UINT16 event, tBTA_AV_DATA *p_data)
 ** Description      Advanced audio/video main event handling function.
 **
 **
-** Returns          BOOLEAN
+** Returns          bool
 **
 *******************************************************************************/
-BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
+bool bta_av_hdl_event(BT_HDR *p_msg)
 {
-    UINT16 event = p_msg->event;
-    UINT16 first_event = BTA_AV_FIRST_NSM_EVT;
+    uint16_t event = p_msg->event;
+    uint16_t first_event = BTA_AV_FIRST_NSM_EVT;
 
     if (event > BTA_AV_LAST_EVT)
     {
-        return TRUE; /* to free p_msg */
+        return true; /* to free p_msg */
     }
 
     if(event >= first_event)
     {
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
         APPL_TRACE_VERBOSE("AV nsm event=0x%x(%s)", event, bta_av_evt_code(event));
 #else
         APPL_TRACE_VERBOSE("AV nsm event=0x%x", event);
@@ -1280,7 +1280,7 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
     }
     else if (event >= BTA_AV_FIRST_SM_EVT && event <= BTA_AV_LAST_SM_EVT)
     {
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
         APPL_TRACE_VERBOSE("AV sm event=0x%x(%s)", event, bta_av_evt_code(event));
 #else
         APPL_TRACE_VERBOSE("AV sm event=0x%x", event);
@@ -1295,13 +1295,13 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
         bta_av_ssm_execute( bta_av_hndl_to_scb(p_msg->layer_specific),
                                 p_msg->event, (tBTA_AV_DATA *) p_msg);
     }
-    return TRUE;
+    return true;
 }
 
 /*****************************************************************************
 **  Debug Functions
 *****************************************************************************/
-#if (defined(BTA_AV_DEBUG) && BTA_AV_DEBUG == TRUE)
+#if (BTA_AV_DEBUG == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_av_st_code
@@ -1311,7 +1311,7 @@ BOOLEAN bta_av_hdl_event(BT_HDR *p_msg)
 ** Returns          char *
 **
 *******************************************************************************/
-static char *bta_av_st_code(UINT8 state)
+static char *bta_av_st_code(uint8_t state)
 {
     switch(state)
     {
@@ -1329,7 +1329,7 @@ static char *bta_av_st_code(UINT8 state)
 ** Returns          char *
 **
 *******************************************************************************/
-char *bta_av_evt_code(UINT16 evt_code)
+char *bta_av_evt_code(uint16_t evt_code)
 {
     switch(evt_code)
     {

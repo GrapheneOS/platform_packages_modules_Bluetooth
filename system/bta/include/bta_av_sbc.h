@@ -50,8 +50,8 @@ extern "C" {
 ** Returns          none
 **
 *******************************************************************************/
-extern void bta_av_sbc_init_up_sample (UINT32 src_sps, UINT32 dst_sps,
-                                       UINT16 bits, UINT16 n_channels);
+extern void bta_av_sbc_init_up_sample (uint32_t src_sps, uint32_t dst_sps,
+                                       uint16_t bits, uint16_t n_channels);
 
 /*******************************************************************************
 **
@@ -79,8 +79,8 @@ extern void bta_av_sbc_init_up_sample (UINT32 src_sps, UINT32 dst_sps,
 **
 *******************************************************************************/
 extern int bta_av_sbc_up_sample (void *p_src, void *p_dst,
-                                 UINT32 src_samples, UINT32 dst_samples,
-                                 UINT32 *p_ret);
+                                 uint32_t src_samples, uint32_t dst_samples,
+                                 uint32_t *p_ret);
 
 /*******************************************************************************
 **
@@ -100,8 +100,8 @@ extern int bta_av_sbc_up_sample (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 extern int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
-                                 UINT32 src_samples, UINT32 dst_samples,
-                                 UINT32 *p_ret);
+                                 uint32_t src_samples, uint32_t dst_samples,
+                                 uint32_t *p_ret);
 
 /*******************************************************************************
 **
@@ -121,8 +121,8 @@ extern int bta_av_sbc_up_sample_16s (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 extern int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
-                                     UINT32 src_samples, UINT32 dst_samples,
-                                     UINT32 *p_ret);
+                                     uint32_t src_samples, uint32_t dst_samples,
+                                     uint32_t *p_ret);
 
 /*******************************************************************************
 **
@@ -142,8 +142,8 @@ extern int bta_av_sbc_up_sample_16m (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 extern int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
-                                 UINT32 src_samples, UINT32 dst_samples,
-                                 UINT32 *p_ret);
+                                 uint32_t src_samples, uint32_t dst_samples,
+                                 uint32_t *p_ret);
 
 /*******************************************************************************
 **
@@ -163,8 +163,8 @@ extern int bta_av_sbc_up_sample_8s (void *p_src, void *p_dst,
 **
 *******************************************************************************/
 extern int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
-                                     UINT32 src_samples, UINT32 dst_samples,
-                                     UINT32 *p_ret);
+                                     uint32_t src_samples, uint32_t dst_samples,
+                                     uint32_t *p_ret);
 
 /*******************************************************************************
 **
@@ -182,7 +182,7 @@ extern int bta_av_sbc_up_sample_8m (void *p_src, void *p_dst,
 **                  Codec configuration in p_cap.
 **
 *******************************************************************************/
-extern UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p_pref);
+extern uint8_t bta_av_sbc_cfg_for_cap(uint8_t *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC_CIE *p_pref);
 
 /*******************************************************************************
 **
@@ -194,7 +194,7 @@ extern UINT8 bta_av_sbc_cfg_for_cap(UINT8 *p_peer, tA2D_SBC_CIE *p_cap, tA2D_SBC
 ** Returns          0 if ok, nonzero if error.
 **
 *******************************************************************************/
-extern UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
+extern uint8_t bta_av_sbc_cfg_in_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap);
 
 /*******************************************************************************
 **
@@ -206,7 +206,7 @@ extern UINT8 bta_av_sbc_cfg_in_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
 ** Returns          0 if ok, nonzero if error.
 **
 *******************************************************************************/
-extern UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
+extern uint8_t bta_av_sbc_cfg_matches_cap(uint8_t *p_cfg, tA2D_SBC_CIE *p_cap);
 
 /*******************************************************************************
 **
@@ -217,7 +217,7 @@ extern UINT8 bta_av_sbc_cfg_matches_cap(UINT8 *p_cfg, tA2D_SBC_CIE *p_cap);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_av_sbc_bld_hdr(BT_HDR *p_buf, UINT16 fr_per_pkt);
+extern void bta_av_sbc_bld_hdr(BT_HDR *p_buf, uint16_t fr_per_pkt);
 
 #ifdef __cplusplus
 }

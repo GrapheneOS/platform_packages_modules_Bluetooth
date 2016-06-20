@@ -28,18 +28,18 @@
 typedef struct
 {
     const char  *p_cmd;         /* AT command string */
-    UINT8       arg_type;       /* allowable argument type syntax */
-    UINT8       fmt;            /* whether arg is int or string */
-    UINT8       min;            /* minimum value for int arg */
-    INT16       max;            /* maximum value for int arg */
+    uint8_t       arg_type;       /* allowable argument type syntax */
+    uint8_t       fmt;            /* whether arg is int or string */
+    uint8_t       min;            /* minimum value for int arg */
+    int16_t       max;            /* maximum value for int arg */
 } tBTA_AG_AT_CMD;
 
 /* callback function executed when command is parsed */
-typedef void (tBTA_AG_AT_CMD_CBACK)(void *p_user, UINT16 cmd, UINT8 arg_type,
-                                    char *p_arg, INT16 int_arg);
+typedef void (tBTA_AG_AT_CMD_CBACK)(void *p_user, uint16_t cmd, uint8_t arg_type,
+                                    char *p_arg, int16_t int_arg);
 
 /* callback function executed to send "ERROR" result code */
-typedef void (tBTA_AG_AT_ERR_CBACK)(void *p_user, BOOLEAN unknown, char *p_arg);
+typedef void (tBTA_AG_AT_ERR_CBACK)(void *p_user, bool unknown, char *p_arg);
 
 enum
 {
@@ -72,7 +72,7 @@ enum
     BTA_HF_CLIENT_AT_BINP,
 };
 
-typedef UINT8 tBTA_HF_CLIENT_AT_CMD;
+typedef uint8_t tBTA_HF_CLIENT_AT_CMD;
 
 /* Maximum combined buffer for received AT events string */
 #define BTA_HF_CLIENT_AT_PARSER_MAX_LEN        4096
@@ -81,7 +81,7 @@ typedef UINT8 tBTA_HF_CLIENT_AT_CMD;
 struct queued_at_cmd{
     tBTA_HF_CLIENT_AT_CMD cmd;
     char buf[BTA_HF_CLIENT_AT_MAX_LEN];
-    UINT16 buf_len;
+    uint16_t buf_len;
     struct queued_at_cmd *next;
 };
 typedef struct queued_at_cmd tBTA_HF_CLIENT_AT_QCMD;

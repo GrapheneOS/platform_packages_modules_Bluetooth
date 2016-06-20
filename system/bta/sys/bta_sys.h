@@ -37,10 +37,10 @@ extern "C" {
 *****************************************************************************/
 
 /* vendor specific event handler function type */
-typedef BOOLEAN (tBTA_SYS_VS_EVT_HDLR)(UINT16 evt, void *p);
+typedef bool (tBTA_SYS_VS_EVT_HDLR)(uint16_t evt, void *p);
 
 /* event handler function type */
-typedef BOOLEAN (tBTA_SYS_EVT_HDLR)(BT_HDR *p_msg);
+typedef bool (tBTA_SYS_EVT_HDLR)(BT_HDR *p_msg);
 
 /* disable function type */
 typedef void (tBTA_SYS_DISABLE)(void);
@@ -55,7 +55,7 @@ enum
     BTA_SYS_MAX_HW_MODULES
 };
 
-typedef UINT16 tBTA_SYS_HW_MODULE;
+typedef uint16_t tBTA_SYS_HW_MODULE;
 
 #ifndef BTA_DM_NUM_JV_ID
 #define BTA_DM_NUM_JV_ID    2
@@ -113,7 +113,7 @@ typedef UINT16 tBTA_SYS_HW_MODULE;
 
 #define BTA_ID_MAX          (44 + BTA_DM_NUM_JV_ID)
 
-typedef UINT8 tBTA_SYS_ID;
+typedef uint8_t tBTA_SYS_ID;
 
 
 #define BTA_SYS_CONN_OPEN           0x00
@@ -132,24 +132,24 @@ typedef UINT8 tBTA_SYS_ID;
 #define BTA_SYS_PLCY_DEF_CLR        0x13 /* clear the default link policy */
 #define BTA_SYS_ROLE_CHANGE         0x14 /* role change */
 
-typedef UINT8 tBTA_SYS_CONN_STATUS;
+typedef uint8_t tBTA_SYS_CONN_STATUS;
 
 /* Bitmask of sys features */
 #define BTA_SYS_FEAT_PCM2           0x0001
 #define BTA_SYS_FEAT_PCM2_MASTER    0x0002
 
 /* tBTA_PREF_ROLES */
-typedef UINT8 tBTA_SYS_PREF_ROLES;
+typedef uint8_t tBTA_SYS_PREF_ROLES;
 
 /* conn callback for role / low power manager*/
-typedef void (tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
+typedef void (tBTA_SYS_CONN_CBACK)(tBTA_SYS_CONN_STATUS status,uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
 
 /* conn callback for role / low power manager*/
-typedef void (tBTA_SYS_SSR_CFG_CBACK)(UINT8 id, UINT8 app_id, UINT16 latency, UINT16 tout);
+typedef void (tBTA_SYS_SSR_CFG_CBACK)(uint8_t id, uint8_t app_id, uint16_t latency, uint16_t tout);
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 /* eir callback for adding/removeing UUID */
-typedef void (tBTA_SYS_EIR_CBACK)(UINT16 uuid16, BOOLEAN adding);
+typedef void (tBTA_SYS_EIR_CBACK)(uint16_t uuid16, bool adding);
 #endif
 
 /* registration structure */
@@ -171,7 +171,7 @@ typedef struct
 *****************************************************************************/
 
 /* trace level */
-extern UINT8 appl_trace_level;
+extern uint8_t appl_trace_level;
 
 /*****************************************************************************
 **  Macros
@@ -210,7 +210,7 @@ enum
     BTA_SYS_HW_ERROR_EVT
 
 };
-typedef UINT8 tBTA_SYS_HW_EVT;
+typedef uint8_t tBTA_SYS_HW_EVT;
 
 /* HW enable callback type */
 typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
@@ -222,11 +222,11 @@ typedef void (tBTA_SYS_HW_CBACK)(tBTA_SYS_HW_EVT status);
 extern void bta_sys_init(void);
 extern void bta_sys_free(void);
 extern void bta_sys_event(BT_HDR *p_msg);
-extern void bta_sys_set_trace_level(UINT8 level);
-extern void bta_sys_register(UINT8 id, const tBTA_SYS_REG *p_reg);
-extern void bta_sys_deregister(UINT8 id);
-extern BOOLEAN bta_sys_is_register(UINT8 id);
-extern UINT16 bta_sys_get_sys_features(void);
+extern void bta_sys_set_trace_level(uint8_t level);
+extern void bta_sys_register(uint8_t id, const tBTA_SYS_REG *p_reg);
+extern void bta_sys_deregister(uint8_t id);
+extern bool bta_sys_is_register(uint8_t id);
+extern uint16_t bta_sys_get_sys_features(void);
 extern void bta_sys_sendmsg(void *p_msg);
 extern void bta_sys_start_timer(alarm_t *alarm, period_ms_t interval,
                                 uint16_t event, uint16_t layer_specific);
@@ -243,41 +243,41 @@ extern void bta_sys_policy_register(tBTA_SYS_CONN_CBACK * p_cback);
 extern void bta_sys_sco_register(tBTA_SYS_CONN_CBACK * p_cback);
 
 
-extern void bta_sys_conn_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_conn_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_app_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_app_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_sco_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_sco_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_sco_use(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_sco_unuse(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_idle(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
-extern void bta_sys_busy(UINT8 id, UINT8 app_id, BD_ADDR peer_addr);
+extern void bta_sys_conn_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_conn_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_app_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_app_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_sco_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_sco_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_sco_use(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_sco_unuse(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_idle(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
+extern void bta_sys_busy(uint8_t id, uint8_t app_id, BD_ADDR peer_addr);
 
 #if (BTM_SSR_INCLUDED == TRUE)
 extern void bta_sys_ssr_cfg_register(tBTA_SYS_SSR_CFG_CBACK * p_cback);
-extern void bta_sys_chg_ssr_config (UINT8 id, UINT8 app_id, UINT16 max_latency, UINT16 min_tout);
+extern void bta_sys_chg_ssr_config (uint8_t id, uint8_t app_id, uint16_t max_latency, uint16_t min_tout);
 #endif
 
 extern void bta_sys_role_chg_register(tBTA_SYS_CONN_CBACK * p_cback);
-extern void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, UINT8 new_role, UINT8 hci_status);
-extern void bta_sys_collision_register(UINT8 bta_id, tBTA_SYS_CONN_CBACK *p_cback);
+extern void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, uint8_t new_role, uint8_t hci_status);
+extern void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK *p_cback);
 extern void bta_sys_notify_collision (BD_ADDR_PTR p_bda);
 
 #if (BTA_EIR_CANNED_UUID_LIST != TRUE)
 extern void bta_sys_eir_register(tBTA_SYS_EIR_CBACK * p_cback);
-extern void bta_sys_add_uuid(UINT16 uuid16);
-extern void bta_sys_remove_uuid(UINT16 uuid16);
+extern void bta_sys_add_uuid(uint16_t uuid16);
+extern void bta_sys_remove_uuid(uint16_t uuid16);
 #else
 #define bta_sys_eir_register(ut)
 #define bta_sys_add_uuid(ut)
 #define bta_sys_remove_uuid(ut)
 #endif
 
-extern void bta_sys_set_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr);
-extern void bta_sys_clear_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr);
-extern void bta_sys_set_default_policy (UINT8 id, UINT8 policy);
-extern void bta_sys_clear_default_policy (UINT8 id, UINT8 policy);
+extern void bta_sys_set_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr);
+extern void bta_sys_clear_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr);
+extern void bta_sys_set_default_policy (uint8_t id, uint8_t policy);
+extern void bta_sys_clear_default_policy (uint8_t id, uint8_t policy);
 
 #ifdef __cplusplus
 }

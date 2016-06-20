@@ -45,7 +45,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len);
+extern void bta_ag_ci_rx_write(uint16_t handle, char *p_data, uint16_t len);
 
 /******************************************************************************
 **
@@ -58,7 +58,7 @@ extern void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len);
 ** Returns          void
 **
 ******************************************************************************/
-extern void bta_ag_ci_slc_ready(UINT16 handle);
+extern void bta_ag_ci_slc_ready(uint16_t handle);
 
 /******************************************************************************
 **
@@ -70,7 +70,7 @@ extern void bta_ag_ci_slc_ready(UINT16 handle);
 ** Returns          void
 **
 ******************************************************************************/
-extern void bta_ag_ci_wbs_command (UINT16 handle, char *p_data, UINT16 len);
+extern void bta_ag_ci_wbs_command (uint16_t handle, char *p_data, uint16_t len);
 
 #ifdef __cplusplus
 }

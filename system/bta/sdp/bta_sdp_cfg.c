@@ -28,7 +28,7 @@
 #define BTA_SDP_DB_SIZE  4500
 #endif
 
-static UINT8 __attribute__ ((aligned(4))) bta_sdp_db_data[BTA_SDP_DB_SIZE];
+static uint8_t __attribute__ ((aligned(4))) bta_sdp_db_data[BTA_SDP_DB_SIZE];
 
 /* SDP configuration structure */
 const tBTA_SDP_CFG bta_sdp_cfg =

@@ -21,7 +21,7 @@
 #include "bta_api.h"
 #include "hidh_api.h"
 
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 #include "gatt_api.h"
 #endif
 
@@ -33,7 +33,7 @@ extern "C" {
 **  Constants and Type Definitions
 *****************************************************************************/
 #ifndef BTA_HH_DEBUG
-#define BTA_HH_DEBUG    TRUE
+#define BTA_HH_DEBUG    true
 #endif
 
 #ifndef BTA_HH_SSR_MAX_LATENCY_DEF
@@ -63,7 +63,7 @@ extern "C" {
 #define BTA_HH_API_ERR_EVT      16      /* API error is caught */
 #define BTA_HH_UPDATE_SCPP_EVT  17       /* update scan paramter complete */
 
-typedef UINT16 tBTA_HH_EVT;
+typedef uint16_t tBTA_HH_EVT;
 
 /* application ID(none-zero) for each type of device */
 #define BTA_HH_APP_ID_MI            1
@@ -81,7 +81,7 @@ typedef UINT16 tBTA_HH_EVT;
 #define BTA_HH_IDX_INVALID      0xff
 #define BTA_HH_MAX_KNOWN        HID_HOST_MAX_DEVICES
 
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
 /* GATT_MAX_PHY_CHANNEL can not exceed 14 for the design of BTA HH */
 #define BTA_HH_LE_MAX_KNOWN     GATT_MAX_PHY_CHANNEL
 #define BTA_HH_MAX_DEVICE        (HID_HOST_MAX_DEVICES + GATT_MAX_PHY_CHANNEL)
@@ -95,14 +95,14 @@ typedef UINT16 tBTA_HH_EVT;
 #define BTA_HH_PROTO_RPT_MODE                   (0x00)
 #define BTA_HH_PROTO_BOOT_MODE                  (0x01)
 #define BTA_HH_PROTO_UNKNOWN                    (0xff)
-typedef UINT8   tBTA_HH_PROTO_MODE;
+typedef uint8_t   tBTA_HH_PROTO_MODE;
 
 enum
 {
     BTA_HH_KEYBD_RPT_ID  =               1,
     BTA_HH_MOUSE_RPT_ID
 };
-typedef UINT8 tBTA_HH_BOOT_RPT_ID;
+typedef uint8_t tBTA_HH_BOOT_RPT_ID;
 
 /* type of devices, bit mask */
 #define BTA_HH_DEVT_UNKNOWN      0x00
@@ -116,7 +116,7 @@ typedef UINT8 tBTA_HH_BOOT_RPT_ID;
 #define BTA_HH_DEVT_MIC          0x20           /* pointing device */
 #define BTA_HH_DEVT_COM          0x30           /* Combo keyboard/pointing */
 #define BTA_HH_DEVT_OTHER        0x80
-typedef UINT8  tBTA_HH_DEVT;
+typedef uint8_t  tBTA_HH_DEVT;
 
 enum
 {
@@ -139,7 +139,7 @@ enum
     BTA_HH_ERR_HDL,
     BTA_HH_ERR_SEC
 };
-typedef UINT8 tBTA_HH_STATUS;
+typedef uint8_t tBTA_HH_STATUS;
 
 
 #define BTA_HH_VIRTUAL_CABLE           HID_VIRTUAL_CABLE
@@ -150,21 +150,21 @@ typedef UINT8 tBTA_HH_STATUS;
 #define BTA_HH_REMOTE_WAKE             HID_REMOTE_WAKE
 #define BTA_HH_SUP_TOUT_AVLBL          HID_SUP_TOUT_AVLBL
 #define BTA_HH_SEC_REQUIRED             HID_SEC_REQUIRED
-typedef UINT16 tBTA_HH_ATTR_MASK;
+typedef uint16_t tBTA_HH_ATTR_MASK;
 
 /* supported type of device and corresponding application ID */
 typedef struct
 {
     tBTA_HH_DEVT        tod;        /* type of device               */
-    UINT8               app_id;     /* corresponding application ID */
+    uint8_t               app_id;     /* corresponding application ID */
 }tBTA_HH_SPT_TOD;
 
 /* configuration struct */
 typedef struct
 {
-    UINT8                max_devt_spt; /* max number of types of devices spt */
+    uint8_t                max_devt_spt; /* max number of types of devices spt */
     tBTA_HH_SPT_TOD     *p_devt_list;  /* supported types of device list     */
-    UINT16               sdp_db_size;
+    uint16_t               sdp_db_size;
 }tBTA_HH_CFG;
 
 enum
@@ -174,7 +174,7 @@ enum
     BTA_HH_RPTT_OUTPUT,     /* output report    */
     BTA_HH_RPTT_FEATURE     /* feature report   */
 };
-typedef UINT8 tBTA_HH_RPT_TYPE;
+typedef uint8_t tBTA_HH_RPT_TYPE;
 
 /* HID_CONTROL operation code used in BTA_HhSendCtrl()
 */
@@ -187,7 +187,7 @@ enum
     BTA_HH_CTRL_EXIT_SUSPEND,                          /* exit suspend     */
     BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG                   /* virtual unplug   */
 };
-typedef UINT8 tBTA_HH_TRANS_CTRL_TYPE;
+typedef uint8_t tBTA_HH_TRANS_CTRL_TYPE;
 
 typedef tHID_DEV_DSCP_INFO tBTA_HH_DEV_DESCR;
 
@@ -200,17 +200,17 @@ typedef tHID_DEV_DSCP_INFO tBTA_HH_DEV_DESCR;
 /* report descriptor information */
 typedef struct
 {
-    UINT16              vendor_id;      /* vendor ID */
-    UINT16              product_id;     /* product ID */
-    UINT16              version;        /* version */
-    UINT16              ssr_max_latency;    /* SSR max latency, BTA_HH_SSR_PARAM_INVALID if unknown */
-    UINT16              ssr_min_tout;       /* SSR min timeout, BTA_HH_SSR_PARAM_INVALID if unknown */
-    UINT8               ctry_code;      /*Country Code.*/
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+    uint16_t              vendor_id;      /* vendor ID */
+    uint16_t              product_id;     /* product ID */
+    uint16_t              version;        /* version */
+    uint16_t              ssr_max_latency;    /* SSR max latency, BTA_HH_SSR_PARAM_INVALID if unknown */
+    uint16_t              ssr_min_tout;       /* SSR min timeout, BTA_HH_SSR_PARAM_INVALID if unknown */
+    uint8_t               ctry_code;      /*Country Code.*/
+#if (BTA_HH_LE_INCLUDED == TRUE)
 #define BTA_HH_LE_REMOTE_WAKE       0x01
 #define BTA_HH_LE_NORMAL_CONN       0x02
 
-    UINT8               flag;
+    uint8_t               flag;
 #endif
     tBTA_HH_DEV_DESCR   descriptor;
 }tBTA_HH_DEV_DSCP_INFO;
@@ -220,10 +220,10 @@ typedef struct
 {
     BD_ADDR         bda;                /* HID device bd address    */
     tBTA_HH_STATUS  status;             /* operation status         */
-    UINT8           handle;             /* device handle            */
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
-    BOOLEAN         le_hid;             /* is LE devices? */
-    BOOLEAN         scps_supported;     /* scan parameter service supported */
+    uint8_t           handle;             /* device handle            */
+#if (BTA_HH_LE_INCLUDED == TRUE)
+    bool         le_hid;             /* is LE devices? */
+    bool         scps_supported;     /* scan parameter service supported */
 #endif
 
 } tBTA_HH_CONN;
@@ -234,7 +234,7 @@ typedef tBTA_HH_CONN tBTA_HH_DEV_INFO;
 typedef struct
 {
     tBTA_HH_STATUS              status;     /* operation status         */
-    UINT8                       handle;     /* device handle            */
+    uint8_t                       handle;     /* device handle            */
 } tBTA_HH_CBDATA;
 
 enum
@@ -249,23 +249,23 @@ enum
 /* parsed boot mode keyboard report */
 typedef struct
 {
-    UINT8               this_char[6];       /* virtual key code     */
-    BOOLEAN             mod_key[BTA_HH_MOD_MAX_KEY];
+    uint8_t               this_char[6];       /* virtual key code     */
+    bool             mod_key[BTA_HH_MOD_MAX_KEY];
                                             /* ctrl, shift, Alt, GUI */
                                             /* modifier key: is Shift key pressed */
                                             /* modifier key: is Ctrl key pressed  */
                                             /* modifier key: is Alt key pressed   */
                                             /* modifier key: GUI up/down */
-    BOOLEAN             caps_lock;          /* is caps locked       */
-    BOOLEAN             num_lock;           /* is Num key pressed   */
+    bool             caps_lock;          /* is caps locked       */
+    bool             num_lock;           /* is Num key pressed   */
 } tBTA_HH_KEYBD_RPT;
 
 /* parsed boot mode mouse report */
 typedef struct
 {
-    UINT8               mouse_button;       /* mouse button is clicked   */
-    INT8                delta_x;            /* displacement x            */
-    INT8                delta_y;            /* displacement y            */
+    uint8_t               mouse_button;       /* mouse button is clicked   */
+    int8_t                delta_x;            /* displacement x            */
+    int8_t                delta_y;            /* displacement y            */
 }tBTA_HH_MICE_RPT;
 
 /* parsed Boot report */
@@ -283,12 +283,12 @@ typedef struct
 typedef struct
 {
     tBTA_HH_STATUS  status;                 /* handshake status */
-    UINT8           handle;                 /* device handle    */
+    uint8_t           handle;                 /* device handle    */
     union
     {
         tBTA_HH_PROTO_MODE      proto_mode; /* GET_PROTO_EVT :protocol mode */
         BT_HDR                  *p_rpt_data;   /* GET_RPT_EVT   : report data  */
-        UINT8                   idle_rate;  /* GET_IDLE_EVT  : idle rate    */
+        uint8_t                   idle_rate;  /* GET_IDLE_EVT  : idle rate    */
     }               rsp_data;
 
 }tBTA_HH_HSDATA;
@@ -366,7 +366,7 @@ extern void BTA_HhOpen (BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhClose(UINT8 dev_handle);
+extern void BTA_HhClose(uint8_t dev_handle);
 
 /*******************************************************************************
 **
@@ -377,7 +377,7 @@ extern void BTA_HhClose(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSetProtoMode(UINT8 handle, tBTA_HH_PROTO_MODE t_type);
+extern void BTA_HhSetProtoMode(uint8_t handle, tBTA_HH_PROTO_MODE t_type);
 
 /*******************************************************************************
 **
@@ -388,7 +388,7 @@ extern void BTA_HhSetProtoMode(UINT8 handle, tBTA_HH_PROTO_MODE t_type);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhGetProtoMode(UINT8 dev_handle);
+extern void BTA_HhGetProtoMode(uint8_t dev_handle);
 /*******************************************************************************
 **
 ** Function         BTA_HhSetReport
@@ -398,7 +398,7 @@ extern void BTA_HhGetProtoMode(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
+extern void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
                             BT_HDR *p_data);
 
 /*******************************************************************************
@@ -410,8 +410,8 @@ extern void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
-                            UINT8 rpt_id, UINT16 buf_size);
+extern void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type,
+                            uint8_t rpt_id, uint16_t buf_size);
 /*******************************************************************************
 **
 ** Function         BTA_HhSetIdle
@@ -421,7 +421,7 @@ extern void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 /*******************************************************************************
 **
@@ -432,7 +432,7 @@ extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhGetIdle(UINT8 dev_handle);
+extern void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
 **
@@ -443,7 +443,7 @@ extern void BTA_HhGetIdle(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSendCtrl(UINT8 dev_handle,
+extern void BTA_HhSendCtrl(uint8_t dev_handle,
                            tBTA_HH_TRANS_CTRL_TYPE c_type);
 
 /*******************************************************************************
@@ -455,7 +455,7 @@ extern void BTA_HhSendCtrl(UINT8 dev_handle,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
+extern void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate);
 
 
 /*******************************************************************************
@@ -467,7 +467,7 @@ extern void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhGetIdle(UINT8 dev_handle);
+extern void BTA_HhGetIdle(uint8_t dev_handle);
 
 /*******************************************************************************
 **
@@ -478,7 +478,7 @@ extern void BTA_HhGetIdle(UINT8 dev_handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
+extern void BTA_HhSendData(uint8_t dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
 
 /*******************************************************************************
 **
@@ -489,7 +489,7 @@ extern void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_buf);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
+extern void BTA_HhGetDscpInfo(uint8_t dev_handle);
 
 /*******************************************************************************
 ** Function         BTA_HhAddDev
@@ -503,7 +503,7 @@ extern void BTA_HhGetDscpInfo(UINT8 dev_handle);
 **
 *******************************************************************************/
 extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
-                         UINT8 sub_class, UINT8 app_id,
+                         uint8_t sub_class, uint8_t app_id,
                          tBTA_HH_DEV_DSCP_INFO dscp_info);
 /*******************************************************************************
 **
@@ -514,7 +514,7 @@ extern void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhRemoveDev(UINT8 dev_handle );
+extern void BTA_HhRemoveDev(uint8_t dev_handle );
 
 /*******************************************************************************
 **
@@ -530,11 +530,11 @@ extern void BTA_HhRemoveDev(UINT8 dev_handle );
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
-                               UINT16 report_len);
+extern void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, uint8_t *p_report,
+                               uint16_t report_len);
 
 /* test commands */
-extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id);
+extern void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id);
 
 #ifdef __cplusplus
 }

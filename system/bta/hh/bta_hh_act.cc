@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
+#if (BTA_HH_INCLUDED == TRUE)
 
 #include <string.h>
 
@@ -43,13 +43,13 @@
 /*****************************************************************************
 **  Local Function prototypes
 *****************************************************************************/
-static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
-                            UINT32 data, BT_HDR *pdata);
-static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result);
+static void bta_hh_cback (uint8_t dev_handle, BD_ADDR addr, uint8_t event,
+                            uint32_t data, BT_HDR *pdata);
+static tBTA_HH_STATUS bta_hh_get_trans_status(uint32_t result);
 
-#if BTA_HH_DEBUG
-static const char* bta_hh_get_w4_event(UINT16 event);
-static const char * bta_hh_hid_event_name(UINT16 event);
+#if (BTA_HH_DEBUG == TRUE)
+static const char* bta_hh_get_w4_event(uint16_t event);
+static const char * bta_hh_hid_event_name(uint16_t event);
 #endif
 
 /*****************************************************************************
@@ -68,7 +68,7 @@ static const char * bta_hh_hid_event_name(UINT16 event);
 void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 {
     tBTA_HH_STATUS      status = BTA_HH_ERR;
-    UINT8               xx;
+    uint8_t               xx;
 
     /* initialize BTE HID */
     HID_HostInit();
@@ -119,7 +119,7 @@ void bta_hh_api_enable(tBTA_HH_DATA *p_data)
 *******************************************************************************/
 void bta_hh_api_disable(void)
 {
-    UINT8 xx;
+    uint8_t xx;
 
     /* service is not enabled */
     if (bta_hh_cb.p_cback == NULL)
@@ -132,7 +132,7 @@ void bta_hh_api_disable(void)
     }
     else /* otherwise, disconnect all live connections */
     {
-        bta_hh_cb.w4_disable = TRUE;
+        bta_hh_cb.w4_disable = true;
 
         for(xx = 0; xx < BTA_HH_MAX_DEVICE; xx ++)
         {
@@ -185,11 +185,11 @@ void bta_hh_disc_cmpl(void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
+static void bta_hh_sdp_cback(uint16_t result, uint16_t attr_mask,
                                   tHID_DEV_SDP_INFO *sdp_rec )
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
-    UINT8              hdl = 0;
+    uint8_t              hdl = 0;
     tBTA_HH_STATUS    status = BTA_HH_ERR_SDP;
 
     /* make sure sdp succeeded and hh has not been disabled */
@@ -199,7 +199,7 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
         if (p_cb->sec_mask)
             attr_mask |= HID_SEC_REQUIRED;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         APPL_TRACE_EVENT("bta_hh_sdp_cback: p_cb: %d result 0x%02x, \
                             attr_mask 0x%02x, handle %x", \
                             p_cb, result, attr_mask,p_cb->hid_handle);
@@ -266,13 +266,13 @@ static void bta_hh_sdp_cback(UINT16 result, UINT16 attr_mask,
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hh_di_sdp_cback(UINT16 result)
+static void bta_hh_di_sdp_cback(uint16_t result)
 {
     tBTA_HH_DEV_CB     *p_cb = bta_hh_cb.p_cur;
     tBTA_HH_STATUS         status = BTA_HH_ERR_SDP;
     tSDP_DI_GET_RECORD  di_rec;
     tHID_STATUS ret;
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_EVENT("bta_hh_di_sdp_cback: p_cb: %d result 0x%02x", p_cb, result);
 #endif
 
@@ -305,7 +305,7 @@ static void bta_hh_di_sdp_cback(UINT16 result)
         }
         else
         {
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
             APPL_TRACE_DEBUG ("bta_hh_di_sdp_cback:  HID_HostGetSDPRecord failed: Status 0x%2x",
                                ret);
 #endif
@@ -338,7 +338,7 @@ static void bta_hh_di_sdp_cback(UINT16 result)
 void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_STATUS          status = BTA_HH_ERR_SDP;
-    UINT8                   hdl;
+    uint8_t                   hdl;
 
     p_cb->sec_mask  = p_data->api_conn.sec_mask;
     p_cb->mode      = p_data->api_conn.mode;
@@ -356,7 +356,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     if (p_cb->app_id)
     {
         status = BTA_HH_OK;
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         APPL_TRACE_DEBUG("bta_hh_start_sdp:: skip SDP for known devices");
 #endif
         if (p_cb->hid_handle == BTA_HH_INVALID_HANDLE)
@@ -390,7 +390,7 @@ void bta_hh_start_sdp(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                            bta_hh_cb.p_disc_db,
                            p_bta_hh_cfg->sdp_db_size,
                            bta_hh_di_sdp_cback) != SDP_SUCCESS) {
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
             APPL_TRACE_DEBUG("bta_hh_start_sdp:  SDP_DiDiscover failed: \
                     Status 0x%2X",status);
 #endif
@@ -431,7 +431,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     tBTA_HH_CONN            conn_dat;
     tBTA_HH_STATUS          status = p_data->status;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG ("bta_hh_sdp_cmpl:  status 0x%2X",p_data->status);
 #endif
 
@@ -467,7 +467,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             }
             else
             {
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
                 APPL_TRACE_DEBUG ("%s: HID_HostOpenDev failed: Status 0x%2X", __func__, ret);
 #endif
                 /* open fail, remove device from management device list */
@@ -506,7 +506,7 @@ void bta_hh_sdp_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             /* clean up device control block */
             bta_hh_clean_up_kdev(p_cb);
         }
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         bta_hh_trace_dev_db();
 #endif
     }
@@ -528,14 +528,14 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     tBTA_HH_CBDATA    disc_dat;
     tHID_STATUS     status;
 
-#if BTA_HH_LE_INCLUDED == TRUE
+#if (BTA_HH_LE_INCLUDED == TRUE)
     if (p_cb->is_le_device)
         bta_hh_le_api_disc_act(p_cb);
     else
 #endif
     {
         /* found an active connection */
-        disc_dat.handle = p_data ?(UINT8)p_data->hdr.layer_specific :p_cb->hid_handle;
+        disc_dat.handle = p_data ?(uint8_t)p_data->hdr.layer_specific :p_cb->hid_handle;
         disc_dat.status = BTA_HH_ERR;
 
         status = HID_HostCloseDev(disc_dat.handle);
@@ -560,7 +560,7 @@ void bta_hh_api_disc_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN        conn ;
-    UINT8   dev_handle = p_data ? (UINT8)p_data->hid_cback.hdr.layer_specific : \
+    uint8_t   dev_handle = p_data ? (uint8_t)p_data->hid_cback.hdr.layer_specific : \
                         p_cb->hid_handle;
 
     memset((void *)&conn, 0, sizeof (tBTA_HH_CONN));
@@ -610,7 +610,7 @@ void bta_hh_open_cmpl_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     else
         (* bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn);
 
-    p_cb->incoming_conn = FALSE;
+    p_cb->incoming_conn = false;
     p_cb->incoming_hid_handle = BTA_HH_INVALID_HANDLE;
 
 }
@@ -628,10 +628,10 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_API_CONN    conn_data;
 
-    UINT8   dev_handle = p_data ? (UINT8)p_data->hid_cback.hdr.layer_specific : \
+    uint8_t   dev_handle = p_data ? (uint8_t)p_data->hid_cback.hdr.layer_specific : \
                         p_cb->hid_handle;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_EVENT ("bta_hh_open_act:  Device[%d] connected", dev_handle);
 #endif
 
@@ -644,7 +644,7 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     /*  app_id == 0 indicates an incoming conenction request arrives without SDP
         performed, do it first */
     {
-        p_cb->incoming_conn = TRUE;
+        p_cb->incoming_conn = true;
         /* store the handle here in case sdp fails - need to disconnect */
         p_cb->incoming_hid_handle = dev_handle;
 
@@ -670,9 +670,9 @@ void bta_hh_open_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 void bta_hh_data_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 {
     BT_HDR  *pdata = p_data->hid_cback.p_data;
-    UINT8   *p_rpt = (UINT8 *)(pdata + 1) + pdata->offset;
+    uint8_t   *p_rpt = (uint8_t *)(pdata + 1) + pdata->offset;
 
-    bta_hh_co_data((UINT8)p_data->hid_cback.hdr.layer_specific, p_rpt, pdata->len,
+    bta_hh_co_data((uint8_t)p_data->hid_cback.hdr.layer_specific, p_rpt, pdata->len,
                     p_cb->mode, p_cb->sub_class, p_cb->dscp_info.ctry_code, p_cb->addr, p_cb->app_id);
 
     osi_free_and_reset((void **)&pdata);
@@ -695,7 +695,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     tBTA_HH_HSDATA  hs_data;
     tBTA_HH_CONN    conn ;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("HANDSHAKE received for: event = %s data= %d",
         bta_hh_get_w4_event(p_cb->w4_evt), p_data->hid_cback.data);
 #endif
@@ -736,7 +736,7 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
             conn.handle = p_cb->hid_handle;
             bdcpy(conn.bda, p_cb->addr);
             (* bta_hh_cb.p_cback)(p_cb->w4_evt, (tBTA_HH *)&conn);
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
             bta_hh_trace_dev_db();
 #endif
             p_cb->w4_evt = 0;
@@ -765,10 +765,10 @@ void bta_hh_handsk_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 {
     BT_HDR          *pdata = p_data->hid_cback.p_data;
-    UINT8           *data = (UINT8 *)(pdata + 1) + pdata->offset;
+    uint8_t           *data = (uint8_t *)(pdata + 1) + pdata->offset;
     tBTA_HH_HSDATA    hs_data;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("Ctrl DATA received w4: event[%s]",
                         bta_hh_get_w4_event(p_cb->w4_evt));
 #endif
@@ -787,7 +787,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
         /* match up BTE/BTA report/boot mode def*/
         hs_data.rsp_data.proto_mode = ((*data) == HID_PAR_PROTOCOL_REPORT)? \
                     BTA_HH_PROTO_RPT_MODE : BTA_HH_PROTO_BOOT_MODE;
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         APPL_TRACE_DEBUG("GET_PROTOCOL Mode = [%s]",
             (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
 #endif
@@ -800,7 +800,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
     case BTA_HH_SET_IDLE_EVT :
         /* fall through */
     default:
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         APPL_TRACE_DEBUG("invalid  transaction type for DATA payload: 4_evt[%s]",
                         bta_hh_get_w4_event(p_cb->w4_evt));
 #endif
@@ -832,7 +832,7 @@ void bta_hh_ctrl_dat_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA * p_data)
 void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
-    UINT32                  reason = p_data->hid_cback.data;    /* Reason for closing (32-bit) */
+    uint32_t                  reason = p_data->hid_cback.data;    /* Reason for closing (32-bit) */
 
     memset(&conn_dat, 0, sizeof(tBTA_HH_CONN));
      conn_dat.handle = p_cb->hid_handle;
@@ -844,11 +844,11 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
      /* Report OPEN fail event */
      (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     bta_hh_trace_dev_db();
 #endif
     /* clean up control block, but retain SDP info and device handle */
-    p_cb->vp            = FALSE;
+    p_cb->vp            = false;
     p_cb->w4_evt        = 0;
 
     /* if no connection is active and HH disable is signaled, disable service */
@@ -858,7 +858,7 @@ void bta_hh_open_failure(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
     }
 
     /* Error in opening hid connection, reset flags */
-    p_cb->incoming_conn = FALSE;
+    p_cb->incoming_conn = false;
     p_cb->incoming_hid_handle = BTA_HH_INVALID_HANDLE;
 }
 
@@ -876,10 +876,10 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CONN            conn_dat ;
     tBTA_HH_CBDATA          disc_dat = {BTA_HH_OK, 0};
-    UINT32                  reason = p_data->hid_cback.data;    /* Reason for closing (32-bit) */
+    uint32_t                  reason = p_data->hid_cback.data;    /* Reason for closing (32-bit) */
 
     /* if HID_HDEV_EVT_VC_UNPLUG was received, report BTA_HH_VC_UNPLUG_EVT */
-    UINT16     event = p_cb->vp ? BTA_HH_VC_UNPLUG_EVT : BTA_HH_CLOSE_EVT;
+    uint16_t     event = p_cb->vp ? BTA_HH_VC_UNPLUG_EVT : BTA_HH_CLOSE_EVT;
 
     disc_dat.handle = p_cb->hid_handle;
     disc_dat.status = p_data->hid_cback.data;
@@ -898,7 +898,7 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
         /* Report OPEN fail event */
         (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH *)&conn_dat);
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         bta_hh_trace_dev_db();
 #endif
         return;
@@ -925,13 +925,13 @@ void bta_hh_close_act (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             bta_hh_clean_up_kdev(p_cb);
         }
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         bta_hh_trace_dev_db();
 #endif
     }
 
     /* clean up control block, but retain SDP info and device handle */
-    p_cb->vp            = FALSE;
+    p_cb->vp            = false;
     p_cb->w4_evt        = 0;
 
     /* if no connection is active and HH disable is signaled, disable service */
@@ -981,7 +981,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_MAINT_DEV       *p_dev_info = &p_data->api_maintdev;
     tBTA_HH_DEV_INFO        dev_info ;
-    UINT8                   dev_handle;
+    uint8_t                   dev_handle;
 
     dev_info.status = BTA_HH_ERR;
     dev_info.handle = BTA_HH_INVALID_HANDLE;
@@ -1008,7 +1008,7 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
                 dev_info.handle   = dev_handle;
                 dev_info.status   = BTA_HH_OK;
 
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
                 /* update DI information */
                 bta_hh_update_di_info(p_cb,
                                       p_dev_info->dscp_info.vendor_id,
@@ -1040,16 +1040,16 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             dev_info.handle = p_cb->hid_handle;
             dev_info.status = BTA_HH_OK;
         }
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
         bta_hh_trace_dev_db();
 #endif
 
         break;
     case BTA_HH_RMV_DEV_EVT:    /* remove device */
-        dev_info.handle = (UINT8)p_dev_info->hdr.layer_specific;
+        dev_info.handle = (uint8_t)p_dev_info->hdr.layer_specific;
         bdcpy(dev_info.bda, p_cb->addr);
 
-#if BTA_HH_LE_INCLUDED == TRUE
+#if (BTA_HH_LE_INCLUDED == TRUE)
         if (p_cb->is_le_device)
         {
             bta_hh_le_remove_dev_bg_conn(p_cb);
@@ -1088,10 +1088,10 @@ void bta_hh_maint_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 {
     tBTA_HH_CBDATA     cbdata = {BTA_HH_OK, 0};
-    UINT16  event = (p_data->api_sndcmd.t_type - BTA_HH_FST_BTE_TRANS_EVT) +
+    uint16_t  event = (p_data->api_sndcmd.t_type - BTA_HH_FST_BTE_TRANS_EVT) +
                         BTA_HH_FST_TRANS_CB_EVT;
 
-#if BTA_HH_LE_INCLUDED == TRUE
+#if (BTA_HH_LE_INCLUDED == TRUE)
     if (p_cb->is_le_device)
         bta_hh_le_write_dev_act(p_cb, p_data);
     else
@@ -1147,7 +1147,7 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
             /* no handshake event will be generated */
             /* if VC_UNPLUG is issued, set flag */
             if (p_data->api_sndcmd.param == BTA_HH_CTRL_VIRTUAL_CABLE_UNPLUG)
-                p_cb->vp = TRUE;
+                p_cb->vp = true;
 
             break;
         /* currently not expected */
@@ -1192,13 +1192,13 @@ void bta_hh_write_dev_act(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
-                        UINT32 data, BT_HDR *pdata)
+static void bta_hh_cback (uint8_t dev_handle, BD_ADDR addr, uint8_t event,
+                        uint32_t data, BT_HDR *pdata)
 {
-    UINT16  sm_event = BTA_HH_INVALID_EVT;
-    UINT8   xx = 0;
+    uint16_t  sm_event = BTA_HH_INVALID_EVT;
+    uint8_t   xx = 0;
 
-#if BTA_HH_DEBUG
+#if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hh_cback::HID_event [%s]", bta_hh_hid_event_name(event));
 #endif
 
@@ -1231,7 +1231,7 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
         {
             if (bta_hh_cb.kdev[xx].hid_handle == dev_handle)
             {
-               bta_hh_cb.kdev[xx].vp = TRUE;
+               bta_hh_cb.kdev[xx].vp = true;
                break;
             }
         }
@@ -1243,7 +1243,7 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
             (tBTA_HH_CBACK_DATA *)osi_malloc(sizeof(tBTA_HH_CBACK_DATA) +
                                              sizeof(BT_HDR));
         p_buf->hdr.event = sm_event;
-        p_buf->hdr.layer_specific = (UINT16)dev_handle;
+        p_buf->hdr.layer_specific = (uint16_t)dev_handle;
         p_buf->data = data;
         bdcpy(p_buf->addr, addr);
         p_buf->p_data = pdata;
@@ -1260,7 +1260,7 @@ static void bta_hh_cback (UINT8 dev_handle, BD_ADDR addr, UINT8 event,
 **                  status code
 **
 *******************************************************************************/
-static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result)
+static tBTA_HH_STATUS bta_hh_get_trans_status(uint32_t result)
 {
     switch(result)
     {
@@ -1282,8 +1282,8 @@ static tBTA_HH_STATUS bta_hh_get_trans_status(UINT32 result)
 **  Debug Functions
 *****************************************************************************/
 
-#if (defined BTA_HH_DEBUG && BTA_HH_DEBUG == TRUE)
-static const char* bta_hh_get_w4_event(UINT16 event)
+#if (BTA_HH_DEBUG == TRUE)
+static const char* bta_hh_get_w4_event(uint16_t event)
 {
     switch (event)
     {
@@ -1307,7 +1307,7 @@ static const char* bta_hh_get_w4_event(UINT16 event)
 
 }
 
-static const char * bta_hh_hid_event_name(UINT16 event)
+static const char * bta_hh_hid_event_name(uint16_t event)
 {
     switch (event)
     {

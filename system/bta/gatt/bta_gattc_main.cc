@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
 
@@ -110,7 +110,7 @@ const tBTA_GATTC_ACTION bta_gattc_action[] =
 #define BTA_GATTC_NUM_COLS            2       /* number of columns in state tables */
 
 /* state table for idle state */
-static const UINT8 bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] =
+static const uint8_t bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                  Next state */
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,              BTA_GATTC_W4_CONN_ST},
@@ -139,7 +139,7 @@ static const UINT8 bta_gattc_st_idle[][BTA_GATTC_NUM_COLS] =
 };
 
 /* state table for wait for open state */
-static const UINT8 bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] =
+static const uint8_t bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                             Next state */
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,              BTA_GATTC_W4_CONN_ST},
@@ -168,7 +168,7 @@ static const UINT8 bta_gattc_st_w4_conn[][BTA_GATTC_NUM_COLS] =
 };
 
 /* state table for open state */
-static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
+static const uint8_t bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                            Next state */
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,               BTA_GATTC_CONN_ST},
@@ -198,7 +198,7 @@ static const UINT8 bta_gattc_st_connected[][BTA_GATTC_NUM_COLS] =
 };
 
 /* state table for discover state */
-static const UINT8 bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
+static const uint8_t bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
 {
 /* Event                            Action 1                            Next state */
 /* BTA_GATTC_API_OPEN_EVT           */   {BTA_GATTC_OPEN,               BTA_GATTC_DISCOVER_ST},
@@ -227,7 +227,7 @@ static const UINT8 bta_gattc_st_discover[][BTA_GATTC_NUM_COLS] =
 };
 
 /* type for state table */
-typedef const UINT8 (*tBTA_GATTC_ST_TBL)[BTA_GATTC_NUM_COLS];
+typedef const uint8_t (*tBTA_GATTC_ST_TBL)[BTA_GATTC_NUM_COLS];
 
 /* state table */
 const tBTA_GATTC_ST_TBL bta_gattc_st_tbl[] =
@@ -243,11 +243,11 @@ const tBTA_GATTC_ST_TBL bta_gattc_st_tbl[] =
 *****************************************************************************/
 
 /* GATTC control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_GATTC_CB  bta_gattc_cb;
 #endif
 
-#if BTA_GATT_DEBUG == TRUE
+#if (BTA_GATT_DEBUG == TRUE)
 static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code);
 static char *gattc_state_code(tBTA_GATTC_STATE state_code);
 #endif
@@ -259,19 +259,19 @@ static char *gattc_state_code(tBTA_GATTC_STATE state_code);
 ** Description      State machine event handling function for GATTC
 **
 **
-** Returns          BOOLEAN  : TRUE if queued client request buffer can be immediately released
-**                                        else FALSE
+** Returns          bool  : true if queued client request buffer can be immediately released
+**                                        else false
 **
 *******************************************************************************/
-BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_DATA *p_data)
+bool bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, uint16_t event, tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC_ST_TBL     state_table;
-    UINT8               action;
+    uint8_t               action;
     int                 i;
-    BOOLEAN             rt = TRUE;
-#if BTA_GATT_DEBUG == TRUE
+    bool             rt = true;
+#if (BTA_GATT_DEBUG == TRUE)
     tBTA_GATTC_STATE in_state = p_clcb->state;
-    UINT16         in_event = event;
+    uint16_t         in_event = event;
     APPL_TRACE_DEBUG("bta_gattc_sm_execute: State 0x%02x [%s], Event 0x%x[%s]", in_state,
                       gattc_state_code(in_state),
                       in_event,
@@ -297,7 +297,7 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
                 /* buffer is queued, don't free in the bta dispatcher.
                  * we free it ourselves when a completion event is received.
                  */
-                rt = FALSE;
+                rt = false;
             }
         }
         else
@@ -306,7 +306,7 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
         }
     }
 
-#if BTA_GATT_DEBUG == TRUE
+#if (BTA_GATT_DEBUG == TRUE)
     if (in_state != p_clcb->state)
     {
         APPL_TRACE_DEBUG("GATTC State Change: [%s] -> [%s] after Event [%s]",
@@ -325,16 +325,16 @@ BOOLEAN bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, UINT16 event, tBTA_GATTC_D
 ** Description      GATT client main event handling function.
 **
 **
-** Returns          BOOLEAN
+** Returns          bool
 **
 *******************************************************************************/
-BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
+bool bta_gattc_hdl_event(BT_HDR *p_msg)
 {
     tBTA_GATTC_CB *p_cb = &bta_gattc_cb;
     tBTA_GATTC_CLCB *p_clcb = NULL;
     tBTA_GATTC_RCB      *p_clreg;
-    BOOLEAN             rt = TRUE;
-#if BTA_GATT_DEBUG == TRUE
+    bool             rt = true;
+#if (BTA_GATT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_gattc_hdl_event: Event [%s]", gattc_evt_code(p_msg->event));
 #endif
     switch (p_msg->event)
@@ -368,7 +368,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
             bta_gattc_process_api_refresh(p_cb, (tBTA_GATTC_DATA *) p_msg);
             break;
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
         case BTA_GATTC_API_LISTEN_EVT:
             bta_gattc_listen(p_cb, (tBTA_GATTC_DATA *) p_msg);
             break;
@@ -409,7 +409,7 @@ BOOLEAN bta_gattc_hdl_event(BT_HDR *p_msg)
 /*****************************************************************************
 **  Debug Functions
 *****************************************************************************/
-#if BTA_GATT_DEBUG == TRUE
+#if (BTA_GATT_DEBUG == TRUE)
 
 /*******************************************************************************
 **

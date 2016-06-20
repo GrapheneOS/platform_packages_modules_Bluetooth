@@ -88,14 +88,14 @@ typedef union
 /* SDP control block */
 typedef struct
 {
-    UINT8              sdp_active;  /* see BTA_SDP_SDP_ACT_* */
+    uint8_t              sdp_active;  /* see BTA_SDP_SDP_ACT_* */
     BD_ADDR            remote_addr;
     tBTA_SDP_DM_CBACK  *p_dm_cback;
 } tBTA_SDP_CB;
 
 
 /* SDP control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_SDP_CB bta_sdp_cb;
 #else
 extern tBTA_SDP_CB *bta_sdp_cb_ptr;
@@ -105,7 +105,7 @@ extern tBTA_SDP_CB *bta_sdp_cb_ptr;
 /* config struct */
 extern tBTA_SDP_CFG *p_bta_sdp_cfg;
 
-extern BOOLEAN bta_sdp_sm_execute(BT_HDR *p_msg);
+extern bool bta_sdp_sm_execute(BT_HDR *p_msg);
 
 extern void bta_sdp_enable (tBTA_SDP_MSG *p_data);
 extern void bta_sdp_search (tBTA_SDP_MSG *p_data);

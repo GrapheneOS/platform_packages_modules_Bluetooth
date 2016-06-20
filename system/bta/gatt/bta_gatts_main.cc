@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
 
@@ -46,7 +46,7 @@ const tBTA_GATTS_SRVC_ACT bta_gatts_srvc_build_act[] =
 };
 
 /* GATTS control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_GATTS_CB  bta_gatts_cb;
 #endif
 
@@ -60,7 +60,7 @@ tBTA_GATTS_CB  bta_gatts_cb;
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
+bool bta_gatts_hdl_event(BT_HDR *p_msg)
 {
     tBTA_GATTS_CB *p_cb = &bta_gatts_cb;
     tBTA_GATTS_SRVC_CB *p_srvc_cb = NULL;
@@ -137,7 +137,7 @@ BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg)
     }
 
 
-    return (TRUE);
+    return (true);
 }
 
 #endif /* BTA_GATT_INCLUDED */

@@ -74,13 +74,13 @@ extern "C" {
 #define BTA_AG_FEAT_NO_ESCO 0x00080000   /* Do not allow or use eSCO */
 #define BTA_AG_FEAT_VOIP    0x00100000   /* VoIP call */
 
-typedef UINT32 tBTA_AG_FEAT;
+typedef uint32_t tBTA_AG_FEAT;
 
 /* AG parse mode */
 #define BTA_AG_PARSE            0 /* Perform AT command parsing in AG */
-#define BTA_AG_PASS_THROUGH     1 /* Pass data directly to phone’s AT command interpreter */
+#define BTA_AG_PASS_THROUGH     1 /* Pass data directly to phone's AT command interpreter */
 
-typedef UINT8 tBTA_AG_PARSE_MODE;
+typedef uint8_t tBTA_AG_PARSE_MODE;
 
 /* AG open status */
 #define BTA_AG_SUCCESS          0 /* Connection successfully opened */
@@ -91,7 +91,7 @@ typedef UINT8 tBTA_AG_PARSE_MODE;
 /*Status to disallow passing AT Events after BTIF */
 
 #define BTA_AG_DISALLOW_AT      5
-typedef UINT8 tBTA_AG_STATUS;
+typedef uint8_t tBTA_AG_STATUS;
 
 /* handle values used with BTA_AgResult */
 #define BTA_AG_HANDLE_NONE      0
@@ -140,7 +140,7 @@ typedef UINT8 tBTA_AG_STATUS;
 #define BTA_AG_MULTI_CALL_RES       21  /* SLC at three way call */
 #define BTA_AG_BIND_RES             22  /* Activate/Deactivate HF indicator */
 
-typedef UINT8 tBTA_AG_RES;
+typedef uint8_t tBTA_AG_RES;
 
 /* HFP peer features */
 #define BTA_AG_PEER_FEAT_ECNR       0x0001  /* Echo cancellation and/or noise reduction */
@@ -166,7 +166,7 @@ typedef uint16_t tBTA_AG_PEER_FEAT;
 #define BTA_AG_CODEC_NONE           BTM_SCO_CODEC_NONE
 #define BTA_AG_CODEC_CVSD           BTM_SCO_CODEC_CVSD      /* CVSD */
 #define BTA_AG_CODEC_MSBC           BTM_SCO_CODEC_MSBC      /* mSBC */
-typedef UINT16 tBTA_AG_PEER_CODEC;
+typedef uint16_t tBTA_AG_PEER_CODEC;
 
 /* HFP errcode - Set when BTA_AG_OK_ERROR is returned in 'ok_flag' */
 #define BTA_AG_ERR_PHONE_FAILURE    0       /* Phone Failure */
@@ -260,11 +260,11 @@ typedef struct
 {
     char            str[BTA_AG_AT_MAX_LEN+1];
     tBTA_AG_IND     ind;
-    UINT16          num;
-    UINT16          audio_handle;
-    UINT16          errcode;        /* Valid only if 'ok_flag' is set to BTA_AG_OK_ERROR */
-    UINT8           ok_flag;        /* Indicates if response is finished, and if error occurred */
-    BOOLEAN         state;
+    uint16_t          num;
+    uint16_t          audio_handle;
+    uint16_t          errcode;        /* Valid only if 'ok_flag' is set to BTA_AG_OK_ERROR */
+    uint8_t           ok_flag;        /* Indicates if response is finished, and if error occurred */
+    bool         state;
 } tBTA_AG_RES_DATA;
 
 /* AG callback events */
@@ -279,7 +279,7 @@ typedef struct
 #define BTA_AG_MIC_EVT          8  /* Microphone volume changed */
 #define BTA_AG_AT_CKPD_EVT      9  /* CKPD from the HS */
 #define BTA_AG_DISABLE_EVT      30 /* AG disabled       */
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
 #define BTA_AG_WBS_EVT          31 /* SCO codec info */
 #endif
 /* Values below are for HFP only */
@@ -304,13 +304,13 @@ typedef struct
 #define BTA_AG_AT_BIND_EVT      28 /* HF indicator */
 #define BTA_AG_AT_BIEV_EVT      29 /* HF indicator updates from peer */
 
-typedef UINT8 tBTA_AG_EVT;
+typedef uint8_t tBTA_AG_EVT;
 
 /* data associated with most non-AT events */
 typedef struct
 {
-    UINT16              handle;
-    UINT8               app_id;
+    uint16_t              handle;
+    uint8_t               app_id;
     tBTA_AG_STATUS      status;
 } tBTA_AG_HDR;
 
@@ -352,9 +352,9 @@ typedef struct
     tBTA_AG_HDR         hdr;
     BD_ADDR             bd_addr;
     char                str[BTA_AG_AT_MAX_LEN+1];
-    UINT16              num;
-    UINT8               idx;    /* call number used by CLCC and CHLD */
-    UINT16              lidx;    /* long index, ex, HF indicator */
+    uint16_t            num;
+    uint8_t             idx;    /* call number used by CLCC and CHLD */
+    uint16_t            lidx;    /* long index, ex, HF indicator */
 } tBTA_AG_VAL;
 
 /* union of data associated with AG callback */
@@ -482,7 +482,7 @@ void BTA_AgDisable(void);
 **
 *******************************************************************************/
 void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
-                    tBTA_AG_FEAT features, const char *p_service_names[], UINT8 app_id);
+                    tBTA_AG_FEAT features, const char *p_service_names[], uint8_t app_id);
 
 /*******************************************************************************
 **
@@ -494,7 +494,7 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgDeregister(UINT16 handle);
+void BTA_AgDeregister(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -509,7 +509,7 @@ void BTA_AgDeregister(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services);
+void BTA_AgOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services);
 
 /*******************************************************************************
 **
@@ -522,7 +522,7 @@ void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgClose(UINT16 handle);
+void BTA_AgClose(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -535,7 +535,7 @@ void BTA_AgClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioOpen(UINT16 handle);
+void BTA_AgAudioOpen(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -548,7 +548,7 @@ void BTA_AgAudioOpen(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioClose(UINT16 handle);
+void BTA_AgAudioClose(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -562,7 +562,7 @@ void BTA_AgAudioClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
+void BTA_AgResult(uint16_t handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
 
 /*******************************************************************************
 **
@@ -576,7 +576,7 @@ void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec);
+void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec);
 
 #ifdef __cplusplus
 }

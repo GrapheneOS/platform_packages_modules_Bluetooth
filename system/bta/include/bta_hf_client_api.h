@@ -47,7 +47,7 @@ extern "C" {
 #define BTA_HF_CLIENT_PEER_EXTERR      0x00000100  /* Extended error codes */
 #define BTA_HF_CLIENT_PEER_CODEC       0x00000200  /* Codec Negotiation */
 
-typedef UINT16 tBTA_HF_CLIENT_PEER_FEAT;
+typedef uint16_t tBTA_HF_CLIENT_PEER_FEAT;
 
 /* HFP HF features */
 #define BTA_HF_CLIENT_FEAT_ECNR        0x00000001  /* Echo cancellation and/or noise reduction */
@@ -68,7 +68,7 @@ typedef UINT16 tBTA_HF_CLIENT_PEER_FEAT;
 #define BTA_HF_CLIENT_CHLD_MERGE        0x00000020  /* 3  Add held call to multiparty */
 #define BTA_HF_CLIENT_CHLD_MERGE_DETACH 0x00000040  /* 4  Add held call to multiparty */
 
-typedef UINT16 tBTA_HF_CLIENT_CHLD_FEAT;
+typedef uint16_t tBTA_HF_CLIENT_CHLD_FEAT;
 
 /* HFP AG errors ot OK sent to HF Unit */
 #define BTA_HF_CLIENT_AT_RESULT_OK            0
@@ -80,7 +80,7 @@ typedef UINT16 tBTA_HF_CLIENT_CHLD_FEAT;
 #define BTA_HF_CLIENT_AT_RESULT_BLACKLISTED   6
 #define BTA_HF_CLIENT_AT_RESULT_CME           7
 
-typedef UINT8 tBTA_HF_CLIENT_AT_RESULT_TYPE;
+typedef uint8_t tBTA_HF_CLIENT_AT_RESULT_TYPE;
 
 /* HF Client callback events */
 #define BTA_HF_CLIENT_ENABLE_EVT            0  /* HF Client enabled */
@@ -107,7 +107,7 @@ typedef UINT8 tBTA_HF_CLIENT_AT_RESULT_TYPE;
 #define BTA_HF_CLIENT_RING_INDICATION       21 /* HF Client ring indication */
 #define BTA_HF_CLIENT_DISABLE_EVT           30 /* HF Client disabled */
 
-typedef UINT8 tBTA_HF_CLIENT_EVT;
+typedef uint8_t tBTA_HF_CLIENT_EVT;
 
 /* HF Client open status */
 #define BTA_HF_CLIENT_SUCCESS          0 /* Connection successfully opened */
@@ -115,7 +115,7 @@ typedef UINT8 tBTA_HF_CLIENT_EVT;
 #define BTA_HF_CLIENT_FAIL_RFCOMM      2 /* Open failed due to RFCOMM */
 #define BTA_HF_CLIENT_FAIL_RESOURCES   3 /* out of resources failure  */
 
-typedef UINT8 tBTA_HF_CLIENT_STATUS;
+typedef uint8_t tBTA_HF_CLIENT_STATUS;
 
 /* indicator type */
 #define BTA_HF_CLIENT_IND_BATTCH    0  /* Battery charge indicator */
@@ -126,7 +126,7 @@ typedef UINT8 tBTA_HF_CLIENT_STATUS;
 #define BTA_HF_CLIENT_IND_CALLSETUP 5  /* Call setup status indicator */
 #define BTA_HF_CLIENT_IND_CALLHELD  6  /* Call hold status indicator */
 
-typedef UINT8 tBTA_HF_CLIENT_IND_TYPE;
+typedef uint8_t tBTA_HF_CLIENT_IND_TYPE;
 
 /* AT commands */
 #define BTA_HF_CLIENT_AT_CMD_VTS    0
@@ -146,13 +146,13 @@ typedef UINT8 tBTA_HF_CLIENT_IND_TYPE;
 #define BTA_HF_CLIENT_AT_CMD_BLDN   14
 #define BTA_HF_CLIENT_AT_CMD_NREC   15
 
-typedef UINT8 tBTA_HF_CLIENT_AT_CMD_TYPE;
+typedef uint8_t tBTA_HF_CLIENT_AT_CMD_TYPE;
 
 
 /* data associated with BTA_HF_CLIENT_REGISTER_EVT */
 typedef struct
 {
-    UINT16                  handle;
+    uint16_t                  handle;
     tBTA_HF_CLIENT_STATUS   status;
 } tBTA_HF_CLIENT_REGISTER;
 
@@ -174,7 +174,7 @@ typedef struct
 typedef struct
 {
     tBTA_HF_CLIENT_IND_TYPE    type;
-    UINT16                     value;
+    uint16_t                     value;
 } tBTA_HF_CLIENT_IND;
 
 /* data associated with BTA_HF_CLIENT_OPERATOR_NAME_EVT */
@@ -195,31 +195,31 @@ typedef struct
 typedef struct
 {
     tBTA_HF_CLIENT_AT_RESULT_TYPE    type;
-    UINT16                           cme;
+    uint16_t                           cme;
 } tBTA_HF_CLIENT_AT_RESULT;
 
 /* data associated with BTA_HF_CLIENT_CLCC_EVT event */
 typedef struct
 {
-    UINT32                     idx;
-    BOOLEAN                    inc;
-    UINT8                      status;
-    BOOLEAN                    mpty;
-    BOOLEAN                    number_present;
+    uint32_t                     idx;
+    bool                    inc;
+    uint8_t                      status;
+    bool                    mpty;
+    bool                    number_present;
     char                       number[BTA_HF_CLIENT_NUMBER_LEN + 1];
 } tBTA_HF_CLIENT_CLCC;
 
 /* data associated with BTA_HF_CLIENT_CNUM_EVT event */
 typedef struct
 {
-    UINT16                     service;
+    uint16_t                     service;
     char                       number[BTA_HF_CLIENT_NUMBER_LEN + 1];
 } tBTA_HF_CLIENT_CNUM;
 
 /* data associated with other events */
 typedef struct
 {
-    UINT16                     value;
+    uint16_t                     value;
 } tBTA_HF_CLIENT_VAL;
 
 /* union of data associated with AG callback */
@@ -237,7 +237,7 @@ typedef union
     tBTA_HF_CLIENT_CNUM             cnum;
 } tBTA_HF_CLIENT;
 
-typedef UINT32 tBTA_HF_CLIENT_FEAT;
+typedef uint32_t tBTA_HF_CLIENT_FEAT;
 
 /* HF Client callback */
 typedef void (tBTA_HF_CLIENT_CBACK)(tBTA_HF_CLIENT_EVT event, tBTA_HF_CLIENT *p_data);
@@ -296,7 +296,7 @@ void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientDeregister(UINT16 handle);
+void BTA_HfClientDeregister(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -311,7 +311,7 @@ void BTA_HfClientDeregister(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask);
+void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask);
 
 /*******************************************************************************
 **
@@ -324,7 +324,7 @@ void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientClose(UINT16 handle);
+void BTA_HfClientClose(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -337,7 +337,7 @@ void BTA_HfClientClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientAudioOpen(UINT16 handle);
+void BTA_HfClientAudioOpen(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -350,7 +350,7 @@ void BTA_HfClientAudioOpen(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientAudioClose(UINT16 handle);
+void BTA_HfClientAudioClose(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -362,7 +362,7 @@ void BTA_HfClientAudioClose(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val1, UINT32 val2, const char *str);
+void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, uint32_t val1, uint32_t val2, const char *str);
 
 #ifdef __cplusplus
 }

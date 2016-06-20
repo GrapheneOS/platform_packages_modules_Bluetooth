@@ -33,11 +33,11 @@
 *****************************************************************************/
 /* Extra Debug Code */
 #ifndef BTA_OPS_DEBUG
-#define BTA_OPS_DEBUG           FALSE
+#define BTA_OPS_DEBUG           false
 #endif
 
 #ifndef BTA_OPC_DEBUG
-#define BTA_OPC_DEBUG           FALSE
+#define BTA_OPC_DEBUG           false
 #endif
 
 
@@ -50,7 +50,7 @@
 #define BTA_OP_VMSG_FMT             6       /* vMessage */
 #define BTA_OP_OTHER_FMT            0xFF    /* other format */
 
-typedef UINT8 tBTA_OP_FMT;
+typedef uint8_t tBTA_OP_FMT;
 
 /* Object format mask */
 #define BTA_OP_VCARD21_MASK         0x01    /* vCard 2.1 */
@@ -61,7 +61,7 @@ typedef UINT8 tBTA_OP_FMT;
 #define BTA_OP_VMSG_MASK            0x20    /* vMessage */
 #define BTA_OP_ANY_MASK             0x40    /* Any type of object. */
 
-typedef UINT8 tBTA_OP_FMT_MASK;
+typedef uint8_t tBTA_OP_FMT_MASK;
 
 #endif /* BTA_OP_API_H */
 
