@@ -35,17 +35,17 @@ using std::vector;
 
 #ifndef     BTA_GATT_INCLUDED
 #warning BTA_GATT_INCLUDED not defined
-#define     BTA_GATT_INCLUDED     FALSE
+#define     BTA_GATT_INCLUDED     false
 #endif
 
-#if ((BLE_INCLUDED == FALSE) && (BTA_GATT_INCLUDED == TRUE))
+#if (BLE_INCLUDED == FALSE && BTA_GATT_INCLUDED == TRUE)
 #undef BTA_GATT_INCLUDED
-#define BTA_GATT_INCLUDED        FALSE
+#define BTA_GATT_INCLUDED        false
 #endif
 
 
 #ifndef     BTA_GATT_DEBUG
-#define     BTA_GATT_DEBUG       FALSE
+#define     BTA_GATT_DEBUG       false
 #endif
 
 /*****************************************************************************
@@ -58,7 +58,7 @@ using std::vector;
 typedef struct
 {
     tBT_UUID    uuid;           /* uuid of the attribute */
-    UINT8       inst_id;        /* instance ID */
+    uint8_t       inst_id;        /* instance ID */
 } __attribute__((packed)) tBTA_GATT_ID;
 
 /* Success code and error codes */
@@ -109,7 +109,7 @@ typedef struct
 #define  BTA_GATT_PRC_IN_PROGRESS            GATT_PRC_IN_PROGRESS /* 0xFE Procedure Already in progress */
 #define  BTA_GATT_OUT_OF_RANGE               GATT_OUT_OF_RANGE    /* 0xFFAttribute value out of range */
 
-typedef UINT8 tBTA_GATT_STATUS;
+typedef uint8_t tBTA_GATT_STATUS;
 
 #define BTA_GATT_INVALID_CONN_ID   GATT_INVALID_CONN_ID
 
@@ -136,51 +136,51 @@ typedef UINT8 tBTA_GATT_STATUS;
 #define BTA_GATTC_CFG_MTU_EVT       18  /* configure MTU complete event */
 #define BTA_GATTC_CONGEST_EVT       24  /* Congestion event */
 
-typedef UINT8 tBTA_GATTC_EVT;
+typedef uint8_t tBTA_GATTC_EVT;
 
 typedef tGATT_IF tBTA_GATTC_IF;
 
 typedef struct
 {
-    UINT16              unit;       /* as UUIUD defined by SIG */
-    UINT16              descr;       /* as UUID as defined by SIG */
+    uint16_t              unit;       /* as UUIUD defined by SIG */
+    uint16_t              descr;       /* as UUID as defined by SIG */
     tGATT_FORMAT        format;
-    INT8                exp;
-    UINT8               name_spc;   /* The name space of the description */
+    int8_t                exp;
+    uint8_t               name_spc;   /* The name space of the description */
 }tBTA_GATT_CHAR_PRES;
 
 #define BTA_GATT_CLT_CONFIG_NONE               GATT_CLT_CONFIG_NONE         /* 0x0000    */
 #define BTA_GATT_CLT_CONFIG_NOTIFICATION       GATT_CLT_CONFIG_NOTIFICATION /* 0x0001 */
 #define BTA_GATT_CLT_CONFIG_INDICATION         GATT_CLT_CONFIG_INDICATION   /* 0x0002 */
-typedef UINT16  tBTA_GATT_CLT_CHAR_CONFIG;
+typedef uint16_t  tBTA_GATT_CLT_CHAR_CONFIG;
 
 /* characteristic descriptor: server configuration value
 */
 #define BTA_GATT_SVR_CONFIG_NONE            GATT_SVR_CONFIG_NONE            /* 0x0000 */
 #define BTA_GATT_SVR_CONFIG_BROADCAST       GATT_SVR_CONFIG_BROADCAST       /*  0x0001 */
-typedef UINT16  tBTA_GATT_SVR_CHAR_CONFIG;
+typedef uint16_t  tBTA_GATT_SVR_CHAR_CONFIG;
 
 /* Characteristic Aggregate Format attribute value
 */
 #define BTA_GATT_AGGR_HANDLE_NUM_MAX        10
 typedef struct
 {
-    UINT8                   num_handle;
-    UINT16                  handle_list[BTA_GATT_AGGR_HANDLE_NUM_MAX];
+    uint8_t                   num_handle;
+    uint16_t                  handle_list[BTA_GATT_AGGR_HANDLE_NUM_MAX];
 } tBTA_GATT_CHAR_AGGRE;
 typedef tGATT_VALID_RANGE           tBTA_GATT_VALID_RANGE;
 
 typedef struct
 {
-    UINT16  len;
-    UINT8   *p_value;
+    uint16_t  len;
+    uint8_t   *p_value;
 }tBTA_GATT_UNFMT;
 
 #define BTA_GATT_MAX_ATTR_LEN       GATT_MAX_ATTR_LEN
 
 #define BTA_GATTC_TYPE_WRITE             GATT_WRITE
 #define BTA_GATTC_TYPE_WRITE_NO_RSP      GATT_WRITE_NO_RSP
-typedef UINT8 tBTA_GATTC_WRITE_TYPE;
+typedef uint8_t tBTA_GATTC_WRITE_TYPE;
 
 #define BTA_GATT_CONN_UNKNOWN                   0
 #define BTA_GATT_CONN_L2C_FAILURE               GATT_CONN_L2C_FAILURE         /* general l2cap resource failure */
@@ -191,14 +191,14 @@ typedef UINT8 tBTA_GATTC_WRITE_TYPE;
 #define BTA_GATT_CONN_LMP_TIMEOUT               GATT_CONN_LMP_TIMEOUT          /* 0x22 connection fail for LMP response tout */
 #define BTA_GATT_CONN_CANCEL                    GATT_CONN_CANCEL               /* 0x0100 L2CAP connection cancelled  */
 #define BTA_GATT_CONN_NONE                      0x0101                          /* 0x0101 no connection to cancel  */
-typedef UINT16 tBTA_GATT_REASON;
+typedef uint16_t tBTA_GATT_REASON;
 
 #define BTA_GATTC_MULTI_MAX    GATT_MAX_READ_MULTI_HANDLES
 
 typedef struct
 {
-    UINT8                       num_attr;
-    UINT16                      handles[BTA_GATTC_MULTI_MAX];
+    uint8_t                       num_attr;
+    uint16_t                      handles[BTA_GATTC_MULTI_MAX];
 }tBTA_GATTC_MULTI;
 
 #define BTA_GATT_AUTH_REQ_NONE           GATT_AUTH_REQ_NONE
@@ -216,19 +216,19 @@ enum
     BTA_GATTC_ATTR_TYPE_CHAR_DESCR,
     BTA_GATTC_ATTR_TYPE_SRVC
 };
-typedef UINT8 tBTA_GATTC_ATTR_TYPE;
+typedef uint8_t tBTA_GATTC_ATTR_TYPE;
 
 
 typedef struct
 {
     tBT_UUID    uuid;
-    UINT16      s_handle;
-    UINT16      e_handle;   /* used for service only */
-    UINT8       attr_type;
-    UINT8       id;
-    UINT8       prop;       /* used when attribute type is characteristic */
-    BOOLEAN     is_primary; /* used when attribute type is service */
-    UINT16      incl_srvc_handle; /* used when attribute type is included service */
+    uint16_t      s_handle;
+    uint16_t      e_handle;   /* used for service only */
+    uint8_t       attr_type;
+    uint8_t       id;
+    uint8_t       prop;       /* used when attribute type is characteristic */
+    bool     is_primary; /* used when attribute type is service */
+    uint16_t      incl_srvc_handle; /* used when attribute type is included service */
 }tBTA_GATTC_NV_ATTR;
 
 /* callback data structure */
@@ -241,58 +241,58 @@ typedef struct
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
-    UINT16              handle;
+    uint16_t              handle;
     tBTA_GATT_UNFMT  *p_value;
 }tBTA_GATTC_READ;
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
-    UINT16              handle;
+    uint16_t              handle;
 }tBTA_GATTC_WRITE;
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
 }tBTA_GATTC_EXEC_CMPL;
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
 }tBTA_GATTC_SEARCH_CMPL;
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_ID   service_uuid;
 }tBTA_GATTC_SRVC_RES;
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
-    UINT16              mtu;
+    uint16_t              mtu;
 }tBTA_GATTC_CFG_MTU;
 
 typedef struct
 {
     tBTA_GATT_STATUS    status;
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATTC_IF       client_if;
     BD_ADDR             remote_bda;
     tBTA_TRANSPORT      transport;
-    UINT16              mtu;
+    uint16_t              mtu;
 }tBTA_GATTC_OPEN;
 
 typedef struct
 {
     tBTA_GATT_STATUS    status;
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATTC_IF       client_if;
     BD_ADDR             remote_bda;
     tBTA_GATT_REASON    reason;         /* disconnect reason code, not useful when connect event is reported */
@@ -300,25 +300,25 @@ typedef struct
 
 typedef struct
 {
-    UINT16              conn_id;
+    uint16_t              conn_id;
     BD_ADDR             bda;
-    UINT16              handle;
-    UINT16              len;
-    UINT8               value[BTA_GATT_MAX_ATTR_LEN];
-    BOOLEAN             is_notify;
+    uint16_t              handle;
+    uint16_t              len;
+    uint8_t               value[BTA_GATT_MAX_ATTR_LEN];
+    bool             is_notify;
 }tBTA_GATTC_NOTIFY;
 
 typedef struct
 {
-    UINT16 conn_id;
-    BOOLEAN congested; /* congestion indicator */
+    uint16_t conn_id;
+    bool congested; /* congestion indicator */
 }tBTA_GATTC_CONGEST;
 
 typedef struct
 {
     tBTA_GATT_STATUS        status;
     tBTA_GATTC_IF           client_if;
-    UINT16                  conn_id;
+    uint16_t                  conn_id;
     BD_ADDR                 remote_bda;
 }tBTA_GATTC_OPEN_CLOSE;
 
@@ -378,7 +378,7 @@ typedef void (tBTA_GATTC_CBACK)(tBTA_GATTC_EVT event, tBTA_GATTC *p_data);
 #define BTA_GATTS_LISTEN_EVT                            19
 #define BTA_GATTS_CONGEST_EVT                           20
 
-typedef UINT8  tBTA_GATTS_EVT;
+typedef uint8_t  tBTA_GATTS_EVT;
 typedef tGATT_IF tBTA_GATTS_IF;
 
 /* Attribute permissions
@@ -391,7 +391,7 @@ typedef tGATT_IF tBTA_GATTS_IF;
 #define BTA_GATT_PERM_WRITE_ENC_MITM    GATT_PERM_WRITE_ENC_MITM    /* bit 6 -  0x0040 */
 #define BTA_GATT_PERM_WRITE_SIGNED      GATT_PERM_WRITE_SIGNED      /* bit 7 -  0x0080 */
 #define BTA_GATT_PERM_WRITE_SIGNED_MITM GATT_PERM_WRITE_SIGNED_MITM /* bit 8 -  0x0100 */
-typedef UINT16 tBTA_GATT_PERM;
+typedef uint16_t tBTA_GATT_PERM;
 
 #define BTA_GATTS_INVALID_APP   0xff
 
@@ -406,7 +406,7 @@ typedef UINT16 tBTA_GATT_PERM;
 #define BTA_GATT_CHAR_PROP_BIT_INDICATE     GATT_CHAR_PROP_BIT_INDICATE    /* 0x20 */
 #define BTA_GATT_CHAR_PROP_BIT_AUTH         GATT_CHAR_PROP_BIT_AUTH        /* 0x40 */
 #define BTA_GATT_CHAR_PROP_BIT_EXT_PROP     GATT_CHAR_PROP_BIT_EXT_PROP    /* 0x80 */
-typedef UINT8 tBTA_GATT_CHAR_PROP;
+typedef uint8_t tBTA_GATT_CHAR_PROP;
 
 #ifndef BTA_GATTC_CHAR_DESCR_MAX
 #define BTA_GATTC_CHAR_DESCR_MAX        7
@@ -418,10 +418,10 @@ typedef struct
 {
     tBT_UUID app_uuid128;
     tBT_UUID svc_uuid;
-    UINT16   svc_inst;
-    UINT16   s_handle;
-    UINT16   e_handle;
-    BOOLEAN  is_primary;      /* primary service or secondary */
+    uint16_t   svc_inst;
+    uint16_t   s_handle;
+    uint16_t   e_handle;
+    bool  is_primary;      /* primary service or secondary */
 } tBTA_GATTS_HNDL_RANGE;
 
 #define BTA_GATTS_SRV_CHG_CMD_ADD_CLIENT       GATTS_SRV_CHG_CMD_ADD_CLIENT
@@ -438,7 +438,7 @@ typedef tGATTS_SRV_CHG_RSP tBTA_GATTS_SRV_CHG_RSP;
 #define BTA_GATT_TRANSPORT_LE       GATT_TRANSPORT_LE
 #define BTA_GATT_TRANSPORT_BR_EDR   GATT_TRANSPORT_BR_EDR
 #define BTA_GATT_TRANSPORT_LE_BR_EDR    GATT_TRANSPORT_LE_BR_EDR
-typedef UINT8 tBTA_GATT_TRANSPORT;
+typedef uint8_t tBTA_GATT_TRANSPORT;
 
 /* attribute value */
 typedef tGATT_VALUE tBTA_GATT_VALUE;
@@ -464,8 +464,8 @@ typedef struct
 {
     tBTA_GATT_STATUS    status;
     BD_ADDR             remote_bda;
-    UINT32              trans_id;
-    UINT16              conn_id;
+    uint32_t              trans_id;
+    uint16_t              conn_id;
     tBTA_GATTS_REQ_DATA *p_data;
 }tBTA_GATTS_REQ;
 
@@ -480,9 +480,9 @@ typedef struct
 typedef struct
 {
     tBTA_GATTS_IF       server_if;
-    UINT16              service_id;
-    UINT16              svc_instance;
-    BOOLEAN             is_primary;
+    uint16_t              service_id;
+    uint16_t              svc_instance;
+    bool             is_primary;
     tBTA_GATT_STATUS    status;
     tBT_UUID            uuid;
 }tBTA_GATTS_CREATE;
@@ -490,8 +490,8 @@ typedef struct
 typedef struct
 {
     tBTA_GATTS_IF       server_if;
-    UINT16              service_id;
-    UINT16              attr_id;
+    uint16_t              service_id;
+    uint16_t              attr_id;
     tBTA_GATT_STATUS    status;
     tBT_UUID            char_uuid;
 }tBTA_GATTS_ADD_RESULT;
@@ -499,7 +499,7 @@ typedef struct
 typedef struct
 {
     tBTA_GATTS_IF       server_if;
-    UINT16              service_id;
+    uint16_t              service_id;
     tBTA_GATT_STATUS    status;
 }tBTA_GATTS_SRVC_OPER;
 
@@ -508,20 +508,20 @@ typedef struct
 {
     tBTA_GATTS_IF       server_if;
     BD_ADDR             remote_bda;
-    UINT16              conn_id;
+    uint16_t              conn_id;
     tBTA_GATT_REASON    reason; /* report disconnect reason */
     tBTA_GATT_TRANSPORT transport;
 }tBTA_GATTS_CONN;
 
 typedef struct
 {
-    UINT16 conn_id;
-    BOOLEAN congested; /* report channel congestion indicator */
+    uint16_t conn_id;
+    bool congested; /* report channel congestion indicator */
 }tBTA_GATTS_CONGEST;
 
 typedef struct
 {
-    UINT16 conn_id; /* connection ID */
+    uint16_t conn_id; /* connection ID */
     tBTA_GATT_STATUS status; /* notification/indication status */
 }tBTA_GATTS_CONF;
 
@@ -550,10 +550,10 @@ typedef void (tBTA_GATTS_CBACK)(tBTA_GATTS_EVT event,  tBTA_GATTS *p_data);
 typedef struct
 {
     tBT_UUID                uuid;
-    BOOLEAN                 is_primary;
-    UINT16                  handle;
-    UINT16                  s_handle;
-    UINT16                  e_handle;
+    bool                 is_primary;
+    uint16_t                  handle;
+    uint16_t                  s_handle;
+    uint16_t                  e_handle;
     list_t                 *characteristics; /* list of tBTA_GATTC_CHARACTERISTIC */
     list_t                 *included_svc; /* list of tBTA_GATTC_INCLUDED_SVC */
 } __attribute__((packed)) tBTA_GATTC_SERVICE;
@@ -561,7 +561,7 @@ typedef struct
 typedef struct
 {
     tBT_UUID                uuid;
-    UINT16                  handle;
+    uint16_t                  handle;
     tBTA_GATT_CHAR_PROP     properties;
     tBTA_GATTC_SERVICE     *service; /* owning service*/
     list_t                 *descriptors; /* list of tBTA_GATTC_DESCRIPTOR */
@@ -570,14 +570,14 @@ typedef struct
 typedef struct
 {
     tBT_UUID                    uuid;
-    UINT16                      handle;
+    uint16_t                      handle;
     tBTA_GATTC_CHARACTERISTIC  *characteristic; /* owning characteristic */
 } __attribute__((packed)) tBTA_GATTC_DESCRIPTOR;
 
 typedef struct
 {
     tBT_UUID                uuid;
-    UINT16                  handle;
+    uint16_t                  handle;
     tBTA_GATTC_SERVICE     *owning_service; /* owning service*/
     tBTA_GATTC_SERVICE     *included_service;
 } __attribute__((packed)) tBTA_GATTC_INCLUDED_SVC;
@@ -647,7 +647,7 @@ extern void BTA_GATTC_AppDeregister (tBTA_GATTC_IF client_if);
 **
 *******************************************************************************/
 extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
-                           BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
+                           bool is_direct, tBTA_GATT_TRANSPORT transport);
 
 /*******************************************************************************
 **
@@ -663,7 +663,7 @@ extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct);
 
 /*******************************************************************************
 **
@@ -676,7 +676,7 @@ extern void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BO
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Close(UINT16 conn_id);
+extern void BTA_GATTC_Close(uint16_t conn_id);
 
 /*******************************************************************************
 **
@@ -694,7 +694,7 @@ extern void BTA_GATTC_Close(UINT16 conn_id);
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_srvc_uuid);
+extern void BTA_GATTC_ServiceSearchRequest(uint16_t conn_id, tBT_UUID *p_srvc_uuid);
 
 /*******************************************************************************
 **
@@ -707,7 +707,7 @@ extern void BTA_GATTC_ServiceSearchRequest(UINT16 conn_id, tBT_UUID *p_srvc_uuid
 ** Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
 **
 *******************************************************************************/
-extern const list_t* BTA_GATTC_GetServices(UINT16 conn_id);
+extern const list_t* BTA_GATTC_GetServices(uint16_t conn_id);
 
 /*******************************************************************************
 **
@@ -721,7 +721,7 @@ extern const list_t* BTA_GATTC_GetServices(UINT16 conn_id);
 ** Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
 **
 *******************************************************************************/
-extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_id, UINT16 handle);
+extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
 **
@@ -735,7 +735,7 @@ extern const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_
 ** Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
 **
 *******************************************************************************/
-extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 handle);
+extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
 **
@@ -749,7 +749,7 @@ extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT
 **                  count: number of elements in db.
 **
 *******************************************************************************/
-extern void BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle,
+extern void BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle,
                                 btgatt_db_element_t **db, int *count);
 
 /*******************************************************************************
@@ -764,7 +764,7 @@ extern void BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -778,7 +778,7 @@ void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req);
 
 /*******************************************************************************
 **
@@ -794,8 +794,8 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ 
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
-                                UINT16 handle,
+void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
+                                uint16_t handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
                                 vector<uint8_t> value,
                                 tBTA_GATT_AUTH_REQ auth_req);
@@ -814,8 +814,8 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
-                               UINT16 handle,
+void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
+                               uint16_t handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
                                vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req);
@@ -832,7 +832,7 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle);
+extern void BTA_GATTC_SendIndConfirm (uint16_t conn_id, uint16_t handle);
 
 /*******************************************************************************
 **
@@ -849,7 +849,7 @@ extern void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle);
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      client_if,
                                                             const BD_ADDR      remote_bda,
-                                                            UINT16             handle);
+                                                            uint16_t             handle);
 
 /*******************************************************************************
 **
@@ -866,7 +866,7 @@ extern tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF      c
 *******************************************************************************/
 extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF      client_if,
                                                               const BD_ADDR      remote_bda,
-                                                              UINT16             handle);
+                                                              uint16_t             handle);
 
 /*******************************************************************************
 **
@@ -882,9 +882,9 @@ extern tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF     
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
-                                     UINT16 handle,
-                                     UINT16 offset,
+extern void BTA_GATTC_PrepareWrite  (uint16_t conn_id,
+                                     uint16_t handle,
+                                     uint16_t offset,
                                      vector<uint8_t> value,
                                      tBTA_GATT_AUTH_REQ auth_req);
 
@@ -900,7 +900,7 @@ extern void BTA_GATTC_PrepareWrite  (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute);
+extern void BTA_GATTC_ExecuteWrite  (uint16_t conn_id, bool is_execute);
 
 /*******************************************************************************
 **
@@ -915,7 +915,7 @@ extern void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute);
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
+extern void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI *p_read_multi,
                                    tBTA_GATT_AUTH_REQ auth_req);
 
 
@@ -947,7 +947,7 @@ extern void BTA_GATTC_Refresh(const BD_ADDR remote_bda);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda);
+extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start, BD_ADDR_PTR target_bda);
 
 /*******************************************************************************
 **
@@ -961,7 +961,7 @@ extern void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
+extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, bool start);
 
 
 /*******************************************************************************
@@ -977,7 +977,7 @@ extern void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu);
+extern void BTA_GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu);
 
 /*******************************************************************************
 **  BTA GATT Server API
@@ -1058,7 +1058,7 @@ extern void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if);
 **
 *******************************************************************************/
 extern void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid,
-                                    UINT8 inst, UINT16 num_handle, BOOLEAN is_primary);
+                                    uint8_t inst, uint16_t num_handle, bool is_primary);
 
 /*******************************************************************************
 **
@@ -1075,7 +1075,7 @@ extern void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id);
+extern void BTA_GATTS_AddIncludeService(uint16_t service_id, uint16_t included_service_id);
 
 /*******************************************************************************
 **
@@ -1092,7 +1092,7 @@ extern void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_servi
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID   *p_char_uuid,
+extern void BTA_GATTS_AddCharacteristic (uint16_t service_id,  tBT_UUID   *p_char_uuid,
                                          tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property);
 
 /*******************************************************************************
@@ -1112,7 +1112,7 @@ extern void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID   *p_char_
 ** Returns          returns status.
 **
 *******************************************************************************/
-extern void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
+extern void BTA_GATTS_AddCharDescriptor (uint16_t service_id,
                                          tBTA_GATT_PERM perm,
                                          tBT_UUID  * p_descr_uuid);
 
@@ -1128,7 +1128,7 @@ extern void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
 ** Returns          returns none.
 **
 *******************************************************************************/
-extern void  BTA_GATTS_DeleteService(UINT16 service_id);
+extern void  BTA_GATTS_DeleteService(uint16_t service_id);
 
 /*******************************************************************************
 **
@@ -1142,7 +1142,7 @@ extern void  BTA_GATTS_DeleteService(UINT16 service_id);
 ** Returns          None.
 **
 *******************************************************************************/
-extern void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport);
+extern void  BTA_GATTS_StartService(uint16_t service_id, tBTA_GATT_TRANSPORT sup_transport);
 
 /*******************************************************************************
 **
@@ -1155,7 +1155,7 @@ extern void  BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_t
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTS_StopService(UINT16 service_id);
+extern void BTA_GATTS_StopService(uint16_t service_id);
 
 /*******************************************************************************
 **
@@ -1171,9 +1171,9 @@ extern void BTA_GATTS_StopService(UINT16 service_id);
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
+extern void BTA_GATTS_HandleValueIndication (uint16_t conn_id, uint16_t attr_id,
                                              vector<uint8_t> value,
-                                             BOOLEAN need_confirm);
+                                             bool need_confirm);
 
 /*******************************************************************************
 **
@@ -1189,7 +1189,7 @@ extern void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
+extern void BTA_GATTS_SendRsp (uint16_t conn_id, uint32_t trans_id,
                                tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg);
 
 
@@ -1208,7 +1208,7 @@ extern void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
 **
 *******************************************************************************/
 extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
-                           BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport);
+                           bool is_direct, tBTA_GATT_TRANSPORT transport);
 
 
 /*******************************************************************************
@@ -1225,7 +1225,7 @@ extern void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda,
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct);
+extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bool is_direct);
 
 
 /*******************************************************************************
@@ -1239,7 +1239,7 @@ extern void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BO
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTS_Close(UINT16 conn_id);
+extern void BTA_GATTS_Close(uint16_t conn_id);
 
 /*******************************************************************************
 **
@@ -1256,7 +1256,7 @@ extern void BTA_GATTS_Close(UINT16 conn_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start,
+extern void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, bool start,
                              BD_ADDR_PTR target_bda);
 
 #endif /* BTA_GATT_API_H */

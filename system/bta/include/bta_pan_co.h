@@ -68,7 +68,7 @@ extern "C" {
 ** Returns          Data flow mask.
 **
 *******************************************************************************/
-extern UINT8 bta_pan_co_init(UINT8 *q_level);
+extern uint8_t bta_pan_co_init(uint8_t *q_level);
 
 /*******************************************************************************
 **
@@ -82,7 +82,7 @@ extern UINT8 bta_pan_co_init(UINT8 *q_level);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr);
+extern void bta_pan_co_open(uint16_t handle, uint8_t app_id, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr);
 
 /*******************************************************************************
 **
@@ -95,7 +95,7 @@ extern void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_rol
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_close(UINT16 handle, UINT8 app_id);
+extern void bta_pan_co_close(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
 **
@@ -110,7 +110,7 @@ extern void bta_pan_co_close(UINT16 handle, UINT8 app_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id);
+extern void bta_pan_co_tx_path(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
 **
@@ -125,7 +125,7 @@ extern void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id);
+extern void bta_pan_co_rx_path(uint16_t handle, uint8_t app_id);
 
 /*******************************************************************************
 **
@@ -140,8 +140,8 @@ extern void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst, UINT16 protocol, UINT8 *p_data,
-                                UINT16 len, BOOLEAN ext, BOOLEAN forward);
+extern void bta_pan_co_tx_write(uint16_t handle, uint8_t app_id, BD_ADDR src, BD_ADDR dst, uint16_t protocol, uint8_t *p_data,
+                                uint16_t len, bool ext, bool forward);
 
 /*******************************************************************************
 **
@@ -156,8 +156,8 @@ extern void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADD
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf,
-                                   BOOLEAN ext, BOOLEAN forward);
+extern void bta_pan_co_tx_writebuf(uint16_t handle, uint8_t app_id, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf,
+                                   bool ext, bool forward);
 
 
 /*******************************************************************************
@@ -174,7 +174,7 @@ extern void bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable);
+extern void bta_pan_co_rx_flow(uint16_t handle, uint8_t app_id, bool enable);
 
 
 /*******************************************************************************
@@ -186,8 +186,8 @@ extern void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
-                                 UINT16 len, UINT8 *p_filters);
+extern void bta_pan_co_pfilt_ind(uint16_t handle, bool indication, tBTA_PAN_STATUS result,
+                                 uint16_t len, uint8_t *p_filters);
 
 /*******************************************************************************
 **
@@ -198,8 +198,8 @@ extern void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STA
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_co_mfilt_ind(UINT16 handle,  BOOLEAN indication, tBTA_PAN_STATUS result,
-                                 UINT16 len, UINT8 *p_filters);
+extern void bta_pan_co_mfilt_ind(uint16_t handle,  bool indication, tBTA_PAN_STATUS result,
+                                 uint16_t len, uint8_t *p_filters);
 
 #ifdef __cplusplus
 }

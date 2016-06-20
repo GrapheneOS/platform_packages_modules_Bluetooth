@@ -98,7 +98,7 @@ void bta_hf_client_register(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_deregister(tBTA_HF_CLIENT_DATA *p_data)
 {
-    bta_hf_client_cb.scb.deregister = TRUE;
+    bta_hf_client_cb.scb.deregister = true;
 
     /* remove sdp record */
     bta_hf_client_del_record(p_data);
@@ -122,7 +122,7 @@ void bta_hf_client_deregister(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_start_dereg(tBTA_HF_CLIENT_DATA *p_data)
 {
-    bta_hf_client_cb.scb.deregister = TRUE;
+    bta_hf_client_cb.scb.deregister = true;
 
     /* remove sdp record */
     bta_hf_client_del_record(p_data);
@@ -147,7 +147,7 @@ void bta_hf_client_start_close(tBTA_HF_CLIENT_DATA *p_data)
     /* if SCO is open close SCO and wait on RFCOMM close */
     if (bta_hf_client_cb.scb.sco_state == BTA_HF_CLIENT_SCO_OPEN_ST)
     {
-        bta_hf_client_cb.scb.sco_close_rfc = TRUE;
+        bta_hf_client_cb.scb.sco_close_rfc = true;
     }
     else
     {
@@ -249,7 +249,7 @@ void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA *p_data)
     bta_hf_client_cback_open(NULL, BTA_HF_CLIENT_SUCCESS);
 
     /* start SLC procedure */
-    bta_hf_client_slc_seq(FALSE);
+    bta_hf_client_slc_seq(false);
 }
 
 /*******************************************************************************
@@ -264,7 +264,7 @@ void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_rfc_acp_open(tBTA_HF_CLIENT_DATA *p_data)
 {
-    UINT16          lcid;
+    uint16_t          lcid;
     BD_ADDR         dev_addr;
     int             status;
 
@@ -325,8 +325,8 @@ void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA *p_data)
     bta_hf_client_cb.scb.peer_features = 0;
     bta_hf_client_cb.scb.chld_features = 0;
     bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
-    bta_hf_client_cb.scb.svc_conn = FALSE;
-    bta_hf_client_cb.scb.send_at_reply = FALSE;
+    bta_hf_client_cb.scb.svc_conn = false;
+    bta_hf_client_cb.scb.send_at_reply = false;
     bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
 
     bta_hf_client_at_reset();
@@ -395,8 +395,8 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
     bta_hf_client_cb.scb.peer_features = 0;
     bta_hf_client_cb.scb.chld_features = 0;
     bta_hf_client_cb.scb.role = BTA_HF_CLIENT_ACP;
-    bta_hf_client_cb.scb.svc_conn = FALSE;
-    bta_hf_client_cb.scb.send_at_reply = FALSE;
+    bta_hf_client_cb.scb.svc_conn = false;
+    bta_hf_client_cb.scb.send_at_reply = false;
     bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
 
     bta_hf_client_at_reset();
@@ -407,7 +407,7 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
     (*bta_hf_client_cb.p_cback)(BTA_HF_CLIENT_CLOSE_EVT, NULL);
 
     /* if not deregistering reopen server */
-    if (bta_hf_client_cb.scb.deregister == FALSE)
+    if (bta_hf_client_cb.scb.deregister == false)
     {
         /* Clear peer bd_addr so instance can be reused */
         bdcpy(bta_hf_client_cb.scb.peer_addr, bd_addr_null);
@@ -442,7 +442,7 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data)
 {
-    UINT16 event = BTA_HF_CLIENT_DISC_FAIL_EVT;
+    uint16_t event = BTA_HF_CLIENT_DISC_FAIL_EVT;
 
     APPL_TRACE_DEBUG ("bta_hf_client_disc_int_res: Status: %d", p_data->disc_result.status);
 
@@ -500,7 +500,7 @@ void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data)
 *******************************************************************************/
 void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA *p_data)
 {
-    UINT16  len;
+    uint16_t  len;
     char    buf[BTA_HF_CLIENT_RFC_READ_MAX];
     UNUSED(p_data);
 
@@ -545,7 +545,7 @@ void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA *p_data)
     if (!bta_hf_client_cb.scb.svc_conn)
     {
         /* set state variable */
-        bta_hf_client_cb.scb.svc_conn = TRUE;
+        bta_hf_client_cb.scb.svc_conn = true;
 
         /* call callback */
         evt.conn.peer_feat = bta_hf_client_cb.scb.peer_features;
@@ -564,7 +564,7 @@ void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, UINT16 value)
+void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, uint16_t value)
 {
     tBTA_HF_CLIENT evt;
 
@@ -587,7 +587,7 @@ void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, UINT16 value)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, UINT16 value)
+void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, uint16_t value)
 {
     tBTA_HF_CLIENT evt;
 
@@ -675,7 +675,7 @@ void bta_hf_client_ccwa(char *number)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT16 cme)
+void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, uint16_t cme)
 {
     tBTA_HF_CLIENT evt;
 
@@ -697,7 +697,7 @@ void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT16 cme)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_clcc(UINT32 idx, BOOLEAN incoming, UINT8 status, BOOLEAN mpty, char *number)
+void bta_hf_client_clcc(uint32_t idx, bool incoming, uint8_t status, bool mpty, char *number)
 {
     tBTA_HF_CLIENT evt;
 
@@ -710,7 +710,7 @@ void bta_hf_client_clcc(UINT32 idx, BOOLEAN incoming, UINT8 status, BOOLEAN mpty
 
     if (number)
     {
-        evt.clcc.number_present = TRUE;
+        evt.clcc.number_present = true;
         strlcpy(evt.clcc.number, number, BTA_HF_CLIENT_NUMBER_LEN + 1);
         evt.clcc.number[BTA_HF_CLIENT_NUMBER_LEN] = '\0';
     }
@@ -728,7 +728,7 @@ void bta_hf_client_clcc(UINT32 idx, BOOLEAN incoming, UINT8 status, BOOLEAN mpty
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_cnum(char *number, UINT16 service)
+void bta_hf_client_cnum(char *number, uint16_t service)
 {
     tBTA_HF_CLIENT evt;
 

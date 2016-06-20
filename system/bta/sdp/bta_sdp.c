@@ -33,7 +33,7 @@
 ** Constants and types
 *****************************************************************************/
 
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_SDP_CB bta_sdp_cb;
 #endif
 
@@ -59,18 +59,18 @@ const tBTA_SDP_ACTION bta_sdp_action[] =
 **
 ** Returns          void
 *******************************************************************************/
-BOOLEAN bta_sdp_sm_execute(BT_HDR *p_msg)
+bool bta_sdp_sm_execute(BT_HDR *p_msg)
 {
-    if(p_msg == NULL) return FALSE;
+    if(p_msg == NULL) return false;
 
-    BOOLEAN ret = FALSE;
-    UINT16 action = (p_msg->event & 0x00ff);
+    bool ret = false;
+    uint16_t action = (p_msg->event & 0x00ff);
 
     /* execute action functions */
     if(action < BTA_SDP_NUM_ACTIONS)
     {
         (*bta_sdp_action[action])((tBTA_SDP_MSG*)p_msg);
-        ret = TRUE;
+        ret = true;
     }
 
     return(ret);

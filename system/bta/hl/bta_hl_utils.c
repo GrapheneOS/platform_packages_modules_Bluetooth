@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "bt_target.h"
-#if defined(HL_INCLUDED) && (HL_INCLUDED == TRUE)
+#if (HL_INCLUDED == TRUE)
 
 
 #include "bt_common.h"
@@ -44,13 +44,13 @@
 **
 ** Description    This function set the control PSM for the DCH setup
 **
-** Returns     BOOLEAN - TRUE - control PSM setting is successful
+** Returns     bool - true - control PSM setting is successful
 *******************************************************************************/
-BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
-                                    UINT8 mdl_idx, UINT16 ctrl_psm)
+bool bta_hl_set_ctrl_psm_for_dch(uint8_t app_idx, uint8_t mcl_idx,
+                                    uint8_t mdl_idx, uint16_t ctrl_psm)
 {
     tBTA_HL_MCL_CB *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN success = TRUE, update_ctrl_psm = FALSE;
+    bool success = true, update_ctrl_psm = false;
     UNUSED(mdl_idx);
 
     if (p_mcb->sdp.num_recs)
@@ -58,13 +58,13 @@ BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
         if (p_mcb->ctrl_psm != ctrl_psm)
         {
             /* can not use a different ctrl PSM than the current one*/
-            success = FALSE;
+            success = false;
         }
     }
     else
     {
         /* No SDP info control i.e. channel was opened by the peer */
-        update_ctrl_psm = TRUE;
+        update_ctrl_psm = true;
     }
 
     if (success && update_ctrl_psm)
@@ -73,7 +73,7 @@ BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
     }
 
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!success)
     {
         APPL_TRACE_DEBUG("bta_hl_set_ctrl_psm_for_dch num_recs=%d success=%d update_ctrl_psm=%d ctrl_psm=0x%x ",
@@ -91,16 +91,16 @@ BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description
 **
-** Returns      TRUE if found
+** Returns      true if found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
-                                           UINT16 ctrl_psm,
-                                           UINT8 *p_sdp_idx)
+bool bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
+                                           uint16_t ctrl_psm,
+                                           uint8_t *p_sdp_idx)
 {
-    BOOLEAN found=FALSE;
+    bool found=false;
     tBTA_HL_SDP_REC     *p_rec;
-    UINT8 i;
+    uint8_t i;
 
     if (ctrl_psm != 0)
     {
@@ -110,7 +110,7 @@ BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
             if (p_rec->ctrl_psm == ctrl_psm)
             {
                 *p_sdp_idx = i;
-                found = TRUE;
+                found = true;
                 break;
             }
         }
@@ -118,10 +118,10 @@ BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
     else
     {
         *p_sdp_idx = 0;
-        found = TRUE;
+        found = true;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_sdp_idx_using_ctrl_psm found=%d sdp_idx=%d ctrl_psm=0x%x ",
@@ -137,11 +137,11 @@ BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
 **
 ** Description  This function sets the user tx buffer size
 **
-** Returns      UINT16 buf_size
+** Returns      uint16_t buf_size
 **
 *******************************************************************************/
 
-UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size)
+uint16_t bta_hl_set_user_tx_buf_size(uint16_t max_tx_size)
 {
     if (max_tx_size > BT_DEFAULT_BUFFER_SIZE)
         return BTA_HL_LRG_DATA_BUF_SIZE;
@@ -154,11 +154,11 @@ UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size)
 **
 ** Description  This function sets the user rx buffer size
 **
-** Returns      UINT16 buf_size
+** Returns      uint16_t buf_size
 **
 *******************************************************************************/
 
-UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu)
+uint16_t bta_hl_set_user_rx_buf_size(uint16_t mtu)
 {
     if (mtu > BT_DEFAULT_BUFFER_SIZE)
         return BTA_HL_LRG_DATA_BUF_SIZE;
@@ -173,12 +173,12 @@ UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu)
 **
 ** Description  This function sets the tx window size
 **
-** Returns      UINT8 tx_win_size
+** Returns      uint8_t tx_win_size
 **
 *******************************************************************************/
-UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps)
+uint8_t bta_hl_set_tx_win_size(uint16_t mtu, uint16_t mps)
 {
-    UINT8 tx_win_size;
+    uint8_t tx_win_size;
 
     if (mtu <= mps)
     {
@@ -197,7 +197,7 @@ UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps)
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_set_tx_win_size win_size=%d mtu=%d mps=%d",
                       tx_win_size, mtu, mps);
 #endif
@@ -210,12 +210,12 @@ UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps)
 **
 ** Description  This function sets the MPS
 **
-** Returns      UINT16 MPS
+** Returns      uint16_t MPS
 **
 *******************************************************************************/
-UINT16 bta_hl_set_mps(UINT16 mtu)
+uint16_t bta_hl_set_mps(uint16_t mtu)
 {
-    UINT16 mps;
+    uint16_t mps;
     if (mtu > BTA_HL_L2C_MPS)
     {
         mps = BTA_HL_L2C_MPS;
@@ -224,7 +224,7 @@ UINT16 bta_hl_set_mps(UINT16 mtu)
     {
         mps = mtu;
     }
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_set_mps mps=%d mtu=%d",
                       mps, mtu);
 #endif
@@ -241,10 +241,10 @@ UINT16 bta_hl_set_mps(UINT16 mtu)
 ** Returns      void
 **
 *******************************************************************************/
-void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
+void bta_hl_clean_mdl_cb(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 {
     tBTA_HL_MDL_CB      *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_clean_mdl_cb app_idx=%d mcl_idx=%d mdl_idx=%d",
                       app_idx, mcl_idx, mdl_idx);
 #endif
@@ -266,7 +266,7 @@ void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
 ** Returns      BT_HDR *.
 **
 *******************************************************************************/
-BT_HDR * bta_hl_get_buf(UINT16 data_size, BOOLEAN fcs_use)
+BT_HDR * bta_hl_get_buf(uint16_t data_size, bool fcs_use)
 {
     size_t size = data_size + L2CAP_MIN_OFFSET + BT_HDR_SIZE + L2CAP_FCS_LEN
                                                    + L2CAP_EXT_CONTROL_OVERHEAD;
@@ -288,16 +288,16 @@ BT_HDR * bta_hl_get_buf(UINT16 data_size, BOOLEAN fcs_use)
 ** Description  This function check the specified service class(es) can be find in
 **              the received SDP database
 **
-** Returns      BOOLEAN TRUE - found
-**                      FALSE - not found
+** Returns      bool true - found
+**                      false - not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_service_in_db( UINT8 app_idx, UINT8 mcl_idx,
-                                   UINT16 service_uuid,
+bool bta_hl_find_service_in_db( uint8_t app_idx, uint8_t mcl_idx,
+                                   uint16_t service_uuid,
                                    tSDP_DISC_REC **pp_rec )
 {
     tBTA_HL_MCL_CB          *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN found = TRUE;
+    bool found = true;
 
     switch (service_uuid)
     {
@@ -306,14 +306,14 @@ BOOLEAN bta_hl_find_service_in_db( UINT8 app_idx, UINT8 mcl_idx,
             if ((*pp_rec = SDP_FindServiceInDb(p_mcb->p_db, service_uuid,
                                                *pp_rec)) == NULL)
             {
-                found = FALSE;
+                found = false;
             }
             break;
         default:
             if (((*pp_rec = bta_hl_find_sink_or_src_srv_class_in_db(p_mcb->p_db,
                                                                     *pp_rec)) == NULL))
             {
-                found = FALSE;
+                found = false;
             }
             break;
     }
@@ -327,16 +327,16 @@ BOOLEAN bta_hl_find_service_in_db( UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function finds the service class(es) for both CCH and DCH oeprations
 **
-** Returns      UINT16 - service_id
+** Returns      uint16_t - service_id
 **                       if service_uuid = 0xFFFF then it means service uuid
 **                       can be either Sink or Source
 **
 *******************************************************************************/
-UINT16 bta_hl_get_service_uuids(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
-                                UINT8 mdl_idx )
+uint16_t bta_hl_get_service_uuids(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
+                                uint8_t mdl_idx )
 {
     tBTA_HL_MDL_CB          *p_dcb;
-    UINT16                  service_uuid = 0xFFFF; /* both Sink and Source */
+    uint16_t                  service_uuid = 0xFFFF; /* both Sink and Source */
 
     switch (sdp_oper)
     {
@@ -361,7 +361,7 @@ UINT16 bta_hl_get_service_uuids(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
             /* use default that is both Sink and Source */
             break;
     }
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_get_service_uuids service_uuid=0x%x",service_uuid );
 #endif
     return service_uuid;
@@ -374,16 +374,16 @@ UINT16 bta_hl_get_service_uuids(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function finds the configuration response for the echo test
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_echo_cfg_rsp(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdep_idx, UINT8 cfg,
-                                 UINT8 *p_cfg_rsp)
+bool bta_hl_find_echo_cfg_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdep_idx, uint8_t cfg,
+                                 uint8_t *p_cfg_rsp)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDEP        *p_mdep= &p_acb->sup_feature.mdep[mdep_idx];
-    BOOLEAN             status =TRUE;
+    bool             status =true;
 
     if (p_mdep->mdep_id == BTA_HL_ECHO_TEST_MDEP_ID)
     {
@@ -397,13 +397,13 @@ BOOLEAN bta_hl_find_echo_cfg_rsp(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdep_idx, U
         }
         else
         {
-            status = FALSE;
+            status = false;
             APPL_TRACE_ERROR("Inavlid echo cfg value");
         }
         return status;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!status)
     {
         APPL_TRACE_DEBUG("bta_hl_find_echo_cfg_rsp status=failed app_idx=%d mcl_idx=%d mdep_idx=%d cfg=%d",
@@ -420,15 +420,15 @@ BOOLEAN bta_hl_find_echo_cfg_rsp(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdep_idx, U
 **
 ** Description  This function validate the DCH configuration
 **
-** Returns      BOOLEAN - TRUE cfg is valid
-**                        FALSE not valid
+** Returns      bool - true cfg is valid
+**                        false not valid
 **
 *******************************************************************************/
-BOOLEAN bta_hl_validate_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
-                            UINT8 cfg)
+bool bta_hl_validate_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
+                            uint8_t cfg)
 {
     tBTA_HL_MDL_CB      *p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-    BOOLEAN is_valid =FALSE;
+    bool is_valid =false;
 
 
     if (!bta_hl_is_the_first_reliable_existed(app_idx, mcl_idx) &&
@@ -444,21 +444,21 @@ BOOLEAN bta_hl_validate_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 
             if ((cfg == BTA_HL_DCH_CFG_RELIABLE) || (cfg == BTA_HL_DCH_CFG_STREAMING))
             {
-                is_valid = TRUE;
+                is_valid = true;
             }
             break;
         case BTA_HL_DCH_CFG_RELIABLE:
         case BTA_HL_DCH_CFG_STREAMING:
             if (p_dcb->local_cfg == cfg )
             {
-                is_valid = TRUE;
+                is_valid = true;
             }
             break;
         default:
             break;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!is_valid)
     {
         APPL_TRACE_DEBUG("bta_hl_validate_dch_open_cfg is_valid=%d, cfg=%d", is_valid, cfg );
@@ -473,17 +473,17 @@ BOOLEAN bta_hl_validate_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 **
 ** Description  This function finds the indexes needed for the CCH state machine
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
-                                   UINT8 *p_app_idx,
-                                   UINT8  *p_mcl_idx)
+bool bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
+                                   uint8_t *p_app_idx,
+                                   uint8_t  *p_mcl_idx)
 {
-    BOOLEAN found = FALSE;
+    bool found = false;
     tBTA_HL_MCL_CB      *p_mcb;
-    UINT8               app_idx = 0, mcl_idx = 0;
+    uint8_t               app_idx = 0, mcl_idx = 0;
 
     switch (p_msg->hdr.event)
     {
@@ -491,7 +491,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
         case BTA_HL_CCH_SDP_FAIL_EVT:
             app_idx = p_msg->cch_sdp.app_idx;
             mcl_idx = p_msg->cch_sdp.mcl_idx;
-            found = TRUE;
+            found = true;
             break;
 
         case BTA_HL_MCA_CONNECT_IND_EVT:
@@ -501,16 +501,16 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
                 if (bta_hl_find_mcl_idx(app_idx, p_msg->mca_evt.mca_data.connect_ind.bd_addr, &mcl_idx))
                 {
                     /* local initiated */
-                    found = TRUE;
+                    found = true;
                 }
                 else if (!bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx)&&
                          bta_hl_find_avail_mcl_idx(app_idx, &mcl_idx))
                 {
                     /* remote initiated */
                     p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-                    p_mcb->in_use = TRUE;
+                    p_mcb->in_use = true;
                     p_mcb->cch_oper = BTA_HL_CCH_OP_REMOTE_OPEN;
-                    found = TRUE;
+                    found = true;
                 }
             }
             break;
@@ -519,12 +519,12 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
 
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx,  &mcl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             else if (bta_hl_find_app_idx_using_handle(p_msg->mca_evt.app_handle, &app_idx) &&
                      bta_hl_find_mcl_idx(app_idx, p_msg->mca_evt.mca_data.disconnect_ind.bd_addr, &mcl_idx))
             {
-                found = TRUE;
+                found = true;
             }
 
             if (found)
@@ -541,7 +541,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
 
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx,  &mcl_idx))
             {
-                found = TRUE;
+                found = true;
             }
 
             if (found)
@@ -564,7 +564,7 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
         *p_mcl_idx = mcl_idx;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_cch_cb_indexes event=%s found=%d app_idx=%d mcl_idx=%d",
@@ -581,18 +581,18 @@ BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
 **
 ** Description  This function finds the indexes needed for the DCH state machine
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
-                                   UINT8 *p_app_idx,
-                                   UINT8 *p_mcl_idx,
-                                   UINT8 *p_mdl_idx)
+bool bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
+                                   uint8_t *p_app_idx,
+                                   uint8_t *p_mcl_idx,
+                                   uint8_t *p_mdl_idx)
 {
-    BOOLEAN         found = FALSE;
+    bool         found = false;
     tBTA_HL_MCL_CB  *p_mcb;
-    UINT8           app_idx = 0, mcl_idx = 0, mdl_idx = 0;
+    uint8_t           app_idx = 0, mcl_idx = 0, mdl_idx = 0;
 
     switch (p_msg->hdr.event)
     {
@@ -600,7 +600,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,  p_msg->mca_evt.mca_data.create_cfm.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -609,7 +609,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_avail_mdl_idx( app_idx,  mcl_idx, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -617,7 +617,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,  p_msg->mca_evt.mca_data.open_cfm.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -625,7 +625,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,  p_msg->mca_evt.mca_data.open_ind.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -634,7 +634,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mdl_idx_using_handle((tBTA_HL_MDL_HANDLE)p_msg->mca_evt.mca_data.close_cfm.mdl,
                                                  &app_idx, &mcl_idx, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_MCA_CLOSE_IND_EVT:
@@ -642,7 +642,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mdl_idx_using_handle((tBTA_HL_MDL_HANDLE)p_msg->mca_evt.mca_data.close_ind.mdl,
                                                  &app_idx, &mcl_idx, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_API_SEND_DATA_EVT:
@@ -650,7 +650,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mdl_idx_using_handle(p_msg->api_send_data.mdl_handle,
                                                  &app_idx, &mcl_idx, &mdl_idx ))
             {
-                found = TRUE;
+                found = true;
             }
 
             break;
@@ -660,7 +660,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mdl_idx_using_handle((tBTA_HL_MDL_HANDLE)p_msg->mca_evt.mca_data.cong_chg.mdl,
                                                  &app_idx, &mcl_idx, &mdl_idx ))
             {
-                found = TRUE;
+                found = true;
             }
 
             break;
@@ -669,7 +669,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             app_idx = p_msg->mca_rcv_data_evt.app_idx;
             mcl_idx = p_msg->mca_rcv_data_evt.mcl_idx;
             mdl_idx = p_msg->mca_rcv_data_evt.mdl_idx;
-            found = TRUE;
+            found = true;
             break;
         case BTA_HL_DCH_RECONNECT_EVT:
         case BTA_HL_DCH_OPEN_EVT:
@@ -678,13 +678,13 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             app_idx = p_msg->dch_sdp.app_idx;
             mcl_idx = p_msg->dch_sdp.mcl_idx;
             mdl_idx = p_msg->dch_sdp.mdl_idx;
-            found = TRUE;
+            found = true;
             break;
         case BTA_HL_MCA_RECONNECT_CFM_EVT:
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,  p_msg->mca_evt.mca_data.reconnect_cfm.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -693,28 +693,28 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             if (bta_hl_find_mcl_idx_using_handle(p_msg->api_dch_create_rsp.mcl_handle, &app_idx, &mcl_idx)&&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,p_msg->api_dch_create_rsp.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_MCA_ABORT_IND_EVT:
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx, &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,p_msg->mca_evt.mca_data.abort_ind.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_MCA_ABORT_CFM_EVT:
             if (bta_hl_find_mcl_idx_using_handle(p_msg->mca_evt.mcl_handle, &app_idx,  &mcl_idx) &&
                 bta_hl_find_mdl_idx( app_idx,  mcl_idx,  p_msg->mca_evt.mca_data.abort_cfm.mdl_id, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_CI_GET_TX_DATA_EVT:
         case BTA_HL_CI_PUT_RX_DATA_EVT:
             if (bta_hl_find_mdl_idx_using_handle(p_msg->ci_get_put_data.mdl_handle, &app_idx, &mcl_idx, &mdl_idx))
             {
-                found = TRUE;
+                found = true;
             }
             break;
         case BTA_HL_CI_GET_ECHO_DATA_EVT:
@@ -723,7 +723,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
             {
                 p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
                 mdl_idx = p_mcb->echo_mdl_idx;
-                found = TRUE;
+                found = true;
             }
             break;
 
@@ -738,7 +738,7 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
         *p_mcl_idx = mcl_idx;
         *p_mdl_idx = mdl_idx;
     }
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_dch_cb_indexes event=%s found=%d app_idx=%d mcl_idx=%d mdl_idx=%d",
@@ -755,19 +755,19 @@ BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
 **
 ** Description  This function allocates a MDL ID
 **
-** Returns      UINT16 - MDL ID
+** Returns      uint16_t - MDL ID
 **
 *******************************************************************************/
-UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
+uint16_t  bta_hl_allocate_mdl_id(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx )
 {
-    UINT16  mdl_id=0;
+    uint16_t  mdl_id=0;
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN duplicate_id;
-    UINT8 i, mdl_cfg_idx;
+    bool duplicate_id;
+    uint8_t i, mdl_cfg_idx;
 
     do
     {
-        duplicate_id = FALSE;
+        duplicate_id = false;
         mdl_id = ((mdl_id+1) & 0xFEFF);
         /* check mdl_ids that are used for the current conenctions */
         for (i=0; i< BTA_HL_NUM_MDLS_PER_MCL; i++)
@@ -776,7 +776,7 @@ UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
                 (i != mdl_idx) &&
                 (p_mcb->mdl[i].mdl_id == mdl_id) )
             {
-                duplicate_id = TRUE;
+                duplicate_id = true;
                 break;
             }
         }
@@ -791,7 +791,7 @@ UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
             /* check mdl_ids that are stored in the persistent memory */
             if (bta_hl_find_mdl_cfg_idx(app_idx,mcl_idx, mdl_id, &mdl_cfg_idx))
             {
-                duplicate_id = TRUE;
+                duplicate_id = true;
             }
             else
             {
@@ -800,9 +800,9 @@ UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
             }
         }
 
-    }while (TRUE);
+    }while (true);
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_allocate_mdl OK mdl_id=%d",  mdl_id);
 #endif
     return mdl_id;
@@ -813,15 +813,15 @@ UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
 **
 ** Description  This function finds the MDL index based on mdl_id
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
-                            UINT8 *p_mdl_idx)
+bool bta_hl_find_mdl_idx(uint8_t app_idx, uint8_t mcl_idx, uint16_t mdl_id,
+                            uint8_t *p_mdl_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MDLS_PER_MCL ; i ++)
     {
@@ -829,13 +829,13 @@ BOOLEAN bta_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
             (mdl_id !=0) &&
             (p_mcb->mdl[i].mdl_id== mdl_id))
         {
-            found = TRUE;
+            found = true;
             *p_mdl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mdl_idx found=%d mdl_id=%d mdl_idx=%d ",
@@ -852,28 +852,28 @@ BOOLEAN bta_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
 **
 ** Description  This function finds an active MDL
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_an_active_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                      UINT8 *p_mdl_idx)
+bool bta_hl_find_an_active_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                      uint8_t *p_mdl_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MDLS_PER_MCL ; i ++)
     {
         if (p_mcb->mdl[i].in_use  &&
             (p_mcb->mdl[i].dch_state == BTA_HL_DCH_OPEN_ST))
         {
-            found = TRUE;
+            found = true;
             *p_mdl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_an_opened_mdl_idx found=%d app_idx=%d mcl_idx=%d mdl_idx=%d",
@@ -890,28 +890,28 @@ BOOLEAN bta_hl_find_an_active_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function finds a MDL which in the DCH setup state
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_dch_setup_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                      UINT8 *p_mdl_idx)
+bool bta_hl_find_dch_setup_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                      uint8_t *p_mdl_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MDLS_PER_MCL ; i ++)
     {
         if (p_mcb->mdl[i].in_use  &&
             (p_mcb->mdl[i].dch_state == BTA_HL_DCH_OPENING_ST))
         {
-            found = TRUE;
+            found = true;
             *p_mdl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_dch_setup_mdl_idx found=%d app_idx=%d mcl_idx=%d mdl_idx=%d",
@@ -928,15 +928,15 @@ BOOLEAN bta_hl_find_dch_setup_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function finds an in-use MCL control block index
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_an_in_use_mcl_idx(UINT8 app_idx,
-                                      UINT8 *p_mcl_idx)
+bool bta_hl_find_an_in_use_mcl_idx(uint8_t app_idx,
+                                      uint8_t *p_mcl_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb;
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MCLS ; i ++)
     {
@@ -944,13 +944,13 @@ BOOLEAN bta_hl_find_an_in_use_mcl_idx(UINT8 app_idx,
         if (p_mcb->in_use  &&
             (p_mcb->cch_state != BTA_HL_CCH_IDLE_ST))
         {
-            found = TRUE;
+            found = true;
             *p_mcl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_an_in_use_mcl_idx found=%d app_idx=%d mcl_idx=%d ",
@@ -968,27 +968,27 @@ BOOLEAN bta_hl_find_an_in_use_mcl_idx(UINT8 app_idx,
 **
 ** Description  This function finds an in-use application control block index
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_an_in_use_app_idx(UINT8 *p_app_idx)
+bool bta_hl_find_an_in_use_app_idx(uint8_t *p_app_idx)
 {
     tBTA_HL_APP_CB      *p_acb ;
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
         p_acb  = BTA_HL_GET_APP_CB_PTR(i);
         if (p_acb->in_use)
         {
-            found = TRUE;
+            found = true;
             *p_app_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_an_in_use_app_idx found=%d app_idx=%d ",
@@ -1005,26 +1005,26 @@ BOOLEAN bta_hl_find_an_in_use_app_idx(UINT8 *p_app_idx)
 ** Description  This function finds the application control block index based on
 **              the application ID
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_app_idx(UINT8 app_id, UINT8 *p_app_idx)
+bool bta_hl_find_app_idx(uint8_t app_id, uint8_t *p_app_idx)
 {
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
         if (bta_hl_cb.acb[i].in_use &&
             (bta_hl_cb.acb[i].app_id == app_id))
         {
-            found = TRUE;
+            found = true;
             *p_app_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_find_app_idx found=%d app_id=%d idx=%d ",
                       found, app_id, i);
 #endif
@@ -1040,27 +1040,27 @@ BOOLEAN bta_hl_find_app_idx(UINT8 app_id, UINT8 *p_app_idx)
 ** Description  This function finds the application control block index based on
 **              the application handle
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
-                                         UINT8 *p_app_idx)
+bool bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
+                                         uint8_t *p_app_idx)
 {
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
         if (bta_hl_cb.acb[i].in_use &&
             (bta_hl_cb.acb[i].app_handle == app_handle))
         {
-            found = TRUE;
+            found = true;
             *p_app_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_app_idx_using_mca_handle status=%d handle=%d app_idx=%d ",
@@ -1079,15 +1079,15 @@ BOOLEAN bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
 ** Description  This function finds the MCL control block index based on
 **              the MCL handle
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
-                                          UINT8 *p_app_idx, UINT8 *p_mcl_idx)
+bool bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
+                                          uint8_t *p_app_idx, uint8_t *p_mcl_idx)
 {
     tBTA_HL_APP_CB  *p_acb;
-    BOOLEAN         found=FALSE;
-    UINT8 i = 0,j = 0;
+    bool         found=false;
+    uint8_t i = 0,j = 0;
 
     for (i=0; i<BTA_HL_NUM_APPS; i++)
     {
@@ -1098,7 +1098,7 @@ BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
             {
                 if ( p_acb->mcb[j].mcl_handle == mcl_handle )
                 {
-                    found = TRUE;
+                    found = true;
                     *p_app_idx = i;
                     *p_mcl_idx = j;
                     break;
@@ -1107,7 +1107,7 @@ BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mcl_idx_using_handle found=%d app_idx=%d mcl_idx=%d",
@@ -1124,26 +1124,26 @@ BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
 ** Description  This function finds the MCL control block index based on
 **              the peer BD address
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx)
+bool bta_hl_find_mcl_idx(uint8_t app_idx, BD_ADDR p_bd_addr, uint8_t *p_mcl_idx)
 {
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MCLS ; i ++)
     {
         if (bta_hl_cb.acb[app_idx].mcb[i].in_use &&
             (!memcmp (bta_hl_cb.acb[app_idx].mcb[i].bd_addr, p_bd_addr, BD_ADDR_LEN)))
         {
-            found = TRUE;
+            found = true;
             *p_mcl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mcl_idx found=%d idx=%d",
@@ -1162,18 +1162,18 @@ BOOLEAN bta_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx)
 ** Description  This function finds the MDL control block index based on
 **              the MDL handle
 **
-** Returns      BOOLEAN TRUE-found
+** Returns      bool true-found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
-                                         UINT8 *p_app_idx,UINT8 *p_mcl_idx,
-                                         UINT8 *p_mdl_idx)
+bool bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
+                                         uint8_t *p_app_idx,uint8_t *p_mcl_idx,
+                                         uint8_t *p_mdl_idx)
 {
     tBTA_HL_APP_CB      *p_acb;
     tBTA_HL_MCL_CB      *p_mcb;
     tBTA_HL_MDL_CB      *p_dcb;
-    BOOLEAN found=FALSE;
-    UINT8 i,j,k;
+    bool found=false;
+    uint8_t i,j,k;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
@@ -1192,7 +1192,7 @@ BOOLEAN bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
                         {
                             if (p_dcb->mdl_handle == mdl_handle)
                             {
-                                found = TRUE;
+                                found = true;
                                 *p_app_idx = i;
                                 *p_mcl_idx =j;
                                 *p_mdl_idx = k;
@@ -1206,7 +1206,7 @@ BOOLEAN bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
     }
 
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mdl_idx_using_handle found=%d mdl_handle=%d  ",
@@ -1222,26 +1222,26 @@ BOOLEAN bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
 ** Description  This function checks whether the first reliable DCH channel
 **              has been setup on the MCL or not
 **
-** Returns      BOOLEAN - TRUE exist
-**                        FALSE does not exist
+** Returns      bool - true exist
+**                        false does not exist
 **
 *******************************************************************************/
-BOOLEAN bta_hl_is_the_first_reliable_existed(UINT8 app_idx, UINT8 mcl_idx )
+bool bta_hl_is_the_first_reliable_existed(uint8_t app_idx, uint8_t mcl_idx )
 {
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN is_existed =FALSE;
-    UINT8 i ;
+    bool is_existed =false;
+    uint8_t i ;
 
     for (i=0; i< BTA_HL_NUM_MDLS_PER_MCL; i++)
     {
         if (p_mcb->mdl[i].in_use && p_mcb->mdl[i].is_the_first_reliable)
         {
-            is_existed = TRUE;
+            is_existed = true;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_is_the_first_reliable_existed is_existed=%d  ",is_existed );
 #endif
     return is_existed;
@@ -1254,24 +1254,24 @@ BOOLEAN bta_hl_is_the_first_reliable_existed(UINT8 app_idx, UINT8 mcl_idx )
 ** Description  This function finds a valid MDL configiration index and this
 **              MDL ID is not active
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
-                                        UINT8 *p_mdl_cfg_idx)
+bool  bta_hl_find_non_active_mdl_cfg(uint8_t app_idx, uint8_t start_mdl_cfg_idx,
+                                        uint8_t *p_mdl_cfg_idx)
 {
 
     tBTA_HL_MCL_CB      *p_mcb;
     tBTA_HL_MDL_CB      *p_dcb;
     tBTA_HL_MDL_CFG     *p_mdl;
-    BOOLEAN             mdl_in_use;
-    BOOLEAN             found = FALSE;
-    UINT8               i,j,k;
+    bool             mdl_in_use;
+    bool             found = false;
+    uint8_t               i,j,k;
 
     for (i = start_mdl_cfg_idx; i< BTA_HL_NUM_MDL_CFGS; i++)
     {
-        mdl_in_use = FALSE;
+        mdl_in_use = false;
         p_mdl = BTA_HL_GET_MDL_CFG_PTR(app_idx, i);
         for (j=0; j< BTA_HL_NUM_MCLS; j++)
         {
@@ -1286,7 +1286,7 @@ BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
 
                     if (p_dcb->in_use &&  p_mdl->mdl_id == p_dcb->mdl_id)
                     {
-                        mdl_in_use = TRUE;
+                        mdl_in_use = true;
                         break;
                     }
                 }
@@ -1301,7 +1301,7 @@ BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
         if (!mdl_in_use)
         {
             *p_mdl_cfg_idx = i;
-            found = TRUE;
+            found = true;
             break;
         }
     }
@@ -1315,18 +1315,18 @@ BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
 **
 ** Description  This function finds an available MDL configuration index
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                       UINT8 *p_mdl_cfg_idx)
+bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                       uint8_t *p_mdl_cfg_idx)
 {
     tBTA_HL_MDL_CFG     *p_mdl, *p_mdl1, *p_mdl2;
-    UINT8               i;
-    BOOLEAN             found=FALSE;
-    UINT8               first_mdl_cfg_idx, second_mdl_cfg_idx, older_mdl_cfg_idx;
-    BOOLEAN             done;
+    uint8_t               i;
+    bool             found=false;
+    uint8_t               first_mdl_cfg_idx, second_mdl_cfg_idx, older_mdl_cfg_idx;
+    bool             done;
     UNUSED(mcl_idx);
 
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
@@ -1335,7 +1335,7 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
         if (!p_mdl->active  )
         {
             /* found an unused space to store mdl cfg*/
-            found=TRUE;
+            found=true;
             *p_mdl_cfg_idx =i;
             break;
         }
@@ -1346,12 +1346,12 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
         /* all available mdl cfg spaces are in use so we need to find the mdl cfg which is
         not currently in use and has the the oldest time stamp to remove*/
 
-        found = TRUE;
+        found = true;
         if (bta_hl_find_non_active_mdl_cfg(app_idx,0, &first_mdl_cfg_idx))
         {
-            if (bta_hl_find_non_active_mdl_cfg(app_idx,(UINT8) (first_mdl_cfg_idx+1), &second_mdl_cfg_idx))
+            if (bta_hl_find_non_active_mdl_cfg(app_idx,(uint8_t) (first_mdl_cfg_idx+1), &second_mdl_cfg_idx))
             {
-                done = FALSE;
+                done = false;
                 while (!done)
                 {
                     p_mdl1 = BTA_HL_GET_MDL_CFG_PTR(app_idx, first_mdl_cfg_idx);
@@ -1366,13 +1366,13 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
                         older_mdl_cfg_idx =  second_mdl_cfg_idx;
                     }
 
-                    if (bta_hl_find_non_active_mdl_cfg(app_idx,(UINT8) (second_mdl_cfg_idx+1), &second_mdl_cfg_idx))
+                    if (bta_hl_find_non_active_mdl_cfg(app_idx,(uint8_t) (second_mdl_cfg_idx+1), &second_mdl_cfg_idx))
                     {
                         first_mdl_cfg_idx = older_mdl_cfg_idx;
                     }
                     else
                     {
-                        done = TRUE;
+                        done = true;
                     }
                 }
 
@@ -1387,11 +1387,11 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
         }
         else
         {
-            found = FALSE;
+            found = false;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_avail_mdl_cfg_idx found=%d mdl_cfg_idx=%d ",found, *p_mdl_cfg_idx  );
@@ -1410,17 +1410,17 @@ BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
 ** Description  This function finds the MDL configuration index based on
 **              the MDL ID
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_find_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                 tBTA_HL_MDL_ID mdl_id, UINT8 *p_mdl_cfg_idx)
+bool  bta_hl_find_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                 tBTA_HL_MDL_ID mdl_id, uint8_t *p_mdl_cfg_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CFG     *p_mdl;
-    UINT8 i ;
-    BOOLEAN found=FALSE;
+    uint8_t i ;
+    bool found=false;
 
     *p_mdl_cfg_idx = 0;
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
@@ -1433,13 +1433,13 @@ BOOLEAN  bta_hl_find_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
             (!memcmp (p_mcb->bd_addr, p_mdl->peer_bd_addr, BD_ADDR_LEN))&&
             (p_mdl->mdl_id == mdl_id))
         {
-            found=TRUE;
+            found=true;
             *p_mdl_cfg_idx =i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mdl_cfg_idx found=%d mdl_cfg_idx=%d ",found, i );
@@ -1458,22 +1458,22 @@ BOOLEAN  bta_hl_find_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function get the cuurent time value
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_get_cur_time(UINT8 app_idx, UINT8 *p_cur_time)
+bool  bta_hl_get_cur_time(uint8_t app_idx, uint8_t *p_cur_time)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
-    UINT8 i, j, time_latest, time;
-    BOOLEAN found=FALSE, result=TRUE;
+    uint8_t i, j, time_latest, time;
+    bool found=false, result=true;
 
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {
         p_mdl = BTA_HL_GET_MDL_CFG_PTR(app_idx, i);
         if (p_mdl->active)
         {
-            found=TRUE;
+            found=true;
             time_latest = p_mdl->time;
             for (j=(i+1); j< BTA_HL_NUM_MDL_CFGS; j++ )
             {
@@ -1501,7 +1501,7 @@ BOOLEAN  bta_hl_get_cur_time(UINT8 app_idx, UINT8 *p_cur_time)
         else
         {
             /* need to wrap around */
-            result = FALSE;
+            result = false;
         }
     }
     else
@@ -1509,7 +1509,7 @@ BOOLEAN  bta_hl_get_cur_time(UINT8 app_idx, UINT8 *p_cur_time)
         *p_cur_time = BTA_HL_MIN_TIME;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!result)
     {
         APPL_TRACE_DEBUG("bta_hl_get_cur_time result=%s cur_time=%d",
@@ -1527,15 +1527,15 @@ BOOLEAN  bta_hl_get_cur_time(UINT8 app_idx, UINT8 *p_cur_time)
 ** Description  This function sort the mdl configuration idx stored in array a
 **              based on decending time value
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-void bta_hl_sort_cfg_time_idx(UINT8 app_idx, UINT8 *a, UINT8 n)
+void bta_hl_sort_cfg_time_idx(uint8_t app_idx, uint8_t *a, uint8_t n)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
-    UINT8 temp_time, temp_idx;
-    INT16 i, j;
+    uint8_t temp_time, temp_idx;
+    int16_t i, j;
     for (i = 1; i < n; ++i)
     {
         temp_idx = a[i];
@@ -1557,15 +1557,15 @@ void bta_hl_sort_cfg_time_idx(UINT8 app_idx, UINT8 *a, UINT8 n)
 ** Description  This function finds the MDL configuration index based on
 **              the MDL ID
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-void  bta_hl_compact_mdl_cfg_time(UINT8 app_idx, UINT8 mdep_id)
+void  bta_hl_compact_mdl_cfg_time(uint8_t app_idx, uint8_t mdep_id)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
-    UINT8 i, time_min, cnt=0;
-    UINT8   s_arr[BTA_HL_NUM_MDL_CFGS];
+    uint8_t i, time_min, cnt=0;
+    uint8_t   s_arr[BTA_HL_NUM_MDL_CFGS];
 
 
     for (i=0; i< BTA_HL_NUM_MDL_CFGS; i++)
@@ -1580,7 +1580,7 @@ void  bta_hl_compact_mdl_cfg_time(UINT8 app_idx, UINT8 mdep_id)
 
 
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_compact_mdl_cfg_time cnt=%d ",cnt );
 #endif
 
@@ -1609,16 +1609,16 @@ void  bta_hl_compact_mdl_cfg_time(UINT8 app_idx, UINT8 mdep_id)
 ** Description  This function checks whether the MDL ID
 **              has already existed in teh MCL or not
 **
-** Returns      BOOLEAN - TRUE exist
-**                        FALSE does not exist
+** Returns      bool - true exist
+**                        false does not exist
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_is_mdl_exsit_in_mcl(UINT8 app_idx, BD_ADDR bd_addr,
+bool  bta_hl_is_mdl_exsit_in_mcl(uint8_t app_idx, BD_ADDR bd_addr,
                                     tBTA_HL_MDL_ID mdl_id)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
-    BOOLEAN             found = FALSE;
-    UINT8               i;
+    bool             found = false;
+    uint8_t               i;
 
     for (i = 0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {
@@ -1630,13 +1630,13 @@ BOOLEAN  bta_hl_is_mdl_exsit_in_mcl(UINT8 app_idx, BD_ADDR bd_addr,
             {
                 if (p_mdl->mdl_id == mdl_id)
                 {
-                    found = TRUE;
+                    found = true;
                     break;
                 }
             }
             else
             {
-                found = TRUE;
+                found = true;
                 break;
             }
         }
@@ -1651,16 +1651,16 @@ BOOLEAN  bta_hl_is_mdl_exsit_in_mcl(UINT8 app_idx, BD_ADDR bd_addr,
 **
 ** Description  This function delete the specified MDL ID
 **
-** Returns      BOOLEAN - TRUE Success
-**                        FALSE Failed
+** Returns      bool - true Success
+**                        false Failed
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
+bool  bta_hl_delete_mdl_cfg(uint8_t app_idx, BD_ADDR bd_addr,
                                tBTA_HL_MDL_ID mdl_id)
 {
     tBTA_HL_MDL_CFG     *p_mdl;
-    BOOLEAN             success = FALSE;
-    UINT8               i;
+    bool             success = false;
+    uint8_t               i;
 
     for (i = 0; i< BTA_HL_NUM_MDL_CFGS; i++)
     {
@@ -1674,7 +1674,7 @@ BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
                 {
                     bta_hl_co_delete_mdl(p_mdl->local_mdep_id, i);
                     memset(p_mdl, 0, sizeof(tBTA_HL_MDL_CFG));
-                    success = TRUE;
+                    success = true;
                     break;
                 }
             }
@@ -1682,7 +1682,7 @@ BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
             {
                 bta_hl_co_delete_mdl(p_mdl->local_mdep_id, i);
                 memset(p_mdl, 0, sizeof(tBTA_HL_MDL_CFG));
-                success = TRUE;
+                success = true;
             }
         }
     }
@@ -1698,8 +1698,8 @@ BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
 **
 ** Description  This function checks the specified MDL ID is in valid range or not
 **
-** Returns      BOOLEAN - TRUE Success
-**                        FALSE Failed
+** Returns      bool - true Success
+**                        false Failed
 **
 ** note:   mdl_id range   0x0000 reserved,
 **                        0x0001-oxFEFF dynamic range,
@@ -1707,9 +1707,9 @@ BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
 **                        0xFFFF indicates all MDLs (for delete operation only)
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
+bool  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
 {
-    BOOLEAN             status = TRUE;
+    bool             status = true;
 
     if (mdl_id != BTA_HL_DELETE_ALL_MDL_IDS)
     {
@@ -1717,12 +1717,12 @@ BOOLEAN  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
         {
             if (mdl_id > BTA_HL_MAX_MDL_VAL )
             {
-                status = FALSE;
+                status = false;
             }
         }
         else
         {
-            status = FALSE;
+            status = false;
         }
     }
 
@@ -1736,29 +1736,29 @@ BOOLEAN  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id)
 ** Description  This function finds the MDEP configuration index based
 **                on the local MDEP ID
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_mdep_cfg_idx(UINT8 app_idx,  tBTA_HL_MDEP_ID local_mdep_id,
-                                 UINT8 *p_mdep_cfg_idx)
+bool bta_hl_find_mdep_cfg_idx(uint8_t app_idx,  tBTA_HL_MDEP_ID local_mdep_id,
+                                 uint8_t *p_mdep_cfg_idx)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_SUP_FEATURE     *p_sup_feature= &p_acb->sup_feature;
-    BOOLEAN found =FALSE;
-    UINT8 i;
+    bool found =false;
+    uint8_t i;
 
     for (i=0; i< p_sup_feature->num_of_mdeps; i++)
     {
         if ( p_sup_feature->mdep[i].mdep_id == local_mdep_id)
         {
-            found = TRUE;
+            found = true;
             *p_mdep_cfg_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_mdep_cfg_idx found=%d mdep_idx=%d local_mdep_id=%d ",
@@ -1779,14 +1779,14 @@ BOOLEAN bta_hl_find_mdep_cfg_idx(UINT8 app_idx,  tBTA_HL_MDEP_ID local_mdep_id,
 ** Returns      void
 **
 *******************************************************************************/
-void bta_hl_find_rxtx_apdu_size(UINT8 app_idx, UINT8 mdep_cfg_idx,
-                                UINT16 *p_rx_apu_size,
-                                UINT16 *p_tx_apu_size)
+void bta_hl_find_rxtx_apdu_size(uint8_t app_idx, uint8_t mdep_cfg_idx,
+                                uint16_t *p_rx_apu_size,
+                                uint16_t *p_tx_apu_size)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDEP_CFG     *p_mdep_cfg;
-    UINT8 i;
-    UINT16 max_rx_apdu_size=0, max_tx_apdu_size=0;
+    uint8_t i;
+    uint16_t max_rx_apdu_size=0, max_tx_apdu_size=0;
 
     p_mdep_cfg = &p_acb->sup_feature.mdep[mdep_cfg_idx].mdep_cfg;
 
@@ -1809,7 +1809,7 @@ void bta_hl_find_rxtx_apdu_size(UINT8 app_idx, UINT8 mdep_cfg_idx,
     *p_rx_apu_size = max_rx_apdu_size;
     *p_tx_apu_size = max_tx_apdu_size;
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_find_rxtx_apdu_size max_rx_apdu_size=%d max_tx_apdu_size=%d ",
                       max_rx_apdu_size, max_tx_apdu_size );
 #endif
@@ -1823,27 +1823,27 @@ void bta_hl_find_rxtx_apdu_size(UINT8 app_idx, UINT8 mdep_cfg_idx,
 **
 ** Description  This function validates the peer DCH configuration
 **
-** Returns      BOOLEAN - TRUE validation is successful
-**                        FALSE validation failed
+** Returns      bool - true validation is successful
+**                        false validation failed
 **
 *******************************************************************************/
-BOOLEAN bta_hl_validate_peer_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+bool bta_hl_validate_peer_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                  tBTA_HL_MDEP_ID peer_mdep_id,
                                  tBTA_HL_MDEP_ROLE peer_mdep_role,
-                                 UINT8 sdp_idx)
+                                 uint8_t sdp_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CB      *p_dcb = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
     tBTA_HL_SDP_REC     *p_rec;
-    BOOLEAN peer_found =FALSE;
-    UINT8 i;
+    bool peer_found =false;
+    uint8_t i;
 
     APPL_TRACE_DEBUG("bta_hl_validate_peer_cfg sdp_idx=%d app_idx %d", sdp_idx, app_idx);
 
 
     if (p_dcb->local_mdep_id == BTA_HL_ECHO_TEST_MDEP_ID)
     {
-        return TRUE;
+        return true;
     }
 
     p_rec = &p_mcb->sdp.sdp_rec[sdp_idx];
@@ -1855,13 +1855,13 @@ BOOLEAN bta_hl_validate_peer_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
         if ( (p_rec->mdep_cfg[i].mdep_id == peer_mdep_id) &&
              (p_rec->mdep_cfg[i].mdep_role == peer_mdep_role))
         {
-            peer_found = TRUE;
+            peer_found = true;
 
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!peer_found)
     {
         APPL_TRACE_DEBUG("bta_hl_validate_peer_cfg failed num_mdeps=%d",p_rec->num_mdeps);
@@ -1882,8 +1882,8 @@ BOOLEAN bta_hl_validate_peer_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
 **                                                   reliable DCH configuration
 **
 *******************************************************************************/
-tBTA_HL_STATUS bta_hl_chk_local_cfg(UINT8 app_idx, UINT8 mcl_idx,
-                                    UINT8 mdep_cfg_idx,
+tBTA_HL_STATUS bta_hl_chk_local_cfg(uint8_t app_idx, uint8_t mcl_idx,
+                                    uint8_t mdep_cfg_idx,
                                     tBTA_HL_DCH_CFG local_cfg)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
@@ -1908,31 +1908,31 @@ tBTA_HL_STATUS bta_hl_chk_local_cfg(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function validates the reconnect parameters
 **
-** Returns      BOOLEAN - TRUE validation is successful
-**                        FALSE validation failed
+** Returns      bool - true validation is successful
+**                        false validation failed
 *******************************************************************************/
-BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
+bool bta_hl_validate_reconnect_params(uint8_t app_idx, uint8_t mcl_idx,
                                          tBTA_HL_API_DCH_RECONNECT *p_reconnect,
-                                         UINT8 *p_mdep_cfg_idx, UINT8 *p_mdl_cfg_idx)
+                                         uint8_t *p_mdep_cfg_idx, uint8_t *p_mdl_cfg_idx)
 {
     tBTA_HL_APP_CB      *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_SUP_FEATURE *p_sup_feature = &p_acb->sup_feature;
-    UINT8               num_mdeps;
-    UINT8               mdl_cfg_idx;
-    BOOLEAN local_mdep_id_found =FALSE;
-    BOOLEAN mdl_cfg_found =FALSE;
-    BOOLEAN            status=FALSE;
-    UINT8 i, in_use_mdl_idx = 0;
+    uint8_t               num_mdeps;
+    uint8_t               mdl_cfg_idx;
+    bool local_mdep_id_found =false;
+    bool mdl_cfg_found =false;
+    bool            status=false;
+    uint8_t i, in_use_mdl_idx = 0;
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_validate_reconnect_params  mdl_id=%d app_idx=%d", p_reconnect->mdl_id, app_idx);
 #endif
     if (bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, p_reconnect->mdl_id, &mdl_cfg_idx))
     {
-        mdl_cfg_found = TRUE;
+        mdl_cfg_found = true;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!mdl_cfg_found)
     {
         APPL_TRACE_DEBUG("mdl_cfg_found not found");
@@ -1947,7 +1947,7 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
         {
             if ( p_sup_feature->mdep[i].mdep_id == p_acb->mdl_cfg[mdl_cfg_idx].local_mdep_id)
             {
-                local_mdep_id_found = TRUE;
+                local_mdep_id_found = true;
                 *p_mdep_cfg_idx =i;
                 *p_mdl_cfg_idx = mdl_cfg_idx;
                 break;
@@ -1955,7 +1955,7 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!local_mdep_id_found)
     {
         APPL_TRACE_DEBUG("local_mdep_id not found");
@@ -1967,7 +1967,7 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
     {
         if (!bta_hl_find_mdl_idx(app_idx,mcl_idx, p_reconnect->mdl_id, &in_use_mdl_idx))
         {
-            status= TRUE;
+            status= true;
         }
         else
         {
@@ -1975,7 +1975,7 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!status)
     {
         APPL_TRACE_DEBUG("Reconnect validation failed local_mdep_id found=%d mdl_cfg_idx found=%d in_use_mdl_idx=%d ",
@@ -1989,26 +1989,26 @@ BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Function      bta_hl_find_avail_mcl_idx
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_avail_mcl_idx(UINT8 app_idx, UINT8 *p_mcl_idx)
+bool bta_hl_find_avail_mcl_idx(uint8_t app_idx, uint8_t *p_mcl_idx)
 {
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MCLS ; i ++)
     {
         if (!bta_hl_cb.acb[app_idx].mcb[i].in_use)
         {
-            found = TRUE;
+            found = true;
             *p_mcl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_avail_mcl_idx found=%d idx=%d",
@@ -2026,29 +2026,29 @@ BOOLEAN bta_hl_find_avail_mcl_idx(UINT8 app_idx, UINT8 *p_mcl_idx)
 **
 ** Description  This function finds an available MDL control block index
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_avail_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                  UINT8 *p_mdl_idx)
+bool bta_hl_find_avail_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                  uint8_t *p_mdl_idx)
 {
     tBTA_HL_MCL_CB      *p_mcb = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_MDLS_PER_MCL ; i ++)
     {
         if (!p_mcb->mdl[i].in_use)
         {
             memset((void *)&p_mcb->mdl[i],0, sizeof(tBTA_HL_MDL_CB));
-            found = TRUE;
+            found = true;
             *p_mdl_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_avail_mdl_idx found=%d idx=%d",
@@ -2064,26 +2064,26 @@ BOOLEAN bta_hl_find_avail_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
 **
 ** Description  This function finds the application has been used or not
 **
-** Returns      BOOLEAN - TRUE the app_id is a duplicate ID
-**                        FALSE not a duplicate ID
+** Returns      bool - true the app_id is a duplicate ID
+**                        false not a duplicate ID
 *******************************************************************************/
-BOOLEAN bta_hl_is_a_duplicate_id(UINT8 app_id)
+bool bta_hl_is_a_duplicate_id(uint8_t app_id)
 {
-    BOOLEAN is_duplicate=FALSE;
-    UINT8 i;
+    bool is_duplicate=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
         if (bta_hl_cb.acb[i].in_use &&
             (bta_hl_cb.acb[i].app_id == app_id))
         {
-            is_duplicate = TRUE;
+            is_duplicate = true;
 
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (is_duplicate)
     {
 
@@ -2102,26 +2102,26 @@ BOOLEAN bta_hl_is_a_duplicate_id(UINT8 app_id)
 **
 ** Description  This function finds an available application control block index
 **
-** Returns      BOOLEAN - TRUE found
-**                        FALSE not found
+** Returns      bool - true found
+**                        false not found
 **
 *******************************************************************************/
-BOOLEAN bta_hl_find_avail_app_idx(UINT8 *p_idx)
+bool bta_hl_find_avail_app_idx(uint8_t *p_idx)
 {
-    BOOLEAN found=FALSE;
-    UINT8 i;
+    bool found=false;
+    uint8_t i;
 
     for (i=0; i < BTA_HL_NUM_APPS ; i ++)
     {
         if (!bta_hl_cb.acb[i].in_use)
         {
-            found = TRUE;
+            found = true;
             *p_idx = i;
             break;
         }
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!found)
     {
         APPL_TRACE_DEBUG("bta_hl_find_avail_app_idx found=%d app_idx=%d",
@@ -2140,16 +2140,16 @@ BOOLEAN bta_hl_find_avail_app_idx(UINT8 *p_idx)
 ** Returns      tBTA_HL_STATUS -registration status
 **
 *******************************************************************************/
-tBTA_HL_STATUS bta_hl_app_update(UINT8 app_id, BOOLEAN is_register)
+tBTA_HL_STATUS bta_hl_app_update(uint8_t app_id, bool is_register)
 {
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
     tBTA_HL_APP_CB  *p_acb = BTA_HL_GET_APP_CB_PTR(0);
     tMCA_CS         mca_cs;
-    UINT8           i, mdep_idx, num_of_mdeps;
-    UINT8           mdep_counter = 0;
+    uint8_t           i, mdep_idx, num_of_mdeps;
+    uint8_t           mdep_counter = 0;
 
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_app_update app_id=%d", app_id);
 #endif
 
@@ -2301,16 +2301,16 @@ tBTA_HL_STATUS bta_hl_app_update(UINT8 app_id, BOOLEAN is_register)
 ** Returns      tBTA_HL_STATUS -registration status
 **
 *******************************************************************************/
-tBTA_HL_STATUS bta_hl_app_registration(UINT8 app_idx)
+tBTA_HL_STATUS bta_hl_app_registration(uint8_t app_idx)
 {
     tBTA_HL_STATUS  status = BTA_HL_STATUS_OK;
     tBTA_HL_APP_CB  *p_acb = BTA_HL_GET_APP_CB_PTR(app_idx);
     tMCA_REG        reg;
     tMCA_CS         mca_cs;
-    UINT8           i, num_of_mdeps;
-    UINT8           mdep_counter = 0;
+    uint8_t           i, num_of_mdeps;
+    uint8_t           mdep_counter = 0;
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_app_registration app_idx=%d", app_idx);
 #endif
 
@@ -2442,10 +2442,10 @@ tBTA_HL_STATUS bta_hl_app_registration(UINT8 app_idx)
 ** Returns     void
 **
 *******************************************************************************/
-void bta_hl_discard_data(UINT16 event, tBTA_HL_DATA *p_data)
+void bta_hl_discard_data(uint16_t event, tBTA_HL_DATA *p_data)
 {
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_ERROR("BTA HL Discard event=%s",bta_hl_evt_code(event));
 
 #endif
@@ -2474,25 +2474,25 @@ void bta_hl_discard_data(UINT16 event, tBTA_HL_DATA *p_data)
 ** Returns     void
 **
 *******************************************************************************/
-void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
+void bta_hl_save_mdl_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx )
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CB      *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-    UINT8 mdl_cfg_idx;
+    uint8_t mdl_cfg_idx;
     tBTA_HL_MDL_ID mdl_id;
-    BOOLEAN      found=TRUE;
+    bool      found=true;
     tBTA_HL_MDL_CFG mdl_cfg;
     tBTA_HL_MDEP *p_mdep_cfg;
     tBTA_HL_L2CAP_CFG_INFO l2cap_cfg;
-    UINT8 time_val = 0;
+    uint8_t time_val = 0;
     mdl_id = p_dcb->mdl_id;
     if (!bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, mdl_id, &mdl_cfg_idx))
     {
         if (!bta_hl_find_avail_mdl_cfg_idx(app_idx, mcl_idx, &mdl_cfg_idx))
         {
             APPL_TRACE_ERROR("No space to save the MDL config");
-            found= FALSE; /*no space available*/
+            found= false; /*no space available*/
         }
     }
 
@@ -2504,7 +2504,7 @@ void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
             bta_hl_compact_mdl_cfg_time(app_idx,p_dcb->local_mdep_id);
             bta_hl_get_cur_time(app_idx, &time_val);
         }
-        mdl_cfg.active = TRUE;
+        mdl_cfg.active = true;
         mdl_cfg.time = time_val;
         mdl_cfg.mdl_id  = p_dcb->mdl_id;
         mdl_cfg.dch_mode = p_dcb->dch_mode;
@@ -2519,7 +2519,7 @@ void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
         bta_hl_co_save_mdl(mdl_cfg.local_mdep_id, mdl_cfg_idx, &mdl_cfg);
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (found)
     {
         if (p_dcb->mtu != l2cap_cfg.mtu)
@@ -2545,13 +2545,13 @@ void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx )
 **
 ** Returns     void
 *******************************************************************************/
-void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,tBTA_HL_DATA *p_data)
+void bta_hl_set_dch_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,tBTA_HL_DATA *p_data)
 {
     tBTA_HL_APP_CB *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDL_CB *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-    UINT8 l2cap_mode = L2CAP_FCR_ERTM_MODE;
+    uint8_t l2cap_mode = L2CAP_FCR_ERTM_MODE;
     tBTA_HL_SUP_FEATURE *p_sup_feature= &p_acb->sup_feature;
-    UINT8 local_mdep_cfg_idx = p_dcb->local_mdep_cfg_idx;
+    uint8_t local_mdep_cfg_idx = p_dcb->local_mdep_cfg_idx;
 
     switch (p_dcb->dch_oper)
     {
@@ -2600,7 +2600,7 @@ void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,tBTA_HL
         p_dcb->chnl_cfg.fcs = BTA_HL_MCA_USE_FCS;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("L2CAP Params l2cap_mode[3-ERTM 4-STREAM]=%d", l2cap_mode);
     APPL_TRACE_DEBUG("Use FCS =%s mtu=%d", ((p_dcb->chnl_cfg.fcs & 1)?"YES":"NO"),
                       p_dcb->chnl_cfg.data_mtu);
@@ -2634,12 +2634,12 @@ void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,tBTA_HL
 **
 ** Description    This function get the current L2CAP channel configuration
 **
-** Returns     BOOLEAN - TRUE - operation is successful
+** Returns     bool - true - operation is successful
 *******************************************************************************/
-BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_cfg)
+bool bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_cfg)
 {
-    BOOLEAN success = FALSE;
-    UINT16 lcid;
+    bool success = false;
+    uint16_t lcid;
     tL2CAP_CFG_INFO *p_our_cfg;
     tL2CAP_CH_CFG_BITS our_cfg_bits;
     tL2CAP_CFG_INFO *p_peer_cfg;
@@ -2681,7 +2681,7 @@ BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO 
         {
             p_cfg->mtu = L2CAP_DEFAULT_MTU;
         }
-        success = TRUE;
+        success = true;
     }
     else
     {
@@ -2689,7 +2689,7 @@ BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO 
       p_cfg->fcs = BTA_HL_L2C_NO_FCS;
     }
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     if (!success)
     {
         APPL_TRACE_DEBUG("bta_hl_get_l2cap_cfg success=%d mdl=%d lcid=%d", success, mdl_hnd, lcid);
@@ -2706,16 +2706,16 @@ BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO 
 **
 ** Description    This function validates the L2CAP channel configuration
 **
-** Returns     BOOLEAN - TRUE - validation is successful
+** Returns     bool - true - validation is successful
 *******************************************************************************/
-BOOLEAN bta_hl_validate_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
+bool bta_hl_validate_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx)
 {
     tBTA_HL_APP_CB *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MDL_CB *p_dcb  = BTA_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
-    BOOLEAN success = FALSE;
-    UINT8 mdl_cfg_idx = 0;
+    bool success = false;
+    uint8_t mdl_cfg_idx = 0;
     tBTA_HL_L2CAP_CFG_INFO l2cap_cfg;
-    BOOLEAN get_l2cap_result, get_mdl_result;
+    bool get_l2cap_result, get_mdl_result;
 
     get_l2cap_result = bta_hl_get_l2cap_cfg(p_dcb->mdl_handle, &l2cap_cfg);
     get_mdl_result = bta_hl_find_mdl_cfg_idx(app_idx, mcl_idx, p_dcb->mdl_id, &mdl_cfg_idx);
@@ -2726,12 +2726,12 @@ BOOLEAN bta_hl_validate_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
             (p_acb->mdl_cfg[mdl_cfg_idx].fcs == l2cap_cfg.fcs) &&
             (p_acb->mdl_cfg[mdl_cfg_idx].dch_mode == p_dcb->dch_mode))
         {
-            success = TRUE;
+            success = true;
         }
     }
 
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
 
     if (p_dcb->mtu != l2cap_cfg.mtu)
     {
@@ -2758,16 +2758,16 @@ BOOLEAN bta_hl_validate_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx)
 **
 ** Description    This function checks whether the congestion condition is on or not
 **
-** Returns      BOOLEAN - TRUE DCH is congested
-**                        FALSE not congested
+** Returns      bool - true DCH is congested
+**                        false not congested
 **
 *******************************************************************************/
-BOOLEAN  bta_hl_is_cong_on(UINT8 app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
+bool  bta_hl_is_cong_on(uint8_t app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
 
 {
     tBTA_HL_MDL_CB      *p_dcb;
-    UINT8   app_idx = 0, mcl_idx, mdl_idx;
-    BOOLEAN cong_status = TRUE;
+    uint8_t   app_idx = 0, mcl_idx, mdl_idx;
+    bool cong_status = true;
 
     if (bta_hl_find_app_idx(app_id, &app_idx))
     {
@@ -2793,11 +2793,11 @@ BOOLEAN  bta_hl_is_cong_on(UINT8 app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id)
 **
 ** Returns      void
 *******************************************************************************/
-void bta_hl_check_cch_close(UINT8 app_idx, UINT8 mcl_idx, tBTA_HL_DATA *p_data, BOOLEAN check_dch_setup )
+void bta_hl_check_cch_close(uint8_t app_idx, uint8_t mcl_idx, tBTA_HL_DATA *p_data, bool check_dch_setup )
 {
     tBTA_HL_MCL_CB      *p_mcb  = BTA_HL_GET_MCL_CB_PTR(app_idx, mcl_idx);
     tBTA_HL_MDL_CB      *p_dcb;
-    UINT8               mdl_idx;
+    uint8_t               mdl_idx;
 
 #if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_check_cch_close cch_close_dch_oper=%d",p_mcb->cch_close_dch_oper );
@@ -2846,12 +2846,12 @@ void bta_hl_check_cch_close(UINT8 app_idx, UINT8 mcl_idx, tBTA_HL_DATA *p_data, 
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hl_clean_app(UINT8 app_idx)
+void bta_hl_clean_app(uint8_t app_idx)
 {
     tBTA_HL_APP_CB         *p_acb   = BTA_HL_GET_APP_CB_PTR(app_idx);
     int i, num_act_apps=0;
 
-#if BTA_HL_DEBUG == TRUE
+#if (BTA_HL_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hl_clean_app");
 #endif
     MCA_Deregister((tMCA_HANDLE)p_acb->app_handle);
@@ -2882,11 +2882,11 @@ void bta_hl_clean_app(UINT8 app_idx)
 **
 ** Returns      void
 *******************************************************************************/
-void bta_hl_check_deregistration(UINT8 app_idx, tBTA_HL_DATA *p_data )
+void bta_hl_check_deregistration(uint8_t app_idx, tBTA_HL_DATA *p_data )
 {
     tBTA_HL_APP_CB      *p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
     tBTA_HL_MCL_CB      *p_mcb;
-    UINT8               mcl_idx;
+    uint8_t               mcl_idx;
     tBTA_HL             evt_data;
 
 #if (BTA_HL_DEBUG == TRUE)
@@ -2901,10 +2901,10 @@ void bta_hl_check_deregistration(UINT8 app_idx, tBTA_HL_DATA *p_data )
             if (p_mcb->cch_oper != BTA_HL_CCH_OP_LOCAL_CLOSE)
             {
                 if (p_mcb->cch_state == BTA_HL_CCH_OPENING_ST)
-                    p_mcb->force_close_local_cch_opening = TRUE;
+                    p_mcb->force_close_local_cch_opening = true;
                 p_mcb->cch_oper = BTA_HL_CCH_OP_LOCAL_CLOSE;
                 APPL_TRACE_DEBUG("p_mcb->force_close_local_cch_opening=%d", p_mcb->force_close_local_cch_opening  );
-                bta_hl_check_cch_close(app_idx,mcl_idx,p_data, TRUE);
+                bta_hl_check_cch_close(app_idx,mcl_idx,p_data, true);
             }
         }
         else
@@ -2935,7 +2935,7 @@ void bta_hl_check_disable(tBTA_HL_DATA *p_data )
 {
     tBTA_HL_CB          *p_cb= &bta_hl_cb;
     tBTA_HL_APP_CB      *p_acb;
-    UINT8               app_idx;
+    uint8_t               app_idx;
     tBTA_HL_CTRL        evt_data;
 
 #if (BTA_HL_DEBUG == TRUE)
@@ -2949,7 +2949,7 @@ void bta_hl_check_disable(tBTA_HL_DATA *p_data )
             p_acb  = BTA_HL_GET_APP_CB_PTR(app_idx);
             if (!p_acb->deregistering)
             {
-                p_acb->deregistering = TRUE;
+                p_acb->deregistering = true;
                 bta_hl_check_deregistration(app_idx, p_data);
             }
         }
@@ -3033,7 +3033,7 @@ void  bta_hl_build_dch_close_ind(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
                                  tBTA_HL_MDL_HANDLE mdl_handle,
-                                 BOOLEAN intentional)
+                                 bool intentional)
 {
     p_evt_data->dch_close_ind.mdl_handle = mdl_handle;
     p_evt_data->dch_close_ind.mcl_handle = mcl_handle;
@@ -3093,7 +3093,7 @@ void  bta_hl_build_rcv_data_ind(tBTA_HL *p_evt_data,
 **
 *******************************************************************************/
 void  bta_hl_build_cch_open_cfm(tBTA_HL *p_evt_data,
-                                UINT8 app_id,
+                                uint8_t app_id,
                                 tBTA_HL_APP_HANDLE app_handle,
                                 tBTA_HL_MCL_HANDLE mcl_handle,
                                 BD_ADDR bd_addr,
@@ -3158,7 +3158,7 @@ void  bta_hl_build_cch_close_cfm(tBTA_HL *p_evt_data,
 void  bta_hl_build_cch_close_ind(tBTA_HL *p_evt_data,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  tBTA_HL_MCL_HANDLE mcl_handle,
-                                 BOOLEAN intentional)
+                                 bool intentional)
 {
     p_evt_data->cch_close_ind.mcl_handle = mcl_handle;
     p_evt_data->cch_close_ind.app_handle = app_handle;
@@ -3181,8 +3181,8 @@ void  bta_hl_build_dch_open_cfm(tBTA_HL *p_evt_data,
                                 tBTA_HL_MDEP_ID local_mdep_id,
                                 tBTA_HL_MDL_ID mdl_id,
                                 tBTA_HL_DCH_MODE dch_mode,
-                                BOOLEAN first_reliable,
-                                UINT16 mtu,
+                                bool first_reliable,
+                                uint16_t mtu,
                                 tBTA_HL_STATUS status)
 
 {
@@ -3208,7 +3208,7 @@ void  bta_hl_build_dch_open_cfm(tBTA_HL *p_evt_data,
 **
 *******************************************************************************/
 void  bta_hl_build_sdp_query_cfm(tBTA_HL *p_evt_data,
-                                 UINT8 app_id,
+                                 uint8_t app_id,
                                  tBTA_HL_APP_HANDLE app_handle,
                                  BD_ADDR bd_addr,
                                  tBTA_HL_SDP *p_sdp,

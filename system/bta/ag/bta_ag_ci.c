@@ -40,9 +40,9 @@
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
+void bta_ag_ci_rx_write(uint16_t handle, char *p_data, uint16_t len)
 {
-    UINT16 len_remaining = len;
+    uint16_t len_remaining = len;
     char *p_data_area;
 
     if (len > (RFCOMM_DATA_BUF_SIZE - sizeof(tBTA_AG_CI_RX_WRITE) - 1))
@@ -79,7 +79,7 @@ void bta_ag_ci_rx_write(UINT16 handle, char *p_data, UINT16 len)
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ag_ci_slc_ready(UINT16 handle)
+void bta_ag_ci_slc_ready(uint16_t handle)
 {
     tBTA_AG_DATA *p_buf = (tBTA_AG_DATA *)osi_malloc(sizeof(tBTA_AG_DATA));
 

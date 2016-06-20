@@ -81,10 +81,10 @@ typedef struct
 {
     BT_HDR      hdr;
     BD_ADDR bd_addr;
-    UINT16 num_uuid;
+    uint16_t num_uuid;
     tSDP_UUID uuid_list[BTA_JV_MAX_UUIDS];
-    UINT16 num_attr;
-    UINT16 attr_list[BTA_JV_MAX_ATTRS];
+    uint16_t num_attr;
+    uint16_t attr_list[BTA_JV_MAX_ATTRS];
     void            *user_data;      /* piggyback caller's private data*/
 } tBTA_JV_API_START_DISCOVERY;
 
@@ -98,8 +98,8 @@ enum
 /* BTA JV PM control block */
 typedef struct
 {
-    UINT32          handle;     /* The connection handle */
-    UINT8           state;      /* state: see above enum */
+    uint32_t          handle;     /* The connection handle */
+    uint8_t           state;      /* state: see above enum */
     tBTA_JV_PM_ID   app_id;     /* JV app specific id indicating power table to use */
     BD_ADDR         peer_bd_addr;    /* Peer BD address */
 } tBTA_JV_PM_CB;
@@ -114,17 +114,17 @@ enum
     BTA_JV_ST_SR_OPEN,
     BTA_JV_ST_SR_CLOSING
 } ;
-typedef UINT8  tBTA_JV_STATE;
+typedef uint8_t  tBTA_JV_STATE;
 #define BTA_JV_ST_CL_MAX    BTA_JV_ST_CL_CLOSING
 /* JV L2CAP control block */
 typedef struct
 {
     tBTA_JV_L2CAP_CBACK *p_cback;   /* the callback function */
-    UINT16              psm;        /* the psm used for this server connection */
+    uint16_t              psm;        /* the psm used for this server connection */
     tBTA_JV_STATE       state;      /* the state of this control block */
     tBTA_SERVICE_ID     sec_id;     /* service id */
-    UINT32              handle;     /* the handle reported to java app (same as gap handle) */
-    BOOLEAN             cong;       /* TRUE, if congested */
+    uint32_t              handle;     /* the handle reported to java app (same as gap handle) */
+    bool             cong;       /* true, if congested */
     tBTA_JV_PM_CB      *p_pm_cb;    /* ptr to pm control block, NULL: unused */
     void                *user_data; /* user data for callback from higher layers */
 } tBTA_JV_L2C_CB;
@@ -138,12 +138,12 @@ typedef struct
 /* port control block */
 typedef struct
 {
-    UINT32              handle;     /* the rfcomm session handle at jv */
-    UINT16              port_handle;/* port handle */
+    uint32_t              handle;     /* the rfcomm session handle at jv */
+    uint16_t              port_handle;/* port handle */
     tBTA_JV_STATE       state;      /* the state of this control block */
-    UINT8               max_sess;   /* max sessions */
+    uint8_t               max_sess;   /* max sessions */
     void                *user_data; /* piggyback caller's private data*/
-    BOOLEAN             cong;       /* TRUE, if congested */
+    bool             cong;       /* true, if congested */
     tBTA_JV_PM_CB       *p_pm_cb;   /* ptr to pm control block, NULL: unused */
 } tBTA_JV_PCB;
 
@@ -151,11 +151,11 @@ typedef struct
 typedef struct
 {
     tBTA_JV_RFCOMM_CBACK *p_cback;  /* the callback function */
-    UINT16              rfc_hdl[BTA_JV_MAX_RFC_SR_SESSION];
+    uint16_t              rfc_hdl[BTA_JV_MAX_RFC_SR_SESSION];
     tBTA_SERVICE_ID     sec_id;     /* service id */
-    UINT8               handle;     /* index: the handle reported to java app */
-    UINT8               scn;        /* the scn of the server */
-    UINT8               max_sess;   /* max sessions */
+    uint8_t               handle;     /* index: the handle reported to java app */
+    uint8_t               scn;        /* the scn of the server */
+    uint8_t               max_sess;   /* max sessions */
     int                 curr_sess;   /* current sessions count*/
 } tBTA_JV_RFC_CB;
 
@@ -163,18 +163,18 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    INT32               type;       /* One of BTA_JV_CONN_TYPE_ */
+    int32_t               type;       /* One of BTA_JV_CONN_TYPE_ */
     tBTA_SEC            sec_mask;
     tBTA_JV_ROLE        role;
     union {
-        UINT16          remote_psm;
-        UINT16          remote_chan;
+        uint16_t          remote_psm;
+        uint16_t          remote_chan;
     };
-    UINT16              rx_mtu;
+    uint16_t              rx_mtu;
     BD_ADDR             peer_bd_addr;
-    INT32               has_cfg;
+    int32_t               has_cfg;
     tL2CAP_CFG_INFO     cfg;
-    INT32               has_ertm_info;
+    int32_t               has_ertm_info;
     tL2CAP_ERTM_INFO    ertm_info;
     tBTA_JV_L2CAP_CBACK *p_cback;
     void                *user_data;
@@ -184,17 +184,17 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    INT32               type;       /* One of BTA_JV_CONN_TYPE_ */
+    int32_t               type;       /* One of BTA_JV_CONN_TYPE_ */
     tBTA_SEC            sec_mask;
     tBTA_JV_ROLE        role;
     union {
-        UINT16          local_psm;
-        UINT16          local_chan;
+        uint16_t          local_psm;
+        uint16_t          local_chan;
     };
-    UINT16              rx_mtu;
-    INT32               has_cfg;
+    uint16_t              rx_mtu;
+    int32_t               has_cfg;
     tL2CAP_CFG_INFO     cfg;
-    INT32               has_ertm_info;
+    int32_t               has_ertm_info;
     tL2CAP_ERTM_INFO    ertm_info;
     tBTA_JV_L2CAP_CBACK *p_cback;
     void                *user_data;
@@ -204,7 +204,7 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    UINT32          handle;
+    uint32_t          handle;
     tBTA_JV_L2C_CB  *p_cb;
 } tBTA_JV_API_L2CAP_CLOSE;
 
@@ -212,11 +212,11 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT32              handle;
-    UINT32              req_id;
+    uint32_t              handle;
+    uint32_t              req_id;
     tBTA_JV_L2CAP_CBACK *p_cback;
-    UINT8*              p_data;
-    UINT16              len;
+    uint8_t*              p_data;
+    uint16_t              len;
     void                *user_data;
 } tBTA_JV_API_L2CAP_READ;
 
@@ -224,11 +224,11 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT32              handle;
-    UINT32              req_id;
+    uint32_t              handle;
+    uint32_t              req_id;
     tBTA_JV_L2C_CB      *p_cb;
-    UINT8               *p_data;
-    UINT16              len;
+    uint8_t               *p_data;
+    uint16_t              len;
     void                *user_data;
 } tBTA_JV_API_L2CAP_WRITE;
 
@@ -236,12 +236,12 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT16              channel;
+    uint16_t              channel;
     BD_ADDR             addr;
-    UINT32              req_id;
+    uint32_t              req_id;
     tBTA_JV_L2CAP_CBACK *p_cback;
-    UINT8               *p_data;
-    UINT16              len;
+    uint8_t               *p_data;
+    uint16_t              len;
     void                *user_data;
 } tBTA_JV_API_L2CAP_WRITE_FIXED;
 
@@ -251,7 +251,7 @@ typedef struct
     BT_HDR          hdr;
     tBTA_SEC        sec_mask;
     tBTA_JV_ROLE    role;
-    UINT8           remote_scn;
+    uint8_t           remote_scn;
     BD_ADDR         peer_bd_addr;
     tBTA_JV_RFCOMM_CBACK *p_cback;
     void            *user_data;
@@ -263,9 +263,9 @@ typedef struct
     BT_HDR          hdr;
     tBTA_SEC        sec_mask;
     tBTA_JV_ROLE    role;
-    UINT8           local_scn;
-    UINT8           max_session;
-    UINT32          handle;
+    uint8_t           local_scn;
+    uint8_t           max_session;
+    uint32_t          handle;
     tBTA_JV_RFCOMM_CBACK *p_cback;
     void            *user_data;
 } tBTA_JV_API_RFCOMM_SERVER;
@@ -274,7 +274,7 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT32              handle;
+    uint32_t              handle;
     tBTA_JV_PM_ID       app_id;
     tBTA_JV_CONN_STATE  init_st;
 } tBTA_JV_API_SET_PM_PROFILE;
@@ -291,9 +291,9 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    UINT32          handle;
-    UINT32          req_id;
-    UINT8           *p_data;
+    uint32_t          handle;
+    uint32_t          req_id;
+    uint8_t           *p_data;
     int             len;
     tBTA_JV_RFC_CB  *p_cb;
     tBTA_JV_PCB     *p_pcb;
@@ -303,7 +303,7 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    UINT32          handle;
+    uint32_t          handle;
     tBTA_JV_RFC_CB  *p_cb;
     tBTA_JV_PCB     *p_pcb;
     void            *user_data;
@@ -320,26 +320,26 @@ typedef struct
 typedef struct
 {
     BT_HDR      hdr;
-    UINT32      handle;
-    UINT16      attr_id;
-    UINT8       *p_value;
-    INT32       value_size;
+    uint32_t      handle;
+    uint16_t      attr_id;
+    uint8_t       *p_value;
+    int32_t       value_size;
 } tBTA_JV_API_ADD_ATTRIBUTE;
 
 /* data type for BTA_JV_API_FREE_SCN_EVT */
 typedef struct
 {
     BT_HDR      hdr;
-    INT32       type;       /* One of BTA_JV_CONN_TYPE_ */
-    UINT16      scn;
+    int32_t       type;       /* One of BTA_JV_CONN_TYPE_ */
+    uint16_t      scn;
 } tBTA_JV_API_FREE_CHANNEL;
 
 /* data type for BTA_JV_API_ALLOC_CHANNEL_EVT */
 typedef struct
 {
     BT_HDR      hdr;
-    INT32       type;       /* One of BTA_JV_CONN_TYPE_ */
-    INT32       channel;    /* optionally request a specific channel */
+    int32_t       type;       /* One of BTA_JV_CONN_TYPE_ */
+    int32_t       channel;    /* optionally request a specific channel */
     void        *user_data;
 } tBTA_JV_API_ALLOC_CHANNEL;
 /* union of all data types */
@@ -373,18 +373,18 @@ typedef struct
     /* the SDP handle reported to JV user is the (index + 1) to sdp_handle[].
      * if sdp_handle[i]==0, it's not used.
      * otherwise sdp_handle[i] is the stack SDP handle. */
-    UINT32                  sdp_handle[BTA_JV_MAX_SDP_REC]; /* SDP records created */
-    UINT8                   *p_sel_raw_data;/* the raw data of last service select */
+    uint32_t                  sdp_handle[BTA_JV_MAX_SDP_REC]; /* SDP records created */
+    uint8_t                   *p_sel_raw_data;/* the raw data of last service select */
     tBTA_JV_DM_CBACK        *p_dm_cback;
     tBTA_JV_L2C_CB          l2c_cb[BTA_JV_MAX_L2C_CONN];    /* index is GAP handle (index) */
     tBTA_JV_RFC_CB          rfc_cb[BTA_JV_MAX_RFC_CONN];
     tBTA_JV_PCB             port_cb[MAX_RFC_PORTS];         /* index of this array is
                                                                the port_handle, */
-    UINT8                   sec_id[BTA_JV_NUM_SERVICE_ID];  /* service ID */
-    BOOLEAN                 scn[BTA_JV_MAX_SCN];            /* SCN allocated by java */
-    UINT16                  free_psm_list[BTA_JV_MAX_L2C_CONN];  /* PSMs freed by java
+    uint8_t                   sec_id[BTA_JV_NUM_SERVICE_ID];  /* service ID */
+    bool                 scn[BTA_JV_MAX_SCN];            /* SCN allocated by java */
+    uint16_t                  free_psm_list[BTA_JV_MAX_L2C_CONN];  /* PSMs freed by java
                                                                     (can be reused) */
-    UINT8                   sdp_active;                     /* see BTA_JV_SDP_ACT_* */
+    uint8_t                   sdp_active;                     /* see BTA_JV_SDP_ACT_* */
     tSDP_UUID               uuid;                           /* current uuid of sdp discovery*/
     tBTA_JV_PM_CB           pm_cb[BTA_JV_PM_MAX_NUM];       /* PM on a per JV handle bases */
 } tBTA_JV_CB;
@@ -397,7 +397,7 @@ enum
 };
 
 /* JV control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_JV_CB bta_jv_cb;
 #else
 extern tBTA_JV_CB *bta_jv_cb_ptr;
@@ -407,7 +407,7 @@ extern tBTA_JV_CB *bta_jv_cb_ptr;
 /* config struct */
 extern tBTA_JV_CFG *p_bta_jv_cfg;
 
-extern BOOLEAN bta_jv_sm_execute(BT_HDR *p_msg);
+extern bool bta_jv_sm_execute(BT_HDR *p_msg);
 
 extern void bta_jv_enable (tBTA_JV_MSG *p_data);
 extern void bta_jv_disable (tBTA_JV_MSG *p_data);

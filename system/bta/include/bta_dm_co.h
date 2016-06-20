@@ -36,7 +36,7 @@ extern "C" {
 
 #define BTA_SCO_CODEC_PCM       0       /* used for regular SCO */
 #define BTA_SCO_CODEC_SBC       1       /* used for WBS */
-typedef UINT8   tBTA_SCO_CODEC_TYPE;
+typedef uint8_t   tBTA_SCO_CODEC_TYPE;
 
 #define BTA_DM_SCO_SAMP_RATE_8K     8000
 #define BTA_DM_SCO_SAMP_RATE_16K    16000
@@ -66,15 +66,15 @@ typedef tBTM_SCO_ROUTE_TYPE tBTA_DM_SCO_ROUTE_TYPE;
 **
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req - TRUE, if MITM protection is required.
+**                  *p_oob_data - true, if OOB data is available for the peer device.
+**                  *p_auth_req - true, if MITM protection is required.
 **
 ** Returns          void.
 **
 *******************************************************************************/
 extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
                              tBTA_OOB_DATA *p_oob_data, tBTA_AUTH_REQ *p_auth_req,
-                             BOOLEAN is_orig);
+                             bool is_orig);
 
 /*******************************************************************************
 **
@@ -85,8 +85,8 @@ extern void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap,
 **
 ** Parameters       bd_addr  - The peer device
 **                  io_cap - The remote Input/Output capabilities
-**                  oob_data - TRUE, if OOB data is available for the peer device.
-**                  auth_req - TRUE, if MITM protection is required.
+**                  oob_data - true, if OOB data is available for the peer device.
+**                  auth_req - true, if MITM protection is required.
 **
 ** Returns          void.
 **
@@ -102,12 +102,12 @@ extern void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 **                  platform wants allow link key upgrade
 **
 ** Parameters       bd_addr  - The peer device
-**                  *p_upgrade - TRUE, if link key upgrade is desired.
+**                  *p_upgrade - true, if link key upgrade is desired.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade );
+extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool *p_upgrade );
 
 /*******************************************************************************
 **
@@ -116,14 +116,14 @@ extern void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade );
 ** Description      This callout function is executed by DM to report the OOB
 **                  data of the local device for the Simple Pairing process
 **
-** Parameters       valid - TRUE, if the local OOB data is retrieved from LM
+** Parameters       valid - true, if the local OOB data is retrieved from LM
 **                  c     - Simple Pairing Hash C
 **                  r     - Simple Pairing Randomnizer R
 **
 ** Returns          void.
 **
 *******************************************************************************/
-extern void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
+extern void bta_dm_co_loc_oob(bool valid, BT_OCTET16 c, BT_OCTET16 r);
 
 /*******************************************************************************
 **
@@ -154,8 +154,8 @@ extern void bta_dm_co_rmt_oob(BD_ADDR bd_addr);
 ** Returns          Void.
 **
 *******************************************************************************/
-extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
-                                                 tBTA_CODEC_INFO *p_codec_info, UINT8 app_id);
+extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(uint32_t rx_bw, uint32_t tx_bw,
+                                                 tBTA_CODEC_INFO *p_codec_info, uint8_t app_id);
 
 
 /*******************************************************************************
@@ -168,7 +168,7 @@ extern tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event);
+extern void bta_dm_sco_co_open(uint16_t handle, uint8_t pkt_size, uint16_t event);
 
 /*******************************************************************************
 **
@@ -215,7 +215,7 @@ extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
 **
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - TRUE, if OOB data is available for the peer device.
+**                  *p_oob_data - true, if OOB data is available for the peer device.
 **                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
@@ -227,7 +227,7 @@ extern void bta_dm_sco_co_in_data(BT_HDR  *p_buf, tBTM_SCO_DATA_FLAG status);
 extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                                  tBTA_OOB_DATA *p_oob_data,
                                  tBTA_LE_AUTH_REQ *p_auth_req,
-                                 UINT8 *p_max_key_size,
+                                 uint8_t *p_max_key_size,
                                  tBTA_LE_KEY_TYPE *p_init_key,
                                  tBTA_LE_KEY_TYPE  *p_resp_key );
 
@@ -256,7 +256,7 @@ extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mas
 **
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - TRUE, if OOB data is available for the peer device.
+**                  *p_oob_data - true, if OOB data is available for the peer device.
 **                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
@@ -268,7 +268,7 @@ extern void bta_dm_co_ble_load_local_keys (tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mas
 extern void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                                  tBTA_OOB_DATA *p_oob_data,
                                  tBTA_LE_AUTH_REQ *p_auth_req,
-                                 UINT8 *p_max_key_size,
+                                 uint8_t *p_max_key_size,
                                  tBTA_LE_KEY_TYPE *p_init_key,
                                  tBTA_LE_KEY_TYPE  *p_resp_key );
 

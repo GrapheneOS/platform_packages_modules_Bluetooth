@@ -59,7 +59,7 @@ extern void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr,
+extern void bta_dm_ci_rmt_oob(bool accept, BD_ADDR bd_addr,
                               BT_OCTET16 c, BT_OCTET16 r);
 /*******************************************************************************
 **
@@ -71,7 +71,7 @@ extern void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_dm_sco_ci_data_ready(UINT16 event, UINT16 sco_handle);
+extern void bta_dm_sco_ci_data_ready(uint16_t event, uint16_t sco_handle);
 
 #ifdef __cplusplus
 }

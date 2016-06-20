@@ -87,9 +87,9 @@ typedef struct
     char                gn_name[BTA_SERVICE_NAME_LEN+1];     /* Service name */
     char                nap_name[BTA_SERVICE_NAME_LEN+1];    /* Service name */
     tBTA_PAN_ROLE       role;
-    UINT8               user_app_id;
-    UINT8               gn_app_id;
-    UINT8               nap_app_id;
+    uint8_t               user_app_id;
+    uint8_t               gn_app_id;
+    uint8_t               nap_app_id;
     tBTA_SEC            user_sec_mask;                   /* Security mask */
     tBTA_SEC            gn_sec_mask;                     /* Security mask */
     tBTA_SEC            nap_sec_mask;                    /* Security mask */
@@ -110,7 +110,7 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;                    /* Event header */
-    BOOLEAN         enable;                 /* Flow control setting */
+    bool         enable;                 /* Flow control setting */
 } tBTA_PAN_CI_TX_FLOW;
 
 /* data type for BTA_PAN_CONN_OPEN_EVT */
@@ -140,15 +140,15 @@ typedef struct
 {
     BD_ADDR                 bd_addr;        /* peer bdaddr */
     fixed_queue_t           *data_queue;    /* Queue of buffers waiting to be passed to application */
-    UINT16                  handle;         /* BTA PAN/BNEP handle */
-    BOOLEAN                 in_use;         /* scb in use */
+    uint16_t                  handle;         /* BTA PAN/BNEP handle */
+    bool                 in_use;         /* scb in use */
     tBTA_SEC                sec_mask;       /* Security mask */
-    BOOLEAN                 pan_flow_enable;/* BNEP flow control state */
-    BOOLEAN                 app_flow_enable;/* Application flow control state */
-    UINT8                   state;          /* State machine state */
+    bool                 pan_flow_enable;/* BNEP flow control state */
+    bool                 app_flow_enable;/* Application flow control state */
+    uint8_t                   state;          /* State machine state */
     tBTA_PAN_ROLE            local_role;     /* local role */
     tBTA_PAN_ROLE            peer_role;      /* peer role */
-    UINT8                    app_id;         /* application id for the connection */
+    uint8_t                    app_id;         /* application id for the connection */
 
 } tBTA_PAN_SCB;
 
@@ -159,9 +159,9 @@ typedef struct
 {
     tBTA_PAN_SCB    scb[BTA_PAN_NUM_CONN];          /* state machine control blocks */
     tBTA_PAN_CBACK *p_cback;                        /* PAN callback function */
-    UINT8            app_id[3];                      /* application id for PAN roles */
-    UINT8           flow_mask;                      /* Data flow mask */
-    UINT8           q_level;                        /* queue level set by application for TX data */
+    uint8_t            app_id[3];                      /* application id for PAN roles */
+    uint8_t           flow_mask;                      /* Data flow mask */
+    uint8_t           q_level;                        /* queue level set by application for TX data */
 
 } tBTA_PAN_CB;
 
@@ -172,9 +172,9 @@ typedef struct
     BT_HDR  hdr;
     BD_ADDR src;
     BD_ADDR dst;
-    UINT16  protocol;
-    BOOLEAN ext;
-    BOOLEAN forward;
+    uint16_t  protocol;
+    bool ext;
+    bool forward;
 
 } tBTA_PAN_DATA_PARAMS;
 
@@ -185,7 +185,7 @@ typedef struct
 
 /* PAN control block */
 
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_PAN_CB  bta_pan_cb;
 #else
 extern tBTA_PAN_CB *bta_pan_cb_ptr;
@@ -197,9 +197,9 @@ extern tBTA_PAN_CB *bta_pan_cb_ptr;
 *****************************************************************************/
 extern tBTA_PAN_SCB *bta_pan_scb_alloc(void);
 extern void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb);
-extern UINT8 bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb);
-extern tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle);
-extern BOOLEAN bta_pan_hdl_event(BT_HDR *p_msg);
+extern uint8_t bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb);
+extern tBTA_PAN_SCB *bta_pan_scb_by_handle(uint16_t handle);
+extern bool bta_pan_hdl_event(BT_HDR *p_msg);
 
 /* action functions */
 extern void bta_pan_enable(tBTA_PAN_DATA *p_data);

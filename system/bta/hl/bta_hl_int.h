@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-typedef UINT16 (tBTA_HL_ALLOCATE_PSM) (void);
+typedef uint16_t (tBTA_HL_ALLOCATE_PSM) (void);
 
 /*****************************************************************************
 **  Constants and data types
@@ -70,7 +70,7 @@ typedef UINT16 (tBTA_HL_ALLOCATE_PSM) (void);
 #define BTA_HL_SDP_OP_SDP_QUERY_NEW         4
 #define BTA_HL_SDP_OP_SDP_QUERY_CURRENT     5
 
-typedef UINT8 tBTA_HL_SDP_OPER;
+typedef uint8_t tBTA_HL_SDP_OPER;
 
 /* CCH Operations */
 #define     BTA_HL_CCH_OP_NONE            0
@@ -79,13 +79,13 @@ typedef UINT8 tBTA_HL_SDP_OPER;
 #define     BTA_HL_CCH_OP_LOCAL_CLOSE     3
 #define     BTA_HL_CCH_OP_REMOTE_CLOSE    4
 
-typedef UINT8 tBTA_HL_CCH_OPER;
+typedef uint8_t tBTA_HL_CCH_OPER;
 
 /* Pending DCH close operations when closing a CCH */
 #define    BTA_HL_CCH_CLOSE_OP_DCH_NONE     0
 #define    BTA_HL_CCH_CLOSE_OP_DCH_ABORT    1
 #define    BTA_HL_CCH_CLOSE_OP_DCH_CLOSE    2
-typedef UINT8 tBTA_HL_CCH_CLOSE_DCH_OPER;
+typedef uint8_t tBTA_HL_CCH_CLOSE_DCH_OPER;
 
 /* DCH Operations */
 #define    BTA_HL_DCH_OP_NONE                    0
@@ -101,7 +101,7 @@ typedef UINT8 tBTA_HL_CCH_CLOSE_DCH_OPER;
 #define    BTA_HL_DCH_OP_LOCAL_CLOSE_ECHO_TEST   10
 #define    BTA_HL_DCH_OP_LOCAL_CLOSE_RECONNECT   11
 
-typedef UINT8 tBTA_HL_DCH_OPER;
+typedef uint8_t tBTA_HL_DCH_OPER;
 
 /* Echo test Operations */
 #define    BTA_HL_ECHO_OP_NONE                 0
@@ -115,7 +115,7 @@ typedef UINT8 tBTA_HL_DCH_OPER;
 #define    BTA_HL_ECHO_OP_OPEN_IND             8
 #define    BTA_HL_ECHO_OP_ECHO_PKT             9
 
-typedef UINT8 tBTA_HL_ECHO_OPER;
+typedef uint8_t tBTA_HL_ECHO_OPER;
 
 /* abort status mask for abort_oper */
 
@@ -134,8 +134,8 @@ typedef UINT8 tBTA_HL_ECHO_OPER;
 
 typedef struct
 {
-    UINT16      mtu;
-    UINT8       fcs;                    /* '0' No FCS, otherwise '1' */
+    uint16_t      mtu;
+    uint8_t       fcs;                    /* '0' No FCS, otherwise '1' */
 } tBTA_HL_L2CAP_CFG_INFO;
 
 
@@ -205,7 +205,7 @@ enum
     BTA_HL_MCA_DELETE_IND_EVT,
     BTA_HL_MCA_DELETE_CFM_EVT
 };
-typedef UINT16 tBTA_HL_INT_EVT;
+typedef uint16_t tBTA_HL_INT_EVT;
 
 #define BTA_HL_DCH_EVT_MIN BTA_HL_DCH_SDP_INIT_EVT
 #define BTA_HL_DCH_EVT_MAX 0xFFFF
@@ -219,7 +219,7 @@ enum
     BTA_HL_CCH_OPEN_ST,          /* Connection is open */
     BTA_HL_CCH_CLOSING_ST        /* Closing is in progress */
 };
-typedef UINT8 tBTA_HL_CCH_STATE;
+typedef uint8_t tBTA_HL_CCH_STATE;
 
 enum
 {
@@ -228,7 +228,7 @@ enum
     BTA_HL_DCH_OPEN_ST,          /* Connection is open */
     BTA_HL_DCH_CLOSING_ST        /* Closing is in progress */
 };
-typedef UINT8 tBTA_HL_DCH_STATE;
+typedef uint8_t tBTA_HL_DCH_STATE;
 
 
 typedef struct
@@ -240,8 +240,8 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT8               app_id;
-    BOOLEAN             is_register;        /* Update HL application due to register or deregister */
+    uint8_t               app_id;
+    bool             is_register;        /* Update HL application due to register or deregister */
     tBTA_HL_CBACK       *p_cback;           /* pointer to application callback function */
     tBTA_HL_DEVICE_TYPE dev_type;           /* sink, source or dual roles */
     tBTA_SEC            sec_mask;           /* security mask for accepting conenction*/
@@ -254,7 +254,7 @@ typedef struct
 typedef struct
 {
     BT_HDR              hdr;
-    UINT8               app_id;
+    uint8_t               app_id;
     tBTA_HL_CBACK       *p_cback;        /* pointer to application callback function */
     tBTA_HL_DEVICE_TYPE dev_type;           /* sink, source or dual roles */
     tBTA_SEC            sec_mask;           /* security mask for accepting conenction*/
@@ -266,7 +266,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_CBACK           *p_cback;        /* pointer to application callback function */
     tBTA_HL_APP_HANDLE      app_handle;
 } tBTA_HL_API_DEREGISTER;
@@ -274,9 +274,9 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT8                   app_id;
+    uint8_t                   app_id;
     tBTA_HL_APP_HANDLE      app_handle;
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     BD_ADDR                 bd_addr;        /* Address of peer device */
     tBTA_SEC                sec_mask;       /* security mask for initiating connection*/
 } tBTA_HL_API_CCH_OPEN;
@@ -294,7 +294,7 @@ typedef struct
 {
     BT_HDR                  hdr;
     tBTA_HL_MCL_HANDLE      mcl_handle;
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     tBTA_HL_MDEP_ID         local_mdep_id;     /* local MDEP ID */
     tBTA_HL_MDEP_ID         peer_mdep_id;      /* peer mdep id */
     tBTA_HL_DCH_CFG         local_cfg;
@@ -307,7 +307,7 @@ typedef struct
     BT_HDR                  hdr;
 
     tBTA_HL_MCL_HANDLE      mcl_handle;
-    UINT16                  ctrl_psm;
+    uint16_t                  ctrl_psm;
     tBTA_HL_MDL_ID          mdl_id;
 } tBTA_HL_API_DCH_RECONNECT;
 
@@ -335,24 +335,24 @@ typedef struct
 {
     BT_HDR              hdr;
     tBTA_HL_MDL_HANDLE  mdl_handle;
-    UINT16              pkt_size;
+    uint16_t              pkt_size;
 } tBTA_HL_API_SEND_DATA;
 
 typedef struct
 {
     BT_HDR              hdr;
     tBTA_HL_MCL_HANDLE  mcl_handle;
-    UINT16              ctrl_psm;
-    UINT16              pkt_size;
+    uint16_t              ctrl_psm;
+    uint16_t              pkt_size;
     tBTA_HL_DCH_CFG     local_cfg;
 } tBTA_HL_API_DCH_ECHO_TEST;
 
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT8                   app_idx;
-    UINT8                   mcl_idx;
-    BOOLEAN                 release_mcl_cb;
+    uint8_t                   app_idx;
+    uint8_t                   mcl_idx;
+    bool                 release_mcl_cb;
 }tBTA_HL_CCH_SDP;
 
 
@@ -370,9 +370,9 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    UINT8           app_idx;
-    UINT8           mcl_idx;
-    UINT8           mdl_idx;
+    uint8_t           app_idx;
+    uint8_t           mcl_idx;
+    uint8_t           mdl_idx;
     BT_HDR          *p_pkt;
 } tBTA_HL_MCA_RCV_DATA_EVT;
 
@@ -380,16 +380,16 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT8                   app_idx;
-    UINT8                   mcl_idx;
-    UINT8                   mdl_idx;
+    uint8_t                   app_idx;
+    uint8_t                   mcl_idx;
+    uint8_t                   mdl_idx;
 }tBTA_HL_DCH_SDP;
 
 typedef struct
 {
     BT_HDR                  hdr;
     tBTA_HL_APP_HANDLE      app_handle;
-    UINT8                   app_id;
+    uint8_t                   app_id;
     BD_ADDR                 bd_addr;        /* Address of peer device */
 } tBTA_HL_API_SDP_QUERY;
 
@@ -448,37 +448,37 @@ typedef union
 
 typedef struct
 {
-    BOOLEAN                 in_use;
-    UINT16                  mdl_id;
+    bool                 in_use;
+    uint16_t                  mdl_id;
     tBTA_HL_MDL_HANDLE      mdl_handle;
     tBTA_HL_DCH_OPER        dch_oper;
-    BOOLEAN                 intentional_close;
+    bool                 intentional_close;
     tBTA_HL_DCH_STATE       dch_state;
-    UINT8                   abort_oper;
-    UINT16                  req_data_psm;
-    UINT16                  max_rx_apdu_size;
-    UINT16                  max_tx_apdu_size;
+    uint8_t                   abort_oper;
+    uint16_t                  req_data_psm;
+    uint16_t                  max_rx_apdu_size;
+    uint16_t                  max_tx_apdu_size;
     BT_HDR                  *p_tx_pkt;
     BT_HDR                  *p_rx_pkt;
     tBTA_HL_MDEP_ID         local_mdep_id;
-    UINT8                   local_mdep_cfg_idx;
+    uint8_t                   local_mdep_cfg_idx;
     tBTA_HL_DCH_CFG         local_cfg;
     tBTA_HL_DCH_CFG         remote_cfg;
     tBTA_HL_MDEP_ID         peer_mdep_id;
-    UINT16  peer_data_type;
+    uint16_t  peer_data_type;
     tBTA_HL_MDEP_ROLE       peer_mdep_role;
     tBTA_HL_DCH_MODE        dch_mode;
     tBTA_SEC                sec_mask;
-    BOOLEAN                 is_the_first_reliable;
-    BOOLEAN                 delete_mdl;
-    UINT16                  mtu;
+    bool                 is_the_first_reliable;
+    bool                 delete_mdl;
+    uint16_t                  mtu;
     tMCA_CHNL_CFG           chnl_cfg;
-    BOOLEAN                 mdl_cfg_idx_included;
-    UINT8                   mdl_cfg_idx;
-    UINT8                   echo_oper;
-    BOOLEAN                 cong;
-    BOOLEAN                 close_pending;
-    UINT8                   cout_oper;
+    bool                 mdl_cfg_idx_included;
+    uint8_t                   mdl_cfg_idx;
+    uint8_t                   echo_oper;
+    bool                 cong;
+    bool                 close_pending;
+    uint8_t                   cout_oper;
     BT_HDR                  *p_echo_tx_pkt;
     BT_HDR                  *p_echo_rx_pkt;
     tBTA_HL_STATUS          ci_put_echo_data_status;
@@ -488,47 +488,47 @@ typedef struct
 {
     tBTA_HL_MDL_CB          mdl[BTA_HL_NUM_MDLS_PER_MCL];
     tBTA_HL_DELETE_MDL      delete_mdl;
-    BOOLEAN                 in_use;
+    bool                 in_use;
     tBTA_HL_CCH_STATE       cch_state;
-    UINT16                  req_ctrl_psm;
-    UINT16                  ctrl_psm;
-    UINT16                  data_psm;
+    uint16_t                  req_ctrl_psm;
+    uint16_t                  ctrl_psm;
+    uint16_t                  data_psm;
     BD_ADDR                 bd_addr;
-    UINT16                  cch_mtu;
-    UINT16                  sec_mask;
+    uint16_t                  cch_mtu;
+    uint16_t                  sec_mask;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     tSDP_DISCOVERY_DB       *p_db;         /* pointer to discovery database */
     tSDP_DISC_CMPL_CB       *sdp_cback;
     tBTA_HL_SDP_OPER        sdp_oper;
-    BOOLEAN                 close_pending;
-    UINT8                   sdp_mdl_idx;
+    bool                 close_pending;
+    uint8_t                   sdp_mdl_idx;
     tBTA_HL_SDP             sdp;
-    UINT8                   cch_oper;
-    UINT8                   force_close_local_cch_opening;
-    BOOLEAN                 intentional_close;
-    BOOLEAN                 rsp_tout;
-    UINT8                   timer_oper;
-    BOOLEAN                 echo_test;
-    UINT8                   echo_mdl_idx;
-    UINT8                   cch_close_dch_oper;
-    UINT8                   app_id;
+    uint8_t                   cch_oper;
+    uint8_t                   force_close_local_cch_opening;
+    bool                 intentional_close;
+    bool                 rsp_tout;
+    uint8_t                   timer_oper;
+    bool                 echo_test;
+    uint8_t                   echo_mdl_idx;
+    uint8_t                   cch_close_dch_oper;
+    uint8_t                   app_id;
 }tBTA_HL_MCL_CB;
 
 typedef struct
 {
     tBTA_HL_MCL_CB       mcb[BTA_HL_NUM_MCLS]; /* application Control Blocks */
     tBTA_HL_CBACK        *p_cback;            /* pointer to control callback function */
-    BOOLEAN              in_use;              /* this CB is in use*/
-    BOOLEAN              deregistering;
-    UINT8                app_id;
-    UINT32               sdp_handle;    /* SDP record handle */
+    bool              in_use;              /* this CB is in use*/
+    bool              deregistering;
+    uint8_t                app_id;
+    uint32_t               sdp_handle;    /* SDP record handle */
     tBTA_HL_SUP_FEATURE  sup_feature;
     tBTA_HL_MDL_CFG      mdl_cfg[BTA_HL_NUM_MDL_CFGS];
     tBTA_HL_DEVICE_TYPE  dev_type;
     tBTA_HL_APP_HANDLE   app_handle;
-    UINT16               ctrl_psm;   /* L2CAP PSM for the MCAP control channel */
-    UINT16               data_psm;   /* L2CAP PSM for the MCAP data channel */
-    UINT16               sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
+    uint16_t               ctrl_psm;   /* L2CAP PSM for the MCAP control channel */
+    uint16_t               data_psm;   /* L2CAP PSM for the MCAP data channel */
+    uint16_t               sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
 
     char                 srv_name[BTA_SERVICE_NAME_LEN +1];        /* service name to be used in the SDP; null terminated*/
     char                 srv_desp[BTA_SERVICE_DESP_LEN +1];        /* service description to be used in the SDP; null terminated */
@@ -541,30 +541,30 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN             in_use;
+    bool             in_use;
     tBTA_HL_SDP_OPER    sdp_oper;
-    UINT8               app_idx;
-    UINT8               mcl_idx;
-    UINT8               mdl_idx;
+    uint8_t               app_idx;
+    uint8_t               mcl_idx;
+    uint8_t               mdl_idx;
 }tBTA_HL_SDP_CB;
 
 typedef struct
 {
-    BOOLEAN         in_use;
-    UINT8           app_idx;
-    UINT8           mcl_idx;
+    bool         in_use;
+    uint8_t           app_idx;
+    uint8_t           mcl_idx;
 }tBTA_HL_TIMER_CB;
 
 typedef struct
 {
     tBTA_HL_APP_CB        acb[BTA_HL_NUM_APPS];      /* HL Control Blocks */
     tBTA_HL_CTRL_CBACK    *p_ctrl_cback;            /* pointer to control callback function */
-    BOOLEAN               enable;
-    BOOLEAN               disabling;
+    bool               enable;
+    bool               disabling;
 
     tBTA_HL_SDP_CB        scb[BTA_HL_NUM_SDP_CBACKS];
     tBTA_HL_TIMER_CB      tcb[BTA_HL_NUM_TIMERS];
-    BOOLEAN               enable_random_psm;
+    bool               enable_random_psm;
     tBTA_HL_ALLOCATE_PSM  *p_alloc_psm;
 }tBTA_HL_CB;
 
@@ -578,7 +578,7 @@ typedef struct
 *****************************************************************************/
 
 /* HL control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_HL_CB  bta_hl_cb;
 #else
 extern tBTA_HL_CB *bta_hl_cb_ptr;
@@ -594,205 +594,205 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
 #define BTA_HL_GET_MDEP_CFG_PTR(app_idx, mdep_cfg_idx)  &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg)
 #define BTA_HL_GET_DATA_CFG_PTR(app_idx, mdep_cfg_idx, data_cfg_idx)  \
            &(bta_hl_cb.acb[(app_idx)].sup_feature.mdep[mdep_cfg_idx].mdep_cfg.data_cfg[data_cfg_idx])
-#define BTA_HL_GET_BUF_PTR(p_pkt) ((UINT8 *)((UINT8 *) ((p_pkt)+1) + (p_pkt)->offset))
+#define BTA_HL_GET_BUF_PTR(p_pkt) ((uint8_t *)((uint8_t *) ((p_pkt)+1) + (p_pkt)->offset))
 
 /*****************************************************************************
 **  Function prototypes
 *****************************************************************************/
     /* main */
-    extern BOOLEAN bta_hl_hdl_event(BT_HDR *p_msg);
+    extern bool bta_hl_hdl_event(BT_HDR *p_msg);
     /* sdp */
-    extern BOOLEAN bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
+    extern bool bta_hl_fill_sup_feature_list( const tSDP_DISC_ATTR  *p_attr,
                                                  tBTA_HL_SUP_FEATURE_LIST_ELEM *p_list);
-    extern tBTA_HL_STATUS bta_hl_sdp_update (UINT8 app_id);
-    extern tBTA_HL_STATUS bta_hl_sdp_register (UINT8 app_idx);
+    extern tBTA_HL_STATUS bta_hl_sdp_update (uint8_t app_id);
+    extern tBTA_HL_STATUS bta_hl_sdp_register (uint8_t app_idx);
     extern tSDP_DISC_REC *bta_hl_find_sink_or_src_srv_class_in_db (const tSDP_DISCOVERY_DB *p_db,
                                                                    const tSDP_DISC_REC *p_start_rec);
 
     /* action routines */
-    extern void bta_hl_dch_ci_get_tx_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_ci_put_rx_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_ci_put_rx_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_ci_get_echo_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_ci_get_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                             tBTA_HL_DATA *p_data);
 
-    extern void bta_hl_dch_echo_test(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                      tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_ci_put_echo_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_ci_put_echo_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                             tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_send_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_send_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                      tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_sdp_fail(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_sdp_fail(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                     tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_cong_change(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_cong_change(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                            tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_reconnect_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_reconnect_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                              tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_reconnect_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_reconnect_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                              tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_reconnect(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_reconnect(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                          tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_sdp_init(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_sdp_init(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                     tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_close_echo_test(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_close_echo_test(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                            tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_create_rsp(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_create_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                       tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_rcv_data(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_rcv_data(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                         tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_close_cmpl(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                       tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_close_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_close_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                          tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_close_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_close_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                          tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_close(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_close(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                      tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_delete_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_delete_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
 
-    extern void bta_hl_dch_mca_delete_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_delete_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_delete(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_delete(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                       tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_abort_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_abort_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                          tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_abort_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_abort_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                          tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_abort(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_abort(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                      tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_open_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_open_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                         tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_open_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_open_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                         tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_create_ind(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_create_ind(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_create_cfm(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_create_cfm(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                           tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_mca_create(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern void bta_hl_dch_mca_create(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                       tBTA_HL_DATA *p_data);
-    extern void bta_hl_deallocate_spd_cback(UINT8 sdp_cback_idx);
-    extern tSDP_DISC_CMPL_CB *bta_hl_allocate_spd_cback(tBTA_HL_SDP_OPER sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
-                                                        UINT8 mdl_idx,
-                                                        UINT8 *p_sdp_cback_idx);
-    extern tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
-                                          UINT8 mdl_idx);
-    extern void bta_hl_cch_sdp_init(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_open(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_close(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_close_cmpl(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_disconnect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_disc_open(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_rsp_tout(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
-    extern void bta_hl_cch_mca_connect(UINT8 app_idx, UINT8 mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_deallocate_spd_cback(uint8_t sdp_cback_idx);
+    extern tSDP_DISC_CMPL_CB *bta_hl_allocate_spd_cback(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
+                                                        uint8_t mdl_idx,
+                                                        uint8_t *p_sdp_cback_idx);
+    extern tBTA_HL_STATUS bta_hl_init_sdp(tBTA_HL_SDP_OPER sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
+                                          uint8_t mdl_idx);
+    extern void bta_hl_cch_sdp_init(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_close(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_close_cmpl(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_disconnect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_disc_open(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_rsp_tout(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_mca_connect(uint8_t app_idx, uint8_t mcl_idx,  tBTA_HL_DATA *p_data);
 
     /* State machine drivers  */
-    extern void bta_hl_cch_sm_execute(UINT8 inst_idx, UINT8 mcl_idx,
-                                      UINT16 event, tBTA_HL_DATA *p_data);
-    extern void bta_hl_dch_sm_execute(UINT8 inst_idx, UINT8 mcl_idx, UINT8 mdl_idx,
-                                      UINT16 event, tBTA_HL_DATA *p_data);
+    extern void bta_hl_cch_sm_execute(uint8_t inst_idx, uint8_t mcl_idx,
+                                      uint16_t event, tBTA_HL_DATA *p_data);
+    extern void bta_hl_dch_sm_execute(uint8_t inst_idx, uint8_t mcl_idx, uint8_t mdl_idx,
+                                      uint16_t event, tBTA_HL_DATA *p_data);
     /* MCAP callback functions  */
-    extern void bta_hl_mcap_ctrl_cback(tMCA_HANDLE handle, tMCA_CL mcl, UINT8 event,
+    extern void bta_hl_mcap_ctrl_cback(tMCA_HANDLE handle, tMCA_CL mcl, uint8_t event,
                                        tMCA_CTRL *p_data);
 
     extern void bta_hl_mcap_data_cback(tMCA_DL mdl, BT_HDR *p_pkt);
 
     /* utility functions  */
-    extern BOOLEAN bta_hl_set_ctrl_psm_for_dch(UINT8 app_idx, UINT8 mcl_idx,
-                                               UINT8 mdl_idx, UINT16 ctrl_psm);
-    extern BOOLEAN bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
-                                                      UINT16 ctrl_psm,
-                                                      UINT8 *p_sdp_idx);
-    extern UINT16 bta_hl_set_user_tx_buf_size(UINT16 max_tx_size);
-    extern UINT16 bta_hl_set_user_rx_buf_size(UINT16 mtu);
-    extern UINT8 bta_hl_set_tx_win_size(UINT16 mtu, UINT16 mps);
-    extern UINT16 bta_hl_set_mps(UINT16 mtu);
-    extern void bta_hl_clean_mdl_cb(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
-    extern BT_HDR * bta_hl_get_buf(UINT16 data_size, BOOLEAN fcs_use);
-    extern BOOLEAN bta_hl_find_service_in_db( UINT8 app_idx, UINT8 mcl_idx,
-                                              UINT16 service_uuid,
+    extern bool bta_hl_set_ctrl_psm_for_dch(uint8_t app_idx, uint8_t mcl_idx,
+                                               uint8_t mdl_idx, uint16_t ctrl_psm);
+    extern bool bta_hl_find_sdp_idx_using_ctrl_psm(tBTA_HL_SDP *p_sdp,
+                                                      uint16_t ctrl_psm,
+                                                      uint8_t *p_sdp_idx);
+    extern uint16_t bta_hl_set_user_tx_buf_size(uint16_t max_tx_size);
+    extern uint16_t bta_hl_set_user_rx_buf_size(uint16_t mtu);
+    extern uint8_t bta_hl_set_tx_win_size(uint16_t mtu, uint16_t mps);
+    extern uint16_t bta_hl_set_mps(uint16_t mtu);
+    extern void bta_hl_clean_mdl_cb(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx);
+    extern BT_HDR * bta_hl_get_buf(uint16_t data_size, bool fcs_use);
+    extern bool bta_hl_find_service_in_db( uint8_t app_idx, uint8_t mcl_idx,
+                                              uint16_t service_uuid,
                                               tSDP_DISC_REC **pp_rec );
-    extern UINT16 bta_hl_get_service_uuids(UINT8 sdp_oper, UINT8 app_idx, UINT8 mcl_idx,
-                                           UINT8 mdl_idx );
-    extern BOOLEAN bta_hl_find_echo_cfg_rsp(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdep_idx, UINT8 cfg,
-                                            UINT8 *p_cfg_rsp);
-    extern BOOLEAN bta_hl_validate_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
-                                       UINT8 cfg);
-    extern BOOLEAN bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
-                                              UINT8 *p_app_idx,
-                                              UINT8  *p_mcl_idx);
-    extern BOOLEAN bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
-                                              UINT8 *p_app_idx,
-                                              UINT8 *p_mcl_idx,
-                                              UINT8 *p_mdl_idx);
-    extern UINT16  bta_hl_allocate_mdl_id(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx );
-    extern BOOLEAN bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
-                                                    UINT8 *p_app_idx, UINT8 *p_mcl_idx,
-                                                    UINT8 *p_mdl_idx);
-    extern BOOLEAN bta_hl_find_mdl_idx(UINT8 app_idx, UINT8 mcl_idx, UINT16 mdl_id,
-                                       UINT8 *p_mdl_idx);
-    extern BOOLEAN bta_hl_find_an_active_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                                 UINT8 *p_mdl_idx);
-    extern BOOLEAN bta_hl_find_dch_setup_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                                 UINT8 *p_mdl_idx);
-    extern BOOLEAN bta_hl_find_an_in_use_mcl_idx(UINT8 app_idx,
-                                                 UINT8 *p_mcl_idx);
-    extern BOOLEAN bta_hl_find_an_in_use_app_idx(UINT8 *p_app_idx);
-    extern BOOLEAN bta_hl_find_app_idx(UINT8 app_id, UINT8 *p_app_idx);
-    extern BOOLEAN bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
-                                                    UINT8 *p_app_idx);
-    extern BOOLEAN bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
-                                                     UINT8 *p_app_idx, UINT8 *p_mcl_idx);
-    extern BOOLEAN bta_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx);
-    extern BOOLEAN bta_hl_is_the_first_reliable_existed(UINT8 app_idx, UINT8 mcl_idx );
-    extern BOOLEAN  bta_hl_find_non_active_mdl_cfg(UINT8 app_idx, UINT8 start_mdl_cfg_idx,
-                                                   UINT8 *p_mdl_cfg_idx);
-    extern BOOLEAN  bta_hl_find_avail_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                                  UINT8 *p_mdl_cfg_idx);
-    extern BOOLEAN  bta_hl_find_mdl_cfg_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                            tBTA_HL_MDL_ID mdl_id, UINT8 *p_mdl_cfg_idx);
-    extern BOOLEAN  bta_hl_get_cur_time(UINT8 app_idx, UINT8 *p_cur_time);
-    extern void bta_hl_sort_cfg_time_idx(UINT8 app_idx, UINT8 *a, UINT8 n);
-    extern void  bta_hl_compact_mdl_cfg_time(UINT8 app_idx, UINT8 mdep_id);
-    extern BOOLEAN  bta_hl_is_mdl_exsit_in_mcl(UINT8 app_idx, BD_ADDR bd_addr,
+    extern uint16_t bta_hl_get_service_uuids(uint8_t sdp_oper, uint8_t app_idx, uint8_t mcl_idx,
+                                           uint8_t mdl_idx );
+    extern bool bta_hl_find_echo_cfg_rsp(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdep_idx, uint8_t cfg,
+                                            uint8_t *p_cfg_rsp);
+    extern bool bta_hl_validate_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
+                                       uint8_t cfg);
+    extern bool bta_hl_find_cch_cb_indexes(tBTA_HL_DATA *p_msg,
+                                              uint8_t *p_app_idx,
+                                              uint8_t  *p_mcl_idx);
+    extern bool bta_hl_find_dch_cb_indexes(tBTA_HL_DATA *p_msg,
+                                              uint8_t *p_app_idx,
+                                              uint8_t *p_mcl_idx,
+                                              uint8_t *p_mdl_idx);
+    extern uint16_t  bta_hl_allocate_mdl_id(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx );
+    extern bool bta_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
+                                                    uint8_t *p_app_idx, uint8_t *p_mcl_idx,
+                                                    uint8_t *p_mdl_idx);
+    extern bool bta_hl_find_mdl_idx(uint8_t app_idx, uint8_t mcl_idx, uint16_t mdl_id,
+                                       uint8_t *p_mdl_idx);
+    extern bool bta_hl_find_an_active_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                                 uint8_t *p_mdl_idx);
+    extern bool bta_hl_find_dch_setup_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                                 uint8_t *p_mdl_idx);
+    extern bool bta_hl_find_an_in_use_mcl_idx(uint8_t app_idx,
+                                                 uint8_t *p_mcl_idx);
+    extern bool bta_hl_find_an_in_use_app_idx(uint8_t *p_app_idx);
+    extern bool bta_hl_find_app_idx(uint8_t app_id, uint8_t *p_app_idx);
+    extern bool bta_hl_find_app_idx_using_handle(tBTA_HL_APP_HANDLE app_handle,
+                                                    uint8_t *p_app_idx);
+    extern bool bta_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
+                                                     uint8_t *p_app_idx, uint8_t *p_mcl_idx);
+    extern bool bta_hl_find_mcl_idx(uint8_t app_idx, BD_ADDR p_bd_addr, uint8_t *p_mcl_idx);
+    extern bool bta_hl_is_the_first_reliable_existed(uint8_t app_idx, uint8_t mcl_idx );
+    extern bool  bta_hl_find_non_active_mdl_cfg(uint8_t app_idx, uint8_t start_mdl_cfg_idx,
+                                                   uint8_t *p_mdl_cfg_idx);
+    extern bool  bta_hl_find_avail_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                                  uint8_t *p_mdl_cfg_idx);
+    extern bool  bta_hl_find_mdl_cfg_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                            tBTA_HL_MDL_ID mdl_id, uint8_t *p_mdl_cfg_idx);
+    extern bool  bta_hl_get_cur_time(uint8_t app_idx, uint8_t *p_cur_time);
+    extern void bta_hl_sort_cfg_time_idx(uint8_t app_idx, uint8_t *a, uint8_t n);
+    extern void  bta_hl_compact_mdl_cfg_time(uint8_t app_idx, uint8_t mdep_id);
+    extern bool  bta_hl_is_mdl_exsit_in_mcl(uint8_t app_idx, BD_ADDR bd_addr,
                                                tBTA_HL_MDL_ID mdl_id);
-    extern BOOLEAN  bta_hl_delete_mdl_cfg(UINT8 app_idx, BD_ADDR bd_addr,
+    extern bool  bta_hl_delete_mdl_cfg(uint8_t app_idx, BD_ADDR bd_addr,
                                           tBTA_HL_MDL_ID mdl_id);
-    extern BOOLEAN  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id);
-    extern BOOLEAN bta_hl_find_mdep_cfg_idx(UINT8 app_idx,
-                                            tBTA_HL_MDEP_ID local_mdep_id, UINT8 *p_mdep_cfg_idx);
-    extern void bta_hl_find_rxtx_apdu_size(UINT8 app_idx, UINT8 mdep_cfg_idx,
-                                           UINT16 *p_rx_apu_size,
-                                           UINT16 *p_tx_apu_size);
-    extern BOOLEAN bta_hl_validate_peer_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx,
+    extern bool  bta_hl_is_mdl_value_valid(tBTA_HL_MDL_ID mdl_id);
+    extern bool bta_hl_find_mdep_cfg_idx(uint8_t app_idx,
+                                            tBTA_HL_MDEP_ID local_mdep_id, uint8_t *p_mdep_cfg_idx);
+    extern void bta_hl_find_rxtx_apdu_size(uint8_t app_idx, uint8_t mdep_cfg_idx,
+                                           uint16_t *p_rx_apu_size,
+                                           uint16_t *p_tx_apu_size);
+    extern bool bta_hl_validate_peer_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx,
                                             tBTA_HL_MDEP_ID peer_mdep_id,
                                             tBTA_HL_MDEP_ROLE peer_mdep_role,
-                                            UINT8 sdp_idx);
-    extern tBTA_HL_STATUS bta_hl_chk_local_cfg(UINT8 app_idx, UINT8 mcl_idx,
-                                               UINT8 mdep_cfg_idx,
+                                            uint8_t sdp_idx);
+    extern tBTA_HL_STATUS bta_hl_chk_local_cfg(uint8_t app_idx, uint8_t mcl_idx,
+                                               uint8_t mdep_cfg_idx,
                                                tBTA_HL_DCH_CFG local_cfg);
 
-    extern BOOLEAN bta_hl_validate_reconnect_params(UINT8 app_idx, UINT8 mcl_idx,
+    extern bool bta_hl_validate_reconnect_params(uint8_t app_idx, uint8_t mcl_idx,
                                                     tBTA_HL_API_DCH_RECONNECT *p_reconnect,
-                                                    UINT8 *p_mdep_cfg_idx, UINT8 *p_mdl_cfg_idx);
-    extern BOOLEAN bta_hl_find_avail_mcl_idx(UINT8 app_idx, UINT8 *p_mcl_idx);
-    extern BOOLEAN bta_hl_find_avail_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                             UINT8 *p_mdl_idx);
-    extern BOOLEAN bta_hl_is_a_duplicate_id(UINT8 app_id);
-    extern BOOLEAN bta_hl_find_avail_app_idx(UINT8 *p_idx);
-    extern tBTA_HL_STATUS bta_hl_app_update(UINT8 app_id, BOOLEAN is_register);
-    extern tBTA_HL_STATUS bta_hl_app_registration(UINT8 app_idx);
-    extern void bta_hl_discard_data(UINT16 event, tBTA_HL_DATA *p_data);
-    extern void bta_hl_save_mdl_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx );
-    extern void bta_hl_set_dch_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx, tBTA_HL_DATA *p_data);
-    extern BOOLEAN bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_cfg);
-    extern BOOLEAN bta_hl_validate_chan_cfg(UINT8 app_idx, UINT8 mcl_idx, UINT8 mdl_idx);
-    extern BOOLEAN bta_hl_is_cong_on(UINT8 app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id);
-    extern void bta_hl_check_cch_close(UINT8 app_idx, UINT8 mcl_idx,
-                                       tBTA_HL_DATA *p_data, BOOLEAN check_dch_setup);
-    extern void bta_hl_clean_app(UINT8 app_idx);
-    extern void bta_hl_check_deregistration(UINT8 app_idx, tBTA_HL_DATA *p_data );
+                                                    uint8_t *p_mdep_cfg_idx, uint8_t *p_mdl_cfg_idx);
+    extern bool bta_hl_find_avail_mcl_idx(uint8_t app_idx, uint8_t *p_mcl_idx);
+    extern bool bta_hl_find_avail_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                             uint8_t *p_mdl_idx);
+    extern bool bta_hl_is_a_duplicate_id(uint8_t app_id);
+    extern bool bta_hl_find_avail_app_idx(uint8_t *p_idx);
+    extern tBTA_HL_STATUS bta_hl_app_update(uint8_t app_id, bool is_register);
+    extern tBTA_HL_STATUS bta_hl_app_registration(uint8_t app_idx);
+    extern void bta_hl_discard_data(uint16_t event, tBTA_HL_DATA *p_data);
+    extern void bta_hl_save_mdl_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx );
+    extern void bta_hl_set_dch_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx, tBTA_HL_DATA *p_data);
+    extern bool bta_hl_get_l2cap_cfg(tBTA_HL_MDL_HANDLE mdl_hnd, tBTA_HL_L2CAP_CFG_INFO *p_cfg);
+    extern bool bta_hl_validate_chan_cfg(uint8_t app_idx, uint8_t mcl_idx, uint8_t mdl_idx);
+    extern bool bta_hl_is_cong_on(uint8_t app_id, BD_ADDR bd_addr, tBTA_HL_MDL_ID mdl_id);
+    extern void bta_hl_check_cch_close(uint8_t app_idx, uint8_t mcl_idx,
+                                       tBTA_HL_DATA *p_data, bool check_dch_setup);
+    extern void bta_hl_clean_app(uint8_t app_idx);
+    extern void bta_hl_check_deregistration(uint8_t app_idx, tBTA_HL_DATA *p_data );
     extern void bta_hl_check_disable(tBTA_HL_DATA *p_data );
     extern void  bta_hl_build_abort_ind(tBTA_HL *p_evt_data,
                                         tBTA_HL_APP_HANDLE app_handle,
@@ -810,7 +810,7 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
                                             tBTA_HL_APP_HANDLE app_handle,
                                             tBTA_HL_MCL_HANDLE mcl_handle,
                                             tBTA_HL_MDL_HANDLE mdl_handle,
-                                            BOOLEAN intentional);
+                                            bool intentional);
     extern void  bta_hl_build_send_data_cfm(tBTA_HL *p_evt_data,
                                             tBTA_HL_APP_HANDLE app_handle,
                                             tBTA_HL_MCL_HANDLE mcl_handle,
@@ -821,7 +821,7 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
                                            tBTA_HL_MCL_HANDLE mcl_handle,
                                            tBTA_HL_MDL_HANDLE mdl_handle);
     extern void  bta_hl_build_cch_open_cfm(tBTA_HL *p_evt_data,
-                                            UINT8 app_id,
+                                            uint8_t app_id,
                                            tBTA_HL_APP_HANDLE app_handle,
                                            tBTA_HL_MCL_HANDLE mcl_handle,
                                            BD_ADDR bd_addr,
@@ -837,7 +837,7 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
     extern void   bta_hl_build_cch_close_ind(tBTA_HL *p_evt_data,
                                              tBTA_HL_APP_HANDLE app_handle,
                                              tBTA_HL_MCL_HANDLE mcl_handle,
-                                             BOOLEAN intentional);
+                                             bool intentional);
 
     extern void  bta_hl_build_dch_open_cfm(tBTA_HL *p_evt_data,
                                            tBTA_HL_APP_HANDLE app_handle,
@@ -846,8 +846,8 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
                                            tBTA_HL_MDEP_ID local_mdep_id,
                                            tBTA_HL_MDL_ID mdl_id,
                                            tBTA_HL_DCH_MODE dch_mode,
-                                           BOOLEAN first_reliable,
-                                           UINT16 mtu,
+                                           bool first_reliable,
+                                           uint16_t mtu,
                                            tBTA_HL_STATUS status);
 
     extern void  bta_hl_build_delete_mdl_cfm(tBTA_HL *p_evt_data,
@@ -860,7 +860,7 @@ extern tBTA_HL_CB *bta_hl_cb_ptr;
                                             tBTA_HL_MCL_HANDLE mcl_handle,
                                             tBTA_HL_STATUS status );
     extern void  bta_hl_build_sdp_query_cfm(tBTA_HL *p_evt_data,
-                                            UINT8 app_id,
+                                            uint8_t app_id,
                                             tBTA_HL_APP_HANDLE app_handle,
                                             BD_ADDR bd_addr,
                                             tBTA_HL_SDP *p_sdp,

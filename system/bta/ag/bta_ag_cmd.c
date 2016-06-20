@@ -55,22 +55,22 @@
 #define BTA_AG_CLIP_TYPE_DEFAULT    129
 #define BTA_AG_CLIP_TYPE_VOIP       255
 
-#if defined(BTA_AG_MULTI_RESULT_INCLUDED) && (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
+#if (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
 #define BTA_AG_AT_MULTI_LEN            2
 #define AT_SET_RES_CB(res_cb, c, p, i) {res_cb.code = c; res_cb.p_arg = p; res_cb.int_arg = i;}
 
 /* type for AT result code block */
 typedef struct
 {
-    UINT8 code;
+    uint8_t code;
     char *p_arg;
-    INT16 int_arg;
+    int16_t int_arg;
 } tBTA_AG_RESULT_CB;
 
 /* type for multiple AT result codes block */
 typedef struct
 {
-    UINT8 num_result;
+    uint8_t num_result;
     tBTA_AG_RESULT_CB res_cb[BTA_AG_AT_MULTI_LEN];
 } tBTA_AG_MULTI_RESULT_CB;
 #endif
@@ -160,7 +160,7 @@ const tBTA_AG_AT_CMD bta_ag_hfp_cmd[] =
 typedef struct
 {
     const char  *p_res;         /* AT result string */
-    UINT8       fmt;            /* whether argument is int or string */
+    uint8_t     fmt;            /* whether argument is int or string */
 } tBTA_AG_RESULT;
 
 /* AT result code argument types */
@@ -197,7 +197,7 @@ enum
     BTA_AG_RES_UNAT
 };
 
-#if defined(BTA_HSP_RESULT_REPLACE_COLON) && (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
+#if (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
 #define COLON_IDX_4_VGSVGM    4
 #endif
 /* AT result code constant table  (Indexed by result code) */
@@ -272,7 +272,7 @@ const tBTA_AG_EVT bta_ag_hfp_cb_evt[] =
 };
 
 /* translation of API result code values to internal values */
-const UINT8 bta_ag_trans_result[] =
+const uint8_t bta_ag_trans_result[] =
 {
     BTA_AG_RES_VGS,     /* BTA_AG_SPK_RES */
     BTA_AG_RES_VGM,     /* BTA_AG_MIC_RES */
@@ -298,7 +298,7 @@ const UINT8 bta_ag_trans_result[] =
 };
 
 /* callsetup indicator value lookup table */
-const UINT8 bta_ag_callsetup_ind_tbl[] =
+const uint8_t bta_ag_callsetup_ind_tbl[] =
 {
     0,                          /* BTA_AG_SPK_RES */
     0,                          /* BTA_AG_MIC_RES */
@@ -332,14 +332,14 @@ const UINT8 bta_ag_callsetup_ind_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
-                               INT16 int_arg)
+static void bta_ag_send_result(tBTA_AG_SCB *p_scb, uint8_t code, char *p_arg,
+                               int16_t int_arg)
 {
-    char    buf[BTA_AG_AT_MAX_LEN + 16];
-    char    *p = buf;
-    UINT16  len;
+    char     buf[BTA_AG_AT_MAX_LEN + 16];
+    char     *p = buf;
+    uint16_t len;
 
-#if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
+#if (BTA_AG_RESULT_DEBUG == TRUE)
     memset(buf, NULL, sizeof(buf));
 #endif
     /* init with \r\n */
@@ -348,7 +348,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
 
     /* copy result code string */
     strlcpy(p, bta_ag_result_tbl[code].p_res, sizeof(buf) - 2);
-#if defined(BTA_HSP_RESULT_REPLACE_COLON) && (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
+#if (BTA_HSP_RESULT_REPLACE_COLON == TRUE)
     if(p_scb->conn_service == BTA_AG_HSP)
     {
         /* If HSP then ":"symbol should be changed as "=" for HSP compatibility */
@@ -358,7 +358,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
         case BTA_AG_RES_VGM:
             if(*(p+COLON_IDX_4_VGSVGM) == ':')
             {
-                #if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
+                #if (BTA_AG_RESULT_DEBUG == TRUE)
                 APPL_TRACE_DEBUG("[HSP] ':'symbol is changed as '=' for HSP compatibility");
                 #endif
                 *(p+COLON_IDX_4_VGSVGM) = '=';
@@ -372,7 +372,7 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
     /* copy argument if any */
     if (bta_ag_result_tbl[code].fmt == BTA_AG_RES_FMT_INT)
     {
-        p += utl_itoa((UINT16) int_arg, p);
+        p += utl_itoa((uint16_t) int_arg, p);
     }
     else if (bta_ag_result_tbl[code].fmt == BTA_AG_RES_FMT_STR)
     {
@@ -384,15 +384,15 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
     *p++ = '\r';
     *p++ = '\n';
 
-#if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
+#if (BTA_AG_RESULT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_ag_send_result: %s", buf);
 #endif
 
     /* send to RFCOMM */
-    PORT_WriteData(p_scb->conn_handle, buf, (UINT16) (p - buf), &len);
+    PORT_WriteData(p_scb->conn_handle, buf, (uint16_t) (p - buf), &len);
 }
 
-#if defined(BTA_AG_MULTI_RESULT_INCLUDED) && (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
+#if (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_ag_send_multi_result
@@ -405,10 +405,10 @@ static void bta_ag_send_result(tBTA_AG_SCB *p_scb, UINT8 code, char *p_arg,
 *******************************************************************************/
 static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB *m_res_cb)
 {
-    char    buf[BTA_AG_AT_MAX_LEN * BTA_AG_AT_MULTI_LEN + 16];
-    char    *p = buf;
-    UINT16  len;
-    UINT8   res_idx = 0;
+    char     buf[BTA_AG_AT_MAX_LEN * BTA_AG_AT_MULTI_LEN + 16];
+    char     *p = buf;
+    uint16_t len;
+    uint8_t  res_idx = 0;
 
     if((!m_res_cb) || (m_res_cb->num_result == 0) || (m_res_cb->num_result > BTA_AG_AT_MULTI_LEN))
     {
@@ -416,7 +416,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         return;
     }
 
-#if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
+#if (BTA_AG_RESULT_DEBUG == TRUE)
     memset(buf, NULL, sizeof(buf));
 #endif
 
@@ -433,7 +433,7 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         /* copy argument if any */
         if (bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].fmt == BTA_AG_RES_FMT_INT)
         {
-            p += utl_itoa((UINT16) m_res_cb->res_cb[res_idx].int_arg, p);
+            p += utl_itoa((uint16_t) m_res_cb->res_cb[res_idx].int_arg, p);
         }
         else if (bta_ag_result_tbl[m_res_cb->res_cb[res_idx].code].fmt == BTA_AG_RES_FMT_STR)
         {
@@ -448,12 +448,12 @@ static void bta_ag_send_multi_result(tBTA_AG_SCB *p_scb, tBTA_AG_MULTI_RESULT_CB
         res_idx++;
     }
 
-#if defined(BTA_AG_RESULT_DEBUG) && (BTA_AG_RESULT_DEBUG == TRUE)
+#if (BTA_AG_RESULT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("send_result: %s", buf);
 #endif
 
     /* send to RFCOMM */
-    PORT_WriteData(p_scb->conn_handle, buf, (UINT16) (p - buf), &len);
+    PORT_WriteData(p_scb->conn_handle, buf, (uint16_t) (p - buf), &len);
 }
 #endif
 
@@ -483,7 +483,7 @@ static void bta_ag_send_ok(tBTA_AG_SCB *p_scb)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_send_error(tBTA_AG_SCB *p_scb, INT16 errcode)
+static void bta_ag_send_error(tBTA_AG_SCB *p_scb, int16_t errcode)
 {
     /* If HFP and extended audio gateway error codes are enabled */
     if (p_scb->conn_service == BTA_AG_HFP && p_scb->cmee_enabled)
@@ -502,14 +502,14 @@ static void bta_ag_send_error(tBTA_AG_SCB *p_scb, INT16 errcode)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN on_demand)
+static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, uint16_t id, uint16_t value, bool on_demand)
 {
     char    str[12];
     char    *p = str;
 
     /* If the indicator is masked out, just return */
     /* Mandatory indicators can not be masked out. */
-    if ((p_scb->bia_masked_out & ((UINT32)1 << id)) &&
+    if ((p_scb->bia_masked_out & ((uint32_t)1 << id)) &&
         ((id != BTA_AG_IND_CALL) && (id != BTA_AG_IND_CALLSETUP) && (id != BTA_AG_IND_CALLHELD)))
         return;
 
@@ -517,56 +517,56 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN
     /* If it was requested by app, transmit CIEV even if it is duplicate. */
     if (id == BTA_AG_IND_CALL)
     {
-        if ((value == p_scb->call_ind) && (on_demand == FALSE))
+        if ((value == p_scb->call_ind) && (on_demand == false))
             return;
 
-        p_scb->call_ind = (UINT8)value;
+        p_scb->call_ind = (uint8_t)value;
     }
 
-    if ((id == BTA_AG_IND_CALLSETUP) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_CALLSETUP) && (on_demand == false))
     {
         if (value == p_scb->callsetup_ind)
             return;
 
-        p_scb->callsetup_ind = (UINT8)value;
+        p_scb->callsetup_ind = (uint8_t)value;
     }
 
-    if ((id == BTA_AG_IND_SERVICE) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_SERVICE) && (on_demand == false))
     {
         if (value == p_scb->service_ind)
             return;
 
-        p_scb->service_ind = (UINT8)value;
+        p_scb->service_ind = (uint8_t)value;
     }
-    if ((id == BTA_AG_IND_SIGNAL) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_SIGNAL) && (on_demand == false))
     {
         if (value == p_scb->signal_ind)
             return;
 
-        p_scb->signal_ind = (UINT8)value;
+        p_scb->signal_ind = (uint8_t)value;
     }
-    if ((id == BTA_AG_IND_ROAM) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_ROAM) && (on_demand == false))
     {
         if (value == p_scb->roam_ind)
             return;
 
-        p_scb->roam_ind = (UINT8)value;
+        p_scb->roam_ind = (uint8_t)value;
     }
-    if ((id == BTA_AG_IND_BATTCHG) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_BATTCHG) && (on_demand == false))
     {
         if (value == p_scb->battchg_ind)
             return;
 
-        p_scb->battchg_ind = (UINT8)value;
+        p_scb->battchg_ind = (uint8_t)value;
     }
 
-    if ((id == BTA_AG_IND_CALLHELD) && (on_demand == FALSE))
+    if ((id == BTA_AG_IND_CALLHELD) && (on_demand == false))
     {
         /* call swap could result in sending callheld=1 multiple times */
         if ((value != 1) && (value == p_scb->callheld_ind))
             return;
 
-        p_scb->callheld_ind = (UINT8)value;
+        p_scb->callheld_ind = (uint8_t)value;
     }
 
     if (p_scb->cmer_enabled)
@@ -585,12 +585,12 @@ static void bta_ag_send_ind(tBTA_AG_SCB *p_scb, UINT16 id, UINT16 value, BOOLEAN
 ** Description      Parse AT+CMER parameter string.
 **
 **
-** Returns          TRUE if parsed ok, FALSE otherwise.
+** Returns          true if parsed ok, false otherwise.
 **
 *******************************************************************************/
-static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
+static bool bta_ag_parse_cmer(char *p_s, bool *p_enabled)
 {
-    INT16   n[4] = {-1, -1, -1, -1};
+    int16_t n[4] = {-1, -1, -1, -1};
     int     i;
     char    *p;
 
@@ -612,15 +612,15 @@ static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
     /* process values */
     if (n[0] < 0 || n[3] < 0)
     {
-        return FALSE;
+        return false;
     }
 
     if ((n[0] == 3) && ((n[3] == 1) || (n[3] == 0)))
     {
-        *p_enabled = (BOOLEAN) n[3];
+        *p_enabled = (bool) n[3];
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -634,10 +634,10 @@ static BOOLEAN bta_ag_parse_cmer(char *p_s, BOOLEAN *p_enabled)
                     if idx doesn't exist/1st character of argument is not a digit
 **
 *******************************************************************************/
-static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
+static uint8_t bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
 {
-    UINT8   retval = 0;
-    INT16   idx = -1;
+    uint8_t retval = 0;
+    int16_t idx = -1;
     UNUSED(p_scb);
 
     if (!isdigit(p_s[0]))
@@ -651,7 +651,7 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
         idx = utl_str2int(&p_s[1]);
         if (idx != -1 && idx < 255)
         {
-            retval = (UINT8)idx;
+            retval = (uint8_t)idx;
         }
         else
         {
@@ -662,7 +662,7 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
     return (retval);
 }
 
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_ag_parse_bac
@@ -675,8 +675,8 @@ static UINT8 bta_ag_parse_chld(tBTA_AG_SCB *p_scb, char *p_s)
 static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
 {
     tBTA_AG_PEER_CODEC  retval = BTA_AG_CODEC_NONE;
-    UINT16  uuid_codec;
-    BOOLEAN cont = FALSE;       /* Continue processing */
+    uint16_t  uuid_codec;
+    bool cont = false;       /* Continue processing */
     char *p;
 
     while(p_s)
@@ -688,10 +688,10 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
         if (*p != 0)
         {
             *p = 0;
-            cont = TRUE;
+            cont = true;
         }
         else
-            cont = FALSE;
+            cont = false;
 
         uuid_codec = utl_str2int(p_s);
         switch(uuid_codec)
@@ -727,10 +727,10 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB *p_scb, char *p_s)
 
 static void bta_ag_process_unat_res(char *unat_result)
 {
-    UINT8   str_leng;
-    UINT8   i = 0;
-    UINT8   j = 0;
-    UINT8   pairs_of_nl_cr;
+    uint8_t str_leng;
+    uint8_t i = 0;
+    uint8_t j = 0;
+    uint8_t pairs_of_nl_cr;
     char    trim_data[BTA_AG_AT_MAX_LEN];
 
 
@@ -776,16 +776,16 @@ static void bta_ag_process_unat_res(char *unat_result)
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
+bool bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
 {
     /* if feature is enabled and no other scbs connected */
     if (p_scb->inband_enabled && !bta_ag_other_scb_open(p_scb))
     {
-        return TRUE;
+        return true;
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 
@@ -801,8 +801,8 @@ BOOLEAN bta_ag_inband_enabled(tBTA_AG_SCB *p_scb)
 *******************************************************************************/
 void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 {
-    UINT8 call = p_scb->call_ind;
-    UINT8 callsetup;
+    uint8_t call = p_scb->call_ind;
+    uint8_t callsetup;
 
     /* set new call and callsetup values based on BTA_AgResult */
     callsetup = bta_ag_callsetup_ind_tbl[result];
@@ -822,8 +822,8 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
     }
 
     /* Send indicator function tracks if the values have actually changed */
-    bta_ag_send_ind(p_scb, BTA_AG_IND_CALL, call, FALSE);
-    bta_ag_send_ind(p_scb, BTA_AG_IND_CALLSETUP, callsetup, FALSE);
+    bta_ag_send_ind(p_scb, BTA_AG_IND_CALL, call, false);
+    bta_ag_send_ind(p_scb, BTA_AG_IND_CALLSETUP, callsetup, false);
 }
 
 /*******************************************************************************
@@ -836,8 +836,8 @@ void bta_ag_send_call_inds(tBTA_AG_SCB *p_scb, tBTA_AG_RES result)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
-                                char *p_arg, INT16 int_arg)
+void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
+                                char *p_arg, int16_t int_arg)
 {
     tBTA_AG_VAL val;
 
@@ -849,7 +849,7 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
     val.hdr.handle = bta_ag_scb_to_idx(p_scb);
     val.hdr.app_id = p_scb->app_id;
-    val.num = (UINT16) int_arg;
+    val.num = (uint16_t) int_arg;
     strlcpy(val.str, p_arg, BTA_AG_AT_MAX_LEN);
 
     /* call callback with event */
@@ -866,15 +866,15 @@ void bta_ag_at_hsp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
-                                char *p_arg, INT16 int_arg)
+void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
+                                char *p_arg, int16_t int_arg)
 {
-    tBTA_AG_VAL     val;
+    tBTA_AG_VAL   val;
     tBTA_AG_EVT   event;
-    tBTA_AG_SCB     *ag_scb;
-    UINT32          i, ind_id;
-    UINT32          bia_masked_out;
-#if (BTM_WBS_INCLUDED == TRUE )
+    tBTA_AG_SCB   *ag_scb;
+    uint32_t      i, ind_id;
+    uint32_t      bia_masked_out;
+#if (BTM_WBS_INCLUDED == TRUE)
     tBTA_AG_PEER_CODEC  codec_type, codec_sent;
 #endif
     if (p_arg == NULL)
@@ -947,7 +947,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_CCWA:
             /* store setting */
-            p_scb->ccwa_enabled = (BOOLEAN) int_arg;
+            p_scb->ccwa_enabled = (bool) int_arg;
 
             /* send OK */
             bta_ag_send_ok(p_scb);
@@ -1031,7 +1031,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_CLIP:
             /* store setting, send OK */
-            p_scb->clip_enabled = (BOOLEAN) int_arg;
+            p_scb->clip_enabled = (bool) int_arg;
             bta_ag_send_ok(p_scb);
             break;
 
@@ -1089,11 +1089,11 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 
         case BTA_AG_HF_CMD_BRSF:
             /* store peer features */
-            p_scb->peer_features = (UINT16) int_arg;
+            p_scb->peer_features = (uint16_t) int_arg;
 
             /* send BRSF, send OK */
             bta_ag_send_result(p_scb, BTA_AG_RES_BRSF, NULL,
-                               (INT16) (p_scb->features & BTA_AG_BSRF_FEAT_SPEC));
+                               (int16_t) (p_scb->features & BTA_AG_BSRF_FEAT_SPEC));
             bta_ag_send_ok(p_scb);
             break;
 
@@ -1153,7 +1153,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             if (p_scb->features & BTA_AG_FEAT_EXTERR)
             {
                 /* store setting */
-                p_scb->cmee_enabled = (BOOLEAN) int_arg;
+                p_scb->cmee_enabled = (bool) int_arg;
 
                 /* send OK */
                 bta_ag_send_ok(p_scb);
@@ -1179,9 +1179,9 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                     continue;
 
                 if (val.str[i] == '0')
-                    bia_masked_out |= ((UINT32)1 << ind_id);
+                    bia_masked_out |= ((uint32_t)1 << ind_id);
                 else if (val.str[i] == '1')
-                    bia_masked_out &= ~((UINT32)1 << ind_id);
+                    bia_masked_out &= ~((uint32_t)1 << ind_id);
                 else
                     break;
 
@@ -1208,7 +1208,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             }
             break;
 
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
         case BTA_AG_HF_CMD_BAC:
             bta_ag_send_ok(p_scb);
 
@@ -1216,7 +1216,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
             if((p_scb->peer_features & BTA_AG_PEER_FEAT_CODEC) && (p_scb->features & BTA_AG_FEAT_CODEC))
             {
                 p_scb->peer_codecs = bta_ag_parse_bac(p_scb, p_arg);
-                p_scb->codec_updated = TRUE;
+                p_scb->codec_updated = true;
 
                 if (p_scb->peer_codecs & BTA_AG_CODEC_MSBC)
                 {
@@ -1265,9 +1265,9 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
                 codec_sent = p_scb->sco_codec;
 
             if(codec_type == codec_sent)
-                bta_ag_sco_codec_nego(p_scb, TRUE);
+                bta_ag_sco_codec_nego(p_scb, true);
             else
-                bta_ag_sco_codec_nego(p_scb, FALSE);
+                bta_ag_sco_codec_nego(p_scb, false);
 
             /* send final codec info to callback */
             val.num = codec_sent;
@@ -1301,7 +1301,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
+void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, bool unknown, char *p_arg)
 {
     tBTA_AG_VAL     val;
 
@@ -1339,7 +1339,7 @@ void bta_ag_at_err_cback(tBTA_AG_SCB *p_scb, BOOLEAN unknown, char *p_arg)
 *******************************************************************************/
 void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
-    UINT8 code = bta_ag_trans_result[p_result->result];
+    uint8_t code = bta_ag_trans_result[p_result->result];
 
     APPL_TRACE_DEBUG("bta_ag_hsp_result : res = %d", p_result->result);
 
@@ -1451,7 +1451,7 @@ void bta_ag_hsp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 *******************************************************************************/
 void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
 {
-    UINT8 code = bta_ag_trans_result[p_result->result];
+    uint8_t code = bta_ag_trans_result[p_result->result];
 
     APPL_TRACE_DEBUG("bta_ag_hfp_result : res = %d", p_result->result);
 
@@ -1683,7 +1683,7 @@ void bta_ag_hfp_result(tBTA_AG_SCB *p_scb, tBTA_AG_API_RESULT *p_result)
             break;
 
         case BTA_AG_IND_RES:
-            bta_ag_send_ind(p_scb, p_result->data.ind.id, p_result->data.ind.value, FALSE);
+            bta_ag_send_ind(p_scb, p_result->data.ind.id, p_result->data.ind.value, false);
             break;
 
         case BTA_AG_BVRA_RES:
@@ -1737,7 +1737,7 @@ void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     }
 }
 
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_ag_send_bcs
@@ -1749,7 +1749,7 @@ void bta_ag_result(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_send_bcs(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    UINT16 codec_uuid;
+    uint16_t codec_uuid;
 
     if (p_scb->codec_fallback)
     {
@@ -1790,7 +1790,7 @@ void bta_ag_send_ring(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     UNUSED(p_data);
 
-#if defined(BTA_AG_MULTI_RESULT_INCLUDED) && (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
+#if (BTA_AG_MULTI_RESULT_INCLUDED == TRUE)
     tBTA_AG_MULTI_RESULT_CB m_res_cb;
 
     if (p_scb->conn_service == BTA_AG_HFP && p_scb->clip_enabled && p_scb->clip[0] != 0)

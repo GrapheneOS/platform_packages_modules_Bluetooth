@@ -49,10 +49,10 @@
 /* Configuration structure */
 typedef struct
 {
-    UINT8       realm_charset;          /* Server only */
-    BOOLEAN     userid_req;             /* TRUE if user id is required during obex authentication (Server only) */
-    UINT8       supported_features;     /* Server supported features */
-    UINT8       supported_repositories; /* Server supported repositories */
+    uint8_t       realm_charset;          /* Server only */
+    bool     userid_req;             /* true if user id is required during obex authentication (Server only) */
+    uint8_t       supported_features;     /* Server supported features */
+    uint8_t       supported_repositories; /* Server supported repositories */
 
 } tBTA_PBS_CFG;
 

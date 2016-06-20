@@ -47,9 +47,9 @@
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_hf_client_sdp_cback(UINT16 status)
+static void bta_hf_client_sdp_cback(uint16_t status)
 {
-    UINT16 event;
+    uint16_t event;
     tBTA_HF_CLIENT_DISC_RESULT *p_buf =
         (tBTA_HF_CLIENT_DISC_RESULT *)osi_malloc(sizeof(tBTA_HF_CLIENT_DISC_RESULT));
 
@@ -76,21 +76,21 @@ static void bta_hf_client_sdp_cback(UINT16 status)
 **                  calling this function the application must call
 **                  SDP_CreateRecord() to create an SDP record.
 **
-** Returns          TRUE if function execution succeeded,
-**                  FALSE if function execution failed.
+** Returns          true if function execution succeeded,
+**                  false if function execution failed.
 **
 ******************************************************************************/
-BOOLEAN bta_hf_client_add_record(char *p_service_name, UINT8 scn,
-                          tBTA_HF_CLIENT_FEAT features, UINT32 sdp_handle)
+bool bta_hf_client_add_record(char *p_service_name, uint8_t scn,
+                          tBTA_HF_CLIENT_FEAT features, uint32_t sdp_handle)
 {
     tSDP_PROTOCOL_ELEM  proto_elem_list[BTA_HF_CLIENT_NUM_PROTO_ELEMS];
-    UINT16              svc_class_id_list[BTA_HF_CLIENT_NUM_SVC_ELEMS];
-    UINT16              browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
-    UINT16              version;
-    UINT16              profile_uuid;
-    BOOLEAN             result = TRUE;
-    UINT8               buf[2];
-    UINT16              sdp_features = 0;
+    uint16_t              svc_class_id_list[BTA_HF_CLIENT_NUM_SVC_ELEMS];
+    uint16_t              browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
+    uint16_t              version;
+    uint16_t              profile_uuid;
+    bool             result = true;
+    uint8_t               buf[2];
+    uint16_t              sdp_features = 0;
 
     APPL_TRACE_DEBUG("bta_hf_client_add_record");
 
@@ -119,7 +119,7 @@ BOOLEAN bta_hf_client_add_record(char *p_service_name, UINT8 scn,
     if (p_service_name != NULL && p_service_name[0] != 0)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_service_name)+1), (UINT8 *) p_service_name);
+                    (uint32_t)(strlen(p_service_name)+1), (uint8_t *) p_service_name);
     }
 
     /* add features */
@@ -211,20 +211,20 @@ void bta_hf_client_del_record(tBTA_HF_CLIENT_DATA *p_data)
 ** Description      Process SDP discovery results to find requested attribute
 **
 **
-** Returns          TRUE if results found, FALSE otherwise.
+** Returns          true if results found, false otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_hf_client_sdp_find_attr(void)
+bool bta_hf_client_sdp_find_attr(void)
 {
     tSDP_DISC_REC       *p_rec = NULL;
     tSDP_DISC_ATTR      *p_attr;
     tSDP_PROTOCOL_ELEM  pe;
-    BOOLEAN             result = FALSE;
+    bool             result = false;
 
     bta_hf_client_cb.scb.peer_version = HFP_VERSION_1_1;   /* Default version */
 
     /* loop through all records we found */
-    while (TRUE)
+    while (true)
     {
         /* get next record; if none found, we're done */
         if ((p_rec = SDP_FindServiceInDb(bta_hf_client_cb.scb.p_disc_db, UUID_SERVCLASS_AG_HANDSFREE, p_rec)) == NULL)
@@ -237,7 +237,7 @@ BOOLEAN bta_hf_client_sdp_find_attr(void)
         {
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
             {
-                bta_hf_client_cb.scb.peer_scn = (UINT8) pe.params[0];
+                bta_hf_client_cb.scb.peer_scn = (uint8_t) pe.params[0];
             }
             else
             {
@@ -277,12 +277,12 @@ BOOLEAN bta_hf_client_sdp_find_attr(void)
         }
 
         /* found what we needed */
-        result = TRUE;
+        result = true;
         break;
     }
 
     APPL_TRACE_DEBUG("%s peer_version=0x%x peer_features=0x%x",
-                      __FUNCTION__, bta_hf_client_cb.scb.peer_version,
+                      __func__, bta_hf_client_cb.scb.peer_version,
                       bta_hf_client_cb.scb.peer_features);
 
     return result;
@@ -301,10 +301,10 @@ BOOLEAN bta_hf_client_sdp_find_attr(void)
 void bta_hf_client_do_disc(void)
 {
     tSDP_UUID       uuid_list[2];
-    UINT16          num_uuid = 1;
-    UINT16          attr_list[4];
-    UINT8           num_attr;
-    BOOLEAN         db_inited = FALSE;
+    uint16_t          num_uuid = 1;
+    uint16_t          attr_list[4];
+    uint8_t           num_attr;
+    bool         db_inited = false;
 
     /* initiator; get proto list and features */
     if (bta_hf_client_cb.scb.role == BTA_HF_CLIENT_INT)

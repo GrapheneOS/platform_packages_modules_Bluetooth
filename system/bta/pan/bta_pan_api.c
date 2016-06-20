@@ -34,7 +34,7 @@
 #include <string.h>
 #include "bt_utils.h"
 
-#if defined(BTA_PAN_INCLUDED) && (BTA_PAN_INCLUDED == TRUE)
+#if (BTA_PAN_INCLUDED == TRUE)
 
 static const tBTA_SYS_REG bta_pan_reg =
 {
@@ -172,7 +172,7 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE    
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_PanClose(UINT16 handle)
+void BTA_PanClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -208,7 +208,7 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE local_role, tBTA_PAN_ROLE peer_r
     UNUSED(peer_role);
 }
 
-void BTA_PanClose(UINT16 handle)
+void BTA_PanClose(uint16_t handle)
 {
     UNUSED(handle);
 }

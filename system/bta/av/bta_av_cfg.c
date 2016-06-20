@@ -34,7 +34,7 @@
 #define BTA_AV_RC_PASS_RSP_CODE     BTA_AV_RSP_NOT_IMPL
 #endif
 
-const UINT32  bta_av_meta_caps_co_ids[] = {
+const uint32_t  bta_av_meta_caps_co_ids[] = {
     AVRC_CO_METADATA,
     AVRC_CO_BROADCOM
 };
@@ -54,7 +54,7 @@ const UINT32  bta_av_meta_caps_co_ids[] = {
 */
 /* Flushing partial avdtp packets can cause some headsets to disconnect the link
    if receiving partial a2dp frames */
-const UINT16  bta_av_audio_flush_to[] = {
+const uint16_t  bta_av_audio_flush_to[] = {
      0, /* 1 stream */
      0, /* 2 streams */
      0, /* 3 streams */
@@ -63,8 +63,8 @@ const UINT16  bta_av_audio_flush_to[] = {
 };     /* AVDTP audio transport channel flush timeout */
 
 /* Note: Android doesnt support AVRC_SUPF_TG_GROUP_NAVI  */
-/* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be TRUE */
-#if AVRC_METADATA_INCLUDED == TRUE
+/* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be true */
+#if (AVRC_METADATA_INCLUDED == TRUE)
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
 #else
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
@@ -73,7 +73,7 @@ const UINT16  bta_av_audio_flush_to[] = {
 /*
  * If the number of event IDs is changed in this array, BTA_AV_ NUM_RC_EVT_IDS   also needs to be changed.
  */
-const UINT8  bta_av_meta_caps_evt_ids[] = {
+const uint8_t  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_PLAY_STATUS_CHANGE,
     AVRC_EVT_TRACK_CHANGE,
     AVRC_EVT_PLAY_POS_CHANGED,
@@ -85,8 +85,8 @@ const UINT8  bta_av_meta_caps_evt_ids[] = {
 #define BTA_AV_NUM_RC_EVT_IDS   (sizeof(bta_av_meta_caps_evt_ids) / sizeof(bta_av_meta_caps_evt_ids[0]))
 #endif /* BTA_AV_NUM_RC_EVT_IDS */
 
-const UINT8  bta_avk_meta_caps_evt_ids[] = {
-#if AVRC_ADV_CTRL_INCLUDED == TRUE
+const uint8_t  bta_avk_meta_caps_evt_ids[] = {
+#if (AVRC_ADV_CTRL_INCLUDED == TRUE)
     AVRC_EVT_VOLUME_CHANGE,
 #endif
 };
@@ -104,7 +104,7 @@ const UINT8  bta_avk_meta_caps_evt_ids[] = {
 const tBTA_AV_CFG bta_av_cfg =
 {
     AVRC_CO_BROADCOM,       /* AVRCP Company ID */
-#if AVRC_METADATA_INCLUDED == TRUE
+#if (AVRC_METADATA_INCLUDED == TRUE)
     512,                    /* AVRCP MTU at L2CAP for control channel */
 #else
     48,                     /* AVRCP MTU at L2CAP for control channel */
@@ -118,7 +118,7 @@ const tBTA_AV_CFG bta_av_cfg =
     6,                      /* AVDTP audio channel max data queue size */
     BTA_AV_MAX_VDP_MTU,     /* AVDTP video transport channel MTU at L2CAP */
     600,                    /* AVDTP video transport channel flush timeout */
-    FALSE,                   /* TRUE, to accept AVRC 1.3 group nevigation command */
+    false,                   /* true, to accept AVRC 1.3 group nevigation command */
     2,                      /* company id count in p_meta_co_ids */
     BTA_AV_NUM_RC_EVT_IDS, /* event id count in p_meta_evt_ids */
     BTA_AV_RC_PASS_RSP_CODE,/* the default response code for pass through commands */
@@ -134,7 +134,7 @@ const tBTA_AV_CFG bta_av_cfg =
 const tBTA_AV_CFG bta_avk_cfg =
 {
     AVRC_CO_METADATA,       /* AVRCP Company ID */
-#if AVRC_METADATA_INCLUDED == TRUE
+#if (AVRC_METADATA_INCLUDED == TRUE)
     512,                    /* AVRCP MTU at L2CAP for control channel */
 #else
     48,                     /* AVRCP MTU at L2CAP for control channel */
@@ -148,7 +148,7 @@ const tBTA_AV_CFG bta_avk_cfg =
     6,                      /* AVDTP audio channel max data queue size */
     BTA_AV_MAX_VDP_MTU,     /* AVDTP video transport channel MTU at L2CAP */
     600,                    /* AVDTP video transport channel flush timeout */
-    FALSE,                   /* TRUE, to accept AVRC 1.3 group nevigation command */
+    false,                   /* true, to accept AVRC 1.3 group nevigation command */
     2,                      /* company id count in p_meta_co_ids */
     BTA_AVK_NUM_RC_EVT_IDS, /* event id count in p_meta_evt_ids */
     BTA_AV_RC_PASS_RSP_CODE,/* the default response code for pass through commands */
@@ -162,7 +162,7 @@ const tBTA_AV_CFG bta_avk_cfg =
 
 tBTA_AV_CFG *p_bta_av_cfg = NULL;
 
-const UINT16 bta_av_rc_id[] =
+const uint16_t bta_av_rc_id[] =
 {
     0x0000, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
                          4=RIGHT, 5=RIGHT_UP, 6=RIGHT_DOWN, 7=LEFT_UP,
@@ -188,19 +188,19 @@ const UINT16 bta_av_rc_id[] =
                          4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
                          8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
                          12=BACKWARD */
-#else
-#if (defined BTA_AVRCP_FF_RW_SUPPORT) && (BTA_AVRCP_FF_RW_SUPPORT == TRUE)
+#else /* BTA_AV_RC_PASS_RSP_CODE != BTA_AV_RSP_INTERIM */
+#if (BTA_AVRCP_FF_RW_SUPPORT == TRUE)
     0x1b70, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
                          4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
                          8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
                          12=BACKWARD */
-#else
+#else /* BTA_AVRCP_FF_RW_SUPPORT == FALSE */
     0x1870, /* bit mask: 0=POWER, 1=VOL_UP, 2=VOL_DOWN, 3=MUTE,
                          4=PLAY, 5=STOP, 6=PAUSE, 7=RECORD,
                          8=REWIND, 9=FAST_FOR, 10=EJECT, 11=FORWARD,
                          12=BACKWARD */
-#endif
-#endif
+#endif /* BTA_AVRCP_FF_RW_SUPPORT */
+#endif /* BTA_AV_RC_PASS_RSP_CODE */
 
     0x0000, /* bit mask: 0=ANGLE, 1=SUBPICT */
 
@@ -211,7 +211,7 @@ const UINT16 bta_av_rc_id[] =
 };
 
 #if (BTA_AV_RC_PASS_RSP_CODE == BTA_AV_RSP_INTERIM)
-const UINT16 bta_av_rc_id_ac[] =
+const uint16_t bta_av_rc_id_ac[] =
 {
     0x0000, /* bit mask: 0=SELECT, 1=UP, 2=DOWN, 3=LEFT,
                          4=RIGHT, 5=RIGHT_UP, 6=RIGHT_DOWN, 7=LEFT_UP,
@@ -244,9 +244,9 @@ const UINT16 bta_av_rc_id_ac[] =
     0x0000  /* bit mask: 0=not used, 1=F1, 2=F2, 3=F3,
                          4=F4, 5=F5 */
 };
-UINT16 *p_bta_av_rc_id_ac = (UINT16 *) bta_av_rc_id_ac;
+uint16_t *p_bta_av_rc_id_ac = (uint16_t *) bta_av_rc_id_ac;
 #else
-UINT16 *p_bta_av_rc_id_ac = NULL;
+uint16_t *p_bta_av_rc_id_ac = NULL;
 #endif
 
-UINT16 *p_bta_av_rc_id = (UINT16 *) bta_av_rc_id;
+uint16_t *p_bta_av_rc_id = (uint16_t *) bta_av_rc_id;
