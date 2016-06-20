@@ -48,9 +48,9 @@ extern "C" {
 /** for utl_set_device_class() **/
 typedef struct
 {
-    UINT8       minor;
-    UINT8       major;
-    UINT16      service;
+    uint8_t       minor;
+    uint8_t       major;
+    uint16_t      service;
 } tBTA_UTL_COD;
 
 
@@ -70,7 +70,7 @@ typedef struct
 ** Returns          Integer value or -1 on error.
 **
 *******************************************************************************/
-extern INT16 utl_str2int(const char *p_s);
+extern int16_t utl_str2int(const char *p_s);
 
 /*******************************************************************************
 **
@@ -91,7 +91,7 @@ extern int utl_strucmp(const char *p_s, const char *p_t);
 **
 ** Function         utl_itoa
 **
-** Description      This utility function converts a UINT16 to a string.  The
+** Description      This utility function converts a uint16_t to a string.  The
 **                  string is NULL-terminated.  The length of the string is
 **                  returned.
 **
@@ -99,7 +99,7 @@ extern int utl_strucmp(const char *p_s, const char *p_t);
 ** Returns          Length of string.
 **
 *******************************************************************************/
-extern UINT8 utl_itoa(UINT16 i, char *p_s);
+extern uint8_t utl_itoa(uint16_t i, char *p_s);
 
 /*******************************************************************************
 **
@@ -117,10 +117,10 @@ extern UINT8 utl_itoa(UINT16 i, char *p_s);
 **                            BTA_UTL_SET_COD_ALL - overwrite major, minor, set the bits in service class
 **                            BTA_UTL_INIT_COD - overwrite major, minor, and service class
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-extern BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd);
+extern bool utl_set_device_class(tBTA_UTL_COD *p_cod, uint8_t cmd);
 
 /*******************************************************************************
 **
@@ -130,10 +130,10 @@ extern BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd);
 **                  integer string or not
 **
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-extern BOOLEAN utl_isintstr(const char *p_s);
+extern bool utl_isintstr(const char *p_s);
 
 /*******************************************************************************
 **
@@ -143,10 +143,10 @@ extern BOOLEAN utl_isintstr(const char *p_s);
 **                  only dial digits or not
 **
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-extern BOOLEAN utl_isdialstr(const char *p_s);
+extern bool utl_isdialstr(const char *p_s);
 
 #ifdef __cplusplus
 }

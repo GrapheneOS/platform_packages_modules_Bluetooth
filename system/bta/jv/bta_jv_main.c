@@ -31,7 +31,7 @@
 ** Constants and types
 *****************************************************************************/
 
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_JV_CB bta_jv_cb;
 #endif
 
@@ -81,16 +81,16 @@ const tBTA_JV_ACTION bta_jv_action[] =
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN bta_jv_sm_execute(BT_HDR *p_msg)
+bool bta_jv_sm_execute(BT_HDR *p_msg)
 {
-    BOOLEAN ret = FALSE;
-    UINT16 action = (p_msg->event & 0x00ff);
+    bool ret = false;
+    uint16_t action = (p_msg->event & 0x00ff);
     /* execute action functions */
 
     if(action < BTA_JV_NUM_ACTIONS)
     {
         (*bta_jv_action[action])((tBTA_JV_MSG*)p_msg);
-        ret = TRUE;
+        ret = true;
     }
 
     return(ret);

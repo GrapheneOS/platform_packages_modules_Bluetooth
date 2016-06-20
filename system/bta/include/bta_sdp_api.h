@@ -39,7 +39,7 @@ extern "C" {
 #define BTA_SDP_FAILURE                  1            /* Generic failure. */
 #define BTA_SDP_BUSY                     2            /* Temporarily can not handle this request. */
 
-typedef UINT8 tBTA_SDP_STATUS;
+typedef uint8_t tBTA_SDP_STATUS;
 
 /* SDP I/F callback events */
 /* events received by tBTA_SDP_DM_CBACK */
@@ -52,7 +52,7 @@ typedef UINT8 tBTA_SDP_STATUS;
 
 #define BTA_SDP_MAX_RECORDS 15
 
-typedef UINT16 tBTA_SDP_EVT;
+typedef uint16_t tBTA_SDP_EVT;
 
 /* data associated with BTA_SDP_DISCOVERY_COMP_EVT */
 typedef struct
@@ -76,7 +76,7 @@ typedef void (tBTA_SDP_DM_CBACK)(tBTA_SDP_EVT event, tBTA_SDP *p_data, void * us
 /* MCE configuration structure */
 typedef struct
 {
-    UINT16  sdp_db_size;            /* The size of p_sdp_db */
+    uint16_t  sdp_db_size;            /* The size of p_sdp_db */
     tSDP_DISCOVERY_DB   *p_sdp_db;  /* The data buffer to keep SDP database */
 } tBTA_SDP_CFG;
 

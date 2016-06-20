@@ -42,7 +42,7 @@ extern "C" {
 #define BTA_MCE_FAILURE             1            /* Generic failure. */
 #define BTA_MCE_BUSY                2            /* Temporarily can not handle this request. */
 
-typedef UINT8 tBTA_MCE_STATUS;
+typedef uint8_t tBTA_MCE_STATUS;
 
 /* MCE I/F callback events */
 /* events received by tBTA_MCE_DM_CBACK */
@@ -52,15 +52,15 @@ typedef UINT8 tBTA_MCE_STATUS;
 
 #define BTA_MCE_MAX_MAS_INSTANCES 12
 
-typedef UINT16 tBTA_MCE_EVT;
+typedef uint16_t tBTA_MCE_EVT;
 
 typedef struct
 {
-    UINT8   scn;
+    uint8_t   scn;
     char    *p_srv_name;
-    UINT16  srv_name_len;
-    UINT8   instance_id;
-    UINT8   msg_type;
+    uint16_t  srv_name_len;
+    uint8_t   instance_id;
+    uint8_t   msg_type;
 } tBTA_MCE_MAS_INFO;
 
 /* data associated with BTA_MCE_MAS_DISCOVERY_COMP_EVT */
@@ -85,7 +85,7 @@ typedef void (tBTA_MCE_DM_CBACK)(tBTA_MCE_EVT event, tBTA_MCE *p_data, void * us
 /* MCE configuration structure */
 typedef struct
 {
-    UINT16  sdp_db_size;            /* The size of p_sdp_db */
+    uint16_t  sdp_db_size;            /* The size of p_sdp_db */
     tSDP_DISCOVERY_DB   *p_sdp_db;  /* The data buffer to keep SDP database */
 } tBTA_MCE_CFG;
 

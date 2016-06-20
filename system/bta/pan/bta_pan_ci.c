@@ -34,7 +34,7 @@
 #include "bta_pan_int.h"
 #include "bt_utils.h"
 
-#if defined(BTA_PAN_INCLUDED) && (BTA_PAN_INCLUDED == TRUE)
+#if (BTA_PAN_INCLUDED == TRUE)
 
 /*******************************************************************************
 **
@@ -49,7 +49,7 @@
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_tx_ready(UINT16 handle)
+void bta_pan_ci_tx_ready(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -72,7 +72,7 @@ void bta_pan_ci_tx_ready(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_rx_ready(UINT16 handle)
+void bta_pan_ci_rx_ready(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -97,7 +97,7 @@ void bta_pan_ci_rx_ready(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
+void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
 {
     tBTA_PAN_CI_TX_FLOW  *p_buf =
         (tBTA_PAN_CI_TX_FLOW *)osi_malloc(sizeof(tBTA_PAN_CI_TX_FLOW));
@@ -121,8 +121,8 @@ void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
-                            UINT8 *p_data, UINT16 len, BOOLEAN ext)
+void bta_pan_ci_rx_write(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
+                            uint8_t *p_data, uint16_t len, bool ext)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(PAN_BUF_SIZE);
 
@@ -136,7 +136,7 @@ void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoco
     p_buf->len=len;
 
     /* copy data */
-    memcpy((UINT8 *)(p_buf + 1) + p_buf->offset, p_data, len);
+    memcpy((uint8_t *)(p_buf + 1) + p_buf->offset, p_data, len);
 
     p_buf->layer_specific = handle;
     p_buf->event = BTA_PAN_CI_RX_WRITEBUF_EVT;
@@ -158,8 +158,8 @@ void bta_pan_ci_rx_write(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protoco
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 protocol,
-                            BT_HDR *p_buf, BOOLEAN ext)
+void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR dst, BD_ADDR src, uint16_t protocol,
+                            BT_HDR *p_buf, bool ext)
 {
 
     /* copy all other params before the data */
@@ -186,8 +186,8 @@ void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR dst, BD_ADDR src, UINT16 prot
 ** Returns          void
 **
 *******************************************************************************/
-BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16* p_protocol,
-                                 BOOLEAN* p_ext, BOOLEAN* p_forward)
+BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t* p_protocol,
+                                 bool* p_ext, bool* p_forward)
 {
     tBTA_PAN_SCB * p_scb;
     BT_HDR * p_buf;
@@ -218,8 +218,8 @@ BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16* p_p
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
-                                                    UINT8 *p_end_array)
+void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
+                                                    uint8_t *p_end_array)
 {
 
     PAN_SetMulticastFilters(handle, num_mcast_filters, p_start_array, p_end_array);
@@ -237,7 +237,7 @@ void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_s
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array)
+void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array)
 {
 
     PAN_SetProtocolFilters(handle, num_filters, p_start_array, p_end_array );
@@ -245,23 +245,23 @@ void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_
 }
 #else
 
-void bta_pan_ci_tx_ready(UINT16 handle)
+void bta_pan_ci_tx_ready(uint16_t handle)
 {
     UNUSED(handle);
 }
 
-void bta_pan_ci_rx_ready(UINT16 handle)
+void bta_pan_ci_rx_ready(uint16_t handle)
 {
     UNUSED(handle);
 }
 
-void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable)
+void bta_pan_ci_tx_flow(uint16_t handle, bool enable)
 {
     UNUSED(handle);
     UNUSED(enable);
 }
 
-void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext)
+void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf, bool ext)
 {
     UNUSED(handle);
     UNUSED(src);
@@ -271,8 +271,8 @@ void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 prot
     UNUSED(ext);
 }
 
-BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol,
-                            BOOLEAN* p_ext, BOOLEAN* p_forward)
+BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t *p_protocol,
+                            bool* p_ext, bool* p_forward)
 {
     UNUSED(handle);
     UNUSED(src);
@@ -283,7 +283,7 @@ BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_p
     return NULL;
 }
 
-void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array)
+void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array)
 {
     UNUSED(handle);
     UNUSED(num_filters);
@@ -291,8 +291,8 @@ void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_
     UNUSED(p_end_array);
 }
 
-void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
-                             UINT8 *p_end_array)
+void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
+                             uint8_t *p_end_array)
 {
     UNUSED(handle);
     UNUSED(num_mcast_filters);

@@ -63,12 +63,12 @@ extern void bta_ag_co_init(void);
 ** Returns          void
 **
 *******************************************************************************/
-#if (BTM_WBS_INCLUDED == TRUE )
-extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state,
+#if (BTM_WBS_INCLUDED == TRUE)
+extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id, uint8_t state,
                                           tBTA_AG_PEER_CODEC codec);
 
 #else
-extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state);
+extern void bta_ag_co_audio_state(uint16_t handle, uint8_t app_id, uint8_t state);
 #endif
 
 /*******************************************************************************
@@ -84,7 +84,7 @@ extern void bta_ag_co_audio_state(UINT16 handle, UINT8 app_id, UINT8 state);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
+extern void bta_ag_co_data_open(uint16_t handle, tBTA_SERVICE_ID service);
 
 /*******************************************************************************
 **
@@ -97,7 +97,7 @@ extern void bta_ag_co_data_open(UINT16 handle, tBTA_SERVICE_ID service);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_ag_co_data_close(UINT16 handle);
+extern void bta_ag_co_data_close(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -106,12 +106,12 @@ extern void bta_ag_co_data_close(UINT16 handle);
 ** Description      This function is called by the AG to send data to the
 **                  phone when the AG is configured for AT command pass-through.
 **                  The implementation of this function must copy the data to
-**                  the phone’s memory.
+**                  the phone's memory.
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_ag_co_tx_write(UINT16 handle, UINT8 *p_data, UINT16 len);
+extern void bta_ag_co_tx_write(uint16_t handle, uint8_t *p_data, uint16_t len);
 
 #ifdef __cplusplus
 }

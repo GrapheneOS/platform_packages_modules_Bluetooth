@@ -79,10 +79,10 @@ void bta_ag_at_reinit(tBTA_AG_AT_CB *p_cb)
 ******************************************************************************/
 void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 {
-    UINT16      idx;
-    UINT8       arg_type;
+    uint16_t    idx;
+    uint8_t     arg_type;
     char        *p_arg;
-    INT16       int_arg = 0;
+    int16_t     int_arg = 0;
     /* loop through at command table looking for match */
     for (idx = 0; p_cb->p_at_tbl[idx].p_cmd[0] != 0; idx++)
     {
@@ -140,11 +140,11 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
                 p_cb->p_at_tbl[idx].fmt == BTA_AG_AT_INT)
             {
                 int_arg = utl_str2int(p_arg);
-                if (int_arg < (INT16) p_cb->p_at_tbl[idx].min ||
-                    int_arg > (INT16) p_cb->p_at_tbl[idx].max)
+                if (int_arg < (int16_t) p_cb->p_at_tbl[idx].min ||
+                    int_arg > (int16_t) p_cb->p_at_tbl[idx].max)
                 {
                     /* arg out of range; error */
-                    (*p_cb->p_err_cback)(p_cb->p_user, FALSE, NULL);
+                    (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
                 }
                 else
                 {
@@ -160,13 +160,13 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
         /* else error */
         else
         {
-            (*p_cb->p_err_cback)(p_cb->p_user, FALSE, NULL);
+            (*p_cb->p_err_cback)(p_cb->p_user, false, NULL);
         }
     }
     /* else no match call error callback */
     else
     {
-        (*p_cb->p_err_cback)(p_cb->p_user, TRUE, p_cb->p_cmd_buf);
+        (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
     }
 }
 
@@ -182,7 +182,7 @@ void bta_ag_process_at(tBTA_AG_AT_CB *p_cb)
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
+void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, uint16_t len)
 {
     int i = 0;
     char* p_save;
@@ -223,7 +223,7 @@ void bta_ag_at_parse(tBTA_AG_AT_CB *p_cb, char *p_buf, UINT16 len)
             else if( p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1A || p_cb->p_cmd_buf[p_cb->cmd_pos] == 0x1B )
             {
                 p_cb->p_cmd_buf[++p_cb->cmd_pos] = 0;
-                (*p_cb->p_err_cback)(p_cb->p_user, TRUE, p_cb->p_cmd_buf);
+                (*p_cb->p_err_cback)(p_cb->p_user, true, p_cb->p_cmd_buf);
                 p_cb->cmd_pos = 0;
             }
             else

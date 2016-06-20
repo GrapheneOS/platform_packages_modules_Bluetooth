@@ -133,7 +133,7 @@ void BTA_HfClientRegister(tBTA_SEC sec_mask, tBTA_HF_CLIENT_FEAT features,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientDeregister(UINT16 handle)
+void BTA_HfClientDeregister(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -156,7 +156,7 @@ void BTA_HfClientDeregister(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
+void BTA_HfClientOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 {
     tBTA_HF_CLIENT_API_OPEN *p_buf =
         (tBTA_HF_CLIENT_API_OPEN *)osi_malloc(sizeof(tBTA_HF_CLIENT_API_OPEN));
@@ -180,7 +180,7 @@ void BTA_HfClientOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientClose(UINT16 handle)
+void BTA_HfClientClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -201,7 +201,7 @@ void BTA_HfClientClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientAudioOpen(UINT16 handle)
+void BTA_HfClientAudioOpen(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -222,7 +222,7 @@ void BTA_HfClientAudioOpen(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientAudioClose(UINT16 handle)
+void BTA_HfClientAudioClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -242,7 +242,7 @@ void BTA_HfClientAudioClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HfClientSendAT(UINT16 handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, UINT32 val1, UINT32 val2, const char *str)
+void BTA_HfClientSendAT(uint16_t handle, tBTA_HF_CLIENT_AT_CMD_TYPE at, uint32_t val1, uint32_t val2, const char *str)
 {
     tBTA_HF_CLIENT_DATA_VAL *p_buf =
         (tBTA_HF_CLIENT_DATA_VAL *)osi_malloc(sizeof(tBTA_HF_CLIENT_DATA_VAL));

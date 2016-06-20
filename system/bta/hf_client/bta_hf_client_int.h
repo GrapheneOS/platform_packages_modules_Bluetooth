@@ -101,24 +101,24 @@ typedef struct
 typedef struct
 {
     BT_HDR          hdr;
-    UINT16          status;
+    uint16_t          status;
 } tBTA_HF_CLIENT_DISC_RESULT;
 
 /* data type for RFCOMM events */
 typedef struct
 {
     BT_HDR          hdr;
-    UINT16          port_handle;
+    uint16_t          port_handle;
 } tBTA_HF_CLIENT_RFC;
 
 /* generic purpose data type for other events */
 typedef struct
 {
     BT_HDR          hdr;
-    BOOLEAN         bool_val;
-    UINT8           uint8_val;
-    UINT32          uint32_val1;
-    UINT32          uint32_val2;
+    bool         bool_val;
+    uint8_t           uint8_val;
+    uint32_t          uint32_val1;
+    uint32_t          uint32_val2;
     char            str[BTA_HF_CLIENT_NUMBER_LEN + 1];
 } tBTA_HF_CLIENT_DATA_VAL;
 
@@ -138,27 +138,27 @@ typedef union
 /* type for each service control block */
 typedef struct
 {
-    UINT16              serv_handle;    /* RFCOMM server handle */
+    uint16_t              serv_handle;    /* RFCOMM server handle */
     BD_ADDR             peer_addr;      /* peer bd address */
     tSDP_DISCOVERY_DB   *p_disc_db;     /* pointer to discovery database */
-    UINT16              conn_handle;    /* RFCOMM handle of connected service */
+    uint16_t              conn_handle;    /* RFCOMM handle of connected service */
     tBTA_SEC            serv_sec_mask;  /* server security mask */
     tBTA_SEC            cli_sec_mask;   /* client security mask */
     tBTA_HF_CLIENT_FEAT        features;       /* features registered by application */
     tBTA_HF_CLIENT_PEER_FEAT   peer_features;  /* peer device features */
     tBTA_HF_CLIENT_CHLD_FEAT   chld_features;  /* call handling features */
-    UINT16              peer_version;   /* profile version of peer device */
-    UINT8               peer_scn;       /* peer scn */
-    UINT8               role;           /* initiator/acceptor role */
-    UINT16              sco_idx;        /* SCO handle */
-    UINT8               sco_state;      /* SCO state variable */
-    BOOLEAN             sco_close_rfc;   /* TRUE if also close RFCOMM after SCO */
-    BOOLEAN             retry_with_sco_only;
-    BOOLEAN             deregister;     /* TRUE if service shutting down */
-    BOOLEAN             svc_conn;       /* set to TRUE when service level connection is up */
-    BOOLEAN             send_at_reply;  /* set to TRUE to notify framework about AT results */
+    uint16_t              peer_version;   /* profile version of peer device */
+    uint8_t               peer_scn;       /* peer scn */
+    uint8_t               role;           /* initiator/acceptor role */
+    uint16_t              sco_idx;        /* SCO handle */
+    uint8_t               sco_state;      /* SCO state variable */
+    bool             sco_close_rfc;   /* true if also close RFCOMM after SCO */
+    bool             retry_with_sco_only;
+    bool             deregister;     /* true if service shutting down */
+    bool             svc_conn;       /* set to true when service level connection is up */
+    bool             send_at_reply;  /* set to true to notify framework about AT results */
     tBTA_HF_CLIENT_AT_CB at_cb;         /* AT Parser control block */
-    UINT8               state;          /* state machine state */
+    uint8_t               state;          /* state machine state */
     tBTM_SCO_CODEC_TYPE negotiated_codec; /* negotiated codec */
     alarm_t             *collision_timer; /* Collision timer */
 } tBTA_HF_CLIENT_SCB;
@@ -180,10 +180,10 @@ enum
 typedef struct
 {
     tBTA_HF_CLIENT_SCB         scb;             /* service control block */
-    UINT32                     sdp_handle;
-    UINT8                      scn;
+    uint32_t                     sdp_handle;
+    uint8_t                      scn;
     tBTA_HF_CLIENT_CBACK       *p_cback;        /* application callback */
-    BOOLEAN                    msbc_enabled;
+    bool                    msbc_enabled;
 } tBTA_HF_CLIENT_CB;
 
 /*****************************************************************************
@@ -200,26 +200,26 @@ extern tBTA_HF_CLIENT_CB bta_hf_client_cb;
 /* main functions */
 extern void bta_hf_client_scb_init(void);
 extern void bta_hf_client_scb_disable(void);
-extern BOOLEAN bta_hf_client_hdl_event(BT_HDR *p_msg);
-extern void bta_hf_client_sm_execute(UINT16 event,
+extern bool bta_hf_client_hdl_event(BT_HDR *p_msg);
+extern void bta_hf_client_sm_execute(uint16_t event,
                                         tBTA_HF_CLIENT_DATA *p_data);
-extern void bta_hf_client_slc_seq(BOOLEAN error);
-extern void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
-                                    UINT8 app_id, BD_ADDR peer_addr);
+extern void bta_hf_client_slc_seq(bool error);
+extern void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, uint8_t id,
+                                    uint8_t app_id, BD_ADDR peer_addr);
 extern void bta_hf_client_resume_open ();
 
 /* SDP functions */
-extern BOOLEAN bta_hf_client_add_record(char *p_service_name,
-                                        UINT8 scn, tBTA_HF_CLIENT_FEAT features,
-                                        UINT32 sdp_handle);
+extern bool bta_hf_client_add_record(char *p_service_name,
+                                        uint8_t scn, tBTA_HF_CLIENT_FEAT features,
+                                        uint32_t sdp_handle);
 extern void bta_hf_client_create_record(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_del_record(tBTA_HF_CLIENT_DATA *p_data);
-extern BOOLEAN bta_hf_client_sdp_find_attr(void);
+extern bool bta_hf_client_sdp_find_attr(void);
 extern void bta_hf_client_do_disc(void);
 extern void bta_hf_client_free_db(tBTA_HF_CLIENT_DATA *p_data);
 
 /* RFCOMM functions */
-extern void bta_hf_client_setup_port(UINT16 handle);
+extern void bta_hf_client_setup_port(uint16_t handle);
 extern void bta_hf_client_start_server(void);
 extern void bta_hf_client_close_server(void);
 extern void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA *p_data);
@@ -232,34 +232,34 @@ extern void bta_hf_client_sco_conn_open(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_sco_conn_close(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_sco_open(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_sco_close(tBTA_HF_CLIENT_DATA *p_data);
-extern void bta_hf_client_cback_sco(UINT8 event);
+extern void bta_hf_client_cback_sco(uint8_t event);
 
 /* AT command functions */
 extern void bta_hf_client_at_parse(char *buf, unsigned int len);
 extern void bta_hf_client_send_at_brsf(void);
 extern void bta_hf_client_send_at_bac(void);
-extern void bta_hf_client_send_at_cind(BOOLEAN status);
-extern void bta_hf_client_send_at_cmer(BOOLEAN activate);
-extern void bta_hf_client_send_at_chld(char cmd, UINT32 idx);
-extern void bta_hf_client_send_at_clip(BOOLEAN activate);
-extern void bta_hf_client_send_at_ccwa(BOOLEAN activate);
-extern void bta_hf_client_send_at_cmee(BOOLEAN activate);
-extern void bta_hf_client_send_at_cops(BOOLEAN query);
+extern void bta_hf_client_send_at_cind(bool status);
+extern void bta_hf_client_send_at_cmer(bool activate);
+extern void bta_hf_client_send_at_chld(char cmd, uint32_t idx);
+extern void bta_hf_client_send_at_clip(bool activate);
+extern void bta_hf_client_send_at_ccwa(bool activate);
+extern void bta_hf_client_send_at_cmee(bool activate);
+extern void bta_hf_client_send_at_cops(bool query);
 extern void bta_hf_client_send_at_clcc(void);
-extern void bta_hf_client_send_at_bvra(BOOLEAN enable);
-extern void bta_hf_client_send_at_vgs(UINT32 volume);
-extern void bta_hf_client_send_at_vgm(UINT32 volume);
-extern void bta_hf_client_send_at_atd(char *number, UINT32 memory);
+extern void bta_hf_client_send_at_bvra(bool enable);
+extern void bta_hf_client_send_at_vgs(uint32_t volume);
+extern void bta_hf_client_send_at_vgm(uint32_t volume);
+extern void bta_hf_client_send_at_atd(char *number, uint32_t memory);
 extern void bta_hf_client_send_at_bldn(void);
 extern void bta_hf_client_send_at_ata(void);
 extern void bta_hf_client_send_at_chup(void);
-extern void bta_hf_client_send_at_btrh(BOOLEAN query, UINT32 val);
+extern void bta_hf_client_send_at_btrh(bool query, uint32_t val);
 extern void bta_hf_client_send_at_vts(char code);
 extern void bta_hf_client_send_at_bcc(void);
-extern void bta_hf_client_send_at_bcs(UINT32 codec);
+extern void bta_hf_client_send_at_bcs(uint32_t codec);
 extern void bta_hf_client_send_at_cnum(void);
 extern void bta_hf_client_send_at_nrec(void);
-extern void bta_hf_client_send_at_binp(UINT32 action);
+extern void bta_hf_client_send_at_binp(uint32_t action);
 extern void bta_hf_client_send_at_bia(void);
 
 /* Action functions */
@@ -278,14 +278,14 @@ extern void bta_hf_client_disc_acp_res(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_disc_int_res(tBTA_HF_CLIENT_DATA *p_data);
 extern void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA *p_data);
-extern void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, UINT16 value);
-extern void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, UINT16 value);
+extern void bta_hf_client_ind(tBTA_HF_CLIENT_IND_TYPE type, uint16_t value);
+extern void bta_hf_client_evt_val(tBTA_HF_CLIENT_EVT type, uint16_t value);
 extern void bta_hf_client_operator_name(char *name);
 extern void bta_hf_client_clip(char *number);
 extern void bta_hf_client_ccwa(char *number);
-extern void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, UINT16 cme);
-extern void bta_hf_client_clcc(UINT32 idx, BOOLEAN incoming, UINT8 status, BOOLEAN mpty, char *number);
-extern void bta_hf_client_cnum(char *number, UINT16 service);
+extern void bta_hf_client_at_result(tBTA_HF_CLIENT_AT_RESULT_TYPE type, uint16_t cme);
+extern void bta_hf_client_clcc(uint32_t idx, bool incoming, uint8_t status, bool mpty, char *number);
+extern void bta_hf_client_cnum(char *number, uint16_t service);
 extern void bta_hf_client_binp(char *number);
 
 /* Commands handling functions */

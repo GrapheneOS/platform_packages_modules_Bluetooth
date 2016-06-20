@@ -27,7 +27,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <errno.h>
 #include <stdio.h>
@@ -45,13 +45,13 @@
 #include "sdpdefs.h"
 #include "utl.h"
 
-static void bta_gattc_cache_write(BD_ADDR server_bda, UINT16 num_attr, tBTA_GATTC_NV_ATTR *attr);
-static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb);
-static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb);
+static void bta_gattc_cache_write(BD_ADDR server_bda, uint16_t num_attr, tBTA_GATTC_NV_ATTR *attr);
+static void bta_gattc_char_dscpt_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb);
+static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb);
 extern void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src);
-tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, UINT16 handle);
-tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle);
-tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle);
+tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, uint16_t handle);
+tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, uint16_t handle);
+tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p_srcb, uint16_t handle);
 
 #define BTA_GATT_SDP_DB_SIZE 4096
 
@@ -71,10 +71,10 @@ static void bta_gattc_generate_cache_file_name(char *buffer, BD_ADDR bda)
 typedef struct
 {
     tSDP_DISCOVERY_DB   *p_sdp_db;
-    UINT16              sdp_conn_id;
+    uint16_t              sdp_conn_id;
 } tBTA_GATTC_CB_DATA;
 
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
 static char *bta_gattc_attr_type[] =
 {
     "I", /* Included Service */
@@ -132,9 +132,9 @@ static void bta_gattc_display_cache_server(list_t *p_cache)
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, UINT8 num_rec)
+static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, uint8_t num_rec)
 {
-    UINT8 i;
+    uint8_t i;
     tBTA_GATTC_ATTR_REC *pp = p_rec;
 
     APPL_TRACE_ERROR("<================Start Explore Queue =============>");
@@ -147,7 +147,7 @@ static void bta_gattc_display_explore_record(tBTA_GATTC_ATTR_REC *p_rec, UINT8 n
     APPL_TRACE_ERROR(" ");
 
 }
-#endif  /* BTA_GATT_DEBUG == TRUE */
+#endif  /* BTA_GATT_DEBUG == true */
 
 /*******************************************************************************
 **
@@ -199,11 +199,11 @@ static void service_free(void *ptr) {
 **
 *******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
-                                                    UINT16 s_handle, UINT16 e_handle,
+                                                    uint16_t s_handle, uint16_t e_handle,
                                                     tBT_UUID *p_uuid,
-                                                    BOOLEAN is_primary)
+                                                    bool is_primary)
 {
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("Add a service into Service");
 #endif
 
@@ -227,12 +227,12 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 }
 
 static tBTA_GATT_STATUS bta_gattc_add_char_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
-                                                    UINT16 attr_handle,
-                                                    UINT16 value_handle,
+                                                    uint16_t attr_handle,
+                                                    uint16_t value_handle,
                                                     tBT_UUID *p_uuid,
-                                                    UINT8 property)
+                                                    uint8_t property)
 {
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("%s: Add a characteristic into Service", __func__);
     APPL_TRACE_DEBUG("handle=%d uuid16=0x%x property=0x%x",
                       value_handle, p_uuid->uu.uuid16, property);
@@ -274,13 +274,13 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 **
 *******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
-                                                    UINT16 handle,
+                                                    uint16_t handle,
                                                     tBT_UUID *p_uuid,
-                                                    UINT8 property,
-                                                    UINT16 incl_srvc_s_handle,
+                                                    uint8_t property,
+                                                    uint16_t incl_srvc_s_handle,
                                                     tBTA_GATTC_ATTR_TYPE type)
 {
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("%s: Add a [%s] into Service", __func__, bta_gattc_attr_type[type]);
     APPL_TRACE_DEBUG("handle=%d uuid16=0x%x property=0x%x type=%d",
                       handle, p_uuid->uu.uuid16, property, type);
@@ -341,7 +341,7 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(tBTA_GATTC_SERV *p_srvc_cb,
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, UINT16 *p_s_hdl, UINT16 *p_e_hdl, BOOLEAN is_srvc)
+void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, uint16_t *p_s_hdl, uint16_t *p_e_hdl, bool is_srvc)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
 
@@ -357,7 +357,7 @@ void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, UINT16 *p_s_hdl, UINT1
     }
 
     *p_e_hdl = p_rec->e_handle;
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("discover range [%d ~ %d]",p_rec->s_handle, p_rec->e_handle);
 #endif
     return;
@@ -371,8 +371,8 @@ void bta_gattc_get_disc_range(tBTA_GATTC_SERV *p_srvc_cb, UINT16 *p_s_hdl, UINT1
 ** Returns          status of the operation.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_discover_pri_service(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb,
-                                                    UINT8 disc_type)
+tBTA_GATT_STATUS bta_gattc_discover_pri_service(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb,
+                                                    uint8_t disc_type)
 {
     tBTA_GATTC_CLCB     *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
     tBTA_GATT_STATUS    status =  BTA_GATT_ERROR;
@@ -396,11 +396,11 @@ tBTA_GATT_STATUS bta_gattc_discover_pri_service(UINT16 conn_id, tBTA_GATTC_SERV 
 ** Returns          status of the operation.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb,
-                                                   UINT8 disc_type)
+tBTA_GATT_STATUS bta_gattc_discover_procedure(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb,
+                                                   uint8_t disc_type)
 {
     tGATT_DISC_PARAM param;
-    BOOLEAN is_service = TRUE;
+    bool is_service = true;
 
     memset(&param, 0, sizeof(tGATT_DISC_PARAM));
 
@@ -412,7 +412,7 @@ tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p
     else
     {
         if (disc_type == GATT_DISC_CHAR_DSCPT)
-            is_service = FALSE;
+            is_service = false;
 
         bta_gattc_get_disc_range(p_server_cb, &param.s_handle, &param.e_handle, is_service);
 
@@ -433,7 +433,7 @@ tBTA_GATT_STATUS bta_gattc_discover_procedure(UINT16 conn_id, tBTA_GATTC_SERV *p
 ** Returns          status of the operation.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     return bta_gattc_discover_procedure(conn_id, p_srvc_cb, GATT_DISC_INC_SRVC);
 }
@@ -446,7 +446,7 @@ tBTA_GATT_STATUS bta_gattc_start_disc_include_srvc(UINT16 conn_id, tBTA_GATTC_SE
 ** Returns          status of the operation.
 **
 *******************************************************************************/
-tBTA_GATT_STATUS bta_gattc_start_disc_char(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+tBTA_GATT_STATUS bta_gattc_start_disc_char(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     p_srvc_cb->total_char = 0;
 
@@ -461,7 +461,7 @@ tBTA_GATT_STATUS bta_gattc_start_disc_char(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gattc_start_disc_char_dscp(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+void bta_gattc_start_disc_char_dscp(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     APPL_TRACE_DEBUG("starting discover characteristics descriptor");
 
@@ -478,7 +478,7 @@ void bta_gattc_start_disc_char_dscp(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 ** Returns          status
 **
 *******************************************************************************/
-static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+static void bta_gattc_explore_srvc(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->cur_srvc_idx;
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
@@ -510,7 +510,7 @@ static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
     /* no service found at all, the end of server discovery*/
     LOG_WARN(LOG_TAG, "%s no more services found", __func__);
 
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
     bta_gattc_display_cache_server(p_srvc_cb->p_srvc_cache);
 #endif
     /* save cache to NV */
@@ -531,7 +531,7 @@ static void bta_gattc_explore_srvc(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 ** Returns          status
 **
 *******************************************************************************/
-static void bta_gattc_incl_srvc_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+static void bta_gattc_incl_srvc_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     p_srvc_cb->cur_char_idx = p_srvc_cb->total_srvc;
 
@@ -547,7 +547,7 @@ static void bta_gattc_incl_srvc_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srv
 ** Returns          status
 **
 *******************************************************************************/
-static void bta_gattc_char_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+static void bta_gattc_char_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = p_srvc_cb->p_srvc_list + p_srvc_cb->cur_char_idx;
 
@@ -580,7 +580,7 @@ static void bta_gattc_char_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 ** Returns          status
 **
 *******************************************************************************/
-static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_srvc_cb)
+static void bta_gattc_char_dscpt_disc_cmpl(uint16_t conn_id, tBTA_GATTC_SERV *p_srvc_cb)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
 
@@ -600,7 +600,7 @@ static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
     else
     /* all characteristic has been explored, start with next service if any */
     {
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
         APPL_TRACE_ERROR("all char has been explored");
 #endif
         p_srvc_cb->cur_srvc_idx ++;
@@ -608,18 +608,18 @@ static void bta_gattc_char_dscpt_disc_cmpl(UINT16 conn_id, tBTA_GATTC_SERV *p_sr
     }
 
 }
-static BOOLEAN bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, UINT16 s_handle,
-                                      UINT16 e_handle, tBT_UUID uuid)
+static bool bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, uint16_t s_handle,
+                                      uint16_t e_handle, tBT_UUID uuid)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
-    UINT8   i;
-    BOOLEAN exist_srvc = FALSE;
+    uint8_t   i;
+    bool exist_srvc = false;
     UNUSED(uuid);
 
     if (!GATT_HANDLE_IS_VALID(s_handle) || !GATT_HANDLE_IS_VALID(e_handle))
     {
         APPL_TRACE_ERROR("invalid included service handle: [0x%04x ~ 0x%04x]", s_handle, e_handle);
-        exist_srvc = TRUE;
+        exist_srvc = true;
     }
     else
     {
@@ -630,7 +630,7 @@ static BOOLEAN bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, UINT16 s_handl
             /* a new service should not have any overlap with other service handle range */
             if (p_rec->s_handle == s_handle || p_rec->e_handle == e_handle)
             {
-                exist_srvc = TRUE;
+                exist_srvc = true;
                 break;
             }
         }
@@ -647,8 +647,8 @@ static BOOLEAN bta_gattc_srvc_in_list(tBTA_GATTC_SERV *p_srvc_cb, UINT16 s_handl
 **
 *******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
-                                                   UINT16 s_handle, UINT16 e_handle,
-                                                   tBT_UUID uuid, BOOLEAN is_primary)
+                                                   uint16_t s_handle, uint16_t e_handle,
+                                                   tBT_UUID uuid, bool is_primary)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
@@ -686,8 +686,8 @@ static tBTA_GATT_STATUS bta_gattc_add_srvc_to_list(tBTA_GATTC_SERV *p_srvc_cb,
 **
 *******************************************************************************/
 static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
-                                                   UINT16 decl_handle, UINT16 value_handle,
-                                                   tBT_UUID uuid, UINT8 property)
+                                                   uint16_t decl_handle, uint16_t value_handle,
+                                                   tBT_UUID uuid, uint8_t property)
 {
     tBTA_GATTC_ATTR_REC *p_rec = NULL;
     tBTA_GATT_STATUS    status = BTA_GATT_OK;
@@ -737,12 +737,12 @@ static tBTA_GATT_STATUS bta_gattc_add_char_to_list(tBTA_GATTC_SERV *p_srvc_cb,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
+void bta_gattc_sdp_callback(uint16_t sdp_status, void* user_data)
 {
     tSDP_DISC_REC       *p_sdp_rec = NULL;
     tBT_UUID            service_uuid;
     tSDP_PROTOCOL_ELEM  pe;
-    UINT16              start_handle = 0, end_handle = 0;
+    uint16_t              start_handle = 0, end_handle = 0;
     tBTA_GATTC_CB_DATA  *cb_data = (tBTA_GATTC_CB_DATA *)user_data;
     tBTA_GATTC_SERV     *p_srvc_cb = bta_gattc_find_scb_by_cid(cb_data->sdp_conn_id);
 
@@ -759,10 +759,10 @@ void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
 
                     if (SDP_FindProtocolListElemInRec(p_sdp_rec, UUID_PROTOCOL_ATT, &pe))
                     {
-                        start_handle    = (UINT16) pe.params[0];
-                        end_handle      = (UINT16) pe.params[1];
+                        start_handle    = (uint16_t) pe.params[0];
+                        end_handle      = (uint16_t) pe.params[1];
 
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
                         APPL_TRACE_EVENT("Found ATT service [0x%04x] handle[0x%04x ~ 0x%04x]",
                                         service_uuid.uu.uuid16, start_handle, end_handle);
 #endif
@@ -775,7 +775,7 @@ void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
                                                        start_handle,
                                                        end_handle,
                                                        service_uuid,
-                                                       TRUE);
+                                                       true);
                         }
                         else
                         {
@@ -813,11 +813,11 @@ void bta_gattc_sdp_callback(UINT16 sdp_status, void* user_data)
 ** Returns          void
 **
 *******************************************************************************/
-static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SERV *p_server_cb)
+static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(uint16_t conn_id, tBTA_GATTC_SERV *p_server_cb)
 {
     tSDP_UUID       uuid;
-    UINT16          num_attrs = 2;
-    UINT16          attr_list[2];
+    uint16_t          num_attrs = 2;
+    uint16_t          attr_list[2];
 
     memset (&uuid, 0, sizeof(tSDP_UUID));
 
@@ -859,10 +859,10 @@ static tBTA_GATT_STATUS bta_gattc_sdp_service_disc(UINT16 conn_id, tBTA_GATTC_SE
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data)
+void bta_gattc_disc_res_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_DISC_RES *p_data)
 {
     tBTA_GATTC_SERV * p_srvc_cb = NULL;
-    BOOLEAN          pri_srvc;
+    bool          pri_srvc;
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
     p_srvc_cb = bta_gattc_find_scb_by_cid(conn_id);
@@ -877,7 +877,7 @@ void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_
                                            p_data->handle,
                                            p_data->value.group_value.e_handle,
                                            p_data->value.group_value.service_type,
-                                           TRUE);
+                                           true);
 
                 break;
             case GATT_DISC_SRVC_BY_UUID:
@@ -885,7 +885,7 @@ void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_
                                            p_data->handle,
                                            p_data->value.group_value.e_handle,
                                            p_data->value.group_value.service_type,
-                                           TRUE);
+                                           true);
                 break;
 
             case GATT_DISC_INC_SRVC:
@@ -901,7 +901,7 @@ void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_
                                                p_data->value.incl_service.s_handle,
                                                p_data->value.incl_service.e_handle,
                                                p_data->value.incl_service.service_type,
-                                               FALSE);
+                                               false);
                 /* add into database */
                 bta_gattc_add_attr_to_cache(p_srvc_cb,
                                             p_data->handle,
@@ -928,7 +928,7 @@ void bta_gattc_disc_res_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_
         }
     }
 }
-void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status)
+void bta_gattc_disc_cmpl_cback (uint16_t conn_id, tGATT_DISC_TYPE disc_type, tGATT_STATUS status)
 {
     tBTA_GATTC_SERV * p_srvc_cb;
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
@@ -948,7 +948,7 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
         {
             case GATT_DISC_SRVC_ALL:
             case GATT_DISC_SRVC_BY_UUID:
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
                 bta_gattc_display_explore_record(p_srvc_cb->p_srvc_list, p_srvc_cb->next_avail_idx);
 #endif
                 bta_gattc_explore_srvc(conn_id, p_srvc_cb);
@@ -960,7 +960,7 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
                 break;
 
             case GATT_DISC_CHAR:
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
                 bta_gattc_display_explore_record(p_srvc_cb->p_srvc_list, p_srvc_cb->next_avail_idx);
 #endif
                 bta_gattc_char_disc_cmpl(conn_id, p_srvc_cb);
@@ -979,7 +979,7 @@ void bta_gattc_disc_cmpl_cback (UINT16 conn_id, tGATT_DISC_TYPE disc_type, tGATT
 **
 ** Description      search local cache for matching service record.
 **
-** Returns          FALSE if map can not be found.
+** Returns          false if map can not be found.
 **
 *******************************************************************************/
 void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
@@ -993,10 +993,10 @@ void bta_gattc_search_service(tBTA_GATTC_CLCB *p_clcb, tBT_UUID *p_uuid)
          sn != list_end(p_clcb->p_srcb->p_srvc_cache); sn = list_next(sn)) {
         tBTA_GATTC_SERVICE *p_cache = (tBTA_GATTC_SERVICE*) list_node(sn);
 
-        if (!bta_gattc_uuid_compare(p_uuid, &p_cache->uuid, FALSE))
+        if (!bta_gattc_uuid_compare(p_uuid, &p_cache->uuid, false))
             continue;
 
-#if (defined BTA_GATT_DEBUG && BTA_GATT_DEBUG == TRUE)
+#if (BTA_GATT_DEBUG == TRUE)
         APPL_TRACE_DEBUG("found service [0x%04x], inst[%d] handle [%d]",
                           p_cache->uuid.uu.uuid16,
                           p_cache->handle,
@@ -1022,7 +1022,7 @@ list_t* bta_gattc_get_services_srcb(tBTA_GATTC_SERV *p_srcb) {
     return p_srcb->p_srvc_cache;
 }
 
-const list_t* bta_gattc_get_services(UINT16 conn_id) {
+const list_t* bta_gattc_get_services(uint16_t conn_id) {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
     if (p_clcb == NULL )
@@ -1033,7 +1033,7 @@ const list_t* bta_gattc_get_services(UINT16 conn_id) {
     return bta_gattc_get_services_srcb(p_srcb);
 }
 
-tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, UINT16 handle) {
+tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, uint16_t handle) {
     if (!services || list_is_empty(services))
         return NULL;
 
@@ -1048,19 +1048,19 @@ tBTA_GATTC_SERVICE*  bta_gattc_find_matching_service(const list_t *services, UIN
     return NULL;
 }
 
-const tBTA_GATTC_SERVICE*  bta_gattc_get_service_for_handle_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle) {
+const tBTA_GATTC_SERVICE*  bta_gattc_get_service_for_handle_srcb(tBTA_GATTC_SERV *p_srcb, uint16_t handle) {
     const list_t *services = bta_gattc_get_services_srcb(p_srcb);
 
     return bta_gattc_find_matching_service(services, handle);
 }
 
-const tBTA_GATTC_SERVICE*  bta_gattc_get_service_for_handle(UINT16 conn_id, UINT16 handle) {
+const tBTA_GATTC_SERVICE*  bta_gattc_get_service_for_handle(uint16_t conn_id, uint16_t handle) {
     const list_t *services = bta_gattc_get_services(conn_id);
 
     return bta_gattc_find_matching_service(services, handle);
 }
 
-tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle) {
+tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p_srcb, uint16_t handle) {
     const tBTA_GATTC_SERVICE* service = bta_gattc_get_service_for_handle_srcb(p_srcb, handle);
 
     if (!service)
@@ -1076,7 +1076,7 @@ tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic_srcb(tBTA_GATTC_SERV *p
     return NULL;
 }
 
-tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic(UINT16 conn_id, UINT16 handle) {
+tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic(uint16_t conn_id, uint16_t handle) {
    tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
     if (p_clcb == NULL )
@@ -1086,7 +1086,7 @@ tBTA_GATTC_CHARACTERISTIC*  bta_gattc_get_characteristic(UINT16 conn_id, UINT16 
     return bta_gattc_get_characteristic_srcb(p_srcb, handle);
 }
 
-tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, UINT16 handle) {
+tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, uint16_t handle) {
     const tBTA_GATTC_SERVICE* service = bta_gattc_get_service_for_handle_srcb(p_srcb, handle);
 
     if (!service) {
@@ -1107,7 +1107,7 @@ tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor_srcb(tBTA_GATTC_SERV *p_srcb, U
     return NULL;
 }
 
-tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor(UINT16 conn_id, UINT16 handle) {
+tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor(uint16_t conn_id, uint16_t handle) {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
     if (p_clcb == NULL )
@@ -1128,9 +1128,9 @@ tBTA_GATTC_DESCRIPTOR*  bta_gattc_get_descriptor(UINT16 conn_id, UINT16 handle) 
 *******************************************************************************/
 void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
                                bt_gatt_db_attribute_type_t type,
-                               UINT16 att_handle,
-                               UINT16 s_handle, UINT16 e_handle,
-                               UINT16 id, tBT_UUID uuid, UINT8 prop)
+                               uint16_t att_handle,
+                               uint16_t s_handle, uint16_t e_handle,
+                               uint16_t id, tBT_UUID uuid, uint8_t prop)
 {
     p_attr->type             = type;
     p_attr->attribute_handle = att_handle;
@@ -1145,7 +1145,7 @@ void bta_gattc_fill_gatt_db_el(btgatt_db_element_t *p_attr,
 ** Returns          number of elements inside db from start_handle to end_handle
 *******************************************************************************/
 static size_t bta_gattc_get_db_size(list_t *services,
-                                 UINT16 start_handle, UINT16 end_handle) {
+                                 uint16_t start_handle, uint16_t end_handle) {
     if (!services || list_is_empty(services))
         return 0;
 
@@ -1198,7 +1198,7 @@ static size_t bta_gattc_get_db_size(list_t *services,
 **
 *******************************************************************************/
 static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
-                                       UINT16 start_handle, UINT16 end_handle,
+                                       uint16_t start_handle, uint16_t end_handle,
                                        btgatt_db_element_t **db,
                                        int *count)
 {
@@ -1311,7 +1311,7 @@ static void bta_gattc_get_gatt_db_impl(tBTA_GATTC_SERV *p_srvc_cb,
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_get_gatt_db(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle, btgatt_db_element_t **db, int *count)
+void bta_gattc_get_gatt_db(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle, btgatt_db_element_t **db, int *count)
 {
     tBTA_GATTC_CLCB *p_clcb = bta_gattc_find_clcb_by_conn_id(conn_id);
 
@@ -1346,7 +1346,7 @@ void bta_gattc_get_gatt_db(UINT16 conn_id, UINT16 start_handle, UINT16 end_handl
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
+void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, uint16_t num_attr,
                              tBTA_GATTC_NV_ATTR *p_attr)
 {
     /* first attribute loading, initialize buffer */
@@ -1400,9 +1400,9 @@ void bta_gattc_rebuild_cache(tBTA_GATTC_SERV *p_srvc_cb, UINT16 num_attr,
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_fill_nv_attr(tBTA_GATTC_NV_ATTR *p_attr, UINT8 type, UINT16 s_handle,
-                            UINT16 e_handle, tBT_UUID uuid, UINT8 prop, UINT16 incl_srvc_handle,
-                            BOOLEAN is_primary)
+void bta_gattc_fill_nv_attr(tBTA_GATTC_NV_ATTR *p_attr, uint8_t type, uint16_t s_handle,
+                            uint16_t e_handle, tBT_UUID uuid, uint8_t prop, uint16_t incl_srvc_handle,
+                            bool is_primary)
 {
     p_attr->s_handle    = s_handle;
     p_attr->e_handle    = e_handle;
@@ -1424,7 +1424,7 @@ void bta_gattc_fill_nv_attr(tBTA_GATTC_NV_ATTR *p_attr, UINT8 type, UINT16 s_han
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
+void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, uint16_t conn_id)
 {
     if (!p_srvc_cb->p_srvc_cache || list_is_empty(p_srvc_cb->p_srvc_cache))
         return;
@@ -1465,7 +1465,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
                                    p_char->uuid,
                                    p_char->properties,
                                    0 /* incl_srvc_handle */,
-                                   FALSE);
+                                   false);
 
             if (!p_char->descriptors || list_is_empty(p_char->descriptors))
                 continue;
@@ -1481,7 +1481,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
                                        p_desc->uuid,
                                        0 /* properties */,
                                        0 /* incl_srvc_handle */,
-                                       FALSE);
+                                       false);
             }
         }
 
@@ -1499,7 +1499,7 @@ void bta_gattc_cache_save(tBTA_GATTC_SERV *p_srvc_cb, UINT16 conn_id)
                                    p_isvc->uuid,
                                    0 /* properties */,
                                    p_isvc->included_service->s_handle,
-                                   FALSE);
+                                   false);
         }
     }
 
@@ -1530,12 +1530,12 @@ bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
         return false;
     }
 
-    UINT16 cache_ver = 0;
+    uint16_t cache_ver = 0;
     tBTA_GATTC_NV_ATTR  *attr = NULL;
     bool success = false;
-    UINT16 num_attr = 0;
+    uint16_t num_attr = 0;
 
-    if (fread(&cache_ver, sizeof(UINT16), 1, fd) != 1) {
+    if (fread(&cache_ver, sizeof(uint16_t), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't read GATT cache version from: %s", __func__, fname);
         goto done;
     }
@@ -1546,7 +1546,7 @@ bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb)
     }
 
 
-    if (fread(&num_attr, sizeof(UINT16), 1, fd) != 1) {
+    if (fread(&num_attr, sizeof(uint16_t), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't read number of GATT attributes: %s", __func__, fname);
         goto done;
     }
@@ -1581,7 +1581,7 @@ done:
 ** Returns
 **
 *******************************************************************************/
-static void bta_gattc_cache_write(BD_ADDR server_bda, UINT16 num_attr,
+static void bta_gattc_cache_write(BD_ADDR server_bda, uint16_t num_attr,
                            tBTA_GATTC_NV_ATTR *attr)
 {
     char fname[255] = {0};
@@ -1593,14 +1593,14 @@ static void bta_gattc_cache_write(BD_ADDR server_bda, UINT16 num_attr,
         return;
     }
 
-    UINT16 cache_ver = GATT_CACHE_VERSION;
-    if (fwrite(&cache_ver, sizeof(UINT16), 1, fd) != 1) {
+    uint16_t cache_ver = GATT_CACHE_VERSION;
+    if (fwrite(&cache_ver, sizeof(uint16_t), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't write GATT cache version: %s", __func__, fname);
         fclose(fd);
         return;
     }
 
-    if (fwrite(&num_attr, sizeof(UINT16), 1, fd) != 1) {
+    if (fwrite(&num_attr, sizeof(uint16_t), 1, fd) != 1) {
         APPL_TRACE_ERROR("%s: can't write GATT cache attribute count: %s", __func__, fname);
         fclose(fd);
         return;

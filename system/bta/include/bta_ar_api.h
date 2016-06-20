@@ -96,7 +96,7 @@ extern void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_ar_reg_avct(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask, tBTA_SYS_ID sys_id);
+extern void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_ID sys_id);
 
 /*******************************************************************************
 **
@@ -118,9 +118,9 @@ extern void bta_ar_dereg_avct(tBTA_SYS_ID sys_id);
 ** Returns          void
 **
 ******************************************************************************/
-extern void bta_ar_reg_avrc(UINT16 service_uuid, char *p_service_name,
-                            char *p_provider_name, UINT16 categories, tBTA_SYS_ID sys_id,
-                            BOOLEAN browse_supported, UINT16 profile_version);
+extern void bta_ar_reg_avrc(uint16_t service_uuid, char *p_service_name,
+                            char *p_provider_name, uint16_t categories, tBTA_SYS_ID sys_id,
+                            bool browse_supported, uint16_t profile_version);
 
 /******************************************************************************
 **
@@ -131,7 +131,7 @@ extern void bta_ar_reg_avrc(UINT16 service_uuid, char *p_service_name,
 ** Returns          void
 **
 ******************************************************************************/
-extern void bta_ar_dereg_avrc(UINT16 service_uuid, tBTA_SYS_ID sys_id);
+extern void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id);
 
 
 #ifdef __cplusplus

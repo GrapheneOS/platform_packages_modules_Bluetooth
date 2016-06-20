@@ -67,7 +67,7 @@ typedef union
 /* MCE control block */
 typedef struct
 {
-    UINT8              sdp_active;  /* see BTA_MCE_SDP_ACT_* */
+    uint8_t              sdp_active;  /* see BTA_MCE_SDP_ACT_* */
     BD_ADDR            remote_addr;
     tBTA_MCE_DM_CBACK  *p_dm_cback;
 } tBTA_MCE_CB;
@@ -79,7 +79,7 @@ enum
 };
 
 /* MCE control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_MCE_CB bta_mce_cb;
 #else
 extern tBTA_MCE_CB *bta_mce_cb_ptr;
@@ -89,7 +89,7 @@ extern tBTA_MCE_CB *bta_mce_cb_ptr;
 /* config struct */
 extern tBTA_MCE_CFG *p_bta_mce_cfg;
 
-extern BOOLEAN bta_mce_sm_execute(BT_HDR *p_msg);
+extern bool bta_mce_sm_execute(BT_HDR *p_msg);
 
 extern void bta_mce_enable (tBTA_MCE_MSG *p_data);
 extern void bta_mce_get_remote_mas_instances (tBTA_MCE_MSG *p_data);

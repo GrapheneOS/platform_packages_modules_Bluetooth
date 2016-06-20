@@ -108,7 +108,7 @@ void BTA_AgDisable(void)
 **
 *******************************************************************************/
 void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT features,
-                  const char * p_service_names[], UINT8 app_id)
+                  const char * p_service_names[], uint8_t app_id)
 {
     tBTA_AG_API_REGISTER *p_buf =
         (tBTA_AG_API_REGISTER *)osi_malloc(sizeof(tBTA_AG_API_REGISTER));
@@ -138,7 +138,7 @@ void BTA_AgRegister(tBTA_SERVICE_MASK services, tBTA_SEC sec_mask,tBTA_AG_FEAT f
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgDeregister(UINT16 handle)
+void BTA_AgDeregister(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -161,7 +161,7 @@ void BTA_AgDeregister(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services)
+void BTA_AgOpen(uint16_t handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_MASK services)
 {
     tBTA_AG_API_OPEN *p_buf =
         (tBTA_AG_API_OPEN *)osi_malloc(sizeof(tBTA_AG_API_OPEN));
@@ -186,7 +186,7 @@ void BTA_AgOpen(UINT16 handle, BD_ADDR bd_addr, tBTA_SEC sec_mask, tBTA_SERVICE_
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgClose(UINT16 handle)
+void BTA_AgClose(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -207,7 +207,7 @@ void BTA_AgClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioOpen(UINT16 handle)
+void BTA_AgAudioOpen(uint16_t handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -228,7 +228,7 @@ void BTA_AgAudioOpen(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgAudioClose(UINT16 handle)
+void BTA_AgAudioClose(uint16_t handle)
 {
     BT_HDR  *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -250,7 +250,7 @@ void BTA_AgAudioClose(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
+void BTA_AgResult(uint16_t handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
 {
     tBTA_AG_API_RESULT *p_buf =
         (tBTA_AG_API_RESULT *)osi_malloc(sizeof(tBTA_AG_API_RESULT));
@@ -276,7 +276,7 @@ void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec)
+void BTA_AgSetCodec(uint16_t handle, tBTA_AG_PEER_CODEC codec)
 {
     tBTA_AG_API_SETCODEC *p_buf =
         (tBTA_AG_API_SETCODEC *)osi_malloc(sizeof(tBTA_AG_API_SETCODEC));

@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bt_common.h"
@@ -56,7 +56,7 @@ static const tBTA_SYS_REG bta_gattc_reg =
 *******************************************************************************/
 void BTA_GATTC_Disable(void)
 {
-    if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
+    if (bta_sys_is_register(BTA_ID_GATTC) == false)
     {
         APPL_TRACE_WARNING("GATTC Module not enabled/already disabled");
         return;
@@ -87,7 +87,7 @@ void BTA_GATTC_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTC_CBACK *p_client_cb)
     tBTA_GATTC_API_REG *p_buf =
         (tBTA_GATTC_API_REG *)osi_malloc(sizeof(tBTA_GATTC_API_REG));
 
-    if (bta_sys_is_register(BTA_ID_GATTC) == FALSE)
+    if (bta_sys_is_register(BTA_ID_GATTC) == false)
         bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
 
     p_buf->hdr.event = BTA_GATTC_API_REG_EVT;
@@ -137,7 +137,7 @@ void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if)
 **
 *******************************************************************************/
 void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
-                    BOOLEAN is_direct, tBTA_GATT_TRANSPORT transport)
+                    bool is_direct, tBTA_GATT_TRANSPORT transport)
 {
     tBTA_GATTC_API_OPEN *p_buf =
        (tBTA_GATTC_API_OPEN *) osi_malloc(sizeof(tBTA_GATTC_API_OPEN));
@@ -165,7 +165,7 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN is_direct)
+void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct)
 {
     tBTA_GATTC_API_CANCEL_OPEN *p_buf =
         (tBTA_GATTC_API_CANCEL_OPEN *)osi_malloc(sizeof(tBTA_GATTC_API_CANCEL_OPEN));
@@ -189,7 +189,7 @@ void BTA_GATTC_CancelOpen(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, BOOLEAN i
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Close(UINT16 conn_id)
+void BTA_GATTC_Close(uint16_t conn_id)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -212,7 +212,7 @@ void BTA_GATTC_Close(UINT16 conn_id)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
+void BTA_GATTC_ConfigureMTU (uint16_t conn_id, uint16_t mtu)
 {
     tBTA_GATTC_API_CFG_MTU *p_buf =
         (tBTA_GATTC_API_CFG_MTU *)osi_malloc(sizeof(tBTA_GATTC_API_CFG_MTU));
@@ -240,7 +240,7 @@ void BTA_GATTC_ConfigureMTU (UINT16 conn_id, UINT16 mtu)
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ServiceSearchRequest (UINT16 conn_id, tBT_UUID *p_srvc_uuid)
+void BTA_GATTC_ServiceSearchRequest (uint16_t conn_id, tBT_UUID *p_srvc_uuid)
 {
     const size_t len = sizeof(tBTA_GATTC_API_SEARCH) + sizeof(tBT_UUID);
     tBTA_GATTC_API_SEARCH *p_buf = (tBTA_GATTC_API_SEARCH *)osi_calloc(len);
@@ -268,7 +268,7 @@ void BTA_GATTC_ServiceSearchRequest (UINT16 conn_id, tBT_UUID *p_srvc_uuid)
 ** Returns          returns list_t of tBTA_GATTC_SERVICE or NULL.
 **
 *******************************************************************************/
-const list_t* BTA_GATTC_GetServices(UINT16 conn_id) {
+const list_t* BTA_GATTC_GetServices(uint16_t conn_id) {
     return bta_gattc_get_services(conn_id);
 }
 
@@ -284,7 +284,7 @@ const list_t* BTA_GATTC_GetServices(UINT16 conn_id) {
 ** Returns          returns pointer to tBTA_GATTC_CHARACTERISTIC or NULL.
 **
 *******************************************************************************/
-const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_id, UINT16 handle) {
+const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(uint16_t conn_id, uint16_t handle) {
     return bta_gattc_get_characteristic(conn_id, handle);
 }
 
@@ -300,7 +300,7 @@ const tBTA_GATTC_CHARACTERISTIC* BTA_GATTC_GetCharacteristic(UINT16 conn_id, UIN
 ** Returns          returns pointer to tBTA_GATTC_DESCRIPTOR or NULL.
 **
 *******************************************************************************/
-const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 handle) {
+const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id, uint16_t handle) {
     return bta_gattc_get_descriptor(conn_id, handle);
 }
 
@@ -316,7 +316,7 @@ const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(UINT16 conn_id, UINT16 hand
 **                  count: number of elements in database.
 **
 *******************************************************************************/
-void  BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle,
+void  BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle,
                           btgatt_db_element_t **db, int *count)
 {
     bta_gattc_get_gatt_db(conn_id, start_handle, end_handle, db, count);
@@ -334,7 +334,7 @@ void  BTA_GATTC_GetGattDb(UINT16 conn_id, UINT16 start_handle, UINT16 end_handle
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req)
+void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_READ *p_buf =
         (tBTA_GATTC_API_READ *)osi_calloc(sizeof(tBTA_GATTC_API_READ));
@@ -360,7 +360,7 @@ void BTA_GATTC_ReadCharacteristic(UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ auth_req)
+void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_READ *p_buf =
         (tBTA_GATTC_API_READ *)osi_calloc(sizeof(tBTA_GATTC_API_READ));
@@ -387,7 +387,7 @@ void BTA_GATTC_ReadCharDescr (UINT16 conn_id, UINT16 handle, tBTA_GATT_AUTH_REQ 
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
+void BTA_GATTC_ReadMultiple(uint16_t conn_id, tBTA_GATTC_MULTI *p_read_multi,
                             tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_READ_MULTI *p_buf =
@@ -399,7 +399,7 @@ void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
     p_buf->num_attr = p_read_multi->num_attr;
 
     if (p_buf->num_attr > 0)
-        memcpy(p_buf->handles, p_read_multi->handles, sizeof(UINT16) * p_read_multi->num_attr);
+        memcpy(p_buf->handles, p_read_multi->handles, sizeof(uint16_t) * p_read_multi->num_attr);
 
     bta_sys_sendmsg(p_buf);
 }
@@ -418,8 +418,8 @@ void BTA_GATTC_ReadMultiple(UINT16 conn_id, tBTA_GATTC_MULTI *p_read_multi,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
-                                UINT16 handle,
+void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
+                                uint16_t handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
                                 std::vector<uint8_t> value,
                                 tBTA_GATT_AUTH_REQ auth_req)
@@ -436,7 +436,7 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
     p_buf->len = value.size();
 
     if (value.size() > 0) {
-        p_buf->p_value = (UINT8 *)(p_buf + 1);
+        p_buf->p_value = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->p_value, value.data(), value.size());
     }
 
@@ -457,8 +457,8 @@ void BTA_GATTC_WriteCharValue ( UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
-                               UINT16 handle,
+void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
+                               uint16_t handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
                                std::vector<uint8_t> value,
                                tBTA_GATT_AUTH_REQ auth_req)
@@ -474,7 +474,7 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
     p_buf->write_type = write_type;
 
     if (value.size() != 0) {
-        p_buf->p_value  = (UINT8 *)(p_buf + 1);
+        p_buf->p_value  = (uint8_t *)(p_buf + 1);
         p_buf->len      = value.size();
         memcpy(p_buf->p_value, value.data(), value.size());
     }
@@ -496,8 +496,8 @@ void BTA_GATTC_WriteCharDescr (UINT16 conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle, UINT16 offset,
-                              std::vector<uint8_t> value,
+void BTA_GATTC_PrepareWrite  (uint16_t conn_id, uint16_t handle,
+                              uint16_t offset, std::vector<uint8_t> value,
                               tBTA_GATT_AUTH_REQ auth_req)
 {
     tBTA_GATTC_API_WRITE *p_buf =
@@ -513,7 +513,7 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle, UINT16 offset,
     p_buf->len = value.size();
 
     if (value.size() > 0) {
-        p_buf->p_value = (UINT8 *)(p_buf + 1);
+        p_buf->p_value = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->p_value, value.data(), value.size());
     }
 
@@ -532,7 +532,7 @@ void BTA_GATTC_PrepareWrite  (UINT16 conn_id, UINT16 handle, UINT16 offset,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute)
+void BTA_GATTC_ExecuteWrite  (uint16_t conn_id, bool is_execute)
 {
     tBTA_GATTC_API_EXEC *p_buf =
         (tBTA_GATTC_API_EXEC *)osi_calloc(sizeof(tBTA_GATTC_API_EXEC));
@@ -556,7 +556,7 @@ void BTA_GATTC_ExecuteWrite  (UINT16 conn_id, BOOLEAN is_execute)
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle)
+void BTA_GATTC_SendIndConfirm (uint16_t conn_id, uint16_t handle)
 {
     tBTA_GATTC_API_CONFIRM *p_buf =
         (tBTA_GATTC_API_CONFIRM *)osi_calloc(sizeof(tBTA_GATTC_API_CONFIRM));
@@ -584,11 +584,11 @@ void BTA_GATTC_SendIndConfirm (UINT16 conn_id, UINT16 handle)
 **
 *******************************************************************************/
 tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
-                                                     const BD_ADDR bda, UINT16 handle)
+                                                     const BD_ADDR bda, uint16_t handle)
 {
     tBTA_GATTC_RCB      *p_clreg;
     tBTA_GATT_STATUS    status = BTA_GATT_ILLEGAL_PARAMETER;
-    UINT8               i;
+    uint8_t               i;
 
     if (!handle)
     {
@@ -617,7 +617,7 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
                 {
                     memset((void *)&p_clreg->notif_reg[i], 0, sizeof(tBTA_GATTC_NOTIF_REG));
 
-                    p_clreg->notif_reg[i].in_use = TRUE;
+                    p_clreg->notif_reg[i].in_use = true;
                     memcpy(p_clreg->notif_reg[i].remote_bda, bda, BD_ADDR_LEN);
 
                     p_clreg->notif_reg[i].handle = handle;
@@ -654,7 +654,7 @@ tBTA_GATT_STATUS BTA_GATTC_RegisterForNotifications (tBTA_GATTC_IF client_if,
 **
 *******************************************************************************/
 tBTA_GATT_STATUS BTA_GATTC_DeregisterForNotifications (tBTA_GATTC_IF client_if,
-                                                       const BD_ADDR bda, UINT16 handle)
+                                                       const BD_ADDR bda, uint16_t handle)
 {
     if (!handle) {
         APPL_TRACE_ERROR("%s: deregistration failed, handle is 0", __func__);
@@ -721,7 +721,7 @@ void BTA_GATTC_Refresh(const BD_ADDR remote_bda)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target_bda)
+void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, bool start, BD_ADDR_PTR target_bda)
 {
     tBTA_GATTC_API_LISTEN *p_buf =
         (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);
@@ -730,7 +730,7 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target
     p_buf->client_if = client_if;
     p_buf->start = start;
     if (target_bda) {
-        p_buf->remote_bda = (UINT8*)(p_buf + 1);
+        p_buf->remote_bda = (uint8_t*)(p_buf + 1);
         memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
     } else {
         p_buf->remote_bda = NULL;
@@ -751,7 +751,7 @@ void BTA_GATTC_Listen(tBTA_GATTC_IF client_if, BOOLEAN start, BD_ADDR_PTR target
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, BOOLEAN start)
+void BTA_GATTC_Broadcast(tBTA_GATTC_IF client_if, bool start)
 {
     tBTA_GATTC_API_LISTEN *p_buf =
         (tBTA_GATTC_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTC_API_LISTEN) + BD_ADDR_LEN);

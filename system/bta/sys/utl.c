@@ -39,9 +39,9 @@
 ** Returns          Integer value or -1 on error.
 **
 *******************************************************************************/
-INT16 utl_str2int(const char *p_s)
+int16_t utl_str2int(const char *p_s)
 {
-    INT32   val = 0;
+    int32_t   val = 0;
 
     for (;*p_s == ' ' && *p_s != 0; p_s++);
 
@@ -51,13 +51,13 @@ INT16 utl_str2int(const char *p_s)
     {
         if ((*p_s < '0') || (*p_s > '9')) return -1;
 
-        val += (INT32) (*p_s++ - '0');
+        val += (int32_t) (*p_s++ - '0');
 
         if (val > 32767) return -1;
 
         if (*p_s == 0)
         {
-            return (INT16) val;
+            return (int16_t) val;
         }
         else
         {
@@ -111,7 +111,7 @@ int utl_strucmp(const char *p_s, const char *p_t)
 **
 ** Function         utl_itoa
 **
-** Description      This utility function converts a UINT16 to a string.  The
+** Description      This utility function converts a uint16_t to a string.  The
 **                  string is NULL-terminated.  The length of the string is
 **                  returned;
 **
@@ -119,11 +119,11 @@ int utl_strucmp(const char *p_s, const char *p_t)
 ** Returns          Length of string.
 **
 *******************************************************************************/
-UINT8 utl_itoa(UINT16 i, char *p_s)
+uint8_t utl_itoa(uint16_t i, char *p_s)
 {
-    UINT16  j, k;
+    uint16_t  j, k;
     char    *p = p_s;
-    BOOLEAN fill = FALSE;
+    bool fill = false;
 
     if (i == 0)
     {
@@ -139,12 +139,12 @@ UINT8 utl_itoa(UINT16 i, char *p_s)
             if (k > 0 || fill)
             {
               *p++ = k + '0';
-              fill = TRUE;
+              fill = true;
             }
         }
     }
     *p = 0;
-    return (UINT8) (p - p_s);
+    return (uint8_t) (p - p_s);
 }
 
 /*******************************************************************************
@@ -163,14 +163,14 @@ UINT8 utl_itoa(UINT16 i, char *p_s)
 **                            BTA_UTL_SET_COD_ALL - overwrite major, minor, set the bits in service class
 **                            BTA_UTL_INIT_COD - overwrite major, minor, and service class
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd)
+bool utl_set_device_class(tBTA_UTL_COD *p_cod, uint8_t cmd)
 {
-    UINT8 *dev;
-    UINT16 service;
-    UINT8  minor, major;
+    uint8_t *dev;
+    uint16_t service;
+    uint8_t  minor, major;
     DEV_CLASS dev_class;
 
     dev = BTM_ReadDeviceClass();
@@ -210,16 +210,16 @@ BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd)
         break;
 
     default:
-        return FALSE;
+        return false;
     }
 
     /* convert the fields into the device class type */
     FIELDS_TO_COD(dev_class, minor, major, service);
 
     if (BTM_SetDeviceClass(dev_class) == BTM_SUCCESS)
-        return TRUE;
+        return true;
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -230,20 +230,20 @@ BOOLEAN utl_set_device_class(tBTA_UTL_COD *p_cod, UINT8 cmd)
 **                  integer string or not
 **
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-BOOLEAN utl_isintstr(const char *p_s)
+bool utl_isintstr(const char *p_s)
 {
-    UINT16 i = 0;
+    uint16_t i = 0;
 
     for(i=0; p_s[i] != 0; i++)
     {
         if(((p_s[i] < '0') || (p_s[i] > '9')) && (p_s[i] != ';'))
-            return FALSE;
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -254,12 +254,12 @@ BOOLEAN utl_isintstr(const char *p_s)
 **                  only dial digits or not
 **
 **
-** Returns          TRUE if successful, Otherwise FALSE
+** Returns          true if successful, Otherwise false
 **
 *******************************************************************************/
-BOOLEAN utl_isdialstr(const char *p_s)
+bool utl_isdialstr(const char *p_s)
 {
-    UINT16 i = 0;
+    uint16_t i = 0;
 
     for(i=0; p_s[i] != 0; i++)
     {
@@ -268,10 +268,10 @@ BOOLEAN utl_isdialstr(const char *p_s)
             || ((p_s[i] >= 'A') && (p_s[i] <= 'C'))
             || ((p_s[i] == 'p') || (p_s[i] == 'P')
             || (p_s[i] == 'w') || (p_s[i] == 'W'))))
-            return FALSE;
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 

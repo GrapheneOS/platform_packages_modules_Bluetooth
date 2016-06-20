@@ -41,9 +41,9 @@ tBTA_AR_CB  bta_ar_cb;
 ** Returns          void
 **
 *******************************************************************************/
-static UINT8 bta_ar_id(tBTA_SYS_ID sys_id)
+static uint8_t bta_ar_id(tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = 0;
+    uint8_t   mask = 0;
     if (sys_id == BTA_ID_AV)
     {
         mask = BTA_AR_AV_MASK;
@@ -80,7 +80,7 @@ void bta_ar_init(void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ar_avdt_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_CTRL *p_data)
+static void bta_ar_avdt_cback(uint8_t handle, BD_ADDR bd_addr, uint8_t event, tAVDT_CTRL *p_data)
 {
     /* route the AVDT registration callback to av or avk */
     if (bta_ar_cb.p_av_conn_cback)
@@ -100,7 +100,7 @@ static void bta_ar_avdt_cback(UINT8 handle, BD_ADDR bd_addr, UINT8 event, tAVDT_
 *******************************************************************************/
 void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = 0;
+    uint8_t   mask = 0;
 
     if (sys_id == BTA_ID_AV)
     {
@@ -140,7 +140,7 @@ void bta_ar_reg_avdt(tAVDT_REG *p_reg, tAVDT_CTRL_CBACK *p_cback, tBTA_SYS_ID sy
 *******************************************************************************/
 void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = 0;
+    uint8_t   mask = 0;
 
     if (sys_id == BTA_ID_AV)
     {
@@ -172,7 +172,7 @@ void bta_ar_dereg_avdt(tBTA_SYS_ID sys_id)
 *******************************************************************************/
 void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr)
 {
-    UINT8       event = BTA_AR_AVDT_CONN_EVT;
+    uint8_t     event = BTA_AR_AVDT_CONN_EVT;
     tAVDT_CTRL  data;
 
     if (sys_id == BTA_ID_AV)
@@ -200,9 +200,9 @@ void bta_ar_avdt_conn(tBTA_SYS_ID sys_id, BD_ADDR bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ar_reg_avct(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask, tBTA_SYS_ID sys_id)
+void bta_ar_reg_avct(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask, tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = bta_ar_id (sys_id);
+    uint8_t   mask = bta_ar_id (sys_id);
 
     if (mask)
     {
@@ -225,7 +225,7 @@ void bta_ar_reg_avct(UINT16 mtu, UINT16 mtu_br, UINT8 sec_mask, tBTA_SYS_ID sys_
 *******************************************************************************/
 void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = bta_ar_id (sys_id);
+    uint8_t   mask = bta_ar_id (sys_id);
 
     bta_ar_cb.avct_registered &= ~mask;
 
@@ -242,12 +242,12 @@ void bta_ar_dereg_avct(tBTA_SYS_ID sys_id)
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_name,
-                     UINT16 categories, tBTA_SYS_ID sys_id, BOOLEAN browse_supported,
-                     UINT16 profile_version)
+void bta_ar_reg_avrc(uint16_t service_uuid, char *service_name, char *provider_name,
+                     uint16_t categories, tBTA_SYS_ID sys_id, bool browse_supported,
+                     uint16_t profile_version)
 {
-    UINT8   mask = bta_ar_id (sys_id);
-    UINT8   temp[8], *p;
+    uint8_t   mask = bta_ar_id (sys_id);
+    uint8_t   temp[8], *p;
 
     if (!mask || !categories)
         return;
@@ -284,7 +284,7 @@ void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_nam
             p = temp;
             UINT16_TO_BE_STREAM(p, categories);
             SDP_AddAttribute(bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-                      (UINT32)2, (UINT8*)temp);
+                      (uint32_t)2, (uint8_t*)temp);
         }
     }
 }
@@ -298,11 +298,11 @@ void bta_ar_reg_avrc(UINT16 service_uuid, char *service_name, char *provider_nam
 ** Returns          void
 **
 ******************************************************************************/
-void bta_ar_dereg_avrc(UINT16 service_uuid, tBTA_SYS_ID sys_id)
+void bta_ar_dereg_avrc(uint16_t service_uuid, tBTA_SYS_ID sys_id)
 {
-    UINT8   mask = bta_ar_id (sys_id);
-    UINT16  categories = 0;
-    UINT8   temp[8], *p;
+    uint8_t   mask = bta_ar_id (sys_id);
+    uint16_t  categories = 0;
+    uint8_t   temp[8], *p;
 
     if (!mask)
         return;
@@ -336,7 +336,7 @@ void bta_ar_dereg_avrc(UINT16 service_uuid, tBTA_SYS_ID sys_id)
                 p = temp;
                 UINT16_TO_BE_STREAM(p, categories);
                 SDP_AddAttribute(bta_ar_cb.sdp_ct_handle, ATTR_ID_SUPPORTED_FEATURES, UINT_DESC_TYPE,
-                          (UINT32)2, (UINT8*)temp);
+                          (uint32_t)2, (uint8_t*)temp);
             }
         }
     }
