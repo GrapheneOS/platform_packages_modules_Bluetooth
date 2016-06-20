@@ -155,11 +155,11 @@ bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
 }
 
 bt_status_t FakeSendIndication(int server_if, int attribute_handle,
-                               int conn_id, int len, int confirm,
-                               char* value) {
+                               int conn_id, int confirm,
+                               vector<uint8_t> value) {
   if (g_server_handler)
     return g_server_handler->SendIndication(server_if, attribute_handle,
-                                            conn_id, len, confirm, value);
+                                            conn_id, confirm, std::move(value));
 
   return BT_STATUS_FAIL;
 }
