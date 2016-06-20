@@ -59,6 +59,7 @@
 
 using base::Bind;
 using base::Owned;
+using std::vector;
 
 extern bt_status_t do_in_jni_thread(const base::Closure &task);
 extern bt_status_t btif_gattc_test_command_impl(int command,
@@ -856,29 +857,20 @@ bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
   CHECK_BTGATT_INIT();
 
   len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-  // callback will own this value and free it.
-  UINT8 *value = new UINT8[len];
-  memcpy(value, p_value, len);
+  vector<uint8_t> value(p_value, p_value + len);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharValue, conn_id, handle,
-                               write_type, len, base::Owned(value), auth_req));
+                               write_type, std::move(value), auth_req));
 }
 
 bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
                                         int write_type, int len, int auth_req,
                                         char *p_value) {
   len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-
-  // callback will own this value and free it
-  // TODO(jpawlowski): This one is little hacky because of unfmt type,
-  // make it accept len an val like BTA_GATTC_WriteCharValue
-  tBTA_GATT_UNFMT *value = (tBTA_GATT_UNFMT *)new UINT8[sizeof(UINT16) + len];
-  value->len = len;
-  value->p_value = ((UINT8 *)value) + 2;
-  memcpy(value->p_value, p_value, len);
+  vector<uint8_t> value(p_value, p_value + len);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharDescr, conn_id, handle,
-                               write_type, Owned(value), auth_req));
+                               write_type, std::move(value), auth_req));
 }
 
 bt_status_t btif_gattc_execute_write(int conn_id, int execute) {

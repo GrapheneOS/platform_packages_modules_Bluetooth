@@ -25,6 +25,11 @@
 
 #include <string.h>
 
+#include <list>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "bta_hh_co.h"
@@ -35,6 +40,8 @@
 #include "srvc_api.h"
 #include "stack/include/l2c_api.h"
 #include "utl.h"
+
+using std::vector;
 
 #ifndef BTA_HH_LE_RECONN
 #define BTA_HH_LE_RECONN    TRUE
@@ -71,159 +78,93 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, BOOLEAN check_bond);
 #define GATT_WRITE_DESC 3
 
 /* Holds pending GATT operations */
-typedef struct {
+struct gatt_operation {
     UINT8 type;
-    UINT16 conn_id;
     UINT16 handle;
 
     /* write-specific fields */
     tBTA_GATTC_WRITE_TYPE write_type;
-    UINT16  len;
-    UINT8   p_value[GATT_MAX_ATTR_LEN];
-} gatt_operation;
+    vector<uint8_t> value;
+};
 
-static list_t *gatt_op_queue = NULL; // list of gatt_operation
-static list_t *gatt_op_queue_executing = NULL; // list of UINT16 connection ids that currently execute
-
-static void mark_as_executing(UINT16 conn_id) {
-    UINT16 *executing_conn_id = (UINT16*) osi_malloc(sizeof(UINT16));
-    *executing_conn_id = conn_id;
-    if (!gatt_op_queue_executing)
-        gatt_op_queue_executing = list_new(osi_free);
-
-    list_append(gatt_op_queue_executing, executing_conn_id);
-}
-
-static bool rm_exec_conn_id(void *data, void *context) {
-    UINT16 *conn_id = (UINT16*) context;
-    UINT16 *conn_id2 = (UINT16*) data;
-    if (*conn_id == *conn_id2)
-        list_remove(gatt_op_queue_executing, data);
-
-    return TRUE;
-}
+// maps connection id to operations waiting for execution
+static std::unordered_map<uint16_t, std::list<gatt_operation>> gatt_op_queue;
+// contain connection ids that currently execute operations
+static std::unordered_set<uint16_t> gatt_op_queue_executing;
 
 static void mark_as_not_executing(UINT16 conn_id) {
-    if (gatt_op_queue_executing)
-        list_foreach(gatt_op_queue_executing, rm_exec_conn_id, &conn_id);
-}
-
-static bool exec_list_contains(void *data, void *context) {
-    UINT16 *conn_id = (UINT16*) context;
-    UINT16 *conn_id2 = (UINT16*) data;
-    if (*conn_id == *conn_id2)
-        return FALSE;
-
-    return TRUE;
-}
-
-static bool rm_op_by_conn_id(void *data, void *context) {
-    UINT16 *conn_id = (UINT16*) context;
-    gatt_operation *op = (gatt_operation*) data;
-    if(op->conn_id == *conn_id)
-        list_remove(gatt_op_queue, data);
-
-    return TRUE;
+    gatt_op_queue_executing.erase(conn_id);
 }
 
 static void gatt_op_queue_clean(UINT16 conn_id) {
-    if (gatt_op_queue)
-        list_foreach(gatt_op_queue, rm_op_by_conn_id, &conn_id);
-
-    mark_as_not_executing(conn_id);
-}
-
-static bool find_op_by_conn_id(void *data, void *context) {
-    UINT16 *conn_id = (UINT16*) context;
-    gatt_operation *op = (gatt_operation*) data;
-    if(op->conn_id == *conn_id)
-        return FALSE;
-
-    return TRUE;
+    gatt_op_queue.erase(conn_id);
+    gatt_op_queue_executing.erase(conn_id);
 }
 
 static void gatt_execute_next_op(UINT16 conn_id) {
     APPL_TRACE_DEBUG("%s:", __func__, conn_id);
-    if (!gatt_op_queue || list_is_empty(gatt_op_queue)) {
+    if (gatt_op_queue.empty()) {
         APPL_TRACE_DEBUG("%s: op queue is empty", __func__);
         return;
     }
 
-    list_node_t *op_node = list_foreach(gatt_op_queue, find_op_by_conn_id, &conn_id);
-    if (op_node == NULL) {
+    auto map_ptr = gatt_op_queue.find(conn_id);
+    if (map_ptr == gatt_op_queue.end() || map_ptr->second.empty()) {
         APPL_TRACE_DEBUG("%s: no more operations queued for conn_id %d", __func__, conn_id);
         return;
     }
-    gatt_operation *op = (gatt_operation*) list_node(op_node);
 
-    if (gatt_op_queue_executing && list_foreach(gatt_op_queue_executing, exec_list_contains, &conn_id)) {
+    if (gatt_op_queue_executing.count(conn_id)) {
         APPL_TRACE_DEBUG("%s: can't enqueue next op, already executing", __func__);
         return;
     }
 
-    if (op->type == GATT_READ_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(op->conn_id, op->handle);
+    gatt_op_queue_executing.insert(conn_id);
 
-        mark_as_executing(conn_id);
-        BTA_GATTC_ReadCharacteristic(op->conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE);
-        list_remove(gatt_op_queue, op);
+    std::list<gatt_operation> &gatt_ops = map_ptr->second;
 
-    } else if (op->type == GATT_READ_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(op->conn_id, op->handle);
+    gatt_operation &op = gatt_ops.front();
 
-        mark_as_executing(conn_id);
-        BTA_GATTC_ReadCharDescr(op->conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE);
-        list_remove(gatt_op_queue, op);
-    } else if (op->type == GATT_WRITE_CHAR) {
-        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(op->conn_id, op->handle);
-        mark_as_executing(conn_id);
-        BTA_GATTC_WriteCharValue(op->conn_id, p_char->handle, op->write_type, op->len,
-                                 op->p_value, BTA_GATT_AUTH_REQ_NONE);
+    if (op.type == GATT_READ_CHAR) {
+        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
+        BTA_GATTC_ReadCharacteristic(conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE);
 
-        list_remove(gatt_op_queue, op);
-    } else if (op->type == GATT_WRITE_DESC) {
-        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(op->conn_id, op->handle);
+    } else if (op.type == GATT_READ_DESC) {
+        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
+        BTA_GATTC_ReadCharDescr(conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE);
 
-        tBTA_GATT_UNFMT value;
-        value.len = op->len;
-        value.p_value = op->p_value;
+    } else if (op.type == GATT_WRITE_CHAR) {
+        const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
+        BTA_GATTC_WriteCharValue(conn_id, p_char->handle, op.write_type, std::move(op.value),
+                                 BTA_GATT_AUTH_REQ_NONE);
 
-        mark_as_executing(conn_id);
-        BTA_GATTC_WriteCharDescr(op->conn_id, p_desc->handle, BTA_GATTC_TYPE_WRITE,
-                                 &value, BTA_GATT_AUTH_REQ_NONE);
-        list_remove(gatt_op_queue, op);
+    } else if (op.type == GATT_WRITE_DESC) {
+        const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
+        BTA_GATTC_WriteCharDescr(conn_id, p_desc->handle, BTA_GATTC_TYPE_WRITE,
+                                 std::move(op.value), BTA_GATT_AUTH_REQ_NONE);
     }
+
+    gatt_ops.pop_front();
 }
 
 static void gatt_queue_read_op(UINT8 op_type, UINT16 conn_id, UINT16 handle) {
-  if (gatt_op_queue == NULL) {
-    gatt_op_queue = list_new(osi_free);
-  }
-
-  gatt_operation *op = (gatt_operation*) osi_malloc(sizeof(gatt_operation));
-  op->type = op_type;
-  op->conn_id = conn_id;
-  op->handle = handle;
-
-  list_append(gatt_op_queue, op);
+  gatt_operation op;
+  op.type = op_type;
+  op.handle = handle;
+  gatt_op_queue[conn_id].push_back(op);
   gatt_execute_next_op(conn_id);
 }
 
-static void gatt_queue_write_op(UINT8 op_type, UINT16 conn_id, UINT16 handle, UINT16 len,
-                        UINT8 *p_value, tBTA_GATTC_WRITE_TYPE write_type) {
-  if (gatt_op_queue == NULL) {
-    gatt_op_queue = list_new(osi_free);
-  }
+static void gatt_queue_write_op(UINT8 op_type, UINT16 conn_id, UINT16 handle,
+                                vector<uint8_t> value,
+                                tBTA_GATTC_WRITE_TYPE write_type) {
+  gatt_operation op;
+  op.type = op_type;
+  op.handle = handle;
+  op.write_type = write_type;
+  op.value = std::move(value);
 
-  gatt_operation *op = (gatt_operation*) osi_malloc(sizeof(gatt_operation));
-  op->type = op_type;
-  op->conn_id = conn_id;
-  op->handle = handle;
-  op->write_type = write_type;
-  op->len = len;
-  memcpy(op->p_value, p_value, len);
-
-  list_append(gatt_op_queue, op);
+  gatt_op_queue[conn_id].push_back(op);
   gatt_execute_next_op(conn_id);
 }
 
@@ -876,16 +817,17 @@ BOOLEAN bta_hh_le_write_char_clt_cfg(tBTA_HH_DEV_CB *p_cb,
                                      UINT8 char_handle,
                                      UINT16 clt_cfg_value)
 {
-    UINT8                      buf[2], *pp = buf;
-
     tBTA_GATTC_DESCRIPTOR *p_desc = find_descriptor_by_short_uuid(p_cb->conn_id,
                                        char_handle, GATT_UUID_CHAR_CLIENT_CONFIG);
     if (!p_desc)
         return FALSE;
 
-    UINT16_TO_STREAM(pp, clt_cfg_value);
-    gatt_queue_write_op(GATT_WRITE_DESC, p_cb->conn_id,
-                        p_desc->handle, 2, buf, BTA_GATTC_TYPE_WRITE);
+    vector<uint8_t> value(2);
+    uint8_t* ptr = value.data();
+    UINT16_TO_STREAM(ptr, clt_cfg_value);
+
+    gatt_queue_write_op(GATT_WRITE_DESC, p_cb->conn_id, p_desc->handle,
+                        std::move(value), BTA_GATTC_TYPE_WRITE);
     return TRUE;
 }
 
@@ -938,7 +880,6 @@ BOOLEAN bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb, UINT8 srvc_inst_id)
 BOOLEAN bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB *p_cb, tBTA_HH_PROTO_MODE mode)
 {
     tBTA_HH_CBDATA      cback_data;
-    BOOLEAN             exec = FALSE;
 
     APPL_TRACE_DEBUG("%s attempt mode: %s", __func__,
                      (mode == BTA_HH_PROTO_RPT_MODE)? "Report": "Boot");
@@ -970,12 +911,12 @@ BOOLEAN bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB *p_cb, tBTA_HH_PROTO_MODE mod
         p_cb->mode = mode;
         mode = (mode == BTA_HH_PROTO_BOOT_MODE)? BTA_HH_LE_PROTO_BOOT_MODE : BTA_HH_LE_PROTO_REPORT_MODE;
 
-        gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.proto_mode_handle, 1,
-                            &mode, BTA_GATTC_TYPE_WRITE_NO_RSP);
-        exec        = TRUE;
+        gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.proto_mode_handle,
+                            { mode }, BTA_GATTC_TYPE_WRITE_NO_RSP);
+        return true;
     }
 
-    return exec;
+    return false;
 }
 
 /*******************************************************************************
@@ -2284,21 +2225,20 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
                          BT_HDR *p_buf, UINT16 w4_evt )
 {
     tBTA_HH_LE_RPT  *p_rpt;
-    UINT8   *p_value, rpt_id;
+    UINT8 rpt_id;
 
     if (p_buf == NULL || p_buf->len == 0)
     {
-        APPL_TRACE_ERROR("bta_hh_le_write_rpt: Illegal data");
+        APPL_TRACE_ERROR("%s: Illegal data", __func__);
         return;
     }
 
     /* strip report ID from the data */
-    p_value = (UINT8 *)(p_buf + 1) + p_buf->offset;
-    STREAM_TO_UINT8(rpt_id, p_value);
-    p_buf->len -= 1;
+    uint8_t *vec_start = (UINT8 *)(p_buf + 1) + p_buf->offset;
+    STREAM_TO_UINT8(rpt_id, vec_start);
+    vector<uint8_t> value(vec_start, vec_start + p_buf->len - 1);
 
     p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report, p_cb->mode, r_type, rpt_id);
-
     if (p_rpt == NULL) {
         APPL_TRACE_ERROR("%s: no matching report", __func__);
         osi_free(p_buf);
@@ -2315,7 +2255,7 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
         write_type = BTA_GATTC_TYPE_WRITE_NO_RSP;
 
     gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_rpt->char_inst_id,
-                        p_buf->len, p_value, write_type);
+                        std::move(value), write_type);
 }
 
 /*******************************************************************************
@@ -2331,8 +2271,8 @@ void bta_hh_le_suspend(tBTA_HH_DEV_CB *p_cb, tBTA_HH_TRANS_CTRL_TYPE ctrl_type)
 {
     ctrl_type -= BTA_HH_CTRL_SUSPEND;
 
-    gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.control_point_handle, 1,
-                        &ctrl_type, BTA_GATTC_TYPE_WRITE_NO_RSP);
+    gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.control_point_handle,
+                        {(uint8_t) ctrl_type}, BTA_GATTC_TYPE_WRITE_NO_RSP);
 }
 
 /*******************************************************************************
@@ -2611,7 +2551,7 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id)
     index = bta_hh_find_cb(bd_addr);
     if ((index = bta_hh_find_cb(bd_addr))== BTA_HH_IDX_INVALID)
     {
-        APPL_TRACE_ERROR("unknown device");
+        APPL_TRACE_ERROR("%s: unknown device", __func__);
         return;
     }
 
@@ -2621,7 +2561,7 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, UINT8 rpt_id)
 
     if (p_rpt == NULL)
     {
-        APPL_TRACE_ERROR("bta_hh_le_write_rpt: no matching report");
+        APPL_TRACE_ERROR("%s: no matching report", __func__);
         return;
     }
 
