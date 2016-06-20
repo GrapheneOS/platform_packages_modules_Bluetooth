@@ -40,14 +40,14 @@ enum
     BTA_SYS_HW_ON,
     BTA_SYS_HW_STOPPING
 };
-typedef UINT8 tBTA_SYS_HW_STATE;
+typedef uint8_t tBTA_SYS_HW_STATE;
 
 /* Collision callback */
 #define MAX_COLLISION_REG   5
 
 typedef struct
 {
-    UINT8                   id[MAX_COLLISION_REG];
+    uint8_t                   id[MAX_COLLISION_REG];
     tBTA_SYS_CONN_CBACK     *p_coll_cback[MAX_COLLISION_REG];
 } tBTA_SYS_COLLISION;
 
@@ -55,11 +55,11 @@ typedef struct
 typedef struct
 {
     tBTA_SYS_REG            *reg[BTA_ID_MAX];       /* registration structures */
-    BOOLEAN                 is_reg[BTA_ID_MAX];     /* registration structures */
+    bool                 is_reg[BTA_ID_MAX];     /* registration structures */
     tBTA_SYS_HW_STATE state;
     tBTA_SYS_HW_CBACK *sys_hw_cback[BTA_SYS_MAX_HW_MODULES];    /* enable callback for each HW modules */
-    UINT32                  sys_hw_module_active;   /* bitmask of all active modules */
-    UINT16                  sys_features;           /* Bitmask of sys features */
+    uint32_t                  sys_hw_module_active;   /* bitmask of all active modules */
+    uint16_t                  sys_features;           /* Bitmask of sys features */
 
     tBTA_SYS_CONN_CBACK     *prm_cb;                 /* role management callback registered by DM */
     tBTA_SYS_CONN_CBACK     *ppm_cb;                 /* low power management callback registered by DM */
@@ -83,7 +83,7 @@ typedef struct
 *****************************************************************************/
 
 /* system manager control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_SYS_CB bta_sys_cb;
 #else
 extern tBTA_SYS_CB *bta_sys_cb_ptr;
@@ -99,6 +99,6 @@ void bta_sys_hw_evt_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg);
 void bta_sys_hw_evt_disabled(tBTA_SYS_HW_MSG *p_sys_hw_msg);
 void bta_sys_hw_evt_stack_enabled(tBTA_SYS_HW_MSG *p_sys_hw_msg);
 
-BOOLEAN bta_sys_sm_execute(BT_HDR *p_msg);
+bool bta_sys_sm_execute(BT_HDR *p_msg);
 
 #endif /* BTA_SYS_INT_H */

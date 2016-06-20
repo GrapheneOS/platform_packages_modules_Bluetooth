@@ -35,9 +35,9 @@ extern "C" {
 **  Constants and data types
 *****************************************************************************/
 
-/* TRUE to use SCMS-T content protection */
+/* true to use SCMS-T content protection */
 #ifndef BTA_AV_CO_CP_SCMS_T
-#define BTA_AV_CO_CP_SCMS_T     FALSE
+#define BTA_AV_CO_CP_SCMS_T     false
 #endif
 
 /* the content protection IDs assigned by BT SIG */
@@ -67,12 +67,12 @@ enum
 /* data type for the Audio Codec Information*/
 typedef struct
 {
-    UINT16  bit_rate;       /* SBC encoder bit rate in kbps */
-    UINT16  bit_rate_busy;  /* SBC encoder bit rate in kbps */
-    UINT16  bit_rate_swampd;/* SBC encoder bit rate in kbps */
-    UINT8   busy_level;     /* Busy level indicating the bit-rate to be used */
-    UINT8   codec_info[AVDT_CODEC_SIZE];
-    UINT8   codec_type;     /* Codec type */
+    uint16_t  bit_rate;       /* SBC encoder bit rate in kbps */
+    uint16_t  bit_rate_busy;  /* SBC encoder bit rate in kbps */
+    uint16_t  bit_rate_swampd;/* SBC encoder bit rate in kbps */
+    uint8_t   busy_level;     /* Busy level indicating the bit-rate to be used */
+    uint8_t   codec_info[AVDT_CODEC_SIZE];
+    uint8_t   codec_type;     /* Codec type */
 } tBTA_AV_AUDIO_CODEC_INFO;
 
 /*******************************************************************************
@@ -88,8 +88,8 @@ typedef struct
 ** Returns          Stream codec and content protection capabilities info.
 **
 *******************************************************************************/
-extern BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info,
-                                    UINT8 *p_num_protect, UINT8 *p_protect_info, UINT8 index);
+extern bool bta_av_co_audio_init(uint8_t *p_codec_type, uint8_t *p_codec_info,
+                                    uint8_t *p_num_protect, uint8_t *p_protect_info, uint8_t index);
 
 /*******************************************************************************
 **
@@ -103,8 +103,8 @@ extern BOOLEAN bta_av_co_audio_init(UINT8 *p_codec_type, UINT8 *p_codec_info,
 ** Returns          void.
 **
 *******************************************************************************/
-extern void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
-                    UINT8 num_snk, UINT8 num_src, BD_ADDR addr, UINT16 uuid_local);
+extern void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
+                    uint8_t num_snk, uint8_t num_src, BD_ADDR addr, uint16_t uuid_local);
 
 /*******************************************************************************
 **
@@ -118,8 +118,8 @@ extern void bta_av_co_audio_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
 ** Returns          void.
 **
 *******************************************************************************/
-extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
-                                     UINT8 num_snk, BD_ADDR addr);
+extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, uint8_t num_seps,
+                                     uint8_t num_snk, BD_ADDR addr);
 
 /*******************************************************************************
 **
@@ -133,9 +133,9 @@ extern void bta_av_co_video_disc_res(tBTA_AV_HNDL hndl, UINT8 num_seps,
 ** Returns          Stream codec and content protection configuration info.
 **
 *******************************************************************************/
-extern UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                       UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid,
-                                       UINT8 *p_num_protect, UINT8 *p_protect_info);
+extern uint8_t bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+                                       uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid,
+                                       uint8_t *p_num_protect, uint8_t *p_protect_info);
 
 /*******************************************************************************
 **
@@ -149,9 +149,9 @@ extern UINT8 bta_av_co_audio_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
 ** Returns          Stream codec and content protection configuration info.
 **
 *******************************************************************************/
-extern UINT8 bta_av_co_video_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                       UINT8 *p_codec_info, UINT8 *p_sep_info_idx, UINT8 seid,
-                                       UINT8 *p_num_protect, UINT8 *p_protect_info);
+extern uint8_t bta_av_co_video_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
+                                       uint8_t *p_codec_info, uint8_t *p_sep_info_idx, uint8_t seid,
+                                       uint8_t *p_num_protect, uint8_t *p_protect_info);
 
 /*******************************************************************************
 **
@@ -165,8 +165,8 @@ extern UINT8 bta_av_co_video_getconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_ty
 **
 *******************************************************************************/
 extern void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                        UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
-                                        UINT8 num_protect, UINT8 *p_protect_info,UINT8 t_local_sep, UINT8 avdt_handle);
+                                        uint8_t *p_codec_info, uint8_t seid, BD_ADDR addr,
+                                        uint8_t num_protect, uint8_t *p_protect_info,uint8_t t_local_sep, uint8_t avdt_handle);
 
 /*******************************************************************************
 **
@@ -180,8 +180,8 @@ extern void bta_av_co_audio_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_typ
 **
 *******************************************************************************/
 extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                      UINT8 *p_codec_info, UINT8 seid, BD_ADDR addr,
-                                      UINT8 num_protect, UINT8 *p_protect_info);
+                                      uint8_t *p_codec_info, uint8_t seid, BD_ADDR addr,
+                                      uint8_t num_protect, uint8_t *p_protect_info);
 
 /*******************************************************************************
 **
@@ -197,8 +197,8 @@ extern void bta_av_co_video_setconfig(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_typ
 **
 *******************************************************************************/
 extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl,
-                                 tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
-                                 UINT16 mtu);
+                                 tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
+                                 uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -212,8 +212,8 @@ extern void bta_av_co_audio_open(tBTA_AV_HNDL hndl,
 **
 *******************************************************************************/
 extern void bta_av_co_video_open(tBTA_AV_HNDL hndl,
-                                 tBTA_AV_CODEC codec_type, UINT8 *p_codec_info,
-                                 UINT16 mtu);
+                                 tBTA_AV_CODEC codec_type, uint8_t *p_codec_info,
+                                 uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -230,7 +230,7 @@ extern void bta_av_co_video_open(tBTA_AV_HNDL hndl,
 **
 *******************************************************************************/
 extern void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  UINT16 mtu);
+                                  uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -244,7 +244,7 @@ extern void bta_av_co_audio_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 **
 *******************************************************************************/
 extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  UINT16 mtu);
+                                  uint16_t mtu);
 
 /*******************************************************************************
 **
@@ -258,7 +258,7 @@ extern void bta_av_co_video_close(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 **
 *******************************************************************************/
 extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr);
+                                  uint8_t *p_codec_info, bool *p_no_rtp_hdr);
 
 /*******************************************************************************
 **
@@ -272,7 +272,7 @@ extern void bta_av_co_audio_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
 **
 *******************************************************************************/
 extern void bta_av_co_video_start(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type,
-                                  UINT8 *p_codec_info, BOOLEAN *p_no_rtp_hdr);
+                                  uint8_t *p_codec_info, bool *p_no_rtp_hdr);
 
 /*******************************************************************************
 **
@@ -312,7 +312,7 @@ extern void bta_av_co_video_stop(tBTA_AV_HNDL hndl, tBTA_AV_CODEC codec_type);
 **
 *******************************************************************************/
 extern void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type,
-                                            UINT32 *p_len, UINT32 *p_timestamp);
+                                            uint32_t *p_len, uint32_t *p_timestamp);
 
 /*******************************************************************************
 **
@@ -322,11 +322,11 @@ extern void * bta_av_co_audio_src_data_path(tBTA_AV_CODEC codec_type,
 **                  the video codec.
 **
 ** Returns          NULL if data is not ready.
-**                  Otherwise, a video data buffer (UINT8*).
+**                  Otherwise, a video data buffer (uint8_t*).
 **
 *******************************************************************************/
 extern void * bta_av_co_video_src_data_path(tBTA_AV_CODEC codec_type,
-                                            UINT32 *p_len, UINT32 *p_timestamp);
+                                            uint32_t *p_len, uint32_t *p_timestamp);
 
 /*******************************************************************************
 **
@@ -347,12 +347,12 @@ extern void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
 ** Function         bta_av_co_video_report_conn
 **
 ** Description      This function is called by AV when the reporting channel is
-**                  opened (open=TRUE) or closed (open=FALSE).
+**                  opened (open=true) or closed (open=false).
 **
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_av_co_video_report_conn (BOOLEAN open, UINT8 avdt_handle);
+extern void bta_av_co_video_report_conn (bool open, uint8_t avdt_handle);
 
 /*******************************************************************************
 **
@@ -364,7 +364,7 @@ extern void bta_av_co_video_report_conn (BOOLEAN open, UINT8 avdt_handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_av_co_video_report_rr (UINT32 packet_lost);
+extern void bta_av_co_video_report_rr (uint32_t packet_lost);
 
 /*******************************************************************************
 **
@@ -377,7 +377,7 @@ extern void bta_av_co_video_report_rr (UINT32 packet_lost);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, UINT16 delay);
+extern void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay);
 
 /*******************************************************************************
 **
@@ -390,7 +390,7 @@ extern void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, UINT16 delay);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_av_co_video_delay(tBTA_AV_HNDL hndl, UINT16 delay);
+extern void bta_av_co_video_delay(tBTA_AV_HNDL hndl, uint16_t delay);
 
 #ifdef __cplusplus
 }

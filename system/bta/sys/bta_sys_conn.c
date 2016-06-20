@@ -100,7 +100,7 @@ void bta_sys_ssr_cfg_register(tBTA_SYS_SSR_CFG_CBACK * p_cback)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, UINT8 new_role, UINT8 hci_status)
+void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, uint8_t new_role, uint8_t hci_status)
 {
     if (bta_sys_cb.p_role_cb)
     {
@@ -118,9 +118,9 @@ void bta_sys_notify_role_chg(BD_ADDR_PTR p_bda, UINT8 new_role, UINT8 hci_status
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_collision_register(UINT8 bta_id, tBTA_SYS_CONN_CBACK *p_cback)
+void bta_sys_collision_register(uint8_t bta_id, tBTA_SYS_CONN_CBACK *p_cback)
 {
-    UINT8 index;
+    uint8_t index;
 
     for (index = 0; index < MAX_COLLISION_REG; index++)
     {
@@ -146,7 +146,7 @@ void bta_sys_collision_register(UINT8 bta_id, tBTA_SYS_CONN_CBACK *p_cback)
 *******************************************************************************/
 void bta_sys_notify_collision (BD_ADDR_PTR p_bda)
 {
-    UINT8 index;
+    uint8_t index;
 
     for (index = 0; index < MAX_COLLISION_REG; index++)
     {
@@ -199,7 +199,7 @@ void bta_sys_pm_register(tBTA_SYS_CONN_CBACK * p_cback)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_conn_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_conn_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
     {
@@ -229,7 +229,7 @@ void bta_sys_conn_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_conn_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_conn_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
     {
@@ -258,7 +258,7 @@ void bta_sys_conn_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_app_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_app_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.ppm_cb)
     {
@@ -278,7 +278,7 @@ void bta_sys_app_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_app_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_app_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.ppm_cb)
     {
@@ -297,7 +297,7 @@ void bta_sys_app_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_sco_open(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     /* AG triggers p_sco_cb by bta_sys_sco_use. */
     if((id != BTA_ID_AG) && (bta_sys_cb.p_sco_cb))
@@ -322,9 +322,9 @@ void bta_sys_sco_open(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_sco_close(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
-    UINT8 num_sco_links;
+    uint8_t num_sco_links;
 
     if((id != BTA_ID_AG) && (bta_sys_cb.p_sco_cb))
     {
@@ -348,7 +348,7 @@ void bta_sys_sco_close(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_use(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_sco_use(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     UNUSED(id);
 
@@ -370,9 +370,9 @@ void bta_sys_sco_use(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_sco_unuse(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_sco_unuse(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
-    UINT8 num_sco_links;
+    uint8_t num_sco_links;
     UNUSED(id);
 
     if((bta_sys_cb.p_sco_cb))
@@ -392,7 +392,7 @@ void bta_sys_sco_unuse(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 **
 *******************************************************************************/
 #if (BTM_SSR_INCLUDED == TRUE)
-void bta_sys_chg_ssr_config (UINT8 id, UINT8 app_id, UINT16 max_latency, UINT16 min_tout)
+void bta_sys_chg_ssr_config (uint8_t id, uint8_t app_id, uint16_t max_latency, uint16_t min_tout)
 {
     if(bta_sys_cb.p_ssr_cb)
     {
@@ -410,7 +410,7 @@ void bta_sys_chg_ssr_config (UINT8 id, UINT8 app_id, UINT16 max_latency, UINT16 
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_set_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr)
+void bta_sys_set_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.p_policy_cb)
     {
@@ -428,7 +428,7 @@ void bta_sys_set_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_clear_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr)
+void bta_sys_clear_policy (uint8_t id, uint8_t policy, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.p_policy_cb)
     {
@@ -446,7 +446,7 @@ void bta_sys_clear_policy (UINT8 id, UINT8 policy, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_set_default_policy (UINT8 id, UINT8 policy)
+void bta_sys_set_default_policy (uint8_t id, uint8_t policy)
 {
     if(bta_sys_cb.p_policy_cb)
     {
@@ -464,7 +464,7 @@ void bta_sys_set_default_policy (UINT8 id, UINT8 policy)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_clear_default_policy (UINT8 id, UINT8 policy)
+void bta_sys_clear_default_policy (uint8_t id, uint8_t policy)
 {
     if(bta_sys_cb.p_policy_cb)
     {
@@ -482,7 +482,7 @@ void bta_sys_clear_default_policy (UINT8 id, UINT8 policy)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_idle(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_idle(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
 
     if(bta_sys_cb.prm_cb)
@@ -509,7 +509,7 @@ void bta_sys_idle(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_busy(UINT8 id, UINT8 app_id, BD_ADDR peer_addr)
+void bta_sys_busy(uint8_t id, uint8_t app_id, BD_ADDR peer_addr)
 {
     if(bta_sys_cb.prm_cb)
     {
@@ -552,11 +552,11 @@ void bta_sys_eir_register(tBTA_SYS_EIR_CBACK * p_cback)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_add_uuid(UINT16 uuid16)
+void bta_sys_add_uuid(uint16_t uuid16)
 {
     if(bta_sys_cb.eir_cb)
     {
-        bta_sys_cb.eir_cb(uuid16, TRUE );
+        bta_sys_cb.eir_cb(uuid16, true );
     }
 }
 
@@ -570,11 +570,11 @@ void bta_sys_add_uuid(UINT16 uuid16)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_sys_remove_uuid(UINT16 uuid16)
+void bta_sys_remove_uuid(uint16_t uuid16)
 {
     if(bta_sys_cb.eir_cb)
     {
-        bta_sys_cb.eir_cb(uuid16, FALSE);
+        bta_sys_cb.eir_cb(uuid16, false);
     }
 }
 #endif

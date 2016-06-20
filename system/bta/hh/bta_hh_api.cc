@@ -28,7 +28,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_HH_INCLUDED) && (BTA_HH_INCLUDED == TRUE)
+#if (BTA_HH_INCLUDED == TRUE)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,12 +109,12 @@ void BTA_HhDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhClose(UINT8 dev_handle)
+void BTA_HhClose(uint8_t dev_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(sizeof(BT_HDR));
 
     p_buf->event = BTA_HH_API_CLOSE_EVT;
-    p_buf->layer_specific = (UINT16)dev_handle;
+    p_buf->layer_specific = (uint16_t)dev_handle;
 
     bta_sys_sendmsg(p_buf);
 }
@@ -148,14 +148,14 @@ void BTA_HhOpen(BD_ADDR dev_bda, tBTA_HH_PROTO_MODE mode, tBTA_SEC sec_mask)
 ** Function  bta_hh_snd_write_dev
 **
 *******************************************************************************/
-static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param,
-                                 UINT16 data, UINT8 rpt_id, BT_HDR  *p_data)
+static void bta_hh_snd_write_dev(uint8_t dev_handle, uint8_t t_type, uint8_t param,
+                                 uint16_t data, uint8_t rpt_id, BT_HDR  *p_data)
 {
     tBTA_HH_CMD_DATA *p_buf =
         (tBTA_HH_CMD_DATA *)osi_calloc(sizeof(tBTA_HH_CMD_DATA));
 
     p_buf->hdr.event = BTA_HH_API_WRITE_DEV_EVT;
-    p_buf->hdr.layer_specific = (UINT16)dev_handle;
+    p_buf->hdr.layer_specific = (uint16_t)dev_handle;
     p_buf->t_type = t_type;
     p_buf->data = data;
     p_buf->param = param;
@@ -177,7 +177,7 @@ static void bta_hh_snd_write_dev(UINT8 dev_handle, UINT8 t_type, UINT8 param,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
+void BTA_HhSetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_REPORT, r_type, 0, 0, p_data);
 }
@@ -190,9 +190,9 @@ void BTA_HhSetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, BT_HDR *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_id, UINT16 buf_size)
+void BTA_HhGetReport(uint8_t dev_handle, tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id, uint16_t buf_size)
 {
-    UINT8 param = (buf_size) ? (r_type | 0x08) : r_type;
+    uint8_t param = (buf_size) ? (r_type | 0x08) : r_type;
 
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_REPORT, param,
                         buf_size, rpt_id, NULL);
@@ -206,9 +206,9 @@ void BTA_HhGetReport(UINT8 dev_handle, tBTA_HH_RPT_TYPE r_type, UINT8 rpt_id, UI
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSetProtoMode(UINT8 dev_handle, tBTA_HH_PROTO_MODE p_type)
+void BTA_HhSetProtoMode(uint8_t dev_handle, tBTA_HH_PROTO_MODE p_type)
 {
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (UINT8)p_type,
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_PROTOCOL, (uint8_t)p_type,
                         0, 0, NULL);
 }
 /*******************************************************************************
@@ -220,7 +220,7 @@ void BTA_HhSetProtoMode(UINT8 dev_handle, tBTA_HH_PROTO_MODE p_type)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhGetProtoMode(UINT8 dev_handle)
+void BTA_HhGetProtoMode(uint8_t dev_handle)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_PROTOCOL, 0, 0, 0, NULL);
 }
@@ -233,7 +233,7 @@ void BTA_HhGetProtoMode(UINT8 dev_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate)
+void BTA_HhSetIdle(uint8_t dev_handle, uint16_t idle_rate)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_SET_IDLE, 0, idle_rate, 0, NULL);
 }
@@ -247,7 +247,7 @@ void BTA_HhSetIdle(UINT8 dev_handle, UINT16 idle_rate)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhGetIdle(UINT8 dev_handle)
+void BTA_HhGetIdle(uint8_t dev_handle)
 {
     bta_hh_snd_write_dev(dev_handle, HID_TRANS_GET_IDLE, 0, 0, 0, NULL);
 }
@@ -260,9 +260,9 @@ void BTA_HhGetIdle(UINT8 dev_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
+void BTA_HhSendCtrl(uint8_t dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 {
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_CONTROL, (UINT8)c_type, 0, 0, NULL);
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_CONTROL, (uint8_t)c_type, 0, 0, NULL);
 }
 /*******************************************************************************
 **
@@ -275,24 +275,24 @@ void BTA_HhSendCtrl(UINT8 dev_handle, tBTA_HH_TRANS_CTRL_TYPE c_type)
 **                  p_data: data to be sent in the DATA transaction; or
 **                          the data to be write into the Output Report of a LE HID
 **                          device. The report is identified the report ID which is
-**                          the value of the byte (UINT8 *)(p_buf + 1) + p_buf->offset.
+**                          the value of the byte (uint8_t *)(p_buf + 1) + p_buf->offset.
 **                          p_data->layer_specific needs to be set to the report type,
 **                          it can be OUTPUT report, or FEATURE report.
 **
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
+void BTA_HhSendData(uint8_t dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 {
     UNUSED(dev_bda);
-#if (defined BTA_HH_LE_INCLUDED && BTA_HH_LE_INCLUDED == TRUE)
+#if (BTA_HH_LE_INCLUDED == TRUE)
     if (p_data->layer_specific != BTA_HH_RPTT_OUTPUT)
     {
         APPL_TRACE_ERROR("ERROR! Wrong report type! Write Command only valid for output report!");
         return;
     }
 #endif
-    bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (UINT8)p_data->layer_specific, 0, 0, p_data);
+    bta_hh_snd_write_dev(dev_handle, HID_TRANS_DATA, (uint8_t)p_data->layer_specific, 0, 0, p_data);
 }
 
 /*******************************************************************************
@@ -304,12 +304,12 @@ void BTA_HhSendData(UINT8 dev_handle, BD_ADDR dev_bda, BT_HDR  *p_data)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhGetDscpInfo(UINT8 dev_handle)
+void BTA_HhGetDscpInfo(uint8_t dev_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_calloc(sizeof(BT_HDR));
 
     p_buf->event = BTA_HH_API_GET_DSCP_EVT;
-    p_buf->layer_specific = (UINT16)dev_handle;
+    p_buf->layer_specific = (uint16_t)dev_handle;
 
     bta_sys_sendmsg(p_buf);
 }
@@ -326,8 +326,8 @@ void BTA_HhGetDscpInfo(UINT8 dev_handle)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
-                  UINT8 app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
+void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, uint8_t sub_class,
+                  uint8_t app_id, tBTA_HH_DEV_DSCP_INFO dscp_info)
 {
     size_t len = sizeof(tBTA_HH_MAINT_DEV) + dscp_info.descriptor.dl_len;
     tBTA_HH_MAINT_DEV *p_buf = (tBTA_HH_MAINT_DEV *)osi_calloc(len);
@@ -336,7 +336,7 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
     p_buf->sub_event = BTA_HH_ADD_DEV_EVT;
     p_buf->hdr.layer_specific = BTA_HH_INVALID_HANDLE;
 
-    p_buf->attr_mask = (UINT16) attr_mask;
+    p_buf->attr_mask = (uint16_t) attr_mask;
     p_buf->sub_class = sub_class;
     p_buf->app_id = app_id;
     bdcpy(p_buf->bda, bda);
@@ -344,7 +344,7 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
     memcpy(&p_buf->dscp_info, &dscp_info, sizeof(tBTA_HH_DEV_DSCP_INFO));
     if ( dscp_info.descriptor.dl_len != 0 && dscp_info.descriptor.dsc_list) {
         p_buf->dscp_info.descriptor.dl_len =  dscp_info.descriptor.dl_len;
-        p_buf->dscp_info.descriptor.dsc_list = (UINT8 *)(p_buf + 1);
+        p_buf->dscp_info.descriptor.dsc_list = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->dscp_info.descriptor.dsc_list,
                dscp_info.descriptor.dsc_list,
                dscp_info.descriptor.dl_len);
@@ -365,14 +365,14 @@ void BTA_HhAddDev(BD_ADDR bda, tBTA_HH_ATTR_MASK attr_mask, UINT8 sub_class,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhRemoveDev(UINT8 dev_handle )
+void BTA_HhRemoveDev(uint8_t dev_handle )
 {
     tBTA_HH_MAINT_DEV *p_buf =
         (tBTA_HH_MAINT_DEV *)osi_calloc(sizeof(tBTA_HH_MAINT_DEV));
 
     p_buf->hdr.event = BTA_HH_API_MAINT_DEV_EVT;
     p_buf->sub_event = BTA_HH_RMV_DEV_EVT;
-    p_buf->hdr.layer_specific = (UINT16)dev_handle;
+    p_buf->hdr.layer_specific = (uint16_t)dev_handle;
 
     bta_sys_sendmsg(p_buf);
 }
@@ -396,8 +396,8 @@ void BTA_HhRemoveDev(UINT8 dev_handle )
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
-                        UINT16 report_len)
+void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, uint8_t *p_report,
+                        uint16_t report_len)
 {
     p_data->dev_type = BTA_HH_DEVT_UNKNOWN;
 
@@ -408,12 +408,12 @@ void BTA_HhParseBootRpt(tBTA_HH_BOOT_RPT *p_data, UINT8 *p_report,
         {
         case BTA_HH_KEYBD_RPT_ID: /* key board report ID */
             p_data->dev_type = p_report[0];
-            bta_hh_parse_keybd_rpt(p_data, p_report + 1, (UINT16)(report_len -1));
+            bta_hh_parse_keybd_rpt(p_data, p_report + 1, (uint16_t)(report_len -1));
             break;
 
         case BTA_HH_MOUSE_RPT_ID: /* mouse report ID */
             p_data->dev_type = p_report[0];
-            bta_hh_parse_mice_rpt(p_data, p_report + 1, (UINT16)(report_len - 1));
+            bta_hh_parse_mice_rpt(p_data, p_report + 1, (uint16_t)(report_len - 1));
             break;
 
         default:

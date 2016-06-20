@@ -68,7 +68,7 @@ void bta_dm_ci_io_req(BD_ADDR bd_addr, tBTA_IO_CAP io_cap, tBTA_OOB_DATA oob_dat
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
+void bta_dm_ci_rmt_oob(bool accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16 r)
 {
     tBTA_DM_CI_RMT_OOB *p_msg =
         (tBTA_DM_CI_RMT_OOB *)osi_malloc(sizeof(tBTA_DM_CI_RMT_OOB));
@@ -98,7 +98,7 @@ void bta_dm_ci_rmt_oob(BOOLEAN accept, BD_ADDR bd_addr, BT_OCTET16 c, BT_OCTET16
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_sco_ci_data_ready(UINT16 event, UINT16 sco_handle)
+void bta_dm_sco_ci_data_ready(uint16_t event, uint16_t sco_handle)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 

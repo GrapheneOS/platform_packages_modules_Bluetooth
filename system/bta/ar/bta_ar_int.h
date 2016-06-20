@@ -29,7 +29,7 @@
 
 
 #ifndef BTA_AR_DEBUG
-#define BTA_AR_DEBUG    FALSE
+#define BTA_AR_DEBUG    TRUE
 #endif
 
 #define BTA_AR_AV_MASK      0x01
@@ -40,12 +40,12 @@ typedef struct
 {
     tAVDT_CTRL_CBACK *p_av_conn_cback;       /* av connection callback function */
     tAVDT_CTRL_CBACK *p_avk_conn_cback;      /* avk connection callback function */
-    UINT8           avdt_registered;
-    UINT8           avct_registered;
-	UINT32          sdp_tg_handle;
-	UINT32          sdp_ct_handle;
-    UINT16          ct_categories[2];
-    UINT8           tg_registered;
+    uint8_t           avdt_registered;
+    uint8_t           avct_registered;
+    uint32_t          sdp_tg_handle;
+    uint32_t          sdp_ct_handle;
+    uint16_t          ct_categories[2];
+    uint8_t           tg_registered;
     tBTA_AV_HNDL    hndl;       /* Handle associated with the stream that rejected the connection. */
 } tBTA_AR_CB;
 

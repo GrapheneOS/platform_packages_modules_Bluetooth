@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "bt_target.h"
-#if defined(HL_INCLUDED) && (HL_INCLUDED == TRUE)
+#if (HL_INCLUDED == TRUE)
 
 #include "bt_common.h"
 #include "bta_hl_api.h"
@@ -104,8 +104,8 @@ void BTA_HlDisable(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HlUpdate(UINT8 app_id, tBTA_HL_REG_PARAM *p_reg_param,
-                  BOOLEAN is_register, tBTA_HL_CBACK *p_cback)
+void BTA_HlUpdate(uint8_t app_id, tBTA_HL_REG_PARAM *p_reg_param,
+                  bool is_register, tBTA_HL_CBACK *p_cback)
 {
     tBTA_HL_API_UPDATE *p_buf =
         (tBTA_HL_API_UPDATE *)osi_malloc(sizeof(tBTA_HL_API_UPDATE));
@@ -152,7 +152,7 @@ void BTA_HlUpdate(UINT8 app_id, tBTA_HL_REG_PARAM *p_reg_param,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HlRegister(UINT8  app_id,
+void BTA_HlRegister(uint8_t  app_id,
                     tBTA_HL_REG_PARAM *p_reg_param,
                     tBTA_HL_CBACK *p_cback)
 {
@@ -193,7 +193,7 @@ void BTA_HlRegister(UINT8  app_id,
 ** Returns           void
 **
 *******************************************************************************/
-void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle)
+void BTA_HlDeregister(uint8_t app_id,tBTA_HL_APP_HANDLE app_handle)
 {
     tBTA_HL_API_DEREGISTER *p_buf =
         (tBTA_HL_API_DEREGISTER *)osi_malloc(sizeof(tBTA_HL_API_DEREGISTER));
@@ -221,7 +221,7 @@ void BTA_HlDeregister(UINT8 app_id,tBTA_HL_APP_HANDLE app_handle)
 **                  multiple HDP instances. Also, if the control PSM value is zero
 **                  then the first HDP instance is used for the control channel setup
 *******************************************************************************/
-void BTA_HlCchOpen(UINT8 app_id, tBTA_HL_APP_HANDLE app_handle,
+void BTA_HlCchOpen(uint8_t app_id, tBTA_HL_APP_HANDLE app_handle,
                    tBTA_HL_CCH_OPEN_PARAM *p_open_param)
 {
     tBTA_HL_API_CCH_OPEN *p_buf =
@@ -374,7 +374,7 @@ void BTA_HlDchAbort(tBTA_HL_MCL_HANDLE mcl_handle)
 **
 *******************************************************************************/
 void BTA_HlSendData(tBTA_HL_MDL_HANDLE mdl_handle,
-                    UINT16           pkt_size)
+                    uint16_t           pkt_size)
 {
     tBTA_HL_API_SEND_DATA *p_buf =
         (tBTA_HL_API_SEND_DATA *)osi_malloc(sizeof(tBTA_HL_API_SEND_DATA));
@@ -454,7 +454,7 @@ void BTA_HlDchEchoTest( tBTA_HL_MCL_HANDLE  mcl_handle,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_HlSdpQuery(UINT8  app_id,tBTA_HL_APP_HANDLE app_handle,
+void BTA_HlSdpQuery(uint8_t  app_id,tBTA_HL_APP_HANDLE app_handle,
                     BD_ADDR bd_addr)
 {
     tBTA_HL_API_SDP_QUERY *p_buf =

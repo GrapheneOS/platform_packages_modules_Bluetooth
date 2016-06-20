@@ -26,7 +26,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include "utl.h"
 #include "bt_common.h"
@@ -37,17 +37,17 @@
 #include "btif/include/btif_debug_conn.h"
 #include <string.h>
 
-static void bta_gatts_nv_save_cback(BOOLEAN is_saved, tGATTS_HNDL_RANGE *p_hndl_range);
-static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req,
+static void bta_gatts_nv_save_cback(bool is_saved, tGATTS_HNDL_RANGE *p_hndl_range);
+static bool bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd, tGATTS_SRV_CHG_REQ *p_req,
                                                 tGATTS_SRV_CHG_RSP *p_rsp);
 
-static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                      BOOLEAN connected, tGATT_DISCONN_REASON reason,
+static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+                                      bool connected, tGATT_DISCONN_REASON reason,
                                       tGATT_TRANSPORT transport);
-static void bta_gatts_send_request_cback (UINT16 conn_id,
-                                          UINT32 trans_id,
+static void bta_gatts_send_request_cback (uint16_t conn_id,
+                                          uint32_t trans_id,
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data);
-static void bta_gatts_cong_cback (UINT16 conn_id, BOOLEAN congested);
+static void bta_gatts_cong_cback (uint16_t conn_id, bool congested);
 
 static tGATT_CBACK bta_gatts_cback =
 {
@@ -76,7 +76,7 @@ tGATT_APPL_INFO bta_gatts_nv_cback =
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gatts_nv_save_cback(BOOLEAN is_add, tGATTS_HNDL_RANGE *p_hndl_range)
+static void bta_gatts_nv_save_cback(bool is_add, tGATTS_HNDL_RANGE *p_hndl_range)
 {
     bta_gatts_co_update_handle_range(is_add, (tBTA_GATTS_HNDL_RANGE *)p_hndl_range);
 }
@@ -92,7 +92,7 @@ static void bta_gatts_nv_save_cback(BOOLEAN is_add, tGATTS_HNDL_RANGE *p_hndl_ra
 ** Returns          none.
 **
 *******************************************************************************/
-static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
+static bool bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
                                               tGATTS_SRV_CHG_REQ *p_req, tGATTS_SRV_CHG_RSP *p_rsp)
 {
     return bta_gatts_co_srv_chg((tBTA_GATTS_SRV_CHG_CMD) cmd,
@@ -112,7 +112,7 @@ static BOOLEAN bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
 *******************************************************************************/
 void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 {
-    UINT8 index=0;
+    uint8_t index=0;
     tBTA_GATTS_HNDL_RANGE handle_range;
 
     if (p_cb->enabled)
@@ -123,7 +123,7 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
     {
         memset(p_cb, 0, sizeof(tBTA_GATTS_CB));
 
-        p_cb->enabled = TRUE;
+        p_cb->enabled = true;
 
         while ( bta_gatts_co_load_handle_range(index, &handle_range))
         {
@@ -152,7 +152,7 @@ void bta_gatts_enable(tBTA_GATTS_CB *p_cb)
 *******************************************************************************/
 void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb)
 {
-    UINT8 i;
+    uint8_t i;
 
     if (p_cb->enabled)
     {
@@ -184,9 +184,9 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 {
     tBTA_GATTS               cb_data;
     tBTA_GATT_STATUS         status = BTA_GATT_OK;
-    UINT8                    i, first_unuse = 0xff;
+    uint8_t                    i, first_unuse = 0xff;
 
-    if (p_cb->enabled == FALSE)
+    if (p_cb->enabled == false)
     {
         bta_gatts_enable(p_cb);
     }
@@ -221,7 +221,7 @@ void bta_gatts_register(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
         {
             APPL_TRACE_ERROR("register application first_unuse rcb_idx = %d", first_unuse);
 
-            p_cb->rcb[first_unuse].in_use = TRUE;
+            p_cb->rcb[first_unuse].in_use = true;
             p_cb->rcb[first_unuse].p_cback = p_msg->api_reg.p_cback;
             memcpy(&p_cb->rcb[first_unuse].app_uuid, &p_msg->api_reg.app_uuid, sizeof(tBT_UUID));
             cb_data.reg_oper.server_if      =
@@ -284,7 +284,7 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 {
     tBTA_GATT_STATUS    status = BTA_GATT_ERROR;
     tBTA_GATTS_CBACK    *p_cback = NULL;
-    UINT8               i;
+    uint8_t               i;
     tBTA_GATTS          cb_data;
 
     cb_data.reg_oper.server_if = p_msg->api_dereg.server_if;
@@ -327,10 +327,10 @@ void bta_gatts_deregister(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_msg)
 *******************************************************************************/
 void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
-    UINT8               rcb_idx;
+    uint8_t               rcb_idx;
     tBTA_GATTS          cb_data;
-    UINT8               srvc_idx;
-    UINT16              service_id = 0;
+    uint8_t               srvc_idx;
+    uint16_t              service_id = 0;
 
     cb_data.create.status = BTA_GATT_ERROR;
 
@@ -391,7 +391,7 @@ void bta_gatts_create_srvc(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb,tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    UINT16          attr_id = 0;
+    uint16_t          attr_id = 0;
     tBTA_GATTS      cb_data;
 
     attr_id = GATTS_AddIncludeService(p_msg->api_add_incl_srvc.hdr.layer_specific,
@@ -425,7 +425,7 @@ void bta_gatts_add_include_srvc(tBTA_GATTS_SRVC_CB *p_srvc_cb,tBTA_GATTS_DATA * 
 void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    UINT16          attr_id = 0;
+    uint16_t          attr_id = 0;
     tBTA_GATTS      cb_data;
 
     attr_id = GATTS_AddCharacteristic(p_msg->api_add_char.hdr.layer_specific,
@@ -461,7 +461,7 @@ void bta_gatts_add_char(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 void bta_gatts_add_char_descr(tBTA_GATTS_SRVC_CB *p_srvc_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB  *p_rcb = &bta_gatts_cb.rcb[p_srvc_cb->rcb_idx];
-    UINT16          attr_id = 0;
+    uint16_t          attr_id = 0;
     tBTA_GATTS      cb_data;
 
     attr_id = GATTS_AddCharDescriptor(p_msg->api_add_char_descr.hdr.layer_specific,
@@ -682,7 +682,7 @@ void bta_gatts_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 {
     tBTA_GATTS_RCB      *p_rcb=NULL;
     tBTA_GATT_STATUS    status= BTA_GATT_ERROR;
-    UINT16              conn_id;
+    uint16_t              conn_id;
     UNUSED(p_cb);
 
     if ((p_rcb = bta_gatts_find_app_rcb_by_app_if(p_msg->api_open.server_if)) != NULL)
@@ -835,8 +835,8 @@ void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gatts_send_request_cback (UINT16 conn_id,
-                                          UINT32 trans_id,
+static void bta_gatts_send_request_cback (uint16_t conn_id,
+                                          uint32_t trans_id,
                                           tGATTS_REQ_TYPE req_type, tGATTS_DATA *p_data)
 {
     tBTA_GATTS          cb_data;
@@ -888,12 +888,12 @@ static void bta_gatts_send_request_cback (UINT16 conn_id,
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                  BOOLEAN connected, tGATT_DISCONN_REASON reason,
+static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+                                  bool connected, tGATT_DISCONN_REASON reason,
                                   tGATT_TRANSPORT transport)
 {
     tBTA_GATTS      cb_data;
-    UINT8           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT;
+    uint8_t           evt = connected ? BTA_GATTS_CONNECT_EVT: BTA_GATTS_DISCONNECT_EVT;
     tBTA_GATTS_RCB  *p_reg;
 
     APPL_TRACE_DEBUG ("bta_gatts_conn_cback gatt_if=%d conn_id=%d connected=%d reason = 0x%04d",
@@ -943,7 +943,7 @@ static void bta_gatts_conn_cback (tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
 ** Returns          none.
 **
 *******************************************************************************/
-static void bta_gatts_cong_cback (UINT16 conn_id, BOOLEAN congested)
+static void bta_gatts_cong_cback (uint16_t conn_id, bool congested)
 {
     tBTA_GATTS_RCB *p_rcb;
     tGATT_IF gatt_if;

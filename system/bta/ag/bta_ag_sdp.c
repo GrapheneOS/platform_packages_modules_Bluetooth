@@ -45,9 +45,9 @@
 #endif
 
 /* declare sdp callback functions */
-void bta_ag_sdp_cback_1(UINT16 status);
-void bta_ag_sdp_cback_2(UINT16 status);
-void bta_ag_sdp_cback_3(UINT16 status);
+void bta_ag_sdp_cback_1(uint16_t status);
+void bta_ag_sdp_cback_2(uint16_t status);
+void bta_ag_sdp_cback_3(uint16_t status);
 
 /* SDP callback function table */
 typedef tSDP_DISC_CMPL_CB *tBTA_AG_SDP_CBACK;
@@ -68,12 +68,12 @@ const tBTA_AG_SDP_CBACK bta_ag_sdp_cback_tbl[] =
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
+static void bta_ag_sdp_cback(uint16_t status, uint8_t idx)
 {
-    UINT16              event;
+    uint16_t             event;
     tBTA_AG_SCB         *p_scb;
 
-    APPL_TRACE_DEBUG("bta_ag_sdp_cback status:0x%x", status);
+    APPL_TRACE_DEBUG("%s status:0x%x", __func__, status);
 
     if ((p_scb = bta_ag_scb_by_idx(idx)) != NULL)
     {
@@ -108,9 +108,9 @@ static void bta_ag_sdp_cback(UINT16 status, UINT8 idx)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_ag_sdp_cback_1(UINT16 status) {bta_ag_sdp_cback(status, 1);}
-void bta_ag_sdp_cback_2(UINT16 status) {bta_ag_sdp_cback(status, 2);}
-void bta_ag_sdp_cback_3(UINT16 status) {bta_ag_sdp_cback(status, 3);}
+void bta_ag_sdp_cback_1(uint16_t status) {bta_ag_sdp_cback(status, 1);}
+void bta_ag_sdp_cback_2(uint16_t status) {bta_ag_sdp_cback(status, 2);}
+void bta_ag_sdp_cback_3(uint16_t status) {bta_ag_sdp_cback(status, 3);}
 
 /******************************************************************************
 **
@@ -121,24 +121,24 @@ void bta_ag_sdp_cback_3(UINT16 status) {bta_ag_sdp_cback(status, 3);}
 **                  calling this function the application must call
 **                  SDP_CreateRecord() to create an SDP record.
 **
-** Returns          TRUE if function execution succeeded,
-**                  FALSE if function execution failed.
+** Returns          true if function execution succeeded,
+**                  false if function execution failed.
 **
 ******************************************************************************/
-BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
-                          tBTA_AG_FEAT features, UINT32 sdp_handle)
+bool bta_ag_add_record(uint16_t service_uuid, char *p_service_name, uint8_t scn,
+                          tBTA_AG_FEAT features, uint32_t sdp_handle)
 {
     tSDP_PROTOCOL_ELEM  proto_elem_list[BTA_AG_NUM_PROTO_ELEMS];
-    UINT16              svc_class_id_list[BTA_AG_NUM_SVC_ELEMS];
-    UINT16              browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
-    UINT16              version;
-    UINT16              profile_uuid;
-    UINT8               network;
-    BOOLEAN             result = TRUE;
-    BOOLEAN             codec_supported = FALSE;
-    UINT8               buf[2];
+    uint16_t            svc_class_id_list[BTA_AG_NUM_SVC_ELEMS];
+    uint16_t            browse_list[] = {UUID_SERVCLASS_PUBLIC_BROWSE_GROUP};
+    uint16_t            version;
+    uint16_t            profile_uuid;
+    uint8_t             network;
+    bool                result = true;
+    bool                codec_supported = false;
+    uint8_t             buf[2];
 
-    APPL_TRACE_DEBUG("bta_ag_add_record uuid: %x", service_uuid);
+    APPL_TRACE_DEBUG("%s uuid: %x", __func__, service_uuid);
 
     memset( proto_elem_list, 0 , BTA_AG_NUM_PROTO_ELEMS*sizeof(tSDP_PROTOCOL_ELEM));
 
@@ -172,7 +172,7 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
     if (p_service_name != NULL && p_service_name[0] != 0)
     {
         result &= SDP_AddAttribute(sdp_handle, ATTR_ID_SERVICE_NAME, TEXT_STR_DESC_TYPE,
-                    (UINT32)(strlen(p_service_name)+1), (UINT8 *) p_service_name);
+                    (uint32_t)(strlen(p_service_name)+1), (uint8_t *) p_service_name);
     }
 
     /* add features and network */
@@ -183,7 +183,7 @@ BOOLEAN bta_ag_add_record(UINT16 service_uuid, char *p_service_name, UINT8 scn,
                     UINT_DESC_TYPE, 1, &network);
 
         if (features & BTA_AG_FEAT_CODEC)
-            codec_supported = TRUE;
+            codec_supported = true;
 
         features &= BTA_AG_SDP_FEAT_SPEC;
 
@@ -265,7 +265,7 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
             continue;
         }
 
-        if (p->in_use && p->dealloc == FALSE)
+        if (p->in_use && p->dealloc == false)
         {
             others |= p->reg_services;
         }
@@ -299,16 +299,16 @@ void bta_ag_del_records(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 **                  for requested service.
 **
 **
-** Returns          TRUE if results found, FALSE otherwise.
+** Returns          true if results found, false otherwise.
 **
 *******************************************************************************/
-BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
+bool bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 {
     tSDP_DISC_REC       *p_rec = NULL;
     tSDP_DISC_ATTR      *p_attr;
     tSDP_PROTOCOL_ELEM  pe;
-    UINT16              uuid;
-    BOOLEAN             result = FALSE;
+    uint16_t              uuid;
+    bool             result = false;
 
     if (service & BTA_HFP_SERVICE_MASK)
     {
@@ -326,7 +326,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
     }
 
     /* loop through all records we found */
-    while (TRUE)
+    while (true)
     {
         /* get next record; if none found, we're done */
         if ((p_rec = SDP_FindServiceInDb(p_scb->p_disc_db, uuid, p_rec)) == NULL)
@@ -349,7 +349,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
         {
             if (SDP_FindProtocolListElemInRec(p_rec, UUID_PROTOCOL_RFCOMM, &pe))
             {
-                p_scb->peer_scn = (UINT8) pe.params[0];
+                p_scb->peer_scn = (uint8_t) pe.params[0];
             }
             else
             {
@@ -386,7 +386,7 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
         }
 
         /* found what we needed */
-        result = TRUE;
+        result = true;
         break;
     }
     return result;
@@ -405,10 +405,10 @@ BOOLEAN bta_ag_sdp_find_attr(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 void bta_ag_do_disc(tBTA_AG_SCB *p_scb, tBTA_SERVICE_MASK service)
 {
     tSDP_UUID       uuid_list[2];
-    UINT16          num_uuid = 1;
-    UINT16          attr_list[4];
-    UINT8           num_attr;
-    BOOLEAN         db_inited = FALSE;
+    uint16_t          num_uuid = 1;
+    uint16_t          attr_list[4];
+    uint8_t           num_attr;
+    bool         db_inited = false;
 
     /* HFP initiator; get proto list and features */
     if (service & BTA_HFP_SERVICE_MASK && p_scb->role == BTA_AG_INT)

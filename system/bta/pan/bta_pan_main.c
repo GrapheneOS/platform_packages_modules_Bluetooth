@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_PAN_INCLUDED) && (BTA_PAN_INCLUDED == TRUE)
+#if (BTA_PAN_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bta_api.h"
@@ -85,7 +85,7 @@ const tBTA_PAN_ACTION bta_pan_action[] =
 
 
 /* state table for listen state */
-const UINT8 bta_pan_st_idle[][BTA_PAN_NUM_COLS] =
+const uint8_t bta_pan_st_idle[][BTA_PAN_NUM_COLS] =
 {
    /* API_CLOSE */          {BTA_PAN_API_CLOSE,              BTA_PAN_IDLE_ST},
    /* CI_TX_READY */        {BTA_PAN_IGNORE,                 BTA_PAN_IDLE_ST},
@@ -103,7 +103,7 @@ const UINT8 bta_pan_st_idle[][BTA_PAN_NUM_COLS] =
 
 
 /* state table for open state */
-const UINT8 bta_pan_st_open[][BTA_PAN_NUM_COLS] =
+const uint8_t bta_pan_st_open[][BTA_PAN_NUM_COLS] =
 {
    /* API_CLOSE */          {BTA_PAN_API_CLOSE,               BTA_PAN_OPEN_ST},
    /* CI_TX_READY */        {BTA_PAN_TX_PATH,                 BTA_PAN_OPEN_ST},
@@ -118,7 +118,7 @@ const UINT8 bta_pan_st_open[][BTA_PAN_NUM_COLS] =
 };
 
 /* state table for closing state */
-const UINT8 bta_pan_st_closing[][BTA_PAN_NUM_COLS] =
+const uint8_t bta_pan_st_closing[][BTA_PAN_NUM_COLS] =
 {
    /* API_CLOSE */          {BTA_PAN_IGNORE,                   BTA_PAN_CLOSING_ST},
    /* CI_TX_READY */        {BTA_PAN_TX_PATH,                  BTA_PAN_CLOSING_ST},
@@ -133,7 +133,7 @@ const UINT8 bta_pan_st_closing[][BTA_PAN_NUM_COLS] =
 };
 
 /* type for state table */
-typedef const UINT8 (*tBTA_PAN_ST_TBL)[BTA_PAN_NUM_COLS];
+typedef const uint8_t (*tBTA_PAN_ST_TBL)[BTA_PAN_NUM_COLS];
 
 /* state table */
 const tBTA_PAN_ST_TBL bta_pan_st_tbl[] = {
@@ -147,7 +147,7 @@ const tBTA_PAN_ST_TBL bta_pan_st_tbl[] = {
 *****************************************************************************/
 
 /* PAN control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_PAN_CB  bta_pan_cb;
 #endif
 
@@ -170,7 +170,7 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
     {
         if (!p_scb->in_use)
         {
-            p_scb->in_use = TRUE;
+            p_scb->in_use = true;
             APPL_TRACE_DEBUG("bta_pan_scb_alloc %d", i);
             break;
         }
@@ -195,10 +195,10 @@ tBTA_PAN_SCB *bta_pan_scb_alloc(void)
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, UINT16 event, tBTA_PAN_DATA *p_data)
+static void bta_pan_sm_execute(tBTA_PAN_SCB *p_scb, uint16_t event, tBTA_PAN_DATA *p_data)
 {
     tBTA_PAN_ST_TBL      state_table;
-    UINT8               action;
+    uint8_t               action;
     int                 i;
 
     APPL_TRACE_EVENT("PAN scb=%d event=0x%x state=%d", bta_pan_scb_to_idx(p_scb), event, p_scb->state);
@@ -318,10 +318,10 @@ void bta_pan_scb_dealloc(tBTA_PAN_SCB *p_scb)
 ** Returns          Index of scb.
 **
 *******************************************************************************/
-UINT8 bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
+uint8_t bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
 {
 
-    return ((UINT8) (p_scb - bta_pan_cb.scb)) + 1;
+    return ((uint8_t) (p_scb - bta_pan_cb.scb)) + 1;
 }
 
 
@@ -336,10 +336,10 @@ UINT8 bta_pan_scb_to_idx(tBTA_PAN_SCB *p_scb)
 ** Returns          Pointer to scb or NULL if not found.
 **
 *******************************************************************************/
-tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle)
+tBTA_PAN_SCB *bta_pan_scb_by_handle(uint16_t handle)
 {
     tBTA_PAN_SCB     *p_scb = &bta_pan_cb.scb[0];
-    UINT8 i;
+    uint8_t i;
 
     for (i = 0; i < BTA_PAN_NUM_CONN; i++, p_scb++)
     {
@@ -365,10 +365,10 @@ tBTA_PAN_SCB *bta_pan_scb_by_handle(UINT16 handle)
 ** Returns          void
 **
 *******************************************************************************/
-BOOLEAN bta_pan_hdl_event(BT_HDR *p_msg)
+bool bta_pan_hdl_event(BT_HDR *p_msg)
 {
     tBTA_PAN_SCB *p_scb;
-    BOOLEAN     freebuf = TRUE;
+    bool     freebuf = true;
 
     switch (p_msg->event)
     {
@@ -395,7 +395,7 @@ BOOLEAN bta_pan_hdl_event(BT_HDR *p_msg)
 
         /* events that require buffer not be released */
         case BTA_PAN_CI_RX_WRITEBUF_EVT:
-            freebuf = FALSE;
+            freebuf = false;
             if ((p_scb = bta_pan_scb_by_handle(p_msg->layer_specific)) != NULL)
             {
                 bta_pan_sm_execute(p_scb, p_msg->event, (tBTA_PAN_DATA *) p_msg);

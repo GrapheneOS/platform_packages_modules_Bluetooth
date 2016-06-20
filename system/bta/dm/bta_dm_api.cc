@@ -178,7 +178,7 @@ void BTA_DmSetDeviceName(char *p_name)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, UINT8 pairable_mode, UINT8 conn_filter )
+void BTA_DmSetVisibility(tBTA_DM_DISC disc_mode, tBTA_DM_CONN conn_mode, uint8_t pairable_mode, uint8_t conn_filter )
 {
     tBTA_DM_API_SET_VISIBILITY *p_msg =
         (tBTA_DM_API_SET_VISIBILITY *)osi_malloc(sizeof(tBTA_DM_MSG));
@@ -248,7 +248,7 @@ void BTA_DmSearchCancel(void)
 **
 *******************************************************************************/
 void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
+                    tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search)
 {
     tBTA_DM_API_DISCOVER *p_msg =
         (tBTA_DM_API_DISCOVER *)osi_calloc(sizeof(tBTA_DM_API_DISCOVER));
@@ -274,7 +274,7 @@ void BTA_DmDiscover(BD_ADDR bd_addr, tBTA_SERVICE_MASK services,
 **
 *******************************************************************************/
 void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
+                    tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search)
 {
     tBTA_DM_API_DISCOVER *p_msg =
         (tBTA_DM_API_DISCOVER *)osi_malloc(sizeof(tBTA_DM_API_DISCOVER));
@@ -285,7 +285,7 @@ void BTA_DmDiscoverUUID(BD_ADDR bd_addr, tSDP_UUID *uuid,
     p_msg->p_cback = p_cback;
     p_msg->sdp_search = sdp_search;
 
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     p_msg->num_uuid = 0;
     p_msg->p_uuid = NULL;
 #endif
@@ -373,7 +373,7 @@ void BTA_DmBondCancel(BD_ADDR bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmPinReply(BD_ADDR bd_addr, BOOLEAN accept, UINT8 pin_len, UINT8 *p_pin)
+void BTA_DmPinReply(BD_ADDR bd_addr, bool accept, uint8_t pin_len, uint8_t *p_pin)
 
 {
     tBTA_DM_API_PIN_REPLY *p_msg =
@@ -422,7 +422,7 @@ void BTA_DmLocalOob(void)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
+void BTA_DmConfirm(BD_ADDR bd_addr, bool accept)
 {
     tBTA_DM_API_CONFIRM *p_msg =
         (tBTA_DM_API_CONFIRM *)osi_malloc(sizeof(tBTA_DM_API_CONFIRM));
@@ -446,8 +446,8 @@ void BTA_DmConfirm(BD_ADDR bd_addr, BOOLEAN accept)
 **
 *******************************************************************************/
 void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
-                     tBTA_SERVICE_MASK trusted_mask, BOOLEAN is_trusted,
-                     UINT8 key_type, tBTA_IO_CAP io_cap, UINT8 pin_length)
+                     tBTA_SERVICE_MASK trusted_mask, bool is_trusted,
+                     uint8_t key_type, tBTA_IO_CAP io_cap, uint8_t pin_length)
 {
     tBTA_DM_API_ADD_DEVICE *p_msg =
         (tBTA_DM_API_ADD_DEVICE *)osi_calloc(sizeof(tBTA_DM_API_ADD_DEVICE));
@@ -459,14 +459,14 @@ void BTA_DmAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, LINK_KEY link_key,
     p_msg->io_cap = io_cap;
 
     if (link_key) {
-        p_msg->link_key_known = TRUE;
+        p_msg->link_key_known = true;
         p_msg->key_type = key_type;
         memcpy(p_msg->link_key, link_key, LINK_KEY_LEN);
     }
 
     /* Load device class if specified */
     if (dev_class) {
-        p_msg->dc_known = TRUE;
+        p_msg->dc_known = true;
         memcpy(p_msg->dc, dev_class, DEV_CLASS_LEN);
     }
 
@@ -513,13 +513,13 @@ tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr)
 ** Returns          None
 **
 *******************************************************************************/
-extern const UINT16 bta_service_id_to_uuid_lkup_tbl [];
-void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
+extern const uint16_t bta_service_id_to_uuid_lkup_tbl [];
+void BTA_GetEirService( uint8_t *p_eir, tBTA_SERVICE_MASK *p_services )
 {
-    UINT8 xx, yy;
-    UINT8 num_uuid, max_num_uuid = 32;
-    UINT8 uuid_list[32*LEN_UUID_16];
-    UINT16 *p_uuid16 = (UINT16 *)uuid_list;
+    uint8_t xx, yy;
+    uint8_t num_uuid, max_num_uuid = 32;
+    uint8_t uuid_list[32*LEN_UUID_16];
+    uint16_t *p_uuid16 = (uint16_t *)uuid_list;
     tBTA_SERVICE_MASK mask;
 
     BTM_GetEirUuidList( p_eir, LEN_UUID_16, &num_uuid, uuid_list, max_num_uuid);
@@ -557,7 +557,7 @@ void BTA_GetEirService( UINT8 *p_eir, tBTA_SERVICE_MASK *p_services )
 ** Returns          0 if the device is NOT connected.
 **
 *******************************************************************************/
-UINT16 BTA_DmGetConnectionState(const BD_ADDR bd_addr )
+uint16_t BTA_DmGetConnectionState(const BD_ADDR bd_addr )
 {
     tBTA_DM_PEER_DEVICE * p_dev = bta_dm_find_peer_device(bd_addr);
     return (p_dev && p_dev->conn_state == BTA_DM_CONNECTED);
@@ -577,7 +577,7 @@ UINT16 BTA_DmGetConnectionState(const BD_ADDR bd_addr )
 **
 *******************************************************************************/
 tBTA_STATUS BTA_DmSetLocalDiRecord( tBTA_DI_RECORD *p_device_info,
-                              UINT32 *p_handle )
+                              uint32_t *p_handle )
 {
     tBTA_STATUS  status = BTA_FAILURE;
 
@@ -640,7 +640,7 @@ void bta_dmexecutecallback (tBTA_DM_EXEC_CBACK* p_callback, void * p_param)
 *******************************************************************************/
 void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_TYPE key_type)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
     tBTA_DM_API_ADD_BLEKEY *p_msg =
         (tBTA_DM_API_ADD_BLEKEY *)osi_calloc(sizeof(tBTA_DM_API_ADD_BLEKEY));
@@ -671,7 +671,7 @@ void BTA_DmAddBleKey (BD_ADDR bd_addr, tBTA_LE_KEY_VALUE *p_le_key, tBTA_LE_KEY_
 *******************************************************************************/
 void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TYPE dev_type)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_ADD_BLE_DEVICE *p_msg =
         (tBTA_DM_API_ADD_BLE_DEVICE *)osi_calloc(sizeof(tBTA_DM_API_ADD_BLE_DEVICE));
 
@@ -698,9 +698,9 @@ void BTA_DmAddBleDevice(BD_ADDR bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TY
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
+void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, bool accept, uint32_t passkey)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_PASSKEY_REPLY *p_msg =
         (tBTA_DM_API_PASSKEY_REPLY *)osi_calloc(sizeof(tBTA_DM_API_PASSKEY_REPLY));
 
@@ -727,9 +727,9 @@ void BTA_DmBlePasskeyReply(BD_ADDR bd_addr, BOOLEAN accept, UINT32 passkey)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
+void BTA_DmBleConfirmReply(BD_ADDR bd_addr, bool accept)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_CONFIRM *p_msg =
         (tBTA_DM_API_CONFIRM *)osi_calloc(sizeof(tBTA_DM_API_CONFIRM));
 
@@ -755,7 +755,7 @@ void BTA_DmBleConfirmReply(BD_ADDR bd_addr, BOOLEAN accept)
 *******************************************************************************/
 void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_BLE_SEC_GRANT *p_msg =
         (tBTA_DM_API_BLE_SEC_GRANT *)osi_calloc(sizeof(tBTA_DM_API_BLE_SEC_GRANT));
 
@@ -787,10 +787,10 @@ void BTA_DmBleSecurityGrant(BD_ADDR bd_addr, tBTA_DM_BLE_SEC_GRANT res)
 **
 *******************************************************************************/
 void BTA_DmSetBlePrefConnParams(const BD_ADDR bd_addr,
-                               UINT16 min_conn_int, UINT16 max_conn_int,
-                               UINT16 slave_latency, UINT16 supervision_tout )
+                               uint16_t min_conn_int, uint16_t max_conn_int,
+                               uint16_t slave_latency, uint16_t supervision_tout )
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_BLE_CONN_PARAMS *p_msg =
         (tBTA_DM_API_BLE_CONN_PARAMS *)osi_calloc(sizeof(tBTA_DM_API_BLE_CONN_PARAMS));
 
@@ -818,9 +818,9 @@ void BTA_DmSetBlePrefConnParams(const BD_ADDR bd_addr,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
+void BTA_DmSetBleConnScanParams(uint32_t scan_interval, uint32_t scan_window)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_BLE_SCAN_PARAMS *p_msg =
         (tBTA_DM_API_BLE_SCAN_PARAMS *)osi_calloc(sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
 
@@ -829,7 +829,7 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
     p_msg->scan_window = scan_window;
 
     bta_sys_sendmsg(p_msg);
-#endif  // BLE_INCLUDED == TRUE
+#endif  // BLE_INCLUDED == true
 }
 
 /*******************************************************************************
@@ -848,9 +848,9 @@ void BTA_DmSetBleConnScanParams(UINT32 scan_interval, UINT32 scan_window)
 **
 *******************************************************************************/
 
-#if BLE_INCLUDED == TRUE
-void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
-                            UINT32 scan_window, tBLE_SCAN_MODE scan_mode,
+#if (BLE_INCLUDED == TRUE)
+void BTA_DmSetBleScanParams(tGATT_IF client_if, uint32_t scan_interval,
+                            uint32_t scan_window, tBLE_SCAN_MODE scan_mode,
                             tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback)
 {
     tBTA_DM_API_BLE_SCAN_PARAMS *p_msg =
@@ -865,7 +865,7 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
 
     bta_sys_sendmsg(p_msg);
 }
-#endif  // BLE_INCLUDED == TRUE
+#endif  // BLE_INCLUDED == true
 
 /*******************************************************************************
 **
@@ -879,10 +879,10 @@ void BTA_DmSetBleScanParams(tGATT_IF client_if, UINT32 scan_interval,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
+void BTA_DmSetBleAdvParams (uint16_t adv_int_min, uint16_t adv_int_max,
                            tBLE_BD_ADDR *p_dir_bda)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_BLE_ADV_PARAMS *p_msg =
         (tBTA_DM_API_BLE_ADV_PARAMS *)osi_calloc(sizeof(tBTA_DM_API_BLE_ADV_PARAMS));
 
@@ -905,7 +905,7 @@ void BTA_DmSetBleAdvParams (UINT16 adv_int_min, UINT16 adv_int_max,
 **                      BLE ADV data management API
 ********************************************************************************/
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         BTA_DmBleSetAdvConfig
@@ -975,9 +975,9 @@ extern void BTA_DmBleSetScanRsp (tBTA_BLE_AD_MASK data_mask, tBTA_BLE_ADV_DATA *
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
-                                         UINT8 batch_scan_trunc_max,
-                                         UINT8 batch_scan_notify_threshold,
+extern void BTA_DmBleSetStorageParams(uint8_t batch_scan_full_max,
+                                         uint8_t batch_scan_trunc_max,
+                                         uint8_t batch_scan_notify_threshold,
                                          tBTA_BLE_SCAN_SETUP_CBACK *p_setup_cback,
                                          tBTA_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback,
                                          tBTA_BLE_SCAN_REP_CBACK* p_rep_cback,
@@ -1017,7 +1017,7 @@ extern void BTA_DmBleSetStorageParams(UINT8 batch_scan_full_max,
 **
 *******************************************************************************/
 extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
-                                         UINT32 scan_interval, UINT32 scan_window,
+                                         uint32_t scan_interval, uint32_t scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE        addr_type,
                                          tBTA_DM_BLE_REF_VALUE ref_value)
@@ -1113,7 +1113,7 @@ extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 /*******************************************************************************
 **                      BLE ADV data management API
 ********************************************************************************/
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 
 /*******************************************************************************
 **
@@ -1126,7 +1126,7 @@ extern void BTA_DmBleTrackAdvertiser(tBTA_DM_BLE_REF_VALUE ref_value,
 ** Returns          None
 **
 *******************************************************************************/
-extern void BTA_DmBleBroadcast (BOOLEAN start)
+extern void BTA_DmBleBroadcast (bool start)
 {
     tBTA_DM_API_BLE_OBSERVE *p_msg =
         (tBTA_DM_API_BLE_OBSERVE *)osi_calloc(sizeof(tBTA_DM_API_BLE_OBSERVE));
@@ -1156,7 +1156,7 @@ extern void BTA_DmBleBroadcast (BOOLEAN start)
 *******************************************************************************/
 void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_CBACK *p_select_cback)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_BLE_SET_BG_CONN_TYPE *p_msg =
         (tBTA_DM_API_BLE_SET_BG_CONN_TYPE *)osi_calloc(sizeof(tBTA_DM_API_BLE_SET_BG_CONN_TYPE));
 
@@ -1177,9 +1177,9 @@ void BTA_DmBleSetBgConnType(tBTA_DM_BLE_CONN_TYPE bg_conn_type, tBTA_DM_BLE_SEL_
 ** Returns          void
 **
 *******************************************************************************/
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
 static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
+                    tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search,
                     tBTA_TRANSPORT transport)
 {
     const size_t len = p_services ?
@@ -1194,7 +1194,7 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
     p_msg->transport    = transport;
 
     if (p_services != NULL) {
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
         p_msg->services = p_services->srvc_mask;
         p_msg->num_uuid = p_services->num_uuid;
         if (p_services->num_uuid != 0) {
@@ -1226,10 +1226,10 @@ static void bta_dm_discover_send_msg(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_s
 **
 *******************************************************************************/
 void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search,
+                    tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search,
                     tBTA_TRANSPORT transport)
 {
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     bta_dm_discover_send_msg(bd_addr, p_services, p_cback, sdp_search, transport);
 #endif
 }
@@ -1251,9 +1251,9 @@ void BTA_DmDiscoverByTransport(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_service
 **
 *******************************************************************************/
 void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
-                    tBTA_DM_SEARCH_CBACK *p_cback, BOOLEAN sdp_search)
+                    tBTA_DM_SEARCH_CBACK *p_cback, bool sdp_search)
 {
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     bta_dm_discover_send_msg(bd_addr, p_services, p_cback, sdp_search, BTA_TRANSPORT_UNKNOWN);
 #endif
 
@@ -1280,7 +1280,7 @@ void BTA_DmDiscoverExt(BD_ADDR bd_addr, tBTA_SERVICE_MASK_EXT *p_services,
 *******************************************************************************/
 void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, tBTA_DM_SEARCH_CBACK *p_cback)
 {
-#if BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE)
     const size_t len = p_services ?
         (sizeof(tBTA_DM_API_SEARCH) + sizeof(tBT_UUID) * p_services->num_uuid)
         : sizeof(tBTA_DM_API_SEARCH);
@@ -1326,11 +1326,11 @@ void BTA_DmSearchExt(tBTA_DM_INQ *p_dm_inq, tBTA_SERVICE_MASK_EXT *p_services, t
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, UINT16 min_int,
-                                    UINT16 max_int, UINT16 latency,
-                                    UINT16 timeout)
+void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, uint16_t min_int,
+                                    uint16_t max_int, uint16_t latency,
+                                    uint16_t timeout)
 {
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg =
         (tBTA_DM_API_UPDATE_CONN_PARAM *)osi_calloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
 
@@ -1356,9 +1356,9 @@ void BTA_DmBleUpdateConnectionParam(BD_ADDR bd_addr, UINT16 min_int,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
+void BTA_DmBleConfigLocalPrivacy(bool privacy_enable)
 {
-#if BLE_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE
+#if (BLE_INCLUDED == TRUE && BLE_PRIVACY_SPT == TRUE)
     tBTA_DM_API_LOCAL_PRIVACY *p_msg =
         (tBTA_DM_API_LOCAL_PRIVACY *)osi_calloc(sizeof(tBTA_DM_API_ENABLE_PRIVACY));
 
@@ -1371,7 +1371,7 @@ void BTA_DmBleConfigLocalPrivacy(BOOLEAN privacy_enable)
 #endif
 }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         BTA_BleEnableAdvInstance
@@ -1421,7 +1421,7 @@ void BTA_BleEnableAdvInstance (tBTA_BLE_ADV_PARAMS *p_params,
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-void BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
+void BTA_BleUpdateAdvInstParam (uint8_t inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 {
     const size_t len = sizeof(tBTA_BLE_ADV_PARAMS) +
         sizeof(tBTA_DM_API_BLE_MULTI_ADV_PARAM);
@@ -1455,7 +1455,7 @@ void BTA_BleUpdateAdvInstParam (UINT8 inst_id, tBTA_BLE_ADV_PARAMS *p_params)
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
+void BTA_BleCfgAdvInstData (uint8_t inst_id, bool is_scan_rsp,
                             tBTA_BLE_AD_MASK data_mask,
                             tBTA_BLE_ADV_DATA *p_data)
 {
@@ -1482,7 +1482,7 @@ void BTA_BleCfgAdvInstData (UINT8 inst_id, BOOLEAN is_scan_rsp,
 ** Returns          BTA_SUCCESS if command started sucessfully; otherwise failure.
 **
 *******************************************************************************/
-void BTA_BleDisableAdvInstance(UINT8 inst_id)
+void BTA_BleDisableAdvInstance(uint8_t inst_id)
 {
     tBTA_DM_API_BLE_MULTI_ADV_DISABLE *p_msg =
         (tBTA_DM_API_BLE_MULTI_ADV_DISABLE *)osi_calloc(sizeof(tBTA_DM_API_BLE_MULTI_ADV_DISABLE));
@@ -1519,13 +1519,13 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                  tBTA_DM_BLE_PF_CFG_CBACK *p_cmpl_cback,
                                  tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     tBTA_DM_API_CFG_FILTER_COND *p_msg;
     APPL_TRACE_API ("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
 
-    UINT16  len = sizeof(tBTA_DM_API_CFG_FILTER_COND) +
+    uint16_t  len = sizeof(tBTA_DM_API_CFG_FILTER_COND) +
                   sizeof(tBTA_DM_BLE_PF_COND_PARAM);
-    UINT8 *p;
+    uint8_t *p;
 
     if (NULL != p_cond)
     {
@@ -1536,11 +1536,11 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                 /* Length of pattern and pattern mask and other elements in */
                 /* tBTA_DM_BLE_PF_MANU_COND */
                 len += ((p_cond->manu_data.data_len) * 2) +
-                        sizeof(UINT16) + sizeof(UINT16) + sizeof(UINT8);
+                        sizeof(uint16_t) + sizeof(uint16_t) + sizeof(uint8_t);
                 break;
 
             case BTA_DM_BLE_PF_LOCAL_NAME:
-                len += ((p_cond->local_name.data_len) + sizeof(UINT8));
+                len += ((p_cond->local_name.data_len) + sizeof(uint8_t));
                 break;
 
             case BTM_BLE_PF_SRVC_UUID:
@@ -1564,7 +1564,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
         p_msg->p_cond_param = (tBTA_DM_BLE_PF_COND_PARAM *)(p_msg + 1);
         memcpy(p_msg->p_cond_param, p_cond, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
 
-        p = (UINT8 *)(p_msg->p_cond_param + 1);
+        p = (uint8_t *)(p_msg->p_cond_param + 1);
 
         if (cond_type == BTA_DM_BLE_PF_SRVC_DATA_PATTERN ||
             cond_type == BTA_DM_BLE_PF_MANU_DATA) {
@@ -1598,7 +1598,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                     p_cond->srvc_uuid.p_target_addr->type;
                 memcpy(p_msg->p_cond_param->srvc_uuid.p_target_addr->bda,
                        p_cond->srvc_uuid.p_target_addr->bda, BD_ADDR_LEN);
-                p = (UINT8 *)(p_msg->p_cond_param->srvc_uuid.p_target_addr + 1);
+                p = (uint8_t *)(p_msg->p_cond_param->srvc_uuid.p_target_addr + 1);
             }
             if (p_cond->srvc_uuid.p_uuid_mask) {
                 p_msg->p_cond_param->srvc_uuid.p_uuid_mask = (tBTA_DM_BLE_PF_COND_MASK *)p;
@@ -1637,14 +1637,14 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleScanFilterSetup(UINT8 action,
+void BTA_DmBleScanFilterSetup(uint8_t action,
                               tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                               tBTA_DM_BLE_PF_FILT_PARAMS *p_filt_params,
                               tBLE_BD_ADDR *p_target,
                               tBTA_DM_BLE_PF_PARAM_CBACK *p_cmpl_cback,
                               tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     const size_t len = sizeof(tBTA_DM_API_SCAN_FILTER_PARAM_SETUP) +
         sizeof(tBLE_BD_ADDR);
     tBTA_DM_API_SCAN_FILTER_PARAM_SETUP *p_msg =
@@ -1716,10 +1716,10 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK *p_cmpl_cback)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
+void BTA_DmEnableScanFilter(uint8_t action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cback,
                                     tBTA_DM_BLE_REF_VALUE ref_value)
 {
-#if BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     const size_t len = sizeof(tBTA_DM_API_ENABLE_SCAN_FILTER) +
         sizeof(tBLE_BD_ADDR);
     tBTA_DM_API_ENABLE_SCAN_FILTER *p_msg =
@@ -1756,8 +1756,8 @@ void BTA_DmEnableScanFilter(UINT8 action, tBTA_DM_BLE_PF_STATUS_CBACK *p_cmpl_cb
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, UINT16 min_int, UINT16 max_int,
-                                    UINT16 latency, UINT16 timeout)
+void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, uint16_t min_int, uint16_t max_int,
+                                    uint16_t latency, uint16_t timeout)
 {
     tBTA_DM_API_UPDATE_CONN_PARAM *p_msg =
         (tBTA_DM_API_UPDATE_CONN_PARAM *)osi_calloc(sizeof(tBTA_DM_API_UPDATE_CONN_PARAM));
@@ -1782,7 +1782,7 @@ void BTA_DmBleUpdateConnectionParams(const BD_ADDR bd_addr, UINT16 min_int, UINT
 **
 **
 *******************************************************************************/
-void BTA_DmBleSetDataLength(BD_ADDR remote_device, UINT16 tx_data_length)
+void BTA_DmBleSetDataLength(BD_ADDR remote_device, uint16_t tx_data_length)
 {
     tBTA_DM_API_BLE_SET_DATA_LENGTH *p_msg =
         (tBTA_DM_API_BLE_SET_DATA_LENGTH *)osi_malloc(sizeof(tBTA_DM_API_BLE_SET_DATA_LENGTH));
@@ -1847,7 +1847,7 @@ void BTA_DmSetEncryption(BD_ADDR bd_addr, tBTA_TRANSPORT transport, tBTA_DM_ENCR
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transport)
+void BTA_DmCloseACL(BD_ADDR bd_addr, bool remove_dev, tBTA_TRANSPORT transport)
 {
     tBTA_DM_API_REMOVE_ACL *p_msg =
         (tBTA_DM_API_REMOVE_ACL *)osi_calloc(sizeof(tBTA_DM_API_REMOVE_ACL));
@@ -1862,7 +1862,7 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
     bta_sys_sendmsg(p_msg);
 }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         BTA_DmBleObserve
@@ -1878,7 +1878,7 @@ void BTA_DmCloseACL(BD_ADDR bd_addr, BOOLEAN remove_dev, tBTA_TRANSPORT transpor
 ** Returns          void.
 **
 *******************************************************************************/
-extern void BTA_DmBleObserve(BOOLEAN start, UINT8 duration,
+extern void BTA_DmBleObserve(bool start, uint8_t duration,
                              tBTA_DM_SEARCH_CBACK *p_results_cb)
 {
     tBTA_DM_API_BLE_OBSERVE *p_msg =
@@ -1926,7 +1926,7 @@ void BTA_VendorCleanup (void)
     if (cmn_ble_vsc_cb.max_filter > 0)
     {
         btm_ble_adv_filter_cleanup();
-#if BLE_PRIVACY_SPT == TRUE
+#if (BLE_PRIVACY_SPT == TRUE)
         btm_ble_resolving_list_cleanup ();
 #endif
     }

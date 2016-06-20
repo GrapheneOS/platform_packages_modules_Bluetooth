@@ -44,13 +44,13 @@ extern void bta_dm_pm_active(BD_ADDR peer_addr);
 /* maximum AT command length */
 #define BTA_AG_CMD_MAX          512
 
-const UINT16 bta_ag_uuid[BTA_AG_NUM_IDX] =
+const uint16_t bta_ag_uuid[BTA_AG_NUM_IDX] =
 {
     UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
     UUID_SERVCLASS_AG_HANDSFREE
 };
 
-const UINT8 bta_ag_sec_id[BTA_AG_NUM_IDX] =
+const uint8_t bta_ag_sec_id[BTA_AG_NUM_IDX] =
 {
     BTM_SEC_SERVICE_HEADSET_AG,
     BTM_SEC_SERVICE_AG_HANDSFREE
@@ -68,8 +68,8 @@ const tBTA_SERVICE_MASK bta_ag_svc_mask[BTA_AG_NUM_IDX] =
     BTA_HFP_SERVICE_MASK
 };
 
-typedef void (*tBTA_AG_ATCMD_CBACK)(tBTA_AG_SCB *p_scb, UINT16 cmd, UINT8 arg_type,
-                                    char *p_arg, INT16 int_arg);
+typedef void (*tBTA_AG_ATCMD_CBACK)(tBTA_AG_SCB *p_scb, uint16_t cmd, uint8_t arg_type,
+                                    char *p_arg, int16_t int_arg);
 
 const tBTA_AG_ATCMD_CBACK bta_ag_at_cback_tbl[BTA_AG_NUM_IDX] =
 {
@@ -157,7 +157,7 @@ void bta_ag_register(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* set dealloc */
-    p_scb->dealloc = TRUE;
+    p_scb->dealloc = true;
 
     /* remove sdp records */
     bta_ag_del_records(p_scb, p_data);
@@ -182,7 +182,7 @@ void bta_ag_deregister(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 void bta_ag_start_dereg(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* set dealloc */
-    p_scb->dealloc = TRUE;
+    p_scb->dealloc = true;
 
     /* remove sdp records */
     bta_ag_del_records(p_scb, p_data);
@@ -242,7 +242,7 @@ void bta_ag_start_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_disc_int_res(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    UINT16 event = BTA_AG_DISC_FAIL_EVT;
+    uint16_t event = BTA_AG_DISC_FAIL_EVT;
 
     APPL_TRACE_DEBUG ("bta_ag_disc_int_res: Status: %d", p_data->disc_result.status);
 
@@ -382,12 +382,12 @@ void bta_ag_rfc_fail(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     p_scb->conn_handle = 0;
     p_scb->conn_service = 0;
     p_scb->peer_features = 0;
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
     p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
     p_scb->sco_codec = BTA_AG_CODEC_CVSD;
 #endif
     p_scb->role = 0;
-    p_scb->svc_conn = FALSE;
+    p_scb->svc_conn = false;
     p_scb->hsp_version = HSP_VERSION_1_2;
     /*Clear the BD address*/
     bdcpy(p_scb->peer_addr, bd_addr_null);
@@ -419,17 +419,17 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     /* reinitialize stuff */
     p_scb->conn_service = 0;
     p_scb->peer_features = 0;
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
     p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
     p_scb->sco_codec = BTA_AG_CODEC_CVSD;
     /* Clear these flags upon SLC teardown */
-    p_scb->codec_updated = FALSE;
-    p_scb->codec_fallback = FALSE;
+    p_scb->codec_updated = false;
+    p_scb->codec_fallback = false;
     p_scb->codec_msbc_settings = BTA_AG_SCO_MSBC_SETTINGS_T2;
 #endif
     p_scb->role = 0;
     p_scb->post_sco = BTA_AG_POST_SCO_NONE;
-    p_scb->svc_conn = FALSE;
+    p_scb->svc_conn = false;
     p_scb->hsp_version = HSP_VERSION_1_2;
     bta_ag_at_reinit(&p_scb->at_cb);
 
@@ -455,7 +455,7 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     (*bta_ag_cb.p_cback)(BTA_AG_CLOSE_EVT, (tBTA_AG *) &close);
 
     /* if not deregistering (deallocating) reopen registered servers */
-    if (p_scb->dealloc == FALSE)
+    if (p_scb->dealloc == false)
     {
         /* Clear peer bd_addr so instance can be reused */
         bdcpy(p_scb->peer_addr, bd_addr_null);
@@ -508,10 +508,10 @@ void bta_ag_rfc_close(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
     /* initialize AT feature variables */
-    p_scb->clip_enabled = FALSE;
-    p_scb->ccwa_enabled = FALSE;
-    p_scb->cmer_enabled = FALSE;
-    p_scb->cmee_enabled = FALSE;
+    p_scb->clip_enabled = false;
+    p_scb->ccwa_enabled = false;
+    p_scb->cmer_enabled = false;
+    p_scb->cmee_enabled = false;
     p_scb->inband_enabled = ((p_scb->features & BTA_AG_FEAT_INBAND) == BTA_AG_FEAT_INBAND);
 
     /* set up AT command interpreter */
@@ -551,7 +551,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    UINT16          lcid;
+    uint16_t        lcid;
     int             i;
     tBTA_AG_SCB     *ag_scb, *other_scb;
     BD_ADDR         dev_addr;
@@ -643,7 +643,7 @@ void bta_ag_rfc_acp_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_rfc_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    UINT16  len;
+    uint16_t  len;
     char    buf[BTA_AG_RFC_READ_MAX];
     UNUSED(p_data);
 
@@ -820,7 +820,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
     if (!p_scb->svc_conn)
     {
         /* set state variable */
-        p_scb->svc_conn = TRUE;
+        p_scb->svc_conn = true;
 
         /* Clear AT+BIA mask from previous SLC if any. */
         p_scb->bia_masked_out = 0;
@@ -832,7 +832,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         evt.hdr.app_id = p_scb->app_id;
         evt.peer_feat = p_scb->peer_features;
         bdcpy(evt.bd_addr, p_scb->peer_addr);
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
         evt.peer_codec  = p_scb->peer_codecs;
 #endif
 
@@ -857,7 +857,7 @@ void bta_ag_svc_conn_open(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-    UINT16 len;
+    uint16_t len;
     tBTA_AG_CI_RX_WRITE *p_rx_write_msg = (tBTA_AG_CI_RX_WRITE *)p_data;
     char *p_data_area = (char *)(p_rx_write_msg+1);     /* Point to data area after header */
 
@@ -910,7 +910,7 @@ void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 *******************************************************************************/
 void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
 {
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
     tBTA_AG_PEER_CODEC codec_type = p_data->api_setcodec.codec;
     tBTA_AG_VAL        val;
 
@@ -930,7 +930,7 @@ void bta_ag_setcodec(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data)
         (codec_type == BTA_AG_CODEC_CVSD))
     {
         p_scb->sco_codec = codec_type;
-        p_scb->codec_updated = TRUE;
+        p_scb->codec_updated = true;
         val.num = codec_type;
         val.hdr.status = BTA_AG_SUCCESS;
         APPL_TRACE_DEBUG("bta_ag_setcodec: Updated codec type %d", codec_type);

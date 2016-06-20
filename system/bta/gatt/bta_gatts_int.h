@@ -55,7 +55,7 @@ enum
     BTA_GATTS_API_LISTEN_EVT,
     BTA_GATTS_API_DISABLE_EVT
 };
-typedef UINT16 tBTA_GATTS_INT_EVT;
+typedef uint16_t tBTA_GATTS_INT_EVT;
 
 /* max number of application allowed on device */
 #define BTA_GATTS_MAX_APP_NUM   GATT_MAX_SR_PROFILES
@@ -84,9 +84,9 @@ typedef struct
     BT_HDR                  hdr;
     tBTA_GATTS_IF           server_if;
     tBT_UUID                service_uuid;
-    UINT16                  num_handle;
-    UINT8                   inst;
-    BOOLEAN                 is_pri;
+    uint16_t                  num_handle;
+    uint8_t                   inst;
+    bool                 is_pri;
 
 } tBTA_GATTS_API_CREATE_SRVC;
 
@@ -102,7 +102,7 @@ typedef struct
 typedef struct
 {
     BT_HDR                  hdr;
-    UINT16                  included_service_id;
+    uint16_t                  included_service_id;
 
 }tBTA_GATTS_API_ADD_INCL_SRVC;
 
@@ -116,16 +116,16 @@ typedef struct
 typedef struct
 {
     BT_HDR  hdr;
-    UINT16  attr_id;
-    UINT16  len;
-    BOOLEAN need_confirm;
-    UINT8   value[BTA_GATT_MAX_ATTR_LEN];
+    uint16_t  attr_id;
+    uint16_t  len;
+    bool need_confirm;
+    uint8_t   value[BTA_GATT_MAX_ATTR_LEN];
 }tBTA_GATTS_API_INDICATION;
 
 typedef struct
 {
     BT_HDR              hdr;
-    UINT32              trans_id;
+    uint32_t              trans_id;
     tBTA_GATT_STATUS    status;
     tBTA_GATTS_RSP      *p_rsp;
 }tBTA_GATTS_API_RSP;
@@ -142,7 +142,7 @@ typedef struct
     BT_HDR                  hdr;
     BD_ADDR                 remote_bda;
     tBTA_GATTS_IF           server_if;
-    BOOLEAN                 is_direct;
+    bool                 is_direct;
     tBTA_GATT_TRANSPORT     transport;
 
 }tBTA_GATTS_API_OPEN;
@@ -154,7 +154,7 @@ typedef struct
     BT_HDR                  hdr;
     BD_ADDR_PTR             remote_bda;
     tBTA_GATTS_IF           server_if;
-    BOOLEAN                 start;
+    bool                 start;
 } tBTA_GATTS_API_LISTEN;
 
 typedef union
@@ -180,7 +180,7 @@ typedef union
 /* application registration control block */
 typedef struct
 {
-    BOOLEAN             in_use;
+    bool             in_use;
     tBT_UUID            app_uuid;
     tBTA_GATTS_CBACK    *p_cback;
     tBTA_GATTS_IF        gatt_if;
@@ -190,11 +190,11 @@ typedef struct
 typedef struct
 {
     tBT_UUID    service_uuid;   /* service UUID */
-    UINT16      service_id;     /* service handle */
-    UINT8       inst_num;       /* instance ID */
-    UINT8       rcb_idx;
-    UINT8       idx;            /* self index of serviec CB */
-    BOOLEAN     in_use;
+    uint16_t      service_id;     /* service handle */
+    uint8_t       inst_num;       /* instance ID */
+    uint8_t       rcb_idx;
+    uint8_t       idx;            /* self index of serviec CB */
+    bool     in_use;
 
 }tBTA_GATTS_SRVC_CB;
 
@@ -202,7 +202,7 @@ typedef struct
 /* GATT server control block */
 typedef struct
 {
-    BOOLEAN             enabled;
+    bool             enabled;
     tBTA_GATTS_RCB      rcb[BTA_GATTS_MAX_APP_NUM];
     tBTA_GATTS_SRVC_CB  srvc_cb[BTA_GATTS_MAX_SRVC_NUM];
 }tBTA_GATTS_CB;
@@ -214,7 +214,7 @@ typedef struct
 *****************************************************************************/
 
 /* GATTC control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
+#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_GATTS_CB  bta_gatts_cb;
 #else
 extern tBTA_GATTS_CB *bta_gatts_cb_ptr;
@@ -224,7 +224,7 @@ extern tBTA_GATTS_CB *bta_gatts_cb_ptr;
 /*****************************************************************************
 **  Function prototypes
 *****************************************************************************/
-extern BOOLEAN bta_gatts_hdl_event(BT_HDR *p_msg);
+extern bool bta_gatts_hdl_event(BT_HDR *p_msg);
 
 extern void bta_gatts_api_disable(tBTA_GATTS_CB *p_cb);
 extern void bta_gatts_api_enable(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA *p_data);
@@ -248,12 +248,12 @@ extern void bta_gatts_cancel_open (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg)
 extern void bta_gatts_close (tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
 extern void bta_gatts_listen(tBTA_GATTS_CB *p_cb, tBTA_GATTS_DATA * p_msg);
 
-extern BOOLEAN bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src);
+extern bool bta_gatts_uuid_compare(tBT_UUID tar, tBT_UUID src);
 extern tBTA_GATTS_RCB *bta_gatts_find_app_rcb_by_app_if(tBTA_GATTS_IF server_if);
-extern UINT8 bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF server_if);
-extern UINT8 bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB *p_cb, UINT8 rcb_idx);
-extern tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, UINT16 service_id);
-extern tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, UINT16 attr_id);
+extern uint8_t bta_gatts_find_app_rcb_idx_by_app_if(tBTA_GATTS_CB *p_cb, tBTA_GATTS_IF server_if);
+extern uint8_t bta_gatts_alloc_srvc_cb(tBTA_GATTS_CB *p_cb, uint8_t rcb_idx);
+extern tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_srvc_id(tBTA_GATTS_CB *p_cb, uint16_t service_id);
+extern tBTA_GATTS_SRVC_CB * bta_gatts_find_srvc_cb_by_attr_id(tBTA_GATTS_CB *p_cb, uint16_t attr_id);
 
 
 #endif /* BTA_GATTS_INT_H */

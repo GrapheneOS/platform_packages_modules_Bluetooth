@@ -29,17 +29,17 @@
 #include "bta_hf_client_int.h"
 
 /* uncomment to enable extra debug */
-/* #define BTA_HF_CLIENT_DEBUG TRUE */
+/* #define BTA_HF_CLIENT_DEBUG true */
 
 #ifndef BTA_HF_CLIENT_DEBUG
-#define BTA_HF_CLIENT_DEBUG FALSE
+#define BTA_HF_CLIENT_DEBUG false
 #endif
 
 extern fixed_queue_t *btu_bta_alarm_queue;
 
-#if BTA_HF_CLIENT_DEBUG == TRUE
-static char *bta_hf_client_evt_str(UINT16 event);
-static char *bta_hf_client_state_str(UINT8 state);
+#if (BTA_HF_CLIENT_DEBUG == TRUE)
+static char *bta_hf_client_evt_str(uint16_t event);
+static char *bta_hf_client_state_str(uint8_t state);
 #endif
 
 /* state machine states */
@@ -123,7 +123,7 @@ const tBTA_HF_CLIENT_ACTION bta_hf_client_action[] =
 #define BTA_HF_CLIENT_NUM_COLS             3       /* number of columns in state tables */
 
 /* state table for init state */
-const UINT8 bta_hf_client_st_init[][BTA_HF_CLIENT_NUM_COLS] =
+const uint8_t bta_hf_client_st_init[][BTA_HF_CLIENT_NUM_COLS] =
 {
 /* Event                    Action 1                       Action 2                       Next state */
 /* API_REGISTER_EVT */      {BTA_HF_CLIENT_REGISTER,       BTA_HF_CLIENT_IGNORE,          BTA_HF_CLIENT_INIT_ST},
@@ -146,7 +146,7 @@ const UINT8 bta_hf_client_st_init[][BTA_HF_CLIENT_NUM_COLS] =
 };
 
 /* state table for opening state */
-const UINT8 bta_hf_client_st_opening[][BTA_HF_CLIENT_NUM_COLS] =
+const uint8_t bta_hf_client_st_opening[][BTA_HF_CLIENT_NUM_COLS] =
 {
 /* Event                    Action 1                       Action 2                       Next state */
 /* API_REGISTER_EVT */      {BTA_HF_CLIENT_IGNORE,         BTA_HF_CLIENT_IGNORE,          BTA_HF_CLIENT_OPENING_ST},
@@ -169,7 +169,7 @@ const UINT8 bta_hf_client_st_opening[][BTA_HF_CLIENT_NUM_COLS] =
 };
 
 /* state table for open state */
-const UINT8 bta_hf_client_st_open[][BTA_HF_CLIENT_NUM_COLS] =
+const uint8_t bta_hf_client_st_open[][BTA_HF_CLIENT_NUM_COLS] =
 {
 /* Event                    Action 1                       Action 2                       Next state */
 /* API_REGISTER_EVT */      {BTA_HF_CLIENT_IGNORE,         BTA_HF_CLIENT_IGNORE,          BTA_HF_CLIENT_OPEN_ST},
@@ -192,7 +192,7 @@ const UINT8 bta_hf_client_st_open[][BTA_HF_CLIENT_NUM_COLS] =
 };
 
 /* state table for closing state */
-const UINT8 bta_hf_client_st_closing[][BTA_HF_CLIENT_NUM_COLS] =
+const uint8_t bta_hf_client_st_closing[][BTA_HF_CLIENT_NUM_COLS] =
 {
 /* Event                    Action 1                       Action 2                       Next state */
 /* API_REGISTER_EVT */      {BTA_HF_CLIENT_IGNORE,         BTA_HF_CLIENT_IGNORE,          BTA_HF_CLIENT_CLOSING_ST},
@@ -215,7 +215,7 @@ const UINT8 bta_hf_client_st_closing[][BTA_HF_CLIENT_NUM_COLS] =
 };
 
 /* type for state table */
-typedef const UINT8 (*tBTA_HF_CLIENT_ST_TBL)[BTA_HF_CLIENT_NUM_COLS];
+typedef const uint8_t (*tBTA_HF_CLIENT_ST_TBL)[BTA_HF_CLIENT_NUM_COLS];
 
 /* state table */
 const tBTA_HF_CLIENT_ST_TBL bta_hf_client_st_tbl[] =
@@ -241,7 +241,7 @@ tBTA_HF_CLIENT_CB  bta_hf_client_cb;
 *******************************************************************************/
 void bta_hf_client_scb_init(void)
 {
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     alarm_free(bta_hf_client_cb.scb.collision_timer);
     alarm_free(bta_hf_client_cb.scb.at_cb.resp_timer);
@@ -265,7 +265,7 @@ void bta_hf_client_scb_init(void)
 *******************************************************************************/
 void bta_hf_client_scb_disable(void)
 {
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     bta_hf_client_scb_init();
 
@@ -284,7 +284,7 @@ void bta_hf_client_scb_disable(void)
 *******************************************************************************/
 void bta_hf_client_resume_open (void)
 {
-    APPL_TRACE_DEBUG ("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG ("%s", __func__);
 
     /* resume opening process.  */
     if (bta_hf_client_cb.scb.state == BTA_HF_CLIENT_INIT_ST)
@@ -306,7 +306,7 @@ void bta_hf_client_resume_open (void)
 *******************************************************************************/
 static void bta_hf_client_collision_timer_cback(UNUSED_ATTR void *data)
 {
-    APPL_TRACE_DEBUG("%s", __FUNCTION__);
+    APPL_TRACE_DEBUG("%s", __func__);
 
     /* If the peer haven't opened connection, restart opening process */
     bta_hf_client_resume_open();
@@ -322,8 +322,8 @@ static void bta_hf_client_collision_timer_cback(UNUSED_ATTR void *data)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, UINT8 id,
-                                    UINT8 app_id, BD_ADDR peer_addr)
+void bta_hf_client_collision_cback (tBTA_SYS_CONN_STATUS status, uint8_t id,
+                                    uint8_t app_id, BD_ADDR peer_addr)
 {
     UNUSED(status);
     UNUSED(app_id);
@@ -390,7 +390,7 @@ static void bta_hf_client_api_enable(tBTA_HF_CLIENT_DATA *p_data)
     osi_property_get("ro.bluetooth.hfp.ver", value, "0");
     if (strcmp(value,"1.6") == 0)
     {
-       bta_hf_client_cb.msbc_enabled = TRUE;
+       bta_hf_client_cb.msbc_enabled = true;
     }
 
     bta_hf_client_cb.scb.negotiated_codec = BTM_SCO_CODEC_CVSD;
@@ -437,12 +437,12 @@ static void bta_hf_client_api_disable(tBTA_HF_CLIENT_DATA *p_data)
 ** Description      Data HF Client main event handling function.
 **
 **
-** Returns          BOOLEAN
+** Returns          bool
 **
 *******************************************************************************/
-BOOLEAN bta_hf_client_hdl_event(BT_HDR *p_msg)
+bool bta_hf_client_hdl_event(BT_HDR *p_msg)
 {
-#if BTA_HF_CLIENT_DEBUG == TRUE
+#if (BTA_HF_CLIENT_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hf_client_hdl_event %s (0x%x)", bta_hf_client_evt_str(p_msg->event), p_msg->event);
 #endif
 
@@ -462,7 +462,7 @@ BOOLEAN bta_hf_client_hdl_event(BT_HDR *p_msg)
                 bta_hf_client_sm_execute(p_msg->event, (tBTA_HF_CLIENT_DATA *) p_msg);
             break;
     }
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -475,15 +475,15 @@ BOOLEAN bta_hf_client_hdl_event(BT_HDR *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_sm_execute(UINT16 event, tBTA_HF_CLIENT_DATA *p_data)
+void bta_hf_client_sm_execute(uint16_t event, tBTA_HF_CLIENT_DATA *p_data)
 {
     tBTA_HF_CLIENT_ST_TBL      state_table;
-    UINT8               action;
+    uint8_t               action;
     int                 i;
 
-#if BTA_HF_CLIENT_DEBUG == TRUE
-    UINT16  in_event = event;
-    UINT8 in_state =  bta_hf_client_cb.scb.state;
+#if (BTA_HF_CLIENT_DEBUG == TRUE)
+    uint16_t  in_event = event;
+    uint8_t in_state =  bta_hf_client_cb.scb.state;
 
     /* Ignore displaying of AT results when not connected (Ignored in state machine) */
     if (bta_hf_client_cb.scb.state == BTA_HF_CLIENT_OPEN_ST)
@@ -521,7 +521,7 @@ void bta_hf_client_sm_execute(UINT16 event, tBTA_HF_CLIENT_DATA *p_data)
         }
     }
 
-#if BTA_HF_CLIENT_DEBUG == TRUE
+#if (BTA_HF_CLIENT_DEBUG == TRUE)
     if (bta_hf_client_cb.scb.state != in_state)
     {
         APPL_TRACE_EVENT("BTA HF Client State Change: [%s] -> [%s] after Event [%s]",
@@ -537,11 +537,11 @@ static void send_post_slc_cmd(void)
     bta_hf_client_cb.scb.at_cb.current_cmd = BTA_HF_CLIENT_AT_NONE;
 
     bta_hf_client_send_at_bia();
-    bta_hf_client_send_at_ccwa(TRUE);
-    bta_hf_client_send_at_cmee(TRUE);
-    bta_hf_client_send_at_cops(FALSE);
-    bta_hf_client_send_at_btrh(TRUE, 0);
-    bta_hf_client_send_at_clip(TRUE);
+    bta_hf_client_send_at_ccwa(true);
+    bta_hf_client_send_at_cmee(true);
+    bta_hf_client_send_at_cops(false);
+    bta_hf_client_send_at_btrh(true, 0);
+    bta_hf_client_send_at_clip(true);
 }
 
 /*******************************************************************************
@@ -554,7 +554,7 @@ static void send_post_slc_cmd(void)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_hf_client_slc_seq(BOOLEAN error)
+void bta_hf_client_slc_seq(bool error)
 {
     APPL_TRACE_DEBUG("bta_hf_client_slc_seq cmd: %u", bta_hf_client_cb.scb.at_cb.current_cmd);
 
@@ -584,19 +584,19 @@ void bta_hf_client_slc_seq(BOOLEAN error)
             break;
         }
 
-        bta_hf_client_send_at_cind(FALSE);
+        bta_hf_client_send_at_cind(false);
         break;
 
     case BTA_HF_CLIENT_AT_BAC:
-        bta_hf_client_send_at_cind(FALSE);
+        bta_hf_client_send_at_cind(false);
         break;
 
     case BTA_HF_CLIENT_AT_CIND:
-        bta_hf_client_send_at_cind(TRUE);
+        bta_hf_client_send_at_cind(true);
         break;
 
     case BTA_HF_CLIENT_AT_CIND_STATUS:
-        bta_hf_client_send_at_cmer(TRUE);
+        bta_hf_client_send_at_cmer(true);
         break;
 
     case BTA_HF_CLIENT_AT_CMER:
@@ -627,13 +627,13 @@ void bta_hf_client_slc_seq(BOOLEAN error)
     }
 }
 
-#if BTA_HF_CLIENT_DEBUG == TRUE
+#if (BTA_HF_CLIENT_DEBUG == TRUE)
 
 #ifndef CASE_RETURN_STR
 #define CASE_RETURN_STR(const) case const: return #const;
 #endif
 
-static char *bta_hf_client_evt_str(UINT16 event)
+static char *bta_hf_client_evt_str(uint16_t event)
 {
     switch (event)
     {
@@ -661,7 +661,7 @@ static char *bta_hf_client_evt_str(UINT16 event)
     }
 }
 
-static char *bta_hf_client_state_str(UINT8 state)
+static char *bta_hf_client_state_str(uint8_t state)
 {
     switch (state)
     {

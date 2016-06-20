@@ -39,7 +39,7 @@ extern "C" {
 #define BTA_PAN_SUCCESS          0
 #define BTA_PAN_FAIL             1
 
-typedef UINT8 tBTA_PAN_STATUS;
+typedef uint8_t tBTA_PAN_STATUS;
 
 
 /* PAN Callback events */
@@ -49,7 +49,7 @@ typedef UINT8 tBTA_PAN_STATUS;
 #define BTA_PAN_OPEN_EVT         3       /* Connection has been opened. */
 #define BTA_PAN_CLOSE_EVT        4       /* Connection has been closed. */
 
-typedef UINT8 tBTA_PAN_EVT;
+typedef uint8_t tBTA_PAN_EVT;
 
 
 /* pan roles */
@@ -58,13 +58,13 @@ typedef UINT8 tBTA_PAN_EVT;
 #define BTA_PAN_ROLE_NAP         PAN_ROLE_NAP_SERVER
 
 
-typedef UINT8   tBTA_PAN_ROLE;
+typedef uint8_t   tBTA_PAN_ROLE;
 
 /*  information regarding PAN roles */
 typedef struct
 {
     const char *p_srv_name;  /* service name for the PAN role */
-    UINT8 app_id;      /* application id */
+    uint8_t app_id;      /* application id */
     tBTA_SEC sec_mask; /* security setting for the role */
 
 } tBTA_PAN_ROLE_INFO;
@@ -81,7 +81,7 @@ typedef struct
 typedef struct
 {
     BD_ADDR         bd_addr;    /* BD address of peer device. */
-    UINT16          handle;     /* Handle associated with this connection. */
+    uint16_t          handle;     /* Handle associated with this connection. */
 
 } tBTA_PAN_OPENING;
 
@@ -90,7 +90,7 @@ typedef struct
 typedef struct
 {
     BD_ADDR         bd_addr;    /* BD address of peer device. */
-    UINT16          handle;     /* Handle associated with this connection. */
+    uint16_t          handle;     /* Handle associated with this connection. */
     tBTA_PAN_STATUS status;     /* status of open event */
     tBTA_PAN_ROLE   local_role; /* Local device PAN role for the connection */
     tBTA_PAN_ROLE   peer_role;  /* Peer device PAN role for the connection */
@@ -100,7 +100,7 @@ typedef struct
 /* Event associated with BTA_PAN_CLOSE_EVT */
 typedef struct
 {
-    UINT16          handle;     /* Handle associated with the connection. */
+    uint16_t          handle;     /* Handle associated with the connection. */
 } tBTA_PAN_CLOSE;
 
 /* Union of all PAN callback structures */
@@ -190,7 +190,7 @@ void BTA_PanOpen(BD_ADDR bd_addr, tBTA_PAN_ROLE    local_role, tBTA_PAN_ROLE  pe
 ** Returns          void
 **
 *******************************************************************************/
-extern void BTA_PanClose(UINT16 handle);
+extern void BTA_PanClose(uint16_t handle);
 
 
 #ifdef __cplusplus

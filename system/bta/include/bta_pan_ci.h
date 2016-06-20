@@ -47,7 +47,7 @@ extern "C"
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_ci_tx_ready(UINT16 handle);
+extern void bta_pan_ci_tx_ready(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -62,7 +62,7 @@ extern void bta_pan_ci_tx_ready(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_ci_rx_ready(UINT16 handle);
+extern void bta_pan_ci_rx_ready(uint16_t handle);
 
 /*******************************************************************************
 **
@@ -79,7 +79,7 @@ extern void bta_pan_ci_rx_ready(UINT16 handle);
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
+extern void bta_pan_ci_tx_flow(uint16_t handle, bool enable);
 
 /*******************************************************************************
 **
@@ -92,10 +92,10 @@ extern void bta_pan_ci_tx_flow(UINT16 handle, BOOLEAN enable);
 **                  phone must not free the buffer.
 **
 **
-** Returns          TRUE if flow enabled
+** Returns          true if flow enabled
 **
 *******************************************************************************/
-extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf, BOOLEAN ext);
+extern void bta_pan_ci_rx_writebuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf, bool ext);
 
 /*******************************************************************************
 **
@@ -110,8 +110,8 @@ extern void bta_pan_ci_rx_writebuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT
 ** Returns          void
 **
 *******************************************************************************/
-extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT16 *p_protocol,
-                                   BOOLEAN* p_ext, BOOLEAN* p_forward);
+extern BT_HDR * bta_pan_ci_readbuf(uint16_t handle, BD_ADDR src, BD_ADDR dst, uint16_t *p_protocol,
+                                   bool* p_ext, bool* p_forward);
 
 /*******************************************************************************
 **
@@ -123,7 +123,7 @@ extern BT_HDR * bta_pan_ci_readbuf(UINT16 handle, BD_ADDR src, BD_ADDR dst, UINT
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p_start_array, UINT16 *p_end_array);
+extern void bta_pan_ci_set_pfilters(uint16_t handle, uint16_t num_filters, uint16_t *p_start_array, uint16_t *p_end_array);
 
 
 /*******************************************************************************
@@ -136,8 +136,8 @@ extern void bta_pan_ci_set_pfilters(UINT16 handle, UINT16 num_filters, UINT16 *p
 ** Returns          void
 **
 *******************************************************************************/
-extern void bta_pan_ci_set_mfilters(UINT16 handle, UINT16 num_mcast_filters, UINT8 *p_start_array,
-                                    UINT8 *p_end_array);
+extern void bta_pan_ci_set_mfilters(uint16_t handle, uint16_t num_mcast_filters, uint8_t *p_start_array,
+                                    uint8_t *p_end_array);
 
 #ifdef __cplusplus
 }

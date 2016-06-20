@@ -24,7 +24,7 @@
 
 #include "bt_target.h"
 
-#if defined(BTA_GATT_INCLUDED) && (BTA_GATT_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #include <string.h>
 #include "bt_common.h"
@@ -55,7 +55,7 @@ static const tBTA_SYS_REG bta_gatts_reg =
 *******************************************************************************/
 void BTA_GATTS_Disable(void)
 {
-    if (bta_sys_is_register(BTA_ID_GATTS) == FALSE)
+    if (bta_sys_is_register(BTA_ID_GATTS) == false)
     {
         APPL_TRACE_WARNING("GATTS Module not enabled/already disabled");
         return;
@@ -86,7 +86,7 @@ void BTA_GATTS_AppRegister(tBT_UUID *p_app_uuid, tBTA_GATTS_CBACK *p_cback)
         (tBTA_GATTS_API_REG *)osi_malloc(sizeof(tBTA_GATTS_API_REG));
 
     /* register with BTA system manager */
-    if (bta_sys_is_register(BTA_ID_GATTS) == FALSE)
+    if (bta_sys_is_register(BTA_ID_GATTS) == false)
         bta_sys_register(BTA_ID_GATTS, &bta_gatts_reg);
 
     p_buf->hdr.event = BTA_GATTS_API_REG_EVT;
@@ -140,8 +140,8 @@ void BTA_GATTS_AppDeregister(tBTA_GATTS_IF server_if)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, UINT8 inst,
-                             UINT16 num_handle, BOOLEAN is_primary)
+void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, uint8_t inst,
+                             uint16_t num_handle, bool is_primary)
 {
     tBTA_GATTS_API_CREATE_SRVC *p_buf =
         (tBTA_GATTS_API_CREATE_SRVC *)osi_malloc(sizeof(tBTA_GATTS_API_CREATE_SRVC));
@@ -170,7 +170,7 @@ void BTA_GATTS_CreateService(tBTA_GATTS_IF server_if, tBT_UUID *p_service_uuid, 
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id)
+void BTA_GATTS_AddIncludeService(uint16_t service_id, uint16_t included_service_id)
 {
     tBTA_GATTS_API_ADD_INCL_SRVC *p_buf =
         (tBTA_GATTS_API_ADD_INCL_SRVC *)osi_malloc(sizeof(tBTA_GATTS_API_ADD_INCL_SRVC));
@@ -197,7 +197,7 @@ void BTA_GATTS_AddIncludeService(UINT16 service_id, UINT16 included_service_id)
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID  *p_char_uuid,
+void BTA_GATTS_AddCharacteristic (uint16_t service_id,  tBT_UUID  *p_char_uuid,
                                   tBTA_GATT_PERM perm, tBTA_GATT_CHAR_PROP property)
 {
     tBTA_GATTS_API_ADD_CHAR *p_buf =
@@ -230,7 +230,7 @@ void BTA_GATTS_AddCharacteristic (UINT16 service_id,  tBT_UUID  *p_char_uuid,
 ** Returns          returns status.
 **
 *******************************************************************************/
-void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
+void BTA_GATTS_AddCharDescriptor (uint16_t service_id,
                                   tBTA_GATT_PERM perm,
                                   tBT_UUID  * p_descr_uuid)
 {
@@ -258,7 +258,7 @@ void BTA_GATTS_AddCharDescriptor (UINT16 service_id,
 ** Returns          returns none.
 **
 *******************************************************************************/
-void BTA_GATTS_DeleteService(UINT16 service_id)
+void BTA_GATTS_DeleteService(uint16_t service_id)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -280,7 +280,7 @@ void BTA_GATTS_DeleteService(UINT16 service_id)
 ** Returns          None.
 **
 *******************************************************************************/
-void BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport)
+void BTA_GATTS_StartService(uint16_t service_id, tBTA_GATT_TRANSPORT sup_transport)
 {
     tBTA_GATTS_API_START *p_buf =
         (tBTA_GATTS_API_START *)osi_malloc(sizeof(tBTA_GATTS_API_START));
@@ -303,7 +303,7 @@ void BTA_GATTS_StartService(UINT16 service_id, tBTA_GATT_TRANSPORT sup_transport
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_StopService(UINT16 service_id)
+void BTA_GATTS_StopService(uint16_t service_id)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -327,8 +327,8 @@ void BTA_GATTS_StopService(UINT16 service_id)
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
-                                      std::vector<uint8_t> value, BOOLEAN need_confirm)
+void BTA_GATTS_HandleValueIndication (uint16_t conn_id, uint16_t attr_id,
+                                      std::vector<uint8_t> value, bool need_confirm)
 {
     tBTA_GATTS_API_INDICATION *p_buf =
         (tBTA_GATTS_API_INDICATION *)osi_calloc(sizeof(tBTA_GATTS_API_INDICATION));
@@ -359,7 +359,7 @@ void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
+void BTA_GATTS_SendRsp (uint16_t conn_id, uint32_t trans_id,
                         tBTA_GATT_STATUS status, tBTA_GATTS_RSP *p_msg)
 {
     const size_t len = sizeof(tBTA_GATTS_API_RSP) + sizeof(tBTA_GATTS_RSP);
@@ -392,7 +392,7 @@ void BTA_GATTS_SendRsp (UINT16 conn_id, UINT32 trans_id,
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct,
+void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bool is_direct,
                     tBTA_GATT_TRANSPORT transport)
 {
     tBTA_GATTS_API_OPEN *p_buf =
@@ -421,7 +421,7 @@ void BTA_GATTS_Open(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_dire
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN is_direct)
+void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, bool is_direct)
 {
     tBTA_GATTS_API_CANCEL_OPEN *p_buf =
         (tBTA_GATTS_API_CANCEL_OPEN *)osi_malloc(sizeof(tBTA_GATTS_API_CANCEL_OPEN));
@@ -445,7 +445,7 @@ void BTA_GATTS_CancelOpen(tBTA_GATTS_IF server_if, BD_ADDR remote_bda, BOOLEAN i
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_Close(UINT16 conn_id)
+void BTA_GATTS_Close(uint16_t conn_id)
 {
     BT_HDR *p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR));
 
@@ -470,7 +470,7 @@ void BTA_GATTS_Close(UINT16 conn_id)
 ** Returns          void
 **
 *******************************************************************************/
-void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start, BD_ADDR_PTR target_bda)
+void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, bool start, BD_ADDR_PTR target_bda)
 {
     tBTA_GATTS_API_LISTEN *p_buf =
         (tBTA_GATTS_API_LISTEN *)osi_malloc(sizeof(tBTA_GATTS_API_LISTEN) + BD_ADDR_LEN);
@@ -479,7 +479,7 @@ void BTA_GATTS_Listen(tBTA_GATTS_IF server_if, BOOLEAN start, BD_ADDR_PTR target
     p_buf->server_if = server_if;
     p_buf->start = start;
     if (target_bda) {
-        p_buf->remote_bda = (UINT8 *)(p_buf + 1);
+        p_buf->remote_bda = (uint8_t *)(p_buf + 1);
         memcpy(p_buf->remote_bda, target_bda, BD_ADDR_LEN);
     } else {
        p_buf->remote_bda = NULL;
