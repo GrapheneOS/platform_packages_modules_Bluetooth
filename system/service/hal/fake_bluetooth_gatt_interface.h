@@ -48,9 +48,9 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
     virtual bt_status_t MultiAdvSetInstData(
         int client_if, bool set_scan_rsp, bool include_name,
         bool incl_txpower, int appearance,
-        int manufacturer_len, char* manufacturer_data,
-        int service_data_len, char* service_data,
-        int service_uuid_len, char* service_uuid) = 0;
+        vector<uint8_t> manufacturer_data,
+        vector<uint8_t> service_data,
+        vector<uint8_t> service_uuid) = 0;
     virtual bt_status_t MultiAdvDisable(int client_if) = 0;
   };
 
@@ -99,7 +99,7 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
   void NotifyDisconnectCallback(int conn_id, int status, int client_if,
                                 const bt_bdaddr_t& bda);
   void NotifyScanResultCallback(const bt_bdaddr_t& bda, int rssi,
-                                uint8_t* adv_data);
+                                vector<uint8_t> adv_data);
   void NotifyMultiAdvEnableCallback(int client_if, int status);
   void NotifyMultiAdvDataCallback(int client_if, int status);
   void NotifyMultiAdvDisableCallback(int client_if, int status);
@@ -125,8 +125,8 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
                                  int offset, bool is_long);
   void NotifyRequestWriteCallback(int conn_id, int trans_id,
                                   const bt_bdaddr_t& bda, int attr_handle,
-                                  int offset, int length,
-                                  bool need_rsp, bool is_prep, uint8_t* value);
+                                  int offset, bool need_rsp, bool is_prep,
+                                  vector<uint8_t> value);
   void NotifyRequestExecWriteCallback(int conn_id, int trans_id,
                                       const bt_bdaddr_t& bda, int exec_write);
   void NotifyIndicationSentCallback(int conn_id, int status);

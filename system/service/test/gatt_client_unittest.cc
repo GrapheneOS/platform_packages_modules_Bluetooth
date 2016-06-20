@@ -44,8 +44,8 @@ class MockGattHandler
     return BT_STATUS_FAIL;
   }
 
-  bt_status_t MultiAdvSetInstData(int, bool, bool, bool, int,
-                                  int, char*, int, char*, int, char*) override {
+  bt_status_t MultiAdvSetInstData(int, bool, bool, bool, int, vector<uint8_t>,
+                                  vector<uint8_t>, vector<uint8_t> ) override {
     return BT_STATUS_FAIL;
   }
 

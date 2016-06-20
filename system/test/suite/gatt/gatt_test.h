@@ -58,7 +58,7 @@ class GattTest : public BluetoothTest,
       int status, int clientIf, const bt_uuid_t& app_uuid) override;
   void ScanResultCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */,
-      const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) override;
+      const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) override;
   void ListenCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */,
       int status, int client_if) override;

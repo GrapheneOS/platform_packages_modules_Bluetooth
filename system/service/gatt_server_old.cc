@@ -201,24 +201,25 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
 }
 
 void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
-                          int attr_handle, int attribute_offset, int length,
-                          bool need_rsp, bool is_prep, uint8_t *value) {
+                          int attr_handle, int attribute_offset,
+                          bool need_rsp, bool is_prep,
+                          vector<uint8_t> value) {
   std::string addr(BtAddrString(bda));
   LOG_INFO(LOG_TAG,
       "%s: connection:%d (%s:trans:%d) write attr:%d attribute_offset:%d "
-      "length:%d "
+      "length:%zu "
       "need_resp:%u is_prep:%u",
       __func__, conn_id, addr.c_str(), trans_id, attr_handle, attribute_offset,
-      length, need_rsp, is_prep);
+      value.size(), need_rsp, is_prep);
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
 
   bluetooth::gatt::Characteristic &ch =
       g_internal->characteristics[attr_handle];
 
-  ch.blob.resize(attribute_offset + length);
+  ch.blob.resize(attribute_offset + value.size());
 
-  std::copy(value, value + length, ch.blob.begin() + attribute_offset);
+  std::copy(value.begin(), value.end(), ch.blob.begin() + attribute_offset);
 
   auto target_blob = g_internal->controlled_blobs.find(attr_handle);
   // If this is a control attribute, adjust offset of the target blob.
@@ -248,11 +249,11 @@ void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t *bda,
   btgatt_response_t response;
   response.attr_value.handle = attr_handle;
   response.attr_value.offset = attribute_offset;
-  response.attr_value.len = length;
+  response.attr_value.len = value.size();
   response.attr_value.auth_req = 0;
   // Provide written data back to sender for the response.
   // Remote stacks use this to validate the success of the write.
-  std::copy(value, value + length, response.attr_value.value);
+  std::copy(value.begin(), value.end(), response.attr_value.value);
   g_internal->gatt->server->send_response(conn_id, trans_id, 0, &response);
 }
 
@@ -347,9 +348,9 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t *app_uuid) {
       false,            /* no txpower */
       2, 2,             /* interval */
       0,                /* appearance */
-      0, nullptr,       /* no mfg data */
-      0, nullptr,       /* no service data */
-      0, nullptr /* no service id yet */);
+      {},       /* no mfg data */
+      {},       /* no service data */
+      {} /* no service id yet */);
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "Failed to set advertising data");
     return;
@@ -379,7 +380,7 @@ void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
   g_internal->api_synchronize.notify_one();
 }
 
-void ScanResultCallback(bt_bdaddr_t *bda, int rssi, uint8_t *adv_data) {
+void ScanResultCallback(bt_bdaddr_t *bda, int rssi, vector<uint8_t> adv_data) {
   std::string addr(BtAddrString(bda));
   (void)adv_data;
   std::lock_guard<std::mutex> lock(g_internal->lock);
@@ -595,11 +596,9 @@ bool Server::SetAdvertisement(const std::vector<UUID>& ids,
       false,                       /* no txpower */
       2, 2,                        /* interval */
       0,                           /* appearance */
-      mutable_manufacturer_data.size(),
-      reinterpret_cast<char *>(mutable_manufacturer_data.data()),
-      mutable_service_data.size(),
-      reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
-      reinterpret_cast<char *>(id_data.data()));
+      mutable_manufacturer_data,
+      mutable_service_data,
+      id_data);
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "Failed to set advertising data");
     return false;
@@ -629,11 +628,9 @@ bool Server::SetScanResponse(const std::vector<UUID>& ids,
       false,                      /* no txpower */
       2, 2,                       /* interval */
       0,                          /* appearance */
-      mutable_manufacturer_data.size(),
-      reinterpret_cast<char *>(mutable_manufacturer_data.data()),
-      mutable_service_data.size(),
-      reinterpret_cast<char *>(mutable_service_data.data()), id_data.size(),
-      reinterpret_cast<char *>(id_data.data()));
+      mutable_manufacturer_data,
+      mutable_service_data,
+      id_data);
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR(LOG_TAG, "Failed to set scan response data");
     return false;
