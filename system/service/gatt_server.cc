@@ -420,9 +420,8 @@ bool GattServer::SendNotification(
             server_id_,
             handle_iter->second,
             conn->conn_id,
-            value.size(),
             confirm,
-            reinterpret_cast<char*>(const_cast<uint8_t*>(value.data())));
+            value);
 
     // Increment the send count if this was successful. We don't immediately
     // fail if the HAL returned an error. It's better to report success as long

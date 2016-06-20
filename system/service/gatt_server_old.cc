@@ -758,13 +758,11 @@ bool Server::SetCharacteristicValue(const UUID &id,
     return true;
 
   for (auto connection : internal_->connections) {
-    char dummy = 0;
     internal_->gatt->server->send_indication(internal_->server_if,
                                              attribute_id,
                                              connection,
-                                             sizeof(dummy),
                                              true,
-                                             &dummy);
+                                             {0});
   }
   return true;
 }

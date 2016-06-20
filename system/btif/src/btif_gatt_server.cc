@@ -476,12 +476,12 @@ static bt_status_t btif_gatts_delete_service(int server_if, int service_handle)
 
 static bt_status_t btif_gatts_send_indication(int server_if,
                                               int attribute_handle, int conn_id,
-                                              int len, int confirm,
-                                              char *p_value) {
+                                              int confirm,
+                                              vector<uint8_t> value) {
   CHECK_BTGATT_INIT();
 
-  len = len > BTGATT_MAX_ATTR_LEN ? BTGATT_MAX_ATTR_LEN : len;
-  vector<uint8_t> value(p_value, p_value + len);
+  if (value.size() > BTGATT_MAX_ATTR_LEN)
+    value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
                                attribute_handle, std::move(value), confirm));
