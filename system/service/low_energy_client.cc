@@ -47,7 +47,7 @@ BLEStatus GetBLEStatus(int status) {
 // Returns the length of the given scan record array. We have to calculate this
 // based on the maximum possible data length and the TLV data. See TODO above
 // |kScanRecordLength|.
-size_t GetScanRecordLength(uint8_t* bytes) {
+size_t GetScanRecordLength(vector<uint8_t> bytes) {
   for (size_t i = 0, field_len = 0; i < kScanRecordLength;
        i += (field_len + 1)) {
     field_len = bytes[i];
@@ -565,7 +565,7 @@ int LowEnergyClient::GetInstanceId() const {
 
 void LowEnergyClient::ScanResultCallback(
     hal::BluetoothGattInterface* gatt_iface,
-    const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) {
+    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
   // Ignore scan results if this client didn't start a scan.
   if (!scan_started_.load())
     return;
@@ -577,7 +577,7 @@ void LowEnergyClient::ScanResultCallback(
   // TODO(armansito): Apply software filters here.
 
   size_t record_len = GetScanRecordLength(adv_data);
-  std::vector<uint8_t> scan_record(adv_data, adv_data + record_len);
+  std::vector<uint8_t> scan_record(adv_data.begin(), adv_data.begin() + record_len);
 
   ScanResult result(BtAddrString(&bda), scan_record, rssi);
 
@@ -752,12 +752,9 @@ bt_status_t LowEnergyClient::SetAdvertiseData(
           data.include_device_name(),
           data.include_tx_power_level(),
           0,  // This is what Bluetooth.apk current hardcodes for "appearance".
-          hal_data.manufacturer_data.size(),
-          reinterpret_cast<char*>(hal_data.manufacturer_data.data()),
-          hal_data.service_data.size(),
-          reinterpret_cast<char*>(hal_data.service_data.data()),
-          hal_data.service_uuid.size(),
-          reinterpret_cast<char*>(hal_data.service_uuid.data()));
+          hal_data.manufacturer_data,
+          hal_data.service_data,
+          hal_data.service_uuid);
 
   if (status != BT_STATUS_SUCCESS) {
     LOG(ERROR) << "Failed to set instance advertising data.";

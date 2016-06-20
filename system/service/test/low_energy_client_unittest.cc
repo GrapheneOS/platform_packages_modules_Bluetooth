@@ -49,9 +49,10 @@ class MockGattHandler
   MOCK_METHOD4(Connect, bt_status_t(int , const bt_bdaddr_t *, bool, int));
   MOCK_METHOD3(Disconnect, bt_status_t(int , const bt_bdaddr_t *, int));
   MOCK_METHOD7(MultiAdvEnable, bt_status_t(int, int, int, int, int, int, int));
-  MOCK_METHOD10(
+  MOCK_METHOD7(
       MultiAdvSetInstDataMock,
-      bt_status_t(bool, bool, bool, int, int, char*, int, char*, int, char*));
+      bt_status_t(bool, bool, bool, int, vector<uint8_t>, vector<uint8_t>,
+                  vector<uint8_t>));
   MOCK_METHOD1(MultiAdvDisable, bt_status_t(int));
 
   // GMock has macros for up to 10 arguments (11 is really just too many...).
@@ -61,14 +62,12 @@ class MockGattHandler
       int /* client_if */,
       bool set_scan_rsp, bool include_name,
       bool incl_txpower, int appearance,
-      int manufacturer_len, char* manufacturer_data,
-      int service_data_len, char* service_data,
-      int service_uuid_len, char* service_uuid) override {
+      vector<uint8_t> manufacturer_data,
+      vector<uint8_t> service_data,
+      vector<uint8_t> service_uuid) override {
     return MultiAdvSetInstDataMock(
         set_scan_rsp, include_name, incl_txpower, appearance,
-        manufacturer_len, manufacturer_data,
-        service_data_len, service_data,
-        service_uuid_len, service_uuid);
+        manufacturer_data, service_data, service_uuid);
   }
 
  private:
@@ -130,16 +129,13 @@ class AdvertiseDataHandler : public MockGattHandler {
       int /* client_if */,
       bool set_scan_rsp, bool include_name,
       bool incl_txpower, int appearance,
-      int manufacturer_len, char* manufacturer_data,
-      int service_data_len, char* service_data,
-      int service_uuid_len, char* service_uuid) override {
+      vector<uint8_t> manufacturer_data,
+      vector<uint8_t> service_data,
+      vector<uint8_t> service_uuid) override {
     call_count_++;
-    service_data_.assign(
-        service_data, service_data+service_data_len);
-    manufacturer_data_.assign(
-        manufacturer_data, manufacturer_data+manufacturer_len);
-    uuid_data_.assign(
-        service_uuid, service_uuid+service_uuid_len);
+    service_data_ = std::move(service_data);
+    manufacturer_data_ = std::move(manufacturer_data);
+    uuid_data_ = std::move(service_uuid);
     return BT_STATUS_SUCCESS;
   }
 
@@ -250,7 +246,7 @@ class LowEnergyClientPostRegisterTest : public LowEnergyClientTest {
         .Times(1)
         .WillOnce(Return(BT_STATUS_SUCCESS));
     EXPECT_CALL(*mock_handler_,
-                MultiAdvSetInstDataMock(_, _, _, _, _, _, _, _, _, _))
+                MultiAdvSetInstDataMock(_, _, _, _, _, _, _))
         .Times(1)
         .WillOnce(Return(BT_STATUS_SUCCESS));
 
@@ -441,7 +437,7 @@ TEST_F(LowEnergyClientPostRegisterTest, StartAdvertisingBasic) {
                   false,  // set_scan_rsp
                   false,  // include_name
                   false,  // incl_txpower
-                  _, _, _, _, _, _, _))
+                  _, _, _, _))
       .Times(3)
       .WillOnce(Return(BT_STATUS_FAIL))
       .WillRepeatedly(Return(BT_STATUS_SUCCESS));
@@ -646,8 +642,9 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
           false,  // include_name
           true,  // incl_txpower,
           _,
-          0,  // 0 bytes
-          _, _, _, _, _))
+          // 0,  // 0 bytes
+          _,
+          _, _))
       .Times(2)
       .WillRepeatedly(Return(BT_STATUS_SUCCESS));
   EXPECT_CALL(
@@ -657,8 +654,9 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanResponse) {
           true,  // include_name
           false,  // incl_txpower,
           _,
-          data1.size() - 2,  // Mfc. Specific data field bytes.
-          _, _, _, _, _))
+          // data1.size() - 2,  // Mfc. Specific data field bytes.
+          _,
+          _, _))
       .Times(2)
       .WillRepeatedly(Return(BT_STATUS_SUCCESS));
 
@@ -902,16 +900,16 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
 
   EXPECT_EQ(0, delegate.scan_result_count());
 
-  const uint8_t kTestRecord0[] = { 0x02, 0x01, 0x00, 0x00 };
-  const uint8_t kTestRecord1[] = { 0x00 };
-  const uint8_t kTestRecord2[] = {
+  vector<uint8_t> kTestRecord0({ 0x02, 0x01, 0x00, 0x00 });
+  vector<uint8_t> kTestRecord1({ 0x00 });
+  vector<uint8_t> kTestRecord2({
     0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
     0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
     0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
     0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
     0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00, 0x01, 0x00,
     0x01, 0x00
-  };
+  });
   const bt_bdaddr_t kTestAddress = {
     { 0x01, 0x02, 0x03, 0x0A, 0x0B, 0x0C }
   };
@@ -920,7 +918,7 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
 
   // Scan wasn't started. Result should be ignored.
   fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, (uint8_t*) kTestRecord0);
+      kTestAddress, kTestRssi, kTestRecord0);
   EXPECT_EQ(0, delegate.scan_result_count());
 
   // Start a scan session for |le_client_|.
@@ -936,21 +934,21 @@ TEST_F(LowEnergyClientPostRegisterTest, ScanRecord) {
   ASSERT_TRUE(le_client_->StartScan(settings, filters));
 
   fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, (uint8_t*) kTestRecord0);
+      kTestAddress, kTestRssi, kTestRecord0);
   EXPECT_EQ(1, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
   EXPECT_EQ(3U, delegate.last_scan_result().scan_record().size());
 
   fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, (uint8_t*) kTestRecord1);
+      kTestAddress, kTestRssi, kTestRecord1);
   EXPECT_EQ(2, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());
   EXPECT_TRUE(delegate.last_scan_result().scan_record().empty());
 
   fake_hal_gatt_iface_->NotifyScanResultCallback(
-      kTestAddress, kTestRssi, (uint8_t*) kTestRecord2);
+      kTestAddress, kTestRssi, kTestRecord2);
   EXPECT_EQ(3, delegate.scan_result_count());
   EXPECT_EQ(kTestAddressStr, delegate.last_scan_result().device_address());
   EXPECT_EQ(kTestRssi, delegate.last_scan_result().rssi());

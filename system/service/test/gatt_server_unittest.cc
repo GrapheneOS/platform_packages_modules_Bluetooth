@@ -1095,28 +1095,28 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   // Unknown connection ID shouldn't trigger anything.
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0 + 1, kReqId0, hal_addr0, char_handle_, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(0, test_delegate.char_write_req().count);
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   // Unknown device address shouldn't trigger anything.
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId0, hal_addr1, char_handle_, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(0, test_delegate.char_write_req().count);
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   // Unknown attribute handle shouldn't trigger anything.
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId0, hal_addr0, char_handle_ + 50, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(0, test_delegate.char_write_req().count);
   EXPECT_EQ(0, test_delegate.desc_write_req().count);
 
   // Characteristic and descriptor handles should trigger correct callbacks.
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(kTestAddress0, test_delegate.char_write_req().device_address);
   EXPECT_EQ(kReqId0, test_delegate.char_write_req().id);
@@ -1129,7 +1129,7 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
 
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId1, hal_addr0, desc_handle_, 2,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(1, test_delegate.desc_write_req().count);
   EXPECT_EQ(kTestAddress0, test_delegate.desc_write_req().device_address);
@@ -1143,10 +1143,10 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   // Callback with a pending request ID will be ignored.
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId1, hal_addr0, char_handle_, 0,
-      kTestValue.size(), true, false, (uint8_t *)kTestValue.data());
+      true, false, kTestValue);
   EXPECT_EQ(1, test_delegate.char_write_req().count);
   EXPECT_EQ(1, test_delegate.desc_write_req().count);
 
@@ -1194,7 +1194,7 @@ TEST_F(GattServerPostRegisterTest, RequestWrite) {
   // SendResponse should fail for a "Write Without Response".
   fake_hal_gatt_iface_->NotifyRequestWriteCallback(
       kConnId0, kReqId0, hal_addr0, char_handle_, 0,
-      kTestValue.size(), false, false, (uint8_t *)kTestValue.data());
+      false, false, kTestValue);
   EXPECT_EQ(false, test_delegate.char_write_req().need_rsp);
   EXPECT_FALSE(gatt_server_->SendResponse(
       kTestAddress0, kReqId0,

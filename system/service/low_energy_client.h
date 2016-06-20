@@ -149,7 +149,8 @@ class LowEnergyClient : private hal::BluetoothGattInterface::ClientObserver,
   // BluetoothGattInterface::ClientObserver overrides:
   void ScanResultCallback(
       hal::BluetoothGattInterface* gatt_iface,
-      const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) override;
+      const bt_bdaddr_t& bda, int rssi,
+      vector<uint8_t> adv_data) override;
 
   void ConnectCallback(
       hal::BluetoothGattInterface* gatt_iface, int conn_id, int status,

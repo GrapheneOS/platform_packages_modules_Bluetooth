@@ -84,8 +84,8 @@ extern BOOLEAN btif_gattc_copy_datacb(int arrindex, const btif_adv_data_t *p_adv
                                             BOOLEAN bInstData);
 extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
-                int appearance, int manufacturer_len, char* manufacturer_data,
-                int service_data_len, char* service_data, int service_uuid_len,
-                char* service_uuid, btif_adv_data_t *p_multi_adv_inst);
+                int appearance, const vector<uint8_t> &manufacturer_data,
+                const vector<uint8_t> &service_data, const vector<uint8_t> &service_uuid,
+                btif_adv_data_t *p_multi_adv_inst);
 extern void btif_gattc_adv_data_cleanup(btif_adv_data_t* adv);
 void btif_multi_adv_timer_ctrl(int client_if, alarm_callback_t cb);

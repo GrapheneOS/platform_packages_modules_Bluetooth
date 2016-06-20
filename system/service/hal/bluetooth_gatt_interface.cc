@@ -80,16 +80,15 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
       RegisterClientCallback(g_interface, status, client_if, *app_uuid));
 }
 
-void ScanResultCallback(bt_bdaddr_t* bda, int rssi, uint8_t* adv_data) {
+void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
-  CHECK(adv_data);
 
   VLOG(2) << __func__ << " - BD_ADDR: " << BtAddrString(bda)
           << " RSSI: " << rssi;
   FOR_EACH_CLIENT_OBSERVER(
-    ScanResultCallback(g_interface, *bda, rssi, adv_data));
+    ScanResultCallback(g_interface, *bda, rssi, std::move(adv_data)));
 }
 
 void ConnectCallback(int conn_id, int status, int client_if, bt_bdaddr_t* bda) {
@@ -376,19 +375,20 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
 
 void RequestWriteCallback(int conn_id, int trans_id,
                           bt_bdaddr_t* bda,
-                          int attr_handle, int offset, int length,
-                          bool need_rsp, bool is_prep, uint8_t* value) {
+                          int attr_handle, int offset,
+                          bool need_rsp, bool is_prep,
+                          vector<uint8_t> value) {
   shared_lock<shared_timed_mutex> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << length << " need_rsp: " << need_rsp
+          << " length: " << value.size() << " need_rsp: " << need_rsp
           << " is_prep: " << is_prep;
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
 
   FOR_EACH_SERVER_OBSERVER(RequestWriteCallback(
-      g_interface, conn_id, trans_id, *bda, attr_handle, offset, length,
-      need_rsp, is_prep, value));
+      g_interface, conn_id, trans_id, *bda, attr_handle, offset,
+      need_rsp, is_prep, std::move(value)));
 }
 
 void RequestExecWriteCallback(int conn_id, int trans_id,
@@ -608,7 +608,7 @@ void BluetoothGattInterface::ClientObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */,
     const bt_bdaddr_t& /* bda */,
     int /* rssi */,
-    uint8_t* /* adv_data */) {
+    vector<uint8_t>  /* adv_data */) {
   // Do Nothing.
 }
 
@@ -821,10 +821,9 @@ void BluetoothGattInterface::ServerObserver::RequestWriteCallback(
     const bt_bdaddr_t& /* bda */,
     int /* attr_handle */,
     int /* offset */,
-    int /* length */,
     bool /* need_rsp */,
     bool /* is_prep */,
-    uint8_t* /* value */) {
+    vector<uint8_t> /* value */) {
   // Do nothing.
 }
 
