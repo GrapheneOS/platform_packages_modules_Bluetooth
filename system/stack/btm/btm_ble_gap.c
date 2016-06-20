@@ -58,8 +58,6 @@
 
 extern fixed_queue_t *btu_general_alarm_queue;
 
-static tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
-
 #if BLE_VND_INCLUDED == TRUE
 static tBTM_BLE_CTRL_FEATURES_CBACK    *p_ctrl_le_feature_rd_cmpl_cback = NULL;
 #endif
@@ -390,7 +388,7 @@ tBTM_STATUS BTM_BleObserve(BOOLEAN start, UINT8 duration,
                 btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
             #endif
 
-            if (cmn_ble_vsc_cb.extended_scan_support == 0)
+            if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0)
             {
                 btsnd_hcic_ble_set_scan_params(p_inq->scan_type, (UINT16)scan_interval,
                                                (UINT16)scan_window,
