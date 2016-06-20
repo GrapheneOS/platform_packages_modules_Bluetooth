@@ -75,8 +75,8 @@ class FakeBluetoothGattInterface : public BluetoothGattInterface {
         int server_if, int srvc_handle, int transport) = 0;
     virtual bt_status_t DeleteService(int server_if, int srvc_handle) = 0;
     virtual bt_status_t SendIndication(int server_if, int attribute_handle,
-                                       int conn_id, int len, int confirm,
-                                       char* value) = 0;
+                                       int conn_id, int confirm,
+                                       vector<uint8_t> value) = 0;
     virtual bt_status_t SendResponse(int conn_id, int trans_id, int status,
                                      btgatt_response_t* response) = 0;
   };
