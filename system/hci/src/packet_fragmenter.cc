@@ -150,6 +150,12 @@ static void reassemble_and_dispatch(UNUSED_ATTR BT_HDR *packet) {
         return;
       }
 
+      if (acl_length < L2CAP_HEADER_SIZE) {
+        LOG_WARN(LOG_TAG, "%s L2CAP packet too small (%d < %d). Dropping it.", __func__, packet->len, L2CAP_HEADER_SIZE);
+        buffer_allocator->free(packet);
+        return;
+      }
+
       uint16_t full_length = l2cap_length + L2CAP_HEADER_SIZE + HCI_ACL_PREAMBLE_SIZE;
 
       // Check for buffer overflow and that the full packet size + BT_HDR size is less than
