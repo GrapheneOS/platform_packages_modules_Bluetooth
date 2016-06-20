@@ -689,14 +689,10 @@ void GattServer::RequestWriteCallback(
     hal::BluetoothGattInterface* /* gatt_iface */,
     int conn_id, int trans_id,
     const bt_bdaddr_t& bda,
-    int attr_handle, int offset, int length,
-    bool need_rsp, bool is_prep, uint8_t* value) {
+    int attr_handle, int offset,
+    bool need_rsp, bool is_prep,
+    vector<uint8_t> value) {
   lock_guard<mutex> lock(mutex_);
-
-  if (length < 0) {
-    LOG(WARNING) << "Negative length value received";
-    return;
-  }
 
   // Check to see if we know about this connection. Otherwise ignore the
   // request.
@@ -709,7 +705,7 @@ void GattServer::RequestWriteCallback(
   VLOG(1) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " BD_ADDR: " << device_address
           << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << length << " need_rsp: " << need_rsp
+          << " length: " << value.size() << " need_rsp: " << need_rsp
           << " is_prep: " << is_prep;
 
   // Make sure that the handle is valid.
@@ -736,16 +732,14 @@ void GattServer::RequestWriteCallback(
     return;
   }
 
-  std::vector<uint8_t> value_vec(value, value + length);
-
   if (iter->second.IsCharacteristic()) {
     delegate_->OnCharacteristicWriteRequest(
         this, device_address, trans_id, offset, is_prep, need_rsp,
-        value_vec, iter->second);
+        std::move(value), iter->second);
   } else if (iter->second.IsDescriptor()) {
     delegate_->OnDescriptorWriteRequest(
         this, device_address, trans_id, offset, is_prep, need_rsp,
-        value_vec, iter->second);
+        std::move(value), iter->second);
   } else {
     // Our API only delegates to applications those read requests for
     // characteristic value and descriptor attributes. Everything else should be

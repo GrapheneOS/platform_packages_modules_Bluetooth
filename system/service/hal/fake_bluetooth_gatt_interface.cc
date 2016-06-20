@@ -74,21 +74,18 @@ bt_status_t FakeMultiAdvEnable(
 }
 
 bt_status_t FakeMultiAdvSetInstData(
-    int client_if, bool set_scan_rsp, bool include_name,
-    bool incl_txpower, int appearance,
-    int manufacturer_len, char* manufacturer_data,
-    int service_data_len, char* service_data,
-    int service_uuid_len, char* service_uuid) {
+    int client_if, bool set_scan_rsp, bool include_name, bool incl_txpower,
+    int appearance, vector<uint8_t> manufacturer_data,
+    vector<uint8_t> service_data,
+    vector<uint8_t> service_uuid) {
   if (g_client_handler)
     return g_client_handler->MultiAdvSetInstData(
-        client_if, set_scan_rsp, include_name,
-        incl_txpower, appearance,
-        manufacturer_len, manufacturer_data,
-        service_data_len, service_data,
-        service_uuid_len, service_uuid);
+        client_if, set_scan_rsp, include_name, incl_txpower, appearance,
+        manufacturer_data, service_data, service_uuid);
 
   return BT_STATUS_FAIL;
 }
+
 
 bt_status_t FakeMultiAdvDisable(int client_if) {
   if (g_client_handler)
@@ -273,7 +270,7 @@ void FakeBluetoothGattInterface::NotifyDisconnectCallback(
 }
 
 void FakeBluetoothGattInterface::NotifyScanResultCallback(
-    const bt_bdaddr_t& bda, int rssi, uint8_t* adv_data) {
+    const bt_bdaddr_t& bda, int rssi, vector<uint8_t> adv_data) {
   FOR_EACH_OBSERVER(ClientObserver, client_observers_,
                     ScanResultCallback(this, bda, rssi, adv_data));
 }
@@ -358,12 +355,12 @@ void FakeBluetoothGattInterface::NotifyRequestReadCallback(
 void FakeBluetoothGattInterface::NotifyRequestWriteCallback(
     int conn_id, int trans_id,
     const bt_bdaddr_t& bda, int attr_handle,
-    int offset, int length,
-    bool need_rsp, bool is_prep, uint8_t* value) {
+    int offset, bool need_rsp, bool is_prep,
+    vector<uint8_t> value) {
   FOR_EACH_OBSERVER(
       ServerObserver, server_observers_,
       RequestWriteCallback(
-          this, conn_id, trans_id, bda, attr_handle, offset, length, need_rsp,
+          this, conn_id, trans_id, bda, attr_handle, offset, need_rsp,
           is_prep, value));
 }
 

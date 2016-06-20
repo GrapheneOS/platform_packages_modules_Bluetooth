@@ -209,9 +209,9 @@ int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index)
 
 void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
-                int appearance, int manufacturer_len, char* manufacturer_data,
-                int service_data_len, char* service_data, int service_uuid_len,
-                char* service_uuid, btif_adv_data_t *p_multi_adv_inst)
+                int appearance, const vector<uint8_t> &manufacturer_data,
+                const vector<uint8_t> &service_data, const vector<uint8_t> &service_uuid,
+                btif_adv_data_t *p_multi_adv_inst)
 {
     memset(p_multi_adv_inst, 0 , sizeof(btif_adv_data_t));
 
@@ -223,31 +223,34 @@ void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
     p_multi_adv_inst->max_interval = max_interval;
     p_multi_adv_inst->appearance = appearance;
 
-    if (manufacturer_len > 0)
+    if (manufacturer_data.size() > 0)
     {
+        size_t manufacturer_len = manufacturer_data.size();
         if (manufacturer_len > MAX_SIZE_MANUFACTURER_DATA)
             manufacturer_len = MAX_SIZE_MANUFACTURER_DATA;
 
         p_multi_adv_inst->manufacturer_len = manufacturer_len;
-        memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data, manufacturer_len);
+        memcpy(p_multi_adv_inst->p_manufacturer_data, manufacturer_data.data(), manufacturer_len);
     }
 
-    if (service_data_len > 0)
+    if (service_data.size() > 0)
     {
+        size_t service_data_len = service_data.size();
         if (service_data_len > MAX_SIZE_PROPRIETARY_ELEMENT)
             service_data_len = MAX_SIZE_PROPRIETARY_ELEMENT;
 
         p_multi_adv_inst->service_data_len = service_data_len;
-        memcpy(p_multi_adv_inst->p_service_data, service_data, service_data_len);
+        memcpy(p_multi_adv_inst->p_service_data, service_data.data(), service_data_len);
     }
 
-    if (service_uuid_len > 0)
+    if (service_uuid.size() > 0)
     {
+        size_t service_uuid_len = service_uuid.size();
         if (service_uuid_len > MAX_SIZE_SERVICE_DATA)
             service_uuid_len = MAX_SIZE_SERVICE_DATA;
 
         p_multi_adv_inst->service_uuid_len = service_uuid_len;
-        memcpy(p_multi_adv_inst->p_service_uuid, service_uuid, service_uuid_len);
+        memcpy(p_multi_adv_inst->p_service_uuid, service_uuid.data(), service_uuid_len);
     }
 }
 
