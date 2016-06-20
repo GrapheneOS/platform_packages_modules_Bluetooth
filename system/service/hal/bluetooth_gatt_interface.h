@@ -59,7 +59,7 @@ class BluetoothGattInterface {
     virtual void ScanResultCallback(
         BluetoothGattInterface* gatt_iface,
         const bt_bdaddr_t& bda, int rssi,
-        uint8_t* adv_data);
+        vector<uint8_t> adv_data);
 
     virtual void ConnectCallback(
         BluetoothGattInterface* gatt_iface,
@@ -201,8 +201,9 @@ class BluetoothGattInterface {
         BluetoothGattInterface* gatt_iface,
         int conn_id, int trans_id,
         const bt_bdaddr_t& bda,
-        int attr_handle, int offset, int length,
-        bool need_rsp, bool is_prep, uint8_t* value);
+        int attr_handle, int offset,
+        bool need_rsp, bool is_prep,
+        vector<uint8_t> value);
 
     virtual void RequestExecWriteCallback(
         BluetoothGattInterface* gatt_iface,
