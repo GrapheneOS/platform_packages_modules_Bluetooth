@@ -18,6 +18,8 @@ package com.android.bluetooth.hfpclient.connserv;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.net.Uri;
 import android.telecom.PhoneAccount;
+import android.telephony.PhoneNumberUtils;
+import android.text.TextUtils;
 
 /* Matching a call to internal state requires understanding of the ph number and the state of the
  * remote itself. The best way to associate a call with remote is to use the Call IDs that are
@@ -31,14 +33,28 @@ class ConnectionKey {
     public static final int INVALID_ID = -1;
 
     private final int mId;
-    private final Uri mPhoneNumber;
+    private final String mPhoneNumber;
 
     ConnectionKey(int id, Uri phoneNumber) {
         if (id == INVALID_ID && phoneNumber == null) {
             throw new IllegalStateException("invalid id and phone number");
         }
         mId = id;
-        mPhoneNumber = phoneNumber;
+        mPhoneNumber = normalizePhoneUri(phoneNumber);
+    }
+
+    private static String normalizePhoneUri(Uri phoneNumber) {
+        // Sometimes the number can be rewritten with brackets and such, we normalize to take that
+        // factor out.
+        String schemeSpecificPart = phoneNumber.getSchemeSpecificPart();
+        if (!TextUtils.isEmpty(schemeSpecificPart)) {
+            if (schemeSpecificPart.startsWith("+")) {
+                schemeSpecificPart = schemeSpecificPart.substring(1);
+            }
+
+            schemeSpecificPart = PhoneNumberUtils.normalizeNumber(schemeSpecificPart);
+        }
+        return schemeSpecificPart;
     }
 
     public static ConnectionKey getKey(BluetoothHeadsetClientCall call) {
@@ -56,7 +72,7 @@ class ConnectionKey {
         return mId;
     }
 
-    public Uri getPhoneNumber() {
+    public String getPhoneNumber() {
         return mPhoneNumber;
     }
 
