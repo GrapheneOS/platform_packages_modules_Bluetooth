@@ -320,16 +320,15 @@ void BTA_GATTS_StopService(UINT16 service_id)
 ** Description      This function is called to read a characteristics descriptor.
 **
 ** Parameters       bda - remote device bd address to indicate.
-**					attr_id - attribute ID to indicate.
-**                  data_len - indicate data length.
-**                  p_data: data to indicate.
+**                  attr_id - attribute ID to indicate.
+**                  value - data to indicate.
 **                  need_confirm - if this indication expects a confirmation or not.
 **
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 data_len,
-                                      UINT8 *p_data, BOOLEAN need_confirm)
+void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id,
+                                      std::vector<uint8_t> value, BOOLEAN need_confirm)
 {
     tBTA_GATTS_API_INDICATION *p_buf =
         (tBTA_GATTS_API_INDICATION *)osi_calloc(sizeof(tBTA_GATTS_API_INDICATION));
@@ -338,9 +337,9 @@ void BTA_GATTS_HandleValueIndication (UINT16 conn_id, UINT16 attr_id, UINT16 dat
     p_buf->hdr.layer_specific = conn_id;
     p_buf->attr_id = attr_id;
     p_buf->need_confirm = need_confirm;
-    if (data_len > 0 && p_data != NULL) {
-        p_buf->len = data_len;
-        memcpy(p_buf->value, p_data, data_len);
+    if (value.size() > 0) {
+        p_buf->len = value.size();
+        memcpy(p_buf->value, value.data(), value.size());
     }
 
     bta_sys_sendmsg(p_buf);
