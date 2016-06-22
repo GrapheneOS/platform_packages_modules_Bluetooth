@@ -97,6 +97,8 @@ enum
     BTA_AV_SIGNALLING_TIMER_EVT,
     BTA_AV_SDP_AVRC_DISC_EVT,
     BTA_AV_AVRC_CLOSE_EVT,
+    BTA_AV_AVRC_BROWSE_OPEN_EVT,
+    BTA_AV_AVRC_BROWSE_CLOSE_EVT,
     BTA_AV_CONN_CHG_EVT,
     BTA_AV_DEREG_COMP_EVT,
 #if (AVDT_REPORTING == TRUE)
@@ -651,6 +653,8 @@ extern void bta_av_sig_chg(tBTA_AV_DATA *p_data);
 extern void bta_av_signalling_timer(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_disc_done(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_closed(tBTA_AV_DATA *p_data);
+extern void bta_av_rc_browse_opened(tBTA_AV_DATA *p_data);
+extern void bta_av_rc_browse_closed(tBTA_AV_DATA *p_data);
 extern void bta_av_rc_disc(uint8_t disc);
 extern void bta_av_conn_chg(tBTA_AV_DATA *p_data);
 extern void bta_av_dereg_comp(tBTA_AV_DATA *p_data);
@@ -665,7 +669,7 @@ extern void bta_av_rc_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
 extern void bta_av_rc_close (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
 extern void bta_av_rc_meta_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
 extern void bta_av_rc_free_rsp (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
-extern void bta_av_rc_free_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
+extern void bta_av_rc_free_browse_msg (tBTA_AV_CB *p_cb, tBTA_AV_DATA *p_data);
 
 extern tBTA_AV_RCB * bta_av_get_rcb_by_shdl(uint8_t shdl);
 extern void bta_av_del_rc(tBTA_AV_RCB *p_rcb);

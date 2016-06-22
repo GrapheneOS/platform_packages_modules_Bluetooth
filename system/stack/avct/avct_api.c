@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -72,8 +72,9 @@ void AVCT_Register(uint16_t mtu, uint16_t mtu_br, uint8_t sec_mask)
     /* Include the browsing channel which uses eFCR */
     L2CA_Register(AVCT_BR_PSM, (tL2CAP_APPL_INFO *) &avct_l2c_br_appl);
 
-    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
-    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP_BROWSE, sec_mask, AVCT_BR_PSM, 0, 0);
+    /* AVCTP browsing channel uses the same security service as AVCTP control channel */
+    BTM_SetSecurityLevel(true, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
+    BTM_SetSecurityLevel(false, "", BTM_SEC_SERVICE_AVCTP, sec_mask, AVCT_BR_PSM, 0, 0);
 
     if (mtu_br < AVCT_MIN_BROWSE_MTU)
         mtu_br = AVCT_MIN_BROWSE_MTU;
@@ -285,6 +286,7 @@ uint16_t AVCT_CreateBrowse (uint8_t handle, uint8_t role)
         {
             /* bind bcb to ccb */
             p_ccb->p_bcb = p_bcb;
+            memcpy(p_bcb->peer_addr, p_ccb->p_lcb->peer_addr, BD_ADDR_LEN);
             AVCT_TRACE_DEBUG("ch_state: %d", p_bcb->ch_state);
             avct_bcb_event(p_bcb, AVCT_LCB_UL_BIND_EVT, (tAVCT_LCB_EVT *) &p_ccb);
         }

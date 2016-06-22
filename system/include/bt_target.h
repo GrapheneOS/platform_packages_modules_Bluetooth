@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  *  Copyright (c) 2014 The Android Open Source Project
- *  Copyright (C) 1999-2012 Broadcom Corporation
+ *  Copyright (C) 1999-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -280,6 +280,22 @@
 /* AVCTP buffer size for protocol messages */
 #ifndef AVCT_CMD_BUF_SIZE
 #define AVCT_CMD_BUF_SIZE               288
+#endif
+
+#ifndef AVCT_USER_TX_BUF_SIZE
+#define AVCT_USER_TX_BUF_SIZE           BT_DEFAULT_BUFFER_SIZE
+#endif
+
+#ifndef AVCT_USER_RX_BUF_SIZE
+#define AVCT_USER_RX_BUF_SIZE           BT_DEFAULT_BUFFER_SIZE
+#endif
+
+#ifndef AVCT_FCR_TX_BUF_SIZE
+#define AVCT_FCR_TX_BUF_SIZE            BT_DEFAULT_BUFFER_SIZE
+#endif
+
+#ifndef AVCT_FCR_RX_BUF_SIZE
+#define AVCT_FCR_RX_BUF_SIZE            BT_DEFAULT_BUFFER_SIZE
 #endif
 
 /* AVRCP buffer size for protocol messages */
@@ -1380,6 +1396,48 @@
 #define AVCT_NUM_CONN               3
 #endif
 
+/* AVCTP Browsing channel FCR Option:
+ * Size of the transmission window when using enhanced retransmission mode. Not used
+ * in basic and streaming modes. Range: 1 - 63
+ */
+#ifndef AVCT_BR_FCR_OPT_TX_WINDOW_SIZE
+#define AVCT_BR_FCR_OPT_TX_WINDOW_SIZE      10
+#endif
+
+/* AVCTP Browsing channel FCR Option:
+ * Number of transmission attempts for a single I-Frame before taking
+ * Down the connection. Used In ERTM mode only. Value is Ignored in basic and
+ * Streaming modes.
+ * Range: 0, 1-0xFF
+ *     0 - infinite retransmissions
+ *     1 - single transmission
+ */
+#ifndef AVCT_BR_FCR_OPT_MAX_TX_B4_DISCNT
+#define AVCT_BR_FCR_OPT_MAX_TX_B4_DISCNT    20
+#endif
+
+/* AVCTP Browsing channel FCR Option: Retransmission Timeout
+ * The AVRCP specification set a value in the range of 300 - 2000 ms
+ * Timeout (in msecs) to detect Lost I-Frames. Only used in Enhanced retransmission mode.
+ * Range: Minimum 2000 (2 secs) when supporting PBF.
+ */
+#ifndef AVCT_BR_FCR_OPT_RETX_TOUT
+#define AVCT_BR_FCR_OPT_RETX_TOUT           2000
+#endif
+
+/* AVCTP Browsing channel FCR Option: Monitor Timeout
+ * The AVRCP specification set a value in the range of 300 - 2000 ms
+ * Timeout (in msecs) to detect Lost S-Frames. Only used in Enhanced retransmission mode.
+ * Range: Minimum 12000 (12 secs) when supporting PBF.
+ */
+#ifndef AVCT_BR_FCR_OPT_MONITOR_TOUT
+#define AVCT_BR_FCR_OPT_MONITOR_TOUT        12000
+#endif
+
+#ifndef AVCT_BROWSE_INCLUDED
+#define AVCT_BROWSE_INCLUDED        TRUE
+#endif
+
 /******************************************************************************
 **
 ** AVRCP
@@ -1400,6 +1458,11 @@
 
 #ifndef DUMP_PCM_DATA
 #define DUMP_PCM_DATA               FALSE
+#endif
+
+/* TRUE to support the AVRCP 1.6 (GetTotalNumOfItems). */
+#ifndef AVRC_1_6_INCLUDED
+#define AVRC_1_6_INCLUDED           TRUE
 #endif
 
 /******************************************************************************

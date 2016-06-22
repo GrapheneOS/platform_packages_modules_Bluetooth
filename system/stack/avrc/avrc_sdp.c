@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2013 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,14 +27,6 @@
 #include "avrc_api.h"
 #include "avrc_int.h"
 
-#ifndef SDP_AVRCP_1_4
-#define SDP_AVRCP_1_4      true
-#endif
-
-#ifndef SDP_AVCTP_1_4
-#define SDP_AVCTP_1_4      true
-#endif
-
 /*****************************************************************************
 **  Global data
 *****************************************************************************/
@@ -59,7 +51,7 @@ tAVRC_CB avrc_cb;
 ******************************************************************************/
 static void avrc_sdp_cback(uint16_t status)
 {
-    AVRC_TRACE_API("avrc_sdp_cback status: %d", status);
+    AVRC_TRACE_API("%s status: %d", __func__, status);
 
     /* reset service_uuid, so can start another find service */
     avrc_cb.service_uuid = 0;
@@ -119,7 +111,7 @@ uint16_t AVRC_FindService(uint16_t service_uuid, BD_ADDR bd_addr,
                                    ATTR_ID_SUPPORTED_FEATURES,
                                    ATTR_ID_PROVIDER_NAME};
 
-    AVRC_TRACE_API("AVRC_FindService uuid: %x", service_uuid);
+    AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
     if( (service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL) ||
         p_db == NULL || p_db->p_db == NULL || p_cback == NULL)
         return AVRC_BAD_PARAM;
@@ -204,7 +196,7 @@ uint16_t AVRC_AddRecord(uint16_t service_uuid, char *p_service_name,
     uint16_t    class_list[2];
 
 
-    AVRC_TRACE_API("AVRC_AddRecord uuid: %x", service_uuid);
+    AVRC_TRACE_API("%s uuid: %x", __func__, service_uuid);
 
     if( service_uuid != UUID_SERVCLASS_AV_REM_CTRL_TARGET && service_uuid != UUID_SERVCLASS_AV_REMOTE_CONTROL )
         return AVRC_BAD_PARAM;

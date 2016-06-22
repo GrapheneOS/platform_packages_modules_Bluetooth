@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2013 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,9 +34,9 @@
 **
 **
 *******************************************************************************/
-bool    AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
+bool AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
 {
-    bool    result=false;
+    bool result=false;
 
     if (avc_type < AVRC_RSP_NOT_IMPL) /* command msg */
     {
@@ -59,9 +59,18 @@ bool    AVRC_IsValidAvcType(uint8_t pdu_id, uint8_t avc_type)
         case AVRC_PDU_INFORM_BATTERY_STAT_OF_CT:   /* 0x18 */
         case AVRC_PDU_REQUEST_CONTINUATION_RSP:    /* 0x40 */
         case AVRC_PDU_ABORT_CONTINUATION_RSP:      /* 0x41 */
-        case AVRC_PDU_SET_ADDRESSED_PLAYER:
-        case AVRC_PDU_PLAY_ITEM:
-        case AVRC_PDU_SET_ABSOLUTE_VOLUME:
+             if (avc_type == AVRC_CMD_CTRL)
+                result=true;
+             break;
+
+        case AVRC_PDU_GET_FOLDER_ITEMS:            /* 0x71 */
+            result = true;
+            break;
+
+        case AVRC_PDU_SET_ABSOLUTE_VOLUME:         /* 0x50 */
+        case AVRC_PDU_SET_ADDRESSED_PLAYER:        /* 0x60 */
+        case AVRC_PDU_PLAY_ITEM:                   /* 0x74 */
+        case AVRC_PDU_ADD_TO_NOW_PLAYING:          /* 0x90 */
              if (avc_type == AVRC_CMD_CTRL)
                 result=true;
              break;
@@ -121,10 +130,10 @@ bool    avrc_is_valid_player_attrib_value(uint8_t attrib, uint8_t value)
        result = true;
 
     if (!result)
-        AVRC_TRACE_ERROR(
-            "avrc_is_valid_player_attrib_value() found not matching attrib(x%x)-value(x%x) pair!",
-            attrib, value);
-
+    {
+        AVRC_TRACE_ERROR(" %s found not matching attrib(x%x)-value(x%x) pair!",
+                          __FUNCTION__, attrib, value);
+    }
     return result;
 }
 
@@ -202,6 +211,18 @@ uint8_t avrc_opcode_from_pdu(uint8_t pdu)
 
     switch (pdu)
     {
+    case AVRC_PDU_SET_BROWSED_PLAYER:
+    case AVRC_PDU_GET_FOLDER_ITEMS:
+    case AVRC_PDU_CHANGE_PATH:
+    case AVRC_PDU_GET_ITEM_ATTRIBUTES:
+    case AVRC_PDU_SEARCH:
+    case AVRC_PDU_GENERAL_REJECT:
+#if (AVRC_1_6_INCLUDED == TRUE)
+    case AVRC_PDU_GET_TOTAL_NUM_OF_ITEMS:
+#endif
+        opcode  = AVRC_OP_BROWSE;
+        break;
+
     case AVRC_PDU_NEXT_GROUP:
     case AVRC_PDU_PREV_GROUP: /* pass thru */
         opcode  = AVRC_OP_PASS_THRU;

@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2003-2012 Broadcom Corporation
+ *  Copyright (C) 2003-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ typedef struct {
     uint8_t             ch_flags;       /* L2CAP configuration flags */
     BT_HDR              *p_tx_msg;      /* Message to be sent - in case the browsing channel is not open when MsgReg is called */
     uint8_t             ch_close;       /* CCB index+1, if CCB initiated channel close */
+    BD_ADDR             peer_addr;      /* BD address of peer */
 } tAVCT_BCB;
 
 #define AVCT_ALOC_LCB       0x01
@@ -153,7 +154,7 @@ extern void avct_bcb_event(tAVCT_BCB *p_bcb, uint8_t event, tAVCT_LCB_EVT *p_dat
 extern void avct_close_bcb(tAVCT_LCB *p_lcb, tAVCT_LCB_EVT *p_data);
 extern tAVCT_LCB *avct_lcb_by_bcb(tAVCT_BCB *p_bcb);
 extern tAVCT_BCB *avct_bcb_by_lcb(tAVCT_LCB *p_lcb);
-extern bool    avct_bcb_last_ccb(tAVCT_BCB *p_bcb, tAVCT_CCB *p_ccb_last);
+extern uint8_t avct_bcb_get_last_ccb_index(tAVCT_BCB *p_bcb, tAVCT_CCB *p_ccb_last);
 extern tAVCT_BCB *avct_bcb_by_lcid(uint16_t lcid);
 #endif
 extern tAVCT_LCB *avct_lcb_by_bd(BD_ADDR bd_addr);

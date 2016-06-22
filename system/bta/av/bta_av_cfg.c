@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (C) 2005-2012 Broadcom Corporation
+ *  Copyright (C) 2005-2016 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,10 @@
 #include "bta_api.h"
 #include "bta_av_int.h"
 
+#ifndef BTA_AV_RC_COMP_ID
+#define BTA_AV_RC_COMP_ID    AVRC_CO_GOOGLE
+#endif
+
 #ifndef BTA_AV_RC_PASS_RSP_CODE
 #define BTA_AV_RC_PASS_RSP_CODE     BTA_AV_RSP_NOT_IMPL
 #endif
@@ -39,11 +43,20 @@ const uint32_t  bta_av_meta_caps_co_ids[] = {
     AVRC_CO_BROADCOM
 };
 
-/* AVRCP cupported categories */
+/* AVRCP supported categories */
 #if (AVRC_CTRL_INCLUDED == TRUE)
 #define BTA_AV_RC_SUPF_CT       (AVRC_SUPF_CT_CAT2)
 #define BTA_AVK_RC_SUPF_CT       (AVRC_SUPF_CT_CAT1)
 #define BTA_AVK_RC_SUPF_TG       (AVRC_SUPF_TG_CAT2)
+#endif
+
+/* AVRCP Controller and Targer default name */
+#ifndef BTA_AV_RC_CT_NAME
+#define BTA_AV_RC_CT_NAME    "AVRC Controller"
+#endif
+
+#ifndef BTA_AV_RC_TG_NAME
+#define BTA_AV_RC_TG_NAME    "AVRC Target"
 #endif
 
 /* Added to modify
@@ -65,7 +78,8 @@ const uint16_t  bta_av_audio_flush_to[] = {
 /* Note: Android doesnt support AVRC_SUPF_TG_GROUP_NAVI  */
 /* Note: if AVRC_SUPF_TG_GROUP_NAVI is set, bta_av_cfg.avrc_group should be true */
 #if (AVRC_METADATA_INCLUDED == TRUE)
-#define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
+#define BTA_AV_RC_SUPF_TG    (AVRC_SUPF_TG_CAT1 | AVRC_SUPF_TG_MULTI_PLAYER | \
+                                 AVRC_SUPF_TG_BROWSE) /* TODO: | AVRC_SUPF_TG_APP_SETTINGS) */
 #else
 #define BTA_AV_RC_SUPF_TG       (AVRC_SUPF_TG_CAT1)
 #endif
@@ -77,6 +91,10 @@ const uint8_t  bta_av_meta_caps_evt_ids[] = {
     AVRC_EVT_PLAY_STATUS_CHANGE,
     AVRC_EVT_TRACK_CHANGE,
     AVRC_EVT_PLAY_POS_CHANGED,
+    AVRC_EVT_AVAL_PLAYERS_CHANGE,
+    AVRC_EVT_ADDR_PLAYER_CHANGE,
+    AVRC_EVT_UIDS_CHANGE,
+    AVRC_EVT_NOW_PLAYING_CHANGE,
     /* TODO: Add support for these events
     AVRC_EVT_APP_SETTING_CHANGE,
     */
@@ -103,7 +121,7 @@ const uint8_t  bta_avk_meta_caps_evt_ids[] = {
 /* This configuration to be used when we are Src + TG + CT( only for abs vol) */
 const tBTA_AV_CFG bta_av_cfg =
 {
-    AVRC_CO_BROADCOM,       /* AVRCP Company ID */
+    BTA_AV_RC_COMP_ID,      /* AVRCP Company ID */
 #if (AVRC_METADATA_INCLUDED == TRUE)
     512,                    /* AVRCP MTU at L2CAP for control channel */
 #else
@@ -126,8 +144,8 @@ const tBTA_AV_CFG bta_av_cfg =
     bta_av_meta_caps_evt_ids,/* the the metadata Get Capabilities response for event id */
     NULL,                   /* the action function table for VDP stream */
     NULL,                   /* action function to register VDP */
-    {0},                    /* Default AVRCP controller name */
-    {0},                    /* Default AVRCP target name */
+    BTA_AV_RC_CT_NAME,      /* Default AVRCP controller name */
+    BTA_AV_RC_TG_NAME       /* Default AVRCP target name */
 };
 
 /* This configuration to be used when we are Sink + CT + TG( only for abs vol) */
