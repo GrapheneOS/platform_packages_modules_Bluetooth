@@ -97,6 +97,8 @@ LOCAL_SRC_FILES := \
     ./gatt/gatt_attr.c \
     ./gatt/gatt_db.c \
     ./avct/avct_api.c \
+    ./avct/avct_l2c_br.c \
+    ./avct/avct_bcb_act.c \
     ./avct/avct_l2c.c \
     ./avct/avct_lcb.c \
     ./avct/avct_ccb.c \
