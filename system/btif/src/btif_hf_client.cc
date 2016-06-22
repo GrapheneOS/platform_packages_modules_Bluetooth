@@ -73,41 +73,41 @@
 **  Static variables
 ************************************************************************************/
 static bthf_client_callbacks_t *bt_hf_client_callbacks = NULL;
-static UINT32 btif_hf_client_features = 0;
+static uint32_t btif_hf_client_features = 0;
 
 char btif_hf_client_version[PROPERTY_VALUE_MAX];
 
 #define CHECK_BTHF_CLIENT_INIT() if (bt_hf_client_callbacks == NULL)\
     {\
-        BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __FUNCTION__);\
+        BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__);\
         return BT_STATUS_NOT_READY;\
     }\
     else\
     {\
-        BTIF_TRACE_EVENT("BTHF CLIENT: %s", __FUNCTION__);\
+        BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);\
     }
 
 #define CHECK_BTHF_CLIENT_SLC_CONNECTED() if (bt_hf_client_callbacks == NULL)\
     {\
-        BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __FUNCTION__);\
+        BTIF_TRACE_WARNING("BTHF CLIENT: %s: not initialized", __func__);\
         return BT_STATUS_NOT_READY;\
     }\
     else if (btif_hf_client_cb.state != BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED)\
     {\
         BTIF_TRACE_WARNING("BTHF CLIENT: %s: SLC connection not up. state=%s",\
-                           __FUNCTION__, \
+                           __func__, \
                            dump_hf_conn_state(btif_hf_client_cb.state));\
         return BT_STATUS_NOT_READY;\
     }\
     else\
     {\
-        BTIF_TRACE_EVENT("BTHF CLIENT: %s", __FUNCTION__);\
+        BTIF_TRACE_EVENT("BTHF CLIENT: %s", __func__);\
     }
 
 /* BTIF-HF control block to map bdaddr to BTA handle */
 typedef struct
 {
-    UINT16                          handle;
+    uint16_t                          handle;
     bt_bdaddr_t                     connected_bda;
     bthf_client_connection_state_t  state;
     bthf_client_vr_state_t          vr_state;
@@ -131,11 +131,11 @@ static btif_hf_client_cb_t btif_hf_client_cb;
 ** Returns          void
 **
 *******************************************************************************/
-static void btif_in_hf_client_generic_evt(UINT16 event, char *p_param)
+static void btif_in_hf_client_generic_evt(uint16_t event, char *p_param)
 {
     UNUSED(p_param);
 
-    BTIF_TRACE_EVENT("%s: event=%d", __FUNCTION__, event);
+    BTIF_TRACE_EVENT("%s: event=%d", __func__, event);
     switch (event) {
         case BTIF_HF_CLIENT_CB_AUDIO_CONNECTING:
         {
@@ -144,7 +144,7 @@ static void btif_in_hf_client_generic_evt(UINT16 event, char *p_param)
         } break;
         default:
         {
-            BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __FUNCTION__, event);
+            BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __func__, event);
         }
         break;
     }
@@ -163,13 +163,13 @@ static void clear_state(void)
     memset(&btif_hf_client_cb, 0, sizeof(btif_hf_client_cb_t));
 }
 
-static BOOLEAN is_connected(bt_bdaddr_t *bd_addr)
+static bool is_connected(bt_bdaddr_t *bd_addr)
 {
     if (((btif_hf_client_cb.state == BTHF_CLIENT_CONNECTION_STATE_CONNECTED) ||
             (btif_hf_client_cb.state == BTHF_CLIENT_CONNECTION_STATE_SLC_CONNECTED))&&
         ((bd_addr == NULL) || (bdcmp(bd_addr->address, btif_hf_client_cb.connected_bda.address) == 0)))
-        return TRUE;
-    return FALSE;
+        return true;
+    return false;
 }
 
 /*****************************************************************************
@@ -193,7 +193,7 @@ static BOOLEAN is_connected(bt_bdaddr_t *bd_addr)
 *******************************************************************************/
 static bt_status_t init( bthf_client_callbacks_t* callbacks )
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __func__);
 
     bt_hf_client_callbacks = callbacks;
 
@@ -638,7 +638,7 @@ static bt_status_t request_last_voice_tag_number(void)
 *******************************************************************************/
 static void  cleanup( void )
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __func__);
 
     if (bt_hf_client_callbacks)
     {
@@ -660,7 +660,7 @@ static bt_status_t send_at_cmd(int cmd,int val1,int val2,const char *arg)
 {
     CHECK_BTHF_CLIENT_SLC_CONNECTED();
     BTIF_TRACE_EVENT("%s Cmd %d val1 %d val2 %d arg %s",
-            __FUNCTION__,cmd,val1,val2,arg);
+            __func__,cmd,val1,val2,arg);
     BTA_HfClientSendAT(btif_hf_client_cb.handle, cmd, val1, val2, arg);
 
     return BT_STATUS_SUCCESS;
@@ -733,12 +733,12 @@ static void process_ind_evt(tBTA_HF_CLIENT_IND *ind)
 ** Returns          void
 **
 *******************************************************************************/
-static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
+static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param)
 {
     tBTA_HF_CLIENT *p_data = (tBTA_HF_CLIENT *)p_param;
     bdstr_t bdstr;
 
-    BTIF_TRACE_DEBUG("%s: event=%s (%u)", __FUNCTION__, dump_hf_client_event(event), event);
+    BTIF_TRACE_DEBUG("%s: event=%s (%u)", __func__, dump_hf_client_event(event), event);
 
     switch (event)
     {
@@ -766,7 +766,7 @@ static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
             else
             {
                 BTIF_TRACE_WARNING("%s: HF CLient open failed, but another device connected. status=%d state=%d connected device=%s",
-                        __FUNCTION__, p_data->open.status, btif_hf_client_cb.state, bdaddr_to_string(&btif_hf_client_cb.connected_bda, bdstr, sizeof(bdstr)));
+                        __func__, p_data->open.status, btif_hf_client_cb.state, bdaddr_to_string(&btif_hf_client_cb.connected_bda, bdstr, sizeof(bdstr)));
                 break;
             }
 
@@ -900,7 +900,7 @@ static void btif_hf_client_upstreams_evt(UINT16 event, char* p_param)
             HAL_CBACK(bt_hf_client_callbacks, ring_indication_cb);
             break;
         default:
-            BTIF_TRACE_WARNING("%s: Unhandled event: %d", __FUNCTION__, event);
+            BTIF_TRACE_WARNING("%s: Unhandled event: %d", __func__, event);
             break;
     }
 }
@@ -935,9 +935,9 @@ static void bte_hf_client_evt(tBTA_HF_CLIENT_EVT event, tBTA_HF_CLIENT *p_data)
 ** Returns          BT_STATUS_SUCCESS on success, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable)
+bt_status_t btif_hf_client_execute_service(bool b_enable)
 {
-    BTIF_TRACE_EVENT("%s enable:%d", __FUNCTION__, b_enable);
+    BTIF_TRACE_EVENT("%s enable:%d", __func__, b_enable);
 
     osi_property_get("ro.bluetooth.hfp.ver", btif_hf_client_version, "1.5");
 
@@ -981,6 +981,6 @@ bt_status_t btif_hf_client_execute_service(BOOLEAN b_enable)
 *******************************************************************************/
 const bthf_client_interface_t *btif_hf_client_get_interface(void)
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __func__);
     return &bthfClientInterface;
 }

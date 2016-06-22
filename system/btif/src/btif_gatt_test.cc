@@ -29,7 +29,7 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+#if (BLE_INCLUDED == TRUE)
 
 #include "bta_gatt_api.h"
 #include "bte_appl.h"
@@ -47,7 +47,7 @@
 typedef struct
 {
     tGATT_IF    gatt_if;
-    UINT16      conn_id;
+    uint16_t      conn_id;
 } btif_test_cb_t;
 
 /*******************************************************************************
@@ -97,23 +97,23 @@ static char * format_uuid(tBT_UUID bt_uuid, char *str_buf)
     return str_buf;
 }
 
-static void btif_test_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, UINT16 conn_id,
-                                    BOOLEAN connected, tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport)
+static void btif_test_connect_cback(tGATT_IF gatt_if, BD_ADDR bda, uint16_t conn_id,
+                                    bool connected, tGATT_DISCONN_REASON reason, tBT_TRANSPORT transport)
 {
     UNUSED(gatt_if);
     UNUSED(bda);
     UNUSED(reason);
     UNUSED (transport);
 
-    LOG_DEBUG(LOG_TAG, "%s: conn_id=%d, connected=%d", __FUNCTION__, conn_id, connected);
+    LOG_DEBUG(LOG_TAG, "%s: conn_id=%d, connected=%d", __func__, conn_id, connected);
     test_cb.conn_id = connected ? conn_id : 0;
 }
 
-static void btif_test_command_complete_cback(UINT16 conn_id, tGATTC_OPTYPE op,
+static void btif_test_command_complete_cback(uint16_t conn_id, tGATTC_OPTYPE op,
                                 tGATT_STATUS status, tGATT_CL_COMPLETE *p_data)
 {
     LOG_DEBUG(LOG_TAG, "%s: op_code=0x%02x, conn_id=0x%x. status=0x%x",
-            __FUNCTION__, op, conn_id, status);
+            __func__, op, conn_id, status);
 
     switch (op)
     {
@@ -129,12 +129,12 @@ static void btif_test_command_complete_cback(UINT16 conn_id, tGATTC_OPTYPE op,
             break;
 
         default:
-            LOG_DEBUG(LOG_TAG, "%s: Unknown op_code (0x%02x)", __FUNCTION__, op);
+            LOG_DEBUG(LOG_TAG, "%s: Unknown op_code (0x%02x)", __func__, op);
             break;
     }
 }
 
-static void btif_test_discovery_result_cback(UINT16 conn_id, tGATT_DISC_TYPE disc_type,
+static void btif_test_discovery_result_cback(uint16_t conn_id, tGATT_DISC_TYPE disc_type,
                                            tGATT_DISC_RES *p_data)
 {
     char    str_buf[50];
@@ -186,13 +186,13 @@ static void btif_test_discovery_result_cback(UINT16 conn_id, tGATT_DISC_TYPE dis
     LOG_DEBUG(LOG_TAG, "-----------------------------------------------------------");
 }
 
-static void btif_test_discovery_complete_cback(UINT16 conn_id,
+static void btif_test_discovery_complete_cback(uint16_t conn_id,
                                                tGATT_DISC_TYPE disc_type,
                                                tGATT_STATUS status)
 {
     UNUSED(conn_id);
     UNUSED(disc_type);
-    LOG_DEBUG(LOG_TAG, "%s: status=%d", __FUNCTION__, status);
+    LOG_DEBUG(LOG_TAG, "%s: status=%d", __func__, status);
 }
 
 static tGATT_CBACK btif_test_callbacks =
@@ -215,7 +215,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
     switch(command) {
         case 0x01: /* Enable */
         {
-            LOG_DEBUG(LOG_TAG, "%s: ENABLE - enable=%d", __FUNCTION__, params->u1);
+            LOG_DEBUG(LOG_TAG, "%s: ENABLE - enable=%d", __func__, params->u1);
             if (params->u1)
             {
                 tBT_UUID app_uuid = {LEN_UUID_128,{0xAE}};
@@ -231,7 +231,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
         case 0x02: /* Connect */
         {
             LOG_DEBUG(LOG_TAG, "%s: CONNECT - device=%02x:%02x:%02x:%02x:%02x:%02x (dev_type=%d, addr_type=%d)",
-                __FUNCTION__,
+                __func__,
                 params->bda1->address[0], params->bda1->address[1],
                 params->bda1->address[2], params->bda1->address[3],
                 params->bda1->address[4], params->bda1->address[5],
@@ -240,16 +240,16 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
             if (params->u1 == BT_DEVICE_TYPE_BLE)
                 BTM_SecAddBleDevice(params->bda1->address, NULL, BT_DEVICE_TYPE_BLE, params->u2);
 
-            if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, TRUE, BT_TRANSPORT_LE) )
+            if ( !GATT_Connect(test_cb.gatt_if, params->bda1->address, true, BT_TRANSPORT_LE) )
             {
-                LOG_ERROR(LOG_TAG, "%s: GATT_Connect failed!", __FUNCTION__);
+                LOG_ERROR(LOG_TAG, "%s: GATT_Connect failed!", __func__);
             }
             break;
         }
 
         case 0x03: /* Disconnect */
         {
-            LOG_DEBUG(LOG_TAG, "%s: DISCONNECT - conn_id=%d", __FUNCTION__, test_cb.conn_id);
+            LOG_DEBUG(LOG_TAG, "%s: DISCONNECT - conn_id=%d", __func__, test_cb.conn_id);
             GATT_Disconnect(test_cb.conn_id);
             break;
         }
@@ -262,7 +262,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
 
             if (params->u1 >= GATT_DISC_MAX)
             {
-                LOG_ERROR(LOG_TAG, "%s: DISCOVER - Invalid type (%d)!", __FUNCTION__, params->u1);
+                LOG_ERROR(LOG_TAG, "%s: DISCOVER - Invalid type (%d)!", __func__, params->u1);
                 return (bt_status_t)0;
             }
 
@@ -271,7 +271,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
             btif_to_bta_uuid(&param.service, params->uuid1);
 
             LOG_DEBUG(LOG_TAG, "%s: DISCOVER (%s), conn_id=%d, uuid=%s, handles=0x%04x-0x%04x",
-                  __FUNCTION__, disc_name[params->u1], test_cb.conn_id,
+                  __func__, disc_name[params->u1], test_cb.conn_id,
                   format_uuid(param.service, buf), params->u2, params->u3);
             GATTC_Discover(test_cb.conn_id, params->u1, &param);
             break;
@@ -279,7 +279,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
 
         case 0xF0: /* Pairing configuration */
             LOG_DEBUG(LOG_TAG, "%s: Setting pairing config auth=%d, iocaps=%d, keys=%d/%d/%d",
-                  __FUNCTION__, params->u1, params->u2, params->u3, params->u4,
+                  __func__, params->u1, params->u2, params->u3, params->u4,
                   params->u5);
 
             bte_appl_cfg.ble_auth_req = params->u1;
@@ -290,7 +290,7 @@ bt_status_t btif_gattc_test_command_impl(int command, btgatt_test_params_t* para
             break;
 
         default:
-            LOG_ERROR(LOG_TAG, "%s: UNKNOWN TEST COMMAND 0x%02x", __FUNCTION__, command);
+            LOG_ERROR(LOG_TAG, "%s: UNKNOWN TEST COMMAND 0x%02x", __func__, command);
             break;
     }
     return (bt_status_t)0;

@@ -40,7 +40,7 @@
 #include "btif_util.h"
 #include "bt_common.h"
 
-#if BTA_GATT_INCLUDED == TRUE
+#if (BTA_GATT_INCLUDED == TRUE)
 
 #define GATTC_READ_VALUE_TYPE_VALUE          0x0000  /* Attribute value itself */
 #define GATTC_READ_VALUE_TYPE_AGG_FORMAT     0x2905  /* Characteristic Aggregate Format*/
@@ -104,7 +104,7 @@ void btif_to_bta_uuid(tBT_UUID *p_dest, const bt_uuid_t *p_src)
             break;
 
         default:
-            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __FUNCTION__, p_dest->len);
+            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __func__, p_dest->len);
             break;
     }
 }
@@ -181,7 +181,7 @@ void bta_to_btif_uuid(bt_uuid_t *p_dest, tBT_UUID *p_src)
             break;
 
         default:
-            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __FUNCTION__, p_src->len);
+            LOG_ERROR(LOG_TAG, "%s: Unknown UUID length %d!", __func__, p_src->len);
             break;
     }
 }
@@ -198,14 +198,14 @@ uint16_t get_uuid16(tBT_UUID *p_uuid)
     }
     else if (p_uuid->len == LEN_UUID_128)
     {
-        UINT16 u16;
-        UINT8 *p = &p_uuid->uu.uuid128[LEN_UUID_128 - 4];
+        uint16_t u16;
+        uint8_t *p = &p_uuid->uu.uuid128[LEN_UUID_128 - 4];
         STREAM_TO_UINT16(u16, p);
         return u16;
     }
     else  /* p_uuid->len == LEN_UUID_32 */
     {
-        return(UINT16) p_uuid->uu.uuid32;
+        return(uint16_t) p_uuid->uu.uuid32;
     }
 }
 
@@ -218,7 +218,7 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
 
     if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
     {
-        LOG_INFO(LOG_TAG, "%s len = %d ", __FUNCTION__, p_src->p_value->len);
+        LOG_INFO(LOG_TAG, "%s len = %d ", __func__, p_src->p_value->len);
         p_dest->value.len = p_src->p_value->len;
         if ( p_src->p_value->len > 0  && p_src->p_value->p_value != NULL )
             memcpy(p_dest->value.value, p_src->p_value->p_value,
@@ -237,11 +237,11 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
  * Encrypted link map handling
  *******************************************************************************/
 
-#if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
-static BOOLEAN btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
+#if (BLE_DELAY_REQUEST_ENC == FALSE)
+static bool btif_gatt_is_link_encrypted (BD_ADDR bd_addr)
 {
     if (bd_addr == NULL)
-        return FALSE;
+        return false;
 
     return BTA_JvIsEncrypted(bd_addr);
 }
@@ -253,14 +253,14 @@ static void btif_gatt_set_encryption_cb (BD_ADDR bd_addr, tBTA_TRANSPORT transpo
 
     if (result != BTA_SUCCESS && result != BTA_BUSY)
     {
-        BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __FUNCTION__, result);
+        BTIF_TRACE_WARNING("%s() - Encryption failed (%d)", __func__, result);
     }
 }
 #endif
 
 void btif_gatt_check_encrypted_link (BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transport_link)
 {
-#if (!defined(BLE_DELAY_REQUEST_ENC) || (BLE_DELAY_REQUEST_ENC == FALSE))
+#if (BLE_DELAY_REQUEST_ENC == FALSE)
     char buf[100];
 
     bt_bdaddr_t bda;
@@ -280,7 +280,7 @@ void btif_gatt_check_encrypted_link (BD_ADDR bd_addr, tBTA_GATT_TRANSPORT transp
 #endif
 }
 
-#endif
+#endif // BTA_GATT_INCLUDED
 
 void btif_gatt_move_track_adv_data(btgatt_track_adv_info_t *p_dest,
                               btgatt_track_adv_info_t *p_src)

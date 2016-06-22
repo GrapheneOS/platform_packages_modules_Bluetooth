@@ -36,7 +36,7 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+#if (BLE_INCLUDED == TRUE)
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"

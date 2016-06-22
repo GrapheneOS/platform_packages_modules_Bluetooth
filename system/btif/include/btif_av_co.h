@@ -43,10 +43,10 @@ enum
  **
  ** Description      Get the current configuration of content protection
  **
- ** Returns          TRUE if the current streaming has CP, FALSE otherwise
+ ** Returns          true if the current streaming has CP, false otherwise
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_cp_is_active(void);
+bool bta_av_co_cp_is_active(void);
 
 /*******************************************************************************
  **
@@ -60,7 +60,7 @@ BOOLEAN bta_av_co_cp_is_active(void);
  ** Returns          The current flag value
  **
  *******************************************************************************/
-UINT8 bta_av_co_cp_get_flag(void);
+uint8_t bta_av_co_cp_get_flag(void);
 
 /*******************************************************************************
  **
@@ -71,10 +71,10 @@ UINT8 bta_av_co_cp_get_flag(void);
  **                  BTA_AV_CP_SCMS_COPY_ONCE
  **                  BTA_AV_CP_SCMS_COPY_FREE
  **
- ** Returns          TRUE if setting the SCMS flag is supported else FALSE
+ ** Returns          true if setting the SCMS flag is supported else false
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_cp_set_flag(UINT8 cp_flag);
+bool bta_av_co_cp_set_flag(uint8_t cp_flag);
 
 /*******************************************************************************
  **
@@ -94,10 +94,10 @@ void bta_av_co_audio_codec_reset(void);
  ** Description      Check if all opened connections are compatible with a codec
  **                  configuration
  **
- ** Returns          TRUE if all opened devices support this codec, FALSE otherwise
+ ** Returns          true if all opened devices support this codec, false otherwise
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
+bool bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
 
 /*******************************************************************************
  **
@@ -107,10 +107,10 @@ BOOLEAN bta_av_co_audio_codec_supported(tBTIF_STATUS *p_status);
  **                  This function is starting to modify the configuration, it
  **                  should be protected.
  **
- ** Returns          TRUE if successful, FALSE otherwise
+ ** Returns          true if successful, false otherwise
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding, tBTIF_STATUS *p_status);
+bool bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding, tBTIF_STATUS *p_status);
 
 /*******************************************************************************
  **
@@ -119,10 +119,10 @@ BOOLEAN bta_av_co_audio_set_codec(const tBTIF_AV_MEDIA_FEEDINGS *p_feeding, tBTI
  ** Description      Retrieves the SBC codec configuration.  If the codec in use
  **                  is not SBC, return the default SBC codec configuration.
  **
- ** Returns          TRUE if codec is SBC, FALSE otherwise
+ ** Returns          true if codec is SBC, false otherwise
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, UINT16 *p_minmtu);
+bool bta_av_co_audio_get_sbc_config(tA2D_SBC_CIE *p_sbc_config, uint16_t *p_minmtu);
 
 /*******************************************************************************
  **
@@ -153,10 +153,10 @@ void bta_av_co_init(void);
  **
  ** Description      Checks if the peer supports CP
  **
- ** Returns          TRUE if the peer supports CP
+ ** Returns          true if the peer supports CP
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
+bool bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
 
 /*******************************************************************************
  **
@@ -166,9 +166,9 @@ BOOLEAN bta_av_co_peer_cp_supported(tBTA_AV_HNDL hndl);
  **                  of our exported bitpool range. If set we will set the
  **                  remote preference.
  **
- ** Returns          TRUE if config set, FALSE otherwize
+ ** Returns          true if config set, false otherwize
  **
  *******************************************************************************/
-BOOLEAN bta_av_co_get_remote_bitpool_pref(UINT8 *min, UINT8 *max);
+bool bta_av_co_get_remote_bitpool_pref(uint8_t *min, uint8_t *max);
 
 #endif

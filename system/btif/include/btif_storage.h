@@ -160,11 +160,11 @@ bt_status_t btif_storage_load_bonded_devices(void);
 *******************************************************************************/
 
 bt_status_t btif_storage_add_hid_device_info(bt_bdaddr_t *remote_bd_addr,
-                                                    UINT16 attr_mask, UINT8 sub_class,
-                                                    UINT8 app_id, UINT16 vendor_id,
-                                                    UINT16 product_id, UINT16 version,
-                                                    UINT8 ctry_code, UINT16 ssr_max_latency,
-                                                    UINT16 ssr_min_tout, UINT16 dl_len, UINT8 *dsc_list);
+                                                    uint16_t attr_mask, uint8_t sub_class,
+                                                    uint8_t app_id, uint16_t vendor_id,
+                                                    uint16_t product_id, uint16_t version,
+                                                    uint8_t ctry_code, uint16_t ssr_max_latency,
+                                                    uint16_t ssr_min_tout, uint16_t dl_len, uint8_t *dsc_list);
 
 /*******************************************************************************
 **
@@ -196,11 +196,11 @@ bt_status_t btif_storage_remove_hid_info(bt_bdaddr_t *remote_bd_addr);
 **
 ** Description      BTIF storage API - checks if this device is a restricted device
 **
-** Returns          TRUE  if the device is labled as restricted
-**                  FALSE otherwise
+** Returns          true  if the device is labled as restricted
+**                  false otherwise
 **
 *******************************************************************************/
-BOOLEAN btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr);
+bool btif_storage_is_restricted_device(const bt_bdaddr_t *remote_bd_addr);
 
 #if (BLE_INCLUDED == TRUE)
 bt_status_t btif_storage_add_ble_bonding_key( bt_bdaddr_t *remote_bd_addr,
@@ -208,7 +208,7 @@ bt_status_t btif_storage_add_ble_bonding_key( bt_bdaddr_t *remote_bd_addr,
                                               uint8_t key_type,
                                               uint8_t key_length);
 bt_status_t btif_storage_get_ble_bonding_key(bt_bdaddr_t *remote_bd_addr,
-                                             UINT8 key_type,
+                                             uint8_t key_type,
                                              char *key_value,
                                              int key_length);
 
@@ -217,7 +217,7 @@ bt_status_t btif_storage_add_ble_local_key(char *key,
                                            uint8_t key_length);
 bt_status_t btif_storage_remove_ble_bonding_keys(bt_bdaddr_t *remote_bd_addr);
 bt_status_t btif_storage_remove_ble_local_keys(void);
-bt_status_t btif_storage_get_ble_local_key(UINT8 key_type,
+bt_status_t btif_storage_get_ble_local_key(uint8_t key_type,
                                            char *key_value,
                                            int key_len);
 
@@ -225,7 +225,7 @@ bt_status_t btif_storage_get_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
                                               int *addr_type);
 
 bt_status_t btif_storage_set_remote_addr_type(bt_bdaddr_t *remote_bd_addr,
-                                              UINT8 addr_type);
+                                              uint8_t addr_type);
 
 #endif
 /******************************************************************************

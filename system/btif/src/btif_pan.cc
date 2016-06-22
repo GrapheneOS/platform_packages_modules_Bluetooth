@@ -70,9 +70,8 @@
 #define FORWARD_SUCCESS       0
 #define FORWARD_FAILURE     (-1)
 #define FORWARD_CONGEST     (-2)
-//#define PANU_DISABLED TRUE
 
-#if (PAN_NAP_DISABLED == TRUE) && (PANU_DISABLED == TRUE)
+#if (PAN_NAP_DISABLED == TRUE && PANU_DISABLED == TRUE)
 #define BTPAN_LOCAL_ROLE BTPAN_ROLE_NONE
 #elif PAN_NAP_DISABLED == TRUE
 #define BTPAN_LOCAL_ROLE BTPAN_ROLE_PANU
@@ -82,7 +81,7 @@
 #define BTPAN_LOCAL_ROLE (BTPAN_ROLE_PANU | BTPAN_ROLE_PANNAP)
 #endif
 
-#define asrt(s) if (!(s)) BTIF_TRACE_ERROR("btif_pan: ## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define asrt(s) if (!(s)) BTIF_TRACE_ERROR("btif_pan: ## %s assert %s failed at line:%d ##",__func__, #s, __LINE__)
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
@@ -178,7 +177,7 @@ static bt_status_t btpan_jni_init(const btpan_callbacks_t* callbacks)
 {
     BTIF_TRACE_DEBUG("stack_initialized = %d, btpan_cb.enabled:%d", stack_initialized, btpan_cb.enabled);
     callback = *callbacks;
-    jni_initialized = TRUE;
+    jni_initialized = true;
     if (stack_initialized && !btpan_cb.enabled)
         btif_pan_init();
     return BT_STATUS_SUCCESS;
@@ -213,14 +212,14 @@ static inline int btpan_role_to_bta(int btpan_role)
 }
 
 static volatile int btpan_dev_local_role;
-#if BTA_PAN_INCLUDED == TRUE
+#if (BTA_PAN_INCLUDED == TRUE)
 static tBTA_PAN_ROLE_INFO bta_panu_info = {PANU_SERVICE_NAME, 0, PAN_SECURITY};
 static tBTA_PAN_ROLE_INFO bta_pan_nap_info = {PAN_NAP_SERVICE_NAME, 1, PAN_SECURITY};
 #endif
 
 static bt_status_t btpan_enable(int local_role)
 {
-#if BTA_PAN_INCLUDED == TRUE
+#if (BTA_PAN_INCLUDED == TRUE)
     BTIF_TRACE_DEBUG("%s - local_role: %d", __func__, local_role);
     int bta_pan_role = btpan_role_to_bta(local_role);
     BTA_PanSetRole(bta_pan_role, &bta_panu_info, NULL, &bta_pan_nap_info);
@@ -243,13 +242,13 @@ static bt_status_t btpan_connect(const bt_bdaddr_t *bd_addr, int local_role, int
     int bta_local_role = btpan_role_to_bta(local_role);
     int bta_remote_role = btpan_role_to_bta(remote_role);
     btpan_new_conn(-1, bd_addr->address, bta_local_role, bta_remote_role);
-    BTA_PanOpen((UINT8*)bd_addr->address, bta_local_role, bta_remote_role);
+    BTA_PanOpen((uint8_t*)bd_addr->address, bta_local_role, bta_remote_role);
     return BT_STATUS_SUCCESS;
 }
 
-static void btif_in_pan_generic_evt(UINT16 event, char *p_param)
+static void btif_in_pan_generic_evt(uint16_t event, char *p_param)
 {
-    BTIF_TRACE_EVENT("%s: event=%d", __FUNCTION__, event);
+    BTIF_TRACE_EVENT("%s: event=%d", __func__, event);
     switch (event) {
         case BTIF_PAN_CB_DISCONNECTING:
         {
@@ -267,7 +266,7 @@ static void btif_in_pan_generic_evt(UINT16 event, char *p_param)
         } break;
         default:
         {
-            BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __FUNCTION__, event);
+            BTIF_TRACE_WARNING("%s : Unknown event 0x%x", __func__, event);
         }
         break;
     }
@@ -387,7 +386,7 @@ static int tap_if_down(const char *devname)
     return 0;
 }
 
-void btpan_set_flow_control(BOOLEAN enable) {
+void btpan_set_flow_control(bool enable) {
     if (btpan_cb.tap_fd == -1)
         return;
 
@@ -435,8 +434,8 @@ int btpan_tap_open()
     return INVALID_FD;
 }
 
-int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 proto, const char* buf,
-                    UINT16 len, BOOLEAN ext, BOOLEAN forward)
+int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, uint16_t proto, const char* buf,
+                    uint16_t len, bool ext, bool forward)
 {
     UNUSED(ext);
     UNUSED(forward);
@@ -474,7 +473,7 @@ int btpan_tap_close(int fd)
     return 0;
 }
 
-btpan_conn_t * btpan_find_conn_handle(UINT16 handle)
+btpan_conn_t * btpan_find_conn_handle(uint16_t handle)
 {
     for (int i = 0; i < MAX_PAN_CONNS; i++)
     {
@@ -606,8 +605,8 @@ static int forward_bnep(tETH_HDR* eth_hdr, BT_HDR *hdr) {
     // Find the right connection to send this frame over.
     for (int i = 0; i < MAX_PAN_CONNS; i++)
     {
-        UINT16 handle = btpan_cb.conns[i].handle;
-        if (handle != (UINT16)-1 &&
+        uint16_t handle = btpan_cb.conns[i].handle;
+        if (handle != (uint16_t)-1 &&
                 (broadcast || memcmp(btpan_cb.conns[i].eth_addr, eth_hdr->h_dest, sizeof(BD_ADDR)) == 0
                  || memcmp(btpan_cb.conns[i].peer, eth_hdr->h_dest, sizeof(BD_ADDR)) == 0)) {
             int result = PAN_WriteBuf(handle, eth_hdr->h_dest, eth_hdr->h_src, ntohs(eth_hdr->h_proto), hdr, 0);
@@ -625,7 +624,7 @@ static int forward_bnep(tETH_HDR* eth_hdr, BT_HDR *hdr) {
     return FORWARD_IGNORE;
 }
 
-static void bta_pan_callback_transfer(UINT16 event, char *p_param)
+static void bta_pan_callback_transfer(uint16_t event, char *p_param)
 {
     tBTA_PAN *p_data = (tBTA_PAN *)p_param;
 
@@ -692,7 +691,7 @@ static void bta_pan_callback_transfer(UINT16 event, char *p_param)
             }
         case BTA_PAN_CLOSE_EVT:
             {
-                LOG_INFO(LOG_TAG, "%s: event = BTA_PAN_CLOSE_EVT handle %d", __FUNCTION__, p_data->close.handle);
+                LOG_INFO(LOG_TAG, "%s: event = BTA_PAN_CLOSE_EVT handle %d", __func__, p_data->close.handle);
                 btpan_conn_t* conn = btpan_find_conn_handle(p_data->close.handle);
                 btpan_close_conn(conn);
 
@@ -735,7 +734,7 @@ static void btu_exec_tap_fd_read(void *p_param) {
         buffer->offset = PAN_MINIMUM_OFFSET;
         buffer->len = PAN_BUF_SIZE - sizeof(BT_HDR) - buffer->offset;
 
-        UINT8 *packet = (UINT8 *)buffer + sizeof(BT_HDR) + buffer->offset;
+        uint8_t *packet = (uint8_t *)buffer + sizeof(BT_HDR) + buffer->offset;
 
         // If we don't have an undelivered packet left over, pull one from the TAP driver.
         // We save it in the congest_packet right away in case we can't deliver it in this
