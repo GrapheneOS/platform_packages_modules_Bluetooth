@@ -174,8 +174,8 @@ enum
 **  Type definitions for callback functions
 ********************************************************************************/
 
-typedef void (tBTIF_CBACK) (UINT16 event, char *p_param);
-typedef void (tBTIF_COPY_CBACK) (UINT16 event, char *p_dest, char *p_src);
+typedef void (tBTIF_CBACK) (uint16_t event, char *p_param);
+typedef void (tBTIF_COPY_CBACK) (uint16_t event, char *p_dest, char *p_src);
 
 
 /*******************************************************************************
@@ -189,7 +189,7 @@ typedef struct
     tBTIF_CBACK*         p_cb;    /* context switch callback */
 
     /* parameters passed to callback */
-    UINT16               event;   /* message event id */
+    uint16_t               event;   /* message event id */
     char __attribute__ ((aligned)) p_param[]; /* parameter area needs to be last */
 } tBTIF_CONTEXT_SWITCH_CBACK;
 
@@ -221,12 +221,12 @@ void bte_load_did_conf(const char *p_path);
 void bte_main_boot_entry(void);
 void bte_main_disable(void);
 void bte_main_cleanup(void);
-#if (defined(HCILP_INCLUDED) && HCILP_INCLUDED == TRUE)
-void bte_main_enable_lpm(BOOLEAN enable);
+#if (HCILP_INCLUDED == TRUE)
+void bte_main_enable_lpm(bool enable);
 #endif
 void bte_main_postload_cfg(void);
 
-bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, UINT16 event, char* p_params,
+bt_status_t btif_transfer_context (tBTIF_CBACK *p_cback, uint16_t event, char* p_params,
                                     int param_len, tBTIF_COPY_CBACK *p_copy_cback);
 
 void btif_init_ok(UNUSED_ATTR uint16_t event, UNUSED_ATTR char *p_param);

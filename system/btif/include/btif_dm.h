@@ -44,7 +44,7 @@ void btif_dm_on_disable(void);
  * Callout for handling io_capabilities request
  */
 void btif_dm_proc_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_oob_data,
-                      tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig);
+                      tBTA_AUTH_REQ *p_auth_req, bool is_orig);
 /**
  * Callout for handling io_capabilities response
  */
@@ -59,27 +59,27 @@ void btif_dm_set_oob_for_le_io_req(BD_ADDR bd_addr, tBTA_OOB_DATA  *p_oob_data,
                                    tBTA_LE_AUTH_REQ *p_auth_req);
 #ifdef BTIF_DM_OOB_TEST
 void btif_dm_load_local_oob(void);
-void btif_dm_proc_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r);
-BOOLEAN btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
+void btif_dm_proc_loc_oob(bool valid, BT_OCTET16 c, BT_OCTET16 r);
+bool btif_dm_proc_rmt_oob(BD_ADDR bd_addr,  BT_OCTET16 p_c, BT_OCTET16 p_r);
 #endif /* BTIF_DM_OOB_TEST */
 #if (BLE_INCLUDED == TRUE)
 
 /*callout for reading SMP properties from Text file*/
-BOOLEAN btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
+bool btif_dm_get_smp_config(tBTE_APPL_CFG* p_cfg);
 
 typedef struct
 {
-    BOOLEAN                   is_penc_key_rcvd;
+    bool                   is_penc_key_rcvd;
     tBTM_LE_PENC_KEYS         penc_key;       /* received peer encryption key */
-    BOOLEAN                   is_pcsrk_key_rcvd;
+    bool                   is_pcsrk_key_rcvd;
     tBTM_LE_PCSRK_KEYS        pcsrk_key;       /* received peer device SRK */
-    BOOLEAN                   is_pid_key_rcvd;
+    bool                   is_pid_key_rcvd;
     tBTM_LE_PID_KEYS          pid_key;        /* peer device ID key */
-    BOOLEAN                   is_lenc_key_rcvd;
+    bool                   is_lenc_key_rcvd;
     tBTM_LE_LENC_KEYS         lenc_key;       /* local encryption reproduction keys LTK = = d1(ER,DIV,0)*/
-    BOOLEAN                   is_lcsrk_key_rcvd;
+    bool                   is_lcsrk_key_rcvd;
     tBTM_LE_LCSRK_KEYS        lcsrk_key;      /* local device CSRK = d1(ER,DIV,1)*/
-    BOOLEAN                   is_lidk_key_rcvd;   /* local identity key received */
+    bool                   is_lidk_key_rcvd;   /* local identity key received */
 } btif_dm_ble_cb_t;
 
 #define BTIF_DM_LE_KEY_PENC        BTA_LE_KEY_PENC

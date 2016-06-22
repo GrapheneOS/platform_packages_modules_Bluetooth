@@ -81,9 +81,9 @@
 **   Logging helper functions
 *****************************************************************************/
 
-UINT32 devclass2uint(DEV_CLASS dev_class)
+uint32_t devclass2uint(DEV_CLASS dev_class)
 {
-    UINT32 cod = 0;
+    uint32_t cod = 0;
 
     if(dev_class != NULL)
     {
@@ -92,14 +92,14 @@ UINT32 devclass2uint(DEV_CLASS dev_class)
     }
     return cod;
 }
-void uint2devclass(UINT32 cod, DEV_CLASS dev_class)
+void uint2devclass(uint32_t cod, DEV_CLASS dev_class)
 {
-    dev_class[2] = (UINT8)cod;
-    dev_class[1] = (UINT8)(cod >> 8);
-    dev_class[0] = (UINT8)(cod >> 16);
+    dev_class[2] = (uint8_t)cod;
+    dev_class[1] = (uint8_t)(cod >> 8);
+    dev_class[0] = (uint8_t)(cod >> 16);
 }
 
-static const UINT8  sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
+static const uint8_t  sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                                        0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB};
 
 void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128)
@@ -169,10 +169,10 @@ void uuid_to_string_legacy(bt_uuid_t *p_uuid, char *str)
 **
 **  Returns         the number of hex bytes filled.
 */
-int ascii_2_hex (const char *p_ascii, int len, UINT8 *p_hex)
+int ascii_2_hex (const char *p_ascii, int len, uint8_t *p_hex)
 {
     int     x;
-    UINT8   c;
+    uint8_t   c;
 
     for (x = 0; (x < len) && (*p_ascii); x++)
     {
@@ -197,7 +197,7 @@ int ascii_2_hex (const char *p_ascii, int len, UINT8 *p_hex)
     return (x);
 }
 
-const char* dump_dm_search_event(UINT16 event)
+const char* dump_dm_search_event(uint16_t event)
 {
     switch(event)
     {
@@ -234,7 +234,7 @@ const char* dump_property_type(bt_property_type_t type)
     }
 }
 
-const char* dump_dm_event(UINT16 event)
+const char* dump_dm_event(uint16_t event)
 {
     switch(event)
     {
@@ -270,7 +270,7 @@ const char* dump_dm_event(UINT16 event)
     }
 }
 
-const char* dump_hf_event(UINT16 event)
+const char* dump_hf_event(uint16_t event)
 {
     switch(event)
     {
@@ -285,7 +285,7 @@ const char* dump_hf_event(UINT16 event)
         CASE_RETURN_STR(BTA_AG_MIC_EVT)
         CASE_RETURN_STR(BTA_AG_AT_CKPD_EVT)
         CASE_RETURN_STR(BTA_AG_DISABLE_EVT)
-#if (BTM_WBS_INCLUDED == TRUE )
+#if (BTM_WBS_INCLUDED == TRUE)
         CASE_RETURN_STR(BTA_AG_WBS_EVT)
 #endif
         CASE_RETURN_STR(BTA_AG_AT_A_EVT)
@@ -314,7 +314,7 @@ const char* dump_hf_event(UINT16 event)
      }
 }
 
-const char* dump_hf_client_event(UINT16 event)
+const char* dump_hf_client_event(uint16_t event)
 {
     switch(event)
     {
@@ -346,7 +346,7 @@ const char* dump_hf_client_event(UINT16 event)
      }
 }
 
-const char* dump_hh_event(UINT16 event)
+const char* dump_hh_event(uint16_t event)
 {
     switch(event)
     {
@@ -370,7 +370,7 @@ const char* dump_hh_event(UINT16 event)
      }
 }
 
-const char* dump_hf_conn_state(UINT16 event)
+const char* dump_hf_conn_state(uint16_t event)
 {
     switch(event)
     {
@@ -412,7 +412,7 @@ const char* dump_thread_evt(bt_cb_thread_evt evt)
     }
 }
 
-const char* dump_hf_audio_state(UINT16 event)
+const char* dump_hf_audio_state(uint16_t event)
 {
     switch(event)
     {
@@ -426,7 +426,7 @@ const char* dump_hf_audio_state(UINT16 event)
     }
 }
 
-const char* dump_av_conn_state(UINT16 event)
+const char* dump_av_conn_state(uint16_t event)
 {
     switch(event)
     {
@@ -439,7 +439,7 @@ const char* dump_av_conn_state(UINT16 event)
     }
 }
 
-const char* dump_av_audio_state(UINT16 event)
+const char* dump_av_audio_state(uint16_t event)
 {
     switch(event)
     {
@@ -480,7 +480,7 @@ const char* dump_bt_status(bt_status_t status)
     }
 }
 
-const char *dump_rc_event(UINT8 event)
+const char *dump_rc_event(uint8_t event)
 {
    switch(event) {
         CASE_RETURN_STR(BTA_AV_RC_OPEN_EVT)
@@ -496,7 +496,7 @@ const char *dump_rc_event(UINT8 event)
    }
 }
 
-const char * dump_rc_notification_event_id(UINT8 event_id)
+const char * dump_rc_notification_event_id(uint8_t event_id)
 {
     switch(event_id)
     {
@@ -515,7 +515,7 @@ const char * dump_rc_notification_event_id(UINT8 event_id)
     }
 }
 
-const char*  dump_rc_pdu(UINT8 pdu)
+const char*  dump_rc_pdu(uint8_t pdu)
 {
     switch(pdu)
     {

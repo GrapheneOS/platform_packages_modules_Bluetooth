@@ -83,11 +83,11 @@ bt_bdaddr_t btif_av_get_addr(void);
 **
 ** Description      Checks if A2DP Sink is enabled or not
 **
-** Returns          TRUE if A2DP Sink is enabled, false otherwise
+** Returns          true if A2DP Sink is enabled, false otherwise
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_is_sink_enabled(void);
+bool btif_av_is_sink_enabled(void);
 
 /*******************************************************************************
 **
@@ -99,7 +99,7 @@ BOOLEAN btif_av_is_sink_enabled(void);
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_stream_ready(void);
+bool btif_av_stream_ready(void);
 
 /*******************************************************************************
 **
@@ -111,7 +111,7 @@ BOOLEAN btif_av_stream_ready(void);
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_stream_started_ready(void);
+bool btif_av_stream_started_ready(void);
 
 /*******************************************************************************
 **
@@ -144,11 +144,11 @@ bt_status_t btif_av_init(int service_id);
 **
 ** Description      Checks if av has a connected sink
 **
-** Returns          BOOLEAN
+** Returns          bool
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_is_connected(void);
+bool btif_av_is_connected(void);
 
 
 /*******************************************************************************
@@ -160,11 +160,11 @@ BOOLEAN btif_av_is_connected(void);
 **                  will accurately provide a true capability of
 **                  remote peer. If not connected it will always be false.
 **
-** Returns          TRUE if remote device is capable of EDR
+** Returns          true if remote device is capable of EDR
 **
 *******************************************************************************/
 
-BOOLEAN btif_av_is_peer_edr(void);
+bool btif_av_is_peer_edr(void);
 
 #ifdef USE_AUDIO_TRACK
 /*******************************************************************************
@@ -209,9 +209,9 @@ void btif_av_clear_remote_suspend_flag(void);
 **                  3 Mbps EDR. This function will only work while connected.
 **                  If not connected it will always return false.
 **
-** Returns          TRUE if remote device is EDR and supports 3 Mbps
+** Returns          true if remote device is EDR and supports 3 Mbps
 **
 *******************************************************************************/
-BOOLEAN btif_av_peer_supports_3mbps(void);
+bool btif_av_peer_supports_3mbps(void);
 
 #endif /* BTIF_AV_H */

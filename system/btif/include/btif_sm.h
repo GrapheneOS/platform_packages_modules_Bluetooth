@@ -42,10 +42,10 @@
 /*****************************************************************************
 **  Type definitions and return values
 ******************************************************************************/
-typedef UINT32 btif_sm_state_t;
-typedef UINT32 btif_sm_event_t;
+typedef uint32_t btif_sm_state_t;
+typedef uint32_t btif_sm_event_t;
 typedef void* btif_sm_handle_t;
-typedef BOOLEAN(*btif_sm_handler_t)(btif_sm_event_t event, void *data);
+typedef bool(*btif_sm_handler_t)(btif_sm_event_t event, void *data);
 
 /*****************************************************************************
 **  Functions
