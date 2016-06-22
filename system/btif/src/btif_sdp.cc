@@ -60,11 +60,11 @@ void copy_sdp_records(bluetooth_sdp_record* in_records,
 
 static btsdp_callbacks_t *bt_sdp_callbacks = NULL;
 
-static void btif_sdp_search_comp_evt(UINT16 event, char *p_param)
+static void btif_sdp_search_comp_evt(uint16_t event, char *p_param)
 {
     tBTA_SDP_SEARCH_COMP *evt_data = (tBTA_SDP_SEARCH_COMP*) p_param;
     bt_bdaddr_t addr;
-    BTIF_TRACE_DEBUG("%s:  event = %d", __FUNCTION__, event);
+    BTIF_TRACE_DEBUG("%s:  event = %d", __func__, event);
 
     if (event != BTA_SDP_SEARCH_COMP_EVT)
         return;
@@ -76,7 +76,7 @@ static void btif_sdp_search_comp_evt(UINT16 event, char *p_param)
             evt_data->record_count, evt_data->records);
 }
 
-static void sdp_search_comp_copy_cb(UINT16 event, char *p_dest, char *p_src)
+static void sdp_search_comp_copy_cb(uint16_t event, char *p_dest, char *p_src)
 {
     tBTA_SDP_SEARCH_COMP *p_dest_data =  (tBTA_SDP_SEARCH_COMP *) p_dest;
     tBTA_SDP_SEARCH_COMP *p_src_data =  (tBTA_SDP_SEARCH_COMP *) p_src;
@@ -124,7 +124,7 @@ static void sdp_dm_cback(tBTA_SDP_EVT event, tBTA_SDP *p_data, void *user_data)
 
 static bt_status_t init(btsdp_callbacks_t* callbacks)
 {
-    BTIF_TRACE_DEBUG("Sdp Search %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Search %s", __func__);
 
     bt_sdp_callbacks = callbacks;
     sdp_server_init();
@@ -136,7 +136,7 @@ static bt_status_t init(btsdp_callbacks_t* callbacks)
 
 static bt_status_t deinit()
 {
-    BTIF_TRACE_DEBUG("Sdp Search %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Search %s", __func__);
 
     bt_sdp_callbacks = NULL;
     sdp_server_cleanup();
@@ -167,7 +167,7 @@ static const btsdp_interface_t sdp_if = {
 
 const btsdp_interface_t *btif_sdp_get_interface(void)
 {
-    BTIF_TRACE_DEBUG("%s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("%s", __func__);
     return &sdp_if;
 }
 
@@ -180,9 +180,9 @@ const btsdp_interface_t *btif_sdp_get_interface(void)
 ** Returns          BT_STATUS_SUCCESS on success, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_sdp_execute_service(BOOLEAN b_enable)
+bt_status_t btif_sdp_execute_service(bool b_enable)
 {
-    BTIF_TRACE_DEBUG("%s enable:%d", __FUNCTION__, b_enable);
+    BTIF_TRACE_DEBUG("%s enable:%d", __func__, b_enable);
 
      if (b_enable)
      {

@@ -27,7 +27,7 @@
 #include "osi/include/wakelock.h"
 
 void btif_debug_init(void) {
-#if defined(BTSNOOP_MEM) && (BTSNOOP_MEM == TRUE)
+#if (BTSNOOP_MEM == TRUE)
   btif_debug_btsnoop_init();
 #endif
 }

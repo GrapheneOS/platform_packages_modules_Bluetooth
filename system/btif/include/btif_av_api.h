@@ -48,22 +48,22 @@
 
 #define BTIF_AV_CODEC_PCM        0x5                     /* Raw PCM */
 
-typedef UINT8 tBTIF_AV_CODEC_ID;
+typedef uint8_t tBTIF_AV_CODEC_ID;
 
 /* AV features masks */
 #define BTIF_AV_FEAT_RCTG        BTA_AV_FEAT_RCTG      /* remote control target */
 #define BTIF_AV_FEAT_RCCT        BTA_AV_FEAT_RCCT      /* remote control controller */
 #define BTIF_AV_FEAT_METADATA    BTA_AV_FEAT_METADATA  /* remote control Metadata Transfer command/response */
 
-typedef UINT16 tBTIF_AV_FEAT;
+typedef uint16_t tBTIF_AV_FEAT;
 
 /* AV channel values */
 #define BTIF_AV_CHNL_MSK         BTA_AV_CHNL_MSK
 #define BTIF_AV_CHNL_AUDIO       BTA_AV_CHNL_AUDIO       /* audio channel */
 #define BTIF_AV_CHNL_VIDEO       BTA_AV_CHNL_VIDEO       /* video channel */
-typedef UINT8 tBTIF_AV_CHNL;
+typedef uint8_t tBTIF_AV_CHNL;
 
-typedef UINT8 tBTIF_AV_HNDL;
+typedef uint8_t tBTIF_AV_HNDL;
 
 /* Operation id list for BTIF_AvRemoteCmd */
 #define BTIF_AV_ID_SELECT      0x00    /* select */
@@ -125,15 +125,15 @@ typedef UINT8 tBTIF_AV_HNDL;
 #define BTIF_AV_ID_VENDOR      0x7E    /* vendor unique */
 #define BTIF_AV_KEYPRESSED_RELEASE 0x80
 
-typedef UINT8 tBTIF_AV_RC;
+typedef uint8_t tBTIF_AV_RC;
 
 /* State flag for pass through command */
 #define BTIF_AV_STATE_PRESS      0    /* key pressed */
 #define BTIF_AV_STATE_RELEASE    1  /* key released */
 
-typedef UINT8 tBTIF_AV_STATE;
+typedef uint8_t tBTIF_AV_STATE;
 
-typedef UINT8 tBTIF_AV_RC_HNDL;
+typedef uint8_t tBTIF_AV_RC_HNDL;
 
 /* Command codes for BTIF_AvVendorCmd */
 #define BTIF_AV_CMD_CTRL         0
@@ -142,7 +142,7 @@ typedef UINT8 tBTIF_AV_RC_HNDL;
 #define BTIF_AV_CMD_NOTIF        3
 #define BTIF_AV_CMD_GEN_INQ      4
 
-typedef UINT8 tBTIF_AV_CMD;
+typedef uint8_t tBTIF_AV_CMD;
 
 /* AV callback events */
 #define BTIF_AV_OPEN_EVT         0       /* connection opened */
@@ -155,7 +155,7 @@ typedef UINT8 tBTIF_AV_CMD;
 #define BTIF_AV_REMOTE_RSP_EVT   7      /* remote control response */
 #define BTIF_AV_META_MSG_EVT     8      /* metadata messages */
 
-typedef UINT8 tBTIF_AV_EVT;
+typedef uint8_t tBTIF_AV_EVT;
 
 #define BTIF_AV_FEEDING_ASYNCHRONOUS 0   /* asynchronous feeding, use tx av timer */
 #define BTIF_AV_FEEDING_SYNCHRONOUS  1   /* synchronous feeding, no av tx timer */
@@ -163,14 +163,14 @@ typedef UINT8 tBTIF_AV_EVT;
 #define BTIF_AV_MAX_SYNCHRONOUS_LATENCY 80 /* max latency in ms for BTIF_AV_FEEDING_SYNCHRONOUS */
 #define BTIF_AV_MIN_SYNCHRONOUS_LATENCY 4 /* min latency in ms for BTIF_AV_FEEDING_SYNCHRONOUS */
 
-typedef UINT8 tBTIF_AV_FEEDING_MODE;
+typedef uint8_t tBTIF_AV_FEEDING_MODE;
 
 #define BTIF_AV_CHANNEL_MODE_MONO    A2D_SBC_IE_CH_MD_MONO
 #define BTIF_AV_CHANNEL_MODE_STEREO  A2D_SBC_IE_CH_MD_STEREO
 #define BTIF_AV_CHANNEL_MODE_JOINT   A2D_SBC_IE_CH_MD_JOINT
 #define BTIF_AV_CHANNEL_MODE_DUAL    A2D_SBC_IE_CH_MD_DUAL
 
-typedef UINT8 tBTIF_AV_CHANNEL_MODE;
+typedef uint8_t tBTIF_AV_CHANNEL_MODE;
 
 /**
  * Structure used to configure the AV codec capabilities/config
@@ -178,7 +178,7 @@ typedef UINT8 tBTIF_AV_CHANNEL_MODE;
 typedef struct
 {
     tBTIF_AV_CODEC_ID id;            /* Codec ID (in terms of BTIF) */
-    UINT8 info[AVDT_CODEC_SIZE];     /* Codec info (can be config or capabilities) */
+    uint8_t info[AVDT_CODEC_SIZE];     /* Codec info (can be config or capabilities) */
 } tBTIF_AV_CODEC_INFO;
 
 /**
@@ -186,9 +186,9 @@ typedef struct
  */
 typedef struct
 {
-    UINT16 sampling_freq;   /* 44100, 48000 etc */
-    UINT16 num_channel;     /* 1 for mono or 2 stereo */
-    UINT8  bit_per_sample;  /* Number of bits per sample (8, 16) */
+    uint16_t sampling_freq;   /* 44100, 48000 etc */
+    uint16_t num_channel;     /* 1 for mono or 2 stereo */
+    uint8_t  bit_per_sample;  /* Number of bits per sample (8, 16) */
 } tBTIF_AV_MEDIA_FEED_CFG_PCM;
 
 typedef union

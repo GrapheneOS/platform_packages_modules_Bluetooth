@@ -24,12 +24,12 @@
 #include "bta_dm_ci.h"
 #include "bt_utils.h"
 #include "btif_dm.h"
-#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
 #include "bte_appl.h"
 
 tBTE_APPL_CFG bte_appl_cfg =
 {
-#if SMP_INCLUDED == TRUE
+#if (SMP_INCLUDED == TRUE)
     BTA_LE_AUTH_REQ_SC_MITM_BOND, // Authentication requirements
 #else
     BTM_AUTH_SPGB_YES,            // Authentication requirements
@@ -51,15 +51,15 @@ tBTE_APPL_CFG bte_appl_cfg =
 **                  memory_p - memory return by callout
 **                  memory_size - memory size
 **
-** Returns          TRUE for success, FALSE for fail.
+** Returns          true for success, false for fail.
 **
 *******************************************************************************/
-BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *memory_size)
+bool bta_dm_co_get_compress_memory(tBTA_SYS_ID id, uint8_t **memory_p, uint32_t *memory_size)
 {
     UNUSED(id);
     UNUSED(memory_p);
     UNUSED(memory_size);
-    return TRUE;
+    return true;
 }
 
 /*******************************************************************************
@@ -71,14 +71,14 @@ BOOLEAN bta_dm_co_get_compress_memory(tBTA_SYS_ID id, UINT8 **memory_p, UINT32 *
 **
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - TRUE, if OOB data is available for the peer device.
-**                  *p_auth_req - TRUE, if MITM protection is required.
+**                  *p_oob_data - true, if OOB data is available for the peer device.
+**                  *p_auth_req - true, if MITM protection is required.
 **
 ** Returns          void.
 **
 *******************************************************************************/
 void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_oob_data,
-                      tBTA_AUTH_REQ *p_auth_req, BOOLEAN is_orig)
+                      tBTA_AUTH_REQ *p_auth_req, bool is_orig)
 {
     UNUSED(bd_addr);
     btif_dm_set_oob_for_io_req(p_oob_data);
@@ -98,8 +98,8 @@ void bta_dm_co_io_req(BD_ADDR bd_addr, tBTA_IO_CAP *p_io_cap, tBTA_OOB_DATA *p_o
 **
 ** Parameters       bd_addr  - The peer device
 **                  io_cap - The remote Input/Output capabilities
-**                  oob_data - TRUE, if OOB data is available for the peer device.
-**                  auth_req - TRUE, if MITM protection is required.
+**                  oob_data - true, if OOB data is available for the peer device.
+**                  auth_req - true, if MITM protection is required.
 **
 ** Returns          void.
 **
@@ -118,12 +118,12 @@ void bta_dm_co_io_rsp(BD_ADDR bd_addr, tBTA_IO_CAP io_cap,
 **                  platform wants allow link key upgrade
 **
 ** Parameters       bd_addr  - The peer device
-**                  *p_upgrade - TRUE, if link key upgrade is desired.
+**                  *p_upgrade - true, if link key upgrade is desired.
 **
 ** Returns          void.
 **
 *******************************************************************************/
-void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
+void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, bool *p_upgrade )
 {
     UNUSED(bd_addr);
     UNUSED(p_upgrade);
@@ -136,14 +136,14 @@ void  bta_dm_co_lk_upgrade(BD_ADDR bd_addr, BOOLEAN *p_upgrade )
 ** Description      This callout function is executed by DM to report the OOB
 **                  data of the local device for the Simple Pairing process
 **
-** Parameters       valid - TRUE, if the local OOB data is retrieved from LM
+** Parameters       valid - true, if the local OOB data is retrieved from LM
 **                  c     - Simple Pairing Hash C
 **                  r     - Simple Pairing Randomnizer R
 **
 ** Returns          void.
 **
 *******************************************************************************/
-void bta_dm_co_loc_oob(BOOLEAN valid, BT_OCTET16 c, BT_OCTET16 r)
+void bta_dm_co_loc_oob(bool valid, BT_OCTET16 c, BT_OCTET16 r)
 {
     BTIF_TRACE_DEBUG("bta_dm_co_loc_oob, valid = %d", valid);
 #ifdef BTIF_DM_OOB_TEST
@@ -168,7 +168,7 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
 {
     BT_OCTET16 p_c;
     BT_OCTET16 p_r;
-    BOOLEAN result = FALSE;
+    bool result = false;
 
 #ifdef BTIF_DM_OOB_TEST
     result = btif_dm_proc_rmt_oob(bd_addr, p_c, p_r);
@@ -181,7 +181,7 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
 
 // REMOVE FOR BLUEDROID ?
 
-#if (BTM_SCO_HCI_INCLUDED == TRUE ) && (BTM_SCO_INCLUDED == TRUE)
+#if (BTM_SCO_HCI_INCLUDED == TRUE) && (BTM_SCO_INCLUDED == TRUE)
 
 /*******************************************************************************
 **
@@ -193,7 +193,7 @@ void bta_dm_co_rmt_oob(BD_ADDR bd_addr)
 ** Returns          void
 **
 *******************************************************************************/
-static void btui_sco_codec_callback(UINT16 event, UINT16 sco_handle)
+static void btui_sco_codec_callback(uint16_t event, uint16_t sco_handle)
 {
     bta_dm_sco_ci_data_ready(event, sco_handle);
 }
@@ -209,8 +209,8 @@ static void btui_sco_codec_callback(UINT16 event, UINT16 sco_handle)
 ** Returns          tBTA_DM_SCO_ROUTE_TYPE: SCO routing configuration type.
 **
 *******************************************************************************/
-tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
-                                          tBTA_CODEC_INFO * p_codec_type, UINT8 app_id)
+tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(uint32_t rx_bw, uint32_t tx_bw,
+                                          tBTA_CODEC_INFO * p_codec_type, uint8_t app_id)
 {
     tBTM_SCO_ROUTE_TYPE route = BTA_DM_SCO_ROUTE_PCM;
 
@@ -220,7 +220,7 @@ tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
         configuration is set to SCO over HCI */
     /* HS invoke this call-out */
     if (
-#if (BTA_HS_INCLUDED == TRUE ) && (BTA_HS_INCLUDED == TRUE)
+#if (BTA_HS_INCLUDED == TRUE)
        (app_id == BTUI_DM_SCO_4_HS_APP_ID && btui_cfg.hs_sco_over_hci) ||
 #endif
        /* AG invoke this call-out */
@@ -253,7 +253,7 @@ tBTA_DM_SCO_ROUTE_TYPE bta_dm_sco_co_init(UINT32 rx_bw, UINT32 tx_bw,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_dm_sco_co_open(UINT16 handle, UINT8 pkt_size, UINT16 event)
+void bta_dm_sco_co_open(uint16_t handle, uint8_t pkt_size, uint16_t event)
 {
     tBTUI_SCO_CODEC_CFG cfg;
 
@@ -287,7 +287,7 @@ void bta_dm_sco_co_close(void)
         /* close sco codec */
         btui_sco_codec_close();
 
-        btui_cb.sco_hci = FALSE;
+        btui_cb.sco_hci = false;
     }
 }
 
@@ -322,10 +322,10 @@ void bta_dm_sco_co_out_data(BT_HDR  **p_buf)
     btui_sco_codec_readbuf(p_buf);
 }
 
-#endif /* #if (BTM_SCO_HCI_INCLUDED == TRUE ) && (BTM_SCO_INCLUDED == TRUE)*/
+#endif /* (BTM_SCO_HCI_INCLUDED == TRUE) && (BTM_SCO_INCLUDED == TRUE)*/
 
 
-#if (defined BLE_INCLUDED && BLE_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE)
 /*******************************************************************************
 **
 ** Function         bta_dm_co_le_io_key_req
@@ -341,7 +341,7 @@ void bta_dm_sco_co_out_data(BT_HDR  **p_buf)
 ** Returns          void.
 **
 *******************************************************************************/
-void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, UINT8 *p_max_key_size,
+void bta_dm_co_le_io_key_req(BD_ADDR bd_addr, uint8_t *p_max_key_size,
                              tBTA_LE_KEY_TYPE *p_init_key,
                              tBTA_LE_KEY_TYPE  *p_resp_key )
 {
@@ -385,7 +385,7 @@ void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OC
 **
 ** Parameters       bd_addr  - The peer device
 **                  *p_io_cap - The local Input/Output capabilities
-**                  *p_oob_data - TRUE, if OOB data is available for the peer device.
+**                  *p_oob_data - true, if OOB data is available for the peer device.
 **                  *p_auth_req -  Auth request setting (Bonding and MITM required or not)
 **                  *p_max_key_size - max key size local device supported.
 **                  *p_init_key - initiator keys.
@@ -397,7 +397,7 @@ void bta_dm_co_ble_load_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK *p_key_mask, BT_OC
 void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
                           tBTA_OOB_DATA *p_oob_data,
                           tBTA_LE_AUTH_REQ *p_auth_req,
-                          UINT8 *p_max_key_size,
+                          uint8_t *p_max_key_size,
                           tBTA_LE_KEY_TYPE *p_init_key,
                           tBTA_LE_KEY_TYPE  *p_resp_key )
 {
@@ -407,7 +407,7 @@ void bta_dm_co_ble_io_req(BD_ADDR bd_addr,  tBTA_IO_CAP *p_io_cap,
     if(btif_dm_get_smp_config(&nv_config))
         bte_appl_cfg = nv_config;
 
-    /* *p_auth_req by default is FALSE for devices with NoInputNoOutput; TRUE for other devices. */
+    /* *p_auth_req by default is false for devices with NoInputNoOutput; true for other devices. */
 
     if (bte_appl_cfg.ble_auth_req)
         *p_auth_req = bte_appl_cfg.ble_auth_req | (bte_appl_cfg.ble_auth_req & 0x04) | ((*p_auth_req) & 0x04);

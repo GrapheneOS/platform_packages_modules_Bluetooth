@@ -69,7 +69,7 @@
 ************************************************************************************/
 
 bt_callbacks_t *bt_hal_cbacks = NULL;
-bool restricted_mode = FALSE;
+bool restricted_mode = false;
 
 /************************************************************************************
 **  Externs
@@ -94,7 +94,7 @@ extern bthl_interface_t *btif_hl_get_interface();
 extern btpan_interface_t *btif_pan_get_interface();
 /*map client*/
 extern btmce_interface_t *btif_mce_get_interface();
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 /* gatt */
 extern const btgatt_interface_t *btif_gatt_get_interface();
 #endif
@@ -172,7 +172,7 @@ bool is_restricted_mode() {
 static int get_adapter_properties(void)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_get_adapter_properties();
@@ -181,7 +181,7 @@ static int get_adapter_properties(void)
 static int get_adapter_property(bt_property_type_t type)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_get_adapter_property(type);
@@ -190,7 +190,7 @@ static int get_adapter_property(bt_property_type_t type)
 static int set_adapter_property(const bt_property_t *property)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_set_adapter_property(property);
@@ -199,7 +199,7 @@ static int set_adapter_property(const bt_property_t *property)
 int get_remote_device_properties(bt_bdaddr_t *remote_addr)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_get_remote_device_properties(remote_addr);
@@ -208,7 +208,7 @@ int get_remote_device_properties(bt_bdaddr_t *remote_addr)
 int get_remote_device_property(bt_bdaddr_t *remote_addr, bt_property_type_t type)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_get_remote_device_property(remote_addr, type);
@@ -217,7 +217,7 @@ int get_remote_device_property(bt_bdaddr_t *remote_addr, bt_property_type_t type
 int set_remote_device_property(bt_bdaddr_t *remote_addr, const bt_property_t *property)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_set_remote_device_property(remote_addr, property);
@@ -226,7 +226,7 @@ int set_remote_device_property(bt_bdaddr_t *remote_addr, const bt_property_t *pr
 int get_remote_service_record(bt_bdaddr_t *remote_addr, bt_uuid_t *uuid)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_get_remote_service_record(remote_addr, uuid);
@@ -235,7 +235,7 @@ int get_remote_service_record(bt_bdaddr_t *remote_addr, bt_uuid_t *uuid)
 int get_remote_services(bt_bdaddr_t *remote_addr)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_get_remote_services(remote_addr);
@@ -244,7 +244,7 @@ int get_remote_services(bt_bdaddr_t *remote_addr)
 static int start_discovery(void)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_start_discovery();
@@ -253,7 +253,7 @@ static int start_discovery(void)
 static int cancel_discovery(void)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_cancel_discovery();
@@ -262,7 +262,7 @@ static int cancel_discovery(void)
 static int create_bond(const bt_bdaddr_t *bd_addr, int transport)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_create_bond(bd_addr, transport);
@@ -272,7 +272,7 @@ static int create_bond_out_of_band(const bt_bdaddr_t *bd_addr, int transport,
                                    const bt_out_of_band_data_t *oob_data)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_create_bond_out_of_band(bd_addr, transport, oob_data);
@@ -281,7 +281,7 @@ static int create_bond_out_of_band(const bt_bdaddr_t *bd_addr, int transport,
 static int cancel_bond(const bt_bdaddr_t *bd_addr)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_cancel_bond(bd_addr);
@@ -293,7 +293,7 @@ static int remove_bond(const bt_bdaddr_t *bd_addr)
         return BT_STATUS_SUCCESS;
 
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_remove_bond(bd_addr);
@@ -302,7 +302,7 @@ static int remove_bond(const bt_bdaddr_t *bd_addr)
 static int get_connection_state(const bt_bdaddr_t *bd_addr)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return 0;
 
     return btif_dm_get_connection_state(bd_addr);
@@ -312,7 +312,7 @@ static int pin_reply(const bt_bdaddr_t *bd_addr, uint8_t accept,
                  uint8_t pin_len, bt_pin_code_t *pin_code)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_pin_reply(bd_addr, accept, pin_len, pin_code);
@@ -322,7 +322,7 @@ static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
                        uint8_t accept, uint32_t passkey)
 {
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dm_ssp_reply(bd_addr, variant, accept, passkey);
@@ -330,7 +330,7 @@ static int ssp_reply(const bt_bdaddr_t *bd_addr, bt_ssp_variant_t variant,
 
 static int read_energy_info()
 {
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
     btif_dm_read_energy_info();
     return BT_STATUS_SUCCESS;
@@ -356,7 +356,7 @@ static void dump(int fd, const char **arguments)
     btif_debug_config_dump(fd);
     wakelock_debug_dump(fd);
     alarm_debug_dump(fd);
-#if defined(BTSNOOP_MEM) && (BTSNOOP_MEM == TRUE)
+#if (BTSNOOP_MEM == TRUE)
     btif_debug_btsnoop_dump(fd);
 #endif
 
@@ -368,7 +368,7 @@ static const void* get_profile_interface (const char *profile_id)
     LOG_INFO(LOG_TAG, "get_profile_interface %s", profile_id);
 
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return NULL;
 
     /* check for supported profile interfaces */
@@ -399,7 +399,7 @@ static const void* get_profile_interface (const char *profile_id)
     if (is_profile(profile_id, BT_PROFILE_SDP_CLIENT_ID))
         return btif_sdp_get_interface();
 
-#if ( BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
+#if (BTA_GATT_INCLUDED == TRUE && BLE_INCLUDED == TRUE)
     if (is_profile(profile_id, BT_PROFILE_GATT_ID))
         return btif_gatt_get_interface();
 #endif
@@ -418,7 +418,7 @@ int dut_mode_configure(uint8_t enable)
     LOG_INFO(LOG_TAG, "dut_mode_configure");
 
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dut_mode_configure(enable);
@@ -429,19 +429,19 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len)
     LOG_INFO(LOG_TAG, "dut_mode_send");
 
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_dut_mode_send(opcode, buf, len);
 }
 
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len)
 {
     LOG_INFO(LOG_TAG, "le_test_mode");
 
     /* sanity check */
-    if (interface_ready() == FALSE)
+    if (interface_ready() == false)
         return BT_STATUS_NOT_READY;
 
     return btif_le_test_mode(opcode, buf, len);
@@ -495,7 +495,7 @@ static const bt_interface_t bluetoothInterface = {
     get_profile_interface,
     dut_mode_configure,
     dut_mode_send,
-#if BLE_INCLUDED == TRUE
+#if (BLE_INCLUDED == TRUE)
     le_test_mode,
 #else
     NULL,

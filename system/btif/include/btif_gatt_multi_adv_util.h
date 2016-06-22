@@ -35,9 +35,9 @@
 typedef struct
 {
     int client_if;
-    BOOLEAN set_scan_rsp;
-    BOOLEAN include_name;
-    BOOLEAN include_txpower;
+    bool set_scan_rsp;
+    bool include_name;
+    bool include_txpower;
     int min_interval;
     int max_interval;
     int appearance;
@@ -52,7 +52,7 @@ typedef struct
 
 typedef struct
 {
-    UINT8 client_if;
+    uint8_t client_if;
     tBTA_BLE_AD_MASK mask;
     tBTA_BLE_ADV_DATA data;
     tBTA_BLE_ADV_PARAMS param;
@@ -62,7 +62,7 @@ typedef struct
 
 typedef struct
 {
-    INT8 *clntif_map;
+    int8_t *clntif_map;
     // Includes the stored data for standard LE instance
     btgatt_multi_adv_inst_cb *inst_cb;
 
@@ -73,15 +73,15 @@ extern btgatt_multi_adv_common_data *btif_obtain_multi_adv_data_cb();
 extern void btif_gattc_incr_app_count(void);
 extern void btif_gattc_decr_app_count(void);
 extern int btif_multi_adv_add_instid_map(int client_if, int inst_id,
-        BOOLEAN gen_temp_instid);
+        bool gen_temp_instid);
 extern int btif_multi_adv_instid_for_clientif(int client_if);
 extern int btif_gattc_obtain_idx_for_datacb(int value, int clnt_inst_index);
-extern void btif_gattc_clear_clientif(int client_if, BOOLEAN stop_timer);
-extern void btif_gattc_cleanup_inst_cb(int inst_id, BOOLEAN stop_timer);
+extern void btif_gattc_clear_clientif(int client_if, bool stop_timer);
+extern void btif_gattc_cleanup_inst_cb(int inst_id, bool stop_timer);
 extern void btif_gattc_cleanup_multi_inst_cb(btgatt_multi_adv_inst_cb *p_inst_cb,
-                                                    BOOLEAN stop_timer);
-extern BOOLEAN btif_gattc_copy_datacb(int arrindex, const btif_adv_data_t *p_adv_data,
-                                            BOOLEAN bInstData);
+                                                    bool stop_timer);
+extern bool btif_gattc_copy_datacb(int arrindex, const btif_adv_data_t *p_adv_data,
+                                            bool bInstData);
 extern void btif_gattc_adv_data_packager(int client_if, bool set_scan_rsp,
                 bool include_name, bool include_txpower, int min_interval, int max_interval,
                 int appearance, const vector<uint8_t> &manufacturer_data,

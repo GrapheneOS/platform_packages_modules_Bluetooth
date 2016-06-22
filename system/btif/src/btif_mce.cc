@@ -48,14 +48,14 @@
 
 static btmce_callbacks_t *bt_mce_callbacks = NULL;
 
-static void btif_mce_mas_discovery_comp_evt(UINT16 event, char *p_param)
+static void btif_mce_mas_discovery_comp_evt(uint16_t event, char *p_param)
 {
     tBTA_MCE_MAS_DISCOVERY_COMP *evt_data = (tBTA_MCE_MAS_DISCOVERY_COMP*) p_param;
     btmce_mas_instance_t insts[BTA_MCE_MAX_MAS_INSTANCES];
     bt_bdaddr_t addr;
     int i;
 
-    BTIF_TRACE_EVENT("%s:  event = %d", __FUNCTION__, event);
+    BTIF_TRACE_EVENT("%s:  event = %d", __func__, event);
 
     if (event != BTA_MCE_MAS_DISCOVERY_COMP_EVT)
         return;
@@ -73,7 +73,7 @@ static void btif_mce_mas_discovery_comp_evt(UINT16 event, char *p_param)
     HAL_CBACK(bt_mce_callbacks, remote_mas_instances_cb, (bt_status_t)evt_data->status, &addr, evt_data->num_mas, insts);
 }
 
-static void mas_discovery_comp_copy_cb(UINT16 event, char *p_dest, char *p_src)
+static void mas_discovery_comp_copy_cb(uint16_t event, char *p_dest, char *p_src)
 {
     tBTA_MCE_MAS_DISCOVERY_COMP *p_dest_data =  (tBTA_MCE_MAS_DISCOVERY_COMP *) p_dest;
     tBTA_MCE_MAS_DISCOVERY_COMP *p_src_data =  (tBTA_MCE_MAS_DISCOVERY_COMP *) p_src;
@@ -106,7 +106,7 @@ static void mce_dm_cback(tBTA_MCE_EVT event, tBTA_MCE *p_data, void *user_data)
         case BTA_MCE_MAS_DISCOVERY_COMP_EVT:
             {
                 int i;
-                UINT16 param_len = sizeof(tBTA_MCE);
+                uint16_t param_len = sizeof(tBTA_MCE);
 
                 /* include space for all p_srv_name copies including null-termination */
                 for (i = 0; i < p_data->mas_disc_comp.num_mas; i++)
@@ -123,7 +123,7 @@ static void mce_dm_cback(tBTA_MCE_EVT event, tBTA_MCE *p_data, void *user_data)
 
 static bt_status_t init(btmce_callbacks_t* callbacks)
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __func__);
 
     bt_mce_callbacks = callbacks;
 
@@ -136,7 +136,7 @@ static bt_status_t get_remote_mas_instances(bt_bdaddr_t *bd_addr)
 {
     bdstr_t bdstr;
 
-    BTIF_TRACE_EVENT("%s: remote_addr=%s", __FUNCTION__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
+    BTIF_TRACE_EVENT("%s: remote_addr=%s", __func__, bdaddr_to_string(bd_addr, bdstr, sizeof(bdstr)));
 
     BTA_MceGetRemoteMasInstances(bd_addr->address);
 
@@ -151,7 +151,7 @@ static const btmce_interface_t mce_if = {
 
 const btmce_interface_t *btif_mce_get_interface(void)
 {
-    BTIF_TRACE_EVENT("%s", __FUNCTION__);
+    BTIF_TRACE_EVENT("%s", __func__);
     return &mce_if;
 }
 
@@ -164,9 +164,9 @@ const btmce_interface_t *btif_mce_get_interface(void)
 ** Returns          BT_STATUS_SUCCESS on success, BT_STATUS_FAIL otherwise
 **
 *******************************************************************************/
-bt_status_t btif_mce_execute_service(BOOLEAN b_enable)
+bt_status_t btif_mce_execute_service(bool b_enable)
 {
-    BTIF_TRACE_EVENT("%s enable:%d", __FUNCTION__, b_enable);
+    BTIF_TRACE_EVENT("%s enable:%d", __func__, b_enable);
 
      if (b_enable)
      {
