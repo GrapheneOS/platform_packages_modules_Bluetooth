@@ -180,38 +180,10 @@ typedef struct
     void                                *p_next;  /* pointer to the next attribute,
                                                     either tGATT_ATTR16 or tGATT_ATTR128 */
     tGATT_ATTR_VALUE                    *p_value;
-    tGATT_ATTR_UUID_TYPE                uuid_type;
     tGATT_PERM                          permission;
     UINT16                              handle;
-    UINT16                              uuid;
-} tGATT_ATTR16;
-
-/* 32 bits UUID Attribute in server database
-*/
-typedef struct
-{
-    void                                *p_next;  /* pointer to the next attribute,
-                                                    either tGATT_ATTR16, tGATT_ATTR32 or tGATT_ATTR128 */
-    tGATT_ATTR_VALUE                    *p_value;
-    tGATT_ATTR_UUID_TYPE                uuid_type;
-    tGATT_PERM                          permission;
-    UINT16                              handle;
-    UINT32                              uuid;
-} tGATT_ATTR32;
-
-
-/* 128 bits UUID Attribute in server database
-*/
-typedef struct
-{
-    void                                *p_next;  /* pointer to the next attribute,
-                                                    either tGATT_ATTR16 or tGATT_ATTR128 */
-    tGATT_ATTR_VALUE                    *p_value;
-    tGATT_ATTR_UUID_TYPE                uuid_type;
-    tGATT_PERM                          permission;
-    UINT16                              handle;
-    UINT8                               uuid[LEN_UUID_128];
-} tGATT_ATTR128;
+    tBT_UUID                            uuid;
+} tGATT_ATTR;
 
 /* Service Database definition
 */
