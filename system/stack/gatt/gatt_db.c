@@ -102,7 +102,7 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
     }
     else
     {
-        return &((tGATT_ATTR16 *)p_db->p_attr_list)->p_value->uuid;
+        return &((tGATT_ATTR *)p_db->p_attr_list)->p_value->uuid;
     }
 }
 
@@ -115,7 +115,7 @@ tBT_UUID * gatts_get_service_uuid (tGATT_SVC_DB *p_db)
 ** Returns          status of operation.
 **
 *******************************************************************************/
-static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
+static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR *p_attr,
                                                  UINT16 offset,
                                                  BOOLEAN read_long,
                                                  tGATT_SEC_FLAG sec_flag,
@@ -163,9 +163,9 @@ static tGATT_STATUS gatts_check_attr_readability(tGATT_ATTR16 *p_attr,
     }
 
 
-    if (read_long)
+    if (read_long && p_attr->uuid.len == LEN_UUID_16)
     {
-        switch (p_attr->uuid)
+        switch (p_attr->uuid.uu.uuid16)
         {
             case GATT_UUID_PRI_SERVICE:
             case GATT_UUID_SEC_SERVICE:
@@ -216,7 +216,7 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     UINT16          len = 0, uuid16 = 0;
     UINT8           *p = *p_data;
     tGATT_STATUS    status;
-    tGATT_ATTR16    *p_attr16  = (tGATT_ATTR16  *)p_attr;
+    tGATT_ATTR    *p_attr16  = (tGATT_ATTR  *)p_attr;
 
     GATT_TRACE_DEBUG("read_attr_value uuid=0x%04x perm=0x%0x sec_flag=0x%x offset=%d read_long=%d",
                       p_attr16->uuid,
@@ -225,13 +225,13 @@ static tGATT_STATUS read_attr_value (void *p_attr,
                       offset,
                       read_long);
 
-    status = gatts_check_attr_readability((tGATT_ATTR16 *)p_attr, offset, read_long, sec_flag, key_size);
+    status = gatts_check_attr_readability((tGATT_ATTR *)p_attr, offset, read_long, sec_flag, key_size);
 
     if (status != GATT_SUCCESS)
         return status;
 
-    if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_16)
-        uuid16 = p_attr16->uuid;
+    if (p_attr16->uuid.len == LEN_UUID_16)
+        uuid16 = p_attr16->uuid.uu.uuid16;
 
     status = GATT_NO_RESOURCES;
 
@@ -246,26 +246,26 @@ static tGATT_STATUS read_attr_value (void *p_attr,
     }
     else if (uuid16 == GATT_UUID_CHAR_DECLARE)
     {
-        len = (((tGATT_ATTR16 *)(p_attr16->p_next))->uuid_type == GATT_ATTR_UUID_TYPE_16) ? 5 :19;
+        len = (((tGATT_ATTR *)(p_attr16->p_next))->uuid.len == LEN_UUID_16) ? 5 :19;
 
         if (mtu >= len)
         {
             UINT8_TO_STREAM(p, p_attr16->p_value->char_decl.property);
             UINT16_TO_STREAM(p, p_attr16->p_value->char_decl.char_val_handle);
 
-            if (((tGATT_ATTR16 *)(p_attr16->p_next))->uuid_type == GATT_ATTR_UUID_TYPE_16)
+            if (((tGATT_ATTR *)(p_attr16->p_next))->uuid.len == LEN_UUID_16)
             {
-                UINT16_TO_STREAM(p, ((tGATT_ATTR16 *)(p_attr16->p_next))->uuid);
+                UINT16_TO_STREAM(p, ((tGATT_ATTR *)(p_attr16->p_next))->uuid.uu.uuid16);
             }
             /* convert a 32bits UUID to 128 bits */
-            else if (((tGATT_ATTR32 *)(p_attr16->p_next))->uuid_type == GATT_ATTR_UUID_TYPE_32)
+            else if (((tGATT_ATTR *)(p_attr16->p_next))->uuid.len == LEN_UUID_32)
             {
-                gatt_convert_uuid32_to_uuid128 (p, ((tGATT_ATTR32 *)(p_attr16->p_next))->uuid);
+                gatt_convert_uuid32_to_uuid128 (p, ((tGATT_ATTR *)(p_attr16->p_next))->uuid.uu.uuid32);
                 p += LEN_UUID_128;
             }
             else
             {
-                ARRAY_TO_STREAM (p, ((tGATT_ATTR128 *)(p_attr16->p_next))->uuid, LEN_UUID_128);
+                ARRAY_TO_STREAM (p, ((tGATT_ATTR *)(p_attr16->p_next))->uuid.uu.uuid128, LEN_UUID_128);
             }
             status = GATT_SUCCESS;
         }
@@ -332,32 +332,18 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                                                UINT16       *p_cur_handle)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
-    tGATT_ATTR16  *p_attr;
+    tGATT_ATTR  *p_attr;
     UINT16      len = 0;
     UINT8       *p = (UINT8 *)(p_rsp + 1) + p_rsp->len + L2CAP_MIN_OFFSET;
     tBT_UUID    attr_uuid;
 
     if (p_db && p_db->p_attr_list)
     {
-        p_attr = (tGATT_ATTR16 *)p_db->p_attr_list;
+        p_attr = (tGATT_ATTR *)p_db->p_attr_list;
 
         while (p_attr && p_attr->handle <= e_handle)
         {
-            if (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16)
-            {
-                attr_uuid.len = LEN_UUID_16;
-                attr_uuid.uu.uuid16 = p_attr->uuid;
-            }
-            else if (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_32)
-            {
-                attr_uuid.len = LEN_UUID_32;
-                attr_uuid.uu.uuid32 = ((tGATT_ATTR32 *)p_attr)->uuid;
-            }
-            else
-            {
-                attr_uuid.len = LEN_UUID_128;
-                memcpy(attr_uuid.uu.uuid128, ((tGATT_ATTR128 *)p_attr)->uuid, LEN_UUID_128);
-            }
+            attr_uuid = p_attr->uuid;
 
             if (p_attr->handle >= s_handle && gatt_uuid_compare(type, attr_uuid))
             {
@@ -401,7 +387,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
                     break;
                 }
             }
-            p_attr = (tGATT_ATTR16 *)p_attr->p_next;
+            p_attr = (tGATT_ATTR *)p_attr->p_next;
         }
     }
 
@@ -440,7 +426,7 @@ tGATT_STATUS gatts_db_read_attr_value_by_type (tGATT_TCB   *p_tcb,
 UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e_handle,
                                    tBT_UUID service)
 {
-    tGATT_ATTR16      *p_attr;
+    tGATT_ATTR      *p_attr;
     tBT_UUID         uuid = {LEN_UUID_16, {GATT_UUID_INCLUDE_SERVICE}};
 
     GATT_TRACE_DEBUG("gatts_add_included_service: s_hdl = 0x%04x e_hdl = 0x%04x uuid = 0x%04x",
@@ -452,7 +438,7 @@ UINT16 gatts_add_included_service (tGATT_SVC_DB *p_db, UINT16 s_handle, UINT16 e
         return 0;
     }
 
-    if ((p_attr = (tGATT_ATTR16 *) allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
+    if ((p_attr = (tGATT_ATTR *) allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
     {
         if (copy_extra_byte_in_db(p_db, (void **)&p_attr->p_value, sizeof(tGATT_INCL_SRVC)))
         {
@@ -490,12 +476,12 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                                  tGATT_CHAR_PROP property,
                                  tBT_UUID * p_char_uuid)
 {
-    tGATT_ATTR16     *p_char_decl, *p_char_val;
+    tGATT_ATTR     *p_char_decl, *p_char_val;
     tBT_UUID        uuid = {LEN_UUID_16, {GATT_UUID_CHAR_DECLARE}};
 
     GATT_TRACE_DEBUG("gatts_add_characteristic perm=0x%0x property=0x%0x", perm, property);
 
-    if ((p_char_decl = (tGATT_ATTR16 *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
+    if ((p_char_decl = (tGATT_ATTR *)allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ)) != NULL)
     {
         if (!copy_extra_byte_in_db(p_db, (void **)&p_char_decl->p_value, sizeof(tGATT_CHAR_DECL)))
         {
@@ -503,7 +489,7 @@ UINT16 gatts_add_characteristic (tGATT_SVC_DB *p_db, tGATT_PERM perm,
             return 0;
         }
 
-        p_char_val = (tGATT_ATTR16 *)allocate_attr_in_db(p_db, p_char_uuid, perm);
+        p_char_val = (tGATT_ATTR *)allocate_attr_in_db(p_db, p_char_uuid, perm);
 
         if (p_char_val == NULL)
         {
@@ -583,12 +569,12 @@ UINT8 gatt_convertchar_descr_type(tBT_UUID *p_descr_uuid)
 UINT16 gatts_add_char_descr (tGATT_SVC_DB *p_db, tGATT_PERM perm,
                              tBT_UUID *     p_descr_uuid)
 {
-    tGATT_ATTR16    *p_char_dscptr;
+    tGATT_ATTR    *p_char_dscptr;
 
     GATT_TRACE_DEBUG("gatts_add_char_descr uuid=0x%04x", p_descr_uuid->uu.uuid16);
 
     /* Add characteristic descriptors */
-    if ((p_char_dscptr = (tGATT_ATTR16 *)allocate_attr_in_db(p_db,
+    if ((p_char_dscptr = (tGATT_ATTR *)allocate_attr_in_db(p_db,
                                                              p_descr_uuid,
                                                              perm))
         == NULL)
@@ -635,12 +621,12 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
                                              UINT32 trans_id)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
-    tGATT_ATTR16  *p_attr;
+    tGATT_ATTR  *p_attr;
     UINT8       *pp = p_value;
 
     if (p_db && p_db->p_attr_list)
     {
-        p_attr = (tGATT_ATTR16 *)p_db->p_attr_list;
+        p_attr = (tGATT_ATTR *)p_db->p_attr_list;
 
         while (p_attr && handle >= p_attr->handle)
         {
@@ -656,7 +642,7 @@ tGATT_STATUS gatts_read_attr_value_by_handle(tGATT_TCB *p_tcb,
                 }
                 break;
             }
-            p_attr = (tGATT_ATTR16 *)p_attr->p_next;
+            p_attr = (tGATT_ATTR *)p_attr->p_next;
         }
     }
 
@@ -689,11 +675,11 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
                                         UINT8 key_size)
 {
     tGATT_STATUS status = GATT_NOT_FOUND;
-    tGATT_ATTR16  *p_attr;
+    tGATT_ATTR  *p_attr;
 
     if (p_db && p_db->p_attr_list)
     {
-        p_attr = (tGATT_ATTR16 *)p_db->p_attr_list;
+        p_attr = (tGATT_ATTR *)p_db->p_attr_list;
 
         while (p_attr && handle >= p_attr->handle)
         {
@@ -704,7 +690,7 @@ tGATT_STATUS gatts_read_attr_perm_check(tGATT_SVC_DB *p_db,
                                                        sec_flag, key_size);
                 break;
             }
-            p_attr = (tGATT_ATTR16 *) p_attr->p_next;
+            p_attr = (tGATT_ATTR *) p_attr->p_next;
         }
     }
 
@@ -733,7 +719,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                                           UINT16 len, tGATT_SEC_FLAG sec_flag, UINT8 key_size)
 {
     tGATT_STATUS    status = GATT_NOT_FOUND;
-    tGATT_ATTR16    *p_attr;
+    tGATT_ATTR    *p_attr;
     UINT16          max_size = 0;
     tGATT_PERM      perm;
     UINT16          min_key_size;
@@ -743,7 +729,7 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
 
     if (p_db != NULL)
     {
-        p_attr = (tGATT_ATTR16 *) p_db->p_attr_list;
+        p_attr = (tGATT_ATTR *) p_db->p_attr_list;
 
         while (p_attr != NULL)
         {
@@ -824,9 +810,9 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 }
                 else /* writable: must be char value declaration or char descritpors */
                 {
-                    if(p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16)
+                    if(p_attr->uuid.len == LEN_UUID_16)
                     {
-                    switch (p_attr->uuid)
+                    switch (p_attr->uuid.uu.uuid16)
                     {
                         case GATT_UUID_CHAR_PRESENT_FORMAT:/* should be readable only */
                         case GATT_UUID_CHAR_EXT_PROP:/* should be readable only */
@@ -847,8 +833,8 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                             break;
                         }
                     }
-                    else if (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_128 ||
-				              p_attr->uuid_type == GATT_ATTR_UUID_TYPE_32)
+                    else if (p_attr->uuid.len == LEN_UUID_128 ||
+				              p_attr->uuid.len == LEN_UUID_32)
                     {
                          status = GATT_SUCCESS;
                     }
@@ -862,9 +848,9 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                         status = GATT_INVALID_PDU;
                     }
                     /* these attribute does not allow write blob */
-                    else if ( (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16) &&
-                              (p_attr->uuid == GATT_UUID_CHAR_CLIENT_CONFIG ||
-                               p_attr->uuid == GATT_UUID_CHAR_SRVR_CONFIG) )
+                    else if ( (p_attr->uuid.len == LEN_UUID_16) &&
+                              (p_attr->uuid.uu.uuid16 == GATT_UUID_CHAR_CLIENT_CONFIG ||
+                               p_attr->uuid.uu.uuid16 == GATT_UUID_CHAR_SRVR_CONFIG) )
                     {
                         if (op_code == GATT_REQ_PREPARE_WRITE && offset != 0) /* does not allow write blob */
                         {
@@ -885,11 +871,36 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
                 break;
             }
             else
-                p_attr = (tGATT_ATTR16 *)p_attr->p_next;
+                p_attr = (tGATT_ATTR *)p_attr->p_next;
         }
     }
 
     return status;
+}
+
+static void uuid_to_str(const tBT_UUID bt_uuid, char *str_buf)
+{
+    int x = 0;
+
+    if (bt_uuid.len == LEN_UUID_16) {
+        sprintf(str_buf, "0x%04x", bt_uuid.uu.uuid16);
+    } else if (bt_uuid.len == LEN_UUID_16) {
+        sprintf(str_buf, "0x%08x", bt_uuid.uu.uuid32);
+    } else if (bt_uuid.len == LEN_UUID_128)
+    {
+        x += sprintf(&str_buf[x], "%02x%02x%02x%02x-%02x%02x-%02x%02x-",
+                bt_uuid.uu.uuid128[15], bt_uuid.uu.uuid128[14],
+                bt_uuid.uu.uuid128[13], bt_uuid.uu.uuid128[12],
+                bt_uuid.uu.uuid128[11], bt_uuid.uu.uuid128[10],
+                bt_uuid.uu.uuid128[9], bt_uuid.uu.uuid128[8]);
+        sprintf(&str_buf[x], "%02x%02x-%02x%02x%02x%02x%02x%02x",
+                bt_uuid.uu.uuid128[7], bt_uuid.uu.uuid128[6],
+                bt_uuid.uu.uuid128[5], bt_uuid.uu.uuid128[4],
+                bt_uuid.uu.uuid128[3], bt_uuid.uu.uuid128[2],
+                bt_uuid.uu.uuid128[1], bt_uuid.uu.uuid128[0]);
+    }
+    else
+        sprintf(str_buf, "Unknown (len=%d)", bt_uuid.len);
 }
 
 /*******************************************************************************
@@ -909,97 +920,54 @@ tGATT_STATUS gatts_write_attr_perm_check (tGATT_SVC_DB *p_db, UINT8 op_code,
 *******************************************************************************/
 static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PERM perm)
 {
-    tGATT_ATTR16    *p_attr16 = NULL, *p_last;
-    tGATT_ATTR32    *p_attr32 = NULL;
-    tGATT_ATTR128   *p_attr128 = NULL;
-    UINT16      len = sizeof(tGATT_ATTR128);
-
-    if (p_uuid == NULL)
-    {
+    if (p_uuid == NULL) {
         GATT_TRACE_ERROR("illegal UUID");
         return NULL;
     }
 
-    if (p_uuid->len == LEN_UUID_16)
-        len = sizeof(tGATT_ATTR16);
-    else if (p_uuid->len == LEN_UUID_32)
-        len = sizeof(tGATT_ATTR32);
-
-    GATT_TRACE_DEBUG("allocate attr %d bytes ",len);
-
-    if (p_db->end_handle <= p_db->next_handle)
-    {
+    if (p_db->end_handle <= p_db->next_handle) {
         GATT_TRACE_DEBUG("handle space full. handle_max = %d next_handle = %d",
                           p_db->end_handle, p_db->next_handle);
         return NULL;
     }
 
-    if (p_db->mem_free < len)
-    {
-        if (!allocate_svc_db_buf(p_db))
-        {
+    UINT16 len = sizeof(tGATT_ATTR);
+    if (p_db->mem_free < len) {
+        if (!allocate_svc_db_buf(p_db)) {
             GATT_TRACE_ERROR("allocate_attr_in_db failed, no resources");
             return NULL;
         }
     }
     memset(p_db->p_free_mem, 0, len);
-    p_attr16 = (tGATT_ATTR16 *) p_db->p_free_mem;
 
-    if (p_uuid->len == LEN_UUID_16 && p_uuid->uu.uuid16 != GATT_ILLEGAL_UUID)
-    {
-        p_attr16->uuid_type = GATT_ATTR_UUID_TYPE_16;
-        p_attr16->uuid = p_uuid->uu.uuid16;
-    }
-    else if (p_uuid->len == LEN_UUID_32)
-    {
-        p_attr32 = (tGATT_ATTR32 *) p_db->p_free_mem;
-        p_attr32->uuid_type = GATT_ATTR_UUID_TYPE_32;
-        p_attr32->uuid = p_uuid->uu.uuid32;
-    }
-    else if (p_uuid->len == LEN_UUID_128)
-    {
-        p_attr128 = (tGATT_ATTR128 *) p_db->p_free_mem;
-        p_attr128->uuid_type = GATT_ATTR_UUID_TYPE_128;
-        memcpy(p_attr128->uuid, p_uuid->uu.uuid128, LEN_UUID_128);
-    }
-
+    tGATT_ATTR    *p_attr = (tGATT_ATTR *) p_db->p_free_mem;
     p_db->p_free_mem += len;
     p_db->mem_free -= len;
 
-    p_attr16->handle = p_db->next_handle++;
-    p_attr16->permission = perm;
-    p_attr16->p_next = NULL;
+    p_attr->handle = p_db->next_handle++;
+    p_attr->uuid = *p_uuid;
+    p_attr->permission = perm;
+    p_attr->p_next = NULL;
 
     /* link the attribute record into the end of DB */
     if (p_db->p_attr_list == NULL)
-        p_db->p_attr_list = p_attr16;
+        p_db->p_attr_list = p_attr;
     else
     {
-        p_last = (tGATT_ATTR16 *)p_db->p_attr_list;
+        tGATT_ATTR *p_last = (tGATT_ATTR *)p_db->p_attr_list;
 
         while (p_last != NULL && p_last->p_next != NULL)
-            p_last = (tGATT_ATTR16 *)p_last->p_next;
+            p_last = (tGATT_ATTR *)p_last->p_next;
 
-        p_last->p_next = p_attr16;
+        p_last->p_next = p_attr;
     }
 
-    if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_16)
-    {
-        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid16 = [0x%04x] perm=0x%02x ",
-                          p_attr16->handle, p_attr16->uuid, p_attr16->permission);
-    }
-    else if (p_attr16->uuid_type == GATT_ATTR_UUID_TYPE_32)
-    {
-        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid32 = [0x%08x] perm=0x%02x ",
-                          p_attr32->handle, p_attr32->uuid, p_attr32->permission);
-    }
-    else
-    {
-        GATT_TRACE_DEBUG("=====> handle = [0x%04x] uuid128 = [0x%02x:0x%02x] perm=0x%02x ",
-                          p_attr128->handle, p_attr128->uuid[0],p_attr128->uuid[1],
-                          p_attr128->permission);
-    }
-    return(void *)p_attr16;
+    char uuid_str[37];
+    uuid_to_str(p_attr->uuid, uuid_str);
+    GATT_TRACE_ERROR("=====> handle = [0x%04x] uuid = [%s] perm=0x%02x ",
+                     p_attr->handle, uuid_str, p_attr->permission);
+
+    return(void *)p_attr;
 }
 
 /*******************************************************************************
@@ -1016,17 +984,17 @@ static void *allocate_attr_in_db(tGATT_SVC_DB *p_db, tBT_UUID *p_uuid, tGATT_PER
 *******************************************************************************/
 static BOOLEAN deallocate_attr_in_db(tGATT_SVC_DB *p_db, void *p_attr)
 {
-    tGATT_ATTR16  *p_cur, *p_next;
+    tGATT_ATTR  *p_cur, *p_next;
     BOOLEAN     found = FALSE;
 
     if (p_db->p_attr_list == NULL)
         return found;
 
-    p_cur   = (tGATT_ATTR16 *) p_db->p_attr_list;
-    p_next  = (tGATT_ATTR16 *) p_cur->p_next;
+    p_cur   = (tGATT_ATTR *) p_db->p_attr_list;
+    p_next  = (tGATT_ATTR *) p_cur->p_next;
 
     for (; p_cur != NULL && p_next != NULL;
-        p_cur = p_next, p_next = (tGATT_ATTR16 *)p_next->p_next)
+        p_cur = p_next, p_next = (tGATT_ATTR *)p_next->p_next)
     {
         if (p_next == p_attr)
         {
@@ -1166,7 +1134,7 @@ static tGATT_STATUS gatts_send_app_read_request(tGATT_TCB *p_tcb, UINT8 op_code,
 *******************************************************************************/
 static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_service, BOOLEAN is_pri)
 {
-    tGATT_ATTR16  *p_attr;
+    tGATT_ATTR  *p_attr;
     tBT_UUID    uuid = {LEN_UUID_16, {0}};
     BOOLEAN     rt = FALSE;
 
@@ -1178,7 +1146,7 @@ static BOOLEAN gatts_db_add_service_declaration(tGATT_SVC_DB *p_db, tBT_UUID *p_
         uuid.uu.uuid16 = GATT_UUID_SEC_SERVICE;
 
     /* add service declration record */
-    if ((p_attr = (tGATT_ATTR16 *)(allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ))) != NULL)
+    if ((p_attr = (tGATT_ATTR *)(allocate_attr_in_db(p_db, &uuid, GATT_PERM_READ))) != NULL)
     {
         if (copy_extra_byte_in_db (p_db, (void **)&p_attr->p_value, sizeof(tBT_UUID)))
         {

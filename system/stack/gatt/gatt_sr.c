@@ -599,14 +599,14 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
     tGATT_STATUS        status = GATT_NOT_FOUND;
     UINT8               *p;
     UINT16              len = *p_len;
-    tGATT_ATTR16        *p_attr = NULL;
+    tGATT_ATTR        *p_attr = NULL;
     UINT8               info_pair_len[2] = {4, 18};
 
     if (!p_rcb->p_db || !p_rcb->p_db->p_attr_list)
         return status;
 
     /* check the attribute database */
-    p_attr = (tGATT_ATTR16 *) p_rcb->p_db->p_attr_list;
+    p_attr = (tGATT_ATTR *) p_rcb->p_db->p_attr_list;
 
     p = (UINT8 *)(p_msg + 1) + L2CAP_MIN_OFFSET + p_msg->len;
 
@@ -620,24 +620,24 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
         if (p_attr->handle >= s_hdl)
         {
             if (p_msg->offset == 0)
-                p_msg->offset = (p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16) ? GATT_INFO_TYPE_PAIR_16 : GATT_INFO_TYPE_PAIR_128;
+                p_msg->offset = (p_attr->uuid.len == LEN_UUID_16) ? GATT_INFO_TYPE_PAIR_16 : GATT_INFO_TYPE_PAIR_128;
 
             if (len >= info_pair_len[p_msg->offset - 1])
             {
-                if (p_msg->offset == GATT_INFO_TYPE_PAIR_16 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_16)
+                if (p_msg->offset == GATT_INFO_TYPE_PAIR_16 && p_attr->uuid.len == LEN_UUID_16)
                 {
                     UINT16_TO_STREAM(p, p_attr->handle);
-                    UINT16_TO_STREAM(p, p_attr->uuid);
+                    UINT16_TO_STREAM(p, p_attr->uuid.uu.uuid16);
                 }
-                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_128  )
+                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid.len == LEN_UUID_128  )
                 {
                     UINT16_TO_STREAM(p, p_attr->handle);
-                    ARRAY_TO_STREAM (p, ((tGATT_ATTR128 *) p_attr)->uuid, LEN_UUID_128);
+                    ARRAY_TO_STREAM (p, p_attr->uuid.uu.uuid128, LEN_UUID_128);
                 }
-                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid_type == GATT_ATTR_UUID_TYPE_32)
+                else if (p_msg->offset == GATT_INFO_TYPE_PAIR_128 && p_attr->uuid.len == LEN_UUID_32)
                 {
                     UINT16_TO_STREAM(p, p_attr->handle);
-                    gatt_convert_uuid32_to_uuid128(p, ((tGATT_ATTR32 *) p_attr)->uuid);
+                    gatt_convert_uuid32_to_uuid128(p, p_attr->uuid.uu.uuid32);
                     p += LEN_UUID_128;
                 }
                 else
@@ -658,7 +658,7 @@ static tGATT_STATUS gatt_build_find_info_rsp(tGATT_SR_REG *p_rcb, BT_HDR *p_msg,
                 break;
             }
         }
-        p_attr = (tGATT_ATTR16 *)p_attr->p_next;
+        p_attr = (tGATT_ATTR *)p_attr->p_next;
     }
 
     *p_len = len;
@@ -1197,7 +1197,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
     UINT8           *p = p_data, i;
     tGATT_SR_REG    *p_rcb = gatt_cb.sr_reg;
     tGATT_STATUS    status = GATT_INVALID_HANDLE;
-    tGATT_ATTR16    *p_attr;
+    tGATT_ATTR    *p_attr;
 
     if (len < 2)
     {
@@ -1228,7 +1228,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
         {
             if (p_rcb->in_use && p_rcb->s_hdl <= handle && p_rcb->e_hdl >= handle)
             {
-                p_attr = (tGATT_ATTR16 *)p_rcb->p_db->p_attr_list;
+                p_attr = (tGATT_ATTR *)p_rcb->p_db->p_attr_list;
 
                 while (p_attr)
                 {
@@ -1253,7 +1253,7 @@ void gatts_process_attribute_req (tGATT_TCB *p_tcb, UINT8 op_code,
                         status = GATT_SUCCESS;
                         break;
                     }
-                    p_attr = (tGATT_ATTR16 *)p_attr->p_next;
+                    p_attr = (tGATT_ATTR *)p_attr->p_next;
                 }
                 break;
             }
