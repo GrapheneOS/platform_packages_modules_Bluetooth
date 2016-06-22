@@ -30,8 +30,7 @@ typedef struct {
     android::sp<android::AudioTrack> track;
 } BtifAvrcpAudioTrack;
 
-//#define DUMP_PCM_DATA TRUE
-#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+#if (DUMP_PCM_DATA == TRUE)
 FILE *outputPcmSampleFile;
 char outputFilename[50] = "/data/misc/bluedroid/output_sample.pcm";
 #endif
@@ -57,7 +56,7 @@ void *BtifAvrcpAudioTrackCreate(int trackFreq, int channelType)
         return nullptr;
     }
 
-#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+#if (DUMP_PCM_DATA == TRUE)
     outputPcmSampleFile = fopen(outputFilename, "ab");
 #endif
     trackHolder->track->setVolume(1, 1);
@@ -99,7 +98,7 @@ void BtifAvrcpAudioTrackDelete(void *handle)
         delete trackHolder;
     }
 
-#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+#if (DUMP_PCM_DATA == TRUE)
     if (outputPcmSampleFile)
     {
         fclose(outputPcmSampleFile);
@@ -141,7 +140,7 @@ int BtifAvrcpAudioTrackWriteData(void *handle, void *audioBuffer, int bufferlen)
     assert(trackHolder != NULL);
     assert(trackHolder->track != NULL);
     int retval = -1;
-#if (defined(DUMP_PCM_DATA) && (DUMP_PCM_DATA == TRUE))
+#if (DUMP_PCM_DATA == TRUE)
     if (outputPcmSampleFile)
     {
         fwrite ((audioBuffer), 1, (size_t)bufferlen, outputPcmSampleFile);

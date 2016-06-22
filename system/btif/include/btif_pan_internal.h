@@ -66,7 +66,7 @@ typedef struct
 {
     int handle;
     int state;
-    UINT16 protocol;
+    uint16_t protocol;
     BD_ADDR peer;
     int local_role;
     int remote_role;
@@ -94,15 +94,15 @@ typedef struct
 extern btpan_cb_t btpan_cb;
 btpan_conn_t *btpan_new_conn(int handle, const BD_ADDR addr, int local_role, int peer_role);
 btpan_conn_t *btpan_find_conn_addr(const BD_ADDR addr);
-btpan_conn_t *btpan_find_conn_handle(UINT16 handle);
-void btpan_set_flow_control(BOOLEAN enable);
+btpan_conn_t *btpan_find_conn_handle(uint16_t handle);
+void btpan_set_flow_control(bool enable);
 int btpan_get_connected_count(void);
 int btpan_tap_open(void);
 void create_tap_read_thread(int tap_fd);
 void destroy_tap_read_thread(void);
 int btpan_tap_close(int tap_fd);
-int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, UINT16 protocol,
-                   const char* buff, UINT16 size, BOOLEAN ext, BOOLEAN forward);
+int btpan_tap_send(int tap_fd, const BD_ADDR src, const BD_ADDR dst, uint16_t protocol,
+                   const char* buff, uint16_t size, bool ext, bool forward);
 
 static inline int is_empty_eth_addr(const BD_ADDR addr)
 {

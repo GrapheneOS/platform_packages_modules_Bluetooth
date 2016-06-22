@@ -66,12 +66,12 @@ typedef int tBTIF_STATUS;
 typedef struct
 {
         BT_HDR hdr;
-        UINT16 SamplingFreq; /* 16k, 32k, 44.1k or 48k*/
-        UINT8 ChannelMode; /* mono, dual, stereo or joint stereo*/
-        UINT8 NumOfSubBands; /* 4 or 8 */
-        UINT8 NumOfBlocks; /* 4, 8, 12 or 16*/
-        UINT8 AllocationMethod; /* loudness or SNR*/
-        UINT16 MtuSize; /* peer mtu size */
+        uint16_t SamplingFreq; /* 16k, 32k, 44.1k or 48k*/
+        uint8_t ChannelMode; /* mono, dual, stereo or joint stereo*/
+        uint8_t NumOfSubBands; /* 4 or 8 */
+        uint8_t NumOfBlocks; /* 4, 8, 12 or 16*/
+        uint8_t AllocationMethod; /* loudness or SNR*/
+        uint16_t MtuSize; /* peer mtu size */
 } tBTIF_MEDIA_INIT_AUDIO;
 
 #if (BTA_AV_INCLUDED == TRUE)
@@ -79,9 +79,9 @@ typedef struct
 typedef struct
 {
         BT_HDR hdr;
-        UINT16 MinMtuSize; /* Minimum peer mtu size */
-        UINT8 MaxBitPool; /* Maximum peer bitpool */
-        UINT8 MinBitPool; /* Minimum peer bitpool */
+        uint16_t MinMtuSize; /* Minimum peer mtu size */
+        uint8_t MaxBitPool; /* Maximum peer bitpool */
+        uint8_t MinBitPool; /* Minimum peer bitpool */
 } tBTIF_MEDIA_UPDATE_AUDIO;
 
 /* tBTIF_MEDIA_INIT_AUDIO_FEEDING msg structure */
@@ -95,7 +95,7 @@ typedef struct
 typedef struct
 {
         BT_HDR hdr;
-        UINT8 codec_info[AVDT_CODEC_SIZE];
+        uint8_t codec_info[AVDT_CODEC_SIZE];
 } tBTIF_MEDIA_SINK_CFG_UPDATE;
 #endif
 
@@ -108,7 +108,7 @@ typedef enum {
 typedef struct
 {
         BT_HDR hdr;
-        UINT8 focus_state;
+        uint8_t focus_state;
 } tBTIF_MEDIA_SINK_FOCUS_UPDATE;
 #endif
 
@@ -133,10 +133,10 @@ extern void btif_media_task(void);
  **
  ** Description      Request to initialize the media task encoder
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
+extern bool btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
 
 /*******************************************************************************
  **
@@ -144,11 +144,11 @@ extern BOOLEAN btif_media_task_enc_init_req(tBTIF_MEDIA_INIT_AUDIO * p_msg);
  **
  ** Description      Request to update the media task encoder
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
 #if (BTA_AV_INCLUDED == TRUE)
-extern BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
+extern bool btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
 #endif
 
 /*******************************************************************************
@@ -157,10 +157,10 @@ extern BOOLEAN btif_media_task_enc_update_req(tBTIF_MEDIA_UPDATE_AUDIO * p_msg);
  **
  ** Description      Request to start audio encoding task
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_task_start_aa_req(void);
+extern bool btif_media_task_start_aa_req(void);
 
 /*******************************************************************************
  **
@@ -168,10 +168,10 @@ extern BOOLEAN btif_media_task_start_aa_req(void);
  **
  ** Description      Request to stop audio encoding task
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_task_stop_aa_req(void);
+extern bool btif_media_task_stop_aa_req(void);
 
 /*******************************************************************************
  **
@@ -179,20 +179,20 @@ extern BOOLEAN btif_media_task_stop_aa_req(void);
  **
  ** Description      Request to flush audio decoding pipe
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_task_aa_rx_flush_req(void);
+extern bool btif_media_task_aa_rx_flush_req(void);
 /*******************************************************************************
  **
  ** Function         btif_media_task_aa_tx_flush_req
  **
  ** Description      Request to flush audio encoding pipe
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_task_aa_tx_flush_req(void);
+extern bool btif_media_task_aa_tx_flush_req(void);
 
 /*******************************************************************************
  **
@@ -214,7 +214,7 @@ extern BT_HDR *btif_media_aa_readbuf(void);
  **
  ** Returns          size of the queue
  *******************************************************************************/
- UINT8 btif_media_sink_enque_buf(BT_HDR *p_buf);
+ uint8_t btif_media_sink_enque_buf(BT_HDR *p_buf);
 
 
 
@@ -224,10 +224,10 @@ extern BT_HDR *btif_media_aa_readbuf(void);
  **
  ** Description      Enqueue a Advance Audio media GKI buffer to be processed by btif media task.
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern void btif_media_aa_writebuf(BT_HDR *pBuf, UINT32 timestamp, UINT16 seq_num);
+extern void btif_media_aa_writebuf(BT_HDR *pBuf, uint32_t timestamp, uint16_t seq_num);
 
 /*******************************************************************************
  **
@@ -235,11 +235,11 @@ extern void btif_media_aa_writebuf(BT_HDR *pBuf, UINT32 timestamp, UINT16 seq_nu
  **
  ** Description      Enqueue a video media GKI buffer to be processed by btif media task.
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
-extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
-                                     UINT32 timestamp, UINT16 seq_num);
+extern bool btif_media_av_writebuf(uint8_t *p_media, uint32_t media_len,
+                                     uint32_t timestamp, uint16_t seq_num);
 
 #if (BTA_AV_INCLUDED == TRUE)
 /*******************************************************************************
@@ -248,11 +248,11 @@ extern BOOLEAN btif_media_av_writebuf(UINT8 *p_media, UINT32 media_len,
  **
  ** Description      Request to initialize audio feeding
  **
- ** Returns          TRUE is success
+ ** Returns          true is success
  **
  *******************************************************************************/
 
-extern BOOLEAN btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
+extern bool btif_media_task_audio_feeding_init_req(tBTIF_MEDIA_INIT_AUDIO_FEEDING *p_msg);
 #endif
 
 /*******************************************************************************
@@ -277,22 +277,22 @@ void btif_a2dp_on_init(void);
 void btif_a2dp_setup_codec(void);
 void btif_a2dp_on_idle(void);
 void btif_a2dp_on_open(void);
-BOOLEAN btif_a2dp_on_started(tBTA_AV_START *p_av, BOOLEAN pending_start);
+bool btif_a2dp_on_started(tBTA_AV_START *p_av, bool pending_start);
 void btif_a2dp_ack_fail(void);
 void btif_a2dp_on_stop_req(void);
 void btif_a2dp_on_stopped(tBTA_AV_SUSPEND *p_av);
 void btif_a2dp_on_suspend(void);
 void btif_a2dp_on_suspended(tBTA_AV_SUSPEND *p_av);
-void btif_a2dp_set_tx_flush(BOOLEAN enable);
-void btif_a2dp_set_rx_flush(BOOLEAN enable);
-void btif_media_check_iop_exceptions(UINT8 *peer_bda);
-void btif_reset_decoder(UINT8 *p_av);
+void btif_a2dp_set_tx_flush(bool enable);
+void btif_a2dp_set_rx_flush(bool enable);
+void btif_media_check_iop_exceptions(uint8_t *peer_bda);
+void btif_reset_decoder(uint8_t *p_av);
 void btif_a2dp_on_offload_started(tBTA_AV_STATUS status);
 
 
-int btif_a2dp_get_track_frequency(UINT8 frequency);
-int btif_a2dp_get_track_channel_count(UINT8 channeltype);
-void btif_a2dp_set_peer_sep(UINT8 sep);
+int btif_a2dp_get_track_frequency(uint8_t frequency);
+int btif_a2dp_get_track_channel_count(uint8_t channeltype);
+void btif_a2dp_set_peer_sep(uint8_t sep);
 #ifdef USE_AUDIO_TRACK
 void btif_a2dp_set_audio_focus_state(btif_media_audio_focus_state state);
 void btif_a2dp_set_audio_track_gain(float gain);

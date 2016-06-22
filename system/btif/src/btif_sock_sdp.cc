@@ -100,10 +100,10 @@ static const tBTA_OP_FMT bta_ops_obj_fmt[OBEX_PUSH_NUM_FORMATS] = {
 // Adds a protocol list and service name (if provided) to an SDP record given by
 // |sdp_handle|, and marks it as browseable. This is a shortcut for defining a
 // set of protocols that includes L2CAP, RFCOMM, and optionally OBEX. If
-// |with_obex| is |TRUE|, then an additional OBEX protocol UUID will be included
+// |with_obex| is |true|, then an additional OBEX protocol UUID will be included
 // at the end of the protocol list.
 //
-// Returns TRUE if successful, otherwise FALSE.
+// Returns true if successful, otherwise false.
 static bool create_base_record(const uint32_t sdp_handle, const char *name,
                                const uint16_t channel, const bool with_obex) {
   APPL_TRACE_DEBUG("create_base_record: scn: %d, name: %s, with_obex: %d",
@@ -121,7 +121,7 @@ static bool create_base_record(const uint32_t sdp_handle, const char *name,
   proto_list[1].num_params = 1;
   proto_list[1].params[0] = channel;
 
-  if (with_obex == TRUE) {
+  if (with_obex == true) {
     proto_list[2].protocol_uuid = UUID_PROTOCOL_OBEX;
     proto_list[2].num_params = 0;
   }
@@ -149,13 +149,13 @@ static bool create_base_record(const uint32_t sdp_handle, const char *name,
   APPL_TRACE_DEBUG("create_base_record: successfully created base service "
                    "record, handle: 0x%08x, scn: %d, name: %s, with_obex: %d",
                    sdp_handle, channel, name, with_obex);
-  return TRUE;
+  return true;
 
 error:
   APPL_TRACE_ERROR("create_base_record: failed to create base service "
                    "record, stage: %s, scn: %d, name: %s, with_obex: %d",
                    stage, channel, name, with_obex);
-  return FALSE;
+  return false;
 }
 
 // Registers a service with the given |name|, |uuid|, and |channel| in the SDP
@@ -184,7 +184,7 @@ static int add_sdp_by_uuid(const char *name,  const uint8_t *uuid,
 
   // Create the base SDP record.
   const char *stage = "create_base_record";
-  if (!create_base_record(handle, name, channel, FALSE /* with_obex */))
+  if (!create_base_record(handle, name, channel, false /* with_obex */))
     goto error;
 
 
@@ -227,7 +227,7 @@ static int add_pbap_sdp(const char *name, const int channel) {
 
   // Create the base SDP record.
   const char *stage = "create_base_record";
-  if (!create_base_record(handle, name, channel, TRUE /* with_obex */))
+  if (!create_base_record(handle, name, channel, true /* with_obex */))
     goto error;
 
   // Add service class
@@ -284,7 +284,7 @@ static int add_ops_sdp(const char *name, const int channel) {
 
   // Create the base SDP record.
   const char *stage = "create_base_record";
-  if (!create_base_record(handle, name, channel, TRUE /* with_obex */))
+  if (!create_base_record(handle, name, channel, true /* with_obex */))
     goto error;
 
   // Add service class.
@@ -348,7 +348,7 @@ static int add_spp_sdp(const char *name, const int channel) {
   const char *stage = "create_base_record";
   uint16_t service = UUID_SERVCLASS_SERIAL_PORT;
 
-  if (!create_base_record(handle, name, channel, FALSE /* with_obex */))
+  if (!create_base_record(handle, name, channel, false /* with_obex */))
     goto error;
 
   stage = "service_class";
@@ -417,10 +417,10 @@ bool is_reserved_rfc_channel(const int channel) {
   switch(channel) {
     case RESERVED_SCN_PBS:
     case RESERVED_SCN_OPS:
-      return TRUE;
+      return true;
   }
 
-  return FALSE;
+  return false;
 }
 
 int get_reserved_rfc_channel(const uint8_t *uuid) {

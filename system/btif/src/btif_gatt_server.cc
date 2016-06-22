@@ -38,7 +38,7 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#if (defined(BLE_INCLUDED) && (BLE_INCLUDED == TRUE))
+#if (BLE_INCLUDED == TRUE)
 
 #include "bta_api.h"
 #include "bta_gatt_api.h"
@@ -62,10 +62,10 @@ extern bt_status_t do_in_jni_thread(const base::Closure& task);
 
 #define CHECK_BTGATT_INIT() if (bt_gatt_callbacks == NULL)\
     {\
-        LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __FUNCTION__);\
+        LOG_WARN(LOG_TAG, "%s: BTGATT not initialized", __func__);\
         return BT_STATUS_NOT_READY;\
     } else {\
-        LOG_VERBOSE(LOG_TAG, "%s", __FUNCTION__);\
+        LOG_VERBOSE(LOG_TAG, "%s", __func__);\
     }
 
 /************************************************************************************
@@ -78,7 +78,7 @@ extern const btgatt_callbacks_t *bt_gatt_callbacks;
 **  Static functions
 ************************************************************************************/
 
-static void btapp_gatts_copy_req_data(UINT16 event, char *p_dest, char *p_src)
+static void btapp_gatts_copy_req_data(uint16_t event, char *p_dest, char *p_src)
 {
     tBTA_GATTS *p_dest_data = (tBTA_GATTS*) p_dest;
     tBTA_GATTS *p_src_data = (tBTA_GATTS*) p_src;
@@ -106,7 +106,7 @@ static void btapp_gatts_copy_req_data(UINT16 event, char *p_dest, char *p_src)
     }
 }
 
-static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
+static void btapp_gatts_free_req_data(uint16_t event, tBTA_GATTS *p_data)
 {
     switch (event)
     {
@@ -125,7 +125,7 @@ static void btapp_gatts_free_req_data(UINT16 event, tBTA_GATTS *p_data)
 
 static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
 {
-    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __FUNCTION__, event);
+    LOG_VERBOSE(LOG_TAG, "%s: Event %d", __func__, event);
 
     tBTA_GATTS *p_data = (tBTA_GATTS*)p_param;
     switch (event)
@@ -153,7 +153,7 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             btif_gatt_check_encrypted_link(p_data->conn.remote_bda, p_data->conn.transport);
 
             HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, p_data->conn.server_if, TRUE, &bda);
+                      p_data->conn.conn_id, p_data->conn.server_if, true, &bda);
             break;
         }
 
@@ -163,7 +163,7 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
             bdcpy(bda.address, p_data->conn.remote_bda);
 
             HAL_CBACK(bt_gatt_callbacks, server->connection_cb,
-                      p_data->conn.conn_id, p_data->conn.server_if, FALSE, &bda);
+                      p_data->conn.conn_id, p_data->conn.server_if, false, &bda);
             break;
         }
 
@@ -296,11 +296,11 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param)
         case BTA_GATTS_OPEN_EVT:
         case BTA_GATTS_CANCEL_OPEN_EVT:
         case BTA_GATTS_CLOSE_EVT:
-            LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __FUNCTION__, event);
+            LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __func__, event);
             break;
 
         default:
-            LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __FUNCTION__, event);
+            LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
             break;
     }
 
@@ -391,8 +391,8 @@ static bt_status_t btif_gatts_open(int server_if, const bt_bdaddr_t *bd_addr,
 static void btif_gatts_close_impl(int server_if, BD_ADDR address,
                                   int conn_id) {
   // Cancel pending foreground/background connections
-  BTA_GATTS_CancelOpen(server_if, address, TRUE);
-  BTA_GATTS_CancelOpen(server_if, address, FALSE);
+  BTA_GATTS_CancelOpen(server_if, address, true);
+  BTA_GATTS_CancelOpen(server_if, address, false);
 
   // Close active connection
   if (conn_id != 0) BTA_GATTS_Close(conn_id);

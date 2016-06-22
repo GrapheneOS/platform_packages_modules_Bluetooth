@@ -54,7 +54,7 @@
 #include "btif_util.h"
 #include "osi/include/socket_utils/sockets.h"
 
-#define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define asrt(s) if(!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__func__, #s, __LINE__)
 #define print_events(events) do { \
     APPL_TRACE_DEBUG("print poll event:%x", events); \
     if ((events) & POLLIN) APPL_TRACE_DEBUG(  "   POLLIN "); \
@@ -174,7 +174,7 @@ int btsock_thread_init()
             ts[h].cmd_callback = NULL;
         }
     }
-    return TRUE;
+    return true;
 }
 int btsock_thread_create(btsock_signaled_cb callback, btsock_cmd_cb cmd_callback)
 {
@@ -242,12 +242,12 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
     if(h < 0 || h >= MAX_THREAD)
     {
         APPL_TRACE_ERROR("invalid bt thread handle:%d", h);
-        return FALSE;
+        return false;
     }
     if(ts[h].cmd_fdw == -1)
     {
         APPL_TRACE_ERROR("cmd socket is not created. socket thread may not initialized");
-        return FALSE;
+        return false;
     }
     if(flags & SOCK_THREAD_ADD_FD_SYNC)
     {
@@ -257,7 +257,7 @@ int btsock_thread_add_fd(int h, int fd, int type, int flags, uint32_t user_id)
             //cleanup one-time flags
             flags &= ~SOCK_THREAD_ADD_FD_SYNC;
             add_poll(h, fd, type, flags, user_id);
-            return TRUE;
+            return true;
         }
         APPL_TRACE_DEBUG("THREAD_ADD_FD_SYNC is not called in poll thread, fallback to async");
     }
@@ -296,12 +296,12 @@ int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size,
     if(h < 0 || h >= MAX_THREAD)
     {
         APPL_TRACE_ERROR("invalid bt thread handle:%d", h);
-        return FALSE;
+        return false;
     }
     if(ts[h].cmd_fdw == -1)
     {
         APPL_TRACE_ERROR("cmd socket is not created. socket thread may not initialized");
-        return FALSE;
+        return false;
     }
     sock_cmd_t cmd = {CMD_USER_PRIVATE, 0, type, size, user_id};
     APPL_TRACE_DEBUG("post cmd type:%d, size:%d, h:%d, ", type, size, h);
@@ -319,7 +319,7 @@ int btsock_thread_post_cmd(int h, int type, const unsigned char* data, int size,
         else
         {
             APPL_TRACE_ERROR("alloca failed at h:%d, cmd type:%d, size:%d", h, type, size_send);
-            return FALSE;
+            return false;
         }
     }
 
@@ -333,12 +333,12 @@ int btsock_thread_wakeup(int h)
     if(h < 0 || h >= MAX_THREAD)
     {
         APPL_TRACE_ERROR("invalid bt thread handle:%d", h);
-        return FALSE;
+        return false;
     }
     if(ts[h].cmd_fdw == -1)
     {
         APPL_TRACE_ERROR("thread handle:%d, cmd socket is not created", h);
-        return FALSE;
+        return false;
     }
     sock_cmd_t cmd = {CMD_WAKEUP, 0, 0, 0, 0};
 
@@ -352,12 +352,12 @@ int btsock_thread_exit(int h)
     if(h < 0 || h >= MAX_THREAD)
     {
         APPL_TRACE_ERROR("invalid bt thread handle:%d", h);
-        return FALSE;
+        return false;
     }
     if(ts[h].cmd_fdw == -1)
     {
         APPL_TRACE_ERROR("cmd socket is not created");
-        return FALSE;
+        return false;
     }
     sock_cmd_t cmd = {CMD_EXIT, 0, 0, 0, 0};
 
@@ -369,9 +369,9 @@ int btsock_thread_exit(int h)
         pthread_mutex_lock(&thread_slot_lock);
         free_thread_slot(h);
         pthread_mutex_unlock(&thread_slot_lock);
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 static void init_poll(int h)
 {
@@ -465,7 +465,7 @@ static int process_cmd_sock(int h)
     if (ret != sizeof(cmd))
     {
         APPL_TRACE_ERROR("recv cmd errno:%d", errno);
-        return FALSE;
+        return false;
     }
     APPL_TRACE_DEBUG("cmd.id:%d", cmd.id);
     switch(cmd.id)
@@ -493,12 +493,12 @@ static int process_cmd_sock(int h)
                 ts[h].cmd_callback(fd, cmd.type, cmd.flags, cmd.user_id);
             break;
         case CMD_EXIT:
-            return FALSE;
+            return false;
         default:
             APPL_TRACE_DEBUG("unknown cmd: %d", cmd.id);
              break;
     }
-    return TRUE;
+    return true;
 }
 static void process_data_sock(int h, struct pollfd *pfds, int count)
 {
@@ -578,7 +578,7 @@ static void *sock_poll_thread(void *arg)
         }
         if(ret != 0)
         {
-            int need_process_data_fd = TRUE;
+            int need_process_data_fd = true;
             if(pfds[0].revents) //cmd fd always is the first one
             {
                 asrt(pfds[0].fd == ts[h].cmd_fdr);
@@ -588,7 +588,7 @@ static void *sock_poll_thread(void *arg)
                     break;
                 }
                 if(ret == 1)
-                    need_process_data_fd = FALSE;
+                    need_process_data_fd = false;
                 else ret--; //exclude the cmd fd
             }
             if(need_process_data_fd)

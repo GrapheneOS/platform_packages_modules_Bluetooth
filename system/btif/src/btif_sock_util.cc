@@ -53,7 +53,7 @@
 #include "port_api.h"
 #include "sdp_api.h"
 
-#define asrt(s) if(!(s)) BTIF_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, #s, __LINE__)
+#define asrt(s) if(!(s)) BTIF_TRACE_ERROR("## %s assert %s failed at line:%d ##",__func__, #s, __LINE__)
 
 int sock_send_all(int sock_fd, const uint8_t* buf, int len)
 {

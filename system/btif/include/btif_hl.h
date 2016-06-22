@@ -112,7 +112,7 @@ enum
 
 typedef struct
 {
-    UINT8 mdep_cfg_idx;
+    uint8_t mdep_cfg_idx;
     int data_type;
     tBTA_HL_MDEP_ID peer_mdep_id;
 } btif_hl_extra_mdl_cfg_t;
@@ -125,64 +125,64 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN active;
-    UINT8 app_idx;
+    bool active;
+    uint8_t app_idx;
 } btif_hl_app_data_t;
 
 typedef struct
 {
     int                     channel_id;
     BD_ADDR                 bd_addr;
-    UINT8                   mdep_cfg_idx;
+    uint8_t                   mdep_cfg_idx;
     int                     max_s;
     int                     socket_id[2];
-    UINT8                   app_idx;
-    UINT8                   mcl_idx;
-    UINT8                   mdl_idx;
+    uint8_t                   app_idx;
+    uint8_t                   mcl_idx;
+    uint8_t                   mdl_idx;
     btif_hl_soc_state_t     state;
 }btif_hl_soc_cb_t;
 
 typedef struct
 {
-    UINT16                  data_type;
-    UINT16                  max_tx_apdu_size;
-    UINT16                  max_rx_apdu_size;
+    uint16_t                  data_type;
+    uint16_t                  max_tx_apdu_size;
+    uint16_t                  max_rx_apdu_size;
 } btif_hl_data_type_cfg_t;
 
 typedef struct
 {
-    UINT16                  data_type;
+    uint16_t                  data_type;
     tBTA_HL_MDEP_ROLE       peer_mdep_role;
 } btif_hl_filter_elem_t;
 
 typedef struct
 {
-    UINT8                   num_elems;
+    uint8_t                   num_elems;
     btif_hl_filter_elem_t   elem[BTIF_HL_CCH_NUM_FILTER_ELEMS];
 } btif_hl_cch_filter_t;
 
 typedef struct
 {
-    BOOLEAN                 in_use;
-    UINT16                  mdl_id;
+    bool                 in_use;
+    uint16_t                  mdl_id;
     tBTA_HL_MDL_HANDLE      mdl_handle;
     btif_hl_dch_op_t        dch_oper;
     tBTA_HL_MDEP_ID         local_mdep_id;
-    UINT8                   local_mdep_cfg_idx;
+    uint8_t                   local_mdep_cfg_idx;
     tBTA_HL_DCH_CFG         local_cfg;
     tBTA_HL_MDEP_ID         peer_mdep_id;
-    UINT16                  peer_data_type;
+    uint16_t                  peer_data_type;
     tBTA_HL_MDEP_ROLE       peer_mdep_role;
     tBTA_HL_DCH_MODE        dch_mode;
     tBTA_SEC                sec_mask;
-    BOOLEAN                 is_the_first_reliable;
-    BOOLEAN                 delete_mdl;
-    UINT16                  mtu;
+    bool                 is_the_first_reliable;
+    bool                 delete_mdl;
+    uint16_t                  mtu;
     tMCA_CHNL_CFG           chnl_cfg;
-    UINT16                  tx_size;
-    UINT8                   *p_tx_pkt;
-    UINT8                   *p_rx_pkt;
-    BOOLEAN                 cong;
+    uint16_t                  tx_size;
+    uint8_t                   *p_tx_pkt;
+    uint8_t                   *p_rx_pkt;
+    bool                 cong;
     btif_hl_soc_cb_t        *p_scb;
     int                     channel_id;
 } btif_hl_mdl_cb_t;
@@ -191,28 +191,28 @@ typedef struct
 {
     int                     channel_id;
     int                     mdep_cfg_idx;
-    BOOLEAN                 in_use;
+    bool                 in_use;
     btif_hl_chan_cb_state_t cb_state;
     btif_hl_pend_dch_op_t   op;
     BD_ADDR                 bd_addr;
-    BOOLEAN                 abort_pending;
+    bool                 abort_pending;
 } btif_hl_pending_chan_cb_t;
 
 typedef struct
 {
     btif_hl_mdl_cb_t        mdl[BTA_HL_NUM_MDLS_PER_MCL];
-    BOOLEAN                 in_use;
-    BOOLEAN                 is_connected;
-    UINT16                  req_ctrl_psm;
-    UINT16                  ctrl_psm;
-    UINT16                  data_psm;
+    bool                 in_use;
+    bool                 is_connected;
+    uint16_t                  req_ctrl_psm;
+    uint16_t                  ctrl_psm;
+    uint16_t                  data_psm;
     BD_ADDR                 bd_addr;
-    UINT16                  cch_mtu;
+    uint16_t                  cch_mtu;
     tBTA_SEC                sec_mask;
     tBTA_HL_MCL_HANDLE      mcl_handle;
     btif_hl_pending_chan_cb_t pcb;
-    BOOLEAN                 valid_sdp_idx;
-    UINT8                   sdp_idx;
+    bool                 valid_sdp_idx;
+    uint8_t                   sdp_idx;
     tBTA_HL_SDP             sdp;
     btif_hl_cch_op_t        cch_oper;
     alarm_t                 *cch_timer;
@@ -220,9 +220,9 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN                 active;
-    UINT16                  mdl_id;
-    UINT8                   mdep_cfg_idx;
+    bool                 active;
+    uint16_t                  mdl_id;
+    uint8_t                   mdep_cfg_idx;
     BD_ADDR                 bd_addr;
     int                     channel_id;
 } btif_hl_delete_mdl_t;
@@ -230,9 +230,9 @@ typedef struct
 typedef struct
 {
     btif_hl_mcl_cb_t        mcb[BTA_HL_NUM_MCLS]; /* application Control Blocks */
-    BOOLEAN                 in_use;              /* this CB is in use*/
-    BOOLEAN                 reg_pending;
-    UINT8                   app_id;
+    bool                 in_use;              /* this CB is in use*/
+    bool                 reg_pending;
+    uint8_t                   app_id;
 
     tBTA_HL_SUP_FEATURE     sup_feature;
     tBTA_HL_DCH_CFG         channel_type[BTA_HL_NUM_MDEPS];
@@ -245,7 +245,7 @@ typedef struct
     btif_hl_delete_mdl_t    delete_mdl;
     tBTA_HL_DEVICE_TYPE     dev_type;
     tBTA_HL_APP_HANDLE      app_handle;
-    UINT16                  sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
+    uint16_t                  sec_mask;   /* Security mask for BTM_SetSecurityLevel() */
     char                    srv_name[BTA_SERVICE_NAME_LEN +1];        /* service name to be used in the SDP; null terminated*/
     char                    srv_desp[BTA_SERVICE_DESP_LEN +1];        /* service description to be used in the SDP; null terminated */
     char                    provider_name[BTA_PROVIDER_NAME_LEN +1];   /* provide name to be used in the SDP; null terminated */
@@ -254,8 +254,8 @@ typedef struct
 
 typedef struct
 {
-    BOOLEAN                 in_use;
-    UINT8                   app_idx;
+    bool                 in_use;
+    uint8_t                   app_idx;
 } btif_hl_pending_reg_cb_t;
 
 /* BTIF-HL control block  */
@@ -263,12 +263,12 @@ typedef struct
 {
     btif_hl_app_cb_t        acb[BTA_HL_NUM_APPS];      /* HL Control Blocks */
     tBTA_HL_CTRL_CBACK      *p_ctrl_cback;             /* pointer to control callback function */
-    UINT8                   next_app_id;
-    UINT16                  next_channel_id;
+    uint8_t                   next_app_id;
+    uint16_t                  next_channel_id;
     btif_hl_state_t         state;
 } btif_hl_cb_t;
 
-typedef UINT8 btif_hl_evt_t;
+typedef uint8_t btif_hl_evt_t;
 
 typedef struct
 {
@@ -282,7 +282,7 @@ typedef struct
 
 typedef struct
 {
-    UINT8 app_idx;
+    uint8_t app_idx;
 } btif_hl_reg_t;
 
 typedef btif_hl_reg_t btif_hl_unreg_t;
@@ -311,21 +311,21 @@ typedef union
 extern btif_hl_cb_t  btif_hl_cb;
 extern btif_hl_cb_t *p_btif_hl_cb;
 
-extern BOOLEAN btif_hl_find_mcl_idx(UINT8 app_idx, BD_ADDR p_bd_addr, UINT8 *p_mcl_idx);
-extern BOOLEAN btif_hl_find_app_idx(UINT8 app_id, UINT8 *p_app_idx);
-extern BOOLEAN btif_hl_find_avail_mcl_idx(UINT8 app_idx, UINT8 *p_mcl_idx);
-extern BOOLEAN btif_hl_find_avail_mdl_idx(UINT8 app_idx, UINT8 mcl_idx,
-                                          UINT8 *p_mdl_idx);
-extern BOOLEAN btif_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
-                                                  UINT8 *p_app_idx, UINT8 *p_mcl_idx);
-extern BOOLEAN  btif_hl_save_mdl_cfg(UINT8 app_id, UINT8 item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg);
-extern BOOLEAN  btif_hl_delete_mdl_cfg(UINT8 app_id, UINT8 item_idx);
-extern BOOLEAN btif_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
-                                                 UINT8 *p_app_idx,UINT8 *p_mcl_idx,
-                                                 UINT8 *p_mdl_idx);
-extern void btif_hl_abort_pending_chan_setup(UINT8 app_idx, UINT8 mcl_idx);
-extern BOOLEAN btif_hl_proc_pending_op(UINT8 app_idx, UINT8 mcl_idx);
-extern BOOLEAN btif_hl_load_mdl_config (UINT8 app_id, UINT8 buffer_size,
+extern bool btif_hl_find_mcl_idx(uint8_t app_idx, BD_ADDR p_bd_addr, uint8_t *p_mcl_idx);
+extern bool btif_hl_find_app_idx(uint8_t app_id, uint8_t *p_app_idx);
+extern bool btif_hl_find_avail_mcl_idx(uint8_t app_idx, uint8_t *p_mcl_idx);
+extern bool btif_hl_find_avail_mdl_idx(uint8_t app_idx, uint8_t mcl_idx,
+                                          uint8_t *p_mdl_idx);
+extern bool btif_hl_find_mcl_idx_using_handle( tBTA_HL_MCL_HANDLE mcl_handle,
+                                                  uint8_t *p_app_idx, uint8_t *p_mcl_idx);
+extern bool  btif_hl_save_mdl_cfg(uint8_t app_id, uint8_t item_idx, tBTA_HL_MDL_CFG *p_mdl_cfg);
+extern bool  btif_hl_delete_mdl_cfg(uint8_t app_id, uint8_t item_idx);
+extern bool btif_hl_find_mdl_idx_using_handle(tBTA_HL_MDL_HANDLE mdl_handle,
+                                                 uint8_t *p_app_idx,uint8_t *p_mcl_idx,
+                                                 uint8_t *p_mdl_idx);
+extern void btif_hl_abort_pending_chan_setup(uint8_t app_idx, uint8_t mcl_idx);
+extern bool btif_hl_proc_pending_op(uint8_t app_idx, uint8_t mcl_idx);
+extern bool btif_hl_load_mdl_config (uint8_t app_id, uint8_t buffer_size,
                                         tBTA_HL_MDL_CFG *p_mdl_buf );
 
 #endif
