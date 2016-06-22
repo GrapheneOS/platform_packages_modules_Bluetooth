@@ -52,7 +52,7 @@
 #include "port_api.h"
 #include "sdp_api.h"
 
-#define asrt(s) if (!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__FUNCTION__, \
+#define asrt(s) if (!(s)) APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##",__func__, \
         #s, __LINE__)
 
 struct packet {
@@ -85,7 +85,7 @@ typedef struct l2cap_socket {
     unsigned               connected        :1;  //is connected?
     unsigned               outgoing_congest :1;  //should we hold?
     unsigned               server_psm_sent  :1;  //The server shall only send PSM once.
-    BOOLEAN                is_le_coc;            //is le connection oriented channel?
+    bool                is_le_coc;            //is le connection oriented channel?
 } l2cap_socket;
 
 static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock);
@@ -107,13 +107,13 @@ static void btsock_l2cap_cbk(tBTA_JV_EVT event, tBTA_JV *p_data, void *user_data
  *       we should be able to change to store the data pointer here, and just wait
  *       confirming the l2cap_ind until we have more space in the buffer. */
 
-/* returns FALSE if none - caller must free "data" memory when done with it */
+/* returns false if none - caller must free "data" memory when done with it */
 static char packet_get_head_l(l2cap_socket *sock, uint8_t **data, uint32_t *len)
 {
     struct packet *p = sock->first_packet;
 
     if (!p)
-        return FALSE;
+        return false;
 
     if (data)
         *data = sock->first_packet->data;
@@ -130,7 +130,7 @@ static char packet_get_head_l(l2cap_socket *sock, uint8_t **data, uint32_t *len)
 
     osi_free(p);
 
-    return TRUE;
+    return true;
 }
 
 static struct packet *packet_alloc(const uint8_t *data, uint32_t len)
@@ -144,7 +144,7 @@ static struct packet *packet_alloc(const uint8_t *data, uint32_t len)
     return p;
 }
 
-/* makes a copy of the data, returns TRUE on success */
+/* makes a copy of the data, returns true on success */
 static char packet_put_head_l(l2cap_socket *sock, const void *data, uint32_t len)
 {
     struct packet *p = packet_alloc((const uint8_t*)data, len);
@@ -157,7 +157,7 @@ static char packet_put_head_l(l2cap_socket *sock, const void *data, uint32_t len
      */
 
     if (!p)
-        return FALSE;
+        return false;
 
     p->prev = NULL;
     p->next = sock->first_packet;
@@ -169,22 +169,22 @@ static char packet_put_head_l(l2cap_socket *sock, const void *data, uint32_t len
 
     sock->bytes_buffered += len;
 
-    return TRUE;
+    return true;
 }
 
-/* makes a copy of the data, returns TRUE on success */
+/* makes a copy of the data, returns true on success */
 static char packet_put_tail_l(l2cap_socket *sock, const void *data, uint32_t len)
 {
     struct packet *p = packet_alloc((const uint8_t*)data, len);
 
     if (sock->bytes_buffered >= L2CAP_MAX_RX_BUFFER) {
         LOG_ERROR(LOG_TAG, "packet_put_tail_l: buffer overflow");
-        return FALSE;
+        return false;
     }
 
     if (!p) {
         LOG_ERROR(LOG_TAG, "packet_put_tail_l: unable to allocate packet...");
-        return FALSE;
+        return false;
     }
 
     p->next = NULL;
@@ -197,10 +197,10 @@ static char packet_put_tail_l(l2cap_socket *sock, const void *data, uint32_t len
 
     sock->bytes_buffered += len;
 
-    return TRUE;
+    return true;
 }
 
-static inline void bd_copy(UINT8* dest, UINT8* src, BOOLEAN swap)
+static inline void bd_copy(uint8_t* dest, uint8_t* src, bool swap)
 {
     if (swap) {
         int i;
@@ -266,23 +266,23 @@ static void btsock_l2cap_free_l(l2cap_socket *sock)
     if (sock->is_le_coc)
     {
         // Only call if we are non server connections
-        if (sock->handle >= 0 && (sock->server == FALSE)) {
+        if (sock->handle >= 0 && (sock->server == false)) {
                 BTA_JvL2capClose(sock->handle);
         }
-        if ((sock->channel >= 0) && (sock->server == TRUE)) {
+        if ((sock->channel >= 0) && (sock->server == true)) {
             BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
         }
     }
     else
     {
         // Only call if we are non server connections
-        if (sock->handle && (sock->server == FALSE)) {
+        if (sock->handle && (sock->server == false)) {
             if (sock->fixed_chan)
                 BTA_JvL2capCloseLE(sock->handle);
             else
                 BTA_JvL2capClose(sock->handle);
         }
-        if ((sock->channel >= 0) && (sock->server == TRUE)) {
+        if ((sock->channel >= 0) && (sock->server == true)) {
             if (sock->fixed_chan)
                 BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP_LE);
             else
@@ -319,9 +319,9 @@ static l2cap_socket *btsock_l2cap_alloc_l(const char *name, const bt_bdaddr_t *a
     sock->app_fd = fds[1];
     sock->security = security;
     sock->server = is_server;
-    sock->connected = FALSE;
+    sock->connected = false;
     sock->handle = 0;
-    sock->server_psm_sent = FALSE;
+    sock->server_psm_sent = false;
     sock->app_uid = -1;
 
     if (name)
@@ -384,13 +384,13 @@ bt_status_t btsock_l2cap_cleanup()
     return BT_STATUS_SUCCESS;
 }
 
-static inline BOOLEAN send_app_psm_or_chan_l(l2cap_socket *sock)
+static inline bool send_app_psm_or_chan_l(l2cap_socket *sock)
 {
     return sock_send_all(sock->our_fd, (const uint8_t*)&sock->channel, sizeof(sock->channel))
             == sizeof(sock->channel);
 }
 
-static BOOLEAN send_app_connect_signal(int fd, const bt_bdaddr_t* addr,
+static bool send_app_connect_signal(int fd, const bt_bdaddr_t* addr,
         int channel, int status, int send_fd, int tx_mtu)
 {
     sock_connect_signal_t cs;
@@ -402,12 +402,12 @@ static BOOLEAN send_app_connect_signal(int fd, const bt_bdaddr_t* addr,
     cs.max_tx_packet_size = tx_mtu;
     if (send_fd != -1) {
         if (sock_send_fd(fd, (const uint8_t*)&cs, sizeof(cs), send_fd) == sizeof(cs))
-            return TRUE;
+            return true;
         else APPL_TRACE_ERROR("sock_send_fd failed, fd:%d, send_fd:%d", fd, send_fd);
     } else if (sock_send_all(fd, (const uint8_t*)&cs, sizeof(cs)) == sizeof(cs)) {
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 static void on_srv_l2cap_listen_started(tBTA_JV_L2CAP_START *p_start, uint32_t id)
@@ -425,13 +425,13 @@ static void on_srv_l2cap_listen_started(tBTA_JV_L2CAP_START *p_start, uint32_t i
             sock->handle = p_start->handle;
             APPL_TRACE_DEBUG("on_srv_l2cap_listen_started() sock->handle =%d id:%d",
                     sock->handle, sock->id);
-            if(sock->server_psm_sent == FALSE) {
+            if(sock->server_psm_sent == false) {
                 if (!send_app_psm_or_chan_l(sock)) {
                     //closed
                     APPL_TRACE_DEBUG("send_app_psm() failed, close rs->id:%d", sock->id);
                     btsock_l2cap_free_l(sock);
                 } else {
-                    sock->server_psm_sent = TRUE;
+                    sock->server_psm_sent = true;
                 }
             }
         }
@@ -465,8 +465,8 @@ static void on_srv_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN *p_open, l2cap_socket 
     uint32_t new_listen_id;
 
     // Mutex locked by caller
-    accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, FALSE, 0);
-    accept_rs->connected = TRUE;
+    accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, false, 0);
+    accept_rs->connected = true;
     accept_rs->security = sock->security;
     accept_rs->fixed_chan = sock->fixed_chan;
     accept_rs->channel = sock->channel;
@@ -506,7 +506,7 @@ static void on_srv_l2cap_le_connect_l(tBTA_JV_L2CAP_LE_OPEN *p_open, l2cap_socke
     uint32_t new_listen_id;
 
     // mutex locked by caller
-    accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, FALSE, 0);
+    accept_rs = btsock_l2cap_alloc_l(sock->name, (const bt_bdaddr_t*)p_open->rem_bda, false, 0);
     if (accept_rs) {
 
         //swap IDs
@@ -515,7 +515,7 @@ static void on_srv_l2cap_le_connect_l(tBTA_JV_L2CAP_LE_OPEN *p_open, l2cap_socke
         sock->id = new_listen_id;
 
         accept_rs->handle = p_open->handle;
-        accept_rs->connected = TRUE;
+        accept_rs->connected = true;
         accept_rs->security = sock->security;
         accept_rs->fixed_chan = sock->fixed_chan;
         accept_rs->channel = sock->channel;
@@ -552,7 +552,7 @@ static void on_cl_l2cap_psm_connect_l(tBTA_JV_L2CAP_OPEN *p_open, l2cap_socket *
         APPL_TRACE_DEBUG("on_l2cap_connect_ind, connect signal sent, slot id:%d, psm:%d,"
                 " server:%d", sock->id, sock->channel, sock->server);
         btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
-        sock->connected = TRUE;
+        sock->connected = true;
     }
     else APPL_TRACE_ERROR("send_app_connect_signal failed");
 }
@@ -571,7 +571,7 @@ static void on_cl_l2cap_le_connect_l(tBTA_JV_L2CAP_LE_OPEN *p_open, l2cap_socket
         APPL_TRACE_DEBUG("on_l2cap_connect_ind, connect signal sent, slot id:%d, Chan:%d,"
                 " server:%d", sock->id, sock->channel, sock->server);
         btsock_thread_add_fd(pth, sock->our_fd, BTSOCK_L2CAP, SOCK_THREAD_FD_RD, sock->id);
-        sock->connected = TRUE;
+        sock->connected = true;
     }
     else APPL_TRACE_ERROR("send_app_connect_signal failed");
 }
@@ -616,7 +616,7 @@ static void on_l2cap_close(tBTA_JV_L2CAP_CLOSE * p_close, uint32_t id)
                 sock->channel, sock->server);
         // TODO: This does not seem to be called...
         // I'm not sure if this will be called for non-server sockets?
-        if(!sock->fixed_chan && (sock->server == TRUE)) {
+        if(!sock->fixed_chan && (sock->server == true)) {
             BTA_JvFreeChannel(sock->channel, BTA_JV_CONN_TYPE_L2CAP);
         }
         btsock_l2cap_free_l(sock);
@@ -695,7 +695,7 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
     l2cap_socket *sock;
 
     int app_uid = -1;
-    UINT32 bytes_read = 0;
+    uint32_t bytes_read = 0;
 
     pthread_mutex_lock(&state_lock);
     sock = btsock_l2cap_find_by_id_l(id);
@@ -720,8 +720,8 @@ static void on_l2cap_data_ind(tBTA_JV *evt, uint32_t id)
 
         } else {
 
-            UINT8 buffer[L2CAP_MAX_SDU_LENGTH];
-            UINT32  count;
+            uint8_t buffer[L2CAP_MAX_SDU_LENGTH];
+            uint32_t  count;
 
             if (BTA_JvL2capReady(sock->handle, &count) == BTA_JV_SUCCESS) {
                 if (BTA_JvL2capRead(sock->handle, sock->id, buffer, count) == BTA_JV_SUCCESS) {
@@ -844,7 +844,7 @@ static bt_status_t btSock_start_l2cap_server_l(l2cap_socket *sock) {
      *  mtu will be set below */
     memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
 
-    cfg.fcr_present = TRUE;
+    cfg.fcr_present = true;
     cfg.fcr = obex_l2c_fcr_opts_def;
 
     if (sock->fixed_chan) {
@@ -895,7 +895,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
     int fixed_chan = 1;
     l2cap_socket *sock;
     tL2CAP_CFG_INFO cfg;
-    BOOLEAN is_le_coc = FALSE;
+    bool is_le_coc = false;
 
     if (!sock_fd)
         return BT_STATUS_PARM_INVALID;
@@ -932,7 +932,7 @@ static bt_status_t btsock_l2cap_listen_or_connect(const char *name, const bt_bda
      *  mtu will be set below */
     memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
 
-    cfg.fcr_present = TRUE;
+    cfg.fcr_present = true;
     cfg.fcr = obex_l2c_fcr_opts_def;
 
     /* "role" is never initialized in rfcomm code */
@@ -989,10 +989,10 @@ bt_status_t btsock_l2cap_connect(const bt_bdaddr_t *bd_addr, int channel, int* s
     return btsock_l2cap_listen_or_connect(NULL, bd_addr, channel, sock_fd, flags, 0, app_uid);
 }
 
-/* return TRUE if we have more to send and should wait for user readiness, FALSE else
+/* return true if we have more to send and should wait for user readiness, false else
  * (for example: unrecoverable error or no data)
  */
-static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
+static bool flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
 {
     uint8_t *buf;
     uint32_t len;
@@ -1008,7 +1008,7 @@ static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
             packet_put_head_l(sock, buf + sent, len - sent);
             osi_free(buf);
             if (!sent) /* special case if other end not keeping up */
-                return TRUE;
+                return true;
         }
         else {
             packet_put_head_l(sock, buf, len);
@@ -1017,13 +1017,13 @@ static BOOLEAN flush_incoming_que_on_wr_signal_l(l2cap_socket *sock)
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
 {
     l2cap_socket *sock;
-    char drop_it = FALSE;
+    char drop_it = false;
 
     /* We use MSG_DONTWAIT when sending data to JAVA, hence it can be accepted to hold the lock. */
     pthread_mutex_lock(&state_lock);
@@ -1037,7 +1037,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                 if (!(flags & SOCK_THREAD_FD_EXCEPTION) || (ioctl(sock->our_fd, FIONREAD, &size)
                         == 0 && size)) {
                     uint8_t *buffer = (uint8_t*) osi_malloc(L2CAP_MAX_SDU_LENGTH);
-                    /* Apparently we hijack the req_id (UINT32) to pass the pointer to the buffer to
+                    /* Apparently we hijack the req_id (uint32_t) to pass the pointer to the buffer to
                      * the write complete callback, which call a free... wonder if this works on a
                      * 64 bit platform? */
                     /* The socket is created with SOCK_SEQPACKET, hence we read one message at
@@ -1064,7 +1064,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                                      count);
 
                     // TODO(armansito): |buffer|, which is created above via
-                    // malloc, is being cast below to UINT32 to be used as
+                    // malloc, is being cast below to uint32_t to be used as
                     // the |req_id| parameter of BTA_JvL2capWriteFixed and
                     // BTA_JvL2capWrite. The "id" then gets freed in an
                     // obscure callback elsewhere. We need to watch out for
@@ -1090,7 +1090,7 @@ void btsock_l2cap_signaled(int fd, int flags, uint32_t user_id)
                     }
                 }
             } else
-                drop_it = TRUE;
+                drop_it = true;
         }
         if (flags & SOCK_THREAD_FD_WR) {
             //app is ready to receive more data, tell stack to enable the data flow

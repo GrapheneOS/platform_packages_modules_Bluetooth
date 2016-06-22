@@ -18,8 +18,7 @@
 
 #include "bta_api.h"
 
-#if( defined BLE_INCLUDED ) && (BLE_INCLUDED == TRUE)
-#if( defined BTA_GATT_INCLUDED ) && (BTA_GATT_INCLUDED == TRUE)
+#if (BLE_INCLUDED == TRUE) && (BTA_GATT_INCLUDED == TRUE)
 
 #include <stdlib.h>
 #include <string.h>
@@ -35,8 +34,8 @@
 
 typedef struct
 {
-    BOOLEAN             enable;
-    UINT8               num_clients;
+    bool             enable;
+    uint8_t               num_clients;
     tBTA_GATTS_SRV_CHG  srv_chg[BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE];
 } __attribute__((packed)) btif_gatts_srv_chg_cb_t;
 
@@ -57,7 +56,7 @@ static void btif_gatts_check_init(void)
     if (!p_cb->enable)
     {
        memset(p_cb, 0, sizeof(btif_gatts_srv_chg_cb_t));
-       p_cb->enable = TRUE;
+       p_cb->enable = true;
     }
 }
 
@@ -68,8 +67,8 @@ static void btif_gatts_check_init(void)
 void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
 {
     btif_gatts_srv_chg_cb_t *p_cb= &btif_gatts_srv_chg_cb;
-    BOOLEAN                 found = FALSE;
-    UINT8                   i;
+    bool                 found = false;
+    uint8_t                   i;
 
     btif_gatts_check_init();
 
@@ -77,7 +76,7 @@ void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
     {
         if (!memcmp(p_cb->srv_chg[i].bda,  bda, sizeof(BD_ADDR)))
         {
-            found = TRUE;
+            found = true;
             break;
         }
     }
@@ -87,7 +86,7 @@ void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
         if (p_cb->num_clients < BTIF_GATTS_MAX_SRV_CHG_CLT_SIZE)
         {
             bdcpy(p_cb->srv_chg[p_cb->num_clients].bda, bda);
-            p_cb->srv_chg[p_cb->num_clients].srv_changed = FALSE;
+            p_cb->srv_chg[p_cb->num_clients].srv_changed = false;
             p_cb->num_clients++;
         }
     }
@@ -110,7 +109,7 @@ void btif_gatts_add_bonded_dev_from_nv(BD_ADDR bda)
 ** Returns          void.
 **
 *******************************************************************************/
-void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range)
+void bta_gatts_co_update_handle_range(bool is_add, tBTA_GATTS_HNDL_RANGE *p_hndl_range)
 {
     UNUSED(is_add);
     UNUSED(p_hndl_range);
@@ -128,12 +127,12 @@ void bta_gatts_co_update_handle_range(BOOLEAN is_add, tBTA_GATTS_HNDL_RANGE *p_h
 **                  p_req - request paramters
 **                  p_rsp - response data for the request
 **
-** Returns          TRUE - if the request is processed successfully and
+** Returns          true - if the request is processed successfully and
 **                         the response is returned in p_rsp.
-**                  FASLE - if the request can not be processed
+**                  false - if the request can not be processed
 **
 *******************************************************************************/
-BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
+bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
                              tBTA_GATTS_SRV_CHG_REQ *p_req,
                              tBTA_GATTS_SRV_CHG_RSP *p_rsp)
 {
@@ -141,7 +140,7 @@ BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
     UNUSED(p_req);
     UNUSED(p_rsp);
 
-    return FALSE;
+    return false;
 }
 
 /*******************************************************************************
@@ -156,13 +155,13 @@ BOOLEAN bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,
 ** Returns          void.
 **
 *******************************************************************************/
-BOOLEAN bta_gatts_co_load_handle_range(UINT8 index,
+bool bta_gatts_co_load_handle_range(uint8_t index,
                                        tBTA_GATTS_HNDL_RANGE *p_handle_range)
 {
     UNUSED(index);
     UNUSED(p_handle_range);
 
-    return FALSE;
+    return false;
 }
-#endif
-#endif
+
+#endif // BLE_INCLUDED == TRUE && BTA_GATT_INCLUDED == TRUE

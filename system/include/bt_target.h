@@ -1191,6 +1191,14 @@
 #define PAN_INCLUDED                     TRUE
 #endif
 
+#ifndef PAN_NAP_DISABLED
+#define PAN_NAP_DISABLED                 FALSE
+#endif
+
+#ifndef PANU_DISABLED
+#define PANU_DISABLED                    FALSE
+#endif
+
 /* This will enable the PANU role */
 #ifndef PAN_SUPPORTS_ROLE_PANU
 #define PAN_SUPPORTS_ROLE_PANU              TRUE
@@ -1391,6 +1399,10 @@
 
 #ifndef AVRC_CTRL_INCLUDED
 #define AVRC_CTRL_INCLUDED          TRUE
+#endif
+
+#ifndef DUMP_PCM_DATA
+#define DUMP_PCM_DATA               FALSE
 #endif
 
 /******************************************************************************

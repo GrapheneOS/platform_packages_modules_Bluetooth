@@ -48,7 +48,7 @@
 ** Returns          Data flow mask.
 **
 *******************************************************************************/
-UINT8 bta_pan_co_init(UINT8 *q_level)
+uint8_t bta_pan_co_init(uint8_t *q_level)
 {
     BTIF_TRACE_API("bta_pan_co_init");
 
@@ -72,7 +72,7 @@ UINT8 bta_pan_co_init(UINT8 *q_level)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role,
+void bta_pan_co_open(uint16_t handle, uint8_t app_id, tBTA_PAN_ROLE local_role,
                             tBTA_PAN_ROLE peer_role, BD_ADDR peer_addr)
 {
     BTIF_TRACE_API("bta_pan_co_open:app_id:%d, local_role:%d, peer_role:%d, "
@@ -117,7 +117,7 @@ void bta_pan_co_open(UINT16 handle, UINT8 app_id, tBTA_PAN_ROLE local_role,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_close(UINT16 handle, UINT8 app_id)
+void bta_pan_co_close(uint16_t handle, uint8_t app_id)
 {
     BTIF_TRACE_API("bta_pan_co_close:app_id:%d, handle:%d", app_id, handle);
     btpan_conn_t* conn = btpan_find_conn_handle(handle);
@@ -156,14 +156,14 @@ void bta_pan_co_close(UINT16 handle, UINT8 app_id)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
+void bta_pan_co_tx_path(uint16_t handle, uint8_t app_id)
 {
     BT_HDR          *p_buf;
     BD_ADDR            src;
     BD_ADDR            dst;
-    UINT16            protocol;
-    BOOLEAN            ext;
-    BOOLEAN         forward;
+    uint16_t            protocol;
+    bool            ext;
+    bool         forward;
 
     BTIF_TRACE_API("%s, handle:%d, app_id:%d", __func__, handle, app_id);
 
@@ -219,7 +219,7 @@ void bta_pan_co_tx_path(UINT16 handle, UINT8 app_id)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
+void bta_pan_co_rx_path(uint16_t handle, uint8_t app_id)
 {
     UNUSED(handle);
     UNUSED(app_id);
@@ -240,9 +240,9 @@ void bta_pan_co_rx_path(UINT16 handle, UINT8 app_id)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst,
-                                UINT16 protocol, UINT8 *p_data,
-                                UINT16 len, BOOLEAN ext, BOOLEAN forward)
+void bta_pan_co_tx_write(uint16_t handle, uint8_t app_id, BD_ADDR src, BD_ADDR dst,
+                                uint16_t protocol, uint8_t *p_data,
+                                uint16_t len, bool ext, bool forward)
 {
     UNUSED(handle);
     UNUSED(app_id);
@@ -267,12 +267,12 @@ void bta_pan_co_tx_write(UINT16 handle, UINT8 app_id, BD_ADDR src, BD_ADDR dst,
 **                  osi_free() when it is through processing the buffer.
 **
 **
-** Returns          TRUE if flow enabled
+** Returns          true if flow enabled
 **
 *******************************************************************************/
-void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src,
-                                    BD_ADDR dst, UINT16 protocol, BT_HDR *p_buf,
-                                    BOOLEAN ext, BOOLEAN forward)
+void  bta_pan_co_tx_writebuf(uint16_t handle, uint8_t app_id, BD_ADDR src,
+                                    BD_ADDR dst, uint16_t protocol, BT_HDR *p_buf,
+                                    bool ext, bool forward)
 {
     UNUSED(handle);
     UNUSED(app_id);
@@ -300,7 +300,7 @@ void  bta_pan_co_tx_writebuf(UINT16 handle, UINT8 app_id, BD_ADDR src,
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
+void bta_pan_co_rx_flow(uint16_t handle, uint8_t app_id, bool enable)
 {
     UNUSED(handle);
     UNUSED(app_id);
@@ -322,8 +322,8 @@ void bta_pan_co_rx_flow(UINT16 handle, UINT8 app_id, BOOLEAN enable)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
-                                    UINT16 len, UINT8 *p_filters)
+void bta_pan_co_pfilt_ind(uint16_t handle, bool indication, tBTA_PAN_STATUS result,
+                                    uint16_t len, uint8_t *p_filters)
 {
     UNUSED(handle);
     UNUSED(indication);
@@ -343,8 +343,8 @@ void bta_pan_co_pfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS res
 ** Returns          void
 **
 *******************************************************************************/
-void bta_pan_co_mfilt_ind(UINT16 handle, BOOLEAN indication, tBTA_PAN_STATUS result,
-                                    UINT16 len, UINT8 *p_filters)
+void bta_pan_co_mfilt_ind(uint16_t handle, bool indication, tBTA_PAN_STATUS result,
+                                    uint16_t len, uint8_t *p_filters)
 {
     UNUSED(handle);
     UNUSED(indication);

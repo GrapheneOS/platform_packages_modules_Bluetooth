@@ -91,7 +91,7 @@ static void queue_int_advance() {
         list_remove(connect_queue, list_front(connect_queue));
 }
 
-static void queue_int_handle_evt(UINT16 event, char *p_param) {
+static void queue_int_handle_evt(uint16_t event, char *p_param) {
     switch(event) {
         case BTIF_QUEUE_CONNECT_EVT:
             queue_int_add((connect_node_t *)p_param);

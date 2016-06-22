@@ -59,23 +59,23 @@ typedef enum
 typedef struct
 {
     bthh_connection_state_t       dev_status;
-    UINT8                         dev_handle;
+    uint8_t                         dev_handle;
     bt_bdaddr_t                   bd_addr;
     tBTA_HH_ATTR_MASK             attr_mask;
-    UINT8                         sub_class;
-    UINT8                         app_id;
+    uint8_t                         sub_class;
+    uint8_t                         app_id;
     int                           fd;
-    BOOLEAN                       ready_for_data;
+    bool                       ready_for_data;
     pthread_t                     hh_poll_thread_id;
-    UINT8                         hh_keep_polling;
+    uint8_t                         hh_keep_polling;
     alarm_t                       *vup_timer;
-    BOOLEAN                       local_vup; // Indicated locally initiated VUP
+    bool                       local_vup; // Indicated locally initiated VUP
 } btif_hh_device_t;
 
 /* Control block to maintain properties of devices */
 typedef struct
 {
-    UINT8             dev_handle;
+    uint8_t             dev_handle;
     bt_bdaddr_t       bd_addr;
     tBTA_HH_ATTR_MASK attr_mask;
 } btif_hh_added_device_t;
@@ -88,7 +88,7 @@ typedef struct
 {
     BTIF_HH_STATUS          status;
     btif_hh_device_t        devices[BTIF_HH_MAX_HID];
-    UINT32                  device_num;
+    uint32_t                  device_num;
     btif_hh_added_device_t  added_devices[BTIF_HH_MAX_ADDED_DEV];
     btif_hh_device_t        *p_curr_dev;
 } btif_hh_cb_t;
@@ -100,14 +100,14 @@ typedef struct
 
 extern btif_hh_cb_t btif_hh_cb;
 
-extern btif_hh_device_t *btif_hh_find_connected_dev_by_handle(UINT8 handle);
+extern btif_hh_device_t *btif_hh_find_connected_dev_by_handle(uint8_t handle);
 extern void btif_hh_remove_device(bt_bdaddr_t bd_addr);
-BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask);
+bool btif_hh_add_added_dev(bt_bdaddr_t bda, tBTA_HH_ATTR_MASK attr_mask);
 extern bt_status_t btif_hh_virtual_unplug(bt_bdaddr_t *bd_addr);
 extern void btif_hh_disconnect(bt_bdaddr_t *bd_addr);
 extern void btif_hh_setreport(btif_hh_device_t *p_dev, bthh_report_type_t r_type,
-                    UINT16 size, UINT8* report);
+                    uint16_t size, uint8_t* report);
 
-BOOLEAN btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
+bool btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
 
 #endif

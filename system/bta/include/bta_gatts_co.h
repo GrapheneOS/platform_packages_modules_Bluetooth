@@ -59,7 +59,7 @@ extern void bta_gatts_co_update_handle_range(bool is_add, tBTA_GATTS_HNDL_RANGE 
 **
 ** Returns          true - if the request is processed successfully and
 **                         the response is returned in p_rsp.
-**                  FASLE - if the request can not be processed
+**                  false - if the request can not be processed
 **
 *******************************************************************************/
 extern bool bta_gatts_co_srv_chg(tBTA_GATTS_SRV_CHG_CMD cmd,

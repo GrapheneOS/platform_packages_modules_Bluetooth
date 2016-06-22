@@ -100,14 +100,14 @@ static void init_sdp_slots()
 
 bt_status_t sdp_server_init()
 {
-    BTIF_TRACE_DEBUG("Sdp Server %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
     init_sdp_slots();
     return BT_STATUS_SUCCESS;
 }
 
 void sdp_server_cleanup()
 {
-    BTIF_TRACE_DEBUG("Sdp Server %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
     pthread_mutex_lock(&sdp_lock);
     int i;
     for(i = 0; i < MAX_SDP_SLOTS; i++)
@@ -164,12 +164,12 @@ void copy_sdp_records(bluetooth_sdp_record* in_records,
             free_ptr++;
         }
         if(in_record->hdr.user1_ptr != NULL) {
-            out_record->hdr.user1_ptr = (UINT8*)free_ptr; // Update pointer
+            out_record->hdr.user1_ptr = (uint8_t*)free_ptr; // Update pointer
             memcpy(free_ptr, in_record->hdr.user1_ptr, in_record->hdr.user1_ptr_len); // Copy content
             free_ptr += in_record->hdr.user1_ptr_len;
         }
         if(in_record->hdr.user2_ptr != NULL) {
-            out_record->hdr.user2_ptr = (UINT8*)free_ptr; // Update pointer
+            out_record->hdr.user2_ptr = (uint8_t*)free_ptr; // Update pointer
             memcpy(free_ptr, in_record->hdr.user2_ptr, in_record->hdr.user2_ptr_len); // Copy content
             free_ptr += in_record->hdr.user2_ptr_len;
         }
@@ -269,14 +269,14 @@ static void set_sdp_handle(int id, int handle) {
     pthread_mutex_lock(&sdp_lock);
     sdp_slots[id].sdp_handle = handle;
     pthread_mutex_unlock(&sdp_lock);
-    BTIF_TRACE_DEBUG("%s() id=%d to handle=0x%08x", __FUNCTION__, id, handle);
+    BTIF_TRACE_DEBUG("%s() id=%d to handle=0x%08x", __func__, id, handle);
 }
 
 bt_status_t create_sdp_record(bluetooth_sdp_record *record, int* record_handle) {
     int handle;
 
     handle = alloc_sdp_slot(record);
-    BTIF_TRACE_DEBUG("%s() handle = 0x%08x", __FUNCTION__, handle);
+    BTIF_TRACE_DEBUG("%s() handle = 0x%08x", __func__, handle);
 
     if(handle < 0)
         return BT_STATUS_FAIL;
@@ -294,14 +294,14 @@ bt_status_t remove_sdp_record(int record_id) {
     /* Get the Record handle, and free the slot */
     handle = free_sdp_slot(record_id);
     BTIF_TRACE_DEBUG("Sdp Server %s id=%d to handle=0x%08x",
-            __FUNCTION__, record_id, handle);
+            __func__, record_id, handle);
 
     /* Pass the actual record handle */
     if(handle > 0) {
         BTA_SdpRemoveRecordByUser(INT_TO_PTR(handle));
         return BT_STATUS_SUCCESS;
     }
-    BTIF_TRACE_DEBUG("Sdp Server %s - record already removed - or never created", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Server %s - record already removed - or never created", __func__);
     return BT_STATUS_FAIL;
 }
 
@@ -317,7 +317,7 @@ void on_create_record_event(int id) {
      * 3) Update state on completion
      * 4) What to do at fail?
      * */
-    BTIF_TRACE_DEBUG("Sdp Server %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
     const sdp_slot_t* sdp_slot = start_create_sdp(id);
     /* In the case we are shutting down, sdp_slot is NULL */
     if(sdp_slot != NULL) {
@@ -352,13 +352,13 @@ void on_create_record_event(int id) {
 }
 
 void on_remove_record_event(int handle) {
-    BTIF_TRACE_DEBUG("Sdp Server %s", __FUNCTION__);
+    BTIF_TRACE_DEBUG("Sdp Server %s", __func__);
 
     // User data carries the actual SDP handle, not the ID.
     if(handle != -1 && handle != 0) {
-        BOOLEAN result;
+        bool result;
         result = SDP_DeleteRecord( handle );
-        if(result == FALSE) {
+        if(result == false) {
             BTIF_TRACE_ERROR("  Unable to remove handle 0x%08x", handle);
         }
     }
@@ -373,12 +373,12 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
 {
 
     tSDP_PROTOCOL_ELEM  protoList [3];
-    UINT16              service = UUID_SERVCLASS_MESSAGE_ACCESS;
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    BOOLEAN             status = TRUE;
-    UINT32              sdp_handle = 0;
-    UINT8               temp[4];
-    UINT8*              p_temp = temp;
+    uint16_t              service = UUID_SERVCLASS_MESSAGE_ACCESS;
+    uint16_t              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    bool             status = true;
+    uint32_t              sdp_handle = 0;
+    uint8_t               temp[4];
+    uint8_t*              p_temp = temp;
 
     APPL_TRACE_DEBUG("%s(): MASID = 0x%02x, scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->mas_instance_id, rec->hdr.rfcomm_channel_number,
@@ -409,10 +409,10 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
 
     /* Add a name entry */
     status &= SDP_AddAttribute(sdp_handle,
-                    (UINT16)ATTR_ID_SERVICE_NAME,
-                    (UINT8)TEXT_STR_DESC_TYPE,
-                    (UINT32)(rec->hdr.service_name_length + 1),
-                    (UINT8 *)rec->hdr.service_name);
+                    (uint16_t)ATTR_ID_SERVICE_NAME,
+                    (uint8_t)TEXT_STR_DESC_TYPE,
+                    (uint32_t)(rec->hdr.service_name_length + 1),
+                    (uint8_t *)rec->hdr.service_name);
 
     /* Add in the Bluetooth Profile Descriptor List */
     status &= SDP_AddProfileDescriptorList(sdp_handle,
@@ -421,23 +421,23 @@ static int add_maps_sdp(const bluetooth_sdp_mas_record* rec)
 
     /* Add MAS instance ID */
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_MAS_INSTANCE_ID, UINT_DESC_TYPE,
-              (UINT32)1, (UINT8*)&rec->mas_instance_id);
+              (uint32_t)1, (uint8_t*)&rec->mas_instance_id);
 
     /* Add supported message types */
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_MSG_TYPE, UINT_DESC_TYPE,
-              (UINT32)1, (UINT8*)&rec->supported_message_types);
+              (uint32_t)1, (uint8_t*)&rec->supported_message_types);
 
     /* Add supported feature */
     UINT32_TO_BE_STREAM(p_temp, rec->supported_features);
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_MAP_SUPPORTED_FEATURES,
-            UINT_DESC_TYPE, (UINT32)4, temp);
+            UINT_DESC_TYPE, (uint32_t)4, temp);
 
     /* Add the L2CAP PSM if present */
     if(rec->hdr.l2cap_psm != -1) {
         p_temp = temp;// The macro modifies p_temp, hence rewind.
         UINT16_TO_BE_STREAM(p_temp, rec->hdr.l2cap_psm);
         status &= SDP_AddAttribute(sdp_handle, ATTR_ID_GOEP_L2CAP_PSM,
-                UINT_DESC_TYPE, (UINT32)2, temp);
+                UINT_DESC_TYPE, (uint32_t)2, temp);
     }
 
     /* Make the service browseable */
@@ -462,12 +462,12 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec)
 {
 
     tSDP_PROTOCOL_ELEM  protoList [3];
-    UINT16              service = UUID_SERVCLASS_MESSAGE_NOTIFICATION;
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    BOOLEAN             status = TRUE;
-    UINT32              sdp_handle = 0;
-    UINT8               temp[4];
-    UINT8*              p_temp = temp;
+    uint16_t              service = UUID_SERVCLASS_MESSAGE_NOTIFICATION;
+    uint16_t              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    bool             status = true;
+    uint32_t              sdp_handle = 0;
+    uint8_t               temp[4];
+    uint8_t*              p_temp = temp;
 
     APPL_TRACE_DEBUG("%s(): scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm, rec->hdr.service_name);
@@ -496,10 +496,10 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec)
 
     /* Add a name entry */
     status &= SDP_AddAttribute(sdp_handle,
-                    (UINT16)ATTR_ID_SERVICE_NAME,
-                    (UINT8)TEXT_STR_DESC_TYPE,
-                    (UINT32)(rec->hdr.service_name_length + 1),
-                    (UINT8 *)rec->hdr.service_name);
+                    (uint16_t)ATTR_ID_SERVICE_NAME,
+                    (uint8_t)TEXT_STR_DESC_TYPE,
+                    (uint32_t)(rec->hdr.service_name_length + 1),
+                    (uint8_t *)rec->hdr.service_name);
 
     /* Add in the Bluetooth Profile Descriptor List */
     status &= SDP_AddProfileDescriptorList(sdp_handle,
@@ -509,14 +509,14 @@ static int add_mapc_sdp(const bluetooth_sdp_mns_record* rec)
     /* Add supported feature */
     UINT32_TO_BE_STREAM(p_temp, rec->supported_features);
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_MAP_SUPPORTED_FEATURES,
-            UINT_DESC_TYPE, (UINT32)4, temp);
+            UINT_DESC_TYPE, (uint32_t)4, temp);
 
     /* Add the L2CAP PSM if present */
     if(rec->hdr.l2cap_psm != -1) {
         p_temp = temp;// The macro modifies p_temp, hence rewind.
         UINT16_TO_BE_STREAM(p_temp, rec->hdr.l2cap_psm);
         status &= SDP_AddAttribute(sdp_handle, ATTR_ID_GOEP_L2CAP_PSM,
-                UINT_DESC_TYPE, (UINT32)2, temp);
+                UINT_DESC_TYPE, (uint32_t)2, temp);
     }
 
     /* Make the service browseable */
@@ -541,12 +541,12 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
 {
 
     tSDP_PROTOCOL_ELEM  protoList [3];
-    UINT16              service = UUID_SERVCLASS_PBAP_PSE;
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    BOOLEAN             status = TRUE;
-    UINT32              sdp_handle = 0;
-    UINT8               temp[4];
-    UINT8*              p_temp = temp;
+    uint16_t              service = UUID_SERVCLASS_PBAP_PSE;
+    uint16_t              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    bool             status = true;
+    uint32_t              sdp_handle = 0;
+    uint8_t               temp[4];
+    uint8_t*              p_temp = temp;
 
     APPL_TRACE_DEBUG("%s(): scn 0x%02x, psm = 0x%04x\n  service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.l2cap_psm, rec->hdr.service_name);
@@ -576,10 +576,10 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
 
     /* Add a name entry */
     status &= SDP_AddAttribute(sdp_handle,
-                    (UINT16)ATTR_ID_SERVICE_NAME,
-                    (UINT8)TEXT_STR_DESC_TYPE,
-                    (UINT32)(rec->hdr.service_name_length + 1),
-                    (UINT8 *)rec->hdr.service_name);
+                    (uint16_t)ATTR_ID_SERVICE_NAME,
+                    (uint8_t)TEXT_STR_DESC_TYPE,
+                    (uint32_t)(rec->hdr.service_name_length + 1),
+                    (uint8_t *)rec->hdr.service_name);
 
     /* Add in the Bluetooth Profile Descriptor List */
     status &= SDP_AddProfileDescriptorList(sdp_handle,
@@ -588,19 +588,19 @@ static int add_pbaps_sdp(const bluetooth_sdp_pse_record* rec)
 
     /* Add supported repositories 1 byte */
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_SUPPORTED_REPOSITORIES,
-            UINT_DESC_TYPE, (UINT32)1, (UINT8*)&rec->supported_repositories);
+            UINT_DESC_TYPE, (uint32_t)1, (uint8_t*)&rec->supported_repositories);
 
     /* Add supported feature 4 bytes*/
     UINT32_TO_BE_STREAM(p_temp, rec->supported_features);
     status &= SDP_AddAttribute(sdp_handle, ATTR_ID_PBAP_SUPPORTED_FEATURES,
-            UINT_DESC_TYPE, (UINT32)4, temp);
+            UINT_DESC_TYPE, (uint32_t)4, temp);
 
     /* Add the L2CAP PSM if present */
     if(rec->hdr.l2cap_psm != -1) {
         p_temp = temp;// The macro modifies p_temp, hence rewind.
         UINT16_TO_BE_STREAM(p_temp, rec->hdr.l2cap_psm);
         status &= SDP_AddAttribute(sdp_handle, ATTR_ID_GOEP_L2CAP_PSM,
-                UINT_DESC_TYPE, (UINT32)2, temp);
+                UINT_DESC_TYPE, (uint32_t)2, temp);
     }
 
     /* Make the service browseable */
@@ -625,15 +625,15 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
 {
 
     tSDP_PROTOCOL_ELEM  protoList [3];
-    UINT16              service = UUID_SERVCLASS_OBEX_OBJECT_PUSH;
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    UINT8               type_len[rec->supported_formats_list_len];
-    UINT8               desc_type[rec->supported_formats_list_len];
-    UINT8              *type_value[rec->supported_formats_list_len];
-    BOOLEAN             status = TRUE;
-    UINT32              sdp_handle = 0;
-    UINT8               temp[4];
-    UINT8*              p_temp = temp;
+    uint16_t              service = UUID_SERVCLASS_OBEX_OBJECT_PUSH;
+    uint16_t              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    uint8_t               type_len[rec->supported_formats_list_len];
+    uint8_t               desc_type[rec->supported_formats_list_len];
+    uint8_t              *type_value[rec->supported_formats_list_len];
+    bool             status = true;
+    uint32_t              sdp_handle = 0;
+    uint8_t               temp[4];
+    uint8_t*              p_temp = temp;
     tBTA_UTL_COD        cod;
     int i,j;
 
@@ -665,10 +665,10 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
 
     /* Add a name entry */
     status &= SDP_AddAttribute(sdp_handle,
-                    (UINT16)ATTR_ID_SERVICE_NAME,
-                    (UINT8)TEXT_STR_DESC_TYPE,
-                    (UINT32)(rec->hdr.service_name_length + 1),
-                    (UINT8 *)rec->hdr.service_name);
+                    (uint16_t)ATTR_ID_SERVICE_NAME,
+                    (uint8_t)TEXT_STR_DESC_TYPE,
+                    (uint32_t)(rec->hdr.service_name_length + 1),
+                    (uint8_t *)rec->hdr.service_name);
 
     /* Add in the Bluetooth Profile Descriptor List */
     status &= SDP_AddProfileDescriptorList(sdp_handle,
@@ -678,20 +678,20 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
     /* add sequence for supported types */
     for (i = 0, j = 0; i < rec->supported_formats_list_len; i++)
     {
-        type_value[j] = (UINT8 *) &rec->supported_formats_list[i];
+        type_value[j] = (uint8_t *) &rec->supported_formats_list[i];
         desc_type[j] = UINT_DESC_TYPE;
         type_len[j++] = 1;
     }
 
-    status &= SDP_AddSequence(sdp_handle, (UINT16) ATTR_ID_SUPPORTED_FORMATS_LIST,
-        (UINT8) rec->supported_formats_list_len, desc_type, type_len, type_value);
+    status &= SDP_AddSequence(sdp_handle, (uint16_t) ATTR_ID_SUPPORTED_FORMATS_LIST,
+        (uint8_t) rec->supported_formats_list_len, desc_type, type_len, type_value);
 
     /* Add the L2CAP PSM if present */
     if(rec->hdr.l2cap_psm != -1) {
         p_temp = temp;// The macro modifies p_temp, hence rewind.
         UINT16_TO_BE_STREAM(p_temp, rec->hdr.l2cap_psm);
         status &= SDP_AddAttribute(sdp_handle, ATTR_ID_GOEP_L2CAP_PSM,
-                UINT_DESC_TYPE, (UINT32)2, temp);
+                UINT_DESC_TYPE, (uint32_t)2, temp);
     }
 
     /* Make the service browseable */
@@ -719,10 +719,10 @@ static int add_opps_sdp(const bluetooth_sdp_ops_record* rec)
 static int add_saps_sdp(const bluetooth_sdp_sap_record* rec)
 {
     tSDP_PROTOCOL_ELEM  protoList [2];
-    UINT16              services[2];
-    UINT16              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
-    BOOLEAN             status = TRUE;
-    UINT32              sdp_handle = 0;
+    uint16_t              services[2];
+    uint16_t              browse = UUID_SERVCLASS_PUBLIC_BROWSE_GROUP;
+    bool             status = true;
+    uint32_t              sdp_handle = 0;
 
     APPL_TRACE_DEBUG("%s(): scn 0x%02x, service name %s", __func__,
             rec->hdr.rfcomm_channel_number, rec->hdr.service_name);
@@ -750,10 +750,10 @@ static int add_saps_sdp(const bluetooth_sdp_sap_record* rec)
 
     // Add a name entry
     status &= SDP_AddAttribute(sdp_handle,
-                    (UINT16)ATTR_ID_SERVICE_NAME,
-                    (UINT8)TEXT_STR_DESC_TYPE,
-                    (UINT32)(rec->hdr.service_name_length + 1),
-                    (UINT8 *)rec->hdr.service_name);
+                    (uint16_t)ATTR_ID_SERVICE_NAME,
+                    (uint8_t)TEXT_STR_DESC_TYPE,
+                    (uint32_t)(rec->hdr.service_name_length + 1),
+                    (uint8_t *)rec->hdr.service_name);
 
     // Add in the Bluetooth Profile Descriptor List
     status &= SDP_AddProfileDescriptorList(sdp_handle,
