@@ -435,7 +435,7 @@ static void btif_gattc_update_properties ( btif_gattc_cb_t *p_btif_cb )
         memcpy(bdname.name, p_eir_remote_name, remote_name_len);
         bdname.name[remote_name_len]='\0';
 
-        LOG_DEBUG(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
+        LOG_VERBOSE(LOG_TAG, "%s BLE device name=%s len=%d dev_type=%d", __FUNCTION__, bdname.name,
               remote_name_len, p_btif_cb->device_type  );
         btif_dm_update_ble_remote_properties( p_btif_cb->bd_addr.address,   bdname.name,
                                                p_btif_cb->device_type);
