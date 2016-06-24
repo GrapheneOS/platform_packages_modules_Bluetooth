@@ -406,13 +406,13 @@ extern bool bta_gattc_hdl_event(BT_HDR *p_msg);
 extern bool bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, uint16_t event, tBTA_GATTC_DATA *p_data);
 
 /* function processed outside SM */
-extern void bta_gattc_disable(tBTA_GATTC_CB *p_cb);
-extern void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
-extern void bta_gattc_start_if(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data);
-extern void bta_gattc_process_api_open (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
-extern void bta_gattc_process_api_open_cancel (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
-extern void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg);
-extern void bta_gattc_process_enc_cmpl(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_msg);
+extern void bta_gattc_disable();
+extern void bta_gattc_register(tBTA_GATTC_DATA *p_data);
+extern void bta_gattc_start_if(tBTA_GATTC_DATA *p_data);
+extern void bta_gattc_process_api_open (tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_process_api_open_cancel (tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_deregister(tBTA_GATTC_RCB  *p_clreg);
+extern void bta_gattc_process_enc_cmpl(tBTA_GATTC_DATA *p_msg);
 
 /* function within state machine */
 extern void bta_gattc_open(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data);
@@ -448,11 +448,11 @@ extern void bta_gattc_init_bk_conn(tBTA_GATTC_API_OPEN *p_data, tBTA_GATTC_RCB *
 extern void bta_gattc_cancel_bk_conn(tBTA_GATTC_API_CANCEL_OPEN *p_data);
 extern void bta_gattc_send_open_cback( tBTA_GATTC_RCB *p_clreg, tBTA_GATT_STATUS status,
                                        BD_ADDR remote_bda, uint16_t conn_id, tBTA_TRANSPORT transport,  uint16_t mtu);
-extern void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_process_api_refresh(tBTA_GATTC_DATA * p_msg);
 extern void bta_gattc_cfg_mtu(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data);
 #if (BLE_INCLUDED == TRUE)
-extern void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
-extern void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_listen(tBTA_GATTC_DATA * p_msg);
+extern void bta_gattc_broadcast(tBTA_GATTC_DATA * p_msg);
 #endif
 /* utility functions */
 extern tBTA_GATTC_CLCB * bta_gattc_find_clcb_by_cif (uint8_t client_if, BD_ADDR remote_bda, tBTA_TRANSPORT transport);
