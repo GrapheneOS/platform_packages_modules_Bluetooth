@@ -138,13 +138,5 @@
 #define LLCP_DYNAMIC_MEMORY  FALSE
 #endif
 
-/****************************************************************************
-** Define memory usage for BTA (if not defined in bdroid_buildcfg.h)
-**  The default for each component is to use static memory allocations.
-*/
-#ifndef BTA_DYNAMIC_MEMORY
-#define BTA_DYNAMIC_MEMORY FALSE
-#endif
-
 #endif  /* #ifdef DYN_MEM_H */
 

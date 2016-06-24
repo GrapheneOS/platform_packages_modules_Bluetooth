@@ -64,55 +64,6 @@
 #endif
 #endif
 
-/***** BTA Modules ******/
-#if BTA_INCLUDED == TRUE && BTA_DYNAMIC_MEMORY == TRUE
-#include "bta_api.h"
-#include "bta_sys.h"
-
-#include "bta_ag_int.h"
-
-#if BTA_HS_INCLUDED == TRUE
-#include "bta_hs_int.h"
-#endif
-
-#include "bta_dm_int.h"
-
-#if BTA_AR_INCLUDED==TRUE
-#include "bta_ar_int.h"
-#endif
-#if BTA_AV_INCLUDED==TRUE
-#include "bta_av_int.h"
-#endif
-
-#if BTA_HH_INCLUDED==TRUE
-#include "bta_hh_int.h"
-#endif
-
-#if BTA_JV_INCLUDED==TRUE
-#include "bta_jv_int.h"
-tBTA_JV_CB *bta_jv_cb_ptr = NULL;
-#endif
-
-#if BTA_HL_INCLUDED == TRUE
-#include "bta_hl_int.h"
-#endif
-
-#if BTA_GATT_INCLUDED == TRUE
-#include "bta_gattc_int.h"
-#include "bta_gatts_int.h"
-#endif
-
-#if BTA_PAN_INCLUDED==TRUE
-#include "bta_pan_int.h"
-#endif
-
-#include "bta_sys_int.h"
-
-/* control block for patch ram downloading */
-#include "bta_prm_int.h"
-
-#endif /* BTA_INCLUDED */
-
 /*****************************************************************************
 **                          F U N C T I O N S                                *
 ******************************************************************************/
@@ -172,40 +123,5 @@ void BTE_InitStack(void)
 #if (defined(MCA_INCLUDED) && MCA_INCLUDED == TRUE)
     MCA_Init();
 #endif
-
-/****************
-** BTA Modules **
-*****************/
-#if (BTA_INCLUDED == TRUE && BTA_DYNAMIC_MEMORY == TRUE)
-    memset((void*)bta_sys_cb_ptr, 0, sizeof(tBTA_SYS_CB));
-    memset((void*)bta_dm_cb_ptr, 0, sizeof(tBTA_DM_CB));
-    memset((void*)bta_dm_search_cb_ptr, 0, sizeof(tBTA_DM_SEARCH_CB));
-    memset((void*)bta_dm_di_cb_ptr, 0, sizeof(tBTA_DM_DI_CB));
-    memset((void*)bta_prm_cb_ptr, 0, sizeof(tBTA_PRM_CB));
-    memset((void*)bta_ag_cb_ptr, 0, sizeof(tBTA_AG_CB));
-#if BTA_HS_INCLUDED == TRUE
-    memset((void*)bta_hs_cb_ptr, 0, sizeof(tBTA_HS_CB));
-#endif
-#if BTA_AR_INCLUDED==TRUE
-    memset((void *)bta_ar_cb_ptr, 0, sizeof(tBTA_AR_CB));
-#endif
-#if BTA_AV_INCLUDED==TRUE
-    memset((void *)bta_av_cb_ptr, 0, sizeof(tBTA_AV_CB));
-#endif
-#if BTA_HH_INCLUDED==TRUE
-    memset((void *)bta_hh_cb_ptr, 0, sizeof(tBTA_HH_CB));
-#endif
-#if BTA_HL_INCLUDED==TRUE
-    memset((void *)bta_hl_cb_ptr, 0, sizeof(tBTA_HL_CB));
-#endif
-#if BTA_GATT_INCLUDED==TRUE
-    memset((void *)bta_gattc_cb_ptr, 0, sizeof(tBTA_GATTC_CB));
-    memset((void *)bta_gatts_cb_ptr, 0, sizeof(tBTA_GATTS_CB));
-#endif
-#if BTA_PAN_INCLUDED==TRUE
-    memset((void *)bta_pan_cb_ptr, 0, sizeof(tBTA_PAN_CB));
-#endif
-
-#endif /* BTA_INCLUDED == TRUE */
 
 }

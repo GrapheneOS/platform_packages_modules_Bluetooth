@@ -83,12 +83,7 @@ typedef struct
 *****************************************************************************/
 
 /* system manager control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_SYS_CB bta_sys_cb;
-#else
-extern tBTA_SYS_CB *bta_sys_cb_ptr;
-#define bta_sys_cb (*bta_sys_cb_ptr)
-#endif
 
 /* functions used for BTA SYS HW state machine */
 void bta_sys_hw_btm_cback( tBTM_DEV_STATUS status );

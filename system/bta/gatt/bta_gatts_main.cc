@@ -46,9 +46,7 @@ const tBTA_GATTS_SRVC_ACT bta_gatts_srvc_build_act[] =
 };
 
 /* GATTS control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_GATTS_CB  bta_gatts_cb;
-#endif
 
 /*******************************************************************************
 **

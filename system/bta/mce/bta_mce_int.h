@@ -79,12 +79,7 @@ enum
 };
 
 /* MCE control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_MCE_CB bta_mce_cb;
-#else
-extern tBTA_MCE_CB *bta_mce_cb_ptr;
-#define bta_mce_cb (*bta_mce_cb_ptr)
-#endif
 
 /* config struct */
 extern tBTA_MCE_CFG *p_bta_mce_cfg;

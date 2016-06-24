@@ -316,12 +316,7 @@ typedef struct
 }
 tBTA_HH_CB;
 
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_HH_CB  bta_hh_cb;
-#else
-extern tBTA_HH_CB *bta_hh_cb_ptr;
-#define bta_hh_cb (*bta_hh_cb_ptr)
-#endif
 
 /* from bta_hh_cfg.c */
 extern tBTA_HH_CFG *p_bta_hh_cfg;

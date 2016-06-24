@@ -45,9 +45,7 @@
 #endif
 
 /* system manager control block definition */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_SYS_CB bta_sys_cb;
-#endif
 
 fixed_queue_t *btu_bta_alarm_queue;
 extern thread_t *bt_workqueue_thread;
