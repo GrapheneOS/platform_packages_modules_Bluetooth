@@ -176,7 +176,7 @@ enum {
 #define USEC_PER_SEC 1000000L
 #define TPUT_STATS_INTERVAL_US (3000*1000)
 
-/*
+/**
  * CONGESTION COMPENSATION CTRL ::
  *
  * Thus setting controls how many buffers we will hold in media task
@@ -188,18 +188,17 @@ enum {
  * jitterbuffer runlevel including any intermediate buffers on the way
  * towards the sinks codec.
  */
-
-/* fixme -- define this in pcm time instead of buffer count */
-
-/* The typical runlevel of the tx queue size is ~1 buffer
-   but due to link flow control or thread preemption in lower
-   layers we might need to temporarily buffer up data */
-/* 18 frames is equivalent to 6.89*18*2.9 ~= 360 ms @ 44.1 khz, 20 ms mediatick */
-#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ 18
 #ifndef MAX_PCM_FRAME_NUM_PER_TICK
 #define MAX_PCM_FRAME_NUM_PER_TICK     14
 #endif
 #define MAX_PCM_ITER_NUM_PER_TICK      3
+
+/**
+ * The typical runlevel of the tx queue size is ~1 buffer
+ * but due to link flow control or thread preemption in lower
+ * layers we might need to temporarily buffer up data.
+ */
+#define MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ (MAX_PCM_FRAME_NUM_PER_TICK * 2)
 
 /* In case of A2DP SINK, we will delay start by 5 AVDTP Packets*/
 #define MAX_A2DP_DELAYED_START_FRAME_COUNT 5
@@ -3099,11 +3098,11 @@ static void btif_media_aa_prep_2_send(UINT8 nb_frame, uint64_t timestamp_us)
                            MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame);
         btif_media_cb.stats.tx_queue_dropouts++;
         btif_media_cb.stats.tx_queue_last_dropouts_us = timestamp_us;
-    }
 
-    while (fixed_queue_length(btif_media_cb.TxAaQ) > (MAX_OUTPUT_A2DP_FRAME_QUEUE_SZ - nb_frame)) {
-        btif_media_cb.stats.tx_queue_total_dropped_messages++;
-        osi_free(fixed_queue_try_dequeue(btif_media_cb.TxAaQ));
+        while (fixed_queue_length(btif_media_cb.TxAaQ)) {
+            btif_media_cb.stats.tx_queue_total_dropped_messages++;
+            osi_free(fixed_queue_try_dequeue(btif_media_cb.TxAaQ));
+        }
     }
 
     // Transcode frame
