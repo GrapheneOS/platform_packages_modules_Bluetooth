@@ -578,12 +578,7 @@ typedef struct
 *****************************************************************************/
 
 /* HL control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_HL_CB  bta_hl_cb;
-#else
-extern tBTA_HL_CB *bta_hl_cb_ptr;
-    #define bta_hl_cb (*bta_hl_cb_ptr)
-#endif
 
 #define BTA_HL_GET_CB_PTR() &(bta_hl_cb)
 #define BTA_HL_GET_APP_CB_PTR(app_idx) &(bta_hl_cb.acb[(app_idx)])

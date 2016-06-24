@@ -28,9 +28,7 @@
 
 
 /* AV control block */
-#if BTA_DYNAMIC_MEMORY == FALSE
 tBTA_AR_CB  bta_ar_cb;
-#endif
 
 /*******************************************************************************
 **

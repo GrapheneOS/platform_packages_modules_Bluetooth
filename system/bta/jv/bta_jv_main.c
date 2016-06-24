@@ -31,9 +31,7 @@
 ** Constants and types
 *****************************************************************************/
 
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_JV_CB bta_jv_cb;
-#endif
 
 /* state machine action enumeration list */
 #define BTA_JV_NUM_ACTIONS  (BTA_JV_MAX_INT_EVT & 0x00ff)

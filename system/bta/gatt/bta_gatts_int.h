@@ -214,12 +214,7 @@ typedef struct
 *****************************************************************************/
 
 /* GATTC control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_GATTS_CB  bta_gatts_cb;
-#else
-extern tBTA_GATTS_CB *bta_gatts_cb_ptr;
-    #define bta_gatts_cb (*bta_gatts_cb_ptr)
-#endif
 
 /*****************************************************************************
 **  Function prototypes

@@ -610,12 +610,7 @@ typedef struct
 *****************************************************************************/
 
 /* control block declaration */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_AV_CB bta_av_cb;
-#else
-extern tBTA_AV_CB *bta_av_cb_ptr;
-#define bta_av_cb (*bta_av_cb_ptr)
-#endif
 
 /* config struct */
 extern tBTA_AV_CFG *p_bta_av_cfg;

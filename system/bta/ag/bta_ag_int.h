@@ -333,12 +333,7 @@ extern const uint8_t bta_ag_sec_id[BTA_AG_NUM_IDX];
 extern const tBTA_AG_AT_CMD *bta_ag_at_tbl[BTA_AG_NUM_IDX];
 
 /* control block declaration */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_AG_CB bta_ag_cb;
-#else
-extern tBTA_AG_CB *bta_ag_cb_ptr;
-#define bta_ag_cb (*bta_ag_cb_ptr)
-#endif
 
 /* config struct */
 extern tBTA_AG_CFG *p_bta_ag_cfg;

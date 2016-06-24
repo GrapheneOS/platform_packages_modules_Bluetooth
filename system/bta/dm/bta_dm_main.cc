@@ -31,11 +31,9 @@
 ** Constants and types
 *****************************************************************************/
 
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_DM_CB  bta_dm_cb;
 tBTA_DM_SEARCH_CB bta_dm_search_cb;
 tBTA_DM_DI_CB       bta_dm_di_cb;
-#endif
 
 
 #define BTA_DM_NUM_ACTIONS  (BTA_DM_MAX_EVT & 0x00ff)

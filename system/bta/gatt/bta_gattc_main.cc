@@ -243,9 +243,7 @@ const tBTA_GATTC_ST_TBL bta_gattc_st_tbl[] =
 *****************************************************************************/
 
 /* GATTC control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_GATTC_CB  bta_gattc_cb;
-#endif
 
 #if (BTA_GATT_DEBUG == TRUE)
 static char *gattc_evt_code(tBTA_GATTC_INT_EVT evt_code);

@@ -33,9 +33,7 @@
 ** Constants and types
 *****************************************************************************/
 
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_MCE_CB bta_mce_cb;
-#endif
 
 /* state machine action enumeration list */
 #define BTA_MCE_NUM_ACTIONS  (BTA_MCE_MAX_INT_EVT & 0x00ff)

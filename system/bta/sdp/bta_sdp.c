@@ -33,9 +33,7 @@
 ** Constants and types
 *****************************************************************************/
 
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_SDP_CB bta_sdp_cb;
-#endif
 
 /* state machine action enumeration list */
 #define BTA_SDP_NUM_ACTIONS  (BTA_SDP_MAX_INT_EVT & 0x00ff)
