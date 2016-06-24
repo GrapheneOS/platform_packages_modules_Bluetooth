@@ -110,15 +110,15 @@ void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS statu
 ** Returns          void
 **
 *******************************************************************************/
-static void bta_gattc_enable(tBTA_GATTC_CB *p_cb)
+static void bta_gattc_enable()
 {
     APPL_TRACE_DEBUG("bta_gattc_enable");
 
-    if (p_cb->state == BTA_GATTC_STATE_DISABLED)
+    if (bta_gattc_cb.state == BTA_GATTC_STATE_DISABLED)
     {
         /* initialize control block */
         memset(&bta_gattc_cb, 0, sizeof(tBTA_GATTC_CB));
-        p_cb->state = BTA_GATTC_STATE_ENABLED;
+        bta_gattc_cb.state = BTA_GATTC_STATE_ENABLED;
     }
     else
     {
@@ -136,13 +136,13 @@ static void bta_gattc_enable(tBTA_GATTC_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_disable(tBTA_GATTC_CB *p_cb)
+void bta_gattc_disable()
 {
     uint8_t           i;
 
     APPL_TRACE_DEBUG("bta_gattc_disable");
 
-    if (p_cb->state != BTA_GATTC_STATE_ENABLED)
+    if (bta_gattc_cb.state != BTA_GATTC_STATE_ENABLED)
     {
         APPL_TRACE_ERROR("not enabled or disable in pogress");
         return;
@@ -150,15 +150,15 @@ void bta_gattc_disable(tBTA_GATTC_CB *p_cb)
 
     for (i = 0; i <BTA_GATTC_CL_MAX; i ++)
     {
-        if (p_cb->cl_rcb[i].in_use)
+        if (bta_gattc_cb.cl_rcb[i].in_use)
         {
-            p_cb->state = BTA_GATTC_STATE_DISABLING;
+            bta_gattc_cb.state = BTA_GATTC_STATE_DISABLING;
             /* don't deregister HH GATT IF */
             /* HH GATT IF will be deregistered by bta_hh_le_deregister when disable HH */
 #if (BTA_HH_LE_INCLUDED == TRUE)
-            if (!bta_hh_le_is_hh_gatt_if(p_cb->cl_rcb[i].client_if)) {
+            if (!bta_hh_le_is_hh_gatt_if(bta_gattc_cb.cl_rcb[i].client_if)) {
 #endif
-                bta_gattc_deregister(p_cb, &p_cb->cl_rcb[i]);
+                bta_gattc_deregister(&bta_gattc_cb.cl_rcb[i]);
 #if (BTA_HH_LE_INCLUDED == TRUE)
             }
 #endif
@@ -166,10 +166,10 @@ void bta_gattc_disable(tBTA_GATTC_CB *p_cb)
     }
 
     /* no registered apps, indicate disable completed */
-    if (p_cb->state != BTA_GATTC_STATE_DISABLING)
+    if (bta_gattc_cb.state != BTA_GATTC_STATE_DISABLING)
     {
-        p_cb->state = BTA_GATTC_STATE_DISABLED;
-        memset(p_cb, 0, sizeof(tBTA_GATTC_CB));
+        memset(&bta_gattc_cb, 0, sizeof(tBTA_GATTC_CB));
+        bta_gattc_cb.state = BTA_GATTC_STATE_DISABLED;
     }
 }
 
@@ -182,45 +182,45 @@ void bta_gattc_disable(tBTA_GATTC_CB *p_cb)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
+void bta_gattc_register(tBTA_GATTC_DATA *p_data)
 {
     tBTA_GATTC               cb_data;
     uint8_t                    i;
     tBT_UUID                 *p_app_uuid = &p_data->api_reg.app_uuid;
     tBTA_GATT_STATUS         status = BTA_GATT_NO_RESOURCES;
 
-    APPL_TRACE_DEBUG("bta_gattc_register state %d",p_cb->state);
+    APPL_TRACE_DEBUG("bta_gattc_register state %d",bta_gattc_cb.state);
     memset(&cb_data, 0, sizeof(cb_data));
     cb_data.reg_oper.status = BTA_GATT_NO_RESOURCES;
 
      /* check if  GATTC module is already enabled . Else enable */
-     if (p_cb->state == BTA_GATTC_STATE_DISABLED)
+     if (bta_gattc_cb.state == BTA_GATTC_STATE_DISABLED)
      {
-         bta_gattc_enable (p_cb);
+         bta_gattc_enable ();
      }
     /* todo need to check duplicate uuid */
     for (i = 0; i < BTA_GATTC_CL_MAX; i ++)
     {
-        if (!p_cb->cl_rcb[i].in_use)
+        if (!bta_gattc_cb.cl_rcb[i].in_use)
         {
-            if ((p_app_uuid == NULL) || (p_cb->cl_rcb[i].client_if = GATT_Register(p_app_uuid, &bta_gattc_cl_cback)) == 0)
+            if ((p_app_uuid == NULL) || (bta_gattc_cb.cl_rcb[i].client_if = GATT_Register(p_app_uuid, &bta_gattc_cl_cback)) == 0)
             {
                 APPL_TRACE_ERROR("Register with GATT stack failed.");
                 status = BTA_GATT_ERROR;
             }
             else
             {
-                p_cb->cl_rcb[i].in_use = true;
-                p_cb->cl_rcb[i].p_cback = p_data->api_reg.p_cback;
-                memcpy(&p_cb->cl_rcb[i].app_uuid, p_app_uuid, sizeof(tBT_UUID));
+                bta_gattc_cb.cl_rcb[i].in_use = true;
+                bta_gattc_cb.cl_rcb[i].p_cback = p_data->api_reg.p_cback;
+                memcpy(&bta_gattc_cb.cl_rcb[i].app_uuid, p_app_uuid, sizeof(tBT_UUID));
 
                 /* BTA use the same client interface as BTE GATT statck */
-                cb_data.reg_oper.client_if = p_cb->cl_rcb[i].client_if;
+                cb_data.reg_oper.client_if = bta_gattc_cb.cl_rcb[i].client_if;
 
                 tBTA_GATTC_INT_START_IF *p_buf =
                     (tBTA_GATTC_INT_START_IF *)osi_malloc(sizeof(tBTA_GATTC_INT_START_IF));
                 p_buf->hdr.event = BTA_GATTC_INT_START_IF_EVT;
-                p_buf->client_if = p_cb->cl_rcb[i].client_if;
+                p_buf->client_if = bta_gattc_cb.cl_rcb[i].client_if;
 
                 bta_sys_sendmsg(p_buf);
                 status = BTA_GATT_OK;
@@ -248,10 +248,8 @@ void bta_gattc_register(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_data)
 ** Returns          none.
 **
 *******************************************************************************/
-void bta_gattc_start_if(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_msg)
+void bta_gattc_start_if(tBTA_GATTC_DATA *p_msg)
 {
-    UNUSED(p_cb);
-
     if (bta_gattc_cl_get_regcb(p_msg->int_start_if.client_if) !=NULL )
     {
         GATT_StartIf(p_msg->int_start_if.client_if);
@@ -270,7 +268,7 @@ void bta_gattc_start_if(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg)
+void bta_gattc_deregister(tBTA_GATTC_RCB  *p_clreg)
 {
     uint8_t               i;
     BT_HDR              buf;
@@ -280,16 +278,16 @@ void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg)
         /* remove bg connection associated with this rcb */
         for (i = 0; i < BTA_GATTC_KNOWN_SR_MAX; i ++)
         {
-            if (p_cb->bg_track[i].in_use)
+            if (bta_gattc_cb.bg_track[i].in_use)
             {
-                if (p_cb->bg_track[i].cif_mask & (1 <<(p_clreg->client_if - 1)))
+                if (bta_gattc_cb.bg_track[i].cif_mask & (1 <<(p_clreg->client_if - 1)))
                 {
-                    bta_gattc_mark_bg_conn(p_clreg->client_if, p_cb->bg_track[i].remote_bda, false, false);
-                    GATT_CancelConnect(p_clreg->client_if, p_cb->bg_track[i].remote_bda, false);
+                    bta_gattc_mark_bg_conn(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false, false);
+                    GATT_CancelConnect(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false);
                 }
-                if (p_cb->bg_track[i].cif_adv_mask & (1 <<(p_clreg->client_if - 1)))
+                if (bta_gattc_cb.bg_track[i].cif_adv_mask & (1 <<(p_clreg->client_if - 1)))
                 {
-                    bta_gattc_mark_bg_conn(p_clreg->client_if, p_cb->bg_track[i].remote_bda, false, true);
+                    bta_gattc_mark_bg_conn(p_clreg->client_if, bta_gattc_cb.bg_track[i].remote_bda, false, true);
                 }
             }
         }
@@ -299,13 +297,13 @@ void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg)
             /* close all CLCB related to this app */
             for (i= 0; i < BTA_GATTC_CLCB_MAX; i ++)
             {
-                if (p_cb->clcb[i].in_use && (p_cb->clcb[i].p_rcb == p_clreg))
+                if (bta_gattc_cb.clcb[i].in_use && (bta_gattc_cb.clcb[i].p_rcb == p_clreg))
                 {
                     p_clreg->dereg_pending = true;
 
                     buf.event = BTA_GATTC_API_CLOSE_EVT;
-                    buf.layer_specific = p_cb->clcb[i].bta_conn_id;
-                    bta_gattc_close(&p_cb->clcb[i], (tBTA_GATTC_DATA *)&buf)  ;
+                    buf.layer_specific = bta_gattc_cb.clcb[i].bta_conn_id;
+                    bta_gattc_close(&bta_gattc_cb.clcb[i], (tBTA_GATTC_DATA *)&buf)  ;
                 }
             }
         }
@@ -326,12 +324,11 @@ void bta_gattc_deregister(tBTA_GATTC_CB *p_cb, tBTA_GATTC_RCB  *p_clreg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_process_api_open (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+void bta_gattc_process_api_open (tBTA_GATTC_DATA * p_msg)
 {
     uint16_t event = ((BT_HDR *)p_msg)->event;
     tBTA_GATTC_CLCB *p_clcb = NULL;
     tBTA_GATTC_RCB *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_conn.client_if);
-    UNUSED(p_cb);
 
     if (p_clreg != NULL)
     {
@@ -374,13 +371,12 @@ void bta_gattc_process_api_open (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_process_api_open_cancel (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+void bta_gattc_process_api_open_cancel (tBTA_GATTC_DATA * p_msg)
 {
     uint16_t event = ((BT_HDR *)p_msg)->event;
     tBTA_GATTC_CLCB *p_clcb = NULL;
     tBTA_GATTC_RCB *p_clreg;
     tBTA_GATTC cb_data;
-    UNUSED(p_cb);
 
     if (p_msg->api_cancel_conn.is_direct)
     {
@@ -419,11 +415,10 @@ void bta_gattc_process_api_open_cancel (tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p
 ** Returns          void
 **
 *******************************************************************************/
-void bta_gattc_process_enc_cmpl(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA *p_msg)
+void bta_gattc_process_enc_cmpl(tBTA_GATTC_DATA *p_msg)
 {
     tBTA_GATTC_RCB *p_clreg;
     tBTA_GATTC cb_data;
-    UNUSED(p_cb);
 
     p_clreg = bta_gattc_cl_get_regcb(p_msg->enc_cmpl.client_if);
 
@@ -833,15 +828,14 @@ void bta_gattc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_reset_discover_st(tBTA_GATTC_SERV *p_srcb, tBTA_GATT_STATUS status)
 {
-    tBTA_GATTC_CB   *p_cb = &bta_gattc_cb;
     uint8_t i;
 
     for (i = 0; i < BTA_GATTC_CLCB_MAX; i ++)
     {
-        if (p_cb->clcb[i].p_srcb == p_srcb)
+        if (bta_gattc_cb.clcb[i].p_srcb == p_srcb)
         {
-            p_cb->clcb[i].status = status;
-            bta_gattc_sm_execute(&p_cb->clcb[i], BTA_GATTC_DISCOVER_CMPL_EVT, NULL);
+            bta_gattc_cb.clcb[i].status = status;
+            bta_gattc_sm_execute(&bta_gattc_cb.clcb[i], BTA_GATTC_DISCOVER_CMPL_EVT, NULL);
         }
     }
 }
@@ -886,7 +880,6 @@ void bta_gattc_disc_close(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 void bta_gattc_set_discover_st(tBTA_GATTC_SERV *p_srcb)
 {
-    tBTA_GATTC_CB   *p_cb = &bta_gattc_cb;
     uint8_t   i;
 
 #if (BLE_INCLUDED == TRUE)
@@ -894,10 +887,10 @@ void bta_gattc_set_discover_st(tBTA_GATTC_SERV *p_srcb)
 #endif
     for (i = 0; i < BTA_GATTC_CLCB_MAX; i ++)
     {
-        if (p_cb->clcb[i].p_srcb == p_srcb)
+        if (bta_gattc_cb.clcb[i].p_srcb == p_srcb)
         {
-            p_cb->clcb[i].status = BTA_GATT_OK;
-            p_cb->clcb[i].state = BTA_GATTC_DISCOVER_ST;
+            bta_gattc_cb.clcb[i].status = BTA_GATT_OK;
+            bta_gattc_cb.clcb[i].state = BTA_GATTC_DISCOVER_ST;
         }
     }
 }
@@ -1511,7 +1504,6 @@ void bta_gattc_fail(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_DATA *p_data)
 *******************************************************************************/
 static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg)
 {
-    tBTA_GATTC_CB       *p_cb = &bta_gattc_cb;
     tBTA_GATTC_IF       client_if = p_clreg->client_if;
     tBTA_GATTC          cb_data;
     tBTA_GATTC_CBACK    *p_cback = p_clreg->p_cback;
@@ -1528,9 +1520,9 @@ static void bta_gattc_deregister_cmpl(tBTA_GATTC_RCB *p_clreg)
         /* callback with de-register event */
         (*p_cback)(BTA_GATTC_DEREG_EVT,  (tBTA_GATTC *)&cb_data);
 
-    if (bta_gattc_num_reg_app() == 0 && p_cb->state == BTA_GATTC_STATE_DISABLING)
+    if (bta_gattc_num_reg_app() == 0 && bta_gattc_cb.state == BTA_GATTC_STATE_DISABLING)
     {
-        p_cb->state = BTA_GATTC_STATE_DISABLED;
+        bta_gattc_cb.state = BTA_GATTC_STATE_DISABLED;
     }
 }
 /*******************************************************************************
@@ -1621,13 +1613,12 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, BD_ADDR bda)
 ** Returns          None.
 **
 *******************************************************************************/
-void bta_gattc_process_api_refresh(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+void bta_gattc_process_api_refresh(tBTA_GATTC_DATA * p_msg)
 {
     tBTA_GATTC_SERV *p_srvc_cb = bta_gattc_find_srvr_cache(p_msg->api_conn.remote_bda);
     tBTA_GATTC_CLCB      *p_clcb = &bta_gattc_cb.clcb[0];
     bool         found = false;
     uint8_t           i;
-    UNUSED(p_cb);
 
     if (p_srvc_cb != NULL)
     {
@@ -2018,11 +2009,10 @@ void bta_gattc_process_listen_all(uint8_t cif)
 ** Returns          void
 **
 ********************************************************************************/
-void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+void bta_gattc_listen(tBTA_GATTC_DATA * p_msg)
 {
     tBTA_GATTC_RCB      *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_listen.client_if);
     tBTA_GATTC          cb_data;
-    UNUSED(p_cb);
 
     cb_data.reg_oper.status = BTA_GATT_ERROR;
     cb_data.reg_oper.client_if = p_msg->api_listen.client_if;
@@ -2091,11 +2081,10 @@ void bta_gattc_listen(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
 ** Returns          void
 **
 ********************************************************************************/
-void bta_gattc_broadcast(tBTA_GATTC_CB *p_cb, tBTA_GATTC_DATA * p_msg)
+void bta_gattc_broadcast(tBTA_GATTC_DATA * p_msg)
 {
     tBTA_GATTC_RCB      *p_clreg = bta_gattc_cl_get_regcb(p_msg->api_listen.client_if);
     tBTA_GATTC          cb_data;
-    UNUSED(p_cb);
 
     cb_data.reg_oper.client_if = p_msg->api_listen.client_if;
     cb_data.reg_oper.status = BTM_BleBroadcast(p_msg->api_listen.start);
