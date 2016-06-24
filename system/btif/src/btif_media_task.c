@@ -3004,10 +3004,8 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
             /* Read PCM data and upsample them if needed */
             if (btif_media_aa_read_feeding(UIPC_CH_ID_AV_AUDIO))
             {
-                /* SBC encode and descramble frame */
                 SBC_Encoder(&(btif_media_cb.encoder));
-                A2D_SbcChkFrInit(btif_media_cb.encoder.pu8Packet);
-                A2D_SbcDescramble(btif_media_cb.encoder.pu8Packet, btif_media_cb.encoder.u16PacketLength);
+
                 /* Update SBC frame length */
                 p_buf->len += btif_media_cb.encoder.u16PacketLength;
                 nb_frame--;
