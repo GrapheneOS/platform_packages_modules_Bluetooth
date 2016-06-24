@@ -54,11 +54,6 @@ typedef struct
 *****************************************************************************/
 
 /* control block declaration */
-#if BTA_DYNAMIC_MEMORY == FALSE
 extern tBTA_AR_CB bta_ar_cb;
-#else
-extern tBTA_AR_CB *bta_ar_cb_ptr;
-#define bta_ar_cb (*bta_ar_cb_ptr)
-#endif
 
 #endif /* BTA_AR_INT_H */
