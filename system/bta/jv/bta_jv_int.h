@@ -397,12 +397,7 @@ enum
 };
 
 /* JV control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_JV_CB bta_jv_cb;
-#else
-extern tBTA_JV_CB *bta_jv_cb_ptr;
-#define bta_jv_cb (*bta_jv_cb_ptr)
-#endif
 
 /* config struct */
 extern tBTA_JV_CFG *p_bta_jv_cfg;
