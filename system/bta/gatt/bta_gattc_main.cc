@@ -330,7 +330,6 @@ bool bta_gattc_sm_execute(tBTA_GATTC_CLCB *p_clcb, uint16_t event, tBTA_GATTC_DA
 *******************************************************************************/
 bool bta_gattc_hdl_event(BT_HDR *p_msg)
 {
-    tBTA_GATTC_CB *p_cb = &bta_gattc_cb;
     tBTA_GATTC_CLCB *p_clcb = NULL;
     tBTA_GATTC_RCB      *p_clreg;
     bool             rt = true;
@@ -340,45 +339,45 @@ bool bta_gattc_hdl_event(BT_HDR *p_msg)
     switch (p_msg->event)
     {
         case BTA_GATTC_API_DISABLE_EVT:
-            bta_gattc_disable(p_cb);
+            bta_gattc_disable();
             break;
 
         case BTA_GATTC_API_REG_EVT:
-            bta_gattc_register(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_register((tBTA_GATTC_DATA *) p_msg);
             break;
 
         case BTA_GATTC_INT_START_IF_EVT:
-            bta_gattc_start_if(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_start_if((tBTA_GATTC_DATA *) p_msg);
             break;
 
         case BTA_GATTC_API_DEREG_EVT:
             p_clreg = bta_gattc_cl_get_regcb(((tBTA_GATTC_DATA *)p_msg)->api_dereg.client_if);
-            bta_gattc_deregister(p_cb, p_clreg);
+            bta_gattc_deregister(p_clreg);
             break;
 
         case BTA_GATTC_API_OPEN_EVT:
-            bta_gattc_process_api_open(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_process_api_open((tBTA_GATTC_DATA *) p_msg);
             break;
 
         case BTA_GATTC_API_CANCEL_OPEN_EVT:
-            bta_gattc_process_api_open_cancel(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_process_api_open_cancel((tBTA_GATTC_DATA *) p_msg);
             break;
 
         case BTA_GATTC_API_REFRESH_EVT:
-            bta_gattc_process_api_refresh(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_process_api_refresh((tBTA_GATTC_DATA *) p_msg);
             break;
 
 #if (BLE_INCLUDED == TRUE)
         case BTA_GATTC_API_LISTEN_EVT:
-            bta_gattc_listen(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_listen((tBTA_GATTC_DATA *) p_msg);
             break;
         case BTA_GATTC_API_BROADCAST_EVT:
-            bta_gattc_broadcast(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_broadcast((tBTA_GATTC_DATA *) p_msg);
             break;
 #endif
 
         case BTA_GATTC_ENC_CMPL_EVT:
-            bta_gattc_process_enc_cmpl(p_cb, (tBTA_GATTC_DATA *) p_msg);
+            bta_gattc_process_enc_cmpl((tBTA_GATTC_DATA *) p_msg);
             break;
 
         default:
