@@ -95,12 +95,7 @@ typedef struct
 
 
 /* SDP control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_SDP_CB bta_sdp_cb;
-#else
-extern tBTA_SDP_CB *bta_sdp_cb_ptr;
-#define bta_sdp_cb (*bta_sdp_cb_ptr)
-#endif
 
 /* config struct */
 extern tBTA_SDP_CFG *p_bta_sdp_cfg;

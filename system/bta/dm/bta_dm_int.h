@@ -1048,28 +1048,13 @@ extern const tBTA_DM_EIR_CONF bta_dm_eir_cfg;
 extern tBTA_DM_EIR_CONF *p_bta_dm_eir_cfg;
 
 /* DM control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_DM_CB  bta_dm_cb;
-#else
-extern tBTA_DM_CB *bta_dm_cb_ptr;
-#define bta_dm_cb (*bta_dm_cb_ptr)
-#endif
 
 /* DM search control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_DM_SEARCH_CB  bta_dm_search_cb;
-#else
-extern tBTA_DM_SEARCH_CB *bta_dm_search_cb_ptr;
-#define bta_dm_search_cb (*bta_dm_search_cb_ptr)
-#endif
 
 /* DI control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 extern tBTA_DM_DI_CB  bta_dm_di_cb;
-#else
-extern tBTA_DM_DI_CB *bta_dm_di_cb_ptr;
-#define bta_dm_di_cb (*bta_dm_di_cb_ptr)
-#endif
 
 extern bool bta_dm_sm_execute(BT_HDR *p_msg);
 extern void bta_dm_sm_disable( void );

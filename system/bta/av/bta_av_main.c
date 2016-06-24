@@ -199,9 +199,7 @@ const tBTA_AV_NSM_ACT bta_av_nsm_act[] =
 *****************************************************************************/
 
 /* AV control block */
-#if (BTA_DYNAMIC_MEMORY == FALSE)
 tBTA_AV_CB  bta_av_cb;
-#endif
 
 #if (BTA_AV_DEBUG == TRUE)
 static char *bta_av_st_code(uint8_t state);
