@@ -216,15 +216,13 @@ uint16_t set_read_value(btgatt_read_params_t *p_dest, tBTA_GATTC_READ *p_src)
     p_dest->status = p_src->status;
     p_dest->handle = p_src->handle;
 
-    if (( p_src->status == BTA_GATT_OK ) &&(p_src->p_value != NULL))
+    if (( p_src->status == BTA_GATT_OK ) &&(p_src->len != 0))
     {
-        LOG_INFO(LOG_TAG, "%s len = %d ", __func__, p_src->p_value->len);
-        p_dest->value.len = p_src->p_value->len;
-        if ( p_src->p_value->len > 0  && p_src->p_value->p_value != NULL )
-            memcpy(p_dest->value.value, p_src->p_value->p_value,
-                    p_src->p_value->len);
+        LOG_INFO(LOG_TAG, "%s len = %d ", __func__, p_src->len);
+        p_dest->value.len = p_src->len;
+        memcpy(p_dest->value.value, p_src->value, p_src->len);
 
-        len += p_src->p_value->len;
+        len += p_src->len;
     } else {
         p_dest->value.len = 0;
     }

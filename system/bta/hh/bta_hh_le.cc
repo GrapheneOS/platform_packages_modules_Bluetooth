@@ -641,10 +641,9 @@ void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
                             tBTA_GATTC_READ *p_data)
 {
     /* if the length of the descriptor value is right, parse it */
-    if (p_data->status == BTA_GATT_OK &&
-        p_data->p_value && p_data->p_value->len == 2)
+    if (p_data->status == BTA_GATT_OK && p_data->len == 2)
     {
-        uint8_t *pp = p_data->p_value->p_value;
+        uint8_t *pp = p_data->value;
 
         STREAM_TO_UINT8(p_rpt->rpt_id, pp);
         STREAM_TO_UINT8(p_rpt->rpt_type, pp);
@@ -695,9 +694,8 @@ void bta_hh_le_save_ext_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb,
 {
     /* if the length of the descriptor value is right, parse it
       assume it's a 16 bits UUID */
-    if (p_data->status == BTA_GATT_OK &&
-        p_data->p_value && p_data->p_value->len == 2) {
-        uint8_t *pp = p_data->p_value->p_value;
+    if (p_data->status == BTA_GATT_OK && p_data->len == 2) {
+        uint8_t *pp = p_data->value;
         STREAM_TO_UINT16(p_dev_cb->hid_srvc.ext_rpt_ref, pp);
 
 #if (BTA_HH_DEBUG == TRUE)
@@ -1551,14 +1549,14 @@ void bta_hh_le_save_rpt_map(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
 
     osi_free_and_reset((void **)&p_srvc->rpt_map);
 
-    if (p_data->p_value->len > 0)
-        p_srvc->rpt_map = (uint8_t *)osi_malloc(p_data->p_value->len);
+    if (p_data->len)
+        p_srvc->rpt_map = (uint8_t *)osi_malloc(p_data->len);
 
     if (p_srvc->rpt_map != NULL)
     {
-        uint8_t *pp = p_data->p_value->p_value;
-        STREAM_TO_ARRAY(p_srvc->rpt_map, pp, p_data->p_value->len);
-        p_srvc->descriptor.dl_len = p_data->p_value->len;
+        uint8_t *pp = p_data->value;
+        STREAM_TO_ARRAY(p_srvc->rpt_map, pp, p_data->len);
+        p_srvc->descriptor.dl_len = p_data->len;
         p_srvc->descriptor.dsc_list = p_dev_cb->hid_srvc.rpt_map;
     }
 }
@@ -1600,18 +1598,18 @@ void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_da
                                             p_char->uuid.uu.uuid16,
                                             p_char->handle);
 
-        if (p_rpt != NULL && p_data->p_value != NULL) {
-            p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->p_value->len + 1);
+        if (p_rpt != NULL && p_data->len != 0) {
+            p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->len + 1);
             /* pack data send to app */
             hs_data.status  = BTA_HH_OK;
-            p_buf->len = p_data->p_value->len + 1;
+            p_buf->len = p_data->len + 1;
             p_buf->layer_specific = 0;
             p_buf->offset = 0;
 
             /* attach report ID as the first byte of the report before sending it to USB HID driver */
             pp = (uint8_t*)(p_buf + 1);
             UINT8_TO_STREAM(pp, p_rpt->rpt_id);
-            memcpy(pp, p_data->p_value->p_value, p_data->p_value->len);
+            memcpy(pp, p_data->value, p_data->len);
 
             hs_data.rsp_data.p_rpt_data =p_buf;
         }
@@ -1639,11 +1637,11 @@ void bta_hh_le_proc_read_proto_mode(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p
     hs_data.handle  = p_dev_cb->hid_handle;
     hs_data.rsp_data.proto_mode = p_dev_cb->mode;
 
-    if (p_data->status == BTA_GATT_OK && p_data->p_value)
+    if (p_data->status == BTA_GATT_OK && p_data->len)
     {
         hs_data.status  = BTA_HH_OK;
         /* match up BTE/BTA report/boot mode def*/
-        hs_data.rsp_data.proto_mode = *(p_data->p_value->p_value);
+        hs_data.rsp_data.proto_mode = *(p_data->value);
         /* LE repot mode is the opposite value of BR/EDR report mode, flip it here */
         if (hs_data.rsp_data.proto_mode == 0)
             hs_data.rsp_data.proto_mode = BTA_HH_PROTO_BOOT_MODE;
@@ -1687,7 +1685,7 @@ void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     else if (char_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
     {
         //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
-        uint8_t *pp = p_data->p_value->p_value;
+        uint8_t *pp = p_data->value;
         uint16_t min, max, latency, tout;
         STREAM_TO_UINT16 (min, pp);
         STREAM_TO_UINT16 (max, pp);
@@ -1709,9 +1707,9 @@ void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
     }
     else
     {
-        if (p_data->status == BTA_GATT_OK && p_data->p_value)
+        if (p_data->status == BTA_GATT_OK && p_data->len)
         {
-            pp = p_data->p_value->p_value;
+            pp = p_data->value;
 
             switch (char_uuid)
             {
@@ -1811,7 +1809,7 @@ void bta_hh_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
                                                  p_desc->characteristic->uuid.uu.uuid16,
                                                  p_desc->characteristic->handle)) != NULL)
         {
-            pp = p_data->p_value->p_value;
+            pp = p_data->value;
             STREAM_TO_UINT16(p_rpt->client_cfg_value, pp);
 
             APPL_TRACE_DEBUG("Read Client Configuration: 0x%04x", p_rpt->client_cfg_value);

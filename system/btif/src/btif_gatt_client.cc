@@ -174,65 +174,6 @@ btgattc_error_t btif_gattc_translate_btm_status(tBTM_STATUS status) {
   }
 }
 
-void btapp_gattc_req_data(uint16_t event, char *p_dest, char *p_src) {
-  tBTA_GATTC *p_dest_data = (tBTA_GATTC *)p_dest;
-  tBTA_GATTC *p_src_data = (tBTA_GATTC *)p_src;
-
-  if (!p_src_data || !p_dest_data) return;
-
-  // Copy basic structure first
-  maybe_non_aligned_memcpy(p_dest_data, p_src_data, sizeof(*p_src_data));
-
-  // Allocate buffer for request data if necessary
-  switch (event) {
-    case BTA_GATTC_READ_CHAR_EVT:
-    case BTA_GATTC_READ_DESCR_EVT:
-
-      if (p_src_data->read.p_value != NULL) {
-        p_dest_data->read.p_value =
-            (tBTA_GATT_UNFMT *)osi_malloc(sizeof(tBTA_GATT_UNFMT));
-
-        memcpy(p_dest_data->read.p_value, p_src_data->read.p_value,
-               sizeof(tBTA_GATT_UNFMT));
-
-        // Allocate buffer for att value if necessary
-        if (p_src_data->read.p_value->len > 0 &&
-            p_src_data->read.p_value->p_value != NULL) {
-          p_dest_data->read.p_value->p_value =
-              (uint8_t *)osi_malloc(p_src_data->read.p_value->len);
-          memcpy(p_dest_data->read.p_value->p_value,
-                 p_src_data->read.p_value->p_value,
-                 p_src_data->read.p_value->len);
-        }
-      } else {
-        BTIF_TRACE_WARNING("%s :Src read.p_value ptr is NULL for event  0x%x",
-                           __func__, event);
-        p_dest_data->read.p_value = NULL;
-      }
-      break;
-
-    default:
-      break;
-  }
-}
-
-void btapp_gattc_free_req_data(uint16_t event, tBTA_GATTC *p_data) {
-  switch (event) {
-    case BTA_GATTC_READ_CHAR_EVT:
-    case BTA_GATTC_READ_DESCR_EVT:
-      if (p_data != NULL && p_data->read.p_value != NULL) {
-        if (p_data->read.p_value->len > 0)
-          osi_free_and_reset((void **)&p_data->read.p_value->p_value);
-
-        osi_free_and_reset((void **)&p_data->read.p_value);
-      }
-      break;
-
-    default:
-      break;
-  }
-}
-
 void btif_gattc_init_dev_cb(void) { p_dev_cb.clear(); }
 
 void btif_gattc_add_remote_bdaddr(BD_ADDR p_bda, uint8_t addr_type) {
@@ -383,14 +324,12 @@ void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
       LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
       break;
   }
-
-  btapp_gattc_free_req_data(event, p_data);
 }
 
 void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data) {
   bt_status_t status = btif_transfer_context(
       btif_gattc_upstreams_evt, (uint16_t)event, (char *)p_data,
-      sizeof(tBTA_GATTC), btapp_gattc_req_data);
+      sizeof(tBTA_GATTC), NULL);
   ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
