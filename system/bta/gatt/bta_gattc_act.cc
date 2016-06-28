@@ -1235,10 +1235,7 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
 {
     uint8_t               event;
     tBTA_GATTC          cb_data;
-    tBTA_GATT_UNFMT     read_value;
-
     memset(&cb_data, 0, sizeof(tBTA_GATTC));
-    memset(&read_value, 0, sizeof(tBTA_GATT_UNFMT));
 
     cb_data.read.status     = p_data->status;
 
@@ -1246,9 +1243,8 @@ void bta_gattc_read_cmpl(tBTA_GATTC_CLCB *p_clcb, tBTA_GATTC_OP_CMPL *p_data)
     {
         cb_data.read.handle = p_data->p_cmpl->att_value.handle;
 
-        read_value.len = p_data->p_cmpl->att_value.len;
-        read_value.p_value = p_data->p_cmpl->att_value.value;
-        cb_data.read.p_value = &read_value;
+        cb_data.read.len = p_data->p_cmpl->att_value.len;
+        memcpy(cb_data.read.value, p_data->p_cmpl->att_value.value, cb_data.read.len);
     } else {
         cb_data.read.handle = p_clcb->p_q_cmd->api_read.handle;
     }
