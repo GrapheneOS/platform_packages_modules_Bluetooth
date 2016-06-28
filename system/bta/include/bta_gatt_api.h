@@ -244,7 +244,8 @@ typedef struct
     uint16_t              conn_id;
     tBTA_GATT_STATUS    status;
     uint16_t              handle;
-    tBTA_GATT_UNFMT  *p_value;
+    uint16_t              len;
+    uint8_t               value[BTA_GATT_MAX_ATTR_LEN];
 }tBTA_GATTC_READ;
 
 typedef struct
