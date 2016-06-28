@@ -49,7 +49,7 @@ public class HfpClientConference extends Conference {
     @Override
     public void onDisconnect() {
         Log.d(TAG, "onDisconnect");
-        mHeadsetProfile.terminateCall(mDevice, 0);
+        mHeadsetProfile.terminateCall(mDevice, null);
         setDisconnected(new DisconnectCause(DisconnectCause.LOCAL));
     }
 
