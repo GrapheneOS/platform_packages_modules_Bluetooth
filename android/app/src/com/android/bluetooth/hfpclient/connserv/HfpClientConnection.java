@@ -23,6 +23,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.telecom.Connection;
 import android.telecom.DisconnectCause;
+import android.telecom.PhoneAccount;
 import android.telecom.TelecomManager;
 import android.util.Log;
 
@@ -30,38 +31,64 @@ import java.util.UUID;
 
 public class HfpClientConnection extends Connection {
     private static final String TAG = "HfpClientConnection";
+    private static final boolean DBG = true;
 
     private final Context mContext;
     private final BluetoothDevice mDevice;
-
     private BluetoothHeadsetClient mHeadsetProfile;
+
     private BluetoothHeadsetClientCall mCurrentCall;
     private boolean mClosed;
     private boolean mLocalDisconnect;
     private boolean mClientHasEcc;
     private boolean mAdded;
 
+    // Constructor to be used when there's an existing call (such as that created on the AG or
+    // when connection happens and we see calls for the first time).
     public HfpClientConnection(Context context, BluetoothDevice device,
-            BluetoothHeadsetClient client, BluetoothHeadsetClientCall call, Uri number) {
+            BluetoothHeadsetClient client, BluetoothHeadsetClientCall call) {
         mDevice = device;
         mContext = context;
         mHeadsetProfile = client;
 
+        if (call == null) {
+            throw new IllegalStateException("Call is null");
+        }
+
+        mCurrentCall = call;
+        handleCallChanged();
+        finishInitializing();
+    }
+
+    // Constructor to be used when a call is intiated on the HF. The call handle is obtained by
+    // using the dial() command.
+    public HfpClientConnection(Context context, BluetoothDevice device,
+            BluetoothHeadsetClient client, Uri number) {
+        mDevice = device;
+        mContext = context;
+        mHeadsetProfile = client;
+
+        if (mHeadsetProfile == null) {
+            throw new IllegalStateException("HeadsetProfile is null, returning");
+        }
+
+        mCurrentCall = mHeadsetProfile.dial(
+            mDevice, number.getSchemeSpecificPart());
+        if (mCurrentCall == null) {
+            close(DisconnectCause.ERROR);
+            Log.e(TAG, "Failed to create the call, dial failed.");
+            return;
+        }
+
         setInitializing();
+        setDialing();
+        finishInitializing();
+    }
 
-        if (call != null) {
-            mCurrentCall = call;
-            handleCallChanged();
-        } else if (mHeadsetProfile != null) {
-            mCurrentCall = mHeadsetProfile.dial(
-                mDevice, number.getSchemeSpecificPart());
-            setDialing();
-        }
-
-        if (mHeadsetProfile != null) {
-            mClientHasEcc = HfpClientConnectionService.hasHfpClientEcc(mHeadsetProfile, mDevice);
-        }
+    void finishInitializing() {
+        mClientHasEcc = HfpClientConnectionService.hasHfpClientEcc(mHeadsetProfile, mDevice);
         setAudioModeIsVoip(false);
+        Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, mCurrentCall.getNumber(), null);
         setAddress(number, TelecomManager.PRESENTATION_ALLOWED);
         setConnectionCapabilities(CAPABILITY_SUPPORT_HOLD | CAPABILITY_MUTE |
                 CAPABILITY_SEPARATE_FROM_CONFERENCE | CAPABILITY_DISCONNECT_FROM_CONFERENCE |
@@ -70,12 +97,6 @@ public class HfpClientConnection extends Connection {
 
     public UUID getUUID() {
         return mCurrentCall.getUUID();
-    }
-
-    public void onHfpConnected(BluetoothHeadsetClient client) {
-        mHeadsetProfile = client;
-        mClientHasEcc = HfpClientConnectionService.hasHfpClientEcc(mHeadsetProfile, mDevice);
-        handleCallChanged();
     }
 
     public void onHfpDisconnected() {
@@ -92,7 +113,7 @@ public class HfpClientConnection extends Connection {
     }
 
     public boolean inConference() {
-        return mAdded && mCurrentCall != null && mCurrentCall.isMultiParty() &&
+        return mAdded && mCurrentCall.isMultiParty() &&
                 getState() != Connection.STATE_DISCONNECTED;
     }
 
@@ -102,6 +123,10 @@ public class HfpClientConnection extends Connection {
     }
 
     public void updateCall(BluetoothHeadsetClientCall call) {
+        if (call == null) {
+            Log.e(TAG, "Updating call to a null value.");
+            return;
+        }
         mCurrentCall = call;
     }
 
@@ -109,7 +134,9 @@ public class HfpClientConnection extends Connection {
         HfpClientConference conference = (HfpClientConference) getConference();
         int state = mCurrentCall.getState();
 
-        Log.d(TAG, "Got call state change to " + state);
+        if (DBG) {
+            Log.d(TAG, "Got call state change to " + state);
+        }
         switch (state) {
             case BluetoothHeadsetClientCall.CALL_STATE_ACTIVE:
                 setActive();
@@ -142,11 +169,12 @@ public class HfpClientConnection extends Connection {
     }
 
     private void close(int cause) {
-        Log.d(TAG, "Closing " + mClosed);
+        if (DBG) {
+            Log.d(TAG, "Closing " + mClosed);
+        }
         if (mClosed) {
             return;
         }
-
         setDisconnected(new DisconnectCause(cause));
 
         mClosed = true;
@@ -157,34 +185,40 @@ public class HfpClientConnection extends Connection {
 
     @Override
     public void onPlayDtmfTone(char c) {
-        Log.d(TAG, "onPlayDtmfTone " + c + " " + mCurrentCall);
-        if (!mClosed && mHeadsetProfile != null) {
+        if (DBG) {
+            Log.d(TAG, "onPlayDtmfTone " + c + " " + mCurrentCall);
+        }
+        if (!mClosed) {
             mHeadsetProfile.sendDTMF(mDevice, (byte) c);
         }
     }
 
     @Override
     public synchronized void onDisconnect() {
-        Log.d(TAG, "onDisconnect " + mCurrentCall);
-        // In this state we can close the call without problems.
-        if (mHeadsetProfile != null) {
+        if (DBG) {
+            Log.d(TAG, "onDisconnect call: " + mCurrentCall + " state: " + mClosed);
+        }
+        // The call is not closed so we should send a terminate here.
+        if (!mClosed) {
             mHeadsetProfile.terminateCall(mDevice, mCurrentCall);
             mLocalDisconnect = true;
-        } else if (mCurrentCall == null) {
-            Log.w(TAG, "Call disconnected but call handle not received.");
         }
     }
 
     @Override
     public void onAbort() {
-        Log.d(TAG, "onAbort " + mCurrentCall);
+        if (DBG) {
+            Log.d(TAG, "onAbort " + mCurrentCall);
+        }
         onDisconnect();
     }
 
     @Override
     public void onHold() {
-        Log.d(TAG, "onHold " + mCurrentCall);
-        if (!mClosed && mHeadsetProfile != null) {
+        if (DBG) {
+            Log.d(TAG, "onHold " + mCurrentCall);
+        }
+        if (!mClosed) {
             mHeadsetProfile.holdCall(mDevice);
         }
     }
@@ -195,15 +229,19 @@ public class HfpClientConnection extends Connection {
             Log.w(TAG, "Ignoring unhold; call hold on the foreground call");
             return;
         }
-        Log.d(TAG, "onUnhold " + mCurrentCall);
-        if (!mClosed && mHeadsetProfile != null) {
+        if (DBG) {
+            Log.d(TAG, "onUnhold " + mCurrentCall);
+        }
+        if (!mClosed) {
             mHeadsetProfile.acceptCall(mDevice, BluetoothHeadsetClient.CALL_ACCEPT_HOLD);
         }
     }
 
     @Override
     public void onAnswer() {
-        Log.d(TAG, "onAnswer " + mCurrentCall);
+        if (DBG) {
+            Log.d(TAG, "onAnswer " + mCurrentCall);
+        }
         if (!mClosed) {
             mHeadsetProfile.acceptCall(mDevice, BluetoothHeadsetClient.CALL_ACCEPT_NONE);
         }
@@ -211,7 +249,9 @@ public class HfpClientConnection extends Connection {
 
     @Override
     public void onReject() {
-        Log.d(TAG, "onReject " + mCurrentCall);
+        if (DBG) {
+            Log.d(TAG, "onReject " + mCurrentCall);
+        }
         if (!mClosed) {
             mHeadsetProfile.rejectCall(mDevice);
         }

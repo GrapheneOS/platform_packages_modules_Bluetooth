@@ -345,6 +345,7 @@ public class HeadsetClientService extends ProfileService {
         public boolean terminateCall(BluetoothDevice device, BluetoothHeadsetClientCall call) {
             HeadsetClientService service = getService();
             if (service == null) {
+                Log.w(TAG, "service is null");
                 return false;
             }
             return service.terminateCall(device, call.getUUID());
