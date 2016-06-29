@@ -20,7 +20,8 @@ LOCAL_SRC_FILES := \
     src/hci_packet_parser.c \
     src/low_power_manager.c \
     src/packet_fragmenter.cc \
-    src/vendor.c
+    src/vendor.c \
+    ../../EventLogTags.logtags
 
 LOCAL_C_INCLUDES += \
     $(LOCAL_PATH)/include \
