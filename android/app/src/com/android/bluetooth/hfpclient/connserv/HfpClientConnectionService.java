@@ -144,7 +144,8 @@ public class HfpClientConnectionService extends ConnectionService {
                     }
                 }
             } else if (BluetoothHeadsetClient.ACTION_CALL_CHANGED.equals(action)) {
-                // If we are not connected, then when we actually do get connected -- the calls should
+                // If we are not connected, then when we actually do get connected --
+                // the calls should
                 // be added (see ACTION_CONNECTION_STATE_CHANGED intent above).
                 handleCall((BluetoothHeadsetClientCall)
                         intent.getParcelableExtra(BluetoothHeadsetClient.EXTRA_CALL));
@@ -202,7 +203,8 @@ public class HfpClientConnectionService extends ConnectionService {
         // In order to make sure that the service is sticky (recovers from errors when HFP
         // connection is still active) and to stop it we need a special intent since stopService
         // only recreates it.
-        if (intent.getBooleanExtra(HeadsetClientService.HFP_CLIENT_STOP_TAG, false)) {
+        if (intent != null &&
+            intent.getBooleanExtra(HeadsetClientService.HFP_CLIENT_STOP_TAG, false)) {
             // Stop the service.
             stopSelf();
             return 0;
@@ -267,6 +269,7 @@ public class HfpClientConnectionService extends ConnectionService {
                 mConnections.remove(call.getUUID());
             }
         }
+
         updateConferenceableConnections();
     }
 
@@ -385,74 +388,60 @@ public class HfpClientConnectionService extends ConnectionService {
         }
     }
 
+    // Updates any conferencable connections.
     private void updateConferenceableConnections() {
-        Collection<HfpClientConnection> all = mConnections.values();
+        boolean addConf = false;
+        if (DBG) {
+            Log.d(TAG, "Existing connections: " + mConnections + " existing conference " +
+                mConference);
+        }
 
-        List<Connection> held = new ArrayList<>();
-        List<Connection> active = new ArrayList<>();
-        List<Connection> group = new ArrayList<>();
-        for (HfpClientConnection connection : all) {
-            switch (connection.getState()) {
-                case Connection.STATE_ACTIVE:
-                    active.add(connection);
-                    break;
-                case Connection.STATE_HOLDING:
-                    held.add(connection);
-                    break;
-                default:
-                    break;
-            }
-            if (connection.inConference()) {
-                group.add(connection);
+        // If we have an existing conference call then loop through all connections and update any
+        // connections that may have switched from conference -> non-conference.
+        if (mConference != null) {
+            for (Connection confConn : mConference.getConnections()) {
+                if (!((HfpClientConnection) confConn).inConference()) {
+                    if (DBG) {
+                        Log.d(TAG, "Removing connection " + confConn + " from conference.");
+                    }
+                    mConference.removeConnection(confConn);
+                }
             }
         }
-        for (Connection connection : held) {
-            connection.setConferenceableConnections(active);
-        }
-        for (Connection connection : active) {
-            connection.setConferenceableConnections(held);
-        }
-        if (group.size() > 1 && mConference == null) {
-            BluetoothDevice device = getDevice(getHandle());
-            mConference = new HfpClientConference(getHandle(), device, mHeadsetProfile);
-            if (group.get(0).getState() == Connection.STATE_ACTIVE) {
-                mConference.setActive();
-            } else {
-                mConference.setOnHold();
+
+        // If we have connections that are not already part of the conference then add them.
+        // NOTE: addConnection takes care of duplicates (by mem addr) and the lifecycle of a
+        // connection is maintained by the UUID.
+        for (Connection otherConn : mConnections.values()) {
+            if (((HfpClientConnection) otherConn).inConference()) {
+                // If this is the first connection with conference, create the conference first.
+                if (mConference == null) {
+                    mConference = new HfpClientConference(getHandle(), mDevice, mHeadsetProfile);
+                }
+                if (mConference.addConnection(otherConn)) {
+                    if (DBG) {
+                        Log.d(TAG, "Adding connection " + otherConn + " to conference.");
+                    }
+                    addConf = true;
+                }
             }
-            for (Connection connection : group) {
-                mConference.addConnection(connection);
+        }
+
+        // If we have no connections in the conference we should simply end it.
+        if (mConference != null && mConference.getConnections().size() == 0) {
+            if (DBG) {
+                Log.d(TAG, "Conference has no connection, destroying");
+            }
+            mConference.destroy();
+            mConference = null;
+        }
+
+        // If we have a valid conference and not previously added then add it.
+        if (mConference != null && addConf) {
+            if (DBG) {
+                Log.d(TAG, "Adding conference to stack.");
             }
             addConference(mConference);
-        }
-        if (mConference != null) {
-            List<Connection> toRemove = new ArrayList<>();
-            for (Connection connection : mConference.getConnections()) {
-                if (!((HfpClientConnection) connection).inConference()) {
-                    toRemove.add(connection);
-                }
-            }
-            for (Connection connection : toRemove) {
-                mConference.removeConnection(connection);
-            }
-            if (mConference.getConnections().size() <= 1) {
-                mConference.destroy();
-                mConference = null;
-            } else {
-                List<Connection> notConferenced = new ArrayList<>();
-                for (Connection connection : all) {
-                    if (connection.getConference() == null &&
-                            (connection.getState() == Connection.STATE_HOLDING ||
-                             connection.getState() == Connection.STATE_ACTIVE)) {
-                        if (((HfpClientConnection) connection).inConference()) {
-                            mConference.addConnection(connection);
-                        } else {
-                            notConferenced.add(connection);
-                        }
-                    }
-                }
-                mConference.setConferenceableConnections(notConferenced);
-            }
         }
     }
 
@@ -460,8 +449,8 @@ public class HfpClientConnectionService extends ConnectionService {
         for (HfpClientConnection connection : mConnections.values()) {
             connection.onHfpDisconnected();
         }
-
         mConnections.clear();
+
         if (mConference != null) {
             mConference.destroy();
             mConference = null;
