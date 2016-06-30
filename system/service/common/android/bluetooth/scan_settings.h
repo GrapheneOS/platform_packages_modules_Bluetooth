@@ -31,7 +31,8 @@ namespace bluetooth {
 class ScanSettings : public Parcelable, public ::bluetooth::ScanSettings {
  public:
   ScanSettings() = default;
-  ScanSettings(const ::bluetooth::ScanSettings& scan_settings)
+  // NOLINT, implicit converter
+  ScanSettings(const ::bluetooth::ScanSettings& scan_settings) // NOLINT
       : ::bluetooth::ScanSettings(scan_settings){};
   ~ScanSettings() = default;
 
