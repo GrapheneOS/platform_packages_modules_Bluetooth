@@ -348,7 +348,7 @@ public class HeadsetClientService extends ProfileService {
                 Log.w(TAG, "service is null");
                 return false;
             }
-            return service.terminateCall(device, call.getUUID());
+            return service.terminateCall(device, call != null ? call.getUUID() : null);
         }
 
         @Override
