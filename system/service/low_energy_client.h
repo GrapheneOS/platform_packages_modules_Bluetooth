@@ -248,7 +248,7 @@ class LowEnergyClientFactory
  public:
   // Don't construct/destruct directly except in tests. Instead, obtain a handle
   // from an Adapter instance.
-  LowEnergyClientFactory(Adapter& adapter);
+  explicit LowEnergyClientFactory(Adapter& adapter);
   ~LowEnergyClientFactory() override;
 
   // BluetoothInstanceFactory override:

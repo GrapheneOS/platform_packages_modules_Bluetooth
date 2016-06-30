@@ -46,7 +46,7 @@ class DualModeController {
  public:
   class Properties {
    public:
-    Properties(const std::string& file_name);
+    explicit Properties(const std::string& file_name);
 
     // Access private configuration data
 
