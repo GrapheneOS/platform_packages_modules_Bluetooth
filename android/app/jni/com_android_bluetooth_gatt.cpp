@@ -45,13 +45,13 @@
     uuid_lsb(uuid_ptr),  uuid_msb(uuid_ptr)
 
 #define GATT_ID_PARAMS(attr_ptr) \
-    attr_ptr->inst_id, \
-    UUID_PARAMS((&attr_ptr->uuid))
+    (attr_ptr)->inst_id, \
+    UUID_PARAMS((&(attr_ptr)->uuid))
 
 #define SRVC_ID_PARAMS(srvc_ptr) \
-    (srvc_ptr->is_primary ? \
+    ((srvc_ptr)->is_primary ? \
     BTGATT_SERVICE_TYPE_PRIMARY : BTGATT_SERVICE_TYPE_SECONDARY), \
-    GATT_ID_PARAMS((&srvc_ptr->id))
+    GATT_ID_PARAMS(&(srvc_ptr)->id)
 
 
 static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb)
