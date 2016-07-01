@@ -31,7 +31,8 @@ namespace bluetooth {
 class AdvertiseSettings : public Parcelable,
                           public ::bluetooth::AdvertiseSettings {
  public:
-  AdvertiseSettings(const ::bluetooth::AdvertiseSettings& advertise_settings)
+  // NOLINT, implicit converter
+  AdvertiseSettings(const ::bluetooth::AdvertiseSettings& advertise_settings) // NOLINT
       : ::bluetooth::AdvertiseSettings(advertise_settings){};
   AdvertiseSettings() = default;
   ~AdvertiseSettings() = default;

@@ -31,7 +31,8 @@ namespace bluetooth {
 class ScanResult : public Parcelable, public ::bluetooth::ScanResult {
  public:
   ScanResult() = default;
-  ScanResult(const ::bluetooth::ScanResult& scan_result)
+  // NOLINT, implicit converter
+  ScanResult(const ::bluetooth::ScanResult& scan_result)  // NOLINT
       : ::bluetooth::ScanResult(scan_result){};
   ~ScanResult() = default;
 

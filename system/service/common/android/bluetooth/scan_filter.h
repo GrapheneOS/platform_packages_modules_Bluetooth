@@ -31,7 +31,8 @@ namespace bluetooth {
 class ScanFilter : public Parcelable, public ::bluetooth::ScanFilter {
  public:
   ScanFilter() = default;
-  ScanFilter(const ::bluetooth::ScanFilter& scan_filter)
+  // NOLINT, implicit converter
+  ScanFilter(const ::bluetooth::ScanFilter& scan_filter) // NOLINT
       : ::bluetooth::ScanFilter(scan_filter){};
   ~ScanFilter() = default;
 
