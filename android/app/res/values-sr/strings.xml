@@ -125,9 +125,11 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Брисање"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Сачувај"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Откажи"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Изаберите налоге које желите да делите преко Bluetooth-а. И даље морате да прихватите било какав приступ налозима при повезивању."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Изаберите налоге које желите да делите преко Bluetooth-а. И даље морате да прихватите било какав приступ налозима при повезивању."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Преосталих места:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Икона апликације"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Подешавања Bluetooth дељења порука"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Није могуће изабрати налог. Нема преосталих места"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth аудио је повезан"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Веза са Bluetooth аудијом је прекинута"</string>
 </resources>
