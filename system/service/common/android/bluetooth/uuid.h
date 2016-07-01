@@ -31,7 +31,8 @@ namespace bluetooth {
 class UUID : public Parcelable, public ::bluetooth::UUID {
  public:
   UUID() = default;
-  UUID(const ::bluetooth::UUID& uuid) : ::bluetooth::UUID(uuid){};
+  // NOLINT, implicit converter
+  UUID(const ::bluetooth::UUID& uuid) : ::bluetooth::UUID(uuid){};  // NOLINT
   ~UUID() = default;
 
   // Write |this| parcelable to the given |parcel|.  Keep in mind that

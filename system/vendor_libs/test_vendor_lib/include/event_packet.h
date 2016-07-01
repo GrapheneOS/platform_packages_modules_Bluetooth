@@ -160,7 +160,7 @@ class EventPacket : public Packet {
   static const size_t kEventHeaderSize = 1;
 
  private:
-  EventPacket(const uint8_t event_code);
+  explicit EventPacket(const uint8_t event_code);
   EventPacket(const uint8_t event_code, const vector<uint8_t>& payload);
 };
 

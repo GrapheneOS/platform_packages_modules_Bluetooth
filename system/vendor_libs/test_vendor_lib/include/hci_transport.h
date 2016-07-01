@@ -79,7 +79,7 @@ class HciTransport : public base::MessageLoopForIO::Watcher {
     // Using this constructor is equivalent to calling the 2-argument
     // constructor with a |delay| of 0. It is used to generate event responses
     // with no delay.
-    TimeStampedEvent(std::unique_ptr<EventPacket> event);
+    explicit TimeStampedEvent(std::unique_ptr<EventPacket> event);
 
     const base::TimeTicks& GetTimeStamp() const;
 

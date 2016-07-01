@@ -235,7 +235,7 @@ class GattServer : public BluetoothInstance,
 
   // Used to keep track of a pending Handle-Value indication.
   struct PendingIndication {
-    PendingIndication(const GattCallback& callback)
+    explicit PendingIndication(const GattCallback& callback)
         : has_success(false), callback(callback) {}
 
     bool has_success;

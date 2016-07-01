@@ -43,8 +43,8 @@ namespace test_vendor_lib {
 // in size.
 class CommandPacket : public Packet {
  public:
-  CommandPacket(vector<uint8_t> header);
-  CommandPacket(uint16_t opcode);
+  explicit CommandPacket(vector<uint8_t> header);
+  explicit CommandPacket(uint16_t opcode);
   CommandPacket(vector<uint8_t> header, vector<uint8_t> payload);
 
   virtual ~CommandPacket() override = default;
