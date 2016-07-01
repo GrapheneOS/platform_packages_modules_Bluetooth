@@ -31,7 +31,8 @@ namespace bluetooth {
 class GattIdentifier : public Parcelable, public ::bluetooth::GattIdentifier {
  public:
   GattIdentifier() = default;
-  GattIdentifier(const ::bluetooth::GattIdentifier& gatt_identifier)
+  // NOLINT, implicit converter
+  GattIdentifier(const ::bluetooth::GattIdentifier& gatt_identifier)  // NOLINT
       : ::bluetooth::GattIdentifier(gatt_identifier){};
   ~GattIdentifier() = default;
 
