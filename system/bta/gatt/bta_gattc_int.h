@@ -32,10 +32,6 @@
 
 #include "bt_common.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************
 **  Constants and data types
 *****************************************************************************/
@@ -129,6 +125,8 @@ typedef struct
     tBTA_GATT_AUTH_REQ      auth_req;
     uint16_t                  handle;
     tBTA_GATTC_EVT          cmpl_evt;
+    GATT_READ_OP_CB         read_cb;
+    void*                   read_cb_data;
 } tBTA_GATTC_API_READ;
 
 typedef struct
@@ -136,11 +134,12 @@ typedef struct
     BT_HDR                  hdr;
     tBTA_GATT_AUTH_REQ      auth_req;
     uint16_t                  handle;
-    tBTA_GATTC_EVT          cmpl_evt;
     tBTA_GATTC_WRITE_TYPE   write_type;
     uint16_t                  offset;
     uint16_t                  len;
     uint8_t                   *p_value;
+    GATT_WRITE_OP_CB        write_cb;
+    void*                   write_cb_data;
 }tBTA_GATTC_API_WRITE;
 
 typedef struct
@@ -496,9 +495,5 @@ extern bool bta_gattc_conn_dealloc(BD_ADDR remote_bda);
 
 extern bool bta_gattc_cache_load(tBTA_GATTC_CLCB *p_clcb);
 extern void bta_gattc_cache_reset(BD_ADDR server_bda);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BTA_GATTC_INT_H */

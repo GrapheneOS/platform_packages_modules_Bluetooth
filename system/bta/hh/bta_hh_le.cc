@@ -81,6 +81,10 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB *p_cb, bool check_bond);
 struct gatt_operation {
     uint8_t type;
     uint16_t handle;
+    GATT_READ_OP_CB read_cb;
+    void* read_cb_data;
+    GATT_WRITE_OP_CB write_cb;
+    void* write_cb_data;
 
     /* write-specific fields */
     tBTA_GATTC_WRITE_TYPE write_type;
@@ -92,13 +96,49 @@ static std::unordered_map<uint16_t, std::list<gatt_operation>> gatt_op_queue;
 // contain connection ids that currently execute operations
 static std::unordered_set<uint16_t> gatt_op_queue_executing;
 
-static void mark_as_not_executing(UINT16 conn_id) {
+static void mark_as_not_executing(uint16_t conn_id) {
     gatt_op_queue_executing.erase(conn_id);
 }
 
-static void gatt_op_queue_clean(UINT16 conn_id) {
+static void gatt_op_queue_clean(uint16_t conn_id) {
     gatt_op_queue.erase(conn_id);
     gatt_op_queue_executing.erase(conn_id);
+}
+
+static void gatt_execute_next_op(uint16_t conn_id);
+GATT_READ_OP_CB act_read_cb = NULL;
+void* act_read_cb_data = NULL;
+static void gatt_read_op_finished(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len, uint8_t *value, void* data) {
+    GATT_READ_OP_CB tmp_cb = act_read_cb;
+    void* tmp_cb_data = act_read_cb_data;
+
+    act_read_cb = NULL;
+    act_read_cb_data = NULL;
+
+    mark_as_not_executing(conn_id);
+    gatt_execute_next_op(conn_id);
+
+    if (tmp_cb) {
+        tmp_cb(conn_id, status, handle, len, value, tmp_cb_data);
+        return;
+    }
+}
+
+GATT_WRITE_OP_CB act_write_cb = NULL;
+void* act_write_cb_data = NULL;
+static void gatt_write_op_finished(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data) {
+    GATT_WRITE_OP_CB tmp_cb = act_write_cb;
+    void* tmp_cb_data = act_write_cb_data;
+    act_write_cb = NULL;
+    act_write_cb_data = NULL;
+
+    mark_as_not_executing(conn_id);
+    gatt_execute_next_op(conn_id);
+
+    if (tmp_cb) {
+        tmp_cb(conn_id, status, handle, tmp_cb_data);
+        return;
+    }
 }
 
 static void gatt_execute_next_op(uint16_t conn_id) {
@@ -127,41 +167,58 @@ static void gatt_execute_next_op(uint16_t conn_id) {
 
     if (op.type == GATT_READ_CHAR) {
         const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
-        BTA_GATTC_ReadCharacteristic(conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE);
+        act_read_cb = op.read_cb;
+        act_read_cb_data = op.read_cb_data;
+        BTA_GATTC_ReadCharacteristic(conn_id, p_char->handle, BTA_GATT_AUTH_REQ_NONE,
+                                     gatt_read_op_finished, NULL);
 
     } else if (op.type == GATT_READ_DESC) {
         const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
-        BTA_GATTC_ReadCharDescr(conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE);
+        act_read_cb = op.read_cb;
+        act_read_cb_data = op.read_cb_data;
+        BTA_GATTC_ReadCharDescr(conn_id, p_desc->handle, BTA_GATT_AUTH_REQ_NONE,
+                                gatt_read_op_finished, NULL);
 
     } else if (op.type == GATT_WRITE_CHAR) {
         const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, op.handle);
+        act_write_cb = op.write_cb;
+        act_write_cb_data = op.write_cb_data;
         BTA_GATTC_WriteCharValue(conn_id, p_char->handle, op.write_type, std::move(op.value),
-                                 BTA_GATT_AUTH_REQ_NONE);
+                                 BTA_GATT_AUTH_REQ_NONE, gatt_write_op_finished, NULL);
 
     } else if (op.type == GATT_WRITE_DESC) {
         const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, op.handle);
+        act_write_cb = op.write_cb;
+        act_write_cb_data = op.write_cb_data;
         BTA_GATTC_WriteCharDescr(conn_id, p_desc->handle, BTA_GATTC_TYPE_WRITE,
-                                 std::move(op.value), BTA_GATT_AUTH_REQ_NONE);
+                                 std::move(op.value), BTA_GATT_AUTH_REQ_NONE,
+                                 gatt_write_op_finished, NULL);
     }
 
     gatt_ops.pop_front();
 }
 
-static void gatt_queue_read_op(uint8_t op_type, uint16_t conn_id, uint16_t handle) {
+static void gatt_queue_read_op(uint8_t op_type, uint16_t conn_id, uint16_t handle,
+                               GATT_READ_OP_CB cb, void* cb_data) {
   gatt_operation op;
   op.type = op_type;
   op.handle = handle;
+  op.read_cb = cb;
+  op.read_cb_data = cb_data;
   gatt_op_queue[conn_id].push_back(op);
   gatt_execute_next_op(conn_id);
 }
 
 static void gatt_queue_write_op(uint8_t op_type, uint16_t conn_id, uint16_t handle,
                                 vector<uint8_t> value,
-                                tBTA_GATTC_WRITE_TYPE write_type) {
+                                tBTA_GATTC_WRITE_TYPE write_type,
+                                GATT_WRITE_OP_CB cb, void* cb_data) {
   gatt_operation op;
   op.type = op_type;
   op.handle = handle;
   op.write_type = write_type;
+  op.write_cb = cb;
+  op.write_cb_data = cb_data;
   op.value = std::move(value);
 
   gatt_op_queue[conn_id].push_back(op);
@@ -613,37 +670,49 @@ static tBTA_GATTC_DESCRIPTOR *find_descriptor_by_short_uuid(uint16_t conn_id,
 
 /*******************************************************************************
 **
-** Function         bta_hh_le_read_char_dscrpt
+** Function         bta_hh_le_read_char_descriptor
 **
 ** Description      read characteristic descriptor
 **
 *******************************************************************************/
-static tBTA_HH_STATUS bta_hh_le_read_char_dscrpt(tBTA_HH_DEV_CB *p_cb, uint16_t char_handle, uint16_t short_uuid)
+static tBTA_HH_STATUS bta_hh_le_read_char_descriptor(tBTA_HH_DEV_CB *p_cb, uint16_t char_handle,
+                                                     uint16_t short_uuid, GATT_READ_OP_CB cb,
+                                                     void* cb_data)
 {
-    const tBTA_GATTC_DESCRIPTOR *p_desc = find_descriptor_by_short_uuid(p_cb->conn_id, char_handle, short_uuid);
+    const tBTA_GATTC_DESCRIPTOR *p_desc =
+        find_descriptor_by_short_uuid(p_cb->conn_id, char_handle, short_uuid);
     if (!p_desc)
         return BTA_HH_ERR;
 
-    gatt_queue_read_op(GATT_READ_DESC, p_cb->conn_id, p_desc->handle);
+    gatt_queue_read_op(GATT_READ_DESC, p_cb->conn_id, p_desc->handle, cb, cb_data);
     return BTA_HH_OK;
 }
 
 /*******************************************************************************
 **
-** Function         bta_hh_le_save_rpt_ref
+** Function         bta_hh_le_save_report_ref
 **
 ** Description      save report reference information and move to next one.
 **
 ** Parameters:
 **
 *******************************************************************************/
-void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
-                            tBTA_GATTC_READ *p_data)
+void bta_hh_le_save_report_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
+                            tGATT_STATUS status, uint8_t *value, uint16_t len)
 {
-    /* if the length of the descriptor value is right, parse it */
-    if (p_data->status == BTA_GATT_OK && p_data->len == 2)
+    if (status == BTA_GATT_INSUF_AUTHENTICATION)
     {
-        uint8_t *pp = p_data->value;
+        /* close connection right away */
+        p_dev_cb->status = BTA_HH_ERR_AUTH_FAILED;
+        /* close the connection and report service discovery complete with error */
+        bta_hh_le_api_disc_act(p_dev_cb);
+        return;
+    }
+
+    /* if the length of the descriptor value is right, parse it */
+    if (status == BTA_GATT_OK && len == 2)
+    {
+        uint8_t *pp = value;
 
         STREAM_TO_UINT8(p_rpt->rpt_id, pp);
         STREAM_TO_UINT8(p_rpt->rpt_type, pp);
@@ -665,44 +734,11 @@ void bta_hh_le_save_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_LE_RPT  *p_rpt,
                               &rpt_entry,
                               p_dev_cb->app_id);
     }
-    else if (p_data->status == BTA_GATT_INSUF_AUTHENTICATION)
-    {
-        /* close connection right away */
-        p_dev_cb->status = BTA_HH_ERR_AUTH_FAILED;
-        /* close the connection and report service discovery complete with error */
-        bta_hh_le_api_disc_act(p_dev_cb);
-        return;
-    }
 
     if (p_rpt->index < BTA_HH_LE_RPT_MAX - 1)
         p_rpt ++;
     else
         p_rpt = NULL;
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_save_rpt_ref
-**
-** Description      save report reference information and move to next one.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_save_ext_rpt_ref(tBTA_HH_DEV_CB *p_dev_cb,
-                                tBTA_GATTC_READ *p_data)
-{
-    /* if the length of the descriptor value is right, parse it
-      assume it's a 16 bits UUID */
-    if (p_data->status == BTA_GATT_OK && p_data->len == 2) {
-        uint8_t *pp = p_data->value;
-        STREAM_TO_UINT16(p_dev_cb->hid_srvc.ext_rpt_ref, pp);
-
-#if (BTA_HH_DEBUG == TRUE)
-        APPL_TRACE_DEBUG("%s: External Report Reference UUID 0x%04x", __func__,
-                    p_dev_cb->hid_srvc.ext_rpt_ref);
-#endif
-    }
 }
 
 /*******************************************************************************
@@ -805,15 +841,17 @@ void bta_hh_le_open_cmpl(tBTA_HH_DEV_CB *p_cb)
 
 /*******************************************************************************
 **
-** Function         bta_hh_le_write_char_clt_cfg
+** Function         bta_hh_le_write_ccc
 **
 ** Description      Utility function to find and write client configuration of
 **                  a characteristic
 **
 *******************************************************************************/
-bool bta_hh_le_write_char_clt_cfg(tBTA_HH_DEV_CB *p_cb,
+bool bta_hh_le_write_ccc(tBTA_HH_DEV_CB *p_cb,
                                      uint8_t char_handle,
-                                     uint16_t clt_cfg_value)
+                                     uint16_t clt_cfg_value,
+                                     GATT_WRITE_OP_CB cb,
+                                     void* cb_data)
 {
     tBTA_GATTC_DESCRIPTOR *p_desc = find_descriptor_by_short_uuid(p_cb->conn_id,
                                        char_handle, GATT_UUID_CHAR_CLIENT_CONFIG);
@@ -825,10 +863,41 @@ bool bta_hh_le_write_char_clt_cfg(tBTA_HH_DEV_CB *p_cb,
     UINT16_TO_STREAM(ptr, clt_cfg_value);
 
     gatt_queue_write_op(GATT_WRITE_DESC, p_cb->conn_id, p_desc->handle,
-                        std::move(value), BTA_GATTC_TYPE_WRITE);
+                        std::move(value), BTA_GATTC_TYPE_WRITE, cb, cb_data);
     return true;
 }
 
+bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb);
+
+static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data) {
+    uint8_t   srvc_inst_id, hid_inst_id;
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, handle);
+
+    uint16_t char_uuid = p_desc->characteristic->uuid.uu.uuid16;
+
+    srvc_inst_id = p_desc->characteristic->service->handle;
+    hid_inst_id = srvc_inst_id;
+    switch (char_uuid)
+    {
+    case GATT_UUID_BATTERY_LEVEL: /* battery level clt cfg registered */
+        hid_inst_id = bta_hh_le_find_service_inst_by_battery_inst_id(p_dev_cb, srvc_inst_id);
+        /* FALLTHROUGH */
+    case GATT_UUID_HID_BT_KB_INPUT:
+    case GATT_UUID_HID_BT_MOUSE_INPUT:
+    case GATT_UUID_HID_REPORT:
+        if (status == BTA_GATT_OK)
+            p_dev_cb->hid_srvc.report[p_dev_cb->clt_cfg_idx].client_cfg_value =
+                    BTA_GATT_CLT_CONFIG_NOTIFICATION;
+        p_dev_cb->clt_cfg_idx ++;
+        bta_hh_le_write_rpt_clt_cfg(p_dev_cb);
+        break;
+
+    default:
+        APPL_TRACE_ERROR("Unknown char ID clt cfg: 0x%04x", char_uuid);
+    }
+}
 /*******************************************************************************
 **
 ** Function         bta_hh_le_write_rpt_clt_cfg
@@ -837,7 +906,7 @@ bool bta_hh_le_write_char_clt_cfg(tBTA_HH_DEV_CB *p_cb,
 **                  enable all input notification upon connection open.
 **
 *******************************************************************************/
-bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb, uint8_t srvc_inst_id)
+bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb)
 {
     uint8_t           i;
     tBTA_HH_LE_RPT  *p_rpt = &p_cb->hid_srvc.report[p_cb->clt_cfg_idx];
@@ -847,9 +916,9 @@ bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb, uint8_t srvc_inst_id)
         /* enable notification for all input report, regardless mode */
         if (p_rpt->rpt_type == BTA_HH_RPTT_INPUT)
         {
-            if (bta_hh_le_write_char_clt_cfg(p_cb,
-                                             p_rpt->char_inst_id,
-                                             BTA_GATT_CLT_CONFIG_NOTIFICATION))
+            if (bta_hh_le_write_ccc(p_cb, p_rpt->char_inst_id,
+                                    BTA_GATT_CLT_CONFIG_NOTIFICATION,
+                                    write_rpt_ctl_cfg_cb, p_cb))
             {
                 p_cb->clt_cfg_idx = i;
                 return true;
@@ -866,6 +935,34 @@ bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB *p_cb, uint8_t srvc_inst_id)
         bta_hh_le_open_cmpl(p_cb);
     }
     return false;
+}
+
+static void write_proto_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data) {
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*) data;
+
+    if (p_dev_cb->state == BTA_HH_CONN_ST) {
+        /* Set protocol finished in CONN state*/
+
+        uint16_t cb_evt = p_dev_cb->w4_evt;
+        if (cb_evt == 0)
+            return;
+
+        tBTA_HH_CBDATA      cback_data;
+
+        cback_data.handle  = p_dev_cb->hid_handle;
+        cback_data.status = (status == BTA_GATT_OK) ? BTA_HH_OK : BTA_HH_ERR;
+
+        if (status == BTA_GATT_OK)
+            bta_hh_le_register_input_notif(p_dev_cb, p_dev_cb->mode, false);
+
+        p_dev_cb->w4_evt = 0;
+        (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
+    } else if (p_dev_cb->state == BTA_HH_W4_CONN_ST) {
+        p_dev_cb->status = (status == BTA_GATT_OK) ? BTA_HH_OK : BTA_HH_ERR_PROTO;
+
+        if ((p_dev_cb->disc_active & BTA_HH_LE_DISC_HIDS) == 0)
+            bta_hh_le_open_cmpl(p_dev_cb);
+    }
 }
 
 /*******************************************************************************
@@ -910,11 +1007,50 @@ bool bta_hh_le_set_protocol_mode(tBTA_HH_DEV_CB *p_cb, tBTA_HH_PROTO_MODE mode)
         mode = (mode == BTA_HH_PROTO_BOOT_MODE)? BTA_HH_LE_PROTO_BOOT_MODE : BTA_HH_LE_PROTO_REPORT_MODE;
 
         gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.proto_mode_handle,
-                            { mode }, BTA_GATTC_TYPE_WRITE_NO_RSP);
+                            { mode }, BTA_GATTC_TYPE_WRITE_NO_RSP, write_proto_mode_cb, p_cb);
         return true;
     }
 
     return false;
+}
+
+/*******************************************************************************
+** Function         get_protocol_mode_cb
+**
+** Description      Process the Read protocol mode, send GET_PROTO_EVT to application
+**                  with the protocol mode.
+**
+*******************************************************************************/
+static void get_protocol_mode_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
+                                 uint8_t *value, void* data) {
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB *)data;
+    tBTA_HH_HSDATA      hs_data;
+
+    hs_data.status  = BTA_HH_ERR;
+    hs_data.handle  = p_dev_cb->hid_handle;
+    hs_data.rsp_data.proto_mode = p_dev_cb->mode;
+
+    if (status == BTA_GATT_OK && len)
+    {
+        hs_data.status  = BTA_HH_OK;
+        /* match up BTE/BTA report/boot mode def*/
+        hs_data.rsp_data.proto_mode = *(value);
+        /* LE repot mode is the opposite value of BR/EDR report mode, flip it here */
+        if (hs_data.rsp_data.proto_mode == 0)
+            hs_data.rsp_data.proto_mode = BTA_HH_PROTO_BOOT_MODE;
+        else
+            hs_data.rsp_data.proto_mode = BTA_HH_PROTO_RPT_MODE;
+
+        p_dev_cb->mode = hs_data.rsp_data.proto_mode;
+    }
+
+#if BTA_HH_DEBUG
+    APPL_TRACE_DEBUG("LE GET_PROTOCOL Mode = [%s]",
+                        (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
+#endif
+
+    p_dev_cb->w4_evt = 0;
+    (* bta_hh_cb.p_cback)(BTA_HH_GET_PROTO_EVT, (tBTA_HH *)&hs_data);
 }
 
 /*******************************************************************************
@@ -930,7 +1066,8 @@ void bta_hh_le_get_protocol_mode(tBTA_HH_DEV_CB *p_cb)
     p_cb->w4_evt = BTA_HH_GET_PROTO_EVT;
 
     if (p_cb->hid_srvc.in_use && p_cb->hid_srvc.proto_mode_handle != 0) {
-        gatt_queue_read_op(GATT_READ_CHAR, p_cb->conn_id, p_cb->hid_srvc.proto_mode_handle);
+        gatt_queue_read_op(GATT_READ_CHAR, p_cb->conn_id, p_cb->hid_srvc.proto_mode_handle,
+                           get_protocol_mode_cb, p_cb);
         return;
     }
 
@@ -1298,7 +1435,7 @@ void bta_hh_le_gatt_disc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_STATUS status)
 
         /* set report notification configuration */
         p_cb->clt_cfg_idx = 0;
-        bta_hh_le_write_rpt_clt_cfg(p_cb, p_cb->hid_srvc.srvc_inst_id);
+        bta_hh_le_write_rpt_clt_cfg(p_cb);
     }
     else /* error, close the GATT connection */
     {
@@ -1307,42 +1444,122 @@ void bta_hh_le_gatt_disc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_STATUS status)
     }
 }
 
-void process_included(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERVICE *service) {
-    if (!service->included_svc || list_is_empty(service->included_svc)) {
-        APPL_TRACE_ERROR("%s: Remote device does not have battery level", __func__);
+static void read_hid_info_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
+                             uint8_t *value, void* data) {
+    if (status != BTA_GATT_OK) {
+        APPL_TRACE_ERROR("%s: error: %d",  __func__, status);
         return;
     }
 
-    for (list_node_t *isn = list_begin(service->included_svc);
-         isn != list_end(service->included_svc); isn = list_next(isn)) {
-        tBTA_GATTC_INCLUDED_SVC *p_isvc = (tBTA_GATTC_INCLUDED_SVC*) list_node(isn);
-        tBTA_GATTC_SERVICE *incl_svc = p_isvc->included_service;
-        if (incl_svc->uuid.uu.uuid16 == UUID_SERVCLASS_BATTERY &&
-            incl_svc->uuid.len == LEN_UUID_16) {
-
-            /* read include service UUID */
-            p_dev_cb->hid_srvc.incl_srvc_inst = incl_svc->handle;
-
-            for (list_node_t *cn = list_begin(incl_svc->characteristics);
-                 cn != list_end(incl_svc->characteristics); cn = list_next(cn)) {
-                tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
-                if (p_char->uuid.uu.uuid16 == GATT_UUID_BATTERY_LEVEL &&
-                    p_char->uuid.len == LEN_UUID_16) {
-
-                    if (bta_hh_le_find_alloc_report_entry(p_dev_cb,
-                                                          incl_svc->s_handle,
-                                                          GATT_UUID_BATTERY_LEVEL,
-                                                          p_char->handle) == NULL)
-                        APPL_TRACE_ERROR("Add battery report entry failed !!!");
-
-                    gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle);
-                    return;
-                }
-            }
-        }
+    if (len != 4) {
+        APPL_TRACE_ERROR("%s: wrong length: %d",  __func__, len);
+        return;
     }
 
-    APPL_TRACE_ERROR("%s: Remote device does not have battery level", __func__);
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    uint8_t *pp = value;
+    /* save device information */
+    STREAM_TO_UINT16(p_dev_cb->dscp_info.version, pp);
+    STREAM_TO_UINT8(p_dev_cb->dscp_info.ctry_code, pp);
+    STREAM_TO_UINT8(p_dev_cb->dscp_info.flag, pp);
+}
+
+static void read_hid_report_map_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                                   uint16_t len, uint8_t *value, void* data) {
+    if (status != BTA_GATT_OK) {
+        APPL_TRACE_ERROR("%s: error reading characteristic: %d",  __func__, status);
+        return;
+    }
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    tBTA_HH_LE_HID_SRVC *p_srvc = &p_dev_cb->hid_srvc;
+
+    osi_free_and_reset((void **)&p_srvc->rpt_map);
+
+    if (len > 0) {
+        p_srvc->rpt_map = (uint8_t *)osi_malloc(len);
+
+        uint8_t *pp = value;
+        STREAM_TO_ARRAY(p_srvc->rpt_map, pp, len);
+        p_srvc->descriptor.dl_len = len;
+        p_srvc->descriptor.dsc_list = p_dev_cb->hid_srvc.rpt_map;
+    }
+}
+
+static void read_ext_rpt_ref_desc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                                     uint16_t len, uint8_t *value, void* data) {
+    if (status != BTA_GATT_OK) {
+        APPL_TRACE_ERROR("%s: error: %d",  __func__, status);
+        return;
+    }
+
+    /* if the length of the descriptor value is right, parse it assume it's a 16 bits UUID */
+    if (len != LEN_UUID_16) {
+        APPL_TRACE_ERROR("%s: we support only 16bit UUID: %d",  __func__, len);
+        return;
+    }
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    uint8_t *pp = value;
+
+    STREAM_TO_UINT16(p_dev_cb->hid_srvc.ext_rpt_ref, pp);
+
+#if (BTA_HH_DEBUG == TRUE)
+    APPL_TRACE_DEBUG("%s: External Report Reference UUID 0x%04x", __func__,
+            p_dev_cb->hid_srvc.ext_rpt_ref);
+#endif
+}
+
+static void read_report_ref_desc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                                    uint16_t len, uint8_t *value, void* data) {
+    if (status != BTA_GATT_OK) {
+        APPL_TRACE_ERROR("%s: error: %d",  __func__, status);
+        return;
+    }
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(conn_id, handle);
+
+    tBTA_HH_LE_RPT  *p_rpt;
+    if ((p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
+                                        p_desc->characteristic->service->handle,
+                                        GATT_UUID_HID_REPORT,
+                                        p_desc->characteristic->handle)))
+        bta_hh_le_save_report_ref(p_dev_cb, p_rpt, status, value, len);
+}
+
+
+
+void read_pref_conn_params_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                              uint16_t len, uint8_t *value, void* data) {
+    if (status != BTA_GATT_OK) {
+        APPL_TRACE_ERROR("%s: error: %d",  __func__, status);
+        return;
+    }
+
+    if (len != 8) {
+        APPL_TRACE_ERROR("%s: we support only 16bit UUID: %d",  __func__, len);
+        return;
+    }
+
+    //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
+    uint8_t *pp = value;
+    uint16_t min, max, latency, tout;
+    STREAM_TO_UINT16(min, pp);
+    STREAM_TO_UINT16(max, pp);
+    STREAM_TO_UINT16(latency, pp);
+    STREAM_TO_UINT16(tout, pp);
+
+    // Make sure both min, and max are bigger than 11.25ms, lower values can introduce
+    // audio issues if A2DP is also active.
+    if (min < BTM_BLE_CONN_INT_MIN_LIMIT)
+        min = BTM_BLE_CONN_INT_MIN_LIMIT;
+    if (max < BTM_BLE_CONN_INT_MIN_LIMIT)
+        max = BTM_BLE_CONN_INT_MIN_LIMIT;
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    BTM_BleSetPrefConnParams(p_dev_cb->addr, min, max, latency, tout);
+    L2CA_UpdateBleConnParams(p_dev_cb->addr, min, max, latency, tout);
 }
 
 /*******************************************************************************
@@ -1363,7 +1580,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
          cn != list_end(service->characteristics); cn = list_next(cn)) {
         tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
-        if(p_char->uuid.len != LEN_UUID_16)
+        if (p_char->uuid.len != LEN_UUID_16)
             continue;
 
         LOG_DEBUG(LOG_TAG, "%s: %s 0x%04d", __func__, bta_hh_uuid_to_str(p_char->uuid.uu.uuid16),
@@ -1375,12 +1592,17 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
             p_dev_cb->hid_srvc.control_point_handle = p_char->handle;
             break;
         case GATT_UUID_HID_INFORMATION:
+            /* only one instance per HID service */
+            gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle, read_hid_info_cb,
+                               p_dev_cb);
+            break;
         case GATT_UUID_HID_REPORT_MAP:
-            /* read the char value */
-            gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle);
-
-            bta_hh_le_read_char_dscrpt(p_dev_cb, p_char->handle,
-                                   GATT_UUID_EXT_RPT_REF_DESCR);
+            /* only one instance per HID service */
+            gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle,
+                               read_hid_report_map_cb, p_dev_cb);
+            /* descriptor is optional */
+            bta_hh_le_read_char_descriptor(p_dev_cb, p_char->handle,
+                                   GATT_UUID_EXT_RPT_REF_DESCR, read_ext_rpt_ref_desc_cb, p_dev_cb);
             break;
 
         case GATT_UUID_HID_REPORT:
@@ -1396,7 +1618,8 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
             if (p_rpt->rpt_type != BTA_HH_RPTT_INPUT)
                 break;
 
-            bta_hh_le_read_char_dscrpt(p_dev_cb, p_char->handle, GATT_UUID_RPT_REF_DESCR);
+            bta_hh_le_read_char_descriptor(p_dev_cb, p_char->handle, GATT_UUID_RPT_REF_DESCR,
+                                       read_report_ref_desc_cb, p_dev_cb);
             break;
 
         /* found boot mode report types */
@@ -1423,7 +1646,7 @@ static void bta_hh_le_search_hid_chars(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_SERV
          cn != list_end(service->characteristics); cn = list_next(cn)) {
         tBTA_GATTC_CHARACTERISTIC *p_char = (tBTA_GATTC_CHARACTERISTIC*) list_node(cn);
 
-        if(p_char->uuid.len != LEN_UUID_16 &&
+        if (p_char->uuid.len != LEN_UUID_16 &&
            p_char->uuid.uu.uuid16 == GATT_UUID_HID_PROTO_MODE) {
             p_dev_cb->hid_srvc.proto_mode_handle = p_char->handle;
             bta_hh_le_set_protocol_mode(p_dev_cb, p_dev_cb->mode);
@@ -1449,7 +1672,7 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
     if (p_dev_cb == NULL)
         return;
 
-    if(p_data->status != BTA_GATT_OK)
+    if (p_data->status != BTA_GATT_OK)
     {
         p_dev_cb->status = BTA_HH_ERR_SDP;
         /* close the connection and report service discovery complete with error */
@@ -1474,10 +1697,10 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
             p_dev_cb->hid_srvc.proto_mode_handle = 0;
             p_dev_cb->hid_srvc.control_point_handle = 0;
 
-            process_included(p_dev_cb, service);
             bta_hh_le_search_hid_chars(p_dev_cb, service);
 
-            APPL_TRACE_DEBUG("%s: have HID service inst_id= %d", __func__, p_dev_cb->hid_srvc.srvc_inst_id);
+            APPL_TRACE_DEBUG("%s: have HID service inst_id= %d", __func__,
+                             p_dev_cb->hid_srvc.srvc_inst_id);
         } else if (service->uuid.uu.uuid16 == UUID_SERVCLASS_SCAN_PARAM) {
             p_dev_cb->scan_refresh_char_handle = 0;
 
@@ -1506,7 +1729,8 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
                     p_char->uuid.uu.uuid16 == GATT_UUID_GAP_PREF_CONN_PARAM) {
 
                     /* read the char value */
-                    gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle);
+                    gatt_queue_read_op(GATT_READ_CHAR, p_dev_cb->conn_id, p_char->handle,
+                                       read_pref_conn_params_cb, p_dev_cb);
 
                     break;
                 }
@@ -1515,508 +1739,6 @@ void bta_hh_le_srvc_search_cmpl(tBTA_GATTC_SEARCH_CMPL *p_data)
     }
 
     bta_hh_le_gatt_disc_cmpl(p_dev_cb, p_dev_cb->status);
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_read_battery_level_cmpl
-**
-** Description      This function process the battery level read
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_read_battery_level_cmpl(uint8_t status, tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
-{
-    UNUSED(status);
-    UNUSED(p_data);
-    p_dev_cb->hid_srvc.expl_incl_srvc = true;
-}
-
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_save_rpt_map
-**
-** Description      save the report map into the control block.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_save_rpt_map(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
-{
-    tBTA_HH_LE_HID_SRVC *p_srvc = &p_dev_cb->hid_srvc;
-
-    osi_free_and_reset((void **)&p_srvc->rpt_map);
-
-    if (p_data->len)
-        p_srvc->rpt_map = (uint8_t *)osi_malloc(p_data->len);
-
-    if (p_srvc->rpt_map != NULL)
-    {
-        uint8_t *pp = p_data->value;
-        STREAM_TO_ARRAY(p_srvc->rpt_map, pp, p_data->len);
-        p_srvc->descriptor.dl_len = p_data->len;
-        p_srvc->descriptor.dsc_list = p_dev_cb->hid_srvc.rpt_map;
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_proc_get_rpt_cmpl
-**
-** Description      Process the Read report complete, send GET_REPORT_EVT to application
-**                  with the report data.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_proc_get_rpt_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
-{
-    BT_HDR              *p_buf = NULL;
-    tBTA_HH_LE_RPT      *p_rpt;
-    tBTA_HH_HSDATA      hs_data;
-    uint8_t               *pp ;
-
-    if (p_dev_cb->w4_evt != BTA_HH_GET_RPT_EVT)
-    {
-        APPL_TRACE_ERROR("Unexpected READ cmpl, w4_evt = %d", p_dev_cb->w4_evt);
-        return;
-    }
-
-    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
-                                                                          p_data->handle);
-
-    memset(&hs_data, 0, sizeof(hs_data));
-    hs_data.status  = BTA_HH_ERR;
-    hs_data.handle  = p_dev_cb->hid_handle;
-
-    if (p_data->status == BTA_GATT_OK)
-    {
-        p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
-                                            p_char->service->handle,
-                                            p_char->uuid.uu.uuid16,
-                                            p_char->handle);
-
-        if (p_rpt != NULL && p_data->len != 0) {
-            p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + p_data->len + 1);
-            /* pack data send to app */
-            hs_data.status  = BTA_HH_OK;
-            p_buf->len = p_data->len + 1;
-            p_buf->layer_specific = 0;
-            p_buf->offset = 0;
-
-            /* attach report ID as the first byte of the report before sending it to USB HID driver */
-            pp = (uint8_t*)(p_buf + 1);
-            UINT8_TO_STREAM(pp, p_rpt->rpt_id);
-            memcpy(pp, p_data->value, p_data->len);
-
-            hs_data.rsp_data.p_rpt_data =p_buf;
-        }
-    }
-
-    p_dev_cb->w4_evt = 0;
-    (* bta_hh_cb.p_cback)(BTA_HH_GET_RPT_EVT, (tBTA_HH *)&hs_data);
-
-    osi_free_and_reset((void **)&p_buf);
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_proc_read_proto_mode
-**
-** Description      Process the Read protocol mode, send GET_PROTO_EVT to application
-**                  with the protocol mode.
-**
-*******************************************************************************/
-void bta_hh_le_proc_read_proto_mode(tBTA_HH_DEV_CB *p_dev_cb, tBTA_GATTC_READ *p_data)
-{
-    tBTA_HH_HSDATA      hs_data;
-
-    hs_data.status  = BTA_HH_ERR;
-    hs_data.handle  = p_dev_cb->hid_handle;
-    hs_data.rsp_data.proto_mode = p_dev_cb->mode;
-
-    if (p_data->status == BTA_GATT_OK && p_data->len)
-    {
-        hs_data.status  = BTA_HH_OK;
-        /* match up BTE/BTA report/boot mode def*/
-        hs_data.rsp_data.proto_mode = *(p_data->value);
-        /* LE repot mode is the opposite value of BR/EDR report mode, flip it here */
-        if (hs_data.rsp_data.proto_mode == 0)
-            hs_data.rsp_data.proto_mode = BTA_HH_PROTO_BOOT_MODE;
-        else
-            hs_data.rsp_data.proto_mode = BTA_HH_PROTO_RPT_MODE;
-
-        p_dev_cb->mode = hs_data.rsp_data.proto_mode;
-    }
-#if (BTA_HH_DEBUG == TRUE)
-    APPL_TRACE_DEBUG("LE GET_PROTOCOL Mode = [%s]",
-                        (hs_data.rsp_data.proto_mode == BTA_HH_PROTO_RPT_MODE)? "Report" : "Boot");
-#endif
-
-    p_dev_cb->w4_evt = 0;
-    (* bta_hh_cb.p_cback)(BTA_HH_GET_PROTO_EVT, (tBTA_HH *)&hs_data);
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_w4_le_read_char_cmpl
-**
-** Description      process the GATT read complete in W4_CONN state.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_GATTC_READ     * p_data = (tBTA_GATTC_READ *)p_buf;
-    uint8_t               *pp ;
-
-    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
-                                                                          p_data->handle);
-    uint16_t char_uuid = p_char->uuid.uu.uuid16;
-
-    if (char_uuid == GATT_UUID_BATTERY_LEVEL)
-    {
-        bta_hh_read_battery_level_cmpl(p_data->status, p_dev_cb, p_data);
-    }
-    else if (char_uuid == GATT_UUID_GAP_PREF_CONN_PARAM)
-    {
-        //TODO(jpawlowski): this should be done by GAP profile, remove when GAP is fixed.
-        uint8_t *pp = p_data->value;
-        uint16_t min, max, latency, tout;
-        STREAM_TO_UINT16 (min, pp);
-        STREAM_TO_UINT16 (max, pp);
-        STREAM_TO_UINT16 (latency, pp);
-        STREAM_TO_UINT16 (tout, pp);
-
-        // Make sure both min, and max are bigger than 11.25ms, lower values can introduce
-        // audio issues if A2DP is also active.
-        if (min < BTM_BLE_CONN_INT_MIN_LIMIT)
-            min = BTM_BLE_CONN_INT_MIN_LIMIT;
-        if (max < BTM_BLE_CONN_INT_MIN_LIMIT)
-            max = BTM_BLE_CONN_INT_MIN_LIMIT;
-
-        if (tout < BTM_BLE_CONN_TIMEOUT_MIN_DEF)
-            tout = BTM_BLE_CONN_TIMEOUT_MIN_DEF;
-
-        BTM_BleSetPrefConnParams (p_dev_cb->addr, min, max, latency, tout);
-        L2CA_UpdateBleConnParams(p_dev_cb->addr, min, max, latency, tout);
-    }
-    else
-    {
-        if (p_data->status == BTA_GATT_OK && p_data->len)
-        {
-            pp = p_data->value;
-
-            switch (char_uuid)
-            {
-           /* save device information */
-            case GATT_UUID_HID_INFORMATION:
-                STREAM_TO_UINT16(p_dev_cb->dscp_info.version, pp);
-                STREAM_TO_UINT8(p_dev_cb->dscp_info.ctry_code, pp);
-                STREAM_TO_UINT8(p_dev_cb->dscp_info.flag, pp);
-                break;
-
-            case GATT_UUID_HID_REPORT_MAP:
-                bta_hh_le_save_rpt_map(p_dev_cb, p_data);
-                return;
-
-            default:
-#if (BTA_HH_DEBUG == TRUE)
-                APPL_TRACE_ERROR("Unexpected read %s(0x%04x)",
-                                bta_hh_uuid_to_str(char_uuid), char_uuid);
-#endif
-                break;
-            }
-        }
-        else
-        {
-#if (BTA_HH_DEBUG == TRUE)
-            APPL_TRACE_ERROR("read uuid %s[0x%04x] error: %d", bta_hh_uuid_to_str(char_uuid),
-                             char_uuid, p_data->status);
-#else
-            APPL_TRACE_ERROR("read uuid [0x%04x] error: %d", char_uuid, p_data->status);
-#endif
-        }
-    }
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_read_char_cmpl
-**
-** Description      a characteristic value is received.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_read_char_cmpl (tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_GATTC_READ * p_data = (tBTA_GATTC_READ *)p_buf;
-
-    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
-                                                                          p_data->handle);
-    uint16_t char_uuid = p_char->uuid.uu.uuid16;
-
-    switch (char_uuid)
-    {
-    /* GET_REPORT */
-    case GATT_UUID_HID_REPORT:
-    case GATT_UUID_HID_BT_KB_INPUT:
-    case GATT_UUID_HID_BT_KB_OUTPUT:
-    case GATT_UUID_HID_BT_MOUSE_INPUT:
-    case GATT_UUID_BATTERY_LEVEL: /* read battery level */
-        bta_hh_le_proc_get_rpt_cmpl(p_dev_cb, p_data);
-        break;
-
-    case GATT_UUID_HID_PROTO_MODE:
-        bta_hh_le_proc_read_proto_mode(p_dev_cb, p_data);
-        break;
-
-    default:
-        APPL_TRACE_ERROR("Unexpected Read UUID: 0x%04x", char_uuid);
-        break;
-    }
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_read_descr_cmpl
-**
-** Description      read characteristic descriptor is completed in CONN st.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_HH_LE_RPT  *p_rpt;
-    tBTA_GATTC_READ * p_data = (tBTA_GATTC_READ *)p_buf;
-    uint8_t   *pp;
-
-    const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(p_data->conn_id, p_data->handle);
-
-    /* if a report client configuration */
-    if (p_desc->uuid.uu.uuid16 == GATT_UUID_CHAR_CLIENT_CONFIG)
-    {
-        if ((p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
-                                                 p_desc->characteristic->service->handle,
-                                                 p_desc->characteristic->uuid.uu.uuid16,
-                                                 p_desc->characteristic->handle)) != NULL)
-        {
-            pp = p_data->value;
-            STREAM_TO_UINT16(p_rpt->client_cfg_value, pp);
-
-            APPL_TRACE_DEBUG("Read Client Configuration: 0x%04x", p_rpt->client_cfg_value);
-        }
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_w4_le_read_descr_cmpl
-**
-** Description      read characteristic descriptor is completed in W4_CONN st.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_w4_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_HH_LE_RPT  *p_rpt;
-    tBTA_GATTC_READ * p_data = (tBTA_GATTC_READ *)p_buf;
-    uint16_t char_uuid16;
-
-    if (p_data == NULL)
-        return;
-
-    const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(p_data->conn_id, p_data->handle);
-
-    if (p_desc == NULL) {
-        APPL_TRACE_ERROR("%s: p_descr is NULL %d", __func__, p_data->handle);
-        return;
-    }
-
-    char_uuid16 = p_desc->characteristic->uuid.uu.uuid16;
-
-#if (BTA_HH_DEBUG == TRUE)
-    APPL_TRACE_DEBUG("bta_hh_w4_le_read_descr_cmpl uuid: %s(0x%04x)",
-                        bta_hh_uuid_to_str(p_desc->uuid.uu.uuid16),
-                        p_desc->uuid.uu.uuid16);
-#endif
-    switch (char_uuid16)
-    {
-    case GATT_UUID_HID_REPORT:
-        if ((p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
-                                            p_desc->characteristic->service->handle,
-                                            GATT_UUID_HID_REPORT,
-                                            p_desc->characteristic->handle)))
-            bta_hh_le_save_rpt_ref(p_dev_cb, p_rpt, p_data);
-        break;
-
-    case GATT_UUID_HID_REPORT_MAP:
-        bta_hh_le_save_ext_rpt_ref(p_dev_cb, p_data);
-        break;
-
-    case GATT_UUID_BATTERY_LEVEL:
-        if ((p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
-                                            p_desc->characteristic->service->handle,
-                                            GATT_UUID_BATTERY_LEVEL,
-                                            p_desc->characteristic->handle)))
-            bta_hh_le_save_rpt_ref(p_dev_cb, p_rpt, p_data);
-
-        break;
-
-    default:
-        APPL_TRACE_ERROR("unknown descriptor read complete for uuid: 0x%04x", char_uuid16);
-        break;
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_w4_le_write_cmpl
-**
-** Description      Write charactersitic complete event at W4_CONN st.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_w4_le_write_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_GATTC_WRITE    *p_data = (tBTA_GATTC_WRITE *)p_buf;
-
-    if (p_data == NULL)
-        return;
-
-    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
-                                                                          p_data->handle);
-
-    if (p_char->uuid.uu.uuid16 == GATT_UUID_HID_PROTO_MODE)
-    {
-        p_dev_cb->status = (p_data->status == BTA_GATT_OK) ? BTA_HH_OK : BTA_HH_ERR_PROTO;
-
-        if ((p_dev_cb->disc_active & BTA_HH_LE_DISC_HIDS) == 0)
-            bta_hh_le_open_cmpl(p_dev_cb);
-    }
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_write_cmpl
-**
-** Description      Write charactersitic complete event at CONN st.
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_write_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_GATTC_WRITE    *p_data = (tBTA_GATTC_WRITE *)p_buf;
-    tBTA_HH_CBDATA      cback_data ;
-    uint16_t              cb_evt = p_dev_cb->w4_evt;
-
-    if (p_data == NULL  || cb_evt == 0)
-        return;
-
-    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(p_dev_cb->conn_id,
-                                                                          p_data->handle);
-
-#if (BTA_HH_DEBUG == TRUE)
-    APPL_TRACE_DEBUG("bta_hh_le_write_cmpl w4_evt: %d", p_dev_cb->w4_evt);
-#endif
-    switch (p_char->uuid.uu.uuid16)
-    {
-    /* Set protocol finished */
-    case GATT_UUID_HID_PROTO_MODE:
-        cback_data.handle  = p_dev_cb->hid_handle;
-        if (p_data->status == BTA_GATT_OK)
-        {
-            bta_hh_le_register_input_notif(p_dev_cb, p_dev_cb->mode, false);
-            cback_data.status = BTA_HH_OK;
-        }
-        else
-            cback_data.status =  BTA_HH_ERR;
-        p_dev_cb->w4_evt = 0;
-        (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
-        break;
-
-    /* Set Report finished */
-    case GATT_UUID_HID_REPORT:
-    case GATT_UUID_HID_BT_KB_INPUT:
-    case GATT_UUID_HID_BT_MOUSE_INPUT:
-    case GATT_UUID_HID_BT_KB_OUTPUT:
-        cback_data.handle  = p_dev_cb->hid_handle;
-        cback_data.status = (p_data->status == BTA_GATT_OK)? BTA_HH_OK : BTA_HH_ERR;
-        p_dev_cb->w4_evt = 0;
-        (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
-        break;
-
-    default:
-        break;
-    }
-
-}
-
-/*******************************************************************************
-**
-** Function         bta_hh_le_write_char_descr_cmpl
-**
-** Description      Write charactersitic descriptor complete event
-**
-** Parameters:
-**
-*******************************************************************************/
-void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_dev_cb, tBTA_HH_DATA *p_buf)
-{
-    tBTA_GATTC_WRITE    *p_data = (tBTA_GATTC_WRITE *)p_buf;
-    uint8_t   srvc_inst_id, hid_inst_id;
-
-    const tBTA_GATTC_DESCRIPTOR *p_desc = BTA_GATTC_GetDescriptor(p_dev_cb->conn_id,
-                                                                       p_data->handle);
-
-    uint16_t desc_uuid = p_desc->uuid.uu.uuid16;
-    uint16_t char_uuid = p_desc->characteristic->uuid.uu.uuid16;
-    /* only write client configuration possible */
-    if (desc_uuid == GATT_UUID_CHAR_CLIENT_CONFIG)
-    {
-        srvc_inst_id = p_desc->characteristic->service->handle;
-        hid_inst_id = srvc_inst_id;
-        switch (char_uuid)
-        {
-        case GATT_UUID_BATTERY_LEVEL: /* battery level clt cfg registered */
-            hid_inst_id = bta_hh_le_find_service_inst_by_battery_inst_id(p_dev_cb, srvc_inst_id);
-            /* fall through */
-        case GATT_UUID_HID_BT_KB_INPUT:
-        case GATT_UUID_HID_BT_MOUSE_INPUT:
-        case GATT_UUID_HID_REPORT:
-            if (p_data->status == BTA_GATT_OK)
-                p_dev_cb->hid_srvc.report[p_dev_cb->clt_cfg_idx].client_cfg_value =
-                        BTA_GATT_CLT_CONFIG_NOTIFICATION;
-            p_dev_cb->clt_cfg_idx ++;
-            bta_hh_le_write_rpt_clt_cfg(p_dev_cb, hid_inst_id);
-
-            break;
-
-        default:
-            APPL_TRACE_ERROR("Unknown char ID clt cfg: 0x%04x", char_uuid);
-        }
-    }
-    else
-    {
-#if (BTA_HH_DEBUG == TRUE)
-        APPL_TRACE_ERROR("Unexpected write to %s(0x%04x)",
-                         bta_hh_uuid_to_str(desc_uuid), desc_uuid);
-#else
-        APPL_TRACE_ERROR("Unexpected write to (0x%04x)", desc_uuid);
-#endif
-    }
-
 }
 
 /*******************************************************************************
@@ -2032,7 +1754,7 @@ void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY *p_data)
 {
     tBTA_HH_DEV_CB       *p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->conn_id);
     uint8_t           app_id;
-    uint8_t           *p_buf;
+    uint8_t          *p_buf;
     tBTA_HH_LE_RPT  *p_rpt;
 
     if (p_dev_cb == NULL)
@@ -2187,6 +1909,82 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB *p_cb)
     }
 }
 
+
+/*******************************************************************************
+**
+** Function         read_report_cb
+**
+** Description      Process the Read report complete, send GET_REPORT_EVT to application
+**                  with the report data.
+**
+** Parameters:
+**
+*******************************************************************************/
+static void read_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                           uint16_t len, uint8_t *value, void* data) {
+    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, handle);
+
+    if (p_char == NULL)
+        return;
+
+    uint16_t char_uuid = p_char->uuid.uu.uuid16;
+
+    if (char_uuid != GATT_UUID_HID_REPORT &&
+        char_uuid != GATT_UUID_HID_BT_KB_INPUT &&
+        char_uuid != GATT_UUID_HID_BT_KB_OUTPUT &&
+        char_uuid != GATT_UUID_HID_BT_MOUSE_INPUT &&
+        char_uuid != GATT_UUID_BATTERY_LEVEL) {
+        APPL_TRACE_ERROR("%s: Unexpected Read UUID: 0x%04x", __func__, char_uuid);
+        return;
+    }
+
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    if (p_dev_cb->w4_evt != BTA_HH_GET_RPT_EVT)
+    {
+        APPL_TRACE_ERROR("Unexpected READ cmpl, w4_evt = %d", p_dev_cb->w4_evt);
+        return;
+    }
+
+    /* GET_REPORT */
+    BT_HDR              *p_buf = NULL;
+    tBTA_HH_LE_RPT      *p_rpt;
+    tBTA_HH_HSDATA      hs_data;
+    uint8_t               *pp ;
+
+    memset(&hs_data, 0, sizeof(hs_data));
+    hs_data.status  = BTA_HH_ERR;
+    hs_data.handle  = p_dev_cb->hid_handle;
+
+    if (status == BTA_GATT_OK)
+    {
+        p_rpt = bta_hh_le_find_report_entry(p_dev_cb,
+                                            p_char->service->handle,
+                                            p_char->uuid.uu.uuid16,
+                                            p_char->handle);
+
+        if (p_rpt != NULL && len) {
+            p_buf = (BT_HDR *)osi_malloc(sizeof(BT_HDR) + len + 1);
+            /* pack data send to app */
+            hs_data.status  = BTA_HH_OK;
+            p_buf->len = len + 1;
+            p_buf->layer_specific = 0;
+            p_buf->offset = 0;
+
+            /* attach report ID as the first byte of the report before sending it to USB HID driver */
+            pp = (uint8_t*)(p_buf + 1);
+            UINT8_TO_STREAM(pp, p_rpt->rpt_id);
+            memcpy(pp, value, len);
+
+            hs_data.rsp_data.p_rpt_data =p_buf;
+        }
+    }
+
+    p_dev_cb->w4_evt = 0;
+    (* bta_hh_cb.p_cback)(BTA_HH_GET_RPT_EVT, (tBTA_HH *)&hs_data);
+
+    osi_free_and_reset((void **)&p_buf);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_hh_le_get_rpt
@@ -2198,7 +1996,8 @@ void bta_hh_le_api_disc_act(tBTA_HH_DEV_CB *p_cb)
 *******************************************************************************/
 void bta_hh_le_get_rpt(tBTA_HH_DEV_CB *p_cb, tBTA_HH_RPT_TYPE r_type, uint8_t rpt_id)
 {
-    tBTA_HH_LE_RPT  *p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report, p_cb->mode, r_type, rpt_id);
+    tBTA_HH_LE_RPT  *p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report,
+                                                          p_cb->mode, r_type, rpt_id);
 
     if (p_rpt == NULL) {
         APPL_TRACE_ERROR("%s: no matching report", __func__);
@@ -2206,9 +2005,37 @@ void bta_hh_le_get_rpt(tBTA_HH_DEV_CB *p_cb, tBTA_HH_RPT_TYPE r_type, uint8_t rp
     }
 
     p_cb->w4_evt = BTA_HH_GET_RPT_EVT;
-    gatt_queue_read_op(GATT_READ_CHAR, p_cb->conn_id, p_rpt->char_inst_id);
+    gatt_queue_read_op(GATT_READ_CHAR, p_cb->conn_id, p_rpt->char_inst_id, read_report_cb, p_cb);
 }
 
+static void write_report_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data)
+{
+    tBTA_HH_CBDATA cback_data;
+    tBTA_HH_DEV_CB *p_dev_cb = (tBTA_HH_DEV_CB*)data;
+    uint16_t cb_evt = p_dev_cb->w4_evt;
+
+    if (cb_evt == 0)
+        return;
+
+#if BTA_HH_DEBUG
+    APPL_TRACE_DEBUG("bta_hh_le_write_cmpl w4_evt: %d", p_dev_cb->w4_evt);
+#endif
+
+    const tBTA_GATTC_CHARACTERISTIC *p_char = BTA_GATTC_GetCharacteristic(conn_id, handle);
+    uint16_t uuid = p_char->uuid.uu.uuid16;
+    if (uuid != GATT_UUID_HID_REPORT &&
+        uuid != GATT_UUID_HID_BT_KB_INPUT &&
+        uuid != GATT_UUID_HID_BT_MOUSE_INPUT &&
+        uuid != GATT_UUID_HID_BT_KB_OUTPUT) {
+        return;
+    }
+
+    /* Set Report finished */
+    cback_data.handle  = p_dev_cb->hid_handle;
+    cback_data.status = (status == BTA_GATT_OK)? BTA_HH_OK : BTA_HH_ERR;
+    p_dev_cb->w4_evt = 0;
+    (* bta_hh_cb.p_cback)(cb_evt, (tBTA_HH *)&cback_data);
+}
 /*******************************************************************************
 **
 ** Function         bta_hh_le_write_rpt
@@ -2253,7 +2080,7 @@ void bta_hh_le_write_rpt(tBTA_HH_DEV_CB *p_cb,
         write_type = BTA_GATTC_TYPE_WRITE_NO_RSP;
 
     gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_rpt->char_inst_id,
-                        std::move(value), write_type);
+                        std::move(value), write_type, write_report_cb, p_cb);
 }
 
 /*******************************************************************************
@@ -2269,8 +2096,9 @@ void bta_hh_le_suspend(tBTA_HH_DEV_CB *p_cb, tBTA_HH_TRANS_CTRL_TYPE ctrl_type)
 {
     ctrl_type -= BTA_HH_CTRL_SUSPEND;
 
+    //We don't care about response
     gatt_queue_write_op(GATT_WRITE_CHAR, p_cb->conn_id, p_cb->hid_srvc.control_point_handle,
-                        {(uint8_t) ctrl_type}, BTA_GATTC_TYPE_WRITE_NO_RSP);
+                        {(uint8_t) ctrl_type}, BTA_GATTC_TYPE_WRITE_NO_RSP, NULL, NULL);
 }
 
 /*******************************************************************************
@@ -2456,7 +2284,6 @@ void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB *p_dev_cb)
 static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
 {
     tBTA_HH_DEV_CB *p_dev_cb;
-    uint16_t          evt;
 #if (BTA_HH_DEBUG == TRUE)
     APPL_TRACE_DEBUG("bta_hh_gattc_callback event = %d", event);
 #endif
@@ -2478,32 +2305,6 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
             if (p_dev_cb) {
                 bta_hh_sm_execute(p_dev_cb, BTA_HH_GATT_OPEN_EVT, (tBTA_HH_DATA *)&p_data->open);
             }
-            break;
-
-        case BTA_GATTC_READ_CHAR_EVT: /* 3 */
-        case BTA_GATTC_READ_DESCR_EVT: /* 8 */
-            mark_as_not_executing(p_data->read.conn_id);
-            gatt_execute_next_op(p_data->read.conn_id);
-            p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->read.conn_id);
-            if (event == BTA_GATTC_READ_CHAR_EVT)
-                evt = BTA_HH_GATT_READ_CHAR_CMPL_EVT;
-            else
-                evt = BTA_HH_GATT_READ_DESCR_CMPL_EVT;
-
-            bta_hh_sm_execute(p_dev_cb, evt, (tBTA_HH_DATA *)&p_data->read);
-            break;
-
-        case BTA_GATTC_WRITE_DESCR_EVT: /* 9 */
-        case BTA_GATTC_WRITE_CHAR_EVT: /* 4 */
-            mark_as_not_executing(p_data->write.conn_id);
-            gatt_execute_next_op(p_data->write.conn_id);
-            p_dev_cb = bta_hh_le_find_dev_cb_by_conn_id(p_data->write.conn_id);
-            if (event == BTA_GATTC_WRITE_CHAR_EVT)
-                evt = BTA_HH_GATT_WRITE_CHAR_CMPL_EVT;
-            else
-                evt = BTA_HH_GATT_WRITE_DESCR_CMPL_EVT;
-
-            bta_hh_sm_execute(p_dev_cb, evt, (tBTA_HH_DATA *)&p_data->write);
             break;
 
         case BTA_GATTC_CLOSE_EVT: /* 5 */
@@ -2531,6 +2332,16 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data)
     }
 }
 
+static void read_report_descriptor_ccc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                                          uint16_t len, uint8_t *value, void* data)
+{
+    tBTA_HH_LE_RPT  *p_rpt = (tBTA_HH_LE_RPT*)data;
+    uint8_t   *pp = value;
+    STREAM_TO_UINT16(p_rpt->client_cfg_value, pp);
+
+    APPL_TRACE_DEBUG("Read Client Configuration: 0x%04x", p_rpt->client_cfg_value);
+}
+
 /*******************************************************************************
 **
 ** Function         bta_hh_le_hid_read_rpt_clt_cfg
@@ -2555,7 +2366,8 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id)
 
     p_cb = &bta_hh_cb.kdev[index];
 
-    p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report, p_cb->mode, BTA_HH_RPTT_INPUT, rpt_id);
+    p_rpt = bta_hh_le_find_rpt_by_idtype(p_cb->hid_srvc.report, p_cb->mode, BTA_HH_RPTT_INPUT,
+                                         rpt_id);
 
     if (p_rpt == NULL)
     {
@@ -2563,7 +2375,8 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id)
         return;
     }
 
-    bta_hh_le_read_char_dscrpt(p_cb, p_rpt->char_inst_id, GATT_UUID_CHAR_CLIENT_CONFIG);
+    bta_hh_le_read_char_descriptor(p_cb, p_rpt->char_inst_id, GATT_UUID_CHAR_CLIENT_CONFIG,
+                               read_report_descriptor_ccc_cb, p_rpt);
     return;
 }
 
@@ -2610,7 +2423,7 @@ void bta_hh_le_hid_read_rpt_clt_cfg(BD_ADDR bd_addr, uint8_t rpt_id)
 //                 p_rpt->rpt_type =  p_rpt_cache->rpt_type;
 //                 p_rpt->rpt_id   =  p_rpt_cache->rpt_id;
 
-//                 if(p_rpt->uuid == GATT_UUID_HID_BT_KB_INPUT ||
+//                 if (p_rpt->uuid == GATT_UUID_HID_BT_KB_INPUT ||
 //                     p_rpt->uuid == GATT_UUID_HID_BT_MOUSE_INPUT ||
 //                     (p_rpt->uuid == GATT_UUID_HID_REPORT && p_rpt->rpt_type == BTA_HH_RPTT_INPUT))
 //                 {
