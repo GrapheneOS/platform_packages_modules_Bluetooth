@@ -334,7 +334,8 @@ void  BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_t end_
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req)
+void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
+                                  GATT_READ_OP_CB callback, void* cb_data)
 {
     tBTA_GATTC_API_READ *p_buf =
         (tBTA_GATTC_API_READ *)osi_calloc(sizeof(tBTA_GATTC_API_READ));
@@ -343,7 +344,8 @@ void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_A
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
-    p_buf->cmpl_evt = BTA_GATTC_READ_CHAR_EVT;
+    p_buf->read_cb = callback;
+    p_buf->read_cb_data = cb_data;
 
     bta_sys_sendmsg(p_buf);
 }
@@ -360,7 +362,8 @@ void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_A
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req)
+void BTA_GATTC_ReadCharDescr(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
+                             GATT_READ_OP_CB callback, void* cb_data)
 {
     tBTA_GATTC_API_READ *p_buf =
         (tBTA_GATTC_API_READ *)osi_calloc(sizeof(tBTA_GATTC_API_READ));
@@ -369,7 +372,8 @@ void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
-    p_buf->cmpl_evt = BTA_GATTC_READ_DESCR_EVT;
+    p_buf->read_cb = callback;
+    p_buf->read_cb_data = cb_data;
 
     bta_sys_sendmsg(p_buf);
 }
@@ -422,7 +426,9 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
                                 uint16_t handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
                                 std::vector<uint8_t> value,
-                                tBTA_GATT_AUTH_REQ auth_req)
+                                tBTA_GATT_AUTH_REQ auth_req,
+                                GATT_WRITE_OP_CB callback,
+                                void* cb_data)
 {
     tBTA_GATTC_API_WRITE  *p_buf = (tBTA_GATTC_API_WRITE *)
         osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
@@ -431,9 +437,10 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
-    p_buf->cmpl_evt = BTA_GATTC_WRITE_CHAR_EVT;
     p_buf->write_type = write_type;
     p_buf->len = value.size();
+    p_buf->write_cb = callback;
+    p_buf->write_cb_data = cb_data;
 
     if (value.size() > 0) {
         p_buf->p_value = (uint8_t *)(p_buf + 1);
@@ -461,7 +468,9 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                uint16_t handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
                                std::vector<uint8_t> value,
-                               tBTA_GATT_AUTH_REQ auth_req)
+                               tBTA_GATT_AUTH_REQ auth_req,
+                               GATT_WRITE_OP_CB callback,
+                               void* cb_data)
 {
     tBTA_GATTC_API_WRITE *p_buf = (tBTA_GATTC_API_WRITE *)
         osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
@@ -470,8 +479,9 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
-    p_buf->cmpl_evt = BTA_GATTC_WRITE_DESCR_EVT;
     p_buf->write_type = write_type;
+    p_buf->write_cb = callback;
+    p_buf->write_cb_data = cb_data;
 
     if (value.size() != 0) {
         p_buf->p_value  = (uint8_t *)(p_buf + 1);
@@ -496,9 +506,10 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_PrepareWrite  (uint16_t conn_id, uint16_t handle,
-                              uint16_t offset, std::vector<uint8_t> value,
-                              tBTA_GATT_AUTH_REQ auth_req)
+void BTA_GATTC_PrepareWrite  (uint16_t conn_id, uint16_t handle, uint16_t offset,
+                              std::vector<uint8_t> value,
+                              tBTA_GATT_AUTH_REQ auth_req,
+                              GATT_WRITE_OP_CB callback, void* cb_data)
 {
     tBTA_GATTC_API_WRITE *p_buf =
         (tBTA_GATTC_API_WRITE *)osi_calloc(sizeof(tBTA_GATTC_API_WRITE) + value.size());
@@ -507,6 +518,8 @@ void BTA_GATTC_PrepareWrite  (uint16_t conn_id, uint16_t handle,
     p_buf->hdr.layer_specific = conn_id;
     p_buf->auth_req = auth_req;
     p_buf->handle = handle;
+    p_buf->write_cb = callback;
+    p_buf->write_cb_data = cb_data;
 
     p_buf->write_type = BTA_GATTC_WRITE_PREPARE;
     p_buf->offset   = offset;

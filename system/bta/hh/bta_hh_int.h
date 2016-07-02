@@ -33,10 +33,6 @@
 #include "bta_gatt_api.h"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* can be moved to bta_api.h */
 #define BTA_HH_MAX_RPT_CHARS    8
 
@@ -65,10 +61,6 @@ enum
     BTA_HH_GATT_OPEN_EVT,
     BTA_HH_START_ENC_EVT,
     BTA_HH_ENC_CMPL_EVT,
-    BTA_HH_GATT_READ_CHAR_CMPL_EVT,
-    BTA_HH_GATT_WRITE_CHAR_CMPL_EVT,
-    BTA_HH_GATT_READ_DESCR_CMPL_EVT,
-    BTA_HH_GATT_WRITE_DESCR_CMPL_EVT,
     BTA_HH_GATT_ENC_CMPL_EVT,
 #endif
 
@@ -216,7 +208,6 @@ typedef struct
     uint16_t                  proto_mode_handle;
     uint8_t                   control_point_handle;
 
-    bool                 expl_incl_srvc;
     uint8_t                   incl_srvc_inst; /* assuming only one included service : battery service */
     uint8_t                   cur_expl_char_idx; /* currently discovering service index */
     uint8_t                   *rpt_map;
@@ -385,13 +376,6 @@ extern void bta_hh_gatt_open(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_gatt_close(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
 extern void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_start_srvc_discovery(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_w4_le_read_char_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_le_read_char_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_w4_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_le_read_descr_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_w4_le_write_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_le_write_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
-extern void bta_hh_le_write_char_descr_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_start_security(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_security_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 extern void bta_hh_le_notify_enc_cmpl(tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_data);
@@ -399,10 +383,6 @@ extern void bta_hh_ci_load_rpt (tBTA_HH_DEV_CB *p_cb, tBTA_HH_DATA *p_buf);
 
 #if (BTA_HH_DEBUG == TRUE)
 extern void bta_hh_trace_dev_db(void);
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

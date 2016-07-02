@@ -118,15 +118,10 @@ typedef uint8_t tBTA_GATT_STATUS;
 #define BTA_GATTC_REG_EVT           0   /* GATT client is registered. */
 #define BTA_GATTC_DEREG_EVT         1   /* GATT client deregistered event */
 #define BTA_GATTC_OPEN_EVT          2   /* GATTC open request status  event */
-#define BTA_GATTC_READ_CHAR_EVT     3   /* GATT read characteristic event */
-#define BTA_GATTC_WRITE_CHAR_EVT    4   /* GATT write characteristic or char descriptor event */
 #define BTA_GATTC_CLOSE_EVT         5   /* GATTC  close request status event */
 #define BTA_GATTC_SEARCH_CMPL_EVT   6   /* GATT discovery complete event */
 #define BTA_GATTC_SEARCH_RES_EVT    7   /* GATT discovery result event */
-#define BTA_GATTC_READ_DESCR_EVT    8   /* GATT read characterisitc descriptor event */
-#define BTA_GATTC_WRITE_DESCR_EVT   9   /* GATT write characteristic descriptor event */
 #define BTA_GATTC_NOTIF_EVT         10  /* GATT attribute notification event */
-#define BTA_GATTC_PREP_WRITE_EVT    11  /* GATT prepare write  event */
 #define BTA_GATTC_EXEC_EVT          12  /* execute write complete event */
 #define BTA_GATTC_ACL_EVT           13  /* ACL up event */
 #define BTA_GATTC_CANCEL_OPEN_EVT   14  /* cancel open event */
@@ -753,6 +748,10 @@ extern const tBTA_GATTC_DESCRIPTOR* BTA_GATTC_GetDescriptor(uint16_t conn_id, ui
 extern void BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_t end_handle,
                                 btgatt_db_element_t **db, int *count);
 
+typedef void (*GATT_READ_OP_CB)(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, uint16_t len,
+                                uint8_t *value, void* data);
+typedef void (*GATT_WRITE_OP_CB)(uint16_t conn_id, tGATT_STATUS status, uint16_t handle, void* data);
+
 /*******************************************************************************
 **
 ** Function         BTA_GATTC_ReadCharacteristic
@@ -765,7 +764,8 @@ extern void BTA_GATTC_GetGattDb(uint16_t conn_id, uint16_t start_handle, uint16_
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
+                                  GATT_READ_OP_CB callback, void* cb_data);
 
 /*******************************************************************************
 **
@@ -779,7 +779,8 @@ void BTA_GATTC_ReadCharacteristic(uint16_t conn_id, uint16_t handle, tBTA_GATT_A
 ** Returns          None
 **
 *******************************************************************************/
-void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req);
+void BTA_GATTC_ReadCharDescr (uint16_t conn_id, uint16_t handle, tBTA_GATT_AUTH_REQ auth_req,
+                              GATT_READ_OP_CB callback, void* cb_data);
 
 /*******************************************************************************
 **
@@ -799,7 +800,9 @@ void BTA_GATTC_WriteCharValue ( uint16_t conn_id,
                                 uint16_t handle,
                                 tBTA_GATTC_WRITE_TYPE  write_type,
                                 vector<uint8_t> value,
-                                tBTA_GATT_AUTH_REQ auth_req);
+                                tBTA_GATT_AUTH_REQ auth_req,
+                                GATT_WRITE_OP_CB callback,
+                                void* cb_data);
 
 /*******************************************************************************
 **
@@ -819,7 +822,9 @@ void BTA_GATTC_WriteCharDescr (uint16_t conn_id,
                                uint16_t handle,
                                tBTA_GATTC_WRITE_TYPE  write_type,
                                vector<uint8_t> value,
-                               tBTA_GATT_AUTH_REQ auth_req);
+                               tBTA_GATT_AUTH_REQ auth_req,
+                               GATT_WRITE_OP_CB callback,
+                               void* cb_data);
 
 /*******************************************************************************
 **
@@ -887,7 +892,9 @@ extern void BTA_GATTC_PrepareWrite  (uint16_t conn_id,
                                      uint16_t handle,
                                      uint16_t offset,
                                      vector<uint8_t> value,
-                                     tBTA_GATT_AUTH_REQ auth_req);
+                                     tBTA_GATT_AUTH_REQ auth_req,
+                                     GATT_WRITE_OP_CB callback,
+                                     void* cb_data);
 
 /*******************************************************************************
 **

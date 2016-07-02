@@ -204,23 +204,6 @@ void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
     case BTA_GATTC_DEREG_EVT:
       break;
 
-    case BTA_GATTC_READ_CHAR_EVT: {
-      btgatt_read_params_t data;
-      set_read_value(&data, &p_data->read);
-
-      HAL_CBACK(bt_gatt_callbacks, client->read_characteristic_cb,
-                p_data->read.conn_id, p_data->read.status, &data);
-      break;
-    }
-
-    case BTA_GATTC_WRITE_CHAR_EVT:
-    case BTA_GATTC_PREP_WRITE_EVT: {
-      HAL_CBACK(bt_gatt_callbacks, client->write_characteristic_cb,
-                p_data->write.conn_id, p_data->write.status,
-                p_data->write.handle);
-      break;
-    }
-
     case BTA_GATTC_EXEC_EVT: {
       HAL_CBACK(bt_gatt_callbacks, client->execute_write_cb,
                 p_data->exec_cmpl.conn_id, p_data->exec_cmpl.status);
@@ -230,22 +213,6 @@ void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
     case BTA_GATTC_SEARCH_CMPL_EVT: {
       HAL_CBACK(bt_gatt_callbacks, client->search_complete_cb,
                 p_data->search_cmpl.conn_id, p_data->search_cmpl.status);
-      break;
-    }
-
-    case BTA_GATTC_READ_DESCR_EVT: {
-      btgatt_read_params_t data;
-      set_read_value(&data, &p_data->read);
-
-      HAL_CBACK(bt_gatt_callbacks, client->read_descriptor_cb,
-                p_data->read.conn_id, p_data->read.status, &data);
-      break;
-    }
-
-    case BTA_GATTC_WRITE_DESCR_EVT: {
-      HAL_CBACK(bt_gatt_callbacks, client->write_descriptor_cb,
-                p_data->write.conn_id, p_data->write.status,
-                p_data->write.handle);
       break;
     }
 
@@ -327,9 +294,9 @@ void btif_gattc_upstreams_evt(uint16_t event, char *p_param) {
 }
 
 void bta_gattc_cback(tBTA_GATTC_EVT event, tBTA_GATTC *p_data) {
-  bt_status_t status = btif_transfer_context(
-      btif_gattc_upstreams_evt, (uint16_t)event, (char *)p_data,
-      sizeof(tBTA_GATTC), NULL);
+  bt_status_t status =
+      btif_transfer_context(btif_gattc_upstreams_evt, (uint16_t)event,
+                            (char *)p_data, sizeof(tBTA_GATTC), NULL);
   ASSERTC(status == BT_STATUS_SUCCESS, "Context transfer failed!", status);
 }
 
@@ -779,17 +746,49 @@ bt_status_t btif_gattc_get_gatt_db(int conn_id) {
   return do_in_jni_thread(Bind(&btif_gattc_get_gatt_db_impl, conn_id));
 }
 
+void read_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                  uint16_t len, uint8_t *value, void *data) {
+  btgatt_read_params_t *params = new btgatt_read_params_t;
+  params->value_type = 0x00 /* GATTC_READ_VALUE_TYPE_VALUE */;
+  params->status = status;
+  params->handle = handle;
+  params->value.len = len;
+  assert(len <= BTGATT_MAX_ATTR_LEN);
+  if (len > 0) memcpy(params->value.value, value, len);
+
+  CLI_CBACK_IN_JNI(read_characteristic_cb, conn_id, status,
+                   base::Owned(params));
+}
+
 bt_status_t btif_gattc_read_char(int conn_id, uint16_t handle, int auth_req) {
   CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(&BTA_GATTC_ReadCharacteristic, conn_id, handle, auth_req));
+  return do_in_jni_thread(Bind(&BTA_GATTC_ReadCharacteristic, conn_id, handle,
+                               auth_req, read_char_cb, nullptr));
+}
+
+void read_desc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                  uint16_t len, uint8_t *value, void *data) {
+  btgatt_read_params_t *params = new btgatt_read_params_t;
+  params->value_type = 0x00 /* GATTC_READ_VALUE_TYPE_VALUE */;
+  params->status = status;
+  params->handle = handle;
+  params->value.len = len;
+  assert(len <= BTGATT_MAX_ATTR_LEN);
+  if (len > 0) memcpy(params->value.value, value, len);
+
+  CLI_CBACK_IN_JNI(read_descriptor_cb, conn_id, status, base::Owned(params));
 }
 
 bt_status_t btif_gattc_read_char_descr(int conn_id, uint16_t handle,
                                        int auth_req) {
   CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(&BTA_GATTC_ReadCharDescr, conn_id, handle, auth_req));
+  return do_in_jni_thread(Bind(&BTA_GATTC_ReadCharDescr, conn_id, handle,
+                               auth_req, read_desc_cb, nullptr));
+}
+
+void write_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                   void *data) {
+  CLI_CBACK_IN_JNI(write_characteristic_cb, conn_id, status, handle);
 }
 
 bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
@@ -800,7 +799,13 @@ bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle, int write_type,
     value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharValue, conn_id, handle,
-                               write_type, std::move(value), auth_req));
+                               write_type, std::move(value), auth_req,
+                               write_char_cb, nullptr));
+}
+
+void write_descr_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
+                    void *data) {
+  CLI_CBACK_IN_JNI(write_descriptor_cb, conn_id, status, handle);
 }
 
 bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
@@ -812,7 +817,8 @@ bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
     value.resize(BTGATT_MAX_ATTR_LEN);
 
   return do_in_jni_thread(Bind(&BTA_GATTC_WriteCharDescr, conn_id, handle,
-                               write_type, std::move(value), auth_req));
+                               write_type, std::move(value), auth_req,
+                               write_descr_cb, nullptr));
 }
 
 bt_status_t btif_gattc_execute_write(int conn_id, int execute) {
