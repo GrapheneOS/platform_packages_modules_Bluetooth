@@ -78,6 +78,8 @@ class HeartRateServer
                                bool is_execute) override;
   Status OnNotificationSent(const String16& device_address,
                             int status) override;
+  Status OnConnectionStateChanged(const String16& device_address,
+                                  bool connected) override;
 
   // Single mutex to protect all variables below.
   std::mutex mutex_;
