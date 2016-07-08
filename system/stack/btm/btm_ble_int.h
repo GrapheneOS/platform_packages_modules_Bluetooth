@@ -90,7 +90,7 @@ typedef UINT8   tBTM_BLE_SEC_REQ_ACT;
 
 #define BLE_PUBLIC_ADDR_MSB_MASK            0xC0
 #define BLE_PUBLIC_ADDR_MSB                 0x80   /*  most significant bit, bit7, bit6 is 10 to be public address*/
-#define BTM_IS_PUBLIC_BDA(x)               (((x)[0]  & BLE_PUBLIC_ADDR_MSB) == BLE_PUBLIC_ADDR_MSB_MASK)
+#define BTM_IS_PUBLIC_BDA(x)               (((x)[0]  & BLE_PUBLIC_ADDR_MSB_MASK) == BLE_PUBLIC_ADDR_MSB)
 
 /* LE scan activity bit mask, continue with LE inquiry bits */
 #define BTM_LE_SELECT_CONN_ACTIVE      0x40     /* selection connection is in progress */
