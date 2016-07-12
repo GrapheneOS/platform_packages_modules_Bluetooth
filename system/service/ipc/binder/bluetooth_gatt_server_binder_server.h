@@ -98,6 +98,9 @@ class BluetoothGattServerBinderServer : public BnBluetoothGattServer,
   void OnExecuteWriteRequest(bluetooth::GattServer* gatt_server,
                              const std::string& device_address, int request_id,
                              bool is_execute) override;
+  void OnConnectionStateChanged(bluetooth::GattServer* gatt_server,
+                                const std::string& device_addres,
+                                bool connected) override;
 
  private:
   // Returns a pointer to the IBluetoothGattServerCallback instance
