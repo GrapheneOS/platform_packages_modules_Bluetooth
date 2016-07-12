@@ -44,4 +44,6 @@ oneway interface IBluetoothGattServerCallback {
 
   void OnNotificationSent(String device_address,
     int status);
+
+  void OnConnectionStateChanged(String device_address, boolean connected);
   }
