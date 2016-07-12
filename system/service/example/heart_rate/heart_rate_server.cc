@@ -531,4 +531,10 @@ Status HeartRateServer::OnNotificationSent(const String16& device_address,
   return Status::ok();
 }
 
+Status HeartRateServer::OnConnectionStateChanged(const String16& device_address,
+                                                 bool connected) {
+  LOG(INFO) << "Connection state changed - device: " << device_address
+            << " connected: " << (connected? "true" : "false");
+  return Status::ok();
+}
 }  // namespace heart_rate

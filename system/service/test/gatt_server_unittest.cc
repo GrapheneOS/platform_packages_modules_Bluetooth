@@ -55,7 +55,8 @@ class TestDelegate : public GattServer::Delegate {
 
   struct RequestData {
     RequestData() : id(-1), offset(-1), is_long(false), is_prep(false),
-                    need_rsp(false), is_exec(false), count(0) {}
+                    need_rsp(false), is_exec(false), count(0),
+                    connected(false) {}
     ~RequestData() = default;
 
     std::string device_address;
@@ -68,6 +69,7 @@ class TestDelegate : public GattServer::Delegate {
     GattIdentifier gatt_id;
     int count;
     std::vector<uint8_t> write_value;
+    bool connected;
   };
 
   void OnCharacteristicReadRequest(
@@ -143,10 +145,21 @@ class TestDelegate : public GattServer::Delegate {
     exec_req_.count++;
   }
 
+  void OnConnectionStateChanged(
+      GattServer* gatt_server,
+      const std::string& device_address,
+      bool connected) override {
+    ASSERT_TRUE(gatt_server);
+    conn_state_changed_.device_address = device_address;
+    conn_state_changed_.connected = connected;
+    conn_state_changed_.count++;
+  }
+
   const RequestData& char_read_req() const { return char_read_req_; }
   const RequestData& desc_read_req() const { return desc_read_req_; }
   const RequestData& char_write_req() const { return char_write_req_; }
   const RequestData& desc_write_req() const { return desc_write_req_; }
+  const RequestData& conn_state_changed() const { return conn_state_changed_; }
 
  private:
   RequestData char_read_req_;
@@ -154,6 +167,7 @@ class TestDelegate : public GattServer::Delegate {
   RequestData char_write_req_;
   RequestData desc_write_req_;
   RequestData exec_req_;
+  RequestData conn_state_changed_;
 };
 
 class GattServerTest : public ::testing::Test {
