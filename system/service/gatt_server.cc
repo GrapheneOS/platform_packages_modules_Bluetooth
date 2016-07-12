@@ -477,6 +477,9 @@ void GattServer::ConnectionCallback(
       break;
     }
 
+    if (delegate_)
+      delegate_->OnConnectionStateChanged(this, device_address, false);
+
     return;
   }
 
@@ -491,6 +494,9 @@ void GattServer::ConnectionCallback(
   std::shared_ptr<Connection> connection(new Connection(conn_id, bda));
   conn_id_map_[conn_id] = connection;
   conn_addr_map_[device_address].push_back(connection);
+
+  if (delegate_)
+    delegate_->OnConnectionStateChanged(this, device_address, true);
 }
 
 void GattServer::ServiceAddedCallback(

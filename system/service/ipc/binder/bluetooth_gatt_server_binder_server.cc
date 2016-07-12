@@ -376,5 +376,20 @@ void BluetoothGattServerBinderServer::OnExecuteWriteRequest(
       is_execute);
 }
 
+void BluetoothGattServerBinderServer::OnConnectionStateChanged(
+    bluetooth::GattServer* gatt_server, const std::string& device_address, bool connected) {
+  VLOG(2) << __func__;
+  std::lock_guard<std::mutex> lock(*maps_lock());
+
+  auto gatt_cb = GetGattServerCallback(gatt_server->GetInstanceId());
+  if (!gatt_cb.get()) {
+    LOG(WARNING) << "Callback for this GattServer was deleted.";
+    return;
+  }
+
+  gatt_cb->OnConnectionStateChanged(
+      String16(device_address.c_str(), device_address.length()), connected);
+}
+
 }  // namespace binder
 }  // namespace ipc

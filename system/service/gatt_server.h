@@ -106,6 +106,11 @@ class GattServer : public BluetoothInstance,
         const std::string& device_address,
         int request_id, bool is_execute) = 0;
 
+    virtual void OnConnectionStateChanged(
+        GattServer* gatt_server,
+        const std::string& device_addres,
+        bool connected) = 0;
+
    private:
     DISALLOW_COPY_AND_ASSIGN(Delegate);
   };
