@@ -29,6 +29,7 @@
 #include "service/gatt_server.h"
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"
+#include "service/low_energy_advertiser.h"
 #include "service/low_energy_client.h"
 
 using std::lock_guard;
@@ -78,6 +79,7 @@ class AdapterImpl : public Adapter,
     memset(&local_le_features_, 0, sizeof(local_le_features_));
     hal::BluetoothInterface::Get()->AddObserver(this);
     ble_client_factory_.reset(new LowEnergyClientFactory(*this));
+    ble_advertiser_factory_.reset(new LowEnergyAdvertiserFactory());
     gatt_client_factory_.reset(new GattClientFactory());
     gatt_server_factory_.reset(new GattServerFactory());
     hal::BluetoothInterface::Get()->GetHALInterface()->get_adapter_properties();
@@ -215,6 +217,10 @@ class AdapterImpl : public Adapter,
 
   LowEnergyClientFactory* GetLowEnergyClientFactory() const override {
     return ble_client_factory_.get();
+  }
+
+  LowEnergyAdvertiserFactory* GetLeAdvertiserFactory() const override {
+    return ble_advertiser_factory_.get();
   }
 
   GattClientFactory* GetGattClientFactory() const override {
@@ -385,6 +391,9 @@ class AdapterImpl : public Adapter,
 
   // Factory used to create per-app LowEnergyClient instances.
   std::unique_ptr<LowEnergyClientFactory> ble_client_factory_;
+
+  // Factory used to create per-app LeAdvertiser instances.
+  std::unique_ptr<LowEnergyAdvertiserFactory> ble_advertiser_factory_;
 
   // Factory used to create per-app GattClient instances.
   std::unique_ptr<GattClientFactory> gatt_client_factory_;
