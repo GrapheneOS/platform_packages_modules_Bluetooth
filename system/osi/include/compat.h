@@ -21,6 +21,10 @@
 #include <features.h>
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if __GLIBC__
 
 /* Get thread identification. */
@@ -32,4 +36,8 @@ size_t strlcpy(char *dst, const char *src, size_t siz);
 /* Appends src to string dst of size siz. */
 size_t strlcat(char *dst, const char *src, size_t siz);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
